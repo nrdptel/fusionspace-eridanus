@@ -123,8 +123,9 @@ gusts every time on the same platform (operating system and processor). The deta
 
 HPR Sim reads `.eng` and `.rse` [thrust curves](glossary.md#thrust-curve), and follows a motor's
 thrust, mass, center of gravity and inertia through the burn.
-It bundles [32 motors](physics/motor.md#the-bundled-motors). One the catalog lacks is fetched from
-ThrustCurve.org by name and cached, so it flies offline after that
+It bundles [32 motors](physics/motor.md#the-bundled-motors), each file checked against
+ThrustCurve.org's figures. One it lacks is fetched from there by name and cached, so it flies
+offline after that
 ([motors on demand](decisions-and-roadmap.md#m4-5b)). Stock and prices come from
 motor.fusionspace.co. The detail is in [Solid motors](physics/motor.md),
 [`.eng` files](format/eng.md), [`.rse` files](format/rse.md) and

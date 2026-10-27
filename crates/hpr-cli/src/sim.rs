@@ -2740,7 +2740,7 @@ fn motor(name: &str, offline: bool) -> Result<(Motor, SimMotorSource, Vec<InputW
                 SimMotorSource::Catalog {
                     as_of: crate::motors::catalog_as_of()?,
                 },
-                Vec::new(),
+                crate::motors::check_warnings(&crate::motors::catalog()?, name),
             )),
             Err(hpr::Error::NoSuchMotor(_)) => {
                 let (motor, fetched) =

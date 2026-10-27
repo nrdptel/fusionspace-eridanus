@@ -64,9 +64,10 @@ impl Motor {
     }
 
     /// The motor in HPR Sim's built-in catalog whose designation or common name is `name`,
-    /// ignoring case, spaces and hyphens (`"H54"`, `"168H54-10A"`, `"k 400"`), with its first
-    /// bundled thrust curve. Only motors with a bundled curve can be found: 32 today, listed on
-    /// the [motor page][motor-page]. The delay is not set, whatever the designation says: give it
+    /// ignoring case, spaces and hyphens (`"H54"`, `"168H54-10A"`, `"k 400"`), with its default
+    /// thrust curve: a bundled file within 1% of ThrustCurve.org's stated figures where it has one
+    /// ([`hpr_motor::catalog::CatalogMotor::default_curve`]). Only motors with a bundled curve can
+    /// be found: 32 today, listed on the [motor page][motor-page]. The delay is not set, whatever the designation says: give it
     /// with [`Motor::with_delay_s`].
     ///
     /// [motor-page]: https://hpr.fusionspace.co/physics/motor.html

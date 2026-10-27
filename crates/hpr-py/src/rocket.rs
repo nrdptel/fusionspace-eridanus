@@ -32,8 +32,8 @@ impl Motor {
 #[pymethods]
 impl Motor {
     /// The motor in HPR Sim's built-in catalog whose designation or common name is `name`
-    /// (`"H54"`, `"168H54-10A"`), ignoring case, spaces and hyphens. It comes with its first
-    /// bundled thrust curve. `delay_s` sets its ejection delay; the designation's own delay is not
+    /// (`"H54"`, `"168H54-10A"`), ignoring case, spaces and hyphens. It comes with its default
+    /// thrust curve, a bundled file within 1% of ThrustCurve.org's stated figures where it has one. `delay_s` sets its ejection delay; the designation's own delay is not
     /// used. The command `hpr motors list` lists the catalog's motors.
     #[staticmethod]
     #[pyo3(signature = (name, *, delay_s = None))]

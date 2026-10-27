@@ -265,18 +265,18 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     Monte Carlo, CG and inertia with it; the margin and descent rate report its worst end, a test
     pinning the direction.
 - [ ] **M5.7 Every solid motor, offline** (ADR-288; Neer, 2026-10-21; VISION V56). ThrustCurve.org's
-  solid catalog compiled in ([research](research/thrustcurve-data.md)). *Done when:*
-  - a fresh snapshot's every solid motor and every file but a restricted one are in `hpr-motor`,
-    figures and labels equal to the snapshot's; each file left out is listed with its reason, and
-    one past the snapshot's named refusals fails; offline, `hpr motors list` lists each motor and
-    `hpr sim --motor` flies each with a curve, the counts taken from the raw snapshot;
-  - each file stores its ADR-005 1% check (definition A); the default is a passing file where one
-    exists; `hpr motors show` lists every file, its check and label; flying a failing file warns
-    with each figure's signed gap (tests: a pass, the 1% edge, each figure alone; a mutation probe);
-  - the L42 and statistics-code tests run over every file stored as passing, the oracle fixture
-    covering each, and `xtask motor-catalog`'s 1% failure runs in CI; a raw-snapshot recount agrees;
-  - `hpr motors update` adds a newer motor or file from a recorded answer, and offline names the
-    bundle's date; the motor page gives the date, counts, passing motors and size, from the tool.
+  solid catalog compiled in ([research](research/thrustcurve-data.md)). Split a to d (ADR-298).
+  - [ ] **M5.7b The whole catalog, from a fresh snapshot.** *Done when:* a fresh snapshot's every
+    solid motor and every file but a restricted one are in `hpr-motor`, figures and labels equal
+    to the snapshot's; each file left out is listed with its reason, and one past the snapshot's
+    named refusals fails; offline, `hpr motors list` lists each motor and `hpr sim --motor` flies
+    each with a curve, the counts taken from the raw snapshot.
+  - [ ] **M5.7c Every passing file held to the oracles.** *Done when:* the L42 and
+    statistics-code tests run over every file stored as passing, the oracle fixture covering each,
+    and `xtask motor-catalog`'s 1% failure runs in CI; a raw-snapshot recount agrees.
+  - [ ] **M5.7d Newer motors online, and the bundle described.** *Done when:* `hpr motors update`
+    adds a newer motor or file from a recorded answer, and offline names the bundle's date; the
+    motor page gives the date, counts, passing motors and size, from the tool.
 
 ## Phase 3: Uncertainty, optimization, challenges
 

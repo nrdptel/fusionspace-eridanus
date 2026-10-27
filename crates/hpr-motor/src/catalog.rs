@@ -7,11 +7,14 @@
 //! `docs/research/thrustcurve-data.md`). Other curves are fetched and cached by `hpr-net`, the
 //! online layer that starts at [M5.1][m5-1].
 //!
-//! Every figure in the bundled index comes from its curve file alone, written by
+//! Every figure a motor lists in the bundled index comes from its curve file alone, written by
 //! `cargo xtask motor-catalog` (the rule [ADR-186][adr-186] set, issue #295). ThrustCurve.org
-//! grants no license for its API's motor records and reserves copyright. [ADR-287][adr-287] has
-//! since let the project use those records as published facts, with credit, but none of their
-//! figures is copied yet: [ADR-288][adr-288] plans the whole solid catalog for [M5.7][m5-7].
+//! grants no license for its API's motor records and reserves copyright. [ADR-287][adr-287] lets
+//! the project use those records as published facts, with credit, so each motor also carries its
+//! record's [`StatedFigures`], and each curve file its [`CurveCheck`] against them, the 1% rule
+//! of [ADR-005][adr-005]. A motor flies its [`CatalogMotor::default_curve`], a passing file
+//! where it has one ([ADR-298][adr-298]). [ADR-288][adr-288] plans the whole solid catalog for
+//! [M5.7][m5-7].
 //!
 //! Size, masses and delays are the file header's; total impulse, average and peak thrust and burn
 //! time are worked out from the curve by [`ThrustCurve`]'s own methods, the ones the simulator
@@ -32,6 +35,7 @@
 //! [adr-186]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-186-the-data-network-and-python-fixes-of-release-01-2026-10-06
 //! [adr-287]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-287-thrustcurveorgs-motor-records-used-as-published-facts-2026-10-20
 //! [adr-288]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-288-every-solid-motor-ships-in-the-package-2026-10-21
+//! [adr-298]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0298-every-solid-motor-in-four-increments.md
 //! [l43]: https://hpr.fusionspace.co/decisions-and-roadmap.html#l43
 //! [m5-1]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m5-1
 //! [m5-7]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m5-7
@@ -125,12 +129,148 @@ pub struct CatalogMotor {
     pub propellant_mass_g: Option<f64>,
     /// Loaded mass, g.
     pub total_mass_g: Option<f64>,
+    /// The figures ThrustCurve.org's record states for the motor, which each curve file is
+    /// checked against ([`CurveCheck`]).
+    pub stated: StatedFigures,
     /// The motor's curves.
     pub curves: Vec<CatalogCurve>,
 }
 
-/// Where a thrust curve came from and under what terms.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// The figures ThrustCurve.org's record of a motor states (its API's `totImpulseNs`,
+/// `avgThrustN`, `burnTimeS` and `maxThrustN`), copied unchanged: published facts, used with
+/// credit ([ADR-287][adr-287]). ThrustCurve.org works them out from a curve file it chooses, with
+/// the burn time between the 5%-of-peak crossings (its *Motor Statistics* page,
+/// <https://www.thrustcurve.org/info/motorstats.html>).
+///
+/// [adr-287]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct StatedFigures {
+    /// Total impulse, N·s.
+    pub total_impulse_ns: f64,
+    /// Average thrust, N.
+    pub average_thrust_n: f64,
+    /// Burn time, s.
+    pub burn_time_s: f64,
+    /// Peak thrust, N, where the record states one. No file is checked against it.
+    pub max_thrust_n: Option<f64>,
+}
+
+/// The relative bound of a curve file's check: each figure within 1% of the motor's stated one
+/// ([ADR-005][adr-005], [ADR-298][adr-298]).
+///
+/// [adr-005]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0005-solid-motors-statistics-consumption-grains-file.md
+/// [adr-298]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0298-every-solid-motor-in-four-increments.md
+pub const CHECK_BOUND: f64 = 0.01;
+
+/// A curve file's check against its motor's [`StatedFigures`] ([ADR-005][adr-005]'s 1% rule,
+/// definition A of the ThrustCurve.org data notes): the file's total impulse over its whole
+/// curve, its NFPA 1125 burn time between the 5%-of-peak crossings, and its average thrust as
+/// that impulse over that burn time, each worked out by [`ThrustCurve`]'s own methods, the ones
+/// the simulator flies. The file passes when all three are within [`CHECK_BOUND`] of the stated
+/// figures: `|file − stated| ≤ 0.01 × stated`, so a gap of exactly 1% passes. A pass says the
+/// file agrees with the published figures; it says nothing about the curve's shape between them.
+///
+/// [adr-005]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0005-solid-motors-statistics-consumption-grains-file.md
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct CurveCheck {
+    /// The file's total impulse, N·s ([`ThrustCurve::total_impulse_ns`]).
+    pub total_impulse_ns: f64,
+    /// The file's average thrust, N ([`ThrustCurve::average_thrust_n`]).
+    pub average_thrust_n: f64,
+    /// The file's burn time, s ([`ThrustCurve::burn_time_s`]).
+    pub burn_time_s: f64,
+    /// Whether all three are within [`CHECK_BOUND`] of the motor's stated figures.
+    pub passes: bool,
+}
+
+/// A figure a curve file's check compares.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+#[non_exhaustive]
+pub enum CheckedFigure {
+    /// Total impulse.
+    TotalImpulse,
+    /// Average thrust.
+    AverageThrust,
+    /// Burn time.
+    BurnTime,
+}
+
+impl CheckedFigure {
+    /// The figure's name in words: `total impulse`, `average thrust`, `burn time`.
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::TotalImpulse => "total impulse",
+            Self::AverageThrust => "average thrust",
+            Self::BurnTime => "burn time",
+        }
+    }
+}
+
+/// One figure of a curve file's check: the file's value and the motor's stated one.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct FigureGap {
+    /// Which figure.
+    pub figure: CheckedFigure,
+    /// The file's value.
+    pub file: f64,
+    /// ThrustCurve.org's stated value.
+    pub stated: f64,
+}
+
+impl FigureGap {
+    /// The signed relative gap, `(file − stated) / stated`: positive when the file's figure is
+    /// the larger.
+    pub fn relative(&self) -> f64 {
+        (self.file - self.stated) / self.stated
+    }
+
+    /// Whether the file's figure is within [`CHECK_BOUND`] of the stated one,
+    /// `|file − stated| ≤ 0.01 × stated`. A stated figure that isn't positive, or a NaN either
+    /// side, fails.
+    pub fn within_bound(&self) -> bool {
+        self.stated > 0.0 && (self.file - self.stated).abs() <= CHECK_BOUND * self.stated
+    }
+}
+
+impl CurveCheck {
+    /// The check of a curve against a motor's stated figures.
+    pub fn of(thrust: &ThrustCurve, stated: &StatedFigures) -> Self {
+        let mut check = Self {
+            total_impulse_ns: thrust.total_impulse_ns(),
+            average_thrust_n: thrust.average_thrust_n(),
+            burn_time_s: thrust.burn_time_s(),
+            passes: false,
+        };
+        check.passes = check.gaps(stated).iter().all(FigureGap::within_bound);
+        check
+    }
+
+    /// The three figures against `stated`: total impulse, average thrust, burn time.
+    pub fn gaps(&self, stated: &StatedFigures) -> [FigureGap; 3] {
+        [
+            FigureGap {
+                figure: CheckedFigure::TotalImpulse,
+                file: self.total_impulse_ns,
+                stated: stated.total_impulse_ns,
+            },
+            FigureGap {
+                figure: CheckedFigure::AverageThrust,
+                file: self.average_thrust_n,
+                stated: stated.average_thrust_n,
+            },
+            FigureGap {
+                figure: CheckedFigure::BurnTime,
+                file: self.burn_time_s,
+                stated: stated.burn_time_s,
+            },
+        ]
+    }
+}
+
+/// Where a thrust curve came from, under what terms, and how it compares with its motor's stated
+/// figures.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CatalogCurve {
     /// ThrustCurve's simfile id.
     pub simfile_id: String,
@@ -151,6 +291,8 @@ pub struct CatalogCurve {
     pub info_url: Option<String>,
     /// The download date, `YYYY-MM-DD`.
     pub retrieved: String,
+    /// The file's check against its motor's stated figures, worked out when the index is written.
+    pub check: CurveCheck,
 }
 
 /// A thrust-curve file format.
@@ -366,21 +508,83 @@ impl CatalogMotor {
         )
     }
 
-    /// The motor with its first bundled curve.
+    /// The motor with its default curve ([`CatalogMotor::default_curve`]).
     ///
     /// # Errors
     ///
     /// [`MotorError::Inconsistent`] if the entry has no bundled curve file, and
     /// [`CatalogMotor::motor`]'s errors.
     pub fn bundled_motor(&self) -> Result<SolidMotor, MotorError> {
-        let (curve, text) = self
-            .curves
-            .iter()
-            .find_map(|curve| bundled_curve_text(&curve.file).map(|text| (curve, text)))
-            .ok_or_else(|| {
-                MotorError::Inconsistent(format!("{} has no bundled curve", self.designation))
-            })?;
+        let curve = self.default_curve().ok_or_else(|| {
+            MotorError::Inconsistent(format!("{} has no bundled curve", self.designation))
+        })?;
+        // `default_curve` takes only a curve with a bundled file.
+        let text = bundled_curve_text(&curve.file).unwrap_or_default();
         self.motor(curve, text)
+    }
+
+    /// The motor's curves in the order its default is taken ([ADR-298][adr-298] §5): a file
+    /// whose check passes first, then the order [ADR-154][adr-154] fetches in, RASP before
+    /// RockSim, each ranked by who measured it (a certification test, the maker, then a user),
+    /// the index's order within a rank.
+    ///
+    /// [adr-154]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0154-motors-fetched-from-thrustcurve-by-name.md
+    /// [adr-298]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0298-every-solid-motor-in-four-increments.md
+    pub fn ranked_curves(&self) -> Vec<&CatalogCurve> {
+        let mut curves: Vec<&CatalogCurve> = self.curves.iter().collect();
+        // Stable: within a rank, the index's order.
+        curves.sort_by_key(|curve| {
+            let format = match curve.format {
+                CurveFormat::Rasp => 0,
+                CurveFormat::RockSim => 1,
+            };
+            let source = match curve.source {
+                CurveSource::Certification => 0,
+                CurveSource::Manufacturer => 1,
+                CurveSource::User => 2,
+            };
+            (!curve.check.passes, format, source)
+        });
+        curves
+    }
+
+    /// The curve a flight takes when none is named: the first of
+    /// [`CatalogMotor::ranked_curves`] whose file is bundled, so a passing file where one is.
+    pub fn default_curve(&self) -> Option<&CatalogCurve> {
+        self.ranked_curves()
+            .into_iter()
+            .find(|curve| bundled_curve_text(&curve.file).is_some())
+    }
+
+    /// The figures of `curve`'s check outside [`CHECK_BOUND`] of this motor's stated ones, in the
+    /// order total impulse, average thrust, burn time; empty when the file passes.
+    pub fn failing_figures(&self, curve: &CatalogCurve) -> Vec<FigureGap> {
+        curve
+            .check
+            .gaps(&self.stated)
+            .into_iter()
+            .filter(|gap| !gap.within_bound())
+            .collect()
+    }
+
+    /// The warning for flying `curve` when its check fails, naming the motor, the file and each
+    /// failing figure's signed gap, file against ThrustCurve.org's stated figure; `None` when it
+    /// passes.
+    pub fn check_warning(&self, curve: &CatalogCurve) -> Option<String> {
+        if curve.check.passes {
+            return None;
+        }
+        let gaps: Vec<String> = self
+            .failing_figures(curve)
+            .iter()
+            .map(|gap| format!("{} {:+.2}%", gap.figure.name(), 100.0 * gap.relative()))
+            .collect();
+        Some(format!(
+            "{}'s curve file {} is more than 1% from ThrustCurve.org's figures for it: {}",
+            self.designation,
+            curve.simfile_id,
+            gaps.join(", ")
+        ))
     }
 }
 
@@ -559,7 +763,8 @@ mod tests {
         }
     }
 
-    /// The bundled index copies nothing that only ThrustCurve.org's API records state (#295): no
+    /// Of ThrustCurve.org's API records the bundled index copies only each motor's four stated
+    /// figures (ADR-298; `records.json` beside the files holds the records unchanged): no
     /// certifying body, update date, availability or adjustable-delay flag, and no API capture.
     #[test]
     fn bundled_index_holds_no_thrustcurve_record_fields() {
@@ -966,5 +1171,203 @@ mod tests {
             average.len(),
             median * 100.0,
         );
+    }
+
+    /// ADR-298 §4: every bundled file's stored check is its curve's figures against its motor's
+    /// stated ones, worked out again here, and the stated figures are the committed record's,
+    /// bit for bit. Each of the 32 passes, as they were chosen to, so none warns.
+    #[test]
+    fn every_bundled_check_is_its_file_against_its_record() {
+        let records: serde_json::Value =
+            serde_json::from_str(include_str!("../data/thrustcurve/records.json")).unwrap();
+        let records = records["records"].as_array().unwrap();
+        let bits = |value: &serde_json::Value| value.as_f64().map(f64::to_bits);
+        let catalog = bundled();
+        let mut checked = 0;
+        for motor in &catalog.motors {
+            let name = &motor.designation;
+            let record = records
+                .iter()
+                .find(|r| r["motorId"] == motor.motor_id.as_str())
+                .unwrap_or_else(|| panic!("{name}: no record"));
+            let stated = &motor.stated;
+            assert_eq!(
+                Some(stated.total_impulse_ns.to_bits()),
+                bits(&record["totImpulseNs"])
+            );
+            assert_eq!(
+                Some(stated.average_thrust_n.to_bits()),
+                bits(&record["avgThrustN"])
+            );
+            assert_eq!(
+                Some(stated.burn_time_s.to_bits()),
+                bits(&record["burnTimeS"])
+            );
+            assert_eq!(
+                stated.max_thrust_n.map(f64::to_bits),
+                bits(&record["maxThrustN"])
+            );
+            for curve in &motor.curves {
+                let text = bundled_curve_text(&curve.file).unwrap();
+                let thrust = motor.thrust_curve(curve, text).unwrap();
+                assert_eq!(CurveCheck::of(&thrust, stated), curve.check, "{name}");
+                assert!(curve.check.passes, "{name}");
+                assert!(motor.failing_figures(curve).is_empty(), "{name}");
+                assert_eq!(motor.check_warning(curve), None, "{name}");
+                checked += 1;
+            }
+        }
+        assert_eq!(checked, bundled::CURVE_FILES.len());
+    }
+
+    /// ADR-298 §4: a figure exactly 1% from the stated one passes on either side, and the next
+    /// float past it fails. A stated figure that isn't positive, or a NaN, fails.
+    #[test]
+    fn a_figure_exactly_one_percent_away_passes_and_one_past_fails() {
+        let gap = |file: f64, stated: f64| FigureGap {
+            figure: CheckedFigure::BurnTime,
+            file,
+            stated,
+        };
+        assert!(gap(101.0, 100.0).within_bound());
+        assert!(gap(99.0, 100.0).within_bound());
+        assert!(gap(100.0, 100.0).within_bound());
+        assert!(!gap(101.0_f64.next_up(), 100.0).within_bound());
+        assert!(!gap(99.0_f64.next_down(), 100.0).within_bound());
+        assert_eq!(gap(101.0, 100.0).relative(), 0.01);
+        assert_eq!(gap(99.0, 100.0).relative(), -0.01);
+        assert!(!gap(0.0, 0.0).within_bound());
+        assert!(!gap(-1.0, -1.0).within_bound());
+        assert!(!gap(f64::NAN, 100.0).within_bound());
+        assert!(!gap(100.0, f64::NAN).within_bound());
+    }
+
+    /// ADR-298 §4 and §6: each checked figure fails the check alone, and the warning names that
+    /// figure only, with its signed gap, file against stated. Each case moves one stated figure
+    /// of the bundled J760 so its file's figure sits 1.5% to 3% from it.
+    #[test]
+    fn each_figure_alone_fails_the_check_and_is_named() {
+        let catalog = bundled();
+        let motor = catalog.find("J760").next().unwrap();
+        let curve = &motor.curves[0];
+        let thrust = motor
+            .thrust_curve(curve, bundled_curve_text(&curve.file).unwrap())
+            .unwrap();
+        let all = [
+            CheckedFigure::TotalImpulse,
+            CheckedFigure::AverageThrust,
+            CheckedFigure::BurnTime,
+        ];
+        for (figure, scale, gap) in [
+            (CheckedFigure::TotalImpulse, 1.02, "+2.00%"),
+            (CheckedFigure::AverageThrust, 0.97, "-3.00%"),
+            (CheckedFigure::BurnTime, 1.015, "+1.50%"),
+        ] {
+            let mut moved = motor.clone();
+            let check = &curve.check;
+            match figure {
+                CheckedFigure::TotalImpulse => {
+                    moved.stated.total_impulse_ns = check.total_impulse_ns / scale;
+                }
+                CheckedFigure::AverageThrust => {
+                    moved.stated.average_thrust_n = check.average_thrust_n / scale;
+                }
+                CheckedFigure::BurnTime => moved.stated.burn_time_s = check.burn_time_s / scale,
+            }
+            moved.curves[0].check = CurveCheck::of(&thrust, &moved.stated);
+            let moved_curve = &moved.curves[0];
+            assert!(!moved_curve.check.passes, "{figure:?}");
+            let failing = moved.failing_figures(moved_curve);
+            assert_eq!(failing.len(), 1, "{figure:?}");
+            assert_eq!(failing[0].figure, figure);
+            assert!((failing[0].relative() - (scale - 1.0)).abs() < 1e-12);
+            let warning = moved.check_warning(moved_curve).unwrap();
+            assert_eq!(
+                warning,
+                format!(
+                    "1266J760-19A's curve file {} is more than 1% from ThrustCurve.org's \
+                     figures for it: {} {gap}",
+                    curve.simfile_id,
+                    figure.name()
+                )
+            );
+            for other in all.iter().filter(|other| **other != figure) {
+                assert!(!warning.contains(other.name()), "{warning}");
+            }
+        }
+    }
+
+    /// ADR-298 §5: a motor's files rank a passing file first, then RASP before RockSim, each by
+    /// who measured it (a certification test, the maker, a user), the index's order within a
+    /// rank.
+    #[test]
+    fn files_rank_passing_first_then_by_format_and_source() {
+        let catalog = bundled();
+        let base = &catalog.motors[0];
+        let file = |id: &str, format, source, passes| {
+            let mut curve = base.curves[0].clone();
+            curve.simfile_id = id.to_owned();
+            curve.format = format;
+            curve.source = source;
+            curve.check.passes = passes;
+            curve
+        };
+        use CurveFormat::{Rasp, RockSim};
+        use CurveSource::{Certification, Manufacturer, User};
+        let mut motor = base.clone();
+        motor.curves = vec![
+            file("user rasp pass", Rasp, User, true),
+            file("cert rse fail", RockSim, Certification, false),
+            file("cert rasp fail", Rasp, Certification, false),
+            file("mfr rse pass", RockSim, Manufacturer, true),
+            file("user rasp fail", Rasp, User, false),
+            file("mfr rasp pass", Rasp, Manufacturer, true),
+            file("user rasp pass 2", Rasp, User, true),
+        ];
+        let order: Vec<&str> = motor
+            .ranked_curves()
+            .iter()
+            .map(|curve| curve.simfile_id.as_str())
+            .collect();
+        assert_eq!(
+            order,
+            [
+                "mfr rasp pass",
+                "user rasp pass",
+                "user rasp pass 2",
+                "mfr rse pass",
+                "cert rasp fail",
+                "user rasp fail",
+                "cert rse fail",
+            ]
+        );
+    }
+
+    /// ADR-298 §5: the default is the first ranked file that is bundled. A passing file listed
+    /// after a failing one flies; a passing file that isn't bundled is passed over for a failing
+    /// one that is, and a motor with no bundled file has no default.
+    #[test]
+    fn the_default_file_passes_where_a_bundled_one_does() {
+        let catalog = bundled();
+        let base = &catalog.motors[0];
+        let passing = base.curves[0].clone();
+        let mut failing = passing.clone();
+        failing.simfile_id = "failing".to_owned();
+        failing.check.passes = false;
+        let mut not_bundled = passing.clone();
+        not_bundled.simfile_id = "not bundled".to_owned();
+        not_bundled.file = "curves/not-bundled.eng".to_owned();
+        let mut motor = base.clone();
+        motor.curves = vec![failing.clone(), passing.clone()];
+        assert_eq!(motor.default_curve(), Some(&passing));
+        motor.curves = vec![not_bundled.clone(), failing.clone()];
+        assert_eq!(motor.default_curve(), Some(&failing));
+        assert!(motor.bundled_motor().is_ok());
+        motor.curves = vec![not_bundled];
+        assert_eq!(motor.default_curve(), None);
+        assert!(matches!(
+            motor.bundled_motor(),
+            Err(MotorError::Inconsistent(message)) if message.contains("no bundled curve")
+        ));
     }
 }

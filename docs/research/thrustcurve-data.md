@@ -172,6 +172,8 @@ pinned `motors.json`, the 152 motors typed `hybrid` left out:
 - Not pinned: `info/api.html` (221e4814…) and `api/v1/swagger.json` (566009ab…), which only
   describe the API.
 - The bundled curves are committed with their sha256 in `catalog.json`, so they need no refs pin.
+  Since M5.7a their 32 motors' records are committed too, in `records.json` (ADR-298), and
+  `cargo xtask motor-catalog` fails if one differs from the pinned capture.
   The 4 survey POST captures (2026-09-17T09:53Z) need a request body in snapshot pins; until
   then, they stay an unpinned cache, and `bundle.py` checks licenses and samples against them.
 - **Coarse metadata.** Four bundled motors pass against stored values printed coarser than 1%:

@@ -216,9 +216,8 @@ fn motors_show_says_where_its_figures_come_from() {
                 "Copied from ThrustCurve.org's curve file, downloaded {captured}, not measured by \
                  HPR Sim:"
             ),
-            "The total impulse and peak thrust match OpenRocket's reading of the same file on \
-             every bundled curve. That is a check of the arithmetic, not of the motor. No figure \
-             is checked against the maker's or the certifying bodies' data.",
+            "Each file is checked against ThrustCurve.org's record and OpenRocket's reading of it: \
+             checks of the file, not of the motor.",
             "The motor's printed data and its maker's instructions come first, and the RSO \
              decides.",
         ],

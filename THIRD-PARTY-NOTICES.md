@@ -111,10 +111,17 @@ adds a source.
 - **ThrustCurve.org thrust curves** (`crates/hpr-motor/data/thrustcurve/curves/`, compiled into
   `hpr-motor`): 32 files that ThrustCurve.org marks public domain (license `PD`), unchanged. The
   index `crates/hpr-motor/data/thrustcurve/catalog.json` is written by `cargo xtask
-  motor-catalog` from those files alone: each motor's size, masses and delays are its file
-  header's, and its impulse class, total impulse, average and peak thrust and burn time are worked
-  out from its curve. No statistic from ThrustCurve.org's API records is copied (issue #295). By
-  hand, the index records only names and provenance: the ThrustCurve.org motor and data-file ids
+  motor-catalog` from those files and the motors' records: each motor's size, masses and delays
+  are its file header's, and its impulse class, total impulse, average and peak thrust and burn
+  time are worked out from its curve (issue #295). `records.json` beside them holds the 32 motors'
+  ThrustCurve.org API records, copied unchanged from the 2026-09-17 capture that
+  `validation/refs.lock.toml` pins (`thrustcurve-motors`). ThrustCurve.org grants no license for
+  them and reserves copyright; the project uses them as published facts, with this credit
+  ([ADR-287](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)).
+  The index copies four of their figures, total impulse, average thrust, burn time and peak thrust,
+  and checks each file against the first three
+  ([ADR-298](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0298-every-solid-motor-in-four-increments.md)).
+  By hand, the index records only names and provenance: the ThrustCurve.org motor and data-file ids
   each file is listed under, the motor's designation, maker, type, case and propellant names, and
   the file's data source (certification, manufacturer or user), source URL and download date; its
   SHA-256 is computed. Data courtesy of ThrustCurve.org, https://www.thrustcurve.org/. Curves

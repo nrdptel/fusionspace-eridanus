@@ -1,8 +1,8 @@
 //! The bundled ThrustCurve.org catalog: its index, written by `cargo xtask motor-catalog` from
-//! the curve files alone, and the files. Regenerate it with that command instead of editing it.
+//! the curve files and their motors' records, and the files. Regenerate it with that command instead of editing it.
 
-/// The catalog index: each motor's names, the figures its curve file gives, and per-curve
-/// provenance.
+/// The catalog index: each motor's names, the figures its curve file gives, its record's
+/// stated figures, and per-curve provenance and check.
 pub(crate) const CATALOG_JSON: &str = include_str!("../data/thrustcurve/catalog.json");
 
 /// Each bundled curve file's text, by the path in the index.

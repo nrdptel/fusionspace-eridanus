@@ -1010,9 +1010,8 @@ fn curve(
         ),
         [found] => {
             let Some((curve, text)) = found
-                .curves
-                .iter()
-                .find_map(|curve| Some((curve, bundled_curve_text(&curve.file)?)))
+                .default_curve()
+                .and_then(|curve| Some((curve, bundled_curve_text(&curve.file)?)))
             else {
                 return not_found(
                     NoCurve::NotFound,
@@ -1027,6 +1026,10 @@ fn curve(
                 at,
                 warnings,
             );
+            // A default file that fails its 1% check flies with a warning (ADR-298 §6).
+            if let Some(message) = found.check_warning(curve) {
+                warnings.push(Warning::new(at, WarningKind::Unusual, message));
+            }
             match found.motor(curve, text) {
                 Ok(solid) => Curve::Catalog {
                     motor_id: found.motor_id.clone(),
@@ -1280,5 +1283,68 @@ fn flown(configuration: &MotorConfiguration, lit: Vec<hpr_design::Ignition>) -> 
                 })
             })
             .collect(),
+    }
+}
+
+#[cfg(test)]
+mod check_tests {
+    use hpr_motor::catalog::CurveCheck;
+
+    use super::*;
+
+    /// The J760 as a `.ork` names it, with no embedded or supplied curve.
+    fn j760() -> MotorRead {
+        MotorRead {
+            kind: None,
+            manufacturer: "Cesaroni Technology".to_owned(),
+            designation: "1266J760-19A".to_owned(),
+            digest: None,
+            diameter_m: None,
+            length_m: None,
+            delay: None,
+        }
+    }
+
+    /// ADR-298 §6: a `.ork` motor the bundled catalog supplies flies its default file, with a
+    /// warning naming the failing figure when that file fails its 1% check, and none when it
+    /// passes. The failing catalog moves the J760's stated total impulse so its one file's is
+    /// 1.5% short of it.
+    #[test]
+    fn a_catalog_curve_that_fails_its_check_flies_with_a_warning() {
+        let flown = |catalog: &Catalog| {
+            let mut warnings = Vec::new();
+            let curve = curve(
+                &j760(),
+                &[],
+                &SuppliedCurves::default(),
+                Some(catalog),
+                "motor",
+                &mut warnings,
+            );
+            assert!(matches!(curve, Curve::Catalog { .. }), "{curve:?}");
+            warnings
+        };
+        let mut catalog = Catalog::bundled().unwrap();
+        assert!(flown(&catalog).is_empty());
+        let motor = catalog
+            .motors
+            .iter_mut()
+            .find(|motor| motor.designation == "1266J760-19A")
+            .unwrap();
+        let text = bundled_curve_text(&motor.curves[0].file).unwrap();
+        let thrust = motor.thrust_curve(&motor.curves[0], text).unwrap();
+        motor.stated.total_impulse_ns = thrust.total_impulse_ns() / 0.985;
+        motor.curves[0].check = CurveCheck::of(&thrust, &motor.stated);
+        let warnings = flown(&catalog);
+        let [warning] = &warnings[..] else {
+            panic!("{warnings:?}");
+        };
+        assert_eq!(warning.at, "motor");
+        assert_eq!(warning.kind, WarningKind::Unusual);
+        assert_eq!(
+            warning.message,
+            "1266J760-19A's curve file 5f4294d20002e9000000074a is more than 1% from \
+             ThrustCurve.org's figures for it: total impulse -1.50%"
+        );
     }
 }

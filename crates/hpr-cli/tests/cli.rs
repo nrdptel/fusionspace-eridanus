@@ -18,6 +18,7 @@ use clap::ValueEnum;
 use clap_complete::Shell;
 use hpr::hpr_flightdata::perfectflite::FOOT_M;
 use hpr::hpr_motor::Catalog;
+use hpr::hpr_motor::catalog::CurveSource;
 use hpr_cli::motors::MotorFile;
 use hpr_cli::registry::{self, Availability, PLANNED};
 use serde_json::{Value, json};
@@ -372,7 +373,7 @@ fn json_after_a_double_dash_is_an_argument() {
 }
 
 /// `hpr motors show` reports the library's own figures for a catalog motor's bundled curve, and
-/// names the public-domain file they come from.
+/// names the public-domain file they come from, with its check.
 #[test]
 fn motors_show_reports_the_librarys_figures() {
     let catalog = Catalog::bundled().unwrap();
@@ -399,7 +400,7 @@ fn motors_show_reports_the_librarys_figures() {
         );
         assert_eq!(shown["diameter_m"], 0.054);
         assert_eq!(
-            shown["source"]["curve_url"],
+            shown["source"]["files"][0]["page_url"],
             "https://www.thrustcurve.org/simfiles/5f4294d20002e9000000074a/"
         );
         assert_eq!(
@@ -415,19 +416,23 @@ fn motors_show_reports_the_librarys_figures() {
     let lines = text_ok(&["motors", "show", "J760"]);
     assert!(lines.starts_with("1266J760-19A (Cesaroni Technology), from the bundled catalog\n"));
     assert!(lines.contains("  total impulse    1267.3 N·s\n"), "{lines}");
-    assert!(lines.contains(
-        "  curve file       https://www.thrustcurve.org/simfiles/5f4294d20002e9000000074a/ (public \
-         domain)\n"
-    ));
+    assert!(
+        lines.contains(
+            "  curve file       https://www.thrustcurve.org/simfiles/5f4294d20002e9000000074a/ \
+             (flown)\n                   RASP (.eng), from a certification test, public domain\n\
+             \x20                  passes the 1% check: total impulse +0.13%, average thrust \
+             +0.07%, burn time +0.08%\n"
+        ),
+        "{lines}"
+    );
     assert!(!lines.contains("ThrustCurve.org  "), "{lines}");
 }
 
 /// The figures `hpr motors list` gives for every catalog motor are the ones `hpr motors show`
 /// works out from its curve, bit for bit: since issue #295 the bundled catalog works them out
-/// from its public-domain curve files, and none is ThrustCurve.org's published figure. (The guide's
-/// comparison with those, within 1% and peak thrust from 16.7% below to 2.1% above, is printed and
-/// the 1% held by `cargo xtask motor-catalog`, from ThrustCurve.org's catalog kept outside the
-/// repository.)
+/// from its public-domain curve files, and none is ThrustCurve.org's published figure. Those
+/// appear only as the stated figures each file is checked against (ADR-298), which
+/// `motors_show_lists_every_file_with_its_check_and_label` pins.
 #[test]
 fn the_catalogs_figures_are_what_show_works_out() {
     let list = json(&["motors", "list"], 0, "motors-list.schema.json");
@@ -465,6 +470,56 @@ fn the_catalogs_figures_are_what_show_works_out() {
             "{designation}"
         );
     }
+}
+
+/// ADR-298: `hpr motors show` lists every curve file of a catalog motor, in the order its default
+/// is taken, each with its format, who measured it, its license and its check against
+/// ThrustCurve.org's stated figures, the library's to the bit; the one flown is the default.
+#[test]
+fn motors_show_lists_every_file_with_its_check_and_label() {
+    let catalog = Catalog::bundled().unwrap();
+    let mut seen = 0;
+    for motor in &catalog.motors {
+        let name = motor.designation.as_str();
+        let document = json(&["motors", "show", name], 0, "motors-show.schema.json");
+        let shown = document["motors"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|m| m["name"] == name)
+            .unwrap()
+            .clone();
+        let source = &shown["source"];
+        let files = source["files"].as_array().unwrap();
+        let ranked = motor.ranked_curves();
+        assert_eq!(files.len(), ranked.len(), "{name}");
+        let default = motor.default_curve().unwrap();
+        for (file, curve) in files.iter().zip(&ranked) {
+            assert_eq!(file["simfile_id"], curve.simfile_id.as_str());
+            assert_eq!(file["flown"], curve.simfile_id == default.simfile_id);
+            let measured_by = match curve.source {
+                CurveSource::Certification => "certification_test",
+                CurveSource::Manufacturer => "manufacturer",
+                _ => "user",
+            };
+            assert_eq!(file["measured_by"], measured_by, "{name}");
+            assert_eq!(file["license"], "public_domain", "{name}");
+            let check = &file["check"];
+            assert_eq!(check["passes"], curve.check.passes, "{name}");
+            let keys = ["total_impulse_ns", "average_thrust_n", "burn_time_s"];
+            for (key, gap) in keys.into_iter().zip(curve.check.gaps(&motor.stated)) {
+                assert_eq!(check[key]["file"], gap.file, "{name}: {key}");
+                assert_eq!(check[key]["stated"], gap.stated, "{name}: {key}");
+                assert_eq!(check[key].as_object().unwrap().len(), 2, "{name}: {key}");
+            }
+            seen += 1;
+        }
+        let flown: Vec<&serde_json::Value> =
+            files.iter().filter(|file| file["flown"] == true).collect();
+        assert_eq!(flown.len(), 1, "{name}");
+        assert_eq!(source["format"], flown[0]["format"], "{name}");
+    }
+    assert_eq!(seen, 32);
 }
 
 /// A name several catalog motors share shows each of them.

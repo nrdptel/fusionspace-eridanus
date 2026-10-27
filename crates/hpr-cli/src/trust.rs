@@ -188,23 +188,23 @@ pub(crate) fn own_log() -> String {
 }
 
 /// What `hpr motors show`'s notes say about the figures and what to go by instead.
-const MOTOR_FIGURES: &str = "the size, masses and delays as the file's header gives them, the \
-                             impulse, thrusts and burn time computed from its curve. These can \
-                             differ from the maker's rated figures";
+const MOTOR_FIGURES: &str = "the size, masses and delays from the file's header, the impulse, \
+                             thrusts and burn time from its curve, which can differ from the \
+                             maker's rated figures";
 
 /// What `hpr motors show`'s notes say to go by instead.
 const MOTOR_INSTEAD: &str = "The motor's printed data and its maker's instructions come first, \
                              and the RSO decides.";
 
-/// `hpr motors show`'s note on the bundled catalog, its files downloaded on `captured`: the
-/// total impulse and peak thrust are held to OpenRocket's on every bundled curve
+/// `hpr motors show`'s note on the bundled catalog, its files downloaded on `captured`: each
+/// file is checked against ThrustCurve.org's record of its motor (decision record ADR-298), and
+/// the total impulse and peak thrust are held to OpenRocket's on every bundled curve
 /// (`hpr_motor::catalog`'s `openrocket_s_total_impulse_matches_every_bundled_curve`).
 pub(crate) fn catalog_motor(captured: &str) -> String {
     format!(
         "{LABEL} Copied from ThrustCurve.org's curve file, downloaded {captured}, not measured \
-         by HPR Sim: {MOTOR_FIGURES}. The total impulse and peak thrust match OpenRocket's \
-         reading of the same file on every bundled curve. That is a check of the arithmetic, not of the \
-         motor. No figure is checked against the maker's or the certifying bodies' data. {MOTOR_INSTEAD}{MORE}{SITE}pick-a-motor.html"
+         by HPR Sim: {MOTOR_FIGURES}. Each file is checked against ThrustCurve.org's record and \
+         OpenRocket's reading of it: checks of the file, not of the motor. {MOTOR_INSTEAD}{MORE}{SITE}pick-a-motor.html"
     )
 }
 
