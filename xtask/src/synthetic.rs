@@ -523,9 +523,9 @@ fn round_cells(cells: &mut [smoothed::Cell]) {
 }
 
 /// The health sums to three significant figures, as the report holds them. A flight's log ends
-/// `ground_s` after the simulated landing, and the landing's time differs in its last bits from
-/// one platform to another, so a log can end a sample sooner on one; the sums, unlike the
-/// census's counts of flights, then differ by a sample. A zero stays zero, so a step the pass
+/// `ground_s` after the simulated landing, and the landing's time differs from one platform to
+/// another, so a log can end a sample sooner on one; the sums, unlike the census's counts of
+/// flights, then differ by a sample (ADR-299 item 11). A zero stays zero, so a step the pass
 /// back couldn't smooth still shows.
 fn round_health(health: &mut smoothed::HealthTally) {
     let figures = |n: &mut u64| *n = census::three_figures(*n as f64).round() as u64;

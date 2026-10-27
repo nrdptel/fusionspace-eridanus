@@ -130,12 +130,17 @@ fell short in five places:
     or if a flight's smoothing panics; a moment the smoothed track doesn't reach misses on both
     sides. It also fails if trusting
     GNSS from liftoff holds on A or B. The tuning set's 200 flights are too few to require that;
-    its result is reported. The health cards' sums are held to three significant figures, the
-    digits every platform shares, as the census's values are ([ADR-280][adr-280]). A log ends a
-    drawn time after the simulated landing, and the landing's last bits differ by platform: CI's
-    Linux runners logged one tuning flight a sample shorter than macOS and Windows did, and the
-    exact sums moved by one. So the report no longer shows a change of a few samples in millions;
-    the cells' counts of truths stay exact.
+    its result is reported. The health cards' sums are held to three significant figures, as the
+    census's values are ([ADR-280][adr-280]); a sum under 1,000 keeps every digit. A log ends a
+    drawn time after the simulated landing. CI's Linux runners logged one tuning flight a sample
+    shorter than macOS and Windows did: the set's barometer samples came to 4,859,243 against
+    4,859,244, its accelerometer's to 4,444,351 against 4,444,352. For a sample to cross the
+    log's end, the landing must differ by platform by far more than its last bits; by how much
+    hasn't been measured. So the report no longer shows a change of a few samples in millions.
+    Two exposures remain. The cells' counts of truths stay exact, and a drawn moment moves with
+    the landing time. And the tuning set's 4,446 rejected barometer samples, held as 4,450, lie
+    one from a rounding edge. If either differs by platform, the fix is to find the landing's
+    spread, never to loosen a cell.
 12. **The health card** is `Smoothed::health`, written out by `Health::card`. It holds each
     sensor's samples, fused, rejected and not weighed, its resets, its share inside the gate, its
     mean NIS and largest test ratio; then the de-weighted spans, when GNSS was first trusted, the
