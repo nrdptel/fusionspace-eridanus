@@ -1393,7 +1393,7 @@ HPR Sim's latitudes, heights and [normal gravity](#normal-gravity) are all on it
 ### Wind direction
 
 HPR Sim gives the wind's direction the meteorological way: where it blows *from*, clockwise from
-true north. So a wind from the west ($3\pi/2\,\mathrm{rad}$, 270°) blows toward the east. RocketPy's wind heading
+true north. So a wind from the west ($3\pi/2$ rad, 270°) blows toward the east. RocketPy's wind heading
 is where it blows *toward*, 180° from this. The wind itself is the air's velocity in the
 [launch frame](#launch-frame-enu)'s east and north axes. See [Wind](physics/wind.md#conventions).
 

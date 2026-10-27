@@ -591,7 +591,7 @@ Time (s),Alt AGL (ft),Pressure (hPa),Velocity,Phase
 ```
 
 `Time (s)` is the clock. `Alt AGL (ft)` is an *altitude* (above ground, but no sensor named):
-12 ft is $12 \times 0.3048 = 3.6576\,\mathrm{m}$. 1,000.8 hPa is 100,080 Pa, inside the bounds. `Velocity`
+12 ft is $12 \times 0.3048 = 3.6576$ m. 1,000.8 hPa is 100,080 Pa, inside the bounds. `Velocity`
 states no unit, so its 45 stays as written. `Phase` gives two events, `PAD` at 0 s and `BOOST` at
 0.05 s.
 
@@ -1988,7 +1988,7 @@ decisions over the sample logs:
   prints the range). A 45th, a download a spreadsheet saved with its decimal points taken out
   (`12.34` written `1234`), gives 99.9. It is refused, and counted as damaged. In the CSV
   download, a median step between rows above 1 and below 30 is neither seconds nor milliseconds at
-  the manuals' rates. The file is refused too. A `0.05`&nbsp;s step written without its point is `5`.
+  the manuals' rates. The file is refused too. A `0.05` s step written without its point is `5`.
 - **An Eggtimer download saved by a European locale.** A spreadsheet set to a European locale
   saves the CSV download with semicolons between the cells. It may write its numbers with a
   decimal comma, the mark between a number's whole part and its fraction (`0,05` for 0.05). A
@@ -2278,7 +2278,7 @@ decisions over the sample logs:
     1,100 hPa.
   - *Barometric altitude, the record's altitude, in meters:* it must be the pressure altitude of
     `hPa` in the standard atmosphere. In feet it would be 3.28 times as large. And in the
-    coast before apogee it must slow at 0.7 g to $0.7 \times 3.28\,\mathrm{g}$. That is because gravity and
+    coast before apogee it must slow at 0.7 g to $0.7 \times 3.28$ g. That is because gravity and
     drag slow a coasting rocket by at least 1 g, which an altitude written in feet can't. Read so
     in 7 of the 8 newer files. The barometric speeds are read in m/s by the altitude's rate and the
     same coast.
@@ -2441,9 +2441,9 @@ refused. So is a name stated twice, and so is a value too large for its unit's c
 **A worked example**, from the invented Blue Raven summary that the crate's test
 `tests/featherweight_summary.rs` reads and checks:
 
-- `Max Altitude,2500.25 feet` gives the stated apogee, $2500.25 \times 0.3048 = 762.08\,\mathrm{m}$.
+- `Max Altitude,2500.25 feet` gives the stated apogee, $2500.25 \times 0.3048 = 762.08$ m.
 - `Max velocity,500.50 feet/sec` is a speed of 152.55 m/s (500.50 ft/s).
-- `Max motor burn acceleration,12.0 Gs` is $12.0 \times 9.806\,65 = 117.68\,\mathrm{m/s^2}$.
+- `Max motor burn acceleration,12.0 Gs` is $12.0 \times 9.806\,65 = 117.68$ m/s².
 - `Temperature on pad,77.0 F` is 298.15 K (77.0 °F).
 - `Thrust tilt efficiency,98.50%` is the fraction 0.985.
 - `Main chute descent rate,-20.0 feet` stays −20.0 as written, with the note
@@ -2570,7 +2570,7 @@ $GPRMC,123519.000,A,4807.0380,N,01131.0000,E,022.4,084.4,230394,,,A*62
 The latitude `4807.0380,N` is 48 degrees and 7.038 minutes north, $48 + 7.038/60 = 48.1173$°. The
 longitude `01131.0000,E` is 11 degrees and 31 minutes east, 11.5167°. The altitude is 545.4 m
 (1,789 ft) above mean sea level, in the unit the sentence names (`M`). The speed of 22.4 knots
-reads as $22.4 \times 1852/3600 = 11.52\,\mathrm{m/s}$ (37.8 ft/s). The course is 84.4° from true north. The
+reads as $22.4 \times 1852/3600 = 11.52$ m/s (37.8 ft/s). The course is 84.4° from true north. The
 record's zero is the first sentence's time, 12:35:19 UTC on 23 March 1994.
 
 ### Missile Works' RTx
@@ -2682,8 +2682,8 @@ writes the fix as one line
 175950,3259.01234N,10658.54321W,4593,0,2,122,9,12,40
 ```
 
-its altitude $\lfloor 1400 \times 3.280\,84 \rfloor = 4593\,\mathrm{ft}$, read back as
-$4593 \times 0.3048 = 1399.95\,\mathrm{m}$. The text export writes the longitude in degrees, `-106.975720°`.
+its altitude $\lfloor 1400 \times 3.280\,84 \rfloor = 4593$ ft, read back as
+$4593 \times 0.3048 = 1399.95$ m. The text export writes the longitude in degrees, `-106.975720°`.
 The `.rtx` holds $-(106 + 58.54321/60)$, which is $-106.975\,720\,17$°. So the sixth decimal is
 cut, not rounded.
 
@@ -2763,7 +2763,7 @@ below:
 ```
 
 The record's zero is the first point's time, 17:04:04 UTC on 14 July 2031. The tenth point is $13 -
-4 = 9\,\mathrm{s}$ later and $868.4 - 402.0 = 466.4\,\mathrm{m}$ (1,530 ft) higher. It is the track's highest point. Its
+4 = 9$ s later and $868.4 - 402.0 = 466.4$ m (1,530 ft) higher. It is the track's highest point. Its
 height above sea level the file doesn't say, as its elevation states no datum. The same file marks
 the pad as a waypoint at 17:03:40 UTC. That is read as the figure `waypoint Pad time`, 24 s before
 the zero, −24 s.
@@ -2843,7 +2843,7 @@ Two things in the file aren't what they look like:
 
 A worked example: take the invented sample `perfectflite-alt15k.pfa` (read by the test
 `tests/perfectflite_pfa.rs`). Its eighth height, `00088`, is the sample at 0.7 s, the first at
-80 ft or more. It reads as $88 \times 0.3048 = 26.82\,\mathrm{m}$ above the pad.
+80 ft or more. It reads as $88 \times 0.3048 = 26.82$ m above the pad.
 
 DataCap's help also says a `NumSamps:` of 2,200 (a revision 2 altimeter) or 2,400 (the original)
 likely means the altimeter lost power in flight. It says older flights then follow this one in
@@ -3112,7 +3112,7 @@ What the reader does with the records:
   report prints each file's smallest step). That is about 1.13 m (3.7 ft) of height at sea level.
 - **Acceleration**, along the board's axis. AltosUI calibrates the accelerometer antenna up, then
   down (the manual, §12.6.20, p. 42). The configuration keeps its counts at +1 g and −1 g. The
-  record's value is `(ground − count) / ((minus − plus) / 2) × 9.806 65`&nbsp;m/s², with `ground` the
+  record's value is `(ground − count) / ((minus − plus) / 2) × 9.806 65` m/s², with `ground` the
   flight record's count on the pad. It is 0 at rest on the pad, positive forward along the flight
   path. A board mounted antenna down logs flipped counts and keeps a flipped calibration with the
   same span. So either reads alike, as long as both counts come from one pair. The configuration's

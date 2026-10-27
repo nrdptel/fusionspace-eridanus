@@ -324,8 +324,8 @@ lists it.
   times is never delivered: the step jumps straight past it. Nor is the first sample of a step at
   the curve's start, or the last of a step at its end. **Peak thrust** is the largest delivered
   sample, which is exactly the most the curve's thrust reaches. The burn-time crossings below
-  compare only delivered samples with the threshold. For example, times `0, 1, 1, 1, 2`&nbsp;s and
-  thrusts `10, 10, 1000, 10, 0`&nbsp;N hold 15 N·s. The step skips the 1,000 N sample, so the thrust
+  compare only delivered samples with the threshold. For example, times `0, 1, 1, 1, 2` s and
+  thrusts `10, 10, 1000, 10, 0` N hold 15 N·s. The step skips the 1,000 N sample, so the thrust
   never exceeds 10 N, and 10 N is the peak. The burn runs from 0 to 1.95 s. Counting the skipped sample would set the
   5% threshold at 50 N, above anything the curve delivers. The curve would then be refused
   ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0150-peak-thrust-and-burn-time-crossings-from-delivered.md),
