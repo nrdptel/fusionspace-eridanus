@@ -491,6 +491,7 @@ fn smoother_set(set: Set, files: &DesignFiles) -> Result<(SmootherSet, Vec<Card>
         .map(|(_, check, mutated)| mutated.unwrap_or(check))
         .collect();
     let mut check = smoothed::tally(&checks);
+    round_health(&mut check.health);
     round_cells(&mut check.cells);
     for cells in check.by_logger.values_mut() {
         round_cells(cells);
@@ -518,6 +519,35 @@ fn round_cells(cells: &mut [smoothed::Cell]) {
         for share in &mut c.lowest_miss_share {
             *share = census::three_figures(*share);
         }
+    }
+}
+
+/// The health sums to three significant figures, as the report holds them. A flight's log ends
+/// `ground_s` after the simulated landing, and the landing's time differs in its last bits from
+/// one platform to another, so a log can end a sample sooner on one; the sums, unlike the
+/// census's counts of flights, then differ by a sample. A zero stays zero, so a step the pass
+/// back couldn't smooth still shows.
+fn round_health(health: &mut smoothed::HealthTally) {
+    let figures = |n: &mut u64| *n = census::three_figures(*n as f64).round() as u64;
+    for t in health.sensors.values_mut() {
+        for n in [
+            &mut t.logs,
+            &mut t.samples,
+            &mut t.rejected,
+            &mut t.unweighed,
+            &mut t.resets,
+            &mut t.logs_rejecting,
+        ] {
+            figures(n);
+        }
+    }
+    for n in [
+        &mut health.transonic_spans,
+        &mut health.charge_spans,
+        &mut health.gnss_trusted,
+        &mut health.unsmoothed_steps,
+    ] {
+        figures(n);
     }
 }
 
@@ -1049,10 +1079,14 @@ fn smoother_section(page: &mut String, sets: &[SmootherSet], cards: &[Card]) {
                 .unwrap_or_default()
         };
         line(page, &format!("{name}: logs"), &|s| get(s).logs.to_string());
-        line(page, &format!("{name}: samples rejected / tested"), &|s| {
-            let t = get(s);
-            format!("{} / {}", t.rejected, t.samples - t.unweighed)
-        });
+        line(
+            page,
+            &format!("{name}: samples rejected / logged / not weighed"),
+            &|s| {
+                let t = get(s);
+                format!("{} / {} / {}", t.rejected, t.samples, t.unweighed)
+            },
+        );
         line(page, &format!("{name}: logs with a rejection"), &|s| {
             get(s).logs_rejecting.to_string()
         });
@@ -1302,6 +1336,34 @@ fn readings_section(page: &mut String, tallies: &[Tally]) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_health_sums_hold_the_digits_every_platform_shares() {
+        let sums = |samples: u64, unsmoothed: u64| {
+            let mut health = smoothed::HealthTally {
+                unsmoothed_steps: unsmoothed,
+                ..Default::default()
+            };
+            health.sensors.insert(
+                "barometer".to_owned(),
+                smoothed::SensorTally {
+                    samples,
+                    rejected: 13_436,
+                    resets: 35,
+                    ..Default::default()
+                },
+            );
+            round_health(&mut health);
+            health
+        };
+        // A log a sample shorter on one platform leaves the sums the same.
+        assert_eq!(sums(4_859_244, 0), sums(4_859_243, 0));
+        let held = &sums(4_859_244, 0).sensors["barometer"];
+        assert_eq!((held.samples, held.rejected, held.resets), (4_860_000, 13_400, 35));
+        // A step the pass back couldn't smooth still shows.
+        assert_eq!(sums(4_859_244, 0).unsmoothed_steps, 0);
+        assert_eq!(sums(4_859_244, 1).unsmoothed_steps, 1);
+    }
 
     #[test]
     fn the_threaded_readings_are_the_readings_taken_in_order() {

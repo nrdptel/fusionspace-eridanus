@@ -9422,22 +9422,22 @@
               "logs": 33,
               "samples": 38300,
               "rejected": 2,
-              "unweighed": 8043,
+              "unweighed": 8040,
               "resets": 0,
               "logs_rejecting": 1
             },
             "accelerometer": {
               "logs": 71,
-              "samples": 4444352,
+              "samples": 4440000,
               "rejected": 0,
-              "unweighed": 3812765,
+              "unweighed": 3810000,
               "resets": 0,
               "logs_rejecting": 0
             },
             "barometer": {
               "logs": 171,
-              "samples": 4859244,
-              "rejected": 4446,
+              "samples": 4860000,
+              "rejected": 4450,
               "unweighed": 0,
               "resets": 9,
               "logs_rejecting": 63
@@ -10318,7 +10318,7 @@
           "sensors": {
             "GNSS": {
               "logs": 185,
-              "samples": 184085,
+              "samples": 184000,
               "rejected": 18,
               "unweighed": 37500,
               "resets": 0,
@@ -10326,16 +10326,16 @@
             },
             "accelerometer": {
               "logs": 356,
-              "samples": 18839905,
+              "samples": 18800000,
               "rejected": 0,
-              "unweighed": 15905833,
+              "unweighed": 15900000,
               "resets": 0,
               "logs_rejecting": 0
             },
             "barometer": {
               "logs": 820,
-              "samples": 20622837,
-              "rejected": 13838,
+              "samples": 20600000,
+              "rejected": 13800,
               "unweighed": 0,
               "resets": 29,
               "logs_rejecting": 319
@@ -11216,24 +11216,24 @@
           "sensors": {
             "GNSS": {
               "logs": 186,
-              "samples": 174695,
+              "samples": 175000,
               "rejected": 22,
-              "unweighed": 35028,
+              "unweighed": 35000,
               "resets": 0,
               "logs_rejecting": 12
             },
             "accelerometer": {
               "logs": 368,
-              "samples": 18657942,
+              "samples": 18700000,
               "rejected": 0,
-              "unweighed": 15623874,
+              "unweighed": 15600000,
               "resets": 0,
               "logs_rejecting": 0
             },
             "barometer": {
               "logs": 845,
-              "samples": 20587860,
-              "rejected": 13436,
+              "samples": 20600000,
+              "rejected": 13400,
               "unweighed": 0,
               "resets": 35,
               "logs_rejecting": 348

@@ -753,15 +753,15 @@ The smoothed flights' health cards, summed.
 | | Tuning | A | B |
 |---|---:|---:|---:|
 | GNSS: logs | 33 | 185 | 186 |
-| GNSS: samples rejected / tested | 2 / 30257 | 18 / 146585 | 22 / 139667 |
+| GNSS: samples rejected / logged / not weighed | 2 / 38300 / 8040 | 18 / 184000 / 37500 | 22 / 175000 / 35000 |
 | GNSS: logs with a rejection | 1 | 10 | 12 |
 | GNSS: resets | 0 | 0 | 0 |
 | accelerometer: logs | 71 | 356 | 368 |
-| accelerometer: samples rejected / tested | 0 / 631587 | 0 / 2934072 | 0 / 3034068 |
+| accelerometer: samples rejected / logged / not weighed | 0 / 4440000 / 3810000 | 0 / 18800000 / 15900000 | 0 / 18700000 / 15600000 |
 | accelerometer: logs with a rejection | 0 | 0 | 0 |
 | accelerometer: resets | 0 | 0 | 0 |
 | barometer: logs | 171 | 820 | 845 |
-| barometer: samples rejected / tested | 4446 / 4859244 | 13838 / 20622837 | 13436 / 20587860 |
+| barometer: samples rejected / logged / not weighed | 4450 / 4860000 / 0 | 13800 / 20600000 / 0 | 13400 / 20600000 / 0 |
 | barometer: logs with a rejection | 63 | 319 | 348 |
 | barometer: resets | 9 | 29 | 35 |
 | GNSS receivers trusted | 30 | 173 | 177 |

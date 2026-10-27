@@ -130,7 +130,12 @@ fell short in five places:
     or if a flight's smoothing panics; a moment the smoothed track doesn't reach misses on both
     sides. It also fails if trusting
     GNSS from liftoff holds on A or B. The tuning set's 200 flights are too few to require that;
-    its result is reported.
+    its result is reported. The health cards' sums are held to three significant figures, the
+    digits every platform shares, as the census's values are ([ADR-280][adr-280]). A log ends a
+    drawn time after the simulated landing, and the landing's last bits differ by platform: CI's
+    Linux runners logged one tuning flight a sample shorter than macOS and Windows did, and the
+    exact sums moved by one. So the report no longer shows a change of a few samples in millions;
+    the cells' counts of truths stay exact.
 12. **The health card** is `Smoothed::health`, written out by `Health::card`. It holds each
     sensor's samples, fused, rejected and not weighed, its resets, its share inside the gate, its
     mean NIS and largest test ratio; then the de-weighted spans, when GNSS was first trusted, the
@@ -169,7 +174,7 @@ fell short in five places:
 - `cargo xtask synthetic` takes about four minutes on an 8-core Mac, up from 101 s, as each flight
   is smoothed twice and each GNSS log twice more.
 - The flight's own noise widens B's barometer weights past apogee where its loggers scatter more
-  than their pads: barometer samples rejected fell from 29,500 to 13,436 of 20.6 million, resets
+  than their pads: barometer samples rejected fell from 29,500 to about 13,400 of 20.6 million, resets
   from 90 to 35, and every cell's coverage stayed within the check.
 - The smoother's page, [The smoother](../physics/smoother.md), put the site's search index 23 KB
   past mdBook's 10 MB limit. The evidence register's page leaves the index, as earlier pages that
