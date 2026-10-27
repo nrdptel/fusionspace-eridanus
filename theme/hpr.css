@@ -279,7 +279,7 @@ html:not(.js) #hpr-print { display: none; }
 
 /* A table on a phone: mdBook gives a cell 20 px a side, which pushes a table of three columns past
    a 320 px window to scroll inside its box, hiding its end. Here a cell keeps 8 px a side and none
-   at the table's edges, so it fits the column; a table still too wide needs fewer columns (#498).
+   at the table's edges, so more tables fit the column; one still too wide stacks its rows (below).
    A data line too long for a phone, fenced as `text,wrap`, wraps where it would run off. */
 @media only screen and (max-width: 719px) {
   table td, table th, table thead th { padding-inline: 8px; }
@@ -287,3 +287,21 @@ html:not(.js) #hpr-print { display: none; }
   table tr > :last-child { padding-inline-end: 0; }
 }
 pre > code.wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* A table too wide for its column, its rows stacked by `hpr.js` (ADR-297): each row a group under
+   the table's 1 px rules, the first under the head's 2 px ink rule, each cell its column's head in
+   the head's type (12 px Cascadia Mono, capitals) beside its value, or above it when the value
+   holds a formula, which can't break. The copies of the head stay hidden while a table fits. */
+.fs-head { display: none; }
+.fs-ruler { height: 0; }
+@media screen {
+  .fs-stacked table, .fs-stacked tbody, .fs-stacked tr { display: block; }
+  .fs-stacked thead { display: none; }
+  .fs-stacked tbody tr { border: 0; border-top: 1px solid var(--table-border-color); padding-block: 8px; background: none; }
+  .fs-stacked tbody tr:first-child { border-top: 2px solid var(--fg); }
+  .fs-stacked tbody td, .fs-stacked tbody th { display: grid; grid-template-columns: minmax(0, 2fr) minmax(min-content, 3fr); column-gap: 16px; padding: 0; border: 0; overflow-wrap: anywhere; }
+  .fs-stacked tbody td:not(:has(> .fs-head)), .fs-stacked tbody th:not(:has(> .fs-head)),
+  .fs-stacked tbody td:has(> .fs-cell math), .fs-stacked tbody th:has(> .fs-cell math) { display: block; }
+  .fs-stacked .fs-head { display: block; padding-top: 4px; text-align: left; font: 400 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.06em; }
+  .fs-stacked .fs-head math { font-size: calc(var(--fs-text) * 1.1); text-transform: none; letter-spacing: normal; }
+}

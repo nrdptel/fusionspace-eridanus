@@ -316,3 +316,68 @@ document.addEventListener('click', function (event) {
         body.removeAttribute('tabindex');
     }, { capture: true });
 })();
+
+// A table too wide for its column (#498, ADR-297): rather than scroll sideways and hide its last
+// columns, its rows stack, each cell under a copy of its column's head (`hpr.css`). The copies
+// stay hidden while the table fits. A table is measured only when its sheet is laid out, since
+// measuring one in a sheet that skips its layout off screen would lay that sheet out: those in
+// view as the script runs, before the page is first drawn, so nothing on the first screen moves,
+// and the rest as a resize observer sees them laid out. It watches an empty ruler at the top of
+// each table's box, as wide as the box and never taller, so stacking, which only makes the box
+// taller, can't set it off again within the frame. One stacked stands again once its box is as
+// wide as it was; the fonts' arrival measures again what is laid out.
+(function () {
+    const STACKED = 'fs-stacked';
+    function label(table) {
+        const head = table.tHead && table.tHead.rows[0];
+        if (!head || table.dataset.fsLabeled) return;
+        table.dataset.fsLabeled = '1';
+        for (const body of table.tBodies) {
+            for (const row of body.rows) {
+                Array.from(row.cells).forEach(function (cell, i) {
+                    const value = document.createElement('span');
+                    value.className = 'fs-cell';
+                    while (cell.firstChild) value.appendChild(cell.firstChild);
+                    const name = head.cells[i];
+                    if (name && name.textContent.trim()) {
+                        const copy = document.createElement('span');
+                        copy.className = 'fs-head';
+                        for (const node of name.childNodes) copy.appendChild(node.cloneNode(true));
+                        cell.appendChild(copy);
+                    }
+                    cell.appendChild(value);
+                });
+            }
+        }
+    }
+    function laidOut(box) {
+        return !box.checkVisibility || box.checkVisibility({ contentVisibilityAuto: true });
+    }
+    function settle(box) {
+        if (!box.isConnected) return;
+        if (box.classList.contains(STACKED)) {
+            if (box.clientWidth + 0.5 < Number(box.dataset.fsWide)) return;
+            box.classList.remove(STACKED);
+        }
+        if (box.scrollWidth <= box.clientWidth + 0.5) return;
+        box.dataset.fsWide = String(box.scrollWidth);
+        const table = box.querySelector('table');
+        if (table) label(table);
+        box.classList.add(STACKED);
+    }
+    const boxes = Array.from(document.querySelectorAll('main .table-wrapper'));
+    if (!boxes.length || !window.ResizeObserver) return;
+    const watch = new ResizeObserver(function (entries) {
+        for (const entry of entries) settle(entry.target.parentElement);
+    });
+    for (const box of boxes) {
+        const ruler = document.createElement('div');
+        ruler.className = 'fs-ruler';
+        box.insertBefore(ruler, box.firstChild);
+        if (laidOut(box)) settle(box);
+        watch.observe(ruler);
+    }
+    if (document.fonts) {
+        document.fonts.ready.then(function () { boxes.filter(laidOut).forEach(settle); });
+    }
+})();

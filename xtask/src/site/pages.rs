@@ -15,7 +15,8 @@
 //!   scrolls or clips and is wider inside than out fails, since the page then scrolls sideways
 //!   inside it, or is cut. One whose overflow is visible hands what reaches past it, such as a
 //!   figure wider than the column, to the box around it, which is measured in turn. Only
-//!   boxes within `main`, a code block or a table's wrapper, may scroll sideways.
+//!   boxes within `main`, a code block or a table's wrapper, may scroll sideways; a table that
+//!   does fails the frame check below.
 //! - **Text cut off.** Text that a box which doesn't scroll (`overflow: hidden` or `clip`,
 //!   `text-overflow: ellipsis`) cuts by more than 1 px, so part of it can never be seen. Boxes of
 //!   2 px or less hide their text on purpose, for screen readers only, and are skipped.
@@ -97,6 +98,10 @@
 //!     from the left as from the right, and at least that;
 //!   - **a code block or table held narrower than the column**: one in `main` that scrolls
 //!     sideways inside a box with a `max-width`;
+//!   - **a table wider than its box, scrolling sideways** (#498, ADR-297): a table's wrapper, or
+//!     a table outside one, wider inside than out, which on a phone hides its last columns.
+//!     `theme/hpr.js` stacks the rows of a table too wide for its column, each cell under a copy
+//!     of its column's head, so only a cell wider than the column (a formula or a box) fails;
 //!   - **an icon off the system's sizes** (`foundations.md`, *Icons*): each icon drawn in the
 //!     spans mdBook keeps its chrome's icons in (`.fa-svg`, the menu bar's buttons, the page
 //!     arrows, the search spinner, a code block's buttons), drawn now at this width, must be
@@ -503,6 +508,8 @@ enum Kind {
     Gutter,
     /// A code block or table that scrolls sideways inside a box held narrower than the column.
     Squeezed,
+    /// A table that scrolls sideways inside its box, hiding its last columns (#498, ADR-297).
+    Scrolls,
     /// A quote block in a page's `main`, or a note not drawn as the system's: its kind's signal
     /// word in a `label` strip across its top, set apart by a rule or a fill, inside its border
     /// (#384).
@@ -566,7 +573,7 @@ enum Kind {
 }
 
 impl Kind {
-    const ALL: [Kind; 28] = [
+    const ALL: [Kind; 29] = [
         Kind::Wide,
         Kind::Cut,
         Kind::Overlap,
@@ -580,6 +587,7 @@ impl Kind {
         Kind::Column,
         Kind::Gutter,
         Kind::Squeezed,
+        Kind::Scrolls,
         Kind::Note,
         Kind::Contrast,
         Kind::Focus,
@@ -612,6 +620,7 @@ impl Kind {
             Kind::Column => "a column off the system's width",
             Kind::Gutter => "gutters off the system's",
             Kind::Squeezed => "a code block or table held narrower than the column",
+            Kind::Scrolls => "a table wider than its box, scrolling sideways",
             Kind::Note => "a quote block, or a note not the system's",
             Kind::Contrast => "text under the contrast floor",
             Kind::Focus => "a focus ring off the system's",
@@ -1211,7 +1220,7 @@ macro_rules! mono_faces {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 191] = [
+const CANARIES: [Canary; 192] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -1855,6 +1864,15 @@ const CANARIES: [Canary; 191] = [
         expect: &[Kind::Squeezed],
         inside: "<div style=\"max-width: 10em\"><pre><code>let speed_m_per_s = \
                  drag_coefficient * reference_area_m2;</code></pre></div>",
+        after: "",
+    },
+    Canary {
+        file: "canary-table-scrolls.html",
+        what: "a table whose cell holds a box 2,000 px wide, so even stacked it scrolls sideways",
+        expect: &[Kind::Scrolls],
+        inside: "<div class=\"table-wrapper scroll\"><table><thead><tr><th>part</th><th>note</th></tr>\
+                 </thead><tbody><tr><td>fin</td><td><span style=\"display: inline-block; \
+                 width: 2000px\">wide</span></td></tr></tbody></table></div>",
         after: "",
     },
     Canary {
@@ -3393,6 +3411,10 @@ struct Measured {
     #[serde(default)]
     squeezed_count: usize,
     #[serde(default)]
+    scrolls: Vec<Style>,
+    #[serde(default)]
+    scrolls_count: usize,
+    #[serde(default)]
     note: Vec<Style>,
     #[serde(default)]
     note_count: usize,
@@ -3484,6 +3506,7 @@ impl Measured {
             Kind::Column => self.column_count > 0,
             Kind::Gutter => self.gutter_count > 0,
             Kind::Squeezed => self.squeezed_count > 0,
+            Kind::Scrolls => self.scrolls_count > 0,
             Kind::Note => self.note_count > 0,
             Kind::Contrast => self.contrast_count > 0,
             Kind::Focus => self.focus_count > 0,
@@ -3567,6 +3590,7 @@ impl Measured {
             Kind::Column => Style::list(&self.column),
             Kind::Gutter => Style::list(&self.gutter),
             Kind::Squeezed => Style::list(&self.squeezed),
+            Kind::Scrolls => Style::list(&self.scrolls),
             Kind::Note => Style::list(&self.note),
             Kind::Contrast => Style::list(&self.contrast),
             Kind::Focus => Style::list(&self.focus),
@@ -4797,6 +4821,7 @@ mod tests {
             Kind::Column,
             Kind::Gutter,
             Kind::Squeezed,
+            Kind::Scrolls,
             Kind::Note,
         ] {
             assert!(

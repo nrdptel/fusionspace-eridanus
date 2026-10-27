@@ -667,11 +667,15 @@ has the rules in full):
 - **No page wider than the window.** `cargo xtask site` opens every page in headless Chrome at
   each width from 320 to 1,920 px, 40 px apart. A page fails if it scrolls sideways, or if text
   or a box passes the window's left or right edge. It also fails if a box cuts its own text
-  short. A code block or a table may scroll sideways inside its own box, and the check passes
-  it, but on a phone that hides its end, so make it fit. Under 720 px the theme gives a table's
-  cells 8 px a side and none at its edges; a table still too wide needs fewer columns (#498). A
-  long line of data goes in a `text,wrap` fence, which wraps it at any character, so keep it for
-  lines whose spacing doesn't matter.
+  short. A code block may scroll sideways inside its own box, but on a phone that hides its
+  end, so make it fit where it can. A long line of data goes in a `text,wrap` fence, which wraps
+  it at any character, so keep it for lines whose spacing doesn't matter.
+- **No table scrolling sideways** ([ADR-297](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0297-a-table-too-wide-stacks-its-rows.md)).
+  Under 720 px the theme gives a table's cells 8 px a side and none at its edges. A table still
+  too wide for its column stacks its rows (`theme/hpr.js`): each cell stands under a copy of its
+  column's head, beside its value, or above it when the value holds a formula. The check fails a
+  table that still scrolls, which only a cell wider than the column can make: a formula or an
+  image. Shorten that cell, or move the formula into the text.
 
 CI runs the figure check in the tests on every system, and `cargo xtask site` in its `site` job.
 `scripts/gate.sh test site` runs both locally. A failure names the page or figure, the widths,

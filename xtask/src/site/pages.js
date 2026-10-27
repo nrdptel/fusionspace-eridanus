@@ -1418,7 +1418,8 @@
       type: [], type_count: 0, narrow: [], narrow_count: 0, math: [], math_count: 0,
       column: [], column_count: 0,
       gutter: [], gutter_count: 0,
-      squeezed: [], squeezed_count: 0, note: [], note_count: 0, icon: [], icon_count: 0,
+      squeezed: [], squeezed_count: 0, scrolls: [], scrolls_count: 0, note: [], note_count: 0,
+      icon: [], icon_count: 0,
       header: [], header_count: 0, title_block: [], title_block_count: 0,
       arrows: [], arrows_count: 0,
       sheet: [], sheet_count: 0, theme_switch: [], theme_switch_count: 0,
@@ -1554,6 +1555,14 @@
             break;
           }
         }
+      }
+      // A table wider than its box (#498): it scrolls sideways, its last columns out of sight
+      // on a phone, so `hpr.js` stacks its rows instead; one still wider fails.
+      for (const box of main.querySelectorAll('.table-wrapper, table')) {
+        if (box.scrollWidth <= box.clientWidth + SLACK_PX) continue;
+        if (box.tagName === 'TABLE' && box.parentElement.classList.contains('table-wrapper')) continue;
+        note('scrolls', selector(box), (box.scrollWidth - box.clientWidth) + ' px wider inside',
+          'than its ' + box.clientWidth + ' px');
       }
 
       // Notes (#384; `web.md`, *Components*): no quote block in `main`, and each note the
