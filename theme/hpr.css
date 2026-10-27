@@ -4,7 +4,7 @@
    this site's markup has it: the copy icon's file, the system's icons in place of Font Awesome's
    (`xtask/src/site/chrome.rs`), the notes, the menu bar's lockup, the title block, the intro and
    sheets, the theme switch, the text marks and the print page's cover (`xtask site` draws each),
-   and, as the system's fallback for Cascadia Mono misses it, fallback faces scaled to it; and tables
+   and, as the system's fallback for Cascadia Mono misses it, fallback faces scaled to it, and tables
    and data lines that fit a phone. The theme
    sets the colors and roles (`--fs-ink` and the rest) in every theme, mdBook's own defaults, the
    type scale and the column. */
