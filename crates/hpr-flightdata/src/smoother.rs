@@ -1055,10 +1055,10 @@ fn selected_median(values: &mut [f64]) -> f64 {
     }
 }
 
-/// The least-squares quadratic `c₀ + c₁ τ + c₂ τ²`, `τ = t − centre`, through the points, by
+/// The least-squares quadratic `c₀ + c₁ τ + c₂ τ²`, `τ = t − center`, through the points, by
 /// Cramer's rule on the normal equations; `None` with fewer than four points or three distinct
 /// times' worth of spread.
-fn quadratic(values: &[f64], times: &[f64], centre: f64) -> Option<[f64; 3]> {
+fn quadratic(values: &[f64], times: &[f64], center: f64) -> Option<[f64; 3]> {
     if values.len() < 4 {
         return None;
     }
@@ -1066,12 +1066,12 @@ fn quadratic(values: &[f64], times: &[f64], centre: f64) -> Option<[f64; 3]> {
     // determinant's terms are of one size.
     let scale = times
         .iter()
-        .map(|t| (t - centre).abs())
+        .map(|t| (t - center).abs())
         .fold(0.0, f64::max)
         .max(1.0e-9);
     let (mut s, mut b) = ([0.0; 5], [0.0; 3]);
     for (&z, &t) in values.iter().zip(times) {
-        let u = (t - centre) / scale;
+        let u = (t - center) / scale;
         let mut power = 1.0;
         for (k, sk) in s.iter_mut().enumerate() {
             *sk += power;
@@ -1109,8 +1109,8 @@ fn slopes(values: &[f64], times: &[f64], half_s: f64) -> Vec<f64> {
     let (mut from, mut to) = (0, 0);
     let (mut n, mut st, mut sz, mut stt, mut stz) = (0.0, 0.0, 0.0, 0.0, 0.0);
     let mut out = Vec::with_capacity(values.len());
-    for &centre in times {
-        while to < times.len() && times[to] <= centre + half_s {
+    for &center in times {
+        while to < times.len() && times[to] <= center + half_s {
             let t = times[to] - origin;
             n += 1.0;
             st += t;
@@ -1119,7 +1119,7 @@ fn slopes(values: &[f64], times: &[f64], half_s: f64) -> Vec<f64> {
             stz += t * values[to];
             to += 1;
         }
-        while times[from] < centre - half_s {
+        while times[from] < center - half_s {
             let t = times[from] - origin;
             n -= 1.0;
             st -= t;

@@ -1,7 +1,7 @@
 # ADR-299: The smoother and its check on the synthetic flights (2026-10-27)
 
 - **Status:** accepted; records [M7.2d][m7-2d]'s smoother and how it is held to the synthetic flights' truth, where it departs from [ADR-280][adr-280]'s plan for it, and moves the health card's `hpr analyze` and Python surfaces to [M7.2e][m7-2e], whose *done when* already names both
-- **Summary:** `hpr_flightdata::smoother` fuses a log's barometer, accelerometer and GNSS receiver in a Kalman filter run forward and a Rauch–Tung–Striebel pass back, and gives the height and vertical speed at every sample with a standard error. `cargo xtask synthetic` holds it to the truth of the three synthetic sets at burnout, the top speed, apogee and a drawn moment, and fails unless every cell holds on both test sets, the pass back solves every step, and trusting the GNSS receiver from liftoff fails on both. Its 90% intervals hold on all three sets: between 95.4% and 100% of the truths lie inside each cell's.
+- **Summary:** `hpr_flightdata::smoother` fuses a log's barometer, accelerometer and GNSS receiver in a Kalman filter run forward and a Rauch-Tung-Striebel pass back, and gives the height and vertical speed at every sample with a standard error. `cargo xtask synthetic` holds it to the truth of the three synthetic sets at burnout, the top speed, apogee and a drawn moment, and fails unless every cell holds on both test sets, the pass back solves every step, and trusting the GNSS receiver from liftoff fails on both. Its 90% intervals hold on all three sets: between 95.4% and 100% of the truths lie inside each cell's.
 
 [m7-2d]: ../decisions-and-roadmap.md#m7-2d
 [m7-2e]: ../decisions-and-roadmap.md#m7-2e
