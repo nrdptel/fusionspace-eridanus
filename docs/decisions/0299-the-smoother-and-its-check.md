@@ -102,7 +102,8 @@ fell short in five places:
     because the quadratic takes part of a correlated error's variance out. In the tests, descents
     swinging by 3–6 m correlated over up to a second keep 92–100% of their heights inside the 90%
     intervals, and one correlated over 3 s keeps 74%: a barometer alone can't tell a slow swing
-    from motion. Before the top the scatter is left out: a six-second quadratic reads liftoff's
+    from motion. Swings correlated over 1–1.24 s, the top of the pendulum's range, aren't
+    tested. Before the top the scatter is left out: a six-second quadratic reads liftoff's
     and burnout's bends as noise.
 
     This was found on a public forum log, a barometer's track with a GNSS receiver's, cached under
@@ -140,7 +141,8 @@ fell short in five places:
     noise came from the real log in item 10, and A and B were run after it. Its first form,
     which held the slow correlated noise twice, failed B's per-logger cell for the GNSS logger's
     apogee height (21 of 186 truths below), once each logger's cells were gated; taking the slow
-    noise out, as the pad's estimate does, set it right. For the apogee
+    noise out, as the pad's estimate does, set it right, though only just: 19 of 186 lie below
+    now, and the band's lower edge is 4.3%, under the rule's 5%. For the apogee
     charge span, A's failing apogee-speed cell came first, and B's was seen at 62 of 845. So A
     and B are no longer untouched for those cells. Each rule is physical, not fitted: of
     the new constants, the span's 5 m comes from a coast's shape, and the swing's 2 s from a
@@ -156,7 +158,7 @@ fell short in five places:
   at a drawn moment.
   They hold the truth, but say little there.
 - Trusting the receiver from liftoff fails on A and B at apogee and at a drawn moment, where the
-  lagging fix pulls the height: 146 of 845 truths at apogee lie below B's interval.
+  lagging fix pulls the height: 146 of B's 186 GNSS logs have their apogee below the interval.
 - `cargo xtask synthetic` takes about four minutes on an 8-core Mac, up from 101 s, as each flight
   is smoothed twice and each GNSS log twice more.
 - The flight's own noise widens B's barometer weights past apogee where its loggers scatter more

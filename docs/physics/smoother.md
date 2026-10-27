@@ -83,8 +83,8 @@ log without a GNSS receiver can't measure, and from the port's error. The widest
 barometer-only loggers: up to 407 m (1,335 ft) at burnout and 260 m/s (853 ft/s) at a drawn
 moment.
 
-Trusting the GNSS receiver from liftoff instead fails the check. At apogee, 146 of B's 845
-truths then lay below the interval, and only 82% inside it. Every set, logger and moment is in
+Trusting the GNSS receiver from liftoff instead fails the check. Of the 186 flights in B whose
+logs have a GNSS track, 146 apogee heights then lay below the interval, and only 82% inside it. Every set, logger and moment is in
 [the report][report].
 
 ## The health card
