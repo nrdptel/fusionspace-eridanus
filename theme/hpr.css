@@ -303,5 +303,6 @@ pre > code.wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
   .fs-stacked tbody td:not(:has(> .fs-head)), .fs-stacked tbody th:not(:has(> .fs-head)),
   .fs-stacked tbody td:has(> .fs-cell math), .fs-stacked tbody th:has(> .fs-cell math) { display: block; }
   .fs-stacked .fs-head { display: block; padding-top: 4px; text-align: left; font: 400 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.06em; }
+  .fs-stacked .fs-head code { font-size: inherit; line-height: inherit; text-transform: none; letter-spacing: 0; }
   .fs-stacked .fs-head math { font-size: calc(var(--fs-text) * 1.1); text-transform: none; letter-spacing: normal; }
 }

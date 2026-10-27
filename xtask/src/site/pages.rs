@@ -100,8 +100,8 @@
 //!     sideways inside a box with a `max-width`;
 //!   - **a table wider than its box, scrolling sideways** (#498, ADR-297): a table's wrapper, or
 //!     a table outside one, wider inside than out, which on a phone hides its last columns.
-//!     `theme/hpr.js` stacks the rows of a table too wide for its column, each cell under a copy
-//!     of its column's head, so only a cell wider than the column (a formula or a box) fails;
+//!     `theme/hpr.js` stacks the rows of a table too wide for its column, each cell labeled by a
+//!     copy of its column's head, so only a cell wider than the column (a formula or a box) fails;
 //!   - **an icon off the system's sizes** (`foundations.md`, *Icons*): each icon drawn in the
 //!     spans mdBook keeps its chrome's icons in (`.fa-svg`, the menu bar's buttons, the page
 //!     arrows, the search spinner, a code block's buttons), drawn now at this width, must be

@@ -318,7 +318,7 @@ document.addEventListener('click', function (event) {
 })();
 
 // A table too wide for its column (#498, ADR-297): rather than scroll sideways and hide its last
-// columns, its rows stack, each cell under a copy of its column's head (`hpr.css`). The copies
+// columns, its rows stack, each cell labeled by a copy of its column's head (`hpr.css`). The copies
 // stay hidden while the table fits. A table is measured only when its sheet is laid out, since
 // measuring one in a sheet that skips its layout off screen would lay that sheet out: those in
 // view as the script runs, before the page is first drawn, so nothing on the first screen moves,

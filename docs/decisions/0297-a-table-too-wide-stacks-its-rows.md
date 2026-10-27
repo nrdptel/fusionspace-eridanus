@@ -1,7 +1,7 @@
 # ADR-297: A table too wide for its column stacks its rows (2026-10-27)
 
 - **Status:** accepted; closes #498; departs from `data.md`'s *Tables* rule on wide tables
-- **Summary:** A table wider than its column no longer scrolls sideways in its box. Its rows stack, each cell under a copy of its column's head, and the page check fails a table that still scrolls, at every width from 320 px.
+- **Summary:** A table wider than its column no longer scrolls sideways in its box. Its rows stack, each cell labeled by a copy of its column's head, and the page check fails a table that still scrolls, at every width from 320 px.
 
 [adr-282]: 0282-the-project-tests-each-ui-milestone-itself.md
 
@@ -10,11 +10,10 @@ than turning rows into cards." The site did, and the page check let a table's bo
 sideways. On a phone that hides a table's last columns until the reader scrolls the table, with
 nothing on screen to say there is more. #498 found it on the simulator's comparison page. A
 headless count of the 75 guide pages in a 320 px frame found 309 tables wider than their box.
-Narrower cell padding on a phone (8 px a side, none at the outer edges) brought that to 213. Most
-of those left have four to ten columns of numbers, which no padding fits in 288 px, and many are
-written by code (the accuracy tables, the command line's examples). The maintainer's standing
-rule for every surface is that nothing is cut by an edge: if something can't fit, change its
-layout, never rely on scrolling past an edge. A table cut at the box's edge breaks that rule.
+#975's narrower cell padding on a phone (8 px a side, none at the outer edges) brought that to
+213, and 132 of those have four to ten columns. The maintainer holds every surface to having
+nothing cut off by an edge or a corner, with a layout that fits in place of one that scrolls. A
+table cut at its box's edge falls short of that.
 
 **Decision.**
 
@@ -40,5 +39,5 @@ layout, never rely on scrolling past an edge. A table cut at the box's edge brea
 down its rows takes more scrolling than on a wide screen, but nothing is out of sight. Without
 the script, a table scrolls in its box as before. A page's acceptance pass ([ADR-282][adr-282])
 sees its tables as a reader does, stacked or not. The cost is small: on the page check's phone run, the largest
-layout shift rose from 0.001 to 0.022, under the check's bound of 0.1, and the slowest largest
-paint stayed under 2 s.
+layout shift is 0.022 (0.001 on earlier partial runs), under the check's bound of 0.1, and the
+slowest largest paint 1.99 s, under its 2.5 s.

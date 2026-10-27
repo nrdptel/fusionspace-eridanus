@@ -672,7 +672,7 @@ has the rules in full):
   it at any character, so keep it for lines whose spacing doesn't matter.
 - **No table scrolling sideways** ([ADR-297](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0297-a-table-too-wide-stacks-its-rows.md)).
   Under 720 px the theme gives a table's cells 8 px a side and none at its edges. A table still
-  too wide for its column stacks its rows (`theme/hpr.js`): each cell stands under a copy of its
+  too wide for its column stacks its rows (`theme/hpr.js`): each cell is labeled by a copy of its
   column's head, beside its value, or above it when the value holds a formula. The check fails a
   table that still scrolls, which only a cell wider than the column can make: a formula or an
   image. Shorten that cell, or move the formula into the text.
