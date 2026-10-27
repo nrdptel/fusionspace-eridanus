@@ -396,7 +396,7 @@ charge, 4.86 s after launch. In HPR Sim's flight, from
 (0.254 m) parachute, set to `lowerstageseparation` in the file, opens at that instant. The
 payload climbs 3.3 m (11 ft) more, to 233.7 m (767 ft) above the site at 5.44 s. That height is the center of
 mass's, which starts 0.4 m (1.3 ft) above the site. From where it starts, as the table below compares, it
-is 233.3 m (765 ft). Coasting with no drag, it would have risen $27.6^2 / (2 \times 9.81) = 38.8$ m more
+is 233.3 m (765 ft). Coasting with no drag, it would have risen $27.6^2 / (2 \times 9.81) = 38.8\,\mathrm{m}$ more
 instead.
 
 **Against OpenRocket.** All six configurations of the *Deployable payload* and the *ARC payload

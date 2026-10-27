@@ -293,11 +293,11 @@ Landing:    at 4.6 m/s, at 250.8 s
 Each part is named by its maker and its part number, as the design keeps it. LOC's numbers say
 what the part is and its size in inches:
 
-- `PNC-2.56` is a plastic nose cone for the 2.56 in tube.
+- `PNC-2.56` is a plastic nose cone for the 2.56&nbsp;in tube.
 - `BT-2.56` is the body tube.
 - `MMT-1.52` is the 1.52 in (38 mm) motor tube.
 - `CR-2.56-38mm` is a centering ring between the two.
-- `LP-36-2022` is a 36 in parachute.
+- `LP-36-2022` is a 36&nbsp;in parachute.
 
 *Structure* is all the parts together, without the motor.
 

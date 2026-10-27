@@ -192,7 +192,7 @@ fn counts_are_generated_and_each_case_counts_once() {
     assert!((mean - real.summary.mean_absolute_apogee_error_percent).abs() < 1e-12);
 
     // The table prints the counts it was given, and no others.
-    let table = table(&summaries, None);
+    let table = table(&summaries, None, " ");
     assert!(
         table.contains("| 1 flight (1 subsonic) | 2 of 2 gated metrics pass;"),
         "{table}"

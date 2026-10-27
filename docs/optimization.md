@@ -380,9 +380,9 @@ motor. A list in no order still works, but the search has less to go on.
 
 The example program
 [`crates/hpr/examples/motor_and_nose.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/motor_and_nose.rs)
-builds a 2.6 in rocket from Madcow Rocketry's parts in the built-in
+builds a 2.6&nbsp;in rocket from Madcow Rocketry's parts in the built-in
 [catalog](the-builder.md#parts-from-a-catalog). The parts are a 1.0 m (39 in) fiberglass body
-tube, an 18 in motor tube and three fiberglass fins. The example flies the rocket from a 3 m
+tube, an 18&nbsp;in motor tube and three fiberglass fins. The example flies the rocket from a 3 m
 (9.8 ft) rail at 85° into 5 m/s (11 mph) of wind. The optimizer chooses four things:
 
 | Variable | Kind | Range |
@@ -523,7 +523,7 @@ With the length a variable, every design would build its own, and the run would 
 The example shows how to share the table, in its `Flyer::fly`.
 
 The winning plastic nose cone gets no table. The catalog lists it 0.05 mm (0.0020 in) narrower than
-the tube (2.638 in against 2.640 in). The method behind the table doesn't yet take a step in the
+the tube (2.638&nbsp;in against 2.640 in). The method behind the table doesn't yet take a step in the
 body's outline larger than a millionth of its area
 ([issue #87](https://github.com/nrdptel/fusionspace-eridanus/issues/87)).
 

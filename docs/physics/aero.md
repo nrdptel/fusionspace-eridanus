@@ -749,7 +749,7 @@ Two caveats, both small but real. The bound applies where the shares are compute
 
 The two models draw opposite consequences from the same angle. Separation *lowers* a boattail's pressure drag toward the base value. Here it *holds* the lift the boattail takes off instead of letting it shrink. The argument for that is the stability one above, not a flow one. The angle is also read on each narrowing part's own chord angle. The drag merges adjacent narrowing parts into one cone before grading. So a boattail drawn in several parts can be graded differently by the two.
 
-*A worked example.* The Arcas Robin's boattail narrows from 2.25 in to 1.308 in over 1.757 in, so
+*A worked example.* The Arcas Robin's boattail narrows from 2.25&nbsp;in to 1.308&nbsp;in over 1.757 in, so
 $L_B/D = 0.781$ and $1 - (D_B/D)^2 = 0.662$. At Mach 2.3, $\sqrt{M^2 - 1} = 2.071$ and Fig. 5's
 argument is 2.071/0.781 = 2.652. There the curve reads −0.01263 per degree, −0.7237 per radian. Times 0.662, that is −0.479 per radian on the body's cross-section. Slender-body theory gives
 −1.324, footnote 8 −0.103. Across the tunnel's Mach numbers:
@@ -1730,18 +1730,18 @@ reading nor any replacement has a reference.
 center of pressure 16.9492 [calibers](../glossary.md#caliber) aft of the nose tip. Each row
 is the change from that. **Down** means the body narrows from that joint aft, **up** that it widens:
 
-| the step, and which joint it is at | normal force | center of pressure |
+| the step and its joint | normal force | center of pressure, calibers |
 |---|--:|--:|
-| down 2.8e−11 m, the first size measured past the threshold, at any of the three joints | −8.65% | +1.0285 calibers |
-| down 1 mm (0.039 in), at the nose's joint | −10.62% | +1.1938 calibers |
-| down 1 mm (0.039 in), at the last joint | −10.29% | +0.9949 calibers |
-| down 2 mm (0.079 in), at the nose's joint | −12.55% | +1.3593 calibers |
-| down 2 mm (0.079 in), at the last joint | −11.89% | +0.9597 calibers |
-| up 2.8e−11 m, at any of the three joints | −8.65% | +1.0285 calibers |
-| up 1 mm (0.039 in), at the nose's joint | −6.72% | +0.8674 calibers |
-| up 1 mm (0.039 in), at the last joint | −7.05% | +1.0644 calibers |
-| up 2 mm (0.079 in), at the nose's joint | −4.75% | +0.7064 calibers |
-| up 2 mm (0.079 in), at the last joint | −5.41% | +1.0987 calibers |
+| down 2.8e−11 m, the first size past the threshold, at any joint | −8.65% | +1.0285 |
+| down 1 mm (0.039 in), at the nose's joint | −10.62% | +1.1938 |
+| down 1 mm (0.039 in), at the last joint | −10.29% | +0.9949 |
+| down 2 mm (0.079 in), at the nose's joint | −12.55% | +1.3593 |
+| down 2 mm (0.079 in), at the last joint | −11.89% | +0.9597 |
+| up 2.8e−11 m, at any joint | −8.65% | +1.0285 |
+| up 1 mm (0.039 in), at the nose's joint | −6.72% | +0.8674 |
+| up 1 mm (0.039 in), at the last joint | −7.05% | +1.0644 |
+| up 2 mm (0.079 in), at the nose's joint | −4.75% | +0.7064 |
+| up 2 mm (0.079 in), at the last joint | −5.41% | +1.0987 |
 
 At the threshold the shape is flush to a part in a billion either way. So the whole difference there is the method itself, the same wherever the step sits and whichever way it goes. Past that the shape starts to matter, and the two directions part. A step **down** takes area off the body and costs more. A step **up** adds area that carries slender-body normal force of its own and costs
 less. The center of pressure moves **aft** in every row, so a rocket that trips this reads *more*
@@ -2590,7 +2590,7 @@ Reynolds number $5 \times 10^6$ per meter:
 | without pods | | | 12.374 | 1.0662 | 0.5051 | | −35.215 |
 | with three pods | 0.2743 | 0.3833 m (1.258 ft) | 13.197 ($+3 \times 0.2743$) | 1.0237 | 0.6386 | 0.0074, 0.0127, 0.0592, 0.0542 | −36.118 (−0.903) |
 
-One cone's slope is $2(10/27)^2$ per radian and its center of pressure $0.35 + \tfrac23 \cdot 0.05$ m. The pods' share of drag is the cones' friction and pressure, then the tubes' friction and base. Their share of roll damping is $-2 \cdot 0.2743 \cdot 3 \cdot 0.04^2/0.054^2$.
+One cone's slope is $2(10/27)^2$ per radian and its center of pressure $0.35 + \tfrac23 \cdot 0.05\,\mathrm{m}$. The pods' share of drag is the cones' friction and pressure, then the tubes' friction and base. Their share of roll damping is $-2 \cdot 0.2743 \cdot 3 \cdot 0.04^2/0.054^2$.
 
 The pods move the center of pressure about 43 mm (1.7 in), 0.79 [calibers](../glossary.md#caliber),
 forward, and add 26% to the drag. The test `the_aero_page_s_pod_example` holds this table to the
@@ -3855,9 +3855,9 @@ other programs.
 
   - **With HPR Sim's own model, every CP agrees within 1%, and every slope but the Recruiter's.** Its six-fin slopes are +3.42% (fins) and +2.87% (total). Those are the only 2 of the 38 printed values (19 slopes, 19 CPs) outside 1%, and the test pins that list.
   - With TIR-33's six-fin rule substituted for the Recruiter, the worst is the Testbed II nose CP, −0.77%: [B66]'s $0.466\,L$ fit against the integrated tangent ogive.
-  - CPs are compared as stations from the nose tip. Measured from each part's own front, two printed values miss 1%. One is the Testbed II boattail (0.655 in against 0.72 in, −9%, Barrowman's diameter ratio slip). The other is the Javelin fins (0.653 in against 0.66 in, −1.1%, rounding).
+  - CPs are compared as stations from the nose tip. Measured from each part's own front, two printed values miss 1%. One is the Testbed II boattail (0.655&nbsp;in against 0.72 in, −9%, Barrowman's diameter ratio slip). The other is the Javelin fins (0.653&nbsp;in against 0.66 in, −1.1%, rounding).
   - **Recruiter's six fins.** TIR-33 scales six fins by $N/2$ with $K = 1 + 0.5\,R/(S + R)$ and no fin-count factor. With HPR Sim's own rule (0.913 and the full $K$), the fins are +3.42% and the total +2.87% from the print. The difference between the two rules accounts for +3.22% and +2.83% of that. The test checks the TIR-33 rule within 1% (slopes and CP weighting) and reports HPR Sim's own values. It checks that the rules differ by more than 2%.
-  - The printed mid-chord lengths were measured or rounded. HPR Sim computes them from the geometry (Aerobee: 39.7 in printed, 40.50 in geometric). The fixture's notes list each slip in the printed arithmetic.
+  - The printed mid-chord lengths were measured or rounded. HPR Sim computes them from the geometry (Aerobee: 39.7&nbsp;in printed, 40.50&nbsp;in geometric). The fixture's notes list each slip in the printed arithmetic.
 - **[Loft lessons](../glossary.md#loft-lesson)**, each with what it concerns:
   - [L7](../decisions-and-roadmap.md#l7), a fin slope and CP that never changed with Mach:
     `fins::tests::fin_cna_compressibility_reduces_to_barrowman_at_m0`
@@ -4081,7 +4081,7 @@ this comparison was made. The committed nose, behind the cap it now takes, is co
 [Blunt tips](#blunt-tips). So here the nose is the secant ogive (a circular arc meeting the body at an angle) through the tip
 and base. It best fits the report's coordinate table and is 4.17 calibers long. So the report's
 Mach-over-fineness range of 0.4 to 2 covers Mach 1.67 to 8.3. The arc radius is 1.744 times a
-tangent ogive's, the nose misses the table by 0.003 in
+tangent ogive's, the nose misses the table by 0.003&nbsp;in
 rms, and its tip half-angle is 10.76°. HPR Sim's committed design keeps its power-series nose, whose
 tip is blunt. The measured slope is the fins-off reading fitted over the plotted angles, as
 above. It includes the boattail, the lip behind it, and crossflow lift at those angles. The

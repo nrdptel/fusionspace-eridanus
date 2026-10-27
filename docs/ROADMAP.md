@@ -25,12 +25,12 @@ Open work only; done work is [archived](roadmap-done.md) unchanged by `cargo xta
 The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163): lines
 `N. M<id> title`, ids open in this file (`cargo test -p xtask` checks).
 
-1. M0.9f The rest of the words
-2. M5.7 Every solid motor, offline
-3. M7.2 Readings, reconstruction and ghost data
-4. M7.3 A flight against its simulation
-5. M10.2 Release 0.2: the flight analyzer
-6. M0.13 Awareness and care on the sites
+1. M5.7 Every solid motor, offline
+2. M7.2 Readings, reconstruction and ghost data
+3. M7.3 A flight against its simulation
+4. M10.2 Release 0.2: the flight analyzer
+5. M0.13 Awareness and care on the sites
+6. M0.9g The figures' digits and the command line's words
 7. M2.3c2 Logged traces
 8. M2.3c3 OpenRocket's newest release
 9. M2.3c6 The gap to OpenRocket, by cause
@@ -109,16 +109,12 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   device's safe area. From 0.2 on, each release's checklist needs its guide (Phase 8).
 - [ ] **M0.9 One name, one design** (ADR-205; Neer, 2026-10-08). Every surface says FusionSpace
   HPR as ADR-199 §1 has it, and follows the pinned design system rule by rule, each checked.
-  - [ ] **M0.9f The rest of the words** (ADR-239; ADR-295: four increments, the last with this).
-    *Done when:* #476 is closed: a check of the site
-    and the README fails on an ungrouped figure of four or more digits in prose (the identifiers it
-    passes listed), an ISO date in running prose, an en dash between names, a number split from
-    its unit by a breaking space, and a lead note or table cell over 120 words; number columns'
-    heads give a label and a unit; a test fails on an `hpr sim` warning sentence over 40 words;
-    each over-precise figure #476 names is cut to what is known; the audit's rows name the checks.
-    - [ ] **M0.9f4 Units held to their figures.** *Done when:* a check of the built site and the
-      README fails on a figure split from its unit by a breaking space, and the site and the
-      README pass it; the audit's *Numbers* row names the check; and M0.9f's own *done when*.
+  - [ ] **M0.9g The figures' digits and the command line's words** (ADR-296). *Done when:* #966
+    and #973 are closed: a check of the site and both READMEs fails a figure quoted to more
+    digits than its kind is known to, and they pass it; a test fails an ISO date in prose, an en
+    dash between two words, and a sentence with two or more colons in `hpr`'s messages and the
+    plot's words; a test fails a column head without a label and a unit in a table `hpr` prints;
+    the command line and the plot pass them; and the audit's rows name the checks.
 - [ ] **M0.13 Awareness and care on the sites** (ADR-275; Neer, 2026-10-14; VISION V53). A thin
   banner and a footer line that change through the year (heritage and awareness months, health,
   access, science and space days, rocketry safety), from a dated, sourced table
