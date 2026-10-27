@@ -17,7 +17,7 @@ sensors, and how well its 90% intervals hold.
 - **How well it is validated:** only on [the synthetic flights](synthetic-flights.md), whose
   truth is known. There each set's intervals hold the truth at least as often as they claim:
   94.3% to 97.3% of set B's truths lie inside them ([How well it holds](#how-well-it-holds)). One
-  logger's cell holds only 89.2%, which the check's rule still allows. Sets
+  logger's cell holds only 89.2% (set A's lowest is 89.7%), which the check's rule still allows. Sets
   A and B were run while its rules were set, so they aren't untouched tests. A real log comes with
   no truth taken apart from it, so the smoother is unvalidated on real logs
   ([evidence row G33](../evidence.md#g33)).
@@ -80,8 +80,8 @@ was:
 | Apogee | 97.3% | 96% | 84.3 m (277 ft), 1.23 m/s (4.04 ft/s) |
 | A drawn moment | 97.3% | 97.2% | 18.5 m (61 ft), 1.01 m/s (3.31 ft/s) |
 
-The intervals are wide on purpose. Most of the height interval comes from the day's air, which a
-log without a GNSS receiver can't measure, and from the port's error. The widest are on
+The intervals are wide on purpose. The day's air, which a log without a GNSS receiver can't
+measure, and the port's error are expected to be the largest terms in the height interval. The widest are on
 barometer-only loggers: up to 407 m (1,335 ft) at burnout and 260 m/s (853 ft/s) at a drawn
 moment, as the report's JSON gives them per logger.
 
