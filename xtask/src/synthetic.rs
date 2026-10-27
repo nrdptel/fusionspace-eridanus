@@ -1359,7 +1359,10 @@ mod tests {
         // A log a sample shorter on one platform leaves the sums the same.
         assert_eq!(sums(4_859_244, 0), sums(4_859_243, 0));
         let held = &sums(4_859_244, 0).sensors["barometer"];
-        assert_eq!((held.samples, held.rejected, held.resets), (4_860_000, 13_400, 35));
+        assert_eq!(
+            (held.samples, held.rejected, held.resets),
+            (4_860_000, 13_400, 35)
+        );
         // A step the pass back couldn't smooth still shows.
         assert_eq!(sums(4_859_244, 0).unsmoothed_steps, 0);
         assert_eq!(sums(4_859_244, 1).unsmoothed_steps, 1);
