@@ -98,7 +98,7 @@ truths lay below the interval, and only 82% inside it. Every set, logger and mom
 
 A barometer-only log from the tuning set, as the report prints it:
 
-```text
+```text,wrap
 barometer: 5593 samples, 5593 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.709; largest test ratio 0.585 at 141 s, Mach 0.01
 barometer de-weighted: charge 27.9–29.9 s
 pass back: every step smoothed
