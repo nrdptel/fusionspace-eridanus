@@ -294,8 +294,12 @@ pub fn run(args: &[String]) -> Result<(), String> {
         print::PAGE
     );
     println!(
-        "built units: {units_joined} figures joined to their units by a no-break space, none \
-         left split by a breaking one (the search index keeps the plain space)"
+        "built units: {} figures joined to their units by a no-break space on the pages, and \
+         {} on {} (its chapters), none left split by a breaking one; the search index keeps the \
+         plain space",
+        units_joined.0,
+        units_joined.1,
+        print::PAGE
     );
     println!(
         "built notes: {notes} quote blocks drawn as the system's notes, none left as a plain quote"

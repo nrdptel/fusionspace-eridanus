@@ -10,8 +10,8 @@
 //!   `0.1.0`, `2026-10-04` aren't figures). It runs through its grouping commas, its decimals, an
 //!   exponent (`1e-9`) and superscript digits (`10⁶`). A sign before it stays where it is.
 //! - **A unit** is the symbol of one of [`UNITS`], the units `data.md` writes and the project's
-//!   own (`cal`, `calibers`, `px`), as a whole word after the figure. `in` is an inch only where
-//!   no word or figure follows it (`(0.12 in)`, `0.12 in.`, `1.52 in (38 mm)`, `4 in × 40`): with
+//!   own (`cal`, `calibers`, `px`), as a whole word after the figure: not followed by a letter,
+//!   a digit or `_` (`g06` is a code). `in` is an inch only where no word or figure follows it (`(0.12 in)`, `0.12 in.`, `1.52 in (38 mm)`, `4 in × 40`): with
 //!   one after it, or the end of the run after a space, it is also the preposition (`0.5 in
 //!   both`, `1 in <code>SI</code>`), so a page joins an inch there by hand
 //!   (`2.6&nbsp;in rocket`). Units spelled out (`3 minutes`) aren't read.
@@ -145,7 +145,8 @@ fn unit_after(text: &str, at: usize) -> Option<usize> {
         .find(|&(_, c)| !(c.is_alphabetic() || c == '°'))
         .map_or(rest.len(), |(len, _)| len);
     let unit = &rest[..len];
-    if !UNITS.contains(&unit) {
+    // A whole word: not the start of a code (`g06`, `m_dot`).
+    if !UNITS.contains(&unit) || rest[len..].starts_with(|c: char| c.is_ascii_digit() || c == '_') {
         return None;
     }
     // An inch only with no word or figure after it: `in` before one is also the preposition.
@@ -391,9 +392,10 @@ fn joined_html(html: &str) -> (String, usize) {
 }
 
 /// Join each figure to its unit with a no-break space in the built pages under `output`, but
-/// the API reference, after mdBook has written the search index; how many it joined.
-pub(super) fn join(output: &Path) -> Result<usize, String> {
-    let mut count = 0;
+/// the API reference, after mdBook has written the search index; how many it joined, on the
+/// pages and on the print page, which repeats them.
+pub(super) fn join(output: &Path) -> Result<(usize, usize), String> {
+    let mut count = (0, 0);
     for name in pages(output)? {
         let path = output.join(&name);
         let html = fs::read_to_string(&path)
@@ -403,7 +405,11 @@ pub(super) fn join(output: &Path) -> Result<usize, String> {
             fs::write(&path, drawn)
                 .map_err(|err| format!("could not write {}: {err}", path.display()))?;
         }
-        count += joined;
+        if name == super::print::PAGE {
+            count.1 += joined;
+        } else {
+            count.0 += joined;
+        }
     }
     Ok(count)
 }
@@ -509,7 +515,7 @@ mod tests {
             // Not figures: names, versions, dates and codes.
             "ADR-208 s, Pro38 m, 0.1.0 s, 2026-10-04 m, x2 m, M1.6 in.",
             // No space, a unit run into a word, and degrees and percent, which take none.
-            "45°, 7.0%, 5m, 3 msec, 3 meters, 15:30 UTC",
+            "45°, 7.0%, 5m, 3 msec, 3 meters, 15:30 UTC, CEC 2006 g06, 2 m_dot",
         ] {
             assert!(pairs(text).is_empty(), "{text}: {:?}", pairs(text));
         }
