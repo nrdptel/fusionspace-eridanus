@@ -5,11 +5,12 @@
 //! **What it is for.** The [readings] take one number each from one track. The
 //! smoother takes the whole flight from every sensor the log holds, and says at each moment how
 //! far the truth may be: its 90% interval is the estimate ± [`INTERVAL_Z`] standard errors. On
-//! HPR Sim's synthetic flights, whose truth is known, those intervals hold the truth about as
-//! often as they claim (`cargo xtask synthetic` reports it, per state and per moment).
+//! HPR Sim's synthetic flights, whose truth is known, those intervals hold the truth at least
+//! as often as they claim (`cargo xtask synthetic` reports it, per state and per moment).
 //!
 //! **How far to trust it.** Its errors are the sensors' errors as the synthetic flights draw
-//! them, from the makers' datasheets and measured public logs (ADR-280 §3). A real logger whose
+//! them, from the makers' datasheets and measured public logs ([ADR-280][adr-280] §3, the plan for the synthetic
+//! flights). A real logger whose
 //! errors are larger or of another kind, such as a port that reads the flow differently, can
 //! leave the truth outside the interval more often than it says; the health card shows where its
 //! sensors disagreed. It needs a barometer: a GNSS track alone is never trusted, as its receiver
@@ -17,7 +18,7 @@
 //! (`docs/research/gnss-in-boost.md`).
 //!
 //! **Method** (`docs/research/altimeter-smoothing-methods.md`, "What this suggests" 1–2, 5;
-//! ADR-299). A Kalman filter runs forward over every sample, then a Rauch–Tung–Striebel pass back
+//! [ADR-299][adr-299], the smoother and its check). A Kalman filter runs forward over every sample, then a Rauch–Tung–Striebel pass back
 //! (`kalman`). Its state is the logger's height above the pad, its vertical speed and
 //! acceleration, and the sensors' own errors: the accelerometer's bias, scale and a slowly
 //! changing model error (the rocket's tilt puts its axis off the vertical); the barometer's slow
@@ -45,6 +46,8 @@
 //!   with the height's and speed's uncertainty widened by the gap.
 //!
 //! [m7-2d]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-2d
+//! [adr-280]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md
+//! [adr-299]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0299-the-smoother-and-its-check.md
 
 mod kalman;
 
@@ -125,7 +128,9 @@ pub const PORT_PRIOR_MEAN: f64 = -0.01;
 /// …with this standard deviation, half the range again either side. The climb's coefficient is
 /// held there and enters each interval by the consider run ([`smooth_with`]); learned from the
 /// log, it came out biased by 0.010 claiming 0.001 on the synthetic flights' barometer-only
-/// loggers (ADR-299).
+/// loggers ([ADR-299], the smoother and its check).
+///
+/// [ADR-299]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0299-the-smoother-and-its-check.md
 pub const PORT_PRIOR_SD: f64 = 0.02;
 
 /// The Mach number, estimated high (`mach_high`), at which the barometer begins to be

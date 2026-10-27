@@ -1,8 +1,7 @@
 # The smoother
 
-See how FusionSpace HPR estimates a flight's height and vertical speed at every sample. It uses
-all of a log's sensors together, gives a 90% interval on each estimate, and this page shows how
-well those intervals hold.
+See how FusionSpace HPR estimates a flight's height and vertical speed from all of a log's
+sensors, and how well its 90% intervals hold.
 
 ## In short
 
