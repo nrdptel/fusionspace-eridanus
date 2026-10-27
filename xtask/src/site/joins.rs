@@ -45,12 +45,10 @@ pub(super) const UNITS: [&str; 70] = [
     // Time and frequency.
     "s", "ms", "µs", "μs", "ns", "min", "h", "Hz", "kHz", "MHz", "rpm",
     // Mass and force.
-    "kg", "g", "mg", "lb", "oz", "N", "kN", "lbf", "Ns",
-    // Pressure.
+    "kg", "g", "mg", "lb", "oz", "N", "kN", "lbf", "Ns", // Pressure.
     "Pa", "hPa", "kPa", "MPa", "GPa", "psi", "ksi", "mbar", "bar",
     // Temperature and angle.
-    "K", "°C", "°F", "rad", "deg",
-    // Energy, power and electricity.
+    "K", "°C", "°F", "rad", "deg", // Energy, power and electricity.
     "J", "kJ", "W", "kW", "V", "mV", "mA", "mAh", "Ω",
     // Magnetic field, speed, data and sound.
     "nT", "µT", "μT", "mph", "kt", "kn", "kB", "MB", "GB", "KiB", "MiB", "GiB", "dB",
@@ -185,7 +183,10 @@ fn message(text: &str, split: &Split) -> String {
     format!(
         "`{}` in \"{}\" can break between the figure and its unit (data.md, Numbers: a \
          non-breaking space, so a line never ends between them)",
-        text[split.pair.clone()].split_whitespace().collect::<Vec<_>>().join(" "),
+        text[split.pair.clone()]
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" "),
         super::figures::context(text, split.pair.clone())
     )
 }
@@ -201,12 +202,14 @@ fn joined(text: &str, split: &Split, space: &str) -> String {
 
 /// The elements whose text [`join`] and [`check`] don't read: code, preformatted, keyboard and
 /// sample text, math, SVG, scripts and styles.
-const UNREAD: [&str; 9] = ["code", "pre", "kbd", "samp", "math", "svg", "script", "style", "textarea"];
+const UNREAD: [&str; 9] = [
+    "code", "pre", "kbd", "samp", "math", "svg", "script", "style", "textarea",
+];
 
 /// The elements that continue a run of text, as the browser draws them on one line.
 const INLINE: [&str; 24] = [
-    "a", "abbr", "b", "bdi", "bdo", "cite", "data", "del", "dfn", "em", "i", "ins", "label", "mark",
-    "q", "s", "small", "span", "strong", "sub", "sup", "time", "u", "var",
+    "a", "abbr", "b", "bdi", "bdo", "cite", "data", "del", "dfn", "em", "i", "ins", "label",
+    "mark", "q", "s", "small", "span", "strong", "sub", "sup", "time", "u", "var",
 ];
 
 /// A run of a page's text, with where each of its characters came from in the HTML.
@@ -336,6 +339,10 @@ fn char_at(html: &str) -> (char, usize) {
             let name = &entity[..end];
             let decoded = match name {
                 "nbsp" => Some('\u{a0}'),
+                "ensp" => Some('\u{2002}'),
+                "emsp" => Some('\u{2003}'),
+                "thinsp" => Some('\u{2009}'),
+                "numsp" => Some('\u{2007}'),
                 "amp" => Some('&'),
                 "lt" => Some('<'),
                 "gt" => Some('>'),
@@ -409,7 +416,11 @@ pub(super) fn check(output: &Path) -> Result<Vec<String>, String> {
         let path = output.join(&name);
         let html = fs::read_to_string(&path)
             .map_err(|err| format!("could not read {}: {err}", path.display()))?;
-        problems.extend(page_splits(&html).into_iter().map(|why| format!("{name}: {why}")));
+        problems.extend(
+            page_splits(&html)
+                .into_iter()
+                .map(|why| format!("{name}: {why}")),
+        );
     }
     Ok(problems)
 }
@@ -444,7 +455,10 @@ mod tests {
 
     /// The pairs [`splits`] finds in `text`, as written.
     fn pairs(text: &str) -> Vec<&str> {
-        splits(text).into_iter().map(|split| &text[split.pair]).collect()
+        splits(text)
+            .into_iter()
+            .map(|split| &text[split.pair])
+            .collect()
     }
 
     #[test]
@@ -456,12 +470,32 @@ mod tests {
         // Signs, exponents, superscripts, ranges, fractions and brackets.
         assert_eq!(
             pairs("−3.89 s, 1e-9 m/s, 10⁶ psi, 0.3–0.5 mm, 1/4 in, (0 s), 1.44954e-4 m²"),
-            ["3.89 s", "1e-9 m", "10⁶ psi", "0.5 mm", "4 in", "0 s", "1.44954e-4 m"]
+            [
+                "3.89 s",
+                "1e-9 m",
+                "10⁶ psi",
+                "0.5 mm",
+                "4 in",
+                "0 s",
+                "1.44954e-4 m"
+            ]
         );
         // An inch with no word after it, and the project's units.
         assert_eq!(
-            pairs("3 mm (0.12 in) thick, 0.4 calibers, 2 cal, 960 px wide, 5 in., 1.52 in (38 mm)"),
-            ["3 mm", "0.12 in", "0.4 calibers", "2 cal", "960 px", "5 in", "1.52 in", "38 mm"]
+            pairs(
+                "3 mm (0.12 in) thick, 0.4 calibers, 2 cal, 960 px wide, 5 in., 1.52 in (38 mm), 4 in × 40"
+            ),
+            [
+                "3 mm",
+                "0.12 in",
+                "0.4 calibers",
+                "2 cal",
+                "960 px",
+                "5 in",
+                "1.52 in",
+                "38 mm",
+                "4 in"
+            ]
         );
     }
 
@@ -496,13 +530,33 @@ mod tests {
                 .replacen("1,063&#32;ft", "1,063\u{a0}ft", 1)
                 .replacen("</em>\n  <span> kg", "</em>\u{a0}<span>kg", 1)
         );
-        assert!(page_splits(&joined).is_empty(), "{:?}", page_splits(&joined));
+        assert!(
+            page_splits(&joined).is_empty(),
+            "{:?}",
+            page_splits(&joined)
+        );
     }
 
     #[test]
     fn a_page_left_split_fails() {
         let problems = page_splits("<p>The rail is <b>3</b>\nm (9.8 ft) long.</p>");
         assert_eq!(problems.len(), 2, "{problems:?}");
+        // Any breaking space, written as a character or an entity, a tab or a space in a tag.
+        for page in [
+            "<p>5\tm</p>",
+            "<p>5\u{2009}m</p>",
+            "<p>5&thinsp;m</p>",
+            "<p>5&ensp;m</p>",
+            "<p>5&#x20;m</p>",
+            "<p>5<span> </span>m</p>",
+            "<p>5\u{a0}\nm</p>",
+        ] {
+            assert_eq!(page_splits(page).len(), 1, "{page}");
+        }
+        // But not the no-break spaces, by character or entity.
+        for page in ["<p>5&#160;m</p>", "<p>5&numsp;m</p>", "<p>5\u{202f}m</p>"] {
+            assert!(page_splits(page).is_empty(), "{page}");
+        }
         assert!(
             problems[0].contains("`3 m` in \"The rail is 3\nm (9.8 ft) long.\" can break"),
             "{}",
