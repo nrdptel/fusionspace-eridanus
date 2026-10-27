@@ -56,8 +56,8 @@ fell short in five places:
    branch differences. On an IMU-500 tuning flight the second run kept a transonic span closed
    where the first opened it; a second before burnout its speed differed by 115 m/s, and that
    spread widened the interval.
-4. **The port term is evaluated at the barometer's own rate,** a least-squares slope over half a
-   second either side, so the barometer's row stays linear in the states. Evaluated at the
+4. **The port term is evaluated at the barometer's own rate,** a least-squares slope over a quarter
+   of a second either side, so the barometer's row stays linear in the states. Evaluated at the
    filter's own speed, a speed gone wrong fed the squared term and the filter ran away. On the
    tuning set's barometer-only flights this produced standard errors up to 10⁸ m, and on one
    flight an apogee 140 km off. Six flights over the tuning set and A had steps the pass back
@@ -78,7 +78,7 @@ fell short in five places:
    apogee in every log: from where its running median first comes within 5 m of its top to
    0.5 s after it last is. 5 m is about a second of a coast either side of apogee. Set A's
    apogee-speed cell failed without that span: 65 of 820 truths lay above the interval, and the
-   misses rose with the pulse's size. With it, 19 do.
+   misses rose with the pulse's size. With it, 18 lie above and 1 below.
 8. **The landing** is where the barometer's running median settles within 5 m for 3 s. From it
    the speed and acceleration are widened by the impact, and the acceleration is given the
    powered jerk. With only the descent's jerk, a ballistic impact at 180 m/s left a tuning
@@ -97,8 +97,8 @@ fell short in five places:
     forum log, a barometer's track with a GNSS receiver's, whose pad was supplied as a constant
     reading, as a logger reading whole feet at rest gives. Weighed by the pad's noise alone,
     960 of its 2,704 barometer samples failed the gate, the filter reset 40 times, and its apogee
-    came out 1,630 ± 58 m against the barometer's highest reading, 1,407 m. With the scatter, every
-    sample is fused, the mean NIS is 1.01, and the apogee is 1,401 ± 43 m.
+    came out 1,630 m, standard error 58 m, against the barometer's highest reading, 1,407 m. With the scatter, every
+    sample is fused, the mean NIS is 1.01, and the apogee is 1,401 m, standard error 43 m.
 11. **The check.** Per set, state and moment, each side's misses of the 90% interval are counted.
     A cell holds when the lower edge of the two-sided 99.9% Clopper–Pearson band on each side's
     miss share is at most 5%, so the flights don't show it missing more often than it says it
@@ -118,8 +118,9 @@ fell short in five places:
     there: the apogee rule, the port term at the rate and the landing's jerk. The flight's own
     noise came from the real log in item 10, and A and B were run after it. For the apogee
     charge span, A's failing apogee-speed cell came first, and B's was seen at 62 of 845. So A
-    and B are no longer untouched for those cells. Each rule is physical, not fitted: the
-    new constant, the span's 5 m, comes from a coast's shape, and the rest reuse the smoother's own.
+    and B are no longer untouched for those cells. Each rule is physical, not fitted: of
+    the new constants, the span's 5 m comes from a coast's shape and the scatter's two seconds
+    from the noise note's fits; the rest reuse the smoother's own.
     M7.2e's test of every reading starts from the same sets.
 
 **Consequences.**
@@ -127,7 +128,8 @@ fell short in five places:
 - On B, the median standard errors are 59 m of height and 11 m/s of speed at burnout, 85 m and
   0.76 m/s at apogee, and 19 m and 0.88 m/s at a drawn moment. The day's air, held at its prior
   without a receiver, and the port's spread make up most of them.
-- The widest intervals are on barometer-only flights through Mach 1, up to about 410 m and 190 m/s.
+- The widest intervals are on barometer-only loggers at burnout and the top speed, up to about
+  410 m and 190 m/s.
   They hold the truth, but say little there.
 - Trusting the receiver from liftoff fails on A and B at apogee and at a drawn moment, where the
   lagging fix pulls the height: 151 of 845 truths at apogee lie below B's interval.
