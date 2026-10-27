@@ -18,7 +18,7 @@ use clap::ValueEnum;
 use clap_complete::Shell;
 use hpr::hpr_flightdata::perfectflite::FOOT_M;
 use hpr::hpr_motor::Catalog;
-use hpr::hpr_motor::catalog::CurveSource;
+use hpr::hpr_motor::catalog::{CurveLicense, CurveSource};
 use hpr_cli::motors::MotorFile;
 use hpr_cli::registry::{self, Availability, PLANNED};
 use serde_json::{Value, json};
@@ -503,7 +503,13 @@ fn motors_show_lists_every_file_with_its_check_and_label() {
                 _ => "user",
             };
             assert_eq!(file["measured_by"], measured_by, "{name}");
-            assert_eq!(file["license"], "public_domain", "{name}");
+            let license = match curve.license {
+                CurveLicense::PublicDomain => "public_domain",
+                CurveLicense::Free => "free_usage",
+                CurveLicense::Other => "restricted",
+                _ => "not_stated",
+            };
+            assert_eq!(file["license"], license, "{name}");
             let check = &file["check"];
             assert_eq!(check["passes"], curve.check.passes, "{name}");
             let keys = ["total_impulse_ns", "average_thrust_n", "burn_time_s"];

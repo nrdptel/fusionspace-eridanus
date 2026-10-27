@@ -229,16 +229,31 @@ impl FigureGap {
 
     /// The signed gap in percent, as the warning and `hpr motors show` print it: two decimals,
     /// and more for a figure that fails, so it never prints as within 1% (`+1.004%`, not
-    /// `+1.00%`).
+    /// `+1.00%`). A failing gap so close to 1% that its quotient rounds to it prints as `>+1%` or
+    /// `<-1%`, and one against a stated figure that isn't positive as `n/a`.
     pub fn percent_text(&self) -> String {
         let percent = 100.0 * self.relative();
-        let fails = !self.within_bound();
         let mut decimals = 2;
         let mut text = format!("{percent:+.decimals$}%");
-        // f64 holds about 16 significant digits, so 15 decimals tell any gap past 1% from it.
-        while fails && decimals < 15 && rounds_inside(&text) {
+        if self.within_bound() {
+            return text;
+        }
+        if !(self.stated > 0.0) {
+            return "n/a".to_owned();
+        }
+        while decimals < 17 && rounds_inside(&text) {
             decimals += 1;
             text = format!("{percent:+.decimals$}%");
+        }
+        // `within_bound` compares the difference with 1% of the stated figure, and the quotient
+        // can round onto 1% when the difference is one unit past it.
+        if rounds_inside(&text) {
+            let over = if self.file > self.stated {
+                ">+1%"
+            } else {
+                "<-1%"
+            };
+            return over.to_owned();
         }
         text
     }
@@ -390,9 +405,28 @@ impl Catalog {
     ///
     /// # Errors
     ///
-    /// [`MotorError::Catalog`] if the text isn't a catalog index.
+    /// [`MotorError::Catalog`] if the text isn't a catalog index, or a curve's stored
+    /// [`CurveCheck::passes`] isn't what its stored figures give against its motor's stated ones:
+    /// the flag ranks the files, so one that says a failing file passes would fly it silently.
     pub fn from_json(text: &str) -> Result<Self, MotorError> {
-        serde_json::from_str(text).map_err(|error| MotorError::Catalog(error.to_string()))
+        let catalog: Self =
+            serde_json::from_str(text).map_err(|error| MotorError::Catalog(error.to_string()))?;
+        for motor in &catalog.motors {
+            for curve in &motor.curves {
+                let passes = curve
+                    .check
+                    .gaps(&motor.stated)
+                    .iter()
+                    .all(FigureGap::within_bound);
+                if passes != curve.check.passes {
+                    return Err(MotorError::Catalog(format!(
+                        "{}'s curve {} stores passes: {}, but its figures give {passes}",
+                        motor.designation, curve.simfile_id, curve.check.passes
+                    )));
+                }
+            }
+        }
+        Ok(catalog)
     }
 
     /// The motors whose designation or common name matches `name`, ignoring ASCII case, spaces
@@ -541,11 +575,9 @@ impl CatalogMotor {
     /// [`MotorError::Inconsistent`] if the entry has no bundled curve file, and
     /// [`CatalogMotor::motor`]'s errors.
     pub fn bundled_motor(&self) -> Result<SolidMotor, MotorError> {
-        let curve = self.default_curve().ok_or_else(|| {
+        let (curve, text) = self.default_curve_text().ok_or_else(|| {
             MotorError::Inconsistent(format!("{} has no bundled curve", self.designation))
         })?;
-        // `default_curve` takes only a curve with a bundled file.
-        let text = bundled_curve_text(&curve.file).unwrap_or_default();
         self.motor(curve, text)
     }
 
@@ -577,9 +609,14 @@ impl CatalogMotor {
     /// The curve a flight takes when none is named: the first of
     /// [`CatalogMotor::ranked_curves`] whose file is bundled, so a passing file where one is.
     pub fn default_curve(&self) -> Option<&CatalogCurve> {
+        self.default_curve_text().map(|(curve, _)| curve)
+    }
+
+    /// [`CatalogMotor::default_curve`] with its bundled file's text.
+    pub fn default_curve_text(&self) -> Option<(&CatalogCurve, &'static str)> {
         self.ranked_curves()
             .into_iter()
-            .find(|curve| bundled_curve_text(&curve.file).is_some())
+            .find_map(|curve| Some((curve, bundled_curve_text(&curve.file)?)))
     }
 
     /// The figures of `curve`'s check outside [`CHECK_BOUND`] of this motor's stated ones, in the
@@ -1276,6 +1313,53 @@ mod tests {
         assert_eq!(gap(101.0, 100.0).percent_text(), "+1.00%");
         assert_eq!(gap(100.996, 100.0).percent_text(), "+1.00%");
         assert_eq!(gap(102.0, 100.0).percent_text(), "+2.00%");
+        // One unit past 1%, the quotient needs 16 decimals to read as past it.
+        let past = gap(242.70152480324737, 240.2985394091558);
+        assert!(!past.within_bound());
+        assert_eq!(past.percent_text(), "+1.0000000000000002%");
+        assert_eq!(gap(-1.0, -1.0).percent_text(), "n/a");
+    }
+
+    /// A stored pass its figures contradict is refused when the index is read: the flag ranks the
+    /// files, so a wrong one would fly a failing file silently.
+    #[test]
+    fn a_stored_pass_its_figures_contradict_is_refused() {
+        let flipped = bundled::CATALOG_JSON.replacen("\"passes\": true", "\"passes\": false", 1);
+        assert!(matches!(
+            Catalog::from_json(&flipped),
+            Err(MotorError::Catalog(message)) if message.contains("stores passes: false")
+        ));
+    }
+
+    /// A failing figure never prints as within 1%: over 20,000 stated figures from 0.1 to about
+    /// 40,000, the first few floats past 1% on either side each print past it.
+    #[test]
+    fn a_failing_gap_never_prints_inside_one_percent() {
+        let mut checked = 0;
+        for i in 0..20_000 {
+            let stated = 0.1 + f64::from(i) * 1.999_37;
+            for (start, step) in [(stated * 1.01, 1.0), (stated * 0.99, -1.0)] {
+                let mut file: f64 = start;
+                for _ in 0..4 {
+                    let gap = FigureGap {
+                        figure: CheckedFigure::TotalImpulse,
+                        file,
+                        stated,
+                    };
+                    if !gap.within_bound() {
+                        let text = gap.percent_text();
+                        assert!(!rounds_inside(&text), "{file} against {stated}: {text}");
+                        checked += 1;
+                    }
+                    file = if step > 0.0 {
+                        file.next_up()
+                    } else {
+                        file.next_down()
+                    };
+                }
+            }
+        }
+        assert!(checked > 100_000, "{checked}");
     }
 
     /// ADR-298 §4 and §6: each checked figure fails the check alone, and the warning names that

@@ -16,7 +16,7 @@ use hpr::hpr_design::{self, Configuration, Ignition, MountedMotor, checks};
 use hpr::hpr_format::{self, container};
 use hpr::hpr_io::ork;
 use hpr::hpr_motor::text::{ParseWarning, WarningKind as ReadWarning};
-use hpr::hpr_motor::{Delay, eng, rse};
+use hpr::hpr_motor::{Catalog, Delay, eng, rse};
 use hpr::hpr_net::on_demand::Wanted;
 use hpr::hpr_sim::metrics::{self, FlightSummary};
 use hpr::hpr_sim::{self, Channel, EnvelopeFlag, FlightSettings, Recorder, export};
@@ -2734,47 +2734,7 @@ fn motor(name: &str, offline: bool) -> Result<(Motor, SimMotorSource, Vec<InputW
         )
     };
     let Some(format) = MotorFile::of(name) else {
-        return match Motor::from_catalog(name) {
-            Ok(motor) => Ok((
-                motor,
-                SimMotorSource::Catalog {
-                    as_of: crate::motors::catalog_as_of()?,
-                },
-                crate::motors::check_warnings(&crate::motors::catalog()?, name),
-            )),
-            Err(hpr::Error::NoSuchMotor(_)) => {
-                let (motor, fetched) =
-                    crate::motor_fetch::fetch(&Wanted::named(name), offline, "hpr sim")?;
-                Ok((
-                    motor,
-                    SimMotorSource::ThrustCurve(Box::new(fetched)),
-                    Vec::new(),
-                ))
-            }
-            Err(error @ hpr::Error::AmbiguousMotor { .. }) => {
-                // Each candidate is its designation, which finds it alone, then its maker.
-                let designation = match &error {
-                    hpr::Error::AmbiguousMotor { candidates, .. } => candidates
-                        .first()
-                        .and_then(|candidate| candidate.split(" (").next())
-                        .unwrap_or_default(),
-                    _ => "",
-                };
-                Err(Failure::helped(
-                    format!("{name}: {error}"),
-                    format!(
-                        "give --motor one of those designations, which names one motor alone, \
-                         such as `--motor {}`",
-                        crate::printable(designation)
-                    ),
-                ))
-            }
-            // The bundled catalog's curves are each read by its tests.
-            Err(error) => Err(Failure::library(
-                format!("{name}: {error}"),
-                crate::BUG_HELP,
-            )),
-        };
+        return catalog_or_fetched(name, offline, &crate::motors::catalog()?);
     };
     let bytes = crate::read_file(name)?;
     let text = String::from_utf8(bytes).map_err(|_| {
@@ -2803,6 +2763,57 @@ fn motor(name: &str, offline: bool) -> Result<(Motor, SimMotorSource, Vec<InputW
         .map(|warning| motor_warning(&file, warning))
         .collect();
     Ok((motor, SimMotorSource::File { file, format }, warnings))
+}
+
+/// A `--motor` name that isn't a file: the motor `catalog` has for it, with the warning when its
+/// default file fails its 1% check (decision record ADR-298 §6), or one fetched from
+/// ThrustCurve.org when the catalog lacks it.
+pub(crate) fn catalog_or_fetched(
+    name: &str,
+    offline: bool,
+    catalog: &Catalog,
+) -> Result<(Motor, SimMotorSource, Vec<InputWarning>), Failure> {
+    match Motor::from_catalog_in(catalog, name) {
+        Ok(motor) => Ok((
+            motor,
+            SimMotorSource::Catalog {
+                as_of: catalog.snapshot.captured.clone(),
+            },
+            crate::motors::check_warnings(catalog, name),
+        )),
+        Err(hpr::Error::NoSuchMotor(_)) => {
+            let (motor, fetched) =
+                crate::motor_fetch::fetch(&Wanted::named(name), offline, "hpr sim")?;
+            Ok((
+                motor,
+                SimMotorSource::ThrustCurve(Box::new(fetched)),
+                Vec::new(),
+            ))
+        }
+        Err(error @ hpr::Error::AmbiguousMotor { .. }) => {
+            // Each candidate is its designation, which finds it alone, then its maker.
+            let designation = match &error {
+                hpr::Error::AmbiguousMotor { candidates, .. } => candidates
+                    .first()
+                    .and_then(|candidate| candidate.split(" (").next())
+                    .unwrap_or_default(),
+                _ => "",
+            };
+            Err(Failure::helped(
+                format!("{name}: {error}"),
+                format!(
+                    "give --motor one of those designations, which names one motor alone, \
+                     such as `--motor {}`",
+                    crate::printable(designation)
+                ),
+            ))
+        }
+        // The bundled catalog's curves are each read by its tests.
+        Err(error) => Err(Failure::library(
+            format!("{name}: {error}"),
+            crate::BUG_HELP,
+        )),
+    }
 }
 
 fn motor_warning(file: &str, warning: &ParseWarning) -> InputWarning {

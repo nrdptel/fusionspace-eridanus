@@ -91,8 +91,9 @@ I175WS (AeroTech), from the bundled catalog
 How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-09-17, not measured
 by HPR Sim: the size, masses and delays from the file's header, the impulse, thrusts and burn time
 from its curve, which can differ from the maker's rated figures. Each file is checked against
-ThrustCurve.org's record and OpenRocket's reading of it: checks of the file, not of the motor. The
-motor's printed data and its maker's instructions come first, and the RSO decides.
+ThrustCurve.org's figures and OpenRocket's reading of its impulse and peak thrust, not against the
+maker's data: checks of the file, not of the motor. The motor's printed data and its maker's
+instructions come first, and the RSO decides.
 More: https://hpr.fusionspace.co/pick-a-motor.html
 ```
 

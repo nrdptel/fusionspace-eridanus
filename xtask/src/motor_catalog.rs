@@ -577,14 +577,9 @@ pub(crate) fn bundled_rs(catalog: &Catalog) -> String {
     out
 }
 
-/// A figure compared with ThrustCurve.org's: its name, ThrustCurve.org's key for it, the catalog's
-/// value, and whether it is held to 1%.
-type Field = (
-    &'static str,
-    &'static str,
-    fn(&CatalogMotor) -> Option<f64>,
-    bool,
-);
+/// A figure compared with ThrustCurve.org's: its name, ThrustCurve.org's key for it, and the
+/// catalog's value.
+type Field = (&'static str, &'static str, fn(&CatalogMotor) -> Option<f64>);
 
 /// Prints how far each figure is from the motor's committed ThrustCurve.org record, and refuses a
 /// total impulse, average thrust or burn time more than 1% away: the bound the files were chosen
@@ -592,33 +587,20 @@ type Field = (
 fn compare_with_thrustcurve(root: &Path, catalog: &Catalog) -> Result<(), String> {
     let records = records(root)?;
     let fields: [Field; 8] = [
-        (
-            "total impulse",
-            "totImpulseNs",
-            |m| Some(m.total_impulse_ns),
-            true,
-        ),
-        (
-            "average thrust",
-            "avgThrustN",
-            |m| Some(m.average_thrust_n),
-            true,
-        ),
-        ("burn time", "burnTimeS", |m| Some(m.burn_time_s), true),
-        ("peak thrust", "maxThrustN", |m| m.max_thrust_n, false),
-        ("diameter", "diameter", |m| Some(m.diameter_mm), false),
-        ("length", "length", |m| Some(m.length_mm), false),
-        (
-            "propellant mass",
-            "propWeightG",
-            |m| m.propellant_mass_g,
-            false,
-        ),
-        ("loaded mass", "totalWeightG", |m| m.total_mass_g, false),
+        ("total impulse", "totImpulseNs", |m| {
+            Some(m.total_impulse_ns)
+        }),
+        ("average thrust", "avgThrustN", |m| Some(m.average_thrust_n)),
+        ("burn time", "burnTimeS", |m| Some(m.burn_time_s)),
+        ("peak thrust", "maxThrustN", |m| m.max_thrust_n),
+        ("diameter", "diameter", |m| Some(m.diameter_mm)),
+        ("length", "length", |m| Some(m.length_mm)),
+        ("propellant mass", "propWeightG", |m| m.propellant_mass_g),
+        ("loaded mass", "totalWeightG", |m| m.total_mass_g),
     ];
     let mut failures = Vec::new();
     println!("against ThrustCurve.org's records ({RECORDS}):");
-    for (what, key, ours, bounded) in fields {
+    for (what, key, ours) in fields {
         let mut gaps: Vec<(f64, &str)> = Vec::new();
         for motor in &catalog.motors {
             let record = records
@@ -629,13 +611,6 @@ fn compare_with_thrustcurve(root: &Path, catalog: &Catalog) -> Result<(), String
                 continue;
             };
             let relative = (ours - theirs) / theirs;
-            if bounded && relative.abs() > 0.01 {
-                failures.push(format!(
-                    "{}: {what} {:+.2}%",
-                    motor.designation,
-                    100.0 * relative
-                ));
-            }
             gaps.push((relative, &motor.designation));
         }
         gaps.sort_by(|a, b| a.0.total_cmp(&b.0));
@@ -649,6 +624,20 @@ fn compare_with_thrustcurve(root: &Path, catalog: &Catalog) -> Result<(), String
                 100.0 * high.0,
                 high.1
             );
+        }
+    }
+    // The 1% failure is the stored check's own (`CurveCheck`), not a second copy of its rule.
+    for motor in &catalog.motors {
+        for curve in &motor.curves {
+            for gap in motor.failing_figures(curve) {
+                failures.push(format!(
+                    "{} ({}): {} {}",
+                    motor.designation,
+                    curve.simfile_id,
+                    gap.figure.name(),
+                    gap.percent_text()
+                ));
+            }
         }
     }
     if failures.is_empty() {

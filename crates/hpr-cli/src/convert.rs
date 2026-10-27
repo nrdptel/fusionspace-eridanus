@@ -12,7 +12,7 @@ use std::io::{self, Write};
 use std::path::Path;
 
 use hpr::hpr_motor::DelayList;
-use hpr::hpr_motor::catalog::{CatalogMotor, bundled_curve_text};
+use hpr::hpr_motor::catalog::CatalogMotor;
 use hpr::hpr_motor::convert::{self, ConvertWarning};
 use hpr::hpr_motor::eng::{self, EngFile};
 use hpr::hpr_motor::rse::{self, RseEngine, RseFile};
@@ -527,15 +527,12 @@ fn read_input(
             ));
         }
     };
-    let (curve, text) = motor
-        .default_curve()
-        .and_then(|curve| Some((curve, bundled_curve_text(&curve.file)?)))
-        .ok_or_else(|| {
-            Failure::helped(
-                format!("{}: no curve of it is bundled", motor.designation),
-                "download its .eng or .rse file from ThrustCurve.org and give that file's path",
-            )
-        })?;
+    let (curve, text) = motor.default_curve_text().ok_or_else(|| {
+        Failure::helped(
+            format!("{}: no curve of it is bundled", motor.designation),
+            "download its .eng or .rse file from ThrustCurve.org and give that file's path",
+        )
+    })?;
     let (source, format) = crate::motors::catalog_source(motor, curve)?;
     let figures = CatalogFigures {
         diameter_mm: motor.diameter_mm,

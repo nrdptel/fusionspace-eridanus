@@ -36,7 +36,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use hpr_design::{Configuration, MountedMotor, Rocket};
-use hpr_motor::catalog::bundled_curve_text;
 use hpr_motor::{Catalog, Delay, MotorError, SolidMotor, rse};
 use serde::{Deserialize, Serialize};
 
@@ -1009,10 +1008,7 @@ fn curve(
             "no motor of that manufacturer and designation in the bundled catalog",
         ),
         [found] => {
-            let Some((curve, text)) = found
-                .default_curve()
-                .and_then(|curve| Some((curve, bundled_curve_text(&curve.file)?)))
-            else {
+            let Some((curve, text)) = found.default_curve_text() else {
                 return not_found(
                     NoCurve::NotFound,
                     "the bundled catalog lists it without a curve",
@@ -1026,16 +1022,18 @@ fn curve(
                 at,
                 warnings,
             );
-            // A default file that fails its 1% check flies with a warning (ADR-298 §6).
-            if let Some(message) = found.check_warning(curve) {
-                warnings.push(Warning::new(at, WarningKind::Unusual, message));
-            }
             match found.motor(curve, text) {
-                Ok(solid) => Curve::Catalog {
-                    motor_id: found.motor_id.clone(),
-                    simfile_id: curve.simfile_id.clone(),
-                    motor: Box::new(solid),
-                },
+                Ok(solid) => {
+                    // A default file that fails its 1% check flies with a warning (ADR-298 §6).
+                    if let Some(message) = found.check_warning(curve) {
+                        warnings.push(Warning::new(at, WarningKind::Unusual, message));
+                    }
+                    Curve::Catalog {
+                        motor_id: found.motor_id.clone(),
+                        simfile_id: curve.simfile_id.clone(),
+                        motor: Box::new(solid),
+                    }
+                }
                 Err(error) => not_found(
                     NoCurve::Unusable,
                     &format!("the bundled catalog's curve failed: {error}"),
@@ -1288,7 +1286,7 @@ fn flown(configuration: &MotorConfiguration, lit: Vec<hpr_design::Ignition>) -> 
 
 #[cfg(test)]
 mod check_tests {
-    use hpr_motor::catalog::CurveCheck;
+    use hpr_motor::catalog::{CurveCheck, bundled_curve_text};
 
     use super::*;
 

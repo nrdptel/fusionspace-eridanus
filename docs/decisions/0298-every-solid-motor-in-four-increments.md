@@ -1,6 +1,6 @@
 # ADR-298: Every solid motor in four increments, each file's check first (2026-10-27)
 
-- **Status:** accepted; splits [M5.7][m5-7] into four increments, M5.7a to M5.7d, and plans every remaining increment, each with one of M5.7's *done when* bullets as its own, word for word but for the scope M5.7a names
+- **Status:** accepted; splits [M5.7][m5-7] into four increments, M5.7a to M5.7d, and plans every remaining increment, each with one of M5.7's *done when* bullets as its own, word for word, M5.7a's on the bundled files and M5.7b's widened to hold it on every file M5.7b adds
 - **Summary:** M5.7 compiles ThrustCurve.org's whole solid catalog into `hpr-motor` ([ADR-288][adr-288]). It is several sessions' work, and its first bullet needs a fresh snapshot from ThrustCurve.org's API, which has answered HTTP 503 since 2026-10-25. M5.7a builds each file's stored check, the default-file rule and the warning on the 32 bundled files first; M5.7b compiles in the fresh snapshot; M5.7c holds every passing file to the oracles; M5.7d adds `hpr motors update` and the motor page's figures.
 
 [m5-7]: ../decisions-and-roadmap.md#m5-7
@@ -49,13 +49,16 @@ record figures, which the pinned capture holds for the 32 bundled motors.
    | Increment | Its *done when* | Needs |
    |---|---|---|
    | M5.7a Each file's check and the default file | M5.7's second bullet, on the bundled files; the 32 motors' record figures committed | nothing new |
-   | M5.7b The whole catalog, from a fresh snapshot | M5.7's first bullet | ThrustCurve.org's API |
+   | M5.7b The whole catalog, from a fresh snapshot | M5.7's first bullet, and M5.7a's second-bullet rules on every file it adds | ThrustCurve.org's API |
    | M5.7c Every passing file held to the oracles | M5.7's third bullet | M5.7b's files |
    | M5.7d Newer motors online, and the bundle described | M5.7's fourth bullet | M5.7b's bundle |
 
 2. **The order.** M5.7a needs no network, and it fixes the shape M5.7b's files land in: a file's
    own figures, its motor's record figures and the check between them. M5.7b then mostly writes
-   data. M5.7c's oracle fixture runs ThrustCurve.org's statistics code over M5.7b's files.
+   data, and its *done when* also holds M5.7a's check, default, listing and warning on every file
+   it adds, so the second bullet covers the whole catalog, not only the 32. `xtask
+   motor-catalog` refuses a file more than 1% off today, the rule the 32 were chosen by; M5.7b
+   stores such files instead, each with its failing check. M5.7c's oracle fixture runs ThrustCurve.org's statistics code over M5.7b's files.
    M5.7d's update compares with M5.7b's bundle date.
 3. **The record figures are committed.** [ADR-287][adr-287] lets the project use ThrustCurve.org's
    records as published facts. M5.7a commits the 32 bundled motors' records verbatim, copied from

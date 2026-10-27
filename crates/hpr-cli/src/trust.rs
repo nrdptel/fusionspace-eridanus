@@ -203,8 +203,9 @@ const MOTOR_INSTEAD: &str = "The motor's printed data and its maker's instructio
 pub(crate) fn catalog_motor(captured: &str) -> String {
     format!(
         "{LABEL} Copied from ThrustCurve.org's curve file, downloaded {captured}, not measured \
-         by HPR Sim: {MOTOR_FIGURES}. Each file is checked against ThrustCurve.org's record and \
-         OpenRocket's reading of it: checks of the file, not of the motor. {MOTOR_INSTEAD}{MORE}{SITE}pick-a-motor.html"
+         by HPR Sim: {MOTOR_FIGURES}. Each file is checked against ThrustCurve.org's \
+         figures and OpenRocket's reading of its impulse and peak thrust, not against the maker's \
+         data: checks of the file, not of the motor. {MOTOR_INSTEAD}{MORE}{SITE}pick-a-motor.html"
     )
 }
 

@@ -270,7 +270,8 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     solid motor and every file but a restricted one are in `hpr-motor`, figures and labels equal
     to the snapshot's; each file left out is listed with its reason, and one past the snapshot's
     named refusals fails; offline, `hpr motors list` lists each motor and `hpr sim --motor` flies
-    each with a curve, the counts taken from the raw snapshot.
+    each with a curve, the counts taken from the raw snapshot; M5.7a's check, default, listing and
+    warning hold on every file it adds, failing files stored and warned of.
   - [ ] **M5.7c Every passing file held to the oracles.** *Done when:* the L42 and
     statistics-code tests run over every file stored as passing, the oracle fixture covering each,
     and `xtask motor-catalog`'s 1% failure runs in CI; a raw-snapshot recount agrees.

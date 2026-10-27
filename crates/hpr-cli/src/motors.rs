@@ -1110,6 +1110,7 @@ fn delays_text(delays: &[Delay]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::output::SimMotorSource;
 
     /// The bundled catalog with the J760's stated burn time moved so its one file's is 2% longer,
     /// its check worked out again: a motor whose only file fails.
@@ -1148,6 +1149,59 @@ mod tests {
         assert!(check_warnings(&bundled, "J760").is_empty());
         assert!(check_warnings(&failing, "no such motor").is_empty());
         assert!(check_warnings(&failing, "I175").is_empty());
+    }
+
+    /// ADR-298 §6, through `hpr sim --motor`'s own lookup: the catalog's motor flies, and the
+    /// failing figure's warning comes back with it; the bundled catalog's passing file gives none.
+    #[test]
+    fn hpr_sim_flies_a_failing_file_with_its_warning() {
+        let failing = failing_j760();
+        let (motor, source, warnings) =
+            crate::sim::catalog_or_fetched("J760", true, &failing).unwrap();
+        assert_eq!(motor.designation(), "1266J760-19A");
+        assert!(matches!(source, SimMotorSource::Catalog { .. }));
+        let [warning] = &warnings[..] else {
+            panic!("{warnings:?}");
+        };
+        assert!(
+            warning.message.ends_with("for it: burn time +2.00%"),
+            "{}",
+            warning.message
+        );
+        let bundled = Catalog::bundled().unwrap();
+        let (_, _, none) = crate::sim::catalog_or_fetched("J760", true, &bundled).unwrap();
+        assert!(none.is_empty());
+    }
+
+    /// A motor with two files, a failing one first in the index: `hpr motors show` lists the
+    /// passing one first and flown, the failing one after it, unflown, with its check.
+    #[test]
+    fn a_passing_file_is_listed_first_and_flown() {
+        let catalog = Catalog::bundled().unwrap();
+        let mut motor = catalog.find("J760").next().unwrap().clone();
+        let passing = motor.curves[0].clone();
+        let mut failing = passing.clone();
+        failing.simfile_id = "failing".to_owned();
+        failing.check.burn_time_s *= 1.02;
+        failing.check.passes = false;
+        motor.curves = vec![failing, passing];
+        let flown = motor.default_curve().unwrap();
+        assert_eq!(flown.simfile_id, "5f4294d20002e9000000074a");
+        let (source, _) = catalog_source(&motor, flown).unwrap();
+        let MotorSource::Catalog { files, .. } = source else {
+            panic!("a catalog source");
+        };
+        let ids: Vec<(&str, bool, bool)> = files
+            .iter()
+            .map(|file| (file.simfile_id.as_str(), file.flown, file.check.passes))
+            .collect();
+        assert_eq!(
+            ids,
+            [
+                ("5f4294d20002e9000000074a", true, true),
+                ("failing", false, false)
+            ]
+        );
     }
 
     /// `hpr motors show` writes a failing file's check as more than 1% from ThrustCurve.org's

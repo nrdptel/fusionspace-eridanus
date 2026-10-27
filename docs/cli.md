@@ -1265,10 +1265,9 @@ file:
   `131-G84-P` (plugged), isn't read.
 
 For a catalog motor, the last lines give each curve file: its format, who measured it, its license,
-and its check against the figures ThrustCurve.org publishes for the motor, each within 1% to pass
-([Solid motors](physics/motor.md#the-bundled-motors)). The motor flies a passing file where it
-has one, marked `(flown)`, and flying one that fails warns. `hpr motors list` gives its figures,
-as a [test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/cli.rs)
+and its [1% check](physics/motor.md#the-bundled-motors) with each figure's gap. `(flown)` marks the
+one the motor flies. `hpr motors list` gives its figures, as a
+[test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/cli.rs)
 checks.
 
 <!-- cli: example `hpr motors show J760`; written by `cargo xtask cli`; do not edit -->
@@ -1292,8 +1291,9 @@ $ hpr motors show J760
 How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-09-17, not measured
 by HPR Sim: the size, masses and delays from the file's header, the impulse, thrusts and burn time
 from its curve, which can differ from the maker's rated figures. Each file is checked against
-ThrustCurve.org's record and OpenRocket's reading of it: checks of the file, not of the motor. The
-motor's printed data and its maker's instructions come first, and the RSO decides.
+ThrustCurve.org's figures and OpenRocket's reading of its impulse and peak thrust, not against the
+maker's data: checks of the file, not of the motor. The motor's printed data and its maker's
+instructions come first, and the RSO decides.
 More: https://hpr.fusionspace.co/pick-a-motor.html
 ```
 
@@ -2220,7 +2220,7 @@ $ hpr motors show B4 --json
     "designation": "FS-ACHERNAR \u00b7 SW \u00b7 TOOL 001"
   },
   "kind": "copied",
-  "trust": "How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-09-17, not measured by HPR Sim: the size, masses and delays from the file's header, the impulse, thrusts and burn time from its curve, which can differ from the maker's rated figures. Each file is checked against ThrustCurve.org's record and OpenRocket's reading of it: checks of the file, not of the motor. The motor's printed data and its maker's instructions come first, and the RSO decides. More: https://hpr.fusionspace.co/pick-a-motor.html",
+  "trust": "How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-09-17, not measured by HPR Sim: the size, masses and delays from the file's header, the impulse, thrusts and burn time from its curve, which can differ from the maker's rated figures. Each file is checked against ThrustCurve.org's figures and OpenRocket's reading of its impulse and peak thrust, not against the maker's data: checks of the file, not of the motor. The motor's printed data and its maker's instructions come first, and the RSO decides. More: https://hpr.fusionspace.co/pick-a-motor.html",
   "motors": [
     {
       "name": "B4",

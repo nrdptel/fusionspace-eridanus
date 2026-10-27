@@ -216,8 +216,9 @@ fn motors_show_says_where_its_figures_come_from() {
                 "Copied from ThrustCurve.org's curve file, downloaded {captured}, not measured by \
                  HPR Sim:"
             ),
-            "Each file is checked against ThrustCurve.org's record and OpenRocket's reading of it: \
-             checks of the file, not of the motor.",
+            "Each file is checked against ThrustCurve.org's figures and OpenRocket's \
+             reading of its impulse and peak thrust, not against the maker's data: checks of the \
+             file, not of the motor.",
             "The motor's printed data and its maker's instructions come first, and the RSO \
              decides.",
         ],
