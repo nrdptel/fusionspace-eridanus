@@ -2332,7 +2332,7 @@ The same probe measures three things the words do not say:
   1.0 and 1.5 m (4.9 ft) long. They are for a material of 67 g/m², which the three values imply by
   equation C.5. The documentation puts that estimate's accuracy at about 20%. One
   user's report ([issue #2031](https://github.com/openrocket/openrocket/issues/2031)) finds a
-  2.5 by 44 in streamer's 0.06 far too small. HPR Sim keeps the `auto` or the stated number as the
+  2.5 by 44&nbsp;in streamer's 0.06 far too small. HPR Sim keeps the `auto` or the stated number as the
   file wrote it.
 
 #### Flown as OpenRocket flies them

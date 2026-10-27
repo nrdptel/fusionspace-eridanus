@@ -473,11 +473,11 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-9d12"></a>[M0.9d12][done-0] | Two to six sheets: the check | done |
 | <a id="m0-9d13"></a>[M0.9d13][done-0] | The pages' sheets and trust | done |
 | <a id="m0-9e"></a>[M0.9e][done-0] | The words to the design | done |
-| <a id="m0-9f"></a>[M0.9f][phase-0] | The rest of the words | not yet done |
+| <a id="m0-9f"></a>[M0.9f][done-0] | The rest of the words | done |
 | <a id="m0-9f1"></a>[M0.9f1][done-0] | Joined names and long warnings | done |
 | <a id="m0-9f2"></a>[M0.9f2][done-0] | Short notes and cells, labeled heads | done |
 | <a id="m0-9f3"></a>[M0.9f3][done-0] | Grouped figures, prose dates and known digits | done |
-| <a id="m0-9f4"></a>[M0.9f4][phase-0] | Units held to their figures | not yet done |
+| <a id="m0-9f4"></a>[M0.9f4][done-0] | Units held to their figures | done |
 | <a id="m0-10"></a>[M0.10][done-0] | The scoreboard | done |
 | <a id="m0-11"></a>[M0.11][done-0] | Steps to a first answer | done |
 | <a id="m0-12"></a>[M0.12][done-0] | Typeset equations | done |
