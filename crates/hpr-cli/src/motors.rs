@@ -11,7 +11,10 @@
 use std::io::{self, Write};
 use std::path::Path;
 
-use hpr::hpr_motor::catalog::{Catalog, CatalogMotor, CurveFormat, MotorType, bundled_curve_text};
+use hpr::hpr_motor::catalog::{
+    Catalog, CatalogCurve, CatalogMotor, CheckedFigure, CurveFormat, CurveLicense, CurveSource,
+    FigureGap, MotorType,
+};
 use hpr::hpr_motor::curve::ThrustCurve;
 use hpr::hpr_motor::delay::{self, DelayList};
 use hpr::hpr_motor::text::{ParseWarning, WarningKind as ReadWarning};
@@ -19,8 +22,9 @@ use hpr::hpr_motor::{ImpulseClass, eng, rse};
 
 use crate::console::{Diagnostics, Level, Text};
 use crate::output::{
-    CatalogInfo, Delay, FileFormat, ListedMotor, MotorFigures, MotorKind, MotorList, MotorShow,
-    MotorSource, Warning, WarningKind,
+    CatalogFile, CatalogInfo, CheckedPair, Delay, FileCheck, FileFormat, FileLicense, InputWarning,
+    ListedMotor, MeasuredBy, MotorFigures, MotorKind, MotorList, MotorShow, MotorSource, Warning,
+    WarningKind,
 };
 use crate::units::{bracketed, inches, inches_figure, ounces_or_pounds};
 use crate::{Failure, Out};
@@ -473,38 +477,18 @@ fn from_catalog(name: &str) -> Result<(MotorShow, Vec<Option<String>>), Failure>
             .map_err(|error| {
                 Failure::library(format!("{}: {error}", motor.designation), crate::BUG_HELP)
             })?;
-        // The curve `bundled_motor` flew: the first with a bundled file, which it just found.
-        let Some(curve) = motor
-            .curves
-            .iter()
-            .find(|curve| bundled_curve_text(&curve.file).is_some())
-        else {
+        // The curve `bundled_motor` flew, which it just found.
+        let Some(curve) = motor.default_curve() else {
             continue;
         };
-        let format = match curve.format {
-            CurveFormat::Rasp => MotorFile::Eng,
-            CurveFormat::RockSim => MotorFile::Rse,
-            // `CurveFormat` is non-exhaustive, and the bundled catalog uses these two only.
-            _ => {
-                return Err(Failure::helped(
-                    format!(
-                        "{}: its curve's format isn't .eng or .rse",
-                        motor.designation
-                    ),
-                    crate::BUG_HELP,
-                ));
-            }
-        };
+        let (source, _) = catalog_source(motor, curve)?;
         let delays = motor.delays();
         show.warnings
             .extend(delay_warnings(&motor.designation, &delays)?);
         show.motors.push(figures(
             &motor.designation,
             &motor.manufacturer,
-            MotorSource::Catalog {
-                curve_url: curve.info_url.clone().unwrap_or_else(|| curve.url.clone()),
-                format: format.output(),
-            },
+            source,
             Envelope {
                 diameter_m: motor.diameter_mm / 1000.0,
                 length_m: motor.length_mm / 1000.0,
@@ -524,6 +508,105 @@ fn from_catalog(name: &str) -> Result<(MotorShow, Vec<Option<String>>), Failure>
         );
     }
     Ok((show, propellants))
+}
+
+/// The warning `hpr sim --motor name` gives when the catalog motor it flies for `name` has a
+/// default file that fails its 1% check (decision record ADR-298 §6): the one motor matching
+/// `name` with a bundled curve, as [`hpr::Motor::from_catalog`] takes it. Empty when the file
+/// passes, or when `name` matches no such motor or several.
+pub(crate) fn check_warnings(catalog: &Catalog, name: &str) -> Vec<InputWarning> {
+    let matches: Vec<&CatalogMotor> = catalog
+        .find(name)
+        .filter(|motor| motor.default_curve().is_some())
+        .collect();
+    let [motor] = matches[..] else {
+        return Vec::new();
+    };
+    motor
+        .default_curve()
+        .and_then(|curve| motor.check_warning(curve))
+        .map(|message| InputWarning {
+            at: "the bundled catalog".to_owned(),
+            kind: WarningKind::Unusual,
+            message: crate::printable(&message),
+        })
+        .into_iter()
+        .collect()
+}
+
+/// Where a catalog motor flown with `curve` comes from, and the curve's format.
+pub(crate) fn catalog_source(
+    motor: &CatalogMotor,
+    curve: &CatalogCurve,
+) -> Result<(MotorSource, MotorFile), Failure> {
+    let format = file_format(motor, curve)?;
+    let source = MotorSource::Catalog {
+        format: format.output(),
+        files: catalog_files(motor, curve)?,
+    };
+    Ok((source, format))
+}
+
+/// A catalog curve's file format.
+fn file_format(motor: &CatalogMotor, curve: &CatalogCurve) -> Result<MotorFile, Failure> {
+    match curve.format {
+        CurveFormat::Rasp => Ok(MotorFile::Eng),
+        CurveFormat::RockSim => Ok(MotorFile::Rse),
+        // `CurveFormat` is non-exhaustive, and the bundled catalog uses these two only.
+        _ => Err(Failure::helped(
+            format!(
+                "{}: its curve's format isn't .eng or .rse",
+                motor.designation
+            ),
+            crate::BUG_HELP,
+        )),
+    }
+}
+
+/// A catalog curve's ThrustCurve.org page, or its download address when the index has no page.
+fn page_url(curve: &CatalogCurve) -> String {
+    curve.info_url.clone().unwrap_or_else(|| curve.url.clone())
+}
+
+/// Every curve file of `motor`, in the order its default is taken, each with its check; `flown`
+/// is the one its flight takes.
+fn catalog_files(motor: &CatalogMotor, flown: &CatalogCurve) -> Result<Vec<CatalogFile>, Failure> {
+    motor
+        .ranked_curves()
+        .into_iter()
+        .map(|curve| {
+            let [total_impulse_ns, average_thrust_n, burn_time_s] =
+                curve.check.gaps(&motor.stated).map(|gap| CheckedPair {
+                    file: gap.file,
+                    stated: gap.stated,
+                });
+            Ok(CatalogFile {
+                simfile_id: curve.simfile_id.clone(),
+                page_url: page_url(curve),
+                format: file_format(motor, curve)?.output(),
+                measured_by: match curve.source {
+                    CurveSource::Certification => MeasuredBy::CertificationTest,
+                    CurveSource::Manufacturer => MeasuredBy::Manufacturer,
+                    CurveSource::User => MeasuredBy::User,
+                    _ => return Err(unknown("curve source", curve.source)),
+                },
+                license: match curve.license {
+                    CurveLicense::PublicDomain => FileLicense::PublicDomain,
+                    CurveLicense::Free => FileLicense::FreeUsage,
+                    CurveLicense::Other => FileLicense::Restricted,
+                    CurveLicense::Unknown => FileLicense::NotStated,
+                    _ => return Err(unknown("curve license", curve.license)),
+                },
+                flown: curve.simfile_id == flown.simfile_id,
+                check: FileCheck {
+                    passes: curve.check.passes,
+                    total_impulse_ns,
+                    average_thrust_n,
+                    burn_time_s,
+                },
+            })
+        })
+        .collect()
 }
 
 /// Every motor in a `.eng` or `.rse` file.
@@ -786,8 +869,10 @@ fn show_text(
             inches(motor.length_m, 1)
         )?;
         writeln!(out, "  delays           {}", delays_text(&motor.delays))?;
-        if let MotorSource::Catalog { curve_url, .. } = &motor.source {
-            writeln!(out, "  curve file       {curve_url} (public domain)")?;
+        if let MotorSource::Catalog { files, .. } = &motor.source {
+            for file in files {
+                catalog_file_text(file, out)?;
+            }
         }
     }
     crate::sim_text::trust_lines(&show.trust, out)?;
@@ -800,6 +885,46 @@ fn show_text(
         diagnostics.line(Level::Warning, &format!("{at}{}", warning.message))?;
     }
     Ok(())
+}
+
+/// One of a catalog motor's curve files as text: its page, whether it is flown, its format, who
+/// measured it and its license, then its check, each figure's signed gap.
+fn catalog_file_text(file: &CatalogFile, out: &mut dyn Write) -> io::Result<()> {
+    let flown = if file.flown { " (flown)" } else { "" };
+    writeln!(out, "  curve file       {}{flown}", file.page_url)?;
+    let format = match file.format {
+        FileFormat::Eng => "RASP (.eng)",
+        FileFormat::Rse => "RockSim (.rse)",
+    };
+    let measured = match file.measured_by {
+        MeasuredBy::CertificationTest => "from a certification test",
+        MeasuredBy::Manufacturer => "from the manufacturer",
+        MeasuredBy::User => "from a user",
+    };
+    let license = match file.license {
+        FileLicense::PublicDomain => "public domain",
+        FileLicense::FreeUsage => "free usage",
+        FileLicense::Restricted => "restricted",
+        FileLicense::NotStated => "no license stated",
+    };
+    writeln!(out, "                   {format}, {measured}, {license}")?;
+    let check = &file.check;
+    let verdict = if check.passes { "passes" } else { "fails" };
+    let gap = |figure, pair: &CheckedPair| {
+        FigureGap {
+            figure,
+            file: pair.file,
+            stated: pair.stated,
+        }
+        .percent_text()
+    };
+    writeln!(
+        out,
+        "                   {verdict} the 1% check: total impulse {}, average thrust {}, burn time {}",
+        gap(CheckedFigure::TotalImpulse, &check.total_impulse_ns),
+        gap(CheckedFigure::AverageThrust, &check.average_thrust_n),
+        gap(CheckedFigure::BurnTime, &check.burn_time_s)
+    )
 }
 
 /// What a motor's designation says about it, as the makers write it (`H170M`, `1266J760-19A`):
@@ -985,6 +1110,125 @@ fn delays_text(delays: &[Delay]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::output::SimMotorSource;
+
+    /// The bundled catalog with the J760's stated burn time moved so its one file's is 2% longer,
+    /// its check worked out again: a motor whose only file fails.
+    fn failing_j760() -> Catalog {
+        let mut catalog = Catalog::bundled().unwrap();
+        let motor = catalog
+            .motors
+            .iter_mut()
+            .find(|motor| motor.designation == "1266J760-19A")
+            .unwrap();
+        let text = hpr::hpr_motor::catalog::bundled_curve_text(&motor.curves[0].file).unwrap();
+        let thrust = motor.thrust_curve(&motor.curves[0], text).unwrap();
+        motor.stated.burn_time_s = thrust.burn_time_s() / 1.02;
+        motor.curves[0].check = hpr::hpr_motor::catalog::CurveCheck::of(&thrust, &motor.stated);
+        catalog
+    }
+
+    /// ADR-298 §6: `hpr sim --motor` warns when the catalog motor it flies has a default file
+    /// that fails its check, naming the motor, the file and the failing figure's signed gap; a
+    /// passing file, a name no motor matches and a name several do give none.
+    #[test]
+    fn flying_a_failing_file_warns_with_each_failing_figure() {
+        let failing = failing_j760();
+        let [warning] = &check_warnings(&failing, "J760")[..] else {
+            panic!("one warning");
+        };
+        assert_eq!(warning.at, "the bundled catalog");
+        assert_eq!(warning.kind, WarningKind::Unusual);
+        assert_eq!(
+            warning.message,
+            "1266J760-19A's curve file 5f4294d20002e9000000074a is more than 1% from \
+             ThrustCurve.org's figures for it: burn time +2.00%"
+        );
+        assert_eq!(check_warnings(&failing, "1266J760-19A").len(), 1);
+        let bundled = Catalog::bundled().unwrap();
+        assert!(check_warnings(&bundled, "J760").is_empty());
+        assert!(check_warnings(&failing, "no such motor").is_empty());
+        assert!(check_warnings(&failing, "I175").is_empty());
+    }
+
+    /// ADR-298 §6, through `hpr sim --motor`'s own lookup: the catalog's motor flies, and the
+    /// failing figure's warning comes back with it; the bundled catalog's passing file gives none.
+    #[test]
+    fn hpr_sim_flies_a_failing_file_with_its_warning() {
+        let failing = failing_j760();
+        let (motor, source, warnings) =
+            crate::sim::catalog_or_fetched("J760", true, &failing).unwrap();
+        assert_eq!(motor.designation(), "1266J760-19A");
+        assert!(matches!(source, SimMotorSource::Catalog { .. }));
+        let [warning] = &warnings[..] else {
+            panic!("{warnings:?}");
+        };
+        assert!(
+            warning.message.ends_with("for it: burn time +2.00%"),
+            "{}",
+            warning.message
+        );
+        let bundled = Catalog::bundled().unwrap();
+        let (_, _, none) = crate::sim::catalog_or_fetched("J760", true, &bundled).unwrap();
+        assert!(none.is_empty());
+    }
+
+    /// A motor with two files, a failing one first in the index: `hpr motors show` lists the
+    /// passing one first and flown, the failing one after it, unflown, with its check.
+    #[test]
+    fn a_passing_file_is_listed_first_and_flown() {
+        let catalog = Catalog::bundled().unwrap();
+        let mut motor = catalog.find("J760").next().unwrap().clone();
+        let passing = motor.curves[0].clone();
+        let mut failing = passing.clone();
+        failing.simfile_id = "failing".to_owned();
+        failing.check.burn_time_s *= 1.02;
+        failing.check.passes = false;
+        motor.curves = vec![failing, passing];
+        let flown = motor.default_curve().unwrap();
+        assert_eq!(flown.simfile_id, "5f4294d20002e9000000074a");
+        let (source, _) = catalog_source(&motor, flown).unwrap();
+        let MotorSource::Catalog { files, .. } = source else {
+            panic!("a catalog source");
+        };
+        let ids: Vec<(&str, bool, bool)> = files
+            .iter()
+            .map(|file| (file.simfile_id.as_str(), file.flown, file.check.passes))
+            .collect();
+        assert_eq!(
+            ids,
+            [
+                ("5f4294d20002e9000000074a", true, true),
+                ("failing", false, false)
+            ]
+        );
+    }
+
+    /// `hpr motors show` writes a failing file's check as more than 1% from ThrustCurve.org's
+    /// figures, each figure's signed gap, and its label as the catalog records it.
+    #[test]
+    fn a_failing_file_shows_its_gaps() {
+        let catalog = failing_j760();
+        let motor = catalog.find("J760").next().unwrap();
+        let curve = motor.default_curve().unwrap();
+        let (source, _) = catalog_source(motor, curve).unwrap();
+        let MotorSource::Catalog { files, .. } = source else {
+            panic!("a catalog source");
+        };
+        let [file] = &files[..] else {
+            panic!("one file");
+        };
+        assert!(file.flown && !file.check.passes);
+        let mut out = Vec::new();
+        catalog_file_text(file, &mut out).unwrap();
+        assert_eq!(
+            String::from_utf8(out).unwrap(),
+            "  curve file       https://www.thrustcurve.org/simfiles/5f4294d20002e9000000074a/ \
+             (flown)\n                   RASP (.eng), from a certification test, public domain\n\
+             \x20                  fails the 1% check: total impulse +0.13%, average thrust \
+             +0.07%, burn time +2.00%\n"
+        );
+    }
 
     /// The nominal thrust and the propellant's code `name` gives, `""` for none.
     fn read(name: &str) -> Option<(u32, String)> {

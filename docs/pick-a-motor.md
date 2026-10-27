@@ -84,15 +84,16 @@ I175WS (AeroTech), from the bundled catalog
   propellant mass  168.0 g (5.9 oz) of 348.0 g (12.3 oz) loaded
   casing           38 mm (1.50 in) across, 214 mm (8.4 in) long
   delays           5 s, 9 s, 13 s
-  curve file       https://www.thrustcurve.org/simfiles/5f4294d20002e900000008bf/ (public domain)
+  curve file       https://www.thrustcurve.org/simfiles/5f4294d20002e900000008bf/ (flown)
+                   RASP (.eng), from a certification test, public domain
+                   passes the 1% check: total impulse +0.05%, average thrust +0.57%, burn time -0.66%
 
 How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-09-17, not measured
-by HPR Sim: the size, masses and delays as the file's header gives them, the impulse, thrusts and
-burn time computed from its curve. These can differ from the maker's rated figures. The total
-impulse and peak thrust match OpenRocket's reading of the same file on every bundled curve. That is
-a check of the arithmetic, not of the motor. No figure is checked against the maker's or the
-certifying bodies' data. The motor's printed data and its maker's instructions come first, and the
-RSO decides.
+by HPR Sim: the size, masses and delays from the file's header, the impulse, thrusts and burn time
+from its curve, which can differ from the maker's rated figures. Each file is checked against
+ThrustCurve.org's figures and OpenRocket's reading of its impulse and peak thrust, not against the
+maker's data: checks of the file, not of the motor. The motor's printed data and its maker's
+instructions come first, and the RSO decides.
 More: https://hpr.fusionspace.co/pick-a-motor.html
 ```
 

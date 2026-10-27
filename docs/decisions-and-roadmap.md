@@ -326,6 +326,7 @@ until someone rewrites it in plainer words.
 | [ADR-295: The rest of the words in four increments, joined names and long warnings first][adr-295] | [M0.9f](#m0-9f) holds the site, the README and `hpr sim`'s warnings to seven writing rules that #476 lists. Fixing them all is several sessions' work, and two of the rules add bytes to a search index with 71 bytes to spare. So it goes in four increments: joined names and long warnings first, then long notes and table heads, which make room in the index, then grouped figures and prose dates, and last the no-break space between a figure and its unit, joined in the built pages after mdBook writes its index. |  |
 | [ADR-296: What the words leave: the figures' digits and the command line's words, M0.9g][adr-296] | Ten rows of the design audit named [M0.9f](#m0-9f) for gaps outside its *done when*: figures quoted to more digits than are known (#966), and the command line's and the plot's words, which no check reads (#973). [M0.9g](#m0-9g) holds both, queued after [M0.13](#m0-13). |  |
 | [ADR-297: A table too wide for its column stacks its rows][adr-297] | A table wider than its column no longer scrolls sideways in its box. Its rows stack, each cell labeled by a copy of its column's head, and the page check fails a table that still scrolls, at every width from 320 px. |  |
+| [ADR-298: Every solid motor in four increments, each file's check first][adr-298] | [M5.7](#m5-7) compiles ThrustCurve.org's whole solid catalog into `hpr-motor` ([ADR-288][adr-288]). It is several sessions' work, and its first bullet needs a fresh snapshot from ThrustCurve.org's API, which has answered HTTP 503 since 2026-10-25. [M5.7a](#m5-7a) builds each file's stored check, the default-file rule and the warning on the 32 bundled files first; [M5.7b](#m5-7b) compiles in the fresh snapshot; [M5.7c](#m5-7c) holds every passing file to the oracles; [M5.7d](#m5-7d) adds `hpr motors update` and the motor page's figures. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -728,6 +729,10 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m5-6c"></a>[M5.6c][phase-2] | Motor hardware and rail buttons | not yet done |
 | <a id="m5-6d"></a>[M5.6d][phase-2] | More makers and electronics | not yet done |
 | <a id="m5-7"></a>[M5.7][phase-2] | Every solid motor, offline | not yet done |
+| <a id="m5-7a"></a>[M5.7a][done-2] | Each file's check and the default file | done |
+| <a id="m5-7b"></a>[M5.7b][phase-2] | The whole catalog, from a fresh snapshot | not yet done |
+| <a id="m5-7c"></a>[M5.7c][phase-2] | Every passing file held to the oracles | not yet done |
+| <a id="m5-7d"></a>[M5.7d][phase-2] | Newer motors online, and the bundle described | not yet done |
 | <a id="m6-1"></a>[M6.1][done-3] | Monte Carlo runs and sensitivity; split in four ([ADR-134][adr-134]) | done |
 | <a id="m6-1a"></a>[M6.1a][done-3] | Seeded dispersion of mass, center of mass, drag, motor, wind, rail and recovery delays; each flight the same whatever the run's size or thread count; failed flights counted; the apogee's spread ([ADR-134][adr-134], [Monte Carlo dispersion](monte-carlo.md)) | done |
 | <a id="m6-1b"></a>[M6.1b][done-3] | Landing ellipses holding a chosen share of the landings, checked against normal spreads with known answers; the next flight's ellipse; the landings each holds counted ([ADR-135][adr-135], [Landing ellipses](monte-carlo.md#landing-ellipses)) | done |
@@ -1241,6 +1246,7 @@ is the milestone that added or will add that test.
 [adr-295]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0295-the-rest-of-the-words-in-four.md
 [adr-296]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0296-what-the-words-leave-digits-and-the-command-lines-words.md
 [adr-297]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0297-a-table-too-wide-stacks-its-rows.md
+[adr-298]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0298-every-solid-motor-in-four-increments.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

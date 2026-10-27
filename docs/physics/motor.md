@@ -21,8 +21,8 @@ burn, mass and ejection delay.
   centers of mass within 5.9e-6 of the motor's length. The propellant's own mass and
   inertias agree within 1e-4 of their values at ignition. OpenRocket 24.12 reads the same curve
   files. On all 32 bundled curves it gets exactly the same total impulse, peak thrust, burn-time
-  window and curve duration. Its average thrust divides by the same window but counts only the
-  impulse inside it, so HPR Sim's is +0.0107% to +0.3147% higher. Nothing else in this model is
+  window and curve duration. Its average thrust differs by definition: HPR Sim's is +0.0107% to
+  +0.3147% higher. Nothing else in this model is
   compared with OpenRocket: not the propellant's burn-back, its mass and inertias, or the delays.
   Nothing here is compared with a real flight.
 - **What it leaves out:** anything but [commercial off-the-shelf](../glossary.md#cots-motor)
@@ -108,20 +108,18 @@ The whole program is [at the end of this page](#the-example-program).
 
 ### The bundled motors
 
-Each curve is a ThrustCurve.org file marked public domain, bundled unchanged. Each curve file
-carries the license its uploader chose. Every number in the catalog comes from the file itself.
-The size, masses and delays come from its header, and the rest is worked out from its curve.
-ThrustCurve.org's own motor records are the figures its site and API publish for each motor. The
-site grants no license for them and reserves copyright (it reads "All rights under copyright
-reserved"). None of those figures is bundled
-([issue #295](https://github.com/nrdptel/fusionspace-eridanus/issues/295);
-[third-party notices](https://github.com/nrdptel/fusionspace-eridanus/blob/main/THIRD-PARTY-NOTICES.md)).
-The project has since decided it may use them as published facts, with credit
-([the decision record on ThrustCurve.org's records](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)),
-and plans to bundle every solid motor
-([the decision record on bundling them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md)).
-`cargo xtask motor-catalog` writes the catalog from the files, and a test fails if the committed
-one differs.
+Each curve is a ThrustCurve.org file marked public domain, bundled unchanged. The size, masses and
+delays come from its header, and the rest is worked out from its curve. Its ThrustCurve.org
+record's impulse, thrusts and burn time are bundled too, as published facts with
+credit ([third-party notices](https://github.com/nrdptel/fusionspace-eridanus/blob/main/THIRD-PARTY-NOTICES.md)).
+They aren't the maker's data. Each file is checked against them: its total impulse, average
+thrust and burn time must each be within 1% of the record's to pass. A gap is the file's figure
+less the record's, as a share of the record's, so `+` means the file reads high. A motor flies a
+passing file where it has one, else the first by format and by who measured it. Today each of
+the 32 has one file, and it passes. Flying a failing file in `hpr sim` warns, naming each failing figure:
+`burn time +2.00%`. Check such a file against the maker's data.
+`hpr motors show` lists each file with its check. `cargo xtask motor-catalog` writes the catalog,
+and a test fails if the committed one differs.
 
 | column | what it is | where it comes from |
 |---|---|---|
@@ -139,18 +137,15 @@ How the 32 were chosen:
 
 - They are public-domain ThrustCurve.org curves of motors in production.
 - When they were chosen (September 17, 2026), each curve's total impulse, burn time and average thrust
-  were within 1% of the values ThrustCurve.org publishes for the motor. With ThrustCurve.org's catalog saved outside the repository, `cargo xtask
-  motor-catalog` measures the gap again and fails over 1%. Total impulse runs from 0.83% below
-  ThrustCurve.org's to 0.72% above. Average thrust runs from 0.81% below to 0.95% above, and burn
-  time from 0.95% below to 0.99% above. Peak thrust is not held to it: it runs from 16.7% below
+  were within 1% of the values ThrustCurve.org publishes for the motor. Peak thrust is not held to it: it runs from 16.7% below
   (Cesaroni 26E31-15A) to 2.1% above (Loki M1378LR).
 - The files' headers differ from ThrustCurve.org's records in a few places, and the header is
   what the simulator flies. Five lengths differ, from 1.2% shorter (the B4) to 1.3% longer (the
   N3300R). So do 7 propellant masses, from 2.7% lighter (the C5) to 52% heavier (the 26E31-15A).
   So do 6 loaded masses, from 4.0% lighter (the C5) to 2.3% heavier (the D5). For the 26E31-15A
-  the header is the likelier. Its 16.9 g of propellant gives 26.1 N·s at an effective exhaust
-  velocity of 1,543 m/s (5,062 ft/s). The record's 11.1 g would need 2,350 m/s (7,710 ft/s), more
-  than every other bundled motor but the K400C. The delays are the header's too, which often
+  the header is the likelier: the record's 11.1 g of propellant would need an effective exhaust
+  velocity of 2,350 m/s (7,710 ft/s) for its 26.1 N·s, more than every bundled motor but the
+  K400C. The delays are the header's too, which often
   lists fewer settings than the maker sells.
 - There are up to three per impulse class, from different manufacturers. None is in class A.
 - The selection, and the curves left out, are in
@@ -612,17 +607,15 @@ The tests that pin the motor model, and the whole example program.
 
 ### Validation
 
-- **Catalog** (`catalog::tests`): every figure the catalog states is its curve file's own, bit for
-  bit. So what `hpr motors` lists is what flies. All 32 are within 1% of the total impulse,
-  average thrust and burn time ThrustCurve.org's code works out from the same files (next item).
-  Against ThrustCurve.org's published values, 1% was **the bundling rule**, so it held by
-  construction. `cargo xtask motor-catalog` measures it again where ThrustCurve.org's catalog is
-  saved outside the repository. In Loft, a mis-sourced curve flew about 26% high
+- **Catalog** (`catalog::tests`): every figure the catalog lists is its curve file's own, bit for
+  bit, so what `hpr motors` lists is what flies. Each file's stored check is worked out again from
+  the file and its motor's committed record. All 32 pass: 1% was **the bundling rule**. In Loft,
+  a mis-sourced curve flew about 26% high
   ([Loft lesson L42](../decisions-and-roadmap.md#l42)). Of 554 public-domain curves, 196 passed
   ([data notes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/thrustcurve-data.md),
   which also list the four motors whose stored values are printed coarser than 1%). Each bundled
-  file is public domain. Its bytes match the SHA-256 checksum (a fingerprint of a file's exact
-  bytes) recorded when it was downloaded. These checks answer Loft lessons
+  file is public domain, its bytes matching the SHA-256 checksum (a fingerprint of a file's exact
+  bytes) recorded at download. These checks answer Loft lessons
   [L41](../decisions-and-roadmap.md#l41) to [L43](../decisions-and-roadmap.md#l43), on curve
   licenses, loose impulse checks and wrong headers.
 - **ThrustCurve's code** (`catalog::tests::every_bundled_curve_matches_thrustcurve_statistics_code`):

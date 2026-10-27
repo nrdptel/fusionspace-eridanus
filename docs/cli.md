@@ -1264,20 +1264,11 @@ file:
   the form Cesaroni's own files write, `131-G84-GR-10A`. Even there, a single delay letter, as in
   `131-G84-P` (plugged), isn't read.
 
-For a catalog motor, the last line names the public-domain curve file the figures come from.
-`hpr motors list` gives the same figures, as a
+For a catalog motor, the last lines give each curve file: its format, who measured it, its license,
+and its [1% check](physics/motor.md#the-bundled-motors) with each figure's gap. `(flown)` marks the
+one the motor flies. `hpr motors list` gives its figures, as a
 [test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/cli.rs)
-checks. ThrustCurve.org's own published figures aren't bundled: every figure comes from the curve
-file, read from its header or worked out from its points ([issue #295](https://github.com/nrdptel/fusionspace-eridanus/issues/295)).
-ThrustCurve.org grants no license for its figures and reserves copyright. The project has since
-decided to use them as published facts, with credit
-([the decision record on ThrustCurve.org's records](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)),
-and plans to bundle every solid motor
-([the decision record on bundling them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md)).
-When the 32 were chosen, their total impulse, average thrust and burn time agreed with
-ThrustCurve.org's within 1%. The simulator's peak, the curve file's highest point, runs from
-16.7% below ThrustCurve.org's (Cesaroni 26E31-15A) to 2.1% above (Loki M1378LR) ([Solid
-motors](physics/motor.md#the-bundled-motors)).
+checks.
 
 <!-- cli: example `hpr motors show J760`; written by `cargo xtask cli`; do not edit -->
 
@@ -1293,15 +1284,16 @@ $ hpr motors show J760
   propellant mass  576.0 g (1.27 lb) of 1076.8 g (2.37 lb) loaded
   casing           54 mm (2.13 in) across, 329 mm (13.0 in) long
   delays           8 s, 10 s, 12 s, 14 s, 16 s, 18 s, 19 s
-  curve file       https://www.thrustcurve.org/simfiles/5f4294d20002e9000000074a/ (public domain)
+  curve file       https://www.thrustcurve.org/simfiles/5f4294d20002e9000000074a/ (flown)
+                   RASP (.eng), from a certification test, public domain
+                   passes the 1% check: total impulse +0.13%, average thrust +0.07%, burn time +0.08%
 
 How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-09-17, not measured
-by HPR Sim: the size, masses and delays as the file's header gives them, the impulse, thrusts and
-burn time computed from its curve. These can differ from the maker's rated figures. The total
-impulse and peak thrust match OpenRocket's reading of the same file on every bundled curve. That is
-a check of the arithmetic, not of the motor. No figure is checked against the maker's or the
-certifying bodies' data. The motor's printed data and its maker's instructions come first, and the
-RSO decides.
+by HPR Sim: the size, masses and delays from the file's header, the impulse, thrusts and burn time
+from its curve, which can differ from the maker's rated figures. Each file is checked against
+ThrustCurve.org's figures and OpenRocket's reading of its impulse and peak thrust, not against the
+maker's data: checks of the file, not of the motor. The motor's printed data and its maker's
+instructions come first, and the RSO decides.
 More: https://hpr.fusionspace.co/pick-a-motor.html
 ```
 
@@ -2228,15 +2220,39 @@ $ hpr motors show B4 --json
     "designation": "FS-ACHERNAR \u00b7 SW \u00b7 TOOL 001"
   },
   "kind": "copied",
-  "trust": "How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-09-17, not measured by HPR Sim: the size, masses and delays as the file's header gives them, the impulse, thrusts and burn time computed from its curve. These can differ from the maker's rated figures. The total impulse and peak thrust match OpenRocket's reading of the same file on every bundled curve. That is a check of the arithmetic, not of the motor. No figure is checked against the maker's or the certifying bodies' data. The motor's printed data and its maker's instructions come first, and the RSO decides. More: https://hpr.fusionspace.co/pick-a-motor.html",
+  "trust": "How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-09-17, not measured by HPR Sim: the size, masses and delays from the file's header, the impulse, thrusts and burn time from its curve, which can differ from the maker's rated figures. Each file is checked against ThrustCurve.org's figures and OpenRocket's reading of its impulse and peak thrust, not against the maker's data: checks of the file, not of the motor. The motor's printed data and its maker's instructions come first, and the RSO decides. More: https://hpr.fusionspace.co/pick-a-motor.html",
   "motors": [
     {
       "name": "B4",
       "manufacturer": "Quest Aerospace",
       "source": {
         "kind": "catalog",
-        "curve_url": "https://www.thrustcurve.org/simfiles/5f4294d20002e9000000088e/",
-        "format": "eng"
+        "format": "eng",
+        "files": [
+          {
+            "simfile_id": "5f4294d20002e9000000088e",
+            "page_url": "https://www.thrustcurve.org/simfiles/5f4294d20002e9000000088e/",
+            "format": "eng",
+            "measured_by": "certification_test",
+            "license": "public_domain",
+            "flown": true,
+            "check": {
+              "passes": true,
+              "total_impulse_ns": {
+                "file": 4.892141999999999,
+                "stated": 4.86
+              },
+              "average_thrust_n": {
+                "file": 4.403753380057823,
+                "stated": 4.4
+              },
+              "burn_time_s": {
+                "file": 1.110902808988764,
+                "stated": 1.1
+              }
+            }
+          }
+        ]
       },
       "diameter_m": 0.018,
       "length_m": 0.08,

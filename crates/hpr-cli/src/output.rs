@@ -271,12 +271,14 @@ pub struct MotorFigures {
 #[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum MotorSource {
-    /// The bundled catalog, with a public-domain curve from ThrustCurve.org.
+    /// The bundled catalog, with a curve file from ThrustCurve.org.
     Catalog {
-        /// The curve file's ThrustCurve.org page.
-        curve_url: String,
-        /// The curve's format: `eng` or `rse`.
+        /// The flown curve's format: `eng` or `rse`.
         format: FileFormat,
+        /// Every curve file the catalog lists for the motor, in the order its default is taken
+        /// (decision record ADR-298): a file whose check passes first, then RASP before RockSim,
+        /// each by who measured it.
+        files: Vec<CatalogFile>,
     },
     /// A motor file named on the command line.
     File {
@@ -285,6 +287,76 @@ pub enum MotorSource {
         /// The file's format: `eng` or `rse`.
         format: FileFormat,
     },
+}
+
+/// One of a catalog motor's curve files, with its check against the motor's stated figures.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct CatalogFile {
+    /// ThrustCurve.org's id for the file.
+    pub simfile_id: String,
+    /// The file's ThrustCurve.org page.
+    pub page_url: String,
+    /// The file's format: `eng` or `rse`.
+    pub format: FileFormat,
+    /// Who measured the curve.
+    pub measured_by: MeasuredBy,
+    /// The data license its uploader chose, as ThrustCurve.org records it.
+    pub license: FileLicense,
+    /// Whether this is the file the motor flies: the first bundled file in this order.
+    pub flown: bool,
+    /// The file's check: its figures against the stated ones, each held to 1%.
+    pub check: FileCheck,
+}
+
+/// Who measured a curve, as ThrustCurve.org records it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum MeasuredBy {
+    /// A certification body's test.
+    CertificationTest,
+    /// The manufacturer.
+    Manufacturer,
+    /// A ThrustCurve.org user.
+    User,
+}
+
+/// A curve file's data license, as ThrustCurve.org records it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum FileLicense {
+    /// Public domain.
+    PublicDomain,
+    /// "Free usage": by ThrustCurve.org's definition, terms such as GPL or Creative Commons.
+    FreeUsage,
+    /// Other, restricted terms.
+    Restricted,
+    /// No license recorded.
+    NotStated,
+}
+
+/// A curve file's check (decision records ADR-005 and ADR-298): its total impulse over the whole
+/// curve, its NFPA 1125 burn time and its average thrust (that impulse over that burn time),
+/// each against the figure ThrustCurve.org's record of the motor states. A figure passes when
+/// `|file - stated|` is at most 1% of `stated`.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, JsonSchema)]
+pub struct FileCheck {
+    /// Whether all three pass.
+    pub passes: bool,
+    /// Total impulse, N·s.
+    pub total_impulse_ns: CheckedPair,
+    /// Average thrust, N.
+    pub average_thrust_n: CheckedPair,
+    /// Burn time, s.
+    pub burn_time_s: CheckedPair,
+}
+
+/// One figure of a curve file's check, in the unit its key names.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, JsonSchema)]
+pub struct CheckedPair {
+    /// The file's figure, worked out from its curve as the simulator flies it.
+    pub file: f64,
+    /// ThrustCurve.org's stated figure.
+    pub stated: f64,
 }
 
 /// A motor file format.

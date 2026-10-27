@@ -1,6 +1,5 @@
 //! A solid rocket motor, ready to go in a rocket's motor tube.
 
-use hpr_motor::catalog::bundled_curve_text;
 use hpr_motor::{Catalog, Delay, MotorError, SolidMotor, eng, rse};
 use serde::Serialize;
 
@@ -64,10 +63,12 @@ impl Motor {
     }
 
     /// The motor in HPR Sim's built-in catalog whose designation or common name is `name`,
-    /// ignoring case, spaces and hyphens (`"H54"`, `"168H54-10A"`, `"k 400"`), with its first
-    /// bundled thrust curve. Only motors with a bundled curve can be found: 32 today, listed on
-    /// the [motor page][motor-page]. The delay is not set, whatever the designation says: give it
-    /// with [`Motor::with_delay_s`].
+    /// ignoring case, spaces and hyphens (`"H54"`, `"168H54-10A"`, `"k 400"`), with its default
+    /// thrust curve: a bundled file within 1% of ThrustCurve.org's stated figures where it has
+    /// one ([`hpr_motor::catalog::CatalogMotor::default_curve`]). A failing file flies without a
+    /// warning here; [`hpr_motor::catalog::CatalogMotor::check_warning`] gives it. Only motors
+    /// with a bundled curve can be found: 32 today, listed on the [motor page][motor-page]. The
+    /// delay is not set, whatever the designation says: give it with [`Motor::with_delay_s`].
     ///
     /// [motor-page]: https://hpr.fusionspace.co/physics/motor.html
     ///
@@ -79,15 +80,20 @@ impl Motor {
     /// - [`Error::Motor`] if the catalog or the motor's curve can't be read (never, for the
     ///   bundled ones: their tests read them all).
     pub fn from_catalog(name: &str) -> Result<Self, Error> {
-        let catalog = Catalog::bundled()?;
+        Self::from_catalog_in(&Catalog::bundled()?, name)
+    }
+
+    /// As [`Motor::from_catalog`], in `catalog` rather than the built-in one: the motor whose
+    /// designation or common name is `name` among those with a bundled curve, with its default
+    /// curve.
+    ///
+    /// # Errors
+    ///
+    /// As [`Motor::from_catalog`].
+    pub fn from_catalog_in(catalog: &Catalog, name: &str) -> Result<Self, Error> {
         let matches = catalog
             .find(name)
-            .filter(|entry| {
-                entry
-                    .curves
-                    .iter()
-                    .any(|curve| bundled_curve_text(&curve.file).is_some())
-            })
+            .filter(|entry| entry.default_curve().is_some())
             .collect::<Vec<_>>();
         let entry = match matches[..] {
             [] => return Err(Error::NoSuchMotor(name.to_owned())),

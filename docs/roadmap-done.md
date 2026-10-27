@@ -307,6 +307,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M4.6 Monte Carlo from the CLI and Python ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.6a `hpr mc` ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.6b Monte Carlo in Python ([Phase 2](#phase-2-library-surfaces-and-interop))
+- M5.7a Each file's check and the default file ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M6.1 Monte Carlo and sensitivity ([Phase 3](#phase-3-uncertainty-optimization-challenges))
 - M6.1a Seeded dispersion ([Phase 3](#phase-3-uncertainty-optimization-challenges))
 - M6.1b Landing ellipses ([Phase 3](#phase-3-uncertainty-optimization-challenges))
@@ -1575,6 +1576,12 @@ One line per milestone or increment, in the order it was archived within its pha
     seed, bit for bit.
   - [x] **M4.6b Monte Carlo in Python** (ADR-183). *Done when:* Python returns M4.6a's runs as arrays, its
     failed runs counted, equal bit for bit to `hpr mc`'s CSV from the same build and seed.
+- **M5.7** is open; its entry: [roadmap](ROADMAP.md#phase-2-library-surfaces-and-interop).
+  - [x] **M5.7a Each file's check and the default file.** *Done when:* on the bundled files, with
+    their 32 motors' records committed: each file stores its ADR-005 1% check (definition A); the
+    default is a passing file where one exists; `hpr motors show` lists every file, its check and
+    label; flying a failing file warns with each figure's signed gap (tests: a pass, the 1% edge,
+    each figure alone; a mutation probe).
 ## Phase 3: Uncertainty, optimization, challenges
 
 - [x] **M6.1 Monte Carlo and sensitivity.**

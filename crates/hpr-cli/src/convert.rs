@@ -12,7 +12,7 @@ use std::io::{self, Write};
 use std::path::Path;
 
 use hpr::hpr_motor::DelayList;
-use hpr::hpr_motor::catalog::{CatalogMotor, CurveFormat, bundled_curve_text};
+use hpr::hpr_motor::catalog::CatalogMotor;
 use hpr::hpr_motor::convert::{self, ConvertWarning};
 use hpr::hpr_motor::eng::{self, EngFile};
 use hpr::hpr_motor::rse::{self, RseEngine, RseFile};
@@ -527,34 +527,13 @@ fn read_input(
             ));
         }
     };
-    let (curve, text) = motor
-        .curves
-        .iter()
-        .find_map(|curve| bundled_curve_text(&curve.file).map(|text| (curve, text)))
-        .ok_or_else(|| {
-            Failure::helped(
-                format!("{}: no curve of it is bundled", motor.designation),
-                "download its .eng or .rse file from ThrustCurve.org and give that file's path",
-            )
-        })?;
-    let format = match curve.format {
-        CurveFormat::Rasp => MotorFile::Eng,
-        CurveFormat::RockSim => MotorFile::Rse,
-        // `CurveFormat` is non-exhaustive, and the bundled catalog uses these two only.
-        _ => {
-            return Err(Failure::helped(
-                format!(
-                    "{}: its curve's format isn't .eng or .rse",
-                    motor.designation
-                ),
-                crate::BUG_HELP,
-            ));
-        }
-    };
-    let source = MotorSource::Catalog {
-        curve_url: curve.info_url.clone().unwrap_or_else(|| curve.url.clone()),
-        format: format.output(),
-    };
+    let (curve, text) = motor.default_curve_text().ok_or_else(|| {
+        Failure::helped(
+            format!("{}: no curve of it is bundled", motor.designation),
+            "download its .eng or .rse file from ThrustCurve.org and give that file's path",
+        )
+    })?;
+    let (source, format) = crate::motors::catalog_source(motor, curve)?;
     let figures = CatalogFigures {
         diameter_mm: motor.diameter_mm,
         length_mm: motor.length_mm,
@@ -595,7 +574,13 @@ fn text_output(
     diagnostics: &mut Diagnostics<'_>,
 ) -> io::Result<()> {
     let from = match &document.input {
-        MotorSource::Catalog { curve_url, .. } => format!("the bundled catalog ({curve_url})"),
+        MotorSource::Catalog { files, .. } => {
+            let flown = files.iter().find(|file| file.flown);
+            match flown {
+                Some(file) => format!("the bundled catalog ({})", file.page_url),
+                None => "the bundled catalog".to_owned(),
+            }
+        }
         MotorSource::File { .. } => file_name(input),
     };
     writeln!(out, "read   {from}")?;

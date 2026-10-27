@@ -1,11 +1,15 @@
 //! `cargo xtask motor-catalog`: hpr-motor's bundled catalog index, written from its public-domain
-//! curve files alone (issue #295).
+//! curve files (issue #295) and its motors' ThrustCurve.org records (ADR-298).
 //!
 //! The 32 curve files under `crates/hpr-motor/data/thrustcurve/curves/` are ThrustCurve.org data
-//! files marked public domain. The index copies none of ThrustCurve.org's own figures, the rule
-//! ADR-186 set. ThrustCurve.org grants no license for its API's motor records and reserves
-//! copyright; ADR-287 has since let the project use them as published facts, with credit, and
-//! ADR-288 plans the whole solid catalog for M5.7. For each file the command reads:
+//! files marked public domain. Each motor's listed figures are its file's own, the rule ADR-186
+//! set. ThrustCurve.org grants no license for its API's motor records and reserves copyright;
+//! ADR-287 lets the project use them as published facts, with credit. So `records.json` beside
+//! the files holds the 32 motors' records, copied unchanged from the pinned 2026-09-17 API
+//! capture, and the index copies four of their figures as each motor's stated ones: total impulse,
+//! average thrust, burn time and peak thrust. Each file's check against them (ADR-005's 1% rule)
+//! is stored with the file. ADR-288 plans the whole solid catalog for M5.7. For each file the
+//! command reads:
 //!
 //! - from the file's header: diameter, length, propellant and loaded masses, and delays (as
 //!   written: `4-6`, `P`, `1000`; [`hpr_motor::DelayList::parse`] reads them);
@@ -14,7 +18,9 @@
 //!   largest delivered sample), burn time (the NFPA 1125 window between the 5%-of-peak crossings)
 //!   and average thrust (total impulse over that burn time), and the impulse class from the total
 //!   impulse;
-//! - from its bytes: its SHA-256.
+//! - from its bytes: its SHA-256;
+//! - from its motor's record: the stated figures, and with them the file's check
+//!   ([`hpr_motor::catalog::CurveCheck::of`]).
 //!
 //! [`FILES`] holds, by hand, only what a file doesn't state and nothing measured: the names that
 //! identify the motor (ThrustCurve.org's id for it, designation, maker, single-use or reload, case,
@@ -25,12 +31,14 @@
 //! Checks that refuse to write: the file holds one motor; its header's sizes and masses are
 //! positive with less propellant than loaded mass; the designation's class letter is the computed
 //! impulse's class; a reload's case names the header's diameter (the check [Loft lesson L43][l43]
-//! asks for: a header that said 75 mm for a 54 mm motor); and every file in the directory is in
-//! the table.
+//! asks for: a header that said 75 mm for a 54 mm motor); every file in the directory is in
+//! the table; and each motor has one record, under its id, with its designation and maker.
 //!
 //! `--check` writes nothing and fails if `catalog.json` or `src/bundled.rs` is not what the command
-//! writes. With ThrustCurve.org's API capture under `refs/` (gitignored, never committed), the
-//! command also prints how far the files' figures are from ThrustCurve.org's stated ones.
+//! writes. The command prints how far the files' figures are from the records' and fails on a
+//! total impulse, average thrust or burn time more than 1% away, the bound the 32 files were
+//! chosen by. With ThrustCurve.org's API capture under `refs/` (gitignored, never committed), it
+//! also fails if a committed record differs from the capture's.
 //!
 //! [l43]: https://hpr.fusionspace.co/decisions-and-roadmap.html#l43
 
@@ -39,8 +47,8 @@ use std::fs;
 use std::path::Path;
 
 use hpr_motor::catalog::{
-    Catalog, CatalogCurve, CatalogMotor, CurveFormat, CurveLicense, CurveSource, MotorType,
-    Snapshot,
+    Catalog, CatalogCurve, CatalogMotor, CurveCheck, CurveFormat, CurveLicense, CurveSource,
+    MotorType, Snapshot, StatedFigures,
 };
 use hpr_motor::{ImpulseClass, eng, rse};
 use sha2::{Digest, Sha256};
@@ -48,15 +56,23 @@ use sha2::{Digest, Sha256};
 pub const USAGE: &str = "\
   motor-catalog [--check]  Write hpr-motor's bundled catalog index
                            (crates/hpr-motor/data/thrustcurve/catalog.json) and
-                           src/bundled.rs from the public-domain curve files alone: sizes,
-                           masses and delays from each header, impulse, thrusts and burn time
-                           from the curve. --check fails if either is stale.";
+                           src/bundled.rs from the public-domain curve files and records.json:
+                           sizes, masses and delays from each header, impulse, thrusts and burn
+                           time from the curve, each file's 1% check against its motor's
+                           record. --check fails if either is stale.";
 
 /// The data directory, from the workspace root.
 const DATA: &str = "crates/hpr-motor/data/thrustcurve";
 
 /// The index, from the workspace root.
 const CATALOG: &str = "crates/hpr-motor/data/thrustcurve/catalog.json";
+
+/// The bundled motors' ThrustCurve.org records, from the workspace root: copied unchanged from
+/// the API capture `validation/refs.lock.toml` pins as `thrustcurve-motors`.
+const RECORDS: &str = "crates/hpr-motor/data/thrustcurve/records.json";
+
+/// The pinned API capture the records were copied from, from the workspace root.
+const CAPTURE: &str = "refs/snapshots/thrustcurve/motors.json";
 
 /// The module that compiles the index and the files in, from the workspace root.
 const BUNDLED: &str = "crates/hpr-motor/src/bundled.rs";
@@ -77,7 +93,8 @@ because their curves agreed with ThrustCurve.org's stated total impulse, burn ti
 thrust within 1%; files whose text contradicts the PD flag are left out. Every figure here is the \
 file's own: size, masses and delays from its header; total impulse, average and peak thrust and \
 the NFPA 1125 burn time (between the 5%-of-peak crossings) worked out from its curve as hpr flies \
-it.";
+it. Each motor's stated figures are ThrustCurve.org's record of it, copied unchanged, and each \
+file's check holds its total impulse, average thrust and burn time to 1% of them.";
 
 /// What identifies one bundled file's motor, and the file's provenance: names and dates only.
 struct Identity {
@@ -180,6 +197,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     };
     let root = crate::designs::root()?;
     let catalog = generate(&root)?;
+    records_match_capture(&root)?;
     let outputs = [
         (CATALOG, catalog_json(&catalog)?),
         (BUNDLED, bundled_rs(&catalog)),
@@ -204,11 +222,114 @@ pub fn run(args: &[String]) -> Result<(), String> {
         ));
     }
     println!(
-        "{} motors, every figure from its curve file{}",
+        "{} motors, every listed figure from its curve file, each file checked against its \
+         motor's record{}",
         catalog.motors.len(),
         if check { "; up to date" } else { "" }
     );
     compare_with_thrustcurve(&root, &catalog)
+}
+
+/// The committed records, in their file's order.
+fn records(root: &Path) -> Result<Vec<serde_json::Value>, String> {
+    let path = root.join(RECORDS);
+    let text = fs::read_to_string(&path).map_err(|error| format!("{}: {error}", path.display()))?;
+    let file: serde_json::Value =
+        serde_json::from_str(&text).map_err(|error| format!("{}: {error}", path.display()))?;
+    file["records"]
+        .as_array()
+        .cloned()
+        .ok_or_else(|| format!("{RECORDS}: no `records` list"))
+}
+
+/// The record under the motor's id, which must be the only one and name its designation and
+/// maker.
+fn record_of<'a>(
+    records: &'a [serde_json::Value],
+    identity: &Identity,
+) -> Result<&'a serde_json::Value, String> {
+    let found: Vec<&serde_json::Value> = records
+        .iter()
+        .filter(|r| r["motorId"] == identity.motor_id)
+        .collect();
+    let [record] = found[..] else {
+        return Err(format!(
+            "{RECORDS}: {} records for {} ({}), not one",
+            found.len(),
+            identity.designation,
+            identity.motor_id
+        ));
+    };
+    if record["designation"] != identity.designation
+        || record["manufacturerAbbrev"] != identity.manufacturer_abbrev
+    {
+        return Err(format!(
+            "{RECORDS}: the record under {} is {} {}, not {} {}",
+            identity.motor_id,
+            record["manufacturerAbbrev"],
+            record["designation"],
+            identity.manufacturer_abbrev,
+            identity.designation
+        ));
+    }
+    Ok(record)
+}
+
+/// The figures a record states.
+fn stated(record: &serde_json::Value, identity: &Identity) -> Result<StatedFigures, String> {
+    let figure = |key: &str| {
+        record[key].as_f64().ok_or_else(|| {
+            format!(
+                "{RECORDS}: {}'s record has no `{key}`",
+                identity.designation
+            )
+        })
+    };
+    Ok(StatedFigures {
+        total_impulse_ns: figure("totImpulseNs")?,
+        average_thrust_n: figure("avgThrustN")?,
+        burn_time_s: figure("burnTimeS")?,
+        max_thrust_n: record["maxThrustN"].as_f64(),
+    })
+}
+
+/// Refuses a committed record of a motor no bundled file is listed under, and, with the pinned
+/// API capture under `refs/`, a record that isn't the capture's, key for key.
+fn records_match_capture(root: &Path) -> Result<(), String> {
+    let committed = records(root)?;
+    for record in &committed {
+        if !FILES
+            .iter()
+            .any(|identity| record["motorId"] == identity.motor_id)
+        {
+            return Err(format!(
+                "{RECORDS}: {} is no bundled motor's record",
+                record["motorId"]
+            ));
+        }
+    }
+    let path = root.join(CAPTURE);
+    let Ok(text) = fs::read_to_string(&path) else {
+        println!("no ThrustCurve.org API capture under refs/; the records aren't compared with it");
+        return Ok(());
+    };
+    let capture: serde_json::Value =
+        serde_json::from_str(&text).map_err(|error| format!("{}: {error}", path.display()))?;
+    let captured = capture["results"].as_array().cloned().unwrap_or_default();
+    for record in &committed {
+        let theirs = captured.iter().find(|r| r["motorId"] == record["motorId"]);
+        if theirs != Some(record) {
+            return Err(format!(
+                "{RECORDS}: the record under {} is not the capture's",
+                record["motorId"]
+            ));
+        }
+    }
+    println!(
+        "{} records, each the pinned capture's ({CAPTURE})",
+        committed.len()
+    );
+    Ok(())
 }
 
 /// The catalog the files give.
@@ -225,9 +346,10 @@ pub(crate) fn generate(root: &Path) -> Result<Catalog, String> {
     // A hidden file, such as the `.DS_Store` Finder leaves, is no curve, and is not bundled.
     on_disk.retain(|name| !name.starts_with('.'));
     on_disk.sort();
+    let records = records(root)?;
     let motors = FILES
         .iter()
-        .map(|identity| motor(&curves, identity, &on_disk))
+        .map(|identity| motor(&curves, identity, &on_disk, record_of(&records, identity)?))
         .collect::<Result<Vec<_>, _>>()?;
     let listed: Vec<String> = motors
         .iter()
@@ -261,7 +383,12 @@ struct Header {
 }
 
 /// One motor's entry, from its file.
-fn motor(curves: &Path, identity: &Identity, on_disk: &[String]) -> Result<CatalogMotor, String> {
+fn motor(
+    curves: &Path,
+    identity: &Identity,
+    on_disk: &[String],
+    record: &serde_json::Value,
+) -> Result<CatalogMotor, String> {
     let id = identity.simfile_id;
     let found: Vec<&String> = on_disk
         .iter()
@@ -324,6 +451,8 @@ fn motor(curves: &Path, identity: &Identity, on_disk: &[String]) -> Result<Catal
             &common_name[..1]
         ));
     }
+    let stated = stated(record, identity)?;
+    let check = CurveCheck::of(&thrust, &stated);
     Ok(CatalogMotor {
         motor_id: identity.motor_id.to_owned(),
         manufacturer: identity.manufacturer.to_owned(),
@@ -343,6 +472,7 @@ fn motor(curves: &Path, identity: &Identity, on_disk: &[String]) -> Result<Catal
         burn_time_s: thrust.burn_time_s(),
         propellant_mass_g: Some(header.propellant_mass_g),
         total_mass_g: Some(header.total_mass_g),
+        stated,
         curves: vec![CatalogCurve {
             simfile_id: id.to_owned(),
             format,
@@ -360,6 +490,7 @@ fn motor(curves: &Path, identity: &Identity, on_disk: &[String]) -> Result<Catal
             url: format!("{FILES_URL}{id}/download/data.{extension}"),
             info_url: Some(format!("{FILES_URL}{id}/")),
             retrieved: RETRIEVED.to_owned(),
+            check,
         }],
     })
 }
@@ -428,10 +559,10 @@ pub(crate) fn bundled_rs(catalog: &Catalog) -> String {
     files.sort_unstable();
     let mut out = String::from(
         "//! The bundled ThrustCurve.org catalog: its index, written by `cargo xtask motor-catalog` \
-         from\n//! the curve files alone, and the files. Regenerate it with that command instead \
+         from\n//! the curve files and their motors' records, and the files. Regenerate it with that command instead \
          of editing it.\n\n\
-         /// The catalog index: each motor's names, the figures its curve file gives, and \
-         per-curve\n/// provenance.\n\
+         /// The catalog index: each motor's names, the figures its curve file gives, its \
+         record's\n/// stated figures, and per-curve provenance and check.\n\
          pub(crate) const CATALOG_JSON: &str = include_str!(\"../data/thrustcurve/catalog.json\");\n\n\
          /// Each bundled curve file's text, by the path in the index.\n\
          pub(crate) const CURVE_FILES: &[(&str, &str)] = &[\n",
@@ -446,73 +577,40 @@ pub(crate) fn bundled_rs(catalog: &Catalog) -> String {
     out
 }
 
-/// A figure compared with ThrustCurve.org's: its name, ThrustCurve.org's key for it, the catalog's
-/// value, and whether it is held to 1%.
-type Field = (
-    &'static str,
-    &'static str,
-    fn(&CatalogMotor) -> Option<f64>,
-    bool,
-);
+/// A figure compared with ThrustCurve.org's: its name, ThrustCurve.org's key for it, and the
+/// catalog's value.
+type Field = (&'static str, &'static str, fn(&CatalogMotor) -> Option<f64>);
 
-/// With ThrustCurve.org's API capture under `refs/` (never committed), prints how far each figure
-/// is from ThrustCurve.org's stated one, and refuses a total impulse, average thrust or burn time
-/// more than 1% away: the bound the files were chosen by (M1.3).
+/// Prints how far each figure is from the motor's committed ThrustCurve.org record, and refuses a
+/// total impulse, average thrust or burn time more than 1% away: the bound the files were chosen
+/// by (M1.3).
 fn compare_with_thrustcurve(root: &Path, catalog: &Catalog) -> Result<(), String> {
-    let path = root.join("refs/snapshots/thrustcurve/motors.json");
-    let Ok(text) = fs::read_to_string(&path) else {
-        println!("no ThrustCurve.org API capture under refs/; no comparison with its figures");
-        return Ok(());
-    };
-    let capture: serde_json::Value =
-        serde_json::from_str(&text).map_err(|error| format!("{}: {error}", path.display()))?;
-    let records = capture["results"].as_array().cloned().unwrap_or_default();
+    let records = records(root)?;
     let fields: [Field; 8] = [
-        (
-            "total impulse",
-            "totImpulseNs",
-            |m| Some(m.total_impulse_ns),
-            true,
-        ),
-        (
-            "average thrust",
-            "avgThrustN",
-            |m| Some(m.average_thrust_n),
-            true,
-        ),
-        ("burn time", "burnTimeS", |m| Some(m.burn_time_s), true),
-        ("peak thrust", "maxThrustN", |m| m.max_thrust_n, false),
-        ("diameter", "diameter", |m| Some(m.diameter_mm), false),
-        ("length", "length", |m| Some(m.length_mm), false),
-        (
-            "propellant mass",
-            "propWeightG",
-            |m| m.propellant_mass_g,
-            false,
-        ),
-        ("loaded mass", "totalWeightG", |m| m.total_mass_g, false),
+        ("total impulse", "totImpulseNs", |m| {
+            Some(m.total_impulse_ns)
+        }),
+        ("average thrust", "avgThrustN", |m| Some(m.average_thrust_n)),
+        ("burn time", "burnTimeS", |m| Some(m.burn_time_s)),
+        ("peak thrust", "maxThrustN", |m| m.max_thrust_n),
+        ("diameter", "diameter", |m| Some(m.diameter_mm)),
+        ("length", "length", |m| Some(m.length_mm)),
+        ("propellant mass", "propWeightG", |m| m.propellant_mass_g),
+        ("loaded mass", "totalWeightG", |m| m.total_mass_g),
     ];
     let mut failures = Vec::new();
-    println!("against ThrustCurve.org's stated figures (refs/, never committed):");
-    for (what, key, ours, bounded) in fields {
+    println!("against ThrustCurve.org's records ({RECORDS}):");
+    for (what, key, ours) in fields {
         let mut gaps: Vec<(f64, &str)> = Vec::new();
         for motor in &catalog.motors {
-            let record = records.iter().find(|r| {
-                r["designation"] == motor.designation.as_str()
-                    && r["manufacturerAbbrev"] == motor.manufacturer_abbrev.as_str()
-            });
+            let record = records
+                .iter()
+                .find(|r| r["motorId"] == motor.motor_id.as_str());
             let (Some(theirs), Some(ours)) = (record.and_then(|r| r[key].as_f64()), ours(motor))
             else {
                 continue;
             };
             let relative = (ours - theirs) / theirs;
-            if bounded && relative.abs() > 0.01 {
-                failures.push(format!(
-                    "{}: {what} {:+.2}%",
-                    motor.designation,
-                    100.0 * relative
-                ));
-            }
             gaps.push((relative, &motor.designation));
         }
         gaps.sort_by(|a, b| a.0.total_cmp(&b.0));
@@ -526,6 +624,20 @@ fn compare_with_thrustcurve(root: &Path, catalog: &Catalog) -> Result<(), String
                 100.0 * high.0,
                 high.1
             );
+        }
+    }
+    // The 1% failure is the stored check's own (`CurveCheck`), not a second copy of its rule.
+    for motor in &catalog.motors {
+        for curve in &motor.curves {
+            for gap in motor.failing_figures(curve) {
+                failures.push(format!(
+                    "{} ({}): {} {}",
+                    motor.designation,
+                    curve.simfile_id,
+                    gap.figure.name(),
+                    gap.percent_text()
+                ));
+            }
         }
     }
     if failures.is_empty() {

@@ -42,6 +42,69 @@
     "tool"
   ],
   "$defs": {
+    "CatalogFile": {
+      "description": "One of a catalog motor's curve files, with its check against the motor's stated figures.",
+      "type": "object",
+      "properties": {
+        "check": {
+          "description": "The file's check: its figures against the stated ones, each held to 1%.",
+          "$ref": "#/$defs/FileCheck"
+        },
+        "flown": {
+          "description": "Whether this is the file the motor flies: the first bundled file in this order.",
+          "type": "boolean"
+        },
+        "format": {
+          "description": "The file's format: `eng` or `rse`.",
+          "$ref": "#/$defs/FileFormat"
+        },
+        "license": {
+          "description": "The data license its uploader chose, as ThrustCurve.org records it.",
+          "$ref": "#/$defs/FileLicense"
+        },
+        "measured_by": {
+          "description": "Who measured the curve.",
+          "$ref": "#/$defs/MeasuredBy"
+        },
+        "page_url": {
+          "description": "The file's ThrustCurve.org page.",
+          "type": "string"
+        },
+        "simfile_id": {
+          "description": "ThrustCurve.org's id for the file.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "simfile_id",
+        "page_url",
+        "format",
+        "measured_by",
+        "license",
+        "flown",
+        "check"
+      ]
+    },
+    "CheckedPair": {
+      "description": "One figure of a curve file's check, in the unit its key names.",
+      "type": "object",
+      "properties": {
+        "file": {
+          "description": "The file's figure, worked out from its curve as the simulator flies it.",
+          "type": "number",
+          "format": "double"
+        },
+        "stated": {
+          "description": "ThrustCurve.org's stated figure.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "file",
+        "stated"
+      ]
+    },
     "ConvertDesign": {
       "description": "`hpr convert` of a design: the design read, and the file it was written to.",
       "type": "object",
@@ -190,6 +253,34 @@
         }
       ]
     },
+    "FileCheck": {
+      "description": "A curve file's check (decision records ADR-005 and ADR-298): its total impulse over the whole\ncurve, its NFPA 1125 burn time and its average thrust (that impulse over that burn time),\neach against the figure ThrustCurve.org's record of the motor states. A figure passes when\n`|file - stated|` is at most 1% of `stated`.",
+      "type": "object",
+      "properties": {
+        "average_thrust_n": {
+          "description": "Average thrust, N.",
+          "$ref": "#/$defs/CheckedPair"
+        },
+        "burn_time_s": {
+          "description": "Burn time, s.",
+          "$ref": "#/$defs/CheckedPair"
+        },
+        "passes": {
+          "description": "Whether all three pass.",
+          "type": "boolean"
+        },
+        "total_impulse_ns": {
+          "description": "Total impulse, N·s.",
+          "$ref": "#/$defs/CheckedPair"
+        }
+      },
+      "required": [
+        "passes",
+        "total_impulse_ns",
+        "average_thrust_n",
+        "burn_time_s"
+      ]
+    },
     "FileFormat": {
       "description": "A motor file format.",
       "oneOf": [
@@ -202,6 +293,31 @@
           "description": "RockSim `.rse`.",
           "type": "string",
           "const": "rse"
+        }
+      ]
+    },
+    "FileLicense": {
+      "description": "A curve file's data license, as ThrustCurve.org records it.",
+      "oneOf": [
+        {
+          "description": "Public domain.",
+          "type": "string",
+          "const": "public_domain"
+        },
+        {
+          "description": "\"Free usage\": by ThrustCurve.org's definition, terms such as GPL or Creative Commons.",
+          "type": "string",
+          "const": "free_usage"
+        },
+        {
+          "description": "Other, restricted terms.",
+          "type": "string",
+          "const": "restricted"
+        },
+        {
+          "description": "No license recorded.",
+          "type": "string",
+          "const": "not_stated"
         }
       ]
     },
@@ -228,19 +344,42 @@
         "message"
       ]
     },
+    "MeasuredBy": {
+      "description": "Who measured a curve, as ThrustCurve.org records it.",
+      "oneOf": [
+        {
+          "description": "A certification body's test.",
+          "type": "string",
+          "const": "certification_test"
+        },
+        {
+          "description": "The manufacturer.",
+          "type": "string",
+          "const": "manufacturer"
+        },
+        {
+          "description": "A ThrustCurve.org user.",
+          "type": "string",
+          "const": "user"
+        }
+      ]
+    },
     "MotorSource": {
       "description": "Where a motor comes from.",
       "oneOf": [
         {
-          "description": "The bundled catalog, with a public-domain curve from ThrustCurve.org.",
+          "description": "The bundled catalog, with a curve file from ThrustCurve.org.",
           "type": "object",
           "properties": {
-            "curve_url": {
-              "description": "The curve file's ThrustCurve.org page.",
-              "type": "string"
+            "files": {
+              "description": "Every curve file the catalog lists for the motor, in the order its default is taken\n(decision record ADR-298): a file whose check passes first, then RASP before RockSim,\neach by who measured it.",
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/CatalogFile"
+              }
             },
             "format": {
-              "description": "The curve's format: `eng` or `rse`.",
+              "description": "The flown curve's format: `eng` or `rse`.",
               "$ref": "#/$defs/FileFormat"
             },
             "kind": {
@@ -250,8 +389,8 @@
           },
           "required": [
             "kind",
-            "curve_url",
-            "format"
+            "format",
+            "files"
           ]
         },
         {
