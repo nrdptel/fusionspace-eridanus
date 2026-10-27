@@ -1418,7 +1418,8 @@
       type: [], type_count: 0, narrow: [], narrow_count: 0, math: [], math_count: 0,
       column: [], column_count: 0,
       gutter: [], gutter_count: 0,
-      squeezed: [], squeezed_count: 0, note: [], note_count: 0, icon: [], icon_count: 0,
+      squeezed: [], squeezed_count: 0, scrolls: [], scrolls_count: 0, note: [], note_count: 0,
+      icon: [], icon_count: 0,
       header: [], header_count: 0, title_block: [], title_block_count: 0,
       arrows: [], arrows_count: 0,
       sheet: [], sheet_count: 0, theme_switch: [], theme_switch_count: 0,
@@ -1554,6 +1555,22 @@
             break;
           }
         }
+      }
+      // A table wider than its box (#498): the nearest box around it in `main` that scrolls
+      // sideways, whatever its class, is wider inside than out, and the table's last columns are
+      // out of sight on a phone. `hpr.js` stacks such a table's rows; one still wider fails. A
+      // table's own box always grows to hold its cells, so it is the box around it that tells.
+      const scrollers = new Set();
+      for (const table of main.querySelectorAll('table')) {
+        for (let e = table.parentElement; e && e !== main; e = e.parentElement) {
+          const x = win.getComputedStyle(e).overflowX;
+          if (x === 'auto' || x === 'scroll') { scrollers.add(e); break; }
+        }
+      }
+      for (const box of scrollers) {
+        if (box.scrollWidth <= box.clientWidth + SLACK_PX) continue;
+        note('scrolls', selector(box), (box.scrollWidth - box.clientWidth) + ' px wider inside',
+          'than its ' + box.clientWidth + ' px');
       }
 
       // Notes (#384; `web.md`, *Components*): no quote block in `main`, and each note the

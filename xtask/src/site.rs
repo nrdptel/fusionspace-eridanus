@@ -329,7 +329,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
          motion off its durations in either theme or with reduced motion, no text off the type \
          scale at the window's reading scale, prose held narrower than its column, column off \
          1,120 px, gutter off the system's or column off center, or code block held narrower \
-         than the column, no quote block or note off the system's, no text under the contrast floor, \
+         than the column, no table scrolling sideways in its box, no quote block or note off the system's, no text under the contrast floor, \
          focus ring off the system's, box or icon forced colors would erase, sticky bar taller \
          than the scroll padding or fixed in a box the page carries, icon off the system's sizes or selection off the action role, no header or title block off \
          the system's, no sidebar the menu button or a drag to the side leaves drawn, no page \

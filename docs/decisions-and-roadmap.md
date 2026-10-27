@@ -325,6 +325,7 @@ until someone rewrites it in plainer words.
 | [ADR-294: The 2026-10-26 review: the RocketPy times, burnout heights and traces tightened][adr-294] | In the RocketPy whole flights flown on the same inputs, the rail-exit times agree within 0.143%, and in the six flights with no written model difference the apogee times within 0.239%, the burnout heights within 0.049% and the height and speed traces within 0.272% of RocketPy's apogee and 0.153% of its top speed, while RocketPy's own solver moves the point metrics by at most 2.4e-5 of their value; so those 33 gates go from 3% to between 0.2% and 1%, each at least 3.2 times the largest difference measured. These bound agreement between two codes on RocketPy's example rockets, not accuracy against a flight. |  |
 | [ADR-295: The rest of the words in four increments, joined names and long warnings first][adr-295] | [M0.9f](#m0-9f) holds the site, the README and `hpr sim`'s warnings to seven writing rules that #476 lists. Fixing them all is several sessions' work, and two of the rules add bytes to a search index with 71 bytes to spare. So it goes in four increments: joined names and long warnings first, then long notes and table heads, which make room in the index, then grouped figures and prose dates, and last the no-break space between a figure and its unit, joined in the built pages after mdBook writes its index. |  |
 | [ADR-296: What the words leave: the figures' digits and the command line's words, M0.9g][adr-296] | Ten rows of the design audit named [M0.9f](#m0-9f) for gaps outside its *done when*: figures quoted to more digits than are known (#966), and the command line's and the plot's words, which no check reads (#973). [M0.9g](#m0-9g) holds both, queued after [M0.13](#m0-13). |  |
+| [ADR-297: A table too wide for its column stacks its rows][adr-297] | A table wider than its column no longer scrolls sideways in its box. Its rows stack, each cell labeled by a copy of its column's head, and the page check fails a table that still scrolls, at every width from 320 px. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -1239,6 +1240,7 @@ is the milestone that added or will add that test.
 [adr-294]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md
 [adr-295]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0295-the-rest-of-the-words-in-four.md
 [adr-296]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0296-what-the-words-leave-digits-and-the-command-lines-words.md
+[adr-297]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0297-a-table-too-wide-stacks-its-rows.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
