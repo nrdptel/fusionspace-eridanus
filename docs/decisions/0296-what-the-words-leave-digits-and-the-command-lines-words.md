@@ -32,9 +32,10 @@ Ten rows named #476 and M0.9f. Once M0.9f is done, what each row leaves is:
    fails a column head without a label and a unit in a table `hpr` prints; the command line and
    the plot pass them; and the audit's rows name the checks.
 2. **Its place** is after M0.13 in the queue and before the accuracy milestones M2.3c2 and
-   M2.3c3. The maintainer asked on October 18, 2026 that the words and the sites' awareness stay
-   ahead of those two. It doesn't go first: M0.9f, the words [ADR-284][adr-284] queued, is done,
-   and what is left is smaller. It can split, as M0.9f did, if a survey finds it bigger than a
+   M2.3c3. The maintainer asked on October 18, 2026 that M0.9f and M0.13 stay ahead of those
+   two, and M0.9g is the rest of M0.9f's words. It doesn't go first: M0.9f, the words
+   [ADR-284][adr-284] queued, is done, and what is left is the digits and the command line, which
+   no earlier check read. It can split, as M0.9f did, if a survey finds it bigger than a
    session.
 3. **The ten rows** name #966, #973 or both, with M0.9g, in place of #476 and M0.9f. Their
    status stays "not met".
