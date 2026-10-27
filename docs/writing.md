@@ -524,7 +524,7 @@ They don't conflict with the rules above; they add these:
     "0.5 in both", so write `2.6&nbsp;in rocket`. Nothing fails if you forget.
   - **In a README, write `&nbsp;` yourself** between every figure and its unit symbol, because
     GitHub, crates.io and PyPI show the file as written. `cargo xtask site` fails a README figure
-    and unit split by a plain space, and names the line.
+    and unit split by a breaking space or a line break, and names the line.
 - **FusionSpace** is one word.
 - **The product's name** ([ADR-199, the public name](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0199-the-2026-10-07-fusionspace-hpr.md) §1):
   "FusionSpace HPR" is the suite. "FusionSpace HPR · Sim" or "HPR Sim" is the simulator at its

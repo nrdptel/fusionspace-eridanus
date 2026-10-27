@@ -23,8 +23,9 @@
 //! writes the search index, which keeps the plain space, so search reads the same. It reads the
 //! text of each page as the browser draws it, across inline tags (`<strong>5</strong> m` is one
 //! run) but not across blocks, and never in code, preformatted text, keyboard or sample text,
-//! math, SVG, scripts, styles or text areas, nor in the API reference. [`check`] then fails any
-//! pair still split in the built pages.
+//! math, SVG, scripts, styles or text areas, nor in the API reference. An inline equation whose
+//! last leaf is a number (`<mn>`) counts as that figure where it ends ([`Math`]). [`check`] then
+//! fails any pair still split in the built pages.
 //! The READMEs, which GitHub, crates.io and PyPI show as written, hold the no-break space in their
 //! source ([`readme_splits`]): `5&nbsp;m`.
 //!
@@ -204,7 +205,8 @@ fn joined(text: &str, split: &Split, space: &str) -> String {
 }
 
 /// The elements whose text [`join`] and [`check`] don't read: code, preformatted, keyboard and
-/// sample text, math, SVG, scripts, styles and text areas.
+/// sample text, math (but an inline equation's last number, [`Math`]), SVG, scripts, styles and
+/// text areas.
 const UNREAD: [&str; 9] = [
     "code", "pre", "kbd", "samp", "math", "svg", "script", "style", "textarea",
 ];
