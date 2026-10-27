@@ -12,7 +12,8 @@ use std::io::{self, Write};
 use std::path::Path;
 
 use hpr::hpr_motor::catalog::{
-    Catalog, CatalogCurve, CatalogMotor, CurveFormat, CurveLicense, CurveSource, MotorType,
+    Catalog, CatalogCurve, CatalogMotor, CheckedFigure, CurveFormat, CurveLicense, CurveSource,
+    FigureGap, MotorType,
 };
 use hpr::hpr_motor::curve::ThrustCurve;
 use hpr::hpr_motor::delay::{self, DelayList};
@@ -909,14 +910,20 @@ fn catalog_file_text(file: &CatalogFile, out: &mut dyn Write) -> io::Result<()> 
     writeln!(out, "                   {format}, {measured}, {license}")?;
     let check = &file.check;
     let verdict = if check.passes { "passes" } else { "fails" };
-    let gap =
-        |pair: &CheckedPair| format!("{:+.2}%", 100.0 * (pair.file - pair.stated) / pair.stated);
+    let gap = |figure, pair: &CheckedPair| {
+        FigureGap {
+            figure,
+            file: pair.file,
+            stated: pair.stated,
+        }
+        .percent_text()
+    };
     writeln!(
         out,
         "                   {verdict} the 1% check: total impulse {}, average thrust {}, burn time {}",
-        gap(&check.total_impulse_ns),
-        gap(&check.average_thrust_n),
-        gap(&check.burn_time_s)
+        gap(CheckedFigure::TotalImpulse, &check.total_impulse_ns),
+        gap(CheckedFigure::AverageThrust, &check.average_thrust_n),
+        gap(CheckedFigure::BurnTime, &check.burn_time_s)
     )
 }
 

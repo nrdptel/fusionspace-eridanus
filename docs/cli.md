@@ -1266,9 +1266,9 @@ file:
 
 For a catalog motor, the last lines give each curve file: its format, who measured it, its license,
 and its check against the figures ThrustCurve.org publishes for the motor, each within 1% to pass
-([Solid motors](physics/motor.md#the-bundled-motors)). The motor flies a file that passes, marked
-`(flown)`, and flying one that fails warns. `hpr motors list` gives the flown file's figures, as a
-[test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/cli.rs)
+([Solid motors](physics/motor.md#the-bundled-motors)). The motor flies a passing file where it
+has one, marked `(flown)`, and flying one that fails warns. `hpr motors list` gives its figures,
+as a [test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/cli.rs)
 checks.
 
 <!-- cli: example `hpr motors show J760`; written by `cargo xtask cli`; do not edit -->

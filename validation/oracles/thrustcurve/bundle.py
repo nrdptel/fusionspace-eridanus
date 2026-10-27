@@ -23,11 +23,11 @@ For each selected curve this script:
 
 It writes no catalog. The index, crates/hpr-motor/data/thrustcurve/catalog.json, and
 crates/hpr-motor/src/bundled.rs are written by `cargo xtask motor-catalog` from the curve files
-alone, so none of ThrustCurve.org's own figures is bundled (ADR-186, issue #295). ThrustCurve.org
-grants no license for its API's motor records and reserves copyright; ADR-287 has since let the
-project use them as published facts, with credit, and ADR-288 plans the whole solid catalog for
-M5.7. Run the command after this script, and add a new file's names and provenance to its table
-first. motors.json is read here only to check the selection, never copied.
+(ADR-186, issue #295) and records.json, the bundled motors' records copied unchanged from
+motors.json (ADR-298). ThrustCurve.org grants no license for its API's motor records and reserves
+copyright; ADR-287 lets the project use them as published facts, with credit, and ADR-288 plans
+the whole solid catalog for M5.7. Run the command after this script, and add a new file's names
+and provenance to its table, and its motor's record to records.json, first.
 
 Any failed check stops the script before it writes any output. The output depends only on the
 cached inputs, so a second run reproduces it byte for byte.

@@ -1,6 +1,6 @@
 # ADR-298: Every solid motor in four increments, each file's check first (2026-10-27)
 
-- **Status:** accepted; splits [M5.7][m5-7] into four increments, M5.7a to M5.7d, each with one of M5.7's *done when* bullets as its own, word for word but for the scope M5.7a names
+- **Status:** accepted; splits [M5.7][m5-7] into four increments, M5.7a to M5.7d, and plans every remaining increment, each with one of M5.7's *done when* bullets as its own, word for word but for the scope M5.7a names
 - **Summary:** M5.7 compiles ThrustCurve.org's whole solid catalog into `hpr-motor` ([ADR-288][adr-288]). It is several sessions' work, and its first bullet needs a fresh snapshot from ThrustCurve.org's API, which has answered HTTP 503 since 2026-10-25. M5.7a builds each file's stored check, the default-file rule and the warning on the 32 bundled files first; M5.7b compiles in the fresh snapshot; M5.7c holds every passing file to the oracles; M5.7d adds `hpr motors update` and the motor page's figures.
 
 [m5-7]: ../decisions-and-roadmap.md#m5-7
@@ -30,14 +30,14 @@ A survey of main (93a40c5b) on 2026-10-27 found:
   the index from the files alone ([ADR-186][adr-186]): every figure is the file's own, and none of
   ThrustCurve.org's record figures is committed. The 1% comparison with those figures runs only
   where the uncommitted capture sits under `refs/`.
-- **The network:** ThrustCurve.org's API answered HTTP 503 ("Offline for Maintenance") on every
-  request on 2026-10-25, 2026-10-26 and 2026-10-27 ([issue #885][issue-885]). The cached
+- **The network:** ThrustCurve.org's API answered HTTP 503 on every request on 2026-10-25,
+  2026-10-26 and 2026-10-27, with a maintenance or error page ([issue #885][issue-885]). The cached
   2026-09-17 capture holds 41 files the site deleted by 2026-10-17, so it can't stand in for a
   fresh snapshot.
 - **The choice of file:** a catalog motor flies its first bundled file. A fetched motor flies the
   first RASP file that reads, ranked by who measured it, then the RockSim files the same way
-  ([ADR-154][adr-154]). A `.ork` motor whose OpenRocket curve maps to a file by its digest flies
-  that file ([ADR-161][adr-161]).
+  ([ADR-154][adr-154]). A `.ork` motor the catalog lacks is fetched, and the file its OpenRocket
+  curve maps to by its digest goes first ([ADR-161][adr-161]); a catalog motor's digest isn't read.
 
 Only the first bullet needs the network. The second needs each file's figures and its motor's
 record figures, which the pinned capture holds for the 32 bundled motors.
@@ -71,8 +71,9 @@ record figures, which the pinned capture holds for the 32 bundled motors.
    and the result. A test recomputes every stored check from the file and the record.
 5. **The default file.** Among a motor's bundled files, one that passes goes first, then ADR-154's
    order: RASP before RockSim, each ranked by who measured it (a certification test, the maker,
-   a user), the index's order within a rank. The digest rule of ADR-161 still takes its file
-   first for a `.ork` motor.
+   a user), the index's order within a rank. While each catalog motor has one file, a `.ork`
+   motor's digest has nothing to choose between there. When M5.7b gives a motor several, its
+   catalog lookup takes the file the digest maps to first, as [ADR-288][adr-288] §3 asks.
 6. **The warning** names the motor, the file and each failing figure's signed gap, file against
    record. A figure inside 1% isn't named.
 7. **If ThrustCurve.org's API is still down** when M5.7b comes up, M5.7b is blocked on it, not on

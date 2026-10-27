@@ -56,9 +56,10 @@ use sha2::{Digest, Sha256};
 pub const USAGE: &str = "\
   motor-catalog [--check]  Write hpr-motor's bundled catalog index
                            (crates/hpr-motor/data/thrustcurve/catalog.json) and
-                           src/bundled.rs from the public-domain curve files alone: sizes,
-                           masses and delays from each header, impulse, thrusts and burn time
-                           from the curve. --check fails if either is stale.";
+                           src/bundled.rs from the public-domain curve files and records.json:
+                           sizes, masses and delays from each header, impulse, thrusts and burn
+                           time from the curve, each file's 1% check against its motor's
+                           record. --check fails if either is stale.";
 
 /// The data directory, from the workspace root.
 const DATA: &str = "crates/hpr-motor/data/thrustcurve";

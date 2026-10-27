@@ -138,9 +138,11 @@ pub struct CatalogMotor {
 
 /// The figures ThrustCurve.org's record of a motor states (its API's `totImpulseNs`,
 /// `avgThrustN`, `burnTimeS` and `maxThrustN`), copied unchanged: published facts, used with
-/// credit ([ADR-287][adr-287]). ThrustCurve.org works them out from a curve file it chooses, with
-/// the burn time between the 5%-of-peak crossings (its *Motor Statistics* page,
-/// <https://www.thrustcurve.org/info/motorstats.html>).
+/// credit ([ADR-287][adr-287]). ThrustCurve.org stores them with the motor, from the certifying
+/// body or derived from its data or a curve, not worked out from each file; some are printed
+/// coarser than 1%. Its *Motor Statistics* page
+/// (<https://www.thrustcurve.org/info/motorstats.html>) defines the burn time between the
+/// 5%-of-peak crossings.
 ///
 /// [adr-287]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -225,12 +227,36 @@ impl FigureGap {
         (self.file - self.stated) / self.stated
     }
 
+    /// The signed gap in percent, as the warning and `hpr motors show` print it: two decimals,
+    /// and more for a figure that fails, so it never prints as within 1% (`+1.004%`, not
+    /// `+1.00%`).
+    pub fn percent_text(&self) -> String {
+        let percent = 100.0 * self.relative();
+        let fails = !self.within_bound();
+        let mut decimals = 2;
+        let mut text = format!("{percent:+.decimals$}%");
+        // f64 holds about 16 significant digits, so 15 decimals tell any gap past 1% from it.
+        while fails && decimals < 15 && rounds_inside(&text) {
+            decimals += 1;
+            text = format!("{percent:+.decimals$}%");
+        }
+        text
+    }
+
     /// Whether the file's figure is within [`CHECK_BOUND`] of the stated one,
     /// `|file − stated| ≤ 0.01 × stated`. A stated figure that isn't positive, or a NaN either
     /// side, fails.
     pub fn within_bound(&self) -> bool {
         self.stated > 0.0 && (self.file - self.stated).abs() <= CHECK_BOUND * self.stated
     }
+}
+
+/// Whether a signed percentage as text (`+1.00%`) reads as within 1%.
+fn rounds_inside(text: &str) -> bool {
+    text.trim_start_matches(['+', '-'])
+        .trim_end_matches('%')
+        .parse::<f64>()
+        .is_ok_and(|magnitude| magnitude <= 100.0 * CHECK_BOUND)
 }
 
 impl CurveCheck {
@@ -577,7 +603,7 @@ impl CatalogMotor {
         let gaps: Vec<String> = self
             .failing_figures(curve)
             .iter()
-            .map(|gap| format!("{} {:+.2}%", gap.figure.name(), 100.0 * gap.relative()))
+            .map(|gap| format!("{} {}", gap.figure.name(), gap.percent_text()))
             .collect();
         Some(format!(
             "{}'s curve file {} is more than 1% from ThrustCurve.org's figures for it: {}",
@@ -1240,6 +1266,16 @@ mod tests {
         assert!(!gap(-1.0, -1.0).within_bound());
         assert!(!gap(f64::NAN, 100.0).within_bound());
         assert!(!gap(100.0, f64::NAN).within_bound());
+        // A failing figure never prints as within 1%; a passing one keeps two decimals.
+        assert_eq!(gap(101.004, 100.0).percent_text(), "+1.004%");
+        assert_eq!(gap(98.9996, 100.0).percent_text(), "-1.0004%");
+        assert_eq!(
+            gap(101.0_f64.next_up(), 100.0).percent_text(),
+            "+1.00000000000001%"
+        );
+        assert_eq!(gap(101.0, 100.0).percent_text(), "+1.00%");
+        assert_eq!(gap(100.996, 100.0).percent_text(), "+1.00%");
+        assert_eq!(gap(102.0, 100.0).percent_text(), "+2.00%");
     }
 
     /// ADR-298 §4 and §6: each checked figure fails the check alone, and the warning names that

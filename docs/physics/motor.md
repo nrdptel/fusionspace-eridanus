@@ -114,7 +114,7 @@ ThrustCurve.org's record of it, the figures its site publishes, used as publishe
 credit ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)).
 Each file is checked against them: its total impulse, average thrust and burn time must each be
 within 1% of the record's to pass. A motor flies a file that passes where it has one, and flying
-one that fails warns with each figure's gap
+one that fails warns with each failing figure's gap
 ([the check](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0298-every-solid-motor-in-four-increments.md)).
 `hpr motors show` lists each file with its check. `cargo xtask motor-catalog` writes the catalog
 from the files and records, and a test fails if the committed one differs.
