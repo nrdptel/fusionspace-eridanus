@@ -33,7 +33,9 @@ use hpr_flightdata::readings::Clip;
 use hpr_forensics::synthetic::census::{self, Range, Row, SetCensus};
 use hpr_forensics::synthetic::designs::{DESIGNS, DesignFiles};
 use hpr_forensics::synthetic::held::{self, Errors, Outcome, Quantity, Tally};
+use hpr_flightdata::smoother::{GnssTrust, Options};
 use hpr_forensics::synthetic::logger::Profile;
+use hpr_forensics::synthetic::smoothed::{self, Checked, SetCheck};
 use hpr_forensics::synthetic::{Flyer, Set};
 use serde::{Deserialize, Serialize};
 
@@ -134,14 +136,44 @@ struct Clipped {
 /// Runs the command.
 pub fn run(args: &[String]) -> Result<(), String> {
     let mut check = false;
-    for arg in args {
+    let mut probe: Option<(Set, u64, Options)> = None;
+    let mut args = args.iter();
+    while let Some(arg) = args.next() {
         match arg.as_str() {
             "--check" => check = true,
+            "--smoother" => {
+                let set = match args.next().map(String::as_str) {
+                    Some("tuning") => Set::Tuning,
+                    Some("a") => Set::A,
+                    Some("b") => Set::B,
+                    other => return Err(format!("--smoother takes tuning, a or b, not {other:?}")),
+                };
+                probe = Some((set, set.count(), Options::default()));
+            }
+            "--count" => {
+                let count = args
+                    .next()
+                    .and_then(|n| n.parse().ok())
+                    .ok_or("--count takes a number")?;
+                if let Some(p) = probe.as_mut() {
+                    p.1 = count;
+                }
+            }
+            "--trust-gnss-from-liftoff" => {
+                if let Some(p) = probe.as_mut() {
+                    p.2.gnss_trust = GnssTrust::FromLiftoff;
+                }
+            }
             other => return Err(format!("unknown argument `{other}`\n\n{USAGE}")),
         }
     }
     let root = crate::designs::root()?;
     let files = design_files(&root)?;
+    if let Some((set, count, options)) = probe {
+        let checks = smooth_set(set, count, &files, options);
+        print!("{}", smoother_table(set, &smoothed::tally(&checks)));
+        return Ok(());
+    }
     let (flights, each) = read_logs(Set::Tuning.count(), &files)?;
     let tallies = held::tally(&flights);
     let missed = misses(&tallies);
@@ -263,6 +295,75 @@ fn fly(set: Set, count: u64, files: &DesignFiles) -> SetCensus {
         .map(|row| row.unwrap_or_else(|| Err("its thread panicked".to_owned())))
         .collect();
     census::from_rows(set, &rows)
+}
+
+/// Smooths the first `count` flights of `set` on every core and checks each against its truth;
+/// a flight that doesn't fly is left out.
+fn smooth_set(set: Set, count: u64, files: &DesignFiles, options: Options) -> Vec<Checked> {
+    let threads = std::thread::available_parallelism()
+        .map_or(1, usize::from)
+        .min(16) as u64;
+    let mut checks: Vec<Option<Checked>> = vec![None; count as usize];
+    std::thread::scope(|scope| {
+        let handles: Vec<_> = (0..threads)
+            .map(|start| {
+                let files = files.clone();
+                scope.spawn(move || {
+                    let mut flyer = Flyer::new(files);
+                    let mut done = Vec::new();
+                    for index in (start..count).step_by(threads as usize) {
+                        if let Ok(flight) = flyer.flight(set, index) {
+                            done.push((index, smoothed::check(&flight, options)));
+                        }
+                    }
+                    done
+                })
+            })
+            .collect();
+        for handle in handles {
+            if let Ok(done) = handle.join() {
+                for (index, check) in done {
+                    checks[index as usize] = Some(check);
+                }
+            }
+        }
+    });
+    checks.into_iter().flatten().collect()
+}
+
+/// A set's smoother check as text.
+fn smoother_table(set: Set, check: &SetCheck) -> String {
+    let mut out = format!(
+        "{}: {} flights, withheld {:?}, holds: {}\n",
+        set.name(),
+        check.flights,
+        check.withheld,
+        check.holds()
+    );
+    let row = |out: &mut String, c: &smoothed::Cell| {
+        let _ = writeln!(
+            out,
+            "  {:<15} {:<7} n {:>5} below {:>4} above {:>4} cover {:.3} sd {:>9.3} {}",
+            c.moment.name(),
+            c.state.name(),
+            c.flights,
+            c.below,
+            c.above,
+            c.coverage,
+            c.median_sd,
+            if c.holds { "" } else { "FAILS" }
+        );
+    };
+    for c in &check.cells {
+        row(&mut out, c);
+    }
+    for (logger, cells) in &check.by_logger {
+        let _ = writeln!(out, " {logger}");
+        for c in cells {
+            row(&mut out, c);
+        }
+    }
+    out
 }
 
 /// One tuning flight's logs, each named, with each reading's outcome.
