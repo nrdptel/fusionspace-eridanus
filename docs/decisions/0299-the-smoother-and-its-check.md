@@ -138,8 +138,8 @@ fell short in five places:
     log's end, the landing must differ by platform by far more than its last bits; by how much
     hasn't been measured. So the report no longer shows a change of a few samples in millions.
     Two exposures remain. The cells' counts of truths stay exact, and a drawn moment moves with
-    the landing time. And the tuning set's 4,446 rejected barometer samples, held as 4,450, lie
-    one from a rounding edge. If either differs by platform, the fix is to find the landing's
+    the landing time. And the tuning set's 4,446 rejected barometer samples, held as 4,450, lie two
+    above the count held as 4,440. If either differs by platform, the fix is to find the landing's
     spread, never to loosen a cell.
 12. **The health card** is `Smoothed::health`, written out by `Health::card`. It holds each
     sensor's samples, fused, rejected and not weighed, its resets, its share inside the gate, its
