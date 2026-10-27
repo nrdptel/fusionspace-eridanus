@@ -663,14 +663,14 @@ Each flight's own log smoothed (`hpr_flightdata::smoother`, M7.2d, ADR-299) and 
 | Moment | State | Tuning | A | B |
 |---|---|---:|---:|---:|
 | Flights smoothed | | 171 | 820 | 845 |
-| burnout | height | 96.5% (5 / 1) | 97.7% (17 / 2) | 96.7% (27 / 1) |
-| burnout | speed | 97.1% (1 / 4) | 97.2% (10 / 13) | 96.9% (17 / 9) |
-| top speed | height | 96.5% (5 / 1) | 97.6% (18 / 2) | 97.3% (22 / 1) |
-| top speed | speed | 95.3% (8 / 0) | 97.2% (22 / 1) | 94.4% (46 / 1) |
-| apogee | height | 100% (0 / 0) | 98.9% (7 / 2) | 97.8% (15 / 4) |
-| apogee | speed | 97.7% (1 / 3) | 97.2% (4 / 19) | 96.2% (4 / 28) |
-| a drawn moment | height | 100% (0 / 0) | 97.7% (16 / 3) | 97.5% (19 / 2) |
-| a drawn moment | speed | 97.7% (2 / 2) | 94.8% (19 / 24) | 96% (19 / 15) |
+| burnout | height | 99.4% (1 / 0) | 97.7% (19 / 0) | 97% (25 / 0) |
+| burnout | speed | 98.8% (2 / 0) | 98.8% (8 / 2) | 97.6% (18 / 2) |
+| top speed | height | 99.4% (1 / 0) | 98% (16 / 0) | 97.8% (19 / 0) |
+| top speed | speed | 97.7% (4 / 0) | 98.4% (13 / 0) | 97.2% (24 / 0) |
+| apogee | height | 100% (0 / 0) | 98.7% (9 / 2) | 97.9% (14 / 4) |
+| apogee | speed | 98.8% (0 / 2) | 97.7% (1 / 18) | 97.5% (1 / 20) |
+| a drawn moment | height | 100% (0 / 0) | 97.8% (15 / 3) | 97.8% (17 / 2) |
+| a drawn moment | speed | 98.2% (1 / 2) | 95.4% (18 / 20) | 96% (20 / 14) |
 
 ### The standard errors
 
@@ -678,14 +678,14 @@ The median and the largest, of height in m and of speed in m/s.
 
 | Moment | State | Tuning | A | B |
 |---|---|---:|---:|---:|
-| burnout | height | 59.1 / 347 | 58.9 / 406 | 59.1 / 407 |
-| burnout | speed | 12.1 / 169 | 11.5 / 185 | 11.3 / 238 |
-| top speed | height | 62 / 302 | 61.4 / 333 | 62.3 / 363 |
-| top speed | speed | 13.4 / 227 | 12.2 / 215 | 10.9 / 214 |
-| apogee | height | 86.8 / 142 | 84.6 / 159 | 85.1 / 158 |
-| apogee | speed | 0.692 / 1.79 | 0.715 / 1.94 | 0.707 / 1.99 |
-| a drawn moment | height | 25.8 / 157 | 20.8 / 221 | 19.2 / 243 |
-| a drawn moment | speed | 0.872 / 90 | 0.866 / 140 | 0.868 / 260 |
+| burnout | height | 58.5 / 332 | 58.5 / 376 | 58.6 / 407 |
+| burnout | speed | 11.2 / 169 | 11 / 186 | 11.1 / 182 |
+| top speed | height | 61.7 / 298 | 61.4 / 334 | 61.6 / 363 |
+| top speed | speed | 11.4 / 173 | 11.2 / 190 | 10.6 / 190 |
+| apogee | height | 86.8 / 142 | 84.6 / 159 | 84.8 / 158 |
+| apogee | speed | 0.742 / 1.79 | 0.768 / 1.85 | 0.759 / 1.79 |
+| a drawn moment | height | 25.8 / 157 | 20.7 / 217 | 19.2 / 230 |
+| a drawn moment | speed | 0.874 / 90 | 0.881 / 102 | 0.881 / 121 |
 
 ### By logger
 
@@ -695,40 +695,40 @@ The share inside the interval, each set's flights by logger.
 
 | Moment | State | altos | eggtimer | imu-500hz | perfectflite | rrc3 |
 |---|---|---:|---:|---:|---:|---:|
-| burnout | height | 97% (0 / 1) | 97.4% (1 / 0) | 100% (0 / 0) | 90.3% (3 / 0) | 96.7% (1 / 0) |
-| burnout | speed | 97% (1 / 0) | 100% (0 / 0) | 100% (0 / 0) | 90.3% (0 / 3) | 96.7% (0 / 1) |
-| top speed | height | 97% (0 / 1) | 97.4% (1 / 0) | 100% (0 / 0) | 90.3% (3 / 0) | 96.7% (1 / 0) |
-| top speed | speed | 90.9% (3 / 0) | 97.4% (1 / 0) | 92.1% (3 / 0) | 96.8% (1 / 0) | 100% (0 / 0) |
+| burnout | height | 100% (0 / 0) | 100% (0 / 0) | 100% (0 / 0) | 96.8% (1 / 0) | 100% (0 / 0) |
+| burnout | speed | 93.9% (2 / 0) | 100% (0 / 0) | 100% (0 / 0) | 100% (0 / 0) | 100% (0 / 0) |
+| top speed | height | 100% (0 / 0) | 100% (0 / 0) | 100% (0 / 0) | 96.8% (1 / 0) | 100% (0 / 0) |
+| top speed | speed | 97% (1 / 0) | 100% (0 / 0) | 92.1% (3 / 0) | 100% (0 / 0) | 100% (0 / 0) |
 | apogee | height | 100% (0 / 0) | 100% (0 / 0) | 100% (0 / 0) | 100% (0 / 0) | 100% (0 / 0) |
-| apogee | speed | 100% (0 / 0) | 97.4% (1 / 0) | 94.7% (0 / 2) | 100% (0 / 0) | 96.7% (0 / 1) |
+| apogee | speed | 100% (0 / 0) | 100% (0 / 0) | 94.7% (0 / 2) | 100% (0 / 0) | 100% (0 / 0) |
 | a drawn moment | height | 100% (0 / 0) | 100% (0 / 0) | 100% (0 / 0) | 100% (0 / 0) | 100% (0 / 0) |
-| a drawn moment | speed | 97% (1 / 0) | 97.4% (0 / 1) | 100% (0 / 0) | 93.5% (1 / 1) | 100% (0 / 0) |
+| a drawn moment | speed | 100% (0 / 0) | 97.4% (0 / 1) | 100% (0 / 0) | 93.5% (1 / 1) | 100% (0 / 0) |
 
 #### A
 
 | Moment | State | altos | eggtimer | imu-500hz | perfectflite | rrc3 |
 |---|---|---:|---:|---:|---:|---:|
-| burnout | height | 98.4% (2 / 1) | 96.1% (7 / 0) | 99.4% (0 / 1) | 95.8% (6 / 0) | 98.6% (2 / 0) |
-| burnout | speed | 96.2% (7 / 0) | 95.6% (0 / 8) | 98.2% (3 / 0) | 97.2% (0 / 4) | 99.3% (0 / 1) |
-| top speed | height | 98.9% (1 / 1) | 95.6% (8 / 0) | 99.4% (0 / 1) | 95.8% (6 / 0) | 97.8% (3 / 0) |
-| top speed | speed | 95.1% (9 / 0) | 98.9% (1 / 1) | 94.7% (9 / 0) | 99.3% (1 / 0) | 98.6% (2 / 0) |
-| apogee | height | 95.7% (7 / 1) | 100% (0 / 0) | 100% (0 / 0) | 100% (0 / 0) | 99.3% (0 / 1) |
-| apogee | speed | 100% (0 / 0) | 97.8% (1 / 3) | 92.4% (1 / 12) | 97.2% (1 / 3) | 98.6% (1 / 1) |
-| a drawn moment | height | 95.1% (8 / 1) | 98.3% (3 / 0) | 97.7% (3 / 1) | 99.3% (1 / 0) | 98.6% (1 / 1) |
-| a drawn moment | speed | 93% (3 / 10) | 96.1% (4 / 3) | 93% (7 / 5) | 96.5% (3 / 2) | 95.7% (2 / 4) |
+| burnout | height | 99.5% (1 / 0) | 96.7% (6 / 0) | 97.7% (4 / 0) | 95.8% (6 / 0) | 98.6% (2 / 0) |
+| burnout | speed | 96.2% (7 / 0) | 98.9% (0 / 2) | 99.4% (1 / 0) | 100% (0 / 0) | 100% (0 / 0) |
+| top speed | height | 100% (0 / 0) | 97.8% (4 / 0) | 97.7% (4 / 0) | 95.8% (6 / 0) | 98.6% (2 / 0) |
+| top speed | speed | 95.7% (8 / 0) | 100% (0 / 0) | 97.1% (5 / 0) | 100% (0 / 0) | 100% (0 / 0) |
+| apogee | height | 94.6% (9 / 1) | 100% (0 / 0) | 100% (0 / 0) | 100% (0 / 0) | 99.3% (0 / 1) |
+| apogee | speed | 100% (0 / 0) | 100% (0 / 0) | 90.6% (1 / 15) | 99.3% (0 / 1) | 98.6% (0 / 2) |
+| a drawn moment | height | 94.6% (9 / 1) | 98.3% (3 / 0) | 98.8% (1 / 1) | 99.3% (1 / 0) | 98.6% (1 / 1) |
+| a drawn moment | speed | 94.1% (4 / 7) | 96.7% (3 / 3) | 93.6% (6 / 5) | 97.2% (3 / 1) | 95.7% (2 / 4) |
 
 #### B
 
 | Moment | State | altos | eggtimer | imu-500hz | perfectflite | rrc3 |
 |---|---|---:|---:|---:|---:|---:|
-| burnout | height | 99.5% (0 / 1) | 94.1% (10 / 0) | 98.9% (2 / 0) | 96.2% (5 / 0) | 94.3% (10 / 0) |
-| burnout | speed | 96.2% (7 / 0) | 97% (0 / 5) | 95.1% (9 / 0) | 98.5% (1 / 1) | 98.3% (0 / 3) |
-| top speed | height | 99.5% (0 / 1) | 94.1% (10 / 0) | 100% (0 / 0) | 97.7% (3 / 0) | 94.9% (9 / 0) |
-| top speed | speed | 93% (13 / 0) | 97% (5 / 0) | 92.3% (14 / 0) | 93.9% (7 / 1) | 96% (7 / 0) |
-| apogee | height | 91.4% (15 / 1) | 100% (0 / 0) | 100% (0 / 0) | 98.5% (0 / 2) | 99.4% (0 / 1) |
-| apogee | speed | 100% (0 / 0) | 98.2% (0 / 3) | 94% (1 / 10) | 93.2% (2 / 7) | 94.9% (1 / 8) |
-| a drawn moment | height | 92.5% (14 / 0) | 98.2% (2 / 1) | 99.5% (1 / 0) | 99.2% (1 / 0) | 98.9% (1 / 1) |
-| a drawn moment | speed | 94.1% (3 / 8) | 95.3% (7 / 1) | 97.3% (2 / 3) | 93.9% (6 / 2) | 98.9% (1 / 1) |
+| burnout | height | 98.4% (3 / 0) | 94.7% (9 / 0) | 98.9% (2 / 0) | 97% (4 / 0) | 96% (7 / 0) |
+| burnout | speed | 94.1% (11 / 0) | 99.4% (0 / 1) | 96.2% (7 / 0) | 100% (0 / 0) | 99.4% (0 / 1) |
+| top speed | height | 99.5% (1 / 0) | 95.9% (7 / 0) | 98.9% (2 / 0) | 98.5% (2 / 0) | 96% (7 / 0) |
+| top speed | speed | 93% (13 / 0) | 100% (0 / 0) | 94.5% (10 / 0) | 99.2% (1 / 0) | 100% (0 / 0) |
+| apogee | height | 91.9% (14 / 1) | 100% (0 / 0) | 100% (0 / 0) | 98.5% (0 / 2) | 99.4% (0 / 1) |
+| apogee | speed | 100% (0 / 0) | 99.4% (0 / 1) | 92.3% (1 / 13) | 97.7% (0 / 3) | 98.3% (0 / 3) |
+| a drawn moment | height | 93% (13 / 0) | 98.2% (2 / 1) | 99.5% (1 / 0) | 99.2% (1 / 0) | 99.4% (0 / 1) |
+| a drawn moment | speed | 94.6% (3 / 7) | 95.3% (7 / 1) | 97.3% (2 / 3) | 93.2% (7 / 2) | 98.9% (1 / 1) |
 
 ### Trusting the GNSS receiver from liftoff
 
@@ -737,14 +737,14 @@ The same flights, each log with a GNSS track smoothed again with its receiver tr
 | Moment | State | Tuning | A | B |
 |---|---|---:|---:|---:|
 | Flights smoothed again | | 62 | 365 | 341 |
-| burnout | height | 93.6% (5 / 6) | 94.6% (20 / 24) | 92.3% (29 / 36) |
-| burnout | speed | 89.5% (7 / 11) | 86.6% (75 / 35) **fails** | 88.9% (58 / 36) |
-| top speed | height | 93.6% (5 / 6) | 95.1% (17 / 23) | 94.1% (25 / 25) |
-| top speed | speed | 86.5% (16 / 7) | 87.7% (77 / 24) **fails** | 84.5% (99 / 32) **fails** |
-| apogee | height | 87.1% (21 / 1) **fails** | 81.3% (146 / 7) **fails** | 82.1% (145 / 6) **fails** |
-| apogee | speed | 93.6% (5 / 6) | 95.1% (14 / 26) | 93.4% (16 / 40) |
-| a drawn moment | height | 88.9% (15 / 4) | 83.2% (119 / 19) **fails** | 84.9% (113 / 15) **fails** |
-| a drawn moment | speed | 94.7% (4 / 5) | 92.8% (30 / 29) | 94.1% (27 / 23) |
+| burnout | height | 95.9% (1 / 6) | 94.4% (20 / 26) | 92.4% (27 / 37) |
+| burnout | speed | 91.2% (8 / 7) | 88.3% (66 / 30) **fails** | 89.2% (60 / 31) |
+| top speed | height | 95.9% (1 / 6) | 95.1% (16 / 24) | 94.3% (22 / 26) |
+| top speed | speed | 86.5% (16 / 7) | 88.9% (62 / 29) | 86.6% (80 / 33) **fails** |
+| apogee | height | 86.5% (22 / 1) **fails** | 80.7% (148 / 10) **fails** | 81.4% (151 / 6) **fails** |
+| apogee | speed | 95.9% (3 / 4) | 95.5% (10 / 27) | 94.7% (13 / 32) |
+| a drawn moment | height | 87.7% (16 / 5) | 83.5% (116 / 19) **fails** | 84.1% (119 / 15) **fails** |
+| a drawn moment | speed | 94.7% (4 / 5) | 93.2% (30 / 26) | 94.2% (27 / 22) |
 
 ### Health
 
@@ -753,19 +753,19 @@ The smoothed flights' health cards, summed.
 | | Tuning | A | B |
 |---|---:|---:|---:|
 | GNSS: logs | 33 | 185 | 186 |
-| GNSS: samples rejected / tested | 3 / 26478 | 26 / 131964 | 35 / 127816 |
-| GNSS: logs with a rejection | 2 | 17 | 19 |
+| GNSS: samples rejected / tested | 3 / 29109 | 24 / 138574 | 33 / 129793 |
+| GNSS: logs with a rejection | 2 | 16 | 18 |
 | GNSS: resets | 0 | 0 | 0 |
 | accelerometer: logs | 71 | 356 | 368 |
-| accelerometer: samples rejected / tested | 0 / 631358 | 0 / 2932548 | 0 / 3031294 |
+| accelerometer: samples rejected / tested | 0 / 631319 | 0 / 2932490 | 0 / 3030932 |
 | accelerometer: logs with a rejection | 0 | 0 | 0 |
 | accelerometer: resets | 0 | 0 | 0 |
 | barometer: logs | 171 | 820 | 845 |
-| barometer: samples rejected / tested | 7324 / 4859244 | 25667 / 20622837 | 29500 / 20587860 |
-| barometer: logs with a rejection | 110 | 565 | 560 |
-| barometer: resets | 20 | 94 | 90 |
-| GNSS receivers trusted | 29 | 166 | 167 |
-| Transonic spans de-weighted | 107 | 479 | 510 |
+| barometer: samples rejected / tested | 2175 / 4859244 | 9885 / 20622837 | 10822 / 20587860 |
+| barometer: logs with a rejection | 85 | 404 | 429 |
+| barometer: resets | 4 | 13 | 20 |
+| GNSS receivers trusted | 30 | 166 | 170 |
+| Transonic spans de-weighted | 107 | 482 | 510 |
 | Charge spans de-weighted | 171 | 820 | 845 |
 | Steps the pass back kept forward | 0 | 0 | 0 |
 
@@ -776,15 +776,15 @@ Each logger's first smoothed flight in the tuning set; times are on the log's cl
 **perfectflite**, flight 16:
 
 ```text
-barometer: 10737 samples, 10736 fused, 1 rejected, 0 not weighed, 0 resets; 99.9% inside the gate; mean NIS 0.675; largest test ratio 2.69 at 31.9 s, Mach 0.00
-barometer de-weighted: transonic 7.40–14.2 s, charge 32.0–32.5 s
+barometer: 10737 samples, 10737 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.602; largest test ratio 0.963 at 31.9 s, Mach 0.01
+barometer de-weighted: transonic 7.35–14.2 s, charge 32.0–32.5 s
 pass back: every step smoothed
 ```
 
 **rrc3**, flight 21:
 
 ```text
-barometer: 5593 samples, 5593 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.754; largest test ratio 0.603 at 132 s, Mach 0.06
+barometer: 5593 samples, 5593 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.660; largest test ratio 0.547 at 141 s, Mach 0.01
 barometer de-weighted: charge 27.9–29.9 s
 pass back: every step smoothed
 ```
@@ -792,7 +792,7 @@ pass back: every step smoothed
 **eggtimer**, flight 9:
 
 ```text
-barometer: 3044 samples, 3044 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.681; largest test ratio 0.510 at 47.5 s, Mach 0.10
+barometer: 3044 samples, 3044 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.583; largest test ratio 0.486 at 47.5 s, Mach 0.10
 barometer de-weighted: charge 27.4–28.0 s
 pass back: every step smoothed
 ```
@@ -800,10 +800,10 @@ pass back: every step smoothed
 **altos**, flight 1:
 
 ```text
-barometer: 6029 samples, 6028 fused, 1 rejected, 0 not weighed, 0 resets; 99.9% inside the gate; mean NIS 0.402; largest test ratio 5.53 at 148 s, Mach 0.05
+barometer: 6029 samples, 6028 fused, 1 rejected, 0 not weighed, 0 resets; 99.9% inside the gate; mean NIS 0.372; largest test ratio 2.54 at 148 s, Mach 0.05
 accelerometer: 6029 samples, 3460 fused, 0 rejected, 2569 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.0432; largest test ratio 0.0713 at 10.0 s, Mach 0.00
 GNSS: 2833 samples, 2425 fused, 0 rejected, 408 not weighed, 0 resets; 100.0% inside the gate; mean NIS 1.19; largest test ratio 0.865 at 204 s, Mach 0.00
-barometer de-weighted: transonic 12.8–13.4 s, charge 33.4–35.9 s
+barometer de-weighted: transonic 12.7–13.4 s, charge 33.4–35.9 s
 GNSS trusted from 50.5 s
 barometer less accelerometer at apogee: -315 m
 pass back: every step smoothed
@@ -812,9 +812,9 @@ pass back: every step smoothed
 **imu-500hz**, flight 0:
 
 ```text
-barometer: 34602 samples, 34595 fused, 7 rejected, 0 not weighed, 0 resets; 99.9% inside the gate; mean NIS 0.0456; largest test ratio 2.80 at 59.5 s, Mach 0.50
-accelerometer: 34602 samples, 15404 fused, 0 rejected, 19198 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.00850; largest test ratio 0.0361 at 6.57 s, Mach 0.00
-barometer de-weighted: transonic 8.68–13.5 s, charge 29.5–32.1 s
+barometer: 34602 samples, 34602 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.0398; largest test ratio 0.700 at 57.8 s, Mach 0.54
+accelerometer: 34602 samples, 15403 fused, 0 rejected, 19199 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.00850; largest test ratio 0.0361 at 6.57 s, Mach 0.00
+barometer de-weighted: transonic 8.63–13.5 s, charge 29.5–32.1 s
 barometer less accelerometer at apogee: 87.7 m
 pass back: every step smoothed
 ```

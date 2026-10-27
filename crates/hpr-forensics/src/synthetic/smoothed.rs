@@ -476,4 +476,3 @@ mod tests {
         assert!(!cell(Moment::Apogee, StateName::Height, &make(75)).holds);
     }
 }
-

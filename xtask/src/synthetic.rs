@@ -30,10 +30,10 @@ use std::panic::{self, AssertUnwindSafe};
 use std::path::Path;
 
 use hpr_flightdata::readings::Clip;
+use hpr_flightdata::smoother::{GnssTrust, Options};
 use hpr_forensics::synthetic::census::{self, Range, Row, SetCensus};
 use hpr_forensics::synthetic::designs::{DESIGNS, DesignFiles};
 use hpr_forensics::synthetic::held::{self, Errors, Outcome, Quantity, Tally};
-use hpr_flightdata::smoother::{GnssTrust, Options};
 use hpr_forensics::synthetic::logger::Profile;
 use hpr_forensics::synthetic::smoothed::{self, Checked, SetCheck};
 use hpr_forensics::synthetic::{Flyer, Set};
@@ -232,7 +232,11 @@ pub fn run(args: &[String]) -> Result<(), String> {
             set.name(),
             if made.check.holds() { "holds" } else { "fails" },
             made.check.flights,
-            if made.mutation_holds() { "holds" } else { "fails" }
+            if made.mutation_holds() {
+                "holds"
+            } else {
+                "fails"
+            }
         );
         if set == Set::Tuning {
             cards = set_cards;
@@ -912,7 +916,9 @@ fn smoother_section(page: &mut String, sets: &[SmootherSet], cards: &[Card]) {
         }
         page.push('\n');
     };
-    let rows = |page: &mut String, pick: &dyn Fn(&SmootherSet) -> &[smoothed::Cell], show: fn(&smoothed::Cell) -> String| {
+    let rows = |page: &mut String,
+                pick: &dyn Fn(&SmootherSet) -> &[smoothed::Cell],
+                show: fn(&smoothed::Cell) -> String| {
         let Some(first) = sets.first() else { return };
         for (k, c) in pick(first).iter().enumerate() {
             let _ = write!(page, "| {} | {} |", c.moment.name(), c.state.name());
@@ -938,7 +944,9 @@ fn smoother_section(page: &mut String, sets: &[SmootherSet], cards: &[Card]) {
     rows(page, &|s| &s.check.cells, |c| {
         format!("{} / {}", number(c.median_sd), number(c.largest_sd))
     });
-    page.push_str("\n### By logger\n\nThe share inside the interval, each set's flights by logger.\n\n");
+    page.push_str(
+        "\n### By logger\n\nThe share inside the interval, each set's flights by logger.\n\n",
+    );
     for s in sets {
         let _ = writeln!(page, "#### {}\n", title(s.set));
         page.push_str("| Moment | State |");
@@ -953,7 +961,11 @@ fn smoother_section(page: &mut String, sets: &[SmootherSet], cards: &[Card]) {
         for (k, c) in s.check.cells.iter().enumerate() {
             let _ = write!(page, "| {} | {} |", c.moment.name(), c.state.name());
             for cells in s.check.by_logger.values() {
-                let _ = write!(page, " {} |", cells.get(k).map_or_else(String::new, cell_text));
+                let _ = write!(
+                    page,
+                    " {} |",
+                    cells.get(k).map_or_else(String::new, cell_text)
+                );
             }
             page.push('\n');
         }
@@ -974,7 +986,10 @@ fn smoother_section(page: &mut String, sets: &[SmootherSet], cards: &[Card]) {
     rows(page, &|s| &s.gnss_from_liftoff, cell_text);
     page.push_str("\n### Health\n\nThe smoothed flights' health cards, summed.\n\n");
     let names: Vec<&String> = {
-        let mut names: Vec<&String> = sets.iter().flat_map(|s| s.check.health.sensors.keys()).collect();
+        let mut names: Vec<&String> = sets
+            .iter()
+            .flat_map(|s| s.check.health.sensors.keys())
+            .collect();
         names.sort();
         names.dedup();
         names
@@ -996,19 +1011,38 @@ fn smoother_section(page: &mut String, sets: &[SmootherSet], cards: &[Card]) {
         page.push('\n');
     };
     for name in names {
-        let get = |s: &SmootherSet| s.check.health.sensors.get(name).cloned().unwrap_or_default();
+        let get = |s: &SmootherSet| {
+            s.check
+                .health
+                .sensors
+                .get(name)
+                .cloned()
+                .unwrap_or_default()
+        };
         line(page, &format!("{name}: logs"), &|s| get(s).logs.to_string());
         line(page, &format!("{name}: samples rejected / tested"), &|s| {
             let t = get(s);
             format!("{} / {}", t.rejected, t.samples - t.unweighed)
         });
-        line(page, &format!("{name}: logs with a rejection"), &|s| get(s).logs_rejecting.to_string());
-        line(page, &format!("{name}: resets"), &|s| get(s).resets.to_string());
+        line(page, &format!("{name}: logs with a rejection"), &|s| {
+            get(s).logs_rejecting.to_string()
+        });
+        line(page, &format!("{name}: resets"), &|s| {
+            get(s).resets.to_string()
+        });
     }
-    line(page, "GNSS receivers trusted", &|s| s.check.health.gnss_trusted.to_string());
-    line(page, "Transonic spans de-weighted", &|s| s.check.health.transonic_spans.to_string());
-    line(page, "Charge spans de-weighted", &|s| s.check.health.charge_spans.to_string());
-    line(page, "Steps the pass back kept forward", &|s| s.check.health.unsmoothed_steps.to_string());
+    line(page, "GNSS receivers trusted", &|s| {
+        s.check.health.gnss_trusted.to_string()
+    });
+    line(page, "Transonic spans de-weighted", &|s| {
+        s.check.health.transonic_spans.to_string()
+    });
+    line(page, "Charge spans de-weighted", &|s| {
+        s.check.health.charge_spans.to_string()
+    });
+    line(page, "Steps the pass back kept forward", &|s| {
+        s.check.health.unsmoothed_steps.to_string()
+    });
     page.push_str("\n### A health card for each logger\n\nEach logger's first smoothed flight in the tuning set; times are on the log's clock.\n");
     for card in cards {
         let _ = write!(

@@ -12,8 +12,10 @@
 //! the Rauch–Tung–Striebel smoother, Thm 12.2, eq. 12.6, pp. 255–256, after H. E. Rauch, F. Tung
 //! and C. T. Striebel, *AIAA Journal* 3(8), 1445–1450, 1965).
 
-
-#![allow(clippy::needless_range_loop, reason = "matrix code reads as its equations do, by index")]
+#![allow(
+    clippy::needless_range_loop,
+    reason = "matrix code reads as its equations do, by index"
+)]
 
 /// The number of states.
 pub(super) const N: usize = 12;

@@ -8687,61 +8687,61 @@
             "moment": "burnout",
             "state": "height",
             "flights": 171,
-            "below": 5,
-            "above": 1,
-            "coverage": 0.965,
+            "below": 1,
+            "above": 0,
+            "coverage": 0.994,
             "lowest_miss_share": [
-              0.00374,
-              2.92e-6
+              2.92e-6,
+              0.0
             ],
             "holds": true,
-            "median_sd": 59.1,
-            "largest_sd": 347.0
+            "median_sd": 58.5,
+            "largest_sd": 332.0
           },
           {
             "moment": "burnout",
             "state": "speed",
             "flights": 171,
-            "below": 1,
-            "above": 4,
-            "coverage": 0.971,
+            "below": 2,
+            "above": 0,
+            "coverage": 0.988,
             "lowest_miss_share": [
-              2.92e-6,
-              0.00209
+              0.000187,
+              0.0
             ],
             "holds": true,
-            "median_sd": 12.1,
+            "median_sd": 11.2,
             "largest_sd": 169.0
           },
           {
             "moment": "top-speed",
             "state": "height",
             "flights": 171,
-            "below": 5,
-            "above": 1,
-            "coverage": 0.965,
+            "below": 1,
+            "above": 0,
+            "coverage": 0.994,
             "lowest_miss_share": [
-              0.00374,
-              2.92e-6
+              2.92e-6,
+              0.0
             ],
             "holds": true,
-            "median_sd": 62.0,
-            "largest_sd": 302.0
+            "median_sd": 61.7,
+            "largest_sd": 298.0
           },
           {
             "moment": "top-speed",
             "state": "speed",
             "flights": 171,
-            "below": 8,
+            "below": 4,
             "above": 0,
-            "coverage": 0.953,
+            "coverage": 0.977,
             "lowest_miss_share": [
-              0.0105,
+              0.00209,
               0.0
             ],
             "holds": true,
-            "median_sd": 13.4,
-            "largest_sd": 227.0
+            "median_sd": 11.4,
+            "largest_sd": 173.0
           },
           {
             "moment": "apogee",
@@ -8762,15 +8762,15 @@
             "moment": "apogee",
             "state": "speed",
             "flights": 171,
-            "below": 1,
-            "above": 3,
-            "coverage": 0.977,
+            "below": 0,
+            "above": 2,
+            "coverage": 0.988,
             "lowest_miss_share": [
-              2.92e-6,
-              0.00088
+              0.0,
+              0.000187
             ],
             "holds": true,
-            "median_sd": 0.692,
+            "median_sd": 0.742,
             "largest_sd": 1.79
           },
           {
@@ -8792,15 +8792,15 @@
             "moment": "drawn",
             "state": "speed",
             "flights": 171,
-            "below": 2,
+            "below": 1,
             "above": 2,
-            "coverage": 0.977,
+            "coverage": 0.982,
             "lowest_miss_share": [
-              0.000187,
+              2.92e-6,
               0.000187
             ],
             "holds": true,
-            "median_sd": 0.872,
+            "median_sd": 0.874,
             "largest_sd": 90.0
           }
         ],
@@ -8811,18 +8811,48 @@
               "state": "height",
               "flights": 33,
               "below": 0,
-              "above": 1,
-              "coverage": 0.97,
+              "above": 0,
+              "coverage": 1.0,
               "lowest_miss_share": [
                 0.0,
-                0.0000152
+                0.0
               ],
               "holds": true,
-              "median_sd": 56.4,
-              "largest_sd": 142.0
+              "median_sd": 55.9,
+              "largest_sd": 138.0
             },
             {
               "moment": "burnout",
+              "state": "speed",
+              "flights": 33,
+              "below": 2,
+              "above": 0,
+              "coverage": 0.939,
+              "lowest_miss_share": [
+                0.000983,
+                0.0
+              ],
+              "holds": true,
+              "median_sd": 8.13,
+              "largest_sd": 24.3
+            },
+            {
+              "moment": "top-speed",
+              "state": "height",
+              "flights": 33,
+              "below": 0,
+              "above": 0,
+              "coverage": 1.0,
+              "lowest_miss_share": [
+                0.0,
+                0.0
+              ],
+              "holds": true,
+              "median_sd": 60.4,
+              "largest_sd": 127.0
+            },
+            {
+              "moment": "top-speed",
               "state": "speed",
               "flights": 33,
               "below": 1,
@@ -8833,38 +8863,8 @@
                 0.0
               ],
               "holds": true,
-              "median_sd": 8.66,
-              "largest_sd": 71.4
-            },
-            {
-              "moment": "top-speed",
-              "state": "height",
-              "flights": 33,
-              "below": 0,
-              "above": 1,
-              "coverage": 0.97,
-              "lowest_miss_share": [
-                0.0,
-                0.0000152
-              ],
-              "holds": true,
-              "median_sd": 62.0,
-              "largest_sd": 135.0
-            },
-            {
-              "moment": "top-speed",
-              "state": "speed",
-              "flights": 33,
-              "below": 3,
-              "above": 0,
-              "coverage": 0.909,
-              "lowest_miss_share": [
-                0.00467,
-                0.0
-              ],
-              "holds": true,
-              "median_sd": 5.92,
-              "largest_sd": 40.6
+              "median_sd": 5.19,
+              "largest_sd": 30.7
             },
             {
               "moment": "apogee",
@@ -8878,7 +8878,7 @@
                 0.0
               ],
               "holds": true,
-              "median_sd": 28.6,
+              "median_sd": 27.5,
               "largest_sd": 115.0
             },
             {
@@ -8893,7 +8893,7 @@
                 0.0
               ],
               "holds": true,
-              "median_sd": 1.56,
+              "median_sd": 1.55,
               "largest_sd": 1.79
             },
             {
@@ -8915,16 +8915,16 @@
               "moment": "drawn",
               "state": "speed",
               "flights": 33,
-              "below": 1,
+              "below": 0,
               "above": 0,
-              "coverage": 0.97,
+              "coverage": 1.0,
               "lowest_miss_share": [
-                0.0000152,
+                0.0,
                 0.0
               ],
               "holds": true,
-              "median_sd": 0.813,
-              "largest_sd": 8.13
+              "median_sd": 0.81,
+              "largest_sd": 16.0
             }
           ],
           "eggtimer": [
@@ -8932,16 +8932,16 @@
               "moment": "burnout",
               "state": "height",
               "flights": 39,
-              "below": 1,
+              "below": 0,
               "above": 0,
-              "coverage": 0.974,
+              "coverage": 1.0,
               "lowest_miss_share": [
-                0.0000128,
+                0.0,
                 0.0
               ],
               "holds": true,
               "median_sd": 59.7,
-              "largest_sd": 335.0
+              "largest_sd": 332.0
             },
             {
               "moment": "burnout",
@@ -8955,38 +8955,38 @@
                 0.0
               ],
               "holds": true,
-              "median_sd": 17.7,
+              "median_sd": 15.1,
               "largest_sd": 149.0
             },
             {
               "moment": "top-speed",
               "state": "height",
               "flights": 39,
-              "below": 1,
+              "below": 0,
               "above": 0,
-              "coverage": 0.974,
+              "coverage": 1.0,
               "lowest_miss_share": [
-                0.0000128,
+                0.0,
                 0.0
               ],
               "holds": true,
-              "median_sd": 63.9,
-              "largest_sd": 302.0
+              "median_sd": 62.9,
+              "largest_sd": 298.0
             },
             {
               "moment": "top-speed",
               "state": "speed",
               "flights": 39,
-              "below": 1,
+              "below": 0,
               "above": 0,
-              "coverage": 0.974,
+              "coverage": 1.0,
               "lowest_miss_share": [
-                0.0000128,
+                0.0,
                 0.0
               ],
               "holds": true,
-              "median_sd": 19.7,
-              "largest_sd": 227.0
+              "median_sd": 18.8,
+              "largest_sd": 160.0
             },
             {
               "moment": "apogee",
@@ -9007,16 +9007,16 @@
               "moment": "apogee",
               "state": "speed",
               "flights": 39,
-              "below": 1,
+              "below": 0,
               "above": 0,
-              "coverage": 0.974,
+              "coverage": 1.0,
               "lowest_miss_share": [
-                0.0000128,
+                0.0,
                 0.0
               ],
               "holds": true,
-              "median_sd": 0.691,
-              "largest_sd": 1.35
+              "median_sd": 0.741,
+              "largest_sd": 1.36
             },
             {
               "moment": "drawn",
@@ -9045,7 +9045,7 @@
                 0.0000128
               ],
               "holds": true,
-              "median_sd": 0.968,
+              "median_sd": 0.98,
               "largest_sd": 90.0
             }
           ],
@@ -9062,8 +9062,8 @@
                 0.0
               ],
               "holds": true,
-              "median_sd": 57.7,
-              "largest_sd": 194.0
+              "median_sd": 59.5,
+              "largest_sd": 152.0
             },
             {
               "moment": "burnout",
@@ -9077,8 +9077,8 @@
                 0.0
               ],
               "holds": true,
-              "median_sd": 10.5,
-              "largest_sd": 70.2
+              "median_sd": 10.4,
+              "largest_sd": 49.0
             },
             {
               "moment": "top-speed",
@@ -9092,8 +9092,8 @@
                 0.0
               ],
               "holds": true,
-              "median_sd": 59.2,
-              "largest_sd": 175.0
+              "median_sd": 61.7,
+              "largest_sd": 142.0
             },
             {
               "moment": "top-speed",
@@ -9107,8 +9107,8 @@
                 0.0
               ],
               "holds": true,
-              "median_sd": 8.39,
-              "largest_sd": 53.0
+              "median_sd": 8.73,
+              "largest_sd": 31.6
             },
             {
               "moment": "apogee",
@@ -9137,8 +9137,8 @@
                 0.000852
               ],
               "holds": true,
-              "median_sd": 0.48,
-              "largest_sd": 1.05
+              "median_sd": 0.462,
+              "largest_sd": 0.758
             },
             {
               "moment": "drawn",
@@ -9176,50 +9176,35 @@
               "moment": "burnout",
               "state": "height",
               "flights": 31,
-              "below": 3,
+              "below": 1,
               "above": 0,
-              "coverage": 0.903,
+              "coverage": 0.968,
               "lowest_miss_share": [
-                0.00498,
+                0.0000161,
                 0.0
               ],
               "holds": true,
-              "median_sd": 59.8,
-              "largest_sd": 347.0
+              "median_sd": 57.6,
+              "largest_sd": 274.0
             },
             {
               "moment": "burnout",
               "state": "speed",
               "flights": 31,
               "below": 0,
-              "above": 3,
-              "coverage": 0.903,
+              "above": 0,
+              "coverage": 1.0,
               "lowest_miss_share": [
                 0.0,
-                0.00498
+                0.0
               ],
               "holds": true,
-              "median_sd": 15.8,
-              "largest_sd": 145.0
+              "median_sd": 15.2,
+              "largest_sd": 147.0
             },
             {
               "moment": "top-speed",
               "state": "height",
-              "flights": 31,
-              "below": 3,
-              "above": 0,
-              "coverage": 0.903,
-              "lowest_miss_share": [
-                0.00498,
-                0.0
-              ],
-              "holds": true,
-              "median_sd": 61.2,
-              "largest_sd": 299.0
-            },
-            {
-              "moment": "top-speed",
-              "state": "speed",
               "flights": 31,
               "below": 1,
               "above": 0,
@@ -9229,8 +9214,23 @@
                 0.0
               ],
               "holds": true,
-              "median_sd": 17.9,
-              "largest_sd": 160.0
+              "median_sd": 60.8,
+              "largest_sd": 223.0
+            },
+            {
+              "moment": "top-speed",
+              "state": "speed",
+              "flights": 31,
+              "below": 0,
+              "above": 0,
+              "coverage": 1.0,
+              "lowest_miss_share": [
+                0.0,
+                0.0
+              ],
+              "holds": true,
+              "median_sd": 18.6,
+              "largest_sd": 156.0
             },
             {
               "moment": "apogee",
@@ -9259,8 +9259,8 @@
                 0.0
               ],
               "holds": true,
-              "median_sd": 0.661,
-              "largest_sd": 1.21
+              "median_sd": 0.739,
+              "largest_sd": 1.2
             },
             {
               "moment": "drawn",
@@ -9289,8 +9289,8 @@
                 0.0000161
               ],
               "holds": true,
-              "median_sd": 0.852,
-              "largest_sd": 6.29
+              "median_sd": 0.862,
+              "largest_sd": 7.08
             }
           ],
           "rrc3": [
@@ -9298,46 +9298,46 @@
               "moment": "burnout",
               "state": "height",
               "flights": 30,
-              "below": 1,
+              "below": 0,
               "above": 0,
-              "coverage": 0.967,
+              "coverage": 1.0,
               "lowest_miss_share": [
-                0.0000167,
+                0.0,
                 0.0
               ],
               "holds": true,
-              "median_sd": 61.7,
-              "largest_sd": 317.0
+              "median_sd": 61.6,
+              "largest_sd": 319.0
             },
             {
               "moment": "burnout",
               "state": "speed",
               "flights": 30,
               "below": 0,
-              "above": 1,
-              "coverage": 0.967,
+              "above": 0,
+              "coverage": 1.0,
               "lowest_miss_share": [
                 0.0,
-                0.0000167
+                0.0
               ],
               "holds": true,
-              "median_sd": 20.7,
+              "median_sd": 20.4,
               "largest_sd": 169.0
             },
             {
               "moment": "top-speed",
               "state": "height",
               "flights": 30,
-              "below": 1,
+              "below": 0,
               "above": 0,
-              "coverage": 0.967,
+              "coverage": 1.0,
               "lowest_miss_share": [
-                0.0000167,
+                0.0,
                 0.0
               ],
               "holds": true,
-              "median_sd": 70.0,
-              "largest_sd": 250.0
+              "median_sd": 71.3,
+              "largest_sd": 251.0
             },
             {
               "moment": "top-speed",
@@ -9351,8 +9351,8 @@
                 0.0
               ],
               "holds": true,
-              "median_sd": 22.0,
-              "largest_sd": 172.0
+              "median_sd": 23.6,
+              "largest_sd": 173.0
             },
             {
               "moment": "apogee",
@@ -9374,14 +9374,14 @@
               "state": "speed",
               "flights": 30,
               "below": 0,
-              "above": 1,
-              "coverage": 0.967,
+              "above": 0,
+              "coverage": 1.0,
               "lowest_miss_share": [
                 0.0,
-                0.0000167
+                0.0
               ],
               "holds": true,
-              "median_sd": 0.693,
+              "median_sd": 0.765,
               "largest_sd": 1.09
             },
             {
@@ -9411,7 +9411,7 @@
                 0.0
               ],
               "holds": true,
-              "median_sd": 0.887,
+              "median_sd": 0.893,
               "largest_sd": 25.2
             }
           ]
@@ -9420,9 +9420,9 @@
           "sensors": {
             "GNSS": {
               "logs": 33,
-              "samples": 38309,
+              "samples": 38300,
               "rejected": 3,
-              "unweighed": 11831,
+              "unweighed": 9191,
               "resets": 0,
               "logs_rejecting": 2
             },
@@ -9430,22 +9430,22 @@
               "logs": 71,
               "samples": 4444352,
               "rejected": 0,
-              "unweighed": 3812994,
+              "unweighed": 3813033,
               "resets": 0,
               "logs_rejecting": 0
             },
             "barometer": {
               "logs": 171,
               "samples": 4859244,
-              "rejected": 7324,
+              "rejected": 2175,
               "unweighed": 0,
-              "resets": 20,
-              "logs_rejecting": 110
+              "resets": 4,
+              "logs_rejecting": 85
             }
           },
           "transonic_spans": 107,
           "charge_spans": 171,
-          "gnss_trusted": 29,
+          "gnss_trusted": 30,
           "unsmoothed_steps": 0
         }
       },
@@ -9455,46 +9455,46 @@
           "moment": "burnout",
           "state": "height",
           "flights": 171,
-          "below": 5,
+          "below": 1,
           "above": 6,
-          "coverage": 0.936,
+          "coverage": 0.959,
           "lowest_miss_share": [
-            0.00374,
+            2.92e-6,
             0.00572
           ],
           "holds": true,
-          "median_sd": 57.6,
-          "largest_sd": 464.0
+          "median_sd": 57.5,
+          "largest_sd": 469.0
         },
         {
           "moment": "burnout",
           "state": "speed",
           "flights": 171,
-          "below": 7,
-          "above": 11,
-          "coverage": 0.895,
+          "below": 8,
+          "above": 7,
+          "coverage": 0.912,
           "lowest_miss_share": [
-            0.00799,
-            0.0191
+            0.0105,
+            0.00799
           ],
           "holds": true,
-          "median_sd": 12.6,
-          "largest_sd": 468.0
+          "median_sd": 11.3,
+          "largest_sd": 473.0
         },
         {
           "moment": "top-speed",
           "state": "height",
           "flights": 171,
-          "below": 5,
+          "below": 1,
           "above": 6,
-          "coverage": 0.936,
+          "coverage": 0.959,
           "lowest_miss_share": [
-            0.00374,
+            2.92e-6,
             0.00572
           ],
           "holds": true,
-          "median_sd": 61.0,
-          "largest_sd": 302.0
+          "median_sd": 60.1,
+          "largest_sd": 298.0
         },
         {
           "moment": "top-speed",
@@ -9508,52 +9508,52 @@
             0.00799
           ],
           "holds": true,
-          "median_sd": 13.4,
-          "largest_sd": 470.0
+          "median_sd": 11.0,
+          "largest_sd": 474.0
         },
         {
           "moment": "apogee",
           "state": "height",
           "flights": 171,
-          "below": 21,
+          "below": 22,
           "above": 1,
-          "coverage": 0.871,
+          "coverage": 0.865,
           "lowest_miss_share": [
-            0.055,
+            0.059,
             2.92e-6
           ],
           "holds": false,
-          "median_sd": 85.2,
-          "largest_sd": 239.0
+          "median_sd": 85.5,
+          "largest_sd": 290.0
         },
         {
           "moment": "apogee",
           "state": "speed",
           "flights": 171,
-          "below": 5,
-          "above": 6,
-          "coverage": 0.936,
+          "below": 3,
+          "above": 4,
+          "coverage": 0.959,
           "lowest_miss_share": [
-            0.00374,
-            0.00572
+            0.00088,
+            0.00209
           ],
           "holds": true,
-          "median_sd": 0.692,
-          "largest_sd": 489.0
+          "median_sd": 0.742,
+          "largest_sd": 1450.0
         },
         {
           "moment": "drawn",
           "state": "height",
           "flights": 171,
-          "below": 15,
-          "above": 4,
-          "coverage": 0.889,
+          "below": 16,
+          "above": 5,
+          "coverage": 0.877,
           "lowest_miss_share": [
-            0.0324,
-            0.00209
+            0.036,
+            0.00374
           ],
           "holds": true,
-          "median_sd": 22.9,
+          "median_sd": 21.8,
           "largest_sd": 157.0
         },
         {
@@ -9568,8 +9568,8 @@
             0.00374
           ],
           "holds": true,
-          "median_sd": 0.877,
-          "largest_sd": 499.0
+          "median_sd": 0.882,
+          "largest_sd": 529.0
         }
       ]
     },
@@ -9585,71 +9585,71 @@
             "moment": "burnout",
             "state": "height",
             "flights": 820,
-            "below": 17,
-            "above": 2,
+            "below": 19,
+            "above": 0,
             "coverage": 0.977,
             "lowest_miss_share": [
-              0.00808,
-              0.000039
+              0.0096,
+              0.0
             ],
             "holds": true,
-            "median_sd": 58.9,
-            "largest_sd": 406.0
+            "median_sd": 58.5,
+            "largest_sd": 376.0
           },
           {
             "moment": "burnout",
             "state": "speed",
             "flights": 820,
-            "below": 10,
-            "above": 13,
-            "coverage": 0.972,
+            "below": 8,
+            "above": 2,
+            "coverage": 0.988,
             "lowest_miss_share": [
-              0.0033,
-              0.00523
+              0.00216,
+              0.000039
             ],
             "holds": true,
-            "median_sd": 11.5,
-            "largest_sd": 185.0
+            "median_sd": 11.0,
+            "largest_sd": 186.0
           },
           {
             "moment": "top-speed",
             "state": "height",
             "flights": 820,
-            "below": 18,
-            "above": 2,
-            "coverage": 0.976,
+            "below": 16,
+            "above": 0,
+            "coverage": 0.98,
             "lowest_miss_share": [
-              0.00883,
-              0.000039
+              0.00735,
+              0.0
             ],
             "holds": true,
             "median_sd": 61.4,
-            "largest_sd": 333.0
+            "largest_sd": 334.0
           },
           {
             "moment": "top-speed",
             "state": "speed",
             "flights": 820,
-            "below": 22,
-            "above": 1,
-            "coverage": 0.972,
+            "below": 13,
+            "above": 0,
+            "coverage": 0.984,
             "lowest_miss_share": [
-              0.012,
-              6.1e-7
+              0.00523,
+              0.0
             ],
             "holds": true,
-            "median_sd": 12.2,
-            "largest_sd": 215.0
+            "median_sd": 11.2,
+            "largest_sd": 190.0
           },
           {
             "moment": "apogee",
             "state": "height",
             "flights": 820,
-            "below": 7,
+            "below": 9,
             "above": 2,
-            "coverage": 0.989,
+            "coverage": 0.987,
             "lowest_miss_share": [
-              0.00165,
+              0.00272,
               0.000039
             ],
             "holds": true,
@@ -9660,46 +9660,46 @@
             "moment": "apogee",
             "state": "speed",
             "flights": 820,
-            "below": 4,
-            "above": 19,
-            "coverage": 0.972,
+            "below": 1,
+            "above": 18,
+            "coverage": 0.977,
             "lowest_miss_share": [
-              0.000434,
-              0.0096
+              6.1e-7,
+              0.00883
             ],
             "holds": true,
-            "median_sd": 0.715,
-            "largest_sd": 1.94
+            "median_sd": 0.768,
+            "largest_sd": 1.85
           },
           {
             "moment": "drawn",
             "state": "height",
             "flights": 820,
-            "below": 16,
+            "below": 15,
             "above": 3,
-            "coverage": 0.977,
+            "coverage": 0.978,
             "lowest_miss_share": [
-              0.00735,
+              0.00662,
               0.000183
             ],
             "holds": true,
-            "median_sd": 20.8,
-            "largest_sd": 221.0
+            "median_sd": 20.7,
+            "largest_sd": 217.0
           },
           {
             "moment": "drawn",
             "state": "speed",
             "flights": 820,
-            "below": 19,
-            "above": 24,
-            "coverage": 0.948,
+            "below": 18,
+            "above": 20,
+            "coverage": 0.954,
             "lowest_miss_share": [
-              0.0096,
-              0.0136
+              0.00883,
+              0.0104
             ],
             "holds": true,
-            "median_sd": 0.866,
-            "largest_sd": 140.0
+            "median_sd": 0.881,
+            "largest_sd": 102.0
           }
         ],
         "by_logger": {
@@ -9708,16 +9708,16 @@
               "moment": "burnout",
               "state": "height",
               "flights": 185,
-              "below": 2,
-              "above": 1,
-              "coverage": 0.984,
+              "below": 1,
+              "above": 0,
+              "coverage": 0.995,
               "lowest_miss_share": [
-                0.000173,
-                2.7e-6
+                2.7e-6,
+                0.0
               ],
               "holds": true,
-              "median_sd": 54.5,
-              "largest_sd": 185.0
+              "median_sd": 55.0,
+              "largest_sd": 139.0
             },
             {
               "moment": "burnout",
@@ -9731,48 +9731,48 @@
                 0.0
               ],
               "holds": true,
-              "median_sd": 5.26,
-              "largest_sd": 61.1
+              "median_sd": 5.58,
+              "largest_sd": 39.3
             },
             {
               "moment": "top-speed",
               "state": "height",
               "flights": 185,
-              "below": 1,
-              "above": 1,
-              "coverage": 0.989,
+              "below": 0,
+              "above": 0,
+              "coverage": 1.0,
               "lowest_miss_share": [
-                2.7e-6,
-                2.7e-6
+                0.0,
+                0.0
               ],
               "holds": true,
-              "median_sd": 58.4,
-              "largest_sd": 173.0
+              "median_sd": 58.2,
+              "largest_sd": 132.0
             },
             {
               "moment": "top-speed",
               "state": "speed",
               "flights": 185,
-              "below": 9,
+              "below": 8,
               "above": 0,
-              "coverage": 0.951,
+              "coverage": 0.957,
               "lowest_miss_share": [
-                0.0122,
+                0.00969,
                 0.0
               ],
               "holds": true,
-              "median_sd": 4.63,
-              "largest_sd": 49.8
+              "median_sd": 4.19,
+              "largest_sd": 29.9
             },
             {
               "moment": "apogee",
               "state": "height",
               "flights": 185,
-              "below": 7,
+              "below": 9,
               "above": 1,
-              "coverage": 0.957,
+              "coverage": 0.946,
               "lowest_miss_share": [
-                0.00738,
+                0.0122,
                 2.7e-6
               ],
               "holds": true,
@@ -9791,38 +9791,38 @@
                 0.0
               ],
               "holds": true,
-              "median_sd": 1.51,
-              "largest_sd": 1.94
+              "median_sd": 1.5,
+              "largest_sd": 1.85
             },
             {
               "moment": "drawn",
               "state": "height",
               "flights": 185,
-              "below": 8,
+              "below": 9,
               "above": 1,
-              "coverage": 0.951,
+              "coverage": 0.946,
               "lowest_miss_share": [
-                0.00969,
+                0.0122,
                 2.7e-6
               ],
               "holds": true,
-              "median_sd": 10.8,
-              "largest_sd": 138.0
+              "median_sd": 10.5,
+              "largest_sd": 109.0
             },
             {
               "moment": "drawn",
               "state": "speed",
               "flights": 185,
-              "below": 3,
-              "above": 10,
-              "coverage": 0.93,
+              "below": 4,
+              "above": 7,
+              "coverage": 0.941,
               "lowest_miss_share": [
-                0.000813,
-                0.0148
+                0.00193,
+                0.00738
               ],
               "holds": true,
-              "median_sd": 0.832,
-              "largest_sd": 140.0
+              "median_sd": 0.857,
+              "largest_sd": 53.4
             }
           ],
           "eggtimer": [
@@ -9830,61 +9830,61 @@
               "moment": "burnout",
               "state": "height",
               "flights": 181,
-              "below": 7,
+              "below": 6,
               "above": 0,
-              "coverage": 0.961,
+              "coverage": 0.967,
               "lowest_miss_share": [
-                0.00755,
+                0.0054,
                 0.0
               ],
               "holds": true,
-              "median_sd": 58.9,
-              "largest_sd": 406.0
+              "median_sd": 57.9,
+              "largest_sd": 376.0
             },
             {
               "moment": "burnout",
               "state": "speed",
               "flights": 181,
               "below": 0,
-              "above": 8,
-              "coverage": 0.956,
+              "above": 2,
+              "coverage": 0.989,
               "lowest_miss_share": [
                 0.0,
-                0.00991
+                0.000177
               ],
               "holds": true,
-              "median_sd": 18.3,
-              "largest_sd": 185.0
+              "median_sd": 16.3,
+              "largest_sd": 186.0
             },
             {
               "moment": "top-speed",
               "state": "height",
               "flights": 181,
-              "below": 8,
+              "below": 4,
               "above": 0,
-              "coverage": 0.956,
+              "coverage": 0.978,
               "lowest_miss_share": [
-                0.00991,
+                0.00198,
                 0.0
               ],
               "holds": true,
               "median_sd": 61.1,
-              "largest_sd": 333.0
+              "largest_sd": 334.0
             },
             {
               "moment": "top-speed",
               "state": "speed",
               "flights": 181,
-              "below": 1,
-              "above": 1,
-              "coverage": 0.989,
+              "below": 0,
+              "above": 0,
+              "coverage": 1.0,
               "lowest_miss_share": [
-                2.76e-6,
-                2.76e-6
+                0.0,
+                0.0
               ],
               "holds": true,
-              "median_sd": 19.3,
-              "largest_sd": 201.0
+              "median_sd": 18.5,
+              "largest_sd": 190.0
             },
             {
               "moment": "apogee",
@@ -9905,15 +9905,15 @@
               "moment": "apogee",
               "state": "speed",
               "flights": 181,
-              "below": 1,
-              "above": 3,
-              "coverage": 0.978,
+              "below": 0,
+              "above": 0,
+              "coverage": 1.0,
               "lowest_miss_share": [
-                2.76e-6,
-                0.000831
+                0.0,
+                0.0
               ],
               "holds": true,
-              "median_sd": 0.7,
+              "median_sd": 0.759,
               "largest_sd": 1.48
             },
             {
@@ -9929,22 +9929,22 @@
               ],
               "holds": true,
               "median_sd": 24.3,
-              "largest_sd": 140.0
+              "largest_sd": 160.0
             },
             {
               "moment": "drawn",
               "state": "speed",
               "flights": 181,
-              "below": 4,
+              "below": 3,
               "above": 3,
-              "coverage": 0.961,
+              "coverage": 0.967,
               "lowest_miss_share": [
-                0.00198,
+                0.000831,
                 0.000831
               ],
               "holds": true,
-              "median_sd": 0.879,
-              "largest_sd": 64.3
+              "median_sd": 0.895,
+              "largest_sd": 66.9
             }
           ],
           "imu-500hz": [
@@ -9952,61 +9952,61 @@
               "moment": "burnout",
               "state": "height",
               "flights": 171,
-              "below": 0,
-              "above": 1,
-              "coverage": 0.994,
+              "below": 4,
+              "above": 0,
+              "coverage": 0.977,
               "lowest_miss_share": [
-                0.0,
-                2.92e-6
+                0.00209,
+                0.0
               ],
               "holds": true,
-              "median_sd": 61.1,
-              "largest_sd": 226.0
+              "median_sd": 59.8,
+              "largest_sd": 147.0
             },
             {
               "moment": "burnout",
               "state": "speed",
               "flights": 171,
-              "below": 3,
+              "below": 1,
               "above": 0,
-              "coverage": 0.982,
+              "coverage": 0.994,
               "lowest_miss_share": [
-                0.00088,
+                2.92e-6,
                 0.0
               ],
               "holds": true,
-              "median_sd": 10.7,
-              "largest_sd": 63.4
+              "median_sd": 10.6,
+              "largest_sd": 35.6
             },
             {
               "moment": "top-speed",
               "state": "height",
               "flights": 171,
-              "below": 0,
-              "above": 1,
-              "coverage": 0.994,
+              "below": 4,
+              "above": 0,
+              "coverage": 0.977,
               "lowest_miss_share": [
-                0.0,
-                2.92e-6
+                0.00209,
+                0.0
               ],
               "holds": true,
-              "median_sd": 62.4,
-              "largest_sd": 193.0
+              "median_sd": 61.7,
+              "largest_sd": 137.0
             },
             {
               "moment": "top-speed",
               "state": "speed",
               "flights": 171,
-              "below": 9,
+              "below": 5,
               "above": 0,
-              "coverage": 0.947,
+              "coverage": 0.971,
               "lowest_miss_share": [
-                0.0132,
+                0.00374,
                 0.0
               ],
               "holds": true,
-              "median_sd": 8.58,
-              "largest_sd": 87.4
+              "median_sd": 8.66,
+              "largest_sd": 39.9
             },
             {
               "moment": "apogee",
@@ -10028,45 +10028,45 @@
               "state": "speed",
               "flights": 171,
               "below": 1,
-              "above": 12,
-              "coverage": 0.924,
+              "above": 15,
+              "coverage": 0.906,
               "lowest_miss_share": [
                 2.92e-6,
-                0.0223
+                0.0324
               ],
               "holds": true,
               "median_sd": 0.452,
-              "largest_sd": 0.819
+              "largest_sd": 0.818
             },
             {
               "moment": "drawn",
               "state": "height",
               "flights": 171,
-              "below": 3,
+              "below": 1,
               "above": 1,
-              "coverage": 0.977,
+              "coverage": 0.988,
               "lowest_miss_share": [
-                0.00088,
+                2.92e-6,
                 2.92e-6
               ],
               "holds": true,
-              "median_sd": 29.2,
+              "median_sd": 29.1,
               "largest_sd": 142.0
             },
             {
               "moment": "drawn",
               "state": "speed",
               "flights": 171,
-              "below": 7,
+              "below": 6,
               "above": 5,
-              "coverage": 0.93,
+              "coverage": 0.936,
               "lowest_miss_share": [
-                0.00799,
+                0.00572,
                 0.00374
               ],
               "holds": true,
-              "median_sd": 0.843,
-              "largest_sd": 47.6
+              "median_sd": 0.844,
+              "largest_sd": 49.0
             }
           ],
           "perfectflite": [
@@ -10082,7 +10082,7 @@
                 0.0
               ],
               "holds": true,
-              "median_sd": 60.3,
+              "median_sd": 60.2,
               "largest_sd": 336.0
             },
             {
@@ -10090,14 +10090,14 @@
               "state": "speed",
               "flights": 144,
               "below": 0,
-              "above": 4,
-              "coverage": 0.972,
+              "above": 0,
+              "coverage": 1.0,
               "lowest_miss_share": [
                 0.0,
-                0.00249
+                0.0
               ],
               "holds": true,
-              "median_sd": 19.0,
+              "median_sd": 17.6,
               "largest_sd": 159.0
             },
             {
@@ -10112,22 +10112,22 @@
                 0.0
               ],
               "holds": true,
-              "median_sd": 65.0,
+              "median_sd": 64.3,
               "largest_sd": 300.0
             },
             {
               "moment": "top-speed",
               "state": "speed",
               "flights": 144,
-              "below": 1,
+              "below": 0,
               "above": 0,
-              "coverage": 0.993,
+              "coverage": 1.0,
               "lowest_miss_share": [
-                3.47e-6,
+                0.0,
                 0.0
               ],
               "holds": true,
-              "median_sd": 21.0,
+              "median_sd": 19.8,
               "largest_sd": 169.0
             },
             {
@@ -10149,15 +10149,15 @@
               "moment": "apogee",
               "state": "speed",
               "flights": 144,
-              "below": 1,
-              "above": 3,
-              "coverage": 0.972,
+              "below": 0,
+              "above": 1,
+              "coverage": 0.993,
               "lowest_miss_share": [
-                3.47e-6,
-                0.00105
+                0.0,
+                3.47e-6
               ],
               "holds": true,
-              "median_sd": 0.696,
+              "median_sd": 0.742,
               "largest_sd": 1.3
             },
             {
@@ -10180,15 +10180,15 @@
               "state": "speed",
               "flights": 144,
               "below": 3,
-              "above": 2,
-              "coverage": 0.965,
+              "above": 1,
+              "coverage": 0.972,
               "lowest_miss_share": [
                 0.00105,
-                0.000223
+                3.47e-6
               ],
               "holds": true,
-              "median_sd": 0.899,
-              "largest_sd": 46.7
+              "median_sd": 0.907,
+              "largest_sd": 49.3
             }
           ],
           "rrc3": [
@@ -10204,42 +10204,27 @@
                 0.0
               ],
               "holds": true,
-              "median_sd": 60.1,
-              "largest_sd": 347.0
+              "median_sd": 60.0,
+              "largest_sd": 346.0
             },
             {
               "moment": "burnout",
               "state": "speed",
               "flights": 139,
               "below": 0,
-              "above": 1,
-              "coverage": 0.993,
+              "above": 0,
+              "coverage": 1.0,
               "lowest_miss_share": [
                 0.0,
-                3.6e-6
+                0.0
               ],
               "holds": true,
-              "median_sd": 16.3,
-              "largest_sd": 169.0
+              "median_sd": 15.3,
+              "largest_sd": 162.0
             },
             {
               "moment": "top-speed",
               "state": "height",
-              "flights": 139,
-              "below": 3,
-              "above": 0,
-              "coverage": 0.978,
-              "lowest_miss_share": [
-                0.00108,
-                0.0
-              ],
-              "holds": true,
-              "median_sd": 61.4,
-              "largest_sd": 316.0
-            },
-            {
-              "moment": "top-speed",
-              "state": "speed",
               "flights": 139,
               "below": 2,
               "above": 0,
@@ -10249,8 +10234,23 @@
                 0.0
               ],
               "holds": true,
-              "median_sd": 18.2,
-              "largest_sd": 215.0
+              "median_sd": 61.7,
+              "largest_sd": 315.0
+            },
+            {
+              "moment": "top-speed",
+              "state": "speed",
+              "flights": 139,
+              "below": 0,
+              "above": 0,
+              "coverage": 1.0,
+              "lowest_miss_share": [
+                0.0,
+                0.0
+              ],
+              "holds": true,
+              "median_sd": 19.6,
+              "largest_sd": 169.0
             },
             {
               "moment": "apogee",
@@ -10271,16 +10271,16 @@
               "moment": "apogee",
               "state": "speed",
               "flights": 139,
-              "below": 1,
-              "above": 1,
+              "below": 0,
+              "above": 2,
               "coverage": 0.986,
               "lowest_miss_share": [
-                3.6e-6,
-                3.6e-6
+                0.0,
+                0.000231
               ],
               "holds": true,
-              "median_sd": 0.726,
-              "largest_sd": 1.41
+              "median_sd": 0.78,
+              "largest_sd": 1.42
             },
             {
               "moment": "drawn",
@@ -10295,7 +10295,7 @@
               ],
               "holds": true,
               "median_sd": 23.8,
-              "largest_sd": 221.0
+              "largest_sd": 217.0
             },
             {
               "moment": "drawn",
@@ -10309,8 +10309,8 @@
                 0.00258
               ],
               "holds": true,
-              "median_sd": 0.96,
-              "largest_sd": 101.0
+              "median_sd": 0.977,
+              "largest_sd": 102.0
             }
           ]
         },
@@ -10318,30 +10318,30 @@
           "sensors": {
             "GNSS": {
               "logs": 185,
-              "samples": 184141,
-              "rejected": 26,
-              "unweighed": 52177,
+              "samples": 184085,
+              "rejected": 24,
+              "unweighed": 45511,
               "resets": 0,
-              "logs_rejecting": 17
+              "logs_rejecting": 16
             },
             "accelerometer": {
               "logs": 356,
               "samples": 18839905,
               "rejected": 0,
-              "unweighed": 15907357,
+              "unweighed": 15907415,
               "resets": 0,
               "logs_rejecting": 0
             },
             "barometer": {
               "logs": 820,
               "samples": 20622837,
-              "rejected": 25667,
+              "rejected": 9885,
               "unweighed": 0,
-              "resets": 94,
-              "logs_rejecting": 565
+              "resets": 13,
+              "logs_rejecting": 404
             }
           },
-          "transonic_spans": 479,
+          "transonic_spans": 482,
           "charge_spans": 820,
           "gnss_trusted": 166,
           "unsmoothed_steps": 0
@@ -10354,104 +10354,104 @@
           "state": "height",
           "flights": 820,
           "below": 20,
-          "above": 24,
-          "coverage": 0.946,
+          "above": 26,
+          "coverage": 0.944,
           "lowest_miss_share": [
             0.0104,
-            0.0136
+            0.0152
           ],
           "holds": true,
-          "median_sd": 57.9,
-          "largest_sd": 406.0
+          "median_sd": 57.2,
+          "largest_sd": 376.0
         },
         {
           "moment": "burnout",
           "state": "speed",
           "flights": 820,
-          "below": 75,
-          "above": 35,
-          "coverage": 0.866,
+          "below": 66,
+          "above": 30,
+          "coverage": 0.883,
           "lowest_miss_share": [
-            0.0616,
-            0.0231
+            0.0526,
+            0.0187
           ],
           "holds": false,
-          "median_sd": 11.6,
-          "largest_sd": 281.0
+          "median_sd": 11.1,
+          "largest_sd": 209.0
         },
         {
           "moment": "top-speed",
           "state": "height",
           "flights": 820,
-          "below": 17,
-          "above": 23,
+          "below": 16,
+          "above": 24,
           "coverage": 0.951,
           "lowest_miss_share": [
-            0.00808,
-            0.0128
+            0.00735,
+            0.0136
           ],
           "holds": true,
           "median_sd": 60.1,
-          "largest_sd": 333.0
+          "largest_sd": 334.0
         },
         {
           "moment": "top-speed",
           "state": "speed",
           "flights": 820,
-          "below": 77,
-          "above": 24,
-          "coverage": 0.877,
+          "below": 62,
+          "above": 29,
+          "coverage": 0.889,
           "lowest_miss_share": [
-            0.0636,
-            0.0136
+            0.0486,
+            0.0178
           ],
-          "holds": false,
-          "median_sd": 12.0,
-          "largest_sd": 215.0
+          "holds": true,
+          "median_sd": 10.9,
+          "largest_sd": 190.0
         },
         {
           "moment": "apogee",
           "state": "height",
           "flights": 820,
-          "below": 146,
-          "above": 7,
-          "coverage": 0.813,
+          "below": 148,
+          "above": 10,
+          "coverage": 0.807,
           "lowest_miss_share": [
-            0.137,
-            0.00165
+            0.139,
+            0.0033
           ],
           "holds": false,
           "median_sd": 84.3,
-          "largest_sd": 629.0
+          "largest_sd": 627.0
         },
         {
           "moment": "apogee",
           "state": "speed",
           "flights": 820,
-          "below": 14,
-          "above": 26,
-          "coverage": 0.951,
+          "below": 10,
+          "above": 27,
+          "coverage": 0.955,
           "lowest_miss_share": [
-            0.00592,
-            0.0152
+            0.0033,
+            0.0161
           ],
           "holds": true,
-          "median_sd": 0.715,
-          "largest_sd": 651.0
+          "median_sd": 0.768,
+          "largest_sd": 650.0
         },
         {
           "moment": "drawn",
           "state": "height",
           "flights": 820,
-          "below": 119,
+          "below": 116,
           "above": 19,
-          "coverage": 0.832,
+          "coverage": 0.835,
           "lowest_miss_share": [
-            0.107,
+            0.104,
             0.0096
           ],
           "holds": false,
-          "median_sd": 17.0,
+          "median_sd": 17.2,
           "largest_sd": 1430.0
         },
         {
@@ -10459,14 +10459,14 @@
           "state": "speed",
           "flights": 820,
           "below": 30,
-          "above": 29,
-          "coverage": 0.928,
+          "above": 26,
+          "coverage": 0.932,
           "lowest_miss_share": [
             0.0187,
-            0.0178
+            0.0152
           ],
           "holds": true,
-          "median_sd": 0.864,
+          "median_sd": 0.879,
           "largest_sd": 2660.0
         }
       ]
@@ -10483,121 +10483,121 @@
             "moment": "burnout",
             "state": "height",
             "flights": 845,
-            "below": 27,
-            "above": 1,
-            "coverage": 0.967,
+            "below": 25,
+            "above": 0,
+            "coverage": 0.97,
             "lowest_miss_share": [
-              0.0156,
-              5.92e-7
+              0.014,
+              0.0
             ],
             "holds": true,
-            "median_sd": 59.1,
+            "median_sd": 58.6,
             "largest_sd": 407.0
           },
           {
             "moment": "burnout",
             "state": "speed",
             "flights": 845,
-            "below": 17,
-            "above": 9,
-            "coverage": 0.969,
+            "below": 18,
+            "above": 2,
+            "coverage": 0.976,
             "lowest_miss_share": [
-              0.00784,
-              0.00264
+              0.00857,
+              0.0000378
             ],
             "holds": true,
-            "median_sd": 11.3,
-            "largest_sd": 238.0
+            "median_sd": 11.1,
+            "largest_sd": 182.0
           },
           {
             "moment": "top-speed",
             "state": "height",
             "flights": 845,
-            "below": 22,
-            "above": 1,
-            "coverage": 0.973,
+            "below": 19,
+            "above": 0,
+            "coverage": 0.978,
             "lowest_miss_share": [
-              0.0116,
-              5.92e-7
+              0.00931,
+              0.0
             ],
             "holds": true,
-            "median_sd": 62.3,
+            "median_sd": 61.6,
             "largest_sd": 363.0
           },
           {
             "moment": "top-speed",
             "state": "speed",
             "flights": 845,
-            "below": 46,
-            "above": 1,
-            "coverage": 0.944,
+            "below": 24,
+            "above": 0,
+            "coverage": 0.972,
             "lowest_miss_share": [
-              0.0322,
-              5.92e-7
+              0.0132,
+              0.0
             ],
             "holds": true,
-            "median_sd": 10.9,
-            "largest_sd": 214.0
+            "median_sd": 10.6,
+            "largest_sd": 190.0
           },
           {
             "moment": "apogee",
             "state": "height",
             "flights": 845,
-            "below": 15,
+            "below": 14,
             "above": 4,
-            "coverage": 0.978,
+            "coverage": 0.979,
             "lowest_miss_share": [
-              0.00643,
+              0.00574,
               0.000421
             ],
             "holds": true,
-            "median_sd": 85.1,
+            "median_sd": 84.8,
             "largest_sd": 158.0
           },
           {
             "moment": "apogee",
             "state": "speed",
             "flights": 845,
-            "below": 4,
-            "above": 28,
-            "coverage": 0.962,
+            "below": 1,
+            "above": 20,
+            "coverage": 0.975,
             "lowest_miss_share": [
-              0.000421,
-              0.0164
+              5.92e-7,
+              0.0101
             ],
             "holds": true,
-            "median_sd": 0.707,
-            "largest_sd": 1.99
+            "median_sd": 0.759,
+            "largest_sd": 1.79
           },
           {
             "moment": "drawn",
             "state": "height",
             "flights": 845,
-            "below": 19,
+            "below": 17,
             "above": 2,
-            "coverage": 0.975,
+            "coverage": 0.978,
             "lowest_miss_share": [
-              0.00931,
+              0.00784,
               0.0000378
             ],
             "holds": true,
             "median_sd": 19.2,
-            "largest_sd": 243.0
+            "largest_sd": 230.0
           },
           {
             "moment": "drawn",
             "state": "speed",
             "flights": 845,
-            "below": 19,
-            "above": 15,
+            "below": 20,
+            "above": 14,
             "coverage": 0.96,
             "lowest_miss_share": [
-              0.00931,
-              0.00643
+              0.0101,
+              0.00574
             ],
             "holds": true,
-            "median_sd": 0.868,
-            "largest_sd": 260.0
+            "median_sd": 0.881,
+            "largest_sd": 121.0
           }
         ],
         "by_logger": {
@@ -10606,46 +10606,46 @@
               "moment": "burnout",
               "state": "height",
               "flights": 186,
-              "below": 0,
-              "above": 1,
-              "coverage": 0.995,
+              "below": 3,
+              "above": 0,
+              "coverage": 0.984,
               "lowest_miss_share": [
-                0.0,
-                2.69e-6
+                0.000809,
+                0.0
               ],
               "holds": true,
-              "median_sd": 56.6,
-              "largest_sd": 191.0
+              "median_sd": 56.1,
+              "largest_sd": 153.0
             },
             {
               "moment": "burnout",
               "state": "speed",
               "flights": 186,
-              "below": 7,
+              "below": 11,
               "above": 0,
-              "coverage": 0.962,
+              "coverage": 0.941,
               "lowest_miss_share": [
-                0.00734,
+                0.0175,
                 0.0
               ],
               "holds": true,
-              "median_sd": 7.13,
-              "largest_sd": 60.2
+              "median_sd": 6.6,
+              "largest_sd": 28.4
             },
             {
               "moment": "top-speed",
               "state": "height",
               "flights": 186,
-              "below": 0,
-              "above": 1,
+              "below": 1,
+              "above": 0,
               "coverage": 0.995,
               "lowest_miss_share": [
-                0.0,
-                2.69e-6
+                2.69e-6,
+                0.0
               ],
               "holds": true,
-              "median_sd": 60.7,
-              "largest_sd": 173.0
+              "median_sd": 59.1,
+              "largest_sd": 141.0
             },
             {
               "moment": "top-speed",
@@ -10659,18 +10659,18 @@
                 0.0
               ],
               "holds": true,
-              "median_sd": 5.17,
-              "largest_sd": 54.5
+              "median_sd": 4.47,
+              "largest_sd": 37.1
             },
             {
               "moment": "apogee",
               "state": "height",
               "flights": 186,
-              "below": 15,
+              "below": 14,
               "above": 1,
-              "coverage": 0.914,
+              "coverage": 0.919,
               "lowest_miss_share": [
-                0.0297,
+                0.0265,
                 2.69e-6
               ],
               "holds": true,
@@ -10690,21 +10690,21 @@
               ],
               "holds": true,
               "median_sd": 1.5,
-              "largest_sd": 1.99
+              "largest_sd": 1.79
             },
             {
               "moment": "drawn",
               "state": "height",
               "flights": 186,
-              "below": 14,
+              "below": 13,
               "above": 0,
-              "coverage": 0.925,
+              "coverage": 0.93,
               "lowest_miss_share": [
-                0.0265,
+                0.0234,
                 0.0
               ],
               "holds": true,
-              "median_sd": 10.6,
+              "median_sd": 10.5,
               "largest_sd": 108.0
             },
             {
@@ -10712,15 +10712,15 @@
               "state": "speed",
               "flights": 186,
               "below": 3,
-              "above": 8,
-              "coverage": 0.941,
+              "above": 7,
+              "coverage": 0.946,
               "lowest_miss_share": [
                 0.000809,
-                0.00964
+                0.00734
               ],
               "holds": true,
-              "median_sd": 0.822,
-              "largest_sd": 50.4
+              "median_sd": 0.84,
+              "largest_sd": 45.2
             }
           ],
           "eggtimer": [
@@ -10728,11 +10728,11 @@
               "moment": "burnout",
               "state": "height",
               "flights": 169,
-              "below": 10,
+              "below": 9,
               "above": 0,
-              "coverage": 0.941,
+              "coverage": 0.947,
               "lowest_miss_share": [
-                0.0163,
+                0.0134,
                 0.0
               ],
               "holds": true,
@@ -10744,44 +10744,44 @@
               "state": "speed",
               "flights": 169,
               "below": 0,
-              "above": 5,
-              "coverage": 0.97,
+              "above": 1,
+              "coverage": 0.994,
               "lowest_miss_share": [
                 0.0,
-                0.00378
+                2.96e-6
               ],
               "holds": true,
-              "median_sd": 15.7,
-              "largest_sd": 186.0
+              "median_sd": 14.5,
+              "largest_sd": 182.0
             },
             {
               "moment": "top-speed",
               "state": "height",
               "flights": 169,
-              "below": 10,
+              "below": 7,
               "above": 0,
-              "coverage": 0.941,
+              "coverage": 0.959,
               "lowest_miss_share": [
-                0.0163,
+                0.00809,
                 0.0
               ],
               "holds": true,
-              "median_sd": 59.3,
+              "median_sd": 59.5,
               "largest_sd": 363.0
             },
             {
               "moment": "top-speed",
               "state": "speed",
               "flights": 169,
-              "below": 5,
+              "below": 0,
               "above": 0,
-              "coverage": 0.97,
+              "coverage": 1.0,
               "lowest_miss_share": [
-                0.00378,
+                0.0,
                 0.0
               ],
               "holds": true,
-              "median_sd": 15.0,
+              "median_sd": 14.5,
               "largest_sd": 190.0
             },
             {
@@ -10804,15 +10804,15 @@
               "state": "speed",
               "flights": 169,
               "below": 0,
-              "above": 3,
-              "coverage": 0.982,
+              "above": 1,
+              "coverage": 0.994,
               "lowest_miss_share": [
                 0.0,
-                0.000891
+                2.96e-6
               ],
               "holds": true,
-              "median_sd": 0.697,
-              "largest_sd": 1.42
+              "median_sd": 0.749,
+              "largest_sd": 1.45
             },
             {
               "moment": "drawn",
@@ -10841,7 +10841,7 @@
                 2.96e-6
               ],
               "holds": true,
-              "median_sd": 0.89,
+              "median_sd": 0.907,
               "largest_sd": 121.0
             }
           ],
@@ -10858,53 +10858,53 @@
                 0.0
               ],
               "holds": true,
-              "median_sd": 59.8,
-              "largest_sd": 172.0
+              "median_sd": 59.7,
+              "largest_sd": 153.0
             },
             {
               "moment": "burnout",
               "state": "speed",
               "flights": 182,
-              "below": 9,
+              "below": 7,
               "above": 0,
-              "coverage": 0.951,
+              "coverage": 0.962,
               "lowest_miss_share": [
-                0.0124,
+                0.00751,
                 0.0
               ],
               "holds": true,
-              "median_sd": 10.8,
-              "largest_sd": 71.9
+              "median_sd": 10.6,
+              "largest_sd": 43.0
             },
             {
               "moment": "top-speed",
               "state": "height",
               "flights": 182,
-              "below": 0,
+              "below": 2,
               "above": 0,
-              "coverage": 1.0,
+              "coverage": 0.989,
               "lowest_miss_share": [
-                0.0,
+                0.000176,
                 0.0
               ],
               "holds": true,
-              "median_sd": 62.0,
-              "largest_sd": 159.0
+              "median_sd": 61.3,
+              "largest_sd": 142.0
             },
             {
               "moment": "top-speed",
               "state": "speed",
               "flights": 182,
-              "below": 14,
+              "below": 10,
               "above": 0,
-              "coverage": 0.923,
+              "coverage": 0.945,
               "lowest_miss_share": [
-                0.0271,
+                0.0151,
                 0.0
               ],
               "holds": true,
-              "median_sd": 8.48,
-              "largest_sd": 45.9
+              "median_sd": 8.52,
+              "largest_sd": 36.8
             },
             {
               "moment": "apogee",
@@ -10926,15 +10926,15 @@
               "state": "speed",
               "flights": 182,
               "below": 1,
-              "above": 10,
-              "coverage": 0.94,
+              "above": 13,
+              "coverage": 0.923,
               "lowest_miss_share": [
                 2.75e-6,
-                0.0151
+                0.024
               ],
               "holds": true,
-              "median_sd": 0.46,
-              "largest_sd": 1.07
+              "median_sd": 0.457,
+              "largest_sd": 0.868
             },
             {
               "moment": "drawn",
@@ -10949,7 +10949,7 @@
               ],
               "holds": true,
               "median_sd": 24.4,
-              "largest_sd": 126.0
+              "largest_sd": 123.0
             },
             {
               "moment": "drawn",
@@ -10963,8 +10963,8 @@
                 0.000827
               ],
               "holds": true,
-              "median_sd": 0.864,
-              "largest_sd": 63.2
+              "median_sd": 0.87,
+              "largest_sd": 50.2
             }
           ],
           "perfectflite": [
@@ -10972,11 +10972,11 @@
               "moment": "burnout",
               "state": "height",
               "flights": 132,
-              "below": 5,
+              "below": 4,
               "above": 0,
-              "coverage": 0.962,
+              "coverage": 0.97,
               "lowest_miss_share": [
-                0.00485,
+                0.00272,
                 0.0
               ],
               "holds": true,
@@ -10987,46 +10987,46 @@
               "moment": "burnout",
               "state": "speed",
               "flights": 132,
-              "below": 1,
-              "above": 1,
-              "coverage": 0.985,
+              "below": 0,
+              "above": 0,
+              "coverage": 1.0,
               "lowest_miss_share": [
-                3.79e-6,
-                3.79e-6
+                0.0,
+                0.0
               ],
               "holds": true,
-              "median_sd": 21.7,
-              "largest_sd": 238.0
+              "median_sd": 19.9,
+              "largest_sd": 176.0
             },
             {
               "moment": "top-speed",
               "state": "height",
               "flights": 132,
-              "below": 3,
+              "below": 2,
               "above": 0,
-              "coverage": 0.977,
+              "coverage": 0.985,
               "lowest_miss_share": [
-                0.00114,
+                0.000243,
                 0.0
               ],
               "holds": true,
-              "median_sd": 64.8,
+              "median_sd": 66.4,
               "largest_sd": 350.0
             },
             {
               "moment": "top-speed",
               "state": "speed",
               "flights": 132,
-              "below": 7,
-              "above": 1,
-              "coverage": 0.939,
+              "below": 1,
+              "above": 0,
+              "coverage": 0.992,
               "lowest_miss_share": [
-                0.0104,
-                3.79e-6
+                3.79e-6,
+                0.0
               ],
               "holds": true,
-              "median_sd": 22.5,
-              "largest_sd": 214.0
+              "median_sd": 20.9,
+              "largest_sd": 185.0
             },
             {
               "moment": "apogee",
@@ -11047,15 +11047,15 @@
               "moment": "apogee",
               "state": "speed",
               "flights": 132,
-              "below": 2,
-              "above": 7,
-              "coverage": 0.932,
+              "below": 0,
+              "above": 3,
+              "coverage": 0.977,
               "lowest_miss_share": [
-                0.000243,
-                0.0104
+                0.0,
+                0.00114
               ],
               "holds": true,
-              "median_sd": 0.681,
+              "median_sd": 0.731,
               "largest_sd": 1.57
             },
             {
@@ -11077,67 +11077,22 @@
               "moment": "drawn",
               "state": "speed",
               "flights": 132,
-              "below": 6,
+              "below": 7,
               "above": 2,
-              "coverage": 0.939,
+              "coverage": 0.932,
               "lowest_miss_share": [
-                0.00744,
+                0.0104,
                 0.000243
               ],
               "holds": true,
-              "median_sd": 0.874,
-              "largest_sd": 260.0
+              "median_sd": 0.878,
+              "largest_sd": 106.0
             }
           ],
           "rrc3": [
             {
               "moment": "burnout",
               "state": "height",
-              "flights": 176,
-              "below": 10,
-              "above": 0,
-              "coverage": 0.943,
-              "lowest_miss_share": [
-                0.0156,
-                0.0
-              ],
-              "holds": true,
-              "median_sd": 61.4,
-              "largest_sd": 368.0
-            },
-            {
-              "moment": "burnout",
-              "state": "speed",
-              "flights": 176,
-              "below": 0,
-              "above": 3,
-              "coverage": 0.983,
-              "lowest_miss_share": [
-                0.0,
-                0.000855
-              ],
-              "holds": true,
-              "median_sd": 22.1,
-              "largest_sd": 173.0
-            },
-            {
-              "moment": "top-speed",
-              "state": "height",
-              "flights": 176,
-              "below": 9,
-              "above": 0,
-              "coverage": 0.949,
-              "lowest_miss_share": [
-                0.0128,
-                0.0
-              ],
-              "holds": true,
-              "median_sd": 66.2,
-              "largest_sd": 323.0
-            },
-            {
-              "moment": "top-speed",
-              "state": "speed",
               "flights": 176,
               "below": 7,
               "above": 0,
@@ -11147,8 +11102,53 @@
                 0.0
               ],
               "holds": true,
-              "median_sd": 23.0,
-              "largest_sd": 206.0
+              "median_sd": 61.3,
+              "largest_sd": 368.0
+            },
+            {
+              "moment": "burnout",
+              "state": "speed",
+              "flights": 176,
+              "below": 0,
+              "above": 1,
+              "coverage": 0.994,
+              "lowest_miss_share": [
+                0.0,
+                2.84e-6
+              ],
+              "holds": true,
+              "median_sd": 20.1,
+              "largest_sd": 175.0
+            },
+            {
+              "moment": "top-speed",
+              "state": "height",
+              "flights": 176,
+              "below": 7,
+              "above": 0,
+              "coverage": 0.96,
+              "lowest_miss_share": [
+                0.00776,
+                0.0
+              ],
+              "holds": true,
+              "median_sd": 66.8,
+              "largest_sd": 323.0
+            },
+            {
+              "moment": "top-speed",
+              "state": "speed",
+              "flights": 176,
+              "below": 0,
+              "above": 0,
+              "coverage": 1.0,
+              "lowest_miss_share": [
+                0.0,
+                0.0
+              ],
+              "holds": true,
+              "median_sd": 22.3,
+              "largest_sd": 182.0
             },
             {
               "moment": "apogee",
@@ -11169,31 +11169,31 @@
               "moment": "apogee",
               "state": "speed",
               "flights": 176,
-              "below": 1,
-              "above": 8,
-              "coverage": 0.949,
+              "below": 0,
+              "above": 3,
+              "coverage": 0.983,
               "lowest_miss_share": [
-                2.84e-6,
-                0.0102
+                0.0,
+                0.000855
               ],
               "holds": true,
-              "median_sd": 0.744,
-              "largest_sd": 1.47
+              "median_sd": 0.779,
+              "largest_sd": 1.48
             },
             {
               "moment": "drawn",
               "state": "height",
               "flights": 176,
-              "below": 1,
+              "below": 0,
               "above": 1,
-              "coverage": 0.989,
+              "coverage": 0.994,
               "lowest_miss_share": [
-                2.84e-6,
+                0.0,
                 2.84e-6
               ],
               "holds": true,
               "median_sd": 22.4,
-              "largest_sd": 243.0
+              "largest_sd": 230.0
             },
             {
               "moment": "drawn",
@@ -11207,8 +11207,8 @@
                 2.84e-6
               ],
               "holds": true,
-              "median_sd": 0.959,
-              "largest_sd": 94.9
+              "median_sd": 0.965,
+              "largest_sd": 95.3
             }
           ]
         },
@@ -11216,32 +11216,32 @@
           "sensors": {
             "GNSS": {
               "logs": 186,
-              "samples": 174734,
-              "rejected": 35,
-              "unweighed": 46918,
+              "samples": 174695,
+              "rejected": 33,
+              "unweighed": 44902,
               "resets": 0,
-              "logs_rejecting": 19
+              "logs_rejecting": 18
             },
             "accelerometer": {
               "logs": 368,
               "samples": 18657942,
               "rejected": 0,
-              "unweighed": 15626648,
+              "unweighed": 15627010,
               "resets": 0,
               "logs_rejecting": 0
             },
             "barometer": {
               "logs": 845,
               "samples": 20587860,
-              "rejected": 29500,
+              "rejected": 10822,
               "unweighed": 0,
-              "resets": 90,
-              "logs_rejecting": 560
+              "resets": 20,
+              "logs_rejecting": 429
             }
           },
           "transonic_spans": 510,
           "charge_spans": 845,
-          "gnss_trusted": 167,
+          "gnss_trusted": 170,
           "unsmoothed_steps": 0
         }
       },
@@ -11251,121 +11251,121 @@
           "moment": "burnout",
           "state": "height",
           "flights": 845,
-          "below": 29,
-          "above": 36,
-          "coverage": 0.923,
+          "below": 27,
+          "above": 37,
+          "coverage": 0.924,
           "lowest_miss_share": [
-            0.0173,
-            0.0232
+            0.0156,
+            0.0241
           ],
           "holds": true,
-          "median_sd": 57.9,
-          "largest_sd": 2090.0
+          "median_sd": 57.7,
+          "largest_sd": 407.0
         },
         {
           "moment": "burnout",
           "state": "speed",
           "flights": 845,
-          "below": 58,
-          "above": 36,
-          "coverage": 0.889,
+          "below": 60,
+          "above": 31,
+          "coverage": 0.892,
           "lowest_miss_share": [
-            0.0433,
-            0.0232
+            0.0452,
+            0.0189
           ],
           "holds": true,
-          "median_sd": 11.9,
-          "largest_sd": 2620.0
+          "median_sd": 11.2,
+          "largest_sd": 407.0
         },
         {
           "moment": "top-speed",
           "state": "height",
           "flights": 845,
-          "below": 25,
-          "above": 25,
-          "coverage": 0.941,
+          "below": 22,
+          "above": 26,
+          "coverage": 0.943,
           "lowest_miss_share": [
-            0.014,
-            0.014
+            0.0116,
+            0.0148
           ],
           "holds": true,
-          "median_sd": 60.7,
-          "largest_sd": 597.0
+          "median_sd": 60.3,
+          "largest_sd": 363.0
         },
         {
           "moment": "top-speed",
           "state": "speed",
           "flights": 845,
-          "below": 99,
-          "above": 32,
-          "coverage": 0.845,
+          "below": 80,
+          "above": 33,
+          "coverage": 0.866,
           "lowest_miss_share": [
-            0.0837,
-            0.0198
+            0.0647,
+            0.0206
           ],
           "holds": false,
-          "median_sd": 11.1,
-          "largest_sd": 2620.0
+          "median_sd": 10.4,
+          "largest_sd": 408.0
         },
         {
           "moment": "apogee",
           "state": "height",
           "flights": 845,
-          "below": 145,
+          "below": 151,
           "above": 6,
-          "coverage": 0.821,
+          "coverage": 0.814,
           "lowest_miss_share": [
-            0.131,
+            0.138,
             0.00115
           ],
           "holds": false,
           "median_sd": 84.0,
-          "largest_sd": 615.0
+          "largest_sd": 750.0
         },
         {
           "moment": "apogee",
           "state": "speed",
           "flights": 845,
-          "below": 16,
-          "above": 40,
-          "coverage": 0.934,
+          "below": 13,
+          "above": 32,
+          "coverage": 0.947,
           "lowest_miss_share": [
-            0.00713,
-            0.0268
+            0.00508,
+            0.0198
           ],
           "holds": true,
-          "median_sd": 0.707,
-          "largest_sd": 1500.0
+          "median_sd": 0.759,
+          "largest_sd": 1230.0
         },
         {
           "moment": "drawn",
           "state": "height",
           "flights": 845,
-          "below": 113,
+          "below": 119,
           "above": 15,
-          "coverage": 0.849,
+          "coverage": 0.841,
           "lowest_miss_share": [
-            0.098,
+            0.104,
             0.00643
           ],
           "holds": false,
-          "median_sd": 16.1,
-          "largest_sd": 4070.0
+          "median_sd": 16.0,
+          "largest_sd": 230.0
         },
         {
           "moment": "drawn",
           "state": "speed",
           "flights": 845,
           "below": 27,
-          "above": 23,
-          "coverage": 0.941,
+          "above": 22,
+          "coverage": 0.942,
           "lowest_miss_share": [
             0.0156,
-            0.0124
+            0.0116
           ],
           "holds": true,
-          "median_sd": 0.866,
-          "largest_sd": 4060.0
+          "median_sd": 0.878,
+          "largest_sd": 3940.0
         }
       ]
     }
@@ -11374,27 +11374,27 @@
     {
       "logger": "perfectflite",
       "flight": 16,
-      "card": "barometer: 10737 samples, 10736 fused, 1 rejected, 0 not weighed, 0 resets; 99.9% inside the gate; mean NIS 0.675; largest test ratio 2.69 at 31.9 s, Mach 0.00\nbarometer de-weighted: transonic 7.40–14.2 s, charge 32.0–32.5 s\npass back: every step smoothed\n"
+      "card": "barometer: 10737 samples, 10737 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.602; largest test ratio 0.963 at 31.9 s, Mach 0.01\nbarometer de-weighted: transonic 7.35–14.2 s, charge 32.0–32.5 s\npass back: every step smoothed\n"
     },
     {
       "logger": "rrc3",
       "flight": 21,
-      "card": "barometer: 5593 samples, 5593 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.754; largest test ratio 0.603 at 132 s, Mach 0.06\nbarometer de-weighted: charge 27.9–29.9 s\npass back: every step smoothed\n"
+      "card": "barometer: 5593 samples, 5593 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.660; largest test ratio 0.547 at 141 s, Mach 0.01\nbarometer de-weighted: charge 27.9–29.9 s\npass back: every step smoothed\n"
     },
     {
       "logger": "eggtimer",
       "flight": 9,
-      "card": "barometer: 3044 samples, 3044 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.681; largest test ratio 0.510 at 47.5 s, Mach 0.10\nbarometer de-weighted: charge 27.4–28.0 s\npass back: every step smoothed\n"
+      "card": "barometer: 3044 samples, 3044 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.583; largest test ratio 0.486 at 47.5 s, Mach 0.10\nbarometer de-weighted: charge 27.4–28.0 s\npass back: every step smoothed\n"
     },
     {
       "logger": "altos",
       "flight": 1,
-      "card": "barometer: 6029 samples, 6028 fused, 1 rejected, 0 not weighed, 0 resets; 99.9% inside the gate; mean NIS 0.402; largest test ratio 5.53 at 148 s, Mach 0.05\naccelerometer: 6029 samples, 3460 fused, 0 rejected, 2569 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.0432; largest test ratio 0.0713 at 10.0 s, Mach 0.00\nGNSS: 2833 samples, 2425 fused, 0 rejected, 408 not weighed, 0 resets; 100.0% inside the gate; mean NIS 1.19; largest test ratio 0.865 at 204 s, Mach 0.00\nbarometer de-weighted: transonic 12.8–13.4 s, charge 33.4–35.9 s\nGNSS trusted from 50.5 s\nbarometer less accelerometer at apogee: -315 m\npass back: every step smoothed\n"
+      "card": "barometer: 6029 samples, 6028 fused, 1 rejected, 0 not weighed, 0 resets; 99.9% inside the gate; mean NIS 0.372; largest test ratio 2.54 at 148 s, Mach 0.05\naccelerometer: 6029 samples, 3460 fused, 0 rejected, 2569 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.0432; largest test ratio 0.0713 at 10.0 s, Mach 0.00\nGNSS: 2833 samples, 2425 fused, 0 rejected, 408 not weighed, 0 resets; 100.0% inside the gate; mean NIS 1.19; largest test ratio 0.865 at 204 s, Mach 0.00\nbarometer de-weighted: transonic 12.7–13.4 s, charge 33.4–35.9 s\nGNSS trusted from 50.5 s\nbarometer less accelerometer at apogee: -315 m\npass back: every step smoothed\n"
     },
     {
       "logger": "imu-500hz",
       "flight": 0,
-      "card": "barometer: 34602 samples, 34595 fused, 7 rejected, 0 not weighed, 0 resets; 99.9% inside the gate; mean NIS 0.0456; largest test ratio 2.80 at 59.5 s, Mach 0.50\naccelerometer: 34602 samples, 15404 fused, 0 rejected, 19198 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.00850; largest test ratio 0.0361 at 6.57 s, Mach 0.00\nbarometer de-weighted: transonic 8.68–13.5 s, charge 29.5–32.1 s\nbarometer less accelerometer at apogee: 87.7 m\npass back: every step smoothed\n"
+      "card": "barometer: 34602 samples, 34602 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.0398; largest test ratio 0.700 at 57.8 s, Mach 0.54\naccelerometer: 34602 samples, 15403 fused, 0 rejected, 19199 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.00850; largest test ratio 0.0361 at 6.57 s, Mach 0.00\nbarometer de-weighted: transonic 8.63–13.5 s, charge 29.5–32.1 s\nbarometer less accelerometer at apogee: 87.7 m\npass back: every step smoothed\n"
     }
   ]
 }
