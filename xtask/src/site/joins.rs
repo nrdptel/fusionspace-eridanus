@@ -241,6 +241,7 @@ fn html_runs(html: &str) -> Vec<HtmlRun> {
     let mut runs = Vec::new();
     let mut run = HtmlRun::default();
     let mut unread = 0usize;
+    let mut math: Option<Math> = None;
     let mut at = 0;
     let flush = |run: &mut HtmlRun, runs: &mut Vec<HtmlRun>| {
         if !run.text.is_empty() {
@@ -259,10 +260,47 @@ fn html_runs(html: &str) -> Vec<HtmlRun> {
                 // Raw text, which holds no tags: skip it and its end tag.
                 let close = format!("</{}", tag.name);
                 at += tag.len;
-                at += html[at..].find(&close).map_or(html.len() - at, |end| {
+                let lower = html[at..].to_ascii_lowercase();
+                at += lower.find(&close).map_or(html.len() - at, |end| {
                     end + html[at + end..].find('>').map_or(close.len(), |gt| gt + 1)
                 });
                 flush(&mut run, &mut runs);
+                continue;
+            }
+            if tag.name == "math" && !tag.self_closing && (tag.closing == math.is_some()) {
+                at += tag.len;
+                if tag.closing {
+                    unread = unread.saturating_sub(1);
+                    let ended = math.take();
+                    if let Some(number) = ended.as_ref().and_then(Math::figure) {
+                        // The figure stands where the math ends; it is never edited.
+                        for c in number.chars() {
+                            run.from.push((run.text.len(), at..at));
+                            run.text.push(c);
+                        }
+                    } else if ended.is_some_and(|ended| ended.block) {
+                        flush(&mut run, &mut runs);
+                    }
+                } else if unread == 0 {
+                    let block = rest[..tag.len].contains("display=\"block\"");
+                    if block {
+                        flush(&mut run, &mut runs);
+                    }
+                    math = Some(Math {
+                        block,
+                        number: None,
+                        open: None,
+                    });
+                    unread += 1;
+                } else {
+                    unread += 1;
+                }
+                continue;
+            }
+            if let Some(math) = math.as_mut() {
+                // Inside an equation a tag is a part of it, never the end of the run.
+                math.leaf(&tag);
+                at += tag.len;
                 continue;
             }
             if UNREAD.contains(&tag.name.as_str()) && !tag.self_closing && !raw {
@@ -282,11 +320,48 @@ fn html_runs(html: &str) -> Vec<HtmlRun> {
         if unread == 0 {
             run.from.push((run.text.len(), at..at + len));
             run.text.push(c);
+        } else if let Some(open) = math.as_mut().and_then(|math| math.open.as_mut()) {
+            open.push(c);
         }
         at += len;
     }
     flush(&mut run, &mut runs);
     runs
+}
+
+/// An equation being read: inline math is read as the figure its last leaf is, when that leaf
+/// is a number (`<mn>`), so `= 4593$ ft` holds a figure and its unit across the math's end.
+/// Display math, a block of its own, ends the run.
+struct Math {
+    /// Whether it is display math, `<math display="block">`.
+    block: bool,
+    /// The last leaf's text, when it was a number.
+    number: Option<String>,
+    /// The text of the number leaf being read.
+    open: Option<String>,
+}
+
+impl Math {
+    /// Note `tag`, inside the math: a number leaf opens or closes, or another leaf starts.
+    fn leaf(&mut self, tag: &Tag) {
+        match (tag.name.as_str(), tag.closing) {
+            ("mn", false) => self.open = Some(String::new()),
+            ("mn", true) => self.number = self.open.take(),
+            ("mi" | "mo" | "mtext" | "ms" | "mspace", _) => {
+                self.number = None;
+                self.open = None;
+            }
+            _ => {}
+        }
+    }
+
+    /// The figure the math ends with, if it is inline and ends with a number.
+    fn figure(&self) -> Option<&str> {
+        self.number
+            .as_deref()
+            .map(str::trim)
+            .filter(|number| !self.block && number.ends_with(|c: char| c.is_ascii_digit()))
+    }
 }
 
 /// A tag at the start of `html`.
@@ -338,7 +413,12 @@ fn tag_at(html: &str) -> Option<Tag> {
 /// this doesn't know stands as U+FFFD, which is neither a space, a figure nor a unit.
 fn char_at(html: &str) -> (char, usize) {
     if let Some(entity) = html.strip_prefix('&')
-        && let Some(end) = entity.find(';').filter(|&end| end <= 10)
+        && let Some(end) = entity.find(';').filter(|&end| {
+            end <= 10
+                && entity[..end]
+                    .chars()
+                    .all(|c| c.is_ascii_alphanumeric() || c == '#')
+        })
     {
         let name = &entity[..end];
         let decoded = match name {
@@ -546,6 +626,33 @@ mod tests {
     }
 
     #[test]
+    fn inline_math_that_ends_with_a_number_is_a_figure() {
+        // An inline equation ending in a number holds its unit after it; one ending in a symbol,
+        // and display math, which is a block of its own, don't.
+        let html = "<p>its altitude <math><mrow><mo>=</mo><mn>4593</mn></mrow></math> ft, \
+                    <math><msup><mn>10</mn><mn>4</mn></msup></math> m, \
+                    <math><mn>2</mn><mi>x</mi></math> s and <math><mi>v</mi></math> m</p>\
+                    <p><math display=\"block\"><mn>5</mn></math> m</p>";
+        assert_eq!(page_splits(html).len(), 2, "{:?}", page_splits(html));
+        assert!(
+            page_splits(html)[0].contains("`4593 ft` in \"its altitude 4593 ft,"),
+            "{}",
+            page_splits(html)[0]
+        );
+        let (joined, count) = joined_html(html);
+        assert_eq!(count, 2);
+        assert_eq!(
+            joined,
+            html.replacen("</math> ft", "</math>\u{a0}ft", 1).replacen(
+                "</msup></math> m",
+                "</msup></math>\u{a0}m",
+                1
+            )
+        );
+        assert!(page_splits(&joined).is_empty());
+    }
+
+    #[test]
     fn a_page_left_split_fails() {
         let problems = page_splits("<p>The rail is <b>3</b>\nm (9.8 ft) long.</p>");
         assert_eq!(problems.len(), 2, "{problems:?}");
@@ -561,6 +668,8 @@ mod tests {
         ] {
             assert_eq!(page_splits(page).len(), 1, "{page}");
         }
+        // An upper-case end tag still ends a script, and `&` before a word isn't an entity.
+        assert_eq!(page_splits("<SCRIPT>x</SCRIPT><p>R&D 5 m; ok</p>").len(), 1);
         // But not the no-break spaces, by character or entity.
         for page in ["<p>5&#160;m</p>", "<p>5&numsp;m</p>", "<p>5\u{202f}m</p>"] {
             assert!(page_splits(page).is_empty(), "{page}");

@@ -1730,18 +1730,18 @@ reading nor any replacement has a reference.
 center of pressure 16.9492 [calibers](../glossary.md#caliber) aft of the nose tip. Each row
 is the change from that. **Down** means the body narrows from that joint aft, **up** that it widens:
 
-| the step, and which joint it is at | normal force | center of pressure |
+| the step, and which joint it is at | normal force | center of pressure, calibers |
 |---|--:|--:|
-| down 2.8e−11 m, the first size measured past the threshold, at any of the three joints | −8.65% | +1.0285 calibers |
-| down 1 mm (0.039 in), at the nose's joint | −10.62% | +1.1938 calibers |
-| down 1 mm (0.039 in), at the last joint | −10.29% | +0.9949 calibers |
-| down 2 mm (0.079 in), at the nose's joint | −12.55% | +1.3593 calibers |
-| down 2 mm (0.079 in), at the last joint | −11.89% | +0.9597 calibers |
-| up 2.8e−11 m, at any of the three joints | −8.65% | +1.0285 calibers |
-| up 1 mm (0.039 in), at the nose's joint | −6.72% | +0.8674 calibers |
-| up 1 mm (0.039 in), at the last joint | −7.05% | +1.0644 calibers |
-| up 2 mm (0.079 in), at the nose's joint | −4.75% | +0.7064 calibers |
-| up 2 mm (0.079 in), at the last joint | −5.41% | +1.0987 calibers |
+| down 2.8e−11 m, the first size measured past the threshold, at any of the three joints | −8.65% | +1.0285 |
+| down 1 mm (0.039 in), at the nose's joint | −10.62% | +1.1938 |
+| down 1 mm (0.039 in), at the last joint | −10.29% | +0.9949 |
+| down 2 mm (0.079 in), at the nose's joint | −12.55% | +1.3593 |
+| down 2 mm (0.079 in), at the last joint | −11.89% | +0.9597 |
+| up 2.8e−11 m, at any of the three joints | −8.65% | +1.0285 |
+| up 1 mm (0.039 in), at the nose's joint | −6.72% | +0.8674 |
+| up 1 mm (0.039 in), at the last joint | −7.05% | +1.0644 |
+| up 2 mm (0.079 in), at the nose's joint | −4.75% | +0.7064 |
+| up 2 mm (0.079 in), at the last joint | −5.41% | +1.0987 |
 
 At the threshold the shape is flush to a part in a billion either way. So the whole difference there is the method itself, the same wherever the step sits and whichever way it goes. Past that the shape starts to matter, and the two directions part. A step **down** takes area off the body and costs more. A step **up** adds area that carries slender-body normal force of its own and costs
 less. The center of pressure moves **aft** in every row, so a rocket that trips this reads *more*

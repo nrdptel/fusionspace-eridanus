@@ -1578,7 +1578,7 @@ some things differently, and `hpr convert` translates:
 | a name or maker of several words | joined by `_` | as it is |
 
 Masses move between kilograms and grams by moving the decimal point, not by multiplying, which
-would round. In a computer's arithmetic, `0.0041` kg times 1,000 is `4.1000000000000005`, while
+would round. In a computer's arithmetic, `0.0041`&nbsp;kg times 1,000 is `4.1000000000000005`, while
 moving the point gives `4.1`. A mass written with 16 or 17 digits may still change in its last
 digit. A warning says so. Of the 32 bundled files, two masses written with 17 digits are the only
 ones that don't come back bit for bit; each carries the warning

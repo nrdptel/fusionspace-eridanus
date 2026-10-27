@@ -1988,7 +1988,7 @@ decisions over the sample logs:
   prints the range). A 45th, a download a spreadsheet saved with its decimal points taken out
   (`12.34` written `1234`), gives 99.9. It is refused, and counted as damaged. In the CSV
   download, a median step between rows above 1 and below 30 is neither seconds nor milliseconds at
-  the manuals' rates. The file is refused too. A `0.05` s step written without its point is `5`.
+  the manuals' rates. The file is refused too. A `0.05`&nbsp;s step written without its point is `5`.
 - **An Eggtimer download saved by a European locale.** A spreadsheet set to a European locale
   saves the CSV download with semicolons between the cells. It may write its numbers with a
   decimal comma, the mark between a number's whole part and its fraction (`0,05` for 0.05). A
@@ -3112,7 +3112,7 @@ What the reader does with the records:
   report prints each file's smallest step). That is about 1.13 m (3.7 ft) of height at sea level.
 - **Acceleration**, along the board's axis. AltosUI calibrates the accelerometer antenna up, then
   down (the manual, §12.6.20, p. 42). The configuration keeps its counts at +1 g and −1 g. The
-  record's value is `(ground − count) / ((minus − plus) / 2) × 9.806 65` m/s², with `ground` the
+  record's value is `(ground − count) / ((minus − plus) / 2) × 9.806 65`&nbsp;m/s², with `ground` the
   flight record's count on the pad. It is 0 at rest on the pad, positive forward along the flight
   path. A board mounted antenna down logs flipped counts and keeps a flipped calibration with the
   same span. So either reads alike, as long as both counts come from one pair. The configuration's
