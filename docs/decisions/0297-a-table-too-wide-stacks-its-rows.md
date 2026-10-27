@@ -31,13 +31,13 @@ table cut at its box's edge falls short of that.
    box, which is as wide as the box and never taller, so stacking can't set it off again within a
    frame. A stacked table stands again once its box is as wide as the table was.
 3. **The page check fails a table that scrolls sideways** in the nearest box around it that
-   scrolls (`a table wider than its box, scrolling sideways`), at each of its 41 widths. A canary plants a table whose cell holds a
-   box 2,000 px wide, which no stacking fits. Code blocks still scroll: a command can't wrap. A
-   line of data can, in a `text,wrap` fence.
+   scrolls (`a table wider than its box, scrolling sideways`), at each of its 41 widths. A
+   canary plants a table whose cell holds a box 2,000 px wide, which no stacking fits. Code
+   blocks still scroll: a command can't wrap. A line of data can, in a `text,wrap` fence.
 
 **Consequences.** On a phone, a wide table reads down rather than across. Comparing one column
 down its rows takes more scrolling than on a wide screen, but nothing is out of sight. Without
 the script, a table scrolls in its box as before. A page's acceptance pass ([ADR-282][adr-282])
-sees its tables as a reader does, stacked or not. The cost is small: on the page check's phone run, the largest
-layout shift on the check's phone run is 0.022, under its bound of 0.1, and the slowest largest
-paint 1.98 s, under its 2.5 s.
+sees its tables as a reader does, stacked or not. The cost is small: on the page check's phone
+run, the largest layout shift is 0.022, under its bound of 0.1, and the slowest largest paint
+1.96 s, under its 2.5 s.
