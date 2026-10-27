@@ -292,10 +292,13 @@ document.addEventListener('click', function (event) {
 // navigation starting point (HTML Standard, *Focus*), so the browser's first Tab tests the
 // document's elements for focus one by one before it moves: about 6,200 layout checks on
 // `physics/aero.html`, a quarter of a second on a phone, which the page check's vitals measured as
-// the page's slowest input. A click sets the starting point, and so does a fragment; until either
-// does, the first plain Tab focuses the body and lets it go first, which sets it at the top. The
-// Tab then lands on the first control, as it would have, without the walk. Shift+Tab, a Tab after
-// a click, and a page opened at a heading keep the browser's own starting point.
+// the page's slowest input. A click sets the starting point, and so do a fragment, a link to a
+// passage of text (whose words `location.hash` doesn't show) and find in page, which also scroll
+// or select. So only while none can have, with no click, no fragment, the page at its top and
+// nothing selected, the first plain Tab focuses the body and lets it go first, which sets the
+// starting point at the top. The Tab then lands on the first control, as it would have, without
+// the walk (a positive `tabindex` would change that; the site has none, and the page check's
+// vitals would catch one). Shift+Tab and every other Tab keep the browser's own starting point.
 (function () {
     let started = false;
     addEventListener('pointerdown', function () { started = true; }, { capture: true, once: true });
@@ -304,6 +307,8 @@ document.addEventListener('click', function (event) {
         started = true;
         if (event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) return;
         if (location.hash || document.activeElement !== document.body) return;
+        const selection = window.getSelection();
+        if (window.scrollY !== 0 || (selection && !selection.isCollapsed)) return;
         const body = document.body;
         body.tabIndex = -1;
         body.focus({ preventScroll: true });

@@ -175,11 +175,11 @@
       benchmark: hprBenchmarkIndex,
       // True when the focus is on the first control in the tab order: the lowest positive
       // `tabIndex`, else the first with 0 in document order, of the elements that are drawn and
-      // not disabled or inert. Otherwise, what it is on, and what that first control is.
+      // not disabled (a fieldset's too), inert, or a link with no address. Otherwise, what it is on, and what that first control is.
       firstTab: function () {
         const drawn = Array.from(document.querySelectorAll('*')).filter(function (el) {
-          return el.tabIndex >= 0 && !el.disabled && !el.closest('[inert]') &&
-            el.checkVisibility({ visibilityProperty: true });
+          return el.tabIndex >= 0 && !el.matches(':disabled, a:not([href])') &&
+            !el.closest('[inert]') && el.checkVisibility({ visibilityProperty: true });
         });
         const positive = drawn.filter(function (el) { return el.tabIndex > 0; })
           .sort(function (a, b) { return a.tabIndex - b.tabIndex; });
