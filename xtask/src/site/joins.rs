@@ -10,11 +10,12 @@
 //!   `0.1.0`, `2026-10-04` aren't figures). It runs through its grouping commas, its decimals, an
 //!   exponent (`1e-9`) and superscript digits (`10⁶`). A sign before it stays where it is.
 //! - **A unit** is the symbol of one of [`UNITS`], the units `data.md` writes and the project's
-//!   own (`cal`, `calibers`, `px`), as a whole word after the figure: not followed by a letter,
-//!   a digit or `_` (`g06` is a code). `in` is an inch only where no word or figure follows it (`(0.12 in)`, `0.12 in.`, `1.52 in (38 mm)`, `4 in × 40`): with
-//!   one after it, or the end of the run after a space, it is also the preposition (`0.5 in
-//!   both`, `1 in <code>SI</code>`), so a page joins an inch there by hand
-//!   (`2.6&nbsp;in rocket`). Units spelled out (`3 minutes`) aren't read.
+//!   own (`cal`, `calibers`, `px`), as a whole word after the figure: its letters not followed
+//!   by a digit 0 to 9 or `_` (`g06` is a code), though a superscript power may (`m²`). `in` is
+//!   an inch unless a space and then a word, a figure or the end of the run follow it: `(0.12
+//!   in)`, `0.12 in.`, `1.52 in (38 mm)` and `4 in × 40` are inches. With one after it, it is
+//!   also the preposition (`0.5 in both`, `1 in <code>SI</code>`), so a page joins an inch there
+//!   by hand (`2.6&nbsp;in rocket`). Units spelled out (`3 minutes`) aren't read.
 //! - **A breaking space** is any white space but the no-break spaces U+00A0, U+2007 and U+202F,
 //!   a line break in the source included.
 //!
@@ -22,7 +23,7 @@
 //! writes the search index, which keeps the plain space, so search reads the same. It reads the
 //! text of each page as the browser draws it, across inline tags (`<strong>5</strong> m` is one
 //! run) but not across blocks, and never in code, preformatted text, keyboard or sample text,
-//! math, SVG, scripts or styles. [`check`] then fails any pair still split in the built pages.
+//! math, SVG, scripts, styles or text areas, nor in the API reference. [`check`] then fails any pair still split in the built pages.
 //! The READMEs, which GitHub, crates.io and PyPI show as written, hold the no-break space in their
 //! source ([`readme_splits`]): `5&nbsp;m`.
 //!
@@ -202,7 +203,7 @@ fn joined(text: &str, split: &Split, space: &str) -> String {
 }
 
 /// The elements whose text [`join`] and [`check`] don't read: code, preformatted, keyboard and
-/// sample text, math, SVG, scripts and styles.
+/// sample text, math, SVG, scripts, styles and text areas.
 const UNREAD: [&str; 9] = [
     "code", "pre", "kbd", "samp", "math", "svg", "script", "style", "textarea",
 ];
@@ -335,30 +336,30 @@ fn tag_at(html: &str) -> Option<Tag> {
 /// The character `html` opens with, an entity decoded, and its length in the HTML. An entity
 /// this doesn't know stands as U+FFFD, which is neither a space, a figure nor a unit.
 fn char_at(html: &str) -> (char, usize) {
-    if let Some(entity) = html.strip_prefix('&') {
-        if let Some(end) = entity.find(';').filter(|&end| end <= 10) {
-            let name = &entity[..end];
-            let decoded = match name {
-                "nbsp" => Some('\u{a0}'),
-                "ensp" => Some('\u{2002}'),
-                "emsp" => Some('\u{2003}'),
-                "thinsp" => Some('\u{2009}'),
-                "numsp" => Some('\u{2007}'),
-                "amp" => Some('&'),
-                "lt" => Some('<'),
-                "gt" => Some('>'),
-                "quot" => Some('"'),
-                "apos" => Some('\''),
-                _ => name.strip_prefix('#').and_then(|code| {
-                    match code.strip_prefix(['x', 'X']) {
-                        Some(hex) => u32::from_str_radix(hex, 16).ok(),
-                        None => code.parse().ok(),
-                    }
-                    .and_then(char::from_u32)
-                }),
-            };
-            return (decoded.unwrap_or('\u{fffd}'), end + 2);
-        }
+    if let Some(entity) = html.strip_prefix('&')
+        && let Some(end) = entity.find(';').filter(|&end| end <= 10)
+    {
+        let name = &entity[..end];
+        let decoded = match name {
+            "nbsp" => Some('\u{a0}'),
+            "ensp" => Some('\u{2002}'),
+            "emsp" => Some('\u{2003}'),
+            "thinsp" => Some('\u{2009}'),
+            "numsp" => Some('\u{2007}'),
+            "amp" => Some('&'),
+            "lt" => Some('<'),
+            "gt" => Some('>'),
+            "quot" => Some('"'),
+            "apos" => Some('\''),
+            _ => name.strip_prefix('#').and_then(|code| {
+                match code.strip_prefix(['x', 'X']) {
+                    Some(hex) => u32::from_str_radix(hex, 16).ok(),
+                    None => code.parse().ok(),
+                }
+                .and_then(char::from_u32)
+            }),
+        };
+        return (decoded.unwrap_or('\u{fffd}'), end + 2);
     }
     // A slice of a `&str` that isn't empty starts with a character.
     let c = html.chars().next().unwrap_or('\u{fffd}');

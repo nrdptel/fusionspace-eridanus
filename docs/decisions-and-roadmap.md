@@ -324,6 +324,7 @@ until someone rewrites it in plainer words.
 | [ADR-293: Cavour's log read to its apogee event][adr-293] | Cavour's real-flight record reads its log only up to 23.6 s, the first row its ground station tags as the drogue event. After that row the radio telemetry's filtered height jumps 8 m (26 ft) in 0.2 s, faster than the rocket can climb, about 2 s before the drogue charge most likely fires. So the logged apogee is the coast's peak, 2,785 m (9,137 ft), not the jump's 2,789 m (9,150 ft). Cavour's error rises from +5.63% to +5.78%, and the mean absolute apogee error over the seven flights rises from 6.04% to 6.06%. |  |
 | [ADR-294: The 2026-10-26 review: the RocketPy times, burnout heights and traces tightened][adr-294] | In the RocketPy whole flights flown on the same inputs, the rail-exit times agree within 0.143%, and in the six flights with no written model difference the apogee times within 0.239%, the burnout heights within 0.049% and the height and speed traces within 0.272% of RocketPy's apogee and 0.153% of its top speed, while RocketPy's own solver moves the point metrics by at most 2.4e-5 of their value; so those 33 gates go from 3% to between 0.2% and 1%, each at least 3.2 times the largest difference measured. These bound agreement between two codes on RocketPy's example rockets, not accuracy against a flight. |  |
 | [ADR-295: The rest of the words in four increments, joined names and long warnings first][adr-295] | [M0.9f](#m0-9f) holds the site, the README and `hpr sim`'s warnings to seven writing rules that #476 lists. Fixing them all is several sessions' work, and two of the rules add bytes to a search index with 71 bytes to spare. So it goes in four increments: joined names and long warnings first, then long notes and table heads, which make room in the index, then grouped figures and prose dates, and last the no-break space between a figure and its unit, joined in the built pages after mdBook writes its index. |  |
+| [ADR-296: What the words leave: the figures' digits and the command line's words, M0.9g][adr-296] | [M0.9f](#m0-9f) holds the site's pages and both READMEs to #476's writing rules, and `hpr sim`'s warnings to 40 words a sentence. Ten rows of the design audit named [M0.9f](#m0-9f) for gaps its *done when* doesn't cover: figures quoted to more digits than are known (#966), and the command line's and the plot's words, which no check reads for dates, joined names, colons or table heads (#973). [M0.9g](#m0-9g) holds both, queued after [M0.13](#m0-13). |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -478,6 +479,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-9f2"></a>[M0.9f2][done-0] | Short notes and cells, labeled heads | done |
 | <a id="m0-9f3"></a>[M0.9f3][done-0] | Grouped figures, prose dates and known digits | done |
 | <a id="m0-9f4"></a>[M0.9f4][done-0] | Units held to their figures | done |
+| <a id="m0-9g"></a>[M0.9g][phase-0] | The figures' digits and the command line's words | not yet done |
 | <a id="m0-10"></a>[M0.10][done-0] | The scoreboard | done |
 | <a id="m0-11"></a>[M0.11][done-0] | Steps to a first answer | done |
 | <a id="m0-12"></a>[M0.12][done-0] | Typeset equations | done |
@@ -1236,6 +1238,7 @@ is the milestone that added or will add that test.
 [adr-293]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0293-cavours-log-read-to-its-apogee-event.md
 [adr-294]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md
 [adr-295]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0295-the-rest-of-the-words-in-four.md
+[adr-296]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0296-what-the-words-leave-digits-and-the-command-lines-words.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
