@@ -2,7 +2,7 @@
 //! error, from the barometer, the axial accelerometer and a GNSS receiver together, and a health
 //! card saying how each sensor fared ([M7.2d][m7-2d]).
 //!
-//! **What it is for.** The [readings][crate::readings] take one number each from one track. The
+//! **What it is for.** The [readings] take one number each from one track. The
 //! smoother takes the whole flight from every sensor the log holds, and says at each moment how
 //! far the truth may be: its 90% interval is the estimate ± [`INTERVAL_Z`] standard errors. On
 //! HPR Sim's synthetic flights, whose truth is known, those intervals hold the truth about as
@@ -16,21 +16,27 @@
 //! lags a climb by up to hundreds of meters while flagging its fix valid
 //! (`docs/research/gnss-in-boost.md`).
 //!
-//! **Method** (`docs/research/altimeter-smoothing-methods.md`, "What this suggests" 1–2, 5). A
-//! Kalman filter runs forward over every sample, then a Rauch–Tung–Striebel pass back
-//! ([`kalman`]). Its state is the logger's height above the pad, its vertical speed and
+//! **Method** (`docs/research/altimeter-smoothing-methods.md`, "What this suggests" 1–2, 5;
+//! ADR-299). A Kalman filter runs forward over every sample, then a Rauch–Tung–Striebel pass back
+//! (`kalman`). Its state is the logger's height above the pad, its vertical speed and
 //! acceleration, and the sensors' own errors: the accelerometer's bias, scale and a slowly
 //! changing model error (the rocket's tilt puts its axis off the vertical); the barometer's slow
-//! correlated noise, its drift and the drift's rate, the day's air off the standard atmosphere as
-//! a share of the height, and the static port's pressure coefficient; and the GNSS receiver's
-//! offset. The acceleration is a white-jerk state that the accelerometer measures (`a + g` along
-//! the axis, gravity's reaction in it), so a log with no accelerometer, or one clipped, uses the
-//! same model with nothing measuring it. On the pad the height, speed and acceleration are held
-//! at zero until liftoff, found from the accelerometer where there is one.
+//! correlated noise, its drift and the drift's rate, and the static port's pressure coefficient in
+//! the fall; the day's air off the standard atmosphere as a share of the height, which only a GNSS
+//! receiver measures; and the receiver's offset. The acceleration is a white-jerk state that the
+//! accelerometer measures (`a + g` along the axis, gravity's reaction in it), so a log with no
+//! accelerometer, or one clipped, uses the same model with nothing measuring it. On the pad the
+//! height, speed and acceleration are held at zero until liftoff, found from the accelerometer
+//! where there is one.
+//!
+//! The climb's port coefficient can't be learned from the log, so it is held at its prior, and
+//! the log is smoothed again with it a standard deviation off, replaying the first run's choices;
+//! each standard error is widened by the difference ([`smooth_with`]).
 //!
 //! - **The barometer** is de-weighted from [`TRANSONIC_FROM_MACH`] to [`TRANSONIC_FULL_MACH`] and
 //!   above, where its port's pressure coefficient jumps (`docs/research/altimeter-mach-error.md`
-//!   §1–2), and for [`CHARGE_WINDOW_S`] after each charge the log records.
+//!   §1–2), for [`CHARGE_WINDOW_S`] after each charge the log records, and around its own apogee
+//!   ([`APOGEE_CHARGE_SPAN_M`]), where a charge fires whether or not the log names it.
 //! - **The GNSS receiver** is fused at zero weight from liftoff until its vertical speed has
 //!   agreed with the smoother's for [`GNSS_AGREE_WINDOW_S`] (`gnss-in-boost.md` §5), then with
 //!   its variance inflated for [`GNSS_SETTLE_S`]; never on its fix flag.
@@ -75,7 +81,9 @@ const SLOW: usize = 6;
 const DRIFT: usize = 7;
 /// The drift's rate, m/s.
 const DRIFT_RATE: usize = 8;
-/// The day's air off the standard atmosphere, as a share of the height: `−ΔT/T_pad`.
+/// The day's air off the standard atmosphere, as a share of the height: `−ΔT/T_pad`. Only a GNSS
+/// receiver's geometric heights measure it; without one it is held at its prior and its spread
+/// carried into the output.
 const AIR: usize = 9;
 /// The GNSS receiver's altitude less the height above the pad, m.
 const GNSS: usize = 10;
@@ -114,10 +122,13 @@ pub const SLOW_NOISE_TAU_S: f64 = 1.0;
 /// (`altimeter-mach-error.md` §1–2); HPR Sim's prior is centered there…
 pub const PORT_PRIOR_MEAN: f64 = -0.01;
 
-/// …with this standard deviation, half the range again either side.
+/// …with this standard deviation, half the range again either side. The climb's coefficient is
+/// held there and enters each interval by the consider run ([`smooth_with`]); learned from the
+/// log, it came out biased by 0.010 claiming 0.001 on the synthetic flights' barometer-only
+/// loggers (ADR-299).
 pub const PORT_PRIOR_SD: f64 = 0.02;
 
-/// The Mach number, estimated high ([`mach_high`]), at which the barometer begins to be
+/// The Mach number, estimated high (`mach_high`), at which the barometer begins to be
 /// de-weighted: below it the port's coefficient holds within 0.01 of its subsonic value on the
 /// tunnel's ogive-cylinder a caliber or more behind the shoulder (`altimeter-mach-error.md`
 /// §1–2). HPR Sim's margin below that note's 0.9.
@@ -594,19 +605,19 @@ pub fn smooth(log: &FlightLog) -> Result<Smoothed, Withheld> {
 }
 
 /// Smooths a flight log whose readings are already taken.
+///
+/// The climb's port coefficient isn't learned ([`PORT_PRIOR_SD`]): the log is smoothed at its
+/// prior mean and again a standard deviation off, and each standard error `σ` becomes
+/// `hypot(σ, x_off − x)`, the smoother's linear response to the coefficient's spread (a consider
+/// analysis: S. F. Schmidt, 1966; D. Simon, *Optimal State Estimation*, Wiley, 2006, §7.6). The
+/// second run replays the first's choices, so the difference is the coefficient's effect alone.
 pub fn smooth_with(
     log: &FlightLog,
     readings: &Readings,
     options: Options,
 ) -> Result<Smoothed, Withheld> {
     let inputs = Inputs::gather(log, readings)?;
-    // The climb's port coefficient isn't learned (see [`PORT_PRIOR_SD`]): the log is smoothed
-    // at its prior mean and again a standard deviation off, and the difference, the smoother's
-    // linear response to it, is added to each interval (a consider analysis). The step is taken
-    // toward a port reading high, where a faster climb explains less of the height; the other way
-    // a faster climb would explain more, and an estimate far off could run away.
-    // The second run replays the first's choices ([`Choices`]), so the difference is the
-    // coefficient's effect alone.
+    // The barometer's row is linear in the coefficient, so one side's step is the other's.
     let (mut smoothed, choices) = run(&inputs, options, PORT_PRIOR_MEAN, None);
     let (off, _) = run(&inputs, options, PORT_PRIOR_MEAN - PORT_PRIOR_SD, Some(&choices));
     let pairs = [
@@ -950,7 +961,9 @@ pub const LANDED_S: f64 = 3.0;
 pub const LANDING_LEAD_S: f64 = 0.1;
 
 /// The barometer's own climb rate is taken over this many seconds either side of a sample, for
-/// the Mach number its de-weighting ends at: its noise there is a few m/s.
+/// the Mach number its de-weighting ends at, the burnout's and apogee's rules, and the speed the
+/// port's term is taken at, which keeps the barometer's row linear in the states: its noise there
+/// is a few m/s.
 pub const RATE_HALF_S: f64 = 0.25;
 
 /// Each sample's least-squares slope of `values` against `times` over `half_s` either side; zero
