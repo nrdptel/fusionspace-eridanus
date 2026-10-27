@@ -4,7 +4,8 @@
    this site's markup has it: the copy icon's file, the system's icons in place of Font Awesome's
    (`xtask/src/site/chrome.rs`), the notes, the menu bar's lockup, the title block, the intro and
    sheets, the theme switch, the text marks and the print page's cover (`xtask site` draws each),
-   and, as the system's fallback for Cascadia Mono misses it, fallback faces scaled to it. The theme
+   and, as the system's fallback for Cascadia Mono misses it, fallback faces scaled to it, and tables
+   and data lines that fit a phone. The theme
    sets the colors and roles (`--fs-ink` and the rest) in every theme, mdBook's own defaults, the
    type scale and the column. */
 
@@ -275,3 +276,14 @@ html:not(.js) #hpr-print { display: none; }
 @font-face { font-family: 'Cascadia Mono Fallback'; font-weight: 600; src: local('Liberation Mono Bold'), local('LiberationMono-Bold'), local('Cousine Bold'), local('Cousine-Bold'), local('Liberation Mono'), local('LiberationMono'), local('Cousine Regular'), local('Cousine-Regular'), local('Droid Sans Mono'), local('DroidSansMono'); size-adjust: 97.6404%; }
 @font-face { font-family: 'Cascadia Mono Fallback'; font-weight: 400; src: local('Menlo Regular'), local('Menlo-Regular'), local('DejaVu Sans Mono'), local('DejaVuSansMono'); size-adjust: 97.3236%; }
 @font-face { font-family: 'Cascadia Mono Fallback'; font-weight: 600; src: local('Menlo Bold'), local('Menlo-Bold'), local('DejaVu Sans Mono Bold'), local('DejaVuSansMono-Bold'), local('Menlo Regular'), local('Menlo-Regular'), local('DejaVu Sans Mono'), local('DejaVuSansMono'); size-adjust: 97.3236%; }
+
+/* A table on a phone: mdBook gives a cell 20 px a side, which pushes a table of three columns past
+   a 320 px window to scroll inside its box, hiding its end. Here a cell keeps 8 px a side and none
+   at the table's edges, so it fits the column; a table still too wide needs fewer columns (#498).
+   A data line too long for a phone, fenced as `text,wrap`, wraps where it would run off. */
+@media only screen and (max-width: 719px) {
+  table td, table th, table thead th { padding-inline: 8px; }
+  table tr > :first-child { padding-inline-start: 0; }
+  table tr > :last-child { padding-inline-end: 0; }
+}
+pre > code.wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
