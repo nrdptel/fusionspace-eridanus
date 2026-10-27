@@ -68,7 +68,7 @@ the truth. It does so at burnout, the top speed, apogee and one moment drawn at 
 flight. A cell fails if either side's misses are shown, at 99.9% confidence, to pass 5%, half of
 what a 90% interval allows. Each set's cells and each logger's must hold.
 
-The rules were set on the tuning set, but sets A and B were run as each change landed, and some
+The rules were set on the tuning set. But sets A and B were run as each change landed, and some
 changes were found on them ([ADR-299][adr-299], item 13). On set B, 845 of the 1,000 flights were
 smoothed; the other 155 logs have no barometer. The share whose truth lay inside the 90% interval
 was:
@@ -80,14 +80,14 @@ was:
 | Apogee | 97.3% | 96% | 84.3 m (277 ft), 1.23 m/s (4.04 ft/s) |
 | A drawn moment | 97.3% | 97.2% | 18.5 m (61 ft), 1.01 m/s (3.31 ft/s) |
 
-The intervals are wide on purpose. The day's air, which a log without a GNSS receiver can't
-measure, and the port's error are expected to be the largest terms in the height interval. The widest are on
-barometer-only loggers: up to 407 m (1,335 ft) at burnout and 260 m/s (853 ft/s) at a drawn
-moment, as the report's JSON gives them per logger.
+The intervals are wide on purpose. Two terms are expected to lead the height interval: the
+day's air, which a log without a GNSS receiver can't measure, and the port's error. The widest
+are on barometer-only loggers, in the report's JSON per logger: up to 407 m (1,335 ft) at
+burnout and 260 m/s (853 ft/s) at a drawn moment.
 
-Trusting the GNSS receiver from liftoff instead fails the check. With B's 186 smoothed logs
-that have a GNSS track trusted from liftoff, and its other flights as before, 146 of its 845
-apogee truths lay below the interval, and only 82% inside it. Every set, logger and moment is in
+Trusting the GNSS receiver from liftoff instead fails the check. B's 186 smoothed logs with a
+GNSS track were smoothed again that way, the rest left as they were. Then 146 of its 845 apogee
+truths lay below the interval, and only 82% inside it. Every set, logger and moment is in
 [the report][report].
 
 ## The health card
@@ -100,8 +100,8 @@ barometer de-weighted: charge 27.9–29.9 s
 pass back: every step smoothed
 ```
 
-Each sample is fused into the estimate, rejected at the gate, or not weighed (a GNSS fix before
-it is trusted, or an accelerometer sample that is clipped or past apogee). A reset is a sensor taken back after a second of rejections. The test ratio is
+Each sample is fused into the estimate, rejected at the gate, or not weighed. A GNSS fix isn't
+weighed before it is trusted, nor an accelerometer sample that is clipped or past apogee. A reset is a sensor taken back after a second of rejections. The test ratio is
 a sample's squared miss over five standard deviations squared. Above 1, the sample is rejected.
 The mean NIS is the squared miss over its variance. It is near 1 when a sensor's noise is what
 the smoother takes it to be. Below 1, the smoother takes the sensor as noisier than it was. The
