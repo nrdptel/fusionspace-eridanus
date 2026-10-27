@@ -212,7 +212,7 @@ The free-flight test below checks that the flight keeps it so.
 
 - The rocket climbs 80 m (262 ft) less without its ballast. The same drag slows a lighter rocket more.
 - It comes down more slowly under the same drogue, and so lands later. A terminal speed goes
-  as the square root of the mass: $7.07 \times \sqrt{0.6188 / 0.8188}$ $= 6.15\,\mathrm{m/s}$.
+  as the square root of the mass: $7.07 \times \sqrt{0.6188 / 0.8188} = 6.15\,\mathrm{m/s}$.
 - The ballast peaks lower than the rocket, having more drag for its mass. Its terminal speed
   at the ground is
 

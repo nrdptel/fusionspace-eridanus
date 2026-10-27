@@ -520,6 +520,9 @@ They don't conflict with the rules above; they add these:
     space. The units are symbols: lengths, times, masses, forces, pressures, `°C`, `calibers` and
     `px`, among others. A word that counts, like "flights", isn't one. The build fails a figure
     and unit it leaves split.
+  - **After an equation, the unit goes inside it:** `$x = 4593\,\mathrm{ft}$`, not
+    `$x = 4593$ ft`. A line can end between an equation and any space after it, so the build
+    fails a unit left after an equation that ends in a number.
   - **An inch with a word after it is yours to join.** The build can't tell `2.6 in rocket` from
     "0.5 in both", so write `2.6&nbsp;in rocket`. Nothing fails if you forget.
   - **In a README, write `&nbsp;` yourself** between every figure and its unit symbol, because
