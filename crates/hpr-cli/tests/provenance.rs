@@ -251,10 +251,7 @@ fn the_text_dates_a_motor_from_the_bundled_catalog() {
         &String::from_utf8(run(&["sim", &probe, "--motor", "H54", "--json"]).stdout).unwrap(),
         "hpr sim --json",
     );
-    assert_eq!(
-        document["motors"][0]["source"],
-        serde_json::json!({"kind": "catalog", "as_of": as_of})
-    );
+    assert_catalog_source(&document["motors"][0]["source"], "H54", &as_of);
 }
 
 /// Both CSV files give each column's unit in brackets after its words, in ASCII, as `data.md`
@@ -375,10 +372,7 @@ fn a_design_motor_found_in_the_catalog_is_dated() {
         &String::from_utf8(run(&["sim", &design, "--json"]).stdout).unwrap(),
         "hpr sim --json",
     );
-    assert_eq!(
-        document["motors"][0]["source"],
-        serde_json::json!({"kind": "catalog", "as_of": as_of})
-    );
+    assert_catalog_source(&document["motors"][0]["source"], "H170M", &as_of);
     // A motor whose curve the file holds stays the design's.
     let embedded = root()
         .join("crates/hpr-format/fixtures/embedded-curve-0.1.hpr")
@@ -442,4 +436,21 @@ fn a_converted_catalog_motor_carries_the_catalogs_date() {
     ]);
     let text = std::fs::read_to_string(&from_file).unwrap();
     assert!(!text.contains("motor catalog"), "{text:.300}");
+}
+
+/// A flight's catalog motor source: dated by the catalog, and naming by ThrustCurve.org's ids the
+/// one motor `name` finds and one of that motor's own curve files.
+fn assert_catalog_source(source: &serde_json::Value, name: &str, as_of: &str) {
+    let catalog = hpr::hpr_motor::Catalog::bundled().unwrap();
+    let [motor] = catalog.find(name).collect::<Vec<_>>()[..] else {
+        panic!("{name} finds one motor");
+    };
+    assert_eq!(source["kind"], "catalog", "{source}");
+    assert_eq!(source["as_of"], as_of, "{source}");
+    assert_eq!(source["motor_id"], motor.motor_id.as_str(), "{source}");
+    let simfile_id = source["simfile_id"].as_str().unwrap();
+    assert!(
+        motor.curves.iter().any(|curve| curve.simfile_id == simfile_id),
+        "{source}"
+    );
 }
