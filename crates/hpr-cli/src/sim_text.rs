@@ -219,13 +219,16 @@ pub(crate) fn launch_lines(launch: &Launch, out: &mut dyn Write) -> io::Result<(
             typed_bearing(from)
         ),
         (Some(_), _) => "calm air".to_owned(),
-        // A weather profile's air and winds: `atmosphere` names its file.
+        // A weather profile's air and winds: `atmosphere` names its file, its control
+        // characters shown as `?` so that none reaches the terminal.
         _ => format!(
             "the air and winds of {}",
-            launch
-                .atmosphere
-                .strip_prefix("profile ")
-                .unwrap_or(&launch.atmosphere)
+            crate::printable(
+                launch
+                    .atmosphere
+                    .strip_prefix("profile ")
+                    .unwrap_or(&launch.atmosphere)
+            )
         ),
     };
     writeln!(
