@@ -5,9 +5,10 @@
 //! **What it is for.** The [readings] take one number each from one track. The
 //! smoother takes the whole flight from every sensor the log holds, and says at each moment how
 //! far the truth may be: its 90% interval is the estimate ± [`INTERVAL_Z`] standard errors. On
-//! HPR Sim's synthetic flights, whose truth is known, each set's intervals hold the truth at
-//! least as often as they claim (`cargo xtask synthetic` reports it, per state and per moment).
-//! Its rules were set with those sets in view.
+//! HPR Sim's synthetic flights, whose truth is known, it is checked at burnout, the top speed,
+//! apogee and a drawn moment (`cargo xtask synthetic`). There the three sets' cells hold between
+//! 94.3% and 99.4% of the truths inside the 90% intervals. Two logger cells hold 89.2% and 89.7%,
+//! which the check allows. Its rules were set with those sets in view.
 //!
 //! **How far to trust it.** It has not been compared with a real flight's truth. Its errors are
 //! the sensors' errors as the synthetic flights draw them, from the makers' datasheets and
