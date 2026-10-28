@@ -491,7 +491,7 @@ format's first step, [M3.3a](../decisions-and-roadmap.md#m3-3a), asked for 1 par
 
 The check supplies OpenRocket's own motor database for the curves the files name but don't carry.
 With it, 161 of the 170 configurations fly; with only the files' own curves and the simulator's
-bundled motors, 154 would
+bundled motors, 154 would fly
 ([the reference library's survey of motors](ork.md#motors-in-the-reference-library)). The other 9
 of the 170 have no flight to compare. The `.ork` reader leaves them out of the rocket all three ways, by the
 first reason it finds. Of the 9, 6 lack a thrust curve, 1 has a motor the simulator can't light

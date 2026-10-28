@@ -1211,6 +1211,28 @@ mod tests {
                 assert!(text.contains(&bundled.selector(motor)), "{text}");
             }
         }
+        // A name whose motors include exactly one with a curve is still refused, not flown.
+        let one_with_a_curve = bundled
+            .motors
+            .iter()
+            .map(|motor| motor.designation.as_str())
+            .find(|name| {
+                let found: Vec<_> = bundled.find(name).collect();
+                found.len() > 1
+                    && found
+                        .iter()
+                        .filter(|motor| motor.default_curve().is_some())
+                        .count()
+                        == 1
+            })
+            .unwrap();
+        let Err(failure) = crate::sim::catalog_or_fetched(one_with_a_curve, true, bundled) else {
+            panic!("{one_with_a_curve} flies");
+        };
+        assert!(
+            format!("{failure:?}").contains("matches several motors"),
+            "{failure:?}"
+        );
         for motor in bundled
             .find("G80")
             .filter(|motor| motor.default_curve().is_some())

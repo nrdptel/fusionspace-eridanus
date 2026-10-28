@@ -2078,14 +2078,14 @@ repository, and the 17 examples inside OpenRocket 24.12's jar. A *motor configur
 of motors to fly a design with ([above](#motors-and-their-configurations)). A file found in two
 places is counted in each.
 
-The three counts of the same 170 differ by where the thrust curves come from. `hpr sim` also
+These counts of the same 170 differ by where the thrust curves come from. `hpr sim` also
 refuses a design its checks find an error in, unless given `--accept-design-errors`:
 
 | Curves from | Configurations that fly | Counted by |
 |---|---:|---|
 | The file and HPR Sim's bundled catalog alone | 154 | `cargo xtask ork` |
 | Those, and ThrustCurve.org's, as `hpr sim` fetches them | 136 | `cargo xtask ork-cli` |
-| Those, flown with `--accept-design-errors` | 161 | `cargo xtask ork-cli` |
+| Those, flown with `--accept-design-errors` | 161 | `cargo xtask ork-cli` (136 + 25) |
 | Those, and OpenRocket's own motor database | 161 | `cargo xtask ork` |
 
 HPR Sim doesn't ship OpenRocket's database, so 136 is what a user of `hpr sim` gets, and 25 more fly

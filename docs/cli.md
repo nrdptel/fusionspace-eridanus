@@ -787,7 +787,7 @@ that way. So its climb tips away from the vertical. The wind does most of it.
 - `--motor NAME` flies a motor of the built-in catalog, by its
   [designation](glossary.md#motor-designation) or common name (`H54`, `168H54-10A`).
   `hpr motors list` shows the catalog. A name several motors share, as `G80` is, is refused with
-  a name for each that finds it alone, such as `Estes G80`
+  a name for each that finds it alone, such as `Roadrunner G80`
   ([A name several makers share](#a-name-several-makers-share)); so is a motor the catalog lists
   with no curve file. A name the catalog lacks is fetched from ThrustCurve.org
   and cached ([Motors from ThrustCurve.org](#motors-from-thrustcurveorg)), as
@@ -1256,7 +1256,7 @@ error: G80: `G80` matches several motors: 93G80-14A, Roadrunner G80, PML G80T, G
 help: give --motor one of those names, each of which names one motor alone, such as `--motor 93G80-14A`
 ```
 
-Give one of them, such as `--motor "Estes G80"`; the quotes keep the space. A name is refused this
+Give one of them, such as `--motor "Roadrunner G80"`; the quotes keep the space. A name is refused this
 way even when only one of its motors has a curve file, so it never flies a maker you didn't name.
 Within one maker, a designation wins over another motor's common name: `D5` is Quest's D5, not its
 D5-P. `hpr motors list --json` gives each motor's name that finds it alone as `selector`, and the
