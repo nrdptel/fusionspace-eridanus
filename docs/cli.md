@@ -1433,7 +1433,7 @@ the simulator's code. With one L motor's price edited to \$149.99 in a copy, the
 `hpr motors fetch NAME` finds a motor on [ThrustCurve.org](glossary.md#thrustcurveorg) and keeps
 its curve in the simulator's cache ([Where the cache lives](online-data.md#where-the-cache-lives)).
 `hpr sim` then flies it with no network. It's for a motor the 32-motor catalog lacks; `hpr sim`
-fetches on its own too, so the command matters most before a trip with no signal. This
+fetches on its own too, so it matters most before a trip with no signal. This
 is ThrustCurve's data, as its contributors uploaded it. The simulator checks that a file makes a
 motor it can fly, not that its curve is right.
 
@@ -1445,8 +1445,8 @@ motor it can fly, not that its curve is right.
   name (`F27`), as ThrustCurve.org spells it. `--manufacturer` adds the maker, by name or
   abbreviation. ThrustCurve matches a designation exactly, any case. If no motor has it, the
   simulator asks for the common name. Exactly one motor must answer: `J450` names four makers'
-  motors, and the refusal lists them. A hybrid is refused, as the simulator flies solid motors
-  only.
+  motors, and the refusal lists them, so give the designation or `--manufacturer`. A hybrid is
+  refused, as the simulator flies solid motors only.
 - **Which curve.** A motor can have several curve files. The simulator takes the first RASP
   (`.eng`) file that makes a motor it flies, ranked by who measured it. A certification test
   comes first, then the manufacturer, then a user, then a file that names no source. With none,
@@ -1470,11 +1470,10 @@ motor it can fly, not that its curve is right.
   curve. An offline refusal's command then carries `--file`. Offline, a file the cache lacks is
   given up for the usual order's, with the same note.
 - **Offline.** `--offline`, or `HPR_OFFLINE=1`, reads the cache alone, a copy of any age; with
-  none, the command fails with exit status 1. Online, a copy a day old is fetched again, and kept
+  none, it fails with exit status 1. Online, a copy a day old is fetched again, and kept
   if the network fails.
 
-Printed online on October 4, 2026, pasted by hand (not run in CI), with today's `help:` prefix and
-inches:
+Printed online on October 4, 2026, pasted by hand (not run in CI), its output since updated:
 
 ```text
 $ hpr motors fetch F27R/L

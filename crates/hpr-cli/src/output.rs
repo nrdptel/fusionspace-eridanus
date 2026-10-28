@@ -1231,7 +1231,8 @@ pub enum ExportFormat {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, JsonSchema)]
 pub struct InputWarning {
     /// Where: in a `.ork` file, a path of element names from the root or a zip entry's name; in a
-    /// motor file, its name and line; `design checks` for a check's finding.
+    /// motor file, its name and line; `design checks` for a check's finding; `ThrustCurve.org`
+    /// for a fetched file checked against ThrustCurve.org's record.
     pub at: String,
     /// How serious it is.
     pub kind: WarningKind,

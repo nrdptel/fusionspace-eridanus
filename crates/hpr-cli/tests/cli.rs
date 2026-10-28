@@ -2504,8 +2504,9 @@ fn motors_fetch_takes_the_first_file_hpr_can_fly() {
 fn a_fetched_file_lighter_than_its_records_propellant_warns() {
     use hpr::hpr_net::on_demand::Wanted;
     let warning = "Invented Motors Z21-INVENTED's curve file f000000000000000000000c2 gives \
-                   100.0 g of propellant, -5.1% from ThrustCurve.org's record of 105.4 g. Too \
-                   light a propellant flies too heavy a burnout mass and too low an apogee";
+                   100.0 g of propellant, -5.12% from ThrustCurve.org's record of 105.4 g. If \
+                   the file's loaded mass is right, it flies too heavy a burnout mass and too \
+                   low an apogee";
     let probe = repo_file(PROBE);
     for (name, warned) in [("Z21-INVENTED", true), ("Z20-INVENTED", false)] {
         let cache = cache_with(&Wanted::named(name));

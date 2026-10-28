@@ -210,8 +210,7 @@ Three things to know about a motor built from a file:
   554 public-domain files, 66 headers give a length more than 1 mm (0.039 in) off the catalog's.
   Five give a diameter more than 0.5 mm (0.020 in) off
   ([data notes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/thrustcurve-data.md),
-  section 4). This file says 292 mm (11.5 in) where ThrustCurve.org's record says 292.1 mm (11.50 in). The 32 bundled
-  motors fly their headers' values too. `cargo xtask motor-catalog` refuses a reload whose case
+  section 4). The 32 bundled motors fly their headers' values too. `cargo xtask motor-catalog` refuses a reload whose case
   names another diameter than its header. In Loft, one header listed a 54 mm motor as a 75 mm
   motor ([Loft lesson L43](../decisions-and-roadmap.md#l43)). For any other motor, check the
   header against the motor's page on ThrustCurve.org.
@@ -219,8 +218,9 @@ Three things to know about a motor built from a file:
   A motor fetched from ThrustCurve.org gets one more check, against its record: a propellant mass
   over 5% below the record's draws a warning naming both
   ([`PROPELLANT_SHORT_BOUND`](../api/hpr_net/on_demand/constant.PROPELLANT_SHORT_BOUND.html)).
-  Too light a propellant flies too heavy a burnout mass and too low an apogee. A heavier one draws
-  none ([survey](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/fetched-mass-survey.md),
+  With the file's loaded mass right, that flies too heavy a burnout mass and too low an apogee,
+  the side that flatters a waiver. A heavier one draws none, and the loaded mass isn't checked
+  ([survey](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/fetched-mass-survey.md),
   section 5).
 - Where its mass sits is a rough guess, the *envelope default*
   ([The whole motor](#the-whole-motor)). If you know the grain sizes, `SolidMotor::new` with

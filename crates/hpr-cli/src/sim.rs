@@ -1501,7 +1501,12 @@ fn fetch_missing(motors: &ork::Motors, fetching: Fetching<'_>) -> Result<Missing
         }
         match crate::motor_fetch::fetch(&wanted, fetching.offline, "hpr sim") {
             Ok((fetched, described, warnings)) => {
-                missing.warnings.extend(warnings);
+                // Two mounts with one motor under different digests fetch one file: one warning.
+                for warning in warnings {
+                    if !missing.warnings.contains(&warning) {
+                        missing.warnings.push(warning);
+                    }
+                }
                 let case = ork::CaseSize {
                     diameter_m: fetched.diameter_m(),
                     length_m: fetched.length_m(),

@@ -74,7 +74,7 @@
       "type": "object",
       "properties": {
         "at": {
-          "description": "Where: in a `.ork` file, a path of element names from the root or a zip entry's name; in a\nmotor file, its name and line; `design checks` for a check's finding.",
+          "description": "Where: in a `.ork` file, a path of element names from the root or a zip entry's name; in a\nmotor file, its name and line; `design checks` for a check's finding; `ThrustCurve.org`\nfor a fetched file checked against ThrustCurve.org's record.",
           "type": "string"
         },
         "kind": {

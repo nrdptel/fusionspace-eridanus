@@ -238,8 +238,8 @@ fn offline_a_preference_the_cache_cannot_answer_is_given_up() {
 }
 
 /// Issue #578: a taken file whose propellant mass is more than 5% below the record's draws a
-/// warning naming both masses. Two invented motors are built like AMW's N4000BB, whose file gives
-/// the mass after firing as its propellant: each file says 100.0 g, and Z20's record 105.1 g
+/// warning naming both masses. Two invented motors are light on propellant as AMW's N4000BB file
+/// is, with the loaded mass right: each file says 100.0 g, and Z20's record 105.1 g
 /// (−4.85%, just inside) and Z21's 105.4 g (−5.12%, just outside). A file heavier than its
 /// record, Z22's at 94.0 g (+6.4%), and a record with no propellant mass, Z10's, give none.
 #[test]
@@ -257,8 +257,8 @@ fn a_file_lighter_than_its_records_propellant_warns() {
         outside.propellant_warning().as_deref(),
         Some(
             "Invented Motors Z21-INVENTED's curve file f000000000000000000000c2 gives 100.0 g \
-             of propellant, -5.1% from ThrustCurve.org's record of 105.4 g. Too light a \
-             propellant flies too heavy a burnout mass and too low an apogee"
+             of propellant, -5.12% from ThrustCurve.org's record of 105.4 g. If the file's \
+             loaded mass is right, it flies too heavy a burnout mass and too low an apogee"
         )
     );
     let heavier = found("Z22-INVENTED");
