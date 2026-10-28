@@ -64,6 +64,9 @@ Options:
           
           [default: 0]
 
+      --weather <FILE>
+          Fly the air and winds of a weather profile, the JSON file `hpr weather` writes, in place of the standard atmosphere and --wind. The site's --elevation must lie within the profile's heights
+
       --accept-design-errors
           Fly a design whose checks find errors, such as a motor wider than its mount. The flight may not be physical
 
@@ -116,7 +119,7 @@ Options:
           [default: 0]
 
       --wind-from-sd <DEG>
-          One standard deviation of the wind's direction, degrees, about --wind-from
+          One standard deviation of the wind's direction, degrees, about --wind-from or the --weather profile's
           
           [default: 0]
 

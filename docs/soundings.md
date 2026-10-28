@@ -475,6 +475,5 @@ test uses the network.
   stations to search by place.
 - Only soundings from U.S. stations, which are U.S. government works, are committed as test data
   ([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0120-university-of-wyoming-soundings.md)).
-- The command line fetches them with [`hpr weather wyoming`](cli.md#hpr-weather). But `hpr sim`
-  doesn't fly them yet (issue [#265](https://github.com/nrdptel/fusionspace-eridanus/issues/265)),
-  and the Python package doesn't fetch soundings.
+- The Python package doesn't fetch soundings. The command line fetches them with
+  [`hpr weather wyoming`](cli.md#hpr-weather).

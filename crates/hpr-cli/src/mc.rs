@@ -69,7 +69,8 @@ pub struct McArgs {
     /// One standard deviation of the wind's speed at every height, as a fraction of it
     #[arg(long, allow_hyphen_values = true, value_name = "FRACTION", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
     pub wind_sd: f64,
-    /// One standard deviation of the wind's direction, degrees, about --wind-from
+    /// One standard deviation of the wind's direction, degrees, about --wind-from or the
+    /// --weather profile's
     #[arg(long, allow_hyphen_values = true, value_name = "DEG", default_value_t = 0.0, value_parser = crate::typed::number::<f64>())]
     pub wind_from_sd: f64,
     /// One standard deviation of the rail's angle above the horizon, degrees
