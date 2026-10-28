@@ -62,7 +62,7 @@ the checks fetch into. Its hash lets every check confirm it reads the same bytes
 
 <!-- evidence: report; written by `cargo xtask evidence` from validation/evidence.toml; do not edit -->
 
-The register holds 33 rows, as of October 20, 2026.
+The register holds 33 rows, as of October 28, 2026.
 
 **By kind.** Each surface's rows, counted by the kind of evidence behind them now:
 
@@ -90,7 +90,7 @@ The register holds 33 rows, as of October 20, 2026.
 | <a id="g1"></a>G1 | Flight-log readers | GPX tracks are read as the GPX 1.0 and 1.1 schemas define them, checked against gpxpy on three invented files. **Not checked:** what a real tracker or phone writes, and what its elevation (`ele`) is measured from. | code to code | real | [#654](https://github.com/nrdptel/fusionspace-eridanus/issues/654) | 2026-10-20 |
 | <a id="g2"></a>G2 | Flight-log readers | Paths no sample log reaches are checked by the readers' tests alone: decimal commas, workbooks dated from 1904, a Raven `.FIPa` temperature below zero, an RTx fix at (0, 0). **Not checked:** a real file that takes any of these paths. | spec | real | [#655](https://github.com/nrdptel/fusionspace-eridanus/issues/655) | 2026-10-17 |
 | <a id="g3"></a>G3 | Flight-log readers | AltOS radio telemetry is decoded from AltOS's documents for the packet types the samples hold. **Not checked:** the eleven packet types no sample holds, which are left out; the GPS ground speed, climb rate and course, which nothing checks. | spec | real | [#656](https://github.com/nrdptel/fusionspace-eridanus/issues/656) | 2026-10-17 |
-| <a id="g4"></a>G4 | Flight-log readers | AltOS `.eeprom` logs are read in formats 1, 6, 7, 14, 15, 16 and 22, with the TeleMetrum v1's converter assumed. **Not checked:** that the TeleMetrum v1's converter measures against the pressure sensor's own supply, which no document states; the TeleMega v4's IMU, which its one sample never ran; 4 of the 14 sample files, with neither an export nor telemetry beside them; formats 5, 9 and 19, refused. | reasoning | real | [#657](https://github.com/nrdptel/fusionspace-eridanus/issues/657) | 2026-10-17 |
+| <a id="g4"></a>G4 | Flight-log readers | AltOS `.eeprom` logs are read in formats 1, 6, 7, 14, 15, 16 and 22, with the TeleMetrum v1's converter assumed. **Not checked:** that the TeleMetrum v1's converter measures against the pressure sensor's own supply, which no document states; the TeleMega v4's IMU, which its one sample never ran; 4 of the 14 sample files, with neither an export nor telemetry beside them; formats 5, 9 and 19, refused. | reasoning | real | [#657](https://github.com/nrdptel/fusionspace-eridanus/issues/657) | 2026-10-28 |
 | <a id="g5"></a>G5 | Flight-log readers | ARTS2 raw data is timed at 50 records a second, the rate the maker's DataAnalyzer gives every file. **Not checked:** where the file stores its rate, if it does, and a file recorded at another rate. | code to code | real | [#658](https://github.com/nrdptel/fusionspace-eridanus/issues/658) | 2026-10-17 |
 | <a id="g6"></a>G6 | Flight-log readers | Some layouts rest on one sample or on no export to compare with: the AltiMAX `.ALS`, the AIM `.xtra` and raw dump, 7 of 63 raw downloads, 5 of 6 RRC3 `.rff` files, and each case of an AltOS CSV re-saved by a spreadsheet. **Not checked:** a second flight of each layout read beside its maker's export; the raw downloads with no export beside them. | code to code | real | [#659](https://github.com/nrdptel/fusionspace-eridanus/issues/659) | 2026-10-17 |
 | <a id="g7"></a>G7 | Flight-log readers | Featherweight summaries are checked on their maximum and pad altitude only. **Not checked:** the speeds, accelerations, times and the rest, converted from the unit the file writes and checked against nothing. | none | real | [#660](https://github.com/nrdptel/fusionspace-eridanus/issues/660) | 2026-10-17 |
@@ -109,7 +109,7 @@ The register holds 33 rows, as of October 20, 2026.
 | <a id="g20"></a>G20 | Flight models | A pushed part leaves through the end the simulator assumes, from the way its body points as it falls. **Not checked:** a measured deployment; the directions are assumptions, not measurements, and for a drogue between the booster and the avionics bay a guess. | reasoning | real | [#673](https://github.com/nrdptel/fusionspace-eridanus/issues/673) | 2026-10-17 |
 | <a id="g21"></a>G21 | Accuracy against real flights | Four of the seven public altimeters are taken as barometric, and the designs' fin edges are guesses. **Not checked:** each of the four altimeters' sensor, none of them calibrated; each design's fin edges. | reasoning | real | [#674](https://github.com/nrdptel/fusionspace-eridanus/issues/674) | 2026-10-17 |
 | <a id="g22"></a>G22 | Fin flutter | Martin's flutter criterion (NACA TN 4197) places a fin against the line his missile and wind-tunnel wings drew. **Not checked:** a hobby rocket's flutter, against which nothing here is checked; that the result errs on the safe side, which nothing shows; a fin glued to a tube, less stiff at its root than Martin's clamped wings. | spec | real | [#675](https://github.com/nrdptel/fusionspace-eridanus/issues/675) | 2026-10-17 |
-| <a id="g23"></a>G23 | The motor finder | The motor finder is replayed on three stand-in searches in ThrustCurve.org's shape. | spec | spec ([ADR-278](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0278-an-evidence-register-for-every-claim.md)) | none | 2026-10-20 |
+| <a id="g23"></a>G23 | The motor finder | The motor finder is replayed on three stand-in searches in ThrustCurve.org's shape. | spec | spec ([ADR-278](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0278-an-evidence-register-for-every-claim.md)) | none | 2026-10-28 |
 | <a id="g24"></a>G24 | Accuracy against real flights | The simulation's apogees miss seven public real flights by 6.06% on average and 53 private ones by 12.95%, both outside the 5% target. **Not checked:** a flight held out from every choice of model and every fit, predicted before its log is read. | calibration | real | [#676](https://github.com/nrdptel/fusionspace-eridanus/issues/676) | 2026-10-17 |
 | <a id="g25"></a>G25 | Design export | The `.ork` files `hpr convert` writes are checked by opening them in OpenRocket. **Not checked:** whether RockSim opens them. | code to code | real | [#677](https://github.com/nrdptel/fusionspace-eridanus/issues/677) | 2026-10-17 |
 | <a id="g26"></a>G26 | Aerodynamics | Drag is compared with the RASAero II curves of RocketPy's example rockets, of which Calisto's is the one real RASAero II export. **Not checked:** a measured drag of any of them; the other curves' rockets, which record no fins or surface finish, so HPR Sim flies stated guesses for them; and the comparison misses past Mach 1.6, where against Calisto's export HPR Sim is within 10% at 8 of the 17 rows from Mach 1.2 to 2.0. | code to code | real | [#678](https://github.com/nrdptel/fusionspace-eridanus/issues/678) | 2026-10-17 |
@@ -121,7 +121,7 @@ The register holds 33 rows, as of October 20, 2026.
 | <a id="g32"></a>G32 | The synthetic flights | The synthetic loggers' noise follows the makers' datasheets and the noise measured on a few public logs, each drawn term tested on its own; the accelerometer's residual bias, the GNSS loop's range, damping and noise, the dropouts, the port's place, the Bosch-class part on two profiles, PerfectFlite's offset and one bench sensor's slow noise on every barometer are assumed, and the MS5607's error read as a gain is inferred. **Not checked:** a synthetic log as a whole against real logs of the same family: the pad's noise and its correlation, and the ejection pulses. | reasoning | real | [#725](https://github.com/nrdptel/fusionspace-eridanus/issues/725) | 2026-10-17 |
 | <a id="g33"></a>G33 | The smoother | At burnout, the top speed, apogee and a drawn moment, the smoother's 90% intervals on a log's height and vertical speed hold between 94.3% and 99.4% of the synthetic flights' truths in the three sets' cells, and two logger cells 89.2% and 89.7%, on the 171, 820 and 845 flights smoothed of three sets of 200, 1,000 and 1,000, its rules set with those sets in view. **Not checked:** a real flight's smoothed height and speed against a truth taken apart from the log, such as a second logger's or a ground tracker's record of the same flight. | calibration | real | [#981](https://github.com/nrdptel/fusionspace-eridanus/issues/981) | none |
 
-**Due a search.** A row is due one when it has none yet, or its last was more than 30 days before October 20, 2026:
+**Due a search.** A row is due one when it has none yet, or its last was more than 30 days before October 28, 2026:
 
 - [G33](#g33)
 
@@ -160,6 +160,11 @@ The register holds 33 rows, as of October 20, 2026.
   - Mines-Rocketry-Club's flight data
 
   It found a partial answer, to cite only: PSAS flew a TeleMetrum v1.0 (serial 221) from 2010 to 2013. Its October 17, 2010 and June 30, 2013 files are already in the private collection. A third, in psas/flight_data-2010.06.27 (no license), is an older text-form `.eeprom` beside a table of time, height, speed and acceleration not in AltosUI's CSV layout. No TeleMega v4 file whose IMU ran, and no new file in log format 5, 9 or 19, was found. The other public files are TeleMetrum v2 to v4 (format 7), EasyMini (6 and 14) and TeleMega v6 (22).
+- [G4](#g4), October 28, 2026, looked at:
+  - GitHub code search for `log_format` in `.eeprom` files, every header of the 44 hits parsed
+  - the names `TeleMetrum-v1` and `TeleMega-v4` across GitHub
+
+  It found a lead for the TeleMetrum v1's converter: ISSUIUC/flight-data holds a TeleMetrum v1.2 `.eeprom` in log format 1 with AltosUI's export beside it (no license; cache under refs/ only). No TeleMega v4 file whose IMU ran. Format 5, 9 and 19 samples were found earlier and are listed in the CATS and Juno sample note (docs/research/sample-logs-cats-juno.md); the 2026-10-17 line's none was too narrow.
 - [G5](#g5), October 17, 2026, looked at:
   - the ARTS2 User Manual V1.0.0 (pp. 7, 9, 16)
   - PSAS's launch repositories for ARTS2 flights beyond the samples (May 31, 2009; June 27, 2010; and October 17, 2010)
@@ -269,6 +274,11 @@ The register holds 33 rows, as of October 20, 2026.
   - GitHub's other copies of the site's data
 
   It found no license for the motor records (the home page reserves all rights; the API page states none). A lead: JohnCoker/thrustcurve3 (ISC, commit 3325878d, cached under refs/samples-search/G23) holds a 2016 sample dump of 280 real motor records and 411 curve files. The records have the fields the stand-ins leave out, and each curve file its own class (104 public domain, 16 free, 291 unmarked). ISC grants rights in 'this software', so using the records is a licensing question.
+- [G23](#g23), October 28, 2026, looked at:
+  - ThrustCurve.org's contribute, API and privacy pages and its llms-full.txt
+  - openrocket/motor-database and JohnCoker/TCTG
+
+  It found no openly licensed motor database. The only license statement is the contribute page's class for each file, which the API doesn't return; openrocket/motor-database (GPL-3.0) points other projects to the API.
 - [G24](#g24), October 17, 2026, looked at:
   - public pairs of a design and a log not yet used
   - CATS's EuRoC 2021 team data (github.com/catsystems/euroc21-team-data, GPL-3.0)

@@ -526,7 +526,7 @@
       "reference": 112.23574342026174,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case calisto-tests-motor-at-minus-1.373, metrics.max_acceleration_m_s2",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.01
       },
       "difference": 0.11164394905487995,
       "relative": 0.0009947272201586812,
@@ -539,7 +539,7 @@
       "reference": 112.23574342026174,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case calisto-tests-motor-at-minus-1.373, metrics.max_acceleration_power_on_m_s2",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.01
       },
       "difference": 0.11164394905487995,
       "relative": 0.0009947272201586812,
@@ -564,7 +564,7 @@
       "reference": 0.7329447401733635,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case calisto-tests-motor-at-minus-1.373, metrics.max_mach",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.01
       },
       "difference": -0.0008761162649756349,
       "relative": -0.0011953374067032762,
@@ -746,7 +746,7 @@
       "reference": 47.08126248199336,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case valetudo, metrics.max_acceleration_m_s2",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.01
       },
       "difference": 0.11660121263282264,
       "relative": 0.0024765948593119774,
@@ -759,7 +759,7 @@
       "reference": 47.081262481993356,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case valetudo, metrics.max_acceleration_power_on_m_s2",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.01
       },
       "difference": 0.11660121263282974,
       "relative": 0.0024765948593121288,
@@ -785,7 +785,7 @@
       "reference": 0.33432224200223576,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case valetudo, metrics.max_mach",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.01
       },
       "difference": -0.00008845179384536772,
       "relative": -0.0002645704734319657,
@@ -978,7 +978,7 @@
       "reference": 114.22833563893272,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case ndrt-2020-nose-to-tail, metrics.max_acceleration_power_on_m_s2",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.01
       },
       "difference": -0.023270789375999357,
       "relative": -0.00020372168819439508,
@@ -1004,7 +1004,7 @@
       "reference": 0.5407894835338279,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case ndrt-2020-nose-to-tail, metrics.max_mach",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.01
       },
       "difference": 0.000014349607877828241,
       "relative": 0.000026534554229974466,
@@ -1196,7 +1196,7 @@
       "reference": 81.65063194884658,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case prometheus-2022-generic-motor, metrics.max_acceleration_power_on_m_s2",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.01
       },
       "difference": 0.0026296336835684997,
       "relative": 0.000032205919547762256,
@@ -1222,7 +1222,7 @@
       "reference": 1.0127489839118518,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case prometheus-2022-generic-motor, metrics.max_mach",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.01
       },
       "difference": -0.002377486807633389,
       "relative": -0.0023475578306186894,
@@ -1402,7 +1402,7 @@
       "reference": 52.604627016302196,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case juno-iii, metrics.max_acceleration_m_s2",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.01
       },
       "difference": -0.10382895311495588,
       "relative": -0.0019737608458430707,
@@ -1415,7 +1415,7 @@
       "reference": 52.60462701630219,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case juno-iii, metrics.max_acceleration_power_on_m_s2",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.01
       },
       "difference": -0.10382895311494877,
       "relative": -0.0019737608458429362,
@@ -1441,7 +1441,7 @@
       "reference": 0.6860087659044106,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case juno-iii, metrics.max_mach",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.01
       },
       "difference": -0.0015126950009786144,
       "relative": -0.0022050665766410855,
@@ -1660,7 +1660,7 @@
       "reference": 0.2914641176774713,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case bella-lui, metrics.max_mach",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.01
       },
       "difference": -0.00020591082054854937,
       "relative": -0.0007064705672497442,
@@ -1842,7 +1842,7 @@
       "reference": 52.445777132180744,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case juno-iii-calm, metrics.max_acceleration_m_s2",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.01
       },
       "difference": -0.006256507319577054,
       "relative": -0.0001192947776101893,
@@ -1855,7 +1855,7 @@
       "reference": 52.44577713218074,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case juno-iii-calm, metrics.max_acceleration_power_on_m_s2",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.01
       },
       "difference": -0.006256507319569948,
       "relative": -0.00011929477761005384,
@@ -1881,7 +1881,7 @@
       "reference": 0.6863332723742319,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case juno-iii-calm, metrics.max_mach",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.01
       },
       "difference": -0.000841563039952864,
       "relative": -0.001226172580911961,
@@ -2063,7 +2063,7 @@
       "reference": 112.22696887954638,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case calisto-tests-motor-at-minus-1.373-calm, metrics.max_acceleration_m_s2",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.01
       },
       "difference": 0.12095140542444938,
       "relative": 0.001077739215734027,
@@ -2076,7 +2076,7 @@
       "reference": 112.22696887954638,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case calisto-tests-motor-at-minus-1.373-calm, metrics.max_acceleration_power_on_m_s2",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.01
       },
       "difference": 0.12095140542444938,
       "relative": 0.001077739215734027,
@@ -2101,7 +2101,7 @@
       "reference": 0.7329773158691226,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case calisto-tests-motor-at-minus-1.373-calm, metrics.max_mach",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.01
       },
       "difference": -0.0007698615342595083,
       "relative": -0.0010503210912422992,
@@ -2322,7 +2322,7 @@
       "reference": 0.29035355285956455,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case bella-lui-calm, metrics.max_mach",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.01
       },
       "difference": -0.00005148464884247028,
       "relative": -0.00017731709612443382,

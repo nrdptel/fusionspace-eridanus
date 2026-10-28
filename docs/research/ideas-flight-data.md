@@ -89,6 +89,37 @@ From the 2026-10-24 planning review ([ADR-289][adr-289]):
   the +8.73% bias. *Done when:* the report gives every cell or its count, a test pins both size
   rules, and the page names each cell whose interval excludes zero, or says none does.
 
+## From the research notes of 2026-10-28
+
+- LATER ([M7.4, fault diagnosis](../decisions-and-roadmap.md#m7-4)): a one- or two-sample pressure
+  dip at a firing that both altimeters in a bay see is most likely gas past an imperfect seal; the
+  analyzer names it as a build note, rejects it before any apogee
+  ([the ejection-dip note](ejection-dip-cause.md)).
+- LATER (M7.4): a SiRF-based GPS receiver (A2235-H) can hold its height through the climb and peak
+  low or high, so its altitude isn't an apogee; a launch detector reading its speed should expect
+  a second or two of zero after liftoff ([the SiRF note](sirf-vertical-stall.md)).
+
+## From the 2026-10-26 planning review
+
+- SOON: how often each tool comes in low. User: a flyer filing for a waiver, and the RSO who checks
+  it; a prediction below the log is the worst error ([ADR-144][adr-144]). Workflow: the scoreboard
+  counts, from the reports, the logged flights each tool predicts more than 5% below the log (an
+  early deployment only lowers a log, so it never explains one). Moves: new rows
+  `undershoot.collection` and `undershoot.public`; today hpr 10 of 53 and OpenRocket 11 of 53 (4 and
+  6 more than 10% low), hpr 3 of 7 public flights, read off [the fixture report][fixture-report]'s
+  histograms. *Done when:* both rows read fields the reports write, a test pins that −5% exactly is
+  not counted and −5.01% is, and the scoreboard's check fails when hpr's count rises.
+- SOON: a flight with a date and no hour. User: a flyer flying again a forum post's flight that
+  gives the day but not the time. Workflow: `hpr weather era5` given a date with no time writes a
+  profile for each hour from 08:00 to 18:00 local mean solar time, and `hpr sim` prints the
+  apogee's range over them with the hours; the fixture report does the same for each compared
+  flight with no known hour (26 of the 83 fly local noon today). Moves: `accuracy.collection`
+  gains a stated hour term: the median and largest spread over the day, in % of the logged
+  apogee, beside the mean absolute error on flights with a known hour. *Done when:* the report
+  gives those numbers and the count of compared flights with no hour; a test on a synthetic day
+  with a known temperature swing gets the range derived by hand; a date with no time is refused,
+  with the reason, when the file doesn't cover those hours.
+
 [m7-1]: ../decisions-and-roadmap.md#m7-1
 [m7-4]: ../decisions-and-roadmap.md#m7-4
 [m7-2]: ../decisions-and-roadmap.md#m7-2
@@ -100,3 +131,5 @@ From the 2026-10-24 planning review ([ADR-289][adr-289]):
 [stab-thread]: https://www.rocketryforum.com/threads/stability-concerns-regarding-my-mach-1-l2.199218/
 [slth]: sl-true-height.md
 [adr-289]: ../decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md
+[adr-144]: ../decisions/0144-the-2026-10-03-planning-review-leaner-bookkeeping.md
+[fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md

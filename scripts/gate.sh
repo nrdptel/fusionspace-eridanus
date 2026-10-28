@@ -54,9 +54,14 @@
 # Extra step, not in the default set: types (CI's `types` job: the design format's generated
 # TypeScript and Python types checked with tsc and mypy, fetched by npx and uvx; about 2 s once
 # fetched), for a change to the schema or the generator in xtask/src/format_types.rs.
-# Extra step, not in the default set: python (CI's `python` job: the Python package's wheel built
-# by maturin and its pytest suite run on CPython 3.10 and 3.13, fetched by uv; about 20 s once
-# fetched), for a change to crates/hpr-py or what it wraps.
+# Extra step: python (CI's `python` job: the Python package's wheel built by maturin and its pytest
+# suite run on CPython 3.10 and 3.13, fetched by uv; about 20 s once fetched, more for a fresh
+# release build). It joins any run that tests when the branch changes what the suite reads: a
+# crate (crates/, the wrapped library's messages included), Cargo.lock, a validation case or
+# report (test_calisto.py holds each Calisto metric to its case's bound), or docs/python.md (whose
+# shown outputs test_docs.py compares with a run). Before it joined, CI's python job failed in 7
+# of the 71 failed CI runs from 2026-10-14 to 10-28, the gate never having run it (#919).
+# GATE_PYTHON=0 leaves it out.
 # The commands are CI's own (.github/workflows/ci.yml), `--locked` included, so a Cargo.lock that
 # needs updating fails here rather than on every CI job. `validate` is `--check`: every case,
 # compared with the committed report. Regenerating the report is a separate, deliberate step
@@ -94,6 +99,17 @@ touches_pages() {
   changed=$( { git diff --name-only "$base"; git diff --name-only; git diff --name-only --cached
     git ls-files --others --exclude-standard; } 2>/dev/null)
   grep -qE '^docs/|\.md$|^xtask/src/site' <<<"$changed" && return 0
+  return 1
+}
+
+# Whether this branch changes what the Python suite reads, as touches_physics tells for the
+# physics crates.
+touches_python() {
+  local base changed
+  base=$(git merge-base HEAD origin/main 2>/dev/null) || return 2
+  changed=$( { git diff --name-only "$base"; git diff --name-only; git diff --name-only --cached; } 2>/dev/null)
+  grep -qE '^crates/|^Cargo\.lock$|^validation/cases/|^validation/reports/|^docs/python\.md$' \
+    <<<"$changed" && return 0
   return 1
 }
 
@@ -164,6 +180,23 @@ case " $STEPS " in
       fi
     elif [ "$ego" -eq 2 ]; then
       echo "SKIP ego: no origin/main to tell whether EGO changed (git fetch origin)"
+    fi ;;
+esac
+# The Python suite joins any run that tests, when what it reads changed.
+case " $STEPS " in
+  *" python "*) ;;
+  *" test "*)
+    touches_python; python=$?
+    if [ "$python" -eq 0 ]; then
+      if [ "${GATE_PYTHON:-1}" = 0 ]; then
+        echo "SKIP python: what the Python suite reads changed, but GATE_PYTHON=0"
+      elif ! command -v uv >/dev/null 2>&1; then
+        echo "SKIP python: what the Python suite reads changed, but uv isn't installed (CI runs it)"
+      else
+        STEPS="$STEPS python"
+      fi
+    elif [ "$python" -eq 2 ]; then
+      echo "SKIP python: no origin/main to tell whether what it reads changed (git fetch origin)"
     fi ;;
 esac
 TAIL="${GATE_TAIL:-40}"

@@ -33,7 +33,7 @@ relative = 0.01
 relative = 0.002
 
 [metrics.max_mach]
-relative = 0.03
+relative = 0.01
 
 [metrics.max_acceleration_m_s2]
 relative = 0.03

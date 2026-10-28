@@ -87,7 +87,7 @@ relative = 0.03
 relative = 0.002
 
 [metrics.max_mach]
-relative = 0.03
+relative = 0.01
 
 [metrics.max_acceleration_m_s2]
 not_scored = "the whole flight's maximum is the main parachute opening at 139.9 s (93.9 m/s^2 in RocketPy), not a flight load; RocketPy counts the canopy's added mass and hpr has none (ADR-012). The power-on maximum is gated instead."
@@ -96,7 +96,7 @@ not_scored = "the whole flight's maximum is the main parachute opening at 139.9 
 relative = 0.03
 
 [metrics.max_acceleration_power_on_m_s2]
-relative = 0.03
+relative = 0.01
 
 [metrics.rail_exit_speed_m_s]
 relative = 0.002

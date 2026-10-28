@@ -83,7 +83,23 @@ From the 2026-10-15 planning review:
   the rules' date and a stale-after date; each of the seven values comes from a tested output;
   the scoreboard shows the row.
 
+## From the 2026-10-26 planning review
+
+- SOON: center of pressure against the tunnel, for every tool. User: an RSO or a Level 3 mentor
+  checking a stability margin from any of the three tools. Workflow: each wind-tunnel model the
+  aerodynamics checks score is written as a `.ork` by HPR Sim's writer ([ADR-286][adr-286]);
+  OpenRocket 24.12's jar, run as an outside oracle, and RocketPy 1.13.0 give its center of pressure
+  at each reading's Mach number; the scoreboard shows each tool's mean absolute error in calibers
+  and the readings it puts aft of the measured one, which overstates the margin. Moves: new row
+  `accuracy.cp-tunnel`, three cells; today hpr's only: 0.58 calibers over the Arcas Robin's 16
+  readings below Mach 2.5, 9 of them aft ([the fixture][nf-fixture]). *Done when:* the row gives all
+  three tools on at least 16 core-band readings from at least two models, each cited to its table
+  or figure; a reading a tool can't model is listed with its reason; a test fails when a tool's aft
+  count is missing.
+
 [m6-3]: ../decisions-and-roadmap.md#m6-3
 [arc27]: https://www.rocketrychallenge.org/wp-content/uploads/2027_AmericanRocketryChallenge_Rules.pdf
 [irec27]: https://www.esrarocket.org/s/IREC-2027-Rules-and-Requirments-v10.pdf
 [sl27]: https://www.nasa.gov/wp-content/uploads/2026/08/g-739882-2027-sli-handbook-508-aug5.pdf
+[adr-286]: ../decisions/0286-the-2026-10-20-review-the-export-bar-tightened.md
+[nf-fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/normal-force-vs-mach.json
