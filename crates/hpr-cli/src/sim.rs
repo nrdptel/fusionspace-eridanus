@@ -12,6 +12,7 @@
 
 use std::path::{Path, PathBuf};
 
+use hpr::hpr_atmos::SoundingProfile;
 use hpr::hpr_design::{self, Configuration, Ignition, MountedMotor, checks};
 use hpr::hpr_format::{self, container};
 use hpr::hpr_io::ork;
@@ -139,6 +140,11 @@ pub struct FlightArgs {
         value_parser = crate::typed::number::<f64>()
     )]
     pub wind_from: f64,
+    /// Fly the air and winds of a weather profile, the JSON file `hpr weather` writes, in place
+    /// of the standard atmosphere and --wind. The site's --elevation must lie within the
+    /// profile's heights, and its levels must give winds
+    #[arg(long, value_name = "FILE", conflicts_with_all = ["wind", "wind_from"])]
+    pub weather: Option<String>,
     /// Fly a design whose checks find errors, such as a motor wider than its mount. The flight
     /// may not be physical
     #[arg(long)]
@@ -565,6 +571,14 @@ impl Setup {
                     )
                 })?;
         }
+        if let Some(path) = &flight.weather {
+            let profile = weather_profile(path, flight.elevation)?;
+            // `weather_profile` refuses a profile with no winds.
+            if let Some(wind) = profile.wind() {
+                environment = environment.with_wind(wind.clone());
+            }
+            environment = environment.with_atmosphere(profile);
+        }
         Ok(Self {
             read,
             configurations,
@@ -684,10 +698,65 @@ pub(crate) fn launch(flight: &FlightArgs) -> Launch {
         rail_length_m: flight.rail_length,
         inclination_deg: flight.inclination.unwrap_or(90.0),
         heading_deg: flight.heading.unwrap_or(0.0),
-        wind_speed_m_s: flight.wind.unwrap_or(0.0),
-        wind_from_deg: flight.wind_from,
-        atmosphere: "standard".to_owned(),
+        wind_speed_m_s: flight.weather.is_none().then(|| flight.wind.unwrap_or(0.0)),
+        wind_from_deg: flight.weather.is_none().then_some(flight.wind_from),
+        atmosphere: match &flight.weather {
+            Some(path) => format!("profile {}", file_name(path)),
+            None => "standard".to_owned(),
+        },
     }
+}
+
+/// The weather profile at `path`, the JSON `hpr weather` writes, read with
+/// [`SoundingProfile`]'s own checks; refused when the site's elevation, `elevation_m` above sea
+/// level, lies outside the profile's levels, where its air would be the standard atmosphere's
+/// shape stretched past the soundings rather than the day's.
+fn weather_profile(path: &str, elevation_m: f64) -> Result<SoundingProfile, Failure> {
+    let shown = crate::printable(path);
+    let help = "give the JSON file `hpr weather` writes with --output, such as `hpr weather \
+                open-meteo --latitude 32.99 --longitude -106.97 --time 2026-06-21T15:00Z \
+                --output profile.json`";
+    let bytes = crate::read_file(path)?;
+    let profile: SoundingProfile = serde_json::from_slice(&bytes).map_err(|error| {
+        Failure::helped(format!("{shown}: not a weather profile: {error}"), help)
+    })?;
+    // A profile holds at least one level, its heights increasing: `SoundingProfile`'s checks
+    // refuse any other.
+    let (Some(lowest), Some(highest)) = (profile.levels().first(), profile.levels().last()) else {
+        return Err(Failure::helped(
+            format!("{shown}: the profile has no levels"),
+            help,
+        ));
+    };
+    // The output says the profile's winds were flown, so a profile with none is refused rather
+    // than flown in calm air under that name.
+    if profile.wind().is_none() {
+        return Err(Failure::helped(
+            format!("{shown}: the profile gives no winds, and `--weather` flies its air and winds"),
+            "give a profile whose levels hold `wind_speed_m_s` and `wind_direction_from_rad`, as \
+             `hpr weather` writes, or fly the standard atmosphere with --wind",
+        ));
+    }
+    let (low_m, high_m) = (lowest.height_msl_m, highest.height_msl_m);
+    if !(low_m..=high_m).contains(&elevation_m) {
+        // The range shown to 0.1 m, rounded inward so any height typed from it is inside.
+        let (low_shown, high_shown) = if high_m - low_m < 0.2 {
+            (low_m, high_m)
+        } else {
+            ((low_m * 10.0).ceil() / 10.0, (high_m * 10.0).floor() / 10.0)
+        };
+        return Err(Failure::helped(
+            format!(
+                "--elevation {elevation_m}: the site lies outside the heights of {shown}, \
+                 {low_shown} to {high_shown} m above sea level"
+            ),
+            format!(
+                "give the site's elevation within them, such as its lowest level, \
+                 `--elevation {low_m}`, or a profile fetched for this site"
+            ),
+        ));
+    }
+    Ok(profile)
 }
 
 /// A library error, as the command reports it: the design passed its checks, so what the
@@ -878,6 +947,7 @@ fn typed_options(flight: &FlightArgs) -> Vec<String> {
     option("heading", flight.heading.map(|v| v.to_string()));
     option("wind", flight.wind.map(|v| v.to_string()));
     option("wind-from", unless(flight.wind_from, 0.0));
+    option("weather", word(&flight.weather));
     typed
 }
 
@@ -1139,7 +1209,7 @@ pub(crate) fn sidecar(path: &str) -> String {
         .into_owned()
 }
 
-/// The files a flight reads: the design, and `--motor`'s where it names a file.
+/// The files a flight reads: the design, `--motor`'s where it names a file, and `--weather`'s.
 pub(crate) fn read_files(flight: &FlightArgs) -> Vec<PathBuf> {
     std::iter::once(flight.design.as_str())
         .chain(
@@ -1148,6 +1218,7 @@ pub(crate) fn read_files(flight: &FlightArgs) -> Vec<PathBuf> {
                 .as_deref()
                 .filter(|motor| MotorFile::of(motor).is_some()),
         )
+        .chain(flight.weather.as_deref())
         .map(same_file)
         .collect()
 }

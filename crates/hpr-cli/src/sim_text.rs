@@ -212,15 +212,24 @@ pub(crate) fn launch_lines(launch: &Launch, out: &mut dyn Write) -> io::Result<(
             typed_bearing(launch.heading_deg)
         )
     };
-    let wind = if launch.wind_speed_m_s == 0.0 {
-        "calm air".to_owned()
-    } else {
-        format!(
-            "a {} m/s ({}) wind from {}",
-            launch.wind_speed_m_s,
-            miles_per_hour(launch.wind_speed_m_s),
-            typed_bearing(launch.wind_from_deg)
-        )
+    let wind = match (launch.wind_speed_m_s, launch.wind_from_deg) {
+        (Some(speed), Some(from)) if speed != 0.0 => format!(
+            "a {speed} m/s ({}) wind from {}",
+            miles_per_hour(speed),
+            typed_bearing(from)
+        ),
+        (Some(_), _) => "calm air".to_owned(),
+        // A weather profile's air and winds: `atmosphere` names its file, its control
+        // characters shown as `?` so that none reaches the terminal.
+        _ => format!(
+            "the air and winds of {}",
+            crate::printable(
+                launch
+                    .atmosphere
+                    .strip_prefix("profile ")
+                    .unwrap_or(&launch.atmosphere)
+            )
+        ),
     };
     writeln!(
         out,

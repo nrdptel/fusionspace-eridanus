@@ -65,6 +65,18 @@ fn cases(folder: &Path) -> Vec<Case> {
     let file = |name: &str| folder.join(name).to_str().unwrap().to_owned();
     let bad_eng = file("bad.eng");
     std::fs::write(&bad_eng, "hello\n").unwrap();
+    // A profile of two levels, 1,000 to 3,000 m above sea level, as `hpr weather` writes one.
+    let profile = file("profile.json");
+    std::fs::write(
+        &profile,
+        r#"{"levels": [
+            {"height_msl_m": 1000.0, "temperature_k": 290.0, "pressure_pa": 90000.0,
+             "wind_speed_m_s": 3.0, "wind_direction_from_rad": 4.7},
+            {"height_msl_m": 3000.0, "temperature_k": 277.0, "pressure_pa": 70000.0,
+             "wind_speed_m_s": 9.0, "wind_direction_from_rad": 4.8}
+        ], "latitude_rad": 0.5, "wind_interpolation": "speed_direction"}"#,
+    )
+    .unwrap();
     std::fs::write(file("rocket.rkt"), "<RockSimDocument/>\n").unwrap();
     std::fs::write(file("empty.csv"), "").unwrap();
     let missing = folder.join("no-such-folder");
@@ -97,6 +109,15 @@ fn cases(folder: &Path) -> Vec<Case> {
         ),
         // A motor file given where the design goes.
         case(&["sim", &bad_eng], "is a motor file: give it with --motor"),
+        // A weather profile that isn't one, and one whose heights the site lies outside.
+        case(
+            &["sim", &guide, "--weather", &bad_eng],
+            "give the JSON file `hpr weather` writes with --output",
+        ),
+        case(
+            &["sim", &guide, "--weather", &profile, "--elevation", "0"],
+            "give the site's elevation within them",
+        ),
         // A design neither its own motors nor --motor can fly: the file must change.
         case(
             &[

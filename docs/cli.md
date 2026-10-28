@@ -692,8 +692,8 @@ width sets only their own inertia
 #### The launch
 
 Every flight starts from a rail, at a site, in the
-[standard atmosphere](glossary.md#standard-atmosphere). Without options, the site is at sea level at
-0° N, 0° E, and the air is calm. The rail is vertical, 1.5 m (4.9 ft) long, and has no friction.
+[standard atmosphere](glossary.md#standard-atmosphere) unless `--weather` gives a profile. Without
+options, the site is at sea level at 0° N, 0° E, and the air is calm. The rail is vertical, 1.5 m (4.9 ft) long, and has no friction.
 `hpr sim` doesn't read the launch conditions an OpenRocket file stores with its simulations. Give
 them with these options.
 
@@ -712,6 +712,7 @@ level. Latitude changes gravity only a little: at 45° N its apogee moves by les
 | `--heading DEG` | the direction the rail leans toward, clockwise from true north, degrees (add the [declination](physics/magnetic.md) to a compass reading) | 0 |
 | `--wind M_S` | a wind of this speed at every height, m/s | calm |
 | `--wind-from DEG` | where the wind blows from, clockwise from true north, degrees: 270 is a west wind | 0 |
+| `--weather FILE` | the air and winds of an [`hpr weather` profile](#the-profile-file), not with `--wind` or `--wind-from`; `--elevation` must lie within its levels | standard |
 
 OpenRocket measures its launch rod's angle from the vertical instead, so its 5° is 85 here. This
 flies the same rocket from Spaceport America's field, on a rail leaning 5° into a west wind:
@@ -1013,9 +1014,6 @@ line for each of the three files. `--json` names the two beside the figure under
   separation stated. A payload dropped with nothing left to burn flies when its own device opens
   at the split. The rest, and a staged configuration with your own `--motor`, are refused by name
   ([the refusals](#the-motor-and-the-configuration)).
-- **Real weather.** One wind at every height, in the standard atmosphere.
-  [`hpr weather`](#hpr-weather) writes a launch day's profile, but `hpr sim` doesn't fly it yet
-  (issue [#265](https://github.com/nrdptel/fusionspace-eridanus/issues/265)).
 
 ### `hpr mc`
 
@@ -1118,7 +1116,7 @@ start from, with their sources.
 | `--burn-time-sd FRACTION` | each motor's burn time, at the same impulse | `burn_time_sd_fraction` |
 | `--delay-sd S` | each motor's [ejection delay](glossary.md#ejection-delay), s | `ejection_delay_sd_s` |
 | `--wind-sd FRACTION` | the wind's speed at every height | `wind_speed_sd_fraction` |
-| `--wind-from-sd DEG` | the wind's direction, about `--wind-from` | `wind_heading_sd_rad` |
+| `--wind-from-sd DEG` | the wind's direction, about `--wind-from` or the profile's | `wind_heading_sd_rad` |
 | `--inclination-sd DEG` | the rail's angle above the horizon | `rail_elevation_sd_rad` |
 | `--heading-sd DEG` | the rail's heading | `rail_azimuth_sd_rad` |
 | `--deployment-lag-sd S` | each recovery device's lag after its trigger, s | `deployment_lag_sd_s` |
@@ -1978,8 +1976,7 @@ sources:
 | RAP | NOAA's 13 km (8.1 mi) forecast model over the contiguous U.S. and nearby Canada and Mexico ([NOAA forecasts: GFS and RAP](nomads.md)) | `hpr weather rap --latitude 32.99 --longitude -106.97 --cycle 2026-09-30T12Z --hour 6` |
 | ERA5 | a [netCDF](glossary.md#netcdf) file you download from Europe's climate data service: the past weather, reconstructed ([ERA5 weather files](format/era5.md)) | `hpr weather era5 era5.nc --latitude 47.21 --longitude 9.00 --time 2020-02-22T13:00Z` |
 
-`hpr sim` doesn't fly a profile yet (issue
-[#265](https://github.com/nrdptel/fusionspace-eridanus/issues/265)). A Rust program can. Each source's page
+`hpr sim --weather` flies a profile ([the profile file](#the-profile-file)). Each source's page
 flies Calisto, RocketPy's example rocket, through the weather it fetched.
 
 > **How far to trust it.** `hpr weather` runs each source's reader from the library and adds no
@@ -2136,8 +2133,9 @@ saved before they were written too.
 After them come the `levels` above, then `latitude_rad`, the latitude the profile was measured or
 forecast at, in radians. Last is `wind_interpolation`, how the wind is blended between levels
 (`speed_direction`). The Rust library reads the file back as a
-[`SoundingProfile`](api/hpr_atmos/profile/struct.SoundingProfile.html), with the same checks. The
-text output and `--json` give the same levels with the direction in degrees.
+[`SoundingProfile`](api/hpr_atmos/profile/struct.SoundingProfile.html), with the same checks.
+`hpr sim --weather FILE` flies it, from an `--elevation` within its levels, and refuses a profile
+with no winds. The text output and `--json` give the same levels with the direction in degrees.
 
 #### What the profile leaves out
 
@@ -2361,8 +2359,6 @@ you press Tab. Save it where your shell looks for completions:
   `cargo xtask validate --check` ([what it checks](accuracy.md#the-census)).
 - **RockSim is unchecked.** OpenRocket opens the files `hpr convert` writes
   ([evidence row G25](evidence.md#g25)); whether RockSim does isn't checked.
-- **`hpr sim` doesn't fly the weather.** [`hpr weather`](#hpr-weather) writes a profile that only
-  a program reads so far (issue [#265](https://github.com/nrdptel/fusionspace-eridanus/issues/265)).
 - **Stock from one site.** `hpr motors search` covers only what motor.fusionspace.co does
   ([what it leaves out](motor-stock.md#what-it-leaves-out)). It has no filter by total impulse or
   by reload case.

@@ -642,7 +642,7 @@
       "type": "object",
       "properties": {
         "atmosphere": {
-          "description": "The atmosphere: always `standard`, the 1976 US Standard Atmosphere.",
+          "description": "The air flown: `standard`, the 1976 US Standard Atmosphere, or `profile <file>`, the air\nand winds of the weather profile `--weather` gave, by its file name.",
           "type": "string"
         },
         "elevation_m": {
@@ -676,13 +676,19 @@
           "format": "double"
         },
         "wind_from_deg": {
-          "description": "The direction the wind blows from, clockwise from true north, degrees.",
-          "type": "number",
+          "description": "The direction the wind blows from, clockwise from true north, degrees; null when a\nweather profile gives the winds.",
+          "type": [
+            "number",
+            "null"
+          ],
           "format": "double"
         },
         "wind_speed_m_s": {
-          "description": "The wind's speed, m/s, the same at every height; 0 for calm air.",
-          "type": "number",
+          "description": "The wind's speed, m/s, the same at every height; 0 for calm air; null when a weather\nprofile gives the winds (`atmosphere`).",
+          "type": [
+            "number",
+            "null"
+          ],
           "format": "double"
         }
       },
@@ -693,8 +699,6 @@
         "rail_length_m",
         "inclination_deg",
         "heading_deg",
-        "wind_speed_m_s",
-        "wind_from_deg",
         "atmosphere"
       ]
     },

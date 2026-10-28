@@ -922,11 +922,14 @@ pub struct Launch {
     pub inclination_deg: f64,
     /// The direction the rail leans toward, clockwise from true north, degrees.
     pub heading_deg: f64,
-    /// The wind's speed, m/s, the same at every height; 0 for calm air.
-    pub wind_speed_m_s: f64,
-    /// The direction the wind blows from, clockwise from true north, degrees.
-    pub wind_from_deg: f64,
-    /// The atmosphere: always `standard`, the 1976 US Standard Atmosphere.
+    /// The wind's speed, m/s, the same at every height; 0 for calm air; null when a weather
+    /// profile gives the winds (`atmosphere`).
+    pub wind_speed_m_s: Option<f64>,
+    /// The direction the wind blows from, clockwise from true north, degrees; null when a
+    /// weather profile gives the winds.
+    pub wind_from_deg: Option<f64>,
+    /// The air flown: `standard`, the 1976 US Standard Atmosphere, or `profile <file>`, the air
+    /// and winds of the weather profile `--weather` gave, by its file name.
     pub atmosphere: String,
 }
 

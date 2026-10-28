@@ -221,6 +221,5 @@ service (2 October 2026, 18:00 and 19:00 UTC). No test uses the network.
   failed answer.
 - Each request is for only one place and one launch time. It takes Open-Meteo's own choice of
   weather model unless you name one.
-- The command line fetches it with [`hpr weather open-meteo`](cli.md#hpr-weather), but `hpr sim`
-  doesn't fly it yet (issue [#265](https://github.com/nrdptel/fusionspace-eridanus/issues/265)).
-  The Python package doesn't fetch weather.
+- The Python package doesn't fetch weather. The command line fetches it with
+  [`hpr weather open-meteo`](cli.md#hpr-weather).

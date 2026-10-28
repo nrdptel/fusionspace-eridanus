@@ -1809,6 +1809,121 @@ fn sim_flies_a_motor_file_as_the_library_does() {
     }
 }
 
+/// `hpr sim --weather` flies the profile `hpr weather` writes: a profile written from a saved
+/// Open-Meteo answer flies through the command and through the library, with the same air and
+/// winds, to the same numbers bit for bit (#265). The output names the profile and gives no single
+/// wind; the profile's hot day flies higher than the standard atmosphere's from the same site.
+#[test]
+fn sim_flies_the_profile_hpr_weather_writes() {
+    let scratch = tempfile::tempdir().unwrap();
+    let written = scratch.path().join("profile.json");
+    let written = written.to_str().unwrap();
+    let recording = repo_file("crates/hpr-net/tests/fixtures/replay/open-meteo-historical.json");
+    json(
+        &[
+            "weather",
+            "open-meteo",
+            "--time",
+            "2025-06-21T15:30Z",
+            "--from",
+            &recording,
+            "--output",
+            written,
+        ],
+        0,
+        "weather.schema.json",
+    );
+    let profile: hpr::hpr_atmos::SoundingProfile =
+        serde_json::from_str(&std::fs::read_to_string(written).unwrap()).unwrap();
+    // The site sits at the profile's lowest level, its ground.
+    let ground_m = profile.levels()[0].height_msl_m;
+    assert_eq!(ground_m, 1400.0);
+    let elevation = ground_m.to_string();
+    let path = repo_file("validation/designs/synthetic-54mm-three-fin.json");
+    let site = [
+        "--latitude",
+        "32.99",
+        "--longitude",
+        "-106.97",
+        "--elevation",
+        &elevation,
+    ];
+    let mut args = vec!["sim", path.as_str()];
+    args.extend(site);
+    args.extend(["--weather", written]);
+    let document = json(&args, 0, "sim.schema.json");
+
+    let design: hpr::hpr_design::Rocket =
+        serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
+    let wind = profile
+        .wind()
+        .expect("an Open-Meteo profile has winds")
+        .clone();
+    let environment = hpr::Environment::new(32.99, -106.97, ground_m)
+        .unwrap()
+        .with_atmosphere(profile.clone())
+        .with_wind(wind);
+    let (flight, _) = library_flight(design.clone(), "i175", "", None, &environment, |b| b);
+    same_flight(&document, &flight);
+    assert_eq!(document["launch"]["atmosphere"], "profile profile.json");
+    assert_eq!(document["launch"]["wind_speed_m_s"], Value::Null);
+    assert_eq!(document["launch"]["wind_from_deg"], Value::Null);
+
+    // The profile mattered: the standard atmosphere's flight from the same site differs, and the
+    // profile's 302.75 K ground air, thinner than the standard's 279.05 K at 1,400 m, flies higher.
+    let standard = hpr::Environment::new(32.99, -106.97, ground_m).unwrap();
+    let (calm, _) = library_flight(design, "i175", "", None, &standard, |b| b);
+    let apogee = |flight: &hpr::Flight| flight.summary().apogee.unwrap().height_above_ground_m;
+    assert!(
+        apogee(&flight) > apogee(&calm) + 50.0,
+        "{} {}",
+        apogee(&flight),
+        apogee(&calm)
+    );
+    let text = String::from_utf8(hpr(&args).stdout).unwrap();
+    assert!(
+        text.contains("in the air and winds of profile.json"),
+        "{text}"
+    );
+
+    // A site below the profile's lowest level is refused, its range shown rounded inward to
+    // 0.1 m (the top level is 24,212.504 m).
+    let mut below = vec!["sim", path.as_str(), "--weather", written];
+    below.extend(["--elevation", "0"]);
+    let refused = hpr(&below);
+    assert_eq!(refused.status.code(), Some(1));
+    let said = String::from_utf8(refused.stderr).unwrap();
+    assert!(said.contains("1400 to 24212.5 m above sea level"), "{said}");
+    assert!(said.contains("`--elevation 1400`"), "{said}");
+    // A profile with no winds is refused, not flown in calm air under the profile's name.
+    let mut dry: Value = serde_json::from_str(&std::fs::read_to_string(written).unwrap()).unwrap();
+    for level in dry["levels"].as_array_mut().unwrap() {
+        let level = level.as_object_mut().unwrap();
+        level.remove("wind_speed_m_s");
+        level.remove("wind_direction_from_rad");
+    }
+    let dry_path = scratch.path().join("dry.json");
+    std::fs::write(&dry_path, dry.to_string()).unwrap();
+    let mut no_winds = args.clone();
+    let at = no_winds.iter().position(|arg| *arg == written).unwrap();
+    no_winds[at] = dry_path.to_str().unwrap();
+    let refused = hpr(&no_winds);
+    assert_eq!(refused.status.code(), Some(1));
+    let said = String::from_utf8(refused.stderr).unwrap();
+    assert!(said.contains("the profile gives no winds"), "{said}");
+
+    // A single wind beside the profile's is refused before anything flies.
+    let mut beside = args.clone();
+    beside.extend(["--wind", "3"]);
+    let refused = hpr(&beside);
+    assert_eq!(refused.status.code(), Some(2));
+    let said = String::from_utf8(refused.stderr).unwrap();
+    assert!(
+        said.contains("'--weather <FILE>' cannot be used with '--wind <M_S>'"),
+        "{said}"
+    );
+}
+
 /// An hpr design file flies with its own motor, from a site, a leaning rail and a wind given on
 /// the command line, as the library flies it with the same.
 #[test]

@@ -475,6 +475,5 @@ were made on macOS. CI runs the same tests with the same bounds on Linux and Win
 - Whether NCEP gives humidity over ice at cold levels is unsettled here. The difference moves the
   density by under 0.1%.
 - Nothing tells you which runs NOMADS still holds before you ask.
-- The command line fetches them with [`hpr weather gfs` and `rap`](cli.md#hpr-weather), but
-  `hpr sim` doesn't fly them yet (issue [#265](https://github.com/nrdptel/fusionspace-eridanus/issues/265)).
-  The Python package doesn't fetch NOAA's forecasts.
+- The Python package doesn't fetch NOAA's forecasts. The command line fetches them with
+  [`hpr weather gfs` and `rap`](cli.md#hpr-weather).

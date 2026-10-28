@@ -259,9 +259,9 @@ flight alone and leaves them on the terminal.
 
 - The launch conditions in your file. Give them as options,
   [above](#choose-the-configuration-and-the-launch).
-- Real weather. It flies one wind at every height, in the [standard atmosphere](glossary.md#standard-atmosphere).
-  `hpr weather` fetches a launch day's profile, but `hpr sim` doesn't fly it yet
-  ([#265](https://github.com/nrdptel/fusionspace-eridanus/issues/265), flying a weather profile).
+- Real weather, unless you pass [`--weather`](cli.md#the-profile-file). By default it flies one
+  wind at every height in the [standard atmosphere](glossary.md#standard-atmosphere).
+  `--weather FILE` flies the profile `hpr weather` writes.
 - A fall with no parachute open. The landing is then marked "not a prediction"
   ([the landing](cli.md#the-landing)).
 - A verdict. The simulator prints estimates. Whether a rocket is fit to fly is for you, the
