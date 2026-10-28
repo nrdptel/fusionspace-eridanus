@@ -67,7 +67,8 @@ impl Motor {
     /// thrust curve: a bundled file within 1% of ThrustCurve.org's stated figures where it has
     /// one ([`hpr_motor::catalog::CatalogMotor::default_curve`]). A failing file flies without a
     /// warning here; [`hpr_motor::catalog::CatalogMotor::check_warning`] gives it. Only motors
-    /// with a bundled curve can be found: 32 today, listed on the [motor page][motor-page]. The
+    /// with a bundled curve can be found: 924 of the catalog's 1,004, which `hpr motors list` lists
+    /// ([motor page][motor-page]). The
     /// delay is not set, whatever the designation says: give it with [`Motor::with_delay_s`].
     ///
     /// [motor-page]: https://hpr.fusionspace.co/physics/motor.html

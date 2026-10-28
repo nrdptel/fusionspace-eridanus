@@ -4327,8 +4327,8 @@ fn loft_demo_designs_read_as_snapshotted() {
         let design = design(&file.value);
         insta::assert_json_snapshot!(name, snapshot_of(&design));
     }
-    // None of Loft's demonstration motors is in the bundled catalog, so a synthetic design stands
-    // for one that flies: an Estes F15 from the catalog, in a body tube.
+    // A synthetic design stands for one that flies: an Estes F15 from the catalog, in a body
+    // tube.
     let flies = motor_design(
         r#"<motorconfiguration configid="a" default="true"/>"#,
         "<overhang>0.0</overhang><motor configid='a'><type>single</type>\

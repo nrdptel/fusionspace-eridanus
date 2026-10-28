@@ -558,8 +558,8 @@ It has eight steps.
    each with the source of its density ([Mass properties](physics/mass.md#materials)). The
    [`materials`](api/hpr_design/materials/index.html) page of the API reference lists them. For a
    material of your own, `Material::bulk(name, kg_m3)` takes a name and a density in kg/m³.
-4. **The motor.** `Catalog::bundled()` is the catalog of 32
-   [ThrustCurve.org](glossary.md#thrustcurveorg) motors that comes with the simulator.
+4. **The motor.** `Catalog::bundled()` is the catalog of
+   [ThrustCurve.org](glossary.md#thrustcurveorg)'s 1,004 solid motors that comes with the simulator.
    [`find`](api/hpr_motor/catalog/struct.Catalog.html#method.find) looks one up by its
    [designation](glossary.md#motor-designation) or common name, ignoring case, spaces and hyphens,
    so `"h54"` finds this one too. `bundled_motor()` builds the motor from its thrust curve and the
@@ -575,7 +575,7 @@ It has eight steps.
    - While the motor burns, the simulator also uses the case's diameter for the
      [base drag](glossary.md#base-drag), the drag on the rocket's flat aft end. The part of that
      end the burning case covers gets none.
-   - [Solid motors](physics/motor.md#using-a-motor) lists [the bundled
+   - [Solid motors](physics/motor.md#using-a-motor) describes [the bundled
      motors](physics/motor.md#the-bundled-motors), and shows how to use [a motor file of your
      own](physics/motor.md#a-motor-from-a-file), such as one from ThrustCurve.org, instead.
 5. **The rocket.** A [`Rocket`](api/hpr_design/tree/struct.Rocket.html) holds its stages (one
@@ -699,8 +699,8 @@ What the example can't do yet, and where to go from here.
   itself or when it opens.
 - HPR Sim imports designs from one other program. [OpenRocket](glossary.md#openrocket) `.ork`
   files are read ([`.ork` design files](format/ork.md)). On a file's own curves and the bundled
-  motors alone, few motor configurations fly. `hpr sim` looks up each missing curve once and keeps
-  what it finds. Then most fly as saved
+  motors alone, most motor configurations fly. `hpr sim` looks up a missing curve once and keeps
+  what it finds
   ([how many fly](format/ork.md#how-many-configurations-hpr-sim-flies)). Their parachutes and
   streamers fly as OpenRocket flies them. RockSim `.rkt` files can't
   be read yet ([RockSim import](decisions-and-roadmap.md#m3-4)).

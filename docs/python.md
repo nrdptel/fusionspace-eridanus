@@ -136,7 +136,7 @@ Line by line:
   mass from its shape and that material's density.
 - The fins' lengths are named, so a swap shows in the call. They're the root chord, tip
   chord and span, and the sweep. The sweep is how far aft of the root's leading edge the tip's is.
-- `Motor.from_catalog` finds one of the [32 bundled motors](physics/motor.md#the-bundled-motors)
+- `Motor.from_catalog` finds one of the [924 bundled motors with a curve](physics/motor.md#the-whole-catalog)
   by its name. It doesn't take the delay from the designation (the H54's full one is 168H54-10A).
   So give it as `delay_s`: a parachute opened by the motor needs one. `Motor.from_file` reads a
   RASP [`.eng`](format/eng.md) or RockSim [`.rse`](format/rse.md) file.
@@ -233,9 +233,9 @@ design files](format/ork.md)), or a rocket's JSON. It flies the
 [motor configuration](glossary.md#configuration) you name, or the file's default one, or its only
 one, as `hpr sim` does.
 
-Most `.ork` files won't fly yet. A configuration flies only if every motor lights at launch and
-has a thrust curve, in the file or among the simulator's 32 bundled motors. That's 4 of the 170
-configurations in the reference library. Otherwise `from_file` raises `HprError` and says why.
+A configuration flies only if every motor lights at launch and has a thrust curve, in the file or
+in the simulator's bundled catalog. That's 154 of the 170 configurations in the reference library
+and OpenRocket's examples. Otherwise `from_file` raises `HprError` and says why.
 Python can't yet swap in a motor as `hpr sim --motor` does.
 
 A design read from a file flies **without** the parachutes it stores, unless you ask for them

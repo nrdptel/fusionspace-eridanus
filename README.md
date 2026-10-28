@@ -27,8 +27,8 @@ model cites its source and has tests.
 - You build a rocket part by part, with OpenRocket's catalog of 3,449 makers' parts built in, or
   read it from a design file.
 - It reads OpenRocket `.ork` designs whole and writes them back, and it has an open design format
-  of its own (`.hpr`, `.hprz`). Motors come as `.eng` and `.rse` files: 32 are bundled, and any
-  other is fetched from ThrustCurve.org once.
+  of its own (`.hpr`, `.hprz`). Motors come as `.eng` and `.rse` files: ThrustCurve.org's
+  1,004 solid motors are bundled, and a newer one is fetched from there once.
 - Online data is optional: weather (Open-Meteo's forecasts, weather-balloon soundings and NOAA's
   GFS and RAP), [a site's elevation](https://hpr.fusionspace.co/elevation.html) and
   [live motor stock and prices](https://hpr.fusionspace.co/motor-stock.html). The elevation is

@@ -486,15 +486,15 @@ Then each motor configuration that flies is flown three ways:
 
 Each flight is in calm air of the [standard atmosphere](../glossary.md#standard-atmosphere) at sea
 level, off a 1.5 m (4.9 ft) vertical rail. Its stages separate if they do. Of the designs' 170
-configurations, **145 fly, and each reaches the same apogee all three ways, bit for bit**. The
+configurations, **161 fly, and each reaches the same apogee all three ways, bit for bit**. The
 format's first step, [M3.3a](../decisions-and-roadmap.md#m3-3a), asked for 1 part in 10⁹.
 
-These 145 fly because the check supplies OpenRocket's own motor database for the curves the files
-name but don't carry. With only the files' own curves and the simulator's bundled motors, 4 fly
-([the reference library's survey of motors](ork.md#motors-in-the-reference-library)). The other 25
+The check supplies OpenRocket's own motor database for the curves the files name but don't carry.
+With only the files' own curves and the simulator's bundled motors, 154 fly
+([the reference library's survey of motors](ork.md#motors-in-the-reference-library)). The other 9
 have no flight to compare. The `.ork` reader leaves them out of the rocket all three ways, by the
-first reason it finds. Of the 25, 24 lack a thrust curve, and 1 has stages the simulator can't
-separate as written
+first reason it finds. Of the 9, 6 lack a thrust curve, 1 has a motor the simulator can't light
+as written, 1 an airframe not read exactly as written, and 1 stages it can't separate as written
 ([which configurations fly](ork.md#which-configurations-the-rocket-flies)).
 
 **In CI**, the automatic checks that run on every change don't have the private designs. So

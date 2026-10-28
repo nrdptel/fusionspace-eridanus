@@ -29,8 +29,8 @@ corpus. A Rust program reads a file with `hpr_io::ork`. From a terminal,
 can't fly as written, such as a payload that would coast with no drag after its split.
 
 > **How far to trust it.** The airframe's key geometry is within the survey's 1-in-$10^9$ tolerance
-> of OpenRocket's for all 1,171 numbers over 71 designs. With the file's own curves and HPR Sim's small bundled
-> catalog, 4 of the 170 motor configurations fly, and 145 with OpenRocket's motor database. On all
+> of OpenRocket's for all 1,171 numbers over 71 designs. With the file's own curves and HPR Sim's bundled
+> catalog, 154 of the 170 motor configurations fly, and 161 with OpenRocket's motor database. On all
 > 53 of OpenRocket's example flights, HPR Sim lands within 0.12% of OpenRocket's landing speed; 45
 > apogees are within 5% of OpenRocket's, and the other 8 each have a named cause, from −37.93% to
 > +13.80%. One private flight, the supersonic one, is off by +13.60%. The pod examples' stability margin reads 0.070 to 0.076 calibers above OpenRocket's, the flattering side. A written file
@@ -47,17 +47,17 @@ can't fly as written, such as a payload that would coast with no drag after its 
   Where parts sit is checked against OpenRocket alone. Mass and the center of gravity are checked
   in [Mass properties](../physics/mass.md#checked-against-openrocket)
   ([checked against RocketSerializer](#checked-against-rocketserializer)).
-- **Few motor configurations fly with HPR Sim alone.** Motors are read. A configuration flies only
+- **Most motor configurations fly with HPR Sim alone.** Motors are read. A configuration flies only
   when every motor in it has a thrust curve and lights at a moment HPR Sim can fly. Its stages
   must also come apart in a way HPR Sim flies, and the airframe must have been read without a
-  warning. Most designs don't carry their curves. With the file's own curves and HPR Sim's small
-  bundled catalog, **4 of the 170 motor configurations** in the reference library's 72 designs
-  fly. When a caller also supplies OpenRocket's own motor database, as the validation survey does,
-  **145** fly. HPR Sim doesn't ship that database
+  warning. Most designs don't carry their curves. With the file's own curves and HPR Sim's
+  bundled catalog, **154 of the 170 motor configurations** in the reference library and
+  OpenRocket's examples fly. When a caller also supplies OpenRocket's own motor database, as the
+  validation survey does, **161** fly. HPR Sim doesn't ship that database
   ([motors in the reference library](#motors-in-the-reference-library)). The `hpr sim` command
-  fetches a missing curve from ThrustCurve.org by the file's manufacturer and designation, and
+  fetches a curve still missing from ThrustCurve.org by the file's manufacturer and designation, and
   caches it, as [motors from ThrustCurve.org](../cli.md#motors-from-thrustcurveorg) describes.
-  With those curves `hpr sim` flies **136** of the 170 as saved, and 9 more with
+  With those curves `hpr sim` flies **136** of the 170 as saved, and 25 more with
   `--accept-design-errors` ([the count](#how-many-configurations-hpr-sim-flies)).
 - **Parachutes and streamers fly as OpenRocket flies them.** HPR Sim lands within 0.02% of
   OpenRocket's landing speed on 50 of its 53 example flights and within 0.12% on all 53. Take the
@@ -488,8 +488,8 @@ of the output that the next run must match. Each summary records:
 is compared with another program here. The geometry is, in
 [the next section](#checked-against-rocketserializer). For example, `demo-stable.ork` is a 38 mm
 (1.5 in) trainer on an AeroTech H128W. Its snapshot says the structure weighs 0.540 kg and that its
-one configuration does not fly (`"flown": []`). It doesn't fly because that motor has no thrust
-curve in the file or in HPR Sim's small bundled catalog
+one configuration flies (`"flown": ["cfg-38-stable-h128"]`). It warns that the motor's bundled
+curve file is more than 1% from ThrustCurve.org's figures
 ([motors](#motors-and-their-configurations)). Each field's meaning is in the section of this page
 that reads it.
 
@@ -1832,10 +1832,9 @@ The motors each configuration flies, and when parachutes open and stages separat
 **In short.** HPR Sim reads every motor a design names, in every configuration, with when it lights
 and its ejection delay. It finds the thrust curve in the file itself, in curves a caller supplies,
 or in HPR Sim's bundled catalog. A configuration becomes one the rocket can fly only when every
-motor in it has a curve. Each motor must also light at a moment HPR Sim can fly. Most designs in the
-reference library name motors the bundled catalog doesn't hold. So **4 of their 170 configurations
-fly** with HPR Sim alone, and **145** with OpenRocket's motor database supplied (`cargo xtask ork`
-counts it). The rest are read, kept, and say why not.
+motor in it has a curve. Each motor must also light at a moment HPR Sim can fly. Of the 170
+configurations in the reference library and OpenRocket's examples, **154 fly** with HPR Sim alone,
+and **161** with OpenRocket's motor database supplied (`cargo xtask ork` counts it). The rest are read, kept, and say why not.
 
 A **configuration** is one set of motors to fly the design with. OpenRocket calls it a *flight
 configuration*, and a design can have several, one per motor choice. The file keeps it in two
@@ -1867,14 +1866,13 @@ places, in this order:
    [`design_with`](../api/hpr_io/ork/fn.design_with.html). A supplied curve is never matched by
    name, only by the digest. HPR Sim ships none: the validation survey supplies OpenRocket's own
    motor database ([motors in the reference library](#motors-in-the-reference-library)).
-3. **HPR Sim's bundled catalog**: [32 motors from ThrustCurve.org](../physics/motor.md). The
+3. **HPR Sim's bundled catalog**: [ThrustCurve.org's 1,004 solid motors](../physics/motor.md#the-whole-catalog). The
    manufacturer and the designation must both match, ignoring case, spaces and hyphens. Both are
    needed: an Estes `B4` is not a Quest `B4`.
 
 OpenRocket's own order is the other way round: its motor database first, then the curve in the
 file. Its reason is that the database "may have more accurate or updated data" (its file
-specification). HPR Sim's catalog is far smaller than that database, and the curve in the file is
-the exact one. So HPR Sim reads the file first. On a file that carries curves, HPR Sim and
+specification). The curve in the file is the exact one. So HPR Sim reads the file first. On a file that carries curves, HPR Sim and
 OpenRocket can fly different curves for the same motor.
 
 HPR Sim builds the motor from the curve file's header, as it does for any catalog motor. The header
@@ -2069,7 +2067,7 @@ assert_eq!(assembly.motors[0].mount, "body");
 #### How many configurations `hpr sim` flies
 
 **In short.** `hpr sim` flies 136 of the survey's 170 motor configurations as saved, offline
-after one fetch, and 9 more with `--accept-design-errors`; 25 are refused. These are counts, not
+after one fetch, and 25 more with `--accept-design-errors`; 9 are refused. These are counts, not
 accuracy. A configuration counted as flying is one `hpr sim` accepts and flies to the ground. How
 close each flight comes to OpenRocket's is
 [HPR Sim's flights against OpenRocket's](#the-simulators-flights-against-openrockets).
@@ -2080,16 +2078,17 @@ repository, and the 17 examples inside OpenRocket 24.12's jar. A *motor configur
 of motors to fly a design with ([above](#motors-and-their-configurations)). A file found in two
 places is counted in each.
 
-The three counts of the same 170 differ by where the thrust curves come from:
+The three counts of the same 170 differ by where the thrust curves come from. `hpr sim` also
+refuses a design its checks find an error in, unless given `--accept-design-errors`:
 
 | Curves from | Configurations that fly | Counted by |
 |---|---:|---|
-| The file and HPR Sim's bundled catalog alone | 4 | `cargo xtask ork` |
+| The file and HPR Sim's bundled catalog alone | 154 | `cargo xtask ork` |
 | Those, and ThrustCurve.org's, as `hpr sim` fetches them | 136 | `cargo xtask ork-cli` |
-| Those, and OpenRocket's own motor database | 145 | `cargo xtask ork` |
+| Those, and OpenRocket's own motor database | 161 | `cargo xtask ork` |
 
-HPR Sim doesn't ship OpenRocket's database, so 136 is what a user of `hpr sim` gets, and 9 more fly
-with `--accept-design-errors`. The 145 is the
+HPR Sim doesn't ship OpenRocket's database, so 136 is what a user of `hpr sim` gets, and 25 more fly
+with `--accept-design-errors`. The 161 is the
 validation survey's count ([Motors in the reference library](#motors-in-the-reference-library)).
 
 The 136 come from [the committed report][ork-cli-report], which `cargo xtask ork-cli` writes
@@ -2099,7 +2098,7 @@ A first pass with the network caches every curve `hpr sim` fetches
 ([Where the thrust curve comes from](#where-the-thrust-curve-comes-from)), and the counts are
 taken offline after it.
 
-A configuration refused as saved is flown again with `--accept-design-errors`. The 9 that fly
+A configuration refused as saved is flown again with `--accept-design-errors`. The 25 that fly
 then were refused only because the design's own [checks](../physics/design.md#checks) found an
 error. An example is a ring or tube wider than the tube it sits in. Their flights list those
 errors in their notes ([The command line](../cli.md)).
@@ -2117,7 +2116,7 @@ first motor's ([Delays and ignition](#delays-and-ignition)). The 2 refused are *
 extensions* and *Simulation scripting*, for a hybrid motor: HPR Sim flies commercial solid motors
 only until release 1.0.
 
-Most of the library's refusals are motors with no curve whose file records no
+Two of the library's refusals are motors with no curve whose file records no
 [digest](#motors-in-the-reference-library), OpenRocket's fingerprint of the curve. `hpr sim`
 supplies a fetched curve only by its digest, so it fetches none for them. The report gives every
 reason's count.
@@ -2138,7 +2137,7 @@ cargo xtask ork-cli --check   # fails unless the committed report is still what 
 **In short.** Most designs in the reference library don't carry their motors' curves. They name each
 curve by its digest, OpenRocket's fingerprint (a hash) of the curve's data. OpenRocket finds
 the curve in the motor database that ships inside its program. The validation survey supplies that
-database to HPR Sim, so 145 of the 170 configurations fly instead of 4. Every curve involved matches
+database to HPR Sim, so 161 of the 170 configurations fly instead of 154. Every curve involved matches
 OpenRocket's total impulse, and in every configuration HPR Sim flies with a supplied curve,
 OpenRocket places that curve too. What still differs is where the motor's weight sits (below).
 
@@ -2196,8 +2195,8 @@ September 25, 2026, before pods, the old override flag, fillets, the bore inside
 were read, 93 flew in 23 designs. Another 30 were held back as an airframe not read exactly as
 written.
 
-**What the database changed.** With the bundled catalog alone, 166 configurations are held back
-for want of a curve, and 4 fly. The table follows those 166. A configuration that now has its
+**What the database changed.** On that date, with the bundled catalog of 32 motors alone, 166
+configurations were held back for want of a curve, and 4 flew. The table follows those 166. A configuration that now has its
 curves can still be held back for another reason, so these counts differ from the table above:
 
 | what became of the 166 | configurations |

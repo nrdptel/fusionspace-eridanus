@@ -39,7 +39,7 @@ it. Run the commands from a copy of the repository, or put your own file's path 
 ## Fly the file as it is
 
 **`hpr sim` with the file's name flies its default configuration, with the motors, delays and
-parachutes the file holds.** The guide rocket's motors are among the 32 built into the simulator, so
+parachutes the file holds.** The guide rocket's motors are in the catalog built into the simulator, so
 it flies with no network:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/guides/level-1.ork`; written by `cargo xtask cli`; do not edit -->

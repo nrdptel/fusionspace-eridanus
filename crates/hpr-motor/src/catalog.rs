@@ -1,11 +1,11 @@
 //! An offline motor catalog: motor metadata, thrust curves, and each curve's provenance and
 //! license.
 //!
-//! [`Catalog::bundled`] is the catalog compiled into the crate: 32 curve files that ThrustCurve.org
-//! marks public domain (the decision record on solid motors and the bundled catalog,
-//! [ADR-005][adr-005]; how they were chosen, and the curves left out, are in
-//! `docs/research/thrustcurve-data.md`). Other curves are fetched and cached by `hpr-net`, the
-//! online layer that starts at [M5.1][m5-1].
+//! [`Catalog::bundled`] is the catalog compiled into the crate: ThrustCurve.org's whole solid
+//! catalog, captured 2026-10-28, with 1,004 motors and 1,700 curve files; 80 of the motors have no
+//! file that reads, and can't fly. Every lookup reads it ([ADR-302][adr-302]). The decision record
+//! on solid motors and the first bundled catalog is [ADR-005][adr-005]. Newer curves are fetched
+//! and cached by `hpr-net`, the online layer that starts at [M5.1][m5-1].
 //!
 //! Every figure a motor lists in the bundled index comes from its curve file alone, written by
 //! `cargo xtask motor-catalog` (the rule [ADR-186][adr-186] set, issue #295). ThrustCurve.org
@@ -36,6 +36,7 @@
 //! [adr-287]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-287-thrustcurveorgs-motor-records-used-as-published-facts-2026-10-20
 //! [adr-288]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-288-every-solid-motor-ships-in-the-package-2026-10-21
 //! [adr-298]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0298-every-solid-motor-in-four-increments.md
+//! [adr-302]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0302-every-motor-by-name.md
 //! [l43]: https://hpr.fusionspace.co/decisions-and-roadmap.html#l43
 //! [m5-1]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m5-1
 //! [m5-7]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m5-7

@@ -87,8 +87,11 @@ fn benches(c: &mut Criterion) {
     c.bench_function("rse::parse, the same curve", |b| {
         b.iter(|| rse::parse(black_box(&rse_text)).unwrap());
     });
-    c.bench_function("Catalog::bundled", |b| {
-        b.iter(|| Catalog::bundled().unwrap());
+    // `Catalog::bundled` reads the index on its first call and shares that copy after, so the
+    // reading is timed here, as `from_json` on the same text.
+    let index = include_str!("../data/thrustcurve/catalog.json");
+    c.bench_function("Catalog::bundled's first call: the index read", |b| {
+        b.iter(|| Catalog::from_json(black_box(index)).unwrap());
     });
 }
 

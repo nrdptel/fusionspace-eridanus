@@ -687,8 +687,8 @@ If you propose a change to the program itself in a pull request, two more comman
   [stability margin](glossary.md#stability-margin). [The builder](the-builder.md) does the same
   in fewer lines.
 - [`.ork` design files](format/ork.md) reads a design from OpenRocket. On a file's own curves and
-  the bundled motors alone, few motor configurations fly. `hpr sim` looks up each missing curve
-  once and keeps what it finds. Then most fly as saved
+  the bundled motors alone, most motor configurations fly. `hpr sim` looks up a missing curve
+  once and keeps what it finds
   ([how many fly](format/ork.md#how-many-configurations-hpr-sim-flies)). Its parachutes and
   streamers fly as OpenRocket flies them.
 - [Accuracy](accuracy.md) gathers every validation result, and
