@@ -2394,7 +2394,8 @@ fn sim_flies_a_orks_own_motor_as_the_library_does() {
     same_flight(&document, &flight);
     // The file holds no curve: the reader found it in the bundled catalog, which the source
     // dates (ADR-214) and names by ThrustCurve.org's motor and file ids.
-    let (motor_id, simfile_id) = file
+    let (motor_id, simfile_id) = design
+        .motors
         .configurations
         .iter()
         .flat_map(|c| &c.motors)
