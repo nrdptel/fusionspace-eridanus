@@ -1230,6 +1230,33 @@ mod tests {
         }
     }
 
+    /// ADR-302 §5, through `hpr sim --motor`'s own lookup: a bundled default file more than 5%
+    /// light on propellant flies with that warning, word for word, on every such motor.
+    #[test]
+    fn hpr_sim_warns_of_a_light_propellant_file() {
+        let bundled = Catalog::bundled().unwrap();
+        let mut light = 0;
+        for motor in &bundled.motors {
+            let Some(curve) = motor.default_curve() else {
+                continue;
+            };
+            let Some(expected) = motor.propellant_warning(curve) else {
+                continue;
+            };
+            light += 1;
+            let selector = bundled.selector(motor);
+            let (_, _, warnings) =
+                crate::sim::catalog_or_fetched(&selector, true, bundled).unwrap();
+            assert!(
+                warnings
+                    .iter()
+                    .any(|warning| warning.message == crate::printable(&expected)),
+                "{selector}: {warnings:?}"
+            );
+        }
+        assert_eq!(light, 48);
+    }
+
     /// ADR-302 §3: the one motor a name finds, listed with no curve file, is refused as such,
     /// not looked for online as a motor the catalog lacks.
     #[test]
