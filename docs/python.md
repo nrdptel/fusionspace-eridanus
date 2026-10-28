@@ -576,7 +576,7 @@ except hpr.HprError as error:
 ```
 
 ```text
-no motor with a bundled thrust curve matches `Z9000`
+no motor in the bundled catalog matches `Z9000`
 ```
 
 ### Names and units
