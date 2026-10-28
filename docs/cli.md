@@ -1490,7 +1490,7 @@ $ hpr motors fetch F27R/L
 F27R/L (AeroTech), from ThrustCurve.org: fetched now
   curve file       5f4294d20002e90000000372, RASP (.eng), from a user, no license stated
   case             29 × 83 mm (1.14 × 3.3 in)
-help: kept in the cache: `hpr sim --motor F27R/L` flies it, offline too
+help: the bundled catalog has F27R/L too, and `hpr sim --motor` flies the catalog's curve
 Motor data and thrust curves courtesy of ThrustCurve.org, https://www.thrustcurve.org/
 ```
 
