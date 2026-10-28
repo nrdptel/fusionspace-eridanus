@@ -17,26 +17,25 @@
 //! </gpx>
 //! ```
 //!
-//! **What the sources set.** Topografix's schemas, *GPX 1.0* (topografix.com/GPX/1/0/gpx.xsd)
-//! and *GPX 1.1* (topografix.com/GPX/1/1/gpx.xsd), and GPX 1.0's manual
-//! (topografix.com/gpx_manual.asp). GPX 1.0's schema holds types and no documentation, so the
-//! words quoted here are GPX 1.1's schema's; GPX 1.0's manual says the same of each element it
-//! describes. A point's `lat` and `lon` are in "Decimal degrees, WGS84 datum", the latitude from
-//! −90 to 90 and the longitude from −180 to 180 (both schemas' types: 1.1 leaves out 180 itself,
-//! 1.0 doesn't; this reader takes 180, the same meridian as −180). Its `ele` is the "Elevation
-//! (in meters) of the point", with no datum of its own. GPX 1.1's schema opens with "all
-//! coordinates are relative to the WGS84 datum", which could be read as heights above the WGS84
-//! ellipsoid, but it doesn't say so of `ele`, nor does the manual, and neither says whether a
-//! writer's elevation is above that ellipsoid, above mean sea level or from a barometer. A point's
-//! `geoidheight` is the geoid's height above the WGS84 ellipsoid, "as defined in NMEA GGA
-//! message". A point's `time` is an XML Schema `dateTime`, and "Date and time in are in Univeral \[sic\] Coordinated
-//! Time (UTC), not local time!" `sat` is the "Number of satellites used to calculate the GPX fix",
-//! `hdop`, `vdop` and `pdop` its dilutions of precision, and a `fix` of "none means GPS had no
-//! fix". In GPX 1.0 a track point may also hold `course`, in "degrees, true", and `speed`, in
-//! "meters per second" (the manual); GPX 1.1 dropped both. A track segment "holds a list of Track
-//! Points which are logically connected in order. To represent a single GPS track where GPS
-//! reception was lost, or the GPS receiver was turned off, start a new Track Segment for each
-//! continuous span of track data."
+//! **What the sources set.** Topografix's schemas, *GPX 1.0* (topografix.com/GPX/1/0/gpx.xsd) and
+//! *GPX 1.1* (topografix.com/GPX/1/1/gpx.xsd), and GPX 1.0's manual
+//! (topografix.com/gpx_manual.asp). GPX 1.0's schema holds types and no documentation, so the words
+//! quoted here are GPX 1.1's schema's; GPX 1.0's manual says the same of each element it describes.
+//! A point's `lat` and `lon` are in "Decimal degrees, WGS84 datum", the latitude from −90 to 90 and
+//! the longitude from −180 to 180 (both schemas' types: 1.1 leaves out 180 itself, 1.0 doesn't;
+//! this reader takes 180, the same meridian as −180). Its `ele` is the "Elevation (in meters) of
+//! the point", with no datum of its own. GPX 1.1's schema opens with "all coordinates are relative
+//! to the WGS84 datum", which could be read as heights above the WGS84 ellipsoid, but it doesn't
+//! say so of `ele`, nor does the manual, and neither says whether a writer's elevation is above
+//! that ellipsoid, above mean sea level or from a barometer. A point's `geoidheight` is the geoid's
+//! height above the WGS84 ellipsoid, "as defined in NMEA GGA message". A point's `time` is an XML
+//! Schema `dateTime`, and "Date and time in are in Univeral \[sic\] Coordinated Time (UTC), not
+//! local time!" `sat` is the "Number of satellites used to calculate the GPX fix", `hdop`, `vdop`
+//! and `pdop` its dilutions of precision, and a `fix` of "none means GPS had no fix". In GPX 1.0 a
+//! track point may also hold `course`, in "degrees, true", and `speed`, in "meters per second" (the
+//! manual); GPX 1.1 dropped both. A track segment "holds a list of Track Points which are logically
+//! connected in order. To represent a single GPS track where GPS reception was lost, or the GPS
+//! receiver was turned off, start a new Track Segment for each continuous span of track data."
 //!
 //! **Tracks and channels.** A GPX file holds tracks of positions, not an altimeter's record over
 //! time, so the record's primary track is empty and every value is a channel, with a note, as the
@@ -63,24 +62,24 @@
 //! above mean sea level as the receiver states it: a GPX file states neither the datum nor the
 //! sensor, so only the rise from one point to another means what it says.
 //!
-//! **What `ele` most likely holds** (sources read 2026-10-17 to 2026-10-23). A receiver's NMEA
-//! GGA sentence gives the antenna's altitude above mean sea level, the geoid, and the geoid's
+//! **What `ele` most likely holds** (sources read 2026-10-17 to 2026-10-23). A receiver's NMEA GGA
+//! sentence gives the antenna's altitude above mean sea level, the geoid, and the geoid's
 //! separation from the WGS84 ellipsoid (gpsd's NMEA notes, gpsd.gitlab.io/gpsd/NMEA.html; u-blox's
-//! M10 interface description, UBX-21035062 R03, GGA `alt`, "Altitude above mean sea level").
-//! Phones differ: Android's `Location.getAltitude()` is above the WGS84 ellipsoid, iOS's
+//! M10 interface description, UBX-21035062 R03, GGA `alt`, "Altitude above mean sea level"). Phones
+//! differ: Android's `Location.getAltitude()` is above the WGS84 ellipsoid, iOS's
 //! `CLLocation.altitude` above mean sea level, and a handheld with a barometer may write the
-//! barometer's altitude. GPSLogger for Android wrote 7 of 10 GPX files with `geoidheight` opened
-//! on GitHub. Its sea-level option "subtracts the geoidheight from the reported altitude" (its
-//! FAQ, gpslogger.app), so with the option off it writes Android's ellipsoidal height; in three
-//! such files on clear terms, `ele` sits above SRTM's ground heights by about their
-//! `geoidheight`, and a fourth's is too small to tell (issue #645, 2026-10-20). The rocketry trackers checked export KML, CSV or NMEA,
-//! not GPX, and their manuals that state a datum say mean sea level (Missile Works' RTx/GPS
-//! manual, firmware 1.31; Featherweight's Swift manual, 2026-04-10). One Eggfinder track saved as
-//! GPX by MapSphere reads 6.7 to 7.4 m below the pad's terrain height as a sea-level height and
-//! 26 m above it as an ellipsoid's, so it most likely holds the GGA altitude, with moderate
-//! confidence ([a research note][eggfinder]). So `geoidheight` doesn't settle `ele`'s datum, and
-//! the reader's note says which writer does what. Either datum is off by an offset that barely
-//! changes over one flight: it moves the pad's elevation, not the height above the pad. A
+//! barometer's altitude. GPSLogger for Android wrote 7 of 10 GPX files with `geoidheight` opened on
+//! GitHub. Its sea-level option "subtracts the geoidheight from the reported altitude" (its FAQ,
+//! gpslogger.app), so with the option off it writes Android's ellipsoidal height; in three such
+//! files on clear terms, `ele` sits above SRTM's ground heights by about their `geoidheight`, and a
+//! fourth's is too small to tell (issue #645, 2026-10-20). The rocketry trackers checked export
+//! KML, CSV or NMEA, not GPX, and their manuals that state a datum say mean sea level (Missile
+//! Works' RTx/GPS manual, firmware 1.31; Featherweight's Swift manual, 2026-04-10). One Eggfinder
+//! track saved as GPX by MapSphere reads 6.7 to 7.4 m below the pad's terrain height as a sea-level
+//! height and 26 m above it as an ellipsoid's, so it most likely holds the GGA altitude, with
+//! moderate confidence ([a research note][eggfinder]). So `geoidheight` doesn't settle `ele`'s
+//! datum, and the reader's note says which writer does what. Either datum is off by an offset that
+//! barely changes over one flight: it moves the pad's elevation, not the height above the pad. A
 //! barometric `ele` would differ by an amount that grows with height.
 //!
 //! **Routes and waypoints** are places marked or planned, not flown, so they are kept apart from
