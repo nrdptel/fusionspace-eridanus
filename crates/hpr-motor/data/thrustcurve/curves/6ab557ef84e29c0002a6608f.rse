@@ -1,0 +1,26 @@
+<engine-database>
+ <engine-list>
+<engine FDiv="10" FFix="1" FStep="-1." Isp="223.82" Itot="377.0808" Type="reloadable" auto-calc-cg="1" auto-calc-mass="1" avgThrust="141.228764" burn-time="2.67" cgDiv="10" cgFix="1" cgStep="-1." code="I150" delays="20,1000" dia="38." exitDia="0." initWt="398.3" len="229." mDiv="10" mFix="1" mStep="-1." massFrac="43.13" mfg="Ellis Mountain" peakThrust="198.09" propWt="171.8" tDiv="10" tFix="1" tStep="-1." throatDia="0.">
+<comments>Corrected 2026-09-23; supersedes ThrustCurve.org simfile 5f4294d20002e900000003f7 (user, RockSim).
+Rise to 101 N moved to 0.05 s, matching the TC cert file for this motor.
+</comments>
+<data>
+<eng-data cg="114.5" f="0" m="171.8" t="0"/>
+<eng-data cg="114.5" f="101.15" m="170.647888" t="0.05"/>
+<eng-data cg="114.5" f="155.94" m="167.719599" t="0.1"/>
+<eng-data cg="114.5" f="155.94" m="164.167245" t="0.15"/>
+<eng-data cg="114.5" f="177.01" m="152.790212" t="0.3"/>
+<eng-data cg="114.5" f="181.23" m="144.62941" t="0.4"/>
+<eng-data cg="114.5" f="198.09" m="118.706381" t="0.7"/>
+<eng-data cg="114.5" f="198.09" m="100.656212" t="0.9"/>
+<eng-data cg="114.5" f="181.23" m="83.374193" t="1.1"/>
+<eng-data cg="114.5" f="160.15" m="21.160382" t="1.9"/>
+<eng-data cg="114.5" f="147.51" m="14.151806" t="2"/>
+<eng-data cg="114.5" f="126.44" m="7.911153" t="2.1"/>
+<eng-data cg="114.5" f="21.07" m="1.190519" t="2.3"/>
+<eng-data cg="114.5" f="8.43" m="0.518502" t="2.4"/>
+<eng-data cg="114.5" f="0" m="0" t="2.67"/>
+</data>
+</engine>
+ </engine-list>
+</engine-database>

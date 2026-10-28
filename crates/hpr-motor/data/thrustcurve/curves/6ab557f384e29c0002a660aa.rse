@@ -1,0 +1,26 @@
+<engine-database>
+ <engine-list>
+<engine FDiv="10" FFix="1" FStep="-1." Isp="215.49" Itot="617.05615" Type="reloadable" auto-calc-cg="1" auto-calc-mass="1" avgThrust="218.041042" burn-time="2.83" cgDiv="10" cgFix="1" cgStep="-1." code="I230" delays="20,1000" dia="38." exitDia="0." initWt="575.1" len="331." mDiv="10" mFix="1" mStep="-1." massFrac="50.77" mfg="Ellis Mountain" peakThrust="346.71" propWt="292." tDiv="10" tFix="1" tStep="-1." throatDia="0.">
+<comments>Corrected 2026-09-23; supersedes ThrustCurve.org simfile 5f4294d20002e900000003f9 (user, RockSim).
+Both t=0 thrust points replaced by 300 N at 0.05 s, matching the TC cert file for this motor.
+</comments>
+<data>
+<eng-data cg="165.5" f="0" m="292" t="0"/>
+<eng-data cg="165.5" f="300" m="288.45089" t="0.05"/>
+<eng-data cg="165.5" f="346.71" m="280.800074" t="0.1"/>
+<eng-data cg="165.5" f="322.72" m="272.880473" t="0.15"/>
+<eng-data cg="165.5" f="290.01" m="222.138732" t="0.5"/>
+<eng-data cg="165.5" f="283.47" m="154.29395" t="1"/>
+<eng-data cg="165.5" f="270.39" m="88.770286" t="1.5"/>
+<eng-data cg="165.5" f="252.94" m="64.005544" t="1.7"/>
+<eng-data cg="165.5" f="218.05" m="30.57364" t="2"/>
+<eng-data cg="165.5" f="82.86" m="12.774263" t="2.25"/>
+<eng-data cg="165.5" f="78.5" m="7.04742" t="2.4"/>
+<eng-data cg="165.5" f="47.97" m="5.551234" t="2.45"/>
+<eng-data cg="165.5" f="43.61" m="2.300959" t="2.6"/>
+<eng-data cg="165.5" f="4.36" m="0.030948" t="2.8"/>
+<eng-data cg="165.5" f="0" m="0" t="2.83"/>
+</data>
+</engine>
+ </engine-list>
+</engine-database>

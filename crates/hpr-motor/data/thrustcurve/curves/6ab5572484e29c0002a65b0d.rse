@@ -1,0 +1,38 @@
+<engine-database>
+ <engine-list>
+<engine FDiv="10" FFix="1" FStep="-1." Isp="212.06" Itot="561.288713" Type="reloadable" auto-calc-cg="1" auto-calc-mass="1" avgThrust="440.571988" burn-time="1.274" cgDiv="10" cgFix="1" cgStep="-1." code="I435T" delays="6,10,14" dia="38." exitDia="0." initWt="518." len="299." mDiv="10" mFix="1" mStep="-1." massFrac="52.10" mfg="Aerotech" peakThrust="808.049" propWt="269.9" tDiv="10" tFix="1" tStep="-1." throatDia="0.">
+<comments>Corrected 2026-09-23; supersedes ThrustCurve.org simfile 5f4294d20002e900000003ad (user, RockSim).
+Data of ThrustCurve simfile 5f4294d20002e90000000045 (RASP/cert) for this motor, converted to RockSim format; it replaces a curve that was wrong (see the audit).
+</comments>
+<data>
+<eng-data cg="148.5" f="0" m="269.9" t="0"/>
+<eng-data cg="148.5" f="808.049" m="265.237321" t="0.024"/>
+<eng-data cg="148.5" f="749.691" m="246.511039" t="0.074"/>
+<eng-data cg="148.5" f="709.215" m="228.972884" t="0.124"/>
+<eng-data cg="148.5" f="656.216" m="212.558434" t="0.174"/>
+<eng-data cg="148.5" f="636.578" m="197.017185" t="0.224"/>
+<eng-data cg="148.5" f="621.839" m="181.889198" t="0.274"/>
+<eng-data cg="148.5" f="592.267" m="167.293892" t="0.324"/>
+<eng-data cg="148.5" f="584.551" m="153.146842" t="0.374"/>
+<eng-data cg="148.5" f="573.277" m="139.22808" t="0.424"/>
+<eng-data cg="148.5" f="547.725" m="125.752019" t="0.474"/>
+<eng-data cg="148.5" f="539.962" m="112.676452" t="0.524"/>
+<eng-data cg="148.5" f="525.268" m="99.870851" t="0.574"/>
+<eng-data cg="148.5" f="500.456" m="87.540168" t="0.624"/>
+<eng-data cg="148.5" f="484.978" m="75.69383" t="0.674"/>
+<eng-data cg="148.5" f="464.323" m="64.281863" t="0.724"/>
+<eng-data cg="148.5" f="442.837" m="53.376491" t="0.774"/>
+<eng-data cg="148.5" f="424.54" m="42.949368" t="0.824"/>
+<eng-data cg="148.5" f="405.872" m="32.966618" t="0.874"/>
+<eng-data cg="148.5" f="393.443" m="23.357699" t="0.924"/>
+<eng-data cg="148.5" f="317.157" m="14.815262" t="0.974"/>
+<eng-data cg="148.5" f="217.63" m="8.386351" t="1.024"/>
+<eng-data cg="148.5" f="126.188" m="4.253162" t="1.074"/>
+<eng-data cg="148.5" f="74.391" m="1.841913" t="1.124"/>
+<eng-data cg="148.5" f="30.034" m="0.586574" t="1.174"/>
+<eng-data cg="148.5" f="9.38" m="0.112761" t="1.224"/>
+<eng-data cg="148.5" f="0" m="0" t="1.274"/>
+</data>
+</engine>
+ </engine-list>
+</engine-database>

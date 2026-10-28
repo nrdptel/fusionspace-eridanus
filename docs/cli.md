@@ -2359,7 +2359,9 @@ you press Tab. Save it where your shell looks for completions:
 - **Stock from one site.** `hpr motors search` covers only what motor.fusionspace.co does
   ([what it leaves out](motor-stock.md#what-it-leaves-out)). It has no filter by total impulse or
   by reload case.
-- **Only 32 motors are built in.** Any other motor needs its `.eng` or `.rse` file, or its curve
+- **Only 32 motors fly by name, offline.** The whole ThrustCurve.org catalog is compiled in
+  ([the whole catalog](physics/motor.md#the-whole-catalog)), but the lookups don't use it yet. Any
+  other motor needs its `.eng` or `.rse` file, or its curve
   [fetched from ThrustCurve.org](#motors-from-thrustcurveorg) into the cache. `hpr motors search`
   lists motors you can buy, not their curves.
 - **Downloads for three systems** ([Running it](#running-it)). On other systems, `hpr` is built

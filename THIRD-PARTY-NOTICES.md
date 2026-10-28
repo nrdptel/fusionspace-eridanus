@@ -108,24 +108,35 @@ adds a source.
   glyph, outlines unchanged, and is renamed *NewCM Math Subset*, as the license asks of a changed
   font; the font's own name table says what changed and where the original is.
 
-- **ThrustCurve.org thrust curves** (`crates/hpr-motor/data/thrustcurve/curves/`, compiled into
-  `hpr-motor`): 32 files that ThrustCurve.org marks public domain (license `PD`), unchanged. The
-  index `crates/hpr-motor/data/thrustcurve/catalog.json` is written by `cargo xtask
-  motor-catalog` from those files and the motors' records: each motor's size, masses and delays
-  are its file header's, and its impulse class, total impulse, average and peak thrust and burn
-  time are worked out from its curve (issue #295). `records.json` beside them holds the 32 motors'
-  ThrustCurve.org API records, copied unchanged from the 2026-09-17 capture that
-  `validation/refs.lock.toml` pins (`thrustcurve-motors`). ThrustCurve.org grants no license for
-  them and reserves copyright; the project uses them as published facts, with this credit
-  ([ADR-287](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)).
-  The index copies four of their figures, total impulse, average thrust, burn time and peak thrust,
-  and checks each file against the first three
-  ([ADR-298](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0298-every-solid-motor-in-four-increments.md)).
-  By hand, the index records only names and provenance: the ThrustCurve.org motor and data-file ids
-  each file is listed under, the motor's designation, maker, type, case and propellant names, and
-  the file's data source (certification, manufacturer or user), source URL and download date; its
-  SHA-256 is computed. Data courtesy of ThrustCurve.org, https://www.thrustcurve.org/. Curves
-  marked "free", "other" or with no license are never bundled (ADR-005).
+- **ThrustCurve.org's solid motor catalog** (`crates/hpr-motor/data/thrustcurve/`, compiled into
+  `hpr-motor`), as [ADR-288](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md)
+  takes it in, from a snapshot of ThrustCurve.org's API taken 2026-10-28 by
+  `validation/oracles/thrustcurve/snapshot.py`
+  ([ADR-301](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0301-the-whole-catalog-in-two-increments.md)):
+  - `records.json`: every single-use and reload motor's API record, 1,004, copied unchanged.
+    ThrustCurve.org grants no license for them and reserves copyright; the project uses them as
+    published facts, with this credit
+    ([ADR-287](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)).
+  - `files.json`: every data file the download answers list for those motors, 1,706, each entry
+    copied unchanged but for the file's bytes, with its license label.
+  - `curves/`: each file's bytes, unchanged: 589 that ThrustCurve.org marks public domain
+    (`PD`), 33 marked free to use (`free`) and 1,083 with no license. A file marked `other`
+    (restricted by its uploader) is never bundled; this snapshot has none. One file with no
+    license is held back until the maintainer clears it, and isn't in the repository. The bundle uses each
+    file's measured points as facts, as ADR-287 uses the records; each file's label is kept beside
+    it, so a file can be found and taken out if its uploader asks (ADR-288 §2, the project's own
+    reading, not legal advice).
+  - `catalog.json`: the index `cargo xtask motor-catalog` writes from those. Each motor's names
+    and stated figures are its record's; its size, masses, delays, impulse class, total impulse,
+    average and peak thrust and burn time are its default file's own, worked out from its header
+    and curve (issue #295); each file's 1% check against its record is stored with it
+    ([ADR-298](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0298-every-solid-motor-in-four-increments.md)).
+    By hand, the index records only provenance: each file's URLs, download date and SHA-256.
+  - `catalog-m57a.json`: the earlier index of 32 public-domain files, from the 2026-09-17 capture
+    `validation/refs.lock.toml` pins (`thrustcurve-motors`), which the lookups use until the whole
+    catalog replaces it.
+
+  Data courtesy of ThrustCurve.org, https://www.thrustcurve.org/.
 
 - **World Magnetic Model WMM2025** (`crates/hpr-core/data/wmm2025/`, its coefficients compiled
   into `hpr-core` as `hpr_core::magnetic::WMM2025`): `WMM2025.COF` and `WMM2025_TestValues.txt`

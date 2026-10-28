@@ -1,0 +1,22 @@
+<engine-database>
+ <engine-list>
+<engine FDiv="10" FFix="1" FStep="-1." Isp="204.52" Itot="81.83095" Type="reloadable" auto-calc-cg="1" auto-calc-mass="1" avgThrust="90.923278" burn-time="0.9" cgDiv="10" cgFix="1" cgStep="-1." code="G104T" delays="6,10,14" dia="29." exitDia="0." initWt="135.6" len="125." mDiv="10" mFix="1" mStep="-1." massFrac="30.09" mfg="Aerotech" peakThrust="115" propWt="40.8" tDiv="10" tFix="1" tStep="-1." throatDia="0.">
+<comments>Corrected 2026-09-23; supersedes ThrustCurve.org simfile 5f4294d20002e9000000038d (user, RockSim).
+First point 115 N at 0.015 s (was 118.5 N at t=0, above the 113.8 N certified peak).
+</comments>
+<data>
+<eng-data cg="62.5" f="0" m="40.8" t="0"/>
+<eng-data cg="62.5" f="115" m="40.369967" t="0.015"/>
+<eng-data cg="62.5" f="114.14" m="35.514484" t="0.1"/>
+<eng-data cg="62.5" f="114.14" m="29.823591" t="0.2"/>
+<eng-data cg="62.5" f="109.91" m="24.23815" t="0.3"/>
+<eng-data cg="62.5" f="109.91" m="18.758159" t="0.4"/>
+<eng-data cg="62.5" f="105.68" m="13.383621" t="0.5"/>
+<eng-data cg="62.5" f="84.56" m="8.641044" t="0.6"/>
+<eng-data cg="62.5" f="71.83" m="4.742328" t="0.7"/>
+<eng-data cg="62.5" f="59.2" m="1.475823" t="0.8"/>
+<eng-data cg="62.5" f="0" m="0" t="0.9"/>
+</data>
+</engine>
+ </engine-list>
+</engine-database>

@@ -1,0 +1,49 @@
+; kjh converted RockSim file to RASP format
+; motor: AeroTech F32T
+; contributor: John Coker
+; details: https://www.thrustcurve.org/simfiles/5f4294d20002e90000000542/
+; reprocessed by: raspifix.sh AeroTech_F32T.raw
+;
+F32T        24      95 4-6-8-P          0.0258  0.0650 AT      
+      0.028       2.636
+      0.035       5.891
+      0.054      53.488
+      0.061      57.364
+      0.068      58.760
+      0.089      58.760
+      0.114      55.504
+      0.177      51.783
+      0.240      49.302
+      0.319      47.132
+      0.429      44.651
+      0.545      41.860
+      0.611      41.550
+      0.627      40.465
+      0.676      40.155
+      0.772      38.760
+      0.904      36.744
+      1.005      34.884
+      1.119      32.403
+      1.212      30.543
+      1.277      28.527
+      1.298      27.597
+      1.322      26.512
+      1.338      24.961
+      1.385      21.550
+      1.445      15.969
+      1.510      10.543
+      1.597       5.581
+      1.676       2.636
+      1.746       1.240
+      1.828       0.000
+; Total Impulse            56.92 (Nsec)
+; Avg Thrust               31.14 (N)
+; Max Thrust               58.76 (N) at 0.068 sec
+; Specific Impulse        224.98 (sec)
+; 
+; Five Percent Thrust      2.938 (N)
+; Begin Time               0.029 (sec)
+; End Time                 1.668 (sec)
+; NFPA 1125 Burn Time      1.639 (sec)
+; NFPA 1125 Avg Thrust     34.73 (N)
+;

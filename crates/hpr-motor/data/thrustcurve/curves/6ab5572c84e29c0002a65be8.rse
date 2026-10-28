@@ -1,0 +1,38 @@
+<engine-database>
+ <engine-list>
+<engine FDiv="10" FFix="1" FStep="-1." Isp="184.56" Itot="689.754706" Type="reloadable" auto-calc-cg="1" auto-calc-mass="1" avgThrust="348.185111" burn-time="1.981" cgDiv="10" cgFix="1" cgStep="-1." code="J350W" delays="6,10,14" dia="38." exitDia="0." initWt="665." len="337." mDiv="10" mFix="1" mStep="-1." massFrac="57.31" mfg="Aerotech" peakThrust="706.781" propWt="381.1" tDiv="10" tFix="1" tStep="-1." throatDia="0.">
+<comments>Corrected 2026-09-23; supersedes ThrustCurve.org simfile 5f4294d20002e900000003b7 (user, RockSim).
+Data of ThrustCurve simfile 5f4294d20002e900000002a7 (RASP/cert) for this motor, converted to RockSim format; it replaces a curve that was wrong (see the audit).
+</comments>
+<data>
+<eng-data cg="170." f="0" m="381.1" t="0"/>
+<eng-data cg="170." f="706.781" m="373.680362" t="0.038"/>
+<eng-data cg="170." f="669.055" m="344.413802" t="0.115"/>
+<eng-data cg="170." f="602.539" m="317.364661" t="0.192"/>
+<eng-data cg="170." f="565.084" m="292.204609" t="0.27"/>
+<eng-data cg="170." f="539.143" m="268.410621" t="0.348"/>
+<eng-data cg="170." f="514.91" m="245.988977" t="0.425"/>
+<eng-data cg="170." f="483.098" m="224.483806" t="0.503"/>
+<eng-data cg="170." f="449.128" m="204.396111" t="0.581"/>
+<eng-data cg="170." f="437.256" m="185.541095" t="0.658"/>
+<eng-data cg="170." f="424.199" m="166.97838" t="0.736"/>
+<eng-data cg="170." f="414.461" m="148.675169" t="0.815"/>
+<eng-data cg="170." f="402.956" m="131.287207" t="0.892"/>
+<eng-data cg="170." f="393.604" m="114.122856" t="0.97"/>
+<eng-data cg="170." f="377.837" m="97.499772" t="1.048"/>
+<eng-data cg="170." f="359.785" m="81.809197" t="1.125"/>
+<eng-data cg="170." f="341.916" m="66.688877" t="1.203"/>
+<eng-data cg="170." f="324.721" m="52.32412" t="1.281"/>
+<eng-data cg="170." f="305.935" m="38.908908" t="1.358"/>
+<eng-data cg="170." f="264.279" m="26.621882" t="1.436"/>
+<eng-data cg="170." f="175.471" m="17.024623" t="1.515"/>
+<eng-data cg="170." f="110.912" m="10.93273" t="1.592"/>
+<eng-data cg="170." f="77.1" m="6.88143" t="1.67"/>
+<eng-data cg="170." f="55.472" m="4.024756" t="1.748"/>
+<eng-data cg="170." f="39.99" m="1.994104" t="1.825"/>
+<eng-data cg="170." f="26.276" m="0.566198" t="1.903"/>
+<eng-data cg="170." f="0" m="0" t="1.981"/>
+</data>
+</engine>
+ </engine-list>
+</engine-database>

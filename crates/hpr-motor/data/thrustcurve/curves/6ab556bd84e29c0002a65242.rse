@@ -1,0 +1,42 @@
+<engine-database>
+ <engine-list>
+<engine FDiv="10" FFix="1" FStep="-1." Isp="206.44" Itot="215.406056" Type="reloadable" auto-calc-cg="1" auto-calc-mass="1" avgThrust="215.406056" burn-time="1" cgDiv="10" cgFix="1" cgStep="-1." code="H220T" delays="6,10,14" dia="29." exitDia="0." initWt="250." len="238." mDiv="10" mFix="1" mStep="-1." massFrac="42.56" mfg="Aerotech" peakThrust="275.73" propWt="106.39999999999999" tDiv="10" tFix="1" tStep="-1." throatDia="0.">
+<comments>Corrected 2026-09-23; supersedes ThrustCurve.org simfile 5f4294d20002e900000002d0 (user, RockSim).
+Data of ThrustCurve simfile 6a7bf11bb7b639000254e6d3 (RASP/cert) for this motor, converted to RockSim format; it replaces a curve that was wrong (see the audit).
+</comments>
+<data>
+<eng-data cg="119.5" f="0" m="106.4" t="0"/>
+<eng-data cg="119.5" f="214.072" m="106.029906" t="0.007"/>
+<eng-data cg="119.5" f="251.967" m="105.339305" t="0.013"/>
+<eng-data cg="119.5" f="275.73" m="103.905695" t="0.024"/>
+<eng-data cg="119.5" f="265.065" m="102.837191" t="0.032"/>
+<eng-data cg="119.5" f="269.464" m="102.309129" t="0.036"/>
+<eng-data cg="119.5" f="250.567" m="99.483561" t="0.058"/>
+<eng-data cg="119.5" f="250.567" m="94.53285" t="0.098"/>
+<eng-data cg="119.5" f="256.466" m="86.142796" t="0.165"/>
+<eng-data cg="119.5" f="259.566" m="72.888286" t="0.269"/>
+<eng-data cg="119.5" f="259.766" m="55.059835" t="0.408"/>
+<eng-data cg="119.5" f="256.966" m="49.827411" t="0.449"/>
+<eng-data cg="119.5" f="261.366" m="48.035197" t="0.463"/>
+<eng-data cg="119.5" f="254.066" m="45.489216" t="0.483"/>
+<eng-data cg="119.5" f="248.367" m="33.948977" t="0.576"/>
+<eng-data cg="119.5" f="244.168" m="24.09581" t="0.657"/>
+<eng-data cg="119.5" f="245.668" m="20.345509" t="0.688"/>
+<eng-data cg="119.5" f="245.668" m="13.792722" t="0.742"/>
+<eng-data cg="119.5" f="241.368" m="12.108719" t="0.756"/>
+<eng-data cg="119.5" f="222.471" m="9.932139" t="0.775"/>
+<eng-data cg="119.5" f="210.872" m="8.005688" t="0.793"/>
+<eng-data cg="119.5" f="187.575" m="6.037556" t="0.813"/>
+<eng-data cg="119.5" f="161.379" m="4.227711" t="0.834"/>
+<eng-data cg="119.5" f="135.182" m="2.909332" t="0.852"/>
+<eng-data cg="119.5" f="98.817" m="2.100244" t="0.866"/>
+<eng-data cg="119.5" f="65.351" m="1.532608" t="0.88"/>
+<eng-data cg="119.5" f="47.903" m="1.057102" t="0.897"/>
+<eng-data cg="119.5" f="36.285" m="0.641254" t="0.917"/>
+<eng-data cg="119.5" f="23.206" m="0.318012" t="0.939"/>
+<eng-data cg="119.5" f="11.598" m="0.103119" t="0.964"/>
+<eng-data cg="119.5" f="0" m="0" t="1"/>
+</data>
+</engine>
+ </engine-list>
+</engine-database>

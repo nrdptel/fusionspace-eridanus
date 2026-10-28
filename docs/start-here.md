@@ -123,9 +123,10 @@ gusts every time on the same platform (operating system and processor). The deta
 
 HPR Sim reads `.eng` and `.rse` [thrust curves](glossary.md#thrust-curve), and follows a motor's
 thrust, mass, center of gravity and inertia through the burn.
-It bundles [32 motors](physics/motor.md#the-bundled-motors), each file checked against
-ThrustCurve.org's figures. One it lacks is fetched from there by name and cached, so it flies
-offline after that
+It carries a copy of ThrustCurve.org's whole catalog of solid motors, taken October 28, 2026: 1,004
+motors and 1,701 of their 1,706 files (five are left out, each with its reason). By name it flies [32 of them](physics/motor.md#the-bundled-motors) so
+far, each file checked against ThrustCurve.org's figures; the rest join the lookups next. One it
+lacks is fetched from there by name and cached, so it flies offline after that
 ([motors on demand](decisions-and-roadmap.md#m4-5b)). Stock and prices come from
 motor.fusionspace.co. The detail is in [Solid motors](physics/motor.md),
 [`.eng` files](format/eng.md), [`.rse` files](format/rse.md) and
@@ -754,7 +755,7 @@ simulator's internal name, then software tool 1.
 | Date of issue | <span id="issue-date">the date of the commit the site is built from</span> |
 | Status | IN PREPARATION: these pages describe the next release as the `main` branch holds it, so a page may describe what 0.1.0 lacks; how far to trust each result is in [Accuracy so far](#accuracy-so-far) |
 | Units | SI (meters, kilograms, seconds) first. Every command's text adds US units in parentheses: feet after heights and distances, feet per second after speeds, miles per hour after the wind, °F after the air's temperature, g after an acceleration and inches after stations along the rocket and a motor's size; `hpr motors show` adds ounces or pounds. The plot gives a second scale in feet, feet per second and g. This site's pages, unlike the program's output, keep a motor's nominal size in millimeters alone, as motors are named (`a 54 mm motor`); every other height, distance, size and speed on them gives its US units in brackets, checked as conversions ([house style](writing.md)). JSON and exported files stay SI ([units](cli.md#units)) |
-| Data | Thrust curves: ThrustCurve.org's public-domain files, catalog captured 2026-09-17. Atmosphere: U.S. Standard Atmosphere 1976, or a sounding or forecast you supply or fetch ([weather](weather.md)). Magnetic field: WMM2025. Accuracy: the committed [validation report][report]. Every source and its terms: [third-party notices][notices]. |
+| Data | Thrust curves: ThrustCurve.org's solid motors, catalog captured 2026-10-28, of which 32 fly by name so far. Atmosphere: U.S. Standard Atmosphere 1976, or a sounding or forecast you supply or fetch ([weather](weather.md)). Magnetic field: WMM2025. Accuracy: the committed [validation report][report]. Every source and its terms: [third-party notices][notices]. |
 | Fonts | Archivo and Cascadia Mono, SIL Open Font License 1.1, served from this site; no page asks another server for anything |
 
 </div>
