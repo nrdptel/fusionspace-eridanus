@@ -319,3 +319,100 @@ fn json_output_is_one_document_carrying_the_warnings() {
         assert_eq!(lines, said, "{document:#}");
     }
 }
+
+/// What the hostile names below carry: a screen clear, a window title set and ended by a bell,
+/// the one-character CSI (U+009B) some terminals act on, and a carriage return.
+const HOSTILE: &str = "\u{1b}[2J\u{1b}]0;t\u{7}\u{9b}31m\r";
+
+/// The control characters in `text` but a line break or a tab, and escapes but the color codes
+/// `ESC [ … m` the tool writes itself.
+fn controls(text: &str) -> Vec<String> {
+    let mut found = Vec::new();
+    let mut chars = text.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c == '\u{1b}' {
+            let mut code = String::from(c);
+            while let Some(&next) = chars.peek() {
+                if !(next == '[' || next == ';' || next.is_ascii_digit()) {
+                    break;
+                }
+                code.push(next);
+                chars.next();
+            }
+            if chars.peek() == Some(&'m') && code.starts_with("\u{1b}[") {
+                chars.next();
+            } else {
+                found.push(code);
+            }
+        } else if c.is_control() && c != '\n' && c != '\t' {
+            found.push(c.to_string());
+        }
+    }
+    found
+}
+
+/// Issue #989: a file's own text, such as a design's or a channel's name, is shown with its
+/// control characters as `?` or escaped, never written to the terminal, by each command that
+/// quotes it, piped and with `--color always`, on standard output and standard error.
+#[test]
+fn a_files_control_characters_never_reach_the_terminal() {
+    let folder = tempfile::tempdir().unwrap();
+    let path = |name: &str| folder.path().join(name).to_string_lossy().into_owned();
+    let design = path("level-1.hpr");
+    run(&["convert", &repo_file(LEVEL_1), &design]);
+    let mut document: Value =
+        serde_json::from_str(&std::fs::read_to_string(&design).unwrap()).unwrap();
+    /// Appends [`HOSTILE`] to every `name` in `value`.
+    fn spoil(value: &mut Value) -> usize {
+        match value {
+            Value::Object(map) => {
+                let mut count = 0;
+                for (key, value) in map.iter_mut() {
+                    if let (true, Value::String(name)) = (key == "name", &mut *value) {
+                        name.push_str(HOSTILE);
+                        count += 1;
+                    } else {
+                        count += spoil(value);
+                    }
+                }
+                count
+            }
+            Value::Array(values) => values.iter_mut().map(spoil).sum(),
+            _ => 0,
+        }
+    }
+    assert!(spoil(&mut document) > 5);
+    let hostile = path("hostile.hpr");
+    std::fs::write(&hostile, serde_json::to_string(&document).unwrap()).unwrap();
+    let log = path("hostile.csv");
+    std::fs::write(
+        &log,
+        format!("time_s,altitude_m,spare{HOSTILE}\n0,0,1\n0.1,1,2\n0.2,3,3\n"),
+    )
+    .unwrap();
+    let converted = path("converted.hpr");
+    let cache = tempfile::tempdir().unwrap();
+    for args in [
+        &["sim", &hostile][..],
+        &["mc", &hostile, "--runs", "2", "--seed", "1"],
+        &["convert", &hostile, &converted],
+        &["analyze", &log],
+    ] {
+        for color in [&[][..], &["--color", "always"]] {
+            let mut args = args.to_vec();
+            args.extend(color);
+            let printed = run_cached(&args, cache.path());
+            for (stream, text) in [("stdout", &printed.out), ("stderr", &printed.err)] {
+                let found = controls(text);
+                assert!(found.is_empty(), "{args:?} {stream}: {found:?}\n{text}");
+            }
+            // The names are printed, not left out: the clear's `[2J` is still there, after its
+            // escape shown as `?` or as Rust escapes it, `\u{1b}`.
+            assert!(
+                printed.out.contains("?[2J") || printed.out.contains("\\u{1b}[2J"),
+                "{args:?}: {}",
+                printed.out
+            );
+        }
+    }
+}
