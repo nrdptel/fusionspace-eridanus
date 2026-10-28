@@ -57,7 +57,7 @@ struct Route {
 }
 
 /// A point as gpxpy read it; `None` where it read nothing. The waypoints and route points have no
-/// satellites, dilutions, course or speed in the reading.
+/// satellites, dilutions, geoid height, course or speed in the reading.
 #[derive(Deserialize)]
 struct Point {
     lat: f64,
@@ -73,6 +73,8 @@ struct Point {
     vdop: Option<f64>,
     #[serde(default)]
     pdop: Option<f64>,
+    #[serde(default)]
+    geoidheight: Option<f64>,
     #[serde(default)]
     speed: Option<f64>,
     #[serde(default)]
@@ -166,7 +168,7 @@ fn expected(file: &File) -> (Vec<Expected>, Vec<(String, Quantity, f64)>) {
             };
             let name = unique(&mut used, label);
             let time_s: Vec<f64> = points.iter().map(|point| seconds(point.time_us)).collect();
-            let picks: [(&str, Quantity, Pick); 9] = [
+            let picks: [(&str, Quantity, Pick); 10] = [
                 ("latitude", Quantity::Latitude, |p| Some(p.lat)),
                 ("longitude", Quantity::Longitude, |p| Some(p.lon)),
                 ("elevation", Quantity::Altitude, |p| p.ele),
@@ -174,6 +176,7 @@ fn expected(file: &File) -> (Vec<Expected>, Vec<(String, Quantity, f64)>) {
                 ("HDOP", Quantity::Number, |p| p.hdop),
                 ("VDOP", Quantity::Number, |p| p.vdop),
                 ("PDOP", Quantity::Number, |p| p.pdop),
+                ("geoid height", Quantity::Distance, |p| p.geoidheight),
                 ("speed", Quantity::Speed, |p| p.speed),
                 ("course", Quantity::Angle, |p| p.course),
             ];
@@ -323,7 +326,7 @@ fn every_value_of_the_samples_equals_gpxpys() {
         versions,
         HashSet::from(["1.0".to_owned(), "1.1".to_owned()])
     );
-    assert_eq!((values, times, figures_compared), (196, 196, 12));
+    assert_eq!((values, times, figures_compared), (212, 212, 12));
 }
 
 /// The phone app's GPX 1.1 track: its satellites and dilutions as channels, a point with no `ele`
@@ -343,6 +346,7 @@ fn a_phone_apps_track_reads_with_its_places_kept_apart() {
             "Flight 7 HDOP",
             "Flight 7 VDOP",
             "Flight 7 PDOP",
+            "Flight 7 geoid height",
         ]
     );
     // No channel holds a waypoint's or a route point's position: the track's 16 points only.
@@ -376,6 +380,13 @@ fn a_phone_apps_track_reads_with_its_places_kept_apart() {
     assert_eq!(highest, elevation.values[9]);
     assert!(elevation.values[12].is_nan());
     assert_eq!(elevation.time_s[..3], [0.0, 1.0, 2.001]);
+    // `geoidheight`, the geoid above the WGS84 ellipsoid, is a channel of its own, in meters, with
+    // a gap where the point leaves it out; the pad waypoint's is counted and not read.
+    let geoid = &log.channels[7];
+    assert_eq!(geoid.quantity, Quantity::Distance);
+    assert_eq!((geoid.values[0], geoid.values[15]), (-27.4, -27.1));
+    assert!(geoid.values[12].is_nan());
+    assert_eq!(geoid.values.iter().filter(|v| v.is_nan()).count(), 1);
     let names: Vec<&str> = log.stated.figures.iter().map(|f| f.name.as_str()).collect();
     assert_eq!(
         names[..5],
@@ -398,7 +409,13 @@ fn a_phone_apps_track_reads_with_its_places_kept_apart() {
         "the log's zero is `2031-07-14T17:04:04.000Z`, the first time the file gives a track point",
         "waypoints and routes kept apart from the tracks, as figures the file states, as places \
          marked or planned, not flown: 2 waypoints, 1 route, 5 places read",
-        "elements no reading uses, not read: `extensions` in 2 track points, `sym` in 1 waypoint",
+        "elements no reading uses, not read: `extensions` in 2 track points, `geoidheight` in 1 \
+         waypoint, `sym` in 1 waypoint",
+        "`geoidheight` read in meters as the geoid's height above the WGS84 ellipsoid, as GPX \
+         1.1's schema defines it from NMEA's GGA message. It doesn't say which surface `ele` \
+         beside it is measured from: GPSLogger for Android, the commonest writer of \
+         `geoidheight` found, writes the height above the ellipsoid unless its sea-level option \
+         is on",
     ] {
         assert!(
             log.notes.iter().any(|n| n.starts_with(note)),
@@ -479,4 +496,29 @@ fn two_flights_in_one_file_read_as_two_tracks() {
         );
     }
     insta::assert_json_snapshot!(log);
+}
+
+/// A file with no `geoidheight` keeps the note that `ele` states no datum, and gains neither the
+/// note on `geoidheight` nor its channel.
+#[test]
+fn a_file_with_no_geoid_height_keeps_the_unstated_datum_note() {
+    for bytes in [
+        &include_bytes!("samples/gpx-1.0-tracker.gpx")[..],
+        &include_bytes!("samples/gpx-1.1-two-flights.gpx")[..],
+    ] {
+        let log = read(bytes);
+        assert!(
+            log.notes
+                .iter()
+                .any(|n| n.starts_with("`ele` read in meters") && n.contains("doesn't state")),
+            "{:#?}",
+            log.notes
+        );
+        assert!(!log.notes.iter().any(|n| n.contains("geoidheight")));
+        assert!(
+            !log.channels
+                .iter()
+                .any(|c| c.column.ends_with("geoid height"))
+        );
+    }
 }

@@ -396,6 +396,46 @@ expression: log
         1.6,
         1.6
       ]
+    },
+    {
+      "column": "Flight 7 geoid height",
+      "quantity": "distance",
+      "time_s": [
+        0.0,
+        1.0,
+        2.001,
+        3.0,
+        4.002,
+        5.0,
+        6.0,
+        7.001,
+        8.0,
+        9.0,
+        10.0,
+        11.002,
+        12.0,
+        13.0,
+        14.001,
+        15.0
+      ],
+      "values": [
+        -27.4,
+        -27.38,
+        -27.36,
+        -27.34,
+        -27.32,
+        -27.3,
+        -27.28,
+        -27.26,
+        -27.24,
+        -27.22,
+        -27.2,
+        -27.18,
+        null,
+        -27.14,
+        -27.12,
+        -27.1
+      ]
     }
   ],
   "events": [],
@@ -403,8 +443,9 @@ expression: log
     "the record's altitude track is empty: a GPX file holds tracks of positions, not an altimeter's record over time, so every value is a channel",
     "read as GPX 1.1, its `version`: 1 track, 1 segment with points, each read as a GPS track, 16 points",
     "`ele` read in meters, from GPX 1.1's schema and GPX 1.0's manual, as an altitude whose datum the file doesn't state. Both give the unit and no datum, so it may be above mean sea level, above the WGS84 ellipsoid or above another zero",
+    "`geoidheight` read in meters as the geoid's height above the WGS84 ellipsoid, as GPX 1.1's schema defines it from NMEA's GGA message. It doesn't say which surface `ele` beside it is measured from: GPSLogger for Android, the commonest writer of `geoidheight` found, writes the height above the ellipsoid unless its sea-level option is on, and a receiver's GGA altitude is above mean sea level, the two apart by the geoid height. Over one flight that offset barely changes, so it moves the pad's elevation, not the height above the pad",
     "the log's zero is `2031-07-14T17:04:04.000Z`, the first time the file gives a track point",
     "waypoints and routes kept apart from the tracks, as figures the file states, as places marked or planned, not flown: 2 waypoints, 1 route, 5 places read",
-    "elements no reading uses, not read: `extensions` in 2 track points, `sym` in 1 waypoint"
+    "elements no reading uses, not read: `extensions` in 2 track points, `geoidheight` in 1 waypoint, `sym` in 1 waypoint"
   ]
 }

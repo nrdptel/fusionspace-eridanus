@@ -170,7 +170,7 @@ The readers were written for these milestones, each as the decision record besid
 | Featherweight summary CSV | Featherweight Blue Raven and GPS tracker: the flight's summary, as the Featherweight app exports it beside the samples | a first line that isn't blank naming `Rocket Name`, and `Max Altitude` or `Launch time UTC` among the first 200 lines | `hpr_flightdata::fwsummary` ([below](#featherweights-summaries)) |
 | Featherweight GPS CSV | Featherweight's GPS tracker: its own log, and its ground station's log of every tracker it hears | a first line opening `UTCTIME,UNIXTIME,` or `TRACKER,DATE,TIME,` that names the latitude and longitude (`LAT` and `LON`, or `TRACKER Lat` and `TRACKER Lon`) | [below](#gps-logs) |
 | KML | GPS tracks as AltOS, Missile Works' RTx, Big Red Bee's BeeLine, fw2kml (a converter of Featherweight's logs), GPS Visualizer and others write them for Google Earth | the document's root element is `kml` | [below](#gps-logs) |
-| GPX | GPS tracks in the GPS Exchange Format, version 1.0 or 1.1, as GPS receivers, phone apps and mapping tools write them; no sample log is one, so the reader is checked on invented files only ([evidence row G1](../evidence.md#g1)) | the document's root element is `gpx` | [below](#gpx) |
+| GPX | GPS tracks in the GPS Exchange Format, version 1.0 or 1.1; no sample log is one, so the reader is checked on invented files only ([evidence row G1](../evidence.md#g1)) | the document's root element is `gpx` | [below](#gpx) |
 | NMEA 0183 | a GPS receiver's own sentences, written to a file as it sends them | at least 3 of the first 50 lines open with a sentence whose checksum checks out, such as `$GPGGA,…*hh`, or, in a shorter file, every line does | [below](#gps-logs) |
 | R-DAS raw text | AED Electronics R-DAS, its raw data as its Windows software exports a flight | a first line that isn't blank reading `*** Configuration ***`, and a `*** Raw data ***` line within the first 200 | `hpr_flightdata::rdas` ([below](#r-das-raw-text)) |
 | MARSA download | MARSA Systems' MARSA4 and MARSA54, a flight as their software, MARSA_Connect, saves it to a `.dat` file, or a spreadsheet re-saves it | a first line that isn't blank that is a setting or a heading, `<NAME> value` or `<NAME>`, and a `<MARSA VERSION>` setting with a value within the first 200 lines that aren't blank | `hpr_flightdata::marsa` ([below](#a-marsa-download)) |
@@ -2554,9 +2554,9 @@ the point keeps its place with its time a gap.
 - **Missile Works' RTx**, a GPS tracker: the `.rtx` file its maker's program saves, and the CSV
   and text files it exports. They have been read since
   [M7.1c12](../decisions-and-roadmap.md#m7-1c12) ([below](#missile-works-rtx)).
-- **GPX**, the GPS Exchange Format, which GPS receivers, phone apps and mapping tools exchange
-  tracks in. It has been read since [M7.1d1](../decisions-and-roadmap.md#m7-1d1), from invented
-  files only ([below](#gpx)) ([evidence row G1](../evidence.md#g1)).
+- **GPX**, the GPS Exchange Format. It has been read since
+  [M7.1d1](../decisions-and-roadmap.md#m7-1d1), from invented files only ([below](#gpx))
+  ([evidence row G1](../evidence.md#g1)).
 
 For example, take a `GGA` sentence's position and an `RMC` sentence's speed, invented after the
 textbook example public descriptions of NMEA 0183 give. A test in the crate reads these two lines
@@ -2690,7 +2690,7 @@ cut, not rounded.
 ### GPX
 
 GPX, the GPS Exchange Format, is the XML file GPS receivers, phone apps and mapping tools save
-and exchange tracks in. Topografix publishes its two versions as schemas,
+tracks in. Topografix publishes its two versions as schemas,
 [GPX 1.0](https://www.topografix.com/GPX/1/0/gpx.xsd) and
 [GPX 1.1](https://www.topografix.com/GPX/1/1/gpx.xsd), with
 [a manual for 1.0](https://www.topografix.com/gpx_manual.asp). HPR Sim reads both since
@@ -2699,21 +2699,17 @@ from those documents.
 
 > **How far to trust it.** No sample log in the collection is a GPX file. So the reader is checked
 > only on three invented files, against gpxpy 1.6.2, an outside GPX reader ([evidence row
-> G1](../evidence.md#g1)). All 196 values of their tracks' channels match gpxpy's as the same 64-bit
-> numbers, each at its time (a gap matching a gap). All 12 figures of their waypoints and route
-> points match too. What a real tracker writes, and above
-> all what its elevation is measured from, no file has shown yet. A GPX file from a tracker or app
-> flown on a rocket would show both, with the same flight's barometric altimeter log beside
-> it. Offer one in [issue
+> G1](../evidence.md#g1)). All 212 values of their tracks' channels and all 12 figures of their
+> waypoints and route points match gpxpy's as the same 64-bit numbers. A rocket flight's GPX with
+> its barometric log would show what `ele` is measured from. Offer one in [issue
 > #654](https://github.com/nrdptel/fusionspace-eridanus/issues/654).
 
 **The check.** The test is `every_value_of_the_samples_equals_gpxpys` in
 `crates/hpr-flightdata/tests/gpx.rs`. The gpxpy reading is written by
-`validation/oracles/gpx/gpxpy_read.py`. Where a time states no zone, gpxpy gives it none, and the
-check reads it as UTC, as the reader does. The samples hold only what both readers read alike. The
-outside reader also reads a number with an exponent, a point off the globe and a time that goes
-back. This reader refuses all three. The outside reader cuts a time to the microsecond. It refuses
-an `ele` of spaces only, which this reader reads as a gap.
+`validation/oracles/gpx/gpxpy_read.py`. The samples hold only what both readers read alike. gpxpy
+reads a number with an exponent, a point off the globe and a time that goes back, which this
+reader refuses. gpxpy cuts a time to the microsecond and refuses an `ele` of spaces only, which
+this reader reads as a gap.
 
 - *Tracks.* A file holds tracks (`trk`), each of segments (`trkseg`), each of points (`trkpt`).
   A receiver starts a new segment where it lost reception or was turned off. Each segment is
@@ -2726,28 +2722,37 @@ an `ele` of spaces only, which this reader reads as a gap.
   and its speed in meters per second. A value a point leaves out, or leaves empty, such as
   `<ele/>`, is a gap. The rest, such as `fix` and an app's own `extensions`, is counted in a
   note and not read.
-- *Elevation.* GPX 1.1's schema and GPX 1.0's manual give `ele` a unit, meters, but no [vertical
-  datum](../glossary.md#vertical-datum). GPX 1.1's schema says its coordinates are WGS84's. But it
-  does not say that `ele` is a height above the WGS84 ellipsoid. That ellipsoid is the smooth shape
-  GPS works positions out on, not sea level. So `ele` may be above mean sea level, above the
-  ellipsoid or from a barometer. It is read as an altitude of unstated zero, not as a GPS altitude
-  above sea level. Only its rise from one point to another means what it says.
+- *Elevation.* GPX gives `ele` in meters but no [vertical datum](../glossary.md#vertical-datum).
+  It is read as an altitude of unstated zero: only its rise between points means what it
+  says. A receiver's [NMEA GGA](https://gpsd.gitlab.io/gpsd/NMEA.html) altitude is above mean
+  sea level. [Android's](https://developer.android.com/reference/android/location/Location#getAltitude())
+  location API gives the [ellipsoidal height](../glossary.md#ellipsoidal-height),
+  [Apple's](https://developer.apple.com/documentation/corelocation/cllocation/altitude) the height
+  above sea level. That offset barely changes over a flight: it moves the pad's elevation, not
+  the height above the pad. A handheld may write its barometer's, whose error grows with
+  height. A track point's `geoidheight`, the geoid's height above the ellipsoid, is
+  read as a channel, `<name> geoid height`. It doesn't say which `ele` is:
+  [GPSLogger](https://gpslogger.app/#whyisthealtitudevaluemissing), which wrote 7 of 10 such files
+  opened on GitHub, writes the ellipsoidal height unless set to sea level
+  ([#645](https://github.com/nrdptel/fusionspace-eridanus/issues/645)). One Eggfinder track saved
+  as GPX most likely holds sea level, with moderate confidence ([a research
+  note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/forum-eggfinder-gpx-vs-baro.md);
+  [evidence row G1](../evidence.md#g1)).
 - *Times.* GPX times are in UTC, as GPX 1.1's schema and GPX 1.0's manual require. A time with
   an offset, such as `08:30:00-04:00`, is moved to UTC. One with no zone is read as UTC, with a
   note. A second written 60, a leap second's, is read as the next minute's first. The record's
   zero is the first time the file gives a track point (or, with none, a waypoint or route
-  point). A point with no time keeps its place with its time a gap. Within a track, times must
-  go forward. One that goes back is refused, naming its line, since such a track isn't one
-  recording. Two tracks may run in any order, as a file holding two flights does.
+  point). A point with no time keeps its place with its time a gap. A time that goes back
+  within a track is refused, as such a track isn't one recording. Two tracks may run in any
+  order, as a file holding two flights does.
 - *Waypoints and routes.* A waypoint (`wpt`) marks a place, such as the pad, and a route (`rte`)
   plans a path. Neither was flown. They are kept apart from the tracks, as figures the file
   states, such as `waypoint Pad latitude`. So no reading takes them for the flight.
 - *Refused.* A document type declaration is refused, and so is a reference to an entity XML
-  doesn't define, such as `&rocket;`. That way no entity can expand. An entity is XML's named
-  text, which a hostile file can nest to make a few bytes expand to gigabytes. A point off the
-  globe is refused, with a latitude outside −90° to 90° or a longitude outside −180° to 180°. So
-  is a value that isn't a plain decimal number, such as `1e3`. So is a time that goes back within
-  a track. Each refusal names what it found and its line.
+  doesn't define, such as `&rocket;`, so no entity, XML's named text, can expand. A point off
+  the globe is refused, with a latitude outside −90° to 90° or a longitude outside −180° to
+  180°. So is a value that isn't a plain decimal number, such as `1e3`, and a time that goes
+  back. Each refusal names what it found and its line.
 - *Limits.* At most 256 segments, 1,000,000 track points and 10,000 waypoints and route points
   are read. The rest are counted in a note and left out.
 
@@ -2763,10 +2768,9 @@ below:
 ```
 
 The record's zero is the first point's time, 17:04:04 UTC on 14 July 2031. The tenth point is $13 -
-4 = 9\,\mathrm{s}$ later and $868.4 - 402.0 = 466.4\,\mathrm{m}$ (1,530 ft) higher. It is the track's highest point. Its
-height above sea level the file doesn't say, as its elevation states no datum. The same file marks
-the pad as a waypoint at 17:03:40 UTC. That is read as the figure `waypoint Pad time`, 24 s before
-the zero, −24 s.
+4 = 9\,\mathrm{s}$ later and $868.4 - 402.0 = 466.4\,\mathrm{m}$ (1,530 ft) higher. It is the track's highest point. The
+same file marks the pad as a waypoint at 17:03:40 UTC. That is read as the figure `waypoint Pad
+time`, 24 s before the zero, −24 s.
 
 ## Other PerfectFlite files
 
