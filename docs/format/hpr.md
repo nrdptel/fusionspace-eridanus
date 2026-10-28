@@ -422,10 +422,10 @@ Both are checked on every change:
   configurations as a count of the same JSON in Rust.
 - Each language's own JSON writer (`JSON.stringify`, Python's `json.dumps`) writes the 18
   documents back out, and the simulator reads each as the same design.
-- Tests make 4,910 altered copies of two of those documents. In them a key is added or removed, an
+- Tests make 7,164 altered copies of two of those documents. In them a key is added or removed, an
   array is lengthened or shortened, or a value is replaced by another. The replacement is a
   different type, an out-of-range number, an unknown word, or a string with a final newline. The
-  schema refuses 4,124 of them. Each reader takes a copy exactly when a separate schema checker, the
+  schema refuses 5,802 of them. Each reader takes a copy exactly when a separate schema checker, the
   Rust `jsonschema` library, does.
 - The TypeScript compiler (at `target` ES2020) and mypy are both at their strictest. They accept the
   18 documents written out as values of type `DesignFile`, and the two examples. They refuse a

@@ -339,18 +339,25 @@ fn motors_list_gives_inches() {
     holds_lines(
         &text,
         &[
-            "designation   maker     class  dia mm (in)   len mm (in)  impulse N·s   avg N  burn s  \
-             delays",
-            "B4            Quest     B        18 (0.71)     80  (3.1)          4.9     4.4    1.11  \
-             4-6",
-            "H170M         AeroTech  H        38 (1.50)    191  (7.5)        318.0   165.4    1.92  \
-             2,4,6,8,10,14",
-            "K400C         AeroTech  K        54 (2.13)    359 (14.1)       1307.3   409.8    3.19  14",
+            "designation    maker       class    dia mm (in)     len mm (in)  impulse N·s    avg N  \
+             burn s  delays",
+            "B4             Quest       B          18 (0.71)       80  (3.1)          4.9      4.4    \
+             1.11  4-6",
+            "H170M          AeroTech    H          38 (1.50)      191  (7.5)        318.0    165.4    \
+             1.92  2,4,6,8,10,14",
+            "K400C          AeroTech    K          54 (2.13)      359 (14.1)       1307.3    409.8    \
+             3.19  14",
         ],
     );
     let json = out(&["motors", "list", "--json"]);
     let document: Value = serde_json::from_str(&json).unwrap();
-    assert_eq!(document["motors"][0]["diameter_mm"], 18.0);
+    let quest_b4 = document["motors"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|m| m["selector"] == "Quest B4")
+        .unwrap();
+    assert_eq!(quest_b4["diameter_mm"], 18.0);
 }
 
 /// `hpr motors search` gives each motor's diameter in inches in brackets after the millimeters.

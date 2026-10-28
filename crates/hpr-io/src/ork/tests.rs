@@ -3090,8 +3090,9 @@ fn per_config_overrides_and_dangling_mount_warn() {
 /// event none is (`SeparationNotFlown`), and each is left out with the first reason that applies: a
 /// switched-off stage, a hybrid, a missing case size, and last the separation. The same booster flown alone, from its inner tube, is. A motor with a blank
 /// `configid`, and a second motor for one configuration in one mount, are warned about and left out
-/// without costing any other configuration its flight; an Estes `B4` does not take the catalog's
-/// Quest `B4`; and a `0` delay is a charge at burnout.
+/// without costing any other configuration its flight; an Estes `H128W` does not take the
+/// catalog's AeroTech `H128W`, the only motor of that designation; and a `0` delay is a charge at
+/// burnout.
 #[test]
 fn a_configuration_flies_only_as_written() {
     let motor = |config: &str, maker: &str, name: &str, delay: &str| {
@@ -3108,7 +3109,7 @@ fn a_configuration_flies_only_as_written() {
         f15("two"),
         f15("clu"),
         f15("off"),
-        motor("b4", "Estes", "B4", "0.0"),
+        motor("maker", "Estes", "H128W", "0.0"),
         "<motor configid='hyb'><type>hybrid</type><manufacturer>Estes</manufacturer>\
          <designation>F15</designation><diameter>0.029</diameter><length>0.114</length></motor>\
          <motor configid='nosize'><type>single</type><manufacturer>Estes</manufacturer>\
@@ -3162,7 +3163,7 @@ fn a_configuration_flies_only_as_written() {
     <motorconfiguration configid="two"/>
     <motorconfiguration configid="clu"/>
     <motorconfiguration configid="off"><stage active="false"/></motorconfiguration>
-    <motorconfiguration configid="b4"/>
+    <motorconfiguration configid="maker"/>
     <motorconfiguration configid="hyb"/>
     <motorconfiguration configid="nosize"/>
     <motorconfiguration configid="dup"/>
@@ -3266,23 +3267,27 @@ fn a_configuration_flies_only_as_written() {
             .iter()
             .any(|c| c.id.is_empty())
     );
-    let b4 = &configurations
+    let other_maker = &configurations
         .iter()
-        .find(|c| c.id == "b4")
-        .expect("b4")
+        .find(|c| c.id == "maker")
+        .expect("maker")
         .motors[0];
+    // The catalog has the designation, but only as another maker's.
+    let catalog = hpr_motor::Catalog::bundled().unwrap();
+    assert_eq!(catalog.find("H128W").count(), 1);
+    assert_eq!(catalog.find("Estes H128W").count(), 0);
     assert!(
         matches!(
-            b4.curve,
+            other_maker.curve,
             Curve::Unresolved {
                 why: NoCurve::NotFound,
                 ..
             }
         ),
-        "an Estes B4 is not the catalog's Quest B4: {:?}",
-        b4.curve
+        "an Estes H128W is not the catalog's AeroTech H128W: {:?}",
+        other_maker.curve
     );
-    assert_eq!(b4.delay, Some(hpr_motor::Delay::Seconds(0.0)));
+    assert_eq!(other_maker.delay, Some(hpr_motor::Delay::Seconds(0.0)));
 
     // The booster alone flies, from its inner tube, and so do the configurations whose only
     // trouble was the sustainer.

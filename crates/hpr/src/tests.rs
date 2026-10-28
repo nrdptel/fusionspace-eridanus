@@ -433,14 +433,23 @@ fn motors_come_from_the_catalog_or_a_file() {
         Err(Error::AmbiguousMotor { name, candidates }) => {
             assert_eq!(name, "I175");
             assert_eq!(candidates.len(), 2, "{candidates:?}");
-            assert_eq!(candidates, ["I175WS (AeroTech)", "411I175-14A (Cesaroni)"]);
-            // Each is listed by a designation that finds it alone.
+            assert_eq!(candidates, ["I175WS", "411I175-14A"]);
+            // Each is listed by a name that finds it alone.
             for candidate in &candidates {
-                let designation = candidate.split(' ').next().unwrap();
                 assert_eq!(
-                    Motor::from_catalog(designation).unwrap().designation(),
-                    designation
+                    Motor::from_catalog(candidate).unwrap().designation(),
+                    candidate
                 );
+            }
+        }
+        other => panic!("{other:?}"),
+    }
+    // A designation two makers share lists each by its maker's short name (ADR-302).
+    match Motor::from_catalog("C6") {
+        Err(Error::AmbiguousMotor { candidates, .. }) => {
+            assert!(candidates.iter().any(|c| c == "Estes C6"), "{candidates:?}");
+            for candidate in &candidates {
+                assert_eq!(Motor::from_catalog(candidate).unwrap().designation(), "C6");
             }
         }
         other => panic!("expected an ambiguous name, got {other:?}"),

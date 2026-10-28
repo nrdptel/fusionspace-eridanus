@@ -15,7 +15,7 @@
 <text x="52" y="199" xml:space="preserve" fill="#0B0F1C">delay                 apogee 9.48 s after burnout; the motor&apos;s set delay: 10 s; its charge fires</text>
 <text x="52" y="215" xml:space="preserve" fill="#0B0F1C">    0.52 s after apogee</text>
 <text x="52" y="231" xml:space="preserve" fill="#0B0F1C">descent               4.4 m/s (15 ft/s) at landing under `Parachute`</text>
-<text x="52" y="263" xml:space="preserve" fill="#0B0F1C">motor: 1 × H170M (from the bundled catalog, as of 2026-09-17) in `Motor mount tube`, lit at launch</text>
+<text x="52" y="263" xml:space="preserve" fill="#0B0F1C">motor: 1 × H170M (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch</text>
 <text x="52" y="279" xml:space="preserve" fill="#0B0F1C">recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 12.14 s</text>
 <text x="52" y="295" xml:space="preserve" fill="#0B0F1C">launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical</text>
 <text x="52" y="311" xml:space="preserve" fill="#0B0F1C">    rail, in calm air</text>

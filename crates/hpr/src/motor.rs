@@ -76,11 +76,12 @@ impl Motor {
     ///
     /// - [`Error::NoSuchMotor`] if no motor with a bundled curve matches.
     /// - [`Error::AmbiguousMotor`] if several motors match, as a common name can (`"I175"`
-    ///   matches two); each is listed by its designation, which finds it alone.
+    ///   matches two); each is listed by a name that finds it alone: its designation, or its
+    ///   maker's short name and its designation where makers share it (`"Estes C6"`).
     /// - [`Error::Motor`] if the catalog or the motor's curve can't be read (never, for the
     ///   bundled ones: their tests read them all).
     pub fn from_catalog(name: &str) -> Result<Self, Error> {
-        Self::from_catalog_in(&Catalog::bundled()?, name)
+        Self::from_catalog_in(Catalog::bundled()?, name)
     }
 
     /// As [`Motor::from_catalog`], in `catalog` rather than the built-in one: the motor whose
@@ -103,9 +104,7 @@ impl Motor {
                     name: name.to_owned(),
                     candidates: matches
                         .iter()
-                        .map(|entry| {
-                            format!("{} ({})", entry.designation, entry.manufacturer_abbrev)
-                        })
+                        .map(|entry| catalog.selector(entry))
                         .collect(),
                 });
             }

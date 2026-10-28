@@ -127,7 +127,7 @@ pub struct Found {
 ///
 /// [amw]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/amw-retests.md
 /// [survey]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/fetched-mass-survey.md
-pub const PROPELLANT_SHORT_BOUND: f64 = 0.05;
+pub const PROPELLANT_SHORT_BOUND: f64 = hpr_motor::catalog::PROPELLANT_SHORT_BOUND;
 
 impl Found {
     /// The warning for flying the taken file when its propellant mass, as its header gives it, is

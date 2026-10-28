@@ -58,7 +58,7 @@ rail exit speed       26.3 m/s (86 ft/s)
 delay                 apogee 9.48 s after burnout; the motor's set delay: 10 s; its charge fires 0.52 s after apogee
 descent               4.4 m/s (15 ft/s) at landing under `Parachute`
 
-motor: 1 × H170M (from the bundled catalog, as of 2026-09-17) in `Motor mount tube`, lit at launch
+motor: 1 × H170M (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 12.14 s
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
 note: the file's 1 recovery device flies as OpenRocket flies it. Each opens fully at its event, with the file's drag coefficient or OpenRocket's own. Once one opens, the rocket descends as a point under the open devices' drag alone
@@ -147,7 +147,7 @@ rail exit speed       36.8 m/s (121 ft/s)
 delay                 apogee 9.54 s after burnout; the motor's set delay: 9 s; its charge fires 0.54 s before apogee
 descent               4.9 m/s (16 ft/s) at landing under `Parachute`
 
-motor: 1 × I175WS (from the bundled catalog, as of 2026-09-17) in `Motor mount tube`, lit at launch
+motor: 1 × I175WS (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 10.97 s
 launched at 0.00000° N, 0.00000° E, 1400 m (4593 ft) above sea level, from a 2.4 m (7.9 ft) rail 85° above the horizon, leaning toward 270° T, in a 4 m/s (9 mph) wind from 270° T
 note: the file's 1 recovery device flies as OpenRocket flies it. Each opens fully at its event, with the file's drag coefficient or OpenRocket's own. Once one opens, the rocket descends as a point under the open devices' drag alone
@@ -186,18 +186,20 @@ The wind is the same at every height. [The launch](cli.md#the-launch) lists ever
 
 ## Fetch a motor the simulator doesn't have
 
-**A motor outside the simulator's 32 is fetched from [ThrustCurve.org](glossary.md#thrustcurveorg)
-the first time you fly it. Then it's kept in the simulator's cache, so it flies offline after.** A `.ork`
-names its motor but rarely carries its [thrust curve](glossary.md#thrust-curve). With no network,
-and no copy in the cache, `hpr sim` refuses and prints the command that fetches it. This test rocket
-names an AeroTech H128W:
+**A motor outside the simulator's catalog is fetched from
+[ThrustCurve.org](glossary.md#thrustcurveorg) the first time you fly it. Then it's kept in the
+simulator's cache, so it flies offline after.** A `.ork` names its motor but rarely carries its
+[thrust curve](glossary.md#thrust-curve). The catalog holds ThrustCurve.org's solid motors, but not
+one newer than it, or one ThrustCurve.org lists without a curve file. With no network, and no copy
+in the cache, `hpr sim` refuses and prints the command that fetches it. This test rocket names an
+invented motor, which no catalog holds:
 
-<!-- cli: example `hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --offline`, exits 1; written by `cargo xtask cli`; do not edit -->
+<!-- cli: example `hpr sim validation/fixtures/ork/guides/no-curve.ork --offline`, exits 1; written by `cargo xtask cli`; do not edit -->
 
 ```text
-$ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --offline
-error: configuration [H128W-0] can't be flown as the file has it. No thrust curve for H128W: no embedded curve, and no motor of that manufacturer and designation in the bundled catalog. AeroTech H128W is not in HPR Sim's cache of ThrustCurve.org, and the run is offline
-help: with a network connection, `hpr motors fetch --manufacturer AeroTech H128W` fetches it into the cache
+$ hpr sim validation/fixtures/ork/guides/no-curve.ork --offline
+error: configuration [Z9-INVENTED] can't be flown as the file has it. No thrust curve for Z9-INVENTED: no embedded curve, and no motor of that manufacturer and designation in the bundled catalog. Invented Z9-INVENTED is not in HPR Sim's cache of ThrustCurve.org, and the run is offline
+help: with a network connection, `hpr motors fetch --manufacturer Invented Z9-INVENTED` fetches it into the cache
 help: give a motor with --motor
 $ echo $?
 1
@@ -208,7 +210,7 @@ $ echo $?
 Run that command once with a network connection, or fly the file once online:
 
 ```text
-hpr motors fetch --manufacturer AeroTech H128W
+hpr motors fetch --manufacturer Invented Z9-INVENTED
 ```
 
 The curve is ThrustCurve's, found by the file's manufacturer and designation. For the motors of
@@ -218,7 +220,7 @@ takes it. For any other motor, the file may not be the one OpenRocket flies.
 A note under the flight names the curve file, who measured it, and which of the two it is. [Motors
 from ThrustCurve.org](cli.md#motors-from-thrustcurveorg) says how the simulator picks one. If you
 have the motor's `.eng` or `.rse` file, fly it with `--motor`:
-`hpr sim my-rocket.ork --motor AeroTech_H128W.eng`.
+`hpr sim my-rocket.ork --motor my-motor.eng`.
 
 ## Plot it, or save the numbers
 

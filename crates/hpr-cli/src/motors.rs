@@ -114,7 +114,7 @@ pub(crate) fn run(command: &MotorsCommand, to: &mut Out<'_>) -> Result<(), Failu
 }
 
 /// The bundled catalog.
-pub(crate) fn catalog() -> Result<Catalog, Failure> {
+pub(crate) fn catalog() -> Result<&'static Catalog, Failure> {
     Catalog::bundled()
         .map_err(|error| Failure::helped(format!("the bundled catalog: {error}"), crate::BUG_HELP))
 }
@@ -122,7 +122,7 @@ pub(crate) fn catalog() -> Result<Catalog, Failure> {
 /// The bundled catalog's as-of date, `YYYY-MM-DD`: the day its curve files were downloaded, which
 /// a build fixes, so a run's files stay the same from one run to the next (ADR-174 §5).
 pub(crate) fn catalog_as_of() -> Result<String, Failure> {
-    catalog().map(|catalog| catalog.snapshot.captured)
+    catalog().map(|catalog| catalog.snapshot.captured.clone())
 }
 
 /// `hpr motors list`.
@@ -141,7 +141,7 @@ fn list(args: &ListArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     }
     let catalog = catalog()?;
     let manufacturer = match &args.manufacturer {
-        Some(name) => Some(maker(&catalog, name)?),
+        Some(name) => Some(maker(catalog, name)?),
         None => None,
     };
     let motors = catalog
@@ -162,7 +162,7 @@ fn list(args: &ListArgs, to: &mut Out<'_>) -> Result<(), Failure> {
                     || motor.manufacturer_abbrev.to_lowercase() == *name
             })
         })
-        .map(listed)
+        .map(|motor| listed(catalog, motor))
         .collect::<Result<_, _>>()?;
     let list = MotorList {
         catalog: CatalogInfo {
@@ -173,7 +173,7 @@ fn list(args: &ListArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         motors,
     };
     // Filters that match nothing say so, with the catalog's span to choose within.
-    let none_matches = list.motors.is_empty().then(|| catalog_span(&catalog));
+    let none_matches = list.motors.is_empty().then(|| catalog_span(catalog));
     to.emit(&list, |out, diagnostics| {
         list_text(&list, out)?;
         if let Some((help, span)) = &none_matches {
@@ -258,9 +258,10 @@ fn maker(catalog: &Catalog, name: &str) -> Result<String, Failure> {
 }
 
 /// One catalog motor, as listed.
-fn listed(motor: &CatalogMotor) -> Result<ListedMotor, Failure> {
+fn listed(catalog: &Catalog, motor: &CatalogMotor) -> Result<ListedMotor, Failure> {
     Ok(ListedMotor {
         designation: motor.designation.clone(),
+        selector: catalog.selector(motor),
         common_name: motor.common_name.clone(),
         manufacturer: motor.manufacturer.clone(),
         manufacturer_abbrev: motor.manufacturer_abbrev.clone(),
@@ -272,6 +273,7 @@ fn listed(motor: &CatalogMotor) -> Result<ListedMotor, Failure> {
         average_thrust_n: motor.average_thrust_n,
         burn_time_s: motor.burn_time_s,
         delays: motor.delays.clone(),
+        curve: motor.default_curve().is_some(),
     })
 }
 
@@ -297,8 +299,8 @@ fn kind(motor_type: MotorType) -> Result<MotorKind, Failure> {
 fn list_text(list: &MotorList, out: &mut Text<'_>) -> io::Result<()> {
     writeln!(
         out,
-        "{} motors from {}, downloaded {}; size, masses and delays from each file's header, the \
-         rest from its curve.",
+        "{} motors from {}, captured {}; size and delays from each motor's default file's header, \
+         the rest from its curve, or from ThrustCurve.org's record where no file of it is bundled.",
         list.motors.len(),
         list.catalog.source,
         list.catalog.captured
@@ -326,7 +328,8 @@ fn list_text(list: &MotorList, out: &mut Text<'_>) -> io::Result<()> {
                 .iter()
                 .map(|m| {
                     (
-                        format!("{}", mm(m)),
+                        // To the micrometer: a record can state 13.000000000000002 mm.
+                        format!("{}", (mm(m) * 1000.0).round() / 1000.0),
                         inches_figure(mm(m) / 1000.0, decimals),
                     )
                 })
@@ -381,6 +384,23 @@ fn list_text(list: &MotorList, out: &mut Text<'_>) -> io::Result<()> {
     for row in &rows {
         writeln!(out, "{}", line(&row.each_ref().map(String::as_str)))?;
     }
+    // A motor with no curve file lists its record's figures and can't fly: say which.
+    let curveless: Vec<String> = list
+        .motors
+        .iter()
+        .filter(|m| !m.curve)
+        .map(|m| m.selector.clone())
+        .collect();
+    if !curveless.is_empty() {
+        writeln!(out)?;
+        writeln!(
+            out,
+            "{} of these have no curve file bundled, so their figures are ThrustCurve.org's \
+             record's and `hpr sim --motor` can't fly them: {}.",
+            curveless.len(),
+            in_words(&curveless)
+        )?;
+    }
     Ok(())
 }
 
@@ -400,9 +420,9 @@ fn show(motor: &str, to: &mut Out<'_>) -> Result<(), Failure> {
     })
 }
 
-/// The catalog's designations that begin with `name`, as [`Catalog::find`] compares names
-/// (lowercase, without spaces or hyphens), by designation or common name: `J350` begins
-/// `J350W-L`. At most [`MOST_NEAR`].
+/// The catalog's motors whose designation or common name `name` begins, as [`Catalog::find`]
+/// compares names (lowercase, without spaces or hyphens): `J350` begins `J350W-L`. Each is named
+/// by the name that finds it alone ([`Catalog::selector`]). At most [`MOST_NEAR`].
 fn catalog_near(catalog: &Catalog, name: &str) -> Vec<String> {
     let key = normalized(name);
     if key.is_empty() {
@@ -415,8 +435,8 @@ fn catalog_near(catalog: &Catalog, name: &str) -> Vec<String> {
             normalized(&motor.designation).starts_with(&key)
                 || normalized(&motor.common_name).starts_with(&key)
         })
-        .map(|motor| motor.designation.clone())
         .take(MOST_NEAR)
+        .map(|motor| catalog.selector(motor))
         .collect()
 }
 
@@ -454,7 +474,7 @@ fn from_catalog(name: &str) -> Result<(MotorShow, Vec<Option<String>>), Failure>
                 .to_owned(),
         ];
         help.extend(crate::motor_fetch::cached_answer(name));
-        let near = catalog_near(&catalog, name);
+        let near = catalog_near(catalog, name);
         if !near.is_empty() {
             help.push(format!("the catalog has {}", in_words(&near)));
         }
@@ -470,17 +490,20 @@ fn from_catalog(name: &str) -> Result<(MotorShow, Vec<Option<String>>), Failure>
         warnings: Vec::new(),
     };
     let mut propellants = Vec::new();
+    let mut curveless = Vec::new();
     for motor in matches {
+        // A motor with no curve file that reads is listed with its record's figures, and isn't
+        // shown: there is nothing to work its figures out from (ADR-302).
+        let Some(curve) = motor.default_curve() else {
+            curveless.push(catalog.selector(motor));
+            continue;
+        };
         let solid = motor
             .bundled_motor()
             // The bundled catalog's curves are this build's own.
             .map_err(|error| {
                 Failure::library(format!("{}: {error}", motor.designation), crate::BUG_HELP)
             })?;
-        // The curve `bundled_motor` flew, which it just found.
-        let Some(curve) = motor.default_curve() else {
-            continue;
-        };
         let (source, _) = catalog_source(motor, curve)?;
         let delays = motor.delays();
         show.warnings
@@ -507,6 +530,24 @@ fn from_catalog(name: &str) -> Result<(MotorShow, Vec<Option<String>>), Failure>
                 .map(crate::printable),
         );
     }
+    if show.motors.is_empty() {
+        return Err(Failure::helped(
+            format!(
+                "the bundled catalog lists {}, but no curve file of it is bundled: ThrustCurve.org \
+                 lists none HPR Sim reads",
+                in_words(&curveless)
+            ),
+            "give a .eng or .rse file of it by its path",
+        ));
+    }
+    for selector in curveless {
+        show.warnings.push(Warning {
+            motor: Some(selector.clone()),
+            line: None,
+            kind: WarningKind::Skipped,
+            message: format!("{selector} isn't shown: no curve file of it is bundled"),
+        });
+    }
     Ok((show, propellants))
 }
 
@@ -524,13 +565,14 @@ pub(crate) fn check_warnings(catalog: &Catalog, name: &str) -> Vec<InputWarning>
     };
     motor
         .default_curve()
-        .and_then(|curve| motor.check_warning(curve))
+        .map(|curve| motor.flight_warnings(curve))
+        .unwrap_or_default()
+        .into_iter()
         .map(|message| InputWarning {
             at: "the bundled catalog".to_owned(),
             kind: WarningKind::Unusual,
             message: crate::printable(&message),
         })
-        .into_iter()
         .collect()
 }
 
@@ -1112,15 +1154,20 @@ mod tests {
     use super::*;
     use crate::output::SimMotorSource;
 
-    /// The bundled catalog with the J760's stated burn time moved so its one file's is 2% longer,
-    /// its check worked out again: a motor whose only file fails.
+    /// The bundled catalog with the J760 given only its file `5f4294d20002e9000000074a`, and its
+    /// stated burn time moved so that file's is 2% longer, its check worked out again: a motor
+    /// whose only file fails.
     fn failing_j760() -> Catalog {
-        let mut catalog = Catalog::bundled().unwrap();
+        let mut catalog = Catalog::bundled().unwrap().clone();
         let motor = catalog
             .motors
             .iter_mut()
             .find(|motor| motor.designation == "1266J760-19A")
             .unwrap();
+        motor
+            .curves
+            .retain(|curve| curve.simfile_id == "5f4294d20002e9000000074a");
+        assert_eq!(motor.curves.len(), 1);
         let text = hpr::hpr_motor::catalog::bundled_curve_text(&motor.curves[0].file).unwrap();
         let thrust = motor.thrust_curve(&motor.curves[0], text).unwrap();
         motor.stated.burn_time_s = thrust.burn_time_s() / 1.02;
@@ -1146,7 +1193,7 @@ mod tests {
         );
         assert_eq!(check_warnings(&failing, "1266J760-19A").len(), 1);
         let bundled = Catalog::bundled().unwrap();
-        assert!(check_warnings(&bundled, "J760").is_empty());
+        assert!(check_warnings(bundled, "J760").is_empty());
         assert!(check_warnings(&failing, "no such motor").is_empty());
         assert!(check_warnings(&failing, "I175").is_empty());
     }
@@ -1169,7 +1216,7 @@ mod tests {
             warning.message
         );
         let bundled = Catalog::bundled().unwrap();
-        let (_, _, none) = crate::sim::catalog_or_fetched("J760", true, &bundled).unwrap();
+        let (_, _, none) = crate::sim::catalog_or_fetched("J760", true, bundled).unwrap();
         assert!(none.is_empty());
     }
 

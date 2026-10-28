@@ -4,7 +4,7 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target. The 130 held pages are every page the site's table of contents lists, with the README and the 404 page, less the records page ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)), each snapshot of an `hpr` command's `--help`, the census of what the commands say, a page for each crate's `src/` directory, the Python package's README and its docstrings as `help()` shows them, and each crate's front page, the `//!` docs of its `src/lib.rs` ([ADR-292](../../docs/decisions/0292-the-programs-words-in-four.md)).
 
-138 pages, 514658 words, 0 stock phrases. 134 pages are within every limit.
+138 pages, 514835 words, 0 stock phrases. 134 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
@@ -56,13 +56,13 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/accuracy.md` (`held`) | 15772 | 13.4 | 2% | 0.23 | 0.00 | 0.05 | 0.06 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.02 | 0.48 |
 | `docs/api.md` (`held`) | 2514 | 13.2 | 0% | 0.16 | 0.00 | 0.00 | 0.20 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.40 | 0.36 |
 | `docs/checking-a-claim.md` (`held`) | 1575 | 14.8 | 0% | 0.26 | 0.07 | 0.00 | 0.26 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.13 | 1.21 |
-| `docs/cli.md` (`ref`, `held`) | 17527 | 13.6 | 1% | 0.23 | 0.02 | 0.05 | 0.08 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.23 | 0.62 |
+| `docs/cli.md` (`ref`, `held`) | 17564 | 13.6 | 1% | 0.23 | 0.02 | 0.06 | 0.08 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.23 | 0.62 |
 | `docs/custom-models.md` (`held`) | 1800 | 13.6 | 0% | 0.00 | 0.00 | 0.00 | 0.23 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.95 | 0.95 |
 | `docs/drag-through-mach-1.md` (`held`) | 1957 | 15.0 | 3% | 0.36 | 0.00 | 0.16 | 0.11 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.06 | 0.82 |
 | `docs/elevation.md` (`held`) | 4086 | 14.7 | 2% | 0.00 | 0.00 | 0.08 | 0.05 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.30 | 0.86 |
 | `docs/evidence.md` (`held`) | 6606 | 13.0 | 1% | 0.00 | 0.02 | 0.04 | 0.04 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.02 | 0.34 |
 | `docs/exporting-a-flight.md` (`held`) | 1931 | 14.6 | 0% | 0.00 | 0.00 | 0.00 | 0.06 | 0.00 | 0.00 | 0.00 | | 0.06 | 0.00 | 0.21 | 0.94 |
-| `docs/fly-your-ork.md` (`held`) | 1415 | 12.5 | 0% | 0.00 | 0.00 | 0.00 | 0.15 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.85 | 0.57 |
+| `docs/fly-your-ork.md` (`held`) | 1439 | 12.7 | 0% | 0.00 | 0.00 | 0.00 | 0.14 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.84 | 0.56 |
 | `docs/format/eng.md` (`ref`, `held`) | 2466 | 13.9 | 3% | 0.37 | 0.21 | 0.17 | 0.13 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.05 | 0.21 |
 | `docs/format/era5.md` (`ref`, `held`) | 2442 | 13.6 | 0% | 0.41 | 0.13 | 0.00 | 0.05 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.41 | 0.25 |
 | `docs/format/flight-logs.md` (`ref`, `held`) | 44180 | 13.1 | 1% | 0.23 | 0.21 | 0.02 | 0.09 | 0.00 | 0.01 | 0.01 | 0.00 | 0.00 | 0.00 | 0.04 | 0.46 |
@@ -126,11 +126,11 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/writing.md` (`held`) | 11119 | 14.8 | 4% | 0.48 | 0.19 | 0.21 | 0.16 | 0.00 | 0.02 | 0.00 | | 0.02 | 0.01 | 0.09 | 0.94 |
 | `docs/your-own-logger.md` (`held`) | 2407 | 14.6 | 1% | 0.00 | 0.00 | 0.05 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.42 | 0.67 |
 | `docs/your-own-rocket.md` (`held`) | 4488 | 14.5 | 0% | 0.36 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.38 | 0.67 |
-| `crates/hpr-cli/src/` (`ref`, `held`) | 8293 | 9.9 | 1% | 0.00 | 0.00 | 0.03 | 0.16 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.16 | 0.48 |
+| `crates/hpr-cli/src/` (`ref`, `held`) | 8376 | 9.9 | 1% | 0.00 | 0.00 | 0.04 | 0.16 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.16 | 0.49 |
 | `crates/hpr/src/` (`ref`, `held`) | 602 | 7.0 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 1.00 |
 | `crates/hpr-sim/src/` (`ref`, `held`) | 3454 | 12.7 | 1% | 0.00 | 0.00 | 0.03 | 0.53 | 0.03 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.67 |
-| `crates/hpr-io/src/` (`ref`, `held`) | 5897 | 9.5 | 0% | 0.00 | 0.00 | 0.00 | 0.17 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.04 | 0.00 | 0.23 |
-| `crates/hpr-motor/src/` (`ref`, `held`) | 1197 | 8.1 | 0% | 0.00 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.59 |
+| `crates/hpr-io/src/` (`ref`, `held`) | 5893 | 9.5 | 0% | 0.00 | 0.00 | 0.00 | 0.17 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.04 | 0.00 | 0.23 |
+| `crates/hpr-motor/src/` (`ref`, `held`) | 1234 | 8.2 | 0% | 0.00 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.57 |
 | `crates/hpr-design/src/` (`ref`, `held`) | 2527 | 9.9 | 1% | 0.00 | 0.00 | 0.04 | 0.04 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.36 |
 | `crates/hpr-aero/src/` (`ref`, `held`) | 1604 | 7.7 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.07 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.44 |
 | `crates/hpr-core/src/` (`ref`, `held`) | 241 | 6.1 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
@@ -166,11 +166,11 @@ Each `src/` page above is a crate's message census ([ADR-292](../../docs/decisio
 
 | Crate | Files | Literals read | `#[error]` texts | Forwarded | With a placeholder |
 |---|---:|---:|---:|---:|---:|
-| `crates/hpr-cli/src/` | 25 | 752 | 0 | 0 | 376 |
+| `crates/hpr-cli/src/` | 24 | 756 | 0 | 0 | 379 |
 | `crates/hpr/src/` | 9 | 83 | 29 | 8 | 18 |
 | `crates/hpr-sim/src/` | 21 | 230 | 16 | 9 | 50 |
-| `crates/hpr-io/src/` | 31 | 579 | 45 | 2 | 332 |
-| `crates/hpr-motor/src/` | 14 | 141 | 7 | 0 | 76 |
+| `crates/hpr-io/src/` | 31 | 578 | 45 | 2 | 331 |
+| `crates/hpr-motor/src/` | 15 | 142 | 7 | 0 | 77 |
 | `crates/hpr-design/src/` | 13 | 243 | 6 | 3 | 61 |
 | `crates/hpr-aero/src/` | 15 | 187 | 6 | 3 | 48 |
 | `crates/hpr-core/src/` | 14 | 40 | 12 | 0 | 11 |

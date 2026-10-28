@@ -507,6 +507,7 @@ fn stated(record: &Value) -> Result<StatedFigures, String> {
         average_thrust_n: number(record, "avgThrustN", &of)?,
         burn_time_s: number(record, "burnTimeS", &of)?,
         max_thrust_n: record["maxThrustN"].as_f64(),
+        propellant_mass_g: record["propWeightG"].as_f64(),
     })
 }
 
@@ -764,9 +765,6 @@ pub(crate) fn bundled_rs(catalog: &Catalog) -> String {
          /// The catalog index: each motor's names, the figures its default curve file gives, its \
          record's\n/// stated figures, per-curve provenance and check, and the files left out.\n\
          pub(crate) const CATALOG_JSON: &str = include_str!(\"../data/thrustcurve/catalog.json\");\n\n\
-         /// M5.7a's index of 32 motors, each with its one file, which the lookups use until \
-         M5.7b2\n/// (ADR-301).\n\
-         pub(crate) const FIRST_JSON: &str = include_str!(\"../data/thrustcurve/catalog-m57a.json\");\n\n\
          /// Each bundled curve file's text, by the path in the index.\n\
          pub(crate) const CURVE_FILES: &[(&str, &str)] = &[\n",
     );
@@ -853,7 +851,7 @@ mod tests {
             "{BUNDLED} is stale: run `cargo xtask motor-catalog`"
         );
         // The index the crate compiles in reads back as the catalog written.
-        assert_eq!(hpr_motor::Catalog::whole().unwrap(), &catalog);
+        assert_eq!(hpr_motor::Catalog::bundled().unwrap(), &catalog);
     }
 
     /// Every committed record is a motor, its labels and stated figures the record's unchanged,
@@ -862,7 +860,7 @@ mod tests {
     #[test]
     fn every_record_is_a_motor_and_every_file_is_indexed_or_left_out() {
         let root = crate::designs::root().unwrap();
-        let catalog = hpr_motor::Catalog::whole().unwrap();
+        let catalog = hpr_motor::Catalog::bundled().unwrap();
         let records = records(&root).unwrap();
         let (_, files) = files(&root).unwrap();
         assert_eq!(catalog.motors.len(), records.len());
@@ -962,7 +960,7 @@ mod tests {
             .collect();
         assert!(!held.is_empty());
         assert_eq!(line.matches('"').count(), 2 * held.len(), "{line}");
-        let catalog = hpr_motor::Catalog::whole().unwrap();
+        let catalog = hpr_motor::Catalog::bundled().unwrap();
         for id in held {
             assert!(line.contains(&format!("\"{id}\"")), "{id}");
             for extension in ["eng", "rse"] {

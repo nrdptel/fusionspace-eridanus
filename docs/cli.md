@@ -261,7 +261,7 @@ $ hpr motors show H5
 error: no motor in the bundled catalog is called H5
 help: `hpr motors list` lists the catalog's motors, and a .eng or .rse file can be shown by its path
 help: with a network connection, `hpr motors fetch H5` fetches it from ThrustCurve.org, and `hpr sim --motor` flies it
-help: the catalog has 168H54-10A
+help: the catalog has H55W, 168H54-10A, 234H53-12A, H50 and HP-H550ST
 $ echo $?
 1
 ```
@@ -377,7 +377,7 @@ rail exit speed       21.3 m/s (70 ft/s)
 delay                 apogee 7.71 s after burnout
 descent               no recovery device opened, so the fall is not a prediction
 
-motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Motor mount`, lit at launch
+motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-10-28) in `Motor mount`, lit at launch
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone. The aerodynamics hold only at small angles of attack. Its landing time, speed and place, and any peak it sets in the fall, are not a prediction
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower. HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3. If this surface is that smooth, the apogee, the top speed and the drift read low. The flutter margin and the largest dynamic pressure then look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
@@ -436,26 +436,28 @@ as data, with the ids beside the names. The fields are each configuration's `id`
 (what the text calls it), and each motor's `mount` and `mount_name`.
 
 **A missing motor is fetched, then kept: it flies offline from the cache.** A `.ork` file names its
-motor but rarely carries its [thrust curve](glossary.md#thrust-curve), and the simulator's catalog
-holds 32 motors. When the file embeds no curve and the catalog lacks the motor, `hpr sim` fetches
-it. It finds the motor on [ThrustCurve.org](glossary.md#thrustcurveorg) by the file's manufacturer
+motor but rarely carries its [thrust curve](glossary.md#thrust-curve). The simulator's catalog
+holds ThrustCurve.org's 1,004 solid motors, but a newer motor, or one ThrustCurve.org lists without
+a curve file, isn't in it. When the file embeds no curve and the catalog lacks the motor, `hpr sim`
+fetches it. It finds the motor on [ThrustCurve.org](glossary.md#thrustcurveorg) by the file's manufacturer
 and designation, keeps it in the simulator's cache, and flies it. A note names the curve file, who
 measured it and its license ([Motors from ThrustCurve.org](#motors-from-thrustcurveorg)).
 
 For the motors of OpenRocket's own example designs, HPR Sim takes the ThrustCurve file that holds
 OpenRocket's curve. For any other motor the curve may not be the one OpenRocket flies. No such
 flight has been compared with OpenRocket's own curve yet. With `--offline`, or no network, and no
-copy in the cache, `hpr sim` refuses and names the command that fetches it (abridged):
+copy in the cache, `hpr sim` refuses and names the command that fetches it. Here the test rocket's
+motor is an invented one, which no catalog holds (abridged):
 
 ```text
-$ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --offline
-error: configuration [H128W-0] can't be flown as the file has it. No thrust curve for H128W: no embedded curve […]. AeroTech H128W is not in HPR Sim's cache of ThrustCurve.org, and the run is offline
-help: with a network connection, `hpr motors fetch --manufacturer AeroTech H128W` fetches it into the cache
+$ hpr sim validation/fixtures/ork/guides/no-curve.ork --offline
+error: configuration [Z9-INVENTED] can't be flown as the file has it. No thrust curve for Z9-INVENTED: no embedded curve […]. Invented Z9-INVENTED is not in HPR Sim's cache of ThrustCurve.org, and the run is offline
+help: with a network connection, `hpr motors fetch --manufacturer Invented Z9-INVENTED` fetches it into the cache
 help: give a motor with --motor
 ```
 
 Run that command once with a network connection, or fly the design once while online, and it
-flies offline after. Or give a motor file you have: `hpr sim my-rocket.ork --motor AeroTech_H128W.eng`.
+flies offline after. Or give a motor file you have: `hpr sim my-rocket.ork --motor my-motor.eng`.
 
 #### The landing
 
@@ -507,7 +509,7 @@ rail exit speed       11.2 m/s (37 ft/s)
 delay                 apogee 5.62 s after burnout
 descent               14.1 m/s (46 ft/s) at 150.0 m (492 ft) under `Drogue parachute`; 4.7 m/s (15 ft/s) at landing with `Main parachute` open too
 
-motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Booster / motor bay`, lit at launch
+motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-10-28) in `Booster / motor bay`, lit at launch
 recovery: `Main parachute` at 150 m (492 ft) on the way down, 1.052 m² of drag area, opened at 22.41 s
 recovery: `Drogue parachute` at apogee, 0.133 m² of drag area, opened at 9.12 s
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
@@ -736,7 +738,7 @@ rail exit speed       30.2 m/s (99 ft/s)
 delay                 apogee 7.98 s after burnout
 descent               no recovery device opened, so the fall is not a prediction
 
-motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Motor mount`, lit at launch
+motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-10-28) in `Motor mount`, lit at launch
 launched at 32.99000° N, 106.97000° W, 1400 m (4593 ft) above sea level, from a 3 m (9.8 ft) rail 85° above the horizon, leaning toward 270° T, in a 5 m/s (11 mph) wind from 270° T
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone. The aerodynamics hold only at small angles of attack. Its landing time, speed and place, and any peak it sets in the fall, are not a prediction
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower. HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3. If this surface is that smooth, the apogee, the top speed and the drift read low. The flutter margin and the largest dynamic pressure then look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
@@ -1068,7 +1070,7 @@ landing ellipse                   semi-major            semi-minor  heading   fl
 95%                         109.7 m (360 ft)       68.1 m (223 ft)   089° T            93.5%
 95%, the next flight        111.1 m (365 ft)       69.0 m (226 ft)   089° T            93.5%
 
-motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Motor mount`, lit at launch
+motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-10-28) in `Motor mount`, lit at launch
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) rail 85° above the horizon, leaning toward 270° T, in a 4 m/s (9 mph) wind from 270° T
 scattered, one standard deviation each: --mass-sd 0.02, --drag-sd 0.05, --impulse-sd 0.03, --burn-time-sd 0.02, --wind-sd 0.25, --wind-from-sd 15, --inclination-sd 1, --heading-sd 2
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone. The aerodynamics hold only at small angles of attack. Its landing time, speed and place, and any peak it sets in the fall, are not a prediction
@@ -1222,12 +1224,151 @@ can be fewer than the maker sells.
 
 ```text
 $ hpr motors list --class J
-3 motors from ThrustCurve.org data files marked public domain, downloaded 2026-09-17; size, masses and delays from each file's header, the rest from its curve.
+140 motors from ThrustCurve.org's solid motor catalog: every solid motor's record and every data file but a restricted one, captured 2026-10-28; size and delays from each motor's default file's header, the rest from its curve, or from ThrustCurve.org's record where no file of it is bundled.
 
-designation   maker     class  dia mm (in)  len mm (in)  impulse N·s  avg N  burn s  delays
-J450DM        AeroTech  J        54 (2.13)   359 (14.1)       1061.6  465.6    2.28  14
-1266J760-19A  Cesaroni  J        54 (2.13)   329 (13.0)       1267.3  758.2    1.67  8-10-12-14-16-18-19
-J300LR        Loki      J        54 (2.13)   327 (12.9)       1212.8  297.0    4.08  P
+designation    maker     class    dia mm (in)     len mm (in)  impulse N·s   avg N  burn s  delays
+I600R          AeroTech  J          38 (1.50)   344.68 (13.6)        640.1   572.6    1.12  6-10-14
+I65W           AeroTech  J          54 (2.13)      235  (9.3)        659.9    76.3    8.64  0
+I350R          AeroTech  J          38 (1.50)      356 (14.0)        643.6   408.6    1.58  P
+HP-I65W        AeroTech  J          54 (2.13)      218  (8.6)        660.2    87.5    7.55  10
+644J94-P       Cesaroni  J          38 (1.50)      367 (14.4)        644.6    95.0    6.79  0
+J520F          KBA       J          38 (1.50)      368 (14.5)        645.5   527.2    1.22  6,10,14
+648J285-15A    Cesaroni  J          38 (1.50)      367 (14.4)        648.1   288.7    2.25  6,8,10,12,15
+J270           Ellis     J          38 (1.50)      384 (15.1)        718.9   260.4    2.76  0
+649J335-15A    Cesaroni  J          38 (1.50)      367 (14.4)        646.7   339.3    1.91  15,12,10,8,6
+J396-SF        Loki      J          38 (1.50)      406 (16.0)        651.6   413.0    1.58  5-8-10-13-17
+650J270-13A    Cesaroni  J          38 (1.50)      367 (14.4)        653.1   269.0    2.43  5-7-8-9-10-11
+J340M          AeroTech  J          38 (1.50)      337 (13.3)        652.8   366.1    1.78  2,4,6,8,10,14
+654J316-17A    Cesaroni  J          38 (1.50)      367 (14.4)        653.9   313.2    2.09  17-14-12-10-8
+658J357-17A    Cesaroni  J          38 (1.50)      367 (14.4)        657.1   373.8    1.76  17-14-12-10-8
+J420R          AeroTech  J          38 (1.50)      337 (13.3)        651.2   424.0    1.54  0
+660J381-15A    Cesaroni  J          38 (1.50)      419 (16.5)        659.1   388.1    1.70  15-12-10-8-6
+J500ST         AMW       J          38 (1.50)      370 (14.6)        653.9   525.2    1.25  20
+J280S          Kosdon    J          38 (1.50)      368 (14.5)        671.1   296.5    2.27  11
+J520W          AeroTech  J          38 (1.50)    502.1 (19.8)        686.8   498.9    1.38  5-9-13
+J450F          Kosdon    J          38 (1.50)      368 (14.5)        673.3   619.4    1.10  10
+J607WC         Gorilla   J          38 (1.50)      370 (14.6)        677.9   607.0    1.15  P
+HP-J425R       AeroTech  J          38 (1.50)    356.4 (14.0)        676.8   417.0    1.62  14
+J740G          KBA       J          38 (1.50)      370 (14.6)        665.1   818.1    0.81  1000
+683J250-15A    Cesaroni  J          54 (2.13)      237  (9.3)        682.7   250.4    2.73  6-8-10-12-15
+684J290-15A    Cesaroni  J          38 (1.50)      367 (14.4)        684.2   294.6    2.32  7-8-9-11-12-13
+J300           Cesaroni  J          38 (1.50)      360 (14.2)        688.0   333.6    2.06  0
+J350W-OLD      AeroTech  J          38 (1.50)      337 (13.3)        689.8   372.9    1.85  0
+699J145-19A    Cesaroni  J          54 (2.13)  235.999  (9.3)        700.7   145.1    4.83  19,17,15,13,11,9
+J350W          AeroTech  J          38 (1.50)      337 (13.3)        669.2   448.2    1.49  P
+700J400-16A    Cesaroni  J          38 (1.50)      421 (16.6)        698.9   400.8    1.74  7,9,11,13,16
+HP-J270W       AeroTech  J          38 (1.50)    356.4 (14.0)        701.5   274.2    2.56  14-12-10-8-6
+J250W          AeroTech  J          54 (2.13)    218.2  (8.6)        708.8   251.3    2.82  14
+J90W           AeroTech  J          54 (2.13)      243  (9.6)        689.4    97.8    7.05  0
+J474-CT        Loki      J          38 (1.50)      417 (16.4)        712.5   472.9    1.51  18
+716J280-16A    Cesaroni  J          54 (2.13)      236  (9.3)        716.3   284.8    2.52  6-16
+J320-LR        Loki      J          38 (1.50)      406 (16.0)        809.7   329.2    2.46  5-8-10-14
+J405S          KBA       J          38 (1.50)      476 (18.7)        722.3   387.7    1.86  14
+J500G          AeroTech  J          38 (1.50)  335.407 (13.2)        722.7   516.0    1.40  0-6-10-14
+J250FJ         AeroTech  J          54 (2.13)      241  (9.5)        707.2   255.1    2.77  6-10-14-18
+J550ST-14      AeroTech  J          54 (2.13)      231  (9.1)        732.0   534.8    1.37  0-14-P
+J-326-LR       Loki      J          38 (1.50)      417 (16.4)        744.2   336.8    2.21  8-11-15
+J605F          KBA       J          38 (1.50)      476 (18.7)        737.9   586.8    1.26  14
+J330           Ellis     J          38 (1.50)      433 (17.0)        866.6   328.7    2.64  0
+J528-LW        Loki      J          38 (1.50)      406 (16.0)        746.6   652.0    1.15  5-8-10-13-17
+J435WS         AeroTech  J          38 (1.50)    365.9 (14.4)        772.1   462.6    1.67  6-10-14
+J615ST-20A     AeroTech  J          54 (2.13)    230.1  (9.1)        762.9   631.9    1.21  4-20
+747J1055-17A   Cesaroni  J          54 (2.13)      236  (9.3)        738.5  1033.5    0.71  17,15,13,10,7
+J110           Ellis     J          54 (2.13)    276.2 (10.9)        752.0   111.8    6.73  100
+J712-LB        Loki      J          38 (1.50)      406 (16.0)        828.3   711.2    1.16  7-9-12-15
+J345S          Kosdon    J          38 (1.50)      476 (18.7)        761.2   361.8    2.10  18
+J315R          AeroTech  J          54 (2.13)      243  (9.6)        757.2   297.3    2.55  0
+J180T          AeroTech  J          54 (2.13)      230  (9.1)        786.9   174.8    4.50  0
+765J330-16A    Cesaroni  J          38 (1.50)      421 (16.6)        765.1   343.7    2.23  7-9-11-13-16
+774J410-16A    Cesaroni  J          38 (1.50)      421 (16.6)        777.6   409.6    1.90  16
+J275W          AeroTech  J          54 (2.13)      230  (9.1)        842.7   236.5    3.56  0
+784J425-16A    Cesaroni  J          38 (1.50)    409.2 (16.1)        785.0   424.3    1.85  16-13-11-9-7
+J340F          Kosdon    J          54 (2.13)      251  (9.9)        787.3   432.8    1.88  10
+J630F          Kosdon    J          38 (1.50)      476 (18.7)        787.4   659.5    1.17  20
+J575FJ         AeroTech  J          38 (1.50)   478.79 (18.9)        796.0   623.1    1.28  6-10-14
+J460T          AeroTech  J          54 (2.13)      230  (9.1)        858.1   440.7    1.95  0
+806J240-16A    Cesaroni  J          54 (2.13)      236  (9.3)        809.0   246.2    3.29  6,9,11,13,16
+J675F          Kosdon    J          38 (1.50)      476 (18.7)        814.5   710.5    1.17  20
+819J354-16A    Cesaroni  J          38 (1.50)      421 (16.6)        819.4   353.8    2.32  7-8-9-11-12-13
+821J430-18A    Cesaroni  J          54 (2.13)      236  (9.3)        820.2   430.5    1.91  8-10-11-13-14-15-16
+J360           Cesaroni  J          38 (1.50)      419 (16.5)        815.8   415.7    1.96  0
+836J210-16A    Cesaroni  J          54 (2.13)      236  (9.3)        836.2   211.0    3.96  16-15-14-13-12-11-10-9-8-7-6
+838J293-13A    Cesaroni  J          54 (2.13)      237  (9.3)        831.6   292.9    2.84  13-12-11-10-9-8-7-6-5-4-3
+J1299N         AeroTech  J          54 (2.13)      230  (9.1)        850.2  1301.2    0.65  0
+848J520-16A    Cesaroni  J          38 (1.50)      500 (19.7)        847.7   519.8    1.63  16-13-11-9-7
+J365BL         Gorilla   J          54 (2.13)      326 (12.8)        861.1   376.5    2.29  1000
+867J244-14A    Cesaroni  J          54 (2.13)      236  (9.3)        849.4   243.6    3.49  14-11-9-7-5
+J180DH         Kosdon    J          54 (2.13)      326 (12.8)        884.2   193.4    4.57  13
+896J580-17A    Cesaroni  J          38 (1.50)      510 (20.1)        894.8   577.1    1.55  17-14-12-10-8
+J850F          Kosdon    J          38 (1.50)      576 (22.7)        899.9   883.8    1.00  21
+J148           Ellis     J          54 (2.13)    355.6 (14.0)        903.9   150.7    6.00  14
+J350-SF        Loki      J          54 (2.13)      327 (12.9)        986.5   378.7    2.60  0
+932J1365-P     AMW       J          54 (2.13)      326 (12.8)        931.2  1369.0    0.68  1000
+J650-SF        Loki      J          38 (1.50)      625 (24.6)        947.9   672.1    1.41  7-9-12-15
+J99N           AeroTech  J          54 (2.13)      231  (9.1)        929.5    96.0    9.68  P
+J230SK-P       AMW       J          54 (2.13)      326 (12.8)        945.9   236.5    4.00  8
+949J150-P      Cesaroni  J          38 (1.50)  499.999 (19.7)        943.3   148.9    6.34  0
+J167WC         Gorilla   J          54 (2.13)      326 (12.8)        955.5   163.9    5.83  1000
+970J394-13A    Cesaroni  J          38 (1.50)      500 (19.7)        972.2   393.7    2.47  4-7-9-11-13-14
+J570W          AeroTech  J          38 (1.50)      479 (18.9)       1033.8   535.7    1.93  0
+J825R          AeroTech  J          38 (1.50)      479 (18.9)        962.2   901.6    1.07  14
+977J400-P      AMW       J          54 (2.13)      326 (12.8)        973.5   399.3    2.44  1000
+985J595-16A    Cesaroni  J          38 (1.50)      500 (19.7)        986.3   595.5    1.66  16-13-11-9-7
+J530S          Kosdon    J          38 (1.50)      737 (29.0)        991.7   549.4    1.80  10
+WT-54-1050     AMW       J          54 (2.13)      326 (12.8)        999.1   342.4    2.92  0
+999J600-16A    Cesaroni  J          38 (1.50)      510 (20.1)        997.9   603.4    1.65  16-13-11-9-7
+1008J420-15A   Cesaroni  J          38 (1.50)      500 (19.7)       1008.2   436.4    2.31  6-8-10-12-15
+1013J453-16A   Cesaroni  J          38 (1.50)      500 (19.7)       1018.0   453.3    2.25  16-13-11-9-7
+1016J360-15A   Cesaroni  J          54 (2.13)      321 (12.6)       1013.0   362.7    2.79  6-8-10-12-15
+J465GT         Gorilla   J          54 (2.13)      326 (12.8)       1042.8   475.1    2.19  1000
+1025J475-P     AMW       J          54 (2.13)      326 (12.8)       1032.9   493.7    2.09  1000
+J395RT         Gorilla   J          54 (2.13)      326 (12.8)       1034.5   401.8    2.57  1000
+GG-54-1050     AMW       J          54 (2.13)      326 (12.8)       1030.9   370.1    2.79  100
+J975F          Kosdon    J          38 (1.50)      740 (29.1)       1033.4  1018.5    1.03  23,P
+1043J380-16A   Cesaroni  J          54 (2.13)      320 (12.6)       1043.4   384.0    2.72  6-16
+J450DM         AeroTech  J          54 (2.13)      359 (14.1)       1061.6   465.6    2.28  14
+J485WC         Gorilla   J          54 (2.13)      326 (12.8)       1077.6   495.2    2.18  1000
+J135W          AeroTech  J          54 (2.13)      368 (14.5)       1042.3   146.8    7.10  0
+ST-54-1050     AMW       J          54 (2.13)      326 (12.8)       1069.7   471.3    2.27  P
+J1265T         AeroTech  J          54 (2.13)      397 (15.6)       1074.9  1256.2    0.86  6-8-10-12-14
+1079J395-P     AMW       J          54 (2.13)      326 (12.8)       1079.5   394.8    2.73  1000
+1092J1520-17A  Cesaroni  J          54 (2.13)      329 (13.0)       1071.0  1497.6    0.72  17,15,13,10,7
+1099J325-P     AMW       J          54 (2.13)      326 (12.8)       1089.2   329.6    3.30  1000
+RR-54-1050     AMW       J          54 (2.13)      326 (12.8)       1094.9   416.3    2.63  100
+J820-LW        Loki      J          54 (2.13)      327 (12.9)       1144.5   791.1    1.45  0
+1109J440-P     AMW       J          54 (2.13)      326 (12.8)       1115.2   547.6    2.04  0
+J525-LW        Loki      J          54 (2.13)      327 (12.9)       1118.7   568.0    1.97  0
+J535BT         Gorilla   J          54 (2.13)    326.4 (12.9)       1114.7   557.0    2.00  P
+J228           Ellis     J          38 (1.50)      562 (22.1)       1114.6   222.8    5.00  6
+J401FJ         AeroTech  J          54 (2.13)      325 (12.8)       1107.6   411.7    2.69  6
+1115J530-15A   Cesaroni  J          38 (1.50)      500 (19.7)       1115.2   547.6    2.04  6-8-10-12-15
+J130S          Kosdon    J          76 (2.99)      244  (9.6)       1118.1   161.8    6.90  15
+J450BL         Gorilla   J          54 (2.13)      430 (16.9)       1122.0   450.6    2.49  1000
+SK-54-1400     AMW       J          54 (2.13)      403 (15.9)       1106.2   357.2    3.10  0
+J480F          Kosdon    J          54 (2.13)      326 (12.8)       1144.2   523.2    2.20  17
+J175-LW        Loki      J          54 (2.13)      327 (12.9)       1157.1   195.5    5.92  0
+J540R          AeroTech  J          54 (2.13)      314 (12.4)       1146.5   532.7    2.15  0
+J510W          AeroTech  J          38 (1.50)      584 (23.0)       1180.5   548.2    2.15  P
+BB-54-1050     AMW       J          54 (2.13)      326 (12.8)       1161.1   474.2    2.45  100
+J250F          Kosdon    J          76 (2.99)      244  (9.6)       1166.9   274.4    4.27  7
+1176K1720-P    AMW       J          54 (2.13)      403 (15.9)       1183.6  1744.9    0.68  1000
+1190J355-17A   Cesaroni  J          54 (2.13)      329 (13.0)       1181.2   356.3    3.32  7,10,12,14,17
+1195J295-16A   Cesaroni  J          54 (2.13)      320 (12.6)       1187.4   295.4    4.02  6,16
+1196J745-P     AMW       J          54 (2.13)      326 (12.8)       1198.3   751.5    1.59  1000
+J125W          AeroTech  J          54 (2.13)      368 (14.5)       1204.4   139.7    8.62  0
+J300LR         Loki      J          54 (2.13)      327 (12.9)       1212.8   297.0    4.08  P
+1211J140-P     Cesaroni  J          54 (2.13)      329 (13.0)       1211.4   143.2    8.46  P
+J1799N         AeroTech  J          54 (2.13)      368 (14.5)       1075.7  1784.8    0.60  P
+J1000-LW       Loki      J      38.001 (1.50)      625 (24.6)       1220.4  1061.4    1.15  7,9,12,15
+J800T          AeroTech  J          54 (2.13)      314 (12.4)       1264.4   665.7    1.90  0
+1233J475-P     AMW       J          54 (2.13)      403 (15.9)       1234.8   447.8    2.76  0
+J295DH         Kosdon    J          54 (2.13)      403 (15.9)       1243.2   306.0    4.03  17
+1261J449-15A   Cesaroni  J          54 (2.13)      321 (12.6)       1259.9   457.1    2.76  15-14-13-12-11-10-9-8-7-6-5
+1266J760-19A   Cesaroni  J          54 (2.13)      329 (13.0)       1267.3   758.2    1.67  8-10-12-14-16-18-19
+J1026CT        Loki      J          38 (1.50)    625.5 (24.6)       1263.8  1040.7    1.21  P
+J670LB         Loki      J          54 (2.13)      330 (13.0)       1267.1   674.5    1.88  P
+
+15 of these have no curve file bundled, so their figures are ThrustCurve.org's record's and `hpr sim --motor` can't fly them: J280S, J450F, J607WC, J345S, J340F, J630F, J675F, J180DH, J850F, J530S, J975F, J130S, J480F, J250F and J295DH.
 ```
 
 <!-- cli: end -->
@@ -1289,8 +1430,11 @@ $ hpr motors show J760
   curve file       https://www.thrustcurve.org/simfiles/5f4294d20002e9000000074a/ (flown)
                    RASP (.eng), from a certification test, public domain
                    passes the 1% check: total impulse +0.13%, average thrust +0.07%, burn time +0.08%
+  curve file       https://www.thrustcurve.org/simfiles/5f4294d20002e9000000074b/
+                   RockSim (.rse), from a certification test, public domain
+                   passes the 1% check: total impulse +0.13%, average thrust +0.07%, burn time +0.08%
 
-How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-09-17, not measured
+How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-10-28, not measured
 by HPR Sim: the size, masses and delays from the file's header, the impulse, thrusts and burn time
 from its curve, which can differ from the maker's rated figures. Each file is checked against
 ThrustCurve.org's figures and OpenRocket's reading of its impulse and peak thrust, not against the
@@ -1634,6 +1778,8 @@ Here one of the repository's public designs becomes a `.hpr`:
 $ hpr convert validation/fixtures/ork/loft-demo/demo-multi-config.ork demo.hpr
 read   demo-multi-config.ork
 wrote  demo.hpr: "Loft Demo 38mm — motor comparison", 2 motor configurations, HPR design format 0.2
+warning: openrocket/rocket/stage[0]/bodytube[1]/innertube[2]: H128W's curve file 5f4294d20002e9000000000d is more than 1% from ThrustCurve.org's figures for it: total impulse +2.82%, average thrust +19.49%, burn time -8.48%
+warning: openrocket/rocket/stage[0]/bodytube[1]/innertube[2]: G40W's curve file 5f4294d20002e90000000463 is more than 1% from ThrustCurve.org's figures for it: total impulse +1.94%, average thrust +13.72%, burn time -10.50%
 ```
 
 <!-- cli: end -->
@@ -2215,7 +2361,7 @@ $ hpr motors show B4 --json
     "designation": "FS-ACHERNAR \u00b7 SW \u00b7 TOOL 001"
   },
   "kind": "copied",
-  "trust": "How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-09-17, not measured by HPR Sim: the size, masses and delays from the file's header, the impulse, thrusts and burn time from its curve, which can differ from the maker's rated figures. Each file is checked against ThrustCurve.org's figures and OpenRocket's reading of its impulse and peak thrust, not against the maker's data: checks of the file, not of the motor. The motor's printed data and its maker's instructions come first, and the RSO decides. More: https://hpr.fusionspace.co/pick-a-motor.html",
+  "trust": "How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-10-28, not measured by HPR Sim: the size, masses and delays from the file's header, the impulse, thrusts and burn time from its curve, which can differ from the maker's rated figures. Each file is checked against ThrustCurve.org's figures and OpenRocket's reading of its impulse and peak thrust, not against the maker's data: checks of the file, not of the motor. The motor's printed data and its maker's instructions come first, and the RSO decides. More: https://hpr.fusionspace.co/pick-a-motor.html",
   "motors": [
     {
       "name": "B4",
@@ -2231,6 +2377,29 @@ $ hpr motors show B4 --json
             "measured_by": "certification_test",
             "license": "public_domain",
             "flown": true,
+            "check": {
+              "passes": true,
+              "total_impulse_ns": {
+                "file": 4.892141999999999,
+                "stated": 4.86
+              },
+              "average_thrust_n": {
+                "file": 4.403753380057823,
+                "stated": 4.4
+              },
+              "burn_time_s": {
+                "file": 1.110902808988764,
+                "stated": 1.1
+              }
+            }
+          },
+          {
+            "simfile_id": "5f4294d20002e9000000088f",
+            "page_url": "https://www.thrustcurve.org/simfiles/5f4294d20002e9000000088f/",
+            "format": "rse",
+            "measured_by": "certification_test",
+            "license": "public_domain",
+            "flown": false,
             "check": {
               "passes": true,
               "total_impulse_ns": {
@@ -2271,23 +2440,208 @@ $ hpr motors show B4 --json
           "value": 6.0
         }
       ]
+    },
+    {
+      "name": "B4",
+      "manufacturer": "Estes Industries",
+      "source": {
+        "kind": "catalog",
+        "format": "eng",
+        "files": [
+          {
+            "simfile_id": "5f4294d20002e900000004e5",
+            "page_url": "https://www.thrustcurve.org/simfiles/5f4294d20002e900000004e5/",
+            "format": "eng",
+            "measured_by": "user",
+            "license": "not_stated",
+            "flown": true,
+            "check": {
+              "passes": false,
+              "total_impulse_ns": {
+                "file": 4.289992,
+                "stated": 5.0
+              },
+              "average_thrust_n": {
+                "file": 4.305774696947176,
+                "stated": 4.17
+              },
+              "burn_time_s": {
+                "file": 0.9963345279170399,
+                "stated": 1.03
+              }
+            }
+          },
+          {
+            "simfile_id": "5f4294d20002e90000000834",
+            "page_url": "https://www.thrustcurve.org/simfiles/5f4294d20002e90000000834/",
+            "format": "eng",
+            "measured_by": "user",
+            "license": "public_domain",
+            "flown": false,
+            "check": {
+              "passes": false,
+              "total_impulse_ns": {
+                "file": 5.092238500000001,
+                "stated": 5.0
+              },
+              "average_thrust_n": {
+                "file": 4.9219713946003365,
+                "stated": 4.17
+              },
+              "burn_time_s": {
+                "file": 1.0345932740662525,
+                "stated": 1.03
+              }
+            }
+          },
+          {
+            "simfile_id": "5f4294d20002e9000000036a",
+            "page_url": "https://www.thrustcurve.org/simfiles/5f4294d20002e9000000036a/",
+            "format": "rse",
+            "measured_by": "user",
+            "license": "not_stated",
+            "flown": false,
+            "check": {
+              "passes": false,
+              "total_impulse_ns": {
+                "file": 4.289992,
+                "stated": 5.0
+              },
+              "average_thrust_n": {
+                "file": 4.305774696947176,
+                "stated": 4.17
+              },
+              "burn_time_s": {
+                "file": 0.9963345279170399,
+                "stated": 1.03
+              }
+            }
+          }
+        ]
+      },
+      "diameter_m": 0.018,
+      "length_m": 0.07,
+      "propellant_mass_kg": 0.006,
+      "loaded_mass_kg": 0.0189,
+      "total_impulse_ns": 4.289992,
+      "impulse_class": "B",
+      "average_thrust_n": 4.305774696947176,
+      "peak_thrust_n": 12.75,
+      "burn_time_s": 0.9963345279170399,
+      "burn_start_s": 0.023498007968127493,
+      "burn_end_s": 1.0198325358851674,
+      "curve_end_s": 1.03,
+      "delays": [
+        {
+          "kind": "seconds",
+          "value": 2.0
+        },
+        {
+          "kind": "seconds",
+          "value": 4.0
+        }
+      ]
+    },
+    {
+      "name": "B4",
+      "manufacturer": "Raketenmodellbau Klima",
+      "source": {
+        "kind": "catalog",
+        "format": "eng",
+        "files": [
+          {
+            "simfile_id": "5f8b05dad5fa3b000447e827",
+            "page_url": "https://www.thrustcurve.org/simfiles/5f8b05dad5fa3b000447e827/",
+            "format": "eng",
+            "measured_by": "manufacturer",
+            "license": "public_domain",
+            "flown": true,
+            "check": {
+              "passes": false,
+              "total_impulse_ns": {
+                "file": 4.997548500000001,
+                "stated": 5.0
+              },
+              "average_thrust_n": {
+                "file": 3.8306344772096006,
+                "stated": 4.0
+              },
+              "burn_time_s": {
+                "file": 1.3046268261127412,
+                "stated": 1.2
+              }
+            }
+          },
+          {
+            "simfile_id": "5f8b05efd5fa3b000447e828",
+            "page_url": "https://www.thrustcurve.org/simfiles/5f8b05efd5fa3b000447e828/",
+            "format": "rse",
+            "measured_by": "manufacturer",
+            "license": "public_domain",
+            "flown": false,
+            "check": {
+              "passes": false,
+              "total_impulse_ns": {
+                "file": 4.997548500000001,
+                "stated": 5.0
+              },
+              "average_thrust_n": {
+                "file": 3.8306344772096006,
+                "stated": 4.0
+              },
+              "burn_time_s": {
+                "file": 1.3046268261127412,
+                "stated": 1.2
+              }
+            }
+          }
+        ]
+      },
+      "diameter_m": 0.018,
+      "length_m": 0.07,
+      "propellant_mass_kg": 0.0054,
+      "loaded_mass_kg": 0.016300000000000002,
+      "total_impulse_ns": 4.997548500000001,
+      "impulse_class": "B",
+      "average_thrust_n": 3.8306344772096006,
+      "peak_thrust_n": 8.001,
+      "burn_time_s": 1.3046268261127412,
+      "burn_start_s": 0.02361740963855422,
+      "burn_end_s": 1.3282442357512954,
+      "curve_end_s": 1.364,
+      "delays": [
+        {
+          "kind": "zero_or_plugged"
+        },
+        {
+          "kind": "seconds",
+          "value": 4.0
+        }
+      ]
     }
   ],
-  "warnings": []
+  "warnings": [
+    {
+      "motor": "B4",
+      "line": null,
+      "kind": "unusual",
+      "message": "delay 0 in \"0-4\" is ambiguous: the RASP spec means an ejection charge at burnout, but files mostly mean plugged. A motor file's delays aren't flown: with none chosen, no motor charge fires, as if plugged. For a charge at burnout, choose a delay of 0 (`hpr sim --delay 0`, or `delay_s=0` in Python)"
+    }
+  ]
 }
 ```
 
 <!-- cli: end -->
 
 A failure prints an error document. Its `kind` matches the exit status, and `milestone` is set
-only for a command not available yet. Here `hpr sim --offline` refuses the test rocket above
-without `--motor`, as neither the file, the bundled catalog nor the cache holds a curve for its
-motor:
+only for a command not available yet. Here `hpr sim --offline` refuses a copy of the test rocket
+above whose motor is an invented one, without `--motor`, as neither the file, the bundled catalog nor
+the cache holds a curve for it:
 
-<!-- cli: example `hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --offline --json`, exits 1; written by `cargo xtask cli`; do not edit -->
+<!-- cli: example `hpr sim validation/fixtures/ork/guides/no-curve.ork --offline --json`, exits 1; written by `cargo xtask cli`; do not edit -->
 
 ```text
-$ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --offline --json
+$ hpr sim validation/fixtures/ork/guides/no-curve.ork --offline --json
 {
   "tool": {
     "name": "FusionSpace HPR",
@@ -2296,11 +2650,11 @@ $ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --offline --json
   },
   "error": {
     "kind": "input",
-    "message": "configuration [H128W-0] can't be flown as the file has it. No thrust curve for H128W: no embedded curve, and no motor of that manufacturer and designation in the bundled catalog. AeroTech H128W is not in HPR Sim's cache of ThrustCurve.org, and the run is offline",
+    "message": "configuration [Z9-INVENTED] can't be flown as the file has it. No thrust curve for Z9-INVENTED: no embedded curve, and no motor of that manufacturer and designation in the bundled catalog. Invented Z9-INVENTED is not in HPR Sim's cache of ThrustCurve.org, and the run is offline",
     "command": "sim",
     "milestone": null,
     "help": [
-      "with a network connection, `hpr motors fetch --manufacturer AeroTech H128W` fetches it into the cache",
+      "with a network connection, `hpr motors fetch --manufacturer Invented Z9-INVENTED` fetches it into the cache",
       "give a motor with --motor"
     ]
   }

@@ -87,6 +87,10 @@
           "description": "The common name, such as `J760`.",
           "type": "string"
         },
+        "curve": {
+          "description": "Whether a curve file of it is bundled, so `hpr sim --motor` flies it. Without one, its\nsize and figures are ThrustCurve.org's record's, and it can't fly.",
+          "type": "boolean"
+        },
         "delays": {
           "description": "The delays as the curve file's header writes them, such as `6,8,10`, `4-6` or `P`\n(plugged).",
           "type": [
@@ -124,6 +128,10 @@
           "description": "`single_use`, `reload` or `hybrid`.",
           "$ref": "#/$defs/MotorKind"
         },
+        "selector": {
+          "description": "The name that selects this motor alone in `hpr sim --motor` and `hpr motors show`: its\ndesignation, or its maker's short name and its designation where makers share it, such\nas `Estes C6` (ADR-302).",
+          "type": "string"
+        },
         "total_impulse_ns": {
           "description": "Total impulse, N·s, from the curve.",
           "type": "number",
@@ -132,6 +140,7 @@
       },
       "required": [
         "designation",
+        "selector",
         "common_name",
         "manufacturer",
         "manufacturer_abbrev",
@@ -141,7 +150,8 @@
         "length_mm",
         "total_impulse_ns",
         "average_thrust_n",
-        "burn_time_s"
+        "burn_time_s",
+        "curve"
       ]
     },
     "MotorKind": {

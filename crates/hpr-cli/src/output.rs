@@ -70,6 +70,10 @@ pub struct CatalogInfo {
 pub struct ListedMotor {
     /// The manufacturer's full designation, such as `1266J760-19A`.
     pub designation: String,
+    /// The name that selects this motor alone in `hpr sim --motor` and `hpr motors show`: its
+    /// designation, or its maker's short name and its designation where makers share it, such
+    /// as `Estes C6` (ADR-302).
+    pub selector: String,
     /// The common name, such as `J760`.
     pub common_name: String,
     /// The manufacturer.
@@ -93,6 +97,9 @@ pub struct ListedMotor {
     /// The delays as the curve file's header writes them, such as `6,8,10`, `4-6` or `P`
     /// (plugged).
     pub delays: Option<String>,
+    /// Whether a curve file of it is bundled, so `hpr sim --motor` flies it. Without one, its
+    /// size and figures are ThrustCurve.org's record's, and it can't fly.
+    pub curve: bool,
 }
 
 /// Whether a motor is used once or reloaded into a reusable case.

@@ -727,14 +727,7 @@ pub(super) fn read(
                 },
                 None => mount.default_ignition.clone(),
             };
-            let curve = curve(
-                read,
-                attachments,
-                supplied,
-                catalog.as_ref(),
-                &mount.at,
-                warnings,
-            );
+            let curve = curve(read, attachments, supplied, catalog, &mount.at, warnings);
             configurations[index].motors.push(OrkMotor {
                 mount: mount_id.clone(),
                 stage,
@@ -989,10 +982,8 @@ fn curve(
             ),
         };
     };
-    let maker = key(&motor.manufacturer);
     let matches: Vec<_> = catalog
-        .find(&motor.designation)
-        .filter(|m| key(&m.manufacturer) == maker || key(&m.manufacturer_abbrev) == maker)
+        .find_by_maker(&motor.manufacturer, &motor.designation)
         .collect();
     // A curve that was there and failed says more about the file than a catalog that lacks it.
     let not_found = |kind: NoCurve, why: &str| match &embedded_failed {
@@ -1008,7 +999,7 @@ fn curve(
             "no motor of that manufacturer and designation in the bundled catalog",
         ),
         [found] => {
-            let Some((curve, text)) = found.default_curve_text() else {
+            let Some((curve, text)) = found.curve_for_digest(motor.digest.as_deref()) else {
                 return not_found(
                     NoCurve::NotFound,
                     "the bundled catalog lists it without a curve",
@@ -1024,8 +1015,9 @@ fn curve(
             );
             match found.motor(curve, text) {
                 Ok(solid) => {
-                    // A default file that fails its 1% check flies with a warning (ADR-298 §6).
-                    if let Some(message) = found.check_warning(curve) {
+                    // A file that fails its 1% check, or is light on propellant against its
+                    // record, flies with a warning (ADR-298 §6, ADR-302).
+                    for message in found.flight_warnings(curve) {
                         warnings.push(Warning::new(at, WarningKind::Unusual, message));
                     }
                     Curve::Catalog {
@@ -1305,8 +1297,8 @@ mod check_tests {
 
     /// ADR-298 §6: a `.ork` motor the bundled catalog supplies flies its default file, with a
     /// warning naming the failing figure when that file fails its 1% check, and none when it
-    /// passes. The failing catalog moves the J760's stated total impulse so its one file's is
-    /// 1.5% short of it.
+    /// passes. The failing catalog keeps only the J760's file `5f4294d20002e9000000074a`, so it is
+    /// the one flown, and moves its stated total impulse so that file's is 1.5% short of it.
     #[test]
     fn a_catalog_curve_that_fails_its_check_flies_with_a_warning() {
         let flown = |catalog: &Catalog| {
@@ -1322,13 +1314,17 @@ mod check_tests {
             assert!(matches!(curve, Curve::Catalog { .. }), "{curve:?}");
             warnings
         };
-        let mut catalog = Catalog::bundled().unwrap();
+        let mut catalog = Catalog::bundled().unwrap().clone();
         assert!(flown(&catalog).is_empty());
         let motor = catalog
             .motors
             .iter_mut()
             .find(|motor| motor.designation == "1266J760-19A")
             .unwrap();
+        motor
+            .curves
+            .retain(|curve| curve.simfile_id == "5f4294d20002e9000000074a");
+        assert_eq!(motor.curves.len(), 1);
         let text = bundled_curve_text(&motor.curves[0].file).unwrap();
         let thrust = motor.thrust_curve(&motor.curves[0], text).unwrap();
         motor.stated.total_impulse_ns = thrust.total_impulse_ns() / 0.985;

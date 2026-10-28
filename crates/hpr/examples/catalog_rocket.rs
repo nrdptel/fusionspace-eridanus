@@ -42,7 +42,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         return Err("LP-36-2022 is a parachute".into());
     };
 
-    let motor = Motor::from_catalog("H170")?.with_delay_s(10.0)?;
+    let motor = Motor::from_catalog("H170M")?.with_delay_s(10.0)?;
     // The rocket's diameter is the tube's; the nose states its own, the same.
     let PartKind::BodyTube(airframe) = &tube.kind else {
         return Err("BT-2.56 is a body tube".into());

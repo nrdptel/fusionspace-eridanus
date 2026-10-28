@@ -44,7 +44,7 @@ fn run(args: &[&str]) -> Output {
 
 /// The bundled catalog's as-of date: the day its curve files were downloaded.
 fn as_of() -> String {
-    Catalog::bundled().unwrap().snapshot.captured
+    Catalog::bundled().unwrap().snapshot.captured.clone()
 }
 
 /// A JSON file `hpr` wrote, held to be ASCII, then read.

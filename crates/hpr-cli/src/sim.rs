@@ -423,14 +423,17 @@ impl Setup {
                     })?,
                     None => motor,
                 };
-                read.warnings.extend(warnings);
                 let id = read.swap(flight.config.as_deref(), flight.mount.as_deref(), &motor)?;
+                // No motor of the file's flies, so none of their catalog files' warnings stands.
+                read.drop_unflown_catalog_warnings(None);
+                read.warnings.extend(warnings);
                 (id, source)
             }
-            None => (
-                read.flown(flight.config.as_deref())?,
-                SimMotorSource::Design,
-            ),
+            None => {
+                let id = read.flown(flight.config.as_deref())?;
+                read.drop_unflown_catalog_warnings(Some(&id));
+                (id, SimMotorSource::Design)
+            }
         };
         if matches!(motor_source, SimMotorSource::ThrustCurve(_)) || !read.fetched.is_empty() {
             read.notes
@@ -1495,7 +1498,7 @@ fn fetch_missing(motors: &ork::Motors, fetching: Fetching<'_>) -> Result<Missing
             continue;
         }
         let mut wanted = Wanted::by(&motor.manufacturer, &motor.designation);
-        let openrocket = crate::openrocket_curves::file_for(digest);
+        let openrocket = hpr::hpr_motor::openrocket_curves::file_for(digest);
         if let Some(file) = &openrocket {
             wanted = wanted.preferring(file);
         }
@@ -2298,6 +2301,48 @@ impl Read {
         }
     }
 
+    /// Drops the warnings a `.ork` motor's bundled catalog file draws when flown
+    /// ([`hpr::hpr_motor::CatalogMotor::flight_warnings`]: a failing 1% check, a light propellant
+    /// mass) for each motor that doesn't fly: every motor of a configuration other than `flown`,
+    /// and with `None`, as when `--motor` replaces the file's, every one. A warning a flown motor
+    /// draws too is kept.
+    fn drop_unflown_catalog_warnings(&mut self, flown: Option<&str>) {
+        let (Some(motors), Ok(catalog)) = (&self.ork, hpr::hpr_motor::Catalog::bundled()) else {
+            return;
+        };
+        let drawn = |motor: &ork::OrkMotor| -> Vec<String> {
+            let ork::Curve::Catalog {
+                motor_id,
+                simfile_id,
+                ..
+            } = &motor.curve
+            else {
+                return Vec::new();
+            };
+            catalog
+                .motors
+                .iter()
+                .find(|m| &m.motor_id == motor_id)
+                .and_then(|m| {
+                    let curve = m.curves.iter().find(|c| &c.simfile_id == simfile_id)?;
+                    Some(m.flight_warnings(curve))
+                })
+                .unwrap_or_default()
+        };
+        let mut kept: Vec<String> = Vec::new();
+        let mut dropped: Vec<String> = Vec::new();
+        for configuration in &motors.configurations {
+            let flies = flown == Some(configuration.id.as_str());
+            for motor in &configuration.motors {
+                let into = if flies { &mut kept } else { &mut dropped };
+                into.extend(drawn(motor));
+            }
+        }
+        self.warnings.retain(|warning| {
+            !dropped.contains(&warning.message) || kept.contains(&warning.message)
+        });
+    }
+
     /// The configuration flown as the design has it: `--config`, or the default or only one.
     fn flown(&self, wanted: Option<&str>) -> Result<String, Failure> {
         let id = match &self.ork {
@@ -2818,7 +2863,7 @@ fn motor(name: &str, offline: bool) -> Result<(Motor, SimMotorSource, Vec<InputW
         )
     };
     let Some(format) = MotorFile::of(name) else {
-        return catalog_or_fetched(name, offline, &crate::motors::catalog()?);
+        return catalog_or_fetched(name, offline, crate::motors::catalog()?);
     };
     let bytes = crate::read_file(name)?;
     let text = String::from_utf8(bytes).map_err(|_| {
@@ -2875,20 +2920,24 @@ pub(crate) fn catalog_or_fetched(
             ))
         }
         Err(error @ hpr::Error::AmbiguousMotor { .. }) => {
-            // Each candidate is its designation, which finds it alone, then its maker.
-            let designation = match &error {
-                hpr::Error::AmbiguousMotor { candidates, .. } => candidates
-                    .first()
-                    .and_then(|candidate| candidate.split(" (").next())
-                    .unwrap_or_default(),
+            // Each candidate is a name that finds it alone (ADR-302).
+            let first = match &error {
+                hpr::Error::AmbiguousMotor { candidates, .. } => {
+                    candidates.first().map(String::as_str).unwrap_or_default()
+                }
                 _ => "",
+            };
+            let first = if first.contains(' ') {
+                format!("\"{first}\"")
+            } else {
+                first.to_owned()
             };
             Err(Failure::helped(
                 format!("{name}: {error}"),
                 format!(
-                    "give --motor one of those designations, which names one motor alone, \
-                     such as `--motor {}`",
-                    crate::printable(designation)
+                    "give --motor one of those names, each of which names one motor alone, such \
+                     as `--motor {}`",
+                    crate::printable(&first)
                 ),
             ))
         }

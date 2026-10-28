@@ -19,7 +19,7 @@
 <text x="52" y="279" xml:space="preserve" fill="#0B0F1C">50%                             0.0 m (0 ft)          0.0 m (0 ft)   090° T            74.5%</text>
 <text x="52" y="295" xml:space="preserve" fill="#0B0F1C">95%                             0.1 m (0 ft)          0.0 m (0 ft)   090° T            98.0%</text>
 <text x="52" y="311" xml:space="preserve" fill="#0B0F1C">95%, the next flight            0.1 m (0 ft)          0.0 m (0 ft)   090° T            98.5%</text>
-<text x="52" y="343" xml:space="preserve" fill="#0B0F1C">motor: 1 × H170M (from the bundled catalog, as of 2026-09-17) in `Motor mount tube`, lit at launch</text>
+<text x="52" y="343" xml:space="preserve" fill="#0B0F1C">motor: 1 × H170M (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch</text>
 <text x="52" y="359" xml:space="preserve" fill="#0B0F1C">launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical</text>
 <text x="52" y="375" xml:space="preserve" fill="#0B0F1C">    rail, in calm air</text>
 <text x="52" y="391" xml:space="preserve" fill="#0B0F1C">scattered, one standard deviation each: --mass-sd 0.02, --drag-sd 0.05, --impulse-sd 0.03</text>

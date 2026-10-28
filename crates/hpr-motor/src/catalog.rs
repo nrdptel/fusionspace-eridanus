@@ -170,7 +170,19 @@ pub struct StatedFigures {
     pub burn_time_s: f64,
     /// Peak thrust, N, where the record states one. No file is checked against it.
     pub max_thrust_n: Option<f64>,
+    /// Propellant mass, g, where the record states one. A file isn't checked against it, but
+    /// flying one whose header gives more than [`PROPELLANT_SHORT_BOUND`] less warns
+    /// ([`CatalogMotor::propellant_warning`]).
+    #[serde(default)]
+    pub propellant_mass_g: Option<f64>,
 }
+
+/// How far below its motor's record a file's propellant mass may be, as a share of the record's,
+/// before flying it warns: 5%, the rule a fetched file has had since issue #578 (the reasoning,
+/// with its survey, is `hpr_net::on_demand::PROPELLANT_SHORT_BOUND`'s, which is this). A light
+/// propellant mass with a right loaded mass flies too heavy a burnout mass and too low an apogee,
+/// the flattering side for a waiver; a heavy one isn't warned of.
+pub const PROPELLANT_SHORT_BOUND: f64 = 0.05;
 
 /// The relative bound of a curve file's check: each figure within 1% of the motor's stated one
 /// ([ADR-005][adr-005], [ADR-298][adr-298]).
@@ -413,27 +425,10 @@ impl CurveLicense {
 }
 
 impl Catalog {
-    /// The catalog that `hpr motors`, `hpr sim --motor` and a design's motors are looked up in:
-    /// for now the 32 motors, each with its one file, that this crate bundled before the whole
-    /// catalog ([`Catalog::whole`]), until the lookups move to it, the next step of
-    /// [the whole-catalog milestone][m5-7] ([ADR-301][adr-301]).
-    ///
-    /// [m5-7]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m5-7
-    /// [adr-301]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0301-the-whole-catalog-in-two-increments.md
-    ///
-    /// # Errors
-    ///
-    /// [`MotorError::Catalog`] if the bundled index doesn't deserialize, which a test rules out.
-    pub fn bundled() -> Result<Self, MotorError> {
-        Self::from_json(bundled::FIRST_JSON)
-    }
-
-    /// The whole solid catalog compiled into this crate ([the whole-catalog milestone][m5-7]):
-    /// every solid motor in the snapshot, every file but a restricted one, each with its stored
-    /// check, and each file left out with its reason. Until the lookups move to it,
-    /// [`Catalog::bundled`], which `hpr motors`, `hpr sim --motor` and a design's motors are
-    /// looked up in, stays the 32 motors bundled before it, so this index moves no flight
-    /// ([ADR-301][adr-301]).
+    /// The catalog compiled into this crate, which `hpr motors`, `hpr sim --motor` and a design's
+    /// motors are looked up in: ThrustCurve.org's whole solid catalog ([M5.7][m5-7]), every solid
+    /// motor in the snapshot and every file but a restricted one, each with its stored check, and
+    /// each file left out with its reason ([ADR-301][adr-301]).
     ///
     /// [m5-7]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m5-7
     /// [adr-301]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0301-the-whole-catalog-in-two-increments.md
@@ -441,10 +436,11 @@ impl Catalog {
     /// # Errors
     ///
     /// [`MotorError::Catalog`] if the index doesn't deserialize, which a test rules out.
-    pub fn whole() -> Result<&'static Self, MotorError> {
+    pub fn bundled() -> Result<&'static Self, MotorError> {
         // Read once and shared: the index of every solid motor is a few megabytes of JSON.
-        static WHOLE: std::sync::OnceLock<Result<Catalog, MotorError>> = std::sync::OnceLock::new();
-        WHOLE
+        static BUNDLED: std::sync::OnceLock<Result<Catalog, MotorError>> =
+            std::sync::OnceLock::new();
+        BUNDLED
             .get_or_init(|| Self::from_json(bundled::CATALOG_JSON))
             .as_ref()
             .map_err(Clone::clone)
@@ -478,13 +474,101 @@ impl Catalog {
         Ok(catalog)
     }
 
-    /// The motors whose designation or common name matches `name`, ignoring ASCII case, spaces
-    /// and hyphens (`j760`, `1266J760-19A`, `K 940`).
+    /// The motors `name` names ([ADR-302][adr-302]): those whose designation or common name
+    /// matches it, ignoring ASCII case, spaces and hyphens (`j760`, `1266J760-19A`, `K 940`).
+    ///
+    /// - A name may start with a maker, its full name or short one and a space, such as
+    ///   `AeroTech H128W` or `Estes Industries C6`: then only that maker's motors match.
+    /// - Of several matches, a motor whose designation is the name is the one it names: `D5` is
+    ///   Quest's D5, not the D5-P whose common name is D5. With two such designations, as two
+    ///   makers' `C6` are, all match; each maker's short name and designation names one alone,
+    ///   as no maker has two motors of one designation (a test holds it).
+    ///
+    /// [adr-302]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0302-every-motor-by-name.md
     pub fn find<'a>(&'a self, name: &str) -> impl Iterator<Item = &'a CatalogMotor> + 'a {
-        let key = normalize(name);
-        self.motors.iter().filter(move |motor| {
-            normalize(&motor.designation) == key || normalize(&motor.common_name) == key
+        let (maker, rest) = self.maker_and_name(name);
+        self.named(rest, |motor| {
+            maker.is_none_or(|maker| maker == motor.manufacturer)
         })
+    }
+
+    /// As [`Catalog::find`], among the motors of the maker `maker` names, by its full or short
+    /// name with only its ASCII letters and digits compared, ignoring case (`Cesaroni
+    /// Technology Inc.` is Cesaroni Technology's, `AEROTECH` AeroTech's): the lookup a design
+    /// file's motor, which names its maker apart, takes.
+    pub fn find_by_maker<'a>(
+        &'a self,
+        maker: &str,
+        name: &str,
+    ) -> impl Iterator<Item = &'a CatalogMotor> + 'a {
+        let key = |text: &str| -> String {
+            text.chars()
+                .filter(char::is_ascii_alphanumeric)
+                .map(|c| c.to_ascii_lowercase())
+                .collect()
+        };
+        let maker = key(maker);
+        self.named(name, move |motor| {
+            key(&motor.manufacturer) == maker || key(&motor.manufacturer_abbrev) == maker
+        })
+    }
+
+    /// The motors `of` keeps whose designation or common name is `name`, those whose designation
+    /// is if there are any.
+    fn named<'a>(
+        &'a self,
+        name: &str,
+        of: impl Fn(&CatalogMotor) -> bool,
+    ) -> std::vec::IntoIter<&'a CatalogMotor> {
+        let key = normalize(name);
+        let kept: Vec<&CatalogMotor> = self
+            .motors
+            .iter()
+            .filter(|motor| {
+                of(motor)
+                    && (normalize(&motor.designation) == key
+                        || normalize(&motor.common_name) == key)
+            })
+            .collect();
+        let exact: Vec<&CatalogMotor> = kept
+            .iter()
+            .copied()
+            .filter(|motor| normalize(&motor.designation) == key)
+            .collect();
+        if exact.is_empty() { kept } else { exact }.into_iter()
+    }
+
+    /// The maker `name` starts with, by full or short name, followed by a space, and the rest of
+    /// the name; or no maker and the whole name. The longest maker's name that fits is taken.
+    fn maker_and_name<'a>(&'a self, name: &'a str) -> (Option<&'a str>, &'a str) {
+        let name = name.trim();
+        let mut best: Option<(&str, &str, usize)> = None;
+        for motor in &self.motors {
+            for said in [&motor.manufacturer, &motor.manufacturer_abbrev] {
+                let Some(head) = name.get(..said.len()) else {
+                    continue;
+                };
+                let rest = &name[said.len()..];
+                if head.eq_ignore_ascii_case(said)
+                    && rest.starts_with(char::is_whitespace)
+                    && best.is_none_or(|(_, _, length)| said.len() > length)
+                {
+                    best = Some((motor.manufacturer.as_str(), rest.trim_start(), said.len()));
+                }
+            }
+        }
+        best.map_or((None, name), |(maker, rest, _)| (Some(maker), rest))
+    }
+
+    /// The name that selects `motor` alone through [`Catalog::find`]: its designation where that
+    /// finds it alone, else its maker's short name and its designation, such as `Estes C6`.
+    pub fn selector(&self, motor: &CatalogMotor) -> String {
+        let alone = self.find(&motor.designation).count() == 1;
+        if alone {
+            motor.designation.clone()
+        } else {
+            format!("{} {}", motor.manufacturer_abbrev, motor.designation)
+        }
     }
 }
 
@@ -661,6 +745,21 @@ impl CatalogMotor {
         self.default_curve_text().map(|(curve, _)| curve)
     }
 
+    /// The curve a design file's motor flies, with its bundled file's text: the file OpenRocket's
+    /// curve for `digest` maps to ([`crate::openrocket_curves::file_for`]) where it is one of this
+    /// motor's bundled files ([ADR-288][adr-288] §3), else [`CatalogMotor::default_curve`].
+    ///
+    /// [adr-288]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md
+    pub fn curve_for_digest(&self, digest: Option<&str>) -> Option<(&CatalogCurve, &'static str)> {
+        let mapped = digest.and_then(crate::openrocket_curves::file_for);
+        mapped
+            .and_then(|id| {
+                let curve = self.curves.iter().find(|curve| curve.simfile_id == id)?;
+                Some((curve, bundled_curve_text(&curve.file)?))
+            })
+            .or_else(|| self.default_curve_text())
+    }
+
     /// [`CatalogMotor::default_curve`] with its bundled file's text.
     pub fn default_curve_text(&self) -> Option<(&CatalogCurve, &'static str)> {
         self.ranked_curves()
@@ -676,6 +775,42 @@ impl CatalogMotor {
             .gaps(&self.stated)
             .into_iter()
             .filter(|gap| !gap.within_bound())
+            .collect()
+    }
+
+    /// The warning for flying `curve` when its header's propellant mass is more than
+    /// [`PROPELLANT_SHORT_BOUND`] below the record's, naming both masses and the gap; `None` when
+    /// it isn't (a file exactly at the bound draws none), when the record states no propellant
+    /// mass, or when the file isn't bundled or doesn't read.
+    pub fn propellant_warning(&self, curve: &CatalogCurve) -> Option<String> {
+        let record_g = self
+            .stated
+            .propellant_mass_g
+            .filter(|g| g.is_finite() && *g > 0.0)?;
+        let text = bundled_curve_text(&curve.file)?;
+        let (_, propellant_kg, _) = read_curve_file(curve, text).ok()?;
+        let file_g = propellant_kg * 1000.0;
+        // Compared as masses, so a file exactly at the bound doesn't warn; a NaN warns.
+        if file_g >= record_g * (1.0 - PROPELLANT_SHORT_BOUND) {
+            return None;
+        }
+        Some(format!(
+            "{} {}'s curve file {} gives {file_g:.1} g of propellant, {:+.2}% from \
+             ThrustCurve.org's record of {record_g:.1} g. If the file's loaded mass is right, it \
+             flies too heavy a burnout mass and too low an apogee",
+            self.manufacturer_abbrev,
+            self.designation,
+            curve.simfile_id,
+            (file_g / record_g - 1.0) * 100.0
+        ))
+    }
+
+    /// Every warning flying `curve` draws: its failing check ([`CatalogMotor::check_warning`])
+    /// and a light propellant mass ([`CatalogMotor::propellant_warning`]), in that order.
+    pub fn flight_warnings(&self, curve: &CatalogCurve) -> Vec<String> {
+        self.check_warning(curve)
+            .into_iter()
+            .chain(self.propellant_warning(curve))
             .collect()
     }
 
@@ -707,57 +842,34 @@ mod tests {
     use super::*;
     use crate::delay::Delay;
 
-    /// The whole catalog, which these tests hold; M5.7a's 32 are a test of their own below.
+    /// The bundled catalog, which these tests hold.
     fn bundled() -> &'static Catalog {
-        Catalog::whole().unwrap()
+        Catalog::bundled().unwrap()
     }
 
-    /// M5.7a's 32-motor index, which the lookups use until M5.7b2 (ADR-301), is the whole index's
-    /// for each of its files: the same motor's record figures and labels, and the same file,
-    /// byte for byte, with the same check, which passes. Its listed figures are its one file's own.
+    /// M5.7a's 32 files, as ThrustCurve.org's statistics fixture lists them, are each indexed
+    /// under their motor and pass their check, so none of the oracle-held files warns.
     #[test]
-    fn the_first_32_are_the_whole_catalog_s() {
-        let first = Catalog::bundled().unwrap();
-        let whole = bundled();
-        assert_eq!(first.motors.len(), 32);
-        for motor in &first.motors {
-            let theirs = whole
+    fn m5_7a_s_32_files_are_indexed_and_pass() {
+        let fixture: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../validation/fixtures/motor/thrustcurve-analyze-stats.json"
+        ))
+        .unwrap();
+        let files: Vec<&str> = fixture["curves"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|c| c["file"].as_str().unwrap())
+            .collect();
+        assert_eq!(files.len(), 32);
+        for file in files {
+            let (motor, curve) = bundled()
                 .motors
                 .iter()
-                .find(|m| m.motor_id == motor.motor_id)
-                .unwrap();
-            assert_eq!(motor.stated, theirs.stated, "{}", motor.designation);
-            for (a, b) in [
-                (&motor.manufacturer, &theirs.manufacturer),
-                (&motor.manufacturer_abbrev, &theirs.manufacturer_abbrev),
-                (&motor.designation, &theirs.designation),
-                (&motor.common_name, &theirs.common_name),
-            ] {
-                assert_eq!(a, b);
-            }
-            assert_eq!(motor.case_info, theirs.case_info, "{}", motor.designation);
-            assert_eq!(motor.prop_info, theirs.prop_info, "{}", motor.designation);
-            let [curve] = &motor.curves[..] else {
-                panic!("{}: {} curves", motor.designation, motor.curves.len());
-            };
-            let same = theirs
-                .curves
-                .iter()
-                .find(|c| c.simfile_id == curve.simfile_id)
-                .unwrap();
-            assert_eq!(curve.sha256, same.sha256);
-            assert_eq!(curve.file, same.file);
-            assert_eq!(curve.check, same.check);
-            // Each of the 32 passes, as they were chosen to, so none of the lookups' files warns.
-            assert!(curve.check.passes, "{}", motor.designation);
-            assert_eq!(motor.check_warning(curve), None, "{}", motor.designation);
-            let text = bundled_curve_text(&curve.file).unwrap();
-            let thrust = motor.thrust_curve(curve, text).unwrap();
-            assert_eq!(
-                motor.total_impulse_ns.to_bits(),
-                thrust.total_impulse_ns().to_bits()
-            );
-            assert_eq!(motor.burn_time_s.to_bits(), thrust.burn_time_s().to_bits());
+                .find_map(|m| m.curves.iter().find(|c| c.file == file).map(|c| (m, c)))
+                .unwrap_or_else(|| panic!("{file} isn't indexed"));
+            assert!(curve.check.passes, "{file}");
+            assert_eq!(motor.check_warning(curve), None, "{file}");
         }
     }
 
@@ -1059,6 +1171,26 @@ mod tests {
         let plugged = catalog.find("L3200").next().unwrap();
         assert_eq!(plugged.delays().delays, [Delay::Plugged]);
         assert!(catalog.find("no such motor").next().is_none());
+        // ADR-302: a maker's name narrows the match, and a designation beats a common name.
+        let c6: Vec<_> = catalog.find("C6").collect();
+        assert!(c6.len() > 1 && c6.iter().all(|m| m.designation == "C6"));
+        let estes: Vec<_> = catalog.find("Estes C6").collect();
+        assert_eq!(estes.len(), 1);
+        assert_eq!(estes[0].manufacturer_abbrev, "Estes");
+        assert_eq!(catalog.find("estes industries c6").count(), 1);
+        assert_eq!(catalog.find("EstesC6").count(), 0);
+        let d5: Vec<_> = catalog.find("D5").collect();
+        assert_eq!(d5.len(), 1);
+        assert_eq!(d5[0].designation, "D5");
+        assert!(catalog.find("D5-P").all(|m| m.designation == "D5-P"));
+        assert_eq!(catalog.find("Quest no such motor").count(), 0);
+        // Every motor's selector finds it alone, and no maker has two motors of one designation.
+        for motor in &catalog.motors {
+            let selector = catalog.selector(motor);
+            let found: Vec<_> = catalog.find(&selector).collect();
+            assert_eq!(found.len(), 1, "{selector}");
+            assert_eq!(found[0].motor_id, motor.motor_id, "{selector}");
+        }
         // Every bundled motor with a file that reads builds; one with none can't fly.
         for motor in &catalog.motors {
             if motor.curves.is_empty() {
