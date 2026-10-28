@@ -41,6 +41,8 @@ use std::fs;
 use std::path::Path;
 
 use base64::Engine as _;
+
+use crate::motor_flights;
 use hpr_motor::catalog::{
     Catalog, CatalogCurve, CatalogMotor, CurveCheck, CurveFormat, CurveLicense, CurveSource,
     LeftOut, MotorType, Snapshot, StatedFigures,
@@ -142,7 +144,14 @@ pub fn run(args: &[String]) -> Result<(), String> {
     };
     let root = crate::designs::root()?;
     let catalog = generate(&root)?;
-    matches_raw_snapshot(&root, &catalog)?;
+    let expected = match matches_raw_snapshot(&root, &catalog)? {
+        Some(expected) => expected,
+        None => expected(
+            &records(&root)?,
+            &files(&root)?.1,
+            "committed records and file list's",
+        ),
+    };
     let outputs = [
         (CATALOG, catalog_json(&catalog)?),
         (BUNDLED, bundled_rs(&catalog)),
@@ -178,7 +187,34 @@ pub fn run(args: &[String]) -> Result<(), String> {
         counts.motors_passing,
         if check { "; up to date" } else { "" }
     );
-    compare_with_thrustcurve(&root, &catalog)
+    compare_with_thrustcurve(&root, &catalog)?;
+    if check {
+        let bundled = Catalog::bundled().map_err(|error| error.to_string())?;
+        motor_flights::check(bundled, &expected)?;
+    }
+    Ok(())
+}
+
+/// The motors `hpr motors list` should list, every record's, and those `hpr sim --motor` should
+/// fly: each with a RASP or RockSim file whose license allows bundling and that no named refusal
+/// leaves out.
+fn expected(records: &[Value], files: &[Value], source: &'static str) -> motor_flights::Expected {
+    let id = |value: &Value| value["motorId"].as_str().unwrap_or_default().to_owned();
+    motor_flights::Expected {
+        listed: records.iter().map(id).collect(),
+        flown: files
+            .iter()
+            .filter(|f| {
+                f["license"] != "other"
+                    && (f["format"] == "RASP" || f["format"] == "RockSim")
+                    && !NAMED
+                        .iter()
+                        .any(|(file, _)| f["simfileId"].as_str() == Some(*file))
+            })
+            .map(id)
+            .collect(),
+        source,
+    }
 }
 
 /// What the index holds, counted.
@@ -613,7 +649,10 @@ fn check_header(record_mm: Option<f64>, header: &Header) -> Result<(), String> {
 /// and curve files are the answers', and prints the counts taken from them. Whether or not they
 /// are there, fails unless the index holds a motor for every committed record and, for every
 /// listed file, a curve or a left-out entry.
-fn matches_raw_snapshot(root: &Path, catalog: &Catalog) -> Result<(), String> {
+fn matches_raw_snapshot(
+    root: &Path,
+    catalog: &Catalog,
+) -> Result<Option<motor_flights::Expected>, String> {
     let records = records(root)?;
     let (captured, files) = files(root)?;
     let counts = Counts::of(catalog);
@@ -633,7 +672,7 @@ fn matches_raw_snapshot(root: &Path, catalog: &Catalog) -> Result<(), String> {
             "no raw snapshot under {}; the committed records and files aren't compared with it",
             directory.display()
         );
-        return Ok(());
+        return Ok(None);
     }
     let search = read_json(
         root,
@@ -739,7 +778,7 @@ fn matches_raw_snapshot(root: &Path, catalog: &Catalog) -> Result<(), String> {
         listed.len(),
         NAMED.iter().filter(|(_, reason)| *reason == HELD).count()
     );
-    Ok(())
+    Ok(Some(expected(&solid, &listed, "raw snapshot's")))
 }
 
 /// The index as committed: pretty JSON with a final newline.
