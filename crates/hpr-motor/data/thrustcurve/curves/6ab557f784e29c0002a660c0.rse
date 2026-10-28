@@ -1,0 +1,25 @@
+<engine-database>
+ <engine-list>
+<engine FDiv="10" FFix="1" FStep="-1." Isp="212.33" Itot="722.74595" Type="reloadable" auto-calc-cg="1" auto-calc-mass="1" avgThrust="249.222741" burn-time="2.9" cgDiv="10" cgFix="1" cgStep="-1." code="J270" delays="20,1000" dia="38." exitDia="0." initWt="686.8" len="384." mDiv="10" mFix="1" mStep="-1." massFrac="50.54" mfg="Ellis Mountain" peakThrust="441.3" propWt="347.1" tDiv="10" tFix="1" tStep="-1." throatDia="0.">
+<comments>Corrected 2026-09-23; supersedes ThrustCurve.org simfile 5f4294d20002e900000003fa (user, RockSim).
+Rise to 309 N moved to 0.05 s, matching the TC cert file for this motor.
+</comments>
+<data>
+<eng-data cg="192." f="0" m="347.1" t="0"/>
+<eng-data cg="192." f="308.91" m="343.391136" t="0.05"/>
+<eng-data cg="192." f="419.24" m="334.648753" t="0.1"/>
+<eng-data cg="192." f="441.3" m="324.316857" t="0.15"/>
+<eng-data cg="192." f="397.17" m="314.249941" t="0.2"/>
+<eng-data cg="192." f="375.11" m="295.7055" t="0.3"/>
+<eng-data cg="192." f="353.04" m="290.46007" t="0.33"/>
+<eng-data cg="192." f="330.98" m="98.28652" t="1.5"/>
+<eng-data cg="192." f="286.85" m="38.943734" t="1.9"/>
+<eng-data cg="192." f="165.49" m="28.08188" t="2"/>
+<eng-data cg="192." f="110.33" m="21.458728" t="2.1"/>
+<eng-data cg="192." f="66.19" m="4.503921" t="2.5"/>
+<eng-data cg="192." f="22.07" m="1.324894" t="2.65"/>
+<eng-data cg="192." f="0" m="0" t="2.9"/>
+</data>
+</engine>
+ </engine-list>
+</engine-database>

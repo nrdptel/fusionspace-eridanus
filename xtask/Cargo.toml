@@ -34,6 +34,8 @@ schemars.workspace = true
 math-core.workspace = true
 # The figure check reads each SVG under docs/ and each --plot figure (M0.7a1).
 roxmltree.workspace = true
+# Each curve file's bytes compared with the raw snapshot's base64 (M5.7b1).
+base64.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 sha2.workspace = true

@@ -1,0 +1,23 @@
+<engine-database>
+ <engine-list>
+<engine FDiv="10" FFix="1" FStep="-1." Isp="173.55" Itot="491.863566" Type="reloadable" auto-calc-cg="1" auto-calc-mass="1" avgThrust="121.597915" burn-time="4.045" cgDiv="10" cgFix="1" cgStep="-1." code="I110" delays="5,8,12" dia="38." exitDia="0." initWt="589." len="292." mDiv="10" mFix="1" mStep="-1." massFrac="49.07" mfg="Loki Research" peakThrust="282.365" propWt="289." tDiv="10" tFix="1" tStep="-1." throatDia="0.">
+<comments>Corrected 2026-09-23; supersedes ThrustCurve.org simfile 5f4294d20002e9000000033d (user, RockSim).
+Rise over 0.045 s per the Loki I110 instructions curve; the rest of the curve shifted 0.045 s later.
+</comments>
+<data>
+  <eng-data cg="146." f="0" m="289" t="0"/>
+  <eng-data cg="146." f="150" m="288.118658" t="0.02"/>
+  <eng-data cg="146." f="282.365" m="284.943146" t="0.045"/>
+  <eng-data cg="146." f="218.735" m="279.819675" t="0.079803"/>
+  <eng-data cg="146." f="170.944" m="269.859101" t="0.16681"/>
+  <eng-data cg="146." f="163.592" m="260.73801" t="0.259617"/>
+  <eng-data cg="146." f="169.106" m="242.595956" t="0.445232"/>
+  <eng-data cg="146." f="176.458" m="130.711962" t="1.54732"/>
+  <eng-data cg="146." f="152.563" m="82.494086" t="2.04616"/>
+  <eng-data cg="146." f="108.448" m="44.243043" t="2.545"/>
+  <eng-data cg="146." f="64.3338" m="18.92195" t="3.04384"/>
+  <eng-data cg="146." f="0" m="0" t="4.045"/>
+</data>
+</engine>
+ </engine-list>
+</engine-database>

@@ -96,7 +96,12 @@ Files within 1%. Impulse: trapezoid from an implicit (0, 0). Crossings: linear i
 - 121 of 392 PD motors have a passing PD file. Of Loft's 45 PD curves: 10 pass, 34 fail, 1 is a
   hybrid.
 
-## 6. Bundle (`validation/oracles/thrustcurve/bundle.py`)
+## 6. Bundle (M5.7a's 32, from the removed `bundle.py`)
+
+Since M5.7b1 (ADR-301) the whole solid catalog is compiled in from a fresh snapshot, taken by
+`validation/oracles/thrustcurve/snapshot.py`; `bundle.py` was removed, and the 32 below stay as
+`catalog-m57a.json` until the lookups move. This section records how the 32 were chosen.
+
 
 - **Rule:** license PD; within 1% on all three under definition A; solid, in production; no
   provenance flag; up to 3 per class from distinct manufacturers, ranked cert > mfr > user,
@@ -107,10 +112,10 @@ Files within 1%. Impulse: trapezoid from an implicit (0, 0). Crossings: linear i
   (RSE, mfr); I CTI 411I175, AT I175WS, Loki I377-CT; J CTI 1266J760, Loki J300LR, AT J450DM;
   K CTI 1633K940, AT K400C, AMW 2245K1075; L CTI 3300L3200, AT L2500ST, Loki L1040LR; M CTI
   8187M1545, Loki M1378LR, AT M1350W; N CTI 13628N5600, AT N3300R; O CTI 21062O3400, AT O6000W.
-  The ids, sha256 and URLs are in `crates/hpr-motor/data/thrustcurve/catalog.json`.
-- The script downloads each `data.eng`/`.rse`, checks that it parses to the API's samples, that
-  it is PD and that it passes, then writes the curve bytes unchanged (31 of 32 are CRLF;
-  H170M's is LF) and removes any other file there; it writes no catalog. Two runs give
+  The ids, sha256 and URLs are in `crates/hpr-motor/data/thrustcurve/catalog-m57a.json`.
+- The script downloaded each `data.eng`/`.rse`, checked that it parsed to the API's samples,
+  that it was PD and that it passed, then wrote the curve bytes unchanged (31 of 32 are CRLF;
+  H170M's is LF) and removed any other file there; it wrote no catalog. Two runs gave
   byte-identical output. `.gitattributes` marks the curves `-text` so git keeps their bytes.
   Since issue #295, `cargo xtask motor-catalog` writes `catalog.json` and `src/bundled.rs` from
   the files alone (header and curve, no API figure), and an xtask test fails if either differs.
@@ -172,10 +177,11 @@ pinned `motors.json`, the 152 motors typed `hybrid` left out:
 - Not pinned: `info/api.html` (221e4814…) and `api/v1/swagger.json` (566009ab…), which only
   describe the API.
 - The bundled curves are committed with their sha256 in `catalog.json`, so they need no refs pin.
-  Since M5.7a their 32 motors' records are committed too, in `records.json` (ADR-298), and
-  `cargo xtask motor-catalog` fails if one differs from the pinned capture.
+  Since M5.7b1, `records.json` holds all 1,004 records of the 2026-10-28 snapshot (ADR-301), and
+  `cargo xtask motor-catalog` fails if one differs from the raw snapshot under `refs/snapshots/`
+  when it is present.
   The 4 survey POST captures (2026-09-17T09:53Z) need a request body in snapshot pins; until
-  then, they stay an unpinned cache, and `bundle.py` checks licenses and samples against them.
+  then, they stay an unpinned cache; `bundle.py` checked licenses and samples against them.
 - **Coarse metadata.** Four bundled motors pass against stored values printed coarser than 1%:
   Quest B4 (burn time 1.1 s, average thrust 4.4 N), CTI 68F240 (0.29 s), Loki J300LR (4.1 s) and
   AeroTech K400C (3.2 s). Their 1% agreement is real but only as tight as those digits.

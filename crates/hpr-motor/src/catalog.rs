@@ -61,6 +61,21 @@ pub struct Catalog {
     pub selection: String,
     /// The motors.
     pub motors: Vec<CatalogMotor>,
+    /// The snapshot's files the index leaves out, each with its reason.
+    #[serde(default)]
+    pub left_out: Vec<LeftOut>,
+}
+
+/// A snapshot file a catalog leaves out, and why: a file whose uploader restricted it, or one
+/// that can't be read as one motor's curve.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct LeftOut {
+    /// ThrustCurve.org's data-file id.
+    pub simfile_id: String,
+    /// ThrustCurve.org's id for the motor the file is listed under.
+    pub motor_id: String,
+    /// Why it is left out.
+    pub reason: String,
 }
 
 /// Where and when a catalog's curve files were downloaded. Each file's own URL and SHA-256 are on
@@ -384,21 +399,55 @@ pub enum CurveLicense {
 }
 
 impl CurveLicense {
-    /// Whether a curve under this license may be bundled in this `MIT OR Apache-2.0` crate: only
-    /// public domain. "Free" can mean GPL, and the others are restricted or unknown.
+    /// Whether a curve under this license is bundled: every one but a file its uploader marked
+    /// "other", restricted ([ADR-288][adr-288] §1). A file's measured points are used as facts,
+    /// as ThrustCurve.org's records are ([ADR-287]); free-usage files and files with no license
+    /// go in like the rest, each with its label kept beside it ([ADR-288][adr-288] §2).
+    ///
+    /// [ADR-287]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md
+    ///
+    /// [adr-288]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md
     pub fn is_bundleable(self) -> bool {
-        self == Self::PublicDomain
+        self != Self::Other
     }
 }
 
 impl Catalog {
-    /// The catalog compiled into this crate.
+    /// The catalog that `hpr motors`, `hpr sim --motor` and a design's motors are looked up in:
+    /// for now the 32 motors, each with its one file, that this crate bundled before the whole
+    /// catalog ([`Catalog::whole`]), until the lookups move to it, the next step of
+    /// [the whole-catalog milestone][m5-7] ([ADR-301][adr-301]).
+    ///
+    /// [m5-7]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m5-7
+    /// [adr-301]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0301-the-whole-catalog-in-two-increments.md
     ///
     /// # Errors
     ///
     /// [`MotorError::Catalog`] if the bundled index doesn't deserialize, which a test rules out.
     pub fn bundled() -> Result<Self, MotorError> {
-        Self::from_json(bundled::CATALOG_JSON)
+        Self::from_json(bundled::FIRST_JSON)
+    }
+
+    /// The whole solid catalog compiled into this crate ([the whole-catalog milestone][m5-7]):
+    /// every solid motor in the snapshot, every file but a restricted one, each with its stored
+    /// check, and each file left out with its reason. Until the lookups move to it,
+    /// [`Catalog::bundled`], which `hpr motors`, `hpr sim --motor` and a design's motors are
+    /// looked up in, stays the 32 motors bundled before it, so this index moves no flight
+    /// ([ADR-301][adr-301]).
+    ///
+    /// [m5-7]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m5-7
+    /// [adr-301]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0301-the-whole-catalog-in-two-increments.md
+    ///
+    /// # Errors
+    ///
+    /// [`MotorError::Catalog`] if the index doesn't deserialize, which a test rules out.
+    pub fn whole() -> Result<&'static Self, MotorError> {
+        // Read once and shared: the index of every solid motor is a few megabytes of JSON.
+        static WHOLE: std::sync::OnceLock<Result<Catalog, MotorError>> = std::sync::OnceLock::new();
+        WHOLE
+            .get_or_init(|| Self::from_json(bundled::CATALOG_JSON))
+            .as_ref()
+            .map_err(Clone::clone)
     }
 
     /// Reads a catalog index.
@@ -658,12 +707,66 @@ mod tests {
     use super::*;
     use crate::delay::Delay;
 
-    fn bundled() -> Catalog {
-        Catalog::bundled().unwrap()
+    /// The whole catalog, which these tests hold; M5.7a's 32 are a test of their own below.
+    fn bundled() -> &'static Catalog {
+        Catalog::whole().unwrap()
+    }
+
+    /// M5.7a's 32-motor index, which the lookups use until M5.7b2 (ADR-301), is the whole index's
+    /// for each of its files: the same motor's record figures and labels, and the same file,
+    /// byte for byte, with the same check, which passes. Its listed figures are its one file's own.
+    #[test]
+    fn the_first_32_are_the_whole_catalog_s() {
+        let first = Catalog::bundled().unwrap();
+        let whole = bundled();
+        assert_eq!(first.motors.len(), 32);
+        for motor in &first.motors {
+            let theirs = whole
+                .motors
+                .iter()
+                .find(|m| m.motor_id == motor.motor_id)
+                .unwrap();
+            assert_eq!(motor.stated, theirs.stated, "{}", motor.designation);
+            for (a, b) in [
+                (&motor.manufacturer, &theirs.manufacturer),
+                (&motor.manufacturer_abbrev, &theirs.manufacturer_abbrev),
+                (&motor.designation, &theirs.designation),
+                (&motor.common_name, &theirs.common_name),
+            ] {
+                assert_eq!(a, b);
+            }
+            assert_eq!(motor.case_info, theirs.case_info, "{}", motor.designation);
+            assert_eq!(motor.prop_info, theirs.prop_info, "{}", motor.designation);
+            let [curve] = &motor.curves[..] else {
+                panic!("{}: {} curves", motor.designation, motor.curves.len());
+            };
+            let same = theirs
+                .curves
+                .iter()
+                .find(|c| c.simfile_id == curve.simfile_id)
+                .unwrap();
+            assert_eq!(curve.sha256, same.sha256);
+            assert_eq!(curve.file, same.file);
+            assert_eq!(curve.check, same.check);
+            // Each of the 32 passes, as they were chosen to, so none of the lookups' files warns.
+            assert!(curve.check.passes, "{}", motor.designation);
+            assert_eq!(motor.check_warning(curve), None, "{}", motor.designation);
+            let text = bundled_curve_text(&curve.file).unwrap();
+            let thrust = motor.thrust_curve(curve, text).unwrap();
+            assert_eq!(
+                motor.total_impulse_ns.to_bits(),
+                thrust.total_impulse_ns().to_bits()
+            );
+            assert_eq!(motor.burn_time_s.to_bits(), thrust.burn_time_s().to_bits());
+        }
     }
 
     /// Loft lesson L41: Loft's bundled curves were 45 public domain, 38 with no license, 22
-    /// unknown and 3 "free" (which can include GPL).
+    /// unknown and 3 "free" (which can include GPL), with no label kept. Here every bundled file
+    /// carries ThrustCurve.org's label for it, and none is one its uploader restricted
+    /// ([ADR-288][adr-288] §1–2 takes in the rest).
+    ///
+    /// [adr-288]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md
     #[test]
     fn bundled_curves_have_permissive_license() {
         let catalog = bundled();
@@ -696,16 +799,22 @@ mod tests {
                 assert!(curve.url.contains(&curve.simfile_id));
             }
         }
-        assert!(!CurveLicense::Free.is_bundleable());
-        assert!(!CurveLicense::Unknown.is_bundleable());
+        assert!(!CurveLicense::Other.is_bundleable());
+        assert!(CurveLicense::Free.is_bundleable());
+        assert!(CurveLicense::Unknown.is_bundleable());
+        assert!(CurveLicense::PublicDomain.is_bundleable());
     }
 
     /// Loft lesson L42: Loft's impulse checks allowed −8% to +8%, and a mis-sourced curve flew
-    /// about 26% high until caught. Every figure the bundled index states is its curve's own, bit
-    /// for bit: `cargo xtask motor-catalog` works them out with the methods the simulator flies
-    /// (#295), so what `hpr motors` lists is what flies. Each is also within 1% of what
-    /// ThrustCurve.org's own code works out from the same file (M1.3's bound; the fixture
-    /// [`every_bundled_curve_matches_thrustcurve_statistics_code`] holds to 1e-12).
+    /// about 26% high until caught. Every figure the bundled index lists for a motor is its
+    /// default file's own, bit for bit: `cargo xtask motor-catalog` works them out with the
+    /// methods the simulator flies (#295), so what `hpr motors` lists is what flies. Each file the
+    /// oracle fixture holds is also within 1% of what ThrustCurve.org's own code works out from it
+    /// (M1.3's bound; [`every_bundled_curve_matches_thrustcurve_statistics_code`] holds it to
+    /// 1e-12): M5.7a's 32 files until M5.7c runs the code over every file stored as passing
+    /// ([ADR-301][adr-301]).
+    ///
+    /// [adr-301]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0301-the-whole-catalog-in-two-increments.md
     #[test]
     fn every_bundled_curve_impulse_within_1pct_of_thrustcurve() {
         let oracle: AnalyzeOracle = serde_json::from_str(include_str!(
@@ -714,49 +823,56 @@ mod tests {
         .unwrap();
         let catalog = bundled();
         let mut checked = 0;
+        let mut listed = 0;
         for motor in &catalog.motors {
             for curve in &motor.curves {
+                if motor.default_curve() != Some(curve)
+                    && !oracle.curves.iter().any(|c| c.file == curve.file)
+                {
+                    continue;
+                }
                 let text = bundled_curve_text(&curve.file).unwrap();
                 let thrust = motor.thrust_curve(curve, text).unwrap();
-                let theirs = oracle
-                    .curves
-                    .iter()
-                    .find(|c| c.file == curve.file)
-                    .unwrap_or_else(|| panic!("{}: not in the oracle record", curve.file));
+                let theirs = oracle.curves.iter().find(|c| c.file == curve.file);
                 for (stated, computed, by_thrustcurve, what) in [
                     (
                         motor.total_impulse_ns,
                         thrust.total_impulse_ns(),
-                        theirs.total_impulse_ns,
+                        theirs.map(|t| t.total_impulse_ns),
                         "total impulse",
                     ),
                     (
                         motor.average_thrust_n,
                         thrust.average_thrust_n(),
-                        theirs.average_thrust_n,
+                        theirs.map(|t| t.average_thrust_n),
                         "average thrust",
                     ),
                     (
                         motor.burn_time_s,
                         thrust.burn_time_s(),
-                        theirs.burn_time_s,
+                        theirs.map(|t| t.burn_time_s),
                         "burn time",
                     ),
                     (
                         motor.max_thrust_n.unwrap(),
                         thrust.peak_thrust_n(),
-                        theirs.max_thrust_n,
+                        theirs.map(|t| t.max_thrust_n),
                         "peak thrust",
                     ),
                 ] {
-                    assert_eq!(
-                        stated.to_bits(),
-                        computed.to_bits(),
-                        "{} ({}): the index's {what} {stated} is not its curve's {computed}",
-                        motor.designation,
-                        curve.simfile_id,
-                    );
-                    let error = (stated - by_thrustcurve) / by_thrustcurve;
+                    if motor.default_curve() == Some(curve) {
+                        assert_eq!(
+                            stated.to_bits(),
+                            computed.to_bits(),
+                            "{} ({}): the index's {what} {stated} is not its curve's {computed}",
+                            motor.designation,
+                            curve.simfile_id,
+                        );
+                    }
+                    let Some(by_thrustcurve) = by_thrustcurve else {
+                        continue;
+                    };
+                    let error = (computed - by_thrustcurve) / by_thrustcurve;
                     assert!(
                         error.abs() <= 0.01,
                         "{} ({}): {what} {stated} against ThrustCurve's code's {by_thrustcurve} \
@@ -766,27 +882,41 @@ mod tests {
                         100.0 * error
                     );
                 }
-                assert_eq!(
-                    ImpulseClass::from_total_impulse(motor.total_impulse_ns).unwrap(),
-                    motor.impulse_class,
-                    "{}",
-                    motor.designation
-                );
-                checked += 1;
+                if motor.default_curve() == Some(curve) {
+                    assert_eq!(
+                        ImpulseClass::from_total_impulse(motor.total_impulse_ns).unwrap(),
+                        motor.impulse_class,
+                        "{}",
+                        motor.designation
+                    );
+                    listed += 1;
+                }
+                checked += usize::from(theirs.is_some());
             }
         }
+        assert_eq!(checked, oracle.curves.len());
         assert_eq!(checked, 32);
+        assert_eq!(
+            listed,
+            catalog
+                .motors
+                .iter()
+                .filter(|m| !m.curves.is_empty())
+                .count()
+        );
     }
 
-    /// Every bundled entry's size, masses and delays are its curve file header's (#295): the
-    /// masses to the microgram, as `cargo xtask motor-catalog` writes a `.eng` header's kilograms
-    /// in grams.
+    /// Every bundled entry's size, masses and delays are its default curve file header's (#295):
+    /// the masses to the microgram, as `cargo xtask motor-catalog` writes a `.eng` header's
+    /// kilograms in grams. A motor with no file that reads lists its record's (`xtask`'s
+    /// `every_record_is_a_motor_and_every_file_is_indexed_or_left_out`).
     #[test]
     fn every_bundled_size_mass_and_delay_is_the_header_s() {
         let catalog = bundled();
         for motor in &catalog.motors {
-            let [curve] = &motor.curves[..] else {
-                panic!("{}: {} curves", motor.designation, motor.curves.len());
+            let Some(curve) = motor.default_curve() else {
+                assert!(motor.curves.is_empty(), "{}", motor.designation);
+                continue;
             };
             let text = bundled_curve_text(&curve.file).unwrap();
             let (diameter_mm, length_mm, delays, propellant_g, total_g) = match curve.format {
@@ -923,14 +1053,18 @@ mod tests {
     fn finds_motors_and_reads_delays() {
         let catalog = bundled();
         let j760: Vec<_> = catalog.find("j760").collect();
-        assert_eq!(j760.len(), 1);
-        assert_eq!(j760[0].designation, "1266J760-19A");
+        assert!(j760.iter().any(|m| m.designation == "1266J760-19A"));
+        assert!(j760.iter().all(|m| m.common_name == "J760"));
         assert_eq!(catalog.find("1266J760-19A").count(), 1);
         let plugged = catalog.find("L3200").next().unwrap();
         assert_eq!(plugged.delays().delays, [Delay::Plugged]);
         assert!(catalog.find("no such motor").next().is_none());
-        // Every bundled motor builds.
+        // Every bundled motor with a file that reads builds; one with none can't fly.
         for motor in &catalog.motors {
+            if motor.curves.is_empty() {
+                assert!(motor.bundled_motor().is_err(), "{}", motor.designation);
+                continue;
+            }
             let built = motor.bundled_motor().unwrap();
             assert!(
                 built.propellant_initial_mass_kg() > 0.0,
@@ -949,7 +1083,24 @@ mod tests {
         let with = |license: &str| {
             Catalog::from_json(&bundled::CATALOG_JSON.replacen("\"license\": \"PD\",", license, 1))
         };
-        let first_license = |catalog: Catalog| catalog.motors[0].curves[0].license;
+        // The index's first public-domain file, the one `with` relabels.
+        let first_pd = bundled()
+            .motors
+            .iter()
+            .flat_map(|m| &m.curves)
+            .find(|c| c.license == CurveLicense::PublicDomain)
+            .unwrap()
+            .simfile_id
+            .clone();
+        let first_license = |catalog: Catalog| {
+            catalog
+                .motors
+                .iter()
+                .flat_map(|m| &m.curves)
+                .find(|c| c.simfile_id == first_pd)
+                .unwrap()
+                .license
+        };
         assert!(with("\"license\": \"GPL\",").is_err());
         assert_eq!(
             first_license(with("\"license\": \"free\",").unwrap()),
@@ -967,8 +1118,13 @@ mod tests {
             1,
         );
         let hybrid = Catalog::from_json(&hybrid).unwrap();
-        assert_eq!(hybrid.motors[0].motor_type, MotorType::Hybrid);
-        assert!(hybrid.motors[0].bundled_motor().is_err());
+        let first_su = bundled()
+            .motors
+            .iter()
+            .position(|m| m.motor_type == MotorType::SingleUse)
+            .unwrap();
+        assert_eq!(hybrid.motors[first_su].motor_type, MotorType::Hybrid);
+        assert!(hybrid.motors[first_su].bundled_motor().is_err());
     }
 
     #[test]
@@ -1014,7 +1170,8 @@ mod tests {
         .unwrap();
         assert!(oracle.oracle.contains("analyze.js at commit 577afa6"));
         let catalog = bundled();
-        assert_eq!(oracle.curves.len(), bundled::CURVE_FILES.len());
+        // M5.7a's 32 files; M5.7c runs the code over every file stored as passing (ADR-301).
+        assert_eq!(oracle.curves.len(), 32);
         let mut worst = 0.0f64;
         for expected in &oracle.curves {
             let (motor, curve) = catalog
@@ -1124,7 +1281,8 @@ mod tests {
             record.jar_sha256,
             "4959b72f52f5f607941e9722abbb7b7f0c4a38ebbbf84204a329db9f31c4f897",
         );
-        assert_eq!(record.curves.len(), bundled::CURVE_FILES.len());
+        // ADR-066's check holds M5.7a's 32 files, and the whole catalog doesn't widen it (ADR-288).
+        assert_eq!(record.curves.len(), 32);
         let catalog = bundled();
         let mut worst_impulse = 0.0f64;
         let mut worst_peak = 0.0f64;
@@ -1207,11 +1365,7 @@ mod tests {
                 (thrust.average_thrust_n() - theirs.average_thrust_n) / theirs.average_thrust_n,
             );
         }
-        assert_eq!(
-            files.len(),
-            bundled::CURVE_FILES.len(),
-            "a file twice or missing"
-        );
+        assert_eq!(files.len(), record.curves.len(), "a file twice or missing");
         assert!(
             identical,
             "impulse, peak thrust, burn time and duration are no longer bit for bit OpenRocket's"
@@ -1238,7 +1392,8 @@ mod tests {
 
     /// ADR-298 §4: every bundled file's stored check is its curve's figures against its motor's
     /// stated ones, worked out again here, and the stated figures are the committed record's,
-    /// bit for bit. Each of the 32 passes, as they were chosen to, so none warns.
+    /// bit for bit, over every file of the whole catalog. A failing file is stored with its
+    /// failing check, and its warning names it.
     #[test]
     fn every_bundled_check_is_its_file_against_its_record() {
         let records: serde_json::Value =
@@ -1274,9 +1429,19 @@ mod tests {
                 let text = bundled_curve_text(&curve.file).unwrap();
                 let thrust = motor.thrust_curve(curve, text).unwrap();
                 assert_eq!(CurveCheck::of(&thrust, stated), curve.check, "{name}");
-                assert!(curve.check.passes, "{name}");
-                assert!(motor.failing_figures(curve).is_empty(), "{name}");
-                assert_eq!(motor.check_warning(curve), None, "{name}");
+                // A failing file is stored with its check (ADR-298 §2) and warned of when flown.
+                assert_eq!(
+                    curve.check.passes,
+                    motor.failing_figures(curve).is_empty(),
+                    "{name}"
+                );
+                match motor.check_warning(curve) {
+                    None => assert!(curve.check.passes, "{name}"),
+                    Some(warning) => {
+                        assert!(!curve.check.passes, "{name}");
+                        assert!(warning.contains(&curve.simfile_id), "{name}: {warning}");
+                    }
+                }
                 checked += 1;
             }
         }
@@ -1469,7 +1634,11 @@ mod tests {
     #[test]
     fn the_default_file_passes_where_a_bundled_one_does() {
         let catalog = bundled();
-        let base = &catalog.motors[0];
+        let base = catalog
+            .motors
+            .iter()
+            .find(|m| m.curves.first().is_some_and(|c| c.check.passes))
+            .unwrap();
         let passing = base.curves[0].clone();
         let mut failing = passing.clone();
         failing.simfile_id = "failing".to_owned();

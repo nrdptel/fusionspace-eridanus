@@ -1,0 +1,20 @@
+<engine-database>
+ <engine-list>
+<engine FDiv="10" FFix="1" FStep="-1." Isp="204.37" Itot="50.10585" Type="reloadable" auto-calc-cg="1" auto-calc-mass="1" avgThrust="50.10585" burn-time="1" cgDiv="10" cgFix="1" cgStep="-1." code="F62T" delays="6,10,14" dia="29." exitDia="0." initWt="109." len="99." mDiv="10" mFix="1" mStep="-1." massFrac="22.94" mfg="Aerotech" peakThrust="59.51" propWt="25." tDiv="10" tFix="1" tStep="-1." throatDia="0.">
+<comments>Corrected 2026-09-23; supersedes ThrustCurve.org simfile 5f4294d20002e90000000387 (user, RockSim).
+Rise moved to 0.03 s per the TRA F62T cert (0,47.82 was at t=0).
+</comments>
+<data>
+<eng-data cg="49.5" f="0" m="25" t="0"/>
+<eng-data cg="49.5" f="47.82" m="24.642108" t="0.03"/>
+<eng-data cg="49.5" f="59.51" m="20.090219" t="0.2"/>
+<eng-data cg="49.5" f="59.51" m="11.182576" t="0.5"/>
+<eng-data cg="49.5" f="55.56" m="8.311904" t="0.6"/>
+<eng-data cg="49.5" f="51.55" m="5.639811" t="0.7"/>
+<eng-data cg="49.5" f="43.63" m="3.265337" t="0.8"/>
+<eng-data cg="49.5" f="43.63" m="1.088446" t="0.9"/>
+<eng-data cg="49.5" f="0" m="0" t="1"/>
+</data>
+</engine>
+ </engine-list>
+</engine-database>

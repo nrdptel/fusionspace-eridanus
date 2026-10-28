@@ -1,0 +1,35 @@
+<engine-database>
+  <engine-list>
+<engine  mfg="Cesaroni Technology Inc." code="L1090SS" Type="reloadable" dia="75."
+len="665." initWt="5461." propWt="3491." delays="1000" auto-calc-mass="1"
+auto-calc-cg="1" avgThrust="1083.274023" peakThrust="1646" throatDia="0."
+exitDia="0." Itot="4712.242" burn-time="4.35" massFrac="63.93" Isp="137.64"
+tDiv="10" tStep="-1." tFix="1" FDiv="10" FStep="-1." FFix="1" mDiv="10"
+mStep="-1." mFix="1" cgDiv="10" cgStep="-1." cgFix="1">
+<comments>Corrected 2026-09-23; supersedes ThrustCurve.org simfile 5f4294d20002e90000000597 (user, RockSim).
+Start rebuilt from the archived pro38 L1090 curve: 487 N at trigger, peak ~1646 N at 0.06 s (the file peaked late, at 0.11 s).
+</comments>
+<data>
+<eng-data  t="0" f="0" m="3491" cg="332.5"/>
+<eng-data  t="0.005" f="487.3" m="3490.097476" cg="332.5"/>
+<eng-data  t="0.03" f="1300" m="3473.546267" cg="332.5"/>
+<eng-data  t="0.06" f="1646" m="3440.80871" cg="332.5"/>
+<eng-data  t="0.11" f="1560" m="3381.430679" cg="332.5"/>
+<eng-data  t="0.18" f="1470" m="3302.864988" cg="332.5"/>
+<eng-data  t="0.22" f="1484.05" m="3259.095638" cg="332.5"/>
+<eng-data  t="0.44" f="1417.6" m="3022.634391" cg="332.5"/>
+<eng-data  t="0.87" f="1373.3" m="2578.100376" cg="332.5"/>
+<eng-data  t="1.31" f="1329" m="2137.668741" cg="332.5"/>
+<eng-data  t="1.74" f="1306.85" m="1717.83106" cg="332.5"/>
+<eng-data  t="2.18" f="1262.55" m="1299.059998" cg="332.5"/>
+<eng-data  t="2.61" f="1218.25" m="903.918651" cg="332.5"/>
+<eng-data  t="3.05" f="1151.8" m="517.638447" cg="332.5"/>
+<eng-data  t="3.21" f="775.25" m="403.428157" cg="332.5"/>
+<eng-data  t="3.48" f="598.05" m="266.080438" cg="332.5"/>
+<eng-data  t="3.92" f="553.75" m="78.355479" cg="332.5"/>
+<eng-data  t="4.13" f="221.5" m="18.050477" cg="332.5"/>
+<eng-data  t="4.35" f="0" m="0" cg="332.5"/>
+</data>
+</engine>
+</engine-list>
+</engine-database>

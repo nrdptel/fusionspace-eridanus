@@ -594,13 +594,14 @@ mod tests {
     #[test]
     fn every_bundled_motor_is_inside_the_range() {
         // The check's other half: a bound real motors fall outside is a bug, not a check. This
-        // builds all 32 rather than asserting a remembered pair of numbers: the doc's figures
+        // builds every bundled motor with a file that reads rather than asserting a remembered pair
+        // of numbers: the doc's figures
         // came out of the catalog's stored impulse once, which is not what the check divides.
-        let catalog = crate::Catalog::bundled().expect("the bundled catalog parses");
+        let catalog = crate::Catalog::whole().expect("the bundled catalog parses");
         let mut lowest = f64::INFINITY;
         let mut highest: f64 = 0.0;
         let (mut low_name, mut high_name) = (String::new(), String::new());
-        for entry in &catalog.motors {
+        for entry in catalog.motors.iter().filter(|m| !m.curves.is_empty()) {
             let motor = entry
                 .bundled_motor()
                 .unwrap_or_else(|error| panic!("{}: {error}", entry.designation));
@@ -620,8 +621,8 @@ mod tests {
             }
         }
         // `docs/physics/motor.md` quotes these; they are measured here so the doc cannot drift.
-        assert!((lowest - 708.59).abs() < 0.01, "{low_name} at {lowest}");
-        assert!((highest - 2651.64).abs() < 0.01, "{high_name} at {highest}");
+        assert!((lowest - 296.83).abs() < 0.01, "{low_name} at {lowest}");
+        assert!((highest - 4128.18).abs() < 0.01, "{high_name} at {highest}");
     }
 
     #[test]
