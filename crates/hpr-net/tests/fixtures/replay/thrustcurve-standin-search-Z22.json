@@ -1,0 +1,23 @@
+{
+  "criteria": [
+    {
+      "name": "designation",
+      "value": "Z22-INVENTED",
+      "matches": 1
+    }
+  ],
+  "matches": 1,
+  "results": [
+    {
+      "motorId": "e000000000000000000000f6",
+      "manufacturer": "Invented Motors",
+      "designation": "Z22-INVENTED",
+      "commonName": "Z22",
+      "impulseClass": "H",
+      "type": "SU",
+      "totalWeightG": 200.0,
+      "propWeightG": 94.0
+    }
+  ],
+  "source_url": "http://www.thrustcurve.org/motors/search.html"
+}

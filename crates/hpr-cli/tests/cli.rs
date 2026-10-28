@@ -2495,6 +2495,81 @@ fn motors_fetch_takes_the_first_file_hpr_can_fly() {
     assert_eq!(document["motor"]["measured_by"], "mfr");
 }
 
+/// Issue #578: a fetched file whose propellant mass is more than 5% below ThrustCurve.org's
+/// record is flown with a warning naming both masses, by `hpr motors fetch`, `hpr sim --motor`
+/// and `hpr sim` of a `.ork` whose motor it fetches, in JSON and as a `warning:` line; one just
+/// inside the bound flies without. The two
+/// invented motors' files say 100.0 g, their records 105.4 g (−5.12%) and 105.1 g (−4.85%).
+#[test]
+fn a_fetched_file_lighter_than_its_records_propellant_warns() {
+    use hpr::hpr_net::on_demand::Wanted;
+    let warning = "Invented Motors Z21-INVENTED's curve file f000000000000000000000c2 gives \
+                   100.0 g of propellant, -5.12% from ThrustCurve.org's record of 105.4 g. If \
+                   the file's loaded mass is right, it flies too heavy a burnout mass and too \
+                   low an apogee";
+    let probe = repo_file(PROBE);
+    for (name, warned) in [("Z21-INVENTED", true), ("Z20-INVENTED", false)] {
+        let cache = cache_with(&Wanted::named(name));
+        let fetch = ["motors", "fetch", name];
+        let document = json_cached(&fetch, 0, "motors-fetch.schema.json", cache.path());
+        let sim = ["sim", probe.as_str(), "--motor", name];
+        let flown = json_cached(&sim, 0, "sim.schema.json", cache.path());
+        let expected = if warned {
+            json!([{"at": "ThrustCurve.org", "kind": "unusual", "message": warning}])
+        } else {
+            json!([])
+        };
+        assert_eq!(document["warnings"], expected, "{name}");
+        let from_thrustcurve: Vec<&Value> = flown["warnings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|warning| warning["at"] == "ThrustCurve.org")
+            .collect();
+        assert_eq!(json!(from_thrustcurve), expected, "{name}");
+        let folder = tempfile::tempdir().unwrap();
+        let ork = probe_with(
+            folder.path(),
+            "invented.ork",
+            PROBE_MOTOR,
+            &format!(
+                "<manufacturer>Invented</manufacturer><designation>{name}</designation>\
+                 <digest>0123456789abcdef0123456789abcdef</digest><diameter>0.029</diameter>\
+                 <length>0.124</length>"
+            ),
+        );
+        let ork_cache = cache_with(&Wanted::by("Invented", name));
+        let ork_sim = ["sim", ork.as_str()];
+        let flown = json_cached(&ork_sim, 0, "sim.schema.json", ork_cache.path());
+        assert_eq!(
+            flown["motors"][0]["source"]["kind"], "thrust_curve",
+            "{name}"
+        );
+        let from_thrustcurve: Vec<&Value> = flown["warnings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|warning| warning["at"] == "ThrustCurve.org")
+            .collect();
+        assert_eq!(json!(from_thrustcurve), expected, "{name} in a .ork");
+        for (args, cache) in [
+            (&fetch[..], cache.path()),
+            (&sim[..], cache.path()),
+            (&ork_sim[..], ork_cache.path()),
+        ] {
+            let printed = streams_cached(args, cache);
+            assert_eq!(
+                printed
+                    .err
+                    .contains(&format!("warning: ThrustCurve.org: {warning}")),
+                warned,
+                "{args:?}: {}",
+                printed.err
+            );
+        }
+    }
+}
+
 /// `--file` takes the file named ahead of the usual order: the user's RASP file, ranked last, and
 /// a RockSim file once the cache holds the motor's RockSim answer. With a cache holding only the
 /// RASP answer, the RockSim file asked for is given up for the usual order's, and the output says

@@ -110,6 +110,54 @@ pub struct Found {
     pub fetched: Vec<Fetched>,
 }
 
+/// How far, as a fraction, a taken file's propellant mass may fall below the one ThrustCurve's
+/// record states (`propWeightG`) before [`Found::propellant_warning`] warns: 5%, and only below.
+///
+/// A file whose propellant is too light flies too heavy a burnout mass, so too low an apogee,
+/// the side that flatters a waiver: two AMW N-motor files give the mass after firing as their
+/// propellant, 7.1% and 19.3% below their records ([AMW retests][amw], §3). A file too heavy
+/// is not warned of: half of those more than 2% heavy (84 of 168) give the loaded mass less CAR's
+/// measured burnout mass, which flies the right burnout mass. No natural gap among ThrustCurve's files sets the
+/// number, so 5% is a choice: of the 685 taken H-to-O files whose record states a propellant
+/// mass, it flags 33, both AMW files among them, and a file up to 5% light, which it lets
+/// through, costs about 0.2% of apogee or less on three invented rockets ([fetched-mass
+/// survey][survey], §5). The loaded mass is not checked: a file light on both masses can fly a
+/// light burnout mass, so its warning states the burnout's direction only for a right loaded
+/// mass.
+///
+/// [amw]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/amw-retests.md
+/// [survey]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/fetched-mass-survey.md
+pub const PROPELLANT_SHORT_BOUND: f64 = 0.05;
+
+impl Found {
+    /// The warning for flying the taken file when its propellant mass, as its header gives it, is
+    /// more than [`PROPELLANT_SHORT_BOUND`] below the record's, naming both masses and the gap;
+    /// `None` when it isn't (a file exactly at the bound draws none), or when the record states no
+    /// propellant mass or the file's can't be read.
+    #[must_use]
+    pub fn propellant_warning(&self) -> Option<String> {
+        let record_g = self
+            .record
+            .propellant_weight_g
+            .filter(|g| g.is_finite() && *g > 0.0)?;
+        let file_g = self.file.read().ok()?.propellant_mass_kg()? * 1000.0;
+        // Only a mass below the bound warns, compared as masses so a file exactly at it doesn't;
+        // a NaN one, from a file whose mass isn't finite, warns too, as nothing says it is close.
+        if file_g >= record_g * (1.0 - PROPELLANT_SHORT_BOUND) {
+            return None;
+        }
+        let gap = file_g / record_g - 1.0;
+        Some(format!(
+            "{}'s curve file {} gives {file_g:.1} g of propellant, {:+.2}% from ThrustCurve.org's \
+             record of {record_g:.1} g. If the file's loaded mass is right, it flies too heavy a \
+             burnout mass and too low an apogee",
+            maker_and_designation(&self.record),
+            self.file.simfile_id,
+            gap * 100.0
+        ))
+    }
+}
+
 /// Why no motor was found.
 #[non_exhaustive]
 #[derive(Debug, thiserror::Error)]

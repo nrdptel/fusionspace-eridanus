@@ -13,7 +13,7 @@ use hpr::hpr_net::on_demand::{self, FindError, Found, Wanted};
 use hpr::hpr_net::thrustcurve::{self, DataFile, Format, ThrustCurveError};
 
 use crate::console::Level;
-use crate::output::{FileFormat, MotorFetch, ThrustCurveMotor};
+use crate::output::{FileFormat, InputWarning, MotorFetch, ThrustCurveMotor, WarningKind};
 use crate::units::inches_figure;
 use crate::weather::{client, now_s, read_from, read_from_line};
 use crate::{Failure, Out, printable};
@@ -44,11 +44,12 @@ pub(crate) fn run(args: &FetchArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     if let Some(file) = &args.file {
         wanted = wanted.preferring(file);
     }
-    let (motor, fetched) = fetch(&wanted, args.offline, "hpr motors fetch")?;
+    let (motor, fetched, warnings) = fetch(&wanted, args.offline, "hpr motors fetch")?;
     let flies = sim_lines(&args.motor, &wanted, &fetched, args.offline);
     let document = MotorFetch {
         attribution: vec![thrustcurve::ATTRIBUTION.to_owned()],
         motor: fetched,
+        warnings,
     };
     let lines = [
         format!(
@@ -68,6 +69,12 @@ pub(crate) fn run(args: &FetchArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     ];
     to.emit(&document, |out, diagnostics| {
         out.lines(&lines, &[])?;
+        for warning in &document.warnings {
+            diagnostics.line(
+                Level::Warning,
+                &format!("{}: {}", warning.at, warning.message),
+            )?;
+        }
         flies
             .iter()
             .try_for_each(|(level, line)| diagnostics.line(*level, line))?;
@@ -119,7 +126,7 @@ fn sim_lines(
         let designation = Wanted::named(&fetched.designation);
         fetch(&designation, offline, "hpr motors fetch")
             .ok()
-            .filter(|(_, again)| again.motor_id == fetched.motor_id)
+            .filter(|(_, again, _)| again.motor_id == fetched.motor_id)
             .map(|_| fetched.designation.clone())
     };
     let sim = |alone: &str| shell_word(alone).map(|word| format!("hpr sim --motor {word}"));
@@ -141,12 +148,13 @@ fn sim_lines(
 
 /// `wanted`, found on ThrustCurve.org through the platform's cache (offline, the cache alone),
 /// with the first file, in [`on_demand::find`]'s order, that makes a motor HPR Sim flies; `command`
-/// names the command running, for a refusal.
+/// names the command running, for a refusal. With it, the warning for a file whose propellant
+/// mass is too far below ThrustCurve.org's record ([`Found::propellant_warning`], issue #578).
 pub(crate) fn fetch(
     wanted: &Wanted,
     offline: bool,
     command: &str,
-) -> Result<(Motor, ThrustCurveMotor), Failure> {
+) -> Result<(Motor, ThrustCurveMotor, Vec<InputWarning>), Failure> {
     let client = client(offline, command)?;
     let build = |file: &DataFile| -> Result<Motor, String> {
         let text = file.text().map_err(|error| error.to_string())?;
@@ -160,7 +168,16 @@ pub(crate) fn fetch(
     };
     let (found, motor) = on_demand::find_with(&client, wanted, now_s(), build)
         .map_err(|error| refused(wanted, &error))?;
-    Ok((motor, described(&found)?))
+    let warnings = found
+        .propellant_warning()
+        .map(|message| InputWarning {
+            at: "ThrustCurve.org".to_owned(),
+            kind: WarningKind::Unusual,
+            message: printable(&message),
+        })
+        .into_iter()
+        .collect();
+    Ok((motor, described(&found)?, warnings))
 }
 
 /// What HPR Sim's cache of ThrustCurve.org says about `name`, read with no network, as a `help:`

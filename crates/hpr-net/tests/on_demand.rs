@@ -236,3 +236,47 @@ fn offline_a_preference_the_cache_cannot_answer_is_given_up() {
         "{none:?}"
     );
 }
+
+/// Issue #578: a taken file whose propellant mass is more than 5% below the record's draws a
+/// warning naming both masses. Two invented motors are light on propellant as AMW's N4000BB file
+/// is, with the loaded mass right: each file says 100.0 g, and Z20's record 105.1 g
+/// (−4.85%, just inside) and Z21's 105.4 g (−5.12%, just outside). A file heavier than its
+/// record, Z22's at 94.0 g (+6.4%), and a record with no propellant mass, Z10's, give none.
+#[test]
+fn a_file_lighter_than_its_records_propellant_warns() {
+    let dir = tempfile::tempdir().unwrap();
+    let client = Client::new(replay(), Cache::new(dir.path()), Mode::Online);
+    let found = |name: &str| on_demand::find(&client, &Wanted::named(name), NOW_S).unwrap();
+    assert_eq!(on_demand::PROPELLANT_SHORT_BOUND, 0.05);
+    let inside = found("Z20-INVENTED");
+    assert_eq!(inside.record.propellant_weight_g, Some(105.1));
+    assert_eq!(inside.propellant_warning(), None);
+    let outside = found("Z21-INVENTED");
+    assert_eq!(outside.record.propellant_weight_g, Some(105.4));
+    assert_eq!(
+        outside.propellant_warning().as_deref(),
+        Some(
+            "Invented Motors Z21-INVENTED's curve file f000000000000000000000c2 gives 100.0 g \
+             of propellant, -5.12% from ThrustCurve.org's record of 105.4 g. If the file's \
+             loaded mass is right, it flies too heavy a burnout mass and too low an apogee"
+        )
+    );
+    let heavier = found("Z22-INVENTED");
+    assert_eq!(heavier.record.propellant_weight_g, Some(94.0));
+    assert_eq!(heavier.propellant_warning(), None);
+    let unstated = found("Z10-INVENTED");
+    assert_eq!(unstated.record.propellant_weight_g, None);
+    assert_eq!(unstated.propellant_warning(), None);
+    // The header's propellant mass in kilograms: a RASP entry's as written, a RockSim engine's
+    // `propWt` from grams.
+    let mass = |found: &on_demand::Found| found.file.read().unwrap().propellant_mass_kg();
+    assert_eq!(mass(&unstated), Some(0.008));
+    let rocksim = on_demand::find(
+        &client,
+        &Wanted::named("Z10-INVENTED").preferring("f000000000000000000000b1"),
+        NOW_S,
+    )
+    .unwrap();
+    assert_eq!(rocksim.file.format, Format::RockSim);
+    assert_eq!(mass(&rocksim), Some(0.008));
+}

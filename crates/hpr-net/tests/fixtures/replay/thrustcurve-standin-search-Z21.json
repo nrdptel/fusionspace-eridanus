@@ -1,0 +1,23 @@
+{
+  "criteria": [
+    {
+      "name": "designation",
+      "value": "Z21-INVENTED",
+      "matches": 1
+    }
+  ],
+  "matches": 1,
+  "results": [
+    {
+      "motorId": "e000000000000000000000f5",
+      "manufacturer": "Invented Motors",
+      "designation": "Z21-INVENTED",
+      "commonName": "Z21",
+      "impulseClass": "H",
+      "type": "SU",
+      "totalWeightG": 200.0,
+      "propWeightG": 105.4
+    }
+  ],
+  "source_url": "http://www.thrustcurve.org/motors/search.html"
+}

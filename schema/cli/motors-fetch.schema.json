@@ -38,12 +38,20 @@
         "version",
         "designation"
       ]
+    },
+    "warnings": {
+      "description": "What to check before flying the file: a propellant mass too far below ThrustCurve.org's\nrecord of it (`hpr_net::on_demand::PROPELLANT_SHORT_BOUND`), which flies too heavy a\nburnout mass.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/InputWarning"
+      }
     }
   },
   "required": [
     "tool",
     "attribution",
-    "motor"
+    "motor",
+    "warnings"
   ],
   "$defs": {
     "FileFormat": {
@@ -59,6 +67,29 @@
           "type": "string",
           "const": "rse"
         }
+      ]
+    },
+    "InputWarning": {
+      "description": "Something a reader accepted with a caveat, or the design's checks found unusual.",
+      "type": "object",
+      "properties": {
+        "at": {
+          "description": "Where: in a `.ork` file, a path of element names from the root or a zip entry's name; in a\nmotor file, its name and line; `design checks` for a check's finding; `ThrustCurve.org`\nfor a fetched file checked against ThrustCurve.org's record.",
+          "type": "string"
+        },
+        "kind": {
+          "description": "How serious it is.",
+          "$ref": "#/$defs/WarningKind"
+        },
+        "message": {
+          "description": "What was found, and how it was read.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "at",
+        "kind",
+        "message"
       ]
     },
     "ReadFrom": {
@@ -215,6 +246,26 @@
         "file_id",
         "format",
         "read_from"
+      ]
+    },
+    "WarningKind": {
+      "description": "How serious a warning is.",
+      "oneOf": [
+        {
+          "description": "A whole motor had an error and was left out.",
+          "type": "string",
+          "const": "skipped"
+        },
+        {
+          "description": "A value was left out.",
+          "type": "string",
+          "const": "dropped"
+        },
+        {
+          "description": "Something unusual was read as it stands.",
+          "type": "string",
+          "const": "unusual"
+        }
       ]
     }
   }

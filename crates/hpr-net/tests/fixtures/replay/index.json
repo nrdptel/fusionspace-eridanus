@@ -35,5 +35,16 @@
   "https://www.thrustcurve.org/api/v1/search.json?designation=Z10-INVENTED": "thrustcurve-standin-search-Z10.json",
   "https://www.thrustcurve.org/api/v1/search.json?manufacturer=Invented&designation=Z10-INVENTED": "thrustcurve-standin-search-Z10.json",
   "https://www.thrustcurve.org/api/v1/download.json?motorId=e000000000000000000000f3&format=RASP&data=file": "thrustcurve-standin-download-Z10.json",
-  "https://www.thrustcurve.org/api/v1/download.json?motorId=e000000000000000000000f3&format=RockSim&data=file": "thrustcurve-standin-download-Z10-rocksim.json"
+  "https://www.thrustcurve.org/api/v1/download.json?motorId=e000000000000000000000f3&format=RockSim&data=file": "thrustcurve-standin-download-Z10-rocksim.json",
+  "https://www.thrustcurve.org/api/v1/search.json?designation=Z20-INVENTED": "thrustcurve-standin-search-Z20.json",
+  "https://www.thrustcurve.org/api/v1/download.json?motorId=e000000000000000000000f4&format=RASP&data=file": "thrustcurve-standin-download-Z20.json",
+  "https://www.thrustcurve.org/api/v1/download.json?motorId=e000000000000000000000f4&format=RockSim&data=file": "thrustcurve-standin-download-none.json",
+  "https://www.thrustcurve.org/api/v1/search.json?designation=Z21-INVENTED": "thrustcurve-standin-search-Z21.json",
+  "https://www.thrustcurve.org/api/v1/download.json?motorId=e000000000000000000000f5&format=RASP&data=file": "thrustcurve-standin-download-Z21.json",
+  "https://www.thrustcurve.org/api/v1/download.json?motorId=e000000000000000000000f5&format=RockSim&data=file": "thrustcurve-standin-download-none.json",
+  "https://www.thrustcurve.org/api/v1/search.json?manufacturer=Invented&designation=Z20-INVENTED": "thrustcurve-standin-search-Z20.json",
+  "https://www.thrustcurve.org/api/v1/search.json?manufacturer=Invented&designation=Z21-INVENTED": "thrustcurve-standin-search-Z21.json",
+  "https://www.thrustcurve.org/api/v1/search.json?designation=Z22-INVENTED": "thrustcurve-standin-search-Z22.json",
+  "https://www.thrustcurve.org/api/v1/download.json?motorId=e000000000000000000000f6&format=RASP&data=file": "thrustcurve-standin-download-Z22.json",
+  "https://www.thrustcurve.org/api/v1/download.json?motorId=e000000000000000000000f6&format=RockSim&data=file": "thrustcurve-standin-download-none.json"
 }

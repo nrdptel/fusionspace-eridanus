@@ -1446,6 +1446,9 @@ struct Missing {
     fetched: Vec<FetchedMotor>,
     unfetched: Vec<String>,
     fetch_help: Vec<String>,
+    /// The fetched files' warnings, such as a propellant mass too far below ThrustCurve.org's
+    /// record ([`crate::motor_fetch::fetch`]).
+    warnings: Vec<InputWarning>,
 }
 
 /// Fetches each motor of the configuration `fetching` names (or the file's default) that has no
@@ -1497,7 +1500,13 @@ fn fetch_missing(motors: &ork::Motors, fetching: Fetching<'_>) -> Result<Missing
             wanted = wanted.preferring(file);
         }
         match crate::motor_fetch::fetch(&wanted, fetching.offline, "hpr sim") {
-            Ok((fetched, described)) => {
+            Ok((fetched, described, warnings)) => {
+                // Two mounts with one motor under different digests fetch one file: one warning.
+                for warning in warnings {
+                    if !missing.warnings.contains(&warning) {
+                        missing.warnings.push(warning);
+                    }
+                }
                 let case = ork::CaseSize {
                     diameter_m: fetched.diameter_m(),
                     length_m: fetched.length_m(),
@@ -2094,7 +2103,11 @@ fn read_design(path: &str, fetching: Option<Fetching<'_>>) -> Result<Read, Failu
                 design.value,
                 ork::airframe_not_as_written(&file.value),
                 notes,
-                warnings.iter().map(ork_warning).collect(),
+                warnings
+                    .iter()
+                    .map(ork_warning)
+                    .chain(missing.warnings)
+                    .collect(),
             );
             read.fetched = missing.fetched;
             read.unfetched = missing.unfetched;
@@ -2853,12 +2866,12 @@ pub(crate) fn catalog_or_fetched(
             crate::motors::check_warnings(catalog, name),
         )),
         Err(hpr::Error::NoSuchMotor(_)) => {
-            let (motor, fetched) =
+            let (motor, fetched, warnings) =
                 crate::motor_fetch::fetch(&Wanted::named(name), offline, "hpr sim")?;
             Ok((
                 motor,
                 SimMotorSource::ThrustCurve(Box::new(fetched)),
-                Vec::new(),
+                warnings,
             ))
         }
         Err(error @ hpr::Error::AmbiguousMotor { .. }) => {

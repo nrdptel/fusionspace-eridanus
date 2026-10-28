@@ -133,6 +133,10 @@ pub struct MotorFetch {
     pub attribution: Vec<String>,
     /// The motor, and the curve file HPR Sim flies it by.
     pub motor: ThrustCurveMotor,
+    /// What to check before flying the file: a propellant mass too far below ThrustCurve.org's
+    /// record of it (`hpr_net::on_demand::PROPELLANT_SHORT_BOUND`), which flies too heavy a
+    /// burnout mass.
+    pub warnings: Vec<InputWarning>,
 }
 
 /// A motor found on ThrustCurve.org by name, and the curve file HPR Sim flies it by: the first RASP
@@ -1227,7 +1231,8 @@ pub enum ExportFormat {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, JsonSchema)]
 pub struct InputWarning {
     /// Where: in a `.ork` file, a path of element names from the root or a zip entry's name; in a
-    /// motor file, its name and line; `design checks` for a check's finding.
+    /// motor file, its name and line; `design checks` for a check's finding; `ThrustCurve.org`
+    /// for a fetched file checked against ThrustCurve.org's record.
     pub at: String,
     /// How serious it is.
     pub kind: WarningKind,
