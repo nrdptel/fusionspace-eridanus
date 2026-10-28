@@ -576,8 +576,8 @@ impl Catalog {
             .iter()
             .filter(|motor| {
                 of(motor)
-                    && (normalize(&motor.designation) == key
-                        || normalize(&motor.common_name) == key)
+                    && (normalized_is(&motor.designation, &key)
+                        || normalized_is(&motor.common_name, &key))
             })
             .collect()
     }
@@ -646,6 +646,16 @@ fn maker_key(text: &str) -> String {
         .iter()
         .find_map(|suffix| key.strip_suffix(suffix).filter(|rest| !rest.is_empty()))
         .map_or_else(|| key.clone(), str::to_owned)
+}
+
+/// Whether `normalize(name)` is `key`, without building it: a lookup compares every motor's two
+/// names, and `hpr motors list` looks each listed motor's selector up, so building them made the
+/// listing quadratic in allocations (51.7 ms for 1,004 motors; 12.6 ms without).
+fn normalized_is(name: &str, key: &str) -> bool {
+    name.chars()
+        .filter(|c| !c.is_whitespace() && *c != '-')
+        .map(|c| c.to_ascii_lowercase())
+        .eq(key.chars())
 }
 
 /// Lowercase, without spaces or hyphens.
@@ -1975,6 +1985,26 @@ mod tests {
                 .map(|motor| motor.manufacturer.as_str())
                 .collect();
             assert!(makers.len() > 1, "{name}: {makers:?}");
+        }
+    }
+
+    /// `normalized_is` answers as comparing `normalize`'s strings does, on every pair of names of
+    /// the catalog's first 200 motors.
+    #[test]
+    fn normalized_is_is_normalize_compared() {
+        let catalog = bundled();
+        let names: Vec<&str> = catalog
+            .motors
+            .iter()
+            .take(200)
+            .flat_map(|motor| [motor.designation.as_str(), motor.common_name.as_str()])
+            .chain(["", "J 760", "j-760", "1266J760-19A", "ÄÖ", "K\u{a0}940"])
+            .collect();
+        for name in &names {
+            for other in &names {
+                let key = normalize(other);
+                assert_eq!(normalized_is(name, &key), normalize(name) == key, "{name} {other}");
+            }
         }
     }
 

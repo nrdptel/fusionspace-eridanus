@@ -144,7 +144,7 @@ A row's slack is 0.1% of its scale. For a harness row it's at least the harness'
 bound: the larger of 2e-6 in the metric's own unit and 1e-7 of the value. The scale is the row's own
 tolerance where it has one. Otherwise it's the bar of its kind. That's 3% of its reference for a
 harness metric not scored, 5% for an OpenRocket apogee or largest speed and 1% for an OpenRocket
-mass. It's 0.5 calibers for a stability margin or center of mass, and 5% for a logged apogee. A
+mass. It's 0.2 calibers for a stability margin or center of mass, and 5% for a logged apogee. A
 logged climb's RMS gets 3% of the apogee, the bound three RocketPy comparisons hold a flight's
 height RMS to ([census][census]). For example, a 3% tolerance on a 1,000 m (3,281 ft) apogee allows
 30 m (98 ft). The census lets the difference move by 0.03 m (0.098 ft) before it fails.
