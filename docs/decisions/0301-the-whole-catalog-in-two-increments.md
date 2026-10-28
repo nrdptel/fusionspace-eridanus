@@ -22,9 +22,10 @@ The snapshot, taken 2026-10-28T11:49:53Z by `validation/oracles/thrustcurve/snap
 
 - 1,004 solid motor records (220 single-use, 784 reload) and 1,706 files for them. No file is
   marked restricted ("other"); 589 are public domain, 33 free to use, and 1,084 carry no license.
-- 1,701 files are indexed. Five are left out: two RockSim files whose times run backwards, two
-  reload files whose header says 75 mm for a 54 mm case, Loft lesson [L43][l43]'s error, and one
-  held back (§5). 924 motors have a file that reads; 80 have none.
+- 1,700 files are indexed. Six are left out: two RockSim files whose times run backwards; three
+  whose header's diameter contradicts the record's, two 75 mm headers on 54 mm reloads (Loft
+  lesson [L43][l43]'s error) and a 38 mm header on a 29 mm single-use motor; and one held back
+  (§5). 924 motors have a file that reads; 80 have none.
 - 412 files pass [ADR-005][adr-005]'s 1% check against their motor's record, and 239 motors have
   one that does.
 
@@ -40,7 +41,7 @@ about 40 of the command-line tests failed. The causes are separate pieces of wor
 - ADR-288 §3 asks a `.ork` motor's catalog lookup to take the file its OpenRocket curve maps to by
   digest first; with one file a motor, that had nothing to choose between.
 - The oracle tests (lesson L42's and the statistics code's) hold to the 32 until M5.7c, and the
-  converter's round trip over every file is untested on the 1,669 new ones.
+  converter's round trip over every file is untested on the 1,668 new ones.
 
 **Decision.**
 
@@ -74,15 +75,23 @@ about 40 of the command-line tests failed. The causes are separate pieces of wor
    can't fly. "Figures equal to the snapshot's" means the record's figures as stored, and each
    file's figures as its own bytes give them.
 5. **Which files are left out.** A file is left out, with its reason, when it is restricted, its
-   text doesn't read as one motor's curve, its header's sizes or masses can't be a motor's, or a
-   reload's header diameter is more than 10% from its case's size. The header sizes in this
-   snapshot sit up to 7.3% from their case's (a 161 mm Pro150, a 75 mm 76/6000); the nearest
-   standard sizes, 29 and 32 mm, are 10.3% apart; L43's error is 39%. `NAMED` in
-   `xtask/src/motor_catalog.rs` lists the five files left out; one it doesn't list fails the
-   command. One of the five is held back: a check on what this repository commits refuses its
-   bytes until the maintainer clears them, so `snapshot.py` doesn't write it (its `HELD`), and
-   the index lists it as left out with that reason, unread. That reason is not the file's own,
-   so M5.7b1 takes it in once the maintainer clears it, as a fix to this increment.
+   text doesn't read as one motor's curve, its header's sizes or masses can't be a motor's, or its
+   header's diameter is more than 10% from its record's, either way (the larger over the smaller,
+   less one). On this snapshot every other header sits within 7.3% of its record (four files give
+   a Pro150 reload's 150 mm for the record's 161 mm), and the three beyond it are 31% to 39% off.
+   Sizes closer than 10% apart, such as 152 and 161 mm, aren't told apart. The header is checked
+   against the record rather than a case's name, so single-use motors are covered too, and both
+   directions: a header narrower than its motor would pass the mount check it shouldn't. `NAMED`
+   in `xtask/src/motor_catalog.rs` lists the six files left out; one it doesn't list fails the
+   command.
+
+   One of the six is held back: a check on what this repository commits refuses its bytes until
+   the maintainer reviews them ([issue #1006](https://github.com/nrdptel/fusionspace-eridanus/issues/1006)).
+   `snapshot.py` doesn't write it (its `HELD`), and the index lists it as left out with that
+   reason, unread. That reason is not the file's own, and the file isn't restricted, so M5.7b1's
+   *done when* isn't met by it: M5.7b1 is marked blocked on the maintainer, and is checked off
+   once the file is in. Nothing else in M5.7b1 waits on it, and M5.7b2 can go ahead: the file's
+   motor has another file that reads.
 6. **Tests held to the 32 until M5.7c.** The lesson-L42 and statistics-code oracle tests and the
    converter's round trip run on M5.7a's 32 files. The round trip over every file is
    [issue #1002](https://github.com/nrdptel/fusionspace-eridanus/issues/1002).
@@ -91,7 +100,7 @@ about 40 of the command-line tests failed. The causes are separate pieces of wor
 
 - No flight, report or command output changes in M5.7b1; `hpr` still flies 32 motors by name.
 - The compiled-in data grows by about 4 MB (the index and the curve files); `records.json` and
-  `files.json` add 1.5 MB more to the repository, read only by the index writer and tests. ADR-288 accepted the size; M5.7d's page will give it from
-  the tool.
+  `files.json` add 1.5 MB more to the repository, read only by the index writer and tests.
+  ADR-288 accepted the size; M5.7d's page will give it from the tool.
 - `validation/oracles/thrustcurve/bundle.py`, which fetched the 32 files, is gone; `snapshot.py`
   takes its place.

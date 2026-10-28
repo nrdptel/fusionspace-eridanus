@@ -22,8 +22,9 @@
 //!
 //! A file is left out, listed in the index with the reason, when its uploader marked it
 //! restricted, its text doesn't parse as one motor's curve, its header's sizes or masses can't be
-//! a motor's, or a reload's header gives a diameter its case contradicts (the check
-//! [Loft lesson L43][l43] asks for: a header that said 75 mm for a 54 mm motor). [`NAMED`] names
+//! a motor's, or its header's diameter is more than 10% from its record's (the check
+//! [Loft lesson L43][l43] asks for: a header that said 75 mm for a 54 mm motor), or the
+//! repository holds it back ([`HELD`]). [`NAMED`] names
 //! each file this snapshot leaves out, with its reason: a refusal it doesn't name fails the
 //! command, and so does a name no file is refused under.
 //!
@@ -107,14 +108,19 @@ const NAMED: &[(&str, &str)] = &[
         "5f4294d20002e900000003be",
         "unreadable: .rse line 35: time 0.605 s is before the previous point's 0.61 s",
     ),
-    // Loft lesson L43's error: a 75 mm header on a 54 mm case.
+    // Loft lesson L43's error: a 75 mm header on a 54 mm reload.
     (
         "5f4294d20002e90000000482",
-        "its header's diameter is 75 mm, but the case AMW 54-2550 is 54 mm",
+        "its header's diameter is 75 mm, but its record's is 54 mm",
     ),
     (
         "5f4294d20002e90000000484",
-        "its header's diameter is 75 mm, but the case AMW 54-2550 is 54 mm",
+        "its header's diameter is 75 mm, but its record's is 54 mm",
+    ),
+    // A 38 mm header on a 29 mm single-use motor; the motor has another file that reads.
+    (
+        "5f4294d20002e90000000396",
+        "its header's diameter is 38 mm, but its record's is 29 mm",
     ),
     // A file this repository doesn't hold the bytes of (ADR-301 §5); `snapshot.py`'s `HELD`
     // doesn't write it.
@@ -424,10 +430,7 @@ fn curve(
         Ok(read) => read,
         Err(reason) => return Ok(Err(reason)),
     };
-    let case = (record["type"] == "reload")
-        .then(|| optional(record, "caseInfo"))
-        .flatten();
-    if let Err(reason) = check_header(case.as_deref(), &header) {
+    if let Err(reason) = check_header(record["diameter"].as_f64(), &header) {
         return Ok(Err(reason));
     }
     let stated = stated(record)?;
@@ -571,16 +574,17 @@ fn grams(kg: f64) -> f64 {
     (kg * 1e9).round() / 1e6
 }
 
-/// How far a reload's header diameter may be from the diameter its case is named for, as a share
-/// of the case's, and still be that case's motor (ADR-301 §3). A case's name gives a nominal size:
-/// on the 2026-10-28 snapshot the headers sit up to 7.3% from it (a Pro150 case's motors are
-/// 161 mm across, a 76/6000 case's 75 mm), while the two nearest sizes the records state that are
-/// different motors, 29 and 32 mm, are 10.3% apart, and Loft lesson L43's header, 75 mm on a 54 mm
-/// case, is 39% off.
-const CASE_SIZE_BOUND: f64 = 0.10;
+/// How far a file's header diameter may be from its motor's record's, as a ratio of the larger
+/// to the smaller less one, and still be that motor's file (ADR-301 §5). On the 2026-10-28
+/// snapshot every header sits within 7.3% of its record (four Cesaroni files say 150 mm, the
+/// Pro150 case's name, for motors the records give as 161 mm), and the three beyond it are 31% to
+/// 39% off: two 75 mm headers on 54 mm reloads, Loft lesson L43's error, and a 38 mm header on a
+/// 29 mm single-use motor. Sizes closer than 10% (152 and 161 mm, 6%) aren't told apart.
+const DIAMETER_BOUND: f64 = 0.10;
 
-/// The reason a header's figures can't be a motor's, or a reload's case contradicts its diameter.
-fn check_header(case: Option<&str>, header: &Header) -> Result<(), String> {
+/// The reason a header's figures can't be a motor's, or its diameter contradicts its motor's
+/// record's, `record_mm`.
+fn check_header(record_mm: Option<f64>, header: &Header) -> Result<(), String> {
     if !(header.diameter_mm > 0.0 && header.length_mm > 0.0) {
         return Err("its header's size is not positive".to_owned());
     }
@@ -590,19 +594,14 @@ fn check_header(case: Option<&str>, header: &Header) -> Result<(), String> {
             header.propellant_mass_g, header.total_mass_g
         ));
     }
-    if let Some(case) = case {
-        let digits: String = case
-            .chars()
-            .skip_while(|c| !c.is_ascii_digit())
-            .take_while(char::is_ascii_digit)
-            .collect();
-        // A case named without a diameter has nothing to contradict.
-        if let Ok(case_mm) = digits.parse::<f64>()
-            && (header.diameter_mm - case_mm).abs() > CASE_SIZE_BOUND * case_mm
-        {
+    // A record with no diameter has nothing to contradict.
+    if let Some(record_mm) = record_mm.filter(|d| *d > 0.0) {
+        let header_mm = header.diameter_mm;
+        let (low, high) = (header_mm.min(record_mm), header_mm.max(record_mm));
+        // As a difference, so a gap of exactly 10% passes: 55 / 50 − 1 rounds above 0.1.
+        if high - low > DIAMETER_BOUND * low {
             return Err(format!(
-                "its header's diameter is {} mm, but the case {case} is {case_mm} mm",
-                header.diameter_mm
+                "its header's diameter is {header_mm} mm, but its record's is {record_mm} mm"
             ));
         }
     }
@@ -628,16 +627,24 @@ fn matches_raw_snapshot(root: &Path, catalog: &Catalog) -> Result<(), String> {
         ));
     }
     let directory = root.join(SNAPSHOTS).join(&catalog.snapshot.captured);
-    let Ok(search) = read_json(
-        root,
-        &format!("{SNAPSHOTS}/{}/search.json", catalog.snapshot.captured),
-    ) else {
+    if !directory.is_dir() {
         println!(
             "no raw snapshot under {}; the committed records and files aren't compared with it",
             directory.display()
         );
         return Ok(());
-    };
+    }
+    let search = read_json(
+        root,
+        &format!("{SNAPSHOTS}/{}/search.json", catalog.snapshot.captured),
+    )?;
+    let results = search["results"].as_array().map_or(0, Vec::len);
+    if search["matches"].as_u64() != Some(results as u64) {
+        return Err(format!(
+            "the raw search answer holds {results} results of {} matches",
+            search["matches"]
+        ));
+    }
     let raw_captured = fs::read_to_string(directory.join("CAPTURED")).unwrap_or_default();
     if raw_captured.trim() != captured {
         return Err(format!(
@@ -672,6 +679,7 @@ fn matches_raw_snapshot(root: &Path, catalog: &Catalog) -> Result<(), String> {
             let id = text(&entry, "simfileId", "the download answer")?.to_owned();
             if entry["license"] != "other"
                 && !NAMED.contains(&(id.as_str(), HELD))
+                && (entry["format"] == "RASP" || entry["format"] == "RockSim")
                 && let Some(data) = entry["data"].as_str()
             {
                 let bytes = base64::engine::general_purpose::STANDARD
@@ -709,6 +717,18 @@ fn matches_raw_snapshot(root: &Path, catalog: &Catalog) -> Result<(), String> {
         return Err(format!(
             "{FILES}'s files aren't the raw download answers' ({batch} of them)"
         ));
+    }
+    for record in &records {
+        let downloaded = listed
+            .iter()
+            .filter(|f| f["motorId"] == record["motorId"])
+            .count();
+        if Some(downloaded as u64) != record["dataFiles"].as_u64().or(Some(0)) {
+            return Err(format!(
+                "{}: {downloaded} files downloaded, {} in its record",
+                record["motorId"], record["dataFiles"]
+            ));
+        }
     }
     println!(
         "raw snapshot {captured}: {} solid motors, {} files in {batch} download answers; the \
@@ -833,7 +853,7 @@ mod tests {
             "{BUNDLED} is stale: run `cargo xtask motor-catalog`"
         );
         // The index the crate compiles in reads back as the catalog written.
-        assert_eq!(hpr_motor::Catalog::whole().unwrap(), catalog);
+        assert_eq!(hpr_motor::Catalog::whole().unwrap(), &catalog);
     }
 
     /// Every committed record is a motor, its labels and stated figures the record's unchanged,
@@ -893,7 +913,7 @@ mod tests {
                 .count();
             assert_eq!(indexed + out, 1, "{id}");
         }
-        let counts = Counts::of(&catalog);
+        let counts = Counts::of(catalog);
         assert_eq!(counts.files + counts.left_out, files.len());
     }
 
@@ -958,9 +978,10 @@ mod tests {
         }
     }
 
-    /// Loft lesson L43's header that said 75 mm for a 54 mm motor is refused by its case.
+    /// Loft lesson L43's header that said 75 mm for a 54 mm motor is refused by its record, in
+    /// either direction, and a header within 10% of its record's diameter passes.
     #[test]
-    fn a_header_diameter_its_case_contradicts_is_refused() {
+    fn a_header_diameter_its_record_contradicts_is_refused() {
         let header = |diameter_mm| Header {
             diameter_mm,
             length_mm: 329.0,
@@ -968,16 +989,24 @@ mod tests {
             propellant_mass_g: 576.0,
             total_mass_g: 1076.8,
         };
-        assert!(check_header(Some("Pro54-3G"), &header(54.0)).is_ok());
-        let refused = check_header(Some("Pro54-3G"), &header(75.0)).unwrap_err();
-        assert!(refused.contains("case Pro54-3G is 54 mm"), "{refused}");
-        // A nominal size: a Pro150 case's motors are 161 mm across; 32 mm on a 29 mm case isn't.
-        assert!(check_header(Some("Pro150-40k"), &header(161.0)).is_ok());
-        assert!(check_header(Some("76/6000"), &header(75.0)).is_ok());
-        assert!(check_header(Some("29/180"), &header(32.0)).is_err());
-        // A case named without a diameter, or none, has nothing to contradict.
-        assert!(check_header(Some("Pro-X"), &header(75.0)).is_ok());
+        assert!(check_header(Some(54.0), &header(54.0)).is_ok());
+        let refused = check_header(Some(54.0), &header(75.0)).unwrap_err();
+        assert!(
+            refused.contains("is 75 mm, but its record's is 54 mm"),
+            "{refused}"
+        );
+        // Both ways: a header narrower than its motor is refused too.
+        assert!(check_header(Some(75.0), &header(54.0)).is_err());
+        assert!(check_header(Some(32.0), &header(29.0)).is_err());
+        assert!(check_header(Some(29.0), &header(32.0)).is_err());
+        // The Pro150 headers' 150 mm for 161 mm passes, either way round; 10% exactly passes.
+        assert!(check_header(Some(161.0), &header(150.0)).is_ok());
+        assert!(check_header(Some(150.0), &header(161.0)).is_ok());
+        assert!(check_header(Some(50.0), &header(55.0)).is_ok());
+        assert!(check_header(Some(50.0), &header(55.001)).is_err());
+        // A record with no diameter has nothing to contradict.
         assert!(check_header(None, &header(75.0)).is_ok());
+        assert!(check_header(Some(0.0), &header(75.0)).is_ok());
         let mut empty = header(54.0);
         empty.propellant_mass_g = empty.total_mass_g;
         assert!(check_header(None, &empty).is_err());

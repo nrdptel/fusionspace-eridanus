@@ -168,32 +168,43 @@ it burns ([The whole motor](#the-whole-motor) gives the details).
 
 Beside the 32, `hpr-motor` carries a copy of ThrustCurve.org's whole solid catalog, taken on
 October 28, 2026: the record of every single-use and reload motor, 1,004 of them, in production or
-not, and 1,701 of the 1,706 files listed for them. In code, `Catalog::whole()` returns it. The
+not, and 1,700 of the 1,706 files listed for them. In code, `Catalog::whole()` returns it. The
 lookups (`hpr motors`, `hpr sim --motor` and a design's motor) still use only the 32. Moving them
 to the whole catalog is the next step,
-[M5.7b2 on the roadmap](../decisions-and-roadmap.md#m5-7b2).
+[M5.7b2, every motor by name offline, on the roadmap](../decisions-and-roadmap.md#m5-7b2).
 
 - Each motor's names and stated figures are its record's, unchanged. Its listed figures are its
-  default file's own, as for the 32. The 80 motors with no file that reads list their record's
-  figures, and can't fly.
-- Each file is stored with its 1% check, passing or not. 412 files pass, and 239 motors have
-  one that does.
-- Of the 1,701 indexed files, 589 are public domain, 33 free to use, and 1,079 carry no
+  default file's own, as for the 32: a passing file where it has one, else the first by format
+  and by who measured it. The 80 motors with no file that reads list their record's figures, and
+  can't fly.
+- Each file is stored with its 1% check, passing or not. 412 of the 1,700 files pass, and 239 of
+  the 924 motors with a file have one that does; once the lookups move, the other 685 fly with a
+  warning naming each failing figure.
+- Only that check covers the other 1,668 files. The comparisons with ThrustCurve.org's statistics
+  code and with OpenRocket, and the `.eng`/`.rse` round trip
+  ([issue #1002](https://github.com/nrdptel/fusionspace-eridanus/issues/1002)), cover the 32.
+- Of the 1,700 indexed files, 589 are public domain, 33 free to use, and 1,078 carry no
   license; none is marked restricted. The [third-party notices](https://github.com/nrdptel/fusionspace-eridanus/blob/main/THIRD-PARTY-NOTICES.md)
   say how each is used.
-- Five files are left out, each listed in the index with its reason. Two are RockSim files whose
-  times run backwards. Two are reload files whose header gives 75 mm (3.0 in) for a 54 mm case
-  ([Loft lesson L43](../decisions-and-roadmap.md#l43)). A reload's header diameter more than
-  10% from its case's size is refused: the headers in this catalog sit up to 7.3% from their
-  case's, and the nearest standard sizes, 29 mm (1.1 in) and 32 mm (1.3 in), are 10.3% apart.
-  One file is held back: a check on what this repository commits keeps its bytes out until the
-  maintainer clears them.
-- 48 motors' default files give a propellant mass more than 5% below their record's
-  ([issue #1003](https://github.com/nrdptel/fusionspace-eridanus/issues/1003)).
+- Six files are left out, each listed in the index with its reason:
+  - two RockSim files whose times run backwards;
+  - three whose header's diameter is more than 10% from the record's, either way: two give
+    75 mm (3.0 in) for a 54 mm reload ([Loft lesson L43](../decisions-and-roadmap.md#l43)), and one
+    38 mm (1.5 in) for a 29 mm single-use motor. Every other header sits within 7.3% of its
+    record (four files give a Pro150 reload's 150 mm (5.9 in) where the record gives
+    161 mm (6.3 in)); the three are 31% to 39% off. Sizes closer than 10% apart, such as
+    152 mm (6.0 in) and 161 mm (6.3 in), aren't told apart;
+  - one held back: the repository's check on what it commits refused its bytes, and the
+    maintainer has yet to review them
+    ([issue #1006](https://github.com/nrdptel/fusionspace-eridanus/issues/1006)). It isn't read.
+- 48 motors' default files give a propellant mass more than 5% below their record's, and 151
+  more than 5% above it
+  ([issue #1003](https://github.com/nrdptel/fusionspace-eridanus/issues/1003)). Either side may be
+  the wrong one.
 
 `python3 validation/oracles/thrustcurve/snapshot.py` takes a fresh snapshot, and `cargo xtask
-motor-catalog` writes the index from it. A file left out for a reason the command doesn't name
-fails it.
+motor-catalog` writes the index from it. The command names each file it expects to leave out by
+its id; any other file left out fails it.
 
 ### A motor from a file
 
@@ -243,8 +254,8 @@ Three things to know about a motor built from a file:
   554 public-domain files, 66 headers give a length more than 1 mm (0.039 in) off the catalog's.
   Five give a diameter more than 0.5 mm (0.020 in) off
   ([data notes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/thrustcurve-data.md),
-  section 4). The 32 bundled motors fly their headers' values too. `cargo xtask motor-catalog` refuses a reload whose header
-  diameter is more than 10% from its case's size. In Loft, one header listed a 54 mm motor as a 75 mm
+  section 4). The 32 bundled motors fly their headers' values too. `cargo xtask motor-catalog` refuses a file whose header
+  diameter is more than 10% from its record's. In Loft, one header listed a 54 mm motor as a 75 mm
   motor ([Loft lesson L43](../decisions-and-roadmap.md#l43)). For any other motor, check the
   header against the motor's page on ThrustCurve.org.
 
@@ -557,13 +568,15 @@ of the propellant mass, not a filter on propellant:
   narrower case it only warns, `motor_tight_in_mount`. A case that runs forward past the
   mount's top is only a warning, `motor_past_mount_top`, so a length slip alone still flies.
   Nor does $c$ involve the loaded mass, so a loaded mass in grams passes too.
-- It lets through every real motor checked. The 1,708 ThrustCurve.org files with a catalog
-  propellant mass run from 236 to 3,031 m/s (774 to 9,944 ft/s). Their median is 1,867, and 90% of them are
-  between 928 and 2,210. The [whole catalog](#the-whole-catalog)'s 924 motors with a file that
-  reads run from **296.83 m/s** (973.9 ft/s, a black-powder A8) to **4,128.18 m/s**
-  (13,543.9 ft/s, a J228), each with its default file's own propellant mass. The highest is a
-  header's error: it gives 270 g of propellant, where ThrustCurve.org's record gives 569 g
-  ([issue #1003](https://github.com/nrdptel/fusionspace-eridanus/issues/1003)).
+- It lets through every real motor checked. In an earlier survey, the 1,708 ThrustCurve.org
+  files with a catalog propellant mass, each with the record's propellant, ran from 236 to
+  3,031 m/s (774 to 9,944 ft/s). Their median is 1,867, and 90% of them are between 928 and
+  2,210. In the [whole catalog](#the-whole-catalog), the 924 motors' default files, each with
+  its own header's propellant mass, run from **296.83 m/s** (973.9 ft/s, a black-powder A8) to
+  **4,128.18 m/s** (13,543.9 ft/s, a J228). That highest is no real motor's: the J228's header
+  gives 270 g of propellant, where ThrustCurve.org's record gives 569 g. The guard lets it
+  through, so once the lookups move it would fly with 270 g unless
+  [issue #1003](https://github.com/nrdptel/fusionspace-eridanus/issues/1003) is fixed first.
 - It is tightest at the floor: the lowest real value is 1.2x above it. Estes and Quest normally
   count the delay grain and the ejection charge as propellant, so their small black-powder motors
   read low. [Issue #11](https://github.com/nrdptel/fusionspace-eridanus/issues/11) records the

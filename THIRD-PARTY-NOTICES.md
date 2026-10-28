@@ -109,7 +109,7 @@ adds a source.
   font; the font's own name table says what changed and where the original is.
 
 - **ThrustCurve.org's solid motor catalog** (committed under `crates/hpr-motor/data/thrustcurve/`,
-  the index and the curve files compiled into `hpr-motor`), as [ADR-288](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md)
+  the index and the curve files it indexes compiled into `hpr-motor`), as [ADR-288](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md)
   takes it in, from a snapshot of ThrustCurve.org's API taken 2026-10-28 by
   `validation/oracles/thrustcurve/snapshot.py`
   ([ADR-301](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0301-the-whole-catalog-in-two-increments.md)):
@@ -122,7 +122,8 @@ adds a source.
   - `curves/`: each file's bytes, unchanged: 589 that ThrustCurve.org marks public domain
     (`PD`), 33 marked free to use (`free`) and 1,083 with no license. A file marked `other`
     (restricted by its uploader) is never bundled; this snapshot has none. One file with no
-    license is held back until the maintainer clears it, and isn't in the repository. The bundle uses each
+    license is held back until the maintainer clears it, and isn't in the repository (issue
+    #1006). The bundle uses each
     file's measured points as facts, as ADR-287 uses the records; each file's label is kept beside
     it, so a file can be found and taken out if its uploader asks (ADR-288 §2, the project's own
     reading, not legal advice).

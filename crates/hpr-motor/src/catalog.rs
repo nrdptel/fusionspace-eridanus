@@ -441,12 +441,13 @@ impl Catalog {
     /// # Errors
     ///
     /// [`MotorError::Catalog`] if the index doesn't deserialize, which a test rules out.
-    pub fn whole() -> Result<Self, MotorError> {
-        // Read once: the index of every solid motor is a few megabytes of JSON.
+    pub fn whole() -> Result<&'static Self, MotorError> {
+        // Read once and shared: the index of every solid motor is a few megabytes of JSON.
         static WHOLE: std::sync::OnceLock<Result<Catalog, MotorError>> = std::sync::OnceLock::new();
         WHOLE
             .get_or_init(|| Self::from_json(bundled::CATALOG_JSON))
-            .clone()
+            .as_ref()
+            .map_err(Clone::clone)
     }
 
     /// Reads a catalog index.
@@ -707,13 +708,13 @@ mod tests {
     use crate::delay::Delay;
 
     /// The whole catalog, which these tests hold; M5.7a's 32 are a test of their own below.
-    fn bundled() -> Catalog {
+    fn bundled() -> &'static Catalog {
         Catalog::whole().unwrap()
     }
 
     /// M5.7a's 32-motor index, which the lookups use until M5.7b2 (ADR-301), is the whole index's
     /// for each of its files: the same motor's record figures and labels, and the same file,
-    /// byte for byte, with the same check. Its listed figures are its one file's own.
+    /// byte for byte, with the same check, which passes. Its listed figures are its one file's own.
     #[test]
     fn the_first_32_are_the_whole_catalog_s() {
         let first = Catalog::bundled().unwrap();
@@ -747,6 +748,9 @@ mod tests {
             assert_eq!(curve.sha256, same.sha256);
             assert_eq!(curve.file, same.file);
             assert_eq!(curve.check, same.check);
+            // Each of the 32 passes, as they were chosen to, so none of the lookups' files warns.
+            assert!(curve.check.passes, "{}", motor.designation);
+            assert_eq!(motor.check_warning(curve), None, "{}", motor.designation);
             let text = bundled_curve_text(&curve.file).unwrap();
             let thrust = motor.thrust_curve(curve, text).unwrap();
             assert_eq!(

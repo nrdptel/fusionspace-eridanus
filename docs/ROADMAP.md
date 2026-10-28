@@ -267,6 +267,12 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
 - [ ] **M5.7 Every solid motor, offline** (ADR-288; Neer, 2026-10-21; VISION V56). ThrustCurve.org's
   solid catalog compiled in ([research](research/thrustcurve-data.md)). Split a to d (ADR-298);
   b in two (ADR-301).
+  - [ ] [blocked] **M5.7b1 The whole catalog compiled in.** *Done when:* a fresh snapshot's every
+    solid motor and every file but a restricted one are in `hpr-motor`, figures and labels equal
+    to the snapshot's; each file left out is listed with its reason, and one past the snapshot's
+    named refusals fails; M5.7a's check holds on every file it adds, failing files stored.
+    Blocked on the maintainer: 1,705 of the 1,706 files are in, and one held back (ADR-301 §5)
+    waits for the maintainer to clear it; the rest holds.
   - [ ] **M5.7b2 Every motor by name, offline.** *Done when:* offline, `hpr motors list` lists
     each motor and `hpr sim --motor` flies each with a curve, the counts taken from the raw
     snapshot; M5.7a's default, listing and warning hold on every file it adds, failing files

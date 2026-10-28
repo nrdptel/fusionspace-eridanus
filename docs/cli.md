@@ -1189,7 +1189,7 @@ files from one format into another.
 
 ### `hpr motors`
 
-The catalog built into the simulator holds 32 motors, from class B to class O, each with a
+The catalog the simulator looks motors up in holds 32 motors, from class B to class O, each with a
 public-domain ThrustCurve.org thrust curve.
 [Solid motors](physics/motor.md#the-bundled-motors) says how they were chosen. `hpr motors fetch`
 fetches any other motor's curve from ThrustCurve.org into the simulator's cache, for `hpr sim` to

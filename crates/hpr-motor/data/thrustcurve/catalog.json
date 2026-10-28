@@ -19853,23 +19853,6 @@
             "burn_time_s": 2.577522166045769,
             "passes": false
           }
-        },
-        {
-          "simfile_id": "5f4294d20002e90000000396",
-          "format": "RockSim",
-          "source": "user",
-          "license": "unknown",
-          "file": "curves/5f4294d20002e90000000396.rse",
-          "sha256": "9e2429be14d79de58b925d0c7d5a8e7baa129941c8273736022d95ff1bcc4990",
-          "url": "https://www.thrustcurve.org/simfiles/5f4294d20002e90000000396/download/data.rse",
-          "info_url": "https://www.thrustcurve.org/simfiles/5f4294d20002e90000000396/",
-          "retrieved": "2026-10-28",
-          "check": {
-            "total_impulse_ns": 320.005,
-            "average_thrust_n": 126.80613073466812,
-            "burn_time_s": 2.523576724137931,
-            "passes": false
-          }
         }
       ]
     },
@@ -56958,6 +56941,11 @@
   ],
   "left_out": [
     {
+      "simfile_id": "5f4294d20002e90000000396",
+      "motor_id": "5f4294d20002310000000082",
+      "reason": "its header's diameter is 38 mm, but its record's is 29 mm"
+    },
+    {
       "simfile_id": "5f4294d20002e900000003f0",
       "motor_id": "5f4294d200023100000000cf",
       "reason": "unreadable: .rse line 10: time 0.08 s is before the previous point's 0.12 s"
@@ -56965,12 +56953,12 @@
     {
       "simfile_id": "5f4294d20002e90000000482",
       "motor_id": "5f4294d2000231000000018b",
-      "reason": "its header's diameter is 75 mm, but the case AMW 54-2550 is 54 mm"
+      "reason": "its header's diameter is 75 mm, but its record's is 54 mm"
     },
     {
       "simfile_id": "5f4294d20002e90000000484",
       "motor_id": "5f4294d20002310000000191",
-      "reason": "its header's diameter is 75 mm, but the case AMW 54-2550 is 54 mm"
+      "reason": "its header's diameter is 75 mm, but its record's is 54 mm"
     },
     {
       "simfile_id": "5f4294d20002e900000003be",

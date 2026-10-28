@@ -1505,10 +1505,6 @@ pub(crate) const CURVE_FILES: &[(&str, &str)] = &[
         include_str!("../data/thrustcurve/curves/5f4294d20002e90000000394.rse"),
     ),
     (
-        "curves/5f4294d20002e90000000396.rse",
-        include_str!("../data/thrustcurve/curves/5f4294d20002e90000000396.rse"),
-    ),
-    (
         "curves/5f4294d20002e90000000397.rse",
         include_str!("../data/thrustcurve/curves/5f4294d20002e90000000397.rse"),
     ),

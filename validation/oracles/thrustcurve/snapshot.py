@@ -105,6 +105,8 @@ def write(directory):
         captured = f.read().strip()
     with open(os.path.join(directory, "search.json"), "rb") as f:
         search = json.loads(f.read())
+    if search.get("matches") != len(search["results"]):
+        sys.exit(f"the search answer holds {len(search['results'])} of {search.get('matches')} matches")
     records = sorted(
         (r for r in search["results"] if r.get("type") in SOLID), key=lambda r: r["motorId"]
     )
@@ -127,6 +129,10 @@ def write(directory):
                 continue
             curves[entry["simfileId"] + EXTENSION[entry["format"]]] = base64.b64decode(data)
     files.sort(key=lambda e: (e["motorId"], e["simfileId"]))
+    for record in records:
+        listed_for = sum(e["motorId"] == record["motorId"] for e in files)
+        if listed_for != (record.get("dataFiles") or 0):
+            sys.exit(f"{record['motorId']}: {listed_for} files downloaded, {record.get('dataFiles')} in its record")
     if len({e["simfileId"] for e in files}) != len(files):
         sys.exit("a file id appears twice in the download answers")
     with open(os.path.join(directory, "search-request.json")) as f:
