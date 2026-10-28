@@ -21,6 +21,7 @@
         "hdop": 1.2,
         "vdop": null,
         "pdop": null,
+        "geoidheight": null,
         "speed": 0.0,
         "course": 0.0
        },
@@ -34,6 +35,7 @@
         "hdop": 1.2,
         "vdop": null,
         "pdop": null,
+        "geoidheight": null,
         "speed": 0.1,
         "course": 45.0
        },
@@ -47,6 +49,7 @@
         "hdop": 1.9,
         "vdop": null,
         "pdop": null,
+        "geoidheight": null,
         "speed": 1.85,
         "course": 52.3
        }
@@ -62,6 +65,7 @@
         "hdop": 3.4,
         "vdop": null,
         "pdop": null,
+        "geoidheight": null,
         "speed": 14.2,
         "course": 61.0
        },
@@ -75,6 +79,7 @@
         "hdop": 2.1,
         "vdop": null,
         "pdop": null,
+        "geoidheight": null,
         "speed": 12.75,
         "course": 63.4
        },
@@ -88,6 +93,7 @@
         "hdop": 6.0,
         "vdop": null,
         "pdop": null,
+        "geoidheight": null,
         "speed": 11.3,
         "course": 64.1
        },
@@ -101,6 +107,7 @@
         "hdop": 1.5,
         "vdop": null,
         "pdop": null,
+        "geoidheight": null,
         "speed": 9.92,
         "course": 65.8
        },
@@ -114,6 +121,7 @@
         "hdop": 1.3,
         "vdop": null,
         "pdop": null,
+        "geoidheight": null,
         "speed": 8.61,
         "course": 66.0
        }
@@ -126,7 +134,7 @@
   },
   {
    "file": "gpx-1.1-phone-app.gpx",
-   "sha256": "d43b287f3e1dbfe04ef3cdab59af0fc5e952ece30433b6b254d6204ad4f336d6",
+   "sha256": "a2824e7f3dd672c03ab5642bdeef2cae3190c397627fb265387b7ec43f46b254",
    "version": "1.1",
    "creator": "Invented Tracker App 2.3",
    "tracks": [
@@ -144,6 +152,7 @@
         "hdop": 0.8,
         "vdop": 1.2,
         "pdop": 1.4,
+        "geoidheight": -27.4,
         "speed": null,
         "course": null
        },
@@ -157,6 +166,7 @@
         "hdop": 0.8,
         "vdop": 1.2,
         "pdop": 1.4,
+        "geoidheight": -27.4,
         "speed": null,
         "course": null
        },
@@ -170,6 +180,7 @@
         "hdop": 1.1,
         "vdop": 1.7,
         "pdop": 2.0,
+        "geoidheight": -27.4,
         "speed": null,
         "course": null
        },
@@ -183,6 +194,7 @@
         "hdop": 1.4,
         "vdop": 2.3,
         "pdop": 2.7,
+        "geoidheight": -27.4,
         "speed": null,
         "course": null
        },
@@ -196,6 +208,7 @@
         "hdop": 1.6,
         "vdop": 2.6,
         "pdop": 3.1,
+        "geoidheight": -27.4,
         "speed": null,
         "course": null
        },
@@ -209,6 +222,7 @@
         "hdop": 1.5,
         "vdop": 2.4,
         "pdop": 2.8,
+        "geoidheight": -27.4,
         "speed": null,
         "course": null
        },
@@ -222,6 +236,7 @@
         "hdop": 1.3,
         "vdop": 2.0,
         "pdop": 2.4,
+        "geoidheight": -27.4,
         "speed": null,
         "course": null
        },
@@ -235,6 +250,7 @@
         "hdop": 1.1,
         "vdop": 1.7,
         "pdop": 2.0,
+        "geoidheight": -27.4,
         "speed": null,
         "course": null
        },
@@ -248,6 +264,7 @@
         "hdop": 1.0,
         "vdop": 1.5,
         "pdop": 1.8,
+        "geoidheight": -27.4,
         "speed": null,
         "course": null
        },
@@ -261,6 +278,7 @@
         "hdop": 0.9,
         "vdop": 1.3,
         "pdop": 1.6,
+        "geoidheight": -27.4,
         "speed": null,
         "course": null
        },
@@ -274,6 +292,7 @@
         "hdop": 0.9,
         "vdop": 1.3,
         "pdop": 1.6,
+        "geoidheight": -27.4,
         "speed": null,
         "course": null
        },
@@ -287,6 +306,7 @@
         "hdop": 0.8,
         "vdop": 1.2,
         "pdop": 1.4,
+        "geoidheight": -27.4,
         "speed": null,
         "course": null
        },
@@ -300,6 +320,7 @@
         "hdop": 0.8,
         "vdop": 1.2,
         "pdop": 1.4,
+        "geoidheight": null,
         "speed": null,
         "course": null
        },
@@ -313,6 +334,7 @@
         "hdop": 0.8,
         "vdop": 1.2,
         "pdop": 1.4,
+        "geoidheight": -27.4,
         "speed": null,
         "course": null
        },
@@ -326,6 +348,7 @@
         "hdop": 0.9,
         "vdop": 1.3,
         "pdop": 1.6,
+        "geoidheight": -27.4,
         "speed": null,
         "course": null
        },
@@ -339,6 +362,7 @@
         "hdop": 0.9,
         "vdop": 1.3,
         "pdop": 1.6,
+        "geoidheight": -27.4,
         "speed": null,
         "course": null
        }
@@ -411,6 +435,7 @@
         "hdop": null,
         "vdop": null,
         "pdop": null,
+        "geoidheight": null,
         "speed": null,
         "course": null
        },
@@ -424,6 +449,7 @@
         "hdop": null,
         "vdop": null,
         "pdop": null,
+        "geoidheight": null,
         "speed": null,
         "course": null
        },
@@ -437,6 +463,7 @@
         "hdop": null,
         "vdop": null,
         "pdop": null,
+        "geoidheight": null,
         "speed": null,
         "course": null
        },
@@ -450,6 +477,7 @@
         "hdop": null,
         "vdop": null,
         "pdop": null,
+        "geoidheight": null,
         "speed": null,
         "course": null
        },
@@ -463,6 +491,7 @@
         "hdop": null,
         "vdop": null,
         "pdop": null,
+        "geoidheight": null,
         "speed": null,
         "course": null
        }
@@ -484,6 +513,7 @@
         "hdop": null,
         "vdop": null,
         "pdop": null,
+        "geoidheight": null,
         "speed": null,
         "course": null
        },
@@ -497,6 +527,7 @@
         "hdop": null,
         "vdop": null,
         "pdop": null,
+        "geoidheight": null,
         "speed": null,
         "course": null
        },
@@ -510,6 +541,7 @@
         "hdop": null,
         "vdop": null,
         "pdop": null,
+        "geoidheight": null,
         "speed": null,
         "course": null
        }
@@ -530,6 +562,7 @@
         "hdop": null,
         "vdop": null,
         "pdop": null,
+        "geoidheight": null,
         "speed": null,
         "course": null
        },
@@ -543,6 +576,7 @@
         "hdop": null,
         "vdop": null,
         "pdop": null,
+        "geoidheight": null,
         "speed": null,
         "course": null
        }

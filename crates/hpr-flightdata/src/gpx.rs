@@ -27,7 +27,9 @@
 //! (in meters) of the point", with no datum of its own. GPX 1.1's schema opens with "all
 //! coordinates are relative to the WGS84 datum", which could be read as heights above the WGS84
 //! ellipsoid, but it doesn't say so of `ele`, nor does the manual, and neither says whether a
-//! writer's elevation is above that ellipsoid, above mean sea level or from a barometer. Its
+//! writer's elevation is above that ellipsoid, above mean sea level or from a barometer. A point's
+//! `geoidheight` is the geoid's height above the WGS84 ellipsoid, "as defined in NMEA GGA
+//! message". Its
 //! `time` is an XML Schema `dateTime`, and "Date and time in are in Univeral \[sic\] Coordinated
 //! Time (UTC), not local time!" `sat` is the "Number of satellites used to calculate the GPX fix",
 //! `hdop`, `vdop` and `pdop` its dilutions of precision, and a `fix` of "none means GPS had no
@@ -50,16 +52,34 @@
 //! | `<name> elevation` | [`Quantity::Altitude`], m | `ele`: an altitude whose datum the file doesn't state |
 //! | `<name> satellites` | [`Quantity::Number`] | `sat` |
 //! | `<name> HDOP`, `<name> VDOP`, `<name> PDOP` | [`Quantity::Number`] | `hdop`, `vdop`, `pdop` |
+//! | `<name> geoid height` | [`Quantity::Distance`], m | `geoidheight`: the geoid above the WGS84 ellipsoid, NMEA's geoid separation |
 //! | `<name> speed` | [`Quantity::Speed`], m/s | GPX 1.0's `speed` |
 //! | `<name> course` | [`Quantity::Angle`], ° from true north | GPX 1.0's `course` |
 //!
 //! A channel is there only if some point of its segment holds its element; a point that lacks it,
 //! or holds it empty, such as `<ele/>`, is a gap, `NaN`, the empty ones counted in a note. The
-//! rest of a point (`magvar`, `geoidheight`, `fix`, its names and descriptions, `extensions` and
-//! other namespaces' elements) is counted in a note and not read.
+//! rest of a point (`magvar`, `fix`, its names and descriptions, `extensions`, other namespaces'
+//! elements, and a waypoint's or route point's `geoidheight`) is counted in a note and not read.
 //! The elevation is [`Quantity::Altitude`], not [`Quantity::GnssAltitude`], whose altitude is
 //! above mean sea level as the receiver states it: a GPX file states neither the datum nor the
 //! sensor, so only the rise from one point to another means what it says.
+//!
+//! **What `ele` most likely holds** (sources read 2026-10-17 to 2026-10-23). A receiver's NMEA
+//! GGA sentence gives the antenna's altitude above mean sea level, the geoid, and the geoid's
+//! separation from the WGS84 ellipsoid (gpsd's NMEA notes, gpsd.gitlab.io/gpsd/NMEA.html; u-blox's
+//! M10 interface description, UBX-21035062 R03, GGA `alt`, "Altitude above mean sea level").
+//! Phones differ: Android's `Location.getAltitude()` is above the WGS84 ellipsoid, iOS's
+//! `CLLocation.altitude` above mean sea level, and a handheld with a barometer may write the
+//! barometer's altitude. GPSLogger for Android, the program that wrote 7 of 10 GPX files with
+//! `geoidheight` found on GitHub, writes the ellipsoid's height unless its sea-level option is on,
+//! which subtracts `geoidheight` (its FAQ, gpslogger.app). The rocketry trackers checked export
+//! KML, CSV or NMEA, not GPX, and their manuals that state a datum say mean sea level. One
+//! Eggfinder track saved as GPX by MapSphere reads 6.7 to 7.4 m below the pad's terrain height
+//! as a sea-level height and 26 m above it as an ellipsoid's, so it most likely holds the GGA
+//! altitude ([a research note][eggfinder]). So `geoidheight` doesn't settle `ele`'s datum, and
+//! the reader's note says which writer does what. Either datum is off by an offset that barely
+//! changes over one flight: it moves the pad's elevation, not the height above the pad. A
+//! barometric `ele` would differ by an amount that grows with height.
 //!
 //! **Routes and waypoints** are places marked or planned, not flown, so they are kept apart from
 //! the tracks, as figures the file states ([`Stated::figures`]), each in the file's order: a
@@ -100,10 +120,13 @@
 //! **Where this comes from, and how far to trust it.** The schemas and the manual as cited; no GPX
 //! reader was ported. No sample log in the project's collection is a GPX file, so the reader is
 //! checked on invented files only, every value against gpxpy 1.6.2 (Apache-2.0), run as an outside
-//! reader (`validation/oracles/gpx/gpxpy_read.py`). What a real tracker writes in `ele`, and which
-//! of these elements it writes at all, no file has shown yet.
+//! reader (`validation/oracles/gpx/gpxpy_read.py`). One real rocket track, read for the research
+//! note above, points to a sea-level `ele`, with moderate confidence (one app, one pad). No rocket
+//! flight's GPX with `geoidheight` has been seen, so the note on `geoidheight` rests on
+//! GPSLogger's documentation and files, none of them a flight.
 //!
 //! [adr-254]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0254-gps-tracks-first-among-the-other-importers.md
+//! [eggfinder]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/forum-eggfinder-gpx-vs-baro.md
 
 use std::collections::{BTreeMap, HashMap, HashSet};
 
@@ -390,6 +413,7 @@ struct Point {
     hdop: Option<f64>,
     vdop: Option<f64>,
     pdop: Option<f64>,
+    geoidheight: Option<f64>,
     speed: Option<f64>,
     course: Option<f64>,
 }
@@ -667,7 +691,7 @@ impl<'a, 'input> Reader<'a, 'input> {
             };
             let read_here = match name {
                 "ele" | "time" => true,
-                "sat" | "hdop" | "vdop" | "pdop" => kind == Kind::TrackPoint,
+                "sat" | "hdop" | "vdop" | "pdop" | "geoidheight" => kind == Kind::TrackPoint,
                 "course" | "speed" => kind == Kind::TrackPoint && self.version == Version::V10,
                 _ => false,
             };
@@ -727,6 +751,7 @@ impl<'a, 'input> Reader<'a, 'input> {
                 "hdop" => point.hdop = Some(value),
                 "vdop" => point.vdop = Some(value),
                 "pdop" => point.pdop = Some(value),
+                "geoidheight" => point.geoidheight = Some(value),
                 "speed" => point.speed = Some(value),
                 _ => {
                     if !(0.0..=360.0).contains(&value) {
@@ -771,6 +796,18 @@ impl<'a, 'input> Reader<'a, 'input> {
                 "`ele` read in meters, from GPX 1.1's schema and GPX 1.0's manual, as an altitude \
                  whose datum the file doesn't state. Both give the unit and no datum, so it may \
                  be above mean sea level, above the WGS84 ellipsoid or above another zero"
+                    .to_owned(),
+            );
+        }
+        if track_points().any(|point| point.geoidheight.is_some()) {
+            notes.push(
+                "`geoidheight` read in meters as the geoid's height above the WGS84 ellipsoid, \
+                 as GPX 1.1's schema defines it from NMEA's GGA message. It doesn't say which \
+                 surface `ele` beside it is measured from: GPSLogger for Android, the commonest \
+                 writer of `geoidheight` found, writes the height above the ellipsoid by default, \
+                 and a receiver's GGA altitude is above mean sea level, the two apart by the \
+                 geoid height. Over one flight that offset barely changes, so it moves the pad's \
+                 elevation, not the height above the pad"
                     .to_owned(),
             );
         }
@@ -932,7 +969,7 @@ impl<'a, 'input> Reader<'a, 'input> {
                             .collect()
                     })
             };
-            let picks: [(&str, Quantity, Pick); 9] = [
+            let picks: [(&str, Quantity, Pick); 10] = [
                 ("latitude", Quantity::Latitude, |p| {
                     p.lat.as_ref().map(|w| w.value)
                 }),
@@ -946,6 +983,7 @@ impl<'a, 'input> Reader<'a, 'input> {
                 ("HDOP", Quantity::Number, |p| p.hdop),
                 ("VDOP", Quantity::Number, |p| p.vdop),
                 ("PDOP", Quantity::Number, |p| p.pdop),
+                ("geoid height", Quantity::Distance, |p| p.geoidheight),
                 ("speed", Quantity::Speed, |p| p.speed),
                 ("course", Quantity::Angle, |p| p.course),
             ];
