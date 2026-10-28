@@ -703,3 +703,13 @@ looked = [
   "the makers' datasheets it cites",
 ]
 found = "pad and rest noise for four families, upper bounds that mix in wind and handling, and the datasheets' white noise. It found no family's noise measured over a whole flight, and no hobby receiver's GNSS loop measured against a truth"
+
+[[row]]
+id = "G33"
+surface = "The smoother"
+claim = "At burnout, the top speed, apogee and a drawn moment, the smoother's 90% intervals on a log's height and vertical speed hold between 94.3% and 99.4% of the synthetic flights' truths in the three sets' cells, and two logger cells 89.2% and 89.7%, on the 171, 820 and 845 flights smoothed of three sets of 200, 1,000 and 1,000, its rules set with those sets in view"
+pages = ["physics/smoother.md#in-short", "accuracy.md#where-each-model-stands"]
+kind = "calibration"
+wanted = "real"
+not_checked = "a real flight's smoothed height and speed against a truth taken apart from the log, such as a second logger's or a ground tracker's record of the same flight"
+issue = 981

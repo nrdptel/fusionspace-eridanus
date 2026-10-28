@@ -61,6 +61,10 @@ heading-split-level = 2
 # And in M7.1c12, at 10.01 MB, with the RTx tracker's section: the API reference's landing page
 # (`api.md`), a table of the crates whose own pages, built by rustdoc, hold the API and its search,
 # is left out too, still in the sidebar and linked from the start page.
+# And in M7.2d, at 10.02 MB, with the smoother's page: the evidence register (`evidence.md`),
+# whose rows restate the gaps the guide's pages state, each of which links its row, is left out
+# too (9.87 MB after), as the evidence check leaves it out of the pages it reads for the same
+# reason; it is still in the sidebar and linked from every gap.
 [output.html.search.chapter]
 "decisions-and-roadmap.md" = { enable = false }
 "writing.md" = { enable = false }
@@ -68,6 +72,7 @@ heading-split-level = 2
 "VALIDATION.md" = { enable = false }
 "plan.md" = { enable = false }
 "api.md" = { enable = false }
+"evidence.md" = { enable = false }
 
 # The equations (`xtask/src/site/math.rs`): each `$…$` and `$$…$$` becomes MathML before mdBook
 # renders the page, so the browser draws it in the math face with no script. `cargo xtask site`

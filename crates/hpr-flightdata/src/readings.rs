@@ -916,20 +916,20 @@ pub struct Readings {
 }
 
 /// The height track the readings take.
-struct Track {
-    source: Source,
-    time_s: Vec<f64>,
+pub(crate) struct Track {
+    pub(crate) source: Source,
+    pub(crate) time_s: Vec<f64>,
     /// Heights, m: above the logger's zero for its own altitude, else as the channel or the
     /// standard atmosphere gives them; the readings measure from the pad.
-    height_m: Vec<f64>,
+    pub(crate) height_m: Vec<f64>,
     /// The step, m: at the pad's pressure for a pressure track.
-    step_m: f64,
+    pub(crate) step_m: f64,
     /// A pressure track's step, Pa.
-    pressure_step_pa: Option<f64>,
+    pub(crate) pressure_step_pa: Option<f64>,
     /// Whether its heights stand on a zero set on the pad: the logger's own altitude, which a
     /// [`FlightLog`] holds above the logger's zero, or a channel named as above the ground. A
     /// log that starts after liftoff reads its heights from that zero.
-    zeroed: bool,
+    pub(crate) zeroed: bool,
 }
 
 impl Track {
@@ -1479,7 +1479,7 @@ fn local_interval(time: &[f64], index: usize) -> f64 {
 
 /// The track the readings take, the first the log holds: the logger's own altitude, a pressure,
 /// a barometric altitude channel, a GNSS altitude; or why there is none.
-fn track(log: &FlightLog) -> Result<Track, (Reason, String)> {
+pub(crate) fn track(log: &FlightLog) -> Result<Track, (Reason, String)> {
     if !log.time_s.is_empty() {
         let declared = log.format.altitude_resolution_m();
         let step = if declared > 0.0 {

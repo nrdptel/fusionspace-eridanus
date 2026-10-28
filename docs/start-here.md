@@ -212,7 +212,13 @@ Without one, burnout is a [floor](glossary.md#floor), the top speed's time less 
 reading is within a bound held on the synthetic flights' tuning set, or withheld with the reason
 the log can't support it ([Flight-log readings](physics/log-readings.md)). The synthetic flights
 are 2,200 simulated flights, each with its logger's log and its known truth
-([Synthetic flights](physics/synthetic-flights.md)).
+([Synthetic flights](physics/synthetic-flights.md)). The library's smoother fuses a log's
+barometer, accelerometer and GNSS receiver into the height and vertical speed at every sample,
+each with a 90% interval. At four moments of each synthetic flight with a barometer, the three
+sets' intervals hold between 94.3% and 99.4% of the truths, and two logger cells 89.2% and
+89.7%, which the check allows.
+Those sets were seen while its rules were set. It isn't yet checked against a real flight's
+([The smoother](physics/smoother.md)).
 
 The library reads each format into one record, every column kept on its own clock. The formats
 come from PerfectFlite ([`.pf2` files](format/pf2.md)), AltOS, Featherweight's Raven and Blue Raven, Missile Works' RRC3 and RTx,
