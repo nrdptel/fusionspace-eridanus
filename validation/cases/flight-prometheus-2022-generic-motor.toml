@@ -19,9 +19,10 @@
 # drifts as horizontal distances from where the dry centre of mass started.
 #
 # Every scored metric is held to the milestone's 3%, with no absolute floor, the speeds to 0.2%
-# (ADR-289) and the rail-exit time to 0.5% (ADR-294). The 3% is the milestone's bar, not a model
-# bound: most metrics agree far inside it. The differences that remain have these sources, measured
-# where stated:
+# (ADR-289) and the rail-exit time to 0.5% (ADR-294), and the largest Mach number and the largest
+# acceleration under power to 1% (ADR-303). The 3% is the milestone's bar, not a model bound: most
+# metrics agree far inside it. The differences that remain have these sources, measured where
+# stated:
 #
 # - The rail. hpr's rail equation keeps the variable-mass terms (the centre of mass moving inside
 #   the body as propellant burns), which RocketPy's `udot_rail1` leaves out. At a sharp ignition
@@ -87,7 +88,7 @@ relative = 0.03
 relative = 0.002
 
 [metrics.max_mach]
-relative = 0.03
+relative = 0.01
 
 [metrics.max_acceleration_m_s2]
 not_scored = "the whole flight's maximum is the main parachute opening at 139.9 s (93.9 m/s^2 in RocketPy), not a flight load; RocketPy counts the canopy's added mass and hpr has none (ADR-012). The power-on maximum is gated instead."
@@ -96,7 +97,7 @@ not_scored = "the whole flight's maximum is the main parachute opening at 139.9 
 relative = 0.03
 
 [metrics.max_acceleration_power_on_m_s2]
-relative = 0.03
+relative = 0.01
 
 [metrics.rail_exit_speed_m_s]
 relative = 0.002

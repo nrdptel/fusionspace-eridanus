@@ -118,6 +118,19 @@ Placed by [ADR-196, the product guides][adr-196]; research in [product guides](p
 - LATER: animated CLI recordings (VHS, MIT), still frames tested first.
 - LATER: runnable notebooks for the Python package, opened from the guide.
 
+## From the 2026-10-26 planning review
+
+- SOON: motors at a field with no signal, counted. User: a flyer at a remote launch whose first
+  motor sold out. Workflow: the scoreboard counts the motors each tool flies offline from a fresh
+  install (HPR Sim's bundle, [M5.7][m5-7]; OpenRocket 24.12's jar; RocketPy's documentation) and,
+  of those, the curves whose total impulse misses the published figure by more than 1% with no
+  warning ([ADR-005][adr-005]'s check). Moves: new rows `motors.offline` and `motors.unchecked`;
+  hpr bundled 32 curves then and flies 924 offline since M5.7b2 ([the bundle][motor-page])
+  against 1,452 entries recorded from OpenRocket's database ([its defects
+  note](openrocket-apogee-defects.md)), 528 short. *Done when:* hpr's
+  counts come from the bundle's committed manifest and OpenRocket's from a committed record naming
+  the jar's hash; hpr's offline count is at least OpenRocket's; a check fails when hpr's falls.
+
 [m1-14g]: ../decisions-and-roadmap.md#m1-14g
 [m4-5e]: ../decisions-and-roadmap.md#m4-5e
 [m2-9]: ../decisions-and-roadmap.md#m2-9
@@ -129,3 +142,6 @@ Placed by [ADR-196, the product guides][adr-196]; research in [product guides](p
 [i-438]: https://github.com/nrdptel/fusionspace-eridanus/issues/438
 [adr-195]: ../decisions/0195-the-2026-10-07-guides-rocketry-explained.md
 [adr-196]: ../decisions/0196-the-2026-10-07-product-guides.md
+[adr-005]: ../decisions/0005-solid-motors-statistics-consumption-grains-file.md
+[m5-7]: ../decisions-and-roadmap.md#m5-7
+[motor-page]: ../physics/motor.md#the-bundled-motors

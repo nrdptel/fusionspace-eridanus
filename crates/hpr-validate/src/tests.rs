@@ -403,6 +403,56 @@ fn same_drag_times_burnout_heights_and_traces_hold_adr_294s_bounds() {
 }
 
 #[test]
+fn same_drag_peaks_hold_adr_303s_bounds() {
+    // ADR-303 holds the largest Mach number of the nine same-drag flights to 1%, and the largest
+    // acceleration under power, with the whole flight's where it is scored, to 1% in the seven
+    // that aren't Bella Lui's. The largest differences measured were -0.235% (Prometheus 2022's
+    // Mach) and +0.248% (Valetudo's acceleration), 4.3 and 4.0 times inside 1%. Bella Lui keeps
+    // 3% on its accelerations for the rail's variable-mass terms at its ignition spike (+1.78%).
+    // A case file widened back, given a floor or marked not scored, or a new same-drag case added
+    // at the old bound, fails here.
+    const BELLA_LUI: [&str; 2] = ["flight-bella-lui", "flight-bella-lui-calm"];
+    let (mut machs, mut powered, mut whole) = (0, 0, 0);
+    for case in cases() {
+        if !case.id.starts_with("flight-") {
+            continue;
+        }
+        let bella_lui = BELLA_LUI.contains(&case.id.as_str());
+        for (name, metric) in &case.metrics {
+            let held = match name.as_str() {
+                "max_mach" => {
+                    machs += 1;
+                    0.01
+                }
+                "max_acceleration_power_on_m_s2" if !bella_lui => {
+                    powered += 1;
+                    0.01
+                }
+                "max_acceleration_m_s2" if !bella_lui && metric.not_scored.is_none() => {
+                    whole += 1;
+                    0.01
+                }
+                _ => continue,
+            };
+            assert_eq!(
+                (
+                    metric.relative,
+                    metric.absolute,
+                    metric.not_scored.as_deref()
+                ),
+                (Some(held), None, None),
+                "{}'s {name} is held to {held} relative, with no floor (ADR-303)",
+                case.id
+            );
+        }
+    }
+    // Nine Mach numbers; seven powered peaks; the whole flight's peak in Calisto (wind and calm),
+    // Juno III (wind and calm) and Valetudo, NDRT 2020's and Prometheus 2022's being their main
+    // openings, not scored.
+    assert_eq!((machs, powered, whole), (9, 7, 5));
+}
+
+#[test]
 fn the_metrics_that_are_not_scored_are_these_and_no_others() {
     // Loft excused its two largest misses as "no single target" (L82). A metric that is measured
     // but not scored is the same move made honestly: it is printed with both numbers and a written

@@ -345,15 +345,20 @@ tighter.
 
 Some gates are tighter ([the decision that tightened them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md), and [ADR-294, which tightened the times, burnout heights and traces](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md)):
 
-- Each burnout, largest, rail-exit and landing speed: 0.2%. The mean descent rate and the
-  largest Mach number keep 3%.
+- Each burnout, largest, rail-exit and landing speed: 0.2%. The mean descent rate keeps 3%.
+- The largest Mach number of all nine flights: 1%. The largest acceleration under power, and the
+  whole flight's where it is scored, 1% in the seven flights that aren't Bella Lui's; Bella Lui's
+  keep 3% for the rail's variable-mass terms at its ignition spike (+1.78%)
+  ([ADR-303](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0303-the-2026-10-28-review-the-rocketpy-peaks-tightened.md);
+  largest differences −0.235% in Mach number, Prometheus 2022's, and +0.248% in acceleration,
+  Valetudo's).
 - The apogee of the six flights with no written model difference: 0.5%. Juno III, Bella Lui and
   Prometheus 2022 in wind keep 3%, for the model differences their case files measure (the rail
   release and body lift; Juno III's thin-plate fins too).
 - Each rail-exit time: 0.5%. In the same six flights, the apogee time 1%, the burnout height 0.2%,
   and the height and speed traces 1% of RocketPy's apogee and 0.5% of its top speed, rounded down to
   0.1 m (0.33 ft) and 0.01 m/s (0.033 ft/s). The three in wind keep 3% on those four, for the same
-  model differences. The largest acceleration and its time, the drifts and the flight time keep 3%
+  model differences. The time of the largest acceleration, the drifts and the flight time keep 3%
   ([the next
   decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md)
   gives each reason).

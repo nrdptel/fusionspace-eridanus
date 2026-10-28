@@ -18,7 +18,7 @@
 # `as_of` is the date the report counts a row's last search from: a row with no search, or whose
 # last is over 30 days before it, is due one.
 
-as_of = "2026-10-20"
+as_of = "2026-10-28"
 
 [[row]]
 id = "G1"
@@ -112,6 +112,14 @@ looked = [
   "Mines-Rocketry-Club's flight data",
 ]
 found = "a partial answer, to cite only: PSAS flew a TeleMetrum v1.0 (serial 221) from 2010 to 2013. Its October 17, 2010 and June 30, 2013 files are already in the private collection. A third, in psas/flight_data-2010.06.27 (no license), is an older text-form `.eeprom` beside a table of time, height, speed and acceleration not in AltosUI's CSV layout. No TeleMega v4 file whose IMU ran, and no new file in log format 5, 9 or 19, was found. The other public files are TeleMetrum v2 to v4 (format 7), EasyMini (6 and 14) and TeleMega v6 (22)"
+
+[[row.searched]]
+on = "2026-10-28"
+looked = [
+  "GitHub code search for `log_format` in `.eeprom` files, every header of the 44 hits parsed",
+  "the names `TeleMetrum-v1` and `TeleMega-v4` across GitHub",
+]
+found = "a lead for the TeleMetrum v1's converter: ISSUIUC/flight-data holds a TeleMetrum v1.2 `.eeprom` in log format 1 with AltosUI's export beside it (no license; cache under refs/ only). No TeleMega v4 file whose IMU ran. Format 5, 9 and 19 samples were found earlier and are listed in the CATS and Juno sample note (docs/research/sample-logs-cats-juno.md); the October 17 search's none was too narrow"
 
 [[row]]
 id = "G5"
@@ -498,6 +506,14 @@ looked = [
   "GitHub's other copies of the site's data",
 ]
 found = "no license for the motor records (the home page reserves all rights; the API page states none). A lead: JohnCoker/thrustcurve3 (ISC, commit 3325878d, cached under refs/samples-search/G23) holds a 2016 sample dump of 280 real motor records and 411 curve files. The records have the fields the stand-ins leave out, and each curve file its own class (104 public domain, 16 free, 291 unmarked). ISC grants rights in 'this software', so using the records is a licensing question"
+
+[[row.searched]]
+on = "2026-10-28"
+looked = [
+  "ThrustCurve.org's contribute, API and privacy pages and its full-text site summary",
+  "openrocket/motor-database and JohnCoker/TCTG",
+]
+found = "no openly licensed motor database. The only license statement is the contribute page's class for each file, which the API doesn't return; openrocket/motor-database (GPL-3.0) points other projects to the API"
 
 [[row]]
 id = "G24"

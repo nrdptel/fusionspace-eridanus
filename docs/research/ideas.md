@@ -88,7 +88,7 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
 - LATER: live prices through `hpr-net`, cached and dated.
 - LATER: regional vendors (Klima, Wizard Rockets); parts that fit `.orc` offered upstream.
 
-## Earlier planning reviews (2026-10-08 to 2026-10-24)
+## Earlier planning reviews (2026-10-08 to 2026-10-26)
 
 PROMOTED: OpenRocket's newest release as the bar ([M2.3c3][m2-3c3], ADR-212), the gap to it by
 cause (M2.3c6, [ADR-226][adr-226]) with OpenRocket's supersonic ogive drag as its own cause
@@ -97,51 +97,47 @@ Student Launch's limits by requirement number ([M6.3][m6-3], [ADR-246][adr-246])
 post-flight comparison ([M7.2][m7-2], [M7.3][m7-3], [ADR-257][adr-257]), fin flutter held to
 measurement ([M2.11][m2-11], [ADR-279][adr-279]). The rest moved to the [theme notes](#theme-notes);
 the 2026-10-20 review's four ([ADR-286][adr-286]) and the 2026-10-24 review's four ([ADR-289][adr-289])
-to flight data and the ecosystem.
+to flight data and the ecosystem, and the 2026-10-26 review's four ([ADR-294][adr-294]) to flight
+data, clubs and the ecosystem.
 
-## The 2026-10-26 planning review
+## The 2026-10-28 planning review
 
-Placed with [ADR-294][adr-294], which tightens the RocketPy comparisons' times, burnout heights
-and traces; no idea is promoted.
+Placed with [ADR-303][adr-303], which tightens the RocketPy comparisons' largest Mach number and
+peak acceleration; no idea is promoted. The 2026-10-26 review's four moved to the theme notes.
 
-- SOON: how often each tool comes in low. User: a flyer filing for a waiver, and the RSO who checks
-  it; a prediction below the log is the worst error ([ADR-144][adr-144]). Workflow: the scoreboard
-  counts, from the reports, the logged flights each tool predicts more than 5% below the log (an
-  early deployment only lowers a log, so it never explains one). Moves: new rows
-  `undershoot.collection` and `undershoot.public`; today hpr 10 of 53 and OpenRocket 11 of 53 (4 and
-  6 more than 10% low), hpr 3 of 7 public flights, read off [the fixture report][fixture-report]'s
-  histograms. *Done when:* both rows read fields the reports write, a test pins that −5% exactly is
-  not counted and −5.01% is, and the scoreboard's check fails when hpr's count rises.
-- SOON: center of pressure against the tunnel, for every tool. User: an RSO or a Level 3 mentor
-  checking a stability margin from any of the three tools. Workflow: each wind-tunnel model the
-  aerodynamics checks score is written as a `.ork` by HPR Sim's writer ([ADR-286][adr-286]);
-  OpenRocket 24.12's jar, run as an outside oracle, and RocketPy 1.13.0 give its center of pressure
-  at each reading's Mach number; the scoreboard shows each tool's mean absolute error in calibers
-  and the readings it puts aft of the measured one, which overstates the margin. Moves: new row
-  `accuracy.cp-tunnel`, three cells; today hpr's only: 0.58 calibers over the Arcas Robin's 16
-  readings below Mach 2.5, 9 of them aft ([the fixture][nf-fixture]). *Done when:* the row gives all
-  three tools on at least 16 core-band readings from at least two models, each cited to its table
-  or figure; a reading a tool can't model is listed with its reason; a test fails when a tool's aft
-  count is missing.
-- SOON: motors at a field with no signal, counted. User: a flyer at a remote launch whose first
-  motor sold out. Workflow: the scoreboard counts the motors each tool flies offline from a fresh
-  install (HPR Sim's bundle, [M5.7][m5-7]; OpenRocket 24.12's jar; RocketPy's documentation) and,
-  of those, the curves whose total impulse misses the published figure by more than 1% with no
-  warning ([ADR-005][adr-005]'s check). Moves: new rows `motors.offline` and `motors.unchecked`;
-  today hpr bundles 32 curves ([the bundle][motor-page]) against 1,452 entries recorded from
-  OpenRocket's database ([its defects note](openrocket-apogee-defects.md)). *Done when:* hpr's
-  counts come from the bundle's committed manifest and OpenRocket's from a committed record naming
-  the jar's hash; hpr's offline count is at least OpenRocket's; a check fails when hpr's falls.
-- SOON: a flight with a date and no hour. User: a flyer flying again a forum post's flight that
-  gives the day but not the time. Workflow: `hpr weather era5` given a date with no time writes a
-  profile for each hour from 08:00 to 18:00 local mean solar time, and `hpr sim` prints the
-  apogee's range over them with the hours; the fixture report does the same for each compared
-  flight with no known hour (26 of the 83 fly local noon today). Moves: `accuracy.collection`
-  gains a stated hour term: the median and largest spread over the day, in % of the logged
-  apogee, beside the mean absolute error on flights with a known hour. *Done when:* the report
-  gives those numbers and the count of compared flights with no hour; a test on a synthetic day
-  with a known temperature swing gets the range derived by hand; a date with no time is refused,
-  with the reason, when the file doesn't cover those hours.
+- SOON: an export that survives OpenRocket's own save. User: a team that designs in HPR Sim and
+  hands the `.ork` to a club member who opens, edits and saves it in OpenRocket, whose 24.12 save
+  can fail on a file whose simulations are stale ([OpenRocket issue
+  3412](https://github.com/openrocket/openrocket/issues/3412)). Workflow: the export round trip
+  ([ADR-286][adr-286]) adds a step: OpenRocket's jar, run as an outside oracle, saves each exported
+  design without flying it, and HPR Sim reads the saved file back. Moves: `interop.changed` (0 of
+  151 configurations today), `interop.failed` (2 of 75 designs, the two HPR Sim can't read) and
+  `interop.largest` (0.000050%), all measured only to OpenRocket's open. *Done when:* the round trip saves all 151 through OpenRocket and counts the
+  saves that fail or move an apogee by more than 0.002%, and a test holds one design through the
+  save step.
+- SOON: HPR Sim's own flight time, held. User: anyone flying thousands of runs (`hpr mc`, the
+  optimizer) or waiting on the web app. Workflow: `speed.flight`'s HPR Sim cell reads a committed
+  bench record (machine, commit, design, median of at least 6 alternated runs) rather than waiting
+  for [M2.9][m2-9]'s other cells. Moves: `speed.flight`, not measured today; [the speed
+  page](../perf.md) times a Valetudo flight at 1.65 ms on one thread. *Done when:* the cell shows
+  the record's median with its machine, and the scoreboard's check fails when a new record is more
+  than 10% slower than the last on the same machine.
+- SOON: the motor file's share of the collection's bias. User: a flyer filing for a waiver whose
+  prediction rests on a curve file nobody checked. Workflow: the fixture report flies each logged
+  flight of the collection again on its motor's bundled file that passes [ADR-005][adr-005]'s 1%
+  check, where it has one (239 of 924 motors do), and prints each flight's apogee change and the
+  mean. Moves: `bias.collection` (+8.73% for HPR Sim, +7.79% for OpenRocket) and
+  `accuracy.collection` (12.95%, 12.02%), split by the files' share. *Done when:* the report gives
+  the count of flights re-flown and the mean signed change, aggregates only; a test pins one public
+  flight's swap; the scoreboard notes both figures beside the rows.
+- SOON: landings inside the predicted ellipse. User: a flyer at a field whose recovery area ends at
+  a road or a waiver boundary. Workflow: the fixture report compares each GPS-fixed landing in the
+  collection with `hpr mc`'s 90% landing ellipse for that flight's weather, with and without a
+  canopy glide term ([the canopy glide note](hobby-canopy-glide-and-swing.md)). Moves: new row
+  `landing.inside-90`, nearer 90% better; OpenRocket 24.12 has no landing ellipse (can't), RocketPy
+  has one. *Done when:* the row gives HPR Sim's share over every GPS-fixed landing it can fly, with
+  the count, and the glide term's change; a synthetic flight in a known wind gets its ellipse by
+  hand.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -192,9 +188,7 @@ and traces; no idea is promoted.
 [adr-279]: ../decisions/0279-the-2026-10-17-review-fin-flutter-held-to-measurement.md
 [adr-286]: ../decisions/0286-the-2026-10-20-review-the-export-bar-tightened.md
 [adr-289]: ../decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md
-[fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md
 [adr-005]: ../decisions/0005-solid-motors-statistics-consumption-grains-file.md
 [adr-294]: ../decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md
-[m5-7]: ../decisions-and-roadmap.md#m5-7
-[nf-fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/normal-force-vs-mach.json
-[motor-page]: ../physics/motor.md#the-bundled-motors
+[adr-303]: ../decisions/0303-the-2026-10-28-review-the-rocketpy-peaks-tightened.md
+[m2-9]: ../decisions-and-roadmap.md#m2-9
