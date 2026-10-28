@@ -1870,7 +1870,7 @@ fn sim_flies_the_profile_hpr_weather_writes() {
     assert_eq!(document["launch"]["wind_from_deg"], Value::Null);
 
     // The profile mattered: the standard atmosphere's flight from the same site differs, and the
-    // profile's 302.75 K ground air, thinner than the standard's 279.06 K at 1,400 m, flies higher.
+    // profile's 302.75 K ground air, thinner than the standard's 279.05 K at 1,400 m, flies higher.
     let standard = hpr::Environment::new(32.99, -106.97, ground_m).unwrap();
     let (calm, _) = library_flight(design, "i175", "", None, &standard, |b| b);
     let apogee = |flight: &hpr::Flight| flight.summary().apogee.unwrap().height_above_ground_m;
@@ -1885,6 +1885,32 @@ fn sim_flies_the_profile_hpr_weather_writes() {
         text.contains("in the air and winds of profile.json"),
         "{text}"
     );
+
+    // A site below the profile's lowest level is refused, its range shown rounded inward to
+    // 0.1 m (the top level is 24,212.504 m).
+    let mut below = vec!["sim", path.as_str(), "--weather", written];
+    below.extend(["--elevation", "0"]);
+    let refused = hpr(&below);
+    assert_eq!(refused.status.code(), Some(1));
+    let said = String::from_utf8(refused.stderr).unwrap();
+    assert!(said.contains("1400 to 24212.5 m above sea level"), "{said}");
+    assert!(said.contains("`--elevation 1400`"), "{said}");
+    // A profile with no winds is refused, not flown in calm air under the profile's name.
+    let mut dry: Value = serde_json::from_str(&std::fs::read_to_string(written).unwrap()).unwrap();
+    for level in dry["levels"].as_array_mut().unwrap() {
+        let level = level.as_object_mut().unwrap();
+        level.remove("wind_speed_m_s");
+        level.remove("wind_direction_from_rad");
+    }
+    let dry_path = scratch.path().join("dry.json");
+    std::fs::write(&dry_path, dry.to_string()).unwrap();
+    let mut no_winds = args.clone();
+    let at = no_winds.iter().position(|arg| *arg == written).unwrap();
+    no_winds[at] = dry_path.to_str().unwrap();
+    let refused = hpr(&no_winds);
+    assert_eq!(refused.status.code(), Some(1));
+    let said = String::from_utf8(refused.stderr).unwrap();
+    assert!(said.contains("the profile gives no winds"), "{said}");
 
     // A single wind beside the profile's is refused before anything flies.
     let mut beside = args.clone();

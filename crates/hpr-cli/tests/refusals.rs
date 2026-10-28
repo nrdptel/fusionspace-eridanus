@@ -70,8 +70,10 @@ fn cases(folder: &Path) -> Vec<Case> {
     std::fs::write(
         &profile,
         r#"{"levels": [
-            {"height_msl_m": 1000.0, "temperature_k": 290.0, "pressure_pa": 90000.0},
-            {"height_msl_m": 3000.0, "temperature_k": 277.0, "pressure_pa": 70000.0}
+            {"height_msl_m": 1000.0, "temperature_k": 290.0, "pressure_pa": 90000.0,
+             "wind_speed_m_s": 3.0, "wind_direction_from_rad": 4.7},
+            {"height_msl_m": 3000.0, "temperature_k": 277.0, "pressure_pa": 70000.0,
+             "wind_speed_m_s": 9.0, "wind_direction_from_rad": 4.8}
         ], "latitude_rad": 0.5, "wind_interpolation": "speed_direction"}"#,
     )
     .unwrap();

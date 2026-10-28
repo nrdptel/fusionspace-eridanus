@@ -142,7 +142,7 @@ pub struct FlightArgs {
     pub wind_from: f64,
     /// Fly the air and winds of a weather profile, the JSON file `hpr weather` writes, in place
     /// of the standard atmosphere and --wind. The site's --elevation must lie within the
-    /// profile's heights
+    /// profile's heights, and its levels must give winds
     #[arg(long, value_name = "FILE", conflicts_with_all = ["wind", "wind_from"])]
     pub weather: Option<String>,
     /// Fly a design whose checks find errors, such as a motor wider than its mount. The flight
@@ -573,6 +573,7 @@ impl Setup {
         }
         if let Some(path) = &flight.weather {
             let profile = weather_profile(path, flight.elevation)?;
+            // `weather_profile` refuses a profile with no winds.
             if let Some(wind) = profile.wind() {
                 environment = environment.with_wind(wind.clone());
             }
@@ -727,6 +728,15 @@ fn weather_profile(path: &str, elevation_m: f64) -> Result<SoundingProfile, Fail
             help,
         ));
     };
+    // The output says the profile's winds were flown, so a profile with none is refused rather
+    // than flown in calm air under that name.
+    if profile.wind().is_none() {
+        return Err(Failure::helped(
+            format!("{shown}: the profile gives no winds, and `--weather` flies its air and winds"),
+            "give a profile whose levels hold `wind_speed_m_s` and `wind_direction_from_rad`, as \
+             `hpr weather` writes, or fly the standard atmosphere with --wind",
+        ));
+    }
     let (low_m, high_m) = (lowest.height_msl_m, highest.height_msl_m);
     if !(low_m..=high_m).contains(&elevation_m) {
         // The range shown to 0.1 m, rounded inward so any height typed from it is inside.

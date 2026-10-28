@@ -692,8 +692,8 @@ width sets only their own inertia
 #### The launch
 
 Every flight starts from a rail, at a site, in the
-[standard atmosphere](glossary.md#standard-atmosphere). Without options, the site is at sea level at
-0° N, 0° E, and the air is calm. The rail is vertical, 1.5 m (4.9 ft) long, and has no friction.
+[standard atmosphere](glossary.md#standard-atmosphere) unless `--weather` gives a profile. Without
+options, the site is at sea level at 0° N, 0° E, and the air is calm. The rail is vertical, 1.5 m (4.9 ft) long, and has no friction.
 `hpr sim` doesn't read the launch conditions an OpenRocket file stores with its simulations. Give
 them with these options.
 
@@ -712,7 +712,7 @@ level. Latitude changes gravity only a little: at 45° N its apogee moves by les
 | `--heading DEG` | the direction the rail leans toward, clockwise from true north, degrees (add the [declination](physics/magnetic.md) to a compass reading) | 0 |
 | `--wind M_S` | a wind of this speed at every height, m/s | calm |
 | `--wind-from DEG` | where the wind blows from, clockwise from true north, degrees: 270 is a west wind | 0 |
-| `--weather FILE` | the air and winds of an [`hpr weather` profile](#the-profile-file), not with `--wind` | standard |
+| `--weather FILE` | the air and winds of an [`hpr weather` profile](#the-profile-file), not with `--wind` or `--wind-from`; `--elevation` must lie within its levels | standard |
 
 OpenRocket measures its launch rod's angle from the vertical instead, so its 5° is 85 here. This
 flies the same rocket from Spaceport America's field, on a rail leaning 5° into a west wind:
@@ -2133,9 +2133,9 @@ saved before they were written too.
 After them come the `levels` above, then `latitude_rad`, the latitude the profile was measured or
 forecast at, in radians. Last is `wind_interpolation`, how the wind is blended between levels
 (`speed_direction`). The Rust library reads the file back as a
-[`SoundingProfile`](api/hpr_atmos/profile/struct.SoundingProfile.html), with the same checks, and
-`hpr sim --weather` flies it, the site's `--elevation` within its levels. The
-text output and `--json` give the same levels with the direction in degrees.
+[`SoundingProfile`](api/hpr_atmos/profile/struct.SoundingProfile.html), with the same checks.
+`hpr sim --weather FILE` flies it, from an `--elevation` within its levels, and refuses a profile
+with no winds. The text output and `--json` give the same levels with the direction in degrees.
 
 #### What the profile leaves out
 
