@@ -555,7 +555,7 @@
       "difference": -1.5179616823688453,
       "relative": -0.9681114656294018,
       "verdict": "not_scored",
-      "note": "two peaks 0.9% apart in RocketPy: 111.18 m/s^2 on the rail at 0.05 s and 112.26 at 1.568 s, so its maximum is the later one; hpr's rail equation adds 1.16 m/s^2 of variable-mass terms at 0.05 s (thrust and mass equal to five digits), which lifts that peak to 112.35 and moves the maximum's time from one peak to the other. The size is gated."
+      "note": "two peaks 0.9% apart in RocketPy: 111.18 m/s^2 on the rail at 0.05 s and 112.24 at 1.568 s, so its maximum is the later one; hpr's rail equation adds 1.16 m/s^2 of variable-mass terms at 0.05 s (thrust and mass equal to five digits), which lifts that peak to 112.35 and moves the maximum's time from one peak to the other. The size is gated."
     },
     {
       "case": "flight-calisto-tests-motor-at-minus-1.373",
@@ -2092,7 +2092,7 @@
       "difference": -1.517976024405836,
       "relative": -0.9681117573089506,
       "verdict": "not_scored",
-      "note": "as in the windy case, whose figures these are (in calm air RocketPy's later peak is 112.27 m/s^2 at 1.568 s): two peaks 0.9% apart in RocketPy: 111.18 m/s^2 on the rail at 0.05 s and 112.26 at 1.568 s, so its maximum is the later one; hpr's rail equation adds 1.16 m/s^2 of variable-mass terms at 0.05 s (thrust and mass equal to five digits), which lifts that peak to 112.35 and moves the maximum's time from one peak to the other. The size is gated."
+      "note": "as in the windy case, whose figures these are (in calm air RocketPy's later peak is 112.23 m/s^2 at 1.568 s): two peaks 0.9% apart in RocketPy: 111.18 m/s^2 on the rail at 0.05 s and 112.26 at 1.568 s, so its maximum is the later one; hpr's rail equation adds 1.16 m/s^2 of variable-mass terms at 0.05 s (thrust and mass equal to five digits), which lifts that peak to 112.35 and moves the maximum's time from one peak to the other. The size is gated."
     },
     {
       "case": "flight-calisto-tests-motor-at-minus-1.373-calm",

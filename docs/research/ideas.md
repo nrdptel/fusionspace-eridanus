@@ -110,9 +110,9 @@ peak acceleration; no idea is promoted. The 2026-10-26 review's four moved to th
   can fail on a file whose simulations are stale ([OpenRocket issue
   3412](https://github.com/openrocket/openrocket/issues/3412)). Workflow: the export round trip
   ([ADR-286][adr-286]) adds a step: OpenRocket's jar, run as an outside oracle, saves each exported
-  design without flying it, and HPR Sim reads the saved file back. Moves: the `interop.failed` and
-  `interop.changed` rows (0 of 151 today) and `interop.largest` (0.000050%), measured only to
-  OpenRocket's open. *Done when:* the round trip saves all 151 through OpenRocket and counts the
+  design without flying it, and HPR Sim reads the saved file back. Moves: `interop.changed` (0 of
+  151 configurations today), `interop.failed` (2 of 75 designs, the two HPR Sim can't read) and
+  `interop.largest` (0.000050%), all measured only to OpenRocket's open. *Done when:* the round trip saves all 151 through OpenRocket and counts the
   saves that fail or move an apogee by more than 0.002%, and a test holds one design through the
   save step.
 - SOON: HPR Sim's own flight time, held. User: anyone flying thousands of runs (`hpr mc`, the

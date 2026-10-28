@@ -52,7 +52,7 @@ rail's variable-mass terms at its ignition spike, which its case file measures. 
    rate (−0.700%), 2.8 times inside 2%, and the flight time (0.830%) are under three times inside
    any tighter round bound.
 
-**What could go wrong.** On Calisto, RocketPy's two acceleration peaks are 0.97% apart, and the
+**What could go wrong.** On Calisto, RocketPy's two acceleration peaks are 0.95% apart (0.94% in calm air), and the
 rail's variable-mass terms make HPR Sim's ignition spike its largest, 1.05% above RocketPy's at the
 same moment, so the two codes' largest accelerations come from different moments that happen to
 agree within 0.11%. A change to the motor curve that made the spike the larger by more than 1%
