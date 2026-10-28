@@ -442,9 +442,9 @@ fn a_converted_catalog_motor_carries_the_catalogs_date() {
 /// one motor `name` finds and one of that motor's own curve files.
 fn assert_catalog_source(source: &serde_json::Value, name: &str, as_of: &str) {
     let catalog = hpr::hpr_motor::Catalog::bundled().unwrap();
-    let [motor] = catalog.find(name).collect::<Vec<_>>()[..] else {
-        panic!("{name} finds one motor");
-    };
+    let found = catalog.find(name).collect::<Vec<_>>();
+    assert_eq!(found.len(), 1, "{name} finds one motor");
+    let motor = found[0];
     assert_eq!(source["kind"], "catalog", "{source}");
     assert_eq!(source["as_of"], as_of, "{source}");
     assert_eq!(source["motor_id"], motor.motor_id.as_str(), "{source}");
