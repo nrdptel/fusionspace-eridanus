@@ -145,8 +145,9 @@ line, which names what was read, and each table's header row are bold. In a `hel
 what to type is bold blue. That covers a command in backticks, such as `` `hpr motors list` ``, and
 an option the line names, such as `--config`.
 
-A name read from a file shows each control character in it but a line break or a tab as `?`, or as
-`\u{1b}` and the like in quotes, so a downloaded file can't send escape sequences to your terminal.
+A name read from a file shows each control character in it as `?`, or as `\u{1b}` and the like in
+quotes, so a downloaded file can't send escape sequences to your terminal. Line breaks are kept, and
+a result's tabs.
 
 The colors are your terminal's own red, yellow and blue, so its theme decides how they look.
 `hpr` decides for standard output and standard error separately, in this order:
