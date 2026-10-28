@@ -3,7 +3,7 @@
 This note asks what in a SiRFstarIV receiver makes its altitude stay near the pad through boost while it reports
 a valid 3-D fix, as the Eggfinder's Maestro Wireless A2235-H did on two flights in
 [forum-eggfinder-gpx-vs-baro](forum-eggfinder-gpx-vs-baro.md) (apogee 79 to 82% low, 40 to 62 s late). It reads
-SiRF's and CSR's protocol manuals, four SiRFstarIV module makers' documents, Eggtimer Rocketry's manuals, and one
+SiRF's and CSR's protocol manuals, three SiRFstarIV module makers' documents, Eggtimer Rocketry's manuals, and one
 more public flight with a SiRF receiver beside a SkyTraq. It serves [M7.2d](../ROADMAP.md)'s GNSS trust rule
 ("trusting GNSS from liftoff fails", ADR-280's gating) and builds on [gnss-in-boost](gnss-in-boost.md), which
 covers u-blox's dynamic models and a filter-lag simulation. Read 2026-10-28; counts come from scripts run on the
