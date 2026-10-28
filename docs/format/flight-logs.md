@@ -2701,11 +2701,9 @@ from those documents.
 > only on three invented files, against gpxpy 1.6.2, an outside GPX reader ([evidence row
 > G1](../evidence.md#g1)). All 212 values of their tracks' channels match gpxpy's as the same 64-bit
 > numbers, each at its time (a gap matching a gap). All 12 figures of their waypoints and route
-> points match too. One real rocket track, an Eggfinder's saved as GPX by the MapSphere app, points
-> to an elevation above sea level, with moderate confidence ([a research
-> note](../research/forum-eggfinder-gpx-vs-baro.md)). No rocket flight's GPX with `geoidheight` has
-> been seen. A GPX file from a tracker or app flown on a rocket, with the same flight's barometric
-> altimeter log beside it, would show what its elevation is measured from. Offer one in [issue
+> points match too. No rocket flight's GPX file has shown what its elevation is measured from. One
+> from a tracker or app flown on a rocket, with the same flight's barometric altimeter log beside
+> it, would show it. Offer one in [issue
 > #654](https://github.com/nrdptel/fusionspace-eridanus/issues/654).
 
 **The check.** The test is `every_value_of_the_samples_equals_gpxpys` in
@@ -2742,7 +2740,11 @@ an `ele` of spaces only, which this reader reads as a gap.
   ellipsoid's height unless its sea-level option is on ([its FAQ](https://gpslogger.app/)). So a
   `geoidheight` beside `ele` doesn't settle which one `ele` is, and the record's note says so.
   Either way, the offset between the two (tens of meters) barely changes over one flight. It
-  moves the pad's elevation, not the height above the pad.
+  moves the pad's elevation, not the height above the pad. One real rocket track, an Eggfinder's
+  saved as GPX by the MapSphere app, most likely holds its height above sea level (moderate
+  confidence, [a research
+  note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/forum-eggfinder-gpx-vs-baro.md)).
+  No rocket flight's GPX with `geoidheight` has been seen ([evidence row G1](../evidence.md#g1)).
 - *Times.* GPX times are in UTC, as GPX 1.1's schema and GPX 1.0's manual require. A time with
   an offset, such as `08:30:00-04:00`, is moved to UTC. One with no zone is read as UTC, with a
   note. A second written 60, a leap second's, is read as the next minute's first. The record's
@@ -2768,16 +2770,16 @@ below:
 
 ```text
 <trkpt lat="35.2000120" lon="-97.1000340">
-  <ele>402.0</ele><time>2031-07-14T17:04:04.000Z</time>
+  <ele>402.0</ele><time>2031-07-14T17:04:04.000Z</time><geoidheight>-27.4</geoidheight>
 <trkpt lat="35.2001659" lon="-97.0999611">
   <ele>868.4</ele><time>2031-07-14T17:04:13.000Z</time>
 ```
 
 The record's zero is the first point's time, 17:04:04 UTC on 14 July 2031. The tenth point is $13 -
 4 = 9\,\mathrm{s}$ later and $868.4 - 402.0 = 466.4\,\mathrm{m}$ (1,530 ft) higher. It is the track's highest point. Its
-height above sea level the file doesn't say, as its elevation states no datum. Its
-`geoidheight`, −27.4 m, is the geoid's height above the ellipsoid, read as `Flight 7 geoid height`.
-It doesn't say which of the two the elevation is measured from. The same file marks
+height above sea level the file doesn't say, as its elevation states no datum. Its `geoidheight`,
+−27.4 m (−90 ft), is the geoid's height above the ellipsoid, read as `Flight 7 geoid height`. It
+doesn't say which of the two the elevation is measured from. The same file marks
 the pad as a waypoint at 17:03:40 UTC. That is read as the figure `waypoint Pad time`, 24 s before
 the zero, −24 s.
 
