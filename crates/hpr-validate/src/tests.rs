@@ -407,7 +407,7 @@ fn same_drag_peaks_hold_adr_303s_bounds() {
     // ADR-303 holds the largest Mach number of the nine same-drag flights to 1%, and the largest
     // acceleration under power, with the whole flight's where it is scored, to 1% in the seven
     // that aren't Bella Lui's. The largest differences measured were -0.235% (Prometheus 2022's
-    // Mach) and +0.248% (Valetudo's acceleration), 4.2 and 4.0 times inside 1%. Bella Lui keeps
+    // Mach) and +0.248% (Valetudo's acceleration), 4.3 and 4.0 times inside 1%. Bella Lui keeps
     // 3% on its accelerations for the rail's variable-mass terms at its ignition spike (+1.78%).
     // A case file widened back, given a floor or marked not scored, or a new same-drag case added
     // at the old bound, fails here.

@@ -106,9 +106,10 @@ From the 2026-10-24 planning review ([ADR-289][adr-289]):
   counts, from the reports, the logged flights each tool predicts more than 5% below the log (an
   early deployment only lowers a log, so it never explains one). Moves: new rows
   `undershoot.collection` and `undershoot.public`; today hpr 10 of 53 and OpenRocket 11 of 53 (4 and
-  6 more than 10% low), hpr 3 of 7 public flights, read off [the fixture report][fixture-report]'s
-  histograms. *Done when:* both rows read fields the reports write, a test pins that −5% exactly is
-  not counted and −5.01% is, and the scoreboard's check fails when hpr's count rises.
+  6 more than 10% low), read off [the fixture report][fixture-report]'s histograms, and hpr 3 of
+  7 public flights ([the real-flights report][real-report]). *Done when:* both rows read fields
+  the reports write, a test pins that −5% exactly is not counted and −5.01% is, and the
+  scoreboard's check fails when hpr's count rises.
 - SOON: a flight with a date and no hour. User: a flyer flying again a forum post's flight that
   gives the day but not the time. Workflow: `hpr weather era5` given a date with no time writes a
   profile for each hour from 08:00 to 18:00 local mean solar time, and `hpr sim` prints the
@@ -133,3 +134,4 @@ From the 2026-10-24 planning review ([ADR-289][adr-289]):
 [adr-289]: ../decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md
 [adr-144]: ../decisions/0144-the-2026-10-03-planning-review-leaner-bookkeeping.md
 [fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md
+[real-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md
