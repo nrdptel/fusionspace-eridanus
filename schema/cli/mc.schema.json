@@ -1198,11 +1198,21 @@
             "kind": {
               "type": "string",
               "const": "catalog"
+            },
+            "motor_id": {
+              "description": "ThrustCurve.org's id of the motor flown.",
+              "type": "string"
+            },
+            "simfile_id": {
+              "description": "ThrustCurve.org's id of the curve file flown.",
+              "type": "string"
             }
           },
           "required": [
             "kind",
-            "as_of"
+            "as_of",
+            "motor_id",
+            "simfile_id"
           ]
         },
         {

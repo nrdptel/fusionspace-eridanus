@@ -6,9 +6,10 @@
 //! motor with a curve file then flies in a probe rocket built for its case size: a light
 //! airframe a fifth wider than the motor, a motor tube as long as the longest motor of that
 //! size, three fins. A flight counts as flown when it leaves the rail and reaches an apogee with
-//! the bundled curve of that very motor, and when it warns of a default file that fails ADR-005's
-//! 1% check and only then. The probe is no one's rocket: the check is that each motor flies,
-//! not how high.
+//! the bundled curve of that very motor, the output naming ThrustCurve.org's ids of the motor and
+//! of its default file, and when it warns of a default file that fails ADR-005's 1% check, in the
+//! check's own words, and only then. The probe is no one's rocket: the check is that each motor
+//! flies, not how high.
 //!
 //! The expected counts come from the raw snapshot under `refs/` where it is there: every solid
 //! motor of its search answer, and every one with a RASP or RockSim file in its download answers
@@ -244,20 +245,32 @@ fn flies(
         ));
     }
     let flown = &flight["motors"][0];
+    let Some(curve) = motor.default_curve() else {
+        return Err(format!("{selector} flies, but has no default curve"));
+    };
+    // The very motor and file: ThrustCurve.org's ids, which no other motor or file shares.
     if flown["designation"].as_str() != Some(motor.designation.as_str())
         || flown["source"]["kind"] != "catalog"
+        || flown["source"]["motor_id"].as_str() != Some(motor.motor_id.as_str())
+        || flown["source"]["simfile_id"].as_str() != Some(curve.simfile_id.as_str())
     {
         return Err(format!("{selector} flies {flown}"));
     }
-    let fails = motor
-        .default_curve()
-        .is_some_and(|curve| !curve.check.passes);
-    let warned = flight["warnings"].as_array().is_some_and(|warnings| {
-        warnings.iter().any(|warning| {
-            warning.to_string().contains("1%")
-                && warning.to_string().contains(motor.designation.as_str())
-        })
-    });
+    let fails = !curve.check.passes;
+    let messages: Vec<&str> = flight["warnings"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter_map(|warning| warning["message"].as_str())
+        .collect();
+    // A failing file's warning is the check's own, word for word; a passing file draws no
+    // check warning at all.
+    let warned = match motor.check_warning(curve) {
+        Some(check) => messages.contains(&check.as_str()),
+        None => messages
+            .iter()
+            .any(|message| message.contains("is more than 1% from")),
+    };
     if fails != warned {
         return Err(format!(
             "{selector}'s default file {} the 1% check, but the flight {} of it",

@@ -234,8 +234,9 @@ design files](format/ork.md)), or a rocket's JSON. It flies the
 one, as `hpr sim` does.
 
 A configuration flies only if every motor lights at launch and has a thrust curve, in the file or
-in the simulator's bundled catalog. That's 154 of the 170 configurations in the reference library
-and OpenRocket's examples. Otherwise `from_file` raises `HprError` and says why.
+in the simulator's bundled catalog, and the reader takes its airframe and stages as written. Of the
+170 configurations in the reference library and OpenRocket's examples, 154 fly this way
+(`cargo xtask ork` counts them). Otherwise `from_file` raises `HprError` and says why.
 Python can't yet swap in a motor as `hpr sim --motor` does.
 
 A design read from a file flies **without** the parachutes it stores, unless you ask for them

@@ -28,7 +28,8 @@
 # its SHA-256 matches and its test reads it without skipping).
 # It joins any run that includes `test` (the default set, or a fix's `scripts/gate.sh clippy test`)
 # when refs/ is present and the branch changes a physics crate (hpr-aero, hpr-sim, hpr-motor,
-# hpr-design, hpr-atmos, hpr-io), the log readers (hpr-flightdata) or the evidence register
+# hpr-design, hpr-atmos, hpr-io), the log readers (hpr-flightdata), the command line (hpr-cli,
+# whose `--motor` lookup `motor-catalog --check` flies on every motor) or the evidence register
 # (validation/evidence.toml, whose samples `evidence --samples` checks) against origin/main, and
 # says so when it can't. Name it to run it
 # anyway (`scripts/gate.sh refs`), or set GATE_REFS=0 to leave it out.
@@ -68,7 +69,7 @@ set -uo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
 
 ALL="fmt clippy test doc wasm validate deny site examples evidence"
-PHYSICS_CRATES="hpr-aero hpr-sim hpr-motor hpr-design hpr-atmos hpr-io hpr-flightdata"
+PHYSICS_CRATES="hpr-aero hpr-sim hpr-motor hpr-design hpr-atmos hpr-io hpr-flightdata hpr-cli"
 
 # Whether this branch changes a physics crate or the evidence register, committed or not, against
 # origin/main. Exit 2 when there is no origin/main to compare with.

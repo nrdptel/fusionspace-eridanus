@@ -65,8 +65,12 @@ A Level 1 certification flight uses an H or I motor (NAR and Tripoli's Level 1 r
 quotes them).
 
 **Every solid motor ThrustCurve.org listed on October 28, 2026 is built in,** such as
-`--motor H128W`. The 80 with no curve file are listed but can't fly. A curve file more than 1% off ThrustCurve.org's figures flies with a
-warning, as the H128W's does. A newer motor's curve is fetched once online and kept
+`--motor H128W`, and the 924 with a curve file fly; the 80 with none are listed but can't. Most
+of the 924 (685) fly with a warning: their curve file's total impulse, average thrust or burn time
+is more than 1% off ThrustCurve.org's own figures for the motor
+([the whole catalog](physics/motor.md#the-whole-catalog)). Check such a motor against its maker's
+data. A name several makers use, such as `G80`, is refused with a name for each motor
+([A name several makers share](cli.md#a-name-several-makers-share)). A newer motor's curve is fetched once online and kept
 ([Fetch a motor the simulator doesn't have](fly-your-ork.md#fetch-a-motor-the-simulator-doesnt-have)).
 `hpr motors search` lists what vendors have in stock and at what price
 ([Motors you can buy](cli.md#motors-you-can-buy)). `hpr motors show` gives one motor's figures as

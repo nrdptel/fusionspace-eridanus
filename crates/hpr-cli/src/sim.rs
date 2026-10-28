@@ -627,21 +627,34 @@ impl Setup {
     pub(crate) fn motors(&self) -> Result<Vec<SimMotor>, Failure> {
         // A `.ork` motor with no curve in the file that the reader found in the bundled catalog
         // is dated as one named with `--motor` is: the catalog's as-of date (ADR-214).
-        let from_catalog = |flown: &MountedMotor| {
-            matches!(self.motor_source, SimMotorSource::Design)
-                && self.read.ork.as_ref().is_some_and(|ork| {
-                    ork.configurations
-                        .iter()
-                        .filter(|c| c.id == self.configuration)
-                        .flat_map(|c| &c.motors)
-                        .any(|motor| {
-                            motor.mount == flown.mount
-                                && motor.designation == flown.designation
-                                && matches!(motor.curve, ork::Curve::Catalog { .. })
-                        })
-                })
+        // Its ThrustCurve.org motor and file ids, where it is one.
+        let from_catalog = |flown: &MountedMotor| -> Option<(String, String)> {
+            if !matches!(self.motor_source, SimMotorSource::Design) {
+                return None;
+            }
+            self.read.ork.as_ref().and_then(|ork| {
+                ork.configurations
+                    .iter()
+                    .filter(|c| c.id == self.configuration)
+                    .flat_map(|c| &c.motors)
+                    .filter(|motor| {
+                        motor.mount == flown.mount && motor.designation == flown.designation
+                    })
+                    .find_map(|motor| match &motor.curve {
+                        ork::Curve::Catalog {
+                            motor_id,
+                            simfile_id,
+                            ..
+                        } => Some((motor_id.clone(), simfile_id.clone())),
+                        _ => None,
+                    })
+            })
         };
-        let catalog_as_of = if self.flown_motors.iter().any(from_catalog) {
+        let catalog_as_of = if self
+            .flown_motors
+            .iter()
+            .any(|flown| from_catalog(flown).is_some())
+        {
             Some(crate::motors::catalog_as_of()?)
         } else {
             None
@@ -671,10 +684,14 @@ impl Setup {
                             fetched.mount == flown.mount && fetched.designation == flown.designation
                         })
                         .map_or_else(
-                            || match &catalog_as_of {
-                                Some(as_of) if from_catalog(flown) => SimMotorSource::Catalog {
-                                    as_of: as_of.clone(),
-                                },
+                            || match (&catalog_as_of, from_catalog(flown)) {
+                                (Some(as_of), Some((motor_id, simfile_id))) => {
+                                    SimMotorSource::Catalog {
+                                        as_of: as_of.clone(),
+                                        motor_id,
+                                        simfile_id,
+                                    }
+                                }
                                 _ => self.motor_source.clone(),
                             },
                             |fetched| SimMotorSource::ThrustCurve(Box::new(fetched.motor.clone())),
@@ -2903,12 +2920,34 @@ pub(crate) fn catalog_or_fetched(
     catalog: &Catalog,
 ) -> Result<(Motor, SimMotorSource, Vec<InputWarning>), Failure> {
     match Motor::from_catalog_in(catalog, name) {
-        Ok(motor) => Ok((
-            motor,
-            SimMotorSource::Catalog {
-                as_of: catalog.snapshot.captured.clone(),
-            },
-            crate::motors::check_warnings(catalog, name),
+        Ok(motor) => {
+            // `from_catalog_in` flies the one motor `find` gives, with its default curve.
+            let found = catalog.find(name).collect::<Vec<_>>();
+            let (Some(entry), [_]) = (found.first(), &found[..]) else {
+                return Err(Failure::library(
+                    format!("{name}: flown, but the catalog doesn't find it alone"),
+                    crate::BUG_HELP,
+                ));
+            };
+            let Some(curve) = entry.default_curve() else {
+                return Err(Failure::library(
+                    format!("{name}: flown, but the catalog has no curve of it"),
+                    crate::BUG_HELP,
+                ));
+            };
+            Ok((
+                motor,
+                SimMotorSource::Catalog {
+                    as_of: catalog.snapshot.captured.clone(),
+                    motor_id: entry.motor_id.clone(),
+                    simfile_id: curve.simfile_id.clone(),
+                },
+                crate::motors::check_warnings(entry, curve),
+            ))
+        }
+        Err(error @ hpr::Error::NoCurve(_)) => Err(Failure::helped(
+            format!("{name}: {error}"),
+            "give a .eng or .rse file of it by its path",
         )),
         Err(hpr::Error::NoSuchMotor(_)) => {
             let (motor, fetched, warnings) =

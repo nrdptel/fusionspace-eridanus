@@ -163,7 +163,7 @@ pub(crate) fn motor_lines(motors: &[SimMotor], out: &mut dyn Write) -> io::Resul
     for motor in motors {
         let source = match &motor.source {
             SimMotorSource::Design => "the design's".to_owned(),
-            SimMotorSource::Catalog { as_of } => {
+            SimMotorSource::Catalog { as_of, .. } => {
                 format!(
                     "from the bundled catalog, as of {}",
                     crate::printable(as_of)

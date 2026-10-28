@@ -551,22 +551,12 @@ fn from_catalog(name: &str) -> Result<(MotorShow, Vec<Option<String>>), Failure>
     Ok((show, propellants))
 }
 
-/// The warning `hpr sim --motor name` gives when the catalog motor it flies for `name` has a
-/// default file that fails its 1% check (decision record ADR-298 §6): the one motor matching
-/// `name` with a bundled curve, as [`hpr::Motor::from_catalog`] takes it. Empty when the file
-/// passes, or when `name` matches no such motor or several.
-pub(crate) fn check_warnings(catalog: &Catalog, name: &str) -> Vec<InputWarning> {
-    let matches: Vec<&CatalogMotor> = catalog
-        .find(name)
-        .filter(|motor| motor.default_curve().is_some())
-        .collect();
-    let [motor] = matches[..] else {
-        return Vec::new();
-    };
+/// The warnings `hpr sim --motor` gives for flying the catalog motor `motor` on `curve`: a file
+/// that fails its 1% check (decision record ADR-298 §6) and one light on propellant (ADR-302).
+/// Empty when the file passes both.
+pub(crate) fn check_warnings(motor: &CatalogMotor, curve: &CatalogCurve) -> Vec<InputWarning> {
     motor
-        .default_curve()
-        .map(|curve| motor.flight_warnings(curve))
-        .unwrap_or_default()
+        .flight_warnings(curve)
         .into_iter()
         .map(|message| InputWarning {
             at: "the bundled catalog".to_owned(),
@@ -1177,11 +1167,16 @@ mod tests {
 
     /// ADR-298 §6: `hpr sim --motor` warns when the catalog motor it flies has a default file
     /// that fails its check, naming the motor, the file and the failing figure's signed gap; a
-    /// passing file, a name no motor matches and a name several do give none.
+    /// passing file gives none.
     #[test]
     fn flying_a_failing_file_warns_with_each_failing_figure() {
         let failing = failing_j760();
-        let [warning] = &check_warnings(&failing, "J760")[..] else {
+        let j760 = |catalog: &Catalog| {
+            let motor = catalog.find("J760").next().unwrap().clone();
+            let curve = motor.default_curve().unwrap().clone();
+            check_warnings(&motor, &curve)
+        };
+        let [warning] = &j760(&failing)[..] else {
             panic!("one warning");
         };
         assert_eq!(warning.at, "the bundled catalog");
@@ -1191,11 +1186,68 @@ mod tests {
             "1266J760-19A's curve file 5f4294d20002e9000000074a is more than 1% from \
              ThrustCurve.org's figures for it: burn time +2.00%"
         );
-        assert_eq!(check_warnings(&failing, "1266J760-19A").len(), 1);
+        assert!(j760(Catalog::bundled().unwrap()).is_empty());
+    }
+
+    /// A name several makers use (`G80`: Roadrunner's and Estes' G80, AeroTech's G80T by its
+    /// common name) is refused with each maker's selector, even where only one of them has a
+    /// curve, rather than flying the one that does; the selector flies its own motor and says
+    /// which, by ThrustCurve.org's motor and file ids.
+    #[test]
+    fn a_name_several_makers_use_is_refused_with_their_selectors() {
         let bundled = Catalog::bundled().unwrap();
-        assert!(check_warnings(bundled, "J760").is_empty());
-        assert!(check_warnings(&failing, "no such motor").is_empty());
-        assert!(check_warnings(&failing, "I175").is_empty());
+        for name in ["G80", "J300"] {
+            let makers: std::collections::BTreeSet<&str> = bundled
+                .find(name)
+                .map(|motor| motor.manufacturer.as_str())
+                .collect();
+            assert!(makers.len() > 1, "{name}: {makers:?}");
+            let Err(failure) = crate::sim::catalog_or_fetched(name, true, bundled) else {
+                panic!("{name} flies");
+            };
+            let text = format!("{failure:?}");
+            assert!(text.contains("matches several motors"), "{text}");
+            for motor in bundled.find(name) {
+                assert!(text.contains(&bundled.selector(motor)), "{text}");
+            }
+        }
+        for motor in bundled
+            .find("G80")
+            .filter(|motor| motor.default_curve().is_some())
+        {
+            let selector = bundled.selector(motor);
+            let (_, source, _) = crate::sim::catalog_or_fetched(&selector, true, bundled).unwrap();
+            let SimMotorSource::Catalog {
+                motor_id,
+                simfile_id,
+                ..
+            } = source
+            else {
+                panic!("{selector}: {source:?}");
+            };
+            assert_eq!(motor_id, motor.motor_id, "{selector}");
+            assert_eq!(simfile_id, motor.default_curve().unwrap().simfile_id);
+        }
+    }
+
+    /// ADR-302 §3: the one motor a name finds, listed with no curve file, is refused as such,
+    /// not looked for online as a motor the catalog lacks.
+    #[test]
+    fn a_motor_with_no_curve_is_refused_for_that() {
+        let bundled = Catalog::bundled().unwrap();
+        let motor = bundled
+            .motors
+            .iter()
+            .find(|motor| {
+                motor.default_curve().is_none() && bundled.find(&motor.designation).count() == 1
+            })
+            .unwrap();
+        let Err(failure) = crate::sim::catalog_or_fetched(&motor.designation, true, bundled) else {
+            panic!("{} flies", motor.designation);
+        };
+        let text = format!("{failure:?}");
+        assert!(text.contains("no curve file of it is bundled"), "{text}");
+        assert!(text.contains("give a .eng or .rse file"), "{text}");
     }
 
     /// ADR-298 §6, through `hpr sim --motor`'s own lookup: the catalog's motor flies, and the

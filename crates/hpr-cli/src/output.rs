@@ -88,11 +88,13 @@ pub struct ListedMotor {
     pub diameter_mm: f64,
     /// Casing length, mm.
     pub length_mm: f64,
-    /// Total impulse, N·s, from the curve.
+    /// Total impulse, N·s, from the curve, or ThrustCurve.org's record's where `curve` is false.
     pub total_impulse_ns: f64,
-    /// Average thrust, N, from the curve: total impulse over the burn time.
+    /// Average thrust, N, from the curve (total impulse over the burn time), or ThrustCurve.org's
+    /// record's where `curve` is false.
     pub average_thrust_n: f64,
-    /// Burn time, s, from the curve, by NFPA 1125.
+    /// Burn time, s, from the curve by NFPA 1125, or ThrustCurve.org's record's where `curve` is
+    /// false.
     pub burn_time_s: f64,
     /// The delays as the curve file's header writes them, such as `6,8,10`, `4-6` or `P`
     /// (plugged).
@@ -905,6 +907,10 @@ pub enum SimMotorSource {
     Catalog {
         /// The catalog's as-of date, `YYYY-MM-DD`: the day its curve files were downloaded.
         as_of: String,
+        /// ThrustCurve.org's id of the motor flown.
+        motor_id: String,
+        /// ThrustCurve.org's id of the curve file flown.
+        simfile_id: String,
     },
     /// A motor file named with `--motor`.
     File {

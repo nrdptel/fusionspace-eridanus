@@ -92,7 +92,9 @@ motor by its designation, such as `168H54-10A`, or by its common name, the short
 `H54`. It ignores case, spaces and hyphens, and a leading maker name narrows it (`Estes C6`). It
 finds any of the 924 bundled motors with a thrust curve; `hpr motors list` lists them
 ([Solid motors](physics/motor.md#the-whole-catalog)). A name that matches two motors, as `I175`
-does, is refused rather than guessed, with a name listed that finds each alone.
+does, is refused rather than guessed, with a name listed that finds each alone; so is a name
+several makers use, such as `G80`
+([A name several makers share](cli.md#a-name-several-makers-share)).
 
 The delay is never read from the designation. `with_delay_s(10.0)` sets it, and a parachute opened
 by the motor's charge needs it. `Motor::from_eng` reads the text of a

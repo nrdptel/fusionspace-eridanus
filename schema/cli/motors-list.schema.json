@@ -74,12 +74,12 @@
       "type": "object",
       "properties": {
         "average_thrust_n": {
-          "description": "Average thrust, N, from the curve: total impulse over the burn time.",
+          "description": "Average thrust, N, from the curve (total impulse over the burn time), or ThrustCurve.org's\nrecord's where `curve` is false.",
           "type": "number",
           "format": "double"
         },
         "burn_time_s": {
-          "description": "Burn time, s, from the curve, by NFPA 1125.",
+          "description": "Burn time, s, from the curve by NFPA 1125, or ThrustCurve.org's record's where `curve` is\nfalse.",
           "type": "number",
           "format": "double"
         },
@@ -133,7 +133,7 @@
           "type": "string"
         },
         "total_impulse_ns": {
-          "description": "Total impulse, N·s, from the curve.",
+          "description": "Total impulse, N·s, from the curve, or ThrustCurve.org's record's where `curve` is false.",
           "type": "number",
           "format": "double"
         }

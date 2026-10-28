@@ -982,9 +982,14 @@ fn curve(
             ),
         };
     };
-    let matches: Vec<_> = catalog
-        .find_by_maker(&motor.manufacturer, &motor.designation)
-        .collect();
+    // A file saved with one motor whose common name is another's designation flies the motor
+    // its digest names, or is refused where only the case size tells them apart.
+    let matches = catalog.find_for_design(
+        &motor.manufacturer,
+        &motor.designation,
+        motor.digest.as_deref(),
+        motor.diameter_m.map(|m| m * 1e3),
+    );
     // A curve that was there and failed says more about the file than a catalog that lacks it.
     let not_found = |kind: NoCurve, why: &str| match &embedded_failed {
         Some(lead) => unresolved(

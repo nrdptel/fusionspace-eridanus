@@ -425,7 +425,7 @@ These are left out of a flight, or approximated:
 - **Not every `.ork` file's motors fly offline.** HPR Sim reads a `.ork` file
   ([`.ork` design files](format/ork.md)), but a file rarely carries its motors' curves. On the
   file's curves and the bundled catalog, 154 of the 170 motor configurations of the reference
-  library and OpenRocket's examples have the curves they need. `hpr sim` looks for a missing curve
+  library and OpenRocket's examples fly. `hpr sim` looks for a missing curve
   on ThrustCurve.org and keeps what it finds. After that one fetch, 136 of the 170 fly as saved,
   25 more with `--accept-design-errors`, and 9 are refused
   ([how many fly](format/ork.md#how-many-configurations-hpr-sim-flies)). Its parachutes and streamers fly as OpenRocket

@@ -490,9 +490,10 @@ configurations, **161 fly, and each reaches the same apogee all three ways, bit 
 format's first step, [M3.3a](../decisions-and-roadmap.md#m3-3a), asked for 1 part in 10⁹.
 
 The check supplies OpenRocket's own motor database for the curves the files name but don't carry.
-With only the files' own curves and the simulator's bundled motors, 154 fly
+With it, 161 of the 170 configurations fly; with only the files' own curves and the simulator's
+bundled motors, 154 would
 ([the reference library's survey of motors](ork.md#motors-in-the-reference-library)). The other 9
-have no flight to compare. The `.ork` reader leaves them out of the rocket all three ways, by the
+of the 170 have no flight to compare. The `.ork` reader leaves them out of the rocket all three ways, by the
 first reason it finds. Of the 9, 6 lack a thrust curve, 1 has a motor the simulator can't light
 as written, 1 an airframe not read exactly as written, and 1 stages it can't separate as written
 ([which configurations fly](ork.md#which-configurations-the-rocket-flies)).

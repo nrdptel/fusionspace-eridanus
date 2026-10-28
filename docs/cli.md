@@ -786,7 +786,10 @@ that way. So its climb tips away from the vertical. The wind does most of it.
     can't tell which, it refuses and lists them.
 - `--motor NAME` flies a motor of the built-in catalog, by its
   [designation](glossary.md#motor-designation) or common name (`H54`, `168H54-10A`).
-  `hpr motors list` shows the catalog. A name the catalog lacks is fetched from ThrustCurve.org
+  `hpr motors list` shows the catalog. A name several motors share, as `G80` is, is refused with
+  a name for each that finds it alone, such as `Estes G80`
+  ([A name several makers share](#a-name-several-makers-share)); so is a motor the catalog lists
+  with no curve file. A name the catalog lacks is fetched from ThrustCurve.org
   and cached ([Motors from ThrustCurve.org](#motors-from-thrustcurveorg)), as
   `hpr motors fetch NAME` does. `--motor FILE` flies the motor in a `.eng` or `.rse` file
   ([RASP and RockSim files](glossary.md#rasp-and-rocksim-files)). Either way, the motor goes in
@@ -1239,11 +1242,33 @@ J670LB       Loki   J        54 (2.13)   330 (13.0)       1267.1  674.5    1.88 
 
 <!-- cli: end -->
 
+#### A name several makers share
+
+Several makers sell motors under one name. Roadrunner and Estes each make a `G80`, and `G80` is
+also the common name of AeroTech's G80T and of others. `hpr sim --motor` never picks a maker for
+you: it refuses the name and lists a name for each motor that finds it alone. That name is the
+designation where only one motor has it, or the maker's short name and the designation where
+makers share it:
+
+```text
+$ hpr sim rocket.ork --motor G80
+error: G80: `G80` matches several motors: 93G80-14A, Roadrunner G80, PML G80T, G80-LW, AeroTech G80T, Estes G80
+help: give --motor one of those names, each of which names one motor alone, such as `--motor 93G80-14A`
+```
+
+Give one of them, such as `--motor "Estes G80"`; the quotes keep the space. A name is refused this
+way even when only one of its motors has a curve file, so it never flies a maker you didn't name.
+Within one maker, a designation wins over another motor's common name: `D5` is Quest's D5, not its
+D5-P. `hpr motors list --json` gives each motor's name that finds it alone as `selector`, and the
+JSON of a flight names the motor and the curve file it flew by ThrustCurve.org's ids (`motor_id`
+and `simfile_id`). Python's and Rust's `from_catalog` follow the same rule.
+
 #### A motor's figures
 
 `hpr motors show` takes a motor's name or a file's path. A name can be the full
 [designation](glossary.md#motor-designation) (`1266J760-19A`) or the common name (`J760`), in any
-case, with or without spaces and hyphens. When several motors share a name, it shows each of them.
+case, with or without spaces and hyphens. When several motors share a name, it shows each of them
+(`hpr sim --motor` refuses such a name instead).
 An argument ending in `.eng` or `.rse` is read as a file. Anything else is looked up by name.
 
 It works each figure out from the thrust curve, the list of time and thrust points in the motor's

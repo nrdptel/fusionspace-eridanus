@@ -28,7 +28,8 @@ model cites its source and has tests.
   read it from a design file.
 - It reads OpenRocket `.ork` designs whole and writes them back, and it has an open design format
   of its own (`.hpr`, `.hprz`). Motors come as `.eng` and `.rse` files: ThrustCurve.org's
-  1,004 solid motors are bundled, and a newer one is fetched from there once.
+  1,004 solid motors are bundled, the 924 with a curve file fly offline, and a newer one is
+  fetched from there once.
 - Online data is optional: weather (Open-Meteo's forecasts, weather-balloon soundings and NOAA's
   GFS and RAP), [a site's elevation](https://hpr.fusionspace.co/elevation.html) and
   [live motor stock and prices](https://hpr.fusionspace.co/motor-stock.html). The elevation is

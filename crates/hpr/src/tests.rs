@@ -444,12 +444,21 @@ fn motors_come_from_the_catalog_or_a_file() {
         }
         other => panic!("{other:?}"),
     }
-    // A designation two makers share lists each by its maker's short name (ADR-302).
+    // A designation two makers share lists each by its maker's short name, and another maker's
+    // motor whose common name it is by its own designation (ADR-302).
     match Motor::from_catalog("C6") {
         Err(Error::AmbiguousMotor { candidates, .. }) => {
             assert!(candidates.iter().any(|c| c == "Estes C6"), "{candidates:?}");
+            assert!(candidates.iter().any(|c| c == "SCR-C6"), "{candidates:?}");
             for candidate in &candidates {
-                assert_eq!(Motor::from_catalog(candidate).unwrap().designation(), "C6");
+                let designation = Motor::from_catalog(candidate)
+                    .unwrap()
+                    .designation()
+                    .to_owned();
+                assert!(
+                    candidate.ends_with(&designation),
+                    "{candidate}: {designation}"
+                );
             }
         }
         other => panic!("expected an ambiguous name, got {other:?}"),

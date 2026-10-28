@@ -480,10 +480,12 @@ impl Catalog {
     ///
     /// - A name may start with a maker, its full name or short one and a space, such as
     ///   `AeroTech H128W` or `Estes Industries C6`: then only that maker's motors match.
-    /// - Of several matches, a motor whose designation is the name is the one it names: `D5` is
-    ///   Quest's D5, not the D5-P whose common name is D5. With two such designations, as two
-    ///   makers' `C6` are, all match; each maker's short name and designation names one alone,
-    ///   as no maker has two motors of one designation (a test holds it).
+    /// - Of one maker's matches, a motor whose designation is the name is the one it names: `D5`
+    ///   is Quest's D5, not the D5-P whose common name is D5. Matches of different makers all
+    ///   stay, whether by designation or common name: `G80` finds Roadrunner's and Estes' G80 and
+    ///   AeroTech's G80T, so a caller that wants one refuses it as ambiguous rather than flying a
+    ///   maker the name didn't say. Each maker's short name and designation names one alone, as
+    ///   no maker has two motors of one designation (a test holds it).
     ///
     /// [adr-302]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0302-every-motor-by-name.md
     pub fn find<'a>(&'a self, name: &str) -> impl Iterator<Item = &'a CatalogMotor> + 'a {
@@ -502,41 +504,82 @@ impl Catalog {
         maker: &str,
         name: &str,
     ) -> impl Iterator<Item = &'a CatalogMotor> + 'a {
-        let key = |text: &str| -> String {
-            text.chars()
-                .filter(char::is_ascii_alphanumeric)
-                .map(|c| c.to_ascii_lowercase())
-                .collect()
-        };
-        let maker = key(maker);
+        let maker = maker_key(maker);
         self.named(name, move |motor| {
-            key(&motor.manufacturer) == maker || key(&motor.manufacturer_abbrev) == maker
+            maker_key(&motor.manufacturer) == maker
+                || maker_key(&motor.manufacturer_abbrev) == maker
         })
     }
 
-    /// The motors `of` keeps whose designation or common name is `name`, those whose designation
-    /// is if there are any.
+    /// As [`Catalog::find_by_maker`], for a design file's motor, which may also give its curve's
+    /// `digest` and its case's `diameter_mm`. Cesaroni's 54 mm `1016J360-15A` has the common
+    /// name `J360`, which is the designation of a 38 mm Cesaroni motor; a file that saved the
+    /// first as `J360` must not fly the second, about 20% short on impulse:
+    ///
+    /// - where `digest` maps to a bundled file ([`crate::openrocket_curves::file_for`]) of
+    ///   exactly one motor the name matches by designation or common name, that motor alone;
+    /// - else, where every motor [`Catalog::find_by_maker`] gives is more than 1 mm from
+    ///   `diameter_mm` and another the name matches is within it, every match, so the caller
+    ///   refuses the motor as ambiguous rather than flying a case the design doesn't hold.
+    pub fn find_for_design<'a>(
+        &'a self,
+        maker: &str,
+        name: &str,
+        digest: Option<&str>,
+        diameter_mm: Option<f64>,
+    ) -> Vec<&'a CatalogMotor> {
+        let maker = maker_key(maker);
+        let of = |motor: &CatalogMotor| {
+            maker_key(&motor.manufacturer) == maker
+                || maker_key(&motor.manufacturer_abbrev) == maker
+        };
+        let all = self.matching(name, of);
+        if let Some(id) = digest.and_then(crate::openrocket_curves::file_for) {
+            let owners: Vec<&CatalogMotor> = all
+                .iter()
+                .copied()
+                .filter(|motor| motor.curves.iter().any(|curve| curve.simfile_id == id))
+                .collect();
+            if let [owner] = owners[..] {
+                return vec![owner];
+            }
+        }
+        let picked = prefer_designations(all.clone(), name);
+        let fits = |motor: &&CatalogMotor| {
+            diameter_mm.is_some_and(|mm| (motor.diameter_mm - mm).abs() <= 1.0)
+        };
+        let misfit = diameter_mm.is_some() && !picked.iter().any(fits);
+        if misfit
+            && all
+                .iter()
+                .any(|motor| fits(motor) && !picked.iter().any(|kept| std::ptr::eq(*kept, *motor)))
+        {
+            return all;
+        }
+        picked
+    }
+
+    /// The motors `of` keeps whose designation or common name is `name`, narrowed as
+    /// [`Catalog::find`] says: within one maker, those whose designation is the name if any is.
     fn named<'a>(
         &'a self,
         name: &str,
         of: impl Fn(&CatalogMotor) -> bool,
     ) -> std::vec::IntoIter<&'a CatalogMotor> {
+        prefer_designations(self.matching(name, of), name).into_iter()
+    }
+
+    /// Every motor `of` keeps whose designation or common name is `name`.
+    fn matching(&self, name: &str, of: impl Fn(&CatalogMotor) -> bool) -> Vec<&CatalogMotor> {
         let key = normalize(name);
-        let kept: Vec<&CatalogMotor> = self
-            .motors
+        self.motors
             .iter()
             .filter(|motor| {
                 of(motor)
                     && (normalize(&motor.designation) == key
                         || normalize(&motor.common_name) == key)
             })
-            .collect();
-        let exact: Vec<&CatalogMotor> = kept
-            .iter()
-            .copied()
-            .filter(|motor| normalize(&motor.designation) == key)
-            .collect();
-        if exact.is_empty() { kept } else { exact }.into_iter()
+            .collect()
     }
 
     /// The maker `name` starts with, by full or short name, followed by a space, and the rest of
@@ -571,6 +614,38 @@ impl Catalog {
             format!("{} {}", motor.manufacturer_abbrev, motor.designation)
         }
     }
+}
+
+/// Of `matches` for `name`, each maker's motors whose designation is the name where that maker
+/// has one, and the rest of its matches where it hasn't: a name never picks one maker over
+/// another.
+fn prefer_designations<'a>(matches: Vec<&'a CatalogMotor>, name: &str) -> Vec<&'a CatalogMotor> {
+    let key = normalize(name);
+    let exact = |motor: &CatalogMotor| normalize(&motor.designation) == key;
+    let makers_with_exact: Vec<&str> = matches
+        .iter()
+        .filter(|motor| exact(motor))
+        .map(|motor| motor.manufacturer.as_str())
+        .collect();
+    matches
+        .into_iter()
+        .filter(|motor| exact(motor) || !makers_with_exact.contains(&motor.manufacturer.as_str()))
+        .collect()
+}
+
+/// A maker's name with only its ASCII letters and digits, lowercase, and a trailing company
+/// suffix (`Inc`, `Ltd`, `LLC`) dropped: `Cesaroni Technology Inc.` compares as Cesaroni
+/// Technology.
+fn maker_key(text: &str) -> String {
+    let key: String = text
+        .chars()
+        .filter(char::is_ascii_alphanumeric)
+        .map(|c| c.to_ascii_lowercase())
+        .collect();
+    ["inc", "ltd", "llc"]
+        .iter()
+        .find_map(|suffix| key.strip_suffix(suffix).filter(|rest| !rest.is_empty()))
+        .map_or_else(|| key.clone(), str::to_owned)
 }
 
 /// Lowercase, without spaces or hyphens.
@@ -1172,9 +1247,10 @@ mod tests {
         let plugged = catalog.find("L3200").next().unwrap();
         assert_eq!(plugged.delays().delays, [Delay::Plugged]);
         assert!(catalog.find("no such motor").next().is_none());
-        // ADR-302: a maker's name narrows the match, and a designation beats a common name.
+        // ADR-302: a maker's name narrows the match, and within one maker a designation beats
+        // a common name; across makers both stay, so `C6` finds Southern Cross's SCR-C6 too.
         let c6: Vec<_> = catalog.find("C6").collect();
-        assert!(c6.len() > 1 && c6.iter().all(|m| m.designation == "C6"));
+        assert!(c6.len() > 1 && c6.iter().any(|m| m.designation == "SCR-C6"));
         let estes: Vec<_> = catalog.find("Estes C6").collect();
         assert_eq!(estes.len(), 1);
         assert_eq!(estes[0].manufacturer_abbrev, "Estes");
@@ -1761,9 +1837,6 @@ mod tests {
         );
     }
 
-    /// ADR-298 §5: the default is the first ranked file that is bundled. A passing file listed
-    /// after a failing one flies; a passing file that isn't bundled is passed over for a failing
-    /// one that is, and a motor with no bundled file has no default.
     /// ADR-298 §5's default on the whole catalog: every motor with a bundled file has a default,
     /// and it passes the 1% check wherever one of its files does (M5.7b2).
     #[test]
@@ -1839,6 +1912,102 @@ mod tests {
         );
     }
 
+    /// ADR-302's light-propellant warning errs toward warning, the side a light file flatters:
+    /// a file more than 5% under the record warns with its negative gap, one at 5% or less, or
+    /// heavier, doesn't, and a record with no mass (none, zero or not finite) gives none.
+    #[test]
+    fn a_light_propellant_file_warns_and_only_then() {
+        let catalog = bundled();
+        let (base, curve, file_g) = catalog
+            .motors
+            .iter()
+            .find_map(|motor| {
+                let (curve, text) = motor.default_curve_text()?;
+                let (_, propellant_kg, _) = read_curve_file(curve, text).ok()?;
+                (propellant_kg > 0.0).then(|| (motor, curve.clone(), propellant_kg * 1000.0))
+            })
+            .unwrap();
+        let warning = |record_g: Option<f64>| {
+            let mut motor = base.clone();
+            motor.stated.propellant_mass_g = record_g;
+            motor.propellant_warning(&curve)
+        };
+        let light = warning(Some(file_g / 0.949)).expect("5.1% light warns");
+        assert!(light.contains("-5.10%"), "{light}");
+        assert!(light.contains(&curve.simfile_id), "{light}");
+        assert_eq!(warning(Some(file_g / 0.951)), None, "4.9% light");
+        assert_eq!(warning(Some(file_g)), None, "equal");
+        assert_eq!(warning(Some(file_g * 0.5)), None, "heavier");
+        for record in [None, Some(0.0), Some(f64::NAN), Some(f64::INFINITY)] {
+            assert_eq!(warning(record), None, "{record:?}");
+        }
+        // Both of a flight's warnings come back, the check's first.
+        let mut motor = base.clone();
+        motor.stated.propellant_mass_g = Some(file_g / 0.9);
+        let mut failing = curve.clone();
+        failing.check.passes = false;
+        let warnings = motor.flight_warnings(&failing);
+        assert_eq!(warnings.len(), 2, "{warnings:?}");
+        assert!(warnings[0].contains("is more than 1% from"), "{warnings:?}");
+        assert!(warnings[1].contains("of propellant"), "{warnings:?}");
+    }
+
+    /// ADR-302: a name never picks one maker's motor over another's. Each motor is found by each
+    /// of its names, unless its own maker has another motor whose designation is that name; and
+    /// a name several makers use finds each of them (`G80`, `J300`).
+    #[test]
+    fn a_name_never_picks_one_maker_over_another() {
+        let catalog = bundled();
+        for motor in &catalog.motors {
+            for name in [&motor.designation, &motor.common_name] {
+                let shadowed = normalize(name) != normalize(&motor.designation)
+                    && catalog.motors.iter().any(|other| {
+                        other.manufacturer == motor.manufacturer
+                            && normalize(&other.designation) == normalize(name)
+                    });
+                let found = catalog.find(name).any(|other| std::ptr::eq(other, motor));
+                assert_eq!(found, !shadowed, "{} by {name}", motor.motor_id);
+            }
+        }
+        for name in ["G80", "J300"] {
+            let makers: std::collections::BTreeSet<&str> = catalog
+                .find(name)
+                .map(|motor| motor.manufacturer.as_str())
+                .collect();
+            assert!(makers.len() > 1, "{name}: {makers:?}");
+        }
+    }
+
+    /// A design file's `J360` from Cesaroni is the 38 mm motor of that designation where the
+    /// design's case is 38 mm or not given, and is refused (both motors given) where the case is
+    /// 54 mm, the size of the motor whose common name is `J360`; a maker's company suffix is
+    /// ignored.
+    #[test]
+    fn a_design_s_case_size_keeps_a_common_name_from_flying_another_motor() {
+        let catalog = bundled();
+        let found = |maker: &str, diameter_mm: Option<f64>| -> Vec<(String, f64)> {
+            catalog
+                .find_for_design(maker, "J360", None, diameter_mm)
+                .into_iter()
+                .map(|motor| (motor.designation.clone(), motor.diameter_mm))
+                .collect()
+        };
+        let small = vec![("J360".to_owned(), 38.0)];
+        assert_eq!(found("Cesaroni Technology", None), small);
+        assert_eq!(found("Cesaroni Technology", Some(38.4)), small);
+        assert_eq!(found("Cesaroni Technology Inc.", Some(38.0)), small);
+        assert_eq!(found("Cesaroni", Some(54.0)).len(), 2);
+        assert_eq!(
+            catalog
+                .find_by_maker("Cesaroni Technology Inc.", "J360")
+                .count(),
+            1
+        );
+    }
+
+    /// ADR-298 §5: the default is the first ranked file that is bundled. A passing file listed
+    /// after a failing one flies; a passing file that isn't bundled is passed over for a failing
+    /// one that is, and a motor with no bundled file has no default.
     #[test]
     fn the_default_file_passes_where_a_bundled_one_does() {
         let catalog = bundled();

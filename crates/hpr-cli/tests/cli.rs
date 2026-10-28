@@ -2393,10 +2393,28 @@ fn sim_flies_a_orks_own_motor_as_the_library_does() {
     let (flight, _) = library_flight(design.rocket, &id, "", None, &environment, |b| b);
     same_flight(&document, &flight);
     // The file holds no curve: the reader found it in the bundled catalog, which the source
-    // dates (ADR-214).
+    // dates (ADR-214) and names by ThrustCurve.org's motor and file ids.
+    let (motor_id, simfile_id) = file
+        .configurations
+        .iter()
+        .flat_map(|c| &c.motors)
+        .find_map(|motor| match &motor.curve {
+            hpr::hpr_io::ork::Curve::Catalog {
+                motor_id,
+                simfile_id,
+                ..
+            } => Some((motor_id.clone(), simfile_id.clone())),
+            _ => None,
+        })
+        .unwrap();
     assert_eq!(
         document["motors"][0]["source"],
-        json!({"kind": "catalog", "as_of": Catalog::bundled().unwrap().snapshot.captured})
+        json!({
+            "kind": "catalog",
+            "as_of": Catalog::bundled().unwrap().snapshot.captured,
+            "motor_id": motor_id,
+            "simfile_id": simfile_id,
+        })
     );
     assert_eq!(document["motors"][0]["designation"], "168H54-10A");
     assert_eq!(document["design"]["configurations"][0]["flies"], true);

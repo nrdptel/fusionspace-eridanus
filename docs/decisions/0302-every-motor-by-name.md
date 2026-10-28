@@ -1,7 +1,7 @@
 # ADR-302: Every motor by name, offline (2026-10-28)
 
 - **Status:** accepted; carries out [ADR-301][adr-301] §2's switch for [M5.7b2][m5-7], and [ADR-288][adr-288] §3's digest-first default
-- **Summary:** Every lookup now reads the whole bundled catalog: 1,004 motors, 924 of them with a curve file. A name two makers share takes its maker (`Estes C6`). A designation outranks a common name. Each motor gets a selector, a name that finds it alone. A motor with no curve is listed and refused, not hidden. A bundled default file more than 5% light on propellant warns, as a fetched one does. `cargo xtask motor-catalog --check` lists and flies every motor offline, with counts from the raw snapshot.
+- **Summary:** Every lookup now reads the whole bundled catalog: 1,004 motors, 924 of them with a curve file. A name two makers use, by designation or common name, takes its maker (`Estes C6`); within one maker a designation outranks a common name. Each motor gets a selector, a name that finds it alone. A motor with no curve is listed and refused, not hidden. A bundled default file more than 5% light on propellant warns, as a fetched one does. `cargo xtask motor-catalog --check` lists and flies every motor offline, with counts from the raw snapshot.
 
 [m5-7]: ../decisions-and-roadmap.md#m5-7
 [adr-005]: 0005-solid-motors-statistics-consumption-grains-file.md
@@ -19,8 +19,8 @@ whole solid catalog from the 2026-10-28 snapshot, while the lookups kept M5.7a's
 Pointing them at all 1,004 motors raises questions the 32 never did:
 
 - 32 designations are shared by two or more makers, and 166 names, once case, spaces and hyphens
-  are dropped, find more than one motor. A bare `C6` found one motor among the 32; it finds Estes'
-  and Quest's now.
+  are dropped, find more than one motor. A bare `C6` found one motor among the 32; it finds five
+  makers' now (Estes', Quest's, Apogee's, Klima's, and Southern Cross's SCR-C6 by its common name).
 - 80 motors have no curve file that reads. The 32 all had one.
 - 48 motors' default files give a propellant mass more than 5% below their record's
   ([issue #1003][i1003]). A light propellant mass with a right loaded mass flies too heavy a
@@ -33,9 +33,18 @@ Pointing them at all 1,004 motors raises questions the 32 never did:
 1. **Names.** `Catalog::find` reads a leading maker name, full (`Cesaroni Technology`) or short
    (`Cesaroni`, `Estes`), followed by a space, and keeps only that maker's motors. The rest is
    matched as before, ignoring case, spaces and hyphens, against designations and common names.
-   A motor whose designation matches outranks one whose common name does, so `I175WS` is
-   AeroTech's single-use motor, not every I175. A `.ork` motor is looked up by its maker and
-   designation (`Catalog::find_by_maker`).
+   Within one maker, a motor whose designation matches outranks one whose common name does, so
+   `I175WS` is AeroTech's single-use motor, not every I175. Across makers both stay: a name never
+   picks one maker over another, so `G80` finds Roadrunner's and Estes' G80, AeroTech's G80T and
+   others by their common name, and `hpr sim --motor G80` is refused with their selectors. The
+   refusal is decided before curves: a name that finds several motors is refused even where only
+   one of them has a curve. A `.ork` motor is looked up by its maker and designation
+   (`Catalog::find_for_design`, a company suffix such as `Inc.` ignored). Where its digest maps
+   to a file of exactly one motor the name matches by designation or common name, it is that
+   motor. Where the designation's motor is more than 1 mm from the design's case diameter and
+   another the name matches by common name fits it, as Cesaroni's 38 mm `J360` and 54 mm
+   `1016J360-15A` (common name `J360`) do, it is refused as ambiguous: flying the other would be
+   about 20% short on impulse.
 2. **Selectors.** Each motor's selector is its designation where that finds it alone, else its
    maker's short name and designation (`Estes C6`). `hpr motors list` prints it. Every message that
    lists candidates for a name that finds several lists their selectors, so each one it suggests
@@ -43,7 +52,8 @@ Pointing them at all 1,004 motors raises questions the 32 never did:
 3. **Motors with no curve.** `hpr motors list` lists all 1,004, marks each with or without a
    curve, and ends with a note naming the 80 without one. `hpr motors show` on such a motor
    refuses with that reason, and skips it with a warning in a listing of several. `hpr sim --motor`
-   refuses it. A motor's figures can't be worked out without a curve, so none are shown.
+   refuses it as a motor with no curve, not one to fetch. A motor's figures can't be worked out
+   without a curve, so none are shown.
 4. **The default file.** A `.ork` motor whose curve OpenRocket names by digest flies the bundled
    file with that digest, if it is one of that motor's files. Otherwise it flies ADR-298 §5's
    default: a file that passes [ADR-005][adr-005]'s 1% check first. The table from OpenRocket's
@@ -62,8 +72,10 @@ Pointing them at all 1,004 motors raises questions the 32 never did:
    a curve flies in a probe rocket built for its case size, with `hpr sim --motor <selector>`. The
    probe's bore is the case plus 0.2 mm, its airframe a fifth wider, with three fins. A flight
    counts when it leaves the rail and reaches an apogee on that motor's bundled curve, and when it
-   warns of a failing default file, and only then. The expected motors come from the raw snapshot
-   under `refs/` (every solid motor; every one with a RASP or RockSim file no named refusal leaves
+   warns of a failing default file, in the check's own words, and only then. The flight's JSON
+   names the catalog motor and file it flew by ThrustCurve.org's ids (`motor_id`, `simfile_id`),
+   and the check holds both to the motor's and its default file's. The expected motors come from
+   the raw snapshot under `refs/` (every solid motor; every one with a RASP or RockSim file no named refusal leaves
    out), or from the committed records and file list without it. On this snapshot: 1,004 listed,
    924 flown, in 24 probe rockets.
 7. **A left-out `.ork` configuration's reason** is one warning: the first part left out, else the
