@@ -510,7 +510,7 @@ found = "no license for the motor records (the home page reserves all rights; th
 [[row.searched]]
 on = "2026-10-28"
 looked = [
-  "ThrustCurve.org's contribute, API and privacy pages and its llms-full.txt",
+  "ThrustCurve.org's contribute, API and privacy pages and its full-text site summary",
   "openrocket/motor-database and JohnCoker/TCTG",
 ]
 found = "no openly licensed motor database. The only license statement is the contribute page's class for each file, which the API doesn't return; openrocket/motor-database (GPL-3.0) points other projects to the API"

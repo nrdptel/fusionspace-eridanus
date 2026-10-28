@@ -275,7 +275,7 @@ The register holds 33 rows, as of October 28, 2026.
 
   It found no license for the motor records (the home page reserves all rights; the API page states none). A lead: JohnCoker/thrustcurve3 (ISC, commit 3325878d, cached under refs/samples-search/G23) holds a 2016 sample dump of 280 real motor records and 411 curve files. The records have the fields the stand-ins leave out, and each curve file its own class (104 public domain, 16 free, 291 unmarked). ISC grants rights in 'this software', so using the records is a licensing question.
 - [G23](#g23), October 28, 2026, looked at:
-  - ThrustCurve.org's contribute, API and privacy pages and its llms-full.txt
+  - ThrustCurve.org's contribute, API and privacy pages and its full-text site summary
   - openrocket/motor-database and JohnCoker/TCTG
 
   It found no openly licensed motor database. The only license statement is the contribute page's class for each file, which the API doesn't return; openrocket/motor-database (GPL-3.0) points other projects to the API.
