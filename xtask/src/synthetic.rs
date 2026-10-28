@@ -247,6 +247,24 @@ pub fn run(args: &[String]) -> Result<(), String> {
         .iter()
         .flat_map(|s| {
             let fails = (!s.check.holds()).then(|| format!("{}: the smoother fails", s.set.name()));
+            // A log withheld for any reason but having no barometer leaves every cell, its
+            // misses with it, and so does a flight that wasn't flown: either fails the check.
+            let lost = (s.check.lost() > 0).then(|| {
+                format!(
+                    "{}: {} logs withheld with a barometer ({:?})",
+                    s.set.name(),
+                    s.check.lost(),
+                    s.check.withheld
+                )
+            });
+            let unflown = (s.check.flights != s.set.count()).then(|| {
+                format!(
+                    "{}: {} of {} flights smoothed or withheld; the rest weren't flown",
+                    s.set.name(),
+                    s.check.flights,
+                    s.set.count()
+                )
+            });
             // A step the pass back couldn't solve is a filter that lost the track.
             let unsmoothed = (s.check.health.unsmoothed_steps > 0).then(|| {
                 format!(
@@ -259,7 +277,12 @@ pub fn run(args: &[String]) -> Result<(), String> {
             // misses; the two evaluation sets of 1,000 must.
             let mutation = (s.set != Set::Tuning && s.mutation_holds())
                 .then(|| format!("{}: trusting GNSS from liftoff holds", s.set.name()));
-            fails.into_iter().chain(unsmoothed).chain(mutation)
+            fails
+                .into_iter()
+                .chain(lost)
+                .chain(unflown)
+                .chain(unsmoothed)
+                .chain(mutation)
         })
         .collect();
     if !broken.is_empty() {

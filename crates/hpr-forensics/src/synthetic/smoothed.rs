@@ -311,12 +311,25 @@ impl HealthTally {
 }
 
 impl SetCheck {
-    /// Whether every cell holds, the set's and each logger's.
-    pub fn holds(&self) -> bool {
-        self.cells
+    /// The logs withheld for a reason other than having no barometer: a log the smoother can't
+    /// finish would otherwise leave every cell, its misses with it, so each one fails the check.
+    pub fn lost(&self) -> u64 {
+        let no_barometer = format!("{:?}", Reason::NoBarometer);
+        self.withheld
             .iter()
-            .chain(self.by_logger.values().flatten())
-            .all(|c| c.holds)
+            .filter(|(reason, _)| **reason != no_barometer)
+            .map(|(_, n)| n)
+            .sum()
+    }
+
+    /// Whether every cell holds, the set's and each logger's, and no log was [`lost`](Self::lost).
+    pub fn holds(&self) -> bool {
+        self.lost() == 0
+            && self
+                .cells
+                .iter()
+                .chain(self.by_logger.values().flatten())
+                .all(|c| c.holds)
     }
 }
 
@@ -358,9 +371,13 @@ fn upper_tail(x: u64, n: u64, p: f64) -> f64 {
 
 /// The lower edge of the two-sided Clopper–Pearson interval on a binomial share, at `confidence`:
 /// the `p` at which `P(X ≥ x) = (1 − confidence)/2`, by bisection; 0 when `x` is 0 (C. J. Clopper
-/// and E. S. Pearson, *Biometrika* 26(4), 404–413, 1934).
+/// and E. S. Pearson, *Biometrika* 26(4), 404–413, 1934). NaN, which no cell holds on, when `x`
+/// exceeds `n` or `confidence` isn't strictly between 0 and 1.
 pub fn clopper_pearson_lower(x: u64, n: u64, confidence: f64) -> f64 {
-    if x == 0 || n == 0 {
+    if x > n || !(confidence > 0.0 && confidence < 1.0) {
+        return f64::NAN;
+    }
+    if x == 0 {
         return 0.0;
     }
     let target = 0.5 * (1.0 - confidence);
@@ -479,6 +496,52 @@ mod tests {
         let lower = clopper_pearson_lower(75, 1000, 0.999);
         assert!((lower - 0.050_351_908).abs() < 1e-8, "{lower}");
         assert_eq!(clopper_pearson_lower(0, 1000, 0.999), 0.0);
+        // More misses than flights, or a confidence that isn't one, has no edge.
+        assert!(clopper_pearson_lower(5, 3, 0.999).is_nan());
+        assert!(clopper_pearson_lower(1, 0, 0.999).is_nan());
+        assert!(clopper_pearson_lower(5, 100, f64::NAN).is_nan());
+        assert!(clopper_pearson_lower(5, 100, 1.0).is_nan());
+        assert!(clopper_pearson_lower(5, 100, 0.0).is_nan());
+    }
+
+    #[test]
+    fn a_log_withheld_with_a_barometer_fails_the_check() {
+        let inside = Compared {
+            error: 0.0,
+            sd: 1.0,
+        };
+        let smoothed = |profile: Profile| Checked {
+            profile,
+            withheld: None,
+            compared: Moment::ALL
+                .iter()
+                .flat_map(|&m| StateName::ALL.iter().map(move |&s| (m, s, inside)))
+                .collect(),
+            health: None,
+            has_gnss: false,
+        };
+        let withheld = |profile: Profile, reason: Reason| Checked {
+            profile,
+            withheld: Some(reason),
+            compared: Vec::new(),
+            health: None,
+            has_gnss: false,
+        };
+        let profile = Profile::ALL[0];
+        let mut checks: Vec<Checked> = (0..100).map(|_| smoothed(profile)).collect();
+        checks.push(withheld(profile, Reason::NoBarometer));
+        let set = tally(&checks);
+        assert_eq!(set.lost(), 0);
+        assert!(set.holds());
+        for reason in [Reason::Diverged, Reason::NoLiftoff, Reason::ShortPad] {
+            let mut lost = checks.clone();
+            lost.push(withheld(profile, reason));
+            let set = tally(&lost);
+            assert_eq!(set.lost(), 1, "{reason:?}");
+            // Every cell still holds: the log left them, which is what the check must catch.
+            assert!(set.cells.iter().all(|c| c.holds), "{reason:?}");
+            assert!(!set.holds(), "{reason:?}");
+        }
     }
 
     #[test]

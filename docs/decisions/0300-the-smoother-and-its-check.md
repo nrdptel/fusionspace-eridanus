@@ -1,10 +1,11 @@
 # ADR-300: The smoother and its check on the synthetic flights (2026-10-27)
 
-- **Status:** accepted; records [M7.2d][m7-2d]'s smoother and how it is held to the synthetic flights' truth, where it departs from [ADR-280][adr-280]'s plan for it, and moves the health card's `hpr analyze` and Python surfaces to [M7.2e][m7-2e], whose *done when* now names the card beside the intervals
+- **Status:** accepted; re-lands [M7.2d][m7-2d] after [ADR-299][adr-299] withdrew it; records its smoother and how it is held to the synthetic flights' truth, where it departs from [ADR-280][adr-280]'s plan for it, and moves the health card's `hpr analyze` and Python surfaces to [M7.2e][m7-2e], whose *done when* now names the card beside the intervals
 - **Summary:** `hpr_flightdata::smoother` fuses a log's barometer, accelerometer and GNSS receiver in a Kalman filter run forward and a Rauch-Tung-Striebel pass back, and gives the height and vertical speed at every sample with a standard error. `cargo xtask synthetic` holds it to the truth of the three synthetic sets at burnout, the top speed, apogee and a drawn moment, and fails unless every cell holds on every set and logger, the pass back solves every step, and trusting the GNSS receiver from liftoff fails on both test sets. Its 90% intervals hold on all three sets: between 94.3% and 99.4% of the truths lie inside each set's cells.
 
 [m7-2d]: ../decisions-and-roadmap.md#m7-2d
 [m7-2e]: ../decisions-and-roadmap.md#m7-2e
+[adr-299]: 0299-withdraw-the-smoother-to-land-it-in-order.md
 [adr-257]: 0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 [adr-280]: 0280-m7-2-in-seven-the-synthetic-flights-first.md
 [smoothing]: ../research/altimeter-smoothing-methods.md
@@ -128,7 +129,9 @@ fell short in five places:
     shows. `cargo xtask synthetic`
     fails if any cell fails on any set, overall or for a logger, or if any step goes unsmoothed,
     or if a flight's smoothing panics; a moment the smoothed track doesn't reach misses on both
-    sides. It also fails if trusting
+    sides. A log the smoother withholds for any reason but having no barometer, and a flight
+    that isn't flown, fail it too, since either would leave every cell and take its misses with
+    it (added in the re-land's review; none occurs on the three sets). It also fails if trusting
     GNSS from liftoff holds on A or B. The tuning set's 200 flights are too few to require that;
     its result is reported. The health cards' sums are held to three significant figures, as the
     census's values are ([ADR-280][adr-280]); a sum under 1,000 keeps every digit. A log ends a

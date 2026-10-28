@@ -15,9 +15,9 @@ sensors, and how well its 90% intervals hold.
   port's Mach error and GNSS lag ([Sources](#sources)). The rest are HPR Sim's choices, recorded
   in [ADR-300, the smoother and its check][adr-300].
 - **How well it is validated:** only on [the synthetic flights](synthetic-flights.md), whose
-  truth is known. There each set's intervals hold the truth at least as often as they claim:
-  94.3% to 97.3% of set B's truths lie inside them ([How well it holds](#how-well-it-holds)). One
-  logger's cell holds only 89.2% (set A's lowest is 89.7%), which the check's rule still allows. Sets
+  truth is known. There, at burnout, the top speed, apogee and a drawn moment, 94.3% to 97.3% of
+  set B's truths lie inside the 90% intervals ([How well it holds](#how-well-it-holds)). Two
+  logger cells fall under 90%: 89.2% on set B and 89.7% on set A, which the check's rule allows. Sets
   A and B were run while its rules were set, so they aren't untouched tests. A real log comes with
   no truth taken apart from it, so the smoother is unvalidated on real logs
   ([evidence row G33](../evidence.md#g33)).
@@ -66,7 +66,8 @@ its fixes count only once its speed has agreed with the smoother's for 2 seconds
 The check, run by `cargo xtask synthetic`, compares each flight's smoothed height and speed with
 the truth. It does so at burnout, the top speed, apogee and one moment drawn at random per
 flight. A cell fails if either side's misses are shown, at 99.9% confidence, to pass 5%, half of
-what a 90% interval allows. Each set's cells and each logger's must hold.
+what a 90% interval allows. Each set's cells and each logger's must hold, and a log withheld for
+any reason but having no barometer fails the check.
 
 The rules were set on the tuning set. But sets A and B were run as each change landed, and some
 changes were found on them ([ADR-300][adr-300], item 13). On set B, 845 of the 1,000 flights were
