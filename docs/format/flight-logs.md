@@ -2725,13 +2725,13 @@ time to the microsecond and refuses an `ele` of spaces only, which this reader r
 - *Elevation.* GPX gives `ele` in meters but no [vertical datum](../glossary.md#vertical-datum).
   So it is read as an altitude of unstated zero: only its rise between points means what it
   says. A receiver's [NMEA GGA](https://gpsd.gitlab.io/gpsd/NMEA.html) altitude is above mean
-  sea level. Android phones give the height above the WGS84 ellipsoid, iPhones the height above
-  sea level, and a handheld with a barometer may write the barometer's. A track point's
-  `geoidheight`, the geoid's height above that ellipsoid, is read as a channel, such as
+  sea level. Android's location API gives the height above the WGS84 ellipsoid, Apple's the
+  height above sea level, and a handheld with a barometer may write the barometer's. A track
+  point's `geoidheight`, the geoid's height above that ellipsoid, is read as a channel, such as
   `Flight 7 geoid height`. It doesn't say which `ele` is: [GPSLogger](https://gpslogger.app/),
-  the most common writer of it found, writes the ellipsoid's height by default. Either way the
-  offset moves the pad's elevation, not the height above the pad. One Eggfinder track saved as
-  GPX most likely holds sea level ([a research
+  the most common writer of it found, writes the ellipsoid's height unless set to sea level.
+  Either way the offset moves the pad's elevation, not the height above the pad. One Eggfinder
+  track saved as GPX most likely holds sea level ([a research
   note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/forum-eggfinder-gpx-vs-baro.md);
   [evidence row G1](../evidence.md#g1)).
 - *Times.* GPX times are in UTC, as GPX 1.1's schema and GPX 1.0's manual require. A time with

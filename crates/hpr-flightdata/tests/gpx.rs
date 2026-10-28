@@ -414,7 +414,8 @@ fn a_phone_apps_track_reads_with_its_places_kept_apart() {
         "`geoidheight` read in meters as the geoid's height above the WGS84 ellipsoid, as GPX \
          1.1's schema defines it from NMEA's GGA message. It doesn't say which surface `ele` \
          beside it is measured from: GPSLogger for Android, the commonest writer of \
-         `geoidheight` found, writes the height above the ellipsoid by default",
+         `geoidheight` found, writes the height above the ellipsoid unless its sea-level option \
+         is on",
     ] {
         assert!(
             log.notes.iter().any(|n| n.starts_with(note)),

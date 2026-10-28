@@ -804,8 +804,8 @@ impl<'a, 'input> Reader<'a, 'input> {
                 "`geoidheight` read in meters as the geoid's height above the WGS84 ellipsoid, \
                  as GPX 1.1's schema defines it from NMEA's GGA message. It doesn't say which \
                  surface `ele` beside it is measured from: GPSLogger for Android, the commonest \
-                 writer of `geoidheight` found, writes the height above the ellipsoid by default, \
-                 and a receiver's GGA altitude is above mean sea level, the two apart by the \
+                 writer of `geoidheight` found, writes the height above the ellipsoid unless its \
+                 sea-level option is on, and a receiver's GGA altitude is above mean sea level, the two apart by the \
                  geoid height. Over one flight that offset barely changes, so it moves the pad's \
                  elevation, not the height above the pad"
                     .to_owned(),
