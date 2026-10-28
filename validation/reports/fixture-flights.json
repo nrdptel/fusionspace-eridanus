@@ -25,7 +25,7 @@
     {
       "who": "hpr",
       "cause": "a fin tab ending past the root chord",
-      "flights": 6,
+      "flights": 7,
       "issue": 357
     },
     {
@@ -37,7 +37,7 @@
     {
       "who": "hpr",
       "cause": "a motor whose digest OpenRocket 24.12's database lacks",
-      "flights": 3,
+      "flights": 2,
       "issue": 362
     },
     {

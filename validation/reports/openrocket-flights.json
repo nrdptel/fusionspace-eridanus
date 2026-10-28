@@ -8572,7 +8572,7 @@
       "design": "demo-payload-separation",
       "file": "validation/fixtures/ork/loft-demo/demo-payload-separation.ork",
       "motors": "[None; F50T-8]",
-      "why": "the design's only configuration, which OpenRocket gave a new id: a motor with no curve"
+      "why": "a curve found by name, which OpenRocket may not fly"
     },
     {
       "aborted": false,

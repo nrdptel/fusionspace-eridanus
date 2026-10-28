@@ -6,12 +6,14 @@
     "no_configuration": 10,
     "configurations": 170,
     "flies": 136,
-    "flies_with_flag": 9,
+    "flies_with_flag": 25,
     "refused": {
       "a hybrid motor (out of scope until release 1.0)": 3,
       "a motor with no curve fetched: ThrustCurve.org had none by its name, or the fetch failed": 1,
-      "a motor with no curve whose file records no digest, so none is fetched": 20,
-      "a separation hpr doesn't fly": 1
+      "a motor with no curve whose file records no digest, so none is fetched": 2,
+      "a separation hpr doesn't fly": 1,
+      "an ignition hpr doesn't fly": 1,
+      "the airframe not read as written": 1
     }
   },
   "sources": {
@@ -32,9 +34,11 @@
       "no_configuration": 10,
       "configurations": 25,
       "flies": 5,
-      "flies_with_flag": 0,
+      "flies_with_flag": 16,
       "refused": {
-        "a motor with no curve whose file records no digest, so none is fetched": 20
+        "a motor with no curve whose file records no digest, so none is fetched": 2,
+        "an ignition hpr doesn't fly": 1,
+        "the airframe not read as written": 1
       }
     },
     "refs/hpr-sim-fixtures/imported/loft-fixtures": {

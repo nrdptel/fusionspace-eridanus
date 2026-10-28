@@ -279,7 +279,7 @@ Configurations OpenRocket flew that hpr does not fly yet:
 
 | design | motors | why |
 |---|---|---|
-| demo-payload-separation | [None; F50T-8] | the design's only configuration, which OpenRocket gave a new id: a motor with no curve |
+| demo-payload-separation | [None; F50T-8] | a curve found by name, which OpenRocket may not fly |
 | Simulation extensions | [2800CC172L-L540-P] | a motor with no curve |
 | Simulation scripting | [2800CC172L-L540-P] | a motor with no curve |
 
