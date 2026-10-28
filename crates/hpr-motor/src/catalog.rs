@@ -1764,6 +1764,81 @@ mod tests {
     /// ADR-298 §5: the default is the first ranked file that is bundled. A passing file listed
     /// after a failing one flies; a passing file that isn't bundled is passed over for a failing
     /// one that is, and a motor with no bundled file has no default.
+    /// ADR-298 §5's default on the whole catalog: every motor with a bundled file has a default,
+    /// and it passes the 1% check wherever one of its files does (M5.7b2).
+    #[test]
+    fn every_motor_s_default_passes_where_one_of_its_files_does() {
+        let catalog = bundled();
+        let mut passing = 0;
+        for motor in &catalog.motors {
+            let default = motor.default_curve();
+            assert_eq!(
+                default.is_some(),
+                !motor.curves.is_empty(),
+                "{}",
+                motor.designation
+            );
+            if motor.curves.iter().any(|c| c.check.passes) {
+                passing += 1;
+                assert!(
+                    default.is_some_and(|c| c.check.passes),
+                    "{}",
+                    motor.designation
+                );
+            }
+        }
+        assert_eq!(passing, 239);
+    }
+
+    /// A `.ork` motor's digest picks the file OpenRocket's curve maps to, ahead of the default,
+    /// only when that file is one of the motor's own (ADR-288 §3, ADR-302 §4).
+    #[test]
+    fn a_digest_takes_its_own_file_first() {
+        let catalog = bundled();
+        let table: serde_json::Value =
+            serde_json::from_str(include_str!("../data/openrocket-curves.json")).unwrap();
+        // Every digest in the table whose file belongs to a motor with another default.
+        let mut moved = 0;
+        for entry in table["files"].as_array().unwrap() {
+            let digest = entry["digest"].as_str().unwrap();
+            let mapped = crate::openrocket_curves::file_for(digest).unwrap();
+            let Some(motor) = catalog
+                .motors
+                .iter()
+                .find(|m| m.curves.iter().any(|c| c.simfile_id == mapped))
+            else {
+                continue;
+            };
+            let default = &motor.default_curve().unwrap().simfile_id;
+            let picked = |digest| motor.curve_for_digest(digest).map(|(c, _)| &c.simfile_id);
+            assert_eq!(picked(Some(digest)), Some(&mapped), "{digest}");
+            assert_eq!(picked(None), Some(default));
+            assert_eq!(
+                picked(Some("00000000000000000000000000000000")),
+                Some(default)
+            );
+            if *default != mapped {
+                moved += 1;
+                // Another motor's digest leaves the default standing.
+                let other = table["files"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .filter_map(|e| e["digest"].as_str())
+                    .find(|d| {
+                        crate::openrocket_curves::file_for(d)
+                            .is_some_and(|f| motor.curves.iter().all(|c| c.simfile_id != f))
+                    })
+                    .unwrap();
+                assert_eq!(picked(Some(other)), Some(default));
+            }
+        }
+        assert!(
+            moved > 0,
+            "no digest in the table picks a file other than its default"
+        );
+    }
+
     #[test]
     fn the_default_file_passes_where_a_bundled_one_does() {
         let catalog = bundled();
