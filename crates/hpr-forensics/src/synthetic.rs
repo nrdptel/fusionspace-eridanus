@@ -31,7 +31,6 @@ pub mod designs;
 pub mod held;
 pub mod logger;
 pub mod noise;
-pub mod smoothed;
 pub mod truth;
 
 use std::collections::BTreeMap;
@@ -176,10 +175,6 @@ enum Key {
     Gnss = 12,
     BaroSlow = 13,
 }
-
-/// The key of the stream the smoother's check draws its moment from ([`smoothed::moment_drawn`]):
-/// after every [`Key`], so no flight's other draws move.
-pub(crate) const SMOOTHER_MOMENT_KEY: u64 = 14;
 
 /// Flight `index`'s stream for `key`.
 fn stream(seed: u64, index: u64, key: Key) -> SeededRng {

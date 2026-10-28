@@ -157,7 +157,6 @@ pub mod rrc3;
 pub mod rrc3_rff;
 pub mod rtx;
 pub mod sillygoose;
-pub mod smoother;
 mod table;
 pub mod teensy;
 pub mod workbook;
