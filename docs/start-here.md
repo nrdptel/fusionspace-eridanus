@@ -214,9 +214,9 @@ the log can't support it ([Flight-log readings](physics/log-readings.md)). The s
 are 2,200 simulated flights, each with its logger's log and its known truth
 ([Synthetic flights](physics/synthetic-flights.md)). The library's smoother fuses a log's
 barometer, accelerometer and GNSS receiver into the height and vertical speed at every sample,
-each with a 90% interval. At four moments of each synthetic flight, the three sets' intervals
-hold between 94.3% and 99.4% of the truths, and two logger cells 89.2% and 89.7%, which the
-check allows.
+each with a 90% interval. At four moments of each synthetic flight with a barometer, the three
+sets' intervals hold between 94.3% and 99.4% of the truths, and two logger cells 89.2% and
+89.7%, which the check allows.
 Those sets were seen while its rules were set. It isn't yet checked against a real flight's
 ([The smoother](physics/smoother.md)).
 
