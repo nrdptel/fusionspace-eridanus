@@ -8,18 +8,18 @@
 
 **Context.** [ADR-282][adr-282] makes a milestone that changes what a user sees done on its own
 acceptance pass in its PR: each changed page captured at its real size and looked at for
-clipping before the merge. #983 merged first. The captures were taken afterwards, and on the
-smoother page the health card's long lines ran past their box, cut flush at its edge with no
+clipping before the merge. #983, the smoother's PR, merged first, and its captures were looked at
+after the merge. On the smoother page the health card's long lines ran past their box, cut flush at its edge with no
 sign in the light scheme that the box scrolls. #986 put the card in a wrapping block. The fix
 landed, but the milestone was merged before its pass.
 
-**Decision.** Revert #986 and #983 together, so the tree equals the commit before #983, and
+**Decision.** Revert #986 and #983 together, so the code equals the commit before #983, and
 re-apply both in one PR whose claims pass, page checks, full gate, reviews and captures all run
-before its merge. The re-land carries no change beyond the two PRs' content, except that their
-record of the smoother becomes ADR-300: this record, written in the revert that removes M7.2d
-from the done list, takes 299 so the numbers run without a gap. M7.2e's *done when* keeps the health card
+before its merge. The re-land carries no change beyond the two PRs' content, except that it
+records the smoother as ADR-300. This record takes 299, so the numbers run without a gap. M7.2e's *done when* keeps the health card
 that #983 added to it, as the re-land needs it.
 
 **Consequences.** For the time between the two merges, main has no smoother, and M7.2e's
-*done when* names a health card the code doesn't yet hold. The same precedent withdrew M0.14a in
-#826 and landed it again in #830.
+*done when* names a health card the code doesn't yet hold; the smoother's synthetic-flight
+results stay in #983 and come back with the re-land. The same remedy withdrew M0.14a, the
+maintainer's voice, in #826; it landed for good in #834.
