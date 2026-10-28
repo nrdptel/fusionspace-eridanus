@@ -2084,7 +2084,8 @@ refuses a design its checks find an error in, unless given `--accept-design-erro
 | Curves from | Configurations that fly | Counted by |
 |---|---:|---|
 | The file and HPR Sim's bundled catalog alone | 154 | `cargo xtask ork` |
-| Those, and ThrustCurve.org's, as `hpr sim` fetches them | 136 as saved; 161 with `--accept-design-errors` | `cargo xtask ork-cli` |
+| Those, and ThrustCurve.org's, as `hpr sim` fetches them | 136 | `cargo xtask ork-cli` |
+| Those, flown with `--accept-design-errors` | 161 | `cargo xtask ork-cli` |
 | Those, and OpenRocket's own motor database | 161 | `cargo xtask ork` |
 
 HPR Sim doesn't ship OpenRocket's database, so 136 is what a user of `hpr sim` gets, and 25 more fly
