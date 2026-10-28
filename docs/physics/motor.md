@@ -577,7 +577,7 @@ of the propellant mass, not a filter on propellant:
   gives 270 g of propellant, where ThrustCurve.org's record gives 569 g. The guard lets it
   through, so once the lookups move it would fly with 270 g unless
   [issue #1003](https://github.com/nrdptel/fusionspace-eridanus/issues/1003) is fixed first.
-- It is tightest at the floor: the lowest real value is 1.2x above it. Estes and Quest normally
+- It is tightest at the floor: in the earlier survey, the lowest real value is 1.2x above it. Estes and Quest normally
   count the delay grain and the ejection charge as propellant, so their small black-powder motors
   read low. [Issue #11](https://github.com/nrdptel/fusionspace-eridanus/issues/11) records the
   fallback if one ever falls below 200 m/s (656 ft/s).
