@@ -134,7 +134,7 @@
   },
   {
    "file": "gpx-1.1-phone-app.gpx",
-   "sha256": "a2824e7f3dd672c03ab5642bdeef2cae3190c397627fb265387b7ec43f46b254",
+   "sha256": "27ea4ee4497383a2a878b021d6529203907e6aca8d00232dce7f770f83b40664",
    "version": "1.1",
    "creator": "Invented Tracker App 2.3",
    "tracks": [
@@ -166,7 +166,7 @@
         "hdop": 0.8,
         "vdop": 1.2,
         "pdop": 1.4,
-        "geoidheight": -27.4,
+        "geoidheight": -27.38,
         "speed": null,
         "course": null
        },
@@ -180,7 +180,7 @@
         "hdop": 1.1,
         "vdop": 1.7,
         "pdop": 2.0,
-        "geoidheight": -27.4,
+        "geoidheight": -27.36,
         "speed": null,
         "course": null
        },
@@ -194,7 +194,7 @@
         "hdop": 1.4,
         "vdop": 2.3,
         "pdop": 2.7,
-        "geoidheight": -27.4,
+        "geoidheight": -27.34,
         "speed": null,
         "course": null
        },
@@ -208,7 +208,7 @@
         "hdop": 1.6,
         "vdop": 2.6,
         "pdop": 3.1,
-        "geoidheight": -27.4,
+        "geoidheight": -27.32,
         "speed": null,
         "course": null
        },
@@ -222,7 +222,7 @@
         "hdop": 1.5,
         "vdop": 2.4,
         "pdop": 2.8,
-        "geoidheight": -27.4,
+        "geoidheight": -27.3,
         "speed": null,
         "course": null
        },
@@ -236,7 +236,7 @@
         "hdop": 1.3,
         "vdop": 2.0,
         "pdop": 2.4,
-        "geoidheight": -27.4,
+        "geoidheight": -27.28,
         "speed": null,
         "course": null
        },
@@ -250,7 +250,7 @@
         "hdop": 1.1,
         "vdop": 1.7,
         "pdop": 2.0,
-        "geoidheight": -27.4,
+        "geoidheight": -27.26,
         "speed": null,
         "course": null
        },
@@ -264,7 +264,7 @@
         "hdop": 1.0,
         "vdop": 1.5,
         "pdop": 1.8,
-        "geoidheight": -27.4,
+        "geoidheight": -27.24,
         "speed": null,
         "course": null
        },
@@ -278,7 +278,7 @@
         "hdop": 0.9,
         "vdop": 1.3,
         "pdop": 1.6,
-        "geoidheight": -27.4,
+        "geoidheight": -27.22,
         "speed": null,
         "course": null
        },
@@ -292,7 +292,7 @@
         "hdop": 0.9,
         "vdop": 1.3,
         "pdop": 1.6,
-        "geoidheight": -27.4,
+        "geoidheight": -27.2,
         "speed": null,
         "course": null
        },
@@ -306,7 +306,7 @@
         "hdop": 0.8,
         "vdop": 1.2,
         "pdop": 1.4,
-        "geoidheight": -27.4,
+        "geoidheight": -27.18,
         "speed": null,
         "course": null
        },
@@ -334,7 +334,7 @@
         "hdop": 0.8,
         "vdop": 1.2,
         "pdop": 1.4,
-        "geoidheight": -27.4,
+        "geoidheight": -27.14,
         "speed": null,
         "course": null
        },
@@ -348,7 +348,7 @@
         "hdop": 0.9,
         "vdop": 1.3,
         "pdop": 1.6,
-        "geoidheight": -27.4,
+        "geoidheight": -27.12,
         "speed": null,
         "course": null
        },
@@ -362,7 +362,7 @@
         "hdop": 0.9,
         "vdop": 1.3,
         "pdop": 1.6,
-        "geoidheight": -27.4,
+        "geoidheight": -27.1,
         "speed": null,
         "course": null
        }

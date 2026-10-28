@@ -384,7 +384,7 @@ fn a_phone_apps_track_reads_with_its_places_kept_apart() {
     // a gap where the point leaves it out; the pad waypoint's is counted and not read.
     let geoid = &log.channels[7];
     assert_eq!(geoid.quantity, Quantity::Distance);
-    assert_eq!((geoid.values[0], geoid.values[15]), (-27.4, -27.4));
+    assert_eq!((geoid.values[0], geoid.values[15]), (-27.4, -27.1));
     assert!(geoid.values[12].is_nan());
     assert_eq!(geoid.values.iter().filter(|v| v.is_nan()).count(), 1);
     let names: Vec<&str> = log.stated.figures.iter().map(|f| f.name.as_str()).collect();

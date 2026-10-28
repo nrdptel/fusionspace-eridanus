@@ -2701,15 +2701,15 @@ from those documents.
 > only on three invented files, against gpxpy 1.6.2, an outside GPX reader ([evidence row
 > G1](../evidence.md#g1)). All 212 values of their tracks' channels and all 12 figures of their
 > waypoints and route points match gpxpy's as the same 64-bit numbers. A rocket flight's GPX with
-> its barometric log would show what its elevation is measured from. Offer one in [issue
+> its barometric log would show what `ele` is measured from. Offer one in [issue
 > #654](https://github.com/nrdptel/fusionspace-eridanus/issues/654).
 
 **The check.** The test is `every_value_of_the_samples_equals_gpxpys` in
 `crates/hpr-flightdata/tests/gpx.rs`. The gpxpy reading is written by
-`validation/oracles/gpx/gpxpy_read.py`. The check reads a time with no zone as UTC, as the reader
-does. The samples hold only what both readers read alike. gpxpy also reads a number with an
-exponent, a point off the globe and a time that goes back, which this reader refuses. It cuts a
-time to the microsecond and refuses an `ele` of spaces only, which this reader reads as a gap.
+`validation/oracles/gpx/gpxpy_read.py`. The samples hold only what both readers read alike. gpxpy
+reads a number with an exponent, a point off the globe and a time that goes back, which this
+reader refuses. gpxpy cuts a time to the microsecond and refuses an `ele` of spaces only, which
+this reader reads as a gap.
 
 - *Tracks.* A file holds tracks (`trk`), each of segments (`trkseg`), each of points (`trkpt`).
   A receiver starts a new segment where it lost reception or was turned off. Each segment is
@@ -2723,15 +2723,19 @@ time to the microsecond and refuses an `ele` of spaces only, which this reader r
   `<ele/>`, is a gap. The rest, such as `fix` and an app's own `extensions`, is counted in a
   note and not read.
 - *Elevation.* GPX gives `ele` in meters but no [vertical datum](../glossary.md#vertical-datum).
-  So it is read as an altitude of unstated zero: only its rise between points means what it
+  It is read as an altitude of unstated zero: only its rise between points means what it
   says. A receiver's [NMEA GGA](https://gpsd.gitlab.io/gpsd/NMEA.html) altitude is above mean
-  sea level. Android's location API gives the height above the WGS84 ellipsoid, Apple's the
-  height above sea level, and a handheld with a barometer may write the barometer's. A track
-  point's `geoidheight`, the geoid's height above that ellipsoid, is read as a channel, such as
-  `Flight 7 geoid height`. It doesn't say which `ele` is: [GPSLogger](https://gpslogger.app/),
-  the most common writer of it found, writes the ellipsoid's height unless set to sea level.
-  Either way the offset moves the pad's elevation, not the height above the pad. One Eggfinder
-  track saved as GPX most likely holds sea level ([a research
+  sea level. [Android's](https://developer.android.com/reference/android/location/Location#getAltitude())
+  location API gives the [ellipsoidal height](../glossary.md#ellipsoidal-height),
+  [Apple's](https://developer.apple.com/documentation/corelocation/cllocation/altitude) the height
+  above sea level. That offset barely changes over a flight: it moves the pad's elevation, not
+  the height above the pad. A handheld may write its barometer's, whose error grows with
+  height. A track point's `geoidheight`, the geoid's height above the ellipsoid, is
+  read as a channel, `<name> geoid height`. It doesn't say which `ele` is:
+  [GPSLogger](https://gpslogger.app/#whyisthealtitudevaluemissing), which wrote 7 of 10 such files
+  opened on GitHub, writes the ellipsoidal height unless set to sea level
+  ([#645](https://github.com/nrdptel/fusionspace-eridanus/issues/645)). One Eggfinder track saved
+  as GPX most likely holds sea level, with moderate confidence ([a research
   note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/forum-eggfinder-gpx-vs-baro.md);
   [evidence row G1](../evidence.md#g1)).
 - *Times.* GPX times are in UTC, as GPX 1.1's schema and GPX 1.0's manual require. A time with
@@ -2739,15 +2743,16 @@ time to the microsecond and refuses an `ele` of spaces only, which this reader r
   note. A second written 60, a leap second's, is read as the next minute's first. The record's
   zero is the first time the file gives a track point (or, with none, a waypoint or route
   point). A point with no time keeps its place with its time a gap. A time that goes back
-  within a track is refused, as such a track isn't one recording. Two tracks may run in any order, as a file holding two flights does.
+  within a track is refused, as such a track isn't one recording. Two tracks may run in any
+  order, as a file holding two flights does.
 - *Waypoints and routes.* A waypoint (`wpt`) marks a place, such as the pad, and a route (`rte`)
   plans a path. Neither was flown. They are kept apart from the tracks, as figures the file
   states, such as `waypoint Pad latitude`. So no reading takes them for the flight.
 - *Refused.* A document type declaration is refused, and so is a reference to an entity XML
-  doesn't define, such as `&rocket;`, so no entity (XML's named text, which a hostile file can
-  nest) can expand. A point off the globe is refused, with a latitude outside −90° to 90° or a
-  longitude outside −180° to 180°. So is a value that isn't a plain decimal number, such as
-  `1e3`. Each refusal names what it found and its line.
+  doesn't define, such as `&rocket;`, so no entity, XML's named text, can expand. A point off
+  the globe is refused, with a latitude outside −90° to 90° or a longitude outside −180° to
+  180°. So is a value that isn't a plain decimal number, such as `1e3`, and a time that goes
+  back. Each refusal names what it found and its line.
 - *Limits.* At most 256 segments, 1,000,000 track points and 10,000 waypoints and route points
   are read. The rest are counted in a note and left out.
 

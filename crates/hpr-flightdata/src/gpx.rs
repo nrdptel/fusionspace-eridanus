@@ -29,8 +29,7 @@
 //! ellipsoid, but it doesn't say so of `ele`, nor does the manual, and neither says whether a
 //! writer's elevation is above that ellipsoid, above mean sea level or from a barometer. A point's
 //! `geoidheight` is the geoid's height above the WGS84 ellipsoid, "as defined in NMEA GGA
-//! message". Its
-//! `time` is an XML Schema `dateTime`, and "Date and time in are in Univeral \[sic\] Coordinated
+//! message". A point's `time` is an XML Schema `dateTime`, and "Date and time in are in Univeral \[sic\] Coordinated
 //! Time (UTC), not local time!" `sat` is the "Number of satellites used to calculate the GPX fix",
 //! `hdop`, `vdop` and `pdop` its dilutions of precision, and a `fix` of "none means GPS had no
 //! fix". In GPX 1.0 a track point may also hold `course`, in "degrees, true", and `speed`, in
@@ -70,13 +69,16 @@
 //! M10 interface description, UBX-21035062 R03, GGA `alt`, "Altitude above mean sea level").
 //! Phones differ: Android's `Location.getAltitude()` is above the WGS84 ellipsoid, iOS's
 //! `CLLocation.altitude` above mean sea level, and a handheld with a barometer may write the
-//! barometer's altitude. GPSLogger for Android, the program that wrote 7 of 10 GPX files with
-//! `geoidheight` found on GitHub, writes the ellipsoid's height unless its sea-level option is on,
-//! which subtracts `geoidheight` (its FAQ, gpslogger.app). The rocketry trackers checked export
-//! KML, CSV or NMEA, not GPX, and their manuals that state a datum say mean sea level. One
-//! Eggfinder track saved as GPX by MapSphere reads 6.7 to 7.4 m below the pad's terrain height
-//! as a sea-level height and 26 m above it as an ellipsoid's, so it most likely holds the GGA
-//! altitude ([a research note][eggfinder]). So `geoidheight` doesn't settle `ele`'s datum, and
+//! barometer's altitude. GPSLogger for Android wrote 7 of 10 GPX files with `geoidheight` opened
+//! on GitHub. Its sea-level option "subtracts the geoidheight from the reported altitude" (its
+//! FAQ, gpslogger.app), so with the option off it writes Android's ellipsoidal height; in four
+//! such files on clear terms, `ele` sits above SRTM's ground heights by about their
+//! `geoidheight` (issue #645, 2026-10-20). The rocketry trackers checked export KML, CSV or NMEA,
+//! not GPX, and their manuals that state a datum say mean sea level (Missile Works' RTx/GPS
+//! manual, firmware 1.31; Featherweight's Swift manual, 2026-04-10). One Eggfinder track saved as
+//! GPX by MapSphere reads 6.7 to 7.4 m below the pad's terrain height as a sea-level height and
+//! 26 m above it as an ellipsoid's, so it most likely holds the GGA altitude, with moderate
+//! confidence ([a research note][eggfinder]). So `geoidheight` doesn't settle `ele`'s datum, and
 //! the reader's note says which writer does what. Either datum is off by an offset that barely
 //! changes over one flight: it moves the pad's elevation, not the height above the pad. A
 //! barometric `ele` would differ by an amount that grows with height.
