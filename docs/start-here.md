@@ -427,7 +427,7 @@ These are left out of a flight, or approximated:
   file's curves and the bundled catalog, 154 of the 170 motor configurations of the reference
   library and OpenRocket's examples have the curves they need. `hpr sim` looks for a missing curve
   on ThrustCurve.org and keeps what it finds. After that one fetch, 136 of the 170 fly as saved,
-  25 more with `--accept-design-errors` (a design check refuses them as saved), and 9 are refused
+  25 more with `--accept-design-errors`, and 9 are refused
   ([how many fly](format/ork.md#how-many-configurations-hpr-sim-flies)). Its parachutes and streamers fly as OpenRocket
   flies them ([Recovery](physics/recovery.md#from-an-openrocket-file)). `hpr sim --motor` flies
   one with a motor you give ([The command line](cli.md#hpr-sim)).

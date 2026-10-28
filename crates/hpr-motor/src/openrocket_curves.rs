@@ -6,7 +6,10 @@
 //!
 //! The table, `data/openrocket-curves.json`, is written by `cargo xtask ork-curves`. It covers
 //! the motors of OpenRocket 24.12's examples, each matched by comparing OpenRocket's curve with
-//! every file's; it holds ids alone, no curve. A digest it lacks is fetched by ADR-154's rule.
+//! every file's; it holds ids alone, no curve. A motor whose digest it lacks takes the bundled
+//! catalog's default file, or is fetched by name
+//! ([ADR-154](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0154-motors-fetched-from-thrustcurve-by-name.md),
+//! fetching a motor from ThrustCurve.org by its name).
 
 use std::sync::OnceLock;
 
