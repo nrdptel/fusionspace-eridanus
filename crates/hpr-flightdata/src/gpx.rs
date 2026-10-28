@@ -71,9 +71,9 @@
 //! `CLLocation.altitude` above mean sea level, and a handheld with a barometer may write the
 //! barometer's altitude. GPSLogger for Android wrote 7 of 10 GPX files with `geoidheight` opened
 //! on GitHub. Its sea-level option "subtracts the geoidheight from the reported altitude" (its
-//! FAQ, gpslogger.app), so with the option off it writes Android's ellipsoidal height; in four
+//! FAQ, gpslogger.app), so with the option off it writes Android's ellipsoidal height; in three
 //! such files on clear terms, `ele` sits above SRTM's ground heights by about their
-//! `geoidheight` (issue #645, 2026-10-20). The rocketry trackers checked export KML, CSV or NMEA,
+//! `geoidheight`, and a fourth's is too small to tell (issue #645, 2026-10-20). The rocketry trackers checked export KML, CSV or NMEA,
 //! not GPX, and their manuals that state a datum say mean sea level (Missile Works' RTx/GPS
 //! manual, firmware 1.31; Featherweight's Swift manual, 2026-04-10). One Eggfinder track saved as
 //! GPX by MapSphere reads 6.7 to 7.4 m below the pad's terrain height as a sea-level height and
