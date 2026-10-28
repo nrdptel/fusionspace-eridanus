@@ -108,8 +108,8 @@ adds a source.
   glyph, outlines unchanged, and is renamed *NewCM Math Subset*, as the license asks of a changed
   font; the font's own name table says what changed and where the original is.
 
-- **ThrustCurve.org's solid motor catalog** (`crates/hpr-motor/data/thrustcurve/`, compiled into
-  `hpr-motor`), as [ADR-288](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md)
+- **ThrustCurve.org's solid motor catalog** (committed under `crates/hpr-motor/data/thrustcurve/`,
+  the index and the curve files compiled into `hpr-motor`), as [ADR-288](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md)
   takes it in, from a snapshot of ThrustCurve.org's API taken 2026-10-28 by
   `validation/oracles/thrustcurve/snapshot.py`
   ([ADR-301](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0301-the-whole-catalog-in-two-increments.md)):
@@ -131,7 +131,8 @@ adds a source.
     average and peak thrust and burn time are its default file's own, worked out from its header
     and curve (issue #295); each file's 1% check against its record is stored with it
     ([ADR-298](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0298-every-solid-motor-in-four-increments.md)).
-    By hand, the index records only provenance: each file's URLs, download date and SHA-256.
+    The index holds nothing by hand: each file's URLs and download date come from the file list
+    and the snapshot, and its SHA-256 is computed.
   - `catalog-m57a.json`: the earlier index of 32 public-domain files, from the 2026-09-17 capture
     `validation/refs.lock.toml` pins (`thrustcurve-motors`), which the lookups use until the whole
     catalog replaces it.

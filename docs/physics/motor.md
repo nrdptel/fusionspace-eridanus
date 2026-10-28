@@ -171,15 +171,15 @@ October 28, 2026: the record of every single-use and reload motor, 1,004 of them
 not, and 1,701 of the 1,706 files listed for them. In code, `Catalog::whole()` returns it. The
 lookups (`hpr motors`, `hpr sim --motor` and a design's motor) still use only the 32. Moving them
 to the whole catalog is the next step,
-[M5.7b2 on the roadmap](../decisions-and-roadmap.md#m5-7).
+[M5.7b2 on the roadmap](../decisions-and-roadmap.md#m5-7b2).
 
 - Each motor's names and stated figures are its record's, unchanged. Its listed figures are its
   default file's own, as for the 32. The 80 motors with no file that reads list their record's
   figures, and can't fly.
 - Each file is stored with its 1% check, passing or not. 412 files pass, and 239 motors have
   one that does.
-- 589 files are public domain, 33 free to use, and 1,079 carry no license; none is marked
-  restricted. The [third-party notices](https://github.com/nrdptel/fusionspace-eridanus/blob/main/THIRD-PARTY-NOTICES.md)
+- Of the 1,701 indexed files, 589 are public domain, 33 free to use, and 1,079 carry no
+  license; none is marked restricted. The [third-party notices](https://github.com/nrdptel/fusionspace-eridanus/blob/main/THIRD-PARTY-NOTICES.md)
   say how each is used.
 - Five files are left out, each listed in the index with its reason. Two are RockSim files whose
   times run backwards. Two are reload files whose header gives 75 mm (3.0 in) for a 54 mm case

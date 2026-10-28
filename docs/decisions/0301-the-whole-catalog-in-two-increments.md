@@ -90,7 +90,8 @@ about 40 of the command-line tests failed. The causes are separate pieces of wor
 **Consequences.**
 
 - No flight, report or command output changes in M5.7b1; `hpr` still flies 32 motors by name.
-- The crate grows by about 4 MB of data. ADR-288 accepted the size; M5.7d's page will give it from
+- The compiled-in data grows by about 4 MB (the index and the curve files); `records.json` and
+  `files.json` add 1.5 MB more to the repository, read only by the index writer and tests. ADR-288 accepted the size; M5.7d's page will give it from
   the tool.
 - `validation/oracles/thrustcurve/bundle.py`, which fetched the 32 files, is gone; `snapshot.py`
   takes its place.
