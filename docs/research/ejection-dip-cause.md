@@ -18,10 +18,11 @@ Read 2026-10-28; no GPL code opened. **Inference** marks this note's own reasoni
 - **The firing current doesn't predict a dip.** The seven firings whose battery reading sagged most (2.4 to 9.2 V)
   dipped below −16 m twice; 12 of the 24 that sagged 1.9 V or less did. A supply that merely scales the sensor's
   reading can move it about ±21 to 24 m at most (the MS5611's ±2.5 mbar supply error), far short of −300 m.
-- **What dips is the first charge into a closed airframe.** Undelayed drogue charges: 7 of 10 below −16 m (−22 to
-  −1,503 m, 95% interval 35% to 93%). Backups 1 to 2 s later, into an airframe already open (**Inference**): 0 of 6
-  (0 to −4.3 m, at most 46%). Mains: 7 of 15 (−23 to −100 m), and in the two flights whose mains fire 0.15 s apart,
-  each dip shows only in the unit that fired. The mains stay unexplained.
+- **What dips is the first charge into a closed airframe.** Undelayed drogue charges: 7 of 10 below −16
+  m (−22 to −1,503 m, 95% interval 35% to 93%). Backups 1 to 2 s later, into an airframe already open
+  (**Inference**): 0 of 6 (0 to −4.3 m, at most 46%). Mains: 7 of 15 (−23 to −100 m), and in the two
+  flights whose mains fire 0.15 s apart, each dip shows only in the unit that fired. The mains stay
+  unexplained.
 - **The synthetic pulse is too shallow, and belongs to the bay.** `PULSE_M` dips −8 m then rises +16 m, scaled
   by a per-logger draw of 0 to 2 at every charge: at most −16 m (about 0.2 kPa), the bottom of the real
   first-charge range. Real first-charge dips are deeper, one or two samples, and shared by the bay.
@@ -42,7 +43,7 @@ median, below −16 m; the step in pressure uses the US Standard Atmosphere at t
 | `und23_..._NSLI_Launch_NASAFLIGHT` | −114 m, 2, −0.2 V | −227 m, 2, +0.09 s | 0.0 V | 1.16 / 2.32 |
 | `und24_Full_Scale_Launch_1` | −317 m, 2, −0.4 V | −325 m, 2, +0.11 s | 0.0 V | 3.31 / 3.38 |
 | `und24_..._PDF` | none (V to 0.00) | none | 0.0 V | none |
-| same five, secondary's drogue +1 s | 0 to −4.3 m; ΔV to −2.6 V (`PDF` −7.7 V) | −0.3 to −4.3 m | ≤ 0.1 V | ≤ 0.04 |
+| five, secondary's drogue, +1 s | to −4.3 m; ΔV to −2.6 V (`PDF` −7.7) | to −4.3 m | ≤ 0.1 V | ≤ 0.04 |
 
 - In `und24_Full_Scale_Launch_1` the three samples after firing read −44, −1,041 and −127 ft (primary) and −40,
   −1,066 and −134 ft (secondary), each against its own baseline; both recover within 0.20 s. Whatever the firing
