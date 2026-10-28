@@ -125,8 +125,9 @@ Placed by [ADR-196, the product guides][adr-196]; research in [product guides](p
   install (HPR Sim's bundle, [M5.7][m5-7]; OpenRocket 24.12's jar; RocketPy's documentation) and,
   of those, the curves whose total impulse misses the published figure by more than 1% with no
   warning ([ADR-005][adr-005]'s check). Moves: new rows `motors.offline` and `motors.unchecked`;
-  hpr bundled 32 curves then and flies 924 offline since M5.7b2 ([the bundle][motor-page]) against 1,452 entries recorded from
-  OpenRocket's database ([its defects note](openrocket-apogee-defects.md)). *Done when:* hpr's
+  hpr bundled 32 curves then and flies 924 offline since M5.7b2 ([the bundle][motor-page])
+  against 1,452 entries recorded from OpenRocket's database ([its defects
+  note](openrocket-apogee-defects.md)), 528 short. *Done when:* hpr's
   counts come from the bundle's committed manifest and OpenRocket's from a committed record naming
   the jar's hash; hpr's offline count is at least OpenRocket's; a check fails when hpr's falls.
 

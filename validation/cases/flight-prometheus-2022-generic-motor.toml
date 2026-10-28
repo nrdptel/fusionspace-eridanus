@@ -19,9 +19,10 @@
 # drifts as horizontal distances from where the dry centre of mass started.
 #
 # Every scored metric is held to the milestone's 3%, with no absolute floor, the speeds to 0.2%
-# (ADR-289) and the rail-exit time to 0.5% (ADR-294). The 3% is the milestone's bar, not a model
-# bound: most metrics agree far inside it. The differences that remain have these sources, measured
-# where stated:
+# (ADR-289) and the rail-exit time to 0.5% (ADR-294), and the largest Mach number and the largest
+# acceleration under power to 1% (ADR-303). The 3% is the milestone's bar, not a model bound: most
+# metrics agree far inside it. The differences that remain have these sources, measured where
+# stated:
 #
 # - The rail. hpr's rail equation keeps the variable-mass terms (the centre of mass moving inside
 #   the body as propellant burns), which RocketPy's `udot_rail1` leaves out. At a sharp ignition

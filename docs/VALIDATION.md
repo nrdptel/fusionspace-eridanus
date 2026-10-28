@@ -350,7 +350,8 @@ Some gates are tighter ([the decision that tightened them](https://github.com/nr
   whole flight's where it is scored, 1% in the seven flights that aren't Bella Lui's; Bella Lui's
   keep 3% for the rail's variable-mass terms at its ignition spike (+1.78%)
   ([ADR-303](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0303-the-2026-10-28-review-the-rocketpy-peaks-tightened.md);
-  largest differences −0.235% and +0.248%).
+  largest differences −0.235% in Mach number, Prometheus 2022's, and +0.248% in acceleration,
+  Valetudo's).
 - The apogee of the six flights with no written model difference: 0.5%. Juno III, Bella Lui and
   Prometheus 2022 in wind keep 3%, for the model differences their case files measure (the rail
   release and body lift; Juno III's thin-plate fins too).

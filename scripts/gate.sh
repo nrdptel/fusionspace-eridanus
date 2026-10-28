@@ -11,8 +11,8 @@
 #   scripts/gate.sh clippy test     # just these steps
 #   GATE_TAIL=80 scripts/gate.sh    # show more of each failure (default 40 lines)
 #
-# Steps: fmt clippy test doc wasm validate deny site examples evidence, and pages and refs when they
-# apply.
+# Steps: fmt clippy test doc wasm validate deny site examples evidence, and pages, refs, ego and
+# python when they apply.
 # The test step runs the tests with cargo-nextest, each test its own process, in parallel, then the
 # doctests with `cargo test --doc` (nextest doesn't run doctests); together they run what
 # `cargo test` runs in about half the time (146 s against 296 to 309 s, single runs on 2026-10-04,
@@ -56,10 +56,12 @@
 # fetched), for a change to the schema or the generator in xtask/src/format_types.rs.
 # Extra step: python (CI's `python` job: the Python package's wheel built by maturin and its pytest
 # suite run on CPython 3.10 and 3.13, fetched by uv; about 20 s once fetched, more for a fresh
-# release build). It joins any run that tests when the branch changes what the suite reads: a
-# crate (crates/, the wrapped library's messages included), Cargo.lock, a validation case or
-# report (test_calisto.py holds each Calisto metric to its case's bound), or docs/python.md (whose
-# shown outputs test_docs.py compares with a run). Before it joined, CI's python job failed in 7
+# release build). It joins any run with `test` or `docs` when the branch changes what the suite
+# reads: a crate (crates/, the wrapped library's messages included), Cargo.lock, the toolchain,
+# anything under validation/ (cases and reports: test_calisto.py holds each Calisto metric to its
+# case's bound; designs, .ork fixtures and logs the tests load), scripts/python-tests.sh, or a page
+# under docs/ whose Python examples or shown outputs test_docs.py runs (docs/python.md and every
+# page with a `<!-- python: example -->` block). Before it joined, CI's python job failed in 7
 # of the 71 failed CI runs from 2026-10-14 to 10-28, the gate never having run it (#919).
 # GATE_PYTHON=0 leaves it out.
 # The commands are CI's own (.github/workflows/ci.yml), `--locked` included, so a Cargo.lock that
@@ -107,9 +109,15 @@ touches_pages() {
 touches_python() {
   local base changed
   base=$(git merge-base HEAD origin/main 2>/dev/null) || return 2
-  changed=$( { git diff --name-only "$base"; git diff --name-only; git diff --name-only --cached; } 2>/dev/null)
-  grep -qE '^crates/|^Cargo\.lock$|^validation/cases/|^validation/reports/|^docs/python\.md$' \
+  changed=$( { git diff --name-only "$base"; git diff --name-only; git diff --name-only --cached
+    git ls-files --others --exclude-standard; } 2>/dev/null)
+  grep -qE '^crates/|^Cargo\.lock$|^rust-toolchain\.toml$|^validation/|^scripts/python-tests\.sh$|^docs/python\.md$' \
     <<<"$changed" && return 0
+  # A page under docs/ with a marked Python example, which test_docs.py runs.
+  local page
+  while IFS= read -r page; do
+    [ -f "$page" ] && grep -qF '<!-- python: example -->' "$page" && return 0
+  done < <(grep -E '^docs/.*\.md$' <<<"$changed")
   return 1
 }
 
@@ -182,10 +190,10 @@ case " $STEPS " in
       echo "SKIP ego: no origin/main to tell whether EGO changed (git fetch origin)"
     fi ;;
 esac
-# The Python suite joins any run that tests, when what it reads changed.
+# The Python suite joins any run that tests or checks the docs, when what it reads changed.
 case " $STEPS " in
   *" python "*) ;;
-  *" test "*)
+  *" test "*|*" docs "*)
     touches_python; python=$?
     if [ "$python" -eq 0 ]; then
       if [ "${GATE_PYTHON:-1}" = 0 ]; then

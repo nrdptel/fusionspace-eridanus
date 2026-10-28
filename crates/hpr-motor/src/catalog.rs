@@ -650,7 +650,7 @@ fn maker_key(text: &str) -> String {
 
 /// Whether `normalize(name)` is `key`, without building it: a lookup compares every motor's two
 /// names, and `hpr motors list` looks each listed motor's selector up, so building them made the
-/// listing quadratic in allocations (51.7 ms for 1,004 motors; 12.6 ms without).
+/// listing quadratic in allocations (51.7 ms for 1,004 motors; 12.5 ms without).
 fn normalized_is(name: &str, key: &str) -> bool {
     name.chars()
         .filter(|c| !c.is_whitespace() && *c != '-')

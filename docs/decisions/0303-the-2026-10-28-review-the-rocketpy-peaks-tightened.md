@@ -22,9 +22,10 @@ acceleration, the largest Mach number, the drifts and the flight time at the mil
 Both codes fly RocketPy's standard atmosphere, as each case file declares, and the top speeds
 already agree within 0.2% (ADR-289's bound; 0.051% measured), so a Mach gap is a speed-of-sound
 gap: 1% still allows about 6 K between two copies of one atmosphere. Both codes fly the same thrust
-curve, masses and drag, so the peak thrust over mass should match as closely as the burnout speed
-does. HPR Sim reads the largest Mach number lower in 8 of the 9 flights, by up to 0.235%: a
-two-sided 1% bound limits that offset rather than hiding it, and its cause is left to trace.
+curve, masses and drag, so away from the rail's ignition spike the peak thrust over mass should
+match as closely as the burnout speed does. HPR Sim reads the largest Mach number lower in 8 of the 9 flights, by up to 0.235%: a
+two-sided 1% bound limits that offset rather than hiding it, and its cause is left to trace
+([#1019](https://github.com/nrdptel/fusionspace-eridanus/issues/1019)).
 
 Bella Lui's two flights differ by +1.778% (calm) and +1.783% (wind) in their accelerations: the
 rail's variable-mass terms at its ignition spike, which its case file measures. They keep 3%.
@@ -42,7 +43,8 @@ rail's variable-mass terms at its ignition spike, which its case file measures. 
    them (9, 7 and 5): a file widened back, given a floor or marked not scored, or a new same-drag
    case added at the old bound, fails. Two mutation probes fail as they should: Valetudo's powered
    peak set back to 3% fails the test, and the measured Mach number scaled by 0.989 fails
-   `cargo xtask validate --check`.
+   `cargo xtask validate --check` (any change to the report would; the scaling also puts
+   Prometheus 2022's row at about −1.3%, outside 1% and inside the old 3%).
 4. Kept at 3%, with reasons. The drifts in wind: the four descents' total and east drifts are
    within 0.276% (NDRT 2020's), but NDRT 2020's north drift is +2.865%, the whole flights' scored
    landing drifts reach −1.811% (Valetudo), and NDRT 2020's descent time differs by 0.705% with no
@@ -50,13 +52,16 @@ rail's variable-mass terms at its ignition spike, which its case file measures. 
    rate (−0.700%), 2.8 times inside 2%, and the flight time (0.830%) are under three times inside
    any tighter round bound.
 
-**What could go wrong.** On Calisto, RocketPy's two acceleration peaks are 0.9% apart, and the
-rail's variable-mass terms make HPR Sim's ignition spike its largest, so the two codes' largest
-accelerations come from different moments that happen to agree within 0.11%. A change to the motor curve that made the spike the
-larger by more than 1% would fail the bound for a modelled reason. ADR-294 §4 already says what to
+**What could go wrong.** On Calisto, RocketPy's two acceleration peaks are 0.97% apart, and the
+rail's variable-mass terms make HPR Sim's ignition spike its largest, 1.05% above RocketPy's at the
+same moment, so the two codes' largest accelerations come from different moments that happen to
+agree within 0.11%. A change to the motor curve that made the spike the larger by more than 1%
+would fail the bound for a modelled reason, and a drop of a few percent in HPR Sim's later peak
+would go unseen while the spike stays the largest. ADR-294 §4 already says what to
 do then: measure the cause, write it in the case file, and move that row back to 3% in this test,
 as Bella Lui's are.
 
 **Consequences.** The same-drag comparison notices a regression in the largest Mach number or the
-powered peak acceleration at a third of the old size. `docs/VALIDATION.md` lists the tighter
-gates. No measured value moved; the census accepts the 21 redefined rows.
+powered peak acceleration at a third of the old size, except a regression in Calisto's later peak,
+as above. [`docs/VALIDATION.md`](../VALIDATION.md) lists the tighter gates. No measured value moved;
+the census accepts the 21 redefined rows.

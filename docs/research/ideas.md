@@ -88,7 +88,7 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
 - LATER: live prices through `hpr-net`, cached and dated.
 - LATER: regional vendors (Klima, Wizard Rockets); parts that fit `.orc` offered upstream.
 
-## Earlier planning reviews (2026-10-08 to 2026-10-24)
+## Earlier planning reviews (2026-10-08 to 2026-10-26)
 
 PROMOTED: OpenRocket's newest release as the bar ([M2.3c3][m2-3c3], ADR-212), the gap to it by
 cause (M2.3c6, [ADR-226][adr-226]) with OpenRocket's supersonic ogive drag as its own cause
@@ -107,31 +107,32 @@ peak acceleration; no idea is promoted. The 2026-10-26 review's four moved to th
 
 - SOON: an export that survives OpenRocket's own save. User: a team that designs in HPR Sim and
   hands the `.ork` to a club member who opens, edits and saves it in OpenRocket, whose 24.12 save
-  can fail on a file whose simulations are stale (its issue 3412). Workflow: the export round trip
+  can fail on a file whose simulations are stale ([OpenRocket issue
+  3412](https://github.com/openrocket/openrocket/issues/3412)). Workflow: the export round trip
   ([ADR-286][adr-286]) adds a step: OpenRocket's jar, run as an outside oracle, saves each exported
-  design without flying it, and HPR Sim reads the saved file back. Moves: OpenRocket's
-  `interop.lost` and `interop.changed` cells, today measured only to OpenRocket's open (0.000050%
-  largest over 151 configurations). *Done when:* the round trip saves all 151 through OpenRocket
-  and counts the saves that fail or move an apogee by more than 0.002%, and a test holds one
-  design through the save step.
+  design without flying it, and HPR Sim reads the saved file back. Moves: the `interop.failed` and
+  `interop.changed` rows (0 of 151 today) and `interop.largest` (0.000050%), measured only to
+  OpenRocket's open. *Done when:* the round trip saves all 151 through OpenRocket and counts the
+  saves that fail or move an apogee by more than 0.002%, and a test holds one design through the
+  save step.
 - SOON: HPR Sim's own flight time, held. User: anyone flying thousands of runs (`hpr mc`, the
   optimizer) or waiting on the web app. Workflow: `speed.flight`'s HPR Sim cell reads a committed
   bench record (machine, commit, design, median of at least 6 alternated runs) rather than waiting
-  for [M2.9][m2-9]'s other cells. Moves: `speed.flight`, not measured today; the 2026-10-26 review
-  timed one Valetudo flight at 1.54 ms on one thread. *Done when:* the cell shows the record's
-  median with its machine, and the scoreboard's check fails when a new record is more than 10%
-  slower than the last on the same machine.
+  for [M2.9][m2-9]'s other cells. Moves: `speed.flight`, not measured today; [the speed
+  page](../perf.md) times a Valetudo flight at 1.65 ms on one thread. *Done when:* the cell shows
+  the record's median with its machine, and the scoreboard's check fails when a new record is more
+  than 10% slower than the last on the same machine.
 - SOON: the motor file's share of the collection's bias. User: a flyer filing for a waiver whose
   prediction rests on a curve file nobody checked. Workflow: the fixture report flies each logged
   flight of the collection again on its motor's bundled file that passes [ADR-005][adr-005]'s 1%
   check, where it has one (239 of 924 motors do), and prints each flight's apogee change and the
   mean. Moves: `bias.collection` (+8.73% for HPR Sim, +7.79% for OpenRocket) and
   `accuracy.collection` (12.95%, 12.02%), split by the files' share. *Done when:* the report gives
-  the count of flights re-flown and the mean signed change, aggregates only; a test pins one
-  public flight's swap; the scoreboard notes both figures beside the rows.
-- SOON: landings inside the predicted ellipse. User: a flyer at a field whose recovery area ends
-  at a road or a waiver boundary. Workflow: the fixture report compares each GPS-fixed landing in
-  the collection with `hpr mc`'s 90% landing ellipse for that flight's weather, with and without a
+  the count of flights re-flown and the mean signed change, aggregates only; a test pins one public
+  flight's swap; the scoreboard notes both figures beside the rows.
+- SOON: landings inside the predicted ellipse. User: a flyer at a field whose recovery area ends at
+  a road or a waiver boundary. Workflow: the fixture report compares each GPS-fixed landing in the
+  collection with `hpr mc`'s 90% landing ellipse for that flight's weather, with and without a
   canopy glide term ([the canopy glide note](hobby-canopy-glide-and-swing.md)). Moves: new row
   `landing.inside-90`, nearer 90% better; OpenRocket 24.12 has no landing ellipse (can't), RocketPy
   has one. *Done when:* the row gives HPR Sim's share over every GPS-fixed landing it can fly, with
