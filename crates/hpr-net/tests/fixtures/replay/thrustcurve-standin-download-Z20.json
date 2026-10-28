@@ -1,0 +1,14 @@
+{
+  "results": [
+    {
+      "motorId": "e000000000000000000000f4",
+      "simfileId": "f000000000000000000000c1",
+      "format": "RASP",
+      "source": "user",
+      "license": "PD",
+      "infoUrl": "/simfiles/f000000000000000000000c1/",
+      "dataUrl": "/simfiles/f000000000000000000000c1/download/data.eng",
+      "data": "OyBJbnZlbnRlZCBzdGFuZC1pbiBjdXJ2ZSAoQURSLTE1NCksIG5vIHJlYWwgbW90b3InczogaXRzIGhlYWRlciBnaXZlcyB0aGUgbWFzcyBhZnRlcgo7IGZpcmluZyBhcyB0aGUgcHJvcGVsbGFudCwgYXMgdHdvIEFNVyBOLW1vdG9yIGZpbGVzIGRvCloyMCAyOSAxMjQgUCAwLjEwMCAwLjIwMCBJbnZlbnRlZAowLjA1IDEwMC4wCjEuNSA5MC4wCjIuMCAwLjAK"
+    }
+  ]
+}

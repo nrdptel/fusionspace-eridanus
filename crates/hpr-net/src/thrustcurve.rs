@@ -402,6 +402,26 @@ impl Curve {
     }
 }
 
+impl Curve {
+    /// The first motor's propellant mass, kg, as the file's header gives it: a RASP entry's in
+    /// kilograms, a RockSim engine's `propWt` in grams; `None` when the file holds no motor.
+    #[must_use]
+    pub fn propellant_mass_kg(&self) -> Option<f64> {
+        match self {
+            Self::Rasp(parsed) => parsed
+                .value
+                .entries
+                .first()
+                .map(|entry| entry.propellant_mass_kg),
+            Self::RockSim(parsed) => parsed
+                .value
+                .engines
+                .first()
+                .map(|engine| engine.propellant_mass_g / 1000.0),
+        }
+    }
+}
+
 impl DataFile {
     /// The file's text: its data decoded from base64, as UTF-8.
     ///

@@ -1437,11 +1437,10 @@ its curve in the simulator's cache ([Where the cache lives](online-data.md#where
 is ThrustCurve's data, as its contributors uploaded it. The simulator checks that a file makes a
 motor it can fly, not that its curve is right.
 
-- **Before a trip.** For a `.ork`, run the command `hpr sim --offline` prints for it. It names
-  the motor's manufacturer as the file writes it (`hpr motors fetch --manufacturer AeroTech
-  H128W`). Or fly the design once with a network connection. Either fills the cache the design
-  reads offline. `hpr motors fetch H128W`, without `--manufacturer`, fills the cache for
-  `hpr sim --motor H128W` instead.
+- **Before a trip.** For a `.ork`, run the command `hpr sim --offline` prints for it, which names
+  the file's manufacturer (`hpr motors fetch --manufacturer AeroTech H128W`), or fly the design
+  once online. Without `--manufacturer`, `hpr motors fetch H128W` fills the cache for `hpr sim
+  --motor H128W` instead.
 - **Which motor.** `NAME` is a [designation](glossary.md#motor-designation) (`F27R/L`) or common
   name (`F27`), as ThrustCurve.org spells it. `--manufacturer` adds the maker, by name or
   abbreviation. ThrustCurve matches a designation exactly, any case. If no motor has it, the
@@ -1451,36 +1450,31 @@ motor it can fly, not that its curve is right.
 - **Which curve.** A motor can have several curve files. The simulator takes the first RASP
   (`.eng`) file that makes a motor it flies, ranked by who measured it. A certification test
   comes first, then the manufacturer, then a user, then a file that names no source. With none,
-  it takes a RockSim (`.rse`) file the same way.
+  it takes a RockSim (`.rse`) file the same way. A file over 5% short of the record's propellant
+  mass draws a `warning:` ([why](physics/motor.md#a-motor-from-a-file)).
 
-  `--file ID` takes the file of that ThrustCurve id first, when the motor has it and it reads.
-  The id is the one `hpr motors fetch` prints on its `curve file` line. An offline refusal's
-  command names it when the flight asks for a file. The output names the file, who measured it
-  and its license, as ThrustCurve states them. It also gives ThrustCurve's credit.
+  `--file ID` takes the file with that id, from `hpr motors fetch`'s `curve file` line, first,
+  when the motor has it and it reads. An offline refusal's command names it when the flight asks
+  for a file. The output names the file, who measured it,
+  its license and ThrustCurve's credit.
 - **OpenRocket's curve for a `.ork` motor.** ThrustCurve can hold several files of one motor with
   different curves. OpenRocket may fly another than the first by that order. The Estes A8's first
   certification file burns 0.536 s, and the one OpenRocket's examples fly burns 0.73 s.
 
   A `.ork` records which curve OpenRocket flies by a [digest](glossary.md#digest), a fingerprint
-  of the curve. So for the motors of OpenRocket's example designs, `hpr sim` keeps a table from
-  digest to the ThrustCurve file holding that curve. Its files are matched by comparing the
-  curves (`cargo xtask ork-curves`). `hpr sim` takes that file first, and the note on the motor says so.
+  of the curve. For the motors of OpenRocket's example designs, `hpr sim` keeps a table from
+  digest to the ThrustCurve file with that curve, matched by comparing curves (`cargo xtask
+  ork-curves`, as of October 4, 2026). It takes that file first, and the motor's note says so.
 
-  A motor outside the table flies the file by the order above. Its note says it may not be the
-  curve OpenRocket flies. An offline refusal's command then carries `--file`, so it fetches the
-  file the flight takes. Offline, if the cache holds only some of the motor's files, a file it
-  lacks is given up for the usual order's. The note then says the curve may not be OpenRocket's.
-  The table is as of October 4, 2026. If ThrustCurve's files change, `cargo xtask ork-curves`
-  rewrites it.
-- **Offline.** `--offline`, or `HPR_OFFLINE=1`, reads the cache alone, and a copy of any age
-  flies. With no copy, the command fails with exit status 1. Online, a copy stays fresh for a
-  day. After that the simulator asks again, and keeps the old copy if the network fails.
+  Another motor flies the file by the order above, and its note says it may not be OpenRocket's
+  curve. An offline refusal's command then carries `--file`. Offline, a file the cache lacks is
+  given up for the usual order's, with the same note.
+- **Offline.** `--offline`, or `HPR_OFFLINE=1`, reads the cache alone, a copy of any age; with
+  none, the command fails with exit status 1. Online, a copy a day old is fetched again, and kept
+  if the network fails.
 
-A fetch with a network connection printed this on October 4, 2026, pasted by hand, not run in CI.
-Its `help:` line is as the simulator writes it since
-[the CLI milestone](decisions-and-roadmap.md#m0-6b), which made each hint a `help:` line. Its
-case shows inches too, since [the units milestone](decisions-and-roadmap.md#m0-9c4) gave every
-readout US units:
+Printed online on October 4, 2026, pasted by hand (not run in CI), with today's `help:` prefix and
+inches:
 
 ```text
 $ hpr motors fetch F27R/L

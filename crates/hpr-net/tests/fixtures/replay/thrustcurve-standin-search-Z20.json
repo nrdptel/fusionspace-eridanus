@@ -1,0 +1,23 @@
+{
+  "criteria": [
+    {
+      "name": "designation",
+      "value": "Z20-INVENTED",
+      "matches": 1
+    }
+  ],
+  "matches": 1,
+  "results": [
+    {
+      "motorId": "e000000000000000000000f4",
+      "manufacturer": "Invented Motors",
+      "designation": "Z20-INVENTED",
+      "commonName": "Z20",
+      "impulseClass": "G",
+      "type": "SU",
+      "totalWeightG": 200.0,
+      "propWeightG": 105.1
+    }
+  ],
+  "source_url": "http://www.thrustcurve.org/motors/search.html"
+}
