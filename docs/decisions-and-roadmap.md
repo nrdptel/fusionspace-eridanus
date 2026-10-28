@@ -733,7 +733,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m5-6d"></a>[M5.6d][phase-2] | More makers and electronics | not yet done |
 | <a id="m5-7"></a>[M5.7][phase-2] | Every solid motor, offline | not yet done |
 | <a id="m5-7a"></a>[M5.7a][done-2] | Each file's check and the default file | done |
-| <a id="m5-7b1"></a>[M5.7b1][phase-2] | The whole catalog compiled in | not yet done |
+| <a id="m5-7b1"></a>[M5.7b1][done-2] | The whole catalog compiled in | done |
 | <a id="m5-7b2"></a>[M5.7b2][phase-2] | Every motor by name, offline | not yet done |
 | <a id="m5-7c"></a>[M5.7c][phase-2] | Every passing file held to the oracles | not yet done |
 | <a id="m5-7d"></a>[M5.7d][phase-2] | Newer motors online, and the bundle described | not yet done |
