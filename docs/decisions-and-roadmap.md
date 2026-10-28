@@ -327,6 +327,7 @@ until someone rewrites it in plainer words.
 | [ADR-296: What the words leave: the figures' digits and the command line's words, M0.9g][adr-296] | Ten rows of the design audit named [M0.9f](#m0-9f) for gaps outside its *done when*: figures quoted to more digits than are known (#966), and the command line's and the plot's words, which no check reads (#973). [M0.9g](#m0-9g) holds both, queued after [M0.13](#m0-13). |  |
 | [ADR-297: A table too wide for its column stacks its rows][adr-297] | A table wider than its column no longer scrolls sideways in its box. Its rows stack, each cell labeled by a copy of its column's head, and the page check fails a table that still scrolls, at every width from 320 px. |  |
 | [ADR-298: Every solid motor in four increments, each file's check first][adr-298] | [M5.7](#m5-7) compiles ThrustCurve.org's whole solid catalog into `hpr-motor` ([ADR-288][adr-288]). It is several sessions' work, and its first bullet needs a fresh snapshot from ThrustCurve.org's API, which has answered HTTP 503 since 2026-10-25. [M5.7a](#m5-7a) builds each file's stored check, the default-file rule and the warning on the 32 bundled files first; [M5.7b](#m5-7b) compiles in the fresh snapshot; [M5.7c](#m5-7c) holds every passing file to the oracles; [M5.7d](#m5-7d) adds `hpr motors update` and the motor page's figures. |  |
+| [ADR-299: Withdraw the smoother to land it again in order][adr-299] | [M7.2d](#m7-2d), the smoother, merged in #983 before the captures of the pages it changed were looked at, as [ADR-282][adr-282] requires before a merge. The look found the health card's lines cut at their box's edge, which #986 fixed after the merge. Both are reverted, the tree going back to the commit before #983, and one PR lands the two again with every check run before its merge. [M7.2d](#m7-2d)'s roadmap entry goes back to open until then. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -1247,6 +1248,7 @@ is the milestone that added or will add that test.
 [adr-296]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0296-what-the-words-leave-digits-and-the-command-lines-words.md
 [adr-297]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0297-a-table-too-wide-stacks-its-rows.md
 [adr-298]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0298-every-solid-motor-in-four-increments.md
+[adr-299]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0299-withdraw-the-smoother-to-land-it-in-order.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
