@@ -25,11 +25,35 @@ use hpr_motor::{Catalog, ImpulseClass, SolidMotor, eng};
 use hpr_sim::{Environment, EventKind, FlightSettings, Rail, Simulation, Termination};
 
 fn main() -> Result<(), Box<dyn Error>> {
-    // 1. The motors that come built in. Size and loaded mass are each curve file's header values;
-    //    impulse, class, average thrust and burn time are worked out here from each motor's curve.
+    // 1. The motors that come built in: every solid motor in ThrustCurve.org's catalog. Most
+    //    have a curve file; a motor whose files all fail ThrustCurve.org's 1% check still flies,
+    //    with a warning. One per impulse class here: the first in the catalog's order with a
+    //    file that passes. Size and loaded mass are its file's header values; impulse, class,
+    //    average thrust and burn time are worked out here from its curve.
     let catalog = Catalog::bundled()?;
-    println!("{} motors come built in:", catalog.motors.len());
+    let with_curve = catalog
+        .motors
+        .iter()
+        .filter(|entry| entry.default_curve().is_some())
+        .count();
+    println!(
+        "{} motors come built in, {with_curve} of them with a curve file. One of each class:",
+        catalog.motors.len()
+    );
     println!();
+    let mut classes = Vec::new();
+    let shown: Vec<_> = catalog
+        .motors
+        .iter()
+        .filter(|entry| entry.default_curve().is_some_and(|curve| curve.check.passes))
+        .filter(|entry| {
+            let new = !classes.contains(&entry.impulse_class);
+            if new {
+                classes.push(entry.impulse_class);
+            }
+            new
+        })
+        .collect();
     let heading = [
         [
             "", "", "", "", "dia", "length", "loaded", "total", "average", "burn",
@@ -50,7 +74,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     for [a, b, c, d, e, f, g, h, i, j] in heading {
         println!("{a:<12} {b:<8}  {c:<10}  {d:<5} {e:>5} {f:>7} {g:>9} {h:>11} {i:>9} {j:>7}");
     }
-    for entry in &catalog.motors {
+    for entry in shown {
         let motor = entry.bundled_motor()?;
         let curve = motor.curve();
         let kind = match entry.motor_type {
