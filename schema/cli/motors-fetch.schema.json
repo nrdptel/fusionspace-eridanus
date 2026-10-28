@@ -40,7 +40,7 @@
       ]
     },
     "warnings": {
-      "description": "What to check before flying the file: a propellant mass more than 5% below\nThrustCurve.org's record of it, which flies too heavy a burnout mass.",
+      "description": "What to check before flying the file: a propellant mass too far below ThrustCurve.org's\nrecord of it (`hpr_net::on_demand::PROPELLANT_SHORT_BOUND`), which flies too heavy a\nburnout mass.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/InputWarning"

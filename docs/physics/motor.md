@@ -216,8 +216,8 @@ Three things to know about a motor built from a file:
   motor ([Loft lesson L43](../decisions-and-roadmap.md#l43)). For any other motor, check the
   header against the motor's page on ThrustCurve.org.
 
-  A motor fetched from ThrustCurve.org has one header check: a propellant mass over 5% below
-  its record's draws a warning naming both
+  A motor fetched from ThrustCurve.org gets one more check, against its record: a propellant mass
+  over 5% below the record's draws a warning naming both
   ([`PROPELLANT_SHORT_BOUND`](../api/hpr_net/on_demand/constant.PROPELLANT_SHORT_BOUND.html)).
   Too light a propellant flies too heavy a burnout mass and too low an apogee. A heavier one draws
   none ([survey](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/fetched-mass-survey.md),

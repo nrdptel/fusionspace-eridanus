@@ -133,8 +133,9 @@ pub struct MotorFetch {
     pub attribution: Vec<String>,
     /// The motor, and the curve file HPR Sim flies it by.
     pub motor: ThrustCurveMotor,
-    /// What to check before flying the file: a propellant mass more than 5% below
-    /// ThrustCurve.org's record of it, which flies too heavy a burnout mass.
+    /// What to check before flying the file: a propellant mass too far below ThrustCurve.org's
+    /// record of it (`hpr_net::on_demand::PROPELLANT_SHORT_BOUND`), which flies too heavy a
+    /// burnout mass.
     pub warnings: Vec<InputWarning>,
 }
 

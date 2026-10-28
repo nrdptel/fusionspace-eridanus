@@ -116,9 +116,10 @@ pub struct Found {
 /// A file whose propellant is too light flies too heavy a burnout mass, so too low an apogee,
 /// the side that flatters a waiver: two AMW N-motor files give the mass after firing as their
 /// propellant, 7.1% and 19.3% below their records ([AMW retests][amw], §3). A file too heavy
-/// is not warned of: most such files give the loaded mass less the measured burnout mass, which
-/// flies the right burnout mass. No natural gap among ThrustCurve's files sets the number, so 5%
-/// is a choice: of 685 H-to-O files taken, it flags 33, both AMW files among them, and what it
+/// is not warned of: most such files (98 of 168) give the loaded mass less CAR's measured burnout
+/// mass, which flies the right burnout mass. No natural gap among ThrustCurve's files sets the
+/// number, so 5% is a choice: of the 685 taken H-to-O files whose record states a propellant
+/// mass, it flags 33, both AMW files among them, and what it
 /// lets through costs about 0.2% of apogee or less on three invented rockets ([fetched-mass
 /// survey][survey], §5).
 ///

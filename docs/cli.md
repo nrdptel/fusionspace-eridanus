@@ -1432,21 +1432,21 @@ the simulator's code. With one L motor's price edited to \$149.99 in a copy, the
 
 `hpr motors fetch NAME` finds a motor on [ThrustCurve.org](glossary.md#thrustcurveorg) and keeps
 its curve in the simulator's cache ([Where the cache lives](online-data.md#where-the-cache-lives)).
-`hpr sim` then flies it with no network. It's for a motor the simulator's 32-motor catalog lacks.
-`hpr sim` fetches on its own too, so the command matters most before a trip with no signal. This
+`hpr sim` then flies it with no network. It's for a motor the 32-motor catalog lacks; `hpr sim`
+fetches on its own too, so the command matters most before a trip with no signal. This
 is ThrustCurve's data, as its contributors uploaded it. The simulator checks that a file makes a
 motor it can fly, not that its curve is right.
 
 - **Before a trip.** For a `.ork`, run the command `hpr sim --offline` prints for it, which names
   the file's manufacturer (`hpr motors fetch --manufacturer AeroTech H128W`), or fly the design
-  once online. Without `--manufacturer`, `hpr motors fetch H128W` fills the cache for `hpr sim
+  once online; either fills its cache. Without `--manufacturer`, `hpr motors fetch H128W` fills the cache for `hpr sim
   --motor H128W` instead.
 - **Which motor.** `NAME` is a [designation](glossary.md#motor-designation) (`F27R/L`) or common
   name (`F27`), as ThrustCurve.org spells it. `--manufacturer` adds the maker, by name or
   abbreviation. ThrustCurve matches a designation exactly, any case. If no motor has it, the
   simulator asks for the common name. Exactly one motor must answer: `J450` names four makers'
-  motors, and the refusal lists them. So give the designation or `--manufacturer`. A hybrid is
-  refused, as the simulator flies solid motors only.
+  motors, and the refusal lists them. A hybrid is refused, as the simulator flies solid motors
+  only.
 - **Which curve.** A motor can have several curve files. The simulator takes the first RASP
   (`.eng`) file that makes a motor it flies, ranked by who measured it. A certification test
   comes first, then the manufacturer, then a user, then a file that names no source. With none,
@@ -1456,7 +1456,7 @@ motor it can fly, not that its curve is right.
   `--file ID` takes the file with that id, from `hpr motors fetch`'s `curve file` line, first,
   when the motor has it and it reads. An offline refusal's command names it when the flight asks
   for a file. The output names the file, who measured it,
-  its license and ThrustCurve's credit.
+  its license as ThrustCurve states them, and ThrustCurve's credit.
 - **OpenRocket's curve for a `.ork` motor.** ThrustCurve can hold several files of one motor with
   different curves. OpenRocket may fly another than the first by that order. The Estes A8's first
   certification file burns 0.536 s, and the one OpenRocket's examples fly burns 0.73 s.
@@ -1464,7 +1464,7 @@ motor it can fly, not that its curve is right.
   A `.ork` records which curve OpenRocket flies by a [digest](glossary.md#digest), a fingerprint
   of the curve. For the motors of OpenRocket's example designs, `hpr sim` keeps a table from
   digest to the ThrustCurve file with that curve, matched by comparing curves (`cargo xtask
-  ork-curves`, as of October 4, 2026). It takes that file first, and the motor's note says so.
+  ork-curves`, as of October 4, 2026, rerun when ThrustCurve's files change). It takes that file first, and the motor's note says so.
 
   Another motor flies the file by the order above, and its note says it may not be OpenRocket's
   curve. An offline refusal's command then carries `--file`. Offline, a file the cache lacks is

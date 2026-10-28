@@ -13,7 +13,7 @@
       "manufacturer": "Invented Motors",
       "designation": "Z20-INVENTED",
       "commonName": "Z20",
-      "impulseClass": "G",
+      "impulseClass": "H",
       "type": "SU",
       "totalWeightG": 200.0,
       "propWeightG": 105.1
