@@ -2003,7 +2003,11 @@ mod tests {
         for name in &names {
             for other in &names {
                 let key = normalize(other);
-                assert_eq!(normalized_is(name, &key), normalize(name) == key, "{name} {other}");
+                assert_eq!(
+                    normalized_is(name, &key),
+                    normalize(name) == key,
+                    "{name} {other}"
+                );
             }
         }
     }
