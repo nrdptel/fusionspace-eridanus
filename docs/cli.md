@@ -1455,8 +1455,8 @@ motor it can fly, not that its curve is right.
 
   `--file ID` takes the file with that id, from `hpr motors fetch`'s `curve file` line, first,
   when the motor has it and it reads. An offline refusal's command names it when the flight asks
-  for a file. The output names the file, who measured it,
-  its license as ThrustCurve states them, and ThrustCurve's credit.
+  for a file. The output names the file, who measured it
+  and its license, as ThrustCurve states them, and ThrustCurve's credit.
 - **OpenRocket's curve for a `.ork` motor.** ThrustCurve can hold several files of one motor with
   different curves. OpenRocket may fly another than the first by that order. The Estes A8's first
   certification file burns 0.536 s, and the one OpenRocket's examples fly burns 0.73 s.
