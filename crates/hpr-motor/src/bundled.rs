@@ -6,10 +6,6 @@
 /// stated figures, per-curve provenance and check, and the files left out.
 pub(crate) const CATALOG_JSON: &str = include_str!("../data/thrustcurve/catalog.json");
 
-/// M5.7a's index of 32 motors, each with its one file, which the lookups use until M5.7b2
-/// (ADR-301).
-pub(crate) const FIRST_JSON: &str = include_str!("../data/thrustcurve/catalog-m57a.json");
-
 /// Each bundled curve file's text, by the path in the index.
 pub(crate) const CURVE_FILES: &[(&str, &str)] = &[
     (

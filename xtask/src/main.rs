@@ -48,6 +48,7 @@ mod layering;
 mod logs;
 mod messages;
 mod motor_catalog;
+mod motor_flights;
 mod names;
 mod ork;
 mod ork_cli;

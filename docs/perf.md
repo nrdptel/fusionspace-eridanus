@@ -521,7 +521,7 @@ The motor calls the flight engine makes on every derivative evaluation, and read
 | `SolidMotor::state`, BATES grains | 33.3 ns |
 | `eng::parse`, one bundled curve | 3.47 µs |
 | `rse::parse`, the same curve | 10.9 µs |
-| `Catalog::bundled` (index only, 32 motors) | 33.3 µs |
+| `Catalog::bundled`'s first call, which reads the index of 1,004 motors; later calls share that copy (measured October 28, 2026) | 1.72 ms |
 
 - **Inner-loop cost.** About 10⁴ derivative evaluations per flight at 33 ns is 0.3 ms.
 - **Grain solve.** The first version took 441 ns: at the root, Newton's step landed on the edge of

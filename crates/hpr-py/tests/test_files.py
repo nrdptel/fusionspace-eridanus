@@ -300,9 +300,9 @@ def test_an_hpr_document_of_an_older_version(repo):
 
 
 def test_an_ork_configuration_that_does_not_fly_says_why(repo):
-    # The probe's motor has no thrust curve in the file or in hpr's catalog.
+    # The probe's invented motor has no thrust curve in the file or in hpr's catalog.
     with pytest.raises(hpr.HprError, match="doesn't fly as written: .*thrust curve"):
-        hpr.Rocket.from_file(repo / "validation/fixtures/ork/rod-flights/rod-5-north.ork")
+        hpr.Rocket.from_file(repo / "validation/fixtures/ork/guides/no-curve.ork")
 
 
 def two_stage_ork(repo, tmp_path):

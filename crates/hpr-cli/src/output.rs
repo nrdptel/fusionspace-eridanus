@@ -70,6 +70,10 @@ pub struct CatalogInfo {
 pub struct ListedMotor {
     /// The manufacturer's full designation, such as `1266J760-19A`.
     pub designation: String,
+    /// The name that selects this motor alone in `hpr sim --motor` and `hpr motors show`: its
+    /// designation, or its maker's short name and its designation where makers share it, such
+    /// as `Estes C6` (ADR-302).
+    pub selector: String,
     /// The common name, such as `J760`.
     pub common_name: String,
     /// The manufacturer.
@@ -84,15 +88,20 @@ pub struct ListedMotor {
     pub diameter_mm: f64,
     /// Casing length, mm.
     pub length_mm: f64,
-    /// Total impulse, N·s, from the curve.
+    /// Total impulse, N·s, from the curve, or ThrustCurve.org's record's where `curve` is false.
     pub total_impulse_ns: f64,
-    /// Average thrust, N, from the curve: total impulse over the burn time.
+    /// Average thrust, N, from the curve (total impulse over the burn time), or ThrustCurve.org's
+    /// record's where `curve` is false.
     pub average_thrust_n: f64,
-    /// Burn time, s, from the curve, by NFPA 1125.
+    /// Burn time, s, from the curve by NFPA 1125, or ThrustCurve.org's record's where `curve` is
+    /// false.
     pub burn_time_s: f64,
     /// The delays as the curve file's header writes them, such as `6,8,10`, `4-6` or `P`
     /// (plugged).
     pub delays: Option<String>,
+    /// Whether a curve file of it is bundled, so `hpr sim --motor` flies it. Without one, its
+    /// size and figures are ThrustCurve.org's record's, and it can't fly.
+    pub curve: bool,
 }
 
 /// Whether a motor is used once or reloaded into a reusable case.
@@ -898,6 +907,10 @@ pub enum SimMotorSource {
     Catalog {
         /// The catalog's as-of date, `YYYY-MM-DD`: the day its curve files were downloaded.
         as_of: String,
+        /// ThrustCurve.org's id of the motor flown.
+        motor_id: String,
+        /// ThrustCurve.org's id of the curve file flown.
+        simfile_id: String,
     },
     /// A motor file named with `--motor`.
     File {

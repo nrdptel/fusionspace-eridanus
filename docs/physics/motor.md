@@ -16,18 +16,18 @@ burn, mass and ejection delay.
   third of the four [kinds of evidence][levels]. Small numbers here are in
   [scientific notation](../glossary.md#scientific-notation), and a
   [relative](../glossary.md#relative-and-absolute-difference) difference is a fraction of the value
-  compared. ThrustCurve.org's own statistics code agrees to 1.8e-15, relative, on all 32 bundled
-  curves. On three of them, RocketPy's total mass and inertias agree within 7.9e-5 relative, the
-  centers of mass within 5.9e-6 of the motor's length. The propellant's own mass and
-  inertias agree within 1e-4 of their values at ignition. OpenRocket 24.12 reads the same curve
-  files. On all 32 bundled curves it gets exactly the same total impulse, peak thrust, burn-time
+  compared. ThrustCurve.org's own statistics code agrees to 1.8e-15, relative, on the 32 curves
+  first bundled. On three of them, RocketPy's total mass and inertias agree within 7.9e-5
+  relative, the centers of mass within 5.9e-6 of the motor's length. The propellant's own mass and
+  inertias agree within 1e-4 of their values at ignition. OpenRocket 24.12 reads the same 32 curve
+  files. On each it gets exactly the same total impulse, peak thrust, burn-time
   window and curve duration. Its average thrust differs by definition: HPR Sim's is +0.0107% to
   +0.3147% higher. Nothing else in this model is
   compared with OpenRocket: not the propellant's burn-back, its mass and inertias, or the delays.
-  Nothing here is compared with a real flight.
+  The other bundled files have only the 1% check against ThrustCurve.org's figures so far
+  ([the whole catalog](#the-whole-catalog)). Nothing here is compared with a real flight.
 - **What it leaves out:** anything but [commercial off-the-shelf](../glossary.md#cots-motor)
-  solids. Only 32 motors fly by name so far, none in class A; ThrustCurve.org's whole solid
-  catalog is compiled in beside them, for the lookups' next step
+  solids. The 80 catalog motors with no curve file that reads can't fly
   ([the whole catalog](#the-whole-catalog)). Propellant burns in proportion to the
   impulse delivered, an approximation. With only catalog data, the center of mass stays at
   mid-length. Commercial motor files give no nozzle exit size, so thrust at altitude goes
@@ -37,14 +37,14 @@ burn, mass and ejection delay.
 
 A flight needs a motor in the rocket's motor mount. There are two ways to get one:
 
-- take one of the 32 motors that come with HPR Sim, or
+- take one of the 1,004 motors that come with HPR Sim, or
 - read a thrust-curve file, such as one downloaded from
   [ThrustCurve.org](../glossary.md#thrustcurveorg), by hand or through the library
   ([Matching motors to ThrustCurve's records](../motor-stock.md#matching-motors-to-thrustcurves-records)).
 
 Either way, the motor then goes into one of the rocket design's configurations. A short program,
 [`crates/hpr-sim/examples/motors.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/motors.rs),
-shows all of this: it lists the built-in motors, reads a `.eng` file, and flies that motor in a
+shows all of this: it counts the built-in motors and lists one of each class with a passing file, reads a `.eng` file, and flies that motor in a
 rocket. Run it from anywhere in the repository (the setup is on
 [Getting started](../getting-started.md)):
 
@@ -54,46 +54,28 @@ cargo run --example motors -p fusionspace-hpr-sim
 
 It prints this. The output is committed in
 [`motors.output.txt`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/motors.output.txt).
-CI runs the program on macOS, Windows and Linux and fails if it prints anything else. So the list
-below is always the list the code bundles.
+CI runs the program on macOS, Windows and Linux and fails if it prints anything else. So the
+counts and rows below are always the code's.
 
 <!-- quote: crates/hpr-sim/examples/motors.output.txt -->
 ```text
-32 motors come built in:
+1004 motors come built in, 924 of them with a curve file. One of each class:
 
                                            dia  length    loaded       total   average    burn
 designation  maker     type        class    mm      mm    mass g impulse N·s  thrust N  time s
 B4           Quest     single-use  B        18      80      19.8         4.9       4.4    1.11
 C5           Estes     single-use  C        18      70      23.8         7.8       3.9    1.98
 D5           Quest     single-use  D        20      96      45.1        17.6       3.8    4.59
-E26W         AeroTech  single-use  E        24      88      44.0        27.6      23.5    1.18
 26E31-15A    Cesaroni  reload      E        24      69      52.0        26.1      30.7    0.85
-F52C         AeroTech  single-use  F        29     111      81.4        66.3      52.8    1.25
-68F240-15A   Cesaroni  reload      F        24     133      91.8        68.0     236.6    0.29
-F15          Estes     single-use  F        29     114     103.0        49.6      14.5    3.42
-G69N         AeroTech  reload      G        38     106     201.0       136.3      72.1    1.89
-131G84-10A   Cesaroni  reload      G        24     228     172.0       131.3      84.2    1.56
-H170M        AeroTech  reload      H        38     191     330.0       318.0     165.4    1.92
-168H54-10A   Cesaroni  reload      H        29     187     209.0       168.2      53.8    3.13
-H125-CT      Loki      reload      H        38   177.8     342.0       241.7     125.0    1.93
+F30FJ        AeroTech  single-use  F        24      90      70.0        47.1      30.4    1.55
+G142         AeroTech  single-use  G        29     113      97.6        84.6     136.5    0.62
+166H175-14A  Cesaroni  reload      H        29     231     247.0       166.1     175.0    0.95
 I175WS       AeroTech  single-use  I        38     214     348.0       333.2     177.5    1.88
-411I175-14A  Cesaroni  reload      I        38     245     437.5       411.4     174.1    2.36
-I377-CT      Loki      reload      I        38     292     560.0       525.8     377.9    1.39
-J450DM       AeroTech  single-use  J        54     359    1223.0      1061.6     465.6    2.28
-1266J760-19A Cesaroni  reload      J        54     329    1076.8      1267.3     758.2    1.67
-J300LR       Loki      reload      J        54     327    1315.0      1212.8     297.0    4.08
-K400C        AeroTech  single-use  K        54     359    1194.0      1307.3     409.8    3.19
-2245K1075-P  AMW       reload      K        54     728    2638.8      2255.1    1072.9    2.10
-1633K940-18A Cesaroni  reload      K        54     404    1366.5      1636.1     936.9    1.75
-L2500ST      AeroTech  reload      L        98     443    4989.5      4671.9    2501.7    1.87
-3300L3200-P  Cesaroni  reload      L        75     486    3263.7      3299.6    3206.8    1.03
-L1040LR      Loki      reload      L        54     736    2962.0      3722.5    1037.1    3.59
+644J94-P     Cesaroni  reload      J        38     367     660.0       644.6      95.0    6.79
+K750ST       AeroTech  reload      K        75   266.7    1948.0      1296.7     741.8    1.75
+2645L265-P   Cesaroni  reload      L        54     649    2481.0      2646.0     267.3    9.90
 M1350W       AeroTech  single-use  M        75     622    4808.0      5179.5    1350.1    3.84
-8187M1545-P  Cesaroni  reload      M        75    1025    7878.3      8181.8    1547.7    5.29
-M1378LR      Loki      reload      M        54    1108    4331.0      5362.3    1375.6    3.90
-N3300R       AeroTech  reload      N        98    1060   12269.0     14035.1    3189.9    4.40
-13628N5600-P Cesaroni  reload      N        98    1010   11280.0     13633.5    5626.1    2.42
-O6000W       AeroTech  single-use  O       152    1120   31524.6     39687.2    5828.8    6.81
+N3120X-PS    AeroTech  single-use  N        75    1156    8200.0     10369.1    3125.1    3.32
 21062O3400-P Cesaroni  reload      O        98    1239   16842.0     21041.0    3424.3    6.14
 
 From the .eng file: I377CT by Loki, 38 mm by 292 mm, 560 g loaded, 250 g of propellant
@@ -110,16 +92,18 @@ The whole program is [at the end of this page](#the-example-program).
 
 ### The bundled motors
 
-Each curve is a ThrustCurve.org file marked public domain, bundled unchanged. The size, masses and
+Each curve is a ThrustCurve.org file, bundled unchanged, under the license
+[the whole catalog](#the-whole-catalog) gives. The size, masses and
 delays come from its header, and the rest is worked out from its curve. Its ThrustCurve.org
 record's impulse, thrusts and burn time are bundled too, as published facts with
 credit ([third-party notices](https://github.com/nrdptel/fusionspace-eridanus/blob/main/THIRD-PARTY-NOTICES.md)).
 They aren't the maker's data. Each file is checked against them: its total impulse, average
 thrust and burn time must each be within 1% of the record's to pass. A gap is the file's figure
 less the record's, as a share of the record's, so `+` means the file reads high. A motor flies a
-passing file where it has one, else the first by format and by who measured it. Today each of
-the 32 has one file, and it passes. Flying a failing file in `hpr sim` warns, naming each failing figure:
-`burn time +2.00%`. Check such a file against the maker's data.
+passing file where it has one, else the first by format and by who measured it. Flying a failing
+file in `hpr sim` warns, naming each failing figure: `burn time +2.00%`. So does flying a default
+file whose propellant mass is more than 5% below the record's. Check such a file against the
+maker's data.
 `hpr motors show` lists each file with its check. `cargo xtask motor-catalog` writes the catalog,
 and a test fails if the committed one differs.
 
@@ -135,9 +119,10 @@ and a test fails if the committed one differs.
 | average thrust | [Average thrust](../glossary.md#average-thrust), N | HPR Sim, from the curve |
 | burn time | [Burn time](../glossary.md#burn-time), s | HPR Sim, from the curve |
 
-How the 32 were chosen:
+Before the lookups moved to [the whole catalog](#the-whole-catalog), 32 of these motors were the
+only ones built in. How those 32 were chosen:
 
-- They are public-domain ThrustCurve.org curves of motors in production.
+- They were public-domain ThrustCurve.org curves of motors in production.
 - When they were chosen (September 17, 2026), each curve's total impulse, burn time and average thrust
   were within 1% of the values ThrustCurve.org publishes for the motor. Peak thrust is not held to it: it runs from 16.7% below
   (Cesaroni 26E31-15A) to 2.1% above (Loki M1378LR).
@@ -146,17 +131,19 @@ How the 32 were chosen:
   N3300R). So do 7 propellant masses, from 2.7% lighter (the C5) to 52% heavier (the 26E31-15A).
   So do 6 loaded masses, from 4.0% lighter (the C5) to 2.3% heavier (the D5). For the 26E31-15A
   the header is the likelier: the record's 11.1 g of propellant would need an effective exhaust
-  velocity of 2,350 m/s (7,710 ft/s) for its 26.1 N·s, more than every bundled motor but the
+  velocity of 2,350 m/s (7,710 ft/s) for its 26.1 N·s, more than every one of the 32 but the
   K400C. The delays are the header's too, which often
   lists fewer settings than the maker sells.
-- There are up to three per impulse class, from different manufacturers. None is in class A.
+- There were up to three per impulse class, from different manufacturers, none in class A.
 - The selection, and the curves left out, are in
   [the ThrustCurve.org data notes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/thrustcurve-data.md).
 
 In code, `Catalog::bundled()` returns the list
 ([`Catalog`](../api/hpr_motor/catalog/struct.Catalog.html)). `catalog.find("I377")` finds a motor
-by its designation or common name, ignoring case, spaces and hyphens. It returns every match:
-`I175` finds both the AeroTech I175WS and the Cesaroni 411I175-14A. Then
+by its designation or common name, ignoring case, spaces and hyphens. A leading maker name
+keeps only that maker's motors (`Estes C6`). A motor whose designation is the name outranks one
+whose common name is: `D5` is Quest's D5, not the D5-P. Otherwise it returns every match: `I175`
+finds both the AeroTech I175WS and the Cesaroni 411I175-14A. Then
 `entry.bundled_motor()` builds the motor
 ([`CatalogMotor`](../api/hpr_motor/catalog/struct.CatalogMotor.html)), with the catalog's size and
 masses. The catalog doesn't say where inside the motor its mass sits, so the simulator uses a
@@ -166,23 +153,24 @@ it burns ([The whole motor](#the-whole-motor) gives the details).
 
 #### The whole catalog
 
-Beside the 32, `hpr-motor` carries a copy of ThrustCurve.org's whole solid catalog, taken on
-October 28, 2026: the record of every single-use and reload motor, 1,004 of them, in production or
-not, and 1,700 of the 1,706 files listed for them. In code, `Catalog::whole()` returns it. The
-lookups (`hpr motors`, `hpr sim --motor` and a design's motor) still use only the 32. Moving them
-to the whole catalog is the next step,
-[M5.7b2, every motor by name offline, on the roadmap](../decisions-and-roadmap.md#m5-7b2).
+`hpr-motor` carries a copy of ThrustCurve.org's whole solid catalog, taken on October 28, 2026:
+the record of every single-use and reload motor, 1,004 of them, in production or not, and 1,700
+of the 1,706 files listed for them. Every lookup reads it: `hpr motors`, `hpr sim --motor` and a
+design's motor ([every motor by name](../decisions-and-roadmap.md#m5-7b2)). 32 designations are
+shared by several makers. Such a motor's *selector*, the name that finds it alone, is its maker's
+short name and designation; `hpr motors list --json` gives each motor's selector.
 
 - Each motor's names and stated figures are its record's, unchanged. Its listed figures are its
-  default file's own, as for the 32: a passing file where it has one, else the first by format
-  and by who measured it. The 80 motors with no file that reads list their record's figures, and
-  can't fly.
+  default file's own: a passing file where it has one, else the first by format and by who
+  measured it. The 80 motors with no file that reads list their record's figures, and can't fly:
+  `hpr motors list` names them in a closing note, and `hpr motors show` and `hpr sim --motor` refuse them.
 - Each file is stored with its 1% check, passing or not. 412 of the 1,700 files pass, and 239 of
-  the 924 motors with a file have one that does; once the lookups move, the other 685 fly with a
-  warning naming each failing figure.
+  the 924 motors with a file have one that does. The other 685 fly with a warning naming each
+  failing figure.
 - Only that check covers the other 1,668 files. The comparisons with ThrustCurve.org's statistics
-  code and with OpenRocket, and the `.eng`/`.rse` round trip
-  ([issue #1002](https://github.com/nrdptel/fusionspace-eridanus/issues/1002)), cover the 32.
+  code and with OpenRocket, and the `.eng`/`.rse` round trip, cover the 32 files
+  first bundled. Holding every passing file to them is
+  planned ([issue #1002](https://github.com/nrdptel/fusionspace-eridanus/issues/1002)).
 - Of the 1,700 indexed files, 589 are public domain, 33 free to use, and 1,078 carry no
   license; none is marked restricted. The [third-party notices](https://github.com/nrdptel/fusionspace-eridanus/blob/main/THIRD-PARTY-NOTICES.md)
   say how each is used.
@@ -254,7 +242,7 @@ Three things to know about a motor built from a file:
   554 public-domain files, 66 headers give a length more than 1 mm (0.039 in) off the catalog's.
   Five give a diameter more than 0.5 mm (0.020 in) off
   ([data notes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/thrustcurve-data.md),
-  section 4). The 32 bundled motors fly their headers' values too. `cargo xtask motor-catalog` refuses a file whose header
+  section 4). The bundled motors fly their headers' values too. `cargo xtask motor-catalog` refuses a file whose header
   diameter is more than 10% from its record's. In Loft, one header listed a 54 mm motor as a 75 mm
   motor ([Loft lesson L43](../decisions-and-roadmap.md#l43)). For any other motor, check the
   header against the motor's page on ThrustCurve.org.
@@ -664,25 +652,26 @@ The tests that pin the motor model, and the whole example program.
 
 - **Catalog** (`catalog::tests`): every figure the catalog lists is its curve file's own, bit for
   bit, so what `hpr motors` lists is what flies. Each file's stored check is worked out again from
-  the file and its motor's committed record. All 32 pass: 1% was **the bundling rule**. In Loft,
+  the file and its motor's committed record. 412 of the 1,700 files pass. For the 32 first bundled,
+  1% was **the bundling rule**, and all 32 pass. In Loft,
   a mis-sourced curve flew about 26% high
   ([Loft lesson L42](../decisions-and-roadmap.md#l42)). Of 554 public-domain curves, 196 passed
   ([data notes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/thrustcurve-data.md),
-  which also list the four motors whose stored values are printed coarser than 1%). Each bundled
-  file is public domain, its bytes matching the SHA-256 checksum (a fingerprint of a file's exact
+  which also list the four motors whose stored values are printed coarser than 1%). Each of those
+  32 files is public domain, its bytes matching the SHA-256 checksum (a fingerprint of a file's exact
   bytes) recorded at download. These checks answer Loft lessons
   [L41](../decisions-and-roadmap.md#l41) to [L43](../decisions-and-roadmap.md#l43), on curve
   licenses, loose impulse checks and wrong headers.
 - **ThrustCurve's code** (`catalog::tests::every_bundled_curve_matches_thrustcurve_statistics_code`):
   [`validation/oracles/thrustcurve/analyze_stats.js`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/thrustcurve/analyze_stats.js)
-  runs [TC-A] unchanged on every bundled curve, and writes its results to a
+  runs [TC-A] unchanged on the 32 first bundled curves, and writes its results to a
   [fixture](../glossary.md#reference-value-and-fixture),
   [`validation/fixtures/motor/thrustcurve-analyze-stats.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/motor/thrustcurve-analyze-stats.json).
   HPR Sim's impulse, burn window, burn time, average and peak thrust agree to 1.8e-15. So the
   definitions are checked, not only the 1% rule.
 - **OpenRocket** (`catalog::tests::openrocket_s_total_impulse_matches_every_bundled_curve`):
   [`validation/oracles/openrocket/motors.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/openrocket/motors.py)
-  hands each bundled file to OpenRocket 24.12's own motor loader. It records what the loader makes
+  hands each of the same 32 files to OpenRocket 24.12's own motor loader. It records what the loader makes
   of it in
   [`validation/fixtures/motor/openrocket-curve-stats.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/motor/openrocket-curve-stats.json),
   tied to each file by its SHA-256. The two codes are compared on the **same bytes**, so what is
@@ -774,11 +763,39 @@ use hpr_motor::{Catalog, ImpulseClass, SolidMotor, eng};
 use hpr_sim::{Environment, EventKind, FlightSettings, Rail, Simulation, Termination};
 
 fn main() -> Result<(), Box<dyn Error>> {
-    // 1. The motors that come built in. Size and loaded mass are each curve file's header values;
-    //    impulse, class, average thrust and burn time are worked out here from each motor's curve.
+    // 1. The motors that come built in: every solid motor in ThrustCurve.org's catalog. Most
+    //    have a curve file; a motor whose files all fail ThrustCurve.org's 1% check still flies,
+    //    with a warning. One per impulse class here: the first in the catalog's order with a
+    //    file that passes. Size and loaded mass are its file's header values; impulse, class,
+    //    average thrust and burn time are worked out here from its curve.
     let catalog = Catalog::bundled()?;
-    println!("{} motors come built in:", catalog.motors.len());
+    let with_curve = catalog
+        .motors
+        .iter()
+        .filter(|entry| entry.default_curve().is_some())
+        .count();
+    println!(
+        "{} motors come built in, {with_curve} of them with a curve file. One of each class:",
+        catalog.motors.len()
+    );
     println!();
+    let mut classes = Vec::new();
+    let shown: Vec<_> = catalog
+        .motors
+        .iter()
+        .filter(|entry| {
+            entry
+                .default_curve()
+                .is_some_and(|curve| curve.check.passes)
+        })
+        .filter(|entry| {
+            let new = !classes.contains(&entry.impulse_class);
+            if new {
+                classes.push(entry.impulse_class);
+            }
+            new
+        })
+        .collect();
     let heading = [
         [
             "", "", "", "", "dia", "length", "loaded", "total", "average", "burn",
@@ -799,7 +816,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     for [a, b, c, d, e, f, g, h, i, j] in heading {
         println!("{a:<12} {b:<8}  {c:<10}  {d:<5} {e:>5} {f:>7} {g:>9} {h:>11} {i:>9} {j:>7}");
     }
-    for entry in &catalog.motors {
+    for entry in shown {
         let motor = entry.bundled_motor()?;
         let curve = motor.curve();
         let kind = match entry.motor_type {

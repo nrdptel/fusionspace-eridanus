@@ -7,12 +7,10 @@ expression: snapshot_of(&design)
     {
       "default": true,
       "id": "cfg-t",
-      "left_out": "no_curve",
+      "left_out": "airframe_not_as_written",
       "motors": [
         {
-          "curve": {
-            "none": "not_found"
-          },
+          "curve": "catalog",
           "delay": {
             "kind": "plugged"
           },
@@ -123,6 +121,11 @@ expression: snapshot_of(&design)
       "at": "openrocket/rocket/stage[0]/transition[2]",
       "kind": "unusual",
       "says": "an automatic radius with no fixed radius anywhere along its chain to take, its `foreradius`. It was given 25 mm, OpenRocket's default radius for a tube with nothing to take"
+    },
+    {
+      "at": "openrocket/rocket/stage[0]/bodytube[3]",
+      "kind": "unusual",
+      "says": "J420R's curve file 5f4294d20002e90000000057 is more than 1% from ThrustCurve.org's figures for it: total impulse -1.03%, burn time -1.97%"
     }
   ]
 }

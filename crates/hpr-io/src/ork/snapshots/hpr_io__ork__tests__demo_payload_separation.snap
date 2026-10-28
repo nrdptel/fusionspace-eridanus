@@ -7,12 +7,10 @@ expression: snapshot_of(&design)
     {
       "default": true,
       "id": "cfg-38-f50",
-      "left_out": "no_curve",
+      "left_out": null,
       "motors": [
         {
-          "curve": {
-            "none": "not_found"
-          },
+          "curve": "catalog",
           "delay": {
             "kind": "seconds",
             "value": 8.0
@@ -26,7 +24,9 @@ expression: snapshot_of(&design)
       "unread": 0
     }
   ],
-  "flown": [],
+  "flown": [
+    "cfg-38-f50"
+  ],
   "kept": {
     "attributes": 2,
     "parts": [],
@@ -102,5 +102,21 @@ expression: snapshot_of(&design)
       "id": "10f70000-0000-4000-8000-000000000407"
     }
   ],
-  "warnings": []
+  "warnings": [
+    {
+      "at": "openrocket/rocket/stage[1]/bodytube[0]/innertube[0]",
+      "kind": "unusual",
+      "says": "F50T is 29 by 93 mm in the design and 29 by 98 mm in the bundled catalog. The design's size places it, and the curve's gives its mass"
+    },
+    {
+      "at": "openrocket/rocket/stage[1]/bodytube[0]/innertube[0]",
+      "kind": "unusual",
+      "says": "F50T's curve file 5f4294d20002e9000000045b is more than 1% from ThrustCurve.org's figures for it: total impulse -10.56%, average thrust +1.80%, burn time -12.15%"
+    },
+    {
+      "at": "openrocket/rocket/stage[1]/bodytube[0]/innertube[0]",
+      "kind": "unusual",
+      "says": "AeroTech F50T's curve file 5f4294d20002e9000000045b gives 33.6 g of propellant, -11.35% from ThrustCurve.org's record of 37.9 g. If the file's loaded mass is right, it flies too heavy a burnout mass and too low an apogee"
+    }
+  ]
 }

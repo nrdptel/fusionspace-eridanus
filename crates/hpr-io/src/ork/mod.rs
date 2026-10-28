@@ -325,21 +325,26 @@ pub fn airframe_not_as_written(file: &OrkFile) -> Option<String> {
 // written: a part left out, a value dropped or simplified, or something assumed. No configuration
 // of such a rocket is flown (ADR-055). A recovery device's or a stage separation's own warnings
 // are about when things happen, which is not flown (ADR-056), and their paths say so.
+//
+// The reason is one warning: the first whole part left out if any was, else the first value left
+// out, else the first. Every warning is listed beside it. It names no count of the others, so a `.ork` hpr writes, which states
+// the values this file left hpr to assume and so raises fewer warnings, gives the same reason
+// (ADR-302).
 fn incomplete(warnings: &[Warning]) -> Option<String> {
-    let skipped: Vec<&str> = warnings
+    let skipped: Vec<&Warning> = warnings
         .iter()
         .filter(|w| {
             ![recovery::DEPLOYMENT, recovery::DRAG, recovery::SEPARATION]
                 .iter()
                 .any(|segment| w.at.contains(segment))
         })
-        .map(|w| w.message.as_str())
         .collect();
-    match skipped.as_slice() {
-        [] => None,
-        [one] => Some((*one).to_owned()),
-        [first, rest @ ..] => Some(format!("{first}, and {} more", rest.len())),
-    }
+    skipped
+        .iter()
+        .find(|w| w.kind == WarningKind::Skipped)
+        .or_else(|| skipped.iter().find(|w| w.kind == WarningKind::Dropped))
+        .or_else(|| skipped.first())
+        .map(|w| w.message.clone())
 }
 
 /// The rocket, its motors and its recovery, the warnings reading them raised, and the paths of

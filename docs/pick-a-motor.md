@@ -33,26 +33,27 @@ with a 38 mm motor mount. [Fly your .ork](fly-your-ork.md) introduces it.
 
 **Start from the mount's diameter: a motor's case must match it.** In OpenRocket, the motor mount
 tube's inner diameter is the size. A 38 mm mount takes 38 mm motors. `hpr motors list` filters
-the 32 motors built into the simulator by diameter, impulse class or maker:
+the 1,004 motors built into the simulator by diameter, impulse class or maker. Here, Loki's 38 mm
+H motors:
 
-<!-- cli: example `hpr motors list --diameter 38`; written by `cargo xtask cli`; do not edit -->
+<!-- cli: example `hpr motors list --diameter 38 --class H --manufacturer Loki`; written by `cargo xtask cli`; do not edit -->
 
 ```text
-$ hpr motors list --diameter 38
-6 motors from ThrustCurve.org data files marked public domain, downloaded 2026-09-17; size, masses and delays from each file's header, the rest from its curve.
+$ hpr motors list --diameter 38 --class H --manufacturer Loki
+6 motors from ThrustCurve.org's solid motor catalog: every solid motor's record and every data file but a restricted one, captured 2026-10-28; size and delays from each motor's default file's header, the rest from its curve, or from ThrustCurve.org's record where no file of it is bundled.
 
-designation  maker     class  dia mm (in)   len mm (in)  impulse N·s  avg N  burn s  delays
-G69N         AeroTech  G        38 (1.50)    106  (4.2)        136.3   72.1    1.89  1000
-H170M        AeroTech  H        38 (1.50)    191  (7.5)        318.0  165.4    1.92  2,4,6,8,10,14
-H125-CT      Loki      H        38 (1.50)  177.8  (7.0)        241.7  125.0    1.93  8-18
-I175WS       AeroTech  I        38 (1.50)    214  (8.4)        333.2  177.5    1.88  5-9-13
-411I175-14A  Cesaroni  I        38 (1.50)    245  (9.6)        411.4  174.1    2.36  6-8-9-11-12-13
-I377-CT      Loki      I        38 (1.50)    292 (11.5)        525.8  377.9    1.39  8-18
+designation  maker  class  dia mm (in)   len mm (in)  impulse N·s  avg N  burn s  delays
+H100-SF      Loki   H        38 (1.50)    178  (7.0)        200.9  104.4    1.92  5-8-10-13-17
+H90-LR       Loki   H        38 (1.50)    178  (7.0)        237.1   93.4    2.54  5-8-10-14
+H144-LW      Loki   H        38 (1.50)    178  (7.0)        239.2  153.3    1.56  5-8-10-13-17
+H125-CT      Loki   H        38 (1.50)  177.8  (7.0)        241.7  125.0    1.93  8-18
+H160-LB      Loki   H        38 (1.50)    178  (7.0)        255.4  177.8    1.44  7-9-12-15
+H500-LW      Loki   H        38 (1.50)    292 (11.5)        319.8  517.5    0.62  5-7-9-12-15
 ```
 
 <!-- cli: end -->
 
-The figures are worked out from each motor's public-domain ThrustCurve.org curve file, the curve
+The figures are worked out from each motor's default ThrustCurve.org curve file, the curve
 the simulator flies ([The bundled motors](physics/motor.md#the-bundled-motors)). The `delays` column
 lists the ejection delays as the file's header writes them, in seconds after burnout. A `-` separates
 the settings: `5-9-13` is 5, 9 and 13 s, and `8-18` is 8 and 18 s. The header can list fewer delays
@@ -63,8 +64,13 @@ A Level 1 certification flight uses an H or I motor (NAR and Tripoli's Level 1 r
 [Check stability for a certification flight](stability-for-certification.md#what-the-rules-ask)
 quotes them).
 
-**Many more motors exist than the 32 built in.** Name any motor ThrustCurve.org lists, such as
-`--motor H128W`. The simulator fetches its thrust curve once online and keeps it
+**Every solid motor ThrustCurve.org listed on October 28, 2026 is built in,** such as
+`--motor H128W`, and the 924 with a curve file fly; the 80 with none are listed but can't. Most
+of the 924 (685) fly with a warning: their curve file's total impulse, average thrust or burn time
+is more than 1% off ThrustCurve.org's own figures for the motor
+([the whole catalog](physics/motor.md#the-whole-catalog)). Check such a motor against its maker's
+data. A name several makers use, such as `G80`, is refused with a name for each motor
+([A name several makers share](cli.md#a-name-several-makers-share)). A newer motor's curve is fetched once online and kept
 ([Fetch a motor the simulator doesn't have](fly-your-ork.md#fetch-a-motor-the-simulator-doesnt-have)).
 `hpr motors search` lists what vendors have in stock and at what price
 ([Motors you can buy](cli.md#motors-you-can-buy)). `hpr motors show` gives one motor's figures as
@@ -87,8 +93,11 @@ I175WS (AeroTech), from the bundled catalog
   curve file       https://www.thrustcurve.org/simfiles/5f4294d20002e900000008bf/ (flown)
                    RASP (.eng), from a certification test, public domain
                    passes the 1% check: total impulse +0.05%, average thrust +0.57%, burn time -0.66%
+  curve file       https://www.thrustcurve.org/simfiles/5f9245ad1bca580004171795/
+                   RockSim (.rse), from a user, public domain
+                   passes the 1% check: total impulse +0.05%, average thrust +0.57%, burn time -0.66%
 
-How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-09-17, not measured
+How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-10-28, not measured
 by HPR Sim: the size, masses and delays from the file's header, the impulse, thrusts and burn time
 from its curve, which can differ from the maker's rated figures. Each file is checked against
 ThrustCurve.org's figures and OpenRocket's reading of its impulse and peak thrust, not against the
@@ -123,7 +132,7 @@ rail exit speed       25.9 m/s (85 ft/s)
 delay                 apogee 9.42 s after burnout; the motor's set delay: 10 s; its charge fires 0.58 s after apogee
 descent               4.7 m/s (15 ft/s) at landing under `Parachute`
 
-motor: 1 × H125-CT (from the bundled catalog, as of 2026-09-17) in `Motor mount tube`, lit at launch
+motor: 1 × H125-CT (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 12.00 s
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
 note: the file's 1 recovery device flies as OpenRocket flies it. Each opens fully at its event, with the file's drag coefficient or OpenRocket's own. Once one opens, the rocket descends as a point under the open devices' drag alone
@@ -154,7 +163,7 @@ More: https://hpr.fusionspace.co/accuracy.html
 
 <!-- cli: end -->
 
-And on the hardest-hitting motor in the list, a Loki I377, with the same delay:
+And on a harder-hitting I motor, a Loki I377, with the same delay:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/guides/level-1.ork --motor I377-CT --delay 10`; written by `cargo xtask cli`; do not edit -->
 
@@ -172,7 +181,7 @@ rail exit speed       42.3 m/s (139 ft/s)
 delay                 apogee 10.59 s after burnout; the motor's set delay: 10 s; its charge fires 0.59 s before apogee
 descent               5.0 m/s (16 ft/s) at landing under `Parachute`
 
-motor: 1 × I377-CT (from the bundled catalog, as of 2026-09-17) in `Motor mount tube`, lit at launch
+motor: 1 × I377-CT (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 11.43 s
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
 note: the file's 1 recovery device flies as OpenRocket flies it. Each opens fully at its event, with the file's drag coefficient or OpenRocket's own. Once one opens, the rocket descends as a point under the open devices' drag alone
@@ -273,7 +282,7 @@ rail exit speed       28.9 m/s (95 ft/s)
 delay                 apogee 9.51 s after burnout; the motor's set delay: 9 s; its charge fires 0.51 s before apogee
 descent               4.5 m/s (15 ft/s) at landing under `Parachute`
 
-motor: 1 × I175WS (from the bundled catalog, as of 2026-09-17) in `Motor mount tube`, lit at launch
+motor: 1 × I175WS (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 10.97 s
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
 note: the file's 1 recovery device flies as OpenRocket flies it. Each opens fully at its event, with the file's drag coefficient or OpenRocket's own. Once one opens, the rocket descends as a point under the open devices' drag alone

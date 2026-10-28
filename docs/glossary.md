@@ -259,7 +259,7 @@ landing point of a 3 km (9,843 ft) parachute descent 0.37 m (1.2 ft) east. See
 
 A commercial off-the-shelf motor: a solid rocket motor bought from a manufacturer, single-use or as
 a reload for a reusable case. HPR Sim covers only these for now. It carries ThrustCurve.org's whole
-catalog of them, and flies 32 by name so far, listed under [The bundled motors](physics/motor.md#the-bundled-motors). See [Solid motors](physics/motor.md) and [Start here](start-here.md#what-the-simulator-is).
+catalog of them, and flies each with a curve file by name ([The bundled motors](physics/motor.md#the-bundled-motors)). See [Solid motors](physics/motor.md) and [Start here](start-here.md#what-the-simulator-is).
 
 ### Covariance
 
@@ -1241,7 +1241,7 @@ thrust as zero from the last point on. It treats two points at the same time as 
 ### ThrustCurve.org
 
 A public database of motor thrust curves and data. HPR Sim carries a copy of its whole solid catalog
-([the whole catalog](physics/motor.md#the-whole-catalog)), flies 32 of its motors by name so far,
+([the whole catalog](physics/motor.md#the-whole-catalog)), flies its motors by name,
 and runs its statistics code to check its own. A file downloaded from it can be read and flown
 ([A motor from a file](physics/motor.md#a-motor-from-a-file)). The library can search it and
 download a motor's files itself

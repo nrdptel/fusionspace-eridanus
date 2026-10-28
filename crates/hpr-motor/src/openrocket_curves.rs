@@ -1,11 +1,15 @@
 //! Which ThrustCurve.org data file holds the curve OpenRocket flies for a `.ork` motor's digest
 //! ([ADR-161](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0161-openrocket-curves-by-digest.md)):
-//! `hpr sim` takes that file first when it fetches the motor, where ThrustCurve holds several
-//! files of it with different curves.
+//! a `.ork` motor takes that file first, from the bundled catalog or when it is fetched, where
+//! ThrustCurve holds several files of it with different curves
+//! ([ADR-288](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md) §3).
 //!
 //! The table, `data/openrocket-curves.json`, is written by `cargo xtask ork-curves`. It covers
 //! the motors of OpenRocket 24.12's examples, each matched by comparing OpenRocket's curve with
-//! every file's; it holds ids alone, no curve. A digest it lacks is fetched by ADR-154's rule.
+//! every file's; it holds ids alone, no curve. A motor whose digest it lacks takes the bundled
+//! catalog's default file, or is fetched by name
+//! ([ADR-154](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0154-motors-fetched-from-thrustcurve-by-name.md),
+//! fetching a motor from ThrustCurve.org by its name).
 
 use std::sync::OnceLock;
 
@@ -26,7 +30,7 @@ struct Entry {
 }
 
 /// The ThrustCurve id of the file holding OpenRocket's curve for `digest`, if the table has it.
-pub(crate) fn file_for(digest: &str) -> Option<String> {
+pub fn file_for(digest: &str) -> Option<String> {
     static FILES: OnceLock<Vec<Entry>> = OnceLock::new();
     // The committed table parses (the test below holds it to), so an empty one is never taken.
     let files = FILES.get_or_init(|| {

@@ -24,9 +24,9 @@ Written by `cargo xtask fixture-flights`; do not edit. The flights are the tier-
 | by | cause | flights | issue |
 |---|---|---:|---|
 | OpenRocket | OpenRocket loads no motor into that configuration | 1 | #362 |
-| hpr | a fin tab ending past the root chord | 6 | #357 |
+| hpr | a fin tab ending past the root chord | 7 | #357 |
 | hpr | a freeform fin outline read as crossing itself | 3 | #358 |
-| hpr | a motor whose digest OpenRocket 24.12's database lacks | 3 | #362 |
+| hpr | a motor whose digest OpenRocket 24.12's database lacks | 2 | #362 |
 | hpr | a part of negative length (rail buttons spaced forward) | 1 | #359 |
 | hpr | an airframe not read as written: a part inside an off-axis inner tube | 2 | #181 |
 | hpr | an airframe not read as written: an unread surface finish | 3 | #360 |

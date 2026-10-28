@@ -59,6 +59,33 @@ fn hpr_cached(args: &[&str], cache: &Path) -> Output {
         .unwrap()
 }
 
+/// Runs `hpr` in this process, as [`json`] runs it in its own, offline with an empty cache: for a
+/// loop over every catalog motor, which a process a run would make slow. The closure takes the
+/// arguments, `--json` added, and the exit code expected, and returns the one document on
+/// standard output, which the schema `schema` accepts; standard error stays empty.
+fn in_process(schema: &str) -> impl Fn(&[&str], u8) -> Value {
+    let path = root().join("schema/cli").join(schema);
+    let schema: Value = serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
+    let validator = jsonschema::validator_for(&schema).unwrap();
+    let cache = tempfile::tempdir().unwrap();
+    move |args, code| {
+        let mut line = vec!["hpr"];
+        line.extend_from_slice(args);
+        line.push("--json");
+        let (mut out, mut err) = (Vec::new(), Vec::new());
+        let exit = hpr_cli::run_offline(&line, &mut out, &mut err, cache.path());
+        assert_eq!(exit.code(), code, "{line:?}: {}", text(&out));
+        assert!(err.is_empty(), "{line:?}: {}", text(&err));
+        let document: Value = serde_json::from_slice(&out).unwrap();
+        let errors: Vec<String> = validator
+            .iter_errors(&document)
+            .map(|error| format!("{} at {}", error, error.instance_path()))
+            .collect();
+        assert!(errors.is_empty(), "{line:?}: {errors:?}\n{document:#}");
+        document
+    }
+}
+
 fn text(bytes: &[u8]) -> String {
     String::from_utf8(bytes.to_vec()).unwrap()
 }
@@ -286,8 +313,12 @@ fn motors_list_is_the_catalog() {
         "motors-list.schema.json",
     );
     let loki = loki["motors"].as_array().unwrap();
-    assert_eq!(loki.len(), 1);
-    assert_eq!(loki[0]["manufacturer_abbrev"], "Loki");
+    // ThrustCurve.org lists 15 of Loki's J motors.
+    assert_eq!(loki.len(), 15);
+    assert!(
+        loki.iter()
+            .all(|m| m["manufacturer_abbrev"] == "Loki" && m["impulse_class"] == "J")
+    );
 
     let none = json(
         &["motors", "list", "--class", "Z"],
@@ -312,7 +343,20 @@ fn motors_list_is_the_catalog() {
     let table = text_ok(&["motors", "list", "--class", "J"]);
     assert!(table.starts_with(&format!("{expected} motors from ThrustCurve.org")));
     assert!(table.contains("designation"));
-    assert_eq!(table.lines().count(), 3 + expected);
+    // A row a motor, then a blank line and a note naming those with no curve file.
+    let curveless = catalog
+        .motors
+        .iter()
+        .filter(|m| m.impulse_class.label() == "J" && m.default_curve().is_none())
+        .count();
+    assert!(curveless > 0);
+    assert!(
+        table.contains(&format!(
+            "\n\n{curveless} of these have no curve file bundled"
+        )),
+        "{table}"
+    );
+    assert_eq!(table.lines().count(), 3 + expected + 2);
 }
 
 /// A filter that can't mean anything is refused rather than matching nothing.
@@ -358,7 +402,11 @@ fn a_maker_is_named_by_abbreviation_or_full_name() {
     let refused = hpr(&["motors", "list", "--manufacturer", "CTI"]);
     let message = text(&refused.stderr);
     assert!(
-        message.contains("use one of AMW, AeroTech, Cesaroni"),
+        message.contains(
+            "use one of AMW, AeroTech, Apogee, Cesaroni, Ellis, Estes, Gorilla, Jambol, KBA, \
+             Klima, Kosdon, Loki, PML, Quest, RV, Roadrunner, SCR, TSP, Ultra, ZEVETA, or a \
+             maker's full name"
+        ),
         "{message}"
     );
 }
@@ -428,8 +476,8 @@ fn motors_show_reports_the_librarys_figures() {
     assert!(!lines.contains("ThrustCurve.org  "), "{lines}");
 }
 
-/// The figures `hpr motors list` gives for every catalog motor are the ones `hpr motors show`
-/// works out from its curve, bit for bit: since issue #295 the bundled catalog works them out
+/// The figures `hpr motors list` gives for every catalog motor with a curve file are the ones
+/// `hpr motors show` works out from its curve, bit for bit, each motor named by its selector: since issue #295 the bundled catalog works them out
 /// from its public-domain curve files, and none is ThrustCurve.org's published figure. Those
 /// appear only as the stated figures each file is checked against (ADR-298), which
 /// `motors_show_lists_every_file_with_its_check_and_label` pins.
@@ -437,21 +485,19 @@ fn motors_show_reports_the_librarys_figures() {
 fn the_catalogs_figures_are_what_show_works_out() {
     let list = json(&["motors", "list"], 0, "motors-list.schema.json");
     let listed = list["motors"].as_array().unwrap();
-    assert_eq!(listed.len(), 32);
-    for entry in listed {
+    assert_eq!(listed.len(), 1004);
+    // A motor with no curve file lists its record's figures, and `show` has none to work out.
+    let with_curves: Vec<&Value> = listed.iter().filter(|m| m["curve"] == true).collect();
+    assert_eq!(with_curves.len(), 924);
+    let show = in_process("motors-show.schema.json");
+    for entry in with_curves {
         let designation = entry["designation"].as_str().unwrap();
-        let document = json(
-            &["motors", "show", designation],
-            0,
-            "motors-show.schema.json",
-        );
-        let shown = document["motors"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .find(|m| m["name"] == designation)
-            .unwrap()
-            .clone();
+        let selector = entry["selector"].as_str().unwrap();
+        let document = show(&["motors", "show", selector], 0);
+        let [shown] = &document["motors"].as_array().unwrap()[..] else {
+            panic!("{selector} shows more than one motor");
+        };
+        assert_eq!(shown["name"], designation);
         assert!(shown.get("stated").is_none(), "{designation}");
         for key in ["total_impulse_ns", "average_thrust_n", "burn_time_s"] {
             assert_eq!(
@@ -472,23 +518,37 @@ fn the_catalogs_figures_are_what_show_works_out() {
     }
 }
 
-/// ADR-298: `hpr motors show` lists every curve file of a catalog motor, in the order its default
-/// is taken, each with its format, who measured it, its license and its check against
-/// ThrustCurve.org's stated figures, the library's to the bit; the one flown is the default.
+/// ADR-298: `hpr motors show` lists every curve file of a catalog motor, named by its selector, in
+/// the order its default is taken, each with its format, who measured it, its license and its
+/// check against ThrustCurve.org's stated figures, the library's to the bit; the one flown is the
+/// default. A motor with no curve file is refused.
 #[test]
 fn motors_show_lists_every_file_with_its_check_and_label() {
     let catalog = Catalog::bundled().unwrap();
     let mut seen = 0;
+    let mut curveless = 0;
+    let show = in_process("motors-show.schema.json");
+    let refuse = in_process("error.schema.json");
     for motor in &catalog.motors {
-        let name = motor.designation.as_str();
-        let document = json(&["motors", "show", name], 0, "motors-show.schema.json");
-        let shown = document["motors"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .find(|m| m["name"] == name)
-            .unwrap()
-            .clone();
+        let selector = catalog.selector(motor);
+        let name = selector.as_str();
+        // A motor with no curve file has none to list: its name alone is refused.
+        if motor.default_curve().is_none() {
+            assert!(motor.curves.is_empty(), "{name}");
+            let refused = refuse(&["motors", "show", name], 1);
+            assert_eq!(refused["error"]["kind"], "input", "{name}");
+            assert!(
+                said(&refused).contains("no curve file of it is bundled"),
+                "{name}"
+            );
+            curveless += 1;
+            continue;
+        }
+        let document = show(&["motors", "show", name], 0);
+        let [shown] = &document["motors"].as_array().unwrap()[..] else {
+            panic!("{name} shows more than one motor");
+        };
+        assert_eq!(shown["name"], motor.designation.as_str(), "{name}");
         let source = &shown["source"];
         let files = source["files"].as_array().unwrap();
         let ranked = motor.ranked_curves();
@@ -525,7 +585,8 @@ fn motors_show_lists_every_file_with_its_check_and_label() {
         assert_eq!(flown.len(), 1, "{name}");
         assert_eq!(source["format"], flown[0]["format"], "{name}");
     }
-    assert_eq!(seen, 32);
+    // The catalog's 1,700 files, of its 924 motors with one; 80 have none.
+    assert_eq!((seen, curveless), (1700, 80));
 }
 
 /// A name several catalog motors share shows each of them.
@@ -552,20 +613,40 @@ fn a_shared_name_shows_every_match() {
 #[test]
 fn every_motor_file_format_is_read() {
     let catalog = Catalog::bundled().unwrap();
+    // The first file of the format that reads without a warning, so the text has none.
+    let quiet = |format: MotorFile, file: &str| {
+        let text = hpr::hpr_motor::catalog::bundled_curve_text(file).unwrap();
+        match format {
+            MotorFile::Eng => hpr::hpr_motor::eng::parse(text)
+                .unwrap()
+                .warnings
+                .is_empty(),
+            _ => hpr::hpr_motor::rse::parse(text)
+                .unwrap()
+                .warnings
+                .is_empty(),
+        }
+    };
     for format in MotorFile::ALL {
-        let motor = catalog
+        let (motor, file) = catalog
             .motors
             .iter()
-            .find(|m| m.curves[0].file.ends_with(format.extension()))
+            .find_map(|m| {
+                m.curves
+                    .iter()
+                    .find(|c| c.file.ends_with(format.extension()) && quiet(format, &c.file))
+                    .map(|c| (m, c))
+            })
             .unwrap();
-        let path = curve_file(&motor.curves[0].file);
+        let path = curve_file(&file.file);
         assert_eq!(MotorFile::of(&path), Some(format));
         let document = json(&["motors", "show", &path], 0, "motors-show.schema.json");
         let shown = &document["motors"][0];
         assert_eq!(shown["source"]["kind"], "file");
         assert_eq!(shown["source"]["path"], path.as_str());
         assert_eq!(shown["source"]["format"], &format.extension()[1..]);
-        let curve = motor.bundled_motor().unwrap();
+        let text = hpr::hpr_motor::catalog::bundled_curve_text(&file.file).unwrap();
+        let curve = motor.motor(file, text).unwrap();
         assert_eq!(shown["total_impulse_ns"], curve.curve().total_impulse_ns());
         assert_eq!(shown["burn_time_s"], curve.curve().burn_time_s());
         let lines = text_ok(&["motors", "show", &path]);
@@ -740,7 +821,7 @@ fn the_committed_schemas_are_generated() {
 }
 
 /// The repository's own pod probe with no pods: a single-stage `.ork`, public, with a 29 mm mount
-/// and an AeroTech H128W that the bundled catalog doesn't hold.
+/// and an AeroTech H128W, which the bundled catalog holds.
 const PROBE: &str = "validation/fixtures/ork/pod-flights/pods-none.ork";
 
 /// A repository file's path, as a string for the command line.
@@ -926,7 +1007,7 @@ fn sim_flies_a_public_ork_as_the_library_does() {
     assert_eq!(document["motors"][0]["mount"], mount.as_str());
     assert_eq!(document["motors"][0]["source"]["kind"], "catalog");
     // The catalog's as-of date, as `hpr motors list` gives it: the day its files were downloaded.
-    let as_of = Catalog::bundled().unwrap().snapshot.captured;
+    let as_of = &Catalog::bundled().unwrap().snapshot.captured;
     assert_eq!(document["motors"][0]["source"]["as_of"], as_of.as_str());
     assert_eq!(document["launch"]["rail_length_m"], 1.5);
     let notes = document["notes"].as_array().unwrap();
@@ -2002,9 +2083,15 @@ fn sim_refuses_what_it_cant_fly() {
         assert!(output.stdout.is_empty());
         assert!(text(&output.stderr).contains(reason));
     };
-    // The file's own motor has no curve in the bundled catalog.
-    refused(&["sim", &probe], "No thrust curve for H128W");
-    refused(&["sim", &probe], "give a motor with --motor");
+    // The file's own motor has no curve in the bundled catalog or the cache.
+    let uncataloged = probe_with(
+        folder.path(),
+        "uncataloged.ork",
+        PROBE_MOTOR,
+        UNCATALOGED_MOTOR,
+    );
+    refused(&["sim", &uncataloged], "No thrust curve for Z9-INVENTED");
+    refused(&["sim", &uncataloged], "give a motor with --motor");
     refused(
         &["sim", &probe, "--config", "nope"],
         "no motor configuration `nope`",
@@ -2091,10 +2178,10 @@ fn sim_refuses_what_it_cant_fly() {
     );
     assert!(!message.contains("under power"), "{message}");
 
-    // The probe with a parallel stage hpr doesn't read, one with no body component in it: its
-    // airframe isn't the file's, so no motor flies it, though its configuration's first reason is
-    // the missing curve.
-    let xml = std::fs::read_to_string(&probe).unwrap();
+    // The probe, its motor one with no curve, with a parallel stage hpr doesn't read, one with no
+    // body component in it: its airframe isn't the file's, so no motor flies it, though its
+    // configuration's first reason is the missing curve.
+    let xml = std::fs::read_to_string(&uncataloged).unwrap();
     let at = xml.find("<bodytube>").unwrap();
     let inside = xml[at..].find("<subcomponents>").unwrap() + at + "<subcomponents>".len();
     let boosters = format!(
@@ -2106,7 +2193,7 @@ fn sim_refuses_what_it_cant_fly() {
     let reduced = folder.path().join("reduced.ork");
     std::fs::write(&reduced, boosters).unwrap();
     let reduced = reduced.to_string_lossy().into_owned();
-    refused(&["sim", &reduced], "No thrust curve for H128W");
+    refused(&["sim", &reduced], "No thrust curve for Z9-INVENTED");
     refused(
         &["sim", &reduced, "--motor", "H54"],
         "not read exactly as written",
@@ -2120,7 +2207,7 @@ fn sim_refuses_what_it_cant_fly() {
             hpr(&["convert", &reduced, &converted]).status.code(),
             Some(0)
         );
-        refused(&["sim", &converted], "No thrust curve for H128W");
+        refused(&["sim", &converted], "No thrust curve for Z9-INVENTED");
         refused(
             &["sim", &converted, "--motor", "H54"],
             "the airframe was not read exactly as written: a parallel stage with no nose cone, \
@@ -2269,6 +2356,12 @@ const PROBE_MOTOR: &str = "<manufacturer>AeroTech</manufacturer><designation>H12
                            <digest>501239de7374691072270406476cb243</digest>\
                            <diameter>0.029</diameter><length>0.194</length>";
 
+/// An invented motor no catalog or cache holds, for the probe's motor: a configuration of it has
+/// no curve, offline.
+const UNCATALOGED_MOTOR: &str = "<manufacturer>Invented</manufacturer>\
+                                  <designation>Z9-INVENTED</designation>\
+                                  <diameter>0.029</diameter><length>0.194</length>";
+
 /// The probe with `from` replaced by `to`, written to `folder` as `name`; its path.
 fn probe_with(folder: &Path, name: &str, from: &str, to: &str) -> String {
     let xml = std::fs::read_to_string(repo_file(PROBE)).unwrap();
@@ -2300,10 +2393,29 @@ fn sim_flies_a_orks_own_motor_as_the_library_does() {
     let (flight, _) = library_flight(design.rocket, &id, "", None, &environment, |b| b);
     same_flight(&document, &flight);
     // The file holds no curve: the reader found it in the bundled catalog, which the source
-    // dates (ADR-214).
+    // dates (ADR-214) and names by ThrustCurve.org's motor and file ids.
+    let (motor_id, simfile_id) = design
+        .motors
+        .configurations
+        .iter()
+        .flat_map(|c| &c.motors)
+        .find_map(|motor| match &motor.curve {
+            hpr::hpr_io::ork::Curve::Catalog {
+                motor_id,
+                simfile_id,
+                ..
+            } => Some((motor_id.clone(), simfile_id.clone())),
+            _ => None,
+        })
+        .unwrap();
     assert_eq!(
         document["motors"][0]["source"],
-        json!({"kind": "catalog", "as_of": Catalog::bundled().unwrap().snapshot.captured})
+        json!({
+            "kind": "catalog",
+            "as_of": Catalog::bundled().unwrap().snapshot.captured,
+            "motor_id": motor_id,
+            "simfile_id": simfile_id,
+        })
     );
     assert_eq!(document["motors"][0]["designation"], "168H54-10A");
     assert_eq!(document["design"]["configurations"][0]["flies"], true);
@@ -2329,18 +2441,26 @@ fn cache_with(wanted: &hpr::hpr_net::on_demand::Wanted) -> tempfile::TempDir {
     cache
 }
 
-/// F27R/L's RockSim file, as ThrustCurve.org served it (public domain): the motor a fetch flies.
-fn f27() -> hpr::Motor {
-    let answer: Value =
-        serde_json::from_slice(
-            &std::fs::read(root().join(
-                "crates/hpr-net/tests/fixtures/replay/thrustcurve-download-F27R_L-rocksim.json",
-            ))
-            .unwrap(),
+/// The invented Z20-INVENTED's one RASP file, as the replayed ThrustCurve.org serves it: the
+/// motor a fetch flies. No motor of the bundled catalog has its name, so `hpr sim` fetches it.
+fn z20() -> hpr::Motor {
+    let answer: Value = serde_json::from_slice(
+        &std::fs::read(
+            root()
+                .join("crates/hpr-net/tests/fixtures/replay/thrustcurve-standin-download-Z20.json"),
         )
-        .unwrap();
+        .unwrap(),
+    )
+    .unwrap();
     let file = hpr::hpr_net::thrustcurve::parse_download(answer.to_string().as_bytes()).unwrap();
-    hpr::Motor::from_rse(&file.results[0].text().unwrap()).unwrap()
+    assert_eq!(
+        hpr::hpr_motor::Catalog::bundled()
+            .unwrap()
+            .find("Z20-INVENTED")
+            .count(),
+        0
+    );
+    hpr::Motor::from_eng(&file.results[0].text().unwrap()).unwrap()
 }
 
 /// `--motor` with a name the bundled catalog lacks flies ThrustCurve.org's curve for it, from the
@@ -2348,24 +2468,24 @@ fn f27() -> hpr::Motor {
 /// the command that fetches it.
 #[test]
 fn sim_flies_a_fetched_motor_the_catalog_lacks() {
-    let cache = cache_with(&hpr::hpr_net::on_demand::Wanted::named("F27R/L"));
+    let cache = cache_with(&hpr::hpr_net::on_demand::Wanted::named("Z20-INVENTED"));
     let (rocket, id, mount) = probe_design();
     let probe = repo_file(PROBE);
     let document = json_cached(
-        &["sim", &probe, "--motor", "F27R/L"],
+        &["sim", &probe, "--motor", "Z20-INVENTED"],
         0,
         "sim.schema.json",
         cache.path(),
     );
-    let motor = f27();
+    let motor = z20();
     let environment = hpr::Environment::new(0.0, 0.0, 0.0).unwrap();
     let (flight, _) = library_flight(rocket, &id, &mount, Some(&motor), &environment, |b| b);
     same_flight(&document, &flight);
     let source = &document["motors"][0]["source"];
     assert_eq!(source["kind"], "thrust_curve");
-    assert_eq!(source["designation"], "F27R/L");
-    assert_eq!(source["motor_id"], "5f4294d200023100000001d4");
-    assert_eq!(source["format"], "rse");
+    assert_eq!(source["designation"], "Z20-INVENTED");
+    assert_eq!(source["motor_id"], "e000000000000000000000f4");
+    assert_eq!(source["format"], "eng");
     assert_eq!(
         (&source["measured_by"], &source["license"]),
         (&json!("user"), &json!("PD"))
@@ -2379,11 +2499,11 @@ fn sim_flies_a_fetched_motor_the_catalog_lacks() {
         "{notes:?}"
     );
 
-    let document = json_error(&["sim", &probe, "--motor", "F27R/L"], 1, "input");
+    let document = json_error(&["sim", &probe, "--motor", "Z20-INVENTED"], 1, "input");
     assert!(
         said(&document).ends_with(
-            "\nhelp: with a network connection, `hpr motors fetch F27R/L` fetches it into the \
-             cache"
+            "\nhelp: with a network connection, `hpr motors fetch Z20-INVENTED` fetches it into \
+             the cache"
         ),
         "{document:#}"
     );
@@ -2399,21 +2519,24 @@ fn sim_fetches_a_orks_missing_motor_by_maker_and_designation() {
     let digest = "0123456789abcdef0123456789abcdef";
     let path = probe_with(
         folder.path(),
-        "f27.ork",
+        "z20.ork",
         PROBE_MOTOR,
         &format!(
-            "<manufacturer>AeroTech</manufacturer><designation>F27R/L</designation>\
-             <digest>{digest}</digest><diameter>0.029</diameter><length>0.083</length>"
+            "<manufacturer>Invented</manufacturer><designation>Z20-INVENTED</designation>\
+             <digest>{digest}</digest><diameter>0.029</diameter><length>0.124</length>"
         ),
     );
     let refused = json_error(&["sim", &path], 1, "input");
     let message = said(&refused);
-    let command = "hpr motors fetch --manufacturer AeroTech F27R/L";
+    let command = "hpr motors fetch --manufacturer Invented Z20-INVENTED";
     assert!(message.contains(&format!("`{command}`")), "{message}");
 
-    let cache = cache_with(&hpr::hpr_net::on_demand::Wanted::by("AeroTech", "F27R/L"));
+    let cache = cache_with(&hpr::hpr_net::on_demand::Wanted::by(
+        "Invented",
+        "Z20-INVENTED",
+    ));
     let document = json_cached(&["sim", &path], 0, "sim.schema.json", cache.path());
-    let motor = f27();
+    let motor = z20();
     let mut supplied = ork::SuppliedCurves::new("ThrustCurve.org");
     let case = ork::CaseSize {
         diameter_m: motor.diameter_m(),
@@ -2430,13 +2553,13 @@ fn sim_fetches_a_orks_missing_motor_by_maker_and_designation() {
     same_flight(&document, &flight);
     let source = &document["motors"][0]["source"];
     assert_eq!(source["kind"], "thrust_curve");
-    assert_eq!(source["manufacturer"], "AeroTech");
-    assert_eq!(document["motors"][0]["designation"], "F27R/L");
+    assert_eq!(source["manufacturer"], "Invented Motors");
+    assert_eq!(document["motors"][0]["designation"], "Z20-INVENTED");
     let notes = document["notes"].as_array().unwrap();
     assert!(
         notes.iter().any(|n| n.as_str().unwrap().starts_with(
-            "`F27R/L` has no curve in the file or the bundled catalog, so it flies \
-             ThrustCurve.org's AeroTech F27R/L"
+            "`Z20-INVENTED` has no curve in the file or the bundled catalog, so it flies \
+             ThrustCurve.org's Invented Motors Z20-INVENTED"
         )),
         "{notes:?}"
     );
@@ -2445,38 +2568,38 @@ fn sim_fetches_a_orks_missing_motor_by_maker_and_designation() {
 /// `hpr motors fetch` reads a motor from the cache offline, and says how `hpr sim` flies it.
 #[test]
 fn motors_fetch_reads_a_cached_motor() {
-    let cache = cache_with(&hpr::hpr_net::on_demand::Wanted::named("F27R/L"));
+    let cache = cache_with(&hpr::hpr_net::on_demand::Wanted::named("Z20-INVENTED"));
     let document = json_cached(
-        &["motors", "fetch", "F27R/L", "--offline"],
+        &["motors", "fetch", "Z20-INVENTED", "--offline"],
         0,
         "motors-fetch.schema.json",
         cache.path(),
     );
-    assert_eq!(document["motor"]["designation"], "F27R/L");
+    assert_eq!(document["motor"]["designation"], "Z20-INVENTED");
     assert_eq!(document["motor"]["read_from"]["kind"], "cache");
     assert_eq!(
         document["attribution"][0],
         hpr::hpr_net::thrustcurve::ATTRIBUTION
     );
-    let fetched = streams_cached(&["motors", "fetch", "F27R/L"], cache.path());
+    let fetched = streams_cached(&["motors", "fetch", "Z20-INVENTED"], cache.path());
     // The case in inches too, in brackets after the SI (issue #392).
     assert!(
         fetched
             .out
-            .contains("\n  case             29 × 83 mm (1.14 × 3.3 in)\n"),
+            .contains("\n  case             29 × 124 mm (1.14 × 4.9 in)\n"),
         "{}",
         fetched.out
     );
     assert!(
-        fetched
-            .err
-            .contains("help: kept in the cache: `hpr sim --motor F27R/L` flies it, offline too"),
+        fetched.err.contains(
+            "help: kept in the cache: `hpr sim --motor Z20-INVENTED` flies it, offline too"
+        ),
         "{}",
         fetched.err
     );
-    let output = hpr(&["motors", "fetch", "F27R/L"]);
+    let output = hpr(&["motors", "fetch", "Z20-INVENTED"]);
     assert_eq!(output.status.code(), Some(1));
-    assert!(text(&output.stderr).contains("`hpr motors fetch F27R/L`"));
+    assert!(text(&output.stderr).contains("`hpr motors fetch Z20-INVENTED`"));
 }
 
 /// Of an invented motor's files, the certification file that reads but whose masses make no motor
@@ -2669,37 +2792,42 @@ fn a_digest_two_motors_share_flies_and_names_one_fetched_curve() {
     let folder = tempfile::tempdir().unwrap();
     let digest = "0123456789abcdef0123456789abcdef";
     let xml = std::fs::read_to_string(repo_file(PROBE)).unwrap();
-    let f27 = format!(
-        "<manufacturer>AeroTech</manufacturer><designation>F27R/L</designation>\
-         <digest>{digest}</digest><diameter>0.029</diameter><length>0.083</length>"
+    let z20 = format!(
+        "<manufacturer>Invented</manufacturer><designation>Z20-INVENTED</designation>\
+         <digest>{digest}</digest><diameter>0.029</diameter><length>0.124</length>"
     );
-    let xml = two_mounts(xml.replacen(PROBE_MOTOR, &f27, 1), str::to_owned);
-    let second = xml.rfind("<designation>F27R/L</designation>").unwrap();
+    let xml = two_mounts(xml.replacen(PROBE_MOTOR, &z20, 1), str::to_owned);
+    let second = xml
+        .rfind("<designation>Z20-INVENTED</designation>")
+        .unwrap();
     let xml = format!(
-        "{}<designation>F27X</designation>{}",
+        "{}<designation>Z20X-INVENTED</designation>{}",
         &xml[..second],
-        &xml[second + "<designation>F27R/L</designation>".len()..]
+        &xml[second + "<designation>Z20-INVENTED</designation>".len()..]
     );
     let path = folder.path().join("shared.ork");
     std::fs::write(&path, xml).unwrap();
     let path = path.to_string_lossy().into_owned();
-    let cache = cache_with(&hpr::hpr_net::on_demand::Wanted::by("AeroTech", "F27R/L"));
+    let cache = cache_with(&hpr::hpr_net::on_demand::Wanted::by(
+        "Invented",
+        "Z20-INVENTED",
+    ));
     let document = json_cached(&["sim", &path], 0, "sim.schema.json", cache.path());
     let motors = document["motors"].as_array().unwrap();
     let designations: Vec<&str> = motors
         .iter()
         .map(|m| m["designation"].as_str().unwrap())
         .collect();
-    assert_eq!(designations, ["F27R/L", "F27X"]);
+    assert_eq!(designations, ["Z20-INVENTED", "Z20X-INVENTED"]);
     for motor in motors {
         assert_eq!(motor["source"]["kind"], "thrust_curve", "{motor:#}");
-        assert_eq!(motor["source"]["designation"], "F27R/L", "{motor:#}");
+        assert_eq!(motor["source"]["designation"], "Z20-INVENTED", "{motor:#}");
     }
     let notes = document["notes"].as_array().unwrap();
     assert!(
         notes.iter().any(|n| n.as_str().unwrap().starts_with(
-            "`F27X` has no curve in the file or the bundled catalog, so it flies \
-             ThrustCurve.org's AeroTech F27R/L"
+            "`Z20X-INVENTED` has no curve in the file or the bundled catalog, so it flies \
+             ThrustCurve.org's Invented Motors Z20-INVENTED"
         )),
         "{notes:?}"
     );
@@ -2711,7 +2839,13 @@ fn a_digest_two_motors_share_flies_and_names_one_fetched_curve() {
 fn sim_offline_flag_alone_reads_the_cache_only() {
     let cache = tempfile::tempdir().unwrap();
     let output = assert_cmd::cargo::cargo_bin_cmd!("hpr")
-        .args(["sim", &repo_file(PROBE), "--motor", "F27R/L", "--offline"])
+        .args([
+            "sim",
+            &repo_file(PROBE),
+            "--motor",
+            "Z20-INVENTED",
+            "--offline",
+        ])
         .env("HPR_CACHE_DIR", cache.path())
         .env_remove("HPR_OFFLINE")
         .output()
@@ -2720,9 +2854,9 @@ fn sim_offline_flag_alone_reads_the_cache_only() {
     let stderr = text(&output.stderr);
     assert!(
         stderr.contains(
-            "error: F27R/L is not in HPR Sim's cache of ThrustCurve.org, and the run is offline\n\
-             help: with a network connection, `hpr motors fetch F27R/L` fetches it into the \
-             cache\n"
+            "error: Z20-INVENTED is not in HPR Sim's cache of ThrustCurve.org, and the run is \
+             offline\nhelp: with a network connection, `hpr motors fetch Z20-INVENTED` fetches \
+             it into the cache\n"
         ),
         "{stderr}"
     );
@@ -2885,10 +3019,18 @@ fn sim_refuses_a_motor_it_cant_place() {
     let folder = tempfile::tempdir().unwrap();
     let message = |args: &[&str]| -> String { said(&json_error(args, 1, "input")) };
 
-    // More than one stage: nothing says when they would separate.
+    // More than one stage: the file's motors set when they separate, so nothing says when they
+    // would with another. (Its own F50T flies it, so the configuration's separation says so.)
     let staged = repo_file("validation/fixtures/ork/loft-demo/demo-payload-separation.ork");
     let got = message(&["sim", &staged, "--motor", "H54"]);
-    assert!(got.contains("the rocket has 2 stages"), "{got}");
+    assert!(
+        got.contains(
+            "configuration [F50T-8] can't be flown with a motor of your own: stage 1 drops away \
+             at 9.430 s, a time set by the file's motors, so hpr sim can't tell when it would \
+             with your motor"
+        ),
+        "{got}"
+    );
 
     // No configuration at all, and two stages: `--motor` can't fly it either.
     let booster = "<stage><name>Booster</name><id>00000000-0000-4000-8000-000000000019</id>\
@@ -2957,9 +3099,12 @@ fn sim_refuses_a_motor_it_cant_place() {
     let got = message(&["sim", &both, "--motor", "H54"]);
     assert!(got.contains("has 2 motors"), "{got}");
 
-    // A second configuration that flies, named when the first is refused.
+    // A second configuration that flies, named when the first, of a motor with no curve, is
+    // refused.
     let flying = "00000000-0000-4000-8000-000000000096";
     let pair = probe_edited(folder.path(), "pair.ork", |xml| {
+        assert_eq!(xml.matches(PROBE_MOTOR).count(), 1);
+        let xml = xml.replacen(PROBE_MOTOR, UNCATALOGED_MOTOR, 1);
         let xml = xml.replacen(
             "</motorconfiguration>",
             &format!(
@@ -3790,22 +3935,26 @@ fn convert_round_trips_eng_and_rse() {
     assert_eq!(read("f.eng"), read("d.eng"));
 }
 
-/// No bundled motor's size or masses disagree with its own curve file's header (#295), so writing
-/// any of them as either format warns of none: a header's kilograms that differ from the
+/// No bundled motor's size or masses disagree with its own default curve file's header (#295), so
+/// writing any of them with a curve file, by its selector, as either format warns of none: a header's kilograms that differ from the
 /// catalog's grams only by the conversion's last bits are the same figure.
 #[test]
 fn convert_warns_of_no_disagreement_for_any_bundled_motor() {
     let dir = tempfile::tempdir().unwrap();
     let catalog = hpr::hpr_motor::catalog::Catalog::bundled().unwrap();
-    assert_eq!(catalog.motors.len(), 32);
-    for motor in &catalog.motors {
+    assert_eq!(catalog.motors.len(), 1004);
+    // Every motor with a curve file; one with none has nothing to write.
+    let convert = in_process("convert.schema.json");
+    let mut written = 0;
+    for motor in catalog
+        .motors
+        .iter()
+        .filter(|m| m.default_curve().is_some())
+    {
+        let selector = catalog.selector(motor);
         for extension in ["eng", "rse"] {
             let out = dir.path().join(format!("m.{extension}"));
-            let document = json(
-                &["convert", &motor.designation, &out.to_string_lossy()],
-                0,
-                "convert.schema.json",
-            );
+            let document = convert(&["convert", &selector, &out.to_string_lossy()], 0);
             let disagreements: Vec<_> = document["warnings"]
                 .as_array()
                 .unwrap()
@@ -3814,11 +3963,12 @@ fn convert_warns_of_no_disagreement_for_any_bundled_motor() {
                 .collect();
             assert!(
                 disagreements.is_empty(),
-                "{} as .{extension}: {disagreements:?}",
-                motor.designation
+                "{selector} as .{extension}: {disagreements:?}",
             );
         }
+        written += 1;
     }
+    assert_eq!(written, 924);
 }
 
 /// A catalog motor is written from its bundled curve, and the same format in and out rewrites the
@@ -3888,17 +4038,29 @@ fn convert_writes_a_catalog_motor_and_rewrites_a_file() {
         "{header}"
     );
     assert_eq!(0.228_900_000_000_000_02, 228.9 * 1e-3);
-    // A `.rse` catalog motor keeps its file's masses and the figures worked out from them (#295:
-    // the D5's loaded mass was 44.1 g in ThrustCurve.org's record and is its file's 45.1 g now).
-    let document = json(&["convert", "D5", &path("d.rse")], 0, "convert.schema.json");
+    // A catalog motor whose default file is a `.rse` keeps its file's masses and the figures its
+    // header gives (#295): the G53FJ's RockSim file gives 147 g loaded and a mass fraction of
+    // 40.82%, which working it out again from the masses (60 g / 147 g) would not give.
+    let catalog = Catalog::bundled().unwrap();
+    let [g53] = &catalog.find("G53FJ").collect::<Vec<_>>()[..] else {
+        panic!("one G53FJ");
+    };
+    assert!(g53.default_curve().unwrap().file.ends_with(".rse"));
+    let document = json(
+        &["convert", "G53FJ", &path("g.rse")],
+        0,
+        "convert.schema.json",
+    );
+    assert_eq!(document["input"]["format"], "rse");
     assert_eq!(document["warnings"], serde_json::json!([]));
     let written =
-        hpr::hpr_motor::rse::parse(&std::fs::read_to_string(dir.path().join("d.rse")).unwrap())
+        hpr::hpr_motor::rse::parse(&std::fs::read_to_string(dir.path().join("g.rse")).unwrap())
             .unwrap()
             .value;
     let engine = &written.engines[0];
-    assert_eq!(engine.initial_mass_g, 45.1);
-    assert_eq!(engine.mass_fraction_pct, Some(53.22));
+    assert_eq!(engine.initial_mass_g, 147.0);
+    assert_eq!(engine.mass_fraction_pct, Some(40.82));
+    assert_ne!(60.0 / 147.0 * 100.0, 40.82);
     let text = text_ok(&["convert", &curve_file(ENG_CURVE), &path("same.eng")]);
     assert_eq!(
         text,
@@ -6429,7 +6591,7 @@ fn motors_show_suggests_what_answers_the_name() {
          by its path\n\
          help: with a network connection, `hpr motors fetch H5` fetches it from ThrustCurve.org, \
          and `hpr sim --motor` flies it\n\
-         help: the catalog has 168H54-10A"
+         help: the catalog has H55W, 168H54-10A, 234H53-12A, H50 and HP-H550ST"
     );
 
     use hpr::hpr_net::on_demand::{self, FindError, Wanted};
@@ -6461,9 +6623,9 @@ fn motors_show_suggests_what_answers_the_name() {
         "{help:?}"
     );
     // One motor answers: it is named, with the command that flies it.
-    let cache = cache_with(&Wanted::named("F27R/L"));
+    let cache = cache_with(&Wanted::named("Z20-INVENTED"));
     let document = json_cached(
-        &["motors", "show", "F27R/L"],
+        &["motors", "show", "Z20-INVENTED"],
         1,
         "error.schema.json",
         cache.path(),
@@ -6472,7 +6634,8 @@ fn motors_show_suggests_what_answers_the_name() {
     assert_eq!(
         help.last().and_then(Value::as_str),
         Some(
-            "ThrustCurve.org's AeroTech F27R/L is in HPR Sim's cache: `hpr sim --motor F27R/L` flies it"
+            "ThrustCurve.org's Invented Motors Z20-INVENTED is in HPR Sim's cache: `hpr sim \
+             --motor Z20-INVENTED` flies it"
         ),
         "{help:?}"
     );
@@ -6791,23 +6954,26 @@ fn sim_warns_in_sentences_of_40_words_or_fewer() {
     let folder = tempfile::tempdir().unwrap();
     let path = probe_with(
         folder.path(),
-        "f27.ork",
+        "z20.ork",
         PROBE_MOTOR,
-        "<manufacturer>AeroTech</manufacturer><designation>F27R/L</designation>\
+        "<manufacturer>Invented</manufacturer><designation>Z20-INVENTED</designation>\
          <digest>0123456789abcdef0123456789abcdef</digest><diameter>0.029</diameter>\
-         <length>0.083</length>",
+         <length>0.124</length>",
     );
-    let cache = cache_with(&hpr::hpr_net::on_demand::Wanted::by("AeroTech", "F27R/L"));
+    let cache = cache_with(&hpr::hpr_net::on_demand::Wanted::by(
+        "Invented",
+        "Z20-INVENTED",
+    ));
     let document = json_cached(&["sim", &path], 0, "sim.schema.json", cache.path());
     let notes = document["notes"].as_array().unwrap();
     assert!(
         notes.iter().any(|note| note
             .as_str()
             .unwrap()
-            .contains("ThrustCurve.org's AeroTech F27R/L")),
+            .contains("ThrustCurve.org's Invented Motors Z20-INVENTED")),
         "{notes:?}"
     );
-    long.extend(long_warning_sentences(&document, "f27.ork"));
+    long.extend(long_warning_sentences(&document, "z20.ork"));
 
     assert!(long.is_empty(), "{}", long.join("\n"));
 }

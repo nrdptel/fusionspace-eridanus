@@ -29,11 +29,18 @@ pub enum Error {
     /// A material id that isn't built in; [`hpr_design::materials`] lists them.
     #[error("no built-in material `{0}` (`hpr_design::materials` lists them)")]
     UnknownMaterial(String),
-    /// No motor with a thrust curve in the bundled catalog matches the name.
-    #[error("no motor with a bundled thrust curve matches `{0}`")]
+    /// No motor in the bundled catalog matches the name.
+    #[error("no motor in the bundled catalog matches `{0}`")]
     NoSuchMotor(String),
-    /// Several different motors match the name. Each is listed by its designation, which finds
-    /// it alone, then its manufacturer: `I175WS (AeroTech)`.
+    /// The one motor the name matches is in the bundled catalog with no curve file that reads,
+    /// so it can't fly ([ADR-302][adr-302] §3); give a `.eng` or `.rse` file of it instead.
+    ///
+    /// [adr-302]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0302-every-motor-by-name.md
+    #[error("{0} is in the bundled catalog, but no curve file of it is bundled")]
+    NoCurve(String),
+    /// Several different motors match the name, with or without a curve. Each is listed by a
+    /// name that finds it alone: its designation, or its maker's short name and its designation
+    /// where makers share it (`Estes C6`).
     #[error("`{name}` matches several motors: {}", candidates.join(", "))]
     AmbiguousMotor {
         /// The name asked for.

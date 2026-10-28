@@ -271,6 +271,22 @@ fn piped_and_json_output_hold_no_escape_code() {
 #[test]
 fn every_hint_is_a_help_line() {
     let probe = repo_file(PROBE);
+    // The probe with its motor an invented one no catalog or cache holds, so it has no curve.
+    let folder = tempfile::tempdir().unwrap();
+    let uncataloged = folder.path().join("uncataloged.ork");
+    let maker_and_name = "<manufacturer>AeroTech</manufacturer><designation>H128W</designation>";
+    let xml = std::fs::read_to_string(&probe).unwrap();
+    assert_eq!(xml.matches(maker_and_name).count(), 1);
+    std::fs::write(
+        &uncataloged,
+        xml.replacen(
+            maker_and_name,
+            "<manufacturer>Invented</manufacturer><designation>Z9-INVENTED</designation>",
+            1,
+        ),
+    )
+    .unwrap();
+    let uncataloged = uncataloged.to_string_lossy().into_owned();
     let multi = repo_file("validation/fixtures/ork/loft-demo/demo-multi-config.ork");
     let refusals: [(&[&str], &str); 10] = [
         (
@@ -289,8 +305,11 @@ fn every_hint_is_a_help_line() {
             &["convert", "no-such-motor", "x.eng"],
             "`hpr motors list` lists the catalog's motors",
         ),
-        (&["convert", "I175", "x.eng"], "give one's designation"),
-        (&["sim", &probe], "give a motor with --motor"),
+        (
+            &["convert", "I175", "x.eng"],
+            "give one of those names, each of which names one motor alone",
+        ),
+        (&["sim", &uncataloged], "give a motor with --motor"),
         (
             &["sim", &probe, "--motor", "Z9999"],
             "with a network connection, `hpr motors fetch Z9999`",

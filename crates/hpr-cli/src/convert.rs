@@ -516,14 +516,14 @@ fn read_input(
             ));
         }
         _ => {
-            let names: Vec<&str> = matches.iter().map(|m| m.designation.as_str()).collect();
+            let names: Vec<String> = matches.iter().map(|m| catalog.selector(m)).collect();
             return Err(Failure::helped(
                 format!(
                     "{input} names {} catalog motors: {}",
                     matches.len(),
                     names.join(", ")
                 ),
-                "give one's designation",
+                "give one of those names, each of which names one motor alone",
             ));
         }
     };

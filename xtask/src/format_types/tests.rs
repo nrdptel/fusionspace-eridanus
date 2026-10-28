@@ -428,7 +428,7 @@ fn both_readers_agree_with_the_schema_on_mutations() {
     // The format's page, ADR-113 and the roadmap quote these counts.
     assert_eq!(
         (names.len(), refused),
-        (4910, 4124),
+        (7164, 5802),
         "mutations, and those the schema refuses: update the docs that quote them"
     );
     for (reader, lines) in [("TypeScript", &ts), ("Python", &py)] {

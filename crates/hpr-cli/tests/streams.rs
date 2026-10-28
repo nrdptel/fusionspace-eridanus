@@ -194,13 +194,18 @@ fn motors_fetch_writes_its_hints_to_stderr() {
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
         .as_secs();
-    on_demand::find(&online, &on_demand::Wanted::named("F27R/L"), now_s).unwrap();
-    let printed = split(&["motors", "fetch", "F27R/L"], cache.path(), &["help: "]);
-    assert!(printed.out.starts_with("F27R/L ("), "{}", printed.out);
+    // An invented motor the bundled catalog lacks, so the hint is the cache's.
+    on_demand::find(&online, &on_demand::Wanted::named("Z20-INVENTED"), now_s).unwrap();
+    let printed = split(
+        &["motors", "fetch", "Z20-INVENTED"],
+        cache.path(),
+        &["help: "],
+    );
+    assert!(printed.out.starts_with("Z20-INVENTED ("), "{}", printed.out);
     assert!(
         printed
             .err
-            .contains("help: kept in the cache: `hpr sim --motor F27R/L` flies it"),
+            .contains("help: kept in the cache: `hpr sim --motor Z20-INVENTED` flies it"),
         "{}",
         printed.err
     );

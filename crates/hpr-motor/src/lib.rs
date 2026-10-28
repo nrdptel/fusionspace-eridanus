@@ -27,6 +27,7 @@ pub mod error;
 pub mod grains;
 pub mod mass;
 pub mod motor;
+pub mod openrocket_curves;
 pub mod rse;
 pub mod text;
 

@@ -284,7 +284,7 @@ fn flyable(bytes: &[u8]) -> Design {
         if let (Some(digest), Some(diameter_m), Some(length_m)) =
             (&motor.digest, motor.diameter_m, motor.length_m)
         {
-            let solid = stand_in(&catalog, &motor.designation, diameter_m);
+            let solid = stand_in(catalog, &motor.designation, diameter_m);
             let case = CaseSize {
                 diameter_m,
                 length_m,
@@ -315,7 +315,7 @@ fn flyable(bytes: &[u8]) -> Design {
                         designation: motor.designation.clone(),
                         diameter_m,
                         length_m,
-                        motor: stand_in(&catalog, &motor.designation, diameter_m),
+                        motor: stand_in(catalog, &motor.designation, diameter_m),
                         delay: motor.delay,
                         ignition: hpr_design::Ignition::Launch,
                         failed_tubes: Vec::new(),
@@ -1609,9 +1609,7 @@ fn a_container_of_a_design_that_cannot_be_written_is_refused() {
 /// first body tube, so its airframe is not read exactly as written, as raw XML, which the `.ork`
 /// reader takes.
 fn with_a_parallel_stage() -> Vec<u8> {
-    let mut archive = zip::ZipArchive::new(std::io::Cursor::new(PUBLIC[6].1)).unwrap();
-    let mut xml = String::new();
-    std::io::Read::read_to_string(&mut archive.by_name("rocket.ork").unwrap(), &mut xml).unwrap();
+    let xml = String::from_utf8(stable_xml()).unwrap();
     let at = xml.find("<bodytube>").unwrap();
     let inside = xml[at..].find("<subcomponents>").unwrap() + at + "<subcomponents>".len();
     format!(
@@ -1621,6 +1619,42 @@ fn with_a_parallel_stage() -> Vec<u8> {
         &xml[inside..]
     )
     .into_bytes()
+}
+
+/// `demo-stable.ork`'s rocket, as the XML its archive holds.
+fn stable_xml() -> Vec<u8> {
+    let mut archive = zip::ZipArchive::new(std::io::Cursor::new(PUBLIC[6].1)).unwrap();
+    let mut xml = String::new();
+    std::io::Read::read_to_string(&mut archive.by_name("rocket.ork").unwrap(), &mut xml).unwrap();
+    xml.into_bytes()
+}
+
+/// `xml`, a design of `demo-stable.ork`'s whose one motor is its AeroTech H128W, with that motor
+/// renamed to an invented one the bundled catalog lacks, so no configuration has a curve.
+fn with_an_uncataloged_motor(xml: &[u8]) -> Vec<u8> {
+    let xml = std::str::from_utf8(xml).unwrap();
+    let mut renamed = xml.to_owned();
+    for (from, to) in [
+        (
+            "<manufacturer>AeroTech</manufacturer>",
+            "<manufacturer>Invented</manufacturer>",
+        ),
+        (
+            "<designation>H128W</designation>",
+            "<designation>Z10-INVENTED</designation>",
+        ),
+    ] {
+        assert_eq!(renamed.matches(from).count(), 1, "{from}");
+        renamed = renamed.replace(from, to);
+    }
+    assert!(
+        Catalog::bundled()
+            .unwrap()
+            .find_by_maker("Invented", "Z10-INVENTED")
+            .next()
+            .is_none()
+    );
+    renamed.into_bytes()
 }
 
 /// The provenance says why a `.ork`'s airframe was not read exactly as written, as the `.ork`
@@ -1661,7 +1695,7 @@ fn the_provenance_says_when_the_airframe_was_not_read_as_written() {
 /// already has one.
 #[test]
 fn the_migration_recovers_the_airframes_reason_from_the_configurations() {
-    let reduced = document(&with_a_parallel_stage());
+    let reduced = document(&with_an_uncataloged_motor(&with_a_parallel_stage()));
     let why = reduced
         .provenance
         .source
@@ -1762,9 +1796,13 @@ fn the_migration_is_never_wrong_about_a_public_designs_airframe() {
     let mut counts = [0usize; 3];
     let reduced = with_a_parallel_stage();
     let (embedded, _, _) = with_attachments();
+    let reduced_uncataloged = with_an_uncataloged_motor(&reduced);
+    let stable_uncataloged = with_an_uncataloged_motor(&stable_xml());
     let designs = PUBLIC.iter().map(|(name, bytes)| (*name, *bytes)).chain([
         ("reduced", reduced.as_slice()),
         ("embedded", embedded.as_slice()),
+        ("reduced, uncataloged", reduced_uncataloged.as_slice()),
+        ("stable, uncataloged", stable_uncataloged.as_slice()),
     ]);
     for (name, bytes) in designs {
         let document = document(bytes);
@@ -1802,9 +1840,11 @@ fn the_migration_is_never_wrong_about_a_public_designs_airframe() {
             (truth, reason) => panic!("{name}: {truth:?}, migrated as {reason:?}"),
         }
     }
-    // With no motor catalog here, a public design's configurations are all left out for want of a
-    // curve, before the airframe is asked after, so only the embedded curve's design shows it.
-    assert_eq!(counts, [1, PUBLIC.len() - 1, 2]);
+    // Every public design's motors have a curve, in the bundled catalog or the file, so the
+    // airframe is asked after and the migration finds the same, as for the reduced and embedded
+    // ones. A motor the catalog lacks leaves a configuration out for want of a curve first, so
+    // the uncataloged pair are marked unknown: one read as written, one not.
+    assert_eq!(counts, [PUBLIC.len() + 2, 1, 1]);
 }
 
 /// ADR-199 §4: a `.hpr` file's media type is FusionSpace's, `+json` since the document is JSON,

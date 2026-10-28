@@ -93,9 +93,9 @@ holds the same `tool` object, the CSV's file name, the design and configuration 
 of rows, and:
 
 - `catalog_as_of`: the day the bundled motor catalog's curve files were downloaded, such as
-  `2026-09-17`, which a build fixes. Whether a motor came from the catalog is in `hpr sim
-  --json`'s `motors`. Each motor's `source` is `{"kind": "catalog", "as_of": "2026-09-17"}` for
-  one that did. And `hpr sim`'s motor line says `from the bundled catalog, as of 2026-09-17`. The
+  `2026-10-28`, which a build fixes. Whether a motor came from the catalog is in `hpr sim
+  --json`'s `motors`. Each motor's `source` is `{"kind": "catalog", "as_of": "2026-10-28"}` for
+  one that did. And `hpr sim`'s motor line says `from the bundled catalog, as of 2026-10-28`. The
   day of the run itself is left out, so the same run writes the same bytes.
 - `kind` and `trust`: what the numbers are, and the
   [accuracy note](cli.md#the-accuracy-note-on-every-result) `hpr sim` ends with, word for word.
@@ -109,7 +109,7 @@ copied away from the rest still says how old its motor data is and how far to tr
 
 - In GeoJSON, they're `design`, `configuration`, `catalog_as_of`, `kind` and `trust`, as foreign
   members between `tool` and `features`, as in the JSON recording.
-- KML uses the `Document`'s `description`: `Motor catalog as of 2026-09-17.` followed by the
+- KML uses the `Document`'s `description`: `Motor catalog as of 2026-10-28.` followed by the
   note. The design and configuration are already in its `name`. KML has no field for `kind`.
   The note says the numbers are simulated.
 - In Parquet, they're five more entries of the key-value metadata after the program's three, under

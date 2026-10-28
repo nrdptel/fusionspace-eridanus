@@ -21,7 +21,7 @@ def test_the_error_is_a_value_error():
     [
         (lambda: hpr.Rocket("R", -1.0), "rocket diameter, m is -1"),
         (lambda: hpr.Environment(91.0, 0.0, 0.0), "latitude"),
-        (lambda: hpr.Motor.from_catalog("Z9000"), "no motor with a bundled thrust curve"),
+        (lambda: hpr.Motor.from_catalog("Z9000"), "no motor in the bundled catalog"),
         (lambda: hpr.Motor.from_catalog("H54", delay_s=-1.0), "delay"),
         (lambda: rocket_with_nose().add_tube(0.9, 0.001, "unobtainium"), r"`hpr\.materials\(\)` lists them"),
         (lambda: rocket_with_nose().add_tube(-0.5, 0.001, "abs"), "but it must be finite and above 0"),

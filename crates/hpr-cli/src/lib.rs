@@ -47,7 +47,6 @@ mod mc_text;
 pub mod motor_fetch;
 pub mod motor_search;
 pub mod motors;
-mod openrocket_curves;
 pub mod output;
 mod plot;
 pub mod registry;

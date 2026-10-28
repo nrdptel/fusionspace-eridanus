@@ -152,7 +152,7 @@ fn cases(folder: &Path) -> Vec<Case> {
             "end the output's name in .ork, .hpr or .hprz",
         ),
         // A motor written into a folder that isn't there.
-        case(&["convert", "B4", &missing("out.eng")], "make the folder"),
+        case(&["convert", "E26W", &missing("out.eng")], "make the folder"),
         // A file that isn't a flight log.
         case(
             &["analyze", &repo("Cargo.toml")],
@@ -276,7 +276,7 @@ fn cases(folder: &Path) -> Vec<Case> {
         ),
         case(
             &["sim", &design, "--motor", "I175"],
-            "give --motor one of those designations",
+            "give --motor one of those names, each of which names one motor alone",
         ),
         // A file that can't be written: its folder isn't there.
         case(

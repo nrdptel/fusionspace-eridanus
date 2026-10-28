@@ -2,16 +2,16 @@
 
 Written by `cargo xtask ork-cli` (M4.5j); don't edit it by hand. Every motor configuration of every `.ork` in `cargo xtask ork`'s survey (the design library under `refs/` and the examples inside OpenRocket 24.12's jar) is flown by `hpr sim --offline`, once the motors it fetches from ThrustCurve.org are cached. A configuration refused as saved is flown again with `--accept-design-errors`. The library is other people's designs, so it is counted, not listed; a file found in two places is counted in each.
 
-`hpr sim` flies 136 of the survey's 170 motor configurations as saved, offline after one fetch, and 9 more with `--accept-design-errors`; 25 are refused. Of OpenRocket's 56 example configurations, 54 fly as saved, 0 more with `--accept-design-errors`, and 2 are refused.
+`hpr sim` flies 136 of the survey's 170 motor configurations as saved, offline after one fetch, and 25 more with `--accept-design-errors`; 9 are refused. Of OpenRocket's 56 example configurations, 54 fly as saved, 0 more with `--accept-design-errors`, and 2 are refused.
 
 ## By source
 
 | Source | Files | Unreadable | No configuration | Configurations | Fly | Fly with the flag | Refused |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | OpenRocket's examples | 17 | 0 | 0 | 56 | 54 | 0 | 2 |
-| elsewhere under refs/ | 31 | 2 | 10 | 25 | 5 | 0 | 20 |
+| elsewhere under refs/ | 31 | 2 | 10 | 25 | 5 | 16 | 4 |
 | refs/hpr-sim-fixtures/imported/loft-fixtures | 27 | 0 | 0 | 89 | 77 | 9 | 3 |
-| **All** | 75 | 2 | 10 | 170 | 136 | 9 | 25 |
+| **All** | 75 | 2 | 10 | 170 | 136 | 25 | 9 |
 
 ## Refused, by reason
 
@@ -19,8 +19,10 @@ Written by `cargo xtask ork-cli` (M4.5j); don't edit it by hand. Every motor con
 |---|---:|
 | a hybrid motor (out of scope until release 1.0) | 3 |
 | a motor with no curve fetched: ThrustCurve.org had none by its name, or the fetch failed | 1 |
-| a motor with no curve whose file records no digest, so none is fetched | 20 |
+| a motor with no curve whose file records no digest, so none is fetched | 2 |
 | a separation hpr doesn't fly | 1 |
+| an ignition hpr doesn't fly | 1 |
+| the airframe not read as written | 1 |
 
 ## OpenRocket's examples
 

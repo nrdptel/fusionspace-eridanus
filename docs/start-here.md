@@ -125,9 +125,8 @@ HPR Sim reads `.eng` and `.rse` [thrust curves](glossary.md#thrust-curve), and f
 thrust, mass, center of gravity and inertia through the burn.
 It carries a copy of ThrustCurve.org's whole catalog of solid motors, taken October 28, 2026: 1,004
 motors and 1,700 of their 1,706 files ([the whole catalog](physics/motor.md#the-whole-catalog)
-says why six are left out). By name it flies [32 of them](physics/motor.md#the-bundled-motors) so
-far, each file checked against ThrustCurve.org's figures; the rest join the lookups next. One it
-lacks is fetched from there by name and cached, so it flies offline after that
+says why six are left out). By name it flies the 924 motors with a file that reads, offline, each
+file checked against ThrustCurve.org's figures. One it lacks is fetched from there by name and cached, so it flies offline after that
 ([motors on demand](decisions-and-roadmap.md#m4-5b)). Stock and prices come from
 motor.fusionspace.co. The detail is in [Solid motors](physics/motor.md),
 [`.eng` files](format/eng.md), [`.rse` files](format/rse.md) and
@@ -194,8 +193,9 @@ calibers high, the flattering side. A part HPR Sim can't shape honestly is left 
 warning.
 
 `hpr sim` flies 136 of the 170 motor configurations in the reference library and OpenRocket's
-examples as saved, 54 of OpenRocket's 56 among them. It flies 9 more with
-`--accept-design-errors`, and the other 25 are refused, mostly for a motor with no curve
+examples as saved, 54 of OpenRocket's 56 among them. It flies 25 more with
+`--accept-design-errors`, and the other 9 are refused: 3 for a hybrid motor, 3 for a motor with
+no curve, and 3 for other reasons
 ([How many configurations `hpr sim` flies](format/ork.md#how-many-configurations-hpr-sim-flies)).
 A design [writes back out as a `.ork`](format/ork.md#writing-a-ork-back-out) that reads back as the same design. It can also be kept as a
 `.hpr` file in [the HPR design format](format/hpr.md), which TypeScript and Python programs read
@@ -422,12 +422,13 @@ These are left out of a flight, or approximated:
   builds and flies one of your own in a few calls. A Python program flies the parachutes of a
   rocket it builds part by part, or a design file's with `recovery=True`, but no staging
   ([Python](python.md)).
-- **A `.ork` file's motors need a fetch the first time.** HPR Sim reads a `.ork` file
-  ([`.ork` design files](format/ork.md)), but a file rarely carries its motors' curves, and HPR
-  Sim bundles 32 motors. On the file's curves and those 32, 4 of the 170 motor configurations of
-  the reference library and OpenRocket's examples fly. `hpr sim` looks for a missing curve on
-  ThrustCurve.org and keeps what it finds. After that one fetch, 136 of the 170 fly as saved, 9
-  more with `--accept-design-errors`, and 25 are refused
+- **Not every `.ork` file's motors fly offline.** HPR Sim reads a `.ork` file
+  ([`.ork` design files](format/ork.md)), but a file rarely carries its motors' curves. On the
+  file's curves and the bundled catalog, 154 of the 170 motor configurations of the reference
+  library and OpenRocket's examples fly, before `hpr sim`'s design checks
+  ([the counts](format/ork.md#motors-in-the-reference-library)). `hpr sim` looks for a missing curve
+  on ThrustCurve.org and keeps what it finds. After that one fetch, 136 of the 170 fly as saved,
+  25 more with `--accept-design-errors`, and 9 are refused
   ([how many fly](format/ork.md#how-many-configurations-hpr-sim-flies)). Its parachutes and streamers fly as OpenRocket
   flies them ([Recovery](physics/recovery.md#from-an-openrocket-file)). `hpr sim --motor` flies
   one with a motor you give ([The command line](cli.md#hpr-sim)).
@@ -756,7 +757,7 @@ simulator's internal name, then software tool 1.
 | Date of issue | <span id="issue-date">the date of the commit the site is built from</span> |
 | Status | IN PREPARATION: these pages describe the next release as the `main` branch holds it, so a page may describe what 0.1.0 lacks; how far to trust each result is in [Accuracy so far](#accuracy-so-far) |
 | Units | SI (meters, kilograms, seconds) first. Every command's text adds US units in parentheses: feet after heights and distances, feet per second after speeds, miles per hour after the wind, °F after the air's temperature, g after an acceleration and inches after stations along the rocket and a motor's size; `hpr motors show` adds ounces or pounds. The plot gives a second scale in feet, feet per second and g. This site's pages, unlike the program's output, keep a motor's nominal size in millimeters alone, as motors are named (`a 54 mm motor`); every other height, distance, size and speed on them gives its US units in brackets, checked as conversions ([house style](writing.md)). JSON and exported files stay SI ([units](cli.md#units)) |
-| Data | Thrust curves: ThrustCurve.org's solid motors, catalog captured 2026-10-28; the 32 that fly by name so far come from its 2026-09-17 capture, the date flight reports give. Atmosphere: U.S. Standard Atmosphere 1976, or a sounding or forecast you supply or fetch ([weather](weather.md)). Magnetic field: WMM2025. Accuracy: the committed [validation report][report]. Every source and its terms: [third-party notices][notices]. |
+| Data | Thrust curves: ThrustCurve.org's solid motors, catalog captured 2026-10-28, the date flight reports give (`as of 2026-10-28`). Atmosphere: U.S. Standard Atmosphere 1976, or a sounding or forecast you supply or fetch ([weather](weather.md)). Magnetic field: WMM2025. Accuracy: the committed [validation report][report]. Every source and its terms: [third-party notices][notices]. |
 | Fonts | Archivo and Cascadia Mono, SIL Open Font License 1.1, served from this site; no page asks another server for anything |
 
 </div>

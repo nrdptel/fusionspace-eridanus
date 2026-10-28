@@ -230,7 +230,7 @@ Round-trip stable: a file the simulator writes reads back to exactly the values 
   point in their shortest digits, not by multiplying. Converting to `.eng` drops the attributes
   above, plus `throatDia` and `exitDia`, each named in a warning. It refuses a hybrid, and a
   motor with no delays the simulator can read until `--delays` gives them.
-  OpenRocket 24.12 opens every file converted from the bundled curves
+  OpenRocket 24.12 opens every file converted from the 32 curves first bundled
   ([`motor_files.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/openrocket/motor_files.py));
   whether RockSim does is unverified.
 - Invariant (test it): whenever `write(parse(x))` succeeds, `parse(write(parse(x))) == parse(x)`,

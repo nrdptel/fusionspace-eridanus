@@ -597,7 +597,7 @@ mod tests {
         // builds every bundled motor with a file that reads rather than asserting a remembered pair
         // of numbers: the doc's figures
         // came out of the catalog's stored impulse once, which is not what the check divides.
-        let catalog = crate::Catalog::whole().expect("the bundled catalog parses");
+        let catalog = crate::Catalog::bundled().expect("the bundled catalog parses");
         let mut lowest = f64::INFINITY;
         let mut highest: f64 = 0.0;
         let (mut low_name, mut high_name) = (String::new(), String::new());

@@ -159,6 +159,9 @@ pub(crate) struct Supply {
     used: BTreeSet<String>,
     /// Each configuration the bundled catalog alone leaves without a curve, by what became of it.
     fates: BTreeMap<String, usize>,
+    /// Configurations the designs fly with their own curves and the bundled catalog alone, of
+    /// all they declare.
+    bare_flown: [usize; 2],
     problems: Vec<String>,
 }
 
@@ -481,6 +484,13 @@ impl Supply {
         if !self.present {
             return;
         }
+        self.bare_flown[0] += bare
+            .motors
+            .configurations
+            .iter()
+            .filter(|c| c.left_out.is_none())
+            .count();
+        self.bare_flown[1] += bare.motors.configurations.len();
         let sha = sha256(bytes);
         let short = sha.get(..8).unwrap_or(&sha).to_owned();
         for configuration in &supplied.motors.configurations {
@@ -719,6 +729,11 @@ impl Supply {
             used.0,
             self.used.len(),
             used.1 * 1e3
+        );
+        println!(
+            "    configurations flown with the designs' own curves and the bundled catalog alone: \
+             {} of {}",
+            self.bare_flown[0], self.bare_flown[1]
         );
         println!(
             "    configurations without a curve from the bundled catalog alone: {}; with the \

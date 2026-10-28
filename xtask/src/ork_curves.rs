@@ -31,7 +31,7 @@ use hpr_motor::{SolidMotor, ThrustCurve};
 use serde_json::{Value, json};
 
 /// The table, as `hpr sim` reads it.
-pub(crate) const TABLE: &str = "crates/hpr-cli/data/openrocket-curves.json";
+pub(crate) const TABLE: &str = "crates/hpr-motor/data/openrocket-curves.json";
 
 /// The jar whose examples' motors are matched.
 const JAR: &str = "refs/openrocket/OpenRocket-24.12.jar";
@@ -45,7 +45,7 @@ const MATCH: f64 = 0.01;
 pub const USAGE: &str = "\
   ork-curves [--offline]   Match each motor of OpenRocket's examples to the ThrustCurve.org
                            file holding OpenRocket's curve, and write
-                           crates/hpr-cli/data/openrocket-curves.json, the table hpr sim
+                           crates/hpr-motor/data/openrocket-curves.json, the table hpr sim
                            fetches OpenRocket's curve by. Needs the pinned jar,
                            corpus-out/openrocket-motors.json and the network, or with
                            --offline the hpr cache alone.";

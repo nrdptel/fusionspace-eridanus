@@ -205,7 +205,7 @@ fn analyze_says_a_log_read_by_your_own_mapping_is_as_right_as_its_units() {
 fn motors_show_says_where_its_figures_come_from() {
     let (out, _) = run(&["motors", "show", "H170M"]);
     let note = closing_note_at(&out, "pick-a-motor.html");
-    let captured = hpr::hpr_motor::catalog::Catalog::bundled()
+    let captured = &hpr::hpr_motor::catalog::Catalog::bundled()
         .unwrap()
         .snapshot
         .captured;

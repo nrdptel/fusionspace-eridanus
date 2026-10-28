@@ -37,15 +37,15 @@ Its other commands are registered but not available yet. Each refuses and names 
 >   is not validated ([evidence row G13](evidence.md#g13)). With no device open within 1 s of
 >   apogee, where and how fast its rocket comes down are not predictions
 >   ([what it leaves out](#what-hpr-sim-doesnt-fly-yet)).
-> - OpenRocket 24.12 opens all 32 motors converted by `hpr convert` and reads 29 like
->   the originals; the other three differ only in type or a delay
+> - OpenRocket 24.12 opens the 32 first bundled motors `hpr convert` writes, reading 29 like
+>   the originals; three differ only in type or a delay
 >   ([other programs](#what-a-conversion-keeps)).
 
 Whether RockSim opens the converted motors is not checked. [Accuracy](accuracy.md) says how close
 `hpr sim`'s flights are to a real flight.
 
-`hpr motors show` works out each figure with the code a flight uses. On all 32 bundled curves, it
-matches ThrustCurve.org's statistics code to 1.8e-15, relative
+`hpr motors show` works out each figure with the code a flight uses. On the 32 curves first
+bundled, it matches ThrustCurve.org's statistics code to 1.8e-15, relative
 ([Solid motors](physics/motor.md#validation)). `hpr` doesn't re-run the
 validation cases. To run the project's automated check, clone the repository and run
 `cargo xtask validate --check` ([what it checks](accuracy.md#the-census)). The tests in
@@ -261,7 +261,7 @@ $ hpr motors show H5
 error: no motor in the bundled catalog is called H5
 help: `hpr motors list` lists the catalog's motors, and a .eng or .rse file can be shown by its path
 help: with a network connection, `hpr motors fetch H5` fetches it from ThrustCurve.org, and `hpr sim --motor` flies it
-help: the catalog has 168H54-10A
+help: the catalog has H55W, 168H54-10A, 234H53-12A, H50 and HP-H550ST
 $ echo $?
 1
 ```
@@ -359,8 +359,8 @@ which carries out §6 of
 #### Flying a design
 
 This flies one of the repository's own test rockets, a small single-stage OpenRocket design. Its
-file names an AeroTech H128W, which isn't among the 32 motors built into the simulator. So
-`--motor H54` puts the catalog's Cesaroni H54 in its motor mount instead:
+file names an AeroTech H128W. `--motor H54` puts the catalog's Cesaroni H54 in its motor mount
+instead:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54`; written by `cargo xtask cli`; do not edit -->
 
@@ -377,7 +377,7 @@ rail exit speed       21.3 m/s (70 ft/s)
 delay                 apogee 7.71 s after burnout
 descent               no recovery device opened, so the fall is not a prediction
 
-motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Motor mount`, lit at launch
+motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-10-28) in `Motor mount`, lit at launch
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone. The aerodynamics hold only at small angles of attack. Its landing time, speed and place, and any peak it sets in the fall, are not a prediction
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower. HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3. If this surface is that smooth, the apogee, the top speed and the drift read low. The flutter margin and the largest dynamic pressure then look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
@@ -436,26 +436,28 @@ as data, with the ids beside the names. The fields are each configuration's `id`
 (what the text calls it), and each motor's `mount` and `mount_name`.
 
 **A missing motor is fetched, then kept: it flies offline from the cache.** A `.ork` file names its
-motor but rarely carries its [thrust curve](glossary.md#thrust-curve), and the simulator's catalog
-holds 32 motors. When the file embeds no curve and the catalog lacks the motor, `hpr sim` fetches
-it. It finds the motor on [ThrustCurve.org](glossary.md#thrustcurveorg) by the file's manufacturer
+motor but rarely carries its [thrust curve](glossary.md#thrust-curve). The simulator's catalog
+holds ThrustCurve.org's 1,004 solid motors, but a newer motor, or one ThrustCurve.org lists without
+a curve file, isn't in it. When the file embeds no curve and the catalog lacks the motor, `hpr sim`
+fetches it. It finds the motor on [ThrustCurve.org](glossary.md#thrustcurveorg) by the file's manufacturer
 and designation, keeps it in the simulator's cache, and flies it. A note names the curve file, who
 measured it and its license ([Motors from ThrustCurve.org](#motors-from-thrustcurveorg)).
 
 For the motors of OpenRocket's own example designs, HPR Sim takes the ThrustCurve file that holds
 OpenRocket's curve. For any other motor the curve may not be the one OpenRocket flies. No such
 flight has been compared with OpenRocket's own curve yet. With `--offline`, or no network, and no
-copy in the cache, `hpr sim` refuses and names the command that fetches it (abridged):
+copy in the cache, `hpr sim` refuses and names the command that fetches it. Here the test rocket's
+motor is an invented one, which no catalog holds (abridged):
 
 ```text
-$ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --offline
-error: configuration [H128W-0] can't be flown as the file has it. No thrust curve for H128W: no embedded curve […]. AeroTech H128W is not in HPR Sim's cache of ThrustCurve.org, and the run is offline
-help: with a network connection, `hpr motors fetch --manufacturer AeroTech H128W` fetches it into the cache
+$ hpr sim validation/fixtures/ork/guides/no-curve.ork --offline
+error: configuration [Z9-INVENTED] can't be flown as the file has it. No thrust curve for Z9-INVENTED: no embedded curve […]. Invented Z9-INVENTED is not in HPR Sim's cache of ThrustCurve.org, and the run is offline
+help: with a network connection, `hpr motors fetch --manufacturer Invented Z9-INVENTED` fetches it into the cache
 help: give a motor with --motor
 ```
 
 Run that command once with a network connection, or fly the design once while online, and it
-flies offline after. Or give a motor file you have: `hpr sim my-rocket.ork --motor AeroTech_H128W.eng`.
+flies offline after. Or give a motor file you have: `hpr sim my-rocket.ork --motor my-motor.eng`.
 
 #### The landing
 
@@ -507,7 +509,7 @@ rail exit speed       11.2 m/s (37 ft/s)
 delay                 apogee 5.62 s after burnout
 descent               14.1 m/s (46 ft/s) at 150.0 m (492 ft) under `Drogue parachute`; 4.7 m/s (15 ft/s) at landing with `Main parachute` open too
 
-motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Booster / motor bay`, lit at launch
+motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-10-28) in `Booster / motor bay`, lit at launch
 recovery: `Main parachute` at 150 m (492 ft) on the way down, 1.052 m² of drag area, opened at 22.41 s
 recovery: `Drogue parachute` at apogee, 0.133 m² of drag area, opened at 9.12 s
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
@@ -736,7 +738,7 @@ rail exit speed       30.2 m/s (99 ft/s)
 delay                 apogee 7.98 s after burnout
 descent               no recovery device opened, so the fall is not a prediction
 
-motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Motor mount`, lit at launch
+motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-10-28) in `Motor mount`, lit at launch
 launched at 32.99000° N, 106.97000° W, 1400 m (4593 ft) above sea level, from a 3 m (9.8 ft) rail 85° above the horizon, leaning toward 270° T, in a 5 m/s (11 mph) wind from 270° T
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone. The aerodynamics hold only at small angles of attack. Its landing time, speed and place, and any peak it sets in the fall, are not a prediction
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower. HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3. If this surface is that smooth, the apogee, the top speed and the drift read low. The flutter margin and the largest dynamic pressure then look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
@@ -784,7 +786,10 @@ that way. So its climb tips away from the vertical. The wind does most of it.
     can't tell which, it refuses and lists them.
 - `--motor NAME` flies a motor of the built-in catalog, by its
   [designation](glossary.md#motor-designation) or common name (`H54`, `168H54-10A`).
-  `hpr motors list` shows the catalog. A name the catalog lacks is fetched from ThrustCurve.org
+  `hpr motors list` shows the catalog. A name several motors share, as `G80` is, is refused with
+  a name for each that finds it alone, such as `Roadrunner G80`
+  ([A name several makers share](#a-name-several-makers-share)); so is a motor the catalog lists
+  with no curve file. A name the catalog lacks is fetched from ThrustCurve.org
   and cached ([Motors from ThrustCurve.org](#motors-from-thrustcurveorg)), as
   `hpr motors fetch NAME` does. `--motor FILE` flies the motor in a `.eng` or `.rse` file
   ([RASP and RockSim files](glossary.md#rasp-and-rocksim-files)). Either way, the motor goes in
@@ -1068,7 +1073,7 @@ landing ellipse                   semi-major            semi-minor  heading   fl
 95%                         109.7 m (360 ft)       68.1 m (223 ft)   089° T            93.5%
 95%, the next flight        111.1 m (365 ft)       69.0 m (226 ft)   089° T            93.5%
 
-motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Motor mount`, lit at launch
+motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-10-28) in `Motor mount`, lit at launch
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) rail 85° above the horizon, leaning toward 270° T, in a 4 m/s (9 mph) wind from 270° T
 scattered, one standard deviation each: --mass-sd 0.02, --drag-sd 0.05, --impulse-sd 0.03, --burn-time-sd 0.02, --wind-sd 0.25, --wind-from-sd 15, --inclination-sd 1, --heading-sd 2
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone. The aerodynamics hold only at small angles of attack. Its landing time, speed and place, and any peak it sets in the fall, are not a prediction
@@ -1189,10 +1194,12 @@ files from one format into another.
 
 ### `hpr motors`
 
-The catalog the simulator looks motors up in holds 32 motors, from class B to class O, each with a
-public-domain ThrustCurve.org thrust curve.
-[Solid motors](physics/motor.md#the-bundled-motors) says how they were chosen. `hpr motors fetch`
-fetches any other motor's curve from ThrustCurve.org into the simulator's cache, for `hpr sim` to
+The catalog the simulator looks motors up in is ThrustCurve.org's whole solid catalog, captured
+October 28, 2026: 1,004 motors, from class 1/8A to class O. The 80 with no curve file that reads are
+listed, with a closing note naming them, but `hpr motors show` and `hpr sim --motor` refuse them
+([the whole catalog](physics/motor.md#the-whole-catalog)). A maker's name before the designation
+picks one maker's motor (`Estes C6`), and `--json` gives each motor's `selector`, the name that
+finds it alone. `hpr motors fetch` fetches a newer motor's curve from ThrustCurve.org into the simulator's cache, for `hpr sim` to
 fly ([fetching a motor](#motors-from-thrustcurveorg)). Or download its `.eng` or `.rse` file
 ([RASP and RockSim files](glossary.md#rasp-and-rocksim-files)) and show that.
 `hpr motors search` lists the motors vendors have in stock, with their prices
@@ -1211,32 +1218,57 @@ A class or diameter the catalog has no motor for lists none, and exits with 0. A
 doesn't exist, a diameter that isn't a positive number, or a maker the catalog doesn't know is
 refused with status 1. A misspelt maker would otherwise look like a maker with no motors.
 
-The figures are the catalog's, each worked out from the motor's public-domain ThrustCurve.org
-curve file ([The bundled motors](physics/motor.md#the-bundled-motors)). The size, masses and
+The figures are the catalog's, each worked out from the motor's default ThrustCurve.org curve
+file ([The bundled motors](physics/motor.md#the-bundled-motors)), or its record's with no file. The size, masses and
 delays come from its header, the rest from its curve. In the `delays` column, `P` (or
 `1000`) means plugged: the motor has no ejection charge
 ([ejection delay](glossary.md#ejection-delay)). The delays are as the header writes them, which
 can be fewer than the maker sells.
 
-<!-- cli: example `hpr motors list --class J`; written by `cargo xtask cli`; do not edit -->
+<!-- cli: example `hpr motors list --class J --diameter 54 --manufacturer Loki`; written by `cargo xtask cli`; do not edit -->
 
 ```text
-$ hpr motors list --class J
-3 motors from ThrustCurve.org data files marked public domain, downloaded 2026-09-17; size, masses and delays from each file's header, the rest from its curve.
+$ hpr motors list --class J --diameter 54 --manufacturer Loki
+6 motors from ThrustCurve.org's solid motor catalog: every solid motor's record and every data file but a restricted one, captured 2026-10-28; size and delays from each motor's default file's header, the rest from its curve, or from ThrustCurve.org's record where no file of it is bundled.
 
-designation   maker     class  dia mm (in)  len mm (in)  impulse N·s  avg N  burn s  delays
-J450DM        AeroTech  J        54 (2.13)   359 (14.1)       1061.6  465.6    2.28  14
-1266J760-19A  Cesaroni  J        54 (2.13)   329 (13.0)       1267.3  758.2    1.67  8-10-12-14-16-18-19
-J300LR        Loki      J        54 (2.13)   327 (12.9)       1212.8  297.0    4.08  P
+designation  maker  class  dia mm (in)  len mm (in)  impulse N·s  avg N  burn s  delays
+J350-SF      Loki   J        54 (2.13)   327 (12.9)        986.5  378.7    2.60  0
+J820-LW      Loki   J        54 (2.13)   327 (12.9)       1144.5  791.1    1.45  0
+J525-LW      Loki   J        54 (2.13)   327 (12.9)       1118.7  568.0    1.97  0
+J175-LW      Loki   J        54 (2.13)   327 (12.9)       1157.1  195.5    5.92  0
+J300LR       Loki   J        54 (2.13)   327 (12.9)       1212.8  297.0    4.08  P
+J670LB       Loki   J        54 (2.13)   330 (13.0)       1267.1  674.5    1.88  P
 ```
 
 <!-- cli: end -->
+
+#### A name several makers share
+
+Several makers sell motors under one name. Roadrunner and Estes each make a `G80`, and `G80` is
+also the common name of AeroTech's G80T and of others. `hpr sim --motor` never picks a maker for
+you: it refuses the name and lists a name for each motor that finds it alone. That name is the
+designation where only one motor has it, or the maker's short name and the designation where
+makers share it:
+
+```text
+$ hpr sim rocket.ork --motor G80
+error: G80: `G80` matches several motors: 93G80-14A, Roadrunner G80, PML G80T, G80-LW, AeroTech G80T, Estes G80
+help: give --motor one of those names, each of which names one motor alone, such as `--motor 93G80-14A`
+```
+
+Give one of them, such as `--motor "Roadrunner G80"`; the quotes keep the space. A name is refused this
+way even when only one of its motors has a curve file, so it never flies a maker you didn't name.
+Within one maker, a designation wins over another motor's common name: `D5` is Quest's D5, not its
+D5-P. `hpr motors list --json` gives each motor's name that finds it alone as `selector`, and the
+JSON of a flight names the motor and the curve file it flew by ThrustCurve.org's ids (`motor_id`
+and `simfile_id`). Python's and Rust's `from_catalog` follow the same rule.
 
 #### A motor's figures
 
 `hpr motors show` takes a motor's name or a file's path. A name can be the full
 [designation](glossary.md#motor-designation) (`1266J760-19A`) or the common name (`J760`), in any
-case, with or without spaces and hyphens. When several motors share a name, it shows each of them.
+case, with or without spaces and hyphens. When several motors share a name, it shows each of them
+(`hpr sim --motor` refuses such a name instead).
 An argument ending in `.eng` or `.rse` is read as a file. Anything else is looked up by name.
 
 It works each figure out from the thrust curve, the list of time and thrust points in the motor's
@@ -1289,8 +1321,11 @@ $ hpr motors show J760
   curve file       https://www.thrustcurve.org/simfiles/5f4294d20002e9000000074a/ (flown)
                    RASP (.eng), from a certification test, public domain
                    passes the 1% check: total impulse +0.13%, average thrust +0.07%, burn time +0.08%
+  curve file       https://www.thrustcurve.org/simfiles/5f4294d20002e9000000074b/
+                   RockSim (.rse), from a certification test, public domain
+                   passes the 1% check: total impulse +0.13%, average thrust +0.07%, burn time +0.08%
 
-How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-09-17, not measured
+How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-10-28, not measured
 by HPR Sim: the size, masses and delays from the file's header, the impulse, thrusts and burn time
 from its curve, which can differ from the maker's rated figures. Each file is checked against
 ThrustCurve.org's figures and OpenRocket's reading of its impulse and peak thrust, not against the
@@ -1302,7 +1337,7 @@ More: https://hpr.fusionspace.co/pick-a-motor.html
 <!-- cli: end -->
 
 A motor file shows every motor in it, as one `.eng` or `.rse` file can hold several. The
-repository holds the 32 catalog motors' files to try, such as:
+repository holds the catalog's curve files to try, such as:
 
 ```bash
 hpr motors show crates/hpr-motor/data/thrustcurve/curves/5f4294d20002e90000000724.eng
@@ -1432,15 +1467,15 @@ the simulator's code. With one L motor's price edited to \$149.99 in a copy, the
 
 `hpr motors fetch NAME` finds a motor on [ThrustCurve.org](glossary.md#thrustcurveorg) and keeps
 its curve in the simulator's cache ([Where the cache lives](online-data.md#where-the-cache-lives)).
-`hpr sim` then flies it with no network. It's for a motor the 32-motor catalog lacks; `hpr sim`
+`hpr sim` then flies it with no network. It's for a motor the bundled catalog lacks; `hpr sim`
 fetches on its own too, so it matters most before a trip with no signal. This
 is ThrustCurve's data, as its contributors uploaded it. The simulator checks that a file makes a
 motor it can fly, not that its curve is right.
 
-- **Before a trip.** For a `.ork`, run the command `hpr sim --offline` prints for it, which names
-  the file's manufacturer (`hpr motors fetch --manufacturer AeroTech H128W`), or fly the design
-  once online; either fills its cache. Without `--manufacturer`, `hpr motors fetch H128W` fills the cache for `hpr sim
-  --motor H128W` instead.
+- **Before a trip.** For a `.ork` motor the catalog lacks, run the command `hpr sim --offline`
+  prints for it, which names the file's manufacturer (`hpr motors fetch --manufacturer MAKER
+  NAME`), or fly the design once online; either fills its cache. Without `--manufacturer`,
+  `hpr motors fetch NAME` fills the cache for `hpr sim --motor NAME` instead.
 - **Which motor.** `NAME` is a [designation](glossary.md#motor-designation) (`F27R/L`) or common
   name (`F27`), as ThrustCurve.org spells it. `--manufacturer` adds the maker, by name or
   abbreviation. ThrustCurve matches a designation exactly, any case. If no motor has it, the
@@ -1480,7 +1515,7 @@ $ hpr motors fetch F27R/L
 F27R/L (AeroTech), from ThrustCurve.org: fetched now
   curve file       5f4294d20002e90000000372, RASP (.eng), from a user, no license stated
   case             29 × 83 mm (1.14 × 3.3 in)
-help: kept in the cache: `hpr sim --motor F27R/L` flies it, offline too
+help: the bundled catalog has F27R/L too, and `hpr sim --motor` flies the catalog's curve
 Motor data and thrust curves courtesy of ThrustCurve.org, https://www.thrustcurve.org/
 ```
 
@@ -1498,9 +1533,9 @@ $ echo $?
 
 <!-- cli: end -->
 
-The curves `hpr motors fetch` downloads aren't bundled; the simulator ships 32 others, and the
-project plans to bundle every solid motor
-([the decision record on bundling them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md)).
+The curves `hpr motors fetch` downloads aren't bundled. The simulator ships ThrustCurve.org's
+solid catalog as of October 28, 2026
+([the decision record on bundling it](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md)).
 [The decision record on fetching motors](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0154-motors-fetched-from-thrustcurve-by-name.md)
 has the reasoning for the fetch. Each file carries its contributor's own license.
 ThrustCurve.org grants no license for its motor records; the project uses them as published facts,
@@ -1567,7 +1602,7 @@ some things differently, and `hpr convert` translates:
 Masses move between kilograms and grams by moving the decimal point, not by multiplying, which
 would round. In a computer's arithmetic, `0.0041`&nbsp;kg times 1,000 is `4.1000000000000005`, while
 moving the point gives `4.1`. A mass written with 16 or 17 digits may still change in its last
-digit. A warning says so. Of the 32 bundled files, two masses written with 17 digits are the only
+digit. A warning says so. Of the 32 first bundled files, two masses written with 17 digits are the only
 ones that don't come back bit for bit; each carries the warning
 ([test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-motor/src/convert.rs)).
 
@@ -1605,8 +1640,9 @@ simulator models solid motors only). A `.eng` header must give delays. So a `.rs
 them is refused until `--delays` gives them, such as `--delays P` for a plugged motor. `--delays`
 fills only the motors that give none.
 
-**Other programs.** OpenRocket 24.12 opens all 32 files `hpr convert` writes from the bundled
-curves. A [script](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/openrocket/motor_files.py) compares what OpenRocket reads from each converted file with what it
+**Other programs.** OpenRocket 24.12 opens all 32 files `hpr convert` writes from the curves
+first bundled; the rest of the catalog's files aren't tried yet
+([issue #1002](https://github.com/nrdptel/fusionspace-eridanus/issues/1002)). A [script](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/openrocket/motor_files.py) compares what OpenRocket reads from each converted file with what it
 reads from the original. It compares the name, the maker as OpenRocket names it, the type, and
 the diameter and length. It also compares the launch and burnout masses, the curve's points and
 the delays. 29 of the 32 read the same.
@@ -1634,6 +1670,8 @@ Here one of the repository's public designs becomes a `.hpr`:
 $ hpr convert validation/fixtures/ork/loft-demo/demo-multi-config.ork demo.hpr
 read   demo-multi-config.ork
 wrote  demo.hpr: "Loft Demo 38mm — motor comparison", 2 motor configurations, HPR design format 0.2
+warning: openrocket/rocket/stage[0]/bodytube[1]/innertube[2]: H128W's curve file 5f4294d20002e9000000000d is more than 1% from ThrustCurve.org's figures for it: total impulse +2.82%, average thrust +19.49%, burn time -8.48%
+warning: openrocket/rocket/stage[0]/bodytube[1]/innertube[2]: G40W's curve file 5f4294d20002e90000000463 is more than 1% from ThrustCurve.org's figures for it: total impulse +1.94%, average thrust +13.72%, burn time -10.50%
 ```
 
 <!-- cli: end -->
@@ -2204,10 +2242,10 @@ motor's figures carry no more precision than its curve file.
 FusionSpace HPR is released but not yet at 1.0, so the fields may still change. The schemas are published beside the
 code, and a change to a document changes its schema in the same commit.
 
-<!-- cli: example `hpr motors show B4 --json`; written by `cargo xtask cli`; do not edit -->
+<!-- cli: example `hpr motors show B4-4 --json`; written by `cargo xtask cli`; do not edit -->
 
 ```text
-$ hpr motors show B4 --json
+$ hpr motors show B4-4 --json
 {
   "tool": {
     "name": "FusionSpace HPR",
@@ -2215,79 +2253,82 @@ $ hpr motors show B4 --json
     "designation": "FS-ACHERNAR \u00b7 SW \u00b7 TOOL 001"
   },
   "kind": "copied",
-  "trust": "How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-09-17, not measured by HPR Sim: the size, masses and delays from the file's header, the impulse, thrusts and burn time from its curve, which can differ from the maker's rated figures. Each file is checked against ThrustCurve.org's figures and OpenRocket's reading of its impulse and peak thrust, not against the maker's data: checks of the file, not of the motor. The motor's printed data and its maker's instructions come first, and the RSO decides. More: https://hpr.fusionspace.co/pick-a-motor.html",
+  "trust": "How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-10-28, not measured by HPR Sim: the size, masses and delays from the file's header, the impulse, thrusts and burn time from its curve, which can differ from the maker's rated figures. Each file is checked against ThrustCurve.org's figures and OpenRocket's reading of its impulse and peak thrust, not against the maker's data: checks of the file, not of the motor. The motor's printed data and its maker's instructions come first, and the RSO decides. More: https://hpr.fusionspace.co/pick-a-motor.html",
   "motors": [
     {
-      "name": "B4",
+      "name": "B4-4",
       "manufacturer": "Quest Aerospace",
       "source": {
         "kind": "catalog",
         "format": "eng",
         "files": [
           {
-            "simfile_id": "5f4294d20002e9000000088e",
-            "page_url": "https://www.thrustcurve.org/simfiles/5f4294d20002e9000000088e/",
+            "simfile_id": "5f4294d20002e900000006d6",
+            "page_url": "https://www.thrustcurve.org/simfiles/5f4294d20002e900000006d6/",
             "format": "eng",
             "measured_by": "certification_test",
-            "license": "public_domain",
+            "license": "not_stated",
             "flown": true,
             "check": {
-              "passes": true,
+              "passes": false,
               "total_impulse_ns": {
-                "file": 4.892141999999999,
-                "stated": 4.86
+                "file": 3.8392810000000006,
+                "stated": 3.84
               },
               "average_thrust_n": {
-                "file": 4.403753380057823,
-                "stated": 4.4
+                "file": 4.421340299414922,
+                "stated": 4.22
               },
               "burn_time_s": {
-                "file": 1.110902808988764,
-                "stated": 1.1
+                "file": 0.8683522959108246,
+                "stated": 0.91
               }
             }
           }
         ]
       },
-      "diameter_m": 0.018,
-      "length_m": 0.08,
-      "propellant_mass_kg": 0.0036000000000000003,
-      "loaded_mass_kg": 0.0198,
-      "total_impulse_ns": 4.892141999999999,
+      "diameter_m": 0.019,
+      "length_m": 0.07,
+      "propellant_mass_kg": 0.010400000000000001,
+      "loaded_mass_kg": 0.0166,
+      "total_impulse_ns": 3.8392810000000006,
       "impulse_class": "B",
-      "average_thrust_n": 4.403753380057823,
-      "peak_thrust_n": 7.2,
-      "burn_time_s": 1.110902808988764,
-      "burn_start_s": 0.01745,
-      "burn_end_s": 1.128352808988764,
-      "curve_end_s": 1.184,
+      "average_thrust_n": 4.421340299414922,
+      "peak_thrust_n": 12.81,
+      "burn_time_s": 0.8683522959108246,
+      "burn_start_s": 0.019373510540788272,
+      "burn_end_s": 0.8877258064516129,
+      "curve_end_s": 0.91,
       "delays": [
         {
           "kind": "seconds",
           "value": 4.0
-        },
-        {
-          "kind": "seconds",
-          "value": 6.0
         }
       ]
     }
   ],
-  "warnings": []
+  "warnings": [
+    {
+      "motor": "B4-4",
+      "line": null,
+      "kind": "dropped",
+      "message": "an empty delay in \"4-\" was left out, and no number HPR Sim works out depends on it"
+    }
+  ]
 }
 ```
 
 <!-- cli: end -->
 
 A failure prints an error document. Its `kind` matches the exit status, and `milestone` is set
-only for a command not available yet. Here `hpr sim --offline` refuses the test rocket above
-without `--motor`, as neither the file, the bundled catalog nor the cache holds a curve for its
-motor:
+only for a command not available yet. Here `hpr sim --offline` refuses a copy of the test rocket
+above whose motor is an invented one, without `--motor`, as neither the file, the bundled catalog nor
+the cache holds a curve for it:
 
-<!-- cli: example `hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --offline --json`, exits 1; written by `cargo xtask cli`; do not edit -->
+<!-- cli: example `hpr sim validation/fixtures/ork/guides/no-curve.ork --offline --json`, exits 1; written by `cargo xtask cli`; do not edit -->
 
 ```text
-$ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --offline --json
+$ hpr sim validation/fixtures/ork/guides/no-curve.ork --offline --json
 {
   "tool": {
     "name": "FusionSpace HPR",
@@ -2296,11 +2337,11 @@ $ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --offline --json
   },
   "error": {
     "kind": "input",
-    "message": "configuration [H128W-0] can't be flown as the file has it. No thrust curve for H128W: no embedded curve, and no motor of that manufacturer and designation in the bundled catalog. AeroTech H128W is not in HPR Sim's cache of ThrustCurve.org, and the run is offline",
+    "message": "configuration [Z9-INVENTED] can't be flown as the file has it. No thrust curve for Z9-INVENTED: no embedded curve, and no motor of that manufacturer and designation in the bundled catalog. Invented Z9-INVENTED is not in HPR Sim's cache of ThrustCurve.org, and the run is offline",
     "command": "sim",
     "milestone": null,
     "help": [
-      "with a network connection, `hpr motors fetch --manufacturer AeroTech H128W` fetches it into the cache",
+      "with a network connection, `hpr motors fetch --manufacturer Invented Z9-INVENTED` fetches it into the cache",
       "give a motor with --motor"
     ]
   }
@@ -2359,9 +2400,9 @@ you press Tab. Save it where your shell looks for completions:
 - **Stock from one site.** `hpr motors search` covers only what motor.fusionspace.co does
   ([what it leaves out](motor-stock.md#what-it-leaves-out)). It has no filter by total impulse or
   by reload case.
-- **Only 32 motors fly by name, offline.** The whole ThrustCurve.org catalog is compiled in
-  ([the whole catalog](physics/motor.md#the-whole-catalog)), but the lookups don't use it yet. Any
-  other motor needs its `.eng` or `.rse` file, or its curve
+- **80 catalog motors can't fly by name.** The catalog has no curve file for them that
+  reads ([the whole catalog](physics/motor.md#the-whole-catalog)). A motor newer than the
+  catalog's October 28, 2026 capture needs its `.eng` or `.rse` file, or its curve
   [fetched from ThrustCurve.org](#motors-from-thrustcurveorg) into the cache. `hpr motors search`
   lists motors you can buy, not their curves.
 - **Downloads for three systems** ([Running it](#running-it)). On other systems, `hpr` is built

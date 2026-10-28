@@ -262,7 +262,7 @@ adds a source.
   The example `crates/hpr/examples/motor_stock.rs` reads the build and in-stock files.
   `hpr_net::motor_finder` also fetches such answers at run time, when a program asks, and caches
   them on the user's disk; each answer carries the credit for the program to show.
-- **OpenRocket's curves by ThrustCurve file** (`crates/hpr-cli/data/openrocket-curves.json`,
+- **OpenRocket's curves by ThrustCurve file** (`crates/hpr-motor/data/openrocket-curves.json`,
   2026-10-04, M4.5g2): for each motor of OpenRocket 24.12's example designs, the digest the
   `.ork` records, the maker and designation it writes, the id of the ThrustCurve.org data file
   whose curve matches OpenRocket's, and the largest differences in thrust, as fractions of the

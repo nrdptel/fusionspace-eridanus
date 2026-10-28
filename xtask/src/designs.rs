@@ -179,16 +179,16 @@ pub fn generate(root: &Path) -> Result<Vec<(String, String)>, String> {
         .ok_or_else(|| format!("{FIXTURE} has no cases"))?;
     for case in cases {
         let name = text(case, "name")?;
-        let rocket = rocketpy_design(case, &catalog).map_err(|e| format!("{name}: {e}"))?;
+        let rocket = rocketpy_design(case, catalog).map_err(|e| format!("{name}: {e}"))?;
         designs.push((format!("rocketpy-{name}.json"), to_json(&rocket)?));
     }
     designs.push((
         "synthetic-54mm-three-fin.json".to_owned(),
-        to_json(&three_fin(&catalog)?)?,
+        to_json(&three_fin(catalog)?)?,
     ));
     designs.push((
         "synthetic-two-stage-75mm-54mm.json".to_owned(),
-        to_json(&two_stage(&catalog)?)?,
+        to_json(&two_stage(catalog)?)?,
     ));
     let path = root.join(WIND_TUNNEL);
     let tunnel: Value = serde_json::from_str(

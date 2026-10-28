@@ -27,8 +27,9 @@ model cites its source and has tests.
 - You build a rocket part by part, with OpenRocket's catalog of 3,449 makers' parts built in, or
   read it from a design file.
 - It reads OpenRocket `.ork` designs whole and writes them back, and it has an open design format
-  of its own (`.hpr`, `.hprz`). Motors come as `.eng` and `.rse` files: 32 are bundled, and any
-  other is fetched from ThrustCurve.org once.
+  of its own (`.hpr`, `.hprz`). Motors come as `.eng` and `.rse` files: ThrustCurve.org's
+  1,004 solid motors are bundled, the 924 with a curve file fly offline, and a newer one is
+  fetched from there once.
 - Online data is optional: weather (Open-Meteo's forecasts, weather-balloon soundings and NOAA's
   GFS and RAP), [a site's elevation](https://hpr.fusionspace.co/elevation.html) and
   [live motor stock and prices](https://hpr.fusionspace.co/motor-stock.html). The elevation is
@@ -155,7 +156,7 @@ rail exit speed       26.3 m/s (86 ft/s)
 delay                 apogee 9.48 s after burnout; the motor's set delay: 10 s; its charge fires 0.52 s after apogee
 descent               4.4 m/s (15 ft/s) at landing under `Parachute`
 
-motor: 1 × H170M (from the bundled catalog, as of 2026-09-17) in `Motor mount tube`, lit at launch
+motor: 1 × H170M (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 12.14 s
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
 note: the file's 1 recovery device flies as OpenRocket flies it. Each opens fully at its event, with the file's drag coefficient or OpenRocket's own. Once one opens, the rocket descends as a point under the open devices' drag alone

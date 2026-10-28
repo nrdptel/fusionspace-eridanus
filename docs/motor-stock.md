@@ -335,8 +335,8 @@ reserved". The project uses those records as published facts about motors anyone
 ThrustCurve.org's credit
 ([the decision record on ThrustCurve.org's records](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)).
 Its API asks for no particular credit. The simulator puts `thrustcurve::ATTRIBUTION`,
-"Motor data and thrust curves courtesy of ThrustCurve.org", on every answer, as it credits the 32
-curves it carries. Each data file has its own license, set by whoever uploaded it: check it before
+"Motor data and thrust curves courtesy of ThrustCurve.org", on every answer, as it credits the
+catalog it carries. Each data file has its own license, set by whoever uploaded it: check it before
 passing a file on.
 
 The simulator's saved copy counts as fresh for a day, since motor records and curves change
