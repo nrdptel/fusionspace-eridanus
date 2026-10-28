@@ -450,7 +450,10 @@ fn assert_catalog_source(source: &serde_json::Value, name: &str, as_of: &str) {
     assert_eq!(source["motor_id"], motor.motor_id.as_str(), "{source}");
     let simfile_id = source["simfile_id"].as_str().unwrap();
     assert!(
-        motor.curves.iter().any(|curve| curve.simfile_id == simfile_id),
+        motor
+            .curves
+            .iter()
+            .any(|curve| curve.simfile_id == simfile_id),
         "{source}"
     );
 }
