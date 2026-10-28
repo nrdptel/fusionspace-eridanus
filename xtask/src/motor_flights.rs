@@ -75,7 +75,9 @@ fn list_and_fly(
             ));
         }
         if row["curve"].as_bool() != Some(motor.default_curve().is_some()) {
-            return Err(format!("`hpr motors list` marks {selector}'s curve wrongly"));
+            return Err(format!(
+                "`hpr motors list` marks {selector}'s curve wrongly"
+            ));
         }
         by_selector.insert(motor.motor_id.clone(), selector.to_owned());
     }
@@ -91,10 +93,17 @@ fn list_and_fly(
 
     // The motors with a curve, by case diameter: one probe rocket for each size.
     let mut sizes: BTreeMap<u64, Vec<&hpr_motor::catalog::CatalogMotor>> = BTreeMap::new();
-    for motor in catalog.motors.iter().filter(|m| m.default_curve().is_some()) {
+    for motor in catalog
+        .motors
+        .iter()
+        .filter(|m| m.default_curve().is_some())
+    {
         let micrometers = (motor.diameter_mm * 1e3).round();
-        // A case size is a positive number of micrometers, well within a u64.
-        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        #[allow(
+            clippy::cast_possible_truncation,
+            clippy::cast_sign_loss,
+            reason = "a case size is a positive number of micrometers, well within a u64"
+        )]
         sizes.entry(micrometers as u64).or_default().push(motor);
     }
     let flown_ids: BTreeSet<String> = sizes
@@ -134,7 +143,11 @@ fn list_and_fly(
             .collect();
         handles
             .into_iter()
-            .flat_map(|handle| handle.join().unwrap_or_else(|_| vec!["a flight panicked".into()]))
+            .flat_map(|handle| {
+                handle
+                    .join()
+                    .unwrap_or_else(|_| vec!["a flight panicked".into()])
+            })
             .collect()
     });
     if let Some(first) = failures.first() {
@@ -163,7 +176,10 @@ fn probe(
     selectors: &BTreeMap<String, String>,
 ) -> Result<PathBuf, String> {
     let fail = |error: hpr::Error| format!("the {micrometers} µm probe: {error}");
-    #[allow(clippy::cast_precision_loss)]
+    #[allow(
+        clippy::cast_precision_loss,
+        reason = "a case size in micrometers is far below 2^52"
+    )]
     let bore_m = micrometers as f64 * 1e-6 + BORE_SLACK_M;
     let longest_m = motors
         .iter()
@@ -183,7 +199,11 @@ fn probe(
             material("abs").map_err(fail)?,
         ))
         .map_err(fail)?
-        .add_tube(Tube::new(longest_m + 4.0 * diameter_m, wall_m, paper.clone()))
+        .add_tube(Tube::new(
+            longest_m + 4.0 * diameter_m,
+            wall_m,
+            paper.clone(),
+        ))
         .map_err(fail)?
         .add_motor_tube(MotorTube::new(longest_m, bore_m, wall_m, paper))
         .map_err(fail)?
@@ -229,7 +249,9 @@ fn flies(
     {
         return Err(format!("{selector} flies {flown}"));
     }
-    let fails = motor.default_curve().is_some_and(|curve| !curve.check.passes);
+    let fails = motor
+        .default_curve()
+        .is_some_and(|curve| !curve.check.passes);
     let warned = flight["warnings"].as_array().is_some_and(|warnings| {
         warnings.iter().any(|warning| {
             warning.to_string().contains("1%")

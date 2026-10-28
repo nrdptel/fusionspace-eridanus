@@ -45,7 +45,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let shown: Vec<_> = catalog
         .motors
         .iter()
-        .filter(|entry| entry.default_curve().is_some_and(|curve| curve.check.passes))
+        .filter(|entry| {
+            entry
+                .default_curve()
+                .is_some_and(|curve| curve.check.passes)
+        })
         .filter(|entry| {
             let new = !classes.contains(&entry.impulse_class);
             if new {
