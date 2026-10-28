@@ -1473,7 +1473,7 @@ motor it can fly, not that its curve is right.
   none, it fails with exit status 1. Online, a copy a day old is fetched again, and kept
   if the network fails.
 
-Printed online on October 4, 2026, pasted by hand (not run in CI), its output since updated:
+Printed online on October 4, 2026, pasted by hand (not run in CI) and edited to today's format:
 
 ```text
 $ hpr motors fetch F27R/L
