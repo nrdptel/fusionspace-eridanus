@@ -320,40 +320,23 @@ fn json_output_is_one_document_carrying_the_warnings() {
     }
 }
 
-/// What the hostile names below carry: a screen clear, a window title set and ended by a bell,
-/// the one-character CSI (U+009B) some terminals act on, and a carriage return.
-const HOSTILE: &str = "\u{1b}[2J\u{1b}]0;t\u{7}\u{9b}31m\r";
+/// What the hostile names below carry: a color change, the issue's own example; a screen clear;
+/// a window title set and ended by a bell; the one-character CSI (U+009B) some terminals act on;
+/// and a carriage return.
+const HOSTILE: &str = "\u{1b}[31m\u{1b}[2J\u{1b}]0;t\u{7}\u{9b}31m\r";
 
-/// The control characters in `text` but a line break or a tab, and escapes but the color codes
-/// `ESC [ … m` the tool writes itself.
-fn controls(text: &str) -> Vec<String> {
-    let mut found = Vec::new();
-    let mut chars = text.chars().peekable();
-    while let Some(c) = chars.next() {
-        if c == '\u{1b}' {
-            let mut code = String::from(c);
-            while let Some(&next) = chars.peek() {
-                if !(next == '[' || next == ';' || next.is_ascii_digit()) {
-                    break;
-                }
-                code.push(next);
-                chars.next();
-            }
-            if chars.peek() == Some(&'m') && code.starts_with("\u{1b}[") {
-                chars.next();
-            } else {
-                found.push(code);
-            }
-        } else if c.is_control() && c != '\n' && c != '\t' {
-            found.push(c.to_string());
-        }
-    }
-    found
+/// The control characters in `text` but a line break or a tab, escape among them.
+fn controls(text: &str) -> Vec<char> {
+    text.chars()
+        .filter(|&c| c.is_control() && c != '\n' && c != '\t')
+        .collect()
 }
 
 /// Issue #989: a file's own text, such as a design's or a channel's name, is shown with its
 /// control characters as `?` or escaped, never written to the terminal, by each command that
-/// quotes it, piped and with `--color always`, on standard output and standard error.
+/// quotes it, on standard output and standard error. Piped, no control character but a line
+/// break or a tab is printed, no escape at all; with `--color always`, taking the color codes
+/// out leaves the piped run's text exactly, so every escape left was one of the tool's own.
 #[test]
 fn a_files_control_characters_never_reach_the_terminal() {
     let folder = tempfile::tempdir().unwrap();
@@ -398,20 +381,34 @@ fn a_files_control_characters_never_reach_the_terminal() {
         &["convert", &hostile, &converted],
         &["analyze", &log],
     ] {
-        for color in [&[][..], &["--color", "always"]] {
-            let mut args = args.to_vec();
-            args.extend(color);
-            let printed = run_cached(&args, cache.path());
-            for (stream, text) in [("stdout", &printed.out), ("stderr", &printed.err)] {
-                let found = controls(text);
-                assert!(found.is_empty(), "{args:?} {stream}: {found:?}\n{text}");
-            }
-            // The names are printed, not left out: the clear's `[2J` is still there, after its
-            // escape shown as `?` or as Rust escapes it, `\u{1b}`.
+        let piped = run_cached(args, cache.path());
+        for (stream, text) in [("stdout", &piped.out), ("stderr", &piped.err)] {
+            let found = controls(text);
+            assert!(found.is_empty(), "{args:?} {stream}: {found:?}\n{text}");
+        }
+        // The names are printed, not left out: the clear's `[2J` is still there, after its
+        // escape shown as `?` or as Rust escapes it, `\u{1b}`.
+        assert!(
+            piped.out.contains("?[2J") || piped.out.contains("\\u{1b}[2J"),
+            "{args:?}: {}",
+            piped.out
+        );
+        let mut colored = args.to_vec();
+        colored.extend(["--color", "always"]);
+        let colored = run_cached(&colored, cache.path());
+        assert!(colored.out.contains('\u{1b}'), "{args:?}: no color");
+        for (stream, text, piped) in [
+            ("stdout", &colored.out, &piped.out),
+            ("stderr", &colored.err, &piped.err),
+        ] {
+            assert_eq!(&plain(text), piped, "{args:?} {stream}, colored");
+            let found: Vec<char> = controls(text)
+                .into_iter()
+                .filter(|&c| c != '\u{1b}')
+                .collect();
             assert!(
-                printed.out.contains("?[2J") || printed.out.contains("\\u{1b}[2J"),
-                "{args:?}: {}",
-                printed.out
+                found.is_empty(),
+                "{args:?} {stream}, colored: {found:?}\n{text}"
             );
         }
     }

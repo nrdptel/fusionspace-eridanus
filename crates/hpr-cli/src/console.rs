@@ -297,31 +297,36 @@ impl<'a> Text<'a> {
 
 /// `bytes` with each control character in them but a line break or a tab shown as `?`: the C0
 /// controls, escape among them, DEL, and the C1 controls, such as the one-character CSI
-/// (U+009B) some terminals act on. Text that isn't UTF-8 has its single-byte controls replaced
-/// and the rest kept as it is.
+/// (U+009B) some terminals act on. In text that isn't UTF-8, a byte outside any character that
+/// is a C0 or DEL, or a C1 control written as one byte, is shown as `?` too, and the rest kept as
+/// it is. Writes reach [`Text`] through `write!`, as whole strings; one character split over two
+/// writes would be read as two bytes outside any character.
 fn shown(bytes: &[u8]) -> std::borrow::Cow<'_, [u8]> {
     let kept = |c: char| !c.is_control() || c == '\n' || c == '\t';
-    match std::str::from_utf8(bytes) {
-        Ok(text) if text.chars().all(kept) => std::borrow::Cow::Borrowed(bytes),
-        Ok(text) => std::borrow::Cow::Owned(
-            text.chars()
-                .map(|c| if kept(c) { c } else { '?' })
-                .collect::<String>()
-                .into_bytes(),
-        ),
-        Err(_) => std::borrow::Cow::Owned(
-            bytes
-                .iter()
-                .map(|&byte| {
-                    if (byte < 0x20 && byte != b'\n' && byte != b'\t') || byte == 0x7f {
-                        b'?'
-                    } else {
-                        byte
-                    }
-                })
-                .collect(),
-        ),
+    if let Ok(text) = std::str::from_utf8(bytes)
+        && text.chars().all(kept)
+    {
+        return std::borrow::Cow::Borrowed(bytes);
     }
+    let mut shown = Vec::with_capacity(bytes.len());
+    for chunk in bytes.utf8_chunks() {
+        for c in chunk.valid().chars() {
+            let mut utf8 = [0; 4];
+            shown.extend_from_slice(if kept(c) {
+                c.encode_utf8(&mut utf8).as_bytes()
+            } else {
+                b"?"
+            });
+        }
+        for &byte in chunk.invalid() {
+            shown.push(if byte < 0x20 || (0x7f..=0x9f).contains(&byte) {
+                b'?'
+            } else {
+                byte
+            });
+        }
+    }
+    std::borrow::Cow::Owned(shown)
 }
 
 impl Write for Text<'_> {
@@ -655,31 +660,32 @@ mod tests {
 
     /// A control character a file's text brings, but a line break or a tab, is shown as `?`
     /// on the first line, in a header and after, with color or without, while the styles stay
-    /// (issue #989): C0, DEL and C1. Text that isn't UTF-8 loses its single-byte controls and
-    /// keeps the rest.
+    /// (issue #989): C0, DEL and C1. In text that isn't UTF-8, a C0, DEL or one-byte C1 outside
+    /// any character is shown as `?`, as is a whole U+009B; another byte outside any character
+    /// is kept.
     #[test]
     fn control_characters_are_shown_not_written() {
         let write = |on: bool| {
             let mut bytes = Vec::new();
             let mut text = Text::new(&mut bytes, Paint { on });
-            writeln!(text, "a\u{1b}[2J\u{7} (a.ork)").unwrap();
+            writeln!(text, "a\u{1b}[31m\u{1b}[2J\u{7} (a.ork)").unwrap();
             text.heading("event\u{9b}31m\ttime").unwrap();
             writeln!(text, "row\r\u{7f}\u{0}é").unwrap();
-            text.write_all(b"\xff\x1b\xc2\n").unwrap();
+            text.write_all(b"\xff\x1b\x9b\xc2\x9b\xc2\n").unwrap();
             text.finish().unwrap();
             bytes
         };
         assert_eq!(
             write(true),
-            format!("{BOLD}a?[2J? (a.ork){RESET}\n{BOLD}event?31m\ttime{RESET}\nrow???é\n")
+            format!("{BOLD}a?[31m?[2J? (a.ork){RESET}\n{BOLD}event?31m\ttime{RESET}\nrow???é\n")
                 .into_bytes()
                 .into_iter()
-                .chain(*b"\xff?\xc2\n")
+                .chain(*b"\xff???\xc2\n")
                 .collect::<Vec<u8>>()
         );
         assert_eq!(
             write(false),
-            b"a?[2J? (a.ork)\nevent?31m\ttime\nrow???\xc3\xa9\n\xff?\xc2\n"
+            b"a?[31m?[2J? (a.ork)\nevent?31m\ttime\nrow???\xc3\xa9\n\xff???\xc2\n"
         );
     }
 

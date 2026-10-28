@@ -143,9 +143,10 @@ color:
 The result itself is plain text, with two marks of emphasis when its stream gets color. Its first
 line, which names what was read, and each table's header row are bold. In a `help:` or `note:` line,
 what to type is bold blue. That covers a command in backticks, such as `` `hpr motors list` ``, and
-an option the line names, such as `--config`. A name quoted from a file, such as a design's, shows
-each control character in it as `?` or as an escape such as `\u{1b}`, so a downloaded file can't
-send codes to your terminal.
+an option the line names, such as `--config`.
+
+A name read from a file shows each control character in it but a line break or a tab as `?`, or as
+`\u{1b}` and the like in quotes, so a downloaded file can't send escape sequences to your terminal.
 
 The colors are your terminal's own red, yellow and blue, so its theme decides how they look.
 `hpr` decides for standard output and standard error separately, in this order:
