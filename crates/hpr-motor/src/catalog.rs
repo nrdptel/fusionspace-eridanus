@@ -1388,7 +1388,8 @@ mod tests {
 
     /// ADR-298 §4: every bundled file's stored check is its curve's figures against its motor's
     /// stated ones, worked out again here, and the stated figures are the committed record's,
-    /// bit for bit. Each of the 32 passes, as they were chosen to, so none warns.
+    /// bit for bit, over every file of the whole catalog. A failing file is stored with its
+    /// failing check, and its warning names it.
     #[test]
     fn every_bundled_check_is_its_file_against_its_record() {
         let records: serde_json::Value =
