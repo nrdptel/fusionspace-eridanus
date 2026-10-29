@@ -12,8 +12,8 @@
 //! `2 × 1.645`. For normal errors those hold the truth about 81% and 96% of the time, and the
 //! shifted one misses above about 26% of the time.
 //!
-//! The intervals' shares are fitted on [`Set::Calibration`] ([`fitted`]); the test runs on
-//! [`Set::A`] and [`Set::B`], which the shares never see.
+//! The intervals' shares are fitted on [`Set::Calibration`](super::Set::Calibration) ([`fitted`]); the test runs on
+//! [`Set::A`](super::Set::A) and [`Set::B`](super::Set::B), which the shares never see.
 //!
 //! [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 //! [adr-308]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md
@@ -371,7 +371,7 @@ pub fn check(quantity: Quantity, flights: &[FlightSaid]) -> Check {
     }
 }
 
-/// `quantity`'s shares fitted again on `flights`, which should be [`Set::Calibration`]'s; `None`
+/// `quantity`'s shares fitted again on `flights`, which should be [`Set::Calibration`](super::Set::Calibration)'s; `None`
 /// when fewer than 20 state an interval or a share isn't a number.
 pub fn fitted(quantity: Quantity, flights: &[FlightSaid]) -> Option<Shares> {
     let shares: Vec<f64> = flights
