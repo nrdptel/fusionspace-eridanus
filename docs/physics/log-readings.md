@@ -731,7 +731,7 @@ of 31.83 m (104.4 ft) ([above](#a-worked-example)). Its interval runs from 390.1
 test of [ADR-257, calibrated intervals][adr-257]
 ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/synthetic-flights.md#the-readings-90-intervals)).
 The truths below an interval and those above it are each counted, so an interval that misses on
-one side only fails. Each count gets its 99.9% Clopper–Pearson band, the range of shares that
+one side only fails. Each count gets its 99.9% Clopper-Pearson band, the range of shares that
 count rules in. The test fails unless both sides' bands hold 5% and the inside count's holds 90%:
 
 | set | reading | readings compared | truths below | truths inside | truths above |

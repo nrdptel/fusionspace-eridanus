@@ -1996,6 +1996,7 @@ mod tests {
             cards: Vec::new(),
             intervals: Intervals {
                 calibration_flights: 0,
+                calibration_withheld: 0,
                 shares: Vec::new(),
                 sets: Vec::new(),
             },
@@ -2032,8 +2033,14 @@ mod tests {
             })
             .collect();
         let check = intervals::check(Quantity::ApogeeHeight, &flights);
+        let probe_passes = check
+            .probes
+            .iter()
+            .map(|(probe, test)| (*probe, test.passes()))
+            .collect();
         let made = Intervals {
             calibration_flights: 2000,
+            calibration_withheld: 362,
             shares: vec![FittedShares {
                 quantity: Quantity::ApogeeHeight,
                 stated: 1638,
@@ -2050,6 +2057,7 @@ mod tests {
                 set: Set::A,
                 checks: vec![IntervalCheck {
                     holds: check.holds(),
+                    probe_passes,
                     check,
                 }],
             }],
@@ -2071,6 +2079,36 @@ mod tests {
             page.contains("| rocketpy-bella-lui | 0 / 100 / 0 |"),
             "{page}"
         );
+        // Each group's counts alone fail too: in bold.
+        assert!(page.contains("| altos | **0 / 100 / 0** |"), "{page}");
+        assert!(
+            page.contains("| −10 to +10 K | **0 / 100 / 0** |"),
+            "{page}"
+        );
+    }
+
+    /// A reading withheld from a log with a barometer, or read with no interval, would leave the
+    /// counts with its misses: each is named. The GNSS-only tracker's withheld apogee isn't.
+    #[test]
+    fn a_reading_that_leaves_the_counts_is_named() {
+        use hpr_flightdata::readings::Reason;
+        use intervals::Said;
+        let flight = |logger: &'static str, said: Said| FlightSaid {
+            index: 7,
+            design: 0,
+            logger,
+            air_offset_k: 0.0,
+            said: vec![(Quantity::ApogeeHeight, said)],
+        };
+        let flights = [
+            flight("gnss-tracker", Said::Withheld(Reason::ReceiverLag)),
+            flight("altos", Said::Withheld(Reason::NoClimb)),
+            flight("rrc3", Said::Unstated),
+        ];
+        let problems = dropped(Set::A, &flights);
+        assert_eq!(problems.len(), 2, "{problems:?}");
+        assert!(problems[0].contains("a flight 7 (altos): apogee height withheld (NoClimb)"));
+        assert!(problems[1].contains("(rrc3): apogee height read with no interval"));
     }
 
     /// The tops: a share of 1 reaches the range, the nearest is the largest share, the flights
