@@ -376,8 +376,8 @@ lists it.
   50 µs ([lines 40–91][tc-a-40]). HPR Sim keeps leading zeros and treats equal times as steps.
   On the 412 files that pass the 1% check, the results agree to 3e-15 on all but 6, each with
   repeated times, where the averaging moves one figure by up to 6.5% ([Validation](#validation)).
-  In the 2026-09-17 survey of the 1,710 of ThrustCurve.org's 1,712 solid-motor files that read,
-  the two agreed to 1e-9, except 17 with repeated times. On those they differed by up to 1.1% in
+  A survey on September 17, 2026 read 1,710 of ThrustCurve.org's 1,712 solid-motor files. The
+  two agreed to 1e-9 on all but 17 with repeated times, and on those differed by up to 1.1% in
   average thrust. HPR Sim keeps the step because a vertical drop is what the file draws.
 - **Total impulse:** the exact integral of the lines
   ([SP] glossary p. 96: $I = \int F\,\mathrm{d}t$),
