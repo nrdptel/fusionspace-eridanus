@@ -96,9 +96,11 @@ does, is refused rather than guessed, with a name listed that finds each alone; 
 several makers use, such as `G80`
 ([A name several makers share](cli.md#a-name-several-makers-share)).
 
-Most motors in the catalog fly a curve file that is more than 1% from ThrustCurve.org's figures
-for it. Such a motor still flies, and `warnings()` names each failing figure, as `hpr sim --motor`
-prints it ([Solid motors](physics/motor.md)).
+685 of the 924 motors with a curve fly a file that is more than 1% from ThrustCurve.org's figures
+for it ([the whole catalog](physics/motor.md#the-whole-catalog)). Such a motor still flies, and
+`warnings()` lists what `hpr sim --motor` would print: each failing figure, and a propellant mass
+more than 5% below the record's. The library prints nothing itself. Check such a file against the
+maker's data.
 
 The delay is never read from the designation. `with_delay_s(10.0)` sets it, and a parachute opened
 by the motor's charge needs it. `Motor::from_eng` reads the text of a
