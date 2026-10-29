@@ -1562,8 +1562,9 @@ commands that find it there are printed:
 
 - A new motor is read offline by name, `hpr motors fetch NAME`, and `hpr sim DESIGN --motor NAME`
   flies it, DESIGN being your design file. If the bundle has a motor by that name, `hpr sim
-  --motor` would fly the bundled one, so no `hpr sim` line is printed; that case, and a name
-  several makers share, give the maker: `hpr motors fetch --manufacturer MAKER NAME`.
+  --motor` looks there first and never reads the cache, so no `hpr sim` line is printed; that
+  case, and a name several makers share, give the maker: `hpr motors fetch --manufacturer MAKER
+  NAME`.
 - A newer file of a bundled motor is only cached: `hpr sim --motor` keeps flying the bundled
   file, and `hpr motors fetch --file ID` shows the new one.
 - A fetched curve is a contributor's upload, as in [fetching a motor](#motors-from-thrustcurveorg).

@@ -217,9 +217,9 @@ pub struct NewerMotor {
     /// `null` when no file of it makes a motor HPR Sim flies, or the name needs quoting.
     pub command: Option<String>,
     /// For a motor the bundle lacks, the `hpr sim` command that flies it from the cache, `DESIGN`
-    /// standing for a design file; `null` when the bundled catalog has a motor by its designation
-    /// (`hpr sim --motor` would fly that one), the designation alone finds another maker's motor,
-    /// or it needs quoting.
+    /// standing for a design file. Given only when `command` reads the motor by its designation
+    /// alone and the bundled catalog finds no motor by that name (`hpr sim --motor` looks there
+    /// first, and then never reads the cache); else `null`.
     pub sim: Option<String>,
     /// Its RASP and RockSim files the bundle lacks.
     pub files: Vec<NewerFile>,

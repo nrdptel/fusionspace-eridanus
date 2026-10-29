@@ -56,8 +56,8 @@ pub(crate) fn run(args: &UpdateArgs, to: &mut Out<'_>) -> Result<(), Failure> {
 }
 
 /// The document for `catalog`, compared with ThrustCurve.org through `client` as `bundle`. Each
-/// newer motor and file is then looked up by name as `hpr motors fetch` and `hpr sim --motor`
-/// look it up, so the answers they read are cached too.
+/// newer motor and file is then looked up as the commands printed for it look it up, so the
+/// answers they read are cached too.
 fn update<T: Transport>(
     client: &Client<T>,
     catalog: &Catalog,
@@ -179,8 +179,9 @@ fn newer_motor<T: Transport>(
 }
 
 /// Whether `hpr sim --motor NAME` reaches the cache for `name`: only when the bundled catalog
-/// finds no motor by it ([`crate::sim::catalog_or_fetched`] tries the catalog first). A new motor
-/// whose designation is a bundled motor's designation or common name would fly that motor.
+/// finds no motor by it ([`crate::sim::catalog_or_fetched`] tries the catalog first). For a new
+/// motor whose designation is a bundled motor's designation or common name, `hpr sim` flies the
+/// bundled motor, or refuses a name several bundled motors share; it never reads the cache.
 fn flies_by_name(catalog: &Catalog, name: &str) -> bool {
     matches!(
         hpr::Motor::from_catalog_in(catalog, name),
@@ -405,8 +406,8 @@ mod tests {
         );
     }
 
-    /// `hpr sim --motor NAME` is printed only for a name the bundled catalog finds no motor by: a
-    /// bundled designation or common name would fly the bundled motor.
+    /// `hpr sim DESIGN --motor NAME` is printed only for a name the bundled catalog finds no motor
+    /// by: for a bundled designation or common name, `hpr sim` never reads the cache.
     #[test]
     fn the_sim_command_is_only_for_a_name_the_bundle_lacks() {
         let catalog = Catalog::bundled().unwrap();
