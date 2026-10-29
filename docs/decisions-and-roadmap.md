@@ -332,6 +332,7 @@ until someone rewrites it in plainer words.
 | [ADR-301: The whole catalog in two increments, the index before the lookups][adr-301] | ThrustCurve.org's API answered again on 2026-10-28, and a fresh snapshot was taken: 1,004 solid motors and 1,706 files. Compiling it in is one session's work; switching every lookup to it is another, because it moves flights, shared names and reports. [M5.7b1](#m5-7b1) compiles the snapshot in, with each file's check, beside [M5.7a](#m5-7a)'s 32 motors, which the lookups keep using. [M5.7b2](#m5-7b2) switches the lookups to the whole catalog. |  |
 | [ADR-302: Every motor by name, offline][adr-302] | Every lookup now reads the whole bundled catalog: 1,004 motors, 924 of them with a curve file. A name two makers use, by designation or common name, takes its maker (`Estes C6`); within one maker a designation outranks a common name. Each motor gets a selector, a name that finds it alone. A motor with no curve is listed and refused, not hidden. A bundled default file more than 5% light on propellant warns, as a fetched one does. `cargo xtask motor-catalog --check` lists and flies every motor offline, with counts from the raw snapshot. |  |
 | [ADR-303: The 2026-10-28 review: the RocketPy peaks tightened][adr-303] | In the RocketPy whole flights flown on the same inputs, the largest Mach numbers agree within 0.235% and the largest accelerations under power, outside Bella Lui's two flights, within 0.248%, while RocketPy's own solver moves them by at most 9.1e-6 and 2.7e-4 of their values. Each bound goes from 3% to 1%, 4.3 and 4.0 times the largest difference. Bella Lui keeps 3% on its accelerations for the cause its case file measures. A test pins every bound. |  |
+| [ADR-304: Every passing file held to the oracles][adr-304] | The lesson-L42 test and the test against ThrustCurve.org's own statistics code run over all 412 files stored as passing, with the code's fixture regenerated to hold exactly those. Two samples at the same time are a step in HPR Sim and one averaged point in ThrustCurve.org's code; HPR Sim keeps the step, and the fixture also records the code with its merge turned off, which matches HPR Sim to 2.9e-15 on every file. The 6 files where the merge moves a figure are named in the test. A recount from the raw snapshot, with ThrustCurve.org's code, agrees with the index on all 1,700 files it holds. `cargo xtask motor-catalog --check` fails over 1%, worked out again from each file's bytes, and runs in CI. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -737,7 +738,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m5-7a"></a>[M5.7a][done-2] | Each file's check and the default file | done |
 | <a id="m5-7b1"></a>[M5.7b1][phase-2] | The whole catalog compiled in | blocked |
 | <a id="m5-7b2"></a>[M5.7b2][done-2] | Every motor by name, offline | done |
-| <a id="m5-7c"></a>[M5.7c][phase-2] | Every passing file held to the oracles | not yet done |
+| <a id="m5-7c"></a>[M5.7c][done-2] | Every passing file held to the oracles | done |
 | <a id="m5-7d"></a>[M5.7d][phase-2] | Newer motors online, and the bundle described | not yet done |
 | <a id="m6-1"></a>[M6.1][done-3] | Monte Carlo runs and sensitivity; split in four ([ADR-134][adr-134]) | done |
 | <a id="m6-1a"></a>[M6.1a][done-3] | Seeded dispersion of mass, center of mass, drag, motor, wind, rail and recovery delays; each flight the same whatever the run's size or thread count; failed flights counted; the apogee's spread ([ADR-134][adr-134], [Monte Carlo dispersion](monte-carlo.md)) | done |
@@ -1258,6 +1259,7 @@ is the milestone that added or will add that test.
 [adr-301]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0301-the-whole-catalog-in-two-increments.md
 [adr-302]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0302-every-motor-by-name.md
 [adr-303]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0303-the-2026-10-28-review-the-rocketpy-peaks-tightened.md
+[adr-304]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0304-every-passing-file-held-to-the-oracles.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

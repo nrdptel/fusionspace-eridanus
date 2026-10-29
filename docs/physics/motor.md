@@ -16,15 +16,16 @@ burn, mass and ejection delay.
   third of the four [kinds of evidence][levels]. Small numbers here are in
   [scientific notation](../glossary.md#scientific-notation), and a
   [relative](../glossary.md#relative-and-absolute-difference) difference is a fraction of the value
-  compared. ThrustCurve.org's own statistics code agrees to 1.8e-15, relative, on the 32 curves
-  first bundled. On three of them, RocketPy's total mass and inertias agree within 7.9e-5
+  compared. ThrustCurve.org's own statistics code agrees to 2.9e-15, relative, on all 412 files
+  that pass the 1% check ([Validation](#validation)). On three of the 32 curves first bundled,
+  RocketPy's total mass and inertias agree within 7.9e-5
   relative, the centers of mass within 5.9e-6 of the motor's length. The propellant's own mass and
   inertias agree within 1e-4 of their values at ignition. OpenRocket 24.12 reads the same 32 curve
   files. On each it gets exactly the same total impulse, peak thrust, burn-time
   window and curve duration. Its average thrust differs by definition: HPR Sim's is +0.0107% to
   +0.3147% higher. Nothing else in this model is
   compared with OpenRocket: not the propellant's burn-back, its mass and inertias, or the delays.
-  The other bundled files have only the 1% check against ThrustCurve.org's figures so far
+  The files that fail the 1% check have only that check against ThrustCurve.org's figures so far
   ([the whole catalog](#the-whole-catalog)). Nothing here is compared with a real flight.
 - **What it leaves out:** anything but [commercial off-the-shelf](../glossary.md#cots-motor)
   solids. The 80 catalog motors with no curve file that reads can't fly
@@ -167,10 +168,11 @@ short name and designation; `hpr motors list --json` gives each motor's selector
 - Each file is stored with its 1% check, passing or not. 412 of the 1,700 files pass, and 239 of
   the 924 motors with a file have one that does. The other 685 fly with a warning naming each
   failing figure.
-- Only that check covers the other 1,668 files. The comparisons with ThrustCurve.org's statistics
-  code and with OpenRocket, and the `.eng`/`.rse` round trip, cover the 32 files
-  first bundled. Holding every passing file to them is
-  planned ([issue #1002](https://github.com/nrdptel/fusionspace-eridanus/issues/1002)).
+- ThrustCurve.org's statistics code checks the figures of the 412 files that pass
+  ([Validation](#validation)). The 1,288 that fail have only the 1% check. The comparison with
+  OpenRocket and the `.eng`/`.rse` round trip cover the 32 files first bundled. The round trip
+  over every file is planned
+  ([issue #1002](https://github.com/nrdptel/fusionspace-eridanus/issues/1002)).
 - Of the 1,700 indexed files, 589 are public domain, 33 free to use, and 1,078 carry no
   license; none is marked restricted. The [third-party notices](https://github.com/nrdptel/fusionspace-eridanus/blob/main/THIRD-PARTY-NOTICES.md)
   say how each is used.
@@ -664,11 +666,29 @@ The tests that pin the motor model, and the whole example program.
   licenses, loose impulse checks and wrong headers.
 - **ThrustCurve's code** (`catalog::tests::every_bundled_curve_matches_thrustcurve_statistics_code`):
   [`validation/oracles/thrustcurve/analyze_stats.js`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/thrustcurve/analyze_stats.js)
-  runs [TC-A] unchanged on the 32 first bundled curves, and writes its results to a
+  runs [TC-A] unchanged on every file stored as passing, 412 of them, and writes its results to a
   [fixture](../glossary.md#reference-value-and-fixture),
   [`validation/fixtures/motor/thrustcurve-analyze-stats.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/motor/thrustcurve-analyze-stats.json).
-  HPR Sim's impulse, burn window, burn time, average and peak thrust agree to 1.8e-15. So the
+  HPR Sim's impulse, burn window, burn time, average and peak thrust agree to 2.9e-15. So the
   definitions are checked, not only the 1% rule.
+  - Two samples at the same time are read differently, on purpose ([ADR-304][adr-304]). HPR Sim
+    reads them as a step: the thrust jumps from the first value to the second. [TC-A] merges
+    points less than 50 µs apart into one point at their average thrust. 8 of the 412 files have
+    such points. The script also runs [TC-A] with that merge turned off (its `timeEpsilon` set to
+    0), and on those 8 files HPR Sim is held to that run. On 6 of them the merge moves a figure,
+    and the test names each. The largest moves: one file has 1,061.8 N and then 2,168.21 N at
+    0.01 s, which the merge averages to 1,615 N, so its peak thrust is 6.5% higher here; another's
+    burn time is 0.61% longer.
+  - **The recount** (`analyze_stats.js --recount`) works out which files pass from the raw
+    snapshot ThrustCurve.org answered, with [TC-A] and not HPR Sim's code, and fails unless the
+    index agrees. It agrees on all 1,700 files the index holds: 412 pass, and 239 motors have one
+    that does. One file passes with every sample kept and would fail with the merge: Cesaroni's
+    2765L730-P file, whose burn time is 0.68% short of its record here and 1.28% short after the
+    merge. The raw snapshot isn't committed, so the recount runs on the maintainer's machine, not
+    in CI.
+  - **CI** runs `cargo xtask motor-catalog --check`. It works out each file's figures again from
+    its bytes, and fails if a file stored as passing is more than 1% from its record, or a file
+    stored as failing is within 1% of it.
 - **OpenRocket** (`catalog::tests::openrocket_s_total_impulse_matches_every_bundled_curve`):
   [`validation/oracles/openrocket/motors.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/openrocket/motors.py)
   hands each of the same 32 files to OpenRocket 24.12's own motor loader. It records what the loader makes
@@ -955,6 +975,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 ```
 
 [adr-066]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0066-every-curve-hpr-flies-is-integrated-as.md
+[adr-304]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0304-every-passing-file-held-to-the-oracles.md
 [adr-067]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0067-curves-come-from-openrockets-own-database-by.md
 [levels]: ../accuracy.md#four-kinds-of-evidence
 [sp]: https://ntrs.nasa.gov/api/citations/19720011135/downloads/19720011135.pdf

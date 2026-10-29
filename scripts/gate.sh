@@ -25,11 +25,15 @@
 # `ork-export-flights --check` (M3.2b; ADR-237: its records went stale unseen before it joined)
 # `logs --check` (M7.1a, ADR-251: every flight-log sample read, its report reproduced)
 # and `evidence --samples` (M2.10, ADR-278: each real sample the evidence register lists is there,
-# its SHA-256 matches and its test reads it without skipping).
+# its SHA-256 matches and its test reads it without skipping), and the motor catalog's recount
+# (M5.7c, ADR-304: `analyze_stats.js --recount` works out which files pass from the raw
+# ThrustCurve.org snapshot with ThrustCurve.org's own code, and fails unless the index agrees).
+# Step validate runs `motor-catalog --check` as CI does, and with the raw snapshot under refs/ it
+# also holds the committed records and files to it.
 # It joins any run that includes `test` (the default set, or a fix's `scripts/gate.sh clippy test`)
 # when refs/ is present and the branch changes a physics crate (hpr-aero, hpr-sim, hpr-motor,
 # hpr-design, hpr-atmos, hpr-io), the log readers (hpr-flightdata), the command line (hpr-cli,
-# whose `--motor` lookup `motor-catalog --check` flies on every motor) or the evidence register
+# which `ork-cli --check` runs) or the evidence register
 # (validation/evidence.toml, whose samples `evidence --samples` checks) against origin/main, and
 # says so when it can't. Name it to run it
 # anyway (`scripts/gate.sh refs`), or set GATE_REFS=0 to leave it out.
@@ -224,7 +228,7 @@ cmd_for() {
       fi ;;
     doc) echo "env RUSTDOCFLAGS=-D\\ warnings cargo doc --workspace --no-deps --all-features --locked" ;;
     wasm) echo "$XTASK wasm-check --locked" ;;
-    validate) echo "$XTASK validate --check && $XTASK synthetic --check && $XTASK scoreboard --check --against origin/main" ;;
+    validate) echo "$XTASK validate --check && $XTASK synthetic --check && $XTASK motor-catalog --check && $XTASK scoreboard --check --against origin/main" ;;
     deny) echo "cargo deny check" ;;
     site) echo "$XTASK site --locked" ;;
     pages) echo "$XTASK site --no-build" ;;
@@ -234,7 +238,7 @@ cmd_for() {
     types) echo "$XTASK format --typecheck" ;;
     python) echo "scripts/python-tests.sh" ;;
     ego) echo "cargo bench --locked -p fusionspace-hpr-analysis --bench ego_hartmann6" ;;
-    refs) echo "$XTASK ork-flights --check && $XTASK ork-flights --library --check && $XTASK real-flights --check && $XTASK ork-cli --check && $XTASK fixture-flights --check && $XTASK ork-export-flights --check && $XTASK logs --check && $XTASK evidence --samples && $XTASK motor-catalog --check" ;;
+    refs) echo "$XTASK ork-flights --check && $XTASK ork-flights --library --check && $XTASK real-flights --check && $XTASK ork-cli --check && $XTASK fixture-flights --check && $XTASK ork-export-flights --check && $XTASK logs --check && $XTASK evidence --samples && node validation/oracles/thrustcurve/analyze_stats.js --recount" ;;
     *) return 1 ;;
   esac
 }

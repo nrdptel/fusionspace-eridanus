@@ -1006,13 +1006,16 @@ mod tests {
     /// Loft lesson L42: Loft's impulse checks allowed −8% to +8%, and a mis-sourced curve flew
     /// about 26% high until caught. Every figure the bundled index lists for a motor is its
     /// default file's own, bit for bit: `cargo xtask motor-catalog` works them out with the
-    /// methods the simulator flies (#295), so what `hpr motors` lists is what flies. Each file the
-    /// oracle fixture holds is also within 1% of what ThrustCurve.org's own code works out from it
-    /// (M1.3's bound; [`every_bundled_curve_matches_thrustcurve_statistics_code`] holds it to
-    /// 1e-12): M5.7a's 32 files until M5.7c runs the code over every file stored as passing
-    /// ([ADR-301][adr-301]).
+    /// methods the simulator flies (#295), so what `hpr motors` lists is what flies. Every file
+    /// stored as passing (M5.7c, [ADR-304][adr-304]) is within 1% of its motor's ThrustCurve.org
+    /// record in total impulse, average thrust and burn time, worked out here from its text, and
+    /// within 1% of what ThrustCurve.org's own code works out from it in those and its peak
+    /// thrust, reading two samples at one time as a step as hpr does (M1.3's bound;
+    /// [`every_bundled_curve_matches_thrustcurve_statistics_code`] holds the figures to 1e-12, and
+    /// pins the files where the code's standard 50 µs merge moves them). The oracle fixture holds
+    /// exactly the files stored as passing.
     ///
-    /// [adr-301]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0301-the-whole-catalog-in-two-increments.md
+    /// [adr-304]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0304-every-passing-file-held-to-the-oracles.md
     #[test]
     fn every_bundled_curve_impulse_within_1pct_of_thrustcurve() {
         let oracle: AnalyzeOracle = serde_json::from_str(include_str!(
@@ -1031,7 +1034,11 @@ mod tests {
                 }
                 let text = bundled_curve_text(&curve.file).unwrap();
                 let thrust = motor.thrust_curve(curve, text).unwrap();
-                let theirs = oracle.curves.iter().find(|c| c.file == curve.file);
+                let theirs = oracle
+                    .curves
+                    .iter()
+                    .find(|c| c.file == curve.file)
+                    .map(|c| c.unmerged.unwrap_or(c.standard()));
                 for (stated, computed, by_thrustcurve, what) in [
                     (
                         motor.total_impulse_ns,
@@ -1058,6 +1065,21 @@ mod tests {
                         "peak thrust",
                     ),
                 ] {
+                    if curve.check.passes && what != "peak thrust" {
+                        let record = match what {
+                            "total impulse" => motor.stated.total_impulse_ns,
+                            "average thrust" => motor.stated.average_thrust_n,
+                            _ => motor.stated.burn_time_s,
+                        };
+                        assert!(
+                            (computed - record).abs() <= 0.01 * record,
+                            "{} ({}) is stored as passing, but its {what} {computed} is {:+.3}% \
+                             from its record's {record}",
+                            motor.designation,
+                            curve.simfile_id,
+                            100.0 * (computed - record) / record
+                        );
+                    }
                     if motor.default_curve() == Some(curve) {
                         assert_eq!(
                             stated.to_bits(),
@@ -1073,7 +1095,7 @@ mod tests {
                     let error = (computed - by_thrustcurve) / by_thrustcurve;
                     assert!(
                         error.abs() <= 0.01,
-                        "{} ({}): {what} {stated} against ThrustCurve's code's {by_thrustcurve} \
+                        "{} ({}): {what} {computed} against ThrustCurve's code's {by_thrustcurve} \
                          ({:+.2}%)",
                         motor.designation,
                         curve.simfile_id,
@@ -1089,11 +1111,26 @@ mod tests {
                     );
                     listed += 1;
                 }
+                assert_eq!(
+                    theirs.is_some(),
+                    curve.check.passes,
+                    "{} ({}): the oracle fixture should hold exactly the files stored as passing",
+                    motor.designation,
+                    curve.simfile_id
+                );
                 checked += usize::from(theirs.is_some());
             }
         }
         assert_eq!(checked, oracle.curves.len());
-        assert_eq!(checked, 32);
+        let passing = catalog
+            .motors
+            .iter()
+            .flat_map(|m| &m.curves)
+            .filter(|c| c.check.passes)
+            .count();
+        assert_eq!(checked, passing);
+        // M5.7b1's snapshot: 412 of its 1,700 files pass (`cargo xtask motor-catalog`).
+        assert_eq!(passing, 412);
         assert_eq!(
             listed,
             catalog
@@ -1363,12 +1400,27 @@ mod tests {
     #[derive(Debug, serde::Deserialize)]
     struct AnalyzeOracle {
         oracle: String,
+        selection: String,
         curves: Vec<AnalyzeCurve>,
     }
 
+    /// One file's figures from ThrustCurve.org's code: with its standard 50 µs merge, and, where
+    /// that merge folded any points, with every sample kept (`unmerged`).
     #[derive(Debug, serde::Deserialize)]
     struct AnalyzeCurve {
         file: String,
+        merged_points: usize,
+        total_impulse_ns: f64,
+        burn_time_s: f64,
+        average_thrust_n: f64,
+        max_thrust_n: f64,
+        burn_start_s: f64,
+        burn_end_s: f64,
+        unmerged: Option<AnalyzeFigures>,
+    }
+
+    #[derive(Debug, Clone, Copy, serde::Deserialize)]
+    struct AnalyzeFigures {
         total_impulse_ns: f64,
         burn_time_s: f64,
         average_thrust_n: f64,
@@ -1377,10 +1429,50 @@ mod tests {
         burn_end_s: f64,
     }
 
+    impl AnalyzeCurve {
+        /// The figures with ThrustCurve.org's standard 50 µs merge.
+        fn standard(&self) -> AnalyzeFigures {
+            AnalyzeFigures {
+                total_impulse_ns: self.total_impulse_ns,
+                burn_time_s: self.burn_time_s,
+                average_thrust_n: self.average_thrust_n,
+                max_thrust_n: self.max_thrust_n,
+                burn_start_s: self.burn_start_s,
+                burn_end_s: self.burn_end_s,
+            }
+        }
+    }
+
+    /// The passing files where ThrustCurve.org's 50 µs merge averages two samples at one time
+    /// into one point and so moves a figure past 1e-12, each with that figure's gap there
+    /// (ADR-304): hpr reads the two as a step, and matches the code with every sample kept. A
+    /// merging file past these must match the merged figures too, and each of these must still
+    /// differ.
+    /// The figure is the one of total impulse, burn time, average and peak thrust that moves
+    /// most, hpr's against the merged, in percent to the digits written.
+    const MERGE_MOVES: &[(&str, &str, &str)] = &[
+        ("curves/5f4294d20002e9000000013c.eng", "burn time", "+0.50"),
+        ("curves/5f4294d20002e90000000591.rse", "peak thrust", "+6.5"),
+        ("curves/5f4294d20002e90000000144.eng", "burn time", "+0.61"),
+        (
+            "curves/5f4294d20002e9000000014b.eng",
+            "average thrust",
+            "+0.28",
+        ),
+        ("curves/5f4294d20002e9000000014e.eng", "burn time", "+0.19"),
+        (
+            "curves/5f4294d20002e900000005a3.rse",
+            "average thrust",
+            "+0.023",
+        ),
+    ];
+
     /// hpr's statistics against ThrustCurve.org's own code (`simulate/analyze/analyze.js`, run
-    /// unchanged by `validation/oracles/thrustcurve/analyze_stats.js`) on every bundled curve.
-    /// Unlike the 1% check against the stored values, which chose the bundle, this can fail: it
-    /// checks that hpr computes what ThrustCurve computes, to rounding.
+    /// unchanged by `validation/oracles/thrustcurve/analyze_stats.js`) on every file stored as
+    /// passing (M5.7c). Unlike the 1% check against the records, which sorts the files, this can
+    /// fail: it checks that hpr computes what ThrustCurve computes, to rounding. Where the code's
+    /// 50 µs merge folds points, hpr matches it with every sample kept, and moves a figure only on
+    /// the files [`MERGE_MOVES`] names.
     #[test]
     fn every_bundled_curve_matches_thrustcurve_statistics_code() {
         let oracle: AnalyzeOracle = serde_json::from_str(include_str!(
@@ -1388,10 +1480,10 @@ mod tests {
         ))
         .unwrap();
         assert!(oracle.oracle.contains("analyze.js at commit 577afa6"));
+        assert!(oracle.selection.contains("stores as passing"));
         let catalog = bundled();
-        // M5.7a's 32 files; M5.7c runs the code over every file stored as passing (ADR-301).
-        assert_eq!(oracle.curves.len(), 32);
         let mut worst = 0.0f64;
+        let mut moved = Vec::new();
         for expected in &oracle.curves {
             let (motor, curve) = catalog
                 .motors
@@ -1403,27 +1495,54 @@ mod tests {
                         .map(|c| (m, c))
                 })
                 .unwrap();
+            assert!(curve.check.passes, "{}", expected.file);
+            assert_eq!(
+                expected.unmerged.is_some(),
+                expected.merged_points > 0,
+                "{}",
+                expected.file
+            );
             let thrust = motor
                 .thrust_curve(curve, bundled_curve_text(&curve.file).unwrap())
                 .unwrap();
             let (start, end) = thrust.burn_window_s();
-            for (ours, theirs, what) in [
-                (
-                    thrust.total_impulse_ns(),
-                    expected.total_impulse_ns,
-                    "total impulse",
-                ),
-                (thrust.burn_time_s(), expected.burn_time_s, "burn time"),
-                (
-                    thrust.average_thrust_n(),
-                    expected.average_thrust_n,
-                    "average thrust",
-                ),
-                (thrust.peak_thrust_n(), expected.max_thrust_n, "peak thrust"),
-                (start, expected.burn_start_s, "burn start"),
-                (end, expected.burn_end_s, "burn end"),
-            ] {
-                let error = (ours - theirs).abs() / theirs.abs().max(1e-3);
+            let ours = AnalyzeFigures {
+                total_impulse_ns: thrust.total_impulse_ns(),
+                burn_time_s: thrust.burn_time_s(),
+                average_thrust_n: thrust.average_thrust_n(),
+                max_thrust_n: thrust.peak_thrust_n(),
+                burn_start_s: start,
+                burn_end_s: end,
+            };
+            let gaps = |theirs: AnalyzeFigures| {
+                [
+                    (
+                        ours.total_impulse_ns,
+                        theirs.total_impulse_ns,
+                        "total impulse",
+                    ),
+                    (ours.burn_time_s, theirs.burn_time_s, "burn time"),
+                    (
+                        ours.average_thrust_n,
+                        theirs.average_thrust_n,
+                        "average thrust",
+                    ),
+                    (ours.max_thrust_n, theirs.max_thrust_n, "peak thrust"),
+                    (ours.burn_start_s, theirs.burn_start_s, "burn start"),
+                    (ours.burn_end_s, theirs.burn_end_s, "burn end"),
+                ]
+                .map(|(ours, theirs, what)| {
+                    (
+                        (ours - theirs).abs() / theirs.abs().max(1e-3),
+                        ours,
+                        theirs,
+                        what,
+                    )
+                })
+            };
+            for (error, ours, theirs, what) in
+                gaps(expected.unmerged.unwrap_or(expected.standard()))
+            {
                 worst = worst.max(error);
                 assert!(
                     error <= 1e-12,
@@ -1431,7 +1550,33 @@ mod tests {
                     expected.file
                 );
             }
+            let merged = gaps(expected.standard());
+            if merged.iter().any(|(error, ..)| *error > 1e-12) {
+                moved.push(expected.file.as_str());
+                // The headline figure the merge moves most, and its signed gap in percent.
+                let (_, ours, theirs, what) = merged[..4]
+                    .iter()
+                    .copied()
+                    .max_by(|a, b| a.0.total_cmp(&b.0))
+                    .unwrap();
+                let named = MERGE_MOVES.iter().find(|(file, ..)| *file == expected.file);
+                if let Some((_, figure, percent)) = named {
+                    let decimals = percent.split('.').nth(1).map_or(0, str::len);
+                    let measured = format!("{:+.decimals$}", 100.0 * (ours - theirs) / theirs);
+                    assert_eq!(
+                        (what, measured.as_str()),
+                        (*figure, *percent),
+                        "{}: the merge's largest move",
+                        expected.file
+                    );
+                }
+            }
         }
+        let named: Vec<&str> = MERGE_MOVES.iter().map(|(file, ..)| *file).collect();
+        assert_eq!(
+            moved, named,
+            "the files whose figures ThrustCurve's 50 µs merge moves aren't the ones named"
+        );
         eprintln!("largest relative difference from ThrustCurve's code: {worst:.2e}");
     }
 
