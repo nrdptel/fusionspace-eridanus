@@ -12,6 +12,7 @@
 [adr-287]: 0287-thrustcurve-orgs-motor-records-used-as-published-facts.md
 [adr-301]: 0301-the-whole-catalog-in-two-increments.md
 [m5-6b]: ../decisions-and-roadmap.md#m5-6b
+[m5-7b1]: ../decisions-and-roadmap.md#m5-7b1
 [parts]: ../research/parts-catalog.md
 [ideas]: ../research/ideas.md
 [i715]: https://github.com/nrdptel/fusionspace-eridanus/issues/715
@@ -43,15 +44,15 @@ as ThrustCurve.org's records in [ADR-287][adr-287]:
    measured or derived). No photos, drawings or descriptive text are copied, ADR-197's rules on
    scraping and the EU database right still hold, and a vendor's entries are still removed when
    it asks. No vendor is contacted, which settles ADR-197's open question: [M5.6b][m5-6b] needs no
-   question to vendors. Other published figures ADR-197 lists, such as a parachute's drag
-   coefficient, keep ADR-197's rules as they were.
+   question to vendors. Materials and drag coefficients were already allowed as cited facts by
+   ADR-197 §3 and stay so; what this call adds is that no vendor is asked.
 2. **The motor finder's real test records come from the 2026-10-28 snapshot** compiled into
    `hpr-motor` ([#885][i885]), not from the 2016 sample dump; the dump's licensing question is
    dropped.
 3. **The held catalog file is cleared** ([#1006][i1006]). [ADR-301][adr-301] §5 held it back until
    the maintainer reviewed it, for a reason that is not the file's own; that review is this call.
 4. **Routes, each for when its work comes up:**
-   - **CATS's `.cfl` logs** ([ADR-274][adr-274] §5): low priority. If a user asks for them, the
+   - **CATS's `.cfl` logs**, its flight computer's log format ([ADR-274][adr-274] §5): low priority. If a user asks for them, the
      layout is inferred from cached sample files' bytes, as for the Teensy logger, never from
      CATS's GPL source, and only invented test files are committed.
    - **RASAero II's design files** ([ADR-236][adr-236]): when a validation case needs one, its
@@ -61,15 +62,15 @@ as ThrustCurve.org's records in [ADR-287][adr-287]:
 5. **Kept as they are:**
    - Featherweight's Bluetooth packets stay out; the vendor asks users not to use them
      ([ADR-194][adr-194] §6).
-   - Motor makers' data sheets: their numbers are used as facts; the PDFs stay out of the
-     repository.
+   - Motor makers' data sheets stay as ADR-287 treats such data: their numbers are used as
+     facts, and the PDFs are not committed.
    - Wyoming soundings: only U.S. stations' are committed fixtures ([ADR-120][adr-120] §8, which
      left that open for the maintainer to reverse; he keeps it); every station stays available
      live.
    - The refused or limited references stay so: ARL-TN-1128 and the Mach 2.45 set ([#764][i764]),
      Knacke, the streamer papers, OpenRocket's motor database, AerospaceNU's GPL-3.0 data, DRDC's
      tables (statistics only) and the STEP plans.
-6. **The orhelper migration layer is dropped** from [the ideas backlog][ideas]: the `.ork`
+6. **The orhelper migration layer is dropped** (orhelper is a GPL Python bridge to OpenRocket) from [the ideas backlog][ideas]: the `.ork`
    importer already serves the users it was for.
 
 **Alternatives considered.**
@@ -86,4 +87,4 @@ as ThrustCurve.org's records in [ADR-287][adr-287]:
 vendors' published dimensions and masses are used with credit and that no vendor is asked. [The
 parts-catalog note][parts] and the ideas backlog record the call; the orhelper idea is marked
 dropped. Carried out by their own work, not by this record: taking in #1006's file, which
-unblocks M5.7b1; #885; #715; and the routes above.
+unblocks [M5.7b1, the whole catalog compiled in][m5-7b1]; #885; #715; and the routes above.
