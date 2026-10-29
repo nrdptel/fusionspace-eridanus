@@ -35,8 +35,8 @@ the whole search recorded as a test fixture):
    flies offline by its designation, or is read by `hpr motors fetch` with its maker where the
    bundle has a motor by that name (`hpr sim --motor` tries the bundle first) or several makers
    share it. No command is printed when no file of the motor makes one HPR Sim
-   flies, or a word of it is empty, starts with `-`, or holds a character other than letters,
-   digits, a space and `/._+-`.
+   flies, or a word of it is empty, starts with `-`, or holds a character other than ASCII
+   letters and digits, a space and `/._+-`.
 3. **Offline.** The update reads what an earlier one cached. With any answer it needs missing
    from the cache, it names the bundle's date and succeeds: the bundle flies as it is. Online,
    an answer under a day old comes from the cache, as every ThrustCurve.org answer does. With
