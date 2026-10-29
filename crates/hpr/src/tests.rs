@@ -396,6 +396,70 @@ fn parts_out_of_order_are_refused() {
     assert_eq!(format!("{:.1}", flight.apogee_m().unwrap()), "1144.5");
 }
 
+/// A catalog motor carries its default curve file's warnings, the ones `hpr sim --motor` prints
+/// (#979): every one of C3.4T's files is more than 1% from ThrustCurve.org's figures, so it warns,
+/// naming each failing figure; H54's default file passes, so it draws no check warning. G142's
+/// default passes its check but holds more than 5% less propellant than the record, so its one
+/// warning is the propellant's; F62T's default draws both, in that order. Setting
+/// the delay keeps them, a motor from a file has none, and the motor's own serialized record
+/// lists them only when there are some.
+#[test]
+fn a_catalog_motor_carries_its_default_files_warnings() {
+    let catalog = hpr_motor::catalog::Catalog::bundled().unwrap();
+    let entry = catalog.find("C3.4T").next().unwrap();
+    let curve = entry.default_curve().unwrap();
+    assert!(!curve.check.passes);
+    let failing = Motor::from_catalog("C3.4T").unwrap();
+    assert!(!failing.warnings().is_empty());
+    assert_eq!(failing.warnings(), entry.flight_warnings(curve));
+    assert!(
+        failing.warnings()[0].starts_with(&format!(
+            "C3.4T's curve file {} is more than 1% from ThrustCurve.org's figures for it: ",
+            curve.simfile_id
+        )),
+        "{:?}",
+        failing.warnings()
+    );
+    let delayed = failing.clone().with_delay_s(3.0).unwrap();
+    assert_eq!(delayed.warnings(), failing.warnings());
+    let json = serde_json::to_value(&failing).unwrap();
+    assert_eq!(json["warnings"], serde_json::json!(failing.warnings()));
+
+    let h54 = Motor::from_catalog("H54").unwrap();
+    let h54_entry = catalog.find("H54").next().unwrap();
+    let h54_curve = h54_entry.default_curve().unwrap();
+    assert!(h54_curve.check.passes);
+    assert_eq!(h54.warnings(), h54_entry.flight_warnings(h54_curve));
+    assert!(h54.warnings().iter().all(|w| !w.contains("more than 1%")));
+
+    for (name, count) in [("G142", 1), ("F62T", 2)] {
+        let entry = catalog.find(name).next().unwrap();
+        let curve = entry.default_curve().unwrap();
+        assert_eq!(curve.check.passes, name == "G142", "{name}");
+        let motor = Motor::from_catalog(name).unwrap();
+        assert_eq!(motor.warnings(), entry.flight_warnings(curve), "{name}");
+        assert_eq!(motor.warnings().len(), count, "{name}");
+        let propellant = motor.warnings().last().unwrap();
+        assert_eq!(entry.propellant_warning(curve).as_ref(), Some(propellant));
+        assert!(
+            propellant.contains("from ThrustCurve.org's record of"),
+            "{propellant}"
+        );
+    }
+
+    let from_file = Motor::from_eng(include_str!(
+        "../../hpr-motor/data/thrustcurve/curves/5f4294d20002e90000000863.eng"
+    ))
+    .unwrap();
+    assert!(from_file.warnings().is_empty());
+    assert!(
+        serde_json::to_value(&from_file)
+            .unwrap()
+            .get("warnings")
+            .is_none()
+    );
+}
+
 /// Motors from the catalog and from a `.eng` file, and the names that find none or several.
 #[test]
 fn motors_come_from_the_catalog_or_a_file() {

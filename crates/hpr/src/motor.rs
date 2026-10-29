@@ -34,6 +34,10 @@ pub struct Motor {
     length_m: f64,
     motor: SolidMotor,
     delay: Option<Delay>,
+    /// What building it warned of ([`Motor::warnings`]); left out of the record when there is
+    /// none.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    warnings: Vec<String>,
 }
 
 impl Motor {
@@ -59,14 +63,15 @@ impl Motor {
             length_m: positive("motor length, m", length_m)?,
             motor,
             delay: None,
+            warnings: Vec::new(),
         })
     }
 
     /// The motor in HPR Sim's built-in catalog whose designation or common name is `name`,
     /// ignoring case, spaces and hyphens (`"H54"`, `"168H54-10A"`, `"k 400"`), with its default
     /// thrust curve: a bundled file within 1% of ThrustCurve.org's stated figures where it has
-    /// one ([`hpr_motor::catalog::CatalogMotor::default_curve`]). A failing file flies without a
-    /// warning here; [`hpr_motor::catalog::CatalogMotor::flight_warnings`] gives it. Only motors
+    /// one ([`hpr_motor::catalog::CatalogMotor::default_curve`]). A failing file flies with its
+    /// warning in [`Motor::warnings`], as `hpr sim --motor` prints it. Only motors
     /// with a bundled curve can fly: 924 of the catalog's 1,004, which `hpr motors list` lists
     /// ([motor page][motor-page]). The delay is not set, whatever the designation says: give it
     /// with [`Motor::with_delay_s`].
@@ -113,12 +118,17 @@ impl Motor {
                 });
             }
         };
-        Self::new(
+        let mut motor = Self::new(
             &entry.designation,
             entry.bundled_motor()?,
             entry.diameter_mm / 1000.0,
             entry.length_mm / 1000.0,
-        )
+        )?;
+        motor.warnings = entry
+            .default_curve()
+            .map(|curve| entry.flight_warnings(curve))
+            .unwrap_or_default();
+        Ok(motor)
     }
 
     /// The one motor in the text of a RASP `.eng` file, with the file's size, masses and thrust
@@ -237,5 +247,15 @@ impl Motor {
     #[must_use]
     pub fn solid_motor(&self) -> &SolidMotor {
         &self.motor
+    }
+
+    /// What building the motor warned of. A catalog motor ([`Motor::from_catalog`]) carries its
+    /// default curve file's warnings ([`hpr_motor::catalog::CatalogMotor::flight_warnings`]): a
+    /// file more than 1% from ThrustCurve.org's figures for it, each failing figure's gap named,
+    /// and a file whose propellant is more than 5% lighter than the record's. A motor from a file
+    /// or built with [`Motor::new`] has none. Setting the delay keeps them.
+    #[must_use]
+    pub fn warnings(&self) -> &[String] {
+        &self.warnings
     }
 }

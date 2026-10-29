@@ -6,6 +6,7 @@ print the same lines with the same formats: the bindings add no physics, so ever
 """
 
 import json
+import warnings
 
 import numpy as np
 import pytest
@@ -275,3 +276,28 @@ def test_a_supersonic_ogive_nose_meets_its_drag_issues_by_number(repo):
     )
     assert tabled.max_mach > 1.0
     assert [warning["issue"] for warning in tabled.issue_warnings] == [172, 219, 106]
+
+
+def test_a_catalog_motor_whose_file_fails_its_check_warns():
+    """A catalog motor whose default curve file is more than 1% from ThrustCurve.org's figures
+    still flies, with a `UserWarning` for each of its warnings, the texts `warnings` keeps (every
+    one of C3.4T's files fails). H54's file passes, so it raises none, and a motor from a file
+    has none."""
+    with pytest.warns(UserWarning) as raised:
+        motor = hpr.Motor.from_catalog("C3.4T", delay_s=3.0)
+    assert motor.warnings
+    assert [str(w.message) for w in raised] == motor.warnings
+    assert motor.warnings[0].startswith("C3.4T's curve file ")
+    assert "is more than 1% from ThrustCurve.org's figures for it: " in motor.warnings[0]
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        h54 = hpr.Motor.from_catalog("H54")
+    assert h54.warnings == []
+    # G142's file passes its check but holds more than 5% less propellant than the record: one
+    # warning, the propellant's. F62T's draws both, each raised.
+    for name, count in [("G142", 1), ("F62T", 2)]:
+        with pytest.warns(UserWarning) as raised:
+            motor = hpr.Motor.from_catalog(name)
+        assert len(motor.warnings) == count, name
+        assert [str(w.message) for w in raised] == motor.warnings, name
+        assert "from ThrustCurve.org's record of" in motor.warnings[-1], name
