@@ -17,10 +17,10 @@ burn, mass and ejection delay.
   [scientific notation](../glossary.md#scientific-notation), and a
   [relative](../glossary.md#relative-and-absolute-difference) difference is a fraction of the value
   compared. ThrustCurve.org's own statistics code agrees to 3e-15, relative, on all 412 files
-  that pass the [1% check](#the-whole-catalog), once its averaging of two samples at the same
-  time is turned off on the 8 files that have them. With that averaging on, as ThrustCurve.org
-  runs it, 6 of the 412 differ in at least one figure, by up to 6.5% in total impulse, burn
-  time, average or peak thrust, and one of them would fail the 1% check
+  that pass the [1% check](#the-whole-catalog), once its averaging of two or more samples at the
+  same time is turned off on the 8 files that have them. With that averaging on, as
+  ThrustCurve.org runs it, 6 of the 412 differ in at least one of total impulse, burn time,
+  average and peak thrust, by up to 6.5% (a peak thrust), and one of them would fail the 1% check
   ([Validation](#validation)). On three of the 32 curves first bundled, RocketPy's total mass and
   inertias agree within 7.9e-5 relative, the centers of mass within 5.9e-6 of the motor's length.
   The propellant's own mass and inertias agree within 1e-4 of their values at ignition. OpenRocket 24.12 reads the same 32 curve
@@ -375,7 +375,8 @@ lists it.
 - Before integrating, [TC-A] drops leading points below 500 µN and averages points closer than
   50 µs ([lines 40–91][tc-a-40]). HPR Sim keeps leading zeros and treats equal times as steps.
   On the 412 files that pass the 1% check, the results agree to 3e-15 on all but 6, each with
-  repeated times, where the averaging moves at least one figure, by up to 6.5%
+  repeated times, where the averaging moves at least one of total impulse, burn time, average
+  and peak thrust, by up to 6.5%
   ([Validation](#validation)).
   A survey on September 17, 2026 read 1,710 of ThrustCurve.org's 1,712 solid-motor files. The
   two agreed to 1e-9 on all but 17 with repeated times, and on those differed by up to 1.1% in
@@ -676,10 +677,11 @@ The tests that pin the motor model, and the whole example program.
   results to a
   [fixture](../glossary.md#reference-value-and-fixture),
   [`validation/fixtures/motor/thrustcurve-analyze-stats.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/motor/thrustcurve-analyze-stats.json).
-  HPR Sim's impulse, burn window, burn time, average and peak thrust agree to 3e-15, relative
-  (the burn window's ends, when under 1 ms, to 3e-18 s). So the definitions are checked, not
+  HPR Sim's impulse, burn window, burn time, average and peak thrust agree to 3e-15, relative:
+  the largest gap measured is 2.93e-15, and the test fails above 1e-12. A burn window's end under
+  1 ms is compared in seconds instead, and agrees to 3e-18 s. So the definitions are checked, not
   only the 1% rule.
-  - Two samples at the same time are read differently, on purpose
+  - Two or more samples at the same time are read differently, on purpose
     ([the decision record][adr-304]). HPR Sim reads them as a step: the thrust jumps from the
     first value to the second, because a vertical drop is what the file draws. [TC-A] merges
     points less than 50 µs apart into one point at their average thrust. 8 of the 412 files have

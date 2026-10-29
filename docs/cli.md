@@ -46,7 +46,7 @@ Whether RockSim opens the converted motors is not checked. [Accuracy](accuracy.m
 
 `hpr motors show` works out each figure with the code a flight uses. On the 412 files that pass
 the 1% check, it matches ThrustCurve.org's statistics code to 3e-15, relative. On the 8 files
-with two samples at the same time, that code's averaging of them is turned off for this
+with two or more samples at the same time, that code's averaging of them is turned off for this
 comparison ([Solid motors](physics/motor.md#validation)). `hpr` doesn't re-run the
 validation cases. To run the project's automated check, clone the repository and run
 `cargo xtask validate --check` ([what it checks](accuracy.md#the-census)). The tests in

@@ -1,7 +1,7 @@
 # ADR-304: Every passing file held to the oracles (2026-10-28)
 
 - **Status:** accepted; carries out [ADR-288][adr-288]'s consequences and [ADR-298][adr-298] §1's third increment, [M5.7c][m5-7c]
-- **Summary:** The 1% impulse test and the test against ThrustCurve.org's own statistics code run over all 412 files stored as passing, with the code's fixture holding exactly those. HPR Sim reads two samples at one time as a step, and ThrustCurve.org's code as one averaged point. HPR Sim keeps the step, and the code with its merge turned off matches it to 3e-15 on every file; the test names the 6 files the merge moves. A recount from the raw snapshot, with ThrustCurve.org's code, agrees with the index on all 1,700 files it holds. `cargo xtask motor-catalog --check` fails over 1%, worked out again from each file's bytes, and runs in CI.
+- **Summary:** The 1% test against each file's record and the test against ThrustCurve.org's own statistics code run over all 412 files stored as passing, with the code's fixture holding exactly those. HPR Sim reads two samples at one time as a step, and ThrustCurve.org's code as one averaged point. HPR Sim keeps the step, and the code with its merge turned off matches it to 3e-15 on every file; the test names the 6 files the merge moves. A recount from the raw snapshot, with ThrustCurve.org's code, agrees with the index on all 1,700 files it holds. `cargo xtask motor-catalog --check` fails over 1%, worked out again from each file's bytes, and runs in CI.
 
 [m5-7c]: ../decisions-and-roadmap.md#m5-7c
 [adr-005]: 0005-solid-motors-statistics-consumption-grains-file.md
