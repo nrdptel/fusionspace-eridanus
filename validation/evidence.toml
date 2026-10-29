@@ -748,7 +748,7 @@ issue = 981
 [[row]]
 id = "G34"
 surface = "Flight-log readings' 90% intervals"
-claim = "The apogee's height and time state 90% intervals whose shares were fitted on 2,000 synthetic flights on a seed of their own; on sets A and B, 820 and 845 readings, each tail's misses pass ADR-257's test (the height's 55 and 45 below and above, then 38 and 47; the time's 36 and 32, then 41 and 50), and the intervals narrowed, widened and shifted down each fail it"
+claim = "The apogee's height and time state 90% intervals whose shares were fitted on 2,000 synthetic flights on a seed of their own; on sets A and B, 820 and 845 readings, each tail's misses pass the two-sided coverage test (the height's 55 and 45 below and above, then 38 and 47; the time's 36 and 32, then 41 and 50), and the intervals narrowed, widened and shifted down each fail it"
 pages = ["physics/log-readings.md#the-90-intervals", "start-here.md#flight-logs"]
 kind = "calibration"
 wanted = "real"
