@@ -7,7 +7,6 @@ Commands:
   show    Work out a motor's impulse, thrust and burn time from its thrust curve: a catalog name, or a .eng or .rse file
   search  Search motor.fusionspace.co's motors, with the vendors that have them in stock and their prices
   fetch   Fetch a motor's thrust curve from ThrustCurve.org into the cache, so `hpr sim` flies it offline
-  update  Describe the bundled catalog, and fetch the motors and files ThrustCurve.org lists that it lacks into the cache
   help    Print this message or the help of the given subcommand(s)
 
 Options:

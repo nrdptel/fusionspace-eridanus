@@ -156,6 +156,16 @@ pub(crate) fn fetch(
     command: &str,
 ) -> Result<(Motor, ThrustCurveMotor, Vec<InputWarning>), Failure> {
     let client = client(offline, command)?;
+    let build = |file: &DataFile| -> Result<Motor, String> {
+        let text = file.text().map_err(|error| error.to_string())?;
+        match file.format {
+            Format::Rasp => Motor::from_eng(&text),
+            Format::RockSim => Motor::from_rse(&text),
+            // `find_with` asks for these two formats alone.
+            other => return Err(format!("{} is not a format HPR Sim reads", other.as_str())),
+        }
+        .map_err(|error| error.to_string())
+    };
     let (found, motor) = on_demand::find_with(&client, wanted, now_s(), build)
         .map_err(|error| refused(wanted, &error))?;
     let warnings = found
@@ -168,19 +178,6 @@ pub(crate) fn fetch(
         .into_iter()
         .collect();
     Ok((motor, described(&found)?, warnings))
-}
-
-/// The motor HPR Sim flies from a ThrustCurve.org file: [`on_demand::find_with`]'s reading of each
-/// file, so a fetch takes the first file that makes one.
-pub(crate) fn build(file: &DataFile) -> Result<Motor, String> {
-    let text = file.text().map_err(|error| error.to_string())?;
-    match file.format {
-        Format::Rasp => Motor::from_eng(&text),
-        Format::RockSim => Motor::from_rse(&text),
-        // `find_with` asks for these two formats alone.
-        other => return Err(format!("{} is not a format HPR Sim reads", other.as_str())),
-    }
-    .map_err(|error| error.to_string())
 }
 
 /// What HPR Sim's cache of ThrustCurve.org says about `name`, read with no network, as a `help:`

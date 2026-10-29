@@ -46,13 +46,5 @@
   "https://www.thrustcurve.org/api/v1/search.json?manufacturer=Invented&designation=Z21-INVENTED": "thrustcurve-standin-search-Z21.json",
   "https://www.thrustcurve.org/api/v1/search.json?designation=Z22-INVENTED": "thrustcurve-standin-search-Z22.json",
   "https://www.thrustcurve.org/api/v1/download.json?motorId=e000000000000000000000f6&format=RASP&data=file": "thrustcurve-standin-download-Z22.json",
-  "https://www.thrustcurve.org/api/v1/download.json?motorId=e000000000000000000000f6&format=RockSim&data=file": "thrustcurve-standin-download-none.json",
-  "https://www.thrustcurve.org/api/v1/search.json?maxResults=5000": "thrustcurve-search-all.json",
-  "https://www.thrustcurve.org/api/v1/download.json?motorId=6aa672715eabcd0002df9b36&format=RASP&data=file": "thrustcurve-download-ROS-40-5.json",
-  "https://www.thrustcurve.org/api/v1/download.json?motorId=6aa672715eabcd0002df9b36&format=RockSim&data=file": "thrustcurve-download-ROS-40-5-rocksim.json",
-  "https://www.thrustcurve.org/api/v1/download.json?motorId=5f4294d20002310000000083&format=RASP&data=file": "thrustcurve-download-H128W.json",
-  "https://www.thrustcurve.org/api/v1/download.json?motorId=5f4294d20002310000000083&format=RockSim&data=file": "thrustcurve-download-H128W-rocksim.json",
-  "https://www.thrustcurve.org/api/v1/search.json?designation=ROS-40-5": "thrustcurve-search-ROS-40-5.json",
-  "https://www.thrustcurve.org/api/v1/search.json?manufacturer=ZEVETA&designation=ROS-40-5": "thrustcurve-search-zeveta-ROS-40-5.json",
-  "https://www.thrustcurve.org/api/v1/search.json?manufacturer=AeroTech&designation=H128W": "thrustcurve-search-aerotech-H128W.json"
+  "https://www.thrustcurve.org/api/v1/download.json?motorId=e000000000000000000000f6&format=RockSim&data=file": "thrustcurve-standin-download-none.json"
 }

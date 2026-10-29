@@ -45,9 +45,8 @@ const SCHEMAS: &str = "schema/cli";
 /// The guide's page.
 const PAGE: &str = "docs/cli.md";
 /// The how-to guides, whose examples are run as the guide's are.
-const GUIDES: [&str; 7] = [
+const GUIDES: [&str; 6] = [
     "docs/fly-your-ork.md",
-    "docs/physics/motor.md",
     "docs/pick-a-motor.md",
     "docs/stability-for-certification.md",
     "docs/trusting-a-simulation.md",

@@ -188,20 +188,6 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
         anchor: "motors-from-thrustcurveorg",
     },
     CommandHelp {
-        path: &["motors", "update"],
-        examples: &[
-            Example {
-                what: "Fetch the motors and files ThrustCurve.org lists that the bundle lacks",
-                line: "hpr motors update",
-            },
-            Example {
-                what: "Show the bundled catalog's date, counts and size, with no network",
-                line: "hpr motors update --offline",
-            },
-        ],
-        anchor: "newer-motors-and-the-bundles-date",
-    },
-    CommandHelp {
         path: &["weather"],
         examples: &[
             Example {
