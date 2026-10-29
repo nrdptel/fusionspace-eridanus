@@ -220,7 +220,7 @@ census holds 2,200 simulated flights, each with its logger's log and its known t
 ([Synthetic flights](physics/synthetic-flights.md)). In the library, the apogee's height and
 time also state a 90% interval. It passes a two-sided test on 1,665 synthetic apogees held apart
 from the 2,000 flights its points were fitted on. Its misses fall on the coldest and warmest
-days, and a warm day reads low ([The 90%
+days, and a warm day reads low, so a waiver goes by the bound ([The 90%
 intervals](physics/log-readings.md#the-90-intervals); not yet checked on a real flight,
 [evidence row G34](evidence.md#g34)). The library's smoother fuses a log's
 barometer, accelerometer and GNSS receiver into the height and vertical speed at every sample,
