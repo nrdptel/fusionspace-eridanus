@@ -1548,9 +1548,10 @@ with credit ([the decision record on ThrustCurve.org's records](https://github.c
 its motors and files, how many files pass the 1% check against their motor's record, and the
 bytes compiled in. Online, it then asks ThrustCurve.org for its whole solid catalog (or reads an
 answer under a day old from the cache) and compares. A motor the bundle lacks, or a RASP or
-RockSim file it lacks for a motor it holds, is fetched into the cache, with the command that
-finds it there. A new motor then flies offline by name, like a fetched one; where several makers
-share the name, `hpr motors fetch` with its maker reads it. A newer file of a bundled motor is
+RockSim file it lacks for a motor it holds, is fetched into the cache, and the command that finds
+it there is printed where it has one. A new motor with a file HPR Sim flies then flies offline by
+name, like a fetched one; where several makers share the name, `hpr motors fetch` with its maker
+reads it. A newer file of a bundled motor is
 only cached: `hpr sim --motor` keeps flying the bundled file, and `hpr motors fetch --file` shows
 the new one.
 

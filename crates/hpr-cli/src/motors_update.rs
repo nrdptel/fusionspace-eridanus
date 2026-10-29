@@ -25,8 +25,8 @@ use crate::{Failure, Out, printable};
 /// `hpr motors update`'s arguments.
 #[derive(Debug, clap::Args)]
 pub struct UpdateArgs {
-    /// Answer from the cache only, never the network: what an earlier update found, or, with none
-    /// cached, the bundled catalog alone
+    /// Answer from the cache only, never the network: an earlier update's answers, or the bundled
+    /// catalog alone when one is missing
     #[arg(long)]
     pub offline: bool,
 }

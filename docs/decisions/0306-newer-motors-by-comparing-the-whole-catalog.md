@@ -32,15 +32,14 @@ the whole search recorded as a test fixture):
    then looks each newer motor up by name as `hpr sim --motor` and `hpr motors fetch` do, so those
    answers are cached too, and prints the command that finds it. A motor the bundle lacks then
    flies offline by its designation, or is read by `hpr motors fetch` with its maker where several
-   makers share the name. No command is printed when a word of it would need quoting, or no file
-   of the motor makes one HPR Sim flies. A newer file of a bundled
-   motor is cached and shown by `hpr motors fetch --file`. The bundle's own file keeps flying, so
-   an update never changes a flight of a bundled motor.
+   makers share the name. No command is printed when no file of the motor makes one HPR Sim
+   flies, or a word of it is empty, starts with `-`, or holds a character other than letters,
+   digits, a space and `/._+-`.
 3. **Offline.** The update reads what an earlier one cached. With any answer it needs missing
    from the cache, it names the bundle's date and succeeds: the bundle flies as it is. Online,
-   an answer under a day old comes from the cache, as every ThrustCurve.org answer does. A
-   network failure with a cached copy reads that copy and says it is stale; with none, the
-   command fails, its help naming the bundle's date.
+   an answer under a day old comes from the cache, as every ThrustCurve.org answer does. With
+   the network down, an update whose every answer is cached reads those copies, the search's
+   staleness printed; with one missing, the command fails, its help naming the bundle's date.
 4. **The bundle described.** The command prints the bundle's snapshot date, its motors (and how
    many fly), its files and those left out, the files passing the 1% check and their motors, and
    the bytes compiled in (the index and every curve file it reads). `hpr_motor` gives the counts
