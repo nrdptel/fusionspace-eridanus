@@ -207,6 +207,10 @@ jobs:
       # The synthetic flights' census (M7.2a, ADR-280): every flight flown again, held to the
       # committed census to the three figures the platforms share.
       - run: cargo run --locked --quiet --package xtask -- synthetic --check
+      # The motor catalog (M5.7c, ADR-304): the index is what the snapshot's committed files
+      # write, every file stored as passing is within 1% of its record, worked out again from its
+      # bytes, and none stored as failing is, and every motor flies by name offline.
+      - run: cargo run --locked --quiet --package xtask -- motor-catalog --check
       # The scoreboard held to main's (M0.10, ADR-240): none of HPR Sim's numbers worse than the
       # one main committed, unless an accepted ADR names it. The checkout holds no main of its own.
       - if: matrix.os == 'ubuntu-latest'

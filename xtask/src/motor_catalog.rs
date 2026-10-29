@@ -34,6 +34,11 @@
 //! file's bytes are the answers', and prints the counts it takes from them. `--check` writes
 //! nothing and fails if `catalog.json` or `src/bundled.rs` is not what the command writes.
 //!
+//! The command also fails over 1% ([`checks_hold`], M5.7c): a file the index stores as passing
+//! whose total impulse, average thrust or burn time, worked out again from its bytes, is more than
+//! 1% from its motor's committed record, or one stored as failing that is within 1% of each. It
+//! needs only the committed files, so CI runs it (`motor-catalog --check` in the `validate` job).
+//!
 //! [l43]: https://hpr.fusionspace.co/decisions-and-roadmap.html#l43
 
 use std::fmt::Write as _;
@@ -187,12 +192,95 @@ pub fn run(args: &[String]) -> Result<(), String> {
         counts.motors_passing,
         if check { "; up to date" } else { "" }
     );
+    // In --check mode the index the crate compiles in, the one that flies; else the one written.
+    let held = if check {
+        Catalog::bundled().map_err(|error| error.to_string())?
+    } else {
+        &catalog
+    };
+    let passing = checks_hold(&root, held, &records(&root)?)?;
+    println!(
+        "{passing} files stored as passing are within 1% of their records, worked out again from \
+         their bytes, and the rest are not"
+    );
     compare_with_thrustcurve(&root, &catalog)?;
     if check {
-        let bundled = Catalog::bundled().map_err(|error| error.to_string())?;
-        motor_flights::check(bundled, &expected)?;
+        motor_flights::check(held, &expected)?;
     }
     Ok(())
+}
+
+/// The 1% failure: works out each indexed file's total impulse, average thrust and burn time
+/// again from its bytes under `curves/`, with [`ThrustCurve`]'s methods, and fails unless the
+/// file is stored as passing exactly when each is within 1% of its motor's committed record,
+/// `|file − record| ≤ 0.01 × record` (ADR-298 §4), and the motor's stated figures are the
+/// record's. Returns how many files pass.
+fn checks_hold(root: &Path, catalog: &Catalog, records: &[Value]) -> Result<usize, String> {
+    let mut passing = 0;
+    for motor in &catalog.motors {
+        let record = records
+            .iter()
+            .find(|r| r["motorId"] == motor.motor_id.as_str())
+            .ok_or_else(|| format!("{}: no committed record", motor.designation))?;
+        for (stated, key) in [
+            (motor.stated.total_impulse_ns, "totImpulseNs"),
+            (motor.stated.average_thrust_n, "avgThrustN"),
+            (motor.stated.burn_time_s, "burnTimeS"),
+        ] {
+            if record[key].as_f64().map(f64::to_bits) != Some(stated.to_bits()) {
+                return Err(format!(
+                    "{}: its stated {key} {stated} isn't its record's {}",
+                    motor.designation, record[key]
+                ));
+            }
+        }
+        for curve in &motor.curves {
+            let path = root.join(DATA).join(&curve.file);
+            let text = fs::read_to_string(&path)
+                .map_err(|error| format!("{}: {error}", path.display()))?;
+            let thrust = motor
+                .thrust_curve(curve, &text)
+                .map_err(|error| format!("{}: {error}", curve.file))?;
+            let gaps = [
+                ("total impulse", thrust.total_impulse_ns(), "totImpulseNs"),
+                ("average thrust", thrust.average_thrust_n(), "avgThrustN"),
+                ("burn time", thrust.burn_time_s(), "burnTimeS"),
+            ]
+            .map(|(what, file, key)| {
+                let record = record[key].as_f64().unwrap_or(f64::NAN);
+                (
+                    what,
+                    file,
+                    record,
+                    record > 0.0 && (file - record).abs() <= 0.01 * record,
+                )
+            });
+            let within = gaps.iter().all(|(.., within)| *within);
+            if curve.check.passes && !within {
+                let (what, file, record, _) = gaps
+                    .iter()
+                    .find(|(.., within)| !*within)
+                    .copied()
+                    .unwrap_or(gaps[0]);
+                return Err(format!(
+                    "{} ({}) is stored as passing, but its {what} {file} is {:+.4}% from its \
+                     record's {record}",
+                    motor.designation,
+                    curve.simfile_id,
+                    100.0 * (file - record) / record
+                ));
+            }
+            if !curve.check.passes && within {
+                return Err(format!(
+                    "{} ({}) is stored as failing, but its total impulse, average thrust and \
+                     burn time are all within 1% of its record's",
+                    motor.designation, curve.simfile_id
+                ));
+            }
+            passing += usize::from(within);
+        }
+    }
+    Ok(passing)
 }
 
 /// The motors `hpr motors list` should list, every record's, and those `hpr sim --motor` should
@@ -981,6 +1069,72 @@ mod tests {
         assert!(
             moved.contains("unnamed") && moved.contains("isn't"),
             "{moved}"
+        );
+    }
+
+    /// The 1% failure fires both ways (M5.7c): a file stored as passing whose record moves 5% off
+    /// it fails by name, and so does a file stored as failing whose record is set to its own
+    /// figures; the committed records hold.
+    #[test]
+    fn a_stored_check_its_record_contradicts_fails() {
+        let root = crate::designs::root().unwrap();
+        let catalog = hpr_motor::Catalog::bundled().unwrap();
+        let committed = records(&root).unwrap();
+        assert_eq!(checks_hold(&root, catalog, &committed), Ok(412));
+        let (motor, curve) = catalog
+            .motors
+            .iter()
+            .find_map(|m| m.curves.iter().find(|c| c.check.passes).map(|c| (m, c)))
+            .unwrap();
+        let mut moved = committed.clone();
+        let record = moved
+            .iter_mut()
+            .find(|r| r["motorId"] == motor.motor_id.as_str())
+            .unwrap();
+        record["burnTimeS"] = Value::from(record["burnTimeS"].as_f64().unwrap() * 1.05);
+        let mut catalog_moved = catalog.clone();
+        let motor_moved = catalog_moved
+            .motors
+            .iter_mut()
+            .find(|m| m.motor_id == motor.motor_id)
+            .unwrap();
+        motor_moved.stated.burn_time_s = record["burnTimeS"].as_f64().unwrap();
+        let error = checks_hold(&root, &catalog_moved, &moved).unwrap_err();
+        assert!(
+            error.contains(&curve.simfile_id)
+                && error.contains("is stored as passing, but its burn time"),
+            "{error}"
+        );
+        // The stated figures must be the record's, so a record moved alone fails too.
+        let error = checks_hold(&root, catalog, &moved).unwrap_err();
+        assert!(error.contains("its stated burnTimeS"), "{error}");
+
+        let (motor, curve) = catalog
+            .motors
+            .iter()
+            .find_map(|m| m.curves.iter().find(|c| !c.check.passes).map(|c| (m, c)))
+            .unwrap();
+        let mut met = committed.clone();
+        let record = met
+            .iter_mut()
+            .find(|r| r["motorId"] == motor.motor_id.as_str())
+            .unwrap();
+        record["totImpulseNs"] = Value::from(curve.check.total_impulse_ns);
+        record["avgThrustN"] = Value::from(curve.check.average_thrust_n);
+        record["burnTimeS"] = Value::from(curve.check.burn_time_s);
+        let mut catalog_met = catalog.clone();
+        let motor_met = catalog_met
+            .motors
+            .iter_mut()
+            .find(|m| m.motor_id == motor.motor_id)
+            .unwrap();
+        motor_met.stated.total_impulse_ns = curve.check.total_impulse_ns;
+        motor_met.stated.average_thrust_n = curve.check.average_thrust_n;
+        motor_met.stated.burn_time_s = curve.check.burn_time_s;
+        let error = checks_hold(&root, &catalog_met, &met).unwrap_err();
+        assert!(
+            error.contains(&curve.simfile_id) && error.contains("is stored as failing"),
+            "{error}"
         );
     }
 

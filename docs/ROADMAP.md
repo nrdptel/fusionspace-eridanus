@@ -274,9 +274,6 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     equal to the snapshot's; each file left out is listed with its reason, and one past the
     snapshot's named refusals fails; M5.7a's check holds on every file it adds, failing files
     stored.
-  - [ ] **M5.7c Every passing file held to the oracles.** *Done when:* the L42 and
-    statistics-code tests run over every file stored as passing, the oracle fixture covering each,
-    and `xtask motor-catalog`'s 1% failure runs in CI; a raw-snapshot recount agrees.
   - [ ] **M5.7d Newer motors online, and the bundle described.** *Done when:* `hpr motors update`
     adds a newer motor or file from a recorded answer, and offline names the bundle's date; the
     motor page gives the date, counts, passing motors and size, from the tool.

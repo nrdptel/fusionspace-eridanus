@@ -309,6 +309,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M4.6b Monte Carlo in Python ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M5.7a Each file's check and the default file ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M5.7b2 Every motor by name, offline ([Phase 2](#phase-2-library-surfaces-and-interop))
+- M5.7c Every passing file held to the oracles ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M6.1 Monte Carlo and sensitivity ([Phase 3](#phase-3-uncertainty-optimization-challenges))
 - M6.1a Seeded dispersion ([Phase 3](#phase-3-uncertainty-optimization-challenges))
 - M6.1b Landing ellipses ([Phase 3](#phase-3-uncertainty-optimization-challenges))
@@ -1588,6 +1589,9 @@ One line per milestone or increment, in the order it was archived within its pha
     each motor and `hpr sim --motor` flies each with a curve, the counts taken from the raw
     snapshot; M5.7a's default, listing and warning hold on every file it adds, failing files
     warned of.
+  - [x] **M5.7c Every passing file held to the oracles.** (ADR-304) *Done when:* the L42 and
+    statistics-code tests run over every file stored as passing, the oracle fixture covering each,
+    and `xtask motor-catalog`'s 1% failure runs in CI; a raw-snapshot recount agrees.
 ## Phase 3: Uncertainty, optimization, challenges
 
 - [x] **M6.1 Monte Carlo and sensitivity.**

@@ -126,7 +126,8 @@ thrust, mass, center of gravity and inertia through the burn.
 It carries a copy of ThrustCurve.org's whole catalog of solid motors, taken October 28, 2026: 1,004
 motors and 1,700 of their 1,706 files ([the whole catalog](physics/motor.md#the-whole-catalog)
 says why six are left out). By name it flies the 924 motors with a file that reads, offline, each
-file checked against ThrustCurve.org's figures. One it lacks is fetched from there by name and cached, so it flies offline after that
+file checked against ThrustCurve.org's figures, and the 412 that pass held to ThrustCurve.org's own statistics code
+([how](physics/motor.md#validation)). One it lacks is fetched from there by name and cached, so it flies offline after that
 ([motors on demand](decisions-and-roadmap.md#m4-5b)). Stock and prices come from
 motor.fusionspace.co. The detail is in [Solid motors](physics/motor.md),
 [`.eng` files](format/eng.md), [`.rse` files](format/rse.md) and

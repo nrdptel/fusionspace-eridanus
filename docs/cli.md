@@ -44,9 +44,10 @@ Its other commands are registered but not available yet. Each refuses and names 
 Whether RockSim opens the converted motors is not checked. [Accuracy](accuracy.md) says how close
 `hpr sim`'s flights are to a real flight.
 
-`hpr motors show` works out each figure with the code a flight uses. On the 32 curves first
-bundled, it matches ThrustCurve.org's statistics code to 1.8e-15, relative
-([Solid motors](physics/motor.md#validation)). `hpr` doesn't re-run the
+`hpr motors show` works out each figure with the code a flight uses. On the 412 files that pass
+the 1% check, it matches ThrustCurve.org's statistics code to 3e-15, relative. On the 8 files
+with two or more samples at the same time, that code's averaging of them is turned off for this
+comparison ([Solid motors](physics/motor.md#validation)). `hpr` doesn't re-run the
 validation cases. To run the project's automated check, clone the repository and run
 `cargo xtask validate --check` ([what it checks](accuracy.md#the-census)). The tests in
 [`crates/hpr-cli/tests/`](https://github.com/nrdptel/fusionspace-eridanus/tree/main/crates/hpr-cli/tests)

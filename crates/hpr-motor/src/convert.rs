@@ -721,16 +721,22 @@ mod tests {
         let mut said = Vec::new();
         let mut makers = Vec::new();
         let mut moved = Vec::new();
-        // M5.7a's 32 files, as ThrustCurve.org's statistics fixture lists them.
+        // M5.7a's 32 files, as OpenRocket's fixture lists them (ThrustCurve.org's statistics
+        // fixture holds every passing file since M5.7c).
         let fixture: serde_json::Value = serde_json::from_str(include_str!(
-            "../../../validation/fixtures/motor/thrustcurve-analyze-stats.json"
+            "../../../validation/fixtures/motor/openrocket-curve-stats.json"
         ))
         .unwrap();
         let first: Vec<&str> = fixture["curves"]
             .as_array()
             .unwrap()
             .iter()
-            .map(|c| c["file"].as_str().unwrap())
+            .map(|c| {
+                c["file"]
+                    .as_str()
+                    .unwrap()
+                    .trim_start_matches("crates/hpr-motor/data/thrustcurve/")
+            })
             .collect();
         assert_eq!(first.len(), 32);
         for (name, text) in crate::bundled::CURVE_FILES
