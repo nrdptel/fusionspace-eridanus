@@ -151,11 +151,13 @@ peak acceleration; no idea is promoted. The 2026-10-26 review's four moved to th
 - DROPPED by Neer (2026-10-05, the logs can't be had): asking SparkyVT for logs.
   Its flight computer's README claims 250+ flights to Mach 2.3, but no logs are published.
   Supersonic evidence comes from `hpr-sim-fixtures` instead (ADR-151).
-- A migration layer for users of orhelper (a GPL-licensed Python bridge to OpenRocket): a
-  licensing call.
+- DROPPED by Neer (2026-10-28, [ADR-305][adr-305]): a migration layer for users of orhelper
+  (a GPL-licensed Python bridge to OpenRocket). The `.ork` importer already serves those users.
 - PROMOTED to [M10.1, release 0.1][adr-162]: prebuilt binaries through a release. The project
   prepares the workflow; publishing a release is Neer's.
-- Asking parts vendors for their data, and a "vendor confirmed" flag ([ADR-197][adr-197]).
+- A "vendor confirmed" flag ([ADR-197][adr-197]). Asking parts vendors for their data was
+  dropped by Neer (2026-10-28, [ADR-305][adr-305]): their published dimensions and
+  masses are used as facts.
 - crates.io and PyPI names, and `hpr-io`'s license field: deferred by Neer for now.
 
 [adr-197]: ../decisions/0197-the-2026-10-07-parts-catalog.md
@@ -192,3 +194,4 @@ peak acceleration; no idea is promoted. The 2026-10-26 review's four moved to th
 [adr-294]: ../decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md
 [adr-303]: ../decisions/0303-the-2026-10-28-review-the-rocketpy-peaks-tightened.md
 [m2-9]: ../decisions-and-roadmap.md#m2-9
+[adr-305]: ../decisions/0305-the-2026-10-28-licensing-calls.md
