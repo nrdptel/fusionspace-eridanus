@@ -705,6 +705,57 @@ fn read_curve_file(
     }
 }
 
+/// How many motors and files a catalog holds, and how many of them pass their check: the figures
+/// `cargo xtask motor-catalog` and `hpr motors update` print for the bundled catalog.
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CatalogCounts {
+    /// Every motor listed.
+    pub motors: usize,
+    /// The motors with a file that reads, which fly.
+    pub motors_flying: usize,
+    /// The files indexed.
+    pub files: usize,
+    /// The snapshot's files the index leaves out, each with its reason ([`Catalog::left_out`]).
+    pub left_out: usize,
+    /// The files whose [`CurveCheck::passes`].
+    pub files_passing: usize,
+    /// The motors with at least one passing file.
+    pub motors_passing: usize,
+}
+
+impl Catalog {
+    /// Its [`CatalogCounts`].
+    #[must_use]
+    pub fn counts(&self) -> CatalogCounts {
+        let curves = || self.motors.iter().flat_map(|m| &m.curves);
+        CatalogCounts {
+            motors: self.motors.len(),
+            motors_flying: self.motors.iter().filter(|m| !m.curves.is_empty()).count(),
+            files: curves().count(),
+            left_out: self.left_out.len(),
+            files_passing: curves().filter(|c| c.check.passes).count(),
+            motors_passing: self
+                .motors
+                .iter()
+                .filter(|m| m.curves.iter().any(|c| c.check.passes))
+                .count(),
+        }
+    }
+}
+
+/// The bytes of data compiled into the crate for [`Catalog::bundled`]: the index and every curve
+/// file it reads, as UTF-8 text. It counts the data alone, not the code that reads it; how much a
+/// binary grows by it isn't measured.
+#[must_use]
+pub fn bundled_size_bytes() -> usize {
+    bundled::CATALOG_JSON.len()
+        + bundled::CURVE_FILES
+            .iter()
+            .map(|(_, text)| text.len())
+            .sum::<usize>()
+}
+
 /// The text of a bundled curve file, by its path in the bundled index.
 pub fn bundled_curve_text(file: &str) -> Option<&'static str> {
     bundled::CURVE_FILES
@@ -1144,6 +1195,58 @@ mod tests {
                 .filter(|m| !m.curves.is_empty())
                 .count()
         );
+    }
+
+    /// The bundled catalog's counts are M5.7b1's snapshot's, each recounted here by hand, and its
+    /// size is the bytes of the index and of each curve file it reads, each once.
+    #[test]
+    fn bundled_counts_and_size_are_the_files() {
+        let catalog = Catalog::bundled().unwrap();
+        let counts = catalog.counts();
+        let mut flying = 0;
+        let mut files = 0;
+        let mut passing = 0;
+        let mut motors_passing = 0;
+        let mut bytes = bundled::CATALOG_JSON.len();
+        for motor in &catalog.motors {
+            flying += usize::from(!motor.curves.is_empty());
+            files += motor.curves.len();
+            let here = motor.curves.iter().filter(|c| c.check.passes).count();
+            passing += here;
+            motors_passing += usize::from(here > 0);
+            for curve in &motor.curves {
+                bytes += bundled_curve_text(&curve.file).unwrap().len();
+            }
+        }
+        assert_eq!(
+            (
+                counts.motors,
+                counts.motors_flying,
+                counts.files,
+                counts.left_out
+            ),
+            (catalog.motors.len(), flying, files, catalog.left_out.len())
+        );
+        assert_eq!(
+            (counts.files_passing, counts.motors_passing),
+            (passing, motors_passing)
+        );
+        // M5.7b1's snapshot (`cargo xtask motor-catalog` prints the same).
+        assert_eq!(
+            (
+                counts.motors,
+                counts.motors_flying,
+                counts.files,
+                counts.left_out
+            ),
+            (1_004, 924, 1_700, 6)
+        );
+        assert_eq!((counts.files_passing, counts.motors_passing), (412, 239));
+        // Every file compiled in is one the index reads, so the two sums agree; and the total is
+        // the bytes `wc -c` gives for `data/thrustcurve/catalog.json` and those 1,700 files.
+        assert_eq!(bundled::CURVE_FILES.len(), files);
+        assert_eq!(bundled_size_bytes(), bytes);
+        assert_eq!(bytes, 4_163_396);
     }
 
     /// Every bundled entry's size, masses and delays are its default curve file header's (#295):

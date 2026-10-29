@@ -1201,7 +1201,8 @@ listed, with a closing note naming them, but `hpr motors show` and `hpr sim --mo
 ([the whole catalog](physics/motor.md#the-whole-catalog)). A maker's name before the designation
 picks one maker's motor (`Estes C6`), and `--json` gives each motor's `selector`, the name that
 finds it alone. `hpr motors fetch` fetches a newer motor's curve from ThrustCurve.org into the simulator's cache, for `hpr sim` to
-fly ([fetching a motor](#motors-from-thrustcurveorg)). Or download its `.eng` or `.rse` file
+fly ([fetching a motor](#motors-from-thrustcurveorg)), and `hpr motors update` fetches the ones
+its records show the bundle lacks ([newer motors](#newer-motors-and-the-bundles-date)). Or download its `.eng` or `.rse` file
 ([RASP and RockSim files](glossary.md#rasp-and-rocksim-files)) and show that.
 `hpr motors search` lists the motors vendors have in stock, with their prices
 ([Motors you can buy](#motors-you-can-buy)).
@@ -1541,6 +1542,52 @@ solid catalog as of October 28, 2026
 has the reasoning for the fetch. Each file carries its contributor's own license.
 ThrustCurve.org grants no license for its motor records; the project uses them as published facts,
 with credit ([the decision record on ThrustCurve.org's records](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)).
+
+#### Newer motors and the bundle's date
+
+`hpr motors update` says what the bundled catalog holds: the date of its ThrustCurve.org
+snapshot, its motors and files, how many files pass [the 1% check](physics/motor.md#the-whole-catalog)
+against their motor's record (and how many motors have at least one such file), and the bytes
+compiled in.
+ThrustCurve.org listed no motor newer than the bundle on October 29, 2026
+([the decision record on the update](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0307-newer-motors-by-comparing-the-whole-catalog.md)),
+so the online path below is tested only on its recorded answers of that day, with one motor and one file
+taken out of the bundle; it hasn't yet found a real new one.
+
+Online, it asks ThrustCurve.org for its whole solid catalog, or reads an answer under a day old
+from the cache. It downloads a motor's files only if the bundle lacks the motor, ThrustCurve.org
+lists a different number of files for it, or its record was updated on or after the snapshot's
+date. Each motor or RASP or RockSim file the bundle lacks is fetched into the cache, and the
+command that finds it there is printed:
+
+- A new motor flies offline by name, `hpr sim --motor NAME`. If the bundle has a motor by that
+  name, or several makers share it, give the maker: `hpr motors fetch --manufacturer MAKER NAME`.
+- A newer file of a bundled motor is only cached: `hpr sim --motor` keeps flying the bundled
+  file, and `hpr motors fetch --file ID` shows the new one.
+- A fetched curve is a contributor's upload, as in [fetching a motor](#motors-from-thrustcurveorg).
+  The simulator checks that it makes a motor it can fly, but neither the 1% check nor the
+  comparison with ThrustCurve.org's statistics code covers it.
+
+A file swapped for another under the same motor, with the file count and date unchanged, isn't
+found. `--json` prints the same as one document. Online with the network down, it reads the
+answers an earlier update cached, or fails with help naming the bundle's date if one is missing.
+With `--offline` it never asks the network: it reads what an earlier update cached, or with any
+answer missing names the bundle's date and succeeds:
+
+<!-- cli: example `hpr motors update --offline`; written by `cargo xtask cli`; do not edit -->
+
+```text
+$ hpr motors update --offline
+The bundled catalog: ThrustCurve.org's solid motors as of 2026-10-28
+  motors           1004, 924 with a file that reads
+  files            1700, and 6 left out
+  passing          412 files within 1% of their records, of 239 motors
+  size             4.2 MB (4163396 bytes)
+note: offline, with no whole update cached; online, `hpr motors update` looks for motors and files newer than 2026-10-28
+Motor data and thrust curves courtesy of ThrustCurve.org, https://www.thrustcurve.org/
+```
+
+<!-- cli: end -->
 
 ### `hpr convert`
 

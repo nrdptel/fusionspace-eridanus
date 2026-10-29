@@ -67,6 +67,7 @@
 )]
 
 mod cache;
+pub mod catalog_update;
 mod civil;
 mod client;
 mod coordinate;

@@ -534,6 +534,31 @@ pub fn fetch_search<T: Transport>(
     fetch(client, &search.url(), now_s, parse_search)
 }
 
+/// Fetches a search through `client`, as [`fetch_search`] does, refusing an answer cut short by
+/// its `maxResults` ([`SearchAnswer::is_complete`]): it is never cached, so it can't take a whole
+/// answer's place, and online a stale whole copy is returned instead, with the reason.
+///
+/// # Errors
+/// As [`fetch_search`]; with [`NetError::Refused`] naming [`ThrustCurveError::Incomplete`] for a
+/// search cut short and no whole copy cached.
+pub fn fetch_whole_search<T: Transport>(
+    client: &Client<T>,
+    search: &Search,
+    now_s: u64,
+) -> Result<(SearchAnswer, Fetched), ThrustCurveError> {
+    let read = |body: &[u8]| {
+        let answer = parse_search(body)?;
+        if !answer.is_complete() {
+            return Err(ThrustCurveError::Incomplete {
+                matches: answer.matches,
+                found: answer.results.len(),
+            });
+        }
+        Ok(answer)
+    };
+    fetch(client, &search.url(), now_s, read)
+}
+
 /// Fetches a motor's data files through `client`, as [`fetch_search`] does. An answer holding
 /// another motor's file, or a file in another format, is refused and never cached.
 ///
