@@ -138,8 +138,10 @@ Line by line:
   chord and span, and the sweep. The sweep is how far aft of the root's leading edge the tip's is.
 - `Motor.from_catalog` finds one of the [924 bundled motors with a curve](physics/motor.md#the-whole-catalog)
   by its name. It doesn't take the delay from the designation (the H54's full one is 168H54-10A).
-  So give it as `delay_s`: a parachute opened by the motor needs one. `Motor.from_file` reads a
-  RASP [`.eng`](format/eng.md) or RockSim [`.rse`](format/rse.md) file.
+  So give it as `delay_s`: a parachute opened by the motor needs one. A motor whose bundled file
+  is more than 1% from ThrustCurve.org's figures still flies; `from_catalog` raises a
+  `UserWarning` naming each failing figure, and the motor's `warnings` keeps them.
+  `Motor.from_file` reads a RASP [`.eng`](format/eng.md) or RockSim [`.rse`](format/rse.md) file.
 - `static_margin_cal(0.0, 0.3)` is the stability margin at ignition (0 s) and Mach 0.3.
 - `Flight` flies the rocket as soon as it is made. The rail is 1.8 m (5.9 ft) long and leans
   `inclination_deg` above the horizon, 90 by default, toward `heading_deg`, clockwise from north.
@@ -604,7 +606,7 @@ parachute's drag coefficient times its area in m², as RocketPy's `cd_s` is.
 |---|---|
 | `Environment(latitude_deg, longitude_deg, elevation_m, wind_speed_m_s=, wind_from_deg=, gravity=, wind=)` | the launch site, a wind, and the gravity model: `"ellipsoidal"` (the default), `"vertical"` or `"vertical_taylor"` (RocketPy's); `wind=` is a wind function, `wind(height_m) -> (east_m_s, north_m_s)` ([Drag and wind of your own](#drag-and-wind-of-your-own)) |
 | `DragTable(power_off, power_on=, reference_diameter_m=)`, `DragTable.from_csv(power_off, power_on=, reference_diameter_m=)` | a drag coefficient against Mach number, from `(mach, cd)` rows or CSV files; its `cd0(mach, thrusting=)`, `has_power_on` and `reference_diameter_m` |
-| `Motor.from_catalog(name, delay_s=)`, `Motor.from_file(path, delay_s=)`, `Motor.from_eng(text, delay_s=)`, `Motor.from_rse(text, delay_s=)` | a motor; its `designation`, `diameter_m`, `length_m`, `delay_s`, `total_impulse_ns`, `propellant_mass_kg` and `thrust_curve()`, two arrays |
+| `Motor.from_catalog(name, delay_s=)`, `Motor.from_file(path, delay_s=)`, `Motor.from_eng(text, delay_s=)`, `Motor.from_rse(text, delay_s=)` | a motor; its `designation`, `diameter_m`, `length_m`, `delay_s`, `total_impulse_ns`, `propellant_mass_kg`, `warnings` (a catalog file's failing check) and `thrust_curve()`, two arrays |
 | `Rocket(name, diameter_m)`, `Rocket.from_file(path, configuration=, recovery=)` | a rocket, built or read, with the file's parachutes when `recovery=True`; its `name`, `configuration` and `notes` |
 | `add_nose(shape, length_m, material, wall_m=, parameter=, shoulder_length_m=, shoulder_wall_m=, capped_shoulder=, name=)` | the nose: hollow with `wall_m`, solid without; a shoulder, capped or not |
 | `add_tube(length_m, wall_m, material, diameter_m=, name=)` | a body tube |

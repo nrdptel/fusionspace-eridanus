@@ -96,6 +96,10 @@ does, is refused rather than guessed, with a name listed that finds each alone; 
 several makers use, such as `G80`
 ([A name several makers share](cli.md#a-name-several-makers-share)).
 
+Most motors in the catalog fly a curve file that is more than 1% from ThrustCurve.org's figures
+for it. Such a motor still flies, and `warnings()` names each failing figure, as `hpr sim --motor`
+prints it ([Solid motors](physics/motor.md)).
+
 The delay is never read from the designation. `with_delay_s(10.0)` sets it, and a parachute opened
 by the motor's charge needs it. `Motor::from_eng` reads the text of a
 [RASP `.eng` file](format/eng.md), such as one downloaded from ThrustCurve.org, instead.

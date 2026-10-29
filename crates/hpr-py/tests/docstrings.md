@@ -441,8 +441,9 @@ The case diameter, m.
 The motor in HPR Sim's built-in catalog whose designation or common name is `name`
 (`"H54"`, `"168H54-10A"`), ignoring case, spaces and hyphens. It comes with its default
 thrust curve, a bundled file within 1% of ThrustCurve.org's stated figures where it has
-one; a failing file flies without a warning here. `delay_s` sets its ejection delay; the
-designation's own delay is not used. The command `hpr motors list` lists the catalog's motors.
+one. A failing file still flies, and each of its warnings is raised as a `UserWarning` and
+kept in `warnings`. `delay_s` sets its ejection delay; the designation's own delay is not
+used. The command `hpr motors list` lists the catalog's motors.
 
 ### `Motor.from_eng`
 
@@ -472,6 +473,12 @@ thrusts, N.
 ### `Motor.total_impulse_ns`
 
 The total impulse, N·s.
+
+### `Motor.warnings`
+
+What building the motor warned of: for a catalog motor, its default curve file more than
+1% from ThrustCurve.org's figures, or lighter in propellant than the record. Empty for a
+motor from a file.
 
 ## `Rocket`
 

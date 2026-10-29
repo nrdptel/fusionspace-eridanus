@@ -106,8 +106,9 @@ thrust and burn time must each be within 1% of the record's to pass. A gap is th
 less the record's, as a share of the record's, so `+` means the file reads high. A motor flies a
 passing file where it has one, else the first by format and by who measured it. Flying a failing
 file in `hpr sim` warns, naming each failing figure: `burn time +2.00%`. So does flying a default
-file whose propellant mass is more than 5% below the record's. Check such a file against the
-maker's data.
+file whose propellant mass is more than 5% below the record's. The library gives the same
+warnings: Rust's `Motor::from_catalog` keeps them in `warnings()`, and Python's raises each as a
+`UserWarning`. Check such a file against the maker's data.
 `hpr motors show` lists each file with its check. `cargo xtask motor-catalog` writes the catalog,
 and a test fails if the committed one differs.
 
