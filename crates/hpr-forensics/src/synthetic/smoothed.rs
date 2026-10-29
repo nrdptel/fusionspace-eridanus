@@ -528,6 +528,12 @@ mod tests {
                 && 0.05 <= clopper_pearson_upper(x, 820, 0.999)
         };
         assert!(!holds_820(21) && holds_820(22) && holds_820(63) && !holds_820(64));
+        // And at set B's 845, 23 to 64.
+        let holds_845 = |x| {
+            clopper_pearson_lower(x, 845, 0.999) <= 0.05
+                && 0.05 <= clopper_pearson_upper(x, 845, 0.999)
+        };
+        assert!(!holds_845(22) && holds_845(23) && holds_845(64) && !holds_845(65));
         assert_eq!(clopper_pearson_upper(1000, 1000, 0.999), 1.0);
         assert!(clopper_pearson_upper(5, 3, 0.999).is_nan());
     }

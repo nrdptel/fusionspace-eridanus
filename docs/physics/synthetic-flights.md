@@ -59,7 +59,7 @@ A check on these flights doesn't show how well HPR Sim predicts a real flight. T
 
 ### The sets
 
-Three sets, each on its own seed, written down before any method was tuned:
+The census's three sets, each on its own seed, written down before any method was tuned:
 
 | Set | Flights | Seed number | Model flown |
 |---|---:|---:|---|

@@ -22,7 +22,8 @@ health card ([ADR-300][adr-300])." On 2026-10-29 none of that existed:
   the smoother withholds a log that starts at launch ([#982][i982]).
 
 That is too much for one session. The smoother's own intervals don't serve: they hold the truth
-94.3% to 99.4% of the time in [ADR-300][adr-300]'s cells, wider than 90%, and lopsided (A's
+94.3% to 99.4% of the time in [ADR-300][adr-300]'s set cells, wider than 90% (two logger cells
+fall just under, at 89.2% and 89.7%), and lopsided (A's
 height at burnout: 18 truths below, 1 above). ADR-300's check only asks that they not miss more
 than they say; ADR-257's test fails them. They also cover only height and speed, not a time, a
 rate or an acceleration.
@@ -37,7 +38,7 @@ rate or an acceleration.
    points of `(reading − truth)/bound` over a calibration set. The point from each end is the
    `⌊0.05 (n + 1)⌋`-th of the `n` sorted shares, the split-conformal rank (Vovk, Gammerman and
    Shafer, 2005; Lei et al., *JASA* 2018). On flights drawn like the calibration set's, each tail
-   then misses at most 5%. The shares are written into `hpr_flightdata::readings::interval` to
+   then misses about 5% on average. The shares are written into `hpr_flightdata::readings::interval` to
    three significant figures, since a log read on its own has no calibration set at hand.
    `cargo xtask synthetic` fits them again and fails unless they match. Each tail gets its own
    share, so an error that leans one way gets an interval that leans with it.
@@ -46,7 +47,7 @@ rate or an acceleration.
    readings has a tail miss rate spread by about `√(0.05 · 0.95/n)`, 1.7% at 171. Against the
    test's own 0.7% at 1,000, a correct interval would often fail. `Set::Calibration` draws 2,000
    flights as the tuning set's are, alternating set A's model and set B's, on seed `2026102900`,
-   fixed on 2026-10-29 before any reading's interval existed. At 2,000 the fit's spread is 0.49%.
+   fixed on 2026-10-29 before any reading's interval existed. The 2,000 flights give 1,638 apogees, and at 1,638 the fit's spread is 0.54%.
    The census and the smoother's check don't fly it. Changing its seed after a failure needs a
    decision record, as for the other sets.
 3. **The test.** Each flight's own log is read. A reading that states an interval is counted
@@ -81,15 +82,15 @@ rate or an acceleration.
 **Consequences.**
 
 - On the calibration set's 1,638 apogees, the height's shares are −0.63 and 0.637 and the
-  time's −0.337 and 0.225. The time's reading tends to come early. On the [report][report]'s
+  time's −0.337 and 0.225. The time's errors reach further early than late. On the [report][report]'s
   A and B:
   - the height's interval leaves 55 and 45 of A's 820 truths below and above it, and 38 and 47
     of B's 845;
   - the time's leaves 36 and 32, and 41 and 50;
   - every probe fails: narrowed, 228 to 264 truths miss the height; widened, none do; shifted
     down, 283 lie above.
-- The apogee height's mean error is +1.07 m on A and +0.07 m on B, so the reading is not low on
-  average: the flattering side ([ADR-257][adr-257] §2) shows no bias.
+- The apogee height's mean error is +1.07 m on A and +0.074 m on B, so the reading is not low on
+  average: the flattering side ([ADR-257][adr-257] §2) shows no low bias.
 - The interval holds 90% over the flights the synthetic sets draw, pooled over their loggers and
   designs. One logger, or a day more than 15 K from the standard atmosphere, can see more misses.
   Per-design counts are reported; per-logger counts aren't yet. No real flight has checked an

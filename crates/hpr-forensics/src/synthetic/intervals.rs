@@ -73,7 +73,7 @@ impl Compared {
 pub enum Said {
     /// Read, with a 90% interval.
     Stated(Compared),
-    /// Read with no interval: a floor.
+    /// Read with no interval: a floor, or a bound no interval can be formed from.
     Unstated,
     /// Withheld, for this reason.
     Withheld(Reason),

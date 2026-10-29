@@ -709,16 +709,16 @@ $$
 $$
 
 Each point is the 81st from its end of the 1,638 apogees' sorted shares, the split-conformal rank
-$\lfloor 0.05 (n + 1) \rfloor$ (Lei and colleagues, 2018). Each tail then misses at most 5% on
-flights drawn as those are.
+$\lfloor 0.05 (n + 1) \rfloor$ (Lei and colleagues, 2018). Each tail then misses about 5% on
+average over flights drawn as those are.
 
 | reading | 5% point $q_{05}$, share of the bound | 95% point $q_{95}$, share of the bound |
 |---|---:|---:|
 | apogee height | −0.63 | 0.637 |
 | apogee time | −0.337 | 0.225 |
 
-The time's points lean: the reading tends to come early, so its interval reaches further after it
-than before. `cargo xtask synthetic` fits the points again and fails unless they equal the
+The time's points lean: its errors reach further early than late, so its interval reaches further
+after the reading than before it. `cargo xtask synthetic` fits the points again and fails unless they equal the
 library's.
 
 **A worked example.** The invented PerfectFlite log's apogee of 390.144 m (1,280 ft) has a bound
@@ -741,7 +741,7 @@ one side only fails. Each count's 99.9% band must hold 5%, and the band on those
 
 The GNSS-only logs, 180 of A's and 155 of B's, give no apogee. Every interval narrowed to 0.8 of
 its width fails the test, and so does every one widened to 1.25 or shifted down one standard
-error. The apogee height's mean error is +1.07 m (3.5 ft) on A and +0.07 m (0.23 ft) on B. So the reading isn't low
+error. The apogee height's mean error is +1.07 m (3.5 ft) on A and +0.074 m (0.24 ft) on B. So the reading isn't low
 on average, which would be the flattering side for a waiver. The test pools the six simulated
 loggers and the ten designs. A day more than 15 K from the standard atmosphere, or a logger
 noisier than those, can see more misses. No real flight has checked an interval ([evidence row

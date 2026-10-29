@@ -17,7 +17,7 @@
 //! **How far to trust it.** On flights drawn as the synthetic ones are, a reading's interval
 //! holds the truth about 90% of the time and misses about 5% on each side. A real flight can lie
 //! outside what they draw, as a day more than 15 K from the standard atmosphere does; its
-//! interval then says less than 90%. No real flight has yet checked one (evidence row G33).
+//! interval then says less than 90%. No real flight has yet checked one (evidence row G34).
 //!
 //! [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 //! [adr-308]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md
