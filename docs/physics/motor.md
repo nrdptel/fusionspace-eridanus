@@ -678,7 +678,7 @@ The tests that pin the motor model, and the whole example program.
   [fixture](../glossary.md#reference-value-and-fixture),
   [`validation/fixtures/motor/thrustcurve-analyze-stats.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/motor/thrustcurve-analyze-stats.json).
   HPR Sim's impulse, burn window, burn time, average and peak thrust agree to 3e-15, relative:
-  the largest gap measured is 2.93e-15, and the test fails above 1e-12. A burn window's end under
+  the largest gap measured is 2.93e-15, and the test fails above 1e-12. A burn window's start under
   1 ms is compared in seconds instead, and agrees to 3e-18 s. So the definitions are checked, not
   only the 1% rule.
   - Two or more samples at the same time are read differently, on purpose
