@@ -183,7 +183,7 @@ Cached under `refs/research/stoney-tare-base-pressure/` unless noted, with rende
 - **S7.** Solomon, NACA Report 1242 (1955): p. 3, Fig. 12. <https://ntrs.nasa.gov/citations/19930090996>
 - **S8.** Lee and Summers, NACA RM A57I09 (1957): pp. 1, 3–4. <https://ntrs.nasa.gov/citations/19930089881>
 - **S9.** Mitchell, NASA TM X-1655 (1968): pp. 4, 7–8, Fig. 14 p. 54. <https://ntrs.nasa.gov/citations/19680026662>
-- Kell, ARC R&M 3290 (1958), catalog record and abstract only; no report licence, site copyright, cite only:
+- Kell, ARC R&M 3290 (1958), catalog record and abstract only; no report license, site copyright, cite only:
   <https://reports.aerade.cranfield.ac.uk/handle/1826.2/3868>
 
 [i67]: https://github.com/nrdptel/fusionspace-eridanus/issues/67
