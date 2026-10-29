@@ -172,6 +172,28 @@ pub(crate) fn region(
             }
         }
     }
+
+    // Real samples: each file a real row reads, so a reader can fetch it and repeat the check.
+    if rows.iter().any(|row| !row.sample.is_empty()) {
+        out.push_str(
+            "\n**Real samples.** Each file a real row reads, kept under `refs/`, with its SHA-256 \
+             and the test that reads it:\n\n",
+        );
+        for row in rows {
+            for sample in &row.sample {
+                let _ = writeln!(
+                    out,
+                    "- {}: `{}`, SHA-256 `{}`; {}; read by `{}`'s test `{}`.",
+                    anchor_link(row),
+                    sample.path,
+                    sample.sha256,
+                    sample.license.trim_end_matches('.'),
+                    sample.package,
+                    sample.test,
+                );
+            }
+        }
+    }
     out.push('\n');
     out.push_str(REGION_END);
     Ok(out)

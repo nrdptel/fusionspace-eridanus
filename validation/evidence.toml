@@ -496,11 +496,12 @@ claim = "The motor finder is replayed on ThrustCurve.org's own searches of three
 pages = ["motor-stock.md#motor-stock-and-prices"]
 kind = "real"
 wanted = "real"
+not_checked = "the tests of fetching one motor on demand, which replay invented answers for cases the real records don't hold; and the in-stock list, recorded on October 1, four weeks before the searches"
 
 [[row.sample]]
 path = "refs/snapshots/thrustcurve/2026-10-28/search.json"
 sha256 = "6fac854e349521f526c2f8cafadb91b23c91527261380a9461c27a7af892f510"
-license = "ThrustCurve.org's answer to a whole-catalog search, recorded unchanged on October 28, 2026 by validation/oracles/thrustcurve/snapshot.py; its records used as published facts with ThrustCurve.org's credit (ADR-287, ADR-305)"
+license = "ThrustCurve.org's answer to a whole-catalog search, recorded unchanged on October 28, 2026 by `validation/oracles/thrustcurve/snapshot.py`; its records used as published facts with ThrustCurve.org's credit"
 package = "fusionspace-hpr-net"
 target = "thrustcurve"
 test = "each_record_is_the_raw_snapshots_own"

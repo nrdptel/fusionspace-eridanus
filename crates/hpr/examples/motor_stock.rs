@@ -13,7 +13,7 @@
 //! it. What it prints is kept next to it in `motor_stock.output.txt`, and CI checks that the two
 //! still agree (`cargo xtask examples --check`).
 //!
-//! It never uses the network: a stand-in transport answers with the files recorded from the
+//! It never uses the network: a test transport answers with the files recorded from the
 //! motor finder's API on 1 October 2026, at 07:07 UTC, and J450DM's file recorded from
 //! ThrustCurve.org's at 08:22 UTC. The three makers' searches are ThrustCurve.org's own answers,
 //! recorded unchanged on 29 October 2026 and used as published facts with its credit (ADR-287).

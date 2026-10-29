@@ -7,7 +7,7 @@
 //! finder's in-stock list is its build of 07:07:29 UTC that day (M5.4a). The three searches are
 //! ThrustCurve.org's own answers, recorded unchanged on 2026-10-29 at 08:16:44 UTC and used as
 //! published facts with its credit (ADR-287). Each of their solid motors' records is the record
-//! of the 2026-10-28 snapshot that `hpr_motor` compiles in (ADR-305), field for field.
+//! of the 2026-10-28 snapshot `hpr_motor` builds its catalog from (ADR-305), field for field.
 
 #![allow(
     clippy::disallowed_methods,
@@ -221,7 +221,7 @@ fn each_search_is_whole_and_of_one_maker() {
 }
 
 /// Each solid motor's record in the three searches is, field for field, the record of the same
-/// `motorId` in the 2026-10-28 snapshot that `hpr_motor` compiles in (ADR-305), and the searches
+/// `motorId` in the 2026-10-28 snapshot `hpr_motor` builds its catalog from (ADR-305), and the searches
 /// hold every record that snapshot has of the three makers. The snapshot holds solid motors only,
 /// so each hybrid in the searches (AeroTech's seven) is absent from it. The snapshot is read
 /// from `hpr-motor`'s source tree at run time, as this crate is published without it.
@@ -229,12 +229,14 @@ fn each_search_is_whole_and_of_one_maker() {
 fn each_solid_record_is_the_snapshots_own() {
     let path =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("../hpr-motor/data/thrustcurve/records.json");
-    let snapshot: Value = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
+    let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
+    let snapshot: Value = serde_json::from_slice(&bytes).unwrap();
     assert!(
         snapshot["captured"]
             .as_str()
             .unwrap()
-            .starts_with("2026-10-28T")
+            .starts_with("2026-10-28T"),
+        "hpr-motor's snapshot changed: record the three searches again, or update this test"
     );
     let makers: Vec<&str> = SEARCHES.iter().map(|(maker, _)| *maker).collect();
     let by_id: BTreeMap<&str, &Value> = snapshot["records"]

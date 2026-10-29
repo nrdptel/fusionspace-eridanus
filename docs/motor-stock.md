@@ -22,8 +22,8 @@ the library, as below.
 
 > **How far to trust it.** The values are copied: the simulator gives back the site's values
 > unchanged, and the saved copy does offline. That's checked on recorded answers, below.
-> There are eight from motor.fusionspace.co, and from ThrustCurve.org three searches and two curve
-> files ([evidence row G23](evidence.md#g23)).
+> The tests replay eight answers from motor.fusionspace.co and, from ThrustCurve.org, three
+> searches and two curve files ([evidence row G23](evidence.md#g23)).
 >
 > Whether a vendor has a motor, at that price, is the vendor's to say. The site's data is
 > up to about an hour old when built. It counts its saved copy as fresh for
@@ -175,11 +175,15 @@ a full match is expected; the match is there to catch drift.
 
 The tests replay ThrustCurve.org's searches of the three makers, recorded unchanged on
 29 October 2026 ([the decision record on ThrustCurve.org's records](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)). They hold 307,
-296 and 60 records, the counts of 1 October, AeroTech's seven hybrids among them. Each solid motor's record is the
-same, field for field, as in the snapshot of 28 October 2026 that the simulator carries
-([the decision record on the test records](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0305-the-2026-10-28-licensing-calls.md)).
+296 and 60 records, the same counts as on 1 October, AeroTech's seven hybrids among them. Each
+solid motor's record is the same, field for field, as in the snapshot of 28 October 2026 that the
+simulator carries ([Solid motors](physics/motor.md);
+[the decision record on the licensing calls](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0305-the-2026-10-28-licensing-calls.md)).
+The tests of fetching one motor on demand (`hpr motors fetch`) replay invented answers instead,
+for cases the real records don't hold, such as a name two motors share or an empty search; their
+designations end `-INVENTED`, `-OTHER` or `-HYBRID`.
 
-On them, too, all 282 motors match, each record lists a data file, and each match's figures equal
+On them, too, all 282 motors match (the in-stock list is of 1 October, the searches of 29 October), each record lists a data file, and each match's figures equal
 the finder's. The tests write the match's report into
 [`validation/reports/thrustcurve-join.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/thrustcurve-join.md),
 and check it against the match on every run.
@@ -227,7 +231,7 @@ and reads one curve. It makes these calls:
 1. `Client::new(transport, Cache::new(folder), Mode::Online)` sets up the fetching. The
    *transport* is what fetches ([Online data and the cache](online-data.md)). A real program
    passes `hpr_net::Http::new()`, and keeps its saved answers in `Cache::platform_dir()`, the
-   system's usual folder for them. This one never uses the network: a stand-in transport answers
+   system's usual folder for them. This one never uses the network: a test transport answers
    with the files recorded for the tests.
 2. `motor_finder::fetch_meta(&client, now)` and `motor_finder::fetch_in_stock(&client, now)` fetch
    the build time and the in-stock list, and save them; `now` is the time, in seconds since

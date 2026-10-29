@@ -592,7 +592,8 @@ The simulators HPR Sim is compared with, and the papers its models come from.
 - **ThrustCurve.org's API** (<https://www.thrustcurve.org/info/api.html>): two public-domain curve
   files, recorded October 1, 2026, and three makers' searches, recorded unchanged October 29,
   2026, in `crates/hpr-net/tests/fixtures/replay/`. The searches hold 663 records; each solid
-  motor's equals the record in the October 28 snapshot `hpr-motor` ships.
+  motor's equals the record in the October 28 snapshot `hpr-motor` ships. The `thrustcurve-standin-*`
+  files beside them are invented answers, for the on-demand fetch's cases the real records lack.
   `validation/reports/thrustcurve-join.md` holds the in-stock motors' match to them
   ([why the match is by name only](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0130-m5-4b-thrustcurve-searches-and-curves-through.md);
   [why the records are used](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)).

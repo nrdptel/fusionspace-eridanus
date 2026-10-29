@@ -280,13 +280,12 @@ adds a source.
   recorded unchanged on 2026-10-29 08:16:44 UTC (307, 296 and 60 records). Each solid motor's
   record in them is the record of the 2026-10-28 snapshot in `crates/hpr-motor/data/thrustcurve/`.
   ThrustCurve.org's site states no license for its motor records ("All rights under copyright
-  reserved"); the project uses them as published facts, with the credit "Data courtesy of
-  ThrustCurve.org"
+  reserved"); the project uses them as published facts, with the credit "Motor data and
+  thrust curves courtesy of ThrustCurve.org"
   ([ADR-287](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md),
   [ADR-305](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0305-the-2026-10-28-licensing-calls.md)).
   Searches of the same makers recorded on 2026-10-01 were replaced on 2026-10-03 by stand-ins
-  ([ADR-145](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0145-recorded-answers-and-their-licences-stand-in.md));
-  both remain in the repository's history, which is not rewritten.
+  ([ADR-145](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0145-recorded-answers-and-their-licences-stand-in.md)).
   `thrustcurve-standin-*.json` (2026-10-04, M4.5b) are not ThrustCurve.org's answers but invented
   test shapes in its API's form, for cases the real records don't hold: searches holding invented
   motors (designations ending `-INVENTED`, `-OTHER` or `-HYBRID`, some under invented makers) and
