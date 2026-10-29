@@ -11,7 +11,8 @@
 **Context.** [ADR-288][adr-288] §4 says `hpr motors update` adds the motors and files newer than
 the bundle to the cache when online, and offline says the bundle's date. [ADR-298][adr-298] made
 that M5.7d. ThrustCurve.org's API (its `swagger.json`) offers two date filters on a search,
-`infoUpdatedSince` and `dataUpdatedSince`. On 2026-10-29:
+`infoUpdatedSince` and `dataUpdatedSince`. On 2026-10-29 (the filters probed live, not recorded;
+the whole search recorded as a test fixture):
 
 - `dataUpdatedSince` matched no motor for any date tried, back to 2025-01-01, while
   `infoUpdatedSince` 2026-01-01 matched 43, the newest updated 2026-09-13;
@@ -29,13 +30,17 @@ that M5.7d. ThrustCurve.org's API (its `swagger.json`) offers two date filters o
    `maxResults` is refused. The date filters aren't relied on.
 2. **What flies.** The downloads are the answers [ADR-154][adr-154]'s fetch reads, and the update
    then looks each newer motor up by name as `hpr sim --motor` and `hpr motors fetch` do, so those
-   answers are cached too. A motor the bundle lacks then flies offline by its designation, or by
-   `hpr motors fetch` with its maker where several makers share it. A newer file of a bundled
+   answers are cached too, and prints the command that finds it. A motor the bundle lacks then
+   flies offline by its designation, or is read by `hpr motors fetch` with its maker where several
+   makers share the name. No command is printed when a word of it would need quoting, or no file
+   of the motor makes one HPR Sim flies. A newer file of a bundled
    motor is cached and shown by `hpr motors fetch --file`. The bundle's own file keeps flying, so
    an update never changes a flight of a bundled motor.
-3. **Offline.** The update reads what an earlier one cached. With nothing cached it names the
-   bundle's date and succeeds: the bundle flies as it is. A network failure fails the command,
-   its help naming the bundle's date.
+3. **Offline.** The update reads what an earlier one cached. With any answer it needs missing
+   from the cache, it names the bundle's date and succeeds: the bundle flies as it is. Online,
+   an answer under a day old comes from the cache, as every ThrustCurve.org answer does. A
+   network failure with a cached copy reads that copy and says it is stale; with none, the
+   command fails, its help naming the bundle's date.
 4. **The bundle described.** The command prints the bundle's snapshot date, its motors (and how
    many fly), its files and those left out, the files passing the 1% check and their motors, and
    the bytes compiled in (the index and every curve file it reads). `hpr_motor` gives the counts
@@ -53,6 +58,6 @@ that M5.7d. ThrustCurve.org's API (its `swagger.json`) offers two date filters o
 - A file swapped for another under the same motor, with the record's file count and update day
   unchanged, isn't found. Finding it would take two downloads for each of the 924 motors with a
   file, every update.
-- Each update downloads about 0.93 MB for the search, and two small answers a motor that may
-  differ.
+- An update with no search under a day old in the cache downloads about 0.93 MB for it (928,550
+  bytes recorded), and two small answers for each motor that may differ.
 - A motor ThrustCurve.org stops listing keeps flying from the bundle; the update counts them.

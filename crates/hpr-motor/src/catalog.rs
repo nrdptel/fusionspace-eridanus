@@ -745,8 +745,8 @@ impl Catalog {
 }
 
 /// The bytes of data compiled into the crate for [`Catalog::bundled`]: the index and every curve
-/// file it reads, as UTF-8 text. The binary's size grows by about this much; it doesn't count the
-/// code that reads them.
+/// file it reads, as UTF-8 text. It counts the data alone, not the code that reads it; how much a
+/// binary grows by it isn't measured.
 #[must_use]
 pub fn bundled_size_bytes() -> usize {
     bundled::CATALOG_JSON.len()
@@ -1198,7 +1198,7 @@ mod tests {
     }
 
     /// The bundled catalog's counts are M5.7b1's snapshot's, each recounted here by hand, and its
-    /// size is the bytes of the index and of each curve file it reads, as they sit on disk.
+    /// size is the bytes of the index and of each curve file it reads, each once.
     #[test]
     fn bundled_counts_and_size_are_the_files() {
         let catalog = Catalog::bundled().unwrap();
@@ -1207,8 +1207,7 @@ mod tests {
         let mut files = 0;
         let mut passing = 0;
         let mut motors_passing = 0;
-        let data = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("data/thrustcurve");
-        let mut bytes = std::fs::read(data.join("catalog.json")).unwrap().len();
+        let mut bytes = bundled::CATALOG_JSON.len();
         for motor in &catalog.motors {
             flying += usize::from(!motor.curves.is_empty());
             files += motor.curves.len();
@@ -1216,7 +1215,7 @@ mod tests {
             passing += here;
             motors_passing += usize::from(here > 0);
             for curve in &motor.curves {
-                bytes += std::fs::read(data.join(&curve.file)).unwrap().len();
+                bytes += bundled_curve_text(&curve.file).unwrap().len();
             }
         }
         assert_eq!(
@@ -1243,7 +1242,11 @@ mod tests {
             (1_004, 924, 1_700, 6)
         );
         assert_eq!((counts.files_passing, counts.motors_passing), (412, 239));
+        // Every file compiled in is one the index reads, so the two sums agree; and the total is
+        // the bytes `wc -c` gives for `data/thrustcurve/catalog.json` and those 1,700 files.
+        assert_eq!(bundled::CURVE_FILES.len(), files);
         assert_eq!(bundled_size_bytes(), bytes);
+        assert_eq!(bytes, 4_163_396);
     }
 
     /// Every bundled entry's size, masses and delays are its default curve file header's (#295):

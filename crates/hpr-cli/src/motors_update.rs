@@ -3,7 +3,7 @@
 //! are found offline after ([M5.7d](https://hpr.fusionspace.co/decisions-and-roadmap.html#m5-7d);
 //! [ADR-288](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md)
 //! §4). [`hpr::hpr_net::catalog_update`] does the comparison. Offline, it reads what an earlier
-//! update cached, or with nothing cached names the bundle's date.
+//! update cached, or with any answer it needs missing from the cache names the bundle's date.
 
 use std::io::Write;
 
@@ -45,8 +45,8 @@ pub(crate) fn run(args: &UpdateArgs, to: &mut Out<'_>) -> Result<(), Failure> {
             None => diagnostics.line(
                 Level::Note,
                 &format!(
-                    "offline, with no update cached; online, `hpr motors update` looks for \
-                     motors and files newer than {}",
+                    "offline, with no whole update cached; online, `hpr motors update` looks \
+                     for motors and files newer than {}",
                     document.bundle.captured
                 ),
             )?,
@@ -206,7 +206,7 @@ fn bundle_lines(bundle: &BundledCatalog) -> Vec<String> {
     ]
 }
 
-/// A size in megabytes (10⁶ bytes), to one decimal, with the bytes: `4.2 MB (4,170,078 bytes)`.
+/// A size in megabytes (10⁶ bytes), to one decimal, with the bytes: `4.2 MB (4163396 bytes)`.
 fn megabytes(bytes: usize) -> String {
     // A size well inside f64's exact integers; the bytes print exactly beside it.
     #[allow(clippy::cast_precision_loss, reason = "a few megabytes, exact in f64")]
@@ -249,7 +249,14 @@ fn check_lines(checked: &CatalogCheck) -> Vec<String> {
             }
         }
         if let Some(command) = &motor.command {
-            lines.push(format!("    `{command}` flies it, offline too"));
+            // `hpr sim --motor` flies it; `hpr motors fetch`, for a name several makers share,
+            // reads it.
+            let does = if command.starts_with("hpr sim") {
+                "flies"
+            } else {
+                "reads"
+            };
+            lines.push(format!("    `{command}` {does} it, offline too"));
         }
     }
     if !checked.unlisted.is_empty() {
@@ -277,8 +284,9 @@ mod tests {
 
     /// ThrustCurve.org's answers recorded on 2026-10-29 (`hpr-net`'s `tests/catalog_update.rs`)
     /// against the bundle with ZEVETA's ROS-40-5 and AeroTech H128W's RockSim file taken out: the
-    /// update lists both, and caches what `hpr sim --motor ROS-40-5` and `hpr motors fetch` read,
-    /// so each works offline after, over the same cache.
+    /// update lists both, and caches what `hpr motors fetch` reads, so each command it prints
+    /// works offline after, over the same cache. `hpr sim --motor` looks a fetched motor up as
+    /// `hpr motors fetch` does given the name alone (`Wanted::named`), so it reads the same answers.
     #[test]
     fn a_newer_motor_and_file_from_recorded_answers_land_in_the_cache() {
         let dir = tempfile::tempdir().unwrap();
@@ -382,7 +390,7 @@ mod tests {
             "{out}"
         );
         assert!(
-            err.contains("no update cached") && err.contains("newer than 2026-10-28"),
+            err.contains("no whole update cached") && err.contains("newer than 2026-10-28"),
             "{err}"
         );
     }

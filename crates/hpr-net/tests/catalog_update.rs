@@ -1,6 +1,6 @@
 //! `hpr motors update`'s comparison (M5.7d) against ThrustCurve.org's recorded answers: its whole
-//! catalog's search, and two motors' downloads, recorded unchanged on 2026-10-29 between 12:47:35
-//! and 12:47:37 UTC and used as published facts with its credit (ADR-287).
+//! catalog's search, and two motors' downloads, recorded unchanged on 2026-10-29 at 12:47 UTC and
+//! used as published facts with its credit (ADR-287).
 //!
 //! On that day ThrustCurve.org listed nothing newer than the bundle (its snapshot of 2026-10-28),
 //! so the recorded answers find nothing against the bundle as it is. To show what an update adds,

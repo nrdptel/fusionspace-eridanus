@@ -1546,16 +1546,18 @@ with credit ([the decision record on ThrustCurve.org's records](https://github.c
 
 `hpr motors update` says what the bundled catalog holds: the date of its ThrustCurve.org snapshot,
 its motors and files, how many files pass the 1% check against their motor's record, and the
-bytes compiled in. Online, it then asks ThrustCurve.org for its whole solid catalog and compares.
-A motor the bundle lacks, or a file it lacks for a motor it holds, is fetched into the cache, and
-the command that reads it there is printed. A new motor then flies offline by name, like a
-fetched one. A newer file of a bundled motor is only cached: `hpr sim --motor` keeps flying the
-bundled file, and `hpr motors fetch --file` shows the new one.
+bytes compiled in. Online, it then asks ThrustCurve.org for its whole solid catalog (or reads an
+answer under a day old from the cache) and compares. A motor the bundle lacks, or a RASP or
+RockSim file it lacks for a motor it holds, is fetched into the cache, with the command that
+finds it there. A new motor then flies offline by name, like a fetched one; where several makers
+share the name, `hpr motors fetch` with its maker reads it. A newer file of a bundled motor is
+only cached: `hpr sim --motor` keeps flying the bundled file, and `hpr motors fetch --file` shows
+the new one.
 
 It looks closer only at a motor ThrustCurve.org's record says changed: a motor the bundle lacks,
 another number of files, or an update on or after the snapshot's date. A file swapped for
 another, with the count and date unchanged, isn't found. Offline, it reads what an earlier update
-cached; with none, it names the bundle's date:
+cached; with any answer it needs missing, it names the bundle's date:
 
 <!-- cli: example `hpr motors update --offline`; written by `cargo xtask cli`; do not edit -->
 
@@ -1566,7 +1568,7 @@ The bundled catalog: ThrustCurve.org's solid motors as of 2026-10-28
   files            1700, and 6 left out
   passing          412 files within 1% of their records, of 239 motors
   size             4.2 MB (4163396 bytes)
-note: offline, with no update cached; online, `hpr motors update` looks for motors and files newer than 2026-10-28
+note: offline, with no whole update cached; online, `hpr motors update` looks for motors and files newer than 2026-10-28
 Motor data and thrust curves courtesy of ThrustCurve.org, https://www.thrustcurve.org/
 ```
 
