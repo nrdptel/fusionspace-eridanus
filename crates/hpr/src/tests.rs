@@ -399,8 +399,8 @@ fn parts_out_of_order_are_refused() {
 /// A catalog motor carries its default curve file's warnings, the ones `hpr sim --motor` prints
 /// (#979): every one of C3.4T's files is more than 1% from ThrustCurve.org's figures, so it warns,
 /// naming each failing figure; H54's default file passes, so it draws no check warning. Setting
-/// the delay keeps them, a motor from a file has none, and a flight's record of the motor lists
-/// them only when there are some.
+/// the delay keeps them, a motor from a file has none, and the motor's own serialized record
+/// lists them only when there are some.
 #[test]
 fn a_catalog_motor_carries_its_default_files_warnings() {
     let catalog = hpr_motor::catalog::Catalog::bundled().unwrap();
