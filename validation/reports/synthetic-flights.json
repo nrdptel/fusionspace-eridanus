@@ -11399,6 +11399,7 @@
   ],
   "intervals": {
     "calibration_flights": 2000,
+    "calibration_withheld": 362,
     "shares": [
       {
         "quantity": "apogee_height",
@@ -11431,6 +11432,11 @@
         "checks": [
           {
             "holds": true,
+            "probe_passes": {
+              "narrowed": false,
+              "widened": false,
+              "shifted-down": false
+            },
             "check": {
               "quantity": "apogee_height",
               "flights": 1000,
@@ -11582,11 +11588,68 @@
                   "above": 1
                 }
               },
+              "by_logger": {
+                "altos": {
+                  "given": 185,
+                  "below": 11,
+                  "inside": 162,
+                  "above": 12
+                },
+                "eggtimer": {
+                  "given": 181,
+                  "below": 15,
+                  "inside": 158,
+                  "above": 8
+                },
+                "imu-500hz": {
+                  "given": 171,
+                  "below": 11,
+                  "inside": 151,
+                  "above": 9
+                },
+                "perfectflite": {
+                  "given": 144,
+                  "below": 10,
+                  "inside": 125,
+                  "above": 9
+                },
+                "rrc3": {
+                  "given": 139,
+                  "below": 8,
+                  "inside": 124,
+                  "above": 7
+                }
+              },
+              "by_air": {
+                "cold": {
+                  "given": 132,
+                  "below": 55,
+                  "inside": 77,
+                  "above": 0
+                },
+                "middle": {
+                  "given": 551,
+                  "below": 0,
+                  "inside": 551,
+                  "above": 0
+                },
+                "warm": {
+                  "given": 137,
+                  "below": 0,
+                  "inside": 92,
+                  "above": 45
+                }
+              },
               "mean_error": 1.07
             }
           },
           {
             "holds": true,
+            "probe_passes": {
+              "narrowed": false,
+              "widened": false,
+              "shifted-down": false
+            },
             "check": {
               "quantity": "apogee_time",
               "flights": 1000,
@@ -11738,6 +11801,58 @@
                   "above": 2
                 }
               },
+              "by_logger": {
+                "altos": {
+                  "given": 185,
+                  "below": 2,
+                  "inside": 156,
+                  "above": 27
+                },
+                "eggtimer": {
+                  "given": 181,
+                  "below": 18,
+                  "inside": 161,
+                  "above": 2
+                },
+                "imu-500hz": {
+                  "given": 171,
+                  "below": 5,
+                  "inside": 166,
+                  "above": 0
+                },
+                "perfectflite": {
+                  "given": 144,
+                  "below": 10,
+                  "inside": 134,
+                  "above": 0
+                },
+                "rrc3": {
+                  "given": 139,
+                  "below": 1,
+                  "inside": 135,
+                  "above": 3
+                }
+              },
+              "by_air": {
+                "cold": {
+                  "given": 132,
+                  "below": 10,
+                  "inside": 114,
+                  "above": 8
+                },
+                "middle": {
+                  "given": 551,
+                  "below": 21,
+                  "inside": 510,
+                  "above": 20
+                },
+                "warm": {
+                  "given": 137,
+                  "below": 5,
+                  "inside": 128,
+                  "above": 4
+                }
+              },
               "mean_error": 0.00645
             }
           }
@@ -11748,6 +11863,11 @@
         "checks": [
           {
             "holds": true,
+            "probe_passes": {
+              "narrowed": false,
+              "widened": false,
+              "shifted-down": false
+            },
             "check": {
               "quantity": "apogee_height",
               "flights": 1000,
@@ -11899,11 +12019,68 @@
                   "above": 1
                 }
               },
+              "by_logger": {
+                "altos": {
+                  "given": 186,
+                  "below": 4,
+                  "inside": 168,
+                  "above": 14
+                },
+                "eggtimer": {
+                  "given": 169,
+                  "below": 12,
+                  "inside": 147,
+                  "above": 10
+                },
+                "imu-500hz": {
+                  "given": 182,
+                  "below": 12,
+                  "inside": 161,
+                  "above": 9
+                },
+                "perfectflite": {
+                  "given": 132,
+                  "below": 5,
+                  "inside": 121,
+                  "above": 6
+                },
+                "rrc3": {
+                  "given": 176,
+                  "below": 5,
+                  "inside": 163,
+                  "above": 8
+                }
+              },
+              "by_air": {
+                "cold": {
+                  "given": 163,
+                  "below": 38,
+                  "inside": 125,
+                  "above": 0
+                },
+                "middle": {
+                  "given": 526,
+                  "below": 0,
+                  "inside": 526,
+                  "above": 0
+                },
+                "warm": {
+                  "given": 156,
+                  "below": 0,
+                  "inside": 109,
+                  "above": 47
+                }
+              },
               "mean_error": 0.0742
             }
           },
           {
             "holds": true,
+            "probe_passes": {
+              "narrowed": false,
+              "widened": false,
+              "shifted-down": false
+            },
             "check": {
               "quantity": "apogee_time",
               "flights": 1000,
@@ -12053,6 +12230,58 @@
                   "below": 4,
                   "inside": 75,
                   "above": 4
+                }
+              },
+              "by_logger": {
+                "altos": {
+                  "given": 186,
+                  "below": 4,
+                  "inside": 152,
+                  "above": 30
+                },
+                "eggtimer": {
+                  "given": 169,
+                  "below": 15,
+                  "inside": 146,
+                  "above": 8
+                },
+                "imu-500hz": {
+                  "given": 182,
+                  "below": 6,
+                  "inside": 174,
+                  "above": 2
+                },
+                "perfectflite": {
+                  "given": 132,
+                  "below": 9,
+                  "inside": 119,
+                  "above": 4
+                },
+                "rrc3": {
+                  "given": 176,
+                  "below": 7,
+                  "inside": 163,
+                  "above": 6
+                }
+              },
+              "by_air": {
+                "cold": {
+                  "given": 163,
+                  "below": 12,
+                  "inside": 143,
+                  "above": 8
+                },
+                "middle": {
+                  "given": 526,
+                  "below": 23,
+                  "inside": 468,
+                  "above": 35
+                },
+                "warm": {
+                  "given": 156,
+                  "below": 6,
+                  "inside": 143,
+                  "above": 7
                 }
               },
               "mean_error": 0.00569

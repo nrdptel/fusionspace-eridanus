@@ -30,6 +30,7 @@
 //! The designs' files are read from `validation/designs/` here: `hpr-forensics` is published
 //! and can't hold files outside its own folder.
 
+use std::collections::BTreeMap;
 use std::fmt::Write as _;
 use std::fs;
 use std::panic::{self, AssertUnwindSafe};
@@ -89,6 +90,8 @@ struct Report {
 struct Intervals {
     /// The calibration set's flights flown.
     calibration_flights: u64,
+    /// Its apogees withheld: all from the GNSS-only tracker, whose log gives none.
+    calibration_withheld: u64,
     /// Each reading's shares, fitted again on the calibration set and as the library holds them.
     shares: Vec<FittedShares>,
     /// ADR-257 §1's test on each test set, in A, B order.
@@ -123,6 +126,8 @@ struct IntervalSet {
 struct IntervalCheck {
     /// Whether the test passes on it and every probe fails.
     holds: bool,
+    /// Whether the test passes on each probe's intervals, decided before the bands are rounded.
+    probe_passes: BTreeMap<intervals::Probe, bool>,
     /// The check.
     check: intervals::Check,
 }
@@ -266,6 +271,11 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let root = crate::designs::root()?;
     let files = design_files(&root)?;
     if only_intervals {
+        if check || probe.is_some() {
+            return Err(
+                "--intervals runs alone: it takes no --check, --smoother or --count".into(),
+            );
+        }
         let (made, broken) = interval_check(&files)?;
         let mut page = String::new();
         intervals_section(&mut page, &made);
@@ -675,11 +685,47 @@ fn say_set(set: Set, files: &DesignFiles) -> Result<Vec<FlightSaid>, String> {
         .collect()
 }
 
+/// What leaves `flights` of `set` without failing the test: a reading withheld from a log with a
+/// barometer, or read with no interval. Either would take its misses out of the counts.
+fn dropped(set: Set, flights: &[FlightSaid]) -> Vec<String> {
+    let mut problems = Vec::new();
+    for flight in flights {
+        for (quantity, said) in &flight.said {
+            let problem = match said {
+                intervals::Said::Withheld(reason)
+                    if flight.logger != Profile::GnssTracker.name() =>
+                {
+                    Some(format!("withheld ({reason:?})"))
+                }
+                intervals::Said::Unstated => Some("read with no interval".to_owned()),
+                _ => None,
+            };
+            if let Some(problem) = problem {
+                problems.push(format!(
+                    "{} flight {} ({}): {} {problem}",
+                    set.name(),
+                    flight.index,
+                    flight.logger,
+                    quantity.name()
+                ));
+            }
+        }
+    }
+    problems
+}
+
 /// The readings' intervals: their shares fitted on the calibration set, then ADR-257's test on
 /// sets A and B, with what doesn't come out as it must.
 fn interval_check(files: &DesignFiles) -> Result<(Intervals, Vec<String>), String> {
     let calibration = say_set(Set::Calibration, files)?;
-    let mut broken = Vec::new();
+    let mut broken = dropped(Set::Calibration, &calibration);
+    let calibration_withheld = calibration
+        .iter()
+        .flat_map(|f| &f.said)
+        .filter(|(q, said)| {
+            *q == Quantity::ApogeeHeight && matches!(said, intervals::Said::Withheld(_))
+        })
+        .count() as u64;
     let mut shares = Vec::new();
     for quantity in intervals::STATED {
         let library = intervals::shares(quantity)
@@ -715,6 +761,7 @@ fn interval_check(files: &DesignFiles) -> Result<(Intervals, Vec<String>), Strin
     let mut sets = Vec::new();
     for set in [Set::A, Set::B] {
         let flights = say_set(set, files)?;
+        broken.extend(dropped(set, &flights));
         let checks = intervals::STATED
             .iter()
             .map(|&quantity| {
@@ -739,8 +786,14 @@ fn interval_check(files: &DesignFiles) -> Result<(Intervals, Vec<String>), Strin
                         ));
                     }
                 }
+                let probe_passes = check
+                    .probes
+                    .iter()
+                    .map(|(probe, test)| (*probe, test.passes()))
+                    .collect();
                 IntervalCheck {
                     holds,
+                    probe_passes,
                     check: rounded_check(check),
                 }
             })
@@ -750,6 +803,7 @@ fn interval_check(files: &DesignFiles) -> Result<(Intervals, Vec<String>), Strin
     Ok((
         Intervals {
             calibration_flights: calibration.len() as u64,
+            calibration_withheld,
             shares,
             sets,
         },
@@ -1234,7 +1288,9 @@ fn intervals_section(page: &mut String, made: &Intervals) {
          to three significant figures. A reading **holds** when the two-sided 99.9% \
          Clopper–Pearson band on the share of truths below its interval and the band on the share \
          above each hold 5%, and the band on the share inside holds 90%; and every probe must \
-         fail that test. A floor states no interval and is counted apart.",
+         fail that test. The command also fails if a reading is withheld from a log with a barometer, or \
+         read with no interval, on any of the three sets: either would leave the counts with its \
+         misses.",
         made.calibration_flights
     );
     page.push_str("\n### The shares\n\n");
@@ -1298,7 +1354,11 @@ fn intervals_section(page: &mut String, made: &Intervals) {
                     page,
                     " {}, {} |",
                     counts_text(&test.counts),
-                    if test.passes() { "**passes**" } else { "fails" }
+                    if c.probe_passes[&probe] {
+                        "**passes**"
+                    } else {
+                        "fails"
+                    }
                 );
             }
             page.push('\n');
@@ -1354,6 +1414,77 @@ fn intervals_section(page: &mut String, made: &Intervals) {
         }
         page.push('\n');
     }
+    page.push_str(
+        "\n### By logger and by the day's air\n\nBelow / inside / above, and in bold where that \
+         group's counts alone would fail the test. The test is on each set as a whole; these \
+         groups show where its misses fall. A barometric height is off by about the day's \
+         offset from the standard atmosphere over its temperature, so the height's misses gather \
+         on the coldest and warmest days: a warm day reads low, and its truth lies above the \
+         interval.\n\n",
+    );
+    let groups =
+        |page: &mut String,
+         first: &str,
+         rows: &[String],
+         counts: &dyn Fn(&IntervalCheck, &str) -> Option<intervals::Counts>| {
+            let _ = write!(page, "| {first} |");
+            for set in &made.sets {
+                for c in &set.checks {
+                    let _ = write!(page, " {}, {} |", title(set.set), c.check.quantity.name());
+                }
+            }
+            page.push_str("\n|---|");
+            for set in &made.sets {
+                for _ in &set.checks {
+                    page.push_str("---:|");
+                }
+            }
+            page.push('\n');
+            for row in rows {
+                let _ = write!(page, "| {row} |");
+                for set in &made.sets {
+                    for c in &set.checks {
+                        let text = counts(c, row).map_or_else(
+                            || "none".to_owned(),
+                            |n| {
+                                if intervals::Test::of(n).passes() {
+                                    counts_text(&n)
+                                } else {
+                                    format!("**{}**", counts_text(&n))
+                                }
+                            },
+                        );
+                        let _ = write!(page, " {text} |");
+                    }
+                }
+                page.push('\n');
+            }
+        };
+    let loggers: Vec<String> = Profile::ALL
+        .iter()
+        .map(|p| p.name().to_owned())
+        .filter(|name| {
+            made.sets.iter().any(|s| {
+                s.checks
+                    .iter()
+                    .any(|c| c.check.by_logger.contains_key(name))
+            })
+        })
+        .collect();
+    groups(page, "Logger", &loggers, &|c, row| {
+        c.check.by_logger.get(row).copied()
+    });
+    page.push('\n');
+    let bands: Vec<String> = intervals::AirBand::ALL
+        .iter()
+        .map(|b| b.name().to_owned())
+        .collect();
+    groups(page, "The day's air", &bands, &|c, row| {
+        intervals::AirBand::ALL
+            .iter()
+            .find(|b| b.name() == row)
+            .and_then(|b| c.check.by_air.get(b).copied())
+    });
 }
 
 /// A cell as the page shows it: the share inside the interval, as a percentage, and how many
@@ -1884,6 +2015,8 @@ mod tests {
             .map(|index| FlightSaid {
                 index,
                 design: 0,
+                logger: "altos",
+                air_offset_k: 0.0,
                 said: vec![(
                     Quantity::ApogeeHeight,
                     Said::Stated(Compared {

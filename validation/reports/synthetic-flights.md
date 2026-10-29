@@ -821,7 +821,7 @@ pass back: every step smoothed
 
 ## The readings' 90% intervals
 
-Each flight's own log read by `hpr_flightdata::readings`, and each reading that states a 90% interval compared with the flight's truth (M7.2e1, ADR-257 §1–2, ADR-308). An interval runs from the reading less its 95% share of its bound to the reading less its 5% share; the shares are the 5% and 95% points of the readings' errors as shares of their bounds on the calibration set's 2000 flights, a seed of their own that the test sets never share. `cargo xtask synthetic` fits them again and fails unless they equal the library's to three significant figures. A reading **holds** when the two-sided 99.9% Clopper–Pearson band on the share of truths below its interval and the band on the share above each hold 5%, and the band on the share inside holds 90%; and every probe must fail that test. A floor states no interval and is counted apart.
+Each flight's own log read by `hpr_flightdata::readings`, and each reading that states a 90% interval compared with the flight's truth (M7.2e1, ADR-257 §1–2, ADR-308). An interval runs from the reading less its 95% share of its bound to the reading less its 5% share; the shares are the 5% and 95% points of the readings' errors as shares of their bounds on the calibration set's 2000 flights, a seed of their own that the test sets never share. `cargo xtask synthetic` fits them again and fails unless they equal the library's to three significant figures. A reading **holds** when the two-sided 99.9% Clopper–Pearson band on the share of truths below its interval and the band on the share above each hold 5%, and the band on the share inside holds 90%; and every probe must fail that test. The command also fails if a reading is withheld from a log with a barometer, or read with no interval, on any of the three sets: either would leave the counts with its misses.
 
 ### The shares
 
@@ -877,3 +877,21 @@ Below / inside / above.
 | rocketpy-ndrt-2020-nose-to-tail | 4 / 83 / 5 | 2 / 87 / 3 | 5 / 57 / 6 | 2 / 64 / 2 |
 | rocketpy-prometheus-2022-generic-motor | 9 / 68 / 6 | 6 / 69 / 8 | 3 / 72 / 8 | 7 / 74 / 2 |
 | rocketpy-valetudo | 4 / 77 / 1 | 1 / 79 / 2 | 5 / 77 / 1 | 4 / 75 / 4 |
+
+### By logger and by the day's air
+
+Below / inside / above, and in bold where that group's counts alone would fail the test. The test is on each set as a whole; these groups show where its misses fall. A barometric height is off by about the day's offset from the standard atmosphere over its temperature, so the height's misses gather on the coldest and warmest days: a warm day reads low, and its truth lies above the interval.
+
+| Logger | A, apogee height | A, apogee time | B, apogee height | B, apogee time |
+|---|---:|---:|---:|---:|
+| perfectflite | 10 / 125 / 9 | 10 / 134 / 0 | 5 / 121 / 6 | 9 / 119 / 4 |
+| rrc3 | 8 / 124 / 7 | 1 / 135 / 3 | 5 / 163 / 8 | 7 / 163 / 6 |
+| eggtimer | 15 / 158 / 8 | 18 / 161 / 2 | 12 / 147 / 10 | 15 / 146 / 8 |
+| altos | 11 / 162 / 12 | **2 / 156 / 27** | 4 / 168 / 14 | **4 / 152 / 30** |
+| imu-500hz | 11 / 151 / 9 | **5 / 166 / 0** | 12 / 161 / 9 | 6 / 174 / 2 |
+
+| The day's air | A, apogee height | A, apogee time | B, apogee height | B, apogee time |
+|---|---:|---:|---:|---:|
+| colder than −10 K | **55 / 77 / 0** | 10 / 114 / 8 | **38 / 125 / 0** | 12 / 143 / 8 |
+| −10 to +10 K | **0 / 551 / 0** | 21 / 510 / 20 | **0 / 526 / 0** | 23 / 468 / 35 |
+| warmer than +10 K | **0 / 92 / 45** | 5 / 128 / 4 | **0 / 109 / 47** | 6 / 143 / 7 |

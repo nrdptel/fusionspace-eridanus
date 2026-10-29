@@ -215,11 +215,12 @@ pressure, they take liftoff, apogee, the top speed, landing, the flight time and
 each canopy. An accelerometer along the rocket's axis adds the top acceleration and burnout.
 Without one, burnout is a [floor](glossary.md#floor), the top speed's time less its bound. Each
 reading is within a bound held on the synthetic flights' tuning set, or withheld with the reason
-the log can't support it ([Flight-log readings](physics/log-readings.md)). The synthetic flights
-are 2,200 simulated flights, each with its logger's log and its known truth
+the log can't support it ([Flight-log readings](physics/log-readings.md)). The synthetic flights'
+census holds 2,200 simulated flights, each with its logger's log and its known truth
 ([Synthetic flights](physics/synthetic-flights.md)). In the library, the apogee's height and
 time also state a 90% interval. It passes a two-sided test on 1,665 synthetic apogees held apart
-from the 2,000 flights its points were fitted on ([The 90%
+from the 2,000 flights its points were fitted on. Its misses fall on the coldest and warmest
+days, and a warm day reads low ([The 90%
 intervals](physics/log-readings.md#the-90-intervals); not yet checked on a real flight,
 [evidence row G34](evidence.md#g34)). The library's smoother fuses a log's
 barometer, accelerometer and GNSS receiver into the height and vertical speed at every sample,

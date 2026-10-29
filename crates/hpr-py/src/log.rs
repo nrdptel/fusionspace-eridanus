@@ -266,7 +266,8 @@ impl FlightLog {
     /// The keys of a value and its bound name their unit. ``liftoff``, ``burnout``, ``landing`` and
     /// ``flight_time`` hold ``time_s`` and ``bound_s``. ``apogee`` holds ``height_m`` above the
     /// pad and ``altitude_m`` above the track's own zero, with ``bound_m``, ``time_s`` and
-    /// ``time_bound_s``. On a short pad, a log that holds little or none of the pad, ``height_m``
+    /// ``time_bound_s``, and each one's 90% interval, ``height_interval_m`` and
+    /// ``time_interval_s``: ``low`` and ``high``, or ``None`` on a floor. On a short pad, a log that holds little or none of the pad, ``height_m``
     /// is above the track's zero too. ``max_speed`` holds ``speed_m_s`` and ``bound_m_s``, and
     /// ``max_acceleration`` holds ``acceleration_m_s2`` and ``bound_m_s2``. Each descent holds
     /// ``rate_m_s`` and ``bound_m_s``.

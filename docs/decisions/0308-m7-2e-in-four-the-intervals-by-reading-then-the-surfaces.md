@@ -59,7 +59,11 @@ rate or an acceleration.
    interval to 0.8 of its width about its middle, widen it to 1.25, and shift it down by one
    stated standard error (its width over `2 × 1.645`). Each must fail. A floor (a reading the
    truth may lie any amount above) states no interval in e1 and is counted apart. Counts are
-   reported per design, and the apogee height's mean error with its sign (§2).
+   reported per design, logger and band of the day's air, and the apogee height's mean error
+   with its sign (§2). The calibration set alternates set A's model and set B's, as the tuning
+   set does, so B is held apart by its seed, not by its generator. The command also fails if a
+   reading is withheld from a log with a barometer, or read with no interval, on any of the
+   three sets: either would leave the counts with its misses.
 4. **The split.** Each increment's *done when* fails on main today:
    - **M7.2e1 The test, on the apogee.** `cargo xtask synthetic` fits each interval's shares on a
      calibration set of its own seed and fails unless they equal the library's. On A and B, the
@@ -91,9 +95,15 @@ rate or an acceleration.
     down, 283 lie above.
 - The apogee height's mean error is +1.07 m on A and +0.074 m on B, so the reading is not low on
   average: the flattering side ([ADR-257][adr-257] §2) shows no low bias.
-- The interval holds 90% over the flights the synthetic sets draw, pooled over their loggers and
-  designs. One logger, or a day more than 15 K from the standard atmosphere, can see more misses.
-  Per-design counts are reported; per-logger counts aren't yet. No real flight has checked an
+- The interval holds 90% over the flights the synthetic sets draw, pooled over their loggers,
+  designs and days. The misses aren't pooled. The height's all fall on days more than 10 K from
+  the standard atmosphere: none of the 551 and 526 days within it on A and B missed. Of the
+  warmer days, 45 of 137 on A and 47 of 156 on B read low enough to leave the truth above the
+  interval, the flattering side. The time's interval misses late on the AltOS logs, whose rate
+  drops at apogee: 27 of 185 on A and 30 of 186 on B. Those groups alone fail the test. Found in
+  review, both are now in the report (*By logger and by the day's air*) and on the guide's page,
+  which sends a waiver to the bound. The fixes are new work: #1055 conditions the height on a
+  given day's air, and #1056 treats a rate that drops at the top. No real flight has checked an
   interval: the evidence register's [G34](../evidence.md#g34) records the gap.
 - `cargo xtask synthetic` reads 4,000 more flights, about 100 s on an 8-core Mac (5.5 minutes in
   all, from about 4).

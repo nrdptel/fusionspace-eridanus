@@ -24,10 +24,10 @@ use hpr_flightdata::readings::interval::{self, Interval, Shares};
 use hpr_flightdata::readings::{self, Reading, Reason};
 use serde::{Deserialize, Serialize};
 
+use super::Flight;
 use super::designs::DESIGNS;
 use super::held::Quantity;
 use super::smoothed::{BAND_CONFIDENCE, MISS_SHARE, clopper_pearson_lower, clopper_pearson_upper};
-use super::{Flight, Set};
 
 /// The readings that state a 90% interval, in the report's order.
 pub const STATED: [Quantity; 2] = [Quantity::ApogeeHeight, Quantity::ApogeeTime];
@@ -79,13 +79,18 @@ pub enum Said {
     Withheld(Reason),
 }
 
-/// A flight's index, its design and what its own log said of each of [`STATED`].
+/// A flight's index, its design, logger and day's air, and what its own log said of each of
+/// [`STATED`].
 #[derive(Debug, Clone, PartialEq)]
 pub struct FlightSaid {
     /// Its index in its set.
     pub index: u64,
     /// Its design, an index into [`DESIGNS`].
     pub design: usize,
+    /// Its logger's name.
+    pub logger: &'static str,
+    /// The day's air, K from the 1976 standard atmosphere.
+    pub air_offset_k: f64,
     /// Each of [`STATED`], in that order.
     pub said: Vec<(Quantity, Said)>,
 }
@@ -98,33 +103,35 @@ pub fn said(index: u64, flight: &Flight) -> FlightSaid {
     let said = STATED
         .iter()
         .map(|&quantity| {
-            let said = match &read.apogee {
-                Reading::Withheld(withheld) => Said::Withheld(withheld.reason),
-                Reading::Read(apogee) => {
-                    let (reading, bound, interval, truth) = match quantity {
-                        Quantity::ApogeeHeight => (
-                            apogee.height_m,
-                            apogee.bound_m,
-                            apogee.height_interval_m,
-                            truth.apogee_above_pad_m(),
-                        ),
-                        _ => (
-                            apogee.time_s,
-                            apogee.time_bound_s,
-                            apogee.time_interval_s,
-                            pad_s + truth.events.apogee_s,
-                        ),
-                    };
-                    match interval {
-                        Some(interval) => Said::Stated(Compared {
-                            reading,
-                            bound,
-                            interval,
-                            truth,
-                        }),
-                        None => Said::Unstated,
-                    }
-                }
+            // The truths are `held::outcomes`' own: the apogee above the pad, and its time on the
+            // log's clock.
+            let parts = match (quantity, &read.apogee) {
+                (_, Reading::Withheld(withheld)) => Err(Said::Withheld(withheld.reason)),
+                (Quantity::ApogeeHeight, Reading::Read(apogee)) => Ok((
+                    apogee.height_m,
+                    apogee.bound_m,
+                    apogee.height_interval_m,
+                    truth.apogee_above_pad_m(),
+                )),
+                (Quantity::ApogeeTime, Reading::Read(apogee)) => Ok((
+                    apogee.time_s,
+                    apogee.time_bound_s,
+                    apogee.time_interval_s,
+                    pad_s + truth.events.apogee_s,
+                )),
+                // A quantity in `STATED` with no arm here states nothing: its test then compares
+                // no reading and fails, as an empty count holds nothing.
+                _ => Err(Said::Unstated),
+            };
+            let said = match parts {
+                Err(said) => said,
+                Ok((reading, bound, Some(interval), truth)) => Said::Stated(Compared {
+                    reading,
+                    bound,
+                    interval,
+                    truth,
+                }),
+                Ok((_, _, None, _)) => Said::Unstated,
             };
             (quantity, said)
         })
@@ -132,6 +139,8 @@ pub fn said(index: u64, flight: &Flight) -> FlightSaid {
     FlightSaid {
         index,
         design: flight.draw.design,
+        logger: flight.draw.logger.profile.name(),
+        air_offset_k: flight.draw.temperature_offset_k,
         said,
     }
 }
@@ -287,6 +296,10 @@ pub struct Check {
     pub probes: BTreeMap<Probe, Test>,
     /// The counts by design.
     pub by_design: BTreeMap<String, Counts>,
+    /// The counts by logger.
+    pub by_logger: BTreeMap<String, Counts>,
+    /// The counts by the day's air, in [`AirBand`]'s order.
+    pub by_air: BTreeMap<AirBand, Counts>,
     /// The mean error, reading less truth, over the readings with an interval, with its sign
     /// (the apogee's error side, which a reading too low flatters).
     pub mean_error: f64,
@@ -305,6 +318,8 @@ pub fn check(quantity: Quantity, flights: &[FlightSaid]) -> Check {
     let mut probes: BTreeMap<Probe, Counts> =
         Probe::ALL.iter().map(|&p| (p, Counts::default())).collect();
     let mut by_design: BTreeMap<String, Counts> = BTreeMap::new();
+    let mut by_logger: BTreeMap<String, Counts> = BTreeMap::new();
+    let mut by_air: BTreeMap<AirBand, Counts> = BTreeMap::new();
     let mut withheld: BTreeMap<Reason, u64> = BTreeMap::new();
     let mut unstated = 0;
     let mut error_sum = 0.0;
@@ -323,6 +338,14 @@ pub fn check(quantity: Quantity, flights: &[FlightSaid]) -> Check {
                         .entry(DESIGNS[flight.design].name.to_owned())
                         .or_default()
                         .add(c.interval, c.truth);
+                    by_logger
+                        .entry(flight.logger.to_owned())
+                        .or_default()
+                        .add(c.interval, c.truth);
+                    by_air
+                        .entry(AirBand::of(flight.air_offset_k))
+                        .or_default()
+                        .add(c.interval, c.truth);
                     error_sum += c.reading - c.truth;
                 }
                 Said::Unstated => unstated += 1,
@@ -338,6 +361,8 @@ pub fn check(quantity: Quantity, flights: &[FlightSaid]) -> Check {
         test: Test::of(counts),
         probes: probes.into_iter().map(|(p, c)| (p, Test::of(c))).collect(),
         by_design,
+        by_logger,
+        by_air,
         mean_error: if counts.given == 0 {
             f64::NAN
         } else {
@@ -369,9 +394,43 @@ pub fn three_figures(x: f64) -> f64 {
     (x * scale).round() / scale
 }
 
-/// Whether `set` is one the shares may be fitted on.
-pub fn fits_on(set: Set) -> bool {
-    set == Set::Calibration
+/// A band of the day's air, K from the 1976 standard atmosphere. A barometric height is off by
+/// about `ΔT/T` of itself, so the height's errors, and its misses, gather at the ends of the
+/// synthetic flights' ±15 K: a warm day reads low, a cold one high.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum AirBand {
+    /// Colder than −10 K.
+    Cold,
+    /// From −10 K to +10 K.
+    Middle,
+    /// Warmer than +10 K.
+    Warm,
+}
+
+impl AirBand {
+    /// Every band, coldest first.
+    pub const ALL: [Self; 3] = [Self::Cold, Self::Middle, Self::Warm];
+
+    /// The band `offset_k` lies in.
+    pub fn of(offset_k: f64) -> Self {
+        if offset_k < -10.0 {
+            Self::Cold
+        } else if offset_k > 10.0 {
+            Self::Warm
+        } else {
+            Self::Middle
+        }
+    }
+
+    /// Its name in the report.
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Cold => "colder than −10 K",
+            Self::Middle => "−10 to +10 K",
+            Self::Warm => "warmer than +10 K",
+        }
+    }
 }
 
 #[cfg(test)]
@@ -399,6 +458,8 @@ mod tests {
                 FlightSaid {
                     index: k,
                     design: (k % 10) as usize,
+                    logger: "altos",
+                    air_offset_k: 0.0,
                     said: vec![(Quantity::ApogeeHeight, compared(normal_quantile(p)))],
                 }
             })
@@ -514,11 +575,15 @@ mod tests {
             FlightSaid {
                 index: 0,
                 design: 0,
+                logger: "altos",
+                air_offset_k: 0.0,
                 said: vec![(Quantity::ApogeeHeight, Said::Unstated)],
             },
             FlightSaid {
                 index: 1,
                 design: 0,
+                logger: "altos",
+                air_offset_k: 0.0,
                 said: vec![(Quantity::ApogeeHeight, Said::Withheld(Reason::NoClimb))],
             },
         ];
@@ -538,6 +603,8 @@ mod tests {
             .map(|k| FlightSaid {
                 index: k,
                 design: 0,
+                logger: "altos",
+                air_offset_k: 0.0,
                 said: vec![(
                     Quantity::ApogeeHeight,
                     Said::Stated(Compared {

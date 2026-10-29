@@ -2203,7 +2203,14 @@ mod tests {
 
         // Still climbing at the end: the apogee is a floor.
         let climbing = read(&log(4.0, flight(10.0)));
-        assert!(climbing.apogee.value().unwrap().is_floor);
+        let floor = climbing.apogee.value().unwrap();
+        assert!(floor.is_floor);
+        // A floor's truth may lie any amount above it, so it states no 90% interval; the same
+        // flight read whole states both.
+        assert!(floor.height_interval_m.is_none() && floor.time_interval_s.is_none());
+        let whole = cut.apogee.value().unwrap();
+        assert!(!whole.is_floor);
+        assert!(whole.height_interval_m.is_some() && whole.time_interval_s.is_some());
         assert_eq!(climbing.landing.reason(), Some(Reason::EndsBeforeLanding));
 
         // An accelerometer that doesn't say it lies along the axis gives no top acceleration.

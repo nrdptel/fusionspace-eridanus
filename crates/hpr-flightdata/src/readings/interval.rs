@@ -14,10 +14,15 @@
 //! holds the intervals to the coverage test of [ADR-257][adr-257], calibrated intervals, on the
 //! two test sets.
 //!
-//! **How far to trust it.** On flights drawn as the synthetic ones are, a reading's interval
-//! holds the truth about 90% of the time and misses about 5% on each side. A real flight can lie
-//! outside what they draw, as a day more than 15 K from the standard atmosphere does; its
-//! interval then says less than 90%. No real flight has yet checked one (evidence row G34).
+//! **How far to trust it.** Over flights drawn as the synthetic ones are, a reading's interval
+//! holds the truth about 90% of the time and misses about 5% on each side. The 90% is over their
+//! days, spread evenly within 15 K of the standard atmosphere, and the misses aren't: most of the
+//! height's error is the day's air, so no height missed on a day within 10 K of standard, while a
+//! third of the days warmer than that read low enough to leave the truth above the interval, the
+//! flattering side for a waiver (#1055). On the AltOS logs, the apogee time's interval misses
+//! late about one time in seven (#1056). A real flight can lie outside what the sets draw, as a
+//! day more than 15 K from standard does; its interval then says less than 90%. No real flight
+//! has yet checked one (evidence row G34).
 //!
 //! [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 //! [adr-308]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md

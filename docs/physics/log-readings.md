@@ -40,8 +40,8 @@ withholds one instead of guessing.
   apogee from 593 of them), not how right they are. The apogee's 90% intervals pass the
   two-sided test of [ADR-257, calibrated intervals][adr-257] on the synthetic sets A and B, 820 and 845 readings, after their points were
   fitted on 2,000 flights of their own ([evidence row G34](../evidence.md#g34)).
-- **What it leaves out:** the Mach number and dynamic pressure; 90% intervals on the readings but
-  the apogee's ([The 90% intervals](#the-90-intervals)).
+- **What it leaves out:** the Mach number and dynamic pressure; 90% intervals on every reading
+  except the apogee's ([The 90% intervals](#the-90-intervals)).
   Loggers noisier than the tuning set's [six simulated logger
   profiles](synthetic-flights.md#the-loggers) and rockets slower off the pad than 2 g can be read
   outside their bound. Air more than 15 K from standard is out too, and so is any correction for
@@ -693,14 +693,15 @@ air, which a real log can't rule out.
 
 ### The 90% intervals
 
-A bound is the most a reading's error can be. A 90% interval is narrower: it says where the truth
-usually lies. So far only the apogee states one, for its height and for its time, in the library
+A bound is the size every error stayed within on the tuning set. A 90% interval is narrower: it
+says where the truth usually lies, over the days and loggers the synthetic flights draw. So far only the apogee states one, for its height and for its time, in the library
 (`Apogee::height_interval_m` and `time_interval_s`). The other readings, and `hpr analyze` and
 Python, follow in the [next increments][adr-308].
 
 Each interval comes from the reading's own bound. The synthetic flights' calibration set is 2,000
 flights on a seed no other set shares ([the sets](synthetic-flights.md#the-sets)). Each of its
-flights' own logs was read. Each apogee's error was then taken as a share of its bound: the
+flights' own logs was read; 362 of them are the GNSS-only tracker's, which give no apogee, so 1,638
+apogees are left. Each apogee's error was then taken as a share of its bound: the
 reading $r$ less the truth, over the bound $b$. The interval runs from the reading less the 95%
 point of those shares times the bound, to the reading less the 5% point times the bound:
 
@@ -730,7 +731,8 @@ of 31.83 m (104.4 ft) ([above](#a-worked-example)). Its interval runs from 390.1
 test of [ADR-257, calibrated intervals][adr-257]
 ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/synthetic-flights.md#the-readings-90-intervals)).
 The truths below an interval and those above it are each counted, so an interval that misses on
-one side only fails. Each count's 99.9% band must hold 5%, and the band on those inside 90%:
+one side only fails. Each count gets its 99.9% Clopper–Pearson band, the range of shares that
+count rules in. The test fails unless both sides' bands hold 5% and the inside count's holds 90%:
 
 | set | reading | readings compared | truths below | truths inside | truths above |
 |---|---|---:|---:|---:|---:|
@@ -741,11 +743,21 @@ one side only fails. Each count's 99.9% band must hold 5%, and the band on those
 
 The GNSS-only logs, 180 of A's and 155 of B's, give no apogee. Every interval narrowed to 0.8 of
 its width fails the test, and so does every one widened to 1.25 or shifted down one standard
-error. The apogee height's mean error is +1.07 m (3.5 ft) on A and +0.074 m (0.24 ft) on B. So the reading isn't low
-on average, which would be the flattering side for a waiver. The test pools the six simulated
-loggers and the ten designs. A day more than 15 K from the standard atmosphere, or a logger
-noisier than those, can see more misses. No real flight has checked an interval ([evidence row
-G34](../evidence.md#g34)).
+error. The apogee height's mean error, the reading less the truth, is +1.07 m (3.5 ft) on A and
++0.074 m (0.24 ft) on B. So the reading isn't low on average, which would be the flattering side
+for a waiver.
+
+The test pools the five loggers that give an apogee and the ten designs. The 90% is over the days
+the flights draw, spread evenly within 15 K of the standard atmosphere, and the misses aren't
+spread over those days. Most of a height's error is the day's air, so on days within 10 K of
+standard no height missed. On days warmer than that, 45 of 137 truths on A and 47 of 156 on B lay
+above the interval, as a warm day reads low ([#1055](https://github.com/nrdptel/fusionspace-eridanus/issues/1055)). On a hot day, then, expect the true apogee
+above the interval's top far more often than 1 time in 20. For a waiver, go by the bound, which
+holds the day's air to 15 K. The time's misses lean by logger: on the AltOS logs, whose rate drops
+from 100 to 10 samples a second at apogee, 27 of 185 truths on A and 30 of 186 on B lie later than
+the interval ([#1056](https://github.com/nrdptel/fusionspace-eridanus/issues/1056)). The report gives each logger's and each band's counts. A day more than 15 K
+from standard, or a logger noisier than these, can see more misses still. No real flight has
+checked an interval ([evidence row G34](../evidence.md#g34)).
 
 ### Before any reading
 
