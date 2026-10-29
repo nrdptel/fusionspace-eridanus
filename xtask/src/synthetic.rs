@@ -1283,15 +1283,15 @@ fn intervals_section(page: &mut String, made: &Intervals) {
          90% interval compared with the flight's truth (M7.2e1, ADR-257 §1–2, ADR-308). An \
          interval runs from the reading less its 95% share of its bound to the reading less its \
          5% share; the shares are the 5% and 95% points of the readings' errors as shares of their \
-         bounds on the calibration set's {} flights, a seed of their own that the test sets never \
-         share. `cargo xtask synthetic` fits them again and fails unless they equal the library's \
+         bounds on the calibration set's {} flights ({} of them the GNSS-only tracker's, which give \
+         no apogee), a seed of their own that the test sets never share. `cargo xtask synthetic` fits them again and fails unless they equal the library's \
          to three significant figures. A reading **holds** when the two-sided 99.9% \
          Clopper–Pearson band on the share of truths below its interval and the band on the share \
          above each hold 5%, and the band on the share inside holds 90%; and every probe must \
          fail that test. The command also fails if a reading is withheld from a log with a barometer, or \
          read with no interval, on any of the three sets: either would leave the counts with its \
          misses.",
-        made.calibration_flights
+        made.calibration_flights, made.calibration_withheld
     );
     page.push_str("\n### The shares\n\n");
     page.push_str("| Reading | Readings fitted | 5% share | 95% share |\n|---|---:|---:|---:|\n");

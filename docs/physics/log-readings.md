@@ -753,9 +753,9 @@ spread over those days. Most of a height's error is the day's air, so on days wi
 standard no height missed. On days warmer than that, 45 of 137 truths on A and 47 of 156 on B lay
 above the interval, as a warm day reads low ([#1055](https://github.com/nrdptel/fusionspace-eridanus/issues/1055)). On a hot day, then, expect the true apogee
 above the interval's top far more often than 1 time in 20. For a waiver, go by the bound, which
-holds the day's air to 15 K. The time's misses lean by logger: on the AltOS logs, whose rate drops
+holds the day's air to 15 K. The time's misses lean by logger, most clearly on the AltOS logs, whose rate drops
 from 100 to 10 samples a second at apogee, 27 of 185 truths on A and 30 of 186 on B lie later than
-the interval ([#1056](https://github.com/nrdptel/fusionspace-eridanus/issues/1056)). The report gives each logger's and each band's counts. A day more than 15 K
+the interval; the report's bold rows mark the rest ([#1056](https://github.com/nrdptel/fusionspace-eridanus/issues/1056)). The report gives each logger's and each band's counts. A day more than 15 K
 from standard, or a logger noisier than these, can see more misses still. No real flight has
 checked an interval ([evidence row G34](../evidence.md#g34)).
 

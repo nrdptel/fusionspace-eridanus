@@ -20,7 +20,7 @@
 //! height's error is the day's air, so no height missed on a day within 10 K of standard, while a
 //! third of the days warmer than that read low enough to leave the truth above the interval, the
 //! flattering side for a waiver (#1055). On the AltOS logs, the apogee time's interval misses
-//! late about one time in seven (#1056). A real flight can lie outside what the sets draw, as a
+//! late about one time in six or seven (#1056). A real flight can lie outside what the sets draw, as a
 //! day more than 15 K from standard does; its interval then says less than 90%. No real flight
 //! has yet checked one (evidence row G34).
 //!
