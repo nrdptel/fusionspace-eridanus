@@ -1201,7 +1201,8 @@ listed, with a closing note naming them, but `hpr motors show` and `hpr sim --mo
 ([the whole catalog](physics/motor.md#the-whole-catalog)). A maker's name before the designation
 picks one maker's motor (`Estes C6`), and `--json` gives each motor's `selector`, the name that
 finds it alone. `hpr motors fetch` fetches a newer motor's curve from ThrustCurve.org into the simulator's cache, for `hpr sim` to
-fly ([fetching a motor](#motors-from-thrustcurveorg)). Or download its `.eng` or `.rse` file
+fly ([fetching a motor](#motors-from-thrustcurveorg)), and `hpr motors update` fetches the ones
+its records show the bundle lacks ([newer motors](#newer-motors-and-the-bundles-date)). Or download its `.eng` or `.rse` file
 ([RASP and RockSim files](glossary.md#rasp-and-rocksim-files)) and show that.
 `hpr motors search` lists the motors vendors have in stock, with their prices
 ([Motors you can buy](#motors-you-can-buy)).
@@ -1544,21 +1545,32 @@ with credit ([the decision record on ThrustCurve.org's records](https://github.c
 
 #### Newer motors and the bundle's date
 
-`hpr motors update` says what the bundled catalog holds: the date of its ThrustCurve.org snapshot,
-its motors and files, how many files pass the 1% check against their motor's record, and the
-bytes compiled in. Online, it then asks ThrustCurve.org for its whole solid catalog (or reads an
-answer under a day old from the cache) and compares. A motor the bundle lacks, or a RASP or
-RockSim file it lacks for a motor it holds, is fetched into the cache, and the command that finds
-it there is printed where it has one. A new motor with a file HPR Sim flies then flies offline by
-name, like a fetched one; where several makers share the name, `hpr motors fetch` with its maker
-reads it. A newer file of a bundled motor is
-only cached: `hpr sim --motor` keeps flying the bundled file, and `hpr motors fetch --file` shows
-the new one.
+`hpr motors update` says what the bundled catalog holds: the date of its ThrustCurve.org
+snapshot, its motors and files, how many files pass [the 1% check](physics/motor.md#the-whole-catalog)
+against their motor's record (and how many motors have one that does), and the bytes compiled in.
+ThrustCurve.org listed no motor newer than the bundle on October 29, 2026, so the online path
+below is tested only on its recorded answers of that day, with one motor and one file
+taken out of the bundle; it hasn't yet found a real new one.
 
-It looks closer only at a motor ThrustCurve.org's record says changed: a motor the bundle lacks,
-another number of files, or an update on or after the snapshot's date. A file swapped for
-another, with the count and date unchanged, isn't found. Offline, it reads what an earlier update
-cached; with any answer it needs missing, it names the bundle's date:
+Online, it asks ThrustCurve.org for its whole solid catalog, or reads an answer under a day old
+from the cache. It downloads a motor's files only if the bundle lacks the motor, ThrustCurve.org
+lists a different number of files for it, or its record was updated on or after the snapshot's
+date. Each motor or RASP or RockSim file the bundle lacks is fetched into the cache, and the
+command that finds it there is printed:
+
+- A new motor flies offline by name, `hpr sim --motor NAME`. If the bundle has a motor by that
+  name, or several makers share it, give the maker: `hpr motors fetch --manufacturer MAKER NAME`.
+- A newer file of a bundled motor is only cached: `hpr sim --motor` keeps flying the bundled
+  file, and `hpr motors fetch --file ID` shows the new one.
+- A fetched curve is a contributor's upload, as in [fetching a motor](#motors-from-thrustcurveorg).
+  The simulator checks that it makes a motor it can fly, but neither the 1% check nor the
+  comparison with ThrustCurve.org's statistics code covers it.
+
+A file swapped for another under the same motor, with the file count and date unchanged, isn't
+found. With the network down, an update whose answers are all cached reads them; otherwise it
+fails, and its help names the bundle's date. `--json` prints the same as one document. Offline,
+it reads what an earlier update cached; with any answer it needs missing, it names the bundle's
+date:
 
 <!-- cli: example `hpr motors update --offline`; written by `cargo xtask cli`; do not edit -->
 

@@ -283,7 +283,7 @@ adds a source.
   `thrustcurve-search-ROS-40-5.json`, `thrustcurve-search-zeveta-ROS-40-5.json`,
   `thrustcurve-search-aerotech-H128W.json` and the four `thrustcurve-download-ROS-40-5*.json` and
   `thrustcurve-download-H128W*.json` answers were recorded unchanged on 2026-10-29 at 12:47 UTC
-  for `hpr motors update`'s tests (M5.7d). Three of the downloads hold one data file each, two
+  for the tests of `hpr motors update`, which fetches motors newer than the bundle (M5.7d). Three of the downloads hold one data file each, two
   that ThrustCurve.org marks public domain and one with no license stated, each also in the
   2026-10-28 snapshot; the fourth holds none.
   ThrustCurve.org's site states no license for its motor records ("All rights under copyright

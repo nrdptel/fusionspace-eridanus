@@ -87,7 +87,7 @@ fn update<T: Transport>(
             newer: found
                 .newer
                 .iter()
-                .map(|newer| newer_motor(client, newer, now))
+                .map(|newer| newer_motor(client, catalog, newer, now))
                 .collect(),
             unlisted: found.unlisted,
         }),
@@ -102,10 +102,16 @@ fn update<T: Transport>(
 }
 
 /// A newer motor as the document lists it, with the command that finds it from the cache: for a
-/// motor the bundle lacks, `hpr sim --motor` by its designation where that finds it alone, else
-/// `hpr motors fetch` with its maker; for a newer file of a bundled motor, `hpr motors fetch` with
+/// motor the bundle lacks, `hpr sim --motor` by its designation where that finds it alone and the
+/// bundled catalog has no motor by that name ([`flies_by_name`]), else `hpr motors fetch` with its
+/// maker; for a newer file of a bundled motor, `hpr motors fetch` with
 /// its maker and the file. Looking it up caches what that command reads.
-fn newer_motor<T: Transport>(client: &Client<T>, newer: &Newer, now: u64) -> NewerMotor {
+fn newer_motor<T: Transport>(
+    client: &Client<T>,
+    catalog: &Catalog,
+    newer: &Newer,
+    now: u64,
+) -> NewerMotor {
     let record = &newer.record;
     let maker = record
         .manufacturer_abbrev
@@ -144,7 +150,8 @@ fn newer_motor<T: Transport>(client: &Client<T>, newer: &Newer, now: u64) -> New
     let flies = if newer.new_motor {
         let alone = Wanted::named(&record.designation);
         let by_maker = Wanted::by(&maker, &record.designation);
-        if finds(&alone).is_some()
+        if flies_by_name(catalog, &record.designation)
+            && finds(&alone).is_some()
             && let Some(word) = shell_word(&record.designation)
         {
             Some(format!("hpr sim --motor {word}"))
@@ -165,6 +172,16 @@ fn newer_motor<T: Transport>(client: &Client<T>, newer: &Newer, now: u64) -> New
         command: flies,
         files,
     }
+}
+
+/// Whether `hpr sim --motor NAME` reaches the cache for `name`: only when the bundled catalog
+/// finds no motor by it ([`crate::sim::catalog_or_fetched`] tries the catalog first). A new motor
+/// whose designation is a bundled motor's designation or common name would fly that motor.
+fn flies_by_name(catalog: &Catalog, name: &str) -> bool {
+    matches!(
+        hpr::Motor::from_catalog_in(catalog, name),
+        Err(hpr::Error::NoSuchMotor(_))
+    )
 }
 
 /// Why ThrustCurve.org couldn't be checked, with the bundle's date: the bundled catalog flies as
@@ -299,48 +316,54 @@ mod tests {
         let checked = document.checked.as_ref().unwrap();
         assert_eq!((checked.listed, checked.looked_at), (1_004, 2));
         let lines = check_lines(checked).join("\n");
+        // The bundled catalog still has a ROS-40-5, which `hpr sim --motor ROS-40-5` would fly,
+        // so the command printed for the new motor names its maker.
         assert_eq!(
             lines,
             "ThrustCurve.org lists 1004 solid motors (fetched now)\n  \
              ZEVETA ROS-40-5, a motor the bundle lacks:\n    \
              file 6aa6d2a7593d99000250d4f8, RASP (.eng), from user\n    \
-             `hpr sim --motor ROS-40-5` flies it, offline too\n  \
+             `hpr motors fetch --manufacturer ZEVETA ROS-40-5` reads it, offline too\n  \
              AeroTech H128W, the bundled motor's newer files:\n    \
              file 5f4294d20002e90000000397, RockSim (.rse), from user\n      \
              `hpr motors fetch --manufacturer AeroTech --file 5f4294d20002e90000000397 H128W` \
              reads it, offline too"
         );
 
-        // Offline over the same cache, each command named finds its motor or file.
-        let h128w = "5f4294d20002e90000000397";
-        for (args, file) in [
+        // Offline over the same cache, each command printed finds its motor and file.
+        let printed = [
             (
-                vec!["hpr", "motors", "fetch", "ROS-40-5"],
-                "6aa6d2a7593d99000250d4f8",
+                checked.newer[0].command.clone().unwrap(),
+                &checked.newer[0].files[0].file_id,
             ),
             (
-                vec![
-                    "hpr",
-                    "motors",
-                    "fetch",
-                    "--manufacturer",
-                    "AeroTech",
-                    "--file",
-                    h128w,
-                    "H128W",
-                ],
-                h128w,
+                checked.newer[1].files[0].command.clone().unwrap(),
+                &checked.newer[1].files[0].file_id,
             ),
-        ] {
+        ];
+        for (command, file) in printed {
+            let args: Vec<&str> = command.split(' ').collect();
             let (mut out, mut err) = (Vec::new(), Vec::new());
-            let exit = crate::run_offline(args.clone(), &mut out, &mut err, dir.path());
+            let exit = crate::run_offline(args, &mut out, &mut err, dir.path());
             let (out, err) = (String::from_utf8_lossy(&out), String::from_utf8_lossy(&err));
-            assert_eq!(exit, crate::Exit::Success, "{args:?}: {out} {err}");
+            assert_eq!(exit, crate::Exit::Success, "{command}: {out} {err}");
             assert!(
-                out.contains("from the cache") && out.contains(file),
+                out.contains("from the cache") && out.contains(file.as_str()),
                 "{out}"
             );
         }
+    }
+
+    /// `hpr sim --motor NAME` is printed only for a name the bundled catalog finds no motor by: a
+    /// bundled designation or common name would fly the bundled motor.
+    #[test]
+    fn the_sim_command_is_only_for_a_name_the_bundle_lacks() {
+        let catalog = Catalog::bundled().unwrap();
+        assert!(!flies_by_name(catalog, "ROS-40-5"));
+        assert!(!flies_by_name(catalog, "H128W"));
+        // A common name another motor's designation shares (`J360`) is in the catalog too.
+        assert!(!flies_by_name(catalog, "J360"));
+        assert!(flies_by_name(catalog, "Z99-NOT-A-MOTOR"));
     }
 
     /// Against the bundle as it is, the recorded answers find nothing newer, and offline over that
@@ -353,6 +376,7 @@ mod tests {
         let document = update(&client, catalog, &Bundle::of(catalog)).unwrap();
         let checked = document.checked.as_ref().unwrap();
         assert!(checked.newer.is_empty() && checked.unlisted.is_empty());
+        assert_eq!(checked.looked_at, 0);
         let (mut out, mut err) = (Vec::new(), Vec::new());
         let exit = crate::run_offline(
             vec!["hpr", "motors", "update", "--offline"],

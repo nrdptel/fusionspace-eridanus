@@ -14,7 +14,8 @@ that M5.7d. ThrustCurve.org's API (its `swagger.json`) offers two date filters o
 `infoUpdatedSince` and `dataUpdatedSince`. On 2026-10-29 (the filters probed live, not recorded;
 the whole search recorded as a test fixture):
 
-- `dataUpdatedSince` matched no motor for any date tried, back to 2025-01-01, while
+- `dataUpdatedSince` matched no motor for any date tried (2026-10-28T11:49:53Z, 2026-10-20,
+  2026-10-01, 2026-01-01 and 2025-01-01), while
   `infoUpdatedSince` 2026-01-01 matched 43, the newest updated 2026-09-13;
 - the whole search, `search.json?maxResults=5000`, returned all 1,156 records (928,550 bytes),
   1,004 of them solid, the same ids, file counts and update days as the 2026-10-28 snapshot;
@@ -31,8 +32,9 @@ the whole search recorded as a test fixture):
 2. **What flies.** The downloads are the answers [ADR-154][adr-154]'s fetch reads, and the update
    then looks each newer motor up by name as `hpr sim --motor` and `hpr motors fetch` do, so those
    answers are cached too, and prints the command that finds it. A motor the bundle lacks then
-   flies offline by its designation, or is read by `hpr motors fetch` with its maker where several
-   makers share the name. No command is printed when no file of the motor makes one HPR Sim
+   flies offline by its designation, or is read by `hpr motors fetch` with its maker where the
+   bundle has a motor by that name (`hpr sim --motor` tries the bundle first) or several makers
+   share it. No command is printed when no file of the motor makes one HPR Sim
    flies, or a word of it is empty, starts with `-`, or holds a character other than letters,
    digits, a space and `/._+-`.
 3. **Offline.** The update reads what an earlier one cached. With any answer it needs missing
@@ -50,7 +52,8 @@ the whole search recorded as a test fixture):
    2026-10-29, so the tests replay that day's real answers twice: against the bundle as it is,
    which finds nothing, and against the bundle with one motor (ZEVETA ROS-40-5) and one file
    (AeroTech H128W's RockSim file) taken out, which finds exactly those, after which both are
-   read offline from the cache.
+   read offline from the cache (`crates/hpr-net/tests/catalog_update.rs` and the tests in
+   `crates/hpr-cli/src/motors_update.rs`).
 
 **Consequences.**
 

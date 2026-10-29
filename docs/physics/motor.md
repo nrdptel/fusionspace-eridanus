@@ -196,9 +196,10 @@ short name and designation; `hpr motors list --json` gives each motor's selector
   ([issue #1003](https://github.com/nrdptel/fusionspace-eridanus/issues/1003)). Either side may be
   the wrong one.
 
-`hpr motors update --offline` prints the bundle's date, counts and size; online, it caches the
-motors and files ThrustCurve.org's records show as added since
-([newer motors](../cli.md#newer-motors-and-the-bundles-date) gives its limits):
+Online, `hpr motors update` caches the motors and files ThrustCurve.org's records show as added
+since; it can miss a file swapped for another under an unchanged record
+([newer motors](../cli.md#newer-motors-and-the-bundles-date)). Offline, it prints the bundle's
+date, counts and size:
 
 <!-- cli: example `hpr motors update --offline`; written by `cargo xtask cli`; do not edit -->
 

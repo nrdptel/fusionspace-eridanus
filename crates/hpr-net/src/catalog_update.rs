@@ -141,8 +141,8 @@ pub struct Update {
 /// it lists that the bundle lacks.
 ///
 /// # Errors
-/// [`ThrustCurveError::Incomplete`] when the search returns fewer motors than match; any error of
-/// [`thrustcurve::fetch_search`] or [`thrustcurve::fetch_download`], offline with
+/// Any error of [`thrustcurve::fetch_whole_search`], which refuses a search that returns fewer
+/// motors than match and never caches it, or of [`thrustcurve::fetch_download`]; offline,
 /// [`crate::NetError::NotCached`] for an answer not in the cache.
 pub fn update<T: Transport>(
     client: &Client<T>,
@@ -153,13 +153,7 @@ pub fn update<T: Transport>(
         max_results: Some(MAX_RESULTS),
         ..Search::default()
     };
-    let (answer, got) = thrustcurve::fetch_search(client, &search, now_s)?;
-    if !answer.is_complete() {
-        return Err(ThrustCurveError::Incomplete {
-            matches: answer.matches,
-            found: answer.results.len(),
-        });
-    }
+    let (answer, got) = thrustcurve::fetch_whole_search(client, &search, now_s)?;
     let mut fetched = vec![got];
     let solid: Vec<MotorRecord> = answer
         .results

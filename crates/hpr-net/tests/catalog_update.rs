@@ -172,10 +172,11 @@ fn offline_with_no_answer_cached_is_not_cached() {
     );
 }
 
-/// A search cut short by its `maxResults` is refused, not read as the whole catalog: a motor past
-/// the cut would look as if it weren't listed.
+/// A search cut short by its `maxResults` is refused, not read as the whole catalog (a motor past
+/// the cut would look as if it weren't listed), and never cached: with a whole copy in the cache,
+/// online past its day the update reads that copy, stale, and offline it still finds it.
 #[test]
-fn a_search_cut_short_is_refused() {
+fn a_search_cut_short_is_refused_and_not_cached() {
     struct Short;
     impl Transport for Short {
         fn get(&self, _url: &str) -> Result<Vec<u8>, String> {
@@ -185,16 +186,30 @@ fn a_search_cut_short_is_refused() {
         }
     }
     let dir = tempfile::tempdir().unwrap();
-    let client = Client::new(Short, Cache::new(dir.path()), Mode::Online);
-    let error = catalog_update::update(&client, &bundle(), NOW_S).unwrap_err();
+    let short = Client::new(Short, Cache::new(dir.path()), Mode::Online);
+    let error = catalog_update::update(&short, &bundle(), NOW_S).unwrap_err();
     assert!(
         matches!(
-            error,
-            ThrustCurveError::Incomplete {
-                matches: 1_156,
-                found: 1_000
-            }
+            &error,
+            ThrustCurveError::Net(NetError::Refused { reason, .. })
+                if reason.contains("matches 1156 motors but returns only 1000")
         ),
         "{error:?}"
     );
+    let offline = Client::new(Forbidden, Cache::new(dir.path()), Mode::Offline);
+    let error = catalog_update::update(&offline, &bundle(), NOW_S).unwrap_err();
+    assert!(
+        matches!(error, ThrustCurveError::Net(NetError::NotCached { .. })),
+        "the cut-short answer was cached: {error:?}"
+    );
+
+    let transport = replay();
+    let whole = Client::new(&transport, Cache::new(dir.path()), Mode::Online);
+    catalog_update::update(&whole, &bundle(), NOW_S).unwrap();
+    let later = NOW_S + hpr_net::thrustcurve::TTL_S;
+    let update = catalog_update::update(&short, &bundle(), later).unwrap();
+    assert_eq!(update.fetched[0].freshness, Freshness::Stale);
+    assert_eq!(update.listed, 1_004);
+    let update = catalog_update::update(&offline, &bundle(), later).unwrap();
+    assert_eq!((update.listed, update.newer.len()), (1_004, 0));
 }
