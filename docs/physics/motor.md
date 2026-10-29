@@ -22,8 +22,8 @@ burn, mass and ejection delay.
   runs it, 6 of the 412 differ in at least one figure, by up to 6.5% in total impulse, burn
   time, average or peak thrust, and one of them would fail the 1% check
   ([Validation](#validation)). On three of the 32 curves first bundled, RocketPy's total mass and
-  inertias agree within 7.9e-5 relative, the centers of mass within 5.9e-6 of the motor's length. The propellant's own mass and
-  inertias agree within 1e-4 of their values at ignition. OpenRocket 24.12 reads the same 32 curve
+  inertias agree within 7.9e-5 relative, the centers of mass within 5.9e-6 of the motor's length.
+  The propellant's own mass and inertias agree within 1e-4 of their values at ignition. OpenRocket 24.12 reads the same 32 curve
   files. On each it gets exactly the same total impulse, peak thrust, burn-time
   window and curve duration. Its average thrust differs by definition: HPR Sim's is +0.0107% to
   +0.3147% higher. Nothing else in this model is
