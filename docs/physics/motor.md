@@ -19,10 +19,10 @@ burn, mass and ejection delay.
   compared. ThrustCurve.org's own statistics code agrees to 3e-15, relative, on all 412 files
   that pass the [1% check](#the-whole-catalog), once its averaging of two samples at the same
   time is turned off on the 8 files that have them. With that averaging on, as ThrustCurve.org
-  runs it, 6 of the 412 differ in one figure, by up to 6.5%, and one of them would fail the 1%
-  check ([Validation](#validation)). On three of the 32 curves first bundled,
-  RocketPy's total mass and inertias agree within 7.9e-5
-  relative, the centers of mass within 5.9e-6 of the motor's length. The propellant's own mass and
+  runs it, 6 of the 412 differ in at least one figure, by up to 6.5% in total impulse, burn
+  time, average or peak thrust, and one of them would fail the 1% check
+  ([Validation](#validation)). On three of the 32 curves first bundled, RocketPy's total mass and
+  inertias agree within 7.9e-5 relative, the centers of mass within 5.9e-6 of the motor's length. The propellant's own mass and
   inertias agree within 1e-4 of their values at ignition. OpenRocket 24.12 reads the same 32 curve
   files. On each it gets exactly the same total impulse, peak thrust, burn-time
   window and curve duration. Its average thrust differs by definition: HPR Sim's is +0.0107% to
@@ -375,7 +375,8 @@ lists it.
 - Before integrating, [TC-A] drops leading points below 500 µN and averages points closer than
   50 µs ([lines 40–91][tc-a-40]). HPR Sim keeps leading zeros and treats equal times as steps.
   On the 412 files that pass the 1% check, the results agree to 3e-15 on all but 6, each with
-  repeated times, where the averaging moves one figure by up to 6.5% ([Validation](#validation)).
+  repeated times, where the averaging moves at least one figure, by up to 6.5%
+  ([Validation](#validation)).
   A survey on September 17, 2026 read 1,710 of ThrustCurve.org's 1,712 solid-motor files. The
   two agreed to 1e-9 on all but 17 with repeated times, and on those differed by up to 1.1% in
   average thrust. HPR Sim keeps the step because a vertical drop is what the file draws.
@@ -684,9 +685,9 @@ The tests that pin the motor model, and the whole example program.
     points less than 50 µs apart into one point at their average thrust. 8 of the 412 files have
     such points. The script also runs [TC-A] with that merge turned off (its `timeEpsilon` set to
     0), and on those 8 files HPR Sim is held to that run. On 6 of them the merge moves a figure,
-    and the test names each; on the other 2 it moves none. The largest move is in Cesaroni's
-    2372K1440-17A file, which has 1,061.8 N and then 2,168.21 N, both at 0.01 s. HPR Sim reads a
-    jump, so its peak is 2,168.21 N. [TC-A] averages the two to 1,615 N, below the next sample,
+    and the test names each; on the other 2 it moves none. The largest move is in the RockSim
+    file of Cesaroni's 2372K1440-17A, which has 1,061.8 N and then 2,168.21 N, both at 0.01 s.
+    HPR Sim reads a jump, so its peak is 2,168.21 N. [TC-A] averages the two to 1,615 N, below the next sample,
     2,036.3 N, which becomes its peak. So HPR Sim's peak thrust is 6.5% higher. Another file's
     burn time is 0.61% longer here.
   - **The recount** (`analyze_stats.js --recount`) works out which files pass from the raw
