@@ -180,10 +180,12 @@ solid motor's record is the same, field for field, as in the snapshot of 28 Octo
 simulator carries ([Solid motors](physics/motor.md);
 [the decision record on the licensing calls](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0305-the-2026-10-28-licensing-calls.md)).
 The tests of fetching one motor on demand (`hpr motors fetch`) replay invented answers instead,
-for cases the real records don't hold, such as a name two motors share or an empty search; their
-designations end `-INVENTED`, `-OTHER` or `-HYBRID`.
+for cases the real records don't hold, such as a name two motors share or an empty search. The
+invented motors' designations end `-INVENTED`, `-OTHER` or `-HYBRID`; one invented record carries
+AeroTech's real F27R/L designation.
 
-On them, too, all 282 motors match (the in-stock list is of 1 October, the searches of 29 October), each record lists a data file, and each match's figures equal
+On them, too, all 282 motors match (the in-stock list is of 1 October, the searches of
+29 October), each record lists a data file, and each match's figures equal
 the finder's. The tests write the match's report into
 [`validation/reports/thrustcurve-join.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/thrustcurve-join.md),
 and check it against the match on every run.
