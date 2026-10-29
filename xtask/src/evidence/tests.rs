@@ -966,6 +966,13 @@ before October 17, 2026:
 
   It found one CSV with its license.
 
+**Real samples.** Each file a real row reads, kept under `refs/`, with its SHA-256 and the test \
+that reads it:
+
+- [G3](#g3): `refs/logs/flight.csv`, SHA-256 \
+`b009e155888c4c667894e60956a8ed19699a06e0bdd628d0efc07fd13feea3ce`; CC-BY-4.0, from a club's \
+archive; read by `fusionspace-hpr-flightdata`'s test `csv::tests::reads_a_real_flight`.
+
 {REGION_END}"
     );
     assert_eq!(region, expected);
@@ -1000,6 +1007,7 @@ fn evidence_each_place_it_looked_is_its_own_item() {
     let register = Register::parse(REGISTER_TEXT).unwrap();
     let region = report::region(&register, &decision_files()).unwrap();
     let (_, searches) = region.split_once("**Searches so far.**").unwrap();
+    let (searches, _) = searches.split_once("**Real samples.**").unwrap();
     // Each item's own text, by its depth: 1 for a search, 2 for a place it looked. Each block
     // of an item's own text ends in a line break.
     let mut items: Vec<(usize, String)> = Vec::new();

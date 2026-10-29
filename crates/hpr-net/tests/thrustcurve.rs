@@ -5,10 +5,9 @@
 //! The expected values are read from the recordings here, with `serde_json`, not through the
 //! code under test. The two downloads were recorded on 2026-10-01 at 08:22 UTC; the motor
 //! finder's in-stock list is its build of 07:07:29 UTC that day (M5.4a). The three searches are
-//! stand-ins in the API's shape (ADR-145): ThrustCurve.org grants no license for its records, so
-//! each search holds five invented motors and one record for each of the maker's motors in the
-//! finder's in-stock list, carrying that list's own values (CC BY 4.0), an invented count of
-//! data files and an invented id, bar J450DM's and F27R/L's, the ids of the two downloads.
+//! ThrustCurve.org's own answers, recorded unchanged on 2026-10-29 at 08:16:44 UTC and used as
+//! published facts with its credit (ADR-287). Each of their solid motors' records is the record
+//! of the 2026-10-28 snapshot `hpr_motor` builds its catalog from (ADR-305), field for field.
 
 #![allow(
     clippy::disallowed_methods,
@@ -32,10 +31,10 @@ use hpr_net::{Cache, Client, Freshness, Mode, NetError, Replay, Transport};
 use serde::Serialize;
 use serde_json::Value;
 
-/// 2026-10-01 08:30 UTC, just after the answers were recorded.
+/// 2026-10-01 08:30 UTC, just after the downloads and the finder's list were recorded.
 const NOW_S: u64 = 1_790_843_400;
 
-/// The stand-in searches (ADR-145): the motor finder's name for the maker, and the file.
+/// The three recorded searches: the motor finder's name for the maker, and the file.
 const SEARCHES: [(&str, &str); 3] = [
     ("AeroTech", "thrustcurve-search-aerotech.json"),
     ("Cesaroni Technology", "thrustcurve-search-cesaroni.json"),
@@ -189,12 +188,12 @@ fn each_answer_reads_to_its_values_then_works_offline_from_the_cache() {
     assert_eq!(transport.calls(), 5);
 }
 
-/// The searches' counts and words, read from the stand-ins: each answer whole (as many records
+/// The searches' counts and words, read from the recordings: each answer whole (as many records
 /// as it says match), every record of one maker, with the maker's full name as the motor finder
 /// writes it.
 #[test]
 fn each_search_is_whole_and_of_one_maker() {
-    for ((maker, file), count) in SEARCHES.into_iter().zip([158, 104, 35]) {
+    for ((maker, file), count) in SEARCHES.into_iter().zip([307, 296, 60]) {
         let answer = thrustcurve::parse_search(&fixture(file)).unwrap();
         let raw = recorded(file);
         assert_eq!(raw["matches"].as_u64(), Some(count), "{file}");
@@ -216,162 +215,100 @@ fn each_search_is_whole_and_of_one_maker() {
         .find(|r| r.motor_id == J450DM_ID)
         .unwrap();
     assert_eq!(j450.designation, "J450DM");
-    // An invented count, unlike the other stand-ins' 1, so this reads J450DM's own record.
-    assert_eq!(j450.data_files, Some(3));
+    assert_eq!(j450.data_files, Some(2));
     // A DMS, AeroTech's single-use motor.
     assert_eq!(j450.motor_type.as_deref(), Some("SU"));
 }
 
-/// The stand-ins' shape as ADR-145 states it. Each maker has five records named `-INVENTED`, and
-/// each carries the invented markers (an `e000…` id, the made-up certifying body, `Example-`
-/// cases, `example.test` links), no field the API doesn't have, and a designation and common name
-/// that no motor of the committed finder answers has. (That their figures are invented is not
-/// something a test can show; ADR-145 records it.) Each other record is a motor of the finder's
-/// in-stock answer and carries only fields that answer states, with its values (availability from
-/// its `discontinued`), plus an invented id (`e000…`, bar the ids of the two recorded downloads)
-/// and an invented file count (1; 3 for J450DM). Every motor in stock has one.
+/// Each solid motor's record in the three searches is, field for field, the record of the same
+/// `motorId` in the 2026-10-28 snapshot `hpr_motor` builds its catalog from (ADR-305), and the searches
+/// hold every record that snapshot has of the three makers. The snapshot holds solid motors only,
+/// so each hybrid in the searches (AeroTech's seven) is absent from it. The snapshot is read
+/// from `hpr-motor`'s source tree at run time, as this crate is published without it.
 #[test]
-fn each_stand_in_record_carries_only_the_finders_values() {
-    // Every field a ThrustCurve search record has.
-    const API_FIELDS: [&str; 26] = [
-        "motorId",
-        "manufacturer",
-        "manufacturerAbbrev",
-        "designation",
-        "commonName",
-        "impulseClass",
-        "diameter",
-        "length",
-        "type",
-        "certOrg",
-        "avgThrustN",
-        "maxThrustN",
-        "totImpulseNs",
-        "burnTimeS",
-        "dataFiles",
-        "infoUrl",
-        "totalWeightG",
-        "propWeightG",
-        "delays",
-        "delayAdjustable",
-        "caseInfo",
-        "propInfo",
-        "sparky",
-        "updatedOn",
-        "availability",
-        "source_url",
-    ];
-    // A stand-in field, and the finder's field it copies.
-    const COPIED: [(&str, &str); 14] = [
-        ("manufacturer", "manufacturer"),
-        ("designation", "designation"),
-        ("commonName", "common_name"),
-        ("impulseClass", "impulse_class"),
-        ("diameter", "diameter_mm"),
-        ("type", "motor_type"),
-        ("avgThrustN", "avg_thrust_n"),
-        ("totImpulseNs", "total_impulse_ns"),
-        ("burnTimeS", "burn_time_s"),
-        ("delays", "delays"),
-        ("delayAdjustable", "delay_adjustable"),
-        ("caseInfo", "case_info"),
-        ("propInfo", "propellant"),
-        ("sparky", "sparky"),
-    ];
-    let stock = recorded("motor-finder-in-stock.json");
-    let finder: BTreeMap<(&str, &str), &Value> = stock["motors"]
+fn each_solid_record_is_the_snapshots_own() {
+    let path =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../hpr-motor/data/thrustcurve/records.json");
+    let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
+    let snapshot: Value = serde_json::from_slice(&bytes).unwrap();
+    assert!(
+        snapshot["captured"]
+            .as_str()
+            .unwrap()
+            .starts_with("2026-10-28T"),
+        "hpr-motor's snapshot changed: record the three searches again, or update this test"
+    );
+    let makers: Vec<&str> = SEARCHES.iter().map(|(maker, _)| *maker).collect();
+    let by_id: BTreeMap<&str, &Value> = snapshot["records"]
         .as_array()
         .unwrap()
         .iter()
-        .map(|m| {
-            let name = |k: &str| m[k].as_str().unwrap();
-            ((name("manufacturer"), name("designation")), m)
-        })
+        .filter(|r| makers.contains(&r["manufacturer"].as_str().unwrap()))
+        .map(|r| (r["motorId"].as_str().unwrap(), r))
         .collect();
     let searches: Vec<Value> = SEARCHES.iter().map(|(_, f)| recorded(f)).collect();
     let mut seen = std::collections::BTreeSet::new();
-    let listed = recorded("motor-finder-motors.json");
-    let names = |k: &str| -> std::collections::BTreeSet<String> {
-        listed["motors"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .map(|m| m[k].as_str().unwrap().to_owned())
-            .collect()
-    };
-    let (designations, common_names) = (names("designation"), names("common_name"));
-    let mut invented: BTreeMap<&str, usize> = BTreeMap::new();
+    let mut hybrids: BTreeMap<&str, usize> = BTreeMap::new();
     for r in searches
         .iter()
         .flat_map(|s| s["results"].as_array().unwrap())
     {
-        let key = (
-            r["manufacturer"].as_str().unwrap(),
-            r["designation"].as_str().unwrap(),
-        );
-        if key.1.ends_with("-INVENTED") {
-            *invented.entry(key.0).or_default() += 1;
-            let text = |k: &str| r[k].as_str().unwrap();
-            assert!(!designations.contains(key.1), "{key:?}");
-            assert!(!common_names.contains(text("commonName")), "{key:?}");
-            assert!(text("motorId").starts_with("e000"), "{key:?}");
-            assert_eq!(text("certOrg"), "Example Certification Board", "{key:?}");
-            assert!(
-                text("source_url").starts_with("https://example.test/"),
-                "{key:?}"
-            );
-            for (field, value) in r.as_object().unwrap() {
-                assert!(API_FIELDS.contains(&field.as_str()), "{key:?}: {field}");
-                match field.as_str() {
-                    "caseInfo" => assert!(text(field).starts_with("Example-"), "{key:?}"),
-                    "infoUrl" => {
-                        assert!(text(field).starts_with("https://example.test/"), "{key:?}")
-                    }
-                    _ => {}
-                }
-                assert!(!value.is_null(), "{key:?}: {field}");
-            }
+        let id = r["motorId"].as_str().unwrap();
+        if r["type"] == "hybrid" {
+            assert!(!by_id.contains_key(id), "{id}");
+            *hybrids
+                .entry(r["manufacturer"].as_str().unwrap())
+                .or_default() += 1;
             continue;
         }
-        let m = finder
-            .get(&key)
-            .unwrap_or_else(|| panic!("{key:?} is not in the finder's in-stock answer"));
-        for (field, value) in r.as_object().unwrap() {
-            match field.as_str() {
-                "motorId" => {
-                    let id = value.as_str().unwrap();
-                    match id {
-                        J450DM_ID => assert_eq!(key.1, "J450DM"),
-                        F27_ID => assert_eq!(key.1, "F27R/L"),
-                        _ => assert!(id.starts_with("e000"), "{key:?}: {id}"),
-                    }
-                }
-                "dataFiles" => {
-                    let files = if key.1 == "J450DM" { 3 } else { 1 };
-                    assert_eq!(value.as_u64(), Some(files), "{key:?}");
-                }
-                "availability" => {
-                    let discontinued = m["discontinued"].as_bool().unwrap();
-                    let expected = if discontinued { "OOP" } else { "regular" };
-                    assert_eq!(value, expected, "{key:?}");
-                }
-                _ => {
-                    let (_, from) = COPIED
-                        .iter()
-                        .find(|(f, _)| f == field)
-                        .unwrap_or_else(|| panic!("{key:?}: the finder doesn't state {field}"));
-                    assert_eq!(value, &m[*from], "{key:?}.{field}");
-                }
-            }
-        }
-        assert!(r.get("dataFiles").is_some(), "{key:?}");
-        assert!(seen.insert(key), "{key:?} twice");
+        let snapshot_record = by_id
+            .get(id)
+            .unwrap_or_else(|| panic!("{id} is not in the snapshot"));
+        assert_eq!(r, *snapshot_record, "{id}");
+        assert!(seen.insert(id), "{id} twice");
     }
-    assert_eq!(seen.len(), finder.len());
-    for (maker, _) in SEARCHES {
-        assert_eq!(invented.get(maker), Some(&5), "{maker}");
+    assert_eq!(seen.len(), 656);
+    assert_eq!(seen.len(), by_id.len());
+    assert_eq!(hybrids, BTreeMap::from([("AeroTech", 7)]));
+}
+
+/// Every record in the three searches, hybrids too, is the record of the same `motorId` in
+/// ThrustCurve.org's raw answer of 2026-10-28, a whole-catalog search recorded by a different
+/// request on another day (`validation/oracles/thrustcurve/snapshot.py`), and that answer holds
+/// no other record of the three makers. The raw answer lives under the gitignored `refs/`, so
+/// the gate's `refs` step runs this (evidence row G23's sample); elsewhere it prints `skipped:`.
+#[test]
+fn each_record_is_the_raw_snapshots_own() {
+    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../refs/snapshots/thrustcurve/2026-10-28/search.json");
+    if !path.is_file() {
+        eprintln!("skipped: {} isn't fetched", path.display());
+        return;
     }
-    assert_eq!(invented.len(), 3);
+    let raw: Value = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
+    let makers: Vec<&str> = SEARCHES.iter().map(|(maker, _)| *maker).collect();
+    let by_id: BTreeMap<&str, &Value> = raw["results"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|r| makers.contains(&r["manufacturer"].as_str().unwrap()))
+        .map(|r| (r["motorId"].as_str().unwrap(), r))
+        .collect();
+    let searches: Vec<Value> = SEARCHES.iter().map(|(_, f)| recorded(f)).collect();
+    let mut seen = std::collections::BTreeSet::new();
+    for r in searches
+        .iter()
+        .flat_map(|s| s["results"].as_array().unwrap())
+    {
+        let id = r["motorId"].as_str().unwrap();
+        let raw_record = by_id
+            .get(id)
+            .unwrap_or_else(|| panic!("{id} is not in the raw answer"));
+        assert_eq!(r, *raw_record, "{id}");
+        assert!(seen.insert(id), "{id} twice");
+    }
+    assert_eq!(seen.len(), 663);
+    assert_eq!(seen.len(), by_id.len());
 }
 
 /// The done-when's first half: the designation to ThrustCurve id mapping covers at least 95% of
@@ -385,7 +322,7 @@ fn the_in_stock_motors_map_to_thrustcurve_ids_with_a_report_of_the_misses() {
     let client = Client::new(&transport, Cache::new(dir.path()), Mode::Online);
     let (in_stock, _) = motor_finder::fetch_in_stock(&client, NOW_S).unwrap();
     let (records, fetched) = thrustcurve::fetch_finder_records(&client, NOW_S).unwrap();
-    assert_eq!((records.len(), fetched.len()), (297, 3));
+    assert_eq!((records.len(), fetched.len()), (663, 3));
     assert!(fetched.iter().all(|f| f.attribution == ATTRIBUTION));
     let join = thrustcurve::join(&in_stock.motors, &records);
 
@@ -433,14 +370,10 @@ fn the_in_stock_motors_map_to_thrustcurve_ids_with_a_report_of_the_misses() {
     let (hits, total) = join.coverage();
     assert_eq!((hits, total), (282, 282));
     assert!(hits * 100 >= total * 95, "{hits} of {total}");
-    // True by construction on the stand-ins, whose file counts are invented (ADR-145): this checks
-    // the code only. That all 282 records list a file is the measurement on ThrustCurve's own
-    // answers of 2026-10-01 (ADR-130), last run on 2026-10-01.
+    // Each mapped motor's record lists at least one data file.
     assert!(join.mapped.iter().all(|m| m.record.data_files >= Some(1)));
-    // Diameter, total impulse, average thrust and burn time agree. On the stand-ins this holds by
-    // construction, as each record carries its finder motor's figures (ADR-145): it checks that
-    // the join pairs each motor with its own record. That ThrustCurve.org's own records agree
-    // for all 282 is the measurement of 2026-10-01 (ADR-130), last run on 2026-10-01.
+    // Diameter, total impulse, average thrust and burn time agree: the finder's list of
+    // 2026-10-01 and ThrustCurve.org's records of 2026-10-29 state the same figures for all 282.
     for m in &join.mapped {
         let motor = &in_stock.motors[m.finder_index];
         assert_eq!(
@@ -711,12 +644,12 @@ fn each_rule_refuses_an_answer_that_breaks_it() {
         thrustcurve::parse_search(&criterion_error),
         Err(ThrustCurveError::Api(e)) if e == "maxResults: Invalid maxResults value \"x\"."
     ));
-    let too_many = edited(search, |v| v["matches"] = 34.into());
+    let too_many = edited(search, |v| v["matches"] = 59.into());
     assert!(matches!(
         thrustcurve::parse_search(&too_many),
         Err(ThrustCurveError::Count {
-            matches: 34,
-            found: 35
+            matches: 59,
+            found: 60
         })
     ));
     let bad_id = edited(search, |v| v["results"][3]["motorId"] = "5f42".into());
@@ -860,7 +793,7 @@ fn an_answer_for_something_else_is_refused_and_not_cached() {
         panic!("{err}");
     };
     assert!(
-        reason.contains("matches 158 motors but returns only 20"),
+        reason.contains("matches 307 motors but returns only 20"),
         "{reason}"
     );
     assert!(matches!(

@@ -13,15 +13,11 @@
 //! it. What it prints is kept next to it in `motor_stock.output.txt`, and CI checks that the two
 //! still agree (`cargo xtask examples --check`).
 //!
-//! It never uses the network: a stand-in transport answers with the files recorded from the
+//! It never uses the network: a test transport answers with the files recorded from the
 //! motor finder's API on 1 October 2026, at 07:07 UTC, and J450DM's file recorded from
-//! ThrustCurve.org's at 08:22 UTC. The three searches are still the stand-ins of ADR-145, in
-//! ThrustCurve.org's API's shape: five invented motors per maker, and a record of each motor in
-//! the finder's in-stock list carrying only that list's values (ThrustCurve.org's published
-//! figures, as the finder relays them under CC BY 4.0), with an invented id and file count.
-//! ThrustCurve.org grants no license for its motor records and reserves copyright. ADR-287 has
-//! since let the project commit them as published facts, with credit, and issue #885 replaces the
-//! stand-ins with recorded searches. Stock and prices change by the hour.
+//! ThrustCurve.org's at 08:22 UTC. The three makers' searches are ThrustCurve.org's own answers,
+//! recorded unchanged on 29 October 2026 and used as published facts with its credit (ADR-287).
+//! Stock and prices change by the hour.
 
 #![allow(
     clippy::disallowed_methods,
@@ -165,21 +161,16 @@ fn main() -> Result<(), Box<dyn Error>> {
         );
     }
 
-    // 4. ThrustCurve.org: the records of the three makers, one search each (here the stand-ins
-    //    in its shape), and the motors in stock matched to them by maker and designation.
+    // 4. ThrustCurve.org: the records of the three makers, one search each, and the motors in
+    //    stock matched to them by maker and designation.
     let (records, from_tc) = thrustcurve::fetch_finder_records(&online, now_s)?;
     let join = thrustcurve::join(&in_stock.motors, &records);
     let (mapped, total) = join.coverage();
-    let invented = records
-        .iter()
-        .filter(|r| r.designation.ends_with("-INVENTED"))
-        .count();
     println!();
     println!("{}", from_tc[0].attribution);
     println!(
-        "{} records of the three makers in stand-in searches: {invented} invented, {} with the motor finder's copy of ThrustCurve.org's figures; {mapped} of {total} motors in stock matched to one each, {} missed",
+        "{} records of the three makers; {mapped} of {total} motors in stock matched to one each, {} missed",
         records.len(),
-        records.len() - invented,
         join.misses.len()
     );
 

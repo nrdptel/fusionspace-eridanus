@@ -18,7 +18,7 @@
 # `as_of` is the date the report counts a row's last search from: a row with no search, or whose
 # last is over 30 days before it, is due one.
 
-as_of = "2026-10-28"
+as_of = "2026-10-29"
 
 [[row]]
 id = "G1"
@@ -492,11 +492,19 @@ found = "a candidate: Dinulović, Rašuo, Slavković and Zajić, 'Flutter Analys
 [[row]]
 id = "G23"
 surface = "The motor finder"
-claim = "The motor finder is replayed on three stand-in searches in ThrustCurve.org's shape"
+claim = "The motor finder is replayed on ThrustCurve.org's own searches of three makers, recorded unchanged on October 29, 2026, each record the same, field for field, as in ThrustCurve.org's raw answer of October 28, 2026, and each solid motor's as in the snapshot `hpr-motor` compiles from it"
 pages = ["motor-stock.md#motor-stock-and-prices"]
-kind = "spec"
-wanted = "spec"
-wanted_adr = "ADR-278"
+kind = "real"
+wanted = "real"
+not_checked = "the tests of fetching one motor on demand, which replay invented answers for cases the real records don't hold; and the in-stock list, recorded on October 1, four weeks before the searches"
+
+[[row.sample]]
+path = "refs/snapshots/thrustcurve/2026-10-28/search.json"
+sha256 = "6fac854e349521f526c2f8cafadb91b23c91527261380a9461c27a7af892f510"
+license = "ThrustCurve.org's answer to a whole-catalog search, recorded unchanged on October 28, 2026 by `validation/oracles/thrustcurve/snapshot.py`; its records used as published facts with ThrustCurve.org's credit"
+package = "fusionspace-hpr-net"
+target = "thrustcurve"
+test = "each_record_is_the_raw_snapshots_own"
 
 [[row.searched]]
 on = "2026-10-20"
@@ -514,6 +522,13 @@ looked = [
   "openrocket/motor-database and JohnCoker/TCTG",
 ]
 found = "no openly licensed motor database. The only license statement is the contribute page's class for each file, which the API doesn't return; openrocket/motor-database (GPL-3.0) points other projects to the API"
+
+[[row.searched]]
+on = "2026-10-29"
+looked = [
+  "ThrustCurve.org's API: the searches of AeroTech, Cesaroni Technology and Loki Research the tests replay",
+]
+found = "the three answers, of 307, 296 and 60 records, now committed unchanged as published facts with ThrustCurve.org's credit. Each solid motor's record is the same, field for field, as in the October 28 snapshot `hpr-motor` ships; AeroTech's seven hybrids are not in that snapshot, which holds solid motors only"
 
 [[row]]
 id = "G24"
