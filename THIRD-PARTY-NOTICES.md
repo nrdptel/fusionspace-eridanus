@@ -279,6 +279,13 @@ adds a source.
   `thrustcurve-search-loki.json` are ThrustCurve.org's answers to its search for each maker,
   recorded unchanged on 2026-10-29 08:16:44 UTC (307, 296 and 60 records). Each solid motor's
   record in them is the record of the 2026-10-28 snapshot in `crates/hpr-motor/data/thrustcurve/`.
+  `thrustcurve-search-all.json` (ThrustCurve.org's whole catalog, 1,156 records),
+  `thrustcurve-search-ROS-40-5.json`, `thrustcurve-search-zeveta-ROS-40-5.json`,
+  `thrustcurve-search-aerotech-H128W.json` and the four `thrustcurve-download-ROS-40-5*.json` and
+  `thrustcurve-download-H128W*.json` answers were recorded unchanged on 2026-10-29 between
+  12:47:35 and 12:47:37 UTC for `hpr motors update`'s tests (M5.7d). The downloads hold two data
+  files ThrustCurve.org marks public domain and one with no license stated, each also in the
+  2026-10-28 snapshot.
   ThrustCurve.org's site states no license for its motor records ("All rights under copyright
   reserved"); the project uses them as published facts, with the credit "Motor data and
   thrust curves courtesy of ThrustCurve.org"

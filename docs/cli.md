@@ -1542,6 +1542,36 @@ has the reasoning for the fetch. Each file carries its contributor's own license
 ThrustCurve.org grants no license for its motor records; the project uses them as published facts,
 with credit ([the decision record on ThrustCurve.org's records](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)).
 
+#### Newer motors and the bundle's date
+
+`hpr motors update` says what the bundled catalog holds: the date of its ThrustCurve.org snapshot,
+its motors and files, how many files pass the 1% check against their motor's record, and the
+bytes compiled in. Online, it then asks ThrustCurve.org for its whole solid catalog and compares.
+A motor the bundle lacks, or a file it lacks for a motor it holds, is fetched into the cache, and
+the command that reads it there is printed. A new motor then flies offline by name, like a
+fetched one. A newer file of a bundled motor is only cached: `hpr sim --motor` keeps flying the
+bundled file, and `hpr motors fetch --file` shows the new one.
+
+It looks closer only at a motor ThrustCurve.org's record says changed: a motor the bundle lacks,
+another number of files, or an update on or after the snapshot's date. A file swapped for
+another, with the count and date unchanged, isn't found. Offline, it reads what an earlier update
+cached; with none, it names the bundle's date:
+
+<!-- cli: example `hpr motors update --offline`; written by `cargo xtask cli`; do not edit -->
+
+```text
+$ hpr motors update --offline
+The bundled catalog: ThrustCurve.org's solid motors as of 2026-10-28
+  motors           1004, 924 with a file that reads
+  files            1700, and 6 left out
+  passing          412 files within 1% of their records, of 239 motors
+  size             4.2 MB (4163396 bytes)
+note: offline, with no update cached; online, `hpr motors update` looks for motors and files newer than 2026-10-28
+Motor data and thrust curves courtesy of ThrustCurve.org, https://www.thrustcurve.org/
+```
+
+<!-- cli: end -->
+
 ### `hpr convert`
 
 `hpr convert` writes a motor as a RASP `.eng` file or a RockSim `.rse` file, the two formats

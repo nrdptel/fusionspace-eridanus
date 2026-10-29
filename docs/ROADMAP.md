@@ -275,10 +275,6 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     equal to the snapshot's; each file left out is listed with its reason, and one past the
     snapshot's named refusals fails; M5.7a's check holds on every file it adds, failing files
     stored.
-  - [ ] **M5.7d Newer motors online, and the bundle described.** *Done when:* `hpr motors update`
-    adds a newer motor or file from a recorded answer, and offline names the bundle's date; the
-    motor page gives the date, counts, passing motors and size, from the tool.
-
 ## Phase 3: Uncertainty, optimization, challenges
 
 - [ ] **M6.2 Optimization engine.**
