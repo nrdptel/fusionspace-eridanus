@@ -590,12 +590,12 @@ The simulators HPR Sim is compared with, and the papers its models come from.
   and whole-tile reading by rasterio 1.5.2 (GDAL 3.12.2), the outside reader, are in `crates/hpr-io/tests/fixtures/geotiff/` (`validation/oracles/geotiff/dem.py`;
   [the reader's design](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0128-m5-3c2-a-sites-height-from-a-users-geotiff-held.md)).
 - **ThrustCurve.org's API** (<https://www.thrustcurve.org/info/api.html>): two public-domain curve
-  files, recorded October 1, 2026, and three stand-in makers' searches in its shape, in
-  `crates/hpr-net/tests/fixtures/replay/`. The searches hold 15 invented motors and 282 records.
-  Each record carries only the motor finder's CC BY 4.0 copy of its figures, with an invented id
-  and file count. `validation/reports/thrustcurve-join.md` holds the in-stock motors' match to the
-  stand-ins ([why the match is by name only](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0130-m5-4b-thrustcurve-searches-and-curves-through.md);
-  [why the searches are stand-ins](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0145-recorded-answers-and-their-licences-stand-in.md)).
+  files, recorded October 1, 2026, and three makers' searches, recorded unchanged October 29,
+  2026, in `crates/hpr-net/tests/fixtures/replay/`. The searches hold 663 records; each solid
+  motor's equals the record in the October 28 snapshot `hpr-motor` ships.
+  `validation/reports/thrustcurve-join.md` holds the in-stock motors' match to them
+  ([why the match is by name only](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0130-m5-4b-thrustcurve-searches-and-curves-through.md);
+  [why the records are used](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)).
 - **OpenRocket's parts catalog** (pinned as `openrocket-database`, Apache-2.0): its 16 `.orc`
   files, bundled in `crates/hpr-io/data/openrocket-database/`. OpenRocket 24.12 read every part,
   each file with its stated masses removed, and 37 probe files. Its readings are in

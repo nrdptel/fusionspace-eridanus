@@ -276,26 +276,26 @@ adds a source.
   (license `PD`). Data courtesy of ThrustCurve.org, https://www.thrustcurve.org/
   ([ADR-130](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0130-m5-4b-thrustcurve-searches-and-curves-through.md)).
   `thrustcurve-search-aerotech.json`, `thrustcurve-search-cesaroni.json` and
-  `thrustcurve-search-loki.json` are not ThrustCurve.org's answers: ThrustCurve.org grants no
-  licence for its motor records; its site reads "All rights under copyright reserved", so the
-  searches recorded on 2026-10-01 were replaced on 2026-10-03 by stand-ins in the API's shape. Each holds five invented
-  motors (designations ending `-INVENTED`, every value invented) and one record for each of that
-  maker's motors in `motor-finder-in-stock.json`, carrying only that answer's values (Motor stock
-  data from motor.fusionspace.co, CC BY 4.0, above: ThrustCurve.org's published figures as the
-  finder relays them), with an invented id, bar the two ids of the download answers above, and
-  an invented count of data files; the fields only ThrustCurve.org states are left out, and the
-  answers' counts are invented.
-  `thrustcurve-standin-*.json` (2026-10-04, M4.5b) are stand-ins too: searches holding invented
+  `thrustcurve-search-loki.json` are ThrustCurve.org's answers to its search for each maker,
+  recorded unchanged on 2026-10-29 08:16:44 UTC (307, 296 and 60 records). Each solid motor's
+  record in them is the record of the 2026-10-28 snapshot in `crates/hpr-motor/data/thrustcurve/`.
+  ThrustCurve.org's site states no license for its motor records ("All rights under copyright
+  reserved"); the project uses them as published facts, with the credit "Data courtesy of
+  ThrustCurve.org"
+  ([ADR-287](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md),
+  [ADR-305](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0305-the-2026-10-28-licensing-calls.md)).
+  Searches of the same makers recorded on 2026-10-01 were replaced on 2026-10-03 by stand-ins
+  ([ADR-145](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0145-recorded-answers-and-their-licences-stand-in.md));
+  both remain in the repository's history, which is not rewritten.
+  `thrustcurve-standin-*.json` (2026-10-04, M4.5b) are not ThrustCurve.org's answers but invented
+  test shapes in its API's form, for cases the real records don't hold: searches holding invented
   motors (designations ending `-INVENTED`, `-OTHER` or `-HYBRID`, some under invented makers) and
   one record naming AeroTech's F27R/L by its maker, designation, common name, class and type with
   the F27R/L download's id; an empty search; a download of four invented curve files for the
   invented Z10-INVENTED, with a RockSim download of two invented files for it (M4.5g2), one under
   the id of the Estes A8 file HPR Sim's table of OpenRocket's curves names; and an
-  empty download answer, standing in for F27R/L's RASP files so the RockSim answer above is read
+  empty download answer, in place of F27R/L's RASP files so the RockSim answer above is read
   ([ADR-154](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0154-motors-fetched-from-thrustcurve-by-name.md)).
-  The searches recorded on 2026-10-01 remain in the repository's history before 2026-10-03, which
-  is not rewritten
-  ([ADR-145](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0145-recorded-answers-and-their-licences-stand-in.md)).
   The example `crates/hpr/examples/motor_stock.rs` reads the searches and the J450DM answer.
   `hpr_net::thrustcurve` also fetches such answers at run time, when a program asks, and caches
   them on the user's disk; each answer carries the credit for the program to show.

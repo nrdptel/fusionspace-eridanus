@@ -1,10 +1,10 @@
 //! A motor found by name on ThrustCurve.org (M4.5b, ADR-154), against answers in
 //! `tests/fixtures/replay/`: F27R/L's RockSim download, recorded on 2026-10-01 (a public-domain
-//! file), and stand-in searches in the API's shape with invented records but F27R/L's own id
-//! (ADR-145). ThrustCurve.org grants no license for its records and reserves copyright; ADR-287
-//! has since let the project commit them as published facts, and #885 is to replay real ones,
-//! keeping an invented record only where it tests a shape the real ones lack. F27R/L's RASP
-//! answer is a stand-in holding no file, so the search falls through to the RockSim one.
+//! file), and the `thrustcurve-standin-*` answers. Those are invented test shapes in the API's
+//! form, for cases real records don't hold: a name two motors share, a hybrid, a name no motor
+//! has, invented motors' ranked files and propellant masses either side of the 5% warning. Its
+//! one real motor, F27R/L, keeps its own id; its RASP answer is invented and holds no file, so
+//! the search falls through to the RockSim one.
 
 #![allow(
     clippy::disallowed_methods,

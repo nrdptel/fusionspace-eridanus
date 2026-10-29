@@ -20,14 +20,13 @@
 //! reads.
 //!
 //! > **How far to trust it.** A value is the answer's, unchanged (`tests/thrustcurve.rs` reads every
-//! > field of every committed answer back: two recorded downloads, and three stand-in searches in
-//! > the API's shape, from [ADR-145][adr-145]; [ADR-287][adr-287] has since let the project commit
-//! > ThrustCurve's records as published facts, though the site grants no license for them, and
-//! > [#885][i885] is to replace the stand-ins). A curve is the file a contributor uploaded, as
-//! > ThrustCurve serves it, read by the same readers as a file on disk. The join is by name only: it
-//! > doesn't compare impulse or diameter, so a finder motor whose designation ThrustCurve spells
-//! > differently is a miss, not a wrong match. On ThrustCurve's answers of 2026-10-01 (recorded
-//! > then, no longer committed), 282 of the finder's 282 motors in stock mapped, each to one record.
+//! > field of every committed answer back: two downloads recorded on 2026-10-01, and three makers'
+//! > searches recorded on 2026-10-29, ThrustCurve's records used as published facts under
+//! > [ADR-287][adr-287]). A curve is the file a contributor uploaded, as ThrustCurve serves it,
+//! > read by the same readers as a file on disk. The join is by name only: it doesn't compare
+//! > impulse or diameter, so a finder motor whose designation ThrustCurve spells differently is a
+//! > miss, not a wrong match. On ThrustCurve's answers of 2026-10-01, and again on those of
+//! > 2026-10-29, 282 of the finder's 282 motors in stock mapped, each to one record.
 //!
 //! ```
 //! use hpr_net::thrustcurve;
@@ -41,10 +40,8 @@
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 //!
-//! [adr-145]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0145-recorded-answers-and-their-licences-stand-in.md
 //! [adr-287]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md
 //! [api]: https://www.thrustcurve.org/info/api.html
-//! [i885]: https://github.com/nrdptel/fusionspace-eridanus/issues/885
 
 use std::collections::BTreeMap;
 use std::fmt::Write as _;

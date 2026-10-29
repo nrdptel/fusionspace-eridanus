@@ -2421,7 +2421,8 @@ fn sim_flies_a_orks_own_motor_as_the_library_does() {
     assert_eq!(document["design"]["configurations"][0]["flies"], true);
 }
 
-/// The replay of ThrustCurve.org's answers (ADR-145: stand-in searches, recorded downloads).
+/// The replay of ThrustCurve.org's answers: recorded searches and downloads, and the invented test
+/// shapes of `thrustcurve-standin-*`.
 fn thrustcurve_replay() -> hpr::hpr_net::Replay {
     hpr::hpr_net::Replay::open(root().join("crates/hpr-net/tests/fixtures/replay")).unwrap()
 }
@@ -2740,10 +2741,10 @@ fn motors_fetch_takes_the_file_named_first() {
 }
 
 /// A `.ork` motor whose digest hpr's table of OpenRocket's curves holds asks ThrustCurve for that
-/// file first (ADR-161). The invented motor's RockSim answer holds a stand-in under the table's
-/// id: with that answer cached, the motor flies it and the note says it is OpenRocket's curve.
-/// With only the RASP answer cached, the preference is given up and the note says the curve may
-/// not be OpenRocket's; with nothing cached, the refusal's command carries `--file`.
+/// file first (ADR-161). The invented motor's RockSim answer holds an invented file under the
+/// table's id: with that answer cached, the motor flies it and the note says it is OpenRocket's
+/// curve. With only the RASP answer cached, the preference is given up and the note says the curve
+/// may not be OpenRocket's; with nothing cached, the refusal's command carries `--file`.
 #[test]
 fn a_digest_the_table_holds_asks_for_openrockets_file() {
     use hpr::hpr_net::on_demand::Wanted;

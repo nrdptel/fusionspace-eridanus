@@ -22,8 +22,8 @@ the library, as below.
 
 > **How far to trust it.** The values are copied: the simulator gives back the site's values
 > unchanged, and the saved copy does offline. That's checked on recorded answers, below.
-> There are eight from motor.fusionspace.co and two curve files from ThrustCurve.org, beside three
-> stand-in searches in ThrustCurve.org's shape ([evidence row G23](evidence.md#g23)).
+> There are eight from motor.fusionspace.co, and from ThrustCurve.org three searches and two curve
+> files ([evidence row G23](evidence.md#g23)).
 >
 > Whether a vendor has a motor, at that price, is the vendor's to say. The site's data is
 > up to about an hour old when built. It counts its saved copy as fresh for
@@ -33,11 +33,9 @@ the library, as below.
 The site's terms ask you to check stock and price on the vendor's own page before relying on
 them. Prices are in U.S. dollars.
 
-The stand-in searches ([evidence row G23](evidence.md#g23)) date from when the project kept
-ThrustCurve.org's records out of the repository. The site still grants no license for its motor records: it reads "All rights under
-copyright reserved". But the project now uses them as published facts, with credit
-([the decision record on ThrustCurve.org's records](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)), and
-[issue #885](https://github.com/nrdptel/fusionspace-eridanus/issues/885) is to replace the stand-ins with real records.
+The three searches are ThrustCurve.org's own answers, recorded on 29 October 2026
+([evidence row G23](evidence.md#g23)). The project uses its motor records as published facts, with
+credit ([the decision record on ThrustCurve.org's records](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)).
 
 The match is by name. On ThrustCurve.org's answers of 1 October 2026, all 282 motors in stock
 matched exactly one ThrustCurve.org record ([below](#matching-motors-to-thrustcurves-records)). Each
@@ -175,32 +173,16 @@ total impulse, average thrust and burn time were the same on both sides. So each
 right motor by more than its name. The motor finder copies ThrustCurve.org's names and figures, so
 a full match is expected; the match is there to catch drift.
 
-The repository no longer keeps those three answers. The tests replay stand-ins in the same shape
-instead, set when the project kept ThrustCurve.org's records out
-([the decision record on the recordings' licenses](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0145-recorded-answers-and-their-licences-stand-in.md)).
-ThrustCurve.org grants no license for its motor records and reserves copyright. The project has
-since decided to use them as published facts, with credit
-([the decision record on ThrustCurve.org's records](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)), so
-[issue #885](https://github.com/nrdptel/fusionspace-eridanus/issues/885) is to bring recorded searches back.
-The stand-ins hold 297 records:
+The tests replay ThrustCurve.org's searches of the three makers, recorded unchanged on
+29 October 2026 ([the decision record on ThrustCurve.org's records](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0287-thrustcurve-orgs-motor-records-used-as-published-facts.md)). They hold 307,
+296 and 60 records, the counts of 1 October, AeroTech's seven hybrids among them. Each solid motor's record is the
+same, field for field, as in the snapshot of 28 October 2026 that the simulator carries
+([the decision record on the test records](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0305-the-2026-10-28-licensing-calls.md)).
 
-- 15 wholly invented, five per maker, with designations ending `-INVENTED`;
-- 282, one for each motor in the finder's in-stock list. Each carries only the values that list
-  states, plus an invented id and an invented count of data files. The list's values are
-  ThrustCurve.org's published figures as the finder relays them under CC BY 4.0. J450DM and F27R/L
-  keep their real ids, those of the two public-domain downloads, so the match leads to a committed
-  file. The fields only ThrustCurve.org states (length, weights, peak thrust, certifying body,
-  dates, links) are left out.
-
-CC BY 4.0 is the finder's license for its own copy and doesn't change ThrustCurve.org's terms. The
-282 records rest on that license and on the figures being published facts (the recordings'
-licenses, linked above).
-
-On them, too, all 282 motors match. The tests write the match's report into
+On them, too, all 282 motors match, each record lists a data file, and each match's figures equal
+the finder's. The tests write the match's report into
 [`validation/reports/thrustcurve-join.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/thrustcurve-join.md),
-and check it against the match on every run. So the committed tests show the code keeps the
-rule. The full match on ThrustCurve.org's own records is the measurement of 1 October 2026 above,
-which last ran on October 1, 2026.
+and check it against the match on every run.
 
 The test that writes the report was added with
 [the milestone for ThrustCurve searches and curves](decisions-and-roadmap.md#m5-4b). The
@@ -278,7 +260,7 @@ Cesaroni Technology  3683L851-P          75         3683.2     $290.39  Animal M
 AeroTech             L1150R              75         3517.0     $324.99  Animal Motor Works             1
 
 Motor data and thrust curves courtesy of ThrustCurve.org, https://www.thrustcurve.org/
-297 records of the three makers in stand-in searches: 15 invented, 282 with the motor finder's copy of ThrustCurve.org's figures; 282 of 282 motors in stock matched to one each, 0 missed
+663 records of the three makers; 282 of 282 motors in stock matched to one each, 0 missed
 AeroTech J450DM: id 5f4294d2000231000000044f, a RASP file from source cert, license PD, 37 points from ignition
 the file:  total impulse   1061.6 N·s, burn time  2.28 s, average thrust  465.6 N
 record:    total impulse     1055 N·s, burn time  2.27 s, average thrust    465 N
@@ -291,10 +273,9 @@ the site asks for, with its caution; show it wherever a price or stock is shown.
 vendors had the motor in stock. On that morning no L motor in stock cost \$150 or less: the
 cheapest was \$260.99.
 
-The last lines come from ThrustCurve.org, under its own credit line, except the records. The 297
-records come from the stand-in searches ([above](#matching-motors-to-thrustcurves-records)), so the count
-is theirs. The match runs on the finder's own copy of ThrustCurve.org's figures
-([evidence row G23](evidence.md#g23)).
+The last lines come from ThrustCurve.org, under its own credit line. The 663 records are its three
+recorded searches ([above](#matching-motors-to-thrustcurves-records),
+[evidence row G23](evidence.md#g23)), AeroTech's seven hybrids among them.
 
 J450DM's file is a real answer: the certification test's curve (`source cert`), public domain.
 It's the file the simulator already carries for J450DM ([Solid motors](physics/motor.md)).
@@ -382,13 +363,15 @@ the recording keeps them:
 The tests in [`crates/hpr-net/tests/thrustcurve.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-net/tests/thrustcurve.rs)
 replay two answers recorded from ThrustCurve.org on 1 October 2026 at 08:22 UTC. They're AeroTech
 J450DM's `.eng` file and AeroTech F27R/L's `.rse` file, both public domain. The tests also replay
-the three stand-in searches described [above](#matching-motors-to-thrustcurves-records)
+the three searches described [above](#matching-motors-to-thrustcurves-records)
 ([evidence row G23](evidence.md#g23)). They check that:
 
 - each answer, read and written back out, holds exactly the recording's fields and values and
   carries ThrustCurve.org's credit. It comes from the saved copy on a second read, and works
   offline, fresh for a day and stale after;
-- the test builds its own name-to-id table straight from the stand-ins' JSON, and the match
+- each solid motor's record is the simulator's snapshot's, field for field, and no hybrid is
+  in it;
+- the test builds its own name-to-id table straight from the searches' JSON, and the match
   agrees for all 282 motors. Each match's diameter, impulse, average thrust and burn time equal
   the finder's, and the report is the committed one;
 - a motor renamed, two records of one name, or a designation in another case is a miss with its
