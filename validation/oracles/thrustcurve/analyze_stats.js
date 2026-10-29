@@ -348,14 +348,21 @@ function recount(analyze, catalog) {
     if (record.type === 'SU' || record.type === 'reload') records.set(record.motorId, record);
   }
 
-  // What the index stores for each file: 'passing', 'failing' or 'left out'.
+  // What the index stores for each file: 'passing', 'failing' or 'left out', and, for a curve,
+  // its motor and the SHA-256 of its bytes.
   const stored = new Map();
+  const curves = new Map();
+  const store = function(id, verdict) {
+    if (stored.has(id)) fail('catalog.json lists ' + id + ' twice');
+    stored.set(id, verdict);
+  };
   for (const motor of catalog.motors) {
     for (const curve of motor.curves) {
-      stored.set(curve.simfile_id, curve.check.passes === true ? 'passing' : 'failing');
+      store(curve.simfile_id, curve.check.passes === true ? 'passing' : 'failing');
+      curves.set(curve.simfile_id, { motor: motor.motor_id, sha256: curve.sha256 });
     }
   }
-  for (const entry of catalog.left_out) stored.set(entry.simfile_id, 'left out');
+  for (const entry of catalog.left_out) store(entry.simfile_id, 'left out');
 
   let answers = 0;
   let listed = 0;
@@ -374,7 +381,13 @@ function recount(analyze, catalog) {
       const record = records.get(entry.motorId);
       if (record === undefined) continue;
       listed++;
+      if (seen.has(id)) fail('the download answers list ' + id + ' twice');
       seen.add(id);
+      const curve = curves.get(id);
+      if (curve !== undefined && curve.motor !== entry.motorId) {
+        disagree.push(id + ': under motor ' + entry.motorId + ' in the download answers, ' +
+                      curve.motor + ' in the index');
+      }
       const index = stored.get(id) || 'missing';
       if (typeof entry.data !== 'string' || entry.license === 'other' ||
           (entry.format !== 'RASP' && entry.format !== 'RockSim')) {
@@ -383,9 +396,13 @@ function recount(analyze, catalog) {
         }
         continue;
       }
+      const bytes = Buffer.from(entry.data, 'base64');
+      if (curve !== undefined && sha256(bytes) !== curve.sha256) {
+        disagree.push(id + ': its bytes in the download answer are not the ones the index holds');
+      }
       let stats;
       try {
-        const text = Buffer.from(entry.data, 'base64').toString('utf8');
+        const text = bytes.toString('utf8');
         stats = statsOf(analyze, pointsOf(text, entry.format, id), id);
       } catch (e) {
         if (!(e instanceof Refusal)) throw e;
@@ -419,6 +436,9 @@ function recount(analyze, catalog) {
     if (!seen.has(id)) disagree.push(id + ': in the index, not in the download answers');
   }
   const storedPassing = [...stored.values()].filter((v) => v === 'passing').length;
+  if (passing !== storedPassing) {
+    disagree.push(passing + ' files pass by the recount, ' + storedPassing + ' in the index');
+  }
   for (const line of notes) process.stdout.write('  ' + line + '\n');
   process.stdout.write(
     'recount of the raw snapshot ' + captured + ': ' + records.size + ' solid motors, ' + listed +
@@ -433,6 +453,9 @@ function recount(analyze, catalog) {
 }
 
 function main() {
+  // A stable sort (V8 7.0, Node 11) keeps samples at one time in the file's order, which sets
+  // which way each step goes.
+  if (parseInt(process.versions.node, 10) < 12) fail('needs Node.js 12 or later');
   const args = process.argv.slice(2);
   if (args.length > 1 || (args.length === 1 && args[0] !== '--recount')) {
     fail('usage: analyze_stats.js [--recount]');

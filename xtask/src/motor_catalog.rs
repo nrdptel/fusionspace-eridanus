@@ -256,23 +256,25 @@ fn checks_hold(root: &Path, catalog: &Catalog, records: &[Value]) -> Result<usiz
                 )
             });
             let within = gaps.iter().all(|(.., within)| *within);
-            if within != curve.check.passes {
+            if curve.check.passes && !within {
                 let (what, file, record, _) = gaps
                     .iter()
-                    .find(|(.., within)| *within != curve.check.passes)
+                    .find(|(.., within)| !*within)
                     .copied()
                     .unwrap_or(gaps[0]);
                 return Err(format!(
-                    "{} ({}) is stored as {}, but its {what} {file} is {:+.4}% from its record's \
-                     {record}",
+                    "{} ({}) is stored as passing, but its {what} {file} is {:+.4}% from its \
+                     record's {record}",
                     motor.designation,
                     curve.simfile_id,
-                    if curve.check.passes {
-                        "passing"
-                    } else {
-                        "failing"
-                    },
                     100.0 * (file - record) / record
+                ));
+            }
+            if !curve.check.passes && within {
+                return Err(format!(
+                    "{} ({}) is stored as failing, but its total impulse, average thrust and \
+                     burn time are all within 1% of its record's",
+                    motor.designation, curve.simfile_id
                 ));
             }
             passing += usize::from(within);
