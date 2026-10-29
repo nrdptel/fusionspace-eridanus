@@ -16,7 +16,7 @@ burn, mass and ejection delay.
   third of the four [kinds of evidence][levels]. Small numbers here are in
   [scientific notation](../glossary.md#scientific-notation), and a
   [relative](../glossary.md#relative-and-absolute-difference) difference is a fraction of the value
-  compared. ThrustCurve.org's own statistics code agrees to 2.9e-15, relative, on all 412 files
+  compared. ThrustCurve.org's own statistics code agrees to 3e-15, relative, on all 412 files
   that pass the 1% check ([Validation](#validation)). On three of the 32 curves first bundled,
   RocketPy's total mass and inertias agree within 7.9e-5
   relative, the centers of mass within 5.9e-6 of the motor's length. The propellant's own mass and
@@ -669,16 +669,17 @@ The tests that pin the motor model, and the whole example program.
   runs [TC-A] unchanged on every file stored as passing, 412 of them, and writes its results to a
   [fixture](../glossary.md#reference-value-and-fixture),
   [`validation/fixtures/motor/thrustcurve-analyze-stats.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/motor/thrustcurve-analyze-stats.json).
-  HPR Sim's impulse, burn window, burn time, average and peak thrust agree to 2.9e-15. So the
-  definitions are checked, not only the 1% rule.
+  HPR Sim's impulse, burn window, burn time, average and peak thrust agree to 3e-15, relative
+  (the burn window's ends, when under 1 ms, to 3e-18 s). So the definitions are checked, not
+  only the 1% rule.
   - Two samples at the same time are read differently, on purpose ([ADR-304][adr-304]). HPR Sim
     reads them as a step: the thrust jumps from the first value to the second. [TC-A] merges
     points less than 50 µs apart into one point at their average thrust. 8 of the 412 files have
     such points. The script also runs [TC-A] with that merge turned off (its `timeEpsilon` set to
     0), and on those 8 files HPR Sim is held to that run. On 6 of them the merge moves a figure,
     and the test names each. The largest moves: one file has 1,061.8 N and then 2,168.21 N at
-    0.01 s, which the merge averages to 1,615 N, so its peak thrust is 6.5% higher here; another's
-    burn time is 0.61% longer.
+    0.01 s. The merge averages them to 1,615 N, so its peak becomes the next sample, 2,036.3 N,
+    and HPR Sim's peak thrust is 6.5% higher. Another file's burn time is 0.61% longer here.
   - **The recount** (`analyze_stats.js --recount`) works out which files pass from the raw
     snapshot ThrustCurve.org answered, with [TC-A] and not HPR Sim's code, and fails unless the
     index agrees. It agrees on all 1,700 files the index holds: 412 pass, and 239 motors have one

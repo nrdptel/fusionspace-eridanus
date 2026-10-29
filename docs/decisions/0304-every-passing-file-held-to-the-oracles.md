@@ -1,7 +1,7 @@
 # ADR-304: Every passing file held to the oracles (2026-10-28)
 
 - **Status:** accepted; carries out [ADR-288][adr-288]'s consequences and [ADR-298][adr-298] §1's third increment, [M5.7c][m5-7c]
-- **Summary:** The 1% impulse test and the test against ThrustCurve.org's own statistics code run over all 412 files stored as passing, with the code's fixture holding exactly those. HPR Sim reads two samples at one time as a step, and ThrustCurve.org's code as one averaged point. HPR Sim keeps the step, and the code with its merge turned off matches it to 2.9e-15 on every file; the test names the 6 files the merge moves. A recount from the raw snapshot, with ThrustCurve.org's code, agrees with the index on all 1,700 files it holds. `cargo xtask motor-catalog --check` fails over 1%, worked out again from each file's bytes, and runs in CI.
+- **Summary:** The 1% impulse test and the test against ThrustCurve.org's own statistics code run over all 412 files stored as passing, with the code's fixture holding exactly those. HPR Sim reads two samples at one time as a step, and ThrustCurve.org's code as one averaged point. HPR Sim keeps the step, and the code with its merge turned off matches it to 3e-15 on every file; the test names the 6 files the merge moves. A recount from the raw snapshot, with ThrustCurve.org's code, agrees with the index on all 1,700 files it holds. `cargo xtask motor-catalog --check` fails over 1%, worked out again from each file's bytes, and runs in CI.
 
 [m5-7c]: ../decisions-and-roadmap.md#m5-7c
 [adr-005]: 0005-solid-motors-statistics-consumption-grains-file.md
@@ -34,7 +34,7 @@ The six moves, HPR Sim against the merged figures, in the headline figure each m
 peak thrust +6.5% (a file with 1,061.8 N then 2,168.21 N at 0.01 s, averaged to 1,615 N), burn
 times +0.61%, +0.50% and +0.19%, and average thrusts +0.28% and +0.023%. With `normalize`'s merge
 turned off (`timeEpsilon` 0, the code's other standard parameters unchanged), the code matches
-HPR Sim on all 412 files to 2.9e-15, relative.
+HPR Sim on all 412 files to 3e-15, relative.
 
 **Decision.**
 
@@ -52,7 +52,8 @@ HPR Sim on all 412 files to 2.9e-15, relative.
    ThrustCurve.org record in total impulse, average thrust and burn time, and within 1% of the
    code's figures (unmerged where it merges) in those and its peak thrust.
 4. **The recount.** `analyze_stats.js --recount` reads the raw snapshot's answers under `refs/`
-   (the search and download answers, not the committed records, file list or curve files), works
+   (the search and download answers, not the committed records, file list or curve files; it
+   reads `catalog.json` only for the verdicts it compares and the snapshot's date), works
    out each file's figures with the code, and checks them against its raw record: a file passes
    when total impulse, average thrust and burn time are each within 1% (ADR-298 §4). Its verdict
    uses the merge off, the reading the index's check uses. It fails unless every file the index

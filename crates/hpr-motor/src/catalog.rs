@@ -933,19 +933,24 @@ mod tests {
         Catalog::bundled().unwrap()
     }
 
-    /// M5.7a's 32 files, as ThrustCurve.org's statistics fixture lists them, are each indexed
-    /// under their motor and pass their check, so none of the oracle-held files warns.
+    /// M5.7a's 32 files, as OpenRocket's fixture lists them, are each indexed under their motor
+    /// and pass their check, so none of them warns.
     #[test]
     fn m5_7a_s_32_files_are_indexed_and_pass() {
         let fixture: serde_json::Value = serde_json::from_str(include_str!(
-            "../../../validation/fixtures/motor/thrustcurve-analyze-stats.json"
+            "../../../validation/fixtures/motor/openrocket-curve-stats.json"
         ))
         .unwrap();
         let files: Vec<&str> = fixture["curves"]
             .as_array()
             .unwrap()
             .iter()
-            .map(|c| c["file"].as_str().unwrap())
+            .map(|c| {
+                c["file"]
+                    .as_str()
+                    .unwrap()
+                    .trim_start_matches("crates/hpr-motor/data/thrustcurve/")
+            })
             .collect();
         assert_eq!(files.len(), 32);
         for file in files {
