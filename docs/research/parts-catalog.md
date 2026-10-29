@@ -105,8 +105,9 @@ Counted from the bundled files' `<Manufacturer>` fields:
   - Copy no photos or text.
   - Remove a vendor's entries when it asks.
   - Don't scrape a site whose terms forbid it.
-  - Asking vendors for data, which also yields figures they don't publish, is outreach, so it is
-    Neer's call.
+  - Asking vendors for data, which also yields figures they don't publish, is outreach; Neer
+    declined it on 2026-10-28 ([ADR-305](../decisions/0305-the-2026-10-28-licensing-calls.md)), so
+    only published figures go in.
 
 ## Ideas for later
 

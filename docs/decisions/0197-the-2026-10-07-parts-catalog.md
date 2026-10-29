@@ -1,6 +1,6 @@
 # ADR-197: Neer's 2026-10-07 parts catalog: commercial parts, and a catalog of hpr's own (2026-10-07)
 
-- **Status:** accepted; amends [ADR-147, a roadmap of open work][adr-147] §6 (its budget)
+- **Status:** accepted; amends [ADR-147, a roadmap of open work][adr-147] §6 (its budget); its open question on asking vendors settled by [ADR-305, the 2026-10-28 licensing calls][adr-305]
 - **Summary:** OpenRocket's catalog, bundled since M5.5, stays as the base. M5.6 adds a catalog of hpr's own in four increments. M5.6a adds the format, where every value carries its source and date, plus `hpr parts search` and a parts list to buy from. M5.6b adds parachutes and recovery hardware: each Cd is stored with its reference area, and a range's two ends are compared on one area. Descent, drift and opening load each take the end that errs safe for that output. M5.6c adds motor hardware and rail buttons; a catalog case beside a motor file is refused unless the motor's mass is marked as excluding it. M5.6d adds more airframe makers and electronics; a mass range records what it spans, and safety outputs report its worst end. Only facts go in, each cited; no vendor text or photos are copied. M9.1's design editor gets a part picker and the parts list. M5.6a comes after release 0.5, ahead of M8.2. The rest comes before 1.0, with M5.6b ahead of M8.1's parachute sizing. The roadmap's budget rises to 43,000 bytes.
 
 **Context.** Later on October 7, 2026, after [ADR-196, the product guides][adr-196], Neer set the
@@ -109,7 +109,8 @@ that, as surveyed in [the parts-catalog note](../research/parts-catalog.md):
 **Consequences.** The library and the Python package keep their catalog as it is. M5.6 is four
 increments, in [the roadmap](../ROADMAP.md). The ideas backlog gains flyer-measured masses, a
 "vendor confirmed" flag, live prices and regional vendors. Open for the maintainer:
-whether to ask vendors for their data.
+whether to ask vendors for their data. *Settled by ADR-305:* vendors' published dimensions and
+masses are used as facts, with credit, and no vendor is asked.
 
 [adr-132]: 0132-m5-5a-openrockets-orc-parts-catalogues-held-to.md
 [adr-133]: 0133-m5-5b-catalogue-parts-in-the-builder-weighed-as.md
@@ -117,3 +118,4 @@ whether to ask vendors for their data.
 [adr-147]: 0147-m0-5b-a-roadmap-of-open-work-an-archive-and-a.md
 [adr-194]: 0194-the-2026-10-07-field-tools-checklists-equipment-ground-tests.md
 [adr-196]: 0196-the-2026-10-07-product-guides.md
+[adr-305]: 0305-the-2026-10-28-licensing-calls.md
