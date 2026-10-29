@@ -148,6 +148,101 @@ pub struct MotorFetch {
     pub warnings: Vec<InputWarning>,
 }
 
+/// `hpr motors update`: the bundled catalog, and the motors and files ThrustCurve.org lists that
+/// it lacks, fetched into the cache.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct MotorsUpdate {
+    /// ThrustCurve.org's credit, shown with its data.
+    pub attribution: Vec<String>,
+    /// The catalog compiled into HPR Sim.
+    pub bundle: BundledCatalog,
+    /// What ThrustCurve.org lists, compared with the bundle; `null` offline with no update in the
+    /// cache.
+    pub checked: Option<CatalogCheck>,
+}
+
+/// The catalog compiled into HPR Sim: ThrustCurve.org's solid motors as of one snapshot.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct BundledCatalog {
+    /// The snapshot's date, `YYYY-MM-DD`.
+    pub captured: String,
+    /// Every motor listed.
+    pub motors: usize,
+    /// The motors with a file that reads, which fly.
+    pub motors_flying: usize,
+    /// The data files indexed.
+    pub files: usize,
+    /// The snapshot's files left out, each listed in the index with its reason.
+    pub left_out: usize,
+    /// The files whose total impulse, average thrust and burn time are each within 1% of their
+    /// motor's ThrustCurve.org record.
+    pub files_passing: usize,
+    /// The motors with at least one such file.
+    pub motors_passing: usize,
+    /// The bytes of data compiled in: the index and every curve file it reads.
+    pub size_bytes: usize,
+}
+
+/// ThrustCurve.org's catalog, compared with the bundle.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct CatalogCheck {
+    /// Where its search was read from: fetched now, or the cache.
+    pub read_from: ReadFrom,
+    /// The solid motors (single-use and reload) it lists.
+    pub listed: usize,
+    /// The motors whose files were downloaded: the bundle lacks the motor, holds another number of
+    /// its files than its record lists, or its record was updated on or after the bundle's date.
+    pub looked_at: usize,
+    /// The motors with a file, or the motor itself, newer than the bundle, in ThrustCurve.org's
+    /// order.
+    pub newer: Vec<NewerMotor>,
+    /// The ThrustCurve.org ids of the bundle's motors it no longer lists. They stay in the bundle.
+    pub unlisted: Vec<String>,
+}
+
+/// A motor ThrustCurve.org lists with something the bundle lacks.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct NewerMotor {
+    /// The manufacturer, as ThrustCurve.org abbreviates it, such as `AeroTech`.
+    pub manufacturer: String,
+    /// The designation, as ThrustCurve.org spells it.
+    pub designation: String,
+    /// The common name, when ThrustCurve.org gives one.
+    pub common_name: Option<String>,
+    /// ThrustCurve.org's id of the motor.
+    pub motor_id: String,
+    /// Whether the bundle lacks the motor itself, not only some of its files.
+    pub new_motor: bool,
+    /// For a motor the bundle lacks, the `hpr motors fetch` command that reads it from the cache;
+    /// `null` when no file of it makes a motor HPR Sim flies, or the name needs quoting.
+    pub command: Option<String>,
+    /// For a motor the bundle lacks, the `hpr sim` command that flies it from the cache, `DESIGN`
+    /// standing for a design file. Given only when `command` reads the motor by its designation
+    /// alone and the bundled catalog finds no motor by that name (`hpr sim --motor` looks there
+    /// first, and for a name it finds there never reads the cache); else `null`.
+    pub sim: Option<String>,
+    /// Its RASP and RockSim files the bundle lacks.
+    pub files: Vec<NewerFile>,
+}
+
+/// A data file the bundle lacks.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct NewerFile {
+    /// ThrustCurve.org's id of the file.
+    pub file_id: String,
+    /// The file's format: `eng` or `rse`.
+    pub format: FileFormat,
+    /// Who measured the curve, as ThrustCurve.org says: `cert`, `mfr` or `user`; `null` when it
+    /// doesn't say.
+    pub measured_by: Option<String>,
+    /// The file's license, as ThrustCurve.org says; `null` when its contributor named none.
+    pub license: Option<String>,
+    /// For a newer file of a bundled motor, the `hpr motors fetch` command that reads it from the
+    /// cache (`hpr sim --motor` flies the bundle's file); `null` for a motor the bundle lacks, or
+    /// when the file makes no motor HPR Sim flies.
+    pub command: Option<String>,
+}
+
 /// A motor found on ThrustCurve.org by name, and the curve file HPR Sim flies it by: the first RASP
 /// file that reads, ranked by who measured it (a certification test, the manufacturer, a user),
 /// else the first RockSim file the same way.
@@ -2109,6 +2204,7 @@ pub fn schemas() -> Vec<(&'static str, String)> {
         ("motors-show.schema.json", schema::<MotorShow>()),
         ("motors-search.schema.json", schema::<MotorSearch>()),
         ("motors-fetch.schema.json", schema::<MotorFetch>()),
+        ("motors-update.schema.json", schema::<MotorsUpdate>()),
         ("sim.schema.json", schema::<SimFlight>()),
         ("sim-export-meta.schema.json", schema::<ExportMeta>()),
         ("mc.schema.json", schema::<McRun>()),

@@ -19,9 +19,9 @@ merge.
 
 **Decision.** Revert #1040, so the tree equals main before it (193d047e) but for what merged
 since, and re-apply it in one PR whose claims pass, full gate, reviews, clipping check
-and captures all run before its merge. The re-land carries no change beyond #1040's content
-except that it records the update's design as ADR-307 (this record takes 306, so the numbers
-have no gap) and points its citations at ADR-307.
+and captures all run before its merge. The re-land carries #1040's content, records the update's
+design as ADR-307 (this record takes 306, so the numbers have no gap), points its citations at
+ADR-307, and takes the fixes its own reviews find (ADR-307's status names them).
 
 **Consequences.** Between the two merges main has no `hpr motors update`, and M5.7d is open
 again. The issues #1042 and #1043, filed from #1040's review, stay open; their follow-ups wait
