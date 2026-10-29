@@ -334,7 +334,6 @@ until someone rewrites it in plainer words.
 | [ADR-303: The 2026-10-28 review: the RocketPy peaks tightened][adr-303] | In the RocketPy whole flights flown on the same inputs, the largest Mach numbers agree within 0.235% and the largest accelerations under power, outside Bella Lui's two flights, within 0.248%, while RocketPy's own solver moves them by at most 9.1e-6 and 2.7e-4 of their values. Each bound goes from 3% to 1%, 4.3 and 4.0 times the largest difference. Bella Lui keeps 3% on its accelerations for the cause its case file measures. A test pins every bound. |  |
 | [ADR-304: Every passing file held to the oracles][adr-304] | The 1% test against each file's record and the test against ThrustCurve.org's own statistics code run over all 412 files stored as passing, with the code's fixture holding exactly those. HPR Sim reads two samples at one time as a step, and ThrustCurve.org's code as one averaged point. HPR Sim keeps the step, and the code with its merge turned off matches it to 3e-15 on every file; the test names the 6 files the merge moves. A recount from the raw snapshot, with ThrustCurve.org's code, agrees with the index on all 1,700 files it holds. `cargo xtask motor-catalog --check` fails over 1%, worked out again from each file's bytes, and runs in CI. |  |
 | [ADR-305: Neer's 2026-10-28 licensing calls: vendors' published sizes and masses as facts, and which holds stay][adr-305] | Dimensions and masses a parts vendor publishes are facts, used with credit, as [ADR-287][adr-287] reads ThrustCurve.org's records; no photo, drawing or descriptive text is copied and no vendor is contacted, so [M5.6b](#m5-6b) needs no question to vendors. The motor finder's real test records come from the 2026-10-28 snapshot `hpr-motor` ships, and the held catalog file is cleared. CATS's log layout, RASAero II's design files and the guide's real-flight trace each get a route for when their work comes up. Featherweight's Bluetooth packets, makers' data sheets, Wyoming soundings and the refused references stay as they are. The orhelper migration idea is dropped. |  |
-| [ADR-306: Newer motors found by comparing ThrustCurve.org's whole catalog with the bundle][adr-306] | `hpr motors update` asks ThrustCurve.org's search for every motor at once and compares the solid ones with the bundled catalog by id, file count and update day, downloading only the motors that may differ. Its date filters aren't used: one of them matched nothing on 2026-10-29. A newer motor flies offline by name after the update; a newer file of a bundled motor is only cached, and the bundled file keeps flying. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -741,7 +740,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m5-7b1"></a>[M5.7b1][phase-2] | The whole catalog compiled in | blocked |
 | <a id="m5-7b2"></a>[M5.7b2][done-2] | Every motor by name, offline | done |
 | <a id="m5-7c"></a>[M5.7c][done-2] | Every passing file held to the oracles | done |
-| <a id="m5-7d"></a>[M5.7d][done-2] | Newer motors online, and the bundle described | done |
+| <a id="m5-7d"></a>[M5.7d][phase-2] | Newer motors online, and the bundle described | not yet done |
 | <a id="m6-1"></a>[M6.1][done-3] | Monte Carlo runs and sensitivity; split in four ([ADR-134][adr-134]) | done |
 | <a id="m6-1a"></a>[M6.1a][done-3] | Seeded dispersion of mass, center of mass, drag, motor, wind, rail and recovery delays; each flight the same whatever the run's size or thread count; failed flights counted; the apogee's spread ([ADR-134][adr-134], [Monte Carlo dispersion](monte-carlo.md)) | done |
 | <a id="m6-1b"></a>[M6.1b][done-3] | Landing ellipses holding a chosen share of the landings, checked against normal spreads with known answers; the next flight's ellipse; the landings each holds counted ([ADR-135][adr-135], [Landing ellipses](monte-carlo.md#landing-ellipses)) | done |
@@ -1263,7 +1262,6 @@ is the milestone that added or will add that test.
 [adr-303]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0303-the-2026-10-28-review-the-rocketpy-peaks-tightened.md
 [adr-304]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0304-every-passing-file-held-to-the-oracles.md
 [adr-305]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0305-the-2026-10-28-licensing-calls.md
-[adr-306]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0306-newer-motors-by-comparing-the-whole-catalog.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

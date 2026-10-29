@@ -43,9 +43,6 @@ pub enum MotorsCommand {
     /// Fetch a motor's thrust curve from ThrustCurve.org into the cache, so `hpr sim` flies it
     /// offline
     Fetch(crate::motor_fetch::FetchArgs),
-    /// Describe the bundled catalog, and fetch the motors and files ThrustCurve.org lists that it
-    /// lacks into the cache
-    Update(crate::motors_update::UpdateArgs),
 }
 
 /// `hpr motors list`'s filters. Each one given must match.
@@ -113,7 +110,6 @@ pub(crate) fn run(command: &MotorsCommand, to: &mut Out<'_>) -> Result<(), Failu
         MotorsCommand::Show(args) => show(&args.motor, to),
         MotorsCommand::Search(args) => crate::motor_search::run(args, to),
         MotorsCommand::Fetch(args) => crate::motor_fetch::run(args, to),
-        MotorsCommand::Update(args) => crate::motors_update::run(args, to),
     }
 }
 

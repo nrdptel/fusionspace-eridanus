@@ -128,9 +128,7 @@ motors and 1,700 of their 1,706 files ([the whole catalog](physics/motor.md#the-
 says why six are left out). By name it flies the 924 motors with a file that reads, offline, each
 file checked against ThrustCurve.org's figures, and the 412 that pass held to ThrustCurve.org's own statistics code
 ([how](physics/motor.md#validation)). One it lacks is fetched from there by name and cached, so it flies offline after that
-([motors on demand](decisions-and-roadmap.md#m4-5b)). `hpr motors update` caches the motors and
-files ThrustCurve.org's records show as added since the copy was taken
-([newer motors](cli.md#newer-motors-and-the-bundles-date) gives its limits). Stock and prices come from
+([motors on demand](decisions-and-roadmap.md#m4-5b)). Stock and prices come from
 motor.fusionspace.co. The detail is in [Solid motors](physics/motor.md),
 [`.eng` files](format/eng.md), [`.rse` files](format/rse.md) and
 [Motor stock and prices](motor-stock.md).

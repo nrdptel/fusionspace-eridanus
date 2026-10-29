@@ -180,7 +180,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
             stale.join(" and ")
         ));
     }
-    let counts = catalog.counts();
+    let counts = Counts::of(&catalog);
     println!(
         "{} motors, {} with a file that reads; {} files indexed, {} left out; {} files pass the 1% \
          check, and {} motors have one that does{}",
@@ -302,6 +302,39 @@ fn expected(records: &[Value], files: &[Value], source: &'static str) -> motor_f
             .map(id)
             .collect(),
         source,
+    }
+}
+
+/// What the index holds, counted.
+#[derive(Debug, PartialEq, Eq)]
+struct Counts {
+    motors: usize,
+    motors_flying: usize,
+    files: usize,
+    left_out: usize,
+    files_passing: usize,
+    motors_passing: usize,
+}
+
+impl Counts {
+    fn of(catalog: &Catalog) -> Self {
+        let curves = || catalog.motors.iter().flat_map(|m| &m.curves);
+        Self {
+            motors: catalog.motors.len(),
+            motors_flying: catalog
+                .motors
+                .iter()
+                .filter(|m| !m.curves.is_empty())
+                .count(),
+            files: curves().count(),
+            left_out: catalog.left_out.len(),
+            files_passing: curves().filter(|c| c.check.passes).count(),
+            motors_passing: catalog
+                .motors
+                .iter()
+                .filter(|m| m.curves.iter().any(|c| c.check.passes))
+                .count(),
+        }
     }
 }
 
@@ -710,7 +743,7 @@ fn matches_raw_snapshot(
 ) -> Result<Option<motor_flights::Expected>, String> {
     let records = records(root)?;
     let (captured, files) = files(root)?;
-    let counts = catalog.counts();
+    let counts = Counts::of(catalog);
     if counts.motors != records.len() || counts.files + counts.left_out != files.len() {
         return Err(format!(
             "the index holds {} motors and {} files, {} left out, for {} records and {} files",
@@ -1005,7 +1038,7 @@ mod tests {
                 .count();
             assert_eq!(indexed + out, 1, "{id}");
         }
-        let counts = catalog.counts();
+        let counts = Counts::of(catalog);
         assert_eq!(counts.files + counts.left_out, files.len());
     }
 
