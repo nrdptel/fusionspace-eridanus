@@ -181,7 +181,8 @@ fn newer_motor<T: Transport>(
 /// Whether `hpr sim --motor NAME` reaches the cache for `name`: only when the bundled catalog
 /// finds no motor by it ([`crate::sim::catalog_or_fetched`] tries the catalog first). For a new
 /// motor whose designation is a bundled motor's designation or common name, `hpr sim` flies the
-/// bundled motor, or refuses a name several bundled motors share; it never reads the cache.
+/// bundled motor or refuses the name (several bundled motors share it, or the one it finds has no
+/// curve); it never reads the cache.
 fn flies_by_name(catalog: &Catalog, name: &str) -> bool {
     matches!(
         hpr::Motor::from_catalog_in(catalog, name),

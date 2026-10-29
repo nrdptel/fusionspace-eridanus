@@ -258,7 +258,7 @@
           "type": "boolean"
         },
         "sim": {
-          "description": "For a motor the bundle lacks, the `hpr sim` command that flies it from the cache, `DESIGN`\nstanding for a design file. Given only when `command` reads the motor by its designation\nalone and the bundled catalog finds no motor by that name (`hpr sim --motor` looks there\nfirst, and then never reads the cache); else `null`.",
+          "description": "For a motor the bundle lacks, the `hpr sim` command that flies it from the cache, `DESIGN`\nstanding for a design file. Given only when `command` reads the motor by its designation\nalone and the bundled catalog finds no motor by that name (`hpr sim --motor` looks there\nfirst, and for a name it finds there never reads the cache); else `null`.",
           "type": [
             "string",
             "null"

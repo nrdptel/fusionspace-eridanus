@@ -1,6 +1,6 @@
 # ADR-307: Newer motors found by comparing ThrustCurve.org's whole catalog with the bundle (2026-10-29)
 
-- **Status:** accepted; settles how [M5.7d][m5-7d] carries out [ADR-288][adr-288] §4; no done-when changes. First merged in #1040, withdrawn by [ADR-306][adr-306] and landed again with this number, its printed `hpr sim` command given the design it needs, and its words on delisted motors corrected
+- **Status:** accepted; settles how [M5.7d][m5-7d] carries out [ADR-288][adr-288] §4; no done-when changes. First merged in #1040, withdrawn by [ADR-306][adr-306] and landed again with this number and the fixes of its reviews: the printed command for a new motor split into `hpr motors fetch NAME`, which reads it, and `hpr sim DESIGN --motor NAME`, which flies it, the second printed only where `hpr sim` reads the cache; and its words on delisted motors corrected
 - **Summary:** `hpr motors update` asks ThrustCurve.org's search for every motor at once and compares the solid ones with the bundled catalog by id, file count and update day, downloading only the motors that may differ. Its date filters aren't used: one of them matched nothing on 2026-10-29. A newer motor is found offline after the update; a newer file of a bundled motor is only cached, and the bundled file keeps flying.
 
 [m5-7d]: ../decisions-and-roadmap.md#m5-7d
