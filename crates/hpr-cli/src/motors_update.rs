@@ -278,7 +278,7 @@ fn check_lines(checked: &CatalogCheck) -> Vec<String> {
     }
     if !checked.unlisted.is_empty() {
         lines.push(format!(
-            "  {} of the bundle's motors are no longer listed; they still fly",
+            "  {} of the bundle's motors are no longer listed; they stay in the bundle",
             checked.unlisted.len()
         ));
     }

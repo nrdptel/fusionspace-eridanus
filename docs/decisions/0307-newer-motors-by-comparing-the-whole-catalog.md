@@ -63,4 +63,5 @@ the whole search recorded as a test fixture):
   file, every update.
 - An update with no search under a day old in the cache downloads about 0.93 MB for it (928,550
   bytes recorded), and two small answers for each motor that may differ.
-- A motor ThrustCurve.org stops listing keeps flying from the bundle; the update counts them.
+- A motor ThrustCurve.org stops listing stays in the bundle, and flies as before where it has a
+  file that reads; the update counts them.

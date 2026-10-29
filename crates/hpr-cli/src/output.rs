@@ -196,7 +196,7 @@ pub struct CatalogCheck {
     /// The motors with a file, or the motor itself, newer than the bundle, in ThrustCurve.org's
     /// order.
     pub newer: Vec<NewerMotor>,
-    /// The ThrustCurve.org ids of the bundle's motors it no longer lists. They still fly.
+    /// The ThrustCurve.org ids of the bundle's motors it no longer lists. They stay in the bundle.
     pub unlisted: Vec<String>,
 }
 

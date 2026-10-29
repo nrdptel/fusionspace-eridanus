@@ -147,7 +147,7 @@
           "$ref": "#/$defs/ReadFrom"
         },
         "unlisted": {
-          "description": "The ThrustCurve.org ids of the bundle's motors it no longer lists. They still fly.",
+          "description": "The ThrustCurve.org ids of the bundle's motors it no longer lists. They stay in the bundle.",
           "type": "array",
           "items": {
             "type": "string"
