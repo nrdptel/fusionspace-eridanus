@@ -1547,9 +1547,11 @@ with credit ([the decision record on ThrustCurve.org's records](https://github.c
 
 `hpr motors update` says what the bundled catalog holds: the date of its ThrustCurve.org
 snapshot, its motors and files, how many files pass [the 1% check](physics/motor.md#the-whole-catalog)
-against their motor's record (and how many motors have one that does), and the bytes compiled in.
-ThrustCurve.org listed no motor newer than the bundle on October 29, 2026, so the online path
-below is tested only on its recorded answers of that day, with one motor and one file
+against their motor's record (and how many motors have at least one such file), and the bytes
+compiled in.
+ThrustCurve.org listed no motor newer than the bundle on October 29, 2026
+([the decision record on the update](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0306-newer-motors-by-comparing-the-whole-catalog.md)),
+so the online path below is tested only on its recorded answers of that day, with one motor and one file
 taken out of the bundle; it hasn't yet found a real new one.
 
 Online, it asks ThrustCurve.org for its whole solid catalog, or reads an answer under a day old
@@ -1567,10 +1569,10 @@ command that finds it there is printed:
   comparison with ThrustCurve.org's statistics code covers it.
 
 A file swapped for another under the same motor, with the file count and date unchanged, isn't
-found. With the network down, an update whose answers are all cached reads them; otherwise it
-fails, and its help names the bundle's date. `--json` prints the same as one document. Offline,
-it reads what an earlier update cached; with any answer it needs missing, it names the bundle's
-date:
+found. `--json` prints the same as one document. Online with the network down, it reads the
+answers an earlier update cached, or fails with help naming the bundle's date if one is missing.
+With `--offline` it never asks the network: it reads what an earlier update cached, or with any
+answer missing names the bundle's date and succeeds:
 
 <!-- cli: example `hpr motors update --offline`; written by `cargo xtask cli`; do not edit -->
 
