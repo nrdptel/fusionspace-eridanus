@@ -32,8 +32,8 @@ use crate::output::{
     AccelerometerGravity, Analyze, AnalyzeMethod, AnalyzedAccelerometer, AnalyzedChannel,
     AnalyzedLog, ApogeeReading, BurnoutReading, DescentReading, FlightTimeReading,
     GravitySettledBy, HighestSample, LandingReading, LiftoffReading, LogReading, LoggerStated,
-    MaxAccelerationReading, MaxSpeedReading, OpeningReading, ReadingClip, ReadingMethod,
-    ReadingProvenance, ReadingSource, WithheldReading, WithheldReason,
+    MaxAccelerationReading, MaxSpeedReading, OpeningReading, ReadingClip, ReadingInterval,
+    ReadingMethod, ReadingProvenance, ReadingSource, WithheldReading, WithheldReason,
 };
 use crate::units::{
     acceleration_bound, gravities, meters, meters_bound, seconds_bound, speed, speed_bound,
@@ -322,8 +322,10 @@ fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
             time_s: apogee.time_s,
             time_after_liftoff_s: apogee.time_after_liftoff_s,
             time_bound_s: apogee.time_bound_s,
+            time_interval_s: apogee.time_interval_s.map(interval),
             height_m: apogee.height_m,
             bound_m: apogee.bound_m,
+            height_interval_m: apogee.height_interval_m.map(interval),
             altitude_m: apogee.altitude_m,
             is_floor: apogee.is_floor,
             highest_sample: HighestSample {
@@ -459,6 +461,14 @@ fn reading<A, B>(reading: &Reading<A>, value: impl FnOnce(&A) -> B) -> LogReadin
             },
             detail: withheld.detail.clone(),
         }),
+    }
+}
+
+/// A reading's 90% interval as the command writes it.
+fn interval(interval: readings::Interval) -> ReadingInterval {
+    ReadingInterval {
+        low: interval.low,
+        high: interval.high,
     }
 }
 

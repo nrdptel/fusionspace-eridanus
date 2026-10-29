@@ -18,7 +18,8 @@
 //! **The sets.** [`Set::Tuning`], 200 flights, for anything fitted or tuned; [`Set::A`], 1,000
 //! flights of HPR Sim's model; [`Set::B`], 1,000 differing from it; and [`Set::Calibration`],
 //! 2,000 drawn as the tuning set is, for the factors that scale the readings' 90% intervals
-//! ([`intervals`]), which ADR-257 §1 asks be fitted on seeds of their own. Flight `k` of a set draws
+//! ([`intervals`]), which [ADR-257][adr-257] §1, calibrated intervals, asks be fitted on seeds
+//! of their own. Flight `k` of a set draws
 //! each group of inputs (its design, motor, drag, wind, rail, site, model and logger) from its
 //! own stream, keyed by the set's seed, `k` and the group ([`SeededRng::for_stream`]), so a set's
 //! first flights don't change if it grows, and an input added to one group moves no other group.

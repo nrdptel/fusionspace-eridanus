@@ -3,7 +3,8 @@
 //!
 //! Each flight's own log is read by `hpr_flightdata::readings`, and each reading that states a
 //! 90% interval ([`hpr_flightdata::readings::interval`]) is compared with the flight's truth:
-//! below the interval, inside it, or above it. ADR-257 §1's test takes the three counts over a
+//! below the interval, inside it, or above it. The coverage test of [ADR-257][adr-257] §1,
+//! calibrated intervals, takes the three counts over a
 //! set, each with its two-sided 99.9% Clopper–Pearson band: the two tails' bands must each hold
 //! 5%, and the band of the count inside must hold 90%. At 1,000 readings a tail passes with 29 to
 //! 74 misses. Three probes must each fail it: every interval narrowed to 0.8 of its width about
@@ -135,7 +136,7 @@ pub fn said(index: u64, flight: &Flight) -> FlightSaid {
     }
 }
 
-/// A change to every interval that ADR-257 §1's test must catch.
+/// A change to every interval that the coverage test must catch.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum Probe {
@@ -199,8 +200,8 @@ impl Counts {
     /// Counts `truth` against `interval`. A truth that isn't a number misses on both sides.
     fn add(&mut self, interval: Interval, truth: f64) {
         self.given += 1;
-        let below = !(truth >= interval.low);
-        let above = !(truth <= interval.high);
+        let below = truth.is_nan() || truth < interval.low;
+        let above = truth.is_nan() || truth > interval.high;
         self.below += u64::from(below);
         self.above += u64::from(above);
         self.inside += u64::from(!below && !above);
@@ -237,7 +238,7 @@ impl Band {
     }
 }
 
-/// ADR-257 §1's test on one set of counts.
+/// The coverage test on one set of counts: each tail's band must hold 5%, the inside's 90%.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Test {
     /// The counts.
@@ -287,7 +288,7 @@ pub struct Check {
     /// The counts by design.
     pub by_design: BTreeMap<String, Counts>,
     /// The mean error, reading less truth, over the readings with an interval, with its sign
-    /// (ADR-257 §2).
+    /// (the apogee's error side, which a reading too low flatters).
     pub mean_error: f64,
 }
 

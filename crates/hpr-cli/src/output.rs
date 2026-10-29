@@ -1935,11 +1935,15 @@ pub struct ApogeeReading {
     pub time_after_liftoff_s: Option<f64>,
     /// The bound on the time's error, s.
     pub time_bound_s: f64,
+    /// The time's 90% interval, s; `null` when the height is a floor.
+    pub time_interval_s: Option<ReadingInterval>,
     /// The height above the pad, m.
     pub height_m: f64,
     /// The bound on the height's error, m: most of it the day's air, which moves a barometric
     /// height by up to 6.9% of itself.
     pub bound_m: f64,
+    /// The height's 90% interval, m above the pad; `null` when the height is a floor.
+    pub height_interval_m: Option<ReadingInterval>,
     /// The filtered track there, on its own scale, m.
     pub altitude_m: f64,
     /// Whether the log may have ended before the peak, so the height is a floor.
@@ -1953,6 +1957,16 @@ pub struct ApogeeReading {
     pub provenance: ReadingProvenance,
     /// How it was read.
     pub method: ReadingMethod,
+}
+
+/// A reading's 90% interval: on the synthetic flights, the truth lay below `low` about 5% of the
+/// time and above `high` about 5% (`hpr_flightdata::readings::interval`).
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, JsonSchema)]
+pub struct ReadingInterval {
+    /// Its lower end, in the reading's unit.
+    pub low: f64,
+    /// Its upper end, in the reading's unit.
+    pub high: f64,
 }
 
 /// The highest sample of the track.

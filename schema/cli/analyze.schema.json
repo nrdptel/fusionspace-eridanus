@@ -398,6 +398,17 @@
           "type": "number",
           "format": "double"
         },
+        "height_interval_m": {
+          "description": "The height's 90% interval, m above the pad; `null` when the height is a floor.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "height_m": {
           "description": "The height above the pad, m.",
           "type": "number",
@@ -435,6 +446,17 @@
           "description": "The bound on the time's error, s.",
           "type": "number",
           "format": "double"
+        },
+        "time_interval_s": {
+          "description": "The time's 90% interval, s; `null` when the height is a floor.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "time_s": {
           "description": "When, s.",
@@ -1563,6 +1585,26 @@
           "type": "string",
           "const": "other"
         }
+      ]
+    },
+    "ReadingInterval": {
+      "description": "A reading's 90% interval: on the synthetic flights, the truth lay below `low` about 5% of the\ntime and above `high` about 5% (`hpr_flightdata::readings::interval`).",
+      "type": "object",
+      "properties": {
+        "high": {
+          "description": "Its upper end, in the reading's unit.",
+          "type": "number",
+          "format": "double"
+        },
+        "low": {
+          "description": "Its lower end, in the reading's unit.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "low",
+        "high"
       ]
     },
     "ReadingMethod": {

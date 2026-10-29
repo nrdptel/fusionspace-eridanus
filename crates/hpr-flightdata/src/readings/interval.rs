@@ -11,7 +11,8 @@
 //! *Algorithmic Learning in a Random World*, Springer, 2005, ch. 2; J. Lei et al.,
 //! "Distribution-free predictive inference for regression", *JASA* 113(523), 1094–1111, 2018).
 //! `cargo xtask synthetic` fits them again and fails if they differ from the values here, then
-//! holds the intervals to ADR-257's test on the two test sets.
+//! holds the intervals to the coverage test of [ADR-257][adr-257], calibrated intervals, on the
+//! two test sets.
 //!
 //! **How far to trust it.** On flights drawn as the synthetic ones are, a reading's interval
 //! holds the truth about 90% of the time and misses about 5% on each side. A real flight can lie
