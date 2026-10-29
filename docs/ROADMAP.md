@@ -245,8 +245,8 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
 - [ ] **M5.6 A catalog of hpr's own** (ADR-197; Neer, 2026-10-07; VISION V52). Commercial parts
   beyond OpenRocket's catalog, which stays the base ([research](research/parts-catalog.md)).
   Every value carries its source, the date read and whether it was stated, measured or derived.
-  Facts only: no vendor text or photos; vendors' published figures are used with credit and no
-  vendor is asked (ADR-305).
+  Facts only: no vendor text or photos; vendors' published dimensions and masses are used with
+  credit and no vendor is asked (ADR-305).
   - [ ] **M5.6a Format, search and a parts list,** after release 0.5. *Done when:* the reader
     refuses a value with no source or date (a test each); `hpr parts search` and `show` (and
     Python) find parts in both catalogs by maker, by number and by a description's words (a test

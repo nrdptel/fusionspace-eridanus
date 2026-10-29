@@ -156,7 +156,8 @@ peak acceleration; no idea is promoted. The 2026-10-26 review's four moved to th
 - PROMOTED to [M10.1, release 0.1][adr-162]: prebuilt binaries through a release. The project
   prepares the workflow; publishing a release is Neer's.
 - A "vendor confirmed" flag ([ADR-197][adr-197]). Asking parts vendors for their data was
-  dropped by Neer (2026-10-28, [ADR-305][adr-305]): their published figures are used as facts.
+  dropped by Neer (2026-10-28, [ADR-305][adr-305]): their published dimensions and
+  masses are used as facts.
 - crates.io and PyPI names, and `hpr-io`'s license field: deferred by Neer for now.
 
 [adr-197]: ../decisions/0197-the-2026-10-07-parts-catalog.md
