@@ -221,7 +221,7 @@
       "type": "object",
       "properties": {
         "command": {
-          "description": "For a motor the bundle lacks, the command that flies or fetches it from the cache;\n`null` when no file of it makes a motor HPR Sim flies, or the name needs quoting.",
+          "description": "For a motor the bundle lacks, the `hpr motors fetch` command that reads it from the cache;\n`null` when no file of it makes a motor HPR Sim flies, or the name needs quoting.",
           "type": [
             "string",
             "null"
@@ -256,6 +256,13 @@
         "new_motor": {
           "description": "Whether the bundle lacks the motor itself, not only some of its files.",
           "type": "boolean"
+        },
+        "sim": {
+          "description": "For a motor the bundle lacks, the `hpr sim` command that flies it from the cache, `DESIGN`\nstanding for a design file; `null` when the bundled catalog has a motor by its designation\n(`hpr sim --motor` would fly that one), the designation alone finds another maker's motor,\nor it needs quoting.",
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "required": [

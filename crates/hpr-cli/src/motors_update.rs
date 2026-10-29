@@ -101,11 +101,11 @@ fn update<T: Transport>(
     })
 }
 
-/// A newer motor as the document lists it, with the command that finds it from the cache: for a
-/// motor the bundle lacks, `hpr sim --motor` by its designation where that finds it alone and the
-/// bundled catalog has no motor by that name ([`flies_by_name`]), else `hpr motors fetch` with its
-/// maker; for a newer file of a bundled motor, `hpr motors fetch` with
-/// its maker and the file. Looking it up caches what that command reads.
+/// A newer motor as the document lists it, with the commands that find it from the cache: for a
+/// motor the bundle lacks, `hpr motors fetch` by its designation where that finds it alone and the
+/// bundled catalog has no motor by that name ([`flies_by_name`]), with the `hpr sim` command that
+/// then flies it, else `hpr motors fetch` with its maker; for a newer file of a bundled motor,
+/// `hpr motors fetch` with its maker and the file. Looking it up caches what those commands read.
 fn newer_motor<T: Transport>(
     client: &Client<T>,
     catalog: &Catalog,
@@ -147,21 +147,24 @@ fn newer_motor<T: Transport>(
             }
         })
         .collect();
-    let flies = if newer.new_motor {
+    let (reads, flies) = if newer.new_motor {
         let alone = Wanted::named(&record.designation);
         let by_maker = Wanted::by(&maker, &record.designation);
         if flies_by_name(catalog, &record.designation)
             && finds(&alone).is_some()
             && let Some(word) = shell_word(&record.designation)
         {
-            Some(format!("hpr sim --motor {word}"))
+            (
+                command(&alone),
+                Some(format!("hpr sim DESIGN --motor {word}")),
+            )
         } else if finds(&by_maker).is_some() {
-            command(&by_maker)
+            (command(&by_maker), None)
         } else {
-            None
+            (None, None)
         }
     } else {
-        None
+        (None, None)
     };
     NewerMotor {
         manufacturer: maker,
@@ -169,7 +172,8 @@ fn newer_motor<T: Transport>(
         common_name: record.common_name.clone(),
         motor_id: record.motor_id.clone(),
         new_motor: newer.new_motor,
-        command: flies,
+        command: reads,
+        sim: flies,
         files,
     }
 }
@@ -266,14 +270,12 @@ fn check_lines(checked: &CatalogCheck) -> Vec<String> {
             }
         }
         if let Some(command) = &motor.command {
-            // `hpr sim --motor` flies it; `hpr motors fetch`, for a name several makers share,
-            // reads it.
-            let does = if command.starts_with("hpr sim") {
-                "flies"
-            } else {
-                "reads"
-            };
-            lines.push(format!("    `{command}` {does} it, offline too"));
+            lines.push(format!("    `{command}` reads it, offline too"));
+        }
+        if let Some(sim) = &motor.sim {
+            lines.push(format!(
+                "    `{sim}` flies it, DESIGN being your design file"
+            ));
         }
     }
     if !checked.unlisted.is_empty() {
@@ -302,8 +304,7 @@ mod tests {
     /// ThrustCurve.org's answers recorded on 2026-10-29 (`hpr-net`'s `tests/catalog_update.rs`)
     /// against the bundle with ZEVETA's ROS-40-5 and AeroTech H128W's RockSim file taken out: the
     /// update lists both, and caches what `hpr motors fetch` reads, so each command it prints
-    /// works offline after, over the same cache. `hpr sim --motor` looks a fetched motor up as
-    /// `hpr motors fetch` does given the name alone (`Wanted::named`), so it reads the same answers.
+    /// works offline after, over the same cache.
     #[test]
     fn a_newer_motor_and_file_from_recorded_answers_land_in_the_cache() {
         let dir = tempfile::tempdir().unwrap();
@@ -317,7 +318,7 @@ mod tests {
         assert_eq!((checked.listed, checked.looked_at), (1_004, 2));
         let lines = check_lines(checked).join("\n");
         // The bundled catalog still has a ROS-40-5, which `hpr sim --motor ROS-40-5` would fly,
-        // so the command printed for the new motor names its maker.
+        // so the command printed for the new motor names its maker and no `hpr sim` is printed.
         assert_eq!(
             lines,
             "ThrustCurve.org lists 1004 solid motors (fetched now)\n  \
@@ -352,6 +353,56 @@ mod tests {
                 "{out}"
             );
         }
+    }
+
+    /// With a catalog that has no motor by the new motor's name, the update prints `hpr motors
+    /// fetch` by the name alone and the `hpr sim` command that flies it. Offline over the same
+    /// cache, the fetch command reads it, and `hpr sim`'s lookup of `--motor ROS-40-5` against
+    /// that catalog flies the fetched motor.
+    #[test]
+    fn a_new_motor_by_a_name_the_bundle_lacks_gets_the_sim_command() {
+        let dir = tempfile::tempdir().unwrap();
+        let bundled = Catalog::bundled().unwrap();
+        let mut catalog = bundled.clone();
+        catalog
+            .motors
+            .retain(|motor| motor.motor_id != "6aa672715eabcd0002df9b36");
+        assert_eq!(catalog.motors.len(), bundled.motors.len() - 1);
+        let mut bundle = Bundle::of(bundled);
+        assert!(bundle.remove_motor("6aa672715eabcd0002df9b36"));
+        let client = Client::new(replay(), Cache::new(dir.path()), Mode::Online);
+        let document = update(&client, &catalog, &bundle).unwrap();
+        let checked = document.checked.as_ref().unwrap();
+        assert_eq!(
+            check_lines(checked).join("\n"),
+            "ThrustCurve.org lists 1004 solid motors (fetched now)\n  \
+             ZEVETA ROS-40-5, a motor the bundle lacks:\n    \
+             file 6aa6d2a7593d99000250d4f8, RASP (.eng), from user\n    \
+             `hpr motors fetch ROS-40-5` reads it, offline too\n    \
+             `hpr sim DESIGN --motor ROS-40-5` flies it, DESIGN being your design file"
+        );
+
+        let fetch = checked.newer[0].command.clone().unwrap();
+        let (mut out, mut err) = (Vec::new(), Vec::new());
+        let exit = crate::run_offline(fetch.split(' '), &mut out, &mut err, dir.path());
+        let (out, err) = (String::from_utf8_lossy(&out), String::from_utf8_lossy(&err));
+        assert_eq!(exit, crate::Exit::Success, "{fetch}: {out} {err}");
+        assert!(out.contains("6aa6d2a7593d99000250d4f8"), "{out}");
+
+        // `hpr sim` takes its `--motor` from `catalog_or_fetched`; against the catalog the update
+        // was given, the name reaches the cache and flies the fetched file.
+        let sim = checked.newer[0].sim.clone().unwrap();
+        let motor = sim.rsplit(' ').next().unwrap();
+        let flown = crate::weather::with_offline_cache(dir.path(), || {
+            crate::sim::catalog_or_fetched(motor, true, &catalog)
+        });
+        let Ok((_, crate::output::SimMotorSource::ThrustCurve(fetched), _)) = flown else {
+            panic!("{sim}: the fetched motor should fly, got {flown:?}");
+        };
+        assert_eq!(
+            (fetched.motor_id.as_str(), fetched.file_id.as_str()),
+            ("6aa672715eabcd0002df9b36", "6aa6d2a7593d99000250d4f8")
+        );
     }
 
     /// `hpr sim --motor NAME` is printed only for a name the bundled catalog finds no motor by: a

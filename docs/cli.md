@@ -1558,10 +1558,12 @@ Online, it asks ThrustCurve.org for its whole solid catalog, or reads an answer 
 from the cache. It downloads a motor's files only if the bundle lacks the motor, ThrustCurve.org
 lists a different number of files for it, or its record was updated on or after the snapshot's
 date. Each motor or RASP or RockSim file the bundle lacks is fetched into the cache, and the
-command that finds it there is printed:
+commands that find it there are printed:
 
-- A new motor flies offline by name, `hpr sim --motor NAME`. If the bundle has a motor by that
-  name, or several makers share it, give the maker: `hpr motors fetch --manufacturer MAKER NAME`.
+- A new motor is read offline by name, `hpr motors fetch NAME`, and `hpr sim DESIGN --motor NAME`
+  flies it, DESIGN being your design file. If the bundle has a motor by that name, `hpr sim
+  --motor` would fly the bundled one, so no `hpr sim` line is printed; that case, and a name
+  several makers share, give the maker: `hpr motors fetch --manufacturer MAKER NAME`.
 - A newer file of a bundled motor is only cached: `hpr sim --motor` keeps flying the bundled
   file, and `hpr motors fetch --file ID` shows the new one.
 - A fetched curve is a contributor's upload, as in [fetching a motor](#motors-from-thrustcurveorg).

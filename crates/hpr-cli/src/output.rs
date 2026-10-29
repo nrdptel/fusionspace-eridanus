@@ -213,9 +213,14 @@ pub struct NewerMotor {
     pub motor_id: String,
     /// Whether the bundle lacks the motor itself, not only some of its files.
     pub new_motor: bool,
-    /// For a motor the bundle lacks, the command that flies or fetches it from the cache;
+    /// For a motor the bundle lacks, the `hpr motors fetch` command that reads it from the cache;
     /// `null` when no file of it makes a motor HPR Sim flies, or the name needs quoting.
     pub command: Option<String>,
+    /// For a motor the bundle lacks, the `hpr sim` command that flies it from the cache, `DESIGN`
+    /// standing for a design file; `null` when the bundled catalog has a motor by its designation
+    /// (`hpr sim --motor` would fly that one), the designation alone finds another maker's motor,
+    /// or it needs quoting.
+    pub sim: Option<String>,
     /// Its RASP and RockSim files the bundle lacks.
     pub files: Vec<NewerFile>,
 }

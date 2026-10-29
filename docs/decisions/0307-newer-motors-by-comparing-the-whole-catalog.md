@@ -1,7 +1,7 @@
 # ADR-307: Newer motors found by comparing ThrustCurve.org's whole catalog with the bundle (2026-10-29)
 
-- **Status:** accepted; settles how [M5.7d][m5-7d] carries out [ADR-288][adr-288] §4; no done-when changes. First merged in #1040, withdrawn by [ADR-306][adr-306] and landed again unchanged but for this number
-- **Summary:** `hpr motors update` asks ThrustCurve.org's search for every motor at once and compares the solid ones with the bundled catalog by id, file count and update day, downloading only the motors that may differ. Its date filters aren't used: one of them matched nothing on 2026-10-29. A newer motor flies offline by name after the update; a newer file of a bundled motor is only cached, and the bundled file keeps flying.
+- **Status:** accepted; settles how [M5.7d][m5-7d] carries out [ADR-288][adr-288] §4; no done-when changes. First merged in #1040, withdrawn by [ADR-306][adr-306] and landed again with this number, its printed `hpr sim` command given the design it needs, and its words on delisted motors corrected
+- **Summary:** `hpr motors update` asks ThrustCurve.org's search for every motor at once and compares the solid ones with the bundled catalog by id, file count and update day, downloading only the motors that may differ. Its date filters aren't used: one of them matched nothing on 2026-10-29. A newer motor is found offline after the update; a newer file of a bundled motor is only cached, and the bundled file keeps flying.
 
 [m5-7d]: ../decisions-and-roadmap.md#m5-7d
 [adr-154]: 0154-motors-fetched-from-thrustcurve-by-name.md
@@ -32,10 +32,11 @@ the whole search recorded as a test fixture):
    `maxResults` is refused. The date filters aren't relied on.
 2. **What flies.** The downloads are the answers [ADR-154][adr-154]'s fetch reads, and the update
    then looks each newer motor up by name as `hpr sim --motor` and `hpr motors fetch` do, so those
-   answers are cached too, and prints the command that finds it. A motor the bundle lacks then
-   flies offline by its designation, or is read by `hpr motors fetch` with its maker where the
-   bundle has a motor by that name (`hpr sim --motor` tries the bundle first) or several makers
-   share it. No command is printed when no file of the motor makes one HPR Sim
+   answers are cached too, and prints the commands that find it. A motor the bundle lacks is then
+   read offline by `hpr motors fetch` with its designation, and `hpr sim DESIGN --motor` with it
+   flies it; where the bundle has a motor by that name (`hpr sim --motor` tries the bundle first)
+   or several makers share it, `hpr motors fetch` with its maker reads it and no `hpr sim`
+   command is printed. No command is printed when no file of the motor makes one HPR Sim
    flies, or a word of it is empty, starts with `-`, or holds a character other than ASCII
    letters and digits, a space and `/._+-`.
 3. **Offline.** The update reads what an earlier one cached. With any answer it needs missing
