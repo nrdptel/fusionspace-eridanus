@@ -427,7 +427,7 @@ function recount(analyze, catalog) {
     ' motors have one that does; catalog.json stores ' + storedPassing + ' as passing\n');
   if (disagree.length > 0) {
     for (const line of disagree) process.stderr.write('disagrees: ' + line + '\n');
-    fail(disagree.length + ' files disagree with catalog.json');
+    fail(disagree.length + (disagree.length === 1 ? ' file disagrees' : ' files disagree') + ' with catalog.json');
   }
   process.stdout.write('the recount agrees with catalog.json on every file\n');
 }
