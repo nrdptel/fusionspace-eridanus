@@ -1223,7 +1223,7 @@ fn counts_text(c: &intervals::Counts) -> String {
 /// The readings' intervals (M7.2e1, ADR-308).
 fn intervals_section(page: &mut String, made: &Intervals) {
     page.push_str("\n## The readings' 90% intervals\n\n");
-    let _ = write!(
+    let _ = writeln!(
         page,
         "Each flight's own log read by `hpr_flightdata::readings`, and each reading that states a \
          90% interval compared with the flight's truth (M7.2e1, ADR-257 §1–2, ADR-308). An \
@@ -1234,7 +1234,7 @@ fn intervals_section(page: &mut String, made: &Intervals) {
          to three significant figures. A reading **holds** when the two-sided 99.9% \
          Clopper–Pearson band on the share of truths below its interval and the band on the share \
          above each hold 5%, and the band on the share inside holds 90%; and every probe must \
-         fail that test. A floor states no interval and is counted apart.\n",
+         fail that test. A floor states no interval and is counted apart.",
         made.calibration_flights
     );
     page.push_str("\n### The shares\n\n");
