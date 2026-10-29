@@ -37,8 +37,11 @@ withholds one instead of guessing.
   every reading lands within its bound. Each but burnout's floor also lands within the tighter
   one its test works out ([evidence row G10](../evidence.md#g10)). A real log has no truth beside
   it. The 1,058 records of the project's sample logs show which readings each logger gives (an
-  apogee from 593 of them), not how right they are.
-- **What it leaves out:** the Mach number and dynamic pressure; 90% intervals on the readings.
+  apogee from 593 of them), not how right they are. The apogee's 90% intervals pass ADR-257's
+  two-sided test on the synthetic sets A and B, 820 and 845 readings, after their points were
+  fitted on 2,000 flights of their own ([evidence row G34](../evidence.md#g34)).
+- **What it leaves out:** the Mach number and dynamic pressure; 90% intervals on the readings but
+  the apogee's ([The 90% intervals](#the-90-intervals)).
   Loggers noisier than the tuning set's [six simulated logger
   profiles](synthetic-flights.md#the-loggers) and rockets slower off the pad than 2 g can be read
   outside their bound. Air more than 15 K from standard is out too, and so is any correction for
@@ -688,6 +691,61 @@ climb the 4.61 m (15.1 ft) rise at 2 g. So the pad's error is zero. The bound ad
 should be on a log written from the true heights with no noise. About 85% of the bound is the day's
 air, which a real log can't rule out.
 
+### The 90% intervals
+
+A bound is the most a reading's error can be. A 90% interval is narrower: it says where the truth
+usually lies. So far only the apogee states one, for its height and for its time, in the library
+(`Apogee::height_interval_m` and `time_interval_s`). The other readings, and `hpr analyze` and
+Python, follow in the [next increments][adr-308].
+
+Each interval comes from the reading's own bound. The synthetic flights' calibration set is 2,000
+flights on a seed no other set shares ([the sets](synthetic-flights.md#the-sets)). Each of its
+flights' own logs was read. Each apogee's error was then taken as a share of its bound: the
+reading $r$ less the truth, over the bound $b$. The interval runs from the reading less the 95%
+point of those shares times the bound, to the reading less the 5% point times the bound:
+
+$$
+\left[\, r - q_{95}\, b,\; r - q_{05}\, b \,\right]
+$$
+
+Each point is the 81st from its end of the 1,638 apogees' sorted shares, the split-conformal rank
+$\lfloor 0.05 (n + 1) \rfloor$ (Lei and colleagues, 2018). Each tail then misses at most 5% on
+flights drawn as those are.
+
+| reading | $q_{05}$ | $q_{95}$ |
+|---|---:|---:|
+| apogee height | −0.63 | 0.637 |
+| apogee time | −0.337 | 0.225 |
+
+The time's points lean: the reading tends to come early, so its interval reaches further after it
+than before. `cargo xtask synthetic` fits the points again and fails unless they equal the
+library's.
+
+**A worked example.** The invented PerfectFlite log's apogee of 390.144 m (1,280 ft) has a bound
+of 31.83 m ([above](#a-worked-example)). Its interval runs from 390.144 − 0.637 × 31.83 =
+369.87 m to 390.144 + 0.63 × 31.83 = 410.20 m (1,213 to 1,346 ft). The true apogee, 390.31 m,
+lies inside. Most of the width is the day's air, as most of the bound is.
+
+**How far to trust it.** Sets A and B, which the points never saw, each pass ADR-257's test
+([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/synthetic-flights.md#the-readings-90-intervals)).
+The truths below an interval and those above it are each counted, so an interval that misses on
+one side only fails. Each count's 99.9% band must hold 5%, and the band on those inside 90%:
+
+| set | reading | compared | below | inside | above |
+|---|---|---:|---:|---:|---:|
+| A | apogee height | 820 | 55 | 720 | 45 |
+| A | apogee time | 820 | 36 | 752 | 32 |
+| B | apogee height | 845 | 38 | 760 | 47 |
+| B | apogee time | 845 | 41 | 754 | 50 |
+
+The GNSS-only logs, 180 of A's and 155 of B's, give no apogee. Every interval narrowed to 0.8 of
+its width fails the test, and so does every one widened to 1.25 or shifted down one standard
+error. The apogee height's mean error is +1.07 m on A and +0.07 m on B. So the reading isn't low
+on average, which would be the flattering side for a waiver. The test pools the six simulated
+loggers and the ten designs. A day more than 15 K from the standard atmosphere, or a logger
+noisier than those, can see more misses. No real flight has checked an interval ([evidence row
+G34](../evidence.md#g34)).
+
 ### Before any reading
 
 A log passes four checks before any reading is taken from it. Each keeps the readings inside the
@@ -1152,6 +1210,11 @@ truth beside the logs, that doesn't say how each rocket came down.
 
 ### References
 
+- J. Lei, M. G'Sell, A. Rinaldo, R. J. Tibshirani and L. Wasserman, "Distribution-free predictive
+  inference for regression", *Journal of the American Statistical Association* 113(523),
+  1094–1111, 2018, §2.2, for the split-conformal rank that sets each interval's points. V. Vovk,
+  A. Gammerman and G. Shafer, *Algorithmic Learning in a Random World*, Springer, 2005, ch. 2,
+  for its origin.
 - R. K. Pearson, Y. Neuvo, J. Astola and M. Gabbouj, *The Class of Generalized Hampel Filters*.
   23rd European Signal Processing Conference (EUSIPCO), 2015, §2, eqs. 1 and 2. Pinned as
   `pearson-2015-generalized-hampel` in the
@@ -1190,6 +1253,7 @@ truth beside the logs, that doesn't say how each rocket came down.
 [adr-280]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md
 [adr-281]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0281-readings-on-every-logger.md
 [adr-283]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0283-the-rest-of-the-readings.md
+[adr-308]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md
 [noise]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/altimeter-sensor-noise.md
 [mach]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/altimeter-mach-error.md
 [formulas]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/altimeter-height-formulas.md

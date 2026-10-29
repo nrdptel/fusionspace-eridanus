@@ -393,6 +393,16 @@ pub fn clopper_pearson_lower(x: u64, n: u64, confidence: f64) -> f64 {
     0.5 * (lo + hi)
 }
 
+/// The upper edge of the two-sided Clopper–Pearson interval on a binomial share at `confidence`,
+/// `1 −` the lower edge of the share of the other outcome; 1 when `x` is `n`. NaN where
+/// [`clopper_pearson_lower`] is.
+pub fn clopper_pearson_upper(x: u64, n: u64, confidence: f64) -> f64 {
+    if x > n {
+        return f64::NAN;
+    }
+    1.0 - clopper_pearson_lower(n - x, n, confidence)
+}
+
 fn cell(moment: Moment, state: StateName, compared: &[Compared]) -> Cell {
     let flights = compared.len() as u64;
     let below = compared.iter().filter(|c| c.truth_below()).count() as u64;
@@ -502,6 +512,24 @@ mod tests {
         assert!(clopper_pearson_lower(5, 100, f64::NAN).is_nan());
         assert!(clopper_pearson_lower(5, 100, 1.0).is_nan());
         assert!(clopper_pearson_lower(5, 100, 0.0).is_nan());
+    }
+
+    #[test]
+    fn the_upper_edge_mirrors_the_lower_one() {
+        // ADR-257 §1: at 1,000 flights a tail passes with 29 to 74 misses, its band holding 5%.
+        let holds = |x| {
+            clopper_pearson_lower(x, 1000, 0.999) <= 0.05
+                && 0.05 <= clopper_pearson_upper(x, 1000, 0.999)
+        };
+        assert!(!holds(28) && holds(29) && holds(74) && !holds(75));
+        // ADR-308 §3: at set A's 820 readings, 22 to 63.
+        let holds_820 = |x| {
+            clopper_pearson_lower(x, 820, 0.999) <= 0.05
+                && 0.05 <= clopper_pearson_upper(x, 820, 0.999)
+        };
+        assert!(!holds_820(21) && holds_820(22) && holds_820(63) && !holds_820(64));
+        assert_eq!(clopper_pearson_upper(1000, 1000, 0.999), 1.0);
+        assert!(clopper_pearson_upper(5, 3, 0.999).is_nan());
     }
 
     #[test]

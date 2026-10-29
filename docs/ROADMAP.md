@@ -438,9 +438,19 @@ are in `hpr-forensics`. Formats, methods and the log corpus came from Debrief.
     withheld reading.
   - A flight is read end to end with no design file present, from the library and from
     `hpr analyze` (M4.2's command).
-  - [ ] **M7.2e The 90% intervals.** *Done when:* ADR-257 §1–2's test passes, probes failing, on
-    both test sets for every reading given; intervals in the library, `hpr analyze` and Python,
-    with the smoother's health card (ADR-300).
+  - [ ] **M7.2e The 90% intervals** (ADR-308: in four, below; met when they are). *Done when:*
+    ADR-257 §1–2's test passes, probes failing, on both test sets for every reading given;
+    intervals in the library, `hpr analyze` and Python, with the smoother's health card (ADR-300).
+    - [ ] **M7.2e2 The height track's other readings.** *Done when:* liftoff, the top speed,
+      landing, the flight time and the mean descent rate state intervals in the library that pass
+      e1's test on A and B, probes failing.
+    - [ ] **M7.2e3 The accelerometer's readings and the canopies'.** *Done when:* the top
+      acceleration, burnout, each canopy's rate and the main's opening state intervals that pass
+      e1's test on A and B, probes failing; a floor states a lower end, held to the test's lower
+      tail with its probes.
+    - [ ] **M7.2e4 The intervals in `hpr analyze` and Python.** *Done when:* every interval in
+      `hpr analyze`'s text and JSON and in Python, with the smoother's health card (ADR-300); a
+      log that starts at launch smoothed on an assumed pad, its card saying so (#982).
   - [ ] **M7.2f Two recordings, stages.** *Done when:* two logs side by side on one timeline, the
     offset recovered on synthetic pairs; stages on one; RocketPy's pair read.
   - [ ] **M7.2g Ghost files.** *Done when:* JSON (schema), CZML, glTF, read back by outside readers,
