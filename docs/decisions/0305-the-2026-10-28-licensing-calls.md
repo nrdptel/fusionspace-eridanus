@@ -52,9 +52,10 @@ as ThrustCurve.org's records in [ADR-287][adr-287]:
 3. **The held catalog file is cleared** ([#1006][i1006]). [ADR-301][adr-301] §5 held it back until
    the maintainer reviewed it, for a reason that is not the file's own; that review is this call.
 4. **Routes, each for when its work comes up:**
-   - **CATS's `.cfl` logs**, its flight computer's log format ([ADR-274][adr-274] §5): low priority. If a user asks for them, the
-     layout is inferred from cached sample files' bytes, as for the Teensy logger, never from
-     CATS's GPL source, and only invented test files are committed.
+   - **CATS's `.cfl` logs**, its flight computer's log format ([ADR-274][adr-274] §5): low
+     priority. If a user asks for them, the layout is inferred from cached sample files' bytes,
+     as for the Teensy logger, never from CATS's GPL source, and only invented test files are
+     committed.
    - **RASAero II's design files** ([ADR-236][adr-236]): when a validation case needs one, its
      geometry is re-entered from the stated dimensions as the project's own file.
    - **The guide's real-flight trace** ([ADR-247][adr-247]): drawn from an MIT-licensed flight,
@@ -70,8 +71,8 @@ as ThrustCurve.org's records in [ADR-287][adr-287]:
    - The refused or limited references stay so: ARL-TN-1128 and the Mach 2.45 set ([#764][i764]),
      Knacke, the streamer papers, OpenRocket's motor database, AerospaceNU's GPL-3.0 data, DRDC's
      tables (statistics only) and the STEP plans.
-6. **The orhelper migration layer is dropped** (orhelper is a GPL Python bridge to OpenRocket) from [the ideas backlog][ideas]: the `.ork`
-   importer already serves the users it was for.
+6. **The orhelper migration layer is dropped** (orhelper is a GPL Python bridge to OpenRocket)
+   from [the ideas backlog][ideas]: the `.ork` importer already serves the users it was for.
 
 **Alternatives considered.**
 
