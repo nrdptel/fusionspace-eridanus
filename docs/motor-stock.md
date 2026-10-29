@@ -280,8 +280,8 @@ recorded searches ([above](#matching-motors-to-thrustcurves-records),
 J450DM's file is a real answer: the certification test's curve (`source cert`), public domain.
 It's the file the simulator already carries for J450DM ([Solid motors](physics/motor.md)).
 Its curve starts at zero thrust at ignition, then follows the file's 36 points. The simulator works
-its figures out from those points. So they differ from the published figures on the record (here
-the motor finder's copy of them):
+its figures out from those points. So they differ from the published figures on ThrustCurve.org's
+record:
 
 | | from the file | on the record | difference |
 |---|---:|---:|---:|

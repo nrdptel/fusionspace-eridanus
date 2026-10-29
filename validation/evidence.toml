@@ -492,7 +492,7 @@ found = "a candidate: Dinulović, Rašuo, Slavković and Zajić, 'Flutter Analys
 [[row]]
 id = "G23"
 surface = "The motor finder"
-claim = "The motor finder is replayed on ThrustCurve.org's own searches of three makers, recorded unchanged on October 29, 2026, each solid motor's record the same as in the October 28 snapshot `hpr-motor` ships"
+claim = "The motor finder is replayed on ThrustCurve.org's own searches of three makers, recorded unchanged on October 29, 2026, each record the same, field for field, as in ThrustCurve.org's raw answer of October 28, 2026, and each solid motor's as in the snapshot `hpr-motor` compiles from it"
 pages = ["motor-stock.md#motor-stock-and-prices"]
 kind = "real"
 wanted = "real"

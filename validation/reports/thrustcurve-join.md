@@ -10,7 +10,7 @@ with no such record, or several, is a miss. This is the join on the answers in
 and ThrustCurve.org's searches of AeroTech, Cesaroni Technology and Loki Research (307, 296 and
 60 records), recorded unchanged on 2026-10-29 at 08:16:44 UTC. Each of their solid motors'
 records equals the record of the 2026-10-28 snapshot that `hpr-motor` compiles in. They are used
-as published facts, with the credit "Data courtesy of ThrustCurve.org"
+as published facts, with the credit "Motor data and thrust curves courtesy of ThrustCurve.org"
 ([ADR-287](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-287-thrustcurveorgs-motor-records-used-as-published-facts-2026-10-20),
 [ADR-305](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-305-neers-2026-10-28-licensing-calls-vendors-published-sizes-and-masses-as-facts-and-which-holds-stay-2026-10-28)).
 
