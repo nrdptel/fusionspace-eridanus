@@ -11,6 +11,8 @@ will be tested.
   flight draws its motor, drag, wind, rail angle, site and air, and one of six simulated loggers
   like those FusionSpace HPR reads. The logger writes what its sensors would, each with its own
   noise terms.
+  A fourth set of 2,000, the calibration set, fits the readings' 90% intervals and isn't in the
+  census ([The sets](#the-sets)).
   Each flight's truth is HPR Sim's trajectory, every 0.01 s, with its
   [dynamic pressure](../glossary.md#dynamic-pressure) and [Mach number](../glossary.md#mach-number).
 - **Sources:** sensor datasheets and public logs ([the sensor noise note][noise]). The port's error is
@@ -57,7 +59,7 @@ A check on these flights doesn't show how well HPR Sim predicts a real flight. T
 
 ### The sets
 
-Three sets, each on its own seed, written down before any method was tuned:
+The census's three sets, each on its own seed, written down before any method was tuned:
 
 | Set | Flights | Seed number | Model flown |
 |---|---:|---:|---|
@@ -65,7 +67,12 @@ Three sets, each on its own seed, written down before any method was tuned:
 | A | 1,000 | `2026101701` | HPR Sim's |
 | B | 1,000 | `2026101702` | its drag, wind and thrust reshaped |
 
-By rule, anything fitted or tuned uses the tuning set, and sets A and B only judge. Flight $k$
+By rule, anything fitted or tuned uses the tuning set, and sets A and B only judge. A fourth set,
+the calibration set, fits the points that scale the readings' 90% intervals
+([The 90% intervals](log-readings.md#the-90-intervals)). Its 2,000 flights are drawn as the tuning
+set's are, alternating A's model and B's, on seed `2026102900`. That seed was fixed on
+October 29, 2026, after the readings and the smoother were tuned and before any reading's interval
+existed. The census and the smoother's check don't fly it. Flight $k$
 of a set draws each group of inputs (its design, motor, drag, wind, rail, site, model and
 logger) from its own stream. The stream is keyed by the set's seed, $k$ and the group. So a
 set's first flights stay the same if it grows, and an input added to one group moves no other group.

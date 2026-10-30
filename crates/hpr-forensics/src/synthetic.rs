@@ -16,7 +16,10 @@
 //! the guide's page `physics/synthetic-flights.md`.
 //!
 //! **The sets.** [`Set::Tuning`], 200 flights, for anything fitted or tuned; [`Set::A`], 1,000
-//! flights of HPR Sim's model; [`Set::B`], 1,000 differing from it. Flight `k` of a set draws
+//! flights of HPR Sim's model; [`Set::B`], 1,000 differing from it; and [`Set::Calibration`],
+//! 2,000 drawn as the tuning set is, for the factors that scale the readings' 90% intervals
+//! ([`intervals`]), which [ADR-257][adr-257] §1, calibrated intervals, asks be fitted on seeds
+//! of their own. Flight `k` of a set draws
 //! each group of inputs (its design, motor, drag, wind, rail, site, model and logger) from its
 //! own stream, keyed by the set's seed, `k` and the group ([`SeededRng::for_stream`]), so a set's
 //! first flights don't change if it grows, and an input added to one group moves no other group.
@@ -29,6 +32,7 @@
 pub mod census;
 pub mod designs;
 pub mod held;
+pub mod intervals;
 pub mod logger;
 pub mod noise;
 pub mod smoothed;
@@ -58,10 +62,18 @@ pub enum Set {
     /// 1,000 flights of a model differing from HPR Sim's: drag against Mach number, wind shear
     /// and the thrust curve's shape.
     B,
+    /// 2,000 flights drawn as the tuning set's are, alternating set A's model and set B's, to fit
+    /// the factors that scale the readings' 90% intervals on seeds of their own ([ADR-257][adr-257]
+    /// §1: "any factor that scales the intervals is fitted on other seeds"). Its seed was fixed on
+    /// 2026-10-29, before any reading's interval existed. It isn't in [`Set::ALL`]: the census and
+    /// the smoother's check don't fly it.
+    ///
+    /// [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
+    Calibration,
 }
 
 impl Set {
-    /// Every set.
+    /// The census's sets: the tuning set and the two test sets.
     pub const ALL: [Self; 3] = [Self::Tuning, Self::A, Self::B];
 
     /// Its seed, fixed on 2026-10-17 before any interval existed ([ADR-280][adr-280] §2, the
@@ -75,6 +87,7 @@ impl Set {
             Self::Tuning => 2_026_101_700,
             Self::A => 2_026_101_701,
             Self::B => 2_026_101_702,
+            Self::Calibration => 2_026_102_900,
         }
     }
 
@@ -83,6 +96,7 @@ impl Set {
         match self {
             Self::Tuning => 200,
             Self::A | Self::B => 1_000,
+            Self::Calibration => 2_000,
         }
     }
 
@@ -92,13 +106,14 @@ impl Set {
             Self::Tuning => "tuning",
             Self::A => "a",
             Self::B => "b",
+            Self::Calibration => "calibration",
         }
     }
 
     /// Whether flight `index` draws set B's model.
     fn other_model(self, index: u64) -> bool {
         match self {
-            Self::Tuning => index % 2 == 1,
+            Self::Tuning | Self::Calibration => index % 2 == 1,
             Self::A => false,
             Self::B => true,
         }
@@ -360,7 +375,7 @@ mod tests {
 
     #[test]
     fn every_draw_stays_inside_its_range_and_fills_it() {
-        for set in Set::ALL {
+        for set in Set::ALL.into_iter().chain([Set::Calibration]) {
             let draws: Vec<Draw> = (0..set.count()).map(|k| draw(set, k)).collect();
             let column = |f: fn(&Draw) -> f64| draws.iter().map(f).collect::<Vec<_>>();
             assert!(fills(&column(|d| d.impulse_scale), 0.94, 1.06), "{set:?}");
@@ -415,7 +430,7 @@ mod tests {
             match set {
                 Set::A => assert!(others.is_empty()),
                 Set::B => assert_eq!(others.len(), draws.len()),
-                Set::Tuning => {
+                Set::Tuning | Set::Calibration => {
                     let alternate = draws
                         .iter()
                         .all(|d| matches!(d.model, Model::Other { .. }) == (d.index % 2 == 1));
@@ -436,6 +451,9 @@ mod tests {
         let seeds: Vec<u64> = Set::ALL.iter().map(|s| s.seed()).collect();
         assert_eq!(seeds, [2_026_101_700, 2_026_101_701, 2_026_101_702]);
         assert_eq!(Set::ALL.map(Set::count), [200, 1_000, 1_000]);
+        assert_eq!(Set::Calibration.seed(), 2_026_102_900);
+        assert_eq!(Set::Calibration.count(), 2_000);
+        assert!(!Set::ALL.contains(&Set::Calibration));
         // The same index in two sets draws two different flights.
         let (a, b) = (draw(Set::A, 3), draw(Set::B, 3));
         assert_ne!(a.impulse_scale, b.impulse_scale);

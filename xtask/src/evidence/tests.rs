@@ -1436,11 +1436,11 @@ fn evidence_write_fills_the_report_and_the_schema() {
 const ADR_278_ROWS: usize = 24;
 
 /// The rows the register holds: ADR-278's and the gaps the survey found beyond its table.
-const REGISTER_ROWS: usize = 33;
+const REGISTER_ROWS: usize = 34;
 
 // LIVE: passes once validation/evidence.toml and docs/evidence.md are written
 /// The committed register, pages, report and schema pass the check, offline; the register's
-/// rows are G1 to G33, ADR-278's 24 among them, pinned: removing a row takes a decision record
+/// rows are G1 to G34, ADR-278's 24 among them, pinned: removing a row takes a decision record
 /// amending ADR-278 (ADR-278 §2), and this test changes with it.
 #[test]
 fn the_committed_register_and_pages_are_current() {

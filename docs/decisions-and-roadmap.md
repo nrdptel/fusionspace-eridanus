@@ -336,6 +336,7 @@ until someone rewrites it in plainer words.
 | [ADR-305: Neer's 2026-10-28 licensing calls: vendors' published sizes and masses as facts, and which holds stay][adr-305] | Dimensions and masses a parts vendor publishes are facts, used with credit, as [ADR-287][adr-287] reads ThrustCurve.org's records; no photo, drawing or descriptive text is copied and no vendor is contacted, so [M5.6b](#m5-6b) needs no question to vendors. The motor finder's real test records come from the 2026-10-28 snapshot `hpr-motor` ships, and the held catalog file is cleared. CATS's log layout, RASAero II's design files and the guide's real-flight trace each get a route for when their work comes up. Featherweight's Bluetooth packets, makers' data sheets, Wyoming soundings and the refused references stay as they are. The orhelper migration idea is dropped. |  |
 | [ADR-306: Withdraw the motor update to land it again in order][adr-306] | [M5.7d](#m5-7d), `hpr motors update`, merged in #1040 before the captures of the pages it changed were looked at as [ADR-282][adr-282] requires: the look before the merge took more captures than its limit, before the site's clipping check. A look done right after the merge found no clipping beyond #1043's. As with [ADR-299][adr-299], #1040 is reverted and one PR lands it again with every check run before its merge. [M5.7d](#m5-7d)'s roadmap entry goes back to open until then. |  |
 | [ADR-307: Newer motors found by comparing ThrustCurve.org's whole catalog with the bundle][adr-307] | `hpr motors update` asks ThrustCurve.org's search for every motor at once and compares the solid ones with the bundled catalog by id, file count and update day, downloading only the motors that may differ. Its date filters aren't used: one of them matched nothing on 2026-10-29. A newer motor is found offline after the update; a newer file of a bundled motor is only cached, and the bundled file keeps flying. |  |
+| [ADR-308: M7.2e in four: the intervals by reading, then the surfaces][adr-308] | each reading's 90% interval runs from the reading less one share of its own bound to the reading less another. The two shares are the 5% and 95% points of the readings' errors as shares of their bounds, fitted on a calibration set of 2,000 synthetic flights on a seed of its own. `cargo xtask synthetic` fits them again, holds them to the library's, and runs [ADR-257][adr-257]'s test with its three probes on sets A and B. [M7.2e1](#m7-2e1) does this for the apogee's height and time; e2 and e3 add the other readings; e4 takes the intervals and the smoother's health card to `hpr analyze` and Python. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -804,6 +805,10 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-2c"></a>[M7.2c][done-5] | The rest of the readings | done |
 | <a id="m7-2d"></a>[M7.2d][done-5] | Reconstructing the flight: a smoother over the barometer, accelerometer and GNSS | done |
 | <a id="m7-2e"></a>[M7.2e][phase-5] | 90% intervals on the readings, tested on the synthetic flights | not yet done |
+| <a id="m7-2e1"></a>[M7.2e1][done-5] | The test, on the apogee | done |
+| <a id="m7-2e2"></a>[M7.2e2][phase-5] | The height track's other readings | not yet done |
+| <a id="m7-2e3"></a>[M7.2e3][phase-5] | The accelerometer's readings and the canopies' | not yet done |
+| <a id="m7-2e4"></a>[M7.2e4][phase-5] | The intervals in `hpr analyze` and Python | not yet done |
 | <a id="m7-2f"></a>[M7.2f][phase-5] | Two recordings of one flight, and stages | not yet done |
 | <a id="m7-2g"></a>[M7.2g][phase-5] | Ghost files: the flight as JSON, CZML and glTF | not yet done |
 | <a id="m7-3"></a>[M7.3][phase-5] | A flight against its simulation: residuals, and fitting drag, mass, impulse and wind to the log | not yet done |
@@ -1266,6 +1271,7 @@ is the milestone that added or will add that test.
 [adr-305]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0305-the-2026-10-28-licensing-calls.md
 [adr-306]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0306-withdraw-the-motor-update-to-land-it-in-order.md
 [adr-307]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0307-newer-motors-by-comparing-the-whole-catalog.md
+[adr-308]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

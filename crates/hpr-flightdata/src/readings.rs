@@ -95,8 +95,10 @@ use crate::log::{Channel, FlightLog, LogFormat, Quantity};
 
 mod accelerometer;
 mod canopies;
+pub mod interval;
 
 pub use accelerometer::{SYNTHETIC_COLUMN, SYNTHETIC_LOWER_RANGE_COLUMN};
+pub use interval::Interval;
 
 /// The running median's span, s: 0.3 s, Debrief's despiking window. Debrief runs a Hampel filter
 /// over it ([`crate::filter::hampel`], threshold 4); HPR Sim takes the plain median (threshold 0). On
@@ -602,6 +604,9 @@ pub struct Apogee {
     /// height's noise and step there, `√(2 (noise + step)/g)`, and the longest interval either
     /// side of the peak's flat run.
     pub time_bound_s: f64,
+    /// The time's 90% interval, s on the track's clock ([`interval::APOGEE_TIME_SHARES`]);
+    /// `None` when the height is a floor.
+    pub time_interval_s: Option<Interval>,
     /// The filtered track there, m above the pad, or on a short pad above the track's zero, whose
     /// possible error the bound holds.
     pub height_m: f64,
@@ -610,6 +615,9 @@ pub struct Apogee {
     /// ([`NOISE_M`]), drift ([`DRIFT_M_PER_S`]) since the log began, a step at the pad and one
     /// at the peak, and the median's [`peak_bound_m`].
     pub bound_m: f64,
+    /// The height's 90% interval, m above the pad ([`interval::APOGEE_HEIGHT_SHARES`]); `None`
+    /// when the height is a floor.
+    pub height_interval_m: Option<Interval>,
     /// The filtered track there, m above the track's own zero: the logger's, for its own
     /// altitude; for a channel's, as the channel or the standard atmosphere gives it.
     pub altitude_m: f64,
@@ -1406,14 +1414,21 @@ fn heights(log: &FlightLog) -> Readings {
         + bound;
     let time_bound = (2.0 * (NOISE_M + top_step) / STANDARD_GRAVITY_MPS2).sqrt()
         + local_interval(time, apogee_index).max(local_interval(time, run_end));
+    let is_floor = run_end + half >= n - 1;
+    // A floor's truth may lie any amount above it: it states no interval.
+    let stated = |shares: interval::Shares, value: f64, bound: f64| {
+        (!is_floor).then(|| shares.interval(value, bound)).flatten()
+    };
     readings.apogee = Reading::Read(Apogee {
         time_s: apogee_s,
         time_after_liftoff_s: lifted.map(|(index, _)| apogee_s - time[index]),
         time_bound_s: time_bound,
+        time_interval_s: stated(interval::APOGEE_TIME_SHARES, apogee_s, time_bound),
         height_m: height,
         bound_m: height_bound,
+        height_interval_m: stated(interval::APOGEE_HEIGHT_SHARES, height, height_bound),
         altitude_m: top,
-        is_floor: run_end + half >= n - 1,
+        is_floor,
         highest_sample: Sample {
             time_s: time[highest],
             altitude_m: track.height_m[highest],
@@ -2188,7 +2203,14 @@ mod tests {
 
         // Still climbing at the end: the apogee is a floor.
         let climbing = read(&log(4.0, flight(10.0)));
-        assert!(climbing.apogee.value().unwrap().is_floor);
+        let floor = climbing.apogee.value().unwrap();
+        assert!(floor.is_floor);
+        // A floor's truth may lie any amount above it, so it states no 90% interval; the same
+        // flight read whole states both.
+        assert!(floor.height_interval_m.is_none() && floor.time_interval_s.is_none());
+        let whole = cut.apogee.value().unwrap();
+        assert!(!whole.is_floor);
+        assert!(whole.height_interval_m.is_some() && whole.time_interval_s.is_some());
         assert_eq!(climbing.landing.reason(), Some(Reason::EndsBeforeLanding));
 
         // An accelerometer that doesn't say it lies along the axis gives no top acceleration.

@@ -818,3 +818,80 @@ barometer de-weighted: transonic 8.68–13.5 s, charge 29.5–32.1 s
 barometer less accelerometer at apogee: 88.0 m
 pass back: every step smoothed
 ```
+
+## The readings' 90% intervals
+
+Each flight's own log read by `hpr_flightdata::readings`, and each reading that states a 90% interval compared with the flight's truth (M7.2e1, ADR-257 §1–2, ADR-308). An interval runs from the reading less its 95% share of its bound to the reading less its 5% share; the shares are the 5% and 95% points of the readings' errors as shares of their bounds on the calibration set's 2000 flights (362 of them the GNSS-only tracker's, which give no apogee), a seed of their own that the test sets never share. `cargo xtask synthetic` fits them again and fails unless they equal the library's to three significant figures. A reading **holds** when the two-sided 99.9% Clopper–Pearson band on the share of truths below its interval and the band on the share above each hold 5%, and the band on the share inside holds 90%; and every probe must fail that test. The command also fails if a reading is withheld from a log with a barometer, or read with no interval, on any of the three sets: either would leave the counts with its misses.
+
+### The shares
+
+| Reading | Readings fitted | 5% share | 95% share |
+|---|---:|---:|---:|
+| apogee height | 1638 | -0.63 | 0.637 |
+| apogee time | 1638 | -0.337 | 0.225 |
+
+### The test
+
+The truths below, inside and above each interval, then the shares, each set's flights flown. Floors and withheld readings aren't compared.
+
+| Set | Reading | Compared | Below / inside / above | Below | Above | Floors | Withheld | Result |
+|---|---|---:|---:|---:|---:|---:|---:|---|
+| A | apogee height | 820 | 55 / 720 / 45 | 6.71% | 5.49% | 0 | 180 | holds |
+| A | apogee time | 820 | 36 / 752 / 32 | 4.39% | 3.9% | 0 | 180 | holds |
+| B | apogee height | 845 | 38 / 760 / 47 | 4.5% | 5.56% | 0 | 155 | holds |
+| B | apogee time | 845 | 41 / 754 / 50 | 4.85% | 5.92% | 0 | 155 | holds |
+
+### The probes
+
+Each interval narrowed to 0.8 of its width about its middle, widened to 1.25, and shifted down by one stated standard error (its width over 2 × 1.645): below / inside / above. Each must fail the test.
+
+| Set | Reading | narrowed to 0.8 | widened to 1.25 | shifted down one standard error |
+|---|---|---:|---:|---:|
+| A | apogee height | 115 / 592 / 113, fails | 0 / 820 / 0, fails | 0 / 537 / 283, fails |
+| A | apogee time | 61 / 690 / 69, fails | 5 / 803 / 12, fails | 1 / 680 / 139, fails |
+| B | apogee height | 137 / 581 / 127, fails | 0 / 845 / 0, fails | 0 / 562 / 283, fails |
+| B | apogee time | 68 / 691 / 86, fails | 3 / 815 / 27, fails | 1 / 679 / 165, fails |
+
+### The apogee's error side
+
+The apogee height's mean error, the reading less the truth, over the readings compared (ADR-257 §2). A reading too low is the flattering side for a waiver: the share of truths above the interval is that side's test, and the shifted-down probe its mutation probe. The mean is given at the figures of the largest error, the digits every platform shares, and with its sign: +0 is a mean too small for those figures that isn't below zero.
+
+| Set | Mean error, m | Largest error, m | Truths above |
+|---|---:|---:|---:|
+| A | +1 | 237 | 5.49% |
+| B | +0 | 234 | 5.56% |
+
+### By design
+
+Below / inside / above.
+
+| Design | A, apogee height | A, apogee time | B, apogee height | B, apogee time |
+|---|---:|---:|---:|---:|
+| rocketpy-bella-lui | 1 / 75 / 0 | 3 / 72 / 1 | 2 / 84 / 1 | 0 / 84 / 3 |
+| rocketpy-calisto-getting-started-motor-at-minus-1.255 | 8 / 72 / 2 | 5 / 75 / 2 | 5 / 81 / 5 | 2 / 82 / 7 |
+| rocketpy-calisto-tests-motor-at-minus-1.373 | 2 / 76 / 4 | 1 / 77 / 4 | 3 / 94 / 5 | 6 / 89 / 7 |
+| rocketpy-cavour | 7 / 72 / 6 | 8 / 71 / 6 | 2 / 71 / 5 | 2 / 66 / 10 |
+| rocketpy-genesis | 8 / 76 / 5 | 4 / 84 / 1 | 5 / 85 / 2 | 4 / 83 / 5 |
+| rocketpy-juno-iii | 3 / 65 / 8 | 2 / 73 / 1 | 6 / 71 / 7 | 7 / 73 / 4 |
+| rocketpy-lince | 9 / 56 / 8 | 4 / 65 / 4 | 2 / 68 / 7 | 7 / 64 / 6 |
+| rocketpy-ndrt-2020-nose-to-tail | 4 / 83 / 5 | 2 / 87 / 3 | 5 / 57 / 6 | 2 / 64 / 2 |
+| rocketpy-prometheus-2022-generic-motor | 9 / 68 / 6 | 6 / 69 / 8 | 3 / 72 / 8 | 7 / 74 / 2 |
+| rocketpy-valetudo | 4 / 77 / 1 | 1 / 79 / 2 | 5 / 77 / 1 | 4 / 75 / 4 |
+
+### By logger and by the day's air
+
+Below / inside / above, and in bold where that group's counts alone would fail the test. The test is on each set as a whole; these groups show where its misses fall. A barometric height is off by about the day's offset from the standard atmosphere over its temperature, so the height's misses gather on the coldest and warmest days: a warm day reads low, and its truth lies above the interval.
+
+| Logger | A, apogee height | A, apogee time | B, apogee height | B, apogee time |
+|---|---:|---:|---:|---:|
+| perfectflite | 10 / 125 / 9 | 10 / 134 / 0 | 5 / 121 / 6 | 9 / 119 / 4 |
+| rrc3 | 8 / 124 / 7 | 1 / 135 / 3 | 5 / 163 / 8 | 7 / 163 / 6 |
+| eggtimer | 15 / 158 / 8 | 18 / 161 / 2 | 12 / 147 / 10 | 15 / 146 / 8 |
+| altos | 11 / 162 / 12 | **2 / 156 / 27** | 4 / 168 / 14 | **4 / 152 / 30** |
+| imu-500hz | 11 / 151 / 9 | **5 / 166 / 0** | 12 / 161 / 9 | 6 / 174 / 2 |
+
+| The day's air | A, apogee height | A, apogee time | B, apogee height | B, apogee time |
+|---|---:|---:|---:|---:|
+| colder than −10 K | **55 / 77 / 0** | 10 / 114 / 8 | **38 / 125 / 0** | 12 / 143 / 8 |
+| −10 to +10 K | **0 / 551 / 0** | 21 / 510 / 20 | **0 / 526 / 0** | 23 / 468 / 35 |
+| warmer than +10 K | **0 / 92 / 45** | 5 / 128 / 4 | **0 / 109 / 47** | 6 / 143 / 7 |

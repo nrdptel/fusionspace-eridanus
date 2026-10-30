@@ -744,3 +744,13 @@ kind = "calibration"
 wanted = "real"
 not_checked = "a real flight's smoothed height and speed against a truth taken apart from the log, such as a second logger's or a ground tracker's record of the same flight"
 issue = 981
+
+[[row]]
+id = "G34"
+surface = "Flight-log readings' 90% intervals"
+claim = "The apogee's height and time state 90% intervals whose shares were fitted on 2,000 synthetic flights on a seed of their own; on sets A and B, 820 and 845 readings, each passes the two-sided coverage test, and the intervals narrowed, widened and shifted down each fail it. The misses aren't spread evenly: the height's all fall on days more than 10 K from standard, a warm day's above the interval (#1055), and the AltOS logs' times miss late (#1056)"
+pages = ["physics/log-readings.md#the-90-intervals", "start-here.md#flight-logs"]
+kind = "calibration"
+wanted = "real"
+not_checked = "a real flight's apogee height and time against a truth taken apart from the log, such as a second logger's or a ground tracker's record of the same flight"
+issue = 1052

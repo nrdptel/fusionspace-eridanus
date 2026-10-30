@@ -290,6 +290,17 @@ mod tests {
             Some(apogee.time_s - liftoff.time_s)
         );
         assert!((apogee.height_m - truth.apogee_m).abs() <= apogee.bound_m);
+        // The 90% intervals, as the guide's worked example gives them: 390.144 m less 0.637 and
+        // plus 0.63 of its 31.83 m bound, 369.87 to 410.20 m, holding the truth's 390.31 m.
+        let height = apogee.height_interval_m.unwrap();
+        assert!((height.low - 369.868).abs() < 0.01, "{height:?}");
+        assert!((height.high - 410.197).abs() < 0.01, "{height:?}");
+        assert!(height.low <= truth.apogee_m && truth.apogee_m <= height.high);
+        let time = apogee.time_interval_s.unwrap();
+        assert!(
+            time.low <= truth.apogee_s && truth.apogee_s <= time.high,
+            "{time:?}"
+        );
         // The pulse's third sample is the highest the file holds, and the median set it aside.
         let pulse_s = ((index(truth.apogee_s + PULSE_AFTER_APOGEE_S) + 2) as f64) * DT;
         assert!((apogee.highest_sample.time_s - pulse_s).abs() < 1e-9);

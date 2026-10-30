@@ -62,7 +62,7 @@ the checks fetch into. Its hash lets every check confirm it reads the same bytes
 
 <!-- evidence: report; written by `cargo xtask evidence` from validation/evidence.toml; do not edit -->
 
-The register holds 33 rows, as of October 29, 2026.
+The register holds 34 rows, as of October 29, 2026.
 
 **By kind.** Each surface's rows, counted by the kind of evidence behind them now:
 
@@ -79,9 +79,10 @@ The register holds 33 rows, as of October 29, 2026.
 | Design export | 0 | 1 | 0 | 0 | 0 | 0 | 1 |
 | The synthetic flights | 0 | 0 | 0 | 0 | 1 | 0 | 1 |
 | The smoother | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
-| All | 1 | 6 | 8 | 3 | 11 | 4 | 33 |
+| Flight-log readings' 90% intervals | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
+| All | 1 | 6 | 8 | 4 | 11 | 4 | 34 |
 
-**Short of what's wanted.** 32 of the 33 rows don't yet have the kind of evidence they want. Each has an open issue labeled `needs-sample`, linked in its row below.
+**Short of what's wanted.** 33 of the 34 rows don't yet have the kind of evidence they want. Each has an open issue labeled `needs-sample`, linked in its row below.
 
 **The rows.**
 
@@ -120,10 +121,12 @@ The register holds 33 rows, as of October 29, 2026.
 | <a id="g31"></a>G31 | Flight-log readers | An RRC3's Temperature column that states no unit is kept as written; its Voltages column that states none is read in volts. **Not checked:** the voltage's unit, which is assumed; a file whose voltage can be checked against another record of the same flight. | reasoning | real | [#683](https://github.com/nrdptel/fusionspace-eridanus/issues/683) | 2026-10-20 |
 | <a id="g32"></a>G32 | The synthetic flights | The synthetic loggers' noise follows the makers' datasheets and the noise measured on a few public logs, each drawn term tested on its own; the accelerometer's residual bias, the GNSS loop's range, damping and noise, the dropouts, the port's place, the Bosch-class part on two profiles, PerfectFlite's offset and one bench sensor's slow noise on every barometer are assumed, and the MS5607's error read as a gain is inferred. **Not checked:** a synthetic log as a whole against real logs of the same family: the pad's noise and its correlation, and the ejection pulses. | reasoning | real | [#725](https://github.com/nrdptel/fusionspace-eridanus/issues/725) | 2026-10-17 |
 | <a id="g33"></a>G33 | The smoother | At burnout, the top speed, apogee and a drawn moment, the smoother's 90% intervals on a log's height and vertical speed hold between 94.3% and 99.4% of the synthetic flights' truths in the three sets' cells, and two logger cells 89.2% and 89.7%, on the 171, 820 and 845 flights smoothed of three sets of 200, 1,000 and 1,000, its rules set with those sets in view. **Not checked:** a real flight's smoothed height and speed against a truth taken apart from the log, such as a second logger's or a ground tracker's record of the same flight. | calibration | real | [#981](https://github.com/nrdptel/fusionspace-eridanus/issues/981) | none |
+| <a id="g34"></a>G34 | Flight-log readings' 90% intervals | The apogee's height and time state 90% intervals whose shares were fitted on 2,000 synthetic flights on a seed of their own; on sets A and B, 820 and 845 readings, each passes the two-sided coverage test, and the intervals narrowed, widened and shifted down each fail it. The misses aren't spread evenly: the height's all fall on days more than 10 K from standard, a warm day's above the interval (#1055), and the AltOS logs' times miss late (#1056). **Not checked:** a real flight's apogee height and time against a truth taken apart from the log, such as a second logger's or a ground tracker's record of the same flight. | calibration | real | [#1052](https://github.com/nrdptel/fusionspace-eridanus/issues/1052) | none |
 
 **Due a search.** A row is due one when it has none yet, or its last was more than 30 days before October 29, 2026:
 
 - [G33](#g33)
+- [G34](#g34)
 
 **Searches so far.**
 
