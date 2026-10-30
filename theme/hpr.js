@@ -271,16 +271,19 @@ document.addEventListener('click', function (event) {
 // under 960 px (above) and `toc.js` adds the page's own headings under the entry, as the page
 // finishes loading, and the fonts load after, rewrapping the entries above it; each moves the
 // entry or leaves its centering clamped short: at 768 px it loaded cut by the window's bottom
-// edge, or below it. So once the headings are in, and again whenever the list or its entries
-// change size (the switch moving, the headings going in, the fonts rewrapping), the entry goes
-// back to the list's middle; after a click in the sidebar, or once the reader has scrolled the
-// list, it stays where it is if it shows whole, and goes back to the middle only if it doesn't.
-// Then no entry may be left cut by the list's top edge. It settles in the observer's callback,
-// before the frame is drawn, not a frame later.
+// edge, or below it. So while the page loads, once the headings are in and again whenever the
+// list or its entries change size, the entry goes back to the list's middle; after a click on an
+// entry in the sidebar it stays where it is if it shows whole, and goes back to the middle only
+// if it doesn't. Loading ends when the page and its fonts have loaded, or as soon as the reader
+// does anything in the list: after that nothing here moves it but the rule that no entry is left
+// cut by the list's top edge, as the switch moves at 960 px. It settles in the observer's
+// callback, before the frame is drawn, not a frame later.
 (function () {
     const list = document.querySelector('#mdbook-sidebar .sidebar-scrollbox');
     if (!list) return;
-    // A click on a link in the list, as `toc.js` counts one, marks the next page's load.
+    // A click on a link to another page in the list, as `toc.js` counts one (on the link itself,
+    // not a word inside it), marks the next page's load. Not a heading on this page, a fold
+    // toggle, or a click that opens the page elsewhere, which load nothing in this tab.
     const CLICKED = 'hpr-sidebar-clicked';
     let clicked = false;
     try {
@@ -290,7 +293,10 @@ document.addEventListener('click', function (event) {
         // No session storage: every load centers the entry.
     }
     list.addEventListener('click', function (event) {
-        if (event.target.tagName !== 'A') return;
+        const link = event.target;
+        if (link.tagName !== 'A' || link.classList.contains('chapter-fold-toggle')
+            || (link.getAttribute('href') || '#').startsWith('#') || event.button !== 0
+            || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
         try {
             sessionStorage.setItem(CLICKED, '');
         } catch (e) {
@@ -311,17 +317,17 @@ document.addEventListener('click', function (event) {
             bottom: Math.min(top + list.clientHeight, window.innerHeight),
         };
     };
-    // The current page's entry to the list's middle, or only when it isn't whole if `keep`.
-    const center = function (keep) {
+    // The current page's entry to the list's middle, or only when it isn't whole after a click.
+    const center = function () {
         const active = list.querySelector('a.active');
         if (!active || list.clientHeight === 0) return;
         const shown = view();
         const box = active.getBoundingClientRect();
-        if (keep && box.top >= shown.top && box.bottom <= shown.bottom) return;
+        if (clicked && box.top >= shown.top && box.bottom <= shown.bottom) return;
         list.scrollTop += (box.top + box.bottom) / 2 - (shown.top + shown.bottom) / 2;
     };
-    const settle = function (keep) {
-        center(keep);
+    // No entry left cut by the list's top edge.
+    const trim = function () {
         if (list.scrollTop <= 0) return;
         const edge = view().top;
         const cut = Array.from(list.querySelectorAll('a, .part-title')).find(function (entry) {
@@ -330,25 +336,43 @@ document.addEventListener('click', function (event) {
         });
         if (cut) list.scrollTop -= edge + 4 - cut.getBoundingClientRect().top;
     };
-    // The reader's own scrolling of the list, by wheel, touch, pointer or key.
-    let touched = false;
-    ['wheel', 'touchstart', 'pointerdown', 'keydown'].forEach(function (type) {
-        list.addEventListener(type, function () { touched = true; }, { passive: true });
+    let loading = true;
+    const watch = window.ResizeObserver ? new ResizeObserver(function () { again(); }) : null;
+    const again = function () {
+        if (!loading) return;
+        center();
+        trim();
+    };
+    const done = function () {
+        loading = false;
+        if (watch) watch.disconnect();
+    };
+    // The reader's first act in the list: a wheel, a touch, a press, a key or focus.
+    ['wheel', 'touchstart', 'pointerdown', 'keydown', 'focusin'].forEach(function (type) {
+        list.addEventListener(type, done, { passive: true });
     });
-    const again = function () { settle(clicked || touched); };
     // After `toc.js`'s own handler, which was added first, has put the page's headings in.
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', again);
     } else {
         again();
     }
-    if (window.ResizeObserver) {
-        const watch = new ResizeObserver(again);
+    if (watch) {
         watch.observe(list);
         Array.from(list.children).forEach(function (child) { watch.observe(child); });
     }
-    if (document.fonts) document.fonts.ready.then(again);
-    window.matchMedia('(min-width: 960px)').addEventListener('change', again);
+    const loaded = new Promise(function (resolve) {
+        if (document.readyState === 'complete') resolve();
+        else window.addEventListener('load', resolve, { once: true });
+    });
+    Promise.all([loaded, document.fonts ? document.fonts.ready : null]).then(function () {
+        again();
+        done();
+    });
+    window.matchMedia('(min-width: 960px)').addEventListener('change', function () {
+        if (loading) again();
+        else trim();
+    });
 })();
 
 // The first Tab on a long page (#504). A page opened with no fragment has no sequential focus
