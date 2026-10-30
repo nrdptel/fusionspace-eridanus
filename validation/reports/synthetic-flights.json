@@ -11549,14 +11549,14 @@
     "floor_shares": [
       {
         "quantity": "top_acceleration",
-        "stated": 413,
+        "stated": 454,
         "fitted": {
-          "high": 0.223,
-          "median": -0.111
+          "high": 0.212,
+          "median": -0.134
         },
         "library": {
-          "high": 0.223,
-          "median": -0.111
+          "high": 0.212,
+          "median": -0.134
         }
       },
       {
@@ -11592,6 +11592,8 @@
               "floor": null,
               "past_clip": null,
               "absent": 0,
+              "whole_at_clip": 0,
+              "whole_past_clip": 0,
               "withheld": {
                 "receiver_dropout": 180
               },
@@ -11811,6 +11813,8 @@
               "floor": null,
               "past_clip": null,
               "absent": 0,
+              "whole_at_clip": 0,
+              "whole_past_clip": 0,
               "withheld": {
                 "receiver_lag": 180
               },
@@ -12030,6 +12034,8 @@
               "floor": null,
               "past_clip": null,
               "absent": 0,
+              "whole_at_clip": 0,
+              "whole_past_clip": 0,
               "withheld": {
                 "receiver_lag": 180
               },
@@ -12249,6 +12255,8 @@
               "floor": null,
               "past_clip": null,
               "absent": 0,
+              "whole_at_clip": 0,
+              "whole_past_clip": 0,
               "withheld": {
                 "transonic": 533,
                 "receiver_lag": 180
@@ -12445,6 +12453,8 @@
               "floor": null,
               "past_clip": null,
               "absent": 0,
+              "whole_at_clip": 0,
+              "whole_past_clip": 0,
               "withheld": {
                 "needs": 180
               },
@@ -12664,6 +12674,8 @@
               "floor": null,
               "past_clip": null,
               "absent": 0,
+              "whole_at_clip": 0,
+              "whole_past_clip": 0,
               "withheld": {
                 "receiver_dropout": 180
               },
@@ -12883,6 +12895,8 @@
               "floor": null,
               "past_clip": null,
               "absent": 0,
+              "whole_at_clip": 0,
+              "whole_past_clip": 0,
               "withheld": {
                 "needs": 180
               },
@@ -13104,42 +13118,84 @@
               "quantity": "top_acceleration",
               "flights": 1000,
               "unstated": 0,
-              "floors": 224,
+              "floors": 235,
               "floor": {
                 "test": {
-                  "given": 224,
-                  "below": 15,
+                  "given": 235,
+                  "below": 7,
                   "band": {
-                    "low": 0.0246,
-                    "high": 0.139
+                    "low": 0.0058,
+                    "high": 0.0854
                   }
                 },
                 "probes": {
                   "raised": {
-                    "given": 224,
-                    "below": 65,
+                    "given": 235,
+                    "below": 60,
                     "band": {
-                      "low": 0.197,
-                      "high": 0.398
+                      "low": 0.169,
+                      "high": 0.358
                     }
                   },
                   "lowered": {
-                    "given": 224,
+                    "given": 235,
                     "below": 0,
                     "band": {
                       "low": 0.0,
-                      "high": 0.0334
+                      "high": 0.0318
                     }
                   }
                 },
                 "by_logger": {
                   "altos": [
-                    83,
-                    10
+                    88,
+                    4
                   ],
                   "imu-500hz": [
-                    141,
-                    5
+                    147,
+                    3
+                  ]
+                },
+                "by_design": {
+                  "rocketpy-bella-lui": [
+                    20,
+                    0
+                  ],
+                  "rocketpy-calisto-getting-started-motor-at-minus-1.255": [
+                    24,
+                    1
+                  ],
+                  "rocketpy-calisto-tests-motor-at-minus-1.373": [
+                    30,
+                    0
+                  ],
+                  "rocketpy-cavour": [
+                    25,
+                    1
+                  ],
+                  "rocketpy-genesis": [
+                    27,
+                    1
+                  ],
+                  "rocketpy-juno-iii": [
+                    21,
+                    1
+                  ],
+                  "rocketpy-lince": [
+                    24,
+                    0
+                  ],
+                  "rocketpy-ndrt-2020-nose-to-tail": [
+                    22,
+                    1
+                  ],
+                  "rocketpy-prometheus-2022-generic-motor": [
+                    21,
+                    1
+                  ],
+                  "rocketpy-valetudo": [
+                    21,
+                    1
                   ]
                 }
               },
@@ -13152,6 +13208,8 @@
                 }
               },
               "absent": 0,
+              "whole_at_clip": 121,
+              "whole_past_clip": 104,
               "withheld": {
                 "no_accelerometer": 644
               },
@@ -13400,10 +13458,34 @@
                     47,
                     2
                   ]
+                },
+                "by_design": {
+                  "rocketpy-bella-lui": [
+                    61,
+                    9
+                  ],
+                  "rocketpy-calisto-getting-started-motor-at-minus-1.255": [
+                    4,
+                    0
+                  ],
+                  "rocketpy-juno-iii": [
+                    20,
+                    0
+                  ],
+                  "rocketpy-ndrt-2020-nose-to-tail": [
+                    58,
+                    1
+                  ],
+                  "rocketpy-valetudo": [
+                    67,
+                    2
+                  ]
                 }
               },
               "past_clip": null,
               "absent": 0,
+              "whole_at_clip": 0,
+              "whole_past_clip": 0,
               "withheld": {
                 "transonic": 301,
                 "receiver_lag": 180
@@ -13606,6 +13688,8 @@
               "floor": null,
               "past_clip": null,
               "absent": 392,
+              "whole_at_clip": 0,
+              "whole_past_clip": 0,
               "withheld": {
                 "needs": 180
               },
@@ -13795,6 +13879,8 @@
               "floor": null,
               "past_clip": null,
               "absent": 392,
+              "whole_at_clip": 0,
+              "whole_past_clip": 0,
               "withheld": {
                 "needs": 180
               },
@@ -13984,6 +14070,8 @@
               "floor": null,
               "past_clip": null,
               "absent": 0,
+              "whole_at_clip": 0,
+              "whole_past_clip": 0,
               "withheld": {
                 "needs": 180
               },
@@ -14208,6 +14296,8 @@
               "floor": null,
               "past_clip": null,
               "absent": 0,
+              "whole_at_clip": 0,
+              "whole_past_clip": 0,
               "withheld": {
                 "receiver_dropout": 155
               },
@@ -14427,6 +14517,8 @@
               "floor": null,
               "past_clip": null,
               "absent": 0,
+              "whole_at_clip": 0,
+              "whole_past_clip": 0,
               "withheld": {
                 "receiver_lag": 155
               },
@@ -14646,6 +14738,8 @@
               "floor": null,
               "past_clip": null,
               "absent": 0,
+              "whole_at_clip": 0,
+              "whole_past_clip": 0,
               "withheld": {
                 "receiver_lag": 155
               },
@@ -14865,6 +14959,8 @@
               "floor": null,
               "past_clip": null,
               "absent": 0,
+              "whole_at_clip": 0,
+              "whole_past_clip": 0,
               "withheld": {
                 "transonic": 559,
                 "receiver_lag": 155
@@ -15061,6 +15157,8 @@
               "floor": null,
               "past_clip": null,
               "absent": 0,
+              "whole_at_clip": 0,
+              "whole_past_clip": 0,
               "withheld": {
                 "needs": 155
               },
@@ -15280,6 +15378,8 @@
               "floor": null,
               "past_clip": null,
               "absent": 0,
+              "whole_at_clip": 0,
+              "whole_past_clip": 0,
               "withheld": {
                 "receiver_dropout": 155
               },
@@ -15499,6 +15599,8 @@
               "floor": null,
               "past_clip": null,
               "absent": 0,
+              "whole_at_clip": 0,
+              "whole_past_clip": 0,
               "withheld": {
                 "needs": 155
               },
@@ -15720,42 +15822,84 @@
               "quantity": "top_acceleration",
               "flights": 1000,
               "unstated": 0,
-              "floors": 240,
+              "floors": 258,
               "floor": {
                 "test": {
-                  "given": 240,
-                  "below": 19,
+                  "given": 258,
+                  "below": 10,
                   "band": {
-                    "low": 0.0333,
-                    "high": 0.152
+                    "low": 0.0106,
+                    "high": 0.095
                   }
                 },
                 "probes": {
                   "raised": {
-                    "given": 240,
-                    "below": 62,
+                    "given": 258,
+                    "below": 65,
                     "band": {
-                      "low": 0.172,
-                      "high": 0.36
+                      "low": 0.169,
+                      "high": 0.349
                     }
                   },
                   "lowered": {
-                    "given": 240,
+                    "given": 258,
                     "below": 0,
                     "band": {
                       "low": 0.0,
-                      "high": 0.0312
+                      "high": 0.029
                     }
                   }
                 },
                 "by_logger": {
                   "altos": [
-                    93,
-                    16
+                    97,
+                    9
                   ],
                   "imu-500hz": [
-                    147,
-                    3
+                    161,
+                    1
+                  ]
+                },
+                "by_design": {
+                  "rocketpy-bella-lui": [
+                    25,
+                    1
+                  ],
+                  "rocketpy-calisto-getting-started-motor-at-minus-1.255": [
+                    33,
+                    2
+                  ],
+                  "rocketpy-calisto-tests-motor-at-minus-1.373": [
+                    28,
+                    1
+                  ],
+                  "rocketpy-cavour": [
+                    29,
+                    1
+                  ],
+                  "rocketpy-genesis": [
+                    28,
+                    1
+                  ],
+                  "rocketpy-juno-iii": [
+                    25,
+                    0
+                  ],
+                  "rocketpy-lince": [
+                    23,
+                    2
+                  ],
+                  "rocketpy-ndrt-2020-nose-to-tail": [
+                    21,
+                    0
+                  ],
+                  "rocketpy-prometheus-2022-generic-motor": [
+                    26,
+                    2
+                  ],
+                  "rocketpy-valetudo": [
+                    20,
+                    0
                   ]
                 }
               },
@@ -15768,6 +15912,8 @@
                 }
               },
               "absent": 0,
+              "whole_at_clip": 110,
+              "whole_past_clip": 83,
               "withheld": {
                 "no_accelerometer": 632
               },
@@ -16016,10 +16162,38 @@
                     63,
                     1
                   ]
+                },
+                "by_design": {
+                  "rocketpy-bella-lui": [
+                    63,
+                    4
+                  ],
+                  "rocketpy-calisto-getting-started-motor-at-minus-1.255": [
+                    4,
+                    0
+                  ],
+                  "rocketpy-calisto-tests-motor-at-minus-1.373": [
+                    3,
+                    0
+                  ],
+                  "rocketpy-juno-iii": [
+                    28,
+                    0
+                  ],
+                  "rocketpy-ndrt-2020-nose-to-tail": [
+                    43,
+                    1
+                  ],
+                  "rocketpy-valetudo": [
+                    70,
+                    1
+                  ]
                 }
               },
               "past_clip": null,
               "absent": 0,
+              "whole_at_clip": 0,
+              "whole_past_clip": 0,
               "withheld": {
                 "transonic": 307,
                 "receiver_lag": 155
@@ -16222,6 +16396,8 @@
               "floor": null,
               "past_clip": null,
               "absent": 409,
+              "whole_at_clip": 0,
+              "whole_past_clip": 0,
               "withheld": {
                 "needs": 155
               },
@@ -16411,6 +16587,8 @@
               "floor": null,
               "past_clip": null,
               "absent": 409,
+              "whole_at_clip": 0,
+              "whole_past_clip": 0,
               "withheld": {
                 "needs": 155
               },
@@ -16600,6 +16778,8 @@
               "floor": null,
               "past_clip": null,
               "absent": 0,
+              "whole_at_clip": 0,
+              "whole_past_clip": 0,
               "withheld": {
                 "needs": 155
               },

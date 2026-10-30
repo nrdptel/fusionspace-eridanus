@@ -1477,6 +1477,13 @@ mod tests {
         assert_eq!(top.provenance, Provenance::Clipped, "{top:?}");
         assert_eq!(top.range_m_s2, Some(200.0 * G));
         assert!(top.acceleration_m_s2 - top.bound_m_s2 <= scale * 5.0 * G + G);
+        // A clipped top states its lower end by the floor's shares, inside its bound, and no
+        // interval.
+        assert_eq!(
+            top.lower_end_m_s2,
+            Some(top.acceleration_m_s2 - 0.212 * top.bound_m_s2)
+        );
+        assert!(top.interval_m_s2.is_none());
         // Below the range, the same family's part reads its top, measured.
         let readings = read_all(&log(
             LogFormat::FluctusCsv,

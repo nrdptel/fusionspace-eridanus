@@ -842,11 +842,11 @@ Each flight's own log read by `hpr_flightdata::readings`, and each reading that 
 
 ### The floors' shares
 
-A floor's truth may lie any amount above it, so it states a lower end only: the reading less its 95% share of its bound. Its standard error is the 95% share less the median, times the bound, over 1.645. No flight's own accelerometer clips, so the top acceleration's floors come from each flight's log with its accelerometer clipping at 8 g and its top scaled to 0.95 to 1.05 of that clip.
+A floor's truth may lie any amount above it, so it states a lower end only: the reading less its 95% share of its bound. Its standard error is the 95% share less the median, times the bound, over 1.645. No flight's own accelerometer clips, so the top acceleration's floors come from each flight's log with its accelerometer clipping at 8 g and its top scaled from 1/(1 + s) to 1/(1 − s) of that clip, where the part's own scale error, ±s, decides whether it clips: ±3% on the 500 Hz IMU, ±10% on the AltOS part.
 
 | Reading | Floors fitted | 95% share | Median share |
 |---|---:|---:|---:|
-| top acceleration | 413 | 0.223 | -0.111 |
+| top acceleration | 454 | 0.212 | -0.134 |
 | burnout | 437 | -0.0339 | -0.195 |
 
 ### The test
@@ -862,7 +862,7 @@ The truths below, inside and above each interval, then the shares, each set's fl
 | A | landing | 820 | 38 / 746 / 36 | 4.63% | 4.39% | 0 | 180 | holds |
 | A | flight time | 820 | 38 / 750 / 32 | 4.63% | 3.9% | 0 | 180 | holds |
 | A | descent rate | 820 | 47 / 728 / 45 | 5.73% | 5.49% | 0 | 180 | holds |
-| A | top acceleration | 356 | 12 / 322 / 22 | 3.37% | 6.18% | 224 | 644 | holds |
+| A | top acceleration | 356 | 12 / 322 / 22 | 3.37% | 6.18% | 235 | 644 | holds |
 | A | burnout | 309 | 10 / 289 / 10 | 3.24% | 3.24% | 210 | 481 | holds |
 | A | drogue rate | 428 | 33 / 379 / 16 | 7.71% | 3.74% | 0 | 180 | holds |
 | A | main opening | 428 | 22 / 383 / 23 | 5.14% | 5.37% | 0 | 180 | holds |
@@ -874,7 +874,7 @@ The truths below, inside and above each interval, then the shares, each set's fl
 | B | landing | 845 | 23 / 788 / 34 | 2.72% | 4.02% | 0 | 155 | holds |
 | B | flight time | 845 | 37 / 763 / 45 | 4.38% | 5.33% | 0 | 155 | holds |
 | B | descent rate | 845 | 41 / 754 / 50 | 4.85% | 5.92% | 0 | 155 | holds |
-| B | top acceleration | 368 | 18 / 330 / 20 | 4.89% | 5.43% | 240 | 632 | holds |
+| B | top acceleration | 368 | 18 / 330 / 20 | 4.89% | 5.43% | 258 | 632 | holds |
 | B | burnout | 327 | 25 / 285 / 17 | 7.65% | 5.2% | 211 | 462 | holds |
 | B | drogue rate | 436 | 24 / 393 / 19 | 5.5% | 4.36% | 0 | 155 | holds |
 | B | main opening | 436 | 13 / 394 / 29 | 2.98% | 6.65% | 0 | 155 | holds |
@@ -886,38 +886,69 @@ Each floor's lower end against the flight's truth: the band on the share of trut
 
 | Set | Reading | Compared | Below | Share | Band | Raised one standard error | Lowered two standard errors | Result |
 |---|---|---:|---:|---:|---|---:|---:|---|
-| A | top acceleration | 224 | 15 | 6.7% | 2.46% to 13.9% | 65, fails | 0, fails | holds |
+| A | top acceleration | 235 | 7 | 2.98% | 0.58% to 8.54% | 60, fails | 0, fails | holds |
 | A | burnout | 210 | 12 | 5.71% | 1.81% to 12.9% | 56, fails | 0, fails | holds |
-| B | top acceleration | 240 | 19 | 7.92% | 3.33% to 15.2% | 62, fails | 0, fails | holds |
+| B | top acceleration | 258 | 10 | 3.88% | 1.06% to 9.5% | 65, fails | 0, fails | holds |
 | B | burnout | 211 | 6 | 2.84% | 0.463% to 8.76% | 47, fails | 0, fails | holds |
 
 ### The top acceleration's lower ends past the clip
 
-The same lower ends on each flight's log with its top as flown, past the clip by as much as its design takes it. How far is the design's, and no log says, so the test above is on tops at the clip; here the band on the share below must reach down to 5%: they miss no more.
+The same lower ends on each flight's log with its top as flown, past the clip by as much as its design takes it. How far is the design's, and no log says, so the test above is on the tops near the clip; here the band on the share below must reach down to 5%: they miss no more. Read whole are the tops with no lower end, out of each count: those near the clip, then those as flown.
 
-| Set | Compared | Below | Share | Band |
-|---|---:|---:|---:|---|
-| A | 252 | 0 | 0% | 0% to 2.97% |
-| B | 285 | 0 | 0% | 0% to 2.63% |
+| Set | Compared | Below | Share | Band | Read whole, near the clip | Read whole, as flown |
+|---|---:|---:|---:|---|---:|---:|
+| A | 252 | 0 | 0% | 0% to 2.97% | 121 | 104 |
+| B | 285 | 0 | 0% | 0% to 2.63% | 110 | 83 |
 
-### The floors by logger
+### The floors by logger and by design
 
-Floors compared, and truths below the lower end.
+Floors compared, and truths below the lower end, in bold where that group alone would fail the floors' test. The test is on each set as a whole. The AltOS part has no 8 g setting: its log is written clipping there to reach the count, and its family states no range, so the reader tells the clip by its flat top.
 
-| Set | Reading | Logger | Compared | Below |
+| Set | Reading | Group | Compared | Below |
 |---|---|---|---:|---:|
-| A | top acceleration | altos | 83 | 10 |
-| A | top acceleration | imu-500hz | 141 | 5 |
+| A | top acceleration | altos | 88 | 4 |
+| A | top acceleration | imu-500hz | 147 | 3 |
+| A | top acceleration | rocketpy-bella-lui | 20 | 0 |
+| A | top acceleration | rocketpy-calisto-getting-started-motor-at-minus-1.255 | 24 | 1 |
+| A | top acceleration | rocketpy-calisto-tests-motor-at-minus-1.373 | 30 | 0 |
+| A | top acceleration | rocketpy-cavour | 25 | 1 |
+| A | top acceleration | rocketpy-genesis | 27 | 1 |
+| A | top acceleration | rocketpy-juno-iii | 21 | 1 |
+| A | top acceleration | rocketpy-lince | 24 | 0 |
+| A | top acceleration | rocketpy-ndrt-2020-nose-to-tail | 22 | 1 |
+| A | top acceleration | rocketpy-prometheus-2022-generic-motor | 21 | 1 |
+| A | top acceleration | rocketpy-valetudo | 21 | 1 |
 | A | burnout | altos | 45 | 6 |
 | A | burnout | eggtimer | 68 | 1 |
 | A | burnout | perfectflite | 50 | 3 |
 | A | burnout | rrc3 | 47 | 2 |
-| B | top acceleration | altos | 93 | 16 |
-| B | top acceleration | imu-500hz | 147 | 3 |
+| A | burnout | rocketpy-bella-lui | 61 | 9 |
+| A | burnout | rocketpy-calisto-getting-started-motor-at-minus-1.255 | 4 | 0 |
+| A | burnout | rocketpy-juno-iii | 20 | 0 |
+| A | burnout | rocketpy-ndrt-2020-nose-to-tail | 58 | 1 |
+| A | burnout | rocketpy-valetudo | 67 | 2 |
+| B | top acceleration | altos | 97 | 9 |
+| B | top acceleration | imu-500hz | 161 | 1 |
+| B | top acceleration | rocketpy-bella-lui | 25 | 1 |
+| B | top acceleration | rocketpy-calisto-getting-started-motor-at-minus-1.255 | 33 | 2 |
+| B | top acceleration | rocketpy-calisto-tests-motor-at-minus-1.373 | 28 | 1 |
+| B | top acceleration | rocketpy-cavour | 29 | 1 |
+| B | top acceleration | rocketpy-genesis | 28 | 1 |
+| B | top acceleration | rocketpy-juno-iii | 25 | 0 |
+| B | top acceleration | rocketpy-lince | 23 | 2 |
+| B | top acceleration | rocketpy-ndrt-2020-nose-to-tail | 21 | 0 |
+| B | top acceleration | rocketpy-prometheus-2022-generic-motor | 26 | 2 |
+| B | top acceleration | rocketpy-valetudo | 20 | 0 |
 | B | burnout | altos | 37 | 3 |
 | B | burnout | eggtimer | 69 | 2 |
 | B | burnout | perfectflite | 42 | 0 |
 | B | burnout | rrc3 | 63 | 1 |
+| B | burnout | rocketpy-bella-lui | 63 | 4 |
+| B | burnout | rocketpy-calisto-getting-started-motor-at-minus-1.255 | 4 | 0 |
+| B | burnout | rocketpy-calisto-tests-motor-at-minus-1.373 | 3 | 0 |
+| B | burnout | rocketpy-juno-iii | 28 | 0 |
+| B | burnout | rocketpy-ndrt-2020-nose-to-tail | 43 | 1 |
+| B | burnout | rocketpy-valetudo | 70 | 1 |
 
 ### The probes
 

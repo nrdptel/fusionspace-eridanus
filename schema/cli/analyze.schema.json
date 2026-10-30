@@ -502,7 +502,7 @@
           "type": "boolean"
         },
         "lower_end_s": {
-          "description": "A floor's lower end, s: on the synthetic flights about 5% of burnouts came before it.\n`null` where it isn't a floor.",
+          "description": "A floor's lower end, s: the time burnout came after in about 19 of 20 synthetic flights.\n`null` where it isn't a floor.",
           "type": [
             "number",
             "null"
@@ -1439,7 +1439,7 @@
           "type": "boolean"
         },
         "lower_end_m_s2": {
-          "description": "A floor's lower end, m/s²: on the synthetic flights 5% to 8% of tops just at the clip lay\nbelow it, and none past it. `null` where it isn't a floor.",
+          "description": "A clipped top's lower end, m/s²: the figure the truth lay above in about 19 of 20 of the\ntops the part's own scale error could carry to the clip. `null` where it isn't clipped.",
           "type": [
             "number",
             "null"

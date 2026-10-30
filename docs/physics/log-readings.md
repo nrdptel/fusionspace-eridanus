@@ -40,8 +40,10 @@ withholds one instead of guessing.
   apogee from 593 of them), not how right they are. All twelve readings' 90% intervals pass the
   two-sided test of [ADR-257, calibrated intervals][adr-257] on the synthetic sets A and B, after
   their points were fitted on 2,000 flights of their own, and a floor's lower end passes that
-  test's lower tail ([evidence row G34](../evidence.md#g34)).
-- **What it leaves out:** the Mach number and dynamic pressure; a lower end on an apogee floor
+  test's lower tail, a clipped top's on tops written near an imposed clip
+  ([evidence row G34](../evidence.md#g34)).
+- **What it leaves out:** the Mach number and dynamic pressure; a lower end on an apogee floor or
+  a top whose burn the log ends in
   ([#1071](https://github.com/nrdptel/fusionspace-eridanus/issues/1071)).
   Loggers noisier than the tuning set's [six simulated logger
   profiles](synthetic-flights.md#the-loggers) and rockets slower off the pad than 2 g can be read
@@ -245,13 +247,15 @@ floor, its `clip` saying which ([The accelerometer](#the-accelerometer)). There 
 Liftoff is the last sample before the track shows the rocket climbing out of the pad's reach. So
 it comes after the true liftoff by the time that climb took.
 
-**A floor** holds one way only, and has two numbers. The reading is where the rule lands. For
+**A floor** holds one way only, and has three numbers. The reading is where the rule lands. For
 burnout without an accelerometer, that is the top speed's time, 2.20 s on the invented PerfectFlite flight
 below. The floor is that reading less its bound: 2.20 s less
 1.32 s, 0.88 s, which `hpr analyze` prints as "no sooner than 0.88 s". The truth is at or after
 the floor, or for a top acceleration at or above it. It may be later, or higher, by any amount.
-The errors the tuning set reports for a floor are the reading's, not the floor's
-([Checked against](#checked-against); the [glossary](../glossary.md#floor)).
+The third, the **lower end**, is tighter: the figure the truth stayed above in about 19 of 20
+synthetic flights ([A floor's lower end](#a-floors-lower-end)). The floor is the limit nothing fell
+below on the tuning set. The errors the tuning set reports for a floor are the reading's, not the
+floor's ([Checked against](#checked-against); the [glossary](../glossary.md#floor)).
 
 The **top speed** is HPR Sim's own, worked out from the heights rather than read from a speed
 column a logger writes. Every logger's track can give one, and its bound can be stated. A 0.5 s
@@ -702,7 +706,7 @@ readings state one in the library. `hpr analyze --json` and Python's `readings()
 `flight_time.interval_s`, `landing.mean_descent_rate_interval_m_s`,
 `max_acceleration.interval_m_s2`, `burnout.interval_s`, `drogue_descent.interval_m_s`,
 `main_descent.interval_m_s` and `main_descent.opening.interval_s`. A floor has no interval: a
-top acceleration floor states `lower_end_m_s2` and a burnout floor `lower_end_s`, as
+clipped top acceleration states `lower_end_m_s2` and a burnout floor `lower_end_s`, as
 [A floor's lower end](#a-floors-lower-end) sets out. `hpr analyze`'s text shows only the bounds;
 it takes them up in the [next increment][adr-308].
 
@@ -829,7 +833,8 @@ of 80; for the top speed, 17 of 57 and 14 of 69
 ([#1061](https://github.com/nrdptel/fusionspace-eridanus/issues/1061)). On a hot day, then, expect
 each of them above its interval's top far more often than 1 time in 20. So for a waiver, take
 the apogee plus its bound; for a fin's margin, the top speed plus its bound; for a landing, the
-main's rate plus its bound; for a load, the top acceleration plus its bound. Each bound holds the day's air to 15 K. The bounds, too, were measured
+main's rate plus its bound; for a load, the top acceleration plus its bound, unless it is a floor,
+which has no upper figure. Each bound holds the day's air to 15 K. The bounds, too, were measured
 only on synthetic flights.
 
 The times lean by logger. On the AltOS logs, whose rate drops from 100 to 10 samples a second at
@@ -848,44 +853,70 @@ real flight has checked an interval ([evidence row G34](../evidence.md#g34)).
 #### A floor's lower end
 
 A [floor](../glossary.md#floor)'s truth may lie any amount above it, so it can't state an interval.
-It states a lower end: the reading less its own 95% point times its bound, $r - q_{95}\, b$, and that
-end is tested alone. The band on the share of truths below it must hold 5%, the lower tail of the
-same test. Raised by one standard error, or lowered by two, it must fail. The standard error is the
-95% point less the median, times the bound, over 1.645, as an interval's is its width over twice
-1.645. Lowering by one isn't enough to fail on a few hundred floors: of 210, a band still holds 5%
-with 2 truths below.
+It states a lower end instead, the figure the truth stayed above in about 19 of 20 synthetic flights:
+the reading less its own 95% point times its bound, $r - q_{95}\, b$. That end is tested alone. The
+band on the share of truths below it must hold 5%, the lower tail of the same test. As that test is
+two-sided, too few truths below fail it as too many do. The probes are deliberately wrong lower ends:
+raised by one standard error, or lowered by two, each must fail. The standard error here sizes those
+probes. It is the 95% point less the median, times the bound, over 1.645, as an interval's is its width
+over twice 1.645. Lowering by one isn't enough to fail on a few hundred floors: of 210, a band still
+holds 5% with 2 truths below.
 
 | floor | floors fitted | 95% point $q_{95}$, share of the bound | median, share of the bound | where the lower end falls |
 |---|---:|---:|---:|---|
 | burnout, from the top speed's peak | 437 | −0.0339 | −0.195 | just after the reading |
-| top acceleration | 413 | 0.223 | −0.111 | just below the reading |
+| top acceleration, clipped | 454 | 0.212 | −0.134 | just below the reading |
 
 | set | floor | floors compared | truths below | truths below, raised one standard error | truths below, lowered two |
 |---|---|---:|---:|---:|---:|
-| A | top acceleration | 224 | 15 | 65 | 0 |
+| A | top acceleration | 235 | 7 | 60 | 0 |
 | A | burnout | 210 | 12 | 56 | 0 |
-| B | top acceleration | 240 | 19 | 62 | 0 |
+| B | top acceleration | 258 | 10 | 65 | 0 |
 | B | burnout | 211 | 6 | 47 | 0 |
 
 Every floor as stated passes, and every raised or lowered one fails.
 
-**Why a clipped top is fitted at the clip.** No flight's own accelerometer clips here, so the top
-acceleration's floors come from each flight's log with the accelerometer clipping at 8 g. How far
-past the clip a top goes depends on the design, and no log says. A first fit, on tops as flown, put
-the lower end above the reading. It held on A (8 of 252 below) and failed on B (31 of 285): the
-Bella Lui's tops, which only just pass 8 g under B's model, left 21 of 22 truths below it. So the
-fit now takes each flight's top scaled to lie at the clip, from 0.95 to 1.05 of it, where a lower
-end is hardest to hold; the rule reads a top as a floor from a little under the range, as a part's
-3% scale can carry it up to it. Tops further past the clip can only miss less: on the flights' tops
-as flown, none of A's 252 and none of B's 285 lie below the lower end. That lower end rests on the
-scaled tops' spread, so treat it as how far the part's own errors reach, not as a claim about how
-far past the clip the top went. On the AltOS logs it misses more than on the IMU's: 10 of 83 against
-5 of 141 on A, and 16 of 93 against 3 of 147 on B.
+**Why a clipped top is fitted near the clip.** No synthetic flight's accelerometer reaches its own
+range, so the top acceleration's floors come from each flight's log written again with the
+accelerometer clipping at 8 g. The AltOS part has no such setting; its log clips there too, to reach
+a count the test can fail on, and its reader tells the clip by its flat top.
 
-**A worked example.** A top reading 78.5 m/s² (8.00 g), clipped, with a bound of 9.00 m/s²
-(invented numbers) has the lower end 78.5 − 0.223 × 9.00 = 76.5 m/s² (7.80 g). Its floor, the
-reading less the whole bound, is 69.5 m/s² (7.09 g). The true top is most likely above the first and,
-on what the tuning set held, no lower than the second. It may be much higher than either.
+How far past a clip a top goes depends on the design, and no log says. A first fit, on tops as
+flown, found most of them far past it, so its 95% point came out negative and put the lower end
+above the reading. It held on A (8 of 252 below) and failed on B (31 of 285): one of the ten designs,
+the Bella Lui, whose tops only just pass 8 g under B's model, left 21 of 22 truths below it.
+
+So the fit takes the one place where the log's own error can put a truth below a clipped reading. A
+part's gain can be off by up to $s$, ±3% on the 500 Hz IMU and ±10% on the AltOS part. A top from
+$1/(1+s)$ of the clip can be carried up to it, and a top past $1/(1-s)$ always clips. Each flight's top
+is scaled to a place of its own between those, on the calibration set and, at other places, on A and
+B. A top under the clip that the gain carried there is the only kind
+that misses: a top truly past the clip lies above the reading. On the tops as flown, none of A's 252
+and none of B's 285 lie below the lower end. Tops read whole, with no floor, are left out of these
+counts, and the report gives how many.
+
+So read the lower end as how far the part's own gain can carry a reading above the truth, not as how
+far past the clip the top went. It rests on the window as well as on the flights. With both parts'
+window at 1.00 to 1.10 of the clip, no top lies under the clip and the fit's 95% point goes to −0.0496,
+a lower end above the reading that the test no longer supports; at 0.90 to 1.10 it is 0.236 against
+this window's 0.212. The window is the parts' stated scale errors, not a choice made to fit. It was set
+after A and B had been read, so these two sets don't hold it apart as they do the other points
+([ADR-308][adr-308]). On the AltOS logs the lower end misses 4 of 88 and 9 of 97, against the IMU's 3 of
+147 and 1 of 161. It is stated only on a clipped top: a floor whose burn the log ends in has none, as
+an apogee floor has none, since no set reads one to test
+([#1071](https://github.com/nrdptel/fusionspace-eridanus/issues/1071)).
+
+A burnout floor's lower end lies a little after the reading, by 0.0339 of the bound, as burnout
+usually comes after the top speed. How far after depends on the motor's tail-off, so it can lean by
+design: on the Bella Lui, 9 of 61 truths lie below it on A
+([#1070](https://github.com/nrdptel/fusionspace-eridanus/issues/1070)).
+
+**A worked example.** With an invented clipped top reading 78.5 m/s² (8.00 g) and a bound of
+9.00 m/s², the lower end is 78.5 − 0.212 × 9.00 = 76.6 m/s² (7.81 g). The floor, the reading less the
+whole bound, is 69.5 m/s² (7.09 g). The true top is most likely above the first and, on what the
+tuning set held, no lower than the second. Both are lower limits: neither sizes a load, as the true
+top may be much higher than either. Use the reading plus its bound only for a top that isn't a floor
+(`is_floor` false).
 
 - J. Lei, M. G'Sell, A. Rinaldo, R. J. Tibshirani and L. Wasserman, "Distribution-free predictive
   inference for regression", *Journal of the American Statistical Association* 113(523),
@@ -1284,7 +1315,7 @@ truth beside the logs, that doesn't say how each rocket came down.
   axes' magnitude could give a top acceleration, but not burnout, as it never falls below zero
   ([#781](https://github.com/nrdptel/fusionspace-eridanus/issues/781)).
 - **Intervals.** A bound is a worst case held on the tuning set, not a 90% interval with a tested
-  chance of holding the truth. Twelve readings state one too, and a floor a lower end
+  chance of holding the truth. Twelve readings state one too, a floor a lower end in its place
   ([The 90% intervals](#the-90-intervals)); `hpr analyze`'s text states neither yet.
 - **A GNSS track.** A log whose only height is a GNSS receiver's gives no reading. The
   receiver's lag and overshoot aren't modeled, so no bound can be stated for it.

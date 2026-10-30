@@ -2437,7 +2437,7 @@ you press Tab. Save it where your shell looks for completions:
   device ([what it doesn't fly yet](#what-hpr-sim-doesnt-fly-yet)).
 - **Readings within bounds; intervals in the JSON.** `hpr analyze` gives each reading within a
   bound or withheld, on every layout it reads. Its JSON gives twelve readings a 90% interval too,
-  and a floor a lower end ([The 90% intervals](physics/log-readings.md#the-90-intervals)); its
+  and a floor `lower_end_s` or `lower_end_m_s2` in its place ([The 90% intervals](physics/log-readings.md#the-90-intervals)); its
   text gives neither yet ([M7.2e](decisions-and-roadmap.md#m7-2e)). It gives no Mach number and takes no top
   acceleration from a board's three axes. It finds no deployment but the main's opening, from the
   descent's rate.
