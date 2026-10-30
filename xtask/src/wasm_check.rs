@@ -185,6 +185,10 @@ fn outside_core(tree: &str, packages: &[Package]) -> Vec<String> {
 }
 
 #[cfg(test)]
+#[allow(
+    clippy::panic_in_result_fn,
+    reason = "a test helper fails its test by panicking"
+)]
 mod tests {
     use std::fs;
     use std::path::PathBuf;

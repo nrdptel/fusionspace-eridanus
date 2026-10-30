@@ -394,9 +394,13 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
         samples: None,
         figures: Vec::new(),
     };
+    #[allow(
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss,
+        reason = "a whole number in range, so the cast is exact"
+    )]
     let flight_number = si("flight number", Quantity::Number)
         .filter(|number| number.fract() == 0.0 && (0.0..=f64::from(u32::MAX)).contains(number))
-        // A whole number in range, so the cast is exact.
         .map(|number| number as u32);
     let mut all_notes = vec![format!(
         "a summary holds no samples, so the record's clock and tracks are empty: the flight's \

@@ -137,6 +137,8 @@ unsafe_code = "deny"
 expect_used = "warn"
 panic = "warn"
 unwrap_used = "warn"
+# A function that returns an error returns it, and does not also panic.
+panic_in_result_fn = "warn"
 # Library code does no I/O; binaries opt out at the crate root.
 print_stderr = "warn"
 print_stdout = "warn"

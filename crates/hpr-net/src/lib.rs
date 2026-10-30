@@ -60,6 +60,19 @@
 //! # Ok::<(), NetError>(())
 //! ```
 
+// Outside bytes reach casts here. An `as` cast of a length or count truncates silently where
+// `usize` is 32 bits (wasm32), and one from a float saturates: each cast is checked with
+// `try_from`, or its `allow` says why it is exact or meant.
+#![warn(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+#![cfg_attr(
+    test,
+    allow(
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss,
+        clippy::panic_in_result_fn,
+        reason = "a test builds its own inputs and fails by panicking"
+    )
+)]
 #![allow(
     clippy::disallowed_methods,
     clippy::disallowed_types,

@@ -1287,7 +1287,8 @@ mod tests {
         assert_ne!(top_over_clip(a, 7, 0.03), top_over_clip(b, 7, 0.03));
         assert_ne!(top_over_clip(a, 8, 0.03), top_over_clip(b, 7, 0.03));
         // The reader's threshold reaches the window's bottom with the gain and bias at their
-        // limits: a top lower than it can't read as clipped.
+        // limits. Only sample noise and the reader's two steps of slack reach under that, by
+        // about 1% of the clip at most.
         let read = reach / 1.03 * 1.03 * 8.0 + ACCEL_BIAS_G;
         assert!((read - (8.0 - GRAVITY_TOLERANCE_G)).abs() < 1e-9, "{read}");
     }

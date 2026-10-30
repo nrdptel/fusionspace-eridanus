@@ -854,7 +854,7 @@ fn time_of_day_ns(cell: &str) -> Option<i64> {
     let mut nanos: i64 = 0;
     for (place, digit) in fraction.bytes().enumerate() {
         // At most nine digits, each place a tenth of the one before, from 10⁸ ns.
-        nanos += i64::from(digit - b'0') * 10_i64.pow(8 - place as u32);
+        nanos += i64::from(digit - b'0') * 10_i64.pow(8 - u32::try_from(place).ok()?);
     }
     Some(((hours * 60 + minutes) * 60 + whole) * NS_PER_S + nanos)
 }
@@ -1541,6 +1541,10 @@ fn alt_agl_check(columns: &[Column], sets: &[Set]) -> Option<AltAgl> {
 fn altitude_agl_words(columns: &[Column], sets: &[Set]) -> Option<String> {
     let place = |name: &str| columns.iter().position(|c| c.name == name);
     let (altitude, agl) = place("ALT").zip(place("Altitude AGL"))?;
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "finite by the filter; one past an i64's span saturates, matching none inside it"
+    )]
     let mut differences: Vec<i64> = sets
         .iter()
         .flat_map(|set| {
@@ -1551,7 +1555,7 @@ fn altitude_agl_words(columns: &[Column], sets: &[Set]) -> Option<String> {
         })
         .filter(|difference| difference.is_finite())
         // Tenths of a foot, as the newer log writes both; a difference past an i64's span
-        // saturates and so matches no other.
+        // saturates, and so matches no difference inside it.
         .map(|difference| (difference * 10.0).round() as i64)
         .collect();
     differences.sort_unstable();

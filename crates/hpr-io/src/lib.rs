@@ -24,6 +24,18 @@
 //! [guide-orc]: https://hpr.fusionspace.co/format/orc.html
 //! [guide-elevation]: https://hpr.fusionspace.co/elevation.html#from-an-elevation-file-of-your-own
 
+// Outside bytes reach casts here. An `as` cast of a length or count truncates silently where
+// `usize` is 32 bits (wasm32), and one from a float saturates: each cast is checked with
+// `try_from`, or its `allow` says why it is exact or meant.
+#![warn(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+#![cfg_attr(
+    test,
+    allow(
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss,
+        reason = "a test builds its own inputs, so it sets its casts' ranges"
+    )
+)]
 pub mod era5;
 pub mod geotiff;
 pub mod grib2;

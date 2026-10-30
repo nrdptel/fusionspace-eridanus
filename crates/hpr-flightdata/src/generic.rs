@@ -1458,7 +1458,12 @@ fn stamped(line: &str) -> Stamp<'_> {
         if count == 0 || count > 9 {
             return Stamp::Invalid;
         }
-        fraction = field(end + 1, count) as f64 / 10f64.powi(count as i32);
+        #[allow(
+            clippy::cast_possible_truncation,
+            reason = "1 to 9 digits, by the check above"
+        )]
+        let places = count as i32;
+        fraction = field(end + 1, count) as f64 / 10f64.powi(places);
         end += 1 + count;
     }
     let Some(rest) = line[end..].strip_prefix(':') else {

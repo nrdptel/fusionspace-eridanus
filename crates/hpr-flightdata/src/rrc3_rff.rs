@@ -159,8 +159,9 @@ fn find_list(bytes: &[u8]) -> Result<List, LogError> {
         if size <= 0 || size > length {
             continue;
         }
-        // Both are positive and at most 2²⁴, so the casts are exact.
-        let (length, size) = (length as usize, size as usize);
+        let (Ok(length), Ok(size)) = (usize::try_from(length), usize::try_from(size)) else {
+            continue;
+        };
         let at = record + 10;
         if at + 2 * length > bytes.len() {
             return Err(binary(
@@ -259,7 +260,7 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
             ),
         ));
     }
-    if pressure.len() < 2 * RATE_HZ as usize {
+    if (pressure.len() as f64) < 2.0 * RATE_HZ {
         return Err(LogError::NoData { format: FORMAT });
     }
     let by_readings = pressure.len() as f64 / RATE_HZ;

@@ -569,6 +569,30 @@ fn time_units_read_as_cf_writes_them() {
     }
     // The proleptic calendar reads a date before 1582 as Gregorian.
     assert!(time_units("days since 1500-01-01", Some("proleptic_gregorian")).is_ok());
+    // A signed field is refused, not read: a cast to u32 would saturate a negative to 0, and
+    // 00:00 is a valid time, so the epoch would move silently; `+1` would read as 01:00.
+    // A second zone after a `Z` is refused, not dropped.
+    for (units, reason_says) in [
+        ("hours since 2000-01-01 -1:00:00", "signed field"),
+        ("hours since 2000-01-01T00:-30:00", "signed field"),
+        ("hours since 2000-01-01 +1:00:00", "signed field"),
+        ("hours since 2000-01--1", "signed field"),
+        ("hours since 2000-01-01 00:00:00Z -6:00", "two time zones"),
+        ("hours since 2000-01-01 00:00Z +05:30", "two time zones"),
+    ] {
+        assert!(
+            matches!(
+                time_units(units, None),
+                Err(Era5Error::Time { reason }) if reason.contains(reason_says)
+            ),
+            "{units}"
+        );
+    }
+    // Midnight written with a `Z` is still read.
+    assert_eq!(
+        time_units("hours since 2000-01-01 00:00:00Z", None).unwrap(),
+        (3600.0, 946_684_800.0)
+    );
 }
 
 #[test]
