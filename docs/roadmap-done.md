@@ -359,6 +359,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.2c The rest of the readings ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.2d The smoother ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.2e1 The test, on the apogee ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.2e2 The height track's other readings ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1882,6 +1883,9 @@ One line per milestone or increment, in the order it was archived within its pha
       library's; on A and B the apogee's height and time pass ADR-257 §1's test, its three probes
       failing, counts per design and the height's signed mean error (§2) reported; the intervals
       in the library.
+    - [x] **M7.2e2 The height track's other readings.** *Done when:* liftoff, the top speed,
+      landing, the flight time and the mean descent rate state intervals in the library that pass
+      e1's test on A and B, probes failing.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

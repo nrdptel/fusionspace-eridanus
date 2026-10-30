@@ -30,7 +30,15 @@ use super::held::Quantity;
 use super::smoothed::{BAND_CONFIDENCE, MISS_SHARE, clopper_pearson_lower, clopper_pearson_upper};
 
 /// The readings that state a 90% interval, in the report's order.
-pub const STATED: [Quantity; 2] = [Quantity::ApogeeHeight, Quantity::ApogeeTime];
+pub const STATED: [Quantity; 7] = [
+    Quantity::Liftoff,
+    Quantity::ApogeeHeight,
+    Quantity::ApogeeTime,
+    Quantity::TopSpeed,
+    Quantity::Landing,
+    Quantity::FlightTime,
+    Quantity::DescentRate,
+];
 
 /// The share of readings whose truth the interval must hold.
 pub const INSIDE_SHARE: f64 = 0.90;
@@ -43,8 +51,22 @@ pub fn shares(quantity: Quantity) -> Option<Shares> {
     match quantity {
         Quantity::ApogeeHeight => Some(interval::APOGEE_HEIGHT_SHARES),
         Quantity::ApogeeTime => Some(interval::APOGEE_TIME_SHARES),
+        Quantity::Liftoff => Some(interval::LIFTOFF_SHARES),
+        Quantity::TopSpeed => Some(interval::TOP_SPEED_SHARES),
+        Quantity::Landing => Some(interval::LANDING_SHARES),
+        Quantity::FlightTime => Some(interval::FLIGHT_TIME_SHARES),
+        Quantity::DescentRate => Some(interval::DESCENT_RATE_SHARES),
         _ => None,
     }
+}
+
+/// Whether `quantity` withheld for `reason` from a log with a barometer is the reading's own rule
+/// and not a reading lost: the top speed is withheld at or above
+/// `hpr_flightdata::readings::TRANSONIC_SPEED_M_S`, 227.7 m/s, where the barometer's port may
+/// read the transonic flow over the nose. The rule looks at the reading, not the truth, so the
+/// test holds the readings it lets through, as a user sees them.
+pub fn withheld_by_rule(quantity: Quantity, reason: Reason) -> bool {
+    matches!((quantity, reason), (Quantity::TopSpeed, Reason::Transonic))
 }
 
 /// One reading's interval against its truth.
@@ -100,38 +122,66 @@ pub fn said(index: u64, flight: &Flight) -> FlightSaid {
     let read = readings::read(&flight.log);
     let truth = &flight.truth;
     let pad_s = flight.draw.logger.pad_s;
+    let events = &truth.events;
+    // The truths are `held::outcomes`' own: times on the log's clock, the apogee above the pad,
+    // and the mean descent rate the apogee's height over the time from apogee to landing.
+    let descent_rate = events.apogee_m / (events.landing_s - events.apogee_s);
+    // A reading's value, bound and interval, or why it has none.
+    type Parts = Result<(f64, f64, Option<Interval>), Said>;
+    fn of<T>(reading: &Reading<T>, take: impl Fn(&T) -> (f64, f64, Option<Interval>)) -> Parts {
+        match reading {
+            Reading::Read(value) => Ok(take(value)),
+            Reading::Withheld(withheld) => Err(Said::Withheld(withheld.reason)),
+        }
+    }
     let said = STATED
         .iter()
         .map(|&quantity| {
-            // The truths are `held::outcomes`' own: the apogee above the pad, and its time on the
-            // log's clock.
-            let parts = match (quantity, &read.apogee) {
-                (_, Reading::Withheld(withheld)) => Err(Said::Withheld(withheld.reason)),
-                (Quantity::ApogeeHeight, Reading::Read(apogee)) => Ok((
-                    apogee.height_m,
-                    apogee.bound_m,
-                    apogee.height_interval_m,
-                    truth.apogee_above_pad_m(),
-                )),
-                (Quantity::ApogeeTime, Reading::Read(apogee)) => Ok((
-                    apogee.time_s,
-                    apogee.time_bound_s,
-                    apogee.time_interval_s,
-                    pad_s + truth.events.apogee_s,
-                )),
+            let parts = match quantity {
+                Quantity::Liftoff => of(&read.liftoff, |l| (l.time_s, l.bound_s, l.interval_s)),
+                Quantity::ApogeeHeight => of(&read.apogee, |a| {
+                    (a.height_m, a.bound_m, a.height_interval_m)
+                }),
+                Quantity::ApogeeTime => of(&read.apogee, |a| {
+                    (a.time_s, a.time_bound_s, a.time_interval_s)
+                }),
+                Quantity::TopSpeed => of(&read.max_speed, |s| {
+                    (s.speed_m_s, s.bound_m_s, s.interval_m_s)
+                }),
+                Quantity::Landing => of(&read.landing, |l| (l.time_s, l.bound_s, l.interval_s)),
+                Quantity::FlightTime => {
+                    of(&read.flight_time, |f| (f.time_s, f.bound_s, f.interval_s))
+                }
+                Quantity::DescentRate => of(&read.landing, |l| {
+                    (
+                        l.mean_descent_rate_m_s,
+                        l.mean_descent_rate_bound_m_s,
+                        l.mean_descent_rate_interval_m_s,
+                    )
+                }),
                 // A quantity in `STATED` with no arm here states nothing: its test then compares
                 // no reading and fails, as an empty count holds nothing.
                 _ => Err(Said::Unstated),
             };
+            let truth = match quantity {
+                Quantity::Liftoff => pad_s + events.liftoff_s,
+                Quantity::ApogeeHeight => truth.apogee_above_pad_m(),
+                Quantity::ApogeeTime => pad_s + events.apogee_s,
+                Quantity::TopSpeed => truth.top_speed().0,
+                Quantity::Landing => pad_s + events.landing_s,
+                Quantity::FlightTime => events.landing_s - events.liftoff_s,
+                Quantity::DescentRate => descent_rate,
+                _ => f64::NAN,
+            };
             let said = match parts {
                 Err(said) => said,
-                Ok((reading, bound, Some(interval), truth)) => Said::Stated(Compared {
+                Ok((reading, bound, Some(interval))) => Said::Stated(Compared {
                     reading,
                     bound,
                     interval,
                     truth,
                 }),
-                Ok((_, _, None, _)) => Said::Unstated,
+                Ok((_, _, None)) => Said::Unstated,
             };
             (quantity, said)
         })
@@ -595,6 +645,18 @@ mod tests {
             1.0,
         );
         assert_eq!(counts.inside, 1);
+    }
+
+    #[test]
+    fn only_the_top_speed_past_its_transonic_mark_is_withheld_by_rule() {
+        assert!(withheld_by_rule(Quantity::TopSpeed, Reason::Transonic));
+        assert!(!withheld_by_rule(Quantity::TopSpeed, Reason::NoClimb));
+        for quantity in STATED.into_iter().filter(|q| *q != Quantity::TopSpeed) {
+            assert!(
+                !withheld_by_rule(quantity, Reason::Transonic),
+                "{quantity:?}"
+            );
+        }
     }
 
     #[test]

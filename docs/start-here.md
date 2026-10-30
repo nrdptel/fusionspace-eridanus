@@ -217,10 +217,12 @@ Without one, burnout is a [floor](glossary.md#floor), the top speed's time less 
 reading is within a bound held on the synthetic flights' tuning set, or withheld with the reason
 the log can't support it ([Flight-log readings](physics/log-readings.md)). The synthetic flights'
 census holds 2,200 simulated flights, each with its logger's log and its known truth
-([Synthetic flights](physics/synthetic-flights.md)). In the library, the apogee's height and
-time also state a 90% interval. It passes a two-sided test on 1,665 synthetic apogees held apart
-from the 2,000 flights its points were fitted on. The height's misses fall on the coldest and
-warmest days, a warm day reading low, and the AltOS logs' times miss late, so a waiver goes by the
+([Synthetic flights](physics/synthetic-flights.md)). In the library, seven readings of the
+height track also state a 90% interval: liftoff, the apogee's height and time, the top speed,
+landing, the flight time and the mean descent rate. Each passes a two-sided test on synthetic
+flights held apart from the 2,000 its points were fitted on. The misses of the height, the top
+speed and the descent rate fall on the coldest and warmest days, a warm day reading low, and the
+times lean by logger. So a waiver, a fin's margin or a landing's speed goes by the
 bound ([The 90%
 intervals](physics/log-readings.md#the-90-intervals); not yet checked on a real flight,
 [evidence row G34](evidence.md#g34)). The library's smoother fuses a log's
@@ -464,7 +466,8 @@ These are left out of a flight, or approximated:
   descent came with [the rest of the readings](decisions-and-roadmap.md#m7-2c). Each reading comes
   within a stated bound, or is withheld with the reason the log can't support it
   ([Reading a flight log](reading-a-flight-log.md)). A GPS track gives no reading, a board's three
-  axes give no top acceleration, and no reading states a 90% interval yet. Like `hpr weather` and
+  axes give no top acceleration, and its text states no 90% interval yet (its JSON carries the
+  seven the library states). Like `hpr weather` and
   `hpr motors show`, it ends with how far to trust its figures
   ([units and trust notes on every readout](decisions-and-roadmap.md#m0-9c4)).
 

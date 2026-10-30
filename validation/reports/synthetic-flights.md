@@ -821,14 +821,19 @@ pass back: every step smoothed
 
 ## The readings' 90% intervals
 
-Each flight's own log read by `hpr_flightdata::readings`, and each reading that states a 90% interval compared with the flight's truth (M7.2e1, ADR-257 §1–2, ADR-308). An interval runs from the reading less its 95% share of its bound to the reading less its 5% share; the shares are the 5% and 95% points of the readings' errors as shares of their bounds on the calibration set's 2000 flights (362 of them the GNSS-only tracker's, which give no apogee), a seed of their own that the test sets never share. `cargo xtask synthetic` fits them again and fails unless they equal the library's to three significant figures. A reading **holds** when the two-sided 99.9% Clopper–Pearson band on the share of truths below its interval and the band on the share above each hold 5%, and the band on the share inside holds 90%; and every probe must fail that test. The command also fails if a reading is withheld from a log with a barometer, or read with no interval, on any of the three sets: either would leave the counts with its misses.
+Each flight's own log read by `hpr_flightdata::readings`, and each reading that states a 90% interval compared with the flight's truth (M7.2e1 and M7.2e2, ADR-257 §1–2, ADR-308). An interval runs from the reading less its 95% share of its bound to the reading less its 5% share; the shares are the 5% and 95% points of the readings' errors as shares of their bounds on the calibration set's 2000 flights (362 of them the GNSS-only tracker's, which give no apogee), a seed of their own that the test sets never share. `cargo xtask synthetic` fits them again and fails unless they equal the library's to three significant figures. A reading **holds** when the two-sided 99.9% Clopper–Pearson band on the share of truths below its interval and the band on the share above each hold 5%, and the band on the share inside holds 90%; and every probe must fail that test. The command also fails if a reading is withheld from a log with a barometer, or read with no interval, on any of the three sets: either would leave the counts with its misses. The one reading withheld by its own rule is the top speed at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose; it looks at the reading, not the truth, so the test holds the top speeds a user is given.
 
 ### The shares
 
 | Reading | Readings fitted | 5% share | 95% share |
 |---|---:|---:|---:|
+| liftoff | 1638 | 0.203 | 0.482 |
 | apogee height | 1638 | -0.63 | 0.637 |
 | apogee time | 1638 | -0.337 | 0.225 |
+| top speed | 577 | -0.216 | 0.265 |
+| landing | 1638 | -0.332 | 0.157 |
+| flight time | 1638 | -0.381 | -0.133 |
+| descent rate | 1638 | -0.473 | 0.493 |
 
 ### The test
 
@@ -836,10 +841,20 @@ The truths below, inside and above each interval, then the shares, each set's fl
 
 | Set | Reading | Compared | Below / inside / above | Below | Above | Floors | Withheld | Result |
 |---|---|---:|---:|---:|---:|---:|---:|---|
+| A | liftoff | 820 | 35 / 729 / 56 | 4.27% | 6.83% | 0 | 180 | holds |
 | A | apogee height | 820 | 55 / 720 / 45 | 6.71% | 5.49% | 0 | 180 | holds |
 | A | apogee time | 820 | 36 / 752 / 32 | 4.39% | 3.9% | 0 | 180 | holds |
+| A | top speed | 287 | 11 / 258 / 18 | 3.83% | 6.27% | 0 | 713 | holds |
+| A | landing | 820 | 38 / 746 / 36 | 4.63% | 4.39% | 0 | 180 | holds |
+| A | flight time | 820 | 38 / 750 / 32 | 4.63% | 3.9% | 0 | 180 | holds |
+| A | descent rate | 820 | 47 / 728 / 45 | 5.73% | 5.49% | 0 | 180 | holds |
+| B | liftoff | 845 | 52 / 739 / 54 | 6.15% | 6.39% | 0 | 155 | holds |
 | B | apogee height | 845 | 38 / 760 / 47 | 4.5% | 5.56% | 0 | 155 | holds |
 | B | apogee time | 845 | 41 / 754 / 50 | 4.85% | 5.92% | 0 | 155 | holds |
+| B | top speed | 286 | 9 / 263 / 14 | 3.15% | 4.9% | 0 | 714 | holds |
+| B | landing | 845 | 23 / 788 / 34 | 2.72% | 4.02% | 0 | 155 | holds |
+| B | flight time | 845 | 37 / 763 / 45 | 4.38% | 5.33% | 0 | 155 | holds |
+| B | descent rate | 845 | 41 / 754 / 50 | 4.85% | 5.92% | 0 | 155 | holds |
 
 ### The probes
 
@@ -847,51 +862,112 @@ Each interval narrowed to 0.8 of its width about its middle, widened to 1.25, an
 
 | Set | Reading | narrowed to 0.8 | widened to 1.25 | shifted down one standard error |
 |---|---|---:|---:|---:|
+| A | liftoff | 64 / 628 / 128, fails | 9 / 798 / 13, fails | 2 / 472 / 346, fails |
 | A | apogee height | 115 / 592 / 113, fails | 0 / 820 / 0, fails | 0 / 537 / 283, fails |
 | A | apogee time | 61 / 690 / 69, fails | 5 / 803 / 12, fails | 1 / 680 / 139, fails |
+| A | top speed | 24 / 237 / 26, fails | 2 / 279 / 6, fails | 0 / 211 / 76, fails |
+| A | landing | 45 / 655 / 120, fails | 22 / 795 / 3, fails | 5 / 327 / 488, fails |
+| A | flight time | 87 / 670 / 63, fails | 11 / 802 / 7, fails | 3 / 626 / 191, fails |
+| A | descent rate | 96 / 626 / 98, fails | 0 / 816 / 4, fails | 0 / 563 / 257, fails |
+| B | liftoff | 80 / 657 / 108, fails | 26 / 807 / 12, fails | 10 / 474 / 361, fails |
 | B | apogee height | 137 / 581 / 127, fails | 0 / 845 / 0, fails | 0 / 562 / 283, fails |
 | B | apogee time | 68 / 691 / 86, fails | 3 / 815 / 27, fails | 1 / 679 / 165, fails |
+| B | top speed | 33 / 224 / 29, fails | 3 / 275 / 8, fails | 0 / 204 / 82, fails |
+| B | landing | 30 / 687 / 128, fails | 17 / 827 / 1, fails | 4 / 353 / 488, fails |
+| B | flight time | 76 / 681 / 88, fails | 12 / 817 / 16, fails | 3 / 650 / 192, fails |
+| B | descent rate | 111 / 625 / 109, fails | 0 / 841 / 4, fails | 0 / 580 / 265, fails |
 
-### The apogee's error side
+### Each reading's error side
 
-The apogee height's mean error, the reading less the truth, over the readings compared (ADR-257 §2). A reading too low is the flattering side for a waiver: the share of truths above the interval is that side's test, and the shifted-down probe its mutation probe. The mean is given at the figures of the largest error, the digits every platform shares, and with its sign: +0 is a mean too small for those figures that isn't below zero.
+Each reading's mean error, the reading less the truth, over the readings compared, with the largest error's size and the share of truths above the interval (ADR-257 §2). For the apogee's height, the top speed and the mean descent rate, a reading too low is the flattering side: a waiver's height, a fin's margin, a landing's speed. The share of truths above the interval is that side's test, and the shifted-down probe its mutation probe; the times have no flattering side. The mean is given at the figures of the largest error, the digits every platform shares, and with its sign: +0 is a mean too small for those figures that isn't below zero.
 
-| Set | Mean error, m | Largest error, m | Truths above |
-|---|---:|---:|---:|
-| A | +1 | 237 | 5.49% |
-| B | +0 | 234 | 5.56% |
+| Set | Reading | Flattering side | Mean error | Largest error | Truths above |
+|---|---|---|---:|---:|---:|
+| A | liftoff | none | +0.243 s | 0.471 s | 6.83% |
+| A | apogee height | low | +1 m | 237 m | 5.49% |
+| A | apogee time | none | +0.006 s | 0.449 s | 3.9% |
+| A | top speed | low | +1.2 m/s | 20.4 m/s | 6.27% |
+| A | landing | none | -0.38 s | 1.33 s | 4.39% |
+| A | flight time | none | -0.62 s | 1.56 s | 3.9% |
+| A | descent rate | low | -0.01 m/s | 6.81 m/s | 5.49% |
+| B | liftoff | none | +0.247 s | 0.554 s | 6.39% |
+| B | apogee height | low | +0 m | 234 m | 5.56% |
+| B | apogee time | none | +0.006 s | 0.526 s | 5.92% |
+| B | top speed | low | +1.3 m/s | 26.8 m/s | 4.9% |
+| B | landing | none | -0.37 s | 1.23 s | 4.02% |
+| B | flight time | none | -0.62 s | 1.5 s | 5.33% |
+| B | descent rate | low | -0.01 m/s | 6.34 m/s | 5.92% |
 
 ### By design
 
 Below / inside / above.
 
-| Design | A, apogee height | A, apogee time | B, apogee height | B, apogee time |
-|---|---:|---:|---:|---:|
-| rocketpy-bella-lui | 1 / 75 / 0 | 3 / 72 / 1 | 2 / 84 / 1 | 0 / 84 / 3 |
-| rocketpy-calisto-getting-started-motor-at-minus-1.255 | 8 / 72 / 2 | 5 / 75 / 2 | 5 / 81 / 5 | 2 / 82 / 7 |
-| rocketpy-calisto-tests-motor-at-minus-1.373 | 2 / 76 / 4 | 1 / 77 / 4 | 3 / 94 / 5 | 6 / 89 / 7 |
-| rocketpy-cavour | 7 / 72 / 6 | 8 / 71 / 6 | 2 / 71 / 5 | 2 / 66 / 10 |
-| rocketpy-genesis | 8 / 76 / 5 | 4 / 84 / 1 | 5 / 85 / 2 | 4 / 83 / 5 |
-| rocketpy-juno-iii | 3 / 65 / 8 | 2 / 73 / 1 | 6 / 71 / 7 | 7 / 73 / 4 |
-| rocketpy-lince | 9 / 56 / 8 | 4 / 65 / 4 | 2 / 68 / 7 | 7 / 64 / 6 |
-| rocketpy-ndrt-2020-nose-to-tail | 4 / 83 / 5 | 2 / 87 / 3 | 5 / 57 / 6 | 2 / 64 / 2 |
-| rocketpy-prometheus-2022-generic-motor | 9 / 68 / 6 | 6 / 69 / 8 | 3 / 72 / 8 | 7 / 74 / 2 |
-| rocketpy-valetudo | 4 / 77 / 1 | 1 / 79 / 2 | 5 / 77 / 1 | 4 / 75 / 4 |
+Set A:
+
+| Design | liftoff | apogee height | apogee time | top speed | landing | flight time | descent rate |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| rocketpy-bella-lui | 2 / 72 / 2 | 1 / 75 / 0 | 3 / 72 / 1 | 1 / 75 / 0 | 0 / 69 / 7 | 0 / 67 / 9 | 0 / 76 / 0 |
+| rocketpy-calisto-getting-started-motor-at-minus-1.255 | 0 / 80 / 2 | 8 / 72 / 2 | 5 / 75 / 2 | 0 / 2 / 3 | 0 / 82 / 0 | 3 / 79 / 0 | 9 / 71 / 2 |
+| rocketpy-calisto-tests-motor-at-minus-1.373 | 0 / 75 / 7 | 2 / 76 / 4 | 1 / 77 / 4 | 0 / 0 / 2 | 0 / 81 / 1 | 2 / 80 / 0 | 3 / 76 / 3 |
+| rocketpy-cavour | 0 / 64 / 21 | 7 / 72 / 6 | 8 / 71 / 6 | none | 38 / 47 / 0 | 21 / 64 / 0 | 1 / 79 / 5 |
+| rocketpy-genesis | 0 / 77 / 12 | 8 / 76 / 5 | 4 / 84 / 1 | none | 0 / 87 / 2 | 3 / 86 / 0 | 10 / 70 / 9 |
+| rocketpy-juno-iii | 22 / 54 / 0 | 3 / 65 / 8 | 2 / 73 / 1 | 2 / 22 / 6 | 0 / 76 / 0 | 0 / 67 / 9 | 4 / 64 / 8 |
+| rocketpy-lince | 0 / 65 / 8 | 9 / 56 / 8 | 4 / 65 / 4 | none | 0 / 73 / 0 | 8 / 65 / 0 | 11 / 51 / 11 |
+| rocketpy-ndrt-2020-nose-to-tail | 0 / 88 / 4 | 4 / 83 / 5 | 2 / 87 / 3 | 0 / 91 / 1 | 0 / 69 / 23 | 0 / 91 / 1 | 0 / 92 / 0 |
+| rocketpy-prometheus-2022-generic-motor | 1 / 82 / 0 | 9 / 68 / 6 | 6 / 69 / 8 | none | 0 / 83 / 0 | 1 / 82 / 0 | 9 / 67 / 7 |
+| rocketpy-valetudo | 10 / 72 / 0 | 4 / 77 / 1 | 1 / 79 / 2 | 8 / 68 / 6 | 0 / 79 / 3 | 0 / 69 / 13 | 0 / 82 / 0 |
+
+Set B:
+
+| Design | liftoff | apogee height | apogee time | top speed | landing | flight time | descent rate |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| rocketpy-bella-lui | 9 / 77 / 1 | 2 / 84 / 1 | 0 / 84 / 3 | 0 / 84 / 3 | 0 / 80 / 7 | 0 / 70 / 17 | 0 / 87 / 0 |
+| rocketpy-calisto-getting-started-motor-at-minus-1.255 | 0 / 81 / 10 | 5 / 81 / 5 | 2 / 82 / 7 | 0 / 2 / 3 | 0 / 90 / 1 | 5 / 86 / 0 | 7 / 79 / 5 |
+| rocketpy-calisto-tests-motor-at-minus-1.373 | 0 / 94 / 8 | 3 / 94 / 5 | 6 / 89 / 7 | 0 / 4 / 2 | 0 / 102 / 0 | 1 / 101 / 0 | 7 / 91 / 4 |
+| rocketpy-cavour | 0 / 64 / 14 | 2 / 71 / 5 | 2 / 66 / 10 | none | 23 / 55 / 0 | 16 / 62 / 0 | 1 / 71 / 6 |
+| rocketpy-genesis | 0 / 85 / 7 | 5 / 85 / 2 | 4 / 83 / 5 | none | 0 / 92 / 0 | 1 / 91 / 0 | 7 / 81 / 4 |
+| rocketpy-juno-iii | 29 / 55 / 0 | 6 / 71 / 7 | 7 / 73 / 4 | 2 / 30 / 5 | 0 / 80 / 4 | 0 / 67 / 17 | 7 / 66 / 11 |
+| rocketpy-lince | 0 / 66 / 11 | 2 / 68 / 7 | 7 / 64 / 6 | none | 0 / 76 / 1 | 13 / 64 / 0 | 6 / 59 / 12 |
+| rocketpy-ndrt-2020-nose-to-tail | 0 / 65 / 3 | 5 / 57 / 6 | 2 / 64 / 2 | 0 / 68 / 0 | 0 / 52 / 16 | 0 / 68 / 0 | 0 / 68 / 0 |
+| rocketpy-prometheus-2022-generic-motor | 1 / 82 / 0 | 3 / 72 / 8 | 7 / 74 / 2 | none | 0 / 83 / 0 | 1 / 82 / 0 | 6 / 69 / 8 |
+| rocketpy-valetudo | 13 / 70 / 0 | 5 / 77 / 1 | 4 / 75 / 4 | 7 / 75 / 1 | 0 / 78 / 5 | 0 / 72 / 11 | 0 / 83 / 0 |
 
 ### By logger and by the day's air
 
-Below / inside / above, and in bold where that group's counts alone would fail the test. The test is on each set as a whole; these groups show where its misses fall. A barometric height is off by about the day's offset from the standard atmosphere over its temperature, so the height's misses gather on the coldest and warmest days: a warm day reads low, and its truth lies above the interval.
+Below / inside / above, and in bold where that group's counts alone would fail the test. The test is on each set as a whole; these groups show where its misses fall. A barometric height is off by about the day's offset from the standard atmosphere over its temperature, so the misses of the height, the top speed and the descent rate gather on the coldest and warmest days: a warm day reads low, and its truth lies above the interval.
 
-| Logger | A, apogee height | A, apogee time | B, apogee height | B, apogee time |
-|---|---:|---:|---:|---:|
-| perfectflite | 10 / 125 / 9 | 10 / 134 / 0 | 5 / 121 / 6 | 9 / 119 / 4 |
-| rrc3 | 8 / 124 / 7 | 1 / 135 / 3 | 5 / 163 / 8 | 7 / 163 / 6 |
-| eggtimer | 15 / 158 / 8 | 18 / 161 / 2 | 12 / 147 / 10 | 15 / 146 / 8 |
-| altos | 11 / 162 / 12 | **2 / 156 / 27** | 4 / 168 / 14 | **4 / 152 / 30** |
-| imu-500hz | 11 / 151 / 9 | **5 / 166 / 0** | 12 / 161 / 9 | 6 / 174 / 2 |
+Set A:
 
-| The day's air | A, apogee height | A, apogee time | B, apogee height | B, apogee time |
-|---|---:|---:|---:|---:|
-| colder than −10 K | **55 / 77 / 0** | 10 / 114 / 8 | **38 / 125 / 0** | 12 / 143 / 8 |
-| −10 to +10 K | **0 / 551 / 0** | 21 / 510 / 20 | **0 / 526 / 0** | 23 / 468 / 35 |
-| warmer than +10 K | **0 / 92 / 45** | 5 / 128 / 4 | **0 / 109 / 47** | 6 / 143 / 7 |
+| Logger | liftoff | apogee height | apogee time | top speed | landing | flight time | descent rate |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| perfectflite | **0 / 126 / 18** | 10 / 125 / 9 | 10 / 134 / 0 | 1 / 45 / 4 | 11 / 130 / 3 | 9 / 132 / 3 | 8 / 131 / 5 |
+| rrc3 | 1 / 125 / 13 | 8 / 124 / 7 | 1 / 135 / 3 | 2 / 42 / 3 | 6 / 125 / 8 | 3 / 132 / 4 | 8 / 123 / 8 |
+| eggtimer | **3 / 155 / 23** | 15 / 158 / 8 | 18 / 161 / 2 | 3 / 59 / 6 | 10 / 165 / 6 | 12 / 167 / 2 | 8 / 166 / 7 |
+| altos | 17 / 166 / 2 | 11 / 162 / 12 | **2 / 156 / 27** | 3 / 62 / 2 | 11 / 171 / 3 | 13 / 171 / 1 | 13 / 158 / 14 |
+| imu-500hz | **14 / 157 / 0** | 11 / 151 / 9 | **5 / 166 / 0** | 2 / 50 / 3 | **0 / 155 / 16** | **1 / 148 / 22** | 10 / 150 / 11 |
+
+Set B:
+
+| Logger | liftoff | apogee height | apogee time | top speed | landing | flight time | descent rate |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| perfectflite | 3 / 118 / 11 | 5 / 121 / 6 | 9 / 119 / 4 | 0 / 39 / 3 | 5 / 125 / 2 | 7 / 122 / 3 | 5 / 120 / 7 |
+| rrc3 | 6 / 153 / 17 | 5 / 163 / 8 | 7 / 163 / 6 | 2 / 60 / 1 | 5 / 163 / 8 | 4 / 164 / 8 | 6 / 163 / 7 |
+| eggtimer | **3 / 143 / 23** | 12 / 147 / 10 | 15 / 146 / 8 | 2 / 64 / 3 | 5 / 159 / 5 | 10 / 157 / 2 | 11 / 149 / 9 |
+| altos | **23 / 160 / 3** | 4 / 168 / 14 | **4 / 152 / 30** | 4 / 49 / 4 | 8 / 176 / 2 | 14 / 170 / 2 | 8 / 158 / 20 |
+| imu-500hz | **17 / 165 / 0** | 12 / 161 / 9 | 6 / 174 / 2 | 1 / 51 / 3 | **0 / 165 / 17** | **2 / 150 / 30** | 11 / 164 / 7 |
+
+Set A:
+
+| The day's air | liftoff | apogee height | apogee time | top speed | landing | flight time | descent rate |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| colder than −10 K | 3 / 115 / 14 | **55 / 77 / 0** | 10 / 114 / 8 | **10 / 24 / 0** | 7 / 120 / 5 | 10 / 118 / 4 | **47 / 85 / 0** |
+| −10 to +10 K | 27 / 489 / 35 | **0 / 551 / 0** | 21 / 510 / 20 | **1 / 194 / 1** | 26 / 500 / 25 | 23 / 505 / 23 | **0 / 551 / 0** |
+| warmer than +10 K | 5 / 125 / 7 | **0 / 92 / 45** | 5 / 128 / 4 | **0 / 40 / 17** | 5 / 126 / 6 | 5 / 127 / 5 | **0 / 92 / 45** |
+
+Set B:
+
+| The day's air | liftoff | apogee height | apogee time | top speed | landing | flight time | descent rate |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| colder than −10 K | 14 / 140 / 9 | **38 / 125 / 0** | 12 / 143 / 8 | 7 / 45 / 0 | 3 / 151 / 9 | 5 / 148 / 10 | **41 / 122 / 0** |
+| −10 to +10 K | 30 / 457 / 39 | **0 / 526 / 0** | 23 / 468 / 35 | **2 / 163 / 0** | 16 / 490 / 20 | 24 / 473 / 29 | **0 / 526 / 0** |
+| warmer than +10 K | 8 / 142 / 6 | **0 / 109 / 47** | 6 / 143 / 7 | **0 / 55 / 14** | 4 / 147 / 5 | 8 / 142 / 6 | **0 / 106 / 50** |

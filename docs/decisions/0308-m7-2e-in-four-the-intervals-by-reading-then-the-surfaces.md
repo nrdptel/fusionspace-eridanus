@@ -107,5 +107,23 @@ rate or an acceleration.
   which sends a waiver to the bound. The fixes are new work: #1055 conditions the height on a
   given day's air, and #1056 treats a rate that drops at the top. No real flight has checked an
   interval: the evidence register's [G34](../evidence.md#g34) records the gap.
+- **M7.2e2 (2026-10-29).** Liftoff, the top speed, landing, the flight time and the mean descent
+  rate took the same rule, their shares fitted once on the calibration set with the library's at
+  zero, as §5 did. Liftoff's are 0.203 and 0.482, both above zero, as it is read late; the
+  flight time's are −0.381 and −0.133, as it reads short. On A and B every one passes the test
+  and every probe fails it ([report][report]). Two things were decided:
+  - The top speed is withheld at or above 227.7 m/s, where the barometer's port may read the
+    transonic flow, on logs with a barometer too. §3's check would fail that, so the one reading
+    withheld by its own rule is the top speed for that reason (`withheld_by_rule`); any other
+    withheld reading still fails the command. The rule looks at the reading, not the truth, so
+    the test holds the top speeds a user is given: 577 on the calibration set, 287 on A and 286
+    on B. At 287 a tail passes with 4 to 28 misses, a looser test than at 820; the three probes
+    still fail it.
+  - The flattering side ([ADR-257][adr-257] §2) is a reading too low for the top speed (a fin's
+    margin) and the descent rate (a landing's speed) as well as the height; the times have none.
+    The report gives each reading's mean error with its sign. The top speed's is +1.2 and
+    +1.3 m/s; the descent rate's −0.01 m/s on both sets, against errors up to 6.81 m/s. Both
+    miss above their intervals on warm days as the height does (#1061), so the guide sends a
+    margin and a landing's speed to the bound. The times' leans by logger are #1062.
 - `cargo xtask synthetic` reads 4,000 more flights, about 100 s on an 8-core Mac (5.5 minutes in
   all, from about 4).
