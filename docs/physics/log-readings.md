@@ -700,7 +700,7 @@ air, which a real log can't rule out.
 
 A bound is the size every error stayed within on the tuning set. A 90% interval is narrower: it
 says where the truth usually lies, over the days and loggers the synthetic flights draw. Twelve
-readings state one. `hpr analyze` prints each after its bound, as "90% interval 369.8 to 410.2 m",
+readings state one. `hpr analyze` prints each after its bound, as "90% interval 369.8 to 410.2 m (1213 to 1346 ft)",
 rounded outward, and a floor's lower end as "95% lower end". `hpr analyze --json` and Python's
 `readings()` carry each as `low` and `high`, under its reading's key: `liftoff.interval_s`, `apogee.height_interval_m`,
 `apogee.time_interval_s`, `max_speed.interval_m_s`, `landing.interval_s`,

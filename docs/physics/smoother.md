@@ -25,7 +25,7 @@ sensors, and how well its 90% intervals hold.
 - **What it leaves out:** the horizontal track and the rocket's attitude. A log that starts at
   launch has no pad to zero the barometer on, so the pad is assumed and the card says so
   ([A log written from launch](#a-log-written-from-launch)). Such a log's accelerometer is set
-  aside. A log of more than 2,000,000 samples is withheld.
+  aside. A log too long to hold in memory is withheld.
 
 ## How it works
 
@@ -106,11 +106,11 @@ and 180 hold their pad. With fewer than five barometer samples on the pad, the s
   column's name says so may be off by up to 19.9 m (65 ft), and the height's standard error holds that.
 - **The barometer's noise** comes from the flight's own scatter past apogee, in place of the pad's.
 - **Nothing is held still.** The first sample may already be moving, so the height, speed and
-  acceleration start with wide priors: 100 m, 100 m/s and 30 g. These are HPR Sim's choices.
+  acceleration start with wide priors: 100 m (328 ft), 100 m/s (328 ft/s) and 30 g. These are HPR Sim's choices.
 - **The accelerometer is set aside** when it has too little of the pad to take its level from.
 
 To test this, each synthetic flight's log is cut at the truth's liftoff, every sensor, and smoothed
-again. On the [report](../../validation/reports/synthetic-flights.md#logs-written-from-launch)'s
+again. On the [report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/synthetic-flights.md#logs-written-from-launch)'s
 sets A and B, every cell holds, overall and for each logger: 94.9% to 98.7% of truths lie inside the
 90% intervals. A real log has no truth to hold it to. On the sample logs, the assumed pad's smoothed
 apogee passes the reading's bound on 14 of 392, and a held pad's on 19 of 180, so the pad isn't the
