@@ -19,10 +19,15 @@
 //! days, spread evenly within 15 K of the standard atmosphere, and the misses aren't: most of the
 //! height's error is the day's air, so no height missed on a day within 10 K of standard, while a
 //! third of the days warmer than that read low enough to leave the truth above the interval, the
-//! flattering side for a waiver (#1055). On the AltOS logs, the apogee time's interval misses
-//! late about one time in six or seven (#1056). A real flight can lie outside what the sets draw, as a
-//! day more than 15 K from standard does; its interval then says less than 90%. No real flight
-//! has yet checked one (evidence row G34).
+//! flattering side for a waiver (#1055). The top speed and the mean descent rate, taken from the
+//! same height, miss the same way, the flattering side for a fin's margin and for how gentle the
+//! descent was (#1061); for flights at or past the top speed's transonic mark, only its low
+//! readings are given. The times lean by logger: on the AltOS logs, the apogee time's interval
+//! misses late about one time in six or seven (#1056), and liftoff, landing and the flight time
+//! lean on others (#1062). The top speed is tested only where it is given, below
+//! [`super::TRANSONIC_SPEED_M_S`]. A real flight can lie outside what the sets draw, as a day more
+//! than 15 K from standard does; its interval then says less than 90%. No real flight has yet
+//! checked one (evidence row G34).
 //!
 //! [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 //! [adr-308]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md
@@ -69,6 +74,37 @@ pub const APOGEE_HEIGHT_SHARES: Shares = Shares {
 pub const APOGEE_TIME_SHARES: Shares = Shares {
     low: -0.337,
     high: 0.225,
+};
+
+/// Liftoff's shares of its bound (`Liftoff::bound_s`), fitted on the calibration set.
+pub const LIFTOFF_SHARES: Shares = Shares {
+    low: 0.203,
+    high: 0.482,
+};
+
+/// The top speed's shares of its bound (`MaxSpeed::bound_m_s`), fitted on the calibration set.
+pub const TOP_SPEED_SHARES: Shares = Shares {
+    low: -0.216,
+    high: 0.265,
+};
+
+/// Landing's shares of its bound (`Landing::bound_s`), fitted on the calibration set.
+pub const LANDING_SHARES: Shares = Shares {
+    low: -0.332,
+    high: 0.157,
+};
+
+/// The flight time's shares of its bound (`FlightTime::bound_s`), fitted on the calibration set.
+pub const FLIGHT_TIME_SHARES: Shares = Shares {
+    low: -0.381,
+    high: -0.133,
+};
+
+/// The mean descent rate's shares of its bound (`Landing::mean_descent_rate_bound_m_s`), fitted
+/// on the calibration set.
+pub const DESCENT_RATE_SHARES: Shares = Shares {
+    low: -0.473,
+    high: 0.493,
 };
 
 /// The rank from each end of `n` sorted shares that is the 5% or 95% point, `⌊0.05 (n + 1)⌋`,

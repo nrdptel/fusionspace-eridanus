@@ -604,6 +604,17 @@
           "type": "number",
           "format": "double"
         },
+        "interval_s": {
+          "description": "Its 90% interval, s.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "method": {
           "description": "How it was read.",
           "$ref": "#/$defs/ReadingMethod"
@@ -719,10 +730,32 @@
           "type": "number",
           "format": "double"
         },
+        "interval_s": {
+          "description": "Its 90% interval, s.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "mean_descent_rate_bound_m_s": {
           "description": "The bound on the mean rate's error, m/s.",
           "type": "number",
           "format": "double"
+        },
+        "mean_descent_rate_interval_m_s": {
+          "description": "The mean rate's 90% interval, m/s.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "mean_descent_rate_m_s": {
           "description": "The mean rate of descent from apogee to landing, m/s: the height lost over the time\ntaken, drogue and main together.",
@@ -766,6 +799,17 @@
           "description": "The bound on its error, s.",
           "type": "number",
           "format": "double"
+        },
+        "interval_s": {
+          "description": "Its 90% interval, s.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "method": {
           "description": "How it was read.",
@@ -1402,6 +1446,17 @@
           "description": "The height above the pad then, m.",
           "type": "number",
           "format": "double"
+        },
+        "interval_m_s": {
+          "description": "Its 90% interval, m/s.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "method": {
           "description": "How it was read.",

@@ -2435,10 +2435,13 @@ you press Tab. Save it where your shell looks for completions:
   flies as a point under its devices' drag, so its landing is rough. It flies a `.ork` file's
   parachutes and streamers, but a rocket's `.json` comes down with no recovery
   device ([what it doesn't fly yet](#what-hpr-sim-doesnt-fly-yet)).
-- **Readings within bounds, not intervals.** `hpr analyze` gives each reading within a bound or
-  withheld, on every layout it reads. It gives no Mach number and takes no top acceleration from a
-  board's three axes. It finds no deployment but the main's opening, from the descent's rate. A
-  planned milestone adds [an interval on each reading](decisions-and-roadmap.md#m7-2e).
+- **Readings within bounds, few intervals.** `hpr analyze` gives each reading within a bound or
+  withheld, on every layout it reads. Its JSON gives the height track's seven readings a 90%
+  interval too ([The 90% intervals](physics/log-readings.md#the-90-intervals)); its text gives
+  none, and the accelerometer's and the canopies' readings have none yet
+  ([M7.2e](decisions-and-roadmap.md#m7-2e)). It gives no Mach number and takes no top
+  acceleration from a board's three axes. It finds no deployment but the main's opening, from the
+  descent's rate.
 - **Only OpenRocket's design files and the HPR design format.** `hpr convert` and `hpr sim` read
   OpenRocket's `.ork` and the HPR design format's `.hpr` and `.hprz`, not RockSim's `.rkt` or
   RASAero's `.CDX1`

@@ -441,9 +441,6 @@ are in `hpr-forensics`. Formats, methods and the log corpus came from Debrief.
   - [ ] **M7.2e The 90% intervals** (ADR-308: in four, below; met when they are). *Done when:*
     ADR-257 §1–2's test passes, probes failing, on both test sets for every reading given;
     intervals in the library, `hpr analyze` and Python, with the smoother's health card (ADR-300).
-    - [ ] **M7.2e2 The height track's other readings.** *Done when:* liftoff, the top speed,
-      landing, the flight time and the mean descent rate state intervals in the library that pass
-      e1's test on A and B, probes failing.
     - [ ] **M7.2e3 The accelerometer's readings and the canopies'.** *Done when:* the top
       acceleration, burnout, each canopy's rate and the main's opening state intervals that pass
       e1's test on A and B, probes failing; a floor states a lower end, held to the test's lower

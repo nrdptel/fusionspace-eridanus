@@ -1918,6 +1918,8 @@ pub struct LiftoffReading {
     pub time_s: f64,
     /// The bound on its error, s.
     pub bound_s: f64,
+    /// Its 90% interval, s.
+    pub interval_s: Option<ReadingInterval>,
     /// Where it came from.
     pub source: ReadingSource,
     /// Measured on the track.
@@ -1985,6 +1987,8 @@ pub struct MaxSpeedReading {
     pub speed_m_s: f64,
     /// The bound on its error, m/s.
     pub bound_m_s: f64,
+    /// Its 90% interval, m/s.
+    pub interval_m_s: Option<ReadingInterval>,
     /// When, s.
     pub time_s: f64,
     /// The height above the pad then, m.
@@ -2054,6 +2058,8 @@ pub struct FlightTimeReading {
     pub time_s: f64,
     /// The bound on its error, s: liftoff's and landing's.
     pub bound_s: f64,
+    /// Its 90% interval, s.
+    pub interval_s: Option<ReadingInterval>,
     /// Where it came from.
     pub source: ReadingSource,
     /// Measured on the track.
@@ -2125,6 +2131,8 @@ pub struct LandingReading {
     pub time_s: f64,
     /// The bound on its error, s.
     pub bound_s: f64,
+    /// Its 90% interval, s.
+    pub interval_s: Option<ReadingInterval>,
     /// From apogee to landing, s.
     pub descent_time_s: f64,
     /// The mean rate of descent from apogee to landing, m/s: the height lost over the time
@@ -2132,6 +2140,8 @@ pub struct LandingReading {
     pub mean_descent_rate_m_s: f64,
     /// The bound on the mean rate's error, m/s.
     pub mean_descent_rate_bound_m_s: f64,
+    /// The mean rate's 90% interval, m/s.
+    pub mean_descent_rate_interval_m_s: Option<ReadingInterval>,
     /// Where it came from.
     pub source: ReadingSource,
     /// Measured on the track.

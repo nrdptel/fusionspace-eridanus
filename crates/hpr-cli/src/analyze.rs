@@ -314,6 +314,7 @@ fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
         liftoff: reading(&read.liftoff, |liftoff| LiftoffReading {
             time_s: liftoff.time_s,
             bound_s: liftoff.bound_s,
+            interval_s: liftoff.interval_s.map(interval),
             source: source(liftoff.source),
             provenance: provenance(liftoff.provenance),
             method: method(liftoff.method),
@@ -339,6 +340,7 @@ fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
         max_speed: reading(&read.max_speed, |speed| MaxSpeedReading {
             speed_m_s: speed.speed_m_s,
             bound_m_s: speed.bound_m_s,
+            interval_m_s: speed.interval_m_s.map(interval),
             time_s: speed.time_s,
             height_m: speed.height_m,
             source: source(speed.source),
@@ -370,9 +372,11 @@ fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
         landing: reading(&read.landing, |landing| LandingReading {
             time_s: landing.time_s,
             bound_s: landing.bound_s,
+            interval_s: landing.interval_s.map(interval),
             descent_time_s: landing.descent_time_s,
             mean_descent_rate_m_s: landing.mean_descent_rate_m_s,
             mean_descent_rate_bound_m_s: landing.mean_descent_rate_bound_m_s,
+            mean_descent_rate_interval_m_s: landing.mean_descent_rate_interval_m_s.map(interval),
             source: source(landing.source),
             provenance: provenance(landing.provenance),
             method: method(landing.method),
@@ -380,6 +384,7 @@ fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
         flight_time: reading(&read.flight_time, |flight| FlightTimeReading {
             time_s: flight.time_s,
             bound_s: flight.bound_s,
+            interval_s: flight.interval_s.map(interval),
             source: source(flight.source),
             provenance: provenance(flight.provenance),
             method: method(flight.method),

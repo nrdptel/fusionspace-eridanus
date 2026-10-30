@@ -584,6 +584,8 @@ pub struct Liftoff {
     /// [`LIFTOFF_ACCELERATION_M_S2`], `√(4a/A)`, and the longer interval either side of the
     /// sample, twice.
     pub bound_s: f64,
+    /// Its 90% interval, s on the track's clock ([`interval::LIFTOFF_SHARES`]).
+    pub interval_s: Option<Interval>,
     /// The track it came from.
     pub source: Source,
     /// Measured.
@@ -654,6 +656,8 @@ pub struct MaxSpeed {
     /// cutting the peak, `(a₁ + a₂) w/4`, the climb's change of speed before and after it
     /// measured on the fits; and [`SPEED_NOISE_M_S`].
     pub bound_m_s: f64,
+    /// Its 90% interval, m/s ([`interval::TOP_SPEED_SHARES`]).
+    pub interval_m_s: Option<Interval>,
     /// When, s on the track's clock: the middle of the fit.
     pub time_s: f64,
     /// The filtered track then, m above the pad, or on a short pad above the track's zero, which
@@ -750,6 +754,8 @@ pub struct FlightTime {
     pub time_s: f64,
     /// The bound on its error, s: liftoff's and landing's.
     pub bound_s: f64,
+    /// Its 90% interval, s ([`interval::FLIGHT_TIME_SHARES`]).
+    pub interval_s: Option<Interval>,
     /// The track it came from.
     pub source: Source,
     /// Measured: two times on the track.
@@ -863,6 +869,8 @@ pub struct Landing {
     /// ([`PAD_ABOVE_GROUND_M`]), at its rate near the ground taken slow by its step and noise,
     /// and the longer interval either side of the sample, twice.
     pub bound_s: f64,
+    /// Its 90% interval, s on the track's clock ([`interval::LANDING_SHARES`]).
+    pub interval_s: Option<Interval>,
     /// From apogee to landing, s.
     pub descent_time_s: f64,
     /// The mean rate of descent from apogee to landing, m/s: the height lost over the time taken,
@@ -871,6 +879,8 @@ pub struct Landing {
     /// The bound on the rate's error, m/s: the apogee's height bound and the height landing is
     /// read at, then the rate times the apogee's and landing's time bounds, over the descent time.
     pub mean_descent_rate_bound_m_s: f64,
+    /// The rate's 90% interval, m/s ([`interval::DESCENT_RATE_SHARES`]).
+    pub mean_descent_rate_interval_m_s: Option<Interval>,
     /// The track it came from.
     pub source: Source,
     /// Measured: the time. The rate is derived from it and apogee.
@@ -978,13 +988,20 @@ pub fn read(log: &FlightLog) -> Readings {
 /// The flight time, from liftoff and landing; withheld as the first of them withheld is.
 fn flight_time(readings: &Readings) -> Reading<FlightTime> {
     match (&readings.liftoff, &readings.landing) {
-        (Reading::Read(liftoff), Reading::Read(landing)) => Reading::Read(FlightTime {
-            time_s: landing.time_s - liftoff.time_s,
-            bound_s: liftoff.bound_s + landing.bound_s,
-            source: landing.source,
-            provenance: Provenance::Measured,
-            method: Method::LiftoffToLanding,
-        }),
+        (Reading::Read(liftoff), Reading::Read(landing)) => {
+            let (time_s, bound_s) = (
+                landing.time_s - liftoff.time_s,
+                liftoff.bound_s + landing.bound_s,
+            );
+            Reading::Read(FlightTime {
+                time_s,
+                bound_s,
+                interval_s: interval::FLIGHT_TIME_SHARES.interval(time_s, bound_s),
+                source: landing.source,
+                provenance: Provenance::Measured,
+                method: Method::LiftoffToLanding,
+            })
+        }
         (Reading::Withheld(withheld), _) => Reading::withheld(
             withheld.reason,
             format!(
@@ -1384,6 +1401,7 @@ fn heights(log: &FlightLog) -> Readings {
         Some((liftoff, bound_s)) => Reading::Read(Liftoff {
             time_s: time[liftoff],
             bound_s,
+            interval_s: interval::LIFTOFF_SHARES.interval(time[liftoff], bound_s),
             source: track.source,
             provenance: Provenance::Measured,
             method: Method::LastOnThePad,
@@ -1832,6 +1850,7 @@ fn max_speed(
     Reading::Read(MaxSpeed {
         speed_m_s: top,
         bound_m_s,
+        interval_m_s: interval::TOP_SPEED_SHARES.interval(top, bound_m_s),
         time_s: time[index],
         height_m: filtered[index] - pad,
         source,
@@ -1936,9 +1955,12 @@ fn landing(
     Reading::Read(Landing {
         time_s: time[index],
         bound_s,
+        interval_s: interval::LANDING_SHARES.interval(time[index], bound_s),
         descent_time_s,
         mean_descent_rate_m_s: mean_rate,
         mean_descent_rate_bound_m_s: rate_bound,
+        mean_descent_rate_interval_m_s: interval::DESCENT_RATE_SHARES
+            .interval(mean_rate, rate_bound),
         source: track.source,
         provenance: Provenance::Measured,
         method: Method::BackOnThePad,
@@ -2015,6 +2037,88 @@ mod tests {
                 h.max(0.0)
             }
         }
+    }
+
+    /// Each reading of the height track states the 90% interval its own shares make of its own
+    /// value and bound, no other's ([ADR-308](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md)).
+    #[test]
+    fn each_reading_states_the_interval_its_own_shares_make() {
+        use interval::*;
+        let readings = read(&log(30.0, flight(10.0)));
+        let liftoff = readings.liftoff.value().unwrap();
+        let apogee = readings.apogee.value().unwrap();
+        let speed = readings.max_speed.value().unwrap();
+        let landing = readings.landing.value().unwrap();
+        let flight_time = readings.flight_time.value().unwrap();
+        let stated = [
+            (
+                liftoff.interval_s,
+                LIFTOFF_SHARES,
+                liftoff.time_s,
+                liftoff.bound_s,
+            ),
+            (
+                apogee.height_interval_m,
+                APOGEE_HEIGHT_SHARES,
+                apogee.height_m,
+                apogee.bound_m,
+            ),
+            (
+                apogee.time_interval_s,
+                APOGEE_TIME_SHARES,
+                apogee.time_s,
+                apogee.time_bound_s,
+            ),
+            (
+                speed.interval_m_s,
+                TOP_SPEED_SHARES,
+                speed.speed_m_s,
+                speed.bound_m_s,
+            ),
+            (
+                landing.interval_s,
+                LANDING_SHARES,
+                landing.time_s,
+                landing.bound_s,
+            ),
+            (
+                flight_time.interval_s,
+                FLIGHT_TIME_SHARES,
+                flight_time.time_s,
+                flight_time.bound_s,
+            ),
+            (
+                landing.mean_descent_rate_interval_m_s,
+                DESCENT_RATE_SHARES,
+                landing.mean_descent_rate_m_s,
+                landing.mean_descent_rate_bound_m_s,
+            ),
+        ];
+        for (k, (interval, shares, value, bound)) in stated.into_iter().enumerate() {
+            let interval = interval.unwrap();
+            assert_eq!(Some(interval), shares.interval(value, bound), "reading {k}");
+            assert_eq!(interval.low, value - shares.high * bound, "reading {k}");
+            assert_eq!(interval.high, value - shares.low * bound, "reading {k}");
+        }
+        // No two readings share their shares, so a reading wired to another's would fail above.
+        let all = [
+            LIFTOFF_SHARES,
+            APOGEE_HEIGHT_SHARES,
+            APOGEE_TIME_SHARES,
+            TOP_SPEED_SHARES,
+            LANDING_SHARES,
+            FLIGHT_TIME_SHARES,
+            DESCENT_RATE_SHARES,
+        ];
+        for (i, a) in all.iter().enumerate() {
+            for b in &all[i + 1..] {
+                assert_ne!(a, b);
+            }
+        }
+        // Liftoff is read late and the flight time short, so their intervals lie wholly before
+        // and wholly after the reading.
+        assert!(liftoff.interval_s.unwrap().high < liftoff.time_s);
+        assert!(flight_time.interval_s.unwrap().low > flight_time.time_s);
     }
 
     /// The test flight reads: liftoff by the allowance's climb after 1 s, apogee at 6 s, the top
