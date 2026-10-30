@@ -51,9 +51,9 @@
 <text x="52" y="823" xml:space="preserve" fill="#0B0F1C">top speed             285.6 m/s (937 ft/s) at 1.73 s</text>
 <text x="52" y="839" xml:space="preserve" fill="#0B0F1C">top Mach number       0.842</text>
 <text x="52" y="855" xml:space="preserve" fill="#0B0F1C">landing               0.7 m (2 ft) from the pad at 245.78 s, at 4.4 m/s (15 ft/s)</text>
-<text x="52" y="887" xml:space="preserve" fill="#0B0F1C">How far to trust it. Simulated from the design file, not measured. Against 53 logged flights of</text>
-<text x="52" y="903" xml:space="preserve" fill="#0B0F1C">fliers&apos; own designs, the simulated apogee averaged 8.7% above the logged one. Each logged apogee is</text>
-<text x="52" y="919" xml:space="preserve" fill="#0B0F1C">the height climbed in the day&apos;s air. The simulated apogee was within 10% on 26 and read low on 13,</text>
+<text x="52" y="887" xml:space="preserve" fill="#0B0F1C">How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of</text>
+<text x="52" y="903" xml:space="preserve" fill="#0B0F1C">fliers&apos; own designs, the simulated apogee averaged 7.8% above the logged one. Each logged apogee is</text>
+<text x="52" y="919" xml:space="preserve" fill="#0B0F1C">the height climbed in the day&apos;s air. The simulated apogee was within 10% on 32 and read low on 15,</text>
 <text x="52" y="935" xml:space="preserve" fill="#0B0F1C">by at most 20%. Plan a waiver or a field&apos;s ceiling with room above this apogee; the altimeter&apos;s</text>
 <text x="52" y="951" xml:space="preserve" fill="#0B0F1C">reading is the one to log, and the RSO decides.</text>
 <text x="52" y="967" xml:space="preserve" fill="#0B0F1C">More: https://hpr.fusionspace.co/accuracy.html</text>

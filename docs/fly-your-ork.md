@@ -7,9 +7,9 @@ numbers it prints.
 from the command line, and says how to read what it prints.** It's for a flier who has a `.ork`
 file and wants a second simulator's view of it.
 
-> **How far to trust it.** Every flight here is a model's estimate, not a measurement. Against 53
-> logged flights of fliers' own designs, HPR Sim's apogee averaged 8.7% above the logged one. It
-> was within 10% on 26 and read low on 13, by at most 20%. `hpr sim` says so under each result
+> **How far to trust it.** Every flight here is a model's estimate, not a measurement. Against 60
+> logged flights of fliers' own designs, HPR Sim's apogee averaged 7.8% above the logged one. It
+> was within 10% on 32 and read low on 15, by at most 20%. `hpr sim` says so under each result
 > below.
 >
 > [Accuracy](accuracy.md) says how close HPR Sim comes to OpenRocket and to real flights, and its
@@ -81,9 +81,9 @@ top speed             285.6 m/s (937 ft/s) at 1.73 s
 top Mach number       0.842
 landing               0.7 m (2 ft) from the pad at 245.78 s, at 4.4 m/s (15 ft/s)
 
-How far to trust it. Simulated from the design file, not measured. Against 53 logged flights of
-fliers' own designs, the simulated apogee averaged 8.7% above the logged one. Each logged apogee is
-the height climbed in the day's air. The simulated apogee was within 10% on 26 and read low on 13,
+How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of
+fliers' own designs, the simulated apogee averaged 7.8% above the logged one. Each logged apogee is
+the height climbed in the day's air. The simulated apogee was within 10% on 32 and read low on 15,
 by at most 20%. Plan a waiver or a field's ceiling with room above this apogee; the altimeter's
 reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
@@ -170,9 +170,9 @@ top speed             290.9 m/s (954 ft/s) at 1.75 s
 top Mach number       0.874
 landing               755.8 m (2480 ft) from the pad at 246.17 s, at 6.3 m/s (21 ft/s)
 
-How far to trust it. Simulated from the design file, not measured. Against 53 logged flights of
-fliers' own designs, the simulated apogee averaged 8.7% above the logged one. Each logged apogee is
-the height climbed in the day's air. The simulated apogee was within 10% on 26 and read low on 13,
+How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of
+fliers' own designs, the simulated apogee averaged 7.8% above the logged one. Each logged apogee is
+the height climbed in the day's air. The simulated apogee was within 10% on 32 and read low on 15,
 by at most 20%. Plan a waiver or a field's ceiling with room above this apogee; the altimeter's
 reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html

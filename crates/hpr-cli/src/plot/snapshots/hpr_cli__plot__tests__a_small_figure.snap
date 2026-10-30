@@ -125,9 +125,9 @@ expression: "svg.replace(&program, \"[program]\")"
 <text x="76" y="1440.0" fill="#566079">Hatched, 5.00 s to 20.00 s: the rocket falls on its airframe alone. The aerodynamics hold only at small angles of</text>
 <text x="76" y="1456.0" fill="#566079">attack, so this is not a prediction.</text>
 <text x="76" y="1488.0" fill="#566079">HOW FAR TO TRUST IT</text>
-<text x="76" y="1504.0" fill="#566079">Simulated from the design file, not measured. Against 53 logged flights of fliers&apos; own designs, the simulated apogee</text>
-<text x="76" y="1520.0" fill="#566079">averaged 8.7% above the logged one. Each logged apogee is the height climbed in the day&apos;s air. The simulated apogee</text>
-<text x="76" y="1536.0" fill="#566079">was within 10% on 26 and read low on 13, by at most 20%. Plan a waiver or a field&apos;s ceiling with room above this</text>
+<text x="76" y="1504.0" fill="#566079">Simulated from the design file, not measured. Against 60 logged flights of fliers&apos; own designs, the simulated apogee</text>
+<text x="76" y="1520.0" fill="#566079">averaged 7.8% above the logged one. Each logged apogee is the height climbed in the day&apos;s air. The simulated apogee</text>
+<text x="76" y="1536.0" fill="#566079">was within 10% on 32 and read low on 15, by at most 20%. Plan a waiver or a field&apos;s ceiling with room above this</text>
 <text x="76" y="1552.0" fill="#566079">apogee; the altimeter&apos;s reading is the one to log, and the RSO decides. More: https://hpr.fusionspace.co/accuracy.html</text>
 <g id="title-block">
 <rect x="76" y="1576.0" width="860.0" height="88.0" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="2"/>

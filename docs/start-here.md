@@ -11,10 +11,10 @@ models, where each model comes from, and how well each one has been checked. I w
 rocketeer who knows some physics and some code, but not this project.
 
 > **How far to trust it.** Every number HPR Sim produces is an estimate from a model, not a
-> measurement, and never a go/no-go verdict. Against 53 logged flights of fliers' own designs, its
-> apogee missed the logged one by 12.95% on average, either way. That's the mean absolute miss,
+> measurement, and never a go/no-go verdict. Against 60 logged flights of fliers' own designs, its
+> apogee missed the logged one by 12.07% on average, either way. That's the mean absolute miss,
 > outside the 5% target ([the register's row on these misses](evidence.md#g24)). With signs kept, it
-> averaged 8.73% above the logged one. It was within 10% on 26 and read low on 13, by at
+> averaged 7.76% above the logged one. It was within 10% on 32 and read low on 15, by at
 > most 20%
 > ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md)),
 > and [Accuracy so far](#accuracy-so-far) gives the rest. Your motor's printed data, your
@@ -419,7 +419,7 @@ These are left out of a flight, or approximated:
   gravity and center of pressure it came from. Then come the apogee, the rail exit speed, the
   ejection delay and the descent speed under open parachutes. Each height and speed is in SI, with
   feet or feet per second in parentheses ([units](cli.md#units)). It ends with how far to trust
-  it, from 53 logged flights ([how far to trust a result](decisions-and-roadmap.md#m0-9c3)). It
+  it, from 60 logged flights ([how far to trust a result](decisions-and-roadmap.md#m0-9c3)). It
   calls configurations and parts by name, such as `[C6-5]` for a configuration the file leaves
   unnamed ([readable output](decisions-and-roadmap.md#m4-5d)). It flies a `.ork` file's
   parachutes and streamers, and its powered separations, one or several
@@ -590,9 +590,9 @@ zero while a motor burns says its apogee isn't a prediction. The results so far:
   aren't compared yet
   ([real flights](accuracy.md#real-flights),
   [report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md)).
-- **Against 53 more real flights, from a private collection, HPR Sim and OpenRocket both
-  over-predict the logged apogee.** HPR Sim does by 8.73% on average and OpenRocket by 7.79%, and
-  they agree with each other within 5% on 52 of them. Neither meets the 5% target. Each flight was
+- **Against 60 more real flights, from a private collection, HPR Sim and OpenRocket both
+  over-predict the logged apogee.** HPR Sim does by 7.76% on average and OpenRocket by 6.72%, and
+  they agree with each other within 5% on 59 of them. Neither meets the 5% target. Each flight was
   rechecked against the collection's own catalog of its sources
   ([the collection rechecked](decisions-and-roadmap.md#m2-3c5)). The flights' owners allow only
   aggregate numbers

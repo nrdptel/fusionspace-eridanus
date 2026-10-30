@@ -337,6 +337,7 @@ until someone rewrites it in plainer words.
 | [ADR-306: Withdraw the motor update to land it again in order][adr-306] | [M5.7d](#m5-7d), `hpr motors update`, merged in #1040 before the captures of the pages it changed were looked at as [ADR-282][adr-282] requires: the look before the merge took more captures than its limit, before the site's clipping check. A look done right after the merge found no clipping beyond #1043's. As with [ADR-299][adr-299], #1040 is reverted and one PR lands it again with every check run before its merge. [M5.7d](#m5-7d)'s roadmap entry goes back to open until then. |  |
 | [ADR-307: Newer motors found by comparing ThrustCurve.org's whole catalog with the bundle][adr-307] | `hpr motors update` asks ThrustCurve.org's search for every motor at once and compares the solid ones with the bundled catalog by id, file count and update day, downloading only the motors that may differ. Its date filters aren't used: one of them matched nothing on 2026-10-29. A newer motor is found offline after the update; a newer file of a bundled motor is only cached, and the bundled file keeps flying. |  |
 | [ADR-308: M7.2e in four: the intervals by reading, then the surfaces][adr-308] | each reading's 90% interval runs from the reading less one share of its own bound to the reading less another. The two shares are the 5% and 95% points of the readings' errors as shares of their bounds, fitted on a calibration set of 2,000 synthetic flights on a seed of its own. `cargo xtask synthetic` fits them again, holds them to the library's, and runs [ADR-257][adr-257]'s test with its three probes on sets A and B. [M7.2e1](#m7-2e1) does this for the apogee's height and time; e2 and e3 add the other readings; e4 takes the intervals and the smoother's health card to `hpr analyze` and Python. |  |
+| [ADR-309: A fin tab weighed as its file states it][adr-309] | a fin tab may start ahead of its root's leading edge or end past its trailing edge. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -1272,6 +1273,7 @@ is the milestone that added or will add that test.
 [adr-306]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0306-withdraw-the-motor-update-to-land-it-in-order.md
 [adr-307]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0307-newer-motors-by-comparing-the-whole-catalog.md
 [adr-308]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md
+[adr-309]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0309-a-fin-tab-weighed-as-stated.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

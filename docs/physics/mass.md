@@ -222,7 +222,11 @@ These conventions were set in [the decision on component geometry and mass prope
   - Loft ignored the span ([a Loft lesson](../decisions-and-roadmap.md#l44)) and fixed a freeform
     fin's CG at $0.42\,c_r$ ([another](../decisions-and-roadmap.md#l45)).
 - Tabs are square slabs below the root, $-h_{\mathrm{tab}} \le h \le 0$, with closed-form integrals. A tab
-  must lie along the root chord and reach no deeper than the body radius. Loft never
+  is weighed over the length its design states, even where it starts ahead of the root or ends
+  past it, as OpenRocket weighs one. OpenRocket trims two tabs to the root on loading, where the
+  file's rounded numbers pass it by under 0.03 mm (0.0012 in); HPR Sim keeps them as stated, a
+  slab too small to show in a mass. A tab must meet the root over some length and reach no deeper
+  than the body radius ([a tab weighed as stated][adr-309]). Loft never
   read them ([a Loft lesson](../decisions-and-roadmap.md#l46)).
 - The flat root is placed at radius $R_b$. The sliver between it and the curved tube,
   $t^2/(8R_b)$ deep, is ignored. Fillets are solids of their own
@@ -445,6 +449,7 @@ They are named because the script doesn't follow the symbolic link the local set
 collection. With the collection as a real directory under `refs/`, the script would read all of
 it, and `cargo xtask ork` refuses the record.
 
+[adr-309]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0309-a-fin-tab-weighed-as-stated.md
 [adr-060]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0060-m2-2-split-and-the-structures-mass-held-to.md
 
 ### What a `.ork` leaves unsaid, and overrides
