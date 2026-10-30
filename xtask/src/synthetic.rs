@@ -2314,7 +2314,8 @@ mod tests {
             launch_started: launch,
         };
         assert!(launch_failures(&set(whole.clone())).is_empty());
-        let breaks: [(&str, fn(&mut SetCheck)); 7] = [
+        type Break = (&'static str, fn(&mut SetCheck));
+        let breaks: [Break; 7] = [
             ("fails", |c| c.cells[0].holds = false),
             ("altos: apogee", |c| {
                 c.by_logger.get_mut("altos").unwrap()[0].holds = false;
