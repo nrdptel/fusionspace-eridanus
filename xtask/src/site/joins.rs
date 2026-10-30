@@ -941,5 +941,15 @@ mod tests {
             "{}",
             problems[0].1
         );
+        // A figure's groups too, and the no-break space written as an entity passes.
+        let grouped = readme_splits("# A README\n\nIt reads 22 632&nbsp;Pa.\n", Renderer::GitHub);
+        assert_eq!(grouped.len(), 1, "{grouped:?}");
+        assert_eq!(grouped[0].0, 3);
+        assert!(
+            grouped[0].1.contains("inside the number") && grouped[0].1.ends_with("`22&nbsp;632`"),
+            "{}",
+            grouped[0].1
+        );
+        assert!(readme_splits("22&nbsp;632&nbsp;Pa\n", Renderer::GitHub).is_empty());
     }
 }
