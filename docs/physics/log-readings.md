@@ -743,10 +743,10 @@ count rules in. The test fails unless both sides' bands hold 5% and the inside c
 
 The GNSS-only logs, 180 of A's and 155 of B's, give no apogee. Every interval narrowed to 0.8 of
 its width fails the test, and so does every one widened to 1.25 or shifted down one standard
-error. The apogee height's mean error, the reading less the truth, is +1 m (3 ft) on A and
-0 m (0 ft) on B, to the meter: the errors reach 237 m (778 ft), and the mean's later digits differ
-from one computer to another. So the reading isn't low on average, which would be the flattering
-side for a waiver.
+error. The apogee height's mean error, the reading less the truth, is +1 m (3 ft) on A, and on B
+less than half a meter (1.6 ft) but above zero. The report gives it to the meter, with its sign:
+the errors reach 237 m (778 ft), and the mean's later digits differ from one computer to another.
+So the reading isn't low on average, which would be the flattering side for a waiver.
 
 The test pools the five loggers that give an apogee and the ten designs. The 90% is over the days
 the flights draw, spread evenly within 15 K of the standard atmosphere, and the misses aren't

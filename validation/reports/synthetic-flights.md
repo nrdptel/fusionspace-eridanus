@@ -854,12 +854,12 @@ Each interval narrowed to 0.8 of its width about its middle, widened to 1.25, an
 
 ### The apogee's error side
 
-The apogee height's mean error, the reading less the truth, over the readings compared (ADR-257 §2). A reading too low is the flattering side for a waiver: the share of truths above the interval is that side's test, and the shifted-down probe its mutation probe. The mean is given at the figures of the largest error, the digits every platform shares.
+The apogee height's mean error, the reading less the truth, over the readings compared (ADR-257 §2). A reading too low is the flattering side for a waiver: the share of truths above the interval is that side's test, and the shifted-down probe its mutation probe. The mean is given at the figures of the largest error, the digits every platform shares, and with its sign: +0 is a mean too small for those figures that isn't below zero.
 
 | Set | Mean error, m | Largest error, m | Truths above |
 |---|---:|---:|---:|
-| A | 1 | 237 | 5.49% |
-| B | 0 | 234 | 5.56% |
+| A | +1 | 237 | 5.49% |
+| B | +0 | 234 | 5.56% |
 
 ### By design
 

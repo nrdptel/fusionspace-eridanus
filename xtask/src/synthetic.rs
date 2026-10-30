@@ -826,8 +826,19 @@ fn rounded_check(mut check: intervals::Check) -> intervals::Check {
         round(test);
     }
     check.largest_error = intervals::three_figures(check.largest_error);
-    check.mean_error = census::at_the_figures_of(check.mean_error, check.largest_error);
+    check.mean_error = signed_mean(check.mean_error, check.largest_error);
     check
+}
+
+/// `mean` at the figures of `largest` ([`census::at_the_figures_of`]), keeping its sign when it
+/// rounds to zero: the apogee's error side is the sign.
+fn signed_mean(mean: f64, largest: f64) -> f64 {
+    let rounded = census::at_the_figures_of(mean, largest);
+    if rounded == 0.0 {
+        0.0_f64.copysign(mean)
+    } else {
+        rounded
+    }
 }
 
 /// Cells to three significant figures, as the report holds them; whether each holds is decided
@@ -1129,6 +1140,16 @@ fn number(x: f64) -> String {
     }
 }
 
+/// `x` with its sign, `+0` and `-0` included, since a rounded mean keeps the sign it had; not a
+/// number as [`number`] writes it.
+fn signed(x: f64) -> String {
+    if x.is_finite() {
+        format!("{x:+}")
+    } else {
+        number(x)
+    }
+}
+
 /// A set's name as the page heads its column.
 fn title(set: Set) -> &'static str {
     match set {
@@ -1372,7 +1393,8 @@ fn intervals_section(page: &mut String, made: &Intervals) {
          truth, over the readings compared (ADR-257 §2). A reading too low is the flattering side \
          for a waiver: the share of truths above the interval is that side's test, and the \
          shifted-down probe its mutation probe. The mean is given at the figures of the largest \
-         error, the digits every platform shares.\n\n| Set | Mean error, m | Largest error, m | \
+         error, the digits every platform shares, and with its sign: +0 is a mean too small for \
+         those figures that isn't below zero.\n\n| Set | Mean error, m | Largest error, m | \
          Truths above |\n|---|---:|---:|---:|\n",
     );
     for set in &made.sets {
@@ -1386,7 +1408,7 @@ fn intervals_section(page: &mut String, made: &Intervals) {
                 page,
                 "| {} | {} | {} | {} |",
                 title(set.set),
-                number(c.check.mean_error),
+                signed(c.check.mean_error),
                 number(c.check.largest_error),
                 percent(counts.above, counts.given)
             );
@@ -2273,5 +2295,15 @@ mod tests {
         assert_eq!(number(-14.6), "-14.6");
         assert_eq!(number(-0.0), "0");
         assert_eq!(number(0.000_123), "0.000123");
+    }
+
+    #[test]
+    fn a_mean_rounded_to_zero_keeps_its_sign() {
+        let mean = |x: f64| signed(signed_mean(x, 237.0));
+        assert_eq!(mean(0.0742), "+0");
+        assert_eq!(mean(-0.0738), "-0");
+        assert_eq!(mean(1.07), "+1");
+        assert_eq!(mean(-1.6), "-2");
+        assert_eq!(mean(f64::NAN), "NaN");
     }
 }

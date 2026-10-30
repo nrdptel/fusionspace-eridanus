@@ -93,10 +93,10 @@ rate or an acceleration.
   - the time's leaves 36 and 32, and 41 and 50;
   - every probe fails: narrowed, 228 to 264 truths miss the height; widened, none do; shifted
     down, 283 lie above.
-- The apogee height's mean error is +1 m on A and 0 m on B, so the reading is not low on average:
-  the flattering side ([ADR-257][adr-257] §2) shows no low bias. The report gives the mean to the
-  meter, the figures of the largest error (237 m), since its later digits differ from platform to
-  platform.
+- The apogee height's mean error is +1 m on A and +0 m on B (under half a meter, above zero), so
+  the reading is not low on average: the flattering side ([ADR-257][adr-257] §2) shows no low
+  bias. The report gives the mean to the meter, the figures of the largest error (237 m), with its
+  sign, since its later digits differ from platform to platform.
 - The interval holds 90% over the flights the synthetic sets draw, pooled over their loggers,
   designs and days. The misses aren't pooled. The height's all fall on days more than 10 K from
   the standard atmosphere: none of the 551 and 526 days within it on A and B missed. Of the
