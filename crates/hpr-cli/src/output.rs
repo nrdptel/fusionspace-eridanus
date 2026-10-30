@@ -2011,6 +2011,11 @@ pub struct MaxAccelerationReading {
     /// The bound on its error, m/s². When it is clipped, the true top is no lower than the
     /// reading less the bound, and may be higher by any amount.
     pub bound_m_s2: f64,
+    /// Its 90% interval, m/s²; `null` on a floor.
+    pub interval_m_s2: Option<ReadingInterval>,
+    /// A floor's lower end, m/s²: on the synthetic flights about 5% of tops just at the clip lay
+    /// below it, and none past it. `null` where it isn't a floor.
+    pub lower_end_m_s2: Option<f64>,
     /// When, s on the accelerometer's clock.
     pub time_s: f64,
     /// The range of the part its family states, m/s²; `null` where it doesn't.
@@ -2038,6 +2043,11 @@ pub struct BurnoutReading {
     pub time_s: f64,
     /// The bound on its error, s.
     pub bound_s: f64,
+    /// Its 90% interval, s; `null` on a floor.
+    pub interval_s: Option<ReadingInterval>,
+    /// A floor's lower end, s: on the synthetic flights about 5% of burnouts came before it.
+    /// `null` where it isn't a floor.
+    pub lower_end_s: Option<f64>,
     /// When, s after liftoff: the burn's length; `null` when liftoff is withheld.
     pub time_after_liftoff_s: Option<f64>,
     /// Whether the time is a floor: burnout came no sooner than it, less its bound, and may
@@ -2075,6 +2085,8 @@ pub struct DescentReading {
     pub rate_m_s: f64,
     /// The bound on its error, m/s.
     pub bound_m_s: f64,
+    /// Its 90% interval, m/s.
+    pub interval_m_s: Option<ReadingInterval>,
     /// Where the leg starts, s: apogee, or the main's opening.
     pub from_s: f64,
     /// Where it ends, s: the main's opening, or landing.
@@ -2101,6 +2113,8 @@ pub struct OpeningReading {
     pub time_s: f64,
     /// The bound on its error, s.
     pub bound_s: f64,
+    /// Its 90% interval, s.
+    pub interval_s: Option<ReadingInterval>,
     /// The height then, m above the pad.
     pub height_m: f64,
 }

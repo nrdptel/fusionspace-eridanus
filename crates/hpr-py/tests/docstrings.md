@@ -287,10 +287,13 @@ is above the track's zero too. ``max_speed`` holds ``speed_m_s`` and ``bound_m_s
 ``rate_m_s`` and ``bound_m_s``, and ``landing`` the mean rate from apogee,
 ``mean_descent_rate_m_s`` and ``mean_descent_rate_bound_m_s``.
 
-Seven readings state a 90% interval, ``low`` and ``high``: ``liftoff``, ``landing`` and
-``flight_time`` as ``interval_s``, ``max_speed`` as ``interval_m_s``, ``landing``'s mean
-rate as ``mean_descent_rate_interval_m_s``, and ``apogee``'s height and time as
-``height_interval_m`` and ``time_interval_s``. Only the apogee's are ``None`` on a floor.
+Twelve readings state a 90% interval, ``low`` and ``high``: ``liftoff``, ``burnout``,
+``landing``, ``flight_time`` and the main's ``opening`` as ``interval_s``, ``max_speed`` and
+each descent as ``interval_m_s``, ``max_acceleration`` as ``interval_m_s2``, ``landing``'s
+mean rate as ``mean_descent_rate_interval_m_s``, and ``apogee``'s height and time as
+``height_interval_m`` and ``time_interval_s``. On a floor the apogee's, the burnout's and the
+top acceleration's are ``None``; a burnout floor then states ``lower_end_s``, and a top
+acceleration floor ``lower_end_m_s2``.
 
 An apogee, a burnout and a top acceleration each say whether it's a floor (``is_floor``).
 A floor's true value is at least the value less its bound, and may be higher by any amount.

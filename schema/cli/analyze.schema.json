@@ -486,9 +486,28 @@
           "type": "number",
           "format": "double"
         },
+        "interval_s": {
+          "description": "Its 90% interval, s; `null` on a floor.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "is_floor": {
           "description": "Whether the time is a floor: burnout came no sooner than it, less its bound, and may\nhave come later by any amount. A burnout from the speed's peak is.",
           "type": "boolean"
+        },
+        "lower_end_s": {
+          "description": "A floor's lower end, s: on the synthetic flights about 5% of burnouts came before it.\n`null` where it isn't a floor.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
         },
         "method": {
           "description": "How it was read.",
@@ -543,6 +562,17 @@
           "description": "Where the leg starts, s: apogee, or the main's opening.",
           "type": "number",
           "format": "double"
+        },
+        "interval_m_s": {
+          "description": "Its 90% interval, m/s.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "method": {
           "description": "How it was read.",
@@ -1393,9 +1423,28 @@
             }
           ]
         },
+        "interval_m_s2": {
+          "description": "Its 90% interval, m/s²; `null` on a floor.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "is_floor": {
           "description": "Whether the top is a floor: no lower than the reading less its bound, and maybe higher by\nany amount. A clipped top is, and so is one whose thrust the accelerometer shows no end to,\nnever falling through zero on the channel before apogee: that one is measured, its `clip`\n`null`.",
           "type": "boolean"
+        },
+        "lower_end_m_s2": {
+          "description": "A floor's lower end, m/s²: on the synthetic flights about 5% of tops just at the clip lay\nbelow it, and none past it. `null` where it isn't a floor.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
         },
         "method": {
           "description": "How it was read.",
@@ -1504,6 +1553,17 @@
           "description": "The height then, m above the pad.",
           "type": "number",
           "format": "double"
+        },
+        "interval_s": {
+          "description": "Its 90% interval, s.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "time_s": {
           "description": "When, s: the first sample of the run back from landing whose rate stays near the main's.",

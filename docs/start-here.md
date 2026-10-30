@@ -217,13 +217,16 @@ Without one, burnout is a [floor](glossary.md#floor), the top speed's time less 
 reading is within a bound held on the synthetic flights' tuning set, or withheld with the reason
 the log can't support it ([Flight-log readings](physics/log-readings.md)). The synthetic flights'
 census holds 2,200 simulated flights, each with its logger's log and its known truth ([Synthetic
-flights](physics/synthetic-flights.md)). In the library, seven readings of the height track also
-state a 90% interval: liftoff, the apogee's height and time, the top speed, landing, the flight time
-and the mean descent rate. Each passes a two-sided test on synthetic flights held apart from the
-2,000 its points were fitted on; the top speed only below 227.7 m/s (747 ft/s), on 287 and 286
-readings, where the others have 820 and 845. The misses of the height, the top speed and the descent
-rate fall on the coldest and warmest days, a warm day reading low, and the times lean by logger. So
-a waiver goes by the apogee plus its bound, and a fin's margin by the top speed plus its bound ([The
+flights](physics/synthetic-flights.md)). In the library, twelve readings also state a 90% interval:
+liftoff, the apogee's height and time, the top speed, landing, the flight time, the mean descent rate,
+the top acceleration, burnout, each canopy's rate and the main's opening. Each passes a two-sided test
+on synthetic flights held apart from the 2,000 its points were fitted on; the top speed only below
+227.7 m/s (747 ft/s), on 287 and 286 readings, where the height's have 820 and 845. A floor, whose truth
+may lie any amount above it, states a lower end tested on that test's lower tail. The misses of the
+height, the top speed and the rates of descent fall on the coldest and warmest days, a warm day reading
+low; the times lean by logger, and the top acceleration most. So a waiver goes by the apogee plus its
+bound, a fin's margin by the top speed plus its bound, and a load by the top acceleration plus its
+bound ([The
 90% intervals](physics/log-readings.md#the-90-intervals); not yet checked on a real flight,
 [evidence row G34](evidence.md#g34)). The library's smoother fuses a log's barometer, accelerometer
 and GNSS receiver into the height and vertical speed at every sample, each with a 90% interval. At
@@ -456,7 +459,7 @@ These are left out of a flight, or approximated:
   limits, and NSGA-II weighs apogee against stability ([Optimization](optimization.md)). Their
   answers are only as good as HPR Sim's flight models. Competition rule files aren't built yet.
   There's no app yet: it's on the [roadmap][roadmap].
-- **The flight-log analyzer gives readings within bounds; seven state intervals in JSON and Python, none in the text.** `hpr analyze` and
+- **The flight-log analyzer gives readings within bounds; twelve state intervals in JSON and Python, none in the text.** `hpr analyze` and
   the Python package read a flight log on its own, with no design file and no simulation. They use
   its format's reader, or the column mapping or record layout you write for your own logger
   ([Reading your own logger](your-own-logger.md)). They give liftoff, apogee, the top speed,
@@ -466,7 +469,7 @@ These are left out of a flight, or approximated:
   within a stated bound, or is withheld with the reason the log can't support it
   ([Reading a flight log](reading-a-flight-log.md)). A GPS track gives no reading, a board's three
   axes give no top acceleration, and its text states no 90% interval yet (its JSON carries the
-  seven the library states). Like `hpr weather` and
+  twelve the library states). Like `hpr weather` and
   `hpr motors show`, it ends with how far to trust its figures
   ([units and trust notes on every readout](decisions-and-roadmap.md#m0-9c4)).
 

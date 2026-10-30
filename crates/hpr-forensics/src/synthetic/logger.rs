@@ -583,11 +583,32 @@ pub fn accelerometer_log_set_lower(
     seed: u64,
     index: u64,
 ) -> Result<Option<FlightLog>, SyntheticError> {
-    let Some((accel, lower_g)) = draw
+    let Some(lower_g) = draw
         .profile
         .accelerometer()
-        .and_then(|accel| accel.lower_range_g.map(|lower_g| (accel, lower_g)))
+        .and_then(|accel| accel.lower_range_g)
     else {
+        return Ok(None);
+    };
+    accelerometer_log_clipping_at(draw, truth, lower_g, seed, index)
+}
+
+/// The log `draw`'s logger writes of `truth`, its accelerometer clipping at `lower_g` whatever
+/// ranges its part offers, in the column whose family states [`LOWER_RANGE_G`]. No flight's own
+/// accelerometer clips, so the 90% intervals' test ([`super::intervals`]) reads a top
+/// acceleration's floors from such logs. `None` for a profile with no accelerometer.
+///
+/// # Errors
+///
+/// [`SyntheticError`] if the log can't be written.
+pub fn accelerometer_log_clipping_at(
+    draw: &LoggerDraw,
+    truth: &Truth,
+    lower_g: f64,
+    seed: u64,
+    index: u64,
+) -> Result<Option<FlightLog>, SyntheticError> {
+    let Some(accel) = draw.profile.accelerometer() else {
         return Ok(None);
     };
     let set = Accelerometer {
@@ -611,6 +632,30 @@ pub fn accelerometer_log_set_lower(
         }
     }
     Ok(Some(log))
+}
+
+/// [`accelerometer_log_clipping_at`] of `truth`, its specific force scaled about the 1 g it reads
+/// on the pad so that its top is `top_m_s2`; the rest of the flight as flown. `truth_top_m_s2` is
+/// `truth`'s own top, which must be above 1 g. What the 90% intervals' test reads a clipped top's lower end from, a top just at
+/// the clip being where a lower end is hardest to hold.
+///
+/// # Errors
+///
+/// [`SyntheticError`] if the log can't be written.
+pub fn accelerometer_log_top_scaled(
+    draw: &LoggerDraw,
+    truth: &Truth,
+    (truth_top_m_s2, top_m_s2): (f64, f64),
+    lower_g: f64,
+    seed: u64,
+    index: u64,
+) -> Result<Option<FlightLog>, SyntheticError> {
+    let mut scaled = truth.clone();
+    let factor = (top_m_s2 - G) / (truth_top_m_s2 - G);
+    for sample in &mut scaled.samples {
+        sample.axial_specific_force_m_s2 = G + factor * (sample.axial_specific_force_m_s2 - G);
+    }
+    accelerometer_log_clipping_at(draw, &scaled, lower_g, seed, index)
 }
 
 /// The log `draw`'s logger writes of `truth`, its accelerometer sampled at `rate_hz` on its own

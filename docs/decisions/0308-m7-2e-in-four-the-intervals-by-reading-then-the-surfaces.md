@@ -1,6 +1,6 @@
 # ADR-308: M7.2e in four: the intervals by reading, then the surfaces (2026-10-29)
 
-- **Status:** accepted; splits [M7.2e][m7-2e] in four and records how a reading's 90% interval is made and tested; its *done when* is unchanged and met when e1 to e4 are; §3's withheld-reading check amended by M7.2e2 for the top speed past its transonic mark (Consequences)
+- **Status:** accepted; splits [M7.2e][m7-2e] in four and records how a reading's 90% interval is made and tested; its *done when* is unchanged and met when e1 to e4 are; §3's withheld-reading check amended by M7.2e2 for the top speed past its transonic mark, and §3's floors by M7.2e3 (Consequences)
 - **Summary:** each reading's 90% interval runs from the reading less one share of its own bound to the reading less another. The two shares are the 5% and 95% points of the readings' errors as shares of their bounds, fitted on a calibration set of 2,000 synthetic flights on a seed of its own. `cargo xtask synthetic` fits them again, holds them to the library's, and runs [ADR-257][adr-257]'s test with its three probes on sets A and B. M7.2e1 does this for the apogee's height and time; e2 and e3 add the other readings; e4 takes the intervals and the smoother's health card to `hpr analyze` and Python.
 
 [m7-2e]: ../decisions-and-roadmap.md#m7-2e
@@ -29,6 +29,8 @@ than they say; ADR-257's test fails them. They also cover only height and speed,
 rate or an acceleration.
 
 [i982]: https://github.com/nrdptel/fusionspace-eridanus/issues/982
+[i1070]: https://github.com/nrdptel/fusionspace-eridanus/issues/1070
+[i1071]: https://github.com/nrdptel/fusionspace-eridanus/issues/1071
 
 **Decision.**
 
@@ -130,5 +132,39 @@ rate or an acceleration.
     miss above their intervals on warm days as the height does (#1061), so the guide sends a
     waiver and a fin's margin to the reading plus its bound, and a landing to the main's rate
     and its bound. The times' leans by logger are #1062.
-- `cargo xtask synthetic` reads 4,000 more flights, about 100 s on an 8-core Mac (5.5 minutes in
-  all, from about 4).
+- **M7.2e3 (2026-10-30).** The top acceleration, burnout, each canopy's rate and the main's
+  opening took the same rule, their shares fitted once on the calibration set with the library's
+  at zero. Liftoff's lean is the main opening's too (0.138 and 0.566: it is read late). On A and B
+  every one passes the test and every probe fails it ([report][report]). Decided:
+  - **A floor states a lower end, tested on the lower tail.** It is `reading − high · bound`, where
+    `high` is the 95% point of the floor's own shares. Only the band on the truths below must hold
+    5%. Its standard error is `(high − median) · bound / 1.645`, and the probes raise it by one and
+    lower it by two: lowered by one, too few truths move for a band of a few hundred floors to
+    fail (of 210, 2 below still holds 5%). The two were set before A and B were read. Burnout's
+    shares are −0.0339 and −0.195; 12 of 210 and 6 of 211 truths lie below.
+  - **A clipped top is fitted at the clip; the first rule failed.** No flight's own accelerometer
+    clips, so each flight's log is written again clipping at 8 g. The first fit, on tops as flown,
+    gave a 95% share of −0.785 and a lower end above the reading. On A it held (8 of 252 below). On
+    B it failed: 31 of 285, its band 5.71% to 18.2%. The cause is not chance. How far past a clip
+    a top goes is the design's, and no log says: 21 of B's 22 Bella Lui floors, whose tops only
+    just pass 8 g under B's model, lay below it, where A has none. So a lower end above the reading
+    claims something the log doesn't hold. The rule now scales each flight's top to 0.95 to 1.05 of
+    the clip (spread by flight, so no design's thrust sets it), refits on those, and tests those.
+    Its shares are 0.223 and −0.111; 15 of 224 and 19 of 240 lie below. A and B were therefore read
+    twice for this one floor, and only this one rule changed after the first. Tops as flown are
+    checked apart: their band must reach down to 5%. None of 252 and none of 285 lie below.
+  - **The AltOS part clips at 8 g here too**, though it has no such setting, to reach the count:
+    a test needs 149 floors before no truth below can fail it, and the IMU's alone give 141 and
+    147.
+  - **Withheld by rule, now three:** the top speed past its mark, a burnout taken from it, a top
+    acceleration on a log with no accelerometer. A drogue or an opening on a flight that opened one
+    canopy is none to read, counted apart; a main named on such a flight has no truth and misses
+    both ways; a flight with two canopies read as one would fail the command. None did.
+  - **Flattering side:** a low top acceleration flatters the load, and a low canopy rate the descent,
+    as the mean rate does. The canopies' rates miss on warm days as the height does. The top
+    acceleration leans by logger: outside the interval 34 of 185 and 38 of 186 on the AltOS logs, 22
+    and 20 of them above it; none of 171 and 182 on the IMU's ([#1070][i1070]). The pooled test holds and
+    the guide sends a load to the reading plus its bound.
+  - **An apogee floor states none:** no set reads one, so nothing could fit or test it ([#1071][i1071]).
+- `cargo xtask synthetic` reads 4,000 more flights, and from M7.2e3 two more logs of each one with
+  an accelerometer: about 7.5 minutes in all on an 8-core Mac, from 5.5.

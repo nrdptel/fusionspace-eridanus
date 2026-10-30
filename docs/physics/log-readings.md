@@ -37,12 +37,12 @@ withholds one instead of guessing.
   every reading lands within its bound. Each but burnout's floor also lands within the tighter
   one its test works out ([evidence row G10](../evidence.md#g10)). A real log has no truth beside
   it. The 1,058 records of the project's sample logs show which readings each logger gives (an
-  apogee from 593 of them), not how right they are. Seven readings' 90% intervals, the height
-  track's, pass the two-sided test of [ADR-257, calibrated intervals][adr-257] on the synthetic
-  sets A and B, after their points were fitted on 2,000 flights of their own
-  ([evidence row G34](../evidence.md#g34)).
-- **What it leaves out:** the Mach number and dynamic pressure; 90% intervals on the
-  accelerometer's readings and the canopies' ([The 90% intervals](#the-90-intervals)).
+  apogee from 593 of them), not how right they are. All twelve readings' 90% intervals pass the
+  two-sided test of [ADR-257, calibrated intervals][adr-257] on the synthetic sets A and B, after
+  their points were fitted on 2,000 flights of their own, and a floor's lower end passes that
+  test's lower tail ([evidence row G34](../evidence.md#g34)).
+- **What it leaves out:** the Mach number and dynamic pressure; a lower end on an apogee floor
+  ([#1071](https://github.com/nrdptel/fusionspace-eridanus/issues/1071)).
   Loggers noisier than the tuning set's [six simulated logger
   profiles](synthetic-flights.md#the-loggers) and rockets slower off the pad than 2 g can be read
   outside their bound. Air more than 15 K from standard is out too, and so is any correction for
@@ -695,24 +695,25 @@ air, which a real log can't rule out.
 ### The 90% intervals
 
 A bound is the size every error stayed within on the tuning set. A 90% interval is narrower: it
-says where the truth usually lies, over the days and loggers the synthetic flights draw. Seven
-readings of the height track state one in the library: liftoff (`Liftoff::interval_s`), the
-apogee's height and time (`Apogee::height_interval_m` and `time_interval_s`), the top speed
-(`MaxSpeed::interval_m_s`), landing (`Landing::interval_s`), the flight time
-(`FlightTime::interval_s`) and the mean descent rate
-(`Landing::mean_descent_rate_interval_m_s`). `hpr analyze --json` and Python's `readings()` carry
-them too, each as `low` and `high`, under its reading's key: `liftoff.interval_s`,
-`apogee.height_interval_m`, `apogee.time_interval_s`, `max_speed.interval_m_s`,
-`landing.interval_s`, `flight_time.interval_s` and `landing.mean_descent_rate_interval_m_s`.
-`hpr analyze`'s text shows only the bounds. The accelerometer's readings, the canopies' and `hpr analyze`'s text follow in the
-[next increments][adr-308].
+says where the truth usually lies, over the days and loggers the synthetic flights draw. Twelve
+readings state one in the library. `hpr analyze --json` and Python's `readings()` carry each as
+`low` and `high`, under its reading's key: `liftoff.interval_s`, `apogee.height_interval_m`,
+`apogee.time_interval_s`, `max_speed.interval_m_s`, `landing.interval_s`,
+`flight_time.interval_s`, `landing.mean_descent_rate_interval_m_s`,
+`max_acceleration.interval_m_s2`, `burnout.interval_s`, `drogue_descent.interval_m_s`,
+`main_descent.interval_m_s` and `main_descent.opening.interval_s`. A floor has no interval: a
+top acceleration floor states `lower_end_m_s2` and a burnout floor `lower_end_s`, as
+[A floor's lower end](#a-floors-lower-end) sets out. `hpr analyze`'s text shows only the bounds;
+it takes them up in the [next increment][adr-308].
 
 Each interval comes from the reading's own bound. The synthetic flights' calibration set is 2,000
 flights on a seed no other set shares ([the sets](synthetic-flights.md#the-sets)). Each of its
 flights' own logs was read; 362 of them are the GNSS-only tracker's, which give none of these
-readings, so 1,638 of each are left. The top speed is also withheld at or above 227.7 m/s
+readings, so 1,638 are left for the height track's. The top speed is also withheld at or above 227.7 m/s
 (747 ft/s), where the barometer's port may read the transonic flow over the nose
-([Each reading](#each-reading)), which leaves 577 top speeds. Each reading's error was then taken
+([Each reading](#each-reading)), which leaves 577 top speeds. The rest have fewer for reasons of
+their own: 641 logs hold an accelerometer, 565 of them read a burnout that isn't a floor, and 781
+flights opened a drogue, so 781 give its rate and the main's opening. Each reading's error was then taken
 as a share of its bound: the reading $r$ less the truth, over the bound $b$. The interval runs
 from the reading less the 95% point of those shares times the bound, to the reading less the 5%
 point times the bound:
@@ -734,12 +735,19 @@ speeds. Each tail then misses about 5% on average over flights drawn as those ar
 | landing | −0.332 | 0.157 |
 | flight time | −0.381 | −0.133 |
 | descent rate | −0.473 | 0.493 |
+| top acceleration | −0.495 | 0.568 |
+| burnout | −0.0653 | 0.0689 |
+| drogue rate | −0.622 | 0.612 |
+| main opening | 0.138 | 0.566 |
+| main rate | −0.572 | 0.583 |
 
 Some points lean. Liftoff is the last sample within the pad's allowance, which the rocket leaves
 only after climbing it, so it is read late, and both its points are above zero: its interval lies
 wholly before the reading. The flight time runs from that late liftoff to a landing read early, so
 it reads short, and its interval lies wholly after the reading. The apogee time's errors reach
-further early than late, so its interval reaches further after the reading than before it. `cargo
+further early than late, so its interval reaches further after the reading than before it. The
+main's opening is read after the canopy has slowed the descent, so it is read late, and its interval
+lies wholly before the reading. `cargo
 xtask synthetic` fits the points again and fails unless they equal the library's.
 
 **A worked example.** The invented PerfectFlite log's apogee of 390.144 m (1,280 ft) has a bound
@@ -773,6 +781,16 @@ count rules in. The test fails unless both sides' bands hold 5% and the inside c
 | B | landing | 845 | 23 | 788 | 34 |
 | B | flight time | 845 | 37 | 763 | 45 |
 | B | descent rate | 845 | 41 | 754 | 50 |
+| A | top acceleration | 356 | 12 | 322 | 22 |
+| A | burnout | 309 | 10 | 289 | 10 |
+| A | drogue rate | 428 | 33 | 379 | 16 |
+| A | main opening | 428 | 22 | 383 | 23 |
+| A | main rate | 820 | 46 | 734 | 40 |
+| B | top acceleration | 368 | 18 | 330 | 20 |
+| B | burnout | 327 | 25 | 285 | 17 |
+| B | drogue rate | 436 | 24 | 393 | 19 |
+| B | main opening | 436 | 13 | 394 | 29 |
+| B | main rate | 845 | 40 | 758 | 47 |
 
 The GNSS-only logs, 180 of A's and 155 of B's, give none of these readings, and the transonic
 mark withholds 533 more top speeds on A and 559 on B. So the top speed is tested on fewer than 300 readings a set, where a tail passes with a
@@ -782,42 +800,90 @@ down one standard error, the top speed's included. Past the mark, though, the ru
 the top speeds that came out low. The two Calisto designs mostly fly past it, and of the 18 top
 speeds they gave on A and B, 10 left the truth above the interval (the report's *By design*).
 
-Three of the readings have a flattering side: a reading too low makes the flight look safer than
+Six of the readings have a flattering side: a reading too low makes the flight look safer than
 it was. A low apogee height flatters a waiver, and a low top speed a fin's margin. The top speed
-is vertical; a fin's airspeed is higher on an angled climb, by 6% on a 20° one. A low mean
-descent rate says the descent was gentler than it was. That rate runs from apogee to landing,
-drogue and main together, so it is no landing speed: that is the main's rate, which states only
-its bound until [M7.2e3](../decisions-and-roadmap.md#m7-2e3). The
+is vertical; a fin's airspeed is higher on an angled climb, by 6% on a 20° one. A low top
+acceleration flatters the load the airframe took. A low mean descent rate, or a low rate under
+either canopy, says the descent was gentler than it was. The mean rate runs from apogee to landing,
+drogue and main together, so it is no landing speed: that is the main's rate. The
 report gives each one's mean error, the reading less the truth, with its sign and at the figures
 of its largest error, as its later digits differ from one computer to another. The apogee height's
 is +1 m (3 ft) on A and, on B, less than half a meter and not below zero, against errors up to
 237 m (778 ft). The top speed's is +1.2 m/s (3.9 ft/s) on A and +1.3 m/s (4.3 ft/s) on B, against errors up
 to 26.8 m/s (88 ft/s). Neither is low on average. The descent rate's is −0.01 m/s (−0.033 ft/s) on both,
-a hundredth of a meter per second low against errors up to 6.81 m/s (22.3 ft/s).
+a hundredth of a meter per second low against errors up to 6.81 m/s (22.3 ft/s). The other three
+are as small: under 0.5 m/s² (1.6 ft/s²) on the top acceleration, against errors up to 15.7 m/s²
+(51.5 ft/s²), and 0.02 m/s (0.066 ft/s) or less on each canopy's rate, against errors up to
+5.87 m/s (19.3 ft/s).
 
 The test pools the five loggers that give these readings and the ten designs. The 90% is over the
 days the flights draw, spread evenly within 15 K of the standard atmosphere, and the misses aren't
 spread over those days. A barometric height is off by about the day's offset from standard over its
-temperature, and so are the speed and the rate taken from it. On days within 10 K of standard, no
-height and no descent rate missed, and 4 of 361 top speeds did. On days warmer than that, above
+temperature, and so are the speed and the rates taken from it. On days within 10 K of standard, no
+height and no rate of descent missed, and 4 of 361 top speeds did. On days warmer than that, above
 about 25 °C (77 °F) at a sea-level field, a warm day reads low, so the truth lay above the interval:
 for the height, 45 of 137 on A and 47 of 156 on B
 ([#1055](https://github.com/nrdptel/fusionspace-eridanus/issues/1055)); for the descent rate, 45 of
-137 and 50 of 156; for the top speed, 17 of 57 and 14 of 69
+137 and 50 of 156; for the main's rate, 40 of 137 and 47 of 156; for the drogue's, 16 of 69 and 19
+of 80; for the top speed, 17 of 57 and 14 of 69
 ([#1061](https://github.com/nrdptel/fusionspace-eridanus/issues/1061)). On a hot day, then, expect
-each of the three above its interval's top far more often than 1 time in 20. So for a waiver, take
+each of them above its interval's top far more often than 1 time in 20. So for a waiver, take
 the apogee plus its bound; for a fin's margin, the top speed plus its bound; for a landing, the
-main's rate plus its bound. Each bound holds the day's air to 15 K. The bounds, too, were measured
+main's rate plus its bound; for a load, the top acceleration plus its bound. Each bound holds the day's air to 15 K. The bounds, too, were measured
 only on synthetic flights.
 
 The times lean by logger. On the AltOS logs, whose rate drops from 100 to 10 samples a second at
 apogee, 27 of 185 apogee times on A and 30 of 186 on B lie later than the interval ([#1056](https://github.com/nrdptel/fusionspace-eridanus/issues/1056)).
 Liftoff on the PerfectFlite and EggTimer logs leaves its truth above the interval (18 of 144 and
 23 of 181 on A), and on the AltOS and 500 Hz IMU logs below it. On the 500 Hz IMU logs, landing and the
-flight time leave theirs above it, 16 of 171 and 22 of 171 on A ([#1062](https://github.com/nrdptel/fusionspace-eridanus/issues/1062)). The report's bold rows
+flight time leave theirs above it, 16 of 171 and 22 of 171 on A ([#1062](https://github.com/nrdptel/fusionspace-eridanus/issues/1062)).
+The top acceleration leans most. Its one pair of points serves two accelerometers: on the AltOS logs
+34 of 185 truths on A and 38 of 186 on B lie outside the interval, 22 and 20 above it, the
+flattering side, and on the 500 Hz IMU's none of 171 and 182 do
+([#1070](https://github.com/nrdptel/fusionspace-eridanus/issues/1070)). The report's bold rows
 mark each group whose counts alone fail. The report gives each logger's and each band's counts. A
 day more than 15 K from standard, or a logger noisier than these, can see more misses still. No
 real flight has checked an interval ([evidence row G34](../evidence.md#g34)).
+
+#### A floor's lower end
+
+A [floor](../glossary.md#floor)'s truth may lie any amount above it, so it can't state an interval.
+It states a lower end: the reading less its own 95% point times its bound, $r - q_{95}\, b$, and that
+end is tested alone. The band on the share of truths below it must hold 5%, the lower tail of the
+same test. Raised by one standard error, or lowered by two, it must fail. The standard error is the
+95% point less the median, times the bound, over 1.645, as an interval's is its width over twice
+1.645. Lowering by one isn't enough to fail on a few hundred floors: of 210, a band still holds 5%
+with 2 truths below.
+
+| floor | floors fitted | 95% point $q_{95}$ | median | where the lower end falls |
+|---|---:|---:|---:|---|
+| burnout, from the top speed's peak | 437 | −0.0339 | −0.195 | just after the reading |
+| top acceleration | 413 | 0.223 | −0.111 | just below the reading |
+
+| set | floor | floors compared | truths below | raised one standard error | lowered two |
+|---|---|---:|---:|---:|---:|
+| A | top acceleration | 224 | 15 | 65 below, fails | 0 below, fails |
+| A | burnout | 210 | 12 | 56 below, fails | 0 below, fails |
+| B | top acceleration | 240 | 19 | 62 below, fails | 0 below, fails |
+| B | burnout | 211 | 6 | 47 below, fails | 0 below, fails |
+
+**Why a clipped top is fitted at the clip.** No flight's own accelerometer clips here, so the top
+acceleration's floors come from each flight's log with the accelerometer clipping at 8 g. How far
+past the clip a top goes depends on the design, and no log says. A first fit, on tops as flown, put
+the lower end above the reading. It held on A (8 of 252 below) and failed on B (31 of 285): the
+Bella Lui's tops, which only just pass 8 g under B's model, left 21 of 22 truths below it. So the
+fit now takes each flight's top scaled to lie at the clip, from 0.95 to 1.05 of it, where a lower
+end is hardest to hold; the rule reads a top as a floor from a little under the range, as a part's
+3% scale can carry it up to it. Tops further past the clip can only miss less: on the flights' tops
+as flown, none of A's 252 and none of B's 285 lie below the lower end. That lower end rests on the
+scaled tops' spread, so treat it as how far the part's own errors reach, not as a claim about how
+far past the clip the top went. On the AltOS logs it misses more than on the IMU's: 10 of 83 against
+5 of 141 on A, and 16 of 93 against 3 of 147 on B.
+
+**A worked example.** A top reading 78.5 m/s² (8.00 g), clipped, with a bound of 9.00 m/s²
+(invented numbers) has the lower end 78.5 − 0.223 × 9.00 = 76.5 m/s² (7.80 g). Its floor, the
+reading less the whole bound, is 69.5 m/s² (7.09 g). The true top is most likely above the first and,
+on what the tuning set held, no lower than the second. It may be much higher than either.
 
 - J. Lei, M. G'Sell, A. Rinaldo, R. J. Tibshirani and L. Wasserman, "Distribution-free predictive
   inference for regression", *Journal of the American Statistical Association* 113(523),

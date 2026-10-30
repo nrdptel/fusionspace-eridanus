@@ -93,6 +93,7 @@
 //!
 //! [m7-2c]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-2c
 
+use super::interval;
 use super::{
     ACCEL_BIAS_M_S2, ACCEL_NOISE_SIGMAS, ACCEL_SCALE_SHARE, Accelerometer, Apogee, BURN_LEAST_S,
     BURNOUT_MEAN_S, Burnout, COAST_SPAN_S, Clip, FLAT_TOP_M_S2, FLAT_TOP_S, FLAT_TOP_SAMPLES,
@@ -586,12 +587,19 @@ pub(super) fn read(
     } else {
         None
     };
+    let is_floor = clip.is_some() || !ended || !began;
     let max_acceleration = Reading::Read(MaxAcceleration {
         acceleration_m_s2: top,
         bound_m_s2,
+        interval_m_s2: (!is_floor)
+            .then(|| interval::TOP_ACCELERATION_SHARES.interval(top, bound_m_s2))
+            .flatten(),
+        lower_end_m_s2: is_floor
+            .then(|| interval::TOP_ACCELERATION_FLOOR_SHARES.lower_end(top, bound_m_s2))
+            .flatten(),
         time_s: time[top_index],
         range_m_s2,
-        is_floor: clip.is_some() || !ended || !began,
+        is_floor,
         clip,
         source: Source::Accelerometer,
         provenance: if clip.is_some() {
@@ -638,6 +646,8 @@ pub(super) fn read(
         Ok((time_s, bound_s)) => Reading::Read(Burnout {
             time_s,
             bound_s,
+            interval_s: interval::BURNOUT_SHARES.interval(time_s, bound_s),
+            lower_end_s: None,
             time_after_liftoff_s: heights.liftoff.value().map(|l| time_s - l.time_s),
             is_floor: false,
             source: Source::Accelerometer,
@@ -1223,17 +1233,22 @@ fn burnout(
 /// accelerometer gave none, where it has one.
 fn from_speed(heights: &Readings, why: Option<String>) -> Reading<Burnout> {
     match &heights.max_speed {
-        Reading::Read(speed) => Reading::Read(Burnout {
-            time_s: speed.time_s,
-            bound_s: 2.0 * SPEED_NOISE_M_S / STANDARD_GRAVITY_MPS2
+        Reading::Read(speed) => {
+            let bound_s = 2.0 * SPEED_NOISE_M_S / STANDARD_GRAVITY_MPS2
                 + 0.5 * SPEED_WINDOW_S
-                + heights.sample_interval_s.unwrap_or(0.0),
-            time_after_liftoff_s: heights.liftoff.value().map(|l| speed.time_s - l.time_s),
-            is_floor: true,
-            source: speed.source,
-            provenance: Provenance::Derived,
-            method: Method::SpeedPeak,
-        }),
+                + heights.sample_interval_s.unwrap_or(0.0);
+            Reading::Read(Burnout {
+                time_s: speed.time_s,
+                bound_s,
+                interval_s: None,
+                lower_end_s: interval::BURNOUT_FLOOR_SHARES.lower_end(speed.time_s, bound_s),
+                time_after_liftoff_s: heights.liftoff.value().map(|l| speed.time_s - l.time_s),
+                is_floor: true,
+                source: speed.source,
+                provenance: Provenance::Derived,
+                method: Method::SpeedPeak,
+            })
+        }
         Reading::Withheld(Withheld { reason, detail }) => Reading::withheld(
             *reason,
             match why {
@@ -1379,6 +1394,18 @@ mod tests {
         assert!((top.time_s - 3.5).abs() < 0.1, "{top:?}");
         assert_eq!(top.provenance, Provenance::Measured);
         assert_eq!(top.method, Method::HighestReading);
+        // Whole, each states its 90% interval by its own shares, and no lower end.
+        assert_eq!(
+            top.interval_m_s2,
+            interval::TOP_ACCELERATION_SHARES.interval(top.acceleration_m_s2, top.bound_m_s2)
+        );
+        assert!(top.interval_m_s2.is_some() && top.lower_end_m_s2.is_none());
+        let stated = readings.burnout.value().unwrap();
+        assert_eq!(
+            stated.interval_s,
+            interval::BURNOUT_SHARES.interval(stated.time_s, stated.bound_s)
+        );
+        assert!(stated.interval_s.is_some() && stated.lower_end_s.is_none());
         assert_eq!(top.range_m_s2, None);
         let burnout = readings.burnout.value().unwrap();
         assert!(!burnout.is_floor);
@@ -1523,6 +1550,16 @@ mod tests {
         let burnout = readings.burnout.value().unwrap();
         assert!(burnout.is_floor);
         assert_eq!(burnout.method, Method::SpeedPeak);
+        // A floor states its lower end by the floor's shares, and no interval.
+        assert_eq!(
+            burnout.lower_end_s,
+            interval::BURNOUT_FLOOR_SHARES.lower_end(burnout.time_s, burnout.bound_s)
+        );
+        assert_eq!(
+            burnout.lower_end_s,
+            Some(burnout.time_s + 0.0339 * burnout.bound_s)
+        );
+        assert!(burnout.interval_s.is_none());
     }
 
     /// A log that starts in the thrust has no pad to tell gravity by; its coast to apogee still
@@ -2398,6 +2435,13 @@ mod tests {
                 top.acceleration_m_s2 - top.bound_m_s2 <= 6.0 * G,
                 "{column}: {top:?}"
             );
+            // A floor states its lower end, inside the bound's, and no interval.
+            assert_eq!(
+                top.lower_end_m_s2,
+                Some(top.acceleration_m_s2 - 0.223 * top.bound_m_s2),
+                "{column}"
+            );
+            assert!(top.interval_m_s2.is_none(), "{column}");
         }
     }
 

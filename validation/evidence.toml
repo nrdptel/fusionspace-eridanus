@@ -748,7 +748,7 @@ issue = 981
 [[row]]
 id = "G34"
 surface = "Flight-log readings' 90% intervals"
-claim = "Seven readings of the height track state 90% intervals fitted on 2,000 synthetic flights of their own. On sets A and B each passes the two-sided coverage test (the top speed below its transonic mark, on 287 and 286 readings), and the intervals narrowed, widened and shifted down each fail it. The misses aren't spread evenly: the height's, the top speed's and the descent rate's gather on days more than 10 K from standard, a warm day's above the interval (#1055, #1061), and the times lean by logger (#1056, #1062)"
+claim = "Twelve readings state 90% intervals, and a burnout or top acceleration floor a lower end, fitted on 2,000 synthetic flights of their own. On sets A and B each interval passes the two-sided coverage test (the top speed below its transonic mark, on 287 and 286 readings), each lower end the test's lower tail, and every probe fails. The misses aren't spread evenly: the height's, the top speed's and the rates of descent's gather on days more than 10 K from standard, a warm day's above the interval (#1055, #1061); the times lean by logger (#1056, #1062), and the top acceleration most (#1070)"
 pages = ["physics/log-readings.md#the-90-intervals", "start-here.md#flight-logs"]
 kind = "calibration"
 wanted = "real"
