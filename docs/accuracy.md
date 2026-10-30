@@ -1013,13 +1013,12 @@ apogee stays in the comparison. Four flights changed, and every flight gained it
   3 [calibers](glossary.md#caliber) of margin, can't show;
 - one left because its posted design is the flier's later, heavier rebuild.
 
-**Nothing in HPR Sim changed; the comparison's flights did.** At the recheck, HPR Sim's mean went
-from +9.83% over 55 flights to +8.73% over 53, and OpenRocket's from +9.00% to +7.79%. The tumbling
-flight's error was the largest in the set by a wide margin. Leaving it out lowers HPR Sim's mean by
-1.28 points, more than the whole move. Leaving out the rebuild raises it by 0.19
-([decision][adr-238], which gives each step). Without the early deployments the mean went from
-+5.88% to +3.95%, mostly for the same reason. The median, then +9.47%, didn't move. Since then HPR
-Sim reads a fin tab as its file states it, even past the root's ends, and flies seven more of the
+**Nothing in HPR Sim changed at the recheck; the comparison's flights did.** The tumbling flight's
+error was the largest in the set by a wide margin. Leaving it out lowered HPR Sim's mean by 1.28
+points, more than the whole move. Leaving out the rebuild raised it by 0.19 ([decision][adr-238],
+which gives each step and the means before and after). Without the early deployments the mean fell
+too, mostly for the same reason, and the median didn't move. Since then HPR Sim reads a fin tab as
+its file states it, even past the root's ends ([decision][adr-309]), and flies seven more of the
 flights ([#357](https://github.com/nrdptel/fusionspace-eridanus/issues/357)), which gives the 60
 compared above ([report][fixture-report]).
 
@@ -1193,6 +1192,7 @@ rest.
 [adr-293]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0293-cavours-log-read-to-its-apogee-event.md
 [adr-184]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0184-logged-apogees-of-the-private-collection.md
 [adr-238]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0238-the-corpus-rechecked-against-the-catalog.md
+[adr-309]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0309-a-fin-tab-weighed-as-stated.md
 [adr-102]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0102-tube-fins-centre-of-pressure-measured-against.md
 [adr-082]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0082-real-flights-read-from-refs-compared-over-the.md
 [adr-083]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0083-m2-3c-blocked-no-private-design-is-the-rocket-of.md
