@@ -520,15 +520,17 @@ They don't conflict with the rules above; they add these:
     space. The units are symbols: lengths, times, masses, forces, pressures, `°C`, `calibers` and
     `px`, among others. A word that counts, like "flights", isn't one. It joins the groups of a
     figure written with spaces too (`22 632 Pa`, `9.806 65`), so a line doesn't end inside the
-    number. The build fails a figure and unit, or a figure's groups, it leaves split.
+    number. It reads digits, not meaning, so two counts side by side (`12 100`) are held
+    together too, which does no harm. The build fails either kind of split it leaves.
   - **After an equation, the unit goes inside it:** `$x = 4593\,\mathrm{ft}$`, not
     `$x = 4593$ ft`. A line can end between an equation and the space after it, even a no-break
     one, so the build fails a unit left after an equation that ends in a number.
   - **An inch with a word after it is yours to join.** The build can't tell `2.6 in rocket` from
     "0.5 in both", so write `2.6&nbsp;in rocket`. Nothing fails if you forget.
-  - **In a README, write `&nbsp;` yourself** between every figure and its unit symbol, because
-    GitHub, crates.io and PyPI show the file as written. `cargo xtask site` fails a README figure
-    and unit split by a breaking space or a line break, and names the line.
+  - **In a README, write `&nbsp;` yourself** between every figure and its unit symbol, and
+    between the groups of a figure written with spaces (`22&nbsp;632&nbsp;Pa`), because GitHub,
+    crates.io and PyPI show the file as written. `cargo xtask site` fails a README figure split
+    from its unit or inside its groups by a breaking space or a line break, and names the line.
 - **FusionSpace** is one word.
 - **The product's name** ([ADR-199, the public name](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0199-the-2026-10-07-fusionspace-hpr.md) §1):
   "FusionSpace HPR" is the suite. "FusionSpace HPR · Sim" or "HPR Sim" is the simulator at its

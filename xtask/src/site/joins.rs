@@ -550,7 +550,7 @@ impl Joined {
 }
 
 /// `html` with each figure joined to its unit, and each figure's groups to each other, by a
-/// no-break space, and how many it joined.
+/// no-break space (a narrow one where a thin space stood), and how many it joined.
 fn joined_html(html: &str) -> (String, Joined) {
     // Each split's first space becomes a no-break space and the rest go, so the pair keeps one
     // space and any tag between them.
@@ -563,8 +563,11 @@ fn joined_html(html: &str) -> (String, Joined) {
             } else {
                 count.units += 1;
             }
+            // A thin space stays narrow: the narrow no-break space, U+202F.
+            let thin = run.text[split.space.clone()].starts_with('\u{2009}');
+            let no_break = if thin { "\u{202f}" } else { "\u{a0}" };
             for (nth, space) in run.html(split.space.clone()).enumerate() {
-                edits.push((space, if nth == 0 { "\u{a0}" } else { "" }));
+                edits.push((space, if nth == 0 { no_break } else { "" }));
             }
         }
     }
@@ -916,6 +919,14 @@ mod tests {
                     && problems.iter().all(|why| why.contains("inside the number")),
                 "{page}: {problems:?}"
             );
+        }
+        // A thin space, by entity or character, joins narrow; an ideographic space, wide.
+        for (page, drawn) in [
+            ("<p>22&thinsp;632 Pa</p>", "<p>22\u{202f}632\u{a0}Pa</p>"),
+            ("<p>22\u{2009}632</p>", "<p>22\u{202f}632</p>"),
+            ("<p>22\u{3000}632</p>", "<p>22\u{a0}632</p>"),
+        ] {
+            assert_eq!(joined_html(page).0, drawn, "{page}");
         }
     }
 
