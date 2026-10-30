@@ -1365,6 +1365,8 @@ fn tab(values: &mut Values<'_>, root_chord_m: f64) -> Option<FinTab> {
             offset_m
         }
     };
+    // A tab past either end of the root is read as the file states it, as OpenRocket 24.12
+    // weighs it (ADR-309).
     Some(FinTab {
         height_m,
         length_m,

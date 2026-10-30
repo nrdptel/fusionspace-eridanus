@@ -1580,6 +1580,46 @@ fn a_fin_tab_is_placed_from_the_root_leading_edge_whichever_way_the_file_measure
     }
 }
 
+/// ADR-309: a tab past either end of its fin's root is read as the file states it, as OpenRocket
+/// weighs it, without a word: it is read exactly as written, so the design flies. A file's
+/// rounding passes the root by microns; a tab placed past it by design, by millimeters.
+#[test]
+fn a_fin_tab_past_its_root_is_read_as_stated() {
+    for (length, offset) in [
+        // Rounding: 25.4 µm behind, and 0.1 µm ahead.
+        (0.0300254, 0.09),
+        (0.03, -0.0000001),
+        // By design: behind, ahead, and both.
+        (0.033, 0.09),
+        (0.03, -0.002),
+        (0.125, -0.002),
+    ] {
+        let xml = with_parts([0, 1, 2, 3, 4])
+            .replace(
+                "<tablength>0.03</tablength>",
+                &format!("<tablength>{length}</tablength>"),
+            )
+            .replace(
+                "<tabposition relativeto=\"center\">0.0</tabposition>",
+                &format!("<tabposition relativeto=\"front\">{offset}</tabposition>"),
+            );
+        // `fins` reads through `spine`, which holds the reading to no warnings.
+        let hpr_design::tree::Part::FinSet(set) = fins(&xml) else {
+            panic!("a fin set");
+        };
+        assert_eq!(
+            set.tab,
+            Some(hpr_design::FinTab {
+                height_m: 0.01,
+                length_m: length,
+                offset_m: offset,
+            }),
+            "{length} at {offset}"
+        );
+        set.validate().expect("weighed as stated");
+    }
+}
+
 /// The five words OpenRocket writes for a surface finish, as roughness heights. The numbers are
 /// sourced on `hpr_io::ork::attached::finish` and on the guide's `.ork` page.
 #[test]
