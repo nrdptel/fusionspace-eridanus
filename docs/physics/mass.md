@@ -223,7 +223,7 @@ These conventions were set in [the decision on component geometry and mass prope
     fin's CG at $0.42\,c_r$ ([another](../decisions-and-roadmap.md#l45)).
 - Tabs are square slabs below the root, $-h_{\mathrm{tab}} \le h \le 0$, with closed-form integrals. A tab
   is weighed over the length its design states, even where it starts ahead of the root or ends
-  past it, as OpenRocket weighs one (it trims only a few rounding overhangs, under 0.03 mm, to the
+  past it, as OpenRocket weighs one (it trims only a few rounding overhangs, under 0.03 mm (0.0012 in), to the
   root on loading). It must meet the root over some length and reach no deeper
   than the body radius ([a tab weighed as stated][adr-309]). Loft never
   read them ([a Loft lesson](../decisions-and-roadmap.md#l46)).
