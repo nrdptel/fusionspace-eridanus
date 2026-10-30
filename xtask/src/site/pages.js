@@ -1715,6 +1715,7 @@
   // that the page left scrolled as it loaded, as mdBook leaves its sidebar's list with the
   // current chapter in its middle, no text may show cut by the box's top edge, where the reader
   // didn't put it. Text wholly out of sight, under the strip or above the edge, is not cut.
+  // Wherever the sidebar is drawn, the current page's entry in it shows whole.
   function probeTop(win, doc, note) {
     const round = function (v) { return Math.round(v * 10) / 10; };
     const view = { x0: 0, x1: win.innerWidth, y0: 0, y1: win.innerHeight };
@@ -1790,6 +1791,30 @@
         // A line the strip cuts was noted with the strip's.
         if (!visible(el) || (strip > 0 && el.getBoundingClientRect().top < strip)) continue;
         cutLines(el, edge);
+      }
+    }
+    // The current page's entry in the sidebar (#894): wherever the sidebar is drawn, the entry
+    // mdBook's `toc.js` marks (`a.active`) shows whole as the page loads, inside every box that
+    // clips it and below the strip, from its top to its bottom; and inside the window, where the
+    // sidebar is fixed to it, as mdBook's is.
+    const nav = doc.getElementById('mdbook-sidebar');
+    const active = nav && drawn(win, nav) && nav.getBoundingClientRect().right > 0
+      ? nav.querySelector('a.active') : null;
+    if (active && active.getClientRects().length > 0) {
+      let fixed = false;
+      for (let a = active; a && a !== doc.body && !fixed; a = a.parentElement) {
+        fixed = win.getComputedStyle(a).position === 'fixed';
+      }
+      const r = active.getBoundingClientRect();
+      const shown = seen(active.parentElement, r, !fixed);
+      shown.y0 = Math.max(shown.y0, strip);
+      if (shown.y1 - shown.y0 <= SLACK_PX || shown.y0 > r.top + SLACK_PX
+        || shown.y1 < r.bottom - SLACK_PX) {
+        note('header', selector(active), 'current entry', '"' + snippet(active.textContent)
+          + '" at ' + round(r.top) + ' to ' + round(r.bottom) + ' px, '
+          + (shown.y1 - shown.y0 <= SLACK_PX ? 'out of sight'
+            : 'shown only from ' + round(shown.y0) + ' to ' + round(shown.y1) + ' px')
+          + ' in the sidebar as the page loads');
       }
     }
   }

@@ -113,7 +113,9 @@
 //!     along the window's top (the body's `::before`, as the system's theme draws its 4 px
 //!     gradient), no text and no top rule is drawn under it, and no text is cut by the top edge
 //!     of a box the page leaves scrolled as it loads, as mdBook leaves the sidebar's list with
-//!     the current chapter in its middle. The menu button is drawn at
+//!     the current chapter in its middle; and wherever the sidebar is drawn, the current page's
+//!     entry in it shows whole as the page loads, inside every box that clips it and the window
+//!     (#894). The menu button is drawn at
 //!     every width, and the sidebar from 720 px on a first visit. Wherever the sidebar is drawn,
 //!     a screen reader and the keyboard reach it (not `aria-hidden`, every link in the tab
 //!     order), and wherever it is put away neither does. Read again with scripts off (the root
@@ -270,7 +272,8 @@
 //! off screen, which a link to the last one's name stops short of; a box's top rule under a
 //! strip fixed along the window's top and one below it, which must pass, and a list the page
 //! leaves scrolled with its top line cut by its edge and one scrolled to a line's edge, which
-//! must pass; and an ordinary page
+//! must pass; a sidebar whose current entry loads below its list's view, one whose entry its
+//! list's bottom edge cuts, and one whose entry shows whole, which must pass; and an ordinary page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
 //! that wraps anywhere, a figure wider than any window with mdBook's zoom, a sidebar drawer put
 //! away off the left edge) that must pass. If one isn't
@@ -537,7 +540,8 @@ enum Kind {
     /// keyboard reaches while put away, or can't while drawn (#384); a search field that opens
     /// off the column or less than 16 px above the page; text or a top rule under the strip
     /// fixed along the window's top, or text cut by the top edge of a box the page leaves
-    /// scrolled as it loads.
+    /// scrolled as it loads; the current page's entry in a drawn sidebar not whole as the page
+    /// loads (#894).
     Header,
     /// A title block off the system's: not inside a 2 px ink border, its entries not in Cascadia
     /// Mono, its edges off the column's, or something drawn below it (#384).
@@ -833,6 +837,30 @@ macro_rules! sidebar {
          const s = document.getElementById('mdbook-sidebar'); const set = function () { \
          s.setAttribute('aria-hidden', String(!m.matches)); s.querySelector('a').tabIndex = \
          m.matches ? 0 : -1; }; set(); m.addEventListener('change', set); })();</script>"
+    };
+}
+
+/// mdBook's sidebar with its list in a box 100 px tall that scrolls, eight entries 24 px tall,
+/// the seventh the current page's (`a.active`, from 144 to 168 px down the list), scrolled
+/// `$scroll` px as the page loads, for the current-entry canaries (#894). It is drawn, read and
+/// reached at every width, so each canary shows its problem at every width, as
+/// `canary-sidebar-unread.html`'s is drawn. The frame draws it in the page's flow, not fixed to
+/// the window as mdBook's, so it keeps 96 px below it, where the list's entries scrolled out of
+/// its view are laid out, clear of the title block.
+macro_rules! sidebar_list {
+    ($scroll:expr) => {
+        concat!(
+            "<nav id=\"mdbook-sidebar\" aria-hidden=\"false\" style=\"display: block !important; \
+             margin-bottom: 96px\"><div class=\"sidebar-scrollbox\" style=\"height: 100px; \
+             overflow-y: auto\"><style>#mdbook-sidebar a { display: block; height: 24px; \
+             }</style><a href=\"#\">Launch-day weather</a><a href=\"#\">Soundings</a><a \
+             href=\"#\">Forecasts</a><a href=\"#\">Motors</a><a href=\"#\">Recovery</a><a \
+             href=\"#\">Staging</a><a href=\"#\" class=\"active\">Moving mass</a><a \
+             href=\"#\">Released mass</a></div></nav><script>\
+             document.currentScript.previousElementSibling.firstChild.scrollTop = ",
+            $scroll,
+            ";</script>"
+        )
     };
 }
 
@@ -1220,7 +1248,7 @@ macro_rules! mono_faces {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 192] = [
+const CANARIES: [Canary; 195] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -2445,6 +2473,27 @@ const CANARIES: [Canary; 192] = [
         expect: &[],
         inside: "",
         after: concat!(scrolled_list!(), "24;</script>"),
+    },
+    Canary {
+        file: "canary-sidebar-entry-below.html",
+        what: "a sidebar whose current entry loads below its list's view",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!("", lockup!(), sidebar_list!("0"), ""),
+    },
+    Canary {
+        file: "canary-sidebar-entry-cut.html",
+        what: "a sidebar whose current entry loads cut by its list's bottom edge",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!("", lockup!(), sidebar_list!("48"), ""),
+    },
+    Canary {
+        file: "canary-sidebar-entry-whole.html",
+        what: "a sidebar whose current entry loads whole in its list's view, which must pass",
+        expect: &[],
+        inside: "",
+        after: frame!("", lockup!(), sidebar_list!("72"), ""),
     },
     Canary {
         file: "canary-chip-released.html",
