@@ -203,8 +203,8 @@ rate or an acceleration.
     and 175 on their own pad (`validation/reports/log-import.md`, *The smoother*).
   - **The height stands on the readings' zero, not the first sample** as [#982][i982] proposed. The
     zero is the logger's, set on the pad, where a first sample may be up the climb. It also keeps the
-    smoothed apogee on the same scale as the reading's. A zero that is the pad's only by a word adds
-    `PAD_ZERO_M/√3` to the height's standard error, through the drift state. A logger's own zero adds
+    smoothed apogee on the same scale as the reading's. A zero that is the pad's only by a word raises the
+    drift state's spread to at least `PAD_ZERO_M/√3`, so the height's standard error carries it. A logger's own zero adds
     nothing, as in the readings' bounds, though weather on the pad can move one, on the low side too;
     the cut logs below keep a true zero, so nothing tests that.
   - **The noise is the flight's own scatter,** the median past apogee at the pad's air, less the
@@ -213,18 +213,22 @@ rate or an acceleration.
     public log's garbled second sample set the track off at 29 km/s: a running median at the log's
     edge has too few samples to set a sample aside.
   - **The first second is settled.** Review found that priors this wide take a sample 10 m off as the
-    truth: 10 m on the first sample of a 588 m flight read an apogee of 655 m and a speed of
-    1,164 m/s. Over the first second, at least ten samples, each sample fused is the median of the
+    truth: 10 m on the first sample of a 588 m flight read an apogee of 655 m and a speed over
+    1 km/s. Over the first second, at least ten samples, each sample fused is the median of the
     five about it, which leaves a climb as it was. The first two aren't weighed. Sweeping errors of
-    10 m to 1,000 m over the first three samples now moves the apogee by under a standard error. Two
-    samples together 1,000 m high still move the readings' own pad ([#1076][i1076]).
+    10 m to 1,000 m over one or two of the first three samples now moves the apogee by under a
+    standard error, but for one case. Two samples together about 300 m high or more move the readings'
+    own pad, and the apogee reads low by as much, the flattering side, with a card that at 1,000 m
+    doesn't say the pad was assumed: a known wrong number on garbled input, in the readings since
+    before this increment, seen on no sample log ([#1076][i1076]), pinned by the test so a fix must
+    drop it. Three bad samples in a row beat the median too.
   - **An accelerometer with too little of the pad is set aside,** and the card says so: 135 of the
-    1,058 records. Zeroing one without a pad is new work ([#1074][i1074]).
+    554 smoothed. Zeroing one without a pad is new work ([#1074][i1074]).
   - **`cargo xtask synthetic` holds it.** Each flight's log is cut at the truth's liftoff, every sensor,
     and smoothed again. Any cell, overall or for a logger, that fails [ADR-300][adr-300]'s rule fails
     the command, as does a log withheld that the whole log wasn't, a step left unsmoothed or a log not
     on an assumed pad. All hold on the three sets. ADR-300's rule is one-sided and a logger's cell
-    holds few flights, so a thin cell can hold at 87.9% (the tuning set's AltOS burnout height).
+    holds few flights, so a thin cell can hold at 87.9% (the tuning set's AltOS burnout height, in the report's JSON).
   - **The card says when the smoothed apogee falls outside the reading's bound,** a floor's only from
     below: 12 of the 379 on an assumed pad, 20 of the 175 on their own, and 0 to 2 of the synthetic
     sets' cut logs, so a log's own pad doesn't prevent it ([#1073][i1073]).
@@ -232,8 +236,9 @@ rate or an acceleration.
     could otherwise ask for memory without limit. A first limit of 500,000 withheld the synthetic
     sets' long 500 Hz logs, and the command's check caught it. Review's burst of 900,000 samples 1 ns
     apart ran for minutes in the scatter's window, so the scatter and landing no longer walk a window
-    for each sample, and a running median's window is capped. Under the limit, a 39 MB file of 1.95
-    million steps took 27 s and 3.4 GB, with no way to skip it yet. The smoother also no longer
+    for each sample, and a running median's window is capped. Under the limit, a file
+    of nearly 2 million steps takes tens of seconds and gigabytes, by a run in review, with no way to
+    skip it yet. The smoother also no longer
     withholds for a short pad, so its own `ShortPad` is gone; the readings keep theirs, and a track
     of pressures with no pad still gives no liftoff to smooth from.
 - `cargo xtask synthetic` reads 4,000 more flights, and from M7.2e3 two more logs of each one with

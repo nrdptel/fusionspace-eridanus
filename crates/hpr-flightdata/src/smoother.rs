@@ -55,10 +55,10 @@ mod kalman;
 
 use hpr_atmos::Ussa76;
 use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
-use std::collections::VecDeque;
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::collections::VecDeque;
 
 use crate::log::{Channel, FlightLog, Quantity};
 use crate::readings::{
@@ -295,9 +295,9 @@ pub const ASSUMED_SETTLE_SAMPLES: usize = 10;
 
 /// The most steps the smoother takes, every sensor's samples together: two sensors at 500 Hz for
 /// 33 minutes. The synthetic flights' longest 500 Hz logs pass 500,000, and the longest of the
-/// project's sample logs holds 132,230 (0.6 s to smooth on a Mac). The filter holds two covariances
-/// a step for the pass back, about 1.5 kB, so a step count without a limit is a memory limit a file
-/// could reach. A 39 MB file of 1.95 million steps took 27 s and 3.4 GB in review.
+/// project's sample logs holds about 132,000. The filter holds two covariances a step for the pass
+/// back, over 1 kB, so a step count without a limit is a memory limit a file could reach: a file just
+/// under this one takes tens of seconds and gigabytes, by a run in review, not a committed test.
 pub const MAX_STEPS: usize = 2_000_000;
 
 /// How the GNSS receiver is trusted.
@@ -1325,7 +1325,7 @@ fn scatter(values: &[f64], medians: &[f64], times: &[f64]) -> Vec<f64> {
             // Every `stride`-th sample of the window.
             let stride = (to - from) / SCATTER_MAX_SAMPLES + 1;
             picked.clear();
-            picked.extend((from..=to).filter(|j| (j - from) % stride == 0));
+            picked.extend((from..=to).step_by(stride));
             let t: Vec<f64> = picked.iter().map(|&j| times[j]).collect();
             let m: Vec<f64> = picked.iter().map(|&j| medians[j]).collect();
             let Some(fit) = quadratic(&m, &t, times[i]) else {
@@ -3192,19 +3192,28 @@ mod tests {
         let clean = smoothed(&from_launch(log()), Options::default());
         let clean_top = clean.at(clean.apogee_time_s).unwrap();
         for at in [vec![0], vec![1], vec![0, 1], vec![2], vec![1, 2]] {
-            for error in [-1000.0, -100.0, -20.0, -10.0, 10.0, 20.0, 100.0, 1000.0] {
+            for error in [
+                -1000.0, -100.0, -20.0, -10.0, 10.0, 20.0, 100.0, 300.0, 1000.0,
+            ] {
                 let mut bad = from_launch(log());
                 for &k in &at {
                     bad.altitude_m[k] += error;
                 }
-                // Two samples together as far out as this move the readings' own pad (#1076),
-                // which the smoother stands on.
-                if at.len() == 2 && error == 1000.0 {
-                    assert_ne!(readings::read(&bad).pad_altitude_m, Some(0.0));
-                    continue;
-                }
                 let got = smoothed(&bad, Options::default());
                 let top = got.at(got.apogee_time_s).unwrap();
+                // A known wrong number (#1076), pinned so a fix must drop it: two samples together
+                // this high move the readings' own pad, which the smoother stands on. The apogee
+                // reads low by what the pad moved, the flattering side, tens to hundreds of meters.
+                if at.len() == 2 && error >= 300.0 {
+                    let pad = readings::read(&bad).pad_altitude_m.unwrap();
+                    assert!(pad > 40.0, "{at:?} {error}: a pad of {pad}");
+                    let low = clean_top.height_m - top.height_m;
+                    assert!(
+                        (low - pad).abs() < clean_top.height_sd_m,
+                        "{at:?} {error}: {low} low on a pad of {pad}"
+                    );
+                    continue;
+                }
                 assert!(
                     (top.height_m - clean_top.height_m).abs() < clean_top.height_sd_m,
                     "{at:?} {error}: {} against {}",
@@ -3234,7 +3243,7 @@ mod tests {
     #[test]
     #[allow(clippy::disallowed_types, reason = "the clock times this test alone")]
     fn a_burst_of_samples_is_not_walked_over_for_each_of_them() {
-        let n: u32 = 200_000;
+        let n: u32 = 900_000;
         let times: Vec<f64> = (0..n).map(|i| 100.0 + f64::from(i) * 1.0e-9).collect();
         let heights: Vec<f64> = (0..n).map(|i| f64::from(i % 7) * 0.1).collect();
         let began = std::time::Instant::now();
@@ -3268,7 +3277,7 @@ mod tests {
         });
         assert_eq!(landing(&baro, 0.0), None);
         assert!(
-            began.elapsed().as_secs_f64() < 120.0,
+            began.elapsed().as_secs_f64() < 60.0,
             "{:?}",
             began.elapsed()
         );

@@ -373,8 +373,8 @@ Among them are those that came with the accelerometer and the canopies:
 
 Beside its bound, a reading may give a 90% interval: where the truth lay nine times in ten on the
 [synthetic flights](physics/synthetic-flights.md). No real flight has checked one
-([evidence row G34](evidence.md#g34)). The bound is the worst case, and the one to use for a waiver
-or a load. A floor gives a "95% lower end" in its place: about 19 truths in 20 lay above it.
+([evidence row G34](evidence.md#g34)). The bound is the size every error stayed within on the tuning set, and the one to use for
+a waiver or a load. A floor gives a "95% lower end" in its place: about 19 truths in 20 lay above it.
 
 An interval can lie wholly to one side of its reading, as the reading's error leans one way. Liftoff
 is read late, so its interval lies earlier (0.80 s, interval 0.41 to 0.64 s). The flight time, landing

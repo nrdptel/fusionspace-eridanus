@@ -105,12 +105,15 @@ assumes it:
 
 - **The height** stands on the same zero as [the readings](log-readings.md): the logger's own, or
   whatever pad samples the log does hold. A zero that is the pad's only by a column's name may be
-  off by up to 19.9 m (65 ft) either way. The standard error carries that spread.
+  off by up to 19.9 m (65 ft) either way. The height's standard error carries it as an even spread
+  over that range, 11.5 m (38 ft).
 - **The barometer's noise** comes from the flight's own scatter past apogee.
 - **Nothing is held still.** The height, speed and acceleration start with wide priors, HPR Sim's
-  choices: 100 m (328 ft), 100 m/s (328 ft/s) and 30 g. Priors that wide would take a bad sample as
-  the truth. So for the first second each sample fused is the median of the five about it, and the
-  first two aren't weighed.
+  choices: 100 m (328 ft), 100 m/s (328 ft/s) and about 30 g. Priors that wide would take a bad sample as
+  the truth. So for the first second, or the first ten samples if that is longer, each sample fused
+  is the median of the five about it, and the first two aren't weighed. Two bad samples together, some
+  100 m (328 ft) off or more, still move the readings' zero and read low
+  ([an open issue](https://github.com/nrdptel/fusionspace-eridanus/issues/1076)).
 - **The accelerometer is set aside** if it has too little of the pad to take its level from.
 
 To test this, each synthetic flight's log is cut at liftoff and smoothed again. That keeps the
