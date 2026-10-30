@@ -9,6 +9,16 @@
 //!   point or a comma, nor after a hyphen that follows a letter or a digit (`ADR-208`, `Pro38`,
 //!   `0.1.0`, `2026-10-04` aren't figures). It runs through its grouping commas, its decimals, an
 //!   exponent (`1e-9`) and superscript digits (`10⁶`). A sign before it stays where it is.
+//! - **A figure written in groups of three with spaces** (NIST SP 811 §10.5.3, the style long
+//!   decimals and standard values keep: `22 632 Pa`, `9.806 65`, `0.001 953 125`) is one
+//!   figure, and a breaking space between its groups is a split too (#891): a line ending there
+//!   reads `22` and `632 Pa` as two numbers. Before the point, a first group of one to three
+//!   digits takes each further group of exactly three, unless commas group it; after the point,
+//!   a group of three takes a next of one to three, and the groups go on while each holds three.
+//!   A group isn't taken when a digit, or a comma and a digit, follow it, nor after the point
+//!   when a point and a digit do (`0.500 0.800`, a list, stays two figures). The rule reads
+//!   digits, not meaning: two counts written side by side (`12 100`) are joined as one, which
+//!   only keeps them on one line.
 //! - **A unit** is the symbol of one of [`UNITS`], the units `data.md` writes and the project's
 //!   own (`cal`, `calibers`, `px`), as a whole word after the figure: its letters not followed
 //!   by a digit 0 to 9 or `_` (`g06` is a code), though a superscript power may follow (`m²`).
@@ -61,16 +71,26 @@ pub(super) const UNITS: [&str; 70] = [
 /// The spaces a line can't end at: no-break, figure and narrow no-break.
 const NO_BREAK: [char; 3] = ['\u{a0}', '\u{2007}', '\u{202f}'];
 
-/// A figure split from its unit by a breaking space, as byte ranges in the text read.
+/// A figure split from its unit, or a figure's groups split from each other, by a breaking
+/// space, as byte ranges in the text read.
 #[derive(Debug, PartialEq)]
 pub(super) struct Split {
     /// The white space between them.
     pub(super) space: Range<usize>,
-    /// The figure, the space and the unit.
+    /// The figure, the space and the unit; or, for a split inside a figure, the figure.
     pub(super) pair: Range<usize>,
+    /// Whether the space parts two groups of one figure (`22 632`) rather than a figure and its
+    /// unit.
+    pub(super) inside: bool,
 }
 
-/// Each figure in `text` that a breaking space parts from its unit.
+/// Whether `space` is white space a line can end at: not empty, nor only no-break spaces.
+fn breaks(space: &str) -> bool {
+    space.chars().any(|c| !NO_BREAK.contains(&c))
+}
+
+/// Each figure in `text` that a breaking space parts from its unit, and each breaking space
+/// between the groups of a figure written with spaces.
 pub(super) fn splits(text: &str) -> Vec<Split> {
     let mut found = Vec::new();
     let mut at = 0;
@@ -80,20 +100,24 @@ pub(super) fn splits(text: &str) -> Vec<Split> {
             at = start + 1;
             continue;
         }
-        let end = figure_end(text, start);
+        let (end, gaps) = figure_end(text, start);
         at = end;
-        let space_len = text[end..]
-            .char_indices()
-            .find(|(_, c)| !c.is_whitespace())
-            .map_or(text.len() - end, |(len, _)| len);
-        let space = end..end + space_len;
-        if space.is_empty() || !text[space.clone()].chars().any(|c| !NO_BREAK.contains(&c)) {
+        for gap in gaps.into_iter().filter(|gap| breaks(&text[gap.clone()])) {
+            found.push(Split {
+                space: gap,
+                pair: start..end,
+                inside: true,
+            });
+        }
+        let space = end..end + white_space(&text[end..]);
+        if space.is_empty() || !breaks(&text[space.clone()]) {
             continue;
         }
         if let Some(unit_end) = unit_after(text, space.end) {
             found.push(Split {
                 space,
                 pair: start..unit_end,
+                inside: false,
             });
         }
     }
@@ -112,21 +136,58 @@ fn figure_starts(before: &str) -> bool {
     }
 }
 
-/// The end of the figure that starts at `start`: its digits and grouping commas, its decimals,
-/// an exponent and superscript digits.
-fn figure_end(text: &str, start: usize) -> usize {
+/// The length of the white space that opens `text`.
+fn white_space(text: &str) -> usize {
+    text.char_indices()
+        .find(|(_, c)| !c.is_whitespace())
+        .map_or(text.len(), |(len, _)| len)
+}
+
+/// The end of the figure that starts at `start`, and the white space between its groups when it
+/// is written in groups with spaces: its digits and grouping commas or spaced groups, its
+/// decimals and their spaced groups, an exponent and superscript digits.
+fn figure_end(text: &str, start: usize) -> (usize, Vec<Range<usize>>) {
     let digits = |from: usize| {
         from + text[from..]
             .find(|c: char| !c.is_ascii_digit())
             .unwrap_or(text.len() - from)
     };
+    // The next group after the white space at `from`, if it holds `sizes` digits and no digit,
+    // nor one of `marks` before a digit, follows it.
+    let group = |from: usize, sizes: Range<usize>, marks: &[char]| {
+        let open = from + white_space(&text[from..]);
+        let close = digits(open);
+        let rest = &text[close..];
+        let more = rest
+            .strip_prefix(marks)
+            .is_some_and(|after| after.starts_with(|c: char| c.is_ascii_digit()));
+        (open > from && sizes.contains(&(close - open)) && !more).then_some((open, close))
+    };
+    let mut gaps = Vec::new();
     let mut end = digits(start);
-    // Grouping commas, each before three digits.
-    while text[end..].starts_with(',') && digits(end + 1) == end + 4 {
-        end += 4;
+    if text[end..].starts_with(',') {
+        // Grouping commas, each before three digits.
+        while text[end..].starts_with(',') && digits(end + 1) == end + 4 {
+            end += 4;
+        }
+    } else if end - start <= 3 {
+        while let Some((open, close)) = group(end, 3..4, &[',']) {
+            gaps.push(end..open);
+            end = close;
+        }
     }
     if text[end..].starts_with('.') && digits(end + 1) > end + 1 {
+        let point = end;
         end = digits(end + 1);
+        let mut size = end - point - 1;
+        while size == 3 {
+            let Some((open, close)) = group(end, 1..4, &['.', ',']) else {
+                break;
+            };
+            gaps.push(end..open);
+            size = close - open;
+            end = close;
+        }
     }
     // An exponent, `e` and a signed whole number, but not a word that opens with `e`.
     let rest = &text[end..];
@@ -136,9 +197,11 @@ fn figure_end(text: &str, start: usize) -> usize {
             end = digits(end + (rest.len() - unsigned.len()));
         }
     }
-    end + text[end..]
-        .find(|c: char| !"⁻⁰¹²³⁴⁵⁶⁷⁸⁹".contains(c))
-        .unwrap_or(text.len() - end)
+    let end = end
+        + text[end..]
+            .find(|c: char| !"⁻⁰¹²³⁴⁵⁶⁷⁸⁹".contains(c))
+            .unwrap_or(text.len() - end);
+    (end, gaps)
 }
 
 /// The end of the unit symbol at `at`, if one of [`UNITS`] stands there as a whole word.
@@ -185,9 +248,14 @@ pub(super) fn readme_splits(text: &str, renderer: Renderer) -> Vec<(usize, Strin
 
 /// What a split says, whatever is asked to fix it.
 fn message(text: &str, split: &Split) -> String {
+    let between = if split.inside {
+        "inside the number (NIST SP 811 §10.5.3: a space that groups digits doesn't end a line)"
+    } else {
+        "between the figure and its unit (data.md, Numbers: a non-breaking space, so a line \
+         never ends between them)"
+    };
     format!(
-        "`{}` in \"{}\" can break between the figure and its unit (data.md, Numbers: a \
-         non-breaking space, so a line never ends between them)",
+        "`{}` in \"{}\" can break {between}",
         text[split.pair.clone()]
             .split_whitespace()
             .collect::<Vec<_>>()
@@ -459,17 +527,47 @@ fn char_at(html: &str) -> (char, usize) {
     (c, c.len_utf8())
 }
 
-/// `html` with each figure joined to its unit by a no-break space, and how many it joined.
-fn joined_html(html: &str) -> (String, usize) {
+/// How many splits [`join`] joined.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub(super) struct Joined {
+    /// Figures joined to their units.
+    pub(super) units: usize,
+    /// Spaces joined between the groups of a figure written with spaces.
+    pub(super) groups: usize,
+}
+
+impl Joined {
+    /// Whether it joined nothing.
+    fn none(self) -> bool {
+        self == Self::default()
+    }
+
+    /// Both counts summed with `other`'s.
+    fn add(&mut self, other: Self) {
+        self.units += other.units;
+        self.groups += other.groups;
+    }
+}
+
+/// `html` with each figure joined to its unit, and each figure's groups to each other, by a
+/// no-break space (a narrow one where a thin space stood), and how many it joined.
+fn joined_html(html: &str) -> (String, Joined) {
     // Each split's first space becomes a no-break space and the rest go, so the pair keeps one
     // space and any tag between them.
-    let mut count = 0;
+    let mut count = Joined::default();
     let mut edits: Vec<(Range<usize>, &str)> = Vec::new();
     for run in html_runs(html) {
         for split in splits(&run.text) {
-            count += 1;
+            if split.inside {
+                count.groups += 1;
+            } else {
+                count.units += 1;
+            }
+            // A thin space stays narrow: the narrow no-break space, U+202F.
+            let thin = run.text[split.space.clone()].starts_with('\u{2009}');
+            let no_break = if thin { "\u{202f}" } else { "\u{a0}" };
             for (nth, space) in run.html(split.space.clone()).enumerate() {
-                edits.push((space, if nth == 0 { "\u{a0}" } else { "" }));
+                edits.push((space, if nth == 0 { no_break } else { "" }));
             }
         }
     }
@@ -488,21 +586,21 @@ fn joined_html(html: &str) -> (String, usize) {
 /// Join each figure to its unit with a no-break space in the built pages under `output`, but
 /// the API reference, after mdBook has written the search index; how many it joined, on the
 /// pages and on the print page, which repeats them.
-pub(super) fn join(output: &Path) -> Result<(usize, usize), String> {
-    let mut count = (0, 0);
+pub(super) fn join(output: &Path) -> Result<(Joined, Joined), String> {
+    let mut count = (Joined::default(), Joined::default());
     for name in pages(output)? {
         let path = output.join(&name);
         let html = fs::read_to_string(&path)
             .map_err(|err| format!("could not read {}: {err}", path.display()))?;
         let (drawn, joined) = joined_html(&html);
-        if joined > 0 {
+        if !joined.none() {
             fs::write(&path, drawn)
                 .map_err(|err| format!("could not write {}: {err}", path.display()))?;
         }
         if name == super::print::PAGE {
-            count.1 += joined;
+            count.1.add(joined);
         } else {
-            count.0 += joined;
+            count.0.add(joined);
         }
     }
     Ok(count)
@@ -624,6 +722,65 @@ mod tests {
         );
     }
 
+    /// The groups on either side of each breaking space [`splits`] finds inside a figure.
+    fn inside(text: &str) -> Vec<&str> {
+        splits(text)
+            .into_iter()
+            .filter(|split| split.inside)
+            .map(|split| {
+                let start = text[..split.space.start]
+                    .rfind(|c: char| !c.is_ascii_digit())
+                    .map_or(0, |at| at + 1);
+                let end = split.space.end
+                    + text[split.space.end..]
+                        .find(|c: char| !c.is_ascii_digit())
+                        .unwrap_or(text.len() - split.space.end);
+                &text[start..end]
+            })
+            .collect()
+    }
+
+    #[test]
+    fn a_figure_written_in_groups_with_spaces_is_one_figure() {
+        // #891's misreading: "22" ends a line and "699.96 Pa" starts the next.
+        let text = "216.774 K and 22 699.96 Pa";
+        let found = splits(text);
+        assert_eq!(found.len(), 3, "{found:?}");
+        assert_eq!(&text[found[1].pair.clone()], "22 699.96");
+        assert!(found[1].inside && !found[2].inside);
+        assert_eq!(&text[found[2].pair.clone()], "22 699.96 Pa");
+        // Groups before and after the point, a line break between them, a figure with no unit,
+        // and the no-break spaces, which aren't splits.
+        assert_eq!(
+            inside(
+                "(20 001 samples), 9.806 65 m/s², 0.001\n953 125; 1 220 050.95, 101\u{a0}325 Pa"
+            ),
+            [
+                "20 001", "806 65", "001\n953", "953 125", "1 220", "220 050"
+            ]
+        );
+        // A split inside is the figure; one before the unit, the figure and its unit.
+        assert_eq!(
+            pairs("101 325\u{a0}Pa and 9.806 65 m/s²"),
+            ["101 325", "9.806 65", "9.806 65 m"]
+        );
+    }
+
+    #[test]
+    fn figures_side_by_side_that_are_not_groups_stay_apart() {
+        for text in [
+            // A list of decimals, a four-digit group, a group of two, a short decimal, commas.
+            "0.500 0.800 1.200, 12 2026, 3 45 m, 0.25 100, 1,400 500, 5 1000 m",
+            // A group a comma and a digit follow.
+            "3 100,5",
+        ] {
+            assert!(inside(text).is_empty(), "{text}: {:?}", inside(text));
+        }
+        // A short decimal group ends the figure: the figure after it is its own.
+        assert_eq!(inside("0.001 95 125 m"), ["001 95"]);
+        assert_eq!(pairs("0.001 95 125 m"), ["0.001 95", "125 m"]);
+    }
+
     #[test]
     fn a_joined_pair_or_no_unit_passes() {
         for text in [
@@ -648,7 +805,14 @@ mod tests {
                     <script>let x = '5 m';</script><style>/* 5 m */</style><!-- 5 m -->\
                     <p title=\"5 m\">2.6&nbsp;in rocket</p><svg><text>5 m</text></svg>";
         let (joined, count) = joined_html(html);
-        assert_eq!(count, 3, "{joined}");
+        assert_eq!(
+            count,
+            Joined {
+                units: 3,
+                groups: 0
+            },
+            "{joined}"
+        );
         assert_eq!(
             joined,
             html.replacen("</strong> m", "</strong>\u{a0}m", 1)
@@ -685,7 +849,7 @@ mod tests {
         assert!(problems[1].contains("ending in `4`") && problems[2].contains("`7`"));
         let thin = "<p>at <math><mn>3</mn></math>&thinsp;s</p>";
         assert_eq!(page_splits(thin).len(), 1, "{:?}", page_splits(thin));
-        assert_eq!(joined_html(html), (html.to_owned(), 0));
+        assert_eq!(joined_html(html), (html.to_owned(), Joined::default()));
         // The unit inside the equation passes.
         let inside = "<p>its altitude <math><mn>4593</mn><mspace width=\"0.1667em\"/>\
                       <mi mathvariant=\"normal\">ft</mi></math>, read back</p>";
@@ -720,6 +884,50 @@ mod tests {
             problems[0]
         );
         assert!(problems[0].ends_with("`3\u{a0}m`"), "{}", problems[0]);
+        // A figure's groups split, in a table cell, joined once with its unit.
+        let cell = "<table><tr><td>22 632 Pa</td><td>101\n325</td></tr></table>";
+        let problems = page_splits(cell);
+        assert_eq!(problems.len(), 3, "{problems:#?}");
+        assert!(
+            problems[0].contains("`22 632` in \"22 632 Pa\" can break inside the number"),
+            "{}",
+            problems[0]
+        );
+        let (joined, count) = joined_html(cell);
+        assert_eq!(
+            count,
+            Joined {
+                units: 1,
+                groups: 2
+            }
+        );
+        assert_eq!(
+            joined,
+            cell.replace("22 632 Pa", "22\u{a0}632\u{a0}Pa")
+                .replace("101\n", "101\u{a0}")
+        );
+        assert!(page_splits(&joined).is_empty());
+        // Groups across an inline tag, an entity and a source line break inside a list item.
+        for page in [
+            "<p><b>22</b> 632\u{a0}Pa</p>",
+            "<li>101&#32;325</li>",
+            "<p>0.001 953\n  125;</p>",
+        ] {
+            let problems = page_splits(page);
+            assert!(
+                !problems.is_empty()
+                    && problems.iter().all(|why| why.contains("inside the number")),
+                "{page}: {problems:?}"
+            );
+        }
+        // A thin space, by entity or character, joins narrow; an ideographic space, wide.
+        for (page, drawn) in [
+            ("<p>22&thinsp;632 Pa</p>", "<p>22\u{202f}632\u{a0}Pa</p>"),
+            ("<p>22\u{2009}632</p>", "<p>22\u{202f}632</p>"),
+            ("<p>22\u{3000}632</p>", "<p>22\u{a0}632</p>"),
+        ] {
+            assert_eq!(joined_html(page).0, drawn, "{page}");
+        }
     }
 
     #[test]
@@ -733,5 +941,15 @@ mod tests {
             "{}",
             problems[0].1
         );
+        // A figure's groups too, and the no-break space written as an entity passes.
+        let grouped = readme_splits("# A README\n\nIt reads 22 632&nbsp;Pa.\n", Renderer::GitHub);
+        assert_eq!(grouped.len(), 1, "{grouped:?}");
+        assert_eq!(grouped[0].0, 3);
+        assert!(
+            grouped[0].1.contains("inside the number") && grouped[0].1.ends_with("`22&nbsp;632`"),
+            "{}",
+            grouped[0].1
+        );
+        assert!(readme_splits("22&nbsp;632&nbsp;Pa\n", Renderer::GitHub).is_empty());
     }
 }

@@ -294,11 +294,13 @@ pub fn run(args: &[String]) -> Result<(), String> {
         print::PAGE
     );
     println!(
-        "built units: {} figures joined to their units by a no-break space on the pages, and \
-         {} on {} (its chapters), none left split by a breaking one; the search index keeps the \
-         plain space",
-        units_joined.0,
-        units_joined.1,
+        "built units: {} figures joined to their units and {} spaces between a figure's groups \
+         (`22 632 Pa`) joined by a no-break space on the pages, and {} and {} on {} (its \
+         chapters), none left split by a breaking one; the search index keeps the plain space",
+        units_joined.0.units,
+        units_joined.0.groups,
+        units_joined.1.units,
+        units_joined.1.groups,
         print::PAGE
     );
     println!(
