@@ -1,6 +1,6 @@
 # ADR-308: M7.2e in four: the intervals by reading, then the surfaces (2026-10-29)
 
-- **Status:** accepted; splits [M7.2e][m7-2e] in four and records how a reading's 90% interval is made and tested; its *done when* is unchanged and met when e1 to e4 are
+- **Status:** accepted; splits [M7.2e][m7-2e] in four and records how a reading's 90% interval is made and tested; its *done when* is unchanged and met when e1 to e4 are; §3's withheld-reading check amended by M7.2e2 for the top speed past its transonic mark (Consequences)
 - **Summary:** each reading's 90% interval runs from the reading less one share of its own bound to the reading less another. The two shares are the 5% and 95% points of the readings' errors as shares of their bounds, fitted on a calibration set of 2,000 synthetic flights on a seed of its own. `cargo xtask synthetic` fits them again, holds them to the library's, and runs [ADR-257][adr-257]'s test with its three probes on sets A and B. M7.2e1 does this for the apogee's height and time; e2 and e3 add the other readings; e4 takes the intervals and the smoother's health card to `hpr analyze` and Python.
 
 [m7-2e]: ../decisions-and-roadmap.md#m7-2e
@@ -62,7 +62,8 @@ rate or an acceleration.
    reported per design, logger and band of the day's air, and the apogee height's mean error
    with its sign (§2). The calibration set alternates set A's model and set B's, as the tuning
    set does, so B is held apart by its seed, not by its generator. The command also fails if a
-   reading is withheld from a log with a barometer, or read with no interval, on any of the
+   reading is withheld from a log with a barometer (but see Consequences, M7.2e2: the top speed
+   past its transonic mark), or read with no interval, on any of the
    three sets: either would leave the counts with its misses.
 4. **The split.** Each increment's *done when* fails on main today:
    - **M7.2e1 The test, on the apogee.** `cargo xtask synthetic` fits each interval's shares on a
@@ -118,9 +119,12 @@ rate or an acceleration.
     withheld reading still fails the command. The rule looks at the reading, not the truth, so
     the test holds the top speeds a user is given: 577 on the calibration set, 287 on A and 286
     on B. At 287 a tail passes with 4 to 28 misses, a looser test than at 820; the three probes
-    still fail it.
-  - The flattering side ([ADR-257][adr-257] §2) is a reading too low for the top speed (a fin's
-    margin) and the descent rate (a landing's speed) as well as the height; the times have none.
+    still fail it. Near the mark the rule lets through only the readings that came out low: of
+    the two Calisto designs' 18 top speeds on A and B, 10 left the truth above the interval, the
+    flattering side (#1061).
+  - The flattering side ([ADR-257][adr-257] §2) is a reading too low for the top vertical speed
+    (a fin's margin) and the mean descent rate (a descent gentler than it was) as well as the
+    height; the times have none here.
     The report gives each reading's mean error with its sign. The top speed's is +1.2 and
     +1.3 m/s; the descent rate's −0.01 m/s on both sets, against errors up to 6.81 m/s. Both
     miss above their intervals on warm days as the height does (#1061), so the guide sends a

@@ -220,10 +220,11 @@ census holds 2,200 simulated flights, each with its logger's log and its known t
 ([Synthetic flights](physics/synthetic-flights.md)). In the library, seven readings of the
 height track also state a 90% interval: liftoff, the apogee's height and time, the top speed,
 landing, the flight time and the mean descent rate. Each passes a two-sided test on synthetic
-flights held apart from the 2,000 its points were fitted on. The misses of the height, the top
+flights held apart from the 2,000 its points were fitted on; the top speed only below 227.7 m/s
+(747 ft/s), on 287 and 286 readings, where the others have 820 and 845. The misses of the height, the top
 speed and the descent rate fall on the coldest and warmest days, a warm day reading low, and the
-times lean by logger. So a waiver, a fin's margin or a landing's speed goes by the
-bound ([The 90%
+times lean by logger. So a waiver goes by the apogee plus its bound, and a fin's margin by the top
+speed plus its ([The 90%
 intervals](physics/log-readings.md#the-90-intervals); not yet checked on a real flight,
 [evidence row G34](evidence.md#g34)). The library's smoother fuses a log's
 barometer, accelerometer and GNSS receiver into the height and vertical speed at every sample,
@@ -457,7 +458,7 @@ These are left out of a flight, or approximated:
   limits, and NSGA-II weighs apogee against stability ([Optimization](optimization.md)). Their
   answers are only as good as HPR Sim's flight models. Competition rule files aren't built yet.
   There's no app yet: it's on the [roadmap][roadmap].
-- **The flight-log analyzer gives readings within bounds, not intervals yet.** `hpr analyze` and
+- **The flight-log analyzer gives readings within bounds; seven state intervals in JSON only.** `hpr analyze` and
   the Python package read a flight log on its own, with no design file and no simulation. They use
   its format's reader, or the column mapping or record layout you write for your own logger
   ([Reading your own logger](your-own-logger.md)). They give liftoff, apogee, the top speed,

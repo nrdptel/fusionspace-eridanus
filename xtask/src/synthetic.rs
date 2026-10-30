@@ -1396,9 +1396,10 @@ fn intervals_section(page: &mut String, made: &Intervals) {
         "\n### Each reading's error side\n\nEach reading's mean error, the reading less the truth, \
          over the readings compared, with the largest error's size and the share of truths above \
          the interval (ADR-257 §2). For the apogee's height, the top speed and the mean descent \
-         rate, a reading too low is the flattering side: a waiver's height, a fin's margin, a \
-         landing's speed. The share of truths above the interval is that side's test, and the \
-         shifted-down probe its mutation probe; the times have no flattering side. The mean is \
+         rate, a reading too low is the flattering side: a waiver's height, a fin's margin (the \
+         top speed is vertical), a descent gentler than it was. The share of truths above the \
+         interval is that side's test, and the shifted-down probe its mutation probe; the times \
+         have none here. The mean is \
          given at the figures of the largest error, the digits every platform shares, and with \
          its sign: +0 is a mean too small for those figures that isn't below zero.\n\n| Set | \
          Reading | Flattering side | Mean error | Largest error | Truths above |\n\
@@ -1472,7 +1473,7 @@ fn intervals_section(page: &mut String, made: &Intervals) {
          groups show where its misses fall. A barometric height is off by about the day's \
          offset from the standard atmosphere over its temperature, so the misses of the height, \
          the top speed and the descent rate gather on the coldest and warmest days: a warm day \
-         reads low, and its truth lies above the interval.\n",
+         reads low, and its truth lies above the interval.\n\n#### By logger\n",
     );
     let loggers: Vec<String> = Profile::ALL
         .iter()
@@ -1488,6 +1489,7 @@ fn intervals_section(page: &mut String, made: &Intervals) {
     by_set(page, "Logger", &loggers, true, &|c, row| {
         c.check.by_logger.get(row).copied()
     });
+    page.push_str("\n#### By the day's air\n");
     let bands: Vec<String> = intervals::AirBand::ALL
         .iter()
         .map(|b| b.name().to_owned())
@@ -1501,7 +1503,8 @@ fn intervals_section(page: &mut String, made: &Intervals) {
 }
 
 /// Whether a reading too low is the flattering side ([ADR-257][adr-257] §2): the apogee's height
-/// for a waiver, the top speed for a fin's margin, the mean descent rate for a landing's speed.
+/// for a waiver, the top vertical speed for a fin's margin, the mean descent rate for how gentle
+/// the descent was.
 ///
 /// [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 fn flatters_low(quantity: Quantity) -> bool {
@@ -2166,6 +2169,17 @@ mod tests {
         assert!(
             liftoff[0].contains("liftoff withheld (Transonic)"),
             "{liftoff:?}"
+        );
+        // A top speed withheld for any other reason is named.
+        let noisy = FlightSaid {
+            said: vec![(Quantity::TopSpeed, Said::Withheld(Reason::NoisySpeed))],
+            ..flight("altos", Said::Unstated)
+        };
+        let noisy = dropped(Set::A, &[noisy]);
+        assert_eq!(noisy.len(), 1, "{noisy:?}");
+        assert!(
+            noisy[0].contains("top speed withheld (NoisySpeed)"),
+            "{noisy:?}"
         );
         assert!(problems[0].contains("a flight 7 (altos): apogee height withheld (NoClimb)"));
         assert!(problems[1].contains("(rrc3): apogee height read with no interval"));

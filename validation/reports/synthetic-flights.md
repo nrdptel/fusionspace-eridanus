@@ -879,7 +879,7 @@ Each interval narrowed to 0.8 of its width about its middle, widened to 1.25, an
 
 ### Each reading's error side
 
-Each reading's mean error, the reading less the truth, over the readings compared, with the largest error's size and the share of truths above the interval (ADR-257 §2). For the apogee's height, the top speed and the mean descent rate, a reading too low is the flattering side: a waiver's height, a fin's margin, a landing's speed. The share of truths above the interval is that side's test, and the shifted-down probe its mutation probe; the times have no flattering side. The mean is given at the figures of the largest error, the digits every platform shares, and with its sign: +0 is a mean too small for those figures that isn't below zero.
+Each reading's mean error, the reading less the truth, over the readings compared, with the largest error's size and the share of truths above the interval (ADR-257 §2). For the apogee's height, the top speed and the mean descent rate, a reading too low is the flattering side: a waiver's height, a fin's margin (the top speed is vertical), a descent gentler than it was. The share of truths above the interval is that side's test, and the shifted-down probe its mutation probe; the times have none here. The mean is given at the figures of the largest error, the digits every platform shares, and with its sign: +0 is a mean too small for those figures that isn't below zero.
 
 | Set | Reading | Flattering side | Mean error | Largest error | Truths above |
 |---|---|---|---:|---:|---:|
@@ -936,6 +936,8 @@ Set B:
 
 Below / inside / above, and in bold where that group's counts alone would fail the test. The test is on each set as a whole; these groups show where its misses fall. A barometric height is off by about the day's offset from the standard atmosphere over its temperature, so the misses of the height, the top speed and the descent rate gather on the coldest and warmest days: a warm day reads low, and its truth lies above the interval.
 
+#### By logger
+
 Set A:
 
 | Logger | liftoff | apogee height | apogee time | top speed | landing | flight time | descent rate |
@@ -955,6 +957,8 @@ Set B:
 | eggtimer | **3 / 143 / 23** | 12 / 147 / 10 | 15 / 146 / 8 | 2 / 64 / 3 | 5 / 159 / 5 | 10 / 157 / 2 | 11 / 149 / 9 |
 | altos | **23 / 160 / 3** | 4 / 168 / 14 | **4 / 152 / 30** | 4 / 49 / 4 | 8 / 176 / 2 | 14 / 170 / 2 | 8 / 158 / 20 |
 | imu-500hz | **17 / 165 / 0** | 12 / 161 / 9 | 6 / 174 / 2 | 1 / 51 / 3 | **0 / 165 / 17** | **2 / 150 / 30** | 11 / 164 / 7 |
+
+#### By the day's air
 
 Set A:
 

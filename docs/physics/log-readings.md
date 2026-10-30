@@ -701,7 +701,10 @@ apogee's height and time (`Apogee::height_interval_m` and `time_interval_s`), th
 (`MaxSpeed::interval_m_s`), landing (`Landing::interval_s`), the flight time
 (`FlightTime::interval_s`) and the mean descent rate
 (`Landing::mean_descent_rate_interval_m_s`). `hpr analyze --json` and Python's `readings()` carry
-them too. The accelerometer's readings, the canopies' and `hpr analyze`'s text follow in the
+them too, each as `low` and `high`, under its reading's key: `liftoff.interval_s`,
+`apogee.height_interval_m`, `apogee.time_interval_s`, `max_speed.interval_m_s`,
+`landing.interval_s`, `flight_time.interval_s` and `landing.mean_descent_rate_interval_m_s`.
+`hpr analyze`'s text shows only the bounds. The accelerometer's readings, the canopies' and `hpr analyze`'s text follow in the
 [next increments][adr-308].
 
 Each interval comes from the reading's own bound. The synthetic flights' calibration set is 2,000
@@ -732,8 +735,8 @@ speeds. Each tail then misses about 5% on average over flights drawn as those ar
 | flight time | −0.381 | −0.133 |
 | descent rate | −0.473 | 0.493 |
 
-Some points lean. Liftoff is the last sample on the pad, so it is read late, and both its points
-are above zero: its interval lies wholly before the reading. The flight time runs from that late
+Some points lean. Liftoff is the last sample within the pad's allowance, which the rocket leaves
+only after climbing it, so it is read late, and both its points are above zero: its interval lies wholly before the reading. The flight time runs from that late
 liftoff to a landing read early, so it reads short, and its interval lies wholly after the
 reading. The apogee time's errors reach further early than late, so its interval reaches further
 after the reading than before it. `cargo xtask synthetic` fits the points again and fails unless
@@ -742,7 +745,10 @@ they equal the library's.
 **A worked example.** The invented PerfectFlite log's apogee of 390.144 m (1,280 ft) has a bound
 of 31.83 m (104.4 ft) ([above](#a-worked-example)). Its interval runs from 390.144 − 0.637 × 31.83 =
 369.87 m to 390.144 + 0.63 × 31.83 = 410.20 m (1,213 to 1,346 ft). The true apogee, 390.31 m
-(1,280.5 ft), lies inside. Most of the width is the day's air, as most of the bound is.
+(1,280.5 ft), lies inside. Most of the width is the day's air, as most of the bound is. The same
+log's flight time reads 45.00 s with a bound of 2.91 s, so its interval runs from
+45.00 + 0.133 × 2.91 = 45.39 s to 45.00 + 0.381 × 2.91 = 46.11 s. It doesn't hold the reading:
+the flight time reads short, so the interval says the flight most likely lasted a little longer.
 
 **Checked against sets A and B.** The two test sets, which the points never saw, each pass the
 test of [ADR-257, calibrated intervals][adr-257]
@@ -772,10 +778,16 @@ The GNSS-only logs, 180 of A's and 155 of B's, give none of these readings, and 
 mark withholds 533 more top speeds on A and 559 on B. So the top speed is tested on fewer than 300 readings a set, where a tail passes with a
 wider share of misses either way: 4 to 28 of 287 (1.4% to 9.8%), against 22 to 63 of 820. Every interval
 narrowed to 0.8 of its width fails the test, and so does every one widened to 1.25 or shifted
-down one standard error, the top speed's included.
+down one standard error, the top speed's included. Near the mark, though, the rule lets through
+only the top speeds that came out low. The two Calisto designs mostly fly past it, and of the 18
+top speeds they gave on A and B, 10 left the truth above the interval (the report's *By design*).
 
-Three of the readings have a flattering side: a reading too low. A waiver's height, a fin's
-margin against the top speed, and a landing's speed each look better than they are. The
+Three of the readings have a flattering side: a reading too low makes the flight look safer than
+it was. A low apogee height flatters a waiver, and a low top speed a fin's margin. The top speed
+is vertical; a fin's airspeed is higher on an angled climb, by 6% on a 20° one. A low mean
+descent rate says the descent was gentler than it was. That rate runs from apogee to landing,
+drogue and main together, so it is no landing speed: that is the main's rate, which states only
+its bound until [M7.2e3](../decisions-and-roadmap.md#m7-2e3). The
 report gives each one's mean error, the reading less the truth, with its sign and at the figures
 of its largest error, as its later digits differ from one computer to another. The apogee height's
 is +1 m (3 ft) on A and, on B, less than half a meter and not below zero, against errors up to
@@ -788,11 +800,12 @@ days the flights draw, spread evenly within 15 K of the standard atmosphere, and
 spread over those days. A barometric height is off by about the day's offset from standard over
 its temperature, and so are the speed and the rate taken from it. On days within 10 K of
 standard, no height and no descent rate missed, and 4 of 361 top speeds did. On days warmer than
-that, a warm day reads low, so the truth lay above the interval: for the height, 45 of 137 on A
+that, above about 25 °C (77 °F) at a sea-level field, a warm day reads low, so the truth lay above the interval: for the height, 45 of 137 on A
 and 47 of 156 on B ([#1055](https://github.com/nrdptel/fusionspace-eridanus/issues/1055)); for the descent rate, 45 of 137 and 50 of 156; for the top speed,
 17 of 57 and 14 of 69 ([#1061](https://github.com/nrdptel/fusionspace-eridanus/issues/1061)). On a hot day, then, expect each of the three above its interval's
-top far more often than 1 time in 20. For a waiver, a fin's margin or a landing's speed, go by the
-bound, which holds the day's air to 15 K.
+top far more often than 1 time in 20. So for a waiver, take the apogee plus its bound; for a fin's
+margin, the top speed plus its bound; for a landing, the main's rate plus its bound. Each bound
+holds the day's air to 15 K. The bounds, too, were measured only on synthetic flights.
 
 The times lean by logger. On the AltOS logs, whose rate drops from 100 to 10 samples a second at
 apogee, 27 of 185 apogee times on A and 30 of 186 on B lie later than the interval ([#1056](https://github.com/nrdptel/fusionspace-eridanus/issues/1056)).

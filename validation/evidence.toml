@@ -748,7 +748,7 @@ issue = 981
 [[row]]
 id = "G34"
 surface = "Flight-log readings' 90% intervals"
-claim = "Seven readings of the height track, liftoff to the mean descent rate, state 90% intervals whose shares were fitted on 2,000 synthetic flights on a seed of their own. On sets A and B each passes the two-sided coverage test, and the intervals narrowed, widened and shifted down each fail it. The misses aren't spread evenly: the height's, the top speed's and the descent rate's gather on days more than 10 K from standard, a warm day's above the interval (#1055, #1061), and the times lean by logger (#1056, #1062)"
+claim = "Seven readings of the height track, liftoff to the mean descent rate, state 90% intervals whose shares were fitted on 2,000 synthetic flights on a seed of their own. On sets A and B each passes the two-sided coverage test (the top speed only below 227.7 m/s, on 287 and 286 readings; the others on 820 and 845), and the intervals narrowed, widened and shifted down each fail it. The misses aren't spread evenly: the height's, the top speed's and the descent rate's gather on days more than 10 K from standard, a warm day's above the interval (#1055, #1061), and the times lean by logger (#1056, #1062)"
 pages = ["physics/log-readings.md#the-90-intervals", "start-here.md#flight-logs"]
 kind = "calibration"
 wanted = "real"
