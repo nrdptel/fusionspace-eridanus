@@ -38,7 +38,8 @@
 //! ```
 //!
 //! about the origin. A tab is a square-section slab below the root (`−h_tab ≤ h ≤ 0`), over the
-//! length it states, which may pass either end of the root (ADR-309). The flat
+//! length it states, which may pass either end of the root ([ADR-309][adr-309], the decision to
+//! weigh a tab as its file states it). The flat
 //! root is taken to sit on the body at radius `R_b`; the sliver between a flat root and the curved
 //! tube, `t²/8R_b` deep, is ignored. On a nose cone or a transition the surface is not level
 //! along the root: `R_b` is the body's radius at the root leading edge, `h` is measured from it,
@@ -64,6 +65,7 @@
 //!
 //! [adr-166]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0166-a-fin-root-that-follows-the-body.md
 //! [adr-096]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-096-fin-fillets-and-an-automatic-radius-inside-a-nose-cone-read-as-openrocket-reads-them-2026-09-28
+//! [adr-309]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0309-a-fin-tab-weighed-as-stated.md
 
 use std::f64::consts::PI;
 
