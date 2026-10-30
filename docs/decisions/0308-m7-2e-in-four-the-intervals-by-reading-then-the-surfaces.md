@@ -217,8 +217,9 @@ rate or an acceleration.
     1 km/s. Over the first second, at least ten samples, each sample fused is the median of the
     five about it, which leaves a climb as it was. The first two aren't weighed. Sweeping errors of
     10 m to 1,000 m over one or two of the first three samples now moves the apogee by under a
-    standard error, but for one case. Two samples together about 300 m high or more move the readings'
-    own pad, and the apogee reads low by as much, the flattering side, with a card that at 1,000 m
+    standard error, but for one case. Two samples together over about 100 m high move the readings'
+    own pad, and the apogee reads low by as much, the flattering side, 23 m at 150 m high and 277 m at
+    1,000 m, with a card that at 1,000 m
     doesn't say the pad was assumed: a known wrong number on garbled input, in the readings since
     before this increment, seen on no sample log ([#1076][i1076]), pinned by the test so a fix must
     drop it. Three bad samples in a row beat the median too.

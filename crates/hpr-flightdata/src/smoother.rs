@@ -294,8 +294,7 @@ pub const ASSUMED_SETTLE_S: f64 = 1.0;
 pub const ASSUMED_SETTLE_SAMPLES: usize = 10;
 
 /// The most steps the smoother takes, every sensor's samples together: two sensors at 500 Hz for
-/// 33 minutes. The synthetic flights' longest 500 Hz logs pass 500,000, and the longest of the
-/// project's sample logs holds about 132,000. The filter holds two covariances a step for the pass
+/// 33 minutes. The synthetic flights' longest 500 Hz logs pass 500,000. The filter holds two covariances a step for the pass
 /// back, over 1 kB, so a step count without a limit is a memory limit a file could reach: a file just
 /// under this one takes tens of seconds and gigabytes, by a run in review, not a committed test.
 pub const MAX_STEPS: usize = 2_000_000;
@@ -3193,7 +3192,7 @@ mod tests {
         let clean_top = clean.at(clean.apogee_time_s).unwrap();
         for at in [vec![0], vec![1], vec![0, 1], vec![2], vec![1, 2]] {
             for error in [
-                -1000.0, -100.0, -20.0, -10.0, 10.0, 20.0, 100.0, 300.0, 1000.0,
+                -1000.0, -100.0, -20.0, -10.0, 10.0, 20.0, 100.0, 150.0, 200.0, 300.0, 1000.0,
             ] {
                 let mut bad = from_launch(log());
                 for &k in &at {
@@ -3204,14 +3203,16 @@ mod tests {
                 // A known wrong number (#1076), pinned so a fix must drop it: two samples together
                 // this high move the readings' own pad, which the smoother stands on. The apogee
                 // reads low by what the pad moved, the flattering side, tens to hundreds of meters.
-                if at.len() == 2 && error >= 300.0 {
+                if at.len() == 2 && error > 100.0 {
                     let pad = readings::read(&bad).pad_altitude_m.unwrap();
-                    assert!(pad > 40.0, "{at:?} {error}: a pad of {pad}");
+                    assert!(pad > 20.0, "{at:?} {error}: a pad of {pad}");
                     let low = clean_top.height_m - top.height_m;
                     assert!(
                         (low - pad).abs() < clean_top.height_sd_m,
                         "{at:?} {error}: {low} low on a pad of {pad}"
                     );
+                    // So far out the moved pad passes for a real one, and the card doesn't say.
+                    assert_eq!(got.health.assumed_pad, error < 1000.0, "{at:?} {error}");
                     continue;
                 }
                 assert!(
@@ -3235,6 +3236,13 @@ mod tests {
             }
         }
         assert_eq!(clean.health.sensors[0].unweighed, 2);
+        // Three in a row are the median of five: settling doesn't reach them, as ADR-308 says.
+        let mut bad = from_launch(log());
+        for k in 0..3 {
+            bad.altitude_m[k] -= 1000.0;
+        }
+        let got = smoothed(&bad, Options::default());
+        assert!(got.speed_m_s.iter().any(|v| v.abs() > 150.0));
     }
 
     /// A burst of samples close together costs each of them no walk over the burst: a walk for each
