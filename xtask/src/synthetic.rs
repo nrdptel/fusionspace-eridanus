@@ -2029,7 +2029,7 @@ mod tests {
         assert!(page.contains("first \\| second third |"), "{page}");
     }
 
-    /// The intervals' section names a failing reading, and each probe that passes, in bold.
+    /// A reading too low flatters the height, the top speed and the descent rate, and no time.
     #[test]
     fn the_flattering_side_is_low_for_the_height_the_top_speed_and_the_descent_rate() {
         let low: Vec<Quantity> = intervals::STATED
@@ -2046,6 +2046,7 @@ mod tests {
         );
     }
 
+    /// The intervals' section names a failing reading, and each probe that passes, in bold.
     #[test]
     fn the_intervals_section_marks_what_fails() {
         use hpr_flightdata::readings::Interval;

@@ -769,8 +769,8 @@ count rules in. The test fails unless both sides' bands hold 5% and the inside c
 | B | descent rate | 845 | 41 | 754 | 50 |
 
 The GNSS-only logs, 180 of A's and 155 of B's, give none of these readings, and the transonic
-mark withholds 533 more top speeds on A and 559 on B. So the top speed is tested on fewer than
-300 readings a set, where a tail passes with more misses either way than at 820. Every interval
+mark withholds 533 more top speeds on A and 559 on B. So the top speed is tested on fewer than 300 readings a set, where a tail passes with a
+wider share of misses either way: 4 to 28 of 287 (1.4% to 9.8%), against 22 to 63 of 820. Every interval
 narrowed to 0.8 of its width fails the test, and so does every one widened to 1.25 or shifted
 down one standard error, the top speed's included.
 

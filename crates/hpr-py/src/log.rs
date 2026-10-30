@@ -275,7 +275,7 @@ impl FlightLog {
     /// Seven readings state a 90% interval, ``low`` and ``high``: ``liftoff``, ``landing`` and
     /// ``flight_time`` as ``interval_s``, ``max_speed`` as ``interval_m_s``, ``landing``'s mean
     /// rate as ``mean_descent_rate_interval_m_s``, and ``apogee``'s height and time as
-    /// ``height_interval_m`` and ``time_interval_s``, ``None`` on a floor.
+    /// ``height_interval_m`` and ``time_interval_s``. Only the apogee's are ``None`` on a floor.
     ///
     /// An apogee, a burnout and a top acceleration each say whether it's a floor (``is_floor``).
     /// A floor's true value is at least the value less its bound, and may be higher by any amount.
