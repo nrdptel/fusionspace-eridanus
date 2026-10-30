@@ -114,8 +114,8 @@
 //!     gradient), no text and no top rule is drawn under it, and no text is cut by the top edge
 //!     of a box the page leaves scrolled as it loads, as mdBook leaves the sidebar's list with
 //!     the current chapter in its middle; and wherever the sidebar is drawn, the current page's
-//!     entry in it shows whole as the page loads, inside every box that clips it and the window
-//!     (#894). The menu button is drawn at
+//!     entry in it shows whole as the page loads, inside every box that clips it, and inside the
+//!     window where the sidebar is fixed to it (#894). The menu button is drawn at
 //!     every width, and the sidebar from 720 px on a first visit. Wherever the sidebar is drawn,
 //!     a screen reader and the keyboard reach it (not `aria-hidden`, every link in the tab
 //!     order), and wherever it is put away neither does. Read again with scripts off (the root
