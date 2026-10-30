@@ -10,14 +10,15 @@
 //!   `0.1.0`, `2026-10-04` aren't figures). It runs through its grouping commas, its decimals, an
 //!   exponent (`1e-9`) and superscript digits (`10⁶`). A sign before it stays where it is.
 //! - **A figure written in groups of three with spaces** (NIST SP 811 §10.5.3, the style long
-//!   decimals and quoted standards keep: `22 632 Pa`, `9.806 65`, `0.001 953 125`) is one
+//!   decimals and standard values keep: `22 632 Pa`, `9.806 65`, `0.001 953 125`) is one
 //!   figure, and a breaking space between its groups is a split too (#891): a line ending there
 //!   reads `22` and `632 Pa` as two numbers. Before the point, a first group of one to three
 //!   digits takes each further group of exactly three, unless commas group it; after the point,
 //!   a group of three takes a next of one to three, and the groups go on while each holds three.
 //!   A group isn't taken when a digit, or a comma and a digit, follow it, nor after the point
-//!   when a point and a digit do (`0.500 0.800`, a list, stays two figures). The rule reads digits, not meaning: two counts written
-//!   side by side (`12 100`) are joined as one, which only keeps them on one line.
+//!   when a point and a digit do (`0.500 0.800`, a list, stays two figures). The rule reads
+//!   digits, not meaning: two counts written side by side (`12 100`) are joined as one, which
+//!   only keeps them on one line.
 //! - **A unit** is the symbol of one of [`UNITS`], the units `data.md` writes and the project's
 //!   own (`cal`, `calibers`, `px`), as a whole word after the figure: its letters not followed
 //!   by a digit 0 to 9 or `_` (`g06` is a code), though a superscript power may follow (`m²`).
@@ -905,11 +906,16 @@ mod tests {
         assert!(page_splits(&joined).is_empty());
         // Groups across an inline tag, an entity and a source line break inside a list item.
         for page in [
-            "<p><b>22</b> 632 Pa</p>",
+            "<p><b>22</b> 632\u{a0}Pa</p>",
             "<li>101&#32;325</li>",
             "<p>0.001 953\n  125;</p>",
         ] {
-            assert!(!page_splits(page).is_empty(), "{page}");
+            let problems = page_splits(page);
+            assert!(
+                !problems.is_empty()
+                    && problems.iter().all(|why| why.contains("inside the number")),
+                "{page}: {problems:?}"
+            );
         }
     }
 

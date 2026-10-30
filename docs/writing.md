@@ -519,7 +519,7 @@ They don't conflict with the rules above; they add these:
     after it in the pages it builds (not the API reference), so a page's source keeps a plain
     space. The units are symbols: lengths, times, masses, forces, pressures, `°C`, `calibers` and
     `px`, among others. A word that counts, like "flights", isn't one. It joins the groups of a
-    figure written with spaces too (`22 632 Pa`, `9.806 65`), so a line never ends inside the
+    figure written with spaces too (`22 632 Pa`, `9.806 65`), so a line doesn't end inside the
     number. The build fails a figure and unit, or a figure's groups, it leaves split.
   - **After an equation, the unit goes inside it:** `$x = 4593\,\mathrm{ft}$`, not
     `$x = 4593$ ft`. A line can end between an equation and the space after it, even a no-break
