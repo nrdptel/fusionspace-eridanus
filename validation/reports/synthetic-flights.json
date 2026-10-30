@@ -11549,14 +11549,14 @@
     "floor_shares": [
       {
         "quantity": "top_acceleration",
-        "stated": 454,
+        "stated": 348,
         "fitted": {
-          "high": 0.212,
-          "median": -0.134
+          "high": 0.259,
+          "median": -0.124
         },
         "library": {
-          "high": 0.212,
-          "median": -0.134
+          "high": 0.259,
+          "median": -0.124
         }
       },
       {
@@ -13118,83 +13118,83 @@
               "quantity": "top_acceleration",
               "flights": 1000,
               "unstated": 0,
-              "floors": 235,
+              "floors": 181,
               "floor": {
                 "test": {
-                  "given": 235,
-                  "below": 7,
+                  "given": 181,
+                  "below": 3,
                   "band": {
-                    "low": 0.0058,
-                    "high": 0.0854
+                    "low": 0.000831,
+                    "high": 0.0747
                   }
                 },
                 "probes": {
                   "raised": {
-                    "given": 235,
-                    "below": 60,
+                    "given": 181,
+                    "below": 52,
                     "band": {
-                      "low": 0.169,
-                      "high": 0.358
+                      "low": 0.185,
+                      "high": 0.408
                     }
                   },
                   "lowered": {
-                    "given": 235,
+                    "given": 181,
                     "below": 0,
                     "band": {
                       "low": 0.0,
-                      "high": 0.0318
+                      "high": 0.0411
                     }
                   }
                 },
                 "by_logger": {
                   "altos": [
-                    88,
-                    4
+                    74,
+                    3
                   ],
                   "imu-500hz": [
-                    147,
-                    3
+                    107,
+                    0
                   ]
                 },
                 "by_design": {
                   "rocketpy-bella-lui": [
-                    20,
+                    15,
                     0
                   ],
                   "rocketpy-calisto-getting-started-motor-at-minus-1.255": [
-                    24,
+                    18,
                     1
                   ],
                   "rocketpy-calisto-tests-motor-at-minus-1.373": [
-                    30,
+                    21,
                     0
                   ],
                   "rocketpy-cavour": [
-                    25,
+                    18,
                     1
                   ],
                   "rocketpy-genesis": [
-                    27,
-                    1
+                    21,
+                    0
                   ],
                   "rocketpy-juno-iii": [
-                    21,
-                    1
+                    19,
+                    0
                   ],
                   "rocketpy-lince": [
-                    24,
+                    19,
                     0
                   ],
                   "rocketpy-ndrt-2020-nose-to-tail": [
-                    22,
-                    1
+                    18,
+                    0
                   ],
                   "rocketpy-prometheus-2022-generic-motor": [
-                    21,
-                    1
+                    16,
+                    0
                   ],
                   "rocketpy-valetudo": [
-                    21,
+                    16,
                     1
                   ]
                 }
@@ -13208,7 +13208,7 @@
                 }
               },
               "absent": 0,
-              "whole_at_clip": 121,
+              "whole_at_clip": 175,
               "whole_past_clip": 104,
               "withheld": {
                 "no_accelerometer": 644
@@ -15822,83 +15822,83 @@
               "quantity": "top_acceleration",
               "flights": 1000,
               "unstated": 0,
-              "floors": 258,
+              "floors": 187,
               "floor": {
                 "test": {
-                  "given": 258,
-                  "below": 10,
+                  "given": 187,
+                  "below": 3,
                   "band": {
-                    "low": 0.0106,
-                    "high": 0.095
+                    "low": 0.000805,
+                    "high": 0.0724
                   }
                 },
                 "probes": {
                   "raised": {
-                    "given": 258,
-                    "below": 65,
+                    "given": 187,
+                    "below": 44,
                     "band": {
-                      "low": 0.169,
+                      "low": 0.143,
                       "high": 0.349
                     }
                   },
                   "lowered": {
-                    "given": 258,
+                    "given": 187,
                     "below": 0,
                     "band": {
                       "low": 0.0,
-                      "high": 0.029
+                      "high": 0.0398
                     }
                   }
                 },
                 "by_logger": {
                   "altos": [
-                    97,
-                    9
+                    79,
+                    3
                   ],
                   "imu-500hz": [
-                    161,
-                    1
+                    108,
+                    0
                   ]
                 },
                 "by_design": {
                   "rocketpy-bella-lui": [
-                    25,
+                    17,
                     1
                   ],
                   "rocketpy-calisto-getting-started-motor-at-minus-1.255": [
-                    33,
-                    2
+                    24,
+                    0
                   ],
                   "rocketpy-calisto-tests-motor-at-minus-1.373": [
-                    28,
-                    1
+                    20,
+                    0
                   ],
                   "rocketpy-cavour": [
-                    29,
+                    27,
                     1
                   ],
                   "rocketpy-genesis": [
-                    28,
-                    1
+                    20,
+                    0
                   ],
                   "rocketpy-juno-iii": [
-                    25,
+                    20,
                     0
                   ],
                   "rocketpy-lince": [
-                    23,
-                    2
-                  ],
-                  "rocketpy-ndrt-2020-nose-to-tail": [
-                    21,
+                    16,
                     0
                   ],
+                  "rocketpy-ndrt-2020-nose-to-tail": [
+                    14,
+                    1
+                  ],
                   "rocketpy-prometheus-2022-generic-motor": [
-                    26,
-                    2
+                    16,
+                    0
                   ],
                   "rocketpy-valetudo": [
-                    20,
+                    13,
                     0
                   ]
                 }
@@ -15912,7 +15912,7 @@
                 }
               },
               "absent": 0,
-              "whole_at_clip": 110,
+              "whole_at_clip": 181,
               "whole_past_clip": 83,
               "withheld": {
                 "no_accelerometer": 632

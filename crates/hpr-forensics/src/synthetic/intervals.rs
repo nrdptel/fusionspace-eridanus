@@ -15,8 +15,8 @@
 //! A floor's truth may lie any amount above it, so it states only a lower end, tested on its lower
 //! tail alone: the band on the share of truths below it must hold 5%, raised one stated standard
 //! error and lowered two it must not ([`FloorCheck`]). A top acceleration's floors come from logs
-//! clipping at 8 g, its top scaled to where the part's own scale error decides whether it clips
-//! ([`top_over_clip`]), and its top as flown, which may miss less but not more.
+//! clipping at 8 g, its top scaled to anywhere the reader can call it clipped and the part may
+//! not have clipped ([`top_over_clip`]), and its top as flown, which may miss less but not more.
 //!
 //! The intervals' shares are fitted on [`Set::Calibration`](super::Set::Calibration) ([`fitted`]); the test runs on
 //! [`Set::A`](super::Set::A) and [`Set::B`](super::Set::B), which the shares never see.
@@ -29,12 +29,14 @@ use std::collections::BTreeMap;
 use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
 use hpr_flightdata::log::FlightLog;
 use hpr_flightdata::readings::interval::{self, FloorShares, Interval, Shares, Z_90};
-use hpr_flightdata::readings::{self, Reading, Reason};
+use hpr_flightdata::readings::{self, GRAVITY_TOLERANCE_G, Reading, Reason};
 use serde::{Deserialize, Serialize};
 
 use super::designs::DESIGNS;
 use super::held::{Quantity, top_specific_force};
-use super::logger::{LOWER_RANGE_G, accelerometer_log_clipping_at, accelerometer_log_top_scaled};
+use super::logger::{
+    ACCEL_BIAS_G, LOWER_RANGE_G, accelerometer_log_clipping_at, accelerometer_log_top_scaled,
+};
 use super::smoothed::{BAND_CONFIDENCE, MISS_SHARE, clopper_pearson_lower, clopper_pearson_upper};
 use super::{Flight, SyntheticError};
 
@@ -414,14 +416,18 @@ pub fn said(seed: u64, index: u64, flight: &Flight) -> Result<FlightSaid, Synthe
 }
 
 /// Flight `index`'s top over the clip on the log its lower end is fitted on, for a part whose
-/// scale error runs to ±`scale`: spread evenly from `1/(1 + scale)`, which a gain that high
-/// carries up to the clip, to `1/(1 − scale)`, past which every such part clips. There the part's
-/// own error decides whether the top clips; below, it never does, and above it always does, so a
-/// truth can lie below the lower end only here. Each flight's place is its own, the golden
-/// ratio's multiples from the set's seed, so no design's thrust sets it and no two sets share it.
+/// scale error runs to ±`scale`. It spreads evenly over every top the reader can call clipped and
+/// the part may not have clipped. At the bottom, the reader calls a top clipped from
+/// [`GRAVITY_TOLERANCE_G`] under the range, and the part's gain and [`ACCEL_BIAS_G`] can carry a
+/// truth up to that: `(1 − (tolerance + bias)/range)/(1 + scale)`. At the top, past
+/// `1/(1 − scale)` every such part clips and the truth lies above the reading. A lower top simply
+/// reads whole, and doesn't count. Each flight's place is its own, the golden ratio's multiples
+/// from a start each set's seed sets, so no design's thrust sets it and no two sets share it.
 pub fn top_over_clip(seed: u64, index: u64, scale: f64) -> f64 {
-    let (least, most) = (1.0 / (1.0 + scale), 1.0 / (1.0 - scale));
-    let place = ((seed % 1_000_000 + index) as f64 * 0.618_033_988_749_894_9).fract();
+    let least = (1.0 - (GRAVITY_TOLERANCE_G + ACCEL_BIAS_G) / LOWER_RANGE_G) / (1.0 + scale);
+    let most = 1.0 / (1.0 - scale);
+    let start = (seed % 1_000_000) as f64 * 0.754_877_666_246_692_7;
+    let place = (start + index as f64 * 0.618_033_988_749_894_9).fract();
     least + (most - least) * place
 }
 
@@ -729,7 +735,7 @@ pub struct Check {
     /// The floors' test, where any were read.
     pub floor: Option<FloorCheck>,
     /// The top acceleration's floors with their tops as flown, past the clip by as much as a
-    /// design takes them: a lower end fitted at the clip must miss no more than 5% of them.
+    /// design takes them: a lower end fitted near the clip must miss no more than 5% of them.
     pub past_clip: Option<FloorTest>,
     /// None to read.
     pub absent: u64,
@@ -1258,12 +1264,16 @@ mod tests {
         assert!(check.withheld.is_empty());
     }
 
-    /// A top lands where the part's own scale error decides whether it clips: for the IMU's ±3%
-    /// from 0.971 to 1.031 of the clip, for the AltOS part's ±10% from 0.909 to 1.111, evenly, and
-    /// at another place on each set's flight.
+    /// A top lands wherever the reader can call it clipped and the part may not have clipped: for
+    /// the IMU's ±3% from 0.9345 to 1.031 of the clip, for the AltOS part's ±10% from 0.875 to
+    /// 1.111, evenly, and at another place on each set's flight.
     #[test]
-    fn a_top_lands_where_the_parts_scale_decides_the_clip() {
-        for (scale, least, most) in [(0.03, 1.0 / 1.03, 1.0 / 0.97), (0.10, 1.0 / 1.1, 1.0 / 0.9)] {
+    fn a_top_lands_wherever_the_reader_can_call_it_clipped() {
+        let reach = 1.0 - 0.3 / 8.0;
+        for (scale, least, most) in [
+            (0.03, reach / 1.03, 1.0 / 0.97),
+            (0.10, reach / 1.1, 1.0 / 0.9),
+        ] {
             let ratios: Vec<f64> = (0..1000)
                 .map(|k| top_over_clip(2_026_102_900, k, scale))
                 .collect();
@@ -1272,11 +1282,14 @@ mod tests {
             let lowest = ratios.iter().filter(|r| **r < tenth).count();
             assert!((98..=102).contains(&lowest), "{lowest}");
         }
-        // No two sets' flights share a place.
-        assert_ne!(
-            top_over_clip(2_026_101_701, 7, 0.03),
-            top_over_clip(2_026_101_702, 7, 0.03)
-        );
+        // No two sets' flights share a place, nor one set's its neighbor's a flight on.
+        let (a, b) = (2_026_101_701, 2_026_101_702);
+        assert_ne!(top_over_clip(a, 7, 0.03), top_over_clip(b, 7, 0.03));
+        assert_ne!(top_over_clip(a, 8, 0.03), top_over_clip(b, 7, 0.03));
+        // The reader's threshold reaches the window's bottom with the gain and bias at their
+        // limits: a top lower than it can't read as clipped.
+        let read = reach / 1.03 * 1.03 * 8.0 + ACCEL_BIAS_G;
+        assert!((read - (8.0 - GRAVITY_TOLERANCE_G)).abs() < 1e-9, "{read}");
     }
 
     /// Scaled near the clip, a flight's log reads a floor whose truth the fitted lower end is
@@ -1306,7 +1319,7 @@ mod tests {
             .filter(|(q, _)| *q == Quantity::TopAcceleration)
             .map(|(_, s)| s)
             .collect();
-        // Its own log's reading, whole, then the floor at the clip and the floor as flown.
+        // Its own log's reading, whole, then the floor near the clip and the floor as flown.
         assert!(matches!(tops[0], Said::Stated(_)), "{tops:?}");
         let Said::Floor(at_clip) = tops[1] else {
             panic!("{tops:?}");

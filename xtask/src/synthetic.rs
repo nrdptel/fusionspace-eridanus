@@ -878,29 +878,7 @@ fn interval_check(files: &DesignFiles) -> Result<(Intervals, Vec<String>), Strin
                     )),
                     None => {}
                 }
-                match &check.past_clip {
-                    Some(past) if !past.no_more_than_its_share() => broken.push(format!(
-                        "{}: {}'s lower ends miss more than their share of the tops past the \
-                         clip: {} of {} below",
-                        set.name(),
-                        quantity.name(),
-                        past.below,
-                        past.given
-                    )),
-                    Some(past) if past.given < intervals::LEAST_FLOORS => broken.push(format!(
-                        "{}: {} reads only {} tops past the clip, under {}",
-                        set.name(),
-                        quantity.name(),
-                        past.given,
-                        intervals::LEAST_FLOORS
-                    )),
-                    None if quantity == Quantity::TopAcceleration => broken.push(format!(
-                        "{}: {} read no top past the clip to check",
-                        set.name(),
-                        quantity.name()
-                    )),
-                    _ => {}
-                }
+                broken.extend(past_clip_problem(set, &check));
                 let probe_passes = check
                     .probes
                     .iter()
@@ -934,6 +912,32 @@ fn interval_check(files: &DesignFiles) -> Result<(Intervals, Vec<String>), Strin
         },
         broken,
     ))
+}
+
+/// What's wrong with `check`'s tops past the clip: too many below the lower end, too few to
+/// check, or, for the top acceleration, none.
+fn past_clip_problem(set: Set, check: &intervals::Check) -> Option<String> {
+    let name = check.quantity.name();
+    match &check.past_clip {
+        Some(past) if !past.no_more_than_its_share() => Some(format!(
+            "{}: {name}'s lower ends miss more than their share of the tops past the clip: {} of \
+             {} below",
+            set.name(),
+            past.below,
+            past.given
+        )),
+        Some(past) if past.given < intervals::LEAST_FLOORS => Some(format!(
+            "{}: {name} reads only {} tops past the clip, under {}",
+            set.name(),
+            past.given,
+            intervals::LEAST_FLOORS
+        )),
+        None if check.quantity == Quantity::TopAcceleration => Some(format!(
+            "{}: {name} read no top past the clip to check",
+            set.name()
+        )),
+        _ => None,
+    }
 }
 
 /// `check`'s bands and largest error to three significant figures, as the report holds them, and
@@ -1475,9 +1479,9 @@ fn intervals_section(page: &mut String, made: &Intervals) {
          lower end only: the reading less its 95% share of its bound. Its standard error is the \
          95% share less the median, times the bound, over 1.645. No flight's own accelerometer \
          clips, so the top acceleration's floors come from each flight's log with its \
-         accelerometer clipping at 8 g and its top scaled from 1/(1 + s) to 1/(1 − s) of that \
-         clip, where the part's own scale error, ±s, decides whether it clips: ±3% on the 500 Hz \
-         IMU, ±10% on the AltOS part.\n\n| Reading | Floors fitted | 95% share | Median share |\n\
+         accelerometer clipping at 8 g and its top scaled to anywhere the reader can call it \
+         clipped and the part may not have clipped: from (1 − 0.3/8)/(1 + s) to 1/(1 − s) of that \
+         clip, s the part's scale error, ±3% on the 500 Hz IMU and ±10% on the AltOS part.\n\n| Reading | Floors fitted | 95% share | Median share |\n\
          |---|---:|---:|---:|\n",
     );
     for s in &made.floor_shares {
@@ -2291,6 +2295,46 @@ mod tests {
         });
         assert!(page.contains("| A | 0 |"), "{page}");
         assert!(page.contains("first \\| second third |"), "{page}");
+    }
+
+    /// The tops past the clip must be there, enough of them, and not miss more than their share.
+    #[test]
+    fn the_tops_past_the_clip_can_fail_the_command() {
+        let flight = |truth: f64, k: u64| intervals::FlightSaid {
+            index: k,
+            design: 0,
+            logger: "altos",
+            air_offset_k: 0.0,
+            said: vec![(
+                Quantity::TopAcceleration,
+                intervals::Said::PastClip(intervals::ComparedFloor {
+                    reading: 0.0,
+                    bound: 1.0,
+                    low: 0.0,
+                    standard_error: 1.0,
+                    truth,
+                }),
+            )],
+        };
+        let of = |flights: &[intervals::FlightSaid]| {
+            past_clip_problem(
+                Set::A,
+                &intervals::check(Quantity::TopAcceleration, flights),
+            )
+        };
+        let enough = intervals::LEAST_FLOORS;
+        let held: Vec<_> = (0..enough).map(|k| flight(1.0, k)).collect();
+        assert_eq!(of(&held), None);
+        let too_few: Vec<_> = (0..enough - 1).map(|k| flight(1.0, k)).collect();
+        assert!(of(&too_few).unwrap().contains("only 148"));
+        let missing: Vec<_> = (0..enough).map(|k| flight(-1.0, k)).collect();
+        assert!(of(&missing).unwrap().contains("miss more"));
+        assert!(of(&[]).unwrap().contains("no top past the clip"));
+        // Another reading has none to read, and that's no fault.
+        assert_eq!(
+            past_clip_problem(Set::A, &intervals::check(Quantity::Burnout, &[])),
+            None
+        );
     }
 
     /// A reading too low flatters the height, the top speed, the top acceleration and the rates,

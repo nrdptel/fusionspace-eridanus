@@ -247,7 +247,7 @@ floor, its `clip` saying which ([The accelerometer](#the-accelerometer)). There 
 Liftoff is the last sample before the track shows the rocket climbing out of the pad's reach. So
 it comes after the true liftoff by the time that climb took.
 
-**A floor** holds one way only, and has three numbers. The reading is where the rule lands. For
+**A floor** holds one way only, and has up to three numbers. The reading is where the rule lands. For
 burnout without an accelerometer, that is the top speed's time, 2.20 s on the invented PerfectFlite flight
 below. The floor is that reading less its bound: 2.20 s less
 1.32 s, 0.88 s, which `hpr analyze` prints as "no sooner than 0.88 s". The truth is at or after
@@ -865,13 +865,13 @@ holds 5% with 2 truths below.
 | floor | floors fitted | 95% point $q_{95}$, share of the bound | median, share of the bound | where the lower end falls |
 |---|---:|---:|---:|---|
 | burnout, from the top speed's peak | 437 | −0.0339 | −0.195 | just after the reading |
-| top acceleration, clipped | 454 | 0.212 | −0.134 | just below the reading |
+| top acceleration, clipped | 348 | 0.259 | −0.124 | just below the reading |
 
 | set | floor | floors compared | truths below | truths below, raised one standard error | truths below, lowered two |
 |---|---|---:|---:|---:|---:|
-| A | top acceleration | 235 | 7 | 60 | 0 |
+| A | top acceleration | 181 | 3 | 52 | 0 |
 | A | burnout | 210 | 12 | 56 | 0 |
-| B | top acceleration | 258 | 10 | 65 | 0 |
+| B | top acceleration | 187 | 3 | 44 | 0 |
 | B | burnout | 211 | 6 | 47 | 0 |
 
 Every floor as stated passes, and every raised or lowered one fails.
@@ -883,27 +883,33 @@ a count the test can fail on, and its reader tells the clip by its flat top.
 
 How far past a clip a top goes depends on the design, and no log says. A first fit, on tops as
 flown, found most of them far past it, so its 95% point came out negative and put the lower end
-above the reading. It held on A (8 of 252 below) and failed on B (31 of 285): one of the ten designs,
-the Bella Lui, whose tops only just pass 8 g under B's model, left 21 of 22 truths below it.
+above the reading. It held on A (8 of 252 below) and failed on B (31 of 285): one of the ten
+synthetic designs, the Bella Lui, whose tops only just pass 8 g under B's model, left 21 of 22 truths below it.
 
-So the fit takes the one place where the log's own error can put a truth below a clipped reading. A
-part's gain can be off by up to $s$, ±3% on the 500 Hz IMU and ±10% on the AltOS part. A top from
-$1/(1+s)$ of the clip can be carried up to it, and a top past $1/(1-s)$ always clips. Each flight's top
-is scaled to a place of its own between those, on the calibration set and, at other places, on A and
-B. A top under the clip that the gain carried there is the only kind
-that misses: a top truly past the clip lies above the reading. On the tops as flown, none of A's 252
-and none of B's 285 lie below the lower end. Tops read whole, with no floor, are left out of these
-counts, and the report gives how many.
+So the fit takes the one place where the log's own error can put a truth below a clipped reading: a
+top under the clip that reads as clipped. A part's scale error, its gain, can be off by up to $s$,
+±3% on the 500 Hz IMU and ±10% on the AltOS part. The reader calls a top clipped from 0.25 g under the
+range, and the part's bias of up to 0.05 g helps it there, so a truth from
+$(1 - 0.3/8)/(1 + s)$ of the clip can be read as clipped: 0.934 of it on the IMU and 0.875 on the AltOS
+part. Past $1/(1 - s)$ of the clip, 1.03 and 1.11, every such part clips.
+
+Each flight's true top is moved to a point of its own in that window, a different point on the
+calibration set and on each of A and B. A top that then reads whole isn't a floor and isn't counted;
+the report gives how many. Of the rest, only a top under the clip that the gain carried up to it can
+miss. A top truly past the clip lies above the reading: on the tops as flown, none of A's 252 and none
+of B's 285 lie below the lower end. That check is close to certain by construction, so the test on the
+moved tops is what the result rests on.
 
 So read the lower end as how far the part's own gain can carry a reading above the truth, not as how
-far past the clip the top went. It rests on the window as well as on the flights. With both parts'
-window at 1.00 to 1.10 of the clip, no top lies under the clip and the fit's 95% point goes to −0.0496,
-a lower end above the reading that the test no longer supports; at 0.90 to 1.10 it is 0.236 against
-this window's 0.212. The window is the parts' stated scale errors, not a choice made to fit. It was set
-after A and B had been read, so these two sets don't hold it apart as they do the other points
-([ADR-308][adr-308]). On the AltOS logs the lower end misses 4 of 88 and 9 of 97, against the IMU's 3 of
-147 and 1 of 161. It is stated only on a clipped top: a floor whose burn the log ends in has none, as
-an apogee floor has none, since no set reads one to test
+far past the clip the top went. The result rests on the window as well as on the flights. The window's
+edges come from the parts' stated scale errors and the reader's own threshold, but they were set after
+A and B had been read, so these two sets don't hold it apart as they do the other points
+([ADR-308][adr-308]). Probes not in the report show how far it moves: with both parts' window at 1.00
+to 1.10 of the clip, no top lies under it and the 95% point goes to −0.0496, a lower end above the
+reading that the test no longer supports; at 0.90 to 1.10 it is 0.236 against this window's 0.259.
+On A and B the lower end misses less than its 5%, 3 of 181 and 3 of 187, all on the AltOS logs: an
+error to the safe side, and the test's band still holds 5%. It is stated only on a clipped top: a
+floor whose burn the log ends in has none, as an apogee floor has none, since no set reads one to test
 ([#1071](https://github.com/nrdptel/fusionspace-eridanus/issues/1071)).
 
 A burnout floor's lower end lies a little after the reading, by 0.0339 of the bound, as burnout
@@ -912,7 +918,7 @@ design: on the Bella Lui, 9 of 61 truths lie below it on A
 ([#1070](https://github.com/nrdptel/fusionspace-eridanus/issues/1070)).
 
 **A worked example.** With an invented clipped top reading 78.5 m/s² (8.00 g) and a bound of
-9.00 m/s², the lower end is 78.5 − 0.212 × 9.00 = 76.6 m/s² (7.81 g). The floor, the reading less the
+9.00 m/s², the lower end is 78.5 − 0.259 × 9.00 = 76.2 m/s² (7.77 g). The floor, the reading less the
 whole bound, is 69.5 m/s² (7.09 g). The true top is most likely above the first and, on what the
 tuning set held, no lower than the second. Both are lower limits: neither sizes a load, as the true
 top may be much higher than either. Use the reading plus its bound only for a top that isn't a floor

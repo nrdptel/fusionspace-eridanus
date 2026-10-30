@@ -151,30 +151,36 @@ rate or an acceleration.
     lower end above the reading claims something the log doesn't hold.
     A second rule scaled each top to 0.95 to 1.05 of the clip (0.223 and −0.111; 15 of 224 and 19 of
     240). Review showed that window unsourced, its misses all from tops under the clip, its factors
-    the same flight by flight on every set, and its coast read wrong after scaling. The rule that
-    stands takes the window from the source: a part's scale error of ±`s`, ±3% (the MPU-6000's data sheet) and ±10% (the
-    ADXL375's) in `logger.rs`, can carry a top from `1/(1 + s)` of the clip up to it, and past
-    `1/(1 − s)` every such part clips. Each flight's top is scaled to a place of its own between,
+    the same flight by flight on every set, and its coast read wrong after scaling. A third took the
+    window from the part's scale error alone, `1/(1 + s)` to `1/(1 − s)` (0.212 and −0.134; 7 of 235
+    and 10 of 258). Review showed that it left out the reader's lowest floors, the likeliest to miss.
+    The rule that stands is every top the reader can call clipped and the part may not have clipped:
+    from `(1 − (0.25 g + 0.05 g)/8 g)/(1 + s)`, the reader's threshold with the part's bias and gain
+    at their limits, to `1/(1 − s)`, past which every such part clips. `s` is ±3% (the MPU-6000's data
+    sheet) and ±10% (the ADXL375's). Each flight's top is scaled to a place of its own between,
     which differs by set, and only the force above 1 g is scaled, so the coast stays as flown. Its
-    shares, on 454 floors, are 0.212 and −0.134; 7 of 235 and 10 of 258 lie below, and no design's
-    count alone fails. A top truly past the clip lies above the reading: none of 252 and none of 285
-    lie below the lower end, a check whose band must reach down to 5%, and which fails on fewer than
-    149 tops or none. **What this pass is worth:** A and B were read under all three rules, so
-    the new places on them are unseen draws but the flights aren't; only this floor's rule changed
-    after a look at A and B. The result moves with the window: at 0.90 to 1.10 of the clip the 95%
-    share is 0.236, and at 1.00 to 1.10, with no top under the clip, −0.0496 (none of 295 and 314
-    below, and the test fails). A clipped reading supports a statement about the part's error only.
+    shares, on 348 floors, are 0.259 and −0.124; 3 of 181 and 3 of 187 lie below, all on the AltOS
+    logs, and no logger's or design's count alone fails. That is under its 5%, the safe side, though
+    the test's band holds it. A top truly past the clip lies above the reading: none of 252 and none
+    of 285 lie below the lower end, a check close to certain by construction, whose band must reach
+    down to 5%, and which fails on fewer than 149 tops or none. **What this pass is worth:** A and B
+    were read under all four rules, so the new places on them are unseen draws but the flights aren't;
+    only this floor's rule changed after a look at A and B. The result moves with the window (probes
+    not in the report): at 0.90 to 1.10 of the clip the 95% share is 0.236, and at 1.00 to 1.10, with no
+    top under the clip, −0.0496 (none of 295 and 314 below, and the test fails). A clipped reading
+    supports a statement about the part's error only.
   - **A lower end only on a clipped top.** A floor whose burn the log ends in isn't clipped and its
     errors are a whole top's: cutting a channel in the burn left 17% to 28% of truths below a lower
     end fitted on clipped tops (review probes, not committed). It states none, as an apogee floor
     doesn't, since no set reads one to test ([#1071][i1071]).
   - **The AltOS part clips at 8 g here too**, though it has no such setting, to reach the count: a
-    test needs 149 floors before no truth below can fail it, and the IMU's alone give 147 on A. The
+    test needs 149 floors before no truth below can fail it, and the IMU's alone give 107 and 108. The
     report says so, and shows each logger's and each design's count, in bold where that group alone
     fails. Tops read whole on these logs are out of the floors' counts and printed beside them.
   - **A burnout's lower end lies after the reading** (−0.0339 of the bound, about 0.045 s), the
     same kind of claim. It stays, being small beside the bound and passing on A and B, but it leans
-    by design: 9 of 61 Bella Lui truths on A lie below it ([#1070][i1070]).
+    by design: 9 of 61 Bella Lui truths on A lie below it, 4 of 63 on B, and neither group alone fails
+    ([#1070][i1070]).
   - **Withheld by rule, now three:** the top speed past its mark, a burnout taken from it, a top
     acceleration on a log with no accelerometer. A drogue or an opening on a flight that opened one
     canopy is none to read, counted apart; a main named on such a flight has no truth and misses

@@ -1481,7 +1481,7 @@ mod tests {
         // interval.
         assert_eq!(
             top.lower_end_m_s2,
-            Some(top.acceleration_m_s2 - 0.212 * top.bound_m_s2)
+            Some(top.acceleration_m_s2 - 0.259 * top.bound_m_s2)
         );
         assert!(top.interval_m_s2.is_none());
         // Below the range, the same family's part reads its top, measured.

@@ -36,10 +36,11 @@
 //! top speed's peak fits its share on its own floors. How far past a clip a top acceleration goes
 //! is the design's, and no log says: a first fit on tops as flown put the lower end above the
 //! reading, and one design whose tops only just passed the clip left 21 of 22 truths below it. So
-//! its share is fitted on the tops the part's own scale error decides: from `1/(1 + s)` of the
-//! clip, which a gain `s` high carries up to it, to `1/(1 − s)`, past which every part clips. A
-//! truth lies below the lower end only on a top under the clip that the gain carried there; a top
-//! truly past the clip lies above the reading. An apogee floor states none, nor a top whose burn
+//! its share is fitted on every top the reader can call clipped and the part may not have clipped:
+//! from where a gain `s` high and the part's bias carry a top up to the reader's threshold, a
+//! quarter g under the range, to `1/(1 − s)`, past which every part clips. A truth lies below the
+//! lower end only on a top under the clip that the gain carried up to it; a top truly past the clip
+//! lies above the reading. An apogee floor states none, nor a top whose burn
 //! the log ends in: no synthetic set reads one (#1071).
 //!
 //! [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
@@ -188,11 +189,11 @@ pub const BURNOUT_FLOOR_SHARES: FloorShares = FloorShares {
 
 /// A top acceleration floor's shares of its bound (`MaxAcceleration::bound_m_s2`), fitted on the
 /// calibration set's flights with their accelerometers clipping at 8 g and their tops scaled to
-/// where the part's own scale error decides whether it clips: how far past a clip a top goes
-/// depends on the design, and no log says.
+/// anywhere the reader can call them clipped and the part may not have clipped: how far past a
+/// clip a top goes depends on the design, and no log says.
 pub const TOP_ACCELERATION_FLOOR_SHARES: FloorShares = FloorShares {
-    high: 0.212,
-    median: -0.134,
+    high: 0.259,
+    median: -0.124,
 };
 
 /// The rank from each end of `n` sorted shares that is the 5% or 95% point, `⌊0.05 (n + 1)⌋`,

@@ -277,8 +277,8 @@ impl FlightLog {
     /// each descent as ``interval_m_s``, ``max_acceleration`` as ``interval_m_s2``, ``landing``'s
     /// mean rate as ``mean_descent_rate_interval_m_s``, and ``apogee``'s height and time as
     /// ``height_interval_m`` and ``time_interval_s``. On a floor the apogee's, the burnout's and the
-    /// top acceleration's are ``None``; a burnout floor then states ``lower_end_s``, and a top
-    /// acceleration floor ``lower_end_m_s2``.
+    /// top acceleration's are ``None``; a burnout floor then states ``lower_end_s``, and a clipped
+    /// top acceleration ``lower_end_m_s2``.
     ///
     /// An apogee, a burnout and a top acceleration each say whether it's a floor (``is_floor``).
     /// A floor's true value is at least the value less its bound, and may be higher by any amount.
