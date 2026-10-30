@@ -3232,7 +3232,7 @@ mod tests {
     /// ran for minutes on a burst of 900,000 (ADR-308). The clock times this test alone, and nothing
     /// it reads reaches a result.
     #[test]
-    #[allow(clippy::disallowed_types)]
+    #[allow(clippy::disallowed_types, reason = "the clock times this test alone")]
     fn a_burst_of_samples_is_not_walked_over_for_each_of_them() {
         let n: u32 = 200_000;
         let times: Vec<f64> = (0..n).map(|i| 100.0 + f64::from(i) * 1.0e-9).collect();
