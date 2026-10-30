@@ -3228,9 +3228,11 @@ mod tests {
         assert_eq!(clean.health.sensors[0].unweighed, 2);
     }
 
-    /// A burst of samples close together costs each of them no walk over the burst. Each of these
-    /// took minutes on 200,000 samples before, against this limit.
+    /// A burst of samples close together costs each of them no walk over the burst: a walk for each
+    /// ran for minutes on a burst of 900,000 (ADR-308). The clock times this test alone, and nothing
+    /// it reads reaches a result.
     #[test]
+    #[allow(clippy::disallowed_types)]
     fn a_burst_of_samples_is_not_walked_over_for_each_of_them() {
         let n: u32 = 200_000;
         let times: Vec<f64> = (0..n).map(|i| 100.0 + f64::from(i) * 1.0e-9).collect();

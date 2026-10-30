@@ -105,20 +105,20 @@ assumes it:
 
 - **The height** stands on the same zero as [the readings](log-readings.md): the logger's own, or
   whatever pad samples the log does hold. A zero that is the pad's only by a column's name may be
-  off by up to 19.9 m (65 ft) either way, and the standard error carries that spread.
+  off by up to 19.9 m (65 ft) either way. The standard error carries that spread.
 - **The barometer's noise** comes from the flight's own scatter past apogee.
 - **Nothing is held still.** The height, speed and acceleration start with wide priors, HPR Sim's
   choices: 100 m (328 ft), 100 m/s (328 ft/s) and 30 g. Priors that wide would take a bad sample as
-  the truth, so for the first second each sample fused is the median of the five about it, and the
+  the truth. So for the first second each sample fused is the median of the five about it, and the
   first two aren't weighed.
 - **The accelerometer is set aside** if it has too little of the pad to take its level from.
 
-To test this, each synthetic flight's log is cut at liftoff and smoothed again, on the logger's true
-zero, so the test holds no error in that zero. On the [report][launch]'s sets A and B, every cell
+To test this, each synthetic flight's log is cut at liftoff and smoothed again. That keeps the
+logger's true zero, so the test holds no error in that zero. On the [report][launch]'s sets A and B, every cell
 holds, overall and per logger (the command fails otherwise): 94.9% to 98.7% of truths lie inside the
 90% intervals overall. Real logs have no such truth ([evidence row G33](../evidence.md#g33)). Their
 smoothed apogee falls outside the reading's bound on 12 of the 379 on an assumed pad and 20 of the
-175 on their own, so a log's own pad doesn't prevent it
+175 on their own. A log's own pad doesn't prevent it
 ([an open issue](https://github.com/nrdptel/fusionspace-eridanus/issues/1073)). The card then says
 so, and the reading is the one to go by.
 
