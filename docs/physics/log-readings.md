@@ -862,10 +862,12 @@ with 2 truths below.
 
 | set | floor | floors compared | truths below | truths below, raised one standard error | truths below, lowered two |
 |---|---|---:|---:|---:|---:|
-| A | top acceleration | 224 | 15 | 65, fails | 0, fails |
-| A | burnout | 210 | 12 | 56, fails | 0, fails |
-| B | top acceleration | 240 | 19 | 62, fails | 0, fails |
-| B | burnout | 211 | 6 | 47, fails | 0, fails |
+| A | top acceleration | 224 | 15 | 65 | 0 |
+| A | burnout | 210 | 12 | 56 | 0 |
+| B | top acceleration | 240 | 19 | 62 | 0 |
+| B | burnout | 211 | 6 | 47 | 0 |
+
+Every floor as stated passes, and every raised or lowered one fails.
 
 **Why a clipped top is fitted at the clip.** No flight's own accelerometer clips here, so the top
 acceleration's floors come from each flight's log with the accelerometer clipping at 8 g. How far
