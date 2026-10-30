@@ -845,6 +845,13 @@ The page check fails, at every width:
   but not reached;
 - once a run, a menu button that doesn't put the table of contents away or bring it back;
 - once a run, a drag of the table's edge to the window's side that doesn't put it away;
+- wherever the table of contents shows, the current page's entry in it not wholly in view as the
+  page loads. `theme/hpr.js` keeps it whole: while the page loads, it centers the entry in the
+  table, again each time the page's section links (which mdBook adds under the entry) or the
+  theme switch change the table's size. After a click on another page's entry in the table, the
+  entry stays put if it shows whole. Once the page has loaded, or the reader first uses the table
+  (a wheel, touch, press, key or focus), it stops, but for the rule that no entry is cut by the
+  table's top edge;
 - arrows under the page outside the column or off its edges, under 44 px tall, or naming no
   page;
 - a title block without its 2 px border in the text's color, or with entries not in Cascadia
