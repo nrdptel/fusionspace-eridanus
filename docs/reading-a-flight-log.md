@@ -371,19 +371,15 @@ Among them are those that came with the accelerometer and the canopies:
 
 ## The 90% intervals and the health card
 
-Beside its bound, each reading that can gives a 90% interval: where the truth lay nine times in ten
-on the [synthetic flights](physics/synthetic-flights.md). No real flight has checked one
-([evidence row G34](evidence.md#g34)). The bound is the wider, worst-case figure, and it's the one to
-use for a waiver or a load ([The 90% intervals](physics/log-readings.md#the-90-intervals)). A
-reading that is read late, as liftoff is, has an interval that lies before the reading.
+Beside its bound, a reading may give a 90% interval: where the truth lay nine times in ten on the
+[synthetic flights](physics/synthetic-flights.md). No real flight has checked one
+([evidence row G34](evidence.md#g34)). The bound is the worst case, and the one to use for a waiver
+or a load. A reading that is read late, as liftoff is, has an interval before the reading.
 
-The last rows come from [the smoother](physics/smoother.md), which runs every sensor together. The
-smoothed apogee is a second estimate of the height. The health card says how each sensor fared,
-and three of its lines are worth stopping at:
-
-- `pad assumed`: the log holds too little of the pad, as one that starts at launch does.
-- `accelerometer set aside`: it had too little of the pad to take its level from.
-- `past the reading's bound: go by the reading`: the smoothed track has gone wrong around its top.
+The last rows are [the smoother](physics/smoother.md)'s, every sensor together, also unchecked on a
+real flight ([evidence row G33](evidence.md#g33)). Its health card says how each sensor fared. It
+can say the pad was assumed, the accelerometer set aside, or the smoothed apogee is past the
+reading's bound. In that last case, go by the reading.
 
 ## What it doesn't do yet
 

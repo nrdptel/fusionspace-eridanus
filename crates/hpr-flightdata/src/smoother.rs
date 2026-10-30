@@ -497,9 +497,8 @@ impl Health {
         let mut out = String::new();
         if self.assumed_pad {
             out.push_str(
-                "pad assumed: the log holds too little of the pad, as one that starts at launch \
-                 does; heights stand on the logger's zero, and the barometer's noise is the \
-                 flight's own scatter\n",
+                "pad assumed: too little of it in the log; heights on the logger's zero, noise \
+                 from the flight's scatter\n",
             );
         }
         if self.accelerometer_set_aside {
@@ -3237,9 +3236,8 @@ mod tests {
         };
         assert_eq!(
             assumed.card(),
-            "pad assumed: the log holds too little of the pad, as one that starts at launch does; \
-             heights stand on the logger's zero, and the barometer's noise is the flight's own \
-             scatter\n\
+            "pad assumed: too little of it in the log; heights on the logger's zero, noise from \
+             the flight's scatter\n\
              accelerometer set aside: too little of the pad to take its level from\n\
              smoothed apogee -412 m from the reading, past the reading's bound: go by the reading\n\
              barometer de-weighted: transonic 9.50–14.2 s\n\

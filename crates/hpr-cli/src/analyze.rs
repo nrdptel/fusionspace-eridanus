@@ -737,8 +737,7 @@ fn text_lines(document: &Analyze) -> Vec<String> {
             lines.push(row(
                 "smoothed apogee",
                 format!(
-                    "{}, 90% interval {}, at {:.2} s: every sensor together; the reading above is \
-                     the one calibrated",
+                    "{}, 90% interval {}, at {:.2} s",
                     meters(read.apogee_height_m),
                     meters_interval(
                         read.apogee_height_interval_m.low,

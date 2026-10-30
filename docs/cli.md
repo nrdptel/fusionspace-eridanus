@@ -1882,19 +1882,18 @@ drogue descent    21.7 m/s (71 ft/s), within 2.2 m/s (8 ft/s), 90% interval 20.3
 main descent      6.0 m/s (20 ft/s), within 0.8 m/s (3 ft/s), 90% interval 5.5 to 6.5 m/s (18 to 22 ft/s), from the main's opening at 21.40 s, within 1.06 s, 90% interval 20.80 to 21.26 s, to landing at 45.80 s, 148.4 m (487 ft) to 2.1 m (7 ft) up
 top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
 burnout           no sooner than 0.88 s: the top speed's time, 2.20 s (1.40 s after liftoff), less its bound, 1.32 s. Derived from the heights, burnout may have come later by any amount; 95% lower end 2.24 s
-smoothed apogee   390.3 m (1280 ft), 90% interval 369.9 to 410.7 m (1213 to 1348 ft), at 10.25 s: every sensor together; the reading above is the one calibrated
-health card       pad assumed: the log holds too little of the pad, as one that starts at launch does; heights stand on the logger's zero, and the barometer's noise is the flight's own scatter
+smoothed apogee   390.3 m (1280 ft), 90% interval 369.9 to 410.7 m (1213 to 1348 ft), at 10.25 s
+health card       pad assumed: too little of it in the log; heights on the logger's zero, noise from the flight's scatter
                   barometer: 984 samples, 983 fused, 1 rejected, 0 not weighed, 0 resets; 99.8% inside the gate; mean NIS 0.0251; largest test ratio 4.95 at 11.2 s, Mach 0.03
                   barometer de-weighted: charge 11.3–11.9 s
                   pass back: every step smoothed
 
 How far to trust it. Measured by the logger, read by HPR Sim from its log, not simulated. Each
-reading states the bound its error stayed within on HPR Sim's synthetic flights, and most a 90%
-interval, which no real flight has checked. They cover rates from 500 to 0.5 samples a second, steps
-up to 10 m or 100 Pa, and air within 15 K of standard. A reading the log can't support is withheld,
-with the reason. The top speed is derived from the heights, and withheld from Mach 0.8, where a
-barometer's port may read the flow over the nose. For a record or a certification, the altimeter's
-own reading is the one to log, and the RSO decides.
+reading states the bound its error stayed within on HPR Sim's synthetic flights. They cover rates
+from 500 to 0.5 samples a second, steps up to 10 m or 100 Pa, and air within 15 K of standard. A
+reading the log can't support is withheld, with the reason. The top speed is derived from the
+heights, and withheld from Mach 0.8, where a barometer's port may read the flow over the nose. For a
+record or a certification, the altimeter's own reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/reading-a-flight-log.html
 ```
 
@@ -1933,7 +1932,7 @@ drogue descent    19.4 m/s (64 ft/s), within 2.4 m/s (8 ft/s), 90% interval 17.9
 main descent      6.0 m/s (20 ft/s), within 0.7 m/s (3 ft/s), 90% interval 5.5 to 6.4 m/s (18 to 21 ft/s), from the main's opening at 16.26 s, within 0.98 s, 90% interval 15.70 to 16.13 s, to landing at 40.77 s, 149.0 m (489 ft) to 2.0 m (6 ft) up
 top acceleration  65.4 m/s² (6.7 g), within 7.1 m/s², 90% interval 61.3 to 68.9 m/s², at 2.59 s
 burnout           3.45 s, within 0.07 s, 90% interval 3.44 to 3.46 s, 1.15 s after liftoff: from the accelerometer
-smoothed apogee   269.5 m (884 ft), 90% interval 255.4 to 283.6 m (838 to 931 ft), at 9.64 s: every sensor together; the reading above is the one calibrated
+smoothed apogee   269.5 m (884 ft), 90% interval 255.4 to 283.6 m (838 to 931 ft), at 9.64 s
 health card       barometer: 4611 samples, 4611 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.291; largest test ratio 0.483 at 11.4 s, Mach 0.01
                   accelerometer: 4611 samples, 1197 fused, 0 rejected, 3414 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.000752; largest test ratio 0.00576 at 2.02 s, Mach 0.00
                   barometer de-weighted: charge 8.97–10.7 s
@@ -1941,12 +1940,11 @@ health card       barometer: 4611 samples, 4611 fused, 0 rejected, 0 not weighed
                   pass back: every step smoothed
 
 How far to trust it. Measured by the logger, read by HPR Sim from its log, not simulated. Each
-reading states the bound its error stayed within on HPR Sim's synthetic flights, and most a 90%
-interval, which no real flight has checked. They cover rates from 500 to 0.5 samples a second, steps
-up to 10 m or 100 Pa, and air within 15 K of standard. A reading the log can't support is withheld,
-with the reason. The top speed is derived from the heights, and withheld from Mach 0.8, where a
-barometer's port may read the flow over the nose. For a record or a certification, the altimeter's
-own reading is the one to log, and the RSO decides.
+reading states the bound its error stayed within on HPR Sim's synthetic flights. They cover rates
+from 500 to 0.5 samples a second, steps up to 10 m or 100 Pa, and air within 15 K of standard. A
+reading the log can't support is withheld, with the reason. The top speed is derived from the
+heights, and withheld from Mach 0.8, where a barometer's port may read the flow over the nose. For a
+record or a certification, the altimeter's own reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/reading-a-flight-log.html
 ```
 
@@ -2002,19 +2000,18 @@ drogue descent    withheld, as landing is
 main descent      withheld, as landing is
 top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
 burnout           withheld: burnout from the speed's peak needs the top speed, which is withheld above
-smoothed apogee   546.6 m (1793 ft), 90% interval 512.3 to 580.8 m (1680 to 1906 ft), at 13.00 s: every sensor together; the reading above is the one calibrated
-health card       pad assumed: the log holds too little of the pad, as one that starts at launch does; heights stand on the logger's zero, and the barometer's noise is the flight's own scatter
+smoothed apogee   546.6 m (1793 ft), 90% interval 512.3 to 580.8 m (1680 to 1906 ft), at 13.00 s
+health card       pad assumed: too little of it in the log; heights on the logger's zero, noise from the flight's scatter
                   barometer: 201 samples, 201 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.00802; largest test ratio 0.0120 at 15.6 s, Mach 0.06
                   barometer de-weighted: charge 12.2–14.0 s
                   pass back: every step smoothed
 
 How far to trust it. Measured by the logger, read by HPR Sim from its log, not simulated. Each
-reading states the bound its error stayed within on HPR Sim's synthetic flights, and most a 90%
-interval, which no real flight has checked. They cover rates from 500 to 0.5 samples a second, steps
-up to 10 m or 100 Pa, and air within 15 K of standard. A reading the log can't support is withheld,
-with the reason. The top speed is derived from the heights, and withheld from Mach 0.8, where a
-barometer's port may read the flow over the nose. For a record or a certification, the altimeter's
-own reading is the one to log, and the RSO decides.
+reading states the bound its error stayed within on HPR Sim's synthetic flights. They cover rates
+from 500 to 0.5 samples a second, steps up to 10 m or 100 Pa, and air within 15 K of standard. A
+reading the log can't support is withheld, with the reason. The top speed is derived from the
+heights, and withheld from Mach 0.8, where a barometer's port may read the flow over the nose. For a
+record or a certification, the altimeter's own reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/reading-a-flight-log.html
 note: read from the sheet "Second" of an Excel workbook, its cells as stored
 ```

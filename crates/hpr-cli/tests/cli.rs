@@ -4368,7 +4368,7 @@ fn analyze_reads_a_log_with_no_design_file_present() {
          later by any amount; 95% lower end 2.24 s",
         "smoothed apogee   390.3 m (1280 ft), 90% interval 369.9 to 410.7 m (1213 to 1348 ft), at \
          10.25 s",
-        "health card       pad assumed: ",
+        "health card       pad assumed: too little of it in the log",
         "barometer: 984 samples, 983 fused, 1 rejected",
         "pass back: every step smoothed",
     ] {

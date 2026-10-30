@@ -153,8 +153,7 @@ fn readings_checked() -> String {
         AIR_TEMPERATURE_SPREAD_K, MAX_INTERVAL_S, MAX_PRESSURE_STEP_PA, MAX_STEP_M, TRANSONIC_MACH,
     };
     format!(
-        "Each reading states the bound its error stayed within on HPR Sim's synthetic flights, and \
-         most a 90% interval, which no real flight has checked. \
+        "Each reading states the bound its error stayed within on HPR Sim's synthetic flights. \
          They cover rates from 500 to {} samples a second, steps up to {MAX_STEP_M} m or \
          {MAX_PRESSURE_STEP_PA} Pa, and air within {AIR_TEMPERATURE_SPREAD_K} K of standard. \
          A reading the log can't support is withheld, with the reason. The top speed is derived \

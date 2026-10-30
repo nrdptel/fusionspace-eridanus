@@ -11447,7 +11447,7 @@
                 0.0
               ],
               "holds": true,
-              "median_sd": 25.9,
+              "median_sd": 25.8,
               "largest_sd": 119.0
             },
             {
@@ -11991,7 +11991,7 @@
               "logs": 185,
               "samples": 178000,
               "rejected": 10,
-              "unweighed": 32800,
+              "unweighed": 32700,
               "resets": 0,
               "logs_rejecting": 5
             },
