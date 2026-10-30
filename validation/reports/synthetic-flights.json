@@ -11640,7 +11640,8 @@
                   "above": 45
                 }
               },
-              "mean_error": 1.07
+              "mean_error": 1.0,
+              "largest_error": 237.0
             }
           },
           {
@@ -11853,7 +11854,8 @@
                   "above": 4
                 }
               },
-              "mean_error": 0.00645
+              "mean_error": 0.006,
+              "largest_error": 0.449
             }
           }
         ]
@@ -12071,7 +12073,8 @@
                   "above": 47
                 }
               },
-              "mean_error": 0.0742
+              "mean_error": 0.0,
+              "largest_error": 234.0
             }
           },
           {
@@ -12284,7 +12287,8 @@
                   "above": 7
                 }
               },
-              "mean_error": 0.00569
+              "mean_error": 0.006,
+              "largest_error": 0.526
             }
           }
         ]

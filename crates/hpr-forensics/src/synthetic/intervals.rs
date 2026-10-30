@@ -303,6 +303,9 @@ pub struct Check {
     /// The mean error, reading less truth, over the readings with an interval, with its sign
     /// (the apogee's error side, which a reading too low flatters).
     pub mean_error: f64,
+    /// The largest error's size, `|reading − truth|`, over the same readings: the scale the mean
+    /// is a small difference on. Not a number if any truth isn't one.
+    pub largest_error: f64,
 }
 
 impl Check {
@@ -323,6 +326,7 @@ pub fn check(quantity: Quantity, flights: &[FlightSaid]) -> Check {
     let mut withheld: BTreeMap<Reason, u64> = BTreeMap::new();
     let mut unstated = 0;
     let mut error_sum = 0.0;
+    let mut largest_error = 0.0_f64;
     for flight in flights {
         for (q, said) in &flight.said {
             if *q != quantity {
@@ -346,7 +350,12 @@ pub fn check(quantity: Quantity, flights: &[FlightSaid]) -> Check {
                         .entry(AirBand::of(flight.air_offset_k))
                         .or_default()
                         .add(c.interval, c.truth);
-                    error_sum += c.reading - c.truth;
+                    let error = c.reading - c.truth;
+                    error_sum += error;
+                    // `f64::max` would drop a NaN; a NaN, once in, stays.
+                    if error.is_nan() || error.abs() > largest_error {
+                        largest_error = error.abs();
+                    }
                 }
                 Said::Unstated => unstated += 1,
                 Said::Withheld(reason) => *withheld.entry(*reason).or_default() += 1,
@@ -367,6 +376,11 @@ pub fn check(quantity: Quantity, flights: &[FlightSaid]) -> Check {
             f64::NAN
         } else {
             error_sum / counts.given as f64
+        },
+        largest_error: if counts.given == 0 {
+            f64::NAN
+        } else {
+            largest_error
         },
     }
 }
@@ -514,6 +528,11 @@ mod tests {
         assert!(check.holds());
         assert_eq!(check.by_design.len(), 10);
         assert!(check.mean_error.abs() < 1e-3, "{}", check.mean_error);
+        // The farthest of the 1,000 points is the 0.05% one.
+        let farthest = normal_quantile(0.0005)
+            .abs()
+            .max(normal_quantile(0.9995).abs());
+        assert_eq!(check.largest_error, farthest);
         // The narrowed probe holds about 81%, the widened about 96%, and the shifted one misses
         // above about 26% of the time.
         let narrowed = check.probes[&Probe::Narrowed].counts;
@@ -543,6 +562,15 @@ mod tests {
         assert!(!check.test.passes(), "{:?}", check.test.counts);
         assert!(!check.test.above.holds(MISS_SHARE));
         assert!(!check.test.below.holds(MISS_SHARE));
+    }
+
+    #[test]
+    fn a_truth_that_is_not_a_number_leaves_no_error_scale() {
+        let mut flights = normal_flights();
+        flights[3].said = vec![(Quantity::ApogeeHeight, compared(f64::NAN))];
+        let check = check(Quantity::ApogeeHeight, &flights);
+        assert!(check.mean_error.is_nan());
+        assert!(check.largest_error.is_nan(), "{}", check.largest_error);
     }
 
     #[test]

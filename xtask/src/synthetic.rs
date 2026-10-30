@@ -811,7 +811,9 @@ fn interval_check(files: &DesignFiles) -> Result<(Intervals, Vec<String>), Strin
     ))
 }
 
-/// `check`'s bands and mean error to three significant figures, as the report holds them.
+/// `check`'s bands and largest error to three significant figures, as the report holds them, and
+/// its mean error at the figures of the largest ([`census::at_the_figures_of`]): the mean is a
+/// small difference of errors that size, and its later digits differ from platform to platform.
 fn rounded_check(mut check: intervals::Check) -> intervals::Check {
     let round = |test: &mut intervals::Test| {
         for band in [&mut test.below, &mut test.inside, &mut test.above] {
@@ -823,7 +825,8 @@ fn rounded_check(mut check: intervals::Check) -> intervals::Check {
     for test in check.probes.values_mut() {
         round(test);
     }
-    check.mean_error = intervals::three_figures(check.mean_error);
+    check.largest_error = intervals::three_figures(check.largest_error);
+    check.mean_error = census::at_the_figures_of(check.mean_error, check.largest_error);
     check
 }
 
@@ -1368,8 +1371,9 @@ fn intervals_section(page: &mut String, made: &Intervals) {
         "\n### The apogee's error side\n\nThe apogee height's mean error, the reading less the \
          truth, over the readings compared (ADR-257 §2). A reading too low is the flattering side \
          for a waiver: the share of truths above the interval is that side's test, and the \
-         shifted-down probe its mutation probe.\n\n| Set | Mean error, m | Truths above |\n\
-         |---|---:|---:|\n",
+         shifted-down probe its mutation probe. The mean is given at the figures of the largest \
+         error, the digits every platform shares.\n\n| Set | Mean error, m | Largest error, m | \
+         Truths above |\n|---|---:|---:|---:|\n",
     );
     for set in &made.sets {
         if let Some(c) = set
@@ -1380,9 +1384,10 @@ fn intervals_section(page: &mut String, made: &Intervals) {
             let counts = &c.check.test.counts;
             let _ = writeln!(
                 page,
-                "| {} | {} | {} |",
+                "| {} | {} | {} | {} |",
                 title(set.set),
                 number(c.check.mean_error),
+                number(c.check.largest_error),
                 percent(counts.above, counts.given)
             );
         }
