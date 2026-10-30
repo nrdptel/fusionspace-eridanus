@@ -55,6 +55,7 @@ mod kalman;
 
 use hpr_atmos::Ussa76;
 use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::log::{Channel, FlightLog, Quantity};
@@ -262,8 +263,30 @@ pub const GNSS_OFFSET_WALK: f64 = 4.0;
 /// slowest sound the barometer's de-weighting allows: higher than most launch sites.
 pub const UNKNOWN_PAD_MSL_M: f64 = 3000.0;
 
-/// The fewest barometer samples on the pad the smoother needs.
+/// The fewest barometer samples on the pad that zero it and measure its noise. A log with fewer,
+/// as one written from launch detection is, is smoothed on an assumed pad ([`Health::assumed_pad`]).
 pub const PAD_MIN_SAMPLES: usize = 5;
+
+/// The prior on the height at a launch-started log's first sample, 1σ, m, about that sample: wide
+/// enough that the barometer alone places it, whatever the offset state below holds.
+pub const ASSUMED_HEIGHT_SD_M: f64 = 100.0;
+
+/// The prior on the speed at a launch-started log's first sample, 1σ, m/s, about zero: not about
+/// the barometer's rate there, whose running median has too few samples at a log's edge to set one
+/// garbled sample aside. A rocket that has climbed the 49 m (160 ft) a StratoLogger's launch detection
+/// allows at 30 g is doing about 170 m/s, under two of these. HPR Sim's choice.
+pub const ASSUMED_SPEED_SD_M_S: f64 = 100.0;
+
+/// The prior on the acceleration at a launch-started log's first sample, 1σ, m/s²: 30 g, about
+/// zero, which holds a motor's first spike on most hobby rockets. HPR Sim's choice.
+pub const ASSUMED_ACCELERATION_SD_M_S2: f64 = 300.0;
+
+/// The most steps the smoother takes, every sensor's samples together: two sensors at 500 Hz for
+/// 33 minutes. The synthetic flights' longest 500 Hz logs pass 500,000, and the longest of the
+/// project's sample logs holds 132,230 (0.6 s to smooth on a Mac). The filter holds two covariances
+/// a step for the pass back, about 1.5 kB, so a step count without a limit is a memory limit a file
+/// could reach: this one comes to about 3 GB and, by the sample log's rate, about 10 s.
+pub const MAX_STEPS: usize = 2_000_000;
 
 /// How the GNSS receiver is trusted.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
@@ -286,7 +309,7 @@ pub struct Options {
 }
 
 /// Why a log isn't smoothed.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum Reason {
@@ -294,15 +317,15 @@ pub enum Reason {
     NoBarometer,
     /// The readings found no liftoff.
     NoLiftoff,
-    /// Fewer than [`PAD_MIN_SAMPLES`] barometer samples before liftoff.
-    ShortPad,
+    /// More than [`MAX_STEPS`] samples.
+    TooLong,
     /// The estimate left the finite numbers somewhere in the log: it is withheld whole rather
     /// than given with a hole.
     Diverged,
 }
 
 /// A log that isn't smoothed, and why.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct Withheld {
     /// The reason, as a code.
     pub reason: Reason,
@@ -311,7 +334,9 @@ pub struct Withheld {
 }
 
 /// The sensors.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize, JsonSchema,
+)]
 #[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum Sensor {
@@ -324,7 +349,7 @@ pub enum Sensor {
 }
 
 /// How liftoff was found.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum LiftoffFrom {
     /// The accelerometer's first rise off its pad.
@@ -334,7 +359,7 @@ pub enum LiftoffFrom {
 }
 
 /// Liftoff, as the smoother holds it.
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct Liftoff {
     /// The last moment on the pad, s on the log's clock.
     pub time_s: f64,
@@ -346,7 +371,7 @@ pub struct Liftoff {
 }
 
 /// Why the barometer was de-weighted.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum Deweighted {
     /// At or above [`TRANSONIC_FROM_MACH`].
@@ -356,7 +381,7 @@ pub enum Deweighted {
 }
 
 /// A span over which the barometer was de-weighted.
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct Span {
     /// Its first sample, s on the log's clock.
     pub start_s: f64,
@@ -367,7 +392,7 @@ pub struct Span {
 }
 
 /// A rejected sample.
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct Rejected {
     /// The sensor.
     pub sensor: Sensor,
@@ -379,7 +404,7 @@ pub struct Rejected {
 }
 
 /// A sensor's largest test ratio.
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct Largest {
     /// The ratio.
     pub ratio: f64,
@@ -391,7 +416,7 @@ pub struct Largest {
 }
 
 /// How one sensor fared.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct SensorHealth {
     /// The sensor.
     pub sensor: Sensor,
@@ -418,7 +443,7 @@ pub struct SensorHealth {
 
 /// A log's health card: how each sensor fared against the others (the smoothing note §7, after
 /// PX4's and ArduPilot's estimator status).
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct Health {
     /// Each sensor the log holds.
     pub sensors: Vec<SensorHealth>,
@@ -434,6 +459,21 @@ pub struct Health {
     pub baro_minus_inertial_at_apogee_m: Option<f64>,
     /// Steps where the pass back couldn't solve and kept the forward filter's estimate.
     pub unsmoothed_steps: usize,
+    /// Whether the log holds fewer than [`PAD_MIN_SAMPLES`] barometer samples on the pad, as one
+    /// written from launch detection does. The pad is then assumed: the height stands on the
+    /// readings' zero (`Readings::pad_altitude_m`), the barometer's noise comes from the flight's
+    /// own scatter, and no sample is held still.
+    pub assumed_pad: bool,
+    /// Whether the log's accelerometer had too little of the pad to take its level from, and was
+    /// set aside: it isn't in [`Health::sensors`].
+    pub accelerometer_set_aside: bool,
+    /// The smoothed apogee's height less the reading's, m; `None` where the apogee isn't read.
+    pub apogee_less_reading_m: Option<f64>,
+    /// Whether that gap passes the reading's bound: the reading's error stays within its bound, so
+    /// the track has gone wrong around its top, as it can where a long transonic span leaves it to
+    /// the motion model. The bound holds a floor's truth only from below, and a smoothed apogee
+    /// above a floor doesn't count.
+    pub apogee_past_reading_bound: bool,
 }
 
 impl Sensor {
@@ -448,12 +488,23 @@ impl Sensor {
 }
 
 impl Health {
-    /// The card as text: a line for each sensor, then the barometer's de-weighted spans, when
+    /// The card as text: a line each if the pad was assumed or the accelerometer set aside, a line
+    /// for each sensor, then the barometer's de-weighted spans, when
     /// the GNSS receiver was first trusted, the barometer's height less the accelerometer's at
     /// apogee, and the pass back. Times are on the log's clock; numbers are to three significant
     /// figures.
     pub fn card(&self) -> String {
         let mut out = String::new();
+        if self.assumed_pad {
+            out.push_str(
+                "pad assumed: the log holds too little of the pad, as one that starts at launch \
+                 does; heights stand on the logger's zero, and the barometer's noise is the \
+                 flight's own scatter\n",
+            );
+        }
+        if self.accelerometer_set_aside {
+            out.push_str("accelerometer set aside: too little of the pad to take its level from\n");
+        }
         for s in &self.sensors {
             out.push_str(&format!(
                 "{}: {} samples, {} fused, {} rejected, {} not weighed, {} {}",
@@ -482,6 +533,15 @@ impl Health {
                 ));
             }
             out.push('\n');
+        }
+        if self.apogee_past_reading_bound
+            && let Some(gap) = self.apogee_less_reading_m
+        {
+            out.push_str(&format!(
+                "smoothed apogee {} m from the reading, past the reading's bound: go by the \
+                 reading\n",
+                figures(gap)
+            ));
         }
         out.push_str("barometer de-weighted: ");
         if self.deweighted.is_empty() {
@@ -669,6 +729,17 @@ pub fn smooth_with(
             *sd = sd.hypot(b - a);
         }
     }
+    if let (Reading::Read(apogee), Some(state)) =
+        (&readings.apogee, smoothed.at(smoothed.apogee_time_s))
+    {
+        let gap = state.height_m - apogee.height_m;
+        smoothed.health.apogee_less_reading_m = Some(gap);
+        smoothed.health.apogee_past_reading_bound = if apogee.is_floor {
+            -gap > apogee.bound_m
+        } else {
+            gap.abs() > apogee.bound_m
+        };
+    }
     let outputs = [
         &smoothed.height_m,
         &smoothed.height_sd_m,
@@ -724,6 +795,13 @@ struct Inputs {
     /// The pad's height above sea level, m, on the standard atmosphere; `None` where the log
     /// can't say.
     pad_msl_m: Option<f64>,
+    /// Whether the pad is assumed ([`Health::assumed_pad`]).
+    assumed_pad: bool,
+    /// Whether the log's accelerometer was set aside ([`Health::accelerometer_set_aside`]).
+    accelerometer_set_aside: bool,
+    /// How far the zero the heights stand on may be from the pad on an assumed pad, 1σ, m; 0 where
+    /// the zero is the logger's own or the pad's samples set it.
+    zero_sd_m: f64,
     accel: Vec<Accel>,
     /// The accelerometer's noise on the pad, 1σ, m/s².
     accel_sd: f64,
@@ -814,6 +892,26 @@ impl Inputs {
                     .to_owned(),
             ));
         }
+        // Before anything is worked out from the samples: a file's size sets how long this takes.
+        let accel_samples_held = readings.accelerometer.as_ref().map_or(0, |settled| {
+            log.channels_of(Quantity::Acceleration)
+                .find(|c| c.column == settled.column)
+                .map_or(0, |c| c.values.len())
+        });
+        let gnss_samples_held = log
+            .channels_of(Quantity::GnssAltitude)
+            .next()
+            .map_or(0, |c| c.values.len());
+        let steps = track.time_s.len() + accel_samples_held + gnss_samples_held;
+        if steps > MAX_STEPS {
+            return Err(withheld(
+                Reason::TooLong,
+                format!(
+                    "the log holds {steps} samples for the smoother, more than the {MAX_STEPS} \
+                     it takes"
+                ),
+            ));
+        }
         let read_liftoff = match &readings.liftoff {
             Reading::Read(liftoff) => *liftoff,
             Reading::Withheld(w) => {
@@ -862,6 +960,7 @@ impl Inputs {
         let mut accel = Vec::new();
         let mut accel_sd = 0.0;
         let mut accel_pad = G0;
+        let mut accelerometer_set_aside = false;
         let mut liftoff = Liftoff {
             time_s: read_liftoff.time_s,
             bound_s: read_liftoff.bound_s,
@@ -899,39 +998,53 @@ impl Inputs {
                     liftoff = found;
                 }
             } else {
+                accelerometer_set_aside = !accel.is_empty();
                 accel.clear();
             }
         }
 
-        let pad_end_s = match liftoff.from {
+        let apogee_span = apogee_charge(&baro, liftoff.time_s);
+        // Past the barometer's own top and the charge expected there, not from the filter's
+        // apogee: the charge's pulse can hold the filter's decision back while the swing has
+        // begun.
+        let descent_from_s = apogee_span.map_or(f64::INFINITY, |(_, end)| end);
+
+        let found_pad_end_s = match liftoff.from {
             LiftoffFrom::Accelerometer => liftoff.time_s,
             LiftoffFrom::Barometer => liftoff.time_s - liftoff.bound_s,
         };
         let on_pad: Vec<f64> = baro
             .iter()
-            .filter(|s| s.time_s <= pad_end_s)
+            .filter(|s| s.time_s <= found_pad_end_s)
             .map(|s| s.height_m)
             .collect();
-        if on_pad.len() < PAD_MIN_SAMPLES {
-            return Err(withheld(
-                Reason::ShortPad,
-                format!(
-                    "the barometer has {} samples before liftoff, and the smoother needs {} to \
-                     zero it",
-                    on_pad.len(),
-                    PAD_MIN_SAMPLES
-                ),
-            ));
-        }
-        let (_, pad_sd) = robust(&on_pad);
         let step = step_of(&track.height_m);
         // The pad's scatter holds the fast and slow correlated noise too, which the smoother
         // carries apart; what is left is the part's white noise. A step's own variance is the
         // least it can be.
         let correlated = FAST_NOISE_M * FAST_NOISE_M + SLOW_NOISE_M * SLOW_NOISE_M;
-        let baro_white_var = (pad_sd * pad_sd - correlated)
-            .max(step * step / 12.0)
-            .max(1.0e-6);
+        let assumed_pad = on_pad.len() < PAD_MIN_SAMPLES;
+        let measured_var = if assumed_pad {
+            flight_noise_var(&baro, descent_from_s, pad_msl_m.unwrap_or(0.0), correlated)
+        } else {
+            let (_, pad_sd) = robust(&on_pad);
+            pad_sd * pad_sd - correlated
+        };
+        let baro_white_var = measured_var.max(step * step / 12.0).max(1.0e-6);
+        // With no pad, nothing is held still: a sample near the zero may already be moving.
+        let pad_end_s = if assumed_pad {
+            f64::NEG_INFINITY
+        } else {
+            found_pad_end_s
+        };
+        // A zero the logger set is the pad's; one that is the pad's only by a mapping's or a
+        // column's word sits within `PAD_ZERO_M` of it ([`readings::PAD_ZERO_M`]), which the
+        // readings' bounds hold and the height's standard error must too.
+        let zero_sd_m = if assumed_pad && readings::zero_by_word(log, &track) {
+            readings::PAD_ZERO_M / 3_f64.sqrt()
+        } else {
+            0.0
+        };
 
         let mut gnss: Vec<(f64, f64)> = Vec::new();
         // A receiver that logs past the barometer's last sample would leave the track there to
@@ -969,12 +1082,7 @@ impl Inputs {
             })
             .map(|e| (e.time_s, e.time_s + CHARGE_WINDOW_S))
             .collect();
-        let apogee_span = apogee_charge(&baro, liftoff.time_s);
         charges.extend(apogee_span);
-        // Past the barometer's own top and the charge expected there, not from the filter's
-        // apogee: the charge's pulse can hold the filter's decision back while the swing has
-        // begun.
-        let descent_from_s = apogee_span.map_or(f64::INFINITY, |(_, end)| end);
 
         let landing_s = landing(&baro, liftoff.time_s);
         Ok(Self {
@@ -983,6 +1091,9 @@ impl Inputs {
             baro,
             baro_white_var,
             pad_msl_m,
+            assumed_pad,
+            accelerometer_set_aside,
+            zero_sd_m,
             accel,
             accel_sd,
             accel_pad,
@@ -993,6 +1104,32 @@ impl Inputs {
             charges,
         })
     }
+}
+
+/// The barometer's white noise on a log with no pad, as a variance at the pad's air, m²: the median
+/// over the samples past `descent_from_s` (all of them if there are none) of the flight's own
+/// scatter ([`scatter`]), brought to the pad's air as [`Inputs`]' noise is thinned from it, with the
+/// correlated noise the smoother carries apart taken out. Under a canopy the scatter also holds the
+/// swing, so this errs noisy, the side that widens an interval; a log that runs on past landing has
+/// a median nearer the part's own noise.
+fn flight_noise_var(baro: &[Baro], descent_from_s: f64, pad_msl_m: f64, correlated: f64) -> f64 {
+    let rho_pad = standard_density(pad_msl_m);
+    let at_pad = |b: &Baro| {
+        let thin = (rho_pad / standard_density(pad_msl_m + b.smoothed_m)).powi(2);
+        b.scatter_var_m2 / thin - correlated
+    };
+    let mut past: Vec<f64> = baro
+        .iter()
+        .filter(|b| b.time_s >= descent_from_s)
+        .map(at_pad)
+        .collect();
+    if past.is_empty() {
+        past = baro.iter().map(at_pad).collect();
+    }
+    if past.is_empty() {
+        return 0.0;
+    }
+    median(&mut past)
 }
 
 /// The span around the barometer's apogee in which a charge is expected
@@ -1801,6 +1938,18 @@ fn run(
     // Only a GNSS receiver's geometric heights measure it; without one it is held at its prior
     // and its spread carried into the output.
     p[AIR][AIR] = air_sd * air_sd;
+    if inputs.assumed_pad {
+        // Nothing holds the rocket still at the first sample: it may be moving and under thrust,
+        // and the barometer alone places it. The zero's own error is an offset the height can't
+        // be told from, so it goes on the drift and reaches the height's standard error.
+        if let Some(first) = inputs.baro.first() {
+            x[H] = first.height_m;
+        }
+        p[H][H] = ASSUMED_HEIGHT_SD_M * ASSUMED_HEIGHT_SD_M;
+        p[V][V] = ASSUMED_SPEED_SD_M_S * ASSUMED_SPEED_SD_M_S;
+        p[A][A] = ASSUMED_ACCELERATION_SD_M_S2 * ASSUMED_ACCELERATION_SD_M_S2;
+        p[DRIFT][DRIFT] = p[DRIFT][DRIFT].max(inputs.zero_sd_m * inputs.zero_sd_m);
+    }
     let mut held = [false; N];
     held[AIR] = !has_gnss;
     if has_accel {
@@ -2279,6 +2428,10 @@ fn run(
             gnss_trusted_s: trust.first_s,
             baro_minus_inertial_at_apogee_m,
             unsmoothed_steps,
+            assumed_pad: inputs.assumed_pad,
+            accelerometer_set_aside: inputs.accelerometer_set_aside,
+            apogee_less_reading_m: None,
+            apogee_past_reading_bound: false,
         },
     };
     (smoothed, choices)
@@ -2889,6 +3042,152 @@ mod tests {
         assert!((7.0..=12.0).contains(&difference), "{difference}");
     }
 
+    /// The flight as a logger that writes only from launch would have written it: nothing before
+    /// liftoff, its clock and zero as they were.
+    fn from_launch(mut log: FlightLog) -> FlightLog {
+        let first = log.time_s.partition_point(|t| *t < LIFTOFF_S);
+        log.time_s.drain(..first);
+        log.altitude_m.drain(..first);
+        log
+    }
+
+    #[test]
+    fn a_log_written_from_launch_is_smoothed_on_an_assumed_pad() {
+        let whole = smoothed(&log(), Options::default());
+        assert!(!whole.health.assumed_pad);
+        assert!(!whole.health.card().contains("pad assumed"));
+
+        let started = smoothed(&from_launch(log()), Options::default());
+        assert!(started.health.assumed_pad);
+        assert!(started.health.card().starts_with("pad assumed: "));
+        assert_eq!(started.health.unsmoothed_steps, 0);
+        for t in [LIFTOFF_S + 1.0, BURNOUT_S, 20.0, 40.0, 60.0] {
+            holds_at(&started, t, 80.0, 25.0);
+        }
+        // A log that starts well up the climb has no zero the readings can take, and the smoother
+        // takes no liftoff from what they withhold.
+        let mut later = log();
+        let first = later.time_s.partition_point(|t| *t < LIFTOFF_S + 1.0);
+        later.time_s.drain(..first);
+        later.altitude_m.drain(..first);
+        let withheld = smooth(&later).unwrap_err();
+        assert_eq!(withheld.reason, Reason::NoLiftoff);
+    }
+
+    /// A public `.pf2` log's second sample read −65,535 ft, and its first rate, taken over the few
+    /// samples at the log's edge, set the track off at 29 km/s until the prior left the rate out.
+    #[test]
+    fn a_garbled_sample_at_the_start_of_a_log_from_launch_moves_nothing() {
+        let mut garbled = from_launch(log());
+        garbled.altitude_m[1] = -65_535.0 * crate::perfectflite::FOOT_M;
+        let started = smoothed(&garbled, Options::default());
+        assert!(started.health.assumed_pad);
+        assert!(
+            started
+                .health
+                .rejected
+                .iter()
+                .any(|r| r.time_s == garbled.time_s[1])
+        );
+        let top = started.height_m.iter().copied().fold(f64::MIN, f64::max);
+        assert!(
+            top < 1.05 * truth(BURNOUT_S + BOOST_M_S2 * (BURNOUT_S - LIFTOFF_S) / G0).0,
+            "{top}"
+        );
+        assert!(started.speed_m_s.iter().all(|v| v.abs() < 500.0));
+        holds_at(&started, 20.0, 80.0, 25.0);
+    }
+
+    /// A zero that is the pad's only by a word may be off by `PAD_ZERO_M`: the height's standard
+    /// error holds that, and the speed's doesn't change.
+    #[test]
+    fn a_zero_by_a_word_reaches_the_heights_standard_error() {
+        let own = from_launch(log());
+        let mut by_word = own.clone();
+        by_word.format = LogFormat::GenericTable;
+        let t = 20.0;
+        let own_state = smoothed(&own, Options::default()).at(t).unwrap();
+        let word_state = smoothed(&by_word, Options::default()).at(t).unwrap();
+        let widened = word_state.height_sd_m * word_state.height_sd_m
+            - own_state.height_sd_m * own_state.height_sd_m;
+        let expected = readings::PAD_ZERO_M * readings::PAD_ZERO_M / 3.0;
+        assert!(
+            (widened / expected - 1.0).abs() < 0.1,
+            "{widened} against {expected}"
+        );
+        assert!((word_state.speed_sd_m_s / own_state.speed_sd_m_s - 1.0).abs() < 0.02);
+    }
+
+    #[test]
+    fn a_flights_own_scatter_stands_for_a_pads_noise() {
+        // Past the descent's start the scatter holds the white noise, here 3 m, less the correlated
+        // noise the smoother carries apart; at sea level, no air thins it.
+        let baro: Vec<Baro> = (0..100)
+            .map(|i| Baro {
+                time_s: f64::from(i),
+                height_m: 0.0,
+                smoothed_m: 0.0,
+                rate_m_s: 0.0,
+                scatter_var_m2: if i < 50 { 400.0 } else { 9.0 },
+            })
+            .collect();
+        let var = flight_noise_var(&baro, 50.0, 0.0, 1.0);
+        assert!((var - 8.0).abs() < 1e-9, "{var}");
+        // No sample past it, as a log ending at its top: the whole flight's.
+        let var = flight_noise_var(&baro, f64::INFINITY, 0.0, 1.0);
+        assert!((var - 0.5 * (9.0 + 400.0) + 1.0).abs() < 1e-9, "{var}");
+        assert_eq!(flight_noise_var(&[], 0.0, 0.0, 1.0), 0.0);
+    }
+
+    #[test]
+    fn a_log_past_the_step_limit_is_withheld_before_any_work() {
+        let short = log();
+        let read = readings::read(&short);
+        let mut long = short;
+        long.time_s = (0..=MAX_STEPS).map(|i| i as f64 * 0.001).collect();
+        long.altitude_m = vec![0.0; MAX_STEPS + 1];
+        let withheld = smooth_with(&long, &read, Options::default()).unwrap_err();
+        assert_eq!(withheld.reason, Reason::TooLong);
+    }
+
+    #[test]
+    fn a_smoothed_apogee_past_the_readings_bound_says_so_on_the_card() {
+        let log = log();
+        let mut read = readings::read(&log);
+        let clean = smooth_with(&log, &read, Options::default()).unwrap();
+        assert!(!clean.health.apogee_past_reading_bound);
+        assert!(clean.health.apogee_less_reading_m.unwrap().abs() < 100.0);
+
+        let Reading::Read(apogee) = &mut read.apogee else {
+            panic!("the invented log's apogee reads");
+        };
+        let bound = apogee.bound_m;
+        // The reading low by twice its bound.
+        apogee.height_m -= 2.0 * bound;
+        let high = smooth_with(&log, &read, Options::default()).unwrap();
+        assert!(high.health.apogee_past_reading_bound);
+        assert!(high.health.apogee_less_reading_m.unwrap() > bound);
+        assert!(
+            high.health
+                .card()
+                .contains("past the reading's bound: go by the reading")
+        );
+        // A floor's truth may lie any amount above it: the same gap says nothing there.
+        let Reading::Read(apogee) = &mut read.apogee else {
+            panic!("the invented log's apogee reads");
+        };
+        apogee.is_floor = true;
+        let above_floor = smooth_with(&log, &read, Options::default()).unwrap();
+        assert!(!above_floor.health.apogee_past_reading_bound);
+        // Below a floor by more than its bound it does.
+        let Reading::Read(apogee) = &mut read.apogee else {
+            panic!("the invented log's apogee reads");
+        };
+        apogee.height_m += 4.0 * bound;
+        let below_floor = smooth_with(&log, &read, Options::default()).unwrap();
+        assert!(below_floor.health.apogee_past_reading_bound);
+    }
+
     #[test]
     fn the_health_card_reads_each_sensor_and_what_was_done() {
         let health = Health {
@@ -2916,11 +3215,33 @@ mod tests {
             gnss_trusted_s: None,
             baro_minus_inertial_at_apogee_m: None,
             unsmoothed_steps: 0,
+            assumed_pad: false,
+            accelerometer_set_aside: false,
+            apogee_less_reading_m: None,
+            apogee_past_reading_bound: false,
         };
         assert_eq!(
             health.card(),
             "barometer: 2000 samples, 1997 fused, 3 rejected, 0 not weighed, 1 reset; 99.8% \
              inside the gate; mean NIS 0.701; largest test ratio 12.3 at 17.0 s, Mach 0.00\n\
+             barometer de-weighted: transonic 9.50–14.2 s\n\
+             pass back: every step smoothed\n"
+        );
+        let assumed = Health {
+            sensors: Vec::new(),
+            assumed_pad: true,
+            accelerometer_set_aside: true,
+            apogee_less_reading_m: Some(-412.0),
+            apogee_past_reading_bound: true,
+            ..health
+        };
+        assert_eq!(
+            assumed.card(),
+            "pad assumed: the log holds too little of the pad, as one that starts at launch does; \
+             heights stand on the logger's zero, and the barometer's noise is the flight's own \
+             scatter\n\
+             accelerometer set aside: too little of the pad to take its level from\n\
+             smoothed apogee -412 m from the reading, past the reading's bound: go by the reading\n\
              barometer de-weighted: transonic 9.50–14.2 s\n\
              pass back: every step smoothed\n"
         );

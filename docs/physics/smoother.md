@@ -10,7 +10,8 @@ sensors, and how well its 90% intervals hold.
   receiver together. A Kalman filter runs forward over every sample. A Rauch-Tung-Striebel pass
   then runs back, so each moment uses the whole flight. Each estimate comes with a standard error
   and a 90% interval. A [health card](#the-health-card) says how each sensor fared. It is in the
-  Rust library, `hpr_flightdata::smoother`.
+  Rust library, `hpr_flightdata::smoother`. [`hpr analyze`](../cli.md#hpr-analyze) prints the
+  smoothed apogee and the card, and Python's `FlightLog.smoothed()` gives the whole track.
 - **Sources:** the textbook filter and pass back, and the project's notes on sensor noise, the
   port's Mach error and GNSS lag ([Sources](#sources)). The rest are HPR Sim's choices, recorded
   in [ADR-300, the smoother and its check][adr-300].
@@ -21,11 +22,10 @@ sensors, and how well its 90% intervals hold.
   A and B were run while its rules were set, so they aren't untouched tests. A real log comes with
   no truth taken apart from it, so the smoother is unvalidated on real logs
   ([evidence row G33](../evidence.md#g33)).
-- **What it leaves out:** the horizontal track and the rocket's attitude. `hpr analyze` and Python
-  get its intervals and health card with
-  [M7.2e, the 90% intervals on every reading](../decisions-and-roadmap.md#m7-2e).
-  A log that starts at launch has no pad to zero the barometer on, and is withheld
-  ([an open issue](https://github.com/nrdptel/fusionspace-eridanus/issues/982)).
+- **What it leaves out:** the horizontal track and the rocket's attitude. A log that starts at
+  launch has no pad to zero the barometer on, so the pad is assumed and the card says so
+  ([A log written from launch](#a-log-written-from-launch)). Such a log's accelerometer is set
+  aside. A log of more than 2,000,000 samples is withheld.
 
 ## How it works
 
@@ -95,6 +95,30 @@ GNSS track were smoothed again that way, the rest left as they were. Then 146 of
 truths lay below the interval, and only 82% inside it. Every set, logger and moment is in
 [the report][report].
 
+## A log written from launch
+
+Many loggers write little or nothing before they detect the launch, so most logs hold too little of
+the pad to zero a barometer on. Of the 1,085 distinct sample logs HPR Sim reads, 392 smooth this way
+and 180 hold their pad. With fewer than five barometer samples on the pad, the smoother assumes it:
+
+- **The height** stands on the same zero the [readings](log-readings.md) take: the logger's own,
+  set on the pad before it began writing. A zero that is the pad's only because a column mapping or a
+  column's name says so may be off by up to 19.9 m (65 ft), and the height's standard error holds that.
+- **The barometer's noise** comes from the flight's own scatter past apogee, in place of the pad's.
+- **Nothing is held still.** The first sample may already be moving, so the height, speed and
+  acceleration start with wide priors: 100 m, 100 m/s and 30 g. These are HPR Sim's choices.
+- **The accelerometer is set aside** when it has too little of the pad to take its level from.
+
+To test this, each synthetic flight's log is cut at the truth's liftoff, every sensor, and smoothed
+again. On the [report](../../validation/reports/synthetic-flights.md#logs-written-from-launch)'s
+sets A and B, every cell holds, overall and for each logger: 94.9% to 98.7% of truths lie inside the
+90% intervals. A real log has no truth to hold it to. On the sample logs, the assumed pad's smoothed
+apogee passes the reading's bound on 14 of 392, and a held pad's on 19 of 180, so the pad isn't the
+main cause. Those traced so far are flights through a long transonic span, where the track is left
+to the motion model and its standard error is large
+([an open issue](https://github.com/nrdptel/fusionspace-eridanus/issues/1073)). The card then
+says so, and the [reading](log-readings.md) is the one to go by.
+
 ## The health card
 
 A barometer-only log from the tuning set, as the report prints it:
@@ -111,6 +135,9 @@ a sample's squared miss over five standard deviations squared. Above 1, the samp
 The mean NIS is the squared miss over its variance. It is near 1 when a sensor's noise is what
 the smoother takes it to be. Below 1, the smoother takes the sensor as noisier than it was. The
 last line says whether the pass back solved every step.
+
+Three more lines appear only when they apply: `pad assumed`, `accelerometer set aside`, and
+`smoothed apogee ... past the reading's bound: go by the reading`.
 
 ## Sources
 

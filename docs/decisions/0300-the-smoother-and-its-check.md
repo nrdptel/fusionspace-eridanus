@@ -193,4 +193,6 @@ fell short in five places:
   on its barometer, not that its intervals hold. A port that reads the flow differently from the
   synthetic loggers', or a charge away from apogee that the log doesn't name, can leave the truth
   outside more often than the interval says. The health card shows where. A log that starts at
-  launch, as that one's logger writes them, has no pad to zero on and is withheld.
+  launch, as that one's logger writes them, had no pad to zero on and was withheld, until
+  [ADR-308](0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md)'s M7.2e4 smoothed it on
+  an assumed pad.

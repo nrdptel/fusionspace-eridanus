@@ -1762,7 +1762,9 @@ gives:
 `hpr analyze` reads the log an altimeter recorded during a flight. It prints what the log says:
 when the rocket lifted off, how high it went, how fast it climbed, and when it landed. It needs
 only the log. It takes no design file and runs no simulation. So it answers "what did my rocket
-do?" for anyone who flew one, whatever they designed it in.
+do?" for anyone who flew one, whatever they designed it in. Each reading comes with a bound and,
+where it can, a 90% interval, and the last rows are the smoother's apogee and health card
+([what they mean](reading-a-flight-log.md#the-90-intervals-and-the-health-card)).
 
 It reads each layout HPR Sim knows by that layout's own reader. Another logger's file is read by a
 JSON file you write for it ([Reading your own logger](your-own-logger.md) works one through). A
@@ -1870,23 +1872,29 @@ readings from the logger's barometric altitude, sampled every 0.050 s in steps o
 4 channels: Altitude (altitude above ground), Velocity (speed), Temperature (F) (temperature), Voltage (voltage)
 the logger states: apogee 390.4 m (1281 ft); ground elevation 182.9 m (600 ft) above sea level
 
-liftoff           0.80 s, within 0.81 s
-apogee            390.1 m (1280 ft) above the pad, within 31.9 m (105 ft); at 10.28 s, within 0.88 s, 9.47 s after liftoff
+liftoff           0.80 s, within 0.81 s, 90% interval 0.41 to 0.64 s
+apogee            390.1 m (1280 ft) above the pad, within 31.9 m (105 ft), 90% interval 369.8 to 410.2 m (1213 to 1346 ft); at 10.28 s, within 0.88 s, 90% interval 10.07 to 10.57 s, 9.47 s after liftoff
                   highest sample 400.5 m (1314 ft) above the pad at 11.35 s, set aside by the median
-top speed         78.3 m/s (257 ft/s), within 20.6 m/s (68 ft/s), at 2.20 s, 71.9 m (236 ft) up: derived from the heights
-landing           45.80 s, within 2.11 s; 35.52 s from apogee, at 10.9 m/s (36 ft/s) on average, within 2.1 m/s (7 ft/s)
-flight time       45.00 s, within 2.91 s
-drogue descent    21.7 m/s (71 ft/s), within 2.2 m/s (8 ft/s), from apogee at 10.28 s to the main's opening at 21.40 s, 390.1 m (1280 ft) to 148.4 m (487 ft) up
-main descent      6.0 m/s (20 ft/s), within 0.8 m/s (3 ft/s), from the main's opening at 21.40 s, within 1.06 s, to landing at 45.80 s, 148.4 m (487 ft) to 2.1 m (7 ft) up
+top speed         78.3 m/s (257 ft/s), within 20.6 m/s (68 ft/s), 90% interval 72.8 to 82.8 m/s (239 to 272 ft/s), at 2.20 s, 71.9 m (236 ft) up: derived from the heights
+landing           45.80 s, within 2.11 s, 90% interval 45.47 to 46.50 s; 35.52 s from apogee, at 10.9 m/s (36 ft/s) on average, within 2.1 m/s (7 ft/s), 90% interval 9.8 to 12.0 m/s (32 to 40 ft/s)
+flight time       45.00 s, within 2.91 s, 90% interval 45.38 to 46.11 s
+drogue descent    21.7 m/s (71 ft/s), within 2.2 m/s (8 ft/s), 90% interval 20.3 to 23.1 m/s (66 to 76 ft/s), from apogee at 10.28 s to the main's opening at 21.40 s, 390.1 m (1280 ft) to 148.4 m (487 ft) up
+main descent      6.0 m/s (20 ft/s), within 0.8 m/s (3 ft/s), 90% interval 5.5 to 6.5 m/s (18 to 22 ft/s), from the main's opening at 21.40 s, within 1.06 s, 90% interval 20.80 to 21.26 s, to landing at 45.80 s, 148.4 m (487 ft) to 2.1 m (7 ft) up
 top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
-burnout           no sooner than 0.88 s: the top speed's time, 2.20 s (1.40 s after liftoff), less its bound, 1.32 s. Derived from the heights, burnout may have come later by any amount
+burnout           no sooner than 0.88 s: the top speed's time, 2.20 s (1.40 s after liftoff), less its bound, 1.32 s. Derived from the heights, burnout may have come later by any amount; 95% lower end 2.24 s
+smoothed apogee   390.3 m (1280 ft), 90% interval 369.9 to 410.7 m (1213 to 1348 ft), at 10.25 s: every sensor together; the reading above is the one calibrated
+health card       pad assumed: the log holds too little of the pad, as one that starts at launch does; heights stand on the logger's zero, and the barometer's noise is the flight's own scatter
+                  barometer: 984 samples, 983 fused, 1 rejected, 0 not weighed, 0 resets; 99.8% inside the gate; mean NIS 0.0251; largest test ratio 4.95 at 11.2 s, Mach 0.03
+                  barometer de-weighted: charge 11.3–11.9 s
+                  pass back: every step smoothed
 
 How far to trust it. Measured by the logger, read by HPR Sim from its log, not simulated. Each
-reading states the bound its error stayed within on HPR Sim's synthetic flights. They cover rates
-from 500 to 0.5 samples a second, steps up to 10 m or 100 Pa, and air within 15 K of standard. A
-reading the log can't support is withheld, with the reason. The top speed is derived from the
-heights, and withheld from Mach 0.8, where a barometer's port may read the flow over the nose. For a
-record or a certification, the altimeter's own reading is the one to log, and the RSO decides.
+reading states the bound its error stayed within on HPR Sim's synthetic flights, and most a 90%
+interval, which no real flight has checked. They cover rates from 500 to 0.5 samples a second, steps
+up to 10 m or 100 Pa, and air within 15 K of standard. A reading the log can't support is withheld,
+with the reason. The top speed is derived from the heights, and withheld from Mach 0.8, where a
+barometer's port may read the flow over the nose. For a record or a certification, the altimeter's
+own reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/reading-a-flight-log.html
 ```
 
@@ -1916,22 +1924,29 @@ no primary track: each channel on its own clock
 readings from the barometric altitude channel, sampled every 0.010 s in steps of 0.010 m, after a 0.30 s running median
 2 channels: Baro Alt AGL (m) (altitude above ground), Axial accel (g) (acceleration)
 
-liftoff           2.30 s, within 0.67 s
-apogee            272.3 m (893 ft) above the pad, within 22.8 m (75 ft); at 9.91 s, within 0.80 s, 7.61 s after liftoff
-top speed         68.9 m/s (226 ft/s), within 20.7 m/s (68 ft/s), at 3.48 s, 55.9 m (183 ft) up: derived from the heights
-landing           40.77 s, within 1.82 s; 30.87 s from apogee, at 8.8 m/s (29 ft/s) on average, within 1.8 m/s (6 ft/s)
-flight time       38.47 s, within 2.48 s
-drogue descent    19.4 m/s (64 ft/s), within 2.4 m/s (8 ft/s), from apogee at 9.91 s to the main's opening at 16.26 s, 272.3 m (893 ft) to 149.0 m (489 ft) up
-main descent      6.0 m/s (20 ft/s), within 0.7 m/s (3 ft/s), from the main's opening at 16.26 s, within 0.98 s, to landing at 40.77 s, 149.0 m (489 ft) to 2.0 m (6 ft) up
-top acceleration  65.4 m/s² (6.7 g), within 7.1 m/s², at 2.59 s
-burnout           3.45 s, within 0.07 s, 1.15 s after liftoff: from the accelerometer
+liftoff           2.30 s, within 0.67 s, 90% interval 1.98 to 2.17 s
+apogee            272.3 m (893 ft) above the pad, within 22.8 m (75 ft), 90% interval 257.7 to 286.6 m (845 to 941 ft); at 9.91 s, within 0.80 s, 90% interval 9.72 to 10.18 s, 7.61 s after liftoff
+top speed         68.9 m/s (226 ft/s), within 20.7 m/s (68 ft/s), 90% interval 63.4 to 73.4 m/s (208 to 241 ft/s), at 3.48 s, 55.9 m (183 ft) up: derived from the heights
+landing           40.77 s, within 1.82 s, 90% interval 40.48 to 41.38 s; 30.87 s from apogee, at 8.8 m/s (29 ft/s) on average, within 1.8 m/s (6 ft/s), 90% interval 7.8 to 9.6 m/s (25 to 32 ft/s)
+flight time       38.47 s, within 2.48 s, 90% interval 38.79 to 39.42 s
+drogue descent    19.4 m/s (64 ft/s), within 2.4 m/s (8 ft/s), 90% interval 17.9 to 20.9 m/s (58 to 69 ft/s), from apogee at 9.91 s to the main's opening at 16.26 s, 272.3 m (893 ft) to 149.0 m (489 ft) up
+main descent      6.0 m/s (20 ft/s), within 0.7 m/s (3 ft/s), 90% interval 5.5 to 6.4 m/s (18 to 21 ft/s), from the main's opening at 16.26 s, within 0.98 s, 90% interval 15.70 to 16.13 s, to landing at 40.77 s, 149.0 m (489 ft) to 2.0 m (6 ft) up
+top acceleration  65.4 m/s² (6.7 g), within 7.1 m/s², 90% interval 61.3 to 68.9 m/s², at 2.59 s
+burnout           3.45 s, within 0.07 s, 90% interval 3.44 to 3.46 s, 1.15 s after liftoff: from the accelerometer
+smoothed apogee   269.5 m (884 ft), 90% interval 255.4 to 283.6 m (838 to 931 ft), at 9.64 s: every sensor together; the reading above is the one calibrated
+health card       barometer: 4611 samples, 4611 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.291; largest test ratio 0.483 at 11.4 s, Mach 0.01
+                  accelerometer: 4611 samples, 1197 fused, 0 rejected, 3414 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.000752; largest test ratio 0.00576 at 2.02 s, Mach 0.00
+                  barometer de-weighted: charge 8.97–10.7 s
+                  barometer less accelerometer at apogee: -0.0431 m
+                  pass back: every step smoothed
 
 How far to trust it. Measured by the logger, read by HPR Sim from its log, not simulated. Each
-reading states the bound its error stayed within on HPR Sim's synthetic flights. They cover rates
-from 500 to 0.5 samples a second, steps up to 10 m or 100 Pa, and air within 15 K of standard. A
-reading the log can't support is withheld, with the reason. The top speed is derived from the
-heights, and withheld from Mach 0.8, where a barometer's port may read the flow over the nose. For a
-record or a certification, the altimeter's own reading is the one to log, and the RSO decides.
+reading states the bound its error stayed within on HPR Sim's synthetic flights, and most a 90%
+interval, which no real flight has checked. They cover rates from 500 to 0.5 samples a second, steps
+up to 10 m or 100 Pa, and air within 15 K of standard. A reading the log can't support is withheld,
+with the reason. The top speed is derived from the heights, and withheld from Mach 0.8, where a
+barometer's port may read the flow over the nose. For a record or a certification, the altimeter's
+own reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/reading-a-flight-log.html
 ```
 
@@ -1978,8 +1993,8 @@ no primary track: each channel on its own clock
 readings from the barometric altitude channel, sampled every 0.200 s in steps of 0.020 m, after a 0.40 s running median
 1 channel: Baro Alt AGL (m) (altitude above ground)
 
-liftoff           1.20 s, within 1.05 s
-apogee            547.8 m (1797 ft) above the pad, within 43.0 m (141 ft); at 13.10 s, within 0.99 s, 11.90 s after liftoff
+liftoff           1.20 s, within 1.05 s, 90% interval 0.69 to 0.99 s
+apogee            547.8 m (1797 ft) above the pad, within 43.0 m (141 ft), 90% interval 520.3 to 574.9 m (1707 to 1886 ft); at 13.10 s, within 0.99 s, 90% interval 12.87 to 13.44 s, 11.90 s after liftoff
 top speed         withheld: the track's samples come every 0.200 s, too far apart for a 0.5 s fit of 5 samples. That fit needs them at most 0.125 s apart
 landing           withheld: the log ends at 40.00 s, 280.8 m above the pad. It ends before the altitude comes within 2.0 m of the pad and stays under 5.0 m for 1 s
 flight time       withheld: the flight time needs landing, which is withheld above
@@ -1987,13 +2002,19 @@ drogue descent    withheld, as landing is
 main descent      withheld, as landing is
 top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
 burnout           withheld: burnout from the speed's peak needs the top speed, which is withheld above
+smoothed apogee   546.6 m (1793 ft), 90% interval 512.3 to 580.8 m (1680 to 1906 ft), at 13.00 s: every sensor together; the reading above is the one calibrated
+health card       pad assumed: the log holds too little of the pad, as one that starts at launch does; heights stand on the logger's zero, and the barometer's noise is the flight's own scatter
+                  barometer: 201 samples, 201 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.00802; largest test ratio 0.0120 at 15.6 s, Mach 0.06
+                  barometer de-weighted: charge 12.2–14.0 s
+                  pass back: every step smoothed
 
 How far to trust it. Measured by the logger, read by HPR Sim from its log, not simulated. Each
-reading states the bound its error stayed within on HPR Sim's synthetic flights. They cover rates
-from 500 to 0.5 samples a second, steps up to 10 m or 100 Pa, and air within 15 K of standard. A
-reading the log can't support is withheld, with the reason. The top speed is derived from the
-heights, and withheld from Mach 0.8, where a barometer's port may read the flow over the nose. For a
-record or a certification, the altimeter's own reading is the one to log, and the RSO decides.
+reading states the bound its error stayed within on HPR Sim's synthetic flights, and most a 90%
+interval, which no real flight has checked. They cover rates from 500 to 0.5 samples a second, steps
+up to 10 m or 100 Pa, and air within 15 K of standard. A reading the log can't support is withheld,
+with the reason. The top speed is derived from the heights, and withheld from Mach 0.8, where a
+barometer's port may read the flow over the nose. For a record or a certification, the altimeter's
+own reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/reading-a-flight-log.html
 note: read from the sheet "Second" of an Excel workbook, its cells as stored
 ```
@@ -2435,10 +2456,10 @@ you press Tab. Save it where your shell looks for completions:
   flies as a point under its devices' drag, so its landing is rough. It flies a `.ork` file's
   parachutes and streamers, but a rocket's `.json` comes down with no recovery
   device ([what it doesn't fly yet](#what-hpr-sim-doesnt-fly-yet)).
-- **Readings within bounds; intervals in the JSON.** `hpr analyze` gives each reading within a
-  bound or withheld, on every layout it reads. Its JSON gives twelve readings a 90% interval too,
-  and a floor `lower_end_s` or `lower_end_m_s2` in its place ([The 90% intervals](physics/log-readings.md#the-90-intervals)); its
-  text gives neither yet ([M7.2e](decisions-and-roadmap.md#m7-2e)). It gives no Mach number and takes no top
+- **Readings within bounds, with intervals.** `hpr analyze` gives each reading within a
+  bound or withheld, on every layout it reads. Twelve readings give a 90% interval too, and a floor
+  a lower end in its place ([The 90% intervals](physics/log-readings.md#the-90-intervals)), with
+  [the smoother's](physics/smoother.md) apogee and health card. It gives no Mach number and takes no top
   acceleration from a board's three axes. It finds no deployment but the main's opening, from the
   descent's rate.
 - **Only OpenRocket's design files and the HPR design format.** `hpr convert` and `hpr sim` read

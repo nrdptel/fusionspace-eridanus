@@ -358,9 +358,11 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.2b Readings on every logger ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.2c The rest of the readings ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.2d The smoother ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.2e The 90% intervals ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.2e1 The test, on the apogee ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.2e2 The height track's other readings ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.2e3 The accelerometer's readings and the canopies' ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.2e4 The intervals in `hpr analyze` and Python ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1878,7 +1880,9 @@ One line per milestone or increment, in the order it was archived within its pha
     range), burnout, each canopy's descent rate, flight time, as M7.2b's; tuning-set errors given.
   - [x] **M7.2d The smoother.** *Done when:* ADR-280's RTS smoother holds the test sets' truth in its
     stated error, coverage per state reported; trusting GNSS from liftoff fails; a health card.
-  - **M7.2e** is open; its entry: [roadmap](ROADMAP.md#phase-5-flight-data-and-forensics).
+  - [x] **M7.2e The 90% intervals** (ADR-308: in four, below; met when they are). *Done when:*
+    ADR-257 §1–2's test passes, probes failing, on both test sets for every reading given;
+    intervals in the library, `hpr analyze` and Python, with the smoother's health card (ADR-300).
     - [x] **M7.2e1 The test, on the apogee.** *Done when:* `cargo xtask synthetic` fits each
       interval's shares on a calibration set of its own seed and fails unless they equal the
       library's; on A and B the apogee's height and time pass ADR-257 §1's test, its three probes
@@ -1891,6 +1895,9 @@ One line per milestone or increment, in the order it was archived within its pha
       acceleration, burnout, each canopy's rate and the main's opening state intervals that pass
       e1's test on A and B, probes failing; a floor states a lower end, held to the test's lower
       tail with its probes.
+    - [x] **M7.2e4 The intervals in `hpr analyze` and Python.** *Done when:* every interval in
+      `hpr analyze`'s text and JSON and in Python, with the smoother's health card (ADR-300); a
+      log that starts at launch smoothed on an assumed pad, its card saying so (#982).
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

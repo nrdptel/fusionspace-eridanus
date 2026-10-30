@@ -1604,6 +1604,41 @@ pub struct Analyze {
     pub drogue_descent: LogReading<DescentReading>,
     /// The descent under the main, the canopy the rocket landed under.
     pub main_descent: LogReading<DescentReading>,
+    /// The smoother's run over every sensor, with its health card (decision record ADR-300).
+    pub smoother: SmootherOutcome,
+}
+
+/// What the smoother made of the log.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+#[serde(tag = "status", rename_all = "snake_case")]
+pub enum SmootherOutcome {
+    /// Smoothed.
+    Read(Box<SmootherReading>),
+    /// Not smoothed.
+    Withheld(hpr::hpr_flightdata::smoother::Withheld),
+}
+
+/// The smoothed flight at apogee and how each sensor fared. The whole track is in Python's
+/// `FlightLog.smoothed()`.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct SmootherReading {
+    /// The smoothed apogee: when the smoothed height after liftoff is highest, s on the log's
+    /// clock.
+    pub apogee_time_s: f64,
+    /// The smoothed height there, m above the pad, or on an assumed pad above the logger's zero.
+    pub apogee_height_m: f64,
+    /// Its standard error, m.
+    pub apogee_height_sd_m: f64,
+    /// Its 90% interval, m: the height ± 1.645 standard errors. It tends wide on the synthetic
+    /// flights, where 94% to 99% of truths lie inside; the reading's own interval is the calibrated
+    /// one.
+    pub apogee_height_interval_m: ReadingInterval,
+    /// Liftoff, as the smoother holds it.
+    pub liftoff: hpr::hpr_flightdata::smoother::Liftoff,
+    /// The health card's figures.
+    pub health: hpr::hpr_flightdata::smoother::Health,
+    /// The health card as text, one entry a line.
+    pub card: Vec<String>,
 }
 
 /// The log `hpr analyze` read.

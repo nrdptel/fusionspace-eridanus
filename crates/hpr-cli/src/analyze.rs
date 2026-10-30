@@ -4,9 +4,10 @@
 //! It reads the log with `hpr_flightdata`'s reader for its format, whichever of the formats HPR
 //! Sim reads it is (`hpr_flightdata::import`), and prints what `hpr_flightdata::readings` takes
 //! from it: liftoff, apogee, the top speed, the top acceleration and landing, each with the track
-//! it came from, how it was read and the bound its error stays within, or withheld with the
-//! reason the log can't support it. What the file states about itself, such as the logger's own
-//! apogee, is printed beside them, never in place of them.
+//! it came from, how it was read, the bound its error stays within and, where the reading has one,
+//! its 90% interval, or withheld with the reason the log can't support it. What the file states
+//! about itself, such as the logger's own apogee, is printed beside them, never in place of them.
+//! Below them come `hpr_flightdata::smoother`'s apogee and health card ([ADR-300][adr-300]).
 //!
 //! A flyer's own logger is read by a file that says how ([ADR-276][adr-276]): a table by a
 //! column mapping (`--mapping`), binary records or a serial console's capture of them by a
@@ -15,6 +16,7 @@
 //! edit, and `--record` prints the record a log reads into, every channel, in place of the
 //! readings.
 //!
+//! [adr-300]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0300-the-smoother-and-its-check.md
 //! [adr-276]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0276-the-2026-10-16-own-loggers-and-gpx-in-the-analyzer.md
 
 use std::path::Path;
@@ -26,6 +28,7 @@ use hpr::hpr_flightdata::log::{FlightLog, Quantity};
 use hpr::hpr_flightdata::readings::{
     self, Clip, Descent, Gravity, GravityBy, Method, Provenance, Reading, Readings, Reason, Source,
 };
+use hpr::hpr_flightdata::smoother::{self, INTERVAL_Z, Options};
 
 use crate::console::Level;
 use crate::output::{
@@ -33,10 +36,12 @@ use crate::output::{
     AnalyzedLog, ApogeeReading, BurnoutReading, DescentReading, FlightTimeReading,
     GravitySettledBy, HighestSample, LandingReading, LiftoffReading, LogReading, LoggerStated,
     MaxAccelerationReading, MaxSpeedReading, OpeningReading, ReadingClip, ReadingInterval,
-    ReadingMethod, ReadingProvenance, ReadingSource, WithheldReading, WithheldReason,
+    ReadingMethod, ReadingProvenance, ReadingSource, SmootherOutcome, SmootherReading,
+    WithheldReading, WithheldReason,
 };
 use crate::units::{
-    acceleration_bound, gravities, meters, meters_bound, seconds_bound, speed, speed_bound,
+    acceleration_bound, acceleration_interval, gravities, meters, meters_bound, meters_interval,
+    seconds_bound, seconds_interval, speed, speed_bound, speed_interval,
 };
 use crate::{Failure, Out};
 
@@ -395,6 +400,7 @@ fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
         }),
         drogue_descent: reading(&read.drogue_descent, descent),
         main_descent: reading(&read.main_descent, descent),
+        smoother: smoother_outcome(log, read),
     }
 }
 
@@ -640,8 +646,12 @@ fn text_lines(document: &Analyze) -> Vec<String> {
         "top acceleration",
         match &document.max_acceleration {
             LogReading::Read(top) => {
+                let held = top
+                    .interval_m_s2
+                    .map(|i| format!(", 90% interval {}", acceleration_interval(i.low, i.high)))
+                    .unwrap_or_default();
                 let mut value = format!(
-                    "{:.1} m/s² ({}), within {} m/s², at {:.2} s",
+                    "{:.1} m/s² ({}), within {} m/s²{held}, at {:.2} s",
                     top.acceleration_m_s2,
                     gravities(top.acceleration_m_s2),
                     acceleration_bound(top.bound_m_s2),
@@ -663,6 +673,9 @@ fn text_lines(document: &Analyze) -> Vec<String> {
                         .to_owned(),
                     (None, _) => String::new(),
                 });
+                if let Some(lower) = top.lower_end_m_s2 {
+                    value.push_str(&format!("; {LOWER_END} {lower:.1} m/s²"));
+                }
                 value
             }
             LogReading::Withheld(reading) => withheld(reading),
@@ -682,10 +695,14 @@ fn text_lines(document: &Analyze) -> Vec<String> {
                             .time_after_liftoff_s
                             .map(|after| format!(" ({after:.2} s after liftoff)"))
                             .unwrap_or_default();
+                        let lower = burnout
+                            .lower_end_s
+                            .map(|lower| format!("; {LOWER_END} {lower:.2} s"))
+                            .unwrap_or_default();
                         format!(
                             "no sooner than {earliest:.2} s: the top speed's time, {:.2} s{after}, \
                              less its bound, {} s. Derived from the heights, burnout may have come \
-                             later by any amount",
+                             later by any amount{lower}",
                             burnout.time_s,
                             seconds_bound(burnout.bound_s)
                         )
@@ -695,9 +712,10 @@ fn text_lines(document: &Analyze) -> Vec<String> {
                             .map(|after| format!(", {after:.2} s after liftoff"))
                             .unwrap_or_default();
                         format!(
-                            "{:.2} s, within {} s{after}: from the accelerometer",
+                            "{:.2} s, within {} s{}{after}: from the accelerometer",
                             burnout.time_s,
-                            seconds_bound(burnout.bound_s)
+                            seconds_bound(burnout.bound_s),
+                            time_interval(burnout.interval_s)
                         )
                     }
                 }
@@ -714,7 +732,85 @@ fn text_lines(document: &Analyze) -> Vec<String> {
             },
         )),
     }
+    match &document.smoother {
+        SmootherOutcome::Read(read) => {
+            lines.push(row(
+                "smoothed apogee",
+                format!(
+                    "{}, 90% interval {}, at {:.2} s: every sensor together; the reading above is \
+                     the one calibrated",
+                    meters(read.apogee_height_m),
+                    meters_interval(
+                        read.apogee_height_interval_m.low,
+                        read.apogee_height_interval_m.high
+                    ),
+                    read.apogee_time_s
+                ),
+            ));
+            for (k, line) in read.card.iter().enumerate() {
+                lines.push(row(if k == 0 { "health card" } else { "" }, line.clone()));
+            }
+        }
+        // With no reading of the track at all, its row has said why.
+        SmootherOutcome::Withheld(_) if collapsed.is_some() => {}
+        SmootherOutcome::Withheld(withheld) => {
+            lines.push(row("smoother", format!("withheld: {}", withheld.detail)));
+        }
+    }
     lines
+}
+
+/// How a floor's lower end is named in the text: on the synthetic flights, about 95% of truths lay
+/// above it.
+const LOWER_END: &str = "95% lower end";
+
+/// A 90% interval on a time, after its reading's bound; nothing without one.
+fn time_interval(interval: Option<ReadingInterval>) -> String {
+    interval
+        .map(|i| format!(", 90% interval {}", seconds_interval(i.low, i.high)))
+        .unwrap_or_default()
+}
+
+/// A 90% interval on a height, after its reading's bound; nothing without one.
+fn height_interval(interval: Option<ReadingInterval>) -> String {
+    interval
+        .map(|i| format!(", 90% interval {}", meters_interval(i.low, i.high)))
+        .unwrap_or_default()
+}
+
+/// A 90% interval on a speed, after its reading's bound; nothing without one.
+fn rate_interval(interval: Option<ReadingInterval>) -> String {
+    interval
+        .map(|i| format!(", 90% interval {}", speed_interval(i.low, i.high)))
+        .unwrap_or_default()
+}
+
+/// The smoother's outcome as the document holds it.
+fn smoother_outcome(log: &FlightLog, read: &Readings) -> SmootherOutcome {
+    let smoothed = match smoother::smooth_with(log, read, Options::default()) {
+        Ok(smoothed) => smoothed,
+        Err(withheld) => return SmootherOutcome::Withheld(withheld),
+    };
+    let Some(state) = smoothed.at(smoothed.apogee_time_s) else {
+        return SmootherOutcome::Withheld(smoother::Withheld {
+            reason: smoother::Reason::Diverged,
+            detail: "the smoothed track holds no apogee".to_owned(),
+        });
+    };
+    let half = INTERVAL_Z * state.height_sd_m;
+    let card = smoothed.health.card();
+    SmootherOutcome::Read(Box::new(SmootherReading {
+        apogee_time_s: smoothed.apogee_time_s,
+        apogee_height_m: state.height_m,
+        apogee_height_sd_m: state.height_sd_m,
+        apogee_height_interval_m: ReadingInterval {
+            low: state.height_m - half,
+            high: state.height_m + half,
+        },
+        liftoff: smoothed.liftoff,
+        card: card.lines().map(str::to_owned).collect(),
+        health: smoothed.health,
+    }))
 }
 
 /// A withheld reading's words, with what a row above already says left to it: a detail the
@@ -741,16 +837,18 @@ fn withheld_after(reading: &WithheldReading, above: &[(&str, Option<&WithheldRea
 fn descent_row(leg: &DescentReading, to: &str) -> String {
     let from = match &leg.opening {
         Some(opening) => format!(
-            "the main's opening at {:.2} s, within {} s,",
+            "the main's opening at {:.2} s, within {} s{},",
             opening.time_s,
-            seconds_bound(opening.bound_s)
+            seconds_bound(opening.bound_s),
+            time_interval(opening.interval_s)
         ),
         None => format!("apogee at {:.2} s", leg.from_s),
     };
     format!(
-        "{}, within {}, from {from} to {to} at {:.2} s, {} to {} up",
+        "{}, within {}{}, from {from} to {to} at {:.2} s, {} to {} up",
         speed(leg.rate_m_s),
         speed_bound(leg.bound_m_s),
+        rate_interval(leg.interval_m_s),
         leg.to_s,
         meters(leg.from_height_m),
         meters(leg.to_height_m)
@@ -767,9 +865,10 @@ fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec
         match &document.liftoff {
             LogReading::Read(liftoff) => {
                 format!(
-                    "{:.2} s, within {} s",
+                    "{:.2} s, within {} s{}",
                     liftoff.time_s,
-                    seconds_bound(liftoff.bound_s)
+                    seconds_bound(liftoff.bound_s),
+                    time_interval(liftoff.interval_s)
                 )
             }
             LogReading::Withheld(reading) => withheld(reading),
@@ -778,11 +877,13 @@ fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec
     match &document.apogee {
         LogReading::Read(apogee) => {
             let mut value = format!(
-                "{} above the pad, within {}; at {:.2} s, within {} s",
+                "{} above the pad, within {}{}; at {:.2} s, within {} s{}",
                 meters(apogee.height_m),
                 meters_bound(apogee.bound_m),
+                height_interval(apogee.height_interval_m),
                 apogee.time_s,
                 seconds_bound(apogee.time_bound_s),
+                time_interval(apogee.time_interval_s),
             );
             if let Some(after) = apogee.time_after_liftoff_s {
                 value.push_str(&format!(", {after:.2} s after liftoff"));
@@ -817,9 +918,10 @@ fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec
         "top speed",
         match &document.max_speed {
             LogReading::Read(top) => format!(
-                "{}, within {}, at {:.2} s, {} up: derived from the heights",
+                "{}, within {}{}, at {:.2} s, {} up: derived from the heights",
                 speed(top.speed_m_s),
                 speed_bound(top.bound_m_s),
+                rate_interval(top.interval_m_s),
                 top.time_s,
                 meters(top.height_m)
             ),
@@ -831,15 +933,17 @@ fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec
         match &document.landing {
             LogReading::Read(landing) => {
                 let mut value = format!(
-                    "{:.2} s, within {} s",
+                    "{:.2} s, within {} s{}",
                     landing.time_s,
-                    seconds_bound(landing.bound_s)
+                    seconds_bound(landing.bound_s),
+                    time_interval(landing.interval_s)
                 );
                 value.push_str(&format!(
-                    "; {:.2} s from apogee, at {} on average, within {}",
+                    "; {:.2} s from apogee, at {} on average, within {}{}",
                     landing.descent_time_s,
                     speed(landing.mean_descent_rate_m_s),
-                    speed_bound(landing.mean_descent_rate_bound_m_s)
+                    speed_bound(landing.mean_descent_rate_bound_m_s),
+                    rate_interval(landing.mean_descent_rate_interval_m_s)
                 ));
                 value
             }
@@ -854,9 +958,10 @@ fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec
         "flight time",
         match &document.flight_time {
             LogReading::Read(flight) => format!(
-                "{:.2} s, within {} s",
+                "{:.2} s, within {} s{}",
                 flight.time_s,
-                seconds_bound(flight.bound_s)
+                seconds_bound(flight.bound_s),
+                time_interval(flight.interval_s)
             ),
             LogReading::Withheld(reading) => withheld_after(reading, &above),
         },

@@ -369,6 +369,22 @@ Among them are those that came with the accelerometer and the canopies:
 - `one_canopy` (no drogue's leg in the descent)
 - `short_leg` (a leg too short to read)
 
+## The 90% intervals and the health card
+
+Beside its bound, each reading that can gives a 90% interval: where the truth lay nine times in ten
+on the [synthetic flights](physics/synthetic-flights.md). No real flight has checked one
+([evidence row G34](evidence.md#g34)). The bound is the wider, worst-case figure, and it's the one to
+use for a waiver or a load ([The 90% intervals](physics/log-readings.md#the-90-intervals)). A
+reading that is read late, as liftoff is, has an interval that lies before the reading.
+
+The last rows come from [the smoother](physics/smoother.md), which runs every sensor together. The
+smoothed apogee is a second estimate of the height. The health card says how each sensor fared,
+and three of its lines are worth stopping at:
+
+- `pad assumed`: the log holds too little of the pad, as one that starts at launch does.
+- `accelerometer set aside`: it had too little of the pad to take its level from.
+- `past the reading's bound: go by the reading`: the smoothed track has gone wrong around its top.
+
 ## What it doesn't do yet
 
 - Read a format no sample holds yet, such as a CATS flight computer's
@@ -377,8 +393,7 @@ Among them are those that came with the accelerometer and the canopies:
   sample can be offered in [#662](https://github.com/nrdptel/fusionspace-eridanus/issues/662).
 - Find the deployments as events: the main's opening is read from the descent's rate, not from
   the log's record of when each charge fired.
-- Give the Mach number and dynamic pressure, or print a 90% interval in its text. Its JSON and
-  Python carry twelve ([The 90% intervals](physics/log-readings.md#the-90-intervals)).
+- Give the Mach number and dynamic pressure.
 - Take the top acceleration from a board's three axes, which don't say which lies along the
   rocket ([#781](https://github.com/nrdptel/fusionspace-eridanus/issues/781)). It comes only from
   an accelerometer the log names as the rocket's axis
