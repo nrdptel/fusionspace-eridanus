@@ -779,8 +779,8 @@ margin against the top speed, and a landing's speed each look better than they a
 report gives each one's mean error, the reading less the truth, with its sign and at the figures
 of its largest error, as its later digits differ from one computer to another. The apogee height's
 is +1 m (3 ft) on A and, on B, less than half a meter and not below zero, against errors up to
-237 m (778 ft). The top speed's is +1.2 m/s on A and +1.3 m/s on B (4 ft/s), against errors up to
-26.8 m/s (88 ft/s). Neither is low on average. The descent rate's is −0.01 m/s (0.03 ft/s) on both,
+237 m (778 ft). The top speed's is +1.2 m/s (3.9 ft/s) on A and +1.3 m/s (4.3 ft/s) on B, against errors up
+to 26.8 m/s (88 ft/s). Neither is low on average. The descent rate's is −0.01 m/s (−0.033 ft/s) on both,
 a hundredth of a meter per second low against errors up to 6.81 m/s (22.3 ft/s).
 
 The test pools the five loggers that give these readings and the ten designs. The 90% is over the
