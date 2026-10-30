@@ -171,8 +171,8 @@ show that. On the Arcas Robin, HPR Sim's forebody drag read high at every speed.
 of that shape, with thin, sharp fins and a boattail, read its apogee as possibly low.
 
 The tunnel's rocket isn't a hobby rocket, though. On the logged hobby flights of
-[Trusting a simulation](trusting-a-simulation.md), HPR Sim's apogee averaged +8.73% above the
-logged one on the 53 flights.
+[Trusting a simulation](trusting-a-simulation.md), HPR Sim's apogee averaged +7.76% above the
+logged one on the 60 flights.
 
 On those rockets something leans the other way. Drag that reads low
 is one candidate. The motor's thrust and the rocket's mass are others. No comparison yet sizes HPR

@@ -280,7 +280,7 @@ fn the_figure_ends_with_how_far_to_trust_it() {
             after.contains(">Simulated from the design file, not measured."),
             "{after}"
         );
-        assert!(after.contains("53 logged flights"), "{after}");
+        assert!(after.contains("60 logged flights"), "{after}");
         assert!(
             after.contains("accuracy.html</text>\n<g id=\"title-block\">"),
             "{after}"

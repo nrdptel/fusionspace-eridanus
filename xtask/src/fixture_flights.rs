@@ -109,7 +109,6 @@ pub(crate) const EXCLUSION_CLASSES: [&str; 5] = [
 
 /// The open issue that tracks each cause of a flight not flown, by who did not fly it and why.
 pub(crate) const ISSUES: &[(&str, &str, u64)] = &[
-    (HPR, TAB_PAST_ROOT, 357),
     (HPR, REPEATED_POINT, 358),
     (HPR, NEGATIVE_SPAN, 359),
     (HPR, UNREAD_FINISH, 360),
@@ -122,7 +121,6 @@ pub(crate) const ISSUES: &[(&str, &str, u64)] = &[
 ];
 
 /// hpr's causes, each named from the words of the refusal it stands for ([`HPR_CAUSES`]).
-pub(crate) const TAB_PAST_ROOT: &str = "a fin tab ending past the root chord";
 pub(crate) const REPEATED_POINT: &str = "a freeform fin outline read as crossing itself";
 pub(crate) const NEGATIVE_SPAN: &str = "a part of negative length (rail buttons spaced forward)";
 pub(crate) const UNREAD_FINISH: &str = "an airframe not read as written: an unread surface finish";
@@ -153,8 +151,7 @@ pub(crate) const OPENROCKET_NO_MOTOR: &str = "OpenRocket loads no motor into tha
 /// The words of an hpr refusal or failure, and the cause each names: the first that the detail
 /// holds. A refusal none names is counted under its generic kind, which has no issue, so the run
 /// stops until it is named and tracked. The first reason a refusal gives can hide a second.
-pub(crate) const HPR_CAUSES: [(&str, &str); 7] = [
-    ("a fin tab must lie along the root chord", TAB_PAST_ROOT),
+pub(crate) const HPR_CAUSES: [(&str, &str); 6] = [
     ("the freeform fin outline crosses itself", REPEATED_POINT),
     ("attached part length is outside its domain", NEGATIVE_SPAN),
     (
@@ -1560,10 +1557,10 @@ mod tests {
     fn refusals_name_their_causes() {
         assert_eq!(
             named_cause(
-                "p-3: inconsistent geometry: a fin tab must lie along the root chord (1 m)",
+                "p-3: inconsistent geometry: the freeform fin outline crosses itself",
                 FLIGHT_FAILED
             ),
-            TAB_PAST_ROOT
+            REPEATED_POINT
         );
         assert_eq!(
             named_cause(

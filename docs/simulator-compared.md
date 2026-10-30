@@ -173,13 +173,13 @@ numbers from getting worse. Of the table's 16 capabilities, HPR Sim has 12 in fu
 and RocketPy 8. I chose the rows, so the count leans toward what HPR Sim was built to do: read the
 rows, not the count.
 
-On 53 logged flights of fliers' own designs, flown from the same files, HPR Sim's apogee missed by
-12.95% on average without signs. OpenRocket's missed by 12.02% on average without signs. With
-their signs, HPR Sim's averaged +8.73% above the logged apogees and OpenRocket's +7.79% above.
+On 60 logged flights of fliers' own designs, flown from the same files, HPR Sim's apogee missed by
+12.07% on average without signs. OpenRocket's missed by 11.26% on average without signs. With
+their signs, HPR Sim's averaged +7.76% above the logged apogees and OpenRocket's +6.72% above.
 OpenRocket is ahead on both: this is HPR Sim's largest measured gap ([report][fixture-report]).
 
 The flights are a private collection whose license allows only aggregates, so they can't be rerun
-from this repository. HPR Sim flew 61 of its 83 flights whose design is an OpenRocket file. The
+from this repository. HPR Sim flew 68 of its 83 flights whose design is an OpenRocket file. The
 comparison holds the flights both tools flew, less those the report leaves out with its reasons.
 So a design HPR Sim can't fly yet is in neither number. RocketPy hasn't flown them, since it can't
 open their `.ork` files.

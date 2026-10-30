@@ -37,7 +37,9 @@
 //! I_xx = ∫(τ² + x²) dm,  I_yy = ∫(r² + x²) dm,  I_zz = ∫(r² + τ²) dm,  I_xz = ∫ r x dm,  I_xy = I_yz = 0
 //! ```
 //!
-//! about the origin. A tab is a square-section slab below the root (`−h_tab ≤ h ≤ 0`). The flat
+//! about the origin. A tab is a square-section slab below the root (`−h_tab ≤ h ≤ 0`), over the
+//! length it states, which may pass either end of the root ([ADR-309][adr-309], the decision to
+//! weigh a tab as its file states it). The flat
 //! root is taken to sit on the body at radius `R_b`; the sliver between a flat root and the curved
 //! tube, `t²/8R_b` deep, is ignored. On a nose cone or a transition the surface is not level
 //! along the root: `R_b` is the body's radius at the root leading edge, `h` is measured from it,
@@ -63,6 +65,7 @@
 //!
 //! [adr-166]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0166-a-fin-root-that-follows-the-body.md
 //! [adr-096]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-096-fin-fillets-and-an-automatic-radius-inside-a-nose-cone-read-as-openrocket-reads-them-2026-09-28
+//! [adr-309]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0309-a-fin-tab-weighed-as-stated.md
 
 use std::f64::consts::PI;
 
@@ -129,6 +132,14 @@ pub enum FinCrossSection {
 }
 
 /// A rectangular tab below a fin's root, reaching into the body.
+///
+/// The tab is weighed as stated: it may start ahead of the root's leading edge (a negative
+/// offset) or end past its trailing edge, as OpenRocket 24.12 weighs one (it trims only a few
+/// rounding overhangs to the root on loading), so long as it meets the root over some length
+/// ([ADR-309][adr-309]). `.ork` files state tabs that pass the root by rounding, by less than
+/// 0.03 mm, and by design, by more than 0.8 mm.
+///
+/// [adr-309]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0309-a-fin-tab-weighed-as-stated.md
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct FinTab {
@@ -136,7 +147,8 @@ pub struct FinTab {
     pub height_m: f64,
     /// Length along the root, m.
     pub length_m: f64,
-    /// Distance from the root leading edge aft to the tab's leading edge, m.
+    /// Distance from the root leading edge aft to the tab's leading edge, m; negative for a tab
+    /// that starts ahead of the root.
     pub offset_m: f64,
 }
 
@@ -703,10 +715,12 @@ impl FinSet {
                     value: tab.offset_m,
                 });
             }
+            // A tab past either end of the root is weighed as stated (ADR-309); one that shares
+            // no length with the root holds to nothing.
             let root = self.planform.root_chord_m();
-            if tab.offset_m < 0.0 || tab.offset_m + tab.length_m > root * (1.0 + 1e-12) {
+            if tab.offset_m >= root || tab.offset_m + tab.length_m <= 0.0 {
                 return Err(DesignError::Geometry(format!(
-                    "a fin tab must lie along the root chord ({root} m)"
+                    "a fin tab must meet its fin's root chord, from 0 to {root} m, over some length"
                 )));
             }
         }
@@ -775,8 +789,9 @@ impl FinSet {
     /// # Errors
     ///
     /// As [`FinSet::validate`], plus [`DesignError::Domain`] for a negative body radius or a
-    /// fillet more than [`FILLET_RATIO_MAX`] times the body radius, and
-    /// [`DesignError::Numerics`] if an integral fails.
+    /// fillet more than [`FILLET_RATIO_MAX`] times the body radius, [`DesignError::Numerics`] if
+    /// an integral fails, and [`MassProperties::validate`]'s errors for a result that isn't
+    /// finite (a tab too long for its moments to fit in an `f64`).
     pub fn single_fin(&self, body_radius_m: f64) -> Result<MassProperties, DesignError> {
         self.validate()?;
         check_dimension("fin body radius", body_radius_m, true)?;
@@ -817,14 +832,18 @@ impl FinSet {
             Some(fillets) => MassProperties::combine([&plate, &fillets]),
             None => plate,
         };
-        if self.cant_rad == 0.0 {
-            return Ok(fin);
-        }
-        let pivot = DVec3::new(body_radius_m, 0.0, -0.5 * self.planform.root_chord_m());
-        Ok(fin
-            .translated(-pivot)
-            .rotated(DQuat::from_rotation_x(self.cant_rad))
-            .translated(pivot))
+        let fin = if self.cant_rad == 0.0 {
+            fin
+        } else {
+            let pivot = DVec3::new(body_radius_m, 0.0, -0.5 * self.planform.root_chord_m());
+            fin.translated(-pivot)
+                .rotated(DQuat::from_rotation_x(self.cant_rad))
+                .translated(pivot)
+        };
+        // A tab is held to no length by its root (ADR-309), so one of a length near f64's range
+        // overflows its moments: refuse a result that isn't finite rather than return it.
+        fin.validate()?;
+        Ok(fin)
     }
 
     /// Mass properties of the two fillets along one fin's root, at roll angle 0 and no cant, in
@@ -1371,44 +1390,133 @@ mod tests {
     }
 
     #[test]
-    fn tabs_must_fit_the_root_and_the_body() {
+    fn a_tab_must_meet_the_root_and_fit_the_body() {
+        // ADR-309: a tab is weighed as stated wherever it meets the root over some length, as
+        // OpenRocket 24.12 weighs one; one that meets it nowhere, or only at an end, holds to
+        // nothing. Along the root is checked without a body; the depth needs one.
         let mut fins = set(3, rectangle(0.1, 0.05), 0.003);
-        // Along the root is checked without a body; the depth needs one.
-        fins.tab = Some(FinTab {
-            height_m: 0.01,
-            length_m: 0.08,
-            offset_m: 0.03,
-        });
-        assert!(matches!(fins.validate(), Err(DesignError::Geometry(_))));
-        for tab in [
-            FinTab {
-                height_m: 0.05,
-                length_m: 0.02,
-                offset_m: 0.0,
-            },
-            FinTab {
+        let tab = |length_m: f64, offset_m: f64| {
+            Some(FinTab {
                 height_m: 0.01,
-                length_m: 0.02,
-                offset_m: -0.01,
-            },
-            FinTab {
-                height_m: 0.01,
-                length_m: 0.08,
-                offset_m: 0.03,
-            },
+                length_m,
+                offset_m,
+            })
+        };
+        let refusal = |fins: &FinSet| match fins.validate() {
+            Err(DesignError::Geometry(why)) => why.contains("must meet its fin's root chord"),
+            _ => false,
+        };
+        // Each side of each end, at the bound: touching an end or past it is refused, a
+        // nanometer onto the root is weighed.
+        for (length_m, offset_m, meets) in [
+            (0.02, 0.1, false),
+            (0.02, 0.1 + 1e-9, false),
+            (0.02, 0.1 - 1e-9, true),
+            (0.02, -0.02, false),
+            (0.02, -0.02 - 1e-9, false),
+            (0.02 + 1e-9, -0.02, true),
+            // Past the trailing edge by 10 mm, ahead of the leading edge by 10 mm, and both.
+            (0.08, 0.03, true),
+            (0.02, -0.01, true),
+            (0.12, -0.01, true),
         ] {
-            fins.tab = Some(tab);
-            assert!(
-                matches!(fins.mass_properties(0.03), Err(DesignError::Geometry(_))),
-                "{tab:?}"
-            );
+            fins.tab = tab(length_m, offset_m);
+            assert_eq!(refusal(&fins), !meets, "{:?}", fins.tab);
+            assert_eq!(fins.mass_properties(0.03).is_ok(), meets, "{:?}", fins.tab);
         }
+        fins.tab = Some(FinTab {
+            height_m: 0.05,
+            length_m: 0.02,
+            offset_m: 0.0,
+        });
+        assert!(
+            matches!(fins.mass_properties(0.03), Err(DesignError::Geometry(why)) if why.contains("no deeper than the body radius"))
+        );
         fins.tab = Some(FinTab {
             height_m: 0.03,
             length_m: 0.1,
             offset_m: 0.0,
         });
         fins.mass_properties(0.03).unwrap();
+    }
+
+    #[test]
+    fn a_tab_past_the_root_is_weighed_as_its_whole_slab() {
+        // A tab adds its whole slab to one fin, wherever it sits along the root (0.1 m here):
+        // past the trailing edge, ahead of the leading edge, past both, or inside. The slab is a
+        // box, r from R_b − h to R_b, τ ±t/2 and x from o to o + l, with points at (r, τ, −x), so
+        // about its own center I = m diag(t² + l², h² + l², h² + t²)/12, and about the origin
+        // I_o = I_c + m(|c|²E − c cᵀ) with c = (R_b − h/2, 0, −(o + l/2)). Comparing the
+        // tensors about the origin pins every moment, I_xz's sign included (ρ = 630 kg/m³).
+        let (t, h, rb) = (0.003, 0.01, 0.03);
+        let about_origin = |m: &MassProperties| {
+            let c = m.cg_m;
+            m.inertia_kg_m2
+                + (DMat3::IDENTITY * c.length_squared()
+                    - DMat3::from_cols(c * c.x, c * c.y, c * c.z))
+                    * m.mass_kg
+        };
+        let bare = set(3, rectangle(0.1, 0.05), t);
+        let without = bare.single_fin(rb).unwrap();
+        for (l, o) in [(0.08, 0.03), (0.02, -0.01), (0.12, -0.01), (0.04, 0.03)] {
+            let mut tabbed = bare.clone();
+            tabbed.tab = Some(FinTab {
+                height_m: h,
+                length_m: l,
+                offset_m: o,
+            });
+            let with = tabbed.single_fin(rb).unwrap();
+            let slab = 630.0 * t * l * h;
+            assert!(
+                ((with.mass_kg - without.mass_kg) - slab).abs() < 1e-12 * slab,
+                "{l} {o}"
+            );
+            let z = (with.cg_m.z * with.mass_kg - without.cg_m.z * without.mass_kg) / slab;
+            assert!((z + (o + 0.5 * l)).abs() < 1e-9, "{l} {o}: {z}");
+            let c = DVec3::new(rb - 0.5 * h, 0.0, -(o + 0.5 * l));
+            let own = DMat3::from_diagonal(DVec3::new(t * t + l * l, h * h + l * l, h * h + t * t))
+                * (slab / 12.0);
+            let expected = own
+                + (DMat3::IDENTITY * c.length_squared()
+                    - DMat3::from_cols(c * c.x, c * c.y, c * c.z))
+                    * slab;
+            let got = about_origin(&with) - about_origin(&without);
+            let scale = slab * (rb * rb + (o + l).powi(2));
+            for (g, e) in got.to_cols_array().iter().zip(expected.to_cols_array()) {
+                assert!(
+                    (g - e).abs() < 1e-9 * scale,
+                    "{l} {o}: {got:?} against {expected:?}"
+                );
+            }
+        }
+        // The set of three adds three slabs, its mass ρ t l h a fin.
+        let mut tabbed = set(3, rectangle(0.1, 0.05), t);
+        tabbed.tab = Some(FinTab {
+            height_m: h,
+            length_m: 0.08,
+            offset_m: 0.03,
+        });
+        let added =
+            tabbed.mass_properties(rb).unwrap().mass_kg - bare.mass_properties(rb).unwrap().mass_kg;
+        let slab = 3.0 * 630.0 * t * 0.08 * h;
+        assert!((added - slab).abs() < 1e-12 * slab, "{added}");
+    }
+
+    #[test]
+    fn a_tab_too_long_for_its_moments_is_refused() {
+        // A tab 1e103 m long has a finite mass but an x³ moment past f64's range; the fin's
+        // result is refused for its inertia, not returned with an infinite or NaN entry.
+        let mut fins = set(3, rectangle(0.1, 0.05), 0.003);
+        fins.tab = Some(FinTab {
+            height_m: 0.01,
+            length_m: 1e103,
+            offset_m: 0.0,
+        });
+        assert!(
+            matches!(fins.single_fin(0.03), Err(DesignError::UnphysicalInertia(why)) if why.contains("non-finite")),
+            "{:?}",
+            fins.single_fin(0.03)
+        );
     }
 
     #[test]
