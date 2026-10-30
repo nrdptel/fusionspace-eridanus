@@ -855,17 +855,17 @@ same test. Raised by one standard error, or lowered by two, it must fail. The st
 1.645. Lowering by one isn't enough to fail on a few hundred floors: of 210, a band still holds 5%
 with 2 truths below.
 
-| floor | floors fitted | 95% point $q_{95}$ | median | where the lower end falls |
+| floor | floors fitted | 95% point $q_{95}$, share of the bound | median, share of the bound | where the lower end falls |
 |---|---:|---:|---:|---|
 | burnout, from the top speed's peak | 437 | −0.0339 | −0.195 | just after the reading |
 | top acceleration | 413 | 0.223 | −0.111 | just below the reading |
 
-| set | floor | floors compared | truths below | raised one standard error | lowered two |
+| set | floor | floors compared | truths below | truths below, raised one standard error | truths below, lowered two |
 |---|---|---:|---:|---:|---:|
-| A | top acceleration | 224 | 15 | 65 below, fails | 0 below, fails |
-| A | burnout | 210 | 12 | 56 below, fails | 0 below, fails |
-| B | top acceleration | 240 | 19 | 62 below, fails | 0 below, fails |
-| B | burnout | 211 | 6 | 47 below, fails | 0 below, fails |
+| A | top acceleration | 224 | 15 | 65, fails | 0, fails |
+| A | burnout | 210 | 12 | 56, fails | 0, fails |
+| B | top acceleration | 240 | 19 | 62, fails | 0, fails |
+| B | burnout | 211 | 6 | 47, fails | 0, fails |
 
 **Why a clipped top is fitted at the clip.** No flight's own accelerometer clips here, so the top
 acceleration's floors come from each flight's log with the accelerometer clipping at 8 g. How far
