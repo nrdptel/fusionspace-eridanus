@@ -578,7 +578,15 @@ class FinSet(TypedDict):
 
 
 class FinTab(TypedDict):
-    """A rectangular tab below a fin's root, reaching into the body."""
+    """A rectangular tab below a fin's root, reaching into the body.
+
+    The tab is weighed as stated: it may start ahead of the root's leading edge (a negative
+    offset) or end past its trailing edge, as OpenRocket 24.12 weighs one, so long as it meets the
+    root over some length ([ADR-309][adr-309]). `.ork` files from OpenRocket 15.03 state tabs
+    that pass the root by rounding, by less than 0.03 mm, and by design, by more than 0.8 mm.
+
+    [adr-309]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0309-a-fin-tab-weighed-as-stated.md
+    """
 
     height_m: float
     """Depth below the root, m."""
@@ -587,7 +595,9 @@ class FinTab(TypedDict):
     """Length along the root, m."""
 
     offset_m: float
-    """Distance from the root leading edge aft to the tab's leading edge, m."""
+    """Distance from the root leading edge aft to the tab's leading edge, m; negative for a tab
+    that starts ahead of the root.
+    """
 
 
 Finish = Union[

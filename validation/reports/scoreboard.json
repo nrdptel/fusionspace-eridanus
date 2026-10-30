@@ -54,16 +54,16 @@
       "cells": [
         {
           "tool": "hpr",
-          "value": 12.95,
-          "count": 53,
+          "value": 12.07,
+          "count": 60,
           "source": "validation/reports/fixture-flights.json /sets/0/hpr/mean_absolute_percent",
           "milestone": null,
           "cannot": null
         },
         {
           "tool": "openrocket",
-          "value": 12.02,
-          "count": 53,
+          "value": 11.26,
+          "count": 60,
           "source": "validation/reports/fixture-flights.json /sets/0/openrocket/mean_absolute_percent",
           "milestone": null,
           "cannot": null
@@ -198,16 +198,16 @@
       "cells": [
         {
           "tool": "hpr",
-          "value": 8.73,
-          "count": 53,
+          "value": 7.76,
+          "count": 60,
           "source": "validation/reports/fixture-flights.json /sets/0/hpr/mean_percent",
           "milestone": null,
           "cannot": null
         },
         {
           "tool": "openrocket",
-          "value": 7.79,
-          "count": 53,
+          "value": 6.72,
+          "count": 60,
           "source": "validation/reports/fixture-flights.json /sets/0/openrocket/mean_percent",
           "milestone": null,
           "cannot": null

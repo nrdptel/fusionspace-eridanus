@@ -9,7 +9,7 @@ flight, how big its misses have been, and which miss to plan for. It's the first
 *Rocketry explained*. They explain the physics behind the numbers HPR Sim prints.
 
 > **How far to trust it.** A test reads every number in this guide's text from a committed report,
-> and CI reruns the worked example's command. The reports set HPR Sim's apogees against 53 logged
+> and CI reruns the worked example's command. The reports set HPR Sim's apogees against 60 logged
 > flights of fliers' own designs ([report][fixture-report]), and against 7 public flights
 > ([report][real-report]). They measure apogee alone: no comparison here checks a top speed, a
 > descent or a landing place against a real flight.
@@ -50,20 +50,20 @@ have read 2,946 m (9,665 ft). The miss is (2,946 − 2,785) / 2,785 = +5.78%
 ([report][real-report]). EuRoC is the European Rocketry Challenge. On the public flights, both
 sides of a miss are altimeter readings.
 
-Across 53 logged flights of fliers' own designs, HPR Sim's apogee averaged +8.73% above the logged
+Across 60 logged flights of fliers' own designs, HPR Sim's apogee averaged +7.76% above the logged
 one ([report][fixture-report]). Each flight was flown as drawn in its day's air. Each logged
 apogee there is the altimeter's reading turned into the height climbed in that day's air, so the
-comparison leans on that conversion too. Without their signs, the misses averaged 12.95%, and 26
+comparison leans on that conversion too. Without their signs, the misses averaged 12.07%, and 32
 were within 10% either way. The figure counts them by size.
 
 ![A bar chart of HPR Sim's apogee misses on the logged flights: most bars stand right of zero, the shaded band holds the small misses either way, and the low side is marked as the side that flatters a ceiling.](images/trust-apogee-misses.svg)
 
-The misses lean high: 40 of the 53 simulated apogees are above the logged one. And they spread
+The misses lean high: 45 of the 60 simulated apogees are above the logged one. And they spread
 wide: the lowest read between 15% and 20% low, the highest past +30% high.
 
-OpenRocket, flying the same files in each day's wind and the pad's air, averaged +7.79% above and
-missed by 12.02% without signs ([report][fixture-report]). The two simulators agreed with each
-other within 5% on 52 of the 53 flights. So most of the miss is one they share, and where it comes
+OpenRocket, flying the same files in each day's wind and the pad's air, averaged +6.72% above and
+missed by 11.26% without signs ([report][fixture-report]). The two simulators agreed with each
+other within 5% on 59 of the 60 flights. So most of the miss is one they share, and where it comes
 from isn't pinned down. It could be in what both are given (the design file, the motor's curve,
 the logged apogee they're scored against), or in models they have in common. A second simulator
 checks how the first is coded, not what the two share.
@@ -73,7 +73,7 @@ The 7 public flights are university teams' rockets, flown in a
 ([report][real-report]). HPR Sim's apogee missed them by 6.06% on average without signs, from
 −8.90% to +10.40% one by one. With signs the misses averaged −0.22%, so on these the highs and
 lows nearly cancel. The average without signs is still outside the project's own 5% target
-([Accuracy](accuracy.md#real-flights)). The note HPR Sim prints with every apogee quotes the 53,
+([Accuracy](accuracy.md#real-flights)). The note HPR Sim prints with every apogee quotes the 60,
 the larger set and the less flattering one ([the trust note's decision record][adr-211]).
 
 ## Which miss flatters
@@ -86,7 +86,7 @@ or a motor picked to reach a height, the sides swap, and the high side flatters.
 The figure marks the low side, and a test ties the mark to the sign of a miss. The figure's code
 marks the bins of negative misses. And
 [`a_low_simulated_apogee_is_a_negative_miss`][direction-test] holds that a simulated apogee below
-the logged one makes a negative miss in the report's rows. Of the 53 flights, 13 read low, the
+the logged one makes a negative miss in the report's rows. Of the 60 flights, 15 read low, the
 lowest of them between 15% and 20% low ([report][fixture-report]). A sample isn't a bound: a
 rocket unlike these may miss by more.
 
@@ -138,9 +138,9 @@ warning: drag, the nominal flight: issue #18: skin friction is taken as fully tu
 warning: stability, the nominal flight: issue #172: the static margin read up to 0.1108 calibers higher than OpenRocket's on four private designs, for a reason not yet found. This flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
 How far to trust it. Simulated from the design file, not measured; the spread above comes from the
-inputs' scatter alone, not from the model's error. Against 53 logged flights of fliers' own designs,
-the simulated apogee averaged 8.7% above the logged one. Each logged apogee is the height climbed in
-the day's air. The simulated apogee was within 10% on 26 and read low on 13, by at most 20%. Plan a
+inputs' scatter alone, not from the model's error. Against 60 logged flights of fliers' own designs,
+the simulated apogee averaged 7.8% above the logged one. Each logged apogee is the height climbed in
+the day's air. The simulated apogee was within 10% on 32 and read low on 15, by at most 20%. Plan a
 waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to log,
 and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
@@ -158,7 +158,7 @@ The note at the end is the miss on real flights from the sections above, which t
 out. The rest is the flight's setup and its landing ([Monte Carlo dispersion](monte-carlo.md)).
 
 The warnings don't settle which way this rocket will miss. They push its apogee low, yet across
-the 53 flights the misses leaned high on average. So causes not yet found can outweigh the known
+the 60 flights the misses leaned high on average. So causes not yet found can outweigh the known
 ones. A warning says which way one known gap pushes, not which way the flight will miss.
 
 The spread and the miss don't add as one range. The spread is this rocket's, from inputs the

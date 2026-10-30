@@ -22,8 +22,8 @@ differs most from the example's.
 consistent with HPR Sim's drag, and one with the motor's impulse. Four of those seven altimeters'
 kinds are assumed, and none is calibrated ([evidence row G21](evidence.md#g21)).
 
-**Against 53 more flights from a private collection, HPR Sim's apogees are +8.73% above the logs on
-average. They miss by 12.95% (mean absolute), also outside the target. OpenRocket's are +7.79%
+**Against 60 more flights from a private collection, HPR Sim's apogees are +7.76% above the logs on
+average. They miss by 12.07% (mean absolute), also outside the target. OpenRocket's are +6.72%
 above** ([private collection](#real-flights-of-the-private-collection), [report][fixture-report]).
 
 Neither set is held out. Both were seen during development, so neither is a blind test. That waits
@@ -51,7 +51,7 @@ What has been checked so far:
   past Mach 1 included.
 - Seven real flights, flown in the weather of their day. Their apogee and the climb to it are
   compared with their altitude logs ([real flights](#real-flights)).
-- 53 more real flights of a private collection, flown by HPR Sim and OpenRocket in the weather of
+- 60 more real flights of a private collection, flown by HPR Sim and OpenRocket in the weather of
   their day. They're compared with their logged apogees as aggregates
   ([private collection](#real-flights-of-the-private-collection), [report][fixture-report]).
 - The normal force and center of pressure from Mach 0.6 to 4.63, against NASA's wind-tunnel tests
@@ -923,10 +923,10 @@ investigated ([report][real-report]).
 These are a private collection's [logged apogees](decisions-and-roadmap.md#m2-3c1)
 ([the decision][adr-184]), [rechecked](decisions-and-roadmap.md#m2-3c5) against the collection's
 catalog ([the recheck][adr-238]). **In short: HPR Sim and [OpenRocket](glossary.md#openrocket) flew
-53 real flights in the weather of their day. Each pairs a design with the log of the same flight.
-Both over-predict: HPR Sim's [apogees](glossary.md#apogee) are +8.73% above the logs on average
-(mean absolute 12.95%), OpenRocket's +7.79% (12.02%). The two codes agree within 5% on 52 of the
-53 ([report][fixture-report]). Neither meets the 5% target.**
+60 real flights in the weather of their day. Each pairs a design with the log of the same flight.
+Both over-predict: HPR Sim's [apogees](glossary.md#apogee) are +7.76% above the logs on average
+(mean absolute 12.07%), OpenRocket's +6.72% (11.26%). The two codes agree within 5% on 59 of the
+60 ([report][fixture-report]). Neither meets the 5% target.**
 
 The [report][fixture-report]'s histogram gives the low side, the one a waiver depends on. Its bins
 below zero hold the flights whose simulated apogee read under the log. Each logged apogee is the
@@ -964,7 +964,7 @@ warm day it reads less than the height climbed
 ([worked example](physics/atmosphere.md#pressure-altitude-what-a-barometric-altimeter-reads)).
 
 The comparison turns each reading back into a height through the day's ERA5 air. Across these
-flights the heights came out 1.0360 times the readings on average, from 0.9601 to 1.0777 times
+flights the heights came out 1.0366 times the readings on average, from 0.9601 to 1.0777 times
 ([report][fixture-report]). Where a log's highest value was an ejection charge's pressure spike,
 the reading before the charge was taken. Of the 83 readings, 24 differ from the collection's own
 figure by more than 0.5%, each with its reason recorded ([decision][adr-184]).
@@ -972,20 +972,20 @@ figure by more than 0.5%, each with its reason recorded ([decision][adr-184]).
 | [report][fixture-report] | flights |
 |---|---:|
 | [tier A, from a `.ork`][fixture-report] | 83 |
-| [flown by HPR Sim][fixture-report] | 61 |
+| [flown by HPR Sim][fixture-report] | 68 |
 | [flown by OpenRocket 24.12][fixture-report] | 79 |
-| [flown by both][fixture-report] | 61 |
+| [flown by both][fixture-report] | 68 |
 | [left out: an airbrake or canard acted on the climb][fixture-report] | 6 |
 | [left out: the design posted is not the rocket flown][fixture-report] | 1 |
 | [left out: the rocket tumbled through its climb][fixture-report] | 1 |
-| [compared with the log][fixture-report] | 53 |
+| [compared with the log][fixture-report] | 60 |
 
-| [over 53 flights][fixture-report] | mean | median | mean absolute | flights within 5% | flights within 10% |
+| [over 60 flights][fixture-report] | mean | median | mean absolute | flights within 5% | flights within 10% |
 |---|---:|---:|---:|---:|---:|
-| [HPR Sim][fixture-report] | +8.73% | +9.47% | 12.95% | 9 | 26 |
-| [OpenRocket 24.12][fixture-report] | +7.79% | +6.82% | 12.02% | 9 | 25 |
-| [HPR Sim in OpenRocket's air][fixture-report] | +8.89% | +9.67% | 13.06% | 9 | 25 |
-| [HPR Sim against OpenRocket][fixture-report] | +0.81% | +0.41% | 1.62% | 52 | 53 |
+| [HPR Sim][fixture-report] | +7.76% | +6.69% | 12.07% | 14 | 32 |
+| [OpenRocket 24.12][fixture-report] | +6.72% | +6.08% | 11.26% | 13 | 31 |
+| [HPR Sim in OpenRocket's air][fixture-report] | +7.90% | +6.50% | 12.17% | 14 | 31 |
+| [HPR Sim against OpenRocket][fixture-report] | +0.93% | +0.62% | 1.64% | 59 | 60 |
 
 Each error is the simulated apogee less the logged one, over the logged one, in percent. So a
 positive error is a prediction above the log. The mean absolute error averages the errors without
@@ -995,11 +995,11 @@ The last row is HPR Sim's apogee less OpenRocket's, over OpenRocket's. A positiv
 value means HPR Sim flies higher. "Within 5%" and "within 10%" count the flights whose error is
 strictly smaller than that, either way ([report][fixture-report]).
 
-**Early deployments.** On 19 of the 53, a parachute charge fired or the rocket separated before
+**Early deployments.** On 19 of the 60, a parachute charge fired or the rocket separated before
 the highest reading, while it was still climbing ([report][fixture-report]). The readers' notes
 put each at under 1.5 s before the peak and a few meters of climb. So the apogee barely moves
-([decision][adr-184]). Without them, over 34 flights, HPR Sim is +3.95% (mean absolute 10.26%) and
-OpenRocket +3.19% (9.49%). The two sets differ in which rockets they hold more than in what the
+([decision][adr-184]). Without them, over 41 flights, HPR Sim is +3.34% (mean absolute 9.43%) and
+OpenRocket +2.41% (8.81%). The two sets differ in which rockets they hold more than in what the
 early charges cost.
 
 **The recheck.** The catalog flagged 68 of the 83 flights where its reading and this
@@ -1013,34 +1013,36 @@ apogee stays in the comparison. Four flights changed, and every flight gained it
   3 [calibers](glossary.md#caliber) of margin, can't show;
 - one left because its posted design is the flier's later, heavier rebuild.
 
-**Nothing in HPR Sim changed; the comparison's flights did.** HPR Sim's mean went from +9.83%
-over 55 flights to +8.73% over 53, and OpenRocket's from +9.00% to +7.79%. The tumbling flight's
-error was the largest in the set by a wide margin. Leaving it out lowers HPR Sim's mean by 1.28
-points, more than the whole move. Leaving out the rebuild raises it by 0.19
+**Nothing in HPR Sim changed; the comparison's flights did.** At the recheck, HPR Sim's mean went
+from +9.83% over 55 flights to +8.73% over 53, and OpenRocket's from +9.00% to +7.79%. The tumbling
+flight's error was the largest in the set by a wide margin. Leaving it out lowers HPR Sim's mean by
+1.28 points, more than the whole move. Leaving out the rebuild raises it by 0.19
 ([decision][adr-238], which gives each step). Without the early deployments the mean went from
-+5.88% to +3.95%, mostly for the same reason. The median, +9.47%, didn't move.
++5.88% to +3.95%, mostly for the same reason. The median, then +9.47%, didn't move. Since then HPR
+Sim reads a fin tab as its file states it, even past the root's ends, and flies seven more of the
+flights ([#357](https://github.com/nrdptel/fusionspace-eridanus/issues/357)), which gives the 60
+compared above ([report][fixture-report]).
 
-The catalog proposes 15 flights below tier A ([decision][adr-238]). Over the 44 compared flights it
+The catalog proposes 15 flights below tier A ([decision][adr-238]). Over the 49 compared flights it
 keeps in tier A ([report][fixture-report]):
 
-| [over 44 flights][fixture-report] | mean | median | mean absolute | flights within 5% | flights within 10% |
+| [over 49 flights][fixture-report] | mean | median | mean absolute | flights within 5% | flights within 10% |
 |---|---:|---:|---:|---:|---:|
-| [HPR Sim][fixture-report] | +7.84% | +7.60% | 12.13% | 8 | 23 |
-| [OpenRocket 24.12][fixture-report] | +6.99% | +6.34% | 11.28% | 8 | 22 |
+| [HPR Sim][fixture-report] | +7.01% | +6.28% | 11.58% | 11 | 27 |
+| [OpenRocket 24.12][fixture-report] | +6.09% | +5.84% | 10.84% | 10 | 26 |
 
-**What is not flown, and why.** Of the 83, HPR Sim flies 61, and each cause of the rest has an open
+**What is not flown, and why.** Of the 83, HPR Sim flies 68, and each cause of the rest has an open
 issue ([report][fixture-report]). OpenRocket flies 79, missing the motor in one
 ([#362](https://github.com/nrdptel/fusionspace-eridanus/issues/362)). For HPR Sim, most are small
 reading problems in its `.ork` importer that OpenRocket accepts:
 
-- a fin tab a few tens of microns past its root (6 flights, [#357](https://github.com/nrdptel/fusionspace-eridanus/issues/357));
 - a fin outline with a repeated point (3, [#358](https://github.com/nrdptel/fusionspace-eridanus/issues/358));
 - rail buttons spaced forward (1, [#359](https://github.com/nrdptel/fusionspace-eridanus/issues/359));
 - unread surface finishes (3, [#360](https://github.com/nrdptel/fusionspace-eridanus/issues/360));
 - two override flags read as one (1, [#361](https://github.com/nrdptel/fusionspace-eridanus/issues/361));
 - a part in an off-axis inner tube (2, [#181](https://github.com/nrdptel/fusionspace-eridanus/issues/181)).
 
-Three fly motors whose curve OpenRocket's database lacks
+Two fly motors whose curve OpenRocket's database lacks
 ([#362](https://github.com/nrdptel/fusionspace-eridanus/issues/362)). In three more the collection
 itself falls short: two designs don't hold the flown motor
 ([#363](https://github.com/nrdptel/fusionspace-eridanus/issues/363)) and one flight's day has no

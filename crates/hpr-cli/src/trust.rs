@@ -4,10 +4,10 @@
 //! The note has the three parts the design system's writing guide asks of every result someone
 //! might fly on, in order: what kind of figure it is, what it was checked against with numbers,
 //! and what to rely on instead. Its numbers are the committed report's:
-//! `validation/reports/fixture-flights.json`, HPR Sim's apogee against 53 logged flights of
+//! `validation/reports/fixture-flights.json`, HPR Sim's apogee against 60 logged flights of
 //! fliers' own designs, flown as drawn (M2.3c1, ADR-184; rechecked in M2.3c5, ADR-238). That is
 //! the largest comparison with real flights the project has, and the least flattering: on it the
-//! simulated apogee averages 8.7% above the logged apogee, each the height climbed in the day's
+//! simulated apogee averages 7.8% above the logged apogee, each the height climbed in the day's
 //! air. A test holds each figure here to the report, so a regenerated report that moves one fails
 //! until the note is updated.
 
@@ -26,14 +26,14 @@ pub(crate) const MORE: &str = " More: ";
 pub(crate) const LABEL: &str = "How far to trust it.";
 
 /// The flights the report compares: those HPR Sim flies of the collection's logged flights.
-pub(crate) const FLIGHTS: usize = 53;
+pub(crate) const FLIGHTS: usize = 60;
 /// The mean of the apogee errors, percent, to a tenth: simulated less logged, over logged, so
 /// positive is a simulated apogee above the logged one.
-pub(crate) const MEAN_PERCENT: f64 = 8.7;
+pub(crate) const MEAN_PERCENT: f64 = 7.8;
 /// The flights whose error is strictly smaller than 10% either way.
-pub(crate) const WITHIN_10: usize = 26;
+pub(crate) const WITHIN_10: usize = 32;
 /// The flights whose error is below zero: a simulated apogee under the logged one.
-pub(crate) const LOW: usize = 13;
+pub(crate) const LOW: usize = 15;
 /// How far below the logged apogee the lowest simulated apogee read, at most, percent: the lower
 /// edge of the lowest histogram bin holding a flight.
 pub(crate) const LOW_AT_MOST_PERCENT: f64 = 20.0;

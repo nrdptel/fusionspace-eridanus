@@ -463,6 +463,7 @@ found" without it. What *is* reproducible anywhere is everything the tests cover
 `cargo xtask ork --dir <path>`.
 
 [api]: https://hpr.fusionspace.co/api/hpr_design/tree/struct.Rocket.html
+[adr-309]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0309-a-fin-tab-weighed-as-stated.md
 [adr-051]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0051-m3-1-split-and-the-ork-document-kept-whole.md
 [adr-052]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0052-what-a-ork-value-means-automatic-dimensions-two.md
 [loft]: https://github.com/nrdptel/fusionspace-loft
@@ -795,7 +796,7 @@ explains every one ([what the 10 warnings are](#what-the-warnings-are)).
 | `innertube`, `tubecoupler`, `engineblock` | [`InnerTube`][p-inner] | may hold parts of its own |
 | `centeringring` | [`CenteringRing`][p-ring] | bore and outer radius may both be automatic |
 | `bulkhead` | [`CenteringRing`][p-ring] with no bore | |
-| `trapezoidfinset`, `ellipticalfinset`, `freeformfinset` | [`FinSet`][p-fins] | with its tab, its cant (the angle the fins are turned to induce roll) and its section (the shape along the chord: square, rounded or airfoil) |
+| `trapezoidfinset`, `ellipticalfinset`, `freeformfinset` | [`FinSet`][p-fins] | with its tab, read as stated even where it starts ahead of the root or ends past it, as OpenRocket weighs it ([a tab weighed as stated][adr-309]), its cant (the angle the fins are turned to induce roll) and its section (the shape along the chord: square, rounded or airfoil) |
 | `tubefinset` | [`TubeFinSet`][p-tubefins] | an `auto` radius closes the ring around the body, as OpenRocket works it out ([Tube fins sized from the body](#tube-fins-sized-from-the-body)); both sets in the corpus are written so |
 | `launchlug`, `railbutton` | [`LaunchLug`][p-lug], [`RailButton`][p-button] | a row of them is one part with a count and a spacing; a rail button's `<screwheight>` is its screw head, weighed since [M4.5i](../decisions-and-roadmap.md#m4-5i) ([mass](../physics/mass.md#fins-rail-buttons-and-roll-inertia)) |
 | `masscomponent` | [`MassComponent`][p-mass] | |

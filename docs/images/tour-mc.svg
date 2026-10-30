@@ -45,9 +45,9 @@
 <text x="52" y="711" xml:space="preserve" fill="#0B0F1C">    higher than OpenRocket&apos;s on four private designs, for a reason not yet found. This flight&apos;s</text>
 <text x="52" y="727" xml:space="preserve" fill="#0B0F1C">    margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)</text>
 <text x="52" y="759" xml:space="preserve" fill="#0B0F1C">How far to trust it. Simulated from the design file, not measured; the spread above comes from the</text>
-<text x="52" y="775" xml:space="preserve" fill="#0B0F1C">inputs&apos; scatter alone, not from the model&apos;s error. Against 53 logged flights of fliers&apos; own designs,</text>
-<text x="52" y="791" xml:space="preserve" fill="#0B0F1C">the simulated apogee averaged 8.7% above the logged one. Each logged apogee is the height climbed in</text>
-<text x="52" y="807" xml:space="preserve" fill="#0B0F1C">the day&apos;s air. The simulated apogee was within 10% on 26 and read low on 13, by at most 20%. Plan a</text>
+<text x="52" y="775" xml:space="preserve" fill="#0B0F1C">inputs&apos; scatter alone, not from the model&apos;s error. Against 60 logged flights of fliers&apos; own designs,</text>
+<text x="52" y="791" xml:space="preserve" fill="#0B0F1C">the simulated apogee averaged 7.8% above the logged one. Each logged apogee is the height climbed in</text>
+<text x="52" y="807" xml:space="preserve" fill="#0B0F1C">the day&apos;s air. The simulated apogee was within 10% on 32 and read low on 15, by at most 20%. Plan a</text>
 <text x="52" y="823" xml:space="preserve" fill="#0B0F1C">waiver or a field&apos;s ceiling with room above this apogee; the altimeter&apos;s reading is the one to log,</text>
 <text x="52" y="839" xml:space="preserve" fill="#0B0F1C">and the RSO decides.</text>
 <text x="52" y="855" xml:space="preserve" fill="#0B0F1C">More: https://hpr.fusionspace.co/accuracy.html</text>
