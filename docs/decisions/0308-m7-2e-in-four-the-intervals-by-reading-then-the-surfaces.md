@@ -119,7 +119,7 @@ rate or an acceleration.
     withheld reading still fails the command. The rule looks at the reading, not the truth, so
     the test holds the top speeds a user is given: 577 on the calibration set, 287 on A and 286
     on B. At 287 a tail passes with 4 to 28 misses, a looser test than at 820; the three probes
-    still fail it. Near the mark the rule lets through only the readings that came out low: of
+    still fail it. Past the mark the rule lets through only the readings that came out low: of
     the two Calisto designs' 18 top speeds on A and B, 10 left the truth above the interval, the
     flattering side (#1061).
   - The flattering side ([ADR-257][adr-257] §2) is a reading too low for the top vertical speed
@@ -128,6 +128,7 @@ rate or an acceleration.
     The report gives each reading's mean error with its sign. The top speed's is +1.2 and
     +1.3 m/s; the descent rate's −0.01 m/s on both sets, against errors up to 6.81 m/s. Both
     miss above their intervals on warm days as the height does (#1061), so the guide sends a
-    margin and a landing's speed to the bound. The times' leans by logger are #1062.
+    waiver and a fin's margin to the reading plus its bound, and a landing to the main's rate
+    and its bound. The times' leans by logger are #1062.
 - `cargo xtask synthetic` reads 4,000 more flights, about 100 s on an 8-core Mac (5.5 minutes in
   all, from about 4).

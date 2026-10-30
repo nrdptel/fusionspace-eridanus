@@ -736,11 +736,11 @@ speeds. Each tail then misses about 5% on average over flights drawn as those ar
 | descent rate | −0.473 | 0.493 |
 
 Some points lean. Liftoff is the last sample within the pad's allowance, which the rocket leaves
-only after climbing it, so it is read late, and both its points are above zero: its interval lies wholly before the reading. The flight time runs from that late
-liftoff to a landing read early, so it reads short, and its interval lies wholly after the
-reading. The apogee time's errors reach further early than late, so its interval reaches further
-after the reading than before it. `cargo xtask synthetic` fits the points again and fails unless
-they equal the library's.
+only after climbing it, so it is read late, and both its points are above zero: its interval lies
+wholly before the reading. The flight time runs from that late liftoff to a landing read early, so
+it reads short, and its interval lies wholly after the reading. The apogee time's errors reach
+further early than late, so its interval reaches further after the reading than before it. `cargo
+xtask synthetic` fits the points again and fails unless they equal the library's.
 
 **A worked example.** The invented PerfectFlite log's apogee of 390.144 m (1,280 ft) has a bound
 of 31.83 m (104.4 ft) ([above](#a-worked-example)). Its interval runs from 390.144 − 0.637 × 31.83 =
@@ -778,9 +778,9 @@ The GNSS-only logs, 180 of A's and 155 of B's, give none of these readings, and 
 mark withholds 533 more top speeds on A and 559 on B. So the top speed is tested on fewer than 300 readings a set, where a tail passes with a
 wider share of misses either way: 4 to 28 of 287 (1.4% to 9.8%), against 22 to 63 of 820. Every interval
 narrowed to 0.8 of its width fails the test, and so does every one widened to 1.25 or shifted
-down one standard error, the top speed's included. Near the mark, though, the rule lets through
-only the top speeds that came out low. The two Calisto designs mostly fly past it, and of the 18
-top speeds they gave on A and B, 10 left the truth above the interval (the report's *By design*).
+down one standard error, the top speed's included. Past the mark, though, the rule lets through only
+the top speeds that came out low. The two Calisto designs mostly fly past it, and of the 18 top
+speeds they gave on A and B, 10 left the truth above the interval (the report's *By design*).
 
 Three of the readings have a flattering side: a reading too low makes the flight look safer than
 it was. A low apogee height flatters a waiver, and a low top speed a fin's margin. The top speed
@@ -797,15 +797,18 @@ a hundredth of a meter per second low against errors up to 6.81 m/s (22.3 ft/s).
 
 The test pools the five loggers that give these readings and the ten designs. The 90% is over the
 days the flights draw, spread evenly within 15 K of the standard atmosphere, and the misses aren't
-spread over those days. A barometric height is off by about the day's offset from standard over
-its temperature, and so are the speed and the rate taken from it. On days within 10 K of
-standard, no height and no descent rate missed, and 4 of 361 top speeds did. On days warmer than
-that, above about 25 °C (77 °F) at a sea-level field, a warm day reads low, so the truth lay above the interval: for the height, 45 of 137 on A
-and 47 of 156 on B ([#1055](https://github.com/nrdptel/fusionspace-eridanus/issues/1055)); for the descent rate, 45 of 137 and 50 of 156; for the top speed,
-17 of 57 and 14 of 69 ([#1061](https://github.com/nrdptel/fusionspace-eridanus/issues/1061)). On a hot day, then, expect each of the three above its interval's
-top far more often than 1 time in 20. So for a waiver, take the apogee plus its bound; for a fin's
-margin, the top speed plus its bound; for a landing, the main's rate plus its bound. Each bound
-holds the day's air to 15 K. The bounds, too, were measured only on synthetic flights.
+spread over those days. A barometric height is off by about the day's offset from standard over its
+temperature, and so are the speed and the rate taken from it. On days within 10 K of standard, no
+height and no descent rate missed, and 4 of 361 top speeds did. On days warmer than that, above
+about 25 °C (77 °F) at a sea-level field, a warm day reads low, so the truth lay above the interval:
+for the height, 45 of 137 on A and 47 of 156 on B
+([#1055](https://github.com/nrdptel/fusionspace-eridanus/issues/1055)); for the descent rate, 45 of
+137 and 50 of 156; for the top speed, 17 of 57 and 14 of 69
+([#1061](https://github.com/nrdptel/fusionspace-eridanus/issues/1061)). On a hot day, then, expect
+each of the three above its interval's top far more often than 1 time in 20. So for a waiver, take
+the apogee plus its bound; for a fin's margin, the top speed plus its bound; for a landing, the
+main's rate plus its bound. Each bound holds the day's air to 15 K. The bounds, too, were measured
+only on synthetic flights.
 
 The times lean by logger. On the AltOS logs, whose rate drops from 100 to 10 samples a second at
 apogee, 27 of 185 apogee times on A and 30 of 186 on B lie later than the interval ([#1056](https://github.com/nrdptel/fusionspace-eridanus/issues/1056)).

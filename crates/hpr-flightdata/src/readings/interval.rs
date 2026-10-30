@@ -21,9 +21,10 @@
 //! third of the days warmer than that read low enough to leave the truth above the interval, the
 //! flattering side for a waiver (#1055). The top speed and the mean descent rate, taken from the
 //! same height, miss the same way, the flattering side for a fin's margin and for how gentle the
-//! descent was (#1061); near the top speed's transonic mark only its low readings are given. The times lean by logger: on the AltOS logs, the apogee time's interval misses late
-//! about one time in six or seven (#1056), and liftoff, landing and the flight time lean on others
-//! (#1062). The top speed is tested only where it is given, below
+//! descent was (#1061); for flights at or past the top speed's transonic mark, only its low
+//! readings are given. The times lean by logger: on the AltOS logs, the apogee time's interval
+//! misses late about one time in six or seven (#1056), and liftoff, landing and the flight time
+//! lean on others (#1062). The top speed is tested only where it is given, below
 //! [`super::TRANSONIC_SPEED_M_S`]. A real flight can lie outside what the sets draw, as a day more
 //! than 15 K from standard does; its interval then says less than 90%. No real flight has yet
 //! checked one (evidence row G34).
