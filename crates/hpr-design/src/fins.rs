@@ -789,8 +789,9 @@ impl FinSet {
     /// # Errors
     ///
     /// As [`FinSet::validate`], plus [`DesignError::Domain`] for a negative body radius or a
-    /// fillet more than [`FILLET_RATIO_MAX`] times the body radius, and
-    /// [`DesignError::Numerics`] if an integral fails.
+    /// fillet more than [`FILLET_RATIO_MAX`] times the body radius, [`DesignError::Numerics`] if
+    /// an integral fails, and [`MassProperties::validate`]'s errors for a result that isn't
+    /// finite (a tab too long for its moments to fit in an `f64`).
     pub fn single_fin(&self, body_radius_m: f64) -> Result<MassProperties, DesignError> {
         self.validate()?;
         check_dimension("fin body radius", body_radius_m, true)?;
@@ -831,14 +832,18 @@ impl FinSet {
             Some(fillets) => MassProperties::combine([&plate, &fillets]),
             None => plate,
         };
-        if self.cant_rad == 0.0 {
-            return Ok(fin);
-        }
-        let pivot = DVec3::new(body_radius_m, 0.0, -0.5 * self.planform.root_chord_m());
-        Ok(fin
-            .translated(-pivot)
-            .rotated(DQuat::from_rotation_x(self.cant_rad))
-            .translated(pivot))
+        let fin = if self.cant_rad == 0.0 {
+            fin
+        } else {
+            let pivot = DVec3::new(body_radius_m, 0.0, -0.5 * self.planform.root_chord_m());
+            fin.translated(-pivot)
+                .rotated(DQuat::from_rotation_x(self.cant_rad))
+                .translated(pivot)
+        };
+        // A tab is held to no length by its root (ADR-309), so one of a length near f64's range
+        // overflows its moments: refuse a result that isn't finite rather than return it.
+        fin.validate()?;
+        Ok(fin)
     }
 
     /// Mass properties of the two fillets along one fin's root, at roll angle 0 and no cant, in
@@ -1437,28 +1442,81 @@ mod tests {
 
     #[test]
     fn a_tab_past_the_root_is_weighed_as_its_whole_slab() {
-        // A tab 10 mm past the trailing edge adds its whole slab, ρ t l h a fin, to the set's
-        // mass (plywood, 630 kg/m³), and its center of mass sits at the slab's middle, 70 mm aft
-        // of the root leading edge, where z_B, forward, reads −0.07 m.
-        let (t, l, h, rb) = (0.003, 0.08, 0.01, 0.03);
+        // A tab adds its whole slab to one fin, wherever it sits along the root (0.1 m here):
+        // past the trailing edge, ahead of the leading edge, past both, or inside. The slab is a
+        // box, r from R_b − h to R_b, τ ±t/2 and x from o to o + l, with points at (r, τ, −x), so
+        // about its own center I = m diag(t² + l², h² + l², h² + t²)/12, and about the origin
+        // I_o = I_c + m(|c|²E − c cᵀ) with c = (R_b − h/2, 0, −(o + l/2)). Comparing the
+        // tensors about the origin pins every moment, I_xz's sign included (ρ = 630 kg/m³).
+        let (t, h, rb) = (0.003, 0.01, 0.03);
+        let about_origin = |m: &MassProperties| {
+            let c = m.cg_m;
+            m.inertia_kg_m2
+                + (DMat3::IDENTITY * c.length_squared()
+                    - DMat3::from_cols(c * c.x, c * c.y, c * c.z))
+                    * m.mass_kg
+        };
         let bare = set(3, rectangle(0.1, 0.05), t);
-        let mut tabbed = bare.clone();
+        let without = bare.single_fin(rb).unwrap();
+        for (l, o) in [(0.08, 0.03), (0.02, -0.01), (0.12, -0.01), (0.04, 0.03)] {
+            let mut tabbed = bare.clone();
+            tabbed.tab = Some(FinTab {
+                height_m: h,
+                length_m: l,
+                offset_m: o,
+            });
+            let with = tabbed.single_fin(rb).unwrap();
+            let slab = 630.0 * t * l * h;
+            assert!(
+                ((with.mass_kg - without.mass_kg) - slab).abs() < 1e-12 * slab,
+                "{l} {o}"
+            );
+            let z = (with.cg_m.z * with.mass_kg - without.cg_m.z * without.mass_kg) / slab;
+            assert!((z + (o + 0.5 * l)).abs() < 1e-9, "{l} {o}: {z}");
+            let c = DVec3::new(rb - 0.5 * h, 0.0, -(o + 0.5 * l));
+            let own = DMat3::from_diagonal(DVec3::new(t * t + l * l, h * h + l * l, h * h + t * t))
+                * (slab / 12.0);
+            let expected = own
+                + (DMat3::IDENTITY * c.length_squared()
+                    - DMat3::from_cols(c * c.x, c * c.y, c * c.z))
+                    * slab;
+            let got = about_origin(&with) - about_origin(&without);
+            let scale = slab * (rb * rb + (o + l).powi(2));
+            for (g, e) in got.to_cols_array().iter().zip(expected.to_cols_array()) {
+                assert!(
+                    (g - e).abs() < 1e-9 * scale,
+                    "{l} {o}: {got:?} against {expected:?}"
+                );
+            }
+        }
+        // The set of three adds three slabs, its mass ρ t l h a fin.
+        let mut tabbed = set(3, rectangle(0.1, 0.05), t);
         tabbed.tab = Some(FinTab {
             height_m: h,
-            length_m: l,
+            length_m: 0.08,
             offset_m: 0.03,
         });
-        let (without, with) = (
-            bare.mass_properties(rb).unwrap(),
-            tabbed.mass_properties(rb).unwrap(),
-        );
-        let slab = 3.0 * 630.0 * t * l * h;
+        let added =
+            tabbed.mass_properties(rb).unwrap().mass_kg - bare.mass_properties(rb).unwrap().mass_kg;
+        let slab = 3.0 * 630.0 * t * 0.08 * h;
+        assert!((added - slab).abs() < 1e-12 * slab, "{added}");
+    }
+
+    #[test]
+    fn a_tab_too_long_for_its_moments_is_refused() {
+        // A tab 1e103 m long has a finite mass but an x³ moment past f64's range; the fin's
+        // result is refused for its inertia, not returned with an infinite or NaN entry.
+        let mut fins = set(3, rectangle(0.1, 0.05), 0.003);
+        fins.tab = Some(FinTab {
+            height_m: 0.01,
+            length_m: 1e103,
+            offset_m: 0.0,
+        });
         assert!(
-            ((with.mass_kg - without.mass_kg) - slab).abs() < 1e-12 * slab,
-            "{with:?}"
+            matches!(fins.single_fin(0.03), Err(DesignError::UnphysicalInertia(why)) if why.contains("non-finite")),
+            "{:?}",
+            fins.single_fin(0.03)
         );
-        let x = (with.cg_m.z * with.mass_kg - without.cg_m.z * without.mass_kg) / slab;
-        assert!((x + (0.03 + 0.5 * l)).abs() < 1e-9, "{x}");
     }
 
     #[test]

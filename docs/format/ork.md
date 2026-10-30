@@ -796,7 +796,7 @@ explains every one ([what the 10 warnings are](#what-the-warnings-are)).
 | `innertube`, `tubecoupler`, `engineblock` | [`InnerTube`][p-inner] | may hold parts of its own |
 | `centeringring` | [`CenteringRing`][p-ring] | bore and outer radius may both be automatic |
 | `bulkhead` | [`CenteringRing`][p-ring] with no bore | |
-| `trapezoidfinset`, `ellipticalfinset`, `freeformfinset` | [`FinSet`][p-fins] | with its tab, read as stated even where it starts ahead of the root or ends past it, as OpenRocket weighs it ([a tab weighed as stated][adr-309]), its cant (the angle the fins are turned to induce roll) and its section (the shape along the chord: square, rounded or airfoil) |
+| `trapezoidfinset`, `ellipticalfinset`, `freeformfinset` | [`FinSet`][p-fins] | with its tab, its cant (the angle the fins are turned to induce roll) and its section (the shape along the chord: square, rounded or airfoil). The tab is read as stated, even where it starts ahead of the root or ends past it, as OpenRocket weighs it ([a tab weighed as stated][adr-309]) |
 | `tubefinset` | [`TubeFinSet`][p-tubefins] | an `auto` radius closes the ring around the body, as OpenRocket works it out ([Tube fins sized from the body](#tube-fins-sized-from-the-body)); both sets in the corpus are written so |
 | `launchlug`, `railbutton` | [`LaunchLug`][p-lug], [`RailButton`][p-button] | a row of them is one part with a count and a spacing; a rail button's `<screwheight>` is its screw head, weighed since [M4.5i](../decisions-and-roadmap.md#m4-5i) ([mass](../physics/mass.md#fins-rail-buttons-and-roll-inertia)) |
 | `masscomponent` | [`MassComponent`][p-mass] | |

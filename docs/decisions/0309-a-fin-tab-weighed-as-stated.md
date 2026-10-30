@@ -42,7 +42,10 @@ its tab as kept.
    airframe "not read exactly as written", and HPR Sim does not fly such a design; a tab weighed as
    its file states it is read exactly as written.
 4. HPR Sim does not trim the rounding overhangs as OpenRocket does for two of them. The trimmed
-   slab is under 0.03 mm long, too little to show in a mass or an apogee.
+   slab is under 0.03 mm long. On a tab 3 mm thick and 25 mm deep, for example, of plywood at
+   630 kg/m³, it weighs under 1.5 mg, too little to show in a mass or an apogee.
+5. A tab is held to no length by its root, so one long enough to overflow its moments is refused
+   for its inertia rather than weighed with an infinite or undefined entry.
 
 **Consequences.**
 
@@ -54,6 +57,9 @@ its tab as kept.
 
 **Tests.** `hpr-design`'s `a_tab_must_meet_the_root_and_fit_the_body` holds the bound both ways at
 each end of the root (a tab touching an end, or a nanometer past it, is refused; a nanometer onto
-the root is weighed), and `a_tab_past_the_root_is_weighed_as_its_whole_slab` holds the slab's
-mass and center of mass. `hpr-io`'s `a_fin_tab_past_its_root_is_read_as_stated` reads tabs past
-either end, by rounding and by design, with no warning.
+the root is weighed). `a_tab_past_the_root_is_weighed_as_its_whole_slab` holds one fin's added
+mass, center of mass and inertia tensor about the origin to a closed-form box, for tabs past the
+trailing edge, ahead of the leading edge, past both and inside;
+`a_tab_too_long_for_its_moments_is_refused` holds item 5. `hpr-io`'s
+`a_fin_tab_past_its_root_is_read_as_stated` reads tabs past either end, by rounding and by design,
+with no warning.

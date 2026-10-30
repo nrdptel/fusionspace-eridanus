@@ -1013,13 +1013,13 @@ apogee stays in the comparison. Four flights changed, and every flight gained it
   3 [calibers](glossary.md#caliber) of margin, can't show;
 - one left because its posted design is the flier's later, heavier rebuild.
 
-**Nothing in HPR Sim changed at the recheck; the comparison's flights did.** The tumbling flight's
-error was the largest in the set by a wide margin. Leaving it out lowered HPR Sim's mean by 1.28
-points, more than the whole move. Leaving out the rebuild raised it by 0.19 ([decision][adr-238],
-which gives each step and the means before and after). Without the early deployments the mean fell
-too, mostly for the same reason, and the median didn't move. Since then HPR Sim reads a fin tab as
-its file states it, even past the root's ends ([decision][adr-309]), and flies seven more of the
-flights ([#357](https://github.com/nrdptel/fusionspace-eridanus/issues/357)), which gives the 60
+**Nothing in HPR Sim changed at the recheck; the comparison's flights did.** The recheck lowered
+HPR Sim's mean error over the compared flights, and the tumbling flight explains more than all of
+the fall: its error was the largest in the set by a wide margin, and leaving it out lowered the
+mean by 1.28 points. Leaving out the rebuild raised it by 0.19. The record of the recheck
+([decision][adr-238]) gives the means before and after each step. Later, HPR Sim came to read a fin
+tab as its file states it, even past the root's ends ([decision][adr-309]), and so flies seven more
+of the flights ([#357](https://github.com/nrdptel/fusionspace-eridanus/issues/357)), which gives the 60
 compared above ([report][fixture-report]).
 
 The catalog proposes 15 flights below tier A ([decision][adr-238]). Over the 49 compared flights it
