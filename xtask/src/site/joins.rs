@@ -903,6 +903,14 @@ mod tests {
                 .replace("101\n", "101\u{a0}")
         );
         assert!(page_splits(&joined).is_empty());
+        // Groups across an inline tag, an entity and a source line break inside a list item.
+        for page in [
+            "<p><b>22</b> 632 Pa</p>",
+            "<li>101&#32;325</li>",
+            "<p>0.001 953\n  125;</p>",
+        ] {
+            assert!(!page_splits(page).is_empty(), "{page}");
+        }
     }
 
     #[test]
