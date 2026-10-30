@@ -454,6 +454,12 @@ fn time_units(units: &str, calendar: Option<&str>) -> Result<(f64, f64), Era5Err
         [date, clock, zone] => ((*date).to_owned(), (*clock).to_owned(), Some(*zone)),
         _ => return Err(bad(format!("units `{units}` have no reference date"))),
     };
+    // A zone after a clock that already ends in `Z` is a second zone: refused, not dropped.
+    if clock.ends_with('Z') && zone.is_some() {
+        return Err(bad(format!(
+            "reference time in `{units}` names two time zones"
+        )));
+    }
     let (clock, zone) = match clock.strip_suffix('Z') {
         Some(clock) => (clock.to_owned(), Some("Z")),
         None => (clock, zone),
@@ -463,6 +469,17 @@ fn time_units(units: &str, calendar: Option<&str>) -> Result<(f64, f64), Era5Err
         None | Some("UTC" | "Z" | "+00:00" | "+0000" | "+00" | "00:00")
     ) {
         return Err(bad(format!("reference time zone in `{units}` is not UTC")));
+    }
+    // No field carries a sign: UDUNITS reads a signed `hh:mm` only as a zone after the clock,
+    // and a negative field would saturate to 0 at the casts below.
+    if date
+        .splitn(3, '-')
+        .chain(clock.splitn(3, ':'))
+        .any(|field| field.starts_with(['+', '-']))
+    {
+        return Err(bad(format!(
+            "reference date or time in `{units}` has a signed field"
+        )));
     }
     let number = |text: &str| text.parse::<f64>().ok();
     let date: Vec<Option<f64>> = date.splitn(3, '-').map(number).collect();
@@ -492,6 +509,11 @@ fn time_units(units: &str, calendar: Option<&str>) -> Result<(f64, f64), Era5Err
             "reference date in `{units}` falls in the standard calendar's Julian part"
         )));
     }
+    #[allow(
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss,
+        reason = "whole numbers under 10⁶ with no sign, by the checks above, so each cast is exact"
+    )]
     let epoch = UtcTime::from_civil(
         year as i32,
         month as u32,

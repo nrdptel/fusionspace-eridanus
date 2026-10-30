@@ -1114,6 +1114,10 @@ fn velocity_scale(time_s: &[f64], altitude_m: &[f64], velocity: &[f64]) -> Optio
     let (time_s, above, integral) = (&time_s[..rows], &above[..rows], &integral[..rows]);
 
     let (earliest, latest, step) = DELAY_SEARCH_S;
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "a constant search of 120 steps"
+    )]
     let steps = ((latest - earliest) / step).round() as i32;
     let mut best: Option<(f64, f64, f64)> = None;
     for at in 0..=steps {

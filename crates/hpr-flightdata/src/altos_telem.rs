@@ -367,6 +367,10 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let times: Vec<f64> = packets
         .iter()
         .map(|packet| {
+            #[allow(
+                clippy::cast_possible_truncation,
+                reason = "a remainder of a 65,536-tick turn, so the cast is exact"
+            )]
             let unwound = match latest {
                 None => i64::from(packet.tick),
                 Some(latest) => {

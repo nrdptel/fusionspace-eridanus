@@ -906,6 +906,10 @@ fn unwind(records: &[Record]) -> (Vec<i64>, usize) {
             None => i64::from(record.tick()),
             Some(latest) => {
                 // The step to the nearest turn, from −32,768 to 32,767 ticks.
+                #[allow(
+                    clippy::cast_possible_truncation,
+                    reason = "a remainder of a 65,536-tick turn, so the cast is exact"
+                )]
                 let step =
                     i64::from(record.tick().wrapping_sub(latest.rem_euclid(TURN) as u16) as i16);
                 if step.abs() > SILENCE_TICKS {

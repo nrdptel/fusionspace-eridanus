@@ -571,7 +571,7 @@ fn time_of_day(cell: &str) -> Option<i64> {
     }
     let mut nanos: i64 = 0;
     for (place, digit) in fraction.bytes().enumerate() {
-        nanos += i64::from(digit - b'0') * 10_i64.pow(8 - place as u32);
+        nanos += i64::from(digit - b'0') * 10_i64.pow(8 - u32::try_from(place).ok()?);
     }
     Some(((hours * 60 + minutes) * 60 + seconds) * 1_000_000_000 + nanos)
 }

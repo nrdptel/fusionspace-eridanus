@@ -422,7 +422,7 @@ fn time_of_day_ms(token: &str) -> Option<i64> {
         (!seconds.contains('.')).then_some(0)?
     } else {
         // `.5` is 500 ms: padded to three digits.
-        digits(fraction, 3)? * 10_i64.pow(3 - fraction.len() as u32)
+        digits(fraction, 3)? * 10_i64.pow(3 - u32::try_from(fraction.len()).ok()?)
     };
     Some(((hours * 60 + minutes) * 60 + whole_seconds) * 1_000 + milliseconds)
 }

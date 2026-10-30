@@ -533,7 +533,12 @@ fn figures(x: f64) -> String {
     if x == 0.0 {
         return "0".to_owned();
     }
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "x is finite and not zero (returned above), so its decimal exponent is within ±324"
+    )]
     let digits = x.abs().log10().floor() as i32;
+    #[allow(clippy::cast_sign_loss, reason = "not negative after max(0)")]
     let decimals = (2 - digits).max(0) as usize;
     let text = format!("{x:.decimals$}");
     if text
@@ -1222,6 +1227,11 @@ fn smoothed(values: &[f64], times: &[f64]) -> Vec<f64> {
     }
     let mut gaps: Vec<f64> = times.windows(2).map(|w| w[1] - w[0]).collect();
     let interval = median(&mut gaps).max(1.0e-6);
+    #[allow(
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss,
+        reason = "the interval is at least 10⁻⁶ s, so this is 0 to 5 × 10⁴"
+    )]
     let half = ((REGRESSOR_HALF_S / interval).round() as usize).max(1);
     crate::filter::running_median(values, half)
 }

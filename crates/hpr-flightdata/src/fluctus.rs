@@ -1224,9 +1224,9 @@ fn gps_check(gps: &[f64], altitude_m: &[f64]) -> GpsCheck {
 
 /// The manual's name for a flight sequencer's code (p23), or `status` and the number.
 fn status_name(code: f64) -> String {
-    let named = (code.fract() == 0.0 && (0.0..=6.0).contains(&code))
-        .then(|| STATUS_NAMES.get(code as usize))
-        .flatten();
+    let named = (0_u8..=6)
+        .find(|&k| f64::from(k) == code)
+        .and_then(|k| STATUS_NAMES.get(usize::from(k)));
     named.map_or_else(|| format!("status {code}"), |name| (*name).to_owned())
 }
 
@@ -1307,6 +1307,10 @@ fn step_check(
 /// A note counting the clock's steps longer than its commonest, if any.
 fn clock_steps(time_s: &[f64], lines: &[usize], notes: &mut Vec<String>) {
     // Each step in whole microseconds, so that equal steps count together.
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "the clock is finite (a `nan` clock is refused when read); only a step of some 292,000 years would saturate"
+    )]
     let steps: Vec<i64> = time_s
         .windows(2)
         .map(|pair| ((pair[1] - pair[0]) * 1e6).round() as i64)

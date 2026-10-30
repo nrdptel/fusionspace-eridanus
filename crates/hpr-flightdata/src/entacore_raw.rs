@@ -486,9 +486,18 @@ fn raw_values(kind: &Kind, data: &[u8]) -> Result<Vec<f64>, (usize, String)> {
             // (f32(3.3) × f32(133/33) = 13.299 999 2, one ulp below f32(13.3)), over 4096,
             // rounded to an f32. With this factor, every battery value in the sample equals the
             // `.xtra`'s, as the survey's comparison shows.
+            #[allow(
+                clippy::cast_possible_truncation,
+                reason = "single precision, as the logger's software works it"
+            )]
             let volts =
                 f64::from(raw >> 4) * f64::from(3.3_f32 * (133.0_f64 / 33.0) as f32) / 4_096.0;
-            vec![f64::from(volts as f32)]
+            #[allow(
+                clippy::cast_possible_truncation,
+                reason = "rounded to an f32, as the logger's software rounds it"
+            )]
+            let volts = volts as f32;
+            vec![f64::from(volts)]
         }
         0x07..=0x0a => {
             let raw = u16_at(0);
@@ -501,7 +510,12 @@ fn raw_values(kind: &Kind, data: &[u8]) -> Result<Vec<f64>, (usize, String)> {
                     ),
                 ));
             }
-            vec![f64::from(f32::from(raw) * ((3.3_f64 / 16_384.0) as f32))]
+            #[allow(
+                clippy::cast_possible_truncation,
+                reason = "an f32 factor, multiplied in f32: the reading is single precision"
+            )]
+            let volts_per_count = (3.3_f64 / 16_384.0) as f32;
+            vec![f64::from(f32::from(raw) * volts_per_count)]
         }
         0x0e => {
             let i32_at = |at: usize| {
