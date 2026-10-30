@@ -1883,8 +1883,8 @@ main descent      6.0 m/s (20 ft/s), within 0.8 m/s (3 ft/s), 90% interval 5.5 t
 top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
 burnout           no sooner than 0.88 s: the top speed's time, 2.20 s (1.40 s after liftoff), less its bound, 1.32 s. Derived from the heights, burnout may have come later by any amount; 95% lower end 2.24 s
 smoothed apogee   390.3 m (1280 ft), 90% interval 369.9 to 410.7 m (1213 to 1348 ft), at 10.25 s
-health card       pad assumed: too little of it in the log; heights on the logger's zero, noise from the flight's scatter
-                  barometer: 984 samples, 983 fused, 1 rejected, 0 not weighed, 0 resets; 99.8% inside the gate; mean NIS 0.0251; largest test ratio 4.95 at 11.2 s, Mach 0.03
+health card       pad assumed: too little of it in the log; heights on the readings' zero, noise from the flight's scatter
+                  barometer: 984 samples, 981 fused, 1 rejected, 2 not weighed, 0 resets; 99.8% inside the gate; mean NIS 0.0252; largest test ratio 4.95 at 11.2 s, Mach 0.03
                   barometer de-weighted: charge 11.3–11.9 s
                   pass back: every step smoothed
 
@@ -2001,8 +2001,8 @@ main descent      withheld, as landing is
 top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
 burnout           withheld: burnout from the speed's peak needs the top speed, which is withheld above
 smoothed apogee   546.6 m (1793 ft), 90% interval 512.3 to 580.8 m (1680 to 1906 ft), at 13.00 s
-health card       pad assumed: too little of it in the log; heights on the logger's zero, noise from the flight's scatter
-                  barometer: 201 samples, 201 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.00802; largest test ratio 0.0120 at 15.6 s, Mach 0.06
+health card       pad assumed: too little of it in the log; heights on the readings' zero, noise from the flight's scatter
+                  barometer: 201 samples, 199 fused, 0 rejected, 2 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.00810; largest test ratio 0.0120 at 15.6 s, Mach 0.06
                   barometer de-weighted: charge 12.2–14.0 s
                   pass back: every step smoothed
 

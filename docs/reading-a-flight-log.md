@@ -374,12 +374,18 @@ Among them are those that came with the accelerometer and the canopies:
 Beside its bound, a reading may give a 90% interval: where the truth lay nine times in ten on the
 [synthetic flights](physics/synthetic-flights.md). No real flight has checked one
 ([evidence row G34](evidence.md#g34)). The bound is the worst case, and the one to use for a waiver
-or a load. A reading that is read late, as liftoff is, has an interval before the reading.
+or a load. A floor gives a "95% lower end" in its place: about 19 truths in 20 lay above it.
+
+An interval can lie wholly to one side of its reading, as the reading's error leans one way. Liftoff
+is read late, so its interval lies earlier (0.80 s, interval 0.41 to 0.64 s). The flight time, landing
+less liftoff, reads short, so its interval lies later (45.00 s, interval 45.38 to 46.11 s).
 
 The last rows are [the smoother](physics/smoother.md)'s, every sensor together, also unchecked on a
-real flight ([evidence row G33](evidence.md#g33)). Its health card says how each sensor fared. It
-can say the pad was assumed, the accelerometer set aside, or the smoothed apogee is past the
-reading's bound. In that last case, go by the reading.
+real flight ([evidence row G33](evidence.md#g33)). Its apogee is a cross-check: report the reading.
+Its [health card](physics/smoother.md#the-health-card) says how each sensor fared. It can say the pad
+was assumed, as on a log that starts at launch, or the accelerometer set aside. Neither asks anything
+of you, though the track then rests on less. If it says the smoothed apogee is past the reading's
+bound, go by the reading.
 
 ## What it doesn't do yet
 

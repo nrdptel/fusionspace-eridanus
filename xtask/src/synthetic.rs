@@ -653,6 +653,20 @@ fn launch_failures(s: &SmootherSet) -> Vec<String> {
             check.health.assumed_pad, check.health.logs
         ));
     }
+    if check.health.unsmoothed_steps > 0 {
+        broken.push(format!(
+            "{name}, written from launch: {} steps the pass back couldn't smooth",
+            check.health.unsmoothed_steps
+        ));
+    }
+    // Withheld for having no barometer goes uncounted by `lost`, so a cut that lost a logger's
+    // barometer would take its cells away: the whole logs' count is the most it may be.
+    if check.withheld != s.check.withheld || check.flights != s.check.flights {
+        broken.push(format!(
+            "{name}, written from launch: {} logs withheld {:?}, where {} whole logs were {:?}",
+            check.flights, check.withheld, s.check.flights, s.check.withheld
+        ));
+    }
     broken
 }
 
@@ -2266,6 +2280,66 @@ fn readings_section(page: &mut String, tallies: &[Tally]) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_log_from_launch_fails_the_check_on_each_thing_that_should() {
+        let cell = |holds: bool| smoothed::Cell {
+            moment: smoothed::Moment::Apogee,
+            state: smoothed::StateName::Height,
+            flights: 10,
+            below: 0,
+            above: 0,
+            coverage: 1.0,
+            lowest_miss_share: [0.0, 0.0],
+            holds,
+            median_sd: 1.0,
+            largest_sd: 1.0,
+        };
+        let whole = SetCheck {
+            flights: 10,
+            withheld: BTreeMap::from([("NoBarometer".to_owned(), 2)]),
+            cells: vec![cell(true)],
+            by_logger: BTreeMap::from([("altos".to_owned(), vec![cell(true)])]),
+            health: smoothed::HealthTally {
+                logs: 8,
+                assumed_pad: 8,
+                ..Default::default()
+            },
+        };
+        let set = |launch: SetCheck| SmootherSet {
+            set: Set::A,
+            check: whole.clone(),
+            gnss_rerun: 0,
+            gnss_from_liftoff: Vec::new(),
+            launch_started: launch,
+        };
+        assert!(launch_failures(&set(whole.clone())).is_empty());
+        let breaks: [(&str, fn(&mut SetCheck)); 7] = [
+            ("fails", |c| c.cells[0].holds = false),
+            ("altos: apogee", |c| {
+                c.by_logger.get_mut("altos").unwrap()[0].holds = false;
+            }),
+            ("withheld with a barometer", |c| {
+                c.withheld.insert("Diverged".to_owned(), 1);
+            }),
+            ("on an assumed pad", |c| c.health.assumed_pad = 7),
+            ("couldn't smooth", |c| c.health.unsmoothed_steps = 1),
+            // A barometer lost in the cut, which `lost` doesn't count.
+            ("where 10 whole logs", |c| {
+                c.withheld.insert("NoBarometer".to_owned(), 3);
+            }),
+            ("where 10 whole logs", |c| c.flights = 9),
+        ];
+        for (said, broken) in breaks {
+            let mut launch = whole.clone();
+            broken(&mut launch);
+            let failures = launch_failures(&set(launch));
+            assert!(
+                failures.iter().any(|f| f.contains(said)),
+                "{said:?} in {failures:?}"
+            );
+        }
+    }
 
     #[test]
     fn the_health_sums_hold_the_digits_every_platform_shares() {

@@ -208,8 +208,8 @@ main descent      6.0 m/s (20 ft/s), within 0.7 m/s (3 ft/s), 90% interval 5.5 t
 top acceleration  withheld: the log's accelerometers (`Accel X (g)`) don't say which lies along the rocket's axis
 burnout           withheld: as for the top acceleration; and burnout from the speed's peak needs the top speed, which is withheld above
 smoothed apogee   406.9 m (1335 ft), 90% interval 378.4 to 435.3 m (1241 to 1429 ft), at 10.40 s
-health card       pad assumed: too little of it in the log; heights on the logger's zero, noise from the flight's scatter
-                  barometer: 251 samples, 251 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.0398; largest test ratio 0.0577 at 11.6 s, Mach 0.03
+health card       pad assumed: too little of it in the log; heights on the readings' zero, noise from the flight's scatter
+                  barometer: 251 samples, 249 fused, 0 rejected, 2 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.0402; largest test ratio 0.0577 at 11.6 s, Mach 0.03
                   barometer de-weighted: charge 9.80–11.4 s
                   pass back: every step smoothed
 
@@ -300,8 +300,8 @@ main descent      9.9 m/s (32 ft/s), within 1.0 m/s (4 ft/s), 90% interval 9.3 t
 top acceleration  withheld: the accelerometer `Axial Accel (Gs)`: no pad is read to tell by; no coast to apogee is read to tell by; its thrust says neither: as written, it never reads past 2 g either way up from liftoff's earliest time (the log's start where liftoff is withheld) to apogee: none of them says which way up it reads
 burnout           withheld: as for the top acceleration; and burnout from the speed's peak needs the top speed, which is withheld above
 smoothed apogee   272.2 m (893 ft), 90% interval 257.7 to 286.7 m (845 to 941 ft), at 10.00 s
-health card       pad assumed: too little of it in the log; heights on the logger's zero, noise from the flight's scatter
-                  barometer: 201 samples, 201 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.00823; largest test ratio 0.0123 at 12.6 s, Mach 0.06
+health card       pad assumed: too little of it in the log; heights on the readings' zero, noise from the flight's scatter
+                  barometer: 201 samples, 199 fused, 0 rejected, 2 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.00831; largest test ratio 0.0123 at 12.6 s, Mach 0.06
                   barometer de-weighted: charge 9.20–11.0 s
                   pass back: every step smoothed
 
@@ -373,8 +373,8 @@ main descent      6.0 m/s (20 ft/s), within 0.7 m/s (3 ft/s), 90% interval 5.5 t
 top acceleration  withheld: the log's accelerometers (`Accel X (g)`) don't say which lies along the rocket's axis
 burnout           withheld: as for the top acceleration; and burnout from the speed's peak needs the top speed, which is withheld above
 smoothed apogee   407.0 m (1335 ft), 90% interval 385.0 to 428.9 m (1263 to 1408 ft), at 10.40 s
-health card       pad assumed: too little of it in the log; heights on the logger's zero, noise from the flight's scatter
-                  barometer: 251 samples, 251 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.0416; largest test ratio 0.0584 at 11.6 s, Mach 0.02
+health card       pad assumed: too little of it in the log; heights on the readings' zero, noise from the flight's scatter
+                  barometer: 251 samples, 249 fused, 0 rejected, 2 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.0420; largest test ratio 0.0584 at 11.6 s, Mach 0.02
                   barometer de-weighted: charge 9.80–11.4 s
                   pass back: every step smoothed
 
@@ -419,8 +419,8 @@ main descent      6.0 m/s (20 ft/s), within 0.7 m/s (3 ft/s), 90% interval 5.5 t
 top acceleration  withheld: the log's accelerometers (`Accel X (g)`) don't say which lies along the rocket's axis
 burnout           withheld: as for the top acceleration; and burnout from the speed's peak needs the top speed, which is withheld above
 smoothed apogee   407.0 m (1335 ft), 90% interval 385.0 to 428.9 m (1263 to 1408 ft), at 10.40 s
-health card       pad assumed: too little of it in the log; heights on the logger's zero, noise from the flight's scatter
-                  barometer: 251 samples, 251 fused, 0 rejected, 0 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.0416; largest test ratio 0.0584 at 11.6 s, Mach 0.02
+health card       pad assumed: too little of it in the log; heights on the readings' zero, noise from the flight's scatter
+                  barometer: 251 samples, 249 fused, 0 rejected, 2 not weighed, 0 resets; 100.0% inside the gate; mean NIS 0.0420; largest test ratio 0.0584 at 11.6 s, Mach 0.02
                   barometer de-weighted: charge 9.80–11.4 s
                   pass back: every step smoothed
 

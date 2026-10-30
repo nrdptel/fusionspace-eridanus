@@ -55,6 +55,8 @@ mod kalman;
 
 use hpr_atmos::Ussa76;
 use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
+use std::collections::VecDeque;
+
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -281,11 +283,21 @@ pub const ASSUMED_SPEED_SD_M_S: f64 = 100.0;
 /// zero, which holds a motor's first spike on most hobby rockets. HPR Sim's choice.
 pub const ASSUMED_ACCELERATION_SD_M_S2: f64 = 300.0;
 
+/// How long a launch-started log's barometer is settled for, s, at least [`ASSUMED_SETTLE_SAMPLES`]:
+/// a filter this wide takes any sample as the truth, and has narrowed by then. Over this span each
+/// sample fused is the median of the five about it, which leaves a climb as it was and takes out
+/// one or two bad samples, and the first two, which have no such window, aren't weighed. On a log
+/// with a pad, the pad's narrow priors reject those samples at the gate.
+pub const ASSUMED_SETTLE_S: f64 = 1.0;
+
+/// The fewest samples a launch-started log's barometer is settled over.
+pub const ASSUMED_SETTLE_SAMPLES: usize = 10;
+
 /// The most steps the smoother takes, every sensor's samples together: two sensors at 500 Hz for
 /// 33 minutes. The synthetic flights' longest 500 Hz logs pass 500,000, and the longest of the
 /// project's sample logs holds 132,230 (0.6 s to smooth on a Mac). The filter holds two covariances
 /// a step for the pass back, about 1.5 kB, so a step count without a limit is a memory limit a file
-/// could reach: this one comes to about 3 GB and, by the sample log's rate, about 10 s.
+/// could reach. A 39 MB file of 1.95 million steps took 27 s and 3.4 GB in review.
 pub const MAX_STEPS: usize = 2_000_000;
 
 /// How the GNSS receiver is trusted.
@@ -427,7 +439,7 @@ pub struct SensorHealth {
     /// Those rejected by the gate.
     pub rejected: usize,
     /// Those not weighed: a GNSS fix before the receiver is trusted, an accelerometer's clipped
-    /// sample or one past apogee.
+    /// sample or one past apogee, a launch-started log's first two barometer samples.
     pub unweighed: usize,
     /// How many times the sensor was taken back after [`GATE_RESET_S`] of rejections.
     pub resets: usize,
@@ -497,7 +509,7 @@ impl Health {
         let mut out = String::new();
         if self.assumed_pad {
             out.push_str(
-                "pad assumed: too little of it in the log; heights on the logger's zero, noise \
+                "pad assumed: too little of it in the log; heights on the readings' zero, noise \
                  from the flight's scatter\n",
             );
         }
@@ -771,6 +783,8 @@ struct Baro {
     rate_m_s: f64,
     /// The heights' own white scatter about it ([`scatter`]), as a variance, m².
     scatter_var_m2: f64,
+    /// Whether it is left out of the fit: a launch-started log's first samples ([`settle`]).
+    unweighed: bool,
 }
 
 /// An accelerometer sample.
@@ -830,17 +844,44 @@ fn landing(baro: &[Baro], liftoff_s: f64) -> Option<f64> {
         .max_by(|(_, a), (_, b)| a.smoothed_m.total_cmp(&b.smoothed_m))?
         .0;
     let end_s = baro.last()?.time_s;
-    (top..baro.len()).find_map(|i| {
+    // The window's highest and lowest kept as it slides, each sample in and out once, so a burst
+    // of samples close together isn't walked over for each of them.
+    let (mut highs, mut lows) = (VecDeque::<usize>::new(), VecDeque::<usize>::new());
+    let mut next = top;
+    for i in top..baro.len() {
         let start = baro[i];
         if end_s < start.time_s + LANDED_S {
             return None;
         }
-        baro[i..]
-            .iter()
-            .take_while(|b| b.time_s <= start.time_s + LANDED_S)
-            .all(|b| (b.smoothed_m - start.smoothed_m).abs() <= LANDED_SPAN_M)
-            .then_some(start.time_s)
-    })
+        while next < baro.len() && baro[next].time_s <= start.time_s + LANDED_S {
+            let m = baro[next].smoothed_m;
+            while highs.back().is_some_and(|&k| baro[k].smoothed_m <= m) {
+                highs.pop_back();
+            }
+            highs.push_back(next);
+            while lows.back().is_some_and(|&k| baro[k].smoothed_m >= m) {
+                lows.pop_back();
+            }
+            lows.push_back(next);
+            next += 1;
+        }
+        while highs.front().is_some_and(|&k| k < i) {
+            highs.pop_front();
+        }
+        while lows.front().is_some_and(|&k| k < i) {
+            lows.pop_front();
+        }
+        let high = highs
+            .front()
+            .map_or(start.smoothed_m, |&k| baro[k].smoothed_m);
+        let low = lows
+            .front()
+            .map_or(start.smoothed_m, |&k| baro[k].smoothed_m);
+        if high - start.smoothed_m <= LANDED_SPAN_M && start.smoothed_m - low <= LANDED_SPAN_M {
+            return Some(start.time_s);
+        }
+    }
+    None
 }
 
 /// The median of `values`, which mustn't be empty.
@@ -932,23 +973,11 @@ impl Inputs {
                 smoothed_m: 0.0,
                 rate_m_s: 0.0,
                 scatter_var_m2: 0.0,
+                unweighed: false,
             })
             .collect();
         let mut baro = baro;
-        let heights: Vec<f64> = baro.iter().map(|b| b.height_m).collect();
-        let times: Vec<f64> = baro.iter().map(|b| b.time_s).collect();
-        let medians = smoothed(&heights, &times);
-        let rates = slopes(&medians, &times, RATE_HALF_S);
-        for (((b, &m), rate), var) in baro
-            .iter_mut()
-            .zip(&medians)
-            .zip(rates)
-            .zip(scatter(&heights, &medians, &times))
-        {
-            b.smoothed_m = m;
-            b.rate_m_s = rate;
-            b.scatter_var_m2 = var;
-        }
+        annotate(&mut baro);
         let pad_msl_m = match track.source {
             Source::Pressure => Some(pad),
             Source::AltitudeChannel if !track.zeroed => Some(pad),
@@ -1002,12 +1031,6 @@ impl Inputs {
             }
         }
 
-        let apogee_span = apogee_charge(&baro, liftoff.time_s);
-        // Past the barometer's own top and the charge expected there, not from the filter's
-        // apogee: the charge's pulse can hold the filter's decision back while the swing has
-        // begun.
-        let descent_from_s = apogee_span.map_or(f64::INFINITY, |(_, end)| end);
-
         let found_pad_end_s = match liftoff.from {
             LiftoffFrom::Accelerometer => liftoff.time_s,
             LiftoffFrom::Barometer => liftoff.time_s - liftoff.bound_s,
@@ -1017,12 +1040,22 @@ impl Inputs {
             .filter(|s| s.time_s <= found_pad_end_s)
             .map(|s| s.height_m)
             .collect();
+        let assumed_pad = on_pad.len() < PAD_MIN_SAMPLES;
+        if assumed_pad {
+            settle(&mut baro);
+            annotate(&mut baro);
+        }
+        let apogee_span = apogee_charge(&baro, liftoff.time_s);
+        // Past the barometer's own top and the charge expected there, not from the filter's
+        // apogee: the charge's pulse can hold the filter's decision back while the swing has
+        // begun.
+        let descent_from_s = apogee_span.map_or(f64::INFINITY, |(_, end)| end);
+
         let step = step_of(&track.height_m);
         // The pad's scatter holds the fast and slow correlated noise too, which the smoother
         // carries apart; what is left is the part's white noise. A step's own variance is the
         // least it can be.
         let correlated = FAST_NOISE_M * FAST_NOISE_M + SLOW_NOISE_M * SLOW_NOISE_M;
-        let assumed_pad = on_pad.len() < PAD_MIN_SAMPLES;
         let measured_var = if assumed_pad {
             flight_noise_var(&baro, descent_from_s, pad_msl_m.unwrap_or(0.0), correlated)
         } else {
@@ -1105,6 +1138,50 @@ impl Inputs {
     }
 }
 
+/// Works out each sample's running median, rate and scatter from the heights.
+fn annotate(baro: &mut [Baro]) {
+    let heights: Vec<f64> = baro.iter().map(|b| b.height_m).collect();
+    let times: Vec<f64> = baro.iter().map(|b| b.time_s).collect();
+    let medians = smoothed(&heights, &times);
+    let rates = slopes(&medians, &times, RATE_HALF_S);
+    for (((b, &m), rate), var) in baro
+        .iter_mut()
+        .zip(&medians)
+        .zip(rates)
+        .zip(scatter(&heights, &medians, &times))
+    {
+        b.smoothed_m = m;
+        b.rate_m_s = rate;
+        b.scatter_var_m2 = var;
+    }
+}
+
+/// Settles a launch-started log's first samples ([`ASSUMED_SETTLE_S`]). The first two take the
+/// median of the first five too, or they would bend the rates and running medians around them.
+fn settle(baro: &mut [Baro]) {
+    let Some(first_s) = baro.first().map(|b| b.time_s) else {
+        return;
+    };
+    if baro.len() < 5 {
+        return;
+    }
+    let by_time = baro.partition_point(|b| b.time_s < first_s + ASSUMED_SETTLE_S);
+    let settling = by_time.max(ASSUMED_SETTLE_SAMPLES).min(baro.len());
+    let raw: Vec<f64> = baro[..(settling + 2).min(baro.len())]
+        .iter()
+        .map(|b| b.height_m)
+        .collect();
+    for (k, b) in baro.iter_mut().enumerate().take(settling) {
+        let centered = k.max(2);
+        if k < 2 {
+            b.unweighed = true;
+        }
+        if let Some(window) = raw.get(centered - 2..=centered + 2) {
+            b.height_m = median(&mut window.to_vec());
+        }
+    }
+}
+
 /// The barometer's white noise on a log with no pad, as a variance at the pad's air, m²: the median
 /// over the samples past `descent_from_s` (all of them if there are none) of the flight's own
 /// scatter ([`scatter`]), brought to the pad's air as [`Inputs`]' noise is thinned from it, with the
@@ -1171,6 +1248,11 @@ fn accel_samples(channel: &Channel, gravity: Gravity, turned_over: bool) -> Vec<
 /// median keeps the track's shape and takes most of its noise out. HPR Sim's choice.
 pub const REGRESSOR_HALF_S: f64 = 0.05;
 
+/// The most samples either side a scale state's running median is taken over: [`REGRESSOR_HALF_S`]
+/// at 5 kHz, past any logger's rate the project has seen. A file's clock could otherwise ask for a
+/// window of 50,000 samples, kept sorted, for each of its samples.
+pub const REGRESSOR_MAX_HALF: usize = 250;
+
 /// The barometer has landed once its running median stays within this many meters ...
 pub const LANDED_SPAN_M: f64 = 5.0;
 
@@ -1232,14 +1314,14 @@ fn scatter(values: &[f64], medians: &[f64], times: &[f64]) -> Vec<f64> {
     let (mut residuals, mut picked) = (Vec::new(), Vec::new());
     (0..n)
         .map(|i| {
-            let mut from = i.saturating_sub(SCATTER_MIN_SAMPLES);
-            while from > 0 && times[i] - times[from - 1] <= SCATTER_HALF_S {
-                from -= 1;
-            }
-            let mut to = (i + SCATTER_MIN_SAMPLES).min(n.saturating_sub(1));
-            while to + 1 < n && times[to + 1] - times[i] <= SCATTER_HALF_S {
-                to += 1;
-            }
+            // By search, not by walking out from the sample: a burst of samples close together
+            // would make that a walk over the burst for each of them.
+            let from = times[..i]
+                .partition_point(|t| times[i] - t > SCATTER_HALF_S)
+                .min(i.saturating_sub(SCATTER_MIN_SAMPLES));
+            let to = (i + times[i..].partition_point(|t| t - times[i] <= SCATTER_HALF_S))
+                .saturating_sub(1)
+                .max((i + SCATTER_MIN_SAMPLES).min(n.saturating_sub(1)));
             // Every `stride`-th sample of the window.
             let stride = (to - from) / SCATTER_MAX_SAMPLES + 1;
             picked.clear();
@@ -1368,7 +1450,7 @@ fn smoothed(values: &[f64], times: &[f64]) -> Vec<f64> {
         clippy::cast_sign_loss,
         reason = "the interval is at least 10⁻⁶ s, so this is 0 to 5 × 10⁴"
     )]
-    let half = ((REGRESSOR_HALF_S / interval).round() as usize).max(1);
+    let half = ((REGRESSOR_HALF_S / interval).round() as usize).clamp(1, REGRESSOR_MAX_HALF);
     crate::filter::running_median(values, half)
 }
 
@@ -1941,7 +2023,7 @@ fn run(
         // Nothing holds the rocket still at the first sample: it may be moving and under thrust,
         // and the barometer alone places it. The zero's own error is an offset the height can't
         // be told from, so it goes on the drift and reaches the height's standard error.
-        if let Some(first) = inputs.baro.first() {
+        if let Some(first) = inputs.baro.iter().find(|b| !b.unweighed) {
             x[H] = first.height_m;
         }
         p[H][H] = ASSUMED_HEIGHT_SD_M * ASSUMED_HEIGHT_SD_M;
@@ -2154,6 +2236,10 @@ fn run(
                         if !transonic.open {
                             rate_peak = rate_peak.max(s.rate_m_s);
                         }
+                    }
+                    if s.unweighed {
+                        baro_tally.health.unweighed += 1;
+                        continue;
                     }
                     let dt_baro = last_baro_s.map_or(0.05, |last| (t - last).max(1.0e-4));
                     last_baro_s = Some(t);
@@ -2582,6 +2668,10 @@ mod tests {
         smooth_with(log, &readings::read(log), options).expect("the invented log smooths")
     }
 
+    fn smoothed_track(values: &[f64], times: &[f64]) -> Vec<f64> {
+        super::smoothed(values, times)
+    }
+
     /// Asserts the truth lies inside the 90% interval at `t`, and the interval is no wider than
     /// `height_sd_m` and `speed_sd_m_s`.
     fn holds_at(smoothed: &Smoothed, t: f64, height_sd_m: f64, speed_sd_m_s: f64) {
@@ -2910,6 +3000,7 @@ mod tests {
                     smoothed_m: h,
                     rate_m_s: truth(t).1,
                     scatter_var_m2: 0.0,
+                    unweighed: false,
                 }
             })
             .collect();
@@ -3007,6 +3098,7 @@ mod tests {
                     smoothed_m: h,
                     rate_m_s: 0.0,
                     scatter_var_m2: 0.0,
+                    unweighed: false,
                 }
             })
             .collect();
@@ -3081,13 +3173,7 @@ mod tests {
         garbled.altitude_m[1] = -65_535.0 * crate::perfectflite::FOOT_M;
         let started = smoothed(&garbled, Options::default());
         assert!(started.health.assumed_pad);
-        assert!(
-            started
-                .health
-                .rejected
-                .iter()
-                .any(|r| r.time_s == garbled.time_s[1])
-        );
+        assert_eq!(started.health.sensors[0].unweighed, 2);
         let top = started.height_m.iter().copied().fold(f64::MIN, f64::max);
         assert!(
             top < 1.05 * truth(BURNOUT_S + BOOST_M_S2 * (BURNOUT_S - LIFTOFF_S) / G0).0,
@@ -3095,6 +3181,146 @@ mod tests {
         );
         assert!(started.speed_m_s.iter().all(|v| v.abs() < 500.0));
         holds_at(&started, 20.0, 80.0, 25.0);
+    }
+
+    /// One or two bad samples where a log from launch starts: a wide prior would take them as the
+    /// truth, so they don't reach it. Found in review, at errors of ±10 m to +1,000 m. Two bad
+    /// samples together can still move the readings' zero a little, so the apogee is held to a
+    /// standard error of the clean log's, not to its value.
+    #[test]
+    fn bad_first_samples_of_a_log_from_launch_move_nothing() {
+        let clean = smoothed(&from_launch(log()), Options::default());
+        let clean_top = clean.at(clean.apogee_time_s).unwrap();
+        for at in [vec![0], vec![1], vec![0, 1], vec![2], vec![1, 2]] {
+            for error in [-1000.0, -100.0, -20.0, -10.0, 10.0, 20.0, 100.0, 1000.0] {
+                let mut bad = from_launch(log());
+                for &k in &at {
+                    bad.altitude_m[k] += error;
+                }
+                // Two samples together as far out as this move the readings' own pad (#1076),
+                // which the smoother stands on.
+                if at.len() == 2 && error == 1000.0 {
+                    assert_ne!(readings::read(&bad).pad_altitude_m, Some(0.0));
+                    continue;
+                }
+                let got = smoothed(&bad, Options::default());
+                let top = got.at(got.apogee_time_s).unwrap();
+                assert!(
+                    (top.height_m - clean_top.height_m).abs() < clean_top.height_sd_m,
+                    "{at:?} {error}: {} against {}",
+                    top.height_m,
+                    clean_top.height_m
+                );
+                assert!(
+                    (got.apogee_time_s - clean.apogee_time_s).abs() < 2.0,
+                    "{at:?} {error}: at {} against {}",
+                    got.apogee_time_s,
+                    clean.apogee_time_s
+                );
+                assert!(
+                    got.speed_m_s.iter().all(|v| v.abs() < 150.0),
+                    "{at:?} {error}: a speed of {:?}",
+                    got.speed_m_s.iter().map(|v| v.abs()).fold(0.0, f64::max)
+                );
+                holds_at(&got, 20.0, 80.0, 25.0);
+            }
+        }
+        assert_eq!(clean.health.sensors[0].unweighed, 2);
+    }
+
+    /// A burst of samples close together costs each of them no walk over the burst. Each of these
+    /// took minutes on 200,000 samples before, against this limit.
+    #[test]
+    fn a_burst_of_samples_is_not_walked_over_for_each_of_them() {
+        let n: u32 = 200_000;
+        let times: Vec<f64> = (0..n).map(|i| 100.0 + f64::from(i) * 1.0e-9).collect();
+        let heights: Vec<f64> = (0..n).map(|i| f64::from(i % 7) * 0.1).collect();
+        let began = std::time::Instant::now();
+        let medians = smoothed_track(&heights, &times);
+        assert_eq!(medians.len(), heights.len());
+        let spread = scatter(&heights, &medians, &times);
+        assert_eq!(spread.len(), heights.len());
+        // Within the span until one sample past it: every start has to look to the end.
+        let mut baro: Vec<Baro> = times
+            .iter()
+            .zip(&heights)
+            .map(|(&time_s, &height_m)| Baro {
+                time_s,
+                height_m,
+                smoothed_m: height_m,
+                rate_m_s: 0.0,
+                scatter_var_m2: 0.0,
+                unweighed: false,
+            })
+            .collect();
+        let last = Baro {
+            time_s: 102.0,
+            smoothed_m: 500.0,
+            ..baro[0]
+        };
+        baro.push(last);
+        baro.push(Baro {
+            time_s: 110.0,
+            smoothed_m: 500.0,
+            ..baro[0]
+        });
+        assert_eq!(landing(&baro, 0.0), None);
+        assert!(
+            began.elapsed().as_secs_f64() < 120.0,
+            "{:?}",
+            began.elapsed()
+        );
+    }
+
+    /// The landing as a sliding window finds what the rule says, wherever the settling starts.
+    #[test]
+    fn the_sliding_landing_is_the_rule_written_out() {
+        let baro_of = |medians: &[f64]| -> Vec<Baro> {
+            medians
+                .iter()
+                .enumerate()
+                .map(|(i, &m)| Baro {
+                    time_s: i as f64 * 0.5,
+                    height_m: m,
+                    smoothed_m: m,
+                    rate_m_s: 0.0,
+                    scatter_var_m2: 0.0,
+                    unweighed: false,
+                })
+                .collect()
+        };
+        let by_rule = |baro: &[Baro]| -> Option<f64> {
+            let top = baro
+                .iter()
+                .enumerate()
+                .filter(|(_, b)| b.time_s > -1.0)
+                .max_by(|(_, a), (_, b)| a.smoothed_m.total_cmp(&b.smoothed_m))?
+                .0;
+            let end_s = baro.last()?.time_s;
+            (top..baro.len()).find_map(|i| {
+                let start = baro[i];
+                if end_s < start.time_s + LANDED_S {
+                    return None;
+                }
+                baro[i..]
+                    .iter()
+                    .take_while(|b| b.time_s <= start.time_s + LANDED_S)
+                    .all(|b| (b.smoothed_m - start.smoothed_m).abs() <= LANDED_SPAN_M)
+                    .then_some(start.time_s)
+            })
+        };
+        let mut state = 11;
+        for _ in 0..300 {
+            let mut height = 200.0;
+            let medians: Vec<f64> = (0..60)
+                .map(|_| {
+                    height += 12.0 * noise(&mut state) - 1.5;
+                    height
+                })
+                .collect();
+            let baro = baro_of(&medians);
+            assert_eq!(landing(&baro, -1.0), by_rule(&baro), "{medians:?}");
+        }
     }
 
     /// A zero that is the pad's only by a word may be off by `PAD_ZERO_M`: the height's standard
@@ -3128,6 +3354,7 @@ mod tests {
                 smoothed_m: 0.0,
                 rate_m_s: 0.0,
                 scatter_var_m2: if i < 50 { 400.0 } else { 9.0 },
+                unweighed: false,
             })
             .collect();
         let var = flight_noise_var(&baro, 50.0, 0.0, 1.0);
@@ -3146,6 +3373,17 @@ mod tests {
         long.time_s = (0..=MAX_STEPS).map(|i| i as f64 * 0.001).collect();
         long.altitude_m = vec![0.0; MAX_STEPS + 1];
         let withheld = smooth_with(&long, &read, Options::default()).unwrap_err();
+        assert_eq!(withheld.reason, Reason::TooLong);
+        // A receiver's fixes count too: the track alone is well under.
+        let mut with_fixes = log();
+        let held = with_fixes.time_s.len();
+        with_fixes.channels.push(Channel::new(
+            "gnss",
+            Quantity::GnssAltitude,
+            (0..=MAX_STEPS - held).map(|i| i as f64 * 0.001).collect(),
+            vec![0.0; MAX_STEPS - held + 1],
+        ));
+        let withheld = smooth_with(&with_fixes, &read, Options::default()).unwrap_err();
         assert_eq!(withheld.reason, Reason::TooLong);
     }
 
@@ -3236,7 +3474,7 @@ mod tests {
         };
         assert_eq!(
             assumed.card(),
-            "pad assumed: too little of it in the log; heights on the logger's zero, noise from \
+            "pad assumed: too little of it in the log; heights on the readings' zero, noise from \
              the flight's scatter\n\
              accelerometer set aside: too little of the pad to take its level from\n\
              smoothed apogee -412 m from the reading, past the reading's bound: go by the reading\n\

@@ -719,6 +719,69 @@ Each reason with its case: the records the corpus withholds a reading of for it,
 | `one_canopy` | 185 | `0040ac8c3e5af57b` | none |
 | `short_leg` | 11 | `17f790bd96cb9241` | none |
 
+### The smoother
+
+Every record again, through `hpr_flightdata::smoother` (M7.2e4, ADR-308): smoothed on its own pad or an assumed one, how many of each have a smoothed apogee past the reading's bound, whose accelerometer was set aside, and those withheld. None of this holds a smoothed height to a truth.
+
+| Family | Own pad | Past the bound | Assumed pad | Past the bound | Accelerometer set aside | Withheld |
+|---|---:|---:|---:|---:|---:|---|
+| aerospacenu-fcb-csv | 20 | 1 | 0 | 0 | 0 | none |
+| aerospacenu-gs-txt | 4 | 0 | 0 | 0 | 0 | none |
+| aerospacenu-sillygoose-txt | 12 | 0 | 0 | 0 | 0 | 2 `no_liftoff` |
+| altimax-als | 0 | 0 | 1 | 0 | 1 | none |
+| altimax-xls | 0 | 0 | 1 | 0 | 1 | none |
+| altimetercloud-csv | 11 | 0 | 0 | 0 | 0 | none |
+| altos-csv | 5 | 1 | 29 | 5 | 25 | 16 `no_liftoff` |
+| altos-eeprom | 0 | 0 | 6 | 0 | 5 | 1 `no_barometer`, 7 `no_liftoff` |
+| altos-resaved-csv | 0 | 0 | 0 | 0 | 0 | 1 `no_barometer` |
+| altos-table-csv | 0 | 0 | 0 | 0 | 0 | 1 `no_liftoff` |
+| altos-telem | 2 | 0 | 0 | 0 | 0 | none |
+| altos-telem-csv | 1 | 0 | 0 | 0 | 0 | none |
+| arts2-csv | 0 | 0 | 4 | 1 | 4 | none |
+| arts2-raw-csv | 0 | 0 | 0 | 0 | 0 | 3 `no_barometer` |
+| blueraven-csv | 47 | 3 | 1 | 0 | 0 | 40 `no_barometer`, 1 `no_liftoff` |
+| blueraven-summary-csv | 0 | 0 | 0 | 0 | 0 | 26 `no_barometer` |
+| blueraven-usb-txt | 0 | 0 | 0 | 0 | 0 | 1 `no_barometer`, 1 `no_liftoff` |
+| console-capture | 0 | 0 | 0 | 0 | 0 | 3 `no_liftoff` |
+| e80-imu-txt | 0 | 0 | 0 | 0 | 0 | 54 `no_barometer` |
+| eggtimer-csv | 4 | 0 | 6 | 0 | 0 | 34 `no_liftoff` |
+| eggtimer-rtf | 0 | 0 | 0 | 0 | 0 | 1 `no_liftoff` |
+| eggtimer-txt | 1 | 0 | 1 | 0 | 0 | none |
+| entacore-aim-csv | 16 | 4 | 0 | 0 | 0 | none |
+| entacore-dump | 1 | 0 | 0 | 0 | 0 | 9 `no_liftoff` |
+| entacore-xtra | 2 | 0 | 0 | 0 | 0 | none |
+| featherweight-summary-csv | 0 | 0 | 0 | 0 | 0 | 25 `no_barometer` |
+| fluctus-csv | 4 | 0 | 2 | 0 | 3 | none |
+| fwgps-csv | 0 | 0 | 0 | 0 | 0 | 40 `no_barometer` |
+| held-table | 9 | 2 | 1 | 0 | 0 | 10 `no_barometer` |
+| kml | 0 | 0 | 0 | 0 | 0 | 39 `no_barometer`, 4 `no_liftoff` |
+| kml-map | 0 | 0 | 0 | 0 | 0 | 1 `no_barometer` |
+| mapped-table-csv | 0 | 0 | 0 | 0 | 0 | 6 `no_barometer` |
+| marsa-dat | 2 | 0 | 0 | 0 | 0 | none |
+| missileworks-rtx | 0 | 0 | 0 | 0 | 0 | 5 `no_barometer` |
+| nmea | 0 | 0 | 0 | 0 | 0 | 12 `no_barometer` |
+| odf | 0 | 0 | 0 | 0 | 0 | 3 `no_liftoff` |
+| perfectflite-csv | 0 | 0 | 14 | 0 | 0 | 1 `no_liftoff` |
+| perfectflite-txt | 0 | 0 | 6 | 0 | 0 | none |
+| pf2 | 6 | 3 | 161 | 3 | 0 | 8 `no_liftoff` |
+| pfa | 0 | 0 | 9 | 0 | 0 | 16 `no_liftoff` |
+| phone-launch-csv | 6 | 3 | 0 | 0 | 0 | 19 `no_barometer`, 2 `no_liftoff` |
+| radio-packets-rtf | 0 | 0 | 2 | 0 | 0 | none |
+| radio-packets-txt | 1 | 0 | 0 | 0 | 0 | 1 `no_barometer` |
+| raven-csv | 3 | 0 | 76 | 2 | 61 | 1 `no_liftoff` |
+| raven-fip-sheet-xlsx | 0 | 0 | 2 | 0 | 1 | none |
+| raven-fipa | 0 | 0 | 40 | 1 | 34 | 17 `no_liftoff` |
+| record-dump | 0 | 0 | 0 | 0 | 0 | 2 `no_barometer` |
+| rrc3-csv | 0 | 0 | 14 | 0 | 0 | 37 `no_liftoff` |
+| rrc3-rff | 0 | 0 | 1 | 0 | 0 | 5 `no_liftoff` |
+| rtx-csv | 0 | 0 | 0 | 0 | 0 | 5 `no_barometer` |
+| rtx-txt | 0 | 0 | 0 | 0 | 0 | 4 `no_barometer` |
+| table-csv | 7 | 1 | 2 | 0 | 0 | 18 `no_barometer`, 4 `no_liftoff` |
+| teensy-named-txt | 1 | 0 | 0 | 0 | 0 | none |
+| teensy-tabs-txt | 6 | 2 | 0 | 0 | 0 | 1 `no_liftoff` |
+| workbook-xlsx | 4 | 0 | 0 | 0 | 0 | 16 `no_barometer`, 1 `no_liftoff` |
+| **Every family** | 175 | 20 | 379 | 12 | 135 | 329 `no_barometer`, 175 `no_liftoff` |
+
 The 16 Excel workbooks (M7.1c14): each sheet's cells written out as text, as the workbook stores them, and read as a file of its own; a sheet's outcome is the layout it reads as, or why it doesn't (*no-data* for a sheet with no value, such as one holding only a chart). In all, 28 sheets: 6 Blue Raven CSV, 1 Eggtimer CSV, 2 Featherweight GPS CSV, 2 Featherweight summary CSV, 10 a table read by its header, 3 no-data, 1 syntax, 3 unrecognized.
 
 | File | Sheets | Outcomes |

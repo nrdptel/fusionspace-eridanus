@@ -41,7 +41,7 @@ use crate::output::{
 };
 use crate::units::{
     acceleration_bound, acceleration_interval, gravities, meters, meters_bound, meters_interval,
-    seconds_bound, seconds_interval, speed, speed_bound, speed_interval,
+    rounded_down, seconds_bound, seconds_interval, speed, speed_bound, speed_interval,
 };
 use crate::{Failure, Out};
 
@@ -674,6 +674,7 @@ fn text_lines(document: &Analyze) -> Vec<String> {
                     (None, _) => String::new(),
                 });
                 if let Some(lower) = top.lower_end_m_s2 {
+                    let lower = rounded_down(lower, 1);
                     value.push_str(&format!("; {LOWER_END} {lower:.1} m/s²"));
                 }
                 value
@@ -697,7 +698,7 @@ fn text_lines(document: &Analyze) -> Vec<String> {
                             .unwrap_or_default();
                         let lower = burnout
                             .lower_end_s
-                            .map(|lower| format!("; {LOWER_END} {lower:.2} s"))
+                            .map(|lower| format!("; {LOWER_END} {:.2} s", rounded_down(lower, 2)))
                             .unwrap_or_default();
                         format!(
                             "no sooner than {earliest:.2} s: the top speed's time, {:.2} s{after}, \

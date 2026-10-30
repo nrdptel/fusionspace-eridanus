@@ -1625,7 +1625,7 @@ pub struct SmootherReading {
     /// The smoothed apogee: when the smoothed height after liftoff is highest, s on the log's
     /// clock.
     pub apogee_time_s: f64,
-    /// The smoothed height there, m above the pad, or on an assumed pad above the logger's zero.
+    /// The smoothed height there, m above the pad, or on an assumed pad above the readings' zero.
     pub apogee_height_m: f64,
     /// Its standard error, m.
     pub apogee_height_sd_m: f64,

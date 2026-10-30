@@ -10189,7 +10189,7 @@
               ],
               "holds": true,
               "median_sd": 0.921,
-              "largest_sd": 6.29
+              "largest_sd": 10.6
             }
           ],
           "rrc3": [
@@ -10329,7 +10329,7 @@
               "logs": 171,
               "samples": 4710000,
               "rejected": 612,
-              "unweighed": 0,
+              "unweighed": 342,
               "resets": 0,
               "logs_rejecting": 51
             }
@@ -11999,7 +11999,7 @@
               "logs": 820,
               "samples": 19900000,
               "rejected": 3200,
-              "unweighed": 0,
+              "unweighed": 1640,
               "resets": 2,
               "logs_rejecting": 292
             }
@@ -13669,7 +13669,7 @@
               "logs": 845,
               "samples": 19900000,
               "rejected": 3530,
-              "unweighed": 0,
+              "unweighed": 1690,
               "resets": 7,
               "logs_rejecting": 321
             }

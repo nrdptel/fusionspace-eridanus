@@ -2125,7 +2125,7 @@
           "$ref": "#/$defs/Sensor"
         },
         "unweighed": {
-          "description": "Those not weighed: a GNSS fix before the receiver is trusted, an accelerometer's clipped\nsample or one past apogee.",
+          "description": "Those not weighed: a GNSS fix before the receiver is trusted, an accelerometer's clipped\nsample or one past apogee, a launch-started log's first two barometer samples.",
           "type": "integer",
           "format": "uint",
           "minimum": 0
@@ -2188,7 +2188,7 @@
           "$ref": "#/$defs/ReadingInterval"
         },
         "apogee_height_m": {
-          "description": "The smoothed height there, m above the pad, or on an assumed pad above the logger's zero.",
+          "description": "The smoothed height there, m above the pad, or on an assumed pad above the readings' zero.",
           "type": "number",
           "format": "double"
         },
