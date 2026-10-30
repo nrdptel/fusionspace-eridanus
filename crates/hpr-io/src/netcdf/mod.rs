@@ -406,6 +406,10 @@ impl Variable {
             // has a finite neighbor.
             let toward_zero = |x: f64| match own {
                 Type::Float => {
+                    #[allow(
+                        clippy::cast_possible_truncation,
+                        reason = "stepped in the variable's own single precision, on purpose"
+                    )]
                     let x = x as f32;
                     let step = |y: f32| {
                         if fill > 0.0 {
@@ -800,8 +804,9 @@ impl Reader<'_> {
     fn name(&mut self) -> Result<String, NetCdfError> {
         let n = self.count("a name's length")?;
         let raw = self.take(pad4(n)?, "a name")?;
-        let text = std::str::from_utf8(&raw[..raw.len().min(n as usize)])
-            .map_err(|_| malformed("a name is not UTF-8"))?;
+        let text =
+            std::str::from_utf8(&raw[..raw.len().min(usize::try_from(n).unwrap_or(usize::MAX))])
+                .map_err(|_| malformed("a name is not UTF-8"))?;
         Ok(text.to_owned())
     }
 
@@ -819,7 +824,10 @@ impl Reader<'_> {
                 .checked_mul(kind.size())
                 .ok_or_else(|| malformed(format!("attribute `{name}` is too large")))?;
             let raw = self.take(pad4(size)?, &format!("attribute `{name}`"))?;
-            let values = Values::decode(kind, &raw[..size as usize]);
+            let values = Values::decode(
+                kind,
+                &raw[..raw.len().min(usize::try_from(size).unwrap_or(usize::MAX))],
+            );
             attributes.push(Attribute { name, values });
         }
         Ok(attributes)

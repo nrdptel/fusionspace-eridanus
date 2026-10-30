@@ -486,12 +486,23 @@ fn time_units(units: &str, calendar: Option<&str>) -> Result<(f64, f64), Era5Err
             "reference date in `{units}` is not whole numbers"
         )));
     }
+    // The date is split at `-`, so only the clock's fields can carry a sign.
+    if hour < 0.0 || minute < 0.0 {
+        return Err(bad(format!(
+            "reference time in `{units}` has a negative hour or minute"
+        )));
+    }
     // The standard calendar is Julian before 1582-10-15; only the Gregorian part is read.
     if !proleptic && (year, month, day) < (1582.0, 10.0, 15.0) {
         return Err(bad(format!(
             "reference date in `{units}` falls in the standard calendar's Julian part"
         )));
     }
+    #[allow(
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss,
+        reason = "whole numbers under 10⁶ in size, none negative, by the checks above: exact"
+    )]
     let epoch = UtcTime::from_civil(
         year as i32,
         month as u32,

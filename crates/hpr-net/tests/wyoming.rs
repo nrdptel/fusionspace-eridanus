@@ -421,6 +421,10 @@ fn a_young_copy_is_fetched_again_once_settled() {
 struct Forbidden;
 
 impl Transport for Forbidden {
+    #[allow(
+        clippy::panic_in_result_fn,
+        reason = "a test double fails its test by panicking"
+    )]
     fn get(&self, url: &str) -> Result<Vec<u8>, String> {
         panic!("offline mode called the transport for {url}");
     }

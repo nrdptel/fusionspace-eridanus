@@ -40,6 +40,10 @@ fn recorded_body() -> Vec<u8> {
 struct Forbidden;
 
 impl Transport for Forbidden {
+    #[allow(
+        clippy::panic_in_result_fn,
+        reason = "a test double fails its test by panicking"
+    )]
     fn get(&self, url: &str) -> Result<Vec<u8>, String> {
         panic!("offline mode called the transport for {url}");
     }

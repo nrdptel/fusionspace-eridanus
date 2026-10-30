@@ -778,8 +778,12 @@ fn corners(
     let i0 = fi.floor().min(i_last - 1.0);
     let j0 = fj.floor().min(nj - 2.0);
     let (wi, wj) = (fi - i0, fj - j0);
-    // In range by the checks above, so the casts are exact; `i0 + 1` is column 0 again on a
-    // grid round the Earth.
+    // `i0 + 1` is column 0 again on a grid round the Earth.
+    #[allow(
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss,
+        reason = "whole cells inside the grid by the checks above, so the casts are exact"
+    )]
     let index = |i: f64, j: f64| (i as u64) % u64::from(grid.ni) + u64::from(grid.ni) * (j as u64);
     Ok([
         (index(i0, j0), (1.0 - wi) * (1.0 - wj)),

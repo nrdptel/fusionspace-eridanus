@@ -424,6 +424,10 @@ fn gfs_and_rap_read_alike_for_the_same_hour() {
 struct Forbidden;
 
 impl Transport for Forbidden {
+    #[allow(
+        clippy::panic_in_result_fn,
+        reason = "a test double fails its test by panicking"
+    )]
     fn get(&self, url: &str) -> Result<Vec<u8>, String> {
         panic!("offline mode called the transport for {url}");
     }

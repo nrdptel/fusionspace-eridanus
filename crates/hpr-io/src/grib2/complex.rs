@@ -359,7 +359,7 @@ fn sign_magnitude(b: &[u8]) -> i64 {
     for &byte in b {
         raw = (raw << 8) | u64::from(byte);
     }
-    let top = 8 * b.len() as u32 - 1;
+    let top = 8 * b.len() - 1;
     // Below 2^63 once the sign bit is cleared.
     let magnitude = i64::try_from(raw & ((1_u64 << top) - 1)).unwrap_or(i64::MAX);
     if raw >> top & 1 == 1 {

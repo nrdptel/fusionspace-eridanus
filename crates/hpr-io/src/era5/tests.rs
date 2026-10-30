@@ -569,6 +569,20 @@ fn time_units_read_as_cf_writes_them() {
     }
     // The proleptic calendar reads a date before 1582 as Gregorian.
     assert!(time_units("days since 1500-01-01", Some("proleptic_gregorian")).is_ok());
+    // A negative hour or minute is refused, not read as 0 (a cast to u32 would saturate there,
+    // and 00:00 is a valid time, so the epoch would move silently).
+    for units in [
+        "hours since 2000-01-01 -1:00:00",
+        "hours since 2000-01-01T00:-30:00",
+    ] {
+        assert!(
+            matches!(
+                time_units(units, None),
+                Err(Era5Error::Time { reason }) if reason.contains("negative")
+            ),
+            "{units}"
+        );
+    }
 }
 
 #[test]

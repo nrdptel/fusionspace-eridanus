@@ -224,6 +224,10 @@ impl Calibration {
 /// rounding in double precision leaves just under it: on 11 of the 55 sample files with the
 /// FIP's export beside them (ADR-259). Both operands are below 2³², so the
 /// conversions are exact.
+#[allow(
+    clippy::cast_possible_truncation,
+    reason = "operands below 2³² keep the product inside an i64"
+)]
 fn scaled(gain: i64, counts: i64) -> i64 {
     ((gain as f64 / 1000.0) * counts as f64).trunc() as i64
 }
@@ -338,6 +342,11 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         let listed: Vec<&str> = state.split('\t').skip(2).collect();
         // Each listed word as the settings block holds it, signed or not: a value outside 16 bits
         // is no word of it.
+        #[allow(
+            clippy::cast_possible_truncation,
+            clippy::cast_sign_loss,
+            reason = "a value in i16's or u16's range keeps its 16 bits: the word, signed or not"
+        )]
         let agrees = !listed.is_empty()
             && listed.len() <= WORDS
             && listed.iter().zip(settings).all(|(listed, word)| {

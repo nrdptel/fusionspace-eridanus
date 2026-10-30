@@ -57,6 +57,10 @@ fn bundle() -> Bundle {
 struct Forbidden;
 
 impl Transport for Forbidden {
+    #[allow(
+        clippy::panic_in_result_fn,
+        reason = "a test double fails its test by panicking"
+    )]
     fn get(&self, url: &str) -> Result<Vec<u8>, String> {
         panic!("offline, {url} was fetched")
     }
