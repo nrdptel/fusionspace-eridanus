@@ -2013,7 +2013,7 @@ pub struct MaxAccelerationReading {
     pub bound_m_s2: f64,
     /// Its 90% interval, m/s²; `null` on a floor.
     pub interval_m_s2: Option<ReadingInterval>,
-    /// A floor's lower end, m/s²: on the synthetic flights about 5% of tops just at the clip lay
+    /// A floor's lower end, m/s²: on the synthetic flights 5% to 8% of tops just at the clip lay
     /// below it, and none past it. `null` where it isn't a floor.
     pub lower_end_m_s2: Option<f64>,
     /// When, s on the accelerometer's clock.

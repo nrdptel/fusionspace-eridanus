@@ -377,8 +377,8 @@ Among them are those that came with the accelerometer and the canopies:
   sample can be offered in [#662](https://github.com/nrdptel/fusionspace-eridanus/issues/662).
 - Find the deployments as events: the main's opening is read from the descent's rate, not from
   the log's record of when each charge fired.
-- Give the Mach number and dynamic pressure, or state a 90% interval on a reading
-  ([the planned 90% intervals](decisions-and-roadmap.md#m7-2e)).
+- Give the Mach number and dynamic pressure, or print a 90% interval in its text. Its JSON and
+  Python carry twelve ([The 90% intervals](physics/log-readings.md#the-90-intervals)).
 - Take the top acceleration from a board's three axes, which don't say which lies along the
   rocket ([#781](https://github.com/nrdptel/fusionspace-eridanus/issues/781)). It comes only from
   an accelerometer the log names as the rocket's axis

@@ -1183,6 +1183,15 @@ mod tests {
         let all = check(Quantity::TopAcceleration, &past(-1.0));
         let test = all.past_clip.unwrap();
         assert!(!test.no_more_than_its_share(), "{test:?}");
+        // Exactly its share: the band reaches 5% from both sides, and that doesn't fail.
+        let mut some = past(1.0);
+        for flight in &mut some[..10] {
+            flight.said = past(-1.0)[0].said.clone();
+        }
+        let test = check(Quantity::TopAcceleration, &some).past_clip.unwrap();
+        assert_eq!(test.below, 10);
+        assert!(test.band.low < MISS_SHARE && test.band.high > MISS_SHARE);
+        assert!(test.no_more_than_its_share(), "{test:?}");
     }
 
     #[test]
@@ -1216,41 +1225,41 @@ mod tests {
         use super::super::designs::DesignFiles;
         use super::super::{Flyer, Set};
         let mut flyer = Flyer::new(DesignFiles::committed());
-        let (index, flight) = (0..40)
+        let range = LOWER_RANGE_G * STANDARD_GRAVITY_MPS2;
+        // Past 1.2 times the clip, and with its scaled top read as a floor, as about two in three
+        // are.
+        let (index, flight, said) = (0..80)
             .filter_map(|k| flyer.flight(Set::Tuning, k).ok().map(|f| (k, f)))
-            .find(|(_, f)| {
+            .filter(|(_, f)| {
                 f.draw.logger.profile.accelerometer_range_m_s2().is_some()
-                    && top_specific_force(f) > 1.2 * LOWER_RANGE_G * STANDARD_GRAVITY_MPS2
+                    && top_specific_force(f) > 1.2 * range
             })
+            .map(|(k, f)| {
+                let said = said(Set::Tuning.seed(), k, &f).unwrap();
+                (k, f, said)
+            })
+            .find(|(_, _, s)| s.said.iter().any(|(_, x)| matches!(x, Said::Floor(_))))
             .unwrap();
-        let said = said(Set::Tuning.seed(), index, &flight).unwrap();
         let tops: Vec<&Said> = said
             .said
             .iter()
             .filter(|(q, _)| *q == Quantity::TopAcceleration)
             .map(|(_, s)| s)
             .collect();
-        // Its own log's reading, whole, and the floor as flown; and the floor at the clip if the
-        // rule called it one.
+        // Its own log's reading, whole, then the floor at the clip and the floor as flown.
         assert!(matches!(tops[0], Said::Stated(_)), "{tops:?}");
-        let past = tops
-            .iter()
-            .find_map(|s| match s {
-                Said::PastClip(floor) => Some(floor),
-                _ => None,
-            })
-            .unwrap();
+        let Said::Floor(at_clip) = tops[1] else {
+            panic!("{tops:?}");
+        };
+        assert_eq!(at_clip.truth, range * top_over_clip(index));
+        assert!((at_clip.reading - range).abs() < 0.1 * range, "{at_clip:?}");
+        let Said::PastClip(past) = tops[2] else {
+            panic!("{tops:?}");
+        };
         let top = top_specific_force(&flight);
         assert_eq!(past.truth, top);
         assert!(past.reading < top, "{past:?}");
         assert!(past.low < past.reading, "{past:?}");
-        for s in &tops {
-            if let Said::Floor(floor) = s {
-                let range = LOWER_RANGE_G * STANDARD_GRAVITY_MPS2;
-                assert_eq!(floor.truth, range * top_over_clip(index));
-                assert!((floor.reading - range).abs() < 0.1 * range, "{floor:?}");
-            }
-        }
     }
 
     #[test]

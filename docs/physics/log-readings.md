@@ -814,7 +814,7 @@ to 26.8 m/s (88 ft/s). Neither is low on average. The descent rate's is −0.01 
 a hundredth of a meter per second low against errors up to 6.81 m/s (22.3 ft/s). The other three
 are as small: under 0.5 m/s² (1.6 ft/s²) on the top acceleration, against errors up to 15.7 m/s²
 (51.5 ft/s²), and 0.02 m/s (0.066 ft/s) or less on each canopy's rate, against errors up to
-5.87 m/s (19.3 ft/s).
+1.51 m/s (4.95 ft/s) on the drogue's and 5.87 m/s (19.3 ft/s) on the main's.
 
 The test pools the five loggers that give these readings and the ten designs. The 90% is over the
 days the flights draw, spread evenly within 15 K of the standard atmosphere, and the misses aren't
@@ -1282,9 +1282,8 @@ truth beside the logs, that doesn't say how each rocket came down.
   axes' magnitude could give a top acceleration, but not burnout, as it never falls below zero
   ([#781](https://github.com/nrdptel/fusionspace-eridanus/issues/781)).
 - **Intervals.** A bound is a worst case held on the tuning set, not a 90% interval with a tested
-  chance of holding the truth. The height track's seven readings state one too
-  ([The 90% intervals](#the-90-intervals)); the top acceleration, burnout and the canopies' readings
-  state only their bounds until [M7.2e3](../decisions-and-roadmap.md#m7-2e3).
+  chance of holding the truth. Twelve readings state one too, and a floor a lower end
+  ([The 90% intervals](#the-90-intervals)); `hpr analyze`'s text states neither yet.
 - **A GNSS track.** A log whose only height is a GNSS receiver's gives no reading. The
   receiver's lag and overshoot aren't modeled, so no bound can be stated for it.
 - **Disturbed tops, both ways.** Some bumps come less than about a second after apogee, before the
