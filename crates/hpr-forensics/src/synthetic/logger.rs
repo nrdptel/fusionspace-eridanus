@@ -191,6 +191,12 @@ impl Profile {
             .map(|range_g| range_g * G)
     }
 
+    /// How far its accelerometer's per-flight scale error runs either way, as a share; `None`
+    /// with no accelerometer.
+    pub fn accelerometer_scale(self) -> Option<f64> {
+        self.accelerometer().map(|accel| accel.scale)
+    }
+
     /// Whether it has a GNSS receiver.
     fn gnss(self) -> bool {
         matches!(self, Self::Altos | Self::GnssTracker)
@@ -594,14 +600,16 @@ pub fn accelerometer_log_set_lower(
 }
 
 /// The log `draw`'s logger writes of `truth`, its accelerometer clipping at `lower_g` whatever
-/// ranges its part offers, in the column whose family states [`LOWER_RANGE_G`]. No flight's own
-/// accelerometer clips, so the 90% intervals' test ([`super::intervals`]) reads a top
-/// acceleration's floors from such logs. `None` for a profile with no accelerometer.
+/// ranges its part offers, in [`hpr_flightdata::readings::SYNTHETIC_LOWER_RANGE_COLUMN`]. The
+/// reader knows that column's range on the IMU's table, and on an AltOS log, whose family states
+/// none, tells the clip by its flat top. No flight's own accelerometer clips, so the 90%
+/// intervals' test ([`super::intervals`]) reads a top acceleration's floors from such logs. `None`
+/// for a profile with no accelerometer.
 ///
 /// # Errors
 ///
 /// [`SyntheticError`] if the log can't be written.
-pub fn accelerometer_log_clipping_at(
+pub(super) fn accelerometer_log_clipping_at(
     draw: &LoggerDraw,
     truth: &Truth,
     lower_g: f64,
@@ -634,15 +642,14 @@ pub fn accelerometer_log_clipping_at(
     Ok(Some(log))
 }
 
-/// [`accelerometer_log_clipping_at`] of `truth`, its specific force scaled about the 1 g it reads
-/// on the pad so that its top is `top_m_s2`; the rest of the flight as flown. `truth_top_m_s2` is
-/// `truth`'s own top, which must be above 1 g. What the 90% intervals' test reads a clipped top's lower end from, a top just at
-/// the clip being where a lower end is hardest to hold.
+/// [`accelerometer_log_clipping_at`] of `truth`, its specific force above the 1 g it reads on the
+/// pad scaled so that its top is `top_m_s2`; its coast and the rest of the flight as flown.
+/// `truth_top_m_s2` is `truth`'s own top, which must be above 1 g.
 ///
 /// # Errors
 ///
 /// [`SyntheticError`] if the log can't be written.
-pub fn accelerometer_log_top_scaled(
+pub(super) fn accelerometer_log_top_scaled(
     draw: &LoggerDraw,
     truth: &Truth,
     (truth_top_m_s2, top_m_s2): (f64, f64),
@@ -653,7 +660,10 @@ pub fn accelerometer_log_top_scaled(
     let mut scaled = truth.clone();
     let factor = (top_m_s2 - G) / (truth_top_m_s2 - G);
     for sample in &mut scaled.samples {
-        sample.axial_specific_force_m_s2 = G + factor * (sample.axial_specific_force_m_s2 - G);
+        let force = sample.axial_specific_force_m_s2;
+        if force > G {
+            sample.axial_specific_force_m_s2 = G + factor * (force - G);
+        }
     }
     accelerometer_log_clipping_at(draw, &scaled, lower_g, seed, index)
 }

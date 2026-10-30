@@ -15,8 +15,8 @@
 //! A floor's truth may lie any amount above it, so it states only a lower end, tested on its lower
 //! tail alone: the band on the share of truths below it must hold 5%, raised one stated standard
 //! error and lowered two it must not ([`FloorCheck`]). A top acceleration's floors come from logs
-//! clipping at 8 g, its top scaled to lie at the clip, where a lower end is hardest to hold, and
-//! its top as flown, which may miss less but not more ([`top_over_clip`]).
+//! clipping at 8 g, its top scaled to where the part's own scale error decides whether it clips
+//! ([`top_over_clip`]), and its top as flown, which may miss less but not more.
 //!
 //! The intervals' shares are fitted on [`Set::Calibration`](super::Set::Calibration) ([`fitted`]); the test runs on
 //! [`Set::A`](super::Set::A) and [`Set::B`](super::Set::B), which the shares never see.
@@ -56,6 +56,9 @@ pub const STATED: [Quantity; 12] = [
 
 /// The share of readings whose truth the interval must hold.
 pub const INSIDE_SHARE: f64 = 0.90;
+
+/// The fewest floors whose test a probe can fail: of 148, no truth below still holds 5%.
+pub const LEAST_FLOORS: u64 = 149;
 
 /// The readings that state a lower end where they are a floor, in the report's order.
 pub const FLOORED: [Quantity; 2] = [Quantity::TopAcceleration, Quantity::Burnout];
@@ -142,6 +145,12 @@ impl ComparedFloor {
     pub fn share(&self) -> f64 {
         (self.reading - self.truth) / self.bound
     }
+
+    /// Whether its truth lies below `low`. A truth that isn't a number counts, as does a `low`
+    /// that isn't one.
+    pub fn below(&self, low: f64) -> bool {
+        self.truth.is_nan() || low.is_nan() || self.truth < low
+    }
 }
 
 /// What one log said of one reading.
@@ -156,6 +165,11 @@ pub enum Said {
     /// A top acceleration's floor on the flight's log with its top as flown, past the clip by as
     /// much as its design takes it: checked apart, not fitted or tested as [`Said::Floor`] is.
     PastClip(ComparedFloor),
+    /// A top acceleration read whole, or as a floor no lower end is stated on, on the log scaled
+    /// near the clip: no floor, so out of the floors' count, and counted.
+    WholeAtClip,
+    /// The same on the log with its top as flown.
+    WholePastClip,
     /// None to read: a drogue, or a main's opening, on a flight that came down under one canopy
     /// or none.
     Absent,
@@ -353,33 +367,41 @@ pub fn said(seed: u64, index: u64, flight: &Flight) -> Result<FlightSaid, Synthe
                     lower_end: Some(low),
                     truth,
                     ..
-                }) => floored(quantity, reading, bound, low, truth),
+                }) => Said::Floor(compared_floor(quantity, reading, bound, low, truth)),
                 Ok(_) => Said::Unstated,
             };
             (quantity, said)
         })
         .collect();
     // No flight's own accelerometer clips, so a top acceleration's floors come from logs that do.
-    // Only a floor counts from them: a top the rule reads as whole is no floor.
     let top = top_specific_force(flight);
-    if top > STANDARD_GRAVITY_MPS2 {
+    if let (Some(scale), true) = (
+        flight.draw.logger.profile.accelerometer_scale(),
+        top > STANDARD_GRAVITY_MPS2,
+    ) {
         let range = LOWER_RANGE_G * STANDARD_GRAVITY_MPS2;
-        let at_clip = range * top_over_clip(index);
+        let near = range * top_over_clip(seed, index, scale);
         let log = accelerometer_log_top_scaled(
             &flight.draw.logger,
             truth,
-            (top, at_clip),
+            (top, near),
             LOWER_RANGE_G,
             seed,
             index,
         )?;
-        if let Some(floor) = log.as_ref().and_then(|log| clipped_top(log, at_clip)) {
-            said.push((Quantity::TopAcceleration, Said::Floor(floor)));
+        if let Some(log) = log {
+            said.push((
+                Quantity::TopAcceleration,
+                clipped_top(&log, near, Said::Floor, Said::WholeAtClip),
+            ));
         }
         let log =
             accelerometer_log_clipping_at(&flight.draw.logger, truth, LOWER_RANGE_G, seed, index)?;
-        if let Some(floor) = log.as_ref().and_then(|log| clipped_top(log, top)) {
-            said.push((Quantity::TopAcceleration, Said::PastClip(floor)));
+        if let Some(log) = log {
+            said.push((
+                Quantity::TopAcceleration,
+                clipped_top(&log, top, Said::PastClip, Said::WholePastClip),
+            ));
         }
     }
     Ok(FlightSaid {
@@ -391,43 +413,53 @@ pub fn said(seed: u64, index: u64, flight: &Flight) -> Result<FlightSaid, Synthe
     })
 }
 
-/// How far flight `index`'s top lands from the clip in the log its lower end is fitted on: its
-/// top over the range, spread evenly over 0.95 to 1.05 by the golden ratio's multiples. The reader
-/// calls a top a floor from a little below the range, as a part's 3% scale can carry a top under
-/// it up to it, and a top just there is where a lower end is hardest to hold. Taking it for each
-/// flight apart keeps a design's own thrust out of the fit.
-pub fn top_over_clip(index: u64) -> f64 {
-    0.95 + 0.10 * (index as f64 * 0.618_033_988_749_894_9).fract()
+/// Flight `index`'s top over the clip on the log its lower end is fitted on, for a part whose
+/// scale error runs to ±`scale`: spread evenly from `1/(1 + scale)`, which a gain that high
+/// carries up to the clip, to `1/(1 − scale)`, past which every such part clips. There the part's
+/// own error decides whether the top clips; below, it never does, and above it always does, so a
+/// truth can lie below the lower end only here. Each flight's place is its own, the golden
+/// ratio's multiples from the set's seed, so no design's thrust sets it and no two sets share it.
+pub fn top_over_clip(seed: u64, index: u64, scale: f64) -> f64 {
+    let (least, most) = (1.0 / (1.0 + scale), 1.0 / (1.0 - scale));
+    let place = ((seed % 1_000_000 + index) as f64 * 0.618_033_988_749_894_9).fract();
+    least + (most - least) * place
 }
 
-/// The floor `log` reads of its top acceleration against the `truth`, where it reads one.
-fn clipped_top(log: &FlightLog, truth: f64) -> Option<ComparedFloor> {
-    let Reading::Read(top) = readings::read(log).max_acceleration else {
-        return None;
+/// What `log` reads of its top acceleration against the `truth`: as `floor` where it's clipped
+/// with a lower end; as `whole` where it isn't; withheld, which `xtask synthetic` fails on.
+fn clipped_top(log: &FlightLog, truth: f64, floor: fn(ComparedFloor) -> Said, whole: Said) -> Said {
+    let top = match readings::read(log).max_acceleration {
+        Reading::Read(top) => top,
+        Reading::Withheld(withheld) => return Said::Withheld(withheld.reason),
     };
-    let low = top.lower_end_m_s2.filter(|_| top.is_floor)?;
-    match floored(
+    let Some(low) = top.lower_end_m_s2 else {
+        return whole;
+    };
+    floor(compared_floor(
         Quantity::TopAcceleration,
         top.acceleration_m_s2,
         top.bound_m_s2,
         low,
         truth,
-    ) {
-        Said::Floor(floor) => Some(floor),
-        _ => None,
-    }
+    ))
 }
 
 /// A floor with its lower end's standard error. A quantity with no floor shares states none, so
 /// its probes don't move it.
-fn floored(quantity: Quantity, reading: f64, bound: f64, low: f64, truth: f64) -> Said {
-    Said::Floor(ComparedFloor {
+fn compared_floor(
+    quantity: Quantity,
+    reading: f64,
+    bound: f64,
+    low: f64,
+    truth: f64,
+) -> ComparedFloor {
+    ComparedFloor {
         reading,
         bound,
         low,
         standard_error: floor_shares(quantity).map_or(0.0, |shares| shares.standard_error(bound)),
         truth,
-    })
+    }
 }
 
 /// A change to every floor's lower end that its test must catch.
@@ -476,7 +508,7 @@ pub struct FloorTest {
 
 impl FloorTest {
     /// The test on `below` of `given`.
-    fn of(given: u64, below: u64) -> Self {
+    pub fn of(given: u64, below: u64) -> Self {
         Self {
             given,
             below,
@@ -504,6 +536,8 @@ pub struct FloorCheck {
     pub probes: BTreeMap<FloorProbe, FloorTest>,
     /// Compared and below, by logger.
     pub by_logger: BTreeMap<String, (u64, u64)>,
+    /// Compared and below, by design.
+    pub by_design: BTreeMap<String, (u64, u64)>,
 }
 
 impl FloorCheck {
@@ -512,22 +546,27 @@ impl FloorCheck {
         self.test.passes() && self.probes.values().all(|t| !t.passes())
     }
 
-    /// The check over `floors`, each with its logger; `None` when there are none.
-    fn of<'a>(floors: impl Iterator<Item = (&'a str, &'a ComparedFloor)>) -> Option<Self> {
-        let below = |low: f64, truth: f64| truth.is_nan() || truth < low;
+    /// The check over `floors`, each with its logger and design; `None` when there are none.
+    fn of<'a>(floors: impl Iterator<Item = (&'a str, usize, &'a ComparedFloor)>) -> Option<Self> {
         let (mut given, mut misses) = (0, 0);
         let mut probed: BTreeMap<FloorProbe, u64> =
             FloorProbe::ALL.iter().map(|&p| (p, 0)).collect();
         let mut by_logger: BTreeMap<String, (u64, u64)> = BTreeMap::new();
-        for (logger, floor) in floors {
-            let missed = u64::from(below(floor.low, floor.truth));
+        let mut by_design: BTreeMap<String, (u64, u64)> = BTreeMap::new();
+        for (logger, design, floor) in floors {
+            let missed = u64::from(floor.below(floor.low));
             given += 1;
             misses += missed;
             let entry = by_logger.entry(logger.to_owned()).or_default();
             entry.0 += 1;
             entry.1 += missed;
+            let entry = by_design
+                .entry(DESIGNS[design].name.to_owned())
+                .or_default();
+            entry.0 += 1;
+            entry.1 += missed;
             for (probe, count) in &mut probed {
-                *count += u64::from(below(probe.apply(floor), floor.truth));
+                *count += u64::from(floor.below(probe.apply(floor)));
             }
         }
         (given > 0).then(|| Self {
@@ -537,6 +576,7 @@ impl FloorCheck {
                 .map(|(p, x)| (p, FloorTest::of(given, x)))
                 .collect(),
             by_logger,
+            by_design,
         })
     }
 }
@@ -693,6 +733,10 @@ pub struct Check {
     pub past_clip: Option<FloorTest>,
     /// None to read.
     pub absent: u64,
+    /// Read with no lower end on the log scaled near the clip: out of the floors' count.
+    pub whole_at_clip: u64,
+    /// Read with no lower end on the log with its top as flown: out of the tops past the clip.
+    pub whole_past_clip: u64,
     /// Withheld, by reason.
     pub withheld: BTreeMap<Reason, u64>,
     /// The test on the intervals as stated.
@@ -738,6 +782,7 @@ pub fn check(quantity: Quantity, flights: &[FlightSaid]) -> Check {
     let mut unstated = 0;
     let mut floors = 0;
     let mut absent = 0;
+    let (mut whole_at_clip, mut whole_past_clip) = (0, 0);
     let mut error_sum = 0.0;
     let mut largest_error = 0.0_f64;
     for flight in flights {
@@ -772,6 +817,8 @@ pub fn check(quantity: Quantity, flights: &[FlightSaid]) -> Check {
                 }
                 Said::Floor(_) => floors += 1,
                 Said::PastClip(_) => {}
+                Said::WholeAtClip => whole_at_clip += 1,
+                Said::WholePastClip => whole_past_clip += 1,
                 Said::Unstated => unstated += 1,
                 Said::Absent => absent += 1,
                 Said::Withheld(reason) => *withheld.entry(*reason).or_default() += 1,
@@ -788,18 +835,20 @@ pub fn check(quantity: Quantity, flights: &[FlightSaid]) -> Check {
             for (q, said) in flights.iter().flat_map(|f| &f.said) {
                 if let (true, Said::PastClip(floor)) = (*q == quantity, said) {
                     given += 1;
-                    below += u64::from(floor.truth.is_nan() || floor.truth < floor.low);
+                    below += u64::from(floor.below(floor.low));
                 }
             }
             (given > 0).then(|| FloorTest::of(given, below))
         },
         floor: FloorCheck::of(flights.iter().flat_map(|flight| {
             flight.said.iter().filter_map(move |(q, said)| match said {
-                Said::Floor(floor) if *q == quantity => Some((flight.logger, floor)),
+                Said::Floor(floor) if *q == quantity => Some((flight.logger, flight.design, floor)),
                 _ => None,
             })
         })),
         absent,
+        whole_at_clip,
+        whole_past_clip,
         withheld,
         test: Test::of(counts),
         probes: probes.into_iter().map(|(p, c)| (p, Test::of(c))).collect(),
@@ -1121,6 +1170,7 @@ mod tests {
         assert!(lowered.below <= 3, "{lowered:?}");
         assert!(!lowered.passes());
         assert_eq!(floor.by_logger["altos"].0, 500);
+        assert_eq!(floor.by_design[DESIGNS[0].name].0, 1000);
     }
 
     #[test]
@@ -1208,27 +1258,37 @@ mod tests {
         assert!(check.withheld.is_empty());
     }
 
+    /// A top lands where the part's own scale error decides whether it clips: for the IMU's ±3%
+    /// from 0.971 to 1.031 of the clip, for the AltOS part's ±10% from 0.909 to 1.111, evenly, and
+    /// at another place on each set's flight.
     #[test]
-    fn a_top_lands_within_five_percent_of_the_clip() {
-        let ratios: Vec<f64> = (0..1000).map(top_over_clip).collect();
-        assert!(ratios.iter().all(|r| (0.95..1.05).contains(r)));
-        let mean = ratios.iter().sum::<f64>() / 1000.0;
-        assert!((mean - 1.0).abs() < 1e-3, "{mean}");
-        // Spread over the band, not gathered.
-        assert_eq!(ratios.iter().filter(|r| **r < 0.96).count(), 100);
+    fn a_top_lands_where_the_parts_scale_decides_the_clip() {
+        for (scale, least, most) in [(0.03, 1.0 / 1.03, 1.0 / 0.97), (0.10, 1.0 / 1.1, 1.0 / 0.9)] {
+            let ratios: Vec<f64> = (0..1000)
+                .map(|k| top_over_clip(2_026_102_900, k, scale))
+                .collect();
+            assert!(ratios.iter().all(|r| (least..most).contains(r)));
+            let tenth = least + 0.1 * (most - least);
+            let lowest = ratios.iter().filter(|r| **r < tenth).count();
+            assert!((98..=102).contains(&lowest), "{lowest}");
+        }
+        // No two sets' flights share a place.
+        assert_ne!(
+            top_over_clip(2_026_101_701, 7, 0.03),
+            top_over_clip(2_026_101_702, 7, 0.03)
+        );
     }
 
-    /// Scaled to a top at the clip, a flight's log reads a floor there whose truth the fitted
-    /// lower end is measured against; with its top as flown, past the clip, the same.
+    /// Scaled near the clip, a flight's log reads a floor whose truth the fitted lower end is
+    /// measured against; with its top as flown, past the clip, the same.
     #[test]
     fn a_flight_says_its_top_accelerations_floors_from_clipping_logs() {
         use super::super::designs::DesignFiles;
         use super::super::{Flyer, Set};
         let mut flyer = Flyer::new(DesignFiles::committed());
         let range = LOWER_RANGE_G * STANDARD_GRAVITY_MPS2;
-        // Past 1.2 times the clip, and with its scaled top read as a floor, as about two in three
-        // are.
-        let (index, flight, said) = (0..80)
+        // Past 1.2 times the clip, and with its scaled top read as a floor, as most are.
+        let (index, flight, said) = (0..120)
             .filter_map(|k| flyer.flight(Set::Tuning, k).ok().map(|f| (k, f)))
             .filter(|(_, f)| {
                 f.draw.logger.profile.accelerometer_range_m_s2().is_some()
@@ -1251,8 +1311,12 @@ mod tests {
         let Said::Floor(at_clip) = tops[1] else {
             panic!("{tops:?}");
         };
-        assert_eq!(at_clip.truth, range * top_over_clip(index));
-        assert!((at_clip.reading - range).abs() < 0.1 * range, "{at_clip:?}");
+        let scale = flight.draw.logger.profile.accelerometer_scale().unwrap();
+        assert_eq!(
+            at_clip.truth,
+            range * top_over_clip(Set::Tuning.seed(), index, scale)
+        );
+        assert!((at_clip.reading - range).abs() < 0.2 * range, "{at_clip:?}");
         let Said::PastClip(past) = tops[2] else {
             panic!("{tops:?}");
         };

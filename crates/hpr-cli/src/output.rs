@@ -2013,8 +2013,8 @@ pub struct MaxAccelerationReading {
     pub bound_m_s2: f64,
     /// Its 90% interval, m/s²; `null` on a floor.
     pub interval_m_s2: Option<ReadingInterval>,
-    /// A floor's lower end, m/s²: on the synthetic flights 5% to 8% of tops just at the clip lay
-    /// below it, and none past it. `null` where it isn't a floor.
+    /// A clipped top's lower end, m/s²: the figure the truth lay above in about 19 of 20 of the
+    /// tops the part's own scale error could carry to the clip. `null` where it isn't clipped.
     pub lower_end_m_s2: Option<f64>,
     /// When, s on the accelerometer's clock.
     pub time_s: f64,
@@ -2045,7 +2045,7 @@ pub struct BurnoutReading {
     pub bound_s: f64,
     /// Its 90% interval, s; `null` on a floor.
     pub interval_s: Option<ReadingInterval>,
-    /// A floor's lower end, s: on the synthetic flights about 5% of burnouts came before it.
+    /// A floor's lower end, s: the time burnout came after in about 19 of 20 synthetic flights.
     /// `null` where it isn't a floor.
     pub lower_end_s: Option<f64>,
     /// When, s after liftoff: the burn's length; `null` when liftoff is withheld.

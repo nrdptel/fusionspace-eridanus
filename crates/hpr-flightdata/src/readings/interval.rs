@@ -36,8 +36,11 @@
 //! top speed's peak fits its share on its own floors. How far past a clip a top acceleration goes
 //! is the design's, and no log says: a first fit on tops as flown put the lower end above the
 //! reading, and one design whose tops only just passed the clip left 21 of 22 truths below it. So
-//! its share is fitted on tops scaled to lie at the clip, where a lower end is hardest to hold;
-//! tops further past it miss less. An apogee floor states none: no synthetic set reads one.
+//! its share is fitted on the tops the part's own scale error decides: from `1/(1 + s)` of the
+//! clip, which a gain `s` high carries up to it, to `1/(1 − s)`, past which every part clips. A
+//! truth lies below the lower end only on a top under the clip that the gain carried there; a top
+//! truly past the clip lies above the reading. An apogee floor states none, nor a top whose burn
+//! the log ends in: no synthetic set reads one (#1071).
 //!
 //! [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 //! [adr-308]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md
@@ -185,10 +188,11 @@ pub const BURNOUT_FLOOR_SHARES: FloorShares = FloorShares {
 
 /// A top acceleration floor's shares of its bound (`MaxAcceleration::bound_m_s2`), fitted on the
 /// calibration set's flights with their accelerometers clipping at 8 g and their tops scaled to
-/// lie at the clip: how far past a clip a top goes depends on the design, and no log says.
+/// where the part's own scale error decides whether it clips: how far past a clip a top goes
+/// depends on the design, and no log says.
 pub const TOP_ACCELERATION_FLOOR_SHARES: FloorShares = FloorShares {
-    high: 0.223,
-    median: -0.111,
+    high: 0.212,
+    median: -0.134,
 };
 
 /// The rank from each end of `n` sorted shares that is the 5% or 95% point, `⌊0.05 (n + 1)⌋`,

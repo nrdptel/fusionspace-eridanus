@@ -878,19 +878,28 @@ fn interval_check(files: &DesignFiles) -> Result<(Intervals, Vec<String>), Strin
                     )),
                     None => {}
                 }
-                if let Some(past) = check
-                    .past_clip
-                    .as_ref()
-                    .filter(|past| !past.no_more_than_its_share())
-                {
-                    broken.push(format!(
+                match &check.past_clip {
+                    Some(past) if !past.no_more_than_its_share() => broken.push(format!(
                         "{}: {}'s lower ends miss more than their share of the tops past the \
                          clip: {} of {} below",
                         set.name(),
                         quantity.name(),
                         past.below,
                         past.given
-                    ));
+                    )),
+                    Some(past) if past.given < intervals::LEAST_FLOORS => broken.push(format!(
+                        "{}: {} reads only {} tops past the clip, under {}",
+                        set.name(),
+                        quantity.name(),
+                        past.given,
+                        intervals::LEAST_FLOORS
+                    )),
+                    None if quantity == Quantity::TopAcceleration => broken.push(format!(
+                        "{}: {} read no top past the clip to check",
+                        set.name(),
+                        quantity.name()
+                    )),
+                    _ => {}
                 }
                 let probe_passes = check
                     .probes
@@ -1466,7 +1475,9 @@ fn intervals_section(page: &mut String, made: &Intervals) {
          lower end only: the reading less its 95% share of its bound. Its standard error is the \
          95% share less the median, times the bound, over 1.645. No flight's own accelerometer \
          clips, so the top acceleration's floors come from each flight's log with its \
-         accelerometer clipping at 8 g and its top scaled to 0.95 to 1.05 of that clip.\n\n| Reading | Floors fitted | 95% share | Median share |\n\
+         accelerometer clipping at 8 g and its top scaled from 1/(1 + s) to 1/(1 − s) of that \
+         clip, where the part's own scale error, ±s, decides whether it clips: ±3% on the 500 Hz \
+         IMU, ±10% on the AltOS part.\n\n| Reading | Floors fitted | 95% share | Median share |\n\
          |---|---:|---:|---:|\n",
     );
     for s in &made.floor_shares {
@@ -1552,39 +1563,51 @@ fn intervals_section(page: &mut String, made: &Intervals) {
     page.push_str(
         "\n### The top acceleration's lower ends past the clip\n\nThe same lower ends on each \
          flight's log with its top as flown, past the clip by as much as its design takes it. \
-         How far is the design's, and no log says, so the test above is on tops at the clip; here \
-         the band on the share below must reach down to 5%: they miss no more.\n\n| Set | \
-         Compared | Below | Share | Band |\n|---|---:|---:|---:|---|\n",
+         How far is the design's, and no log says, so the test above is on the tops near the clip; \
+         here the band on the share below must reach down to 5%: they miss no more. Read whole are \
+         the tops with no lower end, out of each count: those near the clip, then those as flown.\n\n\
+         | Set | Compared | Below | Share | Band | Read whole, near the clip | Read whole, as flown \
+         |\n|---|---:|---:|---:|---|---:|---:|\n",
     );
     for set in &made.sets {
         for c in &set.checks {
             if let Some(past) = &c.check.past_clip {
                 let _ = writeln!(
                     page,
-                    "| {} | {} | {} | {} | {}% to {}% |",
+                    "| {} | {} | {} | {} | {}% to {}% | {} | {} |",
                     title(set.set),
                     past.given,
                     past.below,
                     percent(past.below, past.given),
                     number(census::three_figures(100.0 * past.band.low)),
                     number(census::three_figures(100.0 * past.band.high)),
+                    c.check.whole_at_clip,
+                    c.check.whole_past_clip,
                 );
             }
         }
     }
     page.push_str(
-        "\n### The floors by logger\n\nFloors compared, and truths below the lower end.\n\n| Set | \
-         Reading | Logger | Compared | Below |\n|---|---|---|---:|---:|\n",
+        "\n### The floors by logger and by design\n\nFloors compared, and truths below the lower \
+         end, in bold where that group alone would fail the floors' test. The test is on each set \
+         as a whole. The AltOS part has no 8 g setting: its log is written clipping there to \
+         reach the count, and its family states no range, so the reader tells the clip by its flat \
+         top.\n\n| Set | Reading | Group | Compared | Below |\n|---|---|---|---:|---:|\n",
     );
     for set in &made.sets {
         for c in &set.checks {
             if let Some(floor) = &c.check.floor {
-                for (logger, (given, below)) in &floor.by_logger {
+                for (group, (given, below)) in floor.by_logger.iter().chain(&floor.by_design) {
                     let _ = writeln!(
                         page,
-                        "| {} | {} | {logger} | {given} | {below} |",
+                        "| {} | {} | {group} | {given} | {} |",
                         title(set.set),
-                        c.check.quantity.name()
+                        c.check.quantity.name(),
+                        if intervals::FloorTest::of(*given, *below).passes() {
+                            below.to_string()
+                        } else {
+                            format!("**{below}**")
+                        }
                     );
                 }
             }

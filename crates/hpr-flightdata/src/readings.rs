@@ -688,8 +688,8 @@ pub struct MaxAcceleration {
     pub bound_m_s2: f64,
     /// Its 90% interval, m/s² ([`interval::TOP_ACCELERATION_SHARES`]); `None` on a floor.
     pub interval_m_s2: Option<Interval>,
-    /// A floor's lower end, m/s² ([`interval::TOP_ACCELERATION_FLOOR_SHARES`]); `None` where it
-    /// isn't a floor.
+    /// A clipped top's lower end, m/s² ([`interval::TOP_ACCELERATION_FLOOR_SHARES`]); `None` where
+    /// it isn't clipped, as on a floor whose burn the log ends in, which no set tests.
     pub lower_end_m_s2: Option<f64>,
     /// When, s on the accelerometer's clock.
     pub time_s: f64,

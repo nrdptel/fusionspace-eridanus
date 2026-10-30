@@ -594,7 +594,10 @@ pub(super) fn read(
         interval_m_s2: (!is_floor)
             .then(|| interval::TOP_ACCELERATION_SHARES.interval(top, bound_m_s2))
             .flatten(),
-        lower_end_m_s2: is_floor
+        // Only a clipped top: one whose burn the log ends in is a floor by another cause, its
+        // errors a whole top's, and no set tests its lower end (#1071).
+        lower_end_m_s2: clip
+            .is_some()
             .then(|| interval::TOP_ACCELERATION_FLOOR_SHARES.lower_end(top, bound_m_s2))
             .flatten(),
         time_s: time[top_index],
@@ -2435,12 +2438,8 @@ mod tests {
                 top.acceleration_m_s2 - top.bound_m_s2 <= 6.0 * G,
                 "{column}: {top:?}"
             );
-            // A floor states its lower end, inside the bound's, and no interval.
-            assert_eq!(
-                top.lower_end_m_s2,
-                Some(top.acceleration_m_s2 - 0.223 * top.bound_m_s2),
-                "{column}"
-            );
+            // Not clipped, so no set tests a lower end on it: it states neither.
+            assert!(top.lower_end_m_s2.is_none(), "{column}");
             assert!(top.interval_m_s2.is_none(), "{column}");
         }
     }
