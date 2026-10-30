@@ -223,13 +223,13 @@ and the mean descent rate. Each passes a two-sided test on synthetic flights hel
 2,000 its points were fitted on; the top speed only below 227.7 m/s (747 ft/s), on 287 and 286
 readings, where the others have 820 and 845. The misses of the height, the top speed and the descent
 rate fall on the coldest and warmest days, a warm day reading low, and the times lean by logger. So
-a waiver goes by the apogee plus its bound, and a fin's margin by the top speed plus its ([The 90%
-intervals](physics/log-readings.md#the-90-intervals); not yet checked on a real flight, [evidence
-row G34](evidence.md#g34)). The library's smoother fuses a log's barometer, accelerometer and GNSS
-receiver into the height and vertical speed at every sample, each with a 90% interval. At four
-moments of each synthetic flight with a barometer, the three sets' intervals hold between 94.3% and
-99.4% of the truths, and two logger cells 89.2% and 89.7%, which the check allows. Those sets were
-seen while its rules were set. It isn't yet checked against a real flight's ([The
+a waiver goes by the apogee plus its bound, and a fin's margin by the top speed plus its bound ([The
+90% intervals](physics/log-readings.md#the-90-intervals); not yet checked on a real flight,
+[evidence row G34](evidence.md#g34)). The library's smoother fuses a log's barometer, accelerometer
+and GNSS receiver into the height and vertical speed at every sample, each with a 90% interval. At
+four moments of each synthetic flight with a barometer, the three sets' intervals hold between 94.3%
+and 99.4% of the truths, and two logger cells 89.2% and 89.7%, which the check allows. Those sets
+were seen while its rules were set. It isn't yet checked against a real flight's ([The
 smoother](physics/smoother.md)).
 
 The library reads each format into one record, every column kept on its own clock. The formats
