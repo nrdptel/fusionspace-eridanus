@@ -98,18 +98,20 @@ truths lay below the interval, and only 82% inside it. Every set, logger and mom
 ## A log written from launch
 
 Many loggers write little before they detect the launch. Of the 1,085 distinct sample logs HPR Sim
-reads, 392 hold too little of the pad to zero a barometer on, and 180 hold enough. With fewer than
-five barometer samples on the pad, the smoother assumes it:
+reads, 572 are smoothed: 392 on an assumed pad and 180 on their own. A log with no zero to stand on,
+such as a track of pressures alone with no pad, gives no liftoff and is still withheld. With fewer
+than five barometer samples on the pad, the smoother assumes it:
 
 - **The height** stands on the readings' zero, the logger's own. A zero that is the pad's only by a
-  column's name may be off by up to 19.9 m (65 ft), and the standard error holds that.
+  column's name may be off by up to 19.9 m (65 ft) either way, and the standard error carries that
+  spread.
 - **The barometer's noise** comes from the flight's own scatter past apogee.
 - **Nothing is held still.** The height, speed and acceleration start with wide priors, HPR Sim's
   choices: 100 m (328 ft), 100 m/s (328 ft/s) and 30 g.
 - **The accelerometer is set aside** if it has too little of the pad to take its level from.
 
 To test this, each synthetic flight's log is cut at liftoff and smoothed again. On the
-[report][launch]'s sets A and B, every cell holds, overall and per logger: 94.9% to 98.7% of truths
+[report][launch]'s sets A and B, every cell holds, overall and per logger (the command fails otherwise): 94.9% to 98.7% of truths
 lie inside the 90% intervals overall. Real logs have no such truth
 ([evidence row G33](../evidence.md#g33)). Their smoothed apogee passes the reading's bound on 14 of
 392 logs with an assumed pad, and 19 of 180 with their own, so the pad isn't the main cause

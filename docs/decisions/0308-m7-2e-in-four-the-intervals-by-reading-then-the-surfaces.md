@@ -198,7 +198,7 @@ rate or an acceleration.
   `smoother`, and Python `FlightLog.smoothed()`, with [ADR-300][adr-300]'s card. A count over every
   fixture log holds the text's intervals to the JSON's. Decided:
   - **A log with too little of the pad is smoothed on an assumed pad.** The smoother had withheld
-    it, and that was most logs: of the 1,085 distinct sample logs read, 392 smooth only this way, and
+    it, and that was most of the logs it could read: of the 1,085 distinct sample logs read, 392 smooth only this way, and
     180 hold their pad.
   - **The height stands on the readings' zero, not the first sample** as [#982][i982] proposed. The
     zero is the logger's, set on the pad, where a first sample may be up the climb. It also keeps the
@@ -223,6 +223,7 @@ rate or an acceleration.
   - **A log of more than 2,000,000 samples is withheld** (`Reason::TooLong`), before any work: a file
     could otherwise ask for memory without limit. A first limit of 500,000 withheld the synthetic
     sets' long 500 Hz logs, and the command's check caught it. The smoother also no longer withholds
-    for a short pad, so that reason is gone.
+    for a short pad, so its own `ShortPad` is gone; the readings keep theirs, and a track of pressures
+    with no pad still gives no liftoff to smooth from.
 - `cargo xtask synthetic` reads 4,000 more flights, and from M7.2e3 two more logs of each one with
   an accelerometer: about 7.5 minutes in all on an 8-core Mac, from 5.5.
