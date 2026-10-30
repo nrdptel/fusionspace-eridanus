@@ -821,7 +821,7 @@ pass back: every step smoothed
 
 ## The readings' 90% intervals
 
-Each flight's own log read by `hpr_flightdata::readings`, and each reading that states a 90% interval compared with the flight's truth (M7.2e1 and M7.2e2, ADR-257 §1–2, ADR-308). An interval runs from the reading less its 95% share of its bound to the reading less its 5% share; the shares are the 5% and 95% points of the readings' errors as shares of their bounds on the calibration set's 2000 flights (362 of them the GNSS-only tracker's, which give no apogee), a seed of their own that the test sets never share. `cargo xtask synthetic` fits them again and fails unless they equal the library's to three significant figures. A reading **holds** when the two-sided 99.9% Clopper–Pearson band on the share of truths below its interval and the band on the share above each hold 5%, and the band on the share inside holds 90%; and every probe must fail that test. The command also fails if a reading is withheld from a log with a barometer, or read with no interval, on any of the three sets: either would leave the counts with its misses. The one reading withheld by its own rule is the top speed at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose; it looks at the reading, not the truth, so the test holds the top speeds a user is given.
+Each flight's own log read by `hpr_flightdata::readings`, and each reading that states a 90% interval compared with the flight's truth (M7.2e1 to M7.2e3, ADR-257 §1–2, ADR-308). An interval runs from the reading less its 95% share of its bound to the reading less its 5% share; the shares are the 5% and 95% points of the readings' errors as shares of their bounds on the calibration set's 2000 flights (362 of them the GNSS-only tracker's, which give no apogee), a seed of their own that the test sets never share. `cargo xtask synthetic` fits them again and fails unless they equal the library's to three significant figures. A reading **holds** when the two-sided 99.9% Clopper–Pearson band on the share of truths below its interval and the band on the share above each hold 5%, and the band on the share inside holds 90%; and every probe must fail that test. The command also fails if a reading is withheld from a log with a barometer, or read with no interval, on any of the three sets: either would leave the counts with its misses. Withheld by their own rules are the top speed at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose (it looks at the reading, not the truth, so the test holds the top speeds a user is given); a burnout taken from that speed; and a top acceleration on a log with no accelerometer.
 
 ### The shares
 
@@ -834,10 +834,24 @@ Each flight's own log read by `hpr_flightdata::readings`, and each reading that 
 | landing | 1638 | -0.332 | 0.157 |
 | flight time | 1638 | -0.381 | -0.133 |
 | descent rate | 1638 | -0.473 | 0.493 |
+| top acceleration | 641 | -0.495 | 0.568 |
+| burnout | 565 | -0.0653 | 0.0689 |
+| drogue rate | 781 | -0.622 | 0.612 |
+| main opening | 781 | 0.138 | 0.566 |
+| main rate | 1638 | -0.572 | 0.583 |
+
+### The floors' shares
+
+A floor's truth may lie any amount above it, so it states a lower end only: the reading less its 95% share of its bound. Its standard error is the 95% share less the median, times the bound, over 1.645. No flight's own accelerometer clips, so the top acceleration's floors come from each flight's log with its accelerometer clipping at 8 g and its top scaled to anywhere the reader can call it clipped and the part may not have clipped: from (1 − 0.3/8)/(1 + s) to 1/(1 − s) of that clip, s the part's scale error, ±3% on the 500 Hz IMU and ±10% on the AltOS part.
+
+| Reading | Floors fitted | 95% share | Median share |
+|---|---:|---:|---:|
+| top acceleration | 348 | 0.259 | -0.124 |
+| burnout | 437 | -0.0339 | -0.195 |
 
 ### The test
 
-The truths below, inside and above each interval, then the shares, each set's flights flown. Floors and withheld readings aren't compared.
+The truths below, inside and above each interval, then the shares, each set's flights flown. Floors are tested below; withheld readings, and a drogue or a main's opening on a flight with one canopy, aren't compared.
 
 | Set | Reading | Compared | Below / inside / above | Below | Above | Floors | Withheld | Result |
 |---|---|---:|---:|---:|---:|---:|---:|---|
@@ -848,6 +862,11 @@ The truths below, inside and above each interval, then the shares, each set's fl
 | A | landing | 820 | 38 / 746 / 36 | 4.63% | 4.39% | 0 | 180 | holds |
 | A | flight time | 820 | 38 / 750 / 32 | 4.63% | 3.9% | 0 | 180 | holds |
 | A | descent rate | 820 | 47 / 728 / 45 | 5.73% | 5.49% | 0 | 180 | holds |
+| A | top acceleration | 356 | 12 / 322 / 22 | 3.37% | 6.18% | 181 | 644 | holds |
+| A | burnout | 309 | 10 / 289 / 10 | 3.24% | 3.24% | 210 | 481 | holds |
+| A | drogue rate | 428 | 33 / 379 / 16 | 7.71% | 3.74% | 0 | 180 | holds |
+| A | main opening | 428 | 22 / 383 / 23 | 5.14% | 5.37% | 0 | 180 | holds |
+| A | main rate | 820 | 46 / 734 / 40 | 5.61% | 4.88% | 0 | 180 | holds |
 | B | liftoff | 845 | 52 / 739 / 54 | 6.15% | 6.39% | 0 | 155 | holds |
 | B | apogee height | 845 | 38 / 760 / 47 | 4.5% | 5.56% | 0 | 155 | holds |
 | B | apogee time | 845 | 41 / 754 / 50 | 4.85% | 5.92% | 0 | 155 | holds |
@@ -855,6 +874,81 @@ The truths below, inside and above each interval, then the shares, each set's fl
 | B | landing | 845 | 23 / 788 / 34 | 2.72% | 4.02% | 0 | 155 | holds |
 | B | flight time | 845 | 37 / 763 / 45 | 4.38% | 5.33% | 0 | 155 | holds |
 | B | descent rate | 845 | 41 / 754 / 50 | 4.85% | 5.92% | 0 | 155 | holds |
+| B | top acceleration | 368 | 18 / 330 / 20 | 4.89% | 5.43% | 187 | 632 | holds |
+| B | burnout | 327 | 25 / 285 / 17 | 7.65% | 5.2% | 211 | 462 | holds |
+| B | drogue rate | 436 | 24 / 393 / 19 | 5.5% | 4.36% | 0 | 155 | holds |
+| B | main opening | 436 | 13 / 394 / 29 | 2.98% | 6.65% | 0 | 155 | holds |
+| B | main rate | 845 | 40 / 758 / 47 | 4.73% | 5.56% | 0 | 155 | holds |
+
+### The floors' test
+
+Each floor's lower end against the flight's truth: the band on the share of truths below it must hold 5%, the coverage test's lower tail. Raised by one standard error and lowered by two, it must fail.
+
+| Set | Reading | Compared | Below | Share | Band | Raised one standard error | Lowered two standard errors | Result |
+|---|---|---:|---:|---:|---|---:|---:|---|
+| A | top acceleration | 181 | 3 | 1.66% | 0.0831% to 7.47% | 52, fails | 0, fails | holds |
+| A | burnout | 210 | 12 | 5.71% | 1.81% to 12.9% | 56, fails | 0, fails | holds |
+| B | top acceleration | 187 | 3 | 1.6% | 0.0805% to 7.24% | 44, fails | 0, fails | holds |
+| B | burnout | 211 | 6 | 2.84% | 0.463% to 8.76% | 47, fails | 0, fails | holds |
+
+### The top acceleration's lower ends past the clip
+
+The same lower ends on each flight's log with its top as flown, past the clip by as much as its design takes it. How far is the design's, and no log says, so the test above is on the tops near the clip; here the band on the share below must reach down to 5%: they miss no more. Read whole are the tops with no lower end, out of each count: those near the clip, then those as flown.
+
+| Set | Compared | Below | Share | Band | Read whole, near the clip | Read whole, as flown |
+|---|---:|---:|---:|---|---:|---:|
+| A | 252 | 0 | 0% | 0% to 2.97% | 175 | 104 |
+| B | 285 | 0 | 0% | 0% to 2.63% | 181 | 83 |
+
+### The floors by logger and by design
+
+Floors compared, and truths below the lower end, in bold where that group alone would fail the floors' test. The test is on each set as a whole. The AltOS part has no 8 g setting: its log is written clipping there to reach the count, and its family states no range, so the reader tells the clip by its flat top.
+
+| Set | Reading | Group | Compared | Below |
+|---|---|---|---:|---:|
+| A | top acceleration | altos | 74 | 3 |
+| A | top acceleration | imu-500hz | 107 | 0 |
+| A | top acceleration | rocketpy-bella-lui | 15 | 0 |
+| A | top acceleration | rocketpy-calisto-getting-started-motor-at-minus-1.255 | 18 | 1 |
+| A | top acceleration | rocketpy-calisto-tests-motor-at-minus-1.373 | 21 | 0 |
+| A | top acceleration | rocketpy-cavour | 18 | 1 |
+| A | top acceleration | rocketpy-genesis | 21 | 0 |
+| A | top acceleration | rocketpy-juno-iii | 19 | 0 |
+| A | top acceleration | rocketpy-lince | 19 | 0 |
+| A | top acceleration | rocketpy-ndrt-2020-nose-to-tail | 18 | 0 |
+| A | top acceleration | rocketpy-prometheus-2022-generic-motor | 16 | 0 |
+| A | top acceleration | rocketpy-valetudo | 16 | 1 |
+| A | burnout | altos | 45 | 6 |
+| A | burnout | eggtimer | 68 | 1 |
+| A | burnout | perfectflite | 50 | 3 |
+| A | burnout | rrc3 | 47 | 2 |
+| A | burnout | rocketpy-bella-lui | 61 | 9 |
+| A | burnout | rocketpy-calisto-getting-started-motor-at-minus-1.255 | 4 | 0 |
+| A | burnout | rocketpy-juno-iii | 20 | 0 |
+| A | burnout | rocketpy-ndrt-2020-nose-to-tail | 58 | 1 |
+| A | burnout | rocketpy-valetudo | 67 | 2 |
+| B | top acceleration | altos | 79 | 3 |
+| B | top acceleration | imu-500hz | 108 | 0 |
+| B | top acceleration | rocketpy-bella-lui | 17 | 1 |
+| B | top acceleration | rocketpy-calisto-getting-started-motor-at-minus-1.255 | 24 | 0 |
+| B | top acceleration | rocketpy-calisto-tests-motor-at-minus-1.373 | 20 | 0 |
+| B | top acceleration | rocketpy-cavour | 27 | 1 |
+| B | top acceleration | rocketpy-genesis | 20 | 0 |
+| B | top acceleration | rocketpy-juno-iii | 20 | 0 |
+| B | top acceleration | rocketpy-lince | 16 | 0 |
+| B | top acceleration | rocketpy-ndrt-2020-nose-to-tail | 14 | 1 |
+| B | top acceleration | rocketpy-prometheus-2022-generic-motor | 16 | 0 |
+| B | top acceleration | rocketpy-valetudo | 13 | 0 |
+| B | burnout | altos | 37 | 3 |
+| B | burnout | eggtimer | 69 | 2 |
+| B | burnout | perfectflite | 42 | 0 |
+| B | burnout | rrc3 | 63 | 1 |
+| B | burnout | rocketpy-bella-lui | 63 | 4 |
+| B | burnout | rocketpy-calisto-getting-started-motor-at-minus-1.255 | 4 | 0 |
+| B | burnout | rocketpy-calisto-tests-motor-at-minus-1.373 | 3 | 0 |
+| B | burnout | rocketpy-juno-iii | 28 | 0 |
+| B | burnout | rocketpy-ndrt-2020-nose-to-tail | 43 | 1 |
+| B | burnout | rocketpy-valetudo | 70 | 1 |
 
 ### The probes
 
@@ -869,6 +963,11 @@ Each interval narrowed to 0.8 of its width about its middle, widened to 1.25, an
 | A | landing | 45 / 655 / 120, fails | 22 / 795 / 3, fails | 5 / 327 / 488, fails |
 | A | flight time | 87 / 670 / 63, fails | 11 / 802 / 7, fails | 3 / 626 / 191, fails |
 | A | descent rate | 96 / 626 / 98, fails | 0 / 816 / 4, fails | 0 / 563 / 257, fails |
+| A | top acceleration | 24 / 292 / 40, fails | 1 / 350 / 5, fails | 0 / 258 / 98, fails |
+| A | burnout | 23 / 255 / 31, fails | 4 / 305 / 0, fails | 0 / 166 / 143, fails |
+| A | drogue rate | 66 / 309 / 53, fails | 0 / 428 / 0, fails | 0 / 285 / 143, fails |
+| A | main opening | 70 / 301 / 57, fails | 6 / 420 / 2, fails | 1 / 327 / 100, fails |
+| A | main rate | 111 / 607 / 102, fails | 0 / 820 / 0, fails | 0 / 545 / 275, fails |
 | B | liftoff | 80 / 657 / 108, fails | 26 / 807 / 12, fails | 10 / 474 / 361, fails |
 | B | apogee height | 137 / 581 / 127, fails | 0 / 845 / 0, fails | 0 / 562 / 283, fails |
 | B | apogee time | 68 / 691 / 86, fails | 3 / 815 / 27, fails | 1 / 679 / 165, fails |
@@ -876,10 +975,15 @@ Each interval narrowed to 0.8 of its width about its middle, widened to 1.25, an
 | B | landing | 30 / 687 / 128, fails | 17 / 827 / 1, fails | 4 / 353 / 488, fails |
 | B | flight time | 76 / 681 / 88, fails | 12 / 817 / 16, fails | 3 / 650 / 192, fails |
 | B | descent rate | 111 / 625 / 109, fails | 0 / 841 / 4, fails | 0 / 580 / 265, fails |
+| B | top acceleration | 32 / 302 / 34, fails | 1 / 360 / 7, fails | 0 / 276 / 92, fails |
+| B | burnout | 33 / 256 / 38, fails | 13 / 312 / 2, fails | 1 / 179 / 147, fails |
+| B | drogue rate | 81 / 295 / 60, fails | 0 / 436 / 0, fails | 0 / 292 / 144, fails |
+| B | main opening | 52 / 323 / 61, fails | 3 / 432 / 1, fails | 0 / 333 / 103, fails |
+| B | main rate | 125 / 604 / 116, fails | 0 / 842 / 3, fails | 0 / 573 / 272, fails |
 
 ### Each reading's error side
 
-Each reading's mean error, the reading less the truth, over the readings compared, with the largest error's size and the share of truths above the interval (ADR-257 §2). For the apogee's height, the top speed and the mean descent rate, a reading too low is the flattering side: a waiver's height, a fin's margin (the top speed is vertical), a descent gentler than it was. The share of truths above the interval is that side's test, and the shifted-down probe its mutation probe; the times have none here. The mean is given at the figures of the largest error, the digits every platform shares, and with its sign: +0 is a mean too small for those figures that isn't below zero.
+Each reading's mean error, the reading less the truth, over the readings compared, with the largest error's size and the share of truths above the interval (ADR-257 §2). For the apogee's height, the top speed, the top acceleration, the mean descent rate and each canopy's, a reading too low is the flattering side: a waiver's height, a fin's margin (the top speed is vertical), the load the airframe took, a descent gentler than it was. The share of truths above the interval is that side's test, and the shifted-down probe its mutation probe; the times have none here. The mean is given at the figures of the largest error, the digits every platform shares, and with its sign: +0 is a mean too small for those figures that isn't below zero.
 
 | Set | Reading | Flattering side | Mean error | Largest error | Truths above |
 |---|---|---|---:|---:|---:|
@@ -890,6 +994,11 @@ Each reading's mean error, the reading less the truth, over the readings compare
 | A | landing | none | -0.38 s | 1.33 s | 4.39% |
 | A | flight time | none | -0.62 s | 1.56 s | 3.9% |
 | A | descent rate | low | -0.01 m/s | 6.81 m/s | 5.49% |
+| A | top acceleration | low | -0 m/s² | 14.3 m/s² | 6.18% |
+| A | burnout | none | -0.0147 s | 0.0893 s | 3.24% |
+| A | drogue rate | low | +0.02 m/s | 1.51 m/s | 3.74% |
+| A | main opening | none | +0.416 s | 0.784 s | 5.37% |
+| A | main rate | low | -0 m/s | 5.8 m/s | 4.88% |
 | B | liftoff | none | +0.247 s | 0.554 s | 6.39% |
 | B | apogee height | low | +0 m | 234 m | 5.56% |
 | B | apogee time | none | +0.006 s | 0.526 s | 5.92% |
@@ -897,6 +1006,11 @@ Each reading's mean error, the reading less the truth, over the readings compare
 | B | landing | none | -0.37 s | 1.23 s | 4.02% |
 | B | flight time | none | -0.62 s | 1.5 s | 5.33% |
 | B | descent rate | low | -0.01 m/s | 6.34 m/s | 5.92% |
+| B | top acceleration | low | +0.4 m/s² | 15.7 m/s² | 5.43% |
+| B | burnout | none | -0.015 s | 0.104 s | 5.2% |
+| B | drogue rate | low | -0 m/s | 1.5 m/s | 4.36% |
+| B | main opening | none | +0.413 s | 0.869 s | 6.65% |
+| B | main rate | low | +0.01 m/s | 5.87 m/s | 5.56% |
 
 ### By design
 
@@ -904,74 +1018,74 @@ Below / inside / above.
 
 Set A:
 
-| Design | liftoff | apogee height | apogee time | top speed | landing | flight time | descent rate |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| rocketpy-bella-lui | 2 / 72 / 2 | 1 / 75 / 0 | 3 / 72 / 1 | 1 / 75 / 0 | 0 / 69 / 7 | 0 / 67 / 9 | 0 / 76 / 0 |
-| rocketpy-calisto-getting-started-motor-at-minus-1.255 | 0 / 80 / 2 | 8 / 72 / 2 | 5 / 75 / 2 | 0 / 2 / 3 | 0 / 82 / 0 | 3 / 79 / 0 | 9 / 71 / 2 |
-| rocketpy-calisto-tests-motor-at-minus-1.373 | 0 / 75 / 7 | 2 / 76 / 4 | 1 / 77 / 4 | 0 / 0 / 2 | 0 / 81 / 1 | 2 / 80 / 0 | 3 / 76 / 3 |
-| rocketpy-cavour | 0 / 64 / 21 | 7 / 72 / 6 | 8 / 71 / 6 | none | 38 / 47 / 0 | 21 / 64 / 0 | 1 / 79 / 5 |
-| rocketpy-genesis | 0 / 77 / 12 | 8 / 76 / 5 | 4 / 84 / 1 | none | 0 / 87 / 2 | 3 / 86 / 0 | 10 / 70 / 9 |
-| rocketpy-juno-iii | 22 / 54 / 0 | 3 / 65 / 8 | 2 / 73 / 1 | 2 / 22 / 6 | 0 / 76 / 0 | 0 / 67 / 9 | 4 / 64 / 8 |
-| rocketpy-lince | 0 / 65 / 8 | 9 / 56 / 8 | 4 / 65 / 4 | none | 0 / 73 / 0 | 8 / 65 / 0 | 11 / 51 / 11 |
-| rocketpy-ndrt-2020-nose-to-tail | 0 / 88 / 4 | 4 / 83 / 5 | 2 / 87 / 3 | 0 / 91 / 1 | 0 / 69 / 23 | 0 / 91 / 1 | 0 / 92 / 0 |
-| rocketpy-prometheus-2022-generic-motor | 1 / 82 / 0 | 9 / 68 / 6 | 6 / 69 / 8 | none | 0 / 83 / 0 | 1 / 82 / 0 | 9 / 67 / 7 |
-| rocketpy-valetudo | 10 / 72 / 0 | 4 / 77 / 1 | 1 / 79 / 2 | 8 / 68 / 6 | 0 / 79 / 3 | 0 / 69 / 13 | 0 / 82 / 0 |
+| Design | liftoff | apogee height | apogee time | top speed | landing | flight time | descent rate | top acceleration | burnout | drogue rate | main opening | main rate |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| rocketpy-bella-lui | 2 / 72 / 2 | 1 / 75 / 0 | 3 / 72 / 1 | 1 / 75 / 0 | 0 / 69 / 7 | 0 / 67 / 9 | 0 / 76 / 0 | 0 / 39 / 0 | 0 / 15 / 0 | none | none | 1 / 73 / 2 |
+| rocketpy-calisto-getting-started-motor-at-minus-1.255 | 0 / 80 / 2 | 8 / 72 / 2 | 5 / 75 / 2 | 0 / 2 / 3 | 0 / 82 / 0 | 3 / 79 / 0 | 9 / 71 / 2 | 4 / 28 / 2 | 0 / 34 / 0 | 9 / 71 / 2 | 0 / 82 / 0 | 7 / 73 / 2 |
+| rocketpy-calisto-tests-motor-at-minus-1.373 | 0 / 75 / 7 | 2 / 76 / 4 | 1 / 77 / 4 | 0 / 0 / 2 | 0 / 81 / 1 | 2 / 80 / 0 | 3 / 76 / 3 | 0 / 34 / 3 | 0 / 37 / 0 | 3 / 77 / 2 | 1 / 81 / 0 | 2 / 79 / 1 |
+| rocketpy-cavour | 0 / 64 / 21 | 7 / 72 / 6 | 8 / 71 / 6 | none | 38 / 47 / 0 | 21 / 64 / 0 | 1 / 79 / 5 | 3 / 29 / 1 | 2 / 27 / 4 | none | none | 7 / 71 / 7 |
+| rocketpy-genesis | 0 / 77 / 12 | 8 / 76 / 5 | 4 / 84 / 1 | none | 0 / 87 / 2 | 3 / 86 / 0 | 10 / 70 / 9 | 2 / 36 / 1 | 2 / 37 / 0 | 8 / 76 / 5 | 0 / 66 / 23 | 8 / 77 / 4 |
+| rocketpy-juno-iii | 22 / 54 / 0 | 3 / 65 / 8 | 2 / 73 / 1 | 2 / 22 / 6 | 0 / 76 / 0 | 0 / 67 / 9 | 4 / 64 / 8 | 1 / 30 / 0 | 0 / 26 / 0 | none | none | 4 / 63 / 9 |
+| rocketpy-lince | 0 / 65 / 8 | 9 / 56 / 8 | 4 / 65 / 4 | none | 0 / 73 / 0 | 8 / 65 / 0 | 11 / 51 / 11 | 1 / 29 / 3 | 1 / 27 / 5 | none | none | 10 / 53 / 10 |
+| rocketpy-ndrt-2020-nose-to-tail | 0 / 88 / 4 | 4 / 83 / 5 | 2 / 87 / 3 | 0 / 91 / 1 | 0 / 69 / 23 | 0 / 91 / 1 | 0 / 92 / 0 | 1 / 26 / 7 | 0 / 33 / 1 | 4 / 86 / 2 | 14 / 78 / 0 | 0 / 92 / 0 |
+| rocketpy-prometheus-2022-generic-motor | 1 / 82 / 0 | 9 / 68 / 6 | 6 / 69 / 8 | none | 0 / 83 / 0 | 1 / 82 / 0 | 9 / 67 / 7 | 0 / 38 / 5 | 5 / 38 / 0 | 9 / 69 / 5 | 7 / 76 / 0 | 2 / 80 / 1 |
+| rocketpy-valetudo | 10 / 72 / 0 | 4 / 77 / 1 | 1 / 79 / 2 | 8 / 68 / 6 | 0 / 79 / 3 | 0 / 69 / 13 | 0 / 82 / 0 | 0 / 33 / 0 | 0 / 15 / 0 | none | none | 5 / 73 / 4 |
 
 Set B:
 
-| Design | liftoff | apogee height | apogee time | top speed | landing | flight time | descent rate |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| rocketpy-bella-lui | 9 / 77 / 1 | 2 / 84 / 1 | 0 / 84 / 3 | 0 / 84 / 3 | 0 / 80 / 7 | 0 / 70 / 17 | 0 / 87 / 0 |
-| rocketpy-calisto-getting-started-motor-at-minus-1.255 | 0 / 81 / 10 | 5 / 81 / 5 | 2 / 82 / 7 | 0 / 2 / 3 | 0 / 90 / 1 | 5 / 86 / 0 | 7 / 79 / 5 |
-| rocketpy-calisto-tests-motor-at-minus-1.373 | 0 / 94 / 8 | 3 / 94 / 5 | 6 / 89 / 7 | 0 / 4 / 2 | 0 / 102 / 0 | 1 / 101 / 0 | 7 / 91 / 4 |
-| rocketpy-cavour | 0 / 64 / 14 | 2 / 71 / 5 | 2 / 66 / 10 | none | 23 / 55 / 0 | 16 / 62 / 0 | 1 / 71 / 6 |
-| rocketpy-genesis | 0 / 85 / 7 | 5 / 85 / 2 | 4 / 83 / 5 | none | 0 / 92 / 0 | 1 / 91 / 0 | 7 / 81 / 4 |
-| rocketpy-juno-iii | 29 / 55 / 0 | 6 / 71 / 7 | 7 / 73 / 4 | 2 / 30 / 5 | 0 / 80 / 4 | 0 / 67 / 17 | 7 / 66 / 11 |
-| rocketpy-lince | 0 / 66 / 11 | 2 / 68 / 7 | 7 / 64 / 6 | none | 0 / 76 / 1 | 13 / 64 / 0 | 6 / 59 / 12 |
-| rocketpy-ndrt-2020-nose-to-tail | 0 / 65 / 3 | 5 / 57 / 6 | 2 / 64 / 2 | 0 / 68 / 0 | 0 / 52 / 16 | 0 / 68 / 0 | 0 / 68 / 0 |
-| rocketpy-prometheus-2022-generic-motor | 1 / 82 / 0 | 3 / 72 / 8 | 7 / 74 / 2 | none | 0 / 83 / 0 | 1 / 82 / 0 | 6 / 69 / 8 |
-| rocketpy-valetudo | 13 / 70 / 0 | 5 / 77 / 1 | 4 / 75 / 4 | 7 / 75 / 1 | 0 / 78 / 5 | 0 / 72 / 11 | 0 / 83 / 0 |
+| Design | liftoff | apogee height | apogee time | top speed | landing | flight time | descent rate | top acceleration | burnout | drogue rate | main opening | main rate |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| rocketpy-bella-lui | 9 / 77 / 1 | 2 / 84 / 1 | 0 / 84 / 3 | 0 / 84 / 3 | 0 / 80 / 7 | 0 / 70 / 17 | 0 / 87 / 0 | 1 / 40 / 0 | 0 / 24 / 0 | none | none | 2 / 82 / 3 |
+| rocketpy-calisto-getting-started-motor-at-minus-1.255 | 0 / 81 / 10 | 5 / 81 / 5 | 2 / 82 / 7 | 0 / 2 / 3 | 0 / 90 / 1 | 5 / 86 / 0 | 7 / 79 / 5 | 2 / 39 / 5 | 0 / 46 / 0 | 5 / 82 / 4 | 1 / 90 / 0 | 5 / 83 / 3 |
+| rocketpy-calisto-tests-motor-at-minus-1.373 | 0 / 94 / 8 | 3 / 94 / 5 | 6 / 89 / 7 | 0 / 4 / 2 | 0 / 102 / 0 | 1 / 101 / 0 | 7 / 91 / 4 | 2 / 35 / 4 | 0 / 41 / 0 | 3 / 96 / 3 | 1 / 101 / 0 | 2 / 97 / 3 |
+| rocketpy-cavour | 0 / 64 / 14 | 2 / 71 / 5 | 2 / 66 / 10 | none | 23 / 55 / 0 | 16 / 62 / 0 | 1 / 71 / 6 | 4 / 38 / 1 | 9 / 28 / 6 | none | none | 5 / 65 / 8 |
+| rocketpy-genesis | 0 / 85 / 7 | 5 / 85 / 2 | 4 / 83 / 5 | none | 0 / 92 / 0 | 1 / 91 / 0 | 7 / 81 / 4 | 3 / 33 / 3 | 7 / 32 / 0 | 5 / 86 / 1 | 0 / 63 / 29 | 5 / 85 / 2 |
+| rocketpy-juno-iii | 29 / 55 / 0 | 6 / 71 / 7 | 7 / 73 / 4 | 2 / 30 / 5 | 0 / 80 / 4 | 0 / 67 / 17 | 7 / 66 / 11 | 0 / 36 / 2 | 0 / 28 / 0 | none | none | 7 / 65 / 12 |
+| rocketpy-lince | 0 / 66 / 11 | 2 / 68 / 7 | 7 / 64 / 6 | none | 0 / 76 / 1 | 13 / 64 / 0 | 6 / 59 / 12 | 1 / 28 / 3 | 4 / 17 / 11 | none | none | 5 / 61 / 11 |
+| rocketpy-ndrt-2020-nose-to-tail | 0 / 65 / 3 | 5 / 57 / 6 | 2 / 64 / 2 | 0 / 68 / 0 | 0 / 52 / 16 | 0 / 68 / 0 | 0 / 68 / 0 | 4 / 20 / 1 | 0 / 25 / 0 | 5 / 58 / 5 | 3 / 65 / 0 | 0 / 68 / 0 |
+| rocketpy-prometheus-2022-generic-motor | 1 / 82 / 0 | 3 / 72 / 8 | 7 / 74 / 2 | none | 0 / 83 / 0 | 1 / 82 / 0 | 6 / 69 / 8 | 1 / 34 / 1 | 5 / 31 / 0 | 6 / 71 / 6 | 8 / 75 / 0 | 2 / 79 / 2 |
+| rocketpy-valetudo | 13 / 70 / 0 | 5 / 77 / 1 | 4 / 75 / 4 | 7 / 75 / 1 | 0 / 78 / 5 | 0 / 72 / 11 | 0 / 83 / 0 | 0 / 27 / 0 | 0 / 13 / 0 | none | none | 7 / 73 / 3 |
 
 ### By logger and by the day's air
 
-Below / inside / above, and in bold where that group's counts alone would fail the test. The test is on each set as a whole; these groups show where its misses fall. A barometric height is off by about the day's offset from the standard atmosphere over its temperature, so the misses of the height, the top speed and the descent rate gather on the coldest and warmest days: a warm day reads low, and its truth lies above the interval.
+Below / inside / above, and in bold where that group's counts alone would fail the test. The test is on each set as a whole; these groups show where its misses fall. A barometric height is off by about the day's offset from the standard atmosphere over its temperature, so the misses of the height, the top speed and the rates of descent gather on the coldest and warmest days: a warm day reads low, and its truth lies above the interval.
 
 #### By logger
 
 Set A:
 
-| Logger | liftoff | apogee height | apogee time | top speed | landing | flight time | descent rate |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| perfectflite | **0 / 126 / 18** | 10 / 125 / 9 | 10 / 134 / 0 | 1 / 45 / 4 | 11 / 130 / 3 | 9 / 132 / 3 | 8 / 131 / 5 |
-| rrc3 | 1 / 125 / 13 | 8 / 124 / 7 | 1 / 135 / 3 | 2 / 42 / 3 | 6 / 125 / 8 | 3 / 132 / 4 | 8 / 123 / 8 |
-| eggtimer | **3 / 155 / 23** | 15 / 158 / 8 | 18 / 161 / 2 | 3 / 59 / 6 | 10 / 165 / 6 | 12 / 167 / 2 | 8 / 166 / 7 |
-| altos | 17 / 166 / 2 | 11 / 162 / 12 | **2 / 156 / 27** | 3 / 62 / 2 | 11 / 171 / 3 | 13 / 171 / 1 | 13 / 158 / 14 |
-| imu-500hz | **14 / 157 / 0** | 11 / 151 / 9 | **5 / 166 / 0** | 2 / 50 / 3 | **0 / 155 / 16** | **1 / 148 / 22** | 10 / 150 / 11 |
+| Logger | liftoff | apogee height | apogee time | top speed | landing | flight time | descent rate | top acceleration | burnout | drogue rate | main opening | main rate |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| perfectflite | **0 / 126 / 18** | 10 / 125 / 9 | 10 / 134 / 0 | 1 / 45 / 4 | 11 / 130 / 3 | 9 / 132 / 3 | 8 / 131 / 5 | none | none | 6 / 58 / 2 | 1 / 63 / 2 | 9 / 128 / 7 |
+| rrc3 | 1 / 125 / 13 | 8 / 124 / 7 | 1 / 135 / 3 | 2 / 42 / 3 | 6 / 125 / 8 | 3 / 132 / 4 | 8 / 123 / 8 | none | none | 6 / 72 / 3 | 2 / 75 / 4 | 9 / 125 / 5 |
+| eggtimer | **3 / 155 / 23** | 15 / 158 / 8 | 18 / 161 / 2 | 3 / 59 / 6 | 10 / 165 / 6 | 12 / 167 / 2 | 8 / 166 / 7 | none | none | 6 / 85 / 3 | 9 / 80 / 5 | 9 / 162 / 10 |
+| altos | 17 / 166 / 2 | 11 / 162 / 12 | **2 / 156 / 27** | 3 / 62 / 2 | 11 / 171 / 3 | 13 / 171 / 1 | 13 / 158 / 14 | **12 / 151 / 22** | 0 / 129 / 9 | 8 / 78 / 3 | 2 / 79 / 8 | 10 / 166 / 9 |
+| imu-500hz | **14 / 157 / 0** | 11 / 151 / 9 | **5 / 166 / 0** | 2 / 50 / 3 | **0 / 155 / 16** | **1 / 148 / 22** | 10 / 150 / 11 | **0 / 171 / 0** | 10 / 160 / 1 | 7 / 86 / 5 | 8 / 86 / 4 | 9 / 153 / 9 |
 
 Set B:
 
-| Logger | liftoff | apogee height | apogee time | top speed | landing | flight time | descent rate |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| perfectflite | 3 / 118 / 11 | 5 / 121 / 6 | 9 / 119 / 4 | 0 / 39 / 3 | 5 / 125 / 2 | 7 / 122 / 3 | 5 / 120 / 7 |
-| rrc3 | 6 / 153 / 17 | 5 / 163 / 8 | 7 / 163 / 6 | 2 / 60 / 1 | 5 / 163 / 8 | 4 / 164 / 8 | 6 / 163 / 7 |
-| eggtimer | **3 / 143 / 23** | 12 / 147 / 10 | 15 / 146 / 8 | 2 / 64 / 3 | 5 / 159 / 5 | 10 / 157 / 2 | 11 / 149 / 9 |
-| altos | **23 / 160 / 3** | 4 / 168 / 14 | **4 / 152 / 30** | 4 / 49 / 4 | 8 / 176 / 2 | 14 / 170 / 2 | 8 / 158 / 20 |
-| imu-500hz | **17 / 165 / 0** | 12 / 161 / 9 | 6 / 174 / 2 | 1 / 51 / 3 | **0 / 165 / 17** | **2 / 150 / 30** | 11 / 164 / 7 |
+| Logger | liftoff | apogee height | apogee time | top speed | landing | flight time | descent rate | top acceleration | burnout | drogue rate | main opening | main rate |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| perfectflite | 3 / 118 / 11 | 5 / 121 / 6 | 9 / 119 / 4 | 0 / 39 / 3 | 5 / 125 / 2 | 7 / 122 / 3 | 5 / 120 / 7 | none | none | 4 / 69 / 2 | 1 / 71 / 3 | 4 / 120 / 8 |
+| rrc3 | 6 / 153 / 17 | 5 / 163 / 8 | 7 / 163 / 6 | 2 / 60 / 1 | 5 / 163 / 8 | 4 / 164 / 8 | 6 / 163 / 7 | none | none | 2 / 83 / 5 | 3 / 79 / 8 | 7 / 163 / 6 |
+| eggtimer | **3 / 143 / 23** | 12 / 147 / 10 | 15 / 146 / 8 | 2 / 64 / 3 | 5 / 159 / 5 | 10 / 157 / 2 | 11 / 149 / 9 | none | none | 9 / 71 / 4 | 2 / 79 / 3 | 9 / 152 / 8 |
+| altos | **23 / 160 / 3** | 4 / 168 / 14 | **4 / 152 / 30** | 4 / 49 / 4 | 8 / 176 / 2 | 14 / 170 / 2 | 8 / 158 / 20 | **18 / 148 / 20** | 0 / 128 / 17 | 2 / 84 / 5 | 5 / 78 / 8 | 7 / 162 / 17 |
+| imu-500hz | **17 / 165 / 0** | 12 / 161 / 9 | 6 / 174 / 2 | 1 / 51 / 3 | **0 / 165 / 17** | **2 / 150 / 30** | 11 / 164 / 7 | **0 / 182 / 0** | **25 / 157 / 0** | 7 / 86 / 3 | 2 / 87 / 7 | 13 / 161 / 8 |
 
 #### By the day's air
 
 Set A:
 
-| The day's air | liftoff | apogee height | apogee time | top speed | landing | flight time | descent rate |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| colder than −10 K | 3 / 115 / 14 | **55 / 77 / 0** | 10 / 114 / 8 | **10 / 24 / 0** | 7 / 120 / 5 | 10 / 118 / 4 | **47 / 85 / 0** |
-| −10 to +10 K | 27 / 489 / 35 | **0 / 551 / 0** | 21 / 510 / 20 | **1 / 194 / 1** | 26 / 500 / 25 | 23 / 505 / 23 | **0 / 551 / 0** |
-| warmer than +10 K | 5 / 125 / 7 | **0 / 92 / 45** | 5 / 128 / 4 | **0 / 40 / 17** | 5 / 126 / 6 | 5 / 127 / 5 | **0 / 92 / 45** |
+| The day's air | liftoff | apogee height | apogee time | top speed | landing | flight time | descent rate | top acceleration | burnout | drogue rate | main opening | main rate |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| colder than −10 K | 3 / 115 / 14 | **55 / 77 / 0** | 10 / 114 / 8 | **10 / 24 / 0** | 7 / 120 / 5 | 10 / 118 / 4 | **47 / 85 / 0** | 1 / 48 / 3 | 2 / 41 / 2 | **33 / 39 / 0** | 2 / 66 / 4 | **46 / 86 / 0** |
+| −10 to +10 K | 27 / 489 / 35 | **0 / 551 / 0** | 21 / 510 / 20 | **1 / 194 / 1** | 26 / 500 / 25 | 23 / 505 / 23 | **0 / 551 / 0** | 10 / 217 / 14 | 6 / 193 / 6 | **0 / 287 / 0** | 14 / 260 / 13 | **0 / 551 / 0** |
+| warmer than +10 K | 5 / 125 / 7 | **0 / 92 / 45** | 5 / 128 / 4 | **0 / 40 / 17** | 5 / 126 / 6 | 5 / 127 / 5 | **0 / 92 / 45** | 1 / 57 / 5 | 2 / 55 / 2 | **0 / 53 / 16** | 6 / 57 / 6 | **0 / 97 / 40** |
 
 Set B:
 
-| The day's air | liftoff | apogee height | apogee time | top speed | landing | flight time | descent rate |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| colder than −10 K | 14 / 140 / 9 | **38 / 125 / 0** | 12 / 143 / 8 | 7 / 45 / 0 | 3 / 151 / 9 | 5 / 148 / 10 | **41 / 122 / 0** |
-| −10 to +10 K | 30 / 457 / 39 | **0 / 526 / 0** | 23 / 468 / 35 | **2 / 163 / 0** | 16 / 490 / 20 | 24 / 473 / 29 | **0 / 526 / 0** |
-| warmer than +10 K | 8 / 142 / 6 | **0 / 109 / 47** | 6 / 143 / 7 | **0 / 55 / 14** | 4 / 147 / 5 | 8 / 142 / 6 | **0 / 106 / 50** |
+| The day's air | liftoff | apogee height | apogee time | top speed | landing | flight time | descent rate | top acceleration | burnout | drogue rate | main opening | main rate |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| colder than −10 K | 14 / 140 / 9 | **38 / 125 / 0** | 12 / 143 / 8 | 7 / 45 / 0 | 3 / 151 / 9 | 5 / 148 / 10 | **41 / 122 / 0** | 3 / 64 / 5 | 5 / 56 / 2 | **24 / 64 / 0** | 2 / 77 / 9 | **40 / 123 / 0** |
+| −10 to +10 K | 30 / 457 / 39 | **0 / 526 / 0** | 23 / 468 / 35 | **2 / 163 / 0** | 16 / 490 / 20 | 24 / 473 / 29 | **0 / 526 / 0** | 12 / 205 / 11 | 15 / 177 / 9 | **0 / 268 / 0** | 9 / 243 / 16 | **0 / 526 / 0** |
+| warmer than +10 K | 8 / 142 / 6 | **0 / 109 / 47** | 6 / 143 / 7 | **0 / 55 / 14** | 4 / 147 / 5 | 8 / 142 / 6 | **0 / 106 / 50** | 3 / 61 / 4 | 5 / 52 / 6 | **0 / 61 / 19** | 2 / 74 / 4 | **0 / 109 / 47** |

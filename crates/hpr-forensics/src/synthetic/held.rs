@@ -394,7 +394,7 @@ pub fn outcomes(flight: &Flight, log: &FlightLog) -> Vec<(Quantity, Outcome)> {
 
 /// The truth's highest specific force along the axis from liftoff to apogee, m/s²: the top
 /// acceleration a reading is checked against.
-fn top_specific_force(flight: &Flight) -> f64 {
+pub(super) fn top_specific_force(flight: &Flight) -> f64 {
     let events = &flight.truth.events;
     flight
         .truth

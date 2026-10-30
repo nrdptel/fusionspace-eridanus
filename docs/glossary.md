@@ -527,8 +527,10 @@ format is the logger maker's. `hpr analyze` reads one and prints what it says, w
 
 ### Floor
 
-A reading that holds one way only. It has two numbers: the reading, where the rule lands, and the
-floor itself, that reading less its bound. The truth is at or above the floor (or, for a time, at
+A reading that holds one way only. It has up to three numbers: the reading, where the rule lands; the
+floor itself, that reading less its bound; and, for a burnout or a clipped top acceleration, a
+tighter **lower end**, the figure the truth stayed above in about 19 of 20 synthetic flights
+(`lower_end_s`, `lower_end_m_s2`). The truth is at or above the floor (or, for a time, at
 or after it), and may lie beyond it by any amount. Take burnout from the top speed on the
 invented PerfectFlite flight. The reading is the top speed's time, 2.20 s, which the JSON gives as
 `time_s`. The floor is 2.20 s less its 1.32 s bound, 0.88 s, which `hpr analyze` prints as

@@ -42,6 +42,7 @@
 //!
 //! [m7-2c]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-2c
 
+use super::interval::{self, Shares};
 use super::{
     Apex, BAROMETER_GAIN, DENSITY_SCALE_HEIGHT_M, DESCENT_FIT_STEPS, DESCENT_GUARD_S,
     DESCENT_TAIL_S, DESCENT_WINDOW_MAX_S, DESCENT_WINDOW_S, DRIFT_M_PER_S, DROGUE_RATIO, Descent,
@@ -57,6 +58,7 @@ struct Leg {
     from_s: f64,
     to: usize,
     opening: Option<Opening>,
+    shares: Shares,
 }
 
 /// The drogue's descent and the main's, from apogee to landing at sample `landing`.
@@ -213,6 +215,7 @@ pub(super) fn read(
                 from_s: apex.time_s,
                 to: landing,
                 opening: None,
+                shares: interval::MAIN_RATE_SHARES,
             }),
         );
     }
@@ -227,9 +230,11 @@ pub(super) fn read(
     } else {
         opened_s - apex.time_s
     };
+    let bound_s = slowing_s + 0.5 * window_s + 2.0 * local_interval(time, start);
     let opening = Opening {
         time_s: opened_s,
-        bound_s: slowing_s + 0.5 * window_s + 2.0 * local_interval(time, start),
+        bound_s,
+        interval_s: interval::MAIN_OPENING_SHARES.interval(opened_s, bound_s),
         height_m: height,
     };
     (
@@ -238,12 +243,14 @@ pub(super) fn read(
             from_s: apex.time_s,
             to: start,
             opening: None,
+            shares: interval::DROGUE_RATE_SHARES,
         }),
         leg(Leg {
             from: start,
             from_s: opened_s,
             to: landing,
             opening: Some(opening),
+            shares: interval::MAIN_RATE_SHARES,
         }),
     )
 }
@@ -284,9 +291,11 @@ fn descent(
         + track.step_at(filtered[leg.from])
         + track.step_at(filtered[leg.to])
         + from_apogee;
+    let (rate_m_s, bound_m_s) = (drop / span, bound_m / span);
     Reading::Read(Descent {
-        rate_m_s: drop / span,
-        bound_m_s: bound_m / span,
+        rate_m_s,
+        bound_m_s,
+        interval_m_s: leg.shares.interval(rate_m_s, bound_m_s),
         from_s: leg.from_s,
         to_s,
         from_height_m: top,
@@ -390,6 +399,23 @@ mod tests {
         );
         assert!((opening.height_m - 150.0).abs() < 3.0, "{opening:?}");
         assert!((drogue.to_s - opening.time_s).abs() < 1e-9);
+        // Each states the 90% interval its own shares make; no two share theirs.
+        assert_eq!(
+            drogue.interval_m_s,
+            interval::DROGUE_RATE_SHARES.interval(drogue.rate_m_s, drogue.bound_m_s)
+        );
+        assert_eq!(
+            main.interval_m_s,
+            interval::MAIN_RATE_SHARES.interval(main.rate_m_s, main.bound_m_s)
+        );
+        assert_eq!(
+            opening.interval_s,
+            interval::MAIN_OPENING_SHARES.interval(opening.time_s, opening.bound_s)
+        );
+        assert_ne!(interval::DROGUE_RATE_SHARES, interval::MAIN_RATE_SHARES);
+        assert!(drogue.interval_m_s.is_some() && main.interval_m_s.is_some());
+        // The opening is read late, so its interval lies wholly before the reading.
+        assert!(opening.interval_s.unwrap().high < opening.time_s);
         // The bound's slowing time: the main's 6 m/s grown by exp(150/14000), slowing the descent
         // to its mark, 9.6 m/s, 1.6 times its rate, from any speed above it; and half the fit
         // beside it, which the bound would hold without the slowing time.

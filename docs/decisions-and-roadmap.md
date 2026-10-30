@@ -808,7 +808,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-2e"></a>[M7.2e][phase-5] | 90% intervals on the readings, tested on the synthetic flights | not yet done |
 | <a id="m7-2e1"></a>[M7.2e1][done-5] | The test, on the apogee | done |
 | <a id="m7-2e2"></a>[M7.2e2][done-5] | The height track's other readings | done |
-| <a id="m7-2e3"></a>[M7.2e3][phase-5] | The accelerometer's readings and the canopies' | not yet done |
+| <a id="m7-2e3"></a>[M7.2e3][done-5] | The accelerometer's readings and the canopies' | done |
 | <a id="m7-2e4"></a>[M7.2e4][phase-5] | The intervals in `hpr analyze` and Python | not yet done |
 | <a id="m7-2f"></a>[M7.2f][phase-5] | Two recordings of one flight, and stages | not yet done |
 | <a id="m7-2g"></a>[M7.2g][phase-5] | Ghost files: the flight as JSON, CZML and glTF | not yet done |

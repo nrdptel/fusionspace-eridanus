@@ -351,6 +351,8 @@ fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
             MaxAccelerationReading {
                 acceleration_m_s2: acceleration.acceleration_m_s2,
                 bound_m_s2: acceleration.bound_m_s2,
+                interval_m_s2: acceleration.interval_m_s2.map(interval),
+                lower_end_m_s2: acceleration.lower_end_m_s2,
                 time_s: acceleration.time_s,
                 range_m_s2: acceleration.range_m_s2,
                 is_floor: acceleration.is_floor,
@@ -363,6 +365,8 @@ fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
         burnout: reading(&read.burnout, |burnout| BurnoutReading {
             time_s: burnout.time_s,
             bound_s: burnout.bound_s,
+            interval_s: burnout.interval_s.map(interval),
+            lower_end_s: burnout.lower_end_s,
             time_after_liftoff_s: burnout.time_after_liftoff_s,
             is_floor: burnout.is_floor,
             source: source(burnout.source),
@@ -415,6 +419,7 @@ fn descent(descent: &Descent) -> DescentReading {
     DescentReading {
         rate_m_s: descent.rate_m_s,
         bound_m_s: descent.bound_m_s,
+        interval_m_s: descent.interval_m_s.map(interval),
         from_s: descent.from_s,
         to_s: descent.to_s,
         from_height_m: descent.from_height_m,
@@ -422,6 +427,7 @@ fn descent(descent: &Descent) -> DescentReading {
         opening: descent.opening.map(|opening| OpeningReading {
             time_s: opening.time_s,
             bound_s: opening.bound_s,
+            interval_s: opening.interval_s.map(interval),
             height_m: opening.height_m,
         }),
         source: source(descent.source),
@@ -918,6 +924,8 @@ mod tests {
         document.max_acceleration = LogReading::Read(MaxAccelerationReading {
             acceleration_m_s2: 1000.0,
             bound_m_s2: 101.04,
+            interval_m_s2: None,
+            lower_end_m_s2: None,
             time_s: 0.75,
             range_m_s2: None,
             is_floor: false,

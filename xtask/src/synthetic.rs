@@ -16,7 +16,7 @@
 //! an error took, and how many were withheld, by reason. The command fails, writing nothing, if
 //! any reading's error passes its bound, or any log can't be written.
 //!
-//! Last, it holds the readings' 90% intervals to ADR-257's test (M7.2e1 and M7.2e2, ADR-308): the
+//! Last, it holds the readings' 90% intervals to ADR-257's test (M7.2e1 to M7.2e3, ADR-308): the
 //! calibration set's 2,000 flights fit each interval's shares again, which must equal the
 //! library's to three significant figures, and on sets A and B each reading's truths below, inside
 //! and above its interval must pass the test while the intervals narrowed, widened and shifted
@@ -37,7 +37,7 @@ use std::panic::{self, AssertUnwindSafe};
 use std::path::Path;
 
 use hpr_flightdata::readings::Clip;
-use hpr_flightdata::readings::interval::Shares;
+use hpr_flightdata::readings::interval::{FloorShares, Shares};
 use hpr_flightdata::smoother::{GnssTrust, Options};
 use hpr_forensics::synthetic::census::{self, Range, Row, SetCensus};
 use hpr_forensics::synthetic::designs::{DESIGNS, DesignFiles};
@@ -81,7 +81,7 @@ struct Report {
     /// A health card for each logger: its first smoothed flight in the tuning set.
     cards: Vec<Card>,
     /// The readings' 90% intervals: their shares fitted on the calibration set, and ADR-257's
-    /// test on the two test sets (M7.2e1 and M7.2e2, ADR-308).
+    /// test on the two test sets (M7.2e1 to M7.2e3, ADR-308).
     intervals: Intervals,
 }
 
@@ -94,6 +94,8 @@ struct Intervals {
     calibration_withheld: u64,
     /// Each reading's shares, fitted again on the calibration set and as the library holds them.
     shares: Vec<FittedShares>,
+    /// Each floored reading's shares, the same way.
+    floor_shares: Vec<FittedFloorShares>,
     /// ADR-257 §1's test on each test set, in A, B order.
     sets: Vec<IntervalSet>,
 }
@@ -109,6 +111,29 @@ struct FittedShares {
     fitted: Shares,
     /// As `hpr_flightdata::readings::interval` holds them.
     library: Shares,
+}
+
+/// One floored reading's shares.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+struct FittedFloorShares {
+    /// The reading.
+    quantity: Quantity,
+    /// The calibration set's floors.
+    stated: u64,
+    /// Fitted on them, to three significant figures.
+    fitted: FloorShares,
+    /// As `hpr_flightdata::readings::interval` holds them.
+    library: FloorShares,
+}
+
+/// Whether a floored reading's test passes and each of its probes does, decided before the bands
+/// are rounded.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+struct FloorPasses {
+    /// The test on the lower ends as stated.
+    test: bool,
+    /// The test on each probe's.
+    probes: BTreeMap<intervals::FloorProbe, bool>,
 }
 
 /// One test set's checks.
@@ -128,6 +153,8 @@ struct IntervalCheck {
     holds: bool,
     /// Whether the test passes on each probe's intervals, decided before the bands are rounded.
     probe_passes: BTreeMap<intervals::Probe, bool>,
+    /// The same for its floors, where it read any.
+    floor_passes: Option<FloorPasses>,
     /// The check.
     check: intervals::Check,
 }
@@ -643,7 +670,7 @@ fn say_set(set: Set, files: &DesignFiles) -> Result<Vec<FlightSaid>, String> {
                         let flown = panic::catch_unwind(AssertUnwindSafe(|| {
                             flyer
                                 .flight(set, index)
-                                .map(|flight| intervals::said(index, &flight))
+                                .and_then(|flight| intervals::said(set.seed(), index, &flight))
                                 .map_err(|e| e.to_string())
                         }))
                         .unwrap_or_else(|payload| {
@@ -760,6 +787,38 @@ fn interval_check(files: &DesignFiles) -> Result<(Intervals, Vec<String>), Strin
             library,
         });
     }
+    let mut floor_shares = Vec::new();
+    for quantity in intervals::FLOORED {
+        let library = intervals::floor_shares(quantity)
+            .ok_or_else(|| format!("{}'s floors state no shares", quantity.name()))?;
+        let stated = calibration
+            .iter()
+            .flat_map(|f| &f.said)
+            .filter(|(q, said)| *q == quantity && matches!(said, intervals::Said::Floor(_)))
+            .count() as u64;
+        let fitted = intervals::fitted_floor(quantity, &calibration)
+            .ok_or_else(|| format!("{}'s floor shares can't be fitted", quantity.name()))?;
+        let fitted = FloorShares {
+            high: intervals::three_figures(fitted.high),
+            median: intervals::three_figures(fitted.median),
+        };
+        if fitted != library {
+            broken.push(format!(
+                "{}: the calibration set fits floor shares {} and {}, the library holds {} and {}",
+                quantity.name(),
+                fitted.high,
+                fitted.median,
+                library.high,
+                library.median
+            ));
+        }
+        floor_shares.push(FittedFloorShares {
+            quantity,
+            stated,
+            fitted,
+            library,
+        });
+    }
     let mut sets = Vec::new();
     for set in [Set::A, Set::B] {
         let flights = say_set(set, files)?;
@@ -788,14 +847,55 @@ fn interval_check(files: &DesignFiles) -> Result<(Intervals, Vec<String>), Strin
                         ));
                     }
                 }
+                match &check.floor {
+                    Some(floor) => {
+                        if !floor.test.passes() {
+                            broken.push(format!(
+                                "{}: {}'s floors fail: {} of {} below",
+                                set.name(),
+                                quantity.name(),
+                                floor.test.below,
+                                floor.test.given
+                            ));
+                        }
+                        for (probe, test) in &floor.probes {
+                            if test.passes() {
+                                broken.push(format!(
+                                    "{}: {}'s floors {} still pass: {} of {} below",
+                                    set.name(),
+                                    quantity.name(),
+                                    probe.name(),
+                                    test.below,
+                                    test.given
+                                ));
+                            }
+                        }
+                    }
+                    None if intervals::FLOORED.contains(&quantity) => broken.push(format!(
+                        "{}: {} read no floor to test",
+                        set.name(),
+                        quantity.name()
+                    )),
+                    None => {}
+                }
+                broken.extend(past_clip_problem(set, &check));
                 let probe_passes = check
                     .probes
                     .iter()
                     .map(|(probe, test)| (*probe, test.passes()))
                     .collect();
+                let floor_passes = check.floor.as_ref().map(|floor| FloorPasses {
+                    test: floor.test.passes(),
+                    probes: floor
+                        .probes
+                        .iter()
+                        .map(|(probe, test)| (*probe, test.passes()))
+                        .collect(),
+                });
                 IntervalCheck {
                     holds,
                     probe_passes,
+                    floor_passes,
                     check: rounded_check(check),
                 }
             })
@@ -807,10 +907,37 @@ fn interval_check(files: &DesignFiles) -> Result<(Intervals, Vec<String>), Strin
             calibration_flights: calibration.len() as u64,
             calibration_withheld,
             shares,
+            floor_shares,
             sets,
         },
         broken,
     ))
+}
+
+/// What's wrong with `check`'s tops past the clip: too many below the lower end, too few to
+/// check, or, for the top acceleration, none.
+fn past_clip_problem(set: Set, check: &intervals::Check) -> Option<String> {
+    let name = check.quantity.name();
+    match &check.past_clip {
+        Some(past) if !past.no_more_than_its_share() => Some(format!(
+            "{}: {name}'s lower ends miss more than their share of the tops past the clip: {} of \
+             {} below",
+            set.name(),
+            past.below,
+            past.given
+        )),
+        Some(past) if past.given < intervals::LEAST_FLOORS => Some(format!(
+            "{}: {name} reads only {} tops past the clip, under {}",
+            set.name(),
+            past.given,
+            intervals::LEAST_FLOORS
+        )),
+        None if check.quantity == Quantity::TopAcceleration => Some(format!(
+            "{}: {name} read no top past the clip to check",
+            set.name()
+        )),
+        _ => None,
+    }
 }
 
 /// `check`'s bands and largest error to three significant figures, as the report holds them, and
@@ -829,6 +956,19 @@ fn rounded_check(mut check: intervals::Check) -> intervals::Check {
     }
     check.largest_error = intervals::three_figures(check.largest_error);
     check.mean_error = signed_mean(check.mean_error, check.largest_error);
+    let round_floor = |test: &mut intervals::FloorTest| {
+        test.band.low = intervals::three_figures(test.band.low);
+        test.band.high = intervals::three_figures(test.band.high);
+    };
+    if let Some(past) = &mut check.past_clip {
+        round_floor(past);
+    }
+    if let Some(floor) = &mut check.floor {
+        round_floor(&mut floor.test);
+        for test in floor.probes.values_mut() {
+            round_floor(test);
+        }
+    }
     check
 }
 
@@ -1300,13 +1440,13 @@ fn counts_text(c: &intervals::Counts) -> String {
     format!("{} / {} / {}", c.below, c.inside, c.above)
 }
 
-/// The readings' intervals (M7.2e1 and M7.2e2, ADR-308).
+/// The readings' intervals (M7.2e1 to M7.2e3, ADR-308).
 fn intervals_section(page: &mut String, made: &Intervals) {
     page.push_str("\n## The readings' 90% intervals\n\n");
     let _ = writeln!(
         page,
         "Each flight's own log read by `hpr_flightdata::readings`, and each reading that states a \
-         90% interval compared with the flight's truth (M7.2e1 and M7.2e2, ADR-257 §1–2, ADR-308). An \
+         90% interval compared with the flight's truth (M7.2e1 to M7.2e3, ADR-257 §1–2, ADR-308). An \
          interval runs from the reading less its 95% share of its bound to the reading less its \
          5% share; the shares are the 5% and 95% points of the readings' errors as shares of their \
          bounds on the calibration set's {} flights ({} of them the GNSS-only tracker's, which give \
@@ -1316,9 +1456,10 @@ fn intervals_section(page: &mut String, made: &Intervals) {
          above each hold 5%, and the band on the share inside holds 90%; and every probe must \
          fail that test. The command also fails if a reading is withheld from a log with a barometer, or \
          read with no interval, on any of the three sets: either would leave the counts with its \
-         misses. The one reading withheld by its own rule is the top speed at or above 227.7 m/s, \
-         where the barometer's port may read the transonic flow over the nose; it looks at the \
-         reading, not the truth, so the test holds the top speeds a user is given.",
+         misses. Withheld by their own rules are the top speed at or above 227.7 m/s, where the \
+         barometer's port may read the transonic flow over the nose (it looks at the reading, not \
+         the truth, so the test holds the top speeds a user is given); a burnout taken from that \
+         speed; and a top acceleration on a log with no accelerometer.",
         made.calibration_flights, made.calibration_withheld
     );
     page.push_str("\n### The shares\n\n");
@@ -1334,8 +1475,29 @@ fn intervals_section(page: &mut String, made: &Intervals) {
         );
     }
     page.push_str(
+        "\n### The floors' shares\n\nA floor's truth may lie any amount above it, so it states a \
+         lower end only: the reading less its 95% share of its bound. Its standard error is the \
+         95% share less the median, times the bound, over 1.645. No flight's own accelerometer \
+         clips, so the top acceleration's floors come from each flight's log with its \
+         accelerometer clipping at 8 g and its top scaled to anywhere the reader can call it \
+         clipped and the part may not have clipped: from (1 − 0.3/8)/(1 + s) to 1/(1 − s) of that \
+         clip, s the part's scale error, ±3% on the 500 Hz IMU and ±10% on the AltOS part.\n\n| Reading | Floors fitted | 95% share | Median share |\n\
+         |---|---:|---:|---:|\n",
+    );
+    for s in &made.floor_shares {
+        let _ = writeln!(
+            page,
+            "| {} | {} | {} | {} |",
+            s.quantity.name(),
+            s.stated,
+            number(s.fitted.high),
+            number(s.fitted.median)
+        );
+    }
+    page.push_str(
         "\n### The test\n\nThe truths below, inside and above each interval, then the shares, \
-         each set's flights flown. Floors and withheld readings aren't compared.\n\n",
+         each set's flights flown. Floors are tested below; withheld readings, and a drogue or a \
+         main's opening on a flight with one canopy, aren't compared.\n\n",
     );
     page.push_str(
         "| Set | Reading | Compared | Below / inside / above | Below | Above | Floors | Withheld \
@@ -1353,10 +1515,106 @@ fn intervals_section(page: &mut String, made: &Intervals) {
                 counts_text(counts),
                 percent(counts.below, counts.given),
                 percent(counts.above, counts.given),
-                c.check.unstated,
+                c.check.floors,
                 c.check.withheld.values().sum::<u64>(),
                 if c.holds { "holds" } else { "**fails**" }
             );
+        }
+    }
+    page.push_str(
+        "\n### The floors' test\n\nEach floor's lower end against the flight's truth: the band \
+         on the share of truths below it must hold 5%, the coverage test's lower tail. Raised by \
+         one standard error and lowered by two, it must fail.\n\n| Set | Reading | Compared | \
+         Below | Share | Band | Raised one standard error | Lowered two standard errors | Result \
+         |\n|---|---|---:|---:|---:|---|---:|---:|---|\n",
+    );
+    for set in &made.sets {
+        for c in &set.checks {
+            let (Some(floor), Some(passes)) = (&c.check.floor, &c.floor_passes) else {
+                continue;
+            };
+            let probe = |probe: intervals::FloorProbe| {
+                format!(
+                    "{}, {}",
+                    floor.probes[&probe].below,
+                    if passes.probes[&probe] {
+                        "**passes**"
+                    } else {
+                        "fails"
+                    }
+                )
+            };
+            let _ = writeln!(
+                page,
+                "| {} | {} | {} | {} | {} | {}% to {}% | {} | {} | {} |",
+                title(set.set),
+                c.check.quantity.name(),
+                floor.test.given,
+                floor.test.below,
+                percent(floor.test.below, floor.test.given),
+                number(census::three_figures(100.0 * floor.test.band.low)),
+                number(census::three_figures(100.0 * floor.test.band.high)),
+                probe(intervals::FloorProbe::Raised),
+                probe(intervals::FloorProbe::Lowered),
+                if passes.test && passes.probes.values().all(|p| !p) {
+                    "holds"
+                } else {
+                    "**fails**"
+                }
+            );
+        }
+    }
+    page.push_str(
+        "\n### The top acceleration's lower ends past the clip\n\nThe same lower ends on each \
+         flight's log with its top as flown, past the clip by as much as its design takes it. \
+         How far is the design's, and no log says, so the test above is on the tops near the clip; \
+         here the band on the share below must reach down to 5%: they miss no more. Read whole are \
+         the tops with no lower end, out of each count: those near the clip, then those as flown.\n\n\
+         | Set | Compared | Below | Share | Band | Read whole, near the clip | Read whole, as flown \
+         |\n|---|---:|---:|---:|---|---:|---:|\n",
+    );
+    for set in &made.sets {
+        for c in &set.checks {
+            if let Some(past) = &c.check.past_clip {
+                let _ = writeln!(
+                    page,
+                    "| {} | {} | {} | {} | {}% to {}% | {} | {} |",
+                    title(set.set),
+                    past.given,
+                    past.below,
+                    percent(past.below, past.given),
+                    number(census::three_figures(100.0 * past.band.low)),
+                    number(census::three_figures(100.0 * past.band.high)),
+                    c.check.whole_at_clip,
+                    c.check.whole_past_clip,
+                );
+            }
+        }
+    }
+    page.push_str(
+        "\n### The floors by logger and by design\n\nFloors compared, and truths below the lower \
+         end, in bold where that group alone would fail the floors' test. The test is on each set \
+         as a whole. The AltOS part has no 8 g setting: its log is written clipping there to \
+         reach the count, and its family states no range, so the reader tells the clip by its flat \
+         top.\n\n| Set | Reading | Group | Compared | Below |\n|---|---|---|---:|---:|\n",
+    );
+    for set in &made.sets {
+        for c in &set.checks {
+            if let Some(floor) = &c.check.floor {
+                for (group, (given, below)) in floor.by_logger.iter().chain(&floor.by_design) {
+                    let _ = writeln!(
+                        page,
+                        "| {} | {} | {group} | {given} | {} |",
+                        title(set.set),
+                        c.check.quantity.name(),
+                        if intervals::FloorTest::of(*given, *below).passes() {
+                            below.to_string()
+                        } else {
+                            format!("**{below}**")
+                        }
+                    );
+                }
+            }
         }
     }
     page.push_str(
@@ -1395,9 +1653,10 @@ fn intervals_section(page: &mut String, made: &Intervals) {
     page.push_str(
         "\n### Each reading's error side\n\nEach reading's mean error, the reading less the truth, \
          over the readings compared, with the largest error's size and the share of truths above \
-         the interval (ADR-257 §2). For the apogee's height, the top speed and the mean descent \
-         rate, a reading too low is the flattering side: a waiver's height, a fin's margin (the \
-         top speed is vertical), a descent gentler than it was. The share of truths above the \
+         the interval (ADR-257 §2). For the apogee's height, the top speed, the top acceleration, \
+         the mean descent rate and each canopy's, a reading too low is the flattering side: a \
+         waiver's height, a fin's margin (the top speed is vertical), the load the airframe took, \
+         a descent gentler than it was. The share of truths above the \
          interval is that side's test, and the shifted-down probe its mutation probe; the times \
          have none here. The mean is \
          given at the figures of the largest error, the digits every platform shares, and with \
@@ -1472,8 +1731,8 @@ fn intervals_section(page: &mut String, made: &Intervals) {
          group's counts alone would fail the test. The test is on each set as a whole; these \
          groups show where its misses fall. A barometric height is off by about the day's \
          offset from the standard atmosphere over its temperature, so the misses of the height, \
-         the top speed and the descent rate gather on the coldest and warmest days: a warm day \
-         reads low, and its truth lies above the interval.\n\n#### By logger\n",
+         the top speed and the rates of descent gather on the coldest and warmest days: a warm \
+         day reads low, and its truth lies above the interval.\n\n#### By logger\n",
     );
     let loggers: Vec<String> = Profile::ALL
         .iter()
@@ -1503,14 +1762,19 @@ fn intervals_section(page: &mut String, made: &Intervals) {
 }
 
 /// Whether a reading too low is the flattering side ([ADR-257][adr-257] §2): the apogee's height
-/// for a waiver, the top vertical speed for a fin's margin, the mean descent rate for how gentle
-/// the descent was.
+/// for a waiver, the top vertical speed for a fin's margin, the top acceleration for the load the
+/// airframe took, and the mean descent rate and each canopy's for how gentle the descent was.
 ///
 /// [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 fn flatters_low(quantity: Quantity) -> bool {
     matches!(
         quantity,
-        Quantity::ApogeeHeight | Quantity::TopSpeed | Quantity::DescentRate
+        Quantity::ApogeeHeight
+            | Quantity::TopSpeed
+            | Quantity::DescentRate
+            | Quantity::TopAcceleration
+            | Quantity::DrogueRate
+            | Quantity::MainRate
     )
 }
 
@@ -2025,6 +2289,7 @@ mod tests {
                 calibration_flights: 0,
                 calibration_withheld: 0,
                 shares: Vec::new(),
+                floor_shares: Vec::new(),
                 sets: Vec::new(),
             },
         });
@@ -2032,9 +2297,50 @@ mod tests {
         assert!(page.contains("first \\| second third |"), "{page}");
     }
 
-    /// A reading too low flatters the height, the top speed and the descent rate, and no time.
+    /// The tops past the clip must be there, enough of them, and not miss more than their share.
     #[test]
-    fn the_flattering_side_is_low_for_the_height_the_top_speed_and_the_descent_rate() {
+    fn the_tops_past_the_clip_can_fail_the_command() {
+        let flight = |truth: f64, k: u64| intervals::FlightSaid {
+            index: k,
+            design: 0,
+            logger: "altos",
+            air_offset_k: 0.0,
+            said: vec![(
+                Quantity::TopAcceleration,
+                intervals::Said::PastClip(intervals::ComparedFloor {
+                    reading: 0.0,
+                    bound: 1.0,
+                    low: 0.0,
+                    standard_error: 1.0,
+                    truth,
+                }),
+            )],
+        };
+        let of = |flights: &[intervals::FlightSaid]| {
+            past_clip_problem(
+                Set::A,
+                &intervals::check(Quantity::TopAcceleration, flights),
+            )
+        };
+        let enough = intervals::LEAST_FLOORS;
+        let held: Vec<_> = (0..enough).map(|k| flight(1.0, k)).collect();
+        assert_eq!(of(&held), None);
+        let too_few: Vec<_> = (0..enough - 1).map(|k| flight(1.0, k)).collect();
+        assert!(of(&too_few).unwrap().contains("only 148"));
+        let missing: Vec<_> = (0..enough).map(|k| flight(-1.0, k)).collect();
+        assert!(of(&missing).unwrap().contains("miss more"));
+        assert!(of(&[]).unwrap().contains("no top past the clip"));
+        // Another reading has none to read, and that's no fault.
+        assert_eq!(
+            past_clip_problem(Set::A, &intervals::check(Quantity::Burnout, &[])),
+            None
+        );
+    }
+
+    /// A reading too low flatters the height, the top speed, the top acceleration and the rates,
+    /// and no time.
+    #[test]
+    fn the_flattering_side_is_low_for_the_height_the_speed_the_load_and_the_rates() {
         let low: Vec<Quantity> = intervals::STATED
             .into_iter()
             .filter(|q| flatters_low(*q))
@@ -2044,7 +2350,10 @@ mod tests {
             [
                 Quantity::ApogeeHeight,
                 Quantity::TopSpeed,
-                Quantity::DescentRate
+                Quantity::DescentRate,
+                Quantity::TopAcceleration,
+                Quantity::DrogueRate,
+                Quantity::MainRate,
             ]
         );
     }
@@ -2085,6 +2394,7 @@ mod tests {
         let made = Intervals {
             calibration_flights: 2000,
             calibration_withheld: 362,
+            floor_shares: Vec::new(),
             shares: vec![FittedShares {
                 quantity: Quantity::ApogeeHeight,
                 stated: 1638,
@@ -2102,6 +2412,7 @@ mod tests {
                 checks: vec![IntervalCheck {
                     holds: check.holds(),
                     probe_passes,
+                    floor_passes: None,
                     check,
                 }],
             }],

@@ -686,6 +686,11 @@ pub struct MaxAcceleration {
     /// When it is clipped, the true top is no lower than the reading less the bound, and may be
     /// higher by any amount.
     pub bound_m_s2: f64,
+    /// Its 90% interval, m/s² ([`interval::TOP_ACCELERATION_SHARES`]); `None` on a floor.
+    pub interval_m_s2: Option<Interval>,
+    /// A clipped top's lower end, m/s² ([`interval::TOP_ACCELERATION_FLOOR_SHARES`]); `None` where
+    /// it isn't clipped, as on a floor whose burn the log ends in, which no set tests.
+    pub lower_end_m_s2: Option<f64>,
     /// When, s on the accelerometer's clock.
     pub time_s: f64,
     /// The range of the part its family states, m/s², `None` where it doesn't.
@@ -733,6 +738,11 @@ pub struct Burnout {
     /// the time a coast slowing at g takes to lose twice [`SPEED_NOISE_M_S`], half the speed's
     /// fit and an interval, by which the peak can read late.
     pub bound_s: f64,
+    /// Its 90% interval, s on the same clock ([`interval::BURNOUT_SHARES`]); `None` on a floor.
+    pub interval_s: Option<Interval>,
+    /// A floor's lower end, s on the same clock ([`interval::BURNOUT_FLOOR_SHARES`]); `None` where
+    /// it isn't a floor.
+    pub lower_end_s: Option<f64>,
     /// When, s after liftoff: the burn's length; `None` when liftoff is withheld.
     pub time_after_liftoff_s: Option<f64>,
     /// Whether the time is a floor: burnout came no sooner than it, less its bound, and may have
@@ -775,6 +785,9 @@ pub struct Descent {
     /// the height lost, the noise and a step at either end, the drift over the leg, and from
     /// apogee the median's [`peak_bound_m`], over the leg's time.
     pub bound_m_s: f64,
+    /// Its 90% interval, m/s ([`interval::DROGUE_RATE_SHARES`] on a drogue's leg,
+    /// [`interval::MAIN_RATE_SHARES`] on the main's).
+    pub interval_m_s: Option<Interval>,
     /// Where the leg starts, s on the track's clock: apogee, or the main's opening.
     pub from_s: f64,
     /// Where it ends: the main's opening, or landing.
@@ -804,6 +817,8 @@ pub struct Opening {
     /// run's mark, worked out from the rate the main settles to; half the rate's fit; and two
     /// intervals.
     pub bound_s: f64,
+    /// Its 90% interval, s on the track's clock ([`interval::MAIN_OPENING_SHARES`]).
+    pub interval_s: Option<Interval>,
     /// The filtered track's height then, m above the pad.
     pub height_m: f64,
 }
