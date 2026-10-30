@@ -782,7 +782,7 @@ fn corners(
     #[allow(
         clippy::cast_possible_truncation,
         clippy::cast_sign_loss,
-        reason = "whole cells inside the grid by the checks above, so the casts are exact"
+        reason = "whole, non-negative cell numbers by the checks above, so the casts are exact"
     )]
     let index = |i: f64, j: f64| (i as u64) % u64::from(grid.ni) + u64::from(grid.ni) * (j as u64);
     Ok([

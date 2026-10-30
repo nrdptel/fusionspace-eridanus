@@ -535,7 +535,7 @@ fn figures(x: f64) -> String {
     }
     #[allow(
         clippy::cast_possible_truncation,
-        reason = "a finite non-zero f64's decimal exponent is within ±324"
+        reason = "x is finite and not zero (returned above), so its decimal exponent is within ±324"
     )]
     let digits = x.abs().log10().floor() as i32;
     #[allow(clippy::cast_sign_loss, reason = "not negative after max(0)")]

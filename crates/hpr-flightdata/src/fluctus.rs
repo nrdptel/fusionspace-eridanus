@@ -1309,7 +1309,7 @@ fn clock_steps(time_s: &[f64], lines: &[usize], notes: &mut Vec<String>) {
     // Each step in whole microseconds, so that equal steps count together.
     #[allow(
         clippy::cast_possible_truncation,
-        reason = "a step past an i64's span saturates at its end; the note only counts and ranks steps"
+        reason = "the clock is finite (a `nan` clock is refused when read); only a step of some 292,000 years would saturate"
     )]
     let steps: Vec<i64> = time_s
         .windows(2)

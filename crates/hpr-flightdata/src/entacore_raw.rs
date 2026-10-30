@@ -512,7 +512,7 @@ fn raw_values(kind: &Kind, data: &[u8]) -> Result<Vec<f64>, (usize, String)> {
             }
             #[allow(
                 clippy::cast_possible_truncation,
-                reason = "single precision, as the logger's software works it"
+                reason = "an f32 factor, multiplied in f32: the reading is single precision"
             )]
             let volts_per_count = (3.3_f64 / 16_384.0) as f32;
             vec![f64::from(f32::from(raw) * volts_per_count)]
