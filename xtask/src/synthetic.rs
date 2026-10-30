@@ -878,17 +878,19 @@ fn interval_check(files: &DesignFiles) -> Result<(Intervals, Vec<String>), Strin
                     )),
                     None => {}
                 }
-                if let Some(past) = &check.past_clip {
-                    if !past.no_more_than_its_share() {
-                        broken.push(format!(
-                            "{}: {}'s lower ends miss more than their share of the tops past the \
-                             clip: {} of {} below",
-                            set.name(),
-                            quantity.name(),
-                            past.below,
-                            past.given
-                        ));
-                    }
+                if let Some(past) = check
+                    .past_clip
+                    .as_ref()
+                    .filter(|past| !past.no_more_than_its_share())
+                {
+                    broken.push(format!(
+                        "{}: {}'s lower ends miss more than their share of the tops past the \
+                         clip: {} of {} below",
+                        set.name(),
+                        quantity.name(),
+                        past.below,
+                        past.given
+                    ));
                 }
                 let probe_passes = check
                     .probes

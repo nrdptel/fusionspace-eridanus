@@ -31,7 +31,7 @@
 //! than 15 K from standard does; its interval then says less than 90%. No real flight has yet
 //! checked one (evidence row G34).
 //!
-//! **A floor** ([ADR-308][adr-308], M7.2e3) states only a lower end, the reading less its 95% share
+//! **A floor** ([ADR-308][adr-308]) states only a lower end, the reading less its 95% share
 //! of its bound ([`FloorShares`]), as its truth may lie any amount above it. A burnout from the
 //! top speed's peak fits its share on its own floors. How far past a clip a top acceleration goes
 //! is the design's, and no log says: a first fit on tops as flown put the lower end above the
