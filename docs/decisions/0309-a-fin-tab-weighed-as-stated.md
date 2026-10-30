@@ -18,17 +18,17 @@ tolerance and a trim to the root.
 A scan of the collection's `.ork` files found two kinds of overhang, not one:
 
 - **Rounding.** Tabs whose position and length were rounded pass the root by less than 0.03 mm.
-- **By design.** Other tabs pass the root's trailing edge by more than 0.8 mm, up to several
-  millimeters, and one starts tens of millimeters ahead of its root's leading edge. A builder may
-  run a through-the-wall tab past the root to lock it into a centering ring.
+- **By design.** Other tabs pass the root's trailing edge by more than 0.8 mm, and one starts
+  ahead of its root's leading edge. A builder may run a through-the-wall tab past the root to lock
+  it into a centering ring.
 
 Of the seven refused flights, four were rounding and three by design. A micron tolerance would
 fly the four and leave the three refused under the same words.
 
 **What OpenRocket does.** OpenRocket 24.12, run as the oracle on every design the scan found,
-refuses none of these tabs. On loading, it trims two of the rounding ones, freeform fin sets whose
-tab is measured from the front, to end at the root; it keeps every other tab as the file states
-it, the millimeter overhangs and the tab ahead of its root included. It weighs each fin set with
+refuses none of these tabs. On loading, it trims two of the rounding ones to end at the root; it
+keeps every other tab as the file states it, the millimeter overhangs and the tab ahead of its
+root included. It weighs each fin set with
 its tab as kept.
 
 **Decision.**
@@ -50,7 +50,7 @@ its tab as kept.
   each in the same agreement band with OpenRocket as most of the rest ([report][report]).
 - The collection's numbers in the docs move with the report: every page that quotes them was
   updated in the same change.
-- `xtask fixture-flights` no longer names the tab as a cause; its issue is closed.
+- `xtask fixture-flights` no longer names the tab as a cause; this closes #357.
 
 **Tests.** `hpr-design`'s `a_tab_must_meet_the_root_and_fit_the_body` holds the bound both ways at
 each end of the root (a tab touching an end, or a nanometer past it, is refused; a nanometer onto

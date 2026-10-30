@@ -1330,8 +1330,8 @@ fn cross_section(values: &mut Values<'_>) -> FinCrossSection {
 ///
 /// **What each word measures from is read off the corpus, not a specification.** `center` is taken
 /// as center-to-center, which is the only reading under which the corpus's eight non-zero offsets
-/// land inside their root chords. Any other puts a tab off the end of the fin, which
-/// `FinSet::validate` refuses. `end` is the mirror of `front` and appears in no file at all, so
+/// land inside their root chords. Any other puts some of those tabs past an end of their root.
+/// `end` is the mirror of `front` and appears in no file at all, so
 /// that arm rests on symmetry alone.
 fn tab(values: &mut Values<'_>, root_chord_m: f64) -> Option<FinTab> {
     let height_m = values.number(&["tabheight"])?;
