@@ -126,7 +126,9 @@ pub(crate) fn catalog() -> Result<&'static Catalog, Failure> {
 /// The bundled catalog's as-of date, `YYYY-MM-DD`: the day its curve files were downloaded, which
 /// a build fixes, so a run's files stay the same from one run to the next (ADR-174 §5).
 pub(crate) fn catalog_as_of() -> Result<String, Failure> {
-    catalog().map(|catalog| catalog.snapshot.captured.clone())
+    Catalog::bundled_snapshot()
+        .map(|snapshot| snapshot.captured)
+        .map_err(|error| Failure::helped(format!("the bundled catalog: {error}"), crate::BUG_HELP))
 }
 
 /// `hpr motors list`.

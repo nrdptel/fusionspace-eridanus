@@ -106,7 +106,8 @@ jobs:
 
   # Runs every example program, such as the Getting started page's first flight, and checks that
   # it prints what its committed `<name>.output.txt` says, on each OS. A job of its own, beside
-  # test: in test it added up to 10 minutes to CI's slowest job (ADR-149).
+  # test: in test it added up to 10 minutes to CI's slowest job (ADR-149). The second half of the
+  # synthetic flights' check runs here too; `validate` below says why.
   examples:
     name: examples (${{ matrix.os }})
     strategy:
@@ -127,6 +128,7 @@ jobs:
           # GitHub's 10 GB cache limit instead of evicting main's entries.
           save-if: ${{ github.ref == 'refs/heads/main' }}
       - run: cargo run --locked --quiet --package xtask -- examples --check --locked
+      - run: cargo run --locked --quiet --package xtask --profile report-check -- synthetic --check --sets b,calibration
 
   # Checks every public design's document, written as a literal of the generated `DesignFile`
   # type, with `tsc --strict` and `mypy --strict` at pinned versions (M3.3c, ADR-113). The
@@ -205,12 +207,17 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/main' }}
       - run: cargo run --locked --quiet --package xtask -- validate --check
       # The synthetic flights' census (M7.2a, ADR-280): every flight flown again, held to the
-      # committed census to the three figures the platforms share.
-      - run: cargo run --locked --quiet --package xtask -- synthetic --check
+      # committed census to the three figures the platforms share. Run whole in the dev profile it
+      # took this job past 40 minutes (issue #1018), so it runs optimized (the `report-check`
+      # profile keeps the dev profile's assertions and overflow checks) and in two halves, one here
+      # and one in `examples`: a sixth macOS job wouldn't fit the five GitHub runs at once. Every
+      # set runs in full on every platform, on one line each, which a test in xtask holds
+      # (`synthetic::tests`). The optimized build shares each job's rust-cache entry.
+      - run: cargo run --locked --quiet --package xtask --profile report-check -- synthetic --check --sets tuning,a
       # The motor catalog (M5.7c, ADR-304): the index is what the snapshot's committed files
       # write, every file stored as passing is within 1% of its record, worked out again from its
       # bytes, and none stored as failing is, and every motor flies by name offline.
-      - run: cargo run --locked --quiet --package xtask -- motor-catalog --check
+      - run: cargo run --locked --quiet --package xtask --profile report-check -- motor-catalog --check
       # The scoreboard held to main's (M0.10, ADR-240): none of HPR Sim's numbers worse than the
       # one main committed, unless an accepted ADR names it. The checkout holds no main of its own.
       - if: matrix.os == 'ubuntu-latest'

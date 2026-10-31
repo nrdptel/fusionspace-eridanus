@@ -29,7 +29,9 @@
 # (M5.7c, ADR-304: `analyze_stats.js --recount` works out which files pass from the raw
 # ThrustCurve.org snapshot with ThrustCurve.org's own code, and fails unless the index agrees).
 # Step validate runs `motor-catalog --check` as CI does, and with the raw snapshot under refs/ it
-# also holds the committed records and files to it.
+# also holds the committed records and files to it. It runs that and `synthetic --check` in the dev
+# profile, whole, where CI runs them optimized and in halves (issue #1018): the dev profile is the
+# one that writes the reports, so this is the check that what's committed is what it writes.
 # It joins any run that includes `test` (the default set, or a fix's `scripts/gate.sh clippy test`)
 # when refs/ is present and the branch changes a physics crate (hpr-aero, hpr-sim, hpr-motor,
 # hpr-design, hpr-atmos, hpr-io), the log readers (hpr-flightdata), the command line (hpr-cli,

@@ -43,6 +43,9 @@
 
 use serde::{Deserialize, Serialize};
 
+use std::borrow::Cow;
+use std::collections::BTreeSet;
+
 use crate::bundled;
 use crate::class::ImpulseClass;
 use crate::curve::ThrustCurve;
@@ -50,6 +53,10 @@ use crate::delay::DelayList;
 use crate::error::MotorError;
 use crate::motor::SolidMotor;
 use crate::{eng, rse};
+
+/// The bundled index's text, as a static: each use of the constant compiled apart would add
+/// another copy of its 2 MB to the binary.
+static BUNDLED_INDEX: &str = bundled::CATALOG_JSON;
 
 /// A motor catalog.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -442,7 +449,7 @@ impl Catalog {
         static BUNDLED: std::sync::OnceLock<Result<Catalog, MotorError>> =
             std::sync::OnceLock::new();
         BUNDLED
-            .get_or_init(|| Self::from_json(bundled::CATALOG_JSON))
+            .get_or_init(|| Self::from_json(BUNDLED_INDEX))
             .as_ref()
             .map_err(Clone::clone)
     }
@@ -457,22 +464,106 @@ impl Catalog {
     pub fn from_json(text: &str) -> Result<Self, MotorError> {
         let catalog: Self =
             serde_json::from_str(text).map_err(|error| MotorError::Catalog(error.to_string()))?;
-        for motor in &catalog.motors {
-            for curve in &motor.curves {
-                let passes = curve
-                    .check
-                    .gaps(&motor.stated)
-                    .iter()
-                    .all(FigureGap::within_bound);
-                if passes != curve.check.passes {
-                    return Err(MotorError::Catalog(format!(
-                        "{}'s curve {} stores passes: {}, but its figures give {passes}",
-                        motor.designation, curve.simfile_id, curve.check.passes
-                    )));
-                }
+        catalog.motors.iter().try_for_each(stored_passes_hold)?;
+        Ok(catalog)
+    }
+
+    /// The bundled catalog holding only the motors `name` lookups can find: those whose
+    /// designation or common name is one of `names`, ignoring ASCII case, spaces and hyphens.
+    ///
+    /// [`Catalog::find_for_design`] answers each of `names` here as it does in
+    /// [`Catalog::bundled`], which reading a design needs. Nothing else is promised: a listing of
+    /// this catalog is not the catalog's. It isn't shared either: each call reads the index again.
+    ///
+    /// # Errors
+    ///
+    /// As [`Catalog::from_json`], for the motors kept (the bundled index's tests read them all).
+    pub fn bundled_named<'a>(names: impl IntoIterator<Item = &'a str>) -> Result<Self, MotorError> {
+        let keys: BTreeSet<String> = names.into_iter().map(normalize).collect();
+        Self::narrowed(BUNDLED_INDEX, &|motor| {
+            keys.iter().any(|key| {
+                normalized_is(&motor.designation, key) || normalized_is(&motor.common_name, key)
+            })
+        })
+    }
+
+    /// The bundled catalog holding only the motors with one of `ids`, as
+    /// [`Catalog::bundled_named`] holds those of its names.
+    ///
+    /// # Errors
+    ///
+    /// As [`Catalog::from_json`], for the motors kept.
+    pub fn bundled_with_ids<'a>(
+        ids: impl IntoIterator<Item = &'a str>,
+    ) -> Result<Self, MotorError> {
+        let ids: BTreeSet<&str> = ids.into_iter().collect();
+        Self::narrowed(BUNDLED_INDEX, &|motor| {
+            ids.contains(motor.motor_id.as_ref())
+        })
+    }
+
+    /// The bundled catalog's [`Snapshot`], without reading its motors: every `hpr sim` states the
+    /// catalog's date, whether a motor came from it or not.
+    ///
+    /// # Errors
+    ///
+    /// As [`Catalog::bundled`], when the index's head can't be read alone and the whole is read.
+    pub fn bundled_snapshot() -> Result<Snapshot, MotorError> {
+        match snapshot_in_head(BUNDLED_INDEX) {
+            Some(snapshot) => Ok(snapshot),
+            None => Self::bundled().map(|catalog| catalog.snapshot.clone()),
+        }
+    }
+
+    /// Reads a catalog index as JSON's pretty writer lays it out, as the bundled one is, building
+    /// only the motors `keep` takes. The others cost a look at their lines, 0.45 ms for the bundled
+    /// index against 1.65 ms to parse it whole, and no memory. A test holds the bundled index to
+    /// this reading of it.
+    fn narrowed(text: &str, keep: &dyn Fn(&MotorKeys<'_>) -> bool) -> Result<Self, MotorError> {
+        let invalid = |what: String| MotorError::Catalog(what);
+        let not_laid_out =
+            || invalid("the index isn't laid out as JSON's pretty writer does".to_owned());
+        let (head, rest) = text.split_once("\"motors\":").ok_or_else(not_laid_out)?;
+        let head = format!(
+            "{}}}",
+            head.trim_end().strip_suffix(',').ok_or_else(not_laid_out)?
+        );
+        let head: IndexHead =
+            serde_json::from_str(&head).map_err(|error| invalid(error.to_string()))?;
+        let mut motors = Vec::new();
+        // No line of a motor but its own last starts `    }`: its fields are indented further and
+        // a JSON string can't hold a line break. The search is `memchr`'s: with `str`'s, this read
+        // took 1.44 ms.
+        const END: &str = "\n    }";
+        let ends = memchr::memmem::Finder::new(END);
+        let mut left = rest;
+        loop {
+            // A list with no end isn't read as a shorter one, nor as none.
+            let end = ends.find(left.as_bytes()).ok_or_else(not_laid_out)?;
+            let entry = left
+                .find('{')
+                .and_then(|start| left.get(start..end + END.len()))
+                .ok_or_else(not_laid_out)?;
+            let keys = MotorKeys::in_lines(entry).ok_or_else(not_laid_out)?;
+            if keep(&keys) {
+                let motor: CatalogMotor =
+                    serde_json::from_str(entry).map_err(|error| invalid(error.to_string()))?;
+                stored_passes_hold(&motor)?;
+                motors.push(motor);
+            }
+            left = &left[end + END.len()..];
+            // A comma ahead of the next motor; anything else closes the list.
+            if !left.starts_with(',') {
+                break;
             }
         }
-        Ok(catalog)
+        Ok(Self {
+            source: head.source,
+            snapshot: head.snapshot,
+            selection: head.selection,
+            motors,
+            left_out: Vec::new(),
+        })
     }
 
     /// The motors `name` names ([ADR-302][adr-302]): those whose designation or common name
@@ -656,6 +747,74 @@ fn normalized_is(name: &str, key: &str) -> bool {
         .filter(|c| !c.is_whitespace() && *c != '-')
         .map(|c| c.to_ascii_lowercase())
         .eq(key.chars())
+}
+
+/// The snapshot of an index that states it ahead of its motors, read from the text before them;
+/// `None` for any other index, which has to be read whole.
+fn snapshot_in_head(text: &str) -> Option<Snapshot> {
+    #[derive(Deserialize)]
+    struct Head {
+        snapshot: Snapshot,
+    }
+    let (head, _) = text.split_once("\"motors\":")?;
+    let head = format!("{}}}", head.trim_end().strip_suffix(',')?);
+    serde_json::from_str::<Head>(&head)
+        .ok()
+        .map(|head| head.snapshot)
+}
+
+/// What an index states ahead of its motors ([`Catalog::narrowed`]).
+#[derive(Deserialize)]
+struct IndexHead {
+    source: String,
+    snapshot: Snapshot,
+    selection: String,
+}
+
+/// What [`Catalog::narrowed`] decides on, read from an unbuilt motor's lines. `Cow`, as a name with
+/// an escape in it can't be borrowed from the text.
+struct MotorKeys<'a> {
+    motor_id: Cow<'a, str>,
+    designation: Cow<'a, str>,
+    common_name: Cow<'a, str>,
+}
+
+impl<'a> MotorKeys<'a> {
+    /// The keys in a motor's text, each on its own line as the motor's own field.
+    fn in_lines(entry: &'a str) -> Option<Self> {
+        let field = |key: &str| -> Option<Cow<'a, str>> {
+            let (_, value) = entry.split_once(key)?;
+            let line = value.split('\n').next()?;
+            let line = line.strip_suffix(',').unwrap_or(line);
+            if line.contains('\\') {
+                return serde_json::from_str::<String>(line).ok().map(Cow::Owned);
+            }
+            line.strip_prefix('"')?.strip_suffix('"').map(Cow::Borrowed)
+        };
+        Some(Self {
+            motor_id: field("\n      \"motor_id\": ")?,
+            designation: field("\n      \"designation\": ")?,
+            common_name: field("\n      \"common_name\": ")?,
+        })
+    }
+}
+
+/// Refuses a motor whose curve stores a pass its figures contradict ([`Catalog::from_json`]).
+fn stored_passes_hold(motor: &CatalogMotor) -> Result<(), MotorError> {
+    for curve in &motor.curves {
+        let passes = curve
+            .check
+            .gaps(&motor.stated)
+            .iter()
+            .all(FigureGap::within_bound);
+        if passes != curve.check.passes {
+            return Err(MotorError::Catalog(format!(
+                "{}'s curve {} stores passes: {}, but its figures give {passes}",
+                motor.designation, curve.simfile_id, curve.check.passes
+            )));
+        }
+    }
+    Ok(())
 }
 
 /// Lowercase, without spaces or hyphens.
@@ -1966,6 +2125,125 @@ mod tests {
             Catalog::from_json(&flipped),
             Err(MotorError::Catalog(message)) if message.contains("stores passes: false")
         ));
+    }
+
+    /// A narrowed read refuses what the whole index's read does, for a motor it keeps.
+    #[test]
+    fn a_narrowed_read_refuses_a_contradicted_pass_it_keeps() {
+        let flipped = bundled::CATALOG_JSON.replacen("\"passes\": true", "\"passes\": false", 1);
+        assert!(matches!(
+            Catalog::narrowed(&flipped, &|_| true),
+            Err(MotorError::Catalog(message)) if message.contains("stores passes: false")
+        ));
+    }
+
+    /// Reading every motor by the narrowed route builds what the whole index's read builds, so
+    /// the bundled index is laid out as that route reads it.
+    #[test]
+    fn a_narrowed_read_keeping_everything_is_the_catalog() {
+        let whole = bundled();
+        let narrowed = Catalog::narrowed(bundled::CATALOG_JSON, &|_| true).unwrap();
+        assert_eq!(narrowed.motors, whole.motors);
+        assert_eq!(narrowed.source, whole.source);
+        assert_eq!(narrowed.selection, whole.selection);
+        assert_eq!(narrowed.snapshot, whole.snapshot);
+    }
+
+    /// A motor's keys are its own, however its strings read: a name with escapes or the text of
+    /// another field in it, and a curve's fields, which sit deeper, don't stand in for them.
+    #[test]
+    fn a_narrowed_read_takes_each_motors_own_keys() {
+        let mut catalog = bundled().clone();
+        catalog.motors.truncate(3);
+        catalog.motors[0].designation = "A\"8\\n\n      \"designation\": \"Z9".to_owned();
+        catalog.motors[1].common_name = "\n    }\n  ]".to_owned();
+        let text = serde_json::to_string_pretty(&catalog).unwrap();
+        let read = Catalog::narrowed(&text, &|_| true).unwrap();
+        assert_eq!(read.motors, catalog.motors);
+        let named = |name: String| {
+            let name = std::cell::RefCell::new(name);
+            Catalog::narrowed(&text, &|keys: &MotorKeys<'_>| {
+                keys.designation == *name.borrow()
+            })
+            .unwrap()
+            .motors
+            .len()
+        };
+        assert_eq!(named(catalog.motors[0].designation.clone()), 1);
+        assert_eq!(named("Z9".to_owned()), 0);
+        // Text not laid out so is refused, not read as no motors.
+        let compact = serde_json::to_string(&catalog).unwrap();
+        assert!(Catalog::narrowed(&compact, &|_| true).is_err());
+    }
+
+    /// `bundled_named` must answer a design's lookup as the whole catalog does, whatever the
+    /// spelling of the name, for names that a rival or another maker shares as well: spread over
+    /// the catalog, each motor by its designation and its common name, respelled, at its own case
+    /// size and at another.
+    #[test]
+    fn a_narrowed_catalog_finds_for_a_design_as_the_whole_one_does() {
+        let whole = bundled();
+        let ids = |found: Vec<&CatalogMotor>| -> Vec<String> {
+            found.iter().map(|motor| motor.motor_id.clone()).collect()
+        };
+        let mut compared = 0;
+        let mut shared = 0;
+        for motor in whole.motors.iter().step_by(23) {
+            let respelled = motor.designation.to_lowercase().replace('-', " ");
+            for name in [
+                motor.designation.as_str(),
+                motor.common_name.as_str(),
+                respelled.as_str(),
+            ] {
+                let narrow = Catalog::bundled_named([name]).unwrap();
+                for maker in [
+                    motor.manufacturer.as_str(),
+                    motor.manufacturer_abbrev.as_str(),
+                ] {
+                    for diameter_mm in [None, Some(motor.diameter_mm), Some(1.0)] {
+                        let expected = whole.find_for_design(maker, name, None, diameter_mm);
+                        shared += usize::from(expected.len() > 1);
+                        assert_eq!(
+                            ids(narrow.find_for_design(maker, name, None, diameter_mm)),
+                            ids(expected),
+                            "{maker} {name} at {diameter_mm:?}"
+                        );
+                        compared += 1;
+                    }
+                }
+            }
+        }
+        assert!(compared > 500, "{compared}");
+        assert!(shared > 0, "no name found two motors, so the check is thin");
+        // A name no motor has keeps none, rather than all.
+        assert!(Catalog::bundled_named(["Z9999"]).unwrap().motors.is_empty());
+    }
+
+    /// The date every `hpr sim` prints is the whole index's, read from its head alone; an index
+    /// with its motors first has no head to read, and is read whole.
+    #[test]
+    fn the_snapshot_is_read_from_the_index_head() {
+        assert_eq!(
+            snapshot_in_head(bundled::CATALOG_JSON).as_ref(),
+            Some(&bundled().snapshot)
+        );
+        assert_eq!(Catalog::bundled_snapshot().unwrap(), bundled().snapshot);
+        let snapshot = r#""snapshot": { "files_url": "u", "captured": "c" }"#;
+        assert!(snapshot_in_head(&format!(r#"{{ "motors": [], {snapshot} }}"#)).is_none());
+        assert!(snapshot_in_head(&format!(r#"{{ {snapshot} }}"#)).is_none());
+        assert!(snapshot_in_head(&format!(r#"{{ {snapshot}, "motors": [] }}"#)).is_some());
+    }
+
+    /// The motor with an id, and only that one.
+    #[test]
+    fn a_catalog_narrowed_by_id_holds_those_motors() {
+        let whole = bundled();
+        let wanted = [&whole.motors[3], &whole.motors[700]];
+        let narrow =
+            Catalog::bundled_with_ids(wanted.iter().map(|motor| motor.motor_id.as_str())).unwrap();
+        assert_eq!(narrow.motors.len(), 2);
+        assert_eq!(&narrow.motors[0], wanted[0]);
+        assert_eq!(&narrow.motors[1], wanted[1]);
     }
 
     /// A failing figure never prints as within 1%: over 20,000 stated figures from 0.1 to about

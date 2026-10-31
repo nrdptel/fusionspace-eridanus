@@ -1,0 +1,82 @@
+# ADR-311: The 2026-10-31 review: every flight OpenRocket flies, and CI's long checks (2026-10-31)
+
+- **Status:** accepted; adds [M2.3c9][m2-3c9] to the roadmap, before [M2.3c6][m2-3c6] in the queue. It tightens nothing and loosens nothing; [ADR-310][adr-310] is the same review's tightening. Takes the first step of [#1018][i1018], whose done-when stands.
+- **Summary:** On the private collection OpenRocket 24.12 flies 79 of the 83 flights that come from a `.ork` and HPR Sim 68, which no scoreboard row shows. A new row, `coverage.collection`, and a milestone before the gap is split by cause, close that. CI's long report checks now run from an optimized build with debug assertions, split by set over two jobs on every platform, with a test that fails if a set is left out.
+
+[m2-3c6]: ../decisions-and-roadmap.md#m2-3c6
+[m2-3c9]: ../decisions-and-roadmap.md#m2-3c9
+[m2-8]: ../decisions-and-roadmap.md#m2-8
+[adr-151]: 0151-hpr-sim-fixtures-joins-the-reference-library-as.md
+[adr-209]: 0209-the-2026-10-08-best-on-the-market-measured.md
+[adr-310]: 0310-the-2026-10-31-review-the-rocketpy-rail-exit-and-landing-speeds-tightened.md
+[i1018]: https://github.com/nrdptel/fusionspace-eridanus/issues/1018
+[report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md
+
+**Context.** A planning review steps back from the queue and asks which number the project would be
+embarrassed to find unmeasured. [The fixture report][report] counts the private collection's
+flights ([ADR-151][adr-151]) as aggregates:
+
+| Measure | HPR Sim | OpenRocket 24.12 |
+|---|---:|---:|
+| Flights flown, of the 83 from a `.ork` | 68 | 79 |
+| Flights it flies and the other doesn't | 0 | 11 |
+| Mean absolute apogee error, the 60 both fly that are compared | 12.07% | 11.26% |
+
+The scoreboard shows the third row only. So a flyer reading it learns that HPR Sim is 0.81 points
+behind and doesn't learn that it refuses one flight in seven that OpenRocket flies. Twelve
+flights are refused for a cause of HPR Sim's, each with an issue, and OpenRocket can't fly one of
+them either: a fin outline read as crossing itself (3), an unread surface finish (3), a motor
+missing from OpenRocket's database (2), a part inside an off-axis tube (2), overrides that differ
+on the parts inside (1) and rail buttons of negative length (1).
+
+Two more facts set the order. The last review's fin-tab change flew 7 more flights, and each
+simulator's error moved by about 0.8 points with no model change (12.95% → 12.07%, 12.02% → 11.26%).
+So the sample moves that row as much as physics does, and splitting the gap by cause
+([M2.3c6][m2-3c6]) on a sample about to grow would measure a gap that moves underneath it.
+
+CI has its own number. The `synthetic --check` step of the Linux `validate` job took 6.9 minutes on
+#980, 14.2 on #1054, 29.2 on #1072 and 34.2 on #1080, in a debug build, and #1080's checks took 45.8
+minutes in all. Runs on two milestones failed that step off macOS only, each after 30 to 47 minutes.
+
+**Decision.**
+
+1. **[M2.3c9][m2-3c9] joins the roadmap at queue position 9.** Its done-when: the row
+   `coverage.collection` from the report's own fields, a falling HPR Sim cell failing
+   `scoreboard --check`, HPR Sim flying every flight OpenRocket 24.12 flies or an ADR for each one
+   left, and each newly flown flight checked by mass and CG read-backs before it joins an average.
+   The report gains those read-backs, against OpenRocket's own mass and CG for that configuration:
+   it holds none today. M2.3c9 adds a row, not a surface: the limit of three user-facing surfaces in progress
+   (the motor catalog, the flight analyzer) still has room.
+2. **Newly flown flights may raise the mean error.** That is the point of the row: a harder sample
+   is a truer one, and `accuracy.collection` may move either way for that reason. The ADR that
+   would accept a worse scoreboard cell ([ADR-209][adr-209]) is M2.3c9's to write, with the
+   before-and-after.
+3. **CI's long checks are split and optimized; none is reduced.** A new Cargo profile,
+   `report-check`, is release with debug assertions and overflow checks kept, because a plain
+   release build dropped both. On a 10-core Mac the full check takes 318 s and 2,096 CPU-s against
+   504 s and 3,532 CPU-s in the dev profile, and the report reproduces byte for byte. CI runs
+   `synthetic --check --sets tuning,a` in the validate job and `--sets b,calibration` in the
+   examples job on every platform. An `xtask` test reads the workflow and fails unless each set is on exactly one step of one fixed
+   form, alone, unconditional, on every platform; an unknown set or a second `--sets` refuses. Probes: a value changed in set B fails `--sets b`
+   and passes `--sets tuning,a`, the reverse for set A, and a JSON-only edit fails every partial.
+4. **Local gates keep the full check on the dev profile,** because `report-check` would save 29%
+   of the gate's step (411 s against 578 s, with both report checks) and drop the only dev-profile
+   reproduction, which the committed reports are generated by.
+5. **The motors a design needs are read when it needs them.** The bundled catalog is parsed only for
+   a design with a motor it must look up, and only those motors are built: `hpr sim level-1.ork`
+   9.75 → 8.26 ms and 12.64 → 10.81 MB. Output is byte-identical on 18 commands and on `sim --offline`
+   over 19 fixtures and 714 corpus designs, with one edge: a design whose motors all carry their
+   own curves no longer warns about an unreadable catalog, since nothing was read.
+
+**What could go wrong.** A file that OpenRocket flies and shouldn't would count against HPR Sim:
+M2.3c9's ADR route exists for this, and [the report's *Not flown* table][report] keeps the cause
+visible. A report might reproduce on the optimized build on one platform and not another: CI's
+first run on this layout is that test, and the two builds are compared on every platform by the
+rows it checks. A second build per platform adds about 1.4 GB to a cache already near GitHub's
+10 GB limit, so an eviction may cost a run a cold build. The layout alone is estimated at 18 to 21
+minutes on the slowest jobs, not the 15 that [#1018][i1018] asks for, so that issue stays open until
+five heads are measured.
+
+**Not decided here.** The interval-width bar on the flight readings, which a noisier reader would
+otherwise pass, is an idea with a done-when in [the ideas page](../research/ideas.md), and
+[M2.8][m2-8]'s two-layer burn-time prior has its own issue.

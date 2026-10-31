@@ -2324,7 +2324,22 @@ impl Read {
     /// and with `None`, as when `--motor` replaces the file's, every one. A warning a flown motor
     /// draws too is kept.
     fn drop_unflown_catalog_warnings(&mut self, flown: Option<&str>) {
-        let (Some(motors), Ok(catalog)) = (&self.ork, hpr::hpr_motor::Catalog::bundled()) else {
+        // With nothing to drop, the catalog needn't be read (#1021).
+        if self.warnings.is_empty() {
+            return;
+        }
+        let Some(motors) = &self.ork else {
+            return;
+        };
+        let ids = motors
+            .configurations
+            .iter()
+            .flat_map(|configuration| &configuration.motors)
+            .filter_map(|motor| match &motor.curve {
+                ork::Curve::Catalog { motor_id, .. } => Some(motor_id.as_str()),
+                _ => None,
+            });
+        let Ok(catalog) = hpr::hpr_motor::Catalog::bundled_with_ids(ids) else {
             return;
         };
         let drawn = |motor: &ork::OrkMotor| -> Vec<String> {
