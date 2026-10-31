@@ -207,6 +207,9 @@ service (2 October 2026, 18:00 and 19:00 UTC). No test uses the network.
 
 ## What it leaves out
 
+- A damaged answer gets an error, never a crash or a hang: the parser is tried on cut, changed and
+  arbitrary bytes. That doesn't test whether a well-formed answer is true. [Damaged
+  files](format/damaged-files.md) says what the tests cover and leave out.
 - Nothing checks a forecast against the weather that came. Weather-balloon soundings, the
   measured air, can be fetched too ([Weather-balloon soundings](soundings.md)), but no forecast has
   been compared with one. NOAA's Global Forecast System and Rapid Refresh (GFS and RAP) can be
