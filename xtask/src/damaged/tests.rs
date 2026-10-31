@@ -263,7 +263,7 @@ fn places_spread_evenly_and_a_change_changes_one_byte() {
 }
 
 #[test]
-fn a_panic_and_a_hang_are_told_from_a_refusal() {
+fn a_panic_and_a_refusal_are_told_apart() {
     let empty: Arc<[u8]> = Arc::from(Vec::new());
     assert_eq!(probe(|_| true, empty.clone()), Ended::Read);
     assert_eq!(probe(|_| false, empty), Ended::Refused);
