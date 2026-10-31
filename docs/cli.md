@@ -2021,8 +2021,7 @@ note: read from the sheet "Second" of an Excel workbook, its cells as stored
 #### Two logs of one flight
 
 Give `hpr analyze` more than one log of a flight, each in a format it reads by itself, and it puts
-them on one timeline and reads them side by side. Most flyers fly two altimeters, and each counts
-from a zero of its own. The clocks are lined up by each log's liftoff, the logs' readings are never
+them on one timeline and reads them side by side. Each altimeter counts from a zero of its own. The clocks are lined up by each log's liftoff, the logs' readings are never
 averaged, and each reading's spread says how far apart they lie, not which is right. A log with no
 liftoff, such as a GPS track, says so and sits on no timeline
 ([#1086](https://github.com/nrdptel/fusionspace-eridanus/issues/1086)). A log read by `--mapping` or

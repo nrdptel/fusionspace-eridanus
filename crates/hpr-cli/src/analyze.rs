@@ -63,16 +63,16 @@ pub struct AnalyzeArgs {
     /// The flight log: a file in any format HPR Sim reads, or another logger's file read by
     /// --mapping or --layout
     pub log: String,
-    /// More logs of the same flight: each is read by its format's own reader, and all go on one
-    /// timeline by a shared liftoff, read side by side and never averaged
+    /// More logs of the same flight, each read by its format's own reader. All go on one timeline
+    /// by a shared liftoff. They are read side by side and never averaged
     #[arg(
         value_name = "MORE_LOGS",
         num_args = 0..=7,
         conflicts_with_all = ["mapping", "layout", "sheet", "recording", "fip_header", "print_mapping", "record"]
     )]
     pub with: Vec<String>,
-    /// The logs are of a staged flight, one logger to a stage, all leaving the pad together: no
-    /// spread is reported, their readings being of different bodies
+    /// The logs are of a staged flight, one logger to a stage, all leaving the pad together. No
+    /// spread is reported: their readings are of different bodies
     #[arg(long, requires = "with")]
     pub stages: bool,
     /// Read the log as a table, by this column mapping: a JSON file, as --print-mapping prints

@@ -422,8 +422,9 @@ Prometheus flight carried a TeleMetrum and a TeleMega, each with its own GPS rec
 | Under the main, m/s | 6.5 | 6.5 | 0.0 |
 
 The TeleMega's clock less the TeleMetrum's comes to −0.05 s, within 1.53 s, 90% interval −0.13 to
-0.04 s. The two receivers' UTC seconds, taken where each second ticks in each log, put it at −0.13 s,
-0.08 s away and on the interval's edge. That's one flight, on two boards whose logs both start at
+0.04 s. The two receivers' UTC seconds, taken where each second ticks in each log, put it at −0.130 s,
+0.08 s away and just past the interval's low end, −0.129 s before the printout rounds it outward.
+That's one flight, on two boards whose logs both start at
 the boost. It says nothing of a board that a long pad wait or a different mount treats otherwise.
 
 `--stages` lays out one logger to a stage the same way, each leaving the pad with the stack, and

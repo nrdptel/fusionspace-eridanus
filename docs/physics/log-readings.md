@@ -1084,7 +1084,8 @@ two-logger flights of their own ([ADR-257](../decisions/0257-the-2026-10-13-revi
 0.71 + 0.83 = 1.54 s, and rounding up from the unrounded figures the command prints 1.53 s. The
 interval is −0.05 − 0.0515 × 1.53 = −0.13 s to −0.05 + 0.0526 × 1.53 = 0.03 s; the command, from the
 unrounded figures, prints −0.13 to 0.04 s. Each receiver's UTC second, taken where it ticks in its
-log, says the TeleMega's clock less the TeleMetrum's is −0.13 s, so this offset is 0.08 s away.
+log, says the TeleMega's clock less the TeleMetrum's is −0.130 s. So this offset is 0.08 s away, and
+the truth by that clock lies just past the interval's low end, −0.129 s before it is rounded outward.
 
 **Checked against.** On two-logger synthetic flights
 ([their sets](synthetic-flights.md#two-loggers-and-stages)), every one of the 1,383 offsets given

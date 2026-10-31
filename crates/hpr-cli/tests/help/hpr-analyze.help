@@ -7,14 +7,14 @@ Arguments:
           The flight log: a file in any format HPR Sim reads, or another logger's file read by --mapping or --layout
 
   [MORE_LOGS]...
-          More logs of the same flight: each is read by its format's own reader, and all go on one timeline by a shared liftoff, read side by side and never averaged
+          More logs of the same flight, each read by its format's own reader. All go on one timeline by a shared liftoff. They are read side by side and never averaged
 
 Options:
       --json
           Print one JSON document on standard output instead of text, errors included
 
       --stages
-          The logs are of a staged flight, one logger to a stage, all leaving the pad together: no spread is reported, their readings being of different bodies
+          The logs are of a staged flight, one logger to a stage, all leaving the pad together. No spread is reported: their readings are of different bodies
 
       --color <WHEN>
           When to use color. With auto, output to a terminal is colored, and NO_COLOR, FORCE_COLOR and CLICOLOR_FORCE are followed. JSON output never has color

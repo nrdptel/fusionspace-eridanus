@@ -1,7 +1,7 @@
 //! Two or more recordings of one flight on one timeline, read side by side and never averaged.
 //!
-//! **What it is for.** Most high-power rockets carry two altimeters, and a staged one may carry a
-//! logger in each stage. Each logger counts from a zero of its own: when it was switched on, or
+//! **What it is for.** A high-power rocket often carries two altimeters, and a staged one may carry
+//! a logger in each stage. Each logger counts from a zero of its own: when it was switched on, or
 //! when it saw the boost. To lay the logs side by side their clocks must be lined up.
 //!
 //! **How.** By a shared liftoff, the method [Debrief][debrief] uses: every board in a stack leaves
@@ -25,12 +25,13 @@
 //! **How far to trust it.** On 2,000 synthetic flights carrying two loggers, on seeds of their own,
 //! 1,383 gave an offset (a log with no barometer has no liftoff); every one stayed within its
 //! bound, by 0.13 of it at most and 0.03 s in the median, and its interval passed ADR-257's test
-//! (`cargo xtask two-logs`, [`validation/reports/two-logs.md`][report]). So did the 135 of 200
-//! two-stage flights that gave one. One real pair checks it against another clock: on RocketPy's
-//! Prometheus flight the two boards' GPS time gives an offset within 0.08 s of this one. The offset
-//! is one number per pair: a clock that runs fast or slow isn't corrected, by about 15 ms over a
-//! 300 s flight at a crystal's 50 ppm. Nothing here can tell that two logs are of one flight: that
-//! is the caller's word.
+//! (`cargo xtask two-logs`, [`validation/reports/two-logs.md`][report]). Each of the 135 of 200
+//! two-stage flights that gave one stayed within its bound too; the interval missed none of them,
+//! so it is wider than it need be there. One real pair checks it against another clock: on
+//! RocketPy's Prometheus flight the two boards' GPS time gives an offset within 0.08 s of this one,
+//! just outside its 90% interval. The offset is one number per pair: a clock that runs fast or slow
+//! isn't corrected, by about 15 ms over a 300 s flight at a crystal's 50 ppm. Nothing here can tell
+//! that two logs are of one flight: that is the caller's word.
 //!
 //! [debrief]: https://github.com/nrdptel/fusionspace-debrief
 //! [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
