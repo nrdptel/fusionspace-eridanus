@@ -4,9 +4,9 @@ See what happens when a file or a server's answer is damaged, how that is tested
 leave out.
 
 A flight log pulled off a card can be cut short, and a download can stop halfway. This page covers
-every reader in the five crates that read files and servers' answers: the design, motor, weather
-and elevation files, each flight-log format, and the answers of the weather, elevation and motor
-servers. It is for anyone who wonders what a bad file does, and for anyone adding a reader.
+every reader in the five crates that read files and servers' answers. They read the design, motor,
+weather and elevation files, each flight-log format, and what the weather, elevation and motor
+servers send. It is for anyone who wonders what a bad file does, and for anyone adding a reader.
 
 > **How far to trust it.** Damaged input gets an error, or a value from what was left, never a crash
 > or a hang. That is tested, not proven. The tests below try 384 damaged inputs on each row, and
@@ -22,15 +22,17 @@ trust its landing, and its top before you trust its apogee.
 ## How it is tested
 
 A test walks a list of the readers in `hpr-io`, `hpr-flightdata`, `hpr-motor`, `hpr-format` and
-`hpr-net`. A check fails if the list doesn't hold one row for each public function named `read…` or
-`parse…` in them, found by a line that opens with `pub fn`. Another fails if a flight-log format has
-no row. Each reader is called directly, or through the parser that feeds it where it takes a parsed
-value, and given:
+`hpr-net`. Each public function named `read…` or `parse…` in them must have one row, or a check
+fails. It finds them by a line that opens with `pub fn`. Another check fails if a flight-log format
+has no row. Each reader is called directly, or through the parser that feeds it if it takes a parsed
+value. Each is given:
 
 - a real sample cut at 64 places, spread evenly from its first byte;
 - the same sample with one byte changed, at 64 places: all its bits at every other place, only the
-  lowest at the rest, so a length field moves far and a digit stays a digit;
-- 256 cases of arbitrary bytes, up to 4,096 of them, from a seed fixed for each reader.
+  lowest at the rest;
+- 256 cases of arbitrary bytes, up to 4,096 of them, from a seed fixed for each row.
+
+Changing all of a byte's bits moves a length field far. Changing the lowest keeps a digit a digit.
 
 The test fails on a panic, or on a read still running after 10 s. Many rows read on from what a
 reader gives, as a caller would: a GRIB2 file's values, a GeoTIFF's heights, a design from a `.ork`.
@@ -50,14 +52,14 @@ reads in all. Of those, 3,921 still gave a log, 5,055 were refused, and none pan
 
 ## What it leaves out
 
-- Other damage isn't tried, apart from what arbitrary bytes happen to do: two bytes changed, a
-  stretch of bytes moved, or a file built to attack a reader.
+- Other damage isn't tried: two bytes changed, a stretch of bytes moved, or a file built to attack a
+  reader. Arbitrary bytes might do any of these, by chance.
 - Very long files aren't tested for time or memory in the public tests, whose inputs stay small. A
-  read that runs out of memory or stack ends the program, which fails the test and names no place.
+  read that runs out of memory or stack ends the program. That fails the test and names no place.
 - Other readers aren't on the list: a Mach table's CSV in `hpr-aero`, and the JSON the command line
   reads for a design or a sounding ([#1079](https://github.com/nrdptel/fusionspace-eridanus/issues/1079)).
 - Deep in a design, cuts reach nothing. A `.ork` is a zip with its directory at its end, and its XML
-  must close, so a cut of either is refused first. A changed byte in the XML reaches further.
+  must close. So a cut of either is refused first. A changed byte in the XML reaches further.
 - A private file past 10 s is printed and counted, not failed, since a long log can take that long
   in a debug build.
 - The tests call the Rust readers on a desktop system. The command line, Python and WebAssembly call
