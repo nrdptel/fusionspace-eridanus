@@ -102,10 +102,8 @@ data, clubs and the ecosystem. The 2026-10-28 review's four ([ADR-303][adr-303])
 
 ## The 2026-10-31 planning review
 
-Placed with [ADR-310][adr-310], which tightens the RocketPy comparisons' rail-exit and landing
-speeds, and [ADR-311][adr-311], which promotes one idea of this review: every flight OpenRocket
-flies, as the scoreboard row `coverage.collection` ([M2.3c9][m2-3c9]). The 2026-10-28 review's four
-moved to the theme notes.
+Placed with [ADR-310][adr-310], which tightens two RocketPy gates, and [ADR-311][adr-311], which
+promotes this review's one idea, every flight OpenRocket flies ([M2.3c9][m2-3c9]). The rest:
 
 - SOON: the gap's tail. User: a team's simulation lead asking how far to trust HPR Sim against
   OpenRocket. HPR Sim holds more flights within 5% and within 10% of the log (14 vs 13, 32 vs 31) and
@@ -116,22 +114,19 @@ moved to the theme notes.
   flights, and [M2.3c6][m2-3c6]'s split names the same contributors.
 - SOON: a second flight on the first flight's drag. User: a Level 3 flyer planning a second flight
   of a rocket with one good log. Workflow: fit the drag on the first log ([M7.3][m7-3]), then
-  `hpr sim` the next flight with that fit. Per-flight drag with its interval, rather than one fleet
-  factor, is what `bias.collection` (+7.76%) would need to shrink. Moves: new row
-  `accuracy.second-flight`, lower better. *Done when:* the row gives the count of designs with two
+  `hpr sim` the next flight with that fit, testing whether per-flight drag shrinks
+  `bias.collection` (+7.76%). Moves: new row `accuracy.second-flight`. *Done when:* the row gives the count of designs with two
   logged flights and the error with and without the fit; a synthetic pair pins the fit; the row
   says so plainly where the count is too small to mean anything.
-- SOON: the intervals' width, held. User: a flyer quoting a log's apogee with its interval. The
-  coverage test ([ADR-308][adr-308]) has a gap: a noisier reader, once refitted, widens its intervals
-  and still passes. Workflow: the synthetic flights' report records each reading's mean interval
-  width. Moves: a new row, `readings.width`, lower better; `readings.inside-90` beside it from the
-  same report, nearer 90% better. *Done when:* the report prints each reading's mean width on sets
+- SOON: the intervals' width, held. User: a flyer quoting a log's apogee with its interval. A noisier
+  reader, once refitted, passes the coverage test ([ADR-308][adr-308]) on wider intervals. Workflow:
+  the synthetic flights' report records each reading's mean width. Moves: new rows `readings.width`,
+  lower better, and `readings.inside-90`, nearer 90% better. *Done when:* the report prints each reading's mean width on sets
   A and B, `synthetic --check` fails when one grows more than 10% over its committed figure, and a
   probe adding noise to one reading shows that the width check fails while coverage passes.
 - SOON: descent rates against the log. User: a flyer sizing a main or a drift budget. Workflow: the
-  fixture report compares each tool's descent rate under the main with the rate read from that
-  flight's log. Moves: new row `accuracy.descent`, lower better; too gentle is the flattering side.
-  *Done when:* signed and absolute errors with their counts for both simulators, aggregates only,
+  fixture report compares each tool's descent rate under the main with the log's. Moves: new row
+  `accuracy.descent`, lower better; too gentle is the flattering side. *Done when:* signed and absolute errors with their counts for both simulators, aggregates only,
   and a test pinning which way too gentle reads.
 - SOON: what moved my number. User: a flyer whose saved prediction changes after an upgrade; a
   merged change to OpenRocket's damping reports one three-stage booster's apogee moving 20%
