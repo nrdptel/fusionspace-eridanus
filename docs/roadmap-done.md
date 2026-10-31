@@ -110,6 +110,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.14d3 What the data commands say ([Phase 0](#phase-0-foundations))
 - M0.14d4 The Python package and the crates' front pages ([Phase 0](#phase-0-foundations))
 - M0.14b The front doors ([Phase 0](#phase-0-foundations))
+- M0.15 Damaged files refused, never a crash ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -719,6 +720,24 @@ One line per milestone or increment, in the order it was archived within its pha
     Blocked on the maintainer applying the six About texts #838 wrote; the rest is merged. The
     About texts went live on 2026-10-20, and were scored and read live on 2026-10-25 ([PR
     #838](https://github.com/nrdptel/fusionspace-eridanus/pull/838) holds the rewrite).
+- [x] **M0.15 Damaged files refused, never a crash** (Neer, 2026-10-30). A file or a server's answer
+  is outside input: a damaged one gets an error, never a panic or a hang (both `P-critical`).
+  `clippy::indexing_slicing` flags 1,524 places in the crates that read it (`hpr-io`,
+  `hpr-flightdata`, `hpr-motor`, `hpr-format`, `hpr-net`; their `--lib` on 685e9764), too many to
+  lint, so tests feed each reader damaged copies of real input instead.
+  *Done when:* a list a test walks names every reader of outside bytes in those crates (each
+  `FORMATS` layout, the archive, workbook and custom layouts, `.ork`, `.orc`, netCDF, ERA5, GRIB2,
+  GeoTIFF, `.eng`, `.rse`, `.hpr`, `.hprz`, each `hpr-net` parser, the cache's metadata), and a
+  check fails a public function named `read…` or `parse…` that it lacks; each, called directly
+  (tests that exist may grow), reads a public sample (a built one says in its test why) cut at 64
+  points and with one byte changed at 64, both spread evenly, and 256 proptest cases of arbitrary
+  bytes, failing on a panic or a read past 10 s; `xtask logs --check`,
+  `xtask ork-flights --library --check` and `xtask fixture-flights --check` read 8 cuts of each
+  private log and design, print the counts read and refused, and fail on a panic; the PR gives
+  the panics found (zero too), each fixed test first under a `P-critical` issue, and the gate's
+  test-step time before and after on one machine, at most 60 s more; the File formats, weather,
+  soundings and elevation pages say what the probes cover and leave out.
+
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and

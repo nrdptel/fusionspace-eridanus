@@ -43,7 +43,7 @@ panic.
 
 ## An example
 
-On 2026-10-31, `cargo xtask logs --check` cut each of the collection's 1,122 logs at 8 places, 8,976
+On October 31, 2026, `cargo xtask logs --check` cut each of the collection's 1,122 logs at 8 places, 8,976
 reads in all. Of those, 3,921 still gave a log, 5,055 were refused, and none panicked or ran past
 10 s. So 44% of the cuts read as something, which is why a read isn't a sign that a log is whole.
 

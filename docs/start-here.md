@@ -460,6 +460,8 @@ These are left out of a flight, or approximated:
   limits, and NSGA-II weighs apogee against stability ([Optimization](optimization.md)). Their
   answers are only as good as HPR Sim's flight models. Competition rule files aren't built yet.
   There's no app yet: it's on the [roadmap][roadmap].
+- **A damaged file gets an error, never a crash or a hang.** Each reader of outside bytes is tried on
+  cut, changed and arbitrary bytes ([Damaged files](format/damaged-files.md)).
 - **The flight-log analyzer gives readings within bounds; twelve state intervals, and the smoother gives a health card.** `hpr analyze` and
   the Python package read a flight log on its own, with no design file and no simulation. They use
   its format's reader, or the column mapping or record layout you write for your own logger

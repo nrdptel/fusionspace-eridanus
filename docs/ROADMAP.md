@@ -132,24 +132,6 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     organizer), and an issue template for a barrier to access are in the repository and linked from
     the site's landing page.
 
-- [ ] **M0.15 Damaged files refused, never a crash** (Neer, 2026-10-30). A file or a server's answer
-  is outside input: a damaged one gets an error, never a panic or a hang (both `P-critical`).
-  `clippy::indexing_slicing` flags 1,524 places in the crates that read it (`hpr-io`,
-  `hpr-flightdata`, `hpr-motor`, `hpr-format`, `hpr-net`; their `--lib` on 685e9764), too many to
-  lint, so tests feed each reader damaged copies of real input instead.
-  *Done when:* a list a test walks names every reader of outside bytes in those crates (each
-  `FORMATS` layout, the archive, workbook and custom layouts, `.ork`, `.orc`, netCDF, ERA5, GRIB2,
-  GeoTIFF, `.eng`, `.rse`, `.hpr`, `.hprz`, each `hpr-net` parser, the cache's metadata), and a
-  check fails a public function named `read…` or `parse…` that it lacks; each, called directly
-  (tests that exist may grow), reads a public sample (a built one says in its test why) cut at 64
-  points and with one byte changed at 64, both spread evenly, and 256 proptest cases of arbitrary
-  bytes, failing on a panic or a read past 10 s; `xtask logs --check`,
-  `xtask ork-flights --library --check` and `xtask fixture-flights --check` read 8 cuts of each
-  private log and design, print the counts read and refused, and fail on a panic; the PR gives
-  the panics found (zero too), each fixed test first under a `P-critical` issue, and the gate's
-  test-step time before and after on one machine, at most 60 s more; the File formats, weather,
-  soundings and elevation pages say what the probes cover and leave out.
-
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - **M1.8** is done; its entry: [archive](roadmap-done.md#phase-1-physics-core-the-heart-with-validation-interleaved).
