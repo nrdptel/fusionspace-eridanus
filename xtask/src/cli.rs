@@ -515,9 +515,9 @@ fn example(command: &str, root: &Path, read: &mut dyn FnMut(&Path)) -> (String, 
 }
 
 /// The widest line of an example that a page's code block shows whole in a 1280 px window, in
-/// characters: the box measures 692 px there, at about 8.4 px a character. A wider line would run
-/// off the box's edge, so its block wraps instead. Characters aren't cells, so a wide glyph counts
-/// short; the commands print none.
+/// characters: the box measures 692 px there, and a capture's line of 79 characters spans 675 px. A
+/// wider line would run off the box's edge, so its block wraps instead. It counts characters, not
+/// cells, so a wide glyph counts short.
 const EXAMPLE_FITS_CHARS: usize = 80;
 
 /// An example's text as a page's fenced block: one with a line too wide for the box is a `text,wrap`
