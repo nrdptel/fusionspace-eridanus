@@ -23,7 +23,7 @@ trust its landing, and its top before you trust its apogee.
 
 A test walks a list of the readers in `hpr-io`, `hpr-flightdata`, `hpr-motor`, `hpr-format` and
 `hpr-net`. Each public function named `read…` or `parse…` in them must have one row, or a check
-fails. It finds them by a line that opens with `pub fn`. Another check fails if a flight-log format
+fails. It finds them by the lines of source that declare them. Another check fails if a flight-log format
 has no row. Each reader is called directly, or through the parser that feeds it if it takes a parsed
 value. Each is given:
 

@@ -771,7 +771,7 @@ pub(super) const READERS: &[Reader] = &[
         "parse",
         Sample::Built(
             built::deploy_event,
-            "an element's text, a fragment of a file, padded past the 64 places"
+            "a deployment event's text, a fragment of a file, padded past the 64 places"
         ),
         |bytes| {
             drop(ork::DeployEvent::parse(&text(bytes)));
@@ -784,7 +784,7 @@ pub(super) const READERS: &[Reader] = &[
         "parse",
         Sample::Built(
             built::separation_event,
-            "an element's text, a fragment of a file, padded past the 64 places"
+            "a separation event's text, a fragment of a file, padded past the 64 places"
         ),
         |bytes| {
             drop(ork::SeparationEvent::parse(&text(bytes)));
