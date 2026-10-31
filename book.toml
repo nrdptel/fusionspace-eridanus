@@ -71,6 +71,9 @@ heading-split-level = 2
 # And in M0.15, at 10.01 MB, with the page on damaged files: the numerics page on adaptive quadrature
 # (`physics/quadrature.md`), a routine the pages that use it describe by what it gives, is left out
 # too; it is still in the sidebar and linked from those pages.
+# And in M7.2f, at 10.04 MB, with two logs of one flight: the page on the synthetic flights
+# (`physics/synthetic-flights.md`), how the test flights are drawn, whose results the readings' and
+# the smoother's pages give, is left out too; it is still in the sidebar and linked from those pages.
 [output.html.search.chapter]
 "decisions-and-roadmap.md" = { enable = false }
 "writing.md" = { enable = false }
@@ -81,6 +84,7 @@ heading-split-level = 2
 "evidence.md" = { enable = false }
 "the-simulator.md" = { enable = false }
 "physics/quadrature.md" = { enable = false }
+"physics/synthetic-flights.md" = { enable = false }
 
 # The equations (`xtask/src/site/math.rs`): each `$…$` and `$$…$$` becomes MathML before mdBook
 # renders the page, so the browser draws it in the math face with no script. `cargo xtask site`

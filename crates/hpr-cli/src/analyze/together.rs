@@ -261,11 +261,9 @@ fn text_lines(together: &AnalyzeTogether, side: &SideBySide) -> Vec<String> {
     // A reason already given for a log isn't printed again: a log with no track says the same of
     // every reading.
     let mut said: Vec<Vec<&str>> = vec![Vec::new(); count];
-    if let [first, ..] = together.offsets.as_slice() {
-        if let LogReading::Withheld(withheld) = first {
-            said.iter_mut()
-                .for_each(|log| log.push(withheld.detail.as_str()));
-        }
+    if let [LogReading::Withheld(withheld), ..] = together.offsets.as_slice() {
+        said.iter_mut()
+            .for_each(|log| log.push(withheld.detail.as_str()));
     }
     for row in &together.rows {
         lines.push(String::new());
