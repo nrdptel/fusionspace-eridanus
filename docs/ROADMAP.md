@@ -26,59 +26,60 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
 `N. M<id> title`, ids open in this file (`cargo test -p xtask` checks).
 
 1. M5.7 Every solid motor, offline
-2. M7.2 Readings, reconstruction and ghost data
-3. M7.3 A flight against its simulation
-4. M10.2 Release 0.2: the flight analyzer
-5. M0.13 Awareness and care on the sites
-6. M0.9g The figures' digits and the command line's words
-7. M2.3c2 Logged traces
-8. M2.3c3 OpenRocket's newest release
-9. M2.3c6 The gap to OpenRocket, by cause
-10. M2.7 Held-out flights, predictions first
-11. M2.8 Honest uncertainty
-12. M2.6 An open benchmark
-13. M1.14 Accuracy inside the envelope
-14. M7.4 Fault diagnosis
-15. M7.5 The bias every simulator shares
-16. M10.3 Release 0.3: accuracy and diagnosis
-17. M2.11 Fin flutter held to measurement
-18. M2.3c7 Faster than sound: published flights
-19. M6.3 Challenge specs and presets
-20. M6.4 Airbrakes
-21. M6.2e Robust mode
-22. M6.6 Submission packs
-23. M6.7 Ejection charges
-24. M3.5 RASAero `.CDX1` import/export
-25. M3.6 RocketPy interop
-26. M2.9 The other tools' cells
-27. M6.8 Field kit: checklists, the settings check and the ground-test log
-28. M0.7b Rocketry explained: recovery, wind and motors
-29. M10.4 Release 0.4: the competition kit
-30. M4.4 C ABI and WASM
-31. M9.0 UI architecture ADR plus a spike
-32. M9.2 3D flight replay with a ghost
-33. M10.5 Release 0.5: the app preview
-34. M0.7c Rocketry explained: live figures
-35. M5.6a A catalog of hpr's own: format, search and a parts list
-36. M8.2 Edit model for UIs
-37. M9.1 Desktop app shell
-38. M5.6b Parachutes and recovery hardware
-39. M8.1 Design assistant
-40. M5.6c Motor hardware and rail buttons
-41. M5.6d More makers and electronics
-42. M3.4 RockSim `.rkt` import/export
-43. M9.3 Web PWA
-44. M10.6 Release 1.0: the app
-45. M0.7d Rocketry explained: the rest of the hobby
-46. M11.1 A motor of your own
-47. M11.2 Experimental solids
-48. M12.1 Parachute gores
-49. M12.2 Opening loads
-50. M9.4 Mobile
-51. M9.6 The four web tools, rebuilt
-52. M6.5 Roll control: tail-fin tabs and canards
-53. M13.3 Flight computer logic
-54. M13.1 Ground station
+2. M0.15 Damaged files refused, never a crash
+3. M7.2 Readings, reconstruction and ghost data
+4. M7.3 A flight against its simulation
+5. M10.2 Release 0.2: the flight analyzer
+6. M0.13 Awareness and care on the sites
+7. M0.9g The figures' digits and the command line's words
+8. M2.3c2 Logged traces
+9. M2.3c3 OpenRocket's newest release
+10. M2.3c6 The gap to OpenRocket, by cause
+11. M2.7 Held-out flights, predictions first
+12. M2.8 Honest uncertainty
+13. M2.6 An open benchmark
+14. M1.14 Accuracy inside the envelope
+15. M7.4 Fault diagnosis
+16. M7.5 The bias every simulator shares
+17. M10.3 Release 0.3: accuracy and diagnosis
+18. M2.11 Fin flutter held to measurement
+19. M2.3c7 Faster than sound: published flights
+20. M6.3 Challenge specs and presets
+21. M6.4 Airbrakes
+22. M6.2e Robust mode
+23. M6.6 Submission packs
+24. M6.7 Ejection charges
+25. M3.5 RASAero `.CDX1` import/export
+26. M3.6 RocketPy interop
+27. M2.9 The other tools' cells
+28. M6.8 Field kit: checklists, the settings check and the ground-test log
+29. M0.7b Rocketry explained: recovery, wind and motors
+30. M10.4 Release 0.4: the competition kit
+31. M4.4 C ABI and WASM
+32. M9.0 UI architecture ADR plus a spike
+33. M9.2 3D flight replay with a ghost
+34. M10.5 Release 0.5: the app preview
+35. M0.7c Rocketry explained: live figures
+36. M5.6a A catalog of hpr's own: format, search and a parts list
+37. M8.2 Edit model for UIs
+38. M9.1 Desktop app shell
+39. M5.6b Parachutes and recovery hardware
+40. M8.1 Design assistant
+41. M5.6c Motor hardware and rail buttons
+42. M5.6d More makers and electronics
+43. M3.4 RockSim `.rkt` import/export
+44. M9.3 Web PWA
+45. M10.6 Release 1.0: the app
+46. M0.7d Rocketry explained: the rest of the hobby
+47. M11.1 A motor of your own
+48. M11.2 Experimental solids
+49. M12.1 Parachute gores
+50. M12.2 Opening loads
+51. M9.4 Mobile
+52. M9.6 The four web tools, rebuilt
+53. M6.5 Roll control: tail-fin tabs and canards
+54. M13.3 Flight computer logic
+55. M13.1 Ground station
 
 ## Phase 0: Foundations
 
@@ -130,6 +131,24 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     maintainer, a page on getting involved (youth programs, clubs, mentoring, each linked to its
     organizer), and an issue template for a barrier to access are in the repository and linked from
     the site's landing page.
+
+- [ ] **M0.15 Damaged files refused, never a crash** (Neer, 2026-10-30). A file or a server's answer
+  is outside input: a damaged one gets an error, never a panic or a hang (both `P-critical`).
+  `clippy::indexing_slicing` flags 1,524 places in the crates that read it (`hpr-io`,
+  `hpr-flightdata`, `hpr-motor`, `hpr-format`, `hpr-net`; their `--lib` on 685e9764), too many to
+  lint, so tests feed each reader damaged copies of real input instead.
+  *Done when:* a list a test walks names every reader of outside bytes in those crates (each
+  `FORMATS` layout, the archive, workbook and custom layouts, `.ork`, `.orc`, netCDF, ERA5, GRIB2,
+  GeoTIFF, `.eng`, `.rse`, `.hpr`, `.hprz`, each `hpr-net` parser, the cache's metadata), and a
+  check fails a public function named `read…` or `parse…` that it lacks; each, called directly
+  (tests that exist may grow), reads a public sample (a built one says in its test why) cut at 64
+  points and with one byte changed at 64, both spread evenly, and 256 proptest cases of arbitrary
+  bytes, failing on a panic or a read past 10 s; `xtask logs --check`,
+  `xtask ork-flights --library --check` and `xtask fixture-flights --check` read 8 cuts of each
+  private log and design, print the counts read and refused, and fail on a panic; the PR gives
+  the panics found (zero too), each fixed test first under a `P-critical` issue, and the gate's
+  test-step time before and after on one machine, at most 60 s more; the File formats, weather,
+  soundings and elevation pages say what the probes cover and leave out.
 
 ## Phase 1: Physics core (the heart), with validation interleaved
 
