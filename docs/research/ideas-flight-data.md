@@ -89,6 +89,25 @@ From the 2026-10-24 planning review ([ADR-289][adr-289]):
   the +8.73% bias. *Done when:* the report gives every cell or its count, a test pins both size
   rules, and the page names each cell whose interval excludes zero, or says none does.
 
+## From the 2026-10-28 planning review
+
+- SOON: the motor file's share of the collection's bias. User: a flyer filing for a waiver whose
+  prediction rests on a curve file nobody checked. Workflow: the fixture report flies each logged
+  flight of the collection again on its motor's bundled file that passes [ADR-005][adr-005]'s 1%
+  check, where it has one (239 of 924 motors do), and prints each flight's apogee change and the
+  mean. Moves: `bias.collection` (+7.76% for HPR Sim, +6.72% for OpenRocket) and
+  `accuracy.collection` (12.07%, 11.26%), split by the files' share. *Done when:* the report gives
+  the count of flights re-flown and the mean signed change, aggregates only; a test pins one public
+  flight's swap; the scoreboard notes both figures beside the rows.
+- SOON: landings inside the predicted ellipse. User: a flyer at a field whose recovery area ends at
+  a road or a waiver boundary. Workflow: the fixture report compares each GPS-fixed landing in the
+  collection with `hpr mc`'s 90% landing ellipse for that flight's weather, with and without a
+  canopy glide term ([the canopy glide note](hobby-canopy-glide-and-swing.md)). Moves: new row
+  `landing.inside-90`, nearer 90% better; OpenRocket 24.12 has no landing ellipse (can't), RocketPy
+  has one. *Done when:* the row gives HPR Sim's share over every GPS-fixed landing it can fly, with
+  the count, and the glide term's change; a synthetic flight in a known wind gets its ellipse by
+  hand.
+
 ## From the research notes of 2026-10-28
 
 - LATER ([M7.4, fault diagnosis](../decisions-and-roadmap.md#m7-4)): a one- or two-sample pressure
@@ -135,3 +154,4 @@ From the 2026-10-24 planning review ([ADR-289][adr-289]):
 [adr-144]: ../decisions/0144-the-2026-10-03-planning-review-leaner-bookkeeping.md
 [fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md
 [real-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md
+[adr-005]: ../decisions/0005-solid-motors-statistics-consumption-grains-file.md

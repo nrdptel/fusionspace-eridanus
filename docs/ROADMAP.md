@@ -33,52 +33,53 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
 6. M0.9g The figures' digits and the command line's words
 7. M2.3c2 Logged traces
 8. M2.3c3 OpenRocket's newest release
-9. M2.3c6 The gap to OpenRocket, by cause
-10. M2.7 Held-out flights, predictions first
-11. M2.8 Honest uncertainty
-12. M2.6 An open benchmark
-13. M1.14 Accuracy inside the envelope
-14. M7.4 Fault diagnosis
-15. M7.5 The bias every simulator shares
-16. M10.3 Release 0.3: accuracy and diagnosis
-17. M2.11 Fin flutter held to measurement
-18. M2.3c7 Faster than sound: published flights
-19. M6.3 Challenge specs and presets
-20. M6.4 Airbrakes
-21. M6.2e Robust mode
-22. M6.6 Submission packs
-23. M6.7 Ejection charges
-24. M3.5 RASAero `.CDX1` import/export
-25. M3.6 RocketPy interop
-26. M2.9 The other tools' cells
-27. M6.8 Field kit: checklists, the settings check and the ground-test log
-28. M0.7b Rocketry explained: recovery, wind and motors
-29. M10.4 Release 0.4: the competition kit
-30. M4.4 C ABI and WASM
-31. M9.0 UI architecture ADR plus a spike
-32. M9.2 3D flight replay with a ghost
-33. M10.5 Release 0.5: the app preview
-34. M0.7c Rocketry explained: live figures
-35. M5.6a A catalog of hpr's own: format, search and a parts list
-36. M8.2 Edit model for UIs
-37. M9.1 Desktop app shell
-38. M5.6b Parachutes and recovery hardware
-39. M8.1 Design assistant
-40. M5.6c Motor hardware and rail buttons
-41. M5.6d More makers and electronics
-42. M3.4 RockSim `.rkt` import/export
-43. M9.3 Web PWA
-44. M10.6 Release 1.0: the app
-45. M0.7d Rocketry explained: the rest of the hobby
-46. M11.1 A motor of your own
-47. M11.2 Experimental solids
-48. M12.1 Parachute gores
-49. M12.2 Opening loads
-50. M9.4 Mobile
-51. M9.6 The four web tools, rebuilt
-52. M6.5 Roll control: tail-fin tabs and canards
-53. M13.3 Flight computer logic
-54. M13.1 Ground station
+9. M2.3c9 Every flight OpenRocket flies
+10. M2.3c6 The gap to OpenRocket, by cause
+11. M2.7 Held-out flights, predictions first
+12. M2.8 Honest uncertainty
+13. M2.6 An open benchmark
+14. M1.14 Accuracy inside the envelope
+15. M7.4 Fault diagnosis
+16. M7.5 The bias every simulator shares
+17. M10.3 Release 0.3: accuracy and diagnosis
+18. M2.11 Fin flutter held to measurement
+19. M2.3c7 Faster than sound: published flights
+20. M6.3 Challenge specs and presets
+21. M6.4 Airbrakes
+22. M6.2e Robust mode
+23. M6.6 Submission packs
+24. M6.7 Ejection charges
+25. M3.5 RASAero `.CDX1` import/export
+26. M3.6 RocketPy interop
+27. M2.9 The other tools' cells
+28. M6.8 Field kit: checklists, the settings check and the ground-test log
+29. M0.7b Rocketry explained: recovery, wind and motors
+30. M10.4 Release 0.4: the competition kit
+31. M4.4 C ABI and WASM
+32. M9.0 UI architecture ADR plus a spike
+33. M9.2 3D flight replay with a ghost
+34. M10.5 Release 0.5: the app preview
+35. M0.7c Rocketry explained: live figures
+36. M5.6a A catalog of hpr's own: format, search and a parts list
+37. M8.2 Edit model for UIs
+38. M9.1 Desktop app shell
+39. M5.6b Parachutes and recovery hardware
+40. M8.1 Design assistant
+41. M5.6c Motor hardware and rail buttons
+42. M5.6d More makers and electronics
+43. M3.4 RockSim `.rkt` import/export
+44. M9.3 Web PWA
+45. M10.6 Release 1.0: the app
+46. M0.7d Rocketry explained: the rest of the hobby
+47. M11.1 A motor of your own
+48. M11.2 Experimental solids
+49. M12.1 Parachute gores
+50. M12.2 Opening loads
+51. M9.4 Mobile
+52. M9.6 The four web tools, rebuilt
+53. M6.5 Roll control: tail-fin tabs and canards
+54. M13.3 Flight computer logic
+55. M13.1 Ground station
 
 ## Phase 0: Foundations
 
@@ -160,6 +161,14 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     - [ ] **M2.3c3 OpenRocket's newest release** (ADR-212). *Done when:* the fixture and public
       OpenRocket reports fly its newest release after 24.12 beside 24.12 on the flights both
       fly, each named, and its steps to a first answer are recounted (ADR-241). Moves: accuracy.
+    - [ ] **M2.3c9 Every flight OpenRocket flies** (ADR-311). *Done when:* the scoreboard has
+      a row `coverage.collection`, higher better, reading each simulator's flights flown out of the
+      `.ork` flights of tier A from the fixture report's own fields (HPR Sim 68, OpenRocket 24.12 79
+      of 83 today), and `scoreboard --check` fails if HPR Sim's cell falls; HPR Sim flies every flight
+      OpenRocket 24.12 flies, or each one left is counted by cause in the report's *Not flown* table
+      beside an open issue and an ADR with the measurement saying why; a flight flown here for the
+      first time is checked by the report's mass and CG read-backs before it joins an average; #358,
+      #359, #360, #361, #181 and #362 are closed or carry that ADR.
     - [ ] **M2.3c6 The gap to OpenRocket, by cause** (ADR-226, ADR-273). *Done when:* the fixture
       report gives, as aggregates, the hpr-less-OpenRocket apogee split into thrust, mass and drag
       parts, each input swapped for OpenRocket's in that order, the rest named as other, the parts

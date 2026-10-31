@@ -18,7 +18,7 @@
 # `as_of` is the date the report counts a row's last search from: a row with no search, or whose
 # last is over 30 days before it, is due one.
 
-as_of = "2026-10-29"
+as_of = "2026-10-31"
 
 [[row]]
 id = "G1"
@@ -745,6 +745,14 @@ wanted = "real"
 not_checked = "a real flight's smoothed height and speed against a truth apart from the log, such as a second logger's or a ground tracker's"
 issue = 981
 
+[[row.searched]]
+on = "2026-10-31"
+looked = [
+  "prs2026/Procyon, a repository new to this search (no license)",
+  "the private collection, by file hash",
+]
+found = "one flight on June 7, 2026 with a Blue Raven and a TeleMetrum v4.0 logging barometer and accelerometer, and a Featherweight tracker's GPS beside them. Barometer peaks agree within 2 m; GPS peaks read 4% to 5% higher. No radar or optical record. It has no license, so it is cited on the issue and cached under refs/samples-search/G33 only"
+
 [[row]]
 id = "G34"
 surface = "Flight-log readings' 90% intervals"
@@ -754,3 +762,12 @@ kind = "calibration"
 wanted = "real"
 not_checked = "a real flight's readings against a truth taken apart from the log, such as a second logger's or a ground tracker's record of the same flight"
 issue = 1052
+
+[[row.searched]]
+on = "2026-10-31"
+looked = [
+  "prs2026/Procyon, a repository new to this search (no license)",
+  "Harvard Dataverse, Figshare, Zenodo and arXiv",
+  "web searches for a hobby rocket's apogee measured by radar or optical tracking",
+]
+found = "one flight on June 7, 2026 with two barometric loggers and two GPS receivers, each with its own record of the peak and times. It has no license, so it is cited on the issue and cached under refs/samples-search/G33 only. No radar or optical record of a flight"

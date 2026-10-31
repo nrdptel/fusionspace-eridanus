@@ -88,7 +88,7 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
 - LATER: live prices through `hpr-net`, cached and dated.
 - LATER: regional vendors (Klima, Wizard Rockets); parts that fit `.orc` offered upstream.
 
-## Earlier planning reviews (2026-10-08 to 2026-10-26)
+## Earlier planning reviews (2026-10-08 to 2026-10-28)
 
 PROMOTED: OpenRocket's newest release as the bar ([M2.3c3][m2-3c3], ADR-212), the gap to it by
 cause (M2.3c6, [ADR-226][adr-226]) with OpenRocket's supersonic ogive drag as its own cause
@@ -98,46 +98,49 @@ post-flight comparison ([M7.2][m7-2], [M7.3][m7-3], [ADR-257][adr-257]), fin flu
 measurement ([M2.11][m2-11], [ADR-279][adr-279]). The rest moved to the [theme notes](#theme-notes);
 the 2026-10-20 review's four ([ADR-286][adr-286]) and the 2026-10-24 review's four ([ADR-289][adr-289])
 to flight data and the ecosystem, and the 2026-10-26 review's four ([ADR-294][adr-294]) to flight
-data, clubs and the ecosystem.
+data, clubs and the ecosystem. The 2026-10-28 review's four ([ADR-303][adr-303]) went to flight data and the ecosystem.
 
-## The 2026-10-28 planning review
+## The 2026-10-31 planning review
 
-Placed with [ADR-303][adr-303], which tightens the RocketPy comparisons' largest Mach number and
-peak acceleration; no idea is promoted. The 2026-10-26 review's four moved to the theme notes.
+Placed with [ADR-310][adr-310], which tightens the RocketPy comparisons' rail-exit and landing
+speeds, and [ADR-311][adr-311], which promotes one idea of this review: every flight OpenRocket
+flies, as the scoreboard row `coverage.collection` ([M2.3c9][m2-3c9]). The 2026-10-28 review's four
+moved to the theme notes.
 
-- SOON: an export that survives OpenRocket's own save. User: a team that designs in HPR Sim and
-  hands the `.ork` to a club member who opens, edits and saves it in OpenRocket, whose 24.12 save
-  can fail on a file whose simulations are stale ([OpenRocket issue
-  3412](https://github.com/openrocket/openrocket/issues/3412)). Workflow: the export round trip
-  ([ADR-286][adr-286]) adds a step: OpenRocket's jar, run as an outside oracle, saves each exported
-  design without flying it, and HPR Sim reads the saved file back. Moves: `interop.changed` (0 of
-  151 configurations today), `interop.failed` (2 of 75 designs, the two HPR Sim can't read) and
-  `interop.largest` (0.000050%), all measured only to OpenRocket's open. *Done when:* the round trip saves all 151 through OpenRocket and counts the
-  saves that fail or move an apogee by more than 0.002%, and a test holds one design through the
-  save step.
-- SOON: HPR Sim's own flight time, held. User: anyone flying thousands of runs (`hpr mc`, the
-  optimizer) or waiting on the web app. Workflow: `speed.flight`'s HPR Sim cell reads a committed
-  bench record (machine, commit, design, median of at least 6 alternated runs) rather than waiting
-  for [M2.9][m2-9]'s other cells. Moves: `speed.flight`, not measured today; [the speed
-  page](../perf.md) times a Valetudo flight at 1.65 ms on one thread. *Done when:* the cell shows
-  the record's median with its machine, and the scoreboard's check fails when a new record is more
-  than 10% slower than the last on the same machine.
-- SOON: the motor file's share of the collection's bias. User: a flyer filing for a waiver whose
-  prediction rests on a curve file nobody checked. Workflow: the fixture report flies each logged
-  flight of the collection again on its motor's bundled file that passes [ADR-005][adr-005]'s 1%
-  check, where it has one (239 of 924 motors do), and prints each flight's apogee change and the
-  mean. Moves: `bias.collection` (+8.73% for HPR Sim, +7.79% for OpenRocket) and
-  `accuracy.collection` (12.95%, 12.02%), split by the files' share. *Done when:* the report gives
-  the count of flights re-flown and the mean signed change, aggregates only; a test pins one public
-  flight's swap; the scoreboard notes both figures beside the rows.
-- SOON: landings inside the predicted ellipse. User: a flyer at a field whose recovery area ends at
-  a road or a waiver boundary. Workflow: the fixture report compares each GPS-fixed landing in the
-  collection with `hpr mc`'s 90% landing ellipse for that flight's weather, with and without a
-  canopy glide term ([the canopy glide note](hobby-canopy-glide-and-swing.md)). Moves: new row
-  `landing.inside-90`, nearer 90% better; OpenRocket 24.12 has no landing ellipse (can't), RocketPy
-  has one. *Done when:* the row gives HPR Sim's share over every GPS-fixed landing it can fly, with
-  the count, and the glide term's change; a synthetic flight in a known wind gets its ellipse by
-  hand.
+- SOON: the gap's tail. User: a team's simulation lead asking how far to trust HPR Sim against
+  OpenRocket. HPR Sim holds more flights within 5% and within 10% of the log (14 vs 13, 32 vs 31) and
+  still loses on the mean, so a few flights make the gap. Workflow: `cargo xtask fixture-flights`
+  prints the mean absolute gap with the worst 1, 3 and 5 of its contributors removed. Moves:
+  `accuracy.collection` (12.07% vs 11.26%), by naming how much of it is a tail. *Done when:* the
+  report prints those three aggregates and no flight's identity, a test pins them on invented
+  flights, and [M2.3c6][m2-3c6]'s split names the same contributors.
+- SOON: a second flight on the first flight's drag. User: a Level 3 flyer planning a second flight
+  of a rocket with one good log. Workflow: fit the drag on the first log ([M7.3][m7-3]), then
+  `hpr sim` the next flight with that fit. Per-flight drag with its interval, rather than one fleet
+  factor, is what `bias.collection` (+7.76%) would need to shrink. Moves: new row
+  `accuracy.second-flight`, lower better. *Done when:* the row gives the count of designs with two
+  logged flights and the error with and without the fit; a synthetic pair pins the fit; the row
+  says so plainly where the count is too small to mean anything.
+- SOON: the intervals' width, held. User: a flyer quoting a log's apogee with its interval. The
+  coverage test ([ADR-308][adr-308]) has a gap: a noisier reader, once refitted, widens its intervals
+  and still passes. Workflow: the synthetic flights' report records each reading's mean interval
+  width. Moves: a new row, `readings.width`, lower better; `readings.inside-90` beside it from the
+  same report, nearer 90% better. *Done when:* the report prints each reading's mean width on sets
+  A and B, `synthetic --check` fails when one grows more than 10% over its committed figure, and a
+  probe adding noise to one reading shows that the width check fails while coverage passes.
+- SOON: descent rates against the log. User: a flyer sizing a main or a drift budget. Workflow: the
+  fixture report compares each tool's descent rate under the main with the rate read from that
+  flight's log. Moves: new row `accuracy.descent`, lower better; too gentle is the flattering side.
+  *Done when:* signed and absolute errors with their counts for both simulators, aggregates only,
+  and a test pinning which way too gentle reads.
+- SOON: what moved my number. User: a flyer whose saved prediction changes after an upgrade; a
+  merged change to OpenRocket's damping reports one three-stage booster's apogee moving 20%
+  ([OpenRocket pull request 3410](https://github.com/openrocket/openrocket/pull/3410)). Workflow:
+  `hpr sim design.ork --against last-time.json` prints each number's change, both versions and the
+  release notes' physics entries between them. Moves: `features.count`, as a new row: can a tool
+  say what changed a saved number across versions. *Done when:* a test flies one design against a saved run from
+  an edited copy, the change prints with its sign, and a saved run from an unknown version says so
+  and doesn't guess.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -193,5 +196,9 @@ peak acceleration; no idea is promoted. The 2026-10-26 review's four moved to th
 [adr-005]: ../decisions/0005-solid-motors-statistics-consumption-grains-file.md
 [adr-294]: ../decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md
 [adr-303]: ../decisions/0303-the-2026-10-28-review-the-rocketpy-peaks-tightened.md
+[adr-308]: ../decisions/0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md
+[adr-310]: ../decisions/0310-the-2026-10-31-review-the-rocketpy-rail-exit-and-landing-speeds-tightened.md
+[adr-311]: ../decisions/0311-the-2026-10-31-review-every-flight-openrocket-flies.md
+[m2-3c9]: ../decisions-and-roadmap.md#m2-3c9
 [m2-9]: ../decisions-and-roadmap.md#m2-9
 [adr-305]: ../decisions/0305-the-2026-10-28-licensing-calls.md
