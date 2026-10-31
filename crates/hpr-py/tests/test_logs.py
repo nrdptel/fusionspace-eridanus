@@ -356,3 +356,37 @@ def test_a_fip_export_reads_under_its_stated_header_as_the_command_reads_it(repo
     assert abs(apogee["height_m"] - 273.5) <= apogee["bound_m"]
     with pytest.raises(hpr.HprError, match="pastd"):
         hpr.FlightLog.read(sheet, fip_header={"header": "a", "pastd": [1]})
+
+
+def test_a_log_written_from_launch_is_smoothed_with_its_card(repo):
+    log = hpr.FlightLog.read(repo / "validation/fixtures/logs/synthetic-pnut.pf2")
+    smoothed = log.smoothed()
+    assert smoothed["status"] == "read"
+    assert smoothed["health"]["assumed_pad"] is True
+    assert smoothed["card"].startswith("pad assumed: ")
+    count = len(smoothed["time_s"])
+    for name in ("height_m", "height_sd_m", "speed_m_s", "speed_sd_m_s"):
+        assert len(smoothed[name]) == count, name
+    # The same as `hpr analyze` reads, at its apogee.
+    apogee = log.readings()["apogee"]
+    index = smoothed["time_s"].index(smoothed["apogee_time_s"])
+    assert abs(smoothed["height_m"][index] - apogee["height_m"]) <= apogee["bound_m"]
+    assert apogee["height_interval_m"]["low"] < apogee["height_interval_m"]["high"]
+
+
+def test_a_log_with_no_barometer_says_why_it_is_not_smoothed(repo, tmp_path):
+    table = tmp_path / "gnss.gpx"
+    table.write_text(
+        '<?xml version="1.0"?><gpx version="1.1" creator="invented" '
+        'xmlns="http://www.topografix.com/GPX/1/1"><trk><trkseg>'
+        + "".join(
+            f'<trkpt lat="40.0" lon="-105.{i:02d}"><ele>{1600 + 10 * i}</ele>'
+            f"<time>2026-01-01T00:00:{i:02d}Z</time></trkpt>"
+            for i in range(30)
+        )
+        + "</trkseg></trk></gpx>"
+    )
+    smoothed = hpr.FlightLog.read(table).smoothed()
+    assert smoothed["status"] == "withheld"
+    assert smoothed["reason"] == "no_barometer"
+    assert smoothed["detail"]

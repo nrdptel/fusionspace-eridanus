@@ -109,7 +109,7 @@ can't show a drag that's wrong the same way on every run.
 
 <!-- cli: example `hpr mc validation/fixtures/ork/guides/level-1.ork --runs 200 --seed 2026 --mass-sd 0.02 --drag-sd 0.05 --impulse-sd 0.03` -->
 
-```text
+```text,wrap
 $ hpr mc validation/fixtures/ork/guides/level-1.ork --runs 200 --seed 2026 --mass-sd 0.02 --drag-sd 0.05 --impulse-sd 0.03
 Level 1 guide rocket (level-1.ork)
 configuration 1 of 2: [H170M-10]

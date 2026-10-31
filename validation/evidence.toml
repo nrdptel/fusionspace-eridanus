@@ -738,18 +738,18 @@ found = "pad and rest noise for four families, upper bounds that mix in wind and
 [[row]]
 id = "G33"
 surface = "The smoother"
-claim = "At burnout, the top speed, apogee and a drawn moment, the smoother's 90% intervals on a log's height and vertical speed hold between 94.3% and 99.4% of the synthetic flights' truths in the three sets' cells, and two logger cells 89.2% and 89.7%, on the 171, 820 and 845 flights smoothed of three sets of 200, 1,000 and 1,000, its rules set with those sets in view"
-pages = ["physics/smoother.md#in-short", "accuracy.md#where-each-model-stands"]
+claim = "At burnout, the top speed, apogee and a drawn moment, the smoother's 90% intervals on height and vertical speed hold between 94.3% and 99.4% of the synthetic flights' truths in the three sets' cells, and two logger cells 89.2% and 89.7%, on the 171, 820 and 845 flights smoothed of three sets of 200, 1,000 and 1,000, its rules set with those sets in view; the same flights' logs cut at liftoff, on an assumed pad, hold in every cell too (94.9% to 98.7% overall on A and B, on the true zero)"
+pages = ["physics/smoother.md#in-short", "accuracy.md#where-each-model-stands", "reading-a-flight-log.md#the-90-intervals-and-the-health-card"]
 kind = "calibration"
 wanted = "real"
-not_checked = "a real flight's smoothed height and speed against a truth taken apart from the log, such as a second logger's or a ground tracker's record of the same flight"
+not_checked = "a real flight's smoothed height and speed against a truth apart from the log, such as a second logger's or a ground tracker's"
 issue = 981
 
 [[row]]
 id = "G34"
 surface = "Flight-log readings' 90% intervals"
 claim = "Twelve readings state 90% intervals, and a floor a lower end, fitted on 2,000 synthetic flights of their own. On sets A and B each passes the coverage test or its lower tail (the top speed below its transonic mark; a clipped top near an imposed clip); every probe fails. The misses gather: the height's, the top speed's and the descent rates' gather on days more than 10 K from standard, a warm day's above the interval (#1055, #1061); the times lean by logger (#1056, #1062), and the top acceleration most (#1070)"
-pages = ["physics/log-readings.md#the-90-intervals", "start-here.md#flight-logs"]
+pages = ["physics/log-readings.md#the-90-intervals", "start-here.md#flight-logs", "reading-a-flight-log.md#the-90-intervals-and-the-health-card"]
 kind = "calibration"
 wanted = "real"
 not_checked = "a real flight's readings against a truth taken apart from the log, such as a second logger's or a ground tracker's record of the same flight"

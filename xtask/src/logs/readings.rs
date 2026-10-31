@@ -45,6 +45,25 @@ pub(super) struct FamilyReadings {
     pub tracks: BTreeMap<String, usize>,
     /// Each reading, by its name: how many records gave it, and withheld it by reason.
     pub readings: BTreeMap<String, ReadingCounts>,
+    /// What the smoother made of them.
+    pub smoother: SmootherCounts,
+}
+
+/// What the smoother made of a family's records (M7.2e4, ADR-308).
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+pub(super) struct SmootherCounts {
+    /// Smoothed, on the log's own pad.
+    pub own_pad: usize,
+    /// Smoothed, on an assumed pad.
+    pub assumed_pad: usize,
+    /// Of those on their own pad, with the smoothed apogee past the reading's bound.
+    pub own_pad_past_bound: usize,
+    /// Of those on an assumed pad, the same.
+    pub assumed_pad_past_bound: usize,
+    /// Records whose accelerometer was set aside.
+    pub accelerometer_set_aside: usize,
+    /// Records withheld, by reason.
+    pub withheld: BTreeMap<String, usize>,
 }
 
 /// One reading's outcomes over a family's records.
@@ -151,6 +170,32 @@ impl Gathering {
             },
         );
         *row.tracks.entry(track).or_default() += 1;
+        let smoother = &mut row.smoother;
+        match hpr_flightdata::smoother::smooth_with(
+            log,
+            &read,
+            hpr_flightdata::smoother::Options::default(),
+        ) {
+            Ok(smoothed) => {
+                let health = smoothed.health;
+                if health.assumed_pad {
+                    smoother.assumed_pad += 1;
+                    smoother.assumed_pad_past_bound +=
+                        usize::from(health.apogee_past_reading_bound);
+                } else {
+                    smoother.own_pad += 1;
+                    smoother.own_pad_past_bound += usize::from(health.apogee_past_reading_bound);
+                }
+                smoother.accelerometer_set_aside += usize::from(health.accelerometer_set_aside);
+            }
+            Err(withheld) => {
+                let reason = serde_json::to_value(withheld.reason)
+                    .ok()
+                    .and_then(|value| value.as_str().map(str::to_owned))
+                    .unwrap_or_default();
+                *smoother.withheld.entry(reason).or_default() += 1;
+            }
+        }
         let mut reasons = Vec::new();
         for (name, reason) in outcomes(&read) {
             let counts = row.readings.entry(name.to_owned()).or_default();
@@ -242,6 +287,54 @@ pub(super) fn unread(survey: &Survey, root: &std::path::Path) -> Vec<String> {
     unread
 }
 
+/// The page's section on the smoother: how much of the corpus it smooths, and on which pad.
+fn smoother_section(survey: &Survey) -> String {
+    let mut out = String::from(
+        "\n### The smoother\n\n\
+         Every record again, through `hpr_flightdata::smoother` (M7.2e4, ADR-308): smoothed on its \
+         own pad or an assumed one, how many of each have a smoothed apogee past the reading's \
+         bound, whose accelerometer was set aside, and those withheld. None of this holds a \
+         smoothed height to a truth.\n\n\
+         | Family | Own pad | Past the bound | Assumed pad | Past the bound | Accelerometer set \
+         aside | Withheld |\n|---|---:|---:|---:|---:|---:|---|\n",
+    );
+    let mut total = SmootherCounts::default();
+    let row = |name: &str, c: &SmootherCounts| {
+        let withheld: Vec<String> = c
+            .withheld
+            .iter()
+            .map(|(reason, n)| format!("{n} `{reason}`"))
+            .collect();
+        format!(
+            "| {name} | {} | {} | {} | {} | {} | {} |\n",
+            c.own_pad,
+            c.own_pad_past_bound,
+            c.assumed_pad,
+            c.assumed_pad_past_bound,
+            c.accelerometer_set_aside,
+            if withheld.is_empty() {
+                "none".to_owned()
+            } else {
+                withheld.join(", ")
+            }
+        )
+    };
+    for (family, readings) in &survey.families {
+        let c = &readings.smoother;
+        out += &row(family, c);
+        total.own_pad += c.own_pad;
+        total.own_pad_past_bound += c.own_pad_past_bound;
+        total.assumed_pad += c.assumed_pad;
+        total.assumed_pad_past_bound += c.assumed_pad_past_bound;
+        total.accelerometer_set_aside += c.accelerometer_set_aside;
+        for (reason, n) in &c.withheld {
+            *total.withheld.entry(reason.clone()).or_default() += n;
+        }
+    }
+    out += &row("**Every family**", &total);
+    out
+}
+
 /// The page's section on the readings.
 pub(super) fn markdown(survey: &Survey) -> String {
     let mut out = String::from(
@@ -315,6 +408,7 @@ pub(super) fn markdown(survey: &Survey) -> String {
                 .map_or("none".to_owned(), |file| format!("`{file}`")),
         );
     }
+    out += &smoother_section(survey);
     out
 }
 

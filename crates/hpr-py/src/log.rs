@@ -11,11 +11,25 @@ use hpr::hpr_flightdata::error::LogError;
 use hpr::hpr_flightdata::import;
 use hpr::hpr_flightdata::log::FlightLog as Record;
 use hpr::hpr_flightdata::readings;
+use hpr::hpr_flightdata::smoother::{self, Smoothed, Withheld};
 use numpy::{PyArray1, PyArrayMethods};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
+use serde::Serialize;
 
 use crate::{error, to_python};
+
+/// What ``FlightLog.smoothed`` gives: the track and its card as text, or why there is none.
+#[derive(Serialize)]
+#[serde(tag = "status", rename_all = "snake_case")]
+enum SmoothedOutcome {
+    Read {
+        #[serde(flatten)]
+        smoothed: Box<Smoothed>,
+        card: String,
+    },
+    Withheld(Withheld),
+}
 
 /// A flight log read into one record, as ``hpr analyze --record`` prints it. It holds a clock,
 /// every channel the logger recorded on it, and what the file states about itself. The channels
@@ -291,6 +305,29 @@ impl FlightLog {
     /// acceleration and burnout came from, or ``None``.
     fn readings<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         to_python(py, &readings::read(&self.log))
+    }
+
+    /// The flight smoothed over every sensor, as ``hpr analyze`` smooths it, as a dict. Its
+    /// ``status`` is ``"read"`` or ``"withheld"``; a log not smoothed holds a ``reason`` and its
+    /// ``detail``.
+    ///
+    /// A log smoothed holds a track, one entry for every sample of every sensor: ``time_s`` on the
+    /// log's clock, ``height_m``, ``height_sd_m``, ``speed_m_s`` and ``speed_sd_m_s``, a value and
+    /// its standard error, its 90% interval ± 1.645 of them. It holds ``liftoff`` and
+    /// ``apogee_time_s``. ``health`` is the health card's figures and ``card`` the same as text.
+    /// ``health["assumed_pad"]`` says the log held too little of the pad, as one written from
+    /// launch does, and the track then stands on the logger's zero.
+    /// ``health["apogee_past_reading_bound"]`` says the smoothed apogee passes the reading's bound:
+    /// go by the reading.
+    fn smoothed<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let outcome = match smoother::smooth(&self.log) {
+            Ok(smoothed) => SmoothedOutcome::Read {
+                card: smoothed.health.card(),
+                smoothed: Box::new(smoothed),
+            },
+            Err(withheld) => SmoothedOutcome::Withheld(withheld),
+        };
+        to_python(py, &outcome)
     }
 
     /// The whole record as a dict of lists, gaps as ``None``: the document ``hpr analyze

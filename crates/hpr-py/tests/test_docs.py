@@ -16,7 +16,7 @@ import io
 import os
 import re
 
-BLOCK = re.compile(r"```(python|text)\n(.*?)```", re.DOTALL)
+BLOCK = re.compile(r"```(python|text)(?:,wrap)?\n(.*?)```", re.DOTALL)
 PYTHON_EXAMPLE = "<!-- python: example -->"
 PYTHON_END = "<!-- python: end -->"
 # A marker is a line of its own, as the guides check reads it (`xtask/src/guides.rs`).

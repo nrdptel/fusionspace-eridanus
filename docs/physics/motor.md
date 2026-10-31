@@ -203,7 +203,7 @@ date, counts and size:
 
 <!-- cli: example `hpr motors update --offline`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr motors update --offline
 The bundled catalog: ThrustCurve.org's solid motors as of 2026-10-28
   motors           1004, 924 with a file that reads

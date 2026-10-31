@@ -1,6 +1,6 @@
 # ADR-308: M7.2e in four: the intervals by reading, then the surfaces (2026-10-29)
 
-- **Status:** accepted; splits [M7.2e][m7-2e] in four and records how a reading's 90% interval is made and tested; its *done when* is unchanged and met when e1 to e4 are; §3's withheld-reading check amended by M7.2e2 for the top speed past its transonic mark, §3's floors and §5's one look by M7.2e3 (Consequences)
+- **Status:** accepted; splits [M7.2e][m7-2e] in four and records how a reading's 90% interval is made and tested; its *done when* is unchanged and met when e1 to e4 are; §3's withheld-reading check amended by M7.2e2 for the top speed past its transonic mark, §3's floors and §5's one look by M7.2e3, and #982's zero by M7.2e4 (Consequences)
 - **Summary:** each reading's 90% interval runs from the reading less one share of its own bound to the reading less another. The two shares are the 5% and 95% points of the readings' errors as shares of their bounds, fitted on a calibration set of 2,000 synthetic flights on a seed of its own. `cargo xtask synthetic` fits them again, holds them to the library's, and runs [ADR-257][adr-257]'s test with its three probes on sets A and B. M7.2e1 does this for the apogee's height and time; e2 and e3 add the other readings; e4 takes the intervals and the smoother's health card to `hpr analyze` and Python.
 
 [m7-2e]: ../decisions-and-roadmap.md#m7-2e
@@ -31,6 +31,9 @@ rate or an acceleration.
 [i982]: https://github.com/nrdptel/fusionspace-eridanus/issues/982
 [i1070]: https://github.com/nrdptel/fusionspace-eridanus/issues/1070
 [i1071]: https://github.com/nrdptel/fusionspace-eridanus/issues/1071
+[i1073]: https://github.com/nrdptel/fusionspace-eridanus/issues/1073
+[i1074]: https://github.com/nrdptel/fusionspace-eridanus/issues/1074
+[i1076]: https://github.com/nrdptel/fusionspace-eridanus/issues/1076
 
 **Decision.**
 
@@ -191,5 +194,56 @@ rate or an acceleration.
     acceleration leans by logger: outside the interval 34 of 185 and 38 of 186 on the AltOS logs, 22
     and 20 of them above it; none of 171 and 182 on the IMU's ([#1070][i1070]). The pooled test holds and
     the guide sends a load to the reading plus its bound.
+- **M7.2e4 (2026-10-30).** `hpr analyze`'s text prints every interval after its bound, rounded
+  outward, and a floor's lower end, rounded down; its JSON and Python already carried them. The JSON
+  adds `smoother`, and Python `FlightLog.smoothed()`, with [ADR-300][adr-300]'s card. A count over each
+  fixture log that reads with no file beside it holds the text's intervals to the JSON's. Decided:
+  - **A log with too little of the pad is smoothed on an assumed pad.** The smoother had withheld
+    it, and that was most of the logs it could read: of the 1,058 sample records, 379 smooth this way
+    and 175 on their own pad (`validation/reports/log-import.md`, *The smoother*).
+  - **The height stands on the readings' zero, not the first sample** as [#982][i982] proposed. The
+    zero is the logger's, set on the pad, where a first sample may be up the climb. It also keeps the
+    smoothed apogee on the same scale as the reading's. A zero that is the pad's only by a word raises the
+    drift state's spread to at least `PAD_ZERO_M/√3`, so the height's standard error carries it. A logger's own zero adds
+    nothing, as in the readings' bounds, though weather on the pad can move one, on the low side too;
+    the cut logs below keep a true zero, so nothing tests that.
+  - **The noise is the flight's own scatter,** the median past apogee at the pad's air, less the
+    correlated noise. It errs noisy, since a swing is in it.
+  - **The first speed's prior is about zero, not the barometer's rate.** Taken from the rate, a
+    public log's garbled second sample set the track off at 29 km/s: a running median at the log's
+    edge has too few samples to set a sample aside.
+  - **The first second is settled.** Review found that priors this wide take a sample 10 m off as the
+    truth: 10 m on the first sample of a 588 m flight read an apogee of 655 m and a speed over
+    1 km/s. Over the first second, at least ten samples, each sample fused is the median of the
+    five about it, which leaves a climb as it was. The first two aren't weighed. Sweeping errors of
+    10 m to 1,000 m over one or two of the first three samples now moves the apogee by under a
+    standard error, but for one case. Two samples together over about 100 m high move the readings'
+    own pad, and the apogee reads low by as much, the flattering side, 23 m at 150 m high and 277 m at
+    1,000 m, with a card that at 1,000 m
+    doesn't say the pad was assumed: a known wrong number on garbled input, in the readings since
+    before this increment, seen on no sample log ([#1076][i1076]), pinned by the test so a fix must
+    drop it. Three bad samples in a row beat the median too.
+  - **An accelerometer with too little of the pad is set aside,** and the card says so: 135 of the
+    554 smoothed. Zeroing one without a pad is new work ([#1074][i1074]).
+  - **`cargo xtask synthetic` holds it.** Each flight's log is cut at the truth's liftoff, every sensor,
+    and smoothed again. Any cell, overall or for a logger, that fails [ADR-300][adr-300]'s rule fails
+    the command, as does a log withheld that the whole log wasn't, a step left unsmoothed or a log not
+    on an assumed pad. All hold on the three sets. The cut logs' standard errors and sums of samples are held to two
+    figures, not three: CI's Linux runners read a logger's median 0.1% from the other platforms', and
+    a sum across a third figure's edge, so a change in one fails the command now only if it crosses a second figure's edge. The cells'
+    counts keep every figure. ADR-300's rule is one-sided and a logger's cell
+    holds few flights, so a thin cell can hold at 87.9% (the tuning set's AltOS burnout height, in the report's JSON).
+  - **The card says when the smoothed apogee falls outside the reading's bound,** a floor's only from
+    below: 12 of the 379 on an assumed pad, 20 of the 175 on their own, and 0 to 2 of the synthetic
+    sets' cut logs, so a log's own pad doesn't prevent it ([#1073][i1073]).
+  - **A log of more than 2,000,000 samples is withheld** (`Reason::TooLong`), before any work: a file
+    could otherwise ask for memory without limit. A first limit of 500,000 withheld the synthetic
+    sets' long 500 Hz logs, and the command's check caught it. Review's burst of 900,000 samples 1 ns
+    apart ran for minutes in the scatter's window, so the scatter and landing no longer walk a window
+    for each sample, and a running median's window is capped. Under the limit, a file
+    of nearly 2 million steps takes tens of seconds and gigabytes, by a run in review, with no way to
+    skip it yet. The smoother also no longer
+    withholds for a short pad, so its own `ShortPad` is gone; the readings keep theirs, and a track
+    of pressures with no pad still gives no liftoff to smooth from.
 - `cargo xtask synthetic` reads 4,000 more flights, and from M7.2e3 two more logs of each one with
   an accelerometer: about 7.5 minutes in all on an 8-core Mac, from 5.5.

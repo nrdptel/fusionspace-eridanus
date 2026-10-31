@@ -3739,6 +3739,14 @@
               "transonic": 4
             }
           }
+        },
+        "smoother": {
+          "own_pad": 20,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 1,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {}
         }
       },
       "aerospacenu-gs-txt": {
@@ -3798,6 +3806,14 @@
               "sampled_too_slowly": 4
             }
           }
+        },
+        "smoother": {
+          "own_pad": 4,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {}
         }
       },
       "aerospacenu-sillygoose-txt": {
@@ -3882,6 +3898,16 @@
               "transonic": 3
             }
           }
+        },
+        "smoother": {
+          "own_pad": 12,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_liftoff": 2
+          }
         }
       },
       "altimax-als": {
@@ -3936,6 +3962,14 @@
               "transonic": 1
             }
           }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 1,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 1,
+          "withheld": {}
         }
       },
       "altimax-xls": {
@@ -3990,6 +4024,14 @@
               "transonic": 1
             }
           }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 1,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 1,
+          "withheld": {}
         }
       },
       "altimetercloud-csv": {
@@ -4038,6 +4080,14 @@
             "given": 11,
             "withheld": {}
           }
+        },
+        "smoother": {
+          "own_pad": 11,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {}
         }
       },
       "altos-csv": {
@@ -4127,6 +4177,16 @@
               "transonic": 22
             }
           }
+        },
+        "smoother": {
+          "own_pad": 5,
+          "assumed_pad": 29,
+          "own_pad_past_bound": 1,
+          "assumed_pad_past_bound": 5,
+          "accelerometer_set_aside": 25,
+          "withheld": {
+            "no_liftoff": 16
+          }
         }
       },
       "altos-eeprom": {
@@ -4214,6 +4274,17 @@
               "transonic": 3
             }
           }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 6,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 5,
+          "withheld": {
+            "no_barometer": 1,
+            "no_liftoff": 7
+          }
         }
       },
       "altos-resaved-csv": {
@@ -4276,6 +4347,16 @@
               "clock_out_of_order": 1
             }
           }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_barometer": 1
+          }
         }
       },
       "altos-table-csv": {
@@ -4327,6 +4408,16 @@
           "max_speed": {
             "given": 1,
             "withheld": {}
+          }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_liftoff": 1
           }
         }
       },
@@ -4384,6 +4475,14 @@
               "sampled_too_slowly": 2
             }
           }
+        },
+        "smoother": {
+          "own_pad": 2,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {}
         }
       },
       "altos-telem-csv": {
@@ -4438,6 +4537,14 @@
               "sampled_too_slowly": 1
             }
           }
+        },
+        "smoother": {
+          "own_pad": 1,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {}
         }
       },
       "arts2-csv": {
@@ -4492,6 +4599,14 @@
               "transonic": 4
             }
           }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 4,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 1,
+          "accelerometer_set_aside": 4,
+          "withheld": {}
         }
       },
       "arts2-raw-csv": {
@@ -4553,6 +4668,16 @@
             "withheld": {
               "no_height_track": 3
             }
+          }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_barometer": 3
           }
         }
       },
@@ -4637,6 +4762,17 @@
               "transonic": 23
             }
           }
+        },
+        "smoother": {
+          "own_pad": 47,
+          "assumed_pad": 1,
+          "own_pad_past_bound": 3,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_barometer": 40,
+            "no_liftoff": 1
+          }
         }
       },
       "blueraven-summary-csv": {
@@ -4698,6 +4834,16 @@
             "withheld": {
               "no_height_track": 26
             }
+          }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_barometer": 26
           }
         }
       },
@@ -4771,6 +4917,17 @@
               "slower_than_free_coast": 1
             }
           }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_barometer": 1,
+            "no_liftoff": 1
+          }
         }
       },
       "console-capture": {
@@ -4833,6 +4990,16 @@
               "short_pad": 3
             }
           }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_liftoff": 3
+          }
         }
       },
       "e80-imu-txt": {
@@ -4894,6 +5061,16 @@
             "withheld": {
               "no_height_track": 54
             }
+          }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_barometer": 54
           }
         }
       },
@@ -4971,6 +5148,16 @@
               "transonic": 5
             }
           }
+        },
+        "smoother": {
+          "own_pad": 4,
+          "assumed_pad": 6,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_liftoff": 34
+          }
         }
       },
       "eggtimer-rtf": {
@@ -5026,6 +5213,16 @@
           "max_speed": {
             "given": 1,
             "withheld": {}
+          }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_liftoff": 1
           }
         }
       },
@@ -5089,6 +5286,14 @@
               "disturbed_top": 1
             }
           }
+        },
+        "smoother": {
+          "own_pad": 1,
+          "assumed_pad": 1,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {}
         }
       },
       "entacore-aim-csv": {
@@ -5149,6 +5354,14 @@
               "transonic": 7
             }
           }
+        },
+        "smoother": {
+          "own_pad": 16,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 4,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {}
         }
       },
       "entacore-dump": {
@@ -5228,6 +5441,16 @@
               "slower_than_free_coast": 1
             }
           }
+        },
+        "smoother": {
+          "own_pad": 1,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_liftoff": 9
+          }
         }
       },
       "entacore-xtra": {
@@ -5288,6 +5511,14 @@
               "disturbed_top": 2
             }
           }
+        },
+        "smoother": {
+          "own_pad": 2,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {}
         }
       },
       "featherweight-summary-csv": {
@@ -5350,6 +5581,16 @@
               "no_height_track": 25
             }
           }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_barometer": 25
+          }
         }
       },
       "fluctus-csv": {
@@ -5411,6 +5652,14 @@
               "noisy_speed": 1
             }
           }
+        },
+        "smoother": {
+          "own_pad": 4,
+          "assumed_pad": 2,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 3,
+          "withheld": {}
         }
       },
       "fwgps-csv": {
@@ -5472,6 +5721,16 @@
             "withheld": {
               "receiver_lag": 40
             }
+          }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_barometer": 40
           }
         }
       },
@@ -5568,6 +5827,16 @@
               "transonic": 4
             }
           }
+        },
+        "smoother": {
+          "own_pad": 9,
+          "assumed_pad": 1,
+          "own_pad_past_bound": 2,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_barometer": 10
+          }
         }
       },
       "kml": {
@@ -5656,6 +5925,17 @@
               "too_short": 2
             }
           }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_barometer": 39,
+            "no_liftoff": 4
+          }
         }
       },
       "kml-map": {
@@ -5717,6 +5997,16 @@
             "withheld": {
               "no_height_track": 1
             }
+          }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_barometer": 1
           }
         }
       },
@@ -5781,6 +6071,16 @@
               "unstated_sensor": 6
             }
           }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_barometer": 6
+          }
         }
       },
       "marsa-dat": {
@@ -5833,6 +6133,14 @@
             "given": 2,
             "withheld": {}
           }
+        },
+        "smoother": {
+          "own_pad": 2,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {}
         }
       },
       "missileworks-rtx": {
@@ -5894,6 +6202,16 @@
             "withheld": {
               "receiver_lag": 5
             }
+          }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_barometer": 5
           }
         }
       },
@@ -5957,6 +6275,16 @@
               "receiver_lag": 12
             }
           }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_barometer": 12
+          }
         }
       },
       "odf": {
@@ -6018,6 +6346,16 @@
             "withheld": {
               "short_pad": 3
             }
+          }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_liftoff": 3
           }
         }
       },
@@ -6089,6 +6427,16 @@
               "transonic": 3
             }
           }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 14,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_liftoff": 1
+          }
         }
       },
       "perfectflite-txt": {
@@ -6150,6 +6498,14 @@
               "disturbed_top": 1
             }
           }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 6,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {}
         }
       },
       "pf2": {
@@ -6223,6 +6579,16 @@
               "transonic": 42
             }
           }
+        },
+        "smoother": {
+          "own_pad": 6,
+          "assumed_pad": 161,
+          "own_pad_past_bound": 3,
+          "assumed_pad_past_bound": 3,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_liftoff": 8
+          }
         }
       },
       "pfa": {
@@ -6294,6 +6660,16 @@
               "short_pad": 2,
               "slower_than_free_coast": 1
             }
+          }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 9,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_liftoff": 16
           }
         }
       },
@@ -6381,6 +6757,17 @@
               "transonic": 4
             }
           }
+        },
+        "smoother": {
+          "own_pad": 6,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 3,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_barometer": 19,
+            "no_liftoff": 2
+          }
         }
       },
       "radio-packets-rtf": {
@@ -6439,6 +6826,14 @@
               "sampled_too_slowly": 2
             }
           }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 2,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {}
         }
       },
       "radio-packets-txt": {
@@ -6507,6 +6902,16 @@
               "clock_out_of_order": 1,
               "sampled_too_slowly": 1
             }
+          }
+        },
+        "smoother": {
+          "own_pad": 1,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_barometer": 1
           }
         }
       },
@@ -6590,6 +6995,16 @@
               "transonic": 35
             }
           }
+        },
+        "smoother": {
+          "own_pad": 3,
+          "assumed_pad": 76,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 2,
+          "accelerometer_set_aside": 61,
+          "withheld": {
+            "no_liftoff": 1
+          }
         }
       },
       "raven-fip-sheet-xlsx": {
@@ -6652,6 +7067,14 @@
               "transonic": 1
             }
           }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 2,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 1,
+          "withheld": {}
         }
       },
       "raven-fipa": {
@@ -6730,6 +7153,16 @@
               "transonic": 11
             }
           }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 40,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 1,
+          "accelerometer_set_aside": 34,
+          "withheld": {
+            "no_liftoff": 17
+          }
         }
       },
       "record-dump": {
@@ -6791,6 +7224,16 @@
             "withheld": {
               "no_height_track": 2
             }
+          }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_barometer": 2
           }
         }
       },
@@ -6861,6 +7304,16 @@
               "transonic": 23
             }
           }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 14,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_liftoff": 37
+          }
         }
       },
       "rrc3-rff": {
@@ -6930,6 +7383,16 @@
               "short_pad": 5
             }
           }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 1,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_liftoff": 5
+          }
         }
       },
       "rtx-csv": {
@@ -6992,6 +7455,16 @@
               "receiver_lag": 5
             }
           }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_barometer": 5
+          }
         }
       },
       "rtx-txt": {
@@ -7053,6 +7526,16 @@
             "withheld": {
               "receiver_lag": 4
             }
+          }
+        },
+        "smoother": {
+          "own_pad": 0,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_barometer": 4
           }
         }
       },
@@ -7162,6 +7645,17 @@
               "unstated_sensor": 11
             }
           }
+        },
+        "smoother": {
+          "own_pad": 7,
+          "assumed_pad": 2,
+          "own_pad_past_bound": 1,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_barometer": 18,
+            "no_liftoff": 4
+          }
         }
       },
       "teensy-named-txt": {
@@ -7210,6 +7704,14 @@
             "given": 1,
             "withheld": {}
           }
+        },
+        "smoother": {
+          "own_pad": 1,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {}
         }
       },
       "teensy-tabs-txt": {
@@ -7274,6 +7776,16 @@
               "short_pad": 1,
               "transonic": 2
             }
+          }
+        },
+        "smoother": {
+          "own_pad": 6,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 2,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_liftoff": 1
           }
         }
       },
@@ -7366,6 +7878,17 @@
               "transonic": 2,
               "unstated_sensor": 5
             }
+          }
+        },
+        "smoother": {
+          "own_pad": 4,
+          "assumed_pad": 0,
+          "own_pad_past_bound": 0,
+          "assumed_pad_past_bound": 0,
+          "accelerometer_set_aside": 0,
+          "withheld": {
+            "no_barometer": 16,
+            "no_liftoff": 1
           }
         }
       }

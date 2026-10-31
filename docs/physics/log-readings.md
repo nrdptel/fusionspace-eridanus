@@ -700,15 +700,18 @@ air, which a real log can't rule out.
 
 A bound is the size every error stayed within on the tuning set. A 90% interval is narrower: it
 says where the truth usually lies, over the days and loggers the synthetic flights draw. Twelve
-readings state one in the library. `hpr analyze --json` and Python's `readings()` carry each as
-`low` and `high`, under its reading's key: `liftoff.interval_s`, `apogee.height_interval_m`,
+readings state one. `hpr analyze` prints each after its bound, rounded outward, such as a 90% interval of 369.8 to 410.2 m
+(1,213 to 1,346 ft), and a floor's lower end as "95% lower end". `hpr analyze --json` and Python's
+`readings()` carry each as `low` and `high`, under its reading's key: `liftoff.interval_s`, `apogee.height_interval_m`,
 `apogee.time_interval_s`, `max_speed.interval_m_s`, `landing.interval_s`,
 `flight_time.interval_s`, `landing.mean_descent_rate_interval_m_s`,
 `max_acceleration.interval_m_s2`, `burnout.interval_s`, `drogue_descent.interval_m_s`,
 `main_descent.interval_m_s` and `main_descent.opening.interval_s`. A floor has no interval: a
 clipped top acceleration states `lower_end_m_s2` and a burnout floor `lower_end_s`, as
-[A floor's lower end](#a-floors-lower-end) sets out. `hpr analyze`'s text shows only the bounds;
-it takes them up in the [next increment][adr-308].
+[A floor's lower end](#a-floors-lower-end) sets out.
+
+An interval need not hold its reading. Liftoff is read late, so its interval lies before the reading:
+the worked example's liftoff reads 0.80 s, with an interval of 0.41 to 0.64 s.
 
 Each interval comes from the reading's own bound. The synthetic flights' calibration set is 2,000
 flights on a seed no other set shares ([the sets](synthetic-flights.md#the-sets)). Each of its
@@ -1322,7 +1325,7 @@ truth beside the logs, that doesn't say how each rocket came down.
   ([#781](https://github.com/nrdptel/fusionspace-eridanus/issues/781)).
 - **Intervals.** A bound is a worst case held on the tuning set, not a 90% interval with a tested
   chance of holding the truth. Twelve readings state one too, a floor a lower end in its place
-  ([The 90% intervals](#the-90-intervals)); `hpr analyze`'s text states neither yet.
+  ([The 90% intervals](#the-90-intervals)).
 - **A GNSS track.** A log whose only height is a GNSS receiver's gives no reading. The
   receiver's lag and overshoot aren't modeled, so no bound can be stated for it.
 - **Disturbed tops, both ways.** Some bumps come less than about a second after apogee, before the

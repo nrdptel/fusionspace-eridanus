@@ -67,7 +67,7 @@ on its default motor, an AeroTech H170M:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/guides/level-1.ork`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr sim validation/fixtures/ork/guides/level-1.ork
 Level 1 guide rocket (level-1.ork)
 configuration 1 of 2: [H170M-10]
@@ -141,7 +141,7 @@ configuration flies an I175WS:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/guides/level-1.ork --config 2`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr sim validation/fixtures/ork/guides/level-1.ork --config 2
 Level 1 guide rocket (level-1.ork)
 configuration 2 of 2: [I175WS-9]

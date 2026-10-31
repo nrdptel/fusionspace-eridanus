@@ -44,7 +44,7 @@ it flies with no network:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/guides/level-1.ork`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr sim validation/fixtures/ork/guides/level-1.ork
 Level 1 guide rocket (level-1.ork)
 configuration 1 of 2: [H170M-10]
@@ -133,7 +133,7 @@ a rocket climbs higher from a high one. This flies the second configuration from
 
 <!-- cli: example `hpr sim validation/fixtures/ork/guides/level-1.ork --config 2 --elevation 1400 --rail-length 2.4 --inclination 85 --heading 270 --wind 4 --wind-from 270`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr sim validation/fixtures/ork/guides/level-1.ork --config 2 --elevation 1400 --rail-length 2.4 --inclination 85 --heading 270 --wind 4 --wind-from 270
 Level 1 guide rocket (level-1.ork)
 configuration 2 of 2: [I175WS-9]
@@ -196,7 +196,7 @@ invented motor, which no catalog holds:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/guides/no-curve.ork --offline`, exits 1; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr sim validation/fixtures/ork/guides/no-curve.ork --offline
 error: configuration [Z9-INVENTED] can't be flown as the file has it. No thrust curve for Z9-INVENTED: no embedded curve, and no motor of that manufacturer and designation in the bundled catalog. Invented Z9-INVENTED is not in HPR Sim's cache of ThrustCurve.org, and the run is offline
 help: with a network connection, `hpr motors fetch --manufacturer Invented Z9-INVENTED` fetches it into the cache

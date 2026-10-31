@@ -1205,18 +1205,7 @@ fn heights(log: &FlightLog) -> Readings {
             .collect();
         median(&mut before).unwrap_or(start)
     };
-    // A mapped table's primary track is a height above the pad only by the mapping's word
-    // (#646), and a channel above the ground only by its column's; a reader's own altitude is by
-    // its format's.
-    let mapped = matches!(
-        log.format,
-        LogFormat::GenericTable | LogFormat::BinaryRecords | LogFormat::ConsoleCapture
-    );
-    let by_word = match track.source {
-        Source::Barometer => mapped,
-        Source::AltitudeChannel => track.zeroed,
-        Source::Pressure | Source::Gnss | Source::Accelerometer => false,
-    };
+    let by_word = zero_by_word(log, &track);
     if by_word && measured_pad.abs() > PAD_ZERO_M {
         let detail = format!(
             "the log starts {measured_pad:.2} m from the logger's zero. That is more than the \
@@ -1523,6 +1512,21 @@ fn local_interval(time: &[f64], index: usize) -> f64 {
         _ => 0.0,
     };
     gap(index.wrapping_sub(1), index).max(gap(index, index + 1))
+}
+
+/// Whether the track's zero is the pad's only by a word: a mapped table's primary track is a height
+/// above the pad only by the mapping's word (#646), and a channel above the ground only by its
+/// column's; a reader's own altitude is by its format's.
+pub(crate) fn zero_by_word(log: &FlightLog, track: &Track) -> bool {
+    let mapped = matches!(
+        log.format,
+        LogFormat::GenericTable | LogFormat::BinaryRecords | LogFormat::ConsoleCapture
+    );
+    match track.source {
+        Source::Barometer => mapped,
+        Source::AltitudeChannel => track.zeroed,
+        Source::Pressure | Source::Gnss | Source::Accelerometer => false,
+    }
 }
 
 /// The track the readings take, the first the log holds: the logger's own altitude, a pressure,

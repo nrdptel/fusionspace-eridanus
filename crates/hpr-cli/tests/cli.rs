@@ -4346,20 +4346,31 @@ fn analyze_reads_a_log_with_no_design_file_present() {
         "the logger states: apogee 390.4 m (1281 ft)",
         "readings from the logger's barometric altitude, sampled every 0.050 s in steps of \
          0.305 m, after a 0.30 s running median",
-        "liftoff           0.80 s, within 0.81 s",
-        "apogee            390.1 m (1280 ft) above the pad, within 31.9 m (105 ft); at 10.28 s, \
-         within 0.88 s, 9.47 s after liftoff",
+        "liftoff           0.80 s, within 0.81 s, 90% interval 0.41 to 0.64 s",
+        "apogee            390.1 m (1280 ft) above the pad, within 31.9 m (105 ft), 90% interval \
+         369.8 to 410.2 m (1213 to 1346 ft); at 10.28 s, within 0.88 s, 90% interval 10.07 to \
+         10.57 s, 9.47 s after liftoff",
         "set aside by the median",
-        "top speed         78.3 m/s (257 ft/s), within 20.6 m/s (68 ft/s), at 2.20 s",
+        "top speed         78.3 m/s (257 ft/s), within 20.6 m/s (68 ft/s), 90% interval 72.8 to \
+         82.8 m/s (239 to 272 ft/s), at 2.20 s",
         "top acceleration  withheld: the log has no accelerometer",
-        "flight time       45.00 s, within 2.91 s",
-        "drogue descent    21.7 m/s (71 ft/s), within 2.2 m/s (8 ft/s), from apogee at 10.28 s to \
-         the main's opening at 21.40 s",
-        "main descent      6.0 m/s (20 ft/s), within 0.8 m/s (3 ft/s), from the main's opening at \
-         21.40 s, within 1.06 s, to landing at 45.80 s",
+        "flight time       45.00 s, within 2.91 s, 90% interval 45.38 to 46.11 s",
+        "landing           45.80 s, within 2.11 s, 90% interval 45.47 to 46.50 s; 35.52 s from \
+         apogee, at 10.9 m/s (36 ft/s) on average, within 2.1 m/s (7 ft/s), 90% interval 9.8 to \
+         12.0 m/s (32 to 40 ft/s)",
+        "drogue descent    21.7 m/s (71 ft/s), within 2.2 m/s (8 ft/s), 90% interval 20.3 to \
+         23.1 m/s (66 to 76 ft/s), from apogee at 10.28 s to the main's opening at 21.40 s",
+        "main descent      6.0 m/s (20 ft/s), within 0.8 m/s (3 ft/s), 90% interval 5.5 to \
+         6.5 m/s (18 to 22 ft/s), from the main's opening at 21.40 s, within 1.06 s, 90% interval \
+         20.80 to 21.26 s, to landing at 45.80 s",
         "burnout           no sooner than 0.88 s: the top speed's time, 2.20 s (1.40 s after \
          liftoff), less its bound, 1.32 s. Derived from the heights, burnout may have come \
-         later by any amount",
+         later by any amount; 95% lower end 2.24 s",
+        "smoothed apogee   390.3 m (1280 ft), 90% interval 369.9 to 410.7 m (1213 to 1348 ft), at \
+         10.25 s",
+        "health card       pad assumed: too little of it in the log",
+        "barometer: 984 samples, 981 fused, 1 rejected, 2 not weighed",
+        "pass back: every step smoothed",
     ] {
         assert!(printed.contains(expected), "{expected:?} in\n{printed}");
     }
@@ -4417,8 +4428,10 @@ fn analyze_reads_an_axial_accelerometer() {
     // 6.7 g, gravity in (`make.py` beside the log).
     let printed = run(false);
     for expected in [
-        "top acceleration  65.4 m/s² (6.7 g), within 7.1 m/s², at 2.59 s",
-        "burnout           3.45 s, within 0.07 s, 1.15 s after liftoff: from the accelerometer",
+        "top acceleration  65.4 m/s² (6.7 g), within 7.1 m/s², 90% interval 61.3 to 68.9 m/s², at \
+         2.59 s",
+        "burnout           3.45 s, within 0.07 s, 90% interval 3.44 to 3.46 s, 1.15 s after \
+         liftoff: from the accelerometer",
     ] {
         assert!(printed.contains(expected), "{expected:?} in\n{printed}");
     }
@@ -4524,9 +4537,12 @@ fn analyze_says_why_a_top_acceleration_is_a_floor() {
             .lines()
             .find(|line| line.starts_with("top acceleration"))
             .unwrap_or_default();
-        assert!(
-            line.ends_with(said),
-            "{path}: {said:?} at the end of\n{printed}"
+        // A clipped top goes on to state its lower end; one that isn't clipped states none.
+        assert!(line.contains(said), "{path}: {said:?} in\n{printed}");
+        assert_eq!(
+            line.contains("; 95% lower end "),
+            !clip.is_empty(),
+            "{path}: {line}"
         );
         let document = json(&["analyze", path], 0, "analyze.schema.json");
         let top = &document["max_acceleration"];
@@ -4540,6 +4556,125 @@ fn analyze_says_why_a_top_acceleration_is_a_floor() {
             assert_eq!(top["provenance"], "clipped", "{path}: {top}");
         }
     }
+}
+
+/// Every 90% interval and lower end the JSON states, walking the document; the smoother's own
+/// apogee is counted apart.
+fn stated_intervals(value: &Value, intervals: &mut usize, lower_ends: &mut usize) {
+    match value {
+        Value::Object(map) => {
+            for (key, inner) in map {
+                if key == "smoother" {
+                    continue;
+                }
+                if key.contains("interval") && inner.get("low").is_some() {
+                    *intervals += 1;
+                } else if key.starts_with("lower_end") && inner.is_number() {
+                    *lower_ends += 1;
+                } else {
+                    stated_intervals(inner, intervals, lower_ends);
+                }
+            }
+        }
+        Value::Array(items) => items
+            .iter()
+            .for_each(|item| stated_intervals(item, intervals, lower_ends)),
+        _ => {}
+    }
+}
+
+/// M7.2e4: each log's text states every interval and lower end its JSON does, and the smoother's
+/// health card beside them; a log written from launch is smoothed on an assumed pad, and its card
+/// says so, where one that holds its pad says nothing of the kind.
+#[test]
+fn analyze_states_every_interval_and_the_health_card() {
+    fn logs(folder: &Path, found: &mut Vec<PathBuf>) {
+        for entry in std::fs::read_dir(folder).unwrap().flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                logs(&path, found);
+            } else {
+                found.push(path);
+            }
+        }
+    }
+    let fixtures = root().join("validation/fixtures/logs");
+    let mut files = Vec::new();
+    logs(&fixtures, &mut files);
+    files.sort();
+    let (mut read, mut with_interval, mut assumed, mut held_pad) = (0, 0, 0, 0);
+    for file in &files {
+        let path = file.to_str().unwrap();
+        let output = hpr(&["analyze", path, "--json"]);
+        if !output.status.success() {
+            continue;
+        }
+        let document: Value = serde_json::from_slice(&output.stdout).unwrap();
+        validate("analyze.schema.json", &document);
+        read += 1;
+        let printed = text(&hpr(&["analyze", path]).stdout);
+        let (mut intervals, mut lower_ends) = (0, 0);
+        stated_intervals(&document, &mut intervals, &mut lower_ends);
+        with_interval += intervals;
+        let smoothed = document["smoother"]["status"] == "read";
+        assert_eq!(
+            printed.matches("90% interval").count(),
+            intervals + usize::from(smoothed),
+            "{path}\n{printed}"
+        );
+        assert_eq!(
+            printed.matches("95% lower end").count(),
+            lower_ends,
+            "{path}\n{printed}"
+        );
+        if smoothed {
+            let card = document["smoother"]["card"].as_array().unwrap();
+            assert!(!card.is_empty(), "{path}");
+            for line in card {
+                assert!(printed.contains(line.as_str().unwrap()), "{path}: {line}");
+            }
+            let pad = document["smoother"]["health"]["assumed_pad"]
+                .as_bool()
+                .unwrap();
+            assert_eq!(printed.contains("pad assumed: "), pad, "{path}");
+            if pad {
+                assumed += 1;
+            } else {
+                held_pad += 1;
+            }
+        }
+    }
+    assert!(
+        read >= 3 && with_interval > 12,
+        "{read} logs, {with_interval} intervals"
+    );
+    assert!(
+        assumed >= 1 && held_pad >= 1,
+        "{assumed} assumed, {held_pad} held"
+    );
+
+    // The invented Pnut log starts at launch: smoothed, not withheld, its heights near the reading.
+    let pnut = root().join(SYNTHETIC_LOG);
+    let document = json(
+        &["analyze", pnut.to_str().unwrap()],
+        0,
+        "analyze.schema.json",
+    );
+    let smoother = &document["smoother"];
+    assert_eq!(smoother["status"], "read");
+    assert_eq!(smoother["health"]["assumed_pad"], true);
+    let gap = smoother["apogee_height_m"].as_f64().unwrap()
+        - document["apogee"]["height_m"].as_f64().unwrap();
+    assert!(
+        gap.abs() < document["apogee"]["bound_m"].as_f64().unwrap(),
+        "{gap}"
+    );
+    let interval = &smoother["apogee_height_interval_m"];
+    let half = 1.645 * smoother["apogee_height_sd_m"].as_f64().unwrap();
+    assert!(
+        (interval["high"].as_f64().unwrap() - interval["low"].as_f64().unwrap() - 2.0 * half).abs()
+            < 0.1
+    );
 }
 
 /// What `hpr analyze` can't read is an input error that says why: a missing file, a file in no

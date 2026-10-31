@@ -457,12 +457,6 @@ are in `hpr-forensics`. Formats, methods and the log corpus came from Debrief.
     withheld reading.
   - A flight is read end to end with no design file present, from the library and from
     `hpr analyze` (M4.2's command).
-  - [ ] **M7.2e The 90% intervals** (ADR-308: in four, below; met when they are). *Done when:*
-    ADR-257 §1–2's test passes, probes failing, on both test sets for every reading given;
-    intervals in the library, `hpr analyze` and Python, with the smoother's health card (ADR-300).
-    - [ ] **M7.2e4 The intervals in `hpr analyze` and Python.** *Done when:* every interval in
-      `hpr analyze`'s text and JSON and in Python, with the smoother's health card (ADR-300); a
-      log that starts at launch smoothed on an assumed pad, its card saying so (#982).
   - [ ] **M7.2f Two recordings, stages.** *Done when:* two logs side by side on one timeline, the
     offset recovered on synthetic pairs; stages on one; RocketPy's pair read.
   - [ ] **M7.2g Ghost files.** *Done when:* JSON (schema), CZML, glTF, read back by outside readers,

@@ -110,6 +110,7 @@ fn escaped(text: &str) -> String {
 pub(super) fn draw(block: &str, callouts: &[(char, &str)]) -> Result<String, String> {
     let lines: Vec<&str> = block
         .strip_prefix("```text\n")
+        .or_else(|| block.strip_prefix("```text,wrap\n"))
         .and_then(|body| body.strip_suffix("```\n"))
         .ok_or("the example is not a fenced text block")?
         .lines()

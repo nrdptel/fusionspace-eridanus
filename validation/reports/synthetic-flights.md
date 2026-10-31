@@ -746,6 +746,24 @@ The same flights, each log with a GNSS track smoothed again with its receiver tr
 | a drawn moment | height | 88.9% (15 / 4) | 84.1% (112 / 18) **fails** | 85.1% (112 / 14) **fails** |
 | a drawn moment | speed | 96.5% (4 / 2) | 95.2% (20 / 19) | 95.3% (21 / 19) |
 
+### Logs written from launch
+
+The same flights, each log cut at the truth's liftoff, every sensor, as a logger that writes only from launch would have written it on the same zero. Each is smoothed on an assumed pad, and held as the check above is: it fails on a cell that fails, overall or for a logger, or a log withheld with a barometer.
+
+| Moment | State | Tuning | A | B |
+|---|---|---:|---:|---:|
+| Flights smoothed | | 171 | 820 | 845 |
+| Accelerometers set aside | | 71 | 356 | 368 |
+| Apogees past the reading's bound | | 0 | 1 | 2 |
+| burnout | height | 92.4% (13 / 0) | 96.7% (27 / 0) | 95.6% (37 / 0) |
+| burnout | speed | 95.9% (0 / 7) | 98.2% (1 / 14) | 98.2% (2 / 13) |
+| top speed | height | 93% (12 / 0) | 96.7% (27 / 0) | 95.9% (35 / 0) |
+| top speed | speed | 97.7% (4 / 0) | 98.3% (12 / 2) | 96.7% (27 / 1) |
+| apogee | height | 99.4% (1 / 0) | 98.7% (10 / 1) | 98% (12 / 5) |
+| apogee | speed | 95.9% (0 / 7) | 96.2% (5 / 26) | 94.9% (8 / 35) |
+| a drawn moment | height | 99.4% (1 / 0) | 98.3% (13 / 1) | 98.2% (14 / 1) |
+| a drawn moment | speed | 98.8% (2 / 0) | 97% (12 / 13) | 96.9% (13 / 13) |
+
 ### Health
 
 The smoothed flights' health cards, summed.

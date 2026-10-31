@@ -154,6 +154,52 @@ pub(crate) fn meters_bound(value: f64) -> String {
     )
 }
 
+/// `value` rounded down to `decimals` places, for an interval's lower end: with [`rounded_up`] on
+/// its upper end, a printed interval never claims less than it holds.
+pub(crate) fn rounded_down(value: f64, decimals: i32) -> f64 {
+    -rounded_up(-value, decimals)
+}
+
+/// A 90% interval on a height, rounded outward: `1180.2 to 1301.0 m (3872 to 4269 ft)`.
+pub(crate) fn meters_interval(low: f64, high: f64) -> String {
+    format!(
+        "{} to {} m ({} to {} ft)",
+        fixed(rounded_down(low, 1), 1),
+        fixed(rounded_up(high, 1), 1),
+        fixed(rounded_down(low / FOOT_M, 0), 0),
+        fixed(rounded_up(high / FOOT_M, 0), 0)
+    )
+}
+
+/// A 90% interval on a speed, rounded outward: `26.0 to 26.9 m/s (85 to 89 ft/s)`.
+pub(crate) fn speed_interval(low: f64, high: f64) -> String {
+    format!(
+        "{} to {} m/s ({} to {} ft/s)",
+        fixed(rounded_down(low, 1), 1),
+        fixed(rounded_up(high, 1), 1),
+        fixed(rounded_down(low / FOOT_M, 0), 0),
+        fixed(rounded_up(high / FOOT_M, 0), 0)
+    )
+}
+
+/// A 90% interval on an acceleration, rounded outward, to a tenth: `101.1 to 107.3 m/s²`.
+pub(crate) fn acceleration_interval(low: f64, high: f64) -> String {
+    format!(
+        "{} to {} m/s²",
+        fixed(rounded_down(low, 1), 1),
+        fixed(rounded_up(high, 1), 1)
+    )
+}
+
+/// A 90% interval on a time, rounded outward, to a hundredth: `0.25 to 0.33 s`.
+pub(crate) fn seconds_interval(low: f64, high: f64) -> String {
+    format!(
+        "{} to {} s",
+        fixed(rounded_down(low, 2), 2),
+        fixed(rounded_up(high, 2), 2)
+    )
+}
+
 /// A bound on a speed in meters per second, rounded up to a tenth, with whole feet per second
 /// rounded up: `29.7 m/s (98 ft/s)`.
 pub(crate) fn speed_bound(value: f64) -> String {

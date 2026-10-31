@@ -309,6 +309,21 @@ acceleration and burnout came from, or ``None``.
 
 The logger's serial number, as the file states it, or ``None``.
 
+### `FlightLog.smoothed`
+
+The flight smoothed over every sensor, as ``hpr analyze`` smooths it, as a dict. Its
+``status`` is ``"read"`` or ``"withheld"``; a log not smoothed holds a ``reason`` and its
+``detail``.
+
+A log smoothed holds a track, one entry for every sample of every sensor: ``time_s`` on the
+log's clock, ``height_m``, ``height_sd_m``, ``speed_m_s`` and ``speed_sd_m_s``, a value and
+its standard error, its 90% interval ± 1.645 of them. It holds ``liftoff`` and
+``apogee_time_s``. ``health`` is the health card's figures and ``card`` the same as text.
+``health["assumed_pad"]`` says the log held too little of the pad, as one written from
+launch does, and the track then stands on the logger's zero.
+``health["apogee_past_reading_bound"]`` says the smoothed apogee passes the reading's bound:
+go by the reading.
+
 ### `FlightLog.stated`
 
 What the file states about the flight, such as the logger's own apogee, as a dict.

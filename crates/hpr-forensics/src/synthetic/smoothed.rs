@@ -20,7 +20,7 @@
 use std::collections::BTreeMap;
 
 use hpr_core::random::SeededRng;
-use hpr_flightdata::log::Quantity;
+use hpr_flightdata::log::{FlightLog, Quantity};
 use hpr_flightdata::smoother::{self, Deweighted, Health, INTERVAL_Z, Options, Reason, Sensor};
 use serde::{Deserialize, Serialize};
 
@@ -129,19 +129,40 @@ pub fn moment_drawn(set: Set, index: u64, liftoff_s: f64, landing_s: f64) -> f64
     liftoff_s + rng.uniform() * (landing_s - liftoff_s)
 }
 
+/// The flight's own log as a logger that writes only from launch would have written it ([#982]):
+/// every sample of every sensor before the truth's liftoff is gone, the clock and the logger's zero
+/// as they were. A track of pressures has no zero without its pad and is withheld, as a real one is.
+///
+/// [#982]: https://github.com/nrdptel/fusionspace-eridanus/issues/982
+pub fn launch_started(flight: &Flight) -> FlightLog {
+    let from_s = flight.draw.logger.pad_s + flight.truth.events.liftoff_s;
+    let mut log = flight.log.clone();
+    let first = log.time_s.partition_point(|t| *t < from_s);
+    log.time_s.drain(..first);
+    if !log.altitude_m.is_empty() {
+        log.altitude_m.drain(..first);
+    }
+    for channel in &mut log.channels {
+        let first = channel.time_s.partition_point(|t| *t < from_s);
+        channel.time_s.drain(..first);
+        channel.values.drain(..first);
+    }
+    log
+}
+
 /// Checks one flight's smoothed log against its truth.
 pub fn check(flight: &Flight, options: Options) -> Checked {
+    check_log(flight, &flight.log, options)
+}
+
+/// Checks a log of `flight`, its own or one written from it, against the flight's truth.
+pub fn check_log(flight: &Flight, log: &FlightLog, options: Options) -> Checked {
     let profile = flight.draw.logger.profile;
-    let has_gnss = flight
-        .log
+    let has_gnss = log
         .channels
         .iter()
         .any(|c| c.quantity == Quantity::GnssAltitude);
-    let smoothed = match smoother::smooth_with(
-        &flight.log,
-        &hpr_flightdata::readings::read(&flight.log),
-        options,
-    ) {
+    let smoothed = match smoother::smooth_with(log, &hpr_flightdata::readings::read(log), options) {
         Ok(smoothed) => smoothed,
         Err(withheld) => {
             return Checked {
@@ -285,6 +306,14 @@ pub struct HealthTally {
     pub gnss_trusted: u64,
     /// The steps the pass back couldn't solve, over every log.
     pub unsmoothed_steps: u64,
+    /// The logs smoothed.
+    pub logs: u64,
+    /// Those on an assumed pad.
+    pub assumed_pad: u64,
+    /// Those whose accelerometer was set aside.
+    pub accelerometer_set_aside: u64,
+    /// Those whose smoothed apogee passes the reading's bound.
+    pub apogee_past_reading_bound: u64,
 }
 
 impl HealthTally {
@@ -307,6 +336,10 @@ impl HealthTally {
         let has_gnss = health.sensors.iter().any(|s| s.sensor == Sensor::Gnss);
         self.gnss_trusted += u64::from(has_gnss && health.gnss_trusted_s.is_some());
         self.unsmoothed_steps += health.unsmoothed_steps as u64;
+        self.logs += 1;
+        self.assumed_pad += u64::from(health.assumed_pad);
+        self.accelerometer_set_aside += u64::from(health.accelerometer_set_aside);
+        self.apogee_past_reading_bound += u64::from(health.apogee_past_reading_bound);
     }
 }
 
@@ -567,7 +600,7 @@ mod tests {
         let set = tally(&checks);
         assert_eq!(set.lost(), 0);
         assert!(set.holds());
-        for reason in [Reason::Diverged, Reason::NoLiftoff, Reason::ShortPad] {
+        for reason in [Reason::Diverged, Reason::NoLiftoff, Reason::TooLong] {
             let mut lost = checks.clone();
             lost.push(withheld(profile, reason));
             let set = tally(&lost);

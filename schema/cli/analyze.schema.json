@@ -52,6 +52,10 @@
       "description": "How the readings were taken.",
       "$ref": "#/$defs/AnalyzeMethod"
     },
+    "smoother": {
+      "description": "The smoother's run over every sensor, with its health card (decision record ADR-300).",
+      "$ref": "#/$defs/SmootherOutcome"
+    },
     "stated": {
       "description": "What the file states about the flight: the logger's own figures, printed beside HPR Sim's\nreadings and never in place of them.",
       "$ref": "#/$defs/LoggerStated"
@@ -100,7 +104,8 @@
     "landing",
     "flight_time",
     "drogue_descent",
-    "main_descent"
+    "main_descent",
+    "smoother"
   ],
   "$defs": {
     "AccelerometerGravity": {
@@ -625,6 +630,21 @@
         "method"
       ]
     },
+    "Deweighted": {
+      "description": "Why the barometer was de-weighted.",
+      "oneOf": [
+        {
+          "description": "At or above [`TRANSONIC_FROM_MACH`].",
+          "type": "string",
+          "const": "transonic"
+        },
+        {
+          "description": "Within [`CHARGE_WINDOW_S`] after a charge.",
+          "type": "string",
+          "const": "charge"
+        }
+      ]
+    },
     "FlightTimeReading": {
       "description": "The flight time, liftoff to landing.",
       "type": "object",
@@ -694,6 +714,84 @@
           "type": "string",
           "const": "other"
         }
+      ]
+    },
+    "Health": {
+      "description": "A log's health card: how each sensor fared against the others (the smoothing note §7, after\nPX4's and ArduPilot's estimator status).",
+      "type": "object",
+      "properties": {
+        "accelerometer_set_aside": {
+          "description": "Whether the log's accelerometer had too little of the pad to take its level from, and was\nset aside: it isn't in [`Health::sensors`].",
+          "type": "boolean"
+        },
+        "apogee_less_reading_m": {
+          "description": "The smoothed apogee's height less the reading's, m; `None` where the apogee isn't read.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "apogee_past_reading_bound": {
+          "description": "Whether that gap passes the reading's bound: the reading's error stays within its bound, so\nthe track has gone wrong around its top, as it can where a long transonic span leaves it to\nthe motion model. The bound holds a floor's truth only from below, and a smoothed apogee\nabove a floor doesn't count.",
+          "type": "boolean"
+        },
+        "assumed_pad": {
+          "description": "Whether the log holds fewer than [`PAD_MIN_SAMPLES`] barometer samples on the pad, as one\nwritten from launch detection does. The pad is then assumed: the height stands on the\nreadings' zero (`Readings::pad_altitude_m`), the barometer's noise comes from the flight's\nown scatter, and no sample is held still.",
+          "type": "boolean"
+        },
+        "baro_minus_inertial_at_apogee_m": {
+          "description": "The barometer's height less the accelerometer's alone, integrated from liftoff with its\npad's reading taken out, at the smoothed apogee, m; `None` with no accelerometer.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "deweighted": {
+          "description": "The spans the barometer was de-weighted over.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Span"
+          }
+        },
+        "gnss_trusted_s": {
+          "description": "When the GNSS receiver was first trusted, s on the log's clock; `None` if never, or if the\nlog has none.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "rejected": {
+          "description": "Every sample rejected, in time order.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Rejected"
+          }
+        },
+        "sensors": {
+          "description": "Each sensor the log holds.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SensorHealth"
+          }
+        },
+        "unsmoothed_steps": {
+          "description": "Steps where the pass back couldn't solve and kept the forward filter's estimate.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "sensors",
+        "deweighted",
+        "rejected",
+        "unsmoothed_steps",
+        "assumed_pad",
+        "accelerometer_set_aside",
+        "apogee_past_reading_bound"
       ]
     },
     "HighestSample": {
@@ -819,6 +917,72 @@
         "source",
         "provenance",
         "method"
+      ]
+    },
+    "Largest": {
+      "description": "A sensor's largest test ratio.",
+      "type": "object",
+      "properties": {
+        "mach": {
+          "description": "The Mach number then, from the filter's vertical speed and the standard atmosphere's\nsound at its height.",
+          "type": "number",
+          "format": "double"
+        },
+        "ratio": {
+          "description": "The ratio.",
+          "type": "number",
+          "format": "double"
+        },
+        "time_s": {
+          "description": "When, s on the log's clock.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "ratio",
+        "time_s",
+        "mach"
+      ]
+    },
+    "Liftoff": {
+      "description": "Liftoff, as the smoother holds it.",
+      "type": "object",
+      "properties": {
+        "bound_s": {
+          "description": "The bound on its error, s: from the accelerometer, two of its intervals; from the\nbarometer, the reading's.",
+          "type": "number",
+          "format": "double"
+        },
+        "from": {
+          "description": "How it was found.",
+          "$ref": "#/$defs/LiftoffFrom"
+        },
+        "time_s": {
+          "description": "The last moment on the pad, s on the log's clock.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "time_s",
+        "bound_s",
+        "from"
+      ]
+    },
+    "LiftoffFrom": {
+      "description": "How liftoff was found.",
+      "oneOf": [
+        {
+          "description": "The accelerometer's first rise off its pad.",
+          "type": "string",
+          "const": "accelerometer"
+        },
+        {
+          "description": "The barometer's track, as the readings find it.",
+          "type": "string",
+          "const": "barometer"
+        }
       ]
     },
     "LiftoffReading": {
@@ -1835,6 +1999,276 @@
           "type": "string",
           "const": "other"
         }
+      ]
+    },
+    "Reason": {
+      "description": "Why a log isn't smoothed.",
+      "oneOf": [
+        {
+          "description": "The log has no barometer: no height track, or a GNSS receiver's alone.",
+          "type": "string",
+          "const": "no_barometer"
+        },
+        {
+          "description": "The readings found no liftoff.",
+          "type": "string",
+          "const": "no_liftoff"
+        },
+        {
+          "description": "More than [`MAX_STEPS`] samples.",
+          "type": "string",
+          "const": "too_long"
+        },
+        {
+          "description": "The estimate left the finite numbers somewhere in the log: it is withheld whole rather\nthan given with a hole.",
+          "type": "string",
+          "const": "diverged"
+        }
+      ]
+    },
+    "Rejected": {
+      "description": "A rejected sample.",
+      "type": "object",
+      "properties": {
+        "ratio": {
+          "description": "Its test ratio: the squared innovation over its variance, over [`GATE_SIGMAS`]²; above 1\nis rejected.",
+          "type": "number",
+          "format": "double"
+        },
+        "sensor": {
+          "description": "The sensor.",
+          "$ref": "#/$defs/Sensor"
+        },
+        "time_s": {
+          "description": "When, s on the log's clock.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "sensor",
+        "time_s",
+        "ratio"
+      ]
+    },
+    "Sensor": {
+      "description": "The sensors.",
+      "oneOf": [
+        {
+          "description": "The barometer's height track.",
+          "type": "string",
+          "const": "barometer"
+        },
+        {
+          "description": "The axial accelerometer.",
+          "type": "string",
+          "const": "accelerometer"
+        },
+        {
+          "description": "The GNSS receiver's altitude.",
+          "type": "string",
+          "const": "gnss"
+        }
+      ]
+    },
+    "SensorHealth": {
+      "description": "How one sensor fared.",
+      "type": "object",
+      "properties": {
+        "inside_gate_share": {
+          "description": "The share of the samples tested that the gate passed; `None` if none was tested.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "largest": {
+          "description": "The largest test ratio, where it was.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Largest"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mean_nis": {
+          "description": "The mean normalized innovation squared over the samples fused, `ν²/S`, `S` with one\nsample's own variance as the gate weighs it: about 1 when the sensor's noise is what the\nsmoother takes it to be, below 1 when it takes it as noisier.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "rejected": {
+          "description": "Those rejected by the gate.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "resets": {
+          "description": "How many times the sensor was taken back after [`GATE_RESET_S`] of rejections.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "samples": {
+          "description": "Its samples.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "sensor": {
+          "description": "The sensor.",
+          "$ref": "#/$defs/Sensor"
+        },
+        "unweighed": {
+          "description": "Those not weighed: a GNSS fix before the receiver is trusted, an accelerometer's clipped\nsample or one past apogee, a launch-started log's first two barometer samples.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "used": {
+          "description": "Those fused.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "sensor",
+        "samples",
+        "used",
+        "rejected",
+        "unweighed",
+        "resets"
+      ]
+    },
+    "SmootherOutcome": {
+      "description": "What the smoother made of the log.",
+      "oneOf": [
+        {
+          "description": "Smoothed.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "read"
+            }
+          },
+          "$ref": "#/$defs/SmootherReading",
+          "required": [
+            "status"
+          ]
+        },
+        {
+          "description": "Not smoothed.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "withheld"
+            }
+          },
+          "$ref": "#/$defs/Withheld",
+          "required": [
+            "status"
+          ]
+        }
+      ]
+    },
+    "SmootherReading": {
+      "description": "The smoothed flight at apogee and how each sensor fared. The whole track is in Python's\n`FlightLog.smoothed()`.",
+      "type": "object",
+      "properties": {
+        "apogee_height_interval_m": {
+          "description": "Its 90% interval, m: the height ± 1.645 standard errors. It tends wide on the synthetic\nflights, where 94% to 99% of truths lie inside; the reading's own interval is the calibrated\none.",
+          "$ref": "#/$defs/ReadingInterval"
+        },
+        "apogee_height_m": {
+          "description": "The smoothed height there, m above the pad, or on an assumed pad above the readings' zero.",
+          "type": "number",
+          "format": "double"
+        },
+        "apogee_height_sd_m": {
+          "description": "Its standard error, m.",
+          "type": "number",
+          "format": "double"
+        },
+        "apogee_time_s": {
+          "description": "The smoothed apogee: when the smoothed height after liftoff is highest, s on the log's\nclock.",
+          "type": "number",
+          "format": "double"
+        },
+        "card": {
+          "description": "The health card as text, one entry a line.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "health": {
+          "description": "The health card's figures.",
+          "$ref": "#/$defs/Health"
+        },
+        "liftoff": {
+          "description": "Liftoff, as the smoother holds it.",
+          "$ref": "#/$defs/Liftoff"
+        }
+      },
+      "required": [
+        "apogee_time_s",
+        "apogee_height_m",
+        "apogee_height_sd_m",
+        "apogee_height_interval_m",
+        "liftoff",
+        "health",
+        "card"
+      ]
+    },
+    "Span": {
+      "description": "A span over which the barometer was de-weighted.",
+      "type": "object",
+      "properties": {
+        "end_s": {
+          "description": "Its last sample, s.",
+          "type": "number",
+          "format": "double"
+        },
+        "start_s": {
+          "description": "Its first sample, s on the log's clock.",
+          "type": "number",
+          "format": "double"
+        },
+        "why": {
+          "description": "Why.",
+          "$ref": "#/$defs/Deweighted"
+        }
+      },
+      "required": [
+        "start_s",
+        "end_s",
+        "why"
+      ]
+    },
+    "Withheld": {
+      "description": "A log that isn't smoothed, and why.",
+      "type": "object",
+      "properties": {
+        "detail": {
+          "description": "The reason in words.",
+          "type": "string"
+        },
+        "reason": {
+          "description": "The reason, as a code.",
+          "$ref": "#/$defs/Reason"
+        }
+      },
+      "required": [
+        "reason",
+        "detail"
       ]
     },
     "WithheldReading": {

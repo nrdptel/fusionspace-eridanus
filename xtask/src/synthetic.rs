@@ -51,7 +51,8 @@ use serde::{Deserialize, Serialize};
 pub const USAGE: &str = "  synthetic [--check]
                            Fly the synthetic flights' three sets (ADR-280) and write their census
                            to validation/reports/synthetic-flights.{json,md}, with the tuning
-                           set's flight-log readings held to their bounds. --check writes
+                           set's flight-log readings held to their bounds, and each log smoothed
+                           whole and again written from launch. --check writes
                            nothing and fails unless the flights reproduce the committed census.
                            Either fails if a reading's error passes its bound, or if a reading's
                            90% interval fails ADR-257's test or a probe of it passes.
@@ -172,6 +173,9 @@ struct SmootherSet {
     gnss_rerun: u64,
     /// The cells with those flights trusted from liftoff, to three significant figures.
     gnss_from_liftoff: Vec<smoothed::Cell>,
+    /// The same flights, each log as a logger that writes only from launch would have written it,
+    /// so smoothed on an assumed pad (#982), to three significant figures.
+    launch_started: SetCheck,
 }
 
 impl SmootherSet {
@@ -264,6 +268,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let mut check = false;
     let mut only_intervals = false;
     let mut probe: Option<(Set, u64, Options)> = None;
+    let mut launch_started = false;
     let mut args = args.iter();
     while let Some(arg) = args.next() {
         match arg.as_str() {
@@ -292,6 +297,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
                     .2
                     .gnss_trust = GnssTrust::FromLiftoff;
             }
+            "--launch-started" => launch_started = true,
             other => return Err(format!("unknown argument `{other}`\n\n{USAGE}")),
         }
     }
@@ -318,7 +324,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     if let Some((set, count, options)) = probe {
         let checks: Vec<Checked> = smooth_set(set, count, &files, options, false)?
             .into_iter()
-            .map(|(_, check, _)| check)
+            .map(|(_, check, _, launch)| if launch_started { launch } else { check })
             .collect();
         print!("{}", smoother_table(set, &smoothed::tally(&checks)));
         return Ok(());
@@ -386,8 +392,10 @@ pub fn run(args: &[String]) -> Result<(), String> {
             // misses; the two evaluation sets of 1,000 must.
             let mutation = (s.set != Set::Tuning && s.mutation_holds())
                 .then(|| format!("{}: trusting GNSS from liftoff holds", s.set.name()));
+            let launch = launch_failures(s);
             fails
                 .into_iter()
+                .chain(launch)
                 .chain(lost)
                 .chain(unflown)
                 .chain(unsmoothed)
@@ -526,12 +534,13 @@ fn fly(set: Set, count: u64, files: &DesignFiles) -> SetCensus {
 
 /// One flight's index, its check, and with `mutate` and a GNSS track, its check with the
 /// receiver trusted from liftoff.
-type Smoothed = (u64, Checked, Option<Checked>);
+type Smoothed = (u64, Checked, Option<Checked>, Checked);
 
 /// Smooths the first `count` flights of `set` on every core and checks each against its truth,
 /// in the flights' order; a flight that doesn't fly is left out, as the census counts it. With
 /// `mutate`, each log with a GNSS track the smoother takes is smoothed again with the receiver
-/// trusted from liftoff. A flight whose smoothing panics is an error, not a flight left out: a
+/// trusted from liftoff. Each log is smoothed again as a logger that writes only from launch would
+/// have written it (`smoothed::launch_started`). A flight whose smoothing panics is an error, not a flight left out: a
 /// check over the rest would hold on fewer flights than it says.
 fn smooth_set(
     set: Set,
@@ -565,7 +574,9 @@ fn smooth_set(
                                     };
                                     smoothed::check(&flight, trusted)
                                 });
-                            (index, check, mutated)
+                            let written = smoothed::launch_started(&flight);
+                            let launch = smoothed::check_log(&flight, &written, Options::default());
+                            (index, check, mutated, launch)
                         }))
                         .map_err(|payload| {
                             format!(
@@ -605,13 +616,67 @@ fn smooth_set(
     }
 }
 
+/// What keeps a set's logs written from launch from holding: a cell, overall or for a logger, a log
+/// withheld with a barometer, or one smoothed on a pad it wasn't told to assume.
+fn launch_failures(s: &SmootherSet) -> Vec<String> {
+    let check = &s.launch_started;
+    let name = s.set.name();
+    let mut broken: Vec<String> = check
+        .cells
+        .iter()
+        .map(|c| ("every logger", c))
+        .chain(
+            check
+                .by_logger
+                .iter()
+                .flat_map(|(logger, cells)| cells.iter().map(move |c| (logger.as_str(), c))),
+        )
+        .filter(|(_, c)| !c.holds)
+        .map(|(logger, c)| {
+            format!(
+                "{name}, written from launch, {logger}: {} {} fails",
+                c.moment.name(),
+                c.state.name()
+            )
+        })
+        .collect();
+    if check.lost() > 0 {
+        broken.push(format!(
+            "{name}, written from launch: {} logs withheld with a barometer ({:?})",
+            check.lost(),
+            check.withheld
+        ));
+    }
+    if check.health.assumed_pad != check.health.logs {
+        broken.push(format!(
+            "{name}, written from launch: {} of {} smoothed logs on an assumed pad",
+            check.health.assumed_pad, check.health.logs
+        ));
+    }
+    if check.health.unsmoothed_steps > 0 {
+        broken.push(format!(
+            "{name}, written from launch: {} steps the pass back couldn't smooth",
+            check.health.unsmoothed_steps
+        ));
+    }
+    // Withheld for having no barometer goes uncounted by `lost`, so a cut that lost a logger's
+    // barometer would take its cells away: the whole logs' count is the most it may be.
+    if check.withheld != s.check.withheld || check.flights != s.check.flights {
+        broken.push(format!(
+            "{name}, written from launch: {} logs withheld {:?}, where {} whole logs were {:?}",
+            check.flights, check.withheld, s.check.flights, s.check.withheld
+        ));
+    }
+    broken
+}
+
 /// A set's smoother check and its trusted-from-liftoff mutation for the report, with a health
 /// card for each logger's first smoothed flight.
 fn smoother_set(set: Set, files: &DesignFiles) -> Result<(SmootherSet, Vec<Card>), String> {
     let all = smooth_set(set, set.count(), files, Options::default(), true)?;
     let mut cards = Vec::new();
     for profile in Profile::ALL {
-        if let Some((index, health)) = all.iter().find_map(|(index, check, _)| {
+        if let Some((index, health)) = all.iter().find_map(|(index, check, _, _)| {
             (check.profile == profile)
                 .then_some(check.health.as_ref())
                 .flatten()
@@ -624,11 +689,12 @@ fn smoother_set(set: Set, files: &DesignFiles) -> Result<(SmootherSet, Vec<Card>
             });
         }
     }
-    let gnss_rerun = all.iter().filter(|(_, _, m)| m.is_some()).count() as u64;
-    let checks: Vec<Checked> = all.iter().map(|(_, c, _)| c.clone()).collect();
+    let gnss_rerun = all.iter().filter(|(_, _, m, _)| m.is_some()).count() as u64;
+    let checks: Vec<Checked> = all.iter().map(|(_, c, _, _)| c.clone()).collect();
+    let launches: Vec<Checked> = all.iter().map(|(_, _, _, l)| l.clone()).collect();
     let mutated: Vec<Checked> = all
         .into_iter()
-        .map(|(_, check, mutated)| mutated.unwrap_or(check))
+        .map(|(_, check, mutated, _)| mutated.unwrap_or(check))
         .collect();
     let mut check = smoothed::tally(&checks);
     round_health(&mut check.health);
@@ -638,12 +704,19 @@ fn smoother_set(set: Set, files: &DesignFiles) -> Result<(SmootherSet, Vec<Card>
     }
     let mut gnss_from_liftoff = smoothed::tally(&mutated).cells;
     round_cells(&mut gnss_from_liftoff);
+    let mut launch_started = smoothed::tally(&launches);
+    round_launch_health(&mut launch_started.health);
+    round_launch_cells(&mut launch_started.cells);
+    for cells in launch_started.by_logger.values_mut() {
+        round_launch_cells(cells);
+    }
     Ok((
         SmootherSet {
             set,
             check,
             gnss_rerun,
             gnss_from_liftoff,
+            launch_started,
         },
         cards,
     ))
@@ -996,6 +1069,32 @@ fn round_cells(cells: &mut [smoothed::Cell]) {
     }
 }
 
+/// A cut log's cells as the report holds them, their standard errors to two figures, not three: CI's
+/// Linux runners read one logger's median 0.1% from macOS and Windows, across a third figure's edge.
+/// A logger's cell holds few flights, so one flight's standard error moves its median. The cell's
+/// counts, and so whether it holds, keep every figure.
+fn round_launch_cells(cells: &mut [smoothed::Cell]) {
+    for c in cells.iter_mut() {
+        // A spread ten times the value puts the spread's third figure at the value's second.
+        c.median_sd = census::at_the_figures_of(c.median_sd, 10.0 * c.median_sd);
+        c.largest_sd = census::at_the_figures_of(c.largest_sd, 10.0 * c.largest_sd);
+    }
+    round_cells(cells);
+}
+
+/// A cut log's health as the report holds it, each sensor's sums of samples to two figures: CI's
+/// Linux runners read one of them across a third figure's edge, as they do a logger's median. Its
+/// counts of logs and of what stayed out keep three.
+fn round_launch_health(health: &mut smoothed::HealthTally) {
+    for t in health.sensors.values_mut() {
+        for n in [&mut t.samples, &mut t.rejected, &mut t.unweighed] {
+            let sum = *n as f64;
+            *n = census::at_the_figures_of(sum, 10.0 * sum).round() as u64;
+        }
+    }
+    round_health(health);
+}
+
 /// The health sums to three significant figures, as the report holds them. A flight's log ends
 /// `ground_s` after the simulated landing, and the landing's time differs from one platform to
 /// another, so a log can end a sample sooner on one; the sums, unlike the census's counts of
@@ -1020,6 +1119,10 @@ fn round_health(health: &mut smoothed::HealthTally) {
         &mut health.charge_spans,
         &mut health.gnss_trusted,
         &mut health.unsmoothed_steps,
+        &mut health.logs,
+        &mut health.assumed_pad,
+        &mut health.accelerometer_set_aside,
+        &mut health.apogee_past_reading_bound,
     ] {
         figures(n);
     }
@@ -1255,21 +1358,46 @@ fn write(path: &Path, text: &str) -> Result<(), String> {
     fs::write(path, text).map_err(|error| format!("{}: {error}", path.display()))
 }
 
-/// The first line where `committed` and `made` differ.
+/// The most differing lines a failed check prints: a platform's differences come one CI run at a
+/// time otherwise, and a run takes most of an hour.
+const DIFFERENCES_SHOWN: usize = 40;
+
+/// The lines where `committed` and `made` differ, the first [`DIFFERENCES_SHOWN`] of them, or the
+/// line one of them ends at.
 fn difference(path: &Path, committed: &str, made: &str) -> String {
     let committed = committed.replace("\r\n", "\n");
-    let line = committed
+    let mut lines: Vec<usize> = committed
         .lines()
         .zip(made.lines())
-        .position(|(a, b)| a != b)
-        .unwrap_or_else(|| committed.lines().count().min(made.lines().count()));
-    format!(
-        "{} differs at line {}: committed `{}`, made `{}`",
-        path.display(),
-        line + 1,
-        committed.lines().nth(line).unwrap_or(""),
-        made.lines().nth(line).unwrap_or("")
-    )
+        .enumerate()
+        .filter(|(_, (a, b))| a != b)
+        .map(|(line, _)| line)
+        .collect();
+    let ends = committed.lines().count().min(made.lines().count());
+    if committed.lines().count() != made.lines().count() {
+        lines.push(ends);
+    }
+    if lines.is_empty() {
+        lines.push(ends);
+    }
+    let total = lines.len();
+    let mut shown: Vec<String> = lines
+        .into_iter()
+        .take(DIFFERENCES_SHOWN)
+        .map(|line| {
+            format!(
+                "{} differs at line {}: committed `{}`, made `{}`",
+                path.display(),
+                line + 1,
+                committed.lines().nth(line).unwrap_or(""),
+                made.lines().nth(line).unwrap_or("")
+            )
+        })
+        .collect();
+    if total > DIFFERENCES_SHOWN {
+        shown.push(format!("and {} more", total - DIFFERENCES_SHOWN));
+    }
+    shown.join("\n")
 }
 
 /// A number as the page shows it: the census's three significant figures, as the JSON holds
@@ -1880,6 +2008,36 @@ fn smoother_section(page: &mut String, sets: &[SmootherSet], cards: &[Card]) {
     }
     page.push('\n');
     rows(page, &|s| &s.gnss_from_liftoff, cell_text);
+    page.push_str(
+        "\n### Logs written from launch\n\n\
+         The same flights, each log cut at the truth's liftoff, every sensor, as a logger that \
+         writes only from launch would have written it on the same zero. Each is smoothed on an \
+         assumed pad, and held as the check above is: it fails on a cell that fails, overall or \
+         for a logger, or a log withheld with a barometer.\n\n",
+    );
+    header(page);
+    page.push_str("| Flights smoothed | |");
+    for s in sets {
+        let _ = write!(page, " {} |", s.launch_started.health.logs);
+    }
+    page.push_str("\n| Accelerometers set aside | |");
+    for s in sets {
+        let _ = write!(
+            page,
+            " {} |",
+            s.launch_started.health.accelerometer_set_aside
+        );
+    }
+    page.push_str("\n| Apogees past the reading's bound | |");
+    for s in sets {
+        let _ = write!(
+            page,
+            " {} |",
+            s.launch_started.health.apogee_past_reading_bound
+        );
+    }
+    page.push('\n');
+    rows(page, &|s| &s.launch_started.cells, cell_text);
     page.push_str("\n### Health\n\nThe smoothed flights' health cards, summed.\n\n");
     let names: Vec<&String> = {
         let mut names: Vec<&String> = sets
@@ -2173,6 +2331,103 @@ fn readings_section(page: &mut String, tallies: &[Tally]) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_failed_check_names_every_line_that_differs() {
+        let path = Path::new("r.json");
+        let found = difference(path, "a\nb\nc\nd\n", "a\nx\nc\ny\n");
+        assert!(found.contains("line 2: committed `b`, made `x`"), "{found}");
+        assert!(found.contains("line 4: committed `d`, made `y`"), "{found}");
+        let shorter = difference(path, "a\nb\n", "a\n");
+        assert!(
+            shorter.contains("line 2: committed `b`, made ``"),
+            "{shorter}"
+        );
+        let many_committed = "a\n".repeat(DIFFERENCES_SHOWN + 3);
+        let many_made = "b\n".repeat(DIFFERENCES_SHOWN + 3);
+        assert!(difference(path, &many_committed, &many_made).ends_with("and 3 more"));
+    }
+
+    #[test]
+    fn a_cut_logs_standard_errors_keep_two_figures() {
+        let cell = smoothed::Cell {
+            moment: smoothed::Moment::Apogee,
+            state: smoothed::StateName::Height,
+            flights: 185,
+            below: 10,
+            above: 0,
+            coverage: 0.9459,
+            lowest_miss_share: [0.0148, 0.0],
+            holds: true,
+            median_sd: 25.8232,
+            largest_sd: 119.36,
+        };
+        let mut cells = [cell];
+        round_launch_cells(&mut cells);
+        assert_eq!(cells[0].median_sd, 26.0);
+        assert_eq!(cells[0].largest_sd, 120.0);
+    }
+
+    #[test]
+    fn a_log_from_launch_fails_the_check_on_each_thing_that_should() {
+        let cell = |holds: bool| smoothed::Cell {
+            moment: smoothed::Moment::Apogee,
+            state: smoothed::StateName::Height,
+            flights: 10,
+            below: 0,
+            above: 0,
+            coverage: 1.0,
+            lowest_miss_share: [0.0, 0.0],
+            holds,
+            median_sd: 1.0,
+            largest_sd: 1.0,
+        };
+        let whole = SetCheck {
+            flights: 10,
+            withheld: BTreeMap::from([("NoBarometer".to_owned(), 2)]),
+            cells: vec![cell(true)],
+            by_logger: BTreeMap::from([("altos".to_owned(), vec![cell(true)])]),
+            health: smoothed::HealthTally {
+                logs: 8,
+                assumed_pad: 8,
+                ..Default::default()
+            },
+        };
+        let set = |launch: SetCheck| SmootherSet {
+            set: Set::A,
+            check: whole.clone(),
+            gnss_rerun: 0,
+            gnss_from_liftoff: Vec::new(),
+            launch_started: launch,
+        };
+        assert!(launch_failures(&set(whole.clone())).is_empty());
+        type Break = (&'static str, fn(&mut SetCheck));
+        let breaks: [Break; 7] = [
+            ("fails", |c| c.cells[0].holds = false),
+            ("altos: apogee", |c| {
+                c.by_logger.get_mut("altos").unwrap()[0].holds = false;
+            }),
+            ("withheld with a barometer", |c| {
+                c.withheld.insert("Diverged".to_owned(), 1);
+            }),
+            ("on an assumed pad", |c| c.health.assumed_pad = 7),
+            ("couldn't smooth", |c| c.health.unsmoothed_steps = 1),
+            // A barometer lost in the cut, which `lost` doesn't count.
+            ("where 10 whole logs", |c| {
+                c.withheld.insert("NoBarometer".to_owned(), 3);
+            }),
+            ("where 10 whole logs", |c| c.flights = 9),
+        ];
+        for (said, broken) in breaks {
+            let mut launch = whole.clone();
+            broken(&mut launch);
+            let failures = launch_failures(&set(launch));
+            assert!(
+                failures.iter().any(|f| f.contains(said)),
+                "{said:?} in {failures:?}"
+            );
+        }
+    }
 
     #[test]
     fn the_health_sums_hold_the_digits_every_platform_shares() {
