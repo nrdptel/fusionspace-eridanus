@@ -706,9 +706,9 @@ fn smoother_set(set: Set, files: &DesignFiles) -> Result<(SmootherSet, Vec<Card>
     round_cells(&mut gnss_from_liftoff);
     let mut launch_started = smoothed::tally(&launches);
     round_health(&mut launch_started.health);
-    round_cells(&mut launch_started.cells);
+    round_launch_cells(&mut launch_started.cells);
     for cells in launch_started.by_logger.values_mut() {
-        round_cells(cells);
+        round_launch_cells(cells);
     }
     Ok((
         SmootherSet {
@@ -1069,6 +1069,19 @@ fn round_cells(cells: &mut [smoothed::Cell]) {
     }
 }
 
+/// A cut log's cells as the report holds them, their standard errors to two figures, not three: CI's
+/// Linux runners read one logger's median 0.1% from macOS and Windows, across a third figure's edge.
+/// A logger's cell holds few flights, so one flight's standard error moves its median. The cell's
+/// counts, and so whether it holds, keep every figure.
+fn round_launch_cells(cells: &mut [smoothed::Cell]) {
+    for c in cells.iter_mut() {
+        // A spread ten times the value puts the spread's third figure at the value's second.
+        c.median_sd = census::at_the_figures_of(c.median_sd, 10.0 * c.median_sd);
+        c.largest_sd = census::at_the_figures_of(c.largest_sd, 10.0 * c.largest_sd);
+    }
+    round_cells(cells);
+}
+
 /// The health sums to three significant figures, as the report holds them. A flight's log ends
 /// `ground_s` after the simulated landing, and the landing's time differs from one platform to
 /// another, so a log can end a sample sooner on one; the sums, unlike the census's counts of
@@ -1332,21 +1345,46 @@ fn write(path: &Path, text: &str) -> Result<(), String> {
     fs::write(path, text).map_err(|error| format!("{}: {error}", path.display()))
 }
 
-/// The first line where `committed` and `made` differ.
+/// The most differing lines a failed check prints: a platform's differences come one CI run at a
+/// time otherwise, and a run takes most of an hour.
+const DIFFERENCES_SHOWN: usize = 40;
+
+/// The lines where `committed` and `made` differ, the first [`DIFFERENCES_SHOWN`] of them, or the
+/// line one of them ends at.
 fn difference(path: &Path, committed: &str, made: &str) -> String {
     let committed = committed.replace("\r\n", "\n");
-    let line = committed
+    let mut lines: Vec<usize> = committed
         .lines()
         .zip(made.lines())
-        .position(|(a, b)| a != b)
-        .unwrap_or_else(|| committed.lines().count().min(made.lines().count()));
-    format!(
-        "{} differs at line {}: committed `{}`, made `{}`",
-        path.display(),
-        line + 1,
-        committed.lines().nth(line).unwrap_or(""),
-        made.lines().nth(line).unwrap_or("")
-    )
+        .enumerate()
+        .filter(|(_, (a, b))| a != b)
+        .map(|(line, _)| line)
+        .collect();
+    let ends = committed.lines().count().min(made.lines().count());
+    if committed.lines().count() != made.lines().count() {
+        lines.push(ends);
+    }
+    if lines.is_empty() {
+        lines.push(ends);
+    }
+    let total = lines.len();
+    let mut shown: Vec<String> = lines
+        .into_iter()
+        .take(DIFFERENCES_SHOWN)
+        .map(|line| {
+            format!(
+                "{} differs at line {}: committed `{}`, made `{}`",
+                path.display(),
+                line + 1,
+                committed.lines().nth(line).unwrap_or(""),
+                made.lines().nth(line).unwrap_or("")
+            )
+        })
+        .collect();
+    if total > DIFFERENCES_SHOWN {
+        shown.push(format!("and {} more", total - DIFFERENCES_SHOWN));
+    }
+    shown.join("\n")
 }
 
 /// A number as the page shows it: the census's three significant figures, as the JSON holds
@@ -2280,6 +2318,42 @@ fn readings_section(page: &mut String, tallies: &[Tally]) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_failed_check_names_every_line_that_differs() {
+        let path = Path::new("r.json");
+        let found = difference(path, "a\nb\nc\nd\n", "a\nx\nc\ny\n");
+        assert!(found.contains("line 2: committed `b`, made `x`"), "{found}");
+        assert!(found.contains("line 4: committed `d`, made `y`"), "{found}");
+        let shorter = difference(path, "a\nb\n", "a\n");
+        assert!(
+            shorter.contains("line 2: committed `b`, made ``"),
+            "{shorter}"
+        );
+        let many_committed = "a\n".repeat(DIFFERENCES_SHOWN + 3);
+        let many_made = "b\n".repeat(DIFFERENCES_SHOWN + 3);
+        assert!(difference(path, &many_committed, &many_made).ends_with("and 3 more"));
+    }
+
+    #[test]
+    fn a_cut_logs_standard_errors_keep_two_figures() {
+        let cell = smoothed::Cell {
+            moment: smoothed::Moment::Apogee,
+            state: smoothed::StateName::Height,
+            flights: 185,
+            below: 10,
+            above: 0,
+            coverage: 0.9459,
+            lowest_miss_share: [0.0148, 0.0],
+            holds: true,
+            median_sd: 25.8232,
+            largest_sd: 119.36,
+        };
+        let mut cells = [cell];
+        round_launch_cells(&mut cells);
+        assert_eq!(cells[0].median_sd, 26.0);
+        assert_eq!(cells[0].largest_sd, 120.0);
+    }
 
     #[test]
     fn a_log_from_launch_fails_the_check_on_each_thing_that_should() {

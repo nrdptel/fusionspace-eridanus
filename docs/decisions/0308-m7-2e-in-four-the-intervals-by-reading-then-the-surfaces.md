@@ -228,7 +228,10 @@ rate or an acceleration.
   - **`cargo xtask synthetic` holds it.** Each flight's log is cut at the truth's liftoff, every sensor,
     and smoothed again. Any cell, overall or for a logger, that fails [ADR-300][adr-300]'s rule fails
     the command, as does a log withheld that the whole log wasn't, a step left unsmoothed or a log not
-    on an assumed pad. All hold on the three sets. ADR-300's rule is one-sided and a logger's cell
+    on an assumed pad. All hold on the three sets. The cut logs' standard errors are held to two figures,
+    not three: CI's Linux runners read one logger's median 0.1% from the other platforms', across a
+    third figure's edge, so a change of a few percent in one no longer fails the command. The cells'
+    counts keep every figure. ADR-300's rule is one-sided and a logger's cell
     holds few flights, so a thin cell can hold at 87.9% (the tuning set's AltOS burnout height, in the report's JSON).
   - **The card says when the smoothed apogee falls outside the reading's bound,** a floor's only from
     below: 12 of the 379 on an assumed pad, 20 of the 175 on their own, and 0 to 2 of the synthetic
