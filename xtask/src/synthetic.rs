@@ -2819,7 +2819,9 @@ mod tests {
                 .find(|&i| indent(lines[i]) == 2 && !lines[i].trim().is_empty())
                 .unwrap_or(lines.len());
             let body = &lines[start..end];
-            if !body.iter().any(|l| l.trim() == format!("os: {PLATFORMS}")) {
+            if !body.iter().any(|l| l.trim() == format!("os: {PLATFORMS}"))
+                || !body.iter().any(|l| l.trim() == "runs-on: ${{ matrix.os }}")
+            {
                 problems.push(format!("{job} doesn't run on every platform"));
             }
             let job_key = |key: &str| {
@@ -2835,13 +2837,13 @@ mod tests {
             }) {
                 problems.push(format!("{job} leaves its platforms to a matrix edit"));
             }
-            // Everything to the next step belongs to this one, and must be nothing but comments:
-            // a step's `if:` or `continue-on-error:` can sit past a comment line.
+            // The next line that isn't a comment or blank, at any indent, must start another step
+            // or end the job: a key under this step can sit past a comment of any depth.
             let dash = indent(line);
             let alone = lines[at + 1..end]
                 .iter()
-                .take_while(|next| next.trim().is_empty() || indent(next) > dash)
-                .all(|next| next.trim().is_empty() || next.trim_start().starts_with('#'));
+                .find(|next| !next.trim().is_empty() && !next.trim_start().starts_with('#'))
+                .is_none_or(|next| indent(next) <= dash);
             let list = text.strip_prefix(STEP).filter(|list| {
                 !list.is_empty() && !list.contains(|c: char| c.is_whitespace() || c == '|')
             });
@@ -2948,6 +2950,19 @@ mod tests {
                 &format!("{line}\n        # a note\n        continue-on-error: true"),
             ),
             "isn't exactly",
+        );
+        has(
+            "allowed to fail, past a shallower comment",
+            &ci.replace(
+                &line,
+                &format!("{line}\n    # a note\n        continue-on-error: true"),
+            ),
+            "isn't exactly",
+        );
+        has(
+            "the matrix not used",
+            &ci.replace("runs-on: ${{ matrix.os }}", "runs-on: ubuntu-latest"),
+            "doesn't run on every platform",
         );
         has(
             "a platform left out",
