@@ -394,6 +394,16 @@ rendering (`Report::reproduces`;
 [the CI decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0022-validation-in-ci-and-regenerating-references.md)).
 So a change that moves a number has to commit the report that shows it.
 
+The two longest report checks, `cargo xtask synthetic --check` and `cargo xtask motor-catalog
+--check`, run from an optimized build in CI, the `report-check` profile. Optimizing keeps their
+numbers to the digits they compare, and the profile keeps the assertions and overflow checks the
+everyday build has. The synthetic check also runs in two halves, by set
+([the synthetic flights' tests](physics/synthetic-flights.md)). Reports are still written by the
+everyday build, and `scripts/gate.sh` still runs both checks with it, whole, on the maintainer's
+machine. So a report in the repository has to reproduce from both builds. If the optimized build
+ever came out differently, CI would fail and regenerating wouldn't fix it: that would need a
+decision record, not a looser check.
+
 Then the job holds the committed reports to the accuracy census accepted last
 ([the regression check](decisions-and-roadmap.md#m2-4),
 [its decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0084-the-accuracy-census-the-reports-numbers-held-to.md)).

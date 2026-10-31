@@ -180,3 +180,13 @@ opt-level = 3
 # either way (M7.2b).
 [profile.dev.package.fusionspace-hpr-forensics]
 opt-level = 3
+
+# CI's heavy report checks (`synthetic --check`, `motor-catalog --check`): every crate optimized, and
+# the debug assertions and overflow checks the dev profile runs them with still on, so a flight that
+# trips one still counts as not flown and fails the check. Reports are written, and `validate
+# --check` runs, on the dev profile: its numbers move at other opt-levels (above). These two print
+# only what the platforms share, and both profiles must reproduce the committed files.
+[profile.report-check]
+inherits = "release"
+debug-assertions = true
+overflow-checks = true

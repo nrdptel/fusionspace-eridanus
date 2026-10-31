@@ -22,6 +22,15 @@
 //! and above its interval must pass the test while the intervals narrowed, widened and shifted
 //! down each fail it. `--intervals` runs only that and prints its section.
 //!
+//! `--check --sets a,b` does the same work for the sets it names and compares only what they make.
+//! The tuning set owns the census's first row and its smoother row, the readings, errors, tops and
+//! cards; A and B each own a census row, a smoother row and an interval test; the calibration set
+//! owns the fitted shares. What a run makes takes the place of its sections in the committed
+//! report, and the result is written out and compared with the committed bytes, so a differing
+//! section fails exactly as it does in a full check, and the rest confirms the committed JSON
+//! reads and writes back unchanged and renders the committed page. CI's jobs name every set between
+//! them, each on all five platforms; a test in this module reads `ci.yml` to hold it so.
+//!
 //! The flights are flown on every core, each thread taking every `n`th index with a
 //! [`Flyer`] of its own; a flight is the same however many came before it on its thread (the
 //! module's tests), so the census doesn't depend on the number of threads. A flight that panics
@@ -48,7 +57,7 @@ use hpr_forensics::synthetic::smoothed::{self, Checked, SetCheck};
 use hpr_forensics::synthetic::{Flyer, Set};
 use serde::{Deserialize, Serialize};
 
-pub const USAGE: &str = "  synthetic [--check]
+pub const USAGE: &str = "  synthetic [--check] [--sets tuning,a,b,calibration]
                            Fly the synthetic flights' three sets (ADR-280) and write their census
                            to validation/reports/synthetic-flights.{json,md}, with the tuning
                            set's flight-log readings held to their bounds, and each log smoothed
@@ -56,11 +65,25 @@ pub const USAGE: &str = "  synthetic [--check]
                            nothing and fails unless the flights reproduce the committed census.
                            Either fails if a reading's error passes its bound, or if a reading's
                            90% interval fails ADR-257's test or a probe of it passes.
+                           --sets goes with --check: only the sets named are flown, and only their
+                           sections of the JSON are compared; the page always is. A set left out
+                           isn't checked, so CI names each set on one line per platform.
   synthetic --intervals    Only the readings' intervals: fit their shares on the calibration set,
                            test them on sets A and B, print the section; writes nothing.";
 
 /// The report's path under the repository, without its extension.
 const REPORT: &str = "validation/reports/synthetic-flights";
+
+/// Every set the command flies: the report's three, and the set the intervals are fitted on.
+const EVERY_SET: [Set; 4] = [Set::Tuning, Set::A, Set::B, Set::Calibration];
+
+/// The sets ADR-257's test runs on.
+const TEST_SETS: [Set; 2] = [Set::A, Set::B];
+
+/// The report's `about` line.
+const ABOUT: &str = "The synthetic flights' census (M7.2a, ADR-280) and the flight-log readings held \
+                     to their bounds on the tuning set, with their errors (M7.2b, M7.2c), written by \
+                     `cargo xtask synthetic`.";
 
 /// The committed census of every set.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -84,6 +107,158 @@ struct Report {
     /// The readings' 90% intervals: their shares fitted on the calibration set, and ADR-257's
     /// test on the two test sets (M7.2e1 to M7.2e3, ADR-308).
     intervals: Intervals,
+}
+
+impl Report {
+    /// A report with nothing in it, for a full run to fill.
+    fn blank() -> Self {
+        Self {
+            about: String::new(),
+            sets: Vec::new(),
+            readings: Vec::new(),
+            errors: Vec::new(),
+            tops: Tops {
+                reaching: 0,
+                nearest: None,
+                lower: None,
+                floors: Floors::default(),
+                clipped: Vec::new(),
+            },
+            smoother: Vec::new(),
+            cards: Vec::new(),
+            intervals: Intervals {
+                calibration_flights: 0,
+                calibration_withheld: 0,
+                shares: Vec::new(),
+                floor_shares: Vec::new(),
+                sets: Vec::new(),
+            },
+        }
+    }
+
+    /// What's wrong with the order of a committed report's per-set sections, which [`Made::onto`]
+    /// replaces one by one: a section repeated or out of place is in no set's check otherwise.
+    fn order_problem(&self) -> Option<String> {
+        let census = self.sets.iter().map(|c| c.set).eq(Set::ALL);
+        let smoother = self.smoother.iter().map(|s| s.set).eq(Set::ALL);
+        let tests = self.intervals.sets.iter().map(|s| s.set).eq(TEST_SETS);
+        (!(census && smoother && tests)).then(|| {
+            "the committed census doesn't hold each set's sections once, in order; run \
+             `cargo xtask synthetic` and commit what it writes"
+                .to_owned()
+        })
+    }
+}
+
+/// What the tuning set alone makes.
+struct TuningMade {
+    /// The report's `readings`.
+    readings: Vec<Tally>,
+    /// The report's `errors`.
+    errors: Vec<Errors>,
+    /// The report's `tops`.
+    tops: Tops,
+    /// The report's `cards`.
+    cards: Vec<Card>,
+}
+
+/// What the calibration set alone makes.
+struct CalibrationMade {
+    /// [`Intervals::calibration_flights`].
+    flights: u64,
+    /// [`Intervals::calibration_withheld`].
+    withheld: u64,
+    /// [`Intervals::shares`].
+    shares: Vec<FittedShares>,
+    /// [`Intervals::floor_shares`].
+    floor_shares: Vec<FittedFloorShares>,
+}
+
+/// What a run's sets make, each section belonging to one set.
+struct Made {
+    /// The tuning set's own sections, if it was flown.
+    tuning: Option<TuningMade>,
+    /// The census of each set flown.
+    census: Vec<SetCensus>,
+    /// The smoother's check of each set flown.
+    smoother: Vec<SmootherSet>,
+    /// The calibration set's own sections, if it was flown.
+    calibration: Option<CalibrationMade>,
+    /// ADR-257's test on each of A and B flown.
+    tests: Vec<IntervalSet>,
+}
+
+impl Made {
+    /// Puts what was made in `report`, each section in the place of the one its set holds there.
+    fn onto(self, report: &mut Report) {
+        // Taken apart by name, so that a section added to the report doesn't compile until it has
+        // a set: a section no set owned would be compared by no partial check.
+        let Report {
+            about,
+            sets,
+            readings,
+            errors,
+            tops,
+            smoother,
+            cards,
+            intervals:
+                Intervals {
+                    calibration_flights,
+                    calibration_withheld,
+                    shares,
+                    floor_shares,
+                    sets: tests,
+                },
+        } = report;
+        ABOUT.clone_into(about);
+        if let Some(made) = self.tuning {
+            *readings = made.readings;
+            *errors = made.errors;
+            *tops = made.tops;
+            *cards = made.cards;
+        }
+        if let Some(made) = self.calibration {
+            *calibration_flights = made.flights;
+            *calibration_withheld = made.withheld;
+            *shares = made.shares;
+            *floor_shares = made.floor_shares;
+        }
+        for made in self.census {
+            place(sets, made, |c| c.set);
+        }
+        for made in self.smoother {
+            place(smoother, made, |s| s.set);
+        }
+        for made in self.tests {
+            place(tests, made, |t| t.set);
+        }
+    }
+}
+
+/// Puts `item` where `list` holds its set's section, or last if it holds none.
+fn place<T>(list: &mut Vec<T>, item: T, set: impl Fn(&T) -> Set) {
+    match list.iter_mut().find(|held| set(held) == set(&item)) {
+        Some(held) => *held = item,
+        None => list.push(item),
+    }
+}
+
+/// The sets `--sets` names: at least one, each known, none twice.
+fn parse_sets(list: &str) -> Result<Vec<Set>, String> {
+    let mut sets = Vec::new();
+    for name in list.split(',') {
+        let set = EVERY_SET
+            .into_iter()
+            .find(|set| set.name() == name)
+            .ok_or_else(|| {
+                format!("--sets takes tuning, a, b and calibration, comma-separated, not `{name}`")
+            })?;
+        if sets.contains(&set) {
+            return Err(format!("--sets names `{name}` twice"));
+        }
+        sets.push(set);
+    }
+    Ok(sets)
 }
 
 /// The readings' 90% intervals (ADR-257 §1–2, ADR-308).
@@ -270,11 +445,16 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let mut only_intervals = false;
     let mut probe: Option<(Set, u64, Options)> = None;
     let mut launch_started = false;
+    let mut sets: Option<Vec<Set>> = None;
     let mut args = args.iter();
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--check" => check = true,
             "--intervals" => only_intervals = true,
+            "--sets" => {
+                let list = args.next().ok_or("--sets takes a list of sets")?;
+                sets = Some(parse_sets(list)?);
+            }
             "--smoother" => {
                 let set = match args.next().map(String::as_str) {
                     Some("tuning") => Set::Tuning,
@@ -301,6 +481,13 @@ pub fn run(args: &[String]) -> Result<(), String> {
             "--launch-started" => launch_started = true,
             other => return Err(format!("unknown argument `{other}`\n\n{USAGE}")),
         }
+    }
+    if sets.is_some() && (!check || only_intervals || probe.is_some()) {
+        return Err(
+            "--sets goes with --check alone: a report can only be written whole, and it takes no \
+             --intervals, --smoother or --count"
+                .into(),
+        );
     }
     let root = crate::designs::root()?;
     let files = design_files(&root)?;
@@ -330,19 +517,96 @@ pub fn run(args: &[String]) -> Result<(), String> {
         print!("{}", smoother_table(set, &smoothed::tally(&checks)));
         return Ok(());
     }
-    let (flights, each) = read_logs(Set::Tuning.count(), &files)?;
-    let tallies = held::tally(&flights);
-    let missed = misses(&tallies);
-    if !missed.is_empty() {
-        return Err(format!(
-            "a reading's error passes its bound on the tuning set:\n{}",
-            missed.join("\n")
-        ));
+    let json_path = root.join(format!("{REPORT}.json"));
+    let page_path = root.join(format!("{REPORT}.md"));
+    let partial = sets.is_some();
+    let flown = sets.unwrap_or_else(|| EVERY_SET.to_vec());
+    // A partial check reads the committed report before it flies anything, so a damaged file fails
+    // in a moment rather than at the end.
+    let mut report = if partial {
+        let committed = fs::read_to_string(&json_path)
+            .map_err(|error| format!("{}: {error}", json_path.display()))?;
+        let committed: Report = serde_json::from_str(&committed)
+            .map_err(|error| format!("{}: {error}", json_path.display()))?;
+        if let Some(problem) = committed.order_problem() {
+            return Err(problem);
+        }
+        committed
+    } else {
+        Report::blank()
+    };
+    let made = fly_sets(&flown, &files)?;
+    for set in &made.census {
+        println!(
+            "{}: {} drawn, {} flown, {} not flown",
+            set.set.name(),
+            set.drawn,
+            set.flown,
+            set.not_flown.len()
+        );
+    }
+    made.onto(&mut report);
+    let json = serde_json::to_string_pretty(&report).map_err(|e| e.to_string())? + "\n";
+    let page = markdown(&report);
+    if check {
+        let mut problems = Vec::new();
+        for (path, made) in [(&json_path, &json), (&page_path, &page)] {
+            match fs::read_to_string(path) {
+                Ok(committed) if committed.replace("\r\n", "\n") == *made => {}
+                Ok(committed) => problems.push(difference(path, &committed, made)),
+                Err(error) => problems.push(format!("{}: {error}", path.display())),
+            }
+        }
+        if !problems.is_empty() {
+            return Err(format!(
+                "the synthetic flights don't reproduce the committed census; run \
+                 `cargo xtask synthetic` and commit what it writes:\n{}",
+                problems.join("\n")
+            ));
+        }
+        if partial {
+            let names: Vec<&str> = flown.iter().map(|set| set.name()).collect();
+            println!(
+                "the sets {} reproduce their sections of {REPORT}.json, and .md renders from it",
+                names.join(", ")
+            );
+        } else {
+            println!("the synthetic flights reproduce {REPORT}.json and .md");
+        }
+        return Ok(());
+    }
+    write(&json_path, &json)?;
+    write(&page_path, &page)?;
+    println!("wrote {REPORT}.json and .md");
+    Ok(())
+}
+
+/// Flies `flown`, holding each set's readings, smoother and intervals to what they must do.
+fn fly_sets(flown: &[Set], files: &DesignFiles) -> Result<Made, String> {
+    let mut tuning = None;
+    if flown.contains(&Set::Tuning) {
+        let (flights, each) = read_logs(Set::Tuning.count(), files)?;
+        let tallies = held::tally(&flights);
+        let missed = misses(&tallies);
+        if !missed.is_empty() {
+            return Err(format!(
+                "a reading's error passes its bound on the tuning set:\n{}",
+                missed.join("\n")
+            ));
+        }
+        tuning = Some(TuningMade {
+            readings: tallies.iter().map(rounded).collect(),
+            errors: held::errors(&flights).iter().map(rounded_errors).collect(),
+            tops: tops(&flights, &each),
+            cards: Vec::new(),
+        });
     }
     let mut smoother = Vec::new();
-    let mut cards = Vec::new();
     for set in Set::ALL {
-        let (made, set_cards) = smoother_set(set, &files)?;
+        if !flown.contains(&set) {
+            continue;
+        }
+        let (made, set_cards) = smoother_set(set, files)?;
         println!(
             "{}: smoother {}, {} flights; trusting GNSS from liftoff {}",
             set.name(),
@@ -354,8 +618,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
                 "fails"
             }
         );
-        if set == Set::Tuning {
-            cards = set_cards;
+        if let (Set::Tuning, Some(tuning)) = (set, &mut tuning) {
+            tuning.cards = set_cards;
         }
         smoother.push(made);
     }
@@ -409,65 +673,39 @@ pub fn run(args: &[String]) -> Result<(), String> {
             broken.join("\n")
         ));
     }
-    let (intervals, broken) = interval_check(&files)?;
+    let mut calibration = None;
+    let mut tests = Vec::new();
+    let mut broken = Vec::new();
+    if flown.contains(&Set::Calibration) {
+        let (made, problems) = calibration_check(files)?;
+        calibration = Some(made);
+        broken.extend(problems);
+    }
+    for set in TEST_SETS {
+        if flown.contains(&set) {
+            let (made, problems) = test_check(set, files)?;
+            tests.push(made);
+            broken.extend(problems);
+        }
+    }
     if !broken.is_empty() {
         return Err(format!(
             "the readings' intervals (M7.2e) don't come out as they must:\n{}",
             broken.join("\n")
         ));
     }
-    let report = Report {
-        about: "The synthetic flights' census (M7.2a, ADR-280) and the flight-log readings held \
-                to their bounds on the tuning set, with their errors (M7.2b, M7.2c), written by \
-                `cargo xtask synthetic`."
-            .to_owned(),
-        sets: Set::ALL
-            .iter()
-            .map(|&set| fly(set, set.count(), &files))
-            .collect(),
-        readings: tallies.iter().map(rounded).collect(),
-        errors: held::errors(&flights).iter().map(rounded_errors).collect(),
-        tops: tops(&flights, &each),
+    let census = Set::ALL
+        .iter()
+        .filter(|set| flown.contains(set))
+        .map(|&set| fly(set, set.count(), files))
+        .collect();
+    Ok(Made {
+        tuning,
+        census,
         smoother,
-        cards,
-        intervals,
-    };
-    let json = serde_json::to_string_pretty(&report).map_err(|e| e.to_string())? + "\n";
-    let page = markdown(&report);
-    for set in &report.sets {
-        println!(
-            "{}: {} drawn, {} flown, {} not flown",
-            set.set.name(),
-            set.drawn,
-            set.flown,
-            set.not_flown.len()
-        );
-    }
-    let json_path = root.join(format!("{REPORT}.json"));
-    let page_path = root.join(format!("{REPORT}.md"));
-    if check {
-        let mut problems = Vec::new();
-        for (path, made) in [(&json_path, &json), (&page_path, &page)] {
-            match fs::read_to_string(path) {
-                Ok(committed) if committed.replace("\r\n", "\n") == *made => {}
-                Ok(committed) => problems.push(difference(path, &committed, made)),
-                Err(error) => problems.push(format!("{}: {error}", path.display())),
-            }
-        }
-        if !problems.is_empty() {
-            return Err(format!(
-                "the synthetic flights don't reproduce the committed census; run \
-                 `cargo xtask synthetic` and commit what it writes:\n{}",
-                problems.join("\n")
-            ));
-        }
-        println!("the synthetic flights reproduce {REPORT}.json and .md");
-        return Ok(());
-    }
-    write(&json_path, &json)?;
-    write(&page_path, &page)?;
-    println!("wrote {REPORT}.json and .md");
-    Ok(())
+        calibration,
+        tests,
+    })
 }
 
 /// The designs' files under `root`, in [`DESIGNS`]' order.
@@ -820,6 +1058,27 @@ fn dropped(set: Set, flights: &[FlightSaid]) -> Vec<String> {
 /// The readings' intervals: their shares fitted on the calibration set, then ADR-257's test on
 /// sets A and B, with what doesn't come out as it must.
 fn interval_check(files: &DesignFiles) -> Result<(Intervals, Vec<String>), String> {
+    let (calibration, mut broken) = calibration_check(files)?;
+    let mut sets = Vec::new();
+    for set in TEST_SETS {
+        let (made, problems) = test_check(set, files)?;
+        sets.push(made);
+        broken.extend(problems);
+    }
+    Ok((
+        Intervals {
+            calibration_flights: calibration.flights,
+            calibration_withheld: calibration.withheld,
+            shares: calibration.shares,
+            floor_shares: calibration.floor_shares,
+            sets,
+        },
+        broken,
+    ))
+}
+
+/// The intervals' shares fitted on the calibration set, with what doesn't come out as it must.
+fn calibration_check(files: &DesignFiles) -> Result<(CalibrationMade, Vec<String>), String> {
     let calibration = say_set(Set::Calibration, files)?;
     let mut broken = dropped(Set::Calibration, &calibration);
     let calibration_withheld = calibration
@@ -893,99 +1152,99 @@ fn interval_check(files: &DesignFiles) -> Result<(Intervals, Vec<String>), Strin
             library,
         });
     }
-    let mut sets = Vec::new();
-    for set in [Set::A, Set::B] {
-        let flights = say_set(set, files)?;
-        broken.extend(dropped(set, &flights));
-        let checks = intervals::STATED
-            .iter()
-            .map(|&quantity| {
-                let check = intervals::check(quantity, &flights);
-                let holds = check.holds();
-                if !check.test.passes() {
-                    broken.push(format!(
-                        "{}: {}'s intervals fail: {:?}",
-                        set.name(),
-                        quantity.name(),
-                        check.test.counts
-                    ));
-                }
-                for (probe, test) in &check.probes {
-                    if test.passes() {
-                        broken.push(format!(
-                            "{}: {}'s intervals {} still pass: {:?}",
-                            set.name(),
-                            quantity.name(),
-                            probe.name(),
-                            test.counts
-                        ));
-                    }
-                }
-                match &check.floor {
-                    Some(floor) => {
-                        if !floor.test.passes() {
-                            broken.push(format!(
-                                "{}: {}'s floors fail: {} of {} below",
-                                set.name(),
-                                quantity.name(),
-                                floor.test.below,
-                                floor.test.given
-                            ));
-                        }
-                        for (probe, test) in &floor.probes {
-                            if test.passes() {
-                                broken.push(format!(
-                                    "{}: {}'s floors {} still pass: {} of {} below",
-                                    set.name(),
-                                    quantity.name(),
-                                    probe.name(),
-                                    test.below,
-                                    test.given
-                                ));
-                            }
-                        }
-                    }
-                    None if intervals::FLOORED.contains(&quantity) => broken.push(format!(
-                        "{}: {} read no floor to test",
-                        set.name(),
-                        quantity.name()
-                    )),
-                    None => {}
-                }
-                broken.extend(past_clip_problem(set, &check));
-                let probe_passes = check
-                    .probes
-                    .iter()
-                    .map(|(probe, test)| (*probe, test.passes()))
-                    .collect();
-                let floor_passes = check.floor.as_ref().map(|floor| FloorPasses {
-                    test: floor.test.passes(),
-                    probes: floor
-                        .probes
-                        .iter()
-                        .map(|(probe, test)| (*probe, test.passes()))
-                        .collect(),
-                });
-                IntervalCheck {
-                    holds,
-                    probe_passes,
-                    floor_passes,
-                    check: rounded_check(check),
-                }
-            })
-            .collect();
-        sets.push(IntervalSet { set, checks });
-    }
     Ok((
-        Intervals {
-            calibration_flights: calibration.len() as u64,
-            calibration_withheld,
+        CalibrationMade {
+            flights: calibration.len() as u64,
+            withheld: calibration_withheld,
             shares,
             floor_shares,
-            sets,
         },
         broken,
     ))
+}
+
+/// ADR-257's test of the readings' intervals on `set`, with what doesn't come out as it must.
+fn test_check(set: Set, files: &DesignFiles) -> Result<(IntervalSet, Vec<String>), String> {
+    let flights = say_set(set, files)?;
+    let mut broken = dropped(set, &flights);
+    let checks = intervals::STATED
+        .iter()
+        .map(|&quantity| {
+            let check = intervals::check(quantity, &flights);
+            let holds = check.holds();
+            if !check.test.passes() {
+                broken.push(format!(
+                    "{}: {}'s intervals fail: {:?}",
+                    set.name(),
+                    quantity.name(),
+                    check.test.counts
+                ));
+            }
+            for (probe, test) in &check.probes {
+                if test.passes() {
+                    broken.push(format!(
+                        "{}: {}'s intervals {} still pass: {:?}",
+                        set.name(),
+                        quantity.name(),
+                        probe.name(),
+                        test.counts
+                    ));
+                }
+            }
+            match &check.floor {
+                Some(floor) => {
+                    if !floor.test.passes() {
+                        broken.push(format!(
+                            "{}: {}'s floors fail: {} of {} below",
+                            set.name(),
+                            quantity.name(),
+                            floor.test.below,
+                            floor.test.given
+                        ));
+                    }
+                    for (probe, test) in &floor.probes {
+                        if test.passes() {
+                            broken.push(format!(
+                                "{}: {}'s floors {} still pass: {} of {} below",
+                                set.name(),
+                                quantity.name(),
+                                probe.name(),
+                                test.below,
+                                test.given
+                            ));
+                        }
+                    }
+                }
+                None if intervals::FLOORED.contains(&quantity) => broken.push(format!(
+                    "{}: {} read no floor to test",
+                    set.name(),
+                    quantity.name()
+                )),
+                None => {}
+            }
+            broken.extend(past_clip_problem(set, &check));
+            let probe_passes = check
+                .probes
+                .iter()
+                .map(|(probe, test)| (*probe, test.passes()))
+                .collect();
+            let floor_passes = check.floor.as_ref().map(|floor| FloorPasses {
+                test: floor.test.passes(),
+                probes: floor
+                    .probes
+                    .iter()
+                    .map(|(probe, test)| (*probe, test.passes()))
+                    .collect(),
+            });
+            IntervalCheck {
+                holds,
+                probe_passes,
+                floor_passes,
+                check: rounded_check(check),
+            }
+        })
+        .collect();
+    Ok((IntervalSet { set, checks }, broken))
 }
 
 /// What's wrong with `check`'s tops past the clip: too many below the lower end, too few to
@@ -2342,6 +2601,329 @@ fn readings_section(page: &mut String, tallies: &[Tally]) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The committed report as a `--check` reads it.
+    fn committed() -> (Report, String) {
+        let root = crate::designs::root().unwrap();
+        let path = root.join(format!("{REPORT}.json"));
+        let text = fs::read_to_string(path).unwrap().replace("\r\n", "\n");
+        (serde_json::from_str(&text).unwrap(), text)
+    }
+
+    /// What `set`'s flights would make if they reproduced `report`.
+    fn made_as(report: &Report, set: Set) -> Made {
+        let in_set = |wanted: Set| set == wanted;
+        Made {
+            tuning: in_set(Set::Tuning).then(|| TuningMade {
+                readings: report.readings.clone(),
+                errors: report.errors.clone(),
+                tops: report.tops.clone(),
+                cards: report.cards.clone(),
+            }),
+            census: report
+                .sets
+                .iter()
+                .filter(|c| c.set == set)
+                .cloned()
+                .collect(),
+            smoother: report
+                .smoother
+                .iter()
+                .filter(|s| s.set == set)
+                .cloned()
+                .collect(),
+            calibration: in_set(Set::Calibration).then(|| CalibrationMade {
+                flights: report.intervals.calibration_flights,
+                withheld: report.intervals.calibration_withheld,
+                shares: report.intervals.shares.clone(),
+                floor_shares: report.intervals.floor_shares.clone(),
+            }),
+            tests: report
+                .intervals
+                .sets
+                .iter()
+                .filter(|t| t.set == set)
+                .cloned()
+                .collect(),
+        }
+    }
+
+    /// The text a check on `sets` compares with the committed file, when what's committed is
+    /// `committed` and the flights make what `truth` holds.
+    fn compared(committed: &Report, truth: &Report, sets: &[Set]) -> String {
+        let mut report = committed.clone();
+        for &set in sets {
+            made_as(truth, set).onto(&mut report);
+        }
+        serde_json::to_string_pretty(&report).unwrap() + "\n"
+    }
+
+    #[test]
+    fn the_committed_report_reads_back_to_its_own_bytes_and_page() {
+        // A partial check leaves other sets' sections as it read them, so this is what lets it
+        // compare bytes: a number the reader moved would fail every partial check.
+        let (report, text) = committed();
+        assert!(serde_json::to_string_pretty(&report).unwrap() + "\n" == text);
+        let root = crate::designs::root().unwrap();
+        let page = fs::read_to_string(root.join(format!("{REPORT}.md"))).unwrap();
+        assert!(markdown(&report) == page.replace("\r\n", "\n"));
+    }
+
+    #[test]
+    fn each_section_of_the_report_is_compared_by_its_own_set_and_no_other() {
+        let (truth, text) = committed();
+        for set in EVERY_SET {
+            assert!(
+                compared(&truth, &truth, &[set]) == text,
+                "{}: reproducing changes the report",
+                set.name()
+            );
+        }
+        // One value of each section, moved in the committed file: its owner must see it, and the
+        // others must not, or the sets don't divide the report.
+        type Tamper = fn(&mut Report);
+        let tampered: [(&str, Set, Tamper); 13] = [
+            ("census", Set::Tuning, |r| r.sets[0].drawn += 1),
+            ("census", Set::A, |r| r.sets[1].drawn += 1),
+            ("census", Set::B, |r| r.sets[2].drawn += 1),
+            ("readings", Set::Tuning, |r| r.readings[0].given += 1),
+            ("errors", Set::Tuning, |r| r.errors[0].given += 1),
+            ("tops", Set::Tuning, |r| r.tops.reaching += 1),
+            ("cards", Set::Tuning, |r| r.cards[0].flight += 1),
+            ("smoother", Set::Tuning, |r| r.smoother[0].gnss_rerun += 1),
+            ("smoother", Set::A, |r| r.smoother[1].gnss_rerun += 1),
+            ("smoother", Set::B, |r| r.smoother[2].gnss_rerun += 1),
+            ("flights", Set::Calibration, |r| {
+                r.intervals.calibration_flights += 1;
+            }),
+            ("test", Set::A, |r| {
+                r.intervals.sets[0].checks[0].holds ^= true
+            }),
+            ("test", Set::B, |r| {
+                r.intervals.sets[1].checks[0].holds ^= true
+            }),
+        ];
+        for (section, owner, tamper) in tampered {
+            let mut report = truth.clone();
+            tamper(&mut report);
+            let on_disk = serde_json::to_string_pretty(&report).unwrap() + "\n";
+            for set in EVERY_SET {
+                let same = compared(&report, &truth, &[set]) == on_disk;
+                assert_eq!(
+                    same,
+                    set != owner,
+                    "{section} of {}: --sets {}",
+                    owner.name(),
+                    set.name()
+                );
+            }
+            // Between them, the two halves CI runs see any section, as a full check does.
+            let halves = [
+                [Set::Tuning, Set::A].as_slice(),
+                &[Set::B, Set::Calibration],
+            ];
+            let seen = halves
+                .iter()
+                .filter(|sets| compared(&report, &truth, sets) != on_disk)
+                .count();
+            assert_eq!(seen, 1, "{section} of {}", owner.name());
+        }
+    }
+
+    #[test]
+    fn a_full_run_fills_the_report_in_the_order_a_partial_check_needs() {
+        let (truth, text) = committed();
+        let mut report = Report::blank();
+        for set in EVERY_SET {
+            made_as(&truth, set).onto(&mut report);
+        }
+        assert!(serde_json::to_string_pretty(&report).unwrap() + "\n" == text);
+        assert_eq!(report.order_problem(), None);
+    }
+
+    #[test]
+    fn a_section_repeated_or_missing_in_the_committed_report_is_refused() {
+        let (truth, _) = committed();
+        let mut repeated = truth.clone();
+        repeated.sets.push(repeated.sets[2].clone());
+        assert!(repeated.order_problem().is_some());
+        let mut missing = truth.clone();
+        missing.smoother.remove(2);
+        assert!(missing.order_problem().is_some());
+        let mut swapped = truth;
+        swapped.intervals.sets.swap(0, 1);
+        assert!(swapped.order_problem().is_some());
+    }
+
+    #[test]
+    fn sets_refuses_what_it_cannot_check() {
+        let args = |list: &[&str]| {
+            run(&list.iter().map(|s| s.to_string()).collect::<Vec<_>>()).unwrap_err()
+        };
+        assert_eq!(
+            parse_sets("tuning,b,a,calibration").unwrap(),
+            [Set::Tuning, Set::B, Set::A, Set::Calibration]
+        );
+        for list in ["c", "", "a,", "a,,b", " a", "A", "all"] {
+            let error = args(&["--check", "--sets", list]);
+            assert!(error.contains("--sets takes"), "{list:?}: {error}");
+        }
+        assert!(args(&["--check", "--sets", "a,a"]).contains("twice"));
+        assert!(args(&["--check", "--sets"]).contains("takes a list"));
+        // A report is only written whole, and only `--check` compares.
+        for list in [
+            &["--sets", "a"][..],
+            &["--check", "--sets", "a", "--intervals"],
+            &["--check", "--sets", "a", "--smoother", "a"],
+        ] {
+            assert!(args(list).contains("goes with --check"), "{list:?}");
+        }
+    }
+
+    /// The platforms every per-OS job runs on (ADR-222).
+    const PLATFORMS: &str =
+        "[ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, windows-11-arm]";
+
+    /// What's wrong with how a CI file checks the synthetic flights: each set must be on exactly
+    /// one `synthetic --check` line, of its own step with no condition, in an unconditional job on
+    /// every platform, from the optimized build. The file's text is read by hand since the
+    /// workspace takes no YAML reader.
+    fn ci_problems(ci: &str) -> Vec<String> {
+        let lines: Vec<&str> = ci.lines().collect();
+        let indent = |line: &str| line.len() - line.trim_start().len();
+        let mut problems = Vec::new();
+        let mut named = Vec::new();
+        for (at, line) in lines.iter().enumerate() {
+            let text = line.trim_start();
+            if text.starts_with('#') || !text.contains("synthetic --check") {
+                continue;
+            }
+            let start = (0..at).rev().find(|&i| {
+                indent(lines[i]) == 2
+                    && lines[i].trim_end().ends_with(':')
+                    && !lines[i].contains('#')
+            });
+            let Some(start) = start else {
+                problems.push(format!("`{text}` is in no job"));
+                continue;
+            };
+            let job = lines[start].trim().trim_end_matches(':');
+            let end = (at..lines.len())
+                .find(|&i| indent(lines[i]) == 2 && !lines[i].trim().is_empty())
+                .unwrap_or(lines.len());
+            let body = &lines[start..end];
+            if !body.iter().any(|l| l.trim() == format!("os: {PLATFORMS}")) {
+                problems.push(format!("{job} doesn't run on every platform"));
+            }
+            let job_key = |key: &str| {
+                body.iter()
+                    .any(|l| indent(l) == 4 && l.trim().starts_with(key))
+            };
+            if job_key("if:") || job_key("continue-on-error:") {
+                problems.push(format!("{job} runs on a condition"));
+            }
+            // A step's own `if:` or `continue-on-error:` puts `run:` after a dash-less line, or
+            // follows it, at the indent past the dash.
+            let follows = lines.get(at + 1).is_some_and(|next| {
+                !next.trim().is_empty() && !next.trim_start().starts_with('#') && indent(next) > 6
+            });
+            if !text.starts_with("- run: ") || follows {
+                problems.push(format!("`{text}` in {job} isn't a step of its own"));
+            }
+            if !text.contains("--profile report-check --") {
+                problems.push(format!("`{text}` in {job} isn't the optimized build"));
+            }
+            let words: Vec<&str> = text.split_whitespace().collect();
+            let list = words
+                .iter()
+                .position(|word| *word == "--sets")
+                .and_then(|i| words.get(i + 1));
+            match list {
+                Some(list) => named.extend(list.split(',').map(str::to_owned)),
+                None => problems.push(format!("`{text}` in {job} names no sets")),
+            }
+        }
+        for set in EVERY_SET {
+            let times = named.iter().filter(|n| *n == set.name()).count();
+            if times != 1 {
+                problems.push(format!("set {} is on {times} CI lines", set.name()));
+            }
+        }
+        for name in &named {
+            if EVERY_SET.iter().all(|set| set.name() != name) {
+                problems.push(format!("CI names an unknown set `{name}`"));
+            }
+        }
+        problems
+    }
+
+    #[test]
+    fn ci_checks_every_set_on_every_platform() {
+        let root = crate::designs::root().unwrap();
+        let ci = fs::read_to_string(root.join(".github/workflows/ci.yml")).unwrap();
+        let ci = ci.replace("\r\n", "\n");
+        assert_eq!(ci_problems(&ci), Vec::<String>::new());
+        assert!(ci.contains("--profile report-check -- motor-catalog --check"));
+        // The two jobs must hold up what's deployed.
+        assert!(ci.contains("needs: [fmt, clippy, test, examples, types, python, validate,"));
+        // Each way of leaving a set out, or running it somewhere it isn't always run.
+        let half = "synthetic --check --sets b,calibration";
+        let has = |probe: &str, text: &str, what: &str| {
+            let problems = ci_problems(text);
+            assert!(
+                problems.iter().any(|p| p.contains(what)),
+                "{probe}: {problems:?}"
+            );
+        };
+        has(
+            "dropped",
+            &ci.replace(half, "synthetic --check --sets b"),
+            "calibration is on 0",
+        );
+        has(
+            "twice",
+            &ci.replace(half, "synthetic --check --sets b,calibration,a"),
+            "a is on 2",
+        );
+        has(
+            "unknown",
+            &ci.replace(half, "synthetic --check --sets b,calibration,c"),
+            "unknown set `c`",
+        );
+        has(
+            "whole",
+            &ci.replace(half, "synthetic --check"),
+            "names no sets",
+        );
+        has(
+            "debug",
+            &ci.replace(
+                &format!("--profile report-check -- {half}"),
+                &format!("-- {half}"),
+            ),
+            "optimized build",
+        );
+        let line = format!(
+            "      - run: cargo run --locked --quiet --package xtask --profile report-check -- {half}"
+        );
+        assert!(ci.contains(&line));
+        has(
+            "on one platform",
+            &ci.replace(
+                &line,
+                &format!(
+                    "      - if: matrix.os == 'ubuntu-latest'\n{}",
+                    line.replacen("- run", "  run", 1)
+                ),
+            ),
+            "isn't a step of its own",
+        );
+        has(
+            "allowed to fail",
+            &ci.replace(&line, &format!("{line}\n        continue-on-error: true")),
+            "isn't a step of its own",
+        );
+    }
 
     #[test]
     fn a_failed_check_names_every_line_that_differs() {
