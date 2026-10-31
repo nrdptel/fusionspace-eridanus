@@ -248,19 +248,14 @@ fn no_committed_gate_is_looser_than_the_milestone_says() {
 
 #[test]
 fn same_drag_speeds_and_cause_free_apogees_hold_adr_289s_bounds() {
-    // ADR-289 holds the burnout, largest, rail-exit and landing speeds of the same-drag flights
-    // and descents to 0.2%, and the apogee of the six flights with no written model difference to
-    // 0.5%: the largest differences measured were 0.056% and 0.112%, and RocketPy's own solver
-    // moves them by at most 0.0032% and 0.00064%. Juno III, Bella Lui and Prometheus 2022 in wind
-    // keep 3% on their apogee for the causes their case files measure (hpr's rail release and body
-    // lift, and Juno III's fins). A case file widened back, or a new same-drag case added at the
-    // old bound, fails here.
-    const SPEEDS: [&str; 4] = [
-        "burnout_speed_m_s",
-        "max_speed_m_s",
-        "rail_exit_speed_m_s",
-        "impact_speed_m_s",
-    ];
+    // ADR-289 holds the burnout and largest speeds of the same-drag flights to 0.2%, and the apogee
+    // of the six flights with no written model difference to 0.5%: the largest differences measured
+    // were 0.056% and 0.112%, and RocketPy's own solver moves them by at most 0.0032% and 0.00064%.
+    // Juno III, Bella Lui and Prometheus 2022 in wind keep 3% on their apogee for the causes their
+    // case files measure (hpr's rail release and body lift, and Juno III's fins). A case file
+    // widened back, or a new same-drag case added at the old bound, fails here. The rail-exit and
+    // landing speeds it also set to 0.2% are held tighter since ADR-310, in the test below.
+    const SPEEDS: [&str; 2] = ["burnout_speed_m_s", "max_speed_m_s"];
     const APOGEE_WITH_A_CAUSE: [&str; 3] = [
         "flight-juno-iii",
         "flight-bella-lui",
@@ -293,10 +288,84 @@ fn same_drag_speeds_and_cause_free_apogees_hold_adr_289s_bounds() {
             );
         }
     }
-    // Nine flights carry burnout, max, rail-exit and landing speeds; five descents their landing
-    // speed. Six apogees: Calisto in wind and calm, Valetudo, NDRT 2020, Juno III and Bella Lui
-    // calm.
-    assert_eq!((speeds, apogees), (9 * 4 + 5, 6));
+    // Nine flights carry a burnout and a largest speed. Six apogees: Calisto in wind and calm,
+    // Valetudo, NDRT 2020, Juno III and Bella Lui calm.
+    assert_eq!((speeds, apogees), (9 * 2, 6));
+}
+
+#[test]
+fn rail_exit_and_landing_speeds_hold_adr_310s_bounds() {
+    // ADR-310 holds the rail-exit speed of the nine same-drag flights to 0.05% and the landing speed
+    // of those flights and the five descents to 0.1%, with no floor: the largest differences
+    // measured were -0.01435% (Prometheus 2022) and -0.03007% (its descent), 3.5 and 3.3 times
+    // inside. In predicted mode the targets are 0.1% on the same two speeds and 0.5% on the rail-exit
+    // time (+0.0295%, +0.0216% and -0.143%). A case file widened back, given a floor or marked not
+    // scored, or a new case added at the old bound, fails here.
+    let (mut rail_speeds, mut landings, mut predicted) = (0, 0, [0, 0, 0]);
+    for case in cases() {
+        let is_predicted = case.id.starts_with("predicted-");
+        if !(is_predicted || case.id.starts_with("flight-") || case.id.starts_with("descent-")) {
+            continue;
+        }
+        for (name, metric) in &case.metrics {
+            let held = match (name.as_str(), is_predicted) {
+                ("rail_exit_speed_m_s", false) => {
+                    rail_speeds += 1;
+                    0.0005
+                }
+                ("impact_speed_m_s", false) => {
+                    landings += 1;
+                    0.001
+                }
+                ("rail_exit_speed_m_s", true) => {
+                    predicted[0] += 1;
+                    0.001
+                }
+                ("impact_speed_m_s", true) => {
+                    predicted[1] += 1;
+                    0.001
+                }
+                ("rail_exit_time_s", true) => {
+                    predicted[2] += 1;
+                    0.005
+                }
+                _ => continue,
+            };
+            assert_eq!(
+                (
+                    metric.relative,
+                    metric.absolute,
+                    metric.not_scored.as_deref()
+                ),
+                (Some(held), None, None),
+                "{}'s {name} is held to {held} relative, with no floor (ADR-310)",
+                case.id
+            );
+        }
+    }
+    assert_eq!((rail_speeds, landings, predicted), (9, 9 + 5, [6, 6, 6]));
+
+    // Too high a rail-exit speed is the flattering side: it tells a flyer the fins have more air
+    // over them on leaving the rail than they will. All nine same-drag flights read low, for two
+    // measured causes (ADR-310), so the two-sided bound above would let a row swing to reading high
+    // unnoticed. None may read high by more than RocketPy's largest solver movement on this metric
+    // in these flights, 0.00313%, rounded up.
+    const MOST_HIGH: f64 = 0.00005;
+    let report = run_lock(&root(), false).expect("the committed cases run");
+    let same_drag: Vec<_> = report
+        .comparisons
+        .iter()
+        .filter(|c| c.metric == "rail_exit_speed_m_s" && c.case.starts_with("flight-"))
+        .collect();
+    assert_eq!(same_drag.len(), 9);
+    for comparison in same_drag {
+        let relative = comparison.relative.expect("the reference is not zero");
+        assert!(
+            relative <= MOST_HIGH,
+            "{}'s rail-exit speed reads {relative} high, past {MOST_HIGH} (ADR-310)",
+            comparison.case
+        );
+    }
 }
 
 #[test]

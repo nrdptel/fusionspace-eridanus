@@ -338,6 +338,8 @@ until someone rewrites it in plainer words.
 | [ADR-307: Newer motors found by comparing ThrustCurve.org's whole catalog with the bundle][adr-307] | `hpr motors update` asks ThrustCurve.org's search for every motor at once and compares the solid ones with the bundled catalog by id, file count and update day, downloading only the motors that may differ. Its date filters aren't used: one of them matched nothing on 2026-10-29. A newer motor is found offline after the update; a newer file of a bundled motor is only cached, and the bundled file keeps flying. |  |
 | [ADR-308: M7.2e in four: the intervals by reading, then the surfaces][adr-308] | each reading's 90% interval runs from the reading less one share of its own bound to the reading less another. The two shares are the 5% and 95% points of the readings' errors as shares of their bounds, fitted on a calibration set of 2,000 synthetic flights on a seed of its own. `cargo xtask synthetic` fits them again, holds them to the library's, and runs [ADR-257][adr-257]'s test with its three probes on sets A and B. [M7.2e1](#m7-2e1) does this for the apogee's height and time; e2 and e3 add the other readings; e4 takes the intervals and the smoother's health card to `hpr analyze` and Python. |  |
 | [ADR-309: A fin tab weighed as its file states it][adr-309] | a fin tab may start ahead of its root's leading edge or end past its trailing edge. |  |
+| [ADR-310: The 2026-10-31 review: the RocketPy rail-exit and landing speeds tightened][adr-310] | In the RocketPy comparisons flown on the same inputs, the rail-exit speeds agree within 0.0144% and the landing speeds within 0.0301%, while RocketPy's own solver moves them by at most 3.13e-5 and 8.6e-7 of their values. The bounds go from 0.2% to 0.05% and 0.1%, 3.5 and 3.3 times the largest difference. All nine rail-exit speeds read low, the cautious side, for two causes measured here, and a test stops one reading high. These bound agreement between two codes, not accuracy against a flight. |  |
+| [ADR-311: The 2026-10-31 review: every flight OpenRocket flies, and CI's long checks][adr-311] | On the private collection OpenRocket 24.12 flies 79 of the 83 flights that come from a `.ork` and HPR Sim 68, which no scoreboard row shows. A new row, `coverage.collection`, and a milestone before the gap is split by cause, close that. CI's long report checks now run from an optimized build with debug assertions, split by set over two jobs on every platform, with a test that fails if a set is left out. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -647,6 +649,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-3c5"></a>[M2.3c5][done-1] | The corpus rechecked | done |
 | <a id="m2-3c6"></a>[M2.3c6][phase-1] | The gap to OpenRocket, by cause | not yet done |
 | <a id="m2-3c7"></a>[M2.3c7][phase-1] | Faster than sound: published flights | not yet done |
+| <a id="m2-3c9"></a>[M2.3c9][phase-1] | Every flight OpenRocket flies | not yet done |
 | <a id="m2-4"></a>[M2.4][done-1] | A summary of accuracy for the README, and CI that fails on any regression ([ADR-084][adr-084], [Accuracy: the census](accuracy.md#the-census)) | done |
 | <a id="m2-6"></a>[M2.6][phase-1] | An open benchmark | not yet done |
 | <a id="m2-7"></a>[M2.7][phase-1] | Held-out flights, predictions first | not yet done |
@@ -1275,6 +1278,8 @@ is the milestone that added or will add that test.
 [adr-307]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0307-newer-motors-by-comparing-the-whole-catalog.md
 [adr-308]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md
 [adr-309]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0309-a-fin-tab-weighed-as-stated.md
+[adr-310]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0310-the-2026-10-31-review-the-rocketpy-rail-exit-and-landing-speeds-tightened.md
+[adr-311]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0311-the-2026-10-31-review-every-flight-openrocket-flies.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

@@ -3,6 +3,26 @@
 Part of the [ideas backlog](ideas.md) (2026-10-03). One line each, with its tier. AI features
 never write numbers or make safety calls: every number comes from the engine.
 
+## From the 2026-10-28 planning review
+
+- SOON: an export that survives OpenRocket's own save. User: a team that designs in HPR Sim and
+  hands the `.ork` to a club member who opens, edits and saves it in OpenRocket, whose 24.12 save
+  can fail on a file whose simulations are stale ([OpenRocket issue
+  3412](https://github.com/openrocket/openrocket/issues/3412)). Workflow: the export round trip
+  ([ADR-286][adr-286]) adds a step: OpenRocket's jar, run as an outside oracle, saves each exported
+  design without flying it, and HPR Sim reads the saved file back. Moves: `interop.changed` (0 of
+  151 configurations today), `interop.failed` (2 of 75 designs, the two HPR Sim can't read) and
+  `interop.largest` (0.000050%), all measured only to OpenRocket's open. *Done when:* the round trip saves all 151 through OpenRocket and counts the
+  saves that fail or move an apogee by more than 0.002%, and a test holds one design through the
+  save step.
+- SOON: HPR Sim's own flight time, held. User: anyone flying thousands of runs (`hpr mc`, the
+  optimizer) or waiting on the web app. Workflow: `speed.flight`'s HPR Sim cell reads a committed
+  bench record (machine, commit, design, median of at least 6 alternated runs) rather than waiting
+  for [M2.9][m2-9]'s other cells. Moves: `speed.flight`, not measured today; [the speed
+  page](../perf.md) times a Valetudo flight at 1.65 ms on one thread. *Done when:* the cell shows
+  the record's median with its machine, and the scoreboard's check fails when a new record is more
+  than 10% slower than the last on the same machine.
+
 ## Developer ecosystem
 
 - SOON: an MCP server (Model Context Protocol, the standard way for AI assistants to call tools).

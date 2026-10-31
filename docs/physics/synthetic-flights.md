@@ -357,7 +357,11 @@ CI flies every flight again on macOS, Windows and Linux and holds the census to 
   no lower setting writes no such log.
 - `hpr_forensics::synthetic::truth`: set B's drag and tilted thrust, which keeps its impulse. It
   also checks that set B's three changes reach its flights' inputs while set A's keep HPR Sim's.
-- `cargo xtask synthetic --check`, in CI on every platform: the census reproduced.
+- `cargo xtask synthetic --check`, in CI on every platform: the census reproduced. CI flies the
+  sets in two halves, `--sets tuning,a` in its `validate` job and `--sets b,calibration` in its
+  `examples` job. Each half compares what its sets make with their sections of the committed report,
+  so every flight is flown and compared on every platform. A test reads `ci.yml` and fails if a set
+  isn't on exactly one line of a job that runs on all five platforms.
 
 ### References
 

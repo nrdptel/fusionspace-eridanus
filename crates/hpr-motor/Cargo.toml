@@ -26,6 +26,8 @@ roxmltree.workspace = true
 schemars.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+# The search through the bundled motor index; serde_json already brings it in.
+memchr.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]

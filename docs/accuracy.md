@@ -91,9 +91,9 @@ to the code that would move them is caught only when someone runs them again and
 
 | compared with | kind | held to | flights (speed) | result |
 |---|---|---|---|---|
-| [RocketPy 1.13.0](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): descents under a parachute | code-to-code, same inputs | gate: each metric's tolerance, 0.2% to 3% | 5 descents | 30 of 30 gated metrics pass |
-| [RocketPy 1.13.0, patched](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): whole flights on the same drag | code-to-code, same inputs | gate: each metric's tolerance, 0.2% to 3% | 9 flights (8 subsonic, 1 transonic) | 142 of 142 gated metrics pass; apogee +0.04% to +1.21%; 11 not scored, each for a written reason |
-| [RocketPy 1.13.0, patched](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): whole flights, each code on its own drag | code-to-code, each code's own drag | target: 3% on each metric, reported, not enforced | 6 flights (5 subsonic, 1 transonic) | 75 of 102 metrics within target; apogee −7.28% to +10.30% |
+| [RocketPy 1.13.0](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): descents under a parachute | code-to-code, same inputs | gate: each metric's tolerance, 0.1% to 3% | 5 descents | 30 of 30 gated metrics pass |
+| [RocketPy 1.13.0, patched](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): whole flights on the same drag | code-to-code, same inputs | gate: each metric's tolerance, 0.05% to 3% | 9 flights (8 subsonic, 1 transonic) | 142 of 142 gated metrics pass; apogee +0.04% to +1.21%; 11 not scored, each for a written reason |
+| [RocketPy 1.13.0, patched](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): whole flights, each code on its own drag | code-to-code, each code's own drag | target: each metric's tolerance, 0.1% to 3%, reported, not enforced | 6 flights (5 subsonic, 1 transonic) | 75 of 102 metrics within target; apogee −7.28% to +10.30% |
 | [OpenRocket 24.12](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): calm flights of OpenRocket's examples | code-to-code, each code's own model | no target; an apogee more than 5% off needs a written cause | 54 flights (53 subsonic, 1 transonic); 3 more not flown | apogee −37.93% to +13.80%; apogee within 5% on 45 of 53, largest speed within 5% on 50 of 53, margin within 0.2&nbsp;calibers on 52 of 53, launch mass within 1% on 54 of 54, mass at rod clearance within 1% on 50 of 54, center of mass at rod clearance within 0.2&nbsp;calibers on 54 of 54; 3 values withheld by the report |
 | [OpenRocket 24.12](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): calm flights of the private designs | code-to-code, each code's own model | no target; an apogee more than 5% off needs a written cause | 35 flights (28 subsonic, 6 transonic, 1 supersonic); 2 more not flown | apogee −4.84% to +13.60%; apogee within 5% on 34 of 35, largest speed within 5% on 34 of 35, margin within 0.2&nbsp;calibers on 35 of 35, launch mass within 1% on 35 of 35, mass at rod clearance within 1% on 35 of 35, center of mass at rod clearance within 0.2&nbsp;calibers on 35 of 35 |
 | [the teams' altimeter logs](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): real flights | measured | target: mean absolute apogee error 5% | 7 flights (3 subsonic, 4 transonic) | mean absolute apogee error 6.06% (target 5%, missed); apogee −8.90% to +10.40%; apogee within 5% on 2 of 7, climb's RMS height error within 3% of apogee on 2 of 7 |
@@ -150,7 +150,7 @@ height RMS to ([census][census]). For example, a 3% tolerance on a 1,000 m (3,28
 30 m (98 ft). The census lets the difference move by 0.03 m (0.098 ft) before it fails.
 
 So the census holds a number to where it was, not to its target. A flight on each code's own drag,
-whose 3% is only a target, is held that way too ([census][census]). That keeps HPR Sim's own
+whose bound is only a target, is held that way too ([census][census]). That keeps HPR Sim's own
 aerodynamics from drifting unseen inside the target.
 
 **Accepting a change.** `cargo xtask census --accept --reason "<why>"` writes the new census and
@@ -384,8 +384,8 @@ set up the same way:
 The committed [validation report][report] gives the six numbers below for each descent. All were
 scored, and all are within tolerance. The largest difference is +2.865%.
 
-Each metric must agree within 3% of RocketPy's value (landing speed 0.2%, [the tighter
-gates][adr-289]), with no absolute floor. Each case file argues why,
+Each metric must agree within 3% of RocketPy's value (landing speed 0.1%, [the tighter
+gate][adr-310]), with no absolute floor. Each case file argues why,
 for example [NDRT's][ndrt-case]. A floor would be a fixed allowance, in meters or
 seconds, that passes any smaller difference. The metrics:
 
@@ -481,8 +481,9 @@ Prometheus 2022's drifts differ by −7.292% and +4.505%, from body lift and the
 landing offset is met except where the two codes' models differ.
 
 Each of fifteen numbers per flight must agree within 3% of RocketPy's, with no absolute floor.
-Speeds and six burnout heights must agree within 0.2%, rail-exit times and six apogees within
-0.5%, and six apogee times within 1% ([the tighter gates][adr-289], [more][adr-294]).
+Rail-exit speeds must agree within 0.05%, landing speeds within 0.1%, burnout and top speeds and
+six burnout heights within 0.2%, rail-exit times and six apogees within 0.5%, and six apogee times
+within 1% ([the tighter gates][adr-289], [more][adr-294], [the speeds][adr-310]).
 Each case file argues why, for example [Juno III's][juno-case]. A number left unscored has its
 reason in its case file. Two more numbers compare the whole trace, explained after the tables.
 
@@ -687,7 +688,8 @@ results, not a pass or fail.
 Neither code's drag is the truth. Each example's drag came from RASAero, OpenRocket or its team's
 own estimate. So each number is compared with the same-drag flights' 3%
 ([the validation milestone](decisions-and-roadmap.md#m2-1)), but only as a
-[target](glossary.md#gate-and-target). A miss doesn't fail the test suite. It's reported and
+[target](glossary.md#gate-and-target). The rail-exit and landing speeds are compared with 0.1% and
+the rail-exit time with 0.5% ([the tighter targets][adr-310]). A miss doesn't fail the test suite. It's reported and
 explained in its case file ([Valetudo's][valetudo-predicted-case] and
 [NDRT 2020's][ndrt-predicted-case], for example). The report is committed, so any number that
 moves shows up in review.
@@ -1189,6 +1191,7 @@ rest.
 [scoreboard]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md
 [adr-289]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md
 [adr-294]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md
+[adr-310]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0310-the-2026-10-31-review-the-rocketpy-rail-exit-and-landing-speeds-tightened.md
 [adr-293]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0293-cavours-log-read-to-its-apogee-event.md
 [adr-184]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0184-logged-apogees-of-the-private-collection.md
 [adr-238]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0238-the-corpus-rechecked-against-the-catalog.md

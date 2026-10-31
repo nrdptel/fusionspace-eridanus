@@ -62,7 +62,7 @@ the checks fetch into. Its hash lets every check confirm it reads the same bytes
 
 <!-- evidence: report; written by `cargo xtask evidence` from validation/evidence.toml; do not edit -->
 
-The register holds 34 rows, as of October 29, 2026.
+The register holds 34 rows, as of October 31, 2026.
 
 **By kind.** Each surface's rows, counted by the kind of evidence behind them now:
 
@@ -120,13 +120,10 @@ The register holds 34 rows, as of October 29, 2026.
 | <a id="g30"></a>G30 | Flight-log readers | The AltiMAX's Excel export keeps its voltages as the file states them. **Not checked:** the voltages, which nothing checks. | none | real | [#682](https://github.com/nrdptel/fusionspace-eridanus/issues/682) | 2026-10-17 |
 | <a id="g31"></a>G31 | Flight-log readers | An RRC3's Temperature column that states no unit is kept as written; its Voltages column that states none is read in volts. **Not checked:** the voltage's unit, which is assumed; a file whose voltage can be checked against another record of the same flight. | reasoning | real | [#683](https://github.com/nrdptel/fusionspace-eridanus/issues/683) | 2026-10-20 |
 | <a id="g32"></a>G32 | The synthetic flights | The synthetic loggers' noise follows the makers' datasheets and the noise measured on a few public logs, each drawn term tested on its own; the accelerometer's residual bias, the GNSS loop's range, damping and noise, the dropouts, the port's place, the Bosch-class part on two profiles, PerfectFlite's offset and one bench sensor's slow noise on every barometer are assumed, and the MS5607's error read as a gain is inferred. **Not checked:** a synthetic log as a whole against real logs of the same family: the pad's noise and its correlation, and the ejection pulses. | reasoning | real | [#725](https://github.com/nrdptel/fusionspace-eridanus/issues/725) | 2026-10-17 |
-| <a id="g33"></a>G33 | The smoother | At burnout, the top speed, apogee and a drawn moment, the smoother's 90% intervals on height and vertical speed hold between 94.3% and 99.4% of the synthetic flights' truths in the three sets' cells, and two logger cells 89.2% and 89.7%, on the 171, 820 and 845 flights smoothed of three sets of 200, 1,000 and 1,000, its rules set with those sets in view; the same flights' logs cut at liftoff, on an assumed pad, hold in every cell too (94.9% to 98.7% overall on A and B, on the true zero). **Not checked:** a real flight's smoothed height and speed against a truth apart from the log, such as a second logger's or a ground tracker's. | calibration | real | [#981](https://github.com/nrdptel/fusionspace-eridanus/issues/981) | none |
-| <a id="g34"></a>G34 | Flight-log readings' 90% intervals | Twelve readings state 90% intervals, and a floor a lower end, fitted on 2,000 synthetic flights of their own. On sets A and B each passes the coverage test or its lower tail (the top speed below its transonic mark; a clipped top near an imposed clip); every probe fails. The misses gather: the height's, the top speed's and the descent rates' gather on days more than 10 K from standard, a warm day's above the interval (#1055, #1061); the times lean by logger (#1056, #1062), and the top acceleration most (#1070). **Not checked:** a real flight's readings against a truth taken apart from the log, such as a second logger's or a ground tracker's record of the same flight. | calibration | real | [#1052](https://github.com/nrdptel/fusionspace-eridanus/issues/1052) | none |
+| <a id="g33"></a>G33 | The smoother | At burnout, the top speed, apogee and a drawn moment, the smoother's 90% intervals on height and vertical speed hold between 94.3% and 99.4% of the synthetic flights' truths in the three sets' cells, and two logger cells 89.2% and 89.7%, on the 171, 820 and 845 flights smoothed of three sets of 200, 1,000 and 1,000, its rules set with those sets in view; the same flights' logs cut at liftoff, on an assumed pad, hold in every cell too (94.9% to 98.7% overall on A and B, on the true zero). **Not checked:** a real flight's smoothed height and speed against a truth apart from the log, such as a second logger's or a ground tracker's. | calibration | real | [#981](https://github.com/nrdptel/fusionspace-eridanus/issues/981) | 2026-10-31 |
+| <a id="g34"></a>G34 | Flight-log readings' 90% intervals | Twelve readings state 90% intervals, and a floor a lower end, fitted on 2,000 synthetic flights of their own. On sets A and B each passes the coverage test or its lower tail (the top speed below its transonic mark; a clipped top near an imposed clip); every probe fails. The misses gather: the height's, the top speed's and the descent rates' gather on days more than 10 K from standard, a warm day's above the interval (#1055, #1061); the times lean by logger (#1056, #1062), and the top acceleration most (#1070). **Not checked:** a real flight's readings against a truth taken apart from the log, such as a second logger's or a ground tracker's record of the same flight. | calibration | real | [#1052](https://github.com/nrdptel/fusionspace-eridanus/issues/1052) | 2026-10-31 |
 
-**Due a search.** A row is due one when it has none yet, or its last was more than 30 days before October 29, 2026:
-
-- [G33](#g33)
-- [G34](#g34)
+**Due a search.** A row is due one when it has none yet, or its last was more than 30 days before October 31, 2026: none.
 
 **Searches so far.**
 
@@ -352,6 +349,17 @@ The register holds 34 rows, as of October 29, 2026.
   - the makers' datasheets it cites
 
   It found pad and rest noise for four families, upper bounds that mix in wind and handling, and the datasheets' white noise. It found no family's noise measured over a whole flight, and no hobby receiver's GNSS loop measured against a truth.
+- [G33](#g33), October 31, 2026, looked at:
+  - prs2026/Procyon, a repository new to this search (no license)
+  - the private collection, by file hash
+
+  It found one flight on June 7, 2026 with a Blue Raven and a TeleMetrum v4.0 logging barometer and accelerometer, and a Featherweight tracker's GPS beside them. Barometer peaks agree within 2.5 m (8.2 ft); GPS peaks read 4% to 5% higher. No radar or optical record. It has no license, so it is cited on the issue and cached under refs/samples-search/G33 only.
+- [G34](#g34), October 31, 2026, looked at:
+  - prs2026/Procyon, a repository new to this search (no license)
+  - Harvard Dataverse, Figshare, Zenodo and arXiv
+  - web searches for a hobby rocket's apogee measured by radar or optical tracking
+
+  It found one flight on June 7, 2026 with two barometric loggers and two GPS receivers, each with its own record of the peak and times. It has no license, so it is cited on the issue and cached under refs/samples-search/G33 only. No radar or optical record of a flight.
 
 **Real samples.** Each file a real row reads, kept under `refs/`, with its SHA-256 and the test that reads it:
 
