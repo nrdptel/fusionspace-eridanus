@@ -11,8 +11,8 @@
 //!
 //! **Stages** ([`Staged`]) fly `validation/designs/synthetic-two-stage-75mm-54mm.json`, handed in
 //! by the caller, as the designs are ([`super::designs`]), with a logger in each stage. The
-//! booster's truth after the split is HPR Sim's point-mass descent read between its integration
-//! steps (`docs/physics/staging.md`), so the check says how well two stages' liftoffs line their
+//! booster's truth after the split is HPR Sim's point-mass descent on the truth's grid, from the
+//! integrator's dense output (`docs/physics/staging.md`), so the check says how well two stages' liftoffs line their
 //! clocks up, not how well a booster's fall is modeled.
 //!
 //! **How far to trust it.** Two boards here share a flight and differ only in noise, rate and
@@ -401,6 +401,8 @@ mod tests {
                 "{d:?}"
             );
             assert!((0.8..=1.2).contains(&d.drag_scale), "{d:?}");
+            assert!((0.94..=1.06).contains(&d.impulse_scale), "{d:?}");
+            assert!((0.90..=1.10).contains(&d.burn_time_scale), "{d:?}");
             assert_eq!(d.model, crate::synthetic::Model::Same);
         }
     }
@@ -429,6 +431,41 @@ mod tests {
                 - truth.booster.at(after).unwrap().height_m)
                 .abs()
                 > 1.0
+        );
+        // Its fall is the integrator's path on the truth's grid, not a few events' chords: from the
+        // split to the ground, each height is the last plus the speeds' mean over the time between,
+        // and the speed's rate is the specific force less gravity, away from the split's step.
+        let fall: Vec<_> = truth
+            .booster
+            .samples
+            .iter()
+            .filter(|s| s.time_s >= truth.separation_s)
+            .collect();
+        let span = truth.booster.events.landing_s - truth.separation_s;
+        assert!(
+            fall.len() as f64 > 0.9 * span / truth::TRUTH_STEP_S,
+            "{}",
+            fall.len()
+        );
+        for pair in fall.windows(2) {
+            let dt = pair[1].time_s - pair[0].time_s;
+            assert!(
+                dt <= truth::TRUTH_STEP_S * 1.5,
+                "{dt} s at {}",
+                pair[0].time_s
+            );
+            let by_speed = 0.5 * (pair[0].vertical_speed_m_s + pair[1].vertical_speed_m_s) * dt;
+            assert!(
+                (pair[1].height_m - pair[0].height_m - by_speed).abs() < 0.01,
+                "at {}: {pair:?}",
+                pair[0].time_s
+            );
+        }
+        // Well into the tumble it falls near its terminal speed: the force on it near its weight.
+        let settled = fall[fall.len() - 10];
+        assert!(
+            (settled.axial_specific_force_m_s2 - 9.8).abs() < 0.5,
+            "{settled:?}"
         );
         // The booster reaches the ground where its truth says.
         let landing = truth.booster.at(truth.booster.events.landing_s).unwrap();

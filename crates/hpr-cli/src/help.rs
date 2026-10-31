@@ -304,8 +304,8 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
                 line: "hpr analyze telemetrum.csv telemega.csv",
             },
             Example {
-                what: "Read your own logger's table by a mapping, and print every channel it holds",
-                line: "hpr analyze flight.csv --mapping logger.json --record",
+                what: "Print what your own logger's table header states, as a mapping to edit",
+                line: "hpr analyze flight.csv --print-mapping > logger.json",
             },
         ],
         anchor: OWN,

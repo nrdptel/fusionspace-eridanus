@@ -151,8 +151,8 @@ switched on. A flight's truth says where each clock stood, so an offset can be h
 
 A staged flight's booster burns out, the stack parts 0.5 s later and the sustainer lights 0.5 s
 after that. The sustainer comes down under a canopy. The booster tumbles from the split, as HPR Sim
-flies one: a point mass with its tumble's drag ([staging](staging.md)). Its truth is that descent read between
-the integration steps, so these flights say how well two stages' liftoffs line their clocks up, not
+flies one: a point mass with its tumble's drag ([staging](staging.md)). Its truth is that descent on the same
+0.01 s grid, from the integrator's dense output, so these flights say how well two stages' liftoffs line their clocks up, not
 how well a booster's fall is modeled.
 
 ## The noise, term by term

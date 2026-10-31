@@ -393,22 +393,23 @@ Fly two altimeters and you have two logs, each counting from a zero of its own: 
 switched on, or when it saw the boost. Give `hpr analyze` both and it puts them on one timeline:
 
 ```bash
-hpr analyze telemetrum.csv telemega.csv
+hpr analyze one.csv two.csv
 ```
 
 It lines the clocks up by a shared liftoff: every board in a rocket leaves the pad at the same
 instant, so the time from one log's liftoff to the other's is the offset between their clocks. Each
 log keeps its own readings. They are never averaged, because two boards are two measurements, and
 each reading's spread, the largest less the least, says how far apart they lie, not which is right.
-Two boards can agree and both be off by the day's air. Nothing checks that the two logs are of one
-flight: that's your word.
+Two boards can agree and both be off by the day's air. A log that ends on the climb gives floors for
+its top height and top speed, each without an interval, and a floor joins no spread. Nothing checks
+that the two logs are of one flight: that's your word.
 
 The offset's bound is the sum of the two liftoffs' bounds, and it held on every one of the 1,383
 offsets the [two-logger synthetic flights](physics/synthetic-flights.md#two-loggers-and-stages)
 gave, the largest error 0.21 s and the median 0.03 s. Its 90% interval passed the same test as the
 readings' ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/two-logs.md)).
 
-One real flight checks it against another clock
+One real flight checks it against another clock, though not hard
 ([evidence row G35](evidence.md#g35)). [RocketPy](https://github.com/RocketPy-Team/RocketPy)'s
 Prometheus flight carried a TeleMetrum and a TeleMega, each with its own GPS receiver:
 
@@ -420,12 +421,14 @@ Prometheus flight carried a TeleMetrum and a TeleMega, each with its own GPS rec
 | Under the drogue | 26.5 m/s (87 ft/s) | 26.5 m/s (87 ft/s) | 0.0 m/s (0 ft/s) |
 | Under the main | 6.5 m/s (21 ft/s) | 6.5 m/s (21 ft/s) | 0.0 m/s (0 ft/s) |
 
-Their liftoffs read 0.23 s and 0.18 s, each on its own clock.
-The TeleMega's clock less the TeleMetrum's comes to −0.05 s, within 1.53 s, 90% interval −0.13 to
-0.04 s. The two receivers' UTC seconds, taken where each second ticks in each log, put it at −0.130 s,
-0.08 s away and just past the interval's low end, −0.129 s before the printout rounds it outward.
-That's one flight, on two boards whose logs both start at
-the boost. It says nothing of a board that a long pad wait or a different mount treats otherwise.
+Their liftoffs read 0.23 s and 0.18 s, each on its own clock. The TeleMega's clock less the
+TeleMetrum's comes to −0.05 s, within 1.53 s, 90% interval −0.13 to 0.04 s. The two receivers' UTC
+seconds, taken where each second ticks in each log, put it at −0.13 s: the ticks scatter by about
+0.02 s where the logs run at 100 samples a second, and any fixed difference between the receivers'
+delays can't be seen. So this offset is about 0.08 s away, and the interval's low end, −0.129 s
+unrounded, is too close to that figure to say which side it falls. Both logs start at the boost, so
+their clocks hardly differ: an offset of zero would miss by 0.13 s, little worse. That's one flight,
+and it says nothing of clocks that differ by minutes, as the synthetic flights' do.
 
 `--stages` lays out one logger to a stage the same way, each leaving the pad with the stack, and
 gives no spread, a booster's apogee and a sustainer's being different heights. It has been checked

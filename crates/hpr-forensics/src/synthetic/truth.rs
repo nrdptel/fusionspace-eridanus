@@ -13,7 +13,7 @@ use hpr_core::earth::Earth;
 use hpr_core::geodesy::Geodetic;
 use hpr_design::{Ignition, Rocket};
 use hpr_motor::{SolidMotor, ThrustCurve};
-use hpr_sim::recorder::{FlightStep, Observer, Sample};
+use hpr_sim::recorder::{BodyStep, FlightStep, Observer, Sample};
 use hpr_sim::recovery::{Device, DeviceDrag, Separation, Trigger};
 use hpr_sim::{
     BodyFlight, BodySample, Environment, EventKind, FlightEvent, Phase, Rail, SimError, Simulation,
@@ -37,8 +37,6 @@ pub const SITE_LONGITUDE_DEG: f64 = -106.0;
 pub const SHEAR_REFERENCE_HEIGHT_M: f64 = 18.3;
 /// The sea-level pressure of the drawn air, Pa: the standard's.
 const SEA_LEVEL_PRESSURE_PA: f64 = 101_325.0;
-/// Standard gravity, m/s²: what an accelerometer at rest reads.
-const STANDARD_GRAVITY_M_S2: f64 = 9.806_65;
 
 /// The truth at one instant.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -397,8 +395,8 @@ fn rail(draw: &Draw) -> Rail {
 struct Grid {
     next: u64,
     samples: Vec<Sample>,
-    /// Each separated body's samples, by body, at the start of each of its steps.
-    bodies: BTreeMap<usize, Vec<BodySample>>,
+    /// Each separated body's truth, by body, every [`TRUTH_STEP_S`] from its start.
+    bodies: BTreeMap<usize, Vec<BodyPoint>>,
 }
 
 impl Observer for Grid {
@@ -422,9 +420,32 @@ impl Observer for Grid {
         self.samples.push(event.sample);
     }
 
-    fn body_step(&mut self, body: usize, sample: &BodySample) {
-        self.bodies.entry(body).or_default().push(*sample);
+    fn body_step(&mut self, body: usize, step: &dyn BodyStep) -> Result<(), SimError> {
+        let points = self.bodies.entry(body).or_default();
+        let mut next = points
+            .last()
+            .map_or((step.start_s() / TRUTH_STEP_S).ceil(), |p: &BodyPoint| {
+                (p.sample.time_s / TRUTH_STEP_S).round() + 1.0
+            });
+        loop {
+            let t = next * TRUTH_STEP_S;
+            if t > step.end_s() {
+                return Ok(());
+            }
+            points.push(BodyPoint {
+                sample: step.sample(t)?,
+                acceleration_enu_m_s2: step.acceleration_enu_m_s2(t)?,
+            });
+            next += 1.0;
+        }
     }
+}
+
+/// A separated body at one instant of the truth's grid.
+#[derive(Debug, Clone, Copy)]
+struct BodyPoint {
+    sample: BodySample,
+    acceleration_enu_m_s2: DVec3,
 }
 
 /// One sample's truth.
@@ -629,9 +650,8 @@ pub fn fly_staged(draw: &Draw, json: &str) -> Result<StagedTruth, SyntheticError
         .map(|s| truth_sample(environment, s))
         .collect::<Result<Vec<_>, _>>()?;
     let sustainer = assemble(draw, &result, stack_and_sustainer, &STAGE_CHUTES[..1])?;
-    let mut steps = grid.bodies.remove(&flown.body).unwrap_or_default();
-    steps.push(flown.final_sample);
-    let booster = booster_truth(&sustainer, flown, &steps, separation_s)?;
+    let points = grid.bodies.remove(&flown.body).unwrap_or_default();
+    let booster = booster_truth(&sustainer, flown, &points, environment, separation_s)?;
     Ok(StagedTruth {
         sustainer,
         booster,
@@ -639,11 +659,13 @@ pub fn fly_staged(draw: &Draw, json: &str) -> Result<StagedTruth, SyntheticError
     })
 }
 
-/// The booster's truth: the stack's samples before the separation, then its own steps.
+/// The booster's truth: the stack's samples before the separation, then its own points and its
+/// events.
 fn booster_truth(
     stack: &Truth,
     flown: &BodyFlight,
-    steps: &[BodySample],
+    points: &[BodyPoint],
+    environment: &Environment,
     separation_s: f64,
 ) -> Result<Truth, SyntheticError> {
     let air = stack.air()?;
@@ -653,29 +675,31 @@ fn booster_truth(
         .take_while(|s| s.time_s < separation_s)
         .copied()
         .collect();
-    for (k, step) in steps.iter().enumerate() {
-        let before = &steps[k.saturating_sub(1)];
-        let after = &steps[(k + 1).min(steps.len() - 1)];
-        let span = after.time_s - before.time_s;
-        // The rate of its vertical speed less gravity's: what an accelerometer hanging along the
-        // vertical reads under a canopy. Across the step, so that an instant's step is not a spike.
-        let specific_force = if span > 0.0 {
-            (after.vertical_speed_m_s - before.vertical_speed_m_s) / span + STANDARD_GRAVITY_M_S2
-        } else {
-            STANDARD_GRAVITY_M_S2
-        };
+    let mut own: Vec<(BodySample, Option<DVec3>)> = points
+        .iter()
+        .map(|point| (point.sample, Some(point.acceleration_enu_m_s2)))
+        .collect();
+    own.push((flown.start_sample, None));
+    own.extend(flown.events.iter().map(|event| (event.sample, None)));
+    own.push((flown.final_sample, None));
+    own.sort_by(|a, b| a.0.time_s.total_cmp(&b.0.time_s));
+    for (sample, acceleration) in own {
+        // What an accelerometer hanging along the vertical reads: the point's acceleration less
+        // gravity's, up. An event's sample, on no grid point, takes the weight alone.
+        let gravity = environment.earth.gravity_enu_mps2(sample.cg_enu_m)?;
+        let specific_force = acceleration.map_or(-gravity.z, |a| (a - gravity).z);
         let state = air
-            .sample(stack.site_elevation_m + step.height_above_ground_m)?
+            .sample(stack.site_elevation_m + sample.height_above_ground_m)?
             .air;
         samples.push(TruthSample {
-            time_s: step.time_s,
-            height_m: step.height_above_ground_m,
-            vertical_speed_m_s: step.vertical_speed_m_s,
+            time_s: sample.time_s,
+            height_m: sample.height_above_ground_m,
+            vertical_speed_m_s: sample.vertical_speed_m_s,
             axial_specific_force_m_s2: specific_force,
-            mach: step.airspeed_m_s / state.speed_of_sound_m_s,
-            dynamic_pressure_pa: 0.5 * state.density_kg_m3 * step.airspeed_m_s.powi(2),
-            position_enu_m: step.cg_enu_m.to_array(),
-            velocity_enu_m_s: step.cg_velocity_enu_m_s.to_array(),
+            mach: sample.airspeed_m_s / state.speed_of_sound_m_s,
+            dynamic_pressure_pa: 0.5 * state.density_kg_m3 * sample.airspeed_m_s.powi(2),
+            position_enu_m: sample.cg_enu_m.to_array(),
+            velocity_enu_m_s: sample.cg_velocity_enu_m_s.to_array(),
         });
     }
     samples.dedup_by(|b, a| a.time_s == b.time_s);

@@ -775,27 +775,12 @@ found = "one flight on June 7, 2026 with two barometric loggers and two GPS rece
 [[row]]
 id = "G35"
 surface = "Two logs of one flight on one timeline"
-claim = "A shared liftoff recovers the clock offset between two logs of one flight, within a bound that held on the synthetic flights, and within 0.08 s of what the two boards' GPS time gives on RocketPy's Prometheus flight"
+claim = "A shared liftoff recovers the clock offset between two logs of one flight, within a bound that held on the synthetic flights. On one real pair, RocketPy's Prometheus flight, it lies about 0.08 s from what the boards' GPS time gives, where an offset of zero would miss by 0.13 s"
 pages = ["reading-a-flight-log.md#two-logs-of-one-flight", "physics/log-readings.md#two-logs-on-one-timeline", "accuracy.md#where-each-model-stands"]
-kind = "real"
+kind = "calibration"
 wanted = "real"
-not_checked = "any pair but this one, where both boards log from the boost and both carry a receiver"
-
-[[row.sample]]
-path = "refs/rocketpy/data/rockets/prometheus/2022-06-24-serial-5115-flight-0001-TeleMetrum.csv"
-sha256 = "9fe8d17a25e7944267b34a45ed955303afd5818b3f18479a5f7ffb31a574cecf"
-license = "MIT, RocketPy's repository"
-package = "fusionspace-hpr-cli"
-target = "cli"
-test = "analyze_reads_rocketpys_two_logger_flight_side_by_side"
-
-[[row.sample]]
-path = "refs/rocketpy/data/rockets/prometheus/2022-06-24-serial-6583-flight-0003-TeleMega.csv"
-sha256 = "befe40714e6b88b3bd5af8cd51b569a94544c486ced299878f66ab264f9105a6"
-license = "MIT, RocketPy's repository"
-package = "fusionspace-hpr-cli"
-target = "cli"
-test = "analyze_reads_rocketpys_two_logger_flight_side_by_side"
+not_checked = "a real pair whose clocks differ by more than a fraction of a second; the Prometheus logs both start at the boost, and the GPS reference has no stated error of its own"
+issue = 1088
 
 [[row]]
 id = "G36"

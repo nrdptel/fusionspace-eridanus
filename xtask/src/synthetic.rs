@@ -711,7 +711,7 @@ fn fly_sets(flown: &[Set], files: &DesignFiles) -> Result<Made, String> {
 }
 
 /// The designs' files under `root`, in [`DESIGNS`]' order.
-fn design_files(root: &Path) -> Result<DesignFiles, String> {
+pub(crate) fn design_files(root: &Path) -> Result<DesignFiles, String> {
     let files = DESIGNS
         .iter()
         .map(|design| {

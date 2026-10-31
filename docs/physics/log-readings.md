@@ -10,7 +10,9 @@ withholds one instead of guessing.
   climb, and landing. The rest are the flight time, the mean rate of descent, and each canopy's
   descent rate with the main's opening. They come from any logger's height track. The logger's own barometric altitude
   will do. So will a pressure turned into a height by the 1976 standard atmosphere, or an altitude
-  kept in a column of its own. An accelerometer along the rocket's axis adds the top acceleration
+  kept in a column of its own. Two logs of one flight
+  [go on one timeline](#two-logs-on-one-timeline). An accelerometer along the rocket's axis adds the
+  top acceleration
   and burnout. Without one, burnout is a [floor](../glossary.md#floor): the top speed's time less
   its bound. Each reading states a bound on its error and where it came from, or is **withheld**
   with one of 27 reasons. It never guesses. A GNSS (GPS) height gives no reading.
@@ -1080,12 +1082,15 @@ two-logger flights of their own ([ADR-257, calibrated intervals,](https://github
 §1, and [ADR-312, two logs on one timeline](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0312-two-logs-on-one-timeline.md)).
 
 **A worked example, RocketPy's Prometheus flight.** The TeleMetrum reads liftoff at 0.23 s within
-0.71 s, the TeleMega at 0.18 s within 0.83 s. So $\Delta t$ = 0.18 − 0.23 = −0.05 s, within
-0.71 + 0.83 = 1.54 s, and rounding up from the unrounded figures the command prints 1.53 s. The
-interval is −0.05 − 0.0515 × 1.53 = −0.13 s to −0.05 + 0.0526 × 1.53 = 0.03 s; the command, from the
-unrounded figures, prints −0.13 to 0.04 s. Each receiver's UTC second, taken where it ticks in its
-log, says the TeleMega's clock less the TeleMetrum's is −0.130 s. So this offset is 0.08 s away, and
-the truth by that clock lies just past the interval's low end, −0.129 s before it is rounded outward.
+0.71 s, the TeleMega at 0.18 s within 0.83 s. So $\Delta t$ = 0.18 − 0.23 = −0.05 s, within about
+1.53 s (the command adds the unrounded bounds). The interval is −0.05 − 0.0515 × 1.53 = −0.13 s to
+−0.05 + 0.0526 × 1.53 = 0.03 s; the command, from the unrounded figures, prints −0.13 to 0.04 s. Each
+receiver's UTC second, taken where it ticks in its log, puts the TeleMega's clock less the
+TeleMetrum's at −0.13 s. Over all 238 paired ticks that scatters from −0.24 to −0.03 s, and over the
+72 at 100 samples a second from −0.15 to −0.11 s. A fixed difference between the receivers' delays
+can't be seen. So this offset is about 0.08 s away, and the interval's low end, −0.129 s, is too close
+to that figure to say which side it falls. Both logs start at the boost, so an offset of zero would
+miss by 0.13 s, little worse: a weak check, on one flight.
 
 **Checked against.** On two-logger synthetic flights
 ([their sets](synthetic-flights.md#two-loggers-and-stages)), every one of the 1,383 offsets given

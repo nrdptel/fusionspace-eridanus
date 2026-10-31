@@ -4816,6 +4816,7 @@ fn analyze_reads_rocketpys_two_logger_flight_side_by_side() {
     let telemetrum = folder.join("2022-06-24-serial-5115-flight-0001-TeleMetrum.csv");
     let telemega = folder.join("2022-06-24-serial-6583-flight-0003-TeleMega.csv");
     if !telemetrum.exists() || !telemega.exists() {
+        eprintln!("skipped: {} isn't fetched", telemetrum.display());
         return;
     }
     let (telemetrum, telemega) = (

@@ -27,9 +27,9 @@
 //! bound, by 0.13 of it at most and 0.03 s in the median, and its interval passed [the coverage test][adr-257]
 //! (`cargo xtask two-logs`, [`validation/reports/two-logs.md`][report]). Each of the 135 of 200
 //! two-stage flights that gave one stayed within its bound too; the interval missed none of them,
-//! so it is wider than it need be there. One real pair checks it against another clock: on
-//! RocketPy's Prometheus flight the two boards' GPS time gives an offset within 0.08 s of this one,
-//! just outside its 90% interval. The offset is one number per pair: a clock that runs fast or slow
+//! so it is wider than it need be there. One real pair checks it, weakly, against another clock: on
+//! RocketPy's Prometheus flight the two boards' GPS time gives an offset about 0.08 s from this one,
+//! where an offset of zero would miss by 0.13 s. The offset is one number per pair: a clock that runs fast or slow
 //! isn't corrected, by about 15 ms over a 300 s flight at a crystal's 50 ppm. Nothing here can tell
 //! that two logs are of one flight: that is the caller's word.
 //!
@@ -144,7 +144,7 @@ pub struct Given {
     /// The reading.
     pub value: f64,
     /// The bound on its error; `None` for the smoother's apogee, which states a standard
-    /// deviation and its interval instead.
+    /// deviation and its interval instead, and the main's opening height, which states none.
     pub bound: Option<f64>,
     /// Its 90% interval, on the same scale; `None` for a time moved onto the timeline, whose
     /// interval on the log's own clock is the log's.
@@ -251,8 +251,12 @@ pub fn side_by_side_read(logs: &[(&FlightLog, &Readings)], flew: Flew) -> SideBy
             cell(&read.max_speed, |s| Given {
                 value: s.speed_m_s,
                 bound: Some(s.bound_m_s),
-                interval: s.interval_m_s,
-                is_floor: false,
+                interval: if ends_climbing(read) {
+                    None
+                } else {
+                    s.interval_m_s
+                },
+                is_floor: ends_climbing(read),
                 source: Some(s.source),
                 provenance: Some(s.provenance),
             })
@@ -380,6 +384,12 @@ fn after_liftoff<T>(
     }
 }
 
+/// Whether the log ends on the climb, so that its top height is a floor, and what it read of the
+/// climb's top speed may be too.
+fn ends_climbing(read: &Readings) -> bool {
+    read.apogee.value().is_some_and(|apogee| apogee.is_floor)
+}
+
 /// The smoother's apogee as a cell.
 fn smoothed_apogee(log: &FlightLog, read: &Readings) -> Cell {
     let smoothed = match smoother::smooth_with(log, read, Options::default()) {
@@ -393,14 +403,17 @@ fn smoothed_apogee(log: &FlightLog, read: &Readings) -> Cell {
     match smoothed.at(smoothed.apogee_time_s) {
         Some(state) => {
             let half = INTERVAL_Z * state.height_sd_m;
+            // Where the log ends on the climb the track's top isn't the rocket's: a floor, its
+            // interval a claim about the wrong height.
+            let is_floor = ends_climbing(read);
             Cell::Read(Given {
                 value: state.height_m,
                 bound: None,
-                interval: Some(Interval {
+                interval: (!is_floor).then_some(Interval {
                     low: state.height_m - half,
                     high: state.height_m + half,
                 }),
-                is_floor: false,
+                is_floor,
                 source: None,
                 provenance: None,
             })
@@ -615,6 +628,37 @@ mod tests {
             .unwrap();
         assert!(matches!(apogee_time.cells[1], Cell::Withheld { .. }));
         assert_eq!(apogee_time.spread, None);
+    }
+
+    #[test]
+    fn a_log_cut_on_the_climb_gives_floors_in_every_row_its_top_stands_for() {
+        let whole = flown(3.0, 500.0);
+        let mut cut = whole.clone();
+        // Ending mid-climb, four seconds after liftoff.
+        let keep = cut.time_s.iter().position(|t| *t > 3.0 + 4.0).unwrap();
+        cut.time_s.truncate(keep);
+        cut.altitude_m.truncate(keep);
+        let read = readings::read(&cut);
+        assert!(
+            read.apogee.value().is_some_and(|a| a.is_floor),
+            "{:?}",
+            read.apogee
+        );
+        let side = side_by_side(&[&whole, &cut], Flew::OneAirframe);
+        for what in [What::ApogeeHeight, What::SmoothedApogee, What::TopSpeed] {
+            let row = side.rows.iter().find(|row| row.what == what).unwrap();
+            assert_eq!(row.spread, None, "{what:?}: {row:?}");
+            let Cell::Read(given) = &row.cells[1] else {
+                panic!("{what:?}: {row:?}");
+            };
+            assert!(given.is_floor, "{what:?}: {given:?}");
+            assert_eq!(given.interval, None, "{what:?}: {given:?}");
+            // The whole log's reading stands: it says its top whole.
+            let Cell::Read(whole) = &row.cells[0] else {
+                panic!("{what:?}: {row:?}");
+            };
+            assert!(!whole.is_floor, "{what:?}: {whole:?}");
+        }
     }
 
     #[test]

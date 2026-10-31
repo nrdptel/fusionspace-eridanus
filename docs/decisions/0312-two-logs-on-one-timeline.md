@@ -37,17 +37,23 @@ them useless.
    to 300 s. A log with no barometer has no liftoff, so its flight gives no offset, counted by
    reason. `cargo xtask two-logs --check` holds [the report][report] on all five platforms.
 4. **A staged flight's truth needs the booster's fall.** `FlightResult::bodies` holds a separated
-   body's events and not its path, so `hpr_sim::Observer` gains `body_step`, doing nothing by
-   default. It changes no flight. The booster tumbles from the split, because HPR Sim needs a device
+   body's events and not its path, so `hpr_sim::Observer` gains `body_step`, seeing every accepted
+   step of a body with its dense output, as `step` does a flight's, and doing nothing by default. It
+   changes no flight. The booster tumbles from the split, because HPR Sim needs a device
    acting there on a booster dropped under power. The sustainer takes a canopy.
 5. **Stages report no spread.** A booster's apogee and a sustainer's are different heights.
-6. **A floor joins no spread**, not being the value.
+6. **A floor joins no spread**, not being the value. A log that ends on the climb makes floors of
+   its smoothed apogee and its top speed too, in this comparison, each without an interval. One log
+   read alone doesn't do so yet ([#1089][i1089]).
 
 **Consequences.** Reading a pair needs no design file and no simulation, as ADR-046 asks. A GPS
 track can't join a timeline yet ([#1086][i1086]), nor can a log read by a mapping, nor can Python
 read a pair yet ([#1085][i1085]). The staged path rests on simulated flights alone
-([#1084][i1084]). One real pair checks the offset against another clock.
+([#1084][i1084]). One real pair checks the offset against another clock, weakly: its two logs both
+start at the boost, so an offset of zero misses by little more, and the reference has no stated
+error of its own. Its evidence row therefore takes the weakest kind behind it, calibration.
 
 [i1084]: https://github.com/nrdptel/fusionspace-eridanus/issues/1084
 [i1085]: https://github.com/nrdptel/fusionspace-eridanus/issues/1085
 [i1086]: https://github.com/nrdptel/fusionspace-eridanus/issues/1086
+[i1089]: https://github.com/nrdptel/fusionspace-eridanus/issues/1089

@@ -14,10 +14,10 @@ use std::collections::BTreeMap;
 use std::fmt::Write as _;
 use std::fs;
 use std::panic::{self, AssertUnwindSafe};
-use std::path::Path;
 
+use hpr_flightdata::readings::Reason;
 use hpr_flightdata::timeline::OFFSET_SHARES;
-use hpr_forensics::synthetic::designs::{DESIGNS, DesignFiles};
+use hpr_forensics::synthetic::designs::DesignFiles;
 use hpr_forensics::synthetic::intervals::{Probe, Test, three_figures};
 use hpr_forensics::synthetic::paired::{self, Check, Said, Staged, TwoLogs};
 use hpr_forensics::synthetic::{Flyer, Set};
@@ -45,7 +45,7 @@ struct Report {
     fitted_low: f64,
     fitted_high: f64,
     calibration_given: u64,
-    calibration_withheld: BTreeMap<hpr_flightdata::readings::Reason, u64>,
+    calibration_withheld: BTreeMap<Reason, u64>,
     sections: Vec<Section>,
     staged: Section,
 }
@@ -60,7 +60,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
         }
     }
     let root = crate::designs::root()?;
-    let files = design_files(&root)?;
+    let files = crate::synthetic::design_files(&root)?;
     let two_stage = fs::read_to_string(root.join(TWO_STAGE_DESIGN))
         .map_err(|error| format!("{TWO_STAGE_DESIGN}: {error}"))?;
     let mut broken = Vec::new();
@@ -80,6 +80,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
         ));
     }
     let calibration_check = paired::check(&calibration);
+    problems_of(Set::PairCalibration, &calibration_check, false, &mut broken);
 
     let mut sections = Vec::new();
     for set in [Set::PairA, Set::PairB] {
@@ -149,8 +150,19 @@ pub fn run(args: &[String]) -> Result<(), String> {
     Ok(())
 }
 
-/// What fails the check on `set`.
+/// What fails the check on `set`: a bound passed, a flight withheld for an unforeseen reason and,
+/// `with_interval`, the coverage test.
 fn problems_of(set: Set, check: &Check, with_interval: bool, broken: &mut Vec<String>) {
+    // A flight dropped for another reason would take its misses out of the counts.
+    broken.extend(
+        check
+            .withheld
+            .iter()
+            .filter(|(reason, _)| **reason != Reason::ReceiverDropout)
+            .map(|(reason, count)| {
+                format!("{}: {count} offsets withheld as {reason:?}", set.name())
+            }),
+    );
     if !check.bound_holds() {
         broken.push(format!(
             "{}: {} of {} offsets within their bound, the largest {} of it",
@@ -206,20 +218,6 @@ fn section(set: Set, mut check: Check) -> Section {
         drawn: set.count(),
         check,
     }
-}
-
-/// The designs' files, as `cargo xtask synthetic` reads them.
-fn design_files(root: &Path) -> Result<DesignFiles, String> {
-    let files = DESIGNS
-        .iter()
-        .map(|design| {
-            let path = root
-                .join("validation/designs")
-                .join(format!("{}.json", design.name));
-            fs::read_to_string(&path).map_err(|error| format!("{}: {error}", path.display()))
-        })
-        .collect::<Result<Vec<_>, _>>()?;
-    DesignFiles::new(files).map_err(|error| error.to_string())
 }
 
 /// The threads to share a set's flights among.

@@ -885,18 +885,31 @@ mod tests {
         (rocket, separations)
     }
 
-    /// Each separated body's steps, as an observer sees them.
+    /// Each separated body's steps, as an observer sees them: their ends, each with the body's
+    /// sample and acceleration at the middle of the step.
     #[derive(Default)]
-    struct BodySteps(Vec<(usize, crate::recovery::BodySample)>);
+    struct BodySteps(Vec<(usize, f64, f64, crate::recovery::BodySample, DVec3)>);
 
     impl Observer for BodySteps {
-        fn body_step(&mut self, body: usize, sample: &crate::recovery::BodySample) {
-            self.0.push((body, *sample));
+        fn body_step(
+            &mut self,
+            body: usize,
+            step: &dyn crate::recorder::BodyStep,
+        ) -> Result<(), SimError> {
+            let middle = 0.5 * (step.start_s() + step.end_s());
+            self.0.push((
+                body,
+                step.start_s(),
+                step.end_s(),
+                step.sample(middle)?,
+                step.acceleration_enu_m_s2(middle)?,
+            ));
+            Ok(())
         }
     }
 
     #[test]
-    fn an_observer_sees_each_separated_bodys_steps_and_changes_no_flight() {
+    fn an_observer_sees_each_accepted_step_of_a_separated_body_and_changes_no_flight() {
         let sim = serial_plan();
         let mut steps = BodySteps::default();
         let watched = sim.run(&mut steps).unwrap();
@@ -904,20 +917,31 @@ mod tests {
         let [booster] = watched.bodies.as_slice() else {
             panic!("one dropped body: {:?}", watched.bodies);
         };
-        let own: Vec<_> = steps
-            .0
-            .iter()
-            .filter(|(body, _)| *body == booster.body)
-            .map(|(_, sample)| *sample)
-            .collect();
-        assert_eq!(own.len(), steps.0.len());
-        // It starts where the body's flight starts, runs in time order, and stops short of where
-        // the flight ends, on the way down the same path.
-        assert_eq!(own[0], booster.start_sample);
-        assert!(own.windows(2).all(|pair| pair[0].time_s < pair[1].time_s));
-        let last = own.last().unwrap();
-        assert!(last.time_s < booster.final_sample.time_s);
-        assert!(last.height_above_ground_m > booster.final_sample.height_above_ground_m);
+        let seen = &steps.0;
+        assert!(seen.iter().all(|step| step.0 == booster.body));
+        // The integrator's own work on the body: every step accepted, none skipped between its
+        // stops, from where its flight starts to where it ends.
+        assert_eq!(
+            seen.len() as u64,
+            booster.stats.accepted_steps,
+            "{:?}",
+            booster.stats
+        );
+        assert_eq!(seen[0].1, booster.start_sample.time_s);
+        assert!(seen.windows(2).all(|pair| pair[0].2 == pair[1].1));
+        assert_eq!(seen.last().unwrap().2, booster.final_sample.time_s);
+        // The acceleration is the sample's velocity's own rate: across a step, the velocities at
+        // the middles of two neighbors differ by the mean of their accelerations over the time
+        // between them, to the second order of a step well inside the fall.
+        let tall = seen.len() / 2;
+        let (a, b) = (&seen[tall], &seen[tall + 1]);
+        let dt = b.3.time_s - a.3.time_s;
+        let by_difference = (b.3.cg_velocity_enu_m_s - a.3.cg_velocity_enu_m_s) / dt;
+        let by_equation = (a.4 + b.4) * 0.5;
+        assert!(
+            (by_difference - by_equation).length() < 0.01 * by_equation.length().max(1.0),
+            "{by_difference} against {by_equation} over {dt} s"
+        );
     }
 
     #[test]

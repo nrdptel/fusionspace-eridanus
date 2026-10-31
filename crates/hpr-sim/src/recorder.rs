@@ -203,7 +203,31 @@ pub trait FlightStep {
     fn stability(&self, t_s: f64) -> Result<Stability, SimError>;
 }
 
-/// Watches a flight as it runs. Both methods do nothing by default; `()` watches nothing.
+/// One accepted integration step of a separated body, flown as a point mass.
+pub trait BodyStep {
+    /// When the step starts, s since launch.
+    fn start_s(&self) -> f64;
+
+    /// When the step ends, s since launch.
+    fn end_s(&self) -> f64;
+
+    /// The body at `t_s`, inside the step, from the integrator's dense output.
+    ///
+    /// # Errors
+    ///
+    /// Whatever the atmosphere or the frame returns.
+    fn sample(&self, t_s: f64) -> Result<BodySample, SimError>;
+
+    /// Its acceleration in the launch frame at `t_s`, m/s²: the point mass's equation of motion
+    /// (`docs/physics/recovery.md`).
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::sample`].
+    fn acceleration_enu_m_s2(&self, t_s: f64) -> Result<DVec3, SimError>;
+}
+
+/// Watches a flight as it runs. Every method does nothing by default; `()` watches nothing.
 pub trait Observer {
     /// Sees every accepted integration step, in order.
     ///
@@ -220,11 +244,15 @@ pub trait Observer {
         let _ = event;
     }
 
-    /// Sees a separated body at the start of every accepted step of its flight to the ground,
-    /// numbered as [`crate::BodyFlight::body`] is. Its last step's end is the body's
-    /// [`crate::BodyFlight::final_sample`].
-    fn body_step(&mut self, body: usize, sample: &BodySample) {
-        let _ = (body, sample);
+    /// Sees every accepted integration step of a separated body's flight to the ground, in order,
+    /// the body numbered as [`crate::BodyFlight::body`] is.
+    ///
+    /// # Errors
+    ///
+    /// An error stops the flight and is returned from it.
+    fn body_step(&mut self, body: usize, step: &dyn BodyStep) -> Result<(), SimError> {
+        let _ = (body, step);
+        Ok(())
     }
 }
 
@@ -240,8 +268,8 @@ impl<T: Observer + ?Sized> Observer for &mut T {
         (**self).event(event);
     }
 
-    fn body_step(&mut self, body: usize, sample: &BodySample) {
-        (**self).body_step(body, sample);
+    fn body_step(&mut self, body: usize, step: &dyn BodyStep) -> Result<(), SimError> {
+        (**self).body_step(body, step)
     }
 }
 
@@ -257,9 +285,9 @@ impl<A: Observer, B: Observer> Observer for (A, B) {
         self.1.event(event);
     }
 
-    fn body_step(&mut self, body: usize, sample: &BodySample) {
-        self.0.body_step(body, sample);
-        self.1.body_step(body, sample);
+    fn body_step(&mut self, body: usize, step: &dyn BodyStep) -> Result<(), SimError> {
+        self.0.body_step(body, step)?;
+        self.1.body_step(body, step)
     }
 }
 

@@ -2031,7 +2031,12 @@ logs are one logger to a stage, of a stack that left the pad together; it gives 
 booster's readings and a sustainer's being of different bodies.
 
 These two logs are invented, their clocks 53.5 s apart ([Reading a flight
-log](reading-a-flight-log.md#two-logs-of-one-flight) has a real pair):
+log](reading-a-flight-log.md#two-logs-of-one-flight) has a real pair). "Within" is the most a
+reading's error came to on the synthetic flights. The 90% interval is where the truth lay nine times
+in ten, and it needn't hold the reading: liftoff is read late, so its interval lies earlier
+([the 90% intervals](reading-a-flight-log.md#the-90-intervals-and-the-health-card)). `unknown` is the
+logger's name, which these two tables don't state. A staged flight's logs take the same arguments
+and `--stages`: `hpr analyze sustainer.csv booster.csv --stages`.
 
 <!-- cli: example `hpr analyze validation/fixtures/logs/two-logs/first-board.csv validation/fixtures/logs/two-logs/second-board.csv`; written by `cargo xtask cli`; do not edit -->
 

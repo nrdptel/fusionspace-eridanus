@@ -53,7 +53,7 @@ use crate::integrator::{
 use crate::metrics::Stability;
 use crate::pieces::{Ejection, Pieces};
 use crate::rail::{Guides, Rail};
-use crate::recorder::{FlightStep, Observer, Sample};
+use crate::recorder::{BodyStep, FlightStep, Observer, Sample};
 use crate::recovery::{self, BodyEvent, BodyFlight, BodySample, Device, Run, Separation, Trigger};
 use crate::releases::{MassRelease, ReleasedFlight, Releases};
 use crate::shifts::{MassShift, Shifts};
@@ -2576,7 +2576,6 @@ impl Simulation {
             if t >= cap {
                 break Termination::TimeCap;
             }
-            observer.body_step(body, &self.body_sample(body, mass_kg, t, &y, run)?);
             // Charges, deployments and releases, as in the main loop.
             loop {
                 let mut again = false;
@@ -2782,6 +2781,7 @@ impl Simulation {
                 run,
                 apogee,
                 watches: &watches,
+                observer: &mut *observer,
                 failure: None,
             };
             let outcome = integrator.advance(&mut system, next);
@@ -3310,7 +3310,49 @@ struct BodySystem<'a> {
     /// The heights this body is watching for, after the apogee: its devices' deployment heights
     /// and its splits'.
     watches: &'a [f64],
+    observer: &'a mut dyn Observer,
     failure: Option<SimError>,
+}
+
+/// A separated body's accepted step, as an [`Observer`] sees it.
+struct BodyStepView<'a> {
+    simulation: &'a Simulation,
+    body: usize,
+    mass_kg: f64,
+    run: &'a Run,
+    step: &'a Step<6>,
+}
+
+impl BodyStep for BodyStepView<'_> {
+    fn start_s(&self) -> f64 {
+        self.step.start_s()
+    }
+
+    fn end_s(&self) -> f64 {
+        self.step.end_s()
+    }
+
+    fn sample(&self, t_s: f64) -> Result<BodySample, SimError> {
+        self.simulation.body_sample(
+            self.body,
+            self.mass_kg,
+            t_s,
+            &self.step.state_at(t_s),
+            self.run,
+        )
+    }
+
+    fn acceleration_enu_m_s2(&self, t_s: f64) -> Result<DVec3, SimError> {
+        let drag_area_m2 = self
+            .run
+            .body_drag_area_m2(&self.simulation.devices, self.body, t_s);
+        let rates = self.simulation.point_mass_derivative(
+            &self.step.state_at(t_s),
+            self.mass_kg,
+            drag_area_m2,
+        )?;
+        Ok(DVec3::new(rates[3], rates[4], rates[5]))
+    }
 }
 
 impl BodySystem<'_> {
@@ -3361,6 +3403,23 @@ impl OdeSystem<6> for BodySystem<'_> {
         self.watches
             .get(watch)
             .map_or(f64::NAN, |height_m| sample.height_above_ground_m - height_m)
+    }
+
+    fn accept_step(&mut self, step: &Step<6>) -> ControlFlow<()> {
+        let view = BodyStepView {
+            simulation: self.simulation,
+            body: self.body,
+            mass_kg: self.mass_kg,
+            run: self.run,
+            step,
+        };
+        match self.observer.body_step(self.body, &view) {
+            Ok(()) => ControlFlow::Continue(()),
+            Err(error) => {
+                self.failure.get_or_insert(error);
+                ControlFlow::Break(())
+            }
+        }
     }
 }
 

@@ -215,7 +215,8 @@ enum Key {
 }
 
 /// The key of the stream the smoother's check draws its moment from ([`smoothed::moment_drawn`]):
-/// after every [`Key`], so no flight's other draws move.
+/// after every [`Key`] its sets' flights draw, so no flight's other draws move. [`Key::SecondLogger`]
+/// shares its number; the two-logger sets, which alone draw that key, don't run the smoother's check.
 pub(crate) const SMOOTHER_MOMENT_KEY: u64 = 14;
 
 /// Flight `index`'s stream for `key`.

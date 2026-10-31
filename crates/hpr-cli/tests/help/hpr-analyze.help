@@ -54,7 +54,7 @@ Examples:
       hpr analyze flight.pf2
   Read two logs of one flight side by side, on one timeline:
       hpr analyze telemetrum.csv telemega.csv
-  Read your own logger's table by a mapping, and print every channel it holds:
-      hpr analyze flight.csv --mapping logger.json --record
+  Print what your own logger's table header states, as a mapping to edit:
+      hpr analyze flight.csv --print-mapping > logger.json
 
 Guide: https://hpr.fusionspace.co/cli.html#hpr-analyze
