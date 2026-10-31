@@ -18,8 +18,9 @@
 # reads only its solution's points; the power-on maximum likewise, over the steps up to burnout;
 # drifts as horizontal distances from where the dry centre of mass started.
 #
-# Every scored metric is held to the milestone's 3%, with no absolute floor, the speeds to 0.2%
-# (ADR-289) and the rail-exit time to 0.5% (ADR-294), and the largest Mach number and the largest
+# Every scored metric is held to the milestone's 3%, with no absolute floor, the burnout and largest
+# speeds to 0.2% (ADR-289), the rail-exit speed to 0.05% and the landing speed to 0.1% (ADR-310) and
+# the rail-exit time to 0.5% (ADR-294), and the largest Mach number and the largest
 # acceleration, under power and over the whole flight, to 1% (ADR-303). The 3% is the milestone's
 # bar, not a model bound: most metrics agree far inside it. The differences that remain have these
 # sources, measured where stated:
@@ -98,7 +99,7 @@ relative = 0.03
 relative = 0.01
 
 [metrics.rail_exit_speed_m_s]
-relative = 0.002
+relative = 0.0005
 
 [metrics.rail_exit_time_s]
 relative = 0.005
@@ -119,7 +120,7 @@ not_scored = "a measured model difference, not an open miss (ADR-026): hpr's apo
 not_scored = "a measured model difference, as the apogee drift is (ADR-026): the landing point follows the apogee's, so hpr lands 36.7% further out (654.0 m against 478.5). With hpr's rail release, body lift and thin-plate fins, RocketPy lands 650.1 m out (validation/oracles/rocketpy/wind_response.py), within 0.7% of hpr. Reported, not scored, for the apogee drift's reason."
 
 [metrics.impact_speed_m_s]
-relative = 0.002
+relative = 0.001
 
 # The time-series RMS (M2.1d1): hpr's height and speed at the reference's 120 series times, from
 # ignition until hpr lands, less RocketPy's; the reference value is 0, exact agreement. Each is held

@@ -84,7 +84,7 @@
       "reference": 5.456019565444218,
       "source": "rocketpy 1.13.0, validation/oracles/rocketpy/recovery.py, case calisto-tests-motor-at-minus-1.373, metrics.impact_speed_m_s",
       "tolerance": {
-        "relative": 0.002
+        "relative": 0.001
       },
       "difference": -0.0015830521953228427,
       "relative": -0.0002901478222968861,
@@ -162,7 +162,7 @@
       "reference": 17.626261225429708,
       "source": "rocketpy 1.13.0, validation/oracles/rocketpy/recovery.py, case valetudo, metrics.impact_speed_m_s",
       "tolerance": {
-        "relative": 0.002
+        "relative": 0.001
       },
       "difference": 0.0006699222620305534,
       "relative": 0.000038007053989648415,
@@ -240,7 +240,7 @@
       "reference": 4.603800806559603,
       "source": "rocketpy 1.13.0, validation/oracles/rocketpy/recovery.py, case ndrt-2020-nose-to-tail, metrics.impact_speed_m_s",
       "tolerance": {
-        "relative": 0.002
+        "relative": 0.001
       },
       "difference": 0.0005366295401865173,
       "relative": 0.00011656228467181183,
@@ -318,7 +318,7 @@
       "reference": 7.324998675844104,
       "source": "rocketpy 1.13.0, validation/oracles/rocketpy/recovery.py, case prometheus-2022-generic-motor, metrics.impact_speed_m_s",
       "tolerance": {
-        "relative": 0.002
+        "relative": 0.001
       },
       "difference": -0.0022029519217365845,
       "relative": -0.00030074434402306907,
@@ -396,7 +396,7 @@
       "reference": 22.43230014341138,
       "source": "rocketpy 1.13.0, validation/oracles/rocketpy/recovery.py, case juno-iii, metrics.impact_speed_m_s",
       "tolerance": {
-        "relative": 0.002
+        "relative": 0.001
       },
       "difference": -0.0017653433303408406,
       "relative": -0.00007869649206968827,
@@ -500,7 +500,7 @@
       "reference": 5.456019564836975,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case calisto-tests-motor-at-minus-1.373, metrics.impact_speed_m_s",
       "tolerance": {
-        "relative": 0.002
+        "relative": 0.001
       },
       "difference": -0.0010784395822875936,
       "relative": -0.0001976605049655494,
@@ -590,7 +590,7 @@
       "reference": 28.200554592335756,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case calisto-tests-motor-at-minus-1.373, metrics.rail_exit_speed_m_s",
       "tolerance": {
-        "relative": 0.002
+        "relative": 0.0005
       },
       "difference": -0.002732571252352045,
       "relative": -0.00009689778416963095,
@@ -720,7 +720,7 @@
       "reference": 17.626261231151904,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case valetudo, metrics.impact_speed_m_s",
       "tolerance": {
-        "relative": 0.002
+        "relative": 0.001
       },
       "difference": 0.0015441103128246425,
       "relative": 0.00008760282697363225,
@@ -811,7 +811,7 @@
       "reference": 20.065782436831583,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case valetudo, metrics.rail_exit_speed_m_s",
       "tolerance": {
-        "relative": 0.002
+        "relative": 0.0005
       },
       "difference": -0.0003282874747050357,
       "relative": -0.00001636056185391756,
@@ -940,7 +940,7 @@
       "reference": 4.6038008066310185,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case ndrt-2020-nose-to-tail, metrics.impact_speed_m_s",
       "tolerance": {
-        "relative": 0.002
+        "relative": 0.001
       },
       "difference": 0.0009950516341445947,
       "relative": 0.0002161369867939087,
@@ -1030,7 +1030,7 @@
       "reference": 16.542866680367204,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case ndrt-2020-nose-to-tail, metrics.rail_exit_speed_m_s",
       "tolerance": {
-        "relative": 0.002
+        "relative": 0.0005
       },
       "difference": -0.0015448456802040766,
       "relative": -0.00009338440005911874,
@@ -1159,7 +1159,7 @@
       "reference": 7.324998673182699,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case prometheus-2022-generic-motor, metrics.impact_speed_m_s",
       "tolerance": {
-        "relative": 0.002
+        "relative": 0.001
       },
       "difference": -0.0009366429574351187,
       "relative": -0.00012786936888660883,
@@ -1248,7 +1248,7 @@
       "reference": 25.97824073050822,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case prometheus-2022-generic-motor, metrics.rail_exit_speed_m_s",
       "tolerance": {
-        "relative": 0.002
+        "relative": 0.0005
       },
       "difference": -0.003728368461533904,
       "relative": -0.00014351889722676248,
@@ -1377,7 +1377,7 @@
       "reference": 22.432300116375796,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case juno-iii, metrics.impact_speed_m_s",
       "tolerance": {
-        "relative": 0.002
+        "relative": 0.001
       },
       "difference": -0.0005893211982801461,
       "relative": -0.00002627109994172804,
@@ -1467,7 +1467,7 @@
       "reference": 18.210146067643763,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case juno-iii, metrics.rail_exit_speed_m_s",
       "tolerance": {
-        "relative": 0.002
+        "relative": 0.0005
       },
       "difference": -0.0008202417996265865,
       "relative": -0.000045043120279194925,
@@ -1596,7 +1596,7 @@
       "reference": 19.673890567816535,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case bella-lui, metrics.impact_speed_m_s",
       "tolerance": {
-        "relative": 0.002
+        "relative": 0.001
       },
       "difference": 0.004167309392553165,
       "relative": 0.00021181928293177778,
@@ -1686,7 +1686,7 @@
       "reference": 16.999413550645535,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case bella-lui, metrics.rail_exit_speed_m_s",
       "tolerance": {
-        "relative": 0.002
+        "relative": 0.0005
       },
       "difference": -0.0021862906368497192,
       "relative": -0.00012860976823325163,
@@ -1816,7 +1816,7 @@
       "reference": 22.433431108277645,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case juno-iii-calm, metrics.impact_speed_m_s",
       "tolerance": {
-        "relative": 0.002
+        "relative": 0.001
       },
       "difference": 0.0002743776753995064,
       "relative": 0.000012230749459375593,
@@ -1907,7 +1907,7 @@
       "reference": 18.21134983694347,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case juno-iii-calm, metrics.rail_exit_speed_m_s",
       "tolerance": {
-        "relative": 0.002
+        "relative": 0.0005
       },
       "difference": -0.0003851525776603637,
       "relative": -0.000021149040631740804,
@@ -2037,7 +2037,7 @@
       "reference": 5.456270497394696,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case calisto-tests-motor-at-minus-1.373-calm, metrics.impact_speed_m_s",
       "tolerance": {
-        "relative": 0.002
+        "relative": 0.001
       },
       "difference": -0.0001568775661491273,
       "relative": -0.000028751794146575845,
@@ -2127,7 +2127,7 @@
       "reference": 28.201097923815514,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case calisto-tests-motor-at-minus-1.373-calm, metrics.rail_exit_speed_m_s",
       "tolerance": {
-        "relative": 0.002
+        "relative": 0.0005
       },
       "difference": -0.00021134485925600188,
       "relative": -7.4942067797127675e-6,
@@ -2257,7 +2257,7 @@
       "reference": 19.67419163420967,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case bella-lui-calm, metrics.impact_speed_m_s",
       "tolerance": {
-        "relative": 0.002
+        "relative": 0.001
       },
       "difference": 0.004138712604010664,
       "relative": 0.00021036252370411148,
@@ -2348,7 +2348,7 @@
       "reference": 17.00006385128864,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case bella-lui-calm, metrics.rail_exit_speed_m_s",
       "tolerance": {
-        "relative": 0.002
+        "relative": 0.0005
       },
       "difference": -0.000013362075844014498,
       "relative": -7.860015092238389e-7,
@@ -2478,7 +2478,7 @@
       "reference": 5.456019564836169,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case calisto-tests-motor-at-minus-1.373, metrics.impact_speed_m_s",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.001
       },
       "difference": -0.0011108974413298611,
       "relative": -0.00020360950471833922,
@@ -2569,7 +2569,7 @@
       "reference": 28.202425039968347,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case calisto-tests-motor-at-minus-1.373, metrics.rail_exit_speed_m_s",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.001
       },
       "difference": -0.002631378583750177,
       "relative": -0.00009330327374404859,
@@ -2582,7 +2582,7 @@
       "reference": 0.29469565048146706,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case calisto-tests-motor-at-minus-1.373, metrics.rail_exit_time_s",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.005
       },
       "difference": -0.000210185642126548,
       "relative": -0.0007132295362457894,
@@ -2699,7 +2699,7 @@
       "reference": 17.62626123109716,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case valetudo, metrics.impact_speed_m_s",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.001
       },
       "difference": 0.00154418040021298,
       "relative": 0.00008760680327877232,
@@ -2790,7 +2790,7 @@
       "reference": 20.057835669837104,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case valetudo, metrics.rail_exit_speed_m_s",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.001
       },
       "difference": 0.005907405506430763,
       "relative": 0.0002945185913211113,
@@ -2803,7 +2803,7 @@
       "reference": 0.4557291757217655,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case valetudo, metrics.rail_exit_time_s",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.005
       },
       "difference": -0.0004985905506628696,
       "relative": -0.0010940501008591824,
@@ -2920,7 +2920,7 @@
       "reference": 4.603800806574634,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case ndrt-2020-nose-to-tail, metrics.impact_speed_m_s",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.001
       },
       "difference": 0.0009962973520796226,
       "relative": 0.0002164075714693872,
@@ -3011,7 +3011,7 @@
       "reference": 16.54349138015372,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case ndrt-2020-nose-to-tail, metrics.rail_exit_speed_m_s",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.001
       },
       "difference": 0.000043648236594862055,
       "relative": 2.6383932866326117e-6,
@@ -3024,7 +3024,7 @@
       "reference": 0.21514442683587692,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case ndrt-2020-nose-to-tail, metrics.rail_exit_time_s",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.005
       },
       "difference": -0.00018695477193997334,
       "relative": -0.0008689733435790643,
@@ -3141,7 +3141,7 @@
       "reference": 7.324998673805197,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case prometheus-2022-generic-motor, metrics.impact_speed_m_s",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.001
       },
       "difference": -0.0009194260849687552,
       "relative": -0.00012551894217492478,
@@ -3232,7 +3232,7 @@
       "reference": 25.980164323230106,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case prometheus-2022-generic-motor, metrics.rail_exit_speed_m_s",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.001
       },
       "difference": 0.00028724336162966324,
       "relative": 0.000011056256536946736,
@@ -3245,7 +3245,7 @@
       "reference": 0.38300136240602267,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case prometheus-2022-generic-motor, metrics.rail_exit_time_s",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.005
       },
       "difference": -0.00013843246293221423,
       "relative": -0.0003614411762469422,
@@ -3362,7 +3362,7 @@
       "reference": 22.43230011637579,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case juno-iii, metrics.impact_speed_m_s",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.001
       },
       "difference": -0.0006329101758844047,
       "relative": -0.00002821423450118583,
@@ -3453,7 +3453,7 @@
       "reference": 18.210796378901822,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case juno-iii, metrics.rail_exit_speed_m_s",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.001
       },
       "difference": -0.00014643786927592828,
       "relative": -8.041266632665463e-6,
@@ -3466,7 +3466,7 @@
       "reference": 0.4446987101061454,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case juno-iii, metrics.rail_exit_time_s",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.005
       },
       "difference": -0.0006360466555268007,
       "relative": -0.0014302867111419828,
@@ -3583,7 +3583,7 @@
       "reference": 19.673890566063807,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case bella-lui, metrics.impact_speed_m_s",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.001
       },
       "difference": 0.004168716186644161,
       "relative": 0.0002118907885883501,
@@ -3674,7 +3674,7 @@
       "reference": 17.00056028498106,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case bella-lui, metrics.rail_exit_speed_m_s",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.001
       },
       "difference": -0.0018831067791538203,
       "relative": -0.0001107673363458161,
@@ -3687,7 +3687,7 @@
       "reference": 0.34374294702981134,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case bella-lui, metrics.rail_exit_time_s",
       "tolerance": {
-        "relative": 0.03
+        "relative": 0.005
       },
       "difference": -0.00009861615461714823,
       "relative": -0.0002868892452027406,

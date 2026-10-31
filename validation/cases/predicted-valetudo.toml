@@ -13,7 +13,8 @@
 # RocketPy's example records none (`xtask/src/designs.rs`), so a miss is not a gap for hpr to close
 # toward the example's drag.
 #
-# Every metric carries M2.1's 3% as a target: reported as within or outside it, never gated, so a
+# Every metric carries M2.1's 3% as a target (the rail-exit and landing speeds 0.1% and the
+# rail-exit time 0.5%, ADR-310): reported as within or outside it, never gated, so a
 # miss does not fail the run and a number that moves still shows in the committed report. The
 # misses, and why:
 #
@@ -60,10 +61,10 @@ relative = 0.03
 relative = 0.03
 
 [metrics.rail_exit_speed_m_s]
-relative = 0.03
+relative = 0.001
 
 [metrics.rail_exit_time_s]
-relative = 0.03
+relative = 0.005
 
 [metrics.burnout_altitude_agl_m]
 relative = 0.03
@@ -81,7 +82,7 @@ relative = 0.03
 relative = 0.03
 
 [metrics.impact_speed_m_s]
-relative = 0.03
+relative = 0.001
 
 # The time-series RMS (M2.1d1): hpr's height and speed at the reference's 120 series times, from
 # ignition until hpr lands, less RocketPy's; the reference value is 0, exact agreement. Each is held

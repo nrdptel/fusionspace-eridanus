@@ -367,7 +367,8 @@ fn headline_names_oracle_kind_population_and_regime() {
     assert_eq!(
         predicted.headline(),
         "Whole flights, each code on its own drag against rocketpy 1.13.0 (code-to-code, each \
-         code's own drag; target: 3% on each metric, reported, not enforced): 1 flight (1 \
+         code's own drag; target: each metric's tolerance, 0.1% to 3%, reported, not enforced): \
+         1 flight (1 \
          supersonic); 2 of 2 metrics within target; apogee +1.00% to +1.00%."
     );
     // The logs' version names the altimeters, and the census's own mean.
