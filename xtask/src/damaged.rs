@@ -1,6 +1,6 @@
 //! Damaged input (M0.15): each reader of outside bytes fed damaged copies of real input. A damaged
 //! file or a server's damaged answer gets an error, never a panic or a hang; `clippy` can't say so
-//! (`indexing_slicing` flags 1,524 places in the crates that read one), so the tests try it.
+//! (`indexing_slicing` flagged 1,524 places in the crates that read one), so the tests try it.
 //!
 //! [`probe`] runs one read on its own thread and says how it ended. The list of readers and the
 //! tests that walk it are in `damaged/tests.rs`; `xtask logs --check`, `xtask ork-flights --library

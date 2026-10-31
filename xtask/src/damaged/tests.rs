@@ -150,7 +150,7 @@ fn unlisted(
         let listed = in_list.get(key).copied().unwrap_or(0);
         if listed == 0 {
             lines.push(format!("{key}: in the source, not in the list"));
-        } else if listed < *found {
+        } else if listed != *found {
             lines.push(format!(
                 "{key}: {found} in the source, {listed} in the list"
             ));
@@ -182,6 +182,12 @@ fn a_reader_missing_from_the_list_is_named() {
             "c f read: 2 in the source, 1 in the list",
             "c f gone: in the list, not in the source",
         ]
+    );
+    let once = count(["c f parse"].map(str::to_owned).into_iter());
+    let twice = count(["c f parse", "c f parse"].map(str::to_owned).into_iter());
+    assert_eq!(
+        unlisted(&once, &twice),
+        ["c f parse: 1 in the source, 2 in the list"]
     );
 }
 
@@ -219,7 +225,12 @@ fn the_list_names_every_public_reader_of_those_crates() {
 fn every_format_has_a_reader_on_the_list() {
     let missing: Vec<String> = FORMATS
         .iter()
-        .filter(|format| !READERS.iter().any(|r| r.formats.contains(format)))
+        .filter(|format| {
+            !READERS
+                .iter()
+                .chain(EXTRA_READERS)
+                .any(|r| r.formats.contains(format))
+        })
         .map(|format| format.name().to_owned())
         .collect();
     assert!(missing.is_empty(), "{}", missing.join("\n"));
@@ -323,9 +334,13 @@ fn damage(reader: &Reader) -> Vec<String> {
         );
     }
     // The seed is the reader's own, so a failure comes back on the next run on any machine.
+    let sample = match reader.sample {
+        Sample::File(path) => path,
+        Sample::Built(_, why) => why,
+    };
     let mut seed = [0_u8; 32];
-    for (slot, byte) in seed.iter_mut().zip(name.bytes().cycle()) {
-        *slot = byte;
+    for (at, byte) in format!("{name} {sample}").bytes().enumerate() {
+        seed[at % seed.len()] ^= byte.rotate_left((at / seed.len()) as u32);
     }
     let mut runner = TestRunner::new_with_rng(
         Config {

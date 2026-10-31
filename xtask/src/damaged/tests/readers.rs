@@ -42,6 +42,9 @@ const FIP_PLAIN: &str =
 const TWO_FLIGHTS: &[u8] =
     include_bytes!("../../../../validation/fixtures/logs/several/two-flights.xlsx");
 const TWO_FLIGHTS_SHEET: &str = "xl/worksheets/sheet0.xml";
+const THRUSTCURVE_DOWNLOAD: &[u8] = include_bytes!(
+    "../../../../crates/hpr-net/tests/fixtures/replay/thrustcurve-download-H128W.json"
+);
 /// A table with the columns of the committed `two-flights.xlsx`.
 const TWO_FLIGHTS_TABLE: &str = "Time (s),Baro Alt AGL (m)\n0,0\n0.05,0.2\n";
 /// The URL a cached entry is stored under; long enough for a metadata file over 64 bytes.
@@ -217,6 +220,16 @@ fn download(bytes: &[u8], read: fn(&DataFile) -> bool) -> bool {
         .is_ok_and(|answer| !answer.results.is_empty() && answer.results.iter().all(read))
 }
 
+/// A committed answer's data file holding `bytes` for its text.
+fn data_file(bytes: &[u8]) -> DataFile {
+    let mut file = thrustcurve::parse_download(THRUSTCURVE_DOWNLOAD)
+        .expect("a committed answer")
+        .results
+        .swap_remove(0);
+    file.data = text(bytes).into_owned();
+    file
+}
+
 /// The metadata file in a cache's folder.
 fn metadata_file(dir: &Path) -> Option<PathBuf> {
     std::fs::read_dir(dir)
@@ -226,7 +239,7 @@ fn metadata_file(dir: &Path) -> Option<PathBuf> {
         .find(|path| path.extension().is_some_and(|e| e == "json"))
 }
 
-/// Every reader of outside bytes in [`CRATES`](super::CRATES).
+/// One row for each public function named `read…` or `parse…` in [`CRATES`](super::CRATES), exactly.
 pub(super) const READERS: &[Reader] = &[
     // The importer, and each format through what it dispatches to.
     log_bytes!(
@@ -242,20 +255,6 @@ pub(super) const READERS: &[Reader] = &[
         "read_one",
         logs!("altos-table.csv"),
         |bytes| { log(import::read_one(bytes, None, None)) }
-    ),
-    row!(
-        "hpr-flightdata",
-        "import.rs",
-        "read_one",
-        Sample::File("validation/fixtures/logs/several/two-flights.xlsx"),
-        |bytes| log(import::read_one(bytes, Some(0), None))
-    ),
-    row!(
-        "hpr-flightdata",
-        "import.rs",
-        "read_one",
-        Sample::File("validation/fixtures/logs/several/two-recordings.dump"),
-        |bytes| log(import::read_one(bytes, None, Some(1)))
     ),
     log_bytes!(
         "raven_fipa.rs",
@@ -494,13 +493,6 @@ pub(super) const READERS: &[Reader] = &[
         rtx::read_export
     ),
     log_text!(
-        "rtx.rs",
-        "read_export",
-        &[LogFormat::RtxText],
-        logs!("rtx.txt"),
-        rtx::read_export
-    ),
-    log_text!(
         "perfectflite.rs",
         "read",
         &[LogFormat::PerfectFlitePf2],
@@ -519,13 +511,6 @@ pub(super) const READERS: &[Reader] = &[
         "read_export",
         &[LogFormat::PerfectFliteCsv],
         logs!("perfectflite-export.csv"),
-        perfectflite::read_export
-    ),
-    log_text!(
-        "perfectflite.rs",
-        "read_export",
-        &[LogFormat::PerfectFliteText],
-        logs!("perfectflite-export.txt"),
         perfectflite::read_export
     ),
     log_text!(
@@ -691,26 +676,9 @@ pub(super) const READERS: &[Reader] = &[
     row!(
         "hpr-flightdata",
         "custom.rs",
-        "read_by_mapping",
-        Sample::File("validation/fixtures/logs/several/two-flights.xlsx"),
-        |bytes| {
-            let mapping = generic::mapping(TWO_FLIGHTS_TABLE).expect("a table's header");
-            log(custom::read_by_mapping(bytes, &mapping, Some(0)))
-        }
-    ),
-    row!(
-        "hpr-flightdata",
-        "custom.rs",
         "read_by_layout",
         own!("flight.bin"),
         |bytes| { log(custom::read_by_layout(bytes, &layout(FLIGHT_LAYOUT))) }
-    ),
-    row!(
-        "hpr-flightdata",
-        "custom.rs",
-        "read_by_layout",
-        own!("flight-capture.txt"),
-        |bytes| { log(custom::read_by_layout(bytes, &layout(CAPTURE_LAYOUT))) }
     ),
     row!(
         "hpr-flightdata",
@@ -718,17 +686,6 @@ pub(super) const READERS: &[Reader] = &[
         "read",
         Sample::File("validation/fixtures/logs/several/two-flights.xlsx"),
         |bytes| sheets(workbook::read(bytes))
-    ),
-    row!(
-        "hpr-flightdata",
-        "workbook.rs",
-        "read",
-        Sample::Built(
-            built::workbook_sheet,
-            "the committed workbook's sheet, zipped again at each read: a changed byte of the zip \
-             only fails its checksum"
-        ),
-        |bytes| sheets(workbook::read(&built::workbook_with(bytes)))
     ),
     row!(
         "hpr-flightdata",
@@ -750,44 +707,9 @@ pub(super) const READERS: &[Reader] = &[
     ),
     row!(
         "hpr-io",
-        "grib2/mod.rs",
-        "parse",
-        Sample::File("crates/hpr-net/tests/fixtures/replay/nomads-rap.grib2"),
-        grib
-    ),
-    row!(
-        "hpr-io",
         "geotiff/mod.rs",
         "parse",
         Sample::File("crates/hpr-io/tests/fixtures/geotiff/usgs-i16-deflate-strips-be.tif"),
-        raster
-    ),
-    row!(
-        "hpr-io",
-        "geotiff/mod.rs",
-        "parse",
-        Sample::File("crates/hpr-io/tests/fixtures/geotiff/usgs-i32-lzw-tiles-lon360.tif"),
-        raster
-    ),
-    row!(
-        "hpr-io",
-        "geotiff/mod.rs",
-        "parse",
-        Sample::File("crates/hpr-io/tests/fixtures/geotiff/usgs-u16-packbits-ftus-nodata.tif"),
-        raster
-    ),
-    row!(
-        "hpr-io",
-        "geotiff/mod.rs",
-        "parse",
-        Sample::File("crates/hpr-io/tests/fixtures/geotiff/usgs-f32-lzw-fp-tiles.tif"),
-        raster
-    ),
-    row!(
-        "hpr-io",
-        "geotiff/mod.rs",
-        "parse",
-        Sample::File("crates/hpr-io/tests/fixtures/geotiff/usgs-f64-raw-bigtiff-point.tif"),
         raster
     ),
     row!(
@@ -799,31 +721,10 @@ pub(super) const READERS: &[Reader] = &[
     ),
     row!(
         "hpr-io",
-        "netcdf/mod.rs",
-        "parse",
-        Sample::File("validation/fixtures/weather/netcdf/records-offset64.nc"),
-        netcdf
-    ),
-    row!(
-        "hpr-io",
-        "netcdf/mod.rs",
-        "parse",
-        Sample::File("validation/fixtures/weather/netcdf/packing-classic.nc"),
-        netcdf
-    ),
-    row!(
-        "hpr-io",
         "era5/mod.rs",
         "read",
         Sample::File("validation/fixtures/weather/era5/bella-lui.nc"),
         |bytes| era5(bytes, 47.213476, 9.003336, 1_582_376_400.0)
-    ),
-    row!(
-        "hpr-io",
-        "era5/mod.rs",
-        "read",
-        Sample::File("validation/fixtures/weather/era5/ndrt-2020-cds.nc"),
-        |bytes| era5(bytes, 41.775447, -86.572467, 1_582_473_600.0)
     ),
     row!(
         "hpr-io",
@@ -842,16 +743,6 @@ pub(super) const READERS: &[Reader] = &[
         "ork/mod.rs",
         "read",
         Sample::File("validation/fixtures/ork/loft-demo/demo-dual-deploy.ork"),
-        ork_file
-    ),
-    row!(
-        "hpr-io",
-        "ork/mod.rs",
-        "read",
-        Sample::Built(
-            built::ork_design,
-            "the committed file's design, unpacked: a changed byte of a zip only fails its checksum"
-        ),
         ork_file
     ),
     row!(
@@ -1097,12 +988,146 @@ pub(super) const READERS: &[Reader] = &[
         "hpr-net",
         "thrustcurve.rs",
         "read",
-        replay!("thrustcurve-download-H128W.json"),
+        Sample::Built(built::thrustcurve_data, built::THRUSTCURVE_DATA),
         |bytes| {
-            download(bytes, |file| {
-                file.read().is_ok_and(|curve| curve.thrust_curve().is_ok())
-            })
+            data_file(bytes)
+                .read()
+                .is_ok_and(|curve| curve.thrust_curve().is_ok())
         }
+    ),
+    row!(
+        "hpr-net",
+        "on_demand.rs",
+        "reads_as_one_motor",
+        Sample::Built(built::thrustcurve_data, built::THRUSTCURVE_DATA),
+        |bytes| { on_demand::reads_as_one_motor(&data_file(bytes)).is_ok() }
+    ),
+];
+
+/// More rows, which the name check doesn't count: other samples of a reader above, for another
+/// format or layout, and readers of outside bytes not named `read…` or `parse…`.
+pub(super) const EXTRA_READERS: &[Reader] = &[
+    row!(
+        "hpr-flightdata",
+        "import.rs",
+        "read_one",
+        Sample::File("validation/fixtures/logs/several/two-flights.xlsx"),
+        |bytes| log(import::read_one(bytes, Some(0), None))
+    ),
+    row!(
+        "hpr-flightdata",
+        "import.rs",
+        "read_one",
+        Sample::File("validation/fixtures/logs/several/two-recordings.dump"),
+        |bytes| log(import::read_one(bytes, None, Some(1)))
+    ),
+    log_text!(
+        "rtx.rs",
+        "read_export",
+        &[LogFormat::RtxText],
+        logs!("rtx.txt"),
+        rtx::read_export
+    ),
+    log_text!(
+        "perfectflite.rs",
+        "read_export",
+        &[LogFormat::PerfectFliteText],
+        logs!("perfectflite-export.txt"),
+        perfectflite::read_export
+    ),
+    row!(
+        "hpr-flightdata",
+        "custom.rs",
+        "read_by_mapping",
+        Sample::File("validation/fixtures/logs/several/two-flights.xlsx"),
+        |bytes| {
+            let mapping = generic::mapping(TWO_FLIGHTS_TABLE).expect("a table's header");
+            log(custom::read_by_mapping(bytes, &mapping, Some(0)))
+        }
+    ),
+    row!(
+        "hpr-flightdata",
+        "custom.rs",
+        "read_by_layout",
+        own!("flight-capture.txt"),
+        |bytes| { log(custom::read_by_layout(bytes, &layout(CAPTURE_LAYOUT))) }
+    ),
+    row!(
+        "hpr-flightdata",
+        "workbook.rs",
+        "read",
+        Sample::Built(
+            built::workbook_sheet,
+            "the committed workbook's sheet, zipped again at each read: a changed byte of the zip \
+             only fails its checksum"
+        ),
+        |bytes| sheets(workbook::read(&built::workbook_with(bytes)))
+    ),
+    row!(
+        "hpr-io",
+        "grib2/mod.rs",
+        "parse",
+        Sample::File("crates/hpr-net/tests/fixtures/replay/nomads-rap.grib2"),
+        grib
+    ),
+    row!(
+        "hpr-io",
+        "geotiff/mod.rs",
+        "parse",
+        Sample::File("crates/hpr-io/tests/fixtures/geotiff/usgs-i32-lzw-tiles-lon360.tif"),
+        raster
+    ),
+    row!(
+        "hpr-io",
+        "geotiff/mod.rs",
+        "parse",
+        Sample::File("crates/hpr-io/tests/fixtures/geotiff/usgs-u16-packbits-ftus-nodata.tif"),
+        raster
+    ),
+    row!(
+        "hpr-io",
+        "geotiff/mod.rs",
+        "parse",
+        Sample::File("crates/hpr-io/tests/fixtures/geotiff/usgs-f32-lzw-fp-tiles.tif"),
+        raster
+    ),
+    row!(
+        "hpr-io",
+        "geotiff/mod.rs",
+        "parse",
+        Sample::File("crates/hpr-io/tests/fixtures/geotiff/usgs-f64-raw-bigtiff-point.tif"),
+        raster
+    ),
+    row!(
+        "hpr-io",
+        "netcdf/mod.rs",
+        "parse",
+        Sample::File("validation/fixtures/weather/netcdf/records-offset64.nc"),
+        netcdf
+    ),
+    row!(
+        "hpr-io",
+        "netcdf/mod.rs",
+        "parse",
+        Sample::File("validation/fixtures/weather/netcdf/packing-classic.nc"),
+        netcdf
+    ),
+    row!(
+        "hpr-io",
+        "era5/mod.rs",
+        "read",
+        Sample::File("validation/fixtures/weather/era5/ndrt-2020-cds.nc"),
+        |bytes| era5(bytes, 41.775447, -86.572467, 1_582_473_600.0)
+    ),
+    row!(
+        "hpr-io",
+        "ork/mod.rs",
+        "read",
+        Sample::Built(
+            built::ork_design,
+            "the committed file's design, unpacked: a changed byte of a zip only fails its checksum"
+        ),
+        ork_file
     ),
     row!(
         "hpr-net",
@@ -1115,17 +1140,6 @@ pub(super) const READERS: &[Reader] = &[
             })
         }
     ),
-    row!(
-        "hpr-net",
-        "on_demand.rs",
-        "reads_as_one_motor",
-        replay!("thrustcurve-download-H128W.json"),
-        |bytes| { download(bytes, |file| on_demand::reads_as_one_motor(file).is_ok()) }
-    ),
-];
-
-/// Readers of outside bytes not named `read…` or `parse…`, which the name check doesn't count.
-pub(super) const EXTRA_READERS: &[Reader] = &[
     row!(
         "hpr-format",
         "lib.rs",

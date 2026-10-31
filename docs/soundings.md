@@ -444,8 +444,8 @@ test uses the network.
 
 ## What it leaves out
 
-- A damaged answer gets an error, never a crash or a hang: the parser is tried on cut, changed and
-  arbitrary bytes. Which rows of a damaged page still read is a separate matter. [Damaged
+- A damaged answer gets an error, or a value from what was left, not a crash or a hang: the parser
+  is tried on cut, changed and arbitrary bytes. Which rows of a damaged page still read is a separate matter. [Damaged
   files](format/damaged-files.md) says what the tests cover and leave out.
 - How far a station's sounding is from the air over a launch site isn't measured, in distance or
   in time.

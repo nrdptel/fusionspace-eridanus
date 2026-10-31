@@ -436,3 +436,17 @@ pub(super) fn cache_metadata() -> Vec<u8> {
         .and_then(|path| std::fs::read(path).ok())
         .expect("the metadata written")
 }
+
+/// Why [`thrustcurve_data`] is built.
+pub(super) const THRUSTCURVE_DATA: &str = "the base64 text inside a committed answer, damaged on its own \
+     since a cut of the answer's JSON never reaches it";
+
+/// The file's base64 text in the committed answer.
+pub(super) fn thrustcurve_data() -> Vec<u8> {
+    hpr_net::thrustcurve::parse_download(super::THRUSTCURVE_DOWNLOAD)
+        .expect("a committed answer")
+        .results
+        .swap_remove(0)
+        .data
+        .into_bytes()
+}
