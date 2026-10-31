@@ -1,6 +1,6 @@
 # Synthetic flights
 
-The census of the synthetic flights (M7.2a, ADR-280): each set's flights by design and by logger, the ranges they span, and each draw that didn't fly. Written by `cargo xtask synthetic`; `cargo xtask synthetic --check` holds it on every platform. Values are to three significant figures. What the flights are and how far to trust them: `docs/physics/synthetic-flights.md`.
+The census of the synthetic flights (M7.2a, ADR-280): each set's flights by design and by logger, the ranges they span, and each draw that didn't fly. Written by `cargo xtask synthetic`; `cargo xtask synthetic --check` holds it on every platform. Values are to three significant figures, but for the two that the logs written from launch hold to two. What the flights are and how far to trust them: `docs/physics/synthetic-flights.md`.
 
 ## The sets
 
@@ -748,7 +748,7 @@ The same flights, each log with a GNSS track smoothed again with its receiver tr
 
 ### Logs written from launch
 
-The same flights, each log cut at the truth's liftoff, every sensor, as a logger that writes only from launch would have written it on the same zero. Each is smoothed on an assumed pad, and held as the check above is: it fails on a cell that fails, overall or for a logger, or a log withheld with a barometer. Its standard errors and sums of samples are held to two figures, the whole logs' to three, since CI's Linux runners read them across a third figure's edge (ADR-308): a drift shows here only past a second figure's edge.
+The same flights, each log cut at the truth's liftoff, every sensor, as a logger that writes only from launch would have written it on the same zero. Each is smoothed on an assumed pad, and held as the check above is: it fails on a cell that fails, overall or for a logger, or a log withheld with a barometer. Its standard errors and sums of samples are held to two figures, the whole logs' to three, since CI's Linux runners read them in another third figure's bin, for a cause not yet traced (ADR-308): a drift shows here only past a second figure's edge.
 
 | Moment | State | Tuning | A | B |
 |---|---|---:|---:|---:|

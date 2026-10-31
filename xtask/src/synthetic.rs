@@ -174,7 +174,8 @@ struct SmootherSet {
     /// The cells with those flights trusted from liftoff, to three significant figures.
     gnss_from_liftoff: Vec<smoothed::Cell>,
     /// The same flights, each log as a logger that writes only from launch would have written it,
-    /// so smoothed on an assumed pad (#982), to three significant figures.
+    /// so smoothed on an assumed pad (#982): its standard errors and sums to two significant
+    /// figures, its counts of logs exact, the rest to three.
     launch_started: SetCheck,
 }
 
@@ -1070,9 +1071,9 @@ fn round_cells(cells: &mut [smoothed::Cell]) {
 }
 
 /// A cut log's cells as the report holds them, their standard errors to two figures, not three: CI's
-/// Linux runners read one logger's median from 0.1% to 0.5% off macOS and Windows, across a third
-/// figure's edge (ADR-308; the cause isn't traced, #984). A second figure's edge can flip too, more
-/// rarely. Whether a cell holds comes from its counts, before this, and they keep every figure.
+/// Linux runners print one logger's median a third figure's bin away from macOS's, 0.1% to 0.5% off
+/// (ADR-308; the cause isn't traced, #984). A second figure's edge can flip too, more rarely.
+/// Whether a cell holds comes from its counts, before this, and they keep every figure.
 fn round_launch_cells(cells: &mut [smoothed::Cell]) {
     for c in cells.iter_mut() {
         // A spread ten times the value puts the spread's third figure at the value's second.
@@ -1083,7 +1084,7 @@ fn round_launch_cells(cells: &mut [smoothed::Cell]) {
 }
 
 /// A cut log's health as the report holds it, each sensor's sums of samples to two figures: CI's
-/// Linux runners read one of them across a third figure's edge, as they do a logger's median. The
+/// Linux runners read one of them at least 69 samples from macOS's (ADR-308). The
 /// logs and those on an assumed pad stay exact, since the check compares them.
 fn round_launch_health(health: &mut smoothed::HealthTally) {
     let (logs, assumed_pad) = (health.logs, health.assumed_pad);
@@ -1476,7 +1477,8 @@ fn markdown(report: &Report) -> String {
          The census of the synthetic flights (M7.2a, ADR-280): each set's flights by design and \
          by logger, the ranges they span, and each draw that didn't fly. Written by \
          `cargo xtask synthetic`; `cargo xtask synthetic --check` holds it on every platform. \
-         Values are to three significant figures. What the flights are and how far to trust \
+         Values are to three significant figures, but for the two that the logs written from \
+         launch hold to two. What the flights are and how far to trust \
          them: `docs/physics/synthetic-flights.md`.\n\n",
     );
     page.push_str("## The sets\n\n");
@@ -2020,9 +2022,9 @@ fn smoother_section(page: &mut String, sets: &[SmootherSet], cards: &[Card]) {
          writes only from launch would have written it on the same zero. Each is smoothed on an \
          assumed pad, and held as the check above is: it fails on a cell that fails, overall or \
          for a logger, or a log withheld with a barometer. Its standard errors and sums of samples \
-         are held to two figures, the whole logs' to three, since CI's Linux runners read them \
-         across a third figure's edge (ADR-308): a drift shows here only past a second figure's \
-         edge.\n\n",
+         are held to two figures, the whole logs' to three, since CI's Linux runners read them in \
+         another third figure's bin, for a cause not yet traced (ADR-308): a drift shows here only \
+         past a second figure's edge.\n\n",
     );
     header(page);
     page.push_str("| Flights smoothed | |");
@@ -2356,6 +2358,7 @@ mod tests {
         let many_made = "b\n".repeat(DIFFERENCES_SHOWN + 3);
         assert!(difference(path, &many_committed, &many_made).ends_with("and 3 more"));
         assert!(difference(path, "a\n", "a").contains("last newline"));
+        assert!(difference(path, "a\r\r\n", "a\n").contains("line endings"));
     }
 
     #[test]
@@ -2387,7 +2390,7 @@ mod tests {
     fn a_cut_logs_sums_keep_two_figures_and_its_log_counts_every_figure() {
         let mut health = smoothed::HealthTally {
             logs: 1004,
-            assumed_pad: 1000,
+            assumed_pad: 1003,
             ..Default::default()
         };
         health.sensors.insert(
@@ -2400,7 +2403,7 @@ mod tests {
             },
         );
         round_launch_health(&mut health);
-        assert_eq!((health.logs, health.assumed_pad), (1004, 1000));
+        assert_eq!((health.logs, health.assumed_pad), (1004, 1003));
         let sums = &health.sensors["barometer"];
         assert_eq!(
             (sums.samples, sums.rejected, sums.unweighed),

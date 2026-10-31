@@ -233,14 +233,22 @@ rate or an acceleration.
     holds few flights, so a thin cell can hold at 87.9% (the tuning set's AltOS burnout height, in the report's JSON).
   - **The cut logs' standard errors and sums of samples are held to two figures, not three.** That
     loosens what `cargo xtask synthetic --check` reads, and it was chosen after the command failed
-    twice on CI's Linux runners alone. A logger's median standard error reads 25.82 on macOS and from
-    25.85 to 25.95 there, so 0.1% to 0.5% apart, and a sum of unweighed samples crossed a third
-    figure's edge. The cause isn't traced, and no Linux machine is at hand. A probe in review, not
-    committed, points at the log's end ([#984][i984]): one sample fewer moves the median flight's
-    standard error by 6e-10, but one flight's by 1.2%. Two-figure bins are 1% to 10% of a value, so a
-    drift smaller than that shows only if it crosses an edge. Whether a cell holds comes from its
-    counts, before the rounding, and they keep every figure, though #984 says those may differ too.
-    Two figures make a flip rarer and don't end it: 42 of the 288 figures lay within 0.2% of an edge.
+    three times on CI's Linux runners alone, twice on a logger's median standard error and once on a
+    sum. On set A's AltOS logs the apogee height's median standard error reads 25.82 m on macOS and
+    prints as 25.9 there, so between 25.85 and 25.95, 0.1% to 0.5% off. Its GNSS track's sum of
+    unweighed samples reads 32,681 on macOS and prints as 32,800 there, so at least 32,750: at least
+    69 samples more, 0.2%, over 185 logs.
+    The cause isn't traced, and no Linux machine is at hand. A log's end, [#984][i984]'s first
+    suspect, doesn't account for these two. In a probe in review, not committed, one sample fewer at
+    every sensor's end leaves that median at 25.82 and lowers that sum by 34, to 32,647: the other
+    way, by at most half that size. On the tuning set's apogee height the same probe moves the median flight's
+    standard error by 6e-10 and the worst flight's by 1.2%.
+    Two-figure bins are 1% to 10% of a value, so a drift smaller than that shows only if it crosses
+    an edge: that sum could gain 818 samples, 2.5%, unseen, if the whole logs didn't move with it.
+    Whether a cell holds comes from its counts, before the rounding, and they keep every figure,
+    though #984 says those may differ too. Two figures make a flip rarer and don't end it: of the 288
+    standard errors at three figures, 42 lay within 0.2% of a two-figure edge and 107 within 0.5%, the
+    largest drift above. The 18 sums are apart from these.
   - **The card says when the smoothed apogee falls outside the reading's bound,** a floor's only from
     below: 12 of the 379 on an assumed pad, 20 of the 175 on their own, and 0 to 2 of the synthetic
     sets' cut logs, so a log's own pad doesn't prevent it ([#1073][i1073]).

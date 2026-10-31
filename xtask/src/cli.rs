@@ -515,10 +515,10 @@ fn example(command: &str, root: &Path, read: &mut dyn FnMut(&Path)) -> (String, 
 }
 
 /// The widest line of an example that a page's code block shows whole in a 1280 px window, in
-/// characters: the box measures 692 px there, and a capture's line of 79 characters spans 675 px. A
-/// wider line would run off the box's edge, so its block wraps instead. It counts characters, not
-/// cells, so a wide glyph counts short.
-const EXAMPLE_FITS_CHARS: usize = 80;
+/// characters: on `cli.html` the box measures 692 px there with 10 px of padding a side, and a
+/// character 8.654 px, so 672 px hold 77.6 of them. A wider line would run off the box's edge, so
+/// its block wraps instead. It counts characters, not cells, so a wide glyph counts short.
+const EXAMPLE_FITS_CHARS: usize = 77;
 
 /// An example's text as a page's fenced block: one with a line too wide for the box is a `text,wrap`
 /// fence, as the writing guide asks of a long line of data, so no reading runs out of sight.
