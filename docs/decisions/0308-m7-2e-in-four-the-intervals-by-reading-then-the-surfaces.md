@@ -33,6 +33,7 @@ rate or an acceleration.
 [i1071]: https://github.com/nrdptel/fusionspace-eridanus/issues/1071
 [i1073]: https://github.com/nrdptel/fusionspace-eridanus/issues/1073
 [i1074]: https://github.com/nrdptel/fusionspace-eridanus/issues/1074
+[i984]: https://github.com/nrdptel/fusionspace-eridanus/issues/984
 [i1076]: https://github.com/nrdptel/fusionspace-eridanus/issues/1076
 
 **Decision.**
@@ -228,11 +229,18 @@ rate or an acceleration.
   - **`cargo xtask synthetic` holds it.** Each flight's log is cut at the truth's liftoff, every sensor,
     and smoothed again. Any cell, overall or for a logger, that fails [ADR-300][adr-300]'s rule fails
     the command, as does a log withheld that the whole log wasn't, a step left unsmoothed or a log not
-    on an assumed pad. All hold on the three sets. The cut logs' standard errors and sums of samples are held to two
-    figures, not three: CI's Linux runners read a logger's median 0.1% from the other platforms', and
-    a sum across a third figure's edge, so a change in one fails the command now only if it crosses a second figure's edge. The cells'
-    counts keep every figure. ADR-300's rule is one-sided and a logger's cell
+    on an assumed pad. All hold on the three sets. ADR-300's rule is one-sided and a logger's cell
     holds few flights, so a thin cell can hold at 87.9% (the tuning set's AltOS burnout height, in the report's JSON).
+  - **The cut logs' standard errors and sums of samples are held to two figures, not three.** That
+    loosens what `cargo xtask synthetic --check` reads, and it was chosen after the command failed
+    twice on CI's Linux runners alone. A logger's median standard error reads 25.82 on macOS and from
+    25.85 to 25.95 there, so 0.1% to 0.5% apart, and a sum of unweighed samples crossed a third
+    figure's edge. The cause isn't traced, and no Linux machine is at hand. A probe in review, not
+    committed, points at the log's end ([#984][i984]): one sample fewer moves the median flight's
+    standard error by 6e-10, but one flight's by 1.2%. Two-figure bins are 1% to 10% of a value, so a
+    drift smaller than that shows only if it crosses an edge. Whether a cell holds comes from its
+    counts, before the rounding, and they keep every figure, though #984 says those may differ too.
+    Two figures make a flip rarer and don't end it: 42 of the 288 figures lay within 0.2% of an edge.
   - **The card says when the smoothed apogee falls outside the reading's bound,** a floor's only from
     below: 12 of the 379 on an assumed pad, 20 of the 175 on their own, and 0 to 2 of the synthetic
     sets' cut logs, so a log's own pad doesn't prevent it ([#1073][i1073]).

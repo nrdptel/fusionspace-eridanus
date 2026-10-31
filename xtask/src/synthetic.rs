@@ -1070,9 +1070,9 @@ fn round_cells(cells: &mut [smoothed::Cell]) {
 }
 
 /// A cut log's cells as the report holds them, their standard errors to two figures, not three: CI's
-/// Linux runners read one logger's median 0.1% from macOS and Windows, across a third figure's edge.
-/// A logger's cell holds few flights, so one flight's standard error moves its median. The cell's
-/// counts, and so whether it holds, keep every figure.
+/// Linux runners read one logger's median from 0.1% to 0.5% off macOS and Windows, across a third
+/// figure's edge (ADR-308; the cause isn't traced, #984). A second figure's edge can flip too, more
+/// rarely. Whether a cell holds comes from its counts, before this, and they keep every figure.
 fn round_launch_cells(cells: &mut [smoothed::Cell]) {
     for c in cells.iter_mut() {
         // A spread ten times the value puts the spread's third figure at the value's second.
@@ -1083,9 +1083,10 @@ fn round_launch_cells(cells: &mut [smoothed::Cell]) {
 }
 
 /// A cut log's health as the report holds it, each sensor's sums of samples to two figures: CI's
-/// Linux runners read one of them across a third figure's edge, as they do a logger's median. Its
-/// counts of logs and of what stayed out keep three.
+/// Linux runners read one of them across a third figure's edge, as they do a logger's median. The
+/// logs and those on an assumed pad stay exact, since the check compares them.
 fn round_launch_health(health: &mut smoothed::HealthTally) {
+    let (logs, assumed_pad) = (health.logs, health.assumed_pad);
     for t in health.sensors.values_mut() {
         for n in [&mut t.samples, &mut t.rejected, &mut t.unweighed] {
             let sum = *n as f64;
@@ -1093,6 +1094,8 @@ fn round_launch_health(health: &mut smoothed::HealthTally) {
         }
     }
     round_health(health);
+    health.logs = logs;
+    health.assumed_pad = assumed_pad;
 }
 
 /// The health sums to three significant figures, as the report holds them. A flight's log ends
@@ -1378,7 +1381,10 @@ fn difference(path: &Path, committed: &str, made: &str) -> String {
         lines.push(ends);
     }
     if lines.is_empty() {
-        lines.push(ends);
+        return format!(
+            "{} differs only in its line endings or last newline",
+            path.display()
+        );
     }
     let total = lines.len();
     let mut shown: Vec<String> = lines
@@ -2013,7 +2019,10 @@ fn smoother_section(page: &mut String, sets: &[SmootherSet], cards: &[Card]) {
          The same flights, each log cut at the truth's liftoff, every sensor, as a logger that \
          writes only from launch would have written it on the same zero. Each is smoothed on an \
          assumed pad, and held as the check above is: it fails on a cell that fails, overall or \
-         for a logger, or a log withheld with a barometer.\n\n",
+         for a logger, or a log withheld with a barometer. Its standard errors and sums of samples \
+         are held to two figures, the whole logs' to three, since CI's Linux runners read them \
+         across a third figure's edge (ADR-308): a drift shows here only past a second figure's \
+         edge.\n\n",
     );
     header(page);
     page.push_str("| Flights smoothed | |");
@@ -2346,6 +2355,7 @@ mod tests {
         let many_committed = "a\n".repeat(DIFFERENCES_SHOWN + 3);
         let many_made = "b\n".repeat(DIFFERENCES_SHOWN + 3);
         assert!(difference(path, &many_committed, &many_made).ends_with("and 3 more"));
+        assert!(difference(path, "a\n", "a").contains("last newline"));
     }
 
     #[test]
@@ -2366,6 +2376,36 @@ mod tests {
         round_launch_cells(&mut cells);
         assert_eq!(cells[0].median_sd, 26.0);
         assert_eq!(cells[0].largest_sd, 120.0);
+        cells[0].median_sd = 0.0;
+        cells[0].largest_sd = 999.0;
+        round_launch_cells(&mut cells);
+        assert_eq!(cells[0].median_sd.to_bits(), 0.0_f64.to_bits());
+        assert_eq!(cells[0].largest_sd, 1000.0);
+    }
+
+    #[test]
+    fn a_cut_logs_sums_keep_two_figures_and_its_log_counts_every_figure() {
+        let mut health = smoothed::HealthTally {
+            logs: 1004,
+            assumed_pad: 1000,
+            ..Default::default()
+        };
+        health.sensors.insert(
+            "barometer".to_string(),
+            smoothed::SensorTally {
+                samples: 32_749,
+                rejected: 0,
+                unweighed: 999,
+                ..Default::default()
+            },
+        );
+        round_launch_health(&mut health);
+        assert_eq!((health.logs, health.assumed_pad), (1004, 1000));
+        let sums = &health.sensors["barometer"];
+        assert_eq!(
+            (sums.samples, sums.rejected, sums.unweighed),
+            (33_000, 0, 1000)
+        );
     }
 
     #[test]

@@ -748,7 +748,7 @@ The same flights, each log with a GNSS track smoothed again with its receiver tr
 
 ### Logs written from launch
 
-The same flights, each log cut at the truth's liftoff, every sensor, as a logger that writes only from launch would have written it on the same zero. Each is smoothed on an assumed pad, and held as the check above is: it fails on a cell that fails, overall or for a logger, or a log withheld with a barometer.
+The same flights, each log cut at the truth's liftoff, every sensor, as a logger that writes only from launch would have written it on the same zero. Each is smoothed on an assumed pad, and held as the check above is: it fails on a cell that fails, overall or for a logger, or a log withheld with a barometer. Its standard errors and sums of samples are held to two figures, the whole logs' to three, since CI's Linux runners read them across a third figure's edge (ADR-308): a drift shows here only past a second figure's edge.
 
 | Moment | State | Tuning | A | B |
 |---|---|---:|---:|---:|
