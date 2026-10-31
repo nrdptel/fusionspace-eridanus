@@ -353,9 +353,13 @@ mod tests {
         let second = second_logger(Set::PairB.seed(), 4);
         let (a, b) = clocks(Set::PairB.seed(), 4);
         assert_eq!(once.true_offset_s, (second.pad_s + b) - (first.pad_s + a));
-        // Two boards' noise is independent, even on one profile: their first logged samples on
-        // a common clock are not the same numbers.
-        assert_ne!(once.first_log.altitude_m, once.second_log.altitude_m);
+        // The second board's noise is on streams of its own, not the first's.
+        let flight = flyer.flight(Set::PairB, 4).unwrap();
+        let seed = Set::PairB.seed();
+        let own = logger::log(&second, &flight.truth, seed + SECOND_LOGGER_STREAMS, 4).unwrap();
+        let shared = logger::log(&second, &flight.truth, seed, 4).unwrap();
+        assert_eq!(once.second_log, on_clock(own.clone(), b));
+        assert_ne!(own, shared);
     }
 
     #[test]
