@@ -230,7 +230,7 @@ rate or an acceleration.
     the command, as does a log withheld that the whole log wasn't, a step left unsmoothed or a log not
     on an assumed pad. All hold on the three sets. The cut logs' standard errors and sums of samples are held to two
     figures, not three: CI's Linux runners read a logger's median 0.1% from the other platforms', and
-    a sum across a third figure's edge, so a change of a few percent in one no longer fails the command. The cells'
+    a sum across a third figure's edge, so a change in one fails the command now only if it crosses a second figure's edge. The cells'
     counts keep every figure. ADR-300's rule is one-sided and a logger's cell
     holds few flights, so a thin cell can hold at 87.9% (the tuning set's AltOS burnout height, in the report's JSON).
   - **The card says when the smoothed apogee falls outside the reading's bound,** a floor's only from

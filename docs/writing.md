@@ -676,7 +676,7 @@ has the rules in full):
   short. A code block may scroll sideways inside its own box, but on a phone that hides its
   end, so make it fit where it can. A long line of data goes in a `text,wrap` fence, which wraps
   it at any character, so keep it for lines whose spacing doesn't matter. `cargo xtask cli` fences a
-  command's example so when a line passes 80 characters.
+  command's example `text,wrap` when a line passes 80 characters.
 - **No table scrolling sideways** ([ADR-297](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0297-a-table-too-wide-stacks-its-rows.md)).
   Under 720 px the theme gives a table's cells 8 px a side and none at its edges. A table still
   too wide for its column stacks its rows (`theme/hpr.js`): each cell is labeled by a copy of its
