@@ -353,7 +353,7 @@ The register holds 34 rows, as of October 31, 2026.
   - prs2026/Procyon, a repository new to this search (no license)
   - the private collection, by file hash
 
-  It found one flight on June 7, 2026 with a Blue Raven and a TeleMetrum v4.0 logging barometer and accelerometer, and a Featherweight tracker's GPS beside them. Barometer peaks agree within 2 m; GPS peaks read 4% to 5% higher. No radar or optical record. It has no license, so it is cited on the issue and cached under refs/samples-search/G33 only.
+  It found one flight on June 7, 2026 with a Blue Raven and a TeleMetrum v4.0 logging barometer and accelerometer, and a Featherweight tracker's GPS beside them. Barometer peaks agree within 2 m (6.6 ft); GPS peaks read 4% to 5% higher. No radar or optical record. It has no license, so it is cited on the issue and cached under refs/samples-search/G33 only.
 - [G34](#g34), October 31, 2026, looked at:
   - prs2026/Procyon, a repository new to this search (no license)
   - Harvard Dataverse, Figshare, Zenodo and arXiv
