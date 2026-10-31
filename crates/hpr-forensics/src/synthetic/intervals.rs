@@ -649,7 +649,7 @@ pub struct Counts {
 
 impl Counts {
     /// Counts `truth` against `interval`. A truth that isn't a number misses on both sides.
-    fn add(&mut self, interval: Interval, truth: f64) {
+    pub(crate) fn add(&mut self, interval: Interval, truth: f64) {
         self.given += 1;
         let below = truth.is_nan() || truth < interval.low;
         let above = truth.is_nan() || truth > interval.high;

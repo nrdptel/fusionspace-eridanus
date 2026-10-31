@@ -885,6 +885,41 @@ mod tests {
         (rocket, separations)
     }
 
+    /// Each separated body's steps, as an observer sees them.
+    #[derive(Default)]
+    struct BodySteps(Vec<(usize, crate::recovery::BodySample)>);
+
+    impl Observer for BodySteps {
+        fn body_step(&mut self, body: usize, sample: &crate::recovery::BodySample) {
+            self.0.push((body, *sample));
+        }
+    }
+
+    #[test]
+    fn an_observer_sees_each_separated_bodys_steps_and_changes_no_flight() {
+        let sim = serial_plan();
+        let mut steps = BodySteps::default();
+        let watched = sim.run(&mut steps).unwrap();
+        assert_eq!(watched, sim.run(&mut ()).unwrap());
+        let [booster] = watched.bodies.as_slice() else {
+            panic!("one dropped body: {:?}", watched.bodies);
+        };
+        let own: Vec<_> = steps
+            .0
+            .iter()
+            .filter(|(body, _)| *body == booster.body)
+            .map(|(_, sample)| *sample)
+            .collect();
+        assert_eq!(own.len(), steps.0.len());
+        // It starts where the body's flight starts, runs in time order, and stops short of where
+        // the flight ends, on the way down the same path.
+        assert_eq!(own[0], booster.start_sample);
+        assert!(own.windows(2).all(|pair| pair[0].time_s < pair[1].time_s));
+        let last = own.last().unwrap();
+        assert!(last.time_s < booster.final_sample.time_s);
+        assert!(last.height_above_ground_m > booster.final_sample.height_above_ground_m);
+    }
+
     #[test]
     fn two_powered_separations_drop_the_booster_then_the_middle() {
         // Each separation drops the stages behind it as a body of its own, numbered in the order

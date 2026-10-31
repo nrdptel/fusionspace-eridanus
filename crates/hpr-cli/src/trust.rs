@@ -173,6 +173,19 @@ pub(crate) fn log() -> String {
     )
 }
 
+/// `hpr analyze`'s note on two or more logs of one flight, on one timeline by a shared liftoff.
+pub(crate) fn logs_together() -> String {
+    format!(
+        "{LABEL} Measured by the loggers, read by HPR Sim from their logs, not simulated, and never \
+         averaged. A spread says how far apart the logs lie, not which is right: two boards can \
+         agree and both be off by the day's air. The clocks are lined up by each log's liftoff; \
+         that the logs are of one flight is your word, not checked. {} For a record or a \
+         certification, the altimeter's own reading is the one to log, and the RSO \
+         decides.{MORE}{SITE}reading-a-flight-log.html",
+        readings_checked()
+    )
+}
+
 /// `hpr analyze`'s note on a log read by the flyer's own column mapping, record layout or FIP
 /// header (`docs/your-own-logger.md`): the logger's samples in the units the file states, so the
 /// readings' bounds hold only if those are right.

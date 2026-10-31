@@ -300,6 +300,10 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
                 line: "hpr analyze flight.pf2",
             },
             Example {
+                what: "Read two logs of one flight side by side, on one timeline",
+                line: "hpr analyze telemetrum.csv telemega.csv",
+            },
+            Example {
                 what: "Print what your own logger's table header states, as a mapping to edit",
                 line: "hpr analyze flight.csv --print-mapping > logger.json",
             },

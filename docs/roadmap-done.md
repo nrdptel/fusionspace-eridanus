@@ -364,6 +364,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.2e2 The height track's other readings ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.2e3 The accelerometer's readings and the canopies' ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.2e4 The intervals in `hpr analyze` and Python ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.2f Two recordings, stages ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1917,6 +1918,8 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M7.2e4 The intervals in `hpr analyze` and Python.** *Done when:* every interval in
       `hpr analyze`'s text and JSON and in Python, with the smoother's health card (ADR-300); a
       log that starts at launch smoothed on an assumed pad, its card saying so (#982).
+  - [x] **M7.2f Two recordings, stages.** *Done when:* two logs side by side on one timeline, the
+    offset recovered on synthetic pairs; stages on one; RocketPy's pair read.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

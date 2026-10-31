@@ -2121,6 +2121,7 @@ impl Simulation {
                             Some(staged + 1),
                             frozen_at_s.is_some_and(|frozen_s| frozen_s < t),
                         ),
+                        observer,
                     )?);
                     // The booster's descent has no airframe drag, and a powered separation comes
                     // near the top speed, so a coast to its device would climb as if in a vacuum
@@ -2346,6 +2347,7 @@ impl Simulation {
                     None,
                     frozen_at_s.is_some_and(|frozen_s| frozen_s < t),
                 ),
+                observer,
             )?;
             // Each part falls as a point with only its open devices' drag. One parted on the way
             // up whose device fired by the split but waits out its lag would climb through the
@@ -2412,6 +2414,7 @@ impl Simulation {
         run: &mut Run,
         ignition_s: &[Option<f64>],
         (open, only, frozen): (&[bool], Option<usize>, bool),
+        observer: &mut dyn Observer,
     ) -> Result<Vec<BodyFlight>, SimError> {
         if !self.parts() {
             return Ok(Vec::new());
@@ -2489,7 +2492,7 @@ impl Simulation {
                 ignition_s,
                 queue: &mut queue,
             };
-            bodies.push(self.fly_body(start, &mut split, run, &trigger_times_s)?);
+            bodies.push(self.fly_body(start, &mut split, run, &trigger_times_s, observer)?);
         }
         bodies.sort_by_key(|body| body.body);
         Ok(bodies)
@@ -2503,6 +2506,7 @@ impl Simulation {
         split: &mut Split<'_>,
         run: &mut Run,
         trigger_times_s: &[Option<f64>],
+        observer: &mut dyn Observer,
     ) -> Result<BodyFlight, SimError> {
         let Start {
             body,
@@ -2572,6 +2576,7 @@ impl Simulation {
             if t >= cap {
                 break Termination::TimeCap;
             }
+            observer.body_step(body, &self.body_sample(body, mass_kg, t, &y, run)?);
             // Charges, deployments and releases, as in the main loop.
             loop {
                 let mut again = false;

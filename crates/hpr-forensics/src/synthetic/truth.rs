@@ -1,6 +1,7 @@
 //! A synthetic flight's truth: HPR Sim's flight of the drawn rocket to the ground, sampled every
 //! [`TRUTH_STEP_S`], with its events.
 
+use std::collections::BTreeMap;
 use std::f64::consts::FRAC_PI_2;
 use std::sync::Arc;
 
@@ -10,11 +11,13 @@ use hpr_atmos::{AtmosphereModel, ConstantWind, PowerLawWind, Ussa76};
 use hpr_core::DVec3;
 use hpr_core::earth::Earth;
 use hpr_core::geodesy::Geodetic;
-use hpr_design::Rocket;
+use hpr_design::{Ignition, Rocket};
 use hpr_motor::{SolidMotor, ThrustCurve};
 use hpr_sim::recorder::{FlightStep, Observer, Sample};
-use hpr_sim::recovery::{Device, DeviceDrag, Trigger};
-use hpr_sim::{Environment, EventKind, FlightEvent, Phase, Rail, SimError, Simulation};
+use hpr_sim::recovery::{Device, DeviceDrag, Separation, Trigger};
+use hpr_sim::{
+    BodyFlight, BodySample, Environment, EventKind, FlightEvent, Phase, Rail, SimError, Simulation,
+};
 use serde::{Deserialize, Serialize};
 
 use super::designs::{DESIGNS, Design, DesignFiles, Opens};
@@ -34,6 +37,8 @@ pub const SITE_LONGITUDE_DEG: f64 = -106.0;
 pub const SHEAR_REFERENCE_HEIGHT_M: f64 = 18.3;
 /// The sea-level pressure of the drawn air, Pa: the standard's.
 const SEA_LEVEL_PRESSURE_PA: f64 = 101_325.0;
+/// Standard gravity, m/s²: what an accelerometer at rest reads.
+const STANDARD_GRAVITY_M_S2: f64 = 9.806_65;
 
 /// The truth at one instant.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -326,40 +331,11 @@ fn devices(draw: &Draw) -> Result<Vec<Device>, SyntheticError> {
 /// [`SyntheticError`] for a design that doesn't read, a motor the draw can't scale, or an
 /// environment out of its models' domains.
 pub fn inputs(draw: &Draw, files: &DesignFiles) -> Result<FlightInputs, SyntheticError> {
-    let site = Geodetic::from_degrees(SITE_LATITUDE_DEG, SITE_LONGITUDE_DEG, draw.elevation_m)?;
-    let air = AtmosphereModel::Standard(Ussa76::with_offset(
-        draw.temperature_offset_k,
-        SEA_LEVEL_PRESSURE_PA,
-    )?);
-    let earth = Earth::wgs84(site)?;
-    let environment = match draw.model {
-        Model::Same => Environment::new(
-            earth,
-            air,
-            ConstantWind::new(draw.wind_speed_m_s, draw.wind_from_rad)?,
-        ),
-        Model::Other { shear_exponent, .. } => Environment::new(
-            earth,
-            air,
-            PowerLawWind::new(
-                draw.wind_speed_m_s,
-                SHEAR_REFERENCE_HEIGHT_M,
-                shear_exponent,
-                draw.wind_from_rad,
-                draw.elevation_m,
-            )?,
-        ),
-    };
-    let rail = Rail {
-        elevation_rad: FRAC_PI_2 - draw.tilt_rad,
-        azimuth_rad: draw.azimuth_rad,
-        ..Rail::vertical(RAIL_LENGTH_M)
-    };
     let mut inputs = FlightInputs::new(
         rocket(draw, files)?,
         design_of(draw)?.configuration,
-        environment,
-        rail,
+        environment(draw)?,
+        rail(draw),
     );
     inputs.recovery = devices(draw)?;
     match draw.model {
@@ -379,11 +355,50 @@ pub fn inputs(draw: &Draw, files: &DesignFiles) -> Result<FlightInputs, Syntheti
     Ok(inputs)
 }
 
+/// The draw's site, air and wind.
+fn environment(draw: &Draw) -> Result<Environment, SyntheticError> {
+    let site = Geodetic::from_degrees(SITE_LATITUDE_DEG, SITE_LONGITUDE_DEG, draw.elevation_m)?;
+    let air = AtmosphereModel::Standard(Ussa76::with_offset(
+        draw.temperature_offset_k,
+        SEA_LEVEL_PRESSURE_PA,
+    )?);
+    let earth = Earth::wgs84(site)?;
+    Ok(match draw.model {
+        Model::Same => Environment::new(
+            earth,
+            air,
+            ConstantWind::new(draw.wind_speed_m_s, draw.wind_from_rad)?,
+        ),
+        Model::Other { shear_exponent, .. } => Environment::new(
+            earth,
+            air,
+            PowerLawWind::new(
+                draw.wind_speed_m_s,
+                SHEAR_REFERENCE_HEIGHT_M,
+                shear_exponent,
+                draw.wind_from_rad,
+                draw.elevation_m,
+            )?,
+        ),
+    })
+}
+
+/// The draw's rail.
+fn rail(draw: &Draw) -> Rail {
+    Rail {
+        elevation_rad: FRAC_PI_2 - draw.tilt_rad,
+        azimuth_rad: draw.azimuth_rad,
+        ..Rail::vertical(RAIL_LENGTH_M)
+    }
+}
+
 /// Keeps a flight's states every [`TRUTH_STEP_S`] and at each event.
 #[derive(Default)]
 struct Grid {
     next: u64,
     samples: Vec<Sample>,
+    /// Each separated body's samples, by body, at the start of each of its steps.
+    bodies: BTreeMap<usize, Vec<BodySample>>,
 }
 
 impl Observer for Grid {
@@ -405,6 +420,10 @@ impl Observer for Grid {
 
     fn event(&mut self, event: &FlightEvent) {
         self.samples.push(event.sample);
+    }
+
+    fn body_step(&mut self, body: usize, sample: &BodySample) {
+        self.bodies.entry(body).or_default().push(*sample);
     }
 }
 
@@ -452,6 +471,18 @@ pub fn fly(
         .iter()
         .map(|s| truth_sample(environment, s))
         .collect::<Result<Vec<_>, _>>()?;
+    let names: Vec<&str> = design_of(draw)?.chutes.iter().map(|c| c.name).collect();
+    assemble(draw, &result, samples, &names)
+}
+
+/// A flight's truth from its samples and its result, `names` naming its parachutes in the order
+/// flown.
+fn assemble(
+    draw: &Draw,
+    result: &hpr_sim::FlightResult,
+    samples: Vec<TruthSample>,
+    names: &[&str],
+) -> Result<Truth, SyntheticError> {
     let at = |kind: EventKind, what: &'static str| {
         result
             .event(kind)
@@ -459,13 +490,14 @@ pub fn fly(
             .ok_or(SyntheticError::Flight { what })
     };
     let apogee = at(EventKind::Apogee, "no apogee")?;
-    let names = design_of(draw)?.chutes;
     let by_kind = |kind: fn(usize) -> EventKind| -> Vec<(String, f64)> {
-        let mut events: Vec<(String, f64)> = (0..names.len())
-            .filter_map(|i| {
+        let mut events: Vec<(String, f64)> = names
+            .iter()
+            .enumerate()
+            .filter_map(|(i, name)| {
                 result
                     .event(kind(i))
-                    .map(|e| (names[i].name.to_owned(), e.sample.time_s))
+                    .map(|e| ((*name).to_owned(), e.sample.time_s))
             })
             .collect();
         events.sort_by(|a, b| a.1.total_cmp(&b.1));
@@ -487,6 +519,191 @@ pub fn fly(
         },
         site_elevation_m: draw.elevation_m,
         temperature_offset_k: draw.temperature_offset_k,
+    })
+}
+
+/// The two-stage design's configuration.
+const STAGED_CONFIGURATION: &str = "j760-i175";
+/// Its booster's motor mount.
+const BOOSTER_MOUNT: &str = "booster-motor-mount";
+/// Its sustainer's motor mount.
+const SUSTAINER_MOUNT: &str = "sustainer-motor-mount";
+/// How long after the booster burns out the stack comes apart, s.
+const SEPARATION_DELAY_S: f64 = 0.5;
+/// How long after that the sustainer lights, s.
+const SUSTAINER_DELAY_S: f64 = 0.5;
+/// The sustainer's canopy's drag area, m²: invented, about a 1 m canopy's.
+const STAGE_DRAG_AREA_M2: f64 = 0.6;
+/// The canopy's lag after the sustainer's apogee, s.
+const STAGE_LAG_S: f64 = 1.0;
+/// The devices' names: the sustainer's canopy, then the booster's tumble.
+const STAGE_CHUTES: [&str; 2] = ["sustainer", "booster"];
+
+/// A staged flight's truth, one to a stage.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct StagedTruth {
+    /// The stack, then the sustainer.
+    pub sustainer: Truth,
+    /// The stack, then the booster tumbling alone as a point mass (`docs/physics/staging.md`).
+    pub booster: Truth,
+    /// When the stack came apart, s since launch.
+    pub separation_s: f64,
+}
+
+/// Flies `draw` on the two-stage design `json`: the booster burns out, the stack parts half a
+/// second later and the sustainer lights half a second after that. The sustainer comes down under
+/// a canopy, the booster tumbling.
+///
+/// # Errors
+///
+/// As [`fly`], and [`SyntheticError::Flight`] if the stack doesn't part or the booster has no
+/// flight to the ground.
+pub fn fly_staged(draw: &Draw, json: &str) -> Result<StagedTruth, SyntheticError> {
+    let mut rocket: Rocket = serde_json::from_str(json)?;
+    let configuration = rocket
+        .configurations
+        .iter_mut()
+        .find(|c| c.id == STAGED_CONFIGURATION)
+        .ok_or(SyntheticError::Invalid {
+            what: "a two-stage design with no such configuration",
+        })?;
+    for mounted in &mut configuration.motors {
+        mounted.motor = dispersed_motor(&mounted.motor, draw.impulse_scale, draw.burn_time_scale)?;
+        if mounted.mount == SUSTAINER_MOUNT {
+            mounted.ignition = Ignition::Separation {
+                delay_s: SUSTAINER_DELAY_S,
+            };
+        }
+    }
+    let mut inputs =
+        FlightInputs::new(rocket, STAGED_CONFIGURATION, environment(draw)?, rail(draw));
+    inputs.drag_scale = draw.drag_scale;
+    let stack = inputs.simulation()?;
+    let booster_motor = stack
+        .assembly()
+        .motors
+        .iter()
+        .position(|motor| motor.mounted.mount == BOOSTER_MOUNT)
+        .ok_or(SyntheticError::Invalid {
+            what: "a two-stage design with no booster motor",
+        })?;
+    // HPR Sim flies a booster dropped under power with its devices' drag alone, so one must act
+    // from the split: the booster tumbles, as `.ork` files' boosters do (`docs/physics/staging.md`).
+    let tumble = DeviceDrag::tumbling_stages(stack.assembly(), (1, 1))?;
+    inputs.recovery = vec![
+        Device::new(
+            STAGE_CHUTES[0],
+            DeviceDrag::DragArea {
+                cd_s_m2: STAGE_DRAG_AREA_M2,
+            },
+            Trigger::Apogee,
+        )
+        .with_lag_s(STAGE_LAG_S),
+        Device::new(STAGE_CHUTES[1], tumble, Trigger::Time { time_s: 0.0 }).on_body(1),
+    ];
+    inputs.separations = vec![Separation::new(
+        Trigger::Burnout {
+            motor: booster_motor,
+            delay_s: SEPARATION_DELAY_S,
+        },
+        0,
+    )];
+    let simulation = inputs.simulation()?;
+    let mut grid = Grid::default();
+    let result = simulation.run(&mut grid)?;
+    let separation_s = result
+        .event(EventKind::Separation)
+        .map(|event| event.sample.time_s)
+        .ok_or(SyntheticError::Flight {
+            what: "no separation",
+        })?;
+    let flown = result.bodies.first().ok_or(SyntheticError::Flight {
+        what: "no booster flight",
+    })?;
+    let mut samples = std::mem::take(&mut grid.samples);
+    samples.sort_by(|a, b| a.time_s.total_cmp(&b.time_s));
+    samples.dedup_by(|b, a| a.time_s == b.time_s);
+    let environment = &inputs.environment;
+    let stack_and_sustainer = samples
+        .iter()
+        .map(|s| truth_sample(environment, s))
+        .collect::<Result<Vec<_>, _>>()?;
+    let sustainer = assemble(draw, &result, stack_and_sustainer, &STAGE_CHUTES[..1])?;
+    let mut steps = grid.bodies.remove(&flown.body).unwrap_or_default();
+    steps.push(flown.final_sample);
+    let booster = booster_truth(&sustainer, flown, &steps, separation_s)?;
+    Ok(StagedTruth {
+        sustainer,
+        booster,
+        separation_s,
+    })
+}
+
+/// The booster's truth: the stack's samples before the separation, then its own steps.
+fn booster_truth(
+    stack: &Truth,
+    flown: &BodyFlight,
+    steps: &[BodySample],
+    separation_s: f64,
+) -> Result<Truth, SyntheticError> {
+    let air = stack.air()?;
+    let mut samples: Vec<TruthSample> = stack
+        .samples
+        .iter()
+        .take_while(|s| s.time_s < separation_s)
+        .copied()
+        .collect();
+    for (k, step) in steps.iter().enumerate() {
+        let before = &steps[k.saturating_sub(1)];
+        let after = &steps[(k + 1).min(steps.len() - 1)];
+        let span = after.time_s - before.time_s;
+        // The rate of its vertical speed less gravity's: what an accelerometer hanging along the
+        // vertical reads under a canopy. Across the step, so that an instant's step is not a spike.
+        let specific_force = if span > 0.0 {
+            (after.vertical_speed_m_s - before.vertical_speed_m_s) / span + STANDARD_GRAVITY_M_S2
+        } else {
+            STANDARD_GRAVITY_M_S2
+        };
+        let state = air
+            .sample(stack.site_elevation_m + step.height_above_ground_m)?
+            .air;
+        samples.push(TruthSample {
+            time_s: step.time_s,
+            height_m: step.height_above_ground_m,
+            vertical_speed_m_s: step.vertical_speed_m_s,
+            axial_specific_force_m_s2: specific_force,
+            mach: step.airspeed_m_s / state.speed_of_sound_m_s,
+            dynamic_pressure_pa: 0.5 * state.density_kg_m3 * step.airspeed_m_s.powi(2),
+            position_enu_m: step.cg_enu_m.to_array(),
+            velocity_enu_m_s: step.cg_velocity_enu_m_s.to_array(),
+        });
+    }
+    samples.dedup_by(|b, a| a.time_s == b.time_s);
+    let at = |kind: EventKind, what: &'static str| {
+        flown
+            .event(kind)
+            .map(|event| event.sample)
+            .ok_or(SyntheticError::Flight { what })
+    };
+    let apogee = at(EventKind::Apogee, "no booster apogee")?;
+    let landing = at(EventKind::GroundHit, "no booster landing")?;
+    let named = |kind: EventKind| -> Vec<(String, f64)> {
+        flown
+            .event(kind)
+            .map(|event| vec![(STAGE_CHUTES[1].to_owned(), event.sample.time_s)])
+            .unwrap_or_default()
+    };
+    Ok(Truth {
+        samples,
+        events: TruthEvents {
+            apogee_s: apogee.time_s,
+            apogee_m: apogee.height_above_ground_m,
+            charges: named(EventKind::Trigger(1)),
+            deployments: named(EventKind::Deployment(1)),
+            landing_s: landing.time_s,
+            ..stack.events.clone()
+        },
+        ..stack.clone()
     })
 }
 

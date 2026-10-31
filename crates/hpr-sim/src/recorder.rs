@@ -8,6 +8,7 @@ use crate::dynamics::Phase;
 use crate::error::SimError;
 use crate::flight::FlightEvent;
 use crate::metrics::Stability;
+use crate::recovery::BodySample;
 use crate::state::State;
 
 /// The flight's state and the quantities derived from it at one instant.
@@ -218,6 +219,13 @@ pub trait Observer {
     fn event(&mut self, event: &FlightEvent) {
         let _ = event;
     }
+
+    /// Sees a separated body at the start of every accepted step of its flight to the ground,
+    /// numbered as [`crate::BodyFlight::body`] is. Its last step's end is the body's
+    /// [`crate::BodyFlight::final_sample`].
+    fn body_step(&mut self, body: usize, sample: &BodySample) {
+        let _ = (body, sample);
+    }
 }
 
 impl Observer for () {}
@@ -231,6 +239,10 @@ impl<T: Observer + ?Sized> Observer for &mut T {
     fn event(&mut self, event: &FlightEvent) {
         (**self).event(event);
     }
+
+    fn body_step(&mut self, body: usize, sample: &BodySample) {
+        (**self).body_step(body, sample);
+    }
 }
 
 /// Two observers watch one flight: each sees every step and event, the first before the second.
@@ -243,6 +255,11 @@ impl<A: Observer, B: Observer> Observer for (A, B) {
     fn event(&mut self, event: &FlightEvent) {
         self.0.event(event);
         self.1.event(event);
+    }
+
+    fn body_step(&mut self, body: usize, sample: &BodySample) {
+        self.0.body_step(body, sample);
+        self.1.body_step(body, sample);
     }
 }
 

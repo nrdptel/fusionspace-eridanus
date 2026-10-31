@@ -432,6 +432,10 @@ adds a source.
   figures, and keeping the main's descent rate out of the speeds, agree with it, in
   `hpr_flightdata::fwsummary`; the layout comes from the files and the Blue Raven's manual.
   No code was copied; no flight file of Debrief's is committed.
+
+- **fusionspace-debrief** (MIT, the project owner's own), `lib/stitch.ts`: the method of two
+  recordings by a shared liftoff, never averaged, as `hpr_flightdata::timeline` takes it. The code
+  is written anew.
 - **DOPRI5** (BSD-2-Clause), E. Hairer and G. Wanner's `dopri5.f`, version of 2004: the
   Dormand–Prince coefficients, the error norm, the PI step-size controller, the starting-step
   estimate and the dense-output formula, re-expressed in Rust in `hpr_sim::integrator`. Its license

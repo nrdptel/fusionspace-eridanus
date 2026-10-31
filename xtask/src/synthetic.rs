@@ -1695,6 +1695,10 @@ fn title(set: Set) -> &'static str {
         Set::A => "A",
         Set::B => "B",
         Set::Calibration => "Calibration",
+        Set::PairCalibration => "Two loggers, calibration",
+        Set::PairA => "Two loggers, A",
+        Set::PairB => "Two loggers, B",
+        Set::Staged => "Staged",
     }
 }
 
