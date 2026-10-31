@@ -57,7 +57,7 @@ The same run as text, to copy or search:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/guides/level-1.ork` -->
 
-```text
+```text,wrap
 $ hpr sim validation/fixtures/ork/guides/level-1.ork
 Level 1 guide rocket (level-1.ork)
 configuration 1 of 2: [H170M-10]
@@ -136,7 +136,7 @@ The same run as text:
 
 <!-- cli: example `hpr mc validation/fixtures/ork/guides/level-1.ork --runs 200 --seed 2026 --mass-sd 0.02 --drag-sd 0.05 --impulse-sd 0.03` -->
 
-```text
+```text,wrap
 $ hpr mc validation/fixtures/ork/guides/level-1.ork --runs 200 --seed 2026 --mass-sd 0.02 --drag-sd 0.05 --impulse-sd 0.03
 Level 1 guide rocket (level-1.ork)
 configuration 1 of 2: [H170M-10]

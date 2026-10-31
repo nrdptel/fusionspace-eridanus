@@ -191,7 +191,7 @@ The `<M>` in the first line is the option's value, in meters. A usage error like
 
 <!-- cli: example `hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --elevation 3,9`, exits 2 -->
 
-```text
+```text,wrap
 $ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --elevation 3,9
 error: invalid value '3,9' for '--elevation <M>'
 
@@ -216,7 +216,7 @@ A latitude past the pole is refused in the degrees you gave, with the range `--l
 
 <!-- cli: example `hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --latitude 95`, exits 1 -->
 
-```text
+```text,wrap
 $ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --latitude 95
 error: --latitude 95: the site's latitude is in degrees, from -90 to 90, north positive and south negative
 help: for example `--latitude -33.9`
@@ -233,7 +233,7 @@ next to no air. Nothing slows the rocket, and it passes Mach 5, where the aerody
 
 <!-- cli: example `hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --elevation 1e9`, exits 1 -->
 
-```text
+```text,wrap
 $ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --elevation 1e9
 error: the flight stopped: it reached Mach 5.835; the aerodynamics stop at Mach 5 (the normal force's range)
 help: the flight came from pods-none.ork with `--motor H54 --elevation 1000000000`: check those values, or fly it without them
@@ -257,7 +257,7 @@ motor, or, once the cache holds the answer, the motors that match the name:
 
 <!-- cli: example `hpr motors show H5`, exits 1 -->
 
-```text
+```text,wrap
 $ hpr motors show H5
 error: no motor in the bundled catalog is called H5
 help: `hpr motors list` lists the catalog's motors, and a .eng or .rse file can be shown by its path
@@ -365,7 +365,7 @@ instead:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54
 pods-none (pods-none.ork)
 configuration 1 of 1: [H128W-0] with --motor H54
@@ -497,7 +497,7 @@ under the drogue as the main opens, then at landing:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/loft-demo/demo-dual-deploy.ork --motor H54` -->
 
-```text
+```text,wrap
 $ hpr sim validation/fixtures/ork/loft-demo/demo-dual-deploy.ork --motor H54
 Loft Demo 54mm — dual deploy (demo-dual-deploy.ork)
 configuration 1 of 1: [K550W-P] with --motor H54
@@ -726,7 +726,7 @@ flies the same rocket from Spaceport America's field, on a rail leaning 5° into
 
 <!-- cli: example `hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --latitude 32.99 --longitude -106.97 --elevation 1400 --rail-length 3 --inclination 85 --heading 270 --wind 5 --wind-from 270`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --latitude 32.99 --longitude -106.97 --elevation 1400 --rail-length 3 --inclination 85 --heading 270 --wind 5 --wind-from 270
 pods-none (pods-none.ork)
 configuration 1 of 1: [H128W-0] with --motor H54
@@ -1056,7 +1056,7 @@ motor, wind and rail are drawn afresh:
 
 <!-- cli: example `hpr mc validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --runs 200 --seed 2026 --wind 4 --wind-from 270 --inclination 85 --heading 270 --mass-sd 0.02 --drag-sd 0.05 --impulse-sd 0.03 --burn-time-sd 0.02 --wind-sd 0.25 --wind-from-sd 15 --inclination-sd 1 --heading-sd 2` -->
 
-```text
+```text,wrap
 $ hpr mc validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --runs 200 --seed 2026 --wind 4 --wind-from 270 --inclination 85 --heading 270 --mass-sd 0.02 --drag-sd 0.05 --impulse-sd 0.03 --burn-time-sd 0.02 --wind-sd 0.25 --wind-from-sd 15 --inclination-sd 1 --heading-sd 2
 pods-none (pods-none.ork)
 configuration 1 of 1: [H128W-0] with --motor H54
@@ -1229,7 +1229,7 @@ can be fewer than the maker sells.
 
 <!-- cli: example `hpr motors list --class J --diameter 54 --manufacturer Loki`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr motors list --class J --diameter 54 --manufacturer Loki
 6 motors from ThrustCurve.org's solid motor catalog: every solid motor's record and every data file but a restricted one, captured 2026-10-28; size and delays from each motor's default file's header, the rest from its curve, or from ThrustCurve.org's record where no file of it is bundled.
 
@@ -1308,7 +1308,7 @@ checks.
 
 <!-- cli: example `hpr motors show J760`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr motors show J760
 1266J760-19A (Cesaroni Technology), from the bundled catalog
   impulse class    J (640.01–1280 N·s)
@@ -1412,7 +1412,7 @@ This reads the list of motors in stock that the tests use, recorded at 07:07 UTC
 
 <!-- cli: example `hpr motors search --in-stock --class L --max-price 300 --from crates/hpr-net/tests/fixtures/replay/motor-finder-in-stock.json`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr motors search --in-stock --class L --max-price 300 --from crates/hpr-net/tests/fixtures/replay/motor-finder-in-stock.json
 4 motors (in stock, class L, at most $300.00 each) in motor.fusionspace.co's list built 2026-10-01T07:07:29Z.
 Read from motor-finder-in-stock.json
@@ -1436,7 +1436,7 @@ the same recording lists nothing:
 
 <!-- cli: example `hpr motors search --in-stock --class L --max-price 150 --from crates/hpr-net/tests/fixtures/replay/motor-finder-in-stock.json`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr motors search --in-stock --class L --max-price 150 --from crates/hpr-net/tests/fixtures/replay/motor-finder-in-stock.json
 0 motors (in stock, class L, at most $150.00 each) in motor.fusionspace.co's list built 2026-10-01T07:07:29Z.
 Read from motor-finder-in-stock.json
@@ -1525,7 +1525,7 @@ Offline with nothing cached, it says what to run:
 
 <!-- cli: example `hpr motors fetch H128W --offline`, exits 1; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr motors fetch H128W --offline
 error: H128W is not in HPR Sim's cache of ThrustCurve.org, and the run is offline
 help: with a network connection, `hpr motors fetch H128W` fetches it into the cache
@@ -1579,7 +1579,7 @@ answer missing names the bundle's date and succeeds:
 
 <!-- cli: example `hpr motors update --offline`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr motors update --offline
 The bundled catalog: ThrustCurve.org's solid motors as of 2026-10-28
   motors           1004, 924 with a file that reads
@@ -1622,7 +1622,7 @@ file name. Here the Estes F15's `.rse` file, from the catalog's curves, becomes 
 
 <!-- cli: example `hpr convert crates/hpr-motor/data/thrustcurve/curves/5f923edb1bca5800041716ab.rse F15.eng`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr convert crates/hpr-motor/data/thrustcurve/curves/5f923edb1bca5800041716ab.rse F15.eng
 read   5f923edb1bca5800041716ab.rse
 wrote  F15.eng: F15
@@ -1717,7 +1717,7 @@ Here one of the repository's public designs becomes a `.hpr`:
 
 <!-- cli: example `hpr convert validation/fixtures/ork/loft-demo/demo-multi-config.ork demo.hpr`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr convert validation/fixtures/ork/loft-demo/demo-multi-config.ork demo.hpr
 read   demo-multi-config.ork
 wrote  demo.hpr: "Loft Demo 38mm — motor comparison", 2 motor configurations, HPR design format 0.2
@@ -1864,7 +1864,7 @@ from ([Reading a flight log](reading-a-flight-log.md) works through it). Its tru
 
 <!-- cli: example `hpr analyze validation/fixtures/logs/synthetic-pnut.pf2`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr analyze validation/fixtures/logs/synthetic-pnut.pf2
 synthetic-pnut.pf2: PerfectFlite Pnut, serial 0, flight 1
 984 samples, from 0.00 s to 49.15 s
@@ -1916,7 +1916,7 @@ track, the heights come from its altitude column and the accelerometer is read o
 
 <!-- cli: example `hpr analyze validation/fixtures/logs/accelerometer/axial.csv`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr analyze validation/fixtures/logs/accelerometer/axial.csv
 axial.csv: unknown
 no primary track: each channel on its own clock
@@ -1984,7 +1984,7 @@ second flight, made to peak at 548.0 m (1,798 ft) above the pad, and a note name
 
 <!-- cli: example `hpr analyze validation/fixtures/logs/several/two-flights.xlsx --sheet 2`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr analyze validation/fixtures/logs/several/two-flights.xlsx --sheet 2
 two-flights.xlsx: unknown
 no primary track: each channel on its own clock
@@ -2162,7 +2162,7 @@ folder, shown as `<the scratch folder>`; `hpr` prints the path you give it.)
 
 <!-- cli: example `hpr weather open-meteo --time 2025-06-21T15:30Z --from crates/hpr-net/tests/fixtures/replay/open-meteo-historical.json --output profile.json`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr weather open-meteo --time 2025-06-21T15:30Z --from crates/hpr-net/tests/fixtures/replay/open-meteo-historical.json --output profile.json
 Open-Meteo at 32.99655° N, 106.96947° W, for 2025-06-21T15:30:00Z
 Read from open-meteo-historical.json
@@ -2313,7 +2313,7 @@ code, and a change to a document changes its schema in the same commit.
 
 <!-- cli: example `hpr motors show B4-4 --json`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr motors show B4-4 --json
 {
   "tool": {
@@ -2396,7 +2396,7 @@ the cache holds a curve for it:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/guides/no-curve.ork --offline --json`, exits 1; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr sim validation/fixtures/ork/guides/no-curve.ork --offline --json
 {
   "tool": {

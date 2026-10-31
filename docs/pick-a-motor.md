@@ -38,7 +38,7 @@ H motors:
 
 <!-- cli: example `hpr motors list --diameter 38 --class H --manufacturer Loki`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr motors list --diameter 38 --class H --manufacturer Loki
 6 motors from ThrustCurve.org's solid motor catalog: every solid motor's record and every data file but a restricted one, captured 2026-10-28; size and delays from each motor's default file's header, the rest from its curve, or from ThrustCurve.org's record where no file of it is bundled.
 
@@ -78,7 +78,7 @@ the simulator reads its curve:
 
 <!-- cli: example `hpr motors show I175WS`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr motors show I175WS
 I175WS (AeroTech), from the bundled catalog
   impulse class    I (320.01–640 N·s)
@@ -118,7 +118,7 @@ Loki H125, with a 10 s delay:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/guides/level-1.ork --motor H125-CT --delay 10`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr sim validation/fixtures/ork/guides/level-1.ork --motor H125-CT --delay 10
 Level 1 guide rocket (level-1.ork)
 configuration 1 of 2: [H170M-10] with --motor H125-CT --delay 10
@@ -167,7 +167,7 @@ And on a harder-hitting I motor, a Loki I377, with the same delay:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/guides/level-1.ork --motor I377-CT --delay 10`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr sim validation/fixtures/ork/guides/level-1.ork --motor I377-CT --delay 10
 Level 1 guide rocket (level-1.ork)
 configuration 1 of 2: [H170M-10] with --motor I377-CT --delay 10
@@ -268,7 +268,7 @@ fires before apogee:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/guides/level-1.ork --config 2`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr sim validation/fixtures/ork/guides/level-1.ork --config 2
 Level 1 guide rocket (level-1.ork)
 configuration 2 of 2: [I175WS-9]

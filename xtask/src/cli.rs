@@ -506,18 +506,42 @@ fn example(command: &str, root: &Path, read: &mut dyn FnMut(&Path)) -> (String, 
     for spelled in [folder.clone(), folder.replace('\\', "\\\\")] {
         printed = printed.replace(&spelled, "<the scratch folder>/");
     }
-    let mut block = format!("```text\n$ {command}\n");
-    block.push_str(&printed);
+    let mut body = format!("$ {command}\n");
+    body.push_str(&printed);
     if exit.code() != 0 {
-        block.push_str(&format!("$ echo $?\n{}\n", exit.code()));
+        body.push_str(&format!("$ echo $?\n{}\n", exit.code()));
     }
-    block.push_str("```\n");
-    (block, exit.code())
+    (fenced(&body), exit.code())
+}
+
+/// The widest line of an example that a page's code block shows whole at the page's widest column,
+/// in characters. A wider line would run off the box's edge, so its block wraps instead.
+const EXAMPLE_FITS_CHARS: usize = 80;
+
+/// An example's text as a page's fenced block: one with a line too wide for the box is a `text,wrap`
+/// fence, as the writing guide asks of a long line of data, so no reading runs out of sight.
+fn fenced(body: &str) -> String {
+    let wide = body
+        .lines()
+        .any(|line| line.chars().count() > EXAMPLE_FITS_CHARS);
+    let fence = if wide { "text,wrap" } else { "text" };
+    format!("```{fence}\n{body}```\n")
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_line_too_wide_for_the_box_wraps_its_block() {
+        let fits = "x".repeat(EXAMPLE_FITS_CHARS);
+        assert_eq!(
+            fenced(&format!("{fits}\n")),
+            format!("```text\n{fits}\n```\n")
+        );
+        let wide = format!("{fits}x\n");
+        assert_eq!(fenced(&wide), format!("```text,wrap\n{wide}```\n"));
+    }
 
     #[test]
     fn a_written_file_is_a_name_with_a_letter_extension() {
@@ -756,7 +780,7 @@ mod tests {
         let page = format!("a\n{EXAMPLE}hpr optimize x`, exits 3 -->\nstale\n{END}\nb\n");
         let written = examples(&page, PAGE, &crate::designs::root().unwrap()).unwrap();
         assert!(written.starts_with(&format!(
-            "a\n{EXAMPLE}hpr optimize x`, exits 3 -->\n\n```text\n$ hpr optimize x\n"
+            "a\n{EXAMPLE}hpr optimize x`, exits 3 -->\n\n```text,wrap\n$ hpr optimize x\n"
         )));
         assert!(written.contains("error: hpr optimize is not available yet"));
         assert!(written.ends_with("$ echo $?\n3\n```\n\n<!-- cli: end -->\nb\n"));

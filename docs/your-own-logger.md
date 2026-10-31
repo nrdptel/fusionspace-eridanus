@@ -73,7 +73,7 @@ Time (ms),Alt,Pressure (Pa),Accel X (g)
 
 <!-- cli: example `hpr analyze validation/fixtures/logs/own-logger/flight.csv --print-mapping`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr analyze validation/fixtures/logs/own-logger/flight.csv --print-mapping
 {
   "header_line": 2,
@@ -191,7 +191,7 @@ measure its column's quantity.
 
 <!-- cli: example `hpr analyze validation/fixtures/logs/own-logger/flight.csv --mapping validation/fixtures/logs/own-logger/flight.mapping.json`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr analyze validation/fixtures/logs/own-logger/flight.csv --mapping validation/fixtures/logs/own-logger/flight.mapping.json
 flight.csv: read by the mapping flight.mapping.json
 251 samples, from 0.00 s to 50.00 s
@@ -283,7 +283,7 @@ workbook's FIP header states that line:
 
 <!-- cli: example `hpr analyze validation/fixtures/logs/several/fip-below-no-header.xlsx --fip-header validation/fixtures/logs/several/fip-below-no-header.header.json`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr analyze validation/fixtures/logs/several/fip-below-no-header.xlsx --fip-header validation/fixtures/logs/several/fip-below-no-header.header.json
 fip-below-no-header.xlsx: Featherweight Raven
 201 samples, from 0.00 s to 40.00 s
@@ -356,7 +356,7 @@ big-endian records, and little-endian is the default
 
 <!-- cli: example `hpr analyze validation/fixtures/logs/own-logger/flight.bin --layout validation/fixtures/logs/own-logger/flight.layout.json`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr analyze validation/fixtures/logs/own-logger/flight.bin --layout validation/fixtures/logs/own-logger/flight.layout.json
 flight.bin: read by the layout flight.layout.json
 no primary track: each channel on its own clock
@@ -402,7 +402,7 @@ its blocks listed.
 
 <!-- cli: example `hpr analyze validation/fixtures/logs/own-logger/flight-capture.txt --layout validation/fixtures/logs/own-logger/flight-capture.layout.json`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr analyze validation/fixtures/logs/own-logger/flight-capture.txt --layout validation/fixtures/logs/own-logger/flight-capture.layout.json
 flight-capture.txt: read by the layout flight-capture.layout.json
 no primary track: each channel on its own clock
@@ -600,7 +600,7 @@ climb and overshoots its top, so no bound can be stated for it:
 
 <!-- cli: example `hpr analyze validation/fixtures/logs/own-logger/gps-track.csv --mapping validation/fixtures/logs/own-logger/gps-track.mapping.json`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr analyze validation/fixtures/logs/own-logger/gps-track.csv --mapping validation/fixtures/logs/own-logger/gps-track.mapping.json
 gps-track.csv: read by the mapping gps-track.mapping.json
 no primary track: each channel on its own clock

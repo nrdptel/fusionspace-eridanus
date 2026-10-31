@@ -142,7 +142,7 @@ AeroTech H170M:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/guides/level-1.ork`; written by `cargo xtask cli`; do not edit -->
 
-```text
+```text,wrap
 $ hpr sim validation/fixtures/ork/guides/level-1.ork
 Level 1 guide rocket (level-1.ork)
 configuration 1 of 2: [H170M-10]
