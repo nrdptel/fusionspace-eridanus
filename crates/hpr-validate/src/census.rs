@@ -165,7 +165,9 @@ impl Group {
         match self {
             Self::Descent => "gate: each metric's tolerance, 0.1% to 3%",
             Self::SameDrag => "gate: each metric's tolerance, 0.05% to 3%",
-            Self::Predicted => "target: each metric's tolerance, 0.1% to 3%, reported, not enforced",
+            Self::Predicted => {
+                "target: each metric's tolerance, 0.1% to 3%, reported, not enforced"
+            }
             Self::OpenRocketExamples | Self::OpenRocketLibrary => {
                 "no target; an apogee more than 5% off needs a written cause"
             }

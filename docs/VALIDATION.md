@@ -49,10 +49,11 @@ provenance.
   - Every miss is explained in the report.
 
   Since [the harness](decisions-and-roadmap.md#m2-1a) wrote its first report, the code-to-code 3%
-  is a gate in same-drag mode (0.2% on four speeds and 0.5% on six apogees since
-  [the decision that tightened them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md), and 0.2% to 1% on rail-exit and apogee times,
-  burnout heights and traces since [ADR-294, which tightened the times, burnout heights and traces](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md)). It stays a target in predicted mode, where neither code's drag is
-  the truth ([predicted mode's decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0023-predicted-mode-each-codes-own-drag-reported.md)).
+  is a gate in same-drag mode (0.2% on the burnout and largest speeds and 0.5% on six apogees since
+  [the decision that tightened them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md), 0.2% to 1% on rail-exit and apogee times,
+  burnout heights and traces since [ADR-294, which tightened the times, burnout heights and traces](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md),
+  and 0.05% and 0.1% on rail-exit and landing speeds since [ADR-310](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0310-the-2026-10-31-review-the-rocketpy-rail-exit-and-landing-speeds-tightened.md)). It stays a target in predicted mode, where neither code's drag is
+  the truth ([predicted mode's decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0023-predicted-mode-each-codes-own-drag-reported.md)): 3%, except 0.1% on the rail-exit and landing speeds and 0.5% on the rail-exit time.
   A predicted miss is explained in its case file, and a test pins the set of misses.
 
 ## Operating envelope
@@ -345,7 +346,13 @@ tighter.
 
 Some gates are tighter ([the decision that tightened them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md), and [ADR-294, which tightened the times, burnout heights and traces](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md)):
 
-- Each burnout, largest, rail-exit and landing speed: 0.2%. The mean descent rate keeps 3%.
+- Each burnout and largest speed: 0.2%. The mean descent rate keeps 3%.
+- Each rail-exit speed: 0.05%. Each landing speed: 0.1%
+  ([ADR-310](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0310-the-2026-10-31-review-the-rocketpy-rail-exit-and-landing-speeds-tightened.md);
+  largest differences −0.0144%, Prometheus 2022's, and −0.0301%, its descent's). All nine rail-exit
+  speeds read low, the cautious side, because HPR Sim's rail has a drag factor at an angle of attack
+  and the propellant's moving center of mass, and RocketPy's has neither. A test fails one that reads
+  high by more than 0.005%.
 - The largest Mach number of all nine flights: 1%. The largest acceleration under power, and the
   whole flight's where it is scored, 1% in the seven flights that aren't Bella Lui's; Bella Lui's
   keep 3% for the rail's variable-mass terms at its ignition spike (+1.78%)
