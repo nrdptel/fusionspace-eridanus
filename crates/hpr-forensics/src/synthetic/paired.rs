@@ -1,5 +1,5 @@
 //! Two recordings of one synthetic flight, and a logger in each stage of a staged one: the check
-//! of [`hpr_flightdata::timeline`]'s clock offset ([ADR-280][adr-280], M7.2f).
+//! of [`hpr_flightdata::timeline`]'s clock offset ([two recordings, in the plan for the readings][adr-280]).
 //!
 //! **What it is for.** A flight's truth says how each logger's clock stood against launch, so the
 //! offset two logs' liftoffs recover can be held to the true one. Each flight here carries two
@@ -233,7 +233,7 @@ pub struct Check {
     pub withheld: BTreeMap<Reason, u64>,
     /// By pair of logger families.
     pub by_loggers: BTreeMap<String, PairCell>,
-    /// ADR-257's test on the 90% interval.
+    /// The coverage test on the 90% interval.
     pub test: Test,
     /// The test on each probe's changed intervals.
     pub probes: BTreeMap<Probe, Test>,

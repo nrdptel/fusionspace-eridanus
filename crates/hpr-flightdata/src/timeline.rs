@@ -24,7 +24,7 @@
 //!
 //! **How far to trust it.** On 2,000 synthetic flights carrying two loggers, on seeds of their own,
 //! 1,383 gave an offset (a log with no barometer has no liftoff); every one stayed within its
-//! bound, by 0.13 of it at most and 0.03 s in the median, and its interval passed ADR-257's test
+//! bound, by 0.13 of it at most and 0.03 s in the median, and its interval passed [the coverage test][adr-257]
 //! (`cargo xtask two-logs`, [`validation/reports/two-logs.md`][report]). Each of the 135 of 200
 //! two-stage flights that gave one stayed within its bound too; the interval missed none of them,
 //! so it is wider than it need be there. One real pair checks it against another clock: on
