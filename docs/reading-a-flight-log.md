@@ -412,15 +412,15 @@ One real flight checks it against another clock
 ([evidence row G35](evidence.md#g35)). [RocketPy](https://github.com/RocketPy-Team/RocketPy)'s
 Prometheus flight carried a TeleMetrum and a TeleMega, each with its own GPS receiver:
 
-| | TeleMetrum | TeleMega | Spread |
+| Reading | TeleMetrum | TeleMega | Spread |
 |---|--:|--:|--:|
-| Liftoff, s on its own clock | 0.23 | 0.18 | |
-| Apogee, m above its own pad | 3,892.1 | 3,894.7 | 2.6 |
-| Smoothed apogee, m | 3,985.7 | 4,015.4 | 29.7 |
-| Flight time, s | 223.01 | 222.83 | 0.18 |
-| Under the drogue, m/s | 26.5 | 26.5 | 0.0 |
-| Under the main, m/s | 6.5 | 6.5 | 0.0 |
+| Apogee, above its own pad | 3,892.1 m (12,769 ft) | 3,894.7 m (12,778 ft) | 2.6 m (9 ft) |
+| Smoothed apogee | 3,985.7 m (13,076 ft) | 4,015.4 m (13,174 ft) | 29.7 m (98 ft) |
+| Flight time | 223.01 s | 222.83 s | 0.18 s |
+| Under the drogue | 26.5 m/s (87 ft/s) | 26.5 m/s (87 ft/s) | 0.0 m/s (0 ft/s) |
+| Under the main | 6.5 m/s (21 ft/s) | 6.5 m/s (21 ft/s) | 0.0 m/s (0 ft/s) |
 
+Their liftoffs read 0.23 s and 0.18 s, each on its own clock.
 The TeleMega's clock less the TeleMetrum's comes to −0.05 s, within 1.53 s, 90% interval −0.13 to
 0.04 s. The two receivers' UTC seconds, taken where each second ticks in each log, put it at −0.130 s,
 0.08 s away and just past the interval's low end, −0.129 s before the printout rounds it outward.

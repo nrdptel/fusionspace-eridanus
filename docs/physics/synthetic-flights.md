@@ -138,12 +138,12 @@ does ([the height formulas note][heights]). The two differ by about 0.83 m (2.7 
 Four more sets check [two logs on one timeline](log-readings.md#two-logs-on-one-timeline). None
 joins the census:
 
-| Set | Flights | Seed | What it flies |
-|---|--:|--:|---|
-| Two-logger calibration | 2,000 | 2026103100 | drawn as the calibration set is, to fit the offset's 90% interval |
-| Two-logger A | 1,000 | 2026103101 | set A's model |
-| Two-logger B | 1,000 | 2026103102 | set B's model |
-| Staged | 200 | 2026103103 | the design `synthetic-two-stage-75mm-54mm`, a logger in each stage |
+| Set | Flights | What it flies |
+|---|--:|---|
+| Two-logger calibration | 2,000 | drawn as the calibration set is, to fit the offset's 90% interval |
+| Two-logger A | 1,000 | set A's model |
+| Two-logger B | 1,000 | set B's model |
+| Staged | 200 | the design `synthetic-two-stage-75mm-54mm`, a logger in each stage |
 
 Each flight carries two loggers, drawn independently from the table above, their noise on streams
 of their own, and each log's clock moved by up to 300 s either way, as a board's is by when it was
