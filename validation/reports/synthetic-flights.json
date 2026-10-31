@@ -10319,17 +10319,17 @@
           "sensors": {
             "GNSS": {
               "logs": 33,
-              "samples": 37200,
+              "samples": 37000,
               "rejected": 0,
-              "unweighed": 7720,
+              "unweighed": 7700,
               "resets": 0,
               "logs_rejecting": 0
             },
             "barometer": {
               "logs": 171,
-              "samples": 4710000,
-              "rejected": 612,
-              "unweighed": 342,
+              "samples": 4700000,
+              "rejected": 610,
+              "unweighed": 340,
               "resets": 0,
               "logs_rejecting": 51
             }
@@ -11989,17 +11989,17 @@
           "sensors": {
             "GNSS": {
               "logs": 185,
-              "samples": 178000,
+              "samples": 180000,
               "rejected": 10,
-              "unweighed": 32700,
+              "unweighed": 33000,
               "resets": 0,
               "logs_rejecting": 5
             },
             "barometer": {
               "logs": 820,
-              "samples": 19900000,
+              "samples": 20000000,
               "rejected": 3200,
-              "unweighed": 1640,
+              "unweighed": 1600,
               "resets": 2,
               "logs_rejecting": 292
             }
@@ -13659,17 +13659,17 @@
           "sensors": {
             "GNSS": {
               "logs": 186,
-              "samples": 169000,
+              "samples": 170000,
               "rejected": 9,
-              "unweighed": 30100,
+              "unweighed": 30000,
               "resets": 0,
               "logs_rejecting": 5
             },
             "barometer": {
               "logs": 845,
-              "samples": 19900000,
-              "rejected": 3530,
-              "unweighed": 1690,
+              "samples": 20000000,
+              "rejected": 3500,
+              "unweighed": 1700,
               "resets": 7,
               "logs_rejecting": 321
             }

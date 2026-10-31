@@ -705,7 +705,7 @@ fn smoother_set(set: Set, files: &DesignFiles) -> Result<(SmootherSet, Vec<Card>
     let mut gnss_from_liftoff = smoothed::tally(&mutated).cells;
     round_cells(&mut gnss_from_liftoff);
     let mut launch_started = smoothed::tally(&launches);
-    round_health(&mut launch_started.health);
+    round_launch_health(&mut launch_started.health);
     round_launch_cells(&mut launch_started.cells);
     for cells in launch_started.by_logger.values_mut() {
         round_launch_cells(cells);
@@ -1080,6 +1080,19 @@ fn round_launch_cells(cells: &mut [smoothed::Cell]) {
         c.largest_sd = census::at_the_figures_of(c.largest_sd, 10.0 * c.largest_sd);
     }
     round_cells(cells);
+}
+
+/// A cut log's health as the report holds it, each sensor's sums of samples to two figures: CI's
+/// Linux runners read one of them across a third figure's edge, as they do a logger's median. Its
+/// counts of logs and of what stayed out keep three.
+fn round_launch_health(health: &mut smoothed::HealthTally) {
+    for t in health.sensors.values_mut() {
+        for n in [&mut t.samples, &mut t.rejected, &mut t.unweighed] {
+            let sum = *n as f64;
+            *n = census::at_the_figures_of(sum, 10.0 * sum).round() as u64;
+        }
+    }
+    round_health(health);
 }
 
 /// The health sums to three significant figures, as the report holds them. A flight's log ends
