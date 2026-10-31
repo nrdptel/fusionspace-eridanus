@@ -36,8 +36,8 @@ largest difference, −0.03007%, is on that side: 2.2 mm/s (0.087 in/s) on 7.3 m
 rows split evenly, 7 low and 7 high, so they show no bias, and their row-by-row cause isn't traced.
 
 **Why nine rail-exit speeds read low.** Two terms that HPR Sim has and RocketPy's rail equation
-(`udot_rail1`) leaves out account for all of it. Probes took them out in turn, in `dynamics.rs`,
-and were reverted. None is committed:
+(`udot_rail1`) leaves out account for all of it. Probes took them out in turn, in `dynamics.rs` (the
+factor set to one at every angle, its mirror past 90° included), and were reverted. None is committed:
 
 | Flight | Report | Without the drag factor | Without the mass terms too |
 |---|---:|---:|---:|
@@ -53,7 +53,7 @@ and were reverted. None is committed:
 
 The drag factor is the one that turns $C_{D0}$ into the axial coefficient at an angle of attack
 (Niskanen 2009 §3.4.7, [the aerodynamics page][aero]). In wind the air meets a slow rocket on the
-rail at a steep angle, so HPR Sim's drag there is higher, and RocketPy's has no such factor. The
+rail at a steep angle, so HPR Sim's drag over most of the rail is higher (above about 40° the factor falls below one), and RocketPy's has no such factor. The
 mass terms are the propellant's moving center of mass, which each flight's case file describes. With
 both out, the differences are at most 1.2e-6 of the value, with both signs. That is below RocketPy's
 largest solver movement on the metric, though Prometheus 2022's and Juno III's calm flight stay above
@@ -74,14 +74,14 @@ speed by at most 0.014%.
 4. In predicted mode, targets of 0.1% on the rail-exit and landing speeds and 0.5% on the rail-exit
    time: 3.40, 4.62 and 3.50 times the largest differences. They stay targets: a miss doesn't fail
    the run. It does fail the test that lists the predicted misses, so it has to be written down.
-   Every other predicted metric keeps 3%.
+   Every other relative predicted metric keeps 3%; the traces keep their absolute targets.
 5. The burnout and largest speeds keep 0.2%. The largest difference is +0.056% (Juno III's burnout),
    under four times inside 0.2% and under two times inside 0.1%.
 6. Test `rail_exit_and_landing_speeds_hold_adr_310s_bounds` holds each case file to these bounds,
    checks the limit in point 3, and counts the rows (9, 14 and 6, 6, 6). A file widened back, given
    a floor or marked not scored, or a new case added at the old bound, fails.
 
-Four mutation probes failed as they should:
+Five mutation probes failed as they should:
 
 - Prometheus 2022's rail-exit speed set back to 0.2% fails the test, and so does a 0.5 m/s floor on
   Valetudo's descent.

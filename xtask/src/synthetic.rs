@@ -453,7 +453,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
             "--intervals" => only_intervals = true,
             "--sets" => {
                 let list = args.next().ok_or("--sets takes a list of sets")?;
-                sets = Some(parse_sets(list)?);
+                if sets.replace(parse_sets(list)?).is_some() {
+                    return Err("--sets given twice: name every set in one list".to_owned());
+                }
             }
             "--smoother" => {
                 let set = match args.next().map(String::as_str) {
@@ -2770,6 +2772,7 @@ mod tests {
         }
         assert!(args(&["--check", "--sets", "a,a"]).contains("twice"));
         assert!(args(&["--check", "--sets"]).contains("takes a list"));
+        assert!(args(&["--check", "--sets", "a", "--sets", "b"]).contains("given twice"));
         // A report is only written whole, and only `--check` compares.
         for list in [
             &["--sets", "a"][..],
@@ -2783,6 +2786,10 @@ mod tests {
     /// The platforms every per-OS job runs on (ADR-222).
     const PLATFORMS: &str =
         "[ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, windows-11-arm]";
+
+    /// The one form a CI step that checks the synthetic flights may take, before its list of sets:
+    /// the optimized build, and nothing after the list that could swallow a failure.
+    const STEP: &str = "- run: cargo run --locked --quiet --package xtask --profile report-check -- synthetic --check --sets ";
 
     /// What's wrong with how a CI file checks the synthetic flights: each set must be on exactly
     /// one `synthetic --check` line, of its own step with no condition, in an unconditional job on
@@ -2822,26 +2829,32 @@ mod tests {
             if job_key("if:") || job_key("continue-on-error:") {
                 problems.push(format!("{job} runs on a condition"));
             }
-            // A step's own `if:` or `continue-on-error:` puts `run:` after a dash-less line, or
-            // follows it, at the indent past the dash.
-            let follows = lines.get(at + 1).is_some_and(|next| {
-                !next.trim().is_empty() && !next.trim_start().starts_with('#') && indent(next) > 6
-            });
-            if !text.starts_with("- run: ") || follows {
-                problems.push(format!("`{text}` in {job} isn't a step of its own"));
+            if body.iter().any(|l| {
+                let key = l.trim_start().trim_start_matches("- ");
+                key.starts_with("exclude:") || key.starts_with("include:")
+            }) {
+                problems.push(format!("{job} leaves its platforms to a matrix edit"));
             }
-            if !text.contains("--profile report-check --") {
-                problems.push(format!("`{text}` in {job} isn't the optimized build"));
-            }
-            let words: Vec<&str> = text.split_whitespace().collect();
-            let list = words
+            // Everything to the next step belongs to this one, and must be nothing but comments:
+            // a step's `if:` or `continue-on-error:` can sit past a comment line.
+            let dash = indent(line);
+            let alone = lines[at + 1..end]
                 .iter()
-                .position(|word| *word == "--sets")
-                .and_then(|i| words.get(i + 1));
-            match list {
-                Some(list) => named.extend(list.split(',').map(str::to_owned)),
-                None => problems.push(format!("`{text}` in {job} names no sets")),
+                .take_while(|next| next.trim().is_empty() || indent(next) > dash)
+                .all(|next| next.trim().is_empty() || next.trim_start().starts_with('#'));
+            let list = text.strip_prefix(STEP).filter(|list| {
+                !list.is_empty() && !list.contains(|c: char| c.is_whitespace() || c == '|')
+            });
+            if list.is_none() || !alone {
+                problems.push(format!(
+                    "`{text}` in {job} isn't exactly `{STEP}<sets>` alone"
+                ));
             }
+            named.extend(
+                list.into_iter()
+                    .flat_map(|list| list.split(','))
+                    .map(str::to_owned),
+            );
         }
         for set in EVERY_SET {
             let times = named.iter().filter(|n| *n == set.name()).count();
@@ -2893,7 +2906,7 @@ mod tests {
         has(
             "whole",
             &ci.replace(half, "synthetic --check"),
-            "names no sets",
+            "isn't exactly",
         );
         has(
             "debug",
@@ -2901,7 +2914,7 @@ mod tests {
                 &format!("--profile report-check -- {half}"),
                 &format!("-- {half}"),
             ),
-            "optimized build",
+            "isn't exactly",
         );
         let line = format!(
             "      - run: cargo run --locked --quiet --package xtask --profile report-check -- {half}"
@@ -2916,12 +2929,38 @@ mod tests {
                     line.replacen("- run", "  run", 1)
                 ),
             ),
-            "isn't a step of its own",
+            "isn't exactly",
+        );
+        has(
+            "a failure swallowed",
+            &ci.replace(half, &format!("{half} || true")),
+            "isn't exactly",
+        );
+        has(
+            "a second list, which would win",
+            &ci.replace(half, &format!("{half} --sets b")),
+            "isn't exactly",
+        );
+        has(
+            "allowed to fail, past a comment",
+            &ci.replace(
+                &line,
+                &format!("{line}\n        # a note\n        continue-on-error: true"),
+            ),
+            "isn't exactly",
+        );
+        has(
+            "a platform left out",
+            &ci.replace(
+                &format!("os: {PLATFORMS}\n"),
+                &format!("os: {PLATFORMS}\n        exclude:\n          - os: macos-latest\n"),
+            ),
+            "matrix edit",
         );
         has(
             "allowed to fail",
             &ci.replace(&line, &format!("{line}\n        continue-on-error: true")),
-            "isn't a step of its own",
+            "isn't exactly",
         );
     }
 

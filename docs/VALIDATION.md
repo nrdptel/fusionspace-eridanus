@@ -53,7 +53,7 @@ provenance.
   [the decision that tightened them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md), 0.2% to 1% on rail-exit and apogee times,
   burnout heights and traces since [ADR-294, which tightened the times, burnout heights and traces](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md),
   and 0.05% and 0.1% on rail-exit and landing speeds since [ADR-310](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0310-the-2026-10-31-review-the-rocketpy-rail-exit-and-landing-speeds-tightened.md)). It stays a target in predicted mode, where neither code's drag is
-  the truth ([predicted mode's decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0023-predicted-mode-each-codes-own-drag-reported.md)): 3%, except 0.1% on the rail-exit and landing speeds and 0.5% on the rail-exit time.
+  the truth ([predicted mode's decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0023-predicted-mode-each-codes-own-drag-reported.md)): 3% on each relative metric, except 0.1% on the rail-exit and landing speeds and 0.5% on the rail-exit time; the traces keep their absolute targets.
   A predicted miss is explained in its case file, and a test pins the set of misses.
 
 ## Operating envelope
@@ -350,9 +350,11 @@ Some gates are tighter ([the decision that tightened them](https://github.com/nr
 - Each rail-exit speed: 0.05%. Each landing speed: 0.1%
   ([ADR-310](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0310-the-2026-10-31-review-the-rocketpy-rail-exit-and-landing-speeds-tightened.md);
   largest differences −0.0144%, Prometheus 2022's, and −0.0301%, its descent's). All nine rail-exit
-  speeds read low, the cautious side, because HPR Sim's rail has a drag factor at an angle of attack
-  and the propellant's moving center of mass, and RocketPy's has neither. A test fails one that reads
-  high by more than 0.005%.
+  speeds read low, the cautious side, because HPR Sim adds drag when the rocket meets the air at a
+  slant on the rail and counts the propellant's weight moving, and RocketPy's rail does neither:
+  without both, every row agrees within 0.00012%. A test fails a rail-exit speed that reads high
+  by more than 0.005%, RocketPy's solver movement rounded up. The landing speeds split seven and
+  seven around zero, so the −0.0301% is on the flattering side, with no traced cause.
 - The largest Mach number of all nine flights: 1%. The largest acceleration under power, and the
   whole flight's where it is scored, 1% in the seven flights that aren't Bella Lui's; Bella Lui's
   keep 3% for the rail's variable-mass terms at its ignition spike (+1.78%)
@@ -395,10 +397,11 @@ rendering (`Report::reproduces`;
 So a change that moves a number has to commit the report that shows it.
 
 The two longest report checks, `cargo xtask synthetic --check` and `cargo xtask motor-catalog
---check`, run from an optimized build in CI, the `report-check` profile. Optimizing keeps their
-numbers to the digits they compare, and the profile keeps the assertions and overflow checks the
-everyday build has. The synthetic check also runs in two halves, by set
-([the synthetic flights' tests](physics/synthetic-flights.md)). Reports are still written by the
+--check`, run from an optimized build in CI: `report-check`, a Cargo build setting with release's
+speed plus the assertions and overflow checks of the everyday build. Optimizing keeps their numbers
+to the digits they compare. On each of the five platforms the synthetic check runs in two halves,
+by set: `--sets tuning,a` in the `validate` job and `--sets b,calibration` in `examples`, and a test
+fails if a set is left out ([the synthetic flights' tests](physics/synthetic-flights.md)). Reports are still written by the
 everyday build, and `scripts/gate.sh` still runs both checks with it, whole, on the maintainer's
 machine. So a report in the repository has to reproduce from both builds. If the optimized build
 ever came out differently, CI would fail and regenerating wouldn't fix it: that would need a

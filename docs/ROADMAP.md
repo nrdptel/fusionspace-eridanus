@@ -167,7 +167,8 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
       of 83 today), and `scoreboard --check` fails if HPR Sim's cell falls; HPR Sim flies every flight
       OpenRocket 24.12 flies, or each one left is counted by cause in the report's *Not flown* table
       beside an open issue and an ADR with the measurement saying why; a flight flown here for the
-      first time is checked by the report's mass and CG read-backs before it joins an average; #358,
+      first time has its mass and CG compared in the report with OpenRocket's own read-back for that
+      configuration, counted, before it joins an average; #358,
       #359, #360, #361, #181 and #362 are closed or carry that ADR.
     - [ ] **M2.3c6 The gap to OpenRocket, by cause** (ADR-226, ADR-273). *Done when:* the fixture
       report gives, as aggregates, the hpr-less-OpenRocket apogee split into thrust, mass and drag
