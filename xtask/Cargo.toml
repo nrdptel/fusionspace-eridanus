@@ -47,4 +47,8 @@ flate2.workspace = true
 zip.workspace = true
 
 [dev-dependencies]
+# The servers' parsers in the damaged-input probes (M0.15).
+hpr-net.workspace = true
+# 256 cases of arbitrary bytes for each reader (M0.15).
+proptest.workspace = true
 tempfile.workspace = true

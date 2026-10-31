@@ -31,6 +31,7 @@ mod census;
 mod cli;
 #[cfg(test)]
 mod conformance;
+mod damaged;
 mod design_checks;
 mod designs;
 #[cfg(test)]

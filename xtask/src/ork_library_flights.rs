@@ -166,6 +166,15 @@ pub(crate) fn run(check: bool) -> Result<(), String> {
             ));
         }
         println!("ork-flights --library: the committed report matches the flights");
+        let record = read_json(&root.join(RECORD))?;
+        let designs: Vec<&str> = crate::ork_corpus_flights::files(&record)
+            .filter(|file| !file.contains(".jar!"))
+            .collect();
+        crate::damaged::tally_cuts(&designs, |file, tally| match fs::read(root.join(file)) {
+            Ok(bytes) => crate::damaged::cuts_of_design(tally, file, &bytes),
+            Err(error) => tally.panics.push(format!("{file}: {error}")),
+        })
+        .check("design and its XML")?;
     } else {
         let text = serde_json::to_string_pretty(&report).map_err(|error| error.to_string())? + "\n";
         fs::write(root.join(REPORT_JSON), text)

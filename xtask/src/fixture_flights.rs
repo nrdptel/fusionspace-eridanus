@@ -286,6 +286,13 @@ pub fn run(args: &[String]) -> Result<(), String> {
             .map_err(|error| format!("reading {REPORT_MD}: {error}"))?;
         committed.check_consistent(&page)?;
         println!("fixture-flights: the committed report reproduces");
+        crate::damaged::tally_cuts(&entries, |entry, tally| {
+            match fs::read(root.join(&entry.design)) {
+                Ok(bytes) => crate::damaged::cuts_of_design(tally, &entry.flight_id, &bytes),
+                Err(error) => tally.panics.push(format!("{}: {error}", entry.flight_id)),
+            }
+        })
+        .check("design and its XML")?;
         return Ok(());
     }
     let json = serde_json::to_string_pretty(&report).map_err(|error| error.to_string())? + "\n";
