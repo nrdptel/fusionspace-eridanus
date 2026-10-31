@@ -26,7 +26,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
 `N. M<id> title`, ids open in this file (`cargo test -p xtask` checks).
 
 1. M5.7 Every solid motor, offline
-2. M0.15 Readers that refuse damaged input
+2. M0.15 Damaged files refused, never a crash
 3. M7.2 Readings, reconstruction and ghost data
 4. M7.3 A flight against its simulation
 5. M10.2 Release 0.2: the flight analyzer
@@ -132,7 +132,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     organizer), and an issue template for a barrier to access are in the repository and linked from
     the site's landing page.
 
-- [ ] **M0.15 Readers that refuse damaged input** (Neer, 2026-10-30). A file or a server's answer
+- [ ] **M0.15 Damaged files refused, never a crash** (Neer, 2026-10-30). A file or a server's answer
   is outside input: a damaged one gets an error, never a panic or a hang (both `P-critical`).
   `clippy::indexing_slicing` flags 1,524 places in the crates that read it (`hpr-io`,
   `hpr-flightdata`, `hpr-motor`, `hpr-format`, `hpr-net`; their `--lib` on 685e9764), too many to
