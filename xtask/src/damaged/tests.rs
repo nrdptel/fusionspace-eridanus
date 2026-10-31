@@ -10,7 +10,7 @@ use hpr_flightdata::log::LogFormat;
 use proptest::prelude::*;
 use proptest::test_runner::{Config, RngAlgorithm, TestRng, TestRunner};
 
-use super::{Ended, READ_LIMIT, evenly, probe};
+use super::{Ended, evenly, probe, probe_within};
 use readers::{EXTRA_READERS, NO_OUTSIDE_BYTES, READERS};
 
 mod readers;
@@ -30,6 +30,9 @@ const PLACES: usize = 64;
 const ARBITRARY_CASES: u32 = 256;
 /// The longest arbitrary input.
 const ARBITRARY_LEN: usize = 4096;
+
+/// The end of a failure's line that a hang gives.
+const HUNG: &str = ": still reading at the limit";
 
 /// Where a reader's real input comes from.
 #[derive(Clone, Copy)]
@@ -234,11 +237,11 @@ fn every_format_has_a_reader_on_the_list() {
         .map(|format| format.name().to_owned())
         .collect();
     assert!(missing.is_empty(), "{}", missing.join("\n"));
-    for reader in READERS {
-        assert!(
-            NO_OUTSIDE_BYTES.iter().all(|n| n.why.len() > 10),
-            "a row of what takes no outside bytes says why"
-        );
+    assert!(
+        NO_OUTSIDE_BYTES.iter().all(|n| n.why.len() > 10),
+        "a row of what takes no outside bytes says why"
+    );
+    for reader in READERS.iter().chain(EXTRA_READERS) {
         if let Sample::Built(_, why) = reader.sample {
             assert!(
                 why.len() > 10,
@@ -287,6 +290,45 @@ fn a_cut_tally_counts_and_a_panic_fails_its_check() {
 }
 
 #[test]
+fn a_read_past_the_limit_is_a_hang_and_a_slow_cut_is_named_not_failed() {
+    let spins = |_: &[u8]| loop {
+        std::thread::sleep(std::time::Duration::from_millis(5));
+    };
+    let limit = std::time::Duration::from_millis(50);
+    assert_eq!(
+        probe_within(spins, Arc::from(Vec::new()), limit),
+        Ended::Hung
+    );
+    let mut tally = super::Tally::default();
+    tally.count("a file: cut at byte 10", Ended::Hung);
+    assert_eq!(tally.slow, ["a file: cut at byte 10"]);
+    assert!(tally.check("log").is_ok());
+}
+
+#[test]
+fn a_file_that_cannot_be_loaded_fails_the_check() {
+    let mut tally = super::Tally::default();
+    tally.load("gone", Path::new("/no/such/file.ork"), |_, _| {
+        panic!("a missing file isn't cut")
+    });
+    let error = tally.check("design").expect_err("it fails the check");
+    assert!(error.contains("couldn't be loaded"), "{error}");
+}
+
+#[test]
+fn a_collections_designs_are_found_in_subfolders_each_content_once() {
+    let dir = tempfile::tempdir().expect("a temporary folder");
+    std::fs::create_dir(dir.path().join("flight")).expect("a subfolder");
+    std::fs::write(dir.path().join("a.ork"), "one").expect("a file");
+    std::fs::write(dir.path().join("flight/same.ORK"), "one").expect("a file");
+    std::fs::write(dir.path().join("flight/other.ork"), "two").expect("a file");
+    std::fs::write(dir.path().join("flight/log.csv"), "three").expect("a file");
+    let designs = super::designs_under(dir.path()).expect("a readable folder");
+    assert_eq!(designs.len(), 2, "{designs:?}");
+    assert!(super::designs_under(&dir.path().join("none")).is_err());
+}
+
+#[test]
 fn every_file_of_a_corpus_is_cut_once() {
     let files: Vec<usize> = (0..100).collect();
     let tally = super::tally_cuts(&files, |_, tally| {
@@ -313,13 +355,15 @@ fn damage(reader: &Reader) -> Vec<String> {
         Ended::Panicked { at, message } => {
             failures.push(format!("{name}: {what}: panicked at {at}: {message}"));
         }
-        Ended::Hung => failures.push(format!(
-            "{name}: {what}: still reading after {} s",
-            READ_LIMIT.as_secs()
-        )),
+        Ended::Hung => failures.push(format!("{name}: {what}{HUNG}")),
         Ended::Read | Ended::Refused => {}
     };
     for (place, at) in evenly(bytes.len(), PLACES).into_iter().enumerate() {
+        // A row that hangs would cost 10 s at every place, and its spinning threads would push
+        // other rows past the limit: its first hang ends it.
+        if failures.iter().any(|f: &String| f.ends_with(HUNG)) {
+            return failures;
+        }
         let cut: Arc<[u8]> = Arc::from(&bytes[..at]);
         told(
             format!("cut at byte {at}"),

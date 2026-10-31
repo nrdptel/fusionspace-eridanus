@@ -1006,7 +1006,115 @@ pub(super) const READERS: &[Reader] = &[
 
 /// More rows, which the name check doesn't count: other samples of a reader above, for another
 /// format or layout, and readers of outside bytes not named `read…` or `parse…`.
+///
+/// `Catalog::from_json` isn't here: it reads the catalog compiled into `hpr-motor`, nothing from
+/// outside.
 pub(super) const EXTRA_READERS: &[Reader] = &[
+    row!(
+        "hpr-flightdata",
+        "custom.rs",
+        "json_text",
+        own!("gps-track.mapping.json"),
+        |bytes| custom::json_text(bytes).is_some()
+    ),
+    row!(
+        "hpr-flightdata",
+        "custom.rs",
+        "header_mapping",
+        logs!("table-units.csv"),
+        |bytes| custom::header_mapping(bytes, None).is_ok()
+    ),
+    row!(
+        "hpr-flightdata",
+        "generic.rs",
+        "mapping",
+        logs!("table-units.csv"),
+        |bytes| generic::mapping(&text(bytes)).is_ok()
+    ),
+    row!(
+        "hpr-flightdata",
+        "generic.rs",
+        "header_reading",
+        logs!("table-units.csv"),
+        |bytes| generic::header_reading(&text(bytes)).is_ok()
+    ),
+    row!(
+        "hpr-flightdata",
+        "workbook.rs",
+        "sheets",
+        Sample::Built(
+            built::workbook_sheet,
+            "the committed workbook's sheet, zipped again at each read: a changed byte of the zip \
+             only fails its checksum"
+        ),
+        |bytes| workbook::sheets(&built::workbook_with(bytes)).is_ok()
+    ),
+    row!(
+        "hpr-flightdata",
+        "import.rs",
+        "read_one",
+        Sample::Built(
+            built::workbook_sheet,
+            "the same sheet through the importer: a sheet's damage past the zip's checksum"
+        ),
+        |bytes| log(import::read_one(
+            &built::workbook_with(bytes),
+            Some(0),
+            None
+        ))
+    ),
+    row!(
+        "hpr-flightdata",
+        "xls.rs",
+        "sheets",
+        Sample::Built(
+            built::xls,
+            "no .xls is committed: the sheets of a worksheet stream the reader's tests write"
+        ),
+        |bytes| xls::sheets(bytes).is_ok()
+    ),
+    row!(
+        "hpr-flightdata",
+        "records.rs",
+        "table",
+        own!("flight.bin"),
+        |bytes| records::table(bytes, &layout(FLIGHT_LAYOUT).record_layout()).is_ok()
+    ),
+    row!(
+        "hpr-flightdata",
+        "capture.rs",
+        "blocks",
+        own!("flight-capture.txt"),
+        |bytes| capture::blocks(&text(bytes)).is_ok()
+    ),
+    row!(
+        "hpr-flightdata",
+        "import.rs",
+        "detect",
+        logs!("altos-table.csv"),
+        |bytes| import::detect(bytes).is_some()
+    ),
+    row!(
+        "hpr-flightdata",
+        "import.rs",
+        "decode",
+        logs!("altos-table.csv"),
+        |bytes| {
+            drop(import::decode(bytes));
+            true
+        }
+    ),
+    row!(
+        "hpr-format",
+        "lib.rs",
+        "from_ork",
+        Sample::Built(
+            built::ork_design,
+            "the committed file's design, unpacked, for the conversion: a changed byte of a zip \
+             only fails its checksum"
+        ),
+        |bytes| hpr_format::DesignFile::from_ork(bytes).is_ok()
+    ),
     row!(
         "hpr-flightdata",
         "import.rs",

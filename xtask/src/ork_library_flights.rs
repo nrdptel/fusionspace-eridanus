@@ -170,9 +170,10 @@ pub(crate) fn run(check: bool) -> Result<(), String> {
         let designs: Vec<&str> = crate::ork_corpus_flights::files(&record)
             .filter(|file| !file.contains(".jar!"))
             .collect();
-        crate::damaged::tally_cuts(&designs, |file, tally| match fs::read(root.join(file)) {
-            Ok(bytes) => crate::damaged::cuts_of_design(tally, file, &bytes),
-            Err(error) => tally.panics.push(format!("{file}: {error}")),
+        crate::damaged::tally_cuts(&designs, |file, tally| {
+            tally.load(file, &root.join(file), |tally, bytes| {
+                crate::damaged::cuts_of_design(tally, file, bytes);
+            });
         })
         .check("design and its XML")?;
     } else {

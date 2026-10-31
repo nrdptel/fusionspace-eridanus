@@ -286,11 +286,13 @@ pub fn run(args: &[String]) -> Result<(), String> {
             .map_err(|error| format!("reading {REPORT_MD}: {error}"))?;
         committed.check_consistent(&page)?;
         println!("fixture-flights: the committed report reproduces");
-        crate::damaged::tally_cuts(&entries, |entry, tally| {
-            match fs::read(root.join(&entry.design)) {
-                Ok(bytes) => crate::damaged::cuts_of_design(tally, &entry.flight_id, &bytes),
-                Err(error) => tally.panics.push(format!("{}: {error}", entry.flight_id)),
-            }
+        // Every design in the collection, not only the flights' this report flies.
+        let designs = crate::damaged::designs_under(&root.join("refs/hpr-sim-fixtures"))?;
+        crate::damaged::tally_cuts(&designs, |path, tally| {
+            let name = path.display().to_string();
+            tally.load(&name, path, |tally, bytes| {
+                crate::damaged::cuts_of_design(tally, &name, bytes);
+            });
         })
         .check("design and its XML")?;
         return Ok(());

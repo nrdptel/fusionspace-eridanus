@@ -8,7 +8,10 @@
 //! through [`Tally`].
 
 use std::cell::RefCell;
+use std::collections::BTreeSet;
+use std::fs;
 use std::panic::{self, AssertUnwindSafe};
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Once, mpsc};
 use std::thread;
@@ -61,6 +64,11 @@ fn quiet_reads_panics() {
 /// Runs `read` over `bytes` on its own thread, for at most [`READ_LIMIT`]. `read` says whether it
 /// gave a value. A stack overflow or a failed allocation ends the process, which fails the test.
 pub fn probe(read: fn(&[u8]) -> bool, bytes: Arc<[u8]>) -> Ended {
+    probe_within(read, bytes, READ_LIMIT)
+}
+
+/// [`probe`], its limit given.
+fn probe_within(read: fn(&[u8]) -> bool, bytes: Arc<[u8]>, limit: Duration) -> Ended {
     quiet_reads_panics();
     let (send, receive) = mpsc::channel();
     let thread = thread::Builder::new()
@@ -87,7 +95,7 @@ pub fn probe(read: fn(&[u8]) -> bool, bytes: Arc<[u8]>) -> Ended {
             message: "no thread for the read".to_owned(),
         };
     }
-    receive.recv_timeout(READ_LIMIT).unwrap_or(Ended::Hung)
+    receive.recv_timeout(limit).unwrap_or(Ended::Hung)
 }
 
 /// `count` places in `len` bytes spread evenly, from the first: `k·len/count`. They repeat only in
@@ -115,6 +123,8 @@ pub struct Tally {
     pub slow: Vec<String>,
     /// One line for each panic: the file's name as the caller gave it, the cut, where.
     pub panics: Vec<String>,
+    /// Files that couldn't be loaded to be cut, which fail the check too.
+    pub unloaded: Vec<String>,
 }
 
 impl Tally {
@@ -122,14 +132,17 @@ impl Tally {
     pub fn cuts_of(&mut self, name: &str, bytes: &[u8], read: fn(&[u8]) -> bool) {
         for at in evenly(bytes.len(), PRIVATE_CUTS + 1).into_iter().skip(1) {
             let cut: Arc<[u8]> = Arc::from(bytes.get(..at).unwrap_or(bytes));
-            match probe(read, cut) {
-                Ended::Read => self.read += 1,
-                Ended::Refused => self.refused += 1,
-                Ended::Panicked { at: place, .. } => self
-                    .panics
-                    .push(format!("{name}: cut at byte {at}: panicked at {place}")),
-                Ended::Hung => self.slow.push(format!("{name}: cut at byte {at}")),
-            }
+            self.count(&format!("{name}: cut at byte {at}"), probe(read, cut));
+        }
+    }
+
+    /// Counts how one read ended.
+    fn count(&mut self, what: &str, ended: Ended) {
+        match ended {
+            Ended::Read => self.read += 1,
+            Ended::Refused => self.refused += 1,
+            Ended::Panicked { at, .. } => self.panics.push(format!("{what}: panicked at {at}")),
+            Ended::Hung => self.slow.push(what.to_owned()),
         }
     }
 
@@ -139,9 +152,18 @@ impl Tally {
         self.refused += other.refused;
         self.slow.extend(other.slow);
         self.panics.extend(other.panics);
+        self.unloaded.extend(other.unloaded);
     }
 
-    /// Prints what the cuts came to; a panic fails the check.
+    /// Loads a file, or says it couldn't be; `cut` gets its bytes.
+    pub fn load(&mut self, name: &str, path: &Path, cut: impl FnOnce(&mut Self, &[u8])) {
+        match fs::read(path) {
+            Ok(bytes) => cut(self, &bytes),
+            Err(error) => self.unloaded.push(format!("{name}: {error}")),
+        }
+    }
+
+    /// Prints what the cuts came to; a panic or a file that couldn't be loaded fails the check.
     pub fn check(&self, what: &str) -> Result<(), String> {
         println!(
             "damaged: {PRIVATE_CUTS} cuts of each {what}: {} read, {} refused, {} past {} s, {} \
@@ -154,6 +176,13 @@ impl Tally {
         );
         for line in &self.slow {
             println!("damaged: past {} s: {line}", READ_LIMIT.as_secs());
+        }
+        if !self.unloaded.is_empty() {
+            return Err(format!(
+                "{} file(s) of the {what} check couldn't be loaded:\n{}",
+                self.unloaded.len(),
+                self.unloaded.join("\n")
+            ));
         }
         if self.panics.is_empty() {
             Ok(())
@@ -198,6 +227,10 @@ pub fn tally_cuts<T: Sync>(files: &[T], cut: impl Fn(&T, &mut Tally) + Sync) -> 
     for tally in tallies {
         whole.add(tally);
     }
+    // In an order that doesn't hang on the workers'.
+    whole.slow.sort();
+    whole.panics.sort();
+    whole.unloaded.sort();
     whole
 }
 
@@ -226,13 +259,49 @@ fn read_design_xml(bytes: &[u8]) -> bool {
 /// XML inside is cut too. [`PRIVATE_CUTS`] of each.
 pub fn cuts_of_design(tally: &mut Tally, name: &str, bytes: &[u8]) {
     tally.cuts_of(name, bytes, read_design);
-    if let Ok(unpacked) = hpr_io::ork::container::unpack(bytes) {
-        tally.cuts_of(
-            &format!("{name}, its XML"),
-            unpacked.value.design.as_bytes(),
-            read_design_xml,
-        );
+    // A whole file's unpacking runs under a probe too, so its panic is counted, not printed.
+    let unpacks = |bytes: &[u8]| hpr_io::ork::container::unpack(bytes).is_ok();
+    match probe(unpacks, Arc::from(bytes)) {
+        Ended::Read => {
+            if let Ok(unpacked) = hpr_io::ork::container::unpack(bytes) {
+                tally.cuts_of(
+                    &format!("{name}, its XML"),
+                    unpacked.value.design.as_bytes(),
+                    read_design_xml,
+                );
+            }
+        }
+        Ended::Refused => {}
+        ended => tally.count(&format!("{name}: unpacking"), ended),
     }
+}
+
+/// Every `.ork` under `dir`, its subfolders' too, each content once, by path: a collection holds a
+/// design under several flights.
+pub fn designs_under(dir: &Path) -> Result<Vec<PathBuf>, String> {
+    let (mut folders, mut seen, mut designs) = (vec![dir.to_owned()], BTreeSet::new(), Vec::new());
+    while let Some(folder) = folders.pop() {
+        let mut entries: Vec<PathBuf> = fs::read_dir(&folder)
+            .map_err(|error| format!("{}: {error}", folder.display()))?
+            .map(|entry| entry.map(|e| e.path()))
+            .collect::<Result<_, _>>()
+            .map_err(|error| format!("{}: {error}", folder.display()))?;
+        entries.sort();
+        for path in entries {
+            if path.is_dir() {
+                folders.push(path);
+            } else if path
+                .extension()
+                .is_some_and(|e| e.eq_ignore_ascii_case("ork"))
+            {
+                let bytes = fs::read(&path).map_err(|e| format!("{}: {e}", path.display()))?;
+                if seen.insert(crate::ork_supply::sha256(&bytes)) {
+                    designs.push(path);
+                }
+            }
+        }
+    }
+    Ok(designs)
 }
 
 #[cfg(test)]
