@@ -5523,6 +5523,14 @@ pub fn run(args: &[String]) -> Result<(), String> {
         ));
     }
     if check {
+        crate::damaged::tally_cuts(&samples, |sample, tally| {
+            tally.cuts_of(
+                &sample.path.display().to_string(),
+                &sample.bytes,
+                crate::damaged::read_log,
+            );
+        })
+        .check("log")?;
         println!(
             "logs: the committed report reproduces, every file's family has a reader, and every file \
              of one is read"

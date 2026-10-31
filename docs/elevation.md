@@ -233,6 +233,9 @@ range's edges, and refuses each kind of broken answer above.
 
 ## What it leaves out
 
+- A damaged answer or GeoTIFF gets an error, or a value from what was left, on the damage the tests
+  try: each reader is tried on cut, changed and arbitrary bytes. [Damaged files](format/damaged-files.md) says what the tests cover
+  and leave out.
 - The command line has no elevation command yet, and `hpr sim` doesn't look a site up. A program
   calls the library and passes the height on.
 - There's no geoid model. The height is above sea level, and turning it into a height above the

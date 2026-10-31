@@ -110,6 +110,7 @@
 - [ERA5 weather files](format/era5.md)
 - [Flight logs: the record and the layouts read](format/flight-logs.md)
 - [PerfectFlite `.pf2` flight logs](format/pf2.md)
+- [Damaged files](format/damaged-files.md)
 
 # Reference
 

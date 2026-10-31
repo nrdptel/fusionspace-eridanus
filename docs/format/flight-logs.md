@@ -3619,6 +3619,9 @@ unrecognized instead. One flight, from one computer, is all the layouts rest on.
 
 ## How it was checked
 
+Each layout's reader is also fed cut, changed and arbitrary bytes, failing on a panic or a hang:
+[Damaged files](damaged-files.md).
+
 `cargo xtask logs`, a command of the project's own build tool, reads every sample log the project
 holds, each distinct file once. The sample logs come from:
 

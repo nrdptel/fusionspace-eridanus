@@ -517,7 +517,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-14d2"></a>[M0.14d2][done-0] | What the design commands say | done |
 | <a id="m0-14d3"></a>[M0.14d3][done-0] | What the data commands say | done |
 | <a id="m0-14d4"></a>[M0.14d4][done-0] | The Python package and the crates' front pages | done |
-| <a id="m0-15"></a>[M0.15][phase-0] | Damaged files refused, never a crash | not yet done |
+| <a id="m0-15"></a>[M0.15][done-0] | Damaged files refused, never a crash | done |
 | <a id="m1-1"></a>[M1.1][done-1] | Vectors and rotations, frames, the Earth's shape and gravity | done |
 | <a id="m1-2"></a>[M1.2][done-1] | The atmosphere and wind | done |
 | <a id="m1-3"></a>[M1.3][done-1] | Solid motors: thrust curves, motor files, and mass through the burn | done |
