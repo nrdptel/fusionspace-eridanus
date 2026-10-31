@@ -102,6 +102,9 @@ serde = { version = "1.0.229", features = ["derive"] }
 # `columns[2].unit`, not only a line and column. dtolnay's, MIT OR Apache-2.0, needing serde,
 # serde_core and itoa.
 serde_path_to_error = "0.1.20"
+# Substring search for the bundled motor index (#1021): a design's read of it took 1.44 ms with
+# `str`'s and 0.45 ms with this. BurntSushi's, MIT or Unlicense; serde_json already depends on it.
+memchr = "2"
 # `float_roundtrip` parses every float back to the exact f64 it was written from.
 serde_json = { version = "1.0.151", features = ["float_roundtrip"] }
 sha2 = "0.11.0"

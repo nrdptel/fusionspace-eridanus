@@ -33,6 +33,7 @@
 //! [l57]: https://hpr.fusionspace.co/decisions-and-roadmap.html#l57
 //! [l65]: https://hpr.fusionspace.co/decisions-and-roadmap.html#l65
 
+use std::cell::OnceCell;
 use std::collections::{BTreeMap, BTreeSet};
 
 use hpr_design::{Configuration, MountedMotor, Rocket};
@@ -693,17 +694,7 @@ pub(super) fn read(
         });
     }
 
-    let catalog = match Catalog::bundled() {
-        Ok(catalog) => Some(catalog),
-        Err(error) => {
-            warnings.push(Warning::new(
-                at,
-                WarningKind::Unusual,
-                format!("the bundled motor catalog could not be read ({error}); no motor was looked up in it"),
-            ));
-            None
-        }
-    };
+    let catalog = CatalogWhenNeeded::of_the_design(mounts, at);
     let mut placed: BTreeSet<&str> = BTreeSet::new();
     for (mount_id, mount) in mounts {
         // A mount the rocket does not hold is left to the scan for unread motors below, which
@@ -727,7 +718,7 @@ pub(super) fn read(
                 },
                 None => mount.default_ignition.clone(),
             };
-            let curve = curve(read, attachments, supplied, catalog, &mount.at, warnings);
+            let curve = curve(read, attachments, supplied, &catalog, &mount.at, warnings);
             configurations[index].motors.push(OrkMotor {
                 mount: mount_id.clone(),
                 stage,
@@ -891,13 +882,56 @@ fn key(text: &str) -> String {
         .collect()
 }
 
+/// The part of the bundled catalog a design's motors can be looked up in, read when the first of
+/// them has no curve of its own: most of a read's time and memory otherwise, for a file that may
+/// not need it (#1021).
+struct CatalogWhenNeeded<'a> {
+    /// Every motor name the design has, so that one read serves them all.
+    names: BTreeSet<&'a str>,
+    /// Where a catalog that can't be read is reported.
+    at: &'a str,
+    read: OnceCell<Option<Catalog>>,
+}
+
+impl<'a> CatalogWhenNeeded<'a> {
+    fn of_the_design(mounts: &'a [(String, MountRead)], at: &'a str) -> Self {
+        Self {
+            names: mounts
+                .iter()
+                .flat_map(|(_, mount)| &mount.motors)
+                .map(|(_, motor)| motor.designation.as_str())
+                .collect(),
+            at,
+            read: OnceCell::new(),
+        }
+    }
+
+    /// The catalog, read now if this is the first motor to need it; `None`, with one warning, if
+    /// it can't be.
+    fn get(&self, warnings: &mut Vec<Warning>) -> Option<&Catalog> {
+        self.read
+            .get_or_init(|| match Catalog::bundled_named(self.names.iter().copied()) {
+                Ok(catalog) => Some(catalog),
+                Err(error) => {
+                    warnings.push(Warning::new(
+                        self.at,
+                        WarningKind::Unusual,
+                        format!("the bundled motor catalog could not be read ({error}); no motor was looked up in it"),
+                    ));
+                    None
+                }
+            })
+            .as_ref()
+    }
+}
+
 /// The thrust curve for `motor`: its embedded `.rse` first, then a curve supplied for its digest,
 /// then the bundled catalog.
 fn curve(
     motor: &MotorRead,
     attachments: &[Attachment],
     supplied: &SuppliedCurves,
-    catalog: Option<&Catalog>,
+    catalog: &CatalogWhenNeeded<'_>,
     at: &str,
     warnings: &mut Vec<Warning>,
 ) -> Curve {
@@ -973,7 +1007,7 @@ fn curve(
     } else {
         ", it records no digest to look up in the supplied curves".to_owned()
     };
-    let Some(catalog) = catalog else {
+    let Some(catalog) = catalog.get(warnings) else {
         return match embedded_failed {
             Some(reason) => unresolved(NoCurve::Unusable, format!("{reason}{not_supplied}")),
             None => unresolved(
@@ -1300,6 +1334,61 @@ mod check_tests {
         }
     }
 
+    /// A motor with a curve of its own doesn't read the catalog; one without it does, and that
+    /// read holds the design's motors alone (#1021).
+    #[test]
+    fn the_catalog_is_read_for_the_first_motor_that_needs_it() {
+        let rse = r#"<engine-database><engine-list>
+            <engine mfg="Nobody" code="G100T" Type="single-use" dia="29." len="124." initWt="150."
+              propWt="60." delays="6" Itot="102.5" burn-time="1.1"><data>
+                <eng-data t="0." f="0." m="60."/><eng-data t="0.05" f="100." m="58."/>
+                <eng-data t="1." f="100." m="3."/><eng-data t="1.1" f="0." m="0."/>
+            </data></engine></engine-list></engine-database>"#;
+        let attachments = [Attachment {
+            name: "thrustcurves/d1.rse".to_owned(),
+            bytes: rse.as_bytes().to_vec(),
+        }];
+        let carried = MotorRead {
+            kind: None,
+            manufacturer: "Nobody".to_owned(),
+            designation: "G100T".to_owned(),
+            digest: Some("d1".to_owned()),
+            diameter_m: None,
+            length_m: None,
+            delay: None,
+        };
+        let catalog = CatalogWhenNeeded {
+            names: BTreeSet::from([carried.designation.as_str(), "1266J760-19A"]),
+            at: "motor",
+            read: OnceCell::new(),
+        };
+        let mut warnings = Vec::new();
+        let supplied = SuppliedCurves::default();
+        let flown = curve(
+            &carried,
+            &attachments,
+            &supplied,
+            &catalog,
+            "motor",
+            &mut warnings,
+        );
+        assert!(matches!(flown, Curve::Embedded { .. }), "{flown:?}");
+        assert!(catalog.read.get().is_none(), "the catalog was read");
+
+        let flown = curve(
+            &j760(),
+            &attachments,
+            &supplied,
+            &catalog,
+            "motor",
+            &mut warnings,
+        );
+        assert!(matches!(flown, Curve::Catalog { .. }), "{flown:?}");
+        let held = catalog.read.get().unwrap().as_ref().unwrap();
+        assert_eq!(held.motors.len(), 1);
+        assert_eq!(held.motors[0].designation, "1266J760-19A");
+    }
+
     /// ADR-298 §6: a `.ork` motor the bundled catalog supplies flies its default file, with a
     /// warning naming the failing figure when that file fails its 1% check, and none when it
     /// passes. The failing catalog keeps only the J760's file `5f4294d20002e9000000074a`, so it is
@@ -1308,11 +1397,16 @@ mod check_tests {
     fn a_catalog_curve_that_fails_its_check_flies_with_a_warning() {
         let flown = |catalog: &Catalog| {
             let mut warnings = Vec::new();
+            let catalog = CatalogWhenNeeded {
+                names: BTreeSet::new(),
+                at: "motor",
+                read: OnceCell::from(Some(catalog.clone())),
+            };
             let curve = curve(
                 &j760(),
                 &[],
                 &SuppliedCurves::default(),
-                Some(catalog),
+                &catalog,
                 "motor",
                 &mut warnings,
             );
