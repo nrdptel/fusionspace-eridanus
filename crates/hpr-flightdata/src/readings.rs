@@ -22,8 +22,9 @@
 //! - the **climb** is the first filtered sample twice [`LIFTOFF_ALLOWANCE_M`] and the track's step
 //!   above where the log starts: the allowance is the most the pad's noise lifts the filtered
 //!   track, from below at the start or from above at the climb. One or two of the log's first three
-//!   samples that stand more than that rise apart from the samples after them are bad, unless the
-//!   track holds their level again before a top well above it, and the readings leave them out;
+//!   samples that stand more than that rise and three times the noise above the second lowest of
+//!   the samples after them are bad, unless the track stays at their level again before a top well above it,
+//!   and the readings leave them out;
 //! - the **pad** is the median of the samples to the last within half that of the start before
 //!   the climb. A rocket that leaves the pad at [`LIFTOFF_ACCELERATION_M_S2`] or more, moving at
 //!   `v` when the log starts, climbs `v t + A t²/2` while the track stays near its start, so its
@@ -1164,7 +1165,7 @@ fn heights(log: &FlightLog) -> Readings {
     let rise = 2.0 * (LIFTOFF_ALLOWANCE_M + step);
     // The log starts for the readings after any bad first samples, or they would take them for
     // the pad.
-    let kept = without_bad_start(&track.height_m, half, interval, rise);
+    let kept = without_bad_start(&track.height_m, time, half, rise);
     let heights = kept.as_deref().unwrap_or(&track.height_m);
     let head = kept
         .as_ref()
@@ -1913,29 +1914,35 @@ fn max_speed(
 const FIRST_SAMPLES: usize = 3;
 
 /// The log's heights with its bad first samples taken out, or `None` if it starts well (#1076).
-/// One of the first three is bad if it stands more than `rise` above the lowest of the samples
-/// after them, or as far below them where they hold level, as they don't on a climb. Those samples
-/// span the median's window, and at least five, so that the slowest logs' short window sees past
-/// two bad samples. All three standing apart is a fall of the track's own: Juno III's log dips
-/// 8.5 m over 0.3 s before the climb, a pressure pulse on the pad at ignition by its look (#1101). And a level the filtered track holds again for that span, before
-/// a top further above it than a coast through it reaches, is the pad, the low stretch after it the
-/// disturbance: a rocket passes through a level on the climb and doesn't stay. Slowing under
-/// gravity alone it stays that long only within `v²/(2 g)` of its top, `v` the speed that crosses
-/// the band in that span; drag makes the distance shorter.
-fn without_bad_start(heights: &[f64], half: usize, interval_s: f64, rise: f64) -> Option<Vec<f64>> {
+///
+/// One of the first three is bad if it stands more than `rise` and three times the barometer's
+/// noise above the second lowest of the samples after them. A raw sample carries the noise the
+/// filtered track doesn't, and the second lowest leaves out a low sample among them, the second of
+/// two bad ones. Those samples span the median's window, and at least five, so that the slowest
+/// logs' short window sees past two bad samples. A sample low on the start is left: a logger that
+/// writes its zero and then the climb from some meters up looks the same (#1103).
+///
+/// All three standing apart is a fall of the track's own, a pressure pulse on the pad at ignition
+/// by its look (#1101), and Juno III's dip of 8.5 m stays under the margin. And a level the filtered
+/// track stays at again is the pad, the low stretch after the first samples the disturbance: from
+/// rest at [`LIFTOFF_ACCELERATION_M_S2`] a rocket leaves that band sooner than the stay asked for.
+/// Crossing it slower still, in `T` seconds, it is within `b + (2 b / T)² / (2 g)` of its top, `b`
+/// the band's half width: its speed at the band's upper edge is at most its mean through the band,
+/// and it slows at `g` or more. So a level that near the top is no pad.
+fn without_bad_start(heights: &[f64], time: &[f64], half: usize, rise: f64) -> Option<Vec<f64>> {
     let span = (2 * half + 1).max(5);
-    let after = heights
+    let mut after: Vec<f64> = heights
         .get(FIRST_SAMPLES..FIRST_SAMPLES + span)?
         .iter()
         .copied()
-        .filter(|h| h.is_finite());
-    let lowest = after.clone().fold(f64::INFINITY, f64::min);
-    let highest = after.fold(f64::NEG_INFINITY, f64::max);
-    let stands_apart =
-        |h: f64| h > lowest + rise || (h < lowest - rise && highest - lowest <= rise);
-    let bad: Vec<usize> = (0..FIRST_SAMPLES)
-        .filter(|k| stands_apart(heights[*k]))
+        .filter(|h| h.is_finite())
         .collect();
+    if after.len() < 3 {
+        return None;
+    }
+    after.sort_by(f64::total_cmp);
+    let above = after[1] + rise + 3.0 * NOISE_M;
+    let bad: Vec<usize> = (0..FIRST_SAMPLES).filter(|k| heights[*k] > above).collect();
     let first = *bad.first()?;
     if bad.len() == FIRST_SAMPLES {
         return None;
@@ -1946,18 +1953,24 @@ fn without_bad_start(heights: &[f64], half: usize, interval_s: f64, rise: f64) -
     }
     let filtered = running_median(&kept, half);
     let top = arg_max(&filtered)?;
-    let level = heights[first];
-    let held = filtered[..top]
-        .iter()
-        .filter(|h| (*h - level).abs() <= rise)
-        .count();
-    #[expect(
-        clippy::cast_precision_loss,
-        reason = "a span of samples is far below 2^53"
-    )]
-    let crossing_m_s = 2.0 * rise / (span as f64 * interval_s);
-    let coast_m = crossing_m_s * crossing_m_s / (2.0 * STANDARD_GRAVITY_MPS2);
-    (held < span || filtered[top] <= level + rise + coast_m).then_some(kept)
+    let start_level = heights[first];
+    let mut stay_from = None;
+    let mut longest_s: f64 = 0.0;
+    for (h, t) in filtered[..top].iter().zip(time) {
+        if (h - start_level).abs() <= rise {
+            let from = *stay_from.get_or_insert(*t);
+            longest_s = longest_s.max(t - from);
+        } else {
+            stay_from = None;
+        }
+    }
+    let leaving_s = (4.0 * rise / LIFTOFF_ACCELERATION_M_S2).sqrt();
+    let is_pad = longest_s > 0.0 && longest_s >= leaving_s && {
+        let crossing_m_s = 2.0 * rise / longest_s;
+        filtered[top]
+            > start_level + rise + crossing_m_s * crossing_m_s / (2.0 * STANDARD_GRAVITY_MPS2)
+    };
+    (!is_pad).then_some(kept)
 }
 
 /// Apogee, as landing needs it.
@@ -2146,7 +2159,8 @@ mod tests {
     fn bad_first_samples_are_told_from_a_fall_on_the_pad() {
         let rise = 5.0;
         let out = |heights: &[f64], half: usize| -> Vec<usize> {
-            without_bad_start(heights, half, 0.05, rise).map_or(Vec::new(), |kept| {
+            let time: Vec<f64> = (0..heights.len()).map(|k| 0.05 * k as f64).collect();
+            without_bad_start(heights, &time, half, rise).map_or(Vec::new(), |kept| {
                 (0..kept.len()).filter(|k| kept[*k].is_nan()).collect()
             })
         };
@@ -2177,13 +2191,13 @@ mod tests {
                 assert_eq!(out(&high, half), bad, "high {half}");
                 assert_eq!(out(&up, half), bad, "up {half}");
             }
-            // Low on a pad, any one or two of the three.
+            // Low on a pad: a logger's zero before the climb looks the same, and they stay.
             for bad in [&[0_usize][..], &[1], &[2], &[0, 1], &[0, 2], &[1, 2]] {
                 let mut low = pad_then_climb();
                 for &k in bad {
                     low[k] -= 1_000.0;
                 }
-                assert_eq!(out(&low, half), bad, "low {half}");
+                assert_eq!(out(&low, half), [0_usize; 0], "low {half}");
             }
         }
         // Three: the track's own.
@@ -2210,13 +2224,9 @@ mod tests {
         held.extend(vec![0.0; 40]);
         held.extend(climbing(0.0));
         assert_eq!(out(&held, 3), [0_usize; 0]);
-        // A rise from a low start on a climb isn't told from the climb, and at the rise exactly
-        // nothing stands apart. Too short a log to tell.
-        let mut low_start = climbing(0.0);
-        low_start[0] -= 1_000.0;
-        assert_eq!(out(&low_start, 3), [0_usize; 0]);
+        // At the margin exactly nothing stands apart. Too short a log to tell.
         let mut at_rise = pad_then_climb();
-        at_rise[0] = rise;
+        at_rise[0] = rise + 3.0 * NOISE_M;
         assert_eq!(out(&at_rise, 3), [0_usize; 0]);
         assert_eq!(out(&[1_000.0, 0.0, 1.0], 3), [0_usize; 0]);
         // A bad level the track reaches only near its top is no pad: the arc lingers there.
@@ -2227,8 +2237,42 @@ mod tests {
         near_top[0] = 498.0;
         near_top[1] = 498.0;
         assert_eq!(out(&near_top, 3), [0, 1]);
-        // Nothing at all after the first samples.
+        // Nothing after the first samples to judge them by: good ones stay.
         assert_eq!(out(&[f64::NAN; 40], 3), [0_usize; 0]);
+        let mut dropout = vec![f64::NAN; 40];
+        dropout[0] = 5.0;
+        dropout[1] = 6.0;
+        assert_eq!(out(&dropout, 3), [0_usize; 0]);
+        // One high sample and one low among those after: the low one isn't what the high is judged by.
+        // Too few samples after them to judge them by.
+        let mut few = vec![f64::NAN; 40];
+        few[0] = 300.0;
+        few[1] = 300.0;
+        few[3] = 0.0;
+        assert_eq!(out(&few, 3), [0_usize; 0]);
+        few[4] = 0.0;
+        assert_eq!(out(&few, 3), [0_usize; 0]);
+        // A boost at the least the readings take stays at a level longer than the median's span,
+        // and leaves it sooner than a pad.
+        let mut slow_boost: Vec<f64> = (0..200)
+            .map(|k| 0.5 * LIFTOFF_ACCELERATION_M_S2 * (0.05 * f64::from(k)).powi(2))
+            .collect();
+        slow_boost[0] = 20.0;
+        slow_boost[1] = 20.0;
+        assert_eq!(out(&slow_boost, 3), [0, 1]);
+        let mut mixed = pad_then_climb();
+        mixed[0] += 300.0;
+        mixed[3] -= 1_000.0;
+        assert_eq!(out(&mixed, 3), [0]);
+        // A low sample just after the three doesn't make good ones bad, at either end of the
+        // median's reach, nor one low among the three and one after.
+        for half in [1, 3] {
+            let mut third = pad_then_climb();
+            third[3] -= 100.0;
+            assert_eq!(out(&third, half), [0_usize; 0]);
+            third[2] -= 100.0;
+            assert_eq!(out(&third, half), [0_usize; 0]);
+        }
     }
 
     /// A log cut on the climb holds neither the rocket's top height nor, for all it knows, its top

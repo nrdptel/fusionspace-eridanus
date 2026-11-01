@@ -3282,6 +3282,12 @@ mod tests {
                     apogee.height_m,
                     clean_apogee.height_m
                 );
+                let (pad, clean_pad) =
+                    (read.pad_altitude_m.unwrap(), clean.pad_altitude_m.unwrap());
+                assert!(
+                    (pad - clean_pad).abs() < 0.5,
+                    "{at:?} {error}: {pad} against {clean_pad}"
+                );
                 assert!(!smoothed(&bad, Options::default()).health.assumed_pad);
             }
         }
@@ -3297,35 +3303,143 @@ mod tests {
 
     /// Two bad samples at the start, on a log from launch or one that holds its pad, at 20, 10, 5
     /// and 2.5 samples a second: the apogee reading holds its bound of the truth, where the slower
-    /// rates' short median used to let them through (#1076).
+    /// rates' short median used to let them through (#1076). Bad levels sweep the stretch under the
+    /// top where the arc lingers, which isn't a pad.
+    ///
+    /// Low ones aren't set aside: at 5 and 2.5 samples a second the reading errs high, the safe
+    /// side for a waiver, never low. At 2.5 from launch a pair the climb itself reaches among the
+    /// samples they are judged by, 53 to 76 m here, is left out (#1103).
     #[test]
-    fn bad_first_samples_move_no_reading_at_any_rate() {
+    fn bad_first_samples_hold_the_apogee_at_any_rate() {
         let truth_m = (0..2_000)
             .map(|i| truth(f64::from(i) * 0.05).0)
             .fold(0.0, f64::max);
+        let near_top = (0..60).map(|below| truth_m - f64::from(below));
+        let errors: Vec<f64> = [-1000.0, -100.0, 100.0, 300.0, 1000.0]
+            .into_iter()
+            .chain(near_top)
+            .collect();
+        // Every bad level from the pad's margin up, as the first samples' own heights.
+        let levels: Vec<f64> = (15..700).map(f64::from).collect();
         for every in [1, 2, 4, 8] {
-            for start in [log(), from_launch(log())] {
+            for (start, launch) in [(log(), false), (from_launch(log()), true)] {
                 let clean = thinned(&start, every);
-                // The last two sit where the arc lingers near its top.
-                for error in [100.0, 300.0, 1000.0, truth_m - 20.0, truth_m] {
-                    for at in [vec![0, 1], vec![1, 2]] {
+                for &error in &errors {
+                    for at in [vec![0, 1], vec![0, 2], vec![1, 2]] {
                         let mut bad = clean.clone();
                         for &k in &at {
                             bad.altitude_m[k] += error;
                         }
+                        let what = format!("every {every}, from launch {launch}, {at:?} {error}");
                         let read = readings::read(&bad);
-                        let apogee = read.apogee.value().unwrap_or_else(|| {
-                            panic!("every {every}, {at:?} {error}: {:?}", read.apogee)
-                        });
+                        let apogee = read
+                            .apogee
+                            .value()
+                            .unwrap_or_else(|| panic!("{what}: {:?}", read.apogee));
+                        let off_m = apogee.height_m - truth_m;
+                        let high_allowed = error < 0.0 && every >= 4;
+                        assert!(
+                            off_m >= -apogee.bound_m && (high_allowed || off_m <= apogee.bound_m),
+                            "{what}: {} within {} of {truth_m}",
+                            apogee.height_m,
+                            apogee.bound_m
+                        );
+                    }
+                }
+                for &level in &levels {
+                    if launch && every == 8 && (53.0..=76.0).contains(&level) {
+                        continue;
+                    }
+                    for at in [
+                        vec![0],
+                        vec![1],
+                        vec![2],
+                        vec![0, 1],
+                        vec![0, 2],
+                        vec![1, 2],
+                    ] {
+                        let mut bad = clean.clone();
+                        for &k in &at {
+                            bad.altitude_m[k] = level;
+                        }
+                        let read = readings::read(&bad);
+                        let what =
+                            format!("every {every}, from launch {launch}, {at:?} at {level}");
+                        let apogee = read
+                            .apogee
+                            .value()
+                            .unwrap_or_else(|| panic!("{what}: {:?}", read.apogee));
                         assert!(
                             (apogee.height_m - truth_m).abs() <= apogee.bound_m,
-                            "every {every}, {at:?} {error}: {} within {} of {truth_m}",
+                            "{what}: {} within {} of {truth_m}",
                             apogee.height_m,
                             apogee.bound_m
                         );
                     }
                 }
             }
+        }
+    }
+
+    /// The same, with a barometer noisier than the readings' tuning and a slow clock after the
+    /// climb: two bad samples stay out on every seed, and a low sample among those after them
+    /// changes nothing (#1076).
+    #[test]
+    fn bad_first_samples_are_told_through_noise_and_a_slow_tail() {
+        let truth_m = (0..2_000)
+            .map(|i| truth(f64::from(i) * 0.05).0)
+            .fold(0.0, f64::max);
+        let mut state = 11;
+        let mut gaussian = move || (0..12).map(|_| noise(&mut state)).sum::<f64>();
+        for sd_m in [2.0, 3.0] {
+            for seed in 0..100 {
+                for (start, every) in [(from_launch(log()), 1), (log(), 2)] {
+                    let mut noisy = thinned(&start, every);
+                    for h in &mut noisy.altitude_m {
+                        *h += sd_m * gaussian();
+                    }
+                    let read_clean = readings::read(&noisy);
+                    let clean_m = read_clean.apogee.value().unwrap().height_m;
+                    let mut bad = noisy.clone();
+                    bad.altitude_m[0] += 300.0;
+                    bad.altitude_m[1] += 300.0;
+                    let read = readings::read(&bad);
+                    let apogee = read.apogee.value().unwrap();
+                    assert!(
+                        (apogee.height_m - truth_m).abs() <= apogee.bound_m,
+                        "{sd_m} m, seed {seed}, every {every}: {} (clean {clean_m}) within {} of \
+                         {truth_m}",
+                        apogee.height_m,
+                        apogee.bound_m
+                    );
+                }
+            }
+        }
+        // 50 samples a second up to the top, one a second after: the median step is a second, and
+        // five fast samples are no pad. A level on the climb stays out.
+        let dt = 0.02;
+        let fast = ((LIFTOFF_S + 11.6) / dt) as u32;
+        let mut time: Vec<f64> = (0..fast).map(|i| f64::from(i) * dt).collect();
+        let last = *time.last().unwrap();
+        time.extend((1..=3_000).map(|i| last + f64::from(i)));
+        let mut slow = log();
+        slow.altitude_m = time.iter().map(|t| truth(*t).0).collect();
+        slow.time_s = time;
+        let start = slow.time_s.partition_point(|t| *t < LIFTOFF_S - 0.5);
+        slow.time_s.drain(..start);
+        slow.altitude_m.drain(..start);
+        for level_m in [200.0, 300.0, 500.0] {
+            let mut bad = slow.clone();
+            bad.altitude_m[0] = level_m;
+            bad.altitude_m[1] = level_m;
+            let read = readings::read(&bad);
+            let apogee = read.apogee.value().unwrap();
+            assert!(
+                (apogee.height_m - truth_m).abs() <= apogee.bound_m,
+                "{level_m}: {} within {} of {truth_m}",
+                apogee.height_m,
+                apogee.bound_m
+            );
         }
     }
 
