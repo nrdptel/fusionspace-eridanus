@@ -1924,7 +1924,9 @@ fn bad_start_ends(window: &[f64], start: f64, rise: f64) -> usize {
             },
         );
     match lowest {
-        Some((index, low)) if low < start - rise && index + 1 < window.len() => index,
+        Some((index, low)) if low < start - rise && window.last().is_some_and(|end| *end > low) => {
+            index
+        }
         _ => 0,
     }
 }
@@ -2119,9 +2121,9 @@ mod tests {
             bad_start_ends(&[46.0, 46.0, 3.0, 1.0, 4.0, 9.0, 20.0], 46.0, rise),
             3
         );
-        // Juno III's first rows, filtered: the fall runs past the window's end.
+        // Juno III's first rows, filtered: the fall runs to the window's end, its lowest on two.
         assert_eq!(
-            bad_start_ends(&[0.0, 0.0, 0.0, -1.0, -3.0, -7.0, -7.6], 0.0, rise),
+            bad_start_ends(&[0.0, 0.0, -1.0, -1.0, -2.8, -7.6, -7.6], 0.0, rise),
             0
         );
         // A far larger fall, as some sample logs start, the same.
