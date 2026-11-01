@@ -1363,7 +1363,9 @@ fn decide_velocity(
                             END_ERROR * 100.0
                         )
                     }
-                    Some((scale, _, _)) if !(scale.start_share <= START_SHARE) => {
+                    Some((scale, _, _))
+                        if scale.start_share > START_SHARE || scale.start_share.is_nan() =>
+                    {
                         format!(
                             "the velocity's first row is {:.0}% of its peak, above the {:.0}% it \
                              may be at rest. So its integral has missed the start of the climb",
