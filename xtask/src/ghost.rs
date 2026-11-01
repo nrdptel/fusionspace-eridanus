@@ -203,7 +203,7 @@ fn report(rows: &str, moments: usize) -> String {
          repository with an altitude or a GNSS track, read and laid out as a ghost file; each file \
          read back as JSON by Ajv, as CZML by CesiumJS and as glTF by Khronos's glTF-Validator and \
          glTF-Transform, and each format held to the others ({moments} moments compared). \
-         \"Highest\" and \"farthest\" are what the file holds, in metres from the pad.\n\n\
+         \"Highest\" and \"farthest\" are what the file holds, in meters from the pad.\n\n\
          | Log | Read by | Clock | Moments | Height from | Highest | Farthest | Fixes kept | \
          Heights left out | Pad |\n\
          |---|---|---|---:|---|---:|---:|---:|---:|---|\n\
@@ -310,7 +310,7 @@ mod tests {
 
     /// Where `refs/` holds them, each log's highest height sits by the apogee RocketPy's own
     /// notebooks state for that flight (`docs/examples/*_flight_sim.ipynb`): the check that each
-    /// mapping's unit is right, since a foot read as a metre misses by a factor of 3.28.
+    /// mapping's unit is right, since a foot read as a meter misses by a factor of 3.28.
     #[test]
     fn each_logs_highest_height_is_the_apogee_rocketpy_states() {
         let root = crate::designs::root().unwrap();
@@ -342,9 +342,23 @@ mod tests {
             ("polito/altimeter_cavour.csv", 2_789.0),
             ("valkyrie/flightInfo_merged.csv", 2_098.02),
         ];
+        // The two with only a receiver's altitude, against the card of the flight's altimeter:
+        // the receiver's height reads 4.9% and 5.8% over.
+        let by_receiver = [
+            ("juno3/cots_GNSS.csv", 3_213.0),
+            ("juno3/srad_telemetry.csv", 3_213.0),
+        ];
         let folder = root.join("target/ghost-test");
         fs::create_dir_all(&folder).unwrap();
-        for (path, apogee) in stated {
+        let bound = |path: &str| {
+            if by_receiver.iter().any(|(p, _)| *p == path) {
+                0.06
+            } else {
+                // Valkyrie's log peaks 1.9% under its card, the widest here.
+                0.02
+            }
+        };
+        for (path, apogee) in stated.into_iter().chain(by_receiver) {
             let (_, mapped) = ROCKETPY_LOGS.iter().find(|(p, _)| *p == path).unwrap();
             let log = read_rocketpy(&root, path, *mapped).unwrap();
             let built = write_all(&folder, "one", &[(path, &log)]).unwrap();
@@ -354,9 +368,8 @@ mod tests {
                 .flatten()
                 .copied()
                 .fold(f64::NAN, f64::max);
-            // Valkyrie's log peaks 1.9% under its card, the widest here.
             let share: f64 = top / apogee - 1.0;
-            assert!(share.abs() < 0.02, "{path}: {top} against {apogee}");
+            assert!(share.abs() < bound(path), "{path}: {top} against {apogee}");
         }
     }
 

@@ -4995,7 +4995,7 @@ fn analyze_writes_a_ghost_file_in_each_format_and_changes_nothing_else() {
             .all(Value::is_null)
     );
     // At 8.8 s the fixture is 2e-5°/s × 8.8 s east and 1e-5°/s × 8.8 s north of the pad: by the
-    // radii of curvature at 39.39°N (6,386,930 m and 6,361,870 m), 15.16 m and 9.77 m.
+    // radii of curvature at 39.39°N (6,386,751.8 m and 6,361,145.5 m), 15.16 m and 9.77 m.
     let i = first["time_s"]
         .as_array()
         .unwrap()
@@ -5105,6 +5105,9 @@ fn analyze_refuses_a_ghost_it_cannot_write_before_reading_anything() {
         ("forty,0", "not a place"),
         ("40,0,1,2", "not a place"),
         ("40,0,inf", "not a place"),
+        ("40,0,1e300", "not a place"),
+        ("nan,0", "not a place"),
+        ("", "not a place"),
     ] {
         let output = hpr(&["analyze", &log, "--ghost", &out, "--pad", pad]);
         assert_eq!(output.status.code(), Some(1), "{pad}");

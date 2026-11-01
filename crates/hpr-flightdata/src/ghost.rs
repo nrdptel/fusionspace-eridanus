@@ -2,19 +2,19 @@
 //! JSON, CZML (Cesium's scene format) and glTF (an animated 3D scene), for a viewer to replay
 //! ([M7.2g, ghost files][m7-2g]; [ADR-313][adr-313]).
 //!
-//! **The frame.** East, north and up in metres from the pad, on WGS 84 ([`LaunchFrame`], which
+//! **The frame.** East, north and up in meters from the pad, on WGS 84 ([`LaunchFrame`], which
 //! [`docs/physics/geodesy.md`][geodesy] derives from NGA.STND.0036). Time is seconds from the
 //! log's liftoff ([`timeline::place`]), so two logs of one flight share a clock. A log with no
 //! liftoff stands alone, on its own clock, with [`Track::synced`] false.
 //!
 //! **What is in a track, and how far to trust it.** The height comes from the first of these a
 //! log has ([`UpFrom`]): the log's own altitude, or its GNSS altitude less the pad's. Not the
-//! [smoother]'s: on a barometer alone it can run far from the log through a transonic spike
-//! (6,618 m past the reading on RocketPy's Lince flight, where the health card says to go by the
-//! reading), and a file for a viewer has no card. East and north come only from GNSS fixes,
+//! [smoother]'s: on a barometer alone it can run far from the log through a sudden swing (6,618 m
+//! past the reading on RocketPy's Lince flight, as its recovery fires, where the health card says
+//! to go by the reading), and a file for a viewer has no card. East and north come only from GNSS fixes,
 //! joined linearly between fixes; a barometer alone gives a straight vertical line, and the file
 //! says so. These are a log's numbers laid out for a viewer, not a reconstruction of the flight:
-//! a transonic spike in a barometer's height stays in, a receiver's lag on the climb stays in
+//! a transonic spike smaller than the screen below stays in a barometer's height, a receiver's lag on the climb stays in
 //! east and north, and the [readings][crate::readings] remain the place for an apogee.
 //!
 //! **Heights screened.** A height reached from the last one kept faster than [`FASTEST_M_S`], plus
@@ -32,8 +32,8 @@
 //! date, and logs rarely hold one, so every file uses [`CZML_EPOCH`] as liftoff: the time on its
 //! clock is seconds from liftoff, not the day of the flight. glTF stores 32-bit floats and its
 //! times can't be negative, so its clock starts at the earliest moment and
-//! its root's `extras` give that moment; a time or a place keeps about 7 digits, which is under
-//! 1 mm of time in a 10-minute flight and under 4 mm of a 30 km height.
+//! its root's `extras` give that moment; its numbers stand about 0.06 ms apart at 1,000 s, and
+//! about 2 mm apart at 30 km.
 //!
 //! [m7-2g]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions-and-roadmap.md#m7-2g
 //! [adr-313]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0313-ghost-files.md
@@ -70,6 +70,9 @@ pub const PAD_FIXES: usize = 20;
 pub const CZML_EPOCH: &str = "2000-01-01T12:00:00Z";
 /// Where a pad of unknown place is drawn, degrees and m, in CZML (module docs).
 pub const UNKNOWN_PAD: (f64, f64, f64) = (0.0, 0.0, 0.0);
+/// The highest or lowest a stated pad may stand, m: past any launch site, and a height a float
+/// can still add to and subtract from.
+pub const PAD_HEIGHT_LIMIT_M: f64 = 20_000.0;
 /// The radius of glTF's marker on each track, m: the size of a rocket seen from a field away.
 const MARKER_RADIUS_M: f64 = 5.0;
 
@@ -226,7 +229,7 @@ pub struct Ghost {
     pub format: String,
     /// The format's version.
     pub version: u32,
-    /// The frame in words: east, north and up from the pad, in metres.
+    /// The frame in words: east, north and up from the pad, in meters.
     pub frame: String,
     /// The pad.
     pub pad: Pad,
@@ -390,9 +393,12 @@ fn pad_of(
                 ),
             });
         }
-        if pad.height_m.is_some_and(|h| !h.is_finite()) {
+        if pad
+            .height_m
+            .is_some_and(|h| !(h.abs() <= PAD_HEIGHT_LIMIT_M))
+        {
             return Err(GhostError::BadPad {
-                what: "its height isn't a number".to_owned(),
+                what: format!("its height is past {PAD_HEIGHT_LIMIT_M} m, or not a number"),
             });
         }
         return Ok(Pad {
@@ -751,7 +757,7 @@ impl Ghost {
     }
 
     /// The ghost as one glTF 2.0 file, its buffer inside as base64: for each track, a line of its
-    /// whole path and a small marker that moves along it. +x is east, +y up, −z north, in metres,
+    /// whole path and a small marker that moves along it. +x is east, +y up, −z north, in meters,
     /// as glTF's axes run.
     #[allow(
         clippy::cast_possible_truncation,
@@ -875,7 +881,7 @@ impl Ghost {
     }
 }
 
-/// The tracks' colours, red, green, blue and alpha, from 0 to 255: the first bright, the rest
+/// The tracks' colors, red, green, blue and alpha, from 0 to 255: the first bright, the rest
 /// paler, so that one log reads as the flight and the others as its ghosts.
 const TRACK_COLORS: [[u8; 4]; 4] = [
     [255, 122, 26, 255],
@@ -1106,7 +1112,7 @@ mod tests {
         // Small steps from a pad at latitude φ: north = M(φ)·Δφ and east = N(φ)·cos φ·Δλ, with M
         // the meridian radius and N the prime vertical's, a(1−e²)/(1−e²sin²φ)^{3/2} and
         // a/(1−e²sin²φ)^{1/2}; a route independent of the ECEF rotation under test. At 39.39°N:
-        // M = 6,361,870 m and N = 6,386,930 m, by hand from a = 6,378,137 and e² = 0.00669438.
+        // M = 6,361,145.5 m and N = 6,386,751.8 m, from a = 6,378,137 and e² = 0.00669438.
         let (lat, lon, step) = (39.39_f64, -8.29, 1e-3);
         let fixes = [
             (5.0, lat, lon),
@@ -1123,11 +1129,11 @@ mod tests {
             .iter()
             .position(|t| (t + zero - 20.0).abs() < 1e-9)
             .unwrap();
-        let (m, n) = (6_361_870.0_f64, 6_386_930.0_f64);
+        let (m, n) = (6_361_145.5_f64, 6_386_751.8_f64);
         let north = m * step.to_radians();
         let east = n * lat.to_radians().cos() * step.to_radians();
-        assert!((track.north_m[i].unwrap() - north).abs() < 0.05, "{north}");
-        assert!((track.east_m[i].unwrap() - east).abs() < 0.05, "{east}");
+        assert!((track.north_m[i].unwrap() - north).abs() < 0.005, "{north}");
+        assert!((track.east_m[i].unwrap() - east).abs() < 0.005, "{east}");
         // Past the last fix, nothing is claimed; halfway across a gap, the straight line.
         assert_eq!(*track.east_m.last().unwrap(), None);
         let j = track
@@ -1135,7 +1141,7 @@ mod tests {
             .iter()
             .position(|t| (t + zero - 14.5).abs() < 1e-9)
             .unwrap();
-        assert!((track.north_m[j].unwrap() - north / 2.0).abs() < 0.05);
+        assert!((track.north_m[j].unwrap() - north / 2.0).abs() < 0.005);
         assert_eq!(track.widest_fix_gap_s, Some(11.0));
     }
 
@@ -1301,6 +1307,14 @@ mod tests {
         assert!(matches!(
             built(&log, Some(far)),
             Err(GhostError::BadPad { what }) if what.contains("out of range")
+        ));
+        let huge = StatedPad {
+            height_m: Some(1e300),
+            ..stated
+        };
+        assert!(matches!(
+            built(&log, Some(huge)),
+            Err(GhostError::BadPad { what }) if what.contains("height")
         ));
         let nan = StatedPad {
             height_m: Some(f64::NAN),

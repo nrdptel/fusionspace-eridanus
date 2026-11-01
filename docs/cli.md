@@ -2118,7 +2118,7 @@ More: https://hpr.fusionspace.co/reading-a-flight-log.html
 
 `--ghost FILE` also writes the logs' paths for a viewer, on one clock in a frame at the pad: `.json`,
 `.czml` (Cesium) or `.gltf` (a 3D scene), by the file's extension. Give it again for another format.
-`--pad LAT,LON[,HEIGHT]` states the pad, in degrees and metres; without it, the place comes from the
+`--pad LAT,LON[,HEIGHT]` states the pad, in degrees and meters; without it, the place comes from the
 log's GNSS fixes. [Ghost files](format/ghost-files.md) says what each file holds and what it assumes
 where a log can't say.
 

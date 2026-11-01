@@ -15,7 +15,7 @@ Today the file holds logs only: drawing a simulated flight beside them is
 > GNSS track gives one, and CesiumJS, Khronos's glTF-Validator, glTF-Transform and Ajv each read it
 > back ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/ghost-files.md),
 > [evidence row G37](../evidence.md#g37)). Nobody has yet looked at one in Cesium's globe or a
-> modelling tool, and an apogee or a speed is a question for [the
+> modeling tool, and an apogee or a speed is a question for [the
 > readings](../reading-a-flight-log.md), not this file.
 
 ## Writing one
@@ -28,7 +28,7 @@ hpr analyze flight.csv --ghost flight.czml --pad 39.39,-8.29,120
 
 The file's extension picks its format: `.json`, `.czml` or `.gltf`. Give `--ghost` again for another
 format. The readings print as usual. `--pad` states the pad's place as latitude and longitude in
-degrees, then its height in metres if you know it, and overrides what the log's fixes say. Each
+degrees, then its height in meters if you know it, and overrides what the log's fixes say. Each
 option of [`hpr analyze`](../cli.md#hpr-analyze) that reads a log, such as `--mapping`, works with it.
 
 ## What a track holds
@@ -42,10 +42,11 @@ Each log gives one track, a list of moments, each with these numbers.
 | East and north, m | The log's GNSS fixes in the frame at the pad, a straight line between fixes. `null` before the first fix and after the last. A log with no fixes has none. |
 
 Why the log's altitude and not [the smoother's](../physics/smoother.md): on a barometer alone the
-smoother can run far from the log through a transonic spike, as it does by 6,618 m on RocketPy's
-Lince flight ([#1073](https://github.com/nrdptel/fusionspace-eridanus/issues/1073)). `hpr analyze`'s
-health card says to go by the reading there, and a file for a viewer has no card. So a barometer's
-transonic spike stays in the height, and a receiver's lag on the climb stays in east and north.
+smoother can run far from the log through a sudden swing. On RocketPy's Lince flight, as its
+recovery fires, it runs to 10,205 m, 6,618 m past the reading
+([#1073](https://github.com/nrdptel/fusionspace-eridanus/issues/1073)). `hpr analyze`'s health card
+says to go by the reading there, and a file for a viewer has no card. So a barometer's smaller
+spikes stay in the height, and a receiver's lag on the climb stays in east and north.
 
 **The pad.** It is the frame's origin, on the WGS 84 ellipsoid ([the frame's
 equations](../physics/geodesy.md)). It comes from `--pad`; or else the median of the last 20 fixes
@@ -63,7 +64,7 @@ says where the flight was, and the file says that (below).
 
 A height goes on the same speed, plus 50 m. That catches a logger's garbage rows, such as the last
 two of Juno III's altimeter file, at 10,700 m and −2,490 m. It also took 57 of the 44,454 rows of
-Lince's barometer, at its transonic spike. Each track's `fixes` and `heights_too_fast` count them.
+Lince's height, in the swing as its recovery fires. Each track's `fixes` and `heights_too_fast` count them.
 
 ## The three formats
 
@@ -73,8 +74,8 @@ and every number is the track's own, with `null` where a log can't say. Use this
 **CZML** is [Cesium's scene format](https://github.com/AnalyticalGraphicsInc/czml-writer/wiki/CZML-Guide).
 Each track is an entity with an Earth-fixed position, a point and a path. **glTF** is [Khronos's 3D
 scene format](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html), one file with its numbers
-inside. Each track is a line along its whole path and a 5 m marker that moves along it; +x is east,
-+y is up and −z is north, in metres.
+inside. Each track is a line along its whole path and a marker 10 m across that moves along it; +x is east,
++y is up and −z is north, in meters.
 
 A drawing needs a number at every moment, and these two formats have no `null`, so they draw what a
 log can't say, and each track's own text says what it drew:
@@ -91,8 +92,8 @@ Each also has a limit of its own:
   1 January 2000. The time on its clock is seconds from liftoff, not the day of the flight.
 - **glTF's clock.** glTF's times can't be negative, so its clock starts at the earliest moment, and
   the file's `extras.first_moment_from_liftoff_s` says which that was.
-- **glTF's digits.** glTF stores 32-bit numbers: about 0.06 ms at 1,000 s and 2 mm at 30 km. Two
-  moments it can't tell apart become one.
+- **glTF's digits.** glTF stores 32-bit numbers, which stand about 0.06 ms apart at 1,000 s and
+  2 mm apart at 30 km. Two moments it can't tell apart become one.
 - **Far from the pad.** East, north and up are on the flat plane at the pad, which rises off the
   curved ground as you go, so a height is drawn about 31 m too high at 20 km downrange.
 
@@ -106,7 +107,7 @@ hpr analyze 5115-TeleMetrum.csv 6583-TeleMega.csv --ghost prometheus.json
 
 The TeleMetrum's liftoff, at 0.23 s on its clock, is 0 in the file. It holds 5,710 moments, its height
 peaking at 3,904 m, the apogee RocketPy's notebook states from the same column. It kept 5,712 of its
-7,081 fixes: the other 1,369 repeat the time before them, as its GPS column does between updates. They
+7,081 fixes: the other 1,369 rows repeat the time of the row before them. The fixes
 put the rocket at most 1,170 m from the pad, which the fixes before liftoff place at 1,390 m above
 sea level. The TeleMega's track sits on the same clock and in the same frame, peaking at 3,898 m.
 
@@ -123,11 +124,12 @@ project didn't write. CI runs the same on an invented flight, as `refs/` isn't t
 
 So the formats agree with each other. What ties them to the log is pinned apart from that:
 
-- Each log with a height peaks within 2% of the apogee RocketPy's notebooks state, a check that each
-  stated unit is right. Valkyrie's log, at 1.9% under, is the widest. A foot read as a metre would
-  miss by a factor of 3.28.
+- Each of the 16 logs with a barometer's or a filtered height peaks within 2% of the apogee
+  RocketPy's notebooks state, a check that each stated unit is right. Valkyrie's log, at 1.9% under,
+  is the widest. A foot read as a meter would miss by a factor of 3.28. The two with only a
+  receiver's altitude, on Juno III, peak 4.9% and 5.8% over its altimeter's card.
 - East and north match the ellipsoid's radii of curvature, by a route that doesn't use the rotation
-  under test, to 5 cm.
+  under test, to 5 mm.
 - The bytes of a small CZML and glTF file are worked out by hand from each format's spec.
 
 ## What it leaves out

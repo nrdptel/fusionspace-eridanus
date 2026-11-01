@@ -9,7 +9,7 @@
       "type": "string"
     },
     "frame": {
-      "description": "The frame in words: east, north and up from the pad, in metres.",
+      "description": "The frame in words: east, north and up from the pad, in meters.",
       "type": "string"
     },
     "pad": {

@@ -122,7 +122,7 @@ pub struct AnalyzeArgs {
     #[arg(long, value_name = "FILE", conflicts_with_all = ["record", "print_mapping"])]
     pub ghost: Vec<String>,
     /// The pad's place for a ghost file, as latitude,longitude in degrees, with its height in
-    /// metres if you know it: 39.39,-8.29,120. Without it, the place comes from the log's GNSS
+    /// meters if you know it: 39.39,-8.29,120. Without it, the place comes from the log's GNSS
     /// fixes, and a log with none is drawn at 0N 0E, as the file says
     #[arg(
         long,

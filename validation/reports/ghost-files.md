@@ -1,6 +1,6 @@
 # Ghost files from RocketPy's flight logs
 
-Written by `cargo xtask ghost`. Each of the 22 real flight logs in RocketPy's repository with an altitude or a GNSS track, read and laid out as a ghost file; each file read back as JSON by Ajv, as CZML by CesiumJS and as glTF by Khronos's glTF-Validator and glTF-Transform, and each format held to the others (309918 moments compared). "Highest" and "farthest" are what the file holds, in metres from the pad.
+Written by `cargo xtask ghost`. Each of the 22 real flight logs in RocketPy's repository with an altitude or a GNSS track, read and laid out as a ghost file; each file read back as JSON by Ajv, as CZML by CesiumJS and as glTF by Khronos's glTF-Validator and glTF-Transform, and each format held to the others (309918 moments compared). "Highest" and "farthest" are what the file holds, in meters from the pad.
 
 | Log | Read by | Clock | Moments | Height from | Highest | Farthest | Fixes kept | Heights left out | Pad |
 |---|---|---|---:|---|---:|---:|---:|---:|---|

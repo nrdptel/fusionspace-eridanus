@@ -61,7 +61,7 @@ fn stated_pad(args: &AnalyzeArgs) -> Result<Option<StatedPad>, Failure> {
     let refused = || {
         Failure::helped(
             format!("--pad {text}: not a place"),
-            "give latitude,longitude in degrees, then the height in metres if you know it, as \
+            "give latitude,longitude in degrees, then the height in meters if you know it, as \
              39.39,-8.29,120"
                 .to_owned(),
         )
@@ -76,7 +76,7 @@ fn stated_pad(args: &AnalyzeArgs) -> Result<Option<StatedPad>, Failure> {
         _ => return Err(refused()),
     };
     if !(latitude_deg.abs() <= 90.0 && longitude_deg.abs() <= 180.0)
-        || height_m.is_some_and(|height| !height.is_finite())
+        || height_m.is_some_and(|height| !(height.abs() <= ghost::PAD_HEIGHT_LIMIT_M))
     {
         return Err(refused());
     }

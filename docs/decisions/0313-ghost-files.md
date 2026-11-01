@@ -23,8 +23,8 @@ needs a mapping.
 
 1. **A flag, not a command.** `hpr analyze --ghost FILE`, its extension picking the format, reuses
    how `hpr analyze` reads a log and its pairs, and adds no surface. `--pad` states the pad.
-2. **The height is the log's.** The first draft used the smoother's, and on RocketPy's Lince flight it
-   peaked at 10,205 m against the log's 3,669 m and the flight card's 3,587 m; on Genesis, 3,360 m
+2. **The height is the log's.** The first draft used the smoother's, and on RocketPy's Lince flight, as its
+   recovery fires, it peaked at 10,205 m against the log's 3,669 m and the flight card's 3,587 m; on Genesis, 3,360 m
    against 2,917 m. The health card already says "go by the reading" there
    ([#1073][i1073]); a file for a viewer has no card. A reading's bound belongs to `hpr analyze`.
 3. **Screens are counted, not silent.** Each fix left out has one reason, in `fixes`: no place, the
@@ -32,7 +32,9 @@ needs a mapping.
    height goes on the same speed plus 50 m (`heights_too_fast`). The speed is above the envelope's
    top; the reach and the scatters are judgment, sized on these 22 logs, where they take Juno III's
    flipped longitudes and garbage last rows and leave every other track's height peak in place.
-   Lince's barometer loses 57 of 44,454 rows at its spike, 3,669 m to 3,629 m.
+   Lince's height loses 57 of 44,454 rows in the swing as its recovery fires, its peak going from
+   3,669 m to 3,629 m. The card says 3,587 m, so what is left of the swing is still over it: a
+   ghost's top isn't an apogee.
 4. **One track, drawn two ways.** JSON holds `null` where a log can't say. CZML and glTF can't, so
    they hold the nearest fix, draw an unknown height at 0, and an unknown pad at 0°N 0°E, and each
    track's text says so. CZML's date is a fixed noon on 1 January 2000, as most logs hold no date.
@@ -44,8 +46,9 @@ needs a mapping.
    step reads RocketPy's logs back, as CI has no `refs/`; CI's `types` job reads the invented flight
    back. Cesium's scene code names the browser's `Image` on load, so the script stubs it.
 
-**Consequences.** All 22 logs give all three files, all read back ([report][report]); each log's
-height peaks within 2% of what RocketPy's notebooks state, which checks the 17 mappings' units. Left
+**Consequences.** All 22 logs give all three files, all read back ([report][report]). The 16 with a
+barometer's or a filtered height peak within 2% of what RocketPy's notebooks state, and the two with
+only a receiver's altitude within 6%, which checks each stated height's unit. Left
 out, each with its issue, on [the page][page]: a simulated track (#1091), joining a GNSS log to its
 altimeter log on the clock they share (#1086), and Python (#1085). Nobody has yet looked at one in a
 viewer: every check is of the numbers. M9.2's replay will be that look.
