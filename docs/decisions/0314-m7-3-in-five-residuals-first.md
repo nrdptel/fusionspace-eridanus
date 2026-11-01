@@ -61,5 +61,5 @@ to `hpr-atmos`, where the forensics crate can reach it; no number moves. The rep
 increment doesn't fix. Juno III's log has a garbled sample (a residual of 7.8 km at 29.85 s after liftoff).
 Lince's log swings by 500 m or more in 0.01 s as its recovery fires, and the smoother's speed reads +10,211 m/s
 there. Genesis's smoothed speed lies +705 m/s from the simulated at 8.24 s after liftoff, and Prometheus's boost
-leaves an RMS of 86 m/s. They are shown, not filtered: the heights are raw samples, and the speeds are what the
+leaves an RMS of 88 m/s. They are shown, not filtered: the heights are raw samples, and the speeds are what the
 smoother gives on them. None of it has been traced to a cause here.

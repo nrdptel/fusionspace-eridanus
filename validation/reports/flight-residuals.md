@@ -3,8 +3,8 @@
 Written by `cargo xtask real-flights` ([M7.3a][m7-3a], decision [ADR-314][adr-314]). [How to read them][site].
 
 - **What is flown:** the 7 flights of the [real-flights report][real], each flown to the ground in its ERA5 air and wind, on hpr's own drag, under the parachutes its example's notebook gives it.
-- **A residual** is the logged value less the simulated one. Positive: the log read higher, or faster upward, than the simulation.
-- **Heights** are the log's own samples, above its pad, unsmoothed. The simulation's are read as the log's altimeter would read them. **Speeds** are the smoother's, taken from the log's heights, against the rate at which the same altimeter's reading would change.
+- **A residual** is the logged value less the simulated one. Positive: the log read higher, or faster upward, than the simulation. A descent's rate is a size, so there a positive residual in the readings means the log fell faster.
+- **Heights** are the log's own samples, above its pad, unsmoothed. The simulation's are read as the log's altimeter would read them. **Speeds** are the smoother's, taken from the log with any GNSS set aside, against the rate at which the same altimeter's reading would change.
 - **The clocks** are lined up by what one reader calls liftoff on each. Their bound is rounded up.
 - **Tests:** a log of the simulation's own flight leaves an RMS under 1 m (3.3 ft), and each flight's simulated apogee, read by the log's reader, stays within 0.5 m (1.6 ft) of the flight's own event.
 - A residual is one flight against one simulation. It doesn't say which is wrong.
@@ -94,9 +94,9 @@ Speed:
 
 | phase | from (s) | to (s) | samples | mean (m/s) | RMS (m/s) | largest (m/s) | at (s) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| boost | 0.00 | 4.67 | 467 | -77.0 | 85.8 | -115.6 | 4.13 |
-| coast | 4.67 | 28.69 | 2402 | +33.5 | 45.9 | +107.3 | 8.34 |
-| descent | 28.69 | 223.01 | 2326 | -1.2 | 6.4 | -22.2 | 157.51 |
+| boost | 0.00 | 4.67 | 467 | -79.2 | 88.2 | -119.6 | 4.14 |
+| coast | 4.67 | 28.69 | 2402 | +30.1 | 42.5 | +100.0 | 8.35 |
+| descent | 28.69 | 223.01 | 2326 | -0.7 | 6.2 | -21.5 | 157.51 |
 
 Readings, the simulation read as the log is:
 

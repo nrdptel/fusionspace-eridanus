@@ -46,6 +46,13 @@
       "description": "How the clocks were lined up: `shared liftoff`.",
       "type": "string"
     },
+    "notes": {
+      "description": "What to bear in mind in reading them, as the text form's notes say.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "reaches_landing": {
       "description": "Whether the residuals run to a landing read from the log, not just to the log's end.",
       "type": "boolean"
@@ -56,6 +63,11 @@
       "items": {
         "$ref": "#/$defs/CompareRow"
       }
+    },
+    "simulated_interval_s": {
+      "description": "The sample interval the simulation was read at, s: the log's, up to the reader's coarsest.",
+      "type": "number",
+      "format": "double"
     },
     "simulated_liftoff_s": {
       "description": "The simulated liftoff, as the same reader finds it, s after ignition.",
@@ -108,10 +120,12 @@
     "log_liftoff_s",
     "simulated_liftoff_s",
     "clock_bound_s",
+    "simulated_interval_s",
     "reaches_landing",
     "height_m",
     "speed_m_s",
-    "rows"
+    "rows",
+    "notes"
   ],
   "$defs": {
     "ComparePhase": {

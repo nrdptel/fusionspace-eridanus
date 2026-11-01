@@ -7,7 +7,7 @@ flight. NASA Student Launch's handbook asks for this comparison after a team's s
 after its full-scale flight. Reading a log with no simulation is [Reading a flight log](reading-a-flight-log.md).
 
 > **How far to trust it.** A residual is one flight against one simulation, and it describes them. It is
-> the sum of what the logger, the simulation and the lining up of their clocks each got wrong, and it can't
+> the sum of what the logger, the simulation and the lining up of their clocks each got wrong. It can't
 > tell them apart. It says neither is right. The simulated numbers state no error here, and the fit that would explain a residual is
 > [not built yet](decisions-and-roadmap.md#m7-3). The method is tested on flights with a known answer. It has
 > been run on the 7 public logged flights ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/flight-residuals.md)),
@@ -16,16 +16,84 @@ after its full-scale flight. Reading a log with no simulation is [Reading a flig
 ## Run it
 
 Give the log, then the design, its motor and the launch, as `hpr sim` takes them ([the command line](cli.md)).
-This example's log is invented: the repository's Level 1 guide rocket flown in a 6 m/s (13 mph) wind, its
-heights read 4% low and rounded to a foot ([how it is made](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/logs/compare/make.py)).
+This example's log is invented. It is the repository's Level 1 guide rocket flown in a 6 m/s (13 mph) wind,
+with its heights read 4% low and rounded to a foot ([how it is made](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/logs/compare/make.py)).
 The simulation flies the same rocket in calm air, so you can see what a known lean looks like:
 
-```console
 <!-- cli: example `hpr compare validation/fixtures/logs/compare/level-1-flown.csv validation/fixtures/ork/guides/level-1.ork --mapping validation/fixtures/logs/compare/level-1.mapping.json`; written by `cargo xtask cli`; do not edit -->
+
+```text,wrap
+$ hpr compare validation/fixtures/logs/compare/level-1-flown.csv validation/fixtures/ork/guides/level-1.ork --mapping validation/fixtures/logs/compare/level-1.mapping.json
+level-1-flown.csv against its simulation
+  flown: level-1.ork, [H170M-10]
+  clocks: a shared liftoff, within 1.73 s; the log's at 10.10 s, the simulation's 0.10 s after ignition
+  the simulation's height is read as a barometer on the pad would read it, as the log's is
+
+Residuals, logged less simulated
+  height
+    ascent   0.0 to 11.5 s, 116 samples
+             mean -33.9 m (-111 ft), RMS 37.0 m (122 ft)
+             largest -49.0 m (-161 ft) at 11.30 s
+    descent  11.5 to 243.9 s, 2324 samples
+             mean -26.8 m (-88 ft), RMS 29.5 m (97 ft)
+             largest -48.9 m (-160 ft) at 11.60 s
+  speed, up
+    ascent   0.0 to 11.5 s, 116 samples
+             mean -4.2 m/s (-14 ft/s), RMS 14.1 m/s (46 ft/s)
+             largest -44.1 m/s (-145 ft/s) at 0.90 s
+    descent  11.5 to 243.9 s, 2324 samples
+             mean +0.2 m/s (1 ft/s), RMS 0.2 m/s (1 ft/s)
+             largest +2.1 m/s (7 ft/s) at 12.00 s
+
+Readings, the simulation read as the log is
+  apogee, above the pad
+    logged     1015.6 m (3332 ft) (measured), within 76.9 m (253 ft), 90% interval 966.6 to 1064.1 m (3171 to 3491 ft)
+    simulated  1064.4 m (3492 ft)
+    logged less simulated  -48.9 m (-160 ft)
+  apogee's time, after liftoff
+    logged     11.55 s (measured), within 1.81 s
+    simulated  11.50 s
+    logged less simulated  +0.05 s
+  top speed
+    withheld on both: the climb's speed reaches 269.4 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose
+  top acceleration
+    withheld on both: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
+  burnout, after liftoff
+    withheld on both: burnout from the speed's peak needs the top speed, which is withheld: the climb's speed reaches 269.4 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose
+  flight time
+    logged     243.90 s (measured), within 4.95 s, 90% interval 244.55 to 245.79 s
+    simulated  245.20 s
+    logged less simulated  -1.30 s
+  drogue descent
+    withheld on both: the descent shows no drogue's leg, which at the ground's density falls faster than 7.2 m/s up to the main's opening. That mark is 1.6 times the rate near the ground, 4.2 m/s, or 3 m/s more if that is more. A drogue's leg would also fall on median faster than 1.4 times the rate near the ground. So the rocket came down under one canopy, or under a drogue no faster than the mark, which reads as one. The main's descent is then the whole descent's, from apogee
+  main's opening, above the pad
+    withheld on both: the descent shows one canopy
+  main descent
+    logged     4.4 m/s (14 ft/s) (derived), within 0.4 m/s (2 ft/s), 90% interval 4.1 to 4.6 m/s (13 to 15 ft/s)
+    simulated  4.5 m/s (15 ft/s)
+    logged less simulated  -0.2 m/s (-1 ft/s)
+
+How far to trust it. A log, measured, against a simulation of it, on the inputs you gave. A residual
+is the logged value less the simulated one, the sum of what the logger, the simulation and the
+lining up of their clocks each got wrong: it can't tell them apart, and it says neither is right.
+The simulated numbers state no error here. Each reading states the bound its error stayed within on
+HPR Sim's synthetic flights. They cover rates from 500 to 0.5 samples a second, steps up to 10 m or
+100 Pa, and air within 15 K of standard. A reading the log can't support is withheld, with the
+reason. The top speed is derived from the heights, and withheld from Mach 0.8, where a barometer's
+port may read the flow over the nose. For a record or a certification, the altimeter's own reading
+is the one to log, and the RSO decides.
+More: https://hpr.fusionspace.co/comparing-a-flight.html
+note: the file's 1 recovery device flies as OpenRocket flies it. Each opens fully at its event, with the file's drag coefficient or OpenRocket's own. Once one opens, the rocket descends as a point under the open devices' drag alone
+note: the log was read in the units your mapping or layout states, so its readings' bounds hold only if those are right
+note: a log's main altitude, or a column you mapped, is taken as a barometer's: give --height-reads height-climbed for a GPS receiver's
 ```
 
-Every height residual is negative, because the log reads low. The apogee's is about 4% of the rocket's
-height, and the descent's shrinks with it on the way down.
+<!-- cli: end -->
+
+The height's mean residual is negative in both phases, because the log reads low. It is largest at apogee,
+and it shrinks with the height on the way down. A reading says "withheld" when the log can't support it, with
+the reason beside it, as here for the top speed and the acceleration. A reading marked "a floor" means the true value may lie any
+amount above it.
 
 The simulation flies the conditions you give it. With no wind or air given, it flies a calm standard day,
 which isn't the day you flew. `--json` adds every sample's residual, for a plot of your own, and holds the notes.
