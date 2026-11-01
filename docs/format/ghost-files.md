@@ -47,7 +47,7 @@ recovery fires, it runs to 10,205 m (33,481 ft), 6,618 m (21,713 ft) past the re
 says to go by the reading there, and a file for a viewer has no card. So a barometer's smaller
 spikes stay in the height, and a receiver's lag on the climb stays in east and north.
 
-## The pad
+### The pad
 
 The pad is the frame's origin, on the WGS 84 ellipsoid ([the frame's
 equations](../physics/geodesy.md)). It comes from the first of these a flight has:
@@ -59,7 +59,7 @@ equations](../physics/geodesy.md)). It comes from the first of these a flight ha
 A pad from the first fix may be off by what the rocket has already flown. With no fix at all, nothing
 says where the flight was, and the file says that (below).
 
-## What is left out
+### What is left out
 
 Each track counts what it leaves out, in its `fixes` and `heights_too_fast`. A fix goes when any of
 these holds:
