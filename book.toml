@@ -74,6 +74,9 @@ heading-split-level = 2
 # And in M7.2f, at 10.04 MB, with two logs of one flight: the page on the synthetic flights
 # (`physics/synthetic-flights.md`), how the test flights are drawn, whose results the readings' and
 # the smoother's pages give, is left out too; it is still in the sidebar and linked from those pages.
+# And in M7.3a, at 10.02 MB, with the page on comparing a flight: the numerics page on time integration
+# (`physics/integration.md`), a routine the flight's pages describe by what it gives, is left out too;
+# it is still in the sidebar and linked from those pages.
 [output.html.search.chapter]
 "decisions-and-roadmap.md" = { enable = false }
 "writing.md" = { enable = false }
@@ -85,6 +88,7 @@ heading-split-level = 2
 "the-simulator.md" = { enable = false }
 "physics/quadrature.md" = { enable = false }
 "physics/synthetic-flights.md" = { enable = false }
+"physics/integration.md" = { enable = false }
 
 # The equations (`xtask/src/site/math.rs`): each `$…$` and `$$…$$` becomes MathML before mdBook
 # renders the page, so the browser draws it in the math face with no script. `cargo xtask site`

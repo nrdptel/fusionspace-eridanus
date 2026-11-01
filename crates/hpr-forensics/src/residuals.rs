@@ -680,7 +680,11 @@ fn summarize(phase: Phase, start_s: f64, end_s: f64, points: &[&Point]) -> Optio
 }
 
 #[cfg(test)]
-#[allow(clippy::unwrap_used, clippy::expect_used)]
+#[allow(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    reason = "a test stops at the failure (clippy.toml)"
+)]
 mod tests {
     use std::sync::Arc;
 

@@ -2206,6 +2206,8 @@ fn fmt_signed(value: f64, decimals: usize) -> String {
 
 #[cfg(test)]
 mod tests {
+    use hpr_atmos::Ussa76;
+
     use super::*;
 
     const ENG: &str = "; a comment\nK1 54 579 6 1.4 2.2 AT\n 0.1 100 ; peak\n 0.5 50\n 1.0 0\n";

@@ -513,7 +513,11 @@ pub fn run(root: &Path, check: bool) -> Result<(), String> {
 }
 
 #[cfg(test)]
-#[allow(clippy::unwrap_used, clippy::expect_used)]
+#[allow(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    reason = "a test stops at the failure (clippy.toml)"
+)]
 mod tests {
     use super::*;
 
