@@ -4698,7 +4698,11 @@ fn analyze_gives_a_log_cut_on_the_climb_floors_with_no_interval() {
     let path = path.to_str().unwrap();
 
     let document = json(&["analyze", path], 0, "analyze.schema.json");
-    assert_eq!(document["apogee"]["is_floor"], true, "{}", document["apogee"]);
+    assert_eq!(
+        document["apogee"]["is_floor"], true,
+        "{}",
+        document["apogee"]
+    );
     let top = &document["max_speed"];
     assert_eq!(top["status"], "read", "{top}");
     assert_eq!(top["is_floor"], true, "{top}");
