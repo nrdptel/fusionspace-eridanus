@@ -1063,7 +1063,7 @@ back to the top speed's time, and carries the top speed's reason where that is w
 
 An apogee within half a window of the log's end is read, but marked `is_floor`: the log may have
 stopped before the rocket did. The top speed and the smoothed apogee are then floors too, with no
-interval. Only a test's cut flight has checked this: no synthetic log is cut.
+interval. Only a test's cut flight has checked this: no synthetic log ends on the climb.
 
 ## Two logs on one timeline
 
