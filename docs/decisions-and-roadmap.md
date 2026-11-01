@@ -341,6 +341,7 @@ until someone rewrites it in plainer words.
 | [ADR-310: The 2026-10-31 review: the RocketPy rail-exit and landing speeds tightened][adr-310] | In the RocketPy comparisons flown on the same inputs, the rail-exit speeds agree within 0.0144% and the landing speeds within 0.0301%, while RocketPy's own solver moves them by at most 3.13e-5 and 8.6e-7 of their values. The bounds go from 0.2% to 0.05% and 0.1%, 3.5 and 3.3 times the largest difference. All nine rail-exit speeds read low, the cautious side, for two causes measured here, and a test stops one reading high. These bound agreement between two codes, not accuracy against a flight. |  |
 | [ADR-311: The 2026-10-31 review: every flight OpenRocket flies, and CI's long checks][adr-311] | On the private collection OpenRocket 24.12 flies 79 of the 83 flights that come from a `.ork` and HPR Sim 68, which no scoreboard row shows. A new row, `coverage.collection`, and a milestone before the gap is split by cause, close that. CI's long report checks now run from an optimized build with debug assertions, split by set over two jobs on every platform, with a test that fails if a set is left out. |  |
 | [ADR-312: Two logs on one timeline: the offset's error, the new sets, a booster's truth][adr-312] | two logs of one flight, or one logger to a stage, go on one timeline by a shared |  |
+| [ADR-313: Ghost files: the log's own height, three formats from one track, outside readers in Node][adr-313] | `hpr analyze --ghost` writes a flight's logs as time-synced trajectories in a frame at |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -805,7 +806,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-1d"></a>[M7.1d][done-5] | A flyer's own logger and GPX tracks | done |
 | <a id="m7-1d1"></a>[M7.1d1][done-5] | GPX tracks | done |
 | <a id="m7-1d2"></a>[M7.1d2][done-5] | Your own logger from the command line and Python | done |
-| <a id="m7-2"></a>[M7.2][phase-5] | The readings a flight gives, each with where it came from, and reconstructing the flight from its log | not yet done |
+| <a id="m7-2"></a>[M7.2][done-5] | The readings a flight gives, each with where it came from, and reconstructing the flight from its log | done |
 | <a id="m7-2a"></a>[M7.2a][done-5] | The synthetic flights, each with its truth and its logger's log | done |
 | <a id="m7-2b"></a>[M7.2b][done-5] | The readings on every logger | done |
 | <a id="m7-2c"></a>[M7.2c][done-5] | The rest of the readings | done |
@@ -816,7 +817,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-2e3"></a>[M7.2e3][done-5] | The accelerometer's readings and the canopies' | done |
 | <a id="m7-2e4"></a>[M7.2e4][done-5] | The intervals in `hpr analyze` and Python | done |
 | <a id="m7-2f"></a>[M7.2f][done-5] | Two recordings of one flight, and stages | done |
-| <a id="m7-2g"></a>[M7.2g][phase-5] | Ghost files: the flight as JSON, CZML and glTF | not yet done |
+| <a id="m7-2g"></a>[M7.2g][done-5] | Ghost files: the flight as JSON, CZML and glTF | done |
 | <a id="m7-3"></a>[M7.3][phase-5] | A flight against its simulation: residuals, and fitting drag, mass, impulse and wind to the log | not yet done |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |
 | <a id="m7-5"></a>[M7.5][phase-6] | The bias every simulator shares | not yet done |
@@ -1282,6 +1283,7 @@ is the milestone that added or will add that test.
 [adr-310]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0310-the-2026-10-31-review-the-rocketpy-rail-exit-and-landing-speeds-tightened.md
 [adr-311]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0311-the-2026-10-31-review-every-flight-openrocket-flies.md
 [adr-312]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0312-two-logs-on-one-timeline.md
+[adr-313]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0313-ghost-files.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

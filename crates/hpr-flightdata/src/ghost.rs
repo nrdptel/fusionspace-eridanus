@@ -657,6 +657,10 @@ impl Ghost {
     /// The moment of [`CZML_EPOCH`] plus `seconds`, written with whole milliseconds; `up` rounds
     /// forward and otherwise back, so that a span holds every moment. A log's clock can stand far
     /// from its liftoff, so days carry into January 2000 or back into December 1999.
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "a flight's seconds, in milliseconds: far from i64's limits"
+    )]
     fn czml_time(seconds: f64, up: bool) -> String {
         let scaled = seconds * 1000.0;
         // A millisecond past the rounding: a reader's sums over a date mustn't land outside.
@@ -749,6 +753,10 @@ impl Ghost {
     /// The ghost as one glTF 2.0 file, its buffer inside as base64: for each track, a line of its
     /// whole path and a small marker that moves along it. +x is east, +y up, −z north, in metres,
     /// as glTF's axes run.
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "glTF holds 32-bit floats: the module docs size the loss"
+    )]
     pub fn to_gltf(&self) -> String {
         let mut buffer = Bytes::default();
         let mut accessors = Vec::new();
@@ -891,7 +899,10 @@ impl Bytes {
     /// A new accessor and view over the bytes of `accessor`, marked as a mesh's vertices.
     fn same_bytes_for_a_mesh(&mut self, accessor: usize, accessors: &mut Vec<Value>) -> usize {
         let mut copy = accessors[accessor].clone();
-        let view = copy["bufferView"].as_u64().map_or(0, |view| view as usize);
+        let view = copy["bufferView"]
+            .as_u64()
+            .and_then(|view| usize::try_from(view).ok())
+            .unwrap_or(0);
         let mut own = self.views[view].clone();
         own["target"] = json!(ARRAY_BUFFER);
         self.views.push(own);
@@ -982,7 +993,6 @@ mod tests {
     use super::*;
     use crate::import;
     use crate::readings;
-    use base64::Engine as _;
 
     /// A table as its own reader reads it, with a pad, a climb and a descent: liftoff at 10 s.
     fn climb() -> FlightLog {
@@ -1039,15 +1049,6 @@ mod tests {
             }],
             pad,
         )
-    }
-
-    /// A pad on the equator's 0°E: the frame's axes are the Earth-fixed axes, by hand.
-    fn at_null_island() -> StatedPad {
-        StatedPad {
-            latitude_deg: 0.0,
-            longitude_deg: 0.0,
-            height_m: Some(0.0),
-        }
     }
 
     fn little_ghost(east: Option<f64>, up: Option<f64>) -> Ghost {
@@ -1136,6 +1137,31 @@ mod tests {
             .unwrap();
         assert!((track.north_m[j].unwrap() - north / 2.0).abs() < 0.05);
         assert_eq!(track.widest_fix_gap_s, Some(11.0));
+    }
+
+    #[test]
+    fn the_pad_is_the_median_of_the_last_fixes_before_liftoff() {
+        // A receiver settling: 10 fixes 0.01° off, then 20 at the pad, one of them 100 m off. The
+        // first or a mean of all would miss; a fix after liftoff has no say.
+        let (lat, lon) = (39.39, -8.29);
+        let mut fixes: Vec<(f64, f64, f64)> = (0..10)
+            .map(|k| (0.1 * f64::from(k), lat + 0.01, lon))
+            .collect();
+        fixes.extend((10..30).map(|k| (0.1 * f64::from(k), lat, lon)));
+        fixes[20].1 = lat + 0.001;
+        fixes.push((20.0, lat + 0.005, lon));
+        let ghost = built(&with_fixes(climb(), &fixes, None), None).unwrap();
+        assert_eq!(ghost.pad.from, PadFrom::FixesBeforeLiftoff);
+        assert_eq!(ghost.pad.latitude_deg, Some(lat));
+        assert_eq!(ghost.pad.longitude_deg, Some(lon));
+    }
+
+    #[test]
+    fn a_first_fix_after_liftoff_says_how_late_it_was() {
+        let ghost = built(&with_fixes(climb(), &[(20.0, 39.39, -8.29)], None), None).unwrap();
+        assert_eq!(ghost.pad.from, PadFrom::FirstFix);
+        let zero = ghost.tracks[0].liftoff_s.unwrap();
+        assert_eq!(ghost.pad.first_fix_after_liftoff_s, Some(20.0 - zero));
     }
 
     #[test]
@@ -1391,7 +1417,7 @@ mod tests {
     #[test]
     fn two_moments_a_float_cant_part_become_one_in_gltf() {
         let mut ghost = little_ghost(Some(1.0), Some(3.0));
-        ghost.tracks[0].time_s = vec![1_000.0, 1_000.00001, 1_001.0];
+        ghost.tracks[0].time_s = vec![1_000.0, 1_000.000_01, 1_001.0];
         ghost.tracks[0].east_m = vec![Some(1.0), Some(2.0), Some(3.0)];
         ghost.tracks[0].north_m = vec![Some(0.0); 3];
         ghost.tracks[0].up_m = vec![Some(0.0); 3];
@@ -1402,7 +1428,7 @@ mod tests {
         // 1,000.00001 − 1,000 is kept as a time (the clock starts there) so all three stand ...
         assert_eq!(gltf["accessors"][input]["count"], 3);
         // ... but on a clock that starts 1,000 s earlier they can't be told apart.
-        ghost.tracks[0].time_s = vec![0.0, 1_000.0, 1_000.00001, 1_001.0];
+        ghost.tracks[0].time_s = vec![0.0, 1_000.0, 1_000.000_01, 1_001.0];
         ghost.tracks[0].east_m = vec![Some(0.0), Some(1.0), Some(2.0), Some(3.0)];
         ghost.tracks[0].north_m = vec![Some(0.0); 4];
         ghost.tracks[0].up_m = vec![Some(0.0); 4];

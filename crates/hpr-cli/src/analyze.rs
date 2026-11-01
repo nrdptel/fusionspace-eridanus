@@ -1067,6 +1067,8 @@ mod tests {
             fip_header: None,
             print_mapping: false,
             record: false,
+            ghost: Vec::new(),
+            pad: None,
         };
         let mut document = document(&args, &log, &readings::read(&log));
         document.max_acceleration = LogReading::Read(MaxAccelerationReading {
