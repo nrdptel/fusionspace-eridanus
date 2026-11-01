@@ -4,7 +4,7 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target. The 134 held pages are every page the site's table of contents lists, with the README and the 404 page, less the records page ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)), each snapshot of an `hpr` command's `--help`, the census of what the commands say, a page for each crate's `src/` directory, the Python package's README and its docstrings as `help()` shows them, and each crate's front page, the `//!` docs of its `src/lib.rs` ([ADR-292](../../docs/decisions/0292-the-programs-words-in-four.md)).
 
-142 pages, 531229 words, 0 stock phrases. 138 pages are within every limit.
+142 pages, 531325 words, 0 stock phrases. 138 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
@@ -68,7 +68,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/format/damaged-files.md` (`ref`, `held`) | 844 | 15.6 | 6% | 0.00 | 0.00 | 0.36 | 0.12 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.36 | 1.31 |
 | `docs/format/eng.md` (`ref`, `held`) | 2466 | 13.9 | 3% | 0.37 | 0.21 | 0.17 | 0.13 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.05 | 0.21 |
 | `docs/format/era5.md` (`ref`, `held`) | 2442 | 13.6 | 0% | 0.41 | 0.13 | 0.00 | 0.05 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.41 | 0.25 |
-| `docs/format/flight-logs.md` (`ref`, `held`) | 44200 | 13.1 | 1% | 0.23 | 0.21 | 0.02 | 0.09 | 0.00 | 0.01 | 0.01 | 0.00 | 0.00 | 0.00 | 0.04 | 0.46 |
+| `docs/format/flight-logs.md` (`ref`, `held`) | 44244 | 13.1 | 1% | 0.23 | 0.21 | 0.02 | 0.09 | 0.00 | 0.01 | 0.01 | 0.00 | 0.00 | 0.00 | 0.04 | 0.46 |
 | `docs/format/ghost-files.md` (`ref`, `held`) | 1804 | 14.7 | 6% | 0.00 | 0.00 | 0.34 | 0.06 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.17 | 0.67 |
 | `docs/format/hpr.md` (`ref`, `held`) | 5402 | 14.0 | 1% | 0.39 | 0.02 | 0.06 | 0.10 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.13 | 0.82 |
 | `docs/format/orc.md` (`ref`, `held`) | 2412 | 13.3 | 0% | 0.38 | 0.13 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.21 | 0.38 |
@@ -141,7 +141,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `crates/hpr-format/src/` (`ref`, `held`) | 538 | 9.8 | 0% | 0.00 | 0.00 | 0.00 | 0.19 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 2.42 |
 | `crates/hpr-atmos/src/` (`ref`, `held`) | 244 | 4.3 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `crates/hpr-net/src/` (`ref`, `held`) | 967 | 7.5 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.32 |
-| `crates/hpr-flightdata/src/` (`ref`, `held`) | 28919 | 11.7 | 1% | 0.00 | 0.00 | 0.02 | 0.12 | 0.01 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 1.45 |
+| `crates/hpr-flightdata/src/` (`ref`, `held`) | 28971 | 11.7 | 1% | 0.00 | 0.00 | 0.02 | 0.13 | 0.01 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 1.45 |
 | `crates/hpr-analysis/src/` (`ref`, `held`) | 449 | 5.2 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `crates/hpr-forensics/src/` (`ref`, `held`) | 317 | 5.8 | 0% | 0.00 | 0.32 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 2.53 |
 | `crates/hpr-py/src/` (`ref`, `held`) | 649 | 10.2 | 4% | 0.00 | 0.00 | 0.31 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 1.24 |
@@ -181,7 +181,7 @@ Each `src/` page above is a crate's message census ([ADR-292](../../docs/decisio
 | `crates/hpr-format/src/` | 3 | 53 | 7 | 0 | 41 |
 | `crates/hpr-atmos/src/` | 9 | 57 | 7 | 0 | 4 |
 | `crates/hpr-net/src/` | 14 | 120 | 52 | 10 | 95 |
-| `crates/hpr-flightdata/src/` | 55 | 2022 | 15 | 2 | 1323 |
+| `crates/hpr-flightdata/src/` | 55 | 2024 | 15 | 2 | 1325 |
 | `crates/hpr-analysis/src/` | 17 | 87 | 10 | 3 | 17 |
 | `crates/hpr-forensics/src/` | 12 | 55 | 11 | 3 | 17 |
 | `crates/hpr-py/src/` | 6 | 61 | 0 | 0 | 41 |
