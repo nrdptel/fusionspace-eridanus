@@ -4,13 +4,13 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target. The 133 held pages are every page the site's table of contents lists, with the README and the 404 page, less the records page ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)), each snapshot of an `hpr` command's `--help`, the census of what the commands say, a page for each crate's `src/` directory, the Python package's README and its docstrings as `help()` shows them, and each crate's front page, the `//!` docs of its `src/lib.rs` ([ADR-292](../../docs/decisions/0292-the-programs-words-in-four.md)).
 
-141 pages, 528007 words, 0 stock phrases. 136 pages are within every limit.
+141 pages, 528090 words, 0 stock phrases. 137 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
-| Bold-label items | 0.50 | 5 | 1.88, `docs/perf.md` |
+| Bold-label items | 0.50 | 4 | 1.88, `docs/perf.md` |
 | Labels | 0.50 | 3 | 3.62, `docs/VISION.md` |
-| Sentences over 25 words | 0.50 | 4 | 1.16, `docs/perf.md` |
+| Sentences over 25 words | 0.50 | 3 | 1.16, `docs/perf.md` |
 | Hedges | 1.00 | 0 | 0.53, `crates/hpr-sim/src/` |
 | Stacked hedges | 0.10 | 0 | 0.03, `crates/hpr-sim/src/` |
 | Minimizers | 0.10 | 1 | 0.11, `docs/ARCHITECTURE.md` |
@@ -27,7 +27,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `CHANGELOG.md` | 1810 | 20.9 | 31% | **0.94** | 0.00 | **0.89** | 0.06 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.06 | 0.23 |
 | `CONTRIBUTING.md` | 671 | 13.7 | 5% | 0.00 | 0.00 | 0.30 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.00 | 1.05 |
 | `README.md` (`held`) | 2488 | 14.0 | 3% | 0.17 | 0.17 | 0.13 | 0.05 | 0.00 | 0.00 | 0.00 | | 0.17 | 0.00 | 0.81 | 0.65 |
-| `crates/hpr-cli/tests/help/hpr-analyze.help` (`ref`, `held`) | 345 | 12.8 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.29 | 0.00 |
+| `crates/hpr-cli/tests/help/hpr-analyze.help` (`ref`, `held`) | 442 | 13.4 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.46 | 0.00 |
 | `crates/hpr-cli/tests/help/hpr-compare.help` (`ref`, `held`) | 50 | 7.2 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `crates/hpr-cli/tests/help/hpr-completions.help` (`ref`, `held`) | 78 | 7.8 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 1.29 | 0.00 |
 | `crates/hpr-cli/tests/help/hpr-convert.help` (`ref`, `held`) | 174 | 13.4 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.58 |
@@ -68,7 +68,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/format/eng.md` (`ref`, `held`) | 2466 | 13.9 | 3% | 0.37 | 0.21 | 0.17 | 0.13 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.05 | 0.21 |
 | `docs/format/era5.md` (`ref`, `held`) | 2442 | 13.6 | 0% | 0.41 | 0.13 | 0.00 | 0.05 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.41 | 0.25 |
 | `docs/format/flight-logs.md` (`ref`, `held`) | 44200 | 13.1 | 1% | 0.23 | 0.21 | 0.02 | 0.09 | 0.00 | 0.01 | 0.01 | 0.00 | 0.00 | 0.00 | 0.04 | 0.46 |
-| `docs/format/ghost-files.md` (`ref`, `held`) | 1391 | 16.3 | 18% | **0.51** | 0.00 | **0.94** | 0.08 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.22 | 0.65 |
+| `docs/format/ghost-files.md` (`ref`, `held`) | 1377 | 13.7 | 4% | 0.00 | 0.00 | 0.22 | 0.08 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.22 | 0.66 |
 | `docs/format/hpr.md` (`ref`, `held`) | 5402 | 14.0 | 1% | 0.39 | 0.02 | 0.06 | 0.10 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.13 | 0.82 |
 | `docs/format/orc.md` (`ref`, `held`) | 2412 | 13.3 | 0% | 0.38 | 0.13 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.21 | 0.38 |
 | `docs/format/ork.md` (`ref`, `held`) | 38943 | 14.2 | 1% | 0.21 | 0.13 | 0.03 | 0.10 | 0.00 | 0.01 | 0.01 | 0.00 | 0.00 | 0.00 | 0.05 | 0.14 |
