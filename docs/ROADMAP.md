@@ -447,11 +447,6 @@ are in `hpr-forensics`. Formats, methods and the log corpus came from Debrief.
   one `hpr` command draws predicted and logged altitude and velocity, liftoff to landing, under
   launch-day conditions. A reading keeps the provenance M7.2 gave it wherever it meets a simulated
   number. Split a to e (ADR-314).
-  - [x] **M7.3a Residuals.** *Done when:* `hpr compare` prints, for a real flight's log against a simulation
-    of it, the height's and speed's residuals, logged less simulated, by phase, and each reading beside the
-    simulation's read by the same reader, the log's keeping its provenance; a committed report gives the 7
-    public flights' residuals, reproducing under `cargo xtask real-flights --check`; tests pin the sign, the
-    barometer's reading and refusals.
   - [ ] **M7.3b The least-squares fit.** *Done when:* Levenberg–Marquardt fits drag scale, impulse scale, a
     constant wind vector and mass within its weighed uncertainty to a log; each parameter's 90% interval
     passes ADR-257 §1's three counts on sets A and B, with its three mutation probes failing; the drag and
