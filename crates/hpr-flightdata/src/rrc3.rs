@@ -118,12 +118,16 @@
 //! up to 1 s late is decided from 50 m up (the module's tests; `tests/rrc3_csv.rs` adds km/h and
 //! ft/s flights 1 and 2 s late, 100 to 300 m up). These filters only look back. A smoothing that
 //! also looks ahead, centered on each sample, starts the velocity above rest at the record's
-//! first row, so the integral misses the start of the climb: over a window of 3 to 5 s, 352 of
-//! 37,893 decided cases of invented flights (0.9%) took the wrong unit, such as km/h for ft/s,
-//! read about 8% low. So the velocity is measured only where its first row is near rest, at most
-//! 1% of the column's own peak; in the same sweep, none is then wrong. The first rows of the
-//! sample files that reach this measure are at rest, and the rule changes none of their units.
-//! Otherwise the column is kept as written,
+//! first row, so the integral misses the start of the climb; on a record cut short it also runs
+//! past the last row. Over a window of 3 to 5 s, about 2 in 100 cases the two measures decide on
+//! the module's sweep of invented flights takes the wrong unit, such as km/h for ft/s. So the
+//! velocity is measured only where its first row is near rest, at most 1% of the column's own
+//! peak, and its integral ends within 1% of the climb from the altitude. That sweep then decides
+//! about a quarter as many, and none wrongly. It doesn't catch every such smoothing: a window that
+//! shrinks to one sample at the first row, or a first row set to zero, still decides a few wrongly
+//! ([#1100](https://github.com/nrdptel/fusionspace-eridanus/issues/1100)). None of the sample
+//! files is known to smooth this way: their 51 records' first rows are at rest, their integrals end
+//! within 0.53%, and these rules change none of the 49 units they decide. Otherwise the column is kept as written,
 //! [`Quantity::Unrecognized`], with a note: also
 //! when the altitude climbs under 50 m, where half a step of the pressure, 0.42 m at sea level,
 //! is 0.8% of the climb and a larger share of the area of a flight that spends its time low; and
@@ -210,6 +214,12 @@ const DELAY_SEARCH_S: (f64, f64, f64) = (-2.0, 4.0, 0.05);
 /// The most the velocity's first row may be, as a fraction of the column's own peak, for it to be
 /// measured: above rest, its integral has missed the start of the climb (module docs).
 const START_SHARE: f64 = 0.01;
+
+/// The most the velocity's running integral may end from the altitude it is fitted to, as a
+/// fraction of the climb, for it to be measured: a velocity that is the altitude's rate closes on
+/// it, and one smoothed across the record's ends doesn't (module docs). The sample files' largest
+/// is 0.53%.
+const CLOSURE_SHARE: f64 = 0.01;
 
 /// The highest the record may end, as a fraction of the climb above the first row, for the
 /// velocity to be measured: it must have come down at least halfway (module docs).
@@ -1073,8 +1083,11 @@ struct Scale {
     /// About the most a filter as spread as the delay can move `by_area`, as a fraction, given
     /// the altitude's rate at the record's end (module docs).
     end_error: f64,
-    /// The first row's velocity, as a fraction of the column's own peak.
+    /// The first row's velocity, as a fraction of the column's own peak; 0 for a column of zeros.
     start_share: f64,
+    /// How far the running integral ends from the altitude `delay_s` earlier, in the fit's unit,
+    /// as a fraction of the climb.
+    closure: f64,
 }
 
 /// The velocity's running integral by trapezoids, zero at the first row.
@@ -1174,7 +1187,12 @@ fn velocity_scale(time_s: &[f64], altitude_m: &[f64], velocity: &[f64]) -> Optio
     let peak = velocity[..rows]
         .iter()
         .fold(0.0, |most: f64, v| most.max(v.abs()));
-    let start_share = velocity.first()?.abs() / peak;
+    let start_share = if peak > 0.0 {
+        velocity.first()?.abs() / peak
+    } else {
+        0.0
+    };
+    let closure = (integral.last()? - by_fit * earlier.last()?).abs() / (by_fit.abs() * climb_m);
     (altitude_area > 0.0 && by_area.is_finite() && by_fit.is_finite()).then_some(Scale {
         by_area,
         by_fit,
@@ -1186,6 +1204,7 @@ fn velocity_scale(time_s: &[f64], altitude_m: &[f64], velocity: &[f64]) -> Optio
             f64::INFINITY
         },
         start_share,
+        closure,
     })
 }
 
@@ -1210,14 +1229,22 @@ struct Track<'a> {
 
 /// The speed unit both measures land nearest, each within [`VELOCITY_MARGIN`], as an index into
 /// [`SPEEDS`]; `None` if they don't, if the record ends too high or still moving for the measure
-/// by the areas to hold, or if the velocity starts above rest (module docs).
+/// by the areas to hold, or if the velocity starts above rest or its integral doesn't close on
+/// the altitude (module docs).
 fn agreed_unit(scale: &Scale) -> Option<usize> {
     if !(scale.end_height <= END_HEIGHT
         && scale.end_error <= END_ERROR
-        && scale.start_share <= START_SHARE)
+        && scale.start_share <= START_SHARE
+        && scale.closure <= CLOSURE_SHARE)
     {
         return None;
     }
+    measures_agree(scale)
+}
+
+/// The speed unit both measures land nearest, each within [`VELOCITY_MARGIN`], whatever the record
+/// is like.
+fn measures_agree(scale: &Scale) -> Option<usize> {
     let (area_unit, area_miss) = *speed_misses(scale.by_area).first()?;
     let (fit_unit, fit_miss) = *speed_misses(scale.by_fit).first()?;
     (area_unit == fit_unit
@@ -1363,14 +1390,21 @@ fn decide_velocity(
                             END_ERROR * 100.0
                         )
                     }
-                    Some((scale, _, _))
-                        if scale.start_share > START_SHARE || scale.start_share.is_nan() =>
-                    {
+                    Some((scale, _, _)) if scale.start_share > START_SHARE => {
                         format!(
-                            "the velocity's first row is {:.0}% of its peak, above the {:.0}% it \
-                             may be at rest. So its integral has missed the start of the climb",
+                            "the velocity's first row is {:.1}% of its peak, above the {:.0}% it \
+                             may be at rest, so its integral may have missed the start of the climb",
                             scale.start_share * 100.0,
                             START_SHARE * 100.0
+                        )
+                    }
+                    Some((scale, _, _)) if scale.closure > CLOSURE_SHARE => {
+                        format!(
+                            "the velocity's running integral ends {:.1}% of the climb from the \
+                             altitude, over the {:.0}% allowed, as a smoothing across the record's \
+                             ends can leave it",
+                            scale.closure * 100.0,
+                            CLOSURE_SHARE * 100.0
                         )
                     }
                     Some((scale, by_area, by_fit)) => {
@@ -1804,6 +1838,21 @@ mod tests {
             .filter(|(row, _)| *row != 1)
             .map(|(_, line)| format!("{line}\n"))
             .collect();
+        // The descent's velocity a fifth too fast: its integral ends a fifth of the climb away.
+        let open_ended: String = full
+            .lines()
+            .map(|line| {
+                let mut cells: Vec<String> = line.split(',').map(str::to_owned).collect();
+                if let Some(rate) = cells.get(3).and_then(|cell| cell.parse::<f64>().ok())
+                    && rate < 0.0
+                {
+                    cells[3] = format!("{:.3}", rate * 1.2);
+                }
+                cells.join(",") + "\n"
+            })
+            .collect();
+        // A column of zeros is at rest throughout: no first row above rest to blame.
+        let at_rest = flight(300.0, 60.0, FOOT_M, 0.0, 0);
         let cases = [
             (
                 flight(300.0, 60.0, FOOT_M, 3.0, 0),
@@ -1816,6 +1865,8 @@ mod tests {
             (flight(8.0, 4.0, FOOT_M, 1.0 / FOOT_M, 0), "only assumed"),
             (cut, "of the way up the climb. That is above the 50%"),
             (above_rest, "above the 1% it may be at rest"),
+            (open_ended, "over the 1% allowed"),
+            (at_rest, "the record ends with the altitude still moving"),
         ];
         for (text, why) in cases {
             let log = read(&text).unwrap();
@@ -2242,10 +2293,12 @@ mod tests {
         assert!(decided * 10 > cases, "{decided} of {cases}");
     }
 
-    /// A smoothing that looks ahead, centered on each sample, across flights short and long, on
-    /// pads short and long, at each tenth of the record from 30%: never the wrong unit (#514).
+    /// A smoothing that looks ahead, centered on each sample, on this grid of flights short and
+    /// long, pads short and long, at each tenth of the record from 30%: the two rules leave no wrong
+    /// unit, where the measures alone take about 2 in 100 wrongly (#514). Other window shapes still
+    /// decide a few wrongly (#1100).
     #[test]
-    fn a_velocity_smoothed_around_each_sample_is_never_decided_wrong() {
+    fn a_velocity_smoothed_around_each_sample_keeps_its_unit_on_this_grid() {
         let atmosphere = Ussa76::standard();
         let height_of = |hpa: f64| {
             atmosphere
@@ -2253,8 +2306,9 @@ mod tests {
                 .unwrap_or(f64::NAN)
         };
         let pad_m = height_of((pressure_hpa(0.0) * 10.0).round() / 10.0);
-        let (mut decided, mut cases) = (0, 0);
-        for pad_s in [0.05, 0.25, 0.5, 1.0, 2.0] {
+        // Cases the rules decide, those the measures alone decide and those of them wrong.
+        let (mut decided, mut alone, mut alone_wrong) = (0_u32, 0_u32, 0_u32);
+        for pad_s in [0.05, 0.25, 0.5, 1.0, 2.0, 2.3, 2.85, 4.0] {
             for (boost, coast) in [(30.0, 8.0), (80.0, 12.0), (200.0, 25.0), (30.0, 25.0)] {
                 for top_m in [20.0, 50.0, 100.0, 300.0, 1_000.0, 2_000.0] {
                     for descent_m_s in [10.0, 25.0, 40.0] {
@@ -2290,7 +2344,10 @@ mod tests {
                                     ) else {
                                         continue;
                                     };
-                                    cases += 1;
+                                    if let Some(index) = measures_agree(&scale) {
+                                        alone += 1;
+                                        alone_wrong += u32::from(index != unit);
+                                    }
                                     if let Some(index) = agreed_unit(&scale) {
                                         decided += 1;
                                         assert_eq!(
@@ -2307,8 +2364,17 @@ mod tests {
                 }
             }
         }
-        // Not by deciding nothing: a long flight is still measured.
-        assert!(decided * 50 > cases, "{decided} of {cases}");
+        eprintln!("the measures alone: {alone_wrong} wrong of {alone}; the rules: {decided}");
+        // The module docs' "about 2 in 100".
+        assert!(
+            alone_wrong * 100 > alone && alone_wrong * 33 < alone,
+            "{alone_wrong} of {alone}"
+        );
+        // Not by deciding nothing: the module docs' "about a quarter as many".
+        assert!(
+            decided * 6 > alone && decided * 3 < alone,
+            "{decided} of {alone}"
+        );
     }
 
     /// The two measures of the velocity's unit, on a flight whose velocity runs 1.5 s behind

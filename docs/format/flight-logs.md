@@ -1947,9 +1947,11 @@ decisions over the sample logs:
   meters, 3.28 times apart. The unit within 25% of the pressure's climb is taken. The speed is set
   against the altitude's rate of climb, allowing for the speed to lag behind it. Of feet per
   second, miles per hour, meters per second and kilometers per hour, the one two measures agree on
-  within 3% is taken. Where they don't, the record stops before the rocket is halfway down, or
-  the speed's first row is above rest, as a speed smoothed around each sample can be, the column is
-  kept as written, with a note. Every sample record the measure reached starts at rest. The time is in seconds where its step is the RRC3's 20
+  within 3% is taken. The column is kept as written, with a note, where they don't agree, the
+  climb is under 50 m, or the record ends before the rocket is halfway down or while it is moving.
+  The same goes where the speed's first row is over 1% of its peak, or its running total ends over
+  1% of the climb from the altitude: a filter that averages ahead of each sample, not only behind it,
+  can do that. These last two rules change no sample's unit. The time is in seconds where its step is the RRC3's 20
   samples a second. Of the 51 RRC3 exports among the sample logs, 47 are read in feet from the
   pressure and 4 state feet. Of the speeds, 36 are in feet per second and 9 in miles per hour.
   Another 4 state feet per second. The remaining 2, whose records stop early, keep their speeds as
