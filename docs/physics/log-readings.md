@@ -172,9 +172,10 @@ taken before the rocket moved. Three rules do it, each with a number set from th
 2. **The climb** begins at the first filtered sample twice the allowance and a step above where
    the log starts. That is 4.61 m (15.1 ft) on a PerfectFlite, whose step is a foot. The pad's
    noise lifts the filtered track by at most the allowance, from below at the start or from above
-   at the climb. So twice that is out of its reach. Where the filtered track falls by more than that within a window of the log's first sample, those
-   first samples are bad, as no rocket falls and then climbs, and the log starts at the window's
-   lowest.
+   at the climb. So twice that is out of its reach.
+   Where the filtered track falls by more than this rise within a window of the log's first sample,
+   those first samples are bad, as no rocket falls and then climbs, and the log starts at the
+   window's lowest.
 3. **The pad** is the median of the samples up to the last one within half that rise of the start,
    before the climb. Half the rise is 2.30 m (7.6 ft) on a PerfectFlite. The median means that no
    one sample's jitter sets the pad, and the half rise means the climb lends it few samples.

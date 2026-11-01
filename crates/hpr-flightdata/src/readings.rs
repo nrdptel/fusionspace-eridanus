@@ -21,9 +21,9 @@
 //!
 //! - the **climb** is the first filtered sample twice [`LIFTOFF_ALLOWANCE_M`] and the track's step
 //!   above where the log starts: the allowance is the most the pad's noise lifts the filtered
-//!   track, from below at the start or from above at the climb. Where the filtered track falls more
-//!   than that within a window of the log's first sample, the first samples are bad, and the log
-//!   starts for the readings at the window's lowest;
+//!   track, from below at the start or from above at the climb. Where the filtered track falls by
+//!   more than this rise within a window of the log's first sample, the first samples are bad, and
+//!   the log starts for the readings at the window's lowest;
 //! - the **pad** is the median of the samples to the last within half that of the start before
 //!   the climb. A rocket that leaves the pad at [`LIFTOFF_ACCELERATION_M_S2`] or more, moving at
 //!   `v` when the log starts, climbs `v t + A t²/2` while the track stays near its start, so its
@@ -1186,7 +1186,7 @@ fn heights(log: &FlightLog) -> Readings {
         })
         .filter(|(_, low)| *low < start - rise)
         .map_or(0, |(index, _)| index);
-    let start = filtered[head];
+    let start = if head > 0 { filtered[head] } else { start };
     let Some(climb) = filtered[head..=apogee_index.max(head)]
         .iter()
         .position(|h| *h >= start + rise)
@@ -1288,7 +1288,7 @@ fn heights(log: &FlightLog) -> Readings {
     let pad_samples = if short_pad {
         &[][..]
     } else {
-        &filtered[..on_pad]
+        &filtered[head..on_pad]
     };
     let reach = pad_samples
         .iter()
