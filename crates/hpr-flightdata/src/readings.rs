@@ -21,10 +21,9 @@
 //!
 //! - the **climb** is the first filtered sample twice [`LIFTOFF_ALLOWANCE_M`] and the track's step
 //!   above where the log starts: the allowance is the most the pad's noise lifts the filtered
-//!   track, from below at the start or from above at the climb. Where the filtered track falls by
-//!   more than that rise in the first half of a window from the log's first sample and goes no
-//!   further in the rest, the first samples are bad, and the log starts for the readings at that
-//!   lowest;
+//!   track, from below at the start or from above at the climb. One or two of the log's first three
+//!   samples that stand more than that rise apart from the samples after them are bad, unless the
+//!   track holds their level again before a top well above it, and the readings leave them out;
 //! - the **pad** is the median of the samples to the last within half that of the start before
 //!   the climb. A rocket that leaves the pad at [`LIFTOFF_ACCELERATION_M_S2`] or more, moving at
 //!   `v` when the log starts, climbs `v t + A t²/2` while the track stays near its start, so its
@@ -1147,7 +1146,6 @@ fn heights(log: &FlightLog) -> Readings {
         return readings;
     }
     let step = track.step_m;
-    let filtered = running_median(&track.height_m, half);
     let bound = peak_bound_m(half, interval);
     #[expect(
         clippy::cast_precision_loss,
@@ -1163,18 +1161,24 @@ fn heights(log: &FlightLog) -> Readings {
     // The climb: where the filtered track first rises `rise` above where the log starts, twice
     // the pad's allowance and step, which the pad's noise doesn't reach (the allowance is the
     // most it lifts the filtered pad), from below at the start or from above at the climb.
-    let start = filtered
+    let rise = 2.0 * (LIFTOFF_ALLOWANCE_M + step);
+    // The log starts for the readings after any bad first samples, or they would take them for
+    // the pad.
+    let kept = without_bad_start(&track.height_m, half, interval, rise);
+    let heights = kept.as_deref().unwrap_or(&track.height_m);
+    let head = kept
+        .as_ref()
+        .map_or(0, |kept| kept.iter().take_while(|h| h.is_nan()).count());
+    let filtered = running_median(heights, half);
+    let start = filtered[head..]
         .iter()
         .copied()
         .find(|h| h.is_finite())
         .unwrap_or(f64::NAN);
-    let rise = 2.0 * (LIFTOFF_ALLOWANCE_M + step);
-    let Some(apogee_index) = arg_max(&filtered) else {
+    let Some(apogee_index) = arg_max(&filtered[head..]).map(|index| index + head) else {
         return no_climb(readings, rise);
     };
-    let head = bad_start_ends(&filtered[..filtered.len().min(2 * half + 1)], start, rise);
-    let start = if head > 0 { filtered[head] } else { start };
-    let Some(climb) = filtered[head..=apogee_index.max(head)]
+    let Some(climb) = filtered[head..=apogee_index]
         .iter()
         .position(|h| *h >= start + rise)
         .map(|index| index + head)
@@ -1205,13 +1209,13 @@ fn heights(log: &FlightLog) -> Readings {
     // With no pad, the log's first sample stands for it: the zero a logger that records from
     // launch writes first, or the climb's first height in one that writes none.
     let measured_pad = if short_pad {
-        track.height_m[head..]
+        heights
             .iter()
             .copied()
             .find(|h| h.is_finite())
             .unwrap_or(start)
     } else {
-        let mut before: Vec<f64> = track.height_m[head..on_pad]
+        let mut before: Vec<f64> = heights[head..on_pad]
             .iter()
             .copied()
             .filter(|h| h.is_finite())
@@ -1440,7 +1444,7 @@ fn heights(log: &FlightLog) -> Readings {
         readings.landing = Reading::withheld(Reason::DisturbedTop, detail);
         return readings;
     }
-    let highest = arg_max(&track.height_m).unwrap_or(apogee_index);
+    let highest = arg_max(heights).unwrap_or(apogee_index);
     let top_step = track.step_at(top);
     let height_bound = (TEMPERATURE_SHARE + BAROMETER_GAIN) * height.abs()
         + NOISE_M
@@ -1467,7 +1471,7 @@ fn heights(log: &FlightLog) -> Readings {
         is_floor,
         highest_sample: Sample {
             time_s: time[highest],
-            altitude_m: track.height_m[highest],
+            altitude_m: heights[highest],
         },
         source: track.source,
         provenance: Provenance::Measured,
@@ -1905,37 +1909,56 @@ fn max_speed(
     })
 }
 
-/// Where a log's bad first samples end, within the `window` of filtered heights from its first
-/// sample, or 0 if it starts well (#1076). The filtered track stands more than `rise` above its
-/// lowest in the window's first half, and goes no further than `rise` below that in the rest: a
-/// median lets a few bad samples through only at the log's very start, and a rocket doesn't fall
-/// from the log's first samples and stop that soon. A fall still going later in the window is the
-/// pad's: sample logs and Juno III's (8.5 m) read a fall of many meters over about a second before
-/// the climb, a pressure pulse on the pad at ignition by its look, their first samples good (#1101).
-fn bad_start_ends(window: &[f64], start: f64, rise: f64) -> usize {
-    let lowest = |heights: &[f64]| {
-        heights
-            .iter()
-            .enumerate()
-            .filter(|(_, h)| h.is_finite())
-            .fold(
-                None,
-                |least: Option<(usize, f64)>, (index, h)| match least {
-                    Some((_, low)) if low <= *h => least,
-                    _ => Some((index, *h)),
-                },
-            )
-    };
-    let middle = window.len() / 2;
-    let (early, late) = window.split_at((middle + 1).min(window.len()));
-    match lowest(early) {
-        Some((index, low))
-            if low < start - rise && lowest(late).is_none_or(|(_, h)| h >= low - rise) =>
-        {
-            index
-        }
-        _ => 0,
+/// How many of a log's first samples are looked at for being bad.
+const FIRST_SAMPLES: usize = 3;
+
+/// The log's heights with its bad first samples taken out, or `None` if it starts well (#1076).
+/// One of the first three is bad if it stands more than `rise` above the lowest of the samples
+/// after them, or as far below them where they hold level, as they don't on a climb. Those samples
+/// span the median's window, and at least five, so that the slowest logs' short window sees past
+/// two bad samples. All three standing apart is a fall of the track's own: sample logs and Juno
+/// III's (8.5 m) read one over about a second before the climb, a pressure pulse on the pad at
+/// ignition by its look (#1101). And a level the filtered track holds again for that span, before
+/// a top further above it than a coast through it reaches, is the pad, the low stretch after it the
+/// disturbance: a rocket passes through a level on the climb and doesn't stay. Slowing under
+/// gravity alone it stays that long only within `v²/(2 g)` of its top, `v` the speed that crosses
+/// the band in that span; drag makes the distance shorter.
+fn without_bad_start(heights: &[f64], half: usize, interval_s: f64, rise: f64) -> Option<Vec<f64>> {
+    let span = (2 * half + 1).max(5);
+    let after = heights
+        .get(FIRST_SAMPLES..FIRST_SAMPLES + span)?
+        .iter()
+        .copied()
+        .filter(|h| h.is_finite());
+    let lowest = after.clone().fold(f64::INFINITY, f64::min);
+    let highest = after.fold(f64::NEG_INFINITY, f64::max);
+    let stands_apart =
+        |h: f64| h > lowest + rise || (h < lowest - rise && highest - lowest <= rise);
+    let bad: Vec<usize> = (0..FIRST_SAMPLES)
+        .filter(|k| stands_apart(heights[*k]))
+        .collect();
+    let first = *bad.first()?;
+    if bad.len() == FIRST_SAMPLES {
+        return None;
     }
+    let mut kept = heights.to_vec();
+    for &k in &bad {
+        kept[k] = f64::NAN;
+    }
+    let filtered = running_median(&kept, half);
+    let top = arg_max(&filtered)?;
+    let level = heights[first];
+    let held = filtered[..top]
+        .iter()
+        .filter(|h| (*h - level).abs() <= rise)
+        .count();
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "a span of samples is far below 2^53"
+    )]
+    let crossing_m_s = 2.0 * rise / (span as f64 * interval_s);
+    let coast_m = crossing_m_s * crossing_m_s / (2.0 * STANDARD_GRAVITY_MPS2);
+    (held < span || filtered[top] <= level + rise + coast_m).then_some(kept)
 }
 
 /// Apogee, as landing needs it.
@@ -2118,43 +2141,95 @@ mod tests {
         }
     }
 
-    /// Bad first samples are done with in the window's first half; a fall that goes on is the
-    /// pad's, however large (#1076).
+    /// One or two bad samples among the first three; three apart is a fall of the track's own; a
+    /// level held again is the pad (#1076).
     #[test]
     fn bad_first_samples_are_told_from_a_fall_on_the_pad() {
         let rise = 5.0;
-        // A bad start, then the climb, or then a flat pad.
-        assert_eq!(
-            bad_start_ends(&[46.0, 46.0, 3.0, 1.0, 4.0, 9.0, 20.0], 46.0, rise),
-            3
-        );
-        assert_eq!(
-            bad_start_ends(&[46.0, 1.0, 0.0, 0.5, 0.5, 0.2, 0.0], 46.0, rise),
-            2
-        );
-        // Juno III's first rows, filtered: the fall comes in the window's second half.
-        assert_eq!(
-            bad_start_ends(&[0.0, 0.0, -1.0, -1.0, -2.8, -7.6, -7.6], 0.0, rise),
-            0
-        );
-        // A far larger fall, as some sample logs start: past the rise in the first half, and it
-        // goes on.
-        assert_eq!(
-            bad_start_ends(
-                &[0.0, -28.0, -30.0, -44.0, -92.0, -193.0, -348.0],
-                0.0,
-                rise
-            ),
-            0
-        );
-        // The pad's noise, under the rise, on a clean start.
-        assert_eq!(
-            bad_start_ends(&[1.0, 0.5, -1.0, 0.0, 1.0, 0.5, 0.0], 1.0, rise),
-            0
-        );
-        // At the rise exactly: not past it.
-        assert_eq!(bad_start_ends(&[5.0, 0.0, 1.0], 5.0, rise), 0);
-        assert_eq!(bad_start_ends(&[], f64::NAN, rise), 0);
+        let out = |heights: &[f64], half: usize| -> Vec<usize> {
+            without_bad_start(heights, half, 0.05, rise).map_or(Vec::new(), |kept| {
+                (0..kept.len()).filter(|k| kept[*k].is_nan()).collect()
+            })
+        };
+        let climbing =
+            |from: f64| -> Vec<f64> { (0..40).map(|k| from + 9.0 * f64::from(k)).collect() };
+        let pad_then_climb = || -> Vec<f64> {
+            let mut heights = vec![0.0; 20];
+            heights.extend(climbing(0.0));
+            heights
+        };
+        // A clean climb, and noise on a flat pad.
+        assert_eq!(out(&climbing(0.0), 3), [0_usize; 0]);
+        let noise: Vec<f64> = (0..40)
+            .map(|k| f64::from(k % 3))
+            .chain(climbing(0.0))
+            .collect();
+        assert_eq!(out(&noise, 3), [0_usize; 0]);
+        // Bad samples first, one or two of the three, high on a climb or on a pad, at both ends of
+        // the median's reach.
+        for half in [1, 3] {
+            for bad in [&[0_usize][..], &[1], &[2], &[0, 1], &[1, 2]] {
+                let mut high = climbing(0.0);
+                let mut up = pad_then_climb();
+                for &k in bad {
+                    high[k] += 1_000.0;
+                    up[k] += 1_000.0;
+                }
+                assert_eq!(out(&high, half), bad, "high {half}");
+                assert_eq!(out(&up, half), bad, "up {half}");
+            }
+            // Low on a pad, any one or two of the three.
+            for bad in [&[0_usize][..], &[1], &[2], &[0, 1], &[1, 2]] {
+                let mut low = pad_then_climb();
+                for &k in bad {
+                    low[k] -= 1_000.0;
+                }
+                assert_eq!(out(&low, half), bad, "low {half}");
+            }
+        }
+        // Three: the track's own.
+        let mut heights = climbing(0.0);
+        for sample in &mut heights[..3] {
+            *sample += 1_000.0;
+        }
+        assert_eq!(out(&heights, 3), [0_usize; 0]);
+        // Juno III's first rows, then the climb, with no bad sample among them; a far larger fall.
+        for first in [
+            &[0.0, 0.0, 0.0, -0.9, -2.8, -7.6, -8.5, -8.5, -7.6, -2.8, 0.0][..],
+            &[
+                0.0, 0.0, 0.0, -28.0, -30.0, -44.0, -92.0, -193.0, -348.0, -500.0, -900.0,
+            ],
+        ] {
+            let mut heights = first.to_vec();
+            heights.extend(climbing(2.0));
+            assert_eq!(out(&heights, 3), [0_usize; 0], "{first:?}");
+        }
+        // Good samples, a low stretch, and the pad held again: nothing taken out, though two of
+        // them stand above it.
+        let mut held: Vec<f64> = vec![0.0, 0.0];
+        held.extend(vec![-1_000.0; 8]);
+        held.extend(vec![0.0; 40]);
+        held.extend(climbing(0.0));
+        assert_eq!(out(&held, 3), [0_usize; 0]);
+        // A rise from a low start on a climb isn't told from the climb, and at the rise exactly
+        // nothing stands apart. Too short a log to tell.
+        let mut low_start = climbing(0.0);
+        low_start[0] -= 1_000.0;
+        assert_eq!(out(&low_start, 3), [0_usize; 0]);
+        let mut at_rise = pad_then_climb();
+        at_rise[0] = rise;
+        assert_eq!(out(&at_rise, 3), [0_usize; 0]);
+        assert_eq!(out(&[1_000.0, 0.0, 1.0], 3), [0_usize; 0]);
+        // A bad level the track reaches only near its top is no pad: the arc lingers there.
+        let arc: Vec<f64> = (0..200)
+            .map(|k| 500.0 - 0.5 * STANDARD_GRAVITY_MPS2 * (0.05 * (f64::from(k) - 100.0)).powi(2))
+            .collect();
+        let mut near_top = arc.clone();
+        near_top[0] = 498.0;
+        near_top[1] = 498.0;
+        assert_eq!(out(&near_top, 3), [0, 1]);
+        // Nothing at all after the first samples.
+        assert_eq!(out(&[f64::NAN; 40], 3), [0_usize; 0]);
     }
 
     /// A log cut on the climb holds neither the rocket's top height nor, for all it knows, its top

@@ -3287,6 +3287,74 @@ mod tests {
         }
     }
 
+    /// `log`, every `every`th sample of it.
+    fn thinned(log: &FlightLog, every: usize) -> FlightLog {
+        let mut thin = log.clone();
+        thin.time_s = log.time_s.iter().copied().step_by(every).collect();
+        thin.altitude_m = log.altitude_m.iter().copied().step_by(every).collect();
+        thin
+    }
+
+    /// Two bad samples at the start, on a log from launch or one that holds its pad, at 20, 10, 5
+    /// and 2.5 samples a second: the apogee reading holds its bound of the truth, where the slower
+    /// rates' short median used to let them through (#1076).
+    #[test]
+    fn bad_first_samples_move_no_reading_at_any_rate() {
+        let truth_m = (0..2_000)
+            .map(|i| truth(f64::from(i) * 0.05).0)
+            .fold(0.0, f64::max);
+        for every in [1, 2, 4, 8] {
+            for start in [log(), from_launch(log())] {
+                let clean = thinned(&start, every);
+                // The last two sit where the arc lingers near its top.
+                for error in [100.0, 300.0, 1000.0, truth_m - 20.0, truth_m] {
+                    for at in [vec![0, 1], vec![1, 2]] {
+                        let mut bad = clean.clone();
+                        for &k in &at {
+                            bad.altitude_m[k] += error;
+                        }
+                        let read = readings::read(&bad);
+                        let apogee = read.apogee.value().unwrap_or_else(|| {
+                            panic!("every {every}, {at:?} {error}: {:?}", read.apogee)
+                        });
+                        assert!(
+                            (apogee.height_m - truth_m).abs() <= apogee.bound_m,
+                            "every {every}, {at:?} {error}: {} within {} of {truth_m}",
+                            apogee.height_m,
+                            apogee.bound_m
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    /// Good first samples, a low stretch far below them, then seconds on the pad, at 20 and 10
+    /// samples a second: the pad's reach takes in the stretch, so the apogee is withheld, not read
+    /// from it. A small stretch leaves the reading as on the clean log (#1076, #1101).
+    #[test]
+    fn a_low_stretch_that_returns_to_the_pad_reads_no_wrong_height() {
+        for (every, low) in [(1, 3..15), (2, 2..10)] {
+            let clean = thinned(&log(), every);
+            let clean_height = readings::read(&clean).apogee.value().unwrap().height_m;
+            let with_low = |depth_m: f64| {
+                let mut bad = clean.clone();
+                for k in low.clone() {
+                    bad.altitude_m[k] -= depth_m;
+                }
+                readings::read(&bad).apogee
+            };
+            assert!(
+                matches!(with_low(1_000.0), readings::Reading::Withheld(w) if w.reason == readings::Reason::NoClimb)
+            );
+            let height = with_low(30.0).value().unwrap().height_m;
+            assert!(
+                (height - clean_height).abs() < 5.0,
+                "{height} against {clean_height}"
+            );
+        }
+    }
+
     /// A burst of samples close together costs each of them no walk over the burst: a walk for each
     /// ran for minutes on a burst of 900,000 (ADR-308). The clock times this test alone, and nothing
     /// it reads reaches a result.

@@ -112,7 +112,8 @@ assumes it:
   choices: 100 m (328 ft), 100 m/s (328 ft/s) and about 30 g. Priors that wide would take a bad sample as
   the truth. So for the first second, or the first ten samples if that is longer, each sample fused
   is the median of the five about it, and the first two aren't weighed. Two bad samples together
-  don't move the readings' zero: the readings set aside a log's start that falls and then climbs.
+  don't move the readings' zero: the readings set them aside
+  ([the climb](log-readings.md#each-reading)).
 - **The accelerometer is set aside** if it has too little of the pad to take its level from.
 
 To test this, each synthetic flight's log is cut at liftoff and smoothed again. That keeps the
