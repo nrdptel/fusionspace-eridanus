@@ -42,7 +42,7 @@ Each log gives one track, a list of moments, each with these numbers.
 
 Why the log's altitude and not [the smoother's](../physics/smoother.md): on a barometer alone the
 smoother can run far from the log through a sudden swing. On RocketPy's Lince flight, as its
-recovery fires, it runs to 10,205 m, 6,618 m past the reading
+recovery fires, it runs to 10,205 m (33,481 ft), 6,618 m (21,713 ft) past the reading
 ([#1073](https://github.com/nrdptel/fusionspace-eridanus/issues/1073)). `hpr analyze`'s health card
 says to go by the reading there, and a file for a viewer has no card. So a barometer's smaller
 spikes stay in the height, and a receiver's lag on the climb stays in east and north.
@@ -66,12 +66,12 @@ these holds:
 
 - it is empty, out of range, or within 0.01° of 0°N 0°E, which is a receiver's way of saying no fix;
 - its clock didn't go forward;
-- it lies more than 200 km from the track's median, as a longitude with its sign flipped does;
-- reaching it from the last fix kept would take over 1,500 m/s, plus 200 m for a receiver's scatter.
-  The envelope's top speed, Mach 3.5, is about 1,190 m/s at sea level.
+- it lies more than 200 km (124 mi) from the track's median, as a longitude with its sign flipped does;
+- reaching it from the last fix kept would take over 1,500 m/s (4,921 ft/s), plus 200 m (656 ft) for a receiver's scatter.
+  The envelope's top speed, Mach 3.5, is about 1,190 m/s (3,904 ft/s) at sea level.
 
-A height goes on the same speed, plus 50 m. That catches a logger's garbage rows, such as the last
-two of Juno III's altimeter file, at 10,700 m and −2,490 m. It also took 57 of the 44,454 rows of
+A height goes on the same speed, plus 50 m (164 ft). That catches a logger's garbage rows, such as the last
+two of Juno III's altimeter file, at 10,700 m (35,105 ft) and −2,490 m (−8,169 ft). It also took 57 of the 44,454 rows of
 Lince's height, in the swing as its recovery fires.
 
 ## The three formats
@@ -83,7 +83,7 @@ CZML is [Cesium's scene format](https://github.com/AnalyticalGraphicsInc/czml-wr
 Each track is an entity with an Earth-fixed position, a point and a path.
 
 glTF is [Khronos's 3D scene format](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html), one
-file with its numbers inside. Each track is a line along its whole path, with a marker 10 m across
+file with its numbers inside. Each track is a line along its whole path, with a marker 10 m (33 ft) across
 moving along it. In meters, +x is east, +y is up and −z is north.
 
 These last two have no `null`, and a drawing needs a number at every moment. So they draw something
@@ -101,10 +101,10 @@ Each also has a limit of its own:
   on its clock is seconds from liftoff, not the day of the flight.
 - glTF's times can't be negative, so its clock starts at the earliest moment. The file's
   `extras.first_moment_from_liftoff_s` says which that was.
-- glTF stores 32-bit numbers, which stand about 0.06 ms apart at 1,000 s and 2 mm apart at 30 km. Two
+- glTF stores 32-bit numbers, which stand about 0.06 ms apart at 1,000 s and 2 mm (0.079 in) apart at 30 km (19 mi). Two
   moments it can't tell apart become one.
 - East, north and up are on the flat plane at the pad, which rises off the curved ground as you go.
-  So a height is drawn about 31 m too high at 20 km downrange.
+  So a height is drawn about 31 m (102 ft) too high at 20 km (12 mi) downrange.
 
 ## A worked example
 
@@ -115,10 +115,10 @@ hpr analyze 5115-TeleMetrum.csv 6583-TeleMega.csv --ghost prometheus.json
 ```
 
 The TeleMetrum's liftoff, at 0.23 s on its clock, is 0 in the file. It holds 5,710 moments. Its height
-peaks at 3,904 m, the apogee RocketPy's notebook states from the same column. It kept 5,712 of its
+peaks at 3,904 m (12,808 ft), the apogee RocketPy's notebook states from the same column. It kept 5,712 of its
 7,081 fixes: the other 1,369 rows repeat the time of the row before them. The fixes put the rocket at
-most 1,170 m from the pad, and the fixes before liftoff put the pad at 1,390 m above sea level. The
-TeleMega's track sits on the same clock and in the same frame, and peaks at 3,898 m.
+most 1,170 m (3,839 ft) from the pad, and the fixes before liftoff put the pad at 1,390 m (4,560 ft) above sea level. The
+TeleMega's track sits on the same clock and in the same frame, and peaks at 3,898 m (12,789 ft).
 
 ## How it's checked
 
@@ -127,9 +127,9 @@ project didn't write. CI runs the same on an invented flight, as `refs/` isn't t
 
 - Ajv holds the JSON to the schema.
 - Cesium's own `CzmlDataSource` loads the CZML. Cesium's own transform takes each position to the
-  pad's frame, where it comes within 1 cm of the JSON's. A long track is checked at about 2,000
+  pad's frame, where it comes within 1 cm (0.39 in) of the JSON's. A long track is checked at about 2,000
   moments, a shorter one at each.
-- Khronos's glTF-Validator finds no error in the glTF. glTF-Transform's animation comes within 1 cm
+- Khronos's glTF-Validator finds no error in the glTF. glTF-Transform's animation comes within 1 cm (0.39 in)
   and 1 ms of the JSON's at every moment.
 
 So the formats agree with each other. What ties them to the log is pinned apart from that:
@@ -139,7 +139,7 @@ So the formats agree with each other. What ties them to the log is pinned apart 
   is the widest. A foot read as a meter would miss by a factor of 3.28. The two with only a
   receiver's altitude, on Juno III, peak 4.9% and 5.8% over its altimeter's card.
 - East and north match the ellipsoid's radii of curvature, by a route that doesn't use the rotation
-  under test, to 5 mm.
+  under test, to 5 mm (0.20 in).
 - The bytes of a small CZML and glTF file are worked out by hand from each format's spec.
 
 ## What it leaves out
