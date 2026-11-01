@@ -22,9 +22,9 @@
 //! - the **climb** is the first filtered sample twice [`LIFTOFF_ALLOWANCE_M`] and the track's step
 //!   above where the log starts: the allowance is the most the pad's noise lifts the filtered
 //!   track, from below at the start or from above at the climb. Where the filtered track falls by
-//!   more than that rise within a window of the log's first sample and is already rising again by
-//!   the window's end, the first samples are bad, and the log starts for the readings at the
-//!   window's lowest;
+//!   more than that rise in the first half of a window from the log's first sample and goes no
+//!   further in the rest, the first samples are bad, and the log starts for the readings at that
+//!   lowest;
 //! - the **pad** is the median of the samples to the last within half that of the start before
 //!   the climb. A rocket that leaves the pad at [`LIFTOFF_ACCELERATION_M_S2`] or more, moving at
 //!   `v` when the log starts, climbs `v t + A t²/2` while the track stays near its start, so its
@@ -1906,25 +1906,32 @@ fn max_speed(
 }
 
 /// Where a log's bad first samples end, within the `window` of filtered heights from its first
-/// sample, or 0 if it starts well (#1076). They stand more than `rise` above the window's lowest
-/// height, with the track already rising again by the window's end: a rocket doesn't fall from the
-/// log's first samples and climb again that soon. A fall still going at the window's end is the
+/// sample, or 0 if it starts well (#1076). The filtered track stands more than `rise` above its
+/// lowest in the window's first half, and goes no further than `rise` below that in the rest: a
+/// median lets a few bad samples through only at the log's very start, and a rocket doesn't fall
+/// from the log's first samples and stop that soon. A fall still going later in the window is the
 /// pad's: sample logs and Juno III's (8.5 m) read a fall of many meters over about a second before
 /// the climb, a pressure pulse on the pad at ignition by its look, their first samples good (#1101).
 fn bad_start_ends(window: &[f64], start: f64, rise: f64) -> usize {
-    let lowest = window
-        .iter()
-        .enumerate()
-        .filter(|(_, h)| h.is_finite())
-        .fold(
-            None,
-            |least: Option<(usize, f64)>, (index, h)| match least {
-                Some((_, low)) if low <= *h => least,
-                _ => Some((index, *h)),
-            },
-        );
-    match lowest {
-        Some((index, low)) if low < start - rise && window.last().is_some_and(|end| *end > low) => {
+    let lowest = |heights: &[f64]| {
+        heights
+            .iter()
+            .enumerate()
+            .filter(|(_, h)| h.is_finite())
+            .fold(
+                None,
+                |least: Option<(usize, f64)>, (index, h)| match least {
+                    Some((_, low)) if low <= *h => least,
+                    _ => Some((index, *h)),
+                },
+            )
+    };
+    let middle = window.len() / 2;
+    let (early, late) = window.split_at((middle + 1).min(window.len()));
+    match lowest(early) {
+        Some((index, low))
+            if low < start - rise && lowest(late).is_none_or(|(_, h)| h >= low - rise) =>
+        {
             index
         }
         _ => 0,
@@ -2111,22 +2118,27 @@ mod tests {
         }
     }
 
-    /// Bad first samples end where the track has turned up inside the window; a fall still going
-    /// at its end is the pad's, however large (#1076).
+    /// Bad first samples are done with in the window's first half; a fall that goes on is the
+    /// pad's, however large (#1076).
     #[test]
     fn bad_first_samples_are_told_from_a_fall_on_the_pad() {
         let rise = 5.0;
-        // Two bad samples' medians, then the climb.
+        // A bad start, then the climb, or then a flat pad.
         assert_eq!(
             bad_start_ends(&[46.0, 46.0, 3.0, 1.0, 4.0, 9.0, 20.0], 46.0, rise),
             3
         );
-        // Juno III's first rows, filtered: the fall runs to the window's end, its lowest on two.
+        assert_eq!(
+            bad_start_ends(&[46.0, 1.0, 0.0, 0.5, 0.5, 0.2, 0.0], 46.0, rise),
+            2
+        );
+        // Juno III's first rows, filtered: the fall comes in the window's second half.
         assert_eq!(
             bad_start_ends(&[0.0, 0.0, -1.0, -1.0, -2.8, -7.6, -7.6], 0.0, rise),
             0
         );
-        // A far larger fall, as some sample logs start, the same.
+        // A far larger fall, as some sample logs start: past the rise in the first half, and it
+        // goes on.
         assert_eq!(
             bad_start_ends(
                 &[0.0, -28.0, -30.0, -44.0, -92.0, -193.0, -348.0],
