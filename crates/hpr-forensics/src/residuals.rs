@@ -616,7 +616,8 @@ impl Window {
         let mut past_simulation = 0;
         for (t, logged, logged_sd) in samples {
             let after = t - self.liftoff_s;
-            if after < 0.0 || after > self.end_s || !logged.is_finite() {
+            // Written so that a time that isn't a number falls outside too.
+            if !(0.0..=self.end_s).contains(&after) || !logged.is_finite() {
                 continue;
             }
             let Some(moment) = simulated.at(simulated_liftoff_s + after) else {
