@@ -91,8 +91,8 @@ Lince's height, in the swing as its recovery fires.
 Three more go, each counted:
 
 - A height over 500 m (1,640 ft) under the pad. A receiver with no lock can write a height near sea
-  level: one of Juno III's files does that for 3,400 rows, 1.4 km (0.87 mi) under its pad, close enough
-  in time for the speed test to pass.
+  level. One of Juno III's files does that for 3,400 rows, 1.4 km (0.87 mi) under its pad. They come
+  close enough in time to pass the speed test.
 - A moment with no height, or a height of exactly 0 from a receiver, in a track that has heights. Each
   track has a height at every moment or at none, and a viewer's line crosses the gap.
 - A clock past 317 years, or over 116 days from the log's opening.
@@ -155,17 +155,17 @@ readers this project didn't write. CI runs the same on two invented flights, as 
 
 - Ajv, a JSON Schema checker, holds the JSON to the schema.
 - Cesium's own `CzmlDataSource` loads the CZML. Cesium's own transform takes each position to the
-  pad's frame, where it comes within 1 cm (0.39 in) of the JSON's at every moment, and the file's count of
+  pad's frame, where it comes within 1 cm (0.39 in) of the JSON's at every moment. The file's count of
   them matches.
 - Khronos's glTF-Validator finds no error in the glTF. glTF-Transform's animation comes within 1 cm (0.39 in)
-  and 1 ms of the JSON's at every moment, none missing, and its path's line holds the same places.
+  and 1 ms of the JSON's at every moment, none missing. Its path's line holds the same places.
 
 So the formats agree with each other. What ties them to the log is pinned apart from that:
 
-- A foot read as a meter would miss by a factor of 3.28, so each height is held to an apogee from
+- A foot read as a meter would miss by a factor of 3.28. So each height is held to an apogee from
   RocketPy's notebooks that wasn't read off that column. Of the 16 logs with a barometer's or a
-  filtered height, 13 peak within 2% of a flight card or another board's record, Valkyrie's log at
-  1.9% under being the widest. The other 3 have no such figure, so they are held to RocketPy's
+  filtered height, 13 peak within 2% of a flight card or another board's record. Valkyrie's log, at
+  1.9% under, is the widest. The other 3 have no such figure, so they are held to RocketPy's
   simulated apogee, the widest 3.3% under. The two with only a receiver's altitude, on Juno III, peak
   4.9% and 5.9% over its altimeter's card.
 - East and north match the ellipsoid's radii of curvature, by a route that doesn't use the rotation
