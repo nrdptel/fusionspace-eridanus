@@ -1627,7 +1627,7 @@ pub struct SmootherReading {
     pub apogee_time_s: f64,
     /// The smoothed height there, m above the pad, or on an assumed pad above the readings' zero.
     pub apogee_height_m: f64,
-    /// Its standard error, m.
+    /// Its standard error, m: on a floor, about the track's top and not the rocket's.
     pub apogee_height_sd_m: f64,
     /// Its 90% interval, m: the height ± 1.645 standard errors. It tends wide on the synthetic
     /// flights, where 94% to 99% of truths lie inside; the reading's own interval is the calibrated

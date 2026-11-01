@@ -4681,6 +4681,7 @@ fn analyze_states_every_interval_and_the_health_card() {
 /// format HPR Sim reads, a zip archive, and a `.pf2` that goes wrong at a line.
 /// Two invented boards of one flight, their clocks 53.5 s apart.
 const FIRST_BOARD: &str = "validation/fixtures/logs/two-logs/first-board.csv";
+const SECOND_BOARD: &str = "validation/fixtures/logs/two-logs/second-board.csv";
 
 /// A log cut on the climb: the first half of the samples up to the peak (#1089). Its top speed and
 /// smoothed apogee state no interval and say why, as its apogee does.
@@ -4724,8 +4725,34 @@ fn analyze_gives_a_log_cut_on_the_climb_floors_with_no_interval() {
         assert!(line.contains(said), "{row}: {said:?} in\n{printed}");
         assert!(!line.contains("90% interval"), "{row}: {line}");
     }
+
+    // A dip in the climb withholds the reading's apogee; the log still ends on the climb.
+    let end = peak * 3 / 4;
+    let dipped: Vec<String> = rows[..end]
+        .iter()
+        .enumerate()
+        .map(|(k, row)| {
+            if (end - 60..end - 40).contains(&k) {
+                let (t, h) = row.split_once(',').unwrap();
+                format!("{t},{}", h.parse::<f64>().unwrap() - 150.0)
+            } else {
+                (*row).to_owned()
+            }
+        })
+        .collect();
+    let path = dir.path().join("dipped.csv");
+    std::fs::write(&path, dipped.join("\n") + "\n").unwrap();
+    let path = path.to_str().unwrap();
+    let document = json(&["analyze", path], 0, "analyze.schema.json");
+    assert_eq!(
+        document["apogee"]["status"], "withheld",
+        "{}",
+        document["apogee"]
+    );
+    let smoother = &document["smoother"];
+    assert_eq!(smoother["apogee_is_floor"], true, "{smoother}");
+    assert!(smoother["apogee_height_interval_m"].is_null(), "{smoother}");
 }
-const SECOND_BOARD: &str = "validation/fixtures/logs/two-logs/second-board.csv";
 
 #[test]
 fn analyze_reads_two_logs_side_by_side_on_one_timeline() {

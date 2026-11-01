@@ -44,7 +44,7 @@ withholds one instead of guessing.
   their points were fitted on 2,000 flights of their own, and a floor's lower end passes that
   test's lower tail, a clipped top's on tops written near an imposed clip
   ([evidence row G34](../evidence.md#g34)).
-- **What it leaves out:** the Mach number and dynamic pressure; a lower end on an apogee or top speed floor or
+- **What it leaves out:** the Mach number and dynamic pressure; a lower end on an apogee floor, a top speed floor or
   a top whose burn the log ends in
   ([#1071](https://github.com/nrdptel/fusionspace-eridanus/issues/1071)).
   Loggers noisier than the tuning set's [six simulated logger
@@ -248,8 +248,6 @@ floor, its `clip` saying which ([The accelerometer](#the-accelerometer)). There 
 
 Liftoff is the last sample before the track shows the rocket climbing out of the pad's reach. So
 it comes after the true liftoff by the time that climb took.
-
-A log that ends on the climb gives its apogee and top speed as floors, with no interval.
 
 **A floor** holds one way only, and has up to three numbers. The reading is where the rule lands. For
 burnout without an accelerometer, that is the top speed's time, 2.20 s on the invented PerfectFlite flight
@@ -712,7 +710,7 @@ readings state one. `hpr analyze` prints each after its bound, rounded outward, 
 `max_acceleration.interval_m_s2`, `burnout.interval_s`, `drogue_descent.interval_m_s`,
 `main_descent.interval_m_s` and `main_descent.opening.interval_s`. A floor has no interval: a
 clipped top acceleration states `lower_end_m_s2` and a burnout floor `lower_end_s`, as
-[A floor's lower end](#a-floors-lower-end) sets out.
+[A floor's lower end](#a-floors-lower-end) sets out; an apogee or top speed floor states neither.
 
 An interval need not hold its reading. Liftoff is read late, so its interval lies before the reading:
 the worked example's liftoff reads 0.80 s, with an interval of 0.41 to 0.64 s.
@@ -840,8 +838,8 @@ of 80; for the top speed, 17 of 57 and 14 of 69
 ([#1061](https://github.com/nrdptel/fusionspace-eridanus/issues/1061)). On a hot day, then, expect
 each of them above its interval's top far more often than 1 time in 20. So for a waiver, take
 the apogee plus its bound; for a fin's margin, the top speed plus its bound; for a landing, the
-main's rate plus its bound; for a load, the top acceleration plus its bound, unless it is a floor,
-which has no upper figure. Each bound holds the day's air to 15 K. The bounds, too, were measured
+main's rate plus its bound; for a load, the top acceleration plus its bound. None of these holds
+if the reading is a floor, which has no upper figure. Each bound holds the day's air to 15 K. The bounds, too, were measured
 only on synthetic flights.
 
 The times lean by logger. On the AltOS logs, whose rate drops from 100 to 10 samples a second at
@@ -1064,7 +1062,8 @@ which is said first (`no_accelerometer` or `axis_unstated`). A burnout the accel
 back to the top speed's time, and carries the top speed's reason where that is withheld too.
 
 An apogee within half a window of the log's end is read, but marked `is_floor`: the log may have
-stopped before the rocket did. The top speed and the smoothed apogee are then floors too.
+stopped before the rocket did. The top speed and the smoothed apogee are then floors too, with no
+interval. Only a test's cut flight has checked this: no synthetic log is cut.
 
 ## Two logs on one timeline
 
@@ -1154,7 +1153,7 @@ An error is the reading less the truth. Each error is held to its own reading's 
 differs from flight to flight and log to log, so the least or the most may pass the mean bound. The mean is for scale. A canopy's rates are compared with the truth over the span the reader chose,
 its leg's ends. So an opening read early or late shows in the opening's error, not in the rates'.
 A floor is counted apart, as it may lie any amount below the truth. A floor is a burnout from the
-top speed, a top speed on a log cut on the climb, or a top acceleration that clipped or whose thrust has no end on the channel. The least, the most and
+top speed, a top speed on a log cut on the climb (none in these sets), or a top acceleration that clipped or whose thrust has no end on the channel. The least, the most and
 the mean bound are to three figures, nearest. A mean is given to the decimal place of its largest
 error's third figure, the digits every platform shares:
 

@@ -150,7 +150,8 @@ Three more lines appear only when they apply: `pad assumed`, `accelerometer set 
 `smoothed apogee ... past the reading's bound: go by the reading`.
 
 On a log that ends on the climb, the smoothed apogee is a [floor](../glossary.md#floor) with no
-interval, as the reading's is: the track's top isn't the rocket's.
+interval, as the reading's is: the track's highest point is only where the log stopped, not the
+rocket's peak. That holds where the reading's apogee is withheld too.
 
 ## Sources
 

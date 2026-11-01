@@ -640,8 +640,8 @@ pub struct Smoothed {
     /// The smoothed apogee: when the smoothed height after liftoff is highest, s on the log's
     /// clock.
     pub apogee_time_s: f64,
-    /// Whether the smoothed apogee is a floor: the log ends on the climb, as the reading's apogee
-    /// says, so the top of the track isn't the rocket's and its standard error isn't about the
+    /// Whether the smoothed apogee is a floor: the log ends on the climb
+    /// ([`Readings::ends_on_the_climb`]), whether or not the reading's apogee is withheld, so the top of the track isn't the rocket's and its standard error isn't about the
     /// rocket's top.
     pub apogee_is_floor: bool,
     /// The health card.
@@ -743,11 +743,11 @@ pub fn smooth_with(
             *sd = sd.hypot(b - a);
         }
     }
+    smoothed.apogee_is_floor = readings.ends_on_the_climb;
     if let (Reading::Read(apogee), Some(state)) =
         (&readings.apogee, smoothed.at(smoothed.apogee_time_s))
     {
         let gap = state.height_m - apogee.height_m;
-        smoothed.apogee_is_floor = apogee.is_floor;
         smoothed.health.apogee_less_reading_m = Some(gap);
         smoothed.health.apogee_past_reading_bound = if apogee.is_floor {
             -gap > apogee.bound_m
@@ -3423,6 +3423,16 @@ mod tests {
         cut.altitude_m.truncate(keep);
         assert!(readings::read(&cut).apogee.value().unwrap().is_floor);
         assert!(smoothed(&cut, Options::default()).apogee_is_floor);
+        // A dip in the climb withholds the reading's apogee; the smoother still reads, and the
+        // log still ends on the climb.
+        let n = cut.altitude_m.len();
+        for height in &mut cut.altitude_m[n - 60..n - 40] {
+            *height -= 150.0;
+        }
+        let read = readings::read(&cut);
+        assert_eq!(read.apogee.reason(), Some(readings::Reason::DisturbedTop));
+        let dipped = smooth_with(&cut, &read, Options::default()).unwrap();
+        assert!(dipped.apogee_is_floor);
     }
 
     #[test]

@@ -823,6 +823,32 @@ mod tests {
         assert_eq!(top_over_range(&without), None);
     }
 
+    /// A log cut on the climb: its top speed is counted as a floor, one way only (#1089).
+    #[test]
+    fn a_log_cut_on_the_climb_counts_its_top_speed_as_a_floor() {
+        let mut flyer = Flyer::new(DesignFiles::committed());
+        let flight = (0..)
+            .find_map(|k| flyer.flight(Set::Tuning, k).ok())
+            .unwrap();
+        let events = &flight.truth.events;
+        let cut_s = flight.draw.logger.pad_s + 0.5 * (events.liftoff_s + events.apogee_s);
+        let mut log = flight.log.clone();
+        let keep = log.time_s.partition_point(|t| *t < cut_s);
+        log.time_s.truncate(keep);
+        log.altitude_m.truncate(keep);
+        for channel in &mut log.channels {
+            let keep = channel.time_s.partition_point(|t| *t < cut_s);
+            channel.time_s.truncate(keep);
+            channel.values.truncate(keep);
+        }
+        let outcome = outcomes(&flight, &log)
+            .into_iter()
+            .find(|(quantity, _)| *quantity == Quantity::TopSpeed)
+            .unwrap()
+            .1;
+        assert!(matches!(outcome, Outcome::Floor { .. }), "{outcome:?}");
+    }
+
     /// The IMU-like logger's part set to its lower range: the readings state the range it clips
     /// at, and a true top past it reads as clipped at the range, a floor that holds; a part with
     /// no lower setting writes no such log.

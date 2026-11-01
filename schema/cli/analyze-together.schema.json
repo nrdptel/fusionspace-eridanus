@@ -2326,7 +2326,7 @@
           "format": "double"
         },
         "apogee_height_sd_m": {
-          "description": "Its standard error, m.",
+          "description": "Its standard error, m: on a floor, about the track's top and not the rocket's.",
           "type": "number",
           "format": "double"
         },

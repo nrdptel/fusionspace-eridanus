@@ -539,7 +539,7 @@ floor's. `hpr analyze` gives a floor where the log can't show the other side:
 
 - a top acceleration clipped at the part's range or held flat at its top, or one whose thrust the
   accelerometer shows no end to;
-- an apogee close to the log's end, and with it that log's top speed and smoothed apogee;
+- an apogee close to the log's end; that log's top speed and smoothed apogee are floors too, and none of the three gives a lower end;
 - burnout taken from the top speed.
 
 The JSON marks one `is_floor`. See [Flight-log readings](physics/log-readings.md#each-reading).

@@ -927,6 +927,10 @@ pub struct Readings {
     /// in a log that starts after liftoff, the logger's zero; `None` when every reading is
     /// withheld before it is found.
     pub pad_altitude_m: Option<f64>,
+    /// Whether the track's top lies at the log's end, within half the filter's window, so the log
+    /// may have stopped before the rocket did: the apogee and the top speed are then floors, and
+    /// the smoother's apogee too. It holds where the apogee is withheld as well.
+    pub ends_on_the_climb: bool,
     /// Liftoff.
     pub liftoff: Reading<Liftoff>,
     /// The highest point.
@@ -1047,6 +1051,7 @@ fn heights(log: &FlightLog) -> Readings {
         median_window_s: None,
         peak_bound_m: None,
         pad_altitude_m: None,
+        ends_on_the_climb: false,
         liftoff: Reading::withheld(reason, detail),
         apogee: Reading::withheld(reason, detail),
         max_speed: Reading::withheld(reason, detail),
@@ -1293,6 +1298,8 @@ fn heights(log: &FlightLog) -> Readings {
             .take_while(|h| **h == top)
             .count()
         - 1;
+    let is_floor = run_end + half >= n - 1;
+    readings.ends_on_the_climb = is_floor;
     let apogee_s = 0.5 * (time[apogee_index] + time[run_end]);
     let height = top - pad;
 
@@ -1439,7 +1446,6 @@ fn heights(log: &FlightLog) -> Readings {
         + bound;
     let time_bound = (2.0 * (NOISE_M + top_step) / STANDARD_GRAVITY_MPS2).sqrt()
         + local_interval(time, apogee_index).max(local_interval(time, run_end));
-    let is_floor = run_end + half >= n - 1;
     // A floor's truth may lie any amount above it: it states no interval.
     let stated = |shares: interval::Shares, value: f64, bound: f64| {
         (!is_floor).then(|| shares.interval(value, bound)).flatten()
@@ -2074,8 +2080,6 @@ mod tests {
         }
     }
 
-    /// Each reading of the height track states the 90% interval its own shares make of its own
-    /// value and bound, no other's ([ADR-308](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md)).
     /// A log cut on the climb holds neither the rocket's top height nor, for all it knows, its top
     /// speed: both are floors with no interval (#1089). The whole flight's top speed states one.
     #[test]
@@ -2087,7 +2091,7 @@ mod tests {
         assert!(top.interval_m_s.is_some(), "{top:?}");
         let apogee_s = read_whole.apogee.value().unwrap().time_s;
         let mut cut = whole.clone();
-        // Halfway to apogee: the coast, with the climb's top still ahead.
+        // Halfway to apogee: the track's top is at the log's end.
         let keep = cut.time_s.iter().position(|t| *t > apogee_s / 2.0).unwrap();
         cut.time_s.truncate(keep);
         cut.altitude_m.truncate(keep);
@@ -2098,6 +2102,8 @@ mod tests {
         assert_eq!(top.interval_m_s, None, "{top:?}");
     }
 
+    /// Each reading of the height track states the 90% interval its own shares make of its own
+    /// value and bound, no other's ([ADR-308](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md)).
     #[test]
     fn each_reading_states_the_interval_its_own_shares_make() {
         use interval::*;
