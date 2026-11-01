@@ -236,6 +236,10 @@ and 99.4% of the truths, and two logger cells 89.2% and 89.7%, which the check a
 were seen while its rules were set. It isn't yet checked against a real flight's ([The
 smoother](physics/smoother.md)).
 
+`hpr compare` sets a log against a simulation of it: how far the logged height and speed lie from the
+simulated, phase by phase, and each reading beside the simulation's, read the same way
+([Comparing a flight with its simulation](comparing-a-flight.md)). It reports the gap and fits nothing yet.
+
 The library reads each format into one record, every column kept on its own clock. The formats
 come from PerfectFlite ([`.pf2` files](format/pf2.md)), AltOS, Featherweight's Raven and Blue Raven, Missile Works' RRC3 and RTx,
 and Eggtimer. Others come from AltimeterCloud, Entacore AIM, AerospaceNU, Silicdyne, the ARTS2,
@@ -462,9 +466,6 @@ These are left out of a flight, or approximated:
   There's no app yet: it's on the [roadmap][roadmap].
 - **A damaged file gets an error, or a value from what was left, on the damage the tests try.** Each
   reader is tried on cut, changed and arbitrary bytes, for a crash or a hang ([Damaged files](format/damaged-files.md)).
-- **A log can be set against a simulation of it.** `hpr compare` prints how far the logged height and speed
-  lie from the simulated, phase by phase, and each reading beside the simulation's, read the same way
-  ([Comparing a flight with its simulation](comparing-a-flight.md)). It reports the gap and fits nothing yet.
 - **The flight-log analyzer gives readings within bounds; twelve state intervals, and the smoother gives a health card.** `hpr analyze` and
   the Python package read a flight log on its own, with no design file and no simulation. They use
   its format's reader, or the column mapping or record layout you write for your own logger
@@ -558,7 +559,8 @@ These are left out of a flight, or approximated:
   and [club layouts](decisions-and-roadmap.md#m7-1c3) followed. Every sample log in a layout HPR
   Sim knows is read. The formats with no sample, such as CATS's, are
   [listed as needing samples](format/flight-logs.md#formats-that-need-samples)
-  ([the register's row on these formats](evidence.md#g9)). Comparing a flight with a simulation of it is planned
+  ([the register's row on these formats](evidence.md#g9)). `hpr compare` sets a log against a simulation of it,
+  and fitting drag and impulse to the log is planned
   ([a flight against its simulation](decisions-and-roadmap.md#m7-3)).
 
 <a id="how-far-to-trust-it"></a>

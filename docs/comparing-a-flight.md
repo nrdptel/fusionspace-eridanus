@@ -7,33 +7,40 @@ flight. NASA Student Launch's handbook asks for this comparison after a team's s
 after its full-scale flight. Reading a log with no simulation is [Reading a flight log](reading-a-flight-log.md).
 
 > **How far to trust it.** A residual is one flight against one simulation, and it describes them. It is
-> the sum of what the logger and the simulation each got wrong, and it can't tell them apart. It says neither
-> is right. The simulated numbers state no error here, and the fit that would explain a residual is
+> the sum of what the logger, the simulation and the lining up of their clocks each got wrong, and it can't
+> tell them apart. It says neither is right. The simulated numbers state no error here, and the fit that would explain a residual is
 > [not built yet](decisions-and-roadmap.md#m7-3). The method is tested on flights with a known answer. It has
 > been run on the 7 public logged flights ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/flight-residuals.md)),
 > and those show what it gives, not that it is right about them.
 
 ## Run it
 
-Give the log, then the design, its motor and the launch, as `hpr sim` takes them ([the command line](cli.md)):
+Give the log, then the design, its motor and the launch, as `hpr sim` takes them ([the command line](cli.md)).
+This example's log is invented: the repository's Level 1 guide rocket flown in a 6 m/s (13 mph) wind, its
+heights read 4% low and rounded to a foot ([how it is made](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/logs/compare/make.py)).
+The simulation flies the same rocket in calm air, so you can see what a known lean looks like:
 
-```text
-hpr compare flight.pf2 rocket.ork --motor CTI-J350 --wind 4
+```console
+<!-- cli: example `hpr compare validation/fixtures/logs/compare/level-1-flown.csv validation/fixtures/ork/guides/level-1.ork --mapping validation/fixtures/logs/compare/level-1.mapping.json`; written by `cargo xtask cli`; do not edit -->
 ```
 
+Every height residual is negative, because the log reads low. The apogee's is about 4% of the rocket's
+height, and the descent's shrinks with it on the way down.
+
 The simulation flies the conditions you give it. With no wind or air given, it flies a calm standard day,
-which isn't the day you flew. `--json` adds every sample's residual, for a plot of your own. A logger HPR
-Sim has no reader for is read by `--mapping` or `--layout`, as in
+which isn't the day you flew. `--json` adds every sample's residual, for a plot of your own, and holds the notes.
+A logger HPR Sim has no reader for is read by `--mapping` or `--layout`, as in
 [Reading your own logger](your-own-logger.md).
 
 ## What a residual is
 
 A **residual** is the logged value less the simulated one. A positive height residual means the log read
 higher than the simulation did. A positive speed residual means the log read faster upward, so during
-the descent it means a slower fall.
+the descent it means a slower fall, and a negative one a faster fall. A descent's rate in the readings is a
+size, not a velocity, so there a positive difference means the log fell faster.
 
-They come by phase, cut at the log's own burnout and apogee: boost, coast and descent, or ascent and
-descent where the log's burnout can't be read. Each phase gives:
+They come by phase, cut at the log's own burnout and apogee: boost, coast and descent; or ascent and
+descent where the log's burnout can't be read whole; or one flight where its apogee can't. Each phase gives:
 
 - the **mean**, with its sign, which shows a steady lean;
 - the **RMS** (root mean square), which shows the size whatever the sign;
@@ -49,19 +56,23 @@ A logged height and a simulated one aren't the same quantity, so the simulation 
 HPR Sim writes the simulated flight as a noise-free log, at the real log's sample interval, and hands it to
 the same reader. Three things follow.
 
-- **The height.** A barometric logger reads the standard atmosphere's altitude of the pressure around it, so
-  on a warm day it reads low. The simulated height is turned into what that barometer would read in the air
-  you gave the simulation. A height from a GPS receiver is compared as a height climbed. The output says which.
+- **The height.** A barometric logger reads the [standard atmosphere](glossary.md)'s altitude of the pressure
+  around it, so on a warm day it reads low. The simulated height is turned into what that barometer would read
+  in the air you gave the simulation. A log's main altitude, or a column you map, is taken as a barometer's. If
+  it is a GPS receiver's, give `--height-reads height-climbed`. A log holding only a GPS channel is refused, as
+  its liftoff can't be read. The output says which reading it used.
 - **The readings.** Apogee, top speed and the rest come through the same filters on both sides. Each logged
   reading keeps its bound, its 90% interval and whether it was measured or derived, as
   [`hpr analyze`](reading-a-flight-log.md) gives it. The simulated cell has none of these, as it wasn't measured.
 - **The clocks.** A log's clock has no ignition on it, so the two line up by what the reader calls liftoff on
-  each. The output gives the bound on that, from 1.31 to 3.21 s on [the public flights](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/flight-residuals.md). That is what the reader
-  can promise of a liftoff, not a measured misalignment.
+  each. The output gives the bound on that, from 1.32 to 3.21 s on [the public flights](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/flight-residuals.md). That is what the reader
+  can promise of a liftoff, not a measured misalignment. On a log with coarse steps, the log's liftoff reads
+  late, so an ascent's height residual leans positive.
 
-The heights are the log's own samples, not smoothed. An ejection charge's pressure spike, or a garbled last
-row, shows as a residual. The speeds are the smoother's ([how it works](physics/log-readings.md)), each with
-its standard error in `--json`. If the smoother can't read the log, the speed says why.
+The heights are the log's own samples, not smoothed. An ejection charge's pressure spike, or a garbled row,
+shows as a residual. The speeds are [the smoother's](physics/smoother.md), each with its standard error in
+`--json`, with any GPS set aside on a barometric log, so they stay on the height's scale. If the smoother can't
+read the log, the speed says why.
 
 ## What it leaves out
 

@@ -45,7 +45,7 @@ const SCHEMAS: &str = "schema/cli";
 /// The guide's page.
 const PAGE: &str = "docs/cli.md";
 /// The how-to guides, whose examples are run as the guide's are.
-const GUIDES: [&str; 7] = [
+const GUIDES: [&str; 8] = [
     "docs/fly-your-ork.md",
     "docs/physics/motor.md",
     "docs/pick-a-motor.md",
@@ -53,6 +53,7 @@ const GUIDES: [&str; 7] = [
     "docs/trusting-a-simulation.md",
     "docs/simulator-tour.md",
     "docs/your-own-logger.md",
+    "docs/comparing-a-flight.md",
 ];
 /// The terminal figures (ADR-247 §3): each drawn from its page's example of the same command, with
 /// lettered callouts at the lines the page explains.

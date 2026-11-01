@@ -22,13 +22,16 @@ three into the residual.
 1. **The simulation is read as the log is.** `hpr_forensics::residuals` writes the simulated flight as a
    noise-free log at the real log's median sample interval, with its height as that log's sensor would read
    it and an axial accelerometer if that log has one. The same reader takes the same readings from it.
-   - The height stands for a barometer's reading unless the log's track is a GNSS receiver's or the
-     accelerometer's integral, as the reader names its source. A caller that knows the sensor from elsewhere
-     can say so: `cargo xtask real-flights` uses the altimeter each public flight's record states.
+   - The height stands for a barometer's reading, as a log's main altitude or a mapped column is taken to.
+     The reader withholds a GNSS-only log's liftoff, so such a log is refused. A caller that knows the sensor
+     from elsewhere can say so: `--height-reads height-climbed` on the command line, and `cargo xtask
+     real-flights` uses the altimeter each public flight's record states.
    - The speed's residual is the smoother's speed less the rate at which that sensor's reading would change,
-     for the same reason.
+     for the same reason. On a barometric log the smoother runs with any GNSS set aside: fused, its speed leaves
+     the barometer's scale, about 7% high on a day 20 K warm with no real difference in the flight.
+   - The simulated log's interval is the log's, up to the coarsest the reader takes, 2 s.
    - The clocks are lined up by the [shared liftoff][adr-312], the reader's liftoff on each. The bound on
-     their offset is reported, and it is wide: 1.31 to 3.21 s on the 7 public flights. It is what the reader
+     their offset is reported, and it is wide: 1.32 to 3.21 s on the 7 public flights, each rounded up. It is what the reader
      can promise of liftoff, not a measured misalignment.
 2. **A residual is logged less simulated**, sample by sample, by phase (boost, coast or ascent, descent).
    Heights are the log's own samples, unsmoothed, as ghost files take them, so an ejection charge's spike or
@@ -50,7 +53,7 @@ three into the residual.
 5. **The public flights' parachutes come from their notebooks.** `real-flights` flies only to apogee, and a
    design's `.json` holds no recovery, so the report's table takes each example's canopies from its notebook.
    Cavour's notebook adds none and says so, so only its ascent is compared. Lince's notebook splits a payload off
-   under a canopy of its own; the report flies the main body alone.
+   under a canopy of its own; the report keeps the design's mass, payload on board, under the main body's canopy.
 
 **Consequences.** `hpr compare` leaves the planned list. A comparison's report and command share one library
 function, so M7.3b's fits and M7.3e's plot get the same clocks and heights. `Barometer` moves from `hpr-validate`

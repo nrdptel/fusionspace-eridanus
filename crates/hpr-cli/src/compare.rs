@@ -284,8 +284,12 @@ fn text_lines(document: &Compare) -> Vec<String> {
         || document.log.clone(),
         |name| name.to_string_lossy().into_owned(),
     );
+    let logger = match document.logger.as_str() {
+        "unknown" => String::new(),
+        logger => format!(" ({logger})"),
+    };
     let mut lines = vec![
-        format!("{name} ({}) against its simulation", document.logger),
+        format!("{name}{logger} against its simulation"),
         format!("  flown: {}, {}", document.design, document.configuration),
         format!(
             "  clocks: a {}, within {} s; the log's at {:.2} s, the simulation's {:.2} s after \
@@ -327,6 +331,12 @@ fn text_lines(document: &Compare) -> Vec<String> {
     lines.push("Readings, the simulation read as the log is".to_owned());
     for row in &document.rows {
         lines.push(format!("  {}", row_name(row.what)));
+        if let (TimelineCell::Withheld { detail }, TimelineCell::Withheld { .. }) =
+            (&row.logged, &row.simulated)
+        {
+            lines.push(format!("    withheld on both: {detail}"));
+            continue;
+        }
         lines.push(format!(
             "    logged     {}",
             analyze::together::cell_text(row.what, &row.logged)

@@ -449,17 +449,20 @@ are in `hpr-forensics`. Formats, methods and the log corpus came from Debrief.
   number. Split a to e (ADR-314).
   - [ ] **M7.3b The least-squares fit.** *Done when:* Levenberg–Marquardt fits drag scale, impulse scale, a
     constant wind vector and mass within its weighed uncertainty to a log; each parameter's 90% interval
-    passes ADR-257 §1's three counts on sets A and B, with its three mutation probes failing; the drag and
-    impulse scales are identified on set A, and every parameter comes back not identified on pure noise.
+    passes ADR-257 §1's three counts on sets A and B, at least 1,000 flights each and counted per design, with
+    its three mutation probes failing; the drag and impulse scales are identified on set A, and every parameter
+    comes back not identified on pure noise.
   - [ ] **M7.3c The Bayesian option.** *Done when:* the same parameters, by a Bayesian fit with uncertainty,
     pass the same test, truths drawn from the stated ranges and not its prior.
   - [ ] **M7.3d From the boost.** *Done when:* apogee predicted from the log cut at burnout stays bit-identical
     when every later sample is replaced with noise; a committed report gives the 7 public flights' fits, the
-    collection's as aggregates, and that prediction beside the forward simulation's, with ADR-257 §3's
-    intervals; the scoreboard has `accuracy.from-boost`.
+    collection's as aggregates, and that prediction's mean absolute and signed errors beside the forward
+    simulation's on the same flights in the same air and wind, with ADR-257 §3's intervals; the scoreboard has
+    `accuracy.from-boost`, each other tool's cell read from its docs.
   - [ ] **M7.3e The post-flight comparison.** *Done when:* one `hpr` command draws predicted and logged altitude
-    and velocity, liftoff to landing, as designed and under launch-day conditions, offline on entered values;
-    a test runs it on a public flight; the plot carries each reading's provenance.
+    and velocity, liftoff to landing, as designed and under launch-day conditions: the log's site and date with
+    the weather source's wind and air, or values entered, so it works offline; a test runs it on a public
+    flight; the plot carries each reading's provenance.
 - [ ] **M7.4 Fault diagnosis.**
   - A hypothesis library with simulate-able fault models: motor under/over-performance, CATO or
     early burnout, high drag or damage, weathercocking, marginal stability/coning,

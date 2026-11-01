@@ -192,8 +192,9 @@ pub(crate) fn logs_together() -> String {
 pub(crate) fn compared() -> String {
     format!(
         "{LABEL} A log, measured, against a simulation of it, on the inputs you gave. A residual \
-         is the logged value less the simulated one, the sum of what the logger and the \
-         simulation each got wrong: it can't tell them apart, and it says neither is right. The \
+         is the logged value less the simulated one, the sum of what the logger, the simulation \
+         and the lining up of their clocks each got wrong: it can't tell them apart, and it says \
+         neither is right. The \
          simulated numbers state no error here. {} For a record or a certification, the \
          altimeter's own reading is the one to log, and the RSO decides.{MORE}{SITE}\
          comparing-a-flight.html",

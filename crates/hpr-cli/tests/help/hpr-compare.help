@@ -83,6 +83,13 @@ Options:
       --sheet <N>
           Which sheet of a workbook (.xlsx or .xls) to read, counting from 0
 
+      --height-reads <WHAT>
+          What the log's height stands for: a barometer's reading, or a height climbed. Without it, a log's main altitude, or a column you mapped, is taken as a barometer's
+
+          Possible values:
+          - barometer:      A barometer's reading: the standard atmosphere's altitude of the pressure, less the pad's
+          - height-climbed: A height climbed: a GPS receiver's, or an accelerometer's integral
+
       --recording <N>
           Which recording to read from a file that holds several, counting from 0
 
