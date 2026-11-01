@@ -1949,7 +1949,7 @@ decisions over the sample logs:
   second, miles per hour, meters per second and kilometers per hour, the one two measures agree on
   within 3% is taken. Where they don't, the record stops before the rocket is halfway down, or
   the speed's first row is above rest, as a speed smoothed around each sample can be, the column is
-  kept as written, with a note. No sample export starts above rest. The time is in seconds where its step is the RRC3's 20
+  kept as written, with a note. No sample record the measure reached starts above rest. The time is in seconds where its step is the RRC3's 20
   samples a second. Of the 51 RRC3 exports among the sample logs, 47 are read in feet from the
   pressure and 4 state feet. Of the speeds, 36 are in feet per second and 9 in miles per hour.
   Another 4 state feet per second. The remaining 2, whose records stop early, keep their speeds as

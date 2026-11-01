@@ -118,11 +118,12 @@
 //! up to 1 s late is decided from 50 m up (the module's tests; `tests/rrc3_csv.rs` adds km/h and
 //! ft/s flights 1 and 2 s late, 100 to 300 m up). These filters only look back. A smoothing that
 //! also looks ahead, centered on each sample, starts the velocity above rest at the record's
-//! first row, so the integral misses the start of the climb: over a window of 3 to 5 s, about 1
-//! in 100 such invented flights read about 8% low, enough to take km/h for ft/s. So the velocity
-//! is measured only where its first row is near rest, at most 1% of the column's own peak. The
-//! sample files' first rows are at rest, and the rule changes none of their units. Otherwise the
-//! column is kept as written,
+//! first row, so the integral misses the start of the climb: over a window of 3 to 5 s, 352 of
+//! 37,893 decided cases of invented flights (0.9%) took the wrong unit, such as km/h for ft/s,
+//! read about 8% low. So the velocity is measured only where its first row is near rest, at most
+//! 1% of the column's own peak; in the same sweep, none is then wrong. The first rows of the
+//! sample files that reach this measure are at rest, and the rule changes none of their units.
+//! Otherwise the column is kept as written,
 //! [`Quantity::Unrecognized`], with a note: also
 //! when the altitude climbs under 50 m, where half a step of the pressure, 0.42 m at sea level,
 //! is 0.8% of the climb and a larger share of the area of a flight that spends its time low; and
