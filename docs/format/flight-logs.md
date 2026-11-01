@@ -1948,7 +1948,7 @@ decisions over the sample logs:
   against the altitude's rate of climb, allowing for the speed to lag behind it. Of feet per
   second, miles per hour, meters per second and kilometers per hour, the one two measures agree on
   within 3% is taken. The column is kept as written, with a note, where they don't agree, the
-  climb is under 50 m, or the record ends before the rocket is halfway down or while it is moving.
+  climb is under 50 m (164 ft), or the record ends before the rocket is halfway down or while it is moving.
   The same goes where the speed's first row is over 1% of its peak, or its running total ends over
   1% of the climb from the altitude: a filter that averages ahead of each sample, not only behind it,
   can do that. These last two rules change no sample's unit. The time is in seconds where its step is the RRC3's 20

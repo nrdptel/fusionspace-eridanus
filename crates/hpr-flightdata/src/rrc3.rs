@@ -127,7 +127,8 @@
 //! shrinks to one sample at the first row, or a first row set to zero, still decides a few wrongly
 //! ([#1100](https://github.com/nrdptel/fusionspace-eridanus/issues/1100)). None of the sample
 //! files is known to smooth this way: their 51 records' first rows are at rest, their integrals end
-//! within 0.53%, and these rules change none of the 49 units they decide. Otherwise the column is kept as written,
+//! within 0.53%, and these rules change none of the 49 units they decide. Otherwise the column is
+//! kept as written,
 //! [`Quantity::Unrecognized`], with a note: also
 //! when the altitude climbs under 50 m, where half a step of the pressure, 0.42 m at sea level,
 //! is 0.8% of the climb and a larger share of the area of a flight that spends its time low; and
