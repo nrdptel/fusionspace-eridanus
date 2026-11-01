@@ -175,12 +175,12 @@ taken before the rocket moved. Three rules do it, each with a number set from th
    at the climb. So twice that is out of its reach.
    Bad samples at the log's very start would lift that start, so the first three are judged first.
    One or two of them are bad, and the readings leave them out, if they stand more than this rise
-   and 9 m (three times the barometer's noise, 30 ft) above the second lowest of the samples after
+   and 9 m (30 ft, three times the barometer's noise) above the second lowest of the samples after
    those three, over the median's window and at least five. Two cases are left alone:
 
    - All three stand that far above. That is a fall of the track's own, which reads like a pressure
-     pulse on the pad at ignition. Eight sample logs fall 31 to 654 m, and on one the height reads
-     about 300 m above the altimeter's stated apogee
+     pulse on the pad at ignition. Eight sample logs fall 31 to 654 m (102 to 2,146 ft), and on one the height reads
+     about 300 m (984 ft) above the altimeter's stated apogee
      ([an open issue](https://github.com/nrdptel/fusionspace-eridanus/issues/1101)).
    - The track stays at their level again, for longer than a rocket at 2 g takes to leave that
      band, before a top further above it than a coast through the band reaches. That level is the
