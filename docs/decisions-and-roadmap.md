@@ -343,6 +343,7 @@ until someone rewrites it in plainer words.
 | [ADR-312: Two logs on one timeline: the offset's error, the new sets, a booster's truth][adr-312] | two logs of one flight, or one logger to a stage, go on one timeline by a shared |  |
 | [ADR-313: Ghost files: the log's own height, three formats from one track, outside readers in Node][adr-313] | `hpr analyze --ghost` writes a flight's logs as time-synced trajectories in a frame at |  |
 | [ADR-314: M7.3 in five: residuals first, the simulation read as the log is][adr-314] | [M7.3](#m7-3) is more than one PR, so it goes in five parts: residuals, the least-squares fit with its coverage test, the Bayesian option under the same test, the report with apogee predicted from the boost, and the post-flight plot. Residuals come first because the rest stand on them. They rest on one rule: the simulated flight is written out as a noise-free log and read by the same reader as the real log, its height as the real log's sensor would read it, and both clocks are lined up by what that reader calls liftoff. |  |
+| [ADR-315: The 2026-11-01 licensing layers: the engine stays open, hosted services carry their own terms, and M9.0 sets the app's license][adr-315] | The code that computes and checks FusionSpace HPR's numbers stays `MIT OR Apache-2.0`. Hosted services, starting with the motor stock API at motor.fusionspace.co, carry their own terms: free for personal use and for FusionSpace's own tools, with written permission needed for any other site, app or service and for any commercial use. The app's license is chosen in [M9.0](#m9-0)'s decision record, before any app code is public; the leading option is the Functional Source License 1.1 with Apache-2.0 as its future license. Registering a FUSIONSPACE trademark stays deferred. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -1291,6 +1292,7 @@ is the milestone that added or will add that test.
 [adr-312]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0312-two-logs-on-one-timeline.md
 [adr-313]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0313-ghost-files.md
 [adr-314]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0314-m7-3-in-five-residuals-first.md
+[adr-315]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0315-the-2026-11-01-licensing-layers.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
