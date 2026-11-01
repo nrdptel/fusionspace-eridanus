@@ -1736,6 +1736,145 @@ pub struct AnalyzeMethod {
     pub accelerometer: Option<AnalyzedAccelerometer>,
 }
 
+/// `hpr compare`, as JSON: a log against a simulation of it, each residual logged less simulated.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct Compare {
+    /// What kind of result this is: a measurement set against a model.
+    pub kind: crate::trust::Kind,
+    /// The trust note the text form ends with.
+    pub trust: String,
+    /// The log, as given.
+    pub log: String,
+    /// The logger, as the log names it.
+    pub logger: String,
+    /// The design's file.
+    pub design: String,
+    /// The configuration flown.
+    pub configuration: String,
+    /// How the clocks were lined up: `shared liftoff`.
+    pub method: String,
+    /// What the log's height stands for, and so how the simulation's is read.
+    pub height_read_as: HeightReadAs,
+    /// The log's liftoff, s on its own clock.
+    pub log_liftoff_s: f64,
+    /// The simulated liftoff, as the same reader finds it, s after ignition.
+    pub simulated_liftoff_s: f64,
+    /// How well the two clocks are lined up, s.
+    pub clock_bound_s: f64,
+    /// The sample interval the simulation was read at, s: the log's, up to the reader's coarsest.
+    pub simulated_interval_s: f64,
+    /// Whether the residuals run to a landing read from the log, not just to the log's end.
+    pub reaches_landing: bool,
+    /// The log's samples less the simulated height, m above the pad.
+    pub height_m: CompareResiduals,
+    /// The smoother's vertical speed less the simulated, m/s, up; or why it is withheld.
+    pub speed_m_s: CompareSpeed,
+    /// Each reading beside the simulation's.
+    pub rows: Vec<CompareRow>,
+    /// What to bear in mind in reading them, as the text form's notes say.
+    pub notes: Vec<String>,
+}
+
+/// What a log's height stands for.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum HeightReadAs {
+    /// A barometer's reading: the standard atmosphere's altitude of the pressure, less the pad's.
+    Barometer,
+    /// A height climbed: a GNSS receiver's, or the accelerometer's integral.
+    HeightClimbed,
+}
+
+/// The speed's residuals, which need the smoother.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+#[serde(tag = "status", rename_all = "snake_case")]
+pub enum CompareSpeed {
+    /// The smoother's speed less the simulated.
+    Read(CompareResiduals),
+    /// Why the smoother gives no speed.
+    Withheld {
+        /// The reason in words, with the log's own numbers.
+        detail: String,
+    },
+}
+
+/// One quantity's residuals, from liftoff to the log's landing or its end.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct CompareResiduals {
+    /// How they fall, by phase.
+    pub phases: Vec<ComparePhase>,
+    /// The log's samples after the simulated flight had ended: compared with nothing.
+    pub past_simulation: usize,
+    /// Each sample's.
+    pub points: Vec<ComparePoint>,
+}
+
+/// A part of the flight, on the log's readings.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum ResidualPhase {
+    /// Liftoff to the log's burnout.
+    Boost,
+    /// The log's burnout to its apogee.
+    Coast,
+    /// Liftoff to the log's apogee, where its burnout isn't read.
+    Ascent,
+    /// The log's apogee to its landing, or its end.
+    Descent,
+    /// The whole log after liftoff, where its apogee isn't read whole.
+    Flight,
+}
+
+/// How a phase's residuals fall.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, JsonSchema)]
+pub struct ComparePhase {
+    /// Which part of the flight.
+    pub phase: ResidualPhase,
+    /// When it starts, s after the log's liftoff.
+    pub start_s: f64,
+    /// When it ends, s after the log's liftoff.
+    pub end_s: f64,
+    /// How many samples it compares.
+    pub samples: usize,
+    /// The mean residual, with its sign.
+    pub mean: f64,
+    /// The root mean square residual.
+    pub rms: f64,
+    /// The residual of largest size, with its sign.
+    pub largest: f64,
+    /// When that residual falls, s after the log's liftoff.
+    pub largest_at_s: f64,
+}
+
+/// One sample's residual.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, JsonSchema)]
+pub struct ComparePoint {
+    /// When it falls, s after the log's liftoff.
+    pub time_after_liftoff_s: f64,
+    /// The log's value.
+    pub logged: f64,
+    /// The log's standard error on it; null for a raw sample, which states none.
+    pub logged_sd: Option<f64>,
+    /// The simulation's value, read as the log's sensor would read it.
+    pub simulated: f64,
+    /// Logged less simulated.
+    pub residual: f64,
+}
+
+/// One reading beside the simulation's.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct CompareRow {
+    /// Which reading.
+    pub what: TimelineWhat,
+    /// The log's, with its bound, 90% interval, source and provenance.
+    pub logged: TimelineCell,
+    /// The same reader's reading of the simulated flight: no source or provenance, as it wasn't
+    /// measured.
+    pub simulated: TimelineCell,
+    /// Logged less simulated; null if either is withheld or is a floor.
+    pub logged_minus_simulated: Option<f64>,
+}
+
 /// `hpr analyze` with more than one log, as JSON: the logs on one timeline, side by side, never
 /// averaged.
 #[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
@@ -2392,6 +2531,7 @@ pub fn schemas() -> Vec<(&'static str, String)> {
         ("convert.schema.json", schema::<Convert>()),
         ("analyze.schema.json", schema::<Analyze>()),
         ("analyze-together.schema.json", schema::<AnalyzeTogether>()),
+        ("compare.schema.json", schema::<Compare>()),
         (
             "analyze-record.schema.json",
             schema::<hpr::hpr_flightdata::log::FlightLog>(),

@@ -49,7 +49,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use hpr_aero::DragTable;
-use hpr_atmos::{Atmosphere, Ussa76, WindInterpolation};
+pub use hpr_atmos::Barometer;
+use hpr_atmos::{SoundingProfile, WindInterpolation};
 use hpr_core::earth::Earth;
 use hpr_core::geodesy::Geodetic;
 use hpr_core::interp::{Extrapolation, Interpolation, Table1D};
@@ -745,7 +746,16 @@ pub struct RealFlightReport {
     pub summary: Summary,
 }
 
-fn read_bytes(root: &Path, relative: &str, what: &'static str) -> Result<Vec<u8>, RealFlightError> {
+/// The bytes of the file at `relative` under `root`, `what` naming why it is read.
+///
+/// # Errors
+///
+/// [`RealFlightError`] if it can't be read.
+pub fn read_bytes(
+    root: &Path,
+    relative: &str,
+    what: &'static str,
+) -> Result<Vec<u8>, RealFlightError> {
     let path = root.join(relative);
     fs::read(&path).map_err(|source| RealFlightError::Io {
         what,
@@ -755,7 +765,7 @@ fn read_bytes(root: &Path, relative: &str, what: &'static str) -> Result<Vec<u8>
 }
 
 /// The SHA-256 of `bytes`, in lower-case hex.
-pub(crate) fn sha256_hex(bytes: &[u8]) -> String {
+pub fn sha256_hex(bytes: &[u8]) -> String {
     Sha256::digest(bytes)
         .iter()
         .fold(String::with_capacity(64), |mut out, byte| {
@@ -1032,103 +1042,6 @@ pub fn compare_traces(
     })
 }
 
-/// A barometric altimeter on a pad, in the air of a day: it reads the standard atmosphere's
-/// altitude of the day's pressure where it is, less that at the pad, `H(p(z)) − H(p(z₀))`
-/// ([`Ussa76::pressure_altitude_m`]).
-///
-/// In the standard atmosphere itself it reads the geopotential height climbed. On a warmer day
-/// the air is thinner, pressure falls more slowly with height, and it reads less than that: in
-/// the troposphere, with the sea-level pressure unchanged, by the ratio of the standard's
-/// sea-level temperature to the day's.
-#[derive(Debug)]
-pub struct Barometer<'a> {
-    day: &'a dyn Atmosphere,
-    site_msl_m: f64,
-    standard: Ussa76,
-    pad_altitude_m: f64,
-}
-
-impl<'a> Barometer<'a> {
-    /// A barometer on a pad `pad_m` above a site `site_msl_m` above sea level, in `day`'s air.
-    ///
-    /// # Errors
-    ///
-    /// [`hpr_atmos::AtmosError`] if the day has no air at the pad.
-    pub fn on_pad(
-        day: &'a dyn Atmosphere,
-        site_msl_m: f64,
-        pad_m: f64,
-    ) -> Result<Self, hpr_atmos::AtmosError> {
-        let standard = Ussa76::standard();
-        let pad_altitude_m =
-            standard.pressure_altitude_m(day.air(site_msl_m + pad_m)?.air.pressure_pa)?;
-        Ok(Self {
-            day,
-            site_msl_m,
-            standard,
-            pad_altitude_m,
-        })
-    }
-
-    /// What it reads at `height_m` above the site, m.
-    ///
-    /// # Errors
-    ///
-    /// [`hpr_atmos::AtmosError`] if the day has no air there.
-    pub fn reading_m(&self, height_m: f64) -> Result<f64, hpr_atmos::AtmosError> {
-        let pressure_pa = self.day.air(self.site_msl_m + height_m)?.air.pressure_pa;
-        Ok(self.standard.pressure_altitude_m(pressure_pa)? - self.pad_altitude_m)
-    }
-
-    /// The height above the site at which it reads `reading_m`, m: the inverse of
-    /// [`Self::reading_m`], which turns a logged barometric altitude into the height the rocket
-    /// climbed in the day's air ([the private collection's logged apogees, ADR-184][adr-184]).
-    ///
-    /// [adr-184]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0184-logged-apogees-of-the-private-collection.md
-    ///
-    /// The reading rises with height wherever the day's pressure falls with height, so the
-    /// height is bisected between the site and the first doubling of the reading's size that
-    /// reads past it, to the resolution of `f64`.
-    ///
-    /// # Errors
-    ///
-    /// [`hpr_atmos::AtmosError::Domain`] for a reading that is not finite, below what the site
-    /// itself reads, or above what the day reads 100 km up; and what [`Self::reading_m`] raises.
-    pub fn height_m(&self, reading_m: f64) -> Result<f64, hpr_atmos::AtmosError> {
-        const TOP_M: f64 = 100_000.0;
-        let domain = || hpr_atmos::AtmosError::Domain {
-            what: "barometric reading",
-            value: reading_m,
-        };
-        if !reading_m.is_finite() {
-            return Err(domain());
-        }
-        let mut low = 0.0;
-        if self.reading_m(low)? > reading_m {
-            return Err(domain());
-        }
-        let mut high = (2.0 * reading_m.abs()).clamp(100.0, TOP_M);
-        while self.reading_m(high)? < reading_m {
-            if high >= TOP_M {
-                return Err(domain());
-            }
-            low = high;
-            high = (2.0 * high).min(TOP_M);
-        }
-        loop {
-            let middle = 0.5 * (low + high);
-            if middle <= low || middle >= high {
-                return Ok(middle);
-            }
-            if self.reading_m(middle)? < reading_m {
-                low = middle;
-            } else {
-                high = middle;
-            }
-        }
-    }
-}
-
 /// Keeps hpr's height above its start on a fixed grid of the dense output.
 struct Heights {
     /// The next grid point's index: its time is `GRID_S` times it.
@@ -1184,7 +1097,7 @@ type ExampleThrust = (String, Option<f64>, Option<(f64, f64)>);
 type ReadFile = (String, Vec<u8>);
 
 /// The example's own thrust file and burn options, from [`MASS_FIXTURE`]'s record of the case.
-fn example_thrust(root: &Path, flight: &RealFlight) -> Result<ExampleThrust, RealFlightError> {
+pub fn example_thrust(root: &Path, flight: &RealFlight) -> Result<ExampleThrust, RealFlightError> {
     let input = |what: String| RealFlightError::Input {
         flight: flight.id.to_owned(),
         what,
@@ -1286,7 +1199,7 @@ fn pressure_reading_gap_m(
     pascals_per_unit: f64,
     text: &str,
 ) -> Result<f64, String> {
-    let standard = Ussa76::standard();
+    let standard = hpr_atmos::Ussa76::standard();
     let rows: Vec<Vec<f64>> = read_rows(
         text,
         log.header_lines,
@@ -1316,6 +1229,98 @@ struct Flown {
     max_mach: f64,
     trace: TraceComparison,
     total_impulse_ns: f64,
+}
+
+/// The design's rocket on the thrust `curve` read from `thrust_path`.
+pub fn rocket_on_curve(
+    flight: &RealFlight,
+    design: &Value,
+    design_path: &str,
+    thrust_path: &str,
+    curve: &[(f64, f64)],
+) -> Result<Rocket, RealFlightError> {
+    let input = |what: String| RealFlightError::Input {
+        flight: flight.id.to_owned(),
+        what,
+    };
+    let mut design = design.clone();
+    let motor = design
+        .pointer_mut("/configurations/0/motors/0")
+        .and_then(Value::as_object_mut)
+        .ok_or_else(|| input(format!("{design_path} has no motor")))?;
+    let (times, thrusts): (Vec<f64>, Vec<f64>) = curve.iter().copied().unzip();
+    motor.insert(
+        "designation".to_owned(),
+        Value::String(format!(
+            "RocketPy's {}",
+            thrust_path.rsplit('/').next().unwrap_or("")
+        )),
+    );
+    motor
+        .get_mut("motor")
+        .and_then(Value::as_object_mut)
+        .ok_or_else(|| input(format!("{design_path}'s motor has no inputs")))?
+        .insert(
+            "curve".to_owned(),
+            serde_json::json!({ "times_s": times, "thrusts_n": thrusts }),
+        );
+    serde_json::from_value(design)
+        .map_err(|error| input(format!("{design_path} with a thrust file's curve: {error}")))
+}
+
+/// The flight's environment in its ERA5 file's air and wind, and that air alone.
+pub fn launch_day(
+    flight: &RealFlight,
+    weather_path: &str,
+    weather_bytes: &[u8],
+) -> Result<(Environment, SoundingProfile), RealFlightError> {
+    let input = |what: String| RealFlightError::Input {
+        flight: flight.id.to_owned(),
+        what,
+    };
+    let sim = |source: SimError| RealFlightError::Sim {
+        flight: flight.id.to_owned(),
+        source,
+    };
+    let file =
+        NetCdf::parse(weather_bytes).map_err(|error| input(format!("{weather_path}: {error}")))?;
+    let (year, month, day, hour) = flight.utc;
+    let time = UtcTime::from_civil(year, month, day, hour, 0, 0.0)
+        .map_err(|error| input(error.to_string()))?;
+    let (latitude_deg, longitude_deg, elevation_m) = flight.site;
+    let profile = Era5Profile::read(
+        &file,
+        Era5Request {
+            latitude_deg,
+            longitude_deg,
+            time,
+        },
+    )
+    .map_err(|error| input(format!("{weather_path}: {error}")))?;
+    let sounding = profile
+        .sounding(WindInterpolation::Components)
+        .map_err(|error| input(format!("{weather_path}: {error}")))?;
+    let wind = sounding
+        .wind()
+        .ok_or_else(|| input(format!("{weather_path} gives no wind")))?
+        .clone();
+    let site = Geodetic::from_degrees(latitude_deg, longitude_deg, elevation_m)
+        .map_err(|error| sim(error.into()))?;
+    let earth = Earth::wgs84(site).map_err(|error| sim(error.into()))?;
+    let weather = sounding.clone();
+    Ok((Environment::new(earth, sounding, wind), weather))
+}
+
+/// The flight's rail.
+pub fn rail_of(flight: &RealFlight) -> Rail {
+    let (length_m, inclination_deg, heading_deg) = flight.rail;
+    Rail {
+        length_m,
+        azimuth_rad: heading_deg.to_radians(),
+        elevation_rad: inclination_deg.to_radians(),
+        roll_rad: 0.0,
+        friction_coefficient: 0.0,
+    }
 }
 
 /// Flies one flight and compares it with its log.
@@ -1384,31 +1389,8 @@ pub fn fly(root: &Path, flight: &RealFlight) -> Result<FlightRow, RealFlightErro
     let design_bytes = read(design_path.clone(), "reading a design")?;
     let design: Value = serde_json::from_slice(&design_bytes)
         .map_err(|error| input(format!("{design_path}: {error}")))?;
-    let with_thrust = |curve: &[(f64, f64)]| -> Result<Rocket, RealFlightError> {
-        let mut design = design.clone();
-        let motor = design
-            .pointer_mut("/configurations/0/motors/0")
-            .and_then(Value::as_object_mut)
-            .ok_or_else(|| input(format!("{design_path} has no motor")))?;
-        let (times, thrusts): (Vec<f64>, Vec<f64>) = curve.iter().copied().unzip();
-        motor.insert(
-            "designation".to_owned(),
-            Value::String(format!(
-                "RocketPy's {}",
-                thrust_path.rsplit('/').next().unwrap_or("")
-            )),
-        );
-        motor
-            .get_mut("motor")
-            .and_then(Value::as_object_mut)
-            .ok_or_else(|| input(format!("{design_path}'s motor has no inputs")))?
-            .insert(
-                "curve".to_owned(),
-                serde_json::json!({ "times_s": times, "thrusts_n": thrusts }),
-            );
-        serde_json::from_value(design)
-            .map_err(|error| input(format!("{design_path} with a thrust file's curve: {error}")))
-    };
+    let with_thrust =
+        |curve: &[(f64, f64)]| rocket_on_curve(flight, &design, &design_path, &thrust_path, curve);
     let rocket = with_thrust(&curve)?;
     // Where the example reshapes its thrust file, the file as recorded, for the diagnostic.
     let recorded = match reshape {
@@ -1428,42 +1410,10 @@ pub fn fly(root: &Path, flight: &RealFlight) -> Result<FlightRow, RealFlightErro
     // The weather.
     let weather_path = format!("{ROCKETPY}/data/weather/{}", flight.weather);
     let weather_bytes = read(weather_path.clone(), "reading an ERA5 file")?;
-    let file =
-        NetCdf::parse(&weather_bytes).map_err(|error| input(format!("{weather_path}: {error}")))?;
     let (year, month, day, hour) = flight.utc;
-    let time = UtcTime::from_civil(year, month, day, hour, 0, 0.0)
-        .map_err(|error| input(error.to_string()))?;
-    let (latitude_deg, longitude_deg, elevation_m) = flight.site;
-    let profile = Era5Profile::read(
-        &file,
-        Era5Request {
-            latitude_deg,
-            longitude_deg,
-            time,
-        },
-    )
-    .map_err(|error| input(format!("{weather_path}: {error}")))?;
-    let sounding = profile
-        .sounding(WindInterpolation::Components)
-        .map_err(|error| input(format!("{weather_path}: {error}")))?;
-    let wind = sounding
-        .wind()
-        .ok_or_else(|| input(format!("{weather_path} gives no wind")))?
-        .clone();
-
-    let site = Geodetic::from_degrees(latitude_deg, longitude_deg, elevation_m)
-        .map_err(|error| sim(error.into()))?;
-    let earth = Earth::wgs84(site).map_err(|error| sim(error.into()))?;
-    let weather = sounding.clone();
-    let environment = Environment::new(earth, sounding, wind);
-    let (length_m, inclination_deg, heading_deg) = flight.rail;
-    let rail = Rail {
-        length_m,
-        azimuth_rad: heading_deg.to_radians(),
-        elevation_rad: inclination_deg.to_radians(),
-        roll_rad: 0.0,
-        friction_coefficient: 0.0,
-    };
+    let (environment, weather) = launch_day(flight, &weather_path, &weather_bytes)?;
+    let (_, _, elevation_m) = flight.site;
+    let rail = rail_of(flight);
     let settings = FlightSettings {
         max_time_s: log_apogee_s + PAST_APOGEE_S,
         ..FlightSettings::default()
@@ -2255,6 +2205,8 @@ fn fmt_signed(value: f64, decimals: usize) -> String {
 
 #[cfg(test)]
 mod tests {
+    use hpr_atmos::Ussa76;
+
     use super::*;
 
     const ENG: &str = "; a comment\nK1 54 579 6 1.4 2.2 AT\n 0.1 100 ; peak\n 0.5 50\n 1.0 0\n";

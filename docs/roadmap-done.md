@@ -367,6 +367,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.2e4 The intervals in `hpr analyze` and Python ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.2f Two recordings, stages ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.2g Ghost files ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.3a Residuals ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1935,6 +1936,12 @@ One line per milestone or increment, in the order it was archived within its pha
     offset recovered on synthetic pairs; stages on one; RocketPy's pair read.
   - [x] **M7.2g Ghost files.** *Done when:* JSON (schema), CZML, glTF, read back by outside readers,
     from each RocketPy flight log with an altitude or GNSS track.
+- **M7.3** is open; its entry: [roadmap](ROADMAP.md#phase-5-flight-data-and-forensics).
+  - [x] **M7.3a Residuals.** *Done when:* `hpr compare` prints, for a real flight's log against a simulation
+    of it, the height's and speed's residuals, logged less simulated, by phase, and each reading beside the
+    simulation's read by the same reader, the log's keeping its provenance; a committed report gives the 7
+    public flights' residuals, reproducing under `cargo xtask real-flights --check`; tests pin the sign, the
+    barometer's reading and refusals.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

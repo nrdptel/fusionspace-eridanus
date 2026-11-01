@@ -1,0 +1,630 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Compare",
+  "description": "`hpr compare`, as JSON: a log against a simulation of it, each residual logged less simulated.",
+  "type": "object",
+  "properties": {
+    "clock_bound_s": {
+      "description": "How well the two clocks are lined up, s.",
+      "type": "number",
+      "format": "double"
+    },
+    "configuration": {
+      "description": "The configuration flown.",
+      "type": "string"
+    },
+    "design": {
+      "description": "The design's file.",
+      "type": "string"
+    },
+    "height_m": {
+      "description": "The log's samples less the simulated height, m above the pad.",
+      "$ref": "#/$defs/CompareResiduals"
+    },
+    "height_read_as": {
+      "description": "What the log's height stands for, and so how the simulation's is read.",
+      "$ref": "#/$defs/HeightReadAs"
+    },
+    "kind": {
+      "description": "What kind of result this is: a measurement set against a model.",
+      "$ref": "#/$defs/Kind"
+    },
+    "log": {
+      "description": "The log, as given.",
+      "type": "string"
+    },
+    "log_liftoff_s": {
+      "description": "The log's liftoff, s on its own clock.",
+      "type": "number",
+      "format": "double"
+    },
+    "logger": {
+      "description": "The logger, as the log names it.",
+      "type": "string"
+    },
+    "method": {
+      "description": "How the clocks were lined up: `shared liftoff`.",
+      "type": "string"
+    },
+    "notes": {
+      "description": "What to bear in mind in reading them, as the text form's notes say.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "reaches_landing": {
+      "description": "Whether the residuals run to a landing read from the log, not just to the log's end.",
+      "type": "boolean"
+    },
+    "rows": {
+      "description": "Each reading beside the simulation's.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/CompareRow"
+      }
+    },
+    "simulated_interval_s": {
+      "description": "The sample interval the simulation was read at, s: the log's, up to the reader's coarsest.",
+      "type": "number",
+      "format": "double"
+    },
+    "simulated_liftoff_s": {
+      "description": "The simulated liftoff, as the same reader finds it, s after ignition.",
+      "type": "number",
+      "format": "double"
+    },
+    "speed_m_s": {
+      "description": "The smoother's vertical speed less the simulated, m/s, up; or why it is withheld.",
+      "$ref": "#/$defs/CompareSpeed"
+    },
+    "tool": {
+      "title": "Tool",
+      "description": "The program that wrote a document or a file: the title block every `--json` document, every\nfile `hpr` writes and `hpr --version` carry (ADR-164; the product system's `data.md`: \"Every\nexport carries the designation and version of the tool that made it\").",
+      "type": "object",
+      "properties": {
+        "designation": {
+          "description": "Its designation in the FusionSpace product system: `FS-ACHERNAR · SW · TOOL 001`.",
+          "type": "string"
+        },
+        "name": {
+          "description": "The program: `FusionSpace HPR`.",
+          "type": "string"
+        },
+        "version": {
+          "description": "Its version, such as `0.1.0`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "designation"
+      ]
+    },
+    "trust": {
+      "description": "The trust note the text form ends with.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "tool",
+    "kind",
+    "trust",
+    "log",
+    "logger",
+    "design",
+    "configuration",
+    "method",
+    "height_read_as",
+    "log_liftoff_s",
+    "simulated_liftoff_s",
+    "clock_bound_s",
+    "simulated_interval_s",
+    "reaches_landing",
+    "height_m",
+    "speed_m_s",
+    "rows",
+    "notes"
+  ],
+  "$defs": {
+    "ComparePhase": {
+      "description": "How a phase's residuals fall.",
+      "type": "object",
+      "properties": {
+        "end_s": {
+          "description": "When it ends, s after the log's liftoff.",
+          "type": "number",
+          "format": "double"
+        },
+        "largest": {
+          "description": "The residual of largest size, with its sign.",
+          "type": "number",
+          "format": "double"
+        },
+        "largest_at_s": {
+          "description": "When that residual falls, s after the log's liftoff.",
+          "type": "number",
+          "format": "double"
+        },
+        "mean": {
+          "description": "The mean residual, with its sign.",
+          "type": "number",
+          "format": "double"
+        },
+        "phase": {
+          "description": "Which part of the flight.",
+          "$ref": "#/$defs/ResidualPhase"
+        },
+        "rms": {
+          "description": "The root mean square residual.",
+          "type": "number",
+          "format": "double"
+        },
+        "samples": {
+          "description": "How many samples it compares.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "start_s": {
+          "description": "When it starts, s after the log's liftoff.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "phase",
+        "start_s",
+        "end_s",
+        "samples",
+        "mean",
+        "rms",
+        "largest",
+        "largest_at_s"
+      ]
+    },
+    "ComparePoint": {
+      "description": "One sample's residual.",
+      "type": "object",
+      "properties": {
+        "logged": {
+          "description": "The log's value.",
+          "type": "number",
+          "format": "double"
+        },
+        "logged_sd": {
+          "description": "The log's standard error on it; null for a raw sample, which states none.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "residual": {
+          "description": "Logged less simulated.",
+          "type": "number",
+          "format": "double"
+        },
+        "simulated": {
+          "description": "The simulation's value, read as the log's sensor would read it.",
+          "type": "number",
+          "format": "double"
+        },
+        "time_after_liftoff_s": {
+          "description": "When it falls, s after the log's liftoff.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "time_after_liftoff_s",
+        "logged",
+        "simulated",
+        "residual"
+      ]
+    },
+    "CompareResiduals": {
+      "description": "One quantity's residuals, from liftoff to the log's landing or its end.",
+      "type": "object",
+      "properties": {
+        "past_simulation": {
+          "description": "The log's samples after the simulated flight had ended: compared with nothing.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "phases": {
+          "description": "How they fall, by phase.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ComparePhase"
+          }
+        },
+        "points": {
+          "description": "Each sample's.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ComparePoint"
+          }
+        }
+      },
+      "required": [
+        "phases",
+        "past_simulation",
+        "points"
+      ]
+    },
+    "CompareRow": {
+      "description": "One reading beside the simulation's.",
+      "type": "object",
+      "properties": {
+        "logged": {
+          "description": "The log's, with its bound, 90% interval, source and provenance.",
+          "$ref": "#/$defs/TimelineCell"
+        },
+        "logged_minus_simulated": {
+          "description": "Logged less simulated; null if either is withheld or is a floor.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "simulated": {
+          "description": "The same reader's reading of the simulated flight: no source or provenance, as it wasn't\nmeasured.",
+          "$ref": "#/$defs/TimelineCell"
+        },
+        "what": {
+          "description": "Which reading.",
+          "$ref": "#/$defs/TimelineWhat"
+        }
+      },
+      "required": [
+        "what",
+        "logged",
+        "simulated"
+      ]
+    },
+    "CompareSpeed": {
+      "description": "The speed's residuals, which need the smoother.",
+      "oneOf": [
+        {
+          "description": "The smoother's speed less the simulated.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "read"
+            }
+          },
+          "$ref": "#/$defs/CompareResiduals",
+          "required": [
+            "status"
+          ]
+        },
+        {
+          "description": "Why the smoother gives no speed.",
+          "type": "object",
+          "properties": {
+            "detail": {
+              "description": "The reason in words, with the log's own numbers.",
+              "type": "string"
+            },
+            "status": {
+              "type": "string",
+              "const": "withheld"
+            }
+          },
+          "required": [
+            "status",
+            "detail"
+          ]
+        }
+      ]
+    },
+    "HeightReadAs": {
+      "description": "What a log's height stands for.",
+      "oneOf": [
+        {
+          "description": "A barometer's reading: the standard atmosphere's altitude of the pressure, less the pad's.",
+          "type": "string",
+          "const": "barometer"
+        },
+        {
+          "description": "A height climbed: a GNSS receiver's, or the accelerometer's integral.",
+          "type": "string",
+          "const": "height_climbed"
+        }
+      ]
+    },
+    "Kind": {
+      "description": "What kind of result a command printed: the kind every figure in it is.",
+      "oneOf": [
+        {
+          "description": "From a model of the flight, not measured.",
+          "type": "string",
+          "const": "simulated"
+        },
+        {
+          "description": "Measured: an altimeter's log, or a weather balloon's sounding.",
+          "type": "string",
+          "const": "measured"
+        },
+        {
+          "description": "A weather model's forecast.",
+          "type": "string",
+          "const": "forecast"
+        },
+        {
+          "description": "A reanalysis: a weather model's fit to past observations, such as ERA5.",
+          "type": "string",
+          "const": "reanalysis"
+        },
+        {
+          "description": "Copied from a data file, such as a motor's curve file, or computed from it.",
+          "type": "string",
+          "const": "copied"
+        },
+        {
+          "description": "A measurement set against a model: a log against a simulation of it.",
+          "type": "string",
+          "const": "compared"
+        }
+      ]
+    },
+    "ReadingInterval": {
+      "description": "A reading's 90% interval: on the synthetic flights, the truth lay below `low` about 5% of the\ntime and above `high` about 5% (`hpr_flightdata::readings::interval`).",
+      "type": "object",
+      "properties": {
+        "high": {
+          "description": "Its upper end, in the reading's unit.",
+          "type": "number",
+          "format": "double"
+        },
+        "low": {
+          "description": "Its lower end, in the reading's unit.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "low",
+        "high"
+      ]
+    },
+    "ReadingProvenance": {
+      "description": "Whether a reading was measured on the track, derived from it, or clipped by it.",
+      "oneOf": [
+        {
+          "description": "A time or height read off the filtered track.",
+          "type": "string",
+          "const": "measured"
+        },
+        {
+          "description": "Worked out from the track, such as a speed from its slope.",
+          "type": "string",
+          "const": "derived"
+        },
+        {
+          "description": "Measured, but at the sensor's range, so the true value may lie beyond it.",
+          "type": "string",
+          "const": "clipped"
+        },
+        {
+          "description": "A provenance this build of `hpr` doesn't name.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
+    "ReadingSource": {
+      "description": "The height track a reading came from.",
+      "oneOf": [
+        {
+          "description": "The logger's own barometric altitude, the record's primary track.",
+          "type": "string",
+          "const": "barometer"
+        },
+        {
+          "description": "A pressure channel, turned into a height by the 1976 standard atmosphere.",
+          "type": "string",
+          "const": "pressure"
+        },
+        {
+          "description": "A barometric altitude kept in a channel, above the pad or above sea level.",
+          "type": "string",
+          "const": "altitude_channel"
+        },
+        {
+          "description": "A GNSS receiver's altitude: no reading is taken from it.",
+          "type": "string",
+          "const": "gnss"
+        },
+        {
+          "description": "The accelerometer along the rocket's axis.",
+          "type": "string",
+          "const": "accelerometer"
+        },
+        {
+          "description": "A source this build of `hpr` doesn't name.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
+    "ResidualPhase": {
+      "description": "A part of the flight, on the log's readings.",
+      "oneOf": [
+        {
+          "description": "Liftoff to the log's burnout.",
+          "type": "string",
+          "const": "boost"
+        },
+        {
+          "description": "The log's burnout to its apogee.",
+          "type": "string",
+          "const": "coast"
+        },
+        {
+          "description": "Liftoff to the log's apogee, where its burnout isn't read.",
+          "type": "string",
+          "const": "ascent"
+        },
+        {
+          "description": "The log's apogee to its landing, or its end.",
+          "type": "string",
+          "const": "descent"
+        },
+        {
+          "description": "The whole log after liftoff, where its apogee isn't read whole.",
+          "type": "string",
+          "const": "flight"
+        }
+      ]
+    },
+    "TimelineCell": {
+      "description": "One log's cell in a row.",
+      "oneOf": [
+        {
+          "description": "What the log read.",
+          "type": "object",
+          "properties": {
+            "bound": {
+              "description": "The bound on its error; null where the reading states none.",
+              "type": [
+                "number",
+                "null"
+              ],
+              "format": "double"
+            },
+            "interval": {
+              "description": "Its 90% interval; null where the log's own section holds it.",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ReadingInterval"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "is_floor": {
+              "description": "Whether the true value may lie any amount above it.",
+              "type": "boolean"
+            },
+            "provenance": {
+              "description": "Measured, derived or clipped; null for the smoother's fused apogee.",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ReadingProvenance"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "source": {
+              "description": "The track it came from; null for the smoother's fused apogee.",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ReadingSource"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "status": {
+              "type": "string",
+              "const": "read"
+            },
+            "value": {
+              "description": "The reading.",
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "required": [
+            "status",
+            "value",
+            "is_floor"
+          ]
+        },
+        {
+          "description": "Why it read nothing.",
+          "type": "object",
+          "properties": {
+            "detail": {
+              "description": "The reason in words, with the log's own numbers.",
+              "type": "string"
+            },
+            "status": {
+              "type": "string",
+              "const": "withheld"
+            }
+          },
+          "required": [
+            "status",
+            "detail"
+          ]
+        }
+      ]
+    },
+    "TimelineWhat": {
+      "description": "A reading on a timeline. Heights are m above each log's own pad, speeds m/s, accelerations\nm/s², times s after each log's liftoff.",
+      "oneOf": [
+        {
+          "description": "Apogee's height.",
+          "type": "string",
+          "const": "apogee_height"
+        },
+        {
+          "description": "Apogee's time.",
+          "type": "string",
+          "const": "apogee_time"
+        },
+        {
+          "description": "The smoother's apogee height.",
+          "type": "string",
+          "const": "smoothed_apogee"
+        },
+        {
+          "description": "The top vertical speed.",
+          "type": "string",
+          "const": "top_speed"
+        },
+        {
+          "description": "The top acceleration.",
+          "type": "string",
+          "const": "top_acceleration"
+        },
+        {
+          "description": "Burnout.",
+          "type": "string",
+          "const": "burnout"
+        },
+        {
+          "description": "The flight time, liftoff to landing.",
+          "type": "string",
+          "const": "flight_time"
+        },
+        {
+          "description": "The rate of descent under the drogue.",
+          "type": "string",
+          "const": "drogue_rate"
+        },
+        {
+          "description": "The main's opening's height.",
+          "type": "string",
+          "const": "main_opening"
+        },
+        {
+          "description": "The rate of descent under the main.",
+          "type": "string",
+          "const": "main_rate"
+        }
+      ]
+    }
+  }
+}

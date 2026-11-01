@@ -53,6 +53,8 @@ pub enum Kind {
     Reanalysis,
     /// Copied from a data file, such as a motor's curve file, or computed from it.
     Copied,
+    /// A measurement set against a model: a log against a simulation of it.
+    Compared,
 }
 
 /// The note's second and third parts: what the apogee was checked against, with the report's
@@ -182,6 +184,20 @@ pub(crate) fn logs_together() -> String {
          that the logs are of one flight is your word, not checked. {} For a record or a \
          certification, the altimeter's own reading is the one to log, and the RSO \
          decides.{MORE}{SITE}reading-a-flight-log.html",
+        readings_checked()
+    )
+}
+
+/// `hpr compare`'s note: residuals, and what they can't say.
+pub(crate) fn compared() -> String {
+    format!(
+        "{LABEL} A log, measured, against a simulation of it, on the inputs you gave. A residual \
+         is the logged value less the simulated one, the sum of what the logger, the simulation \
+         and the lining up of their clocks each got wrong: it can't tell them apart, and it says \
+         neither is right. The \
+         simulated numbers state no error here. {} For a record or a certification, the \
+         altimeter's own reading is the one to log, and the RSO decides.{MORE}{SITE}\
+         comparing-a-flight.html",
         readings_checked()
     )
 }

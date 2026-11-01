@@ -190,6 +190,11 @@
           "description": "Copied from a data file, such as a motor's curve file, or computed from it.",
           "type": "string",
           "const": "copied"
+        },
+        {
+          "description": "A measurement set against a model: a log against a simulation of it.",
+          "type": "string",
+          "const": "compared"
         }
       ]
     },

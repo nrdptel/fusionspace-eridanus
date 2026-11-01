@@ -2702,6 +2702,8 @@ fn the_validated_range_is_the_fastest_public_reference() {
         "synthetic-flights.json",
         // Clock offsets between two logs: no Mach number in it.
         "two-logs.json",
+        // Residuals against the flights `real-flights.json` already holds: no Mach number in it.
+        "flight-residuals.json",
     ];
     // Only committed files: `latest-fast.json` is a local partial run, never committed.
     let listed = std::process::Command::new("git")

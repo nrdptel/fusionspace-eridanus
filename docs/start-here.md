@@ -66,7 +66,8 @@ and how likely each goal is:
   ([release 0.1](decisions-and-roadmap.md#m10-1)). It shipped with its known limits listed. Among
   them is drag that reads high above Mach 0.8, so the apogee there reads low.
 - 0.2, the flight analyzer: it reads the common altimeters' logs on their own, with no design
-  file. Then it compares a log with its simulation and fits the rocket's drag from it.
+  file. Then it compares a log with its simulation, which works today, and fits the rocket's
+  drag from it, which is still to come.
 - 0.3, accuracy and diagnosis: the simulator measured against logged flights and improved, and a
   flight's likely faults ranked from its log.
 - 0.4, the competition kit: rules presets for Student Launch, IREC and others, and an optimizer.
@@ -235,6 +236,10 @@ four moments of each synthetic flight with a barometer, the three sets' interval
 and 99.4% of the truths, and two logger cells 89.2% and 89.7%, which the check allows. Those sets
 were seen while its rules were set. It isn't yet checked against a real flight's ([The
 smoother](physics/smoother.md)).
+
+`hpr compare` sets a log against a simulation of it: how far the logged height and speed lie from the
+simulated, phase by phase, and each reading beside the simulation's, read the same way
+([Comparing a flight with its simulation](comparing-a-flight.md)). It reports the gap and fits nothing yet.
 
 The library reads each format into one record, every column kept on its own clock. The formats
 come from PerfectFlite ([`.pf2` files](format/pf2.md)), AltOS, Featherweight's Raven and Blue Raven, Missile Works' RRC3 and RTx,
@@ -555,7 +560,8 @@ These are left out of a flight, or approximated:
   and [club layouts](decisions-and-roadmap.md#m7-1c3) followed. Every sample log in a layout HPR
   Sim knows is read. The formats with no sample, such as CATS's, are
   [listed as needing samples](format/flight-logs.md#formats-that-need-samples)
-  ([the register's row on these formats](evidence.md#g9)). Comparing a flight with a simulation of it is planned
+  ([the register's row on these formats](evidence.md#g9)). `hpr compare` sets a log against a simulation of it,
+  and fitting drag and impulse to the log is planned
   ([a flight against its simulation](decisions-and-roadmap.md#m7-3)).
 
 <a id="how-far-to-trust-it"></a>

@@ -23,7 +23,7 @@
 //! [adr-276]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0276-the-2026-10-16-own-loggers-and-gpx-in-the-analyzer.md
 
 mod ghost;
-mod together;
+pub(crate) mod together;
 
 use std::path::Path;
 
@@ -225,7 +225,7 @@ fn read_description<T>(
 
 /// Reads the flight log: by the mapping, the layout or the FIP header given, or else by its
 /// format's own reader, a workbook's sheet or a dump's recording as chosen.
-fn read_log(args: &AnalyzeArgs) -> Result<FlightLog, Failure> {
+pub(crate) fn read_log(args: &AnalyzeArgs) -> Result<FlightLog, Failure> {
     let path = args.log.as_str();
     if let Some(file) = &args.mapping {
         let mapping = read_description(file, custom::mapping_from_json, MAPPING_SCHEMA)?;

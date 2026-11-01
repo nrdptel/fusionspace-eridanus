@@ -104,6 +104,13 @@ pub fn availability(name: &str) -> Option<Availability> {
                 "a ghost file as `.json`, `.czml` or `.gltf`".to_owned(),
             ],
         }),
+        "compare" => Some(Availability::Available {
+            reads: vec![
+                "a flight log, as `hpr analyze` reads it".to_owned(),
+                "a design, its motor and the launch, as `hpr sim` reads them".to_owned(),
+            ],
+            writes: text_or_json(),
+        }),
         "weather" => Some(Availability::Available {
             reads: vec![
                 "Open-Meteo, a University of Wyoming sounding, GFS or RAP, fetched or saved, a whole GFS file"
@@ -128,11 +135,7 @@ pub fn availability(name: &str) -> Option<Availability> {
 }
 
 /// The commands registered before their milestone, each with the milestone that brings it.
-pub const PLANNED: [(&str, &str); 3] = [
-    ("optimize", "M6.3"),
-    ("compare", "M7.3"),
-    ("diagnose", "M7.4"),
-];
+pub const PLANNED: [(&str, &str); 2] = [("optimize", "M6.3"), ("diagnose", "M7.4")];
 
 /// The shells `hpr completions` writes for: `bash, elvish, fish, powershell or zsh`.
 fn shells() -> String {
@@ -347,7 +350,7 @@ mod tests {
         }
         let readme = command_table(Links::Readme);
         assert!(readme.contains("(https://hpr.fusionspace.co/cli.html#hpr-motors)"));
-        assert!(readme.contains("(https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-3)"));
+        assert!(readme.contains("(https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-4)"));
     }
 
     #[test]

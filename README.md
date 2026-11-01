@@ -63,8 +63,8 @@ European Commission nor ECMWF is responsible for any use made of it.
 
 ## What doesn't work yet
 
-- Comparing a flight log with its simulation, or diagnosing what went wrong in a flight:
-  `hpr compare` and `hpr diagnose` refuse for now. Searching a design from the command line
+- Fitting drag and impulse to a flight log has no command yet. Diagnosing what went wrong in
+  a flight (`hpr diagnose`) refuses for now. Searching a design from the command line
   (`hpr optimize`) refuses too.
 - RockSim, RASAero and RocketPy files; C and WebAssembly interfaces; a desktop, web or mobile app
   with 3D flight replay.
@@ -221,7 +221,7 @@ builds it.
 | `hpr weather` | Fetch a launch day's weather, or read a weather file, as a profile of air and wind | Open-Meteo, a University of Wyoming sounding, GFS or RAP, fetched or saved, a whole GFS file, an ERA5 `.nc` | text, JSON, a profile as `.json` | available ([how to use it](https://hpr.fusionspace.co/cli.html#hpr-weather)) |
 | `hpr mc` | Fly a design many times with its inputs scattered at random, and print how its apogee and landing spread; save every flight with `--export` | what `hpr sim` reads: a design and its motor | text, JSON, every flight's draw and outcome as `.csv` | available ([how to use it](https://hpr.fusionspace.co/cli.html#hpr-mc)) |
 | `hpr optimize` | Search a design's parameters for a goal | - | - | not yet: [M6.3](https://hpr.fusionspace.co/decisions-and-roadmap.html#m6-3) |
-| `hpr compare` | Compare a flight log with its simulation | - | - | not yet: [M7.3](https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-3) |
+| `hpr compare` | Set a flight log against a simulation of it: how far the logged height and speed lie from the simulated, and each reading beside the simulation's | a flight log, as `hpr analyze` reads it, a design, its motor and the launch, as `hpr sim` reads them | text, JSON | available ([how to use it](https://hpr.fusionspace.co/cli.html#hpr-compare)) |
 | `hpr analyze` | Read a flight log and print its readings, with no design file | a flight log in any layout HPR Sim reads, by its own reader, more logs of one flight, side by side on one timeline, a workbook's sheet or a raw dump's recording, as chosen, another logger's table by a column mapping, binary records or a console capture by a record layout, a Raven FIP export below no header, by the header stated | text, JSON, a ghost file as `.json`, `.czml` or `.gltf` | available ([how to use it](https://hpr.fusionspace.co/cli.html#hpr-analyze)) |
 | `hpr diagnose` | Diagnose what went wrong in a flight from its log | - | - | not yet: [M7.4](https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-4) |
 | `hpr completions` | Print a shell completion script for `hpr` | - | a bash, elvish, fish, powershell or zsh script, JSON | available ([how to use it](https://hpr.fusionspace.co/cli.html#hpr-completions)) |

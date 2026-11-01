@@ -391,10 +391,10 @@ fn rail(draw: &Draw) -> Rail {
 }
 
 /// Keeps a flight's states every [`TRUTH_STEP_S`] and at each event.
-#[derive(Default)]
-struct Grid {
+#[derive(Debug, Default)]
+pub(crate) struct Grid {
     next: u64,
-    samples: Vec<Sample>,
+    pub(crate) samples: Vec<Sample>,
     /// Each separated body's truth, by body, every [`TRUTH_STEP_S`] from its start.
     bodies: BTreeMap<usize, Vec<BodyPoint>>,
 }
@@ -449,7 +449,10 @@ struct BodyPoint {
 }
 
 /// One sample's truth.
-fn truth_sample(environment: &Environment, sample: &Sample) -> Result<TruthSample, SimError> {
+pub(crate) fn truth_sample(
+    environment: &Environment,
+    sample: &Sample,
+) -> Result<TruthSample, SimError> {
     let a = sample.acceleration_enu_m_s2;
     let gravity = environment
         .earth
