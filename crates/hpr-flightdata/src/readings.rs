@@ -21,7 +21,9 @@
 //!
 //! - the **climb** is the first filtered sample twice [`LIFTOFF_ALLOWANCE_M`] and the track's step
 //!   above where the log starts: the allowance is the most the pad's noise lifts the filtered
-//!   track, from below at the start or from above at the climb;
+//!   track, from below at the start or from above at the climb. Where the filtered track falls more
+//!   than that within a window of the log's first sample, the first samples are bad, and the log
+//!   starts for the readings at the window's lowest;
 //! - the **pad** is the median of the samples to the last within half that of the start before
 //!   the climb. A rocket that leaves the pad at [`LIFTOFF_ACCELERATION_M_S2`] or more, moving at
 //!   `v` when the log starts, climbs `v t + A t²/2` while the track stays near its start, so its
@@ -1169,26 +1171,43 @@ fn heights(log: &FlightLog) -> Readings {
     let Some(apogee_index) = arg_max(&filtered) else {
         return no_climb(readings, rise);
     };
-    let Some(climb) = filtered[..=apogee_index]
+    // Samples at the log's start that stand above what follows by more than the rise, which the
+    // pad's noise doesn't reach and no climb does, are bad: a rocket doesn't fall from the log's
+    // first samples and then climb (#1076). The log starts for the readings at the lowest
+    // filtered height within a window of its start, or they would take those samples for the pad.
+    let head = filtered
+        .iter()
+        .take(2 * half + 1)
+        .enumerate()
+        .filter(|(_, h)| h.is_finite())
+        .fold(None, |least: Option<(usize, f64)>, (index, h)| match least {
+            Some((_, low)) if low <= *h => least,
+            _ => Some((index, *h)),
+        })
+        .filter(|(_, low)| *low < start - rise)
+        .map_or(0, |(index, _)| index);
+    let start = filtered[head];
+    let Some(climb) = filtered[head..=apogee_index.max(head)]
         .iter()
         .position(|h| *h >= start + rise)
+        .map(|index| index + head)
     else {
         return no_climb(readings, rise);
     };
     // The pad: the median of the samples to the last within half the rise of the start before
     // the climb, the allowance and a step, so that the pad's noise doesn't end it early and the
     // climb lends it few samples.
-    let on_pad = filtered[..climb]
+    let on_pad = filtered[head..climb]
         .iter()
         .rposition(|h| *h <= start + 0.5 * rise)
-        .map_or(1, |last| last + 1);
+        .map_or(head + 1, |last| head + last + 1);
     // How high the rocket may already be when the log starts. The track stays within half the
     // rise of its start for `stay_s`; a rocket that left the pad at [`LIFTOFF_ACCELERATION_M_S2`]
     // or more, moving at `v` at the start, climbs `v t + A t²/2` in that time, no more than the
     // rise with the noise at either end, so `v ≤ (rise − A stay²/2)/stay`, and it had climbed
     // `v²/(2A)`. A log that may start further up than the allowance has no pad to tell liftoff by:
     // a logger that records from launch writes its zero, then climbs.
-    let stay_s = time[on_pad - 1] - time[0];
+    let stay_s = time[on_pad - 1] - time[head];
     let start_speed = if stay_s > 0.0 {
         ((rise - 0.5 * LIFTOFF_ACCELERATION_M_S2 * stay_s * stay_s) / stay_s).max(0.0)
     } else {
@@ -1199,14 +1218,13 @@ fn heights(log: &FlightLog) -> Readings {
     // With no pad, the log's first sample stands for it: the zero a logger that records from
     // launch writes first, or the climb's first height in one that writes none.
     let measured_pad = if short_pad {
-        track
-            .height_m
+        track.height_m[head..]
             .iter()
             .copied()
             .find(|h| h.is_finite())
             .unwrap_or(start)
     } else {
-        let mut before: Vec<f64> = track.height_m[..on_pad]
+        let mut before: Vec<f64> = track.height_m[head..on_pad]
             .iter()
             .copied()
             .filter(|h| h.is_finite())
@@ -1288,7 +1306,7 @@ fn heights(log: &FlightLog) -> Readings {
     // its start.
     let level = pad + allowance;
     let on_the_pad = filtered[..apogee_index].iter().rposition(|h| *h <= level);
-    let first = on_the_pad.unwrap_or(0);
+    let first = on_the_pad.unwrap_or(head);
 
     // The track's step leaves the peak flat over a run of samples: the apogee is the run's
     // middle.
