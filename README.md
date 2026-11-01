@@ -63,8 +63,8 @@ European Commission nor ECMWF is responsible for any use made of it.
 
 ## What doesn't work yet
 
-- Fitting drag and impulse to a flight log, or diagnosing what went wrong in a flight:
-  `hpr diagnose` refuses for now. Searching a design from the command line
+- Fitting drag and impulse to a flight log has no command yet. Diagnosing what went wrong in
+  a flight (`hpr diagnose`) refuses for now. Searching a design from the command line
   (`hpr optimize`) refuses too.
 - RockSim, RASAero and RocketPy files; C and WebAssembly interfaces; a desktop, web or mobile app
   with 3D flight replay.

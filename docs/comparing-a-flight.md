@@ -115,23 +115,25 @@ descent where the log's burnout can't be read whole; or one flight where its apo
 - the **largest**, with its sign and when it fell, which shows a single bad moment.
 
 Here is a real one: Bella Lui's 2020 flight, from [the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/flight-residuals.md). Its ascent's height residual has a
-mean of −0.2 m (−0.66 ft) and an RMS of 3.2 m (10 ft). Its descent's mean is −9.0 m (−30 ft) and its RMS
+mean of −0.2 m (−0.6 ft) and an RMS of 3.2 m (10 ft). Its descent's mean is −9.0 m (−29 ft) and its RMS
 10.3 m (34 ft). So the simulation climbed with the log and then fell a little more slowly than it.
 
 ## How the two are made comparable
 
 A logged height and a simulated one aren't the same quantity, so the simulation is read the way the log is.
-HPR Sim writes the simulated flight as a noise-free log, at the real log's sample interval, and hands it to
+HPR Sim writes the simulated flight as a noise-free log, at the real log's sample interval (held between
+0.01 and 2 s), and hands it to
 the same reader. Three things follow.
 
 - **The height.** A barometric logger reads the [standard atmosphere](glossary.md)'s altitude of the pressure
   around it, so on a warm day it reads low. The simulated height is turned into what that barometer would read
-  in the air you gave the simulation. A log's main altitude, or a column you map, is taken as a barometer's. If
-  it is a GPS receiver's, give `--height-reads height-climbed`. A log holding only a GPS channel is refused, as
+  in the air you gave the simulation. A log's main altitude, or a column you map as a pressure or an altitude
+  above ground or sea level, is taken as a barometer's. If it is a GPS receiver's, give `--height-reads height-climbed`. A log holding only a GPS channel is refused, as
   its liftoff can't be read. The output says which reading it used.
 - **The readings.** Apogee, top speed and the rest come through the same filters on both sides. Each logged
   reading keeps its bound, its 90% interval and whether it was measured or derived, as
-  [`hpr analyze`](reading-a-flight-log.md) gives it. The simulated cell has none of these, as it wasn't measured.
+  [`hpr analyze`](reading-a-flight-log.md) gives it. The simulated cell has no interval or provenance, as it wasn't
+  measured. In `--json` it keeps a bound, which is only the reader's.
 - **The clocks.** A log's clock has no ignition on it, so the two line up by what the reader calls liftoff on
   each. The output gives the bound on that, from 1.32 to 3.21 s on [the public flights](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/flight-residuals.md). That is what the reader
   can promise of a liftoff, not a measured misalignment. On a log with coarse steps, the log's liftoff reads
@@ -146,7 +148,7 @@ read the log, the speed says why.
 
 - A log that reads no landing stops at its end, and says so. A log that outlasts the simulated flight counts
   those samples and compares them with nothing.
-- A design with no parachute falls ballistically after apogee, so a note says its descent means nothing.
+- A one-stage design with no parachute falls ballistically after apogee, so a note says its descent means nothing.
   `hpr sim` flies no recovery device from a rocket's `.json`; an `.ork` or `.hpr` flies its own.
 - On a staged flight the simulated track is the stack's, then the upper stage's, so a booster's log compares
   only up to the split.

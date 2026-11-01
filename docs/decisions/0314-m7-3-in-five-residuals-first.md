@@ -22,14 +22,17 @@ three into the residual.
 1. **The simulation is read as the log is.** `hpr_forensics::residuals` writes the simulated flight as a
    noise-free log at the real log's median sample interval, with its height as that log's sensor would read
    it and an axial accelerometer if that log has one. The same reader takes the same readings from it.
-   - The height stands for a barometer's reading, as a log's main altitude or a mapped column is taken to.
+   - The height stands for a barometer's reading, as a log's main altitude, or a column mapped as a pressure or an altitude above
+     ground or sea level, is taken to.
      The reader withholds a GNSS-only log's liftoff, so such a log is refused. A caller that knows the sensor
      from elsewhere can say so: `--height-reads height-climbed` on the command line, and `cargo xtask
      real-flights` uses the altimeter each public flight's record states.
    - The speed's residual is the smoother's speed less the rate at which that sensor's reading would change,
-     for the same reason. On a barometric log the smoother runs with any GNSS set aside: fused, its speed leaves
-     the barometer's scale, about 7% high on a day 20 K warm with no real difference in the flight.
-   - The simulated log's interval is the log's, up to the coarsest the reader takes, 2 s.
+     for the same reason. On a barometric log the smoother runs with any GNSS set aside: fused, its speed can leave
+     the barometer's scale, by up to about 7% on a day 20 K warm (the ratio of the temperatures), with no real
+     difference in the flight.
+   - The simulated log's interval is the log's, held between the truth's 0.01 s step and the coarsest the
+     reader takes, 2 s.
    - The clocks are lined up by the [shared liftoff][adr-312], the reader's liftoff on each. The bound on
      their offset is reported, and it is wide: 1.32 to 3.21 s on the 7 public flights, each rounded up. It is what the reader
      can promise of liftoff, not a measured misalignment.
