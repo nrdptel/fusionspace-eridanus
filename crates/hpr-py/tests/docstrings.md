@@ -291,12 +291,12 @@ Twelve readings state a 90% interval, ``low`` and ``high``: ``liftoff``, ``burno
 ``landing``, ``flight_time`` and the main's ``opening`` as ``interval_s``, ``max_speed`` and
 each descent as ``interval_m_s``, ``max_acceleration`` as ``interval_m_s2``, ``landing``'s
 mean rate as ``mean_descent_rate_interval_m_s``, and ``apogee``'s height and time as
-``height_interval_m`` and ``time_interval_s``. On a floor the apogee's, the burnout's and the
-top acceleration's are ``None``; a burnout floor then states ``lower_end_s``, and a clipped
+``height_interval_m`` and ``time_interval_s``. On a floor the apogee's, the top speed's, the
+burnout's and the top acceleration's are ``None``; a burnout floor then states ``lower_end_s``, and a clipped
 top acceleration ``lower_end_m_s2``.
 
-An apogee, a burnout and a top acceleration each say whether it's a floor (``is_floor``).
-A floor's true value is at least the value less its bound, and may be higher by any amount.
+An apogee, a top speed, a burnout and a top acceleration each say whether it's a floor
+(``is_floor``). A floor's true value is at least the value less its bound, and may be higher by any amount.
 A top acceleration also says why it is clipped (``clip``): ``"range"``, ``"flat"`` or
 ``None``.
 
@@ -322,7 +322,8 @@ its standard error, its 90% interval ± 1.645 of them. It holds ``liftoff`` and
 ``health["assumed_pad"]`` says the log held too little of the pad, as one written from
 launch does, and the track then stands on the logger's zero.
 ``health["apogee_past_reading_bound"]`` says the smoothed apogee passes the reading's bound:
-go by the reading.
+go by the reading. ``apogee_is_floor`` says the log ends on the climb, so the rocket may have
+gone higher.
 
 ### `FlightLog.stated`
 

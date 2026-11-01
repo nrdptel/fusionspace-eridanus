@@ -249,6 +249,8 @@ floor, its `clip` saying which ([The accelerometer](#the-accelerometer)). There 
 Liftoff is the last sample before the track shows the rocket climbing out of the pad's reach. So
 it comes after the true liftoff by the time that climb took.
 
+A log that ends on the climb gives its apogee and top speed as floors, with no interval.
+
 **A floor** holds one way only, and has up to three numbers. The reading is where the rule lands. For
 burnout without an accelerometer, that is the top speed's time, 2.20 s on the invented PerfectFlite flight
 below. The floor is that reading less its bound: 2.20 s less

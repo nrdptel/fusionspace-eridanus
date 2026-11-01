@@ -335,7 +335,12 @@ pub fn outcomes(flight: &Flight, log: &FlightLog) -> Vec<(Quantity, Outcome)> {
         (
             Quantity::TopSpeed,
             of(&read.max_speed, |s| {
-                given(s.speed_m_s - truth.top_speed().0, s.bound_m_s)
+                floor_or_given(
+                    s.is_floor,
+                    s.speed_m_s - truth.top_speed().0,
+                    s.bound_m_s,
+                    None,
+                )
             }),
         ),
         (

@@ -4681,6 +4681,46 @@ fn analyze_states_every_interval_and_the_health_card() {
 /// format HPR Sim reads, a zip archive, and a `.pf2` that goes wrong at a line.
 /// Two invented boards of one flight, their clocks 53.5 s apart.
 const FIRST_BOARD: &str = "validation/fixtures/logs/two-logs/first-board.csv";
+
+/// A log cut on the climb: the first half of the samples up to the peak (#1089). Its top speed and
+/// smoothed apogee state no interval and say why, as its apogee does.
+#[test]
+fn analyze_gives_a_log_cut_on_the_climb_floors_with_no_interval() {
+    let csv = std::fs::read_to_string(repo_file(FIRST_BOARD)).unwrap();
+    let rows: Vec<&str> = csv.lines().collect();
+    let height = |row: &str| -> f64 { row.split(',').nth(1).unwrap().parse().unwrap() };
+    let peak = (1..rows.len())
+        .max_by(|a, b| height(rows[*a]).total_cmp(&height(rows[*b])))
+        .unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("cut.csv");
+    std::fs::write(&path, rows[..peak / 2].join("\n") + "\n").unwrap();
+    let path = path.to_str().unwrap();
+
+    let document = json(&["analyze", path], 0, "analyze.schema.json");
+    assert_eq!(document["apogee"]["is_floor"], true, "{}", document["apogee"]);
+    let top = &document["max_speed"];
+    assert_eq!(top["status"], "read", "{top}");
+    assert_eq!(top["is_floor"], true, "{top}");
+    assert!(top["interval_m_s"].is_null(), "{top}");
+    let smoother = &document["smoother"];
+    assert_eq!(smoother["status"], "read", "{smoother}");
+    assert_eq!(smoother["apogee_is_floor"], true, "{smoother}");
+    assert!(smoother["apogee_height_interval_m"].is_null(), "{smoother}");
+
+    let printed = text_ok(&["analyze", path]);
+    for (row, said) in [
+        ("top speed", "may have gone faster"),
+        ("smoothed apogee", "may have gone higher"),
+    ] {
+        let line = printed
+            .lines()
+            .find(|line| line.starts_with(row))
+            .unwrap_or_default();
+        assert!(line.contains(said), "{row}: {said:?} in\n{printed}");
+        assert!(!line.contains("90% interval"), "{row}: {line}");
+    }
+}
 const SECOND_BOARD: &str = "validation/fixtures/logs/two-logs/second-board.csv";
 
 #[test]

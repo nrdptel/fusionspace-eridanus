@@ -656,8 +656,11 @@ pub struct MaxSpeed {
     /// cutting the peak, `(a₁ + a₂) w/4`, the climb's change of speed before and after it
     /// measured on the fits; and [`SPEED_NOISE_M_S`].
     pub bound_m_s: f64,
-    /// Its 90% interval, m/s ([`interval::TOP_SPEED_SHARES`]).
+    /// Its 90% interval, m/s ([`interval::TOP_SPEED_SHARES`]); `None` on a floor.
     pub interval_m_s: Option<Interval>,
+    /// Whether the top is a floor, as the apogee's height is: the log ends on the climb, so the
+    /// rocket may have gone faster after its last sample, by any amount.
+    pub is_floor: bool,
     /// When, s on the track's clock: the middle of the fit.
     pub time_s: f64,
     /// The filtered track then, m above the pad, or on a short pad above the track's zero, which
@@ -1466,6 +1469,7 @@ fn heights(log: &FlightLog) -> Readings {
         pad,
         interval,
         track.source,
+        is_floor,
     );
     // A log that starts after liftoff may have missed a faster climb before its first samples.
     if let (None, Some(speed)) = (lifted, readings.max_speed.value())
@@ -1802,6 +1806,7 @@ fn max_speed(
     pad: f64,
     interval: f64,
     source: Source,
+    is_floor: bool,
 ) -> Reading<MaxSpeed> {
     #[expect(
         clippy::cast_precision_loss,
@@ -1877,7 +1882,10 @@ fn max_speed(
     Reading::Read(MaxSpeed {
         speed_m_s: top,
         bound_m_s,
-        interval_m_s: interval::TOP_SPEED_SHARES.interval(top, bound_m_s),
+        interval_m_s: (!is_floor)
+            .then(|| interval::TOP_SPEED_SHARES.interval(top, bound_m_s))
+            .flatten(),
+        is_floor,
         time_s: time[index],
         height_m: filtered[index] - pad,
         source,
@@ -2068,6 +2076,28 @@ mod tests {
 
     /// Each reading of the height track states the 90% interval its own shares make of its own
     /// value and bound, no other's ([ADR-308](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md)).
+    /// A log cut on the climb holds neither the rocket's top height nor, for all it knows, its top
+    /// speed: both are floors with no interval (#1089). The whole flight's top speed states one.
+    #[test]
+    fn a_log_cut_on_the_climb_states_its_top_speed_as_a_floor() {
+        let whole = log(30.0, flight(10.0));
+        let read_whole = read(&whole);
+        let top = read_whole.max_speed.value().unwrap();
+        assert!(!top.is_floor, "{top:?}");
+        assert!(top.interval_m_s.is_some(), "{top:?}");
+        let apogee_s = read_whole.apogee.value().unwrap().time_s;
+        let mut cut = whole.clone();
+        // Halfway to apogee: the coast, with the climb's top still ahead.
+        let keep = cut.time_s.iter().position(|t| *t > apogee_s / 2.0).unwrap();
+        cut.time_s.truncate(keep);
+        cut.altitude_m.truncate(keep);
+        let read_cut = read(&cut);
+        assert!(read_cut.apogee.value().unwrap().is_floor);
+        let top = read_cut.max_speed.value().unwrap();
+        assert!(top.is_floor, "{top:?}");
+        assert_eq!(top.interval_m_s, None, "{top:?}");
+    }
+
     #[test]
     fn each_reading_states_the_interval_its_own_shares_make() {
         use interval::*;

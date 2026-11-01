@@ -1666,7 +1666,7 @@
           "format": "double"
         },
         "interval_m_s": {
-          "description": "Its 90% interval, m/s.",
+          "description": "Its 90% interval, m/s; `null` on a floor.",
           "anyOf": [
             {
               "$ref": "#/$defs/ReadingInterval"
@@ -1675,6 +1675,10 @@
               "type": "null"
             }
           ]
+        },
+        "is_floor": {
+          "description": "Whether the log may have ended on the climb, so the rocket may have gone faster.",
+          "type": "boolean"
         },
         "method": {
           "description": "How it was read.",
@@ -1702,6 +1706,7 @@
       "required": [
         "speed_m_s",
         "bound_m_s",
+        "is_floor",
         "time_s",
         "height_m",
         "source",
@@ -2189,8 +2194,15 @@
       "type": "object",
       "properties": {
         "apogee_height_interval_m": {
-          "description": "Its 90% interval, m: the height ± 1.645 standard errors. It tends wide on the synthetic\nflights, where 94% to 99% of truths lie inside; the reading's own interval is the calibrated\none.",
-          "$ref": "#/$defs/ReadingInterval"
+          "description": "Its 90% interval, m: the height ± 1.645 standard errors. It tends wide on the synthetic\nflights, where 94% to 99% of truths lie inside; the reading's own interval is the calibrated\none. `null` when the height is a floor.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "apogee_height_m": {
           "description": "The smoothed height there, m above the pad, or on an assumed pad above the readings' zero.",
@@ -2201,6 +2213,10 @@
           "description": "Its standard error, m.",
           "type": "number",
           "format": "double"
+        },
+        "apogee_is_floor": {
+          "description": "Whether the log may have ended before the peak, so the height is a floor.",
+          "type": "boolean"
         },
         "apogee_time_s": {
           "description": "The smoothed apogee: when the smoothed height after liftoff is highest, s on the log's\nclock.",
@@ -2227,7 +2243,7 @@
         "apogee_time_s",
         "apogee_height_m",
         "apogee_height_sd_m",
-        "apogee_height_interval_m",
+        "apogee_is_floor",
         "liftoff",
         "health",
         "card"

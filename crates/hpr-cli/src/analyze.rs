@@ -387,6 +387,7 @@ fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
             speed_m_s: speed.speed_m_s,
             bound_m_s: speed.bound_m_s,
             interval_m_s: speed.interval_m_s.map(interval),
+            is_floor: speed.is_floor,
             time_s: speed.time_s,
             height_m: speed.height_m,
             source: source(speed.source),
@@ -778,15 +779,20 @@ fn text_lines(document: &Analyze) -> Vec<String> {
         SmootherOutcome::Read(read) => {
             lines.push(row(
                 "smoothed apogee",
-                format!(
-                    "{}, 90% interval {}, at {:.2} s",
-                    meters(read.apogee_height_m),
-                    meters_interval(
-                        read.apogee_height_interval_m.low,
-                        read.apogee_height_interval_m.high
+                match read.apogee_height_interval_m {
+                    Some(stated) => format!(
+                        "{}, 90% interval {}, at {:.2} s",
+                        meters(read.apogee_height_m),
+                        meters_interval(stated.low, stated.high),
+                        read.apogee_time_s
                     ),
-                    read.apogee_time_s
-                ),
+                    None => format!(
+                        "{}, at {:.2} s; the log ends at its peak, so the rocket may have gone \
+                         higher",
+                        meters(read.apogee_height_m),
+                        read.apogee_time_s
+                    ),
+                },
             ));
             for (k, line) in read.card.iter().enumerate() {
                 lines.push(row(if k == 0 { "health card" } else { "" }, line.clone()));
@@ -844,10 +850,11 @@ fn smoother_outcome(log: &FlightLog, read: &Readings) -> SmootherOutcome {
         apogee_time_s: smoothed.apogee_time_s,
         apogee_height_m: state.height_m,
         apogee_height_sd_m: state.height_sd_m,
-        apogee_height_interval_m: ReadingInterval {
+        apogee_height_interval_m: (!smoothed.apogee_is_floor).then_some(ReadingInterval {
             low: state.height_m - half,
             high: state.height_m + half,
-        },
+        }),
+        apogee_is_floor: smoothed.apogee_is_floor,
         liftoff: smoothed.liftoff,
         card: card.lines().map(str::to_owned).collect(),
         health: smoothed.health,
@@ -959,12 +966,17 @@ fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec
         "top speed",
         match &document.max_speed {
             LogReading::Read(top) => format!(
-                "{}, within {}{}, at {:.2} s, {} up: derived from the heights",
+                "{}, within {}{}, at {:.2} s, {} up: derived from the heights{}",
                 speed(top.speed_m_s),
                 speed_bound(top.bound_m_s),
                 rate_interval(top.interval_m_s),
                 top.time_s,
-                meters(top.height_m)
+                meters(top.height_m),
+                if top.is_floor {
+                    "; the log ends at its peak, so the rocket may have gone faster"
+                } else {
+                    ""
+                }
             ),
             LogReading::Withheld(reading) => withheld(reading),
         },

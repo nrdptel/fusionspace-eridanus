@@ -251,12 +251,8 @@ pub fn side_by_side_read(logs: &[(&FlightLog, &Readings)], flew: Flew) -> SideBy
             cell(&read.max_speed, |s| Given {
                 value: s.speed_m_s,
                 bound: Some(s.bound_m_s),
-                interval: if ends_climbing(read) {
-                    None
-                } else {
-                    s.interval_m_s
-                },
-                is_floor: ends_climbing(read),
+                interval: s.interval_m_s,
+                is_floor: s.is_floor,
                 source: Some(s.source),
                 provenance: Some(s.provenance),
             })
@@ -384,12 +380,6 @@ fn after_liftoff<T>(
     }
 }
 
-/// Whether the log ends on the climb, so that its top height is a floor, and what it read of the
-/// climb's top speed may be too.
-fn ends_climbing(read: &Readings) -> bool {
-    read.apogee.value().is_some_and(|apogee| apogee.is_floor)
-}
-
 /// The smoother's apogee as a cell.
 fn smoothed_apogee(log: &FlightLog, read: &Readings) -> Cell {
     let smoothed = match smoother::smooth_with(log, read, Options::default()) {
@@ -405,7 +395,7 @@ fn smoothed_apogee(log: &FlightLog, read: &Readings) -> Cell {
             let half = INTERVAL_Z * state.height_sd_m;
             // Where the log ends on the climb the track's top isn't the rocket's: a floor, its
             // interval a claim about the wrong height.
-            let is_floor = ends_climbing(read);
+            let is_floor = smoothed.apogee_is_floor;
             Cell::Read(Given {
                 value: state.height_m,
                 bound: None,
