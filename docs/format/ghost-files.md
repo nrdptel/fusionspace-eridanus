@@ -7,8 +7,8 @@ It holds the path for a viewer to replay: as JSON for your own program, as CZML 
 [Cesium](https://cesium.com/platform/cesiumjs/) (a free 3D globe), or as glTF for any 3D tool. This page covers what each holds, where each number comes from
 and what the file assumes when a log can't say. It is for anyone who wants to see a flight in 3D or
 load its path into a program. [The app's replay](../decisions-and-roadmap.md#m9-2) will read it too.
-It is called a ghost because a simulated flight will race beside the real one. Today the file holds
-logs only; adding the simulated one is [#1091](https://github.com/nrdptel/fusionspace-eridanus/issues/1091).
+It is called a ghost for the simulated flight that will fly beside the real one. Today it holds logs
+only ([#1091](https://github.com/nrdptel/fusionspace-eridanus/issues/1091)).
 
 > **How far to trust it.** A ghost file lays out what a log holds and adds no measurement, so it is
 > as good as the log. RocketPy's repository holds 22 real flight logs with an altitude or a GNSS
@@ -34,7 +34,7 @@ hpr analyze flight.csv \
 ```
 
 The file's extension picks its format: `.json`, `.czml` or `.gltf`. Give `--ghost` again for another
-format. It won't write over a file the run reads. The readings print as usual. `--pad` states the
+format. `--pad` states the
 pad's latitude and longitude in degrees, then its height in meters above the WGS 84 ellipsoid if you
 know it. It overrides what the log's fixes say. Each option of [`hpr
 analyze`](../cli.md#hpr-analyze) that reads a log, such as `--mapping`, works with it.
@@ -82,11 +82,9 @@ Each track counts what it leaves out, in `fixes`, `heights_too_fast`, `heights_b
 - its clock didn't go forward;
 - it lies more than 200 km (124 mi) from the track's median, as a longitude with its sign flipped does;
 - reaching it from the last fix kept would take over 1,500 m/s (4,921 ft/s), plus 200 m (656 ft) for a receiver's scatter.
-  The envelope's top speed, Mach 3.5, is about 1,190 m/s (3,904 ft/s) at sea level.
 
-A height goes on the same speed, plus 50 m (164 ft). The first height and the first fix kept are the
-first of the log's that agree with the middle of its first 9 rows, so one bad first row can't shut out
-the flight. That catches a logger's garbage rows, such as the last
+A height goes on the same speed, plus 50 m (164 ft). The first kept is the first that agrees with the
+middle of the log's first 9 rows, so one bad first row can't shut out the flight. That catches a logger's garbage rows, such as the last
 two of Juno III's altimeter file, at 10,700 m (35,105 ft) and −2,490 m (−8,169 ft). It also took 57 of the 44,454 rows of
 Lince's height, in the swing as its recovery fires.
 
@@ -94,7 +92,7 @@ Three more go, each counted:
 
 - A height over 500 m (1,640 ft) under the pad. A receiver with no lock can write a height near sea
   level: one of Juno III's files does that for 3,400 rows, 1.4 km (0.87 mi) under its pad, close enough
-  in time for the speed test to pass. A landing that far down a valley loses its last rows, and the count shows it.
+  in time for the speed test to pass.
 - A moment with no height, or a height of exactly 0 from a receiver, in a track that has heights. Each
   track has a height at every moment or at none, and a viewer's line crosses the gap.
 - A clock past 317 years, or over 116 days from the log's opening.
@@ -157,8 +155,8 @@ readers this project didn't write. CI runs the same on two invented flights, as 
 
 - Ajv, a JSON Schema checker, holds the JSON to the schema.
 - Cesium's own `CzmlDataSource` loads the CZML. Cesium's own transform takes each position to the
-  pad's frame, where it comes within 1 cm (0.39 in) of the JSON's at every moment. The file holds no
-  sample more.
+  pad's frame, where it comes within 1 cm (0.39 in) of the JSON's at every moment, and the file's count of
+  them matches.
 - Khronos's glTF-Validator finds no error in the glTF. glTF-Transform's animation comes within 1 cm (0.39 in)
   and 1 ms of the JSON's at every moment, none missing, and its path's line holds the same places.
 
@@ -180,9 +178,8 @@ So the formats agree with each other. What ties them to the log is pinned apart 
 - A GNSS log and an altimeter log of one flight joined up
   ([#1086](https://github.com/nrdptel/fusionspace-eridanus/issues/1086)). Each of RocketPy's split
   files gives its own ghost, as a GPS track has no liftoff.
-- Two logs of the same file name: both tracks carry that name
-  ([#1093](https://github.com/nrdptel/fusionspace-eridanus/issues/1093)).
-- A pad within a few degrees of the 180° meridian: the median of its longitudes isn't a place (the same issue).
+- Two logs of the same file name, whose tracks carry that name,
+  and a pad by the 180° meridian ([#1093](https://github.com/nrdptel/fusionspace-eridanus/issues/1093)).
 - Attitude: nothing here turns the marker.
 - The Python package: `hpr analyze` only so far
   ([#1085](https://github.com/nrdptel/fusionspace-eridanus/issues/1085)).

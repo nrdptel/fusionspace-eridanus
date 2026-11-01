@@ -390,11 +390,10 @@ fn screened_fixes(log: &FlightLog) -> Fixes {
         }
         within.push((row, time, lat, lon, east, north));
     }
-    let along = |of: fn(&(usize, f64, f64, f64, f64, f64)) -> f64| -> Vec<(f64, f64)> {
-        within.iter().map(|fix| (fix.1, of(fix))).collect()
-    };
-    let opening = opening_outliers(&along(|fix| fix.4), FIX_SCATTER_M)
-        .max(opening_outliers(&along(|fix| fix.5), FIX_SCATTER_M));
+    let easts: Vec<(f64, f64)> = within.iter().map(|fix| (fix.1, fix.4)).collect();
+    let norths: Vec<(f64, f64)> = within.iter().map(|fix| (fix.1, fix.5)).collect();
+    let opening =
+        opening_outliers(&easts, FIX_SCATTER_M).max(opening_outliers(&norths, FIX_SCATTER_M));
     out.counts.too_fast += opening;
     let mut last: Option<(f64, f64, f64)> = None;
     for &(row, time, lat, lon, east, north) in within.iter().skip(opening) {
@@ -885,7 +884,10 @@ impl Ghost {
             {
                 return Err(bad(&track.name, "its columns differ in length"));
             }
-            if track.time_s.iter().any(|t| !(t.abs() <= CLOCK_LIMIT_S))
+            if track
+                .time_s
+                .iter()
+                .any(|t| t.is_nan() || t.abs() > CLOCK_LIMIT_S)
                 || track.time_s.windows(2).any(|pair| pair[1] <= pair[0])
             {
                 return Err(bad(
