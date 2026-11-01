@@ -1208,40 +1208,17 @@ mod tests {
         assert_eq!(phases[1].start_s, phases[0].end_s);
         let count: usize = phases.iter().map(|s| s.samples).sum();
         assert_eq!(count, comparison.height_m.points.len(), "{names:?}");
-        // An axial accelerometer's burnout splits the ascent.
-        let shaped = |t: f64| {
-            // Drag pulls the accelerometer below zero in the coast, which is how it shows burnout.
-            match flown(t).2 {
-                force if t <= 3.0 => force + 30.0 * (t / 3.0 * std::f64::consts::PI).sin(),
-                _ if t <= top_s => -3.0,
-                force => force,
-            }
+        // A burnout read whole, as an accelerometer's is, splits the ascent; a floor doesn't.
+        let mut read = readings::read(&log);
+        let Reading::Read(burnout) = &mut read.burnout else {
+            panic!("{:?}", read.burnout);
         };
-        let mut log = logged(20.0, |t| flown(t).0);
-        let forces: Vec<f64> = log
-            .time_s
-            .iter()
-            .map(|&clock| match clock - 20.0 {
-                t if (0.0..=landed_s()).contains(&t) => shaped(t),
-                _ => 9.8,
-            })
-            .collect();
-        log.channels.push(Channel::new(
-            "axial force",
-            Quantity::Acceleration,
-            log.time_s.clone(),
-            forces,
-        ));
-        let read = readings::read(&log);
+        assert!(burnout.is_floor, "{burnout:?}");
+        burnout.is_floor = false;
         let comparison = compare(&log, &read, &simulation, Some(HeightKind::Geometric)).unwrap();
         let phases = &comparison.height_m.phases;
         let names: Vec<Phase> = phases.iter().map(|s| s.phase).collect();
-        assert_eq!(
-            names,
-            [Phase::Boost, Phase::Coast, Phase::Descent],
-            "{:?}",
-            read.burnout
-        );
+        assert_eq!(names, [Phase::Boost, Phase::Coast, Phase::Descent]);
         assert!((phases[0].end_s - 3.0).abs() < 0.5, "{phases:?}");
         assert!((phases[1].end_s - top_s).abs() < 1.0, "{phases:?}");
     }
