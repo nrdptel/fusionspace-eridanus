@@ -4,6 +4,8 @@
 - **Summary:** The code that computes and checks FusionSpace HPR's numbers stays `MIT OR Apache-2.0`. Hosted services, starting with the motor stock API at motor.fusionspace.co, carry their own terms: free for personal use and for FusionSpace's own tools, with written permission needed for any other site, app or service and for any commercial use. The app's license is chosen in M9.0's decision record, before any app code is public; the leading option is the Functional Source License 1.1 with Apache-2.0 as its future license. Registering a FUSIONSPACE trademark stays deferred.
 
 [adr-001]: 0001-license-and-workspace-layout.md
+[adr-287]: 0287-thrustcurve-orgs-motor-records-used-as-published-facts.md
+[adr-288]: 0288-every-solid-motor-ships-in-the-package.md
 [adr-192]: 0192-the-2026-10-06-follow-up-best-over-first-and-export-control.md
 [m9-0]: ../decisions-and-roadmap.md#m9-0
 [m9-4]: ../decisions-and-roadmap.md#m9-4
@@ -21,7 +23,7 @@ Two things prompted a second look in the autumn of 2026. Several new browser-bas
 simulators appeared, most free and some closed. And another company's website and paid simulator
 began reading [motor.fusionspace.co's stock API][mf-api] from their visitors' browsers. Its
 published terms allowed that: any site could call it, with no key, and its data was under CC BY
-4.0. The maintainer pays to run the service that gathers that data every hour.
+4.0. The maintainer pays to run the service, which its API page says refreshes the data hourly.
 
 A code license and a service's terms are separate questions. Closing hpr's source would not have
 stopped that use: the API is a running service, governed by its own terms and by who may call it.
@@ -39,8 +41,13 @@ stopped that use: the API is a running service, governed by its own terms and by
    service, and any commercial use, needs the maintainer's written permission first, and shows the
    credit "Motor stock data from motor.fusionspace.co" with a link. Browsers may call the API only
    from FusionSpace's own sites and from sites the maintainer has allowed. Requests that don't come
-   from a browser page are served as before, so hpr's reader keeps working. Copies obtained before
-   2026-11-01 keep the CC BY 4.0 license they came with. The same rule covers the services still to
+   from a browser page are served as before, so hpr's reader keeps working. The server doesn't
+   check what those programs are, and the terms still apply to them: a program someone writes for
+   themselves is personal use, and a published app or service built on `hpr_net::motor_finder`
+   needs permission like any other. What the terms cover is the service's own compilation: which
+   vendor lists which motor, at what price, and when. The motor figures in it are ThrustCurve.org's
+   and the listings are the vendors' own, credited to them ([ADR-287][adr-287]). Copies obtained
+   before 2026-11-01 keep the CC BY 4.0 license they came with. The same rule covers the services still to
    come: hpr's own stock service ([ADR-192][adr-192]), accounts and cloud saves
    ([M9.5][m9-5]), and any paid team workspace.
 3. **M9.0 sets the app's license.** The app (M9.1 to M9.4) is the part a reseller would rebrand, so
@@ -48,11 +55,21 @@ stopped that use: the API is a running service, governed by its own terms and by
    public. The leading option is the [Functional Source License][fsl], version 1.1, with Apache-2.0
    as its future license (`FSL-1.1-ALv2`). Anyone may read, run and change the code for any purpose
    except a commercial product or service that competes with it, and each release becomes
-   Apache-2.0 two years after it ships. The engine's license doesn't change with it, and ADR-001's
-   dependency policy is unaffected.
+   Apache-2.0 two years after it ships. Until then a release is source-available, not open source
+   in the Open Source Initiative's sense. The engine's license doesn't change with it, and
+   ADR-001's dependency policy is unaffected.
 4. **The trademark waits.** Registering FUSIONSPACE stays deferred by the maintainer. Until then
    the name is protected only by its use. It comes up again before the app is published
    ([M9.4][m9-4]).
+
+**What changes for a user.**
+
+- **The `hpr` command and the Python package:** nothing. They keep fetching stock data, which is
+  free for personal use. Their credit line still says CC BY 4.0 until [#1097][i1097] fixes it.
+- **The motor data in the package** ([ADR-288][adr-288]): unchanged. It is ThrustCurve.org's,
+  used as published facts.
+- **A website, app or service that shows the stock data:** needs the maintainer's permission
+  from 2026-11-01, and a browser on another site gets a refusal from the API.
 
 **Alternatives considered.**
 
