@@ -20,7 +20,7 @@ use hpr_flightdata::import;
 use hpr_flightdata::log::FlightLog;
 use hpr_flightdata::readings;
 
-const USAGE: &str = "\
+pub const USAGE: &str = "\
 ghost [--check] [--invented]
 
 Writes each ghost file's JSON, CZML and glTF to a scratch folder and reads them back with outside

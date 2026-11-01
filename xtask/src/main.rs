@@ -122,6 +122,7 @@ Commands:
 {LOGS}
 {SYNTHETIC}
 {TWO_LOGS}
+{GHOST}
 {REAL_FLIGHTS}
 {RECORDS}
 {ROADMAP_CURRENT}
@@ -158,6 +159,7 @@ fn usage() -> String {
         .replace("{LOGS}", logs::USAGE)
         .replace("{SYNTHETIC}", synthetic::USAGE)
         .replace("{TWO_LOGS}", two_logs::USAGE)
+        .replace("{GHOST}", ghost::USAGE)
         .replace("{REAL_FLIGHTS}", real_flights::USAGE)
         .replace("{RECORDS}", records::USAGE)
         .replace("{ROADMAP_CURRENT}", roadmap::CURRENT_USAGE)
