@@ -827,8 +827,10 @@ mod tests {
     #[test]
     fn a_log_cut_on_the_climb_counts_its_top_speed_as_a_floor() {
         let mut flyer = Flyer::new(DesignFiles::committed());
-        let flight = (0..)
-            .find_map(|k| flyer.flight(Set::Tuning, k).ok())
+        // A flight whose whole log gives its top speed: a transonic one is withheld, cut or not.
+        let flight = (0..40)
+            .filter_map(|k| flyer.flight(Set::Tuning, k).ok())
+            .find(|f| readings::read(&f.log).max_speed.value().is_some())
             .unwrap();
         let events = &flight.truth.events;
         let cut_s = flight.draw.logger.pad_s + 0.5 * (events.liftoff_s + events.apogee_s);
