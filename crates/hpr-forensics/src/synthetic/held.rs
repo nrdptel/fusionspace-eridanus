@@ -335,7 +335,12 @@ pub fn outcomes(flight: &Flight, log: &FlightLog) -> Vec<(Quantity, Outcome)> {
         (
             Quantity::TopSpeed,
             of(&read.max_speed, |s| {
-                given(s.speed_m_s - truth.top_speed().0, s.bound_m_s)
+                floor_or_given(
+                    s.is_floor,
+                    s.speed_m_s - truth.top_speed().0,
+                    s.bound_m_s,
+                    None,
+                )
             }),
         ),
         (
@@ -816,6 +821,34 @@ mod tests {
             .find(|f| f.draw.logger.profile.accelerometer_range_m_s2().is_none())
             .unwrap();
         assert_eq!(top_over_range(&without), None);
+    }
+
+    /// A log cut on the climb: its top speed is counted as a floor, one way only (#1089).
+    #[test]
+    fn a_log_cut_on_the_climb_counts_its_top_speed_as_a_floor() {
+        let mut flyer = Flyer::new(DesignFiles::committed());
+        // A flight whose whole log gives its top speed: a transonic one is withheld, cut or not.
+        let flight = (0..40)
+            .filter_map(|k| flyer.flight(Set::Tuning, k).ok())
+            .find(|f| readings::read(&f.log).max_speed.value().is_some())
+            .unwrap();
+        let events = &flight.truth.events;
+        let cut_s = flight.draw.logger.pad_s + 0.5 * (events.liftoff_s + events.apogee_s);
+        let mut log = flight.log.clone();
+        let keep = log.time_s.partition_point(|t| *t < cut_s);
+        log.time_s.truncate(keep);
+        log.altitude_m.truncate(keep);
+        for channel in &mut log.channels {
+            let keep = channel.time_s.partition_point(|t| *t < cut_s);
+            channel.time_s.truncate(keep);
+            channel.values.truncate(keep);
+        }
+        let outcome = outcomes(&flight, &log)
+            .into_iter()
+            .find(|(quantity, _)| *quantity == Quantity::TopSpeed)
+            .unwrap()
+            .1;
+        assert!(matches!(outcome, Outcome::Floor { .. }), "{outcome:?}");
     }
 
     /// The IMU-like logger's part set to its lower range: the readings state the range it clips

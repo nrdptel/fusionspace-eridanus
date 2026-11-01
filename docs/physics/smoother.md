@@ -149,6 +149,10 @@ last line says whether the pass back solved every step.
 Three more lines appear only when they apply: `pad assumed`, `accelerometer set aside`, and
 `smoothed apogee ... past the reading's bound: go by the reading`.
 
+On a log that ends on the climb, the smoothed apogee is a [floor](../glossary.md#floor) with no
+interval, as the reading's is: the track's highest point is only where the log stopped, not the
+rocket's peak. That holds where the reading's apogee is withheld too.
+
 ## Sources
 
 The filter and the pass back are the textbook ones (Särkkä and Svensson, *Bayesian Filtering and

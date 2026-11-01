@@ -228,7 +228,7 @@ clipped top's on tops written near a clip imposed on the log. The misses of the
 height, the top speed and the rates of descent fall on the coldest and warmest days, a warm day reading
 low; the times lean by logger, and the top acceleration most. So a waiver goes by the apogee plus its
 bound, a fin's margin by the top speed plus its bound, and a load by the top acceleration plus its
-bound, unless that top is a floor, which has no upper figure ([The
+bound, unless the reading is a floor, which has no upper figure ([The
 90% intervals](physics/log-readings.md#the-90-intervals); not yet checked on a real flight,
 [evidence row G34](evidence.md#g34)). The library's smoother fuses a log's barometer, accelerometer
 and GNSS receiver into the height and vertical speed at every sample, each with a 90% interval. At

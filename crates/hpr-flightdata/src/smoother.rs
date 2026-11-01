@@ -640,6 +640,10 @@ pub struct Smoothed {
     /// The smoothed apogee: when the smoothed height after liftoff is highest, s on the log's
     /// clock.
     pub apogee_time_s: f64,
+    /// Whether the smoothed apogee is a floor: the log ends on the climb
+    /// ([`Readings::ends_on_the_climb`]), whether or not the reading's apogee is withheld, so the top of the track isn't the rocket's and its standard error isn't about the
+    /// rocket's top.
+    pub apogee_is_floor: bool,
     /// The health card.
     pub health: Health,
 }
@@ -739,6 +743,7 @@ pub fn smooth_with(
             *sd = sd.hypot(b - a);
         }
     }
+    smoothed.apogee_is_floor = readings.ends_on_the_climb;
     if let (Reading::Read(apogee), Some(state)) =
         (&readings.apogee, smoothed.at(smoothed.apogee_time_s))
     {
@@ -2505,6 +2510,7 @@ fn run(
         speed_sd_m_s,
         liftoff: inputs.liftoff,
         apogee_time_s,
+        apogee_is_floor: false,
         health: Health {
             sensors,
             deweighted,
@@ -3404,6 +3410,29 @@ mod tests {
         ));
         let withheld = smooth_with(&with_fixes, &read, Options::default()).unwrap_err();
         assert_eq!(withheld.reason, Reason::TooLong);
+    }
+
+    /// A log cut on the climb: the smoothed top is the track's, not the rocket's (#1089).
+    #[test]
+    fn a_log_cut_on_the_climb_makes_the_smoothed_apogee_a_floor() {
+        let whole = log();
+        assert!(!smoothed(&whole, Options::default()).apogee_is_floor);
+        let mut cut = whole.clone();
+        let keep = cut.time_s.iter().position(|t| *t > 12.0).unwrap();
+        cut.time_s.truncate(keep);
+        cut.altitude_m.truncate(keep);
+        assert!(readings::read(&cut).apogee.value().unwrap().is_floor);
+        assert!(smoothed(&cut, Options::default()).apogee_is_floor);
+        // A dip in the climb withholds the reading's apogee; the smoother still reads, and the
+        // log still ends on the climb.
+        let n = cut.altitude_m.len();
+        for height in &mut cut.altitude_m[n - 60..n - 40] {
+            *height -= 150.0;
+        }
+        let read = readings::read(&cut);
+        assert_eq!(read.apogee.reason(), Some(readings::Reason::DisturbedTop));
+        let dipped = smooth_with(&cut, &read, Options::default()).unwrap();
+        assert!(dipped.apogee_is_floor);
     }
 
     #[test]

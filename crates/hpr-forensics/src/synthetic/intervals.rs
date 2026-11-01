@@ -205,7 +205,7 @@ struct Part {
 }
 
 impl Part {
-    /// A reading that is never a floor.
+    /// A reading that gives no floor's lower end: a floor of its own, with no interval, is unstated.
     fn of(reading: f64, bound: f64, interval: Option<Interval>, truth: f64) -> Self {
         Self {
             reading,

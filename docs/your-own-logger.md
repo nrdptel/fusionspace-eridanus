@@ -488,8 +488,8 @@ are `liftoff`, `apogee`, `max_speed`, `max_acceleration`, `burnout`, `landing`, 
 
 A reading read holds its value and its bound. The bound is `bound_m` for a height, `bound_s` for a
 time, `bound_m_s` for a speed or a descent rate, and `bound_m_s2` for the top acceleration. The
-reading also holds its `source`, `provenance` and `method`. The apogee, the top
-acceleration and burnout also say whether each is a [floor](glossary.md#floor), `is_floor`. The
+reading also holds its `source`, `provenance` and `method`. The apogee, the top speed, the
+top acceleration and burnout also say whether each is a [floor](glossary.md#floor), `is_floor`. The
 top acceleration says why it clipped, `clip`: `"range"`, `"flat"` or `None`.
 
 A reading withheld holds its `reason` and a `detail` in words. Beside the readings, these say how
