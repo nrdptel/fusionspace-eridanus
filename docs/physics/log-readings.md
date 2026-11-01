@@ -44,7 +44,7 @@ withholds one instead of guessing.
   their points were fitted on 2,000 flights of their own, and a floor's lower end passes that
   test's lower tail, a clipped top's on tops written near an imposed clip
   ([evidence row G34](../evidence.md#g34)).
-- **What it leaves out:** the Mach number and dynamic pressure; a lower end on an apogee floor or
+- **What it leaves out:** the Mach number and dynamic pressure; a lower end on an apogee or top speed floor or
   a top whose burn the log ends in
   ([#1071](https://github.com/nrdptel/fusionspace-eridanus/issues/1071)).
   Loggers noisier than the tuning set's [six simulated logger
@@ -1064,7 +1064,7 @@ which is said first (`no_accelerometer` or `axis_unstated`). A burnout the accel
 back to the top speed's time, and carries the top speed's reason where that is withheld too.
 
 An apogee within half a window of the log's end is read, but marked `is_floor`: the log may have
-stopped before the rocket did.
+stopped before the rocket did. The top speed and the smoothed apogee are then floors too.
 
 ## Two logs on one timeline
 
@@ -1154,7 +1154,7 @@ An error is the reading less the truth. Each error is held to its own reading's 
 differs from flight to flight and log to log, so the least or the most may pass the mean bound. The mean is for scale. A canopy's rates are compared with the truth over the span the reader chose,
 its leg's ends. So an opening read early or late shows in the opening's error, not in the rates'.
 A floor is counted apart, as it may lie any amount below the truth. A floor is a burnout from the
-top speed or a top acceleration that clipped or whose thrust has no end on the channel. The least, the most and
+top speed, a top speed on a log cut on the climb, or a top acceleration that clipped or whose thrust has no end on the channel. The least, the most and
 the mean bound are to three figures, nearest. A mean is given to the decimal place of its largest
 error's third figure, the digits every platform shares:
 
