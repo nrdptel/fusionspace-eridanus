@@ -381,7 +381,7 @@ impl Report {
              - **Tests:** a noise-free 20 Hz log of a flight against itself, its ignition on a \
              sample, leaves an RMS under 1 m (3.3 ft). With ignition midway between a 0.2 s \
              log's samples, on the test's flight of 180 m/s (591 ft/s) at burnout, the clocks alone \
-             leave an ascent RMS of about 10 m (34 ft). Each flight's simulated apogee, read by the log's reader, stays within 0.5 m \
+             leave an ascent RMS of about 10 m (33 ft). Each flight's simulated apogee, read by the log's reader, stays within 0.5 m \
              (1.6 ft) of the flight's own event.\n\
              - A residual is one flight against one simulation. It doesn't say which is wrong.\n\n\
              [m7-3a]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-3a\n\
