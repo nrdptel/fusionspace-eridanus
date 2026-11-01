@@ -1866,6 +1866,10 @@ says that.
 The JSON marks each `is_floor`, and gives the clip's cause in `clip`, `range` or `flat`. `clip` is
 `null` for a top that didn't clip and for a thrust with no end.
 
+A log that ends on the climb says so on its top speed and smoothed apogee as well as its apogee: "so
+the rocket may have gone faster", "gone higher". None of the three states an interval or a lower end. The JSON has
+`max_speed.is_floor` and `smoother.apogee_is_floor`.
+
 What the file states about itself, such as the altimeter's own apogee, is printed beside the
 simulator's readings, never in their place. Heights are meters above the altimeter's reading on
 the pad, with feet in brackets. Times are seconds on the log's clock.

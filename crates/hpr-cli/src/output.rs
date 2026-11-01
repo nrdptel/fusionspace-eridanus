@@ -1627,12 +1627,14 @@ pub struct SmootherReading {
     pub apogee_time_s: f64,
     /// The smoothed height there, m above the pad, or on an assumed pad above the readings' zero.
     pub apogee_height_m: f64,
-    /// Its standard error, m.
+    /// Its standard error, m: on a floor, about the track's top and not the rocket's.
     pub apogee_height_sd_m: f64,
     /// Its 90% interval, m: the height ± 1.645 standard errors. It tends wide on the synthetic
     /// flights, where 94% to 99% of truths lie inside; the reading's own interval is the calibrated
-    /// one.
-    pub apogee_height_interval_m: ReadingInterval,
+    /// one. `null` when the height is a floor.
+    pub apogee_height_interval_m: Option<ReadingInterval>,
+    /// Whether the log may have ended before the peak, so the height is a floor.
+    pub apogee_is_floor: bool,
     /// Liftoff, as the smoother holds it.
     pub liftoff: hpr::hpr_flightdata::smoother::Liftoff,
     /// The health card's figures.
@@ -2267,8 +2269,10 @@ pub struct MaxSpeedReading {
     pub speed_m_s: f64,
     /// The bound on its error, m/s.
     pub bound_m_s: f64,
-    /// Its 90% interval, m/s.
+    /// Its 90% interval, m/s; `null` on a floor.
     pub interval_m_s: Option<ReadingInterval>,
+    /// Whether the log may have ended on the climb, so the rocket may have gone faster.
+    pub is_floor: bool,
     /// When, s.
     pub time_s: f64,
     /// The height above the pad then, m.
