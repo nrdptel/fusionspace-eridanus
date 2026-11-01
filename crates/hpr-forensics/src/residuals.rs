@@ -1017,8 +1017,13 @@ mod tests {
             )
             .unwrap();
             let read_at = comparison.simulated_interval_s;
-            assert!((read_at - interval_s).abs() < 1e-9, "{interval_s}: {read_at}");
-            assert_eq!(comparison.height_m.past_simulation, 0, "{interval_s}");
+            assert!(
+                (read_at - interval_s).abs() < 1e-9,
+                "{interval_s}: {read_at}"
+            );
+            // The landing's reading can lie a sample past the simulated ground, but nothing at the
+            // start is counted as past the flight.
+            assert!(comparison.height_m.past_simulation <= 2, "{interval_s}");
             let first = comparison.height_m.points[0].time_after_liftoff_s;
             assert_eq!(first, 0.0, "{interval_s}");
             let apogee = row(&comparison, What::ApogeeHeight);
@@ -1186,17 +1191,58 @@ mod tests {
         assert!(difference.is_some_and(|d| d.abs() < 1.0), "{top:?}");
     }
 
-    /// The burnout read from the log splits the ascent; a log with none reads one ascent.
+    /// The phases are cut at the log's own burnout and apogee, each sample in one of them.
     #[test]
     fn phases_follow_the_logs_readings() {
         let environment = environment(None);
         let simulation = simulated(&environment, flown);
+        let top_s = 3.0 + 180.0 / 9.8;
+        // A log with no burnout whole reads one ascent, cut at its apogee.
         let log = logged(20.0, |t| flown(t).0);
         let read = readings::read(&log);
         let comparison = compare(&log, &read, &simulation, Some(HeightKind::Geometric)).unwrap();
-        let names: Vec<Phase> = comparison.height_m.phases.iter().map(|s| s.phase).collect();
-        assert_eq!(names.last(), Some(&Phase::Descent), "{names:?}");
-        let count: usize = comparison.height_m.phases.iter().map(|s| s.samples).sum();
+        let phases = &comparison.height_m.phases;
+        let names: Vec<Phase> = phases.iter().map(|s| s.phase).collect();
+        assert_eq!(names, [Phase::Ascent, Phase::Descent]);
+        assert!((phases[0].end_s - top_s).abs() < 1.0, "{phases:?}");
+        assert_eq!(phases[1].start_s, phases[0].end_s);
+        let count: usize = phases.iter().map(|s| s.samples).sum();
         assert_eq!(count, comparison.height_m.points.len(), "{names:?}");
+        // An axial accelerometer's burnout splits the ascent.
+        let shaped = |t: f64| {
+            // Drag pulls the accelerometer below zero in the coast, which is how it shows burnout.
+            match flown(t).2 {
+                force if t <= 3.0 => force + 30.0 * (t / 3.0 * std::f64::consts::PI).sin(),
+                _ if t <= top_s => -3.0,
+                force => force,
+            }
+        };
+        let mut log = logged(20.0, |t| flown(t).0);
+        let forces: Vec<f64> = log
+            .time_s
+            .iter()
+            .map(|&clock| match clock - 20.0 {
+                t if (0.0..=landed_s()).contains(&t) => shaped(t),
+                _ => 9.8,
+            })
+            .collect();
+        log.channels.push(Channel::new(
+            "axial force",
+            Quantity::Acceleration,
+            log.time_s.clone(),
+            forces,
+        ));
+        let read = readings::read(&log);
+        let comparison = compare(&log, &read, &simulation, Some(HeightKind::Geometric)).unwrap();
+        let phases = &comparison.height_m.phases;
+        let names: Vec<Phase> = phases.iter().map(|s| s.phase).collect();
+        assert_eq!(
+            names,
+            [Phase::Boost, Phase::Coast, Phase::Descent],
+            "{:?}",
+            read.burnout
+        );
+        assert!((phases[0].end_s - 3.0).abs() < 0.5, "{phases:?}");
+        assert!((phases[1].end_s - top_s).abs() < 1.0, "{phases:?}");
     }
 }
