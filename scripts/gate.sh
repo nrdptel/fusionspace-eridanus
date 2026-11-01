@@ -240,7 +240,7 @@ cmd_for() {
     types) echo "$XTASK format --typecheck" ;;
     python) echo "scripts/python-tests.sh" ;;
     ego) echo "cargo bench --locked -p fusionspace-hpr-analysis --bench ego_hartmann6" ;;
-    refs) echo "$XTASK ork-flights --check && $XTASK ork-flights --library --check && $XTASK real-flights --check && $XTASK ork-cli --check && $XTASK fixture-flights --check && $XTASK ork-export-flights --check && $XTASK logs --check && $XTASK evidence --samples && node validation/oracles/thrustcurve/analyze_stats.js --recount" ;;
+    refs) echo "$XTASK ork-flights --check && $XTASK ork-flights --library --check && $XTASK real-flights --check && $XTASK ghost --check && $XTASK ork-cli --check && $XTASK fixture-flights --check && $XTASK ork-export-flights --check && $XTASK logs --check && $XTASK evidence --samples && node validation/oracles/thrustcurve/analyze_stats.js --recount" ;;
     *) return 1 ;;
   esac
 }

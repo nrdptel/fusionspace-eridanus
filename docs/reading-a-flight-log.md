@@ -431,6 +431,9 @@ their clocks hardly differ: an offset of zero would miss by 0.13 s, against this
 That's one flight: it can't show whether the interval holds nine times in ten, and it says nothing
 of clocks that differ by minutes, as the synthetic flights' do.
 
+To see the flight rather than read it, `--ghost flight.czml` writes the logs' paths for a viewer, as
+[ghost files](format/ghost-files.md) explains.
+
 `--stages` lays out one logger to a stage the same way, each leaving the pad with the stack, and
 gives no spread, a booster's apogee and a sustainer's being different heights. It has been checked
 only on simulated two-stage flights ([evidence row G36](evidence.md#g36)).

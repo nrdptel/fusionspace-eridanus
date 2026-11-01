@@ -285,7 +285,7 @@ only the files each command really reads. "Not yet" commands exit with [status 3
 | `hpr mc` | Fly a design many times with its inputs scattered at random, and print how its apogee and landing spread; save every flight with `--export` | what `hpr sim` reads: a design and its motor | text, JSON, every flight's draw and outcome as `.csv` | available ([how to use it](cli.md#hpr-mc)) |
 | `hpr optimize` | Search a design's parameters for a goal | - | - | not yet: [M6.3](decisions-and-roadmap.md#m6-3) |
 | `hpr compare` | Compare a flight log with its simulation | - | - | not yet: [M7.3](decisions-and-roadmap.md#m7-3) |
-| `hpr analyze` | Read a flight log and print its readings, with no design file | a flight log in any layout HPR Sim reads, by its own reader, more logs of one flight, side by side on one timeline, a workbook's sheet or a raw dump's recording, as chosen, another logger's table by a column mapping, binary records or a console capture by a record layout, a Raven FIP export below no header, by the header stated | text, JSON | available ([how to use it](cli.md#hpr-analyze)) |
+| `hpr analyze` | Read a flight log and print its readings, with no design file | a flight log in any layout HPR Sim reads, by its own reader, more logs of one flight, side by side on one timeline, a workbook's sheet or a raw dump's recording, as chosen, another logger's table by a column mapping, binary records or a console capture by a record layout, a Raven FIP export below no header, by the header stated | text, JSON, a ghost file as `.json`, `.czml` or `.gltf` | available ([how to use it](cli.md#hpr-analyze)) |
 | `hpr diagnose` | Diagnose what went wrong in a flight from its log | - | - | not yet: [M7.4](decisions-and-roadmap.md#m7-4) |
 | `hpr completions` | Print a shell completion script for `hpr` | - | a bash, elvish, fish, powershell or zsh script, JSON | available ([how to use it](cli.md#hpr-completions)) |
 
@@ -2113,6 +2113,18 @@ More: https://hpr.fusionspace.co/reading-a-flight-log.html
 ```
 
 <!-- cli: end -->
+
+#### A ghost file
+
+`--ghost FILE` also writes the logs' paths for a viewer, on one clock in a frame at the pad: `.json`,
+`.czml` (Cesium) or `.gltf` (a 3D scene), by the file's extension. Give it again for another format.
+`--pad LAT,LON[,HEIGHT]` states the pad, in degrees and metres; without it, the place comes from the
+log's GNSS fixes. [Ghost files](format/ghost-files.md) says what each file holds and what it assumes
+where a log can't say.
+
+```bash
+hpr analyze flight.csv --ghost flight.czml --ghost flight.gltf
+```
 
 #### A logger of your own
 

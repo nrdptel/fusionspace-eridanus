@@ -28,6 +28,8 @@ forbids = ["fusionspace-hpr-sim"]
 [dependencies]
 hpr-core.workspace = true
 hpr-atmos.workspace = true
+# glTF holds its binary buffer inside its JSON as base64 (M7.2g).
+base64.workspace = true
 # KML's and GPX's XML (M7.1c1, M7.1d1); it refuses a document type declaration, so no entity
 # can expand.
 roxmltree.workspace = true

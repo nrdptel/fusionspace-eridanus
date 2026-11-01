@@ -62,7 +62,7 @@ the checks fetch into. Its hash lets every check confirm it reads the same bytes
 
 <!-- evidence: report; written by `cargo xtask evidence` from validation/evidence.toml; do not edit -->
 
-The register holds 36 rows, as of October 31, 2026.
+The register holds 37 rows, as of October 31, 2026.
 
 **By kind.** Each surface's rows, counted by the kind of evidence behind them now:
 
@@ -82,9 +82,10 @@ The register holds 36 rows, as of October 31, 2026.
 | Flight-log readings' 90% intervals | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
 | Two logs of one flight on one timeline | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
 | One logger to a stage on one timeline | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
-| All | 1 | 6 | 8 | 6 | 11 | 4 | 36 |
+| Ghost files | 1 | 0 | 0 | 0 | 0 | 0 | 1 |
+| All | 2 | 6 | 8 | 6 | 11 | 4 | 37 |
 
-**Short of what's wanted.** 35 of the 36 rows don't yet have the kind of evidence they want. Each has an open issue labeled `needs-sample`, linked in its row below.
+**Short of what's wanted.** 35 of the 37 rows don't yet have the kind of evidence they want. Each has an open issue labeled `needs-sample`, linked in its row below.
 
 **The rows.**
 
@@ -126,11 +127,13 @@ The register holds 36 rows, as of October 31, 2026.
 | <a id="g34"></a>G34 | Flight-log readings' 90% intervals | Twelve readings state 90% intervals, and a floor a lower end, fitted on 2,000 synthetic flights of their own. On sets A and B each passes the coverage test or its lower tail (the top speed below its transonic mark; a clipped top near an imposed clip); every probe fails. The misses gather: the height's, the top speed's and the descent rates' gather on days more than 10 K from standard, a warm day's above the interval (#1055, #1061); the times lean by logger (#1056, #1062), and the top acceleration most (#1070). **Not checked:** a real flight's readings against a truth taken apart from the log, such as a second logger's or a ground tracker's record of the same flight. | calibration | real | [#1052](https://github.com/nrdptel/fusionspace-eridanus/issues/1052) | 2026-10-31 |
 | <a id="g35"></a>G35 | Two logs of one flight on one timeline | A shared liftoff recovers the clock offset between two logs of one flight, within a bound that held on the synthetic flights. On one real pair, RocketPy's Prometheus flight, it lies about 0.08 s from what the boards' GPS time gives, where an offset of zero would miss by 0.13 s. **Not checked:** a real pair whose clocks differ by more than a fraction of a second; the Prometheus logs both start at the boost, and the GPS reference has no stated error of its own. | calibration | real | [#1088](https://github.com/nrdptel/fusionspace-eridanus/issues/1088) | none |
 | <a id="g36"></a>G36 | One logger to a stage on one timeline | A shared liftoff lines up a logger in each stage of a staged flight, within a bound that held on 135 simulated two-stage flights. **Not checked:** a real flight's log from each stage, where a booster's board may read the pad's shock and the separation otherwise. | calibration | real | [#1084](https://github.com/nrdptel/fusionspace-eridanus/issues/1084) | none |
+| <a id="g37"></a>G37 | Ghost files | Each of the 22 real flight logs in RocketPy's repository with an altitude or a GNSS track gives a ghost file as JSON, CZML and glTF, which outside readers read back and hold to each other. **Not checked:** a person looking at one in Cesium or a modelling tool: every check is of the numbers. | real | real | none | none |
 
 **Due a search.** A row is due one when it has none yet, or its last was more than 30 days before October 31, 2026:
 
 - [G35](#g35)
 - [G36](#g36)
+- [G37](#g37)
 
 **Searches so far.**
 
@@ -371,6 +374,28 @@ The register holds 36 rows, as of October 31, 2026.
 **Real samples.** Each file a real row reads, kept under `refs/`, with its SHA-256 and the test that reads it:
 
 - [G23](#g23): `refs/snapshots/thrustcurve/2026-10-28/search.json`, SHA-256 `6fac854e349521f526c2f8cafadb91b23c91527261380a9461c27a7af892f510`; ThrustCurve.org's answer to a whole-catalog search, recorded unchanged on October 28, 2026 by `validation/oracles/thrustcurve/snapshot.py`; its records used as published facts with ThrustCurve.org's credit; read by `fusionspace-hpr-net`'s test `each_record_is_the_raw_snapshots_own`.
+- [G37](#g37): `refs/rocketpy/data/rockets/NDRT_2020/ndrt_2020_flight_data.csv`, SHA-256 `5e64b446199988ac183b2f3965d76da27e57496bb2a33f78df73aa23fd18d7b8`; MIT, RocketPy's repository; read by `fusionspace-hpr-cli`'s test `analyze_writes_a_ghost_of_each_of_rocketpys_logs`.
+- [G37](#g37): `refs/rocketpy/data/rockets/andromeda/flight_data.csv`, SHA-256 `ebd3b757555b564c63937b69d2c222d6596355fc6e938d49537af293a9d48d14`; MIT, RocketPy's repository; read by `fusionspace-hpr-cli`'s test `analyze_writes_a_ghost_of_each_of_rocketpys_logs`.
+- [G37](#g37): `refs/rocketpy/data/rockets/juno3/cots_altimeter.csv`, SHA-256 `eef81b3bcc4c285667727c1e2c9ca502a67cb374f5e31bc4f87ed76b8a04c1ee`; MIT, RocketPy's repository; read by `fusionspace-hpr-cli`'s test `analyze_writes_a_ghost_of_each_of_rocketpys_logs`.
+- [G37](#g37): `refs/rocketpy/data/rockets/prometheus/2022-06-24-serial-5115-flight-0001-TeleMetrum.csv`, SHA-256 `9fe8d17a25e7944267b34a45ed955303afd5818b3f18479a5f7ffb31a574cecf`; MIT, RocketPy's repository; read by `fusionspace-hpr-cli`'s test `analyze_writes_a_ghost_of_each_of_rocketpys_logs`.
+- [G37](#g37): `refs/rocketpy/data/rockets/prometheus/2022-06-24-serial-6583-flight-0003-TeleMega.csv`, SHA-256 `befe40714e6b88b3bd5af8cd51b569a94544c486ced299878f66ab264f9105a6`; MIT, RocketPy's repository; read by `fusionspace-hpr-cli`'s test `analyze_writes_a_ghost_of_each_of_rocketpys_logs`.
+- [G37](#g37): `refs/rocketpy/data/rockets/EPFL_Bella_Lui/bella_lui_flight_data_filtered.csv`, SHA-256 `ccf8bcecd91d5b912e8f8b3bcf9efe13248453e1a81dc79d2b4daea4e985de2d`; MIT, RocketPy's repository; read by `fusionspace-hpr-cli`'s test `analyze_writes_a_ghost_of_each_of_rocketpys_logs`.
+- [G37](#g37): `refs/rocketpy/data/rockets/astg/altimeter_halcyon.csv`, SHA-256 `7f1fec2faa53f63a183c97d8a9b692763e7b53d60eab15cc6f42ab646afa85a0`; MIT, RocketPy's repository; read by `fusionspace-hpr-cli`'s test `analyze_writes_a_ghost_of_each_of_rocketpys_logs`.
+- [G37](#g37): `refs/rocketpy/data/rockets/astg/gnss_halcyon.csv`, SHA-256 `1a4715c45c85671c41fd8b3a870a9650548e7e5bae70c781c5e34f054090862f`; MIT, RocketPy's repository; read by `fusionspace-hpr-cli`'s test `analyze_writes_a_ghost_of_each_of_rocketpys_logs`.
+- [G37](#g37): `refs/rocketpy/data/rockets/astra/flight_data.csv`, SHA-256 `dd5287b375e84be8961a7c867dc9af764a42752af3109c25086d228978e4acae`; MIT, RocketPy's repository; read by `fusionspace-hpr-cli`'s test `analyze_writes_a_ghost_of_each_of_rocketpys_logs`.
+- [G37](#g37): `refs/rocketpy/data/rockets/camoes/flight_data.csv`, SHA-256 `8ceb1a196901569e32a6e9f09067feebb5ca1406d686e402f726e715a1be1dcc`; MIT, RocketPy's repository; read by `fusionspace-hpr-cli`'s test `analyze_writes_a_ghost_of_each_of_rocketpys_logs`.
+- [G37](#g37): `refs/rocketpy/data/rockets/camoes/gnss_flight.csv`, SHA-256 `ea6129167650b503477282e6dd2864530145bc33a26487a612dcfc4e781f99e6`; MIT, RocketPy's repository; read by `fusionspace-hpr-cli`'s test `analyze_writes_a_ghost_of_each_of_rocketpys_logs`.
+- [G37](#g37): `refs/rocketpy/data/rockets/erebus11/flight_data_filtered.csv`, SHA-256 `045f5b9ed473b80095805d3ca7b831ca4b67c5afbe9156d58d1e91df9fc0b4a9`; MIT, RocketPy's repository; read by `fusionspace-hpr-cli`'s test `analyze_writes_a_ghost_of_each_of_rocketpys_logs`.
+- [G37](#g37): `refs/rocketpy/data/rockets/genesis/flight_data_faraday.csv`, SHA-256 `d88a7fc53cbd55d1dafeed5d5c6fcfcad27c7cf8e0a15221e67aae97eaa05a74`; MIT, RocketPy's repository; read by `fusionspace-hpr-cli`'s test `analyze_writes_a_ghost_of_each_of_rocketpys_logs`.
+- [G37](#g37): `refs/rocketpy/data/rockets/genesis/gnss_faraday.csv`, SHA-256 `5843d20becfb8cda3246f7ebbca2e090579ffffd5ac148ae3519be91a0c7b90b`; MIT, RocketPy's repository; read by `fusionspace-hpr-cli`'s test `analyze_writes_a_ghost_of_each_of_rocketpys_logs`.
+- [G37](#g37): `refs/rocketpy/data/rockets/hedy/cats_tust/filteredDataInfo.csv`, SHA-256 `a5fe9e1a760a17a8c22c920097f3658e00b42030bca7f44123e20d5425fa0d9b`; MIT, RocketPy's repository; read by `fusionspace-hpr-cli`'s test `analyze_writes_a_ghost_of_each_of_rocketpys_logs`.
+- [G37](#g37): `refs/rocketpy/data/rockets/hedy/cats_tust/flightInfo.csv`, SHA-256 `481375091cf0da74fd1d933189546d9b846b3ca54b4c29f90d4a90f40b5f7731`; MIT, RocketPy's repository; read by `fusionspace-hpr-cli`'s test `analyze_writes_a_ghost_of_each_of_rocketpys_logs`.
+- [G37](#g37): `refs/rocketpy/data/rockets/hedy/cats_tust/gnssInfo.csv`, SHA-256 `8ab7e041385698a4adab7d9abbd3c985c5a38b42ead8667a5b53fc9223cbcbc3`; MIT, RocketPy's repository; read by `fusionspace-hpr-cli`'s test `analyze_writes_a_ghost_of_each_of_rocketpys_logs`.
+- [G37](#g37): `refs/rocketpy/data/rockets/juno3/cots_GNSS.csv`, SHA-256 `557c80be4c0d9a5e6a5493177a9adfaa3b02c11b8ff814ed238b53540ac9f062`; MIT, RocketPy's repository; read by `fusionspace-hpr-cli`'s test `analyze_writes_a_ghost_of_each_of_rocketpys_logs`.
+- [G37](#g37): `refs/rocketpy/data/rockets/juno3/srad_telemetry.csv`, SHA-256 `8cff1691d9a89bfccdb3a85f1a55ac26432b220c64e1c4c80cd7df16077af39c`; MIT, RocketPy's repository; read by `fusionspace-hpr-cli`'s test `analyze_writes_a_ghost_of_each_of_rocketpys_logs`.
+- [G37](#g37): `refs/rocketpy/data/rockets/lince/main_data.csv`, SHA-256 `a9cf47fe2b2e5be03168d36b1c41f0a5651a0c3b6db4ed091e1afc274bd7473e`; MIT, RocketPy's repository; read by `fusionspace-hpr-cli`'s test `analyze_writes_a_ghost_of_each_of_rocketpys_logs`.
+- [G37](#g37): `refs/rocketpy/data/rockets/polito/altimeter_cavour.csv`, SHA-256 `f912724676eea0ca9ba031c3779e48f861538814170b050b7bda2887c31f29a8`; MIT, RocketPy's repository; read by `fusionspace-hpr-cli`'s test `analyze_writes_a_ghost_of_each_of_rocketpys_logs`.
+- [G37](#g37): `refs/rocketpy/data/rockets/valkyrie/flightInfo_merged.csv`, SHA-256 `0c7808a84fb39c83908ba9caa1d2d3ccb609d6db46c3d660b85977e6917795bc`; MIT, RocketPy's repository; read by `fusionspace-hpr-cli`'s test `analyze_writes_a_ghost_of_each_of_rocketpys_logs`.
 
 <!-- evidence: end -->
 

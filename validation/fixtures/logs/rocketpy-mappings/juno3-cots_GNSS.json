@@ -1,0 +1,40 @@
+{
+  "header_line": 1,
+  "separator": ",",
+  "decimal_comma": false,
+  "clock": 0,
+  "columns": [
+    {
+      "name": "time",
+      "quantity": null,
+      "unit": "s"
+    },
+    {
+      "name": "ALT",
+      "quantity": "gnss_altitude",
+      "unit": "ft"
+    },
+    {
+      "name": "HORZV",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "VERTV",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "LAT",
+      "quantity": "latitude",
+      "unit": "deg"
+    },
+    {
+      "name": "LON",
+      "quantity": "longitude",
+      "unit": "deg"
+    }
+  ]
+}

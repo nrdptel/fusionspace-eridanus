@@ -724,6 +724,7 @@ dependencies = [
 name = "fusionspace-hpr-flightdata"
 version = "0.1.0"
 dependencies = [
+ "base64 0.22.1",
  "flate2",
  "fusionspace-hpr-atmos",
  "fusionspace-hpr-core",

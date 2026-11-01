@@ -1,0 +1,34 @@
+{
+  "header_line": 1,
+  "separator": ",",
+  "decimal_comma": false,
+  "clock": 0,
+  "columns": [
+    {
+      "name": "ts",
+      "quantity": null,
+      "unit": "s"
+    },
+    {
+      "name": "altitude[m]",
+      "quantity": "altitude_above_ground",
+      "unit": "m"
+    },
+    {
+      "name": "velocity[m/s]",
+      "quantity": "speed",
+      "unit": "m/s"
+    },
+    {
+      "name": "latitude",
+      "quantity": "latitude",
+      "unit": "deg"
+    },
+    {
+      "name": "longitude",
+      "quantity": "longitude",
+      "unit": "deg"
+    }
+  ],
+  "primary": 1
+}

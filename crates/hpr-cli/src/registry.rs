@@ -98,7 +98,11 @@ pub fn availability(name: &str) -> Option<Availability> {
                 "binary records or a console capture by a record layout".to_owned(),
                 "a Raven FIP export below no header, by the header stated".to_owned(),
             ],
-            writes: text_or_json(),
+            writes: vec![
+                "text".to_owned(),
+                "JSON".to_owned(),
+                "a ghost file as `.json`, `.czml` or `.gltf`".to_owned(),
+            ],
         }),
         "weather" => Some(Availability::Available {
             reads: vec![
