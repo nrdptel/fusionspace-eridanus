@@ -4827,7 +4827,8 @@ fn analyze_reads_rocketpys_two_logger_flight_side_by_side() {
     assert_eq!(output.status.code(), Some(0), "{output:?}");
     let document: Value = serde_json::from_str(&text(&output.stdout)).unwrap();
     validate("analyze-together.schema.json", &document);
-    let utc_zero = |path: &str| -> f64 {
+    // Each UTC second where it ticks: (the UTC second, the log's clock there, the row's gap).
+    let utc_ticks = |path: &str| -> Vec<(f64, f64, f64)> {
         let table = std::fs::read_to_string(path).unwrap();
         let mut lines = table.lines();
         let head: Vec<&str> = lines.next().unwrap().split(',').map(str::trim).collect();
@@ -4839,24 +4840,64 @@ fn analyze_reads_rocketpys_two_logger_flight_side_by_side() {
             column("minute"),
             column("second"),
         );
-        let mut zeros = Vec::new();
-        let mut last = None;
-        for line in lines {
+        let state = head.iter().position(|c| *c == "state_name").unwrap();
+        let mut ticks = Vec::new();
+        let (mut last, mut before) = (None, f64::NAN);
+        for (index, line) in lines.enumerate() {
             let cell: Vec<&str> = line.split(',').map(str::trim).collect();
             let number = |k: usize| cell[k].parse::<f64>().unwrap_or(f64::NAN);
+            // The page's "both logs start at the boost": the weak check's reason.
+            if index == 0 {
+                assert_eq!(cell[state], "boost", "{path}");
+                assert!(number(time).abs() < 1.0, "{path}");
+            }
             let utc = number(hour) * 3_600.0 + number(minute) * 60.0 + number(second);
-            if number(year) < 2_000.0 || utc.is_nan() {
-                continue;
+            if number(year) >= 2_000.0 && !utc.is_nan() {
+                if last.is_some_and(|l| l != utc) {
+                    ticks.push((utc, number(time), number(time) - before));
+                }
+                last = Some(utc);
             }
-            if last.is_some_and(|l| l != utc) {
-                zeros.push(utc - number(time));
-            }
-            last = Some(utc);
+            before = number(time);
         }
+        ticks
+    };
+    let median_zero = |ticks: &[(f64, f64, f64)]| {
+        let mut zeros: Vec<f64> = ticks.iter().map(|&(utc, t, _)| utc - t).collect();
         zeros.sort_by(f64::total_cmp);
         zeros[zeros.len() / 2]
     };
-    let by_utc = utc_zero(&telemetrum) - utc_zero(&telemega);
+    let (ticks_a, ticks_b) = (utc_ticks(&telemetrum), utc_ticks(&telemega));
+    let by_utc = median_zero(&ticks_a) - median_zero(&ticks_b);
+    // The figures the guide quotes for this reference, to their printed digits.
+    let range = |of: &[f64]| {
+        let least = of.iter().copied().fold(f64::INFINITY, f64::min);
+        (least, of.iter().copied().fold(f64::NEG_INFINITY, f64::max))
+    };
+    let paired = |fast_only: bool| -> Vec<f64> {
+        ticks_a
+            .iter()
+            .filter_map(|&(utc, t_a, gap_a)| {
+                let &(_, t_b, gap_b) = ticks_b.iter().find(|tick| tick.0 == utc)?;
+                (!fast_only || (gap_a < 0.02 && gap_b < 0.02)).then_some(t_b - t_a)
+            })
+            .collect()
+    };
+    let (all, fast) = (paired(false), paired(true));
+    assert_eq!((all.len(), fast.len()), (238, 72));
+    let ((least, most), (fast_least, fast_most)) = (range(&all), range(&fast));
+    for (figure, printed) in [
+        (least, -0.24),
+        (most, -0.03),
+        (fast_least, -0.15),
+        (fast_most, -0.11),
+        (by_utc, -0.13),
+    ] {
+        assert!(
+            (figure - printed).abs() < 0.0051,
+            "{figure} against {printed}"
+        );
+    }
     let offset = &document["offsets"][0];
     let (value, bound) = (
         offset["offset_s"].as_f64().unwrap(),

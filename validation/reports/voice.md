@@ -4,7 +4,7 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target. The 132 held pages are every page the site's table of contents lists, with the README and the 404 page, less the records page ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)), each snapshot of an `hpr` command's `--help`, the census of what the commands say, a page for each crate's `src/` directory, the Python package's README and its docstrings as `help()` shows them, and each crate's front page, the `//!` docs of its `src/lib.rs` ([ADR-292](../../docs/decisions/0292-the-programs-words-in-four.md)).
 
-140 pages, 525781 words, 0 stock phrases. 136 pages are within every limit.
+140 pages, 525825 words, 0 stock phrases. 136 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
@@ -57,7 +57,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/accuracy.md` (`held`) | 15946 | 13.5 | 2% | 0.22 | 0.00 | 0.06 | 0.06 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.02 | 0.47 |
 | `docs/api.md` (`held`) | 2515 | 13.2 | 0% | 0.16 | 0.00 | 0.00 | 0.20 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.40 | 0.36 |
 | `docs/checking-a-claim.md` (`held`) | 1575 | 14.8 | 0% | 0.26 | 0.07 | 0.00 | 0.26 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.13 | 1.21 |
-| `docs/cli.md` (`ref`, `held`) | 18528 | 14.0 | 3% | 0.22 | 0.02 | 0.13 | 0.08 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.23 | 0.62 |
+| `docs/cli.md` (`ref`, `held`) | 18548 | 14.0 | 3% | 0.22 | 0.02 | 0.13 | 0.08 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.23 | 0.62 |
 | `docs/custom-models.md` (`held`) | 1800 | 13.6 | 0% | 0.00 | 0.00 | 0.00 | 0.23 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.95 | 0.95 |
 | `docs/drag-through-mach-1.md` (`held`) | 1957 | 15.0 | 3% | 0.36 | 0.00 | 0.16 | 0.11 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.06 | 0.82 |
 | `docs/elevation.md` (`held`) | 4127 | 14.7 | 2% | 0.00 | 0.00 | 0.10 | 0.05 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.30 | 0.85 |
@@ -92,7 +92,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/physics/gravity.md` (`ref`, `held`) | 1133 | 11.5 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `docs/physics/integration.md` (`ref`, `held`) | 2062 | 12.5 | 0% | 0.20 | 0.25 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.25 |
 | `docs/physics/interpolation.md` (`ref`, `held`) | 547 | 11.3 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
-| `docs/physics/log-readings.md` (`ref`, `held`) | 19798 | 15.8 | 6% | 0.27 | 0.13 | 0.27 | 0.16 | 0.00 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.02 | 0.34 |
+| `docs/physics/log-readings.md` (`ref`, `held`) | 19806 | 15.8 | 6% | 0.27 | 0.13 | 0.28 | 0.16 | 0.00 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.02 | 0.34 |
 | `docs/physics/magnetic.md` (`ref`, `held`) | 2231 | 13.9 | 1% | 0.14 | 0.00 | 0.05 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.14 | 0.00 |
 | `docs/physics/mass.md` (`ref`, `held`) | 9868 | 12.9 | 1% | 0.21 | 0.04 | 0.05 | 0.07 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.10 | 0.35 |
 | `docs/physics/metrics.md` (`ref`, `held`) | 5554 | 14.2 | 0% | 0.04 | 0.22 | 0.00 | 0.04 | 0.00 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.02 | 0.11 |
@@ -110,7 +110,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/pick-a-motor.md` (`held`) | 1245 | 13.7 | 3% | 0.00 | 0.00 | 0.17 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 1.37 | 0.41 |
 | `docs/plan.md` (`held`) | 1064 | 10.4 | 0% | 0.00 | 0.19 | 0.00 | 0.10 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.00 | 0.57 |
 | `docs/python.md` (`held`) | 4701 | 14.3 | 1% | 0.07 | 0.00 | 0.05 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.45 | 0.73 |
-| `docs/reading-a-flight-log.md` (`held`) | 3066 | 14.6 | 5% | 0.36 | 0.00 | 0.30 | 0.10 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.36 | 0.72 |
+| `docs/reading-a-flight-log.md` (`held`) | 3082 | 14.7 | 5% | 0.36 | 0.00 | 0.33 | 0.10 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.36 | 0.75 |
 | `docs/recording-a-trajectory.md` (`held`) | 821 | 14.0 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.00 | 0.74 |
 | `docs/releasing.md` (`held`) | 2595 | 14.2 | 0% | 0.27 | 0.00 | 0.00 | 0.08 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.35 | 0.74 |
 | `docs/sensitivity.md` (`held`) | 2268 | 14.8 | 1% | 0.27 | 0.00 | 0.05 | 0.14 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.58 | 0.67 |

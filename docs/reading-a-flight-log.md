@@ -423,12 +423,13 @@ Prometheus flight carried a TeleMetrum and a TeleMega, each with its own GPS rec
 
 Their liftoffs read 0.23 s and 0.18 s, each on its own clock. The TeleMega's clock less the
 TeleMetrum's comes to −0.05 s, within 1.53 s, 90% interval −0.13 to 0.04 s. The two receivers' UTC
-seconds, taken where each second ticks in each log, put it at −0.13 s: the ticks scatter by about
-0.02 s where the logs run at 100 samples a second, and any fixed difference between the receivers'
-delays can't be seen. So this offset is about 0.08 s away, and the interval's low end, −0.129 s
+seconds, taken where each second ticks in each log, put it at −0.13 s: the ticks stay within about
+0.02 s of that where the logs run at 100 samples a second, and any fixed difference between the
+receivers' delays can't be seen. So this offset is about 0.08 s away, and the interval's low end, −0.129 s
 unrounded, is too close to that figure to say which side it falls. Both logs start at the boost, so
-their clocks hardly differ: an offset of zero would miss by 0.13 s, little worse. That's one flight,
-and it says nothing of clocks that differ by minutes, as the synthetic flights' do.
+their clocks hardly differ: an offset of zero would miss by 0.13 s, against this offset's 0.08 s.
+That's one flight: it can't show whether the interval holds nine times in ten, and it says nothing
+of clocks that differ by minutes, as the synthetic flights' do.
 
 `--stages` lays out one logger to a stage the same way, each leaving the pad with the stack, and
 gives no spread, a booster's apogee and a sustainer's being different heights. It has been checked

@@ -1090,7 +1090,8 @@ TeleMetrum's at −0.13 s. Over all 238 paired ticks that scatters from −0.24 
 72 at 100 samples a second from −0.15 to −0.11 s. A fixed difference between the receivers' delays
 can't be seen. So this offset is about 0.08 s away, and the interval's low end, −0.129 s, is too close
 to that figure to say which side it falls. Both logs start at the boost, so an offset of zero would
-miss by 0.13 s, little worse: a weak check, on one flight.
+miss by 0.13 s, against this offset's 0.08 s: a weak check, and one flight can't show the interval's
+coverage.
 
 **Checked against.** On two-logger synthetic flights
 ([their sets](synthetic-flights.md#two-loggers-and-stages)), every one of the 1,383 offsets given
