@@ -516,7 +516,8 @@ are in `hpr-forensics`. Formats, methods and the log corpus came from Debrief.
   each and measure bundle size, frame rate on a phone-class device profile, and development effort.
   `desktop.md`'s default, Tauri 2, is replaced only for a measured reason (ADR-164 §5). The ADR
   also names which part of the mobile app would own a watch link (ADR-191), and the app's winning
-  axes from its survey, with `.ork` round trips that lose nothing (ADR-209 §11–12).
+  axes from its survey, with `.ork` round trips that lose nothing (ADR-209 §11–12). It also sets the
+  app's license, with its reasons; the leading option is `FSL-1.1-ALv2` (ADR-315).
   - Loft lessons: P15 (read the UI notes in Loft's maintainer notes before the spike).
   *Done when:* the ADR is merged with measurements.
 - [ ] **M9.1 Desktop app shell.** Design editor (2D profile plus 3D model), simulation runner,

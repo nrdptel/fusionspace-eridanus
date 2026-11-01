@@ -142,6 +142,10 @@ checkable items.
 - **2026-10-21, every motor offline** ([ADR-288, every solid motor ships in the package](decisions/0288-every-solid-motor-ships-in-the-package.md)).
   Neer decided the package should carry every motor's data, so it works offline with nothing to
   fetch, with as much data and as many options as possible. Solid motors come first; hybrids come after release 1.0.
+- **2026-11-01, licensing layers** ([ADR-315, the licensing layers](decisions/0315-the-2026-11-01-licensing-layers.md)).
+  Neer decided the engine stays open source. The services FusionSpace runs carry their own terms,
+  and another site or company needs his permission to build on them. The app's license is chosen
+  in M9.0, before its code is public, and the trademark waits.
 
 **Operating envelope** (ADR-143): the bands are set by Mach alone. Accuracy work goes first to the
 core band, Mach 0–2.5. hpr flies the extended band, Mach 2.5–3.5, with its accuracy checked less,
@@ -179,7 +183,7 @@ Decisions Neer confirmed at kickoff:
 | V11 | Later: a modern UI inspired by OpenRocket, RASAero and RockSim, with 3D whole-flight simulation and the sim shown as a "ghost" beside the real flight | M9.2 (release 0.5's app preview, ADR-163), M9.1 (1.0) |
 | V12 | Later: a client-side web version (installable PWA), then mobile (offline PWA and/or iOS/Android apps) | M9.x |
 | V13 | COTS solid motors only, until release 1.0 ([ADR-162, the suite and its releases](decisions/0162-the-suite-and-its-releases.md)) | scope rule |
-| V14 | Open source, in the style of the other FusionSpace projects | M0.1 |
+| V14 | Open source, in the style of the other FusionSpace projects | M0.1; the engine, with services under their own terms and the app's license set in M9.0 (ADR-315) |
 | V15 | Documentation that is easy to reach and easy to read: one searchable site linked from the README, plain language first, every term defined, every claim traceable to its source, test and validation, so a person can check the work without reading the code | M0.4, then every milestone |
 | V16 | Airbrakes, then canards: active drag and roll control, as competitions fly them | M6.4, M6.5 |
 | V17 | Ejected nose cones, body sections and payloads, each landed under its own recovery | M1.11 |
