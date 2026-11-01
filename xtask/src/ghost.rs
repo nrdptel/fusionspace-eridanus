@@ -404,7 +404,7 @@ mod tests {
         // Against the flight's card or a report. Valkyrie's log peaks 1.9% under, the widest.
         const CARD: f64 = 0.02;
         // RocketPy's own simulated apogee above the pad, where the notebook's measured figure is
-        // this column's maximum: within 0.4%.
+        // this column's maximum: about 0.3% off.
         const SIMULATED: f64 = 0.01;
         // A receiver's altitude against the flight's altimeter's card: 4.9% and 5.9% over.
         const RECEIVER: f64 = 0.06;

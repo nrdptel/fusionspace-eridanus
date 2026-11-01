@@ -60,7 +60,7 @@ most state no units, and none has a format's reader of its own.
 **Consequences.** All 22 logs give all three files, all read back at every moment ([report][report]).
 Each stated height's unit is checked against a figure not read off that column. Of the 16 with a
 barometer's or a filtered height, 13 peak within 2% of a recorded apogee in RocketPy's notebooks, and 3
-within 0.4% of its simulated one above the pad, having no other; the two with only a receiver's altitude are within 6%. Left
+about 0.3% from its simulated one above the pad, having no other; the two with only a receiver's altitude are within 6%. Left
 out, each with its issue, on [the page][page]: a simulated track (#1091), joining a GNSS log to its
 altimeter log on the clock they share (#1086), and Python (#1085). Nobody has yet looked at one in a
 viewer: every check is of the numbers. M9.2's replay will be that look.
