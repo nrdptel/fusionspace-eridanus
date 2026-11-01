@@ -166,7 +166,7 @@ So the formats agree with each other. What ties them to the log is pinned apart 
   RocketPy's notebooks that wasn't read off that column. Of the 16 logs with a barometer's or a
   filtered height, 13 peak within 2% of a flight card or another board's record. Valkyrie's log, at
   1.9% under, is the widest. The other 3 have no such figure, so they are held to RocketPy's
-  simulated apogee above the pad, the widest 0.4% off. The two with only a receiver's altitude, on Juno III, peak
+  simulated apogee above the pad, the widest 0.3% off. The two with only a receiver's altitude, on Juno III, peak
   4.9% and 5.9% over its altimeter's card.
 - East and north match the ellipsoid's radii of curvature, by a route that doesn't use the rotation
   under test, to 5 mm (0.20 in).
