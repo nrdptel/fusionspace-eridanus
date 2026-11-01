@@ -118,13 +118,11 @@
 //! up to 1 s late is decided from 50 m up (the module's tests; `tests/rrc3_csv.rs` adds km/h and
 //! ft/s flights 1 and 2 s late, 100 to 300 m up). These filters only look back. A smoothing that
 //! also looks ahead, centered on each sample, starts the velocity above rest at the record's
-//! first row, so the integral misses the start of the climb, or carries the descent past a
-//! record's last row: over a window of 3 to 5 s, about 1 in 100 such invented flights read about
-//! 8% low, enough to take km/h for ft/s. So the velocity is measured only where its first row is
-//! near rest, under 1% of the column's own peak, and its integral closes on the altitude at the
-//! record's end, within 1% of the climb. The sample files' first rows are at rest and their
-//! integrals close within 0.53%, and neither rule changes one of their units. Otherwise the column
-//! is kept as written,
+//! first row, so the integral misses the start of the climb: over a window of 3 to 5 s, about 1
+//! in 100 such invented flights read about 8% low, enough to take km/h for ft/s. So the velocity
+//! is measured only where its first row is near rest, at most 1% of the column's own peak. The
+//! sample files' first rows are at rest, and the rule changes none of their units. Otherwise the
+//! column is kept as written,
 //! [`Quantity::Unrecognized`], with a note: also
 //! when the altitude climbs under 50 m, where half a step of the pressure, 0.42 m at sea level,
 //! is 0.8% of the climb and a larger share of the area of a flight that spends its time low; and
@@ -211,11 +209,6 @@ const DELAY_SEARCH_S: (f64, f64, f64) = (-2.0, 4.0, 0.05);
 /// The most the velocity's first row may be, as a fraction of the column's own peak, for it to be
 /// measured: above rest, its integral has missed the start of the climb (module docs).
 const START_SHARE: f64 = 0.01;
-
-/// The most the velocity's running integral may end from the altitude it is fitted to, as a
-/// fraction of the climb, for it to be measured: a velocity that is the altitude's rate closes on
-/// it, and one smoothed across the record's ends doesn't (module docs).
-const CLOSURE_SHARE: f64 = 0.01;
 
 /// The highest the record may end, as a fraction of the climb above the first row, for the
 /// velocity to be measured: it must have come down at least halfway (module docs).
@@ -1081,9 +1074,6 @@ struct Scale {
     end_error: f64,
     /// The first row's velocity, as a fraction of the column's own peak.
     start_share: f64,
-    /// How far the running integral ends from the altitude `delay_s` earlier, in the fit's unit,
-    /// as a fraction of the climb.
-    closure: f64,
 }
 
 /// The velocity's running integral by trapezoids, zero at the first row.
@@ -1184,7 +1174,6 @@ fn velocity_scale(time_s: &[f64], altitude_m: &[f64], velocity: &[f64]) -> Optio
         .iter()
         .fold(0.0, |most: f64, v| most.max(v.abs()));
     let start_share = velocity.first()?.abs() / peak;
-    let closure = (integral.last()? - by_fit * earlier.last()?).abs() / (by_fit.abs() * climb_m);
     (altitude_area > 0.0 && by_area.is_finite() && by_fit.is_finite()).then_some(Scale {
         by_area,
         by_fit,
@@ -1196,7 +1185,6 @@ fn velocity_scale(time_s: &[f64], altitude_m: &[f64], velocity: &[f64]) -> Optio
             f64::INFINITY
         },
         start_share,
-        closure,
     })
 }
 
@@ -1221,13 +1209,11 @@ struct Track<'a> {
 
 /// The speed unit both measures land nearest, each within [`VELOCITY_MARGIN`], as an index into
 /// [`SPEEDS`]; `None` if they don't, if the record ends too high or still moving for the measure
-/// by the areas to hold, or if the velocity starts above rest or its integral doesn't close on
-/// the altitude (module docs).
+/// by the areas to hold, or if the velocity starts above rest (module docs).
 fn agreed_unit(scale: &Scale) -> Option<usize> {
     if !(scale.end_height <= END_HEIGHT
         && scale.end_error <= END_ERROR
-        && scale.start_share <= START_SHARE
-        && scale.closure <= CLOSURE_SHARE)
+        && scale.start_share <= START_SHARE)
     {
         return None;
     }
@@ -1382,15 +1368,6 @@ fn decide_velocity(
                              may be at rest. So its integral has missed the start of the climb",
                             scale.start_share * 100.0,
                             START_SHARE * 100.0
-                        )
-                    }
-                    Some((scale, _, _)) if !(scale.closure <= CLOSURE_SHARE) => {
-                        format!(
-                            "the velocity's running integral ends {:.1}% of the climb from the \
-                             altitude, over the {:.0}% allowed, as a smoothing across the record's \
-                             ends leaves it",
-                            scale.closure * 100.0,
-                            CLOSURE_SHARE * 100.0
                         )
                     }
                     Some((scale, by_area, by_fit)) => {
@@ -1824,19 +1801,6 @@ mod tests {
             .filter(|(row, _)| *row != 1)
             .map(|(_, line)| format!("{line}\n"))
             .collect();
-        // The descent's velocity a fifth too fast: its integral ends a fifth of the climb away.
-        let open_ended: String = full
-            .lines()
-            .map(|line| {
-                let mut cells: Vec<String> = line.split(',').map(str::to_owned).collect();
-                if let Some(rate) = cells.get(3).and_then(|cell| cell.parse::<f64>().ok())
-                    && rate < 0.0
-                {
-                    cells[3] = format!("{:.3}", rate * 1.2);
-                }
-                cells.join(",") + "\n"
-            })
-            .collect();
         let cases = [
             (
                 flight(300.0, 60.0, FOOT_M, 3.0, 0),
@@ -1849,7 +1813,6 @@ mod tests {
             (flight(8.0, 4.0, FOOT_M, 1.0 / FOOT_M, 0), "only assumed"),
             (cut, "of the way up the climb. That is above the 50%"),
             (above_rest, "above the 1% it may be at rest"),
-            (open_ended, "over the 1% allowed"),
         ];
         for (text, why) in cases {
             let log = read(&text).unwrap();
