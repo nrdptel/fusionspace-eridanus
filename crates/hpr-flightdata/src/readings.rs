@@ -1180,10 +1180,13 @@ fn heights(log: &FlightLog) -> Readings {
         .take(2 * half + 1)
         .enumerate()
         .filter(|(_, h)| h.is_finite())
-        .fold(None, |least: Option<(usize, f64)>, (index, h)| match least {
-            Some((_, low)) if low <= *h => least,
-            _ => Some((index, *h)),
-        })
+        .fold(
+            None,
+            |least: Option<(usize, f64)>, (index, h)| match least {
+                Some((_, low)) if low <= *h => least,
+                _ => Some((index, *h)),
+            },
+        )
         .filter(|(_, low)| *low < start - rise)
         .map_or(0, |(index, _)| index);
     let start = if head > 0 { filtered[head] } else { start };
