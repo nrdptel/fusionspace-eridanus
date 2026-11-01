@@ -284,7 +284,7 @@ only the files each command really reads. "Not yet" commands exit with [status 3
 | `hpr weather` | Fetch a launch day's weather, or read a weather file, as a profile of air and wind | Open-Meteo, a University of Wyoming sounding, GFS or RAP, fetched or saved, a whole GFS file, an ERA5 `.nc` | text, JSON, a profile as `.json` | available ([how to use it](cli.md#hpr-weather)) |
 | `hpr mc` | Fly a design many times with its inputs scattered at random, and print how its apogee and landing spread; save every flight with `--export` | what `hpr sim` reads: a design and its motor | text, JSON, every flight's draw and outcome as `.csv` | available ([how to use it](cli.md#hpr-mc)) |
 | `hpr optimize` | Search a design's parameters for a goal | - | - | not yet: [M6.3](decisions-and-roadmap.md#m6-3) |
-| `hpr compare` | Compare a flight log with its simulation | - | - | not yet: [M7.3](decisions-and-roadmap.md#m7-3) |
+| `hpr compare` | Set a flight log against a simulation of it: how far the logged height and speed lie from the simulated, and each reading beside the simulation's | a flight log, as `hpr analyze` reads it, a design, its motor and the launch, as `hpr sim` reads them | text, JSON | available ([how to use it](cli.md#hpr-compare)) |
 | `hpr analyze` | Read a flight log and print its readings, with no design file | a flight log in any layout HPR Sim reads, by its own reader, more logs of one flight, side by side on one timeline, a workbook's sheet or a raw dump's recording, as chosen, another logger's table by a column mapping, binary records or a console capture by a record layout, a Raven FIP export below no header, by the header stated | text, JSON, a ghost file as `.json`, `.czml` or `.gltf` | available ([how to use it](cli.md#hpr-analyze)) |
 | `hpr diagnose` | Diagnose what went wrong in a flight from its log | - | - | not yet: [M7.4](decisions-and-roadmap.md#m7-4) |
 | `hpr completions` | Print a shell completion script for `hpr` | - | a bash, elvish, fish, powershell or zsh script, JSON | available ([how to use it](cli.md#hpr-completions)) |
@@ -1755,7 +1755,19 @@ gives:
 
 ## Logs and weather
 
-`hpr analyze` reads an altimeter's flight log, and `hpr weather` writes the air and wind over a launch site.
+`hpr analyze` reads an altimeter's flight log, `hpr compare` sets one against a simulation of it, and `hpr weather` writes the air and wind over a launch site.
+
+### `hpr compare`
+
+`hpr compare` sets a flight log against a simulation of that flight. It takes the log, then the design, its
+motor and the launch as [`hpr sim`](#hpr-sim) takes them. It prints how far the logged height and speed lie from
+the simulated, phase by phase, and each reading beside the simulation's. `--json` adds every sample's residual.
+A log from another logger is read by `--mapping` or `--layout`, as `hpr analyze` reads it.
+[Comparing a flight with its simulation](comparing-a-flight.md) says how to read the result.
+
+```text
+hpr compare flight.pf2 rocket.ork --motor CTI-J350 --wind 4
+```
 
 ### `hpr analyze`
 

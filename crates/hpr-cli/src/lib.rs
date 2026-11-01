@@ -30,6 +30,7 @@
 
 pub mod analyze;
 mod choose;
+pub mod compare;
 pub mod console;
 pub mod convert;
 mod convert_design;
@@ -181,8 +182,9 @@ pub enum Command {
     Mc(mc::McArgs),
     /// Search a design's parameters for a goal (not available yet)
     Optimize(Planned),
-    /// Compare a flight log with its simulation (not available yet)
-    Compare(Planned),
+    /// Set a flight log against a simulation of it: how far the logged height and speed lie from
+    /// the simulated, and each reading beside the simulation's
+    Compare(compare::CompareArgs),
     /// Read a flight log and print its readings, with no design file
     Analyze(analyze::AnalyzeArgs),
     /// Diagnose what went wrong in a flight from its log (not available yet)
@@ -652,17 +654,16 @@ where
             Command::Mc(args) => mc::run(&args, &mut to),
             Command::Convert(args) => convert::run(&args, &mut to),
             Command::Analyze(args) => analyze::run(&args, &mut to),
+            Command::Compare(args) => compare::run(&args, &mut to),
             Command::Weather(weather) => weather::run(&weather, &mut to),
             Command::Completions(args) => completions(args.shell, &mut to),
-            Command::Optimize(_) | Command::Compare(_) | Command::Diagnose(_) => {
-                Err(Failure::helped(
-                    format!(
-                        "hpr {command} is marked available in the command registry, but this \
+            Command::Optimize(_) | Command::Diagnose(_) => Err(Failure::helped(
+                format!(
+                    "hpr {command} is marked available in the command registry, but this \
                          build has no code for it"
-                    ),
-                    BUG_HELP,
-                ))
-            }
+                ),
+                BUG_HELP,
+            )),
         },
         None => Err(Failure::helped(
             format!("hpr {command} has no entry in the command registry"),

@@ -41,6 +41,7 @@ mod examples;
 mod features;
 mod figures;
 mod fixture_flights;
+mod flight_residuals;
 mod format;
 mod format_types;
 mod ghost;

@@ -311,6 +311,20 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
         anchor: OWN,
     },
     CommandHelp {
+        path: &["compare"],
+        examples: &[
+            Example {
+                what: "Set a log against a simulation of it",
+                line: "hpr compare flight.pf2 rocket.ork --motor CTI-J350",
+            },
+            Example {
+                what: "The same, in the launch day's wind",
+                line: "hpr compare flight.pf2 rocket.ork --motor CTI-J350 --wind 4",
+            },
+        ],
+        anchor: OWN,
+    },
+    CommandHelp {
         path: &["completions"],
         examples: &[
             Example {

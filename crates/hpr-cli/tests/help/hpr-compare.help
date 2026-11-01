@@ -1,9 +1,101 @@
-Compare a flight log with its simulation (not available yet)
+Set a flight log against a simulation of it: how far the logged height and speed lie from the simulated, and each reading beside the simulation's
 
-Usage: hpr compare [OPTIONS]
+Usage: hpr compare [OPTIONS] <LOG> <DESIGN>
+
+Arguments:
+  <LOG>
+          The flight log: a file in any format HPR Sim reads, or another logger's file read by --mapping or --layout
+
+  <DESIGN>
+          The design: an OpenRocket .ork file, an HPR design (.hpr, or .hprz with its attachments), or a rocket described in JSON (.json)
 
 Options:
-      --json          Print one JSON document on standard output instead of text, errors included
-      --color <WHEN>  When to use color. With auto, output to a terminal is colored, and NO_COLOR, FORCE_COLOR and CLICOLOR_FORCE are followed. JSON output never has color [default: auto] [possible values: auto, always, never]
-  -h, --help          Print help
-  -V, --version       Print version
+      --config <NAME>
+          The motor configuration to fly: its number in the list the output shows, its name, or its id. Without it, the design's default configuration flies, or its only one
+
+      --json
+          Print one JSON document on standard output instead of text, errors included
+
+      --color <WHEN>
+          When to use color. With auto, output to a terminal is colored, and NO_COLOR, FORCE_COLOR and CLICOLOR_FORCE are followed. JSON output never has color
+          
+          [default: auto]
+          [possible values: auto, always, never]
+
+      --motor <NAME_OR_FILE>
+          Fly this motor in place of the configuration's, ignited at launch: a catalog designation or common name, or a .eng or .rse file
+
+      --mount <NAME>
+          The motor mount that --motor goes in, by its name or its component id; it needs --motor. Without it, the motor goes in the configuration's mount, or the design's only one
+
+      --delay <S_OR_P>
+          The ejection delay of the motor --motor names: seconds from burnout to the charge (0 fires it at burnout), or P for a plugged motor. It needs --motor. Without it, the motor fires no charge
+
+      --latitude <DEG>
+          The launch site's latitude, degrees north (south is negative)
+          
+          [default: 0]
+
+      --longitude <DEG>
+          The launch site's longitude, degrees east (west is negative)
+          
+          [default: 0]
+
+      --elevation <M>
+          The launch site's height above sea level, m
+          
+          [default: 0]
+
+      --rail-length <M>
+          The rail's length, m, from the rocket's aft end to the rail's top
+          
+          [default: 1.5]
+
+      --inclination <DEG>
+          The rail's angle above the horizon, degrees [default: 90, vertical]
+
+      --heading <DEG>
+          The direction the rail leans toward, degrees clockwise from true north [default: 0]
+
+      --wind <M_S>
+          A wind of this speed at every height, m/s [default: calm]
+
+      --wind-from <DEG>
+          The direction the wind blows from, degrees clockwise from true north
+          
+          [default: 0]
+
+      --weather <FILE>
+          Fly the air and winds of a weather profile, the JSON file `hpr weather` writes, in place of the standard atmosphere and --wind. The site's --elevation must lie within the profile's heights, and its levels must give winds
+
+      --accept-design-errors
+          Fly a design whose checks find errors, such as a motor wider than its mount. The flight may not be physical
+
+      --offline
+          Look up a motor the bundled catalog lacks in the cache of ThrustCurve.org files only, never on the network
+
+      --mapping <FILE>
+          Read the log as a table, by this column mapping: a JSON file, as `hpr analyze --print-mapping` prints one (schema/cli/analyze-mapping.schema.json)
+
+      --layout <FILE>
+          Read the log as binary records, or a serial console's capture of them, by this record layout: a JSON file (schema/cli/analyze-layout.schema.json)
+
+      --sheet <N>
+          Which sheet of a workbook (.xlsx or .xls) to read, counting from 0
+
+      --recording <N>
+          Which recording to read from a file that holds several, counting from 0
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+  -V, --version
+          Print version
+
+Examples:
+  Set a log against a simulation of it:
+      hpr compare flight.pf2 rocket.ork --motor CTI-J350
+  The same, in the launch day's wind:
+      hpr compare flight.pf2 rocket.ork --motor CTI-J350 --wind 4
+
+Guide: https://hpr.fusionspace.co/cli.html#hpr-compare

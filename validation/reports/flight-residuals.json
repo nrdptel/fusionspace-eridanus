@@ -1,0 +1,1665 @@
+{
+  "flights": [
+    {
+      "id": "bella-lui",
+      "title": "Bella Lui, EPFL Rocket Team, 2020 (K828FJ)",
+      "altimeter": "barometric, assumed",
+      "files": [
+        {
+          "path": "refs/rocketpy/data/rockets/EPFL_Bella_Lui/bella_lui_flight_data_filtered.csv",
+          "sha256": "ccf8bcecd91d5b912e8f8b3bcf9efe13248453e1a81dc79d2b4daea4e985de2d"
+        },
+        {
+          "path": "refs/rocketpy/data/motors/aerotech/AeroTech_K828FJ.eng",
+          "sha256": "ba778b6add25bb0d866ca22b68eb63a0bac93313f4ed65afc5a720f396073d1b"
+        },
+        {
+          "path": "validation/designs/rocketpy-bella-lui.json",
+          "sha256": "9452ee3fea7edb2b0beb7b03587740bbd0ac9d6c284b6d983be2b5c34fdc33b9"
+        },
+        {
+          "path": "refs/rocketpy/data/weather/bella_lui_weather_data_ERA5.nc",
+          "sha256": "51a60794fca3a4511436ee54821307a557576399fe5d1252bbf7c7b639809e95"
+        }
+      ],
+      "log_rows": 768,
+      "height_read_as": "barometric",
+      "clock_bound_s": 2.2462372503257506,
+      "reaches_landing": true,
+      "descent_flown": true,
+      "past_simulation": 0,
+      "height_m": [
+        {
+          "phase": "ascent",
+          "start_s": 0.0,
+          "end_s": 10.395,
+          "samples": 176,
+          "mean": -0.19047986110081877,
+          "rms": 3.188406931531104,
+          "largest": 9.2733071058301,
+          "largest_at_s": 1.8599999999999999
+        },
+        {
+          "phase": "descent",
+          "start_s": 10.395,
+          "end_s": 34.32,
+          "samples": 393,
+          "mean": -8.96975257713195,
+          "rms": 10.295253741871761,
+          "largest": -18.985533706037927,
+          "largest_at_s": 28.619999999999997
+        }
+      ],
+      "speed_m_s": [
+        {
+          "phase": "ascent",
+          "start_s": 0.0,
+          "end_s": 10.395,
+          "samples": 176,
+          "mean": -0.43665904637378933,
+          "rms": 1.6713619359696086,
+          "largest": 7.185720880617126,
+          "largest_at_s": 1.5
+        },
+        {
+          "phase": "descent",
+          "start_s": 10.395,
+          "end_s": 34.32,
+          "samples": 393,
+          "mean": -0.4615058366857172,
+          "rms": 1.951907847471384,
+          "largest": -5.049436317757724,
+          "largest_at_s": 26.4
+        }
+      ],
+      "speed_withheld": null,
+      "rows": [
+        {
+          "what": "apogee_height",
+          "logged": {
+            "status": "read",
+            "value": 458.957,
+            "bound": 43.35967920758214,
+            "interval": {
+              "low": 431.33688434477017,
+              "high": 486.27359790077674
+            },
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "measured"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 462.84230790068796,
+            "bound": 36.62757871301222,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": -3.8853079006879625
+        },
+        {
+          "what": "apogee_time",
+          "logged": {
+            "status": "read",
+            "value": 10.395,
+            "bound": 2.3595277164859967,
+            "interval": null,
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "measured"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 10.41000000000001,
+            "bound": 1.601537362818259,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": -0.015000000000011227
+        },
+        {
+          "what": "top_speed",
+          "logged": {
+            "status": "read",
+            "value": 91.54366925064599,
+            "bound": 23.2093208979277,
+            "interval": {
+              "low": 85.39319921269515,
+              "high": 96.55688256459837
+            },
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "derived"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 85.6887291906592,
+            "bound": 17.82519141063152,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": 5.854940059986788
+        },
+        {
+          "what": "top_acceleration",
+          "logged": {
+            "status": "withheld",
+            "detail": "the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g"
+          },
+          "simulated": {
+            "status": "withheld",
+            "detail": "the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g"
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "burnout",
+          "logged": {
+            "status": "read",
+            "value": 1.8599999999999999,
+            "bound": 2.816918120718392,
+            "interval": null,
+            "is_floor": true,
+            "source": "barometer",
+            "provenance": "derived"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 2.0400000000000027,
+            "bound": 2.0887515555632152,
+            "interval": null,
+            "is_floor": true,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "flight_time",
+          "logged": {
+            "status": "read",
+            "value": 34.32,
+            "bound": 2.5021718452274744,
+            "interval": {
+              "low": 34.65278885541525,
+              "high": 35.27332747303167
+            },
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "measured"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 35.160000000000025,
+            "bound": 1.3512707719907493,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": -0.8400000000000247
+        },
+        {
+          "what": "drogue_rate",
+          "logged": {
+            "status": "withheld",
+            "detail": "the descent shows no drogue's leg, which at the ground's density falls faster than 32.3 m/s up to the main's opening. That mark is 1.6 times the rate near the ground, 20.2 m/s, or 3 m/s more if that is more. A drogue's leg would also fall on median faster than 1.4 times the rate near the ground. So the rocket came down under one canopy, or under a drogue no faster than the mark, which reads as one. The main's descent is then the whole descent's, from apogee"
+          },
+          "simulated": {
+            "status": "withheld",
+            "detail": "the descent shows no drogue's leg, which at the ground's density falls faster than 31.3 m/s up to the main's opening. That mark is 1.6 times the rate near the ground, 19.5 m/s, or 3 m/s more if that is more. A drogue's leg would also fall on median faster than 1.4 times the rate near the ground. So the rocket came down under one canopy, or under a drogue no faster than the mark, which reads as one. The main's descent is then the whole descent's, from apogee"
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "main_opening",
+          "logged": {
+            "status": "withheld",
+            "detail": "the descent shows one canopy"
+          },
+          "simulated": {
+            "status": "withheld",
+            "detail": "the descent shows one canopy"
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "main_rate",
+          "logged": {
+            "status": "read",
+            "value": 19.160919540229884,
+            "bound": 1.645008117094732,
+            "interval": {
+              "low": 18.201879807963657,
+              "high": 20.101864183208072
+            },
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "derived"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 18.65421000178167,
+            "bound": 1.6002520573360348,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": 0.506709538448213
+        }
+      ]
+    },
+    {
+      "id": "ndrt-2020",
+      "title": "NDRT 2020, Notre Dame Rocketry Team (L1395)",
+      "altimeter": "barometric",
+      "files": [
+        {
+          "path": "refs/rocketpy/data/rockets/NDRT_2020/ndrt_2020_flight_data.csv",
+          "sha256": "5e64b446199988ac183b2f3965d76da27e57496bb2a33f78df73aa23fd18d7b8"
+        },
+        {
+          "path": "refs/rocketpy/data/motors/cesaroni/Cesaroni_4895L1395-P.eng",
+          "sha256": "eb09768c01f3c5f7290e77e93ee5fc307ca282c079558cf7195b5a17c7bb9784"
+        },
+        {
+          "path": "validation/designs/rocketpy-ndrt-2020-nose-to-tail.json",
+          "sha256": "f3b3eb71a9d1f7cb344607d0441740d3d01be08de2b7ba8c2bfac392b2bfb03a"
+        },
+        {
+          "path": "refs/rocketpy/data/weather/ndrt_2020_weather_data_ERA5.nc",
+          "sha256": "e23b2e402bd2b8ed22cee249264601bf85d40e46391daa32dbd7b781b9979034"
+        }
+      ],
+      "log_rows": 1819,
+      "height_read_as": "barometric",
+      "clock_bound_s": 1.6586385506751036,
+      "reaches_landing": true,
+      "descent_flown": true,
+      "past_simulation": 0,
+      "height_m": [
+        {
+          "phase": "ascent",
+          "start_s": 0.0,
+          "end_s": 16.749999999999996,
+          "samples": 335,
+          "mean": -83.80664333684493,
+          "rms": 92.64987752633165,
+          "largest": -135.02643228876536,
+          "largest_at_s": 16.7
+        },
+        {
+          "phase": "descent",
+          "start_s": 16.749999999999996,
+          "end_s": 84.3,
+          "samples": 1352,
+          "mean": -69.53460147755544,
+          "rms": 83.5184046177022,
+          "largest": -156.02614175786925,
+          "largest_at_s": 19.55
+        }
+      ],
+      "speed_m_s": [
+        {
+          "phase": "ascent",
+          "start_s": 0.0,
+          "end_s": 16.749999999999996,
+          "samples": 335,
+          "mean": -8.127540445762893,
+          "rms": 11.215578561563309,
+          "largest": -42.542139367137196,
+          "largest_at_s": 4.25
+        },
+        {
+          "phase": "descent",
+          "start_s": 16.749999999999996,
+          "end_s": 84.3,
+          "samples": 1352,
+          "mean": 1.3183747324349717,
+          "rms": 5.0605815085739385,
+          "largest": -16.308191676688818,
+          "largest_at_s": 67.19999999999999
+        }
+      ],
+      "speed_withheld": null,
+      "rows": [
+        {
+          "what": "apogee_height",
+          "logged": {
+            "status": "read",
+            "value": 1319.67771624,
+            "bound": 99.57568518569637,
+            "interval": {
+              "low": 1256.2480047767115,
+              "high": 1382.410397906989
+            },
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "measured"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 1457.6002342993947,
+            "bound": 108.06022961959721,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": -137.92251805939463
+        },
+        {
+          "what": "apogee_time",
+          "logged": {
+            "status": "read",
+            "value": 16.749999999999996,
+            "bound": 1.7945711231111732,
+            "interval": null,
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "measured"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 17.474999999999625,
+            "bound": 1.5716079586761176,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": -0.7249999999996284
+        },
+        {
+          "what": "top_speed",
+          "logged": {
+            "status": "read",
+            "value": 168.47847709090908,
+            "bound": 61.86084016262239,
+            "interval": {
+              "low": 152.08535444781415,
+              "high": 181.8404185660355
+            },
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "derived"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 180.07228861320309,
+            "bound": 36.81540188212098,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": -11.593811522294004
+        },
+        {
+          "what": "top_acceleration",
+          "logged": {
+            "status": "read",
+            "value": 105.91182,
+            "bound": 62.90713786235943,
+            "interval": {
+              "low": 70.18056569417985,
+              "high": 137.0508532418679
+            },
+            "is_floor": false,
+            "source": "accelerometer",
+            "provenance": "measured"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 77.41300143212061,
+            "bound": 22.671761389353268,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": 28.498818567879397
+        },
+        {
+          "what": "burnout",
+          "logged": {
+            "status": "read",
+            "value": 4.6,
+            "bound": 2.2392805609214257,
+            "interval": null,
+            "is_floor": true,
+            "source": "barometer",
+            "provenance": "derived"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 3.199999999999932,
+            "bound": 0.8890742027316018,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "flight_time",
+          "logged": {
+            "status": "read",
+            "value": 84.3,
+            "bound": 5.3897615205947655,
+            "interval": {
+              "low": 85.0168382822391,
+              "high": 86.35349913934661
+            },
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "measured"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 94.34999999999799,
+            "bound": 3.5740962285090734,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": -10.049999999997993
+        },
+        {
+          "what": "drogue_rate",
+          "logged": {
+            "status": "read",
+            "value": 22.413454654991245,
+            "bound": 1.7410914592814029,
+            "interval": {
+              "low": 21.347906681911027,
+              "high": 23.49641354266428
+            },
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "derived"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 27.542069502153357,
+            "bound": 2.1176630855764977,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": -5.128614847162112
+        },
+        {
+          "what": "main_opening",
+          "logged": {
+            "status": "read",
+            "value": 39.869455439999996,
+            "bound": null,
+            "interval": null,
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "derived"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 137.6465534087233,
+            "bound": null,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": -97.7770979687233
+        },
+        {
+          "what": "main_rate",
+          "logged": {
+            "status": "read",
+            "value": 3.618287800191386,
+            "bound": 0.9132949271983841,
+            "interval": {
+              "low": 3.085836857634728,
+              "high": 4.140692498548862
+            },
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "derived"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 4.686474807390952,
+            "bound": 0.5586226032206685,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": -1.0681870071995658
+        }
+      ]
+    },
+    {
+      "id": "prometheus-2022",
+      "title": "Prometheus, Western Engineering, Spaceport America Cup 2022 (M1520)",
+      "altimeter": "barometric",
+      "files": [
+        {
+          "path": "refs/rocketpy/data/rockets/prometheus/2022-06-24-serial-5115-flight-0001-TeleMetrum.csv",
+          "sha256": "9fe8d17a25e7944267b34a45ed955303afd5818b3f18479a5f7ffb31a574cecf"
+        },
+        {
+          "path": "refs/rocketpy/data/motors/cesaroni/Cesaroni_7579M1520-P.eng",
+          "sha256": "f38ad06972a07e4ef04164a60718f099d732de6e433185e211dd87083f89e4ca"
+        },
+        {
+          "path": "validation/designs/rocketpy-prometheus-2022-generic-motor.json",
+          "sha256": "079b7b6d8ee71e24e219a882c2990ea291661791a08868393748f1d9fa0d2622"
+        },
+        {
+          "path": "refs/rocketpy/data/weather/spaceport_america_pressure_levels_2023_hourly.nc",
+          "sha256": "25d48e9d03554251dc2d0601dcaa1e441ca7e7c502f573fceb4ce5c058da8694"
+        }
+      ],
+      "log_rows": 5712,
+      "height_read_as": "barometric",
+      "clock_bound_s": 1.363481703791933,
+      "reaches_landing": true,
+      "descent_flown": true,
+      "past_simulation": 266,
+      "height_m": [
+        {
+          "phase": "boost",
+          "start_s": 0.0,
+          "end_s": 4.669999999999997,
+          "samples": 467,
+          "mean": -127.31525175781958,
+          "rms": 165.83555574254086,
+          "largest": -310.74614503924374,
+          "largest_at_s": 4.539999999999999
+        },
+        {
+          "phase": "coast",
+          "start_s": 4.669999999999997,
+          "end_s": 28.69,
+          "samples": 2402,
+          "mean": 100.896807890548,
+          "rms": 207.54202436656652,
+          "largest": 352.95329970812145,
+          "largest_at_s": 28.64
+        },
+        {
+          "phase": "descent",
+          "start_s": 28.69,
+          "end_s": 223.01000000000002,
+          "samples": 2326,
+          "mean": 291.483548579324,
+          "rms": 311.4979761976918,
+          "largest": 405.1703361976088,
+          "largest_at_s": 37.870000000000005
+        }
+      ],
+      "speed_m_s": [
+        {
+          "phase": "boost",
+          "start_s": 0.0,
+          "end_s": 4.669999999999997,
+          "samples": 467,
+          "mean": -77.00598848181104,
+          "rms": 85.7564203468332,
+          "largest": -115.64124996886795,
+          "largest_at_s": 4.13
+        },
+        {
+          "phase": "coast",
+          "start_s": 4.669999999999997,
+          "end_s": 28.69,
+          "samples": 2402,
+          "mean": 33.466829211635506,
+          "rms": 45.852701388832664,
+          "largest": 107.3082583685285,
+          "largest_at_s": 8.34
+        },
+        {
+          "phase": "descent",
+          "start_s": 28.69,
+          "end_s": 223.01000000000002,
+          "samples": 2326,
+          "mean": -1.2310125525847704,
+          "rms": 6.37876601680622,
+          "largest": -22.15677837784361,
+          "largest_at_s": 157.51000000000002
+        }
+      ],
+      "speed_withheld": null,
+      "rows": [
+        {
+          "what": "apogee_height",
+          "logged": {
+            "status": "read",
+            "value": 3892.09,
+            "bound": 283.0598726742399,
+            "interval": {
+              "low": 3711.7808611065093,
+              "high": 4070.417719784771
+            },
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "measured"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 3549.257971389369,
+            "bound": 258.2082088371999,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": 342.83202861063137
+        },
+        {
+          "what": "apogee_time",
+          "logged": {
+            "status": "read",
+            "value": 28.69,
+            "bound": 1.507794929563857,
+            "interval": null,
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "measured"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 27.255000000004262,
+            "bound": 1.4508553672607252,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": 1.434999999995739
+        },
+        {
+          "what": "top_speed",
+          "logged": {
+            "status": "withheld",
+            "detail": "the climb's speed reaches 373.0 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose"
+          },
+          "simulated": {
+            "status": "withheld",
+            "detail": "the climb's speed reaches 299.2 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose"
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "top_acceleration",
+          "logged": {
+            "status": "read",
+            "value": 99.39665000000001,
+            "bound": 16.33141086036986,
+            "interval": {
+              "low": 90.12040863130993,
+              "high": 107.4806983758831
+            },
+            "is_floor": false,
+            "source": "accelerometer",
+            "provenance": "measured"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 92.98653060073526,
+            "bound": 10.025507602522229,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": 6.410119399264744
+        },
+        {
+          "what": "burnout",
+          "logged": {
+            "status": "read",
+            "value": 4.669999999999997,
+            "bound": 0.9748217902298171,
+            "interval": null,
+            "is_floor": false,
+            "source": "accelerometer",
+            "provenance": "measured"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 4.630000000000724,
+            "bound": 0.7286599135621318,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": 0.039999999999273506
+        },
+        {
+          "what": "flight_time",
+          "logged": {
+            "status": "read",
+            "value": 223.01000000000002,
+            "bound": 3.1981775758366533,
+            "interval": {
+              "low": 223.4353576175863,
+              "high": 224.2285056563938
+            },
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "measured"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 202.7500000000317,
+            "bound": 2.5667594631154302,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": 20.25999999996833
+        },
+        {
+          "what": "drogue_rate",
+          "logged": {
+            "status": "read",
+            "value": 26.504568991775816,
+            "bound": 1.9635617471146007,
+            "interval": {
+              "low": 25.30286920254168,
+              "high": 27.7259043984811
+            },
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "derived"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 26.717653890048364,
+            "bound": 1.9831323565566708,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": -0.21308489827254817
+        },
+        {
+          "what": "main_opening",
+          "logged": {
+            "status": "read",
+            "value": 411.51,
+            "bound": null,
+            "interval": null,
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "derived"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 418.88405336136225,
+            "bound": null,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": -7.374053361362257
+        },
+        {
+          "what": "main_rate",
+          "logged": {
+            "status": "read",
+            "value": 6.504761904761905,
+            "bound": 0.5795069213522268,
+            "interval": {
+              "low": 6.166909369613556,
+              "high": 6.836239863775378
+            },
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "derived"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 7.147696844778027,
+            "bound": 0.6306108812343255,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": -0.6429349400161222
+        }
+      ]
+    },
+    {
+      "id": "juno-iii",
+      "title": "Juno III, Projeto Jupiter, Spaceport America Cup 2023 (the team's motor)",
+      "altimeter": "barometric",
+      "files": [
+        {
+          "path": "refs/rocketpy/data/rockets/juno3/cots_altimeter.csv",
+          "sha256": "eef81b3bcc4c285667727c1e2c9ca502a67cb374f5e31bc4f87ed76b8a04c1ee"
+        },
+        {
+          "path": "refs/rocketpy/data/motors/projeto-jupiter/mandioca_thrust_curve.csv",
+          "sha256": "25e9cd7a80fa346df7575ce466400426abe8f37990ebe268491d5fbb3245ec44"
+        },
+        {
+          "path": "validation/designs/rocketpy-juno-iii.json",
+          "sha256": "4a31096f5f5f4169a7aadbe559a1c1e7ac44bda5102da9aeac511fe24e167d4e"
+        },
+        {
+          "path": "refs/rocketpy/data/weather/spaceport_america_pressure_levels_2023_hourly.nc",
+          "sha256": "25d48e9d03554251dc2d0601dcaa1e441ca7e7c502f573fceb4ce5c058da8694"
+        }
+      ],
+      "log_rows": 611,
+      "height_read_as": "barometric",
+      "clock_bound_s": 2.0450134422399953,
+      "reaches_landing": false,
+      "descent_flown": true,
+      "past_simulation": 0,
+      "height_m": [
+        {
+          "phase": "flight",
+          "start_s": 0.0,
+          "end_s": 29.9,
+          "samples": 599,
+          "mean": 286.54664294215985,
+          "rms": 485.4606289568209,
+          "largest": 7815.364543406439,
+          "largest_at_s": 29.849999999999998
+        }
+      ],
+      "speed_m_s": [
+        {
+          "phase": "flight",
+          "start_s": 0.0,
+          "end_s": 29.9,
+          "samples": 599,
+          "mean": 1.7405505774820536,
+          "rms": 25.268691134574066,
+          "largest": -118.97944870851093,
+          "largest_at_s": 3.05
+        }
+      ],
+      "speed_withheld": null,
+      "rows": [
+        {
+          "what": "apogee_height",
+          "logged": {
+            "status": "withheld",
+            "detail": "the track climbs 42.1 m into its top at 26.20 s in 1.00 s. That is more than the 17.5 m a coast slowing at twice gravity climbs. The track falls 17.1 m from it by 26.50 s, more than the 16.8 m a body at rest there can fall. Each is past twice its noise and step. Its top is a spike, such as a charge's, so which is the apogee can't be told"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 2923.3154722505437,
+            "bound": 213.34147613171194,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "apogee_time",
+          "logged": {
+            "status": "withheld",
+            "detail": "the track climbs 42.1 m into its top at 26.20 s in 1.00 s. That is more than the 17.5 m a coast slowing at twice gravity climbs. The track falls 17.1 m from it by 26.50 s, more than the 16.8 m a body at rest there can fall. Each is past twice its noise and step. Its top is a spike, such as a charge's, so which is the apogee can't be told"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 26.42500000000037,
+            "bound": 1.5708553672607222,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "top_speed",
+          "logged": {
+            "status": "withheld",
+            "detail": "the track climbs 42.1 m into its top at 26.20 s in 1.00 s. That is more than the 17.5 m a coast slowing at twice gravity climbs. The track falls 17.1 m from it by 26.50 s, more than the 16.8 m a body at rest there can fall. Each is past twice its noise and step. Its top is a spike, such as a charge's, so which is the apogee can't be told"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 226.64196825518326,
+            "bound": 26.659740894935524,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "top_acceleration",
+          "logged": {
+            "status": "withheld",
+            "detail": "the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g"
+          },
+          "simulated": {
+            "status": "withheld",
+            "detail": "the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g"
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "burnout",
+          "logged": {
+            "status": "withheld",
+            "detail": "burnout from the speed's peak needs the top speed, which is withheld: the track climbs 42.1 m into its top at 26.20 s in 1.00 s. That is more than the 17.5 m a coast slowing at twice gravity climbs. The track falls 17.1 m from it by 26.50 s, more than the 16.8 m a body at rest there can fall. Each is past twice its noise and step. Its top is a spike, such as a charge's, so which is the apogee can't be told"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 4.500000000000064,
+            "bound": 2.0583761265400478,
+            "interval": null,
+            "is_floor": true,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "flight_time",
+          "logged": {
+            "status": "withheld",
+            "detail": "the flight time needs landing, which is withheld: the track climbs 42.1 m into its top at 26.20 s in 1.00 s. That is more than the 17.5 m a coast slowing at twice gravity climbs. The track falls 17.1 m from it by 26.50 s, more than the 16.8 m a body at rest there can fall. Each is past twice its noise and step. Its top is a spike, such as a charge's, so which is the apogee can't be told"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 155.50000000000222,
+            "bound": 1.3589766469297995,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "drogue_rate",
+          "logged": {
+            "status": "withheld",
+            "detail": "the track climbs 42.1 m into its top at 26.20 s in 1.00 s. That is more than the 17.5 m a coast slowing at twice gravity climbs. The track falls 17.1 m from it by 26.50 s, more than the 16.8 m a body at rest there can fall. Each is past twice its noise and step. Its top is a spike, such as a charge's, so which is the apogee can't be told"
+          },
+          "simulated": {
+            "status": "withheld",
+            "detail": "the descent shows no drogue's leg, which at the ground's density falls faster than 34.1 m/s up to the main's opening. That mark is 1.6 times the rate near the ground, 21.3 m/s, or 3 m/s more if that is more. A drogue's leg would also fall on median faster than 1.4 times the rate near the ground. So the rocket came down under one canopy, or under a drogue no faster than the mark, which reads as one. The main's descent is then the whole descent's, from apogee"
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "main_opening",
+          "logged": {
+            "status": "withheld",
+            "detail": "the track climbs 42.1 m into its top at 26.20 s in 1.00 s. That is more than the 17.5 m a coast slowing at twice gravity climbs. The track falls 17.1 m from it by 26.50 s, more than the 16.8 m a body at rest there can fall. Each is past twice its noise and step. Its top is a spike, such as a charge's, so which is the apogee can't be told"
+          },
+          "simulated": {
+            "status": "withheld",
+            "detail": "the descent shows one canopy"
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "main_rate",
+          "logged": {
+            "status": "withheld",
+            "detail": "the track climbs 42.1 m into its top at 26.20 s in 1.00 s. That is more than the 17.5 m a coast slowing at twice gravity climbs. The track falls 17.1 m from it by 26.50 s, more than the 16.8 m a body at rest there can fall. Each is past twice its noise and step. Its top is a spike, such as a charge's, so which is the apogee can't be told"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 22.639048408707172,
+            "bound": 1.6861150966324452,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": null
+        }
+      ]
+    },
+    {
+      "id": "cavour",
+      "title": "Cavour, Politecnico di Torino, EuRoC 2023 (L995)",
+      "altimeter": "barometric, assumed",
+      "files": [
+        {
+          "path": "refs/rocketpy/data/rockets/polito/altimeter_cavour.csv",
+          "sha256": "f912724676eea0ca9ba031c3779e48f861538814170b050b7bda2887c31f29a8"
+        },
+        {
+          "path": "refs/rocketpy/data/motors/cesaroni/Cesaroni_3618L995-P.eng",
+          "sha256": "efc04492a3527bdb626d8ec0c18bbbd51f02012393d3b82e00b11d167b2dad2b"
+        },
+        {
+          "path": "validation/designs/rocketpy-cavour.json",
+          "sha256": "a86c9be1f9cf7aed8354eca352df30a49cd5bc4152f5898b691192529b9bf10f"
+        },
+        {
+          "path": "refs/rocketpy/data/weather/euroc_2023_all_windows.nc",
+          "sha256": "a3d9e08eb3bb4480d1b8ef03b06878a1a1f76397fdc9dcc929fe5cc856f61d56"
+        }
+      ],
+      "log_rows": 404,
+      "height_read_as": "barometric",
+      "clock_bound_s": 3.200380607376409,
+      "reaches_landing": false,
+      "descent_flown": false,
+      "past_simulation": 0,
+      "height_m": [
+        {
+          "phase": "ascent",
+          "start_s": 0.0,
+          "end_s": 23.5,
+          "samples": 128,
+          "mean": -96.44232277784768,
+          "rms": 118.00828314630485,
+          "largest": -164.91869252881042,
+          "largest_at_s": 23.400000000000002
+        }
+      ],
+      "speed_m_s": [
+        {
+          "phase": "ascent",
+          "start_s": 0.0,
+          "end_s": 23.5,
+          "samples": 128,
+          "mean": -8.392116592165507,
+          "rms": 22.92484526771885,
+          "largest": 76.3142091045296,
+          "largest_at_s": 2.5999999999999996
+        }
+      ],
+      "speed_withheld": null,
+      "rows": [
+        {
+          "what": "apogee_height",
+          "logged": {
+            "status": "read",
+            "value": 2785.0,
+            "bound": 225.1642656225095,
+            "interval": {
+              "low": 2641.5703627984612,
+              "high": 2926.853487342181
+            },
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "measured"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 2945.91869252881,
+            "bound": 214.9415282501786,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": -160.91869252880997
+        },
+        {
+          "what": "apogee_time",
+          "logged": {
+            "status": "read",
+            "value": 23.5,
+            "bound": 3.4649222053178668,
+            "interval": null,
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "measured"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 23.30000000000033,
+            "bound": 1.7208553672607207,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": 0.1999999999996689
+        },
+        {
+          "what": "top_speed",
+          "logged": {
+            "status": "withheld",
+            "detail": "the climb's speed reaches 307.0 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose"
+          },
+          "simulated": {
+            "status": "withheld",
+            "detail": "the climb's speed reaches 302.5 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose"
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "top_acceleration",
+          "logged": {
+            "status": "withheld",
+            "detail": "the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g"
+          },
+          "simulated": {
+            "status": "withheld",
+            "detail": "the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g"
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "burnout",
+          "logged": {
+            "status": "withheld",
+            "detail": "burnout from the speed's peak needs the top speed, which is withheld: the climb's speed reaches 307.0 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose"
+          },
+          "simulated": {
+            "status": "withheld",
+            "detail": "burnout from the speed's peak needs the top speed, which is withheld: the climb's speed reaches 302.5 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose"
+          },
+          "logged_minus_simulated": null
+        }
+      ]
+    },
+    {
+      "id": "genesis",
+      "title": "Genesis, EuRoC 2023 (L995)",
+      "altimeter": "barometric, assumed",
+      "files": [
+        {
+          "path": "refs/rocketpy/data/rockets/genesis/flight_data_faraday.csv",
+          "sha256": "d88a7fc53cbd55d1dafeed5d5c6fcfcad27c7cf8e0a15221e67aae97eaa05a74"
+        },
+        {
+          "path": "refs/rocketpy/data/motors/cesaroni/Cesaroni_3618L995-P.eng",
+          "sha256": "efc04492a3527bdb626d8ec0c18bbbd51f02012393d3b82e00b11d167b2dad2b"
+        },
+        {
+          "path": "validation/designs/rocketpy-genesis.json",
+          "sha256": "031ae8f647f8e81472ed14527f98f18d72f4166b186daf31311516e3398742e7"
+        },
+        {
+          "path": "refs/rocketpy/data/weather/euroc_2023_all_windows.nc",
+          "sha256": "a3d9e08eb3bb4480d1b8ef03b06878a1a1f76397fdc9dcc929fe5cc856f61d56"
+        }
+      ],
+      "log_rows": 17933,
+      "height_read_as": "barometric",
+      "clock_bound_s": 1.3935869360110253,
+      "reaches_landing": true,
+      "descent_flown": true,
+      "past_simulation": 154,
+      "height_m": [
+        {
+          "phase": "ascent",
+          "start_s": 0.0,
+          "end_s": 23.69,
+          "samples": 2369,
+          "mean": 54.417100776911454,
+          "rms": 96.681857346193,
+          "largest": 171.0251162658028,
+          "largest_at_s": 23.68
+        },
+        {
+          "phase": "descent",
+          "start_s": 23.69,
+          "end_s": 175.53,
+          "samples": 15031,
+          "mean": 65.47370642394158,
+          "rms": 89.14956545511987,
+          "largest": 208.56551838357655,
+          "largest_at_s": 28.94
+        }
+      ],
+      "speed_m_s": [
+        {
+          "phase": "ascent",
+          "start_s": 0.0,
+          "end_s": 23.69,
+          "samples": 2369,
+          "mean": 78.04414526964682,
+          "rms": 191.8866099609775,
+          "largest": 705.1564537070212,
+          "largest_at_s": 8.24
+        },
+        {
+          "phase": "descent",
+          "start_s": 23.69,
+          "end_s": 175.53,
+          "samples": 15031,
+          "mean": -0.9947457836249768,
+          "rms": 2.2806393531529303,
+          "largest": 6.1076293179085175,
+          "largest_at_s": 23.69
+        }
+      ],
+      "speed_withheld": null,
+      "rows": [
+        {
+          "what": "apogee_height",
+          "logged": {
+            "status": "read",
+            "value": 2915.3383255004883,
+            "bound": 212.54123686641,
+            "interval": {
+              "low": 2779.949557616585,
+              "high": 3049.2393047263267
+            },
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "measured"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 2745.9331637668247,
+            "bound": 200.51752978844806,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": 169.4051617336636
+        },
+        {
+          "what": "apogee_time",
+          "logged": {
+            "status": "read",
+            "value": 23.69,
+            "bound": 1.5271528507512537,
+            "interval": null,
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "measured"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 23.035000000000007,
+            "bound": 1.4508561988349533,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": 0.654999999999994
+        },
+        {
+          "what": "top_speed",
+          "logged": {
+            "status": "withheld",
+            "detail": "the climb's speed reaches 315.6 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose"
+          },
+          "simulated": {
+            "status": "withheld",
+            "detail": "the climb's speed reaches 276.2 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose"
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "top_acceleration",
+          "logged": {
+            "status": "withheld",
+            "detail": "the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g"
+          },
+          "simulated": {
+            "status": "withheld",
+            "detail": "the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g"
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "burnout",
+          "logged": {
+            "status": "withheld",
+            "detail": "burnout from the speed's peak needs the top speed, which is withheld: the climb's speed reaches 315.6 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose"
+          },
+          "simulated": {
+            "status": "withheld",
+            "detail": "burnout from the speed's peak needs the top speed, which is withheld: the climb's speed reaches 276.2 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose"
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "flight_time",
+          "logged": {
+            "status": "read",
+            "value": 175.53,
+            "bound": 1.6920158598545747,
+            "interval": {
+              "low": 175.75503810936067,
+              "high": 176.1746580426046
+            },
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "measured"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 173.76,
+            "bound": 1.7411346669611487,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": 1.7700000000000102
+        },
+        {
+          "what": "drogue_rate",
+          "logged": {
+            "status": "withheld",
+            "detail": "the descent shows no drogue's leg, which at the ground's density falls faster than 15.0 m/s up to the main's opening. That mark is 1.6 times the rate near the ground, 9.4 m/s, or 3 m/s more if that is more. A drogue's leg would also fall on median faster than 1.4 times the rate near the ground. So the rocket came down under one canopy, or under a drogue no faster than the mark, which reads as one. The main's descent is then the whole descent's, from apogee"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 23.72725324393851,
+            "bound": 1.7905912985393724,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "main_opening",
+          "logged": {
+            "status": "withheld",
+            "detail": "the descent shows one canopy"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 797.3324911083745,
+            "bound": null,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "main_rate",
+          "logged": {
+            "status": "read",
+            "value": 19.183564110726778,
+            "bound": 1.4309056884377083,
+            "interval": {
+              "low": 18.349346094367593,
+              "high": 20.002042164513146
+            },
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "derived"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 11.595364523276846,
+            "bound": 0.9342698124211194,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": 7.588199587449932
+        }
+      ]
+    },
+    {
+      "id": "lince",
+      "title": "Lince, EuRoC 2023 (M1101)",
+      "altimeter": "barometric, assumed",
+      "files": [
+        {
+          "path": "refs/rocketpy/data/rockets/lince/main_data.csv",
+          "sha256": "a9cf47fe2b2e5be03168d36b1c41f0a5651a0c3b6db4ed091e1afc274bd7473e"
+        },
+        {
+          "path": "refs/rocketpy/data/motors/cesaroni/Cesaroni_M1101.eng",
+          "sha256": "8ebd097ec531581451f170380d7258029b61d0a36f37444f9329a8dc4e936d50"
+        },
+        {
+          "path": "validation/designs/rocketpy-lince.json",
+          "sha256": "860ca414f18ea7b017fb56cf652ae9abb1c73a9befa38b6117f4785f1553435f"
+        },
+        {
+          "path": "refs/rocketpy/data/weather/euroc_2023_all_windows.nc",
+          "sha256": "a3d9e08eb3bb4480d1b8ef03b06878a1a1f76397fdc9dcc929fe5cc856f61d56"
+        }
+      ],
+      "log_rows": 44454,
+      "height_read_as": "barometric",
+      "clock_bound_s": 1.3173413380128431,
+      "reaches_landing": true,
+      "descent_flown": true,
+      "past_simulation": 0,
+      "height_m": [
+        {
+          "phase": "ascent",
+          "start_s": 0.0,
+          "end_s": 25.91,
+          "samples": 2591,
+          "mean": 3.2729641110492684,
+          "rms": 62.3562332833716,
+          "largest": 125.1943662232361,
+          "largest_at_s": 8.17
+        },
+        {
+          "phase": "descent",
+          "start_s": 25.91,
+          "end_s": 430.90999999999997,
+          "samples": 40501,
+          "mean": -507.0000827979775,
+          "rms": 533.4170613127943,
+          "largest": -883.7795119615257,
+          "largest_at_s": 27.63
+        }
+      ],
+      "speed_m_s": [
+        {
+          "phase": "ascent",
+          "start_s": 0.0,
+          "end_s": 25.91,
+          "samples": 2591,
+          "mean": 4.049059517357502,
+          "rms": 95.69223693749778,
+          "largest": 377.0444952534214,
+          "largest_at_s": 15.11
+        },
+        {
+          "phase": "descent",
+          "start_s": 25.91,
+          "end_s": 430.90999999999997,
+          "samples": 40501,
+          "mean": 16.703338410936546,
+          "rms": 354.26501451480914,
+          "largest": 10210.893140961827,
+          "largest_at_s": 29.09
+        }
+      ],
+      "speed_withheld": null,
+      "rows": [
+        {
+          "what": "apogee_height",
+          "logged": {
+            "status": "read",
+            "value": 3586.6632766723633,
+            "bound": 260.73148851426055,
+            "interval": {
+              "low": 3420.5773184887794,
+              "high": 3750.9241144363473
+            },
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "measured"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 3709.211801270591,
+            "bound": 269.67894730009283,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": -122.54852459822769
+        },
+        {
+          "what": "apogee_time",
+          "logged": {
+            "status": "read",
+            "value": 25.91,
+            "bound": 1.4508907709624999,
+            "interval": null,
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "measured"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 27.045000000000005,
+            "bound": 1.4508590380963575,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": -1.1350000000000051
+        },
+        {
+          "what": "top_speed",
+          "logged": {
+            "status": "withheld",
+            "detail": "the climb's speed reaches 490.0 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose"
+          },
+          "simulated": {
+            "status": "withheld",
+            "detail": "the climb's speed reaches 321.1 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose"
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "top_acceleration",
+          "logged": {
+            "status": "withheld",
+            "detail": "the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g"
+          },
+          "simulated": {
+            "status": "withheld",
+            "detail": "the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g"
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "burnout",
+          "logged": {
+            "status": "withheld",
+            "detail": "burnout from the speed's peak needs the top speed, which is withheld: the climb's speed reaches 490.0 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose"
+          },
+          "simulated": {
+            "status": "withheld",
+            "detail": "burnout from the speed's peak needs the top speed, which is withheld: the climb's speed reaches 321.1 m/s, at or above 227.7 m/s, where the barometer's port may read the transonic flow over the nose"
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "flight_time",
+          "logged": {
+            "status": "read",
+            "value": 430.90999999999997,
+            "bound": 3.062353373733897,
+            "interval": {
+              "low": 431.3172929987066,
+              "high": 432.0767566353926
+            },
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "measured"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 549.36,
+            "bound": 3.7523230123422877,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": -118.45000000000005
+        },
+        {
+          "what": "drogue_rate",
+          "logged": {
+            "status": "withheld",
+            "detail": "the leg from 26.09 s to 34.91 s loses 183.3 m, no more than 358.7 m, too little for its rate to be read"
+          },
+          "simulated": {
+            "status": "withheld",
+            "detail": "the descent shows no drogue's leg, which at the ground's density falls faster than 10.5 m/s up to the main's opening. That mark is 1.6 times the rate near the ground, 6.5 m/s, or 3 m/s more if that is more. A drogue's leg would also fall on median faster than 1.4 times the rate near the ground. So the rocket came down under one canopy, or under a drogue no faster than the mark, which reads as one. The main's descent is then the whole descent's, from apogee"
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "main_opening",
+          "logged": {
+            "status": "read",
+            "value": 3403.3288040161133,
+            "bound": null,
+            "interval": null,
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "derived"
+          },
+          "simulated": {
+            "status": "withheld",
+            "detail": "the descent shows one canopy"
+          },
+          "logged_minus_simulated": null
+        },
+        {
+          "what": "main_rate",
+          "logged": {
+            "status": "read",
+            "value": 8.586532309304593,
+            "bound": 0.6461095456490014,
+            "interval": {
+              "low": 8.209850444191225,
+              "high": 8.95610696941582
+            },
+            "is_floor": false,
+            "source": "barometer",
+            "provenance": "derived"
+          },
+          "simulated": {
+            "status": "read",
+            "value": 7.09775588567261,
+            "bound": 0.5357204864059225,
+            "interval": null,
+            "is_floor": false,
+            "source": null,
+            "provenance": null
+          },
+          "logged_minus_simulated": 1.4887764236319825
+        }
+      ]
+    }
+  ]
+}

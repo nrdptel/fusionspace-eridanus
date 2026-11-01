@@ -44,6 +44,8 @@
 
 [Reading your own logger](your-own-logger.md)
 
+[Comparing a flight with its simulation](comparing-a-flight.md)
+
 [Your own rocket](your-own-rocket.md)
 
 [How a flight is simulated](how-a-flight-is-simulated.md)

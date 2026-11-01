@@ -1529,6 +1529,14 @@ pub(crate) fn zero_by_word(log: &FlightLog, track: &Track) -> bool {
     }
 }
 
+/// The heights the readings take, on the scale of [`Readings::pad_altitude_m`], and their times, s
+/// on the log's clock; `None` if the log holds no track. A channel-only log's `altitude_m` is empty,
+/// so a caller after the log's height takes it from here.
+#[must_use]
+pub fn height_track(log: &FlightLog) -> Option<(Vec<f64>, Vec<f64>)> {
+    track(log).ok().map(|track| (track.time_s, track.height_m))
+}
+
 /// The track the readings take, the first the log holds: the logger's own altitude, a pressure,
 /// a barometric altitude channel, a GNSS altitude; or why there is none.
 pub(crate) fn track(log: &FlightLog) -> Result<Track, (Reason, String)> {

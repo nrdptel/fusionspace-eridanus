@@ -462,6 +462,9 @@ These are left out of a flight, or approximated:
   There's no app yet: it's on the [roadmap][roadmap].
 - **A damaged file gets an error, or a value from what was left, on the damage the tests try.** Each
   reader is tried on cut, changed and arbitrary bytes, for a crash or a hang ([Damaged files](format/damaged-files.md)).
+- **A log can be set against a simulation of it.** `hpr compare` prints how far the logged height and speed
+  lie from the simulated, phase by phase, and each reading beside the simulation's, read the same way
+  ([Comparing a flight with its simulation](comparing-a-flight.md)). It reports the gap and fits nothing yet.
 - **The flight-log analyzer gives readings within bounds; twelve state intervals, and the smoother gives a health card.** `hpr analyze` and
   the Python package read a flight log on its own, with no design file and no simulation. They use
   its format's reader, or the column mapping or record layout you write for your own logger

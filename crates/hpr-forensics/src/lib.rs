@@ -12,7 +12,8 @@
 //! depend on the simulator, so that [analyzing a flight stands on its own][adr-046].
 //!
 //! [`synthetic`] makes the flights whose truth is known, on which a log's readings and fits are
-//! tested ([the synthetic flights first][adr-280]). Residuals and parameter identification are
-//! planned, and so is fault diagnosis ([the roadmap][roadmap]).
+//! tested ([the synthetic flights first][adr-280]). [`residuals`] sets a log against a simulation
+//! of it. Parameter identification is planned, and so is fault diagnosis ([the roadmap][roadmap]).
 
+pub mod residuals;
 pub mod synthetic;

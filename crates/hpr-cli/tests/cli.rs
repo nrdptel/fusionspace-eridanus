@@ -7596,3 +7596,213 @@ fn analyze_refuses_a_ghost_over_a_file_it_reads() {
     assert!(text(&output.stderr).contains("write over it"), "{output:?}");
     assert_eq!(std::fs::read_to_string(&mapping).unwrap(), "{}");
 }
+
+/// A log of the simulation's own flight, by way of `hpr sim --export` and a column mapping.
+fn compare_log(folder: &Path, design: &str) -> (String, String) {
+    let export = folder.join("flown.csv").to_string_lossy().into_owned();
+    let output = hpr(&[
+        "sim",
+        design,
+        "--export",
+        export.as_str(),
+        "--interval",
+        "0.05",
+    ]);
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    let text = std::fs::read_to_string(&export).unwrap();
+    let mut lines = text.lines();
+    let header: Vec<&str> = lines.next().unwrap().split(',').collect();
+    let at = |name: &str| header.iter().position(|column| *column == name).unwrap();
+    let (time, height) = (at("time [s]"), at("height above ground [m]"));
+    let rows: Vec<(f64, f64)> = lines
+        .map(|line| {
+            let cells: Vec<&str> = line.split(',').collect();
+            (cells[time].parse().unwrap(), cells[height].parse().unwrap())
+        })
+        .collect();
+    // On the pad for 10 s first and on the ground for 10 s after, as a logger is.
+    let (pad_s, first, last) = (10.0, rows[0].1, rows[rows.len() - 1]);
+    let mut log = String::from("Time,Altitude\n");
+    for step in 0..200 {
+        log.push_str(&format!("{},{first}\n", f64::from(step) * 0.05));
+    }
+    for (t, h) in &rows {
+        log.push_str(&format!("{},{h}\n", t + pad_s));
+    }
+    for step in 1..=200 {
+        let t = last.0 + pad_s + f64::from(step) * 0.05;
+        log.push_str(&format!("{t},{}\n", last.1));
+    }
+    let log_path = folder.join("log.csv").to_string_lossy().into_owned();
+    std::fs::write(&log_path, log).unwrap();
+    let mapping = json!({
+        "header_line": 1,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+            {"name": "Time", "quantity": null, "unit": "s"},
+            {"name": "Altitude", "quantity": "altitude_above_ground", "unit": "m"},
+        ],
+    });
+    let mapping_path = folder.join("mapping.json").to_string_lossy().into_owned();
+    std::fs::write(&mapping_path, mapping.to_string()).unwrap();
+    (log_path, mapping_path)
+}
+
+/// A log of the simulation's own flight compares as almost nothing, each reading keeps its
+/// provenance, and the document is what its schema says.
+#[test]
+fn compare_sets_a_log_against_its_own_simulation() {
+    let folder = tempfile::tempdir().unwrap();
+    let design = root()
+        .join("validation/designs/synthetic-54mm-three-fin.json")
+        .to_string_lossy()
+        .into_owned();
+    let (log, mapping) = compare_log(folder.path(), &design);
+    let args = [
+        "compare",
+        log.as_str(),
+        design.as_str(),
+        "--mapping",
+        mapping.as_str(),
+    ];
+    let output = hpr(&[&args[..], &["--json"]].concat());
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    let document: Value = serde_json::from_slice(&output.stdout).unwrap();
+    validate("compare.schema.json", &document);
+    assert_eq!(document["kind"], "compared");
+    assert_eq!(document["height_read_as"], "barometer");
+    let phases = document["height_m"]["phases"].as_array().unwrap();
+    assert!(phases.len() >= 2, "{phases:?}");
+    for phase in phases {
+        // The export's own height against the barometer's reading of it, the standard atmosphere's
+        // geopotential height: measured at 0.3 m, on a flight of 1,500 m.
+        assert!(phase["rms"].as_f64().unwrap() < 1.0, "{phase}");
+    }
+    let row = |what: &str| {
+        document["rows"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|row| row["what"] == what)
+            .unwrap_or_else(|| panic!("no {what}"))
+    };
+    let apogee = row("apogee_height");
+    assert!(
+        apogee["logged_minus_simulated"].as_f64().unwrap().abs() < 1.0,
+        "{apogee}"
+    );
+    assert_eq!(apogee["logged"]["provenance"], "measured");
+    assert_eq!(apogee["simulated"]["provenance"], Value::Null);
+    let text = hpr(&args);
+    assert_eq!(text.status.code(), Some(0), "{text:?}");
+    let text = String::from_utf8_lossy(&text.stdout).into_owned();
+    assert!(text.contains("logged less simulated"), "{text}");
+    assert!(text.contains("How far to trust it."), "{text}");
+}
+
+/// A residual is logged less simulated: a log that read a tenth high reads positive.
+#[test]
+fn compare_residuals_are_logged_less_simulated() {
+    let folder = tempfile::tempdir().unwrap();
+    let design = root()
+        .join("validation/designs/synthetic-54mm-three-fin.json")
+        .to_string_lossy()
+        .into_owned();
+    let (log, mapping) = compare_log(folder.path(), &design);
+    let text = std::fs::read_to_string(&log).unwrap();
+    let mut high = String::from("Time,Altitude\n");
+    for line in text.lines().skip(1) {
+        let (time, height) = line.split_once(',').unwrap();
+        let height: f64 = height.parse().unwrap();
+        high.push_str(&format!("{time},{}\n", 1.1 * height));
+    }
+    std::fs::write(&log, high).unwrap();
+    let output = hpr(&[
+        "compare",
+        log.as_str(),
+        design.as_str(),
+        "--mapping",
+        mapping.as_str(),
+        "--json",
+    ]);
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    let document: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let apogee = document["rows"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| row["what"] == "apogee_height")
+        .unwrap();
+    let difference = apogee["logged_minus_simulated"].as_f64().unwrap();
+    assert!((100.0..200.0).contains(&difference), "{apogee}");
+}
+
+/// A log with no flight in it is refused, saying why.
+#[test]
+fn compare_refuses_a_log_it_cant_line_up() {
+    let folder = tempfile::tempdir().unwrap();
+    let design = root()
+        .join("validation/designs/synthetic-54mm-three-fin.json")
+        .to_string_lossy()
+        .into_owned();
+    let (log, mapping) = compare_log(folder.path(), &design);
+    let mut flat = String::from("Time,Altitude\n");
+    for step in 0..400 {
+        flat.push_str(&format!("{},0\n", f64::from(step) * 0.05));
+    }
+    std::fs::write(&log, flat).unwrap();
+    let output = hpr(&[
+        "compare",
+        log.as_str(),
+        design.as_str(),
+        "--mapping",
+        mapping.as_str(),
+    ]);
+    assert_eq!(output.status.code(), Some(1), "{output:?}");
+    let error = String::from_utf8_lossy(&output.stderr).into_owned();
+    assert!(error.contains("liftoff can't be read"), "{error}");
+}
+
+/// A real flight, by the command a person would type; needs RocketPy's checkout.
+#[test]
+fn compare_reports_residuals_for_a_real_flight() {
+    let log = root().join("refs/rocketpy/data/rockets/NDRT_2020/ndrt_2020_flight_data.csv");
+    if !log.exists() {
+        eprintln!("skipped: {} isn't fetched", log.display());
+        return;
+    }
+    let log = log.to_string_lossy().into_owned();
+    let design = root()
+        .join("validation/designs/rocketpy-ndrt-2020-nose-to-tail.json")
+        .to_string_lossy()
+        .into_owned();
+    let output = hpr(&[
+        "compare",
+        log.as_str(),
+        design.as_str(),
+        "--config",
+        "example",
+        "--latitude",
+        "41.7",
+        "--longitude",
+        "-86.2",
+        "--elevation",
+        "230",
+        "--rail-length",
+        "3.6",
+        "--json",
+    ]);
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    let document: Value = serde_json::from_slice(&output.stdout).unwrap();
+    validate("compare.schema.json", &document);
+    let phases = document["height_m"]["phases"].as_array().unwrap();
+    assert_eq!(phases[0]["phase"], "ascent");
+    assert!(phases[0]["samples"].as_u64().unwrap() > 300, "{phases:?}");
+    assert!(
+        document["speed_m_s"]["status"] == "read",
+        "{}",
+        document["speed_m_s"]
+    );
+}

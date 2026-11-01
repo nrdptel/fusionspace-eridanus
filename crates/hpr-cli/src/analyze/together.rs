@@ -11,8 +11,8 @@ use super::{AnalyzeArgs, document, interval, provenance, read_log, reading, sour
 use super::{height_interval, rate_interval, time_interval};
 use crate::console::Level;
 use crate::output::{
-    AnalyzeTogether, ClockOffset, LogReading, ReadingInterval, TimelineCell, TimelineFlew,
-    TimelineRow, TimelineWhat,
+    AnalyzeTogether, ClockOffset, LogReading, ReadingInterval, ReadingProvenance, TimelineCell,
+    TimelineFlew, TimelineRow, TimelineWhat,
 };
 use crate::units::{
     acceleration_bound, acceleration_interval, gravities, meters, meters_bound, seconds_bound,
@@ -82,7 +82,7 @@ pub(super) fn run(args: &AnalyzeArgs, to: &mut Out<'_>) -> Result<(), Failure> {
 }
 
 /// The arguments that read one log by its format's own reader.
-fn one_log(path: &str) -> AnalyzeArgs {
+pub(crate) fn one_log(path: &str) -> AnalyzeArgs {
     AnalyzeArgs {
         log: path.to_owned(),
         with: Vec::new(),
@@ -123,24 +123,25 @@ fn row(row: &timeline::Row) -> TimelineRow {
             What::MainOpening => TimelineWhat::MainOpening,
             What::MainRate => TimelineWhat::MainRate,
         },
-        cells: row
-            .cells
-            .iter()
-            .map(|cell| match cell {
-                Cell::Read(given) => TimelineCell::Read {
-                    value: given.value,
-                    bound: given.bound,
-                    interval: given.interval.map(interval),
-                    is_floor: given.is_floor,
-                    source: given.source.map(source),
-                    provenance: given.provenance.map(provenance),
-                },
-                Cell::Withheld { detail } => TimelineCell::Withheld {
-                    detail: detail.clone(),
-                },
-            })
-            .collect(),
+        cells: row.cells.iter().map(cell).collect(),
         spread: row.spread,
+    }
+}
+
+/// A cell as the document holds it.
+pub(crate) fn cell(cell: &Cell) -> TimelineCell {
+    match cell {
+        Cell::Read(given) => TimelineCell::Read {
+            value: given.value,
+            bound: given.bound,
+            interval: given.interval.map(interval),
+            is_floor: given.is_floor,
+            source: given.source.map(source),
+            provenance: given.provenance.map(provenance),
+        },
+        Cell::Withheld { detail } => TimelineCell::Withheld {
+            detail: detail.clone(),
+        },
     }
 }
 
@@ -161,7 +162,7 @@ fn row_name(what: TimelineWhat) -> &'static str {
 }
 
 /// A value of a row, in its unit.
-fn value_text(what: TimelineWhat, value: f64) -> String {
+pub(crate) fn value_text(what: TimelineWhat, value: f64) -> String {
     match what {
         TimelineWhat::ApogeeHeight | TimelineWhat::SmoothedApogee | TimelineWhat::MainOpening => {
             meters(value)
@@ -207,6 +208,54 @@ fn interval_text(what: TimelineWhat, interval: Option<ReadingInterval>) -> Strin
         TimelineWhat::ApogeeTime | TimelineWhat::Burnout | TimelineWhat::FlightTime => {
             time_interval(interval)
         }
+    }
+}
+
+/// A difference of a row, in its unit, with its sign.
+pub(crate) fn signed_text(what: TimelineWhat, value: f64) -> String {
+    let sign = if value < 0.0 { "" } else { "+" };
+    format!("{sign}{}", value_text(what, value))
+}
+
+/// A log's cell, with its bound, its interval and what it came from, on one line.
+pub(crate) fn cell_text(what: TimelineWhat, cell: &TimelineCell) -> String {
+    match cell {
+        TimelineCell::Read {
+            value,
+            bound,
+            interval,
+            is_floor,
+            provenance,
+            ..
+        } => {
+            let within = bound
+                .map(|bound| format!(", within {}", bound_text(what, bound)))
+                .unwrap_or_default();
+            let floor = if *is_floor {
+                ", a floor: the true value may lie any amount above it"
+            } else {
+                ""
+            };
+            let measured = provenance
+                .map(|provenance| format!(" ({})", provenance_words(provenance)))
+                .unwrap_or_default();
+            format!(
+                "{}{measured}{within}{}{floor}",
+                value_text(what, *value),
+                interval_text(what, *interval)
+            )
+        }
+        TimelineCell::Withheld { detail } => format!("withheld: {detail}"),
+    }
+}
+
+/// A reading's provenance, in a word or two.
+fn provenance_words(provenance: ReadingProvenance) -> &'static str {
+    match provenance {
+        ReadingProvenance::Measured => "measured",
+        ReadingProvenance::Derived => "derived",
+        ReadingProvenance::Clipped => "clipped",
+        ReadingProvenance::Other => "other",
     }
 }
 

@@ -20,6 +20,7 @@
 //! converts from its ellipsoidal heights first. Samples report whether a model extrapolated.
 
 pub mod air;
+pub mod barometer;
 pub mod dryden;
 pub mod error;
 pub mod moist;
@@ -28,6 +29,7 @@ pub mod ussa76;
 pub mod wind;
 
 pub use air::{AirSample, AirState, Atmosphere, AtmosphereModel};
+pub use barometer::Barometer;
 pub use dryden::{DrydenGenerator, DrydenParameters, GustField, GustSample, TurbulenceSeverity};
 pub use error::AtmosError;
 pub use profile::{SoundingLevel, SoundingProfile};
