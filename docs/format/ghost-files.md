@@ -84,7 +84,7 @@ Each track counts what it leaves out, in `fixes`, `heights_too_fast`, `heights_b
 - reaching it from the last fix kept would take over 1,500 m/s (4,921 ft/s), plus 200 m (656 ft) for a receiver's scatter.
 
 A height goes on the same speed, plus 50 m (164 ft). The first kept is the first that agrees with the
-middle of the log's first 9 rows, so one bad first row can't shut out the flight. That catches a logger's garbage rows, such as the last
+middle of the log's first 9 usable rows, so one bad first row can't shut out the flight. That catches a logger's garbage rows, such as the last
 two of Juno III's altimeter file, at 10,700 m (35,105 ft) and −2,490 m (−8,169 ft). It also took 57 of the 44,454 rows of
 Lince's height, in the swing as its recovery fires.
 
@@ -95,7 +95,7 @@ Three more go, each counted:
   close enough in time to pass the speed test.
 - A moment with no height, or a height of exactly 0 from a receiver, in a track that has heights. Each
   track has a height at every moment or at none, and a viewer's line crosses the gap.
-- A clock past 317 years, or over 116 days from the log's opening.
+- A clock past about 317 years, or about 116 days from the log's opening.
 
 ## The three formats
 
@@ -166,7 +166,7 @@ So the formats agree with each other. What ties them to the log is pinned apart 
   RocketPy's notebooks that wasn't read off that column. Of the 16 logs with a barometer's or a
   filtered height, 13 peak within 2% of a flight card or another board's record. Valkyrie's log, at
   1.9% under, is the widest. The other 3 have no such figure, so they are held to RocketPy's
-  simulated apogee, the widest 3.3% under. The two with only a receiver's altitude, on Juno III, peak
+  simulated apogee above the pad, the widest 0.4% off. The two with only a receiver's altitude, on Juno III, peak
   4.9% and 5.9% over its altimeter's card.
 - East and north match the ellipsoid's radii of curvature, by a route that doesn't use the rotation
   under test, to 5 mm (0.20 in).

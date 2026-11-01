@@ -24,7 +24,7 @@
 //! that agrees with the middle of the log's first [`OPENING_ROWS`], so one bad first row can't shut
 //! the flight out. A height more than [`BELOW_PAD_M`] under the pad is left out and counted
 //! ([`Track::heights_below_pad`]): a receiver with no lock can write a height near sea level, as
-//! one of Juno III's does for 2,340 rows. A moment with no height, where the track has heights, is
+//! one of Juno III's does for 3,400 rows. A moment with no height, where the track has heights, is
 //! left out and counted, so a track has a height at every moment or at none; a viewer's line
 //! crosses the gap. A clock past [`CLOCK_LIMIT_S`] is left out and counted, too.
 //!
@@ -183,6 +183,8 @@ pub struct Pad {
     /// above sea level, from fixes before liftoff or the first fix. Files draw it as if above the
     /// ellipsoid (module docs). `None` when no one states it.
     pub height_m: Option<f64>,
+    /// Whether the caller stated [`Pad::height_m`], rather than a receiver.
+    pub height_stated: bool,
     /// Where the place came from.
     pub from: PadFrom,
     /// For [`PadFrom::FirstFix`], how long after liftoff that fix was, s; `None` when it wasn't
@@ -490,6 +492,7 @@ fn pad_of(
                 latitude_deg: Some(pad.latitude_deg),
                 longitude_deg: Some(pad.longitude_deg),
                 height_m,
+                height_stated: pad.height_m.is_some(),
                 from: PadFrom::Stated,
                 first_fix_after_liftoff_s: None,
             },
@@ -504,6 +507,7 @@ fn pad_of(
                 latitude_deg: Some(lat),
                 longitude_deg: Some(lon),
                 height_m: height_of_fixes,
+                height_stated: false,
                 from: PadFrom::FixesBeforeLiftoff,
                 first_fix_after_liftoff_s: None,
             },
@@ -516,6 +520,7 @@ fn pad_of(
                 latitude_deg: Some(fixes.latitude_deg[0]),
                 longitude_deg: Some(fixes.longitude_deg[0]),
                 height_m: height_of_fixes,
+                height_stated: false,
                 from: PadFrom::FirstFix,
                 first_fix_after_liftoff_s: late,
             },
@@ -527,6 +532,7 @@ fn pad_of(
             latitude_deg: None,
             longitude_deg: None,
             height_m: None,
+            height_stated: false,
             from: PadFrom::Unknown,
             first_fix_after_liftoff_s: None,
         },
@@ -822,7 +828,7 @@ fn assumed(ghost: &Ghost, track: &Track) -> String {
              far under or over the ground."
                 .to_owned(),
         );
-    } else if ghost.pad.from != PadFrom::Stated {
+    } else if !ghost.pad.height_stated {
         words.push(
             "The pad's height is the receiver's, drawn as if above the ellipsoid: off by the \
              local geoid, within about 110 m, if it states sea level."
@@ -842,7 +848,8 @@ fn assumed(ghost: &Ghost, track: &Track) -> String {
     }
     if track.up_from == UpFrom::AltitudeLessPad {
         words.push(
-            "The log's altitude states no zero at the pad: taken less its own reading there."
+            "The log's altitude states no zero at the pad: taken less its own reading there, or \
+             its first rows' with no liftoff."
                 .to_owned(),
         );
     }
@@ -1358,6 +1365,7 @@ mod tests {
                 latitude_deg: Some(0.0),
                 longitude_deg: Some(0.0),
                 height_m: Some(0.0),
+                height_stated: true,
                 from: PadFrom::Stated,
                 first_fix_after_liftoff_s: None,
             },
@@ -1873,6 +1881,15 @@ mod tests {
         assert_eq!(ghost.pad.height_m, Some(1_380.0));
         assert_eq!(ghost.tracks[0].up_m[0], Some(0.0));
         assert!(!assumed(&ghost, &ghost.tracks[0]).contains("receiver's"));
+
+        // A stated place with no height takes the receiver's, and says so.
+        let place = StatedPad {
+            height_m: None,
+            ..stated
+        };
+        let ghost = built(&receiver(&heights), Some(place)).unwrap();
+        assert_eq!(ghost.pad.height_m, Some(1_400.0));
+        assert!(assumed(&ghost, &ghost.tracks[0]).contains("local geoid"));
     }
 
     #[test]

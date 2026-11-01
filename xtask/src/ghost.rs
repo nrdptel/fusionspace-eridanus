@@ -403,9 +403,9 @@ mod tests {
         }
         // Against the flight's card or a report. Valkyrie's log peaks 1.9% under, the widest.
         const CARD: f64 = 0.02;
-        // RocketPy's own simulated apogee, where the notebook's measured figure is this column's
-        // maximum: within 3.3%, on Hedy.
-        const SIMULATED: f64 = 0.04;
+        // RocketPy's own simulated apogee above the pad, where the notebook's measured figure is
+        // this column's maximum: within 0.4%.
+        const SIMULATED: f64 = 0.01;
         // A receiver's altitude against the flight's altimeter's card: 4.9% and 5.9% over.
         const RECEIVER: f64 = 0.06;
         let stated = [
@@ -432,8 +432,8 @@ mod tests {
             ("camoes/flight_data.csv", 3_015.0, CARD),
             ("erebus11/flight_data_filtered.csv", 3_020.0, CARD),
             ("genesis/flight_data_faraday.csv", 2_916.0, CARD),
-            ("hedy/cats_tust/filteredDataInfo.csv", 5_406.92, SIMULATED),
-            ("hedy/cats_tust/flightInfo.csv", 5_406.92, SIMULATED),
+            ("hedy/cats_tust/filteredDataInfo.csv", 5_246.92, SIMULATED),
+            ("hedy/cats_tust/flightInfo.csv", 5_246.92, SIMULATED),
             ("lince/main_data.csv", 3_587.0, CARD),
             ("polito/altimeter_cavour.csv", 2_789.0, CARD),
             ("valkyrie/flightInfo_merged.csv", 2_098.02, CARD),

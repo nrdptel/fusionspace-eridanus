@@ -137,6 +137,10 @@
           ],
           "format": "double"
         },
+        "height_stated": {
+          "description": "Whether the caller stated [`Pad::height_m`], rather than a receiver.",
+          "type": "boolean"
+        },
         "latitude_deg": {
           "description": "Latitude, degrees north; `None` when no log holds a place.",
           "type": [
@@ -155,6 +159,7 @@
         }
       },
       "required": [
+        "height_stated",
         "from"
       ]
     },
