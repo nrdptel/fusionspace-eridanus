@@ -43,6 +43,7 @@ mod figures;
 mod fixture_flights;
 mod format;
 mod format_types;
+mod ghost;
 mod grib2;
 mod guides;
 mod layering;
@@ -121,6 +122,7 @@ Commands:
 {LOGS}
 {SYNTHETIC}
 {TWO_LOGS}
+{GHOST}
 {REAL_FLIGHTS}
 {RECORDS}
 {ROADMAP_CURRENT}
@@ -157,6 +159,7 @@ fn usage() -> String {
         .replace("{LOGS}", logs::USAGE)
         .replace("{SYNTHETIC}", synthetic::USAGE)
         .replace("{TWO_LOGS}", two_logs::USAGE)
+        .replace("{GHOST}", ghost::USAGE)
         .replace("{REAL_FLIGHTS}", real_flights::USAGE)
         .replace("{RECORDS}", records::USAGE)
         .replace("{ROADMAP_CURRENT}", roadmap::CURRENT_USAGE)
@@ -196,6 +199,7 @@ fn main() -> ExitCode {
         Some("logs") => logs::run(&args.collect::<Vec<_>>()),
         Some("synthetic") => synthetic::run(&args.collect::<Vec<_>>()),
         Some("two-logs") => two_logs::run(&args.collect::<Vec<_>>()),
+        Some("ghost") => ghost::run(&args.collect::<Vec<_>>()),
         Some("records") => records::run(&args.collect::<Vec<_>>()),
         Some("roadmap-current") => roadmap::run_current(&args.collect::<Vec<_>>()),
         Some("motor-catalog") => motor_catalog::run(&args.collect::<Vec<_>>()),

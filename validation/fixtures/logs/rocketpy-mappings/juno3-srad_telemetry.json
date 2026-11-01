@@ -1,0 +1,160 @@
+{
+  "header_line": 1,
+  "separator": ",",
+  "decimal_comma": false,
+  "clock": 1,
+  "columns": [
+    {
+      "name": "Header",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "Time",
+      "quantity": null,
+      "unit": "ms"
+    },
+    {
+      "name": "Gyro(X)",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "Gyro(Y)",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "Gyro(Z)",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "Ang. Vel(X)",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "Ang. Vel(Y)",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "Ang. Vel(Z)",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "Accel(X)",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "Accel(Y)",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "Accel(Z)",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "Magn(X)",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "Magn(Y)",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "Magn(Z)",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "Pressure",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "Temp(LPS)",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "Humidity",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "Temp(HTS)",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "GPS Fix",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "Latitude",
+      "quantity": "latitude",
+      "unit": "deg"
+    },
+    {
+      "name": "Longitude",
+      "quantity": "longitude",
+      "unit": "deg"
+    },
+    {
+      "name": "Altitude",
+      "quantity": "gnss_altitude",
+      "unit": "m"
+    },
+    {
+      "name": "Speed",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "Time",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "Timestamp",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "# of Satellites",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    }
+  ]
+}

@@ -150,6 +150,10 @@ jobs:
       # setup-uv publishes no moving major tag, so it is pinned to a release's commit.
       - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
       - run: cargo run --locked --quiet --package xtask -- format --typecheck
+      # Ghost files read back by CesiumJS, Khronos's validator, glTF-Transform and Ajv (M7.2g,
+      # ADR-313), pinned by validation/oracles/ghost/package-lock.json. The invented flight only:
+      # the gate's refs step holds RocketPy's 22 logs.
+      - run: cargo run --locked --quiet --package xtask -- ghost --invented
 
   # Builds the Python package's abi3 wheel with maturin on each OS and runs its pytest suite on the
   # installed wheel, on CPython 3.10 and 3.13 (M4.3a, scripts/python-tests.sh). The wheels are not

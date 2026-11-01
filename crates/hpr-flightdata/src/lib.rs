@@ -151,6 +151,7 @@ pub mod fluctus;
 pub mod fwgps;
 pub mod fwsummary;
 pub mod generic;
+pub mod ghost;
 pub mod gpx;
 pub mod import;
 pub mod kml;

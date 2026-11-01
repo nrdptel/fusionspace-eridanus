@@ -22,6 +22,7 @@
 //! [adr-300]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0300-the-smoother-and-its-check.md
 //! [adr-276]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0276-the-2026-10-16-own-loggers-and-gpx-in-the-analyzer.md
 
+mod ghost;
 mod together;
 
 use std::path::Path;
@@ -115,10 +116,26 @@ pub struct AnalyzeArgs {
     /// (schema/cli/analyze-record.schema.json), in place of the readings
     #[arg(long)]
     pub record: bool,
+    /// Write a ghost file too: the logs' trajectories on one clock in a frame at the pad, for a
+    /// viewer. The file's extension picks its format: .json (schema/cli/ghost.schema.json), .czml
+    /// (Cesium) or .gltf (a 3D scene). Give it again for another format
+    #[arg(long, value_name = "FILE", conflicts_with_all = ["record", "print_mapping"])]
+    pub ghost: Vec<String>,
+    /// The pad's place for a ghost file, as latitude,longitude in degrees, with its height in
+    /// meters if you know it: 39.39,-8.29,120. Without it, the place comes from the log's GNSS
+    /// fixes, and a log with none is drawn at 0N 0E, as the file says
+    #[arg(
+        long,
+        value_name = "LAT,LON[,HEIGHT]",
+        requires = "ghost",
+        allow_hyphen_values = true
+    )]
+    pub pad: Option<String>,
 }
 
 /// Runs `hpr analyze`.
 pub(crate) fn run(args: &AnalyzeArgs, to: &mut Out<'_>) -> Result<(), Failure> {
+    ghost::check_paths(args)?;
     if args.print_mapping {
         return print_mapping(args, to);
     }
@@ -133,6 +150,7 @@ pub(crate) fn run(args: &AnalyzeArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         return to.emit(&log, |_, _| Ok(()));
     }
     let read = readings::read(&log);
+    let ghosts = ghost::write(args, &[(args.log.as_str(), &log, &read)])?;
     let document = document(args, &log, &read);
     // A column's name is the file's text: a control character in it, such as an escape, is
     // shown as `?` rather than reaching the terminal.
@@ -147,7 +165,10 @@ pub(crate) fn run(args: &AnalyzeArgs, to: &mut Out<'_>) -> Result<(), Failure> {
             .log
             .notes
             .iter()
-            .try_for_each(|note| diagnostics.line(Level::Note, note))
+            .try_for_each(|note| diagnostics.line(Level::Note, note))?;
+        ghosts
+            .iter()
+            .try_for_each(|line| diagnostics.line(Level::Note, line))
     })
 }
 
@@ -1046,6 +1067,8 @@ mod tests {
             fip_header: None,
             print_mapping: false,
             record: false,
+            ghost: Vec::new(),
+            pad: None,
         };
         let mut document = document(&args, &log, &readings::read(&log));
         document.max_acceleration = LogReading::Read(MaxAccelerationReading {

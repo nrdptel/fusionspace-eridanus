@@ -1,0 +1,340 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Ghost",
+  "description": "A flight's ghost: its logs' trajectories on one clock in one frame, as the JSON writes it.",
+  "type": "object",
+  "properties": {
+    "format": {
+      "description": "`hpr-ghost`.",
+      "type": "string"
+    },
+    "frame": {
+      "description": "The frame in words: east, north and up from the pad, in meters.",
+      "type": "string"
+    },
+    "pad": {
+      "description": "The pad.",
+      "$ref": "#/$defs/Pad"
+    },
+    "tool": {
+      "title": "Tool",
+      "description": "The program that wrote a document or a file: the title block every `--json` document, every\nfile `hpr` writes and `hpr --version` carry (ADR-164; the product system's `data.md`: \"Every\nexport carries the designation and version of the tool that made it\").",
+      "type": "object",
+      "properties": {
+        "designation": {
+          "description": "Its designation in the FusionSpace product system: `FS-ACHERNAR · SW · TOOL 001`.",
+          "type": "string"
+        },
+        "name": {
+          "description": "The program: `FusionSpace HPR`.",
+          "type": "string"
+        },
+        "version": {
+          "description": "Its version, such as `0.1.0`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "designation"
+      ]
+    },
+    "tracks": {
+      "description": "Each log's trajectory.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Track"
+      }
+    },
+    "version": {
+      "description": "The format's version.",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "tool",
+    "format",
+    "version",
+    "frame",
+    "pad",
+    "tracks"
+  ],
+  "$defs": {
+    "FixCounts": {
+      "description": "A track's GNSS fixes, counted.",
+      "type": "object",
+      "properties": {
+        "clock_back": {
+          "description": "Left out: the clock didn't go forward.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "given": {
+          "description": "The rows of the log's latitude and longitude columns.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "kept": {
+          "description": "Those kept.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "not_a_place": {
+          "description": "Left out: an empty cell, not a place, or a receiver's zero.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "out_of_reach": {
+          "description": "Left out: past [`REACH_M`] from the median.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "too_fast": {
+          "description": "Left out: too fast from the last kept ([`FASTEST_M_S`]).",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "given",
+        "kept",
+        "not_a_place",
+        "clock_back",
+        "out_of_reach",
+        "too_fast"
+      ]
+    },
+    "Pad": {
+      "description": "The pad: the frame's origin.",
+      "type": "object",
+      "properties": {
+        "first_fix_after_liftoff_s": {
+          "description": "For [`PadFrom::FirstFix`], how long after liftoff that fix was, s; `None` when it wasn't\nafter, or no liftoff is known.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "from": {
+          "description": "Where the place came from.",
+          "$ref": "#/$defs/PadFrom"
+        },
+        "height_m": {
+          "description": "The pad's height, m: the caller's above the ellipsoid, or else the receiver's, most often\nabove sea level, from fixes before liftoff or the first fix. Files draw it as if above the\nellipsoid (module docs). `None` when no one states it.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "height_stated": {
+          "description": "Whether the caller stated [`Pad::height_m`], rather than a receiver.",
+          "type": "boolean"
+        },
+        "latitude_deg": {
+          "description": "Latitude, degrees north; `None` when no log holds a place.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "longitude_deg": {
+          "description": "Longitude, degrees east; `None` when no log holds a place.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        }
+      },
+      "required": [
+        "height_stated",
+        "from"
+      ]
+    },
+    "PadFrom": {
+      "description": "Where the pad's place came from.",
+      "oneOf": [
+        {
+          "description": "The caller stated it.",
+          "type": "string",
+          "const": "stated"
+        },
+        {
+          "description": "The median of the last fixes before liftoff.",
+          "type": "string",
+          "const": "fixes_before_liftoff"
+        },
+        {
+          "description": "The first fix: no log holds one before liftoff, or none has a liftoff. The rocket may\nalready have left: [`Pad::first_fix_after_liftoff_s`] says by how long, where it can.",
+          "type": "string",
+          "const": "first_fix"
+        },
+        {
+          "description": "No log holds a place: east and north are of nothing, and each drawn at 0.",
+          "type": "string",
+          "const": "unknown"
+        }
+      ]
+    },
+    "Track": {
+      "description": "One log's trajectory.",
+      "type": "object",
+      "properties": {
+        "east_m": {
+          "description": "East of the pad at each moment, m; `null` before the first fix and after the last.",
+          "type": "array",
+          "items": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          }
+        },
+        "fixes": {
+          "description": "The fixes.",
+          "$ref": "#/$defs/FixCounts"
+        },
+        "heights_below_pad": {
+          "description": "The log's rows left out for a height past [`BELOW_PAD_M`] under the pad.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "heights_too_fast": {
+          "description": "The log's rows left out for a height no flight could reach ([`FASTEST_M_S`]).",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "liftoff_bound_s": {
+          "description": "The bound on the liftoff's error, s, when one was read. It is every moment's bound on this\ntimeline.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "liftoff_s": {
+          "description": "The liftoff on the log's own clock, s, when one was read.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "logger": {
+          "description": "The logger the log's format names, as a person reads it.",
+          "type": "string"
+        },
+        "moments_left_out": {
+          "description": "The log's rows left out for a clock that didn't go forward or is past [`CLOCK_LIMIT_S`], or\na height empty or not a number.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "name": {
+          "description": "The log's name, as the caller gave it.",
+          "type": "string"
+        },
+        "north_m": {
+          "description": "North of the pad at each moment, m; `null` as for east.",
+          "type": "array",
+          "items": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          }
+        },
+        "synced": {
+          "description": "Whether [`Track::time_s`] counts from the log's liftoff; if not, it is the log's own clock.",
+          "type": "boolean"
+        },
+        "time_s": {
+          "description": "The moments kept, each later than the last, s.",
+          "type": "array",
+          "items": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "up_from": {
+          "description": "Where the height came from.",
+          "$ref": "#/$defs/UpFrom"
+        },
+        "up_m": {
+          "description": "Height above the pad at each moment, m; every one `null` when [`UpFrom::Unknown`], none\notherwise.",
+          "type": "array",
+          "items": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          }
+        },
+        "widest_fix_gap_s": {
+          "description": "The widest time between two kept fixes, s; east and north are a straight line across it.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        }
+      },
+      "required": [
+        "name",
+        "logger",
+        "synced",
+        "up_from",
+        "time_s",
+        "east_m",
+        "north_m",
+        "up_m",
+        "fixes",
+        "moments_left_out",
+        "heights_too_fast",
+        "heights_below_pad"
+      ]
+    },
+    "UpFrom": {
+      "description": "Where a track's height came from.",
+      "oneOf": [
+        {
+          "description": "The log's altitude as it wrote it, above the logger's zero.",
+          "type": "string",
+          "const": "log_altitude"
+        },
+        {
+          "description": "A column above sea level or an unstated zero, less its own reading on the pad: the median\nof its last [`PAD_FIXES`] samples before liftoff, or of its first with no liftoff.",
+          "type": "string",
+          "const": "altitude_less_pad"
+        },
+        {
+          "description": "The GNSS altitude less the receiver's on the pad.",
+          "type": "string",
+          "const": "gnss_altitude"
+        },
+        {
+          "description": "The log holds no height above the pad: each is `null`, and drawn at 0.",
+          "type": "string",
+          "const": "unknown"
+        }
+      ]
+    }
+  }
+}

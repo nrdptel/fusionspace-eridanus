@@ -1,0 +1,19 @@
+{
+  "header_line": 1,
+  "separator": ",",
+  "decimal_comma": false,
+  "clock": 0,
+  "columns": [
+    {
+      "name": "time",
+      "quantity": null,
+      "unit": "s"
+    },
+    {
+      "name": "altitude",
+      "quantity": "altitude_above_ground",
+      "unit": "m"
+    }
+  ],
+  "primary": 1
+}

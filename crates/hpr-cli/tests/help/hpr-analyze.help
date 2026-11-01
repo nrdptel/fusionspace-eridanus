@@ -43,6 +43,12 @@ Options:
       --record
           Print every channel of the log in SI units (degrees for angles), as one JSON document (schema/cli/analyze-record.schema.json), in place of the readings
 
+      --ghost <FILE>
+          Write a ghost file too: the logs' trajectories on one clock in a frame at the pad, for a viewer. The file's extension picks its format: .json (schema/cli/ghost.schema.json), .czml (Cesium) or .gltf (a 3D scene). Give it again for another format
+
+      --pad <LAT,LON[,HEIGHT]>
+          The pad's place for a ghost file, as latitude,longitude in degrees, with its height in meters if you know it: 39.39,-8.29,120. Without it, the place comes from the log's GNSS fixes, and a log with none is drawn at 0N 0E, as the file says
+
   -h, --help
           Print help (see a summary with '-h')
 

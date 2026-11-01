@@ -448,6 +448,13 @@ pub(crate) fn write_json<T: Serialize>(out: &mut dyn Write, value: &T) -> io::Re
     writeln!(out, "{}", hpr::hpr_sim::export::ascii(&text))
 }
 
+/// A ghost file's JSON as `hpr analyze --ghost` writes it, stamped, for tools that make one.
+pub fn ghost_json(ghost: &hpr::hpr_flightdata::ghost::Ghost) -> io::Result<Vec<u8>> {
+    let mut bytes = Vec::new();
+    write_json(&mut bytes, ghost)?;
+    Ok(bytes)
+}
+
 /// The bytes of the file at `path`, as the user typed it, or why not in words with what to do:
 /// a file that isn't there is named with the closest name in its folder ([`closest_file`]), a
 /// folder given for a file is called one, as the product system's `cli.md` asks (*Errors*).

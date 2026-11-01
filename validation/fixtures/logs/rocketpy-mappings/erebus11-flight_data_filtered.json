@@ -1,0 +1,19 @@
+{
+  "header_line": 1,
+  "separator": ",",
+  "decimal_comma": false,
+  "clock": 1,
+  "columns": [
+    {
+      "name": "alt",
+      "quantity": "altitude_above_ground",
+      "unit": "m"
+    },
+    {
+      "name": "t",
+      "quantity": null,
+      "unit": "s"
+    }
+  ],
+  "primary": 0
+}

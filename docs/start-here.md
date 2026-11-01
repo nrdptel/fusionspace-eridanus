@@ -473,7 +473,8 @@ These are left out of a flight, or approximated:
   ([Reading a flight log](reading-a-flight-log.md)). A GPS track gives no reading, and a board's
   three axes give no top acceleration. Two logs of one flight, or one logger to a stage, go on one
   timeline by a shared liftoff and read side by side, never averaged
-  ([two logs of one flight](reading-a-flight-log.md#two-logs-of-one-flight)). Like `hpr weather` and
+  ([two logs of one flight](reading-a-flight-log.md#two-logs-of-one-flight)). `--ghost` writes the
+  logs' paths for a viewer, as JSON, CZML or glTF ([ghost files](format/ghost-files.md)). Like `hpr weather` and
   `hpr motors show`, it ends with how far to trust its figures
   ([units and trust notes on every readout](decisions-and-roadmap.md#m0-9c4)).
 

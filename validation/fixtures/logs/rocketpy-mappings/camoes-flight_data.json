@@ -1,0 +1,25 @@
+{
+  "header_line": 1,
+  "separator": ",",
+  "decimal_comma": false,
+  "clock": 0,
+  "columns": [
+    {
+      "name": "ts",
+      "quantity": null,
+      "unit": "s"
+    },
+    {
+      "name": "filtered_altitude_AGL",
+      "quantity": "altitude_above_ground",
+      "unit": "m"
+    },
+    {
+      "name": "filtered_acceleration",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    }
+  ],
+  "primary": 1
+}

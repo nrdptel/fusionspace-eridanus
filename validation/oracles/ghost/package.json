@@ -1,0 +1,13 @@
+{
+  "name": "hpr-ghost-readers",
+  "private": true,
+  "description": "Outside readers that read FusionSpace HPR's ghost files back (M7.2g). Run by cargo xtask ghost; nothing here ships.",
+  "license": "MIT OR Apache-2.0",
+  "type": "module",
+  "dependencies": {
+    "@gltf-transform/core": "4.3.0",
+    "ajv": "8.17.1",
+    "cesium": "1.136.0",
+    "gltf-validator": "2.0.0-dev.3.10"
+  }
+}

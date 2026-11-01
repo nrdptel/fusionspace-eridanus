@@ -96,6 +96,8 @@ touches_physics() {
   done
   # A sample registered or edited is what `evidence --samples` checks (M2.10, ADR-278).
   grep -qx "validation/evidence.toml" <<<"$changed" && return 0
+  # What `ghost --check` reads the real logs with: CI holds only the invented flights.
+  grep -qE "^(validation/oracles/ghost/|validation/fixtures/logs/rocketpy-mappings/|xtask/src/ghost.rs)" <<<"$changed" && return 0
   return 1
 }
 
@@ -240,7 +242,7 @@ cmd_for() {
     types) echo "$XTASK format --typecheck" ;;
     python) echo "scripts/python-tests.sh" ;;
     ego) echo "cargo bench --locked -p fusionspace-hpr-analysis --bench ego_hartmann6" ;;
-    refs) echo "$XTASK ork-flights --check && $XTASK ork-flights --library --check && $XTASK real-flights --check && $XTASK ork-cli --check && $XTASK fixture-flights --check && $XTASK ork-export-flights --check && $XTASK logs --check && $XTASK evidence --samples && node validation/oracles/thrustcurve/analyze_stats.js --recount" ;;
+    refs) echo "$XTASK ork-flights --check && $XTASK ork-flights --library --check && $XTASK real-flights --check && $XTASK ghost --check && $XTASK ork-cli --check && $XTASK fixture-flights --check && $XTASK ork-export-flights --check && $XTASK logs --check && $XTASK evidence --samples && node validation/oracles/thrustcurve/analyze_stats.js --recount" ;;
     *) return 1 ;;
   esac
 }

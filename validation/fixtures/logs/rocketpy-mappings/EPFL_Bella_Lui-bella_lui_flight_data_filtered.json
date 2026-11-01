@@ -1,0 +1,36 @@
+{
+  "header_line": 1,
+  "separator": ",",
+  "decimal_comma": false,
+  "clock": 2,
+  "columns": [
+    {
+      "name": "useless",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "time(not s)",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    },
+    {
+      "name": "time aprox (s)",
+      "quantity": null,
+      "unit": "s"
+    },
+    {
+      "name": "z (m)",
+      "quantity": "altitude_above_ground",
+      "unit": "m"
+    },
+    {
+      "name": "v (m/s)",
+      "quantity": "speed",
+      "unit": "m/s"
+    }
+  ],
+  "primary": 3
+}

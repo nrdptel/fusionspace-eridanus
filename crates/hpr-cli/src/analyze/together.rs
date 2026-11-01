@@ -30,6 +30,12 @@ pub(super) fn run(args: &AnalyzeArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         .collect::<Result<Vec<FlightLog>, Failure>>()?;
     let reads: Vec<Readings> = logs.iter().map(readings::read).collect();
     let pairs: Vec<(&FlightLog, &Readings)> = logs.iter().zip(&reads).collect();
+    let inputs: Vec<(&str, &FlightLog, &Readings)> = paths
+        .iter()
+        .zip(&pairs)
+        .map(|(path, (log, read))| (path.as_str(), *log, *read))
+        .collect();
+    let ghosts = super::ghost::write(args, &inputs)?;
     let flew = if args.stages {
         Flew::Stages
     } else {
@@ -69,7 +75,9 @@ pub(super) fn run(args: &AnalyzeArgs, to: &mut Out<'_>) -> Result<(), Failure> {
                 diagnostics.line(Level::Note, &format!("log {}: {note}", index + 1))?;
             }
         }
-        Ok(())
+        ghosts
+            .iter()
+            .try_for_each(|line| diagnostics.line(Level::Note, line))
     })
 }
 
@@ -86,6 +94,8 @@ fn one_log(path: &str) -> AnalyzeArgs {
         fip_header: None,
         print_mapping: false,
         record: false,
+        ghost: Vec::new(),
+        pad: None,
     }
 }
 

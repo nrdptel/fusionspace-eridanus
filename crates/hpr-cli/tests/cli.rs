@@ -4948,6 +4948,194 @@ fn analyze_reads_rocketpys_two_logger_flight_side_by_side() {
 }
 
 #[test]
+fn analyze_writes_a_ghost_file_in_each_format_and_changes_nothing_else() {
+    let folder = tempfile::tempdir().unwrap();
+    let file = |name: &str| folder.path().join(name).to_string_lossy().into_owned();
+    let (json, czml, gltf) = (file("g.json"), file("g.czml"), file("g.GLTF"));
+    let tracked = repo_file("validation/fixtures/logs/ghost/invented-tracked.csv");
+    let second = repo_file("validation/fixtures/logs/two-logs/second-board.csv");
+    let plain = hpr(&["analyze", &tracked, &second, "--json"]);
+    let output = hpr(&[
+        "analyze", &tracked, &second, "--json", "--ghost", &json, "--ghost", &czml, "--ghost",
+        &gltf,
+    ]);
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    // The readings on standard output are the same with a ghost file as without.
+    assert_eq!(output.stdout, plain.stdout);
+    // Without --json, standard error names what was written.
+    let told = hpr(&[
+        "analyze", &tracked, &second, "--ghost", &czml, "--ghost", &gltf,
+    ]);
+    let notes = text(&told.stderr);
+    assert!(notes.contains("a CZML ghost file"), "{notes}");
+    assert!(notes.contains("a glTF ghost file"), "{notes}");
+
+    let document: Value = serde_json::from_str(&std::fs::read_to_string(&json).unwrap()).unwrap();
+    validate("ghost.schema.json", &document);
+    assert_eq!(document["format"], "hpr-ghost");
+    assert_eq!(document["pad"]["from"], "fixes_before_liftoff");
+    assert_eq!(document["pad"]["latitude_deg"], 39.39);
+    assert_eq!(document["pad"]["longitude_deg"], -8.29);
+    let tracks = document["tracks"].as_array().unwrap();
+    assert_eq!(tracks.len(), 2);
+    let (first, other) = (&tracks[0], &tracks[1]);
+    // Each counts from its own liftoff, though their clocks stand 53.5 s apart.
+    assert_eq!(first["liftoff_s"], 41.2);
+    assert_eq!(other["liftoff_s"], -12.3);
+    assert_eq!(first["synced"], true);
+    assert_eq!(other["synced"], true);
+    // The fixture's bad fixes each fall to their own screen.
+    assert_eq!(first["fixes"]["out_of_reach"], 1);
+    assert!(first["fixes"]["not_a_place"].as_u64().unwrap() > 1_000);
+    assert!(
+        other["east_m"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(Value::is_null)
+    );
+    // At 8.8 s the fixture is 2e-5°/s × 8.8 s east and 1e-5°/s × 8.8 s north of the pad: by the
+    // radii of curvature at 39.39°N (6,386,751.8 m and 6,361,145.5 m), 15.16 m and 9.77 m.
+    let i = first["time_s"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .position(|t| (t.as_f64().unwrap() - 8.8).abs() < 1e-9)
+        .unwrap();
+    let (east, north) = (
+        first["east_m"][i].as_f64().unwrap(),
+        first["north_m"][i].as_f64().unwrap(),
+    );
+    assert!((east - 15.16).abs() < 0.01, "{east}");
+    assert!((north - 9.77).abs() < 0.01, "{north}");
+
+    let scene: Value = serde_json::from_str(&std::fs::read_to_string(&czml).unwrap()).unwrap();
+    assert_eq!(scene.as_array().unwrap().len(), 3);
+    assert_eq!(scene[1]["name"], "invented-tracked.csv");
+    let model: Value = serde_json::from_str(&std::fs::read_to_string(&gltf).unwrap()).unwrap();
+    assert_eq!(model["asset"]["version"], "2.0");
+    assert_eq!(
+        model["animations"][0]["channels"].as_array().unwrap().len(),
+        2
+    );
+}
+
+/// Every real flight log in RocketPy's repository with an altitude or a GNSS track, by the command
+/// a person would type; `cargo xtask ghost --check` reads their files back with outside readers.
+#[test]
+fn analyze_writes_a_ghost_of_each_of_rocketpys_logs() {
+    let rockets = root().join("refs/rocketpy/data/rockets");
+    if !rockets.exists() {
+        eprintln!("skipped: {} isn't fetched", rockets.display());
+        return;
+    }
+    let mappings = root().join("validation/fixtures/logs/rocketpy-mappings");
+    let folder = tempfile::tempdir().unwrap();
+    let out = folder.path().join("g.json").to_string_lossy().into_owned();
+    let own = [
+        "NDRT_2020/ndrt_2020_flight_data.csv",
+        "andromeda/flight_data.csv",
+        "juno3/cots_altimeter.csv",
+        "prometheus/2022-06-24-serial-5115-flight-0001-TeleMetrum.csv",
+        "prometheus/2022-06-24-serial-6583-flight-0003-TeleMega.csv",
+    ];
+    let mapped = [
+        "EPFL_Bella_Lui/bella_lui_flight_data_filtered.csv",
+        "astg/altimeter_halcyon.csv",
+        "astg/gnss_halcyon.csv",
+        "astra/flight_data.csv",
+        "camoes/flight_data.csv",
+        "camoes/gnss_flight.csv",
+        "erebus11/flight_data_filtered.csv",
+        "genesis/flight_data_faraday.csv",
+        "genesis/gnss_faraday.csv",
+        "hedy/cats_tust/filteredDataInfo.csv",
+        "hedy/cats_tust/flightInfo.csv",
+        "hedy/cats_tust/gnssInfo.csv",
+        "juno3/cots_GNSS.csv",
+        "juno3/srad_telemetry.csv",
+        "lince/main_data.csv",
+        "polito/altimeter_cavour.csv",
+        "valkyrie/flightInfo_merged.csv",
+    ];
+    assert_eq!(own.len() + mapped.len(), 22);
+    for path in own.iter().chain(&mapped) {
+        let log = rockets.join(path).to_string_lossy().into_owned();
+        let mut args = vec!["analyze", log.as_str(), "--json", "--ghost", out.as_str()];
+        let stem = path.trim_end_matches(".csv").replace('/', "-");
+        let mapping = mappings
+            .join(format!("{stem}.json"))
+            .to_string_lossy()
+            .into_owned();
+        if mapped.contains(path) {
+            args.extend(["--mapping", mapping.as_str()]);
+        }
+        let output = hpr(&args);
+        assert_eq!(output.status.code(), Some(0), "{path}: {output:?}");
+        let document: Value =
+            serde_json::from_str(&std::fs::read_to_string(&out).unwrap()).unwrap();
+        validate("ghost.schema.json", &document);
+        let track = &document["tracks"][0];
+        let has = |key: &str| {
+            track[key]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|value| !value.is_null())
+        };
+        assert!(has("up_m") || has("east_m"), "{path} holds no track");
+    }
+}
+
+#[test]
+fn analyze_refuses_a_ghost_it_cannot_write_before_reading_anything() {
+    let log = repo_file("validation/fixtures/logs/two-logs/first-board.csv");
+    let folder = tempfile::tempdir().unwrap();
+    let out = folder.path().join("g.json").to_string_lossy().into_owned();
+    // The extension picks the format; a log that isn't there isn't reached.
+    let output = hpr(&["analyze", "no-such-file.csv", "--ghost", "g.kml"]);
+    assert_eq!(output.status.code(), Some(1));
+    assert!(
+        text(&output.stderr).contains("extension picks its format"),
+        "{output:?}"
+    );
+    for (pad, why) in [
+        ("100,0", "not a place"),
+        ("40", "not a place"),
+        ("forty,0", "not a place"),
+        ("40,0,1,2", "not a place"),
+        ("40,0,inf", "not a place"),
+        ("40,0,1e300", "not a place"),
+        ("nan,0", "not a place"),
+        ("", "not a place"),
+    ] {
+        let output = hpr(&["analyze", &log, "--ghost", &out, "--pad", pad]);
+        assert_eq!(output.status.code(), Some(1), "{pad}");
+        assert!(text(&output.stderr).contains(why), "{pad}: {output:?}");
+        assert!(!folder.path().join("g.json").exists(), "{pad}");
+    }
+    // A pad is for a ghost file.
+    let output = hpr(&["analyze", &log, "--pad", "40,0"]);
+    assert_ne!(output.status.code(), Some(0));
+    // A southern, western pad, stated, is taken; no fixes, so nothing else says where it is.
+    let output = hpr(&["analyze", &log, "--ghost", &out, "--pad", "-33.5,-70.5,500"]);
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    let document: Value = serde_json::from_str(&std::fs::read_to_string(&out).unwrap()).unwrap();
+    assert_eq!(document["pad"]["from"], "stated");
+    assert_eq!(document["pad"]["latitude_deg"], -33.5);
+    assert_eq!(document["pad"]["height_m"], 500.0);
+    // A folder that isn't there says so, and the log's readings aren't printed for nothing.
+    let missing = folder
+        .path()
+        .join("no/g.czml")
+        .to_string_lossy()
+        .into_owned();
+    let output = hpr(&["analyze", &log, "--ghost", &missing]);
+    assert_eq!(output.status.code(), Some(1));
+    assert!(output.stdout.is_empty());
+}
+
+#[test]
 fn analyze_refuses_what_it_cannot_read() {
     let folder = tempfile::tempdir().unwrap();
     let missing = folder.path().join("none.pf2");
@@ -7380,4 +7568,31 @@ fn sim_warns_in_sentences_of_40_words_or_fewer() {
     long.extend(long_warning_sentences(&document, "z20.ork"));
 
     assert!(long.is_empty(), "{}", long.join("\n"));
+}
+
+#[test]
+fn analyze_refuses_a_ghost_over_a_file_it_reads() {
+    let folder = tempfile::tempdir().unwrap();
+    let log = folder.path().join("flight.json");
+    let log_text = "Time (s),Barometric altitude AGL (m)\n0,0\n1,10\n";
+    std::fs::write(&log, log_text).unwrap();
+    let log = log.to_string_lossy().into_owned();
+    let output = hpr(&["analyze", &log, "--ghost", &log]);
+    assert_eq!(output.status.code(), Some(1));
+    assert!(text(&output.stderr).contains("write over it"), "{output:?}");
+    assert_eq!(std::fs::read_to_string(&log).unwrap(), log_text);
+
+    let mapping = folder.path().join("map.json");
+    std::fs::write(&mapping, "{}").unwrap();
+    let mapping = mapping.to_string_lossy().into_owned();
+    let output = hpr(&[
+        "analyze",
+        "no.csv",
+        "--mapping",
+        &mapping,
+        "--ghost",
+        &mapping,
+    ]);
+    assert!(text(&output.stderr).contains("write over it"), "{output:?}");
+    assert_eq!(std::fs::read_to_string(&mapping).unwrap(), "{}");
 }

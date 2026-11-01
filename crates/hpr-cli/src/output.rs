@@ -2396,6 +2396,10 @@ pub fn schemas() -> Vec<(&'static str, String)> {
             "analyze-record.schema.json",
             schema::<hpr::hpr_flightdata::log::FlightLog>(),
         ),
+        (
+            "ghost.schema.json",
+            schema::<hpr::hpr_flightdata::ghost::Ghost>(),
+        ),
         ("weather.schema.json", schema::<Weather>()),
         ("error.schema.json", schema::<ErrorDocument>()),
     ];

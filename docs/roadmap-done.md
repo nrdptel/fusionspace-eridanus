@@ -355,6 +355,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.1d A flyer's own logger and GPX tracks ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1d1 GPX tracks ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1d2 Your own logger from the command line and Python ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.2 Readings, reconstruction and ghost data ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.2a The synthetic flights ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.2b Readings on every logger ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.2c The rest of the readings ([Phase 5](#phase-5-flight-data-and-forensics))
@@ -365,6 +366,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.2e3 The accelerometer's readings and the canopies' ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.2e4 The intervals in `hpr analyze` and Python ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.2f Two recordings, stages ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.2g Ghost files ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1884,7 +1886,18 @@ One line per milestone or increment, in the order it was archived within its pha
       mapping; the guide works one invented logger through both.
       Met (ADR-276 amended): 31 sample files (26 mapped, 5 laid out) and 4 invented ones read
       alike on all three; `hpr analyze --print-mapping`, `--mapping`, `--layout`, `--record`.
-- **M7.2** is open; its entry: [roadmap](ROADMAP.md#phase-5-flight-data-and-forensics).
+- [x] **M7.2 Readings, reconstruction and ghost data** (ADR-280: in seven, below). Readings
+  with provenance or withheld; baro, accel and GNSS fused; ghost data.
+
+  *Done when:*
+  - On synthetic data (a simulated flight plus a noise model), the smoother recovers the truth
+    within the stated error; every reading not withheld states a 90% interval that passes
+    ADR-257's test (§1–2: 1,000 flights, each tail, its probes). Real RocketPy flights produce
+    ghost files.
+  - Every reading names its method and its provenance, and the corpus has a case for each
+    withheld reading.
+  - A flight is read end to end with no design file present, from the library and from
+    `hpr analyze` (M4.2's command).
   - [x] **M7.2a The synthetic flights.** *Done when:* `hpr_forensics::synthetic` draws a tuning set
     of 200 and two test sets of 1,000 on fixed seeds by ADR-280 §2–3 (10 public designs; set B's drag,
     wind and thrust reshaped), each flight's truth and its logger's log by cited noise terms (in each
@@ -1920,6 +1933,8 @@ One line per milestone or increment, in the order it was archived within its pha
       log that starts at launch smoothed on an assumed pad, its card saying so (#982).
   - [x] **M7.2f Two recordings, stages.** *Done when:* two logs side by side on one timeline, the
     offset recovered on synthetic pairs; stages on one; RocketPy's pair read.
+  - [x] **M7.2g Ghost files.** *Done when:* JSON (schema), CZML, glTF, read back by outside readers,
+    from each RocketPy flight log with an altitude or GNSS track.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

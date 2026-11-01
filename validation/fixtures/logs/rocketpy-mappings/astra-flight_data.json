@@ -1,0 +1,28 @@
+{
+  "header_line": 1,
+  "separator": ",",
+  "decimal_comma": false,
+  "clock": 0,
+  "columns": [
+    {
+      "name": "t",
+      "quantity": null,
+      "unit": "s"
+    },
+    {
+      "name": "alt",
+      "quantity": "altitude_above_ground",
+      "unit": "m"
+    },
+    {
+      "name": "lat",
+      "quantity": "latitude",
+      "unit": "deg"
+    },
+    {
+      "name": "lon",
+      "quantity": "longitude",
+      "unit": "deg"
+    }
+  ]
+}

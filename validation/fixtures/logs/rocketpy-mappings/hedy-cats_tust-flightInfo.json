@@ -1,0 +1,30 @@
+{
+  "header_line": 1,
+  "separator": ",",
+  "decimal_comma": false,
+  "clock": 0,
+  "columns": [
+    {
+      "name": "ts",
+      "quantity": null,
+      "unit": "s"
+    },
+    {
+      "name": "height",
+      "quantity": "altitude_above_ground",
+      "unit": "m"
+    },
+    {
+      "name": "velocity",
+      "quantity": "speed",
+      "unit": "m/s"
+    },
+    {
+      "name": "acceleration",
+      "quantity": null,
+      "unit": null,
+      "skip": true
+    }
+  ],
+  "primary": 1
+}
