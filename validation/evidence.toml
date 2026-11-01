@@ -799,7 +799,7 @@ claim = "Each of the 22 real flight logs in RocketPy's repository with an altitu
 pages = ["format/ghost-files.md#ghost-files", "accuracy.md#where-each-model-stands"]
 kind = "real"
 wanted = "real"
-not_checked = "a person looking at one in Cesium or a modeling tool: every check is of the numbers"
+not_checked = "a person looking at one in Cesium or a modeling tool: every check is of the numbers; east and north against the real logs' fixes, only the invented cases and a hand check on three"
 
 [[row.sample]]
 path = "refs/rocketpy/data/rockets/NDRT_2020/ndrt_2020_flight_data.csv"

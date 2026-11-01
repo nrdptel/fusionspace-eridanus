@@ -2,10 +2,11 @@
 // others (M7.2g, ADR-313):
 //
 // - JSON: Ajv, against schema/cli/ghost.schema.json.
-// - CZML: CesiumJS's own CzmlDataSource. Each position it interpolates, at each moment, is taken
-//   into the pad's frame by Cesium's Transforms and held to the JSON's east, north and up.
+// - CZML: CesiumJS's own CzmlDataSource. Each position it interpolates, at every moment, is taken
+//   into the pad's frame by Cesium's Transforms and held to the JSON's east, north and up; the
+//   file holds no sample more.
 // - glTF: Khronos's glTF-Validator (no error), then glTF-Transform's reader. Each animation's
-//   times and places are held to the JSON's.
+//   times and places, every moment of them, are held to the JSON's.
 //
 // Usage: node read_back.mjs SCHEMA FOLDER. Each NAME.json in FOLDER has a NAME.czml and NAME.gltf.
 // Prints one JSON line a ghost; exits 1 on any failure.
@@ -47,7 +48,14 @@ function filled(values) {
   return values.map((v) => (held = v ?? held));
 }
 
+// A track has a height at every moment or at none, and its source says which; only a track with
+// none is drawn at 0.
 function drawn(track) {
+  const known = track.up_m.filter((v) => v !== null).length;
+  const none = track.up_from === "unknown";
+  if (known !== (none ? 0 : track.up_m.length)) {
+    throw new Error(`JSON: ${track.name} holds ${known} heights of ${track.up_m.length} from ${track.up_from}`);
+  }
   const east = filled(track.east_m);
   const north = filled(track.north_m);
   return track.time_s.map((t, i) => [t, east[i], north[i], track.up_m[i] ?? 0]);
@@ -62,17 +70,22 @@ async function readCzml(ghost, text) {
     new Matrix4(),
   );
   const epoch = JulianDate.fromIso8601("2000-01-01T12:00:00Z");
+  const packets = JSON.parse(text);
+  // The file's epoch is liftoff, or with none the first moment.
+  const zero = ghost.tracks.some((t) => t.synced) ? 0 : Math.min(...ghost.tracks.map((t) => t.time_s[0]));
   let moments = 0;
   ghost.tracks.forEach((track, index) => {
     const entity = data.entities.getById(`track-${index + 1}`);
     if (!entity) throw new Error(`CZML: no track-${index + 1}`);
     if (entity.name !== track.name) throw new Error(`CZML: its name is ${entity.name}`);
     const points = drawn(track);
-    // Every moment on a short track; on a long one, a stride that still lands on the ends.
-    const stride = Math.max(1, Math.floor(points.length / 2000));
-    for (let i = 0; i < points.length; i += i + stride < points.length || i === points.length - 1 ? stride : points.length - 1 - i) {
-      const [t, east, north, up] = points[i];
-      const at = JulianDate.addSeconds(epoch, t, new JulianDate());
+    // Cesium answers for any time asked, so the file's own count shows a sample the JSON lacks.
+    const packet = packets.find((p) => p.id === `track-${index + 1}`);
+    if (packet.position.cartesian.length !== 4 * points.length) {
+      throw new Error(`CZML: ${track.name} holds ${packet.position.cartesian.length / 4} samples for ${points.length} moments`);
+    }
+    for (const [t, east, north, up] of points) {
+      const at = JulianDate.addSeconds(epoch, t - zero, new JulianDate());
       if (!entity.isAvailable(at)) throw new Error(`CZML: ${track.name} not available at ${t} s`);
       const place = entity.position.getValue(at);
       if (!place) throw new Error(`CZML: ${track.name} has no position at ${t} s`);
@@ -82,7 +95,6 @@ async function readCzml(ghost, text) {
         throw new Error(`CZML: ${track.name} at ${t} s is ${off} m from the JSON's`);
       }
       moments += 1;
-      if (i === points.length - 1) break;
     }
   });
   return moments;
@@ -105,6 +117,9 @@ async function readGltf(ghost, text) {
     throw new Error(`glTF: ${channels.length} channels for ${ghost.tracks.length} tracks`);
   }
   const zero = Math.min(...ghost.tracks.map((t) => t.time_s[0]));
+  const stated = document.getRoot().getExtras().first_moment_s;
+  if (stated !== zero) throw new Error(`glTF: the first moment is ${stated}, the JSON's ${zero}`);
+  const nodes = document.getRoot().listNodes();
   let moments = 0;
   ghost.tracks.forEach((track, index) => {
     const sampler = channels[index].getSampler();
@@ -112,18 +127,30 @@ async function readGltf(ghost, text) {
     const places = sampler.getOutput().getArray();
     const points = drawn(track);
     if (channels[index].getTargetPath() !== "translation") throw new Error("glTF: not a translation");
-    let row = 0;
+    if (channels[index].getTargetNode().getName() !== `${track.name} marker`) {
+      throw new Error(`glTF: ${track.name}'s channel moves ${channels[index].getTargetNode().getName()}`);
+    }
+    if (sampler.getInterpolation() !== "LINEAR") throw new Error(`glTF: ${track.name} isn't linear`);
+    if (times.length !== points.length) {
+      throw new Error(`glTF: ${track.name} holds ${times.length} of ${points.length} moments`);
+    }
+    // The path's line holds the same places as the marker's moves.
+    const line = nodes
+      .find((node) => node.getName() === `${track.name} path`)
+      ?.getMesh()
+      ?.listPrimitives()[0]
+      ?.getAttribute("POSITION")
+      ?.getArray();
+    if (!line || line.length !== places.length || line.some((v, i) => v !== places[i])) {
+      throw new Error(`glTF: ${track.name}'s path isn't its marker's`);
+    }
     for (let i = 0; i < times.length; i += 1) {
       const t = times[i] + zero;
-      while (row < points.length - 1 && Math.abs(points[row][0] - t) > GLTF_S) row += 1;
-      const [time, east, north, up] = points[row];
+      const [time, east, north, up] = points[i];
       if (Math.abs(time - t) > GLTF_S) throw new Error(`glTF: ${track.name} has a moment ${t} s the JSON hasn't`);
       const off = Math.hypot(places[3 * i] - east, places[3 * i + 1] - up, places[3 * i + 2] + north);
       if (!(off <= GLTF_M)) throw new Error(`glTF: ${track.name} at ${t} s is ${off} m from the JSON's`);
       moments += 1;
-    }
-    if (times.length < points.length * 0.99) {
-      throw new Error(`glTF: ${track.name} kept ${times.length} of ${points.length} moments`);
     }
   });
   return { moments, warnings: report.issues.numWarnings };

@@ -2123,7 +2123,9 @@ log's GNSS fixes. [Ghost files](format/ghost-files.md) says what each file holds
 where a log can't say.
 
 ```bash
-hpr analyze flight.csv --ghost flight.czml --ghost flight.gltf
+hpr analyze flight.csv \
+  --ghost flight.czml \
+  --ghost flight.gltf
 ```
 
 #### A logger of your own

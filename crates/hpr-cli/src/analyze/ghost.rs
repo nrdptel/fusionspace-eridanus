@@ -9,6 +9,7 @@ use hpr::hpr_flightdata::readings::Readings;
 
 use super::AnalyzeArgs;
 use crate::Failure;
+use crate::sim::same_file;
 
 /// A ghost file's format.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -40,13 +41,27 @@ impl Format {
     }
 }
 
-/// Refuses a ghost path no format matches, or a pad that isn't one, before any log is read.
+/// Refuses a ghost path no format matches, or one this run reads, or a pad that isn't one, before
+/// any log is read.
 pub(super) fn check_paths(args: &AnalyzeArgs) -> Result<(), Failure> {
+    let read: Vec<_> = std::iter::once(&args.log)
+        .chain(&args.with)
+        .chain(&args.mapping)
+        .chain(&args.layout)
+        .map(|path| same_file(path))
+        .collect();
     for path in &args.ghost {
+        let shown = crate::printable(path);
         if Format::of(path).is_none() {
             return Err(Failure::helped(
-                format!("{path}: a ghost file's extension picks its format"),
+                format!("{shown}: a ghost file's extension picks its format"),
                 "name it .json, .czml or .gltf".to_owned(),
+            ));
+        }
+        if read.contains(&same_file(path)) {
+            return Err(Failure::helped(
+                format!("{shown}: this run reads that file, and --ghost would write over it"),
+                "give --ghost a file of its own".to_owned(),
             ));
         }
     }
@@ -60,7 +75,7 @@ fn stated_pad(args: &AnalyzeArgs) -> Result<Option<StatedPad>, Failure> {
     };
     let refused = || {
         Failure::helped(
-            format!("--pad {text}: not a place"),
+            format!("--pad {}: not a place", crate::printable(text)),
             "give latitude,longitude in degrees, then the height in meters if you know it, as \
              39.39,-8.29,120"
                 .to_owned(),
@@ -88,6 +103,16 @@ fn stated_pad(args: &AnalyzeArgs) -> Result<Option<StatedPad>, Failure> {
     }))
 }
 
+/// A ghost that can't be laid out or drawn, as the caller reads it.
+fn refused(error: ghost::GhostError) -> Failure {
+    Failure::helped(
+        crate::printable(&error.to_string()),
+        "a ghost file needs a height or a GNSS track, and logs that share a liftoff; lay a log \
+         with none out alone"
+            .to_owned(),
+    )
+}
+
 /// The bytes of `ghost` in `format`.
 fn written(ghost: &Ghost, format: Format) -> Result<String, Failure> {
     match format {
@@ -96,8 +121,8 @@ fn written(ghost: &Ghost, format: Format) -> Result<String, Failure> {
             crate::write_json(&mut bytes, ghost).map_err(Failure::Output)?;
             String::from_utf8(bytes).map_err(|error| Failure::Output(std::io::Error::other(error)))
         }
-        Format::Czml => Ok(ghost.to_czml()),
-        Format::Gltf => Ok(ghost.to_gltf()),
+        Format::Czml => ghost.to_czml().map_err(refused),
+        Format::Gltf => ghost.to_gltf().map_err(refused),
     }
 }
 
@@ -126,14 +151,7 @@ pub(super) fn write(
             read,
         })
         .collect();
-    let built = ghost::build(&inputs, stated_pad(args)?).map_err(|error| {
-        Failure::helped(
-            error.to_string(),
-            "a ghost file needs a height or a GNSS track, and logs that share a liftoff; lay a \
-             log with none out alone"
-                .to_owned(),
-        )
-    })?;
+    let built = ghost::build(&inputs, stated_pad(args)?).map_err(refused)?;
     let mut lines = Vec::with_capacity(args.ghost.len());
     for path in &args.ghost {
         // Every path passed `check_paths` on the way in.
@@ -142,7 +160,11 @@ pub(super) fn write(
         };
         let text = written(&built, format)?;
         std::fs::write(path, text).map_err(|error| crate::unwritable(path, &error))?;
-        lines.push(format!("wrote {path}: a {} ghost file", format.name()));
+        lines.push(format!(
+            "wrote {}: a {} ghost file",
+            crate::printable(path),
+            format.name()
+        ));
     }
     Ok(lines)
 }

@@ -34,12 +34,11 @@ const ORACLE: &str = "validation/oracles/ghost";
 const MAPPINGS: &str = "validation/fixtures/logs/rocketpy-mappings";
 const ROCKETS: &str = "refs/rocketpy/data/rockets";
 const TRACKED: &str = "validation/fixtures/logs/ghost/invented-tracked.csv";
+const UNIX_CLOCK: &str = "validation/fixtures/logs/ghost/invented-unix-clock.csv";
 const SECOND_BOARD: &str = "validation/fixtures/logs/two-logs/second-board.csv";
 
 /// Every real flight log in RocketPy's repository with an altitude or a GNSS track, its path under
 /// `refs/rocketpy/data/rockets`, and whether a mapping states its columns: its own header doesn't.
-/// Left out: its drag, thrust, mass, tank and weather curves, `camoes/actuation.csv` (an air
-/// brake's commands), and `hedy/cats_tust`'s `baro.csv` and `imu.csv` (no altitude or track).
 pub const ROCKETPY_LOGS: [(&str, bool); 22] = [
     ("NDRT_2020/ndrt_2020_flight_data.csv", false),
     ("andromeda/flight_data.csv", false),
@@ -69,6 +68,59 @@ pub const ROCKETPY_LOGS: [(&str, bool); 22] = [
     ("lince/main_data.csv", true),
     ("polito/altimeter_cavour.csv", true),
     ("valkyrie/flightInfo_merged.csv", true),
+];
+
+/// Every other table in that folder, by name, so a table RocketPy adds fails
+/// `the_list_is_every_flight_log_rocketpy_holds` until someone reads it: its drag, thrust, mass,
+/// tank and weather curves, `camoes/actuation.csv` (an air brake's commands), and
+/// `hedy/cats_tust`'s `baro.csv` and `imu.csv` (no altitude or track).
+#[cfg(test)]
+const NOT_FLIGHT_LOGS: [&str; 45] = [
+    "andromeda/drag_coefficient.csv",
+    "andromeda/thrust_curve.csv",
+    "astg/DragCoeffOR_off.csv",
+    "astg/DragCoeffOR_on.csv",
+    "astra/drag_coefficient.csv",
+    "berkeley/ExampleTankGasMassData.csv",
+    "berkeley/ExampleTankLiquidMassData.csv",
+    "berkeley/Test135GasMass.csv",
+    "berkeley/Test135LoxMass.csv",
+    "berkeley/drag.csv",
+    "berkeley/loxMFR.csv",
+    "berkeley/loxMass.csv",
+    "berkeley/loxUllage.csv",
+    "berkeley/pressurantMass.csv",
+    "berkeley/pressurantMassFiltered.csv",
+    "berkeley/test124_Lox_Volume.csv",
+    "berkeley/test124_Pressurant_PT.csv",
+    "berkeley/test124_Propane_Volume.csv",
+    "berkeley/test124_Thrust_Curve.csv",
+    "calisto/air_brakes_cd.csv",
+    "calisto/powerOffDragCurve.csv",
+    "calisto/powerOnDragCurve.csv",
+    "camoes/actuation.csv",
+    "camoes/drag_airbrakes.csv",
+    "camoes/drag_coefficient_power_off.csv",
+    "camoes/drag_coefficient_power_on.csv",
+    "camoes/thrust_source.csv",
+    "defiance/DragCurve.csv",
+    "defiance/Thrust_curve.csv",
+    "erebus11/drag_curve.csv",
+    "erebus11/thrust_source.csv",
+    "genesis/drag_coefficient_power_off.csv",
+    "genesis/drag_coefficient_power_on.csv",
+    "hedy/cats_tust/baro.csv",
+    "hedy/cats_tust/imu.csv",
+    "hedy/hedy_power_off_drag.csv",
+    "hedy/hedy_power_on_drag.csv",
+    "hedy/hedy_thrust_euroc_launch.csv",
+    "juno3/drag_curve.csv",
+    "lince/drag_coefficient_power_off.csv",
+    "lince/drag_coefficient_power_on.csv",
+    "polito/drag_coefficient_power_off.csv",
+    "polito/drag_coefficient_power_on.csv",
+    "valetudo/Cd_PowerOff_RASAero.csv",
+    "valetudo/Cd_PowerOn_RASAero.csv",
 ];
 
 /// One name for one path, as a mapping's file and a ghost's are named.
@@ -104,8 +156,9 @@ fn write_all(folder: &Path, stem: &str, logs: &[(&str, &FlightLog)]) -> Result<G
             .map_err(|e| format!("{stem}.{extension}: {e}"))
     };
     write("json", &json)?;
-    write("czml", built.to_czml().as_bytes())?;
-    write("gltf", built.to_gltf().as_bytes())?;
+    let drawn = |text: Result<String, ghost::GhostError>| text.map_err(|e| format!("{stem}: {e}"));
+    write("czml", drawn(built.to_czml())?.as_bytes())?;
+    write("gltf", drawn(built.to_gltf())?.as_bytes())?;
     Ok(built)
 }
 
@@ -156,6 +209,12 @@ fn row(path: &str, mapped: bool, built: &Ghost) -> String {
         .flatten()
         .copied()
         .fold(f64::NAN, f64::max);
+    let low = track
+        .up_m
+        .iter()
+        .flatten()
+        .copied()
+        .fold(f64::NAN, f64::min);
     let far = track
         .east_m
         .iter()
@@ -164,14 +223,15 @@ fn row(path: &str, mapped: bool, built: &Ghost) -> String {
         .fold(f64::NAN, f64::max);
     let up_from = match track.up_from {
         UpFrom::LogAltitude => "the log's altitude",
+        UpFrom::AltitudeLessPad => "the log's altitude less its pad",
         UpFrom::GnssAltitude => "GNSS altitude",
-        UpFrom::Unknown => "none",
+        _ => "none",
     };
     let pad = match built.pad.from {
         PadFrom::FixesBeforeLiftoff => "fixes before liftoff",
         PadFrom::FirstFix => "first fix",
-        PadFrom::Unknown => "not known",
         PadFrom::Stated => "stated",
+        _ => "not known",
     };
     let shown = |value: f64| {
         if value.is_nan() {
@@ -181,15 +241,18 @@ fn row(path: &str, mapped: bool, built: &Ghost) -> String {
         }
     };
     format!(
-        "| `{path}` | {} | {} | {} | {up_from} | {} | {} | {} of {} | {} | {pad} |\n",
+        "| `{path}` | {} | {} | {} | {up_from} | {} | {} | {} | {} of {} | {} | {} | {} | {pad} |\n",
         if mapped { "mapping" } else { "own reader" },
         if track.synced { "liftoff" } else { "own clock" },
         track.time_s.len(),
         shown(top),
+        shown(low),
         shown(far),
         track.fixes.kept,
         track.fixes.given,
         track.heights_too_fast,
+        track.heights_below_pad,
+        track.moments_left_out,
     )
 }
 
@@ -202,11 +265,13 @@ fn report(rows: &str, moments: usize) -> String {
          Written by `cargo xtask ghost`. Each of the {count} real flight logs in RocketPy's \
          repository with an altitude or a GNSS track, read and laid out as a ghost file; each file \
          read back as JSON by Ajv, as CZML by CesiumJS and as glTF by Khronos's glTF-Validator and \
-         glTF-Transform, and each format held to the others ({moments} moments compared). \
-         \"Highest\" and \"farthest\" are what the file holds, in meters from the pad.\n\n\
-         | Log | Read by | Clock | Moments | Height from | Highest | Farthest | Fixes kept | \
-         Heights left out | Pad |\n\
-         |---|---|---|---:|---|---:|---:|---:|---:|---|\n\
+         glTF-Transform, and each format held to the others at every moment ({moments} moments \
+         compared). \"Highest\", \"lowest\" and \"farthest\" are what the file holds, in meters \
+         from the pad. Rows left out are counted by why: a height too fast to reach, a height too \
+         far under the pad, or a clock or a height that isn't usable.\n\n\
+         | Log | Read by | Clock | Moments | Height from | Highest | Lowest | Farthest | Fixes \
+         kept | Too fast | Under the pad | Not usable | Pad |\n\
+         |---|---|---|---:|---|---:|---:|---:|---:|---:|---:|---:|---|\n\
          {rows}",
         count = ROCKETPY_LOGS.len(),
     );
@@ -243,9 +308,14 @@ pub fn run(args: &[String]) -> Result<(), String> {
             ("second-board.csv", &second),
         ],
     )?;
+    write_all(
+        &scratch,
+        "invented-unix-clock",
+        &[("invented-unix-clock.csv", &read_fixture(UNIX_CLOCK)?)],
+    )?;
 
     let fetched = root.join(ROCKETS).exists();
-    if check && !fetched {
+    if check && !invented_only && !fetched {
         return Err(format!("{ROCKETS} isn't fetched: cargo xtask refs fetch"));
     }
     let mut rows = String::new();
@@ -258,19 +328,31 @@ pub fn run(args: &[String]) -> Result<(), String> {
         }
     }
     let lines = read_back(&root, &scratch)?;
-    let moments: usize = lines
+    // The report speaks of the real logs alone: the invented flights' moments aren't theirs.
+    let (mut real, mut invented) = (0, 0);
+    for line in lines
         .iter()
         .filter_map(|line| serde_json::from_str::<serde_json::Value>(line).ok())
-        .map(|line| {
-            let count = |key: &str| line[key].as_u64().unwrap_or(0) as usize;
-            count("czml_moments") + count("gltf_moments")
-        })
-        .sum();
+    {
+        let count = |key: &str| line[key].as_u64().unwrap_or(0) as usize;
+        let moments = count("czml_moments") + count("gltf_moments");
+        if line["file"]
+            .as_str()
+            .is_some_and(|f| f.starts_with("invented"))
+        {
+            invented += moments;
+        } else {
+            real += moments;
+        }
+    }
+    let moments = real;
     println!(
-        "ghost: {} ghost files read back; {moments} moments compared",
+        "ghost: {} ghost files read back; {real} moments compared on the real logs, {invented} on \
+         the invented flights",
         lines.len()
     );
     if rows.is_empty() {
+        println!("ghost: no report written: the invented flights alone");
         return Ok(());
     }
     let text = report(&rows, moments);
@@ -308,9 +390,10 @@ mod tests {
         assert_eq!(mapped, files);
     }
 
-    /// Where `refs/` holds them, each log's highest height sits by the apogee RocketPy's own
-    /// notebooks state for that flight (`docs/examples/*_flight_sim.ipynb`): the check that each
-    /// mapping's unit is right, since a foot read as a meter misses by a factor of 3.28.
+    /// Where `refs/` holds them, each log's highest height sits by an apogee RocketPy's own
+    /// notebooks state for that flight (`docs/examples/*_flight_sim.ipynb`), not computed from that
+    /// log's column: the check that each mapping's unit is right, since a foot read as a meter
+    /// misses by a factor of 3.28.
     #[test]
     fn each_logs_highest_height_is_the_apogee_rocketpy_states() {
         let root = crate::designs::root().unwrap();
@@ -318,47 +401,48 @@ mod tests {
             eprintln!("skipped: {ROCKETS} isn't fetched");
             return;
         }
+        // Against the flight's card or a report. Valkyrie's log peaks 1.9% under, the widest.
+        const CARD: f64 = 0.02;
+        // RocketPy's own simulated apogee, where the notebook's measured figure is this column's
+        // maximum: within 3.3%, on Hedy.
+        const SIMULATED: f64 = 0.04;
+        // A receiver's altitude against the flight's altimeter's card: 4.9% and 5.9% over.
+        const RECEIVER: f64 = 0.06;
         let stated = [
-            ("NDRT_2020/ndrt_2020_flight_data.csv", 1_316.7),
-            ("andromeda/flight_data.csv", 3_443.0),
-            ("juno3/cots_altimeter.csv", 3_213.0),
+            ("NDRT_2020/ndrt_2020_flight_data.csv", 1_316.7, CARD),
+            ("andromeda/flight_data.csv", 3_443.0, CARD),
+            ("juno3/cots_altimeter.csv", 3_213.0, CARD),
             (
                 "prometheus/2022-06-24-serial-5115-flight-0001-TeleMetrum.csv",
-                3_903.77,
+                3_898.37,
+                CARD,
             ),
             (
                 "prometheus/2022-06-24-serial-6583-flight-0003-TeleMega.csv",
                 3_898.37,
+                CARD,
             ),
-            ("EPFL_Bella_Lui/bella_lui_flight_data_filtered.csv", 458.97),
-            ("astg/altimeter_halcyon.csv", 3_450.0),
-            ("astra/flight_data.csv", 3_250.0),
-            ("camoes/flight_data.csv", 3_015.0),
-            ("erebus11/flight_data_filtered.csv", 3_020.0),
-            ("genesis/flight_data_faraday.csv", 2_916.0),
-            ("hedy/cats_tust/filteredDataInfo.csv", 5_231.53),
-            ("hedy/cats_tust/flightInfo.csv", 5_231.53),
-            ("lince/main_data.csv", 3_587.0),
-            ("polito/altimeter_cavour.csv", 2_789.0),
-            ("valkyrie/flightInfo_merged.csv", 2_098.02),
-        ];
-        // The two with only a receiver's altitude, against the card of the flight's altimeter:
-        // the receiver's height reads 4.9% and 5.8% over.
-        let by_receiver = [
-            ("juno3/cots_GNSS.csv", 3_213.0),
-            ("juno3/srad_telemetry.csv", 3_213.0),
+            (
+                "EPFL_Bella_Lui/bella_lui_flight_data_filtered.csv",
+                460.54,
+                SIMULATED,
+            ),
+            ("astg/altimeter_halcyon.csv", 3_450.0, CARD),
+            ("astra/flight_data.csv", 3_250.0, CARD),
+            ("camoes/flight_data.csv", 3_015.0, CARD),
+            ("erebus11/flight_data_filtered.csv", 3_020.0, CARD),
+            ("genesis/flight_data_faraday.csv", 2_916.0, CARD),
+            ("hedy/cats_tust/filteredDataInfo.csv", 5_406.92, SIMULATED),
+            ("hedy/cats_tust/flightInfo.csv", 5_406.92, SIMULATED),
+            ("lince/main_data.csv", 3_587.0, CARD),
+            ("polito/altimeter_cavour.csv", 2_789.0, CARD),
+            ("valkyrie/flightInfo_merged.csv", 2_098.02, CARD),
+            ("juno3/cots_GNSS.csv", 3_213.0, RECEIVER),
+            ("juno3/srad_telemetry.csv", 3_213.0, RECEIVER),
         ];
         let folder = root.join("target/ghost-test");
         fs::create_dir_all(&folder).unwrap();
-        let bound = |path: &str| {
-            if by_receiver.iter().any(|(p, _)| *p == path) {
-                0.06
-            } else {
-                // Valkyrie's log peaks 1.9% under its card, the widest here.
-                0.02
-            }
-        };
-        for (path, apogee) in stated.into_iter().chain(by_receiver) {
+        for (path, apogee, bound) in stated {
             let (_, mapped) = ROCKETPY_LOGS.iter().find(|(p, _)| *p == path).unwrap();
             let log = read_rocketpy(&root, path, *mapped).unwrap();
             let built = write_all(&folder, "one", &[(path, &log)]).unwrap();
@@ -369,12 +453,12 @@ mod tests {
                 .copied()
                 .fold(f64::NAN, f64::max);
             let share: f64 = top / apogee - 1.0;
-            assert!(share.abs() < bound(path), "{path}: {top} against {apogee}");
+            assert!(share.abs() < bound, "{path}: {top} against {apogee}");
         }
     }
 
-    /// Where `refs/` holds them, the list is every log whose header names a height or a place,
-    /// less the files it says aren't logs: so a log RocketPy adds can't go unseen.
+    /// Where `refs/` holds them, every table in RocketPy's rockets is on one list or the other, by
+    /// name: so a log RocketPy adds can't go unseen.
     #[test]
     fn the_list_is_every_flight_log_rocketpy_holds() {
         let root = crate::designs::root().unwrap();
@@ -388,27 +472,18 @@ mod tests {
                 let path = entry.path();
                 if path.is_dir() {
                     walk(&path, found);
-                } else if path.extension().is_some_and(|e| e == "csv") {
+                } else if path
+                    .extension()
+                    .is_some_and(|e| e.eq_ignore_ascii_case("csv"))
+                {
                     found.push(path);
                 }
             }
         }
         let mut found = Vec::new();
         walk(&rockets, &mut found);
-        let mut logs: Vec<String> = found
+        let mut tables: Vec<String> = found
             .iter()
-            .filter(|path| {
-                let bytes = fs::read(path).unwrap();
-                let text = String::from_utf8_lossy(&bytes);
-                let header = text.lines().next().unwrap_or("").to_lowercase();
-                header.split(',').any(|cell| {
-                    let cell = cell.trim();
-                    cell.contains("alt")
-                        || cell.contains("lat")
-                        || cell == "height"
-                        || cell.starts_with("z (")
-                })
-            })
             .map(|path| {
                 path.strip_prefix(&rockets)
                     .unwrap()
@@ -416,9 +491,14 @@ mod tests {
                     .replace('\\', "/")
             })
             .collect();
-        logs.sort();
-        let mut listed: Vec<String> = ROCKETPY_LOGS.iter().map(|(p, _)| (*p).to_owned()).collect();
+        tables.sort();
+        let mut listed: Vec<String> = ROCKETPY_LOGS
+            .iter()
+            .map(|(p, _)| *p)
+            .chain(NOT_FLIGHT_LOGS)
+            .map(str::to_owned)
+            .collect();
         listed.sort();
-        assert_eq!(logs, listed);
+        assert_eq!(tables, listed);
     }
 }

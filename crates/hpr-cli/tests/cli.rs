@@ -7569,3 +7569,30 @@ fn sim_warns_in_sentences_of_40_words_or_fewer() {
 
     assert!(long.is_empty(), "{}", long.join("\n"));
 }
+
+#[test]
+fn analyze_refuses_a_ghost_over_a_file_it_reads() {
+    let folder = tempfile::tempdir().unwrap();
+    let log = folder.path().join("flight.json");
+    let log_text = "Time (s),Barometric altitude AGL (m)\n0,0\n1,10\n";
+    std::fs::write(&log, log_text).unwrap();
+    let log = log.to_string_lossy().into_owned();
+    let output = hpr(&["analyze", &log, "--ghost", &log]);
+    assert_eq!(output.status.code(), Some(1));
+    assert!(text(&output.stderr).contains("write over it"), "{output:?}");
+    assert_eq!(std::fs::read_to_string(&log).unwrap(), log_text);
+
+    let mapping = folder.path().join("map.json");
+    std::fs::write(&mapping, "{}").unwrap();
+    let mapping = mapping.to_string_lossy().into_owned();
+    let output = hpr(&[
+        "analyze",
+        "no.csv",
+        "--mapping",
+        &mapping,
+        "--ghost",
+        &mapping,
+    ]);
+    assert!(text(&output.stderr).contains("write over it"), "{output:?}");
+    assert_eq!(std::fs::read_to_string(&mapping).unwrap(), "{}");
+}

@@ -96,6 +96,8 @@ touches_physics() {
   done
   # A sample registered or edited is what `evidence --samples` checks (M2.10, ADR-278).
   grep -qx "validation/evidence.toml" <<<"$changed" && return 0
+  # What `ghost --check` reads the real logs with: CI holds only the invented flights.
+  grep -qE "^(validation/oracles/ghost/|validation/fixtures/logs/rocketpy-mappings/|xtask/src/ghost.rs)" <<<"$changed" && return 0
   return 1
 }
 

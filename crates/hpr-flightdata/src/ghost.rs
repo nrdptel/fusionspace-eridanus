@@ -8,9 +8,10 @@
 //! liftoff stands alone, on its own clock, with [`Track::synced`] false.
 //!
 //! **What is in a track, and how far to trust it.** The height comes from the first of these a
-//! log has ([`UpFrom`]): the log's own altitude, or its GNSS altitude less the pad's. Not the
+//! log has ([`UpFrom`]): the log's own altitude; a column whose zero the log doesn't state, less
+//! its reading on the pad; or its GNSS altitude less the receiver's on the pad. Not the
 //! [smoother]'s: on a barometer alone it can run far from the log through a sudden swing (6,618 m
-//! past the reading on RocketPy's Lince flight, as its recovery fires, where the health card says
+//! past the card on RocketPy's Lince flight, as its recovery fires, where the health card says
 //! to go by the reading), and a file for a viewer has no card. East and north come only from GNSS fixes,
 //! joined linearly between fixes; a barometer alone gives a straight vertical line, and the file
 //! says so. These are a log's numbers laid out for a viewer, not a reconstruction of the flight:
@@ -19,18 +20,27 @@
 //!
 //! **Heights screened.** A height reached from the last one kept faster than [`FASTEST_M_S`], plus
 //! [`HEIGHT_SCATTER_M`], is left out and counted ([`Track::heights_too_fast`]): a logger's last
-//! rows can be garbage, as Juno III's 10,700 m and −2,490 m are.
+//! rows can be garbage, as Juno III's 10,700 m and −2,490 m are. The first height kept is the first
+//! that agrees with the middle of the log's first [`OPENING_ROWS`], so one bad first row can't shut
+//! the flight out. A height more than [`BELOW_PAD_M`] under the pad is left out and counted
+//! ([`Track::heights_below_pad`]): a receiver with no lock can write a height near sea level, as
+//! one of Juno III's does for 2,340 rows. A moment with no height, where the track has heights, is
+//! left out and counted, so a track has a height at every moment or at none; a viewer's line
+//! crosses the gap. A clock past [`CLOCK_LIMIT_S`] is left out and counted, too.
 //!
 //! **Fixes screened.** A fix is left out, and counted ([`FixCounts`]), when it is not a place
 //! (out of range, or a receiver's zero), when its clock doesn't go forward, when it lies more
 //! than [`REACH_M`] from the track's median, or when reaching it from the last fix kept would take
-//! more than [`FASTEST_M_S`] plus [`FIX_SCATTER_M`].
+//! more than [`FASTEST_M_S`] plus [`FIX_SCATTER_M`], the first fix kept chosen as the first height is.
 //!
 //! **The formats' limits.** CZML and glTF need a number at every moment, so where a track has no
-//! fix yet or no longer it is held at the nearest fix; an unknown height is drawn at 0; a pad of
-//! unknown place is drawn at 0°N 0°E ([`UNKNOWN_PAD`]); each says so in its own text. CZML needs a
-//! date, and logs rarely hold one, so every file uses [`CZML_EPOCH`] as liftoff: the time on its
-//! clock is seconds from liftoff, not the day of the flight. glTF stores 32-bit floats and its
+//! fix yet or no longer it is held at the nearest fix; a track with no height is drawn at 0; a pad
+//! of unknown place is drawn at 0°N 0°E ([`UNKNOWN_PAD`]), and of unknown height on the ellipsoid;
+//! a receiver's height stands in for a height above the ellipsoid, which is off by the local
+//! geoid, within about 110 m (EGM2008); each says so in its own text. CZML needs a
+//! date, and logs rarely hold one, so every file uses [`CZML_EPOCH`] as liftoff, or as the first
+//! moment of a log with no liftoff: the time on its clock is seconds from then, not the day of the
+//! flight. glTF stores 32-bit floats and its
 //! times can't be negative, so its clock starts at the earliest moment and
 //! its root's `extras` give that moment; its numbers stand about 0.06 ms apart at 1,000 s, and
 //! about 2 mm apart at 30 km.
@@ -66,13 +76,24 @@ pub const FIX_SCATTER_M: f64 = 200.0;
 pub const HEIGHT_SCATTER_M: f64 = 50.0;
 /// How many of the last fixes before liftoff give the pad's place, by their median.
 pub const PAD_FIXES: usize = 20;
-/// What a CZML file calls liftoff; no log's date (module docs).
+/// What a CZML file calls liftoff, or a first moment; no log's date (module docs).
 pub const CZML_EPOCH: &str = "2000-01-01T12:00:00Z";
 /// Where a pad of unknown place is drawn, degrees and m, in CZML (module docs).
 pub const UNKNOWN_PAD: (f64, f64, f64) = (0.0, 0.0, 0.0);
 /// The highest or lowest a stated pad may stand, m: past any launch site, and a height a float
 /// can still add to and subtract from.
 pub const PAD_HEIGHT_LIMIT_M: f64 = 20_000.0;
+/// The most a height may stand under the pad, m: a landing well down a valley from the pad stays
+/// inside it, and a receiver's height near sea level from a pad on a plateau doesn't. Rows past it
+/// are counted, and the file's text says so, so a deeper valley shows.
+pub const BELOW_PAD_M: f64 = 500.0;
+/// The most a clock may read, either way, s: about 317 years. A Unix clock in seconds fits; a
+/// garbage row, which would overflow a date, doesn't.
+pub const CLOCK_LIMIT_S: f64 = 1e10;
+/// The longest a log may run from its opening, s: about 116 days. A row past it is a garbage clock.
+pub const LONGEST_LOG_S: f64 = 1e7;
+/// How many of a log's first usable rows find the first one to trust, by their middle value.
+pub const OPENING_ROWS: usize = 9;
 /// The radius of glTF's marker on each track, m: the size of a rocket seen from a field away.
 const MARKER_RADIUS_M: f64 = 5.0;
 
@@ -125,11 +146,20 @@ pub enum GhostError {
         /// What is wrong with it.
         what: String,
     },
+    /// A ghost read back from outside this crate holds a track no file can draw.
+    #[error("{name}: the track can't be drawn: {what}")]
+    BadTrack {
+        /// The track.
+        name: String,
+        /// What is wrong with it.
+        what: String,
+    },
 }
 
 /// Where the pad's place came from.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum PadFrom {
     /// The caller stated it.
     Stated,
@@ -149,8 +179,9 @@ pub struct Pad {
     pub latitude_deg: Option<f64>,
     /// Longitude, degrees east; `None` when no log holds a place.
     pub longitude_deg: Option<f64>,
-    /// Height above sea level or the ellipsoid, m, as the receiver or the caller states it; `None`
-    /// when no one states it.
+    /// The pad's height, m: the caller's above the ellipsoid, or else the receiver's, most often
+    /// above sea level, from fixes before liftoff or the first fix. Files draw it as if above the
+    /// ellipsoid (module docs). `None` when no one states it.
     pub height_m: Option<f64>,
     /// Where the place came from.
     pub from: PadFrom,
@@ -162,12 +193,16 @@ pub struct Pad {
 /// Where a track's height came from.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum UpFrom {
-    /// The log's altitude as it wrote it.
+    /// The log's altitude as it wrote it, above the logger's zero.
     LogAltitude,
-    /// The GNSS altitude less the pad's.
+    /// A column above sea level or an unstated zero, less its own reading on the pad: the median
+    /// of its last [`PAD_FIXES`] samples before liftoff, or of its first with no liftoff.
+    AltitudeLessPad,
+    /// The GNSS altitude less the receiver's on the pad.
     GnssAltitude,
-    /// The log holds no height: each is `null`, and drawn at 0.
+    /// The log holds no height above the pad: each is `null`, and drawn at 0.
     Unknown,
 }
 
@@ -210,16 +245,20 @@ pub struct Track {
     pub east_m: Vec<Option<f64>>,
     /// North of the pad at each moment, m; `null` as for east.
     pub north_m: Vec<Option<f64>>,
-    /// Height above the pad at each moment, m; `null` when unknown.
+    /// Height above the pad at each moment, m; every one `null` when [`UpFrom::Unknown`], none
+    /// otherwise.
     pub up_m: Vec<Option<f64>>,
     /// The fixes.
     pub fixes: FixCounts,
     /// The widest time between two kept fixes, s; east and north are a straight line across it.
     pub widest_fix_gap_s: Option<f64>,
-    /// The log's rows left out for a clock that didn't go forward, or a height not a number.
+    /// The log's rows left out for a clock that didn't go forward or is past [`CLOCK_LIMIT_S`], or
+    /// a height empty or not a number.
     pub moments_left_out: usize,
     /// The log's rows left out for a height no flight could reach ([`FASTEST_M_S`]).
     pub heights_too_fast: usize,
+    /// The log's rows left out for a height past [`BELOW_PAD_M`] under the pad.
+    pub heights_below_pad: usize,
 }
 
 /// A flight's ghost: its logs' trajectories on one clock in one frame, as the JSON writes it.
@@ -273,6 +312,35 @@ fn a_place(latitude_deg: f64, longitude_deg: f64) -> bool {
         && !(latitude_deg.abs() < 0.01 && longitude_deg.abs() < 0.01)
 }
 
+/// How many of the first `samples`, a time and a value each, don't agree with the middle of the
+/// first [`OPENING_ROWS`]: reached from it no faster than [`FASTEST_M_S`], plus `scatter_m`.
+fn opening_outliers(samples: &[(f64, f64)], scatter_m: f64) -> usize {
+    let mut opening = samples[..samples.len().min(OPENING_ROWS)].to_vec();
+    opening.sort_by(|a, b| a.1.total_cmp(&b.1));
+    let Some(&(middle_s, middle)) = opening.get(opening.len() / 2) else {
+        return 0;
+    };
+    samples
+        .iter()
+        .position(|(time, value)| {
+            (value - middle).abs() <= FASTEST_M_S * (time - middle_s).abs() + scatter_m
+        })
+        .unwrap_or(0)
+}
+
+/// A test of a clock's readings: within [`CLOCK_LIMIT_S`], and [`LONGEST_LOG_S`] of the middle of
+/// the first [`OPENING_ROWS`] within it.
+fn clock_test(times: &[f64]) -> impl Fn(f64) -> bool + use<> {
+    let mut opening: Vec<f64> = times
+        .iter()
+        .copied()
+        .filter(|time| time.abs() <= CLOCK_LIMIT_S)
+        .take(OPENING_ROWS)
+        .collect();
+    let middle = median(&mut opening).unwrap_or(0.0);
+    move |time: f64| time.abs() <= CLOCK_LIMIT_S && (time - middle).abs() <= LONGEST_LOG_S
+}
+
 /// The fixes of `log`, screened (module docs).
 fn screened_fixes(log: &FlightLog) -> Fixes {
     let mut out = Fixes::default();
@@ -285,6 +353,7 @@ fn screened_fixes(log: &FlightLog) -> Fixes {
     let rows = latitude.values.len().min(longitude.values.len());
     let height = channel(log, Quantity::GnssAltitude).filter(|c| c.values.len() == rows);
     out.counts.given = rows;
+    let in_clock = clock_test(&latitude.time_s);
     let mut places = Vec::new();
     for row in 0..rows {
         let (lat, lon, time) = (
@@ -292,7 +361,7 @@ fn screened_fixes(log: &FlightLog) -> Fixes {
             longitude.values[row],
             latitude.time_s.get(row).copied().unwrap_or(f64::NAN),
         );
-        if time.is_finite() && a_place(lat, lon) {
+        if in_clock(time) && a_place(lat, lon) {
             places.push((row, time, lat, lon));
         } else {
             out.counts.not_a_place += 1;
@@ -309,7 +378,7 @@ fn screened_fixes(log: &FlightLog) -> Fixes {
         out.counts.not_a_place += places.len();
         return out;
     };
-    let mut last: Option<(f64, f64, f64)> = None;
+    let mut within = Vec::with_capacity(places.len());
     for (row, time, lat, lon) in places {
         let Some((east, north)) = east_north(&frame, lat, lon) else {
             out.counts.not_a_place += 1;
@@ -319,6 +388,16 @@ fn screened_fixes(log: &FlightLog) -> Fixes {
             out.counts.out_of_reach += 1;
             continue;
         }
+        within.push((row, time, lat, lon, east, north));
+    }
+    let along = |of: fn(&(usize, f64, f64, f64, f64, f64)) -> f64| -> Vec<(f64, f64)> {
+        within.iter().map(|fix| (fix.1, of(fix))).collect()
+    };
+    let opening = opening_outliers(&along(|fix| fix.4), FIX_SCATTER_M)
+        .max(opening_outliers(&along(|fix| fix.5), FIX_SCATTER_M));
+    out.counts.too_fast += opening;
+    let mut last: Option<(f64, f64, f64)> = None;
+    for &(row, time, lat, lon, east, north) in within.iter().skip(opening) {
         if let Some((t, e, n)) = last {
             if time <= t {
                 out.counts.clock_back += 1;
@@ -355,7 +434,7 @@ fn liftoff_of(read: &Readings) -> Option<(f64, f64)> {
 fn pad_of(
     stated: Option<StatedPad>,
     logs: &[(Option<(f64, f64)>, Fixes)],
-) -> Result<Pad, GhostError> {
+) -> Result<(Pad, Option<f64>), GhostError> {
     // The first log with fixes before liftoff, or else the first with any.
     let before = logs.iter().find_map(|(liftoff, fixes)| {
         let (zero_s, _) = (*liftoff)?;
@@ -381,9 +460,14 @@ fn pad_of(
                 .filter(|late| *late >= 0.0);
             (fixes, late)
         });
+    // The height the fixes give the pad: from before liftoff, or the first fix's own unless it was
+    // after liftoff. Never a later fix's, which may be in flight.
     let height_of_fixes = from_fixes
         .and_then(|(_, _, height)| height)
-        .or_else(|| first.and_then(|(fixes, _)| fixes.height_m.iter().flatten().next().copied()));
+        .or_else(|| match first {
+            Some((fixes, None)) if before.is_none() => fixes.height_m[0],
+            _ => None,
+        });
     if let Some(pad) = stated {
         if !(pad.latitude_deg.abs() <= 90.0 && pad.longitude_deg.abs() <= 180.0) {
             return Err(GhostError::BadPad {
@@ -401,39 +485,54 @@ fn pad_of(
                 what: format!("its height is past {PAD_HEIGHT_LIMIT_M} m, or not a number"),
             });
         }
-        return Ok(Pad {
-            latitude_deg: Some(pad.latitude_deg),
-            longitude_deg: Some(pad.longitude_deg),
-            height_m: pad.height_m.or(height_of_fixes),
-            from: PadFrom::Stated,
-            first_fix_after_liftoff_s: None,
-        });
+        let height_m = pad.height_m.or(height_of_fixes);
+        return Ok((
+            Pad {
+                latitude_deg: Some(pad.latitude_deg),
+                longitude_deg: Some(pad.longitude_deg),
+                height_m,
+                from: PadFrom::Stated,
+                first_fix_after_liftoff_s: None,
+            },
+            // The receiver's own reading on the pad is the zero for its heights, whose datum may
+            // not be the stated height's.
+            height_of_fixes.or(height_m),
+        ));
     }
     if let Some((Some(lat), Some(lon), _)) = from_fixes {
-        return Ok(Pad {
-            latitude_deg: Some(lat),
-            longitude_deg: Some(lon),
-            height_m: height_of_fixes,
-            from: PadFrom::FixesBeforeLiftoff,
-            first_fix_after_liftoff_s: None,
-        });
+        return Ok((
+            Pad {
+                latitude_deg: Some(lat),
+                longitude_deg: Some(lon),
+                height_m: height_of_fixes,
+                from: PadFrom::FixesBeforeLiftoff,
+                first_fix_after_liftoff_s: None,
+            },
+            height_of_fixes,
+        ));
     }
     if let Some((fixes, late)) = first {
-        return Ok(Pad {
-            latitude_deg: Some(fixes.latitude_deg[0]),
-            longitude_deg: Some(fixes.longitude_deg[0]),
-            height_m: height_of_fixes,
-            from: PadFrom::FirstFix,
-            first_fix_after_liftoff_s: late,
-        });
+        return Ok((
+            Pad {
+                latitude_deg: Some(fixes.latitude_deg[0]),
+                longitude_deg: Some(fixes.longitude_deg[0]),
+                height_m: height_of_fixes,
+                from: PadFrom::FirstFix,
+                first_fix_after_liftoff_s: late,
+            },
+            height_of_fixes,
+        ));
     }
-    Ok(Pad {
-        latitude_deg: None,
-        longitude_deg: None,
-        height_m: None,
-        from: PadFrom::Unknown,
-        first_fix_after_liftoff_s: None,
-    })
+    Ok((
+        Pad {
+            latitude_deg: None,
+            longitude_deg: None,
+            height_m: None,
+            from: PadFrom::Unknown,
+            first_fix_after_liftoff_s: None,
+        },
+        None,
+    ))
 }
 
 /// The height's moments and values, on the log's clock.
@@ -443,8 +542,51 @@ struct Heights {
     up_m: Vec<Option<f64>>,
 }
 
-/// The first usable height of `log`, by the order of [`UpFrom`].
-fn heights_of(log: &FlightLog, fixes: &Fixes, pad_height_m: Option<f64>) -> Option<Heights> {
+/// A column's own reading on the pad: the median of its last [`PAD_FIXES`] samples before liftoff,
+/// or, with no liftoff or none before it, of its first.
+fn column_pad(column: &Channel, liftoff: Option<(f64, f64)>) -> Option<f64> {
+    let usable = || {
+        column
+            .time_s
+            .iter()
+            .zip(&column.values)
+            .filter(|(time, value)| time.is_finite() && value.is_finite())
+    };
+    let before: Vec<f64> = liftoff.map_or_else(Vec::new, |(zero_s, _)| {
+        usable()
+            .filter(|(time, _)| **time < zero_s)
+            .map(|(_, value)| *value)
+            .collect()
+    });
+    let mut values = if before.is_empty() {
+        usable().take(PAD_FIXES).map(|(_, value)| *value).collect()
+    } else {
+        before[before.len().saturating_sub(PAD_FIXES)..].to_vec()
+    };
+    median(&mut values)
+}
+
+/// The first usable height of `log`, by the order of [`UpFrom`]. `gnss_zero_m` is the receiver's
+/// reading on the pad.
+fn heights_of(
+    log: &FlightLog,
+    fixes: &Fixes,
+    liftoff: Option<(f64, f64)>,
+    gnss_zero_m: Option<f64>,
+) -> Option<Heights> {
+    // A height above ground needs nothing taken off. Without one, a column of another zero does,
+    // whichever of the log's fields holds it, so it comes first.
+    let above_ground = channel(log, Quantity::AltitudeAboveGround);
+    let other_zero = channel(log, Quantity::Altitude).or(channel(log, Quantity::AltitudeMsl));
+    if let (None, Some(column)) = (above_ground, other_zero)
+        && let Some(pad) = column_pad(column, liftoff)
+    {
+        return Some(Heights {
+            from: UpFrom::AltitudeLessPad,
+            time_s: column.time_s.clone(),
+            up_m: column.values.iter().map(|h| Some(*h - pad)).collect(),
+        });
+    }
     if !log.altitude_m.is_empty() && log.altitude_m.len() == log.time_s.len() {
         return Some(Heights {
             from: UpFrom::LogAltitude,
@@ -452,8 +594,7 @@ fn heights_of(log: &FlightLog, fixes: &Fixes, pad_height_m: Option<f64>) -> Opti
             up_m: log.altitude_m.iter().map(|h| Some(*h)).collect(),
         });
     }
-    let column = channel(log, Quantity::AltitudeAboveGround).or(channel(log, Quantity::Altitude));
-    if let Some(column) = column {
+    if let Some(column) = above_ground {
         return Some(Heights {
             from: UpFrom::LogAltitude,
             time_s: column.time_s.clone(),
@@ -463,9 +604,9 @@ fn heights_of(log: &FlightLog, fixes: &Fixes, pad_height_m: Option<f64>) -> Opti
     if fixes.time_s.is_empty() {
         return None;
     }
-    let pad = pad_height_m.filter(|_| fixes.height_m.iter().any(Option::is_some));
+    let zero = gnss_zero_m.filter(|_| fixes.height_m.iter().any(Option::is_some));
     Some(Heights {
-        from: if pad.is_some() {
+        from: if zero.is_some() {
             UpFrom::GnssAltitude
         } else {
             UpFrom::Unknown
@@ -474,7 +615,7 @@ fn heights_of(log: &FlightLog, fixes: &Fixes, pad_height_m: Option<f64>) -> Opti
         up_m: fixes
             .height_m
             .iter()
-            .map(|h| pad.and_then(|pad| h.map(|h| h - pad)))
+            .map(|h| zero.and_then(|zero| h.map(|h| h - zero)))
             .collect(),
     })
 }
@@ -503,9 +644,10 @@ fn track_of(
     liftoff: Option<(f64, f64)>,
     fixes: &Fixes,
     pad: &Pad,
+    gnss_zero_m: Option<f64>,
 ) -> Result<Track, GhostError> {
     let heights =
-        heights_of(input.log, fixes, pad.height_m).ok_or_else(|| GhostError::NoTrack {
+        heights_of(input.log, fixes, liftoff, gnss_zero_m).ok_or_else(|| GhostError::NoTrack {
             name: input.name.to_owned(),
         })?;
     let frame = match (pad.latitude_deg, pad.longitude_deg) {
@@ -541,13 +683,44 @@ fn track_of(
             .reduce(f64::max),
         moments_left_out: 0,
         heights_too_fast: 0,
+        heights_below_pad: 0,
     };
+    let in_clock = clock_test(&heights.time_s);
+    let above_floor = |height: f64| height >= -BELOW_PAD_M;
+    // The rows that could be the first height kept, and which of them is.
+    let candidates: Vec<(usize, (f64, f64))> = heights
+        .time_s
+        .iter()
+        .zip(&heights.up_m)
+        .enumerate()
+        .filter_map(|(row, (&time, &up))| {
+            let height = up.filter(|h| h.is_finite() && above_floor(*h))?;
+            in_clock(time).then_some((row, (time, height)))
+        })
+        .collect();
+    let samples: Vec<(f64, f64)> = candidates.iter().map(|(_, sample)| *sample).collect();
+    let first_row = candidates
+        .get(opening_outliers(&samples, HEIGHT_SCATTER_M))
+        .map_or(0, |(row, _)| *row);
+    let has_heights = heights.from != UpFrom::Unknown;
     let (mut east_cursor, mut north_cursor) = (0, 0);
     let mut last = f64::NEG_INFINITY;
     let mut last_up: Option<(f64, f64)> = None;
-    for (&time, &up) in heights.time_s.iter().zip(&heights.up_m) {
-        if !time.is_finite() || time <= last || up.is_some_and(|h| !h.is_finite()) {
+    for (row, (&time, &up)) in heights.time_s.iter().zip(&heights.up_m).enumerate() {
+        if !in_clock(time)
+            || time <= last
+            || up.is_some_and(|h| !h.is_finite())
+            || (has_heights && up.is_none())
+        {
             track.moments_left_out += 1;
+            continue;
+        }
+        if up.is_some_and(|height| !above_floor(height)) {
+            track.heights_below_pad += 1;
+            continue;
+        }
+        if row < first_row {
+            track.heights_too_fast += 1;
             continue;
         }
         if let (Some(height), Some((t, held))) = (up, last_up)
@@ -591,16 +764,16 @@ pub fn build(logs: &[Input<'_>], pad: Option<StatedPad>) -> Result<Ghost, GhostE
         {
             return Err(GhostError::NotOnTimeline {
                 name: input.name.to_owned(),
-                reason: format!("{:?}", withheld.reason),
+                reason: withheld.detail.clone(),
             });
         }
         placed.push((liftoff, screened_fixes(input.log)));
     }
-    let pad = pad_of(pad, &placed)?;
+    let (pad, gnss_zero_m) = pad_of(pad, &placed)?;
     let tracks = logs
         .iter()
         .zip(&placed)
-        .map(|(input, (liftoff, fixes))| track_of(*input, *liftoff, fixes, &pad))
+        .map(|(input, (liftoff, fixes))| track_of(*input, *liftoff, fixes, &pad, gnss_zero_m))
         .collect::<Result<Vec<Track>, GhostError>>()?;
     Ok(Ghost {
         format: "hpr-ghost".to_owned(),
@@ -644,6 +817,18 @@ fn assumed(ghost: &Ghost, track: &Track) -> String {
     )];
     if ghost.pad.from == PadFrom::Unknown {
         words.push("The pad's place isn't known: it is drawn at 0N 0E.".to_owned());
+    } else if ghost.pad.height_m.is_none() {
+        words.push(
+            "The pad's height isn't known: the path starts on the WGS 84 ellipsoid, which can be \
+             far under or over the ground."
+                .to_owned(),
+        );
+    } else if ghost.pad.from != PadFrom::Stated {
+        words.push(
+            "The pad's height is the receiver's, drawn as if above the ellipsoid: off by the \
+             local geoid, within about 110 m, if it states sea level."
+                .to_owned(),
+        );
     }
     if ghost.pad.from == PadFrom::FirstFix {
         words.push("The pad is the track's first fix.".to_owned());
@@ -654,18 +839,74 @@ fn assumed(ghost: &Ghost, track: &Track) -> String {
         words.push("Outside the fixes it is held at the nearest.".to_owned());
     }
     if track.up_from == UpFrom::Unknown {
-        words.push("The log holds no height: drawn at 0.".to_owned());
+        words.push("The log holds no height above the pad: drawn at 0.".to_owned());
+    }
+    if track.up_from == UpFrom::AltitudeLessPad {
+        words.push(
+            "The log's altitude states no zero at the pad: taken less its own reading there."
+                .to_owned(),
+        );
+    }
+    let left_out = track.moments_left_out + track.heights_too_fast + track.heights_below_pad;
+    if left_out > 0 {
+        words.push(format!(
+            "{left_out} of the log's rows are left out: a line crosses each gap."
+        ));
     }
     words.join(" ")
 }
 
 impl Ghost {
+    /// Why no file can draw this ghost, if so: it holds what [`build`] never writes. A ghost is
+    /// public data, and JSON read back can hold anything.
+    fn check(&self) -> Result<(), GhostError> {
+        let bad = |name: &str, what: &str| GhostError::BadTrack {
+            name: name.to_owned(),
+            what: what.to_owned(),
+        };
+        if self.tracks.is_empty() {
+            return Err(GhostError::NoLogs);
+        }
+        if let (Some(lat), Some(lon)) = (self.pad.latitude_deg, self.pad.longitude_deg)
+            && frame_at(lat, lon, self.pad.height_m.unwrap_or(0.0)).is_none()
+        {
+            return Err(GhostError::BadPad {
+                what: format!("latitude {lat} and longitude {lon}"),
+            });
+        }
+        for track in &self.tracks {
+            let moments = track.time_s.len();
+            if moments == 0 {
+                return Err(bad(&track.name, "it has no moments"));
+            }
+            if track.east_m.len() != moments
+                || track.north_m.len() != moments
+                || track.up_m.len() != moments
+            {
+                return Err(bad(&track.name, "its columns differ in length"));
+            }
+            if track.time_s.iter().any(|t| !(t.abs() <= CLOCK_LIMIT_S))
+                || track.time_s.windows(2).any(|pair| pair[1] <= pair[0])
+            {
+                return Err(bad(
+                    &track.name,
+                    "its clock doesn't go forward inside its limit",
+                ));
+            }
+            let finite = |values: &[Option<f64>]| values.iter().flatten().all(|v| v.is_finite());
+            if !finite(&track.east_m) || !finite(&track.north_m) || !finite(&track.up_m) {
+                return Err(bad(&track.name, "a place isn't a number"));
+            }
+        }
+        Ok(())
+    }
+
     /// The moment of [`CZML_EPOCH`] plus `seconds`, written with whole milliseconds; `up` rounds
-    /// forward and otherwise back, so that a span holds every moment. A log's clock can stand far
-    /// from its liftoff, so days carry into January 2000 or back into December 1999.
+    /// forward and otherwise back, so that a span holds every moment. [`Ghost::check`] holds
+    /// `seconds` to [`CLOCK_LIMIT_S`], so the milliseconds fit.
     #[allow(
         clippy::cast_possible_truncation,
-        reason = "a flight's seconds, in milliseconds: far from i64's limits"
+        reason = "under 1e14 milliseconds, by the clock's limit: far inside i64"
     )]
     fn czml_time(seconds: f64, up: bool) -> String {
         let scaled = seconds * 1000.0;
@@ -677,13 +918,9 @@ impl Ghost {
         }) as i64
             + 12 * 3_600_000;
         let (days, ms) = (ms.div_euclid(86_400_000), ms.rem_euclid(86_400_000));
-        let (date_year, date_month, date_day) = if days >= 0 {
-            (2000, 1, 1 + days)
-        } else {
-            (1999, 12, 32 + days)
-        };
+        let (year, month, day) = date_from_days(days);
         format!(
-            "{date_year}-{date_month:02}-{date_day:02}T{:02}:{:02}:{:02}.{:03}Z",
+            "{year:04}-{month:02}-{day:02}T{:02}:{:02}:{:02}.{:03}Z",
             ms / 3_600_000,
             ms / 60_000 % 60,
             ms / 1000 % 60,
@@ -691,21 +928,41 @@ impl Ghost {
         )
     }
 
+    /// What a CZML file's epoch stands for on the tracks' clock.
+    fn czml_zero_s(&self) -> f64 {
+        if self.tracks.iter().any(|track| track.synced) {
+            return 0.0;
+        }
+        self.tracks
+            .iter()
+            .filter_map(|track| track.time_s.first())
+            .copied()
+            .fold(f64::INFINITY, f64::min)
+    }
+
     /// The ghost as a CZML document: a position for each track on [`CZML_EPOCH`], Earth-fixed.
-    pub fn to_czml(&self) -> String {
+    ///
+    /// # Errors
+    ///
+    /// When the ghost holds what no file can draw, as JSON from elsewhere can.
+    pub fn to_czml(&self) -> Result<String, GhostError> {
+        self.check()?;
         let (lat, lon, height) = (
             self.pad.latitude_deg.unwrap_or(UNKNOWN_PAD.0),
             self.pad.longitude_deg.unwrap_or(UNKNOWN_PAD.1),
             self.pad.height_m.unwrap_or(UNKNOWN_PAD.2),
         );
         let frame = frame_at(lat, lon, height);
+        // Liftoff at the epoch, or with none the first moment: a date far from it would cross leap
+        // seconds, which a date in the file counts and seconds from the epoch don't.
+        let zero_s = self.czml_zero_s();
         let span =
             self.tracks
                 .iter()
                 .fold((f64::INFINITY, f64::NEG_INFINITY), |(start, end), track| {
                     (
-                        start.min(track.time_s.first().copied().unwrap_or(0.0)),
-                        end.max(track.time_s.last().copied().unwrap_or(0.0)),
+                        start.min(track.time_s.first().copied().unwrap_or(0.0) - zero_s),
+                        end.max(track.time_s.last().copied().unwrap_or(0.0) - zero_s),
                     )
                 });
         let (start, end) = (
@@ -730,17 +987,17 @@ impl Ghost {
                     .map_or(hpr_core::DVec3::ZERO, |frame: &LaunchFrame| {
                         frame.ecef_from_enu(hpr_core::DVec3::new(east, north, up))
                     });
-                cartesian.extend([time, at.x, at.y, at.z]);
+                cartesian.extend([time - zero_s, at.x, at.y, at.z]);
             }
             let color = TRACK_COLORS[index % TRACK_COLORS.len()];
             packets.push(json!({
                 "id": format!("track-{}", index + 1),
                 "name": track.name,
-                "description": assumed(self, track),
+                "description": escaped(&assumed(self, track)),
                 "availability": format!(
                     "{}/{}",
-                    Self::czml_time(track.time_s[0], false),
-                    Self::czml_time(track.time_s[track.time_s.len() - 1], true),
+                    Self::czml_time(track.time_s[0] - zero_s, false),
+                    Self::czml_time(track.time_s[track.time_s.len() - 1] - zero_s, true),
                 ),
                 "point": {"pixelSize": 8, "color": {"rgba": color}},
                 "path": {"width": 2, "material": {"solidColor": {"color": {"rgba": color}}}},
@@ -753,7 +1010,7 @@ impl Ghost {
                 },
             }));
         }
-        Value::Array(packets).to_string()
+        Ok(Value::Array(packets).to_string())
     }
 
     /// The ghost as one glTF 2.0 file, its buffer inside as base64: for each track, a line of its
@@ -763,7 +1020,12 @@ impl Ghost {
         clippy::cast_possible_truncation,
         reason = "glTF holds 32-bit floats: the module docs size the loss"
     )]
-    pub fn to_gltf(&self) -> String {
+    ///
+    /// # Errors
+    ///
+    /// As [`Ghost::to_czml`].
+    pub fn to_gltf(&self) -> Result<String, GhostError> {
+        self.check()?;
         let mut buffer = Bytes::default();
         let mut accessors = Vec::new();
         let mut meshes = Vec::new();
@@ -857,10 +1119,10 @@ impl Ghost {
         }
         let scene: Vec<usize> = (0..nodes.len()).collect();
         let base64 = base64::engine::general_purpose::STANDARD.encode(&buffer.bytes);
-        json!({
+        Ok(json!({
             "asset": {"version": "2.0", "generator": "FusionSpace HPR"},
             "extras": {
-                "first_moment_from_liftoff_s": t0,
+                "first_moment_s": t0,
                 "frame": "+x east, +y up, -z north, m, from the pad",
                 "pad": self.pad,
             },
@@ -877,8 +1139,36 @@ impl Ghost {
                 "uri": format!("data:application/octet-stream;base64,{base64}"),
             }],
         })
-        .to_string()
+        .to_string())
     }
+}
+
+/// The civil date `days` after 1 January 2000: year, month, day. The proleptic Gregorian calendar,
+/// by Hinnant's `civil_from_days` (*chrono-Compatible Low-Level Date Algorithms*).
+fn date_from_days(days: i64) -> (i64, i64, i64) {
+    // Counted in eras of 400 years from 1 March 2000, the start of one.
+    let z = days - 60;
+    let era = z.div_euclid(146_097);
+    let day_of_era = z.rem_euclid(146_097);
+    let year_of_era =
+        (day_of_era - day_of_era / 1460 + day_of_era / 36_524 - day_of_era / 146_096) / 365;
+    let day_of_year = day_of_era - (365 * year_of_era + year_of_era / 4 - year_of_era / 100);
+    let shifted_month = (5 * day_of_year + 2) / 153;
+    let day = day_of_year - (153 * shifted_month + 2) / 5 + 1;
+    let month = if shifted_month < 10 {
+        shifted_month + 3
+    } else {
+        shifted_month - 9
+    };
+    let year = 2000 + year_of_era + era * 400 + i64::from(month <= 2);
+    (year, month, day)
+}
+
+/// Text as CZML's description holds it: a viewer shows that as HTML, and a file's name isn't.
+fn escaped(text: &str) -> String {
+    text.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
 }
 
 /// The tracks' colors, red, green, blue and alpha, from 0 to 255: the first bright, the rest
@@ -1084,6 +1374,7 @@ mod tests {
                 widest_fix_gap_s: None,
                 moments_left_out: 0,
                 heights_too_fast: 0,
+                heights_below_pad: 0,
             }],
         }
     }
@@ -1224,7 +1515,9 @@ mod tests {
         column.values[n - 1] = -90_000.0;
         let ghost = built(&log, None).unwrap();
         let track = &ghost.tracks[0];
-        assert_eq!(track.heights_too_fast, 2);
+        // The one too high by its speed; the one too low by the floor, which it meets first.
+        assert_eq!(track.heights_too_fast, 1);
+        assert_eq!(track.heights_below_pad, 1);
         assert_eq!(track.time_s.len(), n - 2);
         assert!(track.up_m.iter().flatten().all(|h| h.abs() < 90_000.0));
     }
@@ -1330,7 +1623,7 @@ mod tests {
     fn czml_is_earth_fixed_on_its_epoch_by_hand() {
         // At 0°N 0°E, up is +x, east +y and north +z, so (e, n, u) = (1, 2, 3) m is
         // (a + 3, 1, 2) in the Earth-fixed frame, with a = 6,378,137 m.
-        let text = little_ghost(Some(1.0), Some(3.0)).to_czml();
+        let text = little_ghost(Some(1.0), Some(3.0)).to_czml().unwrap();
         let packets: Value = serde_json::from_str(&text).unwrap();
         assert_eq!(packets[0]["id"], "document");
         assert_eq!(packets[0]["version"], "1.0");
@@ -1378,7 +1671,7 @@ mod tests {
 
     #[test]
     fn gltfs_bytes_are_what_the_spec_lays_out_by_hand() {
-        let text = little_ghost(Some(1.0), Some(3.0)).to_gltf();
+        let text = little_ghost(Some(1.0), Some(3.0)).to_gltf().unwrap();
         let gltf: Value = serde_json::from_str(&text).unwrap();
         assert_eq!(gltf["asset"]["version"], "2.0");
         let uri = gltf["buffers"][0]["uri"].as_str().unwrap();
@@ -1400,7 +1693,7 @@ mod tests {
         assert_eq!(bytes[136..140], single(-2.0));
         assert_eq!(single(-2.0), [0x00, 0x00, 0x00, 0xC0]);
         // Times start at the earliest moment, and the root says which that is.
-        assert_eq!(gltf["extras"]["first_moment_from_liftoff_s"], 0.0);
+        assert_eq!(gltf["extras"]["first_moment_s"], 0.0);
         let sampler = &gltf["animations"][0]["samplers"][0];
         assert_eq!(sampler["interpolation"], "LINEAR");
         assert_eq!(
@@ -1435,7 +1728,7 @@ mod tests {
         ghost.tracks[0].east_m = vec![Some(1.0), Some(2.0), Some(3.0)];
         ghost.tracks[0].north_m = vec![Some(0.0); 3];
         ghost.tracks[0].up_m = vec![Some(0.0); 3];
-        let gltf: Value = serde_json::from_str(&ghost.to_gltf()).unwrap();
+        let gltf: Value = serde_json::from_str(&ghost.to_gltf().unwrap()).unwrap();
         let input = gltf["animations"][0]["samplers"][0]["input"]
             .as_u64()
             .unwrap() as usize;
@@ -1446,7 +1739,306 @@ mod tests {
         ghost.tracks[0].east_m = vec![Some(0.0), Some(1.0), Some(2.0), Some(3.0)];
         ghost.tracks[0].north_m = vec![Some(0.0); 4];
         ghost.tracks[0].up_m = vec![Some(0.0); 4];
-        let gltf: Value = serde_json::from_str(&ghost.to_gltf()).unwrap();
+        let gltf: Value = serde_json::from_str(&ghost.to_gltf().unwrap()).unwrap();
         assert_eq!(gltf["accessors"][input]["count"], 3);
+    }
+
+    /// A log from the rows of a table, as its own reader reads it.
+    fn table(header: &str, rows: impl Iterator<Item = String>) -> FlightLog {
+        let mut text = format!("{header}\n");
+        for row in rows {
+            text.push_str(&row);
+            text.push('\n');
+        }
+        import::read_one(text.as_bytes(), None, None).unwrap()
+    }
+
+    /// A rising receiver: fixes each 0.5 s from `pad_m`, none moving sideways.
+    fn receiver(heights: &[f64]) -> FlightLog {
+        let mut log = no_height();
+        let fixes: Vec<(f64, f64, f64)> = (0..heights.len())
+            .map(|i| (i as f64 * 0.5, 40.0, -105.0))
+            .collect();
+        log = with_fixes(log, &fixes, Some(0.0));
+        let height = log
+            .channels
+            .iter_mut()
+            .find(|c| c.quantity == Quantity::GnssAltitude)
+            .unwrap();
+        height.values = heights.to_vec();
+        log
+    }
+
+    #[test]
+    fn a_moment_with_no_height_is_left_out_not_drawn_at_the_pad() {
+        let mut heights: Vec<f64> = (0..40).map(|i| 1_400.0 + f64::from(i) * 20.0).collect();
+        heights[20] = f64::NAN;
+        heights[21] = 0.0;
+        let ghost = built(&receiver(&heights), None).unwrap();
+        let track = &ghost.tracks[0];
+        assert_eq!(track.up_from, UpFrom::GnssAltitude);
+        assert_eq!(track.moments_left_out, 2);
+        assert_eq!(track.time_s.len(), 38);
+        assert!(track.up_m.iter().all(Option::is_some));
+        assert!(!track.time_s.contains(&10.0) && !track.time_s.contains(&10.5));
+        assert!(assumed(&ghost, track).contains("2 of the log's rows are left out"));
+    }
+
+    #[test]
+    fn a_height_far_under_the_pad_is_left_out_and_one_inside_the_floor_kept() {
+        let mut heights = vec![1_400.0; 30];
+        // Inside the floor, reached slowly; then a receiver's height near sea level, in reach of
+        // the speed screen, which only the floor can catch.
+        heights[10] = 1_400.0 - BELOW_PAD_M + 1.0;
+        heights[20] = 1_400.0 - BELOW_PAD_M - 1.0;
+        let ghost = built(&receiver(&heights), None).unwrap();
+        let track = &ghost.tracks[0];
+        assert_eq!(track.heights_below_pad, 1);
+        assert_eq!(track.heights_too_fast, 0);
+        assert_eq!(track.up_m[10], Some(1.0 - BELOW_PAD_M));
+        assert_eq!(track.time_s.len(), 29);
+        assert!(track.up_m.iter().flatten().all(|h| *h >= -BELOW_PAD_M));
+    }
+
+    #[test]
+    fn a_column_of_another_zero_is_taken_less_its_own_pad() {
+        for header in [
+            "Time (s),Altitude (m)",
+            "Time (s),Barometric altitude MSL (m)",
+        ] {
+            let log = table(
+                header,
+                (0..200).map(|i| {
+                    let t = f64::from(i) * 0.1;
+                    format!("{t:.1},{:.1}", 1_400.0 + (t - 10.0).max(0.0) * 100.0)
+                }),
+            );
+            let ghost = built(&log, None).unwrap();
+            let track = &ghost.tracks[0];
+            assert_eq!(track.up_from, UpFrom::AltitudeLessPad, "{header}");
+            assert_eq!(track.up_m[0], Some(0.0), "{header}");
+            let top = track.up_m.iter().flatten().copied().fold(0.0, f64::max);
+            assert!((top - 990.0).abs() < 1e-6, "{header}: {top}");
+            assert!(
+                assumed(&ghost, track).contains("its own reading"),
+                "{header}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_height_above_ground_stays_as_the_log_wrote_it() {
+        let ghost = built(&climb(), None).unwrap();
+        assert_eq!(ghost.tracks[0].up_from, UpFrom::LogAltitude);
+    }
+
+    #[test]
+    fn the_pads_height_never_comes_from_a_fix_in_flight() {
+        // Liftoff at 10 s; fixes throughout, their heights only from 30 s.
+        let fixes: Vec<(f64, f64, f64)> = (0..40).map(|i| (f64::from(i), 40.0, -105.0)).collect();
+        let mut log = with_fixes(climb(), &fixes, Some(0.0));
+        let height = log
+            .channels
+            .iter_mut()
+            .find(|c| c.quantity == Quantity::GnssAltitude)
+            .unwrap();
+        height.values = (0..40)
+            .map(|i| if i < 30 { f64::NAN } else { 3_000.0 })
+            .collect();
+        let ghost = built(&log, None).unwrap();
+        assert_eq!(ghost.pad.from, PadFrom::FixesBeforeLiftoff);
+        assert_eq!(ghost.pad.height_m, None);
+        assert!(assumed(&ghost, &ghost.tracks[0]).contains("isn't known"));
+
+        // A first fix after liftoff: its place stands for the pad, flagged; its height doesn't.
+        let late: Vec<(f64, f64, f64)> = (0..10)
+            .map(|i| (20.0 + f64::from(i), 40.0, -105.0))
+            .collect();
+        let ghost = built(&with_fixes(climb(), &late, Some(3_000.0)), None).unwrap();
+        assert_eq!(ghost.pad.from, PadFrom::FirstFix);
+        assert_eq!(ghost.pad.height_m, None);
+    }
+
+    #[test]
+    fn a_stated_pad_height_doesnt_move_a_receivers_heights() {
+        let heights: Vec<f64> = (0..40).map(|i| 1_400.0 + f64::from(i)).collect();
+        let stated = StatedPad {
+            latitude_deg: 40.0,
+            longitude_deg: -105.0,
+            height_m: Some(1_380.0),
+        };
+        let ghost = built(&receiver(&heights), Some(stated)).unwrap();
+        assert_eq!(ghost.pad.height_m, Some(1_380.0));
+        assert_eq!(ghost.tracks[0].up_m[0], Some(0.0));
+        assert!(!assumed(&ghost, &ghost.tracks[0]).contains("receiver's"));
+    }
+
+    #[test]
+    fn a_receivers_pad_height_says_what_it_stands_for() {
+        let heights = vec![1_400.0; 30];
+        let ghost = built(&receiver(&heights), None).unwrap();
+        assert!(assumed(&ghost, &ghost.tracks[0]).contains("local geoid"));
+    }
+
+    #[test]
+    fn one_bad_first_row_doesnt_shut_out_the_flight() {
+        for bad in [30_000.0, 90_000.0, -40_000.0] {
+            let log = table(
+                "Time (s),Barometric altitude AGL (m)",
+                std::iter::once(format!("-0.1,{bad}")).chain((0..400).map(|i| {
+                    let t = f64::from(i) * 0.1;
+                    format!("{t:.1},{:.1}", (t - 10.0).max(0.0) * 50.0)
+                })),
+            );
+            let track = built(&log, None).unwrap().tracks.remove(0);
+            assert_eq!(track.heights_too_fast + track.heights_below_pad, 1, "{bad}");
+            assert_eq!(track.time_s.len(), 400, "{bad}");
+            assert!(track.up_m.iter().flatten().all(|h| *h < 1_600.0), "{bad}");
+        }
+    }
+
+    #[test]
+    fn one_bad_first_fix_doesnt_shut_out_the_track() {
+        let mut fixes = vec![(-0.1, 40.5, -105.0)];
+        fixes.extend((0..30).map(|i| (f64::from(i) * 0.1, 40.0, -105.0)));
+        let track = built(&with_fixes(no_height(), &fixes, Some(1_400.0)), None)
+            .unwrap()
+            .tracks
+            .remove(0);
+        assert_eq!(track.fixes.too_fast, 1);
+        assert_eq!(track.fixes.kept, 30);
+    }
+
+    #[test]
+    fn the_opening_finds_a_good_first_row_and_a_quick_start_stays() {
+        // A log starting on the climb at Mach 3: every row is reachable from the middle.
+        let samples: Vec<(f64, f64)> = (0..20)
+            .map(|i| (f64::from(i) * 0.1, f64::from(i) * 100.0))
+            .collect();
+        assert_eq!(opening_outliers(&samples, HEIGHT_SCATTER_M), 0);
+        assert_eq!(opening_outliers(&[], HEIGHT_SCATTER_M), 0);
+        let mut two_bad = samples.clone();
+        two_bad[0].1 = 50_000.0;
+        two_bad[1].1 = -50_000.0;
+        assert_eq!(opening_outliers(&two_bad, HEIGHT_SCATTER_M), 2);
+    }
+
+    #[test]
+    fn dates_are_the_calendars() {
+        // Worked by the calendar: 2000 is a leap year, and 2100 isn't.
+        for (days, date) in [
+            (0, (2000, 1, 1)),
+            (30, (2000, 1, 31)),
+            (31, (2000, 2, 1)),
+            (59, (2000, 2, 29)),
+            (60, (2000, 3, 1)),
+            (365, (2000, 12, 31)),
+            (366, (2001, 1, 1)),
+            (-1, (1999, 12, 31)),
+            (-31, (1999, 12, 1)),
+            (-32, (1999, 11, 30)),
+            (36_583, (2100, 2, 28)),
+            (36_584, (2100, 3, 1)),
+        ] {
+            assert_eq!(date_from_days(days), date, "{days}");
+        }
+        assert_eq!(
+            Ghost::czml_time(3e6 + 0.0015, false),
+            "2000-02-05T05:20:00.000Z"
+        );
+    }
+
+    #[test]
+    fn a_garbage_clock_is_left_out_and_writes_nothing_wrong() {
+        for last in ["1.1e7", "1e17", "1e19", "1e39", "1e300"] {
+            let log = table(
+                "Time (s),Barometric altitude AGL (m)",
+                (0..400)
+                    .map(|i| {
+                        let t = f64::from(i) * 0.1;
+                        format!("{t:.1},{:.1}", (t - 10.0).max(0.0) * 50.0)
+                    })
+                    .chain(std::iter::once(format!("{last},0"))),
+            );
+            let ghost = built(&log, None).unwrap();
+            assert_eq!(ghost.tracks[0].time_s.len(), 400, "{last}");
+            assert_eq!(ghost.tracks[0].moments_left_out, 1, "{last}");
+            let czml: Value = serde_json::from_str(&ghost.to_czml().unwrap()).unwrap();
+            assert!(
+                czml[0]["clock"]["interval"]
+                    .as_str()
+                    .unwrap()
+                    .contains("2000-01-01")
+            );
+            let gltf: Value = serde_json::from_str(&ghost.to_gltf().unwrap()).unwrap();
+            assert!(
+                gltf["accessors"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .all(|a| { !a.to_string().contains("null") }),
+                "{last}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_unix_clock_starts_czml_at_its_first_moment() {
+        let heights: Vec<f64> = (0..30).map(|i| 1_400.0 + f64::from(i)).collect();
+        let mut log = receiver(&heights);
+        for channel in &mut log.channels {
+            for time in &mut channel.time_s {
+                *time += 1.7e9;
+            }
+        }
+        let ghost = built(&log, None).unwrap();
+        assert!(ghost.tracks[0].time_s[0] > 1.6e9);
+        let czml: Value = serde_json::from_str(&ghost.to_czml().unwrap()).unwrap();
+        assert_eq!(
+            czml[0]["clock"]["interval"],
+            "2000-01-01T11:59:59.999Z/2000-01-01T12:00:14.501Z"
+        );
+        assert_eq!(czml[1]["position"]["cartesian"][0], 0.0);
+    }
+
+    #[test]
+    fn a_name_is_text_in_czmls_description() {
+        let mut ghost = little_ghost(Some(1.0), Some(1.0));
+        ghost.tracks[0].name = "<img src=x>&.csv".to_owned();
+        let czml: Value = serde_json::from_str(&ghost.to_czml().unwrap()).unwrap();
+        assert!(
+            czml[1]["description"]
+                .as_str()
+                .unwrap()
+                .starts_with("&lt;img src=x&gt;&amp;.csv")
+        );
+    }
+
+    #[test]
+    fn a_ghost_from_elsewhere_is_refused_not_a_panic() {
+        let refused = |edit: fn(&mut Ghost)| {
+            let mut ghost = little_ghost(Some(1.0), Some(1.0));
+            edit(&mut ghost);
+            assert!(ghost.to_czml().is_err());
+            assert!(ghost.to_gltf().is_err());
+        };
+        refused(|g| g.tracks.clear());
+        refused(|g| g.tracks[0].time_s.clear());
+        refused(|g| {
+            g.tracks[0].east_m.pop();
+        });
+        refused(|g| {
+            g.tracks[0].north_m.pop();
+        });
+        refused(|g| {
+            g.tracks[0].up_m.pop();
+        });
+        refused(|g| g.tracks[0].time_s[1] = 0.0);
+        refused(|g| g.tracks[0].time_s[1] = 1e300);
+        refused(|g| g.tracks[0].time_s[1] = f64::NAN);
+        refused(|g| g.tracks[0].east_m[0] = Some(f64::INFINITY));
+        refused(|g| g.pad.latitude_deg = Some(200.0));
+        let ok = little_ghost(Some(1.0), Some(1.0));
+        assert!(ok.to_czml().is_ok() && ok.to_gltf().is_ok());
     }
 }

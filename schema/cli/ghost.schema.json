@@ -130,7 +130,7 @@
           "$ref": "#/$defs/PadFrom"
         },
         "height_m": {
-          "description": "Height above sea level or the ellipsoid, m, as the receiver or the caller states it; `None`\nwhen no one states it.",
+          "description": "The pad's height, m: the caller's above the ellipsoid, or else the receiver's, most often\nabove sea level, from fixes before liftoff or the first fix. Files draw it as if above the\nellipsoid (module docs). `None` when no one states it.",
           "type": [
             "number",
             "null"
@@ -202,6 +202,12 @@
           "description": "The fixes.",
           "$ref": "#/$defs/FixCounts"
         },
+        "heights_below_pad": {
+          "description": "The log's rows left out for a height past [`BELOW_PAD_M`] under the pad.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
         "heights_too_fast": {
           "description": "The log's rows left out for a height no flight could reach ([`FASTEST_M_S`]).",
           "type": "integer",
@@ -229,7 +235,7 @@
           "type": "string"
         },
         "moments_left_out": {
-          "description": "The log's rows left out for a clock that didn't go forward, or a height not a number.",
+          "description": "The log's rows left out for a clock that didn't go forward or is past [`CLOCK_LIMIT_S`], or\na height empty or not a number.",
           "type": "integer",
           "format": "uint",
           "minimum": 0
@@ -266,7 +272,7 @@
           "$ref": "#/$defs/UpFrom"
         },
         "up_m": {
-          "description": "Height above the pad at each moment, m; `null` when unknown.",
+          "description": "Height above the pad at each moment, m; every one `null` when [`UpFrom::Unknown`], none\notherwise.",
           "type": "array",
           "items": {
             "type": [
@@ -296,24 +302,30 @@
         "up_m",
         "fixes",
         "moments_left_out",
-        "heights_too_fast"
+        "heights_too_fast",
+        "heights_below_pad"
       ]
     },
     "UpFrom": {
       "description": "Where a track's height came from.",
       "oneOf": [
         {
-          "description": "The log's altitude as it wrote it.",
+          "description": "The log's altitude as it wrote it, above the logger's zero.",
           "type": "string",
           "const": "log_altitude"
         },
         {
-          "description": "The GNSS altitude less the pad's.",
+          "description": "A column above sea level or an unstated zero, less its own reading on the pad: the median\nof its last [`PAD_FIXES`] samples before liftoff, or of its first with no liftoff.",
+          "type": "string",
+          "const": "altitude_less_pad"
+        },
+        {
+          "description": "The GNSS altitude less the receiver's on the pad.",
           "type": "string",
           "const": "gnss_altitude"
         },
         {
-          "description": "The log holds no height: each is `null`, and drawn at 0.",
+          "description": "The log holds no height above the pad: each is `null`, and drawn at 0.",
           "type": "string",
           "const": "unknown"
         }
