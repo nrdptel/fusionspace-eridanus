@@ -1436,7 +1436,7 @@ fn evidence_write_fills_the_report_and_the_schema() {
 const ADR_278_ROWS: usize = 24;
 
 /// The rows the register holds: ADR-278's and the gaps the survey found beyond its table.
-const REGISTER_ROWS: usize = 36;
+const REGISTER_ROWS: usize = 37;
 
 // LIVE: passes once validation/evidence.toml and docs/evidence.md are written
 /// The committed register, pages, report and schema pass the check, offline; the register's

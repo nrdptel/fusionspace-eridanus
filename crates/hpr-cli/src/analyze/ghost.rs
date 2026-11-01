@@ -76,7 +76,8 @@ fn stated_pad(args: &AnalyzeArgs) -> Result<Option<StatedPad>, Failure> {
         _ => return Err(refused()),
     };
     if !(latitude_deg.abs() <= 90.0 && longitude_deg.abs() <= 180.0)
-        || height_m.is_some_and(|height| !(height.abs() <= ghost::PAD_HEIGHT_LIMIT_M))
+        || height_m
+            .is_some_and(|height| height.is_nan() || height.abs() > ghost::PAD_HEIGHT_LIMIT_M)
     {
         return Err(refused());
     }

@@ -58,7 +58,7 @@ pub const REACH_M: f64 = 200_000.0;
 /// The fastest a track may move between fixes, m/s: above [the envelope's Mach 3.5][envelope] at
 /// sea level, about 1,190 m/s.
 ///
-/// [envelope]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0143-the-2026-10-03-check-in-the-envelope-first.md
+/// [envelope]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0143-the-operating-envelope-and-a-stop-rule-for.md
 pub const FASTEST_M_S: f64 = 1_500.0;
 /// What two fixes may differ by standing still, m: a receiver's scatter with few satellites.
 pub const FIX_SCATTER_M: f64 = 200.0;
@@ -395,7 +395,7 @@ fn pad_of(
         }
         if pad
             .height_m
-            .is_some_and(|h| !(h.abs() <= PAD_HEIGHT_LIMIT_M))
+            .is_some_and(|h| h.is_nan() || h.abs() > PAD_HEIGHT_LIMIT_M)
         {
             return Err(GhostError::BadPad {
                 what: format!("its height is past {PAD_HEIGHT_LIMIT_M} m, or not a number"),
