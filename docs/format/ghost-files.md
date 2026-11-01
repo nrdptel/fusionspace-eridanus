@@ -1,6 +1,6 @@
 # Ghost files
 
-A ghost file is one flight's path, from its logs, on one clock in a frame at the pad. `hpr analyze
+A ghost file is one flight's path, from its logs, on one clock in a frame at the pad, as `hpr analyze
 --ghost` writes it.
 
 It holds the path for a viewer to replay: as JSON for your own program, as CZML for
