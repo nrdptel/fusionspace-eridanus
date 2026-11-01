@@ -448,8 +448,6 @@ are in `hpr-forensics`. Formats, methods and the log corpus came from Debrief.
     withheld reading.
   - A flight is read end to end with no design file present, from the library and from
     `hpr analyze` (M4.2's command).
-  - [ ] **M7.2f Two recordings, stages.** *Done when:* two logs side by side on one timeline, the
-    offset recovered on synthetic pairs; stages on one; RocketPy's pair read.
   - [ ] **M7.2g Ghost files.** *Done when:* JSON (schema), CZML, glTF, read back by outside readers,
     from each RocketPy flight log with an altitude or GNSS track.
 - [ ] **M7.3 A flight against its simulation.** Sim-versus-real residuals, then fitting Cd scale,

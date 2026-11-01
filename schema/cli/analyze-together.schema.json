@@ -1,0 +1,2741 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AnalyzeTogether",
+  "description": "`hpr analyze` with more than one log, as JSON: the logs on one timeline, side by side, never\naveraged.",
+  "type": "object",
+  "properties": {
+    "flew": {
+      "description": "What the logs recorded.",
+      "$ref": "#/$defs/TimelineFlew"
+    },
+    "kind": {
+      "description": "What kind of result this is: every reading is measured, from a log.",
+      "$ref": "#/$defs/Kind"
+    },
+    "logs": {
+      "description": "Each log as `hpr analyze` reads it alone, in the order given.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Analyze"
+      }
+    },
+    "method": {
+      "description": "How the clocks were lined up: `shared liftoff`.",
+      "type": "string"
+    },
+    "offsets": {
+      "description": "Each log after the first against the first.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/LogReading9"
+      }
+    },
+    "rows": {
+      "description": "The readings across the logs.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/TimelineRow"
+      }
+    },
+    "tool": {
+      "title": "Tool",
+      "description": "The program that wrote a document or a file: the title block every `--json` document, every\nfile `hpr` writes and `hpr --version` carry (ADR-164; the product system's `data.md`: \"Every\nexport carries the designation and version of the tool that made it\").",
+      "type": "object",
+      "properties": {
+        "designation": {
+          "description": "Its designation in the FusionSpace product system: `FS-ACHERNAR · SW · TOOL 001`.",
+          "type": "string"
+        },
+        "name": {
+          "description": "The program: `FusionSpace HPR`.",
+          "type": "string"
+        },
+        "version": {
+          "description": "Its version, such as `0.1.0`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "designation"
+      ]
+    },
+    "trust": {
+      "description": "The trust note the text form ends with.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "tool",
+    "kind",
+    "trust",
+    "method",
+    "flew",
+    "logs",
+    "offsets",
+    "rows"
+  ],
+  "$defs": {
+    "AccelerometerGravity": {
+      "description": "Whether an accelerometer's readings hold gravity.",
+      "oneOf": [
+        {
+          "description": "They hold it: the part reads +1 g standing on the pad.",
+          "type": "string",
+          "const": "in"
+        },
+        {
+          "description": "They were written with it taken out: the part reads 0 on the pad.",
+          "type": "string",
+          "const": "out"
+        },
+        {
+          "description": "A word this build of `hpr` doesn't name.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
+    "Analyze": {
+      "description": "`hpr analyze`: a flight log's readings, taken from the log alone, with no design file and no\nsimulation. Heights are meters above the pad, altitudes meters on the height track's own\nscale (above the logger's zero for its own altitude); times are seconds on the log's clock.\nEach reading states the bound its error stays within.",
+      "type": "object",
+      "properties": {
+        "apogee": {
+          "description": "The highest point.",
+          "$ref": "#/$defs/LogReading2"
+        },
+        "burnout": {
+          "description": "Burnout, from the axial accelerometer or the speed's peak.",
+          "$ref": "#/$defs/LogReading5"
+        },
+        "drogue_descent": {
+          "description": "The descent under the drogue: from apogee to the main's opening.",
+          "$ref": "#/$defs/LogReading8"
+        },
+        "flight_time": {
+          "description": "The flight time, liftoff to landing.",
+          "$ref": "#/$defs/LogReading7"
+        },
+        "kind": {
+          "description": "What kind of result this is: every reading is measured, from the log.",
+          "$ref": "#/$defs/Kind"
+        },
+        "landing": {
+          "description": "Landing, and the descent before it.",
+          "$ref": "#/$defs/LogReading6"
+        },
+        "liftoff": {
+          "description": "Liftoff.",
+          "$ref": "#/$defs/LogReading"
+        },
+        "log": {
+          "description": "The log read.",
+          "$ref": "#/$defs/AnalyzedLog"
+        },
+        "main_descent": {
+          "description": "The descent under the main, the canopy the rocket landed under.",
+          "$ref": "#/$defs/LogReading8"
+        },
+        "max_acceleration": {
+          "description": "The top acceleration, from the axial accelerometer.",
+          "$ref": "#/$defs/LogReading4"
+        },
+        "max_speed": {
+          "description": "The top vertical speed from liftoff to apogee.",
+          "$ref": "#/$defs/LogReading3"
+        },
+        "method": {
+          "description": "How the readings were taken.",
+          "$ref": "#/$defs/AnalyzeMethod"
+        },
+        "smoother": {
+          "description": "The smoother's run over every sensor, with its health card (decision record ADR-300).",
+          "$ref": "#/$defs/SmootherOutcome"
+        },
+        "stated": {
+          "description": "What the file states about the flight: the logger's own figures, printed beside HPR Sim's\nreadings and never in place of them.",
+          "$ref": "#/$defs/LoggerStated"
+        },
+        "trust": {
+          "description": "The trust note the text form ends with: what the readings are, what they were checked\nagainst, and what to go by instead (decision record ADR-213).",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "trust",
+        "log",
+        "stated",
+        "method",
+        "liftoff",
+        "apogee",
+        "max_speed",
+        "max_acceleration",
+        "burnout",
+        "landing",
+        "flight_time",
+        "drogue_descent",
+        "main_descent",
+        "smoother"
+      ]
+    },
+    "AnalyzeMethod": {
+      "description": "How the readings were taken. `source` is `null` for a log with no height track, or one\nwithheld whole as `bad_record`; the other fields but `altitude_resolution_m` are `null` too\nfor a track too short to read, a GNSS track, or one withheld whole for its sampling or its\nstep, but for the interval or the step that withheld it; and `pad_altitude_m` for one\nwithheld as `no_climb`.",
+      "type": "object",
+      "properties": {
+        "accelerometer": {
+          "description": "The axial accelerometer the top acceleration and burnout came from; `null` when the log\nhas none, or none settled.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AnalyzedAccelerometer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "altitude_resolution_m": {
+          "description": "The altitude's resolution in the log's format, m: a PerfectFlite writes whole feet.",
+          "type": "number",
+          "format": "double"
+        },
+        "median_window_s": {
+          "description": "The running median's span, s: every height and time is read from the altitude after it.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "pad_altitude_m": {
+          "description": "The pad, on the track's own scale: the median of the track before it first rises 1 m,\nm.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "peak_bound_m": {
+          "description": "How far below its true peak the running median can read a peak bent by gravity alone, m.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "sample_interval_s": {
+          "description": "The median interval between the track's samples, s.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "source": {
+          "description": "The height track the readings were taken from.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingSource"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "step_m": {
+          "description": "The track's step, m: the format's stated resolution, else the smallest gap between two of\nits values; at the pad for a pressure track, whose step in height grows with height.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        }
+      },
+      "required": [
+        "altitude_resolution_m"
+      ]
+    },
+    "AnalyzedAccelerometer": {
+      "description": "The axial accelerometer the top acceleration and burnout came from.",
+      "type": "object",
+      "properties": {
+        "column": {
+          "description": "The channel's column, as the file writes it.",
+          "type": "string"
+        },
+        "gravity": {
+          "description": "Whether its readings hold gravity's 1 g, or were written with it taken out; it is put\nback for the readings.",
+          "$ref": "#/$defs/AccelerometerGravity"
+        },
+        "gravity_by": {
+          "description": "How that was settled.",
+          "$ref": "#/$defs/GravitySettledBy"
+        },
+        "sample_interval_s": {
+          "description": "The median interval between its samples, s.",
+          "type": "number",
+          "format": "double"
+        },
+        "step_m_s2": {
+          "description": "Its step, m/s².",
+          "type": "number",
+          "format": "double"
+        },
+        "turned_over": {
+          "description": "Whether its readings were turned over, as a part mounted nose down writes the thrust.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "column",
+        "gravity",
+        "gravity_by",
+        "turned_over",
+        "sample_interval_s",
+        "step_m_s2"
+      ]
+    },
+    "AnalyzedChannel": {
+      "description": "One column of the log `hpr analyze` read.",
+      "type": "object",
+      "properties": {
+        "column": {
+          "description": "The column's name, as the file or the mapping writes it.",
+          "type": "string"
+        },
+        "quantity": {
+          "description": "What it measures, which sets its unit: SI, but degrees for angles.",
+          "$ref": "#/$defs/Quantity"
+        },
+        "samples": {
+          "description": "How many samples it holds, gaps among them.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "column",
+        "quantity",
+        "samples"
+      ]
+    },
+    "AnalyzedLog": {
+      "description": "The log `hpr analyze` read.",
+      "type": "object",
+      "properties": {
+        "channels": {
+          "description": "Every column the log holds, the primary track's among them, in the file's order:\n`--record` prints their samples.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AnalyzedChannel"
+          }
+        },
+        "fip_header": {
+          "description": "The FIP header file it was read under, as given (`--fip-header`); `null` for a log read\notherwise.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "firmware": {
+          "description": "The logger's firmware version, as the file states it.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "first_time_s": {
+          "description": "The primary track's first sample's time, s; 0 for a log that has none.",
+          "type": "number",
+          "format": "double"
+        },
+        "flight_number": {
+          "description": "The flight's number in the logger's memory, as the file states it.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint32",
+          "minimum": 0
+        },
+        "format": {
+          "description": "Its format.",
+          "$ref": "#/$defs/LogFormat"
+        },
+        "last_time_s": {
+          "description": "The primary track's last sample's time, s; 0 for a log that has none.",
+          "type": "number",
+          "format": "double"
+        },
+        "layout": {
+          "description": "The record layout file it was read by, as given (`--layout`); `null` for a log read\notherwise.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "logger": {
+          "description": "The logger, as the file names it; `unknown` for a log read by a mapping or a layout.",
+          "type": "string"
+        },
+        "mapping": {
+          "description": "The column mapping file it was read by, as given (`--mapping`); `null` for a log read by\nits format's own reader.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "notes": {
+          "description": "What the reader noticed and worked around, such as a sample count that differs from the\none the file states.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "path": {
+          "description": "The file, as given.",
+          "type": "string"
+        },
+        "recording": {
+          "description": "The dump's recording chosen, from 0 (`--recording`); `null` for a file of one recording.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0
+        },
+        "samples": {
+          "description": "How many samples the primary track holds, the barometric altitude above the pad the\nreadings are taken from; 0 for a log that has none, such as a table read by a mapping\nthat marks none.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "serial_number": {
+          "description": "The logger's serial number, as the file states it.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sheet": {
+          "description": "The workbook's sheet chosen, from 0 (`--sheet`); `null` for a file that isn't a\nworkbook, or a workbook read with none chosen, whose one sheet that reads is read and\nnamed in the log's first note.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "path",
+        "format",
+        "logger",
+        "samples",
+        "first_time_s",
+        "last_time_s",
+        "channels",
+        "notes"
+      ]
+    },
+    "ApogeeReading": {
+      "description": "The highest point.",
+      "type": "object",
+      "properties": {
+        "altitude_m": {
+          "description": "The filtered track there, on its own scale, m.",
+          "type": "number",
+          "format": "double"
+        },
+        "bound_m": {
+          "description": "The bound on the height's error, m: most of it the day's air, which moves a barometric\nheight by up to 6.9% of itself.",
+          "type": "number",
+          "format": "double"
+        },
+        "height_interval_m": {
+          "description": "The height's 90% interval, m above the pad; `null` when the height is a floor.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "height_m": {
+          "description": "The height above the pad, m.",
+          "type": "number",
+          "format": "double"
+        },
+        "highest_sample": {
+          "description": "The highest sample the track holds before the filter: above the apogee when the median\nset a pulse aside.",
+          "$ref": "#/$defs/HighestSample"
+        },
+        "is_floor": {
+          "description": "Whether the log may have ended before the peak, so the height is a floor.",
+          "type": "boolean"
+        },
+        "method": {
+          "description": "How it was read.",
+          "$ref": "#/$defs/ReadingMethod"
+        },
+        "provenance": {
+          "description": "Measured on the track.",
+          "$ref": "#/$defs/ReadingProvenance"
+        },
+        "source": {
+          "description": "Where it came from.",
+          "$ref": "#/$defs/ReadingSource"
+        },
+        "time_after_liftoff_s": {
+          "description": "When, s after liftoff; `null` when liftoff is withheld.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "time_bound_s": {
+          "description": "The bound on the time's error, s.",
+          "type": "number",
+          "format": "double"
+        },
+        "time_interval_s": {
+          "description": "The time's 90% interval, s; `null` when the height is a floor.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "time_s": {
+          "description": "When, s.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "time_s",
+        "time_bound_s",
+        "height_m",
+        "bound_m",
+        "altitude_m",
+        "is_floor",
+        "highest_sample",
+        "source",
+        "provenance",
+        "method"
+      ]
+    },
+    "BurnoutReading": {
+      "description": "Burnout: when the motor stopped pushing.",
+      "type": "object",
+      "properties": {
+        "bound_s": {
+          "description": "The bound on its error, s.",
+          "type": "number",
+          "format": "double"
+        },
+        "interval_s": {
+          "description": "Its 90% interval, s; `null` on a floor.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "is_floor": {
+          "description": "Whether the time is a floor: burnout came no sooner than it, less its bound, and may\nhave come later by any amount. A burnout from the speed's peak is.",
+          "type": "boolean"
+        },
+        "lower_end_s": {
+          "description": "A floor's lower end, s: the time burnout came after in about 19 of 20 synthetic flights.\n`null` where it isn't a floor.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "method": {
+          "description": "How it was read.",
+          "$ref": "#/$defs/ReadingMethod"
+        },
+        "provenance": {
+          "description": "Measured from the accelerometer; derived from the speed's peak.",
+          "$ref": "#/$defs/ReadingProvenance"
+        },
+        "source": {
+          "description": "The accelerometer, or the height track the speed came from.",
+          "$ref": "#/$defs/ReadingSource"
+        },
+        "time_after_liftoff_s": {
+          "description": "When, s after liftoff: the burn's length; `null` when liftoff is withheld.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "time_s": {
+          "description": "When, s on the clock of the track it came from.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "time_s",
+        "bound_s",
+        "is_floor",
+        "source",
+        "provenance",
+        "method"
+      ]
+    },
+    "ClockOffset": {
+      "description": "One log's clock against the first's.",
+      "type": "object",
+      "properties": {
+        "bound_s": {
+          "description": "The bound on its error, s: the sum of the two liftoffs' bounds.",
+          "type": "number",
+          "format": "double"
+        },
+        "interval_s": {
+          "description": "Its 90% interval, s.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "offset_s": {
+          "description": "This log's clock less the first log's at one instant, s.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "offset_s",
+        "bound_s"
+      ]
+    },
+    "DescentReading": {
+      "description": "The descent under one canopy.",
+      "type": "object",
+      "properties": {
+        "bound_m_s": {
+          "description": "The bound on its error, m/s.",
+          "type": "number",
+          "format": "double"
+        },
+        "from_height_m": {
+          "description": "The height at its start, m above the pad.",
+          "type": "number",
+          "format": "double"
+        },
+        "from_s": {
+          "description": "Where the leg starts, s: apogee, or the main's opening.",
+          "type": "number",
+          "format": "double"
+        },
+        "interval_m_s": {
+          "description": "Its 90% interval, m/s.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "method": {
+          "description": "How it was read.",
+          "$ref": "#/$defs/ReadingMethod"
+        },
+        "opening": {
+          "description": "The main's opening, found back from landing, for the main's leg after a drogue's; `null`\nfor a drogue's leg or a descent under one canopy.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OpeningReading"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "provenance": {
+          "description": "Derived from the heights.",
+          "$ref": "#/$defs/ReadingProvenance"
+        },
+        "rate_m_s": {
+          "description": "The mean rate of descent over the leg, m/s, down positive.",
+          "type": "number",
+          "format": "double"
+        },
+        "source": {
+          "description": "Where it came from.",
+          "$ref": "#/$defs/ReadingSource"
+        },
+        "to_height_m": {
+          "description": "The height at its end, m above the pad.",
+          "type": "number",
+          "format": "double"
+        },
+        "to_s": {
+          "description": "Where it ends, s: the main's opening, or landing.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "rate_m_s",
+        "bound_m_s",
+        "from_s",
+        "to_s",
+        "from_height_m",
+        "to_height_m",
+        "source",
+        "provenance",
+        "method"
+      ]
+    },
+    "Deweighted": {
+      "description": "Why the barometer was de-weighted.",
+      "oneOf": [
+        {
+          "description": "At or above [`TRANSONIC_FROM_MACH`].",
+          "type": "string",
+          "const": "transonic"
+        },
+        {
+          "description": "Within [`CHARGE_WINDOW_S`] after a charge.",
+          "type": "string",
+          "const": "charge"
+        }
+      ]
+    },
+    "FlightTimeReading": {
+      "description": "The flight time, liftoff to landing.",
+      "type": "object",
+      "properties": {
+        "bound_s": {
+          "description": "The bound on its error, s: liftoff's and landing's.",
+          "type": "number",
+          "format": "double"
+        },
+        "interval_s": {
+          "description": "Its 90% interval, s.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "method": {
+          "description": "How it was read.",
+          "$ref": "#/$defs/ReadingMethod"
+        },
+        "provenance": {
+          "description": "Measured on the track.",
+          "$ref": "#/$defs/ReadingProvenance"
+        },
+        "source": {
+          "description": "Where it came from.",
+          "$ref": "#/$defs/ReadingSource"
+        },
+        "time_s": {
+          "description": "From liftoff to landing, s.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "time_s",
+        "bound_s",
+        "source",
+        "provenance",
+        "method"
+      ]
+    },
+    "GravitySettledBy": {
+      "description": "How an accelerometer's gravity was settled.",
+      "oneOf": [
+        {
+          "description": "By its family's word, which its pad and its coast agree with where they say.",
+          "type": "string",
+          "const": "family"
+        },
+        {
+          "description": "By its pad, which reads near 1 g or near 0, where its family doesn't say; its coast, where\nit says, agrees.",
+          "type": "string",
+          "const": "pad"
+        },
+        {
+          "description": "By its coast to apogee, which reads near 0 or near −1 g, where neither its family nor its\npad says.",
+          "type": "string",
+          "const": "coast"
+        },
+        {
+          "description": "A way this build of `hpr` doesn't name.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
+    "Health": {
+      "description": "A log's health card: how each sensor fared against the others (the smoothing note §7, after\nPX4's and ArduPilot's estimator status).",
+      "type": "object",
+      "properties": {
+        "accelerometer_set_aside": {
+          "description": "Whether the log's accelerometer had too little of the pad to take its level from, and was\nset aside: it isn't in [`Health::sensors`].",
+          "type": "boolean"
+        },
+        "apogee_less_reading_m": {
+          "description": "The smoothed apogee's height less the reading's, m; `None` where the apogee isn't read.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "apogee_past_reading_bound": {
+          "description": "Whether that gap passes the reading's bound: the reading's error stays within its bound, so\nthe track has gone wrong around its top, as it can where a long transonic span leaves it to\nthe motion model. The bound holds a floor's truth only from below, and a smoothed apogee\nabove a floor doesn't count.",
+          "type": "boolean"
+        },
+        "assumed_pad": {
+          "description": "Whether the log holds fewer than [`PAD_MIN_SAMPLES`] barometer samples on the pad, as one\nwritten from launch detection does. The pad is then assumed: the height stands on the\nreadings' zero (`Readings::pad_altitude_m`), the barometer's noise comes from the flight's\nown scatter, and no sample is held still.",
+          "type": "boolean"
+        },
+        "baro_minus_inertial_at_apogee_m": {
+          "description": "The barometer's height less the accelerometer's alone, integrated from liftoff with its\npad's reading taken out, at the smoothed apogee, m; `None` with no accelerometer.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "deweighted": {
+          "description": "The spans the barometer was de-weighted over.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Span"
+          }
+        },
+        "gnss_trusted_s": {
+          "description": "When the GNSS receiver was first trusted, s on the log's clock; `None` if never, or if the\nlog has none.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "rejected": {
+          "description": "Every sample rejected, in time order.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Rejected"
+          }
+        },
+        "sensors": {
+          "description": "Each sensor the log holds.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SensorHealth"
+          }
+        },
+        "unsmoothed_steps": {
+          "description": "Steps where the pass back couldn't solve and kept the forward filter's estimate.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "sensors",
+        "deweighted",
+        "rejected",
+        "unsmoothed_steps",
+        "assumed_pad",
+        "accelerometer_set_aside",
+        "apogee_past_reading_bound"
+      ]
+    },
+    "HighestSample": {
+      "description": "The highest sample of the track.",
+      "type": "object",
+      "properties": {
+        "altitude_m": {
+          "description": "The track's value, on its own scale, m.",
+          "type": "number",
+          "format": "double"
+        },
+        "time_s": {
+          "description": "When, s.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "time_s",
+        "altitude_m"
+      ]
+    },
+    "Kind": {
+      "description": "What kind of result a command printed: the kind every figure in it is.",
+      "oneOf": [
+        {
+          "description": "From a model of the flight, not measured.",
+          "type": "string",
+          "const": "simulated"
+        },
+        {
+          "description": "Measured: an altimeter's log, or a weather balloon's sounding.",
+          "type": "string",
+          "const": "measured"
+        },
+        {
+          "description": "A weather model's forecast.",
+          "type": "string",
+          "const": "forecast"
+        },
+        {
+          "description": "A reanalysis: a weather model's fit to past observations, such as ERA5.",
+          "type": "string",
+          "const": "reanalysis"
+        },
+        {
+          "description": "Copied from a data file, such as a motor's curve file, or computed from it.",
+          "type": "string",
+          "const": "copied"
+        }
+      ]
+    },
+    "LandingReading": {
+      "description": "Landing, and the descent before it.",
+      "type": "object",
+      "properties": {
+        "bound_s": {
+          "description": "The bound on its error, s.",
+          "type": "number",
+          "format": "double"
+        },
+        "descent_time_s": {
+          "description": "From apogee to landing, s.",
+          "type": "number",
+          "format": "double"
+        },
+        "interval_s": {
+          "description": "Its 90% interval, s.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mean_descent_rate_bound_m_s": {
+          "description": "The bound on the mean rate's error, m/s.",
+          "type": "number",
+          "format": "double"
+        },
+        "mean_descent_rate_interval_m_s": {
+          "description": "The mean rate's 90% interval, m/s.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mean_descent_rate_m_s": {
+          "description": "The mean rate of descent from apogee to landing, m/s: the height lost over the time\ntaken, drogue and main together.",
+          "type": "number",
+          "format": "double"
+        },
+        "method": {
+          "description": "How it was read.",
+          "$ref": "#/$defs/ReadingMethod"
+        },
+        "provenance": {
+          "description": "Measured on the track.",
+          "$ref": "#/$defs/ReadingProvenance"
+        },
+        "source": {
+          "description": "Where it came from.",
+          "$ref": "#/$defs/ReadingSource"
+        },
+        "time_s": {
+          "description": "The first sample after apogee back within the pad's allowance that stays down for 1 s,\ns: before touchdown by the time the last meters took.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "time_s",
+        "bound_s",
+        "descent_time_s",
+        "mean_descent_rate_m_s",
+        "mean_descent_rate_bound_m_s",
+        "source",
+        "provenance",
+        "method"
+      ]
+    },
+    "Largest": {
+      "description": "A sensor's largest test ratio.",
+      "type": "object",
+      "properties": {
+        "mach": {
+          "description": "The Mach number then, from the filter's vertical speed and the standard atmosphere's\nsound at its height.",
+          "type": "number",
+          "format": "double"
+        },
+        "ratio": {
+          "description": "The ratio.",
+          "type": "number",
+          "format": "double"
+        },
+        "time_s": {
+          "description": "When, s on the log's clock.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "ratio",
+        "time_s",
+        "mach"
+      ]
+    },
+    "Liftoff": {
+      "description": "Liftoff, as the smoother holds it.",
+      "type": "object",
+      "properties": {
+        "bound_s": {
+          "description": "The bound on its error, s: from the accelerometer, two of its intervals; from the\nbarometer, the reading's.",
+          "type": "number",
+          "format": "double"
+        },
+        "from": {
+          "description": "How it was found.",
+          "$ref": "#/$defs/LiftoffFrom"
+        },
+        "time_s": {
+          "description": "The last moment on the pad, s on the log's clock.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "time_s",
+        "bound_s",
+        "from"
+      ]
+    },
+    "LiftoffFrom": {
+      "description": "How liftoff was found.",
+      "oneOf": [
+        {
+          "description": "The accelerometer's first rise off its pad.",
+          "type": "string",
+          "const": "accelerometer"
+        },
+        {
+          "description": "The barometer's track, as the readings find it.",
+          "type": "string",
+          "const": "barometer"
+        }
+      ]
+    },
+    "LiftoffReading": {
+      "description": "Liftoff.",
+      "type": "object",
+      "properties": {
+        "bound_s": {
+          "description": "The bound on its error, s.",
+          "type": "number",
+          "format": "double"
+        },
+        "interval_s": {
+          "description": "Its 90% interval, s.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "method": {
+          "description": "How it was read.",
+          "$ref": "#/$defs/ReadingMethod"
+        },
+        "provenance": {
+          "description": "Measured on the track.",
+          "$ref": "#/$defs/ReadingProvenance"
+        },
+        "source": {
+          "description": "Where it came from.",
+          "$ref": "#/$defs/ReadingSource"
+        },
+        "time_s": {
+          "description": "The last sample before apogee within the pad's allowance, s.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "time_s",
+        "bound_s",
+        "source",
+        "provenance",
+        "method"
+      ]
+    },
+    "LogFormat": {
+      "description": "A flight log's file format.",
+      "oneOf": [
+        {
+          "description": "PerfectFlite's `.pf2`, as its software writes a Pnut's, a StratoLogger's or a\nStratoLoggerCF's flights.",
+          "type": "string",
+          "const": "perfect_flite_pf2"
+        },
+        {
+          "description": "PerfectFlite's comma-separated export: a header row such as `Time, Altitude, Velocity,\nTemperature (F), Voltage`, then rows in seconds and feet.",
+          "type": "string",
+          "const": "perfect_flite_csv"
+        },
+        {
+          "description": "PerfectFlite's tab-separated text export: a header row such as `Time Altitude Temp.\nVoltage`, then rows in seconds and feet.",
+          "type": "string",
+          "const": "perfect_flite_text"
+        },
+        {
+          "description": "AltOS's CSV, as AltosUI exports a TeleMetrum's, TeleMega's, EasyMega's or EasyMini's\nflight: a `#version,serial,flight,…` header, then rows in SI.",
+          "type": "string",
+          "const": "altos_csv"
+        },
+        {
+          "description": "The Featherweight Raven's FIP CSV, as the Featherweight Interface Program exports it: each\nchannel its own `Time@` column, its values, and a status column.",
+          "type": "string",
+          "const": "raven_fip_csv"
+        },
+        {
+          "description": "Missile Works' mDACS export of an RRC3's flight: a header row `Time, Altitude, Pressure,\nVelocity, Temperature, Events, Voltages`, then rows on one clock.",
+          "type": "string",
+          "const": "rrc3_csv"
+        },
+        {
+          "description": "An Eggtimer's flight data, as its own download writes it: a header row such as `T, Alt,\nVRaw, VFilt`, then rows on one clock.",
+          "type": "string",
+          "const": "eggtimer_csv"
+        },
+        {
+          "description": "The Featherweight Blue Raven's CSV, as its phone app exports a flight: a low-rate file of\nits barometric and inertial figures, or a high-rate file of its inertial sensors, each\nwith a header row such as `Year,Month,Day,Time,Flight_Time_(s),…`.",
+          "type": "string",
+          "const": "blue_raven_csv"
+        },
+        {
+          "description": "A Featherweight GPS tracker's CSV, as its ground station's app or software writes it: the\ntracker's log, with a header row such as `UTCTIME,UNIXTIME,ALT,LAT,LON,#SATS,…`, or the\nground station's, such as `TRACKER,DATE,TIME,LAT,LON,ALT,…`. Positions only, no barometer.",
+          "type": "string",
+          "const": "featherweight_gps_csv"
+        },
+        {
+          "description": "A KML file (OGC 07-147r2) holding a GPS track as a path or a `gx:Track`, as AltOS, Missile\nWorks' RTx, Big Red Bee's BeeLine, fw2kml and others write it. Positions only.",
+          "type": "string",
+          "const": "kml"
+        },
+        {
+          "description": "A GPS receiver's NMEA 0183 sentences as it wrote them, such as `$GPGGA,…*hh`. Positions\nonly.",
+          "type": "string",
+          "const": "nmea0183"
+        },
+        {
+          "description": "PerfectFlite's older `.pfa`, as its software saves an Alt15K/WD's flight: `Ground:`,\n`Apogee:` and `NumSamps:` lines, then `**!!Data:` and one altitude a line.",
+          "type": "string",
+          "const": "perfect_flite_pfa"
+        },
+        {
+          "description": "An Eggtimer TRS's flight as its terminal download prints it: the flight settings and the\nflight summary, then the table the CSV download writes.",
+          "type": "string",
+          "const": "eggtimer_text"
+        },
+        {
+          "description": "AltimeterCloud's CSV of a Rocketry Ltd Nano V1's or Mercury's flight, as a flight page on\naltimetercloud.com hands it back: a header row such as `Time(ms),Altitude(m),…`.",
+          "type": "string",
+          "const": "altimeter_cloud_csv"
+        },
+        {
+          "description": "Entacore AIM's CSV, as its software exports a flight: each channel beside its own `time`\ncolumn.",
+          "type": "string",
+          "const": "entacore_aim_csv"
+        },
+        {
+          "description": "AerospaceNU's SillyGoose flight computer's log, as the board writes it: tab-separated\ntext under a header such as `timestampMs pressurePa tempK …`.",
+          "type": "string",
+          "const": "silly_goose_text"
+        },
+        {
+          "description": "Silicdyne's Fluctus flight computer's CSV: a `sep=;` line, then a semicolon-separated\ntable whose names carry their units, such as `time (ms);baro-altitude (m);…`.",
+          "type": "string",
+          "const": "fluctus_csv"
+        },
+        {
+          "description": "Ozark Aerospace's ARTS2 interpreted data: a `# MET Acc Vel iAlt pAlt` header, then\ncomma-separated rows from launch.",
+          "type": "string",
+          "const": "arts2_csv"
+        },
+        {
+          "description": "AerospaceNU's flight computer board's CSV, as the club's tools write a flight: a header\nrow opening `,packetType,timestamp_ms,…` or `,timestamp_s,…`, then one row a sample.",
+          "type": "string",
+          "const": "aerospace_nu_fcb_csv"
+        },
+        {
+          "description": "AerospaceNU's ground station's text, as it parses the flight computer board's downlink: a\n`RUN START` line, then one packet a line, `HH:MM:SS.ffffff: <packet> {…}`.",
+          "type": "string",
+          "const": "aerospace_nu_ground_station_text"
+        },
+        {
+          "description": "A phone app's `launch….csv`: a header row opening `Seconds,Timestamp,AltitudeMSLGPS,…`,\nthen one row a sample. The app isn't named in its files.",
+          "type": "string",
+          "const": "phone_launch_csv"
+        },
+        {
+          "description": "An Eggtimer TRS's terminal download, as [`LogFormat::EggtimerText`] reads it, saved inside\nan RTF document.",
+          "type": "string",
+          "const": "eggtimer_rtf"
+        },
+        {
+          "description": "The Featherweight Raven's raw download, `.FIPa`, as the Featherweight Interface Program\nsaves the altimeter's memory: a text header, then checksummed binary frames.",
+          "type": "string",
+          "const": "raven_fipa"
+        },
+        {
+          "description": "Missile Works' RRC3 raw flight file, `.rff`, as mDACS saves a download: a .NET\n`BinaryFormatter` stream holding the altimeter's 16-bit words.",
+          "type": "string",
+          "const": "rrc3_rff"
+        },
+        {
+          "description": "A Featherweight summary, as the Featherweight UI app exports a Blue Raven's or a GPS\ntracker's flight beside its data: one `name,value` row a figure, such as `Max\nAltitude,2500.25 feet`, and no samples.",
+          "type": "string",
+          "const": "featherweight_summary_csv"
+        },
+        {
+          "description": "AED Electronics' R-DAS raw data, as its Windows software exports a flight to text: a\n`*** Configuration ***` section, then a table of the converters' counts.",
+          "type": "string",
+          "const": "rdas_text"
+        },
+        {
+          "description": "AltOS radio telemetry, as AltosUI saves the packets a TeleDongle hears to a `.telem`\nfile: one `TELEM` line a packet, its bytes in hexadecimal.",
+          "type": "string",
+          "const": "altos_telemetry"
+        },
+        {
+          "description": "AltOS's raw flight download, as AltosUI saves a flight computer's memory to an `.eeprom`\nfile: a JSON object of the board's configuration then the memory in hexadecimal, or, from\nolder versions, the configuration as the board prints it then one record a line.",
+          "type": "string",
+          "const": "altos_eeprom"
+        },
+        {
+          "description": "Ozark Aerospace ARTS2's flight as its PC software saves it to an `.odf` file: the board's\nsettings and calibration, then the sensors' counts.",
+          "type": "string",
+          "const": "arts2_odf"
+        },
+        {
+          "description": "Ozark Aerospace ARTS2's raw data, as its PC software exports a flight: a\n`MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header, then the sensors' counts.",
+          "type": "string",
+          "const": "arts2_raw_csv"
+        },
+        {
+          "description": "Missile Works' RTx/GPS tracker's fixes, as mDACS saves a download to an `.rtx` file: a\n.NET `BinaryFormatter` stream of one `List<Int32>`, each slot a 16-bit word mapped modulo\n10⁹. Positions only.",
+          "type": "string",
+          "const": "rtx_raw"
+        },
+        {
+          "description": "The RTx's fixes as mDACS exports them to CSV: a `UTC Time,Latitude,Longitude,Altitude,…`\nheader, then one row a fix. Positions only.",
+          "type": "string",
+          "const": "rtx_csv"
+        },
+        {
+          "description": "The RTx's fixes as mDACS exports them to text: a tab-separated `UTC Lat Lon Alt …` header,\nthen one row a fix. Positions only.",
+          "type": "string",
+          "const": "rtx_text"
+        },
+        {
+          "description": "A table of samples from a logger no other reader knows, read by what its header states: a\nheader row naming the columns, the units in the names, such as `Time (s),Alt AGL (ft)`,\nthen one row a sample ([`crate::generic`]); or read by a column mapping the caller gives.",
+          "type": "string",
+          "const": "generic_table"
+        },
+        {
+          "description": "A file of binary records end to end, each a run of fields, read by a layout the caller\nstates, since the file states none ([`crate::records`]).",
+          "type": "string",
+          "const": "binary_records"
+        },
+        {
+          "description": "A serial console's capture of a flight computer's shell, its memory dumped as base64\nbetween marker lines such as `----++++//[[( data start )]]\\\\++++----`, each block's\nrecords read by a layout the caller states ([`crate::capture`]).",
+          "type": "string",
+          "const": "console_capture"
+        },
+        {
+          "description": "The Featherweight Blue Raven's flight data as its USB port downloads it to a serial\nterminal: one `@ LOG_LOW` or `@ LOG_HIR` line a sample, each closed by a CRC\n([`crate::blueraven_usb`]).",
+          "type": "string",
+          "const": "blue_raven_usb"
+        },
+        {
+          "description": "A course's Teensy data logger, tab-separated: a sensor's tag, the clock in microseconds,\nthen its values, such as `Alt`, the clock, `P` and a pressure, `MSL` and an altitude\n([`crate::teensy`]).",
+          "type": "string",
+          "const": "teensy_tabs"
+        },
+        {
+          "description": "A course's Teensy data logger with named fields: units lines such as `MS5 data in us, deg\nC, Pa`, then lines such as `MS5, t, 1330004120, T, 32.90, P, 92185` ([`crate::teensy`]).",
+          "type": "string",
+          "const": "teensy_named"
+        },
+        {
+          "description": "One team's radio telemetry packets as text, one `255:…:254` packet a line, such as\n`255:T:11:PP:100150:950.12:21.50:3.25:254`: the flight computer's own log, or what a\nreceiver heard ([`crate::packets`]).",
+          "type": "string",
+          "const": "radio_packet_text"
+        },
+        {
+          "description": "The same packets in an RTF document a spreadsheet saved as CSV, one `255,…,254` packet a\nline ([`crate::packets::read_rtf`]).",
+          "type": "string",
+          "const": "radio_packet_rtf"
+        },
+        {
+          "description": "Rocketronics' AltiMAX, a flight as its PC software exports it to an `.xls` worksheet\n([`crate::xls`]), read as a table headed `TIME,PRESS FILTER [hpa],HEIGHT FILTER [m],…`\n([`crate::altimax`]).",
+          "type": "string",
+          "const": "altimax_xls"
+        },
+        {
+          "description": "A MARSA altimeter's flight download: its settings as `<NAME> value` lines, such as\n`<BARO_ZERO 0> 790`, then a row a sample of the time, the altitude in feet and the\nacceleration in g, such as `0.1,-29.0,8.65`; the `.dat` the altimeter's software saves, or\na spreadsheet's re-save of it ([`crate::marsa`]).",
+          "type": "string",
+          "const": "marsa"
+        },
+        {
+          "description": "AltOS's radio telemetry decoded to a table, one row a packet under a header of the\npacket's fields, `serial,tick,ptype,state,…,height,crc` ([`crate::altos_telem_csv`]).",
+          "type": "string",
+          "const": "altos_telemetry_csv"
+        },
+        {
+          "description": "Rocketronics' AltiMAX, a flight's `.ALS` file: a header, then a record of 22 bytes a\nsample, its pressures, acceleration, event and one voltage channel's count\n([`crate::altimax_als`]).",
+          "type": "string",
+          "const": "altimax_als"
+        },
+        {
+          "description": "Entacore AIM XTRA, a flight as its software saves it to an `.xtra` file, a Boost binary\narchive of one record a sensor group's sample ([`crate::entacore_raw`]).",
+          "type": "string",
+          "const": "entacore_xtra"
+        },
+        {
+          "description": "Entacore AIM XTRA, one recording of its memory as its software downloads it, raw: a\ntype byte and big-endian fields a record, between bytes that count the clock's ticks\n([`crate::entacore_raw::read_dump`]).",
+          "type": "string",
+          "const": "entacore_dump"
+        },
+        {
+          "description": "A GPX file, the GPS Exchange Format, version 1.0 or 1.1 as Topografix publishes it: its\ntracks' points, each segment a GPS track ([`crate::gpx`]). Positions only.",
+          "type": "string",
+          "const": "gpx"
+        }
+      ]
+    },
+    "LogReading": {
+      "description": "A reading, or why the log can't support it.",
+      "oneOf": [
+        {
+          "description": "The reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "read"
+            }
+          },
+          "$ref": "#/$defs/LiftoffReading",
+          "required": [
+            "status"
+          ]
+        },
+        {
+          "description": "The log can't support the reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "withheld"
+            }
+          },
+          "$ref": "#/$defs/WithheldReading",
+          "required": [
+            "status"
+          ]
+        }
+      ]
+    },
+    "LogReading2": {
+      "description": "A reading, or why the log can't support it.",
+      "oneOf": [
+        {
+          "description": "The reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "read"
+            }
+          },
+          "$ref": "#/$defs/ApogeeReading",
+          "required": [
+            "status"
+          ]
+        },
+        {
+          "description": "The log can't support the reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "withheld"
+            }
+          },
+          "$ref": "#/$defs/WithheldReading",
+          "required": [
+            "status"
+          ]
+        }
+      ]
+    },
+    "LogReading3": {
+      "description": "A reading, or why the log can't support it.",
+      "oneOf": [
+        {
+          "description": "The reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "read"
+            }
+          },
+          "$ref": "#/$defs/MaxSpeedReading",
+          "required": [
+            "status"
+          ]
+        },
+        {
+          "description": "The log can't support the reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "withheld"
+            }
+          },
+          "$ref": "#/$defs/WithheldReading",
+          "required": [
+            "status"
+          ]
+        }
+      ]
+    },
+    "LogReading4": {
+      "description": "A reading, or why the log can't support it.",
+      "oneOf": [
+        {
+          "description": "The reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "read"
+            }
+          },
+          "$ref": "#/$defs/MaxAccelerationReading",
+          "required": [
+            "status"
+          ]
+        },
+        {
+          "description": "The log can't support the reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "withheld"
+            }
+          },
+          "$ref": "#/$defs/WithheldReading",
+          "required": [
+            "status"
+          ]
+        }
+      ]
+    },
+    "LogReading5": {
+      "description": "A reading, or why the log can't support it.",
+      "oneOf": [
+        {
+          "description": "The reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "read"
+            }
+          },
+          "$ref": "#/$defs/BurnoutReading",
+          "required": [
+            "status"
+          ]
+        },
+        {
+          "description": "The log can't support the reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "withheld"
+            }
+          },
+          "$ref": "#/$defs/WithheldReading",
+          "required": [
+            "status"
+          ]
+        }
+      ]
+    },
+    "LogReading6": {
+      "description": "A reading, or why the log can't support it.",
+      "oneOf": [
+        {
+          "description": "The reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "read"
+            }
+          },
+          "$ref": "#/$defs/LandingReading",
+          "required": [
+            "status"
+          ]
+        },
+        {
+          "description": "The log can't support the reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "withheld"
+            }
+          },
+          "$ref": "#/$defs/WithheldReading",
+          "required": [
+            "status"
+          ]
+        }
+      ]
+    },
+    "LogReading7": {
+      "description": "A reading, or why the log can't support it.",
+      "oneOf": [
+        {
+          "description": "The reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "read"
+            }
+          },
+          "$ref": "#/$defs/FlightTimeReading",
+          "required": [
+            "status"
+          ]
+        },
+        {
+          "description": "The log can't support the reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "withheld"
+            }
+          },
+          "$ref": "#/$defs/WithheldReading",
+          "required": [
+            "status"
+          ]
+        }
+      ]
+    },
+    "LogReading8": {
+      "description": "A reading, or why the log can't support it.",
+      "oneOf": [
+        {
+          "description": "The reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "read"
+            }
+          },
+          "$ref": "#/$defs/DescentReading",
+          "required": [
+            "status"
+          ]
+        },
+        {
+          "description": "The log can't support the reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "withheld"
+            }
+          },
+          "$ref": "#/$defs/WithheldReading",
+          "required": [
+            "status"
+          ]
+        }
+      ]
+    },
+    "LogReading9": {
+      "description": "A reading, or why the log can't support it.",
+      "oneOf": [
+        {
+          "description": "The reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "read"
+            }
+          },
+          "$ref": "#/$defs/ClockOffset",
+          "required": [
+            "status"
+          ]
+        },
+        {
+          "description": "The log can't support the reading.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "withheld"
+            }
+          },
+          "$ref": "#/$defs/WithheldReading",
+          "required": [
+            "status"
+          ]
+        }
+      ]
+    },
+    "LoggerStated": {
+      "description": "What a flight log states about the flight.",
+      "type": "object",
+      "properties": {
+        "apogee_m": {
+          "description": "The apogee the logger computed, m above its own zero; `null` if the file states none, or\nstates something that isn't a height, such as a PerfectFlite's `PWRLOSS`.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "ground_elevation_msl_m": {
+          "description": "The launch site's elevation, m above mean sea level, as the logger states it.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        }
+      }
+    },
+    "MaxAccelerationReading": {
+      "description": "The top acceleration, from the axial accelerometer.",
+      "type": "object",
+      "properties": {
+        "acceleration_m_s2": {
+          "description": "The acceleration, m/s², along the rocket's axis as an accelerometer reads it: +1 g\nstanding on the pad, the thrust less the drag over the mass in the climb; less 9.81 m/s²,\nthe rocket's own acceleration up on a vertical climb.",
+          "type": "number",
+          "format": "double"
+        },
+        "bound_m_s2": {
+          "description": "The bound on its error, m/s². When it is clipped, the true top is no lower than the\nreading less the bound, and may be higher by any amount.",
+          "type": "number",
+          "format": "double"
+        },
+        "clip": {
+          "description": "Why it is clipped: at the part's stated range, or held flat at its top below it or with\nno range stated; `null` where it isn't.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingClip"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "interval_m_s2": {
+          "description": "Its 90% interval, m/s²; `null` on a floor.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "is_floor": {
+          "description": "Whether the top is a floor: no lower than the reading less its bound, and maybe higher by\nany amount. A clipped top is, and so is one whose thrust the accelerometer shows no end to,\nnever falling through zero on the channel before apogee: that one is measured, its `clip`\n`null`.",
+          "type": "boolean"
+        },
+        "lower_end_m_s2": {
+          "description": "A clipped top's lower end, m/s²: the figure the truth lay above in about 19 of 20 of the\ntops the part's own scale error could carry to the clip. `null` where it isn't clipped.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "method": {
+          "description": "How it was read.",
+          "$ref": "#/$defs/ReadingMethod"
+        },
+        "provenance": {
+          "description": "Clipped where `clip` says why; otherwise measured.",
+          "$ref": "#/$defs/ReadingProvenance"
+        },
+        "range_m_s2": {
+          "description": "The range of the part its family states, m/s²; `null` where it doesn't.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "source": {
+          "description": "The accelerometer.",
+          "$ref": "#/$defs/ReadingSource"
+        },
+        "time_s": {
+          "description": "When, s on the accelerometer's clock.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "acceleration_m_s2",
+        "bound_m_s2",
+        "time_s",
+        "is_floor",
+        "source",
+        "provenance",
+        "method"
+      ]
+    },
+    "MaxSpeedReading": {
+      "description": "The top vertical speed from liftoff to apogee, derived from the height track.",
+      "type": "object",
+      "properties": {
+        "bound_m_s": {
+          "description": "The bound on its error, m/s.",
+          "type": "number",
+          "format": "double"
+        },
+        "height_m": {
+          "description": "The height above the pad then, m.",
+          "type": "number",
+          "format": "double"
+        },
+        "interval_m_s": {
+          "description": "Its 90% interval, m/s.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "method": {
+          "description": "How it was read.",
+          "$ref": "#/$defs/ReadingMethod"
+        },
+        "provenance": {
+          "description": "Derived from the track.",
+          "$ref": "#/$defs/ReadingProvenance"
+        },
+        "source": {
+          "description": "Where it came from.",
+          "$ref": "#/$defs/ReadingSource"
+        },
+        "speed_m_s": {
+          "description": "The speed, m/s, up.",
+          "type": "number",
+          "format": "double"
+        },
+        "time_s": {
+          "description": "When, s.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "speed_m_s",
+        "bound_m_s",
+        "time_s",
+        "height_m",
+        "source",
+        "provenance",
+        "method"
+      ]
+    },
+    "OpeningReading": {
+      "description": "The main's opening, found back from landing.",
+      "type": "object",
+      "properties": {
+        "bound_s": {
+          "description": "The bound on its error, s.",
+          "type": "number",
+          "format": "double"
+        },
+        "height_m": {
+          "description": "The height then, m above the pad.",
+          "type": "number",
+          "format": "double"
+        },
+        "interval_s": {
+          "description": "Its 90% interval, s.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReadingInterval"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "time_s": {
+          "description": "When, s: the first sample of the run back from landing whose rate stays near the main's.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "time_s",
+        "bound_s",
+        "height_m"
+      ]
+    },
+    "Quantity": {
+      "description": "What a channel measures. The unit is SI but for angles, which are in degrees as GNSS\nreceivers and loggers write them.",
+      "oneOf": [
+        {
+          "description": "A barometric altitude above the logger's own zero, m; in a Featherweight GPS tracker's\nsummary ([`LogFormat::FeatherweightSummaryCsv`]), its receiver's altitude above the pad it\nstates.",
+          "type": "string",
+          "const": "altitude_above_ground"
+        },
+        {
+          "description": "A barometric altitude above mean sea level, m.",
+          "type": "string",
+          "const": "altitude_msl"
+        },
+        {
+          "description": "An altitude from GNSS, above mean sea level as the receiver states it, m.",
+          "type": "string",
+          "const": "gnss_altitude"
+        },
+        {
+          "description": "An altitude the logger integrated from its accelerometer, above its zero, m.",
+          "type": "string",
+          "const": "inertial_altitude"
+        },
+        {
+          "description": "An altitude whose sensor or zero the file doesn't state, m: a table read by its header\n([`LogFormat::GenericTable`]) names an altitude and its unit, and often no more.",
+          "type": "string",
+          "const": "altitude"
+        },
+        {
+          "description": "Air pressure, Pa.",
+          "type": "string",
+          "const": "pressure"
+        },
+        {
+          "description": "A speed or velocity the logger computed, m/s; its column says from which sensor and along\nwhich direction.",
+          "type": "string",
+          "const": "speed"
+        },
+        {
+          "description": "An acceleration, m/s²; its column says along which axis, and whether gravity is in it.",
+          "type": "string",
+          "const": "acceleration"
+        },
+        {
+          "description": "A temperature, K.",
+          "type": "string",
+          "const": "temperature"
+        },
+        {
+          "description": "An electric potential, V, such as a battery's or a pyro channel's.",
+          "type": "string",
+          "const": "voltage"
+        },
+        {
+          "description": "An electric current, A.",
+          "type": "string",
+          "const": "current"
+        },
+        {
+          "description": "A latitude, degrees north.",
+          "type": "string",
+          "const": "latitude"
+        },
+        {
+          "description": "A longitude, degrees east.",
+          "type": "string",
+          "const": "longitude"
+        },
+        {
+          "description": "An angle, degrees, such as a tilt or a bearing.",
+          "type": "string",
+          "const": "angle"
+        },
+        {
+          "description": "A rate of turn, degrees per second, such as a gyroscope's about one of its axes.",
+          "type": "string",
+          "const": "angular_rate"
+        },
+        {
+          "description": "A distance, m, such as a GNSS receiver's range from the pad.",
+          "type": "string",
+          "const": "distance"
+        },
+        {
+          "description": "A time of day on the logger's own clock, s after its midnight, in whatever time zone the\nclock was set to: files state none.",
+          "type": "string",
+          "const": "time_of_day"
+        },
+        {
+          "description": "A length of time, s, such as a summary's time from liftoff to an event.",
+          "type": "string",
+          "const": "duration"
+        },
+        {
+          "description": "A number with no unit, such as a count of satellites, a signal strength, a flag or a\nstate code, as the file writes it, or a fraction, such as a percentage the file writes,\ndivided by 100.",
+          "type": "string",
+          "const": "number"
+        },
+        {
+          "description": "A column HPR Sim doesn't know: its values as the file writes them, in a unit HPR Sim\ndoesn't know either.",
+          "type": "string",
+          "const": "unrecognized"
+        }
+      ]
+    },
+    "ReadingClip": {
+      "description": "Why a top acceleration is clipped.",
+      "oneOf": [
+        {
+          "description": "It reaches the part's range as its family states it, within two steps and 0.25 g: the\npart read no more.",
+          "type": "string",
+          "const": "range"
+        },
+        {
+          "description": "It holds flat at its top, as a part that clipped holds it, short of any range the family\nstates or with none stated: the part may have clipped, at a range other than the one\nstated.",
+          "type": "string",
+          "const": "flat"
+        },
+        {
+          "description": "A cause this build of `hpr` doesn't name.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
+    "ReadingInterval": {
+      "description": "A reading's 90% interval: on the synthetic flights, the truth lay below `low` about 5% of the\ntime and above `high` about 5% (`hpr_flightdata::readings::interval`).",
+      "type": "object",
+      "properties": {
+        "high": {
+          "description": "Its upper end, in the reading's unit.",
+          "type": "number",
+          "format": "double"
+        },
+        "low": {
+          "description": "Its lower end, in the reading's unit.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "low",
+        "high"
+      ]
+    },
+    "ReadingMethod": {
+      "description": "How a reading was read off the track.",
+      "oneOf": [
+        {
+          "description": "The last sample before apogee within the pad's allowance.",
+          "type": "string",
+          "const": "last_on_the_pad"
+        },
+        {
+          "description": "The filtered track's highest value, at the middle of the run that holds it.",
+          "type": "string",
+          "const": "highest_filtered"
+        },
+        {
+          "description": "The steepest least-squares slope of the filtered track over 0.5 s.",
+          "type": "string",
+          "const": "steepest_slope"
+        },
+        {
+          "description": "The first sample after apogee back within the pad's allowance that stays down for 1 s.",
+          "type": "string",
+          "const": "back_on_the_pad"
+        },
+        {
+          "description": "The axial accelerometer's highest reading before apogee.",
+          "type": "string",
+          "const": "highest_reading"
+        },
+        {
+          "description": "The first sample next to the axial accelerometer's least reading after it falls below\nzero: the end of the thrust's fall.",
+          "type": "string",
+          "const": "least_after_thrust"
+        },
+        {
+          "description": "The top speed's time, a floor: burnout came no sooner than it less its bound.",
+          "type": "string",
+          "const": "speed_peak"
+        },
+        {
+          "description": "Landing's time less liftoff's.",
+          "type": "string",
+          "const": "liftoff_to_landing"
+        },
+        {
+          "description": "The height a leg of the descent loses over the time it takes.",
+          "type": "string",
+          "const": "leg_chord"
+        },
+        {
+          "description": "A method this build of `hpr` doesn't name.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
+    "ReadingProvenance": {
+      "description": "Whether a reading was measured on the track, derived from it, or clipped by it.",
+      "oneOf": [
+        {
+          "description": "A time or height read off the filtered track.",
+          "type": "string",
+          "const": "measured"
+        },
+        {
+          "description": "Worked out from the track, such as a speed from its slope.",
+          "type": "string",
+          "const": "derived"
+        },
+        {
+          "description": "Measured, but at the sensor's range, so the true value may lie beyond it.",
+          "type": "string",
+          "const": "clipped"
+        },
+        {
+          "description": "A provenance this build of `hpr` doesn't name.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
+    "ReadingSource": {
+      "description": "The height track a reading came from.",
+      "oneOf": [
+        {
+          "description": "The logger's own barometric altitude, the record's primary track.",
+          "type": "string",
+          "const": "barometer"
+        },
+        {
+          "description": "A pressure channel, turned into a height by the 1976 standard atmosphere.",
+          "type": "string",
+          "const": "pressure"
+        },
+        {
+          "description": "A barometric altitude kept in a channel, above the pad or above sea level.",
+          "type": "string",
+          "const": "altitude_channel"
+        },
+        {
+          "description": "A GNSS receiver's altitude: no reading is taken from it.",
+          "type": "string",
+          "const": "gnss"
+        },
+        {
+          "description": "The accelerometer along the rocket's axis.",
+          "type": "string",
+          "const": "accelerometer"
+        },
+        {
+          "description": "A source this build of `hpr` doesn't name.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
+    "Reason": {
+      "description": "Why a log isn't smoothed.",
+      "oneOf": [
+        {
+          "description": "The log has no barometer: no height track, or a GNSS receiver's alone.",
+          "type": "string",
+          "const": "no_barometer"
+        },
+        {
+          "description": "The readings found no liftoff.",
+          "type": "string",
+          "const": "no_liftoff"
+        },
+        {
+          "description": "More than [`MAX_STEPS`] samples.",
+          "type": "string",
+          "const": "too_long"
+        },
+        {
+          "description": "The estimate left the finite numbers somewhere in the log: it is withheld whole rather\nthan given with a hole.",
+          "type": "string",
+          "const": "diverged"
+        }
+      ]
+    },
+    "Rejected": {
+      "description": "A rejected sample.",
+      "type": "object",
+      "properties": {
+        "ratio": {
+          "description": "Its test ratio: the squared innovation over its variance, over [`GATE_SIGMAS`]²; above 1\nis rejected.",
+          "type": "number",
+          "format": "double"
+        },
+        "sensor": {
+          "description": "The sensor.",
+          "$ref": "#/$defs/Sensor"
+        },
+        "time_s": {
+          "description": "When, s on the log's clock.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "sensor",
+        "time_s",
+        "ratio"
+      ]
+    },
+    "Sensor": {
+      "description": "The sensors.",
+      "oneOf": [
+        {
+          "description": "The barometer's height track.",
+          "type": "string",
+          "const": "barometer"
+        },
+        {
+          "description": "The axial accelerometer.",
+          "type": "string",
+          "const": "accelerometer"
+        },
+        {
+          "description": "The GNSS receiver's altitude.",
+          "type": "string",
+          "const": "gnss"
+        }
+      ]
+    },
+    "SensorHealth": {
+      "description": "How one sensor fared.",
+      "type": "object",
+      "properties": {
+        "inside_gate_share": {
+          "description": "The share of the samples tested that the gate passed; `None` if none was tested.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "largest": {
+          "description": "The largest test ratio, where it was.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Largest"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mean_nis": {
+          "description": "The mean normalized innovation squared over the samples fused, `ν²/S`, `S` with one\nsample's own variance as the gate weighs it: about 1 when the sensor's noise is what the\nsmoother takes it to be, below 1 when it takes it as noisier.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "rejected": {
+          "description": "Those rejected by the gate.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "resets": {
+          "description": "How many times the sensor was taken back after [`GATE_RESET_S`] of rejections.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "samples": {
+          "description": "Its samples.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "sensor": {
+          "description": "The sensor.",
+          "$ref": "#/$defs/Sensor"
+        },
+        "unweighed": {
+          "description": "Those not weighed: a GNSS fix before the receiver is trusted, an accelerometer's clipped\nsample or one past apogee, a launch-started log's first two barometer samples.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "used": {
+          "description": "Those fused.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "sensor",
+        "samples",
+        "used",
+        "rejected",
+        "unweighed",
+        "resets"
+      ]
+    },
+    "SmootherOutcome": {
+      "description": "What the smoother made of the log.",
+      "oneOf": [
+        {
+          "description": "Smoothed.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "read"
+            }
+          },
+          "$ref": "#/$defs/SmootherReading",
+          "required": [
+            "status"
+          ]
+        },
+        {
+          "description": "Not smoothed.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "withheld"
+            }
+          },
+          "$ref": "#/$defs/Withheld",
+          "required": [
+            "status"
+          ]
+        }
+      ]
+    },
+    "SmootherReading": {
+      "description": "The smoothed flight at apogee and how each sensor fared. The whole track is in Python's\n`FlightLog.smoothed()`.",
+      "type": "object",
+      "properties": {
+        "apogee_height_interval_m": {
+          "description": "Its 90% interval, m: the height ± 1.645 standard errors. It tends wide on the synthetic\nflights, where 94% to 99% of truths lie inside; the reading's own interval is the calibrated\none.",
+          "$ref": "#/$defs/ReadingInterval"
+        },
+        "apogee_height_m": {
+          "description": "The smoothed height there, m above the pad, or on an assumed pad above the readings' zero.",
+          "type": "number",
+          "format": "double"
+        },
+        "apogee_height_sd_m": {
+          "description": "Its standard error, m.",
+          "type": "number",
+          "format": "double"
+        },
+        "apogee_time_s": {
+          "description": "The smoothed apogee: when the smoothed height after liftoff is highest, s on the log's\nclock.",
+          "type": "number",
+          "format": "double"
+        },
+        "card": {
+          "description": "The health card as text, one entry a line.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "health": {
+          "description": "The health card's figures.",
+          "$ref": "#/$defs/Health"
+        },
+        "liftoff": {
+          "description": "Liftoff, as the smoother holds it.",
+          "$ref": "#/$defs/Liftoff"
+        }
+      },
+      "required": [
+        "apogee_time_s",
+        "apogee_height_m",
+        "apogee_height_sd_m",
+        "apogee_height_interval_m",
+        "liftoff",
+        "health",
+        "card"
+      ]
+    },
+    "Span": {
+      "description": "A span over which the barometer was de-weighted.",
+      "type": "object",
+      "properties": {
+        "end_s": {
+          "description": "Its last sample, s.",
+          "type": "number",
+          "format": "double"
+        },
+        "start_s": {
+          "description": "Its first sample, s on the log's clock.",
+          "type": "number",
+          "format": "double"
+        },
+        "why": {
+          "description": "Why.",
+          "$ref": "#/$defs/Deweighted"
+        }
+      },
+      "required": [
+        "start_s",
+        "end_s",
+        "why"
+      ]
+    },
+    "TimelineCell": {
+      "description": "One log's cell in a row.",
+      "oneOf": [
+        {
+          "description": "What the log read.",
+          "type": "object",
+          "properties": {
+            "bound": {
+              "description": "The bound on its error; null where the reading states none.",
+              "type": [
+                "number",
+                "null"
+              ],
+              "format": "double"
+            },
+            "interval": {
+              "description": "Its 90% interval; null where the log's own section holds it.",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ReadingInterval"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "is_floor": {
+              "description": "Whether the true value may lie any amount above it.",
+              "type": "boolean"
+            },
+            "provenance": {
+              "description": "Measured, derived or clipped; null for the smoother's fused apogee.",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ReadingProvenance"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "source": {
+              "description": "The track it came from; null for the smoother's fused apogee.",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ReadingSource"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "status": {
+              "type": "string",
+              "const": "read"
+            },
+            "value": {
+              "description": "The reading.",
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "required": [
+            "status",
+            "value",
+            "is_floor"
+          ]
+        },
+        {
+          "description": "Why it read nothing.",
+          "type": "object",
+          "properties": {
+            "detail": {
+              "description": "The reason in words, with the log's own numbers.",
+              "type": "string"
+            },
+            "status": {
+              "type": "string",
+              "const": "withheld"
+            }
+          },
+          "required": [
+            "status",
+            "detail"
+          ]
+        }
+      ]
+    },
+    "TimelineFlew": {
+      "description": "What the logs on a timeline recorded.",
+      "oneOf": [
+        {
+          "description": "One airframe: each row reports its spread.",
+          "type": "string",
+          "const": "one_airframe"
+        },
+        {
+          "description": "One logger to a stage: no spread, the readings being of different bodies.",
+          "type": "string",
+          "const": "stages"
+        }
+      ]
+    },
+    "TimelineRow": {
+      "description": "One reading across the logs.",
+      "type": "object",
+      "properties": {
+        "cells": {
+          "description": "Each log's, in the order given.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TimelineCell"
+          }
+        },
+        "spread": {
+          "description": "The largest less the least, in the reading's unit: a description, not a check. Null for\nfewer than two logs reading it whole, and for stages.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "what": {
+          "description": "Which reading.",
+          "$ref": "#/$defs/TimelineWhat"
+        }
+      },
+      "required": [
+        "what",
+        "cells"
+      ]
+    },
+    "TimelineWhat": {
+      "description": "A reading on a timeline. Heights are m above each log's own pad, speeds m/s, accelerations\nm/s², times s after each log's liftoff.",
+      "oneOf": [
+        {
+          "description": "Apogee's height.",
+          "type": "string",
+          "const": "apogee_height"
+        },
+        {
+          "description": "Apogee's time.",
+          "type": "string",
+          "const": "apogee_time"
+        },
+        {
+          "description": "The smoother's apogee height.",
+          "type": "string",
+          "const": "smoothed_apogee"
+        },
+        {
+          "description": "The top vertical speed.",
+          "type": "string",
+          "const": "top_speed"
+        },
+        {
+          "description": "The top acceleration.",
+          "type": "string",
+          "const": "top_acceleration"
+        },
+        {
+          "description": "Burnout.",
+          "type": "string",
+          "const": "burnout"
+        },
+        {
+          "description": "The flight time, liftoff to landing.",
+          "type": "string",
+          "const": "flight_time"
+        },
+        {
+          "description": "The rate of descent under the drogue.",
+          "type": "string",
+          "const": "drogue_rate"
+        },
+        {
+          "description": "The main's opening's height.",
+          "type": "string",
+          "const": "main_opening"
+        },
+        {
+          "description": "The rate of descent under the main.",
+          "type": "string",
+          "const": "main_rate"
+        }
+      ]
+    },
+    "Withheld": {
+      "description": "A log that isn't smoothed, and why.",
+      "type": "object",
+      "properties": {
+        "detail": {
+          "description": "The reason in words.",
+          "type": "string"
+        },
+        "reason": {
+          "description": "The reason, as a code.",
+          "$ref": "#/$defs/Reason"
+        }
+      },
+      "required": [
+        "reason",
+        "detail"
+      ]
+    },
+    "WithheldReading": {
+      "description": "Why a reading was withheld.",
+      "type": "object",
+      "properties": {
+        "detail": {
+          "description": "The reason in words, with the log's own numbers.",
+          "type": "string"
+        },
+        "reason": {
+          "description": "The reason, as a code.",
+          "$ref": "#/$defs/WithheldReason"
+        }
+      },
+      "required": [
+        "reason",
+        "detail"
+      ]
+    },
+    "WithheldReason": {
+      "description": "The reason a reading was withheld.",
+      "oneOf": [
+        {
+          "description": "The height track has fewer than three samples.",
+          "type": "string",
+          "const": "too_short"
+        },
+        {
+          "description": "The track never climbs 3 m above the pad, or the liftoff allowance and a step if that is\nhigher; or, for landing, falls too little past its step and noise to time the descent.",
+          "type": "string",
+          "const": "no_climb"
+        },
+        {
+          "description": "A track whose heights are above the pad only by a mapping's or a column's word starts\nmore than 19.9 m from its zero, more than the weather and the noise move a zero in an hour\non the pad: the log didn't start on the pad, or its heights aren't above the pad, as an\naltitude above sea level mapped as one above the ground reads.",
+          "type": "string",
+          "const": "starts_off_the_pad"
+        },
+        {
+          "description": "The log ends before the rocket is seen to land.",
+          "type": "string",
+          "const": "ends_before_landing"
+        },
+        {
+          "description": "The track reaches the ground sooner than a fall from rest at apogee in vacuum could.",
+          "type": "string",
+          "const": "faster_than_free_fall"
+        },
+        {
+          "description": "The top speed is above 4,000 m/s.",
+          "type": "string",
+          "const": "implausible_speed"
+        },
+        {
+          "description": "The climb's speed swings negative by more than 20% of its top.",
+          "type": "string",
+          "const": "noisy_speed"
+        },
+        {
+          "description": "The log has no accelerometer.",
+          "type": "string",
+          "const": "no_accelerometer"
+        },
+        {
+          "description": "The reading needs another, which was withheld.",
+          "type": "string",
+          "const": "needs"
+        },
+        {
+          "description": "The record breaks what every reader guarantees; only a record built by hand can.",
+          "type": "string",
+          "const": "bad_record"
+        },
+        {
+          "description": "The samples come more often than 500 a second, faster than the bounds were checked at.",
+          "type": "string",
+          "const": "sampled_too_fast"
+        },
+        {
+          "description": "The log holds no altitude, pressure or GNSS track.",
+          "type": "string",
+          "const": "no_height_track"
+        },
+        {
+          "description": "The log's only height doesn't say whether a barometer or a GNSS receiver measured it.",
+          "type": "string",
+          "const": "unstated_sensor"
+        },
+        {
+          "description": "The track is sampled more slowly than the readings were checked at, 2 s between samples,\nor, for the top speed, too slowly for its fit.",
+          "type": "string",
+          "const": "sampled_too_slowly"
+        },
+        {
+          "description": "The track moves in steps coarser than the readings were checked at: 10 m, or 100 Pa.",
+          "type": "string",
+          "const": "step_too_coarse"
+        },
+        {
+          "description": "The climb reaches Mach 0.8 in the coldest air the bounds allow, where the barometer's port\nmay read the transonic flow over the nose.",
+          "type": "string",
+          "const": "transonic"
+        },
+        {
+          "description": "The only height is a GNSS receiver's, whose filter lags a climb and overshoots its top.",
+          "type": "string",
+          "const": "receiver_lag"
+        },
+        {
+          "description": "The only height is a GNSS receiver's, whose fix drops out or lags at liftoff.",
+          "type": "string",
+          "const": "receiver_dropout"
+        },
+        {
+          "description": "The track loses no more than its noise and step in the 4 s before its top: its clock is\nin another unit, such as milliseconds read as seconds, its top isn't a coast's, or it\nisn't a height.",
+          "type": "string",
+          "const": "slower_than_free_coast"
+        },
+        {
+          "description": "The log's first samples can't rule out a rocket already more than 2 m up when it starts:\nit starts after liftoff, as a logger that records from launch writes its zero and then the\nclimb, or holds too little of the pad to tell liftoff by. A track above the logger's own\nzero, or one a mapping or a header calls above the ground, still gives its heights from\nthat zero, with the zero's possible error in their bounds.",
+          "type": "string",
+          "const": "short_pad"
+        },
+        {
+          "description": "The height track's clock doesn't increase, so no time can be read off it.",
+          "type": "string",
+          "const": "clock_out_of_order"
+        },
+        {
+          "description": "The track falls past its noise and step below a peak in the 4 s before its top, then\nclimbs to it: a coast doesn't, and a disturbance after apogee, such as a deployment's, does,\nso which is the apogee can't be told.",
+          "type": "string",
+          "const": "disturbed_top"
+        },
+        {
+          "description": "The log's accelerometers don't say which lies along the rocket's axis, such as a board's\nthree axes: the top acceleration and a burnout from the accelerometer need the axial one.",
+          "type": "string",
+          "const": "axis_unstated"
+        },
+        {
+          "description": "The axial accelerometer's readings may or may not hold gravity's 1 g, and none of its\nfamily, its pad and its coast to apogee settles which, or they disagree.",
+          "type": "string",
+          "const": "gravity_unstated"
+        },
+        {
+          "description": "Which way up the axial accelerometer reads isn't settled, or it shows no thrust. Of its\nthree witnesses, each on the trace as written, none says or two disagree: the pad (about\n1 g nose up, about −1 g nose down), the coast to apogee (−0.75 g or less nose up, 0.75 g\nor more nose down) and the thrust (its first span past 2 g to hold there for 0.5 s,\nunless a span the other way comes first). Or, turned as they settle and gravity put back,\nit never reads past 2 g from liftoff's earliest time to apogee.",
+          "type": "string",
+          "const": "direction_unstated"
+        },
+        {
+          "description": "The descent shows no drogue's leg: at the ground's density its rate never passes the\nmain's mark, 1.6 times its rate near the ground or 3 m/s more if that is more, in the 2 s\nbefore the main's leg, or the descent before that leg isn't, on median, 1.4 times that\nrate. The rocket came down under one canopy, or under a drogue no faster than the mark,\nwhich reads as one: the main's descent is then the whole descent's, from apogee. There is\nno drogue's.",
+          "type": "string",
+          "const": "one_canopy"
+        },
+        {
+          "description": "A leg of the descent loses too little height, under 3 m or a tenth of its top's height,\nfor its rate to be read.",
+          "type": "string",
+          "const": "short_leg"
+        },
+        {
+          "description": "A reason this build of `hpr` doesn't name.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    }
+  }
+}

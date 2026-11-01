@@ -387,6 +387,54 @@ was assumed, as on a log that starts at launch, or the accelerometer set aside. 
 of you, though the track then rests on less. If it says the smoothed apogee is past the reading's
 bound, go by the reading.
 
+## Two logs of one flight
+
+Fly two altimeters and you have two logs, each counting from a zero of its own: when the board was
+switched on, or when it saw the boost. Give `hpr analyze` both and it puts them on one timeline:
+
+```bash
+hpr analyze one.csv two.csv
+```
+
+It lines the clocks up by a shared liftoff: every board in a rocket leaves the pad at the same
+instant, so the time from one log's liftoff to the other's is the offset between their clocks. Each
+log keeps its own readings. They are never averaged, because two boards are two measurements, and
+each reading's spread, the largest less the least, says how far apart they lie, not which is right.
+Two boards can agree and both be off by the day's air. A log that ends on the climb gives floors for
+its top height and top speed, each without an interval, and a floor joins no spread. Nothing checks
+that the two logs are of one flight: that's your word.
+
+The offset's bound is the sum of the two liftoffs' bounds, and it held on every one of the 1,383
+offsets the [two-logger synthetic flights](physics/synthetic-flights.md#two-loggers-and-stages)
+gave, the largest error 0.21 s and the median 0.03 s. Its 90% interval passed the same test as the
+readings' ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/two-logs.md)).
+
+One real flight checks it against another clock, though not hard
+([evidence row G35](evidence.md#g35)). [RocketPy](https://github.com/RocketPy-Team/RocketPy)'s
+Prometheus flight carried a TeleMetrum and a TeleMega, each with its own GPS receiver:
+
+| Reading | TeleMetrum | TeleMega | Spread |
+|---|--:|--:|--:|
+| Apogee, above its own pad | 3,892.1 m (12,769 ft) | 3,894.7 m (12,778 ft) | 2.6 m (9 ft) |
+| Smoothed apogee | 3,985.7 m (13,076 ft) | 4,015.4 m (13,174 ft) | 29.7 m (98 ft) |
+| Flight time | 223.01 s | 222.83 s | 0.18 s |
+| Under the drogue | 26.5 m/s (87 ft/s) | 26.5 m/s (87 ft/s) | 0.0 m/s (0 ft/s) |
+| Under the main | 6.5 m/s (21 ft/s) | 6.5 m/s (21 ft/s) | 0.0 m/s (0 ft/s) |
+
+Their liftoffs read 0.23 s and 0.18 s, each on its own clock. The TeleMega's clock less the
+TeleMetrum's comes to −0.05 s, within 1.53 s, 90% interval −0.13 to 0.04 s. The two receivers' UTC
+seconds, taken where each second ticks in each log, put it at −0.13 s: the ticks stay within about
+0.02 s of that where the logs run at 100 samples a second, and any fixed difference between the
+receivers' delays can't be seen. So this offset is about 0.08 s away, and the interval's low end, −0.129 s
+unrounded, is too close to that figure to say which side it falls. Both logs start at the boost, so
+their clocks hardly differ: an offset of zero would miss by 0.13 s, against this offset's 0.08 s.
+That's one flight: it can't show whether the interval holds nine times in ten, and it says nothing
+of clocks that differ by minutes, as the synthetic flights' do.
+
+`--stages` lays out one logger to a stage the same way, each leaving the pad with the stack, and
+gives no spread, a booster's apogee and a sustainer's being different heights. It has been checked
+only on simulated two-stage flights ([evidence row G36](evidence.md#g36)).
+
 ## What it doesn't do yet
 
 - Read a format no sample holds yet, such as a CATS flight computer's
@@ -406,6 +454,9 @@ bound, go by the reading.
   ([#780](https://github.com/nrdptel/fusionspace-eridanus/issues/780)).
 - Take a reading from a GPS track: a receiver's altitude lags the climb, so no bound can be
   stated for it.
+- Put a GPS track on a timeline with an altimeter's log, or take a log read by a mapping into a
+  pair, or read a pair from Python ([#1086](https://github.com/nrdptel/fusionspace-eridanus/issues/1086),
+  [#1085](https://github.com/nrdptel/fusionspace-eridanus/issues/1085)).
 - Compare a flight with its simulation
   ([the planned comparison](decisions-and-roadmap.md#m7-3)).
 - Check the heights near the speed of sound. It withholds the top speed from 227.7 m/s

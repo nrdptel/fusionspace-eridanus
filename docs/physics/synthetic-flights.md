@@ -133,6 +133,28 @@ mean of its samples on the pad. The RRC3 uses the NOAA formula instead, as its m
 does ([the height formulas note][heights]). The two differ by about 0.83 m (2.7 ft) in 2 km
 (6,562 ft).
 
+### Two loggers and stages
+
+Four more sets check [two logs on one timeline](log-readings.md#two-logs-on-one-timeline). None
+joins the census:
+
+| Set | Flights | What it flies |
+|---|--:|---|
+| Two-logger calibration | 2,000 | drawn as the calibration set is, to fit the offset's 90% interval |
+| Two-logger A | 1,000 | set A's model |
+| Two-logger B | 1,000 | set B's model |
+| Staged | 200 | the design `synthetic-two-stage-75mm-54mm`, a logger in each stage |
+
+Each flight carries two loggers, drawn independently from the table above, their noise on streams
+of their own, and each log's clock moved by up to 300 s either way, as a board's is by when it was
+switched on. A flight's truth says where each clock stood, so an offset can be held to it.
+
+A staged flight's booster burns out, the stack parts 0.5 s later and the sustainer lights 0.5 s
+after that. The sustainer comes down under a canopy. The booster tumbles from the split, as HPR Sim
+flies one: a point mass with its tumble's drag ([staging](staging.md)). Its truth is that descent on the same
+0.01 s grid, from the integrator's dense output, so these flights say how well two stages' liftoffs line their clocks up, not
+how well a booster's fall is modeled.
+
 ## The noise, term by term
 
 ### The pressure

@@ -10,7 +10,9 @@ withholds one instead of guessing.
   climb, and landing. The rest are the flight time, the mean rate of descent, and each canopy's
   descent rate with the main's opening. They come from any logger's height track. The logger's own barometric altitude
   will do. So will a pressure turned into a height by the 1976 standard atmosphere, or an altitude
-  kept in a column of its own. An accelerometer along the rocket's axis adds the top acceleration
+  kept in a column of its own. Two logs of one flight
+  [go on one timeline](#two-logs-on-one-timeline). An accelerometer along the rocket's axis adds the
+  top acceleration
   and burnout. Without one, burnout is a [floor](../glossary.md#floor): the top speed's time less
   its bound. Each reading states a bound on its error and where it came from, or is **withheld**
   with one of 27 reasons. It never guesses. A GNSS (GPS) height gives no reading.
@@ -1061,6 +1063,51 @@ back to the top speed's time, and carries the top speed's reason where that is w
 
 An apogee within half a window of the log's end is read, but marked `is_floor`: the log may have
 stopped before the rocket did.
+
+## Two logs on one timeline
+
+Each logger counts from a zero of its own, so two logs of one flight need their clocks lined up
+before they can be read together. Every board in a stack leaves the pad at the same instant, so each
+log's liftoff reading is the same moment on its own clock, the method
+[Debrief](https://github.com/nrdptel/fusionspace-debrief) used (MIT; [its reasoning and the rules it
+measured and deleted](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/debrief-flight-readings.md#two-recordings-of-one-flight)). The
+offset is the second's liftoff less the first's:
+
+$$\Delta t = t_{2} - t_{1}, \qquad B_{\Delta t} = B_{1} + B_{2},$$
+
+with $t_{i}$ each log's [liftoff](#the-method) and $B_{i}$ its bound. $B_{\Delta t}$ is the most the
+two errors can add to. Its 90% interval runs from $\Delta t - 0.0515\,B_{\Delta t}$ to
+$\Delta t + 0.0526\,B_{\Delta t}$, the two shares the 5% and 95% points of the error over the bound on
+two-logger flights of their own ([ADR-257, calibrated intervals,](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md)
+§1, and [ADR-312, two logs on one timeline](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0312-two-logs-on-one-timeline.md)).
+
+**A worked example, RocketPy's Prometheus flight.** The TeleMetrum reads liftoff at 0.23 s within
+0.71 s, the TeleMega at 0.18 s within 0.83 s. So $\Delta t$ = 0.18 − 0.23 = −0.05 s, within about
+1.53 s (the command adds the unrounded bounds). The interval is −0.05 − 0.0515 × 1.53 = −0.13 s to
+−0.05 + 0.0526 × 1.53 = 0.03 s; the command, from the unrounded figures, prints −0.13 to 0.04 s. Each
+receiver's UTC second, taken where it ticks in its log, puts the TeleMega's clock less the
+TeleMetrum's at −0.13 s. Over all 238 paired ticks that scatters from −0.24 to −0.03 s, and over the
+72 at 100 samples a second from −0.15 to −0.11 s. A fixed difference between the receivers' delays
+can't be seen. So this offset is about 0.08 s away, and the interval's low end, −0.129 s, is too close
+to that figure to say which side it falls. Both logs start at the boost, so an offset of zero would
+miss by 0.13 s, against this offset's 0.08 s: a weak check, and one flight can't show the interval's
+coverage.
+
+**Checked against.** On two-logger synthetic flights
+([their sets](synthetic-flights.md#two-loggers-and-stages)), every one of the 1,383 offsets given
+stayed within its bound, by 0.13 of it at most, the error's median 0.03 s and its largest 0.21 s. A
+log with no barometer gives no liftoff, so its flight gives no offset: 617 of the 2,000. On the
+two-logger sets A and B the interval held the truth 622 of 703 and 612 of 680 times, passing
+[the coverage test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md), and narrowed to 0.8, widened to 1.25 and shifted down it fails. All 135 offsets the 200
+staged flights gave stayed within their bounds; there the interval missed none, so it is wider than
+it need be on those flights ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/two-logs.md)).
+
+**What it leaves out.** One number per pair: a clock running fast or slow isn't corrected, by about
+15 ms over a 300 s flight at a crystal's 50 ppm. A board that wakes late or a log cut before liftoff
+has no liftoff to line up by. Nothing checks that the logs are of one flight. Two boards can agree and both be
+off by the same day's air, so the spread says how far apart they lie and no more. On one real pair
+only ([evidence row G35](../evidence.md#g35)), and on no real staged flight
+([evidence row G36](../evidence.md#g36)).
 
 ## Validation and limits
 

@@ -8,6 +8,7 @@ use crate::dynamics::Phase;
 use crate::error::SimError;
 use crate::flight::FlightEvent;
 use crate::metrics::Stability;
+use crate::recovery::BodySample;
 use crate::state::State;
 
 /// The flight's state and the quantities derived from it at one instant.
@@ -202,7 +203,31 @@ pub trait FlightStep {
     fn stability(&self, t_s: f64) -> Result<Stability, SimError>;
 }
 
-/// Watches a flight as it runs. Both methods do nothing by default; `()` watches nothing.
+/// One accepted integration step of a separated body, flown as a point mass.
+pub trait BodyStep {
+    /// When the step starts, s since launch.
+    fn start_s(&self) -> f64;
+
+    /// When the step ends, s since launch.
+    fn end_s(&self) -> f64;
+
+    /// The body at `t_s`, inside the step, from the integrator's dense output.
+    ///
+    /// # Errors
+    ///
+    /// Whatever the atmosphere or the frame returns.
+    fn sample(&self, t_s: f64) -> Result<BodySample, SimError>;
+
+    /// Its acceleration in the launch frame at `t_s`, m/s²: the point mass's equation of motion
+    /// (`docs/physics/recovery.md`).
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::sample`].
+    fn acceleration_enu_m_s2(&self, t_s: f64) -> Result<DVec3, SimError>;
+}
+
+/// Watches a flight as it runs. Every method does nothing by default; `()` watches nothing.
 pub trait Observer {
     /// Sees every accepted integration step, in order.
     ///
@@ -218,6 +243,17 @@ pub trait Observer {
     fn event(&mut self, event: &FlightEvent) {
         let _ = event;
     }
+
+    /// Sees every accepted integration step of a separated body's flight to the ground, in order,
+    /// the body numbered as [`crate::BodyFlight::body`] is.
+    ///
+    /// # Errors
+    ///
+    /// An error stops the flight and is returned from it.
+    fn body_step(&mut self, body: usize, step: &dyn BodyStep) -> Result<(), SimError> {
+        let _ = (body, step);
+        Ok(())
+    }
 }
 
 impl Observer for () {}
@@ -231,6 +267,10 @@ impl<T: Observer + ?Sized> Observer for &mut T {
     fn event(&mut self, event: &FlightEvent) {
         (**self).event(event);
     }
+
+    fn body_step(&mut self, body: usize, step: &dyn BodyStep) -> Result<(), SimError> {
+        (**self).body_step(body, step)
+    }
 }
 
 /// Two observers watch one flight: each sees every step and event, the first before the second.
@@ -243,6 +283,11 @@ impl<A: Observer, B: Observer> Observer for (A, B) {
     fn event(&mut self, event: &FlightEvent) {
         self.0.event(event);
         self.1.event(event);
+    }
+
+    fn body_step(&mut self, body: usize, step: &dyn BodyStep) -> Result<(), SimError> {
+        self.0.body_step(body, step)?;
+        self.1.body_step(body, step)
     }
 }
 

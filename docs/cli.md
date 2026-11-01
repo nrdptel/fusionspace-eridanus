@@ -285,7 +285,7 @@ only the files each command really reads. "Not yet" commands exit with [status 3
 | `hpr mc` | Fly a design many times with its inputs scattered at random, and print how its apogee and landing spread; save every flight with `--export` | what `hpr sim` reads: a design and its motor | text, JSON, every flight's draw and outcome as `.csv` | available ([how to use it](cli.md#hpr-mc)) |
 | `hpr optimize` | Search a design's parameters for a goal | - | - | not yet: [M6.3](decisions-and-roadmap.md#m6-3) |
 | `hpr compare` | Compare a flight log with its simulation | - | - | not yet: [M7.3](decisions-and-roadmap.md#m7-3) |
-| `hpr analyze` | Read a flight log and print its readings, with no design file | a flight log in any layout HPR Sim reads, by its own reader, a workbook's sheet or a raw dump's recording, as chosen, another logger's table by a column mapping, binary records or a console capture by a record layout, a Raven FIP export below no header, by the header stated | text, JSON | available ([how to use it](cli.md#hpr-analyze)) |
+| `hpr analyze` | Read a flight log and print its readings, with no design file | a flight log in any layout HPR Sim reads, by its own reader, more logs of one flight, side by side on one timeline, a workbook's sheet or a raw dump's recording, as chosen, another logger's table by a column mapping, binary records or a console capture by a record layout, a Raven FIP export below no header, by the header stated | text, JSON | available ([how to use it](cli.md#hpr-analyze)) |
 | `hpr diagnose` | Diagnose what went wrong in a flight from its log | - | - | not yet: [M7.4](decisions-and-roadmap.md#m7-4) |
 | `hpr completions` | Print a shell completion script for `hpr` | - | a bash, elvish, fish, powershell or zsh script, JSON | available ([how to use it](cli.md#hpr-completions)) |
 
@@ -2018,6 +2018,102 @@ note: read from the sheet "Second" of an Excel workbook, its cells as stored
 
 <!-- cli: end -->
 
+#### Two logs of one flight
+
+Give `hpr analyze` more than one log of a flight, each in a format it reads by itself, and it puts
+them on one timeline and reads them side by side. Each altimeter counts from a zero of its own. The clocks are lined up by each log's liftoff, the logs' readings are never
+averaged, and each reading's spread says how far apart they lie, not which is right. A log with no
+liftoff, such as a GPS track, says so and sits on no timeline
+([#1086](https://github.com/nrdptel/fusionspace-eridanus/issues/1086)). A log read by `--mapping` or
+another of the options that name one file can't be one of them yet
+([#1085](https://github.com/nrdptel/fusionspace-eridanus/issues/1085)). `--stages` says that the
+logs are one logger to a stage, of a stack that left the pad together; it gives no spread, a
+booster's readings and a sustainer's being of different bodies.
+
+These two logs are invented, their clocks 53.5 s apart ([Reading a flight
+log](reading-a-flight-log.md#two-logs-of-one-flight) has a real pair). "Within" is a bound: no
+reading's error passed it on the synthetic flights, and the clock offset's came to 0.13 of it at
+most. The 90% interval is where the truth lay nine times in ten, and it needn't hold the reading:
+liftoff is read late, so its interval lies earlier, and the flight time reads short, so its interval
+lies later
+([the 90% intervals](reading-a-flight-log.md#the-90-intervals-and-the-health-card)). `unknown` is the
+logger's name, which these two tables don't state. A staged flight's logs take the same arguments
+and `--stages`: `hpr analyze sustainer.csv booster.csv --stages`.
+
+<!-- cli: example `hpr analyze validation/fixtures/logs/two-logs/first-board.csv validation/fixtures/logs/two-logs/second-board.csv`; written by `cargo xtask cli`; do not edit -->
+
+```text,wrap
+$ hpr analyze validation/fixtures/logs/two-logs/first-board.csv validation/fixtures/logs/two-logs/second-board.csv
+2 logs of one flight on one timeline, by a shared liftoff: read side by side, never averaged
+log 1  first-board.csv: unknown
+       readings from the barometric altitude channel
+       liftoff 41.20 s on its clock, within 0.76 s, 90% interval 40.83 to 41.05 s
+log 2  second-board.csv: unknown
+       readings from the barometric altitude channel
+       liftoff -12.30 s on its clock, within 0.86 s, 90% interval -12.72 to -12.47 s
+
+log 2's clock less log 1's: -53.50 s, within 1.61 s, 90% interval -53.59 to -53.41 s
+
+apogee, above each log's own pad
+  log 1  989.8 m (3247 ft), within 74.6 m (245 ft), 90% interval 942.3 to 1036.8 m (3091 to 3402 ft)
+  log 2  1001.3 m (3285 ft), within 75.4 m (248 ft), 90% interval 953.2 to 1048.8 m (3127 to 3441 ft)
+  spread 11.5 m (38 ft)
+
+apogee's time, after each log's liftoff
+  log 1  10.72 s, within 1.60 s
+  log 2  10.65 s, within 1.75 s
+  spread 0.07 s
+
+smoothed apogee
+  log 1  988.8 m (3244 ft), 90% interval 936.9 to 1040.7 m (3074 to 3415 ft)
+  log 2  1000.8 m (3283 ft), 90% interval 948.3 to 1053.3 m (3111 to 3456 ft)
+  spread 12.0 m (39 ft)
+
+top speed
+  log 1  176.4 m/s (579 ft/s), within 51.2 m/s (168 ft/s), 90% interval 162.8 to 187.5 m/s (534 to 615 ft/s)
+  log 2  177.6 m/s (583 ft/s), within 41.2 m/s (135 ft/s), 90% interval 166.7 to 186.5 m/s (546 to 612 ft/s)
+  spread 1.2 m/s (4 ft/s)
+
+top acceleration
+  log 1  withheld: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
+  log 2  withheld: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
+
+burnout, after each log's liftoff
+  log 1  1.90 s, within 2.08 s, a floor: the true value may lie any amount above it
+  log 2  2.00 s, within 2.23 s, a floor: the true value may lie any amount above it
+
+flight time
+  log 1  61.70 s, within 1.37 s, 90% interval 61.88 to 62.22 s
+  log 2  61.70 s, within 1.56 s, 90% interval 61.90 to 62.30 s
+  spread 0.00 s
+
+drogue descent
+  log 1  withheld: the descent shows no drogue's leg, which at the ground's density falls faster than 30.8 m/s up to the main's opening. That mark is 1.6 times the rate near the ground, 19.3 m/s, or 3 m/s more if that is more. A drogue's leg would also fall on median faster than 1.4 times the rate near the ground. So the rocket came down under one canopy, or under a drogue no faster than the mark, which reads as one. The main's descent is then the whole descent's, from apogee
+  log 2  withheld: the descent shows no drogue's leg, which at the ground's density falls faster than 31.1 m/s up to the main's opening. That mark is 1.6 times the rate near the ground, 19.5 m/s, or 3 m/s more if that is more. A drogue's leg would also fall on median faster than 1.4 times the rate near the ground. So the rocket came down under one canopy, or under a drogue no faster than the mark, which reads as one. The main's descent is then the whole descent's, from apogee
+
+main's opening, above each log's own pad
+  log 1  withheld: the descent shows one canopy
+  log 2  withheld: the descent shows one canopy
+
+main descent
+  log 1  19.4 m/s (64 ft/s), within 1.6 m/s (6 ft/s), 90% interval 18.4 to 20.3 m/s (60 to 67 ft/s)
+  log 2  19.6 m/s (64 ft/s), within 1.6 m/s (6 ft/s), 90% interval 18.6 to 20.5 m/s (61 to 68 ft/s)
+  spread 0.2 m/s (1 ft/s)
+
+How far to trust it. Measured by the loggers, read by HPR Sim from their logs, not simulated, and
+never averaged. A spread says how far apart the logs lie, not which is right: two boards can agree
+and both be off by the day's air. The clocks are lined up by each log's liftoff; that the logs are
+of one flight is your word, not checked. Each reading states the bound its error stayed within on
+HPR Sim's synthetic flights. They cover rates from 500 to 0.5 samples a second, steps up to 10 m or
+100 Pa, and air within 15 K of standard. A reading the log can't support is withheld, with the
+reason. The top speed is derived from the heights, and withheld from Mach 0.8, where a barometer's
+port may read the flow over the nose. For a record or a certification, the altimeter's own reading
+is the one to log, and the RSO decides.
+More: https://hpr.fusionspace.co/reading-a-flight-log.html
+```
+
+<!-- cli: end -->
+
 #### A logger of your own
 
 A logger of your own is read by a file you write for it, each JSON with a schema
@@ -2272,6 +2368,7 @@ describes its fields and units:
 | `hpr motors search` | [`motors-search.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/motors-search.schema.json) |
 | `hpr convert` | [`convert.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/convert.schema.json) |
 | `hpr analyze` | [`analyze.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/analyze.schema.json) |
+| `hpr analyze` with more than one log | [`analyze-together.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/analyze-together.schema.json) |
 | `hpr analyze --record` | [`analyze-record.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/analyze-record.schema.json) |
 | `hpr weather` | [`weather.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/weather.schema.json) |
 | `hpr completions` | [`completions.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/completions.schema.json) |

@@ -470,9 +470,10 @@ These are left out of a flight, or approximated:
   rocket's axis they also give the top acceleration and burnout. Burnout and each leg of the
   descent came with [the rest of the readings](decisions-and-roadmap.md#m7-2c). Each reading comes
   within a stated bound, or is withheld with the reason the log can't support it
-  ([Reading a flight log](reading-a-flight-log.md)). A GPS track gives no reading, a board's three
-  axes give no top acceleration, and its text states no 90% interval yet (its JSON carries the
-  twelve the library states). Like `hpr weather` and
+  ([Reading a flight log](reading-a-flight-log.md)). A GPS track gives no reading, and a board's
+  three axes give no top acceleration. Two logs of one flight, or one logger to a stage, go on one
+  timeline by a shared liftoff and read side by side, never averaged
+  ([two logs of one flight](reading-a-flight-log.md#two-logs-of-one-flight)). Like `hpr weather` and
   `hpr motors show`, it ends with how far to trust its figures
   ([units and trust notes on every readout](decisions-and-roadmap.md#m0-9c4)).
 

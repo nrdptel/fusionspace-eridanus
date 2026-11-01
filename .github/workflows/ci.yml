@@ -214,6 +214,9 @@ jobs:
       # set runs in full on every platform, on one line each, which a test in xtask holds
       # (`synthetic::tests`). The optimized build shares each job's rust-cache entry.
       - run: cargo run --locked --quiet --package xtask --profile report-check -- synthetic --check --sets tuning,a
+      # The clock offset between two logs of one flight (M7.2f, ADR-312): held on two-logger and
+      # staged synthetic flights, on seeds of their own, to the committed report.
+      - run: cargo run --locked --quiet --package xtask --profile report-check -- two-logs --check
       # The motor catalog (M5.7c, ADR-304): the index is what the snapshot's committed files
       # write, every file stored as passing is within 1% of its record, worked out again from its
       # bytes, and none stored as failing is, and every motor flies by name offline.

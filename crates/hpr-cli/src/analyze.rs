@@ -16,8 +16,13 @@
 //! edit, and `--record` prints the record a log reads into, every channel, in place of the
 //! readings.
 //!
+//! Given more logs of the same flight, it lays them on one timeline by a shared liftoff and reads
+//! them side by side, never averaged (`hpr_flightdata::timeline`, the module `together`).
+//!
 //! [adr-300]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0300-the-smoother-and-its-check.md
 //! [adr-276]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0276-the-2026-10-16-own-loggers-and-gpx-in-the-analyzer.md
+
+mod together;
 
 use std::path::Path;
 
@@ -58,6 +63,18 @@ pub struct AnalyzeArgs {
     /// The flight log: a file in any format HPR Sim reads, or another logger's file read by
     /// --mapping or --layout
     pub log: String,
+    /// More logs of the same flight, each read by its format's own reader. All go on one timeline
+    /// by a shared liftoff. They are read side by side and never averaged
+    #[arg(
+        value_name = "MORE_LOGS",
+        num_args = 0..=7,
+        conflicts_with_all = ["mapping", "layout", "sheet", "recording", "fip_header", "print_mapping", "record"]
+    )]
+    pub with: Vec<String>,
+    /// The logs are of a staged flight, one logger to a stage, all leaving the pad together. No
+    /// spread is reported: their readings are of different bodies
+    #[arg(long, requires = "with")]
+    pub stages: bool,
     /// Read the log as a table, by this column mapping: a JSON file, as --print-mapping prints
     /// one (schema/cli/analyze-mapping.schema.json)
     #[arg(long, value_name = "FILE", conflicts_with = "layout")]
@@ -104,6 +121,9 @@ pub struct AnalyzeArgs {
 pub(crate) fn run(args: &AnalyzeArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     if args.print_mapping {
         return print_mapping(args, to);
+    }
+    if !args.with.is_empty() {
+        return together::run(args, to);
     }
     let log = read_log(args)?;
     if args.record {
@@ -1017,6 +1037,8 @@ mod tests {
         let log = hpr::hpr_flightdata::perfectflite::read(text).unwrap();
         let args = AnalyzeArgs {
             log: "synthetic-pnut.pf2".to_owned(),
+            with: Vec::new(),
+            stages: false,
             mapping: None,
             layout: None,
             sheet: None,

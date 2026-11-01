@@ -80,6 +80,7 @@ mod site;
 mod spelling;
 mod steps;
 mod synthetic;
+mod two_logs;
 mod validate;
 mod voice;
 mod wasm_check;
@@ -119,6 +120,7 @@ Commands:
 {FIXTURE_FLIGHTS}
 {LOGS}
 {SYNTHETIC}
+{TWO_LOGS}
 {REAL_FLIGHTS}
 {RECORDS}
 {ROADMAP_CURRENT}
@@ -154,6 +156,7 @@ fn usage() -> String {
         .replace("{FIXTURE_FLIGHTS}", fixture_flights::USAGE)
         .replace("{LOGS}", logs::USAGE)
         .replace("{SYNTHETIC}", synthetic::USAGE)
+        .replace("{TWO_LOGS}", two_logs::USAGE)
         .replace("{REAL_FLIGHTS}", real_flights::USAGE)
         .replace("{RECORDS}", records::USAGE)
         .replace("{ROADMAP_CURRENT}", roadmap::CURRENT_USAGE)
@@ -192,6 +195,7 @@ fn main() -> ExitCode {
         Some("real-flights") => real_flights::run(&args.collect::<Vec<_>>()),
         Some("logs") => logs::run(&args.collect::<Vec<_>>()),
         Some("synthetic") => synthetic::run(&args.collect::<Vec<_>>()),
+        Some("two-logs") => two_logs::run(&args.collect::<Vec<_>>()),
         Some("records") => records::run(&args.collect::<Vec<_>>()),
         Some("roadmap-current") => roadmap::run_current(&args.collect::<Vec<_>>()),
         Some("motor-catalog") => motor_catalog::run(&args.collect::<Vec<_>>()),

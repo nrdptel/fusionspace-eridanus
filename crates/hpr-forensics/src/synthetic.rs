@@ -35,6 +35,7 @@ pub mod held;
 pub mod intervals;
 pub mod logger;
 pub mod noise;
+pub mod paired;
 pub mod smoothed;
 pub mod truth;
 
@@ -70,6 +71,16 @@ pub enum Set {
     ///
     /// [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
     Calibration,
+    /// 2,000 flights drawn as the calibration set's are, each with two loggers and clocks of
+    /// their own, to fit the clock offset's interval ([`paired`]). Not in [`Set::ALL`], as none of
+    /// the sets below is: the census doesn't fly them.
+    PairCalibration,
+    /// 1,000 flights of HPR Sim's model, each with two loggers and clocks of their own.
+    PairA,
+    /// 1,000 flights of the model set B flies, each with two loggers and clocks of their own.
+    PairB,
+    /// 200 flights of the two-stage design, a logger in each stage ([`paired::Staged`]).
+    Staged,
 }
 
 impl Set {
@@ -88,6 +99,10 @@ impl Set {
             Self::A => 2_026_101_701,
             Self::B => 2_026_101_702,
             Self::Calibration => 2_026_102_900,
+            Self::PairCalibration => 2_026_103_100,
+            Self::PairA => 2_026_103_101,
+            Self::PairB => 2_026_103_102,
+            Self::Staged => 2_026_103_103,
         }
     }
 
@@ -95,8 +110,9 @@ impl Set {
     pub fn count(self) -> u64 {
         match self {
             Self::Tuning => 200,
-            Self::A | Self::B => 1_000,
-            Self::Calibration => 2_000,
+            Self::A | Self::B | Self::PairA | Self::PairB => 1_000,
+            Self::Calibration | Self::PairCalibration => 2_000,
+            Self::Staged => 200,
         }
     }
 
@@ -107,15 +123,19 @@ impl Set {
             Self::A => "a",
             Self::B => "b",
             Self::Calibration => "calibration",
+            Self::PairCalibration => "pair-calibration",
+            Self::PairA => "pair-a",
+            Self::PairB => "pair-b",
+            Self::Staged => "staged",
         }
     }
 
     /// Whether flight `index` draws set B's model.
     fn other_model(self, index: u64) -> bool {
         match self {
-            Self::Tuning | Self::Calibration => index % 2 == 1,
-            Self::A => false,
-            Self::B => true,
+            Self::Tuning | Self::Calibration | Self::PairCalibration => index % 2 == 1,
+            Self::A | Self::PairA | Self::Staged => false,
+            Self::B | Self::PairB => true,
         }
     }
 }
@@ -190,10 +210,13 @@ enum Key {
     Accel = 11,
     Gnss = 12,
     BaroSlow = 13,
+    SecondLogger = 14,
+    Clocks = 15,
 }
 
 /// The key of the stream the smoother's check draws its moment from ([`smoothed::moment_drawn`]):
-/// after every [`Key`], so no flight's other draws move.
+/// after every [`Key`] its sets' flights draw, so no flight's other draws move. [`Key::SecondLogger`]
+/// shares its number; the two-logger sets, which alone draw that key, don't run the smoother's check.
 pub(crate) const SMOOTHER_MOMENT_KEY: u64 = 14;
 
 /// Flight `index`'s stream for `key`.
@@ -375,7 +398,12 @@ mod tests {
 
     #[test]
     fn every_draw_stays_inside_its_range_and_fills_it() {
-        for set in Set::ALL.into_iter().chain([Set::Calibration]) {
+        for set in Set::ALL.into_iter().chain([
+            Set::Calibration,
+            Set::PairCalibration,
+            Set::PairA,
+            Set::PairB,
+        ]) {
             let draws: Vec<Draw> = (0..set.count()).map(|k| draw(set, k)).collect();
             let column = |f: fn(&Draw) -> f64| draws.iter().map(f).collect::<Vec<_>>();
             assert!(fills(&column(|d| d.impulse_scale), 0.94, 1.06), "{set:?}");
@@ -428,9 +456,9 @@ mod tests {
                 .collect();
             let other = |k: usize| others.iter().map(|o| o[k]).collect::<Vec<_>>();
             match set {
-                Set::A => assert!(others.is_empty()),
-                Set::B => assert_eq!(others.len(), draws.len()),
-                Set::Tuning | Set::Calibration => {
+                Set::A | Set::PairA | Set::Staged => assert!(others.is_empty()),
+                Set::B | Set::PairB => assert_eq!(others.len(), draws.len()),
+                Set::Tuning | Set::Calibration | Set::PairCalibration => {
                     let alternate = draws
                         .iter()
                         .all(|d| matches!(d.model, Model::Other { .. }) == (d.index % 2 == 1));

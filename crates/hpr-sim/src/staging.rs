@@ -885,6 +885,65 @@ mod tests {
         (rocket, separations)
     }
 
+    /// Each separated body's steps, as an observer sees them: their ends, each with the body's
+    /// sample and acceleration at the middle of the step.
+    #[derive(Default)]
+    struct BodySteps(Vec<(usize, f64, f64, crate::recovery::BodySample, DVec3)>);
+
+    impl Observer for BodySteps {
+        fn body_step(
+            &mut self,
+            body: usize,
+            step: &dyn crate::recorder::BodyStep,
+        ) -> Result<(), SimError> {
+            let middle = 0.5 * (step.start_s() + step.end_s());
+            self.0.push((
+                body,
+                step.start_s(),
+                step.end_s(),
+                step.sample(middle)?,
+                step.acceleration_enu_m_s2(middle)?,
+            ));
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn an_observer_sees_each_accepted_step_of_a_separated_body_and_changes_no_flight() {
+        let sim = serial_plan();
+        let mut steps = BodySteps::default();
+        let watched = sim.run(&mut steps).unwrap();
+        assert_eq!(watched, sim.run(&mut ()).unwrap());
+        let [booster] = watched.bodies.as_slice() else {
+            panic!("one dropped body: {:?}", watched.bodies);
+        };
+        let seen = &steps.0;
+        assert!(seen.iter().all(|step| step.0 == booster.body));
+        // The integrator's own work on the body: every step accepted, none skipped between its
+        // stops, from where its flight starts to where it ends.
+        assert_eq!(
+            seen.len() as u64,
+            booster.stats.accepted_steps,
+            "{:?}",
+            booster.stats
+        );
+        assert_eq!(seen[0].1, booster.start_sample.time_s);
+        assert!(seen.windows(2).all(|pair| pair[0].2 == pair[1].1));
+        assert_eq!(seen.last().unwrap().2, booster.final_sample.time_s);
+        // The acceleration is the sample's velocity's own rate: across a step, the velocities at
+        // the middles of two neighbors differ by the mean of their accelerations over the time
+        // between them, to the second order of a step well inside the fall.
+        let tall = seen.len() / 2;
+        let (a, b) = (&seen[tall], &seen[tall + 1]);
+        let dt = b.3.time_s - a.3.time_s;
+        let by_difference = (b.3.cg_velocity_enu_m_s - a.3.cg_velocity_enu_m_s) / dt;
+        let by_equation = (a.4 + b.4) * 0.5;
+        assert!(
+            (by_difference - by_equation).length() < 0.01 * by_equation.length().max(1.0),
+            "{by_difference} against {by_equation} over {dt} s"
+        );
+    }
+
     #[test]
     fn two_powered_separations_drop_the_booster_then_the_middle() {
         // Each separation drops the stages behind it as a body of its own, numbered in the order

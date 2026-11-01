@@ -1,0 +1,493 @@
+{
+  "fitted_low": -0.0526,
+  "fitted_high": 0.0515,
+  "calibration_given": 1428,
+  "calibration_withheld": {
+    "receiver_dropout": 572
+  },
+  "sections": [
+    {
+      "set": "pair-a",
+      "seed": 2026103101,
+      "drawn": 1000,
+      "check": {
+        "given": 703,
+        "within_bound": 703,
+        "largest_share": 0.126,
+        "median_error_s": 0.0332,
+        "p90_error_s": 0.0838,
+        "largest_error_s": 0.205,
+        "median_bound_s": 1.57,
+        "withheld": {
+          "receiver_dropout": 297
+        },
+        "by_loggers": {
+          "altos + altos": {
+            "given": 33,
+            "largest_share": 0.0625
+          },
+          "altos + eggtimer": {
+            "given": 71,
+            "largest_share": 0.075
+          },
+          "altos + imu-500hz": {
+            "given": 49,
+            "largest_share": 0.0865
+          },
+          "altos + perfectflite": {
+            "given": 45,
+            "largest_share": 0.126
+          },
+          "altos + rrc3": {
+            "given": 59,
+            "largest_share": 0.0869
+          },
+          "eggtimer + eggtimer": {
+            "given": 27,
+            "largest_share": 0.0651
+          },
+          "eggtimer + imu-500hz": {
+            "given": 44,
+            "largest_share": 0.0643
+          },
+          "eggtimer + perfectflite": {
+            "given": 61,
+            "largest_share": 0.125
+          },
+          "eggtimer + rrc3": {
+            "given": 63,
+            "largest_share": 0.119
+          },
+          "imu-500hz + imu-500hz": {
+            "given": 29,
+            "largest_share": 0.056
+          },
+          "imu-500hz + perfectflite": {
+            "given": 57,
+            "largest_share": 0.0954
+          },
+          "imu-500hz + rrc3": {
+            "given": 59,
+            "largest_share": 0.077
+          },
+          "perfectflite + perfectflite": {
+            "given": 26,
+            "largest_share": 0.0622
+          },
+          "perfectflite + rrc3": {
+            "given": 57,
+            "largest_share": 0.066
+          },
+          "rrc3 + rrc3": {
+            "given": 23,
+            "largest_share": 0.0738
+          }
+        },
+        "test": {
+          "counts": {
+            "given": 703,
+            "below": 43,
+            "inside": 622,
+            "above": 38
+          },
+          "below": {
+            "low": 0.0355,
+            "high": 0.0965
+          },
+          "inside": {
+            "low": 0.84,
+            "high": 0.921
+          },
+          "above": {
+            "low": 0.0301,
+            "high": 0.0878
+          }
+        },
+        "probes": {
+          "narrowed": {
+            "counts": {
+              "given": 703,
+              "below": 76,
+              "inside": 566,
+              "above": 61
+            },
+            "below": {
+              "low": 0.0732,
+              "high": 0.152
+            },
+            "inside": {
+              "low": 0.752,
+              "high": 0.852
+            },
+            "above": {
+              "low": 0.0557,
+              "high": 0.127
+            }
+          },
+          "widened": {
+            "counts": {
+              "given": 703,
+              "below": 15,
+              "inside": 671,
+              "above": 17
+            },
+            "below": {
+              "low": 0.00773,
+              "high": 0.0457
+            },
+            "inside": {
+              "low": 0.923,
+              "high": 0.976
+            },
+            "above": {
+              "low": 0.00944,
+              "high": 0.0496
+            }
+          },
+          "shifted-down": {
+            "counts": {
+              "given": 703,
+              "below": 5,
+              "inside": 517,
+              "above": 181
+            },
+            "below": {
+              "low": 0.000902,
+              "high": 0.0245
+            },
+            "inside": {
+              "low": 0.678,
+              "high": 0.788
+            },
+            "above": {
+              "low": 0.205,
+              "high": 0.315
+            }
+          }
+        }
+      }
+    },
+    {
+      "set": "pair-b",
+      "seed": 2026103102,
+      "drawn": 1000,
+      "check": {
+        "given": 680,
+        "within_bound": 680,
+        "largest_share": 0.123,
+        "median_error_s": 0.0311,
+        "p90_error_s": 0.0834,
+        "largest_error_s": 0.189,
+        "median_bound_s": 1.56,
+        "withheld": {
+          "receiver_dropout": 320
+        },
+        "by_loggers": {
+          "altos + altos": {
+            "given": 24,
+            "largest_share": 0.0838
+          },
+          "altos + eggtimer": {
+            "given": 55,
+            "largest_share": 0.123
+          },
+          "altos + imu-500hz": {
+            "given": 59,
+            "largest_share": 0.0895
+          },
+          "altos + perfectflite": {
+            "given": 48,
+            "largest_share": 0.085
+          },
+          "altos + rrc3": {
+            "given": 52,
+            "largest_share": 0.0827
+          },
+          "eggtimer + eggtimer": {
+            "given": 35,
+            "largest_share": 0.0692
+          },
+          "eggtimer + imu-500hz": {
+            "given": 37,
+            "largest_share": 0.0567
+          },
+          "eggtimer + perfectflite": {
+            "given": 59,
+            "largest_share": 0.0858
+          },
+          "eggtimer + rrc3": {
+            "given": 52,
+            "largest_share": 0.0707
+          },
+          "imu-500hz + imu-500hz": {
+            "given": 28,
+            "largest_share": 0.0542
+          },
+          "imu-500hz + perfectflite": {
+            "given": 65,
+            "largest_share": 0.0885
+          },
+          "imu-500hz + rrc3": {
+            "given": 54,
+            "largest_share": 0.0768
+          },
+          "perfectflite + perfectflite": {
+            "given": 27,
+            "largest_share": 0.075
+          },
+          "perfectflite + rrc3": {
+            "given": 58,
+            "largest_share": 0.103
+          },
+          "rrc3 + rrc3": {
+            "given": 27,
+            "largest_share": 0.0597
+          }
+        },
+        "test": {
+          "counts": {
+            "given": 680,
+            "below": 43,
+            "inside": 612,
+            "above": 25
+          },
+          "below": {
+            "low": 0.0367,
+            "high": 0.0997
+          },
+          "inside": {
+            "low": 0.857,
+            "high": 0.934
+          },
+          "above": {
+            "low": 0.0174,
+            "high": 0.0668
+          }
+        },
+        "probes": {
+          "narrowed": {
+            "counts": {
+              "given": 680,
+              "below": 68,
+              "inside": 564,
+              "above": 48
+            },
+            "below": {
+              "low": 0.066,
+              "high": 0.143
+            },
+            "inside": {
+              "low": 0.778,
+              "high": 0.874
+            },
+            "above": {
+              "low": 0.0424,
+              "high": 0.109
+            }
+          },
+          "widened": {
+            "counts": {
+              "given": 680,
+              "below": 23,
+              "inside": 647,
+              "above": 10
+            },
+            "below": {
+              "low": 0.0154,
+              "high": 0.0629
+            },
+            "inside": {
+              "low": 0.918,
+              "high": 0.974
+            },
+            "above": {
+              "low": 0.00399,
+              "high": 0.0367
+            }
+          },
+          "shifted-down": {
+            "counts": {
+              "given": 680,
+              "below": 7,
+              "inside": 513,
+              "above": 160
+            },
+            "below": {
+              "low": 0.00199,
+              "high": 0.0301
+            },
+            "inside": {
+              "low": 0.697,
+              "high": 0.806
+            },
+            "above": {
+              "low": 0.184,
+              "high": 0.292
+            }
+          }
+        }
+      }
+    }
+  ],
+  "staged": {
+    "set": "staged",
+    "seed": 2026103103,
+    "drawn": 200,
+    "check": {
+      "given": 135,
+      "within_bound": 135,
+      "largest_share": 0.0492,
+      "median_error_s": 0.0237,
+      "p90_error_s": 0.0464,
+      "largest_error_s": 0.0824,
+      "median_bound_s": 1.53,
+      "withheld": {
+        "receiver_dropout": 65
+      },
+      "by_loggers": {
+        "altos + altos": {
+          "given": 5,
+          "largest_share": 0.0492
+        },
+        "altos + eggtimer": {
+          "given": 10,
+          "largest_share": 0.0464
+        },
+        "altos + imu-500hz": {
+          "given": 14,
+          "largest_share": 0.0476
+        },
+        "altos + perfectflite": {
+          "given": 14,
+          "largest_share": 0.031
+        },
+        "altos + rrc3": {
+          "given": 9,
+          "largest_share": 0.0285
+        },
+        "eggtimer + eggtimer": {
+          "given": 9,
+          "largest_share": 0.0214
+        },
+        "eggtimer + imu-500hz": {
+          "given": 6,
+          "largest_share": 0.0274
+        },
+        "eggtimer + perfectflite": {
+          "given": 13,
+          "largest_share": 0.0448
+        },
+        "eggtimer + rrc3": {
+          "given": 12,
+          "largest_share": 0.0481
+        },
+        "imu-500hz + imu-500hz": {
+          "given": 7,
+          "largest_share": 0.0366
+        },
+        "imu-500hz + perfectflite": {
+          "given": 12,
+          "largest_share": 0.0311
+        },
+        "imu-500hz + rrc3": {
+          "given": 4,
+          "largest_share": 0.0223
+        },
+        "perfectflite + perfectflite": {
+          "given": 5,
+          "largest_share": 0.03
+        },
+        "perfectflite + rrc3": {
+          "given": 6,
+          "largest_share": 0.017
+        },
+        "rrc3 + rrc3": {
+          "given": 9,
+          "largest_share": 0.0179
+        }
+      },
+      "test": {
+        "counts": {
+          "given": 135,
+          "below": 0,
+          "inside": 135,
+          "above": 0
+        },
+        "below": {
+          "low": 0.0,
+          "high": 0.0547
+        },
+        "inside": {
+          "low": 0.945,
+          "high": 1.0
+        },
+        "above": {
+          "low": 0.0,
+          "high": 0.0547
+        }
+      },
+      "probes": {
+        "narrowed": {
+          "counts": {
+            "given": 135,
+            "below": 3,
+            "inside": 130,
+            "above": 2
+          },
+          "below": {
+            "low": 0.00112,
+            "high": 0.0991
+          },
+          "inside": {
+            "low": 0.877,
+            "high": 0.995
+          },
+          "above": {
+            "low": 0.000238,
+            "high": 0.086
+          }
+        },
+        "widened": {
+          "counts": {
+            "given": 135,
+            "below": 0,
+            "inside": 135,
+            "above": 0
+          },
+          "below": {
+            "low": 0.0,
+            "high": 0.0547
+          },
+          "inside": {
+            "low": 0.945,
+            "high": 1.0
+          },
+          "above": {
+            "low": 0.0,
+            "high": 0.0547
+          }
+        },
+        "shifted-down": {
+          "counts": {
+            "given": 135,
+            "below": 0,
+            "inside": 114,
+            "above": 21
+          },
+          "below": {
+            "low": 0.0,
+            "high": 0.0547
+          },
+          "inside": {
+            "low": 0.72,
+            "high": 0.93
+          },
+          "above": {
+            "low": 0.0703,
+            "high": 0.28
+          }
+        }
+      }
+    }
+  }
+}

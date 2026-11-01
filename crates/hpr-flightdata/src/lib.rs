@@ -172,6 +172,7 @@ pub mod sillygoose;
 pub mod smoother;
 mod table;
 pub mod teensy;
+pub mod timeline;
 pub mod workbook;
 pub mod xls;
 

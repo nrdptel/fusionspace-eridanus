@@ -771,3 +771,23 @@ looked = [
   "web searches for a hobby rocket's apogee measured by radar or optical tracking",
 ]
 found = "one flight on June 7, 2026 with two barometric loggers and two GPS receivers, each with its own record of the peak and times. It has no license, so it is cited on the issue and cached under refs/samples-search/G33 only. No radar or optical record of a flight"
+
+[[row]]
+id = "G35"
+surface = "Two logs of one flight on one timeline"
+claim = "A shared liftoff recovers the clock offset between two logs of one flight, within a bound that held on the synthetic flights. On one real pair, RocketPy's Prometheus flight, it lies about 0.08 s from what the boards' GPS time gives, where an offset of zero would miss by 0.13 s"
+pages = ["reading-a-flight-log.md#two-logs-of-one-flight", "physics/log-readings.md#two-logs-on-one-timeline", "accuracy.md#where-each-model-stands"]
+kind = "calibration"
+wanted = "real"
+not_checked = "a real pair whose clocks differ by more than a fraction of a second; the Prometheus logs both start at the boost, and the GPS reference has no stated error of its own"
+issue = 1088
+
+[[row]]
+id = "G36"
+surface = "One logger to a stage on one timeline"
+claim = "A shared liftoff lines up a logger in each stage of a staged flight, within a bound that held on 135 simulated two-stage flights"
+pages = ["reading-a-flight-log.md#two-logs-of-one-flight", "physics/log-readings.md#two-logs-on-one-timeline", "accuracy.md#where-each-model-stands"]
+kind = "calibration"
+wanted = "real"
+not_checked = "a real flight's log from each stage, where a booster's board may read the pad's shock and the separation otherwise"
+issue = 1084

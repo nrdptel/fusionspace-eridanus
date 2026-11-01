@@ -4679,6 +4679,274 @@ fn analyze_states_every_interval_and_the_health_card() {
 
 /// What `hpr analyze` can't read is an input error that says why: a missing file, a file in no
 /// format HPR Sim reads, a zip archive, and a `.pf2` that goes wrong at a line.
+/// Two invented boards of one flight, their clocks 53.5 s apart.
+const FIRST_BOARD: &str = "validation/fixtures/logs/two-logs/first-board.csv";
+const SECOND_BOARD: &str = "validation/fixtures/logs/two-logs/second-board.csv";
+
+#[test]
+fn analyze_reads_two_logs_side_by_side_on_one_timeline() {
+    let (first, second) = (repo_file(FIRST_BOARD), repo_file(SECOND_BOARD));
+    let output = hpr(&["analyze", &first, &second, "--json"]);
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    let document: Value = serde_json::from_str(&text(&output.stdout)).unwrap();
+    validate("analyze-together.schema.json", &document);
+    assert_eq!(document["method"], "shared liftoff");
+    assert_eq!(document["flew"], "one_airframe");
+    assert_eq!(document["logs"].as_array().unwrap().len(), 2);
+    // The second board's clock is 53.5 s behind the first's.
+    let offset = &document["offsets"][0];
+    let (value, bound) = (
+        offset["offset_s"].as_f64().unwrap(),
+        offset["bound_s"].as_f64().unwrap(),
+    );
+    assert!((value + 53.5).abs() <= bound, "{offset}");
+    // Each log's own reading stays in its cell; the spread is the largest less the least.
+    let rows = document["rows"].as_array().unwrap();
+    let apogee = rows.iter().find(|r| r["what"] == "apogee_height").unwrap();
+    let height = |index: usize| {
+        let cell = apogee["cells"][index]["value"].as_f64().unwrap();
+        let own = document["logs"][index]["apogee"]["height_m"]
+            .as_f64()
+            .unwrap();
+        assert_eq!(cell, own);
+        cell
+    };
+    let (a, b) = (height(0), height(1));
+    assert_ne!(a, b);
+    assert_eq!(apogee["spread"].as_f64().unwrap(), (a - b).abs());
+    // No mean among the rows, in any key.
+    let rows_json = document["rows"].to_string();
+    assert!(!rows_json.contains("mean") && !rows_json.contains("average"));
+
+    let output = hpr(&["analyze", &first, &second]);
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    let out = text(&output.stdout);
+    assert!(
+        out.contains("by a shared liftoff: read side by side, never averaged"),
+        "{out}"
+    );
+    assert!(out.contains("log 2's clock less log 1's: -53."), "{out}");
+    assert!(out.contains("  spread "), "{out}");
+    assert!(
+        out.contains("never averaged. A spread says how far apart"),
+        "{out}"
+    );
+}
+
+#[test]
+fn analyze_lays_stages_out_with_no_spread() {
+    let (first, second) = (repo_file(FIRST_BOARD), repo_file(SECOND_BOARD));
+    let output = hpr(&["analyze", &first, &second, "--stages", "--json"]);
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    let document: Value = serde_json::from_str(&text(&output.stdout)).unwrap();
+    validate("analyze-together.schema.json", &document);
+    assert_eq!(document["flew"], "stages");
+    assert!(document["offsets"][0]["offset_s"].is_f64());
+    assert!(
+        document["rows"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|r| r["spread"].is_null())
+    );
+    let output = hpr(&["analyze", &first, &second, "--stages"]);
+    let out = text(&output.stdout);
+    assert!(
+        out.contains("their readings are of different bodies, so no spread"),
+        "{out}"
+    );
+    assert!(!out.contains("  spread "), "{out}");
+}
+
+#[test]
+fn analyze_says_why_a_log_sits_on_no_timeline_once() {
+    // A height that doesn't say which sensor measured it reads nothing, and says so once.
+    let folder = tempfile::tempdir().unwrap();
+    let unstated = folder.path().join("unstated.csv");
+    let board = std::fs::read_to_string(repo_file(FIRST_BOARD)).unwrap();
+    std::fs::write(&unstated, board.replace("Barometric altitude", "Altitude")).unwrap();
+    let first = repo_file(FIRST_BOARD);
+    let output = hpr(&["analyze", &first, &unstated.to_string_lossy(), "--json"]);
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    let document: Value = serde_json::from_str(&text(&output.stdout)).unwrap();
+    validate("analyze-together.schema.json", &document);
+    assert_eq!(document["offsets"][0]["status"], "withheld");
+    assert_eq!(document["offsets"][0]["reason"], "unstated_sensor");
+    let output = hpr(&["analyze", &first, &unstated.to_string_lossy()]);
+    let out = text(&output.stdout);
+    assert!(out.contains("on no timeline: liftoff withheld:"), "{out}");
+    assert!(out.contains("withheld, as above"), "{out}");
+}
+
+#[test]
+fn analyze_refuses_what_a_second_log_cannot_go_with() {
+    let (first, second) = (repo_file(FIRST_BOARD), repo_file(SECOND_BOARD));
+    for options in [
+        vec!["--mapping", "logger.json"],
+        vec!["--layout", "logger.json"],
+        vec!["--sheet", "0"],
+        vec!["--recording", "0"],
+        vec!["--fip-header", "header.json"],
+        vec!["--print-mapping"],
+        vec!["--record"],
+    ] {
+        let mut args = vec!["analyze", first.as_str(), second.as_str()];
+        args.extend(&options);
+        let output = hpr(&args);
+        assert_eq!(output.status.code(), Some(2), "{options:?}: {output:?}");
+    }
+    // Stages need more than one log, and a log that can't be read fails the whole.
+    let output = hpr(&["analyze", &first, "--stages"]);
+    assert_eq!(output.status.code(), Some(2), "{output:?}");
+    let output = hpr(&["analyze", &first, "no-such-log.csv"]);
+    assert_ne!(output.status.code(), Some(0), "{output:?}");
+    assert!(
+        text(&output.stderr).contains("no-such-log.csv"),
+        "{output:?}"
+    );
+}
+
+/// RocketPy's Prometheus flight, its two boards' logs, where `refs/` has them (`cargo xtask refs
+/// fetch`): read side by side, and the offset held to the one their GPS time gives. Each row's
+/// time and its receiver's UTC second, taken where the second ticks, say what the log's zero is in
+/// UTC; the two zeros differ by the true offset, to about the logging step.
+#[test]
+fn analyze_reads_rocketpys_two_logger_flight_side_by_side() {
+    let folder = root().join("refs/rocketpy/data/rockets/prometheus");
+    let telemetrum = folder.join("2022-06-24-serial-5115-flight-0001-TeleMetrum.csv");
+    let telemega = folder.join("2022-06-24-serial-6583-flight-0003-TeleMega.csv");
+    if !telemetrum.exists() || !telemega.exists() {
+        eprintln!("skipped: {} isn't fetched", telemetrum.display());
+        return;
+    }
+    let (telemetrum, telemega) = (
+        telemetrum.to_string_lossy().into_owned(),
+        telemega.to_string_lossy().into_owned(),
+    );
+    let output = hpr(&["analyze", &telemetrum, &telemega, "--json"]);
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    let document: Value = serde_json::from_str(&text(&output.stdout)).unwrap();
+    validate("analyze-together.schema.json", &document);
+    // Each UTC second where it ticks: (the UTC second, the log's clock there, the row's gap).
+    let utc_ticks = |path: &str| -> Vec<(f64, f64, f64)> {
+        let table = std::fs::read_to_string(path).unwrap();
+        let mut lines = table.lines();
+        let head: Vec<&str> = lines.next().unwrap().split(',').map(str::trim).collect();
+        let column = |name: &str| head.iter().position(|c| c.ends_with(name)).unwrap();
+        let (time, year, hour, minute, second) = (
+            column("time"),
+            column("year"),
+            column("hour"),
+            column("minute"),
+            column("second"),
+        );
+        let state = head.iter().position(|c| *c == "state_name").unwrap();
+        let mut ticks = Vec::new();
+        let (mut last, mut before) = (None, f64::NAN);
+        for (index, line) in lines.enumerate() {
+            let cell: Vec<&str> = line.split(',').map(str::trim).collect();
+            let number = |k: usize| cell[k].parse::<f64>().unwrap_or(f64::NAN);
+            // The page's "both logs start at the boost": the weak check's reason.
+            if index == 0 {
+                assert_eq!(cell[state], "boost", "{path}");
+                assert!(number(time).abs() < 1.0, "{path}");
+            }
+            let utc = number(hour) * 3_600.0 + number(minute) * 60.0 + number(second);
+            if number(year) >= 2_000.0 && !utc.is_nan() {
+                if last.is_some_and(|l| l != utc) {
+                    ticks.push((utc, number(time), number(time) - before));
+                }
+                last = Some(utc);
+            }
+            before = number(time);
+        }
+        ticks
+    };
+    let median_zero = |ticks: &[(f64, f64, f64)]| {
+        let mut zeros: Vec<f64> = ticks.iter().map(|&(utc, t, _)| utc - t).collect();
+        zeros.sort_by(f64::total_cmp);
+        zeros[zeros.len() / 2]
+    };
+    let (ticks_a, ticks_b) = (utc_ticks(&telemetrum), utc_ticks(&telemega));
+    let by_utc = median_zero(&ticks_a) - median_zero(&ticks_b);
+    // The figures the guide quotes for this reference, to their printed digits.
+    let range = |of: &[f64]| {
+        let least = of.iter().copied().fold(f64::INFINITY, f64::min);
+        (least, of.iter().copied().fold(f64::NEG_INFINITY, f64::max))
+    };
+    let paired = |fast_only: bool| -> Vec<f64> {
+        ticks_a
+            .iter()
+            .filter_map(|&(utc, t_a, gap_a)| {
+                let &(_, t_b, gap_b) = ticks_b.iter().find(|tick| tick.0 == utc)?;
+                (!fast_only || (gap_a < 0.02 && gap_b < 0.02)).then_some(t_b - t_a)
+            })
+            .collect()
+    };
+    let (all, fast) = (paired(false), paired(true));
+    assert_eq!((all.len(), fast.len()), (238, 72));
+    let ((least, most), (fast_least, fast_most)) = (range(&all), range(&fast));
+    for (figure, printed) in [
+        (least, -0.24),
+        (most, -0.03),
+        (fast_least, -0.15),
+        (fast_most, -0.11),
+        (by_utc, -0.13),
+    ] {
+        assert!(
+            (figure - printed).abs() < 0.0051,
+            "{figure} against {printed}"
+        );
+    }
+    let offset = &document["offsets"][0];
+    let (value, bound) = (
+        offset["offset_s"].as_f64().unwrap(),
+        offset["bound_s"].as_f64().unwrap(),
+    );
+    assert!((value - by_utc).abs() <= bound, "{value} against {by_utc}");
+    // Measured: the figures the guide's worked example quotes, to their printed digits.
+    let interval = &offset["interval_s"];
+    let (low, high) = (
+        interval["low"].as_f64().unwrap(),
+        interval["high"].as_f64().unwrap(),
+    );
+    for (figure, printed, digit) in [
+        ((value - by_utc).abs(), 0.08, 0.0051),
+        (value, -0.05, 0.0051),
+        (bound, 1.53, 0.0051),
+        (low, -0.129, 0.00051),
+        (high, 0.03, 0.0051),
+        (
+            document["logs"][0]["liftoff"]["time_s"].as_f64().unwrap(),
+            0.23,
+            0.0051,
+        ),
+        (
+            document["logs"][1]["liftoff"]["time_s"].as_f64().unwrap(),
+            0.18,
+            0.0051,
+        ),
+    ] {
+        assert!(
+            (figure - printed).abs() < digit,
+            "{figure} against {printed}"
+        );
+    }
+    let rows = document["rows"].as_array().unwrap();
+    let cell = |what: &str, index: usize| {
+        rows.iter().find(|r| r["what"] == what).unwrap()["cells"][index]["value"]
+            .as_f64()
+            .unwrap()
+    };
+    // Each log's apogee is its own, about 3.9 km, and the two aren't averaged.
+    let (a, b) = (cell("apogee_height", 0), cell("apogee_height", 1));
+    assert!(
+        (3_800.0..4_000.0).contains(&a) && (3_800.0..4_000.0).contains(&b),
+        "{a} {b}"
+    );
+    assert_ne!(a, b);
+}
+
 #[test]
 fn analyze_refuses_what_it_cannot_read() {
     let folder = tempfile::tempdir().unwrap();

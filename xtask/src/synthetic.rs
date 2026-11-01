@@ -711,7 +711,7 @@ fn fly_sets(flown: &[Set], files: &DesignFiles) -> Result<Made, String> {
 }
 
 /// The designs' files under `root`, in [`DESIGNS`]' order.
-fn design_files(root: &Path) -> Result<DesignFiles, String> {
+pub(crate) fn design_files(root: &Path) -> Result<DesignFiles, String> {
     let files = DESIGNS
         .iter()
         .map(|design| {
@@ -1695,6 +1695,10 @@ fn title(set: Set) -> &'static str {
         Set::A => "A",
         Set::B => "B",
         Set::Calibration => "Calibration",
+        Set::PairCalibration => "Two loggers, calibration",
+        Set::PairA => "Two loggers, A",
+        Set::PairB => "Two loggers, B",
+        Set::Staged => "Staged",
     }
 }
 

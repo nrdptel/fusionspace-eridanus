@@ -62,7 +62,7 @@ the checks fetch into. Its hash lets every check confirm it reads the same bytes
 
 <!-- evidence: report; written by `cargo xtask evidence` from validation/evidence.toml; do not edit -->
 
-The register holds 34 rows, as of October 31, 2026.
+The register holds 36 rows, as of October 31, 2026.
 
 **By kind.** Each surface's rows, counted by the kind of evidence behind them now:
 
@@ -80,9 +80,11 @@ The register holds 34 rows, as of October 31, 2026.
 | The synthetic flights | 0 | 0 | 0 | 0 | 1 | 0 | 1 |
 | The smoother | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
 | Flight-log readings' 90% intervals | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
-| All | 1 | 6 | 8 | 4 | 11 | 4 | 34 |
+| Two logs of one flight on one timeline | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
+| One logger to a stage on one timeline | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
+| All | 1 | 6 | 8 | 6 | 11 | 4 | 36 |
 
-**Short of what's wanted.** 33 of the 34 rows don't yet have the kind of evidence they want. Each has an open issue labeled `needs-sample`, linked in its row below.
+**Short of what's wanted.** 35 of the 36 rows don't yet have the kind of evidence they want. Each has an open issue labeled `needs-sample`, linked in its row below.
 
 **The rows.**
 
@@ -122,8 +124,13 @@ The register holds 34 rows, as of October 31, 2026.
 | <a id="g32"></a>G32 | The synthetic flights | The synthetic loggers' noise follows the makers' datasheets and the noise measured on a few public logs, each drawn term tested on its own; the accelerometer's residual bias, the GNSS loop's range, damping and noise, the dropouts, the port's place, the Bosch-class part on two profiles, PerfectFlite's offset and one bench sensor's slow noise on every barometer are assumed, and the MS5607's error read as a gain is inferred. **Not checked:** a synthetic log as a whole against real logs of the same family: the pad's noise and its correlation, and the ejection pulses. | reasoning | real | [#725](https://github.com/nrdptel/fusionspace-eridanus/issues/725) | 2026-10-17 |
 | <a id="g33"></a>G33 | The smoother | At burnout, the top speed, apogee and a drawn moment, the smoother's 90% intervals on height and vertical speed hold between 94.3% and 99.4% of the synthetic flights' truths in the three sets' cells, and two logger cells 89.2% and 89.7%, on the 171, 820 and 845 flights smoothed of three sets of 200, 1,000 and 1,000, its rules set with those sets in view; the same flights' logs cut at liftoff, on an assumed pad, hold in every cell too (94.9% to 98.7% overall on A and B, on the true zero). **Not checked:** a real flight's smoothed height and speed against a truth apart from the log, such as a second logger's or a ground tracker's. | calibration | real | [#981](https://github.com/nrdptel/fusionspace-eridanus/issues/981) | 2026-10-31 |
 | <a id="g34"></a>G34 | Flight-log readings' 90% intervals | Twelve readings state 90% intervals, and a floor a lower end, fitted on 2,000 synthetic flights of their own. On sets A and B each passes the coverage test or its lower tail (the top speed below its transonic mark; a clipped top near an imposed clip); every probe fails. The misses gather: the height's, the top speed's and the descent rates' gather on days more than 10 K from standard, a warm day's above the interval (#1055, #1061); the times lean by logger (#1056, #1062), and the top acceleration most (#1070). **Not checked:** a real flight's readings against a truth taken apart from the log, such as a second logger's or a ground tracker's record of the same flight. | calibration | real | [#1052](https://github.com/nrdptel/fusionspace-eridanus/issues/1052) | 2026-10-31 |
+| <a id="g35"></a>G35 | Two logs of one flight on one timeline | A shared liftoff recovers the clock offset between two logs of one flight, within a bound that held on the synthetic flights. On one real pair, RocketPy's Prometheus flight, it lies about 0.08 s from what the boards' GPS time gives, where an offset of zero would miss by 0.13 s. **Not checked:** a real pair whose clocks differ by more than a fraction of a second; the Prometheus logs both start at the boost, and the GPS reference has no stated error of its own. | calibration | real | [#1088](https://github.com/nrdptel/fusionspace-eridanus/issues/1088) | none |
+| <a id="g36"></a>G36 | One logger to a stage on one timeline | A shared liftoff lines up a logger in each stage of a staged flight, within a bound that held on 135 simulated two-stage flights. **Not checked:** a real flight's log from each stage, where a booster's board may read the pad's shock and the separation otherwise. | calibration | real | [#1084](https://github.com/nrdptel/fusionspace-eridanus/issues/1084) | none |
 
-**Due a search.** A row is due one when it has none yet, or its last was more than 30 days before October 31, 2026: none.
+**Due a search.** A row is due one when it has none yet, or its last was more than 30 days before October 31, 2026:
+
+- [G35](#g35)
+- [G36](#g36)
 
 **Searches so far.**
 

@@ -1736,6 +1736,112 @@ pub struct AnalyzeMethod {
     pub accelerometer: Option<AnalyzedAccelerometer>,
 }
 
+/// `hpr analyze` with more than one log, as JSON: the logs on one timeline, side by side, never
+/// averaged.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct AnalyzeTogether {
+    /// What kind of result this is: every reading is measured, from a log.
+    pub kind: crate::trust::Kind,
+    /// The trust note the text form ends with.
+    pub trust: String,
+    /// How the clocks were lined up: `shared liftoff`.
+    pub method: String,
+    /// What the logs recorded.
+    pub flew: TimelineFlew,
+    /// Each log as `hpr analyze` reads it alone, in the order given.
+    pub logs: Vec<Analyze>,
+    /// Each log after the first against the first.
+    pub offsets: Vec<LogReading<ClockOffset>>,
+    /// The readings across the logs.
+    pub rows: Vec<TimelineRow>,
+}
+
+/// What the logs on a timeline recorded.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum TimelineFlew {
+    /// One airframe: each row reports its spread.
+    OneAirframe,
+    /// One logger to a stage: no spread, the readings being of different bodies.
+    Stages,
+}
+
+/// One log's clock against the first's.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, JsonSchema)]
+pub struct ClockOffset {
+    /// This log's clock less the first log's at one instant, s.
+    pub offset_s: f64,
+    /// The bound on its error, s: the sum of the two liftoffs' bounds.
+    pub bound_s: f64,
+    /// Its 90% interval, s.
+    pub interval_s: Option<ReadingInterval>,
+}
+
+/// One reading across the logs.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct TimelineRow {
+    /// Which reading.
+    pub what: TimelineWhat,
+    /// Each log's, in the order given.
+    pub cells: Vec<TimelineCell>,
+    /// The largest less the least, in the reading's unit: a description, not a check. Null for
+    /// fewer than two logs reading it whole, and for stages.
+    pub spread: Option<f64>,
+}
+
+/// A reading on a timeline. Heights are m above each log's own pad, speeds m/s, accelerations
+/// m/s², times s after each log's liftoff.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum TimelineWhat {
+    /// Apogee's height.
+    ApogeeHeight,
+    /// Apogee's time.
+    ApogeeTime,
+    /// The smoother's apogee height.
+    SmoothedApogee,
+    /// The top vertical speed.
+    TopSpeed,
+    /// The top acceleration.
+    TopAcceleration,
+    /// Burnout.
+    Burnout,
+    /// The flight time, liftoff to landing.
+    FlightTime,
+    /// The rate of descent under the drogue.
+    DrogueRate,
+    /// The main's opening's height.
+    MainOpening,
+    /// The rate of descent under the main.
+    MainRate,
+}
+
+/// One log's cell in a row.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+#[serde(tag = "status", rename_all = "snake_case")]
+pub enum TimelineCell {
+    /// What the log read.
+    Read {
+        /// The reading.
+        value: f64,
+        /// The bound on its error; null where the reading states none.
+        bound: Option<f64>,
+        /// Its 90% interval; null where the log's own section holds it.
+        interval: Option<ReadingInterval>,
+        /// Whether the true value may lie any amount above it.
+        is_floor: bool,
+        /// The track it came from; null for the smoother's fused apogee.
+        source: Option<ReadingSource>,
+        /// Measured, derived or clipped; null for the smoother's fused apogee.
+        provenance: Option<ReadingProvenance>,
+    },
+    /// Why it read nothing.
+    Withheld {
+        /// The reason in words, with the log's own numbers.
+        detail: String,
+    },
+}
+
 /// A reading, or why the log can't support it.
 #[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
 #[serde(tag = "status", rename_all = "snake_case")]
@@ -2285,6 +2391,7 @@ pub fn schemas() -> Vec<(&'static str, String)> {
         ("completions.schema.json", schema::<Completions>()),
         ("convert.schema.json", schema::<Convert>()),
         ("analyze.schema.json", schema::<Analyze>()),
+        ("analyze-together.schema.json", schema::<AnalyzeTogether>()),
         (
             "analyze-record.schema.json",
             schema::<hpr::hpr_flightdata::log::FlightLog>(),
