@@ -5,7 +5,8 @@ Written by `cargo xtask real-flights` ([M7.3a][m7-3a], decision [ADR-314][adr-31
 - **What is flown:** the 7 flights of the [real-flights report][real], each flown to the ground in its ERA5 air and wind, on hpr's own drag, under the parachutes its example's notebook gives it.
 - **A residual** is the logged value less the simulated one. Positive: the log read higher, or faster upward, than the simulation.
 - **Heights** are the log's own samples, above its pad, unsmoothed. The simulation's are read as the log's altimeter would read them. **Speeds** are the smoother's, taken from the log's heights, against the rate at which the same altimeter's reading would change.
-- **The clocks** are lined up by what one reader calls liftoff on each.
+- **The clocks** are lined up by what one reader calls liftoff on each. Their bound is rounded up.
+- **Tests:** a log of the simulation's own flight leaves an RMS under 1 m (3.3 ft), and each flight's simulated apogee, read by the log's reader, stays within 0.5 m (1.6 ft) of the flight's own event.
 - A residual is one flight against one simulation. It doesn't say which is wrong.
 
 [m7-3a]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-3a
@@ -79,7 +80,7 @@ Readings, the simulation read as the log is:
 
 ## Prometheus, Western Engineering, Spaceport America Cup 2022 (M1520)
 
-Altimeter: barometric, read as a barometer. 5712 log samples; clocks lined up within 1.36 s; the log reads a landing; 266 samples after the simulated flight had ended.
+Altimeter: barometric, read as a barometer. 5712 log samples; clocks lined up within 1.37 s; the log reads a landing; 266 samples after the simulated flight had ended.
 
 Height:
 
@@ -143,7 +144,7 @@ Readings, the simulation read as the log is:
 
 ## Cavour, Politecnico di Torino, EuRoC 2023 (L995)
 
-Altimeter: barometric, assumed, read as a barometer. 404 log samples; clocks lined up within 3.20 s; the example gives no parachutes, so only the ascent is compared.
+Altimeter: barometric, assumed, read as a barometer. 404 log samples; clocks lined up within 3.21 s; the example gives no parachutes, so only the ascent is compared.
 
 Height:
 
@@ -169,7 +170,7 @@ Readings, the simulation read as the log is:
 
 ## Genesis, EuRoC 2023 (L995)
 
-Altimeter: barometric, assumed, read as a barometer. 17933 log samples; clocks lined up within 1.39 s; the log reads a landing; 154 samples after the simulated flight had ended.
+Altimeter: barometric, assumed, read as a barometer. 17933 log samples; clocks lined up within 1.40 s; the log reads a landing; 154 samples after the simulated flight had ended.
 
 Height:
 

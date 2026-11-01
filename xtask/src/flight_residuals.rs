@@ -374,7 +374,11 @@ impl Report {
              are read as the log's altimeter would read them. **Speeds** are the smoother's, \
              taken from the log's heights, against the rate at which the same altimeter's reading \
              would change.\n\
-             - **The clocks** are lined up by what one reader calls liftoff on each.\n\
+             - **The clocks** are lined up by what one reader calls liftoff on each. Their bound \
+             is rounded up.\n\
+             - **Tests:** a log of the simulation's own flight leaves an RMS under 1 m (3.3 ft), \
+             and each flight's simulated apogee, read by the log's reader, stays within 0.5 m \
+             (1.6 ft) of the flight's own event.\n\
              - A residual is one flight against one simulation. It doesn't say which is wrong.\n\n\
              [m7-3a]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-3a\n\
              [adr-314]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0314-m7-3-in-five-residuals-first.md\n\
@@ -392,7 +396,7 @@ impl Report {
                     HeightKind::Geometric => "a height climbed",
                 },
                 flight.log_rows,
-                flight.clock_bound_s,
+                (flight.clock_bound_s * 100.0).ceil() / 100.0,
                 if !flight.descent_flown {
                     "the example gives no parachutes, so only the ascent is compared"
                 } else if flight.reaches_landing {

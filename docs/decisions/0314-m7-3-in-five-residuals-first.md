@@ -28,7 +28,7 @@ three into the residual.
    - The speed's residual is the smoother's speed less the rate at which that sensor's reading would change,
      for the same reason.
    - The clocks are lined up by the [shared liftoff][adr-312], the reader's liftoff on each. The bound on
-     their offset is reported, and it is wide: 1.32 to 3.20 s on the 7 public flights. It is what the reader
+     their offset is reported, and it is wide: 1.31 to 3.21 s on the 7 public flights. It is what the reader
      can promise of liftoff, not a measured misalignment.
 2. **A residual is logged less simulated**, sample by sample, by phase (boost, coast or ascent, descent).
    Heights are the log's own samples, unsmoothed, as ghost files take them, so an ejection charge's spike or
@@ -55,8 +55,8 @@ three into the residual.
 **Consequences.** `hpr compare` leaves the planned list. A comparison's report and command share one library
 function, so M7.3b's fits and M7.3e's plot get the same clocks and heights. `Barometer` moves from `hpr-validate`
 to `hpr-atmos`, where the forensics crate can reach it; no number moves. The report's flights show what this
-increment doesn't fix: Juno III's log ends in garbled samples (a residual of 7.8 km on its last rows) and
-Lince's smoother is thrown by the height jump [#1073][i1073] records. They are shown, not filtered, as the
-residuals are the raw samples.
-
-[i1073]: https://github.com/nrdptel/fusionspace-eridanus/issues/1073
+increment doesn't fix. Juno III's log has a garbled sample (a residual of 7.8 km at 29.85 s after liftoff).
+Lince's log swings by 500 m or more in 0.01 s as its recovery fires, and the smoother's speed reads +10,211 m/s
+there. Genesis's smoothed speed lies +705 m/s from the simulated at 8.24 s after liftoff, and Prometheus's boost
+leaves an RMS of 86 m/s. They are shown, not filtered: the heights are raw samples, and the speeds are what the
+smoother gives on them. None of it has been traced to a cause here.
