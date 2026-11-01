@@ -174,7 +174,8 @@ taken before the rocket moved. Three rules do it, each with a number set from th
    noise lifts the filtered track by at most the allowance, from below at the start or from above
    at the climb. So twice that is out of its reach.
    One or two of the log's first three samples are bad if they stand more than this rise above the
-   samples after them, or as far below them where those hold level, and the readings leave them out.
+   lowest of the samples after them, or as far below it where those stay within the rise, and the
+   readings leave them out.
    If all three stand apart, or the track holds their level again before a top well above it, they
    are left alone. The first reads like a pressure pulse on the pad at ignition, and on the sample
    logs that show it the pad can sit well below the first samples, so the height reads high

@@ -1916,9 +1916,8 @@ const FIRST_SAMPLES: usize = 3;
 /// One of the first three is bad if it stands more than `rise` above the lowest of the samples
 /// after them, or as far below them where they hold level, as they don't on a climb. Those samples
 /// span the median's window, and at least five, so that the slowest logs' short window sees past
-/// two bad samples. All three standing apart is a fall of the track's own: sample logs and Juno
-/// III's (8.5 m) read one over about a second before the climb, a pressure pulse on the pad at
-/// ignition by its look (#1101). And a level the filtered track holds again for that span, before
+/// two bad samples. All three standing apart is a fall of the track's own: Juno III's log dips
+/// 8.5 m over 0.3 s before the climb, a pressure pulse on the pad at ignition by its look (#1101). And a level the filtered track holds again for that span, before
 /// a top further above it than a coast through it reaches, is the pad, the low stretch after it the
 /// disturbance: a rocket passes through a level on the climb and doesn't stay. Slowing under
 /// gravity alone it stays that long only within `v²/(2 g)` of its top, `v` the speed that crosses
@@ -2168,7 +2167,7 @@ mod tests {
         // Bad samples first, one or two of the three, high on a climb or on a pad, at both ends of
         // the median's reach.
         for half in [1, 3] {
-            for bad in [&[0_usize][..], &[1], &[2], &[0, 1], &[1, 2]] {
+            for bad in [&[0_usize][..], &[1], &[2], &[0, 1], &[0, 2], &[1, 2]] {
                 let mut high = climbing(0.0);
                 let mut up = pad_then_climb();
                 for &k in bad {
@@ -2179,7 +2178,7 @@ mod tests {
                 assert_eq!(out(&up, half), bad, "up {half}");
             }
             // Low on a pad, any one or two of the three.
-            for bad in [&[0_usize][..], &[1], &[2], &[0, 1], &[1, 2]] {
+            for bad in [&[0_usize][..], &[1], &[2], &[0, 1], &[0, 2], &[1, 2]] {
                 let mut low = pad_then_climb();
                 for &k in bad {
                     low[k] -= 1_000.0;
