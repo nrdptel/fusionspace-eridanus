@@ -21,9 +21,11 @@
 //! of what the simulation got wrong and what the logger got wrong, and it can't tell them apart;
 //! it isn't a verdict on either. The heights are the log's own samples, unsmoothed, so an ejection
 //! charge's pressure spike shows as a residual. The speeds are the smoother's, each with its
-//! standard error ([`hpr_flightdata::smoother`]), so a logger's speed is derived unless it says
-//! otherwise. The simulated values carry no error of their own here. The method is tested on
-//! constructed flights below and run on the 7 public flights in `cargo xtask real-flights`.
+//! standard error ([`hpr_flightdata::smoother`]), its GNSS set aside on a barometric log so that
+//! the speed stays on the height's scale. The clock is good to the bound it states, and on a log
+//! with coarse steps the log's liftoff reads late, so an ascent's height residual leans positive.
+//! The simulated values carry no error of their own here. The method is tested on constructed
+//! flights below and run on the 7 public flights in `cargo xtask real-flights`.
 //!
 //! [m7-3]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-3
 //! [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
@@ -46,8 +48,8 @@ const PAD_S: f64 = 10.0;
 /// How long it sits on the ground after the flight, s: past the reader's wait for a landing
 /// ([`readings::LANDED_FOR_S`]).
 const LANDED_S: f64 = 3.0 * readings::LANDED_FOR_S;
-/// The simulated log's coarsest sample interval, s.
-const COARSEST_INTERVAL_S: f64 = 1.0;
+/// The simulated log's coarsest sample interval, s: as coarse as the reader takes a log.
+const COARSEST_INTERVAL_S: f64 = readings::MAX_INTERVAL_S;
 /// The height step that gives a barometer's rate of reading, m.
 const RATE_STEP_M: f64 = 1.0;
 
@@ -61,9 +63,6 @@ pub enum ResidualsError {
     /// The simulated flight, read as a log, has no liftoff.
     #[error("the simulated flight's liftoff can't be read: {0}")]
     SimulationLiftoff(String),
-    /// The log's height has no sensor to be read as.
-    #[error("the log's height has no known source")]
-    NoSource,
     /// The simulation kept no samples.
     #[error("the simulation kept no samples")]
     NoSamples,
@@ -196,15 +195,19 @@ impl Simulated {
         Ok(Self { moments })
     }
 
-    /// The moment at `t`, by straight lines between the samples; `None` outside the flight.
+    /// The moment at `t`, by straight lines between the samples; the first moment before the flight,
+    /// where the rocket sits on the pad; `None` after it.
     fn at(&self, t: f64) -> Option<Moment> {
         let (first, last) = (self.moments.first()?, self.moments.last()?);
-        if t < first.time_s || t > last.time_s {
+        if t > last.time_s {
             return None;
+        }
+        if t <= first.time_s {
+            return Some(*first);
         }
         let after = self.moments.partition_point(|moment| moment.time_s < t);
         let b = self.moments[after];
-        if after == 0 || b.time_s == t {
+        if b.time_s == t {
             return Some(b);
         }
         let a = self.moments[after - 1];
@@ -492,7 +495,13 @@ pub fn compare(
                 HeightKind::Geometric => moment.height_m,
             },
         );
-    let speed_m_s = match smoother::smooth(log) {
+    // Fused with a GNSS receiver, the smoother's speed leaves the barometer's scale for the height
+    // climbed, which is neither side's here: set aside, it stands on the log's height.
+    let smoothed = match kind {
+        HeightKind::Barometric => smoother::smooth(&without_gnss(log)),
+        HeightKind::Geometric => smoother::smooth(log),
+    };
+    let speed_m_s = match smoothed {
         Ok(smoothed) => {
             let samples = smoothed
                 .time_s
@@ -528,6 +537,14 @@ pub fn compare(
         speed_m_s,
         rows,
     })
+}
+
+/// `log` with its GNSS altitude set aside.
+fn without_gnss(log: &FlightLog) -> FlightLog {
+    let mut log = log.clone();
+    log.channels
+        .retain(|channel| channel.quantity != Quantity::GnssAltitude);
+    log
 }
 
 /// `cell` without a source or provenance: a simulated number wasn't measured. Its top acceleration
@@ -757,8 +774,13 @@ mod tests {
 
     /// A log of the closed-form flight at 20 Hz, its clock running `pad_s` before ignition.
     fn logged(pad_s: f64, height: impl Fn(f64) -> f64) -> FlightLog {
-        let rows = ((landed_s() + pad_s + 20.0) * 20.0) as usize;
-        let time_s: Vec<f64> = (0..rows).map(|i| i as f64 * 0.05).collect();
+        logged_every(0.05, pad_s, height)
+    }
+
+    /// The same every `interval_s`.
+    fn logged_every(interval_s: f64, pad_s: f64, height: impl Fn(f64) -> f64) -> FlightLog {
+        let rows = ((landed_s() + pad_s + 20.0) / interval_s) as usize;
+        let time_s: Vec<f64> = (0..rows).map(|i| i as f64 * interval_s).collect();
         let altitude_m = time_s
             .iter()
             .map(|&clock| height((clock - pad_s).max(0.0).min(landed_s())))
@@ -810,11 +832,8 @@ mod tests {
             )
             .unwrap();
             for summary in &comparison.height_m.phases {
-                // A 20 Hz sample's reach into the liftoff's bound, at the top speed of 180 m/s.
-                assert!(
-                    summary.rms < 0.05 * 180.0,
-                    "{pad_s}: {summary:?} against 1 sample's reach"
-                );
+                // Noise-free and stepless: only the clocks' sampling is left.
+                assert!(summary.rms < 1.0, "{pad_s}: {summary:?}");
             }
             assert_eq!(comparison.height_m.past_simulation, 0);
             assert!(comparison.reaches_landing);
@@ -847,6 +866,19 @@ mod tests {
             "{difference} of {top_m}"
         );
         assert!(rms_of(&comparison, Phase::Descent).mean > 0.0);
+        // Climbing a tenth faster, its speed residual is positive too.
+        let Speed::Read(speed) = &comparison.speed_m_s else {
+            panic!("{:?}", comparison.speed_m_s);
+        };
+        let climb = speed
+            .phases
+            .iter()
+            .find(|summary| summary.phase != Phase::Descent)
+            .unwrap();
+        assert!(climb.mean > 1.0, "{climb:?}");
+        // And the document says the same of a sample as of its summary.
+        let point = comparison.height_m.points.last().unwrap();
+        assert_eq!(point.residual, point.logged - point.simulated);
         let largest = comparison
             .height_m
             .points
@@ -925,6 +957,74 @@ mod tests {
         assert!(slope < 0.97, "{slope}");
         assert!((moment.reading_speed_m_s - speed * slope).abs() < 1e-3 * speed);
         assert!((moment.speed_m_s - speed).abs() < 1e-9);
+    }
+
+    /// A barometric log with a GNSS receiver: fused, the smoother's speed would climb off the
+    /// barometer's scale, 7% high on a day 20 K warm, for no real difference in the flight.
+    #[test]
+    fn a_gnss_channel_leaves_the_speed_on_the_barometers_scale() {
+        let warm = AtmosphereModel::Standard(Ussa76::with_offset(20.0, 101_325.0).unwrap());
+        let environment = environment(Some(warm));
+        let simulation = simulated(&environment, flown);
+        let barometer = Barometer::on_pad(environment.atmosphere.as_ref(), 1000.0, 0.0).unwrap();
+        let plain = logged(20.0, |t| barometer.reading_m(flown(t).0).unwrap());
+        let mut with_gnss = plain.clone();
+        with_gnss.channels.push(Channel::new(
+            "GPS Altitude",
+            Quantity::GnssAltitude,
+            plain.time_s.clone(),
+            plain
+                .time_s
+                .iter()
+                .map(|&clock| flown((clock - 20.0).clamp(0.0, landed_s())).0)
+                .collect(),
+        ));
+        let speed = |log: &FlightLog| {
+            let comparison = compare(log, &readings::read(log), &simulation, None).unwrap();
+            let Speed::Read(speed) = comparison.speed_m_s else {
+                panic!("{:?}", comparison.speed_m_s);
+            };
+            speed.phases[0].mean
+        };
+        assert_eq!(speed(&plain), speed(&with_gnss));
+    }
+
+    /// Every source stands for what the page says it stands for.
+    #[test]
+    fn a_tracks_source_says_what_its_height_stands_for() {
+        for source in [Source::Barometer, Source::Pressure, Source::AltitudeChannel] {
+            assert_eq!(HeightKind::of(source), HeightKind::Barometric);
+        }
+        for source in [Source::Gnss, Source::Accelerometer] {
+            assert_eq!(HeightKind::of(source), HeightKind::Geometric);
+        }
+    }
+
+    /// A slow log's samples are compared from its first after liftoff, none counted as past the
+    /// flight, and the simulation read at the log's own interval, up to the coarsest the reader
+    /// takes.
+    #[test]
+    fn a_slow_logs_simulation_is_read_at_its_interval() {
+        let environment = environment(None);
+        let simulation = simulated(&environment, flown);
+        for interval_s in [0.33, 0.7, 0.9, 1.5] {
+            let log = logged_every(interval_s, 20.0, |t| flown(t).0);
+            let comparison = compare(
+                &log,
+                &readings::read(&log),
+                &simulation,
+                Some(HeightKind::Geometric),
+            )
+            .unwrap();
+            let read_at = comparison.simulated_interval_s;
+            assert!((read_at - interval_s).abs() < 1e-9, "{interval_s}: {read_at}");
+            assert_eq!(comparison.height_m.past_simulation, 0, "{interval_s}");
+            let first = comparison.height_m.points[0].time_after_liftoff_s;
+            assert_eq!(first, 0.0, "{interval_s}");
+            let apogee = row(&comparison, What::ApogeeHeight);
+            let difference = apogee.logged_minus_simulated.unwrap_or(0.0);
+            assert!(difference.abs() < 30.0, "{interval_s}: {apogee:?}");
+        }
     }
 
     /// A simulation landing before the log does leaves samples compared with nothing, counted.

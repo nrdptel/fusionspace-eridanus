@@ -139,8 +139,9 @@ fn fly(root: &Path, flight: &RealFlight) -> Result<FlightResiduals, String> {
 
 /// The example's parachutes, as its notebook adds them: a name, its `C_d S` in m², its trigger
 /// height (`None` at apogee) and its lag in s. Notebooks state these, the designs don't, as
-/// `real-flights` flies only up to apogee. `cavour_flight_sim.ipynb` adds none, and says so; Lince's
-/// main body is taken alone, without the payload the notebook splits off under its own canopy.
+/// `real-flights` flies only up to apogee. `cavour_flight_sim.ipynb` adds none, and says so. Lince
+/// keeps the design's mass, its payload on board, under the main body's canopy; the notebook splits
+/// that payload off under a canopy of its own.
 type Chute = (&'static str, f64, Option<f64>, f64);
 const CHUTES: [(&str, &[Chute]); 7] = [
     // `bella_lui_flight_sim.ipynb`: `CdS_drogue` π/4, `lag_rec` 1.
@@ -369,11 +370,12 @@ impl Report {
              to the ground in its ERA5 air and wind, on hpr's own drag, under the parachutes \
              its example's notebook gives it.\n\
              - **A residual** is the logged value less the simulated one. Positive: the log read \
-             higher, or faster upward, than the simulation.\n\
+             higher, or faster upward, than the simulation. A descent's rate is a size, so there a \
+             positive residual in the readings means the log fell faster.\n\
              - **Heights** are the log's own samples, above its pad, unsmoothed. The simulation's \
              are read as the log's altimeter would read them. **Speeds** are the smoother's, \
-             taken from the log's heights, against the rate at which the same altimeter's reading \
-             would change.\n\
+             taken from the log with any GNSS set aside, against the rate at which the same \
+             altimeter's reading would change.\n\
              - **The clocks** are lined up by what one reader calls liftoff on each. Their bound \
              is rounded up.\n\
              - **Tests:** a log of the simulation's own flight leaves an RMS under 1 m (3.3 ft), \

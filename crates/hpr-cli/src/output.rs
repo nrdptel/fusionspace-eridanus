@@ -1761,6 +1761,8 @@ pub struct Compare {
     pub simulated_liftoff_s: f64,
     /// How well the two clocks are lined up, s.
     pub clock_bound_s: f64,
+    /// The sample interval the simulation was read at, s: the log's, up to the reader's coarsest.
+    pub simulated_interval_s: f64,
     /// Whether the residuals run to a landing read from the log, not just to the log's end.
     pub reaches_landing: bool,
     /// The log's samples less the simulated height, m above the pad.
@@ -1769,6 +1771,8 @@ pub struct Compare {
     pub speed_m_s: CompareSpeed,
     /// Each reading beside the simulation's.
     pub rows: Vec<CompareRow>,
+    /// What to bear in mind in reading them, as the text form's notes say.
+    pub notes: Vec<String>,
 }
 
 /// What a log's height stands for.

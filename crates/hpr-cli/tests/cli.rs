@@ -7700,6 +7700,16 @@ fn compare_sets_a_log_against_its_own_simulation() {
     let text = String::from_utf8_lossy(&text.stdout).into_owned();
     assert!(text.contains("logged less simulated"), "{text}");
     assert!(text.contains("How far to trust it."), "{text}");
+    // The JSON keeps the caveats the text's notes give.
+    let notes = document["notes"].to_string();
+    assert!(notes.contains("your mapping or layout"), "{notes}");
+    assert!(notes.contains("--height-reads"), "{notes}");
+    // A height stated as climbed is compared as one, and the note about taking it goes.
+    let stated = hpr(&[&args[..], &["--height-reads", "height-climbed", "--json"]].concat());
+    assert_eq!(stated.status.code(), Some(0), "{stated:?}");
+    let stated: Value = serde_json::from_slice(&stated.stdout).unwrap();
+    assert_eq!(stated["height_read_as"], "height_climbed");
+    assert!(!stated["notes"].to_string().contains("--height-reads"));
 }
 
 /// A residual is logged less simulated: a log that read a tenth high reads positive.

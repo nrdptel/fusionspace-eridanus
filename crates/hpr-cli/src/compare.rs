@@ -3,6 +3,7 @@
 
 use std::path::Path;
 
+use hpr::hpr_flightdata::log::FlightLog;
 use hpr::hpr_flightdata::readings;
 use hpr::hpr_flightdata::timeline::What;
 use hpr::hpr_forensics::residuals::{self, HeightKind, Phase, Residuals, Speed, Track};
@@ -43,6 +44,10 @@ pub struct CompareArgs {
         conflicts_with = "layout"
     )]
     pub sheet: Option<usize>,
+    /// What the log's height stands for: a barometer's reading, or a height climbed. Without it, a
+    /// log's main altitude, or a column you mapped, is taken as a barometer's
+    #[arg(long, value_name = "WHAT", value_enum)]
+    pub height_reads: Option<HeightReads>,
     /// Which recording to read from a file that holds several, counting from 0
     #[arg(
         long,
@@ -51,6 +56,15 @@ pub struct CompareArgs {
         conflicts_with_all = ["mapping", "layout", "sheet"]
     )]
     pub recording: Option<usize>,
+}
+
+/// What a log's height stands for, as typed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
+pub enum HeightReads {
+    /// A barometer's reading: the standard atmosphere's altitude of the pressure, less the pad's.
+    Barometer,
+    /// A height climbed: a GPS receiver's, or an accelerometer's integral.
+    HeightClimbed,
 }
 
 impl CompareArgs {
@@ -77,16 +91,26 @@ pub(crate) fn run(args: &CompareArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         .fly_with(&mut track)
         .map_err(|error| flight_refused(&error, &args.flight))?;
     drop(builder);
-    let refused = |error: residuals::ResidualsError| {
-        Failure::helped(
+    let refused = |error: residuals::ResidualsError| match error {
+        residuals::ResidualsError::LogLiftoff(_) => Failure::helped(
             format!("{}: {error}", args.log),
             "`hpr analyze` on the log says why its liftoff can't be read; a log that doesn't \
              show a liftoff can't be put on the simulation's clock",
-        )
+        ),
+        _ => Failure::helped(
+            format!("{}: {error}", args.flight.design),
+            "`hpr sim` with the same options shows what it flew; the flight must leave the pad, \
+             in air that reaches its apogee",
+        ),
     };
     let simulated = track.simulated(setup.environment.sim()).map_err(refused)?;
-    let comparison = residuals::compare(&log, &read, &simulated, None).map_err(refused)?;
+    let stated = args.height_reads.map(|reads| match reads {
+        HeightReads::Barometer => HeightKind::Barometric,
+        HeightReads::HeightClimbed => HeightKind::Geometric,
+    });
+    let comparison = residuals::compare(&log, &read, &simulated, stated).map_err(refused)?;
 
+    let notes = notes(args, &log, &setup, stated);
     let document = Compare {
         kind: crate::trust::Kind::Compared,
         trust: crate::trust::compared(),
@@ -102,6 +126,7 @@ pub(crate) fn run(args: &CompareArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         log_liftoff_s: comparison.log_liftoff_s,
         simulated_liftoff_s: comparison.simulated_liftoff_s,
         clock_bound_s: comparison.clock.bound_s,
+        simulated_interval_s: comparison.simulated_interval_s,
         reaches_landing: comparison.reaches_landing,
         height_m: residuals_document(&comparison.height_m),
         speed_m_s: match &comparison.speed_m_s {
@@ -111,9 +136,45 @@ pub(crate) fn run(args: &CompareArgs, to: &mut Out<'_>) -> Result<(), Failure> {
             },
         },
         rows: comparison.rows.iter().map(row_document).collect(),
+        notes,
     };
+    let lines: Vec<String> = text_lines(&document)
+        .iter()
+        .map(|line| crate::printable(line))
+        .collect();
+    to.emit(&document, |out, diagnostics| {
+        out.lines(&lines, &[])?;
+        crate::sim_text::trust_lines(&document.trust, out)?;
+        document
+            .notes
+            .iter()
+            .try_for_each(|note| diagnostics.line(Level::Note, note))
+    })
+}
+
+/// The notes that go with the result, in the text and in the document alike.
+fn notes(
+    args: &CompareArgs,
+    log: &FlightLog,
+    setup: &Setup,
+    stated: Option<HeightKind>,
+) -> Vec<String> {
     let mut notes = setup.read.notes.clone();
     notes.extend(log.notes.iter().map(|note| format!("the log: {note}")));
+    if args.mapping.is_some() || args.layout.is_some() {
+        notes.push(
+            "the log was read in the units your mapping or layout states, so its readings' bounds \
+             hold only if those are right"
+                .to_owned(),
+        );
+    }
+    if stated.is_none() {
+        notes.push(
+            "a log's main altitude, or a column you mapped, is taken as a barometer's: give \
+             --height-reads height-climbed for a GPS receiver's"
+                .to_owned(),
+        );
+    }
     if setup.devices.is_empty() {
         notes.push(
             "the design flies no parachute, so the simulated descent is a fall: its residuals say \
@@ -128,17 +189,7 @@ pub(crate) fn run(args: &CompareArgs, to: &mut Out<'_>) -> Result<(), Failure> {
                 .to_owned(),
         );
     }
-    let lines: Vec<String> = text_lines(&document)
-        .iter()
-        .map(|line| crate::printable(line))
-        .collect();
-    to.emit(&document, |out, diagnostics| {
-        out.lines(&lines, &[])?;
-        crate::sim_text::trust_lines(&document.trust, out)?;
-        notes
-            .iter()
-            .try_for_each(|note| diagnostics.line(Level::Note, note))
-    })
+    notes
 }
 
 /// A quantity's residuals as the document holds them.

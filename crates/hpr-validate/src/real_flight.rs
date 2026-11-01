@@ -765,7 +765,6 @@ pub fn read_bytes(
 }
 
 /// The SHA-256 of `bytes`, in lower-case hex.
-/// A file's SHA-256, in hex.
 pub fn sha256_hex(bytes: &[u8]) -> String {
     Sha256::digest(bytes)
         .iter()
