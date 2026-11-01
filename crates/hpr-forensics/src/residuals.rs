@@ -845,6 +845,29 @@ mod tests {
         }
     }
 
+    /// With ignition between a slower log's samples, the clocks' offset is all that's left, and it
+    /// isn't small: the report's page quotes this size.
+    #[test]
+    fn ignition_between_samples_leaves_the_clocks_offset() {
+        let environment = environment(None);
+        let simulation = simulated(&environment, flown);
+        let log = logged_every(0.2, 37.3, |t| flown(t).0 + 12.0);
+        let comparison = compare(
+            &log,
+            &readings::read(&log),
+            &simulation,
+            Some(HeightKind::Geometric),
+        )
+        .unwrap();
+        let ascent = comparison
+            .height_m
+            .phases
+            .iter()
+            .find(|summary| matches!(summary.phase, Phase::Ascent | Phase::Boost))
+            .unwrap();
+        assert!((9.0..12.0).contains(&ascent.rms), "{ascent:?}");
+    }
+
     /// The residual is logged less simulated: a log that flew 10% higher reads positive.
     #[test]
     fn a_residual_is_logged_less_simulated() {

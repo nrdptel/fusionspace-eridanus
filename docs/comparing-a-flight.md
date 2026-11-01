@@ -92,8 +92,8 @@ note: a log's main altitude, or a column you mapped, is taken as a barometer's: 
 
 The height's mean residual is negative in both phases, because the log reads low. It is largest at apogee,
 and it shrinks with the height on the way down. A reading says "withheld" when the log can't support it, with
-the reason beside it, as here for the top speed and the acceleration. A reading marked "a floor" means the true value may lie any
-amount above it.
+the reason beside it, as here for the top speed and the acceleration. A reading marked ["a floor"](glossary.md#floor), which this log has none of,
+means the true value may lie any amount above it. The notes at the end go to the error stream.
 
 The simulation flies the conditions you give it. With no wind or air given, it flies a calm standard day,
 which isn't the day you flew. `--json` adds every sample's residual, for a plot of your own, and holds the notes.

@@ -66,7 +66,8 @@ and how likely each goal is:
   ([release 0.1](decisions-and-roadmap.md#m10-1)). It shipped with its known limits listed. Among
   them is drag that reads high above Mach 0.8, so the apogee there reads low.
 - 0.2, the flight analyzer: it reads the common altimeters' logs on their own, with no design
-  file. Then it compares a log with its simulation and fits the rocket's drag from it.
+  file. Then it compares a log with its simulation, which works today, and fits the rocket's
+  drag from it, which is still to come.
 - 0.3, accuracy and diagnosis: the simulator measured against logged flights and improved, and a
   flight's likely faults ranked from its log.
 - 0.4, the competition kit: rules presets for Student Launch, IREC and others, and an optimizer.
