@@ -22,8 +22,9 @@
 //! - the **climb** is the first filtered sample twice [`LIFTOFF_ALLOWANCE_M`] and the track's step
 //!   above where the log starts: the allowance is the most the pad's noise lifts the filtered
 //!   track, from below at the start or from above at the climb. Where the filtered track falls by
-//!   more than this rise within a window of the log's first sample, the first samples are bad, and
-//!   the log starts for the readings at the window's lowest;
+//!   more than that rise within a window of the log's first sample and is already rising again by
+//!   the window's end, the first samples are bad, and the log starts for the readings at the
+//!   window's lowest;
 //! - the **pad** is the median of the samples to the last within half that of the start before
 //!   the climb. A rocket that leaves the pad at [`LIFTOFF_ACCELERATION_M_S2`] or more, moving at
 //!   `v` when the log starts, climbs `v t + A t²/2` while the track stays near its start, so its
@@ -1171,24 +1172,7 @@ fn heights(log: &FlightLog) -> Readings {
     let Some(apogee_index) = arg_max(&filtered) else {
         return no_climb(readings, rise);
     };
-    // Samples at the log's start that stand above what follows by more than the rise, which the
-    // pad's noise doesn't reach and no climb does, are bad: a rocket doesn't fall from the log's
-    // first samples and then climb (#1076). The log starts for the readings at the lowest
-    // filtered height within a window of its start, or they would take those samples for the pad.
-    let head = filtered
-        .iter()
-        .take(2 * half + 1)
-        .enumerate()
-        .filter(|(_, h)| h.is_finite())
-        .fold(
-            None,
-            |least: Option<(usize, f64)>, (index, h)| match least {
-                Some((_, low)) if low <= *h => least,
-                _ => Some((index, *h)),
-            },
-        )
-        .filter(|(_, low)| *low < start - rise)
-        .map_or(0, |(index, _)| index);
+    let head = bad_start_ends(&filtered[..filtered.len().min(2 * half + 1)], start, rise);
     let start = if head > 0 { filtered[head] } else { start };
     let Some(climb) = filtered[head..=apogee_index.max(head)]
         .iter()
@@ -1921,6 +1905,30 @@ fn max_speed(
     })
 }
 
+/// Where a log's bad first samples end, within the `window` of filtered heights from its first
+/// sample, or 0 if it starts well (#1076). They stand more than `rise` above the window's lowest
+/// height, with the track already rising again by the window's end: a rocket doesn't fall from the
+/// log's first samples and climb again that soon. A fall still going at the window's end is the
+/// pad's: sample logs and Juno III's (8.5 m) read a fall of many meters over about a second before
+/// the climb, a pressure pulse on the pad at ignition by its look, their first samples good (#1101).
+fn bad_start_ends(window: &[f64], start: f64, rise: f64) -> usize {
+    let lowest = window
+        .iter()
+        .enumerate()
+        .filter(|(_, h)| h.is_finite())
+        .fold(
+            None,
+            |least: Option<(usize, f64)>, (index, h)| match least {
+                Some((_, low)) if low <= *h => least,
+                _ => Some((index, *h)),
+            },
+        );
+    match lowest {
+        Some((index, low)) if low < start - rise && index + 1 < window.len() => index,
+        _ => 0,
+    }
+}
+
 /// Apogee, as landing needs it.
 struct Apex {
     index: usize,
@@ -2099,6 +2107,40 @@ mod tests {
                 h.max(0.0)
             }
         }
+    }
+
+    /// Bad first samples end where the track has turned up inside the window; a fall still going
+    /// at its end is the pad's, however large (#1076).
+    #[test]
+    fn bad_first_samples_are_told_from_a_fall_on_the_pad() {
+        let rise = 5.0;
+        // Two bad samples' medians, then the climb.
+        assert_eq!(
+            bad_start_ends(&[46.0, 46.0, 3.0, 1.0, 4.0, 9.0, 20.0], 46.0, rise),
+            3
+        );
+        // Juno III's first rows, filtered: the fall runs past the window's end.
+        assert_eq!(
+            bad_start_ends(&[0.0, 0.0, 0.0, -1.0, -3.0, -7.0, -7.6], 0.0, rise),
+            0
+        );
+        // A far larger fall, as some sample logs start, the same.
+        assert_eq!(
+            bad_start_ends(
+                &[0.0, -28.0, -30.0, -44.0, -92.0, -193.0, -348.0],
+                0.0,
+                rise
+            ),
+            0
+        );
+        // The pad's noise, under the rise, on a clean start.
+        assert_eq!(
+            bad_start_ends(&[1.0, 0.5, -1.0, 0.0, 1.0, 0.5, 0.0], 1.0, rise),
+            0
+        );
+        // At the rise exactly: not past it.
+        assert_eq!(bad_start_ends(&[5.0, 0.0, 1.0], 5.0, rise), 0);
+        assert_eq!(bad_start_ends(&[], f64::NAN, rise), 0);
     }
 
     /// A log cut on the climb holds neither the rocket's top height nor, for all it knows, its top

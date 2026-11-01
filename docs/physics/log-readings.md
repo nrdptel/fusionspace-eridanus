@@ -173,9 +173,11 @@ taken before the rocket moved. Three rules do it, each with a number set from th
    the log starts. That is 4.61 m (15.1 ft) on a PerfectFlite, whose step is a foot. The pad's
    noise lifts the filtered track by at most the allowance, from below at the start or from above
    at the climb. So twice that is out of its reach.
-   Where the filtered track falls by more than this rise within a window of the log's first sample,
-   those first samples are bad, as no rocket falls and then climbs, and the log starts at the
-   window's lowest.
+   Where the filtered track falls by more than this rise within a window of the log's first sample
+   and is already rising by the window's end, those first samples are bad, and the log starts at the
+   window's lowest. A fall still going at the window's end is left alone: its first samples are good, and it
+   reads like a pressure pulse on the pad at ignition
+   ([an open issue](https://github.com/nrdptel/fusionspace-eridanus/issues/1101) tracks its effect).
 3. **The pad** is the median of the samples up to the last one within half that rise of the start,
    before the climb. Half the rise is 2.30 m (7.6 ft) on a PerfectFlite. The median means that no
    one sample's jitter sets the pad, and the half rise means the climb lends it few samples.
