@@ -1951,7 +1951,7 @@ decisions over the sample logs:
   climb is under 50 m (164 ft), or the record ends before the rocket is halfway down or while it is moving.
   The same goes where the speed's first row is over 1% of its peak, or its running total ends over
   1% of the climb from the altitude: a filter that averages ahead of each sample, not only behind it,
-  can do that. These last two rules change no sample's unit. The time is in seconds where its step is the RRC3's 20
+  can do that. These last two rules leave every sample's unit as it was. The time is in seconds where its step is the RRC3's 20
   samples a second. Of the 51 RRC3 exports among the sample logs, 47 are read in feet from the
   pressure and 4 state feet. Of the speeds, 36 are in feet per second and 9 in miles per hour.
   Another 4 state feet per second. The remaining 2, whose records stop early, keep their speeds as
