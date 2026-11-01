@@ -1760,7 +1760,7 @@ gives:
 ### `hpr compare`
 
 `hpr compare` sets a flight log against a simulation of that flight. It takes the log, then the design, its
-motor and the launch as [`hpr sim`](#hpr-sim) takes them. It prints how far the logged height and speed lie from
+motor and the launch as `hpr sim` takes them. It prints how far the logged height and speed lie from
 the simulated, phase by phase, and each reading beside the simulation's. `--json` adds every sample's residual.
 A log from another logger is read by `--mapping` or `--layout`, as `hpr analyze` reads it.
 [Comparing a flight with its simulation](comparing-a-flight.md) says how to read the result.

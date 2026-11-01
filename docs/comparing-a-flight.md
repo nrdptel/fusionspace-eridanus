@@ -1,7 +1,6 @@
 # Comparing a flight with its simulation
 
-`hpr compare` sets a flight log against a simulation of the same flight. It says how far the logged
-height and speed lie from the simulated, and puts each of the log's readings beside the simulation's.
+`hpr compare` shows how far a flight's logged height, speed and readings lie from a simulation of it.
 
 This page is for a flyer or a team who has flown and wants to see where the simulation parted from the
 flight. NASA Student Launch's handbook asks for this comparison after a team's subscale flight and again
@@ -16,7 +15,7 @@ after its full-scale flight. Reading a log with no simulation is [Reading a flig
 
 ## Run it
 
-Give the log, then the design, its motor and the launch, as [`hpr sim`](cli.md#hpr-sim) takes them:
+Give the log, then the design, its motor and the launch, as `hpr sim` takes them ([the command line](cli.md)):
 
 ```text
 hpr compare flight.pf2 rocket.ork --motor CTI-J350 --wind 4
