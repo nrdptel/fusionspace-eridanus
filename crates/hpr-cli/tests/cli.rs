@@ -4904,8 +4904,34 @@ fn analyze_reads_rocketpys_two_logger_flight_side_by_side() {
         offset["bound_s"].as_f64().unwrap(),
     );
     assert!((value - by_utc).abs() <= bound, "{value} against {by_utc}");
-    // Measured: 0.08 s, the figure the guide's page quotes.
-    assert!((value - by_utc).abs() < 0.1, "{value} against {by_utc}");
+    // Measured: the figures the guide's worked example quotes, to their printed digits.
+    let interval = &offset["interval_s"];
+    let (low, high) = (
+        interval["low"].as_f64().unwrap(),
+        interval["high"].as_f64().unwrap(),
+    );
+    for (figure, printed, digit) in [
+        ((value - by_utc).abs(), 0.08, 0.0051),
+        (value, -0.05, 0.0051),
+        (bound, 1.53, 0.0051),
+        (low, -0.129, 0.00051),
+        (high, 0.03, 0.0051),
+        (
+            document["logs"][0]["liftoff"]["time_s"].as_f64().unwrap(),
+            0.23,
+            0.0051,
+        ),
+        (
+            document["logs"][1]["liftoff"]["time_s"].as_f64().unwrap(),
+            0.18,
+            0.0051,
+        ),
+    ] {
+        assert!(
+            (figure - printed).abs() < digit,
+            "{figure} against {printed}"
+        );
+    }
     let rows = document["rows"].as_array().unwrap();
     let cell = |what: &str, index: usize| {
         rows.iter().find(|r| r["what"] == what).unwrap()["cells"][index]["value"]

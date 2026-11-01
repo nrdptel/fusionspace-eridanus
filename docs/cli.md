@@ -2032,9 +2032,10 @@ booster's readings and a sustainer's being of different bodies.
 
 These two logs are invented, their clocks 53.5 s apart ([Reading a flight
 log](reading-a-flight-log.md#two-logs-of-one-flight) has a real pair). "Within" is a bound: no
-reading's error passed it on the synthetic flights, and most came to a small part of it. The 90%
-interval is where the truth lay nine times in ten, and it needn't hold the reading: liftoff is read
-late, so its interval lies earlier, and the flight time reads short, so its interval lies later
+reading's error passed it on the synthetic flights, and the clock offset's came to 0.13 of it at
+most. The 90% interval is where the truth lay nine times in ten, and it needn't hold the reading:
+liftoff is read late, so its interval lies earlier, and the flight time reads short, so its interval
+lies later
 ([the 90% intervals](reading-a-flight-log.md#the-90-intervals-and-the-health-card)). `unknown` is the
 logger's name, which these two tables don't state. A staged flight's logs take the same arguments
 and `--stages`: `hpr analyze sustainer.csv booster.csv --stages`.
