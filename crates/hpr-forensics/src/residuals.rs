@@ -874,6 +874,35 @@ mod tests {
         let top_m = flown(3.0 + 180.0 / 9.8).0;
         let low = -apogee(&by_height) / top_m;
         assert!((0.05..0.09).contains(&low), "{low}");
+        // Sample by sample too: the height's residuals and the speed's follow the same reading.
+        let largest = |points: &[Point]| {
+            points
+                .iter()
+                .fold(0.0_f64, |most, point| most.max(point.residual.abs()))
+        };
+        assert!(
+            largest(&by_barometer.height_m.points) < 0.01 * top_m,
+            "{}",
+            largest(&by_barometer.height_m.points)
+        );
+        assert!(largest(&by_height.height_m.points) > 0.05 * top_m);
+        let coast_rms = |comparison: &Comparison| {
+            let Speed::Read(speed) = &comparison.speed_m_s else {
+                panic!("{:?}", comparison.speed_m_s);
+            };
+            speed
+                .phases
+                .iter()
+                .find(|summary| summary.phase != Phase::Descent)
+                .unwrap()
+                .rms
+        };
+        assert!(
+            coast_rms(&by_barometer) < coast_rms(&by_height),
+            "{} against {}",
+            coast_rms(&by_barometer),
+            coast_rms(&by_height)
+        );
     }
 
     /// The speed's residual is against the rate a barometer's reading changes when the log's
