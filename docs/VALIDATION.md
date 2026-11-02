@@ -403,11 +403,11 @@ to the digits they compare. On each of the five platforms the synthetic check ru
 set: `--sets tuning,a` in the `validate` job and `--sets b,calibration` in `examples`, and a test
 fails if a set is left out ([the synthetic flights' tests](physics/synthetic-flights.md)). Reports
 are still written by the everyday build, and `scripts/gate.sh` runs both checks with it, whole, on
-your own machine. Its default run leaves them out only when a change is prose they don't read, such
-as most pages under `docs/`, and a run that names its steps runs just those. CI always runs them. So
-a report in the repository has to reproduce from both builds. If the optimized build ever came out
-differently, CI would fail and regenerating wouldn't fix it: that would need a decision record, not
-a looser check.
+your own machine. A passing default run leaves them out only when a change is prose they don't read,
+such as most pages under `docs/`, and a run that names its steps runs them only when `validate` is
+named. CI always runs them. So a report in the repository has to reproduce from both builds. If the
+optimized build ever came out differently, CI would fail and regenerating wouldn't fix it: that
+would need a decision record, not a looser check.
 
 Then the job holds the committed reports to the accuracy census accepted last
 ([the regression check](decisions-and-roadmap.md#m2-4),
