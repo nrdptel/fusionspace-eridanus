@@ -37,13 +37,13 @@ use super::words::Renderer;
 
 /// The names after which a figure numbers a document, a standard or a thing rather than counts
 /// or measures it (the word right before the figure, as written), each one a page needs:
-/// standards and their codes (`ISO 8601`, `NFPA 1125`, `RFC 4180`, `NMEA 0183`, EPSG's
+/// standards and their codes (`ISO 8601`, `IEC 61400`, `NFPA 1125`, `RFC 4180`, `NMEA 0183`, EPSG's
 /// `code 4269`), NACA's sections and the report series of NACA, NASA and the Navy (`NACA 0012`,
 /// `TN 3527`, `TP 6575`, `NTRS 19670020050`, `arXiv 2511.04725`), alloys and a resin system
 /// (`Al 6061`, `Hexcel 8552`), a sounding station, a forum thread and a source's pages.
-const IDENTIFIERS: [&str; 23] = [
+const IDENTIFIERS: [&str; 24] = [
     // Standards and their bodies.
-    "ISO", "NFPA", "RFC", "NMEA", "ESDU", "datum", "Code", "code",
+    "ISO", "IEC", "NFPA", "RFC", "NMEA", "ESDU", "datum", "Code", "code",
     // NACA's sections, and NACA's, NASA's and the Navy's report series and archives.
     "NACA", "TN", "TR", "TP", "Report", "NTRS", "arXiv",
     // Named materials: an alloy, a resin system.
