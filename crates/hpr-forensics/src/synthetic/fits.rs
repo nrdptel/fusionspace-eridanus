@@ -5,10 +5,10 @@
 //! its rated impulse and burn, the rail, the site and the day's air, and the structure's mass as
 //! weighed, [`weighed_factor`] off the truth. The drag scale, impulse scale, wind and mass are each
 //! compared with the flight's truth by the same three counts as the readings'
-//! ([`intervals::Test`]), with the same three probes.
+//! ([`super::intervals::Test`]), with the same three probes.
 //!
-//! **The truth.** On [`Set::A`](super::Set::A) a parameter's truth is what the flight drew. On
-//! [`Set::B`](super::Set::B), whose drag curve, wind and thrust are shaped otherwise, it is the fit
+//! **The truth.** On [`Set::A`] a parameter's truth is what the flight drew. On
+//! [`Set::B`], whose drag curve, wind and thrust are shaped otherwise, it is the fit
 //! to the noise-free flight ([`noise_free`]): the same bins of height and drift, as the sensor would
 //! have read them with no noise, on a clock and pad known exactly. The mass's truth is what the
 //! flight drew on both.
@@ -741,7 +741,7 @@ pub fn fitted(asked: Asked, drift: bool, fits: &[FlightFit]) -> Option<Shares> {
 }
 
 /// The shares in force on a log that holds a horizontal track, or doesn't, by `drift`, fitted on
-/// [`Set::Calibration`](super::Set::Calibration): `cargo xtask fit --calibrate` prints them. A
+/// [`Set::Calibration`]: `cargo xtask fit --calibrate` prints them. A
 /// track speaks to the wind, so its errors are small and of another kind: the two are told apart,
 /// as the log itself says which it is.
 #[must_use]

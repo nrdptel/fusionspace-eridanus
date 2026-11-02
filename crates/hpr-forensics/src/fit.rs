@@ -901,6 +901,30 @@ mod tests {
         assert_eq!(refused.parameters.drag_scale, -1.0);
     }
 
+    /// A barometer's gain is the fit's to find, with the rocket held as stated. A GNSS height has
+    /// none, so the same samples leave it the curve a clock offset and a drift can't take up.
+    #[test]
+    fn a_barometers_gain_goes_to_the_sensor_not_the_rocket() {
+        let held = {
+            let mut stated = wide();
+            stated[0].sd = 1e-6;
+            stated[1].sd = 1e-6;
+            stated
+        };
+        let mut seen = observed(1.0, 1.0, 0.0, 0.0);
+        seen.horizontal.clear();
+        for sample in &mut seen.heights {
+            sample.1 *= 1.004;
+        }
+        let height_only = fit(Some(&seen), &held, Noise::FromResiduals, &mut Line);
+        seen.kind = HeightKind::Barometric;
+        let barometer = fit(Some(&seen), &held, Noise::FromResiduals, &mut Line);
+        let (rms_height, rms_barometer) = (height_only.rms_m.unwrap(), barometer.rms_m.unwrap());
+        assert!(rms_barometer < 0.5, "{rms_barometer}");
+        assert!(rms_height > 1.0, "{rms_height}");
+        assert!((barometer.parameters.drag_scale - 1.0).abs() < 1e-4);
+    }
+
     #[test]
     fn a_clock_offset_is_found_and_the_noise_comes_from_the_residuals() {
         let mut seen = observed(1.0, 1.0, 0.0, 0.0);
