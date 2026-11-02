@@ -538,7 +538,7 @@ fn chi2(r: &[f64]) -> f64 {
 }
 
 /// The lower triangle `L` of `a = L Lᵀ`; `None` if `a` isn't positive definite.
-fn cholesky<const N: usize>(a: &[[f64; N]; N]) -> Option<[[f64; N]; N]> {
+pub(crate) fn cholesky<const N: usize>(a: &[[f64; N]; N]) -> Option<[[f64; N]; N]> {
     let mut l = [[0.0; N]; N];
     for i in 0..N {
         for j in 0..=i {

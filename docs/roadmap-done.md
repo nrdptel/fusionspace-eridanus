@@ -369,6 +369,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.2g Ghost files ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3a Residuals ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3b The least-squares fit ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.3c1 The posterior's sampler ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1948,6 +1949,13 @@ One line per milestone or increment, in the order it was archived within its pha
     passes ADR-257 §1's three counts on sets A and B, at least 1,000 flights each and counted per design, with
     its three mutation probes failing; the drag and impulse scales are identified on set A, and every parameter
     comes back not identified on pure noise.
+  - **M7.3c** is open; its entry: [roadmap](ROADMAP.md#phase-5-flight-data-and-forensics).
+    - [x] **M7.3c1 The posterior's sampler.** *Done when:* `hpr_forensics::posterior::sample` draws a posterior
+      by importance sampling from a Student-t around a given peak and covariance, and gives each unknown's 5%,
+      50% and 95% points, its effective draws and its failed draws; on a Gaussian posterior its points are
+      within 0.06 standard deviations of the closed form, and on a curved one within 0.08 of a quadrature, each
+      test failing when the proposal's density is left out of the weights; a draw that can't be had has no
+      weight and is counted; too few effective draws says so; the same seed gives the same answer, bit for bit.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)
