@@ -582,6 +582,13 @@ fn make(files: &DesignFiles) -> Result<(Report, Vec<String>), String> {
                     == hpr_forensics::synthetic::logger::Profile::GnssTracker
             })
             .count() as u64;
+        // The pages say every log refused is one of these; a refusal of another kind is news.
+        if report.said_nothing_gnss_alone != report.said_nothing {
+            broken.push(format!(
+                "{set:?}: {} logs had nothing to fit, {} of them a GNSS receiver's alone",
+                report.said_nothing, report.said_nothing_gnss_alone
+            ));
+        }
         // Over every flight a fit came to, those it then refused included, so that a flight the
         // misfit's cut drops can't leave the counts unseen.
         let misfits: Vec<f64> = made
