@@ -58,6 +58,7 @@
       "flights": 1000,
       "drawn": 1216,
       "said_nothing": 216,
+      "said_nothing_gnss_alone": 216,
       "not_converged": 2,
       "largest_misfit": 0.0209,
       "checks": [
@@ -961,6 +962,7 @@
       "flights": 1000,
       "drawn": 1193,
       "said_nothing": 193,
+      "said_nothing_gnss_alone": 193,
       "not_converged": 7,
       "largest_misfit": 0.0251,
       "checks": [

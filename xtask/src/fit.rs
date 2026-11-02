@@ -210,6 +210,9 @@ struct SetReport {
     drawn: u64,
     /// Of those, the logs with nothing to fit, each parameter then as stated, and not counted.
     said_nothing: u64,
+    /// Of those, the logs whose only height is a GNSS receiver's, from which the reader takes no
+    /// apogee.
+    said_nothing_gnss_alone: u64,
     /// Flights counted here or for the wind whose fit, or whose truth's fit, reached its step limit.
     not_converged: u64,
     /// The largest residual of a counted fit, as a share of the spread of the heights read.
@@ -375,6 +378,7 @@ fn set_report(
             flights: fits_made.len() as u64,
             drawn: 0,
             said_nothing: 0,
+            said_nothing_gnss_alone: 0,
             not_converged: 0,
             largest_misfit: 0.0,
             checks,
@@ -417,18 +421,25 @@ fn page(report: &Report) -> String {
         let _ = writeln!(
             out,
             "## Set {:?}: {} flights counted\n\nOf its first {}, {} had nothing to fit and aren't \
-             counted. A wind is counted on {TRACK_FLIGHTS} flights of the logger with a track, \
-             some past these, each fitted with a track read. Of the flights counted here or for the wind, {} \
-             reached the fit's step limit. \
-             The largest residual is {} of the spread of the heights read.\n\n| Parameter | Below | Inside | Above | \
+             counted, {} of them logs whose only height is a GNSS receiver's, from which the reader \
+             takes no apogee. A wind is counted on the {} of {TRACK_FLIGHTS} flights of the logger \
+             with a track, some past these, fitted with a track read. Of the flights counted here or \
+             for the wind, {} reached the fit's step limit. The largest residual of any of them is {} \
+             of the spread of the heights read; past {} a fit says nothing.\n\n| Parameter | Below | Inside | Above | \
              Test | Narrowed, widened, shifted | Mean error | Median width / stated | Identified |\n\
              |---|---:|---:|---:|---|---|---:|---:|---|",
             set.set,
             set.flights,
             set.drawn,
             set.said_nothing,
+            set.said_nothing_gnss_alone,
+            set.checks
+                .iter()
+                .find(|c| c.asked == Asked::WindEast)
+                .map_or(0, |c| c.test.counts.given),
             set.not_converged,
             set.largest_misfit,
+            hpr_forensics::fit::MISFIT_SHARE,
         );
         for c in &set.checks {
             let probes: Vec<&str> = c
@@ -563,12 +574,32 @@ fn make(files: &DesignFiles) -> Result<(Report, Vec<String>), String> {
             .map(|f| f.index)
             .collect();
         report.not_converged = stopped.len() as u64;
-        report.largest_misfit = counted
+        report.said_nothing_gnss_alone = made
             .iter()
+            .filter(|f| !f.fitted && f.index < report.drawn)
+            .filter(|f| {
+                hpr_forensics::synthetic::draw(set, f.index).logger.profile
+                    == hpr_forensics::synthetic::logger::Profile::GnssTracker
+            })
+            .count() as u64;
+        // Over every flight a fit came to, those it then refused included, so that a flight the
+        // misfit's cut drops can't leave the counts unseen.
+        let misfits: Vec<f64> = made
+            .iter()
+            .filter(|f| f.index < report.drawn)
             .chain(&tracked)
-            .filter(|f| f.fitted)
             .filter_map(|f| f.misfit_share)
-            .fold(0.0, f64::max);
+            .collect();
+        report.largest_misfit = misfits.iter().copied().fold(0.0, f64::max);
+        let cut = misfits
+            .iter()
+            .filter(|share| !(**share <= hpr_forensics::fit::MISFIT_SHARE))
+            .count();
+        if cut > 0 {
+            broken.push(format!(
+                "{set:?}: {cut} flights' fits stand past the misfit's cut, and aren't counted"
+            ));
+        }
         sets.push(report);
         broken.extend(problems);
     }
@@ -601,6 +632,7 @@ fn make(files: &DesignFiles) -> Result<(Report, Vec<String>), String> {
             smallest_misfit: made
                 .iter()
                 .filter_map(|f| f.misfit_share)
+                .filter(|share| share.is_finite())
                 .min_by(f64::total_cmp),
             flights: made.len() as u64,
             said_nothing: made.iter().filter(|f| !f.fitted).count() as u64,

@@ -6,7 +6,7 @@ Written by `cargo xtask fit`. How to read it: [the fit's page](../../docs/physic
 
 ## Set A: 1000 flights counted
 
-Of its first 1216, 216 had nothing to fit and aren't counted. A wind is counted on 1500 flights of the logger with a track, some past these, each fitted with a track read. Of the flights counted here or for the wind, 2 reached the fit's step limit. The largest residual is 0.0209 of the spread of the heights read.
+Of its first 1216, 216 had nothing to fit and aren't counted, 216 of them logs whose only height is a GNSS receiver's, from which the reader takes no apogee. A wind is counted on the 1497 of 1500 flights of the logger with a track, some past these, fitted with a track read. Of the flights counted here or for the wind, 2 reached the fit's step limit. The largest residual of any of them is 0.0209 of the spread of the heights read; past 0.1 a fit says nothing.
 
 | Parameter | Below | Inside | Above | Test | Narrowed, widened, shifted | Mean error | Median width / stated | Identified |
 |---|---:|---:|---:|---|---|---:|---:|---|
@@ -40,7 +40,7 @@ By how well the flight's heights fit (below / inside / above):
 
 ## Set B: 1000 flights counted
 
-Of its first 1193, 193 had nothing to fit and aren't counted. A wind is counted on 1500 flights of the logger with a track, some past these, each fitted with a track read. Of the flights counted here or for the wind, 7 reached the fit's step limit. The largest residual is 0.0251 of the spread of the heights read.
+Of its first 1193, 193 had nothing to fit and aren't counted, 193 of them logs whose only height is a GNSS receiver's, from which the reader takes no apogee. A wind is counted on the 1497 of 1500 flights of the logger with a track, some past these, fitted with a track read. Of the flights counted here or for the wind, 7 reached the fit's step limit. The largest residual of any of them is 0.0251 of the spread of the heights read; past 0.1 a fit says nothing.
 
 | Parameter | Below | Inside | Above | Test | Narrowed, widened, shifted | Mean error | Median width / stated | Identified |
 |---|---:|---:|---:|---|---|---:|---:|---|

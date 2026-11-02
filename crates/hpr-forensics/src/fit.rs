@@ -392,7 +392,8 @@ pub struct Fit {
     pub horizontal_noise_m: f64,
     /// Whether the log was fitted at all. If not, each parameter is what was stated of it.
     pub fitted: bool,
-    /// Whether its last pass stopped at the bottom, not at its limit of 60 steps.
+    /// Whether its last pass ended where no step lowered χ² further: not where it reached its limit
+    /// of 60 steps, or where a flight for its slopes failed.
     pub converged: bool,
     /// The heights' residual's RMS as a share of the spread of the heights read; past
     /// [`MISFIT_SHARE`] the log said nothing. `None` where it never came to one.
@@ -1185,6 +1186,57 @@ mod tests {
         assert!((barometer.parameters.drag_scale - 1.0).abs() < 1e-4);
     }
 
+    /// A barometer's log of a flight to about 610 m, every 0.05 s, its clock jumping by `jump_s`
+    /// from 3 s before apogee.
+    fn jumping_log(jump_s: f64) -> FlightLog {
+        let pad_s = 2.0;
+        let height = |tau: f64| {
+            if tau <= 0.0 {
+                0.0
+            } else if tau < 2.0 {
+                25.0 * tau * tau
+            } else if tau < 12.2 {
+                100.0 + 100.0 * (tau - 2.0) - 4.9 * (tau - 2.0).powi(2)
+            } else {
+                (610.2 - 20.0 * (tau - 12.2)).max(0.0)
+            }
+        };
+        let time_s: Vec<f64> = (0..1_400).map(|i| f64::from(i) * 0.05).collect();
+        let altitude_m = time_s.iter().map(|&t| height(t - pad_s)).collect();
+        let time_s = time_s
+            .into_iter()
+            .map(|t| if t - pad_s > 9.2 { t + jump_s } else { t })
+            .collect();
+        FlightLog {
+            format: hpr_flightdata::log::LogFormat::GenericTable,
+            logger: "a test's".to_owned(),
+            serial_number: None,
+            firmware: None,
+            flight_number: None,
+            stated: hpr_flightdata::log::Stated::default(),
+            time_s,
+            altitude_m,
+            vertical_speed_m_s: None,
+            temperature_k: None,
+            battery_v: None,
+            channels: Vec::new(),
+            events: Vec::new(),
+            notes: Vec::new(),
+        }
+    }
+
+    /// A clock that jumps between liftoff and apogee by more than any flight's climb says nothing,
+    /// so it can't ask for bins beyond memory.
+    #[test]
+    fn a_clock_that_jumps_past_any_flight_says_nothing() {
+        let plain = jumping_log(0.0);
+        assert!(observations(&plain, &readings::read(&plain)).is_some());
+        let jumped = jumping_log(5_000.0);
+        let read = readings::read(&jumped);
+        assert!(matches!(read.apogee, Reading::Read(_)), "{:?}", read.apogee);
+        assert!(observations(&jumped, &read).is_none());
+    }
+
     /// A clock that jumps can't ask for bins beyond memory; the window's bound is what stops it.
     #[test]
     fn a_window_past_any_flight_says_nothing() {
@@ -1200,11 +1252,12 @@ mod tests {
         let mut seen = observed(1.0, 1.0, 0.0, 0.0);
         seen.horizontal.clear();
         for sample in &mut seen.heights {
-            sample.1 = 0.0;
+            sample.1 = 300.0 * (3.0 * sample.0).sin();
         }
         let got = fit(Some(&seen), &wide_held(), Noise::FromResiduals, &mut Line);
         assert!(!got.fitted);
-        assert!(got.misfit_share.unwrap() > MISFIT_SHARE);
+        let share = got.misfit_share.unwrap();
+        assert!(share > MISFIT_SHARE && share < 2.0, "{share}");
         assert!(got.flown > 0);
         assert_eq!(got.rms_m, None);
     }

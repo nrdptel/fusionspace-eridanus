@@ -53,7 +53,8 @@ each step was made with sets A and B in view.
    reason in the definition. It's now the same fit, on the bins the log's fit read, at the same noise,
    with mass held as flown. It's given the flight's drift at every bin, even where the log holds no
    track, so that a log of height alone carries the wind's loss in its errors on set B as on set A,
-   whose truth is the drawn value.
+   whose truth is the drawn value. Reading the log fit's bins, it inherits that fit's Mach 0.8 cut,
+   so an error in where the cut falls is counted on set A alone.
 7. **How fast a fit must be.** About 0.8 CPU-seconds a fit in the optimized profile and about 70 flights
    flown, measured on set A in development; set B's count, about 115, holds its truth's fit too.
    Writing the report takes about 16 minutes on 10 cores. It runs in one Linux job on CI and whole at
@@ -66,6 +67,9 @@ each step was made with sets A and B in view.
    counts toward passing: a review counted set B's impulse at 50 below, 781 inside and 14 above of
    the 845 fitted, which fails, against a pass with them. Each set now counts its first 1,000
    fitted flights: of set A's first 1,216, 216 had nothing to fit; of set B's first 1,193, 193.
+   Every one of them is a log whose only height is a GNSS receiver's, from which the reader takes
+   no apogee, as the report counts: the fit is never tried on that logger, one of the six, and no
+   other cause removed a flight. Which logs drop out doesn't depend on how a fit did.
 9. **A fit that can't be this flight's says nothing.** A review handed pure noise of ±5 m (16 ft)
    to the fit, which gave the impulse a median width of 0.019, under half its stated 0.108. A fit
    whose heights' RMS residual is over 0.1 of the spread of the heights it read now says nothing. On pure noise the
@@ -81,6 +85,8 @@ each step was made with sets A and B in view.
     variances are each widened by $(1+\rho)/(1-\rho)$, $\rho$ their residuals' lag-one
     autocorrelation, capped at 0.9: the effective number of independent values under a first-order
     autoregression (Wilks, *Statistical Methods in the Atmospheric Sciences*, 3rd ed., eq. 5.12).
+    It's an approximation: Wilks gives it for the variance of a mean, the residuals at a fit's
+    minimum read $\rho$ low, and the cap is a judgment; the calibrated shares take up the rest.
     Measured in development, not in the report: before it, with the shares fitted again, set A's drag (27 below, 918 inside, 55 above) and
     impulse (28, 922, 50) and set B's drag (81, 878, 41) failed. After it, only set A's drag failed,
     at 23 below.
@@ -110,7 +116,7 @@ each step was made with sets A and B in view.
 
 [The report][report] holds the counts. Every parameter passes on both sets, every probe fails, drag,
 impulse and wind are identified on set A, and pure noise leaves all five not identified: all 1,400
-fits handed noise say nothing.
+logs of noise say nothing, 400 turned away by the reader and 1,000 by the fit.
 
 ## What this leaves
 
@@ -123,7 +129,7 @@ fits handed noise say nothing.
   shares by residual is [#1108](https://github.com/nrdptel/fusionspace-eridanus/issues/1108). On set
   B, some designs fall well short of 90%: Prometheus holds 68 of 96 on drag and 127 of 161 on the
   north wind.
-- **Set B's drag passes at the edge.** It has 29 above, the fewest that pass at 1,000, and 70 below:
-  its fit runs high by 0.005 on average. One flight the other way on another platform fails it.
+- **Set B's drag passes at the edge.** It has 29 above, the fewest that pass at 1,000, and 70 below,
+  4 short of failing: its fit runs high by 0.005 on average. One flight the other way on another platform fails it.
 - **Accelerometers are unused,** and the fit goes no further than apogee.
 - **No surface.** It's a library function until a later increment.

@@ -119,8 +119,9 @@ impl Asked {
 /// What's stated of a flight read as `observed`. A log of height alone can't tell the wind, and a
 /// wind of either sign lowers a flight's top, so a fit in no wind would put that loss in the drag
 /// and impulse: by 0.7% of the impulse in a wind of 6 to 9 m/s, on the first 240 flights of set A,
-/// and by nothing under 3 m/s. It flies instead in a wind of the stated range's RMS speed, from no
-/// particular way, which leaves the mean of that loss out of them.
+/// and by nothing under 3 m/s. It flies instead in a wind of the stated range's RMS speed, toward
+/// the east, which leaves the mean of that loss out of them; the wind's way, which a tilted rail
+/// would tell, is left to the wind's own stated range.
 #[must_use]
 pub fn stated_for(observed: Option<&Observations>) -> Stated {
     let mut stated = stated();
@@ -357,6 +358,11 @@ pub fn noise_free_observations(
             what: "a truth the day's air doesn't reach",
         }
     })?;
+    if read.len() != observed.heights.len() {
+        return Err(SyntheticError::Flight {
+            what: "a fit's bins that aren't this log's",
+        });
+    }
     let to_flight = |t: f64| t - flight.draw.logger.pad_s;
     Ok(Observations {
         kind: observed.kind,
