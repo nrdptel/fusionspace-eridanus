@@ -28,7 +28,8 @@ tells of its drag, impulse, wind and mass.
   nothing to fit among the sets' counted draws, about one in six ([when](#when-a-log-has-nothing-to-fit)). Its wind is
   constant with height; on a log of height alone, a wind that grows with height only widens the intervals. It's
   told the design, rail, site and the day's air, and takes them as right. It's in the library only:
-  no command runs it on a log yet.
+  no command runs it on a log yet. A Bayesian reading of the same fit is planned; its sampler is
+  tested only on made-up distributions ([The Bayesian option](#the-bayesian-option-to-come)).
 
 ## How it works
 
@@ -198,20 +199,30 @@ Those counts have limits:
 
 ## The Bayesian option, to come
 
-A second way to read a fit is planned ([ADR-317][adr-317]). The least-squares fit reads its
-uncertainty off the curvature at its answer, as if the posterior were a bell. The Bayesian option
-draws points around that answer, flies each, and weighs it by how much likelier the posterior makes
-it than the draw did: importance sampling. Each unknown's 5%, 50% and 95% points come from the
-weighted draws, so a posterior that bends or leans one way shows as it is.
+This section covers a sampler, `hpr_forensics::posterior::sample`, that will give the fit a second
+kind of interval ([ADR-317][adr-317]). It's in the library only: no command runs it, it hasn't been
+run on a log, and it's tested only on made-up distributions whose answer is known.
+[M7.3c2][m7-3c2] tests it on the synthetic flights.
 
-The sampler is in the library and tested on posteriors whose answer is known. On one where $y$ is
-$0.5x^2$ plus noise, with $x$ and the noise each a standard normal, a bell at the peak would put
-$y$'s median at 0 and its 90% interval at ±1.645. With 40,000 draws, the sampler gives a median of
-0.42 and an interval of −1.36 to 2.53. The test holds each of those within 0.08 of a quadrature of
-the true distribution, about a fifteenth of $y$'s spread. The test also checks that leaving the draw's
-own odds out of its weight puts the points well past that. The sampler counts how many draws its
-weights amount to, and says when they're too few. It isn't yet run on a log or tested
-on the synthetic flights; that's [M7.3c2][m7-3c2].
+The posterior is what the fit's unknowns could be, given the log and the stated ranges. The
+least-squares fit reads its uncertainty off the curvature at its answer, as if the posterior were a
+bell curve. The sampler draws points around that answer at random. It weighs each point by the
+posterior's value there divided by how likely the draw was to land there, so the points
+it lands on often don't count extra: importance sampling. Each unknown's 5%, 50% and 95% points come
+from the weighted points, so a posterior that bends or leans one way shows as it is.
+
+An example from its tests: the unknowns are $x$ and a noise term, each a standard normal, and $y$ is
+$0.5x^2$ plus the noise. $y$'s standard deviation is 1.22. A bell curve at the peak would put $y$'s
+median at 0 and its 90% interval at ±1.645, a standard normal's 5% and 95% points. With 160,000
+draws, the sampler gives a median of 0.43 and an interval of −1.35 to 2.57.
+
+The tests hold each of those three within 0.08 of the true distribution's points, worked out by a
+numerical integral (Simpson's rule), about a fifteenth of $y$'s standard deviation. Over 100 other seeds, none misses
+that. A second test holds a correlated bell curve's points within 0.06 standard deviations of
+their exact values. A third checks that weighing the points by the posterior alone, without
+dividing by the draw's own likelihood, fails both bounds. The sampler also counts how many
+independent draws its weights amount to, and flags a result under 100 as too few to read; it still
+gives the points. Run the tests with `cargo test -p fusionspace-hpr-forensics posterior`.
 
 ## Sources
 

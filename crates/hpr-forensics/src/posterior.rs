@@ -57,9 +57,12 @@ pub struct Posterior<const N: usize> {
     /// The draws made, failed ones included.
     pub draws: usize,
     /// The draws whose posterior couldn't be had, or whose weight came out infinite or NaN; each
-    /// has no weight.
+    /// has no weight. A draw where the posterior is zero (`log_target` gives −∞) has no weight
+    /// either, but isn't a failure.
     pub failed: usize,
-    /// Whether [`Posterior::effective_draws`] reaches [`MIN_EFFECTIVE_DRAWS`].
+    /// Whether [`Posterior::effective_draws`] reaches [`MIN_EFFECTIVE_DRAWS`]. It doesn't weigh
+    /// [`Posterior::failed`]: many failed draws cut the posterior off where they fell, and
+    /// `failed / draws` says how many.
     pub enough: bool,
 }
 
@@ -87,10 +90,12 @@ mod rows {
 /// The posterior whose log density, up to a constant, is `log_target`, by `draws` weighted draws
 /// around `peak` with the Laplace covariance `covariance`.
 ///
-/// `log_target` gives `None` where the posterior can't be had; that draw gets no weight. `None`
-/// overall if `covariance` isn't positive definite, `draws` is 0, or no draw has a finite weight.
+/// `log_target` gives `None` where the posterior can't be had; that draw gets no weight. Only the
+/// lower triangle of `covariance` is read. `None` overall if `peak` isn't finite, `covariance`
+/// isn't positive definite, `draws` is 0, or no draw has a finite weight.
 /// The same `seed` and a `log_target` that gives the same answer for the same point give the same
-/// answer, bit for bit, on one platform (the draws go through `ln`, `sqrt` and `exp`).
+/// answer, bit for bit, on one platform (the draws go through the platform's `ln`, `ln_1p`,
+/// `sqrt` and `exp`).
 pub fn sample<const N: usize>(
     peak: &[f64; N],
     covariance: &[[f64; N]; N],
@@ -111,6 +116,9 @@ fn sample_weighted<const N: usize>(
     mut log_target: impl FnMut(&[f64; N]) -> Option<f64>,
     proposal_in_weight: bool,
 ) -> Option<Posterior<N>> {
+    if !peak.iter().all(|v| v.is_finite()) {
+        return None;
+    }
     let l = cholesky(covariance)?;
     let nu = DEGREES_OF_FREEDOM as f64;
     // Cast: N is a count of unknowns, far below 2⁵³.
@@ -137,6 +145,8 @@ fn sample_weighted<const N: usize>(
             0.0
         };
         match log_target(&x) {
+            // A posterior of zero there: no weight, and nothing failed.
+            Some(log_p) if log_p == f64::NEG_INFINITY => {}
             Some(log_p) if (log_p - log_proposal).is_finite() => {
                 points.push((x, log_p - log_proposal))
             }
@@ -208,16 +218,26 @@ mod tests {
 
     const GAUSSIAN_MEAN: [f64; 2] = [1.0, -2.0];
     const GAUSSIAN_SD: [f64; 2] = [0.5, 2.0];
+    /// The Gaussian case's correlation, as strong as a fit's drag and impulse scales can be: a
+    /// draw that lost it (`Lᵀ z` for `L z`) misses the posterior's shape, which a diagonal case
+    /// can't see.
+    const GAUSSIAN_CORRELATION: f64 = 0.9;
 
-    /// A Gaussian posterior drawn from a proposal off center by 0.3 sd and 1.5 times too wide, as
-    /// a Laplace approximation that missed would be.
+    /// A correlated Gaussian posterior drawn from a proposal off center by 0.3 sd in each unknown
+    /// and 1.5 times too wide, as a Laplace approximation that missed would be.
     fn gaussian_case(proposal_in_weight: bool) -> Posterior<2> {
+        let ([m0, m1], [s0, s1], r) = (GAUSSIAN_MEAN, GAUSSIAN_SD, GAUSSIAN_CORRELATION);
+        let target = move |x: &[f64; 2]| {
+            let (a, b) = ((x[0] - m0) / s0, (x[1] - m1) / s1);
+            Some(-0.5 * (a * a - 2.0 * r * a * b + b * b) / (1.0 - r * r))
+        };
+        let cross = 2.25 * r * s0 * s1;
         sample_weighted(
             &[1.15, -1.4],
-            &[[0.5625, 0.0], [0.0, 9.0]],
+            &[[2.25 * s0 * s0, cross], [cross, 2.25 * s1 * s1]],
             20_000,
             7,
-            gaussian(GAUSSIAN_MEAN, GAUSSIAN_SD),
+            target,
             proposal_in_weight,
         )
         .unwrap()
@@ -240,7 +260,8 @@ mod tests {
     #[test]
     fn a_gaussian_posterior_comes_back_at_its_closed_form() {
         // The 5% point's Monte Carlo error at n effective draws is about √(0.05·0.95/n)/φ(1.645)
-        // sd: 0.024 sd at n = 8,000, so 0.06 sd is two and a half of them.
+        // sd: 0.024 sd at n = 8,000. That formula, a weighted mean's, is optimistic for a
+        // quantile; over seeds 100 to 299 no case misses 0.06 sd, the worst 0.052 sd.
         let posterior = gaussian_case(true);
         assert!(
             posterior.enough && posterior.effective_draws > 8_000.0,
@@ -263,7 +284,7 @@ mod tests {
         sample_weighted(
             &[0.0, 0.0],
             &[[1.0, 0.0], [0.0, 1.0]],
-            40_000,
+            160_000,
             11,
             target,
             proposal_in_weight,
@@ -319,12 +340,12 @@ mod tests {
     #[test]
     fn a_curved_posterior_comes_back_at_its_quadrature() {
         let posterior = curved_case(true);
-        // y's standard deviation is √(1 + 2b²) ≈ 1.22, so 0.08 is 0.066 of it. The Gaussian
-        // formula above gives 0.015 sd, 0.018 in y, at 20,000 effective draws; y's 95% point sits
-        // in a thinner tail than a Gaussian's, so its error is larger (about 0.05 on this seed),
-        // and 0.08 leaves room for that.
+        // y's standard deviation is √(1 + 2b²) ≈ 1.22, so 0.08 is 0.066 of it. y's 95% point sits
+        // in its long upper tail, where the density is low and the point's error is largest: over
+        // seeds 100 to 199 it spreads by 0.018 at these draws, so 0.08 is over four of those, and
+        // no seed misses it.
         assert!(
-            posterior.enough && posterior.effective_draws > 20_000.0,
+            posterior.enough && posterior.effective_draws > 80_000.0,
             "{}",
             posterior.effective_draws
         );
@@ -342,16 +363,18 @@ mod tests {
             mid > 0.3 && high - mid > 1.1 * (mid - low),
             "{low} {mid} {high}"
         );
-        // The fit's page quotes these three, to two places ("a median of 0.42 and an interval of
-        // −1.36 to 2.53"); a change here needs the page changed too.
+        // The fit's page quotes these three, to two places ("a median of 0.43 and an interval of
+        // −1.35 to 2.57"); a change here needs the page changed too.
         let rounded = [low, mid, high].map(|v| (v * 100.0).round() / 100.0);
-        assert_eq!(rounded, [-1.36, 0.42, 2.53]);
+        assert_eq!(rounded, [-1.35, 0.43, 2.57]);
     }
 
     #[test]
     fn both_closed_form_tests_fail_with_the_proposal_left_out_of_the_weights() {
         // Weighing by the posterior alone reads the product of proposal and posterior, not the
-        // posterior: the probe that the two tests above can see a wrong weight.
+        // posterior: the probe that the two tests above can see a wrong weight. (The probe that
+        // they see a draw that lost its correlation, `Lᵀ z` for `L z`, was run by hand: 0.93 sd
+        // off with 69 effective draws, so the Gaussian test fails it twice over.)
         let gaussian = gaussian_worst(&gaussian_case(false));
         assert!(gaussian >= 0.06, "{gaussian} sd");
         let curved = curved_worst(&curved_case(false));
@@ -392,8 +415,57 @@ mod tests {
         })
         .unwrap();
         assert!(posterior.failed > 500, "{}", posterior.failed);
-        assert!(posterior.quantiles[0][2] <= 1.0);
         assert_eq!(posterior.draws, 5_000);
+        // The first unknown is then a normal cut at 1: its 95% point is Φ⁻¹(0.95 Φ(1)) ≈ 0.838.
+        // At about 3,800 effective draws the 95% point's error is near 0.01; 0.04 is four of those.
+        let (mut lo, mut hi) = (-5.0, 1.0);
+        for _ in 0..60 {
+            let mid = 0.5 * (lo + hi);
+            if normal_cdf(mid) < 0.95 * normal_cdf(1.0) {
+                lo = mid
+            } else {
+                hi = mid
+            }
+        }
+        let truth = 0.5 * (lo + hi);
+        assert!(
+            (posterior.quantiles[0][2] - truth).abs() < 0.04,
+            "{} vs {truth}",
+            posterior.quantiles[0][2]
+        );
+    }
+
+    #[test]
+    fn a_draw_where_the_posterior_is_zero_has_no_weight_and_isnt_a_failure() {
+        let mut inner = gaussian([0.0, 0.0], [1.0, 1.0]);
+        let posterior = sample(&[0.0, 0.0], &[[1.0, 0.0], [0.0, 1.0]], 5_000, 3, |x| {
+            if x[0] > 1.0 {
+                Some(f64::NEG_INFINITY)
+            } else {
+                inner(x)
+            }
+        })
+        .unwrap();
+        assert_eq!(posterior.failed, 0);
+        assert!(posterior.quantiles[0][2] <= 1.0);
+    }
+
+    #[test]
+    fn a_posterior_reads_back_as_written_and_refuses_the_wrong_count() {
+        let posterior = sample(
+            &[0.0, 1.0],
+            &[[1.0, 0.3], [0.3, 2.0]],
+            500,
+            1,
+            gaussian([0.1, 0.9], [0.8, 1.2]),
+        )
+        .unwrap();
+        let json = serde_json::to_string(&posterior).unwrap();
+        assert_eq!(
+            serde_json::from_str::<Posterior<2>>(&json).unwrap(),
+            posterior
+        );
+        assert!(serde_json::from_str::<Posterior<3>>(&json).is_err());
     }
 
     #[test]
@@ -429,6 +501,7 @@ mod tests {
         assert_eq!(bits(run(1)), bits(run(1)));
         assert_ne!(bits(run(1)), bits(run(2)));
         assert!(sample(&[0.0], &[[-1.0]], 10, 1, gaussian([0.0], [1.0])).is_none());
+        assert!(sample(&[f64::NAN], &[[1.0]], 10, 1, gaussian([0.0], [1.0])).is_none());
         assert!(sample(&[0.0], &[[1.0]], 0, 1, gaussian([0.0], [1.0])).is_none());
         assert!(sample(&[0.0], &[[1.0]], 10, 1, |_: &[f64; 1]| None).is_none());
     }

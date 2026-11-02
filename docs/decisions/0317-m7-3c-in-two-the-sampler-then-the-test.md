@@ -23,16 +23,17 @@ by heights alone, and the residuals run on from bin to bin.
 A least-squares fit flies the simulation about 70 times on set A, about 0.8 CPU-seconds (ADR-316
 §7, measured in development). A random-walk Markov chain on the fit's eleven unknowns would need,
 by estimate, some thousands of steps a flight to settle and mix, each a flight flown: at about
-11 ms a flight, 3,000 steps for each of a report's 3,500 fits is over a CPU-day.
+11 ms a flight and 3,000 steps by estimate, half a minute a fit, and most of a CPU-day for a
+report's 2,000 fitted flights of sets A and B alone.
 
 ## Decisions
 
 1. **Importance sampling from the Laplace approximation.** Draws from a Student-t of 4 degrees of
    freedom centered on the least-squares answer, its scale that fit's covariance, are weighed by the
    posterior (J. Geweke, *Econometrica* 57(6), 1989). Each draw flies once. A posterior close to its
-   Laplace approximation needs, by estimate, a few hundred draws; one far from it shows as few effective draws
-   (L. Kish, *Survey Sampling*, 1965): its quantiles still come back, flagged as too few to read,
-   and M7.3c2 counts how many are.
+   Laplace approximation needs, by estimate, a few hundred draws; one far from it shows as few
+   effective draws (L. Kish, *Survey Sampling*, 1965): its quantiles still come back, flagged as too
+   few to read, and M7.3c2 counts how many are.
 2. **The likelihood is the least-squares fit's own.** The same residuals, noise and priors, so the
    two options differ only in how they read the posterior. The residuals' run from bin to bin enters
    as ADR-316 §11's widened noise; modelling it in the likelihood instead is left to M7.3c2's
@@ -58,11 +59,11 @@ by estimate, some thousands of steps a flight to settle and mix, each a flight f
   option, the posterior of the least-squares fit's unknowns sampled by M7.3c1 around its answer,
   flying each draw; `cargo xtask fit` writes its counts beside the least-squares fit's, on the same
   1,000 fitted flights of each of sets A and B and the same 1,500 flights for the wind (1,497 with a
-  track read), truths drawn from the stated ranges and not its prior; its raw 90% credible
-  intervals pass ADR-257 §1's three counts on sets A and B, its three probes failing; the drag and
-  impulse scales are identified on set A, and every parameter comes back not identified on pure
-  noise; its effective and failed draws are counted; the fit's page says what it adds and how far
-  to trust it.
+  track read), truths drawn from the stated ranges and not its prior; its raw 90% credible intervals
+  pass ADR-257 §1's three counts on sets A and B, counted per design, its three probes failing; the
+  drag and impulse scales are identified on set A, and every parameter comes back not identified on
+  pure noise; its effective and failed draws are counted; the fit's page says what it adds and how
+  far to trust it.
 
 ## What this leaves
 
