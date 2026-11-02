@@ -44,7 +44,7 @@ Its marks were set on real logs with no truth beside them; the tuning set has on
    last second before apogee's earliest time, where a rocket falls freely but for a small drag
    (about 0 holds gravity, about −1 g doesn't). A pad or coast that reads neither says nothing.
    Gravity is settled when one witness or more says and none disagrees; otherwise
-   `gravity_unstated`.
+   `gravity_unstated` (the coast's part amended for #806, below).
 3. **The thrust and the top acceleration.** The turn-over (see the amendment below), the thrust's
    end and burnout are found on a cleaned trace: a Hampel filter over 0.1 s at five robust standard deviations (Pearson et al.,
    2015), HPR Sim's choice, which takes out a charge's shock or one bad sample and keeps a step. A
@@ -235,9 +235,11 @@ witness settled gravity wrongly; the rules now:
    reading it 1 g high: on the test's rocket, a 6 g top read 7.01 g, its bound 0.88 g. Such a log is
    now withheld, `gravity_unstated`, saying that only the coast says
    (`a_fast_arc_over_doesnt_settle_gravity_out_alone`; a mutation that lets the coast settle alone
-   fails it). A coast at about 0 still settles alone: without gravity a coasting part reads
-   `−D/m − g`, at or below −1 g, and reading 0 takes a push forward of 1 g, a thrust, which the coast's
-   second after the burns doesn't hold. Beside a family or a pad, the coast at −1 g still counts,
+   fails it). A coast at about 0 still settles alone, as before: without gravity a coasting part
+   reads `−D/m − g`, drag only pushing it further below −1 g, so reading within 0.25 g of 0 takes
+   a push forward of at least 0.75 g. A thrust still burning in that second gives one, a risk left
+   open: on a part that takes gravity out, with no family word and no pad, it reads gravity in and
+   the top 1 g low. Beside a family or a pad, the coast at −1 g still counts,
    agreeing or disagreeing as before. Withholding was chosen over widening the bound by 1 g: a top
    read 1 g high with a bound wide enough to cover it says little.
 2. **Gravity's coast is read only where a coast was flown,** as the direction's is (amendment for
@@ -247,4 +249,5 @@ witness settled gravity wrongly; the rules now:
    (`gravitys_coast_is_read_only_where_one_was_flown`; a mutation that drops the gate fails it).
 
 On the sample logs neither moves a record: `cargo xtask logs --check` reproduces the committed
-report, so no record's gravity rested on a coast at −1 g alone or on a coast read off the pad.
+report's counts, so no record's gravity rested on a coast at −1 g alone or on a coast read off the
+pad.

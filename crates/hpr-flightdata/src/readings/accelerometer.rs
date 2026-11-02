@@ -47,8 +47,9 @@
 //! nothing. Gravity is settled when one witness or more says and none disagrees, except that a
 //! coast at about −1 g doesn't settle it alone: a part that holds gravity reads its drag there,
 //! and a rocket still fast at apogee, arcing over, can drag about 1 g (#806). Its about 0 can
-//! stand alone, as a part without gravity reads −1 g or below in a coast. Otherwise nothing is
-//! read ([`Reason::GravityUnstated`]). A sample that repeats the time before
+//! stand alone, as a part without gravity reads −1 g or below in a coast, unless a thrust of
+//! 0.75 g or more still burns in that second. Otherwise nothing is read
+//! ([`Reason::GravityUnstated`]). A sample that repeats the time before
 //! it is left out, as the primary track leaves it ([`first_at_each_time`]).
 //!
 //! **The top acceleration** is the highest reading over the burns: each from a cleaned reading past
@@ -446,9 +447,11 @@ pub(super) fn read(
         .collect();
     // A coast at about −1 g says gravity is out only beside another witness (#806). A part that
     // holds gravity reads its drag there, `−D/m`, and a rocket still fast at apogee, arcing over,
-    // can drag about 1 g. Its about 0 stands alone: without gravity a coasting part reads
-    // `−D/m − g`, at or below −1 g, and reading 0 takes a forward push of 1 g, a thrust, which
-    // the coast's second, after the burns, doesn't hold.
+    // can drag about 1 g. Its about 0 stands alone, as before: without gravity a coasting part
+    // reads `−D/m − g`, drag only pushing it further below −1 g, so reading within the tolerance
+    // of 0 takes a forward push of at least 0.75 g. A thrust still burning in that second gives
+    // one, a risk left open: on a part that takes gravity out, with no family word and no pad, it
+    // reads gravity in and the top 1 g low.
     let lone_coast_out = matches!(said.as_slice(), [(Gravity::Out, GravityBy::Coast)]);
     let gravity = match said.first() {
         Some(&first) if !lone_coast_out && said.iter().all(|(word, _)| *word == first.0) => first,
