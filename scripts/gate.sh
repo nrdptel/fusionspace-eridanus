@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 # The local gate every change passes before it is pushed. It prints one line per step, and for a
 # failing step only the lines that say why. Every step runs even after a failure, so one run
-# reports everything, with one exception: a failing fmt stops the run, since `cargo fmt --all`
+# reports everything, with two exceptions. A failing fmt stops the run, since `cargo fmt --all`
 # changes the code every later step would check (six full runs of 5.5 to 8 min each, 38 min in
-# all, failed on fmt alone over two weeks of work to 2026-10-08). Full logs stay in
-# target/gate/<step>.log for when the summary is not enough.
+# all, failed on fmt alone over two weeks of work to 2026-10-08). And once a code step fails
+# (clippy, test, doc, wasm or docs), the slow steps after it (validate, site, examples, refs, ego,
+# python) are skipped: the fix changes what they would check, and the gate runs again after it.
+# From 2026-10-25 to 11-01, 16.6 of the gate's 94.8 hours were slow steps run after a code step
+# had already failed, in 82 runs. Full logs stay in target/gate/<step>.log for when the summary is
+# not enough.
 #
 # Usage:
 #   scripts/gate.sh                 # every step
@@ -32,6 +36,15 @@
 # also holds the committed records and files to it. It runs that and `synthetic --check` in the dev
 # profile, whole, where CI runs them optimized and in halves (issue #1018): the dev profile is the
 # one that writes the reports, so this is the check that what's committed is what it writes.
+# The default run leaves validate out when the branch changes only prose that none of its five
+# checks reads: pages under docs/, the site's theme/ and book.toml, and Markdown files at the top,
+# but not README.md, docs/accuracy.md and docs/images/ (the census writes their tables and badges),
+# docs/simulator-compared.md, docs/ROADMAP.md or docs/decisions/ (the scoreboard and its features
+# table read them), nor a deleted or renamed file (the features table checks its pages exist). A
+# prose-only change can't move a number those checks compare, and CI's validate jobs still run
+# them on every pull request; 33 of the 96 pull requests merged from 2026-10-25 to 11-01 changed
+# only such prose. A run that leaves validate out this way still counts as a full run. Name it to
+# run it anyway (`scripts/gate.sh validate`), or set GATE_VALIDATE=1.
 # It joins any run that includes `test` (the default set, or a fix's `scripts/gate.sh clippy test`)
 # when refs/ is present and the branch changes a physics crate (hpr-aero, hpr-sim, hpr-motor,
 # hpr-design, hpr-atmos, hpr-io), the log readers (hpr-flightdata), the command line (hpr-cli,
@@ -98,6 +111,24 @@ touches_physics() {
   grep -qx "validation/evidence.toml" <<<"$changed" && return 0
   # What `ghost --check` reads the real logs with: CI holds only the invented flights.
   grep -qE "^(validation/oracles/ghost/|validation/fixtures/logs/rocketpy-mappings/|xtask/src/ghost.rs)" <<<"$changed" && return 0
+  return 1
+}
+
+# Whether this branch changes what step validate reads (see the header): anything but the prose it
+# doesn't read, or a deleted or renamed file. Exit 1 when every change is such prose, 2 when there
+# is no origin/main to compare with; a branch with no change at all counts as a change.
+VALIDATE_PROSE='^(docs/|theme/|book\.toml$|[^/]+\.md$)'
+VALIDATE_READS='^(README\.md$|docs/accuracy\.md$|docs/images/|docs/simulator-compared\.md$|docs/ROADMAP\.md$|docs/decisions/)'
+touches_validate() {
+  local base changed
+  base=$(git merge-base HEAD origin/main 2>/dev/null) || return 2
+  changed=$( { git diff --name-only "$base"; git diff --name-only; git diff --name-only --cached
+    git ls-files --others --exclude-standard; } 2>/dev/null)
+  [ -n "$changed" ] || return 0
+  { git diff --name-status --no-renames "$base"; git diff --name-status --no-renames --cached; } \
+    2>/dev/null | grep -q '^D' && return 0
+  grep -vqE "$VALIDATE_PROSE" <<<"$changed" && return 0
+  grep -qE "$VALIDATE_READS" <<<"$changed" && return 0
   return 1
 }
 
@@ -215,6 +246,18 @@ case " $STEPS " in
       echo "SKIP python: no origin/main to tell whether what it reads changed (git fetch origin)"
     fi ;;
 esac
+# Step validate leaves the default run when nothing it reads changed (see the header).
+VALIDATE_LEFT=""
+if [ -z "${*:-}" ] && [ "${GATE_VALIDATE:-0}" != 1 ]; then
+  touches_validate; reads=$?
+  if [ "$reads" -eq 1 ]; then
+    STEPS=" $STEPS "; STEPS="${STEPS/ validate / }"; STEPS="${STEPS# }"; STEPS="${STEPS% }"
+    VALIDATE_LEFT=1
+    echo "SKIP validate: the branch changes only prose its checks don't read (CI's validate jobs still run them; GATE_VALIDATE=1 runs it here)"
+  elif [ "$reads" -eq 2 ]; then
+    echo "validate stays in: no origin/main to tell whether what it reads changed (git fetch origin)"
+  fi
+fi
 TAIL="${GATE_TAIL:-40}"
 LOGDIR="target/gate"
 XTASK="cargo run --locked --quiet --package xtask --"
@@ -273,12 +316,22 @@ why() {
 
 failed=""
 times=""
+# The code steps whose failure skips the slow steps after it (see the header).
+CODE_STEPS=" clippy test doc wasm docs "
+SLOW_STEPS=" validate site examples refs ego python "
+code_failed=""
+skipped=""
 # The tree as the run found it, for the history line below: HEAD, and whether anything differed
 # from it, untracked files included.
 head=$(git rev-parse HEAD 2>/dev/null)
 dirty=0; [ -z "$(git status --porcelain 2>/dev/null)" ] || dirty=1
 start_all=$(date +%s)
 for step in $STEPS; do
+  if [ -n "$code_failed" ] && [[ "$SLOW_STEPS" == *" $step "* ]]; then
+    echo "SKIP $step: $code_failed failed; fix it, then run the gate again"
+    skipped="$skipped $step"
+    continue
+  fi
   cmd=$(cmd_for "$step")
   log="$LOGDIR/$step.log"
   t0=$(date +%s)
@@ -301,6 +354,7 @@ for step in $STEPS; do
     echo "FAIL $step (${dt}s, exit $rc): $cmd"
     why "$log"
     failed="$failed $step"
+    [[ "$CODE_STEPS" == *" $step "* ]] && [ -z "$code_failed" ] && code_failed=$step
     if [ "$step" = fmt ] && [ "$STEPS" != fmt ]; then
       echo "    run \`cargo fmt --all\`, then the gate again: the other steps would check code it changes"
       break
@@ -320,13 +374,15 @@ if [ -z "$history" ] && gitdir=$(git rev-parse --git-common-dir 2>/dev/null); th
   history="$gitdir/gate-history.tsv"
 fi
 full=1
-for s in $ALL; do case " $STEPS " in *" $s "*) ;; *) full=0 ;; esac; done
+for s in $ALL; do
+  case " $STEPS " in *" $s "*) ;; *) [ "$s" = validate ] && [ -n "$VALIDATE_LEFT" ] || full=0 ;; esac
+done
 if [ -n "$history" ]; then
   { printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$head" "$dirty" "$full" \
       "$([ -n "$failed" ] && echo FAIL || echo PASS)" "$total" "${times# }" >> "$history"; } 2>/dev/null || true
 fi
 if [ -n "$failed" ]; then
-  echo "GATE FAILED in ${total}s:$failed"
+  echo "GATE FAILED in ${total}s:$failed${skipped:+ (skipped:$skipped)}"
   exit 1
 fi
 echo "GATE PASSED in ${total}s ($STEPS)"
