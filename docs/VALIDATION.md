@@ -409,6 +409,14 @@ named. CI always runs them. So a report in the repository has to reproduce from 
 optimized build ever came out differently, CI would fail and regenerating wouldn't fix it: that
 would need a decision record, not a looser check.
 
+The least-squares fit's check, `cargo xtask fit --check` ([the flight fit](physics/flight-fit.md)),
+is the longest of all. In one Linux job it took 60 to 101 minutes. So CI runs it on Linux in eight
+parts, at the same time. Each part fits every eighth flight and hands its fits on (`fit --part
+K/8`). A last job, `fit intervals`, puts them back together and checks them as one job would. It
+fails if a part is missing or there twice, or a flight isn't fitted exactly once. A fit doesn't
+depend on what else its machine fits, so the parts make the same fits as one run. The gate runs the
+check whole on your own machine, and holds the committed report to it exactly.
+
 Then the job holds the committed reports to the accuracy census accepted last
 ([the regression check](decisions-and-roadmap.md#m2-4),
 [its decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0084-the-accuracy-census-the-reports-numbers-held-to.md)).

@@ -2815,6 +2815,7 @@ name = "xtask"
 version = "0.1.0"
 dependencies = [
  "base64 0.22.1",
+ "ciborium",
  "flate2",
  "fusionspace-hpr",
  "fusionspace-hpr-aero",
