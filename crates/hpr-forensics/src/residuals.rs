@@ -32,6 +32,7 @@
 //! [adr-312]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0312-two-logs-on-one-timeline.md
 
 use hpr_atmos::{AtmosError, Barometer};
+use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
 use hpr_flightdata::log::{Channel, FlightLog, LogFormat, Quantity, Stated};
 use hpr_flightdata::readings::{self, Reading, Readings, Source, Withheld};
 use hpr_flightdata::smoother;
@@ -151,6 +152,15 @@ struct Moment {
     reading_speed_m_s: f64,
     /// The specific force along the rocket's axis, m/s².
     axial_specific_force_m_s2: f64,
+    /// Meters east of where the flight starts.
+    east_m: f64,
+    /// Meters north of where the flight starts.
+    north_m: f64,
+    /// The Mach number.
+    mach: f64,
+    /// The dynamic pressure as the height a barometer reads for it, m, at a pressure coefficient of
+    /// −1: `q / (ρ g)`, `ρ` the standard air's at its reading.
+    port_m: f64,
 }
 
 /// A simulated flight, its heights both as climbed and as a barometer on the pad reads them.
@@ -169,7 +179,9 @@ impl Simulated {
         samples: Vec<TruthSample>,
         environment: &Environment,
     ) -> Result<Self, ResidualsError> {
-        let pad_m = samples.first().ok_or(ResidualsError::NoSamples)?.height_m;
+        let first = samples.first().ok_or(ResidualsError::NoSamples)?;
+        let pad_m = first.height_m;
+        let (start_east_m, start_north_m) = (first.position_enu_m[0], first.position_enu_m[1]);
         let site_msl_m = environment.site().height_m - environment.geoid_undulation_m;
         let day = environment.atmosphere.as_ref();
         let barometer = Barometer::on_pad(day, site_msl_m, pad_m)?;
@@ -182,6 +194,8 @@ impl Simulated {
                 let above = barometer.reading_m(sample.height_m + RATE_STEP_M)?;
                 let below = barometer.reading_m(sample.height_m - RATE_STEP_M)?;
                 let slope = (above - below) / (2.0 * RATE_STEP_M);
+                let density = day.air(site_msl_m + sample.height_m)?.air.density_kg_m3;
+                let port_m = sample.dynamic_pressure_pa / (density / slope * STANDARD_GRAVITY_MPS2);
                 Ok(Moment {
                     time_s: sample.time_s,
                     height_m: sample.height_m - pad_m,
@@ -189,6 +203,10 @@ impl Simulated {
                     speed_m_s: sample.vertical_speed_m_s,
                     reading_speed_m_s: sample.vertical_speed_m_s * slope,
                     axial_specific_force_m_s2: sample.axial_specific_force_m_s2,
+                    east_m: sample.position_enu_m[0] - start_east_m,
+                    north_m: sample.position_enu_m[1] - start_north_m,
+                    mach: sample.mach,
+                    port_m,
                 })
             })
             .collect::<Result<Vec<_>, AtmosError>>()?;
@@ -223,6 +241,40 @@ impl Simulated {
                 a.axial_specific_force_m_s2,
                 b.axial_specific_force_m_s2,
             ),
+            east_m: mix(a.east_m, b.east_m),
+            north_m: mix(a.north_m, b.north_m),
+            mach: mix(a.mach, b.mach),
+            port_m: mix(a.port_m, b.port_m),
+        })
+    }
+
+    /// The moment at `t`, holding the flight's first before it and its last after it.
+    fn held_at(&self, t: f64) -> Option<Moment> {
+        self.at(t).or_else(|| self.moments.last().copied())
+    }
+
+    /// The height as a sensor of `kind` reads it at `t`, above the pad, m.
+    pub(crate) fn read_height_m(&self, t: f64, kind: HeightKind) -> f64 {
+        self.held_at(t).map_or(f64::NAN, |moment| match kind {
+            HeightKind::Barometric => moment.reading_m,
+            HeightKind::Geometric => moment.height_m,
+        })
+    }
+
+    /// The height a barometer reads for the flow at `t` at a pressure coefficient of −1, m.
+    pub(crate) fn port_m(&self, t: f64) -> f64 {
+        self.held_at(t).map_or(f64::NAN, |moment| moment.port_m)
+    }
+
+    /// The Mach number at `t`.
+    pub(crate) fn mach(&self, t: f64) -> f64 {
+        self.held_at(t).map_or(f64::NAN, |moment| moment.mach)
+    }
+
+    /// Meters east and north of where the flight starts at `t`.
+    pub(crate) fn drift_m(&self, t: f64) -> (f64, f64) {
+        self.held_at(t).map_or((f64::NAN, f64::NAN), |moment| {
+            (moment.east_m, moment.north_m)
         })
     }
 
@@ -694,6 +746,37 @@ fn summarize(phase: Phase, start_s: f64, end_s: f64, points: &[&Point]) -> Optio
         largest: extreme.residual,
         largest_at_s: extreme.time_after_liftoff_s,
     })
+}
+
+/// A flight drawn from a formula, for the fit's tests.
+#[cfg(test)]
+pub(crate) mod tests_support {
+    use super::{Moment, Simulated};
+
+    /// A flight of height, east and north at each 0.01 s to `until_s`, none of it in the air's
+    /// reading: a barometer reads what was climbed.
+    pub(crate) fn simulated_of(until_s: f64, flight: impl Fn(f64) -> (f64, f64, f64)) -> Simulated {
+        let steps = (until_s / 0.01).ceil() as u32;
+        let moments = (0..=steps)
+            .map(|k| {
+                let time_s = 0.01 * f64::from(k);
+                let (height_m, east_m, north_m) = flight(time_s);
+                Moment {
+                    time_s,
+                    height_m,
+                    reading_m: height_m,
+                    speed_m_s: 0.0,
+                    reading_speed_m_s: 0.0,
+                    axial_specific_force_m_s2: 0.0,
+                    east_m,
+                    north_m,
+                    mach: 0.0,
+                    port_m: 0.0,
+                }
+            })
+            .collect();
+        Simulated { moments }
+    }
 }
 
 #[cfg(test)]

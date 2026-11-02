@@ -62,7 +62,7 @@ the checks fetch into. Its hash lets every check confirm it reads the same bytes
 
 <!-- evidence: report; written by `cargo xtask evidence` from validation/evidence.toml; do not edit -->
 
-The register holds 37 rows, as of October 31, 2026.
+The register holds 38 rows, as of October 31, 2026.
 
 **By kind.** Each surface's rows, counted by the kind of evidence behind them now:
 
@@ -83,9 +83,10 @@ The register holds 37 rows, as of October 31, 2026.
 | Two logs of one flight on one timeline | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
 | One logger to a stage on one timeline | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
 | Ghost files | 1 | 0 | 0 | 0 | 0 | 0 | 1 |
-| All | 2 | 6 | 8 | 6 | 11 | 4 | 37 |
+| The least-squares fit | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
+| All | 2 | 6 | 8 | 7 | 11 | 4 | 38 |
 
-**Short of what's wanted.** 35 of the 37 rows don't yet have the kind of evidence they want. Each has an open issue labeled `needs-sample`, linked in its row below.
+**Short of what's wanted.** 36 of the 38 rows don't yet have the kind of evidence they want. Each has an open issue labeled `needs-sample`, linked in its row below.
 
 **The rows.**
 
@@ -128,12 +129,14 @@ The register holds 37 rows, as of October 31, 2026.
 | <a id="g35"></a>G35 | Two logs of one flight on one timeline | A shared liftoff recovers the clock offset between two logs of one flight, within a bound that held on the synthetic flights. On one real pair, RocketPy's Prometheus flight, it lies about 0.08 s from what the boards' GPS time gives, where an offset of zero would miss by 0.13 s. **Not checked:** a real pair whose clocks differ by more than a fraction of a second; the Prometheus logs both start at the boost, and the GPS reference has no stated error of its own. | calibration | real | [#1088](https://github.com/nrdptel/fusionspace-eridanus/issues/1088) | none |
 | <a id="g36"></a>G36 | One logger to a stage on one timeline | A shared liftoff lines up a logger in each stage of a staged flight, within a bound that held on 135 simulated two-stage flights. **Not checked:** a real flight's log from each stage, where a booster's board may read the pad's shock and the separation otherwise. | calibration | real | [#1084](https://github.com/nrdptel/fusionspace-eridanus/issues/1084) | none |
 | <a id="g37"></a>G37 | Ghost files | Each of the 22 real flight logs in RocketPy's repository with an altitude or a GNSS track gives a ghost file as JSON, CZML and glTF, which outside readers read back and hold to each other. **Not checked:** a person looking at one in Cesium or a modeling tool: every check is of the numbers; east and north against the real logs' fixes, only the invented cases and a hand check on three. | real | real | none | none |
+| <a id="g38"></a>G38 | The least-squares fit | Each of the drag scale, impulse scale, wind and mass has a 90% interval that passes its test on two sets of synthetic flights, seen while its model was chosen. **Not checked:** a real flight's fit against what was measured apart from the log: a weighed mass, a static test's impulse, a measured wind. | calibration | real | [#1104](https://github.com/nrdptel/fusionspace-eridanus/issues/1104) | none |
 
 **Due a search.** A row is due one when it has none yet, or its last was more than 30 days before October 31, 2026:
 
 - [G35](#g35)
 - [G36](#g36)
 - [G37](#g37)
+- [G38](#g38)
 
 **Searches so far.**
 

@@ -31,6 +31,7 @@
 
 pub mod census;
 pub mod designs;
+pub mod fits;
 pub mod held;
 pub mod intervals;
 pub mod logger;
@@ -223,6 +224,12 @@ pub(crate) const SMOOTHER_MOMENT_KEY: u64 = 14;
 fn stream(seed: u64, index: u64, key: Key) -> SeededRng {
     SeededRng::for_stream(seed, &[index, key as u64])
 }
+
+/// The key of the stream a flight's weighing error comes from ([`fits::weighed_factor`]): after
+/// every [`Key`], so no flight's other draws move.
+pub(crate) const WEIGHING_KEY: u64 = 16;
+/// The key of the stream a noise log's heights come from ([`fits::noise_log`]).
+pub(crate) const NOISE_LOG_KEY: u64 = 17;
 
 /// The most the wind blows, m/s: 20 mph, the most the NAR's high-power safety code allows.
 pub const MAX_WIND_M_S: f64 = 20.0 * 0.447_04;

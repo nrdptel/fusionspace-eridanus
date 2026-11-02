@@ -239,7 +239,10 @@ smoother](physics/smoother.md)).
 
 `hpr compare` sets a log against a simulation of it: how far the logged height and speed lie from the
 simulated, phase by phase, and each reading beside the simulation's, read the same way
-([Comparing a flight with its simulation](comparing-a-flight.md)). It reports the gap and fits nothing yet.
+([Comparing a flight with its simulation](comparing-a-flight.md)). It reports the gap and fits nothing.
+In the library, a [least-squares fit](physics/flight-fit.md) goes further: it fits the drag, the impulse,
+a constant wind and the mass to a log, each with a 90% interval that passes its test on the synthetic
+flights, on sets seen while its model was chosen. No command runs it yet, and no real flight has checked it.
 
 The library reads each format into one record, every column kept on its own clock. The formats
 come from PerfectFlite ([`.pf2` files](format/pf2.md)), AltOS, Featherweight's Raven and Blue Raven, Missile Works' RRC3 and RTx,

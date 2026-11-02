@@ -96,6 +96,7 @@
 - [Flight-log readings](physics/log-readings.md)
 - [Synthetic flights](physics/synthetic-flights.md)
 - [The smoother](physics/smoother.md)
+- [The least-squares fit](physics/flight-fit.md)
 
 # Numerical tools
 
