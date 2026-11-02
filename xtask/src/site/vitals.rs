@@ -226,9 +226,12 @@ pub(super) struct Report {
 /// BenchmarkIndex and CPU slowdown of the run that measured them.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub(super) struct Reading {
+    /// LCP, in ms.
     pub lcp_ms: f64,
     pub cls: f64,
+    /// INP, in ms.
     pub inp_ms: f64,
+    /// The machine's BenchmarkIndex, and the CPU slowdown it gave, in the run that measured it.
     pub benchmark: f64,
     pub slowdown: f64,
 }

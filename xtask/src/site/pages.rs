@@ -371,6 +371,7 @@ pub(super) struct Lines {
 }
 
 impl Lines {
+    /// One page's lines, from what the harness measured of it at each width.
     fn of(measured: &[Measured]) -> Lines {
         let mut lines = Lines::default();
         for prose in measured.iter().map(|m| &m.prose) {
