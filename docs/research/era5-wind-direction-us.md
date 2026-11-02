@@ -1,17 +1,20 @@
 # ERA5's wind vector and direction error near the ground over US land
 
+Re-checked 2026-11-02: 12 claims corrected.
+
 **In short: no published study scores ERA5's hourly wind vector or direction by height against a US instrument
-it did not assimilate; what exists brackets a per-component error of about 1.4–2.4 m/s in the lowest 3 km, a
-boundary-layer speed 3–16% slow over the Plains and the West, and a direction error set mostly by how light the
-wind is.** At soundings, which ERA5 assimilates [7, Table 15], its 0–1 and 0–3 km shear magnitude misses by 2.6
-m/s RMS [4, Table 3]. The ECMWF model's 12-hour background, a field not yet drawn to the sonde, misses US sondes
-by an RMS vector of about 2.6–3.4 m/s at 1000–700 hPa [9, Fig. 3.5]. Against lidars and towers ERA5 did not use,
-its 100 m speed runs 1.0–1.5 m/s slow on the Oklahoma plains at every hour [3, Fig. 9b]. Direction error is about
-σ/U radians [6, Eq. 9]; for σ = 1.5–2.5 m/s that is a mean absolute 14–26° at 5 m/s and 39–56° at 2 m/s
-(**Inference**, §4), so at a light-wind launch ERA5 says little about direction. **How far to trust it:** every
-source is primary, but the vector numbers come from soundings, from the operational model rather than ERA5, or
-from one Oklahoma site; ERA5's own hourly vector error away from soundings, and between its hours, are measured
-by no source read. It moves M7.3's wind prior and the 100–400 m drift uncertainty.
+it did not assimilate; what exists brackets a per-component error of about 1.8–2.4 m/s by day and above 3.2 m/s
+on the worst nights (that from the operational forecast) in the lowest 3 km, a boundary-layer speed 3–16% slow
+over the Plains and the West, and a direction error set mostly by how light the wind is.** At 00 and 12 UTC
+soundings, which ERA5 assimilates [7, Table 15], its speed at one level misses by 1.8–2.0 m/s RMS and its 0–1
+and 0–3 km shear by 2.6 m/s [4, Table 3]: a floor. The ECMWF model's 12-hour background, not yet drawn to the
+sonde, misses LMS6 sondes (US and Pacific) by an RMS vector of about 2.6–3.4 m/s at 1000–700 hPa [9, Fig. 3.5].
+Against lidars and towers ERA5 did not use, its 100 m speed runs 1.0–1.5 m/s slow on the Oklahoma plains at
+every hour [3, Fig. 9b]. Direction error is about σ/U radians [6, Eq. 9]; for σ = 1.8–3.2 m/s that is a mean
+absolute 17–33° at 5 m/s and 45–63° at 2 m/s (**Inference**, §4), so at a light-wind launch ERA5 says little
+about direction. **How far to trust it:** every source is primary, but the vector numbers come from soundings,
+from the operational model rather than ERA5, or from one Oklahoma site; ERA5's own hourly vector error away from
+soundings, and between its hours, are measured by no source read. It moves M7.3's wind prior and drift spread.
 
 Builds on [wind-from-descent](wind-from-descent.md) §5 (Taszarek's speed RMSEs, tower speed scores, ERA5's
 ensemble spread). Researched 2026-10-28.
@@ -23,9 +26,9 @@ ensemble spread). Researched 2026-10-28.
   NOAA profilers are not independent checks, and "far from a sonde" is not "far from upper-air data": aircraft
   climbing out of hub airports are assimilated too (**Inference**).
 - **Land surface: no wind.** SYNOP and METAR stations give ERA5 only pressure, temperature and humidity; its 10 m
-  wind comes from ships and buoys [7, Table 15]. US station scores of 10 m wind are therefore independent.
-- **Assigned observation errors, not ERA5's.** The model cycle gives profiler and PILOT u and v an RMS error of
-  1.80 m/s at 1000 and 850 hPa and 1.90 m/s at 700 hPa, AMDAR and ACARS 2.46–2.56 m/s [8, Table 2.6, p. 42].
+  wind comes from ships, buoys and scatterometers [7, Tables 14–15]. US station 10 m winds are independent.
+- **Assigned observation errors, not ERA5's.** The model cycle gives PILOT and TEMP u and v an RMS error of 1.80
+  m/s at 1000 and 850 hPa and 1.90 m/s at 700 hPa, aircraft 2.46–2.56 m/s (AIREP 2.86–2.96) [8, Table 2.6, p. 42].
 - **ARM's Southern Great Plains (SGP) site, Oklahoma.** None of its lidars were assimilated; the central
   facility's four-a-day sondes were, so one study dropped the central lidar for four lidars on a square about 60
   km on a side around it [3, p. 15]. Two other studies use the central lidar, 250 m from the sonde launch [1, p.
@@ -37,22 +40,23 @@ ensemble spread). Researched 2026-10-28.
 |---|---|---|---|
 | ERA5 at soundings, 1980–2018 | Speed RMSE, 0–1 / 1–3 km mean wind | 1.93 / 1.42 | [4, Table 3] |
 | Same | Shear magnitude RMSE, 0–1 / 0–3 km | 2.62 / 2.60 | [4, Table 3] |
-| IFS 12 h background, US LMS6 sondes, 2015–16 | RMS vector O−B, 1000–700 hPa | about 2.6–3.4 | [9, Fig. 3.5] |
+| IFS 12 h background, LMS6 (USA+Pacific), 2015–16 | RMS vector O−B, 1000–700 hPa | about 2.6–3.4 | [9, Fig. 3.5] |
 | IFS day-ahead vs SGP lidar, 2012–20 | Mean absolute vector error | <3 day; >4 at times by night | [1, p. 2085] |
 | 915 MHz profiler vs GPS balloons | RMS vector difference | 2.0–3.5 | [5, p. 14] |
 
 - **At the sonde: a floor.** Taszarek et al. score ERA5 at the hour and grid point of 3.7 million soundings from
-  232 North American and European stations [4, Table 3, p. 3221]. North America's are 97% at 00 and 12 UTC
+  232 North American and European stations [4, abstract; s. 2a, p. 3214]. North America's are 97% at 00 and 12 UTC
   (756,218 and 791,577 of 1,596,795) [4, Table 1, p. 3216]. Shear is the size of the vector difference between
-  10 m and the named height, so its 2.6 m/s RMSE carries some direction error that the speed scores (1.4–1.9 m/s)
-  leave out. MERRA-2 misses the same shears by 3.02–3.18 m/s [4, Table 3]. **Inference:** ERA5 assimilated these
-  soundings [7, Table 15], so the scores flatter it.
+  10 m and the named height, so its 2.6 m/s RMSE carries some direction error that the speed scores leave out:
+  1.1–1.9 m/s for the layer means, 1.8–2.0 m/s at one level from 10 m to 500 hPa (1.90 at 10 m). MERRA-2 misses
+  the same shears by 3.02–3.18 m/s [4, Table 3, p. 3221]. **Inference:** ERA5 assimilated these soundings [7,
+  Table 15], so the scores flatter it; a speed RMSE is the along-wind part only, so it is a floor for σ.
 - **Away from the sonde: the background.** Before it is drawn to a sonde, the operational model's 12-hour
   forecast misses 20–50° N sondes by an RMS vector of about 2.6–3.6 m/s at 1000–700 hPa across sonde types; for
-  the US LMS6 sonde about 2.6, 3.2, 3.3 and 3.4 m/s at 1000, 925, 850 and 700 hPa (read from the figure) [9, Fig.
-  3.5, p. 16]. That model ran at about 16 km until March 2016 and about 9 km after, finer than ERA5's 31 km.
-  **Inference:** removing a GPS sonde's error (well under 1 m/s) leaves about 1.8–2.4 m/s per component. A field
-  50–150 km and some hours from a sonde should sit between the at-sonde score and this.
+  the LMS6 sonde ("USA+Pacific") about 2.6, 3.2, 3.3 and 3.4 m/s at 1000, 925, 850 and 700 hPa (read from the
+  figure) [9, Fig. 3.5, p. 16]. That model ran at about 16 km until March 2016 and about 9 km after, finer than
+  ERA5's 31 km. **Inference:** removing a GPS sonde's error (well under 1 m/s) leaves about 1.8–2.4 m/s per
+  component. A field 50–150 km and some hours from a sonde should sit between the at-sonde score and this.
 - **Withholding the local sondes changed little in steady flow** over the Barbados trades: differences "almost
   nonexistent below 2 km" [10, p. 13056]. US convective or frontal weather is untested.
 - **The closest US hourly vector score is the operational model, not ERA5.** At SGP, the IFS day-ahead forecast's
@@ -74,7 +78,7 @@ Daily-mean 100 m speed, ERA5 minus observed, where ERA5 assimilated none of the 
 |---|---|---|---|
 | ARM SGP, four lidars (2016–21) | −1.29 | 0.98 | −16% |
 | Iowa Atmospheric Observatory tower (2016–21) | −1.23 | 0.95 | −15% |
-| WFIP1 northern Plains towers / sodars (2011–12) | −1.14 / −1.39 | 0.98 / 0.92 | −14% / −16% |
+| WFIP1 Northern Study Area towers / sodars (2011–12) | −1.14 / −1.39 | 0.98 / 0.92 | −14% / −16% |
 | WFIP2 Columbia basin, away from the Gorge (2015–17) | −0.73 | 0.96 | −14% |
 | WFIP1 Texas towers / sodars (2011–12) | −0.25 / −0.54 | 0.97 / 0.97 | −3.3% / −7.2% |
 | New York Mesonet lidars (2017–21) | −0.095 | 0.97 | −1.8% |
@@ -100,6 +104,7 @@ Daily-mean 100 m speed, ERA5 minus observed, where ERA5 assimilated none of the 
 | 1.5 | 39 / 53 | 26 / 35 | 14 / 18 | 9 / 11 | 6 / 7 |
 | 2.0 | 49 / 64 | 35 / 47 | 20 / 26 | 12 / 15 | 8 / 10 |
 | 2.5 | 56 / 72 | 43 / 57 | 26 / 35 | 15 / 19 | 10 / 12 |
+| 3.2 | 63 / 79 | 51 / 66 | 33 / 46 | 20 / 26 | 13 / 16 |
 
   A uniformly random direction averages 90°. The model ignores bias and any change of σ with speed.
 - **The instrument check agrees.** The profiler-balloon RMS direction difference is 10–35°, and 10–20° when the
@@ -107,12 +112,15 @@ Daily-mean 100 m speed, ERA5 minus observed, where ERA5 assimilated none of the 
   [5, Fig. D1, p. 24]. The SGP lidar study leaves out winds under 2 m/s because "the wind direction uncertainty
   increases rapidly" [1, p. 2084], so the light-wind case a hobby launch cares about is not scored there.
 - **10 m over the US.** WeatherReal maps ERA5's direction RMSE against ISD stations' 2023 reports (stations
-  reporting every 1–24 h), ERA5 interpolated to each station: about 40–50° over the central Plains and upper
-  Midwest, 55–85° over the Southeast and Appalachians, 70–90° or more over much of the West (read from the map)
-  [13, Fig. 8f, p. 14]. Its speed RMSE is about 1.4–1.7 m/s in the East and 2.0–2.8 m/s over the western Plains
-  and Rockies [13, Fig. 8e]. It does not say how calms (coded direction 0 [13, p. 3]) or the 360° wrap are
-  handled, which can inflate a direction RMSE (**Inference**). With σ = 1.5–2.4 m/s and 10 m winds of 2–5 m/s,
-  the table gives 18–70° RMS, the same range.
+  reporting every 1–24 h), ERA5 interpolated to each station. Read from the dots' colors: about 40–70° (typically
+  45–60°) over the central Plains and upper Midwest, 55–80° over the Southeast and Appalachians, 65–95° over much
+  of the West [13, Fig. 8f, p. 14]. Its speed RMSE is about 1.5–1.8 m/s in the East and typically 1.8–2.4 m/s (to
+  about 2.7) over the West and Rockies [13, Fig. 8e]. It codes calm as direction 0 and drops a pair when only one
+  of speed and direction is zero [13, pp. 3, 8], but does not say whether calms or the 360° wrap enter the
+  direction RMSE. **Inference:** σ = 1.8–2.4 m/s at 3–5 m/s gives 23–55° RMS, so the Plains roughly fit; the
+  West's median, about 74°, needs σ ≈ 4.1 m/s at a steady 3 m/s or 5.4 m/s at 4 m/s, far above its speed RMSE.
+  Terrain-driven direction bias or calms compared unwrapped carry the rest (10% unwrapped calms lift a 45–52°
+  base to about 80°), so read the western map as an upper bound.
 - **Bin by the model's value.** HRRR against 733 ASOS stations (April 2019): speed bias +0.85 m/s when the
   observed speed is under 2.5 m/s and −1.38 m/s above 5 m/s, yet centered on zero when binned by forecast speed
   [14, p. 2267]. Fovell and Gallagher score no direction. **Inference:** an error table built for a prior should
@@ -128,32 +136,33 @@ Daily-mean 100 m speed, ERA5 minus observed, where ERA5 assimilated none of the 
   over low-latitude oceans, but "it can also be seen over Europe and the USA"; it cannot be corrected, and ERA5's
   forecast winds agree better across it [7, known issue 8]. In France the 10 UTC deficit "may be larger than 0.5
   m s−1 on average" and is more visible in convective weather [12, §4.1, p. 69]. **Inference:** in the US the
-  21–22 UTC seam falls at 15–17 local time in the Central zone, in the afternoon launch window; its size there is
-  unmeasured.
+  21–22 UTC seam falls at 15–17 local time in the Central zone, in the afternoon launch window; size unmeasured.
 - **Interpolating between hours:** no source measures it. The mean SGP cycle moves at most about 0.4 m/s an hour
-  [3, Fig. 9b] (**Inference**: small for the mean, unbounded on a day with a jet onset, outflow or front).
+  in ERA5 and 0.45 in the lidars [3, Fig. 9b] (**Inference**: small for the mean, unbounded on a day with a jet
+  onset, outflow or front).
 
 ## 6. What it means for drift (Inference)
 
-- **A per-component prior.** The bracket is 1.4–1.9 m/s (at-sonde speed RMSE, a floor), about 1.8–2.4 m/s
-  (background minus instrument error) and above 3.2 m/s for the operational forecast at SGP on the worst nights.
+- **A per-component prior.** The floor is 1.8–2.0 m/s (at-sonde speed RMSE at one level; the 1.4 m/s 1–3 km
+  layer mean is an average, not a point); about 1.8–2.4 m/s by day (background minus instrument error, and the
+  day-ahead forecast at SGP); above 3.2 m/s on the worst nights (that forecast, bias and 12–35 h lead included).
   The 1.8–2 m/s prior in wind-from-descent's *What this suggests*, a speed error, becomes about 2 m/s on each
-  axis. At night or under a jet it errs narrow: σ 3 instead of 2 widens a landing ellipse 1.5 times.
-- **Drift.** With the error constant down the column, a main from 1,000 m at 5 m/s (200 s) drifts with a 1σ of
-  2 × 200 = 400 m on each axis: the earlier 100–400 m (speed only) becomes a disk, smaller if errors decorrelate.
+  axis by day. At night or under a jet 2 errs narrow: σ 3.2 instead of 2 widens a landing ellipse 1.6 times.
+- **Drift.** With the error constant down the column, a main from 1,000 m at 5 m/s (200 s) drifts 1σ = 2 × 200 =
+  400 m per axis by day, 640 m at σ 3.2: the earlier 100–400 m (speed only) becomes a disk, less if decorrelated.
 - **Bias first.** Over the Plains and the West ERA5's 100 m wind is 3–16% slow, 12% on average (§3); uncorrected,
   predicted drift in the lowest few hundred meters is short by about that fraction there, not in the Northeast.
 
 ## What this suggests
 
 - **M7.3's wind prior.** Treat ERA5's wind error as an isotropic per-component σ, about 2 m/s by day (bracket
-  1.4–2.4), larger at night, rather than a speed error along the ERA5 wind. Expected: Monte Carlo landing
-  ellipses widen across the wind and become nearly round disks in light wind (2–3 m/s: 26–56° mean absolute).
+  1.8–2.4), 3.2 m/s or more at night, rather than a speed error along the ERA5 wind. Expected: Monte Carlo landing
+  ellipses widen across the wind and become nearly round disks in light wind (2–3 m/s: 31–63° mean absolute).
 - **A regional speed-bias correction** for ERA5's boundary-layer wind (3–16% on the Plains and in the West, near
   zero in the Northeast [3]), stated as a choice with its source, until the descent-fitted wind replaces it.
 - **Measure it with CUON.** The Copernicus upper-air network (CC BY) stores ERA5's first-guess and analysis
-  departures for sondes in ERA5's input archive, and an offline first-guess departure interpolated from ERA5's
-  fields [15]. US sondes by height and hour (00/12 against 06/18) would give a measured σ (assimilation flags aside).
+  departures for sondes in ERA5's input archive, and an offline first-guess departure from ERA5's fields [15].
+  US sondes by height and hour (00/12 against 06/18) would give a measured σ (assimilation flags aside).
 - **Measure 10 m direction by speed class** from ISD/ASOS hourly winds (independent of ERA5 [7]), binned by
   ERA5's speed (§4), with calms handled explicitly.
 - **Prefer ERA5's forecast winds** at hours next to the 09–10 and 21–22 UTC seam [7, known issue 8; 12].
@@ -164,37 +173,28 @@ Daily-mean 100 m speed, ERA5 minus observed, where ERA5 assimilated none of the 
   NOAA or ARM 915 MHz profilers, NREL M2, BAO, WFIP2 or campaign sondes (PECAN, VORTEX-SE). None found.
 - ERA5's error at 06/18 UTC and at local afternoon hours against 00/12 UTC, and the US size of the 21–22 UTC seam;
   its Great Plains low-level jet (core speed, height, veer) hour by hour against profilers.
-- Not reached: Hersbach et al. 2020 (the ERA5 paper; the publisher refused the download and the browser was not
-  connected), Ramon et al. 2019 (77 towers), Jiménez and Dudhia 2013 (direction error by speed), Zhang et al.
-  2019 (AMDAR against sondes). The assimilation list here comes from ECMWF's ERA5 documentation [7].
+- WeatherReal's direction-RMSE formula, its calm and wrap handling, and the West's calm share (§4).
+- Not reached: Hersbach et al. 2020 (the ERA5 paper; download refused), Ramon et al. 2019 (77 towers), Jiménez
+  and Dudhia 2013 (direction error by speed), Zhang et al. 2019 (AMDAR against sondes).
 
-## Sources (all read 2026-10-28)
+## Sources (read 2026-10-28; [3], [4], [7]–[9], [13] re-read 2026-11-02)
 
-1. P. Pentikäinen, E. J. O'Connor, P. Ortiz-Amezcua, "Evaluating wind profiles in a numerical weather prediction
-   model with Doppler lidar," Geosci. Model Dev. 16:2077–2094, 2023, doi:10.5194/gmd-16-2077-2023.
-2. V. Pronk et al., "Can reanalysis products outperform mesoscale numerical weather prediction models in modeling
-   the wind resource in simple terrain?," Wind Energ. Sci. 7:487–504, 2022, doi:10.5194/wes-7-487-2022.
-3. J. M. Wilczak et al., "Evaluation and bias correction of the ERA5 reanalysis over the United States for wind
-   and solar energy applications," Energies 17:1667, 2024, doi:10.3390/en17071667.
-4. M. Taszarek et al., "Comparison of convective parameters derived from ERA5 and MERRA-2 with rawinsonde data
-   over Europe and North America," J. Climate 34:3211–3237, 2021, doi:10.1175/JCLI-D-20-0484.1.
-5. B. J. Barbré, M. Fielder, "Performance assessment of a Western Range 915-MHz Doppler radar wind profiler,"
-   NASA MSFC, NTRS 20210017065, 2021, <https://ntrs.nasa.gov/citations/20210017065>.
-6. R. K. Newsom et al., "Validating precision estimates in horizontal wind measurements from a Doppler lidar,"
-   Atmos. Meas. Tech. 10:1229–1240, 2017, doi:10.5194/amt-10-1229-2017.
-7. ECMWF, "ERA5: data documentation," Copernicus Knowledge Base: Table 15, "Accuracy and uncertainty", known
+Terms: [9] is ECMWF copyright, cited only; ISD/ASOS data from US federal stations are public domain (NCEI open-data
+policy; other stations unstated), ARM's free and open with credit, behind a free account. Cited, nothing copied.
+
+1. P. Pentikäinen et al., NWP winds and Doppler lidar, Geosci. Model Dev. 16:2077, 2023, doi:10.5194/gmd-16-2077-2023.
+2. V. Pronk et al., reanalyses against mesoscale models, Wind Energ. Sci. 7:487, 2022, doi:10.5194/wes-7-487-2022.
+3. J. M. Wilczak et al., ERA5 over the US for wind and solar, Energies 17:1667, 2024, doi:10.3390/en17071667.
+4. M. Taszarek et al., ERA5 and MERRA-2 against rawinsondes, J. Climate 34:3211, 2021, doi:10.1175/JCLI-D-20-0484.1.
+5. B. J. Barbré, M. Fielder, 915-MHz profiler, NASA MSFC, 2021, <https://ntrs.nasa.gov/citations/20210017065>.
+6. R. K. Newsom et al., Doppler lidar wind precision, Atmos. Meas. Tech. 10:1229, 2017, doi:10.5194/amt-10-1229-2017.
+7. ECMWF, "ERA5: data documentation," Copernicus Knowledge Base, Tables 14–15, "Accuracy and uncertainty", known
    issue 8, <https://confluence.ecmwf.int/display/CKB/ERA5%3A+data+documentation>.
 8. ECMWF, IFS Documentation Cy41r2, Part I: Observations, 2016, Table 2.6, p. 42.
-9. B. Ingleby, "An assessment of different radiosonde types 2015/2016," ECMWF Tech. Memo. 807, 2017,
-   doi:10.21957/0nje0wpsa, Fig. 3.5, p. 16.
-10. A. C. M. Savazzi et al., "The representation of the trade winds in ECMWF forecasts and reanalyses during
-    EUREC4A," Atmos. Chem. Phys. 22:13049–13066, 2022, doi:10.5194/acp-22-13049-2022.
+9. B. Ingleby, radiosonde types 2015/2016, ECMWF Tech. Memo. 807, 2017, doi:10.21957/0nje0wpsa, Fig. 3.5, p. 16.
+10. A. C. M. Savazzi et al., trade winds in EUREC4A, Atmos. Chem. Phys. 22:13049, 2022, doi:10.5194/acp-22-13049-2022.
 11. I. Price et al., "GenCast: diffusion-based ensemble forecasting for medium-range weather," arXiv:2312.15796.
-12. B. Jourdier, "Evaluation of ERA5, MERRA-2, COSMO-REA6, NEWA and AROME to simulate wind power production
-    over France," Adv. Sci. Res. 17:63–77, 2020, doi:10.5194/asr-17-63-2020.
-13. W. Jin et al., "WeatherReal: a benchmark based on in-situ observations for evaluating weather models,"
-    arXiv:2409.09371, 2024.
-14. R. G. Fovell, A. Gallagher, "Boundary layer and surface verification of the High-Resolution Rapid Refresh,
-    version 3," Wea. Forecasting 35:2255–2278, 2020, doi:10.1175/WAF-D-20-0101.1.
-15. Copernicus Climate Change Service, In situ Comprehensive Upper-Air Observation Network (CUON), Climate Data
-    Store, doi:10.24381/ba504f7a.
+12. B. Jourdier, ERA5 and others for wind power over France, Adv. Sci. Res. 17:63, 2020, doi:10.5194/asr-17-63-2020.
+13. W. Jin et al., "WeatherReal: a benchmark based on in-situ observations," arXiv:2409.09371, 2024.
+14. R. G. Fovell, A. Gallagher, HRRR v3 verification, Wea. Forecasting 35:2255, 2020, doi:10.1175/WAF-D-20-0101.1.
+15. Copernicus Climate Change Service, CUON upper-air network, Climate Data Store, doi:10.24381/ba504f7a.
