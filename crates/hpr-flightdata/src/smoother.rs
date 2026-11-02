@@ -3189,13 +3189,20 @@ mod tests {
     }
 
     /// One or two bad samples where a log from launch starts: a wide prior would take them as the
-    /// truth, so they don't reach it. Found in review, at errors of ±10 m to +1,000 m. Two bad
-    /// samples together can still move the readings' zero a little, so the apogee is held to a
-    /// standard error of the clean log's, not to its value.
+    /// truth, so they don't reach it. Found in review, at errors of ±10 m to +1,000 m. The apogee
+    /// is held to a standard error of the clean log's, not to its value.
     #[test]
     fn bad_first_samples_of_a_log_from_launch_move_nothing() {
         let clean = smoothed(&from_launch(log()), Options::default());
         let clean_top = clean.at(clean.apogee_time_s).unwrap();
+        let clean_speed_m_s = readings::read(&from_launch(log()))
+            .max_speed
+            .value()
+            .unwrap()
+            .speed_m_s;
+        let clean_truth_m = (0..2_000)
+            .map(|i| truth(f64::from(i) * 0.05).0)
+            .fold(0.0, f64::max);
         for at in [vec![0], vec![1], vec![0, 1], vec![2], vec![1, 2]] {
             for error in [
                 -1000.0, -100.0, -20.0, -10.0, 10.0, 20.0, 100.0, 150.0, 200.0, 300.0, 1000.0,
@@ -3206,21 +3213,25 @@ mod tests {
                 }
                 let got = smoothed(&bad, Options::default());
                 let top = got.at(got.apogee_time_s).unwrap();
-                // A known wrong number (#1076), pinned so a fix must drop it: two samples together
-                // this high move the readings' own pad, which the smoother stands on. The apogee
-                // reads low by what the pad moved, the flattering side, tens to hundreds of meters.
-                if at.len() == 2 && error > 100.0 {
-                    let pad = readings::read(&bad).pad_altitude_m.unwrap();
-                    assert!(pad > 20.0, "{at:?} {error}: a pad of {pad}");
-                    let low = clean_top.height_m - top.height_m;
-                    assert!(
-                        (low - pad).abs() < clean_top.height_sd_m,
-                        "{at:?} {error}: {low} low on a pad of {pad}"
-                    );
-                    // So far out the moved pad passes for a real one, and the card doesn't say.
-                    assert_eq!(got.health.assumed_pad, error < 1000.0, "{at:?} {error}");
-                    continue;
-                }
+                // The readings' own pad stays where it was, and with it the reading (#1076).
+                let read = readings::read(&bad);
+                let pad = read.pad_altitude_m.unwrap();
+                assert!(pad.abs() < 10.0, "{at:?} {error}: a pad of {pad}");
+                let apogee = read.apogee.value().unwrap();
+                let truth_m = clean_truth_m;
+                assert!(
+                    (apogee.height_m - truth_m).abs() <= apogee.bound_m,
+                    "{at:?} {error}: {} within {} of {truth_m}",
+                    apogee.height_m,
+                    apogee.bound_m
+                );
+                // The top speed is read as on the clean log, and the card says the pad is assumed.
+                let speed = read.max_speed.value().unwrap();
+                assert!(
+                    (speed.speed_m_s - clean_speed_m_s).abs() <= speed.bound_m_s,
+                    "{at:?} {error}: {speed:?}"
+                );
+                assert!(got.health.assumed_pad, "{at:?} {error}");
                 assert!(
                     (top.height_m - clean_top.height_m).abs() < clean_top.height_sd_m,
                     "{at:?} {error}: {} against {}",
@@ -3249,6 +3260,213 @@ mod tests {
         }
         let got = smoothed(&bad, Options::default());
         assert!(got.speed_m_s.iter().any(|v| v.abs() > 150.0));
+    }
+
+    /// Two bad samples at the start of a log that holds its pad: the pad's median and the readings
+    /// stay where they were, from the log's start or a sample in (#1076).
+    #[test]
+    fn bad_first_samples_of_a_log_with_its_pad_move_nothing() {
+        let clean = readings::read(&log());
+        let clean_apogee = clean.apogee.value().unwrap();
+        for at in [vec![0, 1], vec![1, 2]] {
+            for error in [100.0, 300.0, 1000.0] {
+                let mut bad = log();
+                for &k in &at {
+                    bad.altitude_m[k] += error;
+                }
+                let read = readings::read(&bad);
+                let apogee = read.apogee.value().unwrap();
+                assert!(
+                    (apogee.height_m - clean_apogee.height_m).abs() <= clean_apogee.bound_m,
+                    "{at:?} {error}: {} against {}",
+                    apogee.height_m,
+                    clean_apogee.height_m
+                );
+                let (pad, clean_pad) =
+                    (read.pad_altitude_m.unwrap(), clean.pad_altitude_m.unwrap());
+                assert!(
+                    (pad - clean_pad).abs() < 0.5,
+                    "{at:?} {error}: {pad} against {clean_pad}"
+                );
+                assert!(!smoothed(&bad, Options::default()).health.assumed_pad);
+            }
+        }
+    }
+
+    /// `log`, every `every`th sample of it.
+    fn thinned(log: &FlightLog, every: usize) -> FlightLog {
+        let mut thin = log.clone();
+        thin.time_s = log.time_s.iter().copied().step_by(every).collect();
+        thin.altitude_m = log.altitude_m.iter().copied().step_by(every).collect();
+        thin
+    }
+
+    /// Two bad samples at the start, on a log from launch or one that holds its pad, at 20, 10, 5
+    /// and 2.5 samples a second, on this rocket: the apogee reading holds its bound of the truth,
+    /// where the slower rates' short median used to let them through (#1076). Bad levels sweep the
+    /// stretch under the top where the arc lingers, which isn't a pad.
+    ///
+    /// Low ones aren't set aside: at 5 and 2.5 samples a second the reading errs high, the safe
+    /// side for a waiver, never low. At 2.5 from launch a first pair the climb itself reaches among
+    /// the samples they are judged by, 53 to 75 m on this rocket, is left out (#1103).
+    #[test]
+    fn bad_first_samples_hold_the_apogee_at_four_rates() {
+        let truth_m = (0..2_000)
+            .map(|i| truth(f64::from(i) * 0.05).0)
+            .fold(0.0, f64::max);
+        let near_top = (0..60).map(|below| truth_m - f64::from(below));
+        let errors: Vec<f64> = [-1000.0, -100.0, 100.0, 300.0, 1000.0]
+            .into_iter()
+            .chain(near_top)
+            .collect();
+        // Every bad level from the pad's margin up, as the first samples' own heights.
+        let levels: Vec<f64> = (15..700).map(f64::from).collect();
+        for every in [1, 2, 4, 8] {
+            for (start, launch) in [(log(), false), (from_launch(log()), true)] {
+                let clean = thinned(&start, every);
+                for &error in &errors {
+                    for at in [vec![0, 1], vec![0, 2], vec![1, 2]] {
+                        let mut bad = clean.clone();
+                        for &k in &at {
+                            bad.altitude_m[k] += error;
+                        }
+                        let what = format!("every {every}, from launch {launch}, {at:?} {error}");
+                        let read = readings::read(&bad);
+                        let apogee = read
+                            .apogee
+                            .value()
+                            .unwrap_or_else(|| panic!("{what}: {:?}", read.apogee));
+                        let off_m = apogee.height_m - truth_m;
+                        let high_allowed = error < 0.0 && every >= 4;
+                        assert!(
+                            off_m >= -apogee.bound_m && (high_allowed || off_m <= apogee.bound_m),
+                            "{what}: {} within {} of {truth_m}",
+                            apogee.height_m,
+                            apogee.bound_m
+                        );
+                    }
+                }
+                for &level in &levels {
+                    for at in [
+                        vec![0],
+                        vec![1],
+                        vec![2],
+                        vec![0, 1],
+                        vec![0, 2],
+                        vec![1, 2],
+                    ] {
+                        if launch && every == 8 && at == [0, 1] && (53.0..=75.0).contains(&level) {
+                            continue;
+                        }
+                        let mut bad = clean.clone();
+                        for &k in &at {
+                            bad.altitude_m[k] = level;
+                        }
+                        let read = readings::read(&bad);
+                        let what =
+                            format!("every {every}, from launch {launch}, {at:?} at {level}");
+                        let apogee = read
+                            .apogee
+                            .value()
+                            .unwrap_or_else(|| panic!("{what}: {:?}", read.apogee));
+                        assert!(
+                            (apogee.height_m - truth_m).abs() <= apogee.bound_m,
+                            "{what}: {} within {} of {truth_m}",
+                            apogee.height_m,
+                            apogee.bound_m
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    /// The same, with a barometer noisier than the readings' tuning and a slow clock after the
+    /// climb: two bad samples stay out on every seed, and a low sample among those after them
+    /// changes nothing (#1076).
+    #[test]
+    fn bad_first_samples_are_told_through_noise_and_a_slow_tail() {
+        let truth_m = (0..2_000)
+            .map(|i| truth(f64::from(i) * 0.05).0)
+            .fold(0.0, f64::max);
+        let mut state = 11;
+        let mut gaussian = move || (0..12).map(|_| noise(&mut state)).sum::<f64>();
+        for sd_m in [2.0, 3.0] {
+            for seed in 0..100 {
+                for (start, every) in [(from_launch(log()), 1), (log(), 2)] {
+                    let mut noisy = thinned(&start, every);
+                    for h in &mut noisy.altitude_m {
+                        *h += sd_m * gaussian();
+                    }
+                    let read_clean = readings::read(&noisy);
+                    let clean_m = read_clean.apogee.value().unwrap().height_m;
+                    let mut bad = noisy.clone();
+                    bad.altitude_m[0] += 300.0;
+                    bad.altitude_m[1] += 300.0;
+                    let read = readings::read(&bad);
+                    let apogee = read.apogee.value().unwrap();
+                    assert!(
+                        (apogee.height_m - truth_m).abs() <= apogee.bound_m,
+                        "{sd_m} m, seed {seed}, every {every}: {} (clean {clean_m}) within {} of \
+                         {truth_m}",
+                        apogee.height_m,
+                        apogee.bound_m
+                    );
+                }
+            }
+        }
+        // 50 samples a second up to the top, one a second after: the median step is a second, and
+        // five fast samples are no pad. A level on the climb stays out.
+        let dt = 0.02;
+        let fast = ((LIFTOFF_S + 11.6) / dt) as u32;
+        let mut time: Vec<f64> = (0..fast).map(|i| f64::from(i) * dt).collect();
+        let last = *time.last().unwrap();
+        time.extend((1..=3_000).map(|i| last + f64::from(i)));
+        let mut slow = log();
+        slow.altitude_m = time.iter().map(|t| truth(*t).0).collect();
+        slow.time_s = time;
+        let start = slow.time_s.partition_point(|t| *t < LIFTOFF_S - 0.5);
+        slow.time_s.drain(..start);
+        slow.altitude_m.drain(..start);
+        for level_m in [200.0, 300.0, 500.0] {
+            let mut bad = slow.clone();
+            bad.altitude_m[0] = level_m;
+            bad.altitude_m[1] = level_m;
+            let read = readings::read(&bad);
+            let apogee = read.apogee.value().unwrap();
+            assert!(
+                (apogee.height_m - truth_m).abs() <= apogee.bound_m,
+                "{level_m}: {} within {} of {truth_m}",
+                apogee.height_m,
+                apogee.bound_m
+            );
+        }
+    }
+
+    /// Good first samples, a low stretch far below them, then seconds on the pad, at 20 and 10
+    /// samples a second: the pad's reach takes in the stretch, so the apogee is withheld, not read
+    /// from it. A small stretch leaves the reading as on the clean log (#1076, #1101).
+    #[test]
+    fn a_low_stretch_that_returns_to_the_pad_reads_no_wrong_height() {
+        for (every, low) in [(1, 3..15), (2, 2..10)] {
+            let clean = thinned(&log(), every);
+            let clean_height = readings::read(&clean).apogee.value().unwrap().height_m;
+            let with_low = |depth_m: f64| {
+                let mut bad = clean.clone();
+                for k in low.clone() {
+                    bad.altitude_m[k] -= depth_m;
+                }
+                readings::read(&bad).apogee
+            };
+            assert!(
+                matches!(with_low(1_000.0), readings::Reading::Withheld(w) if w.reason == readings::Reason::NoClimb)
+            );
+            let height = with_low(30.0).value().unwrap().height_m;
+            assert!(
+                (height - clean_height).abs() < 5.0,
+                "{height} against {clean_height}"
+            );
+        }
     }
 
     /// A burst of samples close together costs each of them no walk over the burst: a walk for each
