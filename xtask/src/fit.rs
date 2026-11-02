@@ -1104,7 +1104,18 @@ mod tests {
             }
         }
         assert_eq!(Part::parse("3/8"), Ok(Part { number: 3, of: 8 }));
-        for wrong in ["0/8", "9/8", "1/0", "8", "a/8", "1/8/2"] {
+        for wrong in [
+            "0/8",
+            "9/8",
+            "1/0",
+            "8",
+            "",
+            "a/8",
+            "1/8/2",
+            "-1/8",
+            " 1/8",
+            "1/99999999999999999999",
+        ] {
             assert!(Part::parse(wrong).is_err(), "{wrong}");
         }
     }
@@ -1189,6 +1200,13 @@ mod tests {
         refused(&short, "not each once");
 
         refused(&tempfile::tempdir().unwrap(), "no part files");
+
+        let broken = tempfile::tempdir().unwrap();
+        write_made_up(broken.path(), Part::WHOLE, None);
+        let path = Part::WHOLE.file(broken.path());
+        let bytes = fs::read(&path).unwrap();
+        fs::write(&path, &bytes[..bytes.len() / 2]).unwrap();
+        refused(&broken, "fit-part-1-of-1.cbor");
     }
 
     /// Runs the fit's whole road on real flights: each parameter's error within a few of its
