@@ -24,8 +24,9 @@
 //! read here for quantiles as an approximation. A posterior far from its Laplace approximation
 //! leaves few effective draws; the quantiles still come back, and [`Posterior::enough`] says
 //! they're too few to read. A draw whose posterior can't be had (a flight that won't fly) gets no
-//! weight and is counted in [`Posterior::failed`]. Tested on posteriors whose quantiles are known in closed form
-//! or by quadrature; it is not yet run on a log or tested against the synthetic flights.
+//! weight and is counted in [`Posterior::failed`]. Tested on posteriors whose quantiles are known
+//! in closed form or by quadrature; it is not yet run on a log or tested against the synthetic
+//! flights.
 
 use hpr_core::random::SeededRng;
 
