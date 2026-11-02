@@ -1708,15 +1708,15 @@ mod tests {
 
     #[test]
     fn a_word_is_replaced_in_place() {
-        let text = "Its centre — and `centre_m`; \"Data licence\", a licence.";
+        let text = "Its centre — and `centre_m`; the European Centre, a licence.";
         assert_eq!(
             fixed("a.md", text, Kind::Markdown, &titles()),
-            "Its center — and `centre_m`; \"Data license\", a license."
+            "Its center — and `centre_m`; the European Center, a license."
         );
         // An allowed phrase keeps its spelling.
         assert_eq!(
-            fixed("docs/motor-stock.md", text, Kind::Markdown, &titles()),
-            "Its center — and `centre_m`; \"Data licence\", a license."
+            fixed("docs/nomads.md", text, Kind::Markdown, &titles()),
+            "Its center — and `centre_m`; the European Centre, a license."
         );
     }
 
