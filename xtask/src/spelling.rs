@@ -455,8 +455,6 @@ const ALLOWED: &[(&str, &str, Reason)] = &[
         "the limit — vendor-dependent",
         Reason::Quotation,
     ),
-    // The heading of motor.fusionspace.co's API page, quoted.
-    ("docs/motor-stock.md", "\"Data licence\"", Reason::Quotation),
     // The style guide quoting what the check reports for a name.
     (
         "docs/writing.md",
