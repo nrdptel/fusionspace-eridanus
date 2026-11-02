@@ -447,8 +447,21 @@ are in `hpr-forensics`. Formats, methods and the log corpus came from Debrief.
   one `hpr` command draws predicted and logged altitude and velocity, liftoff to landing, under
   launch-day conditions. A reading keeps the provenance M7.2 gave it wherever it meets a simulated
   number. Split a to e (ADR-314).
-  - [ ] **M7.3c The Bayesian option.** *Done when:* the same parameters, by a Bayesian fit with uncertainty,
-    pass the same test, truths drawn from the stated ranges and not its prior.
+  - [ ] **M7.3c The Bayesian option** (ADR-317: in two, below; met when they are). *Done when:* the same
+    parameters, by a Bayesian fit with uncertainty, pass the same test, truths drawn from the stated ranges and
+    not its prior.
+    - [ ] **M7.3c1 The posterior's sampler.** *Done when:* `hpr_forensics::posterior::sample` draws a posterior
+      by importance sampling from a Student-t around a given peak and covariance, and gives each unknown's 5%,
+      50% and 95% points, its effective draws and its failed draws; on a Gaussian posterior its points are
+      within 0.06 standard deviations of the closed form, and on a curved one within 0.08 of a quadrature, each
+      test failing when the proposal's density is left out of the weights; a draw that can't be had has no
+      weight and is counted; too few effective draws says so; the same seed gives the same answer, bit for bit.
+    - [ ] **M7.3c2 The Bayesian fit under the test.** *Done when:* `hpr_forensics::fit` has a Bayesian option,
+      the posterior of the least-squares fit's unknowns sampled by M7.3c1 around its answer, flying each draw;
+      `cargo xtask fit` writes its counts beside the least-squares fit's, on the same 1,000 fitted flights of
+      each of sets A and B and the same flights for the wind, its raw 90% credible intervals held to ADR-257
+      §1's three counts with the three probes, pure noise told apart as M7.3b's is, its effective draws and
+      failed draws counted; the fit's page says what it adds and how far to trust it.
   - [ ] **M7.3d From the boost.** *Done when:* apogee predicted from the log cut at burnout stays bit-identical
     when every later sample is replaced with noise; a committed report gives the 7 public flights' fits, the
     collection's as aggregates, and that prediction's mean absolute and signed errors beside the forward

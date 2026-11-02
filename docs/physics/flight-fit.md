@@ -196,6 +196,21 @@ Those counts have limits:
 - A wind on a log of height alone isn't counted and shouldn't be read. Height alone can't tell a
   steady wind from one that changes with height.
 
+## The Bayesian option, to come
+
+A second way to read a fit is planned ([ADR-317][adr-317]). The least-squares fit reads its
+uncertainty off the curvature at its answer, as if the posterior were a bell. The Bayesian option
+draws points around that answer, flies each, and weighs it by how much likelier the posterior makes
+it than the draw did: importance sampling. Each unknown's 5%, 50% and 95% points come from the
+weighted draws, so a posterior that bends or leans one way shows as it is.
+
+The sampler is in the library and tested on posteriors whose answer is known. On one where $y$ is
+$0.5x^2$ plus noise, with $x$ and the noise each a standard normal, a bell at the peak would put
+$y$'s median at 0 and its 90% interval at ±1.645. The sampler gives a median of 0.42 and an interval
+of −1.36 to 2.53, within 0.08 of a quadrature of the true distribution. It also counts how many
+draws its weights amount to, and says when they're too few. It isn't yet run on a log or tested
+on the synthetic flights; that's [M7.3c2][m7-3c2].
+
 ## Sources
 
 - K. Levenberg, "A method for the solution of certain non-linear problems in least squares",
@@ -208,7 +223,13 @@ Those counts have limits:
 - IEC 61400-1:2019, *Wind energy generation systems, part 1: design requirements*, §6.3.2.2: the
   normal wind profile, a power law of exponent 0.2.
 - [ADR-316, the fit's decisions, with the measurements behind them][adr-316].
+- J. Geweke, "Bayesian inference in econometric models using Monte Carlo integration",
+  *Econometrica* 57(6), 1989, pp. 1317–1339: importance sampling, and a proposal's tails.
+- L. Kish, *Survey Sampling*, Wiley, 1965: the effective sample size of weighted draws.
+- [ADR-317, the Bayesian option's plan][adr-317].
 
 [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 [adr-316]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md
+[adr-317]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0317-m7-3c-in-two-the-sampler-then-the-test.md
+[m7-3c2]: ../decisions-and-roadmap.md#m7-3c2
 [report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fit-intervals.md

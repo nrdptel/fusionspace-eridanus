@@ -16,5 +16,6 @@
 //! of it, and [`fit`] fits one to the other. Fault diagnosis is planned ([the roadmap][roadmap]).
 
 pub mod fit;
+pub mod posterior;
 pub mod residuals;
 pub mod synthetic;
