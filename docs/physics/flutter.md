@@ -25,6 +25,27 @@ other, to your fins and your rocket's flight.
   ([evidence row G22](../evidence.md#g22)). Where the source allows two readings,
   the simulator takes the one with the lower flutter speed. That doesn't make the whole result
   conservative: nothing shows that it is.
+- **Where it reads high, the flattering side:** four kinds of fin or wing have fluttered in
+  published tests below the speed HPR Sim computes. Each figure is HPR Sim's speed (eq. 18, the
+  thickness over the root chord) over the measured onset, so above 1 means HPR Sim's speed is too
+  high:
+  - plies that couple bending to twist, as an off-axis layup's do: MIT's laminated plates, 1.13 to
+    1.42 ([measured flutter onsets][onsets-note], §2);
+  - built-up wings near Mach 1, a skin over spars: the RAE's rocket-flown designs (ARC R&M 2944),
+    0.92 to 1.41, median 1.13, 21 of 22 above 1 (the same note, §3), and up to 1.47 on R&M 2949's
+    swept wings, their stiffness taken normal to the sweep
+    ([transonic flutter onsets][transonic-note], §4);
+  - stiffness inboard with the tip and trailing edge soft, such as a fin that tapers in thickness
+    or a stiff core with soft edges: Langley's rocket-model wings W2 (1.05), W4 (1.14) and D2
+    (1.43 or more, a lower bound) ([fin flutter tests][tests-note], §2);
+  - solid swept fins between about Mach 0.85 and 1.15: 1.21 to 1.37, from a 60° compreg wing
+    (1.37), a 45° resin-paper wing (1.31) and a 45° solid magnesium wing (1.21) in Langley's
+    transonic tunnel. Where the 60° wing's stiffness is taken moves its worst point from 0.91 to
+    1.80 ([transonic flutter onsets][transonic-note], §2 and §3).
+
+  Uncoupled flat plates read 0.14 to 0.65, the safe side. None of these was a fin glued to a tube,
+  and the figures are not a bound: a fin of one of these kinds may flutter further below HPR Sim's
+  speed than any of them did.
 - **What it leaves out:** sweep, and how the fin is mounted. Martin's wings were clamped at the
   root, and a fin glued to a tube is less stiff there. Also left out are stall flutter at high
   angles of attack and Mach-number effects, such as a dip near Mach 1. So are the rocket body's
@@ -188,7 +209,9 @@ The columns `V_f 0 m` and `V_f 3 km` are eq. 18's flutter speed in standard air 
 3 km (1.9 mi) above it. `D/G_E` is the figure 3 ratio at the launch site's pressure.
 
 - **Aluminum** passes both readings. Its figure 3 ratio is well below the band, and at max q the
-  rocket flies at under a third of $V_f$.
+  rocket flies at under a third of $V_f$. A ratio below the band is no guarantee on its own:
+  Langley's D2 wing, its stiffness inboard, sat below it at 0.17 to 0.18 and fluttered from about
+  Mach 1.69 ([fin flutter tests][tests-note], §2).
 - **Carbon fiber** at 3.175 mm (0.125 in) has $V_f/V$ of 1.46. But its figure 3 ratio, 0.45, is above
   the band, where most of Martin's wings fluttered or failed: not shown to be safe. Its
   modulus is a unidirectional ply's of one aerospace prepreg. A ±45° layup of it would be stiffer,
@@ -324,3 +347,7 @@ The decision behind these choices is [ADR-078][adr-078], from the
 [M1.10b milestone](../decisions-and-roadmap.md#m1-10b).
 
 [adr-078]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0078-fin-flutter-by-naca-tn-4197-the-lower-reading.md
+
+[onsets-note]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/flutter-measured-onsets.md
+[transonic-note]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/transonic-fin-flutter-onsets.md
+[tests-note]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/fin-flutter-tests.md
