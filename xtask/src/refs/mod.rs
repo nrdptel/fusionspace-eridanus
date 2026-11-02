@@ -17,7 +17,7 @@
 //! a note rather than failing.
 
 mod doctor;
-mod download;
+pub(crate) mod download;
 pub(crate) mod git;
 mod hash;
 mod java;
