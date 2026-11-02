@@ -82,7 +82,9 @@
 //! reader needs is clipped by an edge at any width. Pages built to fail, loaded on every run,
 //! prove the check still finds each problem. With `--cache` ([`cache`]), a run lays out and
 //! measures again only the pages whose HTML changed since its last passing run, and loads the
-//! pages built to fail only when the checker, the browser or a file every page loads changed.
+//! pages built to fail only when it has no usable cache, or the checker, the browser, the part,
+//! the system or another file of the built site (all but its pages, the search index and `api/`)
+//! changed.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -124,8 +126,9 @@ pub const USAGE: &str = "  site [--no-build] [--locked] [--widths K/N] [--cache]
                            checks the built pages' layout at part K of N of the widths,
                            for CI to spread over N machines; --cache lays out and measures
                            again only the pages whose HTML changed since the last passing
-                           run, every page when the checker, Chrome or a file every page
-                           loads changed, and keeps the results in target/site-check-cache.";
+                           run, every page when the checker, Chrome or another built file
+                           (all but the pages, the search index and api/) changed, and keeps
+                           the results in target/site-check-cache.";
 
 /// The site's source directory, relative to the workspace root, as `book.toml` sets it.
 pub(crate) const SOURCE: &str = "docs";

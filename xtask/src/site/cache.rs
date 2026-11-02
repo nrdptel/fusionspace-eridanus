@@ -13,7 +13,7 @@
 //!   run in the browser, and this file ([`SOURCES`]), embedded when xtask is built.
 //! - **The browser**: Chrome's program and the version it prints, and the system it runs on.
 //! - **The part** of the widths, or of the pages, a run takes (`--widths K/N`).
-//! - **Every file a page loads**: each file of the built site but its pages ([`role`]), such as
+//! - **Every other built file**: each file of the built site but its pages ([`role`]), such as
 //!   the stylesheets, scripts, fonts, images and the sidebar's `toc.js`, which lists every page,
 //!   so adding or renaming a page changes it. Two are left out: `searchindex.js`, which a page
 //!   loads only when a reader opens the search, as the checks never do, and the API reference
@@ -99,7 +99,7 @@ impl Check {
 enum Role {
     /// A page, which each check reads alone: its HTML decides whether it is checked again.
     Page,
-    /// A file the pages load, in the key of every page.
+    /// Any other file of the built site, in the key of every page.
     Shared,
     /// A file no check reads: the search index and the API reference.
     Unread,
@@ -351,8 +351,8 @@ impl<T> Plan<T> {
                 };
                 return format!(
                     "{name}: {} of {} pages {verb} now, their HTML new or changed, and {reused}; \
-                     the canaries not run, as the checker, Chrome and the files every page loads \
-                     are unchanged",
+                     the canaries not run, as the checker, Chrome and the site's other files are \
+                     unchanged",
                     self.check.len(),
                     self.pages.len()
                 );
@@ -363,8 +363,8 @@ impl<T> Plan<T> {
             }
             Basis::Absent => format!("there is no cache in {DIR}"),
             Basis::Unreadable => format!("{DIR}/{} is not a cache of this format", check.file()),
-            Basis::Changed => "the checker, Chrome, the part (`--widths`) or a file every page \
-                               loads changed since the cache's run"
+            Basis::Changed => "the checker, Chrome, the part (`--widths`), the system or another \
+                               file of the built site changed since the cache's run"
                 .to_owned(),
         };
         format!(
@@ -876,7 +876,7 @@ mod tests {
             line,
             "page layout cache: 1 of 2 pages checked now, their HTML new or changed, and 1 \
              reused from passing runs on 2026-11-01 14:02 UTC; the canaries not run, as the \
-             checker, Chrome and the files every page loads are unchanged"
+             checker, Chrome and the site's other files are unchanged"
         );
         let line = setting.plan(None).describe(Check::Vitals);
         assert_eq!(

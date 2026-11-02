@@ -453,7 +453,7 @@ pub(super) fn pages(output: &Path, part: Part) -> Result<Vec<String>, String> {
     Ok(pages)
 }
 
-/// Measures the vitals of `pages` of the site built in `output` ([`pages`] for this part's
+/// Measures the vitals of `pages` of the site built in `output` ([`pages()`] for this part's
 /// share), after the canaries when `canaries` is set (in every part).
 pub(super) fn check(output: &Path, pages: &[String], canaries: bool) -> Result<Report, String> {
     let started = Instant::now();
