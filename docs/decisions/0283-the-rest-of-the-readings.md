@@ -224,3 +224,27 @@ that only held flat, and that no tuning flight tested clipping at a range. The r
    column fails it). A TeleGPS, a GPS receiver with no accelerometer, would pass if its export
    wrote the column. On the sample logs 17 records are so withheld, 16 AltOS CSV and one AltOS
    table, 16 of whose tops had been given.
+
+**Amendment for #806, gravity's coast (2026-11-02).** A physics review found two ways §2's coast
+witness settled gravity wrongly; the rules now:
+
+1. **A coast at about −1 g doesn't settle gravity alone.** A part that holds gravity reads its drag
+   in the coast, `−D/m`, and a rocket still fast at apogee, arcing over, can drag about 1 g, which
+   reads as gravity out would. Where neither the family nor the pad says, as on a Raven or a generic
+   axial column on a log that starts in the thrust, 1 g was put back on a top that held it already,
+   reading it 1 g high: on the test's rocket, a 6 g top read 7.01 g, its bound 0.88 g. Such a log is
+   now withheld, `gravity_unstated`, saying that only the coast says
+   (`a_fast_arc_over_doesnt_settle_gravity_out_alone`; a mutation that lets the coast settle alone
+   fails it). A coast at about 0 still settles alone: without gravity a coasting part reads
+   `−D/m − g`, at or below −1 g, and reading 0 takes a push forward of 1 g, a thrust, which the coast's
+   second after the burns doesn't hold. Beside a family or a pad, the coast at −1 g still counts,
+   agreeing or disagreeing as before. Withholding was chosen over widening the bound by 1 g: a top
+   read 1 g high with a bound wide enough to cover it says little.
+2. **Gravity's coast is read only where a coast was flown,** as the direction's is (amendment for
+   M7.2c, §1): after liftoff's latest time by the heights and after the trace first moves, before
+   an apogee the log doesn't end at. Otherwise the second before apogee's earliest time can lie on
+   the pad, where a part that takes gravity out reads 0 and says gravity is in
+   (`gravitys_coast_is_read_only_where_one_was_flown`; a mutation that drops the gate fails it).
+
+On the sample logs neither moves a record: `cargo xtask logs --check` reproduces the committed
+report, so no record's gravity rested on a coast at −1 g alone or on a coast read off the pad.

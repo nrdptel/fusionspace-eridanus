@@ -42,9 +42,13 @@
 //! apogee, where a rocket falls freely but for a small drag, so about 0 holds gravity and about
 //! −1 g doesn't. The pad is read off the accelerometer itself, the steady reading before the
 //! thrust lifts it by half [`LIFTOFF_ACCELERATION_M_S2`], if that comes no later than liftoff's
-//! latest time by the heights; a pad or a coast that reads neither, such as a log that starts in
-//! the thrust, says nothing. Gravity is settled when one witness or more says and none disagrees;
-//! otherwise nothing is read ([`Reason::GravityUnstated`]). A sample that repeats the time before
+//! latest time by the heights; the coast is read only where one was flown, as the direction's
+//! coast is; a pad or a coast that reads neither, such as a log that starts in the thrust, says
+//! nothing. Gravity is settled when one witness or more says and none disagrees, except that a
+//! coast at about −1 g doesn't settle it alone: a part that holds gravity reads its drag there,
+//! and a rocket still fast at apogee, arcing over, can drag about 1 g (#806). Its about 0 can
+//! stand alone, as a part without gravity reads −1 g or below in a coast. Otherwise nothing is
+//! read ([`Reason::GravityUnstated`]). A sample that repeats the time before
 //! it is left out, as the primary track leaves it ([`first_at_each_time`]).
 //!
 //! **The top acceleration** is the highest reading over the burns: each from a cleaned reading past
@@ -418,9 +422,10 @@ pub(super) fn read(
             None
         }
     });
-    // The coast's last [`COAST_SPAN_S`] before apogee's earliest time: about 0 holds gravity,
-    // about −1 g doesn't; still under thrust, or anything else, it says nothing.
-    let coast = coast_level(&time, &turned, &boost, &heights.apogee);
+    // The coast's last [`COAST_SPAN_S`] before apogee's earliest time, read only where a coast
+    // was flown, as the direction's is (#806): about 0 holds gravity, about −1 g doesn't; still
+    // under thrust, or anything else, it says nothing.
+    let coast = coast_level(&time, &turned, &boost, &heights.apogee).filter(|_| flown);
     let by_coast = coast.and_then(|coast| {
         if coast.abs() <= tolerance {
             Some(Gravity::In)
@@ -439,8 +444,14 @@ pub(super) fn read(
         .iter()
         .filter_map(|(word, by)| word.map(|word| (word, *by)))
         .collect();
+    // A coast at about −1 g says gravity is out only beside another witness (#806). A part that
+    // holds gravity reads its drag there, `−D/m`, and a rocket still fast at apogee, arcing over,
+    // can drag about 1 g. Its about 0 stands alone: without gravity a coasting part reads
+    // `−D/m − g`, at or below −1 g, and reading 0 takes a forward push of 1 g, a thrust, which
+    // the coast's second, after the burns, doesn't hold.
+    let lone_coast_out = matches!(said.as_slice(), [(Gravity::Out, GravityBy::Coast)]);
     let gravity = match said.first() {
-        Some(&first) if said.iter().all(|(word, _)| *word == first.0) => first,
+        Some(&first) if !lone_coast_out && said.iter().all(|(word, _)| *word == first.0) => first,
         _ => {
             let family = match stated.gravity {
                 Some(Gravity::In) => "says its readings hold gravity",
@@ -458,11 +469,18 @@ pub(super) fn read(
                     },
                 )
             };
+            let verdict = if lone_coast_out {
+                "only the coast says, and a coast at −1 g says gravity is out only beside \
+                 another witness: a part that holds gravity reads its drag there, and a rocket \
+                 still fast at apogee, arcing over, can drag about 1 g"
+            } else {
+                "they don't settle it, or disagree"
+            };
             return withheld(
                 Reason::GravityUnstated,
                 format!(
                     "the accelerometer `{}`'s family {family}; {}; {}: within \
-                     {GRAVITY_TOLERANCE_G} g, they don't settle it, or disagree",
+                     {GRAVITY_TOLERANCE_G} g, {verdict}",
                     channel.column,
                     level("pad", pad, "1 g", "0"),
                     level("coast to apogee", coast, "0", "−1 g"),
@@ -1573,8 +1591,9 @@ mod tests {
     }
 
     /// A log that starts in the thrust has no pad to tell gravity by; its coast to apogee still
-    /// does, reading about 0 with gravity in and about −1 g with it out. The drag here eases as
-    /// the square of a speed that falls off in the coast, under 0.04 g in the last second.
+    /// does where it reads about 0, gravity in. About −1 g, gravity out, it doesn't settle alone,
+    /// as a drag of about 1 g reads so too (#806). The drag here eases as the square of a speed
+    /// that falls off in the coast, under 0.04 g in the last second.
     #[test]
     fn the_coast_settles_gravity_where_there_is_no_pad() {
         let eased = |t: f64| {
@@ -1595,19 +1614,29 @@ mod tests {
             channel.values.drain(..first);
             read_all(&log)
         };
-        for (out, gravity) in [(false, Gravity::In), (true, Gravity::Out)] {
-            let readings = late(out);
-            let accelerometer = readings.accelerometer.unwrap();
-            assert_eq!(accelerometer.gravity, gravity);
-            assert_eq!(accelerometer.gravity_by, GravityBy::Coast);
-            let top = readings.max_acceleration.value().unwrap();
-            assert!(
-                (top.acceleration_m_s2 - 6.0 * G).abs() <= top.bound_m_s2,
-                "{top:?}"
-            );
-        }
-        // A family that says gravity is out, over a coast that reads 0, disagrees.
-        let mut log = log(LogFormat::Marsa, "acceleration", 0.01, |_, t| eased(t));
+        let readings = late(false);
+        let accelerometer = readings.accelerometer.unwrap();
+        assert_eq!(accelerometer.gravity, Gravity::In);
+        assert_eq!(accelerometer.gravity_by, GravityBy::Coast);
+        let top = readings.max_acceleration.value().unwrap();
+        assert!(
+            (top.acceleration_m_s2 - 6.0 * G).abs() <= top.bound_m_s2,
+            "{top:?}"
+        );
+        let readings = late(true);
+        assert!(readings.accelerometer.is_none());
+        let Reading::Withheld(withheld) = &readings.max_acceleration else {
+            panic!("{:?}", readings.max_acceleration);
+        };
+        assert_eq!(withheld.reason, Reason::GravityUnstated);
+        assert!(
+            withheld.detail.contains("only the coast says"),
+            "{withheld:?}"
+        );
+        // A family that says gravity is out, AltOS's, over a coast that reads 0, disagrees.
+        // (MARSA's coarser heights here put liftoff's latest time after the coast's second
+        // starts, so its coast isn't read as flown.)
+        let mut log = log(LogFormat::AltosCsv, "acceleration", 0.01, |_, t| eased(t));
         let channel = &mut log.channels[0];
         let first = channel.time_s.iter().position(|t| *t >= 3.2).unwrap();
         channel.time_s.drain(..first);
@@ -1616,6 +1645,74 @@ mod tests {
         assert_eq!(
             readings.max_acceleration.reason(),
             Some(Reason::GravityUnstated)
+        );
+    }
+
+    /// A rocket still fast at apogee, arcing over, drags about 1 g in the coast's last second.
+    /// With gravity in, its part reads about −1 g there, as one without gravity and little drag
+    /// would. On a log with no family word and no pad, the coast alone said gravity was out, and
+    /// 1 g was put back on a top already holding it (#806). Now it is withheld.
+    #[test]
+    fn a_fast_arc_over_doesnt_settle_gravity_out_alone() {
+        let arcing = |t: f64| {
+            if (4.1..8.0).contains(&t) {
+                -G
+            } else {
+                specific_force(t)
+            }
+        };
+        // The accelerometer starts at 3.2 s, its thrust already 5.6 g: no pad.
+        let late = |format, column| {
+            let mut log = log(format, column, 0.01, |k, t| arcing(t) + jitter(k, 0.3));
+            let channel = &mut log.channels[0];
+            let first = channel.time_s.iter().position(|t| *t >= 3.2).unwrap();
+            channel.time_s.drain(..first);
+            channel.values.drain(..first);
+            read_all(&log)
+        };
+        let readings = late(LogFormat::GenericTable, "Axial accel");
+        assert!(
+            readings.accelerometer.is_none(),
+            "{:?}",
+            readings.accelerometer
+        );
+        assert_eq!(
+            readings.max_acceleration.reason(),
+            Some(Reason::GravityUnstated)
+        );
+        // Beside a family that says gravity is in, the AIM XTRA's, the coast disagrees and the
+        // top is withheld still, as before.
+        assert_eq!(
+            late(LogFormat::EntacoreAimCsv, "acceleration")
+                .max_acceleration
+                .reason(),
+            Some(Reason::GravityUnstated)
+        );
+    }
+
+    /// Gravity's coast is read only where a coast was flown, as the direction's is (#806). Here
+    /// the heights put apogee's earliest time 0.1 s after the thrust starts, so the second before
+    /// it lies on the pad. On a part that takes gravity out the pad reads 0, which as a coast says
+    /// gravity is in, against the family's word and the pad: the top was withheld. Not read as a
+    /// coast, the family and the pad settle it.
+    #[test]
+    fn gravitys_coast_is_read_only_where_one_was_flown() {
+        let log = log(LogFormat::Marsa, "acceleration", 0.01, |k, t| {
+            specific_force(t) - G + jitter(k, 0.3)
+        });
+        let mut heights = super::super::heights(&log);
+        let Reading::Read(apogee) = &mut heights.apogee else {
+            panic!("{:?}", heights.apogee);
+        };
+        apogee.time_bound_s = apogee.time_s - 3.1;
+        let (accelerometer, top, _) = read(&log, &heights);
+        let accelerometer = accelerometer.unwrap_or_else(|| panic!("{top:?}"));
+        assert_eq!(accelerometer.gravity, Gravity::Out);
+        assert_eq!(accelerometer.gravity_by, GravityBy::Family);
+        let top = top.value().unwrap();
+        assert!(
+            (top.acceleration_m_s2 - 6.0 * G).abs() <= top.bound_m_s2,
+            "{top:?}"
         );
     }
 
