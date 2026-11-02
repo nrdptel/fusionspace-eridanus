@@ -24,8 +24,8 @@ tells of its drag, impulse, wind and mass.
   samples, since that model has no true drag scale. On a real flight, the model's own errors go into
   the scales with nothing to say so.
 - **What it leaves out:** anything past apogee, and the accelerometer. A log whose only height is a
-  GNSS receiver's isn't fitted, since the log reader takes no apogee from it; that's every synthetic
-  log with nothing to fit, about one in six ([when](#when-a-log-has-nothing-to-fit)). Its wind is
+  GNSS receiver's isn't fitted, since the log reader takes no apogee from it; that's every log with
+  nothing to fit among the sets' counted draws, about one in six ([when](#when-a-log-has-nothing-to-fit)). Its wind is
   constant with height; on a log of height alone, a wind that grows with height only widens the intervals. It's
   told the design, rail, site and the day's air, and takes them as right. It's in the library only:
   no command runs it on a log yet.
@@ -101,8 +101,9 @@ Each fit also says whether it stopped at the bottom of $\chi^2$ within 60 steps 
 
 A log with nothing to fit gives back its stated range and says so. That's any of these:
 
-- the log reader finds no apogee or pad height in it;
-- its climb, from liftoff (or its first sample) to apogee, would run past 1,000 s;
+- the log has no height channel, or the log reader finds no apogee or pad height in it;
+- its climb, from liftoff (or its first sample) to apogee, isn't positive or would run past
+  1,000 s;
 - its climb fills too few 0.25 s bins, as many as the fit's unknowns or fewer;
 - a barometer has too few bins below Mach 0.8;
 - the fit's heights stand far from the log: an RMS residual over 0.1 of the spread of the heights
@@ -183,8 +184,8 @@ Those counts have limits:
 - Sets A and B were seen. The barometer's unknowns, the track's floor, the split of shares by track
   and set B's truth were chosen after reading their counts. So were which logs are counted and which
   hold a wind, the wind's flight count, the misfit's cut of 0.1, and both widenings. Only the shares themselves come from flights kept apart.
-- Set B's drag passes at the edge: 29 above is the fewest that pass at 1,000. Its 70 below is 4
-  short of failing too. Its fit runs high by 0.005 on average.
+- Set B's drag passes at the edge: 29 above is the fewest that pass at 1,000. At 70 below, 5 more
+  would fail it too. Its fit runs high by 0.005 on average.
 - Coverage holds over a set, not on each design. On set B, the Prometheus design's drag interval
   holds 68 of its 96 truths, and its wind toward the north 127 of 161.
 - Coverage holds over a set, not on each flight. A flight whose heights fit to 1 m (3.3 ft) or worse

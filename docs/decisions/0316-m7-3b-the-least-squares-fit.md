@@ -68,8 +68,8 @@ each step was made with sets A and B in view.
    the 845 fitted, which fails, against a pass with them. Each set now counts its first 1,000
    fitted flights: of set A's first 1,216, 216 had nothing to fit; of set B's first 1,193, 193.
    Every one of them is a log whose only height is a GNSS receiver's, from which the reader takes
-   no apogee, as the report counts: the fit is never tried on that logger, one of the six, and no
-   other cause removed a flight. Which logs drop out doesn't depend on how a fit did.
+   no apogee, as the report counts and requires: every refused log is that logger's, one of the
+   six, and no other cause removed a flight. Which logs drop out doesn't depend on how a fit did.
 9. **A fit that can't be this flight's says nothing.** A review handed pure noise of ±5 m (16 ft)
    to the fit, which gave the impulse a median width of 0.019, under half its stated 0.108. A fit
    whose heights' RMS residual is over 0.1 of the spread of the heights it read now says nothing. On pure noise the
@@ -130,6 +130,6 @@ logs of noise say nothing, 400 turned away by the reader and 1,000 by the fit.
   B, some designs fall well short of 90%: Prometheus holds 68 of 96 on drag and 127 of 161 on the
   north wind.
 - **Set B's drag passes at the edge.** It has 29 above, the fewest that pass at 1,000, and 70 below,
-  4 short of failing: its fit runs high by 0.005 on average. One flight the other way on another platform fails it.
+  where 5 more would fail: its fit runs high by 0.005 on average. One flight the other way on another platform fails it.
 - **Accelerometers are unused,** and the fit goes no further than apogee.
 - **No surface.** It's a library function until a later increment.

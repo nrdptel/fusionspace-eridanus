@@ -215,7 +215,8 @@ struct SetReport {
     said_nothing_gnss_alone: u64,
     /// Flights counted here or for the wind whose fit, or whose truth's fit, reached its step limit.
     not_converged: u64,
-    /// The largest residual of a counted fit, as a share of the spread of the heights read.
+    /// The largest residual of any fit to a flight drawn or of the wind's, refused ones included, as a
+    /// share of the spread of the heights read.
     largest_misfit: f64,
     checks: Vec<Check>,
 }
@@ -600,7 +601,7 @@ fn make(files: &DesignFiles) -> Result<(Report, Vec<String>), String> {
         report.largest_misfit = misfits.iter().copied().fold(0.0, f64::max);
         let cut = misfits
             .iter()
-            .filter(|share| !(**share <= hpr_forensics::fit::MISFIT_SHARE))
+            .filter(|share| share.is_nan() || **share > hpr_forensics::fit::MISFIT_SHARE)
             .count();
         if cut > 0 {
             broken.push(format!(
