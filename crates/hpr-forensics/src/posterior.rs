@@ -218,9 +218,8 @@ mod tests {
 
     const GAUSSIAN_MEAN: [f64; 2] = [1.0, -2.0];
     const GAUSSIAN_SD: [f64; 2] = [0.5, 2.0];
-    /// The Gaussian case's correlation, as strong as a fit's drag and impulse scales can be: a
-    /// draw that lost it (`Lᵀ z` for `L z`) misses the posterior's shape, which a diagonal case
-    /// can't see.
+    /// The Gaussian case's correlation, a strong one: a draw that lost it (`Lᵀ z` for `L z`)
+    /// misses the posterior's shape, which a diagonal case can't see.
     const GAUSSIAN_CORRELATION: f64 = 0.9;
 
     /// A correlated Gaussian posterior drawn from a proposal off center by 0.3 sd in each unknown
@@ -340,10 +339,10 @@ mod tests {
     #[test]
     fn a_curved_posterior_comes_back_at_its_quadrature() {
         let posterior = curved_case(true);
-        // y's standard deviation is √(1 + 2b²) ≈ 1.22, so 0.08 is 0.066 of it. y's 95% point sits
-        // in its long upper tail, where the density is low and the point's error is largest: over
-        // seeds 100 to 199 it spreads by 0.018 at these draws, so 0.08 is over four of those, and
-        // no seed misses it.
+        // y's standard deviation is √(1 + 2b²) ≈ 1.2247, so 0.08 is 0.065 of it. y's 95% point
+        // sits in its long upper tail, where the density is low and the point's error is largest:
+        // over seeds 100 to 199 its error has a standard deviation of 0.018 at these draws, so 0.08
+        // is over four of those, and no seed takes any of the three points past it.
         assert!(
             posterior.enough && posterior.effective_draws > 80_000.0,
             "{}",
@@ -416,8 +415,9 @@ mod tests {
         .unwrap();
         assert!(posterior.failed > 500, "{}", posterior.failed);
         assert_eq!(posterior.draws, 5_000);
-        // The first unknown is then a normal cut at 1: its 95% point is Φ⁻¹(0.95 Φ(1)) ≈ 0.838.
-        // At about 3,800 effective draws the 95% point's error is near 0.01; 0.04 is four of those.
+        // The first unknown is then a normal cut at 1: its 95% point is Φ⁻¹(0.95 Φ(1)) ≈ 0.839.
+        // Over seeds 100 to 299 this point's error has a standard deviation of 0.011 and is at most
+        // 0.031, so 0.04 is over three and a half standard deviations, and no seed misses it.
         let (mut lo, mut hi) = (-5.0, 1.0);
         for _ in 0..60 {
             let mid = 0.5 * (lo + hi);
