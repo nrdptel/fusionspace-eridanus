@@ -23,8 +23,8 @@
 //! effective sample size (L. Kish, *Survey Sampling*, Wiley, 1965), a result for a weighted mean
 //! read here for quantiles as an approximation. A posterior far from its Laplace approximation
 //! leaves few effective draws; the quantiles still come back, and [`Posterior::enough`] says
-//! they're too few to read. A draw whose posterior can't be had (a flight that won't fly) gets no weight and is
-//! counted in [`Posterior::failed`]. Tested on posteriors whose quantiles are known in closed form
+//! they're too few to read. A draw whose posterior can't be had (a flight that won't fly) gets no
+//! weight and is counted in [`Posterior::failed`]. Tested on posteriors whose quantiles are known in closed form
 //! or by quadrature; it is not yet run on a log or tested against the synthetic flights.
 
 use hpr_core::random::SeededRng;
@@ -38,8 +38,9 @@ use crate::fit::cholesky;
 pub const DEGREES_OF_FREEDOM: usize = 4;
 
 /// The fewest effective draws for a quantile to be read: 100. At 100, the 5% point's Monte Carlo
-/// error is about `√(0.05 · 0.95 / 100) / φ(1.645) ≈ 0.21` posterior standard deviations, past
-/// which an interval's ends say more of the draws than of the flight. A judgment, not a measurement.
+/// error is about `√(0.05 · 0.95 / 100) / φ(1.645)`, 0.22 posterior standard deviations rounded
+/// up, past which an interval's ends say more of the draws than of the flight. A judgment, not a
+/// measurement.
 pub const MIN_EFFECTIVE_DRAWS: f64 = 100.0;
 
 /// The probabilities [`Posterior::quantiles`] reads: the 90% interval's ends and the median.
@@ -55,7 +56,8 @@ pub struct Posterior<const N: usize> {
     pub effective_draws: f64,
     /// The draws made, failed ones included.
     pub draws: usize,
-    /// The draws whose posterior couldn't be had; each has no weight.
+    /// The draws whose posterior couldn't be had, or whose weight came out infinite or NaN; each
+    /// has no weight.
     pub failed: usize,
     /// Whether [`Posterior::effective_draws`] reaches [`MIN_EFFECTIVE_DRAWS`].
     pub enough: bool,
@@ -87,13 +89,27 @@ mod rows {
 ///
 /// `log_target` gives `None` where the posterior can't be had; that draw gets no weight. `None`
 /// overall if `covariance` isn't positive definite, `draws` is 0, or no draw has a finite weight.
-/// The same `seed` gives the same answer, bit for bit.
+/// The same `seed` and a `log_target` that gives the same answer for the same point give the same
+/// answer, bit for bit, on one platform (the draws go through `ln`, `sqrt` and `exp`).
 pub fn sample<const N: usize>(
     peak: &[f64; N],
     covariance: &[[f64; N]; N],
     draws: usize,
     seed: u64,
+    log_target: impl FnMut(&[f64; N]) -> Option<f64>,
+) -> Option<Posterior<N>> {
+    sample_weighted(peak, covariance, draws, seed, log_target, true)
+}
+
+/// [`sample`], with the proposal's density in each weight, or left out of it for the tests' probe
+/// that the weights need it.
+fn sample_weighted<const N: usize>(
+    peak: &[f64; N],
+    covariance: &[[f64; N]; N],
+    draws: usize,
+    seed: u64,
     mut log_target: impl FnMut(&[f64; N]) -> Option<f64>,
+    proposal_in_weight: bool,
 ) -> Option<Posterior<N>> {
     let l = cholesky(covariance)?;
     let nu = DEGREES_OF_FREEDOM as f64;
@@ -101,7 +117,8 @@ pub fn sample<const N: usize>(
     let dimensions = N as f64;
     let mut rng = SeededRng::seed_from_u64(seed);
     // Grown as draws succeed, not reserved up front, so a huge `draws` can't fail an allocation
-    // before the first flight: memory is about `draws · 8 (N + 1)` bytes, plus one column to sort.
+    // before the first flight: memory is about `draws · 8 (N + 4)` bytes, the points with their
+    // weights twice over and one column to sort.
     let mut points: Vec<([f64; N], f64)> = Vec::new();
     let mut failed = 0;
     for _ in 0..draws {
@@ -114,7 +131,11 @@ pub fn sample<const N: usize>(
             peak[i] + stretch * (0..=i).map(|k| l[i][k] * z[k]).sum::<f64>()
         });
         let distance2 = z.iter().map(|v| v * v).sum::<f64>() * stretch * stretch;
-        let log_proposal = -0.5 * (nu + dimensions) * (distance2 / nu).ln_1p();
+        let log_proposal = if proposal_in_weight {
+            -0.5 * (nu + dimensions) * (distance2 / nu).ln_1p()
+        } else {
+            0.0
+        };
         match log_target(&x) {
             Some(log_p) if (log_p - log_proposal).is_finite() => {
                 points.push((x, log_p - log_proposal))
@@ -185,83 +206,135 @@ mod tests {
         }
     }
 
-    #[test]
-    fn a_gaussian_posterior_comes_back_at_its_closed_form() {
-        // The proposal is off center by 0.3 sd and 1.5 times too wide, as a Laplace approximation
-        // that missed would be. The 5% point's Monte Carlo error at n effective draws is about
-        // √(0.05·0.95/n)/φ(1.645) sd: 0.024 sd at n = 8,000, so 0.06 sd is two and a half of them.
-        let mean = [1.0, -2.0];
-        let sd = [0.5, 2.0];
-        let posterior = sample(
+    const GAUSSIAN_MEAN: [f64; 2] = [1.0, -2.0];
+    const GAUSSIAN_SD: [f64; 2] = [0.5, 2.0];
+
+    /// A Gaussian posterior drawn from a proposal off center by 0.3 sd and 1.5 times too wide, as
+    /// a Laplace approximation that missed would be.
+    fn gaussian_case(proposal_in_weight: bool) -> Posterior<2> {
+        sample_weighted(
             &[1.15, -1.4],
             &[[0.5625, 0.0], [0.0, 9.0]],
             20_000,
             7,
-            gaussian(mean, sd),
+            gaussian(GAUSSIAN_MEAN, GAUSSIAN_SD),
+            proposal_in_weight,
         )
-        .unwrap();
+        .unwrap()
+    }
+
+    /// The farthest of the Gaussian case's points from its closed form, in standard deviations.
+    fn gaussian_worst(posterior: &Posterior<2>) -> f64 {
+        (0..2)
+            .flat_map(|i| {
+                let (mean, sd) = (GAUSSIAN_MEAN[i], GAUSSIAN_SD[i]);
+                let expected = [mean - Z_90 * sd, mean, mean + Z_90 * sd];
+                posterior.quantiles[i]
+                    .into_iter()
+                    .zip(expected)
+                    .map(move |(got, want)| ((got - want) / sd).abs())
+            })
+            .fold(0.0, f64::max)
+    }
+
+    #[test]
+    fn a_gaussian_posterior_comes_back_at_its_closed_form() {
+        // The 5% point's Monte Carlo error at n effective draws is about √(0.05·0.95/n)/φ(1.645)
+        // sd: 0.024 sd at n = 8,000, so 0.06 sd is two and a half of them.
+        let posterior = gaussian_case(true);
         assert!(
             posterior.enough && posterior.effective_draws > 8_000.0,
             "{}",
             posterior.effective_draws
         );
         assert_eq!(posterior.failed, 0);
-        for i in 0..2 {
-            let expected = [mean[i] - Z_90 * sd[i], mean[i], mean[i] + Z_90 * sd[i]];
-            for (k, (got, want)) in posterior.quantiles[i].iter().zip(expected).enumerate() {
-                let off = (got - want) / sd[i];
-                assert!(off.abs() < 0.06, "unknown {i}, point {k}: {off} sd");
-            }
-        }
+        let worst = gaussian_worst(&posterior);
+        assert!(worst < 0.06, "{worst} sd");
+    }
+
+    /// The curved case's b: y = b x² + e.
+    const B: f64 = 0.5;
+
+    /// y = b x² + e, x and e standard normal: y's distribution is skewed, which a Laplace
+    /// approximation at the peak (0, 0), identity covariance, can't show.
+    fn curved_case(proposal_in_weight: bool) -> Posterior<2> {
+        let target =
+            move |v: &[f64; 2]| Some(-0.5 * v[0] * v[0] - 0.5 * (v[1] - B * v[0] * v[0]).powi(2));
+        sample_weighted(
+            &[0.0, 0.0],
+            &[[1.0, 0.0], [0.0, 1.0]],
+            40_000,
+            11,
+            target,
+            proposal_in_weight,
+        )
+        .unwrap()
+    }
+
+    /// The curved case's y at [`PROBABILITIES`], by quadrature, worked out once for every test:
+    /// its CDF is P(Y ≤ t) = ∫ φ(x) Φ(t − b x²) dx, by Simpson's rule on [−8, 8], bisected.
+    fn curved_truth() -> [f64; 3] {
+        static TRUTH: std::sync::OnceLock<[f64; 3]> = std::sync::OnceLock::new();
+        *TRUTH.get_or_init(|| {
+            let cdf = |t: f64| {
+                let n = 4_000;
+                let h = 16.0 / n as f64;
+                (0..=n)
+                    .map(|k| {
+                        let x = -8.0 + h * k as f64;
+                        let weight = if k == 0 || k == n {
+                            1.0
+                        } else if k % 2 == 1 {
+                            4.0
+                        } else {
+                            2.0
+                        };
+                        weight * (-0.5 * x * x).exp() / (2.0 * std::f64::consts::PI).sqrt()
+                            * normal_cdf(t - B * x * x)
+                    })
+                    .sum::<f64>()
+                    * h
+                    / 3.0
+            };
+            PROBABILITIES.map(|p| {
+                let (mut lo, mut hi) = (-10.0, 30.0);
+                for _ in 0..80 {
+                    let mid = 0.5 * (lo + hi);
+                    if cdf(mid) < p { lo = mid } else { hi = mid }
+                }
+                0.5 * (lo + hi)
+            })
+        })
+    }
+
+    /// The farthest of the curved case's points for y from its quadrature, in y's units.
+    fn curved_worst(posterior: &Posterior<2>) -> f64 {
+        posterior.quantiles[1]
+            .into_iter()
+            .zip(curved_truth())
+            .map(|(got, want)| (got - want).abs())
+            .fold(0.0, f64::max)
     }
 
     #[test]
     fn a_curved_posterior_comes_back_at_its_quadrature() {
-        // y = b x² + e, x and e standard normal: y's distribution is skewed, which a Laplace
-        // approximation at the peak (0, 0), identity covariance, can't show. Its CDF is
-        // P(Y ≤ t) = ∫ φ(x) Φ(t − b x²) dx, by Simpson's rule on [−8, 8].
-        let b = 0.5;
-        let cdf = |t: f64| {
-            let n = 4_000;
-            let h = 16.0 / n as f64;
-            (0..=n)
-                .map(|k| {
-                    let x = -8.0 + h * k as f64;
-                    let weight = if k == 0 || k == n {
-                        1.0
-                    } else if k % 2 == 1 {
-                        4.0
-                    } else {
-                        2.0
-                    };
-                    weight * (-0.5 * x * x).exp() / (2.0 * std::f64::consts::PI).sqrt()
-                        * normal_cdf(t - b * x * x)
-                })
-                .sum::<f64>()
-                * h
-                / 3.0
-        };
-        let quantile = |p: f64| {
-            let (mut lo, mut hi) = (-10.0, 30.0);
-            for _ in 0..80 {
-                let mid = 0.5 * (lo + hi);
-                if cdf(mid) < p { lo = mid } else { hi = mid }
-            }
-            0.5 * (lo + hi)
-        };
-        let target =
-            move |v: &[f64; 2]| Some(-0.5 * v[0] * v[0] - 0.5 * (v[1] - b * v[0] * v[0]).powi(2));
-        let posterior = sample(&[0.0, 0.0], &[[1.0, 0.0], [0.0, 1.0]], 40_000, 11, target).unwrap();
-        assert!(posterior.enough);
-        // y's standard deviation is √(1 + 2b²) ≈ 1.22; 0.08 is about four Monte Carlo errors.
-        for (k, p) in PROBABILITIES.into_iter().enumerate() {
-            let want = quantile(p);
-            assert!(
-                (posterior.quantiles[1][k] - want).abs() < 0.08,
-                "p {p}: {} vs {want}",
-                posterior.quantiles[1][k]
-            );
-        }
+        let posterior = curved_case(true);
+        // y's standard deviation is √(1 + 2b²) ≈ 1.22, so 0.08 is 0.066 of it. The Gaussian
+        // formula above gives 0.015 sd, 0.018 in y, at 20,000 effective draws; y's 95% point sits
+        // in a thinner tail than a Gaussian's, so its error is larger (about 0.05 on this seed),
+        // and 0.08 leaves room for that.
+        assert!(
+            posterior.enough && posterior.effective_draws > 20_000.0,
+            "{}",
+            posterior.effective_draws
+        );
+        let worst = curved_worst(&posterior);
+        assert!(
+            worst < 0.08,
+            "{:?} vs {:?}",
+            posterior.quantiles[1],
+            curved_truth()
+        );
         // What a Laplace approximation can't show: the median stands above the peak's 0, and the
         // 95% point farther above it than the 5% point is below.
         let [low, mid, high] = posterior.quantiles[1];
@@ -273,6 +346,16 @@ mod tests {
         // −1.36 to 2.53"); a change here needs the page changed too.
         let rounded = [low, mid, high].map(|v| (v * 100.0).round() / 100.0);
         assert_eq!(rounded, [-1.36, 0.42, 2.53]);
+    }
+
+    #[test]
+    fn both_closed_form_tests_fail_with_the_proposal_left_out_of_the_weights() {
+        // Weighing by the posterior alone reads the product of proposal and posterior, not the
+        // posterior: the probe that the two tests above can see a wrong weight.
+        let gaussian = gaussian_worst(&gaussian_case(false));
+        assert!(gaussian >= 0.06, "{gaussian} sd");
+        let curved = curved_worst(&curved_case(false));
+        assert!(curved >= 0.08, "{curved}");
     }
 
     /// Φ by Simpson's rule on φ from −9, where Φ is below 10⁻¹⁸.
@@ -331,11 +414,15 @@ mod tests {
                 gaussian([0.1, 0.9], [0.8, 1.2]),
             )
         };
+        // Every field, the floats by their bits.
         let bits = |p: Option<Posterior<2>>| {
             p.map(|p| {
                 (
                     p.quantiles.map(|row| row.map(f64::to_bits)),
                     p.effective_draws.to_bits(),
+                    p.draws,
+                    p.failed,
+                    p.enough,
                 )
             })
         };

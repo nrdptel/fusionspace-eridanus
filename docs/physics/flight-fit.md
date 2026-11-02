@@ -206,9 +206,11 @@ weighted draws, so a posterior that bends or leans one way shows as it is.
 
 The sampler is in the library and tested on posteriors whose answer is known. On one where $y$ is
 $0.5x^2$ plus noise, with $x$ and the noise each a standard normal, a bell at the peak would put
-$y$'s median at 0 and its 90% interval at ±1.645. The sampler gives a median of 0.42 and an interval
-of −1.36 to 2.53, within 0.08 of a quadrature of the true distribution. It also counts how many
-draws its weights amount to, and says when they're too few. It isn't yet run on a log or tested
+$y$'s median at 0 and its 90% interval at ±1.645. With 40,000 draws, the sampler gives a median of
+0.42 and an interval of −1.36 to 2.53. The test holds each of those within 0.08 of a quadrature of
+the true distribution, about a fifteenth of $y$'s spread. The test also checks that leaving the draw's
+own odds out of its weight puts the points well past that. The sampler counts how many draws its
+weights amount to, and says when they're too few. It isn't yet run on a log or tested
 on the synthetic flights; that's [M7.3c2][m7-3c2].
 
 ## Sources

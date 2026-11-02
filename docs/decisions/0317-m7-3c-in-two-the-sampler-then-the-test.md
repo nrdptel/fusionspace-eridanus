@@ -22,15 +22,15 @@ by heights alone, and the residuals run on from bin to bin.
 
 A least-squares fit flies the simulation about 70 times on set A, about 0.8 CPU-seconds (ADR-316
 §7, measured in development). A random-walk Markov chain on the fit's eleven unknowns would need,
-by estimate, some thousands of steps a flight to settle and mix, each a flight flown: at some
-thousands of fits a report, several CPU-days.
+by estimate, some thousands of steps a flight to settle and mix, each a flight flown: at about
+11 ms a flight, 3,000 steps for each of a report's 3,500 fits is over a CPU-day.
 
 ## Decisions
 
 1. **Importance sampling from the Laplace approximation.** Draws from a Student-t of 4 degrees of
    freedom centered on the least-squares answer, its scale that fit's covariance, are weighed by the
    posterior (J. Geweke, *Econometrica* 57(6), 1989). Each draw flies once. A posterior close to its
-   Laplace approximation needs a few hundred draws; one far from it shows as few effective draws
+   Laplace approximation needs, by estimate, a few hundred draws; one far from it shows as few effective draws
    (L. Kish, *Survey Sampling*, 1965): its quantiles still come back, flagged as too few to read,
    and M7.3c2 counts how many are.
 2. **The likelihood is the least-squares fit's own.** The same residuals, noise and priors, so the
