@@ -330,7 +330,12 @@ mod tests {
             )
         };
         let bits = |p: Option<Posterior<2>>| {
-            p.map(|p| (p.quantiles.map(|row| row.map(f64::to_bits)), p.effective_draws.to_bits()))
+            p.map(|p| {
+                (
+                    p.quantiles.map(|row| row.map(f64::to_bits)),
+                    p.effective_draws.to_bits(),
+                )
+            })
         };
         assert_eq!(bits(run(1)), bits(run(1)));
         assert_ne!(bits(run(1)), bits(run(2)));
