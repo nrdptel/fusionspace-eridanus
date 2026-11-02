@@ -475,7 +475,7 @@ claim = "Martin's flutter criterion (NACA TN 4197) places a fin against the line
 pages = ["physics/flutter.md#in-short"]
 kind = "spec"
 wanted = "real"
-not_checked = "a hobby rocket's flutter, against which nothing here is checked; that the result errs on the safe side, which nothing shows; a fin glued to a tube, less stiff at its root than Martin's clamped wings; four kinds that have fluttered below HPR Sim's speed in published tests, which it reads high: plies that couple bending to twist (1.13 to 1.42 times the measured onset), built-up wings near Mach 1 (0.92 to 1.47), stiffness inboard with a soft tip and trailing edge (1.05 to 1.43 or more) and solid swept fins near Mach 1 (1.21 to 1.37), none a bound"
+not_checked = "a hobby rocket's flutter, against which nothing here is checked; that the result errs on the safe side, which nothing shows; a fin glued to a tube, less stiff at its root than Martin's clamped wings; four kinds that have fluttered below HPR Sim's speed in published tests, which it reads high: plies that couple bending to twist (1.13 to 1.42 times the measured onset), built-up wings near Mach 1 (up to 1.47), stiffness inboard with a soft tip and trailing edge (1.05 to 1.43 or more) and solid swept fins near Mach 1 (1.21 to 1.42), none a bound"
 issue = 675
 
 [[row.searched]]
