@@ -66,7 +66,9 @@
 # Step site: `xtask site --locked --cache`. It lays out and measures again only the pages whose
 # built HTML changed since its last passing run, and reuses that run's results for the rest; every
 # page, with the canaries, when the checker, Chrome or a file every page loads changed (the cache
-# is in target/site-check-cache). CI's site job runs without --cache and checks every page.
+# is in target/site-check-cache). CI's site job runs without --cache and checks every page. On
+# 2026-11-02 the whole step took 801 s with no cache, 51 s with no page changed, and 92 to 96 s
+# with one page edited (that page and print.html, which holds every chapter, checked again).
 # Step ego (M6.2d2, ADR-152): EGO's 20 runs on Hartmann's six-variable function, each held within
 # 1% of the minimum in 250 evaluations (`cargo bench -p fusionspace-hpr-analysis --bench ego_hartmann6`, a
 # release build; about 3 minutes on 10 cores, hours in the debug build CI tests with, so CI doesn't
