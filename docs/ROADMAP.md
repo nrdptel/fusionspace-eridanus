@@ -450,12 +450,6 @@ are in `hpr-forensics`. Formats, methods and the log corpus came from Debrief.
   - [ ] **M7.3c The Bayesian option** (ADR-317: in two, below; met when they are). *Done when:* the same
     parameters, by a Bayesian fit with uncertainty, pass the same test, truths drawn from the stated ranges and
     not its prior.
-    - [ ] **M7.3c1 The posterior's sampler.** *Done when:* `hpr_forensics::posterior::sample` draws a posterior
-      by importance sampling from a Student-t around a given peak and covariance, and gives each unknown's 5%,
-      50% and 95% points, its effective draws and its failed draws; on a Gaussian posterior its points are
-      within 0.06 standard deviations of the closed form, and on a curved one within 0.08 of a quadrature, each
-      test failing when the proposal's density is left out of the weights; a draw that can't be had has no
-      weight and is counted; too few effective draws says so; the same seed gives the same answer, bit for bit.
     - [ ] **M7.3c2 The Bayesian fit under the test.** *Done when:* `hpr_forensics::fit` has a Bayesian option,
       the posterior of the least-squares fit's unknowns sampled by M7.3c1 around its answer, flying each draw;
       `cargo xtask fit` writes its counts beside the least-squares fit's, on the same 1,000 fitted flights of

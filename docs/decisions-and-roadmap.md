@@ -826,7 +826,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-3a"></a>[M7.3a][done-5] | Residuals | done |
 | <a id="m7-3b"></a>[M7.3b][done-5] | The least-squares fit | done |
 | <a id="m7-3c"></a>[M7.3c][phase-5] | The Bayesian option | not yet done |
-| <a id="m7-3c1"></a>[M7.3c1][phase-5] | The posterior's sampler | not yet done |
+| <a id="m7-3c1"></a>[M7.3c1][done-5] | The posterior's sampler | done |
 | <a id="m7-3c2"></a>[M7.3c2][phase-5] | The Bayesian fit under the test | not yet done |
 | <a id="m7-3d"></a>[M7.3d][phase-5] | From the boost | not yet done |
 | <a id="m7-3e"></a>[M7.3e][phase-5] | The post-flight comparison | not yet done |
