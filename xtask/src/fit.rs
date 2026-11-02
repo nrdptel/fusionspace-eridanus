@@ -38,7 +38,7 @@ pub const USAGE: &str =
   fit --check --other-platform --parts <dir>
                            The check above, on the fits of every part in <dir>. Fails unless they
                            are parts 1 to n of one split, and fit each flight once.
-  fit --calibrate         Fit the calibration set and print each parameter's shares; writes nothing.
+  fit --calibrate          Fit the calibration set and print each parameter's shares; writes nothing.
   fit --try <set> <count>  Fit a set's first flights, print each parameter's shares and counts on
                            them, and the seconds a fit takes; writes nothing.";
 
@@ -327,13 +327,16 @@ fn write_part(dir: &Path, part: Part, fits: Vec<Vec<FlightFit>>) -> Result<PathB
 /// part. Refused unless the files are parts 1 to `n` of one split, each once, and give back each
 /// run's flights once each.
 fn fits_from_parts(dir: &Path) -> Result<Vec<Vec<FlightFit>>, String> {
-    let mut paths: Vec<PathBuf> = fs::read_dir(dir)
-        .map_err(|e| format!("{}: {e}", dir.display()))?
-        .filter_map(|entry| entry.ok().map(|entry| entry.path()))
-        .filter(|path| path.extension().is_some_and(|x| x == "cbor"))
-        .collect();
+    let mut paths = Vec::new();
+    for entry in fs::read_dir(dir).map_err(|e| format!("{}: {e}", dir.display()))? {
+        let path = entry.map_err(|e| format!("{}: {e}", dir.display()))?.path();
+        if path.extension().is_some_and(|x| x == "cbor") {
+            paths.push(path);
+        }
+    }
     paths.sort();
     let runs = runs();
+    let flights: usize = runs.iter().map(|run| run.indices.len()).sum();
     let mut fits: Vec<Vec<FlightFit>> = vec![Vec::new(); runs.len()];
     let mut seen = BTreeSet::new();
     let mut split = None;
@@ -342,6 +345,12 @@ fn fits_from_parts(dir: &Path) -> Result<Vec<Vec<FlightFit>>, String> {
         let file: PartFile = ciborium::from_reader(bytes.as_slice())
             .map_err(|e| format!("{}: {e}", path.display()))?;
         let Part { number, of } = file.part;
+        if of > flights {
+            return Err(format!(
+                "{}: a split in {of} parts, more than the report's {flights} flights",
+                path.display()
+            ));
+        }
         let of_all = *split.get_or_insert(of);
         if of != of_all {
             return Err(format!(
@@ -1072,19 +1081,51 @@ mod tests {
         }
     }
 
-    /// Writes part `part` of the report's runs as made-up fits, leaving flight `skip` out.
+    /// Writes part `part` of the report's runs as made-up fits, leaving flight `skip` out. Each
+    /// fit's `design` is its run's place in [`runs`], so a run put back in another's place shows.
     fn write_made_up(dir: &Path, part: Part, skip: Option<u64>) {
         let fits = runs()
             .iter()
-            .map(|run| {
+            .enumerate()
+            .map(|(place, run)| {
                 part.of_run(&run.indices)
                     .into_iter()
                     .filter(|index| Some(*index) != skip)
-                    .map(a_fit)
+                    .map(|index| FlightFit {
+                        design: place,
+                        ..a_fit(index)
+                    })
                     .collect()
             })
             .collect();
         write_part(dir, part, fits).unwrap();
+    }
+
+    /// A fit is the same whatever its thread fitted before it, to the bit: the flyer and the
+    /// shared tables change no number. So threads, parts and machines all make the same fits.
+    #[test]
+    fn a_fit_is_the_same_whatever_its_thread_fitted_before() {
+        let files = files();
+        let in_turn = |indices: &[u64]| -> Vec<Vec<u8>> {
+            let mut flyer = Flyer::new(files.clone());
+            let mut tables = BTreeMap::new();
+            indices
+                .iter()
+                .map(|&index| {
+                    let flight = flyer.flight(Set::A, index).unwrap();
+                    let fit =
+                        fits::fit_log(&flight.log, &flight, Set::A, &files, &mut tables).unwrap();
+                    assert!(fit.fitted, "flight {index}");
+                    let mut bytes = Vec::new();
+                    ciborium::into_writer(&fit, &mut bytes).unwrap();
+                    bytes
+                })
+                .collect()
+        };
+        let track = fits::track_flights(Set::A, 2);
+        let after = in_turn(&[track[1], track[0]]);
+        let alone = in_turn(&[track[0]]);
+        assert_eq!(after[1], alone[0]);
     }
 
     /// The parts of a split fit each flight of each run once between them, however many there are.
@@ -1161,8 +1202,10 @@ mod tests {
             write_made_up(whole.path(), Part { number, of: 3 }, None);
         }
         let fits = fits_from_parts(whole.path()).unwrap();
-        for (run, got) in runs.iter().zip(&fits) {
+        assert_eq!(fits.len(), runs.len());
+        for (place, (run, got)) in runs.iter().zip(&fits).enumerate() {
             assert!(got.iter().map(|f| f.index).eq(run.indices.iter().copied()));
+            assert!(got.iter().all(|f| f.design == place), "run {place}");
         }
 
         let refused = |dir: &tempfile::TempDir, what: &str| {
@@ -1185,6 +1228,27 @@ mod tests {
         )
         .unwrap();
         refused(&twice, "there twice");
+
+        let past = tempfile::tempdir().unwrap();
+        for number in 1..=4 {
+            write_made_up(past.path(), Part { number, of: 3 }, None);
+        }
+        refused(&past, "out of range");
+
+        let too_many = tempfile::tempdir().unwrap();
+        write_made_up(
+            too_many.path(),
+            Part {
+                number: 1,
+                of: usize::MAX,
+            },
+            None,
+        );
+        refused(&too_many, "more than the report's");
+
+        let runs_short = tempfile::tempdir().unwrap();
+        write_part(runs_short.path(), Part::WHOLE, vec![Vec::new()]).unwrap();
+        refused(&runs_short, "1 runs, where the report has");
 
         let two_splits = tempfile::tempdir().unwrap();
         for number in 1..=2 {

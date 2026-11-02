@@ -396,7 +396,7 @@ rendering (`Report::reproduces`;
 [the CI decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0022-validation-in-ci-and-regenerating-references.md)).
 So a change that moves a number has to commit the report that shows it.
 
-The two longest report checks, `cargo xtask synthetic --check` and `cargo xtask motor-catalog
+Two long report checks, `cargo xtask synthetic --check` and `cargo xtask motor-catalog
 --check`, run from an optimized build in CI: `report-check`, a Cargo build setting with release's
 speed plus the assertions and overflow checks of the everyday build. Optimizing keeps their numbers
 to the digits they compare. On each of the five platforms the synthetic check runs in two halves, by
@@ -409,15 +409,27 @@ named. CI always runs them. So a report in the repository has to reproduce from 
 optimized build ever came out differently, CI would fail and regenerating wouldn't fix it: that
 would need a decision record, not a looser check.
 
-The least-squares fit's check, `cargo xtask fit --check` ([the flight fit](physics/flight-fit.md)),
-is the longest of all. In one Linux job it took 60 to 101 minutes. So CI runs it on Linux in eight
-parts, at the same time. Each part fits every eighth flight and hands its fits on (`fit --part
-K/8`). A last job, `fit intervals`, puts them back together and checks them as one job would. It
-fails if a part is missing or there twice, or a flight isn't fitted exactly once. A fit doesn't
-depend on what else its machine fits, so the parts make the same fits as one run. The gate runs the
-check whole on your own machine, and holds the committed report to it exactly.
+The check on the least-squares fit, `cargo xtask fit`, takes longer than any other
+([the flight fit](physics/flight-fit.md)). It fits every flight of the synthetic sets A and B. Then
+it tests that each fitted value's 90% interval holds the truth as often as a 90% interval should. In
+one Linux job it took more than an hour, so CI runs it on Linux in eight jobs side by side:
 
-Then the job holds the committed reports to the accuracy census accepted last
+- Each job fits an eighth of the flights (`fit --part K/8`, with K from 1 to 8): every eighth
+  flight, from the Kth. It saves its fits for the last job.
+- The last job, `fit intervals`, puts the eight back together. It refuses a part missing or there
+  twice, parts of two different splits, and any flight not fitted exactly once.
+- Then it runs the check as on a platform other than the one that wrote the report
+  (`--other-platform`; [the fit's decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md),
+  section 7). A count may stand 5 flights off the committed report, and a figure 5% of its value
+  or 0.002, whichever allows more. The calibration set isn't fitted again.
+
+A flight's fit depends on that flight alone, not on what its thread or machine fitted before it. A
+test holds that to the bit, and on a Mac three parts put back together left no number of the
+report different. The gate, `scripts/gate.sh`, runs the whole check on your own machine instead,
+calibration included. On the platform that wrote the report, the result must match the committed
+report to the last digit.
+
+Then the `validate` job holds the committed reports to the accuracy census accepted last
 ([the regression check](decisions-and-roadmap.md#m2-4),
 [its decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0084-the-accuracy-census-the-reports-numbers-held-to.md)).
 Each number the harness's report, the real flights' and both OpenRocket reports hold HPR Sim to is a

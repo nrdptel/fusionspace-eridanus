@@ -1,6 +1,6 @@
 # ADR-316: M7.3b: the least-squares fit, what it solves for and how its intervals are held (2026-11-01)
 
-- **Status:** accepted; carries out [ADR-314][adr-314]'s M7.3b under [ADR-257][adr-257] §1
+- **Status:** accepted; carries out [ADR-314][adr-314]'s M7.3b under [ADR-257][adr-257] §1; amended 2026-11-02 (§7: CI fits in eight parts)
 - **Summary:** Levenberg-Marquardt fits drag, impulse, a constant wind and mass to a log, with the
   clock, height offset and drift, and a barometer's gain and port, as further unknowns. Each
   parameter's 90% interval passes on sets A and B, counted on logs with something to fit. Those two
