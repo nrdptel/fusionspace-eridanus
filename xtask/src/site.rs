@@ -380,7 +380,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
          every link to a heading landing on it at the narrowest width, every page \
          printing in the light \
          theme's colors without navigation or anything fixed over its sheets, with its links' \
-         addresses, its rows and title block whole, and every canary found",
+         addresses, its rows and title block whole, and {}",
         laid_out_pages,
         if part == pages::Part::WHOLE {
             format!("{} widths from 320 to 1,920 px", laid_out.widths)
@@ -396,7 +396,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
                 part.count
             )
         },
-        laid_out.seconds
+        laid_out.seconds,
+        canary_words(canaries, "every canary found")
     );
     println!(
         "line length: {} of {} pages set 20 lines of prose or more at one or more of these \
@@ -483,7 +484,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
         "page vitals: {} pages{} loaded cold by {} {}, each a phone ({} px wide) on slow 4G with \
          the CPU slowed {:.1}× (this machine's BenchmarkIndex {:.0}), in {:.0} s: LCP at most \
          {:.2} s ({lcp_page}), CLS at most {:.3} ({cls_page}), INP at most {:.0} ms \
-         ({inp_page}), and every canary failing its vital",
+         ({inp_page}), and {}",
         vitals_pages,
         if part == pages::Part::WHOLE {
             String::new()
@@ -499,8 +500,19 @@ pub fn run(args: &[String]) -> Result<(), String> {
         lcp / 1000.0,
         cls,
         inp,
+        canary_words(canaries, "every canary failing its vital")
     );
     Ok(())
+}
+
+/// What a summary says of the canaries: `ran` when they ran, and otherwise that they didn't, so a
+/// run that reused the cache never claims a check it skipped.
+fn canary_words(ran: bool, ran_words: &'static str) -> &'static str {
+    if ran {
+        ran_words
+    } else {
+        "the canaries not run (the checker and Chrome are as at the cached run)"
+    }
 }
 
 /// `site`'s arguments ([`USAGE`]).
