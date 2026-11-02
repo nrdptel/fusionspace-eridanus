@@ -961,7 +961,7 @@
       "flights": 1000,
       "drawn": 1193,
       "said_nothing": 193,
-      "not_converged": 9,
+      "not_converged": 7,
       "largest_misfit": 0.0251,
       "checks": [
         {

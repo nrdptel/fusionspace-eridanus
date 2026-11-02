@@ -210,7 +210,7 @@ struct SetReport {
     drawn: u64,
     /// Of those, the logs with nothing to fit, each parameter then as stated, and not counted.
     said_nothing: u64,
-    /// Counted fits that reached their iterations' limit, a truth's fit among them.
+    /// Flights counted here or for the wind whose fit, or whose truth's fit, reached its step limit.
     not_converged: u64,
     /// The largest residual of a counted fit, as a share of the spread of the heights read.
     largest_misfit: f64,
@@ -418,7 +418,8 @@ fn page(report: &Report) -> String {
             out,
             "## Set {:?}: {} flights counted\n\nOf its first {}, {} had nothing to fit and aren't \
              counted. A wind is counted on {TRACK_FLIGHTS} flights of the logger with a track, \
-             some past these, each with something to fit. {} counted fits reached their iterations' limit. \
+             some past these, each fitted with a track read. Of the flights counted here or for the wind, {} \
+             reached the fit's step limit. \
              The largest residual is {} of the spread of the heights read.\n\n| Parameter | Below | Inside | Above | \
              Test | Narrowed, widened, shifted | Mean error | Median width / stated | Identified |\n\
              |---|---:|---:|---:|---|---|---:|---:|---|",
@@ -554,9 +555,14 @@ fn make(files: &DesignFiles) -> Result<(Report, Vec<String>), String> {
             .iter()
             .filter(|f| !f.fitted && f.index < report.drawn)
             .count() as u64;
-        let tally =
-            |flights: &[FlightFit]| flights.iter().filter(|f| f.fitted && !f.converged).count();
-        report.not_converged = (tally(&counted) + tally(&tracked)) as u64;
+        // A flight among both the counted and the wind's is one flight.
+        let stopped: std::collections::BTreeSet<u64> = counted
+            .iter()
+            .chain(&tracked)
+            .filter(|f| f.fitted && !f.converged)
+            .map(|f| f.index)
+            .collect();
+        report.not_converged = stopped.len() as u64;
         report.largest_misfit = counted
             .iter()
             .chain(&tracked)
@@ -936,51 +942,6 @@ mod tests {
             )
             .replace('-', "\u{2212}");
             assert!(page.contains(&row), "the page lacks {row}");
-        }
-    }
-
-    #[test]
-    fn temp_noise_free_on_a() {
-        let files = files();
-        let mut tables = BTreeMap::new();
-        let mut rows = Vec::new();
-        let mut flyer = hpr_forensics::synthetic::Flyer::new(files.clone());
-        for index in 0..240_u64 {
-            let flight = flyer.flight(Set::A, index).unwrap();
-            let read = hpr_flightdata::readings::read(&flight.log);
-            let Some(observed) = hpr_forensics::fit::observations(&flight.log, &read) else {
-                continue;
-            };
-            let weighed = fits::weighed_factor(Set::A, index);
-            let answer = hpr_forensics::fit::fit(
-                Some(&observed),
-                &fits::stated_for(Some(&observed)),
-                hpr_forensics::fit::Noise::FromResiduals,
-                &mut fits::Flown::new(&flight.draw, &files, weighed, &mut tables),
-            );
-            if !answer.fitted {
-                continue;
-            }
-            let free = fits::noise_free(&observed, &answer, &flight, &files, &mut tables).unwrap();
-            let p = free.parameters;
-            println!(
-                "ROW {index} {} {} {:.5} {:.5} {:.5} {:.5} {:.5} {:.4} {:.4} {:.4} {:.4} {:.4} {:.2} {:.3}",
-                flight.draw.design,
-                !observed.horizontal.is_empty(),
-                p.drag_scale - flight.draw.drag_scale,
-                p.impulse_scale - flight.draw.impulse_scale,
-                answer.standard_errors[1],
-                answer.parameters.impulse_scale - flight.draw.impulse_scale,
-                answer.parameters.drag_scale - flight.draw.drag_scale,
-                flight.draw.wind_speed_m_s,
-                flight.draw.burn_time_scale,
-                flight.draw.impulse_scale,
-                flight.draw.drag_scale,
-                p.burn_time_scale,
-                p.wind_east_m_s.hypot(p.wind_north_m_s),
-                free.rms_m.unwrap()
-            );
-            rows.push(index);
         }
     }
 

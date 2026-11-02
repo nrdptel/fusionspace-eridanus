@@ -80,6 +80,9 @@ heading-split-level = 2
 # And in M7.3b, at 10.01 MB, with the page on the least-squares fit: the numerics page on interpolation
 # (`physics/interpolation.md`), a routine the pages that use it describe by what it gives, is left out
 # too; it is still in the sidebar and linked from those pages.
+# And again in M7.3b, at 10.00 MB, with the fit's widened errors: the page on geodesy
+# (`physics/geodesy.md`), the ellipsoid's conversions, which the frames' and the flight's pages use
+# and describe by what they give, is left out too; it is still in the sidebar and linked from them.
 [output.html.search.chapter]
 "decisions-and-roadmap.md" = { enable = false }
 "writing.md" = { enable = false }
@@ -93,6 +96,7 @@ heading-split-level = 2
 "physics/synthetic-flights.md" = { enable = false }
 "physics/integration.md" = { enable = false }
 "physics/interpolation.md" = { enable = false }
+"physics/geodesy.md" = { enable = false }
 
 # The equations (`xtask/src/site/math.rs`): each `$…$` and `$$…$$` becomes MathML before mdBook
 # renders the page, so the browser draws it in the math face with no script. `cargo xtask site`

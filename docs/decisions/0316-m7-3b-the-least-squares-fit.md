@@ -43,8 +43,8 @@ each step was made with sets A and B in view.
    pass on both. So the wind's counts are on flights of the logger with a barometer and a GNSS receiver,
    drawn past each set's first 1,000 as far as it takes, and a height-alone log's wind isn't a stated result. Set A and B each still count
    drag, impulse and mass on their 1,000.
-5. **The wind's counts stand on 1,500 track flights,** of which three on each set state no track,
-   leaving 1,497. Its errors have long tails, so a narrowed interval moves few flights. On 1,010, the narrowed probe passed on set B: 71 below, 875 inside, 63
+5. **The wind's counts stand on 1,500 track flights,** of which three on each set are left out,
+   with nothing to fit or no track read, leaving 1,497. Its errors have long tails, so a narrowed interval moves few flights. On 1,010, the narrowed probe passed on set B: 71 below, 875 inside, 63
    above of 1,009. At 1,500 it fails, and every other band is tighter too, the wind's own test
    included. The done-when asks for at least 1,000. This adds power and doesn't touch a threshold, but
    it was done because the probe passed.
@@ -74,24 +74,26 @@ each step was made with sets A and B in view.
    alone, and at ±5 and ±1,000 m with a track of ±5 m, which is what the wind listens to.
 10. **A fit runs until it stops.** At 12 steps a pass, a review found 16 of 157 fits ending on the
     limit, and their answers moved by up to 3.5 standard errors when run on. The limit is 60, and each fit says
-    whether it stopped short. Counted fits that reach it: 2 on set A, 9 on set B, the wind's flights
-    and set B's truths included. The shares were fitted again on the code as it now stands.
+    whether it stopped short. Of the flights counted or for the wind, 2 on set A and 7 on set B
+    reach it, set B's truths' fits included. The shares were fitted again on the code as it now stands.
 11. **A residual that runs on from bin to bin widens the errors.** The standard errors took the bins
     as independent, but a misfit is correlated from bin to bin. The height's and the track's
     variances are each widened by $(1+\rho)/(1-\rho)$, $\rho$ their residuals' lag-one
     autocorrelation, capped at 0.9: the effective number of independent values under a first-order
     autoregression (Wilks, *Statistical Methods in the Atmospheric Sciences*, 3rd ed., eq. 5.12).
-    Before it, with the shares fitted again, set A's drag (27 below, 918 inside, 55 above) and
+    Measured in development, not in the report: before it, with the shares fitted again, set A's drag (27 below, 918 inside, 55 above) and
     impulse (28, 922, 50) and set B's drag (81, 878, 41) failed. After it, only set A's drag failed,
     at 23 below.
 12. **On heights alone, the wind's unknown loss widens the errors.** A log of height alone can't tell
     the wind, and the wind's loss grows as its speed squared, which the errors' first order at the
     stated wind leaves out. Set B's wind grows with height, by a power of 0.14 to 0.20, so its loss
-    goes past what a constant wind of the stated range makes. On set B's height-alone logs, the
+    goes past what a constant wind of the stated range makes. Measured in development, not in the
+    report: on set B's height-alone logs, the
     drag's mean error over its standard error ran from −0.22 with a truth wind under 3 m/s
     (9.8 ft/s) to +1.02 at 9 m/s (30 ft/s) and over (134 flights); on set A, from −0.20 to +0.16. The
-    fit now moves its answer, to first order, to a calm and to the stated range's top wind,
-    11.5 m/s (37.7 ft/s) at 18.3 m (60 ft) for the synthetic flights, grown with height by IEC
+    fit now moves its answer, to first order, to a calm and to a strong wind: the stated speed and
+    1.645 of a component's standard deviations past it, 11.5 m/s (37.7 ft/s) at 18.3 m (60 ft) for
+    the synthetic flights, past the 8.94 m/s (29.3 ft/s) they draw, grown with height by IEC
     61400-1's normal profile exponent of 0.2 (IEC 61400-1:2019, §6.3.2.2). The larger move either way,
     over $\sqrt 3$, joins each standard error in quadrature, as a uniform spread. It costs two flights
     a fit. A first try, the shear alone at the stated wind, moved set A's drag only to 24 below.
@@ -112,7 +114,8 @@ fits handed noise say nothing.
 
 ## What this leaves
 
-- **Set A and B aren't untouched.** Decisions 1, 3, 4, 6, 8, 11 and 12 followed their counts. Only
+- **Set A and B aren't untouched.** Decisions 1, 3, 4, 5, 6, 8, 11 and 12 followed their counts, and
+  decision 9's 0.1 was set after its results were seen. Only
   the shares are fitted apart, on the calibration set. No set was run again on a new seed. A real flight, or a fresh
   set, is the only honest measure of this ([evidence row G38](../evidence.md#g38)).
 - **The errors are mixed.** A flight whose heights fit worse has larger errors than its standard

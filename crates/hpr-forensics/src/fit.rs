@@ -392,7 +392,7 @@ pub struct Fit {
     pub horizontal_noise_m: f64,
     /// Whether the log was fitted at all. If not, each parameter is what was stated of it.
     pub fitted: bool,
-    /// Whether its last pass stopped at the bottom, not at [`MAX_ITERATIONS`].
+    /// Whether its last pass stopped at the bottom, not at its limit of 60 steps.
     pub converged: bool,
     /// The heights' residual's RMS as a share of the spread of the heights read; past
     /// [`MISFIT_SHARE`] the log said nothing. `None` where it never came to one.
@@ -824,7 +824,8 @@ pub fn fit(
     parameters.copy_from_slice(&x[..FLOWN]);
     // Heights alone can't tell the wind, and its loss grows as its speed squared, which the
     // errors' first order at the stated wind leaves out. So the answer is moved, to first order,
-    // to a calm and to the stated range's top wind grown with height by [`SHEAR_EXPONENT`], and
+    // to a calm and to a strong wind, the stated speed and 1.645 of a component's standard
+    // deviations past it, grown with height by [`SHEAR_EXPONENT`], and
     // the wind's spread is anywhere between: the larger move either way, as the standard
     // deviation of a uniform spread, `δ/√3`.
     let mut windy = [0.0; UNKNOWNS];
@@ -871,7 +872,7 @@ pub fn fit(
     }
     let (rms_m, _) = residual_noise(&problem, &x, &at_x);
     let misfit_share = rms_m / problem.read_spread_m();
-    if !(misfit_share <= MISFIT_SHARE) {
+    if misfit_share.is_nan() || misfit_share > MISFIT_SHARE {
         return Fit {
             misfit_share: Some(misfit_share),
             ..nothing()
@@ -1187,7 +1188,7 @@ mod tests {
     /// A clock that jumps can't ask for bins beyond memory; the window's bound is what stops it.
     #[test]
     fn a_window_past_any_flight_says_nothing() {
-        assert!(MAX_WINDOW_S < 1e4);
+        const { assert!(MAX_WINDOW_S < 1e4) };
         let held = binned([(0.0, 1.0), (999.0, 2.0)].into_iter(), 0.0, MAX_WINDOW_S);
         assert_eq!(held.len(), 2);
     }

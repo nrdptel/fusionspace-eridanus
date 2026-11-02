@@ -66,17 +66,18 @@ taken again from the flight each pass finds. The burn time also has a scale, not
 impulse and its burn trade against each other. A wind of either sign lowers the top. So a log of height
 alone is flown in a wind of the stated range's root-mean-square speed, 5.16 m/s (16.9 ft/s).
 
-The parameters' standard errors come from the fit's curvature, the second derivatives of $\chi^2$
-([standard error](../glossary.md#standard-error)). Two things widen them:
+The parameters' standard errors come from the fit's curvature, taken from the product of its
+Jacobian with itself as Gauss-Newton does ([standard error](../glossary.md#standard-error)). Two things widen them:
 
 - **Residuals that run on.** A misfit is correlated from bin to bin, so the bins tell less than as
   many independent ones. Each variance is widened by $(1+\rho)/(1-\rho)$, where $\rho$ is the
   residuals' correlation from one bin to the next, capped at 0.9. A residual with $\rho = 0.5$
   triples it.
 - **A wind heights can't tell.** On a log of height alone the wind is unknown, and its loss grows as
-  its speed squared. The fit moves its answer, to first order, to a calm and to the stated range's
-  top wind. That's 11.5 m/s (37.7 ft/s) at 18.3 m (60 ft) above the pad, grown with height as
-  $(z/18.3\,\text{m})^{0.2}$. The larger move either way, over $\sqrt 3$, joins the standard error.
+  its speed squared. The fit moves its answer, to first order, to a calm and to a strong wind: the
+  stated speed and 1.645 of a component's standard deviations past it. On the synthetic flights
+  that's 11.5 m/s (37.7 ft/s) at 18.3 m (60 ft) above the pad, past the 8.94 m/s (29.3 ft/s) they
+  draw. It's grown with height as $(z/18.3\,\text{m})^{0.2}$. The larger move either way, over $\sqrt 3$, joins the standard error.
 
 Each 90% interval is then a standard error times two factors, its low and high shares. They're found
 on the [calibration set](synthetic-flights.md#the-sets), kept apart from the test flights. They're
@@ -87,15 +88,16 @@ another, on 1,000 flights of its logger with a barometer and receiver.
 A log with nothing to fit gives back its stated range and says so. That's a log in which the reader
 finds no climb, or whose climb would run past 1,000 s. It's a barometer with too few bins below
 Mach 0.8. Or it's a fit whose heights stand far from the log: an RMS residual over 0.1 of the spread
-of the heights it read. On the synthetic flights about one log in six has nothing to fit (216 of
+of the heights it read. A simulation that can't fly, or a curvature that can't be inverted, says
+nothing too. On the synthetic flights about one log in six has nothing to fit (216 of
 set A's first 1,216). Each fit also says whether it stopped at the bottom of
 $\chi^2$ within 60 steps a pass.
 
 ### A worked example
 
 Flight 140 of set A flies the Calisto design with a logger that holds a track. It was fitted in the
-run that wrote the report, which keeps only counts. Its heights fit to 0.97 m (3.2 ft), in 63
-simulated flights. A factor is times the simulator's value; the mass's, times the weighed mass:
+run that wrote the report, which keeps only counts.
+Its heights fit to 0.97 m (3.2 ft), in 63 simulated flights. A factor is times the simulator's value; the mass's, times the weighed mass:
 
 | Parameter | Fitted (factor) | 90% interval (factor) | Truth (factor) |
 |---|---:|---:|---:|
@@ -109,8 +111,8 @@ simulated flights. A factor is times the simulator's value; the mass's, times th
 | wind toward the north, m/s | −4.18 | −4.38 to −3.97 | −4.31 |
 
 So this flight says its drag was about 10% under what the simulator took, and that the motor gave
-about its rated impulse. It says the wind blew at about 4.5 m/s (14.6 ft/s) east and 4.2 m/s
-(13.7 ft/s) south. The interval on the mass is nearly its stated ±2%: this flight doesn't weigh the
+about its rated impulse. It says the wind blew at about 4.5 m/s (14.6 ft/s) toward the east and 4.2 m/s
+(13.7 ft/s) toward the south. The interval on the mass is nearly its stated ±2%: this flight doesn't weigh the
 rocket any better than a scale does.
 
 ## How well it holds
@@ -123,7 +125,8 @@ interval narrowed to 0.8, widened to 1.25, or shifted down one standard error mu
 
 Each set counts its first 1,000 logs with something to fit. Of set A's first 1,216 flights, 216 had
 nothing to fit; of set B's first 1,193, 193. A wind's counts are on 1,500 flights of the logger with
-a barometer and a GNSS receiver, some past those. Three of them on each set have nothing to fit.
+a barometer and a GNSS receiver, some past those. Three of them on each set are left out: nothing
+to fit, or no track read.
 
 The counts are flights:
 
@@ -157,7 +160,7 @@ Those counts have limits:
 
 - Sets A and B were seen. These were all chosen after reading their counts: the barometer's
   unknowns, the track's floor, the split of shares by track and set B's truth. So were which logs
-  are counted, and both widenings. Only the shares themselves come from flights kept apart.
+  are counted, how many flights the wind is counted on, which logs hold a wind, and both widenings. Only the shares themselves come from flights kept apart.
 - Set B's drag passes at the edge: 29 above is the fewest that pass at 1,000, with 70 below. Its fit
   runs high by 0.005 on average.
 - Coverage holds over a set, not on each design. On set B, the Prometheus design's drag interval
@@ -165,7 +168,8 @@ Those counts have limits:
 - Coverage holds over a set, not on each flight. A flight whose heights fit to 1 m (3.3 ft) or worse
   misses more often. Set B's drag interval holds 376 of 453 such flights, and 525 of 547 that fit
   better ([#1108](https://github.com/nrdptel/fusionspace-eridanus/issues/1108)).
-- Two fits on set A and nine on set B, set B's truths included, reached the 60-step limit.
+- Of the flights counted or for the wind, 2 on set A and 7 on set B reached the 60-step limit, set
+  B's truths' fits included.
 - A wind on a log of height alone isn't counted and shouldn't be read. Height alone can't tell a
   steady wind from one that changes with height.
 
