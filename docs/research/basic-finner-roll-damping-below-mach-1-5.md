@@ -1,5 +1,7 @@
 # Measured Basic Finner roll damping, Mach 0.2 to 1.4
 
+Re-checked 2026-11-02: 13 claims corrected.
+
 HPR Sim's roll-damping row ([aero](../physics/aero.md#roll-against-the-arcas-robin-and-the-basic-finner),
 [ADR-031](../decisions/0031-roll-from-canted-fins-and-roll-damping-by.md)) checks nothing measured below Mach 1.5: its
 Mach 0.07 entry is Barrowman's computed −34.21. This note puts the measured subsonic and transonic sets on one
@@ -11,13 +13,13 @@ and [the Nicolaides note](nicolaides-roll-damping-convention.md).
 
 - **The clean subsonic value.** Three public tunnel sets at low spin rate (AEDC, Belgrade's T-38, INCAS) and NAL as
   replotted (spin rate not stated) give C_lp −17.1 to −19.4 at Mach 0.2 to 1.0, at α = 0; NOL's Mach 0.22 curves span
-  −17.0 to −20.3 with spin rate (§1–2). Two restricted range sets (DRDC, DREV) agree with that band up to about
-  Mach 1.1, then rise toward a peak near Mach 1.4.
+  −17.0 to −20.3 with spin rate (§1–2). Two range sets, DRDC's (restricted) and DREV's (public), agree with that band
+  up to about Mach 1.1, then rise toward a peak near Mach 1.4.
 - **HPR Sim reads high, by +66% to +99% at Mach 0.2 to 0.4** and +91% to +138% at Mach 0.48 to 1.0 against public
-  sets; +100% to +150% against seven range fits at Mach 0.8 to 1.1; +20% to +90% at Mach 1.2 to 1.4 (§3).
-  Barrowman's −34.21 at Mach 0.07 is +68% to +101% above the low-speed sets.
+  sets; +100% to +150% against seven range fits at Mach 0.77 to 1.12; +25% to +80% against DREV at Mach 1.25 to
+  1.38 (§3). Barrowman's −34.21 at Mach 0.07 is +69% to +101% above the low-speed sets.
 - **The 1.27 factor does not apply to −34.21.** It is computed, not data, and HPR Sim reproduces it within 2.0% in the
-  stated convention. Divided by 1.27 anyway, it would still read +32% to +59% high (§4).
+  stated convention. Divided by 1.27 anyway, it would still read +32% to +58% high (§4).
 - **What it moves.** On measured references the row reads high at every Mach number, about twice below Mach 1. The
   steady spin from canted fins reads 22% to 24% low by Eastman's damping-to-forcing correlation, and about 25% low
   against AEDC's measured forcing and damping at Mach 0.22 (§5). Apogee isn't touched directly.
@@ -29,21 +31,21 @@ four sets being read from figures. How the gap splits between causes is unbounde
 ## 1. The measured sets
 
 All values here are C_lp per p·d/(2V) on area πd²/4 and length d, at α = 0 unless noted. NOL's coefficient is
-L/(q·A_p·b·n) per p·b/(2V), converted by 144/π = 45.84 as in the earlier note (AEDC's replot of NOL at Mach 0.22
-confirms it, below). The others state the target convention. "Read" says how a value was taken.
+L/(q·A_p·b·n) per p·b/(2V), converted by 144/π = 45.84 as in the earlier note (AEDC's replot confirms it, below). The
+others state the target convention (DREV's rate scaling inferred, below). "Read" says how a value was taken.
 
 | Set | Facility, method | Mach | pd/2V | Re, length | C_lp | Read |
 |---|---|--:|---|---|--:|---|
 | NAVORD 6652 [N] | NOL tunnel, spin decay | 0.22 | 0.04, 0.07, 0.10 | 1.0 × 10⁶ | −17.0, −18.4, −20.3 | pixel, Fig. 3 |
 | NAVORD 6652 [N] | same | 0.77 | 0.012, 0.021, 0.030 | 2.5 × 10⁶ | −8.8, −15.5, −17.4 | pixel, Fig. 4 |
 | AEDC-TR-76-58 [A] | VKF Tunnel A, spin-up | 0.22 | fit 0.005–0.03 | 1.05 × 10⁶ | about −18 | eye, Fig. 9a |
-| Samardžić 2013 [S] | VTI T-38, forced | 0.2 | under 0.004 | not stated | −19.2 (−18.5 to −19.8) | pixel, Fig. 11 |
+| Samardžić 2013 [S] | VTI T-38, forced | 0.2 | under 0.004 | not stated | −19.2 (−18.5 to −19.8) | pixel, Fig. 11, §1 |
 | Bunescu 2024 [I] | INCAS trisonic, free decay | 0.4 | up to 0.02 | not stated | −17.41 | Table 3 |
 | Bunescu 2024 [I] | same | 0.95 | up to 0.01 | not stated | −17.14 | Table 3 |
 | Murthy 1982 [M] | NAL tunnel | 0.48–0.99 | not known | not known | −17.6 to −19.4 (9 points) | pixel, in [I] |
 | Murthy 1982 [M] | same | 1.09–1.11 | not known | not known | −14.7 to −16.2 (3 points) | pixel, in [I] |
 | TM 2002-136 [D] | DRDC range, 2° cant | 0.77–1.11 | about 0.016 | 5.3–7.9 × 10⁶ | restricted (3 fits) | Table 10 |
-| DREV-TM-9703 [F] | DREV range, 2°, 4° | 1.06–1.38 | 0.017, 0.033 | 7.0–9.2 × 10⁶ | restricted | Tables VIII–IX |
+| DREV-TM-9703 [F] | DREV range, 2°, 4° | 1.06–1.38 | 0.017, 0.033 | 7.0–9.2 × 10⁶ | −18.15 to −28.99 | Tables VIII–IX |
 
 - **NOL** [N] (Regan 1964): a 0.75 in model spun on a sting to 50, 90 and 130 rev/s and let decay, fitted piecewise
   (PDF p. 8 on). Figs. 3 and 4 (PDF pp. 23–26) read on 200-dpi renders against their 0.1 grid (±0.003, ±0.15 converted).
@@ -51,14 +53,14 @@ confirms it, below). The others state the target convention. "Read" says how a v
   repeat at Mach 0.22 differed by at most 15% (PDF p. 12). Re: Table 1's 1.60 and 3.92 × 10⁶ per ft on 7.5 in.
   **Inference:** pd/2V = π·n·d/V with V about 80 and 257 m/s, from Table 1's Reynolds numbers.
 - **AEDC** [A] (Jenke 1976): a 1.8 in model, fins canted 5°, spinning up freely; C_lp fitted over pd/2V 0.005 to
-  0.03 below Mach 1.3 (PDF p. 15), ±4.1% at Mach 0.22 (PDF p. 17); V 254 ft/s, Re_d 1.05 × 10⁵ (PDF p. 12). By eye,
+  0.03 at Mach 0.22–1.30 (PDF p. 15), ±4.1% at Mach 0.22 (PDF p. 17); V 254 ft/s, Re_d 1.05 × 10⁵ (PDF p. 12). By eye,
   Fig. 9a (PDF p. 42) puts the α = 0 point near −17.8 and NOL's near −17.4, matching NOL's 50 rev/s reading, so the
   45.84 factor holds subsonic too; the report calls the agreement good (PDF p. 18). Steady spin about 145 rad/s,
   pd/2V 0.043 (**Inference**). Drawn chord 0.94 d ([earlier note](basic-finner-transonic-tables.md#5-the-fin-chord)).
-- **T-38** [S] (Samardžić et al. 2013): forced roll oscillation on a five-component balance, C_lp per p·d/(2V) on S
-  and d (p. 190), 0.25° to 1.5° at 1 to 15 Hz (p. 191). Fig. 11 (p. 193), Mach 0.2, read by marker centroids: −18.5 to
-  −19.8 over |α| ≤ 2°, mean −19.2; AEDC's replotted α = 0 point there reads −17.2. **Inference:** the roll rate peaks
-  at 2.5 rad/s or less, so pd/2V stays under about 0.004 for any model under 0.2 m across.
+- **T-38** [S] (Samardžić et al. 2013): forced roll oscillation on a five-component balance, 0.25° to 1.5° at 1 to 15 Hz
+  (p. 191). Fig. 11 (p. 193), Mach 0.2, plots C_lp + C_lβ̇ sin α per p·d/(2V) on S and d (p. 190): C_lp at α = 0; the
+  sin α term cancels over ±α if C_lβ̇ is even in α (**Inference**). By marker centroids: −18.5 to −19.8 over |α| ≤ 2°,
+  mean −19.2; the replotted AEDC point at α = 0 reads −17.2. Roll rate ≤ 2.5 rad/s, so pd/2V < 0.004 (**Inference**).
 - **INCAS** [I] (Bunescu et al. 2024): a 60 mm model spun to 1,000 rpm and released, C_lp per p·d/(2V) on the
   cross-section and diameter (eq. 2, p. 16). Table 3 (p. 22) averages six fits of each spin direction, which differ by
   ±10% at Mach 0.4 and ±17% at 0.95; the authors blame 0.4 mm shape errors and average them out (pp. 17, 21).
@@ -67,11 +69,12 @@ confirms it, below). The others state the target convention. "Read" says how a v
   marker centroids. That figure's NOL points lie within 0.11 of NOL's Table 2 × 45.84 at six supersonic Mach numbers,
   so it uses this convention and reads to about ±0.2, though its Mach 0.77 NOL point (−13.3) matches none of NOL's
   three spin curves. One Mach 0.48 marker hides a second (about 0.495, −17.6); the three near Mach 1.1 overlap too.
-- **DRDC** [D] and **DREV** [F]: free flight, no sting, low yaw. Spin about 60 deg/m at 2° cant ([D] PDF p. 24), 65
-  and 125 deg/m at 2° and 4° ([F] PDF p. 28); pd/2V is that in rad/m times d/2 (**Inference**). DREV converted BRL
-  799's values to its convention and found excellent agreement (PDF p. 27). Its Mach 1.377 shot, a 4° round, grew to
-  10° of yaw (PDF p. 28). Both reports' terms bar redistribution (#619): only rounded percentage bands are given
-  here. Re: [D] Table 11 at the fits' Mach numbers (4.1–8.1 × 10⁶ for all shots, PDF p. 20); [F] Table V.
+- **DRDC** [D] and **DREV** [F]: free flight, no sting, low yaw. Spin about 60 deg/m at 2° cant ([D] PDF p. 24), 65 and
+  125 deg/m at 2° and 4° ([F] PDF p. 28); pd/2V is that in rad/m times d/2. DREV converted BRL 799's values to its
+  convention and found excellent agreement (Fig. 17, all terms; PDF p. 27), so its rate is read as p·d/(2V) (both
+  **Inference**). Its Mach 1.377 shot, a 4° round, grew to 10° angle of attack (PDF p. 28). DRDC's terms bar third-party
+  release ([D] PDF p. 5, #619): only rounded bands for it here. DREV-TM-9703 is public release, unlimited ([F] PDF
+  pp. 2, 4, 150; Crown copyright, p. 5): cited. Re: [D] Table 11 (4.1–8.1 × 10⁶, PDF p. 20); [F] Table V.
 
 ## 2. Spin rate, and which sets are clean
 
@@ -101,25 +104,26 @@ The same arithmetic reproduces the page's five published values (−31.62 at Mac
 | 0.48–0.99 | NAL, 9 points | −17.6 to −19.4 | −34.72 to −41.54 | +91.1% to +116.9% | |
 | 0.77 | NOL, 130 rev/s | −17.4 | −37.00 | +112.6% | |
 | 0.95 | INCAS | −17.14 | −40.71 | +137.5% | |
-| 0.8–1.1 | DRDC and DREV range, 7 fits | restricted | not given | +100% to +150% | |
+| 0.77–1.11 | DRDC range, 3 fits | restricted | not given | +100% to +150% | |
+| 1.06–1.12 | DREV range, 4 fits | −18.15 to −18.24 | −43.08 to −44.43 | +136.5% to +144.9% | |
 | 1.09–1.11 | NAL, 3 points | −14.7 to −16.2 | −43.80 to −44.18 | +170.7% to +200.0% | |
-| 1.2–1.4 | DREV range, 4 fits | restricted | not given | +20% to +90% | |
+| 1.25–1.38 | DREV range, 4 fits | −23.56 to −28.99 | −42.48 to −36.10 | +24.5% to +80.3% | |
 
 - **Sign and size.** High everywhere below Mach 1.4, by +66% to +99% at low speed. The gap grows toward Mach 1.1
   because HPR Sim's fin slope rises with 1/β (+11% from Mach 0.2 to 0.8, then the join's climb to −46.3 at Mach 1.2)
   while the measured stays flat or dips. Between Mach 1.0 and 1.2 the join's slope has the wrong sign: the
   measurements fall or hold where it climbs, and they peak near Mach 1.4 where it has already fallen (**Inference**).
 - **It joins the supersonic finding** ([§5](nicolaides-roll-damping-convention.md#5-what-it-moves-in-hpr-sim)):
-  the excess peaks near Mach 1.1, then falls to +20% to +90% at 1.2–1.4, +20% at 1.51 and +5% at 3.00. The range
+  the excess peaks near Mach 1.1, then falls to +25% to +80% at 1.25–1.38, +20% at 1.51 and +5% at 3.00. The range
   fits share shots (DREV's multiple fits combine single-fit rounds): not independent points.
 
 ## 4. Does the 1.27 factor apply to Barrowman's −34.21?
 
 No (**Inference**). ADR-031 read −34.21 off Fig. 5-7's computed curve, not its plotted points. The 1.27 lies between
 those points and BRL 799's range rounds: a slip in passing data on. The curve is Barrowman's own calculation, and HPR
-Sim gets −33.53 from his equations in the convention Fig. 5-7 states (πd²/4, d, p·d/(2V)), within 2.0%. Divided by
-1.27 anyway (or × π/4) it would be −26.9, still +32% to +59% above the low-speed sets. So the method itself, the fin's
-whole slope spread evenly over its strips, overstates this fin's damping; the check was not misread.
+Sim gets −33.53 from his equations within 2.0%, on Fig. 5-7's stated A_r = 78.6 in² and L_r = 10 in, which are πd²/4 and
+d (**Inference**), rate p·L_r/(2V) by his eq. 3-49. Divided by 1.27 anyway (or × π/4) it would be −26.9, still +32% to
++58% above the low-speed sets. So the method itself, the fin's whole slope spread evenly over its strips, overstates it.
 
 ## 5. Causes of the gap, with sign and size
 
@@ -138,14 +142,14 @@ whole slope spread evenly over its strips, overstates this fin's damping; the ch
 
 **The steady spin.** HPR Sim's steady roll rate is set by the ratio of damping to forcing:
 C_lp/C_lδ = −2·k_R·∫ξ² dA/(A_fin·(r_t + y_MAC)·d·k_T), −2.70 for the Basic Finner with k_T(B) = 0.935 at τ = 3 (this
-note's evaluation of Barrowman eq. 3-105). Eastman's empirical correlation, which ARL-TR-846 states holds at all
-speeds, puts it at −2.15·y_c/d [R eqs. 4–5, PDF pp. 13–14]: −2.15 here at y_c = 1.0 d, 1.8% to 4.6% above BRL 711's
-seven measured ratios (2.055 to 2.111, Table 7, PDF p. 21; ARL's own predicted column implies y_c ≈ 0.955 d). Against
-those, HPR Sim's ratio is +28% to +32% high, so its steady spin reads 22% to 24% low at matched forcing (**Inference**).
+note's evaluation of Barrowman eq. 3-105). Eastman's correlation, which ARL-TR-846 states holds at all speeds, puts
+it at −2.15·y_c/d [R eqs. 4–5, PDF pp. 13–14]: −2.15 here at y_c = 1.0 d, 1.8% to 4.6% above Bolz and Nicolaides'
+seven measured ratios as ARL converts them (2.055 to 2.111, Table 7, PDF p. 21; ARL's predicted column implies
+y_c ≈ 0.955 d). HPR Sim's ratio is +28% to +32% high: its spin reads 22% to 24% low at matched forcing (**Inference**).
 **AEDC measured the forcing too:** C_l0 ≈ 0.77 at α = 0, Mach 0.22, 5° cant (Fig. 9a, PDF p. 42, by pixel). HPR
-Sim's is 4 × 3.337 (one fin, per radian) × k_T 0.935 × 0.0873 rad = 1.089 on this note's geometry, +41%, part of it
-AEDC's 0.94 d chord. Measured, the steady pd/2V is 0.77/17.8 = 0.043, as observed, so bearing friction is small; HPR
-Sim's 1.089/33.75 = 0.032 reads about 25% low. Same sign as the Arcas Robin's +14% to +48% forcing at Mach 1.5–1.8.
+Sim's is 4 × 3.337 (one fin, per radian) × k_T 0.935 × 0.0873 rad = 1.089, +41%, part of it AEDC's 0.94 d chord.
+Measured, the steady pd/2V is 0.77/17.8 = 0.043, as observed, so bearing friction is small; HPR Sim's 1.089/33.75 =
+0.032 reads about 25% low, the sign of the Arcas Robin's +14% to +48% forcing at Mach 1.5–1.8.
 **Apogee:** roll rate doesn't enter the trajectory directly; any effect through roll-pitch coupling is **unbounded**.
 
 ## Sets screened and not used
@@ -153,22 +157,21 @@ Sim's 1.089/33.75 = 0.032 reads about 25% low. Same sign as the Arcas Robin's +1
 - **AD-A068327** [C] (Collins 1978, AEDC 4T): tested the Basic Finner (2.5° cant, 4.5 in) at Mach 0.22 to 1.15
   (Table 1, PDF p. 32) but shows only the Modified Basic Finner (Fig. 5, Table 6); the rest is on AEDC microfilm.
 - **AFATL-TR-68-82** [T]: roll lock-in and a Mach 3.5 analysis (Table III); no subsonic C_lp. **ARL-TR-846** [R]:
-  its Basic Finner rows are BRL 711's, Mach 1.59 to 2.68 (Table 7).
+  its Basic Finner rows are Bolz and Nicolaides' (J. Aero. Sci., 1950), Mach 1.59 to 2.68 (Table 7).
 - **Not reached:** West, AFATL-TR-81-87 (no copy on the Internet Archive or by web search on 2026-10-29; DTIC 403);
-  Bhagwandin, J. Spacecraft and Rockets 53(4), 720–729, 2016, doi 10.2514/1.A33419 (AIAA, no access; a CFD
-  prediction, not a measurement); Murthy's note itself, and a 1986 item of the same title in J. Spacecraft and
-  Rockets 23(1), 119, doi 10.2514/3.28073, no author listed, which may be an erratum to it.
+  Bhagwandin 2016, doi 10.2514/1.A33419 (AIAA, a CFD prediction, not a measurement); Murthy's note. An authorless 1986
+  record of its title (23(1), p. 119, doi 10.2514/3.28073) shares the page with Eastman's paper (pp. 119–120, doi
+  10.2514/3.25794; ARL-TR-846 cites those pages): a mis-titled index record more likely than an erratum (**Inference**).
 
 ## What the project can use
 
 - **Terms.** NAVORD 6652 (released "without restrictions"), AEDC-TR-76-58, AD-A068327, AFATL-TR-68-82 (changed to
   public release) and ARL-TR-846 are open US Government reports: readings can be committed with method. Samardžić 2013
   is "All rights reserved" (p. 189), Bunescu 2024 CC BY-NC-ND 4.0 (p. 15): cite their values, no fixture. Murthy 1982
-  is AIAA's: cite through [I]. DRDC and DREV stay local (#619). [S] and [I] are cached under `refs/research/`.
-- **Suggestion: replace the row's Mach 0.07 entry** with measured points: AEDC Fig. 9a (Mach 0.22, −18 ± 0.7) and
-  NOL Fig. 3's 50 rev/s curve (Mach 0.22, −17.0 ± 0.15) as committed readings, and NOL's other curves as a spin-rate
-  band. Cite T-38, INCAS and NAL beside them. Expected row: about +66% to +99% at Mach 0.2 to 0.4, against −2.0%
-  today. Keep −34.21 as the method check it is, labeled as theory.
+  is AIAA's: cite through [I]. DRDC stays local (#619); DREV is citable. [S] and [I] are cached under `refs/research/`.
+- **Suggestion: replace the row's Mach 0.07 entry** with committed readings at Mach 0.22: AEDC Fig. 9a (−18 ± 0.7), NOL
+  Fig. 3's 50 rev/s curve (−17.0 ± 0.15) and its other curves as a spin-rate band. Cite T-38, INCAS and NAL beside them.
+  Expected row: about +66% to +99% at Mach 0.2 to 0.4 (−2.0% today). Keep −34.21 as the theory check.
 - **Score DRDC's three range fits locally** (statistics only, #619), inside the §3 band. **accuracy.md's "nothing
   measured below Mach 1.5"** and the aero page's "a subsonic spin may read low" can then give the sign and size:
   damping about twice the measured, steady spin about 22% to 25% low. A model change (not proposed here) sized on
@@ -178,23 +181,20 @@ Sim's 1.089/33.75 = 0.032 reads about 25% low. Same sign as the Arcas Robin's +1
 
 - How the factor of 1.4 to 1.7 splits between strip loading and panel interference (a lifting-surface chart would).
 - Whether AEDC's +41% forcing excess holds at the 1.0 d chord, and above Mach 0.22 (no public forcing set found).
-- Why NAL dips near Mach 1.1 while the ranges don't; Murthy's note and the 1986 item would say.
+- Why NAL dips near Mach 1.1 while the ranges don't; Murthy's note would say.
 
-## Sources (read 2026-10-29)
+## Sources (read 2026-10-29, re-checked 2026-11-02)
 
 1. **[N]** F. J. Regan, NAVORD Report 6652, 1964. <https://archive.org/details/DTIC_AD0600975> (`refs/papers/`).
 2. **[A]** L. M. Jenke, AEDC-TR-76-58, 1976. <https://archive.org/details/DTIC_ADA027027> (`refs/papers/`).
-3. **[C]** J. A. Collins, *Verification Test of the AEDC High Alpha Roll Dynamics System*, 1978.
-   <https://archive.org/details/DTIC_ADA068327> (`refs/papers/`).
+3. **[C]** J. A. Collins, AEDC report AD-A068327, 1978. <https://archive.org/details/DTIC_ADA068327>
 4. **[S]** M. Samardžić et al., FME Transactions 41(3), 189–194, 2013.
    <https://simlab.mas.bg.ac.rs/_media/istrazivanje/fme/vol41/3/03_msamardzic.pdf>
 5. **[I]** I. Bunescu et al., INCAS Bulletin 16(1), 15–24, 2024, doi 10.13111/2066-8201.2024.16.1.2.
    <https://bulletin.incas.ro/files/bunescu_pricop_stoican_hothazie__vol_16_iss_1.pdf>
 6. **[M]** H. S. Murthy, J. Spacecraft and Rockets 19(1), 86–87, 1982, doi 10.2514/3.62210 (landing page only).
-7. **[D]** A. Dupuis, DRDC Valcartier TM 2002-136, 2002, as in
-   [basic-finner-transonic-tables.md](basic-finner-transonic-tables.md#sources-read-2026-10-20-unless-noted).
+7. **[D]** A. Dupuis, DRDC Valcartier TM 2002-136, 2002; [details](basic-finner-transonic-tables.md).
 8. **[F]** A. D. Dupuis, W. Hathaway, DREV-TM-9703, 1997. <https://archive.org/details/DTIC_ADA636861>
 9. **[T]** J. D. Nicolaides et al., AFATL-TR-68-82, 1968. <https://archive.org/details/DTIC_AD0852114>
 10. **[R]** A. G. Mikhail, ARL-TR-846, 1995. <https://archive.org/details/DTIC_ADA298617>
-11. J. S. Barrowman, NASA/TM-2001-209983 (MS thesis, 1967), eqs. 3-105 and 3-122.
-    <https://ntrs.nasa.gov/citations/20010047838>
+11. J. S. Barrowman, NASA/TM-2001-209983, 1967, eqs. 3-49, 3-105, 3-122. <https://ntrs.nasa.gov/citations/20010047838>
