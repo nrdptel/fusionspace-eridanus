@@ -40,6 +40,7 @@ mod evidence;
 mod examples;
 mod features;
 mod figures;
+mod fit;
 mod fixture_flights;
 mod flight_residuals;
 mod format;
@@ -122,6 +123,7 @@ Commands:
 {FIXTURE_FLIGHTS}
 {LOGS}
 {SYNTHETIC}
+{FIT}
 {TWO_LOGS}
 {GHOST}
 {REAL_FLIGHTS}
@@ -159,6 +161,7 @@ fn usage() -> String {
         .replace("{FIXTURE_FLIGHTS}", fixture_flights::USAGE)
         .replace("{LOGS}", logs::USAGE)
         .replace("{SYNTHETIC}", synthetic::USAGE)
+        .replace("{FIT}", fit::USAGE)
         .replace("{TWO_LOGS}", two_logs::USAGE)
         .replace("{GHOST}", ghost::USAGE)
         .replace("{REAL_FLIGHTS}", real_flights::USAGE)
@@ -198,6 +201,7 @@ fn main() -> ExitCode {
         Some("fixture-flights") => fixture_flights::run(&args.collect::<Vec<_>>()),
         Some("real-flights") => real_flights::run(&args.collect::<Vec<_>>()),
         Some("logs") => logs::run(&args.collect::<Vec<_>>()),
+        Some("fit") => fit::run(&args.collect::<Vec<_>>()),
         Some("synthetic") => synthetic::run(&args.collect::<Vec<_>>()),
         Some("two-logs") => two_logs::run(&args.collect::<Vec<_>>()),
         Some("ghost") => ghost::run(&args.collect::<Vec<_>>()),

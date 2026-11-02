@@ -447,11 +447,6 @@ are in `hpr-forensics`. Formats, methods and the log corpus came from Debrief.
   one `hpr` command draws predicted and logged altitude and velocity, liftoff to landing, under
   launch-day conditions. A reading keeps the provenance M7.2 gave it wherever it meets a simulated
   number. Split a to e (ADR-314).
-  - [ ] **M7.3b The least-squares fit.** *Done when:* Levenberg–Marquardt fits drag scale, impulse scale, a
-    constant wind vector and mass within its weighed uncertainty to a log; each parameter's 90% interval
-    passes ADR-257 §1's three counts on sets A and B, at least 1,000 flights each and counted per design, with
-    its three mutation probes failing; the drag and impulse scales are identified on set A, and every parameter
-    comes back not identified on pure noise.
   - [ ] **M7.3c The Bayesian option.** *Done when:* the same parameters, by a Bayesian fit with uncertainty,
     pass the same test, truths drawn from the stated ranges and not its prior.
   - [ ] **M7.3d From the boost.** *Done when:* apogee predicted from the log cut at burnout stays bit-identical

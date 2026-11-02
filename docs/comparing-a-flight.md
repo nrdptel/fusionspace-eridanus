@@ -152,7 +152,7 @@ read the log, the speed says why.
   `hpr sim` flies no recovery device from a rocket's `.json`; an `.ork` or `.hpr` flies its own.
 - On a staged flight the simulated track is the stack's, then the upper stage's, so a booster's log compares
   only up to the split.
-- It doesn't draw a plot yet ([M7.3e](decisions-and-roadmap.md#m7-3e)), or fit anything
-  ([M7.3b](decisions-and-roadmap.md#m7-3b)).
+- It doesn't draw a plot yet ([M7.3e](decisions-and-roadmap.md#m7-3e)). It fits nothing: the
+  [least-squares fit](physics/flight-fit.md) is in the library, with no command yet.
 
 For a record or a certification, the altimeter's own reading is the one to log, and the RSO decides.
