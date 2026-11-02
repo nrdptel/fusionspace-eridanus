@@ -232,7 +232,7 @@ cmd_for() {
       fi ;;
     doc) echo "env RUSTDOCFLAGS=-D\\ warnings cargo doc --workspace --no-deps --all-features --locked" ;;
     wasm) echo "$XTASK wasm-check --locked" ;;
-    validate) echo "$XTASK validate --check && $XTASK synthetic --check && $XTASK two-logs --check && $XTASK motor-catalog --check && $XTASK scoreboard --check --against origin/main" ;;
+    validate) echo "$XTASK validate --check && $XTASK synthetic --check && $XTASK two-logs --check && cargo run --locked --quiet --package xtask --profile report-check -- fit --check && $XTASK motor-catalog --check && $XTASK scoreboard --check --against origin/main" ;;
     deny) echo "cargo deny check" ;;
     site) echo "$XTASK site --locked" ;;
     pages) echo "$XTASK site --no-build" ;;

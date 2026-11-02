@@ -514,6 +514,28 @@ impl Simulation {
         Ok(self)
     }
 
+    /// Scales the structure's mass and inertia by `scale`, the motors' left as they are: a design
+    /// that weighs other than its parts say, for a fit to a log (`hpr_forensics::fit`). It leaves
+    /// the center of mass where it is. It is the whole stack's: a part that comes away in flight, a
+    /// stage or a recovery section, keeps its own mass as laid out, so it holds until the flight
+    /// first splits.
+    ///
+    /// # Errors
+    ///
+    /// [`SimError::Domain`] for a scale that isn't positive and finite.
+    pub fn with_structure_mass_scale(mut self, scale: f64) -> Result<Self, SimError> {
+        if !(scale.is_finite() && scale > 0.0) {
+            return Err(SimError::Domain {
+                what: "structure mass scale",
+                value: scale,
+            });
+        }
+        let structure = &mut self.vehicle.assembly.layout.structure;
+        structure.mass_kg *= scale;
+        structure.inertia_kg_m2 *= scale;
+        Ok(self)
+    }
+
     /// Keeps the aft base's whole drag while a motor burns, as OpenRocket 24.12 does, instead of
     /// taking the burning motor's cross-section off it
     /// ([`hpr_aero::AeroModel::with_full_base_drag_under_power`]). A sustainer lit at a powered

@@ -1450,3 +1450,60 @@ fn shared_step_evaluations_change_no_output_bit() {
         assert!(shared.2 == fresh.2, "{name}: recorded channels differ");
     }
 }
+
+/// A structure's mass scale changes the structure's mass and inertia and nothing else: a scale of
+/// one flies bit for bit the same, more mass is slower off the motor (and on this light, fast rocket
+/// higher, carrying further against drag: mass has an apogee's optimum, so speed is what's pinned),
+/// and a scale that can't be one is refused.
+#[test]
+fn a_structure_mass_scale_scales_the_mass_it_says() {
+    let design = design("synthetic-54mm-three-fin");
+    let motor = "i175";
+    let simulation = || {
+        Simulation::new(
+            &design,
+            motor,
+            Environment::standard(site()).unwrap(),
+            Rail::vertical(3.0),
+            FlightSettings::default(),
+        )
+        .unwrap()
+    };
+    let fly = |sim: Simulation| {
+        let mut metrics = crate::metrics::FlightMetrics::new();
+        let result = sim.run(&mut metrics).unwrap();
+        metrics
+            .summary(&result, sim.environment())
+            .unwrap()
+            .max_speed_m_s
+            .unwrap()
+            .value
+    };
+    let flown = fly(simulation());
+    let at_one = fly(simulation().with_structure_mass_scale(1.0).unwrap());
+    assert_eq!(flown.to_bits(), at_one.to_bits());
+    let heavier = fly(simulation().with_structure_mass_scale(1.1).unwrap());
+    let lighter = fly(simulation().with_structure_mass_scale(0.9).unwrap());
+    assert!(
+        heavier < flown && flown < lighter,
+        "{heavier} {flown} {lighter}"
+    );
+
+    let plain = simulation();
+    let structure = plain.assembly().layout.structure.mass_kg;
+    let inertia = plain.assembly().layout.structure.inertia_kg_m2;
+    let scaled = simulation().with_structure_mass_scale(1.25).unwrap();
+    let layout = &scaled.assembly().layout.structure;
+    assert_eq!(layout.mass_kg, structure * 1.25);
+    assert_eq!(layout.inertia_kg_m2, inertia * 1.25);
+
+    for bad in [0.0, -1.0, f64::NAN, f64::INFINITY] {
+        assert!(matches!(
+            simulation().with_structure_mass_scale(bad),
+            Err(SimError::Domain {
+                what: "structure mass scale",
+                ..
+            })
+        ));
+    }
+}

@@ -237,6 +237,22 @@ jobs:
         run: scripts/phone-build.sh aarch64-apple-ios aarch64-apple-ios-sim
         shell: bash
 
+  # The least-squares fit's 90% intervals (M7.3b, ADR-316): every flight of sets A and B fitted,
+  # each parameter held to ADR-257's counts and probes. About 90 CPU-minutes, so one Linux job; the
+  # committed report and the shares are held exactly by `scripts/gate.sh`.
+  fit-intervals:
+    name: fit intervals
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install
+      - run: scripts/native-toolchain.sh
+        shell: bash
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - run: cargo run --locked --quiet --package xtask --profile report-check -- fit --check --other-platform
+
   doc:
     name: doc
     runs-on: ubuntu-latest
