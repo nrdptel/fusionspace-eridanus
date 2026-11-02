@@ -408,16 +408,25 @@ each within 0.25 g of the level it reads:
   g. That counts if it comes no later than liftoff's latest time by the heights. About 1 g holds gravity;
   about 0 doesn't;
 - **the coast,** the last 1 s before apogee's earliest time, where a rocket falls freely but for a
-  small drag. About 0 holds gravity; about −1 g doesn't.
+  small drag. About 0 holds gravity; about −1 g doesn't. It is read only where a coast was flown,
+  as the direction's coast is: after liftoff's latest time and after the trace first moves.
 
 A witness that reads neither level, such as the pad of a log that starts in the thrust, says
-nothing. Gravity is settled when at least one witness says and none disagrees. Otherwise the top
-acceleration is withheld (`gravity_unstated`), and burnout comes from the top speed. The 0.25 g is
-HPR Sim's choice, set out in [What each bound holds](#what-each-bound-holds).
+nothing. Gravity is settled when at least one witness says and none disagrees, with one exception:
+a coast at about −1 g doesn't settle it alone. A part that holds gravity reads its drag there, and
+a rocket still fast at apogee, arcing over, can drag about 1 g, which reads as gravity out would.
+Putting 1 g back on that log would read its top 1 g high
+([#806](https://github.com/nrdptel/fusionspace-eridanus/issues/806)). A coast at about 0 can
+settle it alone: without gravity a coasting part reads −1 g or below, as drag only adds to it, and
+reading 0 would take a push forward of 1 g, a thrust, which the coast's second doesn't hold.
+Otherwise the top acceleration is withheld (`gravity_unstated`), and burnout comes from the top
+speed. The 0.25 g is HPR Sim's choice, set out in [What each bound holds](#what-each-bound-holds).
 The pad is read off the accelerometer rather than as the samples before liftoff's earliest time by
 the heights. Most Raven logs start about 0.5 s before liftoff, against a liftoff bound near 0.9 s.
 That rule, tried when this one was chosen, withheld 69 of the 80 Raven CSV records. The coast
 settles the Raven's logs that start in the thrust, whose family doesn't say ([ADR-283][adr-283]).
+On the sample logs every coast that settles one reads about 0, gravity in: keeping a coast at
+−1 g from settling alone moved no record.
 
 **The top acceleration** is the highest specific force while the motor burns. A burn runs from a
 cleaned reading past 2 g to where the cleaned trace, averaged over 0.05 s, next falls through zero.
