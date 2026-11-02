@@ -45,7 +45,7 @@ use std::sync::Mutex;
 use std::thread;
 use std::time::{Duration, Instant};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
 use super::cdp::Cdp;
@@ -93,7 +93,7 @@ const RUNS: usize = 3;
 /// same machine. Concurrent runs can skew performance results due to resource contention." Two
 /// browsers on CI's four-core runners measured the guide's slowest INP at 160 to 208 ms where
 /// one page at a time on a laptop slowed twice as much gave at most 152 ms.
-const BROWSERS: usize = 1;
+pub(super) const BROWSERS: usize = 1;
 /// The share of [`LATENCY_MS`] a page must have taken to arrive, from the navigation's start to
 /// its response's end, or the network throttle didn't hold for it and the load is measured
 /// again. (Chrome adds the wait before a response's body, not before its first byte.)
@@ -217,9 +217,47 @@ pub(super) struct Report {
     pub benchmark: f64,
     pub slowdown: f64,
     pub seconds: f64,
-    /// The worst page for each vital: LCP in ms, CLS, INP in ms.
-    pub worst: [(f64, String); 3],
+    /// Each page measured, by page: its vitals, and the machine they were measured on.
+    pub readings: BTreeMap<String, Reading>,
     pub problems: Vec<String>,
+}
+
+/// One page's vitals as the summary and the cache keep them ([`super::cache`]), with the
+/// BenchmarkIndex and CPU slowdown of the run that measured them.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub(super) struct Reading {
+    pub lcp_ms: f64,
+    pub cls: f64,
+    pub inp_ms: f64,
+    pub benchmark: f64,
+    pub slowdown: f64,
+}
+
+impl Reading {
+    fn get(&self, vital: Vital) -> f64 {
+        match vital {
+            Vital::Lcp => self.lcp_ms,
+            Vital::Cls => self.cls,
+            Vital::Inp => self.inp_ms,
+        }
+    }
+}
+
+/// The worst page for each vital, LCP, CLS and INP, of `readings`: the highest value, a tie going
+/// to the first page by name, so a run names the same page whatever order its pages finished in.
+pub(super) fn worst<'a>(
+    readings: impl IntoIterator<Item = (&'a String, &'a Reading)>,
+) -> [(f64, String); 3] {
+    let mut worst: [(f64, String); 3] = Default::default();
+    for (page, reading) in readings {
+        for (slot, vital) in [Vital::Lcp, Vital::Cls, Vital::Inp].into_iter().enumerate() {
+            let (value, name) = (reading.get(vital), &worst[slot].1);
+            if name.is_empty() || value > worst[slot].0 || (value == worst[slot].0 && page < name) {
+                worst[slot] = (value, page.clone());
+            }
+        }
+    }
+    worst
 }
 
 /// The CPU slowdown that makes a machine whose BenchmarkIndex is `index` stand in for the
@@ -388,10 +426,9 @@ enum Menu {
     At([f64; 2]),
 }
 
-/// Measures the vitals of the site built in `output`: this part's share of its pages, and the
-/// canaries in every part.
-pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
-    let started = Instant::now();
+/// The pages of the site built in `output` whose vitals this part measures: its share of every
+/// page but the API reference's, in order of name.
+pub(super) fn pages(output: &Path, part: Part) -> Result<Vec<String>, String> {
     let mut all = Vec::new();
     super::html_files(output, "", &mut all)?;
     all.retain(|page| !page.starts_with(&format!("{}/", super::API)));
@@ -410,7 +447,15 @@ pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
             part.count
         ));
     }
-    let mut queue: VecDeque<Job> = (0..CANARIES.len()).map(Job::Canary).collect();
+    Ok(pages)
+}
+
+/// Measures the vitals of `pages` of the site built in `output` ([`pages`] for this part's
+/// share), after the canaries when `canaries` is set (in every part).
+pub(super) fn check(output: &Path, pages: &[String], canaries: bool) -> Result<Report, String> {
+    let started = Instant::now();
+    let canaries = if canaries { CANARIES.len() } else { 0 };
+    let mut queue: VecDeque<Job> = (0..canaries).map(Job::Canary).collect();
     queue.extend(pages.iter().cloned().map(Job::Page));
 
     let chrome = pages::find_chrome()?;
@@ -490,7 +535,7 @@ pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
         ));
     }
     let mut problems = Vec::new();
-    let mut worst: [(f64, String); 3] = Default::default();
+    let mut readings = BTreeMap::new();
     for (job, result) in found {
         match (job, result) {
             (Job::Canary(i), Ok((vitals, _))) => {
@@ -509,17 +554,15 @@ pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
                 CANARIES[i].file
             )),
             (Job::Page(page), Ok((vitals, runs))) => {
-                for (slot, vital) in [Vital::Lcp, Vital::Cls, Vital::Inp].into_iter().enumerate() {
-                    // Ties go to the first page by name, so a run names the same page.
-                    let (value, name) = (vitals.get(vital), &worst[slot].1);
-                    if name.is_empty()
-                        || value > worst[slot].0
-                        || (value == worst[slot].0 && page < *name)
-                    {
-                        worst[slot] = (vitals.get(vital), page.clone());
-                    }
-                }
                 problems.extend(vitals.problems(&page, runs));
+                let reading = Reading {
+                    lcp_ms: vitals.lcp_ms,
+                    cls: vitals.cls,
+                    inp_ms: vitals.inp_ms,
+                    benchmark,
+                    slowdown,
+                };
+                readings.insert(page, reading);
             }
             (Job::Page(page), Err(err)) => {
                 problems.push(format!("{page}: could not be measured: {err}"));
@@ -536,7 +579,7 @@ pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
         benchmark,
         slowdown,
         seconds: started.elapsed().as_secs_f64(),
-        worst,
+        readings,
         problems,
     })
 }

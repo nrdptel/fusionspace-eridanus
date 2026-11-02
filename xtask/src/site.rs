@@ -80,7 +80,9 @@
 //! headless Chrome at each window width from 320 to 1,920 px in 40 px steps, and fails a page
 //! wider than the window, with text cut off by its box, or with text over text, so nothing a
 //! reader needs is clipped by an edge at any width. Pages built to fail, loaded on every run,
-//! prove the check still finds each problem.
+//! prove the check still finds each problem. With `--cache` ([`cache`]), a run lays out and
+//! measures again only the pages whose HTML changed since its last passing run, and loads the
+//! pages built to fail only when the checker, the browser or a file every page loads changed.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -95,6 +97,7 @@ use pulldown_cmark::{
 use crate::workspace::{Package, Workspace};
 
 mod bundle;
+mod cache;
 mod cdp;
 mod chrome;
 mod figures;
@@ -113,13 +116,16 @@ pub(crate) mod units;
 mod vitals;
 mod words;
 
-pub const USAGE: &str = "  site [--no-build] [--locked] [--widths K/N]
+pub const USAGE: &str = "  site [--no-build] [--locked] [--widths K/N] [--cache]
                            Check the documentation site's pages, build the site with
                            mdBook 0.5 into target/site and the workspace's rustdoc into
                            target/site/api, and check the built HTML. --no-build checks the
                            pages only; --locked is passed on to `cargo doc`; --widths K/N
                            checks the built pages' layout at part K of N of the widths,
-                           for CI to spread over N machines.";
+                           for CI to spread over N machines; --cache lays out and measures
+                           again only the pages whose HTML changed since the last passing
+                           run, every page when the checker, Chrome or a file every page
+                           loads changed, and keeps the results in target/site-check-cache.";
 
 /// The site's source directory, relative to the workspace root, as `book.toml` sets it.
 pub(crate) const SOURCE: &str = "docs";
@@ -191,7 +197,12 @@ const MDBOOK_SERIES: &str = "mdbook v0.5.";
 const MDBOOK_INSTALL: &str = "install mdBook 0.5.4: `cargo install mdbook --version 0.5.4 --locked` or `brew install mdbook`";
 
 pub fn run(args: &[String]) -> Result<(), String> {
-    let (build, locked, part) = parse_args(args)?;
+    let Args {
+        build,
+        locked,
+        part,
+        cache,
+    } = parse_args(args)?;
     let root = crate::designs::root()?;
     crate::spelling::run(&[])?;
     crate::voice::check(&root)?;
@@ -320,10 +331,38 @@ pub fn run(args: &[String]) -> Result<(), String> {
         crates.len(),
         built.api
     );
-    let laid_out = pages::check(&output, part)?;
+    // With `--cache`, each check takes from its cache the pages it needn't check again.
+    let caches = cache
+        .then(|| cache::Run::start(&root, &output, part))
+        .transpose()?;
+    let all = pages::pages(&output)?;
+    let layout_cache = caches
+        .as_ref()
+        .map(|run| run.plan::<pages::Lines>(cache::Check::Layout, &all))
+        .transpose()?;
+    let (unchecked, canaries) = layout_cache
+        .as_ref()
+        .map_or((&all, true), |plan| (&plan.check, plan.canaries));
+    let laid_out = if unchecked.is_empty() && !canaries {
+        pages::Report::nothing(part)
+    } else {
+        pages::check(&output, part, unchecked, canaries)?
+    };
+    if let (Some(run), Some(plan)) = (&caches, &layout_cache) {
+        let passed = laid_out.problems.is_empty();
+        run.keep(cache::Check::Layout, plan, &laid_out.lines, passed)?;
+        println!("{}", plan.describe(cache::Check::Layout));
+    }
     if !laid_out.problems.is_empty() {
         return Err(failure("the pages' layout", &laid_out.problems));
     }
+    // Every page's lines, checked now or reused.
+    let mut lines: Vec<&pages::Lines> = laid_out.lines.values().collect();
+    if let Some(plan) = &layout_cache {
+        lines.extend(plan.reused.values().map(|entry| &entry.result));
+    }
+    let laid_out_pages = laid_out.pages + layout_cache.as_ref().map_or(0, |plan| plan.reused.len());
+    let measures = pages::Measures::of(lines);
     println!(
         "page layout: {} pages at {}, in {:.0} s: none wider than \
          the window, no text cut off or over other text, no figure shrunk with room \
@@ -342,7 +381,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
          printing in the light \
          theme's colors without navigation or anything fixed over its sheets, with its links' \
          addresses, its rows and title block whole, and every canary found",
-        laid_out.pages,
+        laid_out_pages,
         if part == pages::Part::WHOLE {
             format!("{} widths from 320 to 1,920 px", laid_out.widths)
         } else {
@@ -359,49 +398,104 @@ pub fn run(args: &[String]) -> Result<(), String> {
         },
         laid_out.seconds
     );
-    let measures = &laid_out.measures;
     println!(
         "line length: {} of {} pages set 20 lines of prose or more at one or more of these \
          widths, {}; the longest line of prose on any page {} characters (the system's counter, a \
          report, not a rule, ADR-250)",
         measures.judged,
-        laid_out.pages,
+        laid_out_pages,
         measures.medians.map_or_else(
             || "none judged".to_string(),
             |(low, high)| format!("their medians {low} to {high} characters")
         ),
         measures.longest
     );
-    let vitals = vitals::check(&output, part)?;
-    if !vitals.problems.is_empty() {
+    let ours = vitals::pages(&output, part)?;
+    let vitals_cache = caches
+        .as_ref()
+        .map(|run| run.plan::<vitals::Reading>(cache::Check::Vitals, &ours))
+        .transpose()?;
+    let (unmeasured, canaries) = vitals_cache
+        .as_ref()
+        .map_or((&ours, true), |plan| (&plan.check, plan.canaries));
+    let measured = if unmeasured.is_empty() && !canaries {
+        None
+    } else {
+        Some(vitals::check(&output, unmeasured, canaries)?)
+    };
+    if let (Some(run), Some(plan)) = (&caches, &vitals_cache) {
+        let none = BTreeMap::new();
+        let (readings, passed) = measured
+            .as_ref()
+            .map_or((&none, true), |m| (&m.readings, m.problems.is_empty()));
+        run.keep(cache::Check::Vitals, plan, readings, passed)?;
+        println!("{}{}", plan.describe(cache::Check::Vitals), slowed(plan));
+    }
+    if let Some(measured) = &measured
+        && !measured.problems.is_empty()
+    {
         let what = format!(
             "the pages' vitals (the CPU slowed {:.1}×, this machine's BenchmarkIndex {:.0})",
-            vitals.slowdown, vitals.benchmark
+            measured.slowdown, measured.benchmark
         );
-        return Err(failure(&what, &vitals.problems));
+        return Err(failure(&what, &measured.problems));
     }
-    let [(lcp, lcp_page), (cls, cls_page), (inp, inp_page)] = &vitals.worst;
+    // Every page's vitals, measured now or reused, and the machine's: this run's when it
+    // measured any, else that of the latest run the cache holds.
+    let mut readings: BTreeMap<&String, &vitals::Reading> = BTreeMap::new();
+    if let Some(plan) = &vitals_cache {
+        readings.extend(
+            plan.reused
+                .iter()
+                .map(|(page, entry)| (page, &entry.result)),
+        );
+    }
+    let (measured_pages, browsers, benchmark, slowdown, seconds) = match &measured {
+        Some(measured) => {
+            readings.extend(&measured.readings);
+            (
+                measured.pages,
+                measured.browsers,
+                measured.benchmark,
+                measured.slowdown,
+                measured.seconds,
+            )
+        }
+        None => {
+            let latest = vitals_cache.as_ref().and_then(|plan| {
+                plan.reused
+                    .values()
+                    .max_by(|a, b| a.checked.cmp(&b.checked))
+                    .map(|entry| entry.result)
+            });
+            (
+                0,
+                vitals::BROWSERS,
+                latest.map_or(0.0, |reading| reading.benchmark),
+                latest.map_or(0.0, |reading| reading.slowdown),
+                0.0,
+            )
+        }
+    };
+    let vitals_pages = measured_pages + vitals_cache.as_ref().map_or(0, |plan| plan.reused.len());
+    let [(lcp, lcp_page), (cls, cls_page), (inp, inp_page)] = &vitals::worst(readings);
     println!(
         "page vitals: {} pages{} loaded cold by {} {}, each a phone ({} px wide) on slow 4G with \
          the CPU slowed {:.1}× (this machine's BenchmarkIndex {:.0}), in {:.0} s: LCP at most \
          {:.2} s ({lcp_page}), CLS at most {:.3} ({cls_page}), INP at most {:.0} ms \
          ({inp_page}), and every canary failing its vital",
-        vitals.pages,
+        vitals_pages,
         if part == pages::Part::WHOLE {
             String::new()
         } else {
             format!(" (part {} of {})", part.index, part.count)
         },
-        vitals.browsers,
-        if vitals.browsers == 1 {
-            "browser"
-        } else {
-            "browsers"
-        },
+        browsers,
+        if browsers == 1 { "browser" } else { "browsers" },
         vitals::WIDTH_PX,
-        vitals.slowdown,
-        vitals.benchmark,
-        vitals.seconds,
+        slowdown,
+        benchmark,
+        seconds,
         lcp / 1000.0,
         cls,
         inp,
@@ -409,17 +503,32 @@ pub fn run(args: &[String]) -> Result<(), String> {
     Ok(())
 }
 
-/// Reads `site`'s arguments: whether to build the site, whether `cargo doc` runs `--locked`, and
-/// which part of the widths the layout check takes.
-fn parse_args(args: &[String]) -> Result<(bool, bool, pages::Part), String> {
+/// `site`'s arguments ([`USAGE`]).
+#[derive(Debug, PartialEq, Eq)]
+struct Args {
+    /// Whether to build the site and check the built pages.
+    build: bool,
+    /// Whether `cargo doc` runs `--locked`.
+    locked: bool,
+    /// Which part of the widths the layout check takes, and of the pages the vitals check.
+    part: pages::Part,
+    /// Whether the page checks reuse their passing results for pages that didn't change
+    /// ([`cache`]).
+    cache: bool,
+}
+
+/// Reads `site`'s arguments.
+fn parse_args(args: &[String]) -> Result<Args, String> {
     let mut build = true;
     let mut locked = false;
     let mut part = None;
+    let mut cache = false;
     let mut args = args.iter();
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--no-build" => build = false,
             "--locked" => locked = true,
+            "--cache" => cache = true,
             "--widths" if part.is_none() => {
                 let text = args
                     .next()
@@ -436,7 +545,33 @@ fn parse_args(args: &[String]) -> Result<(bool, bool, pages::Part), String> {
              skips\n\n{USAGE}"
         ));
     }
-    Ok((build, locked, part))
+    if !build && cache {
+        return Err(format!(
+            "`--cache` keeps the results of the built site's layout and vitals checks, which \
+             `--no-build` skips\n\n{USAGE}"
+        ));
+    }
+    Ok(Args {
+        build,
+        locked,
+        part,
+        cache,
+    })
+}
+
+/// What the CPU was slowed by for the vitals a run reuses: `; the reused pages measured with the
+/// CPU slowed 15.9×`, or a range; nothing when it reuses none.
+fn slowed(plan: &cache::Plan<vitals::Reading>) -> String {
+    let slowdowns = plan.reused.values().map(|entry| entry.result.slowdown);
+    let least = slowdowns.clone().fold(f64::INFINITY, f64::min);
+    let most = slowdowns.fold(f64::NEG_INFINITY, f64::max);
+    if plan.reused.is_empty() {
+        String::new()
+    } else if format!("{least:.1}") == format!("{most:.1}") {
+        format!("; the reused pages measured with the CPU slowed {least:.1}×")
+    } else {
+        format!("; the reused pages measured with the CPU slowed {least:.1}× to {most:.1}×")
+    }
 }
 
 fn failure(what: &str, problems: &[String]) -> String {
@@ -5592,18 +5727,37 @@ mod tests {
     fn the_arguments_are_read_in_any_order() {
         let args =
             |list: &[&str]| parse_args(&list.iter().map(|&arg| arg.to_owned()).collect::<Vec<_>>());
+        let read = |build, locked, part, cache| {
+            Ok(Args {
+                build,
+                locked,
+                part,
+                cache,
+            })
+        };
         let whole = pages::Part::WHOLE;
-        assert_eq!(args(&[]), Ok((true, false, whole)));
-        assert_eq!(args(&["--locked"]), Ok((true, true, whole)));
-        assert_eq!(args(&["--locked", "--no-build"]), Ok((false, true, whole)));
+        assert_eq!(args(&[]), read(true, false, whole, false));
+        assert_eq!(args(&["--locked"]), read(true, true, whole, false));
+        assert_eq!(
+            args(&["--locked", "--no-build"]),
+            read(false, true, whole, false)
+        );
         let two_of_three = pages::Part { index: 2, count: 3 };
         assert_eq!(
             args(&["--widths", "2/3", "--locked"]),
-            Ok((true, true, two_of_three))
+            read(true, true, two_of_three, false)
         );
         assert_eq!(
             args(&["--locked", "--widths", "2/3"]),
-            Ok((true, true, two_of_three))
+            read(true, true, two_of_three, false)
+        );
+        assert_eq!(
+            args(&["--cache", "--locked"]),
+            read(true, true, whole, true)
+        );
+        assert_eq!(
+            args(&["--widths", "2/3", "--cache"]),
+            read(true, false, two_of_three, true)
         );
         let err = args(&["--fast"]).unwrap_err();
         assert!(err.starts_with("unexpected argument `--fast`"), "{err}");
@@ -5615,6 +5769,8 @@ mod tests {
         assert!(err.starts_with("unexpected argument `--widths`"), "{err}");
         let err = args(&["--no-build", "--widths", "1/3"]).unwrap_err();
         assert!(err.starts_with("`--widths` picks"), "{err}");
+        let err = args(&["--cache", "--no-build"]).unwrap_err();
+        assert!(err.starts_with("`--cache` keeps"), "{err}");
     }
 
     #[test]

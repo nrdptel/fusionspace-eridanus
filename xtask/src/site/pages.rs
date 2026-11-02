@@ -295,7 +295,7 @@ use std::sync::{Arc, Mutex};
 use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use super::html_files;
 
@@ -359,6 +359,33 @@ struct Prose {
     longest: usize,
 }
 
+/// The lines of prose one page was set in across the run's widths: its share of [`Measures`],
+/// which the cache keeps for a page it doesn't check again ([`super::cache`]).
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub(super) struct Lines {
+    /// The lowest and highest median judged (20 lines or more) at any width, in characters; none
+    /// when no width was judged.
+    pub medians: Option<(f64, f64)>,
+    /// The longest line of prose at any width, in characters.
+    pub longest: usize,
+}
+
+impl Lines {
+    fn of(measured: &[Measured]) -> Lines {
+        let mut lines = Lines::default();
+        for prose in measured.iter().map(|m| &m.prose) {
+            lines.longest = lines.longest.max(prose.longest);
+            if let Some(median) = prose.median {
+                lines.medians = Some(match lines.medians {
+                    Some((low, high)) => (low.min(median), high.max(median)),
+                    None => (median, median),
+                });
+            }
+        }
+        lines
+    }
+}
+
 /// The lines of prose across the run's pages and widths, as the system's counter read them: a
 /// report, not a rule, since a line is as long as its column (ADR-250).
 #[derive(Debug, Default)]
@@ -372,19 +399,21 @@ pub(super) struct Measures {
 }
 
 impl Measures {
-    fn add(&mut self, measured: &[Measured]) {
-        let mut judged = false;
-        for prose in measured.iter().map(|m| &m.prose) {
-            self.longest = self.longest.max(prose.longest);
-            if let Some(median) = prose.median {
-                judged = true;
-                self.medians = Some(match self.medians {
-                    Some((low, high)) => (low.min(median), high.max(median)),
-                    None => (median, median),
+    /// The lines of every page in `pages`, in any order: the lowest and highest of their medians
+    /// and the longest of their lines don't depend on it.
+    pub(super) fn of<'a>(pages: impl IntoIterator<Item = &'a Lines>) -> Measures {
+        let mut measures = Measures::default();
+        for page in pages {
+            measures.longest = measures.longest.max(page.longest);
+            if let Some((low, high)) = page.medians {
+                measures.judged += 1;
+                measures.medians = Some(match measures.medians {
+                    Some((least, most)) => (least.min(low), most.max(high)),
+                    None => (low, high),
                 });
             }
         }
-        self.judged += usize::from(judged);
+        measures
     }
 }
 
@@ -398,8 +427,22 @@ pub(super) struct Report {
     pub seconds: f64,
     /// One line per page and kind of problem; empty when every page passes.
     pub problems: Vec<String>,
-    /// The lines the pages' prose was set in.
-    pub measures: Measures,
+    /// The lines each page's prose was set in, by page.
+    pub lines: BTreeMap<String, Lines>,
+}
+
+impl Report {
+    /// What a run of `part` that checks no page and no canary finds, without starting the
+    /// browser: nothing.
+    pub(super) fn nothing(part: Part) -> Report {
+        Report {
+            pages: 0,
+            widths: part.widths().len(),
+            seconds: 0.0,
+            problems: Vec::new(),
+            lines: BTreeMap::new(),
+        }
+    }
 }
 
 /// The widths every page is checked at, in CSS pixels: 320 to 1,920 in steps of 40.
@@ -3291,13 +3334,25 @@ const PRESSED: [&str; 4] = [
     "canary-sidebar-undragged.html",
 ];
 
-/// Runs the page check on the site built in `output`.
-pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
-    let started = Instant::now();
-    let checked = part.widths();
+/// The pages of the site built in `output` that the page check reads: every HTML file but the
+/// API reference's.
+pub(super) fn pages(output: &Path) -> Result<Vec<String>, String> {
     let mut pages = Vec::new();
     html_files(output, "", &mut pages)?;
     pages.retain(|page| !page.starts_with(&format!("{}/", super::API)));
+    Ok(pages)
+}
+
+/// Runs the page check on `pages` of the site built in `output` ([`pages`] for all of them),
+/// after the canaries when `canaries` is set.
+pub(super) fn check(
+    output: &Path,
+    part: Part,
+    pages: &[String],
+    canaries: bool,
+) -> Result<Report, String> {
+    let started = Instant::now();
+    let checked = part.widths();
     // The longest pages first, so the tabs finish together.
     let mut sized: Vec<(u64, String)> = pages
         .iter()
@@ -3307,7 +3362,8 @@ pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
         })
         .collect();
     sized.sort_by(|a, b| b.0.cmp(&a.0).then_with(|| a.1.cmp(&b.1)));
-    let mut queue: Vec<String> = CANARIES
+    let canaries: &[Canary] = if canaries { &CANARIES } else { &[] };
+    let mut queue: Vec<String> = canaries
         .iter()
         .map(|canary| format!("{CHECK_PREFIX}{}", canary.file))
         .collect();
@@ -3358,7 +3414,7 @@ pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
 
     // Every canary not found as it should be, so one run names them all.
     let mut broken = Vec::new();
-    for canary in &CANARIES {
+    for canary in canaries {
         let page = format!("{CHECK_PREFIX}{}", canary.file);
         let measured = results
             .get(&page)
@@ -3371,20 +3427,20 @@ pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
         return Err(broken.join("\n"));
     }
     let mut problems = Vec::new();
-    let mut measures = Measures::default();
-    for page in &pages {
+    let mut lines = BTreeMap::new();
+    for page in pages {
         let measured = results
             .get(page)
             .ok_or_else(|| format!("the page check has no results for {page}"))?;
         problems.extend(page_problems(page, measured, part.step_px()));
-        measures.add(measured);
+        lines.insert(page.clone(), Lines::of(measured));
     }
     Ok(Report {
         pages: pages.len(),
         widths: checked.len(),
         seconds: started.elapsed().as_secs_f64(),
         problems,
-        measures,
+        lines,
     })
 }
 

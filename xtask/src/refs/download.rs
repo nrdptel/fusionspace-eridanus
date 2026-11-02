@@ -314,7 +314,7 @@ pub fn today() -> String {
 
 /// The proleptic Gregorian date of a day count since 1970-01-01 (H. Hinnant, "chrono-Compatible
 /// Low-Level Date Algorithms", `civil_from_days`).
-fn civil_date(days: u64) -> String {
+pub(crate) fn civil_date(days: u64) -> String {
     let z = days + 719_468;
     let era = z / 146_097;
     let doe = z - era * 146_097;
