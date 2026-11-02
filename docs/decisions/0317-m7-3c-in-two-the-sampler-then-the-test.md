@@ -39,8 +39,8 @@ thousands of fits a report, several CPU-days.
    measurement.
 3. **The intervals are tested raw.** A credible interval that needed fitted shares would be the
    least-squares fit's again. M7.3c2 counts the posterior's 5% and 95% points as they come. If they
-   fail, the report shows by how much, and an ADR says what's done about it; the shares aren't
-   brought in to make them pass.
+   fail, the report shows by how much, M7.3c stays open, and an ADR says what's done about it; the
+   shares aren't brought in to make them pass.
 4. **Truth is drawn as M7.3b's is.** Set A's truths are drawn uniform on the stated ranges and the
    prior is Gaussian, so truth isn't drawn from the prior, as the done-when asks. Set B's truth is
    M7.3b's, the least-squares fit on noise-free samples.
@@ -58,10 +58,11 @@ thousands of fits a report, several CPU-days.
   option, the posterior of the least-squares fit's unknowns sampled by M7.3c1 around its answer,
   flying each draw; `cargo xtask fit` writes its counts beside the least-squares fit's, on the same
   1,000 fitted flights of each of sets A and B and the same 1,500 flights for the wind (1,497 with a
-  track read), its raw 90%
-  credible intervals held to ADR-257 §1's three counts with the three probes, pure noise told
-  apart as M7.3b's is, its effective draws and failed draws counted; the fit's page says what it
-  adds and how far to trust it.
+  track read), truths drawn from the stated ranges and not its prior; its raw 90% credible
+  intervals pass ADR-257 §1's three counts on sets A and B, its three probes failing; the drag and
+  impulse scales are identified on set A, and every parameter comes back not identified on pure
+  noise; its effective and failed draws are counted; the fit's page says what it adds and how far
+  to trust it.
 
 ## What this leaves
 

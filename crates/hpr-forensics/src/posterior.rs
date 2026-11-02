@@ -1,4 +1,4 @@
-//! The Bayesian option's sampler (M7.3c1): a posterior's quantiles by importance sampling.
+//! The Bayesian option's sampler: a posterior's quantiles by importance sampling.
 //!
 //! **What it does.** Given where a posterior peaks and its curvature there (the least-squares
 //! fit's answer and covariance, the Laplace approximation), it draws points around the peak,
@@ -25,7 +25,7 @@
 //! leaves few effective draws; the quantiles still come back, and [`Posterior::enough`] says
 //! they're too few to read. A draw whose posterior can't be had (a flight that won't fly) gets no weight and is
 //! counted in [`Posterior::failed`]. Tested on posteriors whose quantiles are known in closed form
-//! or by quadrature; it is not yet tested against the synthetic flights (M7.3c2).
+//! or by quadrature; it is not yet run on a log or tested against the synthetic flights.
 
 use hpr_core::random::SeededRng;
 
@@ -100,7 +100,9 @@ pub fn sample<const N: usize>(
     // Cast: N is a count of unknowns, far below 2⁵³.
     let dimensions = N as f64;
     let mut rng = SeededRng::seed_from_u64(seed);
-    let mut points: Vec<([f64; N], f64)> = Vec::with_capacity(draws);
+    // Grown as draws succeed, not reserved up front, so a huge `draws` can't fail an allocation
+    // before the first flight: memory is about `draws · 8 (N + 1)` bytes, plus one column to sort.
+    let mut points: Vec<([f64; N], f64)> = Vec::new();
     let mut failed = 0;
     for _ in 0..draws {
         let z: [f64; N] = std::array::from_fn(|_| rng.standard_normal());

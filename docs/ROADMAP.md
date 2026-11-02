@@ -453,10 +453,11 @@ are in `hpr-forensics`. Formats, methods and the log corpus came from Debrief.
     - [ ] **M7.3c2 The Bayesian fit under the test.** *Done when:* `hpr_forensics::fit` has a Bayesian option,
       the posterior of the least-squares fit's unknowns sampled by M7.3c1 around its answer, flying each draw;
       `cargo xtask fit` writes its counts beside the least-squares fit's, on the same 1,000 fitted flights of
-      each of sets A and B and the same 1,500 flights for the wind (1,497 with a track read), its raw 90%
-      credible intervals held to ADR-257
-      §1's three counts with the three probes, pure noise told apart as M7.3b's is, its effective draws and
-      failed draws counted; the fit's page says what it adds and how far to trust it.
+      each of sets A and B and the same 1,500 flights for the wind (1,497 with a track read), truths drawn from
+      the stated ranges and not its prior; its raw 90% credible intervals pass ADR-257 §1's three counts on sets
+      A and B, its three probes failing; the drag and impulse scales are identified on set A, and every
+      parameter comes back not identified on pure noise; its effective and failed draws are counted; the fit's
+      page says what it adds and how far to trust it.
   - [ ] **M7.3d From the boost.** *Done when:* apogee predicted from the log cut at burnout stays bit-identical
     when every later sample is replaced with noise; a committed report gives the 7 public flights' fits, the
     collection's as aggregates, and that prediction's mean absolute and signed errors beside the forward
