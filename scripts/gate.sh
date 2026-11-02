@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # The local gate every change passes before it is pushed. It prints one line per step, and for a
 # failing step only the lines that say why. Every step runs even after a failure, so one run
-# reports everything, with two exceptions. A failing fmt stops the run, since `cargo fmt --all`
+# reports everything, with three exceptions. A failing fmt stops the run, since `cargo fmt --all`
 # changes the code every later step would check (six full runs of 5.5 to 8 min each, 38 min in
-# all, failed on fmt alone over two weeks of work to 2026-10-08). And once a code step fails
+# all, failed on fmt alone over two weeks of work to 2026-10-08). A failing pages step stops it
+# too (see that step). And once a code step fails
 # (clippy, test, doc, wasm or docs), the slow steps after it (validate, site, examples, refs, ego,
 # python) are skipped: the fix changes what they would check, and the gate runs again after it.
 # From 2026-10-25 to 11-01, 16.6 of the gate's 94.8 hours were slow steps run after a code step
@@ -39,11 +40,11 @@
 # The default run leaves validate out when the branch changes only prose that none of its five
 # checks reads: pages under docs/, the site's theme/ and book.toml, and Markdown files at the top,
 # but not README.md, docs/accuracy.md and docs/images/ (the census writes their tables and badges),
-# docs/simulator-compared.md, docs/ROADMAP.md or docs/decisions/ (the scoreboard and its features
-# table read them), nor a deleted or renamed file (the features table checks its pages exist). A
-# prose-only change can't move a number those checks compare, and CI's validate jobs still run
-# them on every pull request; 33 of the 96 pull requests merged from 2026-10-25 to 11-01 changed
-# only such prose. A run that leaves validate out this way still counts as a full run. Name it to
+# docs/ROADMAP.md or docs/decisions/ (the scoreboard and its features table read them), nor a
+# deleted or renamed file (the features table checks its pages exist). Read on 2026-11-01, the five
+# checks' code reads no other prose, so such a change leaves what they compare as it was; CI still
+# runs all five on every pull request. 33 of the 96 pull requests merged from 2026-10-25 to 11-01
+# changed only such prose. A run that leaves validate out this way still counts as a full run. Name it to
 # run it anyway (`scripts/gate.sh validate`), or set GATE_VALIDATE=1.
 # It joins any run that includes `test` (the default set, or a fix's `scripts/gate.sh clippy test`)
 # when refs/ is present and the branch changes a physics crate (hpr-aero, hpr-sim, hpr-motor,
@@ -118,7 +119,7 @@ touches_physics() {
 # doesn't read, or a deleted or renamed file. Exit 1 when every change is such prose, 2 when there
 # is no origin/main to compare with; a branch with no change at all counts as a change.
 VALIDATE_PROSE='^(docs/|theme/|book\.toml$|[^/]+\.md$)'
-VALIDATE_READS='^(README\.md$|docs/accuracy\.md$|docs/images/|docs/simulator-compared\.md$|docs/ROADMAP\.md$|docs/decisions/)'
+VALIDATE_READS='^(README\.md$|docs/accuracy\.md$|docs/images/|docs/ROADMAP\.md$|docs/decisions/)'
 touches_validate() {
   local base changed
   base=$(git merge-base HEAD origin/main 2>/dev/null) || return 2
@@ -253,7 +254,7 @@ if [ -z "${*:-}" ] && [ "${GATE_VALIDATE:-0}" != 1 ]; then
   if [ "$reads" -eq 1 ]; then
     STEPS=" $STEPS "; STEPS="${STEPS/ validate / }"; STEPS="${STEPS# }"; STEPS="${STEPS% }"
     VALIDATE_LEFT=1
-    echo "SKIP validate: the branch changes only prose its checks don't read (CI's validate jobs still run them; GATE_VALIDATE=1 runs it here)"
+    echo "SKIP validate: the branch changes only prose its checks don't read (CI still runs them; GATE_VALIDATE=1 runs them here)"
   elif [ "$reads" -eq 2 ]; then
     echo "validate stays in: no origin/main to tell whether what it reads changed (git fetch origin)"
   fi

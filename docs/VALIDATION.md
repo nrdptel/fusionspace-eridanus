@@ -402,8 +402,8 @@ speed plus the assertions and overflow checks of the everyday build. Optimizing 
 to the digits they compare. On each of the five platforms the synthetic check runs in two halves,
 by set: `--sets tuning,a` in the `validate` job and `--sets b,calibration` in `examples`, and a test
 fails if a set is left out ([the synthetic flights' tests](physics/synthetic-flights.md)). Reports are still written by the
-everyday build, and `scripts/gate.sh` still runs both checks with it, whole, on the maintainer's
-machine whenever a change touches what they read. So a report in the repository has to reproduce from both builds. If the optimized build
+everyday build, and a full run of `scripts/gate.sh` still runs both checks with it, whole, on the
+maintainer's machine whenever a change touches what they read. So a report in the repository has to reproduce from both builds. If the optimized build
 ever came out differently, CI would fail and regenerating wouldn't fix it: that would need a
 decision record, not a looser check.
 
