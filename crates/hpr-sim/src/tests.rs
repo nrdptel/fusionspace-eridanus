@@ -1496,6 +1496,7 @@ fn a_structure_mass_scale_scales_the_mass_it_says() {
     let layout = &scaled.assembly().layout.structure;
     assert_eq!(layout.mass_kg, structure * 1.25);
     assert_eq!(layout.inertia_kg_m2, inertia * 1.25);
+    assert_eq!(layout.cg_m, plain.assembly().layout.structure.cg_m);
 
     for bad in [0.0, -1.0, f64::NAN, f64::INFINITY] {
         assert!(matches!(

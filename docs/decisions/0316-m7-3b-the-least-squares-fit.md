@@ -3,8 +3,10 @@
 - **Status:** accepted; carries out [ADR-314][adr-314]'s M7.3b under [ADR-257][adr-257] §1
 - **Summary:** Levenberg-Marquardt fits drag, impulse, a constant wind and mass to a log, with the
   clock, height offset and drift, and a barometer's gain and port, as further unknowns. Each
-  parameter's 90% interval passes on sets A and B. Those two sets were seen while the model's choices
-  were made. A fit takes about a second. The wind is held only on logs with a track.
+  parameter's 90% interval passes on sets A and B, counted on logs with something to fit. Those two
+  sets were seen while the model's choices were made. Correlated residuals and, on heights alone,
+  the wind's unknown loss widen the errors. A fit takes about a second. The wind is held only on
+  logs with a track.
 
 [adr-257]: 0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 [adr-314]: 0314-m7-3-in-five-residuals-first.md
@@ -48,26 +50,77 @@ each step was made with sets A and B in view.
    it was done because the probe passed.
 6. **Set B's truth is the same fit on noise-free samples.** Set B flies another model, so it has no
    true scale. The first truth, a fit reading every bin, left set B's errors larger than set A's for a
-   reason in the definition. It's now the same fit, on the same bins, at the same noise, with mass held
-   as flown.
+   reason in the definition. It's now the same fit, on the bins the log's fit read, at the same noise,
+   with mass held as flown. It's given the flight's drift at every bin, even where the log holds no
+   track, so that a log of height alone carries the wind's loss in its errors on set B as on set A,
+   whose truth is the drawn value.
 7. **How fast a fit must be.** About 0.8 CPU-seconds a fit in the optimized profile and about 70 flights
-   flown, measured on set A in development; set B's count, about 115, holds its truth's fit too. Writing
-   the report takes 11 minutes on 10 cores. It runs in one Linux job on CI, its figures held loosely,
-   and whole at the gate, on the platform that wrote the report, with calibration.
+   flown, measured on set A in development; set B's count, about 115, holds its truth's fit too.
+   Writing the report takes about 16 minutes on 10 cores. It runs in one Linux job on CI and whole at
+   the gate, on the platform that wrote the report, with calibration. On Linux, a count may differ
+   from the committed report by 5 flights and a figure by 5% or 0.002; the first Linux run, on an
+   earlier head of this work, differed by at most 1 flight and 5.01%, the latter on a figure within
+   0.002. The pass and fail of every test and probe are taken again on Linux's own counts.
+8. **Only logs with something to fit are counted.** A log that says nothing states its range, which
+   holds about 90% whatever the fit does. Counted, those logs leaned the drag's, impulse's and mass's
+   counts toward passing: a review counted set B's impulse at 50 below, 781 inside and 14 above of
+   the 845 fitted, which fails, against a pass with them. Each set now counts its first 1,000
+   fitted flights: of set A's first 1,216, 216 had nothing to fit; of set B's first 1,193, 193.
+9. **A fit that can't be this flight's says nothing.** A review handed pure noise of ±5 m (16 ft)
+   to the fit, which gave the impulse a median width of 0.019, under half its stated 0.108. A fit
+   whose heights' RMS residual is over 0.1 of the spread of the heights it read now says nothing. On pure noise the
+   least of 1,000 fits stands at 0.958; on every counted synthetic flight the most is 0.0251. The 0.1
+   is a judgment with wide room either side. Noise now reaches the fit at ±5, ±50 and ±1,000 m on height
+   alone, and at ±5 and ±1,000 m with a track of ±5 m, which is what the wind listens to.
+10. **A fit runs until it stops.** At 12 steps a pass, a review found 16 of 157 fits ending on the
+    limit, and their answers moved by up to 3.5 standard errors when run on. The limit is 60, and each fit says
+    whether it stopped short. Counted fits that reach it: 2 on set A, 9 on set B, the wind's flights
+    and set B's truths included. The shares were fitted again on the code as it now stands.
+11. **A residual that runs on from bin to bin widens the errors.** The standard errors took the bins
+    as independent, but a misfit is correlated from bin to bin. The height's and the track's
+    variances are each widened by $(1+\rho)/(1-\rho)$, $\rho$ their residuals' lag-one
+    autocorrelation, capped at 0.9: the effective number of independent values under a first-order
+    autoregression (Wilks, *Statistical Methods in the Atmospheric Sciences*, 3rd ed., eq. 5.12).
+    Before it, with the shares fitted again, set A's drag (27 below, 918 inside, 55 above) and
+    impulse (28, 922, 50) and set B's drag (81, 878, 41) failed. After it, only set A's drag failed,
+    at 23 below.
+12. **On heights alone, the wind's unknown loss widens the errors.** A log of height alone can't tell
+    the wind, and the wind's loss grows as its speed squared, which the errors' first order at the
+    stated wind leaves out. Set B's wind grows with height, by a power of 0.14 to 0.20, so its loss
+    goes past what a constant wind of the stated range makes. On set B's height-alone logs, the
+    drag's mean error over its standard error ran from −0.22 with a truth wind under 3 m/s
+    (9.8 ft/s) to +1.02 at 9 m/s (30 ft/s) and over (134 flights); on set A, from −0.20 to +0.16. The
+    fit now moves its answer, to first order, to a calm and to the stated range's top wind,
+    11.5 m/s (37.7 ft/s) at 18.3 m (60 ft) for the synthetic flights, grown with height by IEC
+    61400-1's normal profile exponent of 0.2 (IEC 61400-1:2019, §6.3.2.2). The larger move either way,
+    over $\sqrt 3$, joins each standard error in quadrature, as a uniform spread. It costs two flights
+    a fit. A first try, the shear alone at the stated wind, moved set A's drag only to 24 below.
+    After it, every parameter passes on both sets.
+13. **The reviews' smaller corrections.** A barometer's Mach 0.8 cut is taken again from the flight
+    each pass finds, not only the stated one. The port's coefficient is stated from 0 to 0.02 as the
+    logger draws it, centered on 0.01, not on 0. A log of height alone is flown in a wind of the stated
+    range's RMS speed, 5.16 m/s (16.9 ft/s), since a wind of either sign lowers the top. A log whose
+    climb would run past 1,000 s says nothing, so a clock that jumps can't ask for bins past memory.
+    A track's latitude and longitude must share one clock, and a ground station's position isn't
+    read as the rocket's.
 
 ## Evidence
 
 [The report][report] holds the counts. Every parameter passes on both sets, every probe fails, drag,
-impulse and wind are identified on set A, and pure noise leaves all five not identified.
+impulse and wind are identified on set A, and pure noise leaves all five not identified: all 1,400
+fits handed noise say nothing.
 
 ## What this leaves
 
-- **Set A and B aren't untouched.** Decisions 1, 3, 4 and 6 followed their counts. Only the shares are
-  fitted apart, on the calibration set. No set was run again on a new seed. A real flight, or a fresh
+- **Set A and B aren't untouched.** Decisions 1, 3, 4, 6, 8, 11 and 12 followed their counts. Only
+  the shares are fitted apart, on the calibration set. No set was run again on a new seed. A real flight, or a fresh
   set, is the only honest measure of this ([evidence row G38](../evidence.md#g38)).
 - **The errors are mixed.** A flight whose heights fit worse has larger errors than its standard
   errors say, so the shares average over two kinds of flight. The report counts them apart; a pair of
-  shares by residual is open as an issue, not done here. On set B, some designs fall well short of 90%:
-  Prometheus holds 69 of 98 on drag and 112 of 161 on the north wind.
+  shares by residual is [#1108](https://github.com/nrdptel/fusionspace-eridanus/issues/1108). On set
+  B, some designs fall well short of 90%: Prometheus holds 68 of 96 on drag and 127 of 161 on the
+  north wind.
+- **Set B's drag passes at the edge.** It has 29 above, the fewest that pass at 1,000, and 70 below:
+  its fit runs high by 0.005 on average. One flight the other way on another platform fails it.
 - **Accelerometers are unused,** and the fit goes no further than apogee.
 - **No surface.** It's a library function until a later increment.

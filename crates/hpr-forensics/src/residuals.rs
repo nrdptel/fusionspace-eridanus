@@ -756,6 +756,15 @@ pub(crate) mod tests_support {
     /// A flight of height, east and north at each 0.01 s to `until_s`, none of it in the air's
     /// reading: a barometer reads what was climbed.
     pub(crate) fn simulated_of(until_s: f64, flight: impl Fn(f64) -> (f64, f64, f64)) -> Simulated {
+        simulated_at_mach(until_s, 0.0, flight)
+    }
+
+    /// As [`simulated_of`], at `mach` throughout.
+    pub(crate) fn simulated_at_mach(
+        until_s: f64,
+        mach: f64,
+        flight: impl Fn(f64) -> (f64, f64, f64),
+    ) -> Simulated {
         let steps = (until_s / 0.01).ceil() as u32;
         let moments = (0..=steps)
             .map(|k| {
@@ -770,7 +779,7 @@ pub(crate) mod tests_support {
                     axial_specific_force_m_s2: 0.0,
                     east_m,
                     north_m,
-                    mach: 0.0,
+                    mach,
                     port_m: 0.0,
                 }
             })

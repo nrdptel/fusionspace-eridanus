@@ -38,16 +38,63 @@ const CALIBRATION_TRACK_FLIGHTS: u64 = 1_000;
 /// long tails, so a narrowed interval moves few flights: at 1,010 the probe narrowed to 0.8 came
 /// out at the edge of its band on set B, and the bands are drawn tighter here for every count.
 const TRACK_FLIGHTS: u64 = 1_500;
+/// Flights counted on the drag, impulse and mass, from each test set: each with something to fit,
+/// since a log that said nothing states its range whatever the fit does.
+const COUNTED_FLIGHTS: usize = 1_000;
+/// Flights fitted from each test set to find them, at the first of which about 82% have something
+/// to fit (the report prints it).
+const FIT_FLIGHTS: u64 = 1_300;
 /// Flights of set A given pure noise in place of their logs.
 const NOISE_FLIGHTS: u64 = 200;
 /// Pure noise, each given in place of a log: what fills it, and its size, m.
-const NOISES: [(Noisy, f64); 3] = [
+const NOISES: [Noise; 7] = [
     // A sensor's size and a flight's, so that the reader may find a climb in it.
-    (Noisy::Log, 5.0),
-    (Noisy::Log, 1_000.0),
-    // Past the reader, which turns both away: the fit itself on noise a flight's size.
-    (Noisy::Bins, 1_000.0),
+    Noise {
+        how: Noisy::Log,
+        size_m: 5.0,
+        track_m: None,
+    },
+    Noise {
+        how: Noisy::Log,
+        size_m: 1_000.0,
+        track_m: None,
+    },
+    // Past the reader, which turns those away: the fit itself, at sizes from a sensor's to a
+    // flight's, of height alone and with a track of noise, which is what the wind listens to.
+    Noise {
+        how: Noisy::Bins,
+        size_m: 5.0,
+        track_m: None,
+    },
+    Noise {
+        how: Noisy::Bins,
+        size_m: 50.0,
+        track_m: None,
+    },
+    Noise {
+        how: Noisy::Bins,
+        size_m: 1_000.0,
+        track_m: None,
+    },
+    Noise {
+        how: Noisy::Bins,
+        size_m: 5.0,
+        track_m: Some(5.0),
+    },
+    Noise {
+        how: Noisy::Bins,
+        size_m: 1_000.0,
+        track_m: Some(5.0),
+    },
 ];
+
+/// What's given in place of a log.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+struct Noise {
+    how: Noisy,
+    size_m: f64,
+    track_m: Option<f64>,
+}
 
 /// How noise reaches a fit.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -65,7 +112,7 @@ fn fit_set(
     set: Set,
     indices: &[u64],
     files: &DesignFiles,
-    noise: Option<(Noisy, f64)>,
+    noise: Option<Noise>,
 ) -> Result<Vec<FlightFit>, String> {
     let threads = std::thread::available_parallelism().map_or(1, usize::from);
     let results: Vec<Result<Vec<FlightFit>, String>> = std::thread::scope(|scope| {
@@ -80,19 +127,26 @@ fn fit_set(
                             .flight(set, index)
                             .map_err(|e| format!("{set:?} flight {index}: {e}"))?;
                         let log = match noise {
-                            Some((Noisy::Bins, size_m)) => {
+                            Some(Noise {
+                                how: Noisy::Bins,
+                                size_m,
+                                track_m,
+                            }) => {
                                 made.push(fits::fit_noise_bins(
                                     &flight,
                                     set,
                                     size_m,
+                                    track_m,
                                     files,
                                     &mut tables,
                                 ));
                                 continue;
                             }
-                            Some((Noisy::Log, size_m)) => {
-                                fits::noise_log(&flight.log, size_m, set.seed(), index)
-                            }
+                            Some(Noise {
+                                how: Noisy::Log,
+                                size_m,
+                                ..
+                            }) => fits::noise_log(&flight.log, size_m, set.seed(), index),
                             None => flight.log.clone(),
                         };
                         made.push(
@@ -128,16 +182,13 @@ fn first(count: u64) -> Vec<u64> {
 /// `set`'s flights and the wind's flights with a track, fitted, each once.
 fn fit_with_track(
     set: Set,
+    flights: u64,
     track_flights: u64,
     files: &DesignFiles,
 ) -> Result<(Vec<FlightFit>, Vec<FlightFit>), String> {
-    let whole = first(set.count());
+    let whole = first(flights);
     let track = fits::track_flights(set, track_flights);
-    let extra: Vec<u64> = track
-        .iter()
-        .copied()
-        .filter(|k| *k >= set.count())
-        .collect();
+    let extra: Vec<u64> = track.iter().copied().filter(|k| *k >= flights).collect();
     let made = fit_set(set, &whole, files, None)?;
     let more = fit_set(set, &extra, files, None)?;
     let tracked: Vec<FlightFit> = made
@@ -153,9 +204,16 @@ fn fit_with_track(
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 struct SetReport {
     set: Set,
+    /// Flights counted, each with something to fit.
     flights: u64,
-    /// Fits with nothing to read in the log, each parameter then as stated.
+    /// The set's first flights that it took to find them.
+    drawn: u64,
+    /// Of those, the logs with nothing to fit, each parameter then as stated, and not counted.
     said_nothing: u64,
+    /// Counted fits that reached their iterations' limit, a truth's fit among them.
+    not_converged: u64,
+    /// The largest residual of a counted fit, as a share of the spread of the heights read.
+    largest_misfit: f64,
     checks: Vec<Check>,
 }
 
@@ -164,6 +222,9 @@ struct SetReport {
 struct NoiseReport {
     how: Noisy,
     size_m: f64,
+    track_m: Option<f64>,
+    /// The least residual, as a share of the spread of the heights read, of those that came to one.
+    smallest_misfit: Option<f64>,
     flights: u64,
     said_nothing: u64,
     identified: BTreeMap<Asked, Identification>,
@@ -232,6 +293,8 @@ impl Apart {
                     if flights > OTHER_PLATFORM_FLIGHTS {
                         self.broken.push(format!("{at}: {a} committed, {b} made"));
                     }
+                } else if a.is_f64() != b.is_f64() {
+                    self.broken.push(format!("{at}: a count against a figure"));
                 } else {
                     let (a, b) = (
                         a.as_f64().unwrap_or(f64::NAN),
@@ -310,7 +373,10 @@ fn set_report(
         SetReport {
             set,
             flights: fits_made.len() as u64,
-            said_nothing: fits_made.iter().filter(|f| !f.fitted).count() as u64,
+            drawn: 0,
+            said_nothing: 0,
+            not_converged: 0,
+            largest_misfit: 0.0,
             checks,
         },
         broken,
@@ -320,6 +386,7 @@ fn set_report(
 /// Rounds a report's real numbers to three figures, so that its text moves only with a result.
 fn rounded(mut report: Report) -> Report {
     for set in &mut report.sets {
+        set.largest_misfit = three(set.largest_misfit);
         for check in &mut set.checks {
             check.mean_error = three(check.mean_error);
             let id = &mut check.identification;
@@ -328,6 +395,7 @@ fn rounded(mut report: Report) -> Report {
         }
     }
     for noise in &mut report.noise {
+        noise.smallest_misfit = noise.smallest_misfit.map(three);
         for id in noise.identified.values_mut() {
             id.median_width = three(id.median_width);
             id.stated_width = three(id.stated_width);
@@ -348,10 +416,18 @@ fn page(report: &Report) -> String {
     for set in &report.sets {
         let _ = writeln!(
             out,
-            "## Set {:?}: {} flights, {} with nothing to fit\n\n| Parameter | Below | Inside | Above | \
+            "## Set {:?}: {} flights counted\n\nOf its first {}, {} had nothing to fit and aren't \
+             counted. A wind is counted on {TRACK_FLIGHTS} flights of the logger with a track, \
+             some past these, each with something to fit. {} counted fits reached their iterations' limit. \
+             The largest residual is {} of the spread of the heights read.\n\n| Parameter | Below | Inside | Above | \
              Test | Narrowed, widened, shifted | Mean error | Median width / stated | Identified |\n\
              |---|---:|---:|---:|---|---|---:|---:|---|",
-            set.set, set.flights, set.said_nothing
+            set.set,
+            set.flights,
+            set.drawn,
+            set.said_nothing,
+            set.not_converged,
+            set.largest_misfit,
         );
         for c in &set.checks {
             let probes: Vec<&str> = c
@@ -419,21 +495,30 @@ fn page(report: &Report) -> String {
     }
     let _ = writeln!(
         out,
-        "## Pure noise in place of the log\n\n| Noise | Reaches | Flights | With nothing to fit | \
-         Parameter | Median width / stated | Identified |\n|---:|---|---:|---:|---|---:|---|"
+        "## Pure noise in place of the log\n\nThe smallest residual is that of the fits that came to \
+         one, a share of the spread of the heights read; past {} a log says nothing.\n\n| Height noise \
+         | Track noise | Reaches | Flights | With nothing to fit | Smallest residual | Parameter | \
+         Median width / stated | Identified |\n|---:|---:|---|---:|---:|---:|---|---:|---|",
+        hpr_forensics::fit::MISFIT_SHARE
     );
     for noise in &report.noise {
         for (asked, id) in &noise.identified {
             let _ = writeln!(
                 out,
-                "| ±{} m | {} | {} | {} | {} | {} / {} | {} |",
+                "| ±{} m | {} | {} | {} | {} | {} | {} | {} / {} | {} |",
                 noise.size_m,
+                noise
+                    .track_m
+                    .map_or("none".to_owned(), |track_m| format!("±{track_m} m")),
                 match noise.how {
                     Noisy::Log => "the reader",
                     Noisy::Bins => "the fit",
                 },
                 noise.flights,
                 noise.said_nothing,
+                noise
+                    .smallest_misfit
+                    .map_or("none".to_owned(), |share| share.to_string()),
                 asked.name(),
                 id.median_width,
                 id.stated_width,
@@ -449,14 +534,46 @@ fn make(files: &DesignFiles) -> Result<(Report, Vec<String>), String> {
     let mut broken = Vec::new();
     let mut sets = Vec::new();
     for set in [Set::A, Set::B] {
-        let (made, tracked) = fit_with_track(set, TRACK_FLIGHTS, files)?;
-        let (report, problems) = set_report(set, &made, &tracked);
+        let (made, tracked) = fit_with_track(set, FIT_FLIGHTS, TRACK_FLIGHTS, files)?;
+        let fitted = made.iter().filter(|f| f.fitted).count();
+        if fitted < COUNTED_FLIGHTS {
+            broken.push(format!(
+                "{set:?}: {fitted} of {} flights have something to fit, under {COUNTED_FLIGHTS}",
+                made.len()
+            ));
+        }
+        let counted: Vec<FlightFit> = made
+            .iter()
+            .filter(|f| f.fitted)
+            .take(COUNTED_FLIGHTS)
+            .cloned()
+            .collect();
+        let (mut report, problems) = set_report(set, &counted, &tracked);
+        report.drawn = counted.last().map_or(0, |f| f.index + 1);
+        report.said_nothing = made
+            .iter()
+            .filter(|f| !f.fitted && f.index < report.drawn)
+            .count() as u64;
+        let tally =
+            |flights: &[FlightFit]| flights.iter().filter(|f| f.fitted && !f.converged).count();
+        report.not_converged = (tally(&counted) + tally(&tracked)) as u64;
+        report.largest_misfit = counted
+            .iter()
+            .chain(&tracked)
+            .filter(|f| f.fitted)
+            .filter_map(|f| f.misfit_share)
+            .fold(0.0, f64::max);
         sets.push(report);
         broken.extend(problems);
     }
     let mut noise = Vec::new();
-    for (how, size_m) in NOISES {
-        let made = fit_set(Set::A, &first(NOISE_FLIGHTS), files, Some((how, size_m)))?;
+    for given in NOISES {
+        let made = fit_set(Set::A, &first(NOISE_FLIGHTS), files, Some(given))?;
+        let Noise {
+            how,
+            size_m,
+            track_m,
+        } = given;
         let identified: BTreeMap<Asked, Identification> = ASKED
             .iter()
             .map(|&asked| (asked, Identification::of(asked, &made)))
@@ -474,6 +591,11 @@ fn make(files: &DesignFiles) -> Result<(Report, Vec<String>), String> {
         noise.push(NoiseReport {
             how,
             size_m,
+            track_m,
+            smallest_misfit: made
+                .iter()
+                .filter_map(|f| f.misfit_share)
+                .min_by(f64::total_cmp),
             flights: made.len() as u64,
             said_nothing: made.iter().filter(|f| !f.fitted).count() as u64,
             identified,
@@ -501,8 +623,12 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let files = crate::synthetic::design_files(&root)?;
     match args.iter().map(String::as_str).collect::<Vec<_>>()[..] {
         ["--calibrate"] => {
-            let (made, tracked) =
-                fit_with_track(Set::Calibration, CALIBRATION_TRACK_FLIGHTS, &files)?;
+            let (made, tracked) = fit_with_track(
+                Set::Calibration,
+                Set::Calibration.count(),
+                CALIBRATION_TRACK_FLIGHTS,
+                &files,
+            )?;
             for asked in ASKED {
                 println!(
                     "{asked:?}: height {:?}, track {:?}",
@@ -579,8 +705,12 @@ pub fn run(args: &[String]) -> Result<(), String> {
             let check = !args.is_empty();
             let (report, mut broken) = make(&files)?;
             if check {
-                let (made, tracked) =
-                    fit_with_track(Set::Calibration, CALIBRATION_TRACK_FLIGHTS, &files)?;
+                let (made, tracked) = fit_with_track(
+                    Set::Calibration,
+                    Set::Calibration.count(),
+                    CALIBRATION_TRACK_FLIGHTS,
+                    &files,
+                )?;
                 for asked in ASKED {
                     for (drift, on) in [(false, &made), (true, &tracked)] {
                         let in_force = fits::shares(asked, drift);
@@ -608,8 +738,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
                 let committed_page = fs::read_to_string(&page_path)
                     .map_err(|e| format!("{}: {e}", page_path.display()))?;
                 if committed != json || committed_page != text {
-                    return Err(format!(
-                        "{REPORT}.{{json,md}} don't reproduce: run `cargo xtask fit`"
+                    broken.push(format!(
+                        "{REPORT}.{{json,md}} don't reproduce: run `cargo run --profile \
+                         report-check -p xtask -- fit`"
                     ));
                 }
             } else {
@@ -679,9 +810,29 @@ mod tests {
     #[test]
     fn noise_tells_a_fit_nothing() {
         let files = files();
-        let bins = fit_set(Set::A, &first(2), &files, Some((Noisy::Bins, 1_000.0))).unwrap();
-        let log = fit_set(Set::A, &first(2), &files, Some((Noisy::Log, 5.0))).unwrap();
-        assert!(bins.iter().all(|f| f.fitted));
+        let bins = fit_set(
+            Set::A,
+            &first(2),
+            &files,
+            Some(Noise {
+                how: Noisy::Bins,
+                size_m: 1_000.0,
+                track_m: Some(5.0),
+            }),
+        )
+        .unwrap();
+        let log = fit_set(
+            Set::A,
+            &first(2),
+            &files,
+            Some(Noise {
+                how: Noisy::Log,
+                size_m: 5.0,
+                track_m: None,
+            }),
+        )
+        .unwrap();
+        assert!(bins.iter().all(|f| !f.fitted));
         assert!(log.iter().all(|f| !f.fitted));
         for asked in ASKED {
             assert!(!Identification::of(asked, &bins).identified, "{asked:?}");
@@ -734,6 +885,11 @@ mod tests {
                 .is_empty()
         );
         assert!(!apart(json!({"a": 1}), json!({"b": 1})).broken.is_empty());
+        assert!(
+            !apart(json!({"n": 100}), json!({"n": 104.0}))
+                .broken
+                .is_empty()
+        );
         assert!(!apart(json!([1, 2]), json!([1])).broken.is_empty());
     }
 
@@ -780,6 +936,51 @@ mod tests {
             )
             .replace('-', "\u{2212}");
             assert!(page.contains(&row), "the page lacks {row}");
+        }
+    }
+
+    #[test]
+    fn temp_noise_free_on_a() {
+        let files = files();
+        let mut tables = BTreeMap::new();
+        let mut rows = Vec::new();
+        let mut flyer = hpr_forensics::synthetic::Flyer::new(files.clone());
+        for index in 0..240_u64 {
+            let flight = flyer.flight(Set::A, index).unwrap();
+            let read = hpr_flightdata::readings::read(&flight.log);
+            let Some(observed) = hpr_forensics::fit::observations(&flight.log, &read) else {
+                continue;
+            };
+            let weighed = fits::weighed_factor(Set::A, index);
+            let answer = hpr_forensics::fit::fit(
+                Some(&observed),
+                &fits::stated_for(Some(&observed)),
+                hpr_forensics::fit::Noise::FromResiduals,
+                &mut fits::Flown::new(&flight.draw, &files, weighed, &mut tables),
+            );
+            if !answer.fitted {
+                continue;
+            }
+            let free = fits::noise_free(&observed, &answer, &flight, &files, &mut tables).unwrap();
+            let p = free.parameters;
+            println!(
+                "ROW {index} {} {} {:.5} {:.5} {:.5} {:.5} {:.5} {:.4} {:.4} {:.4} {:.4} {:.4} {:.2} {:.3}",
+                flight.draw.design,
+                !observed.horizontal.is_empty(),
+                p.drag_scale - flight.draw.drag_scale,
+                p.impulse_scale - flight.draw.impulse_scale,
+                answer.standard_errors[1],
+                answer.parameters.impulse_scale - flight.draw.impulse_scale,
+                answer.parameters.drag_scale - flight.draw.drag_scale,
+                flight.draw.wind_speed_m_s,
+                flight.draw.burn_time_scale,
+                flight.draw.impulse_scale,
+                flight.draw.drag_scale,
+                p.burn_time_scale,
+                p.wind_east_m_s.hypot(p.wind_north_m_s),
+                free.rms_m.unwrap()
+            );
+            rows.push(index);
         }
     }
 

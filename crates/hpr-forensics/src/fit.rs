@@ -46,7 +46,10 @@
 //! [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 //! [adr-316]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md
 
+use std::cell::Cell;
+
 use hpr_flightdata::log::{FlightLog, Quantity};
+use hpr_flightdata::readings::interval::Z_90;
 use hpr_flightdata::readings::{self, Reading, Readings};
 use serde::{Deserialize, Serialize};
 
@@ -61,7 +64,7 @@ pub const FLOOR_M: f64 = readings::NOISE_M;
 /// boost, which the bins' median doesn't remove (`crate::synthetic::logger`'s loop).
 pub const FLOOR_HORIZONTAL_M: f64 = 10.0;
 /// The most iterations of a pass of the fit.
-const MAX_ITERATIONS: usize = 12;
+const MAX_ITERATIONS: usize = 60;
 /// A step that lowers χ² by less than this ends a pass.
 const CONVERGED_CHI2: f64 = 1e-3;
 /// How far the first clock offset is searched either side of the reader's liftoff, s.
@@ -136,12 +139,12 @@ pub struct Prior {
 pub type Stated = [Prior; FLOWN];
 
 /// How a fit takes its residuals' noise.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum Noise {
     /// From the fit's residuals, floored at [`FLOOR_M`] and [`FLOOR_HORIZONTAL_M`].
     FromResiduals,
-    /// As given, every sensor's unknown still open: the same fit as a log's, to a flight with no
-    /// noise to estimate it from.
+    /// As given, every sensor's unknown still open: the same fit as a log's, to a flight read with
+    /// no sensor's noise or errors, so its port's coefficient is stated about nothing.
     Given {
         /// A height's, m.
         height_m: f64,
@@ -159,7 +162,7 @@ pub enum Noise {
 }
 
 /// What a fit reads.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Observations {
     /// What the heights stand for.
     pub kind: HeightKind,
@@ -187,6 +190,19 @@ fn median(values: &mut Vec<f64>) -> Option<f64> {
         _ => Some(0.5 * (values[n / 2 - 1] + values[n / 2])),
     }
 }
+
+/// The longest climb a log may state, s, from a second before liftoff to apogee: past any hobby
+/// rocket's by far, so a clock that jumps can't ask for bins beyond any memory.
+const MAX_WINDOW_S: f64 = 1_000.0;
+
+/// How far a fit's residual may stand from its log, a share of the spread of the heights it read:
+/// past it, the simulation explains too little of them for this to be the log of this flight, and
+/// the log says nothing, whatever the errors come to. On a log of noise, nothing is explained and
+/// the share stands near one; every synthetic flight fits far under it (the report's margin,
+/// [ADR-316][adr-316]).
+///
+/// [adr-316]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md
+pub const MISFIT_SHARE: f64 = 0.1;
 
 /// `samples`, in any order, as a median in each bin of [`BIN_S`] from `from_s` to `to_s`.
 fn binned(samples: impl Iterator<Item = (f64, f64)>, from_s: f64, to_s: f64) -> Vec<(f64, f64)> {
@@ -239,7 +255,7 @@ pub fn observations(log: &FlightLog, read: &Readings) -> Option<Observations> {
         // No liftoff to read, as a log from launch has: its first sample stands for it.
         Reading::Withheld(_) => times.iter().copied().find(|t| t.is_finite())?,
     };
-    if apogee_s <= liftoff_s {
+    if apogee_s <= liftoff_s || apogee_s - liftoff_s > MAX_WINDOW_S {
         return None;
     }
     let kind = HeightKind::of(apogee.source);
@@ -262,13 +278,23 @@ pub fn observations(log: &FlightLog, read: &Readings) -> Option<Observations> {
 /// The log's latitude and longitude as meters from the pad, its median before `liftoff_s` or
 /// else its first fix, binned; empty where it holds no track.
 fn horizontal(log: &FlightLog, from_s: f64, to_s: f64, liftoff_s: f64) -> Vec<(f64, f64, f64)> {
-    let (Some(latitude), Some(longitude)) = (
-        log.channels_of(Quantity::Latitude).next(),
-        log.channels_of(Quantity::Longitude).next(),
-    ) else {
+    // A ground station's own position isn't the rocket's.
+    let rockets = |quantity| {
+        log.channels_of(quantity)
+            .find(|channel| !channel.column.starts_with("gs_"))
+    };
+    let (Some(latitude), Some(longitude)) =
+        (rockets(Quantity::Latitude), rockets(Quantity::Longitude))
+    else {
         return Vec::new();
     };
-    if latitude.time_s.len() != longitude.time_s.len() {
+    // A fix is a latitude and longitude of one time.
+    if !latitude
+        .time_s
+        .iter()
+        .map(|t| t.to_bits())
+        .eq(longitude.time_s.iter().map(|t| t.to_bits()))
+    {
         return Vec::new();
     }
     let before = |values: &[f64]| {
@@ -309,7 +335,13 @@ fn horizontal(log: &FlightLog, from_s: f64, to_s: f64, liftoff_s: f64) -> Vec<(f
         to_s,
     );
     east.iter()
-        .filter_map(|&(t, e)| north.iter().find(|(u, _)| *u == t).map(|&(_, n)| (t, e, n)))
+        .filter_map(|&(t, e)| {
+            // Both are in time order, in bins of one grid.
+            north
+                .binary_search_by(|(u, _)| u.total_cmp(&t))
+                .ok()
+                .map(|at| (t, e, north[at].1))
+        })
         .collect()
 }
 
@@ -321,7 +353,25 @@ pub trait Forward {
     ///
     /// Why it can't fly: the fit steps back from a step that can't.
     fn fly(&mut self, parameters: &Parameters, until_s: f64) -> Result<Simulated, String>;
+
+    /// As [`Forward::fly`], with the wind's speed taken where its stated wind is measured and
+    /// growing with height above it as the power `exponent`: `V(z) = V_ref (z / z_ref)^α`.
+    ///
+    /// # Errors
+    ///
+    /// As [`Forward::fly`].
+    fn fly_sheared(
+        &mut self,
+        parameters: &Parameters,
+        until_s: f64,
+        exponent: f64,
+    ) -> Result<Simulated, String>;
 }
+
+/// The wind's shear a fit of heights alone carries: the power-law exponent of IEC 61400-1's normal
+/// wind profile (IEC 61400-1:2019, §6.3.2.2, α = 0.2), above the 1/7 law's neutral 0.14. The fit's
+/// wind is constant with height, and a real one grows.
+pub const SHEAR_EXPONENT: f64 = 0.2;
 
 /// A fit's answer.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -342,6 +392,15 @@ pub struct Fit {
     pub horizontal_noise_m: f64,
     /// Whether the log was fitted at all. If not, each parameter is what was stated of it.
     pub fitted: bool,
+    /// Whether its last pass stopped at the bottom, not at [`MAX_ITERATIONS`].
+    pub converged: bool,
+    /// The heights' residual's RMS as a share of the spread of the heights read; past
+    /// [`MISFIT_SHARE`] the log said nothing. `None` where it never came to one.
+    pub misfit_share: Option<f64>,
+    /// Whether each of the log's height bins was read, in their order; empty where the log said
+    /// nothing. A barometer's bins at or past [`readings::TRANSONIC_MACH`] on the flight found are
+    /// left out.
+    pub read: Vec<bool>,
     /// Flights flown.
     pub flown: u64,
 }
@@ -359,6 +418,9 @@ impl Fit {
             height_noise_m: FLOOR_M,
             horizontal_noise_m: FLOOR_HORIZONTAL_M,
             fitted: false,
+            converged: false,
+            misfit_share: None,
+            read: Vec::new(),
             flown: 0,
         }
     }
@@ -375,9 +437,12 @@ const CLOCK_OFFSET_SD_S: f64 = 2.0;
 const GAIN_SD: f64 = 0.0025 / 1.732_050_807_568_877_2;
 /// What is stated of a barometer's drift, m/s: a pad that moves 1 m in 20 s of flight.
 const DRIFT_SD_M_S: f64 = 0.05;
-/// What is stated of a barometer's port's pressure coefficient: within
-/// [`readings::PORT_PRESSURE_COEFFICIENT`] of nothing, as a uniform draw's standard deviation.
-const PORT_SD: f64 = readings::PORT_PRESSURE_COEFFICIENT / 1.732_050_807_568_877_2;
+/// What is stated of a barometer's port's pressure coefficient, on its reading above the true
+/// height: a uniform draw from nothing up to [`readings::PORT_PRESSURE_COEFFICIENT`], as the
+/// tunnel's coefficients below Mach 0.8 lie, negative in pressure (`synthetic::noise`). Its middle:
+const PORT_MEAN: f64 = 0.5 * readings::PORT_PRESSURE_COEFFICIENT;
+/// And its standard deviation.
+const PORT_SD: f64 = readings::PORT_PRESSURE_COEFFICIENT / 3.464_101_615_137_754_6;
 /// What is stated of an offset known exactly, in its unit: small enough to hold it, large enough
 /// for the normal equations to stay well conditioned.
 const KNOWN_SD: f64 = 1e-4;
@@ -392,6 +457,7 @@ struct Problem<'a> {
     height_offset_sd_m: f64,
     gain_sd: f64,
     drift_sd_m_s: f64,
+    port_mean: f64,
     port_sd: f64,
     height_sd_m: f64,
     horizontal_sd_m: f64,
@@ -441,7 +507,7 @@ impl Problem<'_> {
         r.push(h0 / self.height_offset_sd_m);
         r.push(x[FLOWN + 2] / self.gain_sd);
         r.push(x[FLOWN + 3] / self.drift_sd_m_s);
-        r.push(x[FLOWN + 4] / self.port_sd);
+        r.push((x[FLOWN + 4] - self.port_mean) / self.port_sd);
         r
     }
 
@@ -537,9 +603,9 @@ pub fn fit(
     };
     // Long enough for a rocket that flies well past the stated flight's top.
     let until_s = 1.6 * observed.flown_s + 5.0;
-    let mut flown = 0_u64;
+    let flown = Cell::new(0_u64);
     let mut fly = |x: &[f64; UNKNOWNS]| {
-        flown += 1;
+        flown.set(flown.get() + 1);
         let mut parameters = [0.0; FLOWN];
         parameters.copy_from_slice(&x[..FLOWN]);
         forward
@@ -550,8 +616,12 @@ pub fn fit(
     for (value, prior) in x.iter_mut().zip(stated) {
         *value = prior.mean;
     }
+    let nothing = || Fit {
+        flown: flown.get(),
+        ..Fit::of_nothing(stated)
+    };
     let Some(mut at_x) = fly(&x) else {
-        return Fit::of_nothing(stated);
+        return nothing();
     };
     let open_sensors = |height_sd_m: f64, horizontal_sd_m: f64| Problem {
         observed,
@@ -567,6 +637,13 @@ pub fn fit(
             KNOWN_SD
         },
         drift_sd_m_s: DRIFT_SD_M_S,
+        port_mean: if observed.kind == HeightKind::Barometric
+            && matches!(noise, Noise::FromResiduals)
+        {
+            PORT_MEAN
+        } else {
+            0.0
+        },
         port_sd: if observed.kind == HeightKind::Barometric {
             PORT_SD
         } else {
@@ -593,6 +670,7 @@ pub fn fit(
             height_offset_sd_m: KNOWN_SD,
             gain_sd: KNOWN_SD,
             drift_sd_m_s: KNOWN_SD,
+            port_mean: 0.0,
             port_sd: KNOWN_SD,
             height_sd_m: height_m,
             horizontal_sd_m: horizontal_m,
@@ -600,20 +678,29 @@ pub fn fit(
         },
     };
     x[FLOWN] = problem.clock_mean_s;
-    problem.read = observed
-        .heights
-        .iter()
-        .map(|&(t, _)| {
-            observed.reads_transonic || at_x.mach(t - x[FLOWN]) < readings::TRANSONIC_MACH
-        })
-        .collect();
+    x[FLOWN + 4] = problem.port_mean;
     let mut information = [[0.0; UNKNOWNS]; UNKNOWNS];
-    let passes = if matches!(noise, Noise::FromResiduals) {
-        2
-    } else {
+    let mut converged = false;
+    // A first pass on the stated flight, then one on what it found: the noise from its residuals
+    // and the bins it reads from the flight it found, as a rocket faster than stated passes
+    // Mach 0.8 earlier. With the noise and clock known there's no second to take.
+    let passes = if matches!(noise, Noise::Known { .. }) {
         1
+    } else {
+        2
     };
     for pass in 0..passes {
+        problem.read = observed
+            .heights
+            .iter()
+            .map(|&(t, _)| {
+                observed.reads_transonic || at_x.mach(t - x[FLOWN]) < readings::TRANSONIC_MACH
+            })
+            .collect();
+        if problem.read.iter().filter(|read| **read).count() <= UNKNOWNS {
+            return nothing();
+        }
+        converged = false;
         let mut lambda = 1e-3;
         let mut r = problem.residuals(&x, &at_x);
         let mut cost = chi2(&r);
@@ -680,6 +767,8 @@ pub fn fit(
                 lambda *= 10.0;
             }
             let Some((flight, tried, tried_cost)) = improved else {
+                // No step down at any damping: it stands at the bottom, to rounding.
+                converged = true;
                 break;
             };
             let drop = cost - tried_cost;
@@ -687,14 +776,23 @@ pub fn fit(
             r = tried;
             cost = tried_cost;
             if drop < CONVERGED_CHI2 {
+                converged = true;
                 break;
             }
         }
-        if pass + 1 < passes {
+        if pass + 1 < passes && matches!(noise, Noise::FromResiduals) {
             let (height, horizontal) = residual_noise(&problem, &x, &at_x);
             problem.height_sd_m = height.max(FLOOR_M);
             problem.horizontal_sd_m = horizontal.max(FLOOR_HORIZONTAL_M);
         }
+    }
+    // The noise as the fit weighed it, and as its errors take it: a residual that runs on from bin
+    // to bin tells less than as many independent ones.
+    let (height_noise_m, horizontal_noise_m) = (problem.height_sd_m, problem.horizontal_sd_m);
+    if matches!(noise, Noise::FromResiduals) {
+        let (height, horizontal) = residual_correlation(&problem, &x, &at_x);
+        problem.height_sd_m *= inflation(height).sqrt();
+        problem.horizontal_sd_m *= inflation(horizontal).sqrt();
     }
     // The Jacobian at the solution, with the noise as it ends.
     let r = problem.residuals(&x, &at_x);
@@ -703,7 +801,7 @@ pub fn fit(
         let mut ahead = x;
         ahead[j] += step;
         let Some(flight) = fly(&ahead) else {
-            return Fit::of_nothing(stated);
+            return nothing();
         };
         let mut column = problem.residuals(&ahead, &flight);
         for (c, b) in column.iter_mut().zip(&r) {
@@ -720,27 +818,99 @@ pub fn fit(
         }
     }
     let Some(l) = cholesky(&information) else {
-        return Fit::of_nothing(stated);
+        return nothing();
     };
+    let mut parameters = [0.0; FLOWN];
+    parameters.copy_from_slice(&x[..FLOWN]);
+    // Heights alone can't tell the wind, and its loss grows as its speed squared, which the
+    // errors' first order at the stated wind leaves out. So the answer is moved, to first order,
+    // to a calm and to the stated range's top wind grown with height by [`SHEAR_EXPONENT`], and
+    // the wind's spread is anywhere between: the larger move either way, as the standard
+    // deviation of a uniform spread, `δ/√3`.
+    let mut windy = [0.0; UNKNOWNS];
+    if matches!(noise, Noise::FromResiduals) && observed.horizontal.is_empty() {
+        let (east, north) = (&stated[3], &stated[4]);
+        // Toward the stated wind's way, clockwise from north; north where none is stated.
+        let toward = east.mean.atan2(north.mean);
+        let top = east.mean.hypot(north.mean) + Z_90 * east.sd.max(north.sd);
+        let with_wind = |speed: f64| {
+            let mut at = parameters;
+            at[3] = speed * toward.sin();
+            at[4] = speed * toward.cos();
+            Parameters::from_array(at)
+        };
+        flown.set(flown.get() + 2);
+        let (Ok(calm), Ok(strong)) = (
+            forward.fly(&with_wind(0.0), until_s),
+            forward.fly_sheared(&with_wind(top), until_s, SHEAR_EXPONENT),
+        ) else {
+            return nothing();
+        };
+        let moved = |flight: &Simulated| {
+            let to = problem.residuals(&x, flight);
+            let mut pull = [0.0; UNKNOWNS];
+            for (p, column) in pull.iter_mut().zip(&columns) {
+                *p = column
+                    .iter()
+                    .zip(to.iter().zip(&r))
+                    .map(|(c, (m, b))| c * (m - b))
+                    .sum();
+            }
+            solve(&l, &pull)
+        };
+        let (to_calm, to_strong) = (moved(&calm), moved(&strong));
+        for (w, (a, b)) in windy.iter_mut().zip(to_calm.iter().zip(&to_strong)) {
+            *w = a.abs().max(b.abs());
+        }
+    }
     let mut standard_errors = [0.0; FLOWN];
     for (j, se) in standard_errors.iter_mut().enumerate() {
         let mut unit = [0.0; UNKNOWNS];
         unit[j] = 1.0;
-        *se = solve(&l, &unit)[j].sqrt();
+        *se = (solve(&l, &unit)[j] + windy[j].powi(2) / 3.0).sqrt();
     }
-    let mut parameters = [0.0; FLOWN];
-    parameters.copy_from_slice(&x[..FLOWN]);
     let (rms_m, _) = residual_noise(&problem, &x, &at_x);
+    let misfit_share = rms_m / problem.read_spread_m();
+    if !(misfit_share <= MISFIT_SHARE) {
+        return Fit {
+            misfit_share: Some(misfit_share),
+            ..nothing()
+        };
+    }
     Fit {
         parameters: Parameters::from_array(parameters),
         standard_errors,
         clock_offset_s: x[FLOWN],
         height_offset_m: x[FLOWN + 1],
         rms_m: Some(rms_m),
-        height_noise_m: problem.height_sd_m,
-        horizontal_noise_m: problem.horizontal_sd_m,
+        height_noise_m,
+        horizontal_noise_m,
         fitted: true,
-        flown,
+        converged,
+        misfit_share: Some(misfit_share),
+        read: problem.read,
+        flown: flown.get(),
+    }
+}
+
+impl Problem<'_> {
+    /// The standard deviation of the heights read, m.
+    fn read_spread_m(&self) -> f64 {
+        let read: Vec<f64> = self
+            .observed
+            .heights
+            .iter()
+            .zip(&self.read)
+            .filter(|(_, read)| **read)
+            .map(|(&(_, h), _)| h)
+            .collect();
+        #[expect(
+            clippy::cast_precision_loss,
+            reason = "a count of bins is far below 2^53"
+        )]
+        let n = read.len().max(1) as f64;
+        let mean = read.iter().sum::<f64>() / n;
+        (read.iter().map(|h| (h - mean).powi(2)).sum::<f64>() / n).sqrt()
     }
 }
 
@@ -781,6 +951,66 @@ fn residual_noise(problem: &Problem<'_>, x: &[f64; UNKNOWNS], flown: &Simulated)
     )
 }
 
+/// The most a residual's correlation from one bin to the next is taken as, so that a residual that
+/// barely moves still leaves the errors finite.
+const MAX_CORRELATION: f64 = 0.9;
+
+/// How much a residual of lag-one correlation `rho` widens a variance: `(1 + ρ)/(1 − ρ)`, the
+/// ratio of a series' length to its effective number of independent values under a first-order
+/// autoregression (Wilks, *Statistical Methods in the Atmospheric Sciences*, 3rd ed., 2011,
+/// eq. 5.12). None where it's negative, which would narrow it.
+fn inflation(rho: f64) -> f64 {
+    let rho = rho.clamp(0.0, MAX_CORRELATION);
+    (1.0 + rho) / (1.0 - rho)
+}
+
+/// The lag-one autocorrelation of the read heights' residuals and of the track's, east and north
+/// pooled, each about its mean; 0 where there are too few to tell.
+fn residual_correlation(
+    problem: &Problem<'_>,
+    x: &[f64; UNKNOWNS],
+    flown: &Simulated,
+) -> (f64, f64) {
+    let observed = problem.observed;
+    let heights: Vec<f64> = observed
+        .heights
+        .iter()
+        .zip(&problem.read)
+        .filter(|(_, used)| **used)
+        .map(|(&(t, y), _)| y - problem.height_m(x, flown, t))
+        .collect();
+    let (east, north): (Vec<f64>, Vec<f64>) = observed
+        .horizontal
+        .iter()
+        .map(|&(t, e, n)| {
+            let (east, north) = flown.drift_m(t - x[FLOWN]);
+            (e - east, n - north)
+        })
+        .unzip();
+    (lag_one(&[&heights]), lag_one(&[&east, &north]))
+}
+
+/// The lag-one autocorrelation of `series`, pooled, each about its own mean.
+fn lag_one(series: &[&[f64]]) -> f64 {
+    let (mut along, mut whole) = (0.0, 0.0);
+    for values in series {
+        if values.len() < 3 {
+            continue;
+        }
+        #[expect(
+            clippy::cast_precision_loss,
+            reason = "a count of bins is far below 2^53"
+        )]
+        let mean = values.iter().sum::<f64>() / values.len() as f64;
+        along += values
+            .windows(2)
+            .map(|w| (w[0] - mean) * (w[1] - mean))
+            .sum::<f64>();
+        whole += values.iter().map(|v| (v - mean).powi(2)).sum::<f64>();
+    }
+    if whole > 0.0 { along / whole } else { 0.0 }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -804,6 +1034,33 @@ mod tests {
                 )
             }))
         }
+
+        /// A wind that grows with height pulls the line down by its exponent.
+        fn fly_sheared(
+            &mut self,
+            p: &Parameters,
+            until_s: f64,
+            exponent: f64,
+        ) -> Result<Simulated, String> {
+            if p.drag_scale <= 0.0 {
+                return Err("no drag".to_owned());
+            }
+            Ok(simulated_of(until_s, |t| {
+                (
+                    (100.0 * p.drag_scale - 10.0 * exponent) * t + 5.0 * p.impulse_scale * t * t,
+                    p.wind_east_m_s * t,
+                    p.wind_north_m_s * t,
+                )
+            }))
+        }
+    }
+
+    /// The rocket held as stated.
+    fn wide_held() -> Stated {
+        let mut stated = wide();
+        stated[0].sd = 1e-6;
+        stated[1].sd = 1e-6;
+        stated
     }
 
     fn wide() -> Stated {
@@ -925,6 +1182,125 @@ mod tests {
             "{rms_barometer} {rms_height}"
         );
         assert!((barometer.parameters.drag_scale - 1.0).abs() < 1e-4);
+    }
+
+    /// A clock that jumps can't ask for bins beyond memory; the window's bound is what stops it.
+    #[test]
+    fn a_window_past_any_flight_says_nothing() {
+        assert!(MAX_WINDOW_S < 1e4);
+        let held = binned([(0.0, 1.0), (999.0, 2.0)].into_iter(), 0.0, MAX_WINDOW_S);
+        assert_eq!(held.len(), 2);
+    }
+
+    /// Bins that can't be a flight's, flat where the simulation climbs, say nothing whatever their
+    /// standard errors come to: a fit that sits far from its log isn't told by it.
+    #[test]
+    fn a_log_far_from_any_flight_says_nothing() {
+        let mut seen = observed(1.0, 1.0, 0.0, 0.0);
+        seen.horizontal.clear();
+        for sample in &mut seen.heights {
+            sample.1 = 0.0;
+        }
+        let got = fit(Some(&seen), &wide_held(), Noise::FromResiduals, &mut Line);
+        assert!(!got.fitted);
+        assert!(got.misfit_share.unwrap() > MISFIT_SHARE);
+        assert!(got.flown > 0);
+        assert_eq!(got.rms_m, None);
+    }
+
+    /// A barometer's bins at or past Mach 0.8 aren't read; with too few left, it says nothing.
+    #[test]
+    fn a_barometer_with_too_few_bins_below_mach_0_8_says_nothing() {
+        struct Fast;
+        impl Forward for Fast {
+            fn fly(&mut self, p: &Parameters, until_s: f64) -> Result<Simulated, String> {
+                let _ = p;
+                Ok(crate::residuals::tests_support::simulated_at_mach(
+                    until_s,
+                    2.3,
+                    |t| (800.0 * t, 0.0, 0.0),
+                ))
+            }
+
+            fn fly_sheared(
+                &mut self,
+                p: &Parameters,
+                until_s: f64,
+                _: f64,
+            ) -> Result<Simulated, String> {
+                self.fly(p, until_s)
+            }
+        }
+        let mut seen = observed(1.0, 1.0, 0.0, 0.0);
+        seen.kind = HeightKind::Barometric;
+        seen.reads_transonic = false;
+        seen.horizontal.clear();
+        let got = fit(Some(&seen), &wide(), Noise::FromResiduals, &mut Fast);
+        assert!(!got.fitted);
+        assert_eq!(got.flown, 1);
+    }
+
+    /// On heights alone, a wind that grows with height widens each error by the move it makes, to
+    /// first order, over √3: the line's sheared climb is 10 α m/s slower, so its drag moves by
+    /// `0.1 α`, and its calm one moves nothing. With a track, nothing is added.
+    #[test]
+    fn a_wind_heights_alone_cant_tell_widens_the_errors() {
+        struct Unsheared(Line);
+        impl Forward for Unsheared {
+            fn fly(&mut self, p: &Parameters, until_s: f64) -> Result<Simulated, String> {
+                self.0.fly(p, until_s)
+            }
+
+            fn fly_sheared(
+                &mut self,
+                p: &Parameters,
+                until_s: f64,
+                _: f64,
+            ) -> Result<Simulated, String> {
+                self.0.fly(p, until_s)
+            }
+        }
+        let mut seen = observed(1.0, 1.0, 0.0, 0.0);
+        seen.horizontal.clear();
+        let sheared = fit(Some(&seen), &wide(), Noise::FromResiduals, &mut Line);
+        let flat = fit(
+            Some(&seen),
+            &wide(),
+            Noise::FromResiduals,
+            &mut Unsheared(Line),
+        );
+        assert!(sheared.fitted && flat.fitted);
+        assert_eq!(sheared.parameters, flat.parameters);
+        let moved = 0.1 * SHEAR_EXPONENT;
+        let added = sheared.standard_errors[0].powi(2) - flat.standard_errors[0].powi(2);
+        assert!(
+            (added - moved * moved / 3.0).abs() < 1e-9,
+            "{added} against {}",
+            moved * moved / 3.0
+        );
+        let tracked = observed(1.0, 1.0, 0.0, 0.0);
+        let with_track = fit(Some(&tracked), &wide(), Noise::FromResiduals, &mut Line);
+        let without = fit(
+            Some(&tracked),
+            &wide(),
+            Noise::FromResiduals,
+            &mut Unsheared(Line),
+        );
+        assert_eq!(with_track.standard_errors, without.standard_errors);
+    }
+
+    /// A residual that runs on from bin to bin widens a variance by `(1 + ρ)/(1 − ρ)`, capped;
+    /// one that alternates leaves it as it is.
+    #[test]
+    fn a_residual_that_runs_on_tells_less() {
+        let alternating = [1.0, -1.0, 1.0, -1.0, 1.0, -1.0];
+        assert!(lag_one(&[&alternating]) < 0.0);
+        assert_eq!(inflation(lag_one(&[&alternating])), 1.0);
+        let slow: Vec<f64> = (0..200).map(|k| (f64::from(k) * 0.01).sin()).collect();
+        assert!(lag_one(&[&slow]) > MAX_CORRELATION);
+        assert!((inflation(1.0) - 19.0).abs() < 1e-12);
+        assert!((inflation(0.5) - 3.0).abs() < 1e-12);
+        assert_eq!(lag_one(&[&[1.0, 2.0]]), 0.0);
     }
 
     #[test]

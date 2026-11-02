@@ -24,6 +24,7 @@
 
 use std::collections::BTreeMap;
 
+use hpr_atmos::PowerLawWind;
 use hpr_core::random::SeededRng;
 use hpr_flightdata::log::FlightLog;
 use hpr_flightdata::readings;
@@ -35,7 +36,7 @@ use super::designs::{DESIGNS, DesignFiles};
 use super::intervals::{Counts, Probe, Test};
 use super::logger::Profile;
 use super::noise::between;
-use super::truth::{self, Truth};
+use super::truth::{self};
 use super::{Draw, Flight, Model, Set, SyntheticError};
 use crate::fit::{self, FLOWN, Fit, Forward, Noise, Observations, Parameters, Prior, Stated};
 use crate::residuals::{HeightKind, Simulated, Track};
@@ -110,6 +111,20 @@ impl Asked {
             Self::MassScale => 0.9 * 2.0 * WEIGHED_WITHIN,
         }
     }
+}
+
+/// What's stated of a flight read as `observed`. A log of height alone can't tell the wind, and a
+/// wind of either sign lowers a flight's top, so a fit in no wind would put that loss in the drag
+/// and impulse: by 0.7% of the impulse in a wind of 6 to 9 m/s, on the first 240 flights of set A,
+/// and by nothing under 3 m/s. It flies instead in a wind of the stated range's RMS speed, from no
+/// particular way, which leaves the mean of that loss out of them.
+#[must_use]
+pub fn stated_for(observed: Option<&Observations>) -> Stated {
+    let mut stated = stated();
+    if observed.is_some_and(|o| o.horizontal.is_empty()) {
+        stated[Asked::WindEast.index()].mean = super::MAX_WIND_M_S / 3.0_f64.sqrt();
+    }
+    stated
 }
 
 /// How far a flight's weighed mass lies from its structure's, a share of it, either way: a
@@ -202,6 +217,28 @@ impl<'a> Flown<'a> {
 
 impl Forward for Flown<'_> {
     fn fly(&mut self, p: &Parameters, until_s: f64) -> Result<Simulated, String> {
+        self.flown(p, until_s, None)
+    }
+
+    /// The stated wind is at [`truth::SHEAR_REFERENCE_HEIGHT_M`] above the pad, as the draws'.
+    fn fly_sheared(
+        &mut self,
+        p: &Parameters,
+        until_s: f64,
+        exponent: f64,
+    ) -> Result<Simulated, String> {
+        self.flown(p, until_s, Some(exponent))
+    }
+}
+
+impl Flown<'_> {
+    /// The flight on `p`, its wind constant or growing with height by `shear`.
+    fn flown(
+        &mut self,
+        p: &Parameters,
+        until_s: f64,
+        shear: Option<f64>,
+    ) -> Result<Simulated, String> {
         if p.drag_scale <= 0.0 || p.impulse_scale <= 0.0 || p.burn_time_scale <= 0.0 {
             return Err("a scale that isn't positive".to_owned());
         }
@@ -220,6 +257,18 @@ impl Forward for Flown<'_> {
             ..self.draw
         };
         let mut inputs = truth::inputs(&told, self.files).map_err(|e| e.to_string())?;
+        if let Some(exponent) = shear {
+            inputs.environment = inputs.environment.with_wind(
+                PowerLawWind::new(
+                    wind_speed_m_s,
+                    truth::SHEAR_REFERENCE_HEIGHT_M,
+                    exponent,
+                    wind_from_rad,
+                    told.elevation_m,
+                )
+                .map_err(|e| e.to_string())?,
+            );
+        }
         inputs.recovery.clear();
         inputs.settings.max_time_s = until_s;
         let mut simulation = inputs.simulation().map_err(|e| e.to_string())?;
@@ -271,8 +320,12 @@ pub struct FlightFit {
     pub design: usize,
     /// Whether the log was fitted, or said nothing.
     pub fitted: bool,
-    /// Whether its log holds a horizontal track.
+    /// Whether its log was fitted and holds a horizontal track.
     pub drift: bool,
+    /// Whether its fit, and any noise-free fit for its truth, stopped at the bottom.
+    pub converged: bool,
+    /// Its fit's residual as a share of the spread of the heights it read, where it came to one.
+    pub misfit_share: Option<f64>,
     /// Each asked parameter, in [`ASKED`]'s order.
     pub compared: [Compared; ASKED.len()],
     /// The heights' residual's RMS, m.
@@ -281,49 +334,17 @@ pub struct FlightFit {
     pub flown: u64,
 }
 
-/// What a flight's height and drift were, as a fit reads them: known whole, on the flight's own
-/// clock, at each bin to its apogee.
-#[must_use]
-pub fn truth_observations(truth: &Truth) -> Observations {
-    let apogee_s = truth.events.apogee_s;
-    let start = truth.samples.first().map_or([0.0; 3], |s| s.position_enu_m);
-    let bins = (apogee_s / fit::BIN_S).floor();
-    let mut heights = Vec::new();
-    let mut horizontal = Vec::new();
-    let mut k = 0.0;
-    while k < bins {
-        let t = k * fit::BIN_S;
-        if let Some(sample) = truth.at(t) {
-            heights.push((t, sample.height_m - truth.pad_height_m));
-            horizontal.push((
-                t,
-                sample.position_enu_m[0] - start[0],
-                sample.position_enu_m[1] - start[1],
-            ));
-        }
-        k += 1.0;
-    }
-    Observations {
-        kind: HeightKind::Geometric,
-        heights,
-        horizontal,
-        liftoff_s: truth.events.liftoff_s,
-        flown_s: apogee_s - truth.events.liftoff_s,
-        // The same part of the flight as a barometer's fit reads, so the two weigh its drag at the
-        // same Mach numbers.
-        reads_transonic: false,
-    }
-}
-
-/// The bins of `observed` as the noise-free flight fills them, on the flight's own clock: what the
-/// log's sensors would have read with no noise, no gain, no drift and no port, in the same bins, so
-/// that the fit to them differs from the log's by the noise alone.
+/// The bins of `observed` that its fit read (`read`, [`Fit::read`]) as the noise-free flight fills
+/// them, on the flight's own clock: what the log's sensors would have read with no noise, no gain,
+/// no drift and no port, in the same bins, so that the fit to them differs from the log's by the
+/// noise alone.
 ///
 /// # Errors
 ///
 /// [`SyntheticError`] if the flight's air doesn't reach it.
 pub fn noise_free_observations(
     observed: &Observations,
+    read: &[bool],
     flight: &Flight,
     files: &DesignFiles,
 ) -> Result<Observations, SyntheticError> {
@@ -336,18 +357,26 @@ pub fn noise_free_observations(
     let to_flight = |t: f64| t - flight.draw.logger.pad_s;
     Ok(Observations {
         kind: observed.kind,
+        // The bins the log's fit read, and no others: a fit reads a different part of the flight
+        // where it finds the rocket faster or slower, and a drag that isn't a scale of the
+        // simulation's would then differ by more than the noise.
         heights: observed
             .heights
             .iter()
-            .map(|&(t, _)| {
+            .zip(read)
+            .filter(|(_, read)| **read)
+            .map(|(&(t, _), _)| {
                 let at = to_flight(t);
                 (at, flown.read_height_m(at, observed.kind))
             })
             .collect(),
+        // The drift at every bin, whatever the log's own sensors held: a flight's truth is what the
+        // whole flight says of it, and a log of height alone can't tell the wind's loss from the
+        // drag's, which its errors must then hold.
         horizontal: observed
-            .horizontal
+            .heights
             .iter()
-            .map(|&(t, _, _)| {
+            .map(|&(t, _)| {
                 let at = to_flight(t);
                 let (east, north) = flown.drift_m(at);
                 (at, east, north)
@@ -355,7 +384,8 @@ pub fn noise_free_observations(
             .collect(),
         liftoff_s: flight.truth.events.liftoff_s,
         flown_s: observed.flown_s,
-        reads_transonic: observed.reads_transonic,
+        // Those bins are already chosen.
+        reads_transonic: true,
     })
 }
 
@@ -371,61 +401,36 @@ pub fn noise_free_observations(
 ///
 /// [`SyntheticError`] if the flight's air doesn't reach it.
 pub fn noise_free(
-    observed: Option<&Observations>,
+    observed: &Observations,
     answer: &Fit,
     flight: &Flight,
     files: &DesignFiles,
     tables: &mut BTreeMap<usize, Simulation>,
 ) -> Result<Fit, SyntheticError> {
-    let mut told = stated();
+    let filled = noise_free_observations(observed, &answer.read, flight, files)?;
+    let mut told = stated_for(Some(&filled));
     told[Asked::MassScale.index()] = Prior {
         mean: 1.0,
         sd: 1e-6,
     };
-    let (filled, noise) = match observed {
-        Some(observed) => (
-            noise_free_observations(observed, flight, files)?,
-            Noise::Given {
-                height_m: answer.height_noise_m,
-                horizontal_m: answer.horizontal_noise_m,
-            },
-        ),
-        None => (
-            truth_observations(&flight.truth),
-            Noise::Known {
-                height_m: 1.0,
-                horizontal_m: 1.0,
-            },
-        ),
-    };
     Ok(fit::fit(
         Some(&filled),
         &told,
-        noise,
+        Noise::Given {
+            height_m: answer.height_noise_m,
+            horizontal_m: answer.horizontal_noise_m,
+        },
         &mut Flown::new(&flight.draw, files, 1.0, tables),
     ))
 }
 
-/// A flight's log's fit, against its truth.
+/// A log's fit, `log` being the flight's own or one in place of it, against the flight's truth. A
+/// flight of another model whose log said nothing has none: it isn't counted.
 ///
 /// # Errors
 ///
 /// [`SyntheticError::Flight`] if a flight of another model can't be fitted noise-free: a truth is
 /// needed for the count.
-pub fn fit_flight(
-    flight: &Flight,
-    set: Set,
-    files: &DesignFiles,
-    tables: &mut BTreeMap<usize, Simulation>,
-) -> Result<FlightFit, SyntheticError> {
-    fit_log(&flight.log, flight, set, files, tables)
-}
-
-/// As [`fit_flight`], with `log` in place of the flight's own.
-///
-/// # Errors
-///
-/// As [`fit_flight`].
 pub fn fit_log(
     log: &FlightLog,
     flight: &Flight,
@@ -437,7 +442,7 @@ pub fn fit_log(
     let weighed = weighed_factor(set, draw.index);
     let read = readings::read(log);
     let observed = fit::observations(log, &read);
-    let told = stated();
+    let told = stated_for(observed.as_ref());
     let answer = fit::fit(
         observed.as_ref(),
         &told,
@@ -445,6 +450,7 @@ pub fn fit_log(
         &mut Flown::new(draw, files, weighed, tables),
     );
     let mut flown = answer.flown;
+    let mut converged = answer.converged;
     let truth: [f64; FLOWN] = match draw.model {
         Model::Same => {
             // It blows from `wind_from_rad`, so toward the opposite way.
@@ -458,16 +464,20 @@ pub fn fit_log(
                 f64::NAN,
             ]
         }
-        Model::Other { .. } => {
-            let free = noise_free(observed.as_ref(), &answer, flight, files, tables)?;
-            if !free.fitted {
-                return Err(SyntheticError::Flight {
-                    what: "no noise-free fit",
-                });
+        Model::Other { .. } => match observed.as_ref().filter(|_| answer.fitted) {
+            Some(observed) => {
+                let free = noise_free(observed, &answer, flight, files, tables)?;
+                if !free.fitted {
+                    return Err(SyntheticError::Flight {
+                        what: "no noise-free fit",
+                    });
+                }
+                converged &= free.converged;
+                flown += free.flown;
+                free.parameters.to_array()
             }
-            flown += free.flown;
-            free.parameters.to_array()
-        }
+            None => [f64::NAN; FLOWN],
+        },
     };
     let values = answer.parameters.to_array();
     let compared = ASKED.map(|asked| {
@@ -487,7 +497,9 @@ pub fn fit_log(
         index: draw.index,
         design: draw.design,
         fitted: answer.fitted,
-        drift: observed.is_some_and(|o| !o.horizontal.is_empty()),
+        drift: answer.fitted && observed.is_some_and(|o| !o.horizontal.is_empty()),
+        converged,
+        misfit_share: answer.misfit_share,
         compared,
         rms_m: answer.rms_m,
         flown,
@@ -527,12 +539,14 @@ fn shares_of(fit: &FlightFit, asked: Asked) -> Shares {
     }
 }
 
-/// A flight's fit with bins of pure noise of `size_m` handed to it past the reader, as if the
-/// reader had found a flight of 20 s in them.
+/// A flight's fit with bins of pure noise handed to it past the reader, as if the reader had found
+/// a flight of 20 s in them: heights of `size_m` either way, and a track of `track_m` in each
+/// direction where that's a size.
 pub fn fit_noise_bins(
     flight: &Flight,
     set: Set,
     size_m: f64,
+    track_m: Option<f64>,
     files: &DesignFiles,
     tables: &mut BTreeMap<usize, Simulation>,
 ) -> FlightFit {
@@ -541,10 +555,22 @@ pub fn fit_noise_bins(
     let heights = (0..80)
         .map(|k| (0.25 * f64::from(k), between(&mut rng, -size_m, size_m)))
         .collect();
+    let horizontal: Vec<(f64, f64, f64)> = track_m.map_or_else(Vec::new, |track_m| {
+        (0..80)
+            .map(|k| {
+                (
+                    0.25 * f64::from(k),
+                    between(&mut rng, -track_m, track_m),
+                    between(&mut rng, -track_m, track_m),
+                )
+            })
+            .collect()
+    });
+    let drift = !horizontal.is_empty();
     let observed = Observations {
         kind: HeightKind::Barometric,
         heights,
-        horizontal: Vec::new(),
+        horizontal,
         liftoff_s: 0.0,
         flown_s: 20.0,
         reads_transonic: false,
@@ -552,7 +578,7 @@ pub fn fit_noise_bins(
     let weighed = weighed_factor(set, index);
     let answer = fit::fit(
         Some(&observed),
-        &stated(),
+        &stated_for(Some(&observed)),
         Noise::FromResiduals,
         &mut Flown::new(&flight.draw, files, weighed, tables),
     );
@@ -561,7 +587,9 @@ pub fn fit_noise_bins(
         index,
         design: flight.draw.design,
         fitted: answer.fitted,
-        drift: false,
+        drift: answer.fitted && drift,
+        converged: answer.converged,
+        misfit_share: answer.misfit_share,
         compared: ASKED.map(|asked| Compared {
             value: values[asked.index()],
             standard_error: answer.standard_errors[asked.index()],
@@ -634,14 +662,6 @@ pub struct Check {
     pub identification: Identification,
 }
 
-impl Check {
-    /// Whether it comes out as it must: the test passes and every probe fails it.
-    #[must_use]
-    pub fn holds(&self) -> bool {
-        self.test.passes() && self.probes.values().all(|t| !t.passes())
-    }
-}
-
 /// `asked`'s check over `fits`.
 #[must_use]
 pub fn check(asked: Asked, fits: &[FlightFit]) -> Check {
@@ -655,7 +675,9 @@ pub fn check(asked: Asked, fits: &[FlightFit]) -> Check {
     let mut error_sum = 0.0;
     let mut stated_count = 0_u32;
     for fit in fits {
-        if !fit.drift && !asked.stated_on_height_alone() {
+        // A log that said nothing states no interval of its own, and its range would hold 90%
+        // whatever the fit did. A wind is counted only where a track speaks to it.
+        if !fit.fitted || (!fit.drift && !asked.stated_on_height_alone()) {
             continue;
         }
         stated_count += 1;
@@ -675,7 +697,12 @@ pub fn check(asked: Asked, fits: &[FlightFit]) -> Check {
             counted.add(probe.apply(interval), compared.truth);
         }
         by_design
-            .entry(DESIGNS[fit.design].name.to_owned())
+            .entry(
+                DESIGNS
+                    .get(fit.design)
+                    .map_or("an unknown design", |design| design.name)
+                    .to_owned(),
+            )
             .or_default()
             .add(interval, compared.truth);
         by_drift
@@ -747,16 +774,16 @@ pub fn fitted(asked: Asked, drift: bool, fits: &[FlightFit]) -> Option<Shares> {
 #[must_use]
 pub fn shares(asked: Asked, drift: bool) -> Shares {
     let (low, high) = match (asked, drift) {
-        (Asked::DragScale, false) => (-1.82, 1.83),
-        (Asked::ImpulseScale, false) => (-1.92, 1.47),
-        (Asked::WindEast, false) => (-1.36, 1.43),
-        (Asked::WindNorth, false) => (-1.41, 1.33),
-        (Asked::MassScale, false) => (-1.64, 1.72),
-        (Asked::DragScale, true) => (-1.59, 2.59),
-        (Asked::ImpulseScale, true) => (-1.64, 1.83),
-        (Asked::WindEast, true) => (-1.94, 1.81),
-        (Asked::WindNorth, true) => (-2.08, 1.79),
-        (Asked::MassScale, true) => (-1.68, 1.72),
+        (Asked::DragScale, false) => (-1.27, 1.43),
+        (Asked::ImpulseScale, false) => (-1.53, 1.47),
+        (Asked::WindEast, false) => (-0.369, 3.25),
+        (Asked::WindNorth, false) => (-1.73, 1.74),
+        (Asked::MassScale, false) => (-1.66, 1.67),
+        (Asked::DragScale, true) => (-1.28, 2.15),
+        (Asked::ImpulseScale, true) => (-1.5, 1.83),
+        (Asked::WindEast, true) => (-1.36, 1.29),
+        (Asked::WindNorth, true) => (-1.5, 1.38),
+        (Asked::MassScale, true) => (-1.69, 1.7),
     };
     Shares { low, high }
 }
