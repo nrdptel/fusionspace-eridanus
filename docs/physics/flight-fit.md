@@ -84,8 +84,8 @@ Jacobian with itself as Gauss-Newton does ([standard error](../glossary.md#stand
   the variance of a mean, and the cap is a judgment. The calibrated shares take up what it misses.
 - **A wind heights can't tell.** On a log of height alone the wind is unknown, and its loss grows as
   its speed squared. The fit moves its answer, to first order, to a calm and to a strong wind: the
-  stated wind's speed plus half its 90% width. On the synthetic flights that's 5.16 m/s plus
-  6.35 m/s, 11.5 m/s (37.7 ft/s) at 18.3 m (60 ft) above the pad, past the 8.94 m/s (29.3 ft/s)
+  stated wind's speed plus half its 90% width. On the synthetic flights that's 5.16 m/s (16.9 ft/s)
+  plus 6.35 m/s (20.8 ft/s), 11.5 m/s (37.7 ft/s) at 18.3 m (60 ft) above the pad, past the 8.94 m/s (29.3 ft/s)
   they draw. It's grown with height as $(z/18.3\,\text{m})^{0.2}$. With $\delta$ the larger of the
   two moves, $\delta^2/3$ joins the variance, as a uniform spread over $\pm\delta$ would.
 
@@ -116,7 +116,7 @@ removed a flight from either set ([the report][report]).
 ### A worked example
 
 Flight 140 of set A flies the Calisto design, its getting-started variant with the motor at
-−1.255 m, with a logger that holds a track. The report keeps only counts, so a test,
+−1.255 m (−4.12 ft), with a logger that holds a track. The report keeps only counts, so a test,
 `the_pages_worked_example_is_a_real_flights`, fits this flight again and checks these rows.
 Its heights fit to 0.97 m (3.2 ft), in 63 simulated flights. A factor is times the simulator's
 value; the mass's, times the weighed mass:
