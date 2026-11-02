@@ -63,6 +63,10 @@
 # other step had run (the site step failed in 21 of its 54 runs from 2026-10-12 to 10-13, about 9
 # of them on page checks this step runs). Name it to run it alone (`scripts/gate.sh pages`), or set
 # GATE_PAGES=0 to leave it out.
+# Step site: `xtask site --locked --cache`. It lays out and measures again only the pages whose
+# built HTML changed since its last passing run, and reuses that run's results for the rest; every
+# page, with the canaries, when the checker, Chrome or a file every page loads changed (the cache
+# is in target/site-check-cache). CI's site job runs without --cache and checks every page.
 # Step ego (M6.2d2, ADR-152): EGO's 20 runs on Hartmann's six-variable function, each held within
 # 1% of the minimum in 250 evaluations (`cargo bench -p fusionspace-hpr-analysis --bench ego_hartmann6`, a
 # release build; about 3 minutes on 10 cores, hours in the debug build CI tests with, so CI doesn't
@@ -279,7 +283,7 @@ cmd_for() {
     wasm) echo "$XTASK wasm-check --locked" ;;
     validate) echo "$XTASK validate --check && $XTASK synthetic --check && $XTASK two-logs --check && $XTASK motor-catalog --check && $XTASK scoreboard --check --against origin/main" ;;
     deny) echo "cargo deny check" ;;
-    site) echo "$XTASK site --locked" ;;
+    site) echo "$XTASK site --locked --cache" ;;
     pages) echo "$XTASK site --no-build" ;;
     examples) echo "$XTASK examples --check --locked" ;;
     docs) echo "cargo test --locked -p xtask" ;;

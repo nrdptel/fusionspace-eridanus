@@ -686,8 +686,10 @@ has the rules in full):
   that table for the widest one, and shorten it or move it into the text.
 
 CI runs the figure check in the tests on every system, and `cargo xtask site` in its `site` job.
-`scripts/gate.sh test site` runs both locally. A failure names the page or figure, the widths,
-and the label or element with how far it reaches.
+`scripts/gate.sh test site` runs both locally. The gate's site step adds `--cache`, so it checks
+again only the pages whose built HTML changed since its last passing run, or every page when the
+checker, Chrome or a file every page loads changed; CI checks every page. A failure names the page
+or figure, the widths, and the label or element with how far it reaches.
 
 `cargo xtask site` also loads pages built to fail, and fails if it stops finding them. The figure
 check's tests do the same with a committed figure's label moved out or laid over another. Not
