@@ -60,7 +60,10 @@ pub const TTL_S: u64 = 3_600;
 /// The credit the site's terms ask for, in their words ("Motor stock data from
 /// motor.fusionspace.co", linked to the site), with a link to the terms and what they allow, and
 /// the API's caution about stock and price. From 2026-11-01 the live data is under the site's own
-/// terms, not CC BY 4.0 (ADR-315); answers recorded before then keep CC BY 4.0.
+/// terms, not CC BY 4.0 ([ADR-315][adr-315], the licensing layers); answers recorded before then
+/// keep CC BY 4.0.
+///
+/// [adr-315]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0315-the-2026-11-01-licensing-layers.md
 pub const ATTRIBUTION: &str = "Motor stock data from motor.fusionspace.co \
                                (https://motor.fusionspace.co), under the site's terms \
                                (https://motor.fusionspace.co/api#terms): free for personal, \
