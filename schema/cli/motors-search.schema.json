@@ -5,7 +5,7 @@
   "type": "object",
   "properties": {
     "attribution": {
-      "description": "The credits, shown with every list: motor.fusionspace.co's, as its data license (CC BY\n4.0) asks, with its caution to check stock and price on the vendor's own page; then\nThrustCurve.org's, whose figures the site repeats.",
+      "description": "The credits, shown with every list: motor.fusionspace.co's, as its terms ask, with a link\nto the terms and its caution to check stock and price on the vendor's own page; then\nThrustCurve.org's, whose figures the site repeats.",
       "type": "array",
       "items": {
         "type": "string"
