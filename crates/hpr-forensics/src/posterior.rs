@@ -13,16 +13,17 @@
 //! constant, and each expectation as `Σ wᵢ f(xᵢ) / Σ wᵢ`. The proposal is a multivariate Student-t
 //! with ν = [`DEGREES_OF_FREEDOM`], centered on the peak, its scale the Laplace covariance: its
 //! tails are heavier than a Gaussian posterior's, so the weights stay bounded where the posterior is
-//! near Gaussian (Geweke §3 on a proposal's tails). A draw is
+//! near Gaussian (Geweke on a proposal's tails). A draw is
 //!
 //! x = m + L z / √(u/ν),  z ~ N(0, I),  u ~ χ²_ν,  L Lᵀ = Σ,
 //!
 //! and up to a constant `ln q(x) = −(ν + N)/2 · ln(1 + δ²/ν)` with `δ² = |z|²/(u/ν)`.
 //!
-//! **How far to trust it.** The weighted draws stand in for `Σ wᵢ² / (Σ wᵢ)²`'s inverse of
-//! independent ones, Kish's effective sample size (L. Kish, *Survey Sampling*, Wiley, 1965). A
-//! posterior far from its Laplace approximation leaves few effective draws, and [`Posterior::enough`]
-//! says so. A draw whose posterior can't be had (a flight that won't fly) gets no weight and is
+//! **How far to trust it.** The weighted draws count for `(Σ wᵢ)² / Σ wᵢ²` independent ones, Kish's
+//! effective sample size (L. Kish, *Survey Sampling*, Wiley, 1965), a result for a weighted mean
+//! read here for quantiles as an approximation. A posterior far from its Laplace approximation
+//! leaves few effective draws; the quantiles still come back, and [`Posterior::enough`] says
+//! they're too few to read. A draw whose posterior can't be had (a flight that won't fly) gets no weight and is
 //! counted in [`Posterior::failed`]. Tested on posteriors whose quantiles are known in closed form
 //! or by quadrature; it is not yet tested against the synthetic flights (M7.3c2).
 
@@ -30,9 +31,10 @@ use hpr_core::random::SeededRng;
 
 use crate::fit::cholesky;
 
-/// The proposal's degrees of freedom: 4, the smallest whole number whose Student-t has a finite
-/// fourth moment, so the weights' variance stays finite for a near-Gaussian posterior. A judgment
-/// within Geweke's advice of tails heavier than the posterior's.
+/// The proposal's degrees of freedom: 4. Any Student-t has tails heavier than a Gaussian
+/// posterior's, which keeps the weights bounded there (Geweke); a small ν widens them further for a
+/// posterior with a heavy side, and ν = 4 still has a finite variance. A judgment, not a
+/// measurement.
 pub const DEGREES_OF_FREEDOM: usize = 4;
 
 /// The fewest effective draws for a quantile to be read: 100. At 100, the 5% point's Monte Carlo
@@ -185,7 +187,7 @@ mod tests {
     fn a_gaussian_posterior_comes_back_at_its_closed_form() {
         // The proposal is off center by 0.3 sd and 1.5 times too wide, as a Laplace approximation
         // that missed would be. The 5% point's Monte Carlo error at n effective draws is about
-        // √(0.05·0.95/n)/φ(1.645) sd: 0.015 sd at n = 2,000, so 0.06 sd is four of them.
+        // √(0.05·0.95/n)/φ(1.645) sd: 0.024 sd at n = 8,000, so 0.06 sd is two and a half of them.
         let mean = [1.0, -2.0];
         let sd = [0.5, 2.0];
         let posterior = sample(
@@ -197,7 +199,7 @@ mod tests {
         )
         .unwrap();
         assert!(
-            posterior.enough && posterior.effective_draws > 2_000.0,
+            posterior.enough && posterior.effective_draws > 8_000.0,
             "{}",
             posterior.effective_draws
         );
@@ -327,8 +329,11 @@ mod tests {
                 gaussian([0.1, 0.9], [0.8, 1.2]),
             )
         };
-        assert_eq!(run(1), run(1));
-        assert_ne!(run(1), run(2));
+        let bits = |p: Option<Posterior<2>>| {
+            p.map(|p| (p.quantiles.map(|row| row.map(f64::to_bits)), p.effective_draws.to_bits()))
+        };
+        assert_eq!(bits(run(1)), bits(run(1)));
+        assert_ne!(bits(run(1)), bits(run(2)));
         assert!(sample(&[0.0], &[[-1.0]], 10, 1, gaussian([0.0], [1.0])).is_none());
         assert!(sample(&[0.0], &[[1.0]], 0, 1, gaussian([0.0], [1.0])).is_none());
         assert!(sample(&[0.0], &[[1.0]], 10, 1, |_: &[f64; 1]| None).is_none());
