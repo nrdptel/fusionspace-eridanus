@@ -409,24 +409,27 @@ each within 0.25 g of the level it reads:
   about 0 doesn't;
 - **the coast,** the last 1 s before apogee's earliest time, where a rocket falls freely but for a
   small drag. About 0 holds gravity; about −1 g doesn't. It is read only where a coast was flown,
-  as the direction's coast is: after liftoff's latest time and after the trace first moves.
+  as the direction's coast is: after liftoff's latest time and after the trace first moves, and
+  before an apogee the log doesn't end at.
 
 A witness that reads neither level, such as the pad of a log that starts in the thrust, says
 nothing. Gravity is settled when at least one witness says and none disagrees, with one exception:
 a coast at about −1 g doesn't settle it alone. A part that holds gravity reads its drag there, and
 a rocket still fast at apogee, arcing over, can drag about 1 g, which reads as gravity out would.
 Putting 1 g back on that log would read its top 1 g high
-([#806](https://github.com/nrdptel/fusionspace-eridanus/issues/806)). A coast at about 0 can
-settle it alone: without gravity a coasting part reads −1 g or below, as drag only adds to it, and
-reading 0 would take a push forward of 1 g, a thrust, which the coast's second doesn't hold.
+([#806](https://github.com/nrdptel/fusionspace-eridanus/issues/806)). A coast at about 0 still
+settles it alone: without gravity a coasting part reads −1 g or below, drag only pushing it further
+down, so reading within 0.25 g of 0 takes a push forward of at least 0.75 g. A thrust still burning
+in the coast's second gives one. On a part that takes gravity out, with no family word and no pad,
+that reads gravity in and the top 1 g low: a risk left open.
 Otherwise the top acceleration is withheld (`gravity_unstated`), and burnout comes from the top
 speed. The 0.25 g is HPR Sim's choice, set out in [What each bound holds](#what-each-bound-holds).
 The pad is read off the accelerometer rather than as the samples before liftoff's earliest time by
 the heights. Most Raven logs start about 0.5 s before liftoff, against a liftoff bound near 0.9 s.
 That rule, tried when this one was chosen, withheld 69 of the 80 Raven CSV records. The coast
 settles the Raven's logs that start in the thrust, whose family doesn't say ([ADR-283][adr-283]).
-On the sample logs every coast that settles one reads about 0, gravity in: keeping a coast at
-−1 g from settling alone moved no record.
+On the sample logs no record's gravity rested on a coast at −1 g alone, or on a coast read off the
+pad: with both rules the report's counts are unchanged.
 
 **The top acceleration** is the highest specific force while the motor burns. A burn runs from a
 cleaned reading past 2 g to where the cleaned trace, averaged over 0.05 s, next falls through zero.
@@ -1080,7 +1083,7 @@ reasons:
 | `bad_record` | the record breaks what every reader guarantees: tracks as long as their clocks, on finite times that increase. No file reader produces one; only a record built by hand in code can | all |
 | `no_accelerometer` | the log has no accelerometer | the top acceleration; burnout comes from the top speed's time |
 | `axis_unstated` | the log's accelerometers don't say which lies along the rocket's axis, such as a board's three axes or a table's column read by its header | the top acceleration; burnout comes from the top speed's time |
-| `gravity_unstated` | the axial accelerometer's readings may or may not hold gravity's 1 g, and neither its family, nor its pad, nor its coast to apogee settles which, or they disagree | the top acceleration; burnout comes from the top speed's time |
+| `gravity_unstated` | the axial accelerometer's readings may or may not hold gravity's 1 g, and neither its family, nor its pad, nor its coast to apogee settles which, or they disagree, or only a coast at −1 g says | the top acceleration; burnout comes from the top speed's time |
 | `direction_unstated` | which way up the axial accelerometer reads isn't settled: of its pad (about 1 g nose up, about −1 g nose down), its coast to apogee (−0.75 g or less nose up, 0.75 g or more nose down) and its thrust (the first span past 2 g to hold there for 0.5 s, unless a span the other way comes first), none says or two disagree; or, turned as they settle and gravity put back, the trace never passes 2 g from liftoff's earliest time to apogee, so shows no thrust | the top acceleration and burnout from the accelerometer; burnout comes from the top speed's time |
 | `one_canopy` | the descent shows no drogue's leg: at the ground's density, its rate in the 2 s before the main's leg never passes the main's mark, 1.6 times the rate near the ground or 3 m/s (9.8 ft/s) more if that is more, or the descent before that leg doesn't fall, on median, faster than 1.4 times that rate. A drogue no faster than the mark reads as one canopy, whatever its ratio to the main, and so does a rocket under one canopy or none | the drogue's descent; the main's is read from apogee, the whole descent's |
 | `short_leg` | a leg of the descent loses no more than 3 m (9.8 ft) or a tenth of its top's height; or the whole descent loses too little, or falls too slowly near the ground, to time a leg by | that leg's descent; or both |
@@ -1396,7 +1399,9 @@ truth beside the logs, that doesn't say how each rocket came down.
 - **The coast's witness.** It assumes the drag in the last second before apogee's earliest time is
   under 0.25 g. A rocket still fast at apogee, arcing over, reads its drag there. The witness then
   says nothing or, past 0.75 g, can disagree with a family's word and withhold the top
-  acceleration ([ADR-283][adr-283]).
+  acceleration ([ADR-283][adr-283]). Alone at −1 g it settles nothing
+  ([#806](https://github.com/nrdptel/fusionspace-eridanus/issues/806)). A thrust of 0.75 g or more
+  still burning in that second reads as gravity in.
 - **A board's three axes.** A log whose accelerometers don't say which lies along the rocket gives
   no top acceleration (`axis_unstated`), and its burnout comes from the top speed's time. The
   axes' magnitude could give a top acceleration, but not burnout, as it never falls below zero
