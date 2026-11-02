@@ -10,7 +10,7 @@
 //! **The truth.** On [`Set::A`] a parameter's truth is what the flight drew. On
 //! [`Set::B`], whose drag curve, wind and thrust are shaped otherwise, it is the fit
 //! to the noise-free flight ([`noise_free`]): the same bins of height and drift, as the sensor would
-//! have read them with no noise, on a clock and pad known exactly. The mass's truth is what the
+//! have read them with no noise, with the sensors' unknowns open as a log's are. The mass's truth is what the
 //! flight drew on both.
 //!
 //! **What a log can tell.** A parameter counts as identified only when its median interval over

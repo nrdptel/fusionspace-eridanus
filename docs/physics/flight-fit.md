@@ -13,8 +13,8 @@ could still be off.
 - **Sources:** Levenberg-Marquardt as in *Numerical Recipes* ([Sources](#sources)). The test of an
   interval is [ADR-257's][adr-257].
 - **How well it is validated:** only on [synthetic flights](synthetic-flights.md), and only as a
-  whole. There, each parameter's interval passes on two sets of test flights ([How well it
-  holds](#how-well-it-holds)). Choices in the model were made after seeing those two sets. The
+  whole. There, each parameter's interval passes on two sets of test flights, the wind's only on
+  logs with a track ([How well it holds](#how-well-it-holds)). Choices in the model were made after seeing those two sets. The
   intervals' sizes come from a third. No real flight has checked it
   ([evidence row G38](../evidence.md#g38)). On a real flight, the model's own errors go into the
   scales with nothing to say so.
@@ -26,7 +26,7 @@ could still be off.
 
 The fit reads the log's heights, as a median every 0.25 s, from a second before liftoff to apogee.
 Where the log holds latitude and longitude, it reads the drift as well, which is what speaks to the
-wind. It flies the simulation about 70 to 120 times a fit, which takes about a second. It steps the
+wind. It flies the simulation about 70 times a fit, which takes about a second. It steps the
 inputs by the Levenberg-Marquardt rule until the sum below stops falling:
 
 $$\chi^2 = \sum_i \frac{(y_i - \hat y_i)^2}{\sigma^2} + \sum_k \frac{(r_k - \hat r_k)^2}{\sigma_r^2} + \sum_j \frac{(x_j - \mu_j)^2}{s_j^2}$$
@@ -37,15 +37,15 @@ to what's stated of it, as a range: $\mu_j$ is the range's middle, and $s_j$ set
 why a log with no word on the wind gives back the wind's stated range. $\sigma$ and $\sigma_r$ are
 the fit's own residuals, at least 3 m (10 ft) on height and 10 m (33 ft) on the track.
 
-A barometer's errors would otherwise land in the drag, so the fit also solves for them: the
-reading's gain, its drift, and its port's pressure coefficient. It solves for the log's clock offset
-and height offset too. Bins at or past Mach 0.8 are left out for a barometer. The burn time also has
+A sensor's errors would otherwise land in the drag, so the fit also solves for them. On every log
+that's the clock offset, the height offset and a height that drifts over the flight. On a barometer
+it's also the reading's gain and its port's pressure coefficient. Bins at or past Mach 0.8 are left out for a barometer. The burn time also has
 a scale, not reported, since a motor's impulse and its burn trade against each other.
 
 The parameters' standard errors come from the fit's curvature. Each 90% interval is a standard
-error times two shares fitted on 2,000 other flights, the [calibration
-set](synthetic-flights.md#the-sets). There's one pair of shares for logs of height alone and one for
-logs with a track.
+error times two shares fitted on the [calibration set](synthetic-flights.md#the-sets), kept apart
+from the test flights. There's one pair of shares for logs of height alone, on that set's 2,000
+flights, and one for logs with a track, on 1,000 flights of its logger with a barometer and receiver.
 
 A log with nothing to fit, such as a track with no usable apogee, gives back its stated range and
 says so.
@@ -79,7 +79,9 @@ widened to 1.25, or shifted down one standard error must fail it. [The report][r
 count and each design's.
 
 Set B flies a different model from the one the fit flies. Its truth is the same fit, run on the
-flight's noise-free samples. A wind's counts are on flights whose logs hold a track.
+flight's noise-free samples. A wind's counts are on 1,500 flights of the logger with a barometer and
+a GNSS receiver, drawn past the set's first 1,000 as far as it takes. Three of them on each set state
+no track, which leaves 1,497.
 
 The counts are flights:
 
@@ -102,8 +104,9 @@ width:
 
 So it tells of the drag and impulse, and not of the mass. A wind's median width is 0.432 m/s
 (1.42 ft/s) east and 0.446 m/s (1.46 ft/s) north, of 12.7 m/s (41.7 ft/s) stated, on logs with a
-track. On pure noise nothing is told. The reader turns noise away, and noise of up to 1,000 m
-(3,281 ft) either way, handed straight to the fit, leaves every interval at about its stated width.
+track. On pure noise nothing is told. The reader turns noise away. Noise of up to 1,000 m (3,281 ft) either
+way, handed straight to the fit, leaves each median interval over half its stated width, which is
+what the report's test asks.
 
 Those counts have limits:
 
@@ -111,13 +114,13 @@ Those counts have limits:
   and set B's truth were all chosen after reading their counts. Only the shares themselves come from
   flights kept apart.
 - Coverage holds over a set, not on each design. On set B, the Prometheus design's drag interval
-  holds 69 of its 98 truths.
+  holds 69 of its 98 truths, and its wind toward the north 112 of 161.
 - Coverage holds over a set, not on each flight. A flight whose heights fit to 1 m (3.3 ft) or worse
   misses more often. Set B's drag interval holds 309 of 382 such flights, and 452 of 463 that fit
   better.
-- Flights with nothing to fit are counted. They're 180 of set A's 1,000 and 155 of set B's, each
-  stating its range. That range holds about 90% whatever the fit does, so they lean each count
-  toward passing.
+- Flights with nothing to fit are counted in the drag's, impulse's and mass's rows. They're 180 of
+  set A's 1,000 and 155 of set B's, each stating its range. That range holds about 90% whatever the
+  fit does, so they lean those counts toward passing.
 - A wind on a log of height alone isn't counted and shouldn't be read. Height alone can't tell a
   steady wind from one that changes with height.
 

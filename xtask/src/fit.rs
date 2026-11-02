@@ -748,6 +748,17 @@ mod tests {
                 .join("docs/physics/flight-fit.md"),
         )
         .unwrap();
+        assert!(page.contains("Calisto"));
+        assert!(page.contains(&format!(
+            "{:.2} m (3.2 ft), in {} simulated flights",
+            made[0].rms_m.unwrap(),
+            made[0].flown
+        )));
+        assert!(
+            hpr_forensics::synthetic::designs::DESIGNS[made[0].design]
+                .name
+                .contains("calisto")
+        );
         for (compared, asked) in made[0].compared.iter().zip(ASKED) {
             let shares = fits::shares(asked, made[0].drift);
             let interval = shares

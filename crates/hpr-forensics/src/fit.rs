@@ -18,9 +18,9 @@
 //!
 //! over `x`: the drag scale, impulse scale, burn time's scale, a constant wind vector and the mass
 //! on the weighed mass, with what the log can't state as further unknowns: the clock offset `τ`,
-//! the height offset `h₀`, and for a barometer its gain `g`, drift `d` and port coefficient `c` on
-//! the port's dynamic-pressure height `p` (each sized as [`crate::residuals`] sizes it). Left out,
-//! these went into the drag scale. The second sum is the track `r`, where a log holds one. The
+//! the height offset `h₀`, the height's drift `d`, and for a barometer its gain `g` and port
+//! coefficient `c` on the port's dynamic-pressure height `p` (each sized as [`crate::residuals`]
+//! sizes it). Left out, these went into the drag scale. The second sum is the track `r`, where a log holds one. The
 //! third holds each parameter to what is stated of it ([`Stated`]). That sum is what "mass within
 //! its weighed uncertainty" means, and it is why a log with no word on the wind gives back the
 //! wind's stated range. `σ` is the fit's own residual, floored at [`FLOOR_M`], and `σ_r` likewise
@@ -920,8 +920,10 @@ mod tests {
         seen.kind = HeightKind::Barometric;
         let barometer = fit(Some(&seen), &held, Noise::FromResiduals, &mut Line);
         let (rms_height, rms_barometer) = (height_only.rms_m.unwrap(), barometer.rms_m.unwrap());
-        assert!(rms_barometer < 0.5, "{rms_barometer}");
-        assert!(rms_height > 1.0, "{rms_height}");
+        assert!(
+            rms_barometer < 0.5 * rms_height,
+            "{rms_barometer} {rms_height}"
+        );
         assert!((barometer.parameters.drag_scale - 1.0).abs() < 1e-4);
     }
 
