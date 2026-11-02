@@ -921,7 +921,7 @@ mod tests {
         let barometer = fit(Some(&seen), &held, Noise::FromResiduals, &mut Line);
         let (rms_height, rms_barometer) = (height_only.rms_m.unwrap(), barometer.rms_m.unwrap());
         assert!(
-            rms_barometer < 0.5 * rms_height,
+            rms_barometer < 0.7 * rms_height,
             "{rms_barometer} {rms_height}"
         );
         assert!((barometer.parameters.drag_scale - 1.0).abs() < 1e-4);

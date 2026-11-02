@@ -1,8 +1,7 @@
 # The least-squares fit
 
-See how the library fits a flight's [log](../glossary.md#flight-log) to a simulation of it: what the
-flight says about the rocket's drag, its motor's impulse, the wind and the mass, and how far each
-could still be off.
+See how the library fits a flight's [log](../glossary.md#flight-log) to a simulation of it. It says
+what the flight tells of the drag, the impulse, the wind and the mass, and how far each could be off.
 
 ## In short
 
@@ -44,8 +43,8 @@ a scale, not reported, since a motor's impulse and its burn trade against each o
 
 The parameters' standard errors come from the fit's curvature. Each 90% interval is a standard
 error times two shares fitted on the [calibration set](synthetic-flights.md#the-sets), kept apart
-from the test flights. There's one pair of shares for logs of height alone, on that set's 2,000
-flights, and one for logs with a track, on 1,000 flights of its logger with a barometer and receiver.
+from the test flights. Logs of height alone have one pair of shares, on that set's 2,000 flights.
+Logs with a track have another, on 1,000 flights of its logger with a barometer and receiver.
 
 A log with nothing to fit, such as a track with no usable apogee, gives back its stated range and
 says so.
@@ -80,7 +79,7 @@ count and each design's.
 
 Set B flies a different model from the one the fit flies. Its truth is the same fit, run on the
 flight's noise-free samples. A wind's counts are on 1,500 flights of the logger with a barometer and
-a GNSS receiver, drawn past the set's first 1,000 as far as it takes. Three of them on each set state
+a GNSS receiver, some past the set's first 1,000. Three of them on each set state
 no track, which leaves 1,497.
 
 The counts are flights:
@@ -102,11 +101,9 @@ width:
 | impulse scale | 0.0425 | 0.108 |
 | mass on the weighed mass | 0.0353 | 0.036 |
 
-So it tells of the drag and impulse, and not of the mass. A wind's median width is 0.432 m/s
-(1.42 ft/s) east and 0.446 m/s (1.46 ft/s) north, of 12.7 m/s (41.7 ft/s) stated, on logs with a
-track. On pure noise nothing is told. The reader turns noise away. Noise of up to 1,000 m (3,281 ft) either
-way, handed straight to the fit, leaves each median interval over half its stated width, which is
-what the report's test asks.
+So it tells of the drag and impulse, and not of the mass. On logs with a track, a wind's median width is 0.432 m/s
+(1.42 ft/s) east and 0.446 m/s (1.46 ft/s) north, of 12.7 m/s (41.7 ft/s) stated. On pure noise nothing is told. The reader turns noise away. Handed straight to the fit, noise of up to 1,000 m (3,281 ft)
+either way leaves each median interval over half its stated width.
 
 Those counts have limits:
 
