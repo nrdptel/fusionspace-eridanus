@@ -179,17 +179,20 @@ taken before the rocket moved. Three rules do it, each with a number set from th
    those three, over the median's window and at least five. Two cases are left alone:
 
    - All three stand that far above. That is a fall of the track's own, which reads like a pressure
-     pulse on the pad at ignition. Eight sample logs fall 31 to 654 m (102 to 2,146 ft), and on one the height reads
-     about 300 m (984 ft) above the altimeter's stated apogee
-     ([an open issue](https://github.com/nrdptel/fusionspace-eridanus/issues/1101)).
-   - The track stays at their level again, for longer than a rocket at 2 g takes to leave that
-     band, before a top further above it than a coast through the band reaches. That level is the
-     pad. A low stretch far below it counts in the pad's reach, so the apogee is withheld as
+     pulse on the pad at ignition.
+   - The track stays at their level again, for at least as long as a rocket at 2 g takes to leave
+     that band, before a top further above it than a coast through the band reaches. That level is
+     the pad. A low stretch far below it counts in the pad's reach, so the apogee is withheld as
      `no_climb`.
 
+   Eight sample logs have good first samples and then fall 31 to 654 m (102 to 2,146 ft). On one the
+   height reads about 300 m (984 ft) above the altimeter's stated apogee
+   ([an open issue](https://github.com/nrdptel/fusionspace-eridanus/issues/1101)).
+
    Samples low at the start are not left out, as a logger's zero before the climb looks the same.
-   At 5 and 2.5 samples a second they read the apogee high. At 2.5 samples a second, on a log from
-   launch, two samples at a level the climb itself soon reaches can read it low
+   At 5 and 2.5 samples a second they read the apogee high. At those rates on a log from launch, and
+   more so the faster the rocket climbs, two high samples at a level the climb itself soon reaches
+   can read it low, past its bound
    ([an open issue](https://github.com/nrdptel/fusionspace-eridanus/issues/1103)).
 3. **The pad** is the median of the samples up to the last one within half that rise of the start,
    before the climb. Half the rise is 2.30 m (7.6 ft) on a PerfectFlite. The median means that no

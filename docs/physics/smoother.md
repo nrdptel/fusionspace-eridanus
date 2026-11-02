@@ -111,9 +111,9 @@ assumes it:
 - **Nothing is held still.** The height, speed and acceleration start with wide priors, HPR Sim's
   choices: 100 m (328 ft), 100 m/s (328 ft/s) and about 30 g. Priors that wide would take a bad sample as
   the truth. So for the first second, or the first ten samples if that is longer, each sample fused
-  is the median of the five about it, and the first two aren't weighed. One or two bad samples that
-  stand high don't move the readings' zero: the readings set them aside
-  ([the climb](log-readings.md#the-pad-and-the-climb), which says what they leave).
+  is the median of the five about it, and the first two aren't weighed. The readings set aside one or
+  two bad samples that stand high, so they don't move the readings' zero, except for the cases
+  [the climb](log-readings.md#the-pad-and-the-climb) names, on the slowest logs among them.
 - **The accelerometer is set aside** if it has too little of the pad to take its level from.
 
 To test this, each synthetic flight's log is cut at liftoff and smoothed again. That keeps the

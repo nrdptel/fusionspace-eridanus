@@ -1923,12 +1923,13 @@ const FIRST_SAMPLES: usize = 3;
 /// writes its zero and then the climb from some meters up looks the same (#1103).
 ///
 /// All three standing apart is a fall of the track's own, a pressure pulse on the pad at ignition
-/// by its look (#1101), and Juno III's dip of 8.5 m stays under the margin. And a level the filtered
-/// track stays at again is the pad, the low stretch after the first samples the disturbance: from
-/// rest at [`LIFTOFF_ACCELERATION_M_S2`] a rocket leaves that band sooner than the stay asked for.
-/// Crossing it slower still, in `T` seconds, it is within `b + (2 b / T)² / (2 g)` of its top, `b`
-/// the band's half width: its speed at the band's upper edge is at most its mean through the band,
-/// and it slows at `g` or more. So a level that near the top is no pad.
+/// by its look (#1101), and Juno III's dip of 8.5 m stays under the margin. A level the filtered
+/// track returns to and stays at is the pad, and the low stretch after the first samples is the
+/// disturbance: from rest at [`LIFTOFF_ACCELERATION_M_S2`] a rocket leaves that band sooner than
+/// the stay asked for. Crossing it slower still, in `T` seconds with no thrust in the band's upper
+/// part, it is within `b + (2 b / T)² / (2 g)` of its top, `b` the band's half width: its speed at
+/// the band's upper edge is at most its mean through the band, and it slows at `g` or more. So a
+/// level that near the top is no pad.
 fn without_bad_start(heights: &[f64], time: &[f64], half: usize, rise: f64) -> Option<Vec<f64>> {
     let span = (2 * half + 1).max(5);
     let mut after: Vec<f64> = heights

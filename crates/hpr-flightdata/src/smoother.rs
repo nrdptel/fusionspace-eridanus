@@ -3302,15 +3302,15 @@ mod tests {
     }
 
     /// Two bad samples at the start, on a log from launch or one that holds its pad, at 20, 10, 5
-    /// and 2.5 samples a second: the apogee reading holds its bound of the truth, where the slower
-    /// rates' short median used to let them through (#1076). Bad levels sweep the stretch under the
-    /// top where the arc lingers, which isn't a pad.
+    /// and 2.5 samples a second, on this rocket: the apogee reading holds its bound of the truth,
+    /// where the slower rates' short median used to let them through (#1076). Bad levels sweep the
+    /// stretch under the top where the arc lingers, which isn't a pad.
     ///
     /// Low ones aren't set aside: at 5 and 2.5 samples a second the reading errs high, the safe
-    /// side for a waiver, never low. At 2.5 from launch a pair the climb itself reaches among the
-    /// samples they are judged by, 53 to 76 m here, is left out (#1103).
+    /// side for a waiver, never low. At 2.5 from launch a first pair the climb itself reaches among
+    /// the samples they are judged by, 53 to 75 m on this rocket, is left out (#1103).
     #[test]
-    fn bad_first_samples_hold_the_apogee_at_any_rate() {
+    fn bad_first_samples_hold_the_apogee_at_four_rates() {
         let truth_m = (0..2_000)
             .map(|i| truth(f64::from(i) * 0.05).0)
             .fold(0.0, f64::max);
@@ -3347,9 +3347,6 @@ mod tests {
                     }
                 }
                 for &level in &levels {
-                    if launch && every == 8 && (53.0..=76.0).contains(&level) {
-                        continue;
-                    }
                     for at in [
                         vec![0],
                         vec![1],
@@ -3358,6 +3355,9 @@ mod tests {
                         vec![0, 2],
                         vec![1, 2],
                     ] {
+                        if launch && every == 8 && at == [0, 1] && (53.0..=75.0).contains(&level) {
+                            continue;
+                        }
                         let mut bad = clean.clone();
                         for &k in &at {
                             bad.altitude_m[k] = level;
