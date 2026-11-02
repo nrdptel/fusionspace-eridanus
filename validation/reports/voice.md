@@ -4,7 +4,7 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target. The 134 held pages are every page the site's table of contents lists, with the README and the 404 page, less the records page ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)), each snapshot of an `hpr` command's `--help`, the census of what the commands say, a page for each crate's `src/` directory, the Python package's README and its docstrings as `help()` shows them, and each crate's front page, the `//!` docs of its `src/lib.rs` ([ADR-292](../../docs/decisions/0292-the-programs-words-in-four.md)).
 
-142 pages, 531696 words, 0 stock phrases. 138 pages are within every limit.
+142 pages, 531726 words, 0 stock phrases. 138 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
@@ -25,7 +25,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `.github/ISSUE_TEMPLATE/something-wrong.md` | 29 | 0.0 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.00 | 0.00 |
 | `.github/pull_request_template.md` | 8 | 0.0 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.00 | 0.00 |
 | `CHANGELOG.md` | 1810 | 20.9 | 31% | **0.94** | 0.00 | **0.89** | 0.06 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.06 | 0.23 |
-| `CONTRIBUTING.md` | 671 | 13.7 | 5% | 0.00 | 0.00 | 0.30 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.00 | 1.05 |
+| `CONTRIBUTING.md` | 688 | 13.8 | 5% | 0.00 | 0.00 | 0.30 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.00 | 1.17 |
 | `README.md` (`held`) | 2531 | 13.9 | 3% | 0.16 | 0.12 | 0.12 | 0.04 | 0.00 | 0.00 | 0.00 | | 0.16 | 0.00 | 0.80 | 0.64 |
 | `crates/hpr-cli/tests/help/hpr-analyze.help` (`ref`, `held`) | 431 | 13.5 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.47 | 0.00 |
 | `crates/hpr-cli/tests/help/hpr-compare.help` (`ref`, `held`) | 521 | 12.8 | 3% | 0.00 | 0.00 | 0.20 | 0.20 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.20 | 0.00 |
@@ -52,7 +52,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `crates/hpr-py/tests/docstrings.md` (`ref`, `held`) | 4067 | 13.3 | 2% | 0.00 | 0.00 | 0.10 | 0.05 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.08 | 0.72 |
 | `docs/404.md` (`held`) | 51 | 12.0 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 1.97 | 0.00 |
 | `docs/ARCHITECTURE.md` | 1860 | 11.7 | 7% | **1.13** | **2.42** | 0.38 | 0.06 | 0.00 | **0.11** | 0.00 | | 0.00 | 0.11 | 0.00 | 0.11 |
-| `docs/VALIDATION.md` (`held`) | 10808 | 15.3 | 5% | 0.25 | 0.07 | 0.23 | 0.05 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.06 | 0.56 |
+| `docs/VALIDATION.md` (`held`) | 10821 | 15.3 | 5% | 0.25 | 0.07 | 0.22 | 0.05 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.07 | 0.57 |
 | `docs/VISION.md` | 3801 | 15.4 | 15% | **1.11** | **3.66** | **0.58** | 0.19 | 0.00 | 0.08 | 0.00 | | 0.00 | 0.00 | 0.03 | 0.00 |
 | `docs/accuracy.md` (`held`) | 16098 | 13.5 | 2% | 0.22 | 0.00 | 0.06 | 0.06 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.02 | 0.46 |
 | `docs/api.md` (`held`) | 2515 | 13.2 | 0% | 0.16 | 0.00 | 0.00 | 0.20 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.40 | 0.36 |

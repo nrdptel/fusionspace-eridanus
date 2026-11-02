@@ -43,9 +43,9 @@
 # docs/ROADMAP.md or docs/decisions/ (the scoreboard and its features table read them), nor a
 # deleted or renamed file (the features table checks its pages exist). Read on 2026-11-01, the five
 # checks' code reads no other prose, so such a change leaves what they compare as it was; CI still
-# runs all five on every pull request. 33 of the 96 pull requests merged from 2026-10-25 to 11-01
-# changed only such prose. A run that leaves validate out this way still counts as a full run. Name it to
-# run it anyway (`scripts/gate.sh validate`), or set GATE_VALIDATE=1.
+# runs all five on every pull request. 33 of the 96 pull requests merged from 2026-10-25 to 11-02
+# (UTC) changed only such prose. A run that leaves validate out this way still counts as a full
+# run. Name it to run it anyway (`scripts/gate.sh validate`), or set GATE_VALIDATE=1.
 # It joins any run that includes `test` (the default set, or a fix's `scripts/gate.sh clippy test`)
 # when refs/ is present and the branch changes a physics crate (hpr-aero, hpr-sim, hpr-motor,
 # hpr-design, hpr-atmos, hpr-io), the log readers (hpr-flightdata), the command line (hpr-cli,
@@ -121,13 +121,14 @@ touches_physics() {
 VALIDATE_PROSE='^(docs/|theme/|book\.toml$|[^/]+\.md$)'
 VALIDATE_READS='^(README\.md$|docs/accuracy\.md$|docs/images/|docs/ROADMAP\.md$|docs/decisions/)'
 touches_validate() {
-  local base changed
+  local base changed status
   base=$(git merge-base HEAD origin/main 2>/dev/null) || return 2
   changed=$( { git diff --name-only "$base"; git diff --name-only; git diff --name-only --cached
     git ls-files --others --exclude-standard; } 2>/dev/null)
   [ -n "$changed" ] || return 0
-  { git diff --name-status --no-renames "$base"; git diff --name-status --no-renames --cached; } \
-    2>/dev/null | grep -q '^D' && return 0
+  status=$( { git diff --name-status --no-renames "$base"
+    git diff --name-status --no-renames --cached; } 2>/dev/null)
+  grep -q '^D' <<<"$status" && return 0
   grep -vqE "$VALIDATE_PROSE" <<<"$changed" && return 0
   grep -qE "$VALIDATE_READS" <<<"$changed" && return 0
   return 1
@@ -369,11 +370,14 @@ done
 total=$(( $(date +%s) - start_all ))
 # One line a run in the git directory, where `cargo clean` can't reach it, so gate times and failed
 # runs can be compared across weeks: UTC time, HEAD, whether the tree had changes, whether every
-# default step ran, the result, the seconds, and each step's seconds (`:FAIL` marks a failed one).
+# default step ran, the result, the seconds, and each step's seconds (`:FAIL` marks a failed one),
+# then `validate-left` when the prose rule left validate out, so a check of the history can tell
+# such a full run from one that ran it.
 history="${HPR_GATE_HISTORY:-}"
 if [ -z "$history" ] && gitdir=$(git rev-parse --git-common-dir 2>/dev/null); then
   history="$gitdir/gate-history.tsv"
 fi
+[ -n "$VALIDATE_LEFT" ] && times="$times validate-left"
 full=1
 for s in $ALL; do
   case " $STEPS " in *" $s "*) ;; *) [ "$s" = validate ] && [ -n "$VALIDATE_LEFT" ] || full=0 ;; esac
