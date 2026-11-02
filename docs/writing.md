@@ -686,13 +686,14 @@ has the rules in full):
   that table for the widest one, and shorten it or move it into the text.
 
 CI runs the figure check in the tests on every system, and `cargo xtask site` in its `site` job.
-`scripts/gate.sh test site` runs both locally. The gate's site step adds `--cache`. It keeps each
-page's passing layout and vitals results in `target/site-check-cache` and checks again only the
+`scripts/gate.sh test site` runs both locally. The gate's site step adds `--cache`. It keeps the
+layout and vitals results of each passing run in `target/site-check-cache` and checks again only the
 pages whose built HTML changed since its last passing run. It checks every page if the checker,
-Chrome, the part (`--widths`) or the system changed, or any built file other than the pages, the
-search index and `api/`. A run that reuses pages skips the canaries, and its lines say how many
-pages it checked now and how many it reused. CI never uses the cache and checks every page. To check
-every page locally, delete `target/site-check-cache` or run `cargo xtask site` without `--cache`. A
+Chrome, the part (`--widths`), the operating system or the processor changed, or any built file
+other than the pages, the search index and `api/`. A run that reuses pages skips the canaries, and
+its lines say how many pages it checked now and how many it reused. CI never uses the cache and
+checks every page. To check every page locally, delete `target/site-check-cache` or run `cargo xtask
+site` without `--cache`. A
 failure names the page or figure, the widths, and the label or element with how far it reaches.
 
 `cargo xtask site` also loads pages built to fail, and fails if it stops finding them. The figure
@@ -1038,7 +1039,7 @@ slowed 12.1 times measured INP 200 ms on the aerodynamics page, at the bound
 
 LCP moves by a tenth or more from one run to the next. The check loads one page at a time, as
 Lighthouse asks, since pages loaded side by side slow each other down. Each run prints its own
-figures in the line that starts `page vitals:`; with `--cache`, the line says which pages it
+figures in the line that starts `page vitals:`; with `--cache`, the line says how many pages it
 measured now and the slowdown the reused ones were measured at, and marks a worst figure taken from
 the cache. Three pages the check serves itself must each fail their own vital and pass the other
 two, or the check fails. One page's stylesheet arrives late, one moves its text after drawing it,
