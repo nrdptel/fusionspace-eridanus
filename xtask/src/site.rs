@@ -124,11 +124,11 @@ pub const USAGE: &str = "  site [--no-build] [--locked] [--widths K/N] [--cache]
                            target/site/api, and check the built HTML. --no-build checks the
                            pages only; --locked is passed on to `cargo doc`; --widths K/N
                            checks the built pages' layout at part K of N of the widths,
-                           for CI to spread over N machines; --cache lays out and measures
-                           again only the pages whose HTML changed since the last passing
-                           run, every page when the checker, Chrome or another built file
-                           (all but the pages, the search index and api/) changed, and keeps
-                           the results in target/site-check-cache.";
+                           for CI to spread over N machines; --cache keeps passing results
+                           in target/site-check-cache and checks again only the pages whose
+                           HTML changed, or every page if the checker, Chrome, the part,
+                           the system or a built file other than the pages, the search index
+                           and api/ changed (delete the folder to check every page).";
 
 /// The site's source directory, relative to the workspace root, as `book.toml` sets it.
 pub(crate) const SOURCE: &str = "docs";
@@ -367,7 +367,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let laid_out_pages = laid_out.pages + layout_cache.as_ref().map_or(0, |plan| plan.reused.len());
     let measures = pages::Measures::of(lines);
     println!(
-        "page layout: {} pages at {}, in {:.0} s: none wider than \
+        "page layout: {} pages{} at {}, in {:.0} s: none wider than \
          the window, no text cut off or over other text, no figure shrunk with room \
          for it or without a zoom, no color off the system's roles, rounded corner, shadow or \
          motion off its durations in either theme or with reduced motion, no text off the type \
@@ -385,6 +385,10 @@ pub fn run(args: &[String]) -> Result<(), String> {
          theme's colors without navigation or anything fixed over its sheets, with its links' \
          addresses, its rows and title block whole, and {}",
         laid_out_pages,
+        reuse_words(
+            laid_out.pages,
+            layout_cache.as_ref().map_or(0, |plan| plan.reused.len())
+        ),
         if part == pages::Part::WHOLE {
             format!("{} widths from 320 to 1,920 px", laid_out.widths)
         } else {
@@ -482,30 +486,72 @@ pub fn run(args: &[String]) -> Result<(), String> {
         }
     };
     let vitals_pages = measured_pages + vitals_cache.as_ref().map_or(0, |plan| plan.reused.len());
+    // The pages whose readings come from the cache, so the line names the worst value that does.
+    let reused: BTreeSet<&String> = vitals_cache
+        .as_ref()
+        .map_or_else(BTreeSet::new, |plan| plan.reused.keys().collect());
+    let from_cache = |page: &str| {
+        if reused.iter().any(|reused| reused.as_str() == page) {
+            ", reused"
+        } else {
+            ""
+        }
+    };
+    let part_words = if part == pages::Part::WHOLE {
+        String::new()
+    } else {
+        format!(" (part {} of {})", part.index, part.count)
+    };
+    let browser_words = format!(
+        "{browsers} {}",
+        if browsers == 1 { "browser" } else { "browsers" }
+    );
+    let width = vitals::WIDTH_PX;
+    // Without reused pages, the line it always printed; with them, which pages this run measured
+    // and which it reused, with the slowdowns they were measured at, so no figure is credited to
+    // a run that didn't take it.
+    let how = match &vitals_cache {
+        Some(plan) if !plan.reused.is_empty() && measured_pages > 0 => format!(
+            "{vitals_pages} pages{part_words}: {measured_pages} loaded cold now by \
+             {browser_words}, each a phone ({width} px wide) on slow 4G with the CPU slowed \
+             {slowdown:.1}× (this machine's BenchmarkIndex {benchmark:.0}), in {seconds:.0} s, \
+             and {} reused from passing runs, measured with the CPU slowed {}",
+            plan.reused.len(),
+            slowdowns(plan)
+        ),
+        Some(plan) if !plan.reused.is_empty() => format!(
+            "{vitals_pages} pages{part_words}, all reused from passing runs, measured with the CPU \
+             slowed {} (each loaded cold by {browser_words} as a phone {width} px wide on slow 4G)",
+            slowdowns(plan)
+        ),
+        _ => format!(
+            "{vitals_pages} pages{part_words} loaded cold by {browser_words}, each a phone \
+             ({width} px wide) on slow 4G with the CPU slowed {slowdown:.1}× (this machine's \
+             BenchmarkIndex {benchmark:.0}), in {seconds:.0} s"
+        ),
+    };
     let [(lcp, lcp_page), (cls, cls_page), (inp, inp_page)] = &vitals::worst(readings);
     println!(
-        "page vitals: {} pages{} loaded cold by {} {}, each a phone ({} px wide) on slow 4G with \
-         the CPU slowed {:.1}× (this machine's BenchmarkIndex {:.0}), in {:.0} s: LCP at most \
-         {:.2} s ({lcp_page}), CLS at most {:.3} ({cls_page}), INP at most {:.0} ms \
-         ({inp_page}), and {}",
-        vitals_pages,
-        if part == pages::Part::WHOLE {
-            String::new()
-        } else {
-            format!(" (part {} of {})", part.index, part.count)
-        },
-        browsers,
-        if browsers == 1 { "browser" } else { "browsers" },
-        vitals::WIDTH_PX,
-        slowdown,
-        benchmark,
-        seconds,
+        "page vitals: {how}: LCP at most {:.2} s ({lcp_page}{}), CLS at most {cls:.3} \
+         ({cls_page}{}), INP at most {inp:.0} ms ({inp_page}{}), and {}",
         lcp / 1000.0,
-        cls,
-        inp,
+        from_cache(lcp_page),
+        from_cache(cls_page),
+        from_cache(inp_page),
         canary_words(canaries, "every canary failing its vital")
     );
     Ok(())
+}
+
+/// What the layout line adds after its page count when the cache gave some pages: how many were
+/// checked now and how many reused; nothing otherwise, so a run without the cache prints the line
+/// it always did.
+fn reuse_words(checked: usize, reused: usize) -> String {
+    if reused == 0 {
+        String::new()
+    } else {
+        format!(" ({checked} checked now, {reused} reused from passing runs)")
+    }
 }
 
 /// What a summary says of the canaries: `ran` when they ran, and otherwise that they didn't, so a
@@ -577,15 +623,25 @@ fn parse_args(args: &[String]) -> Result<Args, String> {
 /// What the CPU was slowed by for the vitals a run reuses: `; the reused pages measured with the
 /// CPU slowed 15.9×`, or a range; nothing when it reuses none.
 fn slowed(plan: &cache::Plan<vitals::Reading>) -> String {
+    if plan.reused.is_empty() {
+        String::new()
+    } else {
+        format!(
+            "; the reused pages measured with the CPU slowed {}",
+            slowdowns(plan)
+        )
+    }
+}
+
+/// The CPU slowdowns the reused pages were measured at: `15.2×`, or `15.2× to 16.1×`.
+fn slowdowns(plan: &cache::Plan<vitals::Reading>) -> String {
     let slowdowns = plan.reused.values().map(|entry| entry.result.slowdown);
     let least = slowdowns.clone().fold(f64::INFINITY, f64::min);
     let most = slowdowns.fold(f64::NEG_INFINITY, f64::max);
-    if plan.reused.is_empty() {
-        String::new()
-    } else if format!("{least:.1}") == format!("{most:.1}") {
-        format!("; the reused pages measured with the CPU slowed {least:.1}×")
+    if format!("{least:.1}") == format!("{most:.1}") {
+        format!("{least:.1}×")
     } else {
-        format!("; the reused pages measured with the CPU slowed {least:.1}× to {most:.1}×")
+        format!("{least:.1}× to {most:.1}×")
     }
 }
 
