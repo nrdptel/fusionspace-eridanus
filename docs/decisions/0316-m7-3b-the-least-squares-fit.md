@@ -62,6 +62,12 @@ each step was made with sets A and B in view.
    from the committed report by 5 flights and a figure by 5% or 0.002; the first Linux run, on an
    earlier head of this work, differed by at most 1 flight and 5.01%, the latter on a figure within
    0.002. The pass and fail of every test and probe are taken again on Linux's own counts.
+   *Amended 2026-11-02:* in one Linux job the check took 60 to 102 minutes, in eight runs that day.
+   CI now fits the flights in eight Linux jobs side by side, each every eighth flight of each run
+   (`fit --part K/8`). A ninth job puts them back together and runs the same check
+   (`--other-platform --parts`), still without calibration; the gate is unchanged. On a Mac, three
+   parts put back together left no number of the report different. On Linux, eight left the same 22
+   numbers off the committed report, by at most 1 flight and 3.56%, as one job did that day.
 8. **Only logs with something to fit are counted.** A log that says nothing states its range, which
    holds about 90% whatever the fit does. Counted, those logs leaned the drag's, impulse's and mass's
    counts toward passing: a review counted set B's impulse at 50 below, 781 inside and 14 above of

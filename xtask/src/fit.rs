@@ -6,9 +6,10 @@
 //! [`Flyer`] of its own; a fit is the same however many came before it on its thread (the shared
 //! tables change no number), so the report doesn't depend on the number of threads.
 //!
-//! For the same reason it doesn't depend on the number of machines. CI fits the flights in
-//! [`Part`]s, each on a machine of its own, and a last job puts the parts' fits back together and
-//! checks them as one run would. The fits pass from job to job in CBOR, which keeps every bit.
+//! For the same reason, on one platform, it doesn't depend on the number of machines either. CI
+//! fits the flights in [`Part`]s, each on a machine of its own, and a last job puts the parts' fits
+//! back together and checks them as one run would. The fits pass from job to job in CBOR, which
+//! keeps every bit.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
@@ -1102,7 +1103,8 @@ mod tests {
     }
 
     /// A fit is the same whatever its thread fitted before it, to the bit: the flyer and the
-    /// shared tables change no number. So threads, parts and machines all make the same fits.
+    /// shared tables change no number. So, on one platform, dividing the flights among threads,
+    /// parts or machines changes no fit.
     #[test]
     fn a_fit_is_the_same_whatever_its_thread_fitted_before() {
         let files = files();
@@ -1177,7 +1179,7 @@ mod tests {
         let path = write_part(dir.path(), Part::WHOLE, vec![vec![fit.clone()]]).unwrap();
         let back: PartFile = ciborium::from_reader(fs::read(path).unwrap().as_slice()).unwrap();
         let got = &back.fits[0][0];
-        assert!(got.misfit_share.unwrap().is_nan());
+        assert_eq!(got.misfit_share.unwrap().to_bits(), f64::NAN.to_bits());
         assert_eq!(got.rms_m.unwrap().to_bits(), (-0.0_f64).to_bits());
         let bits = |c: &fits::Compared| {
             [

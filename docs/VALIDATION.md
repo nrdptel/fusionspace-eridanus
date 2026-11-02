@@ -410,8 +410,10 @@ optimized build ever came out differently, CI would fail and regenerating wouldn
 would need a decision record, not a looser check.
 
 The check on the least-squares fit, `cargo xtask fit`, takes longer than any other
-([the flight fit](physics/flight-fit.md)). It fits every flight of the synthetic sets A and B. Then
-it tests that each fitted value's 90% interval holds the truth as often as a 90% interval should. In
+([the flight fit](physics/flight-fit.md)). It fits about 6,500 synthetic flights: the first 1,300 of sets
+A and B each, the flights with a track logger past those, and set A's first 200 again with pure
+noise in place of their logs. Then it tests that each fitted value's 90% interval holds the truth as
+often as a 90% interval should. In
 one Linux job it took more than an hour, so CI runs it on Linux in eight jobs side by side:
 
 - Each job fits an eighth of the flights (`fit --part K/8`, with K from 1 to 8): every eighth
@@ -420,12 +422,13 @@ one Linux job it took more than an hour, so CI runs it on Linux in eight jobs si
   twice, parts of two different splits, and any flight not fitted exactly once.
 - Then it runs the check as on a platform other than the one that wrote the report
   (`--other-platform`; [the fit's decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md),
-  section 7). A count may stand 5 flights off the committed report, and a figure 5% of its value
-  or 0.002, whichever allows more. The calibration set isn't fitted again.
+  section 7). A count may stand 5 flights off the committed report, and a figure 5% of the larger
+  of the two values or 0.002, whichever allows more. The calibration set isn't fitted again.
 
 A flight's fit depends on that flight alone, not on what its thread or machine fitted before it. A
-test holds that to the bit, and on a Mac three parts put back together left no number of the
-report different. The gate, `scripts/gate.sh`, runs the whole check on your own machine instead,
+test holds that to the bit. On a Mac, three parts put back together left no number of the report
+different. On Linux, eight left the same differences from the committed report as one job
+([the decision record's amendment](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md), section 7). The gate, `scripts/gate.sh`, runs the whole check on your own machine instead,
 calibration included. On the platform that wrote the report, the result must match the committed
 report to the last digit.
 
