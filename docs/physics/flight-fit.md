@@ -1,8 +1,7 @@
 # The least-squares fit
 
-See how the library fits a flight's [log](../glossary.md#flight-log) to a simulation of it. It says
-what the flight tells of the drag, the impulse, the wind and the mass, and how far each could be off.
-It has been checked only on synthetic flights, never on a real one, and no command runs it yet.
+See how the library fits a flight's [log](../glossary.md#flight-log) to a simulation, and what that
+tells of its drag, impulse, wind and mass.
 
 ## In short
 
@@ -35,12 +34,19 @@ The fit reads the log's heights, as a median every 0.25 s, from a second before 
 A track is the log's latitude and longitude, from a GNSS receiver such as GPS. Where the log holds
 one, the fit reads the drift as well, which is what speaks to the wind. It flies the simulation about 70 times a fit, which
 takes about a second of one processor core. It steps the inputs by the
-Levenberg-Marquardt rule, a damped Gauss-Newton search, until the sum below stops falling:
+Levenberg-Marquardt rule, a damped Gauss-Newton search, until the sum $\chi^2$ stops falling. It
+has three parts, the heights', the track's and the stated ranges':
 
-$$\chi^2 = \sum_i \frac{(y_i - \hat y_i)^2}{\sigma^2} + \sum_k \frac{(r_k - \hat r_k)^2}{\sigma_r^2} + \sum_j \frac{(x_j - \mu_j)^2}{s_j^2}$$
+$$\chi^2 = H + T + P$$
+
+$$H = \sum_i \frac{(y_i - \hat y_i)^2}{\sigma^2}$$
+
+$$T = \sum_k \frac{(r_k - \hat r_k)^2}{\sigma_r^2}$$
+
+$$P = \sum_j \frac{(x_j - \mu_j)^2}{s_j^2}$$
 
 Here $y_i$ is a logged height and $\hat y_i$ the simulated height, read as the sensor reads it.
-$r_k$ and $\hat r_k$ are the same for the track, and $x_j$ is an input. The last sum holds each input
+$r_k$ and $\hat r_k$ are the same for the track, and $x_j$ is an input. The last part holds each input
 to what's stated of it, as a range: $\mu_j$ is the range's middle, and $s_j$ sets its width. That's
 why a log with no word on the wind gives back the wind's stated range. $\sigma$ and $\sigma_r$ are
 the root-mean-square of the fit's own residuals. They're at least 3 m (10 ft) on height, a

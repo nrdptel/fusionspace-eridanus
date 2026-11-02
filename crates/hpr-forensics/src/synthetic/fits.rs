@@ -81,7 +81,10 @@ impl Asked {
 
     /// Whether a log of height alone states an interval on it. The wind's doesn't: nothing in a
     /// height speaks to it, and with nothing from the log an interval is only the range stated, which
-    /// can't be right on both sets, as set B's shear widens its truth (ADR-316).
+    /// can't be right on both sets, as set B's shear widens its truth ([ADR-316][adr-316], the
+    /// fit's decisions).
+    ///
+    /// [adr-316]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md
     #[must_use]
     pub fn stated_on_height_alone(self) -> bool {
         !matches!(self, Self::WindEast | Self::WindNorth)
