@@ -399,13 +399,14 @@ So a change that moves a number has to commit the report that shows it.
 The two longest report checks, `cargo xtask synthetic --check` and `cargo xtask motor-catalog
 --check`, run from an optimized build in CI: `report-check`, a Cargo build setting with release's
 speed plus the assertions and overflow checks of the everyday build. Optimizing keeps their numbers
-to the digits they compare. On each of the five platforms the synthetic check runs in two halves,
-by set: `--sets tuning,a` in the `validate` job and `--sets b,calibration` in `examples`, and a test
-fails if a set is left out ([the synthetic flights' tests](physics/synthetic-flights.md)). Reports are still written by the
-everyday build, and `scripts/gate.sh` still runs both checks with it, whole, on the maintainer's
-machine. So a report in the repository has to reproduce from both builds. If the optimized build
-ever came out differently, CI would fail and regenerating wouldn't fix it: that would need a
-decision record, not a looser check.
+to the digits they compare. On each of the five platforms the synthetic check runs in two halves, by
+set: `--sets tuning,a` in the `validate` job and `--sets b,calibration` in `examples`, and a test
+fails if a set is left out ([the synthetic flights' tests](physics/synthetic-flights.md)). Reports
+are still written by the everyday build, and `scripts/gate.sh` runs both checks with it, whole, on
+your own machine. A passing run leaves them out only when a change is prose they don't read, such as
+most pages under `docs/`; CI always runs them. So a report in the repository has to reproduce from
+both builds. If the optimized build ever came out differently, CI would fail and regenerating
+wouldn't fix it: that would need a decision record, not a looser check.
 
 Then the job holds the committed reports to the accuracy census accepted last
 ([the regression check](decisions-and-roadmap.md#m2-4),
