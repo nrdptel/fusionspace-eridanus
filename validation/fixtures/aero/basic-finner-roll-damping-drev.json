@@ -18,5 +18,5 @@
     }
   ],
   "generator": "cargo xtask roll-drev",
-  "note": "hpr's Basic Finner roll damping C_lp (per unit of p d/(2V), on pi d^2/4) against DREV-TM-9703 Table IX's range fits (Dupuis and Hathaway 1997, PDF pp. 48-49), read from the cached copy under refs/. error is hpr's over DREV's, minus 1; positive reads high. Only these statistics are committed (issue #763). Bands: core to Mach 2.5, extended above (ADR-143)."
+  "note": "hpr's Basic Finner roll damping C_lp (per unit of p d/(2V), on pi d^2/4) against DREV-TM-9703 Table IX's range fits (Dupuis and Hathaway 1997, PDF pp. 48-49), read from the cached copy under refs/. error is hpr's over DREV's, minus 1; positive reads high. No C_lp of DREV's is written, but with two rows a band, the Mach range and hpr's public model these statistics give the readings back; the report is approved for public release (issue #763). Bands: core to Mach 2.5, extended to 3.5 (ADR-143)."
 }

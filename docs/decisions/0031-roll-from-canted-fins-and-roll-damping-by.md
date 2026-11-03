@@ -82,7 +82,8 @@ appendix A, Figs. 5-6 and 5-7; Niskanen 2009 §3.3; TN D-4014 Fig. 14.
   +5.0% to +8.8% on average by Mach band, +12.4% at most. The sign flips: HPR Sim overstates the
   damping. The fins' 8% thickness is unlikely to explain that, since what evidence there is says
   a thickness term would raise the damping; linear theory's `1/β` load near Mach 1.5, as in the forcing, is the likely
-  cause (an inference).
+  cause there (an inference). It leaves +11.7% to +18.3% from Mach 2.03 to 2.76 unexplained, part
+  of which may be NOL's: its tunnel values "fell slightly below" free flight (PDF p. 13).
 
 **Alternatives considered.**
 

@@ -1624,7 +1624,7 @@ mod tests {
             close(
                 f(&row["reference_c_lp"]),
                 -printed * 144.0 / PI,
-                5e-5,
+                5e-6,
                 "NOL's conversion",
             );
         }

@@ -24,11 +24,15 @@ use serde_json::{Value, json};
 
 pub const FIXTURE: &str = "validation/fixtures/aero/roll-vs-mach.json";
 pub const BASIC_FINNER: &str = "validation/fixtures/aero/basic-finner-roll-damping.json";
-/// DREV-TM-9703 Table IX's range fits, cached privately; only error statistics leave `refs/`.
+/// DREV-TM-9703 Table IX's range fits, cached under `refs/`; only error statistics are committed.
 pub const DREV_CACHE: &str =
     "refs/research/finner-reference-data/drev-tm-9703-table-ix-supersonic.csv";
+/// HPR Sim's error statistics against DREV, by Mach band, written by `cargo xtask roll-drev`.
 pub const DREV_STATISTICS: &str = "validation/fixtures/aero/basic-finner-roll-damping-drev.json";
+/// The top of the extended Mach band (ADR-143): DREV rows above it aren't scored.
+const ENVELOPE_TOP_MACH: f64 = 3.5;
 
+/// `cargo xtask roll-drev`'s line in the command list.
 pub const USAGE: &str = "\
   roll-drev [--check]      Fly the Basic Finner's roll damping against DREV-TM-9703 Table IX's
                            range fits, read from the cached copy under refs/, and write only
@@ -133,12 +137,31 @@ fn arcas_robin(root: &Path) -> Result<Vec<Value>, String> {
     Ok(out)
 }
 
-/// hpr's `C_lp` for the Basic Finner at a Mach number, and the body's roll-damping interference
-/// factor: four square fins one diameter in chord and span on a body one diameter across, so any
-/// diameter gives the same coefficients.
-type FinnerModel = (Box<dyn Fn(f64) -> Result<f64, String>>, f64);
+/// hpr's Basic Finner: four square fins one diameter in chord and span on a body one diameter
+/// across, so any diameter gives the same coefficients.
+struct Finner {
+    fin: FinAero,
+    count: f64,
+    body_radius: f64,
+    /// The body's roll-damping interference factor `k_R(B)`.
+    k_r: f64,
+}
 
-fn finner_model(reference: &Value) -> Result<FinnerModel, String> {
+impl Finner {
+    const DIAMETER: f64 = 1.0;
+
+    /// hpr's `C_lp` at a Mach number: `N C_lp k_R(B)`, per unit of `p d/(2V)` on `π d²/4`.
+    fn c_lp(&self, mach: f64) -> Result<f64, String> {
+        let roll = self
+            .fin
+            .roll(mach, self.body_radius, Self::DIAMETER)
+            .map_err(|e| e.to_string())?;
+        Ok(self.count * roll.damping * self.k_r)
+    }
+}
+
+/// The Basic Finner of the reference file's `geometry`.
+fn finner_model(reference: &Value) -> Result<Finner, String> {
     let geometry = &reference["geometry"];
     let count = number(&geometry["fin_count"], "fin_count")?;
     let (c_r, c_t, s, sweep, r) = (
@@ -148,7 +171,7 @@ fn finner_model(reference: &Value) -> Result<FinnerModel, String> {
         number(&geometry["leading_edge_sweep_calibers"], "sweep")?,
         number(&geometry["body_radius_at_fins_calibers"], "body radius")?,
     );
-    let d = 1.0;
+    let d = Finner::DIAMETER;
     let planform = FinPlanform::Trapezoidal {
         root_chord_m: c_r,
         tip_chord_m: c_t,
@@ -157,16 +180,19 @@ fn finner_model(reference: &Value) -> Result<FinnerModel, String> {
     };
     let fin = FinAero::new(&planform, 0.25 * PI * d * d).map_err(|e| e.to_string())?;
     let k_r = roll_damping_interference(s, r, c_t / c_r).map_err(|e| e.to_string())?;
-    let c_lp = move |mach: f64| -> Result<f64, String> {
-        Ok(count * fin.roll(mach, r, d).map_err(|e| e.to_string())?.damping * k_r)
-    };
-    Ok((Box::new(c_lp), k_r))
+    Ok(Finner {
+        fin,
+        count,
+        body_radius: r,
+        k_r,
+    })
 }
 
 /// The Basic Finner's `C_lp` against each committed reference.
 fn basic_finner(root: &Path) -> Result<Value, String> {
     let reference = read(root, BASIC_FINNER)?;
-    let (model, k_r) = finner_model(&reference)?;
+    let finner = finner_model(&reference)?;
+    let k_r = finner.k_r;
     let rows_of = |key: &str| -> Result<Vec<Value>, String> {
         let points = reference[key]
             .as_array()
@@ -176,7 +202,7 @@ fn basic_finner(root: &Path) -> Result<Value, String> {
             .map(|p| {
                 let mach = number(&p["mach"], "a Basic Finner `mach`")?;
                 let c_lp = number(&p["c_lp"], "a Basic Finner `c_lp`")?;
-                let hpr = model(mach)?;
+                let hpr = finner.c_lp(mach)?;
                 let error = hpr / c_lp - 1.0;
                 println!(
                     "basic-finner {key:<22} Mach {mach:<5} C_lp {hpr:.3} against {c_lp:.3} ({:+.1}%)",
@@ -271,10 +297,12 @@ fn drev_rows(text: &str) -> Result<Vec<(f64, f64)>, String> {
         .collect()
 }
 
-/// The statistics file: hpr's errors against DREV's `C_lp` by band, with no DREV value in it.
-pub fn drev_statistics(root: &Path) -> Result<Value, String> {
+/// The statistics file: hpr's errors against DREV's `C_lp` by band. No `C_lp` of DREV's is written,
+/// but with two rows a band, the band's Mach range and hpr's public model, its mean and largest
+/// error give the readings back; the report's public release allows that (#763).
+fn drev_statistics(root: &Path) -> Result<Value, String> {
     let reference = read(root, BASIC_FINNER)?;
-    let (model, _) = finner_model(&reference)?;
+    let finner = finner_model(&reference)?;
     let text = fs::read_to_string(root.join(DREV_CACHE)).map_err(|e| {
         format!("{DREV_CACHE}: {e} (the cached DREV-TM-9703 readings live only under refs/)")
     })?;
@@ -285,7 +313,15 @@ pub fn drev_statistics(root: &Path) -> Result<Value, String> {
                 "DREV's C_lp at Mach {mach} is not negative: {c_lp}"
             ));
         }
-        let error = model(mach)? / c_lp - 1.0;
+        if !(mach > 0.0 && mach <= ENVELOPE_TOP_MACH) {
+            return Err(format!(
+                "DREV's row at Mach {mach} is outside the envelope, Mach 0 to {ENVELOPE_TOP_MACH}"
+            ));
+        }
+        let error = finner.c_lp(mach)? / c_lp - 1.0;
+        if !error.is_finite() {
+            return Err(format!("hpr's error at Mach {mach} is not finite: {error}"));
+        }
         println!(
             "basic-finner DREV Table IX Mach {mach:<5} hpr {:+.1}%",
             100.0 * error
@@ -301,12 +337,15 @@ pub fn drev_statistics(root: &Path) -> Result<Value, String> {
         "note": "hpr's Basic Finner roll damping C_lp (per unit of p d/(2V), on pi d^2/4) against \
                  DREV-TM-9703 Table IX's range fits (Dupuis and Hathaway 1997, PDF pp. 48-49), \
                  read from the cached copy under refs/. error is hpr's over DREV's, minus 1; \
-                 positive reads high. Only these statistics are committed (issue #763). Bands: \
-                 core to Mach 2.5, extended above (ADR-143).",
+                 positive reads high. No C_lp of DREV's is written, but with two rows a band, \
+                 the Mach range and hpr's public model these statistics give the readings back; \
+                 the report is approved for public release (issue #763). Bands: core to Mach \
+                 2.5, extended to 3.5 (ADR-143).",
         "bands": band_statistics(&errors),
     }))
 }
 
+/// Writes the DREV statistics, or with `--check` fails if the committed file differs.
 pub fn run_drev(args: &[String]) -> Result<(), String> {
     let check = match args {
         [] => false,
@@ -320,9 +359,10 @@ pub fn run_drev(args: &[String]) -> Result<(), String> {
         let committed = fs::read_to_string(&path).map_err(|e| format!("{DREV_STATISTICS}: {e}"))?;
         let committed: Value =
             serde_json::from_str(&committed).map_err(|e| format!("{DREV_STATISTICS}: {e}"))?;
-        if committed != fresh {
+        if !crate::designs::same(&committed, &fresh) {
             return Err(format!(
-                "{DREV_STATISTICS} is stale: run `cargo xtask roll-drev` and commit it"
+                "{DREV_STATISTICS} is stale: run `cargo xtask roll-drev` and commit it: {}",
+                crate::designs::difference(&committed, &fresh).unwrap_or_default()
             ));
         }
         println!("{DREV_STATISTICS} is current");
@@ -352,6 +392,34 @@ mod tests {
         assert_eq!(stats[1]["mach_from"].as_f64(), Some(2.7));
         let only_core = band_statistics(&[(2.0, 0.2)]);
         assert_eq!(only_core.len(), 1);
+    }
+
+    /// The pages quote the committed DREV statistics as they are: each band's mean and largest
+    /// error, to 0.1%, on the accuracy page and the aero page (CI can't rerun `roll-drev`).
+    #[test]
+    fn the_pages_quote_the_committed_drev_statistics() {
+        let root = crate::designs::root().unwrap();
+        let stats = read(&root, DREV_STATISTICS).unwrap();
+        let pages = ["docs/accuracy.md", "docs/physics/aero.md"]
+            .map(|page| (page, fs::read_to_string(root.join(page)).unwrap()));
+        let bands = stats["bands"].as_array().unwrap();
+        assert_eq!(bands.len(), 2);
+        let shown =
+            |band: &Value, key: &str| format!("{:.1}%", 100.0 * band[key].as_f64().unwrap());
+        for band in bands {
+            let (mean, largest) = (shown(band, "mean_error"), shown(band, "largest_error"));
+            for (page, text) in &pages {
+                assert!(
+                    text.contains(&format!("{mean} high on average"))
+                        || text.contains(&format!("{mean} on average")),
+                    "{page} doesn't quote the mean {mean}"
+                );
+                assert!(
+                    text.contains(&format!("{largest} at most")),
+                    "{page} doesn't quote the largest {largest}"
+                );
+            }
+        }
     }
 
     /// The cache's comment lines and column order don't matter; a bad or non-finite cell is refused.
