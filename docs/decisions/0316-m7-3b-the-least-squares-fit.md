@@ -66,8 +66,9 @@ each step was made with sets A and B in view.
    CI now fits the flights in eight Linux jobs side by side, each every eighth flight of each run
    (`fit --part K/8`). A ninth job puts them back together and runs the same check
    (`--other-platform --parts`), still without calibration; the gate is unchanged. On a Mac, three
-   parts (6,538 fits between them) put back together left no number of the report different. On Linux, eight left the same 22
-   numbers off the committed report, by at most 1 flight and 3.56%, as one job did that day.
+   parts (6,538 fits between them) put back together left no number of the report different. On
+   Linux, eight printed the line one job printed that day: 22 numbers off the committed report, by
+   at most 1 flight and 3.56%.
 8. **Only logs with something to fit are counted.** A log that says nothing states its range, which
    holds about 90% whatever the fit does. Counted, those logs leaned the drag's, impulse's and mass's
    counts toward passing: a review counted set B's impulse at 50 below, 781 inside and 14 above of
