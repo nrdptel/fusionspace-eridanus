@@ -253,7 +253,7 @@ Run it from a copy of the repository with
 
 <!-- quote: crates/hpr/examples/motor_stock.output.txt -->
 ```text
-Motor stock data from motor.fusionspace.co (https://motor.fusionspace.co), under the site's terms (https://motor.fusionspace.co/api#terms): free for personal, non-commercial use; other sites, apps and services, and any commercial use, need written permission first. It is aggregated from public vendor listings and ThrustCurve.org, provided as is, with no warranty. Check stock and price on the vendor's own page before relying on them
+Motor stock data from motor.fusionspace.co, licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). It is aggregated from public vendor listings and ThrustCurve.org, provided as is, with no warranty. Check stock and price on the vendor's own page before relying on them
 built 2026-10-01T07:07:29+00:00: 598 motors listed, 282 in stock, from 12 vendors
 first read: Fetched; offline two hours later: Stale, the same list: true
 
@@ -301,25 +301,21 @@ The average thrust is the total impulse over the burn time.
 
 ### motor.fusionspace.co
 
-The site's terms are on [its API page](https://motor.fusionspace.co/api#terms), under "Terms".
-From 1 November 2026 the data the site publishes is under those terms, not an open license. It
-is free for personal, non-commercial use and for FusionSpace's own tools, FusionSpace HPR among
-them; any other site, app or service, and any commercial use, needs written permission
-first. The site asks for the credit "Motor stock data from motor.fusionspace.co", linked to
-the site, and allows keeping a cached copy and recorded answers as test fixtures within that use.
-The data is gathered from public vendor listings and from ThrustCurve.org, and comes as is, with
-no warranty.
+The site's terms are on [its API page](https://motor.fusionspace.co/api), under "Data licence".
+The site licenses its API's answers under Creative Commons Attribution 4.0 (CC BY 4.0). It asks
+for the credit "Motor stock data from motor.fusionspace.co" and allows keeping recorded answers,
+such as the test recordings below. The data is gathered from public vendor listings and from
+ThrustCurve.org, and comes as is, with no warranty.
 
-Copies obtained before 1 November 2026 were published under Creative Commons Attribution 4.0
-(CC BY 4.0) and keep that license. The project's test recordings below, recorded on 1 October
-2026, are such copies
-([the decision record on the licensing layers](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0315-the-2026-11-01-licensing-layers.md)).
+Anyone may use and share the site's compilation, commercially too, on CC BY 4.0's main conditions:
+give that credit, name the license with its link, and say if you changed the data. A program of
+your own built on the library can show `motor_finder::ATTRIBUTION`, which carries the credit and
+the license; saying what your program changed is yours to add. From 1 to 3 November 2026 the site
+used narrower terms. It withdrew them on 3 November: a copy saved in those days is under CC BY 4.0
+like any other, with the same credit, and needs no permission
+([the decision record's amendment](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0315-the-2026-11-01-licensing-layers.md)).
 
 The simulator puts its credit line, `motor_finder::ATTRIBUTION`, on every answer, fetched or saved.
-That line names today's terms even over a copy saved before 1 November 2026, such as the
-recordings, which keep CC BY 4.0: the stricter reading. A program of your own built on the library
-is another app under the terms, so it needs the site's written permission unless it is for your
-personal, non-commercial use.
 `hpr motors search` prints it at the top of every list, in text
 and in JSON, with ThrustCurve.org's below it.
 
