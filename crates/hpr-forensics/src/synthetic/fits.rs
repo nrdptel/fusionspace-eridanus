@@ -82,8 +82,7 @@ impl Method {
 /// where the posterior reaches further ([`crate::posterior::sample_in_two`]), and the draws read
 /// after them; each draw flies twice, once for the middle of the unknowns other than the wind and
 /// once for its weight. By estimate a few hundred keep 100 effective draws
-/// ([`crate::posterior::MIN_EFFECTIVE_DRAWS`]) on a posterior near its peak's Gaussian, where a
-/// Student-t of 4 degrees of freedom over eleven unknowns keeps about two in three. A judgment;
+/// ([`crate::posterior::MIN_EFFECTIVE_DRAWS`]) on a posterior near its peak's Gaussian. A judgment;
 /// the report counts the flights where they fell short.
 pub const POSTERIOR_PILOT: usize = 100;
 /// And the draws read.

@@ -76,8 +76,9 @@ least-squares fit (ADR-316).
    flights, against the least-squares fit's 70 on set A. Set A's first 300 flights, 242 of them with
    a posterior, took 2,600 CPU-seconds with 400 read draws, the least-squares fits included, on the
    Mac that wrote the report. The report took 3 hours 1 minute there, 58,121 user CPU-seconds, against
-   about 16 minutes before; another check shared the machine for its last hour. Of its 4,572
-   posteriors, 2,286,000 draws were made. CI fits it in 32 parts, not 8 (ADR-316 §7). The report's
+   about 16 minutes before; another check shared the machine for its last hour. The 4,572
+   posteriors the report counts made 2,286,000 draws; the uncounted flights fitted past them drew
+   posteriors too. CI fits it in 32 parts, not 8 (ADR-316 §7). The report's
    threads now each take the next flight left, not every tenth, since a fit with a posterior costs
    many times one with nothing to fit; the run above had them every tenth and kept 5.4 of 10 cores
    busy on average. The calibration set draws no posterior, as only the least-squares shares are
@@ -133,8 +134,8 @@ inside with 1,308 to 1,384.
   correlation drawn with the rest, is M7.3c4's first try.
 - **The shear is stated, not known.** A wind that grows faster than IEC's 0.2, or one that turns
   with height, lies outside it. Set A's wind doesn't shear, yet its drag's intervals sit low, 78
-  truths above and a mean error of −0.0104. Whether the shear's draws move it, and which way, isn't
-  measured yet. Set B's impulse sits high, 83 below.
+  truths above and a mean error of −0.0104; 70 of the 78 are on logs of height alone, where the
+  shear is drawn. Whether the shear's draws move it, and which way, isn't measured yet. Set B's impulse sits high, 83 below.
   M7.3c4 measures each count by track and by design first.
 - **A posterior far from its peak isn't reached.** A second mode the pilot doesn't find is still
   missed, and few effective draws are reported, not mended (ADR-317): 711 of the 4,572 posteriors

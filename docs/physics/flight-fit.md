@@ -28,8 +28,9 @@ tells of its drag, impulse, wind and mass.
   nothing to fit among the sets' counted draws, about one in six ([when](#when-a-log-has-nothing-to-fit)). Its wind is
   constant with height; on a log of height alone, a wind that grows with height only widens the intervals. It's
   told the design, rail, site and the day's air, and takes them as right. It's in the library only:
-  no command runs it on a log yet. The Bayesian option's intervals pass 4 of their 10 counts on the
-  same flights, and its wind's are too wide. Read the least-squares intervals
+  no command runs it on a log yet. The Bayesian option's intervals pass 4 of their 10 counts, 5
+  parameters on each of 2 sets. Its wind's are too wide; set A's drag and set B's impulse miss too
+  many truths on one side, the side that flatters. Read the least-squares intervals
   ([The Bayesian option](#the-bayesian-option)).
 
 ## How it works
@@ -202,13 +203,16 @@ Those counts have limits:
 
 `hpr_forensics::fit::bayesian` runs the least-squares fit, then draws the posterior of the same
 unknowns around its answer ([ADR-317][adr-317], [ADR-319][adr-319]). Its 90% intervals don't pass
-their test yet: 4 of the 10 counts pass, and the wind's intervals are too wide. Until they pass, read
+their test yet: 4 of the 10 counts pass, 5 parameters on each of 2 sets. The wind's intervals are
+too wide. Set A's drag and set B's impulse miss too many truths on one side, so there they're too
+narrow or off center. Until they pass, read
 the least-squares intervals. Like the fit, it's in the library only, and no real flight has checked
 it.
 
 The posterior is what the fit's unknowns could be, given the log and the stated ranges. The
 least-squares fit reads its uncertainty off the curvature at its answer, as if the posterior were a
-bell curve. Then it fits shares on the calibration set so that its intervals hold. The Bayesian option
+bell curve. It then multiplies that standard error by two shares, factors fitted on the calibration
+set so that its intervals hold ([How it works](#how-it-works)). The Bayesian option uses none. The Bayesian option
 draws points around the answer at random and flies each one. It weighs each point by the posterior's
 value there divided by how likely the draw was to land there. So the points it lands on often don't
 count extra: that's importance sampling. Each parameter's 90% interval is the weighted points' 5% and 95%
@@ -231,12 +235,12 @@ How it draws:
   normal profile. The least-squares fit carries the same doubt in its errors instead.
 
 A fit with something to fit flies about 1,000 times, against about 70 for least squares on set A.
-The report took 3 hours on 10 cores, against 16 minutes before. That's about 13 seconds of one
-processor core a posterior, the least-squares fits included.
+The report took 3 hours on 10 cores, against 16 minutes before.
 
 ### How well the Bayesian option holds
 
-It's held to the same test as the least-squares fit, on the same flights. The counts are flights:
+It's held to the same test as the least-squares fit, on the same flights
+([How well it holds](#how-well-it-holds)). The counts are flights:
 
 | Parameter | Set A below, inside, above (no unit) | Set B below, inside, above (no unit) |
 |---|---:|---:|
@@ -257,12 +261,19 @@ known:
   posterior takes it as the least-squares fit states it. That fit narrows its own intervals back,
   with shares inside the bell curve's ±1.645 ([ADR-319][adr-319]).
 - **Set A's drag sits low and set B's impulse high.** 78 of set A's drag truths fall above, and
-  83 of set B's impulse truths below. Their causes aren't measured yet.
+  83 of set B's impulse truths below. Of set A's 78, 70 are on logs of height alone, the only logs
+  where the shear is drawn, though set A's wind doesn't shear. That points at the shear's stated
+  range, but it isn't measured yet, and set B's impulse leans the other way.
 
-Drag and impulse are told on set A, at median widths of 0.0917 and 0.0391, of 0.36 and 0.108 stated.
-The mass isn't, at 0.0341 of 0.036. On pure noise nothing is told, by either method.
+Drag and impulse are identified on set A, at median widths of 0.0917 and 0.0391 (least squares:
+0.115 and 0.0399), of 0.36 and 0.108 stated. The mass isn't, at 0.0341 of 0.036. On pure noise
+nothing is identified by either method. But the fit refuses every noise log before a posterior is
+drawn, so that says nothing of the sampler itself.
 
-The draws are counted too. On set A, 319 of 2,276 posteriors had fewer than 100 effective draws;
+The draws are counted too. A posterior's effective draws are how many equally weighted draws its
+weighted ones are worth (Kish): 400 draws with one heavy weight are worth about 1. Under 100, a
+result is flagged as too few to read, but its interval still counts in the table above. Of the
+flights counted, 2,276 on set A had a posterior, 319 of them with fewer than 100 effective draws;
 across all 2,276, the fewest was 1.13 and the median 232. On set B, 392 of 2,296 had fewer than 100;
 the fewest was 1.01 and the median 223. A
 draw fails when it can't be weighed, as when its flight can't fly. That's 124 of 1,138,000 on set A,

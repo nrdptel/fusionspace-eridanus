@@ -639,19 +639,22 @@ pub struct Bayesian {
     pub posterior: Option<Posterior<FLOWN>>,
 }
 
-/// The Bayesian option ([ADR-317][adr-317]): [`fit`], then the posterior of its eleven unknowns
-/// drawn around its answer by [`posterior::sample`], each draw a flight flown.
+/// The Bayesian option ([ADR-317][adr-317], [ADR-319][adr-319]): [`fit`], then the posterior of
+/// its unknowns drawn around its answer by [`posterior::sample_in_two`], each draw a flight flown.
 ///
-/// The posterior is the least-squares fit's own: its log density is `−χ²(x)/2`, the same
-/// residuals at the same noise, the noise widened for a residual that runs on from bin to bin as
-/// the fit's errors widen it, the same bins read and the same priors. So the two options differ
-/// only in how they read it: the least-squares fit by its curvature at the answer, this one by
-/// the draws. The proposal's scale is the fit's covariance at the answer, each flown
-/// parameter's variance grown by the wind's spread on a log of height alone, as its standard
-/// errors are, so that the proposal is no narrower than the fit's errors. Its 90% credible
-/// intervals are the posterior's 5% and 95% points as they come: no shares widen them.
+/// The posterior is the least-squares fit's own: the same residuals at the same noise, the noise
+/// widened for a residual that runs on from bin to bin as the fit's errors widen it, the same
+/// bins read and the same priors. The sensor's four linear unknowns (height offset, gain, drift,
+/// port) are integrated out in closed form, `−2 ln p(θ) = χ²_min(θ) + ln det H(θ)`, so seven
+/// unknowns are drawn: the six flown and the clock. On a log of height alone the wind's shear
+/// exponent is an eighth, uniform on `[0, SHEAR_EXPONENT]`. The wind is drawn first, from its
+/// block of the fit's covariance at the answer; the rest about where one Gauss-Newton step puts
+/// them in that wind, from their covariance given the wind; a pilot widens either block's scale
+/// where the posterior reaches further. Its 90% credible intervals are the posterior's 5% and 95%
+/// points as they come: no shares widen them.
 ///
 /// [adr-317]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0317-m7-3c-in-two-the-sampler-then-the-test.md
+/// [adr-319]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0319-m7-3c2-the-bayesian-option-in-two-blocks.md
 pub fn bayesian(
     observed: Option<&Observations>,
     stated: &Stated,

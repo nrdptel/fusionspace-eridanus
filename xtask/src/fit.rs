@@ -22,7 +22,7 @@ use std::time::Instant;
 use hpr_flightdata::readings::interval::Shares;
 use hpr_forensics::synthetic::designs::DesignFiles;
 use hpr_forensics::synthetic::fits::{
-    self, ASKED, Asked, Check, FlightFit, Identification, Method,
+    self, ASKED, Asked, Check, FlightFit, Identification, Method, POSTERIOR_DRAWS, POSTERIOR_PILOT,
 };
 use hpr_forensics::synthetic::{Flyer, Set};
 use serde::{Deserialize, Serialize};
@@ -32,10 +32,11 @@ pub const USAGE: &str =
                            ADR-316), draw each fit's posterior by the Bayesian option (ADR-319),
                            and write validation/reports/fit-intervals.{json,md}. --check writes
                            nothing and fails unless the fits reproduce the committed report and
-                           the calibration set gives the library's shares. Either fails if, by
-                           either method, a parameter's interval fails ADR-257's test, a probe of
-                           it passes, a scale isn't identified on set A, or anything is
-                           identified on pure noise.
+                           the calibration set gives the library's shares. Either fails if a
+                           least-squares interval fails ADR-257's test or a probe of it passes,
+                           or if, by either method, a scale isn't identified on set A or anything
+                           is identified on pure noise. The Bayesian option's counts and probes
+                           are held as committed but break nothing until M7.3c4 (ADR-319 §8).
   fit --check --other-platform
                            The same rules, on a platform other than the one that wrote the report:
                            its counts may stand a few flights off, and calibration isn't rerun.
@@ -579,7 +580,15 @@ impl Apart {
                 if let (Some(a), Some(b)) = (a.as_u64(), b.as_u64()) {
                     let flights = a.abs_diff(b);
                     self.most_flights = self.most_flights.max(flights);
-                    if flights > OTHER_PLATFORM_FLIGHTS {
+                    // A posterior's draws come 500 to a flight, so a draw count may stand as
+                    // many draws off as the flights may.
+                    let draws = at.ends_with("/draws/made") || at.ends_with("/draws/failed");
+                    let allowed = if draws {
+                        OTHER_PLATFORM_FLIGHTS * (POSTERIOR_PILOT + POSTERIOR_DRAWS) as u64
+                    } else {
+                        OTHER_PLATFORM_FLIGHTS
+                    };
+                    if flights > allowed {
                         self.broken.push(format!("{at}: {a} committed, {b} made"));
                     }
                 } else if a.is_f64() != b.is_f64() {
