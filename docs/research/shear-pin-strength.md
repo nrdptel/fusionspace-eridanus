@@ -1,14 +1,13 @@
 # How strong nylon shear pins are: material data and measured breaks
 
 What force breaks a 2-56, 4-40 or 6-32 nylon 6/6 shear pin in single shear, how much does it spread, and how do
-moisture, temperature, hole fit and loading rate move it? It serves the ejection-charge sizing (M6.7 in the
-[roadmap](../ROADMAP.md)), which sizes a charge against "the shear pins' load at the high end of their strength", the
-ground-test log (M6.8), and the shear-pin idea in [pad and recovery ideas](ideas-pad-and-recovery.md). It builds on
-[suite web tools](suite-web-tools.md) (the Charge port's minimum-strength pins) and [suite field
-tools](suite-field-tools.md) (Fetter's ground tests). Read 2026-10-17 (rate and cold 2026-11-03, from [19]): resin
-makers' data sheets, thread-standard tables, one instrumented pin test series, three builders' pull tests, one screw
-maker's catalog and two calculators. **Inference** marks this note's own reading. Trust the areas (exact) and the
-printed values; the high end is an inference from few tests, ±20% at best, stacked factors only to their sign.
+moisture, temperature, hole fit and loading rate move it? It serves M6.7's charge sizing ([roadmap](../ROADMAP.md)),
+which sizes a charge against "the shear pins' load at the high end of their strength", the ground-test log (M6.8), and
+a [pad and recovery idea](ideas-pad-and-recovery.md). It builds on [suite web tools](suite-web-tools.md) (the Charge
+port's minimum-strength pins) and [suite field tools](suite-field-tools.md) (Fetter's ground tests). Read 2026-10-17
+(rate and cold 2026-11-03, [19]): data sheets, thread tables, one instrumented pin series, three builders' pulls, a
+screw maker's catalog and two calculators. **Inference** marks this note's own reading. Trust the areas (exact) and
+the printed values; the high end is an inference from few tests, ±20% at best, stacked factors only to their sign.
 
 **In short.**
 - **Fetter's pin force is a low-to-middle value, not a high end.** His Table 6-1 multiplies nylon 6/6's lowest
@@ -20,10 +19,10 @@ printed values; the high end is an inference from few tests, ±20% at best, stac
   pulls) averages 21.4 lbf (#2) and 38.2 lbf (#4) per pin with three or four pins, 1σ 4% to 6%: 23% to 31% *below*
   9,600 psi × minor area. Builders' pulls (forum reports, weak evidence) read 28.5 to 35 lbf for 2-56 in a snug
   tapped joint, 56 lbf for 4-40 and 116 lbf for 6-32. The measured high end: about 35 / 56 / 116 lbf.
-- **No source measures moisture, temperature or loading rate on a pin.** Resin data says a damp pin is weaker (5% to
-  33%), a fast or cold one stronger (×1.27 to ×1.7 fast; at −40 °C ×1.86 conditioned yield, ×1.37 dry strength; [19]).
-  Dry on the pitch area (§6) at DuPont's top rate: 65 to 78 / 108 to 130 / 163 to 196 lbf from 0 °C to −30 °C; at 0 °C
-  on the ×1.7 compression fit, 91 / 151 / 227 lbf. Heating and notch brittleness may lower a real break.
+- **No source measures moisture, temperature or loading rate on a pin.** Resin data: a damp pin is weaker (5% to 33%),
+  a fast or cold one stronger (×1.27 to ×1.7 fast; at −40 °C ×1.86 conditioned yield, ×1.37 dry strength; [19]). At
+  DuPont's top rate, dry, pitch area (§6): 65 to 79 / 108 to 131 / 163 to 197 lbf from 0 °C (Eyring) to −30 °C
+  (multiplied; yield extrapolated); at 0 °C on the ×1.7 fit, 91 / 151 / 228 lbf. Heat and brittleness may lower it.
 
 ## 1. What Fetter 2025 uses (Rev 1.2, 23 Feb 2025; printed page numbers, at the head of each page)
 
@@ -122,8 +121,8 @@ hot water and carry about 3% to 4% moisture against about 0.5% as molded (p. 168
 | Soft (cardboard) tube | lower joint force | −47% per pin, one pull each; the #4 tore it | Damerau [1] |
 
 - The temperature and moisture rows are DuPont's tensile-yield plots (±1 to ±3 MPa), but for −40 °C's ×1.37, Table 7's
-  tensile strength. Shear yield tracks tensile yield at slow rates ([19] §4), unshown above 0.2 /s; the one
-  conditioned shear pair (Zytel 105, −5%) falls far less than yield (−23% to −33%).
+  tensile strength; their scaling to shear is assumed. Shear yield tracks tensile yield at slow rates ([19] §4),
+  unshown above 0.2 /s; the one conditioned shear pair (Zytel 105, −5%) falls far less than yield (−23% to −33%).
 - A pin at apogee is cold only if it has cooled: **Inference:** in a closed airframe a pin may sit near pad
   temperature through a short flight. No source measures a pin's temperature in flight.
 - PA66 takes about 2.5% water at 50% RH and 8.5% saturated, slowly (125 days for a 1.5 mm plate at 50% RH, [3]
@@ -137,22 +136,23 @@ hot water and carry about 3% to 4% moisture against about 0.5% as molded (p. 168
 | Fetter (Min): 9,600 psi × 3A minor | 31.0 lbf / 138 N | 49.8 lbf / 222 N | 75.0 lbf / 333 N |
 | Measured high (one builder each) | 35 lbf / 156 N | 56 lbf / 249 N | 116 lbf / 516 N |
 | Feretich's max: 10,500 psi × pitch | 46 lbf / 205 N | 76 lbf / 338 N | 114 lbf / 507 N |
-| Dry, 0 °C, fast, Eyring / multiplied: 14,940 / 15,620 psi | 65 / 68 lbf, 289 / 302 N | 108 / 113 lbf, 479 / 501 N | 163 / 170 lbf, 723 / 756 N |
-| Dry, −30 °C (yield extrapolated, **Inference**), fast, Eyring / multiplied: 16,550 / 18,040 psi | 72 / 78 lbf, 320 / 349 N | 119 / 130 lbf, 531 / 579 N | 180 / 196 lbf, 801 / 873 N |
-| Dry, 0 °C, compression fit at 100 /s, multiplied only (rod's moisture unstated): 20,900 psi | 91 lbf / 404 N | 151 lbf / 670 N | 227 lbf / 1,012 N |
+| Dry, 0 °C, fast, Eyring / multiplied: 14,940 / 15,620 psi | 65 / 68 lbf, 289 / 303 N | 108 / 113 lbf, 479 / 501 N | 163 / 170 lbf, 724 / 756 N |
+| Dry, −30 °C (yield extrapolated, **Inference**), fast, Eyring / multiplied: 16,550 / 18,040 psi | 72 / 79 lbf, 321 / 349 N | 120 / 131 lbf, 531 / 579 N | 181 / 197 lbf, 801 / 874 N |
+| Dry, 0 °C, compression fit at 100 /s, multiplied only (rod's moisture unstated): 20,900 psi | 91 lbf / 405 N | 151 lbf / 671 N | 228 lbf / 1,012 N |
 
-Check for 2-56: π/4 × 0.0744² = 0.004347 in²; × 10,500 psi = 45.6 lbf, Feretich's 46. Fast rows ([19] §6): 10,600 psi
-× 1.16 (0 °C) or 1.34 (−30 °C) × 1.27 (top rate) or 1.70 (fit), Eyring scaling the gain by T/296. The old ×1.2 stack
-(14,750 psi; 64 / 106 / 160 lbf) erred low by 1% to 42%. **Inference:** two causes may break a pin below these yield
-forces, by unbounded amounts: adiabatic softening, and notch brittleness in a cold, conditioned pin ([19] §3, §6).
+Check for 2-56: π/4 × 0.0744² = 0.004347 in²; × 10,500 psi = 45.6 lbf, Feretich's 46. Fast rows ([19] §6), rounded up:
+10,600 psi × 1.16 (0 °C) or 1.34 (−30 °C) × 1.27 (top rate) or 1.70 (fit), Eyring scaling the gain by T/296. They
+stack factors from separate figures; no source loads nylon fast and cold together. The old ×1.2 stack (14,750 psi; 64
+/ 106 / 160 lbf) sits 1% to 42% below them. **Inference:** two causes may break a pin below these yield forces, by
+unbounded amounts: adiabatic softening, and notch brittleness in a cold, conditioned pin ([19] §3, §6).
 
 ## What this suggests
 
 - **M6.7's high end could be Feretich's pitch-area bound,** 46 / 76 / 114 lbf per pin ([2]), beside §4's breaks: 1.5
-  times Fetter's 9,600 psi row (too little powder). The one 6-32 report (116 lbf, count unstated) sits on it: no
-  margin for 6-32. This slow, 23 °C bound misses a fast or cold break (§5; §6, fast and cold: 1.4 to 2.0 times it).
-- **Say the spread, not one number.** From Damerau's lowest to the builders' highest, per-pin breaks span 0.6 to 1.1
-  times Fetter's row (2-56, 4-40; one 2-56 low, 7.5 lbf, is 0.24 times); no model predicts a builder's pins in it.
+  times Fetter's 9,600 psi row (too little powder for a strong pin). The one 6-32 report (116 lbf, count unstated)
+  leaves 6-32 no margin. This slow, 23 °C bound misses a fast or cold break (§5; §6, fast and cold: 1.4 to 2.0×).
+- **Say the spread, not one number.** From Damerau's lowest to the builders' highest, breaks span 0.6 to 1.1 times
+  Fetter's row (2-56, 4-40; one 2-56 low, 7.5 lbf, is 0.24 times); the model can't predict a builder's pins in it.
 - **M6.8's ground-test log could record** pin count, size, maker, color (black is pre-moistened), tapped or drilled,
   and tube material: each moves the force by the sizes in §5.
 - **Fetter's slips** (§1) matter if M6.7 cites Table 6-1 or Eq. 6-1; cite the table's 30.98 lbf, not 26.62.
