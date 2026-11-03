@@ -25,6 +25,8 @@ hpr-io.workspace = true
 hpr-validate.workspace = true
 hpr-motor.workspace = true
 hpr-sim.workspace = true
+# The fit check's parts as CI hands them between jobs, every number to the bit (M7.3b).
+ciborium.workspace = true
 # The HPR design format's documents checked against its committed schema (M3.3a).
 jsonschema.workspace = true
 pulldown-cmark.workspace = true

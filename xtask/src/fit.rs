@@ -5,10 +5,16 @@
 //! The flights are flown and fitted on every core, each thread taking every `n`th index with a
 //! [`Flyer`] of its own; a fit is the same however many came before it on its thread (the shared
 //! tables change no number), so the report doesn't depend on the number of threads.
+//!
+//! For the same reason, on one platform, it doesn't depend on the number of machines either. CI
+//! fits the flights in [`Part`]s, each on a machine of its own, and a last job puts the parts' fits
+//! back together and checks them as one run would. The fits pass from job to job in CBOR, which
+//! keeps every bit.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 use std::fs;
+use std::path::{Path, PathBuf};
 use std::time::Instant;
 
 use hpr_flightdata::readings::interval::Shares;
@@ -17,7 +23,8 @@ use hpr_forensics::synthetic::fits::{self, ASKED, Asked, Check, FlightFit, Ident
 use hpr_forensics::synthetic::{Flyer, Set};
 use serde::{Deserialize, Serialize};
 
-pub const USAGE: &str = "  fit [--check]            Fit every flight of the synthetic sets A and B by least squares (
+pub const USAGE: &str =
+    "  fit [--check]            Fit every flight of the synthetic sets A and B by least squares (
                            ADR-316) and write validation/reports/fit-intervals.{json,md}. --check
                            writes nothing and fails unless the fits reproduce the committed report
                            and the calibration set gives the library's shares. Either fails if a
@@ -26,6 +33,12 @@ pub const USAGE: &str = "  fit [--check]            Fit every flight of the synt
   fit --check --other-platform
                            The same rules, on a platform other than the one that wrote the report:
                            its counts may stand a few flights off, and calibration isn't rerun.
+  fit --part <k>/<n> --out <dir>
+                           Fit part k of n of those flights, every nth from the kth, and write
+                           the fits to <dir>; checks nothing.
+  fit --check --other-platform --parts <dir>
+                           The check above, on the fits of every part in <dir>. Fails unless they
+                           are parts 1 to n of one split, and fit each flight once.
   fit --calibrate          Fit the calibration set and print each parameter's shares; writes nothing.
   fit --try <set> <count>  Fit a set's first flights, print each parameter's shares and counts on
                            them, and the seconds a fit takes; writes nothing.";
@@ -179,6 +192,23 @@ fn first(count: u64) -> Vec<u64> {
     (0..count).collect()
 }
 
+/// `set`'s first `flights` flights; the first `track_flights` of its flights with a track logger;
+/// and those of the latter past the former, which are fitted on their own.
+fn with_track(set: Set, flights: u64, track_flights: u64) -> (Vec<u64>, Vec<u64>, Vec<u64>) {
+    let track = fits::track_flights(set, track_flights);
+    let extra = track.iter().copied().filter(|k| *k >= flights).collect();
+    (first(flights), track, extra)
+}
+
+/// The fits of `made` and `more` whose flights are in `track`, each once.
+fn tracked(track: &[u64], made: &[FlightFit], more: &[FlightFit]) -> Vec<FlightFit> {
+    made.iter()
+        .chain(more)
+        .filter(|f| track.contains(&f.index))
+        .cloned()
+        .collect()
+}
+
 /// `set`'s flights and the wind's flights with a track, fitted, each once.
 fn fit_with_track(
     set: Set,
@@ -186,18 +216,188 @@ fn fit_with_track(
     track_flights: u64,
     files: &DesignFiles,
 ) -> Result<(Vec<FlightFit>, Vec<FlightFit>), String> {
-    let whole = first(flights);
-    let track = fits::track_flights(set, track_flights);
-    let extra: Vec<u64> = track.iter().copied().filter(|k| *k >= flights).collect();
+    let (whole, track, extra) = with_track(set, flights, track_flights);
     let made = fit_set(set, &whole, files, None)?;
     let more = fit_set(set, &extra, files, None)?;
-    let tracked: Vec<FlightFit> = made
-        .iter()
-        .chain(&more)
-        .filter(|f| track.contains(&f.index))
-        .cloned()
-        .collect();
+    let tracked = tracked(&track, &made, &more);
     Ok((made, tracked))
+}
+
+/// One run of fits the report reads: flights `indices` of `set`, each fitted to its log, or to
+/// `noise` in its place.
+struct Run {
+    set: Set,
+    indices: Vec<u64>,
+    noise: Option<Noise>,
+}
+
+/// The report's runs, in order: for set A and then set B, its first [`FIT_FLIGHTS`] flights, then
+/// the wind's flights with a track past them; then set A's first [`NOISE_FLIGHTS`] given each of
+/// [`NOISES`].
+fn runs() -> Vec<Run> {
+    let mut runs = Vec::new();
+    for set in [Set::A, Set::B] {
+        let (whole, _, extra) = with_track(set, FIT_FLIGHTS, TRACK_FLIGHTS);
+        for indices in [whole, extra] {
+            runs.push(Run {
+                set,
+                indices,
+                noise: None,
+            });
+        }
+    }
+    for given in NOISES {
+        runs.push(Run {
+            set: Set::A,
+            indices: first(NOISE_FLIGHTS),
+            noise: Some(given),
+        });
+    }
+    runs
+}
+
+/// Part `number` of `of` of the report's fits: every `of`th flight of each run, from its
+/// `number`th (counted from 1). The parts of one split fit each flight once between them.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+struct Part {
+    number: usize,
+    of: usize,
+}
+
+impl Part {
+    /// Every flight, in one part.
+    const WHOLE: Self = Self { number: 1, of: 1 };
+
+    /// `k/n`, with `n` at least 1 and `k` from 1 to `n`.
+    fn parse(text: &str) -> Result<Self, String> {
+        let wrong = || format!("--part takes k/n, k from 1 to n, not {text}");
+        let (number, of) = text.split_once('/').ok_or_else(wrong)?;
+        let part = Self {
+            number: number.parse().map_err(|_| wrong())?,
+            of: of.parse().map_err(|_| wrong())?,
+        };
+        if part.number == 0 || part.number > part.of {
+            return Err(wrong());
+        }
+        Ok(part)
+    }
+
+    /// This part's flights of a run.
+    fn of_run(self, indices: &[u64]) -> Vec<u64> {
+        indices
+            .iter()
+            .copied()
+            .skip(self.number - 1)
+            .step_by(self.of)
+            .collect()
+    }
+
+    /// This part's file in `dir`.
+    fn file(self, dir: &Path) -> PathBuf {
+        dir.join(format!("fit-part-{}-of-{}.cbor", self.number, self.of))
+    }
+}
+
+/// A part's fits, run by run in [`runs`]' order, as one CI job hands them to the next. CBOR keeps
+/// each number's bits; JSON can't, as it has no NaN, and the misfit's cut counts NaNs.
+#[derive(Debug, Serialize, Deserialize)]
+struct PartFile {
+    part: Part,
+    fits: Vec<Vec<FlightFit>>,
+}
+
+/// `part`'s fits, run by run in [`runs`]' order.
+fn fit_runs(files: &DesignFiles, part: Part) -> Result<Vec<Vec<FlightFit>>, String> {
+    runs()
+        .iter()
+        .map(|run| fit_set(run.set, &part.of_run(&run.indices), files, run.noise))
+        .collect()
+}
+
+/// Writes `part`'s `fits` to its file in `dir`, and returns the file's path.
+fn write_part(dir: &Path, part: Part, fits: Vec<Vec<FlightFit>>) -> Result<PathBuf, String> {
+    fs::create_dir_all(dir).map_err(|e| format!("{}: {e}", dir.display()))?;
+    let path = part.file(dir);
+    let mut bytes = Vec::new();
+    ciborium::into_writer(&PartFile { part, fits }, &mut bytes).map_err(|e| e.to_string())?;
+    fs::write(&path, bytes).map_err(|e| format!("{}: {e}", path.display()))?;
+    Ok(path)
+}
+
+/// The report's fits from the part files (`*.cbor`) in `dir`, as [`fit_runs`] makes them in one
+/// part. Refused unless the files are parts 1 to `n` of one split, each once, and give back each
+/// run's flights once each.
+fn fits_from_parts(dir: &Path) -> Result<Vec<Vec<FlightFit>>, String> {
+    let mut paths = Vec::new();
+    for entry in fs::read_dir(dir).map_err(|e| format!("{}: {e}", dir.display()))? {
+        let path = entry.map_err(|e| format!("{}: {e}", dir.display()))?.path();
+        if path.extension().is_some_and(|x| x == "cbor") {
+            paths.push(path);
+        }
+    }
+    paths.sort();
+    let runs = runs();
+    let flights: usize = runs.iter().map(|run| run.indices.len()).sum();
+    let mut fits: Vec<Vec<FlightFit>> = vec![Vec::new(); runs.len()];
+    let mut seen = BTreeSet::new();
+    let mut split = None;
+    for path in &paths {
+        let bytes = fs::read(path).map_err(|e| format!("{}: {e}", path.display()))?;
+        let file: PartFile = ciborium::from_reader(bytes.as_slice())
+            .map_err(|e| format!("{}: {e}", path.display()))?;
+        let Part { number, of } = file.part;
+        if of > flights {
+            return Err(format!(
+                "{}: a split in {of} parts, more than the report's {flights} flights",
+                path.display()
+            ));
+        }
+        let of_all = *split.get_or_insert(of);
+        if of != of_all {
+            return Err(format!(
+                "{}: a part of {of}, where another file's is of {of_all}",
+                path.display()
+            ));
+        }
+        if number == 0 || number > of || !seen.insert(number) {
+            return Err(format!(
+                "{}: part {number} of {of}, out of range or there twice",
+                path.display()
+            ));
+        }
+        if file.fits.len() != runs.len() {
+            return Err(format!(
+                "{}: {} runs, where the report has {}",
+                path.display(),
+                file.fits.len(),
+                runs.len()
+            ));
+        }
+        for (all, mine) in fits.iter_mut().zip(file.fits) {
+            all.extend(mine);
+        }
+    }
+    let Some(of) = split else {
+        return Err(format!("{}: no part files (*.cbor)", dir.display()));
+    };
+    let missing: Vec<usize> = (1..=of).filter(|n| !seen.contains(n)).collect();
+    if !missing.is_empty() {
+        return Err(format!("parts {missing:?} of {of} are missing"));
+    }
+    for (run, all) in runs.iter().zip(&mut fits) {
+        all.sort_by_key(|f| f.index);
+        let mut want = run.indices.clone();
+        want.sort_unstable();
+        if !all.iter().map(|f| f.index).eq(want.iter().copied()) {
+            return Err(format!(
+                "a run of set {:?}'s {} flights came back from the parts as {} fits, not each once",
+                run.set,
+                want.len(),
+                all.len()
+            ));
+        }
+    }
+    Ok(fits)
 }
 
 /// A parameter's check on a set, for the report.
@@ -544,10 +744,26 @@ fn page(report: &Report) -> String {
 
 /// Makes the report, with what doesn't come out as it must.
 fn make(files: &DesignFiles) -> Result<(Report, Vec<String>), String> {
+    report_of(&fit_runs(files, Part::WHOLE)?)
+}
+
+/// The report from the fits of its runs, in [`runs`]' order, with what doesn't come out as it must.
+fn report_of(made_runs: &[Vec<FlightFit>]) -> Result<(Report, Vec<String>), String> {
+    let wrong = || {
+        format!(
+            "{} runs of fits, where the report reads {}",
+            made_runs.len(),
+            4 + NOISES.len()
+        )
+    };
+    let mut run = made_runs.iter();
     let mut broken = Vec::new();
     let mut sets = Vec::new();
     for set in [Set::A, Set::B] {
-        let (made, tracked) = fit_with_track(set, FIT_FLIGHTS, TRACK_FLIGHTS, files)?;
+        let (Some(made), Some(more)) = (run.next(), run.next()) else {
+            return Err(wrong());
+        };
+        let tracked = tracked(&fits::track_flights(set, TRACK_FLIGHTS), made, more);
         let fitted = made.iter().filter(|f| f.fitted).count();
         if fitted < COUNTED_FLIGHTS {
             broken.push(format!(
@@ -613,7 +829,9 @@ fn make(files: &DesignFiles) -> Result<(Report, Vec<String>), String> {
     }
     let mut noise = Vec::new();
     for given in NOISES {
-        let made = fit_set(Set::A, &first(NOISE_FLIGHTS), files, Some(given))?;
+        let Some(made) = run.next() else {
+            return Err(wrong());
+        };
         let Noise {
             how,
             size_m,
@@ -621,7 +839,7 @@ fn make(files: &DesignFiles) -> Result<(Report, Vec<String>), String> {
         } = given;
         let identified: BTreeMap<Asked, Identification> = ASKED
             .iter()
-            .map(|&asked| (asked, Identification::of(asked, &made)))
+            .map(|&asked| (asked, Identification::of(asked, made)))
             .collect();
         for (asked, id) in &identified {
             if id.identified {
@@ -647,6 +865,9 @@ fn make(files: &DesignFiles) -> Result<(Report, Vec<String>), String> {
             identified,
         });
     }
+    if run.next().is_some() {
+        return Err(wrong());
+    }
     Ok((
         rounded(Report {
             about: "On sets A and B of the synthetic flights, each parameter's 90% interval is held \
@@ -662,6 +883,35 @@ fn make(files: &DesignFiles) -> Result<(Report, Vec<String>), String> {
         }),
         broken,
     ))
+}
+
+/// `--check --other-platform`: `made`, the report with what doesn't come out as it must, held to
+/// the committed report by [`Apart`]'s rules.
+fn other_platform(root: &Path, made: (Report, Vec<String>)) -> Result<(), String> {
+    let (report, mut broken) = made;
+    let json_path = root.join(format!("{REPORT}.json"));
+    let committed =
+        fs::read_to_string(&json_path).map_err(|e| format!("{}: {e}", json_path.display()))?;
+    let committed: serde_json::Value =
+        serde_json::from_str(&committed).map_err(|e| e.to_string())?;
+    let made = serde_json::to_value(&report).map_err(|e| e.to_string())?;
+    let mut apart = Apart::default();
+    apart.walk("", &committed, &made);
+    println!(
+        "fit: {} numbers differ from the committed report, by at most {} flights and {:.2}%",
+        apart.differing,
+        apart.most_flights,
+        100.0 * apart.most_share
+    );
+    broken.extend(apart.broken);
+    if !broken.is_empty() {
+        return Err(format!(
+            "the fit's intervals don't come out as they must:\n{}",
+            broken.join("\n")
+        ));
+    }
+    println!("fit: every parameter passes on sets A and B, and every probe fails");
+    Ok(())
 }
 
 pub fn run(args: &[String]) -> Result<(), String> {
@@ -720,32 +970,24 @@ pub fn run(args: &[String]) -> Result<(), String> {
             }
             Ok(())
         }
-        ["--check", "--other-platform"] => {
-            let (report, broken) = make(&files)?;
-            let json_path = root.join(format!("{REPORT}.json"));
-            let committed = fs::read_to_string(&json_path)
-                .map_err(|e| format!("{}: {e}", json_path.display()))?;
-            let committed: serde_json::Value =
-                serde_json::from_str(&committed).map_err(|e| e.to_string())?;
-            let made = serde_json::to_value(&report).map_err(|e| e.to_string())?;
-            let mut apart = Apart::default();
-            apart.walk("", &committed, &made);
+        ["--part", part, "--out", dir] => {
+            let part = Part::parse(part)?;
+            let start = Instant::now();
+            let fits = fit_runs(&files, part)?;
+            let count: usize = fits.iter().map(Vec::len).sum();
+            let path = write_part(Path::new(dir), part, fits)?;
             println!(
-                "fit: {} numbers differ from the committed report, by at most {} flights and {:.2}%",
-                apart.differing,
-                apart.most_flights,
-                100.0 * apart.most_share
+                "fit: part {} of {}, {count} fits in {:.0} s, written to {}",
+                part.number,
+                part.of,
+                start.elapsed().as_secs_f64(),
+                path.display()
             );
-            let mut broken = broken;
-            broken.extend(apart.broken);
-            if !broken.is_empty() {
-                return Err(format!(
-                    "the fit's intervals don't come out as they must:\n{}",
-                    broken.join("\n")
-                ));
-            }
-            println!("fit: every parameter passes on sets A and B, and every probe fails");
             Ok(())
+        }
+        ["--check", "--other-platform"] => other_platform(&root, make(&files)?),
+        ["--check", "--other-platform", "--parts", dir] => {
+            other_platform(&root, report_of(&fits_from_parts(Path::new(dir))?)?)
         }
         [] | ["--check"] => {
             let check = !args.is_empty();
@@ -818,6 +1060,219 @@ mod tests {
 
     fn files() -> DesignFiles {
         crate::synthetic::design_files(&crate::designs::root().unwrap()).unwrap()
+    }
+
+    /// A made-up fit of flight `index`, for the parts' bookkeeping: nothing is flown.
+    fn a_fit(index: u64) -> FlightFit {
+        let compared = fits::Compared {
+            value: 1.0,
+            standard_error: 0.5,
+            truth: 0.75,
+        };
+        FlightFit {
+            index,
+            design: 0,
+            fitted: true,
+            drift: false,
+            converged: true,
+            misfit_share: Some(0.01),
+            compared: [compared; ASKED.len()],
+            rms_m: Some(1.5),
+            flown: 70,
+        }
+    }
+
+    /// Writes part `part` of the report's runs as made-up fits, leaving flight `skip` out. Each
+    /// fit's `design` is its run's place in [`runs`], so a run put back in another's place shows.
+    fn write_made_up(dir: &Path, part: Part, skip: Option<u64>) {
+        let fits = runs()
+            .iter()
+            .enumerate()
+            .map(|(place, run)| {
+                part.of_run(&run.indices)
+                    .into_iter()
+                    .filter(|index| Some(*index) != skip)
+                    .map(|index| FlightFit {
+                        design: place,
+                        ..a_fit(index)
+                    })
+                    .collect()
+            })
+            .collect();
+        write_part(dir, part, fits).unwrap();
+    }
+
+    /// A fit is the same whatever its thread fitted before it, to the bit: the flyer and the
+    /// shared tables change no number. So, on one platform, dividing the flights among threads,
+    /// parts or machines changes no fit.
+    #[test]
+    fn a_fit_is_the_same_whatever_its_thread_fitted_before() {
+        let files = files();
+        let in_turn = |indices: &[u64]| -> Vec<Vec<u8>> {
+            let mut flyer = Flyer::new(files.clone());
+            let mut tables = BTreeMap::new();
+            indices
+                .iter()
+                .map(|&index| {
+                    let flight = flyer.flight(Set::A, index).unwrap();
+                    let fit =
+                        fits::fit_log(&flight.log, &flight, Set::A, &files, &mut tables).unwrap();
+                    assert!(fit.fitted, "flight {index}");
+                    let mut bytes = Vec::new();
+                    ciborium::into_writer(&fit, &mut bytes).unwrap();
+                    bytes
+                })
+                .collect()
+        };
+        let track = fits::track_flights(Set::A, 2);
+        let after = in_turn(&[track[1], track[0]]);
+        let alone = in_turn(&[track[0]]);
+        assert_eq!(after[1], alone[0]);
+    }
+
+    /// The parts of a split fit each flight of each run once between them, however many there are.
+    #[test]
+    fn the_parts_of_a_split_fit_each_flight_once() {
+        let runs = runs();
+        assert_eq!(runs.len(), 4 + NOISES.len());
+        for run in &runs {
+            for of in [1, 2, 3, 8, 13] {
+                let mut all: Vec<u64> = (1..=of)
+                    .flat_map(|number| Part { number, of }.of_run(&run.indices))
+                    .collect();
+                all.sort_unstable();
+                let mut want = run.indices.clone();
+                want.sort_unstable();
+                assert_eq!(all, want, "{:?}, {of} parts", run.set);
+            }
+        }
+        assert_eq!(Part::parse("3/8"), Ok(Part { number: 3, of: 8 }));
+        for wrong in [
+            "0/8",
+            "9/8",
+            "1/0",
+            "8",
+            "",
+            "a/8",
+            "1/8/2",
+            "-1/8",
+            " 1/8",
+            "1/99999999999999999999",
+        ] {
+            assert!(Part::parse(wrong).is_err(), "{wrong}");
+        }
+    }
+
+    /// A part's file gives back each number to the bit: a NaN, an infinity, a negative zero and a
+    /// subnormal number among them, which JSON would lose or refuse.
+    #[test]
+    fn a_part_file_keeps_every_number_to_the_bit() {
+        let mut fit = a_fit(7);
+        fit.misfit_share = Some(f64::NAN);
+        fit.rms_m = Some(-0.0);
+        fit.compared[0] = fits::Compared {
+            value: f64::INFINITY,
+            standard_error: f64::MIN_POSITIVE / 3.0,
+            truth: 0.1 + 0.2,
+        };
+        let dir = tempfile::tempdir().unwrap();
+        let path = write_part(dir.path(), Part::WHOLE, vec![vec![fit.clone()]]).unwrap();
+        let back: PartFile = ciborium::from_reader(fs::read(path).unwrap().as_slice()).unwrap();
+        let got = &back.fits[0][0];
+        assert_eq!(got.misfit_share.unwrap().to_bits(), f64::NAN.to_bits());
+        assert_eq!(got.rms_m.unwrap().to_bits(), (-0.0_f64).to_bits());
+        let bits = |c: &fits::Compared| {
+            [
+                c.value.to_bits(),
+                c.standard_error.to_bits(),
+                c.truth.to_bits(),
+            ]
+        };
+        for (got, want) in got.compared.iter().zip(&fit.compared) {
+            assert_eq!(bits(got), bits(want));
+        }
+        assert_eq!(back.part, Part::WHOLE);
+    }
+
+    /// Parts come back as the runs' flights in order, or not at all: a part missing, a part there
+    /// twice, parts of two splits, and a flight left out are each refused.
+    #[test]
+    fn parts_come_back_whole_or_not_at_all() {
+        let runs = runs();
+        let whole = tempfile::tempdir().unwrap();
+        for number in 1..=3 {
+            write_made_up(whole.path(), Part { number, of: 3 }, None);
+        }
+        let fits = fits_from_parts(whole.path()).unwrap();
+        assert_eq!(fits.len(), runs.len());
+        for (place, (run, got)) in runs.iter().zip(&fits).enumerate() {
+            assert!(got.iter().map(|f| f.index).eq(run.indices.iter().copied()));
+            assert!(got.iter().all(|f| f.design == place), "run {place}");
+        }
+
+        let refused = |dir: &tempfile::TempDir, what: &str| {
+            let error = fits_from_parts(dir.path()).unwrap_err();
+            assert!(error.contains(what), "{error}");
+        };
+        let missing = tempfile::tempdir().unwrap();
+        for number in [1, 3] {
+            write_made_up(missing.path(), Part { number, of: 3 }, None);
+        }
+        refused(&missing, "parts [2] of 3 are missing");
+
+        let twice = tempfile::tempdir().unwrap();
+        for number in 1..=2 {
+            write_made_up(twice.path(), Part { number, of: 2 }, None);
+        }
+        fs::copy(
+            Part { number: 1, of: 2 }.file(twice.path()),
+            twice.path().join("again.cbor"),
+        )
+        .unwrap();
+        refused(&twice, "there twice");
+
+        let past = tempfile::tempdir().unwrap();
+        for number in 1..=4 {
+            write_made_up(past.path(), Part { number, of: 3 }, None);
+        }
+        refused(&past, "out of range");
+
+        let too_many = tempfile::tempdir().unwrap();
+        write_made_up(
+            too_many.path(),
+            Part {
+                number: 1,
+                of: usize::MAX,
+            },
+            None,
+        );
+        refused(&too_many, "more than the report's");
+
+        let runs_short = tempfile::tempdir().unwrap();
+        write_part(runs_short.path(), Part::WHOLE, vec![Vec::new()]).unwrap();
+        refused(&runs_short, "1 runs, where the report has");
+
+        let two_splits = tempfile::tempdir().unwrap();
+        for number in 1..=2 {
+            write_made_up(two_splits.path(), Part { number, of: 2 }, None);
+        }
+        write_made_up(two_splits.path(), Part { number: 3, of: 3 }, None);
+        refused(&two_splits, "where another file's is of");
+
+        let short = tempfile::tempdir().unwrap();
+        for number in 1..=3 {
+            write_made_up(short.path(), Part { number, of: 3 }, Some(5));
+        }
+        refused(&short, "not each once");
+
+        refused(&tempfile::tempdir().unwrap(), "no part files");
+
+        let broken = tempfile::tempdir().unwrap();
+        write_made_up(broken.path(), Part::WHOLE, None);
+        let path = Part::WHOLE.file(broken.path());
+        let bytes = fs::read(&path).unwrap();
+        fs::write(&path, &bytes[..bytes.len() / 2]).unwrap();
+        refused(&broken, "fit-part-1-of-1.cbor");
     }
 
     /// Runs the fit's whole road on real flights: each parameter's error within a few of its

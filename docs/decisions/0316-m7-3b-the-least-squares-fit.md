@@ -1,6 +1,6 @@
 # ADR-316: M7.3b: the least-squares fit, what it solves for and how its intervals are held (2026-11-01)
 
-- **Status:** accepted; carries out [ADR-314][adr-314]'s M7.3b under [ADR-257][adr-257] §1
+- **Status:** accepted; carries out [ADR-314][adr-314]'s M7.3b under [ADR-257][adr-257] §1; amended 2026-11-02 (§7: CI fits in eight parts)
 - **Summary:** Levenberg-Marquardt fits drag, impulse, a constant wind and mass to a log, with the
   clock, height offset and drift, and a barometer's gain and port, as further unknowns. Each
   parameter's 90% interval passes on sets A and B, counted on logs with something to fit. Those two
@@ -62,6 +62,13 @@ each step was made with sets A and B in view.
    from the committed report by 5 flights and a figure by 5% or 0.002; the first Linux run, on an
    earlier head of this work, differed by at most 1 flight and 5.01%, the latter on a figure within
    0.002. The pass and fail of every test and probe are taken again on Linux's own counts.
+   *Amended 2026-11-02:* in one Linux job the check took 60 to 102 minutes, in eight runs that day.
+   CI now fits the flights in eight Linux jobs side by side, each every eighth flight of each run
+   (`fit --part K/8`). A ninth job puts them back together and runs the same check
+   (`--other-platform --parts`), still without calibration; the gate is unchanged. On a Mac, three
+   parts (6,538 fits between them) put back together left no number of the report different. On
+   Linux, eight printed the line one job printed that day: 22 numbers off the committed report, by
+   at most 1 flight and 3.56%.
 8. **Only logs with something to fit are counted.** A log that says nothing states its range, which
    holds about 90% whatever the fit does. Counted, those logs leaned the drag's, impulse's and mass's
    counts toward passing: a review counted set B's impulse at 50 below, 781 inside and 14 above of

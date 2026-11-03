@@ -237,11 +237,19 @@ jobs:
         run: scripts/phone-build.sh aarch64-apple-ios aarch64-apple-ios-sim
         shell: bash
 
-  # The least-squares fit's 90% intervals (M7.3b, ADR-316): every flight of sets A and B fitted,
-  # each parameter held to ADR-257's counts and probes. About 90 CPU-minutes, so one Linux job; the
-  # committed report and the shares are held exactly by `scripts/gate.sh`.
-  fit-intervals:
-    name: fit intervals
+  # The least-squares fit's 90% intervals (M7.3b, ADR-316): about 6,500 fits of flights of sets A
+  # and B, each parameter held to ADR-257's counts and probes. In one Linux job it took 60 to 102 minutes
+  # (eight runs, 2026-11-02). So eight jobs each fit an eighth of the flights: part K fits every
+  # eighth flight of each run from the Kth (`fit --part K/8`), and hands its fits on. A fit doesn't
+  # depend on what its thread or machine fitted before it (`fit::tests`), so the parts together are
+  # the fits one job would make. The committed report and the shares are held exactly by
+  # `scripts/gate.sh`, whole, on the platform that wrote them.
+  fit-part:
+    name: fit intervals (${{ matrix.part }}/8)
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [1, 2, 3, 4, 5, 6, 7, 8]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -250,8 +258,42 @@ jobs:
         shell: bash
       - uses: Swatinem/rust-cache@v2
         with:
-          save-if: ${{ github.ref == 'refs/heads/main' }}
-      - run: cargo run --locked --quiet --package xtask --profile report-check -- fit --check --other-platform
+          # One cache for the parts and the job that checks them: the same optimized build.
+          shared-key: fit-intervals
+          save-if: ${{ github.ref == 'refs/heads/main' && matrix.part == 1 }}
+      - run: cargo run --locked --quiet --package xtask --profile report-check -- fit --part ${{ matrix.part }}/8 --out target/fit-parts
+      - uses: actions/upload-artifact@v7
+        with:
+          name: fit-part-${{ matrix.part }}
+          path: target/fit-parts
+          if-no-files-found: error
+          retention-days: 1
+
+  # Passes only when every part passed. Then it puts the parts' fits back together, refusing a
+  # part missing or there twice, parts of two splits and a flight not fitted once, and checks them
+  # as one job would. Not after a cancelled run, as when a newer push to a pull request replaces it.
+  fit-intervals:
+    name: fit intervals
+    needs: fit-part
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every part passed
+        run: test "${{ needs.fit-part.result }}" = success
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install
+      - run: scripts/native-toolchain.sh
+        shell: bash
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: fit-intervals
+          save-if: false
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: fit-part-*
+          path: target/fit-parts
+          merge-multiple: true
+      - run: cargo run --locked --quiet --package xtask --profile report-check -- fit --check --other-platform --parts target/fit-parts
 
   doc:
     name: doc

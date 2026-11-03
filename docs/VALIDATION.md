@@ -396,7 +396,7 @@ rendering (`Report::reproduces`;
 [the CI decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0022-validation-in-ci-and-regenerating-references.md)).
 So a change that moves a number has to commit the report that shows it.
 
-The two longest report checks, `cargo xtask synthetic --check` and `cargo xtask motor-catalog
+Two long report checks, `cargo xtask synthetic --check` and `cargo xtask motor-catalog
 --check`, run from an optimized build in CI: `report-check`, a Cargo build setting with release's
 speed plus the assertions and overflow checks of the everyday build. Optimizing keeps their numbers
 to the digits they compare. On each of the five platforms the synthetic check runs in two halves, by
@@ -409,7 +409,30 @@ named. CI always runs them. So a report in the repository has to reproduce from 
 optimized build ever came out differently, CI would fail and regenerating wouldn't fix it: that
 would need a decision record, not a looser check.
 
-Then the job holds the committed reports to the accuracy census accepted last
+The check on the least-squares fit, `cargo xtask fit`, takes longer than any other
+([the flight fit](physics/flight-fit.md)). It makes about 6,500 fits of synthetic flights: the first
+1,300 of sets A and B each; of each set's first 1,500 flights with a track logger, those past the
+1,300; and set A's first 200 again with each kind of pure noise in place of their logs. Then it
+tests that each fitted value's 90% interval holds the truth as often as a 90% interval should. In
+one Linux job it took more than an hour, so CI runs it on Linux in eight jobs side by side:
+
+- Each job fits an eighth of the flights (`fit --part K/8`, with K from 1 to 8): every eighth
+  flight, from the Kth. It saves its fits for the last job.
+- The last job, `fit intervals`, puts the eight back together. It refuses a part missing or there
+  twice, parts of two different splits, and any flight not fitted exactly once.
+- Then it runs the check as on a platform other than the one that wrote the report
+  (`--other-platform`; [the fit's decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md),
+  section 7). A count may stand 5 flights off the committed report, and a figure 5% of the larger
+  of the two values or 0.002, whichever allows more. The calibration set isn't fitted again.
+
+A flight's fit depends on that flight alone, not on what its thread or machine fitted before it. A
+test holds that to the bit. On a Mac, three parts put back together left no number of the report
+different. On Linux, eight printed the same summary of differences from the committed report as
+one job ([the decision record's amendment](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md), section 7). The gate, `scripts/gate.sh`, runs the whole check on your own machine instead,
+calibration included. On the platform that wrote the report, the result must match the committed
+report to the last digit.
+
+Then the `validate` job holds the committed reports to the accuracy census accepted last
 ([the regression check](decisions-and-roadmap.md#m2-4),
 [its decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0084-the-accuracy-census-the-reports-numbers-held-to.md)).
 Each number the harness's report, the real flights' and both OpenRocket reports hold HPR Sim to is a
