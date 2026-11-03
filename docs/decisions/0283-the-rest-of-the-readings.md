@@ -12,8 +12,9 @@
 [i780]: https://github.com/nrdptel/fusionspace-eridanus/issues/780
 [i781]: https://github.com/nrdptel/fusionspace-eridanus/issues/781
 [i787]: https://github.com/nrdptel/fusionspace-eridanus/issues/787
-[i806]: https://github.com/nrdptel/fusionspace-eridanus/issues/806
 [i789]: https://github.com/nrdptel/fusionspace-eridanus/issues/789
+[i806]: https://github.com/nrdptel/fusionspace-eridanus/issues/806
+[i1131]: https://github.com/nrdptel/fusionspace-eridanus/issues/1131
 [noise]: ../research/altimeter-sensor-noise.md
 
 **Context.** ADR-280's M7.2c row asks for the top acceleration from the accelerometer, marked clipped
@@ -240,16 +241,20 @@ witness settled gravity wrongly; the rules now:
    fails it). A coast at about 0 still settles alone, as before: without gravity a coasting part
    reads `−D/m − g`, drag only pushing it further below −1 g, so reading within 0.25 g of 0 takes
    a net push forward, thrust less drag, of between about 0.75 and 1.25 g. A thrust still burning
-   in that second gives one, a risk left open and untested: on a part that takes gravity out, with
+   in that second gives one, a risk left open and untested ([#1131][i1131]): on a part that takes gravity out, with
    no family word and no pad, it reads gravity in and the top 1 g low. Beside a family or a pad,
-   the coast at −1 g still counts, agreeing or disagreeing as before. Withholding was chosen over widening the bound by 1 g: a top
-   read 1 g high with a bound wide enough to cover it says little.
-2. **Gravity's coast is read only where a coast was flown,** as the direction's is (amendment for
-   M7.2c, §1): after liftoff's latest time by the heights and after the trace first moves, before
-   an apogee the log doesn't end at. Otherwise the second before apogee's earliest time can lie on
-   the pad, where a part that takes gravity out reads 0 and says gravity is in
+   the coast at −1 g still counts, agreeing or disagreeing as before. Withholding was chosen over
+   widening the bound by 1 g: a top read 1 g high with a bound wide enough to cover it says little.
+2. **Gravity's coast is read only where a coast was flown:** after the trace first moves, before an
+   apogee the log doesn't end at. Otherwise the second before apogee's earliest time can lie on the
+   pad, where a part that takes gravity out reads 0 and says gravity is in
    (`gravitys_coast_is_read_only_where_one_was_flown`; a mutation that drops the gate fails it).
+   Unlike the direction's coast (amendment for M7.2c, §1), it isn't also held to liftoff's latest
+   time by the heights. A code review found that on the test's MARSA log, whose coarse heights
+   put that time past the coast's start, the family's word that gravity is out then settled alone
+   against a coast reading 0, and the top read about 7 g against a true 6 g, outside its bound
+   (`the_coast_settles_gravity_where_there_is_no_pad`, on MARSA again, fails so).
 
 On the sample logs neither moves a record: `cargo xtask logs --check` reproduces the committed
-report's counts, so no record's gravity rested on a coast at −1 g alone or on a coast read off the
-pad.
+report, which pins each record by a digest, so no record's gravity rested on a coast at −1 g alone
+or on a coast read off the pad.

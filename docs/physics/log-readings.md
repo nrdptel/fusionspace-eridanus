@@ -408,9 +408,11 @@ each within 0.25 g of the level it reads:
   g. That counts if it comes no later than liftoff's latest time by the heights. About 1 g holds gravity;
   about 0 doesn't;
 - **the coast,** the last 1 s before apogee's earliest time, where a rocket falls freely but for a
-  small drag. About 0 holds gravity; about −1 g doesn't. It is read only where a coast was flown,
-  as the direction's coast is: after liftoff's latest time and after the trace first moves, and
-  before an apogee the log doesn't end at.
+  small drag. About 0 holds gravity; about −1 g doesn't. It is read only where a coast was flown:
+  after the trace first moves from the pad and before an apogee the log doesn't end at. Unlike the
+  direction's coast, it isn't also held to liftoff's latest time: coarse heights put that time
+  late, past a coast that was flown, and a family's word the coast would contradict then settled
+  alone.
 
 A witness that reads neither level, such as the pad of a log that starts in the thrust, says
 nothing. Gravity is settled when at least one witness says and none disagrees, with one exception:
@@ -420,9 +422,9 @@ Putting 1 g back on that log would read its top 1 g high
 ([#806](https://github.com/nrdptel/fusionspace-eridanus/issues/806)). A coast at about 0 still
 settles it alone: without gravity a coasting part reads −1 g or below, drag only pushing it further
 down, so reading within 0.25 g of 0 takes a net push forward, thrust less drag, of between about
-0.75 and 1.25 g. A thrust still burning in the coast's second gives one. On a part that takes gravity out,
-with no family word and no pad, that reads gravity in and the top 1 g low: a risk left open, and
-no test pins it.
+0.75 and 1.25 g. A motor still burning in the coast's second gives such a push. On a part that
+takes gravity out, with no family word and no pad, that reads gravity in and the top 1 g low,
+outside its bound: a risk left open, and no test pins it ([#1131](https://github.com/nrdptel/fusionspace-eridanus/issues/1131)).
 Otherwise the top acceleration is withheld (`gravity_unstated`), and burnout comes from the top
 speed. The 0.25 g is HPR Sim's choice, set out in [What each bound holds](#what-each-bound-holds).
 The pad is read off the accelerometer rather than as the samples before liftoff's earliest time by
@@ -1402,7 +1404,8 @@ truth beside the logs, that doesn't say how each rocket came down.
   says nothing or, past 0.75 g, can disagree with a family's word and withhold the top
   acceleration ([ADR-283][adr-283]). Alone at −1 g it settles nothing
   ([#806](https://github.com/nrdptel/fusionspace-eridanus/issues/806)). A net push forward of
-  between about 0.75 and 1.25 g (thrust less drag) still acting in that second reads as gravity in.
+  between about 0.75 and 1.25 g (thrust less drag) still acting in that second reads as gravity in,
+  and the top then reads 1 g low ([#1131](https://github.com/nrdptel/fusionspace-eridanus/issues/1131), untested).
 - **A board's three axes.** A log whose accelerometers don't say which lies along the rocket gives
   no top acceleration (`axis_unstated`), and its burnout comes from the top speed's time. The
   axes' magnitude could give a top acceleration, but not burnout, as it never falls below zero

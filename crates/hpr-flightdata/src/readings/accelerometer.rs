@@ -42,9 +42,10 @@
 //! apogee, where a rocket falls freely but for a small drag, so about 0 holds gravity and about
 //! −1 g doesn't. The pad is read off the accelerometer itself, the steady reading before the
 //! thrust lifts it by half [`LIFTOFF_ACCELERATION_M_S2`], if that comes no later than liftoff's
-//! latest time by the heights; the coast is read only where one was flown, as the direction's
-//! coast is; a pad or a coast that reads neither, such as a log that starts in the thrust, says
-//! nothing. Gravity is settled when one witness or more says and none disagrees, except that a
+//! latest time by the heights; the coast is read only where one was flown, after the trace first
+//! moves and before an apogee the log doesn't end at, but not held to liftoff's latest time as
+//! the direction's coast is; a pad or a coast that reads neither, such as a log that starts in
+//! the thrust, says nothing. Gravity is settled when one witness or more says and none disagrees, except that a
 //! coast at about −1 g doesn't settle it alone: a part that holds gravity reads its drag there,
 //! and a rocket still fast at apogee, arcing over, can drag about 1 g
 //! ([#806](https://github.com/nrdptel/fusionspace-eridanus/issues/806)). Its about 0 can
@@ -367,6 +368,17 @@ pub(super) fn read(
         }
         _ => false,
     };
+    // Gravity's coast isn't held to liftoff's latest time, as the direction's is: coarse heights
+    // put that time late, past a coast that was flown, and the family's word then settled alone
+    // where the coast would have disagreed (#806). What it guards against here is the pad, where
+    // the trace hasn't moved.
+    let coasted = match &heights.apogee {
+        Reading::Read(apogee) => {
+            let start_s = apogee.time_s - apogee.time_bound_s - COAST_SPAN_S;
+            !apogee.is_floor && moved.is_some_and(|moved| time[moved] <= start_s)
+        }
+        _ => false,
+    };
     let (way, said_by) = match direction(
         pad_level(&time, &raw, &clean, &heights.liftoff, either_way),
         coast_level(&time, &raw, &boost, &heights.apogee).filter(|_| flown),
@@ -424,10 +436,10 @@ pub(super) fn read(
             None
         }
     });
-    // The coast's last [`COAST_SPAN_S`] before apogee's earliest time, read only where a coast
-    // was flown, as the direction's is (#806): about 0 holds gravity, about −1 g doesn't; still
-    // under thrust, or anything else, it says nothing.
-    let coast = coast_level(&time, &turned, &boost, &heights.apogee).filter(|_| flown);
+    // The coast's last [`COAST_SPAN_S`] before apogee's earliest time, read only after the trace
+    // first moves and before an apogee the log doesn't end at (#806): about 0 holds gravity,
+    // about −1 g doesn't; still under thrust, or anything else, it says nothing.
+    let coast = coast_level(&time, &turned, &boost, &heights.apogee).filter(|_| coasted);
     let by_coast = coast.and_then(|coast| {
         if coast.abs() <= tolerance {
             Some(Gravity::In)
@@ -451,8 +463,9 @@ pub(super) fn read(
     // can drag about 1 g. Its about 0 stands alone, as before: without gravity a coasting part
     // reads `−D/m − g`, drag only pushing it further below −1 g, so reading within the tolerance
     // of 0 takes a net forward push (thrust less drag) of between about 0.75 and 1.25 g. A thrust
-    // still burning in that second gives one, a risk left open and untested: on a part that takes
-    // gravity out, with no family word and no pad, it reads gravity in and the top 1 g low.
+    // still burning in that second gives one, a risk left open and untested (#1131): on a part
+    // that takes gravity out, with no family word and no pad, it reads gravity in and the top
+    // 1 g low.
     let lone_coast_out = matches!(said.as_slice(), [(Gravity::Out, GravityBy::Coast)]);
     let gravity = match said.first() {
         Some(&first) if !lone_coast_out && said.iter().all(|(word, _)| *word == first.0) => first,
@@ -1637,10 +1650,8 @@ mod tests {
             withheld.detail.contains("only the coast says"),
             "{withheld:?}"
         );
-        // A family that says gravity is out, AltOS's, over a coast that reads 0, disagrees.
-        // (MARSA's coarser heights here put liftoff's latest time after the coast's second
-        // starts, so its coast isn't read as flown.)
-        let mut log = log(LogFormat::AltosCsv, "acceleration", 0.01, |_, t| eased(t));
+        // A family that says gravity is out, over a coast that reads 0, disagrees.
+        let mut log = log(LogFormat::Marsa, "acceleration", 0.01, |_, t| eased(t));
         let channel = &mut log.channels[0];
         let first = channel.time_s.iter().position(|t| *t >= 3.2).unwrap();
         channel.time_s.drain(..first);
@@ -1680,9 +1691,14 @@ mod tests {
             "{:?}",
             readings.accelerometer
         );
-        assert_eq!(
-            readings.max_acceleration.reason(),
-            Some(Reason::GravityUnstated)
+        let Reading::Withheld(withheld) = &readings.max_acceleration else {
+            panic!("{:?}", readings.max_acceleration);
+        };
+        assert_eq!(withheld.reason, Reason::GravityUnstated);
+        // The coast was read, and said gravity is out: withheld for standing alone, not unread.
+        assert!(
+            withheld.detail.contains("only the coast says"),
+            "{withheld:?}"
         );
         // Beside a family that says gravity is in, the AIM XTRA's, the coast disagrees and the
         // top is withheld still, as before.
@@ -1694,7 +1710,7 @@ mod tests {
         );
     }
 
-    /// Gravity's coast is read only where a coast was flown, as the direction's is (#806). Here
+    /// Gravity's coast is read only where a coast was flown (#806). Here
     /// the heights put apogee's earliest time 0.1 s after the thrust starts, so the second before
     /// it lies on the pad. On a part that takes gravity out the pad reads 0, which as a coast says
     /// gravity is in, against the family's word and the pad: the top was withheld. Not read as a
