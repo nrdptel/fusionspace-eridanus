@@ -154,7 +154,7 @@ deviation runs 3% to 26% across them, C_mα's 0% to 1%.
 - **Terms.** Both reports are Crown copyright and marked "unlimited distribution" (box 11; D1 PDF p. 84, D2 p. 78).
   Their terms of release allow information and evaluation use only, bar commercial use, and bar release of the
   report or its information to third parties without DRDC's written consent (D1 PDF p. 5; D2 PDF p. 4). The
-  maintainer's decision on #619: the PDFs and their readings, like DREV-TM-9703's, stay cached under the gitignored
+  maintainer's decision on #619: the PDFs and their readings stay cached under the gitignored
   `refs/`; the committed fixture uses ARL's public-release replot; only statistics computed from the tables are
   published, never the tabulated values.
 - **For #619's fixture** (suggestion): keep ARL's replot as the committed points, and score HPR Sim locally against

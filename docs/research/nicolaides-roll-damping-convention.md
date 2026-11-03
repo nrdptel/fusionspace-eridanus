@@ -196,4 +196,4 @@ HPR Sim's damping, N·C_lp·k_R(B), is −31.62, −25.31, −20.12, −17.61 an
   [finner-reference-data.md](finner-reference-data.md#sources-all-read-2026-10-18), read 2026-10-18.
 
 US Government reports (N1–N3, B1, F5) are released without restriction. DREV-TM-9703 is a public release, Crown
-copyright: this note gives it in words and ranges, though its values may be cited and committed (#1119).
+copyright: this note gives it in words and ranges, though its values may be committed (#1119, #763).

@@ -50,7 +50,7 @@ covers this region and the join is not fitted to it.
 
 All give geometry complete enough to rebuild, except Allen 2005's nose profile, which must be assumed; Allen 2001's
 fins are pairs. "Release" means DTIC's public-release statement, "public use" NTRS's marking for NASA and NACA work,
-and "Crown" Canadian Crown copyright: cite it; its readings stay cached under `refs/`, uncommitted (issue #619).
+and "Crown" Canadian Crown copyright, a public release: cite it; its values may be committed (#1119, #763).
 
 ### The Basic Finner
 
@@ -179,7 +179,7 @@ long model's.
 - **Not found:** the Triservice Missile Database (TM-2002-211653), TN D-794 (Scout and related models, Mach 0.4–1.2;
   NTRS record, no PDF), TN D-1228 (Blue Scout Jr.). TM X-3070 was not read.
 - **Whether the Allen 2005 files may be committed** as a public-domain fixture, or only the project's readings of
-  them, is a maintainer's call. DREV-TM-9703 is a public release: its values may be committed (#1119).
+  them, is a maintainer's call. DREV-TM-9703 is a public release: its values may be committed (#1119, #763).
 - **No hobby shape at hobby Reynolds numbers:** all are about 10⁶ to 3 × 10⁷ on length, none with fillets.
 
 ## Sources (all read 2026-10-16)
