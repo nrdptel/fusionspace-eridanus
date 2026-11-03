@@ -108,8 +108,10 @@ again.
    run started by hand with `full`. A pull request and a push to main leave them out. CI's `scope`
    job decides ([`ci.yml`][ci]); a test in xtask fails if a set of synthetic flights isn't on one
    line of a job on all five platforms, or if that job runs on any condition but the nightly one.
-3. **A nightly failure comes first.** It files one P-critical issue, or comments on the one still
-   open, and the work that broke the census is fixed before other work ([ADR-144][adr-144] §2).
+3. **A nightly failure comes first.** A nightly run that fails, or in which a census didn't run,
+   files one P-critical issue, or comments on the one still open, and the work that broke the
+   census is fixed before other work ([ADR-144][adr-144] §2). A run started by hand with `full`
+   files none: whoever started it reads its result.
 4. **Before a merge.** `scripts/gate.sh` runs the three whole on the Mac, as before, on the
    platform that writes the reports. What a pull request loses is the run of the censuses on the
    other four platforms: a change that moves a census only on Linux, Windows or ARM reaches main

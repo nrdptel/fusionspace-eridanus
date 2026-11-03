@@ -2842,6 +2842,15 @@ mod tests {
             if other_condition || job_key("continue-on-error:") {
                 problems.push(format!("{job} runs on a condition"));
             }
+            // Without `scope` among its needs, the nightly condition reads nothing and never holds.
+            let nightly = body.iter().any(|l| indent(l) == 4 && l.trim() == NIGHTLY);
+            if nightly
+                && !body
+                    .iter()
+                    .any(|l| indent(l) == 4 && l.trim() == "needs: scope")
+            {
+                problems.push(format!("{job} runs on `scope` without needing it"));
+            }
             if body.iter().any(|l| {
                 let key = l.trim_start().trim_start_matches("- ");
                 key.starts_with("exclude:") || key.starts_with("include:")
@@ -2893,7 +2902,16 @@ mod tests {
         // The nightly run is the one that sets `full`, so the censuses run each night.
         assert!(ci.contains("\n  schedule:\n    # "));
         assert!(ci.contains("\n    - cron: \"17 8 * * *\"\n"));
-        assert!(ci.contains("if [[ $EVENT == schedule || "));
+        assert!(ci.contains(
+            "if [[ $EVENT == schedule || ( $EVENT == workflow_dispatch && $FULL == true ) ]]; then\n            full=true\n"
+        ));
+        // Two logs' check runs in the same nightly job as the synthetic flights, unconditioned.
+        let census = &ci[ci.find("\n  census:\n").unwrap()..];
+        let census = &census[..=census[1..].find("\n  # ").unwrap()];
+        assert!(census.contains(
+            "\n      - run: cargo run --locked --quiet --package xtask --profile report-check -- two-logs --check\n"
+        ));
+        assert_eq!(ci.matches("-- two-logs --check").count(), 1);
         // The two jobs must hold up what's deployed.
         assert!(ci.contains("needs: [fmt, clippy, test, examples, types, python, validate,"));
         // Each way of leaving a set out, or running it somewhere it isn't always run.
@@ -3004,6 +3022,14 @@ mod tests {
                 &format!("    {NIGHTLY}\n    if: false\n"),
             ),
             "runs on a condition",
+        );
+        has(
+            "the nightly condition without its source",
+            &ci.replace(
+                &format!("    needs: scope\n    {NIGHTLY}\n"),
+                &format!("    {NIGHTLY}\n"),
+            ),
+            "without needing it",
         );
         has(
             "allowed to fail as a job",
