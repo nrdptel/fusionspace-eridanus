@@ -59,10 +59,20 @@ pub(super) fn mul(a: &Matrix, b: &Matrix) -> Matrix {
 
 /// `a bᵀ`.
 pub(super) fn mul_transposed(a: &Matrix, b: &Matrix) -> Matrix {
-    let mut out = ZERO;
-    for (i, row) in out.iter_mut().enumerate() {
-        for (j, cell) in row.iter_mut().enumerate() {
-            *cell = a[i].iter().zip(&b[j]).map(|(x, y)| x * y).sum();
+    // Each entry summed over k in order from −0.0, as `Iterator::sum` does, a row's twelve sums
+    // side by side.
+    let mut bt = ZERO;
+    for (j, b_row) in b.iter().enumerate() {
+        for (k, &bjk) in b_row.iter().enumerate() {
+            bt[k][j] = bjk;
+        }
+    }
+    let mut out = [[-0.0; N]; N];
+    for (row, a_row) in out.iter_mut().zip(a) {
+        for (&aik, bt_row) in a_row.iter().zip(&bt) {
+            for (cell, &bkj) in row.iter_mut().zip(bt_row) {
+                *cell += aik * bkj;
+            }
         }
     }
     out
@@ -194,23 +204,30 @@ pub(super) fn solve(a: &Matrix, b: &Matrix) -> Option<Matrix> {
             }
         }
     }
-    // A X = B ⇔ (D A D)(D⁻¹ X) = D B.
-    let mut x = ZERO;
-    for col in 0..N {
-        let mut y = [0.0; N];
-        for i in 0..N {
-            let mut sum = d[i] * b[i][col];
-            for k in 0..i {
-                sum -= l[i][k] * y[k];
+    // A X = B ⇔ (D A D)(D⁻¹ X) = D B. All columns at once, each entry's sum taken in the same
+    // order as one column's alone would, so the columns' independent sums run side by side.
+    let mut y = ZERO;
+    for i in 0..N {
+        let mut sum: Vector = std::array::from_fn(|col| d[i] * b[i][col]);
+        for k in 0..i {
+            for (s, &yk) in sum.iter_mut().zip(&y[k]) {
+                *s -= l[i][k] * yk;
             }
-            y[i] = sum / l[i][i];
         }
-        for i in (0..N).rev() {
-            let mut sum = y[i];
-            for k in (i + 1)..N {
-                sum -= l[k][i] * x[k][col];
+        for (yi, s) in y[i].iter_mut().zip(sum) {
+            *yi = s / l[i][i];
+        }
+    }
+    let mut x = ZERO;
+    for i in (0..N).rev() {
+        let mut sum = y[i];
+        for k in (i + 1)..N {
+            for (s, &xk) in sum.iter_mut().zip(&x[k]) {
+                *s -= l[k][i] * xk;
             }
-            x[i][col] = sum / l[i][i];
+        }
+        for (xi, s) in x[i].iter_mut().zip(sum) {
+            *xi = s / l[i][i];
         }
     }
     for (i, row) in x.iter_mut().enumerate() {
