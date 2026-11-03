@@ -21,7 +21,7 @@ printed values; the high end is an inference from few tests, ±20% at best, stac
   9,600 psi × minor area. Builders' pulls (forum reports, weak evidence) read 28.5 to 35 lbf for 2-56 in a snug
   tapped joint, 56 lbf for 4-40 and 116 lbf for 6-32. The measured high end: about 35 / 56 / 116 lbf.
 - **No source measures moisture, temperature or loading rate on a pin.** Resin data says a damp pin is weaker (5% to
-  33%), a fast or cold one stronger (×1.27 to ×1.7 at a charge's rate; at −40 °C ×1.86 conditioned, ×1.37 dry; [19]).
+  33%), a fast or cold one stronger (×1.27 to ×1.7 fast; at −40 °C ×1.86 conditioned yield, ×1.37 dry strength; [19]).
   Dry on the pitch area (§6) at DuPont's top rate: 65 to 78 / 108 to 130 / 163 to 196 lbf from 0 °C to −30 °C; at 0 °C
   on the ×1.7 compression fit, 91 / 151 / 227 lbf. Heating and notch brittleness may lower a real break.
 
@@ -116,7 +116,7 @@ hot water and carry about 3% to 4% moisture against about 0.5% as molded (p. 168
 | Snug tapped fiberglass against Damerau's fit | higher | +33% to +64% per pin, 2-56 | one builder [14] |
 | Pitch-area cut against minor-area cut | higher | +35% to +39% by area | thread geometry [2], [10] |
 | Cold: 0 °C / −10 °C dry; −40 °C | higher | ×1.16 / ×1.22 dry yield; at −40 °C, ×1.86 conditioned yield, ×1.37 dry strength | Figs. 3, 4, Table 7 [3]; [19] §3 |
-| Fast: a charge's 22 to 1,250 /s (**Inference**) | higher | ×1.27 (tension, measured; ×1.35 at 50% RH) to ×1.7 (compression fit at 100 /s, interpolated); ×1.95, one point near 2,000 /s | DuPont Fig. 5, Hopkinson bars, [19] §1, §2 |
+| Fast: a charge's 22 to 1,250 /s (**Inference**) | higher | ×1.27 (tension, measured; ×1.35 at 50% RH) to ×1.7 (compression fit at 100 /s, interpolated); ×1.95, one disputed point near 2,000 /s (Xu: ×1.29 at 1,100 /s) | DuPont Fig. 5, Hopkinson bars, [19] §1, §2 |
 | Moisture: 50% RH against dry as molded | lower | −5% (shear, Zytel 105) to −33% (yield) | [3], [4], [8] |
 | Hot pad: 50 °C against 23 °C | lower | ×0.75 to ×0.79 (yield) | Fig. 4 [3] |
 | Soft (cardboard) tube | lower joint force | −47% per pin, one pull each; the #4 tore it | Damerau [1] |
@@ -149,8 +149,8 @@ forces, by unbounded amounts: adiabatic softening, and notch brittleness in a co
 ## What this suggests
 
 - **M6.7's high end could be Feretich's pitch-area bound,** 46 / 76 / 114 lbf per pin ([2]), beside §4's breaks: 1.5
-  times Fetter's 9,600 psi row, which errs toward too little powder. The one 6-32 report (116 lbf, count unstated)
-  sits on it: no margin for 6-32. This slow, 23 °C bound misses a fast or cold break (§6: 1.4 to 2.0 times it).
+  times Fetter's 9,600 psi row (too little powder). The one 6-32 report (116 lbf, count unstated) sits on it: no
+  margin for 6-32. This slow, 23 °C bound misses a fast or cold break (§5; §6, fast and cold: 1.4 to 2.0 times it).
 - **Say the spread, not one number.** From Damerau's lowest to the builders' highest, per-pin breaks span 0.6 to 1.1
   times Fetter's row (2-56, 4-40; one 2-56 low, 7.5 lbf, is 0.24 times); no model predicts a builder's pins in it.
 - **M6.8's ground-test log could record** pin count, size, maker, color (black is pre-moistened), tapped or drilled,
@@ -175,7 +175,7 @@ Read 2026-10-17; all cite only (copyrighted, no license). RF is The Rocketry For
    http://www.rocketmaterials.org/datastore/cord/Shear_Pins/index.php
 2. B. Feretich, "Shear Pin/Screw Calculations" (live page gone; archive of 2026-04-17): https://web.archive.org/web/
    20260417090259/http://feretich.com/Rocketry/Resources/shearPins.html
-3. DuPont, Zytel and Minlon Design Guide, Module II (1996-97), Table 7 (p. 9), Table 8 (p. 19), Figs. 4, 5 (p. 31):
+3. DuPont, Zytel and Minlon Design Guide, Module II (1996-97), Tables 7, 8 (pp. 9, 19), Figs. 3 to 5 (pp. 30, 31):
    http://foremostplastic.com/wp-content/uploads/2015/04/DuPont-Module-II-Nylon.pdf
 4. Celanese, Zytel 101L NC010 data sheet, 2023:
    https://quickparts.com/wp-content/uploads/2023/04/zytel%C2%AE-101l-nc010-gb.pdf
@@ -197,4 +197,4 @@ Read 2026-10-17; all cite only (copyrighted, no license). RF is The Rocketry For
 16. ASTM D732-24, scope page: https://store.astm.org/d0732-24.html
 17. HARA, "How to size an ejection charge": http://www.hararocketry.org/hara/resources/how-to-size-ejection-charge/
 18. RF ejection charge calculator: https://www.rocketryforum.com/rocket-calculators/ejection-charge/
-19. [pa66-rate-cold-shear](pa66-rate-cold-shear.md), this repository, §1 to §3 and §6 (read 2026-11-03).
+19. [pa66-rate-cold-shear](pa66-rate-cold-shear.md), this repository, §1 to §4 and §6 (read 2026-11-03).
