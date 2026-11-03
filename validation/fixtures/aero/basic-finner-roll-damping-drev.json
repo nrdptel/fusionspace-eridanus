@@ -1,0 +1,22 @@
+{
+  "bands": [
+    {
+      "band": "core",
+      "largest_error": 0.12432296733328418,
+      "mach_from": 1.832,
+      "mach_to": 2.375,
+      "mean_error": 0.08754617717823188,
+      "rows": 2
+    },
+    {
+      "band": "extended",
+      "largest_error": 0.0871911217732686,
+      "mach_from": 2.718,
+      "mach_to": 3.147,
+      "mean_error": 0.05040750554201112,
+      "rows": 2
+    }
+  ],
+  "generator": "cargo xtask roll-drev",
+  "note": "hpr's Basic Finner roll damping C_lp (per unit of p d/(2V), on pi d^2/4) against DREV-TM-9703 Table IX's range fits (Dupuis and Hathaway 1997, PDF pp. 48-49), read from the cached copy under refs/. error is hpr's over DREV's, minus 1; positive reads high. Only these statistics are committed (issue #763). Bands: core to Mach 2.5, extended above (ADR-143)."
+}

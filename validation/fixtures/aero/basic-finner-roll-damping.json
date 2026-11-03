@@ -33,6 +33,36 @@
       "c_lp": -18.32
     }
   ],
+  "wind_tunnel_note": "Disputed (issue #763): these points sit a flat 1.27 times BRL 799's range curve as NAVORD 6652 Fig. 7 replots it (docs/research/nicolaides-roll-damping-convention.md section 3), which fits a convention slip in Barrowman's reference 21, not an aerodynamic difference, and 1.21 to 1.26 times DREV-TM-9703's range fits. Kept as Barrowman printed them; the scored reference is nol_tunnel_c_lp.",
+  "nol_tunnel_source": "F. J. Regan, Roll Damping Moment Measurements for the Basic Finner at Subsonic and Supersonic Speeds, NAVORD Report 6652 (Aerodynamics Research Report 59), US Naval Ordnance Laboratory, 20 March 1964 (DTIC AD0600975): Table 2, 'Summary of supersonic roll damping data at zero angle of attack' (PDF p. 17), the average column; spin decay in a wind tunnel at 50 to 150 rps, angle of attack 0. Table 2 prints the fifth row's Mach as 2.70, Table 1 (PDF p. 16) as 2.76; 2.76 is used. US Government work, released without restrictions.",
+  "nol_tunnel_conversion": "NAVORD 6652 defines the coefficient as L/(q A_p b n) per p b/(2V), with A_p one panel, b the 3 d fin span and n the fin count (PDF p. 6; the same as BRL Report 711's). With A_p = d^2 and n = 4, multiplying by A_p n b^2/(pi d^4/4) = 144/pi = 45.84 gives C_lp per p d/(2V) on pi d^2/4, negative for damping. ARL-TR-846 Table 7 lists BRL 711's values so converted, and AEDC-TR-76-58 Fig. 9b plots NOL's Mach 2.5 point near -16, which confirms the factor (docs/research/finner-reference-data.md section 1).",
+  "nol_tunnel_c_lp": [
+    {
+      "mach": 1.53,
+      "printed_average": 0.532,
+      "c_lp": -24.3851
+    },
+    {
+      "mach": 2.03,
+      "printed_average": 0.422,
+      "c_lp": -19.3431
+    },
+    {
+      "mach": 2.27,
+      "printed_average": 0.371,
+      "c_lp": -17.0054
+    },
+    {
+      "mach": 2.54,
+      "printed_average": 0.352,
+      "c_lp": -16.1345
+    },
+    {
+      "mach": 2.76,
+      "printed_average": 0.315,
+      "c_lp": -14.4385
+    }
+  ],
   "barrowman_theory_c_lp": [
     {
       "mach": 0.07,

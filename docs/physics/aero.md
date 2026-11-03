@@ -66,9 +66,9 @@ and, less certainly, supersonic.
     rocket's drift differs from RocketPy's ([ADR-026][adr-026]). Nothing against a real flight.
   - *Roll*: the spin that [canted](../glossary.md#cant) fins give, against NASA's measured roll
     effectiveness (the rolling moment per degree of cant). Within 5.3% at all 8 readings from Mach
-    2.3 to 4.63, and 14.3% to 47.8% high at Mach 1.5 and 1.8. The roll damping reads 5.9% to 16.2%
-    low from Mach 1.5 to 3 against the one measured set. That set is the Basic Finner's, a standard
-    finned test body ([Roll against the Arcas Robin and the Basic Finner](#roll-against-the-arcas-robin-and-the-basic-finner)).
+    2.3 to 4.63, and 14.3% to 47.8% high at Mach 1.5 and 1.8. The roll damping reads 11.7% to 27.5%
+    high from Mach 1.53 to 2.76 against NOL's wind tunnel, and 5.0% to 8.8% high on average against
+    DREV's free-flight range, both on the Basic Finner, a standard finned test body ([Roll against the Arcas Robin and the Basic Finner](#roll-against-the-arcas-robin-and-the-basic-finner)).
   - *Another program's normal force*, read from RASAero II's export: every row of Calisto's
     export comes back from HPR Sim's table. A flight on a table swings in pitch as the equations
     predict. No real export has flown faster than Mach 0.75
@@ -93,7 +93,7 @@ and, less certainly, supersonic.
   - A flight takes a pointed nose and its cylinder from the shock-expansion method, which marches along the body and adds the cylinder's lift.
   - A boattail behind them comes from a measured correlation of boattails of 4° to 9.5°, an extrapolation for steeper ones. HPR Sim stops reading it past the angle where the flow separates ([The body faster than sound in a flight](#the-body-faster-than-sound-in-a-flight)).
 
-  A nose with a vertical tip (power-series, Haack, elliptical) takes a Newtonian cap ahead of the method, checked on a sphere-cone only ([Blunt tips](#blunt-tips)). A lip inside a boattail's wake carries nothing ([A lip in a boattail's wake](#a-lip-in-a-boattails-wake)). A **conical** [flare](../glossary.md#flare) flush with the tube ahead of it flies the method too, last in its run, while its corner's shock stays attached. Checked against **one** measured flare, it reads −1.9% and +7.0% at Mach 1.9 and 2.3 and +13.4% at 2.96. It reads +51.5% and +50.4% at 3.95 and 4.63 ([What a marched flare is worth](#what-a-marched-flare-is-worth)). A flare shallow enough to turn the flow almost not at all is read by an older, rougher method instead. Nothing measures it ([A near-flat flare](#a-near-flat-flare)). A rocket with any other widening shape, or any step, behind the nose keeps slender-body theory for its whole body at every speed. A motor retainer behind a step down counts: the step ends the run. That theory reads low past Mach 3 ([A step in radius](#a-step-in-radius): −8.65% and 1.03 calibers at the threshold). Body lift leaves out the fall in crossflow drag past the critical crossflow Reynolds number ([Body lift](#body-lift)). It reads too large at the few degrees a slope is fitted over. The body alone misses the 15% target the milestone set on six of eleven wind-tunnel rows, by +37.7% at worst. It is within 5% at Mach 3.96 and 4.63 ([The body alone, against the 15% target](#the-body-alone-against-the-15-target)). There are no damping coefficients for pitch and yaw: a flight takes that damping from each part's own local flow. The roll forcing near Mach 1.5 reads high, and nothing measured checks roll below it ([Roll: forcing and damping](#roll-forcing-and-damping)).
+  A nose with a vertical tip (power-series, Haack, elliptical) takes a Newtonian cap ahead of the method, checked on a sphere-cone only ([Blunt tips](#blunt-tips)). A lip inside a boattail's wake carries nothing ([A lip in a boattail's wake](#a-lip-in-a-boattails-wake)). A **conical** [flare](../glossary.md#flare) flush with the tube ahead of it flies the method too, last in its run, while its corner's shock stays attached. Checked against **one** measured flare, it reads −1.9% and +7.0% at Mach 1.9 and 2.3 and +13.4% at 2.96. It reads +51.5% and +50.4% at 3.95 and 4.63 ([What a marched flare is worth](#what-a-marched-flare-is-worth)). A flare shallow enough to turn the flow almost not at all is read by an older, rougher method instead. Nothing measures it ([A near-flat flare](#a-near-flat-flare)). A rocket with any other widening shape, or any step, behind the nose keeps slender-body theory for its whole body at every speed. A motor retainer behind a step down counts: the step ends the run. That theory reads low past Mach 3 ([A step in radius](#a-step-in-radius): −8.65% and 1.03 calibers at the threshold). Body lift leaves out the fall in crossflow drag past the critical crossflow Reynolds number ([Body lift](#body-lift)). It reads too large at the few degrees a slope is fitted over. The body alone misses the 15% target the milestone set on six of eleven wind-tunnel rows, by +37.7% at worst. It is within 5% at Mach 3.96 and 4.63 ([The body alone, against the 15% target](#the-body-alone-against-the-15-target)). There are no damping coefficients for pitch and yaw: a flight takes that damping from each part's own local flow. The roll forcing near Mach 1.5 reads high, the roll damping reads high faster than sound, and no committed comparison checks roll below Mach 1.5 ([Roll: forcing and damping](#roll-forcing-and-damping)).
 
 ## Code and conventions
 
@@ -163,6 +163,11 @@ Sources:
   Mach Numbers from 0.60 to 1.20*, NASA TN D-4013, 1967.
 - **[D4014]** C. D. Babb and D. E. Fuller. *Static Stability Investigation of a Sounding-Rocket
   Vehicle at Mach Numbers from 1.50 to 4.63*, NASA TN D-4014, 1967.
+- **[N6652]** F. J. Regan. *Roll Damping Moment Measurements for the Basic Finner at Subsonic and
+  Supersonic Speeds*, NAVORD Report 6652, US Naval Ordnance Laboratory, 1964 (DTIC AD0600975).
+- **[DREV]** A. D. Dupuis and W. Hathaway. *Aeroballistic Range Tests of the Basic Finner Reference
+  Projectile at Supersonic Velocities*, DREV-TM-9703, Defence Research Establishment Valcartier, 1997
+  (DTIC ADA636861).
 - **[S61]** W. E. Stoney. *Collection of Zero-Lift Drag Data on Bodies of Revolution from
   Free-Flight Investigations*, NASA TR R-100, 1961 (`nasa-tr-r-100-stoney-1961`).
 - **[J53]** J. R. Jack. *Theoretical Pressure Distributions and Wave Drags for Conical Boattails*,
@@ -2399,11 +2404,13 @@ the air at.
 >
 > - The forcing is within 5.3% of NASA's measured roll effectiveness (the rolling moment per degree
 >   of cant) from Mach 2.3 to 4.63. The forcing reads 14% to 48% high at Mach 1.5 and 1.8.
-> - The damping reads 6% to 16% low against the one measured set, from Mach 1.5 to 3.
-> - Below Mach 1.5, where most hobby flights stay, nothing measured checks either, and a subsonic
->   spin may read low.
-> - The steady spin rate carries both errors, and both push it high: forcing that reads high and
->   damping that reads low each raise it.
+> - The damping reads 12% to 28% high against NOL's wind tunnel from Mach 1.53 to 2.76, and 5% to 9%
+>   high on average (12.4% at most) against DREV's free-flight range from Mach 1.83 to 3.15.
+> - Below Mach 1.5, where most hobby flights stay, no committed comparison checks either. Measured
+>   sets there put the damping 24.5% to 200% high, most near Mach 1.1
+>   ([research note](../research/basic-finner-roll-damping-below-mach-1-5.md#3-hpr-sim-and-barrowman-against-the-clean-sets)), so a subsonic spin likely reads low.
+> - The steady spin rate is the forcing over the damping. Near Mach 1.5 both read high and partly
+>   cancel; where only the damping reads high, the spin reads low.
 
 Below Mach 1.5 only two checks apply: the flight's agreement with the closed-form balance and Barrowman's own computed damping at Mach 0.07. Strips that each lift at the fin's average slope ignore how the flow at one strip changes the next. For short fins that likely overstates the damping, so a subsonic spin may read low.
 
@@ -2521,8 +2528,8 @@ What it leaves out:
 - The roll forcing near Mach 1.5 reads high: linear theory's load rises as $1/\beta$ toward Mach 1,
   and the Arcas Robin's measured forcing doesn't. Barrowman found the same for the Tomahawk
   sounding rocket ("the theoretical value at $M = 1.5$ is no good", [B67] p. 66).
-- The damping reads low for the Basic Finner's thick wedge fins, 8% of the diameter thick. First-order theory has no term for thickness, the likely cause.
-- Nothing measured checks roll below Mach 1.5.
+- The damping reads high faster than sound, most near Mach 1.5 (+27.5% against NOL's wind tunnel). The likely cause (an inference, not shown): linear theory's load rises as $1/\beta$ toward Mach 1 faster than the fins' does, as the forcing does. The fins' thickness, 8% of the diameter, isn't the cause: a thickness term would raise the damping further.
+- No committed comparison checks roll below Mach 1.5. Measured sets there put the damping 24.5% to 200% high ([research note](../research/basic-finner-roll-damping-below-mach-1-5.md#3-hpr-sim-and-barrowman-against-the-clean-sets)); [#1033](https://github.com/nrdptel/fusionspace-eridanus/issues/1033) adds one at Mach 0.22.
 - A fast spin at low airspeed meets the fins at angles past stall, where the linear damping no longer holds. Valetudo spinning at 17 rad/s at 5 m/s (16 ft/s) meets the air 23° off at its fin tips.
 - The angle of attack: the measured roll effectiveness changes by up to 13% between 0° and ±4°
   (TN D-4014 Fig. 14). HPR Sim's is the same at every angle. A single fin's roll from its normal
@@ -4464,7 +4471,7 @@ third of its size. This rocket has no boattail, so it says nothing about a boatt
 
 #### Roll against the Arcas Robin and the Basic Finner
 
-What is checked: HPR Sim's roll forcing against NASA's measured roll effectiveness of the two Arcas Robin models, Mach 1.5 to 4.63 ([D4014] Fig. 14). HPR Sim's roll damping is checked against the Basic Finner's measured from Mach 1.5 to 3.0. It is also checked against Barrowman's own computed value at Mach 0.07
+What is checked: HPR Sim's roll forcing against NASA's measured roll effectiveness of the two Arcas Robin models, Mach 1.5 to 4.63 ([D4014] Fig. 14). HPR Sim's roll damping is checked against the Basic Finner's measured in NOL's wind tunnel from Mach 1.53 to 2.76 ([N6652] Table 2), and against DREV's free-flight range fits from Mach 1.83 to 3.15 ([DREV] Table IX). It is also checked against Barrowman's own computed value at Mach 0.07
 ([B67] Figs. 5-6 and 5-7). The readings are in [the wind-tunnel fixture][wind-tunnel] and
 [the Basic Finner's][finner-fixture]; `cargo xtask aero` writes the comparison to
 [the roll fixture][roll-fixture], and `hpr_aero::tests::roll_against_mach` recomputes every row.
@@ -4494,19 +4501,42 @@ At Mach 1.5 and 1.8 HPR Sim reads high, as Barrowman found for another sounding 
 the fins' does. Without the body factor $k_T(B)$ (0.935 here) every value would be 7% higher.
 
 **The damping.** $C_{lp}$ of the Basic Finner, four square fins one diameter in chord and span on a
-body one diameter across, per unit of $p d/(2V)$:
+body one diameter across, per unit of $p d/(2V)$ on $\pi d^2/4$. The scored reference is NOL's wind
+tunnel: models spun at 50 to 150 rev/s and left to slow, at an angle of attack of 0 ([N6652] Table 2,
+PDF p. 17, its average column). NOL prints its coefficient on one fin panel and the 3 d span. Times
+$144/\pi = 45.84$ it is on the body's cross-section and diameter, a factor two other reports confirm
+([research note](../research/finner-reference-data.md#1-the-basic-finner)). For example, at Mach 1.53 NOL prints 0.532, so
+$C_{lp} = -0.532 \times 45.84 = -24.39$; HPR Sim gives −31.08, 27.5% more damping.
 
 | Mach | reference | reference's damping coefficient $C_{lp}$ | HPR Sim's damping coefficient $N C_{lp}\, k_R(B)$ | error |
 |--:|---|--:|--:|--:|
 | 0.07 | Barrowman's computed curve (chose the method; not a validation) | −34.21 | −33.53 | −2.0% |
-| 1.51 | wind tunnel | −33.60 | −31.62 | −5.9% |
-| 1.82 | wind tunnel | −27.45 | −25.31 | −7.8% |
-| 2.27 | wind tunnel | −23.48 | −20.12 | −14.3% |
-| 2.60 | wind tunnel | −20.92 | −17.61 | −15.8% |
-| 3.00 | wind tunnel | −18.32 | −15.36 | −16.2% |
+| 1.53 | NOL wind tunnel | −24.39 | −31.08 | +27.5% |
+| 2.03 | NOL wind tunnel | −19.34 | −22.53 | +16.5% |
+| 2.27 | NOL wind tunnel | −17.01 | −20.12 | +18.3% |
+| 2.54 | NOL wind tunnel | −16.13 | −18.02 | +11.7% |
+| 2.76 | NOL wind tunnel | −14.44 | −16.63 | +15.2% |
 
-HPR Sim reads low faster than sound, more so as the Mach number grows. Barrowman's own curve comes from Busemann's third-order expansion ([B67] eq. 3-7), a higher-order theory that counts the fins' thickness. The curve is 5.68% from the same points on average ([B67] p. 66). First-order theory, HPR Sim's, reads low partly for want of a term for the fins' 8%
-thickness. At Mach 0.07 HPR Sim gives his computed value within 2.0%. That is how HPR Sim's reading
+**Against DREV's range,** free flights of 30 mm models fitted several rounds at a time ([DREV] Table IX,
+PDF pp. 48–49), HPR Sim reads high too. In the core band (Mach 1.83 and 2.38) it reads 8.8% high on
+average and 12.4% at most; in the extended band (2.72 and 3.15), 5.0% on average and 8.7% at most.
+`cargo xtask roll-drev` flies this from the report's readings cached outside the repository and
+commits only these statistics ([the DREV statistics][drev-stats]); the gate's `refs` step checks them.
+
+**Barrowman's Fig. 5-7 points are no longer scored.** They read −33.60, −27.45, −23.48, −20.92 and
+−18.32 at Mach 1.51, 1.82, 2.27, 2.60 and 3.00, and HPR Sim reads 5.9% to 16.2% below them. They sit a
+flat 1.27 times BRL Report 799's free-flight range data as NOL replots it, which fits a slip in
+convention, not a difference in the air ([research note](../research/nicolaides-roll-damping-convention.md#3-fig-5-7-against-brl-799-mach-by-mach)). They stay in
+[the Basic Finner's fixture][finner-fixture] as a disputed set.
+
+HPR Sim reads high faster than sound, most near Mach 1.5. The likely cause, an inference not shown:
+linear theory's load rises as $1/\beta$ toward Mach 1 faster than the fins' does, as in the forcing
+above. The fins' 8% thickness isn't the cause. BRL Report 711 measured its thicker wedge fins' damping
+21% above its linear theory, so a thickness term would push HPR Sim further high. With the forcing
+right, a damping 11.7% to 27.5% high makes the steady spin 10% to 22% low ($p = -C_{l0}/C_{lp} \cdot 2V/d$).
+Barrowman's own curve comes from Busemann's third-order expansion ([B67] eq. 3-7), which counts the
+fins' thickness. His text gives 5.68% between it and the Fig. 5-7 points without saying how it is
+taken ([B67] p. 66); read off the figure, the gap is 2% to 7%. At Mach 0.07 HPR Sim gives his computed value within 2.0%. That is how HPR Sim's reading
 of his damping method, the fin's own slope over the strips, was checked (above).
 
 **The flight** (`hpr_sim::tests::canted_fins_spin_to_the_analytic_balance`): Valetudo with 1° of
@@ -4530,6 +4560,7 @@ ellipse's integrals ([N09] eq. 3.70–3.71). Supersonic forcing and damping with
 [boattail-fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/measured-boattails.json
 [roll-fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/roll-vs-mach.json
 [finner-fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/basic-finner-roll-damping.json
+[drev-stats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/basic-finner-roll-damping-drev.json
 [adr-011]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0011-rigid-body-flight-equations-of-motion.md
 [adr-031]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0031-roll-from-canted-fins-and-roll-damping-by.md
 [adr-032]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0032-normal-force-overrides-from-rasaero-ii-the.md
