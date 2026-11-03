@@ -39,9 +39,9 @@ thin-plate fins too).
 flyer the rocket stays under a ceiling it may pass ([ADR-144][adr-144] puts "apogee too low for a
 waiver" in the worst class). All nine read high, from +0.0383% to +1.2084%, so the comparison errs
 toward the cautious side today. On the cause-free six the offset is at most 0.11%, 0.87 m (2.9 ft) on
-Valetudo's 778 m (2,552 ft). Its cause isn't traced here; the two terms that put the rail-exit
-speeds low ([ADR-310][adr-310]) act on the rail and in wind, and the calm flights read high too. This
-record changes no model.
+Valetudo's 778 m (2,552 ft). Its cause isn't traced here. Of the two terms that put the rail-exit
+speeds low ([ADR-310][adr-310]), the drag factor acts in wind, but the propellant's moving mass acts
+on the rail in calm air too, so this record rules neither out. It changes no model.
 
 **Decision.**
 
@@ -52,8 +52,9 @@ record changes no model.
 2. None of the nine same-drag apogees may read low by more than 0.001%, RocketPy's largest solver
    movement on the metric (0.000635%) rounded up. The two-sided bound alone would let a row swing
    from +0.11% to −0.35% unseen.
-3. The three flights with a written cause keep 3%. Their largest difference is +1.21%, 2.5 times
-   inside, under the 3 times this project's reviews have asked of a tightening ([ADR-303][adr-303]).
+3. The three flights with a written cause keep 3%. Their largest difference is +1.21%, 2.48 times
+   inside (rounded down, as [ADR-294][adr-294] rounds headroom), under the 3 times this project's
+   reviews have asked of a tightening ([ADR-303][adr-303]); keeping a bound tightens nothing.
 4. Test `same_drag_speeds_and_cause_free_apogees_hold_adr_289s_bounds` holds each case file to these
    bounds, failing on a case file widened back, given a floor or marked not scored, or a new case
    added at the old bound; test `no_same_drag_apogee_reads_low_adr_318` runs the committed cases and
@@ -61,18 +62,19 @@ record changes no model.
 
 **Considered and not taken.**
 
-- **0.25%:** 2.23 times the largest difference. [ADR-294][adr-294] took 2.5 times at the least and
-  ADR-303 turned down margins under 3 times, so a regression of a fifth of the gap would fail a run
-  for no physical reason.
-- **The apogee time (1% to 0.5%) and the burnout height (0.2% to 0.1%) of the same six:** 2.10 and
-  2.07 times inside after the change, under the same 3 times.
+- **0.25%:** 2.22 times the largest difference, rounded down. ADR-294 took 2.5 times at the least
+  and ADR-303 turned down margins under 3 times: at 0.25%, a rise of 0.14 points on Valetudo
+  (0.25 − 0.1123) would fail a run, too little room for the codes' own drift.
+- **The apogee time (1% to 0.5%) and the burnout height (0.2% to 0.1%) of the same six:** 2.09 and
+  2.06 times inside after the change, rounded down, under the same 3 times.
 - **The largest Mach number (1% to 0.5%):** 8 of 9 read low, the flattering side for flutter, but
   the speed-of-sound offset behind it is untraced ([ADR-289][adr-289]); trace it first.
 
 **Consequences.**
 
-- A change that moves a cause-free apogee by more than about a fifth of a per cent, or any same-drag
-  apogee low past the solver's noise, now fails CI on every platform instead of passing.
+- A change that moves a cause-free apogee up by more than about a quarter of a per cent (0.24 points
+  on Valetudo, 0.35 − 0.1123), or any same-drag apogee low past the solver's noise, now fails CI on
+  every platform instead of passing.
 - CI reproduces the committed report to 2e-6, or 1e-7 of the value, on macOS, Linux and Windows,
   well inside the new bound; the RocketPy references are committed, so RocketPy's own run-to-run
   noise doesn't enter CI.

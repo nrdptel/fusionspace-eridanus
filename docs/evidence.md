@@ -377,7 +377,7 @@ The register holds 38 rows, as of November 2, 2026.
 - [G36](#g36), November 2, 2026, looked at:
   - GitHub code search for `extension:pf2` (250 hits in 31 repositories) and `extension:telem` (17 hits, every rocketry repository already named in the project's notes)
   - GitHub code search for CSV files with booster and sustainer words
-  - GitHub repositories pushed since 2026-10-30 with rocket words
+  - GitHub repositories pushed since October 30, 2026 with rocket words
   - a web search for a two-stage flight's booster log
 
   It found no log from each stage of one flight. No `.pf2` or telemetry file is named for a booster or sustainer, and the CSV hits are not rocket logs.

@@ -8,11 +8,11 @@
 # (clippy, test, doc, wasm, docs, deny, evidence or site), the slow steps after it (validate,
 # examples, refs, ego, python, and after a code step the site) are skipped: the run already fails, a merge needs a full run that
 # passes, and the gate runs again after the fix. From 2026-10-25 to 11-01, 16.6 of the gate's
-# 94.8 hours were slow steps run after a code step had already failed, in 82 runs. The site, the
-# evidence and the licenses ran after validate until 2026-11-02, and from 10-25 to then the slow
-# steps ran 10.1 hours in full runs that one of them failed: site failed 30 of 149 full runs that
-# reached it, validate 1. Full logs stay in target/gate/<step>.log for when the summary is not
-# enough.
+# 94.8 hours were slow steps run after a code step had already failed, in 82 runs. Deny, evidence
+# and site ran after validate until 2026-11-02. From 10-25 to 11-02, site failed 30 of the 149
+# full runs that reached it and validate 1, and validate, examples, refs and python ran 10.1 hours
+# in full runs that site, evidence or deny failed. Full logs stay in target/gate/<step>.log for
+# when the summary is not enough.
 #
 # Usage:
 #   scripts/gate.sh                 # every step

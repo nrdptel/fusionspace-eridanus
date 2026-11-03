@@ -72,3 +72,4 @@ Placed by [ADR-191, the 2026-10-06 ideas][adr-191]; research in [the web tools](
 [tilt-thread]: https://www.rocketryforum.com/threads/emergency-deployment-option-for-unstable-flights.194466/
 [adr-191]: ../decisions/0191-the-2026-10-06-ideas-web-tools-watches-repo-layout-hardware.md
 [adr-193]: ../decisions/0193-the-2026-10-07-control-scope-drag-only-brakes-roll-only-surfaces.md
+[sphs]: static-pressure-hobby-shapes.md

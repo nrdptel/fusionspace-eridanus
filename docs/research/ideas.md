@@ -76,7 +76,8 @@ measurement ([M2.11][m2-11], [ADR-279][adr-279]). The rest moved to the [theme n
 the 2026-10-20 review's four ([ADR-286][adr-286]) and the 2026-10-24 review's four ([ADR-289][adr-289])
 to flight data and the ecosystem, and the 2026-10-26 review's four ([ADR-294][adr-294]) to flight
 data, clubs and the ecosystem. The 2026-10-28 review's four ([ADR-303][adr-303]) went to flight data and the ecosystem, and
-the 2026-10-31 review's five ([ADR-310][adr-310], [ADR-311][adr-311]) went there too.
+the 2026-10-31 review's five ([ADR-310][adr-310], [ADR-311][adr-311]) went there too; its sixth,
+every flight OpenRocket flies, was promoted as [M2.3c9][m2-3c9].
 
 ## The 2026-11-02 planning review
 
@@ -93,7 +94,7 @@ Placed with [ADR-318][adr-318], which tightens a met target and promotes none of
   flights of one design with a 3% scatter in reload impulse, the shared drag's intervals pass
   [ADR-257][adr-257]'s three counts at each size; their mean width at 4 flights is at most 60% of
   one flight's (1/√4 is 50%); and one flight alone says where drag and impulse aren't told apart.
-- SOON: the intervals by sample rate. User: a flyer whose logger records at 10 or 20 Hz, quoting a
+- SOON: the intervals by sample rate. User: a flyer whose logger records at 10 or 15 Hz, quoting a
   log's apogee or top speed with its 90% interval. A 2026 preprint, down-sampling one logged
   flight, finds the apogee from its accelerometer ranging over 66 m at 10 Hz against 12 m at 50 Hz,
   while the barometer's stays within 0.3 m ([Varigonda][varigonda]).
@@ -114,12 +115,14 @@ Placed with [ADR-318][adr-318], which tightens a met target and promotes none of
   +6.72%), shown as a forecast, never held. *Done when:* the report names the build and its date
   and gives its mean absolute and mean apogee errors with the count and the flights that moved more
   than 1%, aggregates only, or says that no build is published; [M2.3c3][m2-3c3] reuses the
-  harness on the release.
+  harness on the release. New beside [ADR-212][adr-212], which already makes the newest
+  release the bar: a build before it ships, shown as a forecast, never held.
 - SOON: the wind's error as measured. User: a flyer whose recovery area ends at a road, flying on
   a forecast of light wind. `hpr mc` scatters the wind as a fraction of its speed and a turn of its
   direction, so a 2 m/s forecast scattered by 20% moves by 0.4 m/s, where reanalysis winds over
-  the US miss measured ones by about 1.8 to 2.4 m/s in each component by day and more than 3.2 m/s
-  on the worst nights ([the ERA5 wind note](era5-wind-direction-us.md)). Too narrow an ellipse is
+  the US are inferred to miss measured ones by about 1.8 to 2.4 m/s in each component by day and
+  more than 3.2 m/s on the worst nights (a bracket from soundings and profilers, not a direct
+  measurement: [the ERA5 wind note](era5-wind-direction-us.md)). Too narrow an ellipse is
   the flattering side. Workflow: `hpr mc --wind-error 2` adds an error in each horizontal
   component, the same at every speed, beside the present scatters. Moves: the proposed
   `landing.inside-90`. *Done when:* a test gets a calm forecast's ellipse from the component error
@@ -186,3 +189,5 @@ Placed with [ADR-318][adr-318], which tightens a met target and promotes none of
 [hfs]: https://github.com/aneeshkaravadi/hpr-flight-sim
 [varigonda]: https://doi.org/10.31224/8645
 [or-3431]: https://github.com/openrocket/openrocket/pull/3431
+[adr-212]: ../decisions/0212-measure-against-openrockets-newest-release.md
+[m2-3c9]: ../decisions-and-roadmap.md#m2-3c9
