@@ -255,6 +255,7 @@ witness settled gravity wrongly; the rules now:
    against a coast reading 0, and the top read about 7 g against a true 6 g, outside its bound
    (`the_coast_settles_gravity_where_there_is_no_pad`, on MARSA again, fails so).
 
-On the sample logs neither moves a record: `cargo xtask logs --check` reproduces the committed
-report, which pins each record by a digest, so no record's gravity rested on a coast at −1 g alone
-or on a coast read off the pad.
+On the sample logs neither moves a count: `cargo xtask logs --check` reproduces the committed
+report, whose per-family counts of readings given and withheld, by reason, are unchanged. A record
+whose top was given on a coast at −1 g alone, or withheld for a coast read off the pad, would move
+one.

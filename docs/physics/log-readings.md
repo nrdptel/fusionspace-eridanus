@@ -432,7 +432,8 @@ the heights. Most Raven logs start about 0.5 s before liftoff, against a liftoff
 That rule, tried when this one was chosen, withheld 69 of the 80 Raven CSV records. The coast
 settles the Raven's logs that start in the thrust, whose family doesn't say ([ADR-283][adr-283]).
 On the sample logs no record's gravity rested on a coast at −1 g alone, or on a coast read off the
-pad: with both rules the committed report reproduces, every record unchanged.
+pad: with both rules the committed report reproduces, its per-family counts of readings given
+and withheld unchanged.
 
 **The top acceleration** is the highest specific force while the motor burns. A burn runs from a
 cleaned reading past 2 g to where the cleaned trace, averaged over 0.05 s, next falls through zero.
