@@ -1401,7 +1401,7 @@ list's copy.
 Every list, even an empty one, carries two credit lines under its first two lines. The first is
 the site's, "Motor stock data from motor.fusionspace.co", which its terms ask for, with links
 to the site and to [its terms](https://motor.fusionspace.co/api#terms): free for personal,
-non-commercial use, with other sites, apps and commercial uses needing the owner's permission.
+non-commercial use, with other sites, apps and commercial uses needing written permission first.
 It comes with the site's caution to check stock and price on the vendor's own page before
 relying on them.
 
@@ -1418,7 +1418,7 @@ This reads the list of motors in stock that the tests use, recorded at 07:07 UTC
 $ hpr motors search --in-stock --class L --max-price 300 --from crates/hpr-net/tests/fixtures/replay/motor-finder-in-stock.json
 4 motors (in stock, class L, at most $300.00 each) in motor.fusionspace.co's list built 2026-10-01T07:07:29Z.
 Read from motor-finder-in-stock.json
-Motor stock data from motor.fusionspace.co (https://motor.fusionspace.co), under the site's terms (https://motor.fusionspace.co/api#terms): free for personal, non-commercial use; other sites, apps and services, and any commercial use, need the owner's permission. It is aggregated from public vendor listings and ThrustCurve.org, provided as is, with no warranty. Check stock and price on the vendor's own page before relying on them
+Motor stock data from motor.fusionspace.co (https://motor.fusionspace.co), under the site's terms (https://motor.fusionspace.co/api#terms): free for personal, non-commercial use; other sites, apps and services, and any commercial use, need written permission first. It is aggregated from public vendor listings and ThrustCurve.org, provided as is, with no warranty. Check stock and price on the vendor's own page before relying on them
 Motor data and thrust curves courtesy of ThrustCurve.org, https://www.thrustcurve.org/
 
 designation  maker     class  dia mm (in)  impulse N·s   avg N  burn s  each $  pack  vendor
@@ -1442,7 +1442,7 @@ the same recording lists nothing:
 $ hpr motors search --in-stock --class L --max-price 150 --from crates/hpr-net/tests/fixtures/replay/motor-finder-in-stock.json
 0 motors (in stock, class L, at most $150.00 each) in motor.fusionspace.co's list built 2026-10-01T07:07:29Z.
 Read from motor-finder-in-stock.json
-Motor stock data from motor.fusionspace.co (https://motor.fusionspace.co), under the site's terms (https://motor.fusionspace.co/api#terms): free for personal, non-commercial use; other sites, apps and services, and any commercial use, need the owner's permission. It is aggregated from public vendor listings and ThrustCurve.org, provided as is, with no warranty. Check stock and price on the vendor's own page before relying on them
+Motor stock data from motor.fusionspace.co (https://motor.fusionspace.co), under the site's terms (https://motor.fusionspace.co/api#terms): free for personal, non-commercial use; other sites, apps and services, and any commercial use, need written permission first. It is aggregated from public vendor listings and ThrustCurve.org, provided as is, with no warranty. Check stock and price on the vendor's own page before relying on them
 Motor data and thrust curves courtesy of ThrustCurve.org, https://www.thrustcurve.org/
 None costs $150.00 or less: of the 20 motors in stock the other filters pass, the cheapest is AeroTech L1520T at $260.99.
 ```

@@ -68,7 +68,7 @@ pub const ATTRIBUTION: &str = "Motor stock data from motor.fusionspace.co \
                                (https://motor.fusionspace.co), under the site's terms \
                                (https://motor.fusionspace.co/api#terms): free for personal, \
                                non-commercial use; other sites, apps and services, and any \
-                               commercial use, need the owner's permission. It is aggregated \
+                               commercial use, need written permission first. It is aggregated \
                                from public vendor listings and ThrustCurve.org, provided as is, \
                                with no warranty. Check stock and price on the vendor's own page \
                                before relying on them";
@@ -809,7 +809,7 @@ mod tests {
             "Motor stock data from motor.fusionspace.co (https://motor.fusionspace.co), under \
              the site's terms (https://motor.fusionspace.co/api#terms): free for personal, \
              non-commercial use; other sites, apps and services, and any commercial use, need \
-             the owner's permission. It is aggregated from public vendor listings and \
+             written permission first. It is aggregated from public vendor listings and \
              ThrustCurve.org, provided as is, with no warranty. Check stock and price on the \
              vendor's own page before relying on them"
         );

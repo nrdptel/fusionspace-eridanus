@@ -262,7 +262,8 @@ adds a source.
   The example `crates/hpr/examples/motor_stock.rs` reads the build and in-stock files.
   From 2026-11-01 the live API's data is under the site's own terms instead: free for personal,
   non-commercial use and for FusionSpace's own tools, FusionSpace HPR among them, with the credit
-  above; other sites, apps and services, and any commercial use, need the owner's permission. These recordings were made under CC BY 4.0 and keep it
+  above; other sites, apps and services, and any commercial use, need written permission first.
+  These recordings were made under CC BY 4.0 and keep it
   ([ADR-315](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0315-the-2026-11-01-licensing-layers.md)).
   `hpr_net::motor_finder` also fetches such answers at run time, when a program asks, and caches
   them on the user's disk; each answer carries the credit for the program to show.

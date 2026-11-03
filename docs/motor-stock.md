@@ -253,7 +253,7 @@ Run it from a copy of the repository with
 
 <!-- quote: crates/hpr/examples/motor_stock.output.txt -->
 ```text
-Motor stock data from motor.fusionspace.co (https://motor.fusionspace.co), under the site's terms (https://motor.fusionspace.co/api#terms): free for personal, non-commercial use; other sites, apps and services, and any commercial use, need the owner's permission. It is aggregated from public vendor listings and ThrustCurve.org, provided as is, with no warranty. Check stock and price on the vendor's own page before relying on them
+Motor stock data from motor.fusionspace.co (https://motor.fusionspace.co), under the site's terms (https://motor.fusionspace.co/api#terms): free for personal, non-commercial use; other sites, apps and services, and any commercial use, need written permission first. It is aggregated from public vendor listings and ThrustCurve.org, provided as is, with no warranty. Check stock and price on the vendor's own page before relying on them
 built 2026-10-01T07:07:29+00:00: 598 motors listed, 282 in stock, from 12 vendors
 first read: Fetched; offline two hours later: Stale, the same list: true
 
