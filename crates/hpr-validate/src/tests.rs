@@ -248,13 +248,15 @@ fn no_committed_gate_is_looser_than_the_milestone_says() {
 
 #[test]
 fn same_drag_speeds_and_cause_free_apogees_hold_adr_289s_bounds() {
-    // ADR-289 holds the burnout and largest speeds of the same-drag flights to 0.2%, and the apogee
-    // of the six flights with no written model difference to 0.5%: the largest differences measured
-    // were 0.056% and 0.112%, and RocketPy's own solver moves them by at most 0.0032% and 0.00064%.
-    // Juno III, Bella Lui and Prometheus 2022 in wind keep 3% on their apogee for the causes their
-    // case files measure (hpr's rail release and body lift, and Juno III's fins). A case file
-    // widened back, or a new same-drag case added at the old bound, fails here. The rail-exit and
-    // landing speeds it also set to 0.2% are held tighter since ADR-310, in the test below.
+    // ADR-289 holds the burnout and largest speeds of the same-drag flights to 0.2%, and held the
+    // apogee of the six flights with no written model difference to 0.5%: the largest differences
+    // measured were 0.056% and 0.112%, and RocketPy's own solver moves them by at most 0.0032% and
+    // 0.00064%. ADR-318 holds those six apogees to 0.35%, 3.1 times the largest (+0.1123%,
+    // Valetudo). Juno III, Bella Lui and Prometheus 2022 in wind keep 3% on their apogee for the
+    // causes their case files measure (hpr's rail release and body lift, and Juno III's fins). A
+    // case file widened back, or a new same-drag case added at the old bound, fails here. The
+    // rail-exit and landing speeds ADR-289 also set to 0.2% are held tighter since ADR-310, in the
+    // test below.
     const SPEEDS: [&str; 2] = ["burnout_speed_m_s", "max_speed_m_s"];
     const APOGEE_WITH_A_CAUSE: [&str; 3] = [
         "flight-juno-iii",
@@ -272,7 +274,7 @@ fn same_drag_speeds_and_cause_free_apogees_hold_adr_289s_bounds() {
                 0.002
             } else if name == "apogee_agl_m" && !APOGEE_WITH_A_CAUSE.contains(&case.id.as_str()) {
                 apogees += 1;
-                0.005
+                0.0035
             } else {
                 continue;
             };
@@ -283,7 +285,7 @@ fn same_drag_speeds_and_cause_free_apogees_hold_adr_289s_bounds() {
                     metric.not_scored.as_deref()
                 ),
                 (Some(bound), None, None),
-                "{}'s {name} is held to {bound} relative, with no floor (ADR-289)",
+                "{}'s {name} is held to {bound} relative, with no floor (ADR-289, ADR-318)",
                 case.id
             );
         }
@@ -291,6 +293,31 @@ fn same_drag_speeds_and_cause_free_apogees_hold_adr_289s_bounds() {
     // Nine flights carry a burnout and a largest speed. Six apogees: Calisto in wind and calm,
     // Valetudo, NDRT 2020, Juno III and Bella Lui calm.
     assert_eq!((speeds, apogees), (9 * 2, 6));
+}
+
+#[test]
+fn no_same_drag_apogee_reads_low_adr_318() {
+    // Too low an apogee is the flattering side for a waiver: it tells a flyer the rocket stays
+    // under a ceiling it may pass. All nine same-drag flights read high (+0.038% to +1.21%), so the
+    // two-sided bounds above would let one swing to reading low unnoticed. None may read low by
+    // more than RocketPy's largest solver movement on the apogee in these flights, 0.00064%
+    // (ADR-289), rounded up (ADR-318).
+    const MOST_LOW: f64 = -0.00001;
+    let report = run_lock(&root(), false).expect("the committed cases run");
+    let same_drag: Vec<_> = report
+        .comparisons
+        .iter()
+        .filter(|c| c.metric == "apogee_agl_m" && c.case.starts_with("flight-"))
+        .collect();
+    assert_eq!(same_drag.len(), 9);
+    for comparison in same_drag {
+        let relative = comparison.relative.expect("the reference is not zero");
+        assert!(
+            relative >= MOST_LOW,
+            "{}'s apogee reads {relative} low, past {MOST_LOW} (ADR-318)",
+            comparison.case
+        );
+    }
 }
 
 #[test]

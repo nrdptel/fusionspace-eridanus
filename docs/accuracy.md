@@ -486,8 +486,9 @@ landing offset is met except where the two codes' models differ.
 
 Each of fifteen numbers per flight must agree within 3% of RocketPy's, with no absolute floor.
 Rail-exit speeds must agree within 0.05%, landing speeds within 0.1%, burnout and top speeds and
-six burnout heights within 0.2%, rail-exit times and six apogees within 0.5%, and six apogee times
-within 1% ([the tighter gates][adr-289], [more][adr-294], [the speeds][adr-310]).
+six burnout heights within 0.2%, six apogees within 0.35% with none of nine reading low, rail-exit
+times within 0.5%, and six apogee times within 1% ([the tighter gates][adr-289], [more][adr-294],
+[the speeds][adr-310], [the apogees][adr-318]).
 Each case file argues why, for example [Juno III's][juno-case]. A number left unscored has its
 reason in its case file. Two more numbers compare the whole trace, explained after the tables.
 
@@ -1196,6 +1197,7 @@ rest.
 [adr-289]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md
 [adr-294]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md
 [adr-310]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0310-the-2026-10-31-review-the-rocketpy-rail-exit-and-landing-speeds-tightened.md
+[adr-318]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md
 [adr-293]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0293-cavours-log-read-to-its-apogee-event.md
 [adr-184]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0184-logged-apogees-of-the-private-collection.md
 [adr-238]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0238-the-corpus-rechecked-against-the-catalog.md
