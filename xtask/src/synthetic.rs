@@ -2912,6 +2912,11 @@ mod tests {
             "\n      - run: cargo run --locked --quiet --package xtask --profile report-check -- two-logs --check\n"
         ));
         assert_eq!(ci.matches("-- two-logs --check").count(), 1);
+        // A nightly run whose censuses failed or didn't run files an issue.
+        assert!(ci.contains("\n    needs: [scope, fmt, clippy, test, examples, types, python, validate, census, fit-intervals,"));
+        assert!(ci.contains(
+            "|| needs.census.result != 'success' || needs['fit-intervals'].result != 'success') }}"
+        ));
         // The two jobs must hold up what's deployed.
         assert!(ci.contains("needs: [fmt, clippy, test, examples, types, python, validate,"));
         // Each way of leaving a set out, or running it somewhere it isn't always run.

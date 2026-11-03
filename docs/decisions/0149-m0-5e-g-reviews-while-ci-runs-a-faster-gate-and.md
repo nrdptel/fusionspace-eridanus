@@ -114,8 +114,8 @@ again.
    files none: whoever started it reads its result.
 4. **Before a merge.** `scripts/gate.sh` runs the three whole on the Mac, as before, on the
    platform that writes the reports. What a pull request loses is the run of the censuses on the
-   other four platforms: a change that moves a census only on Linux, Windows or ARM reaches main
-   and is found that night.
+   other four platforms, and the optimized build's run on every platform, the Mac included: a
+   change that moves a census only there reaches main and is found that night.
 5. **Research notes.** A pull request or push that changes only files under `docs/research/`
    (renamed from or to, too) runs no step of `validate`, `examples` and `python`, and skips `types`,
    `wasm-check` and `phone`; none of them reads a note. Each still reports its check by name, as
@@ -138,7 +138,8 @@ again.
 
 - A pull request's CI loses about 270 runner minutes of the 500 a run took on 2026-11-03: the
   synthetic flights' and two logs' steps on five platforms and the fit's nine jobs. Its slowest
-  jobs become the site's parts and the Windows tests, 14 to 16 minutes on 2026-11-03.
+  jobs become the site's parts and the Windows tests: 14 to 16 minutes in one run on 2026-11-03,
+  the census steps aside.
 - The gate is unchanged until M0.16, so #1146 waits for it.
 - [ADR-222][adr-222]'s six platforms still build, test and validate on every pull request. Only the
   censuses move to the night.

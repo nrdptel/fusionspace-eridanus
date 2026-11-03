@@ -25,7 +25,7 @@ Open work only; done work is [archived](roadmap-done.md) unchanged by `cargo xta
 The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163): lines
 `N. M<id> title`, ids open in this file (`cargo test -p xtask` checks).
 
-1. M0.16 The time budget for CI and the gate
+1. M0.16 A time budget for CI
 2. M5.7 Every solid motor, offline
 3. M7.3 A flight against its simulation
 4. M10.2 Release 0.2: the flight analyzer
@@ -132,18 +132,14 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     organizer), and an issue template for a barrier to access are in the repository and linked from
     the site's landing page.
 
-- [ ] **M0.16 The time budget for CI and the gate** (ADR-149, amended; Neer, 2026-11-03). A pull request's
-  CI within 20 minutes and a passing full `scripts/gate.sh` within 30: the flight censuses run whole
-  each night, and pull requests and the gate check a fixed part of them.
-  - [ ] **M0.16a Fixed slices of the flight censuses, and the budget measured.** *Done when:* the
-    synthetic flights, two logs and the fit's intervals each take a `--check` of one fixed part of
-    their flights, held to what the committed report keeps for that part: exactly on the platform
-    that writes it, to the digits the platforms share on the others; a test changes one flight's
-    result in a part and that part's check fails; `scripts/gate.sh` checks one part of each, and the
-    whole only when asked; CI checks one part of each on all five platforms on every pull request,
-    the whole each night (ADR-149); a check run before each pull request fails one whose CI's
-    longest job, waits apart, or whose last passing full gate is over its budget, with the
-    measurement; and M7.3c3's fit is checked the same way before it merges.
+- [ ] **M0.16 A time budget for CI** (ADR-149; Neer, 2026-11-03): a pull request's CI within 20
+  minutes, a full gate within 30.
+  - [ ] **M0.16a Census slices; the budget checked.** *Done when:* the synthetic flights, two logs
+    and the fit each check a fixed part of their flights against the committed report (exact where
+    written, else by its rule), failing on one changed flight; the gate and pull requests check one
+    part, the whole nightly; a pre-PR check fails on a full gate over 30 minutes, a job over 20 in
+    main's last passing CI, or no passing nightly in 26 hours; M7.3c3's fit follows before it
+    merges.
 
 ## Phase 1: Physics core (the heart), with validation interleaved
 

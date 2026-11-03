@@ -327,7 +327,7 @@ offset.
 to 4,810 m (1,348 to 15,781 ft), and top speeds from Mach 0.269 to under 1.18. Values are kept
 to three significant figures, the digits every platform shares, each range's ends rounded
 outward.
-CI flies every flight again on macOS, Windows and Linux and holds the census to them.
+Each night CI flies every flight again on macOS, Windows and Linux and holds the census to them.
 
 ### What it leaves out
 
