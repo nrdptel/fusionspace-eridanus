@@ -455,6 +455,8 @@ const ALLOWED: &[(&str, &str, Reason)] = &[
         "the limit — vendor-dependent",
         Reason::Quotation,
     ),
+    // The heading of motor.fusionspace.co's API page, quoted.
+    ("docs/motor-stock.md", "\"Data licence\"", Reason::Quotation),
     // The style guide quoting what the check reports for a name.
     (
         "docs/writing.md",
@@ -1708,15 +1710,15 @@ mod tests {
 
     #[test]
     fn a_word_is_replaced_in_place() {
-        let text = "Its centre — and `centre_m`; the European Centre, a licence.";
+        let text = "Its centre — and `centre_m`; \"Data licence\", a licence.";
         assert_eq!(
             fixed("a.md", text, Kind::Markdown, &titles()),
-            "Its center — and `centre_m`; the European Center, a license."
+            "Its center — and `centre_m`; \"Data license\", a license."
         );
         // An allowed phrase keeps its spelling.
         assert_eq!(
-            fixed("docs/nomads.md", text, Kind::Markdown, &titles()),
-            "Its center — and `centre_m`; the European Centre, a license."
+            fixed("docs/motor-stock.md", text, Kind::Markdown, &titles()),
+            "Its center — and `centre_m`; \"Data licence\", a license."
         );
     }
 

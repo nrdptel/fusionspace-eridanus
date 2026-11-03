@@ -5,10 +5,8 @@
 //! (`--offline`), or from a list saved earlier (`--from`), and is read with
 //! `hpr_net::motor_finder`'s own checks. The filters are this module's; every value printed is
 //! the list's. Every list, empty or not, in text or JSON, carries the site's credit with its
-//! caution, as its terms ask (from 2026-11-01 the site's own, [ADR-315][adr-315], the licensing
-//! layers), and ThrustCurve.org's, whose figures the site repeats.
-//!
-//! [adr-315]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0315-the-2026-11-01-licensing-layers.md
+//! caution, as its data license (CC BY 4.0) and terms ask, and ThrustCurve.org's, whose figures
+//! the site repeats.
 
 use std::cmp::Ordering;
 

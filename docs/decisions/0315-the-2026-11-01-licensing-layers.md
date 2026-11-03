@@ -1,9 +1,10 @@
 # ADR-315: The 2026-11-01 licensing layers: the engine stays open, hosted services carry their own terms, and M9.0 sets the app's license (2026-11-01)
 
-- **Status:** accepted; keeps [ADR-001][adr-001]'s license for the engine; adds the app's license to what [M9.0, the UI architecture decision][m9-0] settles; no done-when changes
+- **Status:** accepted; keeps [ADR-001][adr-001]'s license for the engine; adds the app's license to what [M9.0, the UI architecture decision][m9-0] settles; no done-when changes; §2 reversed for the motor stock API by [ADR-319][adr-319] (2026-11-03): its data is CC BY 4.0 again, open to any site
 - **Summary:** The code that computes and checks FusionSpace HPR's numbers stays `MIT OR Apache-2.0`. Hosted services, starting with the motor stock API at motor.fusionspace.co, carry their own terms: free for personal use and for FusionSpace's own tools, with written permission needed for any other site, app or service and for any commercial use. The app's license is chosen in M9.0's decision record, before any app code is public; the leading option is the Functional Source License 1.1 with Apache-2.0 as its future license. Registering a FUSIONSPACE trademark stays deferred.
 
 [adr-001]: 0001-license-and-workspace-layout.md
+[adr-319]: 0319-the-motor-stock-api-open-again.md
 [adr-287]: 0287-thrustcurve-orgs-motor-records-used-as-published-facts.md
 [adr-288]: 0288-every-solid-motor-ships-in-the-package.md
 [adr-192]: 0192-the-2026-10-06-follow-up-best-over-first-and-export-control.md

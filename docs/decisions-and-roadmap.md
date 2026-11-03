@@ -347,6 +347,7 @@ until someone rewrites it in plainer words.
 | [ADR-316: M7.3b: the least-squares fit, what it solves for and how its intervals are held][adr-316] | Levenberg-Marquardt fits drag, impulse, a constant wind and mass to a log, with the |  |
 | [ADR-317: M7.3c in two: the posterior's sampler, then the test][adr-317] | the Bayesian option draws each flight's posterior by importance sampling around the |  |
 | [ADR-318: The 2026-11-02 review: the cause-free apogees tightened][adr-318] | In the RocketPy comparisons flown on the same inputs, the six apogees with no written model difference agree within 0.1123%, while RocketPy's own solver moves an apogee by at most 6.35e-6 of its value. The bound goes from 0.5% to 0.35%, 3.1 times the largest difference. All nine same-drag apogees read high, the cautious side for a waiver, and a test now stops one reading low. These bound agreement between two codes, not accuracy against a flight. |  |
+| [ADR-319: The motor stock API is open again, under CC BY 4.0][adr-319] | From 2026-11-03 the motor stock API's data is licensed under CC BY 4.0 again, and any website may call it from a browser, as before 2026-11-01. The maintainer chose this because the scraper that builds the data is MIT-licensed and will stay so, so anyone can build the same data anyway. The narrower terms of 2026-11-01 are withdrawn, and copies from those days are CC BY 4.0 too. hpr's credit line names CC BY 4.0 again, as release 0.1.0's does. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -739,7 +740,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m5-3c1"></a>[M5.3c1][done-2] | Distance and bearing between two places on WGS 84, checked against Karney's published set of 500,000 geodesics ([ADR-127][adr-127], [Geodesy](physics/geodesy.md#distance-and-bearing-geodesics)) | done |
 | <a id="m5-3c2"></a>[M5.3c2][done-2] | A launch site's elevation from a GeoTIFF file the user gives, checked against GDAL's reading through rasterio on seven files and a whole USGS tile ([ADR-128][adr-128], [A launch site's elevation](elevation.md#from-an-elevation-file-of-your-own)) | done |
 | <a id="m5-4"></a>[M5.4][done-2] | Motor stock and prices from motor.fusionspace.co, joined with ThrustCurve.org's motors; split in three ([ADR-129][adr-129]) | done |
-| <a id="m5-4a"></a>[M5.4a][done-2] | The motor finder's files (its build, every motor, those in stock, the vendors, one motor's page) read through the cache, so they work offline, each carrying the credit the site asks for ([ADR-129][adr-129]; its CC BY 4.0 credit, [ADR-145][adr-145], until 2026-11-01, [ADR-315][adr-315]; [Motor stock and prices](motor-stock.md)) | done |
+| <a id="m5-4a"></a>[M5.4a][done-2] | The motor finder's files (its build, every motor, those in stock, the vendors, one motor's page) read through the cache, so they work offline, each carrying the credit the site asks for ([ADR-129][adr-129]; its CC BY 4.0 credit, [ADR-145][adr-145]; [Motor stock and prices](motor-stock.md)) | done |
 | <a id="m5-4b"></a>[M5.4b][done-2] | ThrustCurve.org's search and a motor's thrust curve through the cache, and the motors in stock matched to ThrustCurve.org's by name, with a report of the misses: 282 of 282 matched ([ADR-130][adr-130]; the tests' stand-in searches, [ADR-145][adr-145]; [Motor stock and prices](motor-stock.md#matching-motors-to-thrustcurves-records)) | done |
 | <a id="m5-4c"></a>[M5.4c][done-2] | `hpr motors search`: motors in stock by class and price, from the network, a saved list or offline, with both sources' credit on every list ([ADR-131][adr-131], [Motors you can buy](cli.md#motors-you-can-buy)) | done |
 | <a id="m5-5"></a>[M5.5][done-2] | A catalog of parts: OpenRocket's parts files, looked up by maker and part number, and parts from them in a design; split in two ([ADR-132][adr-132]) | done |
@@ -1301,6 +1302,7 @@ is the milestone that added or will add that test.
 [adr-316]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md
 [adr-317]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0317-m7-3c-in-two-the-sampler-then-the-test.md
 [adr-318]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md
+[adr-319]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0319-the-motor-stock-api-open-again.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
