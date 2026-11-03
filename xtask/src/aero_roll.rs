@@ -354,12 +354,13 @@ mod tests {
         assert_eq!(only_core.len(), 1);
     }
 
-    /// The cache's comment lines and column order don't matter; a bad cell is refused.
+    /// The cache's comment lines and column order don't matter; a bad or non-finite cell is refused.
     #[test]
     fn drev_rows_read_by_column_name() {
         let rows = drev_rows("# note\nmach,cx0,clp\n1.8,0.5,-22.0\n2.4,0.4,-18.0\n").unwrap();
         assert_eq!(rows, vec![(1.8, -22.0), (2.4, -18.0)]);
         assert!(drev_rows("mach,clp\n1.8,x\n").is_err());
+        assert!(drev_rows("mach,clp\n1.8,NaN\n").is_err());
         assert!(drev_rows("mach,cx0\n1.8,0.5\n").is_err());
     }
 }
