@@ -2836,9 +2836,9 @@ mod tests {
                 body.iter()
                     .any(|l| indent(l) == 4 && l.trim().starts_with(key))
             };
-            let other_condition = body.iter().any(|l| {
-                indent(l) == 4 && l.trim().starts_with("if:") && l.trim() != NIGHTLY
-            });
+            let other_condition = body
+                .iter()
+                .any(|l| indent(l) == 4 && l.trim().starts_with("if:") && l.trim() != NIGHTLY);
             if other_condition || job_key("continue-on-error:") {
                 problems.push(format!("{job} runs on a condition"));
             }
