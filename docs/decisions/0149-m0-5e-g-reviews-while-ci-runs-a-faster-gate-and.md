@@ -143,5 +143,6 @@ again.
   the census steps aside.
 - The gate is unchanged until M0.16, so #1146 waits for it.
 - [ADR-222][adr-222]'s platforms (five now; Intel Macs wait for #438) still build and test on every
-  pull request, and run the validation cases on each one that changes more than research notes.
+  pull request; the examples, the Python package and the validation cases run on each one that
+  changes more than research notes.
   Only the censuses move to the night.

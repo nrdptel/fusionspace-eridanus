@@ -37,12 +37,13 @@ env:
 
 jobs:
   # Which checks this run needs (ADR-149, amended). `full` is true on the nightly run and on a run
-  # started by hand with `full`: only then do the flight censuses run (the `census` and `fit` jobs),
-  # whole, on every platform. A pull request or a push to main leaves them to that night's run, and
-  # `scripts/gate.sh` runs them whole on the Mac before each merge. `notes` is true when every file
-  # a pull request or push changes, renamed from or to, is a research note under docs/research/,
-  # which only `test`, `site` and the quick Linux checks read: the jobs that read none of them then
-  # run no step and pass, still reporting by name for branch protection. A list GitHub can't give,
+  # started by hand with `full`: only then do the flight censuses run whole (the `census` job on
+  # every platform, the `fit` jobs on Linux). A pull request or a push to main leaves them to that
+  # night's run, and `scripts/gate.sh` runs them whole on the Mac before each merge. `notes` is true
+  # when every file a pull request or push changes, renamed from or to, is a research note under
+  # docs/research/: `validate`, `examples` and `python` then run no step and pass, and `types`,
+  # `wasm-check` and `phone` skip, each still reporting by name for branch protection. `test` and
+  # `site`, which read the notes, run, and so do the quick Linux checks. A list GitHub can't give,
   # an empty one, or one of 300 files or more (the compare API's cap) counts as code.
   scope:
     name: scope
