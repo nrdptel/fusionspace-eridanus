@@ -53,10 +53,12 @@ other, to your fins and your rocket's flight.
   wing's, so it reads high there ([measured flutter onsets][onsets-note], §5, a test too different
   from a fin to count).
 
-  Flat plates and other fins of one material read below 1, the safe side, held at the root as
-  tested, in most of them not fully clamped: 0.14 to 0.65 on the counted plates
-  ([measured flutter onsets][onsets-note]) and 0.35 to 0.84 on the uniform fins of
-  [fin flutter tests][tests-note]. A softer root lowers the onset: the ASROC missile fin's plate
+  Flat plates and other fins of one material read below 1, the safe side, as tested: 0.14 to 0.65
+  on the counted plates, all clamped at the root ([measured flutter onsets][onsets-note]), and 0.35
+  to 0.84 on the uniform fins of [fin flutter tests][tests-note], a few held more softly (the ASROC
+  plate clamped over 6.0 in of its 10.66 in root, Liège's plates not rigid in plunge). A hobby
+  rocket's fin seen fluttering in flight, PSAS's LV2c, reads 0.49 to 0.82 if its fins were G10, as
+  inferred, and 1.25 to 1.52 if they were aluminum (§5). A softer root lowers the onset: the ASROC missile fin's plate
   with its root restraint cut reaches 1.10 on one reading (§3), and on two root tests the highest
   safe-side ratios, 0.82 to 0.84, would become 1.06 to 1.09 (§4, an inference). None of these was
   a fin glued to a tube, and the figures are not a bound: a fin of one of these kinds may flutter
