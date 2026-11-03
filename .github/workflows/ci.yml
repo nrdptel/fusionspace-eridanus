@@ -592,7 +592,7 @@ jobs:
 
   # A nightly run that fails, or in which a census didn't run, files one P-critical issue, or
   # comments on the one still open, so whatever broke a census is fixed before other work (ADR-149,
-  # amended; ADR-144 §2). A run started by hand reports to whoever started it.
+  # amended; ADR-144 §4). A run started by hand reports to whoever started it.
   nightly-alert:
     name: nightly alert
     needs: [scope, fmt, clippy, test, examples, types, python, validate, census, fit-intervals, doc, evidence, wasm-check, phone, deny, site]

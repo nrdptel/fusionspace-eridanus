@@ -107,19 +107,20 @@ again.
    check run whole on main each night at 08:17 UTC, on the platforms they ran on before, and on a
    run started by hand with `full`. A pull request and a push to main leave them out. CI's `scope`
    job decides ([`ci.yml`][ci]); a test in xtask fails if a set of synthetic flights isn't on one
-   line of a job on all five platforms, or if that job runs on any condition but the nightly one.
+   line of a job on all five platforms, or if that job runs on any condition but a full run's.
 3. **A nightly failure comes first.** A nightly run that fails, or in which a census didn't run,
    files one P-critical issue, or comments on the one still open, and the work that broke the
-   census is fixed before other work ([ADR-144][adr-144] §2). A run started by hand with `full`
+   census is fixed before other work ([ADR-144][adr-144] §4). A run started by hand with `full`
    files none: whoever started it reads its result.
 4. **Before a merge.** `scripts/gate.sh` runs the three whole on the Mac, as before, on the
-   platform that writes the reports. What a pull request loses is the run of the censuses on the
-   other four platforms, and the optimized build's run on every platform, the Mac included: a
-   change that moves a census only there reaches main and is found that night.
+   platform that writes the reports. What a pull request loses is the synthetic flights' and two
+   logs' runs on the other four platforms and in the optimized build, and the fit's run on Linux:
+   a change that moves a census only there reaches main and is found that night.
 5. **Research notes.** A pull request or push that changes only files under `docs/research/`
    (renamed from or to, too) runs no step of `validate`, `examples` and `python`, and skips `types`,
    `wasm-check` and `phone`; none of them reads a note. Each still reports its check by name, as
-   branch protection needs. `test`, `site` and the quick Linux checks, which read the notes, run.
+   branch protection needs. `test` and `site`, which read the notes, run, and so do the quick
+   Linux checks.
 6. **The rest, M0.16, before M7.3c3 merges.** Each census gets a fixed slice that a pull request
    and the gate check exactly against the committed report, the whole staying nightly, and a check
    that measures the budget. Then M7.3c3's fit runs the same way, and its gate fits the budget.
@@ -141,5 +142,6 @@ again.
   jobs become the site's parts and the Windows tests: 14 to 16 minutes in one run on 2026-11-03,
   the census steps aside.
 - The gate is unchanged until M0.16, so #1146 waits for it.
-- [ADR-222][adr-222]'s six platforms still build, test and validate on every pull request. Only the
-  censuses move to the night.
+- [ADR-222][adr-222]'s platforms (five now; Intel Macs wait for #438) still build and test on every
+  pull request, and run the validation cases on each one that changes more than research notes.
+  Only the censuses move to the night.

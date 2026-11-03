@@ -385,7 +385,7 @@ Each night CI flies every flight again on macOS, Windows and Linux and holds the
   two steps, `--sets tuning,a` and `--sets b,calibration`. Each compares what its sets make with
   their sections of the committed report, so every flight is flown and compared on every platform.
   A test reads `ci.yml` and fails if a set isn't on exactly one line of a job that runs on all five
-  platforms, or if that job runs on any condition but the nightly one.
+  platforms, or if that job runs on any condition but a full run's, nightly or started by hand.
 
 ### References
 

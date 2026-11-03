@@ -152,7 +152,7 @@ checkable items.
   2026-11-01. Its scraper is open source and stays so, so the service stays as open as its code.
 - **2026-11-03, a time budget for CI** ([ADR-149's amendment, a time budget for CI and the gate](decisions/0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md)).
   Neer decided CI and the checks before a merge should keep to a time budget, not grow with each
-  check. The long flight checks run whole each night, and a pull request's checks keep within 20 minutes.
+  check. The long flight checks run whole each night, and a pull request's checks are to keep within 20 minutes.
 
 **Operating envelope** (ADR-143): the bands are set by Mach alone. Accuracy work goes first to the
 core band, Mach 0–2.5. hpr flies the extended band, Mach 2.5–3.5, with its accuracy checked less,

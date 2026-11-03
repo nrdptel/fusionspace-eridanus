@@ -47,8 +47,9 @@
 # docs/ROADMAP.md or docs/decisions/ (the scoreboard and its features table read them), nor a
 # deleted or renamed file (the features table checks its pages exist). Read on 2026-11-01, the five
 # checks' code reads no other prose, so such a change leaves what they compare as it was; CI runs
-# validate and motor-catalog on every pull request and the censuses each night. 33 of the 96 pull requests merged from 2026-10-25 to 11-02
-# (UTC) changed only such prose. A run that leaves validate out this way still counts as a full
+# validate and motor-catalog on every pull request but a change to research notes alone, and the
+# censuses each night. 33 of the 96 pull requests merged from 2026-10-25 to 11-02 (UTC) changed
+# only such prose. A run that leaves validate out this way still counts as a full
 # run. Name it to run it anyway (`scripts/gate.sh validate`), or set GATE_VALIDATE=1.
 # It joins any run that includes `test` (the default set, or a fix's `scripts/gate.sh clippy test`)
 # when refs/ is present and the branch changes a physics crate (hpr-aero, hpr-sim, hpr-motor,
