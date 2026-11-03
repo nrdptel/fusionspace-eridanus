@@ -1,5 +1,7 @@
 # Transonic drag of finned bodies of fineness 15 to 20
 
+Re-checked 2026-11-03: 8 claims corrected.
+
 **In short: no public measurement found gives the drag of a flat-based, thin-finned body of fineness 15–20 from Mach
 0.8 to 1.2, so whether that length moves the drag-rise start, the peak Mach or the peak's height is still unmeasured.**
 Of the 177 models in NASA's collection of free-flight drag, three are 15 to 20 calibers long, and all three are
@@ -51,16 +53,18 @@ note's own readings and arithmetic.
 | H24 | same | M261 warhead nose | 24.1; flat, nozzle | 3 wraparound |
 
 - **P15.** A mahogany body, 75 in long and 5 in across, smoothly coated; polished duralumin fins of hexagonal section,
-  0.25 in thick [S2] p. 2, on a 9 in chord; the afterbody tapers over 2 calibers at 4.02° [S1] p. 49. It was boosted
-  to about Mach 1.1, the sustainer took it to 1.8, and the drag came from the coast, Re 20 to 70 × 10⁶ on length,
-  within ±0.01 in C_D and Mach [S2] p. 4.
+  0.25 in thick [S2] p. 2, on a 9 in chord ([S2] Fig. 2(a) p. 9, section A–A); the afterbody tapers over 2 calibers at
+  4.02° [S1] p. 49. It was boosted to about Mach 1.1, the sustainer took it to 1.8, and the drag came from the coast, Re
+  20 to 70 × 10⁶ on length, within ±0.01 in C_D and Mach [S2] p. 4.
 - **P15C, P15S.** Only the part ahead of station 7.65 in changes [S2] p. 2, so these bodies are 13.5 to 15 calibers
   (**Inference**); Piland lays the cone's extra drag partly to its lower fineness [S2] p. 5.
 - **W17, W18.** Wooden bodies, lacquered, 7.5 in across with 3.28 in bases [S3] p. 3; Re 40 to 155 × 10⁶ [S3] p. 2.
-- **H20, H24.** The MK66 motor with the M151 warhead and M423 fuze is 55.288 in long, with the M261 66.178 in, on a
-  2.75 in diameter [S4] Fig. 1, p. 6, Table 6 p. 13. The three wraparound fins hinge in a recess at the nozzle, with
-  10° edge bevels [S4] pp. 4, 15. ARDEC derived the coast drag from flight analysis of the coast phase; the power-on
-  curve is built from an estimated base drag, so it is not a measurement [S4] p. 10.
+- **H20, H24.** The MK66 motor with the M151 warhead and M423 fuze is 55.288 in long, with the M261 66.178 in, on a 2.75
+  in diameter [S4] Fig. 1, p. 6, Table 6 p. 13; Table 1 (p. 2) lists them as 55.125 and 66.100 in (20.0 and 24.0
+  calibers by this note's division; this note uses Fig. 1's), and the report doesn't explain the 0.163 and 0.078 in
+  differences. The three wraparound fins hinge in a recess at the nozzle, with 10° edge bevels [S4] pp. 4, 15. ARDEC
+  derived the coast drag from flight analysis of the coast phase; the power-on curve is built from an estimated base
+  drag, so it is not a measurement [S4] p. 10.
 - **What TR R-100 adds.** Its curves are faired through the flight points and may differ slightly from the first
   reports' [S1] p. 6; its friction curves are Van Driest's method [S1] p. 6. Accuracy is ±0.01 in C_D and Mach, and
   sharp changes in the drag rise may be eased by the averaging [S1] pp. 2–3.
@@ -69,25 +73,27 @@ note's own readings and arithmetic.
 
 On the frontal area, zero lift, total drag with base. Read on 2026-10-29 off 300 dpi renders with the grids found by
 pixel (**Inference**; ±0.003 off the rise, ±0.01 on it; P15C and P15S ±0.01, dashed curves); H20 and H24 are the
-table's own knots, interpolated linearly. "Start" is where the slope first reaches 0.1 per unit Mach.
+table's own knots, interpolated linearly. "Start" is where the steep main rise begins: on the NACA curves the slope
+is already near 0.1 per unit Mach by 0.90–0.95, so a fixed slope would not separate them (**Inference**).
 
 | Id | Start | Peak (Mach) | 0.8 | 0.9 | 1.0 | 1.1 | 1.2 | Peak / 0.9 | Figure |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---|
 | P15 | 0.96–0.97 | 0.363 (1.14–1.17) |  | 0.236 | 0.29 | 0.360 | 0.362 | 1.54 | [S1] p. 49; [S2] Fig. 8 |
-| P15C | ≈ 1.00 | 0.418 (1.1–1.2) |  | 0.27 | 0.29 | 0.416 | 0.416 | 1.55 | [S2] Fig. 8, p. 19 |
-| P15S | 0.96–0.97 | past 1.2 |  | 0.28 | 0.39 | 0.459 | 0.48 | > 1.7 | [S2] Fig. 8, p. 19 |
+| P15C | ≈ 1.00 | 0.418 (1.1–1.2) |  | 0.281 | 0.29 | 0.416 | 0.416 | 1.49 | [S2] Fig. 8, p. 19 |
+| P15S | 0.96–0.97 | past 1.2 |  | 0.273 | 0.39 | 0.459 | 0.48 | > 1.7 | [S2] Fig. 8, p. 19 |
 | W17 | ≤ 0.950 | 0.249 (1.01–1.04) |  |  | 0.243 | 0.242 | 0.234 | ≥ 1.40 | [S1] p. 110 |
 | W18 | ≤ 0.962 | 0.199 (1.06–1.15) |  |  | 0.185 | 0.199 | 0.196 | ≥ 1.24 | [S1] p. 124 |
 | H20 | ≤ 0.78 | 1.012 (1.28) | 0.715 | 0.809 | 0.960 | 1.000 | 1.010 | 1.25 | [S4] Table 6, p. 13 |
 | H24 | 0.76 | 0.920 (1.22–1.30) | 0.640 | 0.740 | 0.830 | 0.890 | 0.917 | 1.24 | [S4] Table 6, p. 13 |
 
-- **P15.** Piland's own Fig. 8 and TR R-100's fairing agree within 0.003 off the rise and 0.01 on it, Mach 0.88 to
-  1.3; the curve starts at 0.88. Friction is 0.20, 85% of the Mach 0.9 drag; the rest, 0.036, grows to 0.166 at the
-  peak. 73% of the rise falls between Mach 0.95 and 1.02 (S3 91%, HE 62% in transonic-drag-rise). It is down under
-  0.5% at Mach 1.2 and 2–3% at 1.3.
-- **P15C, P15S.** On these dashed curves, Start is where the main rise begins. Both read 0.27–0.28 from Mach 0.84 to
-  0.94. The sphere tip rises from 0.96–0.97 and is still climbing at Mach 1.25. The 30° cone's main rise is Mach
-  1.00–1.08; Piland notes the late rise and leaves it unexplained [S2] p. 5.
+- **P15.** Piland's own Fig. 8 and TR R-100's fairing agree within 0.003 off the rise and 0.01 on it, Mach 0.88 to 1.3;
+  the curve starts at 0.88. Friction is 0.20, 85% of the Mach 0.9 drag; the rest, 0.036, grows to about 0.163 at the
+  peak if friction holds at 0.20. 77–78% of the rise falls between Mach 0.95 and 1.02 (S3 91%, HE 62% in
+  transonic-drag-rise). It is down under 0.5% at Mach 1.2 and 2–3% at 1.3.
+- **P15C, P15S.** On these dashed curves, Start is where the main rise begins. From Mach 0.84 to 0.94 the cone reads
+  0.278–0.285 and the sphere 0.266–0.280, the cone above the sphere. The sphere tip rises from 0.96–0.97 and is still
+  climbing at Mach 1.25. The 30° cone's main rise is Mach 1.00–1.08; Piland notes the late rise and leaves it
+  unexplained [S2] p. 5.
 - **W17, W18.** The data begin already on the rise (W17 about 0.178 at Mach 0.950, W18 about 0.160 at 0.962), so
   their ratios are lower bounds on that first point. W17 rises steeply and falls about 6% by Mach 1.2; W18 climbs
   gradually to Mach 1.06–1.10. Values here were read with the scans' 0.35°–1.40° tilts taken out.
@@ -178,11 +184,12 @@ place it by nose shape anywhere from 1.01 to 1.17.
 - **S1.** Stoney, NASA TR R-100 (1961): pp. 2–3, 6, Tables I–II pp. 4–7, configurations 36, 97, 111 pp. 49, 110,
   124.
   <https://ntrs.nasa.gov/citations/19630004995>
-- **S2.** Piland, NACA RM L52F23 (1952): pp. 1–5, Fig. 8 p. 19. <https://ntrs.nasa.gov/citations/19930090417>
+- **S2.** Piland, NACA RM L52F23 (1952): pp. 1–5, Fig. 2(a) p. 9, Fig. 8 p. 19.
+  <https://ntrs.nasa.gov/citations/19930090417>
 - **S3.** Welsh and DeMoraes, NACA RM L51E18 (1951): pp. 1–3. <https://ntrs.nasa.gov/citations/19930086651>
 - **S4.** Dahlke and Batiuk, *HYDRA 70 MK66 Aerodynamics and Roll Analysis*, US Army MICOM RD-SS-90-6 (1990), DTIC
-  ADA226182: cover, pp. 4, 6, 10, 15, Table 6 p. 13. DTIC's copy refused a script; read from the Internet Archive's
-  scan. <https://archive.org/details/DTIC_ADA226182>
+  ADA226182: cover, pp. 4, 6, 10, 15, Table 1 p. 2, Table 6 p. 13. DTIC's copy refused a script; read from the Internet
+  Archive's scan. <https://archive.org/details/DTIC_ADA226182>
 - **S5.** Royall and Garland, NACA RM L57D26 (1957): Fig. 13 p. 28. <https://ntrs.nasa.gov/citations/19930089896>
 - **S6.** Galloway and Crough, *Nike Apache Performance Handbook*, GSFC X-721-66-568 (1966): PDF p. 16.
   <https://ntrs.nasa.gov/citations/19670015760>
