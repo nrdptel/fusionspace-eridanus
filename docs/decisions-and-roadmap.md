@@ -347,6 +347,7 @@ until someone rewrites it in plainer words.
 | [ADR-316: M7.3b: the least-squares fit, what it solves for and how its intervals are held][adr-316] | Levenberg-Marquardt fits drag, impulse, a constant wind and mass to a log, with the |  |
 | [ADR-317: M7.3c in two: the posterior's sampler, then the test][adr-317] | the Bayesian option draws each flight's posterior by importance sampling around the |  |
 | [ADR-318: The 2026-11-02 review: the cause-free apogees tightened][adr-318] | In the RocketPy comparisons flown on the same inputs, the six apogees with no written model difference agree within 0.1123%, while RocketPy's own solver moves an apogee by at most 6.35e-6 of its value. The bound goes from 0.5% to 0.35%, 3.1 times the largest difference. All nine same-drag apogees read high, the cautious side for a waiver, and a test now stops one reading low. These bound agreement between two codes, not accuracy against a flight. |  |
+| [ADR-319: M7.3c2 in two: the Bayesian option draws the wind first and integrates the sensor out; its raw intervals don't pass yet][adr-319] | [M7.3c1](#m7-3c1)'s one Student-t about the least-squares answer kept a median of 14 effective draws in 300 on set A's first fits, as on a log of height alone the wind's ridge bends. So the wind is drawn first, the other unknowns about where one Gauss-Newton step puts them in that wind, a pilot widens the proposal where the posterior reaches further, and the sensor's four linear unknowns are integrated out in closed form. On a log of height alone the wind's shear exponent is a further unknown, stated uniform from 0 to 0.2. On 1,000 flights of each set, the raw 90% credible intervals pass 4 of the 10 counts: set A's drag fails, 78 above; set B's impulse, 83 below; and the wind is too wide on both sets, its narrowed probe passing on the north. So [M7.3c2](#m7-3c2) is in two: [M7.3c3](#m7-3c3), the option counted and its failures shown, is met; [M7.3c4](#m7-3c4), the intervals passing, keeps the rest of the done-when. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -829,6 +830,8 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-3c"></a>[M7.3c][phase-5] | The Bayesian option | not yet done |
 | <a id="m7-3c1"></a>[M7.3c1][done-5] | The posterior's sampler | done |
 | <a id="m7-3c2"></a>[M7.3c2][phase-5] | The Bayesian fit under the test | not yet done |
+| <a id="m7-3c3"></a>[M7.3c3][done-5] | The Bayesian option, counted | done |
+| <a id="m7-3c4"></a>[M7.3c4][phase-5] | The Bayesian intervals pass | not yet done |
 | <a id="m7-3d"></a>[M7.3d][phase-5] | From the boost | not yet done |
 | <a id="m7-3e"></a>[M7.3e][phase-5] | The post-flight comparison | not yet done |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |
@@ -1301,6 +1304,7 @@ is the milestone that added or will add that test.
 [adr-316]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md
 [adr-317]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0317-m7-3c-in-two-the-sampler-then-the-test.md
 [adr-318]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md
+[adr-319]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0319-m7-3c2-the-bayesian-option-in-two-blocks.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

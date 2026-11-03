@@ -605,7 +605,7 @@ impl Apart {
 
 /// The set's report, with what doesn't come out as it must. The least-squares fit's counts must
 /// pass and its probes fail. The Bayesian option's counts and probes are reported as they come and
-/// break nothing yet: they don't pass on either set, and passing is M7.3c2b's (ADR-319). Each
+/// break nothing yet: they don't pass on either set, and passing is M7.3c4's (ADR-319). Each
 /// method's drag and impulse must be identified on set A.
 fn set_report(
     set: Set,

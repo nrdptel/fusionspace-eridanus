@@ -1,7 +1,8 @@
 # The least-squares fit
 
 See how the library fits a flight's [log](../glossary.md#flight-log) to a simulation, and what that
-tells of its drag, impulse, wind and mass.
+tells of its drag, impulse, wind and mass. A Bayesian option draws the same fit's posterior; its
+intervals don't pass their test yet ([The Bayesian option](#the-bayesian-option)).
 
 ## In short
 
@@ -28,8 +29,9 @@ tells of its drag, impulse, wind and mass.
   nothing to fit among the sets' counted draws, about one in six ([when](#when-a-log-has-nothing-to-fit)). Its wind is
   constant with height; on a log of height alone, a wind that grows with height only widens the intervals. It's
   told the design, rail, site and the day's air, and takes them as right. It's in the library only:
-  no command runs it on a log yet. A Bayesian reading of the same fit is planned; its sampler is
-  tested only on made-up distributions ([The Bayesian option](#the-bayesian-option-to-come)).
+  no command runs it on a log yet. The Bayesian option's intervals pass 4 of their 10 counts on the
+  same flights, and its wind's are too wide: read the least-squares intervals
+  ([The Bayesian option](#the-bayesian-option)).
 
 ## How it works
 
@@ -197,32 +199,96 @@ Those counts have limits:
 - A wind on a log of height alone isn't counted and shouldn't be read. Height alone can't tell a
   steady wind from one that changes with height.
 
-## The Bayesian option, to come
+## The Bayesian option
 
-This section covers a sampler, `hpr_forensics::posterior::sample`, that will give the fit a second
-kind of interval ([ADR-317][adr-317]). It's in the library only: no command runs it, it hasn't been
-run on a log, and it's tested only on made-up distributions whose answer is known.
-[M7.3c2][m7-3c2] tests it on the synthetic flights.
+`hpr_forensics::fit::bayesian` runs the least-squares fit, then draws the posterior of the same
+unknowns around its answer ([ADR-317][adr-317], [ADR-319][adr-319]). Its 90% intervals don't pass
+their test yet: 4 of the 10 counts pass, and the wind's intervals are too wide. Until they pass, read
+the least-squares intervals. Like the fit, it's in the library only, and no real flight has checked
+it.
 
 The posterior is what the fit's unknowns could be, given the log and the stated ranges. The
 least-squares fit reads its uncertainty off the curvature at its answer, as if the posterior were a
-bell curve. The sampler draws points around that answer at random. It weighs each point by the
-posterior's value there divided by how likely the draw was to land there, so the points
-it lands on often don't count extra: importance sampling. Each unknown's 5%, 50% and 95% points come
-from the weighted points, so a posterior that bends or leans one way shows as it is.
+bell curve, and fits shares on the calibration set so that its intervals hold. The Bayesian option
+draws points around the answer at random and flies each one. It weighs each point by the posterior's
+value there divided by how likely the draw was to land there, so the points it lands on often don't
+count extra: importance sampling. Each parameter's 90% interval is the weighted points' 5% and 95%
+points, as they come, with no shares. So a posterior that bends or leans one way shows as it is.
 
-An example from its tests: the unknowns are $x$ and a noise term, each a standard normal, and $y$ is
-$0.5x^2$ plus the noise. $y$'s standard deviation is 1.22. A bell curve at the peak would put $y$'s
-median at 0 and its 90% interval at ±1.645, a standard normal's 5% and 95% points. With 160,000
-draws, the sampler gives a median of 0.43 and an interval of −1.35 to 2.57.
+How it draws:
+
+- **The wind first.** On a log of height alone the heights can't tell the wind, and the drag, the
+  impulse and the clock follow the wind along a curve. So each draw takes the wind first, then the
+  other unknowns around where one step of the least-squares fit's search puts them in that wind. That step is a flight,
+  so each draw flies twice.
+- **A pilot widens the draws.** 100 pilot draws measure how far the posterior reaches. Where it
+  reaches past the bell curve, the next 400 draws are spread wider, up to twice as wide, and never
+  narrower (Oh and Berger). Only those 400 are read.
+- **The sensor's linear unknowns are worked out exactly.** The height offset, the drift, and a
+  barometer's gain and port coefficient change the heights in proportion, so their part of the
+  posterior has a closed form. Seven unknowns are drawn, not eleven; eight with the shear, below.
+- **On height alone, the wind's shear is drawn too.** How fast the wind grows with height is an
+  unknown there, an exponent stated anywhere from 0, a constant wind, to 0.2, IEC 61400-1's normal
+  profile. The least-squares fit carries the same doubt in its errors instead.
+
+A fit with something to fit flies about 1,000 times, against about 70 for least squares on set A.
+The report took 3 hours on 10 cores, against 16 minutes before: about 13 seconds of one processor
+core a posterior, the least-squares fits included.
+
+### How well the Bayesian option holds
+
+It's held to the same test as the least-squares fit, on the same flights. The counts are flights:
+
+| Parameter | Set A below, inside, above | Set B below, inside, above |
+|---|---:|---:|
+| drag scale | 27, 895, 78: fails | 66, 884, 50 |
+| impulse scale | 70, 881, 49 | 83, 888, 29: fails |
+| wind toward the east, m/s | 29, 1,452, 16: fails | 26, 1,439, 32: fails |
+| wind toward the north, m/s | 34, 1,429, 34: fails | 31, 1,430, 36: fails |
+| mass on the weighed mass | 52, 887, 61 | 63, 870, 67 |
+
+On the 1,000 flights of drag, impulse and mass, a tail passes with 29 to 74 truths. On the wind's
+1,497, a tail passes with 49 to 104, and the inside with 1,308 to 1,384. What fails, as far as it's
+known:
+
+- **The wind is too wide on logs with a track.** From 1.1% to 2.4% of truths fall in each tail,
+  where 5% belong. The test can't even tell the north wind's intervals from ones narrowed to 0.8,
+  a probe that must fail. Its median width on set A is 0.431 m/s (1.41 ft/s) east, against least
+  squares' 0.345 m/s (1.13 ft/s). The likely cause, not yet measured, is the track's noise. The
+  posterior takes it as the least-squares fit states it, and that fit narrows its own intervals
+  back, with shares inside the bell curve's ±1.645 ([ADR-319][adr-319]).
+- **Set A's drag sits low and set B's impulse high.** 78 of set A's drag truths fall above, and
+  83 of set B's impulse truths below. Their causes aren't measured yet.
+
+Drag and impulse are told on set A, at median widths of 0.0917 and 0.0391, of 0.36 and 0.108 stated.
+The mass isn't, at 0.0341 of 0.036. On pure noise nothing is told, by either method.
+
+The draws are counted too. On set A, 319 of 2,276 posteriors had fewer than 100 effective draws;
+across all 2,276, the fewest was 1.13 and the median 232. On set B, 392 of 2,296 had fewer than 100;
+the fewest was 1.01 and the median 223. A
+draw fails when it can't be weighed, as when its flight can't fly: 124 of 1,138,000 on set A, 179 of 1,148,000 on set B. Every
+flight with something to fit has a posterior. [M7.3c4][m7-3c4] is to make the counts pass.
+
+### The sampler's tests
+
+The sampler, `hpr_forensics::posterior`, is also tested on made-up distributions whose answer is
+known. In one, the unknowns are $x$ and a noise term, each a standard normal, and $y$ is $0.5x^2$
+plus the noise. $y$'s standard deviation is 1.22. A bell curve at the peak would put $y$'s median at
+0 and its 90% interval at ±1.645, a standard normal's 5% and 95% points. With 160,000 draws, the
+sampler gives a median of 0.43 and an interval of −1.35 to 2.57.
 
 The tests hold each of those three within 0.08 of the true distribution's points, worked out by a
-numerical integral (Simpson's rule), about a fifteenth of $y$'s standard deviation. Over 100 other seeds, none misses
-that. A second test holds a correlated bell curve's points within 0.06 standard deviations of
-their exact values. A third checks that weighing the points by the posterior alone, without
-dividing by the draw's own likelihood, fails both bounds. The sampler also counts how many
-independent draws its weights amount to, and flags a result under 100 as too few to read; it still
-gives the points. Run the tests with `cargo test -p fusionspace-hpr-forensics posterior`.
+numerical integral (Simpson's rule), about a fifteenth of $y$'s standard deviation. Over 100 other
+seeds, none misses that. Drawn in two blocks, $x$ first, the same three land within 0.08 when the
+second block is centered where it should be, and within 0.15 when it's centered poorly. A second test
+holds a correlated bell curve's points within 0.06 standard deviations of their exact values. Others
+check that weighing the points by the posterior alone, without dividing by the draw's own likelihood,
+fails, and that a pilot widens a scale where the posterior reaches further and never narrows one. On
+the fit itself, a test checks that on a straight line the option's points are within a tenth of a
+standard error of the closed forms, on the four parameters it checks, and one that the linear unknowns' closed form is exact. The sampler counts how many independent draws its
+weights amount to, and flags a result under 100 as too few to read; it still gives the points. Run
+the tests with `cargo test -p fusionspace-hpr-forensics posterior` and
+`cargo test -p fusionspace-hpr-forensics fit::tests`.
 
 ## Sources
 
@@ -239,10 +305,14 @@ gives the points. Run the tests with `cargo test -p fusionspace-hpr-forensics po
 - J. Geweke, "Bayesian inference in econometric models using Monte Carlo integration",
   *Econometrica* 57(6), 1989, pp. 1317–1339: importance sampling, and a proposal's tails.
 - L. Kish, *Survey Sampling*, Wiley, 1965: the effective sample size of weighted draws.
+- M.-S. Oh and J. O. Berger, "Adaptive importance sampling in Monte Carlo integration", *Journal
+  of Statistical Computation and Simulation* 41, 1992: widening the draws from a pilot's.
 - [ADR-317, the Bayesian option's plan][adr-317].
+- [ADR-319, the Bayesian option's decisions, with the measurements behind them][adr-319].
 
 [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 [adr-316]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md
 [adr-317]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0317-m7-3c-in-two-the-sampler-then-the-test.md
-[m7-3c2]: ../decisions-and-roadmap.md#m7-3c2
+[adr-319]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0319-m7-3c2-the-bayesian-option-in-two-blocks.md
+[m7-3c4]: ../decisions-and-roadmap.md#m7-3c4
 [report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fit-intervals.md
