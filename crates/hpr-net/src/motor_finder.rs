@@ -17,9 +17,9 @@
 //! [`Client`] for the file, so the answer comes from the cache when it can, and offline from the
 //! cache only; an answer that doesn't parse is never cached. Stock moves by the hour, so a copy
 //! stays fresh for [`TTL_S`], an hour. Show [`ATTRIBUTION`] (it is on every [`Fetched`]) wherever
-//! a price or stock is shown: the API's data license, CC BY 4.0, asks for the credit "Motor stock
-//! data from motor.fusionspace.co", and its terms say to check stock and price on the vendor's
-//! own page before relying on them.
+//! a price or stock is shown: the site's terms (<https://motor.fusionspace.co/api#terms>, from
+//! 2026-11-01) ask for the credit "Motor stock data from motor.fusionspace.co", linked to the
+//! site, and say to check stock and price on the vendor's own page before relying on them.
 //!
 //! > **How far to trust it.** A value is the answer's, unchanged, bar a listing status the API adds
 //! > later (`tests/motor_finder.rs` reads every field of every recorded answer back). Whether a vendor really has a motor, at that price,
@@ -57,13 +57,20 @@ pub const SCHEMA_VERSION: u32 = 1;
 /// How long a cached answer counts as fresh, s: an hour, as often as the site rebuilds the files.
 pub const TTL_S: u64 = 3_600;
 
-/// The credit the API's data license asks for, in its words ("Motor stock data from
-/// motor.fusionspace.co"), with the license, CC BY 4.0, and the API's caution about stock and
-/// price.
-pub const ATTRIBUTION: &str = "Motor stock data from motor.fusionspace.co, licensed CC BY 4.0 \
-                               (https://creativecommons.org/licenses/by/4.0/). It is aggregated from \
-                               public vendor listings and ThrustCurve.org, provided as is, with \
-                               no warranty. Check stock and price on the vendor's own page \
+/// The credit the site's terms ask for, in their words ("Motor stock data from
+/// motor.fusionspace.co", linked to the site), with a link to the terms and what they allow, and
+/// the API's caution about stock and price. From 2026-11-01 the live data is under the site's own
+/// terms, not CC BY 4.0 ([ADR-315][adr-315], the licensing layers); answers recorded before then
+/// keep CC BY 4.0.
+///
+/// [adr-315]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0315-the-2026-11-01-licensing-layers.md
+pub const ATTRIBUTION: &str = "Motor stock data from motor.fusionspace.co \
+                               (https://motor.fusionspace.co), under the site's terms \
+                               (https://motor.fusionspace.co/api#terms): free for personal, \
+                               non-commercial use; other sites, apps and services, and any \
+                               commercial use, need written permission first. It is aggregated \
+                               from public vendor listings and ThrustCurve.org, provided as is, \
+                               with no warranty. Check stock and price on the vendor's own page \
                                before relying on them";
 
 /// The manufacturers the API lists: each one's name as the API writes it, and the slug its
@@ -791,6 +798,25 @@ pub enum MotorFinderError {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// #1097: from 2026-11-01 the live data is under the site's own terms, not CC BY 4.0. The
+    /// credit keeps the site's words, links the site and its terms, says what they allow, and
+    /// keeps the caution about stock and price.
+    #[test]
+    fn the_credit_names_the_sites_terms_not_cc_by() {
+        assert_eq!(
+            ATTRIBUTION,
+            "Motor stock data from motor.fusionspace.co (https://motor.fusionspace.co), under \
+             the site's terms (https://motor.fusionspace.co/api#terms): free for personal, \
+             non-commercial use; other sites, apps and services, and any commercial use, need \
+             written permission first. It is aggregated from public vendor listings and \
+             ThrustCurve.org, provided as is, with no warranty. Check stock and price on the \
+             vendor's own page before relying on them"
+        );
+        assert!(ATTRIBUTION.starts_with("Motor stock data from motor.fusionspace.co "));
+        assert!(!ATTRIBUTION.contains("CC BY"));
+        assert!(!ATTRIBUTION.contains("creativecommons.org"));
+    }
 
     #[test]
     fn urls_follow_the_apis_names() {
