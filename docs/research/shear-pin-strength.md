@@ -4,11 +4,11 @@ What force breaks a 2-56, 4-40 or 6-32 nylon 6/6 shear pin in single shear, how 
 moisture, temperature, hole fit and loading rate move it? It serves the ejection-charge sizing (M6.7 in the
 [roadmap](../ROADMAP.md)), which sizes a charge against "the shear pins' load at the high end of their strength", the
 ground-test log (M6.8), and the shear-pin idea in [pad and recovery ideas](ideas-pad-and-recovery.md). It builds on
-[suite web tools](suite-web-tools.md), which found that the Charge port sizes pins at nylon's minimum strength, and on
-[suite field tools](suite-field-tools.md), which covers Fetter's 2025 ground tests.
-Read 2026-10-17: resin makers' data sheets, thread-standard tables, one instrumented pin test series, three builders'
-pull tests, one screw maker's catalog and two calculators. **Inference** marks this note's own reading. Trust the
-areas (exact) and the printed values; the high end below is an inference from few tests, ±20% at best.
+[suite web tools](suite-web-tools.md) (the Charge port's minimum-strength pins) and [suite field
+tools](suite-field-tools.md) (Fetter's ground tests). Read 2026-10-17 (rate and cold 2026-11-03, from [19]): resin
+makers' data sheets, thread-standard tables, one instrumented pin test series, three builders' pull tests, one screw
+maker's catalog and two calculators. **Inference** marks this note's own reading. Trust the areas (exact) and the
+printed values; the high end is an inference, ±20% at best.
 
 **In short.**
 - **Fetter's pin force is a low-to-middle value, not a high end.** His Table 6-1 multiplies nylon 6/6's lowest
@@ -20,9 +20,9 @@ areas (exact) and the printed values; the high end below is an inference from fe
   pulls) averages 21.4 lbf (#2) and 38.2 lbf (#4) per pin with three or four pins, 1σ 4% to 6%: 23% to 31% *below*
   9,600 psi × minor area. Builders' pulls (forum reports, weak evidence) read 28.5 to 35 lbf for 2-56 in a snug
   tapped joint, 56 lbf for 4-40 and 116 lbf for 6-32. The measured high end: about 35 / 56 / 116 lbf.
-- **No source measures moisture, temperature or loading rate on a pin.** Resin data says a cold pin is stronger
-  (×1.16 at 0 °C, dry), a fast break is stronger (+0% to +20%), and a damp pin is weaker (5% to 33%). The two that
-  raise the force stack to about 64 / 106 / 160 lbf on the pitch area; that is a stack of separate figures.
+- **No source measures moisture, temperature or loading rate on a pin.** Resin data says a damp pin is weaker (5% to
+  33%), a fast or cold one stronger (×1.27 to ×1.7 at a charge's rate, to ×1.86 at −40 °C; [19]). Dry and fast on the
+  pitch area (§6): 65 to 78 / 108 to 130 / 163 to 196 lbf from 0 °C to −30 °C, before heating and notch brittleness.
 
 ## 1. What Fetter 2025 uses (Rev 1.2, 23 Feb 2025; printed page numbers, at the head of each page)
 
@@ -116,22 +116,18 @@ hot water and carry about 3% to 4% moisture against about 0.5% as molded (p. 168
 | Two pins against three or more | higher | +6% to +17% per pin | Damerau [1], measured |
 | Snug tapped fiberglass against Damerau's fit | higher | +33% to +64% per pin, 2-56 | one builder [14] |
 | Pitch-area cut against minor-area cut | higher | +35% to +39% by area | thread geometry [2], [10] |
-| Cold, dry: 0 °C / −10 °C against 23 °C | higher | ×1.16 / ×1.22 (yield) | Zytel 101 Fig. 4 [3] |
-| Fast loading: 1,000 to 3,000 vs 2 to 10 in/min | higher | +13% to +21% (yield); carried as +0% to +20% | Fig. 5 [3] |
+| Cold: 0 °C / −10 °C dry; −40 °C | higher | ×1.16 / ×1.22 dry yield; at −40 °C, ×1.86 conditioned yield, ×1.37 dry strength | Figs. 3, 4, Table 7 [3]; [19] §3 |
+| Fast: a charge's 22 to 1,250 /s (**Inference**) | higher | ×1.27 to ×1.7 (yield; ×1.35 at 50% RH); ×1.95, one point near 2,000 /s | DuPont Fig. 5, Hopkinson bars, [19] §1, §2 |
 | Moisture: 50% RH against dry as molded | lower | −5% (shear, Zytel 105) to −33% (yield) | [3], [4], [8] |
 | Hot pad: 50 °C against 23 °C | lower | ×0.75 to ×0.79 (yield) | Fig. 4 [3] |
 | Soft (cardboard) tube | lower joint force | −47% per pin, one pull each; the #4 tore it | Damerau [1] |
 
-- **Inference:** which test rate matches a pin broken by a charge in milliseconds is unknown; Fig. 5 gives no
-  specimen length to turn crosshead speed into strain rate, hence the +0% floor.
-- The temperature, rate and moisture rows are resin yield in tension, read from DuPont's plots by pixel scan
-  (±1 to ±3 MPa). **Inference:** applying them to a pin's shear assumes shear scales with yield; no source shows it,
-  and the one conditioned shear pair (Zytel 105, −5%) falls far less than yield does (−23% to −33%).
+- Rows but rate are DuPont's tensile-yield plots (±1 to ±3 MPa). Shear yield tracks tensile yield at slow rates ([19]
+  §4), unshown above 0.2 /s; the one conditioned shear pair (Zytel 105, −5%) falls far less than yield (−23% to −33%).
 - A pin at apogee is cold only if it has cooled: **Inference:** in a closed airframe a pin may sit near pad
   temperature through a short flight. No source measures a pin's temperature in flight.
-- PA66 takes about 2.5% water at 50% RH and about 8.5% saturated, slowly (125 days for a 1.5 mm plate at 50% RH,
-  [3] p. 2). **Inference:** a pin sits between dry and conditioned depending on storage, and a dyed black pin
-  starts conditioned.
+- PA66 takes about 2.5% water at 50% RH and 8.5% saturated, slowly (125 days for a 1.5 mm plate at 50% RH, [3]
+  p. 2). **Inference:** a pin sits between dry and conditioned by storage; a dyed black pin starts conditioned.
 
 ## 6. The force per pin (single shear, F = τ × A; 1 lbf = 4.448 N)
 
@@ -141,19 +137,22 @@ hot water and carry about 3% to 4% moisture against about 0.5% as molded (p. 168
 | Fetter (Min): 9,600 psi × 3A minor | 31.0 lbf / 138 N | 49.8 lbf / 222 N | 75.0 lbf / 333 N |
 | Measured high (one builder each) | 35 lbf / 156 N | 56 lbf / 249 N | 116 lbf / 516 N |
 | Feretich's max: 10,500 psi × pitch | 46 lbf / 205 N | 76 lbf / 338 N | 114 lbf / 507 N |
-| Dry, 0 °C, fast: 14,750 psi × pitch | 64 lbf / 285 N | 106 lbf / 473 N | 160 lbf / 714 N |
+| Dry, 0 °C, fast, Eyring / multiplied: 14,940 / 15,620 psi | 65 / 68 lbf, 289 / 302 N | 108 / 113 lbf, 479 / 501 N | 163 / 170 lbf, 723 / 756 N |
+| Dry, −30 °C, fast, Eyring / multiplied: 16,550 / 18,040 psi | 72 / 78 lbf, 320 / 349 N | 119 / 130 lbf, 531 / 579 N | 180 / 196 lbf, 801 / 873 N |
+| Dry, 0 °C, compression fit at 100 /s: 20,900 psi | 91 lbf / 404 N | 151 lbf / 670 N | 227 lbf / 1,012 N |
 
-Check for 2-56: π/4 × 0.0744² = 0.004347 in²; × 10,500 psi = 45.6 lbf, which Feretich rounds to 46. The last row is
-10,600 psi × 1.16 (0 °C) × 1.2 (rate) = 14,750 psi; it stacks factors read from separate figures.
+Check for 2-56: π/4 × 0.0744² = 0.004347 in²; × 10,500 psi = 45.6 lbf, which Feretich rounds to 46. Fast rows ([19]
+§6): 10,600 psi × 1.16 (0 °C) or 1.34 (−30 °C) × 1.27 (top rate) or 1.70 (fit), Eyring scaling the gain by T/296. The
+old ×1.2 stack (14,750 psi; 64 / 106 / 160 lbf) erred low by 1% to 42%. Two unbounded causes pull a real break below
+these yield forces: adiabatic softening, and notch brittleness in a cold, conditioned pin ([19] §3, §6).
 
 ## What this suggests
 
-- **M6.7's high end could be Feretich's pitch-area bound,** 46 / 76 / 114 lbf per pin, cited as [2] and reported
-  with the measured breaks of §4. It sits 1.5 times above Fetter's 9,600 psi row, which errs toward too little
-  powder for a strong pin. The one 6-32 report (116 lbf, count unstated) sits on it, so it leaves no margin for 6-32.
-- **Say the spread, not one number.** From Damerau's lowest to the builders' highest, per-pin breaks span 0.6 to
-  1.1 times Fetter's row for 2-56 and 4-40 (one builder's 2-56 low, 7.5 lbf, is 0.24 times); the model can't
-  predict a given builder's pins within that.
+- **M6.7's high end could be Feretich's pitch-area bound,** 46 / 76 / 114 lbf per pin ([2]), beside §4's breaks: 1.5
+  times Fetter's 9,600 psi row, which errs toward too little powder. The one 6-32 report (116 lbf, count unstated)
+  sits on it: no margin for 6-32. This slow, 23 °C bound misses a fast or cold break (§6: 1.4 to 2.0 times it).
+- **Say the spread, not one number.** From Damerau's lowest to the builders' highest, per-pin breaks span 0.6 to 1.1
+  times Fetter's row (2-56, 4-40; one 2-56 low, 7.5 lbf, is 0.24 times); no model predicts a builder's pins in it.
 - **M6.8's ground-test log could record** pin count, size, maker, color (black is pre-moistened), tapped or drilled,
   and tube material: each moves the force by the sizes in §5.
 - **Fetter's slips** (§1) matter if M6.7 cites Table 6-1 or Eq. 6-1; cite the table's 30.98 lbf, not 26.62.
@@ -198,3 +197,4 @@ Read 2026-10-17; all cite only (copyrighted, no license). RF is The Rocketry For
 16. ASTM D732-24, scope page: https://store.astm.org/d0732-24.html
 17. HARA, "How to size an ejection charge": http://www.hararocketry.org/hara/resources/how-to-size-ejection-charge/
 18. RF ejection charge calculator: https://www.rocketryforum.com/rocket-calculators/ejection-charge/
+19. [pa66-rate-cold-shear](pa66-rate-cold-shear.md), this repository, §1 to §3 and §6 (read 2026-11-03).
