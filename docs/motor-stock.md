@@ -307,11 +307,12 @@ for the credit "Motor stock data from motor.fusionspace.co" and allows keeping r
 such as the test recordings below. The data is gathered from public vendor listings and from
 ThrustCurve.org, and comes as is, with no warranty.
 
-Anyone may use and share the data, commercially too, as long as they give that credit and name
-the license, CC BY 4.0's conditions. A program of your own built on the library can show
-`motor_finder::ATTRIBUTION`, which carries both. From 1 to 3 November 2026 the site used narrower
-terms. It withdrew them on 3 November: data from those days is CC BY 4.0 too, so if you saved a
-copy then, you need do nothing
+Anyone may use and share the site's compilation, commercially too, on CC BY 4.0's conditions:
+give that credit, name the license with its link, and say if you changed the data. A program of
+your own built on the library can show `motor_finder::ATTRIBUTION`, which carries the credit and
+the license; saying what your program changed is up to you. From 1 to 3 November 2026 the site
+used narrower terms. It withdrew them on 3 November: a copy saved in those days is under CC BY 4.0
+like any other, with the same credit, and needs no permission
 ([the decision record's amendment](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0315-the-2026-11-01-licensing-layers.md)).
 
 The simulator puts its credit line, `motor_finder::ATTRIBUTION`, on every answer, fetched or saved.

@@ -1,7 +1,7 @@
 # ADR-315: The 2026-11-01 licensing layers: the engine stays open, hosted services carry their own terms, and M9.0 sets the app's license (2026-11-01)
 
 - **Status:** accepted; keeps [ADR-001][adr-001]'s license for the engine; adds the app's license to what [M9.0, the UI architecture decision][m9-0] settles; no done-when changes; amended 2026-11-03 (§2: the motor stock API is open again, its data CC BY 4.0 for any site)
-- **Summary:** The code that computes and checks FusionSpace HPR's numbers stays `MIT OR Apache-2.0`. Hosted services, starting with the motor stock API at motor.fusionspace.co, carry their own terms: free for personal use and for FusionSpace's own tools, with written permission needed for any other site, app or service and for any commercial use. The app's license is chosen in M9.0's decision record, before any app code is public; the leading option is the Functional Source License 1.1 with Apache-2.0 as its future license. Registering a FUSIONSPACE trademark stays deferred. Amended 2026-11-03: the motor stock API is open again, its data under CC BY 4.0 for any site, as before 2026-11-01; the rest of this record stands.
+- **Summary:** The code that computes and checks FusionSpace HPR's numbers stays `MIT OR Apache-2.0`. Hosted services, starting with the motor stock API at motor.fusionspace.co, carry their own terms: free for personal use and for FusionSpace's own tools, with written permission needed for any other site, app or service and for any commercial use. The app's license is chosen in M9.0's decision record, before any app code is public; the leading option is the Functional Source License 1.1 with Apache-2.0 as its future license. Registering a FUSIONSPACE trademark stays deferred. Amended 2026-11-03: the motor stock API is open again, its data under CC BY 4.0 for any site, as before 2026-11-01; §1, §3 and §4 stand.
 
 [adr-001]: 0001-license-and-workspace-layout.md
 [adr-287]: 0287-thrustcurve-orgs-motor-records-used-as-published-facts.md
@@ -67,10 +67,11 @@ stopped that use: the API is a running service, governed by its own terms and by
 
    [#1125][pr1125] (for [#1097][i1097]) had changed HPR Sim's credit line to name the narrower
    terms. It is undone: `motor_finder::ATTRIBUTION` and `hpr motors search` name CC BY 4.0 again,
-   as release 0.1.0's credit does. The rest of this record stands. Services still to come, such
-   as HPR Sim's own stock service, accounts and cloud saves, set their terms when they are built.
-   The notes on the stock data under "What changes for a user" held from 2026-11-01 to 2026-11-03
-   only.
+   as release 0.1.0's credit does. §1, §3 and §4 stand. Services still to come, such as HPR
+   Sim's own stock service, accounts and cloud saves, set their terms when they are built. What
+   this record says below about the stock data held from 2026-11-01 to 2026-11-03 only: the notes
+   under "What changes for a user", the rejected alternative "Leave the service as it was", and
+   the Consequences' lines on the stock terms, the allowed sites and the credit line.
 3. **M9.0 sets the app's license.** The app (M9.1 to M9.4) is the part a reseller would rebrand, so
    its license is chosen in M9.0's decision record, with its reasons, before any app code is
    public. The leading option is the [Functional Source License][fsl], version 1.1, with Apache-2.0
