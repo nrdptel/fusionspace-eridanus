@@ -280,10 +280,10 @@ sampler gives a median of 0.43 and an interval of −1.35 to 2.57.
 The tests hold each of those three within 0.08 of the true distribution's points, worked out by
 Simpson's rule: about a fifteenth of $y$'s standard deviation. Drawn in two blocks, $x$ first, they
 hold within 0.08, or 0.15 with the second block centered poorly. Other tests hold a correlated bell
-curve within 0.06 standard deviations, show the sampler going wrong when the draw's own likelihood
-is left out of the weights, and check that a pilot widens and never narrows. On the fit, a straight line's four checked
-parameters come within a tenth of a standard error of their closed forms. A result under 100 effective draws is flagged as too
-few to read. Run `cargo test -p fusionspace-hpr-forensics posterior` and
+curve within 0.06 standard deviations, show the sampler going wrong when the draw's own
+likelihood is left out of the weights, and check that a pilot widens and never narrows. On the
+fit, a straight line's drag, impulse and two winds come within a tenth of a standard error of their
+closed forms. A result under 100 effective draws is flagged as too few to read. Run `cargo test -p fusionspace-hpr-forensics posterior` and
 `cargo test -p fusionspace-hpr-forensics fit::tests`.
 
 ## Sources
