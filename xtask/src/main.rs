@@ -102,6 +102,7 @@ Commands:
 {DESIGNS}
 {DESIGN_CHECKS}
 {AERO}
+{ROLL_DREV}
 {VALIDATE}
 {CENSUS}
 {SCOREBOARD}
@@ -140,6 +141,7 @@ fn usage() -> String {
         .replace("{DESIGNS}", designs::USAGE)
         .replace("{DESIGN_CHECKS}", design_checks::USAGE)
         .replace("{AERO}", aero::USAGE)
+        .replace("{ROLL_DREV}", aero_roll::USAGE)
         .replace("{VALIDATE}", validate::USAGE)
         .replace("{CENSUS}", census::USAGE)
         .replace("{SCOREBOARD}", scoreboard::USAGE)
@@ -180,6 +182,7 @@ fn main() -> ExitCode {
         Some("designs") => designs::run(&args.collect::<Vec<_>>()),
         Some("design-checks") => design_checks::run(&args.collect::<Vec<_>>()),
         Some("aero") => aero::run(&args.collect::<Vec<_>>()),
+        Some("roll-drev") => aero_roll::run_drev(&args.collect::<Vec<_>>()),
         Some("validate") => validate::run(&args.collect::<Vec<_>>()),
         Some("census") => census::run(&args.collect::<Vec<_>>()),
         Some("scoreboard") => scoreboard::run(&args.collect::<Vec<_>>()),

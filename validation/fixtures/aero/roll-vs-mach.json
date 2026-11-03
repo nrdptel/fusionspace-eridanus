@@ -131,7 +131,44 @@
       }
     ],
     "id": "basic-finner",
-    "reference": "Barrowman 1967 Fig. 5-7",
+    "nol_tunnel": [
+      {
+        "band": "supersonic",
+        "error": 0.27462387604923366,
+        "hpr_c_lp": -31.08183067984817,
+        "mach": 1.53,
+        "reference_c_lp": -24.3851
+      },
+      {
+        "band": "supersonic",
+        "error": 0.1649633580248855,
+        "hpr_c_lp": -22.53400273061116,
+        "mach": 2.03,
+        "reference_c_lp": -19.3431
+      },
+      {
+        "band": "supersonic",
+        "error": 0.18316728381376435,
+        "hpr_c_lp": -20.12023292816659,
+        "mach": 2.27,
+        "reference_c_lp": -17.0054
+      },
+      {
+        "band": "supersonic",
+        "error": 0.11669617249208653,
+        "hpr_c_lp": -18.01733439507357,
+        "mach": 2.54,
+        "reference_c_lp": -16.1345
+      },
+      {
+        "band": "supersonic",
+        "error": 0.15180293804376288,
+        "hpr_c_lp": -16.63030672094487,
+        "mach": 2.76,
+        "reference_c_lp": -14.4385
+      }
+    ],
+    "reference": "NAVORD Report 6652 Table 2 (scored); Barrowman 1967 Fig. 5-7 (disputed)",
     "roll_damping_interference": 1.1666666666666667,
     "wind_tunnel": [
       {
