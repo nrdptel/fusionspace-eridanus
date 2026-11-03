@@ -4,19 +4,22 @@
 # reports everything, with three exceptions. A failing fmt stops the run, since `cargo fmt --all`
 # changes the code every later step would check (six full runs of 5.5 to 8 min each, 38 min in
 # all, failed on fmt alone over two weeks of work to 2026-10-08). A failing pages step stops it
-# too (see that step). And once a code step fails
-# (clippy, test, doc, wasm or docs), the slow steps after it (validate, site, examples, refs, ego,
-# python) are skipped: the fix changes what they would check, and the gate runs again after it.
-# From 2026-10-25 to 11-01, 16.6 of the gate's 94.8 hours were slow steps run after a code step
-# had already failed, in 82 runs. Full logs stay in target/gate/<step>.log for when the summary is
-# not enough.
+# too (see that step). And once an early step fails (clippy, test, doc, wasm, docs, deny,
+# evidence or site), the slow steps after it (validate, examples, refs, ego, python, and after a
+# code step the site) are skipped: the run already fails, a merge needs a full run that passes,
+# and the gate runs again after the fix. From 2026-10-25 to 11-01, 16.6 of the gate's
+# 94.8 hours were slow steps run after a code step had already failed, in 82 runs. Deny, evidence
+# and site ran after validate until 2026-11-02. From 10-25 to 11-02, site failed 30 of the 149
+# full runs that reached it and validate 1, and validate, examples, refs and python ran 10.1 hours
+# in full runs that site, evidence or deny failed. Full logs stay in target/gate/<step>.log for
+# when the summary is not enough.
 #
 # Usage:
 #   scripts/gate.sh                 # every step
 #   scripts/gate.sh clippy test     # just these steps
 #   GATE_TAIL=80 scripts/gate.sh    # show more of each failure (default 40 lines)
 #
-# Steps: fmt clippy test doc wasm validate deny site examples evidence, and pages, refs, ego and
+# Steps: fmt clippy test doc wasm deny evidence site validate examples, and pages, refs, ego and
 # python when they apply.
 # The test step runs the tests with cargo-nextest, each test its own process, in parallel, then the
 # doctests with `cargo test --doc` (nextest doesn't run doctests); together they run what
@@ -59,8 +62,8 @@
 # Step pages: the site's page checks alone (`xtask site --no-build`, about 80 s, single runs on
 # 2026-10-13). It joins any run that includes `site` when the branch changes the pages (docs/, a
 # Markdown file, or xtask's site checks) against origin/main, and runs right after fmt. A failing
-# pages step stops the run as fmt does: the site step, last, would fail the same way after every
-# other step had run (the site step failed in 21 of its 54 runs from 2026-10-12 to 10-13, about 9
+# pages step stops the run as fmt does: the site step would fail the same way after the code
+# steps had run (the site step failed in 21 of its 54 runs from 2026-10-12 to 10-13, about 9
 # of them on page checks this step runs). Name it to run it alone (`scripts/gate.sh pages`), or set
 # GATE_PAGES=0 to leave it out.
 # Step site: `xtask site --locked --cache`. It lays out and measures again only the pages whose
@@ -102,7 +105,7 @@
 set -uo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
 
-ALL="fmt clippy test doc wasm validate deny site examples evidence"
+ALL="fmt clippy test doc wasm deny evidence site validate examples"
 PHYSICS_CRATES="hpr-aero hpr-sim hpr-motor hpr-design hpr-atmos hpr-io hpr-flightdata hpr-cli"
 
 # Whether this branch changes a physics crate or the evidence register, committed or not, against
@@ -325,10 +328,13 @@ why() {
 
 failed=""
 times=""
-# The code steps whose failure skips the slow steps after it (see the header).
+# The steps whose failure skips the slow steps after it (see the header): the code steps, whose
+# failure skips the site too, and the quick checks.
 CODE_STEPS=" clippy test doc wasm docs "
-SLOW_STEPS=" validate site examples refs ego python "
+EARLY_STEPS="$CODE_STEPS deny evidence site "
+SLOW_STEPS=" validate examples refs ego python "
 code_failed=""
+early_failed=""
 skipped=""
 # The tree as the run found it, for the history line below: HEAD, and whether anything differed
 # from it, untracked files included.
@@ -336,8 +342,11 @@ head=$(git rev-parse HEAD 2>/dev/null)
 dirty=0; [ -z "$(git status --porcelain 2>/dev/null)" ] || dirty=1
 start_all=$(date +%s)
 for step in $STEPS; do
-  if [ -n "$code_failed" ] && [[ "$SLOW_STEPS" == *" $step "* ]]; then
-    echo "SKIP $step: $code_failed failed; fix it, then run the gate again"
+  why_skip=""
+  [ -n "$early_failed" ] && [[ "$SLOW_STEPS" == *" $step "* ]] && why_skip=$early_failed
+  [ -n "$code_failed" ] && [ "$step" = site ] && why_skip=$code_failed
+  if [ -n "$why_skip" ]; then
+    echo "SKIP $step: $why_skip failed; fix it, then run the gate again"
     skipped="$skipped $step"
     continue
   fi
@@ -364,12 +373,13 @@ for step in $STEPS; do
     why "$log"
     failed="$failed $step"
     [[ "$CODE_STEPS" == *" $step "* ]] && [ -z "$code_failed" ] && code_failed=$step
+    [[ "$EARLY_STEPS" == *" $step "* ]] && [ -z "$early_failed" ] && early_failed=$step
     if [ "$step" = fmt ] && [ "$STEPS" != fmt ]; then
       echo "    run \`cargo fmt --all\`, then the gate again: the other steps would check code it changes"
       break
     fi
     if [ "$step" = pages ] && [ "$STEPS" != pages ]; then
-      echo "    fix the pages, then the gate again: the site step would fail the same way, last"
+      echo "    fix the pages, then the gate again: the site step would fail the same way"
       break
     fi
   fi

@@ -422,7 +422,7 @@
       "reference": 2612.2204400257747,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case calisto-tests-motor-at-minus-1.373, metrics.apogee_agl_m",
       "tolerance": {
-        "relative": 0.005
+        "relative": 0.0035
       },
       "difference": 1.3660769230541518,
       "relative": 0.0005229562184425265,
@@ -642,7 +642,7 @@
       "reference": 777.9346730957905,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case valetudo, metrics.apogee_agl_m",
       "tolerance": {
-        "relative": 0.005
+        "relative": 0.0035
       },
       "difference": 0.8732843002155732,
       "relative": 0.001122567653065699,
@@ -863,7 +863,7 @@
       "reference": 1216.4343741455625,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case ndrt-2020-nose-to-tail, metrics.apogee_agl_m",
       "tolerance": {
-        "relative": 0.005
+        "relative": 0.0035
       },
       "difference": 0.7781348877640539,
       "relative": 0.0006396850535489223,
@@ -1738,7 +1738,7 @@
       "reference": 2622.988801815972,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case juno-iii-calm, metrics.apogee_agl_m",
       "tolerance": {
-        "relative": 0.005
+        "relative": 0.0035
       },
       "difference": 2.2297549259301377,
       "relative": 0.000850081755738497,
@@ -1959,7 +1959,7 @@
       "reference": 2614.3047486402447,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case calisto-tests-motor-at-minus-1.373-calm, metrics.apogee_agl_m",
       "tolerance": {
-        "relative": 0.005
+        "relative": 0.0035
       },
       "difference": 1.1765983165396392,
       "relative": 0.00045006165296972855,
@@ -2179,7 +2179,7 @@
       "reference": 540.1338245414752,
       "source": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py), validation/oracles/rocketpy/flight.py, case bella-lui-calm, metrics.apogee_agl_m",
       "tolerance": {
-        "relative": 0.005
+        "relative": 0.0035
       },
       "difference": 0.20683727348057346,
       "relative": 0.00038293708722307774,

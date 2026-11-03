@@ -151,6 +151,24 @@ Placed by [ADR-196, the product guides][adr-196]; research in [product guides](p
   counts come from the bundle's committed manifest and OpenRocket's from a committed record naming
   the jar's hash; hpr's offline count is at least OpenRocket's; a check fails when hpr's falls.
 
+## From the 2026-10-31 planning review ([ADR-310][adr-310], [ADR-311][adr-311])
+
+- SOON: the gap's tail. User: a team's simulation lead asking how far to trust HPR Sim against
+  OpenRocket. HPR Sim holds more flights within 5% and within 10% of the log (14 vs 13, 32 vs 31) and
+  still loses on the mean, so a few flights make the gap. Workflow: `cargo xtask fixture-flights`
+  prints the mean absolute gap with the worst 1, 3 and 5 of its contributors removed. Moves:
+  `accuracy.collection` (12.07% vs 11.26%), by naming how much of it is a tail. *Done when:* the
+  report prints those three aggregates and no flight's identity, a test pins them on invented
+  flights, and [M2.3c6][m2-3c6]'s split names the same contributors.
+- SOON: what moved my number. User: a flyer whose saved prediction changes after an upgrade; a
+  merged change to OpenRocket's damping reports one three-stage booster's apogee moving 20%
+  ([OpenRocket pull request 3410](https://github.com/openrocket/openrocket/pull/3410)). Workflow:
+  `hpr sim design.ork --against last-time.json` prints each number's change, both versions and the
+  release notes' physics entries between them. Moves: `features.count`, as a new row: can a tool
+  say what changed a saved number across versions. *Done when:* a test flies one design against a saved run from
+  an edited copy, the change prints with its sign, and a saved run from an unknown version says so
+  and doesn't guess.
+
 [m1-14g]: ../decisions-and-roadmap.md#m1-14g
 [m4-5e]: ../decisions-and-roadmap.md#m4-5e
 [m2-9]: ../decisions-and-roadmap.md#m2-9
@@ -165,3 +183,6 @@ Placed by [ADR-196, the product guides][adr-196]; research in [product guides](p
 [adr-005]: ../decisions/0005-solid-motors-statistics-consumption-grains-file.md
 [m5-7]: ../decisions-and-roadmap.md#m5-7
 [motor-page]: ../physics/motor.md#the-bundled-motors
+[adr-310]: ../decisions/0310-the-2026-10-31-review-the-rocketpy-rail-exit-and-landing-speeds-tightened.md
+[adr-311]: ../decisions/0311-the-2026-10-31-review-every-flight-openrocket-flies.md
+[m2-3c6]: ../decisions-and-roadmap.md#m2-3c6
