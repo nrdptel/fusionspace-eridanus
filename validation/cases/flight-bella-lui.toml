@@ -63,7 +63,7 @@
 # 3.6 m/s wind. The worst scored difference is the power-on maximum at +1.78%: the peak is the 7 ms
 # ignition spike on the rail, where hpr's variable-mass terms add 1.28 m/s^2 (74.14 against 72.84),
 # with thrust and mass the same as RocketPy's to five digits. The apogee is +0.34% (532.12 m against
-# 530.31) and keeps 3% while the six without a cause are held to 0.5% (ADR-289): flown with hpr's
+# 530.31) and keeps 3% while the six without a cause are held to 0.35% (ADR-318): flown with hpr's
 # release at the last button, RocketPy's apogee is 531.3 m, and with hpr's body lift added 532.0 m
 # (`wind_response.py bella-lui`, printed to 0.1 m), against hpr's 532.12.
 id = "flight-bella-lui"

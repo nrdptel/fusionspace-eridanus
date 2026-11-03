@@ -253,8 +253,8 @@ metrics = {
 # comparisons with RocketPy when it was built (milestone M2.1,
 # https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-1), and since three later reviews the
 # burnout and largest speeds and the burnout height to 0.2%, the rail-exit speed to 0.05%, the
-# landing speed to 0.1%, the apogee and the rail-exit time to 0.5% and the apogee time to 1%
-# (ADR-289, ADR-294, ADR-310). This page checks the widest, 3%.
+# landing speed to 0.1%, the apogee to 0.35%, the rail-exit time to 0.5% and the apogee time to 1%
+# (ADR-289, ADR-294, ADR-310, ADR-318). This page checks the widest, 3%.
 
 # %%
 TOLERANCE = 0.03
