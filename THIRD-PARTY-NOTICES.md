@@ -249,7 +249,7 @@ adds a source.
   07:07:29 UTC (one file renamed: the site's `F27R~L.json` is stored as `F27R_L`). Motor stock
   data from motor.fusionspace.co, licensed under Creative Commons Attribution 4.0 International
   (CC BY 4.0, <https://creativecommons.org/licenses/by/4.0/>); the site's API page
-  (<https://motor.fusionspace.co/api>, "Data licence", checked 2026-10-03) licenses its responses,
+  (<https://motor.fusionspace.co/api>, "Data licence", checked 2026-10-03 and 2026-11-03) licenses its responses,
   and the compilation of motor, listing, stock and price data in them, under CC BY 4.0, asks for
   the credit "Motor stock data from motor.fusionspace.co", and permits storing recorded responses
   as software test fixtures. The recordings (2026-09-17 under `refs/`, 2026-10-01 here) predate
@@ -261,9 +261,9 @@ adds a source.
   ([ADR-129](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0129-m5-4-split-and-m5-4a-the-motor-finders-api.md)).
   The example `crates/hpr/examples/motor_stock.rs` reads the build and in-stock files.
   From 2026-11-01 to 2026-11-03 the live API's data was under narrower terms. The site withdrew
-  them on 2026-11-03, and all of its data, including what was published in those days, is under
-  CC BY 4.0
-  ([ADR-319](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0319-the-motor-stock-api-open-again.md)).
+  them on 2026-11-03, and the API's data, including what was published in those days, is under
+  CC BY 4.0 again
+  ([ADR-315's amendment of 2026-11-03](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0315-the-2026-11-01-licensing-layers.md)).
   `hpr_net::motor_finder` also fetches such answers at run time, when a program asks, and caches
   them on the user's disk; each answer carries the credit for the program to show.
 - **OpenRocket's curves by ThrustCurve file** (`crates/hpr-motor/data/openrocket-curves.json`,

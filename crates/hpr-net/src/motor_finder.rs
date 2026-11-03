@@ -792,6 +792,22 @@ pub enum MotorFinderError {
 mod tests {
     use super::*;
 
+    /// The credit is the API's own words and names its license, CC BY 4.0, with the license's
+    /// link (ADR-315, amended 2026-11-03), and keeps the API's caution about stock and price.
+    #[test]
+    fn the_credit_names_the_site_and_cc_by() {
+        assert!(
+            ATTRIBUTION
+                .starts_with("Motor stock data from motor.fusionspace.co, licensed CC BY 4.0 ")
+        );
+        assert!(ATTRIBUTION.contains("(https://creativecommons.org/licenses/by/4.0/)"));
+        assert!(
+            ATTRIBUTION
+                .ends_with("Check stock and price on the vendor's own page before relying on them")
+        );
+        assert!(!ATTRIBUTION.contains("permission"));
+    }
+
     #[test]
     fn urls_follow_the_apis_names() {
         assert_eq!(
