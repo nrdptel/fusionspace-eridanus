@@ -76,8 +76,8 @@ measurement ([M2.11][m2-11], [ADR-279][adr-279]). The rest moved to the [theme n
 the 2026-10-20 review's four ([ADR-286][adr-286]) and the 2026-10-24 review's four ([ADR-289][adr-289])
 to flight data and the ecosystem, and the 2026-10-26 review's four ([ADR-294][adr-294]) to flight
 data, clubs and the ecosystem. The 2026-10-28 review's four ([ADR-303][adr-303]) went to flight data and the ecosystem, and
-the 2026-10-31 review's five ([ADR-310][adr-310], [ADR-311][adr-311]) went there too; its sixth,
-every flight OpenRocket flies, was promoted as [M2.3c9][m2-3c9].
+the 2026-10-31 review's five ([ADR-310][adr-310], [ADR-311][adr-311]) went there too; the milestone it
+promoted, every flight OpenRocket flies, is [M2.3c9][m2-3c9].
 
 ## The 2026-11-02 planning review
 
@@ -115,8 +115,8 @@ Placed with [ADR-318][adr-318], which tightens a met target and promotes none of
   +6.72%), shown as a forecast, never held. *Done when:* the report names the build and its date
   and gives its mean absolute and mean apogee errors with the count and the flights that moved more
   than 1%, aggregates only, or says that no build is published; [M2.3c3][m2-3c3] reuses the
-  harness on the release. New beside [ADR-212][adr-212], which already makes the newest
-  release the bar: a build before it ships, shown as a forecast, never held.
+  harness on the release. New beside [ADR-212][adr-212], which already holds HPR Sim to the newest
+  release published before M2.7: a build before it ships, shown as a forecast, never held.
 - SOON: the wind's error as measured. User: a flyer whose recovery area ends at a road, flying on
   a forecast of light wind. `hpr mc` scatters the wind as a fraction of its speed and a turn of its
   direction, so a 2 m/s forecast scattered by 20% moves by 0.4 m/s, where reanalysis winds over

@@ -785,11 +785,11 @@ issue = 1088
 [[row.searched]]
 on = "2026-11-02"
 looked = [
-  "AerospaceNU/rocket-flight-data's 2026-10-31 flight, added on 2026-11-02 and 2026-11-03 (commit c939c32b, GPL-3.0)",
+  "AerospaceNU/rocket-flight-data's October 31, 2026 flight, added on November 2 and 3, 2026 (commit c939c32b, GPL-3.0)",
   "GitHub code search for `extension:pf2` (250 hits in 31 repositories)",
   "rlhatcher/rocketry-files (MIT, commit 2ddcaf88)",
 ]
-found = "a real pair whose clocks differ by about 4,028 s. On the 2026-10-31 flight two of the club's boards count from their own power-on: one logs GPS time beside its clock, the other has no GPS. Liftoff (over 3 g) falls at 5,331.6 s and 1,303.6 s on the two clocks, and each board's peak about 19.7 s after it. It is GPL-3.0 data, so it is cached under refs/samples-search/G35 only, to report statistics and digests. The pairs in the `.pf2` hits and rlhatcher/rocketry-files both start at the boost"
+found = "a real pair whose clocks differ by about 4,028 s. On the October 31, 2026 flight two of the club's boards count from their own power-on: one logs GPS time beside its clock, the other has no GPS. Liftoff (over 3 g) falls at 5,331.6 s and 1,303.6 s on the two clocks, and each board's peak about 19.7 s after it. It is GPL-3.0 data, so it is cached under refs/samples-search/G35 only, to report statistics and digests. The pairs in the `.pf2` hits and rlhatcher/rocketry-files both start at the boost"
 
 [[row]]
 id = "G36"

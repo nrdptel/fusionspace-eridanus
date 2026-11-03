@@ -49,7 +49,7 @@ provenance.
   - Every miss is explained in the report.
 
   Since [the harness](decisions-and-roadmap.md#m2-1a) wrote its first report, the code-to-code 3%
-  is a gate in same-drag mode (0.2% on the burnout and largest speeds and, until 2026-11-02, 0.5% on
+  is a gate in same-drag mode (0.2% on the burnout and largest speeds and, until November 2, 2026, 0.5% on
   six apogees since [the decision that tightened them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md), 0.2% to 1% on rail-exit and apogee times,
   burnout heights and traces since [ADR-294, which tightened the times, burnout heights and traces](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md),
   0.35% on those six apogees, and none of nine reading low, since [ADR-318](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md),

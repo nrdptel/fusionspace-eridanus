@@ -369,11 +369,11 @@ The register holds 38 rows, as of November 2, 2026.
 
   It found one flight on June 7, 2026 with two barometric loggers and two GPS receivers, each with its own record of the peak and times. It has no license, so it is cited on the issue and cached under refs/samples-search/G33 only. No radar or optical record of a flight.
 - [G35](#g35), November 2, 2026, looked at:
-  - AerospaceNU/rocket-flight-data's 2026-10-31 flight, added on 2026-11-02 and 2026-11-03 (commit c939c32b, GPL-3.0)
+  - AerospaceNU/rocket-flight-data's October 31, 2026 flight, added on November 2 and 3, 2026 (commit c939c32b, GPL-3.0)
   - GitHub code search for `extension:pf2` (250 hits in 31 repositories)
   - rlhatcher/rocketry-files (MIT, commit 2ddcaf88)
 
-  It found a real pair whose clocks differ by about 4,028 s. On the 2026-10-31 flight two of the club's boards count from their own power-on: one logs GPS time beside its clock, the other has no GPS. Liftoff (over 3 g) falls at 5,331.6 s and 1,303.6 s on the two clocks, and each board's peak about 19.7 s after it. It is GPL-3.0 data, so it is cached under refs/samples-search/G35 only, to report statistics and digests. The pairs in the `.pf2` hits and rlhatcher/rocketry-files both start at the boost.
+  It found a real pair whose clocks differ by about 4,028 s. On the October 31, 2026 flight two of the club's boards count from their own power-on: one logs GPS time beside its clock, the other has no GPS. Liftoff (over 3 g) falls at 5,331.6 s and 1,303.6 s on the two clocks, and each board's peak about 19.7 s after it. It is GPL-3.0 data, so it is cached under refs/samples-search/G35 only, to report statistics and digests. The pairs in the `.pf2` hits and rlhatcher/rocketry-files both start at the boost.
 - [G36](#g36), November 2, 2026, looked at:
   - GitHub code search for `extension:pf2` (250 hits in 31 repositories) and `extension:telem` (17 hits, every rocketry repository already named in the project's notes)
   - GitHub code search for CSV files with booster and sustainer words
