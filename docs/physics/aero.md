@@ -2402,15 +2402,15 @@ the air at.
 > **How far to trust it.** An estimate from strip theory, checked in
 > [Roll against the Arcas Robin and the Basic Finner](#roll-against-the-arcas-robin-and-the-basic-finner):
 >
-> - The forcing is within 5.3% of NASA's measured roll effectiveness (the rolling moment per degree
->   of cant) from Mach 2.3 to 4.63. The forcing reads 14% to 48% high at Mach 1.5 and 1.8.
-> - The damping reads 12% to 28% high against NOL's wind tunnel (Mach 1.53 to 2.76), up to 12.4%
+> - The forcing is within 5.3% of NASA's measured roll effectiveness from Mach 2.3 to 4.63, and
+>   reads 14% to 48% high at Mach 1.5 and 1.8.
+> - The damping reads 12% to 27% high against NOL's wind tunnel (Mach 1.53 to 2.76), up to 12.4%
 >   against DREV's range (Mach 1.83 to 3.15).
 > - Below Mach 1.5, where most hobby flights stay, no committed comparison checks either (below).
-> - The spin rate is forcing over damping: near Mach 1.5 both read high and partly cancel; where
->   only the damping reads high, it reads low.
+> - The spin rate is forcing over damping: near Mach 1.5 both read high (on two bodies) and partly
+>   cancel; from Mach 2.3 the spin reads low or about right.
 
-Below Mach 1.5 only two checks apply: the flight's agreement with the closed-form balance and Barrowman's own computed damping at Mach 0.07. Measured sets there, not yet committed, put the damping 24.5% to 200% high, most near Mach 1.1 ([research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/basic-finner-roll-damping-below-mach-1-5.md), §3), so a subsonic spin likely reads low. Strips that each lift at the fin's average slope ignore how the flow at one strip changes the next. For short fins that likely overstates the damping, so a subsonic spin may read low.
+Below Mach 1.5 only two committed checks apply: the flight's agreement with the closed-form balance and Barrowman's own computed damping at Mach 0.07. Measured sets there, not yet committed, put the damping 24.5% to 200% high, most near Mach 1.1 ([research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/basic-finner-roll-damping-below-mach-1-5.md), §3). Strips that each lift at the fin's average slope ignore how the flow at one strip changes the next. For short fins that likely overstates the damping, so a subsonic spin may read low.
 
 Other symbols follow [Fins](#fins): $r_t$ the body's radius at the fins, $s$ the span, $c_r$
 and $c_t$ the root and tip chords. $A_{\mathrm{fin}}$ is one fin's area and $y_{\mathrm{MAC}}$ the mean aerodynamic chord's
@@ -2526,7 +2526,7 @@ What it leaves out:
 - The roll forcing near Mach 1.5 reads high: linear theory's load rises as $1/\beta$ toward Mach 1,
   and the Arcas Robin's measured forcing doesn't. Barrowman found the same for the Tomahawk
   sounding rocket ("the theoretical value at $M = 1.5$ is no good", [B67] p. 66).
-- The damping reads high faster than sound, most near Mach 1.5 (+27.5% against NOL's wind tunnel). The likely cause (an inference, not shown): linear theory's load rises as $1/\beta$ toward Mach 1 faster than the fins' does, as the forcing does. The fins' thickness, 8% of the diameter, isn't the cause: a thickness term would raise the damping further.
+- The damping reads high faster than sound, most near Mach 1.5 (+27.5% against NOL's wind tunnel). The likely cause (an inference, not shown): linear theory's load rises as $1/\beta$ toward Mach 1 faster than the fins' does, as the forcing does. The fins' thickness, 8% of the diameter, is unlikely to be the cause: what evidence there is says a thickness term would raise the damping.
 - No committed comparison checks roll below Mach 1.5. Measured sets there put the damping 24.5% to 200% high ([research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/basic-finner-roll-damping-below-mach-1-5.md), §3); [#1033](https://github.com/nrdptel/fusionspace-eridanus/issues/1033) adds one at Mach 0.22.
 - A fast spin at low airspeed meets the fins at angles past stall, where the linear damping no longer holds. Valetudo spinning at 17 rad/s at 5 m/s (16 ft/s) meets the air 23° off at its fin tips.
 - The angle of attack: the measured roll effectiveness changes by up to 13% between 0° and ±4°
@@ -4469,7 +4469,7 @@ third of its size. This rocket has no boattail, so it says nothing about a boatt
 
 #### Roll against the Arcas Robin and the Basic Finner
 
-What is checked: HPR Sim's roll forcing against NASA's measured roll effectiveness of the two Arcas Robin models, Mach 1.5 to 4.63 ([D4014] Fig. 14). HPR Sim's roll damping is checked against the Basic Finner's measured in NOL's wind tunnel from Mach 1.53 to 2.76 ([N6652] Table 2), and against DREV's free-flight range fits from Mach 1.83 to 3.15 ([DREV] Table IX). It is also checked against Barrowman's own computed value at Mach 0.07
+What is checked: HPR Sim's roll forcing against NASA's measured roll effectiveness of the two Arcas Robin models, Mach 1.5 to 4.63 ([D4014] Fig. 14). HPR Sim's roll damping is checked against the Basic Finner's measured in NOL's wind tunnel from Mach 1.53 to 2.76 ([N6652] Table 2; Mach 2.76 from Table 1, where Table 2 prints 2.70), and against DREV's free-flight range fits from Mach 1.83 to 3.15 ([DREV] Table IX). It is also checked against Barrowman's own computed value at Mach 0.07
 ([B67] Figs. 5-6 and 5-7). The readings are in [the wind-tunnel fixture][wind-tunnel] and
 [the Basic Finner's][finner-fixture]; `cargo xtask aero` writes the comparison to
 [the roll fixture][roll-fixture], and `hpr_aero::tests::roll_against_mach` recomputes every row.
@@ -4529,9 +4529,12 @@ convention, not a difference in the air ([research note](https://github.com/nrdp
 
 HPR Sim reads high faster than sound, most near Mach 1.5. The likely cause, an inference not shown:
 linear theory's load rises as $1/\beta$ toward Mach 1 faster than the fins' does, as in the forcing
-above. The fins' 8% thickness isn't the cause. BRL Report 711 measured its thicker wedge fins' damping
-21% above its linear theory, so a thickness term would push HPR Sim further high. With the forcing
-right, a damping 11.7% to 27.5% high makes the steady spin 10% to 22% low ($p = -C_{l0}/C_{lp} \cdot 2V/d$).
+above. The fins' 8% thickness is unlikely to be the cause (an inference). BRL Report 711's thicker wedges,
+16% at the trailing edge, read 21% above its linear theory, which leaves out the body's effect on the
+fins that HPR Sim's $k_R(B)$ of 1.167 adds; and exact wedge lift exceeds linear lift. Both say a
+thickness term would raise the damping, not lower it. With the forcing right, a damping 11.7% to 27.5%
+high makes the steady spin about 10% to 22% low ($p = -C_{l0}/C_{lp} \cdot 2V/d$). Near Mach 1.5 the
+forcing reads high too, on the Arcas Robin: errors from two bodies that partly cancel.
 Barrowman's own curve comes from Busemann's third-order expansion ([B67] eq. 3-7), which counts the
 fins' thickness. His text gives 5.68% between it and the Fig. 5-7 points without saying how it is
 taken ([B67] p. 66); read off the figure, the gap is 2% to 7%. At Mach 0.07 HPR Sim gives his computed value within 2.0%. That is how HPR Sim's reading

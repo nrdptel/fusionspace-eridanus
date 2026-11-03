@@ -76,12 +76,12 @@ appendix A, Figs. 5-6 and 5-7; Niskanen 2009 §3.3; TN D-4014 Fig. 14.
   3.00 against Barrowman's Fig. 5-7 points. Barrowman's curve, with Busemann's third-order terms,
   is 5.68% from the same points by his text (p. 66), which doesn't say how it is taken; read off
   the figure, the gap is 2% to 7%.
-- *Amended (#763):* the Fig. 5-7 points sit a flat 1.27 times the measured range data, a slip in
-  convention, so they are no longer scored. Against NOL's wind tunnel (NAVORD Report 6652 Table 2,
+- *Amended (#763):* the Fig. 5-7 points sit a flat 1.27 times BRL 799's range curve, which fits a
+  slip in convention (an inference), so they are no longer scored. Against NOL's wind tunnel (NAVORD Report 6652 Table 2,
   Mach 1.53 to 2.76) HPR Sim reads +11.7% to +27.5% high; against DREV-TM-9703's range fits,
   +5.0% to +8.8% on average by Mach band, +12.4% at most. The sign flips: HPR Sim overstates the
-  damping. The fins' 8% thickness can't explain that, since a thickness term would raise the
-  damping further; linear theory's `1/β` load near Mach 1.5, as in the forcing, is the likely
+  damping. The fins' 8% thickness is unlikely to explain that, since what evidence there is says
+  a thickness term would raise the damping; linear theory's `1/β` load near Mach 1.5, as in the forcing, is the likely
   cause (an inference).
 
 **Alternatives considered.**
