@@ -24,28 +24,35 @@ other, to your fins and your rocket's flight.
   Mach 1.3. Nothing here is checked against a hobby rocket
   ([evidence row G22](../evidence.md#g22)). Where the source allows two readings,
   the simulator takes the one with the lower flutter speed. That doesn't make the whole result
-  conservative: nothing shows that it is. Of the published tests the project has scored, four
-  kinds of fin or wing fluttered below the speed HPR Sim computes, the flattering side. Each
+  conservative: nothing shows that it is. Of the published tests the project has set against
+  HPR Sim's speed, at least four kinds of fin or wing fluttered below it, the flattering side. Each
   figure is HPR Sim's speed (eq. 18, the thickness over the root chord) over the measured onset,
   so above 1 means HPR Sim's speed is too high:
-  - plies that couple bending to twist, as an off-axis layup's do: MIT's laminated plates, 1.13 to
-    1.42 ([measured flutter onsets][onsets-note], §2);
+  - plies that couple bending to twist, as an off-axis layup's do: two of MIT's three laminated
+    plates (M2 and M3), 1.13 to 1.42 over the thesis's two sets of ply properties
+    ([measured flutter onsets][onsets-note], §2);
   - built-up wings near Mach 1, a skin over spars: the RAE's rocket-flown designs of ARC Report
-    2944, 0.92 to 1.41 over all 22 wings, median 1.13, 21 above 1, the highest flown at Mach 0.75
-    to 0.98 ([measured flutter onsets][onsets-note], §3); and up to 1.47 on ARC Report 2949's swept
-    wings, their stiffness taken normal to the sweep
+    2944, 0.92 to 1.41 over all 22 wings (Mach 0.44 to 0.98), median 1.13, 21 above 1, and 1.24 to
+    1.41 on the wings with a 25% spar flown at Mach 0.75 to 0.98, the top resting on one reading
+    of the report's stiffness column ([measured flutter onsets][onsets-note], §3); and up to 1.47
+    on ARC Report 2949's swept wings, their stiffness taken normal to the sweep
     ([transonic flutter onsets][transonic-note], §4);
   - stiffness inboard with the tip and trailing edge soft, such as a fin that tapers in thickness
     or a stiff core with soft edges: Langley's rocket-model wings W2 (1.05), W4 (1.14) and D2
     (1.43 or more, a lower bound) ([fin flutter tests][tests-note], §2);
-  - solid swept fins between about Mach 0.85 and 1.15: 1.21 to 1.37 in Langley's transonic tunnel,
-    from a 60° compreg wing (1.37), a 45° resin-paper wing (1.31) and a 45° solid magnesium wing
-    (1.21), where the 60° wing's stiffness is taken moving its worst point from 0.91 to 1.80
-    ([transonic flutter onsets][transonic-note], §2 and §3); and ARC Report 2949's four solid
-    spruce swept wings, rocket-flown, 1.17 to 1.31, or up to 1.42 with their stiffness taken normal
-    to the sweep (the same note, §4).
+  - solid swept fins: in Langley's transonic tunnel between about Mach 0.85 and 1.15, each wing's
+    worst point 1.21 to 1.37, from a 60° compreg wing (1.37), a 45° resin-paper wing (1.31) and a
+    45° solid magnesium wing (1.21); other readings of the 60° wing's stiffness move its worst point
+    anywhere from 0.91 to 1.80 ([transonic flutter onsets][transonic-note], §2 and §3); and ARC
+    Report 2949's four solid spruce swept wings, rocket-flown, 1.17 to 1.31, or up to 1.42 with
+    their stiffness taken normal to the sweep (the same note, §4).
 
-  Uncoupled flat plates read 0.14 to 0.65, the safe side
+  A tunnel wing in light air reads high too: AGARD wing 445.6's weakened model, 1.24 to 1.50 at
+  Mach 0.90 to 1.07, where the air was thinnest; eq. 18 has no term for the air's mass against the
+  wing's, so it reads high there ([measured flutter onsets][onsets-note], §5, a test too different
+  from a fin to count).
+
+  The counted uncoupled flat plates read 0.14 to 0.65, the safe side
   ([measured flutter onsets][onsets-note]). None of these was a fin glued to a tube, and the
   figures are not a bound: a fin of one of these kinds may flutter further below HPR Sim's speed
   than any of them did.
