@@ -2795,10 +2795,14 @@ mod tests {
     /// the optimized build, and nothing after the list that could swallow a failure.
     const STEP: &str = "- run: cargo run --locked --quiet --package xtask --profile report-check -- synthetic --check --sets ";
 
+    /// The one condition a job that checks the synthetic flights may run on: the nightly run's, and
+    /// a run started by hand with `full` (ADR-149, amended 2026-11-03).
+    const NIGHTLY: &str = "if: needs.scope.outputs.full == 'true'";
+
     /// What's wrong with how a CI file checks the synthetic flights: each set must be on exactly
-    /// one `synthetic --check` line, of its own step with no condition, in an unconditional job on
-    /// every platform, from the optimized build. The file's text is read by hand since the
-    /// workspace takes no YAML reader.
+    /// one `synthetic --check` line, of its own step with no condition, in a job on every platform
+    /// that runs on no condition but the nightly one, from the optimized build. The file's text is
+    /// read by hand since the workspace takes no YAML reader.
     fn ci_problems(ci: &str) -> Vec<String> {
         let lines: Vec<&str> = ci.lines().collect();
         let indent = |line: &str| line.len() - line.trim_start().len();
@@ -2832,7 +2836,10 @@ mod tests {
                 body.iter()
                     .any(|l| indent(l) == 4 && l.trim().starts_with(key))
             };
-            if job_key("if:") || job_key("continue-on-error:") {
+            let other_condition = body.iter().any(|l| {
+                indent(l) == 4 && l.trim().starts_with("if:") && l.trim() != NIGHTLY
+            });
+            if other_condition || job_key("continue-on-error:") {
                 problems.push(format!("{job} runs on a condition"));
             }
             if body.iter().any(|l| {
@@ -2883,6 +2890,10 @@ mod tests {
         let ci = ci.replace("\r\n", "\n");
         assert_eq!(ci_problems(&ci), Vec::<String>::new());
         assert!(ci.contains("--profile report-check -- motor-catalog --check"));
+        // The nightly run is the one that sets `full`, so the censuses run each night.
+        assert!(ci.contains("\n  schedule:\n    # "));
+        assert!(ci.contains("\n    - cron: \"17 8 * * *\"\n"));
+        assert!(ci.contains("if [[ $EVENT == schedule || "));
         // The two jobs must hold up what's deployed.
         assert!(ci.contains("needs: [fmt, clippy, test, examples, types, python, validate,"));
         // Each way of leaving a set out, or running it somewhere it isn't always run.
@@ -2980,6 +2991,27 @@ mod tests {
             "allowed to fail",
             &ci.replace(&line, &format!("{line}\n        continue-on-error: true")),
             "isn't exactly",
+        );
+        has(
+            "a job condition other than the nightly one",
+            &ci.replace(NIGHTLY, "if: github.event_name == 'pull_request'"),
+            "runs on a condition",
+        );
+        has(
+            "a second job condition beside the nightly one",
+            &ci.replace(
+                &format!("    {NIGHTLY}\n"),
+                &format!("    {NIGHTLY}\n    if: false\n"),
+            ),
+            "runs on a condition",
+        );
+        has(
+            "allowed to fail as a job",
+            &ci.replace(
+                &format!("    {NIGHTLY}\n"),
+                &format!("    {NIGHTLY}\n    continue-on-error: true\n"),
+            ),
+            "runs on a condition",
         );
     }
 

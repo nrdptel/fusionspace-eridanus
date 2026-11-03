@@ -38,15 +38,16 @@
 # ThrustCurve.org snapshot with ThrustCurve.org's own code, and fails unless the index agrees).
 # Step validate runs `motor-catalog --check` as CI does, and with the raw snapshot under refs/ it
 # also holds the committed records and files to it. It runs that and `synthetic --check` in the dev
-# profile, whole, where CI runs them optimized and in halves (issue #1018): the dev profile is the
-# one that writes the reports, so this is the check that what's committed is what it writes.
+# profile, whole, where CI runs them optimized, the flight censuses each night (ADR-149, amended): the dev
+# profile is the one that writes the reports, so this is the check that what's committed is what it
+# writes, and before a merge the only run of the censuses.
 # The default run leaves validate out when the branch changes only prose that none of its five
 # checks reads: pages under docs/, the site's theme/ and book.toml, and Markdown files at the top,
 # but not README.md, docs/accuracy.md and docs/images/ (the census writes their tables and badges),
 # docs/ROADMAP.md or docs/decisions/ (the scoreboard and its features table read them), nor a
 # deleted or renamed file (the features table checks its pages exist). Read on 2026-11-01, the five
-# checks' code reads no other prose, so such a change leaves what they compare as it was; CI still
-# runs all five on every pull request. 33 of the 96 pull requests merged from 2026-10-25 to 11-02
+# checks' code reads no other prose, so such a change leaves what they compare as it was; CI runs
+# validate and motor-catalog on every pull request and the censuses each night. 33 of the 96 pull requests merged from 2026-10-25 to 11-02
 # (UTC) changed only such prose. A run that leaves validate out this way still counts as a full
 # run. Name it to run it anyway (`scripts/gate.sh validate`), or set GATE_VALIDATE=1.
 # It joins any run that includes `test` (the default set, or a fix's `scripts/gate.sh clippy test`)

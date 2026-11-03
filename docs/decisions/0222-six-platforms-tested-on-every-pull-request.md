@@ -1,6 +1,6 @@
 # ADR-222: Six platforms, each tested on every pull request (2026-10-09)
 
-- **Status:** accepted; the Intel Mac rows wait for #438
+- **Status:** accepted; the Intel Mac rows wait for #438; amended 2026-11-03 by [ADR-149's amendment](0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md) (the flight censuses run on every platform each night, not on every pull request)
 - **Summary:** CI's per-platform jobs (the tests, the examples, the Python package and the validation cases) and the release's archives and wheels are to run on six platforms: Linux, macOS and Windows, each on x86-64 and on 64-bit ARM. Five run now. Each runs natively on its own CPU, and a script fails the job if the toolchain would build for another one. Intel Macs, the sixth, join when #438 is fixed: the first run there failed one optimizer test by one seed of 20 and couldn't install `cargo about`; they are then tested on GitHub's last Intel image until it retires (fall 2027), then under Rosetta. Windows on ARM tests the Python package from 3.11, its oldest CPython. Static Linux builds, 32-bit ARM, package managers and math that rounds the same everywhere are follow-ups.
 
 **Context.** Release 0.1 shipped archives and wheels for three platforms: Linux on x86-64, Macs
