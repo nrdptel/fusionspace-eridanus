@@ -179,7 +179,7 @@ long model's.
 - **Not found:** the Triservice Missile Database (TM-2002-211653), TN D-794 (Scout and related models, Mach 0.4–1.2;
   NTRS record, no PDF), TN D-1228 (Blue Scout Jr.). TM X-3070 was not read.
 - **Whether the Allen 2005 files may be committed** as a public-domain fixture, or only the project's readings of
-  them, is a maintainer's call. DREV-TM-9703 is Crown copyright: cite it; its readings stay uncommitted (#619).
+  them, is a maintainer's call. DREV-TM-9703 is a public release: its values may be committed (#1119).
 - **No hobby shape at hobby Reynolds numbers:** all are about 10⁶ to 3 × 10⁷ on length, none with fillets.
 
 ## Sources (all read 2026-10-16)
