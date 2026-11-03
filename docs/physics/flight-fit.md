@@ -1,8 +1,7 @@
 # The least-squares fit
 
 See how the library fits a flight's [log](../glossary.md#flight-log) to a simulation, and what that
-tells of its drag, impulse, wind and mass. A Bayesian option draws the same fit's posterior; its
-intervals don't pass their test yet ([The Bayesian option](#the-bayesian-option)).
+tells of its drag, impulse, wind and mass.
 
 ## In short
 
