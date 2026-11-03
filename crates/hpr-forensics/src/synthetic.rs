@@ -230,6 +230,9 @@ fn stream(seed: u64, index: u64, key: Key) -> SeededRng {
 pub(crate) const WEIGHING_KEY: u64 = 16;
 /// The key of the stream a noise log's heights come from ([`fits::noise_log`]).
 pub(crate) const NOISE_LOG_KEY: u64 = 17;
+/// The key of the stream the Bayesian option's draws of a flight's posterior are seeded from
+/// ([`fits::sampling`]).
+pub(crate) const POSTERIOR_KEY: u64 = 18;
 
 /// The most the wind blows, m/s: 20 mph, the most the NAR's high-power safety code allows.
 pub const MAX_WIND_M_S: f64 = 20.0 * 0.447_04;

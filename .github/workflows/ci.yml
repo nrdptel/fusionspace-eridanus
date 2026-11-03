@@ -237,19 +237,22 @@ jobs:
         run: scripts/phone-build.sh aarch64-apple-ios aarch64-apple-ios-sim
         shell: bash
 
-  # The least-squares fit's 90% intervals (M7.3b, ADR-316): about 6,500 fits of flights of sets A
-  # and B, each parameter held to ADR-257's counts and probes. In one Linux job it took 60 to 102 minutes
-  # (eight runs, 2026-11-02). So eight jobs each fit an eighth of the flights: part K fits every
-  # eighth flight of each run from the Kth (`fit --part K/8`), and hands its fits on. A fit doesn't
-  # depend on what its thread or machine fitted before it (`fit::tests`), so the parts together are
-  # the fits one job would make. The committed report and the shares are held exactly by
-  # `scripts/gate.sh`, whole, on the platform that wrote them.
+  # The fit's 90% intervals (M7.3b, ADR-316; M7.3c2, ADR-319): about 6,500 fits of flights of sets
+  # A and B by least squares, each parameter held to ADR-257's counts and probes, and the Bayesian
+  # option's posterior drawn on each fit with something to fit. The least-squares fits alone took 60
+  # to 102 minutes in one Linux job (eight runs, 2026-11-02); with the posteriors' draws, two flights
+  # each, the report took 3 hours on a 10-core Mac, against 16 minutes before (ADR-319). So 32 jobs
+  # each fit a 32nd of the flights:
+  # part K fits every 32nd flight of each run from the Kth (`fit --part K/32`), and hands its fits
+  # on. A fit doesn't depend on what its thread or machine fitted before it (`fit::tests`), so the
+  # parts together are the fits one job would make. The committed report and the shares are held
+  # exactly by `scripts/gate.sh`, whole, on the platform that wrote them.
   fit-part:
-    name: fit intervals (${{ matrix.part }}/8)
+    name: fit intervals (${{ matrix.part }}/32)
     strategy:
       fail-fast: false
       matrix:
-        part: [1, 2, 3, 4, 5, 6, 7, 8]
+        part: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -261,7 +264,7 @@ jobs:
           # One cache for the parts and the job that checks them: the same optimized build.
           shared-key: fit-intervals
           save-if: ${{ github.ref == 'refs/heads/main' && matrix.part == 1 }}
-      - run: cargo run --locked --quiet --package xtask --profile report-check -- fit --part ${{ matrix.part }}/8 --out target/fit-parts
+      - run: cargo run --locked --quiet --package xtask --profile report-check -- fit --part ${{ matrix.part }}/32 --out target/fit-parts
       - uses: actions/upload-artifact@v7
         with:
           name: fit-part-${{ matrix.part }}
