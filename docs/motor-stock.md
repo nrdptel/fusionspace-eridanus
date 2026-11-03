@@ -316,6 +316,10 @@ Copies obtained before 1 November 2026 were published under Creative Commons Att
 ([the decision record on the licensing layers](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0315-the-2026-11-01-licensing-layers.md)).
 
 The simulator puts its credit line, `motor_finder::ATTRIBUTION`, on every answer, fetched or saved.
+That line names today's terms even over a copy saved before 1 November 2026, such as the
+recordings, which keep CC BY 4.0: the stricter reading. A program of your own built on the library
+is another app under the terms, so it needs the site's written permission unless it is for your
+personal, non-commercial use.
 `hpr motors search` prints it at the top of every list, in text
 and in JSON, with ThrustCurve.org's below it.
 
