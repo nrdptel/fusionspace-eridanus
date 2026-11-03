@@ -40,7 +40,7 @@ trailing edge. The moment reference is 5.5 d from the nose [F1 §3.1, PDF p. 16,
 **DREV-TM-9703** (Dupuis and Hathaway, August 1997) [F1]: a spark-range free-flight test of 30 mm models, Mach 1.06
 to 4.47, small yaw. Table IX (PDF pp. 48–49) gives multiple fits of C_X0, C_Nα, C_mα about 5.5 d, C_mq and C_lp
 from Mach 1.077 to 4.300; this note uses its rows at Mach 1.832, 2.375, 2.718 and 3.147 (C_Nα's probable errors 2%
-to 4% where printed). The readings are cached locally under `refs/`: the terms of release bar redistribution (#619).
+to 4% where printed). The readings are cached under `refs/`; as a public release it may be committed (#1119, #763).
 
 - The CP is 5.5 d − C_mα/C_Nα. C_lp's probable errors print as 0%; C_X0 has none, fitted shot by shot (PDF p. 23).
 - **Gap:** no round flew between Mach 1.377 and 1.799 (Table VIII, PDF pp. 44–47): Mach 1.5 has no DREV point.
@@ -159,10 +159,10 @@ Model at Ma 2.45", *Transactions on Aerospace Research* 276(3), 2024, pp. 86–1
 ## What this suggests
 
 1. **Re-point the roll-damping row** to the measured sets: BRL 711 and ARL-TR-846 for 1.59–2.68 and NOL for
-   1.53–2.76 as committed points, and DREV Table IX (Mach 1.83–3.15) scored locally from the cached readings, its
-   error statistics published, never its values (#619). Expected: the row turns from −5.9…−16.2% to about +2…+13%
+   1.53–2.76 as committed points, and DREV Table IX (Mach 1.83–3.15) committed from the cached readings, as its
+   release now allows (#1119, #763). Expected: the row turns from −5.9…−16.2% to about +2…+13%
    at Mach 1.82–3.00 and +26 to +30% near Mach 1.5. Keep Nicolaides' points as a disputed set until TN-100A is found.
-2. **Fly the Basic Finner against DREV Table IX** for M1.14b, locally, publishing only the errors: C_Nα and CP at
+2. **Fly the Basic Finner against DREV Table IX** for M1.14b, its values committable (#763): C_Nα and CP at
    Mach 1.83, 2.38 and 2.72, and C_X0 with Table VIII's per-shot errors. Expect C_X0 to read low by up to 0.04–0.08,
    from the missing wedge base.
 3. **Record ARL-TN-1128 as refused** under M1.14b, giving the reason: no coefficients. Correct "HSARV" to HARV.
@@ -195,6 +195,6 @@ Model at Ma 2.45", *Transactions on Aerospace Research* 276(3), 2024, pp. 86–1
 - **B3.** Iijima et al., JAXA-RR-06-046, 2007. <https://jaxa.repo.nii.ac.jp/record/2185/files/63877000.pdf>
 - **A1.** Svorcan et al., OTEH 2024, pp. 24–27. <https://doi.org/10.5937/OTEH24005S>
 
-US Government reports (F2–F7, B1) are approved for public release. DREV-TM-9703 (F1) is Crown copyright, and its terms
-of release bar release to third parties without DRDC's consent: its readings stay cached under the gitignored `refs/`,
-and only statistics computed from them are published (issue #619).
+US Government reports (F2–F7, B1) are public (F5 by its "without restrictions" box, B1 on NTRS). DREV-TM-9703 (F1)
+is approved for public release, distribution unlimited (DTIC page, PDF p. 2; its own pp. 4, 150), Crown copyright
+(p. 5), without DRDC TM 2002-136's and 2002-008's third-party bar; its values may enter a committed fixture (#763).
