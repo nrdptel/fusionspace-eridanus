@@ -419,9 +419,10 @@ a rocket still fast at apogee, arcing over, can drag about 1 g, which reads as g
 Putting 1 g back on that log would read its top 1 g high
 ([#806](https://github.com/nrdptel/fusionspace-eridanus/issues/806)). A coast at about 0 still
 settles it alone: without gravity a coasting part reads −1 g or below, drag only pushing it further
-down, so reading within 0.25 g of 0 takes a push forward of at least 0.75 g. A thrust still burning
-in the coast's second gives one. On a part that takes gravity out, with no family word and no pad,
-that reads gravity in and the top 1 g low: a risk left open.
+down, so reading within 0.25 g of 0 takes a net push forward, thrust less drag, of about 0.75 g or
+more. A thrust still burning in the coast's second gives one. On a part that takes gravity out,
+with no family word and no pad, that reads gravity in and the top 1 g low: a risk left open, and
+no test pins it.
 Otherwise the top acceleration is withheld (`gravity_unstated`), and burnout comes from the top
 speed. The 0.25 g is HPR Sim's choice, set out in [What each bound holds](#what-each-bound-holds).
 The pad is read off the accelerometer rather than as the samples before liftoff's earliest time by
@@ -1400,8 +1401,8 @@ truth beside the logs, that doesn't say how each rocket came down.
   under 0.25 g. A rocket still fast at apogee, arcing over, reads its drag there. The witness then
   says nothing or, past 0.75 g, can disagree with a family's word and withhold the top
   acceleration ([ADR-283][adr-283]). Alone at −1 g it settles nothing
-  ([#806](https://github.com/nrdptel/fusionspace-eridanus/issues/806)). A thrust of 0.75 g or more
-  still burning in that second reads as gravity in.
+  ([#806](https://github.com/nrdptel/fusionspace-eridanus/issues/806)). A net push forward of
+  about 0.75 g or more (thrust less drag) still acting in that second reads as gravity in.
 - **A board's three axes.** A log whose accelerometers don't say which lies along the rocket gives
   no top acceleration (`axis_unstated`), and its burnout comes from the top speed's time. The
   axes' magnitude could give a top acceleration, but not burnout, as it never falls below zero

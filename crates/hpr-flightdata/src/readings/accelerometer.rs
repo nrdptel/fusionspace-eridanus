@@ -46,9 +46,11 @@
 //! coast is; a pad or a coast that reads neither, such as a log that starts in the thrust, says
 //! nothing. Gravity is settled when one witness or more says and none disagrees, except that a
 //! coast at about −1 g doesn't settle it alone: a part that holds gravity reads its drag there,
-//! and a rocket still fast at apogee, arcing over, can drag about 1 g (#806). Its about 0 can
-//! stand alone, as a part without gravity reads −1 g or below in a coast, unless a thrust of
-//! 0.75 g or more still burns in that second. Otherwise nothing is read
+//! and a rocket still fast at apogee, arcing over, can drag about 1 g
+//! ([#806](https://github.com/nrdptel/fusionspace-eridanus/issues/806)). Its about 0 can
+//! stand alone, as a part without gravity reads −1 g or below in a coast, unless a net push
+//! forward (thrust less drag) of about 0.75 g or more still acts in that second. Otherwise nothing
+//! is read
 //! ([`Reason::GravityUnstated`]). A sample that repeats the time before
 //! it is left out, as the primary track leaves it ([`first_at_each_time`]).
 //!
@@ -449,9 +451,9 @@ pub(super) fn read(
     // holds gravity reads its drag there, `−D/m`, and a rocket still fast at apogee, arcing over,
     // can drag about 1 g. Its about 0 stands alone, as before: without gravity a coasting part
     // reads `−D/m − g`, drag only pushing it further below −1 g, so reading within the tolerance
-    // of 0 takes a forward push of at least 0.75 g. A thrust still burning in that second gives
-    // one, a risk left open: on a part that takes gravity out, with no family word and no pad, it
-    // reads gravity in and the top 1 g low.
+    // of 0 takes a net forward push (thrust less drag) of about 0.75 g or more. A thrust still
+    // burning in that second gives one, a risk left open and untested: on a part that takes gravity
+    // out, with no family word and no pad, it reads gravity in and the top 1 g low.
     let lone_coast_out = matches!(said.as_slice(), [(Gravity::Out, GravityBy::Coast)]);
     let gravity = match said.first() {
         Some(&first) if !lone_coast_out && said.iter().all(|(word, _)| *word == first.0) => first,

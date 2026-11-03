@@ -1,6 +1,6 @@
 # ADR-283: The rest of the readings: an axial accelerometer settled by three witnesses, burnout where the thrust's fall ends, and the main found back from landing at the ground's density (2026-10-18)
 
-- **Status:** accepted; ships [M7.2c][m7-2c] as [ADR-280][adr-280] planned it; follows [ADR-281][adr-281] (one height track, the bounds held on the tuning set); amended 2026-10-19 for M7.2c
+- **Status:** accepted; ships [M7.2c][m7-2c] as [ADR-280][adr-280] planned it; follows [ADR-281][adr-281] (one height track, the bounds held on the tuning set); amended 2026-10-19 for M7.2c; amended 2026-11-02 for #806
 - **Summary:** The flight-log readings now add the top acceleration, burnout, the flight time and the descent under each canopy, each within a bound its error stayed inside on the synthetic flights' tuning set or withheld by name, with each reading's errors on that set in the report. The top acceleration comes from an accelerometer along the rocket's axis only, its gravity settled by three witnesses (the family's word, the pad, the coast to apogee) and which way up it reads by three more (the pad, the coast and the thrust, each as written), and is a floor where the part clipped, at its stated range or held flat, or where the accelerometer holds the thrust only in part. Burnout is the least specific force after the thrust falls through zero, or, without an accelerometer, a floor: the top speed's time less its bound. The main's opening is found back from landing as Debrief finds it, walked on the rate's running median at the ground's density. On their own logs, the main's opening was found on 87 tuning flights with a barometer, each within its bound, and no main was named on a flight under one canopy, on any log. Of the 1,058 records the sample logs hold, the top acceleration is given on 161, burnout on 428, the drogue's descent on 267 and the main's on 459, and every new reason has a case.
 
 [m7-2c]: ../decisions-and-roadmap.md#m7-2c
@@ -124,7 +124,8 @@ in a row fails with its rule put back.
   own; a part whose noise runs from sample to sample would read a bound too narrow ([#787][i787]).
 - The coast witness assumes the drag in the last second before apogee's earliest time is under
   0.25 g. A rocket still fast at apogee, arcing over, reads its drag there; the witness then says
-  nothing, or, past 0.75 g, could disagree with a family's word and withhold the reading.
+  nothing, or, past 0.75 g, could disagree with a family's word and withhold the reading; alone at
+  about −1 g it settles nothing (the amendment for #806, below).
 - A canopy's filling time isn't in the opening's bound: the synthetic flights open each canopy at
   once ([#779][i779]). A rocket that came down under no canopy has its fall read as one canopy's
   ([#780][i780]).
@@ -232,14 +233,15 @@ witness settled gravity wrongly; the rules now:
    in the coast, `−D/m`, and a rocket still fast at apogee, arcing over, can drag about 1 g, which
    reads as gravity out would. Where neither the family nor the pad says, as on a Raven or a generic
    axial column on a log that starts in the thrust, 1 g was put back on a top that held it already,
-   reading it 1 g high: on the test's rocket, a 6 g top read 7.01 g, its bound 0.88 g. Such a log is
+   reading it 1 g high: on the test's rocket, a 6 g top read about 7 g, outside its bound of under
+   1 g. Such a log is
    now withheld, `gravity_unstated`, saying that only the coast says
    (`a_fast_arc_over_doesnt_settle_gravity_out_alone`; a mutation that lets the coast settle alone
    fails it). A coast at about 0 still settles alone, as before: without gravity a coasting part
    reads `−D/m − g`, drag only pushing it further below −1 g, so reading within 0.25 g of 0 takes
-   a push forward of at least 0.75 g. A thrust still burning in that second gives one, a risk left
-   open: on a part that takes gravity out, with no family word and no pad, it reads gravity in and
-   the top 1 g low. Beside a family or a pad, the coast at −1 g still counts,
+   a net push forward, thrust less drag, of about 0.75 g or more. A thrust still burning in that
+   second gives one, a risk left open and untested: on a part that takes gravity out, with no
+   family word and no pad, it reads gravity in and the top 1 g low. Beside a family or a pad, the coast at −1 g still counts,
    agreeing or disagreeing as before. Withholding was chosen over widening the bound by 1 g: a top
    read 1 g high with a bound wide enough to cover it says little.
 2. **Gravity's coast is read only where a coast was flown,** as the direction's is (amendment for
