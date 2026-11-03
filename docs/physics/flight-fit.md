@@ -30,7 +30,7 @@ intervals don't pass their test yet ([The Bayesian option](#the-bayesian-option)
   constant with height; on a log of height alone, a wind that grows with height only widens the intervals. It's
   told the design, rail, site and the day's air, and takes them as right. It's in the library only:
   no command runs it on a log yet. The Bayesian option's intervals pass 4 of their 10 counts on the
-  same flights, and its wind's are too wide: read the least-squares intervals
+  same flights, and its wind's are too wide. Read the least-squares intervals
   ([The Bayesian option](#the-bayesian-option)).
 
 ## How it works
@@ -209,15 +209,15 @@ it.
 
 The posterior is what the fit's unknowns could be, given the log and the stated ranges. The
 least-squares fit reads its uncertainty off the curvature at its answer, as if the posterior were a
-bell curve, and fits shares on the calibration set so that its intervals hold. The Bayesian option
+bell curve. Then it fits shares on the calibration set so that its intervals hold. The Bayesian option
 draws points around the answer at random and flies each one. It weighs each point by the posterior's
-value there divided by how likely the draw was to land there, so the points it lands on often don't
-count extra: importance sampling. Each parameter's 90% interval is the weighted points' 5% and 95%
+value there divided by how likely the draw was to land there. So the points it lands on often don't
+count extra: that's importance sampling. Each parameter's 90% interval is the weighted points' 5% and 95%
 points, as they come, with no shares. So a posterior that bends or leans one way shows as it is.
 
 How it draws:
 
-- **The wind first.** On a log of height alone the heights can't tell the wind, and the drag, the
+- **The wind first.** On a log of height alone the heights can't tell the wind. The drag, the
   impulse and the clock follow the wind along a curve. So each draw takes the wind first, then the
   other unknowns around where one step of the least-squares fit's search puts them in that wind. That step is a flight,
   so each draw flies twice.
@@ -225,15 +225,15 @@ How it draws:
   reaches past the bell curve, the next 400 draws are spread wider, up to twice as wide, and never
   narrower (Oh and Berger). Only those 400 are read.
 - **The sensor's linear unknowns are worked out exactly.** The height offset, the drift, and a
-  barometer's gain and port coefficient change the heights in proportion, so their part of the
+  barometer's gain and port coefficient change the heights in proportion. So their part of the
   posterior has a closed form. Seven unknowns are drawn, not eleven; eight with the shear, below.
 - **On height alone, the wind's shear is drawn too.** How fast the wind grows with height is an
-  unknown there, an exponent stated anywhere from 0, a constant wind, to 0.2, IEC 61400-1's normal
-  profile. The least-squares fit carries the same doubt in its errors instead.
+  unknown there. It's an exponent stated anywhere from 0, a constant wind, to 0.2, IEC 61400-1's
+  normal profile. The least-squares fit carries the same doubt in its errors instead.
 
 A fit with something to fit flies about 1,000 times, against about 70 for least squares on set A.
-The report took 3 hours on 10 cores, against 16 minutes before: about 13 seconds of one processor
-core a posterior, the least-squares fits included.
+The report took 3 hours on 10 cores, against 16 minutes before. That's about 13 seconds of one
+processor core a posterior, the least-squares fits included.
 
 ### How well the Bayesian option holds
 
@@ -255,8 +255,8 @@ known:
   where 5% belong. The test can't even tell the north wind's intervals from ones narrowed to 0.8,
   a probe that must fail. Its median width on set A is 0.431 m/s (1.41 ft/s) east, against least
   squares' 0.345 m/s (1.13 ft/s). The likely cause, not yet measured, is the track's noise. The
-  posterior takes it as the least-squares fit states it, and that fit narrows its own intervals
-  back, with shares inside the bell curve's ±1.645 ([ADR-319][adr-319]).
+  posterior takes it as the least-squares fit states it. That fit narrows its own intervals back,
+  with shares inside the bell curve's ±1.645 ([ADR-319][adr-319]).
 - **Set A's drag sits low and set B's impulse high.** 78 of set A's drag truths fall above, and
   83 of set B's impulse truths below. Their causes aren't measured yet.
 
@@ -266,7 +266,8 @@ The mass isn't, at 0.0341 of 0.036. On pure noise nothing is told, by either met
 The draws are counted too. On set A, 319 of 2,276 posteriors had fewer than 100 effective draws;
 across all 2,276, the fewest was 1.13 and the median 232. On set B, 392 of 2,296 had fewer than 100;
 the fewest was 1.01 and the median 223. A
-draw fails when it can't be weighed, as when its flight can't fly: 124 of 1,138,000 on set A, 179 of 1,148,000 on set B. Every
+draw fails when it can't be weighed, as when its flight can't fly. That's 124 of 1,138,000 on set A,
+and 179 of 1,148,000 on set B. Every
 flight with something to fit has a posterior. [M7.3c4][m7-3c4] is to make the counts pass.
 
 ### The sampler's tests
@@ -280,12 +281,13 @@ sampler gives a median of 0.43 and an interval of −1.35 to 2.57.
 The tests hold each of those three within 0.08 of the true distribution's points, worked out by a
 numerical integral (Simpson's rule), about a fifteenth of $y$'s standard deviation. Over 100 other
 seeds, none misses that. Drawn in two blocks, $x$ first, the same three land within 0.08 when the
-second block is centered where it should be, and within 0.15 when it's centered poorly. A second test
-holds a correlated bell curve's points within 0.06 standard deviations of their exact values. Others
-check that weighing the points by the posterior alone, without dividing by the draw's own likelihood,
-fails, and that a pilot widens a scale where the posterior reaches further and never narrows one. On
-the fit itself, a test checks that on a straight line the option's points are within a tenth of a
-standard error of the closed forms, on the four parameters it checks, and one that the linear unknowns' closed form is exact. The sampler counts how many independent draws its
+second block is centered where it should be. They land within 0.15 when it's centered poorly. A second test
+holds a correlated bell curve's points within 0.06 standard deviations of their exact values. Another
+checks that weighing the points by the posterior alone, without dividing by the draw's own
+likelihood, fails. Two more check that a pilot widens a scale where the posterior reaches further,
+and never narrows one. On
+the fit itself, one test fits a straight line. Its four checked parameters come within a tenth of a
+standard error of their closed forms. Another checks that the linear unknowns' closed form is exact. The sampler counts how many independent draws its
 weights amount to, and flags a result under 100 as too few to read; it still gives the points. Run
 the tests with `cargo test -p fusionspace-hpr-forensics posterior` and
 `cargo test -p fusionspace-hpr-forensics fit::tests`.
