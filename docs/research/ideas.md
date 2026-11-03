@@ -114,7 +114,7 @@ Placed with [ADR-318][adr-318], which tightens a met target and promotes none of
   24.12. Moves: the OpenRocket cells of `accuracy.collection` and `bias.collection` (11.26% and
   +6.72%), shown as a forecast, never held. *Done when:* the report names the build and its date
   and gives its mean absolute and mean apogee errors with the count and the flights that moved more
-  than 1%, aggregates only, or says that no build is published; [M2.3c3][m2-3c3] reuses the
+  than 1%, aggregates only; while no build is published, it waits; [M2.3c3][m2-3c3] reuses the
   harness on the release. New beside [ADR-212][adr-212], which already holds HPR Sim to the newest
   release published before M2.7: a build before it ships, shown as a forecast, never held.
 - SOON: the wind's error as measured. User: a flyer whose recovery area ends at a road, flying on

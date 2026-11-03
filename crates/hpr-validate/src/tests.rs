@@ -300,9 +300,29 @@ fn no_same_drag_apogee_reads_low_adr_318() {
     // Too low an apogee is the flattering side for a waiver: it tells a flyer the rocket stays
     // under a ceiling it may pass. All nine same-drag flights read high (+0.038% to +1.21%), so the
     // two-sided bounds above would let one swing to reading low unnoticed. None may read low by
-    // more than RocketPy's largest solver movement on the apogee in these flights, 0.00064%
-    // (ADR-289), rounded up (ADR-318).
+    // more than RocketPy's largest solver movement on the metric, 0.000635% between `rtol` 1e-6
+    // and 1e-8, rounded up (ADR-318).
     const MOST_LOW: f64 = -0.00001;
+    // The stop stays outside the reference's own noise: a regenerated fixture whose solver moves
+    // an apogee by more than 0.001% fails here, not silently inside the stop.
+    let fixture = "validation/fixtures/flight/rocketpy-whole-flight.json";
+    let fixture: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(root().join(fixture)).expect("committed"))
+            .expect("the fixture parses");
+    let cases = fixture["cases"]
+        .as_array()
+        .expect("the fixture lists its cases");
+    assert_eq!(cases.len(), 9);
+    for case in cases {
+        let movement = case["solver"]["relative_change_from_loose"]["apogee_agl_m"]
+            .as_f64()
+            .expect("each case records its solver movement on the apogee");
+        assert!(
+            movement.abs() < -MOST_LOW,
+            "{}'s solver moves its apogee {movement}, past the stop {MOST_LOW} (ADR-318)",
+            case["name"]
+        );
+    }
     let report = run_lock(&root(), false).expect("the committed cases run");
     let same_drag: Vec<_> = report
         .comparisons

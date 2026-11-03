@@ -58,7 +58,8 @@ on the rail in calm air too, so this record rules neither out. It changes no mod
 4. Test `same_drag_speeds_and_cause_free_apogees_hold_adr_289s_bounds` holds each case file to these
    bounds, failing on a case file widened back, given a floor or marked not scored, or a new case
    added at the old bound; test `no_same_drag_apogee_reads_low_adr_318` runs the committed cases and
-   fails on an apogee reading low past 0.001%.
+   fails on an apogee reading low past 0.001%, and on a regenerated fixture whose solver moves an
+   apogee by 0.001% or more, which would put the stop inside the reference's own noise.
 
 **Considered and not taken.**
 
@@ -75,7 +76,8 @@ on the rail in calm air too, so this record rules neither out. It changes no mod
 - A change that moves a cause-free apogee up by more than about a quarter of a per cent (0.24 points
   on Valetudo, 0.35 − 0.1123), or any same-drag apogee low past the solver's noise, now fails CI on
   every platform instead of passing.
-- CI reproduces the committed report to 2e-6, or 1e-7 of the value, on macOS, Linux and Windows,
+- CI reproduces the committed report to 2e-6 m or 1e-7 of the value, whichever is larger, on macOS,
+  Linux and Windows,
   well inside the new bound; the RocketPy references are committed, so RocketPy's own run-to-run
   noise doesn't enter CI.
 - What could go wrong: a later model change that is right (for example, a closer rail release) may

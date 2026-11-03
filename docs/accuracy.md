@@ -486,9 +486,11 @@ landing offset is met except where the two codes' models differ.
 
 Each of fifteen numbers per flight must agree within 3% of RocketPy's, with no absolute floor.
 Rail-exit speeds must agree within 0.05%, landing speeds within 0.1%, burnout and top speeds and
-six burnout heights within 0.2%, six apogees within 0.35% with none of nine reading low, rail-exit
-times within 0.5%, and six apogee times within 1% ([the tighter gates][adr-289], [more][adr-294],
-[the speeds][adr-310], [the apogees][adr-318]).
+six burnout heights within 0.2%, six apogees within 0.35%, rail-exit times within 0.5%, and six
+apogee times within 1% ([the tighter gates][adr-289], [more][adr-294], [the speeds][adr-310],
+[the apogees][adr-318]). The six are the flights with no written model difference. No same-drag
+apogee may read below RocketPy's by more than 0.001%, since an apogee too low could wrongly clear
+a waiver; all nine read high today.
 Each case file argues why, for example [Juno III's][juno-case]. A number left unscored has its
 reason in its case file. Two more numbers compare the whole trace, explained after the tables.
 

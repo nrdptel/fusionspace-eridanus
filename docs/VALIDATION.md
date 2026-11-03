@@ -49,12 +49,22 @@ provenance.
   - Every miss is explained in the report.
 
   Since [the harness](decisions-and-roadmap.md#m2-1a) wrote its first report, the code-to-code 3%
-  is a gate in same-drag mode (0.2% on the burnout and largest speeds and, until November 2, 2026, 0.5% on
-  six apogees since [the decision that tightened them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md), 0.2% to 1% on rail-exit and apogee times,
-  burnout heights and traces since [ADR-294, which tightened the times, burnout heights and traces](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md),
-  0.35% on those six apogees, and none of nine reading low, since [ADR-318](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md),
-  and 0.05% and 0.1% on rail-exit and landing speeds since [ADR-310](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0310-the-2026-10-31-review-the-rocketpy-rail-exit-and-landing-speeds-tightened.md)). It stays a target in predicted mode, where neither code's drag is
-  the truth ([predicted mode's decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0023-predicted-mode-each-codes-own-drag-reported.md)): 3% on each relative metric, except 0.1% on the rail-exit and landing speeds and 0.5% on the rail-exit time; the traces keep their absolute targets.
+  is a gate in same-drag mode, where both codes fly the same drag. Later reviews tightened it:
+  - 0.2% on the burnout and largest speeds, and until November 2, 2026 0.5% on the apogee of the
+    six flights with no written model difference
+    ([the decision that tightened them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md));
+  - 0.2% to 1% on the rail-exit and apogee times, burnout heights and traces
+    ([ADR-294, which tightened the times, burnout heights and traces](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md));
+  - 0.05% on the rail-exit speeds and 0.1% on the landing speeds
+    ([ADR-310, which tightened those speeds](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0310-the-2026-10-31-review-the-rocketpy-rail-exit-and-landing-speeds-tightened.md));
+  - 0.35% on those six apogees from then on, and no same-drag apogee more than 0.001% below
+    RocketPy's
+    ([ADR-318, which tightened the apogees](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md)).
+
+  It stays a target in predicted mode, where neither code's drag is the truth
+  ([predicted mode's decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0023-predicted-mode-each-codes-own-drag-reported.md)): 3% on
+  each relative metric, except 0.1% on the rail-exit and landing speeds and 0.5% on the rail-exit
+  time; the traces keep their absolute targets.
   A predicted miss is explained in its case file, and a test pins the set of misses.
 
 ## Operating envelope
@@ -363,10 +373,12 @@ Some gates are tighter ([the decision that tightened them](https://github.com/nr
   largest differences −0.235% in Mach number, Prometheus 2022's, and +0.248% in acceleration,
   Valetudo's).
 - The apogee of the six flights with no written model difference: 0.35% since
-  [ADR-318](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md), 3.1 times the largest difference (+0.1123%, Valetudo's). Juno III, Bella Lui and
+  [ADR-318, which tightened it](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md), 3.1 times the largest difference (+0.1123%, Valetudo's). Juno III, Bella Lui and
   Prometheus 2022 in wind keep 3%, for the model differences their case files measure (the rail
-  release and body lift; Juno III's thin-plate fins too). None of the nine may read low by more
-  than 0.001%, RocketPy's own solver movement rounded up: too low an apogee flatters a waiver.
+  release and body lift; Juno III's thin-plate fins too). All nine read high today (+0.04% to
+  +1.21%), the cautious side, and none may read below RocketPy's by more than 0.001%: too low an
+  apogee could wrongly clear a waiver. The 0.001% is the largest change in RocketPy's apogee when
+  its solver's tolerance is tightened a hundredfold (6.35e-6 of the value), rounded up.
 - Each rail-exit time: 0.5%. In the same six flights, the apogee time 1%, the burnout height 0.2%,
   and the height and speed traces 1% of RocketPy's apogee and 0.5% of its top speed, rounded down to
   0.1 m (0.33 ft) and 0.01 m/s (0.033 ft/s). The three in wind keep 3% on those four, for the same

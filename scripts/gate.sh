@@ -4,10 +4,10 @@
 # reports everything, with three exceptions. A failing fmt stops the run, since `cargo fmt --all`
 # changes the code every later step would check (six full runs of 5.5 to 8 min each, 38 min in
 # all, failed on fmt alone over two weeks of work to 2026-10-08). A failing pages step stops it
-# too (see that step). And once an early step fails
-# (clippy, test, doc, wasm, docs, deny, evidence or site), the slow steps after it (validate,
-# examples, refs, ego, python, and after a code step the site) are skipped: the run already fails, a merge needs a full run that
-# passes, and the gate runs again after the fix. From 2026-10-25 to 11-01, 16.6 of the gate's
+# too (see that step). And once an early step fails (clippy, test, doc, wasm, docs, deny,
+# evidence or site), the slow steps after it (validate, examples, refs, ego, python, and after a
+# code step the site) are skipped: the run already fails, a merge needs a full run that passes,
+# and the gate runs again after the fix. From 2026-10-25 to 11-01, 16.6 of the gate's
 # 94.8 hours were slow steps run after a code step had already failed, in 82 runs. Deny, evidence
 # and site ran after validate until 2026-11-02. From 10-25 to 11-02, site failed 30 of the 149
 # full runs that reached it and validate 1, and validate, examples, refs and python ran 10.1 hours
@@ -62,8 +62,8 @@
 # Step pages: the site's page checks alone (`xtask site --no-build`, about 80 s, single runs on
 # 2026-10-13). It joins any run that includes `site` when the branch changes the pages (docs/, a
 # Markdown file, or xtask's site checks) against origin/main, and runs right after fmt. A failing
-# pages step stops the run as fmt does: the site step, last, would fail the same way after every
-# other step had run (the site step failed in 21 of its 54 runs from 2026-10-12 to 10-13, about 9
+# pages step stops the run as fmt does: the site step would fail the same way after the code
+# steps had run (the site step failed in 21 of its 54 runs from 2026-10-12 to 10-13, about 9
 # of them on page checks this step runs). Name it to run it alone (`scripts/gate.sh pages`), or set
 # GATE_PAGES=0 to leave it out.
 # Step site: `xtask site --locked --cache`. It lays out and measures again only the pages whose
@@ -379,7 +379,7 @@ for step in $STEPS; do
       break
     fi
     if [ "$step" = pages ] && [ "$STEPS" != pages ]; then
-      echo "    fix the pages, then the gate again: the site step would fail the same way, last"
+      echo "    fix the pages, then the gate again: the site step would fail the same way"
       break
     fi
   fi
