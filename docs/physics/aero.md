@@ -166,7 +166,7 @@ Sources:
 - **[N6652]** F. J. Regan. *Roll Damping Moment Measurements for the Basic Finner at Subsonic and
   Supersonic Speeds*, NAVORD Report 6652, US Naval Ordnance Laboratory, 1964 (DTIC AD0600975).
 - **[DREV]** A. D. Dupuis and W. Hathaway. *Aeroballistic Range Tests of the Basic Finner Reference
-  Projectile at Supersonic Velocities*, DREV-TM-9703, Defence Research Establishment Valcartier, 1997
+  Projectile at Supersonic Velocities*, DREV-TM-9703, DREV (Valcartier, Canada), 1997
   (DTIC ADA636861).
 - **[S61]** W. E. Stoney. *Collection of Zero-Lift Drag Data on Bodies of Revolution from
   Free-Flight Investigations*, NASA TR R-100, 1961 (`nasa-tr-r-100-stoney-1961`).
