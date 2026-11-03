@@ -4,7 +4,7 @@ This note sizes how much a fast break and a cold pin raise unfilled nylon 6/6's 
 load "at the high end of their strength" in M6.7's charge sizing ([roadmap](../ROADMAP.md); issue
 [#857](https://github.com/nrdptel/fusionspace-eridanus/issues/857), pin strength), and which side a sized charge errs
 on. It builds on [shear-pin-strength](shear-pin-strength.md) §2, §5 and §6, whose rate factor (+0% to +20%) and cold
-factor (×1.16 at 0 °C) were tensile-yield readings with no strain rate (it now cites this note), and doesn't repeat it.
+factor (×1.16 at 0 °C) were tensile-yield readings with no strain rate (it now cites this note), and skips their data.
 Read 2026-11-03: two split Hopkinson bar studies, one torsion study, DuPont's design-guide plots and table, a BASF
 data sheet, a Sandia abstract and Fetter's ground tests. **Inference** marks this note's own reading. No source breaks
 a pin, shears nylon faster than 0.2 /s, or loads it fast and cold together. Trust the measured ratios to about ±5%,

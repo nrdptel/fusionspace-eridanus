@@ -8,7 +8,7 @@ ground-test log (M6.8), and the shear-pin idea in [pad and recovery ideas](ideas
 tools](suite-field-tools.md) (Fetter's ground tests). Read 2026-10-17 (rate and cold 2026-11-03, from [19]): resin
 makers' data sheets, thread-standard tables, one instrumented pin test series, three builders' pull tests, one screw
 maker's catalog and two calculators. **Inference** marks this note's own reading. Trust the areas (exact) and the
-printed values; the high end is an inference, ±20% at best.
+printed values; the high end is an inference from few tests, ±20% at best, stacked factors only to their sign.
 
 **In short.**
 - **Fetter's pin force is a low-to-middle value, not a high end.** His Table 6-1 multiplies nylon 6/6's lowest
@@ -21,8 +21,9 @@ printed values; the high end is an inference, ±20% at best.
   9,600 psi × minor area. Builders' pulls (forum reports, weak evidence) read 28.5 to 35 lbf for 2-56 in a snug
   tapped joint, 56 lbf for 4-40 and 116 lbf for 6-32. The measured high end: about 35 / 56 / 116 lbf.
 - **No source measures moisture, temperature or loading rate on a pin.** Resin data says a damp pin is weaker (5% to
-  33%), a fast or cold one stronger (×1.27 to ×1.7 at a charge's rate, to ×1.86 at −40 °C; [19]). Dry and fast on the
-  pitch area (§6): 65 to 78 / 108 to 130 / 163 to 196 lbf from 0 °C to −30 °C, before heating and notch brittleness.
+  33%), a fast or cold one stronger (×1.27 to ×1.7 at a charge's rate; at −40 °C ×1.86 conditioned, ×1.37 dry; [19]).
+  Dry on the pitch area (§6) at DuPont's top rate: 65 to 78 / 108 to 130 / 163 to 196 lbf from 0 °C to −30 °C; at 0 °C
+  on the ×1.7 compression fit, 91 / 151 / 227 lbf. Heating and notch brittleness may lower a real break.
 
 ## 1. What Fetter 2025 uses (Rev 1.2, 23 Feb 2025; printed page numbers, at the head of each page)
 
@@ -47,9 +48,8 @@ printed values; the high end is an inference, ±20% at best.
 | Proto Labs machining sheet [5] | nylon 6/6 | 10,000 to 10,600 psi (condition unstated) | not given |
 | Micro Plastics screw catalog [9], p. 167 | molded nylon 6/6 | 9,600 psi | not given |
 
-- **Inference:** Feretich's 9,600 to 10,500 psi band is exactly DuPont's dry values for Zytel 101 and 105. The
-  highest value found is 10,600 psi [5]. Current resin sheets (Zytel 101L [4], Vydyne 21SPC [8]) use ISO tests and
-  give no shear strength.
+- **Inference:** Feretich's 9,600 to 10,500 psi band is exactly DuPont's dry values for Zytel 101 and 105. The highest
+  value found is 10,600 psi [5]. Current sheets (Zytel 101L [4], Vydyne 21SPC [8]) use ISO tests, with no shear.
 - D732 shears sheets, plates or molded shapes with a punch and divides by punch circumference × thickness [16]. A
   threaded pin adds a notched root, bending in any hole clearance and a molded skin; ASTM's scope warns geometry and
   rate can move the result strongly. **Inference:** data-sheet values bound the resin, not the pin.
@@ -66,8 +66,7 @@ Major and minors from an ASME B1.1-1989 chart [10]; pitch diameters are the 2B b
 from [12]. Fetter's minors are class 3A; a common class 2A screw has 1.6% to 2.0% less root area.
 
 - **Feretich's rule** [2]: the minor area gives the minimum force; the pitch area the maximum, because a close fit
-  forces the cut through part of the thread. He also warns against tapping both tube and coupler, which preloads
-  the screw.
+  forces the cut through part of the thread. He warns against tapping both tube and coupler (it preloads the screw).
 - **Inference:** any plane square to a single-start thread's axis cuts the same area, the mean of πr² over one
   pitch: 0.00447 / 0.00744 / 0.01124 in² for the basic UN profile, 3% above the pitch area. So the pitch area is a
   fair upper area for a square cut; a loose fit lets the pin bend and break along the root (the minor area).
@@ -117,13 +116,14 @@ hot water and carry about 3% to 4% moisture against about 0.5% as molded (p. 168
 | Snug tapped fiberglass against Damerau's fit | higher | +33% to +64% per pin, 2-56 | one builder [14] |
 | Pitch-area cut against minor-area cut | higher | +35% to +39% by area | thread geometry [2], [10] |
 | Cold: 0 °C / −10 °C dry; −40 °C | higher | ×1.16 / ×1.22 dry yield; at −40 °C, ×1.86 conditioned yield, ×1.37 dry strength | Figs. 3, 4, Table 7 [3]; [19] §3 |
-| Fast: a charge's 22 to 1,250 /s (**Inference**) | higher | ×1.27 to ×1.7 (yield; ×1.35 at 50% RH); ×1.95, one point near 2,000 /s | DuPont Fig. 5, Hopkinson bars, [19] §1, §2 |
+| Fast: a charge's 22 to 1,250 /s (**Inference**) | higher | ×1.27 (tension, measured; ×1.35 at 50% RH) to ×1.7 (compression fit at 100 /s, interpolated); ×1.95, one point near 2,000 /s | DuPont Fig. 5, Hopkinson bars, [19] §1, §2 |
 | Moisture: 50% RH against dry as molded | lower | −5% (shear, Zytel 105) to −33% (yield) | [3], [4], [8] |
 | Hot pad: 50 °C against 23 °C | lower | ×0.75 to ×0.79 (yield) | Fig. 4 [3] |
 | Soft (cardboard) tube | lower joint force | −47% per pin, one pull each; the #4 tore it | Damerau [1] |
 
-- Rows but rate are DuPont's tensile-yield plots (±1 to ±3 MPa). Shear yield tracks tensile yield at slow rates ([19]
-  §4), unshown above 0.2 /s; the one conditioned shear pair (Zytel 105, −5%) falls far less than yield (−23% to −33%).
+- The temperature and moisture rows are DuPont's tensile-yield plots (±1 to ±3 MPa), but for −40 °C's ×1.37, Table 7's
+  tensile strength. Shear yield tracks tensile yield at slow rates ([19] §4), unshown above 0.2 /s; the one
+  conditioned shear pair (Zytel 105, −5%) falls far less than yield (−23% to −33%).
 - A pin at apogee is cold only if it has cooled: **Inference:** in a closed airframe a pin may sit near pad
   temperature through a short flight. No source measures a pin's temperature in flight.
 - PA66 takes about 2.5% water at 50% RH and 8.5% saturated, slowly (125 days for a 1.5 mm plate at 50% RH, [3]
@@ -138,13 +138,13 @@ hot water and carry about 3% to 4% moisture against about 0.5% as molded (p. 168
 | Measured high (one builder each) | 35 lbf / 156 N | 56 lbf / 249 N | 116 lbf / 516 N |
 | Feretich's max: 10,500 psi × pitch | 46 lbf / 205 N | 76 lbf / 338 N | 114 lbf / 507 N |
 | Dry, 0 °C, fast, Eyring / multiplied: 14,940 / 15,620 psi | 65 / 68 lbf, 289 / 302 N | 108 / 113 lbf, 479 / 501 N | 163 / 170 lbf, 723 / 756 N |
-| Dry, −30 °C, fast, Eyring / multiplied: 16,550 / 18,040 psi | 72 / 78 lbf, 320 / 349 N | 119 / 130 lbf, 531 / 579 N | 180 / 196 lbf, 801 / 873 N |
-| Dry, 0 °C, compression fit at 100 /s: 20,900 psi | 91 lbf / 404 N | 151 lbf / 670 N | 227 lbf / 1,012 N |
+| Dry, −30 °C (yield extrapolated, **Inference**), fast, Eyring / multiplied: 16,550 / 18,040 psi | 72 / 78 lbf, 320 / 349 N | 119 / 130 lbf, 531 / 579 N | 180 / 196 lbf, 801 / 873 N |
+| Dry, 0 °C, compression fit at 100 /s, multiplied only (rod's moisture unstated): 20,900 psi | 91 lbf / 404 N | 151 lbf / 670 N | 227 lbf / 1,012 N |
 
-Check for 2-56: π/4 × 0.0744² = 0.004347 in²; × 10,500 psi = 45.6 lbf, which Feretich rounds to 46. Fast rows ([19]
-§6): 10,600 psi × 1.16 (0 °C) or 1.34 (−30 °C) × 1.27 (top rate) or 1.70 (fit), Eyring scaling the gain by T/296. The
-old ×1.2 stack (14,750 psi; 64 / 106 / 160 lbf) erred low by 1% to 42%. Two unbounded causes pull a real break below
-these yield forces: adiabatic softening, and notch brittleness in a cold, conditioned pin ([19] §3, §6).
+Check for 2-56: π/4 × 0.0744² = 0.004347 in²; × 10,500 psi = 45.6 lbf, Feretich's 46. Fast rows ([19] §6): 10,600 psi
+× 1.16 (0 °C) or 1.34 (−30 °C) × 1.27 (top rate) or 1.70 (fit), Eyring scaling the gain by T/296. The old ×1.2 stack
+(14,750 psi; 64 / 106 / 160 lbf) erred low by 1% to 42%. **Inference:** two causes may break a pin below these yield
+forces, by unbounded amounts: adiabatic softening, and notch brittleness in a cold, conditioned pin ([19] §3, §6).
 
 ## What this suggests
 
