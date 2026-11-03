@@ -10,7 +10,7 @@
 # button, and its path stays steeper (ADR-025). Freed where hpr frees it, RocketPy's drifts are
 # 551.2 and 630.2 m, within 0.5% of hpr's (`wind_response.py`). Against RocketPy as released
 # they missed by 3.7% and were not scored (ADR-025); the corrected reference (ADR-026) scores them.
-# The burnout and largest speeds are held to 0.2% and the apogee to 0.5% (ADR-289), the rail-exit
+# The burnout and largest speeds are held to 0.2% (ADR-289) and the apogee to 0.35% (ADR-318), the rail-exit
 # speed to 0.05% and the landing speed to 0.1% (ADR-310), and the rail-exit time to 0.5%, the
 # apogee time to 1%, the burnout height to 0.2% and the two traces to 1% and 0.5% of their scales
 # (ADR-294), and the largest Mach number and the largest acceleration, under power and over the
@@ -30,7 +30,7 @@ design = "rocketpy-juno-iii"
 configuration = "example"
 
 [metrics.apogee_agl_m]
-relative = 0.005
+relative = 0.0035
 
 [metrics.apogee_time_s]
 relative = 0.01

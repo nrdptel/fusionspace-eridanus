@@ -1,5 +1,5 @@
 """RocketPy's Calisto, flown from Python by `examples/calisto.py`: within the suite's own bound of
-RocketPy (M2.1's 3%; since ADR-289 0.2% on the burnout and largest speeds and 0.5% on the apogee,
+RocketPy (M2.1's 3%; since ADR-289 0.2% on the burnout and largest speeds, since ADR-318 0.35% on the apogee,
 since ADR-294 0.5% on the rail-exit time, 1% on the apogee time and 0.2% on the burnout height, since
 ADR-303 1% on the largest Mach number and acceleration, and since ADR-310 0.05% on the rail-exit speed
 and 0.1% on the landing speed) on every metric

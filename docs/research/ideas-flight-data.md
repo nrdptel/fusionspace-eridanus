@@ -140,6 +140,25 @@ From the 2026-10-24 planning review ([ADR-289][adr-289]):
   with a known temperature swing gets the range derived by hand; a date with no time is refused,
   with the reason, when the file doesn't cover those hours.
 
+## From the 2026-10-31 planning review ([ADR-310][adr-310], [ADR-311][adr-311])
+
+- SOON: a second flight on the first flight's drag. User: a Level 3 flyer planning a second flight
+  of a rocket with one good log. Workflow: fit the drag on the first log ([M7.3][m7-3]), then
+  `hpr sim` the next flight with that fit, testing whether per-flight drag shrinks
+  `bias.collection` (+7.76%). Moves: new row `accuracy.second-flight`. *Done when:* the row gives the count of designs with two
+  logged flights and the error with and without the fit; a synthetic pair pins the fit; the row
+  says so plainly where the count is too small to mean anything.
+- SOON: the intervals' width, held. User: a flyer quoting a log's apogee with its interval. A noisier
+  reader, once refitted, passes the coverage test ([ADR-308][adr-308]) on wider intervals. Workflow:
+  the synthetic flights' report records each reading's mean width. Moves: new rows `readings.width`,
+  lower better, and `readings.inside-90`, nearer 90% better. *Done when:* the report prints each reading's mean width on sets
+  A and B, `synthetic --check` fails when one grows more than 10% over its committed figure, and a
+  probe adding noise to one reading shows that the width check fails while coverage passes.
+- SOON: descent rates against the log. User: a flyer sizing a main or a drift budget. Workflow: the
+  fixture report compares each tool's descent rate under the main with the log's. Moves: new row
+  `accuracy.descent`, lower better; too gentle is the flattering side. *Done when:* signed and absolute errors with their counts for both simulators, aggregates only,
+  and a test pinning which way too gentle reads.
+
 [m7-1]: ../decisions-and-roadmap.md#m7-1
 [m7-4]: ../decisions-and-roadmap.md#m7-4
 [m7-2]: ../decisions-and-roadmap.md#m7-2
@@ -155,3 +174,7 @@ From the 2026-10-24 planning review ([ADR-289][adr-289]):
 [fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md
 [real-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md
 [adr-005]: ../decisions/0005-solid-motors-statistics-consumption-grains-file.md
+[adr-310]: ../decisions/0310-the-2026-10-31-review-the-rocketpy-rail-exit-and-landing-speeds-tightened.md
+[adr-311]: ../decisions/0311-the-2026-10-31-review-every-flight-openrocket-flies.md
+[m7-3]: ../decisions-and-roadmap.md#m7-3
+[adr-308]: ../decisions/0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md

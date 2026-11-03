@@ -62,7 +62,7 @@ the checks fetch into. Its hash lets every check confirm it reads the same bytes
 
 <!-- evidence: report; written by `cargo xtask evidence` from validation/evidence.toml; do not edit -->
 
-The register holds 38 rows, as of October 31, 2026.
+The register holds 38 rows, as of November 2, 2026.
 
 **By kind.** Each surface's rows, counted by the kind of evidence behind them now:
 
@@ -113,7 +113,7 @@ The register holds 38 rows, as of October 31, 2026.
 | <a id="g19"></a>G19 | Aerodynamics | RASAero II's exported tables are flown from one real export, to Mach 0.75. **Not checked:** a real export flown faster, checked by unit tests alone; past the export's last angle, and at 0° faster than Mach 1.3, the values are assumed. | spec | real | [#672](https://github.com/nrdptel/fusionspace-eridanus/issues/672) | 2026-10-17 |
 | <a id="g20"></a>G20 | Flight models | A pushed part leaves through the end the simulator assumes, from the way its body points as it falls. **Not checked:** a measured deployment; the directions are assumptions, not measurements, and for a drogue between the booster and the avionics bay a guess. | reasoning | real | [#673](https://github.com/nrdptel/fusionspace-eridanus/issues/673) | 2026-10-17 |
 | <a id="g21"></a>G21 | Accuracy against real flights | Four of the seven public altimeters are taken as barometric, and the designs' fin edges are guesses. **Not checked:** each of the four altimeters' sensor, none of them calibrated; each design's fin edges. | reasoning | real | [#674](https://github.com/nrdptel/fusionspace-eridanus/issues/674) | 2026-10-17 |
-| <a id="g22"></a>G22 | Fin flutter | Martin's flutter criterion (NACA TN 4197) places a fin against the line his missile and wind-tunnel wings drew. **Not checked:** a hobby rocket's flutter, against which nothing here is checked; that the result errs on the safe side, which nothing shows; a fin glued to a tube, less stiff at its root than Martin's clamped wings. | spec | real | [#675](https://github.com/nrdptel/fusionspace-eridanus/issues/675) | 2026-10-17 |
+| <a id="g22"></a>G22 | Fin flutter | Martin's flutter criterion (NACA TN 4197) places a fin against the line his missile and wind-tunnel wings drew. **Not checked:** a hobby rocket's flutter, but for one sighting of inferred fin material; that it errs safe, which nothing shows; a fin glued to a tube, less stiff at its root than Martin's wings (a plate with its root restraint cut read 1.10); at least four kinds that fluttered below HPR Sim's speed in tests: plies coupling bending to twist (1.13 to 1.42 times the onset), built-up wings (up to 1.47), stiff inboard with a soft tip and trailing edge (1.05 to 1.43 or more), solid swept fins (1.17 to 1.42, or up to 1.80 on another reading), none a bound. | spec | real | [#675](https://github.com/nrdptel/fusionspace-eridanus/issues/675) | 2026-10-17 |
 | <a id="g23"></a>G23 | The motor finder | The motor finder is replayed on ThrustCurve.org's own searches of three makers, recorded unchanged on October 29, 2026, each record the same, field for field, as in ThrustCurve.org's raw answer of October 28, 2026, and each solid motor's as in the snapshot `hpr-motor` compiles from it. **Not checked:** the tests of fetching one motor on demand, which replay invented answers for cases the real records don't hold; and the in-stock list, recorded on October 1, four weeks before the searches. | real | real | none | 2026-10-29 |
 | <a id="g24"></a>G24 | Accuracy against real flights | The simulation's apogees miss seven public real flights by 6.06% on average and 60 private ones by 12.07%, both outside the 5% target. **Not checked:** a flight held out from every choice of model and every fit, predicted before its log is read. | calibration | real | [#676](https://github.com/nrdptel/fusionspace-eridanus/issues/676) | 2026-10-17 |
 | <a id="g25"></a>G25 | Design export | The `.ork` files `hpr convert` writes are checked by opening them in OpenRocket. **Not checked:** whether RockSim opens them. | code to code | real | [#677](https://github.com/nrdptel/fusionspace-eridanus/issues/677) | 2026-10-17 |
@@ -126,17 +126,12 @@ The register holds 38 rows, as of October 31, 2026.
 | <a id="g32"></a>G32 | The synthetic flights | The synthetic loggers' noise follows the makers' datasheets and the noise measured on a few public logs, each drawn term tested on its own; the accelerometer's residual bias, the GNSS loop's range, damping and noise, the dropouts, the port's place, the Bosch-class part on two profiles, PerfectFlite's offset and one bench sensor's slow noise on every barometer are assumed, and the MS5607's error read as a gain is inferred. **Not checked:** a synthetic log as a whole against real logs of the same family: the pad's noise and its correlation, and the ejection pulses. | reasoning | real | [#725](https://github.com/nrdptel/fusionspace-eridanus/issues/725) | 2026-10-17 |
 | <a id="g33"></a>G33 | The smoother | At burnout, the top speed, apogee and a drawn moment, the smoother's 90% intervals on height and vertical speed hold between 94.3% and 99.4% of the synthetic flights' truths in the three sets' cells, and two logger cells 89.2% and 89.7%, on the 171, 820 and 845 flights smoothed of three sets of 200, 1,000 and 1,000, its rules set with those sets in view; the same flights' logs cut at liftoff, on an assumed pad, hold in every cell too (94.9% to 98.7% overall on A and B, on the true zero). **Not checked:** a real flight's smoothed height and speed against a truth apart from the log, such as a second logger's or a ground tracker's. | calibration | real | [#981](https://github.com/nrdptel/fusionspace-eridanus/issues/981) | 2026-10-31 |
 | <a id="g34"></a>G34 | Flight-log readings' 90% intervals | Twelve readings state 90% intervals, and a floor a lower end, fitted on 2,000 synthetic flights of their own. On sets A and B each passes the coverage test or its lower tail (the top speed below its transonic mark; a clipped top near an imposed clip); every probe fails. The misses gather: the height's, the top speed's and the descent rates' gather on days more than 10 K from standard, a warm day's above the interval (#1055, #1061); the times lean by logger (#1056, #1062), and the top acceleration most (#1070). **Not checked:** a real flight's readings against a truth taken apart from the log, such as a second logger's or a ground tracker's record of the same flight. | calibration | real | [#1052](https://github.com/nrdptel/fusionspace-eridanus/issues/1052) | 2026-10-31 |
-| <a id="g35"></a>G35 | Two logs of one flight on one timeline | A shared liftoff recovers the clock offset between two logs of one flight, within a bound that held on the synthetic flights. On one real pair, RocketPy's Prometheus flight, it lies about 0.08 s from what the boards' GPS time gives, where an offset of zero would miss by 0.13 s. **Not checked:** a real pair whose clocks differ by more than a fraction of a second; the Prometheus logs both start at the boost, and the GPS reference has no stated error of its own. | calibration | real | [#1088](https://github.com/nrdptel/fusionspace-eridanus/issues/1088) | none |
-| <a id="g36"></a>G36 | One logger to a stage on one timeline | A shared liftoff lines up a logger in each stage of a staged flight, within a bound that held on 135 simulated two-stage flights. **Not checked:** a real flight's log from each stage, where a booster's board may read the pad's shock and the separation otherwise. | calibration | real | [#1084](https://github.com/nrdptel/fusionspace-eridanus/issues/1084) | none |
-| <a id="g37"></a>G37 | Ghost files | Each of the 22 real flight logs in RocketPy's repository with an altitude or a GNSS track gives a ghost file as JSON, CZML and glTF, which outside readers read back and hold to each other. **Not checked:** a person looking at one in Cesium or a modeling tool: every check is of the numbers; east and north against the real logs' fixes, only the invented cases and a hand check on three. | real | real | none | none |
-| <a id="g38"></a>G38 | The least-squares fit | Each of the drag scale, impulse scale, wind on logs with a track, and mass has a 90% interval that passes its test on two sets of synthetic flights, seen while its model was chosen. **Not checked:** a real flight's fit against what was measured apart from the log: a weighed mass, a static test's impulse, a measured wind. | calibration | real | [#1104](https://github.com/nrdptel/fusionspace-eridanus/issues/1104) | none |
+| <a id="g35"></a>G35 | Two logs of one flight on one timeline | A shared liftoff recovers the clock offset between two logs of one flight, within a bound that held on the synthetic flights. On one real pair, RocketPy's Prometheus flight, it lies about 0.08 s from what the boards' GPS time gives, where an offset of zero would miss by 0.13 s. **Not checked:** a real pair whose clocks differ by more than a fraction of a second; the Prometheus logs both start at the boost, and the GPS reference has no stated error of its own. | calibration | real | [#1088](https://github.com/nrdptel/fusionspace-eridanus/issues/1088) | 2026-11-02 |
+| <a id="g36"></a>G36 | One logger to a stage on one timeline | A shared liftoff lines up a logger in each stage of a staged flight, within a bound that held on 135 simulated two-stage flights. **Not checked:** a real flight's log from each stage, where a booster's board may read the pad's shock and the separation otherwise. | calibration | real | [#1084](https://github.com/nrdptel/fusionspace-eridanus/issues/1084) | 2026-11-02 |
+| <a id="g37"></a>G37 | Ghost files | Each of the 22 real flight logs in RocketPy's repository with an altitude or a GNSS track gives a ghost file as JSON, CZML and glTF, which outside readers read back and hold to each other. **Not checked:** a person looking at one in Cesium or a modeling tool: every check is of the numbers; east and north against the real logs' fixes, only the invented cases and a hand check on three. | real | real | none | 2026-11-02 |
+| <a id="g38"></a>G38 | The least-squares fit | Each of the drag scale, impulse scale, wind on logs with a track, and mass has a 90% interval that passes its test on two sets of synthetic flights, seen while its model was chosen. **Not checked:** a real flight's fit against what was measured apart from the log: a weighed mass, a static test's impulse, a measured wind. | calibration | real | [#1104](https://github.com/nrdptel/fusionspace-eridanus/issues/1104) | 2026-11-02 |
 
-**Due a search.** A row is due one when it has none yet, or its last was more than 30 days before October 31, 2026:
-
-- [G35](#g35)
-- [G36](#g36)
-- [G37](#g37)
-- [G38](#g38)
+**Due a search.** A row is due one when it has none yet, or its last was more than 30 days before November 2, 2026: none.
 
 **Searches so far.**
 
@@ -373,6 +368,30 @@ The register holds 38 rows, as of October 31, 2026.
   - web searches for a hobby rocket's apogee measured by radar or optical tracking
 
   It found one flight on June 7, 2026 with two barometric loggers and two GPS receivers, each with its own record of the peak and times. It has no license, so it is cited on the issue and cached under refs/samples-search/G33 only. No radar or optical record of a flight.
+- [G35](#g35), November 2, 2026, looked at:
+  - AerospaceNU/rocket-flight-data's October 31, 2026 flight, added on November 2 and 3, 2026 (commit c939c32b, GPL-3.0)
+  - GitHub code search for `extension:pf2` (250 hits in 31 repositories)
+  - rlhatcher/rocketry-files (MIT, commit 2ddcaf88)
+
+  It found a real pair whose clocks differ by about 4,028 s. On the October 31, 2026 flight two of the club's boards count from their own power-on: one logs GPS time beside its clock, the other has no GPS. Liftoff (over 3 g) falls at 5,331.6 s and 1,303.6 s on the two clocks, and each board's peak about 19.7 s after it. It is GPL-3.0 data, so it is cached under refs/samples-search/G35 only, to report statistics and digests. The pairs in the `.pf2` hits and rlhatcher/rocketry-files both start at the boost.
+- [G36](#g36), November 2, 2026, looked at:
+  - GitHub code search for `extension:pf2` (250 hits in 31 repositories) and `extension:telem` (17 hits, every rocketry repository already named in the project's notes)
+  - GitHub code search for CSV files with booster and sustainer words
+  - GitHub repositories pushed since October 30, 2026 with rocket words
+  - a web search for a two-stage flight's booster log
+
+  It found no log from each stage of one flight. No `.pf2` or telemetry file is named for a booster or sustainer, and the CSV hits are not rocket logs.
+- [G37](#g37), November 2, 2026, looked at:
+  - GitHub code search for CZML files with rocket words (316 hits) and with apogee or altimeter (none)
+  - GitHub code search for glTF binaries of a rocket's flight path (none)
+
+  It found no other program's CZML or glTF of a real rocket flight to set beside a ghost file. The CZML hits are Cesium demos and satellite orbits. A look in Cesium still needs a person.
+- [G38](#g38), November 2, 2026, looked at:
+  - NASA Student Launch post-launch reports, by a web search
+  - Florida State University Panama City's 2026 post-launch report (no terms stated)
+  - Zenodo, Dryad and Hugging Face for rocket flight data
+
+  It found a lead with no log. The Florida State report states the launch-ready vehicle's final mass, its sections' weights, the wind speed and a TeleMetrum's apogee, but publishes no log or motor test. It is cited only, cached under refs/samples-search/G38. The data sites hold no flight log with a weighed mass, a static test or a measured wind.
 
 **Real samples.** Each file a real row reads, kept under `refs/`, with its SHA-256 and the test that reads it:
 
