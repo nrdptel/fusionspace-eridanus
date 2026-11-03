@@ -796,14 +796,12 @@ mod tests {
     /// link (ADR-315, amended 2026-11-03), and keeps the API's caution about stock and price.
     #[test]
     fn the_credit_names_the_site_and_cc_by() {
-        assert!(
-            ATTRIBUTION
-                .starts_with("Motor stock data from motor.fusionspace.co, licensed CC BY 4.0 ")
-        );
-        assert!(ATTRIBUTION.contains("(https://creativecommons.org/licenses/by/4.0/)"));
-        assert!(
-            ATTRIBUTION
-                .ends_with("Check stock and price on the vendor's own page before relying on them")
+        assert_eq!(
+            ATTRIBUTION,
+            "Motor stock data from motor.fusionspace.co, licensed CC BY 4.0 \
+             (https://creativecommons.org/licenses/by/4.0/). It is aggregated from public vendor \
+             listings and ThrustCurve.org, provided as is, with no warranty. Check stock and price \
+             on the vendor's own page before relying on them"
         );
         assert!(!ATTRIBUTION.contains("permission"));
     }
