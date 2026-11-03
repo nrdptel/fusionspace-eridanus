@@ -116,7 +116,7 @@ hot water and carry about 3% to 4% moisture against about 0.5% as molded (p. 168
 | Snug tapped fiberglass against Damerau's fit | higher | +33% to +64% per pin, 2-56 | one builder [14] |
 | Pitch-area cut against minor-area cut | higher | +35% to +39% by area | thread geometry [2], [10] |
 | Cold: 0 °C / −10 °C dry; −40 °C | higher | ×1.16 / ×1.22 dry yield; at −40 °C, ×1.86 conditioned yield, ×1.37 dry strength | Figs. 3, 4, Table 7 [3]; [19] §3 |
-| Fast: a charge's 22 to 1,250 /s (**Inference**) | higher | ×1.27 (tension, measured; ×1.35 at 50% RH) to ×1.7 (compression fit at 100 /s, interpolated); ×1.95, one disputed point near 2,000 /s (Xu: ×1.29 at 1,100 /s) | DuPont Fig. 5, Hopkinson bars, [19] §1, §2 |
+| Fast: a charge's 22 to 1,250 /s (**Inference**) | higher | ×1.27 (tension, measured; ×1.35 at 50% RH) to ×1.7 (compression fit at 100 /s, interpolated); ×1.95, one disputed point near 2,000 /s (Xu: ×1.40 to ×1.45 there; ×1.29 at 1,100 /s) | DuPont Fig. 5, Hopkinson bars, [19] §1, §2 |
 | Moisture: 50% RH against dry as molded | lower | −5% (shear, Zytel 105) to −33% (yield) | [3], [4], [8] |
 | Hot pad: 50 °C against 23 °C | lower | ×0.75 to ×0.79 (yield) | Fig. 4 [3] |
 | Soft (cardboard) tube | lower joint force | −47% per pin, one pull each; the #4 tore it | Damerau [1] |
