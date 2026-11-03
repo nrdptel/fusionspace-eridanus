@@ -1,15 +1,17 @@
 # Step, gap, hole and head drag from Mach 0.8 to 1.2
 
+Re-checked 2026-11-03: 20 claims corrected.
+
 [Excrescence drag](excrescence-drag.md) and [discrete steps](discrete-steps-drag.md) sized the small features of an
 airframe at 150–300 m/s and estimated their drag faster than sound from flights at Mach 1.25–2. **In short: measured
 transonic data put these features at about 1.2–1.3 times their 300 m/s drag at Mach 1.0 and 1.6–1.9 times at Mach 1.1
 (range 1.2–2.2), which confirms the earlier estimate of 3–4% of C_D (98 mm) and 6–9% (54 mm) at Mach 1.1.** Forward
-steps rise 1.4–1.6 times by Mach 1.1, rearward steps 1.6–3.4 times; grooves and ports barely change; heads are
+steps rise 1.4–1.6 times by Mach 1.1, rearward steps 1.7–3.4 times; grooves hold and ports fall a little; heads are
 unmeasured between Mach 0.8 and 1.4. The rocket's own drag rises 1.36–1.51 times (flat base) or 1.7–1.9 (boattail), so
-at Mach 1.1 the features are 2.1–2.8% of C_D on the invented 98 mm L2 rocket and 4.7–6.3% on the 54 mm one with a flat
+at Mach 1.1 the features are 2.2–2.8% of C_D on the invented 98 mm L2 rocket and 4.7–6.3% on the 54 mm one with a flat
 base, against 2.0% and 4.4% subsonic: apogee a further 0–0.5% and 0.1–1.1% lower, up to 5% and 12% of the +8.73% bias.
-RAE's wall-variable data reach down to HPR heights (h+ 57–320). How far to trust it: the transonic Mach shape was
-measured at one height per step, near h+ 1,200 for forward steps, and the rearward factor's sources disagree by 2 times.
+RAE's forward data reach HPR heights (h+ 57–320). How far to trust it: the transonic Mach shape was measured at one
+height per step, near h+ 1,200 for forward steps, and the rearward factor's sources disagree by 2 times.
 "Inference" marks this note's own readings and arithmetic.
 
 ## 1. What the RAE balance tests measured, and where they stop
@@ -21,27 +23,26 @@ measured at one height per step, near h+ 1,200 for forward steps, and the rearwa
 - **The wall-variable law (measured).** For steps small against δ, C_D/c_f on h times the span is linear in log h+,
   and the step tops sat in the log region in every test [T1] p. 6. Forward steps rise with Mach to about 1.4, then
   hold; rearward steps peak at about 1.4 and fall [T1] pp. 6–7. u_τ and ν in h+ are taken at the wall [T1] p. 6.
-- **The fits.** C_D/c_f = C log10 h+ + D with, for forward steps, C 60 and D −70 at Mach 0.8, C 80 and D −65 at 1.4;
-  for rearward steps, C 20 and D −13 at 0.8, C 48 and D −18 at 1.4 [T1] p. 9. At h+ 1,200 these give 115 and 181,
+- **The fits.** C_D/c_f = C log10 h+ + D with, for forward steps, C 60 and D −70 at Mach 0.8, C 80 and D −65 at 1.4, 2.2
+  and 2.8 alike; rearward, C 20 and D −13 at 0.8, C 48 and D −18 at 1.4 [T1] p. 9. At h+ 1,200 these give 115 and 181,
   where the AGARDograph plots RAE's points at 113 and 180, so the log is base 10 (**Inference**, [T2] fig. 4.24). The
   report's own constants confirm the line discrete-steps-drag read from an Airbus slide (59.6 and −69; 77.8 and −58).
 - **Grooves across the flow.** On plan area, C_D/c_f ≈ 2 log10(u_τ l/ν) − 2 for 10 < u_τ l/ν < 1,000, at all five
   fit Mach numbers, widths 1–3 times the depth [T1] p. 9: no Mach effect.
 - **Short cylinders** drag about as shallow holes do, both estimated from forward and rearward step faces with a sweep
   factor [T1] pp. 10, 13; this note treats screw and rivet heads that way.
-- **The range of h+ (Inference, read ±10%).** Forward steps: from h+ about 55 subsonic and 13 supersonic to about
-  1,500 [T2] p. 78 fig. 4.23, [T1] fig. 6. The lowest supersonic points are at Mach 2.2–2.4; the Mach 1.4 points start
-  near h+ 80, and using the low ones at 1.4 rests on [T1] p. 6's statement that the parameter does not change with
-  Mach above 1.4. Rearward steps: about h+ 80–1,200 at Mach 0.8 and 55–1,000 at 1.4 [T2] p. 83 fig. 4.28.
+- **The range of h+ (Inference, read ±10%).** Forward steps: from h+ about 55 subsonic and 13 supersonic to about 1,500
+  [T2] p. 78 fig. 4.23, [T1] fig. 6. The lowest supersonic points are at Mach 2.2–2.4; the lowest Mach 1.4 point is near
+  h+ 42, the next near 83, both 10–20% under the shared fit (§4). Rearward steps: about h+ 80–1,200 at Mach 0.8 and
+  90–1,000 at 1.4 [T2] p. 83 fig. 4.28; the line from h+ 53 is Mach 2.2's.
 
 ## 2. Pallister's transonic tunnel tests, as the AGARDograph reports them
 
 - **The gap filled, narrowly.** Pallister at the Aircraft Research Association repeated RAE's method from Mach 0.6 to
   1.4, at a narrow range of h+ [T2] p. 78, crediting ARA Report 37 (1974) [T2] p. 104. That report was not reached.
-- **Forward steps (measured).** Corrected to h+ = 1,200, Pallister's points read (±3) 92 at Mach 0.5 (a point below
-  the stated range), 104 at 0.8, 110 at 0.9, 114 at 0.95, 124 at 1.0, 144 at 1.05, 160 at 1.1, 175 at 1.2, 191 at 1.3
-  and 201 at 1.4 [T2] p. 79 fig. 4.24 (**Inference**, read). Most of the rise lies between Mach 1.0 and 1.2; his 1.4
-  point is 12% above RAE's.
+- **Forward steps (measured).** Corrected to h+ = 1,200, Pallister's points read (±3) 92 at Mach 0.5 (below the stated
+  range), 104 at 0.8, 110 at 0.9, 114 at 0.95, 124 at 1.0, 144 at 1.05, 160 at 1.1, 175 at 1.2, 191 at 1.3 and 201 at
+  1.4 [T2] p. 79 fig. 4.24 (**Inference**). Most of the rise is at Mach 1.0–1.2; his 1.4 point is 12% above RAE's.
 - **The interpolation.** The AGARDograph sets C_D/c_f = L(0.8) + PC1 × (L(1.4) − L(0.8)), L the RAE fits [T2] p. 80
   eq. 4(27). Read from fig. 4.25 (±0.02), PC1 is 0.05 at Mach 0.9, 0.09 at 0.95, 0.20 at 1.0, 0.40 at 1.05, 0.57 at
   1.1, 0.72 at 1.2 and 0.87 at 1.3 (**Inference**).
@@ -52,8 +53,8 @@ measured at one height per step, near h+ 1,200 for forward steps, and the rearwa
   PC2, read from fig. 4.30 (±0.02): 0.08 at Mach 0.9, 0.11 at 0.95, 0.40 at 1.0, 1.08 at 1.05, 1.21 at 1.1, 1.27 at
   1.15, 1.25 at 1.2 and 1.14 at 1.3 (**Inference**). It overshoots the Mach 1.4 value by 27%.
 - **Holes.** C_D/c_f = A (u_τ d/ν)^B, A set by depth over diameter and Mach, B by Mach [T2] p. 73 eq. 4(22). B reads
-  about 0.3 to Mach 0.8 and 0.35 at 1.4 (fig. 4.18, ±0.03); A reads about 0.6 at Mach 0.8 and 0.3–0.4 at 1.4 for
-  depths 0.1–0.35 d (p. 74 fig. 4.19): a 4 mm port (u_τ d/ν about 2,700) at Mach 1.4 is 0.8–1.0 times Mach 0.8.
+  about 0.32 to Mach 0.8 and 0.35 at 1.4 (fig. 4.18, ±0.02); A reads about 0.6–0.68 at Mach 0.8 and 0.3–0.4 at 1.4 for
+  depths 0.1–0.35 d (p. 74 fig. 4.19): a 4 mm port (u_τ d/ν about 2,700) at Mach 1.4 is 0.6–0.9 times Mach 0.8.
 - **Heads: nothing transonic.** The AGARDograph's round-head rivet data (h/d 0.2) are at Mach 0.2 and 0.8 only [T2]
   p. 62 fig. 4.6a. ESDU 76008's public summary says heads of h/d 0.2 were tested at Mach 0.8, 1.4 and 2.2 only [T5].
 - **Antennas.** A tall cylinder's C_D, Reynolds number taken out, dips near Mach 0.86 and peaks near 1.0 at 1.6–1.8
@@ -81,7 +82,7 @@ measured at one height per step, near h+ 1,200 for forward steps, and the rearwa
   rearward fit 0.09 and 0.24; this body gives 0.12 at 0.7 and 0.25 at 1.6, between the two and the same order. The
   AGARDograph plots the same models' earlier supersonic tests (NACA TN 4299) with the forward steps [T2] pp. 78–79, and
   RAE discusses them there too, expecting step-to-step interference to lower them [T1] p. 7. Read as forward steps,
-  their rise to Mach 1.1 (1.8–2.0 times Mach 0.9) is above PC1's 1.5–1.8.
+  their rise to Mach 1.1 (1.8–2.0 times Mach 0.9) is above PC1's 1.34–1.42 at the same h+.
 - **What else the reports say.** The increments rose with Reynolds number, at a slowing rate, and cluster on a
   subsonic and a transonic-supersonic curve [T3] p. 8; they were mainly pressure drag [T3] p. 9. Reflected nose shocks
   at Mach 1.1–1.2 differ from free flight, not enough to change the trends [T3] pp. 6–7. Pressure drag rose earlier
@@ -94,18 +95,18 @@ measured at one height per step, near h+ 1,200 for forward steps, and the rearwa
   RAE defines it (adiabatic wall, recovery 0.89, μ ∝ T^0.7), these are about 0.86 and 0.79 times as large: 0.1 mm is
   h+ about 57, and 0.1–0.5 mm steps sit at h+ 57–320. At 3 km, h+ is about 20% lower (ν 1.86 × 10^−5 m²/s, sound
   speed 329 m/s). The table's factors change by 1% or less between the two definitions.
-- **Subsonic and supersonic: inside the data, at its lower edge.** Forward steps of 0.1–1 mm lie inside RAE's range,
-  0.1 mm at or just under the subsonic edge (h+ 55); rearward steps of 0.1–0.2 mm (h+ 57–130) at or below the
-  rearward data (from h+ 80).
+- **Subsonic and supersonic: inside the data, at its lower edge.** Forward steps of 0.1–1 mm lie inside RAE's
+  range, 0.1 mm at its subsonic edge (h+ 55); rearward steps of 0.1–0.2 mm (h+ 57–130) start below theirs (h+ 80–90).
 - **The transonic shape: assumed, and the sources disagree on its h+ trend.** Pallister's steps sit at h+ about 1,200
   (forward) and one Reynolds number each (rearward) [T2] pp. 78, 83, 4–21 times HPR's h+. The RAE fits alone give a
   larger factor at lower h+: the Mach 1.4 line is steeper, and L(1.4)/L(0.8) for forward steps is 1.58 at h+ 1,200, 1.68
-  at 350 and 1.90 at 100, 2.13 at 57 (**Inference**). Below h+ 55 that rests on the Mach 0.8 line extrapolated past its
-  data. Every measured trend runs the other way: the NASA body rises 1.95 times at h+ about 130 (1,000 psf) and 2.6
-  times at 350–380 (3,000 psf; §3, **Inference**, h+ from unit Reynolds number in proportion to stagnation pressure,
-  about 6.6 and 20 × 10^6 per m); Pallister's smaller rearward steps rose less (§2); TN D-3519 found the larger rise
-  where δ/h was smaller (§3). So neither direction is settled; the table applies PC1 and PC2 to the fits at HPR h+,
-  carrying only the fits' trend.
+  at 350, 1.90 at 100 and 2.13 at 57 (**Inference**); below h+ 55 the Mach 0.8 line is extrapolated. Every measured
+  trend runs the other way: the NASA body rises 1.95 times at h+ about 130 (1,000 psf) and 2.6 times at 350–380 (3,000
+  psf; §3, **Inference**, h+ scaled by unit Reynolds number, 5.5–6.6 and 16–20 × 10^6 per m); Pallister's smaller
+  rearward steps rose less (§2); TN D-3519 found the larger rise where δ/h was smaller (§3); RAE's own Mach 1.4 points
+  sit 10–20% under the shared fit below h+ 200 [T1] fig. 6, which would cut the 0.2 mm factor at Mach 1.1 from 1.58 to
+  about 1.4. So neither direction is settled; the table applies PC1 and PC2 to the fits at HPR h+, carrying only the
+  fits' trend.
 - **A check on Hopko's flights (Inference).** The forward factor at Mach 1.2 (1.6–1.8) times discrete-steps-drag's
   inner-over-outer ratio at 300 m/s (1.45–1.8) is 2.3–3.2 times Hoerner's low-speed law; Hopko's laps read 2.7 times
   at Mach 1.25 (excrescence-drag §2). The 2–3 times that excrescence-drag assumed was on this base, and it holds.
@@ -113,49 +114,52 @@ measured at one height per step, near h+ 1,200 for forward steps, and the rearwa
 ## 5. Transonic factors on the invented rockets (Inference throughout)
 
 Rockets and rows as in excrescence-drag §4. Each factor is C_D/c_f over its 300 m/s (Mach 0.88) value, taken on the
-Mach 0.8 lines. c_f falls 6.5–7% from Mach 0.7 to 1.2 ([T3] fig. 6, p. 24): totals carry 0.95 (Mach 1.0), 0.93 (1.1).
+Mach 0.8 lines. c_f falls 2% and 3% by Mach 1.0 and 1.1 at fixed Reynolds number (6.8% from 0.7 to 1.2, [T3] fig. 6,
+p. 24) and 2% and 3.5% more as Reynolds number grows with speed (Re^−1/6): totals carry 0.96 and 0.935.
 
 | feature | Mach 0.9 | Mach 1.0 | Mach 1.1 | Mach 1.2 |
 |---|---|---|---|---|
 | forward step, 0.2 mm (PC1) | 1.05 | 1.22 | 1.58 | 1.76 |
 | forward step, 0.5 mm (PC1) | 1.04 | 1.18 | 1.47 | 1.60 |
-| rearward step, 0.2–0.5 mm (PC2, 3.81 mm shape) | 1.14 | 1.74–1.79 | 3.25–3.40 | 3.38–3.55 |
-| rearward step, Pallister's 1.27 mm shape (discounted) | not read | 1.4 | 1.6 | 1.8 |
+| rearward step, 0.2–0.5 mm (PC2, 3.81 mm shape) | 1.15 | 1.74–1.79 | 3.25–3.40 | 3.37–3.54 |
+| rearward step, Pallister's 1.27 mm shape (discounted) | 1.0 | 1.3 | 1.7 | 1.9 |
 | NASA steps with grooves, facing unstated, over Mach 0.9 | 1.0 | 1.3–1.8 | 1.8–2.0 | 1.7–2.0 |
 | joint gaps (grooves) | 1.0 | 1.0 | 1.0 | 1.0 |
-| static ports | 1.0 | 0.9–1.0 | 0.9–1.0 | 0.8–1.0 |
-| screw, rivet and rail-button heads, two faces | 1.1 | 1.3–1.4 | 1.5–2.2 (1.0–2.9) | 1.6–2.3 (1.0–2.9) |
+| static ports | 1.0 | 0.9–1.0 | 0.75–0.95 | 0.7–0.95 |
+| screw, rivet and rail-button heads, two faces | 1.0–1.1 | 1.2–1.4 | 1.6–2.3 (1.0–2.9) | 1.7–2.4 (1.0–2.9) |
 
-- **Gaps and ports** are measured only at Mach 0.8 and 1.4. **Heads** are not measured there at all: the head row
-  splits each head 0.62 forward face, 0.38 rearward (Hoerner's 0.30 and 0.18, excrescence-drag §2), after [T1] p. 13,
-  the low end on the 1.27 mm shape, the high end on PC2; Hopko's 1.3–2.9 times Hood's rule at Mach 1.2–2.0
-  (excrescence-drag §3) is the outer range. The proud band is split the same way.
-- **Clean airframe, as % of the subsonic C_D.** 98 mm: 2.0% becomes about 2.5% (2.2–3.8) at Mach 1.0 and 3.2–3.8%
-  (2.4–4.4) at Mach 1.1. 54 mm: 4.4% becomes about 5.5% (4.7–8.6) and 7.1–8.5% (5.3–9.7). The typical span is the
-  head factor's 1.5–2.2; the low end of the range takes the 1.27 mm rearward shape and no rise in the heads, the high
-  end heads at 2.9. With discrete-steps-drag's inner-law totals (2.4–2.6% and 5.1–5.5%), Mach 1.1 gives about
-  3.8–4.2% and 8.2–8.8% with heads at 1.5.
+- **Gaps and ports** are measured only at Mach 0.8 and 1.4. **Heads** are not measured there at all: the head row splits
+  each head 0.62 forward face, 0.38 rearward (Hoerner's 0.30 and 0.18, excrescence-drag §2), after [T1] p. 13, the low
+  end on the 1.27 mm shape, the high end on PC2, on the 0.2–0.5 mm rows (1–3 mm steps give 1.5–2.1 at Mach 1.1); Hopko's
+  1.3–2.9 times Hood's rule at Mach 1.2–2.0 (excrescence-drag §3) is the outer range. The band is split the same way.
+- **Clean airframe, as % of the subsonic C_D.** 98 mm: 2.0% becomes 2.4–2.6% (2.1–3.9) at Mach 1.0 and 3.3–3.9%
+  (2.4–4.4) at Mach 1.1. 54 mm: 4.4% becomes 5.4–5.8% (4.7–8.7) and 7.2–8.5% (5.3–9.8). Rows, % of C_D on 98 | 54 mm
+  (factor at Mach 1.0, 1.1): gaps 0.05 | 0.09 (1.0, 1.0); mismatches 0.39 | 0.78 (1.22, 1.58); band 0.71 | 1.4 (1.39,
+  2.15: 0.62 of the 0.5 mm forward row, 0.38 of PC2's); ports 0.01 | 0.04 (0.95, 0.85); heads 0.9 | 2.1 (head row); all
+  × c_f; the 98 mm rows sum to 2.06, scaled to 2.0. The typical span is the head factor's; the low end takes the 1.27 mm
+  shape on the band and heads at 1.0, the high end heads at 2.9. With discrete-steps-drag's inner-law totals (2.4–2.6%
+  and 5.1–5.5%), Mach 1.1 gives about 3.9–4.2% and 8.5–9.1% with heads at 1.6.
 - **As a share of the rocket's own C_D,** which is 1.36–1.51 times its subsonic value near Mach 1.04–1.12 with a flat
-  base and 1.7–1.9 times with a boattail ([transonic drag rise](transonic-drag-rise.md)): at Mach 1.1, 2.1–2.8%
-  (1.6–3.2) on 98 mm and 4.7–6.3% (3.5–7.1) on 54 mm with a flat base; 1.7–2.2% and 3.7–5.0% with a boattail, at or
-  below the subsonic share. The features rise about as fast as the rocket.
-- **What it changes in excrescence-drag §4.** Its "faster than sound" totals (3–4% and 6–9%) hold at Mach 1.1; its
-  heads, held near their share there, rise 1.5–2.2 times here on this note's two-face assumption.
-- **In apogee,** at −0.31% to −0.57% of apogee per 1% of drag ([apogee bias](apogee-bias.md) sensitivity table). If
-  the Mach 1.1 share held over the whole flight, an upper bound with a flat base: 98 mm, −0.7% to −1.6% of apogee
-  against −0.6% to −1.1% subsonic; 54 mm, −1.5% to −3.6% against −1.4% to −2.5%. The transonic increment is at most
-  0 to −0.5% (98 mm) and −0.1% to −1.1% (54 mm): 0–5% and 1–12% of the +8.73% bias. At the high ends of the ranges,
-  −0.4% to −0.7% and −0.8% to −1.5%, up to 8% and 18% of the bias. With a boattail it is within ±0.3% of apogee. The
-  sign of the features' own drag stays one-way: the codes fly high.
+  base and 1.7–1.9 times with a boattail ([transonic drag rise](transonic-drag-rise.md)): at Mach 1.1, 2.2–2.8%
+  (1.6–3.2) on 98 mm and 4.7–6.3% (3.5–7.2) on 54 mm with a flat base; 1.7–2.3% and 3.8–5.0% with a boattail, within
+  about 15% of the subsonic share either way. The features rise about as fast as the rocket. Excrescence-drag §4's
+  "faster than sound" totals (3–4% and 6–9%) hold at Mach 1.1; its heads, held near their share there, rise 1.6–2.3
+  times here on this note's two-face assumption.
+- **In apogee,** at −0.31% to −0.57% of apogee per 1% of drag ([apogee bias](apogee-bias.md) sensitivity table). If the
+  Mach 1.1 share held over the whole flight, an upper bound with a flat base: 98 mm, −0.7% to −1.6% of apogee against
+  −0.6% to −1.1% subsonic; 54 mm, −1.5% to −3.6% against −1.4% to −2.5%. The transonic increment is at most 0 to −0.5%
+  (98 mm) and −0.1% to −1.1% (54 mm): 0–5% and 1–12% of the +8.73% bias. At the high ends of the ranges, −0.4% to −0.7%
+  and −0.9% to −1.6%, up to 8% and 18% of the bias. With a boattail it is within about ±0.4% of apogee, typical span.
+  The sign of the features' own drag stays one-way: the codes fly high.
 
 ## What this suggests
 
 - **A Mach factor for an optional joints term:** C_D/c_f from the RAE fits at Mach 0.8 and 1.4, joined by PC1 for
-  forward faces and a rearward factor between the PC2 and 1.27 mm shapes, heads as two faces, with grooves and ports
-  held at their Mach 0.8 value. Expected effect: the term's ΔC_D rises 1.2–1.3 times at Mach 1.0 and 1.6–1.9 times at
-  1.1, so its share of the rocket's C_D stays within about 1.05–1.4 times the subsonic one with a flat base; apogee
-  up to about 0.5% lower on 98 mm than a subsonic-only term.
-- **Keep the bias budget's transonic share** near the subsonic 2.0–4.4%, now on measured factors: 1.05–1.4 times it
+  forward faces and a rearward factor between the PC2 and 1.27 mm shapes, heads as two faces, grooves held at their Mach
+  0.8 value. Expected effect: the term's ΔC_D rises 1.2–1.3 times at Mach 1.0 and 1.6–1.9 times at 1.1, its share of the
+  rocket's C_D 1.1–1.4 times the subsonic one with a flat base; apogee up to 0.5% lower on 98 mm than a subsonic-only
+  term.
+- **Keep the bias budget's transonic share** near the subsonic 2.0–4.4%, now on measured factors: 1.1–1.4 times it
   with a flat base, about 1 with a boattail, bounded at 1.6 times.
 - **A validation case:** fly TN D-5004's smooth and stepped ogive cylinders through such a term, Mach 0.7 to 1.2, and
   compare ΔC_D; it would test the factor that drives the range, once the steps' facing is settled.
@@ -167,16 +171,15 @@ Mach 0.8 lines. c_f falls 6.5–7% from Mach 0.7 to 1.2 ([T3] fig. 6, p. 24): to
   hits for Gaudet or excrescence in the Internet Archive's DTIC mirror that day. Gaudet 1987 stays abstract only.
 - **Heads between Mach 0.8 and 1.4** are unmeasured in every source read; their factor (1.0–2.9) is unbounded by data.
 - **Which rearward shape applies to 0.2–0.5 mm steps,** which way h+ moves the transonic factor (§4), and which way
-  TN D-5004's steps face: the sources span 1.6–3.4 at Mach 1.1, the largest range here.
+  TN D-5004's steps face: the sources span 1.7–3.4 at Mach 1.1, the largest range here.
 - **Free flight:** a rocket's shoulders and boattail set local Mach and gradients the tunnels did not. Not bounded.
 
 ## Sources
 
 All read 2026-10-28; printed page numbers; cached in the gitignored `refs/`. NASA reports: public use per NTRS. T1:
-Crown copyright (cover year under a stamp; issued September 1973), approved for public release by DTIC (DSTL, 2008),
-"may be subject to privately-owned rights". T2: Copyright © AGARD 1981, All Rights Reserved, approved for public
-release. Both read from the Internet Archive's DTIC mirror; cited only, no figure or table copied. ESDU: proprietary,
-public summaries only.
+Crown copyright (issued September 1973), approved for public release by DTIC (DSTL, 2008), "may be subject to
+privately-owned rights". T2: Copyright © AGARD 1981, All Rights Reserved, approved for public release. Both read from
+the Internet Archive's DTIC mirror; cited only, no figure or table copied. ESDU: proprietary, public summaries only.
 
 - **T1.** Gaudet, L., Winter, K. G., *Measurements of the drag of some characteristic aircraft excrescences immersed
   in turbulent boundary layers*, RAE TM Aero 1538, 1973 (amended from an AGARD drag meeting paper, Izmir, 1973),
@@ -191,9 +194,7 @@ public summaries only.
 - **T4.** Czarnecki, K. R., Monta, W. J., *Pressure drags due to two-dimensional fabrication-type surface roughness
   on an ogive cylinder at transonic speeds*, NASA TN D-3519, 1966, pp. 1, 10.
   <https://ntrs.nasa.gov/citations/19660024159>
-- **T5.** ESDU 76008, Toolbox public summary (rivet heads; Mach numbers tested).
-  <https://beta.esdu.com/toolbox/ui/tba_76008>
-- **T6.** ESDU 75031, Toolbox public summary (steps and ridges, Mach up to 3).
-  <https://beta.esdu.com/toolbox/ui/tba_75031>
+- **T5.** ESDU 76008, Toolbox public summary (rivet heads, Mach tested): <https://beta.esdu.com/toolbox/ui/tba_76008>
+- **T6.** ESDU 75031, Toolbox public summary (steps and ridges, to Mach 3): <https://beta.esdu.com/toolbox/ui/tba_75031>
 - **Not reached:** Pallister, K. C., ARA Report 37, 1974 (cited through T2); Gaudet and Johnson, RAE TR 70190 and
   TR 71181; Gaudet, L., Aeronaut. J. 91(904):170–182, 1987. <https://doi.org/10.1017/S000192400002114X>
