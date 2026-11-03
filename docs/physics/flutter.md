@@ -21,10 +21,10 @@ other, to your fins and your rocket's flight.
   ([Tests](#tests)). That includes his verdicts on three metals and his titanium design. His
   safe/unsafe line is a band that this project measured off his printed chart: 0.25 to 0.31
   ([The line in Martin's data](#the-line-in-martins-data)). His unfailed wings flew to at least
-  Mach 1.3. Nothing here is checked against a hobby rocket
-  ([evidence row G22](../evidence.md#g22)). Where the source allows two readings,
-  the simulator takes the one with the lower flutter speed. That doesn't make the whole result
-  conservative: nothing shows that it is. Of the published tests the project has set against
+  Mach 1.3. Nothing here is checked against a hobby rocket, but for one fin seen fluttering in
+  flight whose material is inferred (below; [evidence row G22](../evidence.md#g22)). Where the
+  source allows two readings, the simulator takes the one with the lower flutter speed. That
+  doesn't make the whole result conservative: nothing shows that it is. Of the published tests the project has set against
   HPR Sim's speed, at least four kinds of fin or wing fluttered below it, the flattering side. Each
   figure is HPR Sim's speed (from eq. 18, with the thickness ratio taken over the root chord) over
   the measured onset, so above 1 means HPR Sim's speed is too high:
@@ -58,7 +58,8 @@ other, to your fins and your rocket's flight.
   to 0.84 on the uniform fins of [fin flutter tests][tests-note], a few held more softly (the ASROC
   plate clamped over 6.0 in of its 10.66 in root, Liège's plates not rigid in plunge). A hobby
   rocket's fin seen fluttering in flight, PSAS's LV2c, reads 0.49 to 0.82 if its fins were G10, as
-  inferred, and 1.25 to 1.52 if they were aluminum (§5). A softer root lowers the onset: the ASROC missile fin's plate
+  inferred, and 1.25 to 1.52 if they were aluminum, at the speed it was seen fluttering, which may
+  lie above the onset (§5). A softer root lowers the onset: the ASROC missile fin's plate
   with its root restraint cut reaches 1.10 on one reading (§3), and on two root tests the highest
   safe-side ratios, 0.82 to 0.84, would become 1.06 to 1.09 (§4, an inference). None of these was
   a fin glued to a tube, and the figures are not a bound: a fin of one of these kinds may flutter
