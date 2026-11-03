@@ -278,19 +278,13 @@ plus the noise. $y$'s standard deviation is 1.22. A bell curve at the peak would
 0 and its 90% interval at ±1.645, a standard normal's 5% and 95% points. With 160,000 draws, the
 sampler gives a median of 0.43 and an interval of −1.35 to 2.57.
 
-The tests hold each of those three within 0.08 of the true distribution's points, worked out by a
-numerical integral (Simpson's rule), about a fifteenth of $y$'s standard deviation. Over 100 other
-seeds, none misses that. Drawn in two blocks, $x$ first, the same three land within 0.08 when the
-second block is centered where it should be. They land within 0.15 when it's centered poorly. A second test
-holds a correlated bell curve's points within 0.06 standard deviations of their exact values. Another
-checks that weighing the points by the posterior alone, without dividing by the draw's own
-likelihood, fails. Two more check that a pilot widens a scale where the posterior reaches further,
-and never narrows one. On
-the fit itself, one test fits a straight line. Its four checked parameters come within a tenth of a
-standard error of their closed forms. Another checks that the linear unknowns' closed form is exact. The sampler counts how many independent draws its
-weights amount to, and flags a result under 100 as too few to read; it still gives the points. Run
-the tests with `cargo test -p fusionspace-hpr-forensics posterior` and
-`cargo test -p fusionspace-hpr-forensics fit::tests`.
+The tests hold each of those three within 0.08 of the true distribution's points, worked out by
+Simpson's rule: about a fifteenth of $y$'s standard deviation. Drawn in two blocks, $x$ first, they
+hold within 0.08, or 0.15 with the second block centered poorly. Other tests hold a correlated bell
+curve within 0.06 standard deviations, fail when the draw's own likelihood is left out of the
+weights, and check that a pilot widens and never narrows. On the fit, a straight line comes within a
+tenth of a standard error of its closed forms. A result under 100 effective draws is flagged as too
+few to read. Run `cargo test -p fusionspace-hpr-forensics posterior` and `fit::tests`.
 
 ## Sources
 
