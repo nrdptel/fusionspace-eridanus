@@ -12,6 +12,7 @@
 [i780]: https://github.com/nrdptel/fusionspace-eridanus/issues/780
 [i781]: https://github.com/nrdptel/fusionspace-eridanus/issues/781
 [i787]: https://github.com/nrdptel/fusionspace-eridanus/issues/787
+[i806]: https://github.com/nrdptel/fusionspace-eridanus/issues/806
 [i789]: https://github.com/nrdptel/fusionspace-eridanus/issues/789
 [noise]: ../research/altimeter-sensor-noise.md
 
@@ -44,7 +45,7 @@ Its marks were set on real logs with no truth beside them; the tuning set has on
    last second before apogee's earliest time, where a rocket falls freely but for a small drag
    (about 0 holds gravity, about −1 g doesn't). A pad or coast that reads neither says nothing.
    Gravity is settled when one witness or more says and none disagrees; otherwise
-   `gravity_unstated` (the coast's part amended for #806, below).
+   `gravity_unstated` (the coast's part amended for [#806][i806], below).
 3. **The thrust and the top acceleration.** The turn-over (see the amendment below), the thrust's
    end and burnout are found on a cleaned trace: a Hampel filter over 0.1 s at five robust standard deviations (Pearson et al.,
    2015), HPR Sim's choice, which takes out a charge's shock or one bad sample and keeps a step. A
@@ -125,7 +126,7 @@ in a row fails with its rule put back.
 - The coast witness assumes the drag in the last second before apogee's earliest time is under
   0.25 g. A rocket still fast at apogee, arcing over, reads its drag there; the witness then says
   nothing, or, past 0.75 g, could disagree with a family's word and withhold the reading; alone at
-  about −1 g it settles nothing (the amendment for #806, below).
+  about −1 g it settles nothing (the amendment for [#806][i806], below).
 - A canopy's filling time isn't in the opening's bound: the synthetic flights open each canopy at
   once ([#779][i779]). A rocket that came down under no canopy has its fall read as one canopy's
   ([#780][i780]).
@@ -226,23 +227,22 @@ that only held flat, and that no tuning flight tested clipping at a range. The r
    wrote the column. On the sample logs 17 records are so withheld, 16 AltOS CSV and one AltOS
    table, 16 of whose tops had been given.
 
-**Amendment for #806, gravity's coast (2026-11-02).** A physics review found two ways §2's coast
+**Amendment for [#806][i806], gravity's coast (2026-11-02).** A physics review found two ways §2's coast
 witness settled gravity wrongly; the rules now:
 
 1. **A coast at about −1 g doesn't settle gravity alone.** A part that holds gravity reads its drag
    in the coast, `−D/m`, and a rocket still fast at apogee, arcing over, can drag about 1 g, which
    reads as gravity out would. Where neither the family nor the pad says, as on a Raven or a generic
    axial column on a log that starts in the thrust, 1 g was put back on a top that held it already,
-   reading it 1 g high: on the test's rocket, a 6 g top read about 7 g, outside its bound of under
-   1 g. Such a log is
-   now withheld, `gravity_unstated`, saying that only the coast says
+   reading it 1 g high: on the test's rocket, a 6 g top read about 7 g, outside its bound. Such a
+   log is now withheld, `gravity_unstated`, saying that only the coast says
    (`a_fast_arc_over_doesnt_settle_gravity_out_alone`; a mutation that lets the coast settle alone
    fails it). A coast at about 0 still settles alone, as before: without gravity a coasting part
    reads `−D/m − g`, drag only pushing it further below −1 g, so reading within 0.25 g of 0 takes
-   a net push forward, thrust less drag, of about 0.75 g or more. A thrust still burning in that
-   second gives one, a risk left open and untested: on a part that takes gravity out, with no
-   family word and no pad, it reads gravity in and the top 1 g low. Beside a family or a pad, the coast at −1 g still counts,
-   agreeing or disagreeing as before. Withholding was chosen over widening the bound by 1 g: a top
+   a net push forward, thrust less drag, of between about 0.75 and 1.25 g. A thrust still burning
+   in that second gives one, a risk left open and untested: on a part that takes gravity out, with
+   no family word and no pad, it reads gravity in and the top 1 g low. Beside a family or a pad,
+   the coast at −1 g still counts, agreeing or disagreeing as before. Withholding was chosen over widening the bound by 1 g: a top
    read 1 g high with a bound wide enough to cover it says little.
 2. **Gravity's coast is read only where a coast was flown,** as the direction's is (amendment for
    M7.2c, §1): after liftoff's latest time by the heights and after the trace first moves, before

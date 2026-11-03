@@ -49,9 +49,8 @@
 //! and a rocket still fast at apogee, arcing over, can drag about 1 g
 //! ([#806](https://github.com/nrdptel/fusionspace-eridanus/issues/806)). Its about 0 can
 //! stand alone, as a part without gravity reads −1 g or below in a coast, unless a net push
-//! forward (thrust less drag) of about 0.75 g or more still acts in that second. Otherwise nothing
-//! is read
-//! ([`Reason::GravityUnstated`]). A sample that repeats the time before
+//! forward (thrust less drag) of between about 0.75 and 1.25 g still acts in that second.
+//! Otherwise nothing is read ([`Reason::GravityUnstated`]). A sample that repeats the time before
 //! it is left out, as the primary track leaves it ([`first_at_each_time`]).
 //!
 //! **The top acceleration** is the highest reading over the burns: each from a cleaned reading past
@@ -451,9 +450,9 @@ pub(super) fn read(
     // holds gravity reads its drag there, `−D/m`, and a rocket still fast at apogee, arcing over,
     // can drag about 1 g. Its about 0 stands alone, as before: without gravity a coasting part
     // reads `−D/m − g`, drag only pushing it further below −1 g, so reading within the tolerance
-    // of 0 takes a net forward push (thrust less drag) of about 0.75 g or more. A thrust still
-    // burning in that second gives one, a risk left open and untested: on a part that takes gravity
-    // out, with no family word and no pad, it reads gravity in and the top 1 g low.
+    // of 0 takes a net forward push (thrust less drag) of between about 0.75 and 1.25 g. A thrust
+    // still burning in that second gives one, a risk left open and untested: on a part that takes
+    // gravity out, with no family word and no pad, it reads gravity in and the top 1 g low.
     let lone_coast_out = matches!(said.as_slice(), [(Gravity::Out, GravityBy::Coast)]);
     let gravity = match said.first() {
         Some(&first) if !lone_coast_out && said.iter().all(|(word, _)| *word == first.0) => first,
