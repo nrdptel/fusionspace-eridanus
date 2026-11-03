@@ -239,7 +239,7 @@ processor core a posterior, the least-squares fits included.
 
 It's held to the same test as the least-squares fit, on the same flights. The counts are flights:
 
-| Parameter | Set A below, inside, above | Set B below, inside, above |
+| Parameter | Set A below, inside, above (no unit) | Set B below, inside, above (no unit) |
 |---|---:|---:|
 | drag scale | 27, 895, 78: fails | 66, 884, 50 |
 | impulse scale | 70, 881, 49 | 83, 888, 29: fails |
