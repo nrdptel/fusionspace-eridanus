@@ -97,9 +97,22 @@ From the 2026-10-15 planning review:
   or figure; a reading a tool can't model is listed with its reason; a test fails when a tool's aft
   count is missing.
 
+## Neer's 2026-10-07 field tools
+
+Placed by [ADR-194, the field tools][adr-194]; research in [field tools](suite-field-tools.md).
+
+- PROMOTED: a launch checklist and guide built from the design, a check of altimeter settings
+  against the simulated flight, and a ground-test log (M6.8, release 0.4); an equipment register
+  and a cross-vendor frequency board (M9.7, after mobile); a ground-test bench (M13.7).
+- LATER: the ground station reads other vendors' documented telemetry, such as Altus Metrum's
+  configuration packet, to check settings over the air and list busy channels.
+- LATER: a wireless firing box, after the wired one.
+- LATER: camera recording reminders and a camera run-time budget against the pad hold.
+
 [m6-3]: ../decisions-and-roadmap.md#m6-3
 [arc27]: https://www.rocketrychallenge.org/wp-content/uploads/2027_AmericanRocketryChallenge_Rules.pdf
 [irec27]: https://www.esrarocket.org/s/IREC-2027-Rules-and-Requirments-v10.pdf
 [sl27]: https://www.nasa.gov/wp-content/uploads/2026/08/g-739882-2027-sli-handbook-508-aug5.pdf
 [adr-286]: ../decisions/0286-the-2026-10-20-review-the-export-bar-tightened.md
 [nf-fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/normal-force-vs-mach.json
+[adr-194]: ../decisions/0194-the-2026-10-07-field-tools-checklists-equipment-ground-tests.md

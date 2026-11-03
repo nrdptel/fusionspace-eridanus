@@ -49,7 +49,26 @@ Part of the [ideas backlog](ideas.md) (2026-10-03). One line each, with its tier
   *Done when:* each zone cites its source's table, and each flag fires just inside its edge and not
   just outside (a test and a mutation probe each).
 
+## Neer's 2026-10-06 ideas
+
+Placed by [ADR-191, the 2026-10-06 ideas][adr-191]; research in [the web tools](suite-web-tools.md),
+[the repo layout](repo-layout.md), [watches](suite-watches.md) and
+[the hardware line](suite-hardware-line.md).
+
+- PROMOTED: the four web tools rebuilt in hpr (M9.6, after mobile); printed-part warnings
+  (M8.3g); more tracker and flight-computer boards (M13.5).
+- LATER: smartwatch companions, the phone as hub; researched again after M9.4.
+- LATER: camera shroud kits; a camera shroud's drag as a protuberance, checked against
+  OpenRocket's pods.
+- LATER: drone and plane payloads released in flight, with a glide model after release; last of
+  the hardware, since IREC bans them and drone rules don't fit a release at apogee.
+- PROMOTED by [ADR-193][adr-193] (Neer, 2026-10-07): roll control on tail-fin tabs, then
+  canards, roll only (M6.5, queued before M13.3); drag-only airbrake and roll-only tab firmware and
+  hardware (M13.6; roll canards later), held for a ruling ([roll and drag control](roll-and-drag-control.md)).
+
 [m6-4]: ../decisions-and-roadmap.md#m6-4
 [m7-1]: ../decisions-and-roadmap.md#m7-1
 [m7-4]: ../decisions-and-roadmap.md#m7-4
 [tilt-thread]: https://www.rocketryforum.com/threads/emergency-deployment-option-for-unstable-flights.194466/
+[adr-191]: ../decisions/0191-the-2026-10-06-ideas-web-tools-watches-repo-layout-hardware.md
+[adr-193]: ../decisions/0193-the-2026-10-07-control-scope-drag-only-brakes-roll-only-surfaces.md

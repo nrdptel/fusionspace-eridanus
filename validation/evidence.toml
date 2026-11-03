@@ -18,7 +18,7 @@
 # `as_of` is the date the report counts a row's last search from: a row with no search, or whose
 # last is over 30 days before it, is due one.
 
-as_of = "2026-10-31"
+as_of = "2026-11-02"
 
 [[row]]
 id = "G1"
@@ -782,6 +782,15 @@ wanted = "real"
 not_checked = "a real pair whose clocks differ by more than a fraction of a second; the Prometheus logs both start at the boost, and the GPS reference has no stated error of its own"
 issue = 1088
 
+[[row.searched]]
+on = "2026-11-02"
+looked = [
+  "AerospaceNU/rocket-flight-data's 2026-10-31 flight, added on 2026-11-02 and 2026-11-03 (commit c939c32b, GPL-3.0)",
+  "GitHub code search for `extension:pf2` (250 hits in 31 repositories)",
+  "rlhatcher/rocketry-files (MIT, commit 2ddcaf88)",
+]
+found = "a real pair whose clocks differ by about 4,028 s. On the 2026-10-31 flight two of the club's boards count from their own power-on: one logs GPS time beside its clock, the other has no GPS. Liftoff (over 3 g) falls at 5,331.6 s and 1,303.6 s on the two clocks, and each board's peak about 19.7 s after it. It is GPL-3.0 data, so it is cached under refs/samples-search/G35 only, to report statistics and digests. The pairs in the `.pf2` hits and rlhatcher/rocketry-files both start at the boost"
+
 [[row]]
 id = "G36"
 surface = "One logger to a stage on one timeline"
@@ -791,6 +800,16 @@ kind = "calibration"
 wanted = "real"
 not_checked = "a real flight's log from each stage, where a booster's board may read the pad's shock and the separation otherwise"
 issue = 1084
+
+[[row.searched]]
+on = "2026-11-02"
+looked = [
+  "GitHub code search for `extension:pf2` (250 hits in 31 repositories) and `extension:telem` (17 hits, every rocketry repository already named in the project's notes)",
+  "GitHub code search for CSV files with booster and sustainer words",
+  "GitHub repositories pushed since 2026-10-30 with rocket words",
+  "a web search for a two-stage flight's booster log",
+]
+found = "no log from each stage of one flight. No `.pf2` or telemetry file is named for a booster or sustainer, and the CSV hits are not rocket logs"
 
 [[row]]
 id = "G37"
@@ -977,6 +996,14 @@ package = "fusionspace-hpr-cli"
 target = "cli"
 test = "analyze_writes_a_ghost_of_each_of_rocketpys_logs"
 
+[[row.searched]]
+on = "2026-11-02"
+looked = [
+  "GitHub code search for CZML files with rocket words (316 hits) and with apogee or altimeter (none)",
+  "GitHub code search for glTF binaries of a rocket's flight path (none)",
+]
+found = "no other program's CZML or glTF of a real rocket flight to set beside a ghost file. The CZML hits are Cesium demos and satellite orbits. A look in Cesium still needs a person"
+
 [[row]]
 id = "G38"
 surface = "The least-squares fit"
@@ -986,3 +1013,12 @@ kind = "calibration"
 wanted = "real"
 not_checked = "a real flight's fit against what was measured apart from the log: a weighed mass, a static test's impulse, a measured wind"
 issue = 1104
+
+[[row.searched]]
+on = "2026-11-02"
+looked = [
+  "NASA Student Launch post-launch reports, by a web search",
+  "Florida State University Panama City's 2026 post-launch report (no terms stated)",
+  "Zenodo, Dryad and Hugging Face for rocket flight data",
+]
+found = "a lead with no log. The Florida State report states the launch-ready vehicle's final mass, its sections' weights, the wind speed and a TeleMetrum's apogee, but publishes no log or motor test. It is cited only, cached under refs/samples-search/G38. The data sites hold no flight log with a weighed mass, a static test or a measured wind"
