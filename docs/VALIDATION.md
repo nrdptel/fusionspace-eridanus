@@ -410,11 +410,11 @@ optimized build ever came out differently, CI would fail and regenerating wouldn
 would need a decision record, not a looser check.
 
 The check on the least-squares fit, `cargo xtask fit`, takes longer than any other
-([the flight fit](physics/flight-fit.md)). It fits about 6,500 synthetic flights: the first 1,300 of sets
-A and B each, the flights with a track logger past those, and set A's first 200 again with pure
-noise in place of their logs. Then it tests that each fitted value's 90% interval holds the truth as
-often as a 90% interval should. In
-one Linux job it took more than an hour, so CI runs it on Linux in eight jobs side by side:
+([the flight fit](physics/flight-fit.md)). It makes about 6,500 fits of synthetic flights: the
+first 1,300 of sets A and B each, the flights with a track logger past those, and set A's first 200
+again with each kind of pure noise in place of their logs. Then it tests that each fitted value's
+90% interval holds the truth as often as a 90% interval should. In one Linux job it took more than
+an hour, so CI runs it on Linux in eight jobs side by side:
 
 - Each job fits an eighth of the flights (`fit --part K/8`, with K from 1 to 8): every eighth
   flight, from the Kth. It saves its fits for the last job.

@@ -237,8 +237,8 @@ jobs:
         run: scripts/phone-build.sh aarch64-apple-ios aarch64-apple-ios-sim
         shell: bash
 
-  # The least-squares fit's 90% intervals (M7.3b, ADR-316): about 6,500 flights of sets A and B
-  # fitted, each parameter held to ADR-257's counts and probes. In one Linux job it took 60 to 102 minutes
+  # The least-squares fit's 90% intervals (M7.3b, ADR-316): about 6,500 fits of flights of sets A
+  # and B, each parameter held to ADR-257's counts and probes. In one Linux job it took 60 to 102 minutes
   # (eight runs, 2026-11-02). So eight jobs each fit an eighth of the flights: part K fits every
   # eighth flight of each run from the Kth (`fit --part K/8`), and hands its fits on. A fit doesn't
   # depend on what its thread or machine fitted before it (`fit::tests`), so the parts together are
