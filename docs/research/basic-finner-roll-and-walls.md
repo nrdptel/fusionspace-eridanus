@@ -5,8 +5,8 @@ that DRDC TM 2002-136's tunnel runs at 45° roll read the Basic Finner's normal-
 0° runs, and that the 0° runs read 6% to 12% above the range near Mach 1.08. Issue #619 needs to know which of these
 a roll-free model should be scored against, and how high a transonic peak it can claim. This note asks what theory
 and other measurements say about roll orientation on a cruciform (four-fin) body, and what bounds the tunnel's wall,
-blockage, sting and Reynolds-number effects. The DRDC and DREV reports' terms of release bar redistribution, so their
-values appear here only as percentage ranges over several rows, rounded outward (#619's decision).
+blockage, sting and Reynolds-number effects. The DRDC reports' terms of release bar redistribution, so their values
+appear here only as percentage ranges, rounded outward (#619); DREV's, given the same way, may be cited (#1119).
 
 **In short: score a roll-free model against the mean of the 0° and 45° runs, with the two rolls as the band's edges.
 The claimable rise from Mach 0.79 to the peak is then about +17%, not +21.6%.**

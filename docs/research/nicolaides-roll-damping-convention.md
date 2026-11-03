@@ -167,7 +167,7 @@ HPR Sim's damping, N·C_lp·k_R(B), is −31.62, −25.31, −20.12, −17.61 an
   curve readings above can be committed as a fixture with their method and ±0.002 band: the only free range set
   that spans Mach 1.5 to 3.0 (BRL 711's public points span 1.59 to 2.68), and Nicolaides' own.
 - **Suggestion (#763):** score the roll-damping row against BRL 799's curve and NOL's Table 2, with BRL 711 and
-  ARL-TR-846 as committed points and DREV scored locally (statistics only, #619). Expected row: +5.4% to +20.4% on
+  ARL-TR-846 as committed points and DREV committed too (#1119, #763). Expected row: +5.4% to +20.4% on
   BRL 799, +11% to +30% on NOL's tunnel. Keep Fig. 5-7's points out of the scored row, or carry them as a disputed
   set divided by 1.27 with this note as the reason. ADR-031's −5.9% to −16.2% and the aero page's "reads low for want
   of a thickness term" would both change: the sign flips, and thickness would push HPR Sim further high.
@@ -195,5 +195,5 @@ HPR Sim's damping, N·C_lp·k_R(B), is −31.62, −25.31, −20.12, −17.61 an
 - **F1, F2, F6, F7** (DREV-TM-9703, BRL 711, AEDC-TR-76-58, ARL-TR-846): as in
   [finner-reference-data.md](finner-reference-data.md#sources-all-read-2026-10-18), read 2026-10-18.
 
-US Government reports (N1–N3, B1, F5) are released without restriction. DREV-TM-9703's terms bar redistribution:
-this note compares against it only in words and ranges over several rows, never its values (#619).
+US Government reports (N1–N3, B1, F5) are released without restriction. DREV-TM-9703 is a public release, Crown
+copyright: this note gives it in words and ranges, though its values may be committed (#1119, #763).
