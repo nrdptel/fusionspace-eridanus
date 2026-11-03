@@ -12,8 +12,8 @@ What the next release changes from 0.1.0 so far.
 
 - **The motor stock credit.** From 1 November 2026, motor.fusionspace.co's live stock data is
   under the site's own terms, no longer CC BY 4.0: free for personal, non-commercial use and for
-  FusionSpace's own tools, with other sites, apps and commercial uses needing the owner's
-  permission. `hpr motors search` and the library's `motor_finder::ATTRIBUTION` now credit the
+  FusionSpace's own tools, with other sites, apps and commercial uses needing written
+  permission first. `hpr motors search` and the library's `motor_finder::ATTRIBUTION` now credit the
   site with links to it and to its terms. Release 0.1.0 still prints "licensed CC BY 4.0" beside
   the data, which is wrong for data fetched from that day on; copies fetched before it keep CC BY
   4.0 ([Motor stock and prices](https://hpr.fusionspace.co/motor-stock.html#credit-and-terms)).

@@ -248,11 +248,11 @@ adds a source.
   files are eight answers recorded unchanged from one build of the site's public API, 2026-10-01
   07:07:29 UTC (one file renamed: the site's `F27R~L.json` is stored as `F27R_L`). Motor stock
   data from motor.fusionspace.co, licensed under Creative Commons Attribution 4.0 International
-  (CC BY 4.0, <https://creativecommons.org/licenses/by/4.0/>); the site's API page
-  (<https://motor.fusionspace.co/api>, "Data licence", checked 2026-10-03) licenses its responses,
-  and the compilation of motor, listing, stock and price data in them, under CC BY 4.0, asks for
-  the credit "Motor stock data from motor.fusionspace.co", and permits storing recorded responses
-  as software test fixtures. The recordings (2026-09-17 under `refs/`, 2026-10-01 here) predate
+  (CC BY 4.0, <https://creativecommons.org/licenses/by/4.0/>) when recorded: the site's API page
+  (<https://motor.fusionspace.co/api>, then headed "Data licence", now "Terms"; checked 2026-10-03)
+  licensed its responses, and the compilation of motor, listing, stock and price data in them,
+  under CC BY 4.0, asked for the credit "Motor stock data from motor.fusionspace.co", and
+  permitted storing recorded responses as software test fixtures. The recordings (2026-09-17 under `refs/`, 2026-10-01 here) predate
   that licence statement; the site's owner licenses them under CC BY 4.0 too (live page, fetched
   2026-10-03). The files are unchanged but for the one rename. The site is the
   project owner's; the data is gathered from public vendor listings and ThrustCurve.org and

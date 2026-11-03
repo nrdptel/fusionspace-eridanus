@@ -304,8 +304,8 @@ The average thrust is the total impulse over the burn time.
 The site's terms are on [its API page](https://motor.fusionspace.co/api#terms), under "Terms".
 From 1 November 2026 the data the site publishes is under those terms, not an open license. It
 is free for personal, non-commercial use and for FusionSpace's own tools, FusionSpace HPR among
-them; any other site, app or service, and any commercial use, needs the owner's written
-permission. The site asks for the credit "Motor stock data from motor.fusionspace.co", linked to
+them; any other site, app or service, and any commercial use, needs written permission
+first. The site asks for the credit "Motor stock data from motor.fusionspace.co", linked to
 the site, and allows keeping a cached copy and recorded answers as test fixtures within that use.
 The data is gathered from public vendor listings and from ThrustCurve.org, and comes as is, with
 no warranty.
