@@ -1,8 +1,10 @@
 # Base drag of a flat-based body below Mach 0.6, without a rear sting
 
+Re-checked 2026-11-03: 4 claims corrected.
+
 **In short: below Mach 0.5, four tests that hold a flat-based body without a rear sting put its base drag at 0.14–0.16
 on the base area; the shared rule, 0.12 + 0.13 M², gives 0.120–0.132 at Mach 0.06–0.3, low by 0.02–0.04.** Two tests
-hold the body by magnetic suspension (0.142 and 0.147 at Mach 0.08–0.19). One holds a full-scale, turbulent, l/d 10.9
+hold the body by magnetic suspension (0.142 and 0.147 at Mach 0.08–0.19). One holds a full-scale, turbulent, l/d 10.8
 body on a strut 4.1 diameters ahead of a closed base, and Pisa's strut-held body reads 0.146–0.160. The full-scale one
 reads 0.153, 0.158, 0.162 and 0.172 at Mach 0.30, 0.50, 0.71 and 0.82, tabulated, not read off a plot. So the measured
 level rises only 12% from Mach 0.3 to 0.82 where the rule rises 57%: the rule is right near Mach 0.5 and turns high
@@ -21,7 +23,7 @@ the base drag on the base area. "Read" values come off a plot, with the read-off
 |:--|:--|:--|:--|:--|:--|
 | LM | [S1] | ogive-cylinder, l/d 9.2, 30.8 mm | magnetic | 0.11–0.19 | mostly laminar; tripped |
 | KM | [S2] | hemisphere-cylinder, l/d 6.5, 42 mm | magnetic | 0.08 | not stated |
-| TP | [S3] | ogive-cylinder, l/d 10.9, 20.3 cm | strut 4.1 d ahead of base | 0.30–0.82 | turbulent from the nose |
+| TP | [S3] | ogive-cylinder, l/d 10.8, 20.3 cm | strut 4.1 d ahead of base | 0.30–0.82 | turbulent from the nose |
 | PI | [S4] | elliptic nose, l/d 5.7, 70 mm | faired strut over a plate | 0.06 | turbulent, δ/d 0.107–0.171 |
 | IC | [S5] | blunt-ended body, l/d 6.5, 196.5 mm | thin airfoil-shaped sting | 0.044 | turbulent, θ/d 0.011 |
 | LS | [S6] | Kármán ogive, l/d 10, 2 in | side support | 0.6–0.8 | tripped at 20% length |
@@ -35,7 +37,7 @@ the base drag on the base area. "Read" values come off a plot, with the read-off
   [S1] p. 23; the grit was too fine to trip fully at the lowest Reynolds numbers [S1] p. 55.
 - **KM, Kyushu University with a loaned 300 mm magnetic suspension (Tadakuma et al. 2005).** 27 m/s, Re_D 7.6 × 10⁴,
   turbulence within 0.7%, blockage corrected; telemetry ±1.5 Pa [S2] pp. 563–565. Six radii read 0.140–0.157, ±0.003
-  [S2] Fig. 10. **Inference:** area mean 0.147; Mach 0.08; the layer is probably laminar.
+  read off; plotted 95% bars ±0.007 [S2] Fig. 10, p. 566. **Inference:** area mean 0.147; Mach 0.08; probably laminar.
 - **TP, NASA TP-2638 (Powers, Huffman and Fox 1986).** A full-scale F-111 fin-cap body of revolution in the Langley
   7- by 10-foot high-speed tunnel, joints sealed against base bleed [S3] pp. 6–8. A NACA 64-010 strut of 17.8 cm chord
   ends 82.8 cm (4.1 d) ahead of the base; no sting [S3] p. 8. Grit trip 3.6 cm behind the nose tip, Re_L 2.0–4.0 × 10⁷
@@ -101,17 +103,18 @@ the base drag on the base area. "Read" values come off a plot, with the read-off
   0.0144) [S4] Table 5.2, p. 198: −0.014 (−8.7%). **Inference:** −0.22 per unit δ/d. Carried past the tested range,
   it gives 0.140 at δ/d 0.20 and 0.118 at 0.30. Southampton's shoulder trip lowered base drag by about 0.02 [S7] p. 83,
   the same sign; Langley's showed no significant change (§1).
-- **No low-speed data above δ/d 0.17.** **Inference:** flat-plate estimates for HPR bodies (l/d 8–20, Re_L 2 × 10⁶ to
-  3 × 10⁷) give δ/d 0.10–0.41, so the thick-layer half of the HPR range is untested here.
+- **No low-speed data above δ/d 0.17.** **Inference:** HPR bodies (l/d 8–20, Re_L 2 × 10⁶ to 3 × 10⁷) give flat-plate
+  δ/d 0.09–0.41. Pisa's simulations reach 0.318 but read 0.103 to the test's 0.146 at 0.171 [S4] Table 5.3, p. 206.
 - **Forebody length.** Mair (1965), as cited by both Pisa theses, gives −C_pb 0.15 at l/d about 6 and 0.14 at about 10
   on a round-nosed flat-based body [S4] p. 107; not read at source, support not stated. **Inference:** about −0.01 for
   4 more calibers, the same sign as a thicker layer.
 - **Hoerner's eq. 34 reads low on cylinders.** **Inference:** 0.029/√C_fB, with C_fB = 8θ/d at the base edge, gives
   0.085–0.111 on PI (low by 0.049–0.061, 31–42%) and 0.098 on IC (low by 0.012); with skin friction on the wetted
   area or TP's own forebody drag, 0.083–0.100 on TP at Mach 0.30 (low by 0.053–0.070). The parent note found the
-  same on Hart's body. In Fig. 37 every point above C_DB 0.14 is cone-cylinder data "at M > 1" or projectile data;
-  below it sit 5 AVA and 3 DVL fuselages with cut-off streamline tails and two projectile points of unstated Mach,
-  none a flat-based cylinder (counted from a 900 dpi render; ±2 triangles overlap) [S10] p. 3-19. DATCOM's eq.
+  same on Hart's body. In Fig. 37 every point above C_DB 0.15 is cone-cylinder data "at M > 1" (11–14) or projectile
+  data (2–3). At 0.14 and below sit 5 AVA and 3 DVL fuselages with cut-off tails (0.140 down to 0.035), two projectile
+  points of unstated Mach (0.126, 0.062) and two cone-cylinder points at M > 1 (0.139, 0.119), both under the curve.
+  None is a subsonic flat-based cylinder (600 dpi render, ±0.003; glyphs above 0.15 overlap) [S10] p. 3-19. DATCOM's eq.
   4.2.3.1-b is the same 0.029/√ form with a base-to-body area factor [S11] p. 4.2.3.1-2.
 - **A rear sting at low speed lowers base drag by about 10–25%.** Measured against the same model with no sting:
   - LM: a 0.41 d dummy sting lowered C_D by 0.027–0.034 with free transition and 0.018–0.019 tripped, read ±0.001
@@ -134,8 +137,8 @@ the base drag on the base area. "Read" values come off a plot, with the read-off
 - **Terms.** TP and LS are NASA and NACA reports; LM (NASA CR-4299, by Old Dominion University under a NASA grant)
   and DATCOM (a contractor report cleared for public release) carry no copyright notice. All four are public on NTRS
   or DTIC and cached under `refs/` (gitignored); TP's tabulated values may go into a fixture with table and page. KM
-  (© JSASS), the Pisa theses (no license stated), Henderson's thesis (University of Southampton thesis license),
-  Zhu's thesis (CC BY-NC 4.0) and Hoerner (©) are cited, not copied.
+  (© JSASS), the Pisa theses (no license stated), Henderson's thesis (University of Southampton thesis
+  license, per its eprints page, read 2026-11-03), Zhu's thesis (CC BY-NC 4.0) and Hoerner (©) are cited, not copied.
 - **Reference to add.** TP's four α ≈ 0.2° points, with body, strut position, Re_L and tabulated source, beside the
   parent note's transonic fixture, and a test printing the rule's signed error. It is the only closed flat base found
   spanning Mach 0.3–0.8 without a rear support.
