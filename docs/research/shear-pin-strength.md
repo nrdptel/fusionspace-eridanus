@@ -136,14 +136,14 @@ hot water and carry about 3% to 4% moisture against about 0.5% as molded (p. 168
 | Fetter (Min): 9,600 psi × 3A minor | 31.0 lbf / 138 N | 49.8 lbf / 222 N | 75.0 lbf / 333 N |
 | Measured high (one builder each) | 35 lbf / 156 N | 56 lbf / 249 N | 116 lbf / 516 N |
 | Feretich's max: 10,500 psi × pitch | 46 lbf / 205 N | 76 lbf / 338 N | 114 lbf / 507 N |
-| Dry, 0 °C, fast, Eyring / multiplied: 14,940 / 15,620 psi | 65 / 68 lbf, 289 / 303 N | 108 / 113 lbf, 479 / 501 N | 163 / 170 lbf, 724 / 756 N |
+| Dry, 0 °C, fast, Eyring / multiplied: 14,940 / 15,620 psi | 65 / 68 lbf, 289 / 303 N | 108 / 113 lbf, 480 / 501 N | 163 / 170 lbf, 724 / 756 N |
 | Dry, −30 °C (yield extrapolated, **Inference**), fast, Eyring / multiplied: 16,550 / 18,040 psi | 72 / 79 lbf, 321 / 349 N | 120 / 131 lbf, 531 / 579 N | 181 / 197 lbf, 801 / 874 N |
 | Dry, 0 °C, compression fit at 100 /s, multiplied only (rod's moisture unstated): 20,900 psi | 91 lbf / 405 N | 151 lbf / 671 N | 228 lbf / 1,012 N |
 
 Check for 2-56: π/4 × 0.0744² = 0.004347 in²; × 10,500 psi = 45.6 lbf, Feretich's 46. Fast rows ([19] §6), rounded up:
 10,600 psi × 1.16 (0 °C) or 1.34 (−30 °C) × 1.27 (top rate) or 1.70 (fit), Eyring scaling the gain by T/296. They
-stack factors from separate figures; no source loads nylon fast and cold together. The old ×1.2 stack (14,750 psi; 64
-/ 106 / 160 lbf) sits 1% to 42% below them. **Inference:** two causes may break a pin below these yield forces, by
+stack factors from separate figures; no source loads nylon fast and cold together. They run 1% to 42% above the old
+×1.2 stack (14,750 psi; 64 / 106 / 160 lbf). **Inference:** two causes may break a pin below these yield forces, by
 unbounded amounts: adiabatic softening, and notch brittleness in a cold, conditioned pin ([19] §3, §6).
 
 ## What this suggests
@@ -152,7 +152,7 @@ unbounded amounts: adiabatic softening, and notch brittleness in a cold, conditi
   times Fetter's 9,600 psi row (too little powder for a strong pin). The one 6-32 report (116 lbf, count unstated)
   leaves 6-32 no margin. This slow, 23 °C bound misses a fast or cold break (§5; §6, fast and cold: 1.4 to 2.0×).
 - **Say the spread, not one number.** From Damerau's lowest to the builders' highest, breaks span 0.6 to 1.1 times
-  Fetter's row (2-56, 4-40; one 2-56 low, 7.5 lbf, is 0.24 times); the model can't predict a builder's pins in it.
+  Fetter's row (2-56, 4-40; one 2-56 low, 7.5 lbf, is 0.24 times); M6.7's model can't predict a builder's pins in it.
 - **M6.8's ground-test log could record** pin count, size, maker, color (black is pre-moistened), tapped or drilled,
   and tube material: each moves the force by the sizes in §5.
 - **Fetter's slips** (§1) matter if M6.7 cites Table 6-1 or Eq. 6-1; cite the table's 30.98 lbf, not 26.62.
