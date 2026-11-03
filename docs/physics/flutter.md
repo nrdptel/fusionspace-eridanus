@@ -53,13 +53,14 @@ other, to your fins and your rocket's flight.
   wing's, so it reads high there ([measured flutter onsets][onsets-note], §5, a test too different
   from a fin to count).
 
-  Flat plates and other fins of one material read below 1, the safe side, where their roots were
-  clamped: 0.14 to 0.65 on the counted plates ([measured flutter onsets][onsets-note]) and 0.35 to
-  0.84 on the uniform fins of [fin flutter tests][tests-note]. A softer root lowers the onset: the
-  ASROC missile fin's plate with its root restraint cut reaches 1.10 on one reading (§3), and on
-  two root tests the highest safe-side ratios, 0.82 to 0.84, would become 1.06 to 1.09 (§4, an
-  inference). None of these was a fin glued to a tube, and the figures are not a bound: a fin of one of these kinds may flutter further below HPR Sim's speed
-  than any of them did.
+  Flat plates and other fins of one material read below 1, the safe side, held at the root as
+  tested, in most of them not fully clamped: 0.14 to 0.65 on the counted plates
+  ([measured flutter onsets][onsets-note]) and 0.35 to 0.84 on the uniform fins of
+  [fin flutter tests][tests-note]. A softer root lowers the onset: the ASROC missile fin's plate
+  with its root restraint cut reaches 1.10 on one reading (§3), and on two root tests the highest
+  safe-side ratios, 0.82 to 0.84, would become 1.06 to 1.09 (§4, an inference). None of these was
+  a fin glued to a tube, and the figures are not a bound: a fin of one of these kinds may flutter
+  further below HPR Sim's speed than any of them did.
 - **What it leaves out:** sweep, and how the fin is mounted. Martin's wings were clamped at the
   root, and a fin glued to a tube is less stiff there. Also left out are stall flutter at high
   angles of attack and Mach-number effects, such as a dip near Mach 1. So are the rocket body's
