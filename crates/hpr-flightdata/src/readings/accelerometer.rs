@@ -45,9 +45,9 @@
 //! latest time by the heights; the coast is read only where one was flown, after the trace first
 //! moves and before an apogee the log doesn't end at, but not held to liftoff's latest time as
 //! the direction's coast is; a pad or a coast that reads neither, such as a log that starts in
-//! the thrust, says nothing. Gravity is settled when one witness or more says and none disagrees, except that a
-//! coast at about −1 g doesn't settle it alone: a part that holds gravity reads its drag there,
-//! and a rocket still fast at apogee, arcing over, can drag about 1 g
+//! the thrust, says nothing. Gravity is settled when one witness or more says and none
+//! disagrees, except that a coast at about −1 g doesn't settle it alone: a part that holds
+//! gravity reads its drag there, and a rocket still fast at apogee, arcing over, can drag about 1 g
 //! ([#806](https://github.com/nrdptel/fusionspace-eridanus/issues/806)). Its about 0 can
 //! stand alone, as a part without gravity reads −1 g or below in a coast, unless a net push
 //! forward (thrust less drag) of between about 0.75 and 1.25 g still acts in that second.
