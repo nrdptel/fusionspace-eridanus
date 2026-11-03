@@ -195,8 +195,6 @@ Model at Ma 2.45", *Transactions on Aerospace Research* 276(3), 2024, pp. 86–1
 - **B3.** Iijima et al., JAXA-RR-06-046, 2007. <https://jaxa.repo.nii.ac.jp/record/2185/files/63877000.pdf>
 - **A1.** Svorcan et al., OTEH 2024, pp. 24–27. <https://doi.org/10.5937/OTEH24005S>
 
-US Government reports (F2–F7, B1) are approved for public release. DREV-TM-9703 (F1) is too: its DTIC page reads
-"Approved for public release; distribution unlimited" (block 12, PDF p. 2), and its title page (PDF p. 4) and its
-Document Control Data page (block 11, PDF p. 150) say unlimited distribution. It is Crown copyright (PDF p. 5), with no clause against release to
-third parties; that clause belongs to DRDC TM 2002-136 and 2002-008. Its values can be cited with their pages, and may
-enter a committed fixture typed in the project's own layout (issue #1119).
+US Government reports (F2–F7, B1) are approved for public release, and so is DREV-TM-9703 (F1), with distribution
+unlimited (PDF pp. 2, 4 and 150), Crown copyright (p. 5), without the third-party bar of DRDC TM 2002-136 and 2002-008.
+Its values can be cited with their pages and may enter a committed fixture in the project's own layout (issue #1119).
