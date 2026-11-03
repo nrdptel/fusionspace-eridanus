@@ -1,25 +1,26 @@
 # A fin set flying in another's downwash: cited methods and measured shares
 
+Re-checked 2026-11-03: 14 claims corrected.
+
 This note asks how much normal force a rear fin set gives when it flies behind a forward one, as a booster's fins do
 behind a sustainer's on an in-line two-stage stack. It follows
-[hagerty-tunnel-lift](hagerty-tunnel-lift.md#5-two-fin-sets-in-line), whose booster fins added only 4–19% of their
-own Barrowman slope, and serves
-[#730](https://github.com/nrdptel/fusionspace-eridanus/issues/730). The share η used throughout is the rear set's lift
-beside the body and the forward set, over its lift on the body alone (on Hagerty's model, over Barrowman's value for
-it, as no booster-fins-only run exists). **Inference** marks this note's own arithmetic. Pages are printed pages
-unless marked PDF.
+[hagerty-tunnel-lift](hagerty-tunnel-lift.md#5-two-fin-sets-in-line), whose booster fins added only 4–19% of their own
+Barrowman slope, and serves [#730](https://github.com/nrdptel/fusionspace-eridanus/issues/730). The share η used
+throughout is the rear set's lift beside the body and the forward set, over its lift on the body alone (on Hagerty's
+model, over Barrowman's value for it, as no booster-fins-only run exists). **Inference** marks this note's own
+arithmetic. Pages are printed pages unless marked PDF.
 
 **In short: every method and every dataset says the rear set lifts less than alone, so summing the sets, as Barrowman's
 method and HPR Sim do, always reads a two-stage margin high, the flattering side.** Measured in-line shares near 0° are
 0.06–0.28 for rectangular fins of equal span (Grigsby, Mach 1.62) and 0.04–0.19 on Hagerty's model rocket (Mach
 0.03–0.09); delta fins keep 0.43–0.59, fins rotated 45° against the forward set (interdigitated) 0.62–0.84. The one
 cited method with tandem validation, NACA Report 1307's rolled-up vortex (USAF DATCOM's Method 3, Missile DATCOM's
-model), errs both ways: at Mach 1.62 it reads the rear set's share 0.04–0.35 *low* (its whole-model slope and CP fit by
-compensating errors), while on Hagerty's close-coupled subsonic model it keeps 0.78 of Barrowman's value, three to
-twenty times the measured increment. Jones's slender-body rule (0.29) and Hagerty's own outboard-span estimate (0.16)
-come closer there. On an invented 56 mm stack the range of shares moves the center of pressure (CP) forward 0.7–4.5
-calibers (1.0–4.5 in line). Confidence: high in the sign and the readings, medium in the hand calculations, low in
-which method holds below Mach 1 at hobby spacing.
+model), errs both ways: at Mach 1.62 it reads the rear set's share 0.04–0.35 *low* (yet its whole-model slope lands
+within −4% to +9% of the measurement), while on Hagerty's close-coupled subsonic model it keeps a share of 0.63 (0.43 at
+Fig. 12's largest strip error), 2–16 times the measured increment. Jones's slender-body rule (0.29) and Hagerty's own
+outboard-span estimate (0.16) come closer there. On an invented 56 mm stack the range of shares moves the center of
+pressure (CP) forward 0.7–4.5 calibers (1.0–4.5 in line). Confidence: high in the sign and the readings, medium in the
+hand calculations, low in which method holds below Mach 1 at hobby spacing.
 
 ## 1. What was measured
 
@@ -28,9 +29,9 @@ which method holds below Mach 1 at hobby spacing.
 | Hagerty, configuration 1 [H] | 0.03–0.09 | cruciform, in line | 1.16 | 0–1 (assumed) | 0.04–0.19; a third at 23° |
 | Grigsby, rectangular, in line [G51] | 1.62 | cruciform | 1.00 | 2.8–5.3 | 0.06–0.28 |
 | Grigsby, delta and reversed delta, in line [G51] | 1.62 | cruciform | 1.00 | 3.2–5.3 | 0.43–0.59 |
-| Grigsby, interdigitated (45°) [G51] | 1.62 | cruciform | 1.00 (1.42 for T6) | 2.8–5.3 | 0.62–0.84 |
+| Grigsby, interdigitated (45°) [G51] | 1.62 | cruciform | 1.00 (1.42 for T6) | 2.8–5.7 | 0.62–0.84 |
 | Spahr [S54] | 1.99 | cruciform, in line | 0.64 | about 2.8 | 0.74 (0.88 interdigitated) |
-| Kassner, Wettlaufer [K77] | 0.80 | nose canards, tail | 0.96–1.2 | about 5 | 0.62 at 4°, 0.80 at 8°, 1.0 from 16° |
+| Kassner, Wettlaufer [K77] | 0.80 | nose canards, tail | 0.96 | about 5 | 0.62 at 4°, 0.80 at 8°, 1.0 from 16° |
 | Pierpont [P62] | 0.60–1.20 | planar stack | 1.20 | about 4–5 | stability share cut "more than one-half" |
 
 Spans are total; gaps run trailing edge to leading edge. Hagerty's, Kassner's and Pierpont's gaps and Kassner's span
@@ -52,11 +53,11 @@ ratio are this note's estimates from drawings or assumed positions (**Inference*
   from summing only 0.22 caliber (Table II; **Inference**). Hagerty's and the invented stack's booster fins span as
   much or more than the forward set, the Grigsby case.
 - **Subsonic.** No subsonic dataset was found with a full body, body-wing, body-tail, whole-model build-up for two
-  equal fin sets; Hagerty stays the only low-speed one. Kassner's canards are small nose deltas carrying about 54% of
-  the isolated tail's load at 8° (**Inference**), so they shed weaker vortices than sustainer fins would. Pierpont's
-  second-stage fins lost more than half their stability share behind a winged spacecraft, which the author puts down
-  to the spacecraft's interference, adding that the wing wake's lower dynamic pressure would also account for it
-  (pp. 5–6); no fins-off run separates η.
+  equal fin sets; Hagerty stays the only low-speed one. Kassner's canards are nose deltas of about 43% of the tail's
+  area carrying 54% of its isolated load at 8° (**Inference**), so they shed weaker vortices than sustainer fins would.
+  Pierpont's second-stage fins lost more than half their stability share behind a winged spacecraft, which the author
+  puts down to its interference, adding that the wing wake's lower dynamic pressure would also account for it (pp. 5–6);
+  no fins-off run separates η.
 
 ## 2. NACA Report 1307: one rolled-up vortex per forward panel [P57]
 
@@ -71,17 +72,17 @@ ratio are this note's estimates from drawings or assumed positions (**Inference*
 - **Inputs.** Only geometry and the two sets' slopes: i depends on geometry alone, so the method's Mach dependence
   comes through the forward set's slope and vortex strength.
 - **Limits it states.** Small α; no swept-back trailing edges or swept-forward leading edges; body vortices or more
-  than one vortex per panel at high α invalidate it (p. 30). Strip theory errs up to about 35% when the vortex passes
-  just inboard of a rectangular tail's tip, under 5% outboard (Fig. 12, p. 14). In the transonic range nonlinearities
-  "may cause the method to fail" (p. 30).
+  than one vortex per panel at high α invalidate it (p. 30). Strip theory reads the vortex's effect up to about 35% low
+  with the vortex inboard of a rectangular tail's tip, and errs little outboard "except in the immediate vicinity of the
+  tip" (Fig. 12, p. 14). In the transonic range nonlinearities "may cause the method to fail" (p. 30).
 - **What it was checked against.** Table III: 24 wing-body-tail models, Mach 0.20–1.99, overall lift within about
   ±10% and CP within ±0.02 body length (summary, p. 1). Its equal-span tandem rows (115–124) are ten of Grigsby's
   Mach 1.62 models: the theory's rear-set share is 0.02–0.43 against Grigsby's measured 0.06–0.59 (L51J15 Table III),
   low by 0.04–0.35 on all ten, while the whole-model CP lands within −0.51 to +0.26 calibers where summing reads
   1.07–2.73 aft (**Inference** from both tables). Grigsby's own version of the method (Lagerstrom–Graham vortex
   positions in line, measured ones interdigitated; reversed-flow tail loads) brought all 13 configurations' slopes
-  within −0.8% to +7.3% and the CP within 0.2 caliber on average, 0.4 at worst (L52H05 pp. 12–13), an agreement he
-  calls "somewhat fortuitous" because the body-wing and body-tail errors cancel.
+  within −0.8% to +7.3% and the CP within 0.2 caliber on average, 0.4 at worst (L52H05 pp. 12–13). The CP fit Grigsby
+  calls "somewhat fortuitous": calculated body-wing CPs read aft and body-tail CPs forward, and the two cancel (p. 13).
 - **DATCOM's use [D78].** USAF DATCOM §4.4.1 gives three downwash methods. Method 1 needs a forward span at least 1.5
   times the rear one's (p. 4.4.1-3); Method 2's empirical gradient was fitted over aspect ratio 2–8 and span ratio
   0.28–0.80 (p. 4.4.1-7). A two-stage stack fits neither: Hagerty's forward set has aspect ratio 1.8 and span ratio 1.16
@@ -109,22 +110,21 @@ ratio are this note's estimates from drawings or assumed positions (**Inference*
 
 Inputs from the [hagerty-tunnel-lift](hagerty-tunnel-lift.md) note: body 1.625 in; upper fins root 3, tip 2, span
 2.25 in; booster fins root 3.5, tip 2.5, span 2.75 in, in line; Barrowman gives the booster fins 20.6 per rad on the
-body. NACA 1307 puts the vortex 2.52 in from the axis, 71% of the booster fins' semispan, and gives i = −1.98: a
-share of 0.63 of its own slender-body slope for the set (25.3 per rad), or 0.78 of Barrowman's. Shares below are of
-Barrowman's 20.6, the base of the measured values.
+body. NACA 1307 puts the vortex 2.52 in from the axis, 71% of the booster fins' semispan, and gives i = −1.98: a share
+of 0.63 of its own slope for the set on the body, 25.3 per rad (Diederich's 2.44 per rad for the joined panels times
+slender-body K_T(B) + K_B(T) = 1.51, on 15.5 cm²). Each method's own share is applied to Barrowman's 20.6 below.
 
 | Method | Share η | Increment, per rad | Against the measured 0.8–3.9 |
 |---|--:|--:|---|
 | Summed (Barrowman, HPR Sim) | 1.00 | 20.6 | 5–26 times high |
-| NACA 1307, DATCOM Method 3 | 0.78 (0.62 with a 35% strip error) | 16.0 (12.7) | 3–20 times high |
+| NACA 1307, DATCOM Method 3 | 0.63 (0.43 with a 35% strip error) | 13.0 (8.9) | 2.3–16 times high |
 | Jones's flat-sheet limit | 0.29 | 6.0 | 1.5–7.5 times high |
 | Hagerty's outboard span | 0.16 | 3.2 | inside |
 
-At 23° the vortex rises 0.27–0.97 in off the plane and NACA 1307 keeps 0.80–0.89 of Barrowman's slope against a
+At 23° the vortex rises 0.27–0.97 in off the plane and NACA 1307 keeps 0.65–0.73 of the set's own slope against a
 measured 0.33: right in the direction of change, wrong in size. At Mach 1.62 the same method reads the share low, so
 the miss here is most likely the close coupling (a sheet not yet rolled up, Missile DATCOM's warning) and the low
-speed. That reading is not proven: Hagerty's fin positions are assumed (his Fig. 1 is missing from the scan), the
-chord Reynolds number is about 5 × 10⁴, and this is one test.
+speed. Unproven: Hagerty's fin positions are assumed (Fig. 1 is missing), chord Reynolds number about 5 × 10⁴, one test.
 
 ## 5. How far each moves a two-stage stack's margin (an invented stack; Inference)
 
@@ -143,9 +143,8 @@ set 20.85 per rad. A share below 1 moves the CP forward, so the margin falls by 
 | C: 450 mm booster, fins 140/70/110 mm | 22.20 cal | 0.57, NACA 1307; 0.29, Jones | 1.30; 2.69 cal |
 
 NACA 1307's share on case A by Mach: 0.42 (0), 0.36 (0.8), 0.38 (1.5), 0.66 (2.5), scaled by the forward set's slope
-(Diederich's formula below Mach 1, 4/β × [1 − 1/(2βA)] above, an approximation). At α → 0 it doesn't depend on the gap.
-Against a 1–2 caliber margin, a forward shift of 1–4.5 calibers can leave a stack that the sum calls stable neutral
-or unstable, as Grigsby measured on three in-line models (section 1).
+(Diederich's below Mach 1, roughly 4/β × [1 − 1/(2βA)] above), not by the gap at α → 0. A 1–4.5 caliber shift can
+leave a stack the sum calls stable by 1–2 calibers neutral or unstable, as Grigsby measured on three in-line models.
 
 ## 6. What other tools document
 
@@ -158,9 +157,9 @@ Apogee newsletter letter repeats Stine's advice to interdigitate the two stages'
 
 - **State the limit now.** A margin with one fin set behind another reads high by a cited amount: on the invented
   stack, 1.0–4.5 calibers for in-line sets and 0.7 interdigitated; on Grigsby's models, 0.8–2.6 in line and 0.3–0.8
-  interdigitated, measured [H, G51]. That serves the first item of #730's done-when.
+  interdigitated, measured [G51]. That serves the first item of #730's done-when.
 - **No cited method is ready to model it below Mach 1.** NACA 1307 is the only method validated on equal-span
-  tandem sets, and only at Mach 1.62, where it reads the share low; at Hagerty's spacing and speed it reads 3–20 times
+  tandem sets, and only at Mach 1.62, where it reads the share low; at Hagerty's spacing and speed it reads 2–16 times
   high in increment, so a model built on it alone would stay on the flattering side there. For equal spans Jones's
   share of 0 is a bound on the safe side for the margin; for a larger rear set it read high on Hagerty (0.29 against
   0.04–0.19), so a bound needs the measured lower edge too; either may suit #730's decision record.
@@ -170,12 +169,11 @@ Apogee newsletter letter repeats Stine's advice to interdigitate the two stages'
 ## Open questions
 
 - **Subsonic tandem data at 2–10 calibers** with a full build-up: none found besides Hagerty's one close-coupled,
-  low-Reynolds-number test. Rainey's Langley series (RM L9L30, L50G07, L50I29a, Mach 1.62–2.40) has build-ups with
-  span ratios of 1 and below, as graphs only; not digitized here.
+  low-Reynolds-number test. Rainey's Langley series [R51] (Mach 1.62–2.40) has build-ups with wing-to-tail span ratios
+  of 1 and below (rear set as large or larger), as graphs only; not digitized here.
 - **Partial rollup between close sets:** neither method bounds it, and Missile DATCOM gives no sign.
-- **Interdigitated subsonic shares and three-fin sets:** no data read. Nielsen's *Missile Aerodynamics* (cite only)
-  was not read.
-- **Hagerty's fin positions:** his Fig. 1 is missing, so the gap and the CP shift on his model rest on assumptions.
+- **Interdigitated subsonic shares and three-fin sets:** no data read, nor Nielsen's *Missile Aerodynamics* (cite only).
+- **Hagerty's fin positions:** Fig. 1 of the report is missing, so the gap and the CP shift on the model are assumed.
 
 ## Sources
 
@@ -198,3 +196,5 @@ Hagerty's report (a NAR member benefit), the OpenRocket documentation and the Ap
     <https://openrocket.sourceforge.net/techdoc.pdf>
 12. **[A97]** Apogee Components, *Peak of Flight* newsletter 97, 2003, p. 2.
     <https://www.apogeerockets.com/education/downloads/Newsletter97.pdf>
+13. **[R51]** R. W. Rainey, NACA RM L9L30, RM L50G07, RM L50I29a, 1951. <https://ntrs.nasa.gov/citations/19930086363>,
+    <https://ntrs.nasa.gov/citations/19930086355>, <https://ntrs.nasa.gov/citations/19930086458>

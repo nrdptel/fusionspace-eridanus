@@ -1,18 +1,20 @@
 # Canopy C_D0 against descent speed and line length on 2 to 10 ft canopies
 
+Re-checked 2026-11-03: 12 claims corrected.
+
 **In short: the low-speed rise is measured on hobby-sized canopies: two of Knacke's speed figures come from them.**
-Figure 5-16 of Knacke's manual is 1949 free drops of 45 in (3.8 ft) model canopies, not full-scale ones, and Figure
-5-18 comes from the same report [1, pp. 5-16 to 5-18]. A solid flat circular model reads C_D0 0.91 to 0.97 at 15
-ft/s, 0.84 to 0.85 at 20 ft/s and 0.79 to 0.82 at 25 to 30 ft/s, on the nominal area S_0. Against the simulator's
-flat-circular default of 0.775, a hobby main at 15 to 22 ft/s then takes 3.5 to 12% longer to come down than
-predicted, so descent time and drift read short by that much (**Inference**, §6). Line length can cancel it. Lines
-of 0.6 D_0 cost 12 to 20% of C_D0 on canopies of 3 to 12 ft (§4); with them the same canopy's error runs from −7% to
-+5%. Reynolds number adds a few percent at most at hobby sizes, in the other direction (§5). **How far to trust
-it:** the 45 in data are one 1949 test series, read from figures; its line length isn't printed. Tunnel tests of
-small tethered canopies agree on the direction but not the size. No hemispherical or cross canopy of 2 to 10 ft was
-found measured against speed. This note feeds issue #741 and builds on [hobby-parachute-cd](hobby-parachute-cd.md)
-§3 (Knacke's Figure 5-24 on 24 to 100 ft canopies) and
-[hobby-canopy-glide-and-swing](hobby-canopy-glide-and-swing.md) §1 (why round canopies glide).
+Figure 5-16 of Knacke's manual is 1949 free drops of 45 in (3.8 ft) model canopies, not full-scale ones, and Figure 5-18
+comes from the same report [1, pp. 5-16 to 5-18]. Figure 5-16's solid flat circular model reads C_D0 0.91 at 15 ft/s,
+0.84 at 20 and 0.80 to 0.82 at 25 to 30 ft/s, on S_0; Figure 5-18 reads 0.97 and 0.85 if its lower curve is the same
+canopy (**Inference**). On lines near one D_0, a hobby main at 15 to 22 ft/s then takes 3.5 to 12% longer to come down
+than the 0.775 default predicts: descent time and drift read short, landing energy high (**Inference**, §6). Lines of
+0.6 D_0 cost 12 to 20% of C_D0 on 3 to 12 ft canopies (§4) and flip that at 20 to 22 ft/s: landing energy reads 3.5 to
+14% low, the flattering side. Reynolds number adds a few percent at most, against the glide rise (§5). **How far to
+trust it:** the 45 in data are one 1949 series, read from figures; its line length isn't printed. Of three small
+tethered tunnel tests, one shows a larger rise, a rigid one none, and one can't settle it. No 2 to 10 ft hemispherical
+or cross canopy was found measured against speed. This note feeds #741 and builds on
+[hobby-parachute-cd](hobby-parachute-cd.md) §3 (Figure 5-24, 24 to 100 ft) and
+[hobby-canopy-glide-and-swing](hobby-canopy-glide-and-swing.md) §1 (round-canopy glide).
 
 ## Method
 
@@ -31,7 +33,7 @@ found measured against speed. This note feeds issue #741 and builds on [hobby-pa
   [1, p. 5-16; report MCREXE-672-12B, ref. 5.1]. That area is D_0 = 45.1 in (1.15 m); Figure 5-16's legend gives
   D_0 3.8 ft. Solid canopies oscillated violently above 30 ft/s; loaded down to 10 ft/s they stopped swinging but
   glided at up to 45°; between 15 and 25 ft/s they mixed the two [1, p. 5-16]. Line length isn't stated.
-- **Figure 5-16** (p. 5-16), read here: flat circular 0.91, 0.84, 0.82 and 0.79 at 15, 20, 25 and 30 ft/s;
+- **Figure 5-16** (p. 5-16), read here: flat circular 0.91, 0.84, 0.82 and 0.80 at 15, 20, 25 and 30 ft/s;
   30° conical 0.99, 0.93, 0.90, 0.88; quarter-spherical 1.03, 0.96, 0.92, 0.91. The text's check at 20 ft/s
   (conical 9.5% and quarter-spherical 14.5% above flat) matches these readings to about a point.
 - **Figure 5-18** (p. 5-18), from the same report (ref. 5.1); it prints no size, so 45 in is **Inference** (the
@@ -45,7 +47,7 @@ found measured against speed. This note feeds issue #741 and builds on [hobby-pa
   likely the same series (**Inference**), though its axis reads 1.2×10⁵ to 2.4×10⁵), suggests an unsteady effect
   (pitch stability falling with the load) rather than a Reynolds one. Canopies held rigidly in a tunnel change
   little above Re 10⁵ [2, p. 11].
-- **Size of the rise.** From 30 to 15 ft/s the flat circular model gains 15 to 20%, the conical and quarter-spherical
+- **Size of the rise.** From 30 to 15 ft/s the flat circular model gains 14 to 20%, the conical and quarter-spherical
   12 to 13%. Hanging rocket parts below a hobby main may damp or feed the swing; no source tests that.
 
 ## 2. A larger model in the same kind of drop: 11.9 ft extended skirt
@@ -56,8 +58,8 @@ found measured against speed. This note feeds issue #741 and builds on [hobby-pa
   0.69 and 0.70 at 11.9, 17.7, 29.2 and 45.2 ft/s [3, Table IV-1, p. 5]. One drop per point; the 41.5 ft/s value
   sits above the 27 ft/s one, so single drops may scatter by about 0.1 (**Inference**).
 - From about 28 to 17 ft/s both line lengths gain 6 to 12%. The report's own summary says these canopies glided at
-  low speed and oscillated widely at high speed [3, p. 5]. Outside the 2 to 10 ft range, but only by a little; but it is
-  the one series with speed and line length varied together.
+  low speed and oscillated widely at high speed [3, p. 5]. Just outside the 2 to 10 ft range, it is still the one
+  series with speed and line length varied together.
 
 ## 3. Free-floating in a vertical tunnel: 3.5 ft flat circular
 
@@ -86,13 +88,12 @@ found measured against speed. This note feeds issue #741 and builds on [hobby-pa
 
 ## 5. Reynolds number: small, and the other way
 
-- Cockrell's survey: above Re about 10⁵ on D_0 parachute drag varies little [2, p. 10, Figs 2.9a and 2.9b].
-  In Figure 2.9a (after Jorgensen, tunnel-mounted), a hemispherical canopy reads about 0.81 at 1.0×10⁵, 0.96
-  at 2×10⁵ and 0.99 at 4×10⁵ (read here; reference area not shown); a circular disc on the same rig moves
-  alike, so part of the dip may be the rig (**Inference**). Figure 2.9b's flat circular rises about 0.61 to
-  0.69 from 0.6×10⁶ to 4×10⁶.
+- Cockrell's survey: above Re about 10⁵ on D_0 parachute drag varies little [2, p. 10, Figs 2.9a and 2.9b]. In Figure
+  2.9a (after Jorgensen, tunnel-mounted), a hemispherical canopy reads about 0.81 at 1.0×10⁵, 0.96 at 2×10⁵ and 0.99 at
+  4×10⁵ (read here; reference area not shown); a circular disc on the same rig moves alike, so part of the dip may be
+  the rig (**Inference**). Figure 2.9b's flat circular rises about 0.61 to 0.69 from 0.6×10⁶ to 4×10⁶.
 - Knacke's text finds no Reynolds effect on parachute drag [1, pp. 5-29, 5-30], yet his Figure 5-29 (no C_D scale)
-  shows a fabric hemisphere's drag rising from Re 10⁵ to about 3.5×10⁵.
+  shows a fabric hemisphere's drag rising from Re 10⁵ to about 3.2×10⁵.
 - Hobby mains sit at 1.9×10⁵ to 1.4×10⁶. Only a 2 ft canopy at 15 ft/s nears the knee: about 5% low in C_D
   (2.5% in descent speed) by Figure 2.9a (**Inference**). Lower Re lowers C_D, against the glide effect. The
   45 in drops (Re 3.6×10⁵ to 7.2×10⁵) already include whatever Re effect acts at that size.
@@ -108,10 +109,10 @@ found measured against speed. This note feeds issue #741 and builds on [hobby-pa
 
 - All rows are **Inference** from the measured C_D0, with the line factors of §4 applied to the 45 in curves as if
   those were flown on lines of about one D_0, which no source confirms.
-- Landing energy reads high where descent time reads short (7 to 25% in the first row): the safe side for energy,
-  the flattering side for descent time and drift, as issue #741 says. The issue's 5 to 14% (from Figure 5-24 on 24 to
-  100 ft canopies) becomes 3.5 to 12% on 45 in canopies. It changes sign with lines shorter than about 0.6 D_0 at
-  15 ft/s and about 0.75 D_0 at 20 to 22 ft/s (Figure 5-19a's factors).
+- On lines near one D_0, landing energy reads 7 to 25% high (safe side) and descent time short (flattering), as #741
+  says; its 5 to 14% (Figure 5-24, 24 to 100 ft) becomes 3.5 to 12%. On 0.6 D_0 lines at 20 to 22 ft/s both flip:
+  energy reads 3.5 to 14% low (flattering), descent time long (row 2). By Figure 5-19a the sign turns below 0.72 to
+  0.79 D_0 at 20 to 22 ft/s and near 0.6 at 15 ft/s (0.43 for C_D0 0.97, at the end of Figure 5-20's 6.5 ft curve).
 - At an altitude field a canopy flies faster than its equivalent airspeed (Knacke's Figure 5-24 axis is EAS). Which
   speed sets the glide isn't shown by any source here, so this note doesn't correct for it.
 
@@ -142,7 +143,7 @@ found measured against speed. This note feeds issue #741 and builds on [hobby-pa
   (lines 1.28 to 1.5 D_0), a third series 0.69 to 0.83 at 65 ft/s. A 61.3 ft cross in free flight reads 0.69 to
   0.92 at 18 to 29 ft/s, so the rise reaches crosses at full scale. Knacke notes that
   this stable canopy also gains drag at low speed [1, p. 5-27]. At 21 ft/s the cross sits at the middle of its table
-  range (0.60 to 0.85); below 21 ft/s on small crosses, no data: **unbounded**.
+  range (0.60 to 0.85 [1, Table 5-1, p. 5-3]); below 21 ft/s on small crosses, no data: **unbounded**.
 - **Hemispherical:** no speed series on a 2 to 10 ft hemisphere was found. The 45 in quarter-spherical gained 13%
   from 30 to 15 ft/s (§1); that a hemisphere does the same is **Inference** only.
 
@@ -151,17 +152,16 @@ found measured against speed. This note feeds issue #741 and builds on [hobby-pa
 - **Issue #741's direction holds on hobby-sized flat canopies, with a smaller size and a condition.** `recovery.md`
   can cite Figures 5-16 and 5-18 as 45 in model drops (C_D0 0.91 to 0.97 at 15 ft/s, 0.84 to 0.85 at 20) and say the
   0.775 default makes descent time and drift short by about 3.5 to 12% at 15 to 22 ft/s, assuming the 1949 models
-  flew on lines near one D_0. With lines of 0.6 D_0 the sign is unknown (−7% to +5%).
+  flew on lines near one D_0. On 0.6 D_0 lines at 20 to 22 ft/s it flips: landing energy reads 3.5 to 14% low.
 - **A line-length input would move more than a speed curve.** Lines of 0.6 against 1.5 D_0 span 0.80 to 1.09 of C_D0,
-  wider than 15 against 30 ft/s (1.15 to 1.20). A canopy record with L_e/D_0, scaled by Figure 5-20, would
+  wider than 15 against 30 ft/s (1.14 to 1.20). A canopy record with L_e/D_0, scaled by Figure 5-20, would
   narrow the band.
-- **A speed-dependent flat-circular C_D0** from Figure 5-16's 45 in curve (0.91 at 15 to 0.79 at 30 ft/s) would
+- **A speed-dependent flat-circular C_D0** from Figure 5-16's 45 in curve (0.91 at 15 to 0.80 at 30 ft/s) would
   remove most of the 3.5 to 12% for lines near one D_0. Applied by EAS or true speed, it is an open choice.
-- **A test pinning the error's sign** (#741's second item) can take the first row of §6: at 15 to 22 ft/s the
-  default's descent time is shorter than a 0.83 to 0.97 canopy's.
-- **Terms.** The NASA report is a U.S. Government work and Martins and Wehmann is CC BY 4.0: both may be cached and
-  quoted with credit. Knacke's manual is approved for public release (its 1992 commercial edition is copyrighted);
-  the rest are copyrighted or of unclear terms. All of these are cited only and cached privately.
+- **A test pinning the error's sign** (#741's second item) needs two cases from §6: on one-D_0 lines at 15 to 22 ft/s
+  descent time reads short (C_D0 0.83 to 0.97); on 0.6 D_0 lines at 20 to 22 ft/s landing energy reads low.
+- **Terms.** NASA's report is a U.S. Government work, Martins and Wehmann CC BY 4.0, Knacke approved for public
+  release (its 1992 edition copyrighted); WPI is In Copyright, Tutt copyrighted, Hanoi and Cockrell unclear: all cited.
 
 ## Open questions
 
@@ -175,13 +175,13 @@ found measured against speed. This note feeds issue #741 and builds on [hobby-pa
 
 ## Sources
 
-All read 2026-10-29. Cached privately under the gitignored `refs/` where noted; none is committed.
+All read 2026-10-29 and cached privately under the gitignored `refs/`; none is committed.
 
 1. T. W. Knacke, *Parachute Recovery Systems Design Manual*, NWC TP 6575 (1991), pp. 5-16 to 5-20, 5-27 to 5-30,
    Figures 5-16 to 5-20, 5-27, 5-29; refs. 5.1 to 5.6 on p. 5-131. U.S. Navy report, approved for public release,
-   DTIC ADA247666, cached: https://apps.dtic.mil/sti/pdfs/ADA247666.pdf
+   DTIC ADA247666: https://apps.dtic.mil/sti/pdfs/ADA247666.pdf
 2. D. J. Cockrell, *The Aerodynamics of Parachutes*, AGARDograph 295 (1987), pp. 10 and 11, Figures 2.9a to 2.9c.
-   NATO AGARD; terms unclear: cited only, cached: https://everyspec.com/NATO/NATO-ARMP/AGARD-AG-295_39039/
+   NATO AGARD; terms unclear: cited only: https://everyspec.com/NATO/NATO-ARMP/AGARD-AG-295_39039/
 3. B. A. Tutt, "Fluid Structure Interaction Parachute Benchmark Models in LS-DYNA", AIAA 2013-1384, pp. 2 to 6,
    Table IV-1 (re-printing Stimler and Ross, AFTR 5867, 1960). Copyright Airborne Systems; cited only:
    https://airborne-sys.com/wp-content/uploads/2016/09/Fluid-Structure-Interaction-Parachute-Benchmark.pdf
@@ -196,5 +196,5 @@ All read 2026-10-29. Cached privately under the gitignored `refs/` where noted; 
    *Revista Brasileira de Física Tecnológica Aplicada* 11(2) (2024), doi:10.3895/rbfta.v11n2.18034, CC BY 4.0:
    https://periodicos.utfpr.edu.br/rbfta/article/view/18034
 7. B. P. Day, M. N. Field and J. P. Gelito, "An Experimental Investigation of Aerodynamic Drag on a Round Parachute
-   Canopy", WPI Major Qualifying Project ME-HJ-0502 (2006), Tables 3 and 4, pp. 63 to 65. Cited only:
-   https://digitalcommons.wpi.edu/mqp-all/3855
+   Canopy", WPI Major Qualifying Project ME-HJ-0502 (2006), Tables 3 and 4, pp. 63 to 65. In Copyright
+   (rightsstatements.org InC 1.0); cited only: https://digital.wpi.edu/show/wp988m682
