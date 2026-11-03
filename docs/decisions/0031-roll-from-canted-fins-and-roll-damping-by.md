@@ -83,7 +83,8 @@ appendix A, Figs. 5-6 and 5-7; Niskanen 2009 §3.3; TN D-4014 Fig. 14.
   damping. The fins' 8% thickness is unlikely to explain that, since what evidence there is says
   a thickness term would raise the damping; linear theory's `1/β` load near Mach 1.5, as in the forcing, is the likely
   cause there (an inference). It leaves +11.7% to +18.3% from Mach 2.03 to 2.76 unexplained, part
-  of which may be NOL's: its tunnel values "fell slightly below" free flight (PDF p. 13).
+  of which may be NOL's: its tunnel values "fell slightly below" the free-flight data it plotted
+  (PDF p. 13).
 
 **Alternatives considered.**
 

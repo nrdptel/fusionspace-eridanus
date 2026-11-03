@@ -4531,11 +4531,12 @@ convention rather than a difference in the air ([research note](https://github.c
 HPR Sim reads high faster than sound, most near Mach 1.5. The likely cause there, an inference not
 shown: linear theory's load rises as $1/\beta$ toward Mach 1 faster than the fins' does, as in the
 forcing above. That doesn't explain the 11.7% to 18.3% left from Mach 2.03 to 2.76. Part of it may
-be NOL's own: its tunnel values "fell slightly below" free-flight data ([N6652] PDF p. 13), and
-against DREV's free flights HPR Sim reads closer. The fins' 8% thickness is unlikely to be the cause (an inference). BRL Report 711's thicker wedges,
-16% at the trailing edge, read 21% above its linear theory, about 4% once HPR Sim's body factor
-$k_R(B)$ of 1.167 is taken out; exact wedge lift there is about 15% above linear. Both point the same
-way: a thickness term would raise the damping, not lower it. With the forcing right, a damping 11.7% to 27.5%
+be NOL's own: its tunnel values "fell slightly below" the free-flight data it plotted beside them
+([N6652] PDF p. 13), and against DREV's free flights HPR Sim reads closer. The fins' 8% thickness is unlikely to be the cause (an inference). BRL Report 711 flew the same
+shape (a 3 d span on a 1 d body) with thicker wedges, 16% at the trailing edge. They read 21% above
+its linear theory, which has no body factor; taking out HPR Sim's $k_R(B)$ of 1.167 for that shape
+leaves about 4%. Its linear lift for such a wedge is about 15% below exact theory's near Mach 1.7. Both
+point the same way: a thickness term would raise the damping, not lower it. With the forcing right, a damping 11.7% to 27.5%
 high makes the steady spin about 10% to 22% low ($p = -C_{l0}/C_{lp} \cdot 2V/d$). Near Mach 1.5 the
 forcing reads high too, on the Arcas Robin: errors from two bodies that partly cancel.
 Barrowman's own curve comes from Busemann's third-order expansion ([B67] eq. 3-7), which counts the
