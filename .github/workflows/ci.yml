@@ -370,7 +370,7 @@ jobs:
   # alone its job took up to 1,203 s on windows-latest from a cold cache (M0.16a3), and the Bayesian
   # option's posteriors (M7.3c3, ADR-320) took the slice from 79 s to 335 s on a 10-core Mac. So
   # three parts on each platform, four on macos-latest and six on windows-latest, the slowest: by
-  # least squares their jobs took up to 943 s and, on windows-latest, up to 904 s a half.
+  # least squares their jobs took up to 943 s on macos-latest and 904 s a half on windows-latest.
   fit-slice-part:
     name: fit slice (${{ matrix.os }}, ${{ matrix.part }})
     needs: scope

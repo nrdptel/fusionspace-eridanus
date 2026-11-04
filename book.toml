@@ -85,8 +85,8 @@ heading-split-level = 2
 # and describe by what they give, is left out too; it is still in the sidebar and linked from them.
 # And in M7.3c3, at 10.02 MB, with the fit's Bayesian option: the page on gravity and the Earth's
 # rotation (`physics/gravity.md`), WGS 84's normal gravity and the Coriolis term, which the flight's
-# pages describe by what they give, is left out too (51.8 KB less, 9.97 MB by the same count); it
-# is still in the sidebar and linked from those pages and the glossary.
+# pages describe by what they give, is left out too (the index's JSON 51.8 KB smaller, about 9.97 MB by
+# mdBook's count); it is still in the sidebar and linked from those pages and the glossary.
 [output.html.search.chapter]
 "decisions-and-roadmap.md" = { enable = false }
 "writing.md" = { enable = false }

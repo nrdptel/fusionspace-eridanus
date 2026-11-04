@@ -108,9 +108,11 @@ least-squares fit (ADR-316).
    2,934 CPU-seconds, against 79 s by least squares alone. By least squares alone a job of the slice,
    whole or on windows-latest half, already took 422 to 943 s on CI's runners (four runs,
    2026-11-04), so each platform now fits it
-   in three parts, macos-latest in four and windows-latest, the slowest, in six: the worst of
-   those jobs, its compute scaled by the Mac's 4.2, would near the 20 minutes at three and four. The
-   first pull request's run measures them. The night fits the whole report in 16
+   in three parts, macos-latest in four and windows-latest, the slowest, in six. A whole job scaled
+   by the Mac's 4.2, its build too, bounds a part from above: 990 s at four on macos-latest, whose
+   worst job took 943 s, and 1,280 s at six on windows-latest, whose worst half took 904 s; the
+   build, which each part makes whole, brings them lower by an amount the first pull request's
+   run measures. The night fits the whole report in 16
    parts on Linux, not the 32 this increment first ran with. A full run on main has 70 jobs; the slice's
    parts add 13 and 16 night parts 8, 91 in all, where 32 would make 107, past the 100 that
    `cargo xtask ci-budget` reads in one page and refuses beyond. The whole report, written again on the
