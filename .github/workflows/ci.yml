@@ -365,14 +365,22 @@ jobs:
   # the calibration set's among them, made again, held to the report's rules for one fit and to its
   # committed slice in every word, its numbers aside: a fit's numbers move off the Mac, where
   # `scripts/gate.sh` holds them byte for byte. A job of its own, beside `validate`, so neither
-  # passes the 20 minutes a job may take. The whole fit runs each night (`fit-part`).
-  fit-slice:
-    name: fit slice (${{ matrix.os }})
+  # passes the 20 minutes a job may take. The whole fit runs each night (`fit-part`). On
+  # windows-latest the slice is fitted in two halves, each every other fit of the slice's (`--part
+  # K/2`): whole, its job took 1,203 s on main from a cold cache (M0.16a3), past the 20 minutes.
+  fit-slice-part:
+    name: fit slice (${{ matrix.os }}, ${{ matrix.part }})
     needs: scope
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, windows-11-arm]
+        include:
+          - { os: ubuntu-latest, part: 1/1 }
+          - { os: ubuntu-24.04-arm, part: 1/1 }
+          - { os: macos-latest, part: 1/1 }
+          - { os: windows-latest, part: 1/2 }
+          - { os: windows-latest, part: 2/2 }
+          - { os: windows-11-arm, part: 1/1 }
     runs-on: ${{ matrix.os }}
     env:
       # No step runs for a change to research notes alone (`scope`).
@@ -390,7 +398,21 @@ jobs:
         with:
           save-if: ${{ github.ref == 'refs/heads/main' }}
       - if: env.RUN == 'true'
-        run: cargo run --locked --quiet --package xtask --profile report-check -- fit --slice --other-platform
+        run: cargo run --locked --quiet --package xtask --profile report-check -- fit --slice --other-platform --part ${{ matrix.part }}
+
+  # The checks branch protection requires are `fit slice (<os>)`: each passes only when every part
+  # passed on every OS, as `test (<os>)` does for the tests' halves.
+  fit-slice:
+    name: fit slice (${{ matrix.os }})
+    needs: fit-slice-part
+    if: always()
+    strategy:
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, windows-11-arm]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every part passed
+        run: test "${{ needs.fit-slice-part.result }}" = success
 
   # The least-squares fit's 90% intervals (M7.3b, ADR-316): 6,538 fits of flights of sets A and B
   # and of noise, each parameter held to ADR-257's counts and probes. In one Linux job those took 60

@@ -441,6 +441,28 @@ named. So a report in the repository has to reproduce from both builds, its slic
 ever came out differently, the nightly run would fail and regenerating wouldn't fix it: that would need a
 decision record, not a looser check.
 
+These checks have a time budget
+([the decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md)):
+each job of a pull request's CI within 20 minutes, from the moment a GitHub machine starts it
+(waiting for a free one isn't counted), and the gate within 30 minutes on the maintainer's Mac.
+`cargo xtask ci-budget` checks it; the maintainer's checks run it before a pull request opens and
+again before it merges, and anyone signed in to GitHub's `gh` tool can run it. It needs the network, and
+fails, saying why, when it can't read GitHub's runs. It fails when:
+
+- the branch's newest *full gate*, a `scripts/gate.sh` run of every default step (a branch that
+  changed only prose may leave `validate` out), took over 30 minutes. A step run again after it on
+  the branch, alone or with others, counts at its newest passing time, and a step the full gate
+  lacked is added. A branch with no full gate yet gets a note, not a failure.
+- any job of main's newest passing run of a pull request's checks took over 20 minutes. Such a run
+  is one started by a push to main, or by hand without the `full` box ticked; a push that changed
+  only research notes skips most checks, so the run before it is read.
+- no *full run* on main has passed in the last 26 hours. A full run is the one that adds the
+  censuses: each night, or by hand with `full` ticked. It passes when every `census` job and the
+  fit's whole check passed, and its age is counted from its first attempt, so a run made again
+  later doesn't count as a new night. The night's jobs aren't held to the 20 minutes, since no pull
+  request waits for them. In the one full run read so far, started by hand on 4 November 2026, the
+  census jobs took 22 min 31 s to 37 min 11 s.
+
 The check on the least-squares fit, `cargo xtask fit`, takes longer than any other
 ([the flight fit](physics/flight-fit.md)). Its report rests on 6,538 fits of synthetic flights: the
 first 1,300 of sets A and B each; the wind's flights, those of each set's first 1,500 flights with a
@@ -471,10 +493,13 @@ Where each part of the fit's check runs ([the time budget](https://github.com/nr
 
 | Where | Command | What it holds |
 |---|---|---|
-| A pull request, on all five platforms | `fit --slice --other-platform` | The slice's 444 fits, each line in its words (a calibration fit's lines carry no side, so only its first line's words can differ); the committed report's verdicts, as its stored bands give them; its stored shares against the code's |
+| A pull request, on all five platforms | `fit --slice --other-platform`; on windows-latest in two halves, `--part 1/2` and `--part 2/2` (part 1 of 2, part 2 of 2) | The slice's 444 fits, each line in its words (a calibration fit's lines carry no side, so only its first line's words can differ); the committed report's verdicts, as its stored bands give them; its stored shares against the code's |
 | The gate, before each merge | `fit --slice` | The same, each line byte for byte |
 | Each night, on Linux | `fit --part K/8`, then `fit --check --other-platform --parts` | All 9,192 fits: the report and the shares within the allowances above, the slice in its words |
 | By hand, on the Mac that writes the report | `fit --check` | The whole report to the last digit, and the shares to the code's three figures |
+
+Windows fits the slice in two jobs, 223 and 221 fits, because one job there took 20 min 3 s with
+nothing cached, over the 20 minutes a job may take.
 
 The slice is the same 444 fits every time: part 1 of 21 of each run, its 1st, 22nd and 43rd fit
 and on. A change that moves only fits outside it, and by less than the night's allowances (a count

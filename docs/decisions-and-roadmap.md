@@ -527,11 +527,11 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-14d3"></a>[M0.14d3][done-0] | What the data commands say | done |
 | <a id="m0-14d4"></a>[M0.14d4][done-0] | The Python package and the crates' front pages | done |
 | <a id="m0-15"></a>[M0.15][done-0] | Damaged files refused, never a crash | done |
-| <a id="m0-16"></a>[M0.16][phase-0] | The time budget for CI and the gate | not yet done |
-| <a id="m0-16a"></a>[M0.16a][phase-0] | Fixed slices of the flight censuses, and the budget measured | not yet done |
+| <a id="m0-16"></a>[M0.16][done-0] | The time budget for CI and the gate | done |
+| <a id="m0-16a"></a>[M0.16a][done-0] | Fixed slices of the flight censuses, and the budget measured | done |
 | <a id="m0-16a1"></a>[M0.16a1][done-0] | Two slices | done |
 | <a id="m0-16a2"></a>[M0.16a2][done-0] | The fit's slice | done |
-| <a id="m0-16a3"></a>[M0.16a3][phase-0] | The budget checked | not yet done |
+| <a id="m0-16a3"></a>[M0.16a3][done-0] | The budget checked | done |
 | <a id="m1-1"></a>[M1.1][done-1] | Vectors and rotations, frames, the Earth's shape and gravity | done |
 | <a id="m1-2"></a>[M1.2][done-1] | The atmosphere and wind | done |
 | <a id="m1-3"></a>[M1.3][done-1] | Solid motors: thrust curves, motor files, and mass through the burn | done |

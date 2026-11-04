@@ -36,10 +36,11 @@ pub const USAGE: &str =
                            The same rules, on a platform other than the one that wrote the report:
                            its counts may stand a few flights off, its figures and the shares a
                            few percent, and the slice is held in its words, its numbers aside.
-  fit --slice [--other-platform]
+  fit --slice [--other-platform [--part <k>/<n>]]
                            Fit only the slice, every 21st flight of each run, and hold it to the
                            committed slice, byte for byte or (--other-platform) in its words, and
-                           to the report's rules for one fit; writes nothing.
+                           to the report's rules for one fit; writes nothing. --part fits part k
+                           of n of the slice's flights, every nth from the kth, held in words.
   fit --part <k>/<n> --out <dir>
                            Fit part k of n of those flights, every nth from the kth, and write
                            the fits to <dir>; checks nothing.
@@ -337,6 +338,23 @@ impl Part {
             .skip(self.number - 1)
             .step_by(self.of)
             .collect()
+    }
+
+    /// Part `self` of `outer`'s flights, as one part of a run: every `self.of`th of `outer`'s,
+    /// from its `self.number`th, is every `outer.of * self.of`th flight of the run, from its
+    /// `outer.number + (self.number - 1) * outer.of`th.
+    /// Refuses a split too fine to count.
+    fn within(self, outer: Self) -> Result<Self, String> {
+        let number = (self.number - 1)
+            .checked_mul(outer.of)
+            .and_then(|n| n.checked_add(outer.number));
+        match (number, outer.of.checked_mul(self.of)) {
+            (Some(number), Some(of)) => Ok(Self { number, of }),
+            _ => Err(format!(
+                "--part {}/{} is too fine a split",
+                self.number, self.of
+            )),
+        }
     }
 
     /// This part's file in `dir`.
@@ -1122,6 +1140,15 @@ fn slice_of(
     made_runs: &[Vec<FlightFit>],
     drawn: &[(Set, u64)],
 ) -> Result<(crate::slice::Slice, Vec<String>), String> {
+    slice_part_of(made_runs, drawn, Part::WHOLE)
+}
+
+/// [`slice_of`] for `part` of the slice: each run's fits at that part's places of the slice's.
+fn slice_part_of(
+    made_runs: &[Vec<FlightFit>],
+    drawn: &[(Set, u64)],
+    part: Part,
+) -> Result<(crate::slice::Slice, Vec<String>), String> {
     let runs = runs();
     if made_runs.len() != runs.len() {
         return Err(format!(
@@ -1133,7 +1160,10 @@ fn slice_of(
     let mut flights = Vec::new();
     let mut broken = Vec::new();
     for (run, made) in runs.iter().zip(made_runs) {
-        let places: BTreeSet<u64> = SLICE.of_run(&run.indices).into_iter().collect();
+        let places: BTreeSet<u64> = part
+            .of_run(&SLICE.of_run(&run.indices))
+            .into_iter()
+            .collect();
         let in_slice: Vec<&FlightFit> = made.iter().filter(|f| places.contains(&f.index)).collect();
         if in_slice.len() != places.len() {
             return Err(format!(
@@ -1167,6 +1197,18 @@ fn slice_of(
         },
         broken,
     ))
+}
+
+/// The set and index of each flight at `part`'s places of the slice, in every run.
+fn part_places(part: Part) -> BTreeSet<(String, u64)> {
+    runs()
+        .iter()
+        .flat_map(|run| {
+            part.of_run(&SLICE.of_run(&run.indices))
+                .into_iter()
+                .map(move |index| (run.name(), index))
+        })
+        .collect()
 }
 
 /// Sets A's and B's flights drawn, as `report` gives them.
@@ -1272,9 +1314,16 @@ fn other_platform(root: &Path, made_runs: &[Vec<FlightFit>]) -> Result<(), Strin
     Ok(())
 }
 
-/// `fit --slice`: the slice's fits made again, held to the committed slice as `held` says and to
-/// the report's rules for one fit; the committed report read, and its page rendered from it.
-fn check_slice(root: &Path, files: &DesignFiles, held: crate::slice::Held) -> Result<(), String> {
+/// `fit --slice`: the slice's fits made again, `part` of them, held to the committed slice as
+/// `held` says and to the report's rules for one fit; the committed report read, and its page
+/// rendered from it. A part less than the whole is held in words to the committed slice's flights
+/// at its places (CI splits a slow platform's slice so; the gate fits it whole, byte for byte).
+fn check_slice(
+    root: &Path,
+    files: &DesignFiles,
+    held: crate::slice::Held,
+    part: Part,
+) -> Result<(), String> {
     let json_path = root.join(format!("{REPORT}.json"));
     let page_path = root.join(format!("{REPORT}.md"));
     let committed =
@@ -1299,14 +1348,15 @@ fn check_slice(root: &Path, files: &DesignFiles, held: crate::slice::Held) -> Re
         Err(e) => problems.push(format!("{}: {e}", page_path.display())),
     }
     let start = Instant::now();
-    let made = fit_runs(files, SLICE)?;
-    let (slice, mut broken) = slice_of(&made, &drawn_of(&report))?;
+    let made = fit_runs(files, part.within(SLICE)?)?;
+    let (slice, mut broken) = slice_part_of(&made, &drawn_of(&report), part)?;
     broken.extend(report_problems(&report));
-    problems.extend(crate::slice::compare(
-        &root.join(format!("{REPORT}.slice.json")),
-        &slice,
-        held,
-    ));
+    let slice_path = root.join(format!("{REPORT}.slice.json"));
+    problems.extend(if part == Part::WHOLE {
+        crate::slice::compare(&slice_path, &slice, held)
+    } else {
+        crate::slice::compare_part(&slice_path, &slice, &part_places(part))
+    });
     let mut text = Vec::new();
     if !broken.is_empty() {
         text.push(format!(
@@ -1325,10 +1375,15 @@ fn check_slice(root: &Path, files: &DesignFiles, held: crate::slice::Held) -> Re
     if !text.is_empty() {
         return Err(text.join("\n"));
     }
+    let which = if part == Part::WHOLE {
+        String::new()
+    } else {
+        format!(" (part {} of {})", part.number, part.of)
+    };
     println!(
-        "fit: the slice's {} fits, made in {:.0} s, reproduce {REPORT}.slice.json {} and keep the \
-         report's rules for one fit; {REPORT}.json reads, renders {REPORT}.md, keeps the report's \
-         rules by its counts and holds the library's shares",
+        "fit: the slice's {} fits{which}, made in {:.0} s, reproduce {REPORT}.slice.json {} and \
+         keep the report's rules for one fit; {REPORT}.json reads, renders {REPORT}.md, keeps the \
+         report's rules by its counts and holds the library's shares",
         slice.flights.len(),
         start.elapsed().as_secs_f64(),
         crate::slice::held_text(held)
@@ -1407,8 +1462,13 @@ pub fn run(args: &[String]) -> Result<(), String> {
             );
             Ok(())
         }
-        ["--slice"] => check_slice(&root, &files, crate::slice::Held::Exact),
-        ["--slice", "--other-platform"] => check_slice(&root, &files, crate::slice::Held::Words),
+        ["--slice"] => check_slice(&root, &files, crate::slice::Held::Exact, Part::WHOLE),
+        ["--slice", "--other-platform"] => {
+            check_slice(&root, &files, crate::slice::Held::Words, Part::WHOLE)
+        }
+        ["--slice", "--other-platform", "--part", part] => {
+            check_slice(&root, &files, crate::slice::Held::Words, Part::parse(part)?)
+        }
         ["--check", "--other-platform"] => other_platform(&root, &fit_runs(&files, Part::WHOLE)?),
         ["--check", "--other-platform", "--parts", dir] => {
             other_platform(&root, &fits_from_parts(Path::new(dir))?)
@@ -1995,6 +2055,105 @@ mod tests {
         );
     }
 
+    /// The slice's parts (a slow platform's split in CI, M0.16a3): part k of n of the slice is the
+    /// run's fits at those places of the slice's, the parts fit each of the slice's fits once, and
+    /// each holds the committed slice's fits at its places in words, failing on one changed fit
+    /// and on one fitted off its places.
+    #[test]
+    fn the_slices_parts_fit_it_once_and_each_holds_its_fits() {
+        for run in runs() {
+            for of in 1..=4 {
+                for number in 1..=of {
+                    let part = Part { number, of };
+                    assert_eq!(
+                        part.within(SLICE).unwrap().of_run(&run.indices),
+                        part.of_run(&SLICE.of_run(&run.indices)),
+                        "{} part {number}/{of}",
+                        run.name()
+                    );
+                }
+            }
+        }
+        let drawn = [(Set::A, 1_219), (Set::B, 1_219)];
+        let whole = made_up_slice_runs();
+        let (slice, _) = slice_of(&whole, &drawn).unwrap();
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("fit-intervals.slice.json");
+        fs::write(&path, crate::slice::json(&slice).unwrap()).unwrap();
+        // A part's fits as `fit_runs` gives them: the whole's at the part's places.
+        let fits_of = |part: Part, runs_made: &[Vec<FlightFit>]| -> Vec<Vec<FlightFit>> {
+            runs()
+                .iter()
+                .zip(runs_made)
+                .map(|(run, made)| {
+                    let at: BTreeSet<u64> = part
+                        .within(SLICE)
+                        .unwrap()
+                        .of_run(&run.indices)
+                        .into_iter()
+                        .collect();
+                    made.iter()
+                        .filter(|f| at.contains(&f.index))
+                        .cloned()
+                        .collect()
+                })
+                .collect()
+        };
+        let mut seen = Vec::new();
+        for number in 1..=2 {
+            let part = Part { number, of: 2 };
+            let (made, broken) = slice_part_of(&fits_of(part, &whole), &drawn, part).unwrap();
+            assert_eq!(broken, Vec::<String>::new());
+            assert_eq!(
+                crate::slice::compare_part(&path, &made, &part_places(part)),
+                None
+            );
+            seen.extend(made.flights.iter().map(|f| (f.set.clone(), f.index)));
+        }
+        let mut all: Vec<_> = slice
+            .flights
+            .iter()
+            .map(|f| (f.set.clone(), f.index))
+            .collect();
+        all.sort();
+        seen.sort();
+        assert_eq!(seen, all);
+        // Set b's fit 63, the slice's fourth place in its run, is part 2's.
+        let part = Part { number: 2, of: 2 };
+        let mut changed = whole.clone();
+        changed[2][3].compared[1].truth = -10.0;
+        let (made, _) = slice_part_of(&fits_of(part, &changed), &drawn, part).unwrap();
+        let problem = crate::slice::compare_part(&path, &made, &part_places(part)).unwrap();
+        assert!(problem.contains("(1 differences)"), "{problem}");
+        assert!(problem.contains("b flight 63 differs"), "{problem}");
+        // Part 1's fits held to part 2's places: each is off them.
+        let first = Part { number: 1, of: 2 };
+        let (made, _) = slice_part_of(&fits_of(first, &whole), &drawn, first).unwrap();
+        let problem = crate::slice::compare_part(&path, &made, &part_places(part)).unwrap();
+        assert!(
+            problem.contains("flight 0: made, but not in this part"),
+            "{problem}"
+        );
+        // A split too fine to count is refused, not wrapped.
+        assert!(
+            Part {
+                number: 1,
+                of: usize::MAX
+            }
+            .within(SLICE)
+            .is_err()
+        );
+        let last = Part {
+            number: usize::MAX,
+            of: usize::MAX,
+        };
+        assert!(last.within(SLICE).is_err());
+        // A part missing one of its fits is refused.
+        let mut short = fits_of(part, &whole);
+        short[0].pop();
+        assert!(slice_part_of(&short, &drawn, part).is_err());
+    }
+
     /// Each rule the report holds a fit to names the fit that breaks it, among the flights drawn
     /// or the wind's, and only there.
     #[test]
@@ -2110,18 +2269,48 @@ mod tests {
     }
 
     /// Every pull request fits the slice on every platform, unconditioned but for a change to
-    /// research notes alone, in a job of its own, and the gate fits it in place of the whole fit;
-    /// the night fits the whole.
+    /// research notes alone, in jobs of their own, each platform's parts fitting every one of its
+    /// fits once, and the gate fits it whole in place of the whole fit; the night fits the whole.
     #[test]
     fn every_pull_request_and_the_gate_check_the_fits_slice() {
         let root = crate::designs::root().unwrap();
         let ci = fs::read_to_string(root.join(".github/workflows/ci.yml")).unwrap();
         let ci = ci.replace("\r\n", "\n");
-        let job = &ci[ci.find("\n  fit-slice:\n").unwrap()..];
+        let job = &ci[ci.find("\n  fit-slice-part:\n").unwrap()..];
         let job = &job[..=job[1..].find("\n  # ").unwrap()];
-        assert!(job.contains(
-            "        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, windows-11-arm]\n"
-        ));
+        const PLATFORMS: [&str; 5] = [
+            "ubuntu-latest",
+            "ubuntu-24.04-arm",
+            "macos-latest",
+            "windows-latest",
+            "windows-11-arm",
+        ];
+        // Each platform's parts are 1 to n of one split, n the same for each of them.
+        let mut parts: BTreeMap<&str, Vec<Part>> = BTreeMap::new();
+        for line in job
+            .lines()
+            .filter(|l| l.trim_start().starts_with("- { os: "))
+        {
+            let line = line
+                .trim()
+                .trim_start_matches("- { os: ")
+                .trim_end_matches(" }");
+            let (os, part) = line.split_once(", part: ").unwrap();
+            parts
+                .entry(os)
+                .or_default()
+                .push(Part::parse(part).unwrap());
+        }
+        assert_eq!(
+            parts.keys().copied().collect::<BTreeSet<_>>(),
+            PLATFORMS.iter().copied().collect::<BTreeSet<_>>()
+        );
+        for (os, split) in &parts {
+            let of = split[0].of;
+            let numbers: Vec<usize> = split.iter().map(|p| p.number).collect();
+            assert!(split.iter().all(|p| p.of == of), "{os}");
+            assert_eq!(numbers, (1..=of).collect::<Vec<_>>(), "{os}");
+        }
         assert!(job.contains("    runs-on: ${{ matrix.os }}\n"));
         assert!(job.contains("    needs: scope\n"));
         assert!(job.contains("      RUN: ${{ needs.scope.outputs.notes != 'true' }}\n"));
@@ -2130,9 +2319,19 @@ mod tests {
         }
         assert!(job.contains(
             "\n      - if: env.RUN == 'true'\n        run: cargo run --locked --quiet --package \
-             xtask --profile report-check -- fit --slice --other-platform\n"
+             xtask --profile report-check -- fit --slice --other-platform --part ${{ matrix.part }}\n"
         ));
         assert_eq!(ci.matches("-- fit --slice").count(), 1);
+        // The checks branch protection requires, one a platform, pass only when every part did.
+        let all = &ci[ci.find("\n  fit-slice:\n").unwrap()..];
+        let all = &all[..=all[1..].find("\n  # ").unwrap()];
+        assert!(all.contains("    name: fit slice (${{ matrix.os }})\n"));
+        assert!(all.contains(&format!("        os: [{}]\n", PLATFORMS.join(", "))));
+        assert!(all.contains("    needs: fit-slice-part\n"));
+        assert!(all.contains("    if: always()\n"));
+        assert!(
+            all.contains("        run: test \"${{ needs.fit-slice-part.result }}\" = success\n")
+        );
         // What's deployed and the night's alert wait for it.
         for needs in [
             "\n    needs: [fmt, clippy,",

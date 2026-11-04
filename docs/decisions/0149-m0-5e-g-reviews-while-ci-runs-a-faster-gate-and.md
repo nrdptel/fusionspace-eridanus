@@ -1,7 +1,7 @@
 # ADR-149: M0.5e to g, reviews while CI runs, a faster gate and a split CI (2026-10-04)
 
-- **Status:** accepted; amended 2026-11-03 (below: a time budget for CI and the gate, the flight censuses each night) and 2026-11-04 (M0.16a in three; the slices of the synthetic flights, two logs and the fit)
-- **Summary:** Reviews start once the PR is open and CI runs, with a shared bar for blocking findings and scoped re-reviews; the gate runs tests in parallel and adds the private-data checks when physics changes; CI's slowest job is split. Amended 2026-11-03: a pull request's CI within 20 minutes and a passing full gate within 30; the flight censuses (the synthetic flights, two logs and the fit's intervals) run whole each night on main, a failure filing a P-critical issue, and a change to research notes alone skips the jobs that read none. Amended 2026-11-04: pull requests and the gate fly every 21st flight of the synthetic flights and two logs, and every 21st fit of the fit, held line for line to a committed slice.
+- **Status:** accepted; amended 2026-11-03 (below: a time budget for CI and the gate, the flight censuses each night) and 2026-11-04 (M0.16a in three; the slices of the synthetic flights, two logs and the fit; the budget checked)
+- **Summary:** Reviews start once the PR is open and CI runs, with a shared bar for blocking findings and scoped re-reviews; the gate runs tests in parallel and adds the private-data checks when physics changes; CI's slowest job is split. Amended 2026-11-03: a pull request's CI within 20 minutes and a passing full gate within 30; the flight censuses (the synthetic flights, two logs and the fit's intervals) run whole each night on main, a failure filing a P-critical issue, and a change to research notes alone skips the jobs that read none. Amended 2026-11-04: pull requests and the gate fly every 21st flight of the synthetic flights and two logs, and every 21st fit of the fit, held line for line to a committed slice; `cargo xtask ci-budget` checks the budget before a pull request opens and before it merges.
 
 [adr-144]: 0144-the-2026-10-03-planning-review-leaner-bookkeeping.md
 [adr-222]: 0222-six-platforms-tested-on-every-pull-request.md
@@ -364,7 +364,7 @@ Linux: 22 numbers of the report stood apart from the committed one, by at most o
 parts gives Linux's shares: at most 0.002 from the library's at three figures, against the rule's
 0.002 or 5%; it held the slice, its calibration lines without sides, in every word too. Each part now fits
 1,146 to 1,151 flights, not about 820, in 781 to 1,075 s, and its job took 951 to 1,301 s,
-against 587 to 999 s in main's last full run before it (run 41753918203, 2026-11-03).
+against 587 to 999 s in main's last full run before it (run 41753918203, 2026-11-04).
 
 **The fit's slice's consequences.**
 
@@ -380,3 +380,68 @@ against 587 to 999 s in main's last full run before it (run 41753918203, 2026-11
   pull request's, but M0.16a3's check
   reads main's last passing run, which may be a night's: that increment splits the parts further
   if it counts them.
+
+**Amended 2026-11-04: the budget checked (M0.16a3).**
+
+A pull request's own run hasn't finished when it opens, so the check reads three records that
+stand in for it. `cargo xtask ci-budget` prints one line for each and fails if any is over:
+
+1. **The gate.** The newest passing full run of `scripts/gate.sh` on the branch, at its head or a
+   commit on it since it left main, from the history the gate writes in the git directory. A step
+   run again after it on the branch, alone or with others (`scripts/gate.sh validate`), replaces
+   that step's time in it, by its newest passing reading; a step the full run lacked, such as
+   `validate` when the prose rule left it out, or `refs` or `python` when the branch didn't call
+   for them then, is added. Over 1,800 s fails. A branch with no full run yet only gets a note: the
+   gate itself is required before a merge.
+2. **A pull request's jobs.** Main's last passing CI run that ran a pull request's jobs: one
+   started by a push, or by hand without `full`, in which no `census` job ran (§2 above) and
+   `types` did. A run that skipped `types` changed research notes alone, and most of its checks
+   ran no step, so the check reads the run before it. A job that ran longer than 1,200 s on its
+   runner fails; the wait for a runner is left out, as §1 says.
+3. **The night.** The newest passing run on main started each night, or by hand with `full`, in
+   which every `census` job and `fit intervals` passed. If it was made more than 26 hours ago, by
+   its first attempt's time (GitHub's `created_at`; `run_started_at` moves to a re-run's, so a
+   night's failed jobs passed again days later would read as new), or there is none, the check
+   fails.
+
+It reads GitHub's runs with `gh`, so it needs the network; when it can't read them it fails and
+says why. The checks run before a pull request opens and before it merges call it, the latter at
+the pull request's head (`--head`). A test reads `ci.yml` and fails if the names the check
+relies on change: `types` and the condition that skips it, the `census` jobs, `fit intervals`,
+and the push and nightly triggers.
+
+**What "main's last passing CI" reads.** Only runs with a pull request's jobs. The night's runs
+pass on main too, but their jobs are a full run's: in the last one (run 41753918203, started by
+hand on 2026-11-04), the `census` jobs took 1,351 to 2,231 s (22 to 38 minutes) on the five
+platforms and the fit's parts up to 999 s; in a full run on M0.16a2's pull request the parts took
+up to 1,301 s. Holding them to 20
+would split each platform's census into more jobs, each with a build of its own, though no pull
+request waits for them. Reading the last passing run of any kind would also make the verdict
+depend on whether a push or the night came last. So the night's longest jobs are printed beside
+the check, not held to the 20 minutes; what the night must do is pass within 26 hours.
+
+**What it found: the fit's slice on Windows.** Its first reading of M0.16a2's merge (run
+41844117816) failed: `fit slice (windows-latest)` took 1,203 s, of which its fits and the build
+before them took 1,107 s. It was the job's first run on main, so nothing was cached for it; a
+job of a new name starts so on every pull request until main has run it. The other four platforms' took 541 to 770 s. So
+on windows-latest the slice is now fitted in two halves, each in a job of its own: `fit --slice
+--other-platform --part K/2` fits every other fit of the slice's, from the Kth, and holds them in
+words to the committed slice's fits at those places. The halves fit 223 and 221 of the 444, each
+fit once (a test). The other platforms fit theirs whole (`--part 1/1`). The checks branch
+protection requires stay `fit slice (<os>)`, one a platform, each passing only when every part
+did, as `test (<os>)` does for the tests' halves. A test reads `ci.yml` and fails if a platform's
+parts aren't 1 to n of one split. The gate fits the slice whole, byte for byte, as before.
+With main's cache saved, a run started by hand without `full` on the same commit (41849057955)
+took 943 s for `fit slice (windows-latest)` whole, its longest job; the check reads such a run
+too.
+
+**M7.3c3 waits for its fit to follow.** Run at [#1146][pr1146]'s head, the check fails: its newest
+full gate, on 2026-11-03, took 8,366 s, 7,867 s of it the validate step, which fits the whole
+report with its Bayesian draws. The check before a
+merge runs it, so #1146 merges only once its fit runs as M0.16a2's does, a slice in the gate and
+on pull requests and the whole each night, and a full gate passes within 30 minutes.
+
+**The night that didn't start.** The first scheduled night, 08:17 UTC on 2026-11-04, did not
+start: GitHub lists no scheduled run of CI at all (issue #1183). The check read the hand-started
+full run above instead, and fails after 03:25:08 UTC on 2026-11-05 unless a full run passes
+first.
