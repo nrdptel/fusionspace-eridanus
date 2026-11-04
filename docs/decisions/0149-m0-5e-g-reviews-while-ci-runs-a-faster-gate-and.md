@@ -294,9 +294,11 @@ the words hold what the census counts without one.
    1st, 22nd, 43rd fit and on. It holds 444 fits: 123 each of sets A and B, 62 of the first 1,300
    flights and 61 of the wind's flights past them; 10 of each of the seven runs of pure noise; and
    128 of the calibration set, 96 of its 2,000 flights and 32 of its wind's flights past them, half
-   of the 96 on each model. The calibration set's two runs join the fit's runs, so the parts CI
-   fits each night hold them too. A fit is the same whatever its thread or part fitted before it, a
-   test holds that to the bit, so the slice's fits are the whole run's at the same places.
+   of the 96 on each model: 444 of the 9,192 fits a whole run makes, 6,538 for the report and
+   2,654 for the shares. The calibration set's two runs join the fit's runs, so the parts CI fits
+   each night hold them too. A fit is the same whatever its thread or part fitted before it, which
+   a test holds to the bit on two of set A's flights, so the slice's fits are the whole run's at
+   the same places; `fit --slice` making the whole run's slice again byte for byte bears it out.
 2. **Exact where written.** The run that writes the report, `fit` in the optimized build on the
    Mac, writes the slice beside it as `fit-intervals.slice.json`. Each fit has a line for what it
    came to: fitted or with nothing to fit, a track or height alone, converged or at its step
@@ -310,20 +312,23 @@ the words hold what the census counts without one.
    elsewhere. `fit --check` makes the slice from the whole run and holds it byte for byte; the
    night's `--check --other-platform --parts` holds it in words.
 3. **Else by its rule.** The rules the report holds each fit to hold each of the slice's: on sets
-   A and B, a fit it counts, or one of the wind's, may not stand past the misfit's cut, and a log
-   among the flights drawn with nothing to fit must be a GNSS receiver's alone. Each names its
-   flight. The flights drawn are the committed report's. What only a whole run can show stays with
+   A and B, a fit among the flights drawn, or one of the wind's, may not stand past the misfit's
+   cut, and a log among the flights drawn with nothing to fit must be a GNSS receiver's alone. Each
+   names its flight. The flights drawn are the committed report's. The runs of noise and the
+   calibration set have no rule for one fit, so their 198 fits in the slice are held by their
+   lines alone. What only a whole run can show stays with
    the night: the counts, the tests and their probes, the widths that say what's identified, and
    the shares fitted on the calibration set. Those shares were checked only in the gate, which ran
    `fit --check`; CI's runs left the calibration set out. Now the run that writes the report and
    `fit --check` hold them to the library's to their three figures, and the night holds them
    within the rule the report's figures keep on another platform: 5% of the larger, or 0.002.
-   `--slice` also reads the committed report and checks that it renders the committed page.
+   `--slice` checks no shares and no count of the report. It reads the committed report and
+   checks that it renders the committed page.
 4. **Where each runs.** `fit --slice` runs in the gate's validate step in place of `fit --check`.
    On every pull request but one that changes only research notes, a job of its own, `fit slice`,
    runs `fit --slice --other-platform` on all five platforms. It sits beside `validate`, which took
-   14 and 15 minutes on Windows and macOS on M0.16a1's pull request, so neither passes the 20
-   minutes. The whole fit runs each night in its eight parts on Linux. A test reads `ci.yml` and
+   14.6 and 15.6 minutes on Windows and macOS on M0.16a1's pull request; its 4.4 to 7.7 minutes of
+   fits on CI's runners would take `validate` past the 20 minutes. The whole fit runs each night in its eight parts on Linux. A test reads `ci.yml` and
    `scripts/gate.sh` and fails if either check is missing, runs on fewer platforms or on a
    condition, or may fail unseen, or if the deploy and the night's alert don't wait for it.
 5. **One changed fit fails it.** A test moves one made-up fit's value, its truth past its interval,
@@ -333,14 +338,23 @@ the words hold what the census counts without one.
    --slice` and passes `fit --slice --other-platform`; its "inside" written "above" fails both.
 
 **Measured.** On the Mac that writes the report (10 cores, the optimized build, 2026-11-04), the
-whole run, the calibration set's 2,000 fits and its wind's among them, took 1,329 s and wrote the
-report and its page byte for byte as committed, beside a slice of 286 kB. Part of that time a test
-build shared the machine. The slice took 78 s byte for byte and 77 s in words.
+whole run, its 9,192 fits, took 1,329 s, a test build sharing the machine part of the time, and
+wrote the report and its page byte for byte as committed, beside a slice of 286 kB. The slice took
+78 s byte for byte and 77 s in words by hand, and 79 s in this change's full gate, whose validate
+step took 216 s (1,472 s with the fit whole at M0.16a1) and the whole gate 655 s. In a `full` CI
+run on this change's first commit, `fit slice` held the slice in words on all five platforms. Its
+fits took 266 to 464 s, the longest on `windows-latest`, and its jobs 8 to 18 minutes with a build
+from no cache, as a new job's first run has. The night's parts and `fit intervals` passed on
+Linux: 22 numbers of the report stood apart from the committed one, by at most one flight and
+3.38%, the shares held within their rule and the slice in every word.
 
 **The fit's slice's consequences.**
 
-- The gate's validate step makes 444 fits, a 21st of the whole run's.
-- A change that moves only fits outside the slice, or the shares by less than a figure's rule, is
-  found that night on Linux; one that moves the shares on the Mac alone is found when the report is
-  written again.
-- A pull request's CI gains five jobs, each a build and a minute or more of fits.
+- The gate's validate step makes 444 fits, not 9,192. It no longer holds the whole report or the
+  shares exactly: only `fit --check`, run by hand on the Mac, does, and the run that writes the
+  report holds the shares. A change that moves fits outside the slice is found that night on Linux
+  if it moves a count by more than 5 flights or a figure or share past its rule. A smaller move is
+  found only when the report is checked or written again on the Mac. A change that moves a line
+  of a fit in the slice, a number at its three figures or decimals or a word, fails the gate.
+  Issue #1177 is open to hold the whole report exactly in an automatic run again.
+- A pull request's CI gains five jobs, each a build and 4 to 8 minutes of fits.

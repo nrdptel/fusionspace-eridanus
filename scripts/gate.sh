@@ -43,7 +43,8 @@
 # synthetic flights' and two logs' slices (M0.16a1: every 21st flight of each set, held line for line
 # to the committed `.slice.json` and to the census's rules for one flight), as CI does on every pull
 # request, and the fit's slice (M0.16a2: every 21st fit of each run, the calibration set's among
-# them, held line for line to the committed `.slice.json` and to the report's rules for one fit),
+# them, held line for line to the committed `.slice.json`, and those of sets A and B to the
+# report's rules for one fit; the whole report and its shares only `fit --check` holds exactly),
 # in the optimized build that writes the fit's report, as CI does in every word on every pull
 # request. The dev profile writes the other reports, so this checks that what's committed is what
 # each writes, byte for byte.

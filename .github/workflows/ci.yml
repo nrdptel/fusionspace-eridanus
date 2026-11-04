@@ -397,10 +397,10 @@ jobs:
   # (eight runs, 2026-11-02). So eight jobs each fit an eighth of the flights: part K fits every
   # eighth flight of each run from the Kth (`fit --part K/8`), and hands its fits on. A fit doesn't
   # depend on what its thread or machine fitted before it (`fit::tests`), so the parts together are
-  # the fits one job would make. The calibration set's 2,000 fits are among the parts, so the night
-  # holds the shares in force too, within the few percent another platform may stand off. The
-  # committed report, the shares and the slice are held exactly by the run that writes them, on
-  # the Mac, and the slice by `scripts/gate.sh`.
+  # the fits one job would make. The calibration set's 2,654 fits are among the parts' 9,192, so
+  # the night holds the shares in force too, within the few percent another platform may stand
+  # off. `scripts/gate.sh` holds the slice exactly; the whole report and the shares are held
+  # exactly only by `fit --check`, run by hand on the Mac.
   fit-part:
     name: fit intervals (${{ matrix.part }}/8)
     strategy:

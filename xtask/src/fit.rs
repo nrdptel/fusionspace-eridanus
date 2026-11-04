@@ -931,7 +931,8 @@ fn report_of(made_runs: &[Vec<FlightFit>]) -> Result<(Report, Vec<String>), Stri
 /// The fit's slice (M0.16a2, ADR-149 amended): part 1 of 21 of every run, its 1st, 22nd, 43rd
 /// fit and on, as the synthetic flights and two logs take every 21st flight. A fit is the same
 /// whatever its thread or part fitted before it (`a_fit_is_the_same_whatever_its_thread_fitted_
-/// before`), so the slice's fits are the whole run's at the same places.
+/// before`, on two of set A's flights), so the slice's fits are the whole run's at the same
+/// places: the slice a whole run writes, `fit --slice` makes again byte for byte.
 const SLICE: Part = Part { number: 1, of: 21 };
 
 /// The slice's `about` line.
@@ -1021,9 +1022,10 @@ fn slice_lines(fit: &FlightFit) -> Vec<String> {
 }
 
 /// What breaks the rules the report holds each of its fits to ([`report_of`]), for one fit of
-/// sets A and B: a fit it counts, or one of the wind's, whose residual stands past the misfit's cut
-/// or isn't a number; and a log among the flights drawn with nothing to fit that isn't a GNSS
-/// receiver's alone. `drawn` is the set's flights drawn, `track` the wind's flights.
+/// sets A and B: a fit among the flights drawn, or one of the wind's, whose residual stands past
+/// the misfit's cut or isn't a number; and a log among the flights drawn with nothing to fit that
+/// isn't a GNSS receiver's alone. `drawn` is the set's flights drawn, `track` the wind's flights.
+/// The runs of noise and the calibration set have no rule of their own for one fit.
 fn slice_rules(set: Set, fit: &FlightFit, drawn: u64, track: &[u64]) -> Vec<String> {
     let mut broken = Vec::new();
     let among_drawn = fit.index < drawn;
@@ -1788,9 +1790,10 @@ mod tests {
         assert_eq!(fits::check(Asked::DragScale, &made).test.counts.given, 2);
     }
 
-    /// The slice is part 1 of 21 of every run: 62 of each test set's first 1,300 flights, 10 of
-    /// each run of noise, 96 of the calibration set's 2,000 (both of its models, half and half),
-    /// and every 21st of the wind's flights past them; each named once.
+    /// The slice is part 1 of 21 of every run, 444 of the 9,192 fits: 62 of each test set's first
+    /// 1,300 flights and 61 of the wind's flights past them, 10 of each run of noise, 96 of the
+    /// calibration set's 2,000 (both of its models, half and half) and 32 of its wind's flights
+    /// past them; each named once.
     #[test]
     fn the_slice_takes_every_21st_fit_of_each_run() {
         assert_eq!(SLICE, Part { number: 1, of: 21 });
@@ -1799,13 +1802,15 @@ mod tests {
             .iter()
             .map(|run| SLICE.of_run(&run.indices).len())
             .collect();
-        assert_eq!(counts[0], 62);
-        assert_eq!(counts[2], 62);
+        let fits: Vec<usize> = runs.iter().map(|run| run.indices.len()).collect();
+        assert_eq!(counts[..4], [62, 61, 62, 61]);
         assert!(
             counts[4..4 + NOISES.len()].iter().all(|&n| n == 10),
             "{counts:?}"
         );
-        assert_eq!(counts[4 + NOISES.len()], 96);
+        assert_eq!(counts[4 + NOISES.len()..], [96, 32]);
+        assert_eq!(counts.iter().sum::<usize>(), 444);
+        assert_eq!(fits.iter().sum::<usize>(), 9_192);
         let calibration = SLICE.of_run(&runs[4 + NOISES.len()].indices);
         let odd = calibration.iter().filter(|index| *index % 2 == 1).count();
         assert_eq!(odd * 2, calibration.len());
