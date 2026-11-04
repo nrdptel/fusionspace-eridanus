@@ -396,7 +396,8 @@ Some gates are tighter ([the decision that tightened them](https://github.com/nr
 
 ### In CI, and regenerating the references
 
-Every pull request runs `cargo xtask validate --check` on macOS, Windows and Linux, in continuous
+Every pull request but one that changes only research notes (under `docs/research/`) runs
+`cargo xtask validate --check` on macOS, Windows and Linux, in continuous
 integration (CI). It's the `validate` job in `.github/workflows/ci.yml`
 ([its milestone](decisions-and-roadmap.md#m2-1c1)). It flies every locked case, compares each
 result with the stored RocketPy numbers, and writes nothing. RocketPy itself isn't run. The job
@@ -411,25 +412,30 @@ rendering (`Report::reproduces`;
 [the CI decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0022-validation-in-ci-and-regenerating-references.md)).
 So a change that moves a number has to commit the report that shows it.
 
-Two long report checks, `cargo xtask synthetic --check` and `cargo xtask motor-catalog
---check`, run from an optimized build in CI: `report-check`, a Cargo build setting with release's
-speed plus the assertions and overflow checks of the everyday build. Optimizing keeps their numbers
-to the digits they compare. On each of the five platforms the synthetic check runs in two halves, by
-set: `--sets tuning,a` in the `validate` job and `--sets b,calibration` in `examples`, and a test
-fails if a set is left out ([the synthetic flights' tests](physics/synthetic-flights.md)). Reports
-are still written by the everyday build, and `scripts/gate.sh` runs both checks with it, whole, on
-your own machine. A passing default run leaves them out only when a change is prose they don't read,
+The long report checks run from an optimized build in CI: `report-check`, a Cargo build setting
+with release's speed plus the assertions and overflow checks of the everyday build. Optimizing
+keeps their numbers to the digits they compare. `cargo xtask motor-catalog --check` runs beside
+`validate --check` on the same pull requests. The flight censuses, `cargo xtask synthetic --check`, `cargo xtask two-logs --check`
+and `cargo xtask fit --check`, fly thousands of flights each, so CI runs them whole each night on
+main, not on every pull request
+([the time budget](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md)):
+the synthetic flights and two logs on all five platforms, in the `census` job, and the fit in
+parts on Linux. A test fails if a set of synthetic flights is left out, or if its job runs on any
+condition but a full run's, nightly or started by hand ([the synthetic flights' tests](physics/synthetic-flights.md)). A
+nightly failure opens an issue that is fixed before other work. Reports are still written by the
+everyday build, and `scripts/gate.sh` runs every check whole on your own machine before each merge:
+the synthetic flights and two logs in the everyday build, the fit in the optimized one. A passing default run leaves them out only when a change is prose they don't read,
 such as most pages under `docs/`, and a run that names its steps runs them only when `validate` is
-named. CI always runs them. So a report in the repository has to reproduce from both builds. If the
-optimized build ever came out differently, CI would fail and regenerating wouldn't fix it: that
-would need a decision record, not a looser check.
+named. So a report in the repository has to reproduce from both builds. If the optimized build
+ever came out differently, the nightly run would fail and regenerating wouldn't fix it: that would need a
+decision record, not a looser check.
 
 The check on the least-squares fit, `cargo xtask fit`, takes longer than any other
 ([the flight fit](physics/flight-fit.md)). It makes about 6,500 fits of synthetic flights: the first
 1,300 of sets A and B each; of each set's first 1,500 flights with a track logger, those past the
 1,300; and set A's first 200 again with each kind of pure noise in place of their logs. Then it
 tests that each fitted value's 90% interval holds the truth as often as a 90% interval should. In
-one Linux job it took more than an hour, so CI runs it on Linux in eight jobs side by side:
+one Linux job it took more than an hour, so CI runs it each night on Linux in eight jobs side by side:
 
 - Each job fits an eighth of the flights (`fit --part K/8`, with K from 1 to 8): every eighth
   flight, from the Kth. It saves its fits for the last job.

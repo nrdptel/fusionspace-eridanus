@@ -327,7 +327,7 @@ offset.
 to 4,810 m (1,348 to 15,781 ft), and top speeds from Mach 0.269 to under 1.18. Values are kept
 to three significant figures, the digits every platform shares, each range's ends rounded
 outward.
-CI flies every flight again on macOS, Windows and Linux and holds the census to them.
+Each night CI flies every flight again on macOS, Windows and Linux and holds the census to them.
 
 ### What it leaves out
 
@@ -379,11 +379,13 @@ CI flies every flight again on macOS, Windows and Linux and holds the census to 
   no lower setting writes no such log.
 - `hpr_forensics::synthetic::truth`: set B's drag and tilted thrust, which keeps its impulse. It
   also checks that set B's three changes reach its flights' inputs while set A's keep HPR Sim's.
-- `cargo xtask synthetic --check`, in CI on every platform: the census reproduced. CI flies the
-  sets in two halves, `--sets tuning,a` in its `validate` job and `--sets b,calibration` in its
-  `examples` job. Each half compares what its sets make with their sections of the committed report,
-  so every flight is flown and compared on every platform. A test reads `ci.yml` and fails if a set
-  isn't on exactly one line of a job that runs on all five platforms.
+- `cargo xtask synthetic --check`, in CI on every platform each night
+  ([ADR-149's amendment, the time budget for CI](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md)),
+  and in `scripts/gate.sh` before each merge: the census reproduced. CI's `census` job flies the sets in
+  two steps, `--sets tuning,a` and `--sets b,calibration`. Each compares what its sets make with
+  their sections of the committed report, so every flight is flown and compared on every platform.
+  A test reads `ci.yml` and fails if a set isn't on exactly one line of a job that runs on all five
+  platforms, or if that job runs on any condition but a full run's, nightly or started by hand.
 
 ### References
 
