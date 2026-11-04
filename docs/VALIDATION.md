@@ -477,7 +477,7 @@ shares (the two factors on a standard error that make each interval, [how it
 works](physics/flight-fit.md#how-it-works)) against those stored in the code, and the
 [Bayesian option](physics/flight-fit.md#the-bayesian-option)'s posterior on each fit of sets A and B
 with something to fit. By least squares alone it took more than an hour in one Linux job, and the
-posteriors make the whole about eight times as long, so CI runs it each night on Linux in 16 jobs
+posteriors make the whole about seven times as long, so CI runs it each night on Linux in 16 jobs
 side by side:
 
 - Each job fits a 16th of the flights (`fit --part K/16`, with K from 1 to 16): every 16th

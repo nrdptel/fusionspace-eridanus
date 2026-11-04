@@ -430,7 +430,7 @@ jobs:
   # B and of noise, each parameter held to ADR-257's counts and probes, and the Bayesian option's
   # posterior drawn on each fit with something to fit. By least squares alone those took 60 to 102
   # minutes in one Linux job (eight runs, 2026-11-02), before the calibration set joined them; with
-  # the posteriors' draws the whole report took about 2 h 10 min on a 10-core Mac, against 16
+  # the posteriors' draws the whole report took 1 h 48 min on a 10-core Mac, against 16
   # minutes before (ADR-320). So 16 jobs each fit a 16th of the flights: part K fits every
   # 16th flight of each run from the Kth (`fit --part K/16`), and hands its fits on. A fit doesn't
   # depend on what its thread or machine fitted before it (`fit::tests`), so the parts together are

@@ -235,7 +235,7 @@ How it draws:
   normal profile. The least-squares fit carries the same doubt in its errors instead.
 
 A fit with something to fit flies about 1,000 times, against about 70 for least squares on set A.
-The report took 3 hours on 10 cores, against 16 minutes before. So each pull request checks every
+The whole report takes 1 hour 48 minutes on 10 cores, against 16 minutes before. So each pull request checks every
 21st fit, its posterior with it, and CI fits the whole each night
 ([In CI](../VALIDATION.md#in-ci-and-regenerating-the-references)).
 

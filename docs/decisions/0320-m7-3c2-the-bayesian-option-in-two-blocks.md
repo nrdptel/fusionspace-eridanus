@@ -105,14 +105,18 @@ least-squares fit (ADR-316).
    parameter's 5% and 95% points and median, with the side its truth falls on where the report
    counts it. The gate holds it byte for byte, each pull request in its words. A fit with something
    to fit and no posterior says so in a line of its own. On the 10-core Mac the slice took 335 s,
-   2,934 CPU-seconds, against 79 s by least squares alone. By least squares alone the slice's job
-   already took 422 to 943 s on CI's runners (five runs, 2026-11-04), so each platform now fits it
+   2,934 CPU-seconds, against 79 s by least squares alone. By least squares alone a job of the slice,
+   whole or on windows-latest half, already took 422 to 943 s on CI's runners (four runs,
+   2026-11-04), so each platform now fits it
    in three parts and windows-latest, the slowest, in four. The night fits the whole report in 16
    parts on Linux, not the 32 this increment first ran with. A full run had 64 jobs; the slice's
    parts add 10 and 16 night parts 8, 82 in all, where 32 would make 106, past the 100 that
-   `cargo xtask ci-budget` reads in one page and refuses beyond. The 8 parts took 875 to 1,322 s
-   by least squares (2026-11-04); half as many fits, each about eight times as costly, puts a part
-   near 1 to 1.5 hours, an estimate the next night measures, under the 6 hours GitHub gives a job.
+   `cargo xtask ci-budget` reads in one page and refuses beyond. The whole report, written again on the
+   merged code with each thread taking the next flight left, took 6,496 s (1 h 48 min) on the Mac,
+   against §7's 3 h 1 min and about 16 minutes by least squares alone: about seven times. The 8
+   parts took 875 to 1,322 s by least squares (2026-11-04). One of 16 fits half as many flights,
+   each about seven times as costly, so it should take 50 to 80 minutes, an estimate the next
+   night measures, under the 6 hours GitHub gives a job.
 
 ## Evidence
 
