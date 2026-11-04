@@ -18,11 +18,12 @@ triggers and wind. Their landing speed has been held to 0.1% since [ADR-310][adr
 descent number is held to the milestone's 3%. ADR-303 kept them all there because NDRT 2020's
 descent time differs by 0.705%. Behind it is one model difference that acts on every descent:
 RocketPy adds the air a canopy drags along, and HPR Sim has no such term. Its size goes with that
-air's mass over the rocket's: 15.9 kg for NDRT 2020's main against a 20.8 kg rocket, far less on the
-others. Run without it, RocketPy agrees with HPR Sim within 0.36% on all five: NDRT 2020's descent
+air's mass over the rocket's where the main opens: 0.830 for NDRT 2020 (15.9 kg against a 20.8 kg
+rocket), 0.190 for Prometheus 2022, 0.0089 for Valetudo. Run without it, RocketPy agrees with HPR Sim within 0.36% on all five: NDRT 2020's descent
 time differs by −0.116% and its north drift by −0.360%, and Calisto's and Prometheus 2022's largest
-gaps fall from +0.08% to −0.027% ([the canopy opening loads note][canopy]). On the four descents held
-here the term is small: their 17 numbers agree 35 times inside 3%. In [the report][report]:
+gaps fall from +0.08% and +0.09% to −0.027% ([the canopy opening loads note][canopy]). On the four
+descents held here its effect on the times, rates and drifts is small: their 17 numbers agree 35
+times inside 3%. In [the report][report]:
 
 | Descent | Descent time | Mean descent rate | Drift | East drift | North drift | Solver movement, largest |
 |---|---:|---:|---:|---:|---:|---:|
@@ -42,8 +43,8 @@ RocketPy's drag also has to push sideways. No case has a floor.
 the real descent is faster, or the recovery area larger, than stated. The bounds here are two-sided,
 so a row reading either way fails sooner than before. Of the numbers held here, Calisto's and
 Prometheus 2022's rates read slow and Juno III's drifts short, each on the flattering side by under
-0.09%; Valetudo's kept drifts read short too: east and total 0.889%, north 1.766%. This record
-changes no model.
+0.09%. Of the numbers kept at 3%, NDRT 2020's rate reads 0.700% slow, and Valetudo's drifts read
+short: east and total 0.889%, north 1.766%. This record changes no model.
 
 **Decision.**
 
@@ -67,8 +68,9 @@ changes no model.
 
 **Measured.** A probe that makes each device's drag area 1% larger moves the four descents' times by
 +0.45% to +0.58% (Juno III +0.452%, Valetudo +0.453%, Prometheus 2022 +0.574%, Calisto +0.580%) and
-their drifts alike. The unit test fails on all four. At the old 3% they passed, and the old test
-failed only on NDRT 2020's north drift, which sits 0.135 points inside its bound. `cargo xtask
+their drifts alike. The unit test fails on all four. At the old 3% they passed; under the probe the
+old test failed only on NDRT 2020's north drift (+4.040%), which sits 0.135 points inside its bound
+without it. `cargo xtask
 validate` reproduces the committed report with the new bounds; the census
 (`validation/reports/census.md`, the accepted accuracy rows) was regenerated with this record named.
 
