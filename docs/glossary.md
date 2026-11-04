@@ -1269,8 +1269,8 @@ Every page of this site ends with one, its entries written once at the end of
 
 ### Tolerance
 
-How far a result may be from its reference and still pass, such as the 0.3% most parachute-descent
-numbers are held to. Each test and each [validation case](#validation-case) states its own, next to
+How far a result may be from its reference and still pass, such as the 0.3% a descent's time is
+held to. Each test and each [validation case](#validation-case) states its own, next to
 the reason for its size. The integrator's `rtol` and `atol` are tolerances in a second sense: how
 much error each [adaptive time step](#adaptive-time-step) may make. See the
 [validation report][report] and [Time integration and events](physics/integration.md#methods).
