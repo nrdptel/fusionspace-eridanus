@@ -1,5 +1,7 @@
 # Tumbling versus fixed: measured drag of rotating bodies against broadside ones
 
+Re-checked 2026-11-04: 2 claims corrected (Kordi's model, Coffee's standard errors); 3 caveats added.
+
 This note asks whether a tumbling or autorotating body has more or less drag than the same body held broadside, and by
 how much. It serves the tumble model (`TUMBLE_BODY_DRAG_COEFFICIENT` 0.56 and `TUMBLE_FIN_DRAG_COEFFICIENT` 1.42 in
 `crates/hpr-sim/src/recovery.rs`), its −10 to +19% replay (`docs/physics/recovery.md`, `docs/accuracy.md`) and
@@ -11,7 +13,7 @@ same body held fixed at Re 1e4 to 1e6. Read 2026-10-29. **Inference** marks the 
 ## In short
 
 - **Rotation raises drag above the quasi-static average; it stays near the fixed broadside value.** Three
-  autorotating-plate sources (two measured, one a model fitted to measured flights) average 1.05 to 1.6 on plate area:
+  autorotating-plate sources (two measured, one a model built on spin-rig data) average 1.05 to 1.6 on plate area:
   +35 to +59% over the quasi-static mean (two have one), 0.74 to 1.31 of the same plate held broadside (0.91 to 1.13
   where the plate's shape is known) (§1). Strip theory's +4 to +15% at the reported spin rates is far too small, so it
   is no bound.
@@ -31,15 +33,13 @@ same body held fixed at Re 1e4 to 1e6. Read 2026-10-29. **Inference** marks the 
 
 Each row is a plate spinning about its span while it falls or sits in a wind tunnel. "Spin" is the tip-speed ratio
 S = ωc/(2V), with c the chord (Smith's 0.35 is his own rate, not confirmed in this convention). Coefficients are
-mean drag over a cycle on the plate's planform area.
+mean drag over a cycle on the plate's planform area; "ratio" is rotating over fixed broadside.
 
 | source | plate, Re | spin S | mean C_D | fixed broadside | quasi-static | ratio |
 | --- | --- | --- | --- | --- | --- | --- |
 | Smith [1] | tunnel and free fall, 2.4e5 | 0.35 | 1.6 | 2.0 to 2.15 (2-D); 1.22 (l/w 5) | 1.19 (2-D) | 0.74 to 1.31 |
 | Dupleich [2] | card 37.5 × 15 cm, free fall, 3.3e4 | 0.67 | 1.05 to 1.07 | 1.16 (l/w 2.5) | not given | 0.91 to 0.92 |
-| Kordi [3] | thin square, Tachikawa's flights | stable | 1.30 | 1.15 (l/w 1) | 0.82 | 1.13 |
-
-"Ratio" is rotating over fixed broadside.
+| Kordi [3] | thin square, quasi-steady model | stable | 1.30 | 1.15 (l/w 1) | 0.82 | 1.13 |
 
 - **Smith** [1] (abstract): at Re ≈ 240,000 the mean lift was about 2.2 and the mean drag 1.6, with peaks of 4.5
   and 4.3. His nondimensional spin rate (defined in the full text) leveled near 0.35, and free-falling plates above
@@ -51,12 +51,12 @@ mean drag over a cycle on the plate's planform area.
   on plate area (ρ 1.20 to 1.225 kg/m³), C_L 0.97 to 0.99, S = 0.67, Re ≈ 33,000. His fitted law for heavy plates
   (p. 15), decoded the same way, gives 0.98 for this card, within 9%. TN D-540 Fig. 5 (p. 13, by eye) [5] puts a
   fixed plate of l/w 2.5 at about 1.16. Light plates of aspect ratio near 1 spin irregularly or not at all (p. 10).
-- **Kordi** [3] (PhD thesis, Western Ontario): a quasi-steady model fitted to Tachikawa's 1983 wind-driven plates
-  splits a thin square plate's drag at stable autorotation into a static mean over a half cycle of 0.82 and a
-  rotational part of about 0.48 (p. 18; on plate area l·B, p. 10). The rotational part grows with spin, from 0 at
-  rest to its full value at the stable rate (eq. 2.3, p. 16). For 2-D plates it is 0.35 (eq. 2.16, p. 33), at
-  Skews' S₀ = 0.47 (p. 14; Lugt computed 0.45, p. 13). **Inference:** Kordi's 2-D static model (eqs. 2.11 to
-  2.12, p. 32) averages 1.19 over a half turn; adding 0.35 gives 1.54, within 4% of Smith's 1.6.
+- **Kordi** [3]: a quasi-steady model built on Tachikawa's 1983 spin-rig data (pp. 15 to 16), checked on his
+  wind-driven plates (pp. 19 to 22; the model fits worst at high spin, use with caution, p. 34), splits a thin square
+  plate's drag at stable autorotation into a static half-cycle mean of 0.82 and a rotational part of about 0.48 (p.
+  18; on plate area l·B, p. 10). It grows with spin, from 0 at rest to its full value at the stable rate (eq. 2.3, p.
+  16); for 2-D plates it is 0.35 (eq. 2.16, p. 33), at Skews' S₀ = 0.47 (p. 14). **Inference:** Kordi's 2-D static
+  model (eqs. 2.11 to 2.12, p. 32) averages 1.19 over a half turn; plus 0.35 is 1.54, within 4% of Smith's 1.6.
 - **Sign, independently:** Martinez-Vazquez et al. [4] (abstract) measured pressures on fixed and autorotating
   plates; normal forces in autorotation exceeded the static values at most pitch angles.
 
@@ -97,11 +97,12 @@ overstates a slow, quasi-static tumble. The plates (§1) suggest real rotation l
 Coffee [7] (NAR R&D, NARAM-57, 2015, B division; a scan with no text layer, read from page images) compares a
 5.21 g rocket hung broadside and end-on under a parachute. It has no tumbling case.
 
-- **Drops** (Table 3, PDF p. 9): five timed drops each from a five-story garage, outdoors with wind and thermals.
-  With an 8 in chute: broadside 5.32 s (SD 0.63), 2.86 m/s; end-on 4.88 s (SD 0.30), 3.13 m/s. With a 16 in chute:
-  1.84 against 1.82 m/s. **Inference:** about 15.2 m of fall; broadside was 8.6% slower under the small chute, 1.4
-  standard errors, short of 95% significance; no difference under the large one. The sign matches the broadside
-  note's §6 (a broadside body adds drag area under a small canopy).
+- **Drops** (Table 3, PDF p. 9): five timed drops each from a five-story garage, outdoors with wind and thermals;
+  drops that landed on its second floor (a 40 ft fall) were "adjusted", method not given (PDF p. 6). With an 8 in
+  chute: broadside 5.32 s (SD 0.63), 2.86 m/s; end-on 4.88 s (SD 0.30), 3.13 m/s. With a 16 in chute: 1.84 against
+  1.82 m/s. **Inference:** each speed is about 15.2 m (50 ft) over the mean time; broadside was 8.6% slower under the
+  small chute, 1.3 standard errors (1.4 with the table's spreads, which divide by n), short of 95% significance; none
+  under the large one. The sign matches the broadside note's §6 (broadside adds drag area under a small canopy).
 - **Areas:** the table's 0.0219 m² side and 0.0001 m² end would need an 11 mm tube 1.94 m long (**inference**),
   so Table 4's coefficients (0.48 broadside, 86.9 end-on, 8 in chute; PDF p. 10) are not usable.
 - **Wind tunnel** (Table 2, PDF p. 7): broadside force 11 to 13× end-on at 4.6 to 6.1 m/s. The report says its
@@ -144,8 +145,8 @@ replays it (one fin's trapezoid times Table 3.4's factor; body d·l; ρ 1.31 kg/
 
 - **Terms.** TN D-540 is a US Government work; NACA TM 1201 translates a 1941 French paper (rights unstated); the
   Sandia memos are AEC-contractor reports on OSTI. Kordi's thesis (© the author, 2009) and the NAR reports (member
-  content) are cite only. All are cached in the gitignored `refs/`, never committed. The OpenRocket documentation is
-  CC BY-SA; its Table 3.3 numbers are already in hpr's tests.
+  content) are cite only. All are cached in the gitignored `refs/`, never committed. OpenRocket's documentation is
+  CC BY-SA 3.0 (its documentation page [8]; the PDF says share-alike, p. ii); Table 3.3 is in hpr's tests.
 - **Tumble constants (suggestion, needs an ADR).** Keep 0.56 and 1.42 for comparing with OpenRocket, and document
   that the same five drops, read hpr's way, prefer 0.76 and 1.07 (−2.8 to +3.6%), as plate data would predict.
   Adopting them would shrink the in-sample spread from −10 to +19% to about ±4%, but it's the same data. The
@@ -169,9 +170,7 @@ replays it (one fin's trapezoid times Table 3.4's factor; body d·l; ρ 1.31 kg/
   1979 [13], Tachikawa 1983, Lin et al. 2006 and Holland 2004 (paywalled), and Moxnes 2017 (open access; not opened).
 - Above the drag crisis (Re > 2e5 for tubes): no rotating data for a round section; sharp-edged plates have none.
 
-## Sources
-
-All read 2026-10-29.
+## Sources (all read 2026-10-29)
 
 1. Smith, "Autorotating wings: an experimental investigation", J. Fluid Mech. 50(3), 513 to 534 (1971), abstract.
    <https://doi.org/10.1017/S0022112071002738>
@@ -187,8 +186,9 @@ All read 2026-10-29.
    <https://doi.org/10.1016/j.dt.2017.03.008>
 7. Coffee, "The Effects of Rocket Orientation on Drag During Descent", NAR R&D, NARAM-57 (2015), members only.
    <https://www.nar.org/docs.ashx?id=1358299>
-8. Niskanen, OpenRocket Technical Documentation v13.05 (CC BY-SA), §3.5, Tables 3.3 and 3.4 (pp. 54 to 55); a
-   release asset of <https://github.com/openrocket/openrocket>, as replayed in `crates/hpr-sim/src/recovery.rs`.
+8. Niskanen, OpenRocket Technical Documentation v13.05 (CC BY-SA 3.0), §3.5, Tables 3.3 and 3.4 (pp. 54 to 55); a
+   release asset of <https://github.com/openrocket/openrocket>, as replayed in `crates/hpr-sim/src/recovery.rs`;
+   license stated at <https://openrocket.info/documentation.html> (read 2026-11-04).
 9. Nau, de la Iglesia, "Investigation Into Gap-Stage Booster Recovery", NAR R&D, NARAM-38 (1996), members only.
    <https://www.nar.org/docs.ashx?id=1357944>
 10. Holland et al., Exp. Fluids 37(5), 690 to 700 (2004), abstract. <https://aquila.usm.edu/fac_pubs/2983>
