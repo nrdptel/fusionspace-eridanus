@@ -389,8 +389,8 @@ Each night CI flies every flight again on macOS, Windows and Linux and holds the
 - `cargo xtask synthetic --slice`, on pull requests on all five platforms and in
   `scripts/gate.sh`: every 21st flight of each set (202 of 4,200) flown again, held to the
   census's rules for one flight and to the `synthetic-flights.slice.json` the whole run writes, by
-  the byte on the Mac's everyday build that writes it and by the word elsewhere (a last digit can
-  move between builds). A test changes one flight's truth, then its log, and checks that its lines change.
+  the byte on the Mac's everyday build that writes it and by the word elsewhere (a flight's numbers
+  can move between builds). A test changes one flight's truth, then its log, and checks that its lines change.
 
 ### References
 

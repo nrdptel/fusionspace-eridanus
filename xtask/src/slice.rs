@@ -144,7 +144,7 @@ pub fn figures(x: f64) -> String {
 
 /// A share (an error over its bound or its standard deviation) to three decimals, with no sign
 /// on a zero. A share is kept to a fixed step, not to significant figures, so that an error near
-/// zero, whose last digits are rounding, writes the same on every platform.
+/// zero isn't written to digits that are only its rounding.
 pub fn share(x: f64) -> String {
     if !x.is_finite() {
         return format!("{x}");
@@ -174,9 +174,10 @@ pub enum Held {
     /// `scripts/gate.sh` runs before each merge.
     Exact,
     /// Every word of every line, its numbers aside: on any other platform or build. A flight's
-    /// numbers can move there in their last kept digit: set A's flight 399, whose simulated apogee
+    /// numbers can move there: set A's flight 399, whose simulated apogee
     /// moves 1.2e-6 of itself between the everyday and the optimized build on one Mac, has its
-    /// smoother's shares move by up to 0.003 (ADR-149, amended 2026-11-04). Its words don't: the
+    /// smoother's shares move by up to 0.087 and a count of its GNSS fixes by 69 (ADR-149,
+    /// amended 2026-11-04). Its words don't: the
     /// side each truth falls on, what was withheld and why, the smoother's flags, the design, the
     /// logger and the model. Those are what the census counts as outcomes; the nightly run holds
     /// the report's tallies to the digits the platforms share, and the slice's flights in words.

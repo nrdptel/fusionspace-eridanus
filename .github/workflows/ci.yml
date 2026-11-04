@@ -311,7 +311,7 @@ jobs:
         run: cargo run --locked --quiet --package xtask --profile report-check -- motor-catalog --check
       # The flight censuses' slices (M0.16a1, ADR-149 amended): every 21st flight of each set of the
       # synthetic flights and of two logs, flown again, held to the census's rules for one flight and
-      # to its committed slice in every word, its numbers aside: a flight's last kept digit can move
+      # to its committed slice in every word, its numbers aside: a flight's numbers can move
       # off the Mac's everyday build, where `scripts/gate.sh` holds them byte for byte. The whole
       # censuses run each night (`census`).
       - if: env.RUN == 'true'

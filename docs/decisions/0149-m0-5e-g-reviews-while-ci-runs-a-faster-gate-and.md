@@ -203,8 +203,7 @@ main's last passing CI, or no passing nightly in 26 hours; M7.3c3's fit follows 
      bound, its error as a share of the bound, with where the truth fell.
 
    Numbers keep the census's three significant figures. A share is kept to three decimals, a fixed
-   step, so that an error near zero, whose last digits are rounding, writes the same on every
-   platform. `--slice` flies the slice's flights again and fails if any line differs, if a flight
+   step, so that an error near zero isn't written to digits that are only its rounding. `--slice` flies the slice's flights again and fails if any line differs, if a flight
    is missing or added, or if the slice takes another step, naming up to 20 such flights and
    counting the rest; flights in another order fail without one named. A line is held byte for
    byte on the build that writes the reports, the Mac's everyday build, and in words everywhere
@@ -248,12 +247,15 @@ The gate stays over its 30 minutes until M0.16a2.
 
 **Held two ways.** The first CI run of the slices held every line byte for byte on every
 platform, and failed on Arm Linux: set A's flight 399 and set B's flight 504 differed in the
-smoother's lines. The Mac shows the same: in the optimized build, `--slice` byte for byte finds one
-flight of the 202 differing, flight 399, its shares 0.031, −0.530, 0.946 and 0.820 written 0.033,
-−0.527, 0.948 and 0.823, each still inside; its words are the same. Its simulated apogee moves
-1.2e-6 of itself between the two builds, and the smoother's errors over their standard deviations move with it, in their third
-decimal. A tolerance on each
-number would have to know each flight's gain; the words hold what the census counts without one.
+smoother's lines. The Mac shows the same. Its optimized build writes both reports and two logs' slice byte for
+byte as the everyday build does, but the synthetic slice differs in one flight of the 202, flight
+399, in three of its lines. The smoother's four shares move in their third decimal (0.031 to
+0.033), its six shares with the GNSS track from liftoff by up to 0.004, and its eight shares on
+the log written from launch by up to 0.087 (0.357 to 0.270), with that log's unweighed GNSS fixes
+252 to 321. Each truth stays on its side, and every word is the same. The flight's simulated
+apogee moves 1.2e-6 of itself between the two builds, the spread issue #984 is open to measure.
+A tolerance on each number would have to know each flight's gain from its truth to its shares;
+the words hold what the census counts without one.
 
 **Alternatives to the slices.**
 
