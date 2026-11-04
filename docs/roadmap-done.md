@@ -111,8 +111,11 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.14d4 The Python package and the crates' front pages ([Phase 0](#phase-0-foundations))
 - M0.14b The front doors ([Phase 0](#phase-0-foundations))
 - M0.15 Damaged files refused, never a crash ([Phase 0](#phase-0-foundations))
+- M0.16 A time budget for CI ([Phase 0](#phase-0-foundations))
+- M0.16a Census slices; the budget checked ([Phase 0](#phase-0-foundations))
 - M0.16a1 Two slices ([Phase 0](#phase-0-foundations))
 - M0.16a2 The fit's slice ([Phase 0](#phase-0-foundations))
+- M0.16a3 The budget checked ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -746,14 +749,19 @@ One line per milestone or increment, in the order it was archived within its pha
   test-step time before and after on one machine, at most 60 s more; the File formats, weather,
   soundings and elevation pages say what the probes cover and leave out.
 
-- **M0.16** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
-  - **M0.16a** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
+- [x] **M0.16 A time budget for CI** (ADR-149; Neer, 2026-11-03): a pull request's CI within 20
+  minutes, a full gate within 30.
+  - [x] **M0.16a Census slices; the budget checked** (in three, ADR-149 amended 11-04): met when they are.
     - [x] **M0.16a1 Two slices.** *Done when:* the synthetic flights and two logs each check a fixed
       part of their flights against the committed report (exact where written, else by its rule),
       failing on one changed flight; the gate and pull requests check one part, the whole nightly.
     - [x] **M0.16a2 The fit's slice.** *Done when:* the fit checks a fixed part of its flights
       against the committed report (exact where written, else by its rule), failing on one changed
       flight; the gate and pull requests check one part, the whole nightly.
+    - [x] **M0.16a3 The budget checked.** *Done when:* a pre-PR check fails on a full gate over 30
+      minutes, a job over 20 in main's last passing CI, or no passing nightly in 26 hours; M7.3c3's
+      fit follows before it merges.
+
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and
