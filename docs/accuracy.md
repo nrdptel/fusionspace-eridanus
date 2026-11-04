@@ -356,7 +356,7 @@ its reference and still pass.
 | [Rigid-body flight](format/ork.md) | a fifth design, `C12`, launched from a tilted rod: its margin | 0.0125 to 0.0366 calibers, most of it OpenRocket's rocket clearing the rod at an angle of attack: at that angle HPR Sim reads 0.0033 to 0.0074 ([a tilted launch rod](format/ork.md#a-tilted-launch-rod)) |
 | [Time integration](physics/integration.md) | a separate line-by-line transcription of `DOPRI5`, the published Fortran integrator by Hairer and Wanner that HPR Sim's [Dormand-Prince](glossary.md#dormand-prince-and-rk4) stepper follows, on the problem Hairer's own example program for `DOPRI5` solves: the Arenstorf orbit, the closed, looping path of a small body pulled by two large ones that circle each other | the same step counts |
 | [Time integration](physics/integration.md) | a vertical flight with drag that has an exact solution | apogee, deployment and landing times within 1.5e-8 s |
-| [Recovery](physics/recovery.md) | RocketPy's descents under a parachute, for five rockets | every descent metric within 3% ([below](#the-descent-under-a-parachute-against-rocketpy)) |
+| [Recovery](physics/recovery.md) | RocketPy's descents under a parachute, for five rockets | every descent metric within 3%, 17 of them within 0.3% ([below](#the-descent-under-a-parachute-against-rocketpy)) |
 | [Recovery](physics/recovery.md) | the same descents: the heights where the later parachutes fire, and the descent rate under the drogue | within 0.17% and 0.01% |
 | [Recovery](physics/recovery.md) | published drop tests of five small models falling with nothing deployed ([tumbling](glossary.md#tumble-recovery)) | descent rate −10 to +19% off |
 | [Recovery](physics/recovery.md) | Kidwell's [streamer](glossary.md#streamer) drop tests (2001) | descent rate +9% fast for his one flat streamer, and +58% fast for one folded into pleats, which HPR Sim doesn't model |
@@ -388,8 +388,10 @@ set up the same way:
 The committed [validation report][report] gives the six numbers below for each descent. All were
 scored, and all are within tolerance. The largest difference is +2.865%.
 
-Each metric must agree within 3% of RocketPy's value (landing speed 0.1%, [the tighter
-gate][adr-310]), with no absolute floor. Each case file argues why,
+Each metric must agree within 3% of RocketPy's value, with no absolute floor. Tighter gates: the
+landing speed 0.1% ([ADR-310][adr-310]); the descent time, mean descent rate and drifts of every
+descent but NDRT 2020's 0.3%, Valetudo's drifts excepted ([ADR-319][adr-319]): NDRT 2020's descent
+time is 0.705% off with no traced cause, and Valetudo's drift is the Earth's rotation alone. Each case file argues why,
 for example [NDRT's][ndrt-case]. A floor would be a fixed allowance, in meters or
 seconds, that passes any smaller difference. The metrics:
 
@@ -1201,6 +1203,7 @@ rest.
 [adr-289]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md
 [adr-294]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md
 [adr-310]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0310-the-2026-10-31-review-the-rocketpy-rail-exit-and-landing-speeds-tightened.md
+[adr-319]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0319-the-2026-11-04-review-the-rocketpy-descents-tightened.md
 [adr-318]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md
 [adr-293]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0293-cavours-log-read-to-its-apogee-event.md
 [adr-184]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0184-logged-apogees-of-the-private-collection.md

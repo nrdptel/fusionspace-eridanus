@@ -2149,6 +2149,9 @@ mod tests {
         let cases = document["cases"].as_array().unwrap();
         assert!(cases.len() >= 3, "{} cases", cases.len());
         let number = |value: &serde_json::Value| value.as_f64().unwrap();
+        // The milestone's tolerance and ADR-319's tighter one, as fractions of RocketPy's value.
+        const MILESTONE: f64 = 0.03;
+        const TIGHT: f64 = 0.003;
         let mut rows = Vec::new();
 
         for case in cases {
@@ -2394,6 +2397,7 @@ mod tests {
                     ),
                     trigger.height_above_ground_m,
                     number(&oracle_event["height_above_ground_at_trigger_m"]),
+                    MILESTONE,
                 ));
                 // The descent rate under the device before it, where the oracle reports its own.
                 let oracle_speed = -number(&oracle_event["vertical_speed_at_trigger_m_s"]);
@@ -2402,6 +2406,7 @@ mod tests {
                     format!("{name}: descent rate under device {}", index - 1),
                     speed,
                     oracle_speed,
+                    MILESTONE,
                 ));
             }
 
@@ -2438,50 +2443,75 @@ mod tests {
             }
 
             let metrics = case["metrics"].clone();
+            // ADR-319: 0.3% where the two codes share every written model, 3.5 times the largest
+            // difference so held and 880 times RocketPy's own solver movement. NDRT 2020 keeps
+            // the milestone's 3%: its descent time differs by 0.705% with no traced cause. So
+            // does a drift the Earth's rotation alone makes (Valetudo's, in still air).
+            let held = if name == "ndrt-2020-nose-to-tail" {
+                MILESTONE
+            } else {
+                TIGHT
+            };
+            let drift_held = if number(&metrics["drift_m"]) > 10.0 {
+                held
+            } else {
+                MILESTONE
+            };
             let descent_time_s = landing.time_s - start_s;
             let drift = landing.cg_enu_m - cg_enu_m;
             rows.push((
                 format!("{name}: descent time"),
                 descent_time_s,
                 number(&metrics["descent_time_s"]),
+                held,
             ));
             rows.push((
                 format!("{name}: impact descent rate"),
                 -landing.vertical_speed_m_s,
                 number(&metrics["impact_speed_m_s"]),
+                held,
             ));
             rows.push((
                 format!("{name}: drift"),
                 drift.truncate().length(),
                 number(&metrics["drift_m"]),
+                drift_held,
             ));
             if number(&metrics["drift_m"]) > 10.0 {
                 rows.push((
                     format!("{name}: drift east"),
                     drift.x,
                     number(&metrics["drift_east_m"]),
+                    held,
                 ));
                 rows.push((
                     format!("{name}: drift north"),
                     drift.y,
                     number(&metrics["drift_north_m"]),
+                    held,
                 ));
             }
         }
 
-        // The milestone's tolerance: descent rate and drift within 3% of RocketPy's.
-        let mut worst: f64 = 0.0;
+        // Each row within its bound of RocketPy's: the milestone's 3%, or ADR-319's 0.3%.
+        let mut failed = Vec::new();
         let mut report = String::new();
-        for (what, hpr, oracle) in &rows {
+        for (what, hpr, oracle, bound) in &rows {
             let error = (hpr - oracle) / oracle;
-            worst = worst.max(error.abs());
+            if !(error.abs() < *bound) {
+                failed.push(what.clone());
+            }
             report.push_str(&format!(
-                "{what}: hpr {hpr:.4}, rocketpy {oracle:.4}, {:+.2}%\n",
-                100.0 * error
+                "{what}: hpr {hpr:.4}, rocketpy {oracle:.4}, {:+.3}% (bound {}%)\n",
+                100.0 * error,
+                100.0 * bound
             ));
         }
         eprintln!("{report}");
-        assert!(worst < 0.03, "worst error {:.2}%:\n{report}", 100.0 * worst);
+        assert!(
+            failed.is_empty(),
+            "outside their bounds: {failed:?}:\n{report}"
+        );
     }
 
     /// The oracle's wind: a constant, or a profile in height above sea level. RocketPy

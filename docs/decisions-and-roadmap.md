@@ -347,6 +347,7 @@ until someone rewrites it in plainer words.
 | [ADR-316: M7.3b: the least-squares fit, what it solves for and how its intervals are held][adr-316] | Levenberg-Marquardt fits drag, impulse, a constant wind and mass to a log, with the |  |
 | [ADR-317: M7.3c in two: the posterior's sampler, then the test][adr-317] | the Bayesian option draws each flight's posterior by importance sampling around the |  |
 | [ADR-318: The 2026-11-02 review: the cause-free apogees tightened][adr-318] | In the RocketPy comparisons flown on the same inputs, the six apogees with no written model difference agree within 0.1123%, while RocketPy's own solver moves an apogee by at most 6.35e-6 of its value. The bound goes from 0.5% to 0.35%, 3.1 times the largest difference. All nine same-drag apogees read high, the cautious side for a waiver, and a test now stops one reading low. These bound agreement between two codes, not accuracy against a flight. |  |
+| [ADR-319: The 2026-11-04 review: the RocketPy descents tightened][adr-319] | In the RocketPy descents flown from the same state under the same devices, the 17 numbers held here agree within 0.0857%, while RocketPy's own solver moves them by at most 3.41e-6 of their values. The bound goes from 3% to 0.3%, 3.5 times the largest difference. A drag area 1% too large now fails each of the four descents; before, it passed them all. NDRT 2020, whose descent time differs by 0.705% with no traced cause, and Valetudo's drifts, made by the Earth's rotation alone, keep 3%. These bound agreement between two codes, not accuracy against a flight. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -1306,6 +1307,7 @@ is the milestone that added or will add that test.
 [adr-316]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md
 [adr-317]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0317-m7-3c-in-two-the-sampler-then-the-test.md
 [adr-318]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md
+[adr-319]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0319-the-2026-11-04-review-the-rocketpy-descents-tightened.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
