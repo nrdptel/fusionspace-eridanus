@@ -296,6 +296,58 @@ fn same_drag_speeds_and_cause_free_apogees_hold_adr_289s_bounds() {
 }
 
 #[test]
+fn descents_hold_adr_319s_bounds() {
+    // ADR-319 holds the descent time, mean descent rate and drifts of the descents where RocketPy's
+    // added mass is small to 0.3%: the largest difference so held is +0.0857% (Prometheus 2022's
+    // east drift), 3.5 times inside, and RocketPy's own solver moves them by at most 3.41e-6 of
+    // their values. NDRT 2020 keeps the milestone's 3%, its descent time 0.705% off from RocketPy's
+    // added mass, and so do Valetudo's drifts, made by the Earth's rotation alone in still air. A case
+    // file widened back, or a new descent added at the old bound, fails here. The landing speed is
+    // held to 0.1% since ADR-310.
+    const METRICS: [&str; 5] = [
+        "descent_time_s",
+        "mean_descent_rate_m_s",
+        "drift_m",
+        "drift_east_m",
+        "drift_north_m",
+    ];
+    const DRIFTS: [&str; 3] = ["drift_m", "drift_east_m", "drift_north_m"];
+    let (mut tight, mut kept) = (0, 0);
+    for case in cases() {
+        if !case.id.starts_with("descent-") {
+            continue;
+        }
+        for (name, metric) in &case.metrics {
+            if !METRICS.contains(&name.as_str()) {
+                continue;
+            }
+            let bound = if case.id == "descent-ndrt-2020-nose-to-tail"
+                || (case.id == "descent-valetudo" && DRIFTS.contains(&name.as_str()))
+            {
+                kept += 1;
+                0.03
+            } else {
+                tight += 1;
+                0.003
+            };
+            assert_eq!(
+                (
+                    metric.relative,
+                    metric.absolute,
+                    metric.not_scored.as_deref()
+                ),
+                (Some(bound), None, None),
+                "{}'s {name} is held to {bound} relative, with no floor (ADR-319)",
+                case.id
+            );
+        }
+    }
+    // Five metrics each on Calisto, Prometheus 2022 and Juno III, and Valetudo's descent time and
+    // rate, at 0.3%; NDRT 2020's five and Valetudo's three drifts at 3%.
+    assert_eq!((tight, kept), (3 * 5 + 2, 5 + 3));
+}
+
+#[test]
 fn no_same_drag_apogee_reads_low_adr_318() {
     // Too low an apogee is the flattering side for a waiver: it tells a flyer the rocket stays
     // under a ceiling it may pass. All nine same-drag flights read high (+0.038% to +1.21%), so the

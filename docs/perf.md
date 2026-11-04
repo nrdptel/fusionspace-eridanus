@@ -3,6 +3,29 @@
 Measured numbers only, newest first within each section. Record the machine, the toolchain, and
 the command, so a later run can be compared like for like.
 
+## The smoother's second run carries its means alone (2026-11-04)
+
+- **What this is.** `hpr analyze` smooths a log twice: once at the barometer port's expected
+  coefficient, and once a standard deviation off it, to widen the heights' and speeds' intervals by
+  how far they move. The second run's results are used only for their means. A smoothed mean needs
+  each step's gain, built from the filtered and predicted covariances, and never the smoothed
+  covariance, so the second run's pass back now skips that covariance (`run`'s `spread` in
+  `crates/hpr-flightdata/src/smoother.rs`); its standard errors come out as NaN and are not read.
+  In one profile (macOS `sample`, not committed) the smoother was about 80% of `analyze` on
+  `axial.csv`, and its pass back half of that.
+- **Measured** on an Apple M5 (10 cores), rustc 1.98.1, main 14e85708 against the change, release
+  `hpr analyze`, medians of 6 alternated rounds (5 passes over the forum logs), load 2.7 to 5.2:
+
+  | measurement | before | after |
+  |---|---|---|
+  | `analyze` on `axial.csv` | 25.64 ms | 24.03 ms (−6.3%, spread 2%) |
+  | `analyze` on `synthetic-pnut.pf2` | 7.68 ms | −4.2%, inside its 7% spread |
+  | 137 cached forum logs, total / slowest | 3.38 s / 165 ms | 3.18 s / 148 ms (−5.9% / −10.5%) |
+
+- **What moves.** No output bit: text and JSON are byte-identical on 206 logs (412 outputs), 68
+  of the forum logs reaching the smoother. The consider-run test now also requires the means with
+  and without the covariance's pass back to be equal bit for bit.
+
 ## A step's start taken from the step before (2026-10-20)
 
 - **What this is.** The flight metrics read each accepted step's start, middle and end. The end

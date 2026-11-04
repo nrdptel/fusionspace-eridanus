@@ -77,4 +77,19 @@ From the 2026-10-08 planning review:
 - LATER: GPS-steered gliding parachutes (with TVC, forum threads of about 520 and 311 replies).
 - LATER: rocket-boosted gliders.
 
+## From the 2026-11-02 planning review ([ADR-318][adr-318])
+
+- SOON: the wind's error as measured. User: a flyer whose recovery area ends at a road, flying on
+  a forecast of light wind. `hpr mc` scatters the wind as a fraction of its speed and a turn of its
+  direction, so a 2 m/s forecast scattered by 20% moves by 0.4 m/s, where reanalysis winds over
+  the US are inferred to miss measured ones by about 1.8 to 2.4 m/s in each component by day and
+  more than 3.2 m/s on the worst nights (a bracket from soundings and profilers, not a direct
+  measurement: [the ERA5 wind note](era5-wind-direction-us.md)). Too narrow an ellipse is
+  the flattering side. Workflow: `hpr mc --wind-error 2` adds an error in each horizontal
+  component, the same at every speed, beside the present scatters. Moves: the proposed
+  `landing.inside-90`. *Done when:* a test gets a calm forecast's ellipse from the component error
+  alone, derived by hand; a property test shows the option never narrows an ellipse; the page
+  gives the measured errors with their source.
+
 [adr-193]: ../decisions/0193-the-2026-10-07-control-scope-drag-only-brakes-roll-only-surfaces.md
+[adr-318]: ../decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md

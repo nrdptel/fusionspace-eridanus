@@ -389,7 +389,8 @@ The committed [validation report][report] gives the six numbers below for each d
 scored, and all are within tolerance. The largest difference is +2.865%.
 
 Each metric must agree within 3% of RocketPy's value (landing speed 0.1%, [the tighter
-gate][adr-310]), with no absolute floor. Each case file argues why,
+gate][adr-310]; most others 0.3%, [a tighter gate][adr-319]), with no absolute floor. Each case
+file argues why,
 for example [NDRT's][ndrt-case]. A floor would be a fixed allowance, in meters or
 seconds, that passes any smaller difference. The metrics:
 
@@ -1201,6 +1202,7 @@ rest.
 [adr-289]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md
 [adr-294]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md
 [adr-310]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0310-the-2026-10-31-review-the-rocketpy-rail-exit-and-landing-speeds-tightened.md
+[adr-319]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0319-the-2026-11-04-review-the-rocketpy-descents-tightened.md
 [adr-318]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md
 [adr-293]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0293-cavours-log-read-to-its-apogee-event.md
 [adr-184]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0184-logged-apogees-of-the-private-collection.md
