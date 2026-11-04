@@ -111,8 +111,8 @@ least-squares fit (ADR-316).
    in three parts, macos-latest in four and windows-latest, the slowest, in six. A whole job scaled
    by the Mac's 4.24, its build too, makes a ceiling for a part, if the runners slow by the Mac's
    ratio: 1,000 s at four on macos-latest, whose worst job took 943 s, and 1,280 s at six on
-   windows-latest, whose worst half took 904 s, past the 20 minutes unless that job's build took
-   more than 194 s. The build, which each part makes whole, brings them lower by an amount the
+   windows-latest, whose worst half took 904 s, past the 20 minutes unless that half's build took
+   more than 188 s: the slice's compute there is twice the half's, less its build. The build, which each part makes whole, brings them lower by an amount the
    first pull request's run measures. The night fits the whole report in 16
    parts on Linux, not the 32 this increment first ran with. A full run on main has 70 jobs; the slice's
    parts add 13 and 16 night parts 8, 91 in all, where 32 would make 107, past the 100 that
