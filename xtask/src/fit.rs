@@ -612,7 +612,8 @@ fn check_problems(set: Set, checks: &[Check]) -> Vec<String> {
     broken
 }
 
-/// What doesn't come out as it must in a committed `report`, read from its counts without a fit:
+/// What doesn't come out as it must in a committed `report`, read from its stored bands, counts and
+/// shares without a fit:
 /// each set's [`check_problems`], too few flights counted, a log with nothing to fit that isn't a
 /// GNSS receiver's alone, a residual past the misfit's cut, anything identified on pure noise, and
 /// shares other than the library's.
@@ -2054,8 +2055,9 @@ mod tests {
         assert!(!shares_hold(at(-0.0125, 1.43), small, false));
     }
 
-    /// The committed report keeps its own rules, read from its counts, and fails them when a
-    /// count, a noise's identification or a share is written otherwise.
+    /// The committed report keeps its own rules, read from its stored bands, counts and shares, and
+    /// fails them when a test (counts and bands), a noise's identification or a share is written
+    /// otherwise.
     #[test]
     fn the_committed_report_keeps_its_rules_by_its_counts() {
         let root = crate::designs::root().unwrap();

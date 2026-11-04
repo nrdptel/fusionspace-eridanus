@@ -299,7 +299,8 @@ the words hold what the census counts without one.
    each night hold them too. A fit is the same whatever its thread or part fitted before it, which
    a test holds to the bit for one of set A's flights fitted alone and after another, so the
    slice's fits are the whole run's at the same places; `fit --slice` making the whole run's slice
-   again byte for byte, and eight parts on Linux agreeing with one job (ADR-316 §7), bear it out.
+   again byte for byte, and eight parts on Linux agreeing with one job (ADR-316 §7, on the report's
+   6,538 fits), bear it out.
 2. **Exact where written.** The run that writes the report, `fit` in the optimized build on the
    Mac, writes the slice beside it as `fit-intervals.slice.json`. Each fit has a line for what it
    came to: fitted or with nothing to fit, a track or height alone, converged or at its step
@@ -346,7 +347,7 @@ the words hold what the census counts without one.
    committed slice, not a test: set A's fit 819's drag share written 0.392 for 0.391 fails `fit
    --slice` and passes `fit --slice --other-platform`; its "inside" written "above" fails both. Off
    the Mac a calibration fit's lines hold no side, so there only its first line's words can fail:
-   fitted or not, track or height alone, converged or not, its design. The night holds the shares
+   fitted or not, track or height alone, converged or not, whether it has a residual, its design. The night holds the shares
    its numbers make.
 
 **Measured.** On the Mac that writes the report (10 cores, the optimized build, 2026-11-04), the
@@ -367,9 +368,9 @@ against 587 to 999 s in main's last full run before it (run 41753918203, 2026-11
 
 **The fit's slice's consequences.**
 
-- The gate's validate step makes 444 fits, not 9,192. It no longer holds the whole report or the
-  shares exactly: only `fit --check`, run by hand on the Mac, does, and the run that writes the
-  report holds the shares. A change that moves fits outside the slice is found that night on Linux
+- The gate's validate step makes 444 fits, not 9,192. It no longer holds the whole report exactly
+  and refits no shares: only `fit --check`, run by hand on the Mac, does both, and the run that
+  writes the report holds the fitted shares. A change that moves fits outside the slice is found that night on Linux
   if it moves a count by more than 5 flights or a figure or share past its rule. A smaller move is
   found only when the report is checked or written again on the Mac. A change that moves a line
   of a fit in the slice, a number at its three figures or decimals or a word, fails the gate.
