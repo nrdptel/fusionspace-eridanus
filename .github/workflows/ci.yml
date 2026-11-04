@@ -309,7 +309,7 @@ jobs:
       # bytes, and none stored as failing is, and every motor flies by name offline.
       - if: env.RUN == 'true'
         run: cargo run --locked --quiet --package xtask --profile report-check -- motor-catalog --check
-      # The flight censuses' slices (M0.16a1, ADR-149 amended): every 20th flight of each set of the
+      # The flight censuses' slices (M0.16a1, ADR-149 amended): every 21st flight of each set of the
       # synthetic flights and of two logs, flown again and held to its committed slice line for
       # line, and to the census's rules for one flight. The whole censuses run each night (`census`).
       - if: env.RUN == 'true'

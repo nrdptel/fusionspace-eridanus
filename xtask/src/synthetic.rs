@@ -69,7 +69,7 @@ pub const USAGE: &str = "  synthetic [--check] [--sets tuning,a,b,calibration]
                            sections of the JSON are compared; the page always is. A set left out
                            isn't checked, so CI names each set on one line per platform.
                            A whole run writes, and a check compares, the slice too.
-  synthetic --slice        Fly only the slice, every 20th flight of each set, and hold each to
+  synthetic --slice        Fly only the slice, every 21st flight of each set, and hold each to
                            the committed validation/reports/synthetic-flights.slice.json and to
                            the census's per-flight rules; writes nothing.
   synthetic --intervals    Only the readings' intervals: fit their shares on the calibration set,
@@ -2649,12 +2649,14 @@ fn readings_section(page: &mut String, tallies: &[Tally]) {
     }
 }
 
-/// The synthetic flights' slice takes every 20th flight of each set (M0.16a1, ADR-149 amended):
-/// 10 of the tuning set's 200, 50 each of sets A and B, 100 of the calibration set's 2,000.
-const SLICE_EVERY: u64 = 20;
+/// The synthetic flights' slice takes every 21st flight of each set (M0.16a1, ADR-149 amended):
+/// 10 of the tuning set's 200, 48 each of sets A and B, 96 of the calibration set's 2,000. The step
+/// is odd because the tuning and calibration sets give their odd flights set B's model: an even
+/// one would hold none of them.
+const SLICE_EVERY: u64 = 21;
 
 /// The slice's `about` line.
-const SLICE_ABOUT: &str = "The synthetic flights' slice (M0.16a1, ADR-149 amended): every 20th \
+const SLICE_ABOUT: &str = "The synthetic flights' slice (M0.16a1, ADR-149 amended): every 21st \
                            flight of each set, a line for each thing the census makes of it, \
                            written by `cargo xtask synthetic`; `--slice` holds it.";
 
@@ -3407,15 +3409,22 @@ mod tests {
         assert_ne!(changed[3], made[3]);
     }
 
-    /// The slice's flights are fixed: every 20th of each set, from the first.
+    /// The slice's flights are fixed: every 21st of each set, from the first, which holds both
+    /// models of the sets that alternate them.
     #[test]
-    fn the_slice_takes_every_twentieth_flight_of_each_set() {
-        assert_eq!(SLICE_EVERY, 20);
+    fn the_slice_takes_every_21st_flight_of_each_set() {
+        assert_eq!(SLICE_EVERY, 21);
         let counts: Vec<usize> = EVERY_SET
             .iter()
             .map(|set| crate::slice::indices(set.count(), SLICE_EVERY).len())
             .collect();
-        assert_eq!(counts, vec![10, 50, 50, 100]);
+        assert_eq!(counts, vec![10, 48, 48, 96]);
+        for set in [Set::Tuning, Set::Calibration] {
+            let (odd, even): (Vec<u64>, Vec<u64>) = crate::slice::indices(set.count(), SLICE_EVERY)
+                .into_iter()
+                .partition(|index| index % 2 == 1);
+            assert_eq!(odd.len().abs_diff(even.len()), 0, "{}", set.name());
+        }
     }
 
     #[test]

@@ -422,12 +422,12 @@ main, not on every pull request
 the synthetic flights and two logs on all five platforms, in the `census` job, and the fit in
 parts on Linux. A test fails if a set of synthetic flights is left out, or if its job runs on any
 condition but a full run's, nightly or started by hand ([the synthetic flights' tests](physics/synthetic-flights.md)). A
-nightly failure opens an issue that is fixed before other work. Every pull request, on all five
-platforms, and `scripts/gate.sh` fly a slice of the synthetic flights and of two logs instead:
-every 20th flight of each set, 210 flights each. The command that writes a census writes its
+nightly failure opens an issue that is fixed before other work. Each of those pull requests, on all
+five platforms, and `scripts/gate.sh` fly a slice of the synthetic flights and of two logs instead:
+every 21st flight of each set, 202 flights each. The command that writes a census writes its
 slice beside the report (`synthetic-flights.slice.json`, `two-logs.slice.json`): a line for each
 thing the census makes of each of those flights, to the census's digits. `--slice` flies them
-again and fails, naming the flight, if any line differs, or if a flight breaks a rule the census
+again and fails if any line differs, naming the flight, or if the slice breaks a rule the census
 holds every flight to, such as a reading past its bound. What only a whole set shows, its ranges,
 coverage tests and fitted shares, waits for the night. Reports are still written by the
 everyday build, and `scripts/gate.sh` runs the checks on your own machine before each merge: the

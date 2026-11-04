@@ -40,7 +40,7 @@
 # Step validate runs `motor-catalog --check` as CI does, and with the raw snapshot under refs/ it
 # also holds the committed records and files to it. It runs that in the dev profile, where CI runs it
 # optimized. Of the flight censuses (ADR-149, amended), which run whole each night, it runs the
-# synthetic flights' and two logs' slices (M0.16a1: every 20th flight of each set, held line for line
+# synthetic flights' and two logs' slices (M0.16a1: every 21st flight of each set, held line for line
 # to the committed `.slice.json` and to the census's rules for one flight), as CI does on every pull
 # request, and the fit whole, in the optimized build, until it has a slice of its own. The dev profile
 # is the one that writes the reports, so this checks that what's committed is what it writes.

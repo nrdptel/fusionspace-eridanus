@@ -11,7 +11,7 @@
 //! compares them with the committed file, naming each flight that differs; it holds each flight to
 //! the rules the census holds every flight to (a reading within its bound, say), and leaves to the
 //! nightly run what only the whole set can show (a coverage test, a range). The whole census's
-//! `--check` writes the slice too and compares it, so the committed slice is always the whole
+//! `--check` makes the slice too and compares it, so the committed slice is always the whole
 //! run's.
 //!
 //! A flight is the same however many flights came before it on its thread (each census's tests),
@@ -192,7 +192,7 @@ fn differences(path: &Path, committed: &Slice, made: &Slice) -> String {
     let mut problems = Vec::new();
     if committed.every != made.every {
         problems.push(format!(
-            "it takes every {}th flight, the census every {}th",
+            "it steps {} flights at a time, the census {}",
             committed.every, made.every
         ));
     }
@@ -366,7 +366,7 @@ mod tests {
         assert!(
             compare(&file.0, &every)
                 .unwrap()
-                .contains("every 20th flight, the census every 10th")
+                .contains("it steps 20 flights at a time, the census 10")
         );
     }
 

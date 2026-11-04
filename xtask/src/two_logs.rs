@@ -28,7 +28,7 @@ pub const USAGE: &str = "  two-logs [--check]
                            and staged synthetic flights, writing validation/reports/two-logs.{json,md}
                            and the slice, two-logs.slice.json; --check writes nothing and fails
                            unless the flights reproduce all three.
-  two-logs --slice         Fly only the slice, every 20th flight of each set, and hold each to the
+  two-logs --slice         Fly only the slice, every 21st flight of each set, and hold each to the
                            committed slice and to the report's per-flight rules; writes nothing.";
 
 const REPORT: &str = "validation/reports/two-logs";
@@ -170,12 +170,13 @@ pub fn run(args: &[String]) -> Result<(), String> {
     Ok(())
 }
 
-/// Two logs' slice takes every 20th flight of each set (M0.16a1, ADR-149 amended): 100 of the
-/// calibration set's 2,000, 50 each of sets A and B, 10 of the staged set's 200.
-const SLICE_EVERY: u64 = 20;
+/// Two logs' slice takes every 21st flight of each set (M0.16a1, ADR-149 amended): 96 of the
+/// calibration set's 2,000, 48 each of sets A and B, 10 of the staged set's 200. The step is odd,
+/// as the synthetic flights' is, so the calibration set's slice holds both of its models.
+const SLICE_EVERY: u64 = 21;
 
 /// The slice's `about` line.
-const SLICE_ABOUT: &str = "Two logs' slice (M0.16a1, ADR-149 amended): every 20th flight of each \
+const SLICE_ABOUT: &str = "Two logs' slice (M0.16a1, ADR-149 amended): every 21st flight of each \
                            set, its logs and its offset, written by `cargo xtask two-logs`; \
                            `--slice` holds it.";
 
@@ -616,14 +617,14 @@ mod tests {
         assert_ne!(slice_flight(Set::PairA, &misread).0.made[0], flight.made[0]);
     }
 
-    /// The slice's flights are fixed: every 20th of each set, from the first.
+    /// The slice's flights are fixed: every 21st of each set, from the first.
     #[test]
-    fn the_slice_takes_every_twentieth_flight_of_each_set() {
-        assert_eq!(SLICE_EVERY, 20);
+    fn the_slice_takes_every_21st_flight_of_each_set() {
+        assert_eq!(SLICE_EVERY, 21);
         let counts: Vec<usize> = SETS
             .iter()
             .map(|set| crate::slice::indices(set.count(), SLICE_EVERY).len())
             .collect();
-        assert_eq!(counts, vec![100, 50, 50, 10]);
+        assert_eq!(counts, vec![96, 48, 48, 10]);
     }
 }

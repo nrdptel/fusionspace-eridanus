@@ -386,8 +386,8 @@ Each night CI flies every flight again on macOS, Windows and Linux and holds the
   their sections of the committed report, so every flight is flown and compared on every platform.
   A test reads `ci.yml` and fails if a set isn't on exactly one line of a job that runs on all five
   platforms, or if that job runs on any condition but a full run's, nightly or started by hand.
-- `cargo xtask synthetic --slice`, on every pull request on all five platforms and in
-  `scripts/gate.sh`: every 20th flight of each set (210 of 4,200) flown again, held line for line
+- `cargo xtask synthetic --slice`, on pull requests on all five platforms and in
+  `scripts/gate.sh`: every 21st flight of each set (202 of 4,200) flown again, held line for line
   to the `synthetic-flights.slice.json` the whole run writes and to the census's rules for one
   flight. A test changes one flight's truth, then its log, and checks that its lines change.
 

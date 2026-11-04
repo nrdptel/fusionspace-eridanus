@@ -176,34 +176,44 @@ main's last passing CI, or no passing nightly in 26 hours; M7.3c3's fit follows 
 
 **The slices (M0.16a1).**
 
-1. **A fixed part.** A census's slice is every 20th flight of each of its sets, from the first. For
-   the synthetic flights that is 210 of 4,200: 10 of the tuning set's 200, 50 each of sets A and B,
-   and 100 of the calibration set's 2,000. For two logs it is 210 of 4,200 too: 100 of the
-   calibration set, 50 each of sets A and B, and 10 of the 200 staged flights. The draws are
-   already random, so every 20th flight is as fair a sample as a drawn one, and simpler to see.
+1. **A fixed part.** A census's slice is every 21st flight of each of its sets, from the first. For
+   the synthetic flights that is 202 of 4,200: 10 of the tuning set's 200, 48 each of sets A and B,
+   and 96 of the calibration set's 2,000. For two logs it is 202 of 4,200 too: 96 of the
+   calibration set, 48 each of sets A and B, and 10 of the 200 staged flights. A flight's design,
+   logger and conditions are drawn from streams of its own, so a fixed step samples them as fairly
+   as a drawn one would. One draw does follow the index: the tuning and calibration sets give their
+   odd flights set B's model. So the step is odd, and each slice holds both models, half and half.
+   A first version took every 20th flight and held none of them, which a claims check of this
+   change found.
 2. **Exact where written.** The command that writes a census writes its slice beside the report,
    as `synthetic-flights.slice.json` and `two-logs.slice.json` in `validation/reports/`. Each flight
    has one line for each thing the census makes of it:
    - the synthetic flights: the flight's census row; each of a tuning flight's logs, with each
-     reading's error as a share of its bound; its top accelerations; the smoother's three checks,
-     each error over its standard deviation, with where the truth fell; and what the log says of
-     the readings that state an interval, with where each truth fell.
+     reading's error as a share of its bound; how near its top acceleration came to the
+     accelerometer's two ranges; on the tuning set and sets A and B, the smoother's checks (of the
+     log, of the log written from launch, and with a GNSS track, of the track trusted from
+     liftoff), each error over its standard deviation, with where the truth fell; and on sets A and
+     B and the calibration set, what the log says of the readings that state an interval, with
+     where each truth fell.
    - two logs: each log's sample count and highest height, and the offset's reading, truth and
      bound, its error as a share of the bound, with where the truth fell.
 
    Numbers keep the census's three significant figures. A share is kept to three decimals, a fixed
    step, so that an error near zero, whose last digits are rounding, writes the same on every
-   platform. `--slice` flies the slice's flights again and fails, naming each flight, if any line
-   differs, if a flight is missing or added, or if the slice takes another step.
+   platform. `--slice` flies the slice's flights again and fails if any line differs, if a flight
+   is missing or added, or if the slice takes another step, naming up to 20 such flights and
+   counting the rest; flights in another order fail without one named.
 3. **Else by its rule.** What only a whole set can show stays with the whole run: the census's
    ranges, counts and medians, the shares fitted on a calibration set, the smoother's coverage
    cells, and ADR-257's test with its probes. Each slice flight is held to the rules the census
    holds every flight to. On the synthetic flights, no reading may pass its bound, no log may be
-   withheld while it has a barometer, and the smoother may leave no step unsolved. A log written
-   from launch must be smoothed on the pad it assumes, and withheld as the whole log was. Every
-   flight of sets A and B and of the calibration set must fly and leave no reading out but by its
-   rule. On two logs, no offset may pass its bound, and one may be withheld only for a receiver's
-   dropout. `--slice` also reads the committed report and checks that it renders the committed page.
+   withheld while it has a barometer, and the smoother may leave no step unsolved. The logs written
+   from launch must be smoothed on the pad they assume, and withheld in the same numbers, for the
+   same reasons, as the whole logs, set by set. Every flight of sets A and B and of the calibration
+   set must fly and leave no reading out but by its rule. On two logs, no offset may pass its bound,
+   and one may be withheld only for a receiver's dropout. A rule broken names its flight where the
+   rule is the flight's own, and its set where it is a count over the set's slice. `--slice` also
+   reads the committed report and checks that it renders the committed page.
 4. **Where each runs.** `--slice` runs in `scripts/gate.sh`'s validate step, in place of the whole
    check, and in CI's `validate` job on all five platforms on every pull request but one that
    changes only research notes, in the optimized build. The whole `--check` runs each night and
@@ -216,12 +226,13 @@ main's last passing CI, or no passing nightly in 26 hours; M7.3c3's fit follows 
    the failure names that flight and only it.
 
 **Measured.** On the Mac that writes the reports (10 cores, the everyday build, 2026-11-04),
-the whole synthetic flights' run took 495 s and two logs' 201 s; their slices took 25 s and 9 s.
+the whole synthetic flights' run took 486 s and two logs' 205 s; their slices took 27 s and 10 s.
 The two whole runs wrote the reports byte for byte as committed, beside the two new slices of
-375 kB and 51 kB. In the six full gates that passed from 2026-11-03 19:52 to 11-04 04:59 UTC, the
-validate step took 2,175 to 3,615 s. With the slices, this change's own full gate took 1,999 s and
-its validate step 1,478 s (one run, 2026-11-04), the fit's whole run most of that, so the gate
-stays over its 30 minutes until M0.16a2.
+327 kB and 49 kB. In the five full gates that ran the validate step and passed from 2026-11-03
+21:40 to 11-04 04:59 UTC, it took 2,175 to 3,615 s. With the slices, this change's own full gate
+took 1,999 s and its validate step 1,478 s (one run, 2026-11-04, at every 20th flight). The rest of
+that step, the fit's whole run with the motor catalog and the scoreboard, isn't timed apart. The
+gate stays over its 30 minutes until M0.16a2.
 
 **Alternatives to the slices.**
 
@@ -229,8 +240,8 @@ stays over its 30 minutes until M0.16a2.
   that a flight moved, not what moved or by how much.
 - **The slice inside the report.** The report holds tallies; its page renders from it. A file of
   its own keeps the report's form, and the slice's lines readable in a diff.
-- **A larger part, every 10th flight.** It doubles the time a pull request and the gate spend, for
-  no rule a 20th can't check.
+- **A larger part, every 11th flight.** It doubles the time a pull request and the gate spend, for
+  no rule a 21st can't check.
 
 **The slices' consequences.**
 
