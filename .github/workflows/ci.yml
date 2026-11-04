@@ -38,8 +38,9 @@ env:
 jobs:
   # Which checks this run needs (ADR-149, amended). `full` is true on the nightly run and on a run
   # started by hand with `full`: only then do the flight censuses run whole (the `census` job on
-  # every platform, the `fit` jobs on Linux). A pull request or a push to main leaves them to that
-  # night's run, and `scripts/gate.sh` runs them whole on the Mac before each merge. `notes` is true
+  # every platform, the `fit` jobs on Linux). A pull request or a push to main flies the slices of
+  # the synthetic flights and two logs (`validate`) and leaves the whole to that night's run, as
+  # `scripts/gate.sh` does on the Mac, which still runs the fit whole. `notes` is true
   # when every file a pull request or push changes, renamed from or to, is a research note under
   # docs/research/: `validate`, `examples` and `python` then run no step and pass, and `types`,
   # `wasm-check` and `phone` skip, each still reporting by name for branch protection. `test` and
@@ -308,6 +309,15 @@ jobs:
       # bytes, and none stored as failing is, and every motor flies by name offline.
       - if: env.RUN == 'true'
         run: cargo run --locked --quiet --package xtask --profile report-check -- motor-catalog --check
+      # The flight censuses' slices (M0.16a1, ADR-149 amended): every 21st flight of each set of the
+      # synthetic flights and of two logs, flown again, held to the census's rules for one flight and
+      # to its committed slice in every word, its numbers aside: a flight's numbers can move
+      # off the Mac's everyday build, where `scripts/gate.sh` holds them byte for byte. The whole
+      # censuses run each night (`census`).
+      - if: env.RUN == 'true'
+        run: cargo run --locked --quiet --package xtask --profile report-check -- synthetic --slice --other-platform
+      - if: env.RUN == 'true'
+        run: cargo run --locked --quiet --package xtask --profile report-check -- two-logs --slice --other-platform
       # The scoreboard held to main's (M0.10, ADR-240): none of HPR Sim's numbers worse than the
       # one main committed, unless an accepted ADR names it. The checkout holds no main of its own.
       - if: env.RUN == 'true' && matrix.os == 'ubuntu-latest'
@@ -325,8 +335,8 @@ jobs:
   # three figures the platforms share. The clock offset between two logs of one flight (M7.2f,
   # ADR-312): held on two-logger and staged synthetic flights, on seeds of their own, to the
   # committed report. On every pull request they made `validate` and `examples` CI's slowest jobs, 20 to 30
-  # minutes on Windows (issue #1018), so a pull request leaves them to that night's run and to
-  # `scripts/gate.sh`, which runs them whole on the Mac before each merge. They run optimized (the
+  # minutes on Windows (issue #1018), so a pull request flies their slices (`validate`) and leaves
+  # the whole to that night's run, and so does `scripts/gate.sh` on the Mac. They run optimized (the
   # `report-check` profile keeps the dev profile's assertions and overflow checks). Every set runs
   # on every platform, on one line each, on no condition but this job's, which a test in xtask
   # holds (`synthetic::tests`).

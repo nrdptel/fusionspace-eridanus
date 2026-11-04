@@ -2753,6 +2753,10 @@ fn the_validated_range_is_the_fastest_public_reference() {
         "flight-residuals.json",
         // The fit's intervals on synthetic flights, counted by parameter: no Mach number in it.
         "fit-intervals.json",
+        // The slices of the synthetic flights and two logs (M0.16a1): each flight's lines as
+        // text, hpr's own flights with no reference, as in the reports they sit beside.
+        "synthetic-flights.slice.json",
+        "two-logs.slice.json",
     ];
     // Only committed files: `latest-fast.json` is a local partial run, never committed.
     let listed = std::process::Command::new("git")

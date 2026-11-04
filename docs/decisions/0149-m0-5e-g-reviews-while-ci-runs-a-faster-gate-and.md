@@ -1,7 +1,7 @@
 # ADR-149: M0.5e to g, reviews while CI runs, a faster gate and a split CI (2026-10-04)
 
-- **Status:** accepted; amended 2026-11-03 (below: a time budget for CI and the gate, the flight censuses each night)
-- **Summary:** Reviews start once the PR is open and CI runs, with a shared bar for blocking findings and scoped re-reviews; the gate runs tests in parallel and adds the private-data checks when physics changes; CI's slowest job is split. Amended 2026-11-03: a pull request's CI within 20 minutes and a passing full gate within 30; the flight censuses (the synthetic flights, two logs and the fit's intervals) run whole each night on main, a failure filing a P-critical issue, and a change to research notes alone skips the jobs that read none.
+- **Status:** accepted; amended 2026-11-03 (below: a time budget for CI and the gate, the flight censuses each night) and 2026-11-04 (M0.16a in three; the slices of the synthetic flights and two logs)
+- **Summary:** Reviews start once the PR is open and CI runs, with a shared bar for blocking findings and scoped re-reviews; the gate runs tests in parallel and adds the private-data checks when physics changes; CI's slowest job is split. Amended 2026-11-03: a pull request's CI within 20 minutes and a passing full gate within 30; the flight censuses (the synthetic flights, two logs and the fit's intervals) run whole each night on main, a failure filing a P-critical issue, and a change to research notes alone skips the jobs that read none. Amended 2026-11-04: pull requests and the gate fly every 21st flight of the synthetic flights and two logs, held line for line to a committed slice.
 
 [adr-144]: 0144-the-2026-10-03-planning-review-leaner-bookkeeping.md
 [adr-222]: 0222-six-platforms-tested-on-every-pull-request.md
@@ -146,3 +146,144 @@ again.
   pull request; the examples, the Python package and the validation cases run on each one that
   changes more than research notes.
   Only the censuses move to the night.
+
+**Amended 2026-11-04: M0.16a in three, and the slices of two censuses (M0.16a1).**
+
+**Why three.** M0.16a's *done when* asked for three things at once: a slice of each census, held
+exactly where it is written; the gate and pull requests checking the slices; and a pre-PR check of
+the budget. The fit's slice can't be held the way the other two are. Its report differs from one
+platform to another: `fit --check --other-platform` lets its counts stand a few flights off. So a
+record of each flight's fit written on the Mac is exact only there, and the rule it keeps elsewhere
+is a design of its own. The budget check fails every pull request until the fit's slice brings the
+gate under 30 minutes, so it comes last. M0.16a is split in three, its *done when* whole across
+them:
+
+- **M0.16a1, two slices:** "the synthetic flights and two logs each check a fixed part of their
+  flights against the committed report (exact where written, else by its rule), failing on one
+  changed flight; the gate and pull requests check one part, the whole nightly."
+- **M0.16a2, the fit's slice:** "the fit checks a fixed part of its flights against the committed
+  report (exact where written, else by its rule), failing on one changed flight; the gate and pull
+  requests check one part, the whole nightly."
+- **M0.16a3, the budget checked:** "a pre-PR check fails on a full gate over 30 minutes, a job over
+  20 in main's last passing CI, or no passing nightly in 26 hours; M7.3c3's fit follows before it
+  merges."
+
+M0.16a's *done when* before the split, kept here word for word: "the synthetic flights, two logs
+and the fit each check a fixed part of their flights against the committed report (exact where
+written, else by its rule), failing on one changed flight; the gate and pull requests check one
+part, the whole nightly; a pre-PR check fails on a full gate over 30 minutes, a job over 20 in
+main's last passing CI, or no passing nightly in 26 hours; M7.3c3's fit follows before it merges."
+
+**The slices (M0.16a1).**
+
+1. **A fixed part.** A census's slice is every 21st flight of each of its sets, from the first. For
+   the synthetic flights that is 202 of 4,200: 10 of the tuning set's 200, 48 each of sets A and B,
+   and 96 of the calibration set's 2,000. For two logs it is 202 of 4,200 too: 96 of the
+   calibration set, 48 each of sets A and B, and 10 of the 200 staged flights. A flight's design,
+   logger and conditions are drawn from streams of its own, so a fixed step samples them as fairly
+   as a drawn one would. One draw does follow the index: the tuning and calibration sets give their
+   odd flights set B's model. So the step is odd, and their slices hold both models, half and half.
+   A first version took every 20th flight and held none of them, which a claims check of this
+   change found.
+2. **Exact where written.** The command that writes a census writes its slice beside the report,
+   as `synthetic-flights.slice.json` and `two-logs.slice.json` in `validation/reports/`. Each flight
+   has one line for each thing the census makes of it:
+   - the synthetic flights: the flight's census row; each of a tuning flight's logs, with each
+     reading's error as a share of its bound; how near its top acceleration came to the
+     accelerometer's two ranges; on the tuning set and sets A and B, the smoother's checks (of the
+     log, of the log written from launch, and with a GNSS track, of the track trusted from
+     liftoff), each error over its standard deviation, with where the truth fell, and its health:
+     whether it saw the pad, kept the accelerometer, found the apogee within the reading's bound and
+     trusted the track; its transonic and charge spans and unsmoothed steps; and each sensor's
+     samples, rejected, unweighed and resets (the flags are words, the counts
+     numbers); and on sets A and
+     B and the calibration set, what the log says of the readings that state an interval, with
+     where each truth fell.
+   - two logs: each log's sample count and highest height, and the offset's reading, truth and
+     bound, its error as a share of the bound, with where the truth fell.
+
+   Numbers keep the census's three significant figures. A share is kept to three decimals, a fixed
+   step, so that an error near zero isn't written to digits that are only its rounding. `--slice`
+   flies the slice's flights again and fails if any line differs, if a flight
+   is missing or added, or if the slice takes another step, naming up to 20 such flights and
+   counting the rest; flights in another order fail without one named. A line is held byte for
+   byte on the build that writes the reports, the Mac's everyday build, and in words everywhere
+   else (`--other-platform`): each number read as one mark, every word compared, NaN and infinity
+   kept as words, since a share that stops being a number is a change, not a build's rounding.
+   Words are what the census counts as outcomes: where each truth fell, what was withheld and why, the
+   smoother's flags, the design, the logger and the model.
+3. **Else by its rule.** What only a whole set can show stays with the whole run: the census's
+   ranges, counts and medians, the shares fitted on a calibration set, the smoother's coverage
+   cells, and ADR-257's test with its probes. Each slice flight is held to the rules the census
+   holds every flight to. On the synthetic flights, no reading may pass its bound, no log may be
+   withheld while it has a barometer, and the smoother may leave no step unsolved. The logs written
+   from launch must be smoothed on the pad they assume, and withheld in the same numbers, for the
+   same reasons, as the whole logs, set by set. Every flight of sets A and B and of the calibration
+   set must fly and leave no reading out but by its rule. On two logs, no offset may pass its bound,
+   and one may be withheld only for a receiver's dropout. A rule broken names its flight where the
+   rule is the flight's own, and its set where it is a count over the set's slice. `--slice` also
+   reads the committed report and checks that it renders the committed page.
+4. **Where each runs.** `--slice` runs in `scripts/gate.sh`'s validate step, in place of the whole
+   check, byte for byte. CI's `validate` job runs `--slice --other-platform` on all five platforms,
+   in the optimized build, on every pull request but one that changes only research notes. The
+   whole `--check` runs each night and flies the slice too, holding it in words to the committed
+   one, which only the whole run writes. So the gate is the one place a slice flight's numbers are
+   held byte for byte. A test reads `ci.yml` and `scripts/gate.sh` and fails if either check is missing,
+   runs on one platform, or may fail unseen.
+5. **One changed flight fails it.** A test changes one synthetic flight's truth by 0.5%, then its
+   log, and checks that its lines change. Another moves one of two logs' clocks by 0.1 s, then
+   reads one log 0.5% high. The comparison's own tests change one line of one flight and check that
+   the failure names that flight and only it, and that in words a moved number passes and a moved
+   word fails. A probe on the committed synthetic slice, not a test: set A's flight 399's "apogee
+   height 0.031 inside" written "0.041 inside" fails `--slice` and passes `--slice
+   --other-platform`; written "1.041 above" it fails `--slice --other-platform` too.
+
+**Measured.** On the Mac that writes the reports (10 cores, the everyday build, 2026-11-04),
+the whole synthetic flights' run took 486 s and two logs' 205 s; their slices took 27 s and 10 s.
+The two whole runs wrote the reports byte for byte as committed, beside the two new slices of
+327 kB and 49 kB; with the smoother's health added, the synthetic slice is 375 kB, and the slices
+take 27 s and 10 s still. In the five full gates that ran the validate step and passed from 2026-11-03
+21:40 to 11-04 04:59 UTC, it took 2,175 to 3,615 s. With the slices, this change's own full gate
+took 1,999 s and its validate step 1,478 s at every 20th flight, and 2,529 s and 1,466 s at every
+21st, its site step laying out every page again (one run each, 2026-11-04). The rest of that step,
+the validation cases, the fit's whole run, the motor catalog and the scoreboard, isn't timed apart.
+The gate stays over its 30 minutes until M0.16a2.
+
+**Held two ways.** Held byte for byte on every platform, the slices failed CI's optimized build on
+macOS and both Linux runners: set A's flight 399 on all three, and set B's flight 504 on Linux, in
+the smoother's lines; both Windows runners passed. The Mac reproduces flight
+399, not 504. Its optimized build writes both reports and two logs' slice byte for
+byte as the everyday build does, but the synthetic slice differs in one flight of the 202, flight
+399, in three of its lines. The smoother's four shares move in their third decimal (0.031 to
+0.033), its six shares with the GNSS track from liftoff by up to 0.004, and its eight shares on
+the log written from launch by up to 0.087 (0.357 to 0.270), with that log's unweighed GNSS fixes
+252 to 321. Each truth stays on its side, and every word is the same. The flight's simulated
+apogee moves 1.2e-6 of itself between the two builds (one measurement, on one Mac); issue #984 is
+open to measure the same kind of spread in the landing time, across platforms.
+A tolerance on each number would have to know each flight's gain from its truth to its shares;
+the words hold what the census counts without one.
+
+**Alternatives to the slices.**
+
+- **A hash of each flight's numbers.** Exact, and a few bytes a flight, but a failure would say only
+  that a flight moved, not what moved or by how much.
+- **The slice inside the report.** The report holds tallies; its page renders from it. A file of
+  its own keeps the report's form, and the slice's lines readable in a diff.
+- **A larger part, every 11th flight.** It doubles the time a pull request and the gate spend, for
+  no rule a 21st can't check.
+
+**The slices' consequences.**
+
+- A change that moves only flights outside the slice reaches main and is found that night, as §4
+  of the 2026-11-03 amendment says of the other platforms.
+- A change meant to move the flights now writes three files a census, where it wrote two.
+- Off the Mac, a pull request can't see a number that moves with no word: a share drifting inside
+  its bound, or a count. The gate holds those byte for byte before each merge. The night holds the
+  census's report to its digits, but a slice flight's own numbers only in words, so such a move
+  shows on the Mac's gate alone.
+- A word can still flip off the Mac. In the committed slice, 27 of the smoother's shares, in 11
+  flights, sit within 0.087 of the 1.645 standard deviations its sides are taken at, though none
+  flipped in the builds and platforms compared. A flip fails that platform's pull requests, and
+  writing the slice again on the Mac can't fix it; as with the reports, that needs a record, not a
+  looser check.
+- The fit still runs whole in the gate until M0.16a2 gives it a slice.

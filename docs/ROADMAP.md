@@ -134,12 +134,13 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
 
 - [ ] **M0.16 A time budget for CI** (ADR-149; Neer, 2026-11-03): a pull request's CI within 20
   minutes, a full gate within 30.
-  - [ ] **M0.16a Census slices; the budget checked.** *Done when:* the synthetic flights, two logs
-    and the fit each check a fixed part of their flights against the committed report (exact where
-    written, else by its rule), failing on one changed flight; the gate and pull requests check one
-    part, the whole nightly; a pre-PR check fails on a full gate over 30 minutes, a job over 20 in
-    main's last passing CI, or no passing nightly in 26 hours; M7.3c3's fit follows before it
-    merges.
+  - [ ] **M0.16a Census slices; the budget checked** (in three, ADR-149 amended 11-04): met when they are.
+    - [ ] **M0.16a2 The fit's slice.** *Done when:* the fit checks a fixed part of its flights
+      against the committed report (exact where written, else by its rule), failing on one changed
+      flight; the gate and pull requests check one part, the whole nightly.
+    - [ ] **M0.16a3 The budget checked.** *Done when:* a pre-PR check fails on a full gate over 30
+      minutes, a job over 20 in main's last passing CI, or no passing nightly in 26 hours; M7.3c3's
+      fit follows before it merges.
 
 ## Phase 1: Physics core (the heart), with validation interleaved
 
@@ -318,7 +319,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   preset meets ADR-246 §1: the 2027 handbook's 14 College/University limits by requirement number
   at both ballasts, the four winds, a closed-form second method, and a test and a mutation probe
   for the side each check errs.
-- [ ] **M6.4 Airbrakes.** Added by Neer on 2026-09-18 (VISION V16).
+- [ ] **M6.4 Airbrakes** (Neer, 2026-09-18; VISION V16).
   - Deployable drag surfaces: added drag as a function of deployment and Mach, from a table or a
     cited semi-empirical estimate; deployment rate limits.
   - A controller interface: a user's controller, sampled at a fixed rate, reads simulated sensors
@@ -339,8 +340,8 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   - With one flap stuck out, the check reports the trim angle of attack along the flight, from
     the flap's drag acting off the axis; a test and a mutation probe pin that it errs high.
   - Tests show the brakes stay retracted through boost and retract on each abort condition.
-- [ ] **M6.5 Roll control: tail-fin tabs and canards.** Added by Neer on 2026-09-18 (VISION V16);
-  re-scoped on 2026-10-07 (V45, ADR-193; [roll and drag control](research/roll-and-drag-control.md)).
+- [ ] **M6.5 Roll control: tail-fin tabs and canards** (Neer, 2026-09-18; VISION V16);
+  re-scoped 2026-10-07 (V45, ADR-193; [research](research/roll-and-drag-control.md)).
   - Roll only: M6.4's interface gains one roll command, which a fixed mixer turns into equal and
     opposite deflections; no pitch or yaw channel. A stuck surface is a fault, not a command.
   - Tabs first: a hinged trailing-edge tab on a tail fin turns the fin like a cant of τ·δ over the
@@ -442,9 +443,9 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   *Done when:* the C example and the Node test run in CI and reproduce a reference flight.
 ## Phase 5: Flight data and forensics
 
-M7.2's readings need no design file or simulator (ADR-046): `hpr-flightdata` may not depend on
-`hpr-sim`. Its synthetic flights, and M7.3 and M7.4, which compare a flight with its simulation,
-are in `hpr-forensics`. Formats, methods and the log corpus came from Debrief.
+Log readings need no design file or simulator (ADR-046): `hpr-flightdata` may not depend on
+`hpr-sim`; the synthetic flights, M7.3 and M7.4 are in `hpr-forensics`. Formats, methods and the
+log corpus came from Debrief.
 - [ ] **M7.3 A flight against its simulation.** Sim-versus-real residuals, then fitting Cd scale,
   mass, motor impulse scale and wind to a log (Levenberg–Marquardt plus a Bayesian option with
   uncertainty). The first milestone in `hpr-forensics`.
@@ -550,7 +551,7 @@ are in `hpr-forensics`. Formats, methods and the log corpus came from Debrief.
 (The M9.1–M9.4 *done when* criteria are written in M9.0; M9.2's include release 0.5's shell
 that opens a design or a log, flies and plots it, ADR-163; each includes the product system's
 checklists for its platform, ADR-164.)
-- [ ] **M9.5 Accounts and cloud saves.** Added by Neer on 2026-09-18 (VISION V20).
+- [ ] **M9.5 Accounts and cloud saves** (Neer, 2026-09-18; VISION V20).
   - Optional accounts that save designs and flights and sync them across devices. Everything still
     works signed out and offline; accounts only add sync and sharing.
   - A saved flight stores its inputs and seed and is re-flown on open, so storage stays small.

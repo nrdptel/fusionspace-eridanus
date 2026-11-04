@@ -25,7 +25,11 @@ use serde::{Deserialize, Serialize};
 
 pub const USAGE: &str = "  two-logs [--check]
                            Hold the clock offset between two logs of one flight to two-logger
-                           and staged synthetic flights, writing validation/reports/two-logs.{json,md}";
+                           and staged synthetic flights, writing validation/reports/two-logs.{json,md}
+                           and the slice, two-logs.slice.json; --check writes nothing and fails
+                           unless the flights reproduce all three.
+  two-logs --slice         Fly only the slice, every 21st flight of each set, and hold each to the
+                           committed slice and to the report's per-flight rules; writes nothing.";
 
 const REPORT: &str = "validation/reports/two-logs";
 const TWO_STAGE_DESIGN: &str = "validation/designs/synthetic-two-stage-75mm-54mm.json";
@@ -53,9 +57,13 @@ struct Report {
 /// Runs `cargo xtask two-logs`.
 pub fn run(args: &[String]) -> Result<(), String> {
     let mut check_only = false;
+    let mut only_slice = false;
+    let mut other_platform = false;
     for arg in args {
         match arg.as_str() {
             "--check" => check_only = true,
+            "--slice" => only_slice = true,
+            "--other-platform" => other_platform = true,
             other => return Err(format!("unknown argument `{other}`\n\n{USAGE}")),
         }
     }
@@ -63,6 +71,21 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let files = crate::synthetic::design_files(&root)?;
     let two_stage = fs::read_to_string(root.join(TWO_STAGE_DESIGN))
         .map_err(|error| format!("{TWO_STAGE_DESIGN}: {error}"))?;
+    let staged_flyer = Staged::new(two_stage);
+    if other_platform && !only_slice {
+        return Err("--other-platform goes with --slice".into());
+    }
+    if only_slice {
+        if check_only {
+            return Err("--slice takes no argument but --other-platform".into());
+        }
+        let held = if other_platform {
+            crate::slice::Held::Words
+        } else {
+            crate::slice::Held::Exact
+        };
+        return check_slice(&root, &files, &staged_flyer, held);
+    }
     let mut broken = Vec::new();
 
     let calibration = fly_set(
@@ -89,7 +112,6 @@ pub fn run(args: &[String]) -> Result<(), String> {
         problems_of(set, &check, true, &mut broken);
         sections.push(section(set, check));
     }
-    let staged_flyer = Staged::new(two_stage);
     let flights = fly_staged(&staged_flyer)?;
     let check = paired::check(&flights);
     problems_of(Set::Staged, &check, false, &mut broken);
@@ -122,6 +144,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
         );
     }
     println!("offset shares fitted: {fitted_low}, {fitted_high}");
+    // The slice's flights, which the whole run holds the committed slice to, and writes.
+    let (slice, slice_broken) = make_slice(&files, &staged_flyer)?;
+    broken.extend(slice_broken);
     if !broken.is_empty() {
         return Err(broken.join("\n"));
     }
@@ -130,23 +155,199 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let page = markdown(&report);
     let json_path = root.join(format!("{REPORT}.json"));
     let page_path = root.join(format!("{REPORT}.md"));
+    let slice_path = root.join(format!("{REPORT}.slice.json"));
     if check_only {
+        // The whole check runs each night on every platform, in the optimized build: the slice's
+        // words, its numbers aside (`Held::Words`). The gate's `--slice` holds them exactly.
+        let mut problems: Vec<String> =
+            crate::slice::compare(&slice_path, &slice, crate::slice::Held::Words)
+                .into_iter()
+                .collect();
         for (path, made) in [(&json_path, &json), (&page_path, &page)] {
-            let committed =
-                fs::read_to_string(path).map_err(|error| format!("{}: {error}", path.display()))?;
-            if committed.replace("\r\n", "\n") != *made {
-                return Err(format!(
+            match fs::read_to_string(path) {
+                Ok(committed) if committed.replace("\r\n", "\n") == *made => {}
+                Ok(_) => problems.push(format!(
                     "{} doesn't match what the flights make; run `cargo xtask two-logs`",
                     path.display()
-                ));
+                )),
+                Err(error) => problems.push(format!("{}: {error}", path.display())),
             }
         }
-        println!("the flights reproduce {REPORT}.json and .md");
+        if !problems.is_empty() {
+            return Err(problems.join("\n"));
+        }
+        println!("the flights reproduce {REPORT}.json, .md and .slice.json");
     } else {
         fs::write(&json_path, json).map_err(|e| e.to_string())?;
         fs::write(&page_path, page).map_err(|e| e.to_string())?;
-        println!("wrote {REPORT}.json and .md");
+        fs::write(&slice_path, crate::slice::json(&slice)?).map_err(|e| e.to_string())?;
+        println!("wrote {REPORT}.json, .md and .slice.json");
     }
+    Ok(())
+}
+
+/// Two logs' slice takes every 21st flight of each set (M0.16a1, ADR-149 amended): 96 of the
+/// calibration set's 2,000, 48 each of sets A and B, 10 of the staged set's 200. The step is odd,
+/// as the synthetic flights' is, so the calibration set's slice holds both of its models.
+const SLICE_EVERY: u64 = 21;
+
+/// The slice's `about` line.
+const SLICE_ABOUT: &str = "Two logs' slice (M0.16a1, ADR-149 amended): every 21st flight of each \
+                           set, its logs and its offset, written by `cargo xtask two-logs`; \
+                           `--slice` holds it.";
+
+/// The sets, in the report's order.
+const SETS: [Set; 4] = [Set::PairCalibration, Set::PairA, Set::PairB, Set::Staged];
+
+/// One flight of the slice: its record, and what its logs say of the offset.
+fn slice_flight(set: Set, logs: &TwoLogs) -> (crate::slice::Flight, Said) {
+    let said = paired::said(logs);
+    let log = |profile: hpr_forensics::synthetic::logger::Profile,
+               log: &hpr_flightdata::log::FlightLog| {
+        let samples = log.time_s.len();
+        // A height that isn't a number shows as one: `f64::max` would pass over it.
+        let heights = log.altitude_m.iter().copied();
+        let highest = if log.altitude_m.iter().any(|h| !h.is_finite()) {
+            Some(f64::NAN)
+        } else {
+            heights.reduce(f64::max)
+        };
+        match highest {
+            Some(highest) => format!(
+                "{}: {samples} samples, highest {} m",
+                profile.name(),
+                crate::slice::figures(highest)
+            ),
+            None => format!("{}: {samples} samples, no height", profile.name()),
+        }
+    };
+    let offset = match &said.offset {
+        Ok(c) => format!(
+            "offset: {} s, truth {} s, {} of {} s, {}",
+            crate::slice::figures(c.reading),
+            crate::slice::figures(c.truth),
+            crate::slice::share((c.reading - c.truth) / c.bound),
+            crate::slice::figures(c.bound),
+            match (
+                c.truth.is_nan() || c.truth < c.interval.low,
+                c.truth.is_nan() || c.truth > c.interval.high
+            ) {
+                (true, true) => "both",
+                (true, false) => "below",
+                (false, true) => "above",
+                (false, false) => "inside",
+            }
+        ),
+        Err(reason) => format!("offset: withheld ({reason:?})"),
+    };
+    let flight = crate::slice::Flight {
+        set: set.name().to_owned(),
+        index: logs.index,
+        made: vec![
+            log(logs.first, &logs.first_log),
+            log(logs.second, &logs.second_log),
+            offset,
+        ],
+    };
+    (flight, said)
+}
+
+/// Flies the slice's flights on every core: the slice, and what breaks the rules the report holds
+/// every flight to (an offset within its bound, withheld only for a receiver's dropout).
+fn make_slice(
+    files: &DesignFiles,
+    staged: &Staged,
+) -> Result<(crate::slice::Slice, Vec<String>), String> {
+    let jobs: Vec<(Set, u64)> = SETS
+        .iter()
+        .flat_map(|&set| {
+            crate::slice::indices(set.count(), SLICE_EVERY)
+                .into_iter()
+                .map(move |index| (set, index))
+        })
+        .collect();
+    let made = crate::slice::on_cores(
+        &jobs,
+        |(set, index)| format!("{} flight {index}", set.name()),
+        || Flyer::new(files.clone()),
+        |flyer, &(set, index)| {
+            let logs = if set == Set::Staged {
+                staged.flight(index).map(|(_, logs)| logs)
+            } else {
+                flyer.two_logs(set, index)
+            }
+            .map_err(|e| e.to_string())?;
+            Ok((set, slice_flight(set, &logs)))
+        },
+    )?;
+    let mut broken = Vec::new();
+    for set in SETS {
+        let said: Vec<Said> = made
+            .iter()
+            .filter(|(s, _)| *s == set)
+            .map(|(_, (_, said))| said.clone())
+            .collect();
+        problems_of(set, &paired::check(&said), false, &mut broken);
+    }
+    let slice = crate::slice::Slice {
+        about: SLICE_ABOUT.to_owned(),
+        every: SLICE_EVERY,
+        flights: made.into_iter().map(|(_, (flight, _))| flight).collect(),
+    };
+    Ok((slice, broken))
+}
+
+/// `cargo xtask two-logs --slice`: the slice's flights flown, held to the committed slice and to
+/// the report's per-flight rules; the committed report read and its page rendered from it.
+fn check_slice(
+    root: &std::path::Path,
+    files: &DesignFiles,
+    staged: &Staged,
+    held: crate::slice::Held,
+) -> Result<(), String> {
+    let json_path = root.join(format!("{REPORT}.json"));
+    let page_path = root.join(format!("{REPORT}.md"));
+    let committed = fs::read_to_string(&json_path)
+        .map_err(|error| format!("{}: {error}", json_path.display()))?;
+    let report: Report = serde_json::from_str(&committed)
+        .map_err(|error| format!("{}: {error}", json_path.display()))?;
+    let mut problems = Vec::new();
+    let json = serde_json::to_string_pretty(&report).map_err(|e| e.to_string())? + "\n";
+    if committed.replace("\r\n", "\n") != json {
+        problems.push(format!(
+            "{} doesn't read and write back unchanged",
+            json_path.display()
+        ));
+    }
+    match fs::read_to_string(&page_path) {
+        Ok(page) if page.replace("\r\n", "\n") == markdown(&report) => {}
+        Ok(_) => problems.push(format!(
+            "{} isn't what {} renders",
+            page_path.display(),
+            json_path.display()
+        )),
+        Err(error) => problems.push(format!("{}: {error}", page_path.display())),
+    }
+    let (made, broken) = make_slice(files, staged)?;
+    problems.extend(broken);
+    problems.extend(crate::slice::compare(
+        &root.join(format!("{REPORT}.slice.json")),
+        &made,
+        held,
+    ));
+    if !problems.is_empty() {
+        return Err(format!(
+            "two logs' slice doesn't hold; run `cargo xtask two-logs` and commit what it writes \
+             if the change is meant:\n{}",
+            problems.join("\n")
+        ));
+    }
+    println!(
+        "the slice's {} flights reproduce {REPORT}.slice.json {} and keep the report's rules; \
+         {REPORT}.json reads and renders {REPORT}.md",
+        made.flights.len(),
+        crate::slice::held_text(held)
+    );
     Ok(())
 }
 
@@ -405,4 +606,55 @@ fn markdown(report: &Report) -> String {
         }
     }
     page
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// One changed flight writes other lines, so a slice holding it fails ([`crate::slice`]'s
+    /// tests name a flight whose lines differ); flown again unchanged, it writes the same lines.
+    #[test]
+    fn one_changed_flight_writes_other_lines() {
+        let root = crate::designs::root().unwrap();
+        let files = crate::synthetic::design_files(&root).unwrap();
+        let mut flyer = Flyer::new(files);
+        // The slice's first flight of set A whose two logs give an offset.
+        let logs = crate::slice::indices(Set::PairA.count(), SLICE_EVERY)
+            .into_iter()
+            .map(|index| flyer.two_logs(Set::PairA, index).unwrap())
+            .find(|logs| paired::said(logs).offset.is_ok())
+            .unwrap();
+        let (flight, _) = slice_flight(Set::PairA, &logs);
+        assert_eq!(flight.made.len(), 3, "{:?}", flight.made);
+        assert!(flight.made[2].starts_with("offset: "), "{:?}", flight.made);
+        let again = flyer.two_logs(Set::PairA, logs.index).unwrap();
+        assert_eq!(slice_flight(Set::PairA, &again).0, flight);
+        // The second log's clock a tenth of a second later: its offset's line.
+        let mut later = logs.clone();
+        for time in &mut later.second_log.time_s {
+            *time += 0.1;
+        }
+        later.true_offset_s += 0.1;
+        let (changed, _) = slice_flight(Set::PairA, &later);
+        assert_eq!(changed.made[..2], flight.made[..2]);
+        assert_ne!(changed.made[2], flight.made[2]);
+        // The first log read 0.5% high: its own line.
+        let mut misread = logs.clone();
+        for height in &mut misread.first_log.altitude_m {
+            *height *= 1.005;
+        }
+        assert_ne!(slice_flight(Set::PairA, &misread).0.made[0], flight.made[0]);
+    }
+
+    /// The slice's flights are fixed: every 21st of each set, from the first.
+    #[test]
+    fn the_slice_takes_every_21st_flight_of_each_set() {
+        assert_eq!(SLICE_EVERY, 21);
+        let counts: Vec<usize> = SETS
+            .iter()
+            .map(|set| crate::slice::indices(set.count(), SLICE_EVERY).len())
+            .collect();
+        assert_eq!(counts, vec![96, 48, 48, 10]);
+    }
 }
