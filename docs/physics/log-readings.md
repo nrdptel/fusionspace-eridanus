@@ -248,13 +248,13 @@ the track's zero:
 of meters straight into the climb, by its look a pressure pulse at ignition
 ([#1101](https://github.com/nrdptel/fusionspace-eridanus/issues/1101)). If the fall's samples
 counted as pad, every height would read high. Where the filtered track falls below its start by more
-than the rise plus 0.015 m/s (0.05 ft/s) of drift, then climbs without resting, the top speed is
-withheld (`disturbed_pad`). To rest is to stay within half the rise of one height for as long as a
-rocket at $A$ takes to cross the rise, 0.69 s on a PerfectFlite; a fall to a level the track holds
-is no disturbance. The apogee is still read, from the samples resting before the fall, else the
-logger's zero; with no zero, nothing is. Liftoff's bound reaches back over the fall to the last
-sample on the pad, with no 90% interval; with none, liftoff is withheld. On the two such records
-that state their apogee, the reading comes within 0.3 m (1 ft) of it; the first sample as the pad
+than the rise plus 0.015 m/s (0.05 ft/s) of drift since the log began, then climbs without resting,
+the top speed is withheld (`disturbed_pad`). To rest is to stay within half the rise of one height
+for as long as a rocket at $A$ takes to cross the rise, 0.69 s on a PerfectFlite; a fall to a level
+the track holds is no disturbance. The apogee is still read, from the samples resting before the
+fall, else the logger's zero; with no zero, nothing is. Liftoff's bound reaches back over the fall
+to the last sample on the pad, with no 90% interval; with none, liftoff is withheld. On the two such
+records that state their apogee, the reading comes within a foot of it; the first sample as the pad
 reads up to 268.8 m (882 ft) high, the fall's end up to 339.9 m (1,115 ft)
 ([the survey's report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md#disturbed-pads-against-stated-apogees)).
 
