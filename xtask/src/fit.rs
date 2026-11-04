@@ -566,9 +566,9 @@ impl Apart {
 }
 
 /// What doesn't come out as it must in `set`'s `checks`: a parameter's interval failing ADR-257's
-/// test, a probe of it passing, and on set A a scale not identified. A test's bands are worked out
-/// from its counts when the report is made, so a committed report's verdicts are its counts'
-/// (`fit --slice` reads them so).
+/// test, a probe of it passing, and on set A a scale not identified. It reads each test's stored
+/// bands, worked out from its counts when the report was made; `fit --slice` reads a committed
+/// report's so, and doesn't work them out again.
 fn check_problems(set: Set, checks: &[Check]) -> Vec<String> {
     let mut broken = Vec::new();
     for check in checks {
@@ -991,8 +991,9 @@ fn report_of(made_runs: &[Vec<FlightFit>]) -> Result<(Report, Vec<String>), Stri
 /// The fit's slice (M0.16a2, ADR-149 amended): part 1 of 21 of every run, its 1st, 22nd, 43rd
 /// fit and on, as the synthetic flights and two logs take every 21st flight. A fit is the same
 /// whatever its thread or part fitted before it (`a_fit_is_the_same_whatever_its_thread_fitted_
-/// before`, on two of set A's flights), so the slice's fits are the whole run's at the same
-/// places: the slice a whole run writes, `fit --slice` makes again byte for byte.
+/// before`, one of set A's flights fitted alone and after another), so the slice's fits are the
+/// whole run's at the same places: the slice a whole run writes, `fit --slice` makes again byte
+/// for byte.
 const SLICE: Part = Part { number: 1, of: 21 };
 
 /// The slice's `about` line.
@@ -1893,6 +1894,8 @@ mod tests {
         );
         assert_eq!(counts[4 + NOISES.len()..], [96, 32]);
         assert_eq!(counts.iter().sum::<usize>(), 444);
+        assert_eq!(fits[..4], [1_300, 1_262, 1_300, 1_276]);
+        assert_eq!(fits[4 + NOISES.len()..], [2_000, 654]);
         assert_eq!(fits.iter().sum::<usize>(), 9_192);
         let calibration = SLICE.of_run(&runs[4 + NOISES.len()].indices);
         let odd = calibration.iter().filter(|index| *index % 2 == 1).count();

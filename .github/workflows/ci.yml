@@ -399,8 +399,9 @@ jobs:
   # depend on what its thread or machine fitted before it (`fit::tests`), so the parts together are
   # the fits one job would make. The calibration set's 2,654 fits are among the parts' 9,192, so
   # the night holds the shares in force too, within the few percent another platform may stand
-  # off. `scripts/gate.sh` holds the slice exactly; the whole report and the shares are held
-  # exactly only by `fit --check`, run by hand on the Mac.
+  # off. `scripts/gate.sh` holds the slice exactly and refits no shares; the whole report is held
+  # exactly only by `fit --check`, run by hand on the Mac, and the shares by it and by the run that
+  # writes the report.
   fit-part:
     name: fit intervals (${{ matrix.part }}/8)
     strategy:

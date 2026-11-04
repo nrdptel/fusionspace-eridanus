@@ -297,8 +297,9 @@ the words hold what the census counts without one.
    of the 96 on each model: 444 of the 9,192 fits a whole run makes, 6,538 for the report and
    2,654 for the shares. The calibration set's two runs join the fit's runs, so the parts CI fits
    each night hold them too. A fit is the same whatever its thread or part fitted before it, which
-   a test holds to the bit on two of set A's flights, so the slice's fits are the whole run's at
-   the same places; `fit --slice` making the whole run's slice again byte for byte bears it out.
+   a test holds to the bit for one of set A's flights fitted alone and after another, so the
+   slice's fits are the whole run's at the same places; `fit --slice` making the whole run's slice
+   again byte for byte, and eight parts on Linux agreeing with one job (ADR-316 §7), bear it out.
 2. **Exact where written.** The run that writes the report, `fit` in the optimized build on the
    Mac, writes the slice beside it as `fit-intervals.slice.json`. Each fit has a line for what it
    came to: fitted or with nothing to fit, a track or height alone, converged or at its step
@@ -326,11 +327,12 @@ the words hold what the census counts without one.
    `fit --check`; CI's runs left the calibration set out. Now the run that writes the report and
    `fit --check` hold them to the library's to their three figures, and the night holds them
    within the rule the report's figures keep on another platform: 5% of the larger, or 0.002.
-   `--slice` fits no calibration set, but it reads the committed report and holds it to its own
-   rules from its counts: each test taken again from its counts must pass, each probe fail, set A's
-   scales be identified, nothing on noise, no fit past the misfit's cut, every log with nothing to
-   fit a GNSS receiver's alone, and its shares the library's. It also checks that the report
-   renders the committed page.
+   `--slice` fits the slice's 128 calibration fits but no whole calibration set, so it fits no
+   shares. It reads the committed report and holds it to its own rules: each test passing and each
+   probe failing by its stored bands (worked out from its counts when it was written, not again),
+   set A's scales identified, nothing on noise, no fit past the misfit's cut, every log with
+   nothing to fit a GNSS receiver's alone, and its stored shares the library's. It also checks that
+   the report renders the committed page.
 4. **Where each runs.** `fit --slice` runs in the gate's validate step in place of `fit --check`.
    On every pull request but one that changes only research notes, a job of its own, `fit slice`,
    runs `fit --slice --other-platform` on all five platforms. It sits beside `validate`, which took
@@ -342,14 +344,18 @@ the words hold what the census counts without one.
    its convergence and whether it had something to fit, and checks that its lines change, in a number or a word, and
    that a slice holding it fails naming that fit alone, byte for byte and in words. A probe on the
    committed slice, not a test: set A's fit 819's drag share written 0.392 for 0.391 fails `fit
-   --slice` and passes `fit --slice --other-platform`; its "inside" written "above" fails both.
+   --slice` and passes `fit --slice --other-platform`; its "inside" written "above" fails both. Off
+   the Mac a calibration fit's lines hold no side, so there only its first line's words can fail:
+   fitted or not, track or height alone, converged or not, its design. The night holds the shares
+   its numbers make.
 
 **Measured.** On the Mac that writes the report (10 cores, the optimized build, 2026-11-04), the
 whole run, its 9,192 fits, took 1,329 s, a test build sharing the machine part of the time, and
-wrote the report and its page byte for byte as committed, beside a slice of 286 kB. The slice took
-78 s byte for byte and 77 s in words by hand, and 79 s in this change's full gate, whose validate
-step took 216 s (1,472 s with the fit whole at M0.16a1) and the whole gate 655 s. In a `full` CI
-run on this change's first commit, `fit slice` held the slice in words on all five platforms. Its
+wrote the report and its page byte for byte as committed, beside a slice of 286 kB; with the
+review's change to the calibration lines, it took 1,400 s and left the report and its page so
+again, beside a slice of 274 kB. The slice took 79 s in this change's last full gate, whose
+validate step took 215 s (1,472 s with the fit whole at M0.16a1) and the whole gate 661 s. In a
+`full` CI run on this change's first commit, `fit slice` held the slice in words on all five platforms. Its
 fits took 266 to 464 s, the longest on `windows-latest`, and its jobs 8 to 18 minutes with a build
 from no cache, as a new job's first run has. The night's parts and `fit intervals` passed on
 Linux: 22 numbers of the report stood apart from the committed one, by at most one flight and
@@ -369,6 +375,7 @@ against 587 to 999 s in main's last full run before it (run 41753918203, 2026-11
   of a fit in the slice, a number at its three figures or decimals or a word, fails the gate.
   Issue #1177 is open to hold the whole report exactly in an automatic run again.
 - A pull request's CI gains five jobs, each a build and 4 to 8 minutes of fits.
-- The night's fit parts now pass 20 minutes. The budget is a pull request's, but M0.16a3's check
+- Two of the night's eight fit parts now pass 20 minutes (1,217 and 1,301 s). The budget is a
+  pull request's, but M0.16a3's check
   reads main's last passing run, which may be a night's: that increment splits the parts further
   if it counts them.

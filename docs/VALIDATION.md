@@ -471,7 +471,7 @@ Where each part of the fit's check runs ([the time budget](https://github.com/nr
 
 | Where | Command | What it holds |
 |---|---|---|
-| A pull request, on all five platforms | `fit --slice --other-platform` | The slice's 444 fits, each line in its words; the committed report's verdicts, worked out again from its counts; its shares against the code's |
+| A pull request, on all five platforms | `fit --slice --other-platform` | The slice's 444 fits, each line in its words (a calibration fit's numbers aside, its words only); the committed report's verdicts, as its stored bands give them; its stored shares against the code's |
 | The gate, before each merge | `fit --slice` | The same, each line byte for byte |
 | Each night, on Linux | `fit --part K/8`, then `fit --check --other-platform --parts` | All 9,192 fits: the report and the shares within the allowances above, the slice in its words |
 | By hand, on the Mac that writes the report | `fit --check` | The whole report to the last digit, and the shares to the code's three figures |
