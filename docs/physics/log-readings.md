@@ -245,27 +245,15 @@ the track's zero:
 - **Any other track**, a pressure or an altitude above sea level: no zero places the pad, so
   every reading is withheld. The top acceleration is withheld too, as it is searched for up to apogee.
 
-**A disturbed pad.** A rocket on the pad doesn't sink below it. Yet some logs start on the pad,
-then read a fall of tens to hundreds of meters that runs straight into the climb. By its look it
-is a pressure pulse at the barometer at ignition
-([#1101](https://github.com/nrdptel/fusionspace-eridanus/issues/1101)). Taken as the pad, the
-fall's samples put the pad far below the rocket, and every height above it reads high by as much.
-So the readings look for a filtered track that falls more than the rise, and the drift the bounds
-allow, below its start before the climb, then climbs from the fall without resting again. To rest
-is to stay within half the rise of one height for as long as a rocket leaving the pad at
-$A = 19.6\,\mathrm{m/s^2}$ takes to cross the rise. On a PerfectFlite that is
-$\sqrt{2 \times 4.61/19.6}$, or 0.69 s. A fall to a level the track then holds isn't a
-disturbance: a logger carried down to the pad, or the weather moving the pressure, rests there,
-and the pad is that level.
-
-On such a track, liftoff and the top speed are withheld as `disturbed_pad`. The rocket left the
-pad somewhere in the disturbance or before it, and the climb's first speeds may be the
-disturbance's. The heights are still read. The pad is the samples that rest before the fall.
-Where they rest for less than that time, the pad is the logger's zero, as for a short pad. A
-track with no zero, such as a pressure, then withholds every reading. The sample logs chose the
-zero. One PerfectFlite record whose file states an apogee starts 268.8 m (882 ft) below its zero,
-mid-fall. Read from the zero, its apogee matches the stated one to the meter. Read from the first
-sample it would be 268.8 m (882 ft) high, and from the fall's end 339.9 m (1,115 ft) high
+**A disturbed pad.** A rocket on the pad doesn't sink below it. Yet some logs fall tens to hundreds
+of meters straight into the climb, by its look a pressure pulse at ignition
+([#1101](https://github.com/nrdptel/fusionspace-eridanus/issues/1101)). Taken as the pad, it would
+put every height high by as much. Where the filtered track falls more than the rise and the
+drift below its start, then climbs without resting, liftoff and the top speed are withheld
+(`disturbed_pad`). To rest is to stay within half the rise for as long as a rocket at $A$ takes to
+cross the rise, 0.69 s on a PerfectFlite; a level the track holds is the pad. The pad is the samples
+resting before the fall, else the logger's zero; with no zero, nothing is read. On one PerfectFlite record that states its apogee, the zero gives it to the meter, the first
+sample 268.8 m (882 ft) high and the fall's end 339.9 m (1,115 ft) high
 ([the survey's report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md#disturbed-pads-against-stated-apogees)).
 
 ### Each reading
@@ -1101,7 +1089,7 @@ reasons:
 | `step_too_coarse` | the step is coarser than 10 m (33 ft) or 100 Pa; or so coarse for the descent near the ground that a fit holding four steps would span more than 10 s | all; or both canopies' descents |
 | `slower_than_free_coast` | the track loses no more than twice its noise and step in the 4 s before its top | all |
 | `disturbed_top` | the track falls more than twice its noise and step below a peak in the 4 s before its top, then climbs to that top; or, within a second either side, it climbs into its top faster than a coast and falls from it faster than a body at rest | apogee, the top speed, landing, and the readings that need them |
-| `disturbed_pad` | the filtered track falls more than the rise and the drift below its start before the climb, then climbs from the fall without resting again ([the pad and the climb](#the-pad-and-the-climb)) | liftoff and the top speed, on a pad that rests before the fall or a zero; all on any other track |
+| `disturbed_pad` | the track falls before the climb and climbs without resting | liftoff and the top speed; all on a short pad with no zero |
 | `clock_out_of_order` | the height track's clock doesn't increase; or the accelerometer's runs back | all; or the top acceleration, and burnout from the accelerometer |
 | `no_height_track` | the log holds no altitude, pressure or GNSS track | all |
 | `unstated_sensor` | the log's only height doesn't say whether a barometer or a GNSS receiver measured it | all |
@@ -1342,7 +1330,7 @@ Three reasons stand out. The top speed is withheld as `transonic` on 197 records
 flights are fast. Liftoff is withheld as `short_pad` on 157, 71 of them from loggers whose files
 start close to liftoff. Those are 37 of 51 RRC3 CSV records and 34 of 44 Eggtimer CSV records. And the
 apogee, top speed and landing are withheld as `disturbed_top` on 75. Liftoff and the top speed are
-withheld as `disturbed_pad` on 11, whose tracks fall before the climb.
+withheld as `disturbed_pad` on 11.
 
 The new readings' reasons follow the loggers. The top acceleration is withheld as `no_accelerometer`
 on 682 records, 17 of them the AltOS files above. It is withheld as
