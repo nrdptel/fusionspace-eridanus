@@ -247,15 +247,16 @@ the track's zero:
 
 **A disturbed pad.** A rocket on the pad doesn't sink below it. Yet some logs fall tens to hundreds
 of meters straight into the climb, by its look a pressure pulse at ignition
-([#1101](https://github.com/nrdptel/fusionspace-eridanus/issues/1101)). Taken as the pad, it would
-put every height high by as much. Where the filtered track falls more than the rise and the drift
-below its start, then climbs without resting, the top speed is withheld (`disturbed_pad`). Liftoff's
-bound reaches back over the fall, to the last sample on the pad; with none, liftoff is withheld too.
-To rest is to stay within half the rise for as long as a rocket at $A$ takes to cross the rise,
-0.69 s on a PerfectFlite; a level the track holds is the pad. The pad is the samples resting before the
-fall, else the logger's zero; with no zero, nothing is read. On one PerfectFlite record that states
-its apogee, the zero gives it to the meter, the first sample 268.8 m (882 ft) high and the fall's
-end 339.9 m (1,115 ft) high
+([#1101](https://github.com/nrdptel/fusionspace-eridanus/issues/1101)). Taken into the pad, the fall
+drags it below the rocket, and every height above it reads high. Where the filtered track falls more
+than the rise and the drift below its start, then climbs without resting, the top speed is withheld
+(`disturbed_pad`). Liftoff's bound reaches back over the fall, to the last sample on the pad; with
+none, liftoff is withheld too. To rest is to stay within half the rise for as long as a rocket at
+$A$ takes to cross the rise, 0.69 s on a PerfectFlite; a fall to a level the track holds is no
+disturbance. The pad is the samples resting before the fall, else the logger's zero; with no zero,
+every reading is withheld. On the PerfectFlite record that starts in the fall and states its apogee,
+the zero gives that apogee to the meter; the first sample as the pad reads it 268.8 m (882 ft) high,
+the fall's end 339.9 m (1,115 ft) high
 ([the survey's report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md#disturbed-pads-against-stated-apogees)).
 
 ### Each reading
@@ -1328,7 +1329,7 @@ A test reads it to its reason. The invented fall, for one, drops at 15 m/s (49 f
 after apogee, then at 300 m/s (984 ft/s) to the ground. These counts show what each logger can give. They don't show how
 right a reading is: none of the sample logs has a truth beside it.
 
-Three reasons stand out. The top speed is withheld as `transonic` on 197 records: many of these
+Four reasons stand out. The top speed is withheld as `transonic` on 197 records: many of these
 flights are fast. Liftoff is withheld as `short_pad` on 157, 71 of them from loggers whose files
 start close to liftoff. Those are 37 of 51 RRC3 CSV records and 34 of 44 Eggtimer CSV records. And the
 apogee, top speed and landing are withheld as `disturbed_top` on 75. The top speed is withheld as

@@ -88,8 +88,9 @@ pub(super) struct ReasonCase {
     pub invented: Option<String>,
 }
 
-/// A record whose track falls before the climb (`disturbed_pad`, #1101) and whose file states an
-/// apogee: the apogee read from each candidate for the pad, less the stated apogee, m.
+/// A record whose track falls before the climb (#1101), its top speed withheld as `disturbed_pad`
+/// and its apogee read, whose file states an apogee: the apogee read from each candidate for the
+/// pad, less the stated apogee, m.
 #[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 pub(super) struct DisturbedPad {
     /// The file's id.
@@ -455,8 +456,9 @@ pub(super) fn markdown(survey: &Survey) -> String {
 fn disturbed_pad_section(survey: &Survey) -> String {
     let mut out = String::from(
         "\n### Disturbed pads against stated apogees\n\n\
-         Each record whose track falls before the climb (`disturbed_pad`) and whose file states \
-         an apogee: the apogee read from each candidate for the pad, less the stated apogee. \
+         Each record whose top speed is withheld as `disturbed_pad`, its apogee read, and whose \
+         file states an apogee: the apogee read from each candidate for the pad, less the stated \
+         apogee. \
          The reading's own pad is the samples resting before the fall, or the logger's zero \
          where too few rest; the others take the log's first sample, or the fall's end, the \
          lowest sample before apogee.\n\n",

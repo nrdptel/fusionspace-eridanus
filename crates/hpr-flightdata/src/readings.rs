@@ -484,7 +484,8 @@ pub enum Reason {
     /// the barometer at ignition (#1101). The pad is read from before the fall, or from the
     /// logger's zero when too little of it comes before. The top speed is withheld; so is liftoff
     /// when no sample before the fall is on the pad, its bound otherwise reaching back over the
-    /// fall; and every reading is when the track has no zero and too little pad before the fall.
+    /// fall; and every reading is withheld when the track has no zero and too little pad before
+    /// the fall.
     DisturbedPad,
     /// The log's accelerometers don't say which of them lies along the rocket's axis, such as a
     /// board's three axes, a phone's or a table's column read by its header: the top
@@ -1970,7 +1971,7 @@ fn max_speed(
 /// A fall before the climb: where it leaves the start's band, how deep it goes, and the rest it
 /// lacks.
 struct Fall {
-    /// The first sample past the start's band on the way down.
+    /// The sample after the last within the start's band before the fall's lowest point.
     begin: usize,
     /// How far below the start the filtered track falls, m.
     depth_m: f64,
@@ -1986,7 +1987,8 @@ struct Fall {
 /// the barometer at ignition. Resting is staying within half the rise of one height for as long
 /// as a rocket leaving the pad at [`LIFTOFF_ACCELERATION_M_S2`] takes to cross the rise,
 /// `√(2 rise/A)`, so a fall to a level the track then holds, as a logger carried down to the pad
-/// or the weather moving the pressure, is no disturbance: the pad is that level. The samples
+/// or the weather moving the pressure, is no disturbance, and the pad is read as before (#1158
+/// for a level held for less time than the one above it). The samples
 /// before such a fall are the pad only if they rest too; else the pad is the logger's zero, or
 /// can't be placed.
 fn fall_before_climb(
@@ -2815,9 +2817,6 @@ mod tests {
         }
     }
 
-    /// A log that starts 0.1 s before a fast liftoff, as a logger that records from launch writes
-    /// its pad: its samples can't rule out that the rocket had climbed 52 m before the log, so the
-    /// pad is the logger's zero, and liftoff is read at the last sample within its allowance.
     /// The climb of [`flight`] lifting off at `t0`, read through a pulse at the barometer from
     /// `t0` that reads the track `depth` m low at `t0 + 0.4` s and is gone by `t0 + 0.8` s, as a
     /// pressure pulse on the pad at ignition might (#1101).
@@ -2837,8 +2836,9 @@ mod tests {
     /// A fall into the climb isn't the pad (#1101): the pad is read from before it, or from the
     /// logger's zero when too little comes before it, so the apogee holds its bound of the truth.
     /// The top speed is withheld; liftoff holds its bound, which reaches back over the fall, or is
-    /// withheld where the log starts in the fall. With no zero and too little pad, nothing is
-    /// read. A fall to a level the track then holds is the pad's.
+    /// withheld where the log starts in the fall. With no zero and too little pad, every reading
+    /// is withheld. A fall to a level the track then holds longer than the one above it is no
+    /// disturbance, and that level is the pad.
     #[test]
     fn a_pulse_at_ignition_isnt_the_pad() {
         let truth_m = 10.0 * STANDARD_GRAVITY_MPS2;
@@ -2912,6 +2912,9 @@ mod tests {
         assert!((apogee.height_m - truth_m).abs() <= apogee.bound_m);
     }
 
+    /// A log that starts 0.1 s before a fast liftoff, as a logger that records from launch writes
+    /// its pad: its samples can't rule out that the rocket had climbed 52 m before the log, so the
+    /// pad is the logger's zero, and liftoff is read at the last sample within its allowance.
     #[test]
     fn a_short_pad_is_the_loggers_zero() {
         let (flight, down) = hop(300.0, 0.1, 1.0);
