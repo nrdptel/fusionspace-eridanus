@@ -359,7 +359,8 @@ Some gates are tighter ([the decision that tightened them](https://github.com/nr
 
 - Each burnout and largest speed: 0.2%. The descent time, mean descent rate and drifts of three
   descents, and Valetudo's time and rate: 0.3% ([ADR-319](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0319-the-2026-11-04-review-the-rocketpy-descents-tightened.md); largest +0.0857%, Prometheus 2022's east drift); NDRT 2020's
-  descent, 0.705% off from RocketPy's added mass, and Valetudo's still-air drifts keep 3%.
+  descent, 0.705% off because RocketPy adds the air a parachute drags along, and Valetudo's still-air
+  drifts keep 3%.
 - Each rail-exit speed: 0.05%. Each landing speed: 0.1%
   ([ADR-310](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0310-the-2026-10-31-review-the-rocketpy-rail-exit-and-landing-speeds-tightened.md);
   largest differences −0.0144%, Prometheus 2022's, and −0.0301%, its descent's). All nine rail-exit

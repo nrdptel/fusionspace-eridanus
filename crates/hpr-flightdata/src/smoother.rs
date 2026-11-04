@@ -3159,6 +3159,7 @@ mod tests {
             assert!(a.iter().zip(b).all(|(x, y)| x.to_bits() == y.to_bits()));
         }
         assert!(off.height_sd_m.iter().all(|sd| sd.is_nan()));
+        assert!(off.speed_sd_m_s.iter().all(|sd| sd.is_nan()));
         let smoothed = smooth_with(&log, &readings, options).expect("it smooths");
         for k in 0..mean.time_s.len() {
             let widened = mean.height_sd_m[k].hypot(off.height_m[k] - mean.height_m[k]);

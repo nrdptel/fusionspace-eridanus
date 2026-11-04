@@ -2443,20 +2443,16 @@ mod tests {
             }
 
             let metrics = case["metrics"].clone();
-            // ADR-319: 0.3% where the two codes share every written model, 3.5 times the largest
-            // difference so held and 880 times RocketPy's own solver movement. NDRT 2020 keeps
-            // the milestone's 3%: its descent time differs by 0.705%, from RocketPy's added mass. So
-            // does a drift the Earth's rotation alone makes (Valetudo's, in still air).
+            // ADR-319: 0.3% where RocketPy's added mass, the one model difference, is small: 3.5
+            // times the largest difference so held and 880 times RocketPy's own solver movement.
+            // NDRT 2020 keeps the milestone's 3%: its descent time differs by 0.705%, from that
+            // added mass. So does Valetudo's drift, the Earth's rotation alone in still air.
             let held = if name == "ndrt-2020-nose-to-tail" {
                 MILESTONE
             } else {
                 TIGHT
             };
-            let drift_held = if number(&metrics["drift_m"]) > 10.0 {
-                held
-            } else {
-                MILESTONE
-            };
+            let drift_held = if name == "valetudo" { MILESTONE } else { held };
             let descent_time_s = landing.time_s - start_s;
             let drift = landing.cg_enu_m - cg_enu_m;
             rows.push((

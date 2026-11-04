@@ -125,7 +125,7 @@ For example, a 3% tolerance on a 1000 m apogee allows 30 m, and the census lets 
 
 ## Last accepted
 
-Reason: ADR-319: the descents' times, rates and drifts held to 0.3% where no model difference is written (NDRT 2020, for RocketPy's added mass, and Valetudo's drifts keep 3%)
+Reason: ADR-319: the descents' times, rates and drifts held to 0.3% where RocketPy's added mass is small (NDRT 2020's descent and Valetudo's drifts keep 3%)
 
 - redefined: descents under a parachute: descent-calisto-tests-motor-at-minus-1.373 descent_time_s: unit, scale, slack, speed class or percentage changed (Metric, 7.71221063859031, 7.71e-3, under a parachute, Some(0.0773935561901991) to Metric, 0.771221063859031, 7.71e-4, under a parachute, Some(0.0773935561901991))
 - redefined: descents under a parachute: descent-calisto-tests-motor-at-minus-1.373 drift_east_m: unit, scale, slack, speed class or percentage changed (Metric, 38.58090550557793, 3.86e-2, under a parachute, Some(0.0744648873063438) to Metric, 3.8580905505577934, 3.86e-3, under a parachute, Some(0.0744648873063438))
