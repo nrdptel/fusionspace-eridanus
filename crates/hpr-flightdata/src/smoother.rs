@@ -723,12 +723,14 @@ pub fn smooth_with(
 ) -> Result<Smoothed, Withheld> {
     let inputs = Inputs::gather(log, readings)?;
     // The barometer's row is linear in the coefficient, so one side's step is the other's.
-    let (mut smoothed, choices) = run(&inputs, options, PORT_PRIOR_MEAN, None);
+    let (mut smoothed, choices) = run(&inputs, options, PORT_PRIOR_MEAN, None, true);
+    // Only the consider run's means are used, so its pass back carries no covariance.
     let (off, _) = run(
         &inputs,
         options,
         PORT_PRIOR_MEAN - PORT_PRIOR_SD,
         Some(&choices),
+        false,
     );
     let pairs = [
         (&mut smoothed.height_sd_m, &smoothed.height_m, &off.height_m),
@@ -1973,11 +1975,16 @@ impl Trust {
     }
 }
 
+/// One run of the filter and the pass back, at the climb's port coefficient `climb_port`,
+/// replaying `replay`'s choices if given. Without `spread` the pass back carries the means alone:
+/// the smoothed means need only each step's gain, from the filtered and predicted covariances, not
+/// the smoothed covariance, so they are the same numbers, and the standard errors are NaN.
 fn run(
     inputs: &Inputs,
     options: Options,
     climb_port: f64,
     replay: Option<&Choices>,
+    spread: bool,
 ) -> (Smoothed, Choices) {
     let mut choices = Choices::default();
     let steps = grid(inputs);
@@ -2421,10 +2428,15 @@ fn run(
                 ci * ci * ps[i][i] + 2.0 * ci * cair * ps[i][AIR] + cair * cair * ps[AIR][AIR]
             };
             height_m[k] = xs[H] - xs[AIR] * psi;
-            height_sd_m[k] = along(H, 1.0, -psi).max(0.0).sqrt();
             let gain = 1.0 - xs[AIR] * slope;
             speed_m_s[k] = xs[V] * gain;
-            speed_sd_m_s[k] = along(V, gain, -slope * xs[V]).max(0.0).sqrt();
+            if spread {
+                height_sd_m[k] = along(H, 1.0, -psi).max(0.0).sqrt();
+                speed_sd_m_s[k] = along(V, gain, -slope * xs[V]).max(0.0).sqrt();
+            } else {
+                height_sd_m[k] = f64::NAN;
+                speed_sd_m_s[k] = f64::NAN;
+            }
         };
         put(n - 1, &xs, &ps);
         for k in (0..n - 1).rev() {
@@ -2457,6 +2469,11 @@ fn run(
                     for i in 0..N {
                         next[i] += correction[i];
                     }
+                    xs = next;
+                    if !spread {
+                        put(k, &xs, &ps);
+                        continue;
+                    }
                     let mut dp = ps;
                     for i in 0..N {
                         for j in 0..N {
@@ -2471,7 +2488,6 @@ fn run(
                         }
                     }
                     kalman::symmetrize(&mut next_p);
-                    xs = next;
                     ps = next_p;
                 }
                 None => {
@@ -3119,14 +3135,30 @@ mod tests {
         let readings = readings::read(&log);
         let inputs = Inputs::gather(&log, &readings).expect("it gathers");
         let options = Options::default();
-        let (mean, choices) = run(&inputs, options, PORT_PRIOR_MEAN, None);
+        let (mean, choices) = run(&inputs, options, PORT_PRIOR_MEAN, None, true);
         let (off, replayed) = run(
             &inputs,
             options,
             PORT_PRIOR_MEAN - PORT_PRIOR_SD,
             Some(&choices),
+            false,
         );
         assert_eq!(replayed, choices);
+        // The means without the covariance's pass back are the same numbers as with it.
+        let (off_spread, _) = run(
+            &inputs,
+            options,
+            PORT_PRIOR_MEAN - PORT_PRIOR_SD,
+            Some(&choices),
+            true,
+        );
+        for (a, b) in [
+            (&off.height_m, &off_spread.height_m),
+            (&off.speed_m_s, &off_spread.speed_m_s),
+        ] {
+            assert!(a.iter().zip(b).all(|(x, y)| x.to_bits() == y.to_bits()));
+        }
+        assert!(off.height_sd_m.iter().all(|sd| sd.is_nan()));
         let smoothed = smooth_with(&log, &readings, options).expect("it smooths");
         for k in 0..mean.time_s.len() {
             let widened = mean.height_sd_m[k].hypot(off.height_m[k] - mean.height_m[k]);
