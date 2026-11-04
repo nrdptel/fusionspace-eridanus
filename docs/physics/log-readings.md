@@ -251,8 +251,8 @@ of meters straight into the climb, by its look a pressure pulse at ignition
 put every height high by as much. Where the filtered track falls more than the rise and the drift
 below its start, then climbs without resting, the top speed is withheld (`disturbed_pad`). Liftoff's
 bound reaches back over the fall, to the last sample on the pad; with none, liftoff is withheld too.
-To rest is to stay within half the rise for as long as a rocket at $A$ takes to cross the rise, 0.69
-s on a PerfectFlite; a level the track holds is the pad. The pad is the samples resting before the
+To rest is to stay within half the rise for as long as a rocket at $A$ takes to cross the rise,
+0.69 s on a PerfectFlite; a level the track holds is the pad. The pad is the samples resting before the
 fall, else the logger's zero; with no zero, nothing is read. On one PerfectFlite record that states
 its apogee, the zero gives it to the meter, the first sample 268.8 m (882 ft) high and the fall's
 end 339.9 m (1,115 ft) high
