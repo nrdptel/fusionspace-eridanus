@@ -17,6 +17,7 @@
 //! A flight is the same however many flights came before it on its thread (each census's tests),
 //! so its lines in the slice are its lines in the whole run.
 
+use std::collections::BTreeSet;
 use std::fmt::Write as _;
 use std::fs;
 use std::panic::{self, AssertUnwindSafe};
@@ -282,6 +283,34 @@ pub fn compare(path: &Path, made: &Slice, held: Held) -> Option<String> {
             (committed != made).then(|| differences(path, &committed, &made))
         }
     }
+}
+
+/// [`compare`] for a part of a slice, in words: `made` against the committed flights whose set
+/// and index are in `places`. A place with no committed flight, a committed or made flight off
+/// the places, or a flight that differs in its words, is named.
+pub fn compare_part(path: &Path, made: &Slice, places: &BTreeSet<(String, u64)>) -> Option<String> {
+    let text = match fs::read_to_string(path) {
+        Ok(text) => text.replace("\r\n", "\n"),
+        Err(error) => return Some(format!("{}: {error}", path.display())),
+    };
+    let mut committed: Slice = match serde_json::from_str(&text) {
+        Ok(committed) => committed,
+        Err(error) => return Some(format!("{}: {error}", path.display())),
+    };
+    committed
+        .flights
+        .retain(|f| places.contains(&(f.set.clone(), f.index)));
+    let (committed, made) = (in_words(&committed), in_words(made));
+    let off: Vec<String> = made
+        .flights
+        .iter()
+        .filter(|f| !places.contains(&(f.set.clone(), f.index)))
+        .map(|f| format!("{} flight {}: made, but not in this part", f.set, f.index))
+        .collect();
+    if !off.is_empty() {
+        return Some(format!("{}: {}", path.display(), off.join("; ")));
+    }
+    (committed != made).then(|| differences(path, &committed, &made))
 }
 
 /// The differences between two slices, as [`compare`] names them.

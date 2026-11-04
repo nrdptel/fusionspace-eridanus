@@ -7,14 +7,16 @@
 //! check runs, so three records stand in for it:
 //!
 //! 1. **The gate.** The newest passing full run in the gate's history (`gate-history.tsv` in the
-//!    git directory, or `$HPR_GATE_HISTORY`, as `scripts/gate.sh` writes it) at the branch's head
-//!    (`HEAD`, or `--head <commit>`) or a commit on it since it left `origin/main`. Over 1,800 s fails. A branch
-//!    with no such run yet is a note: the merge ledger asks for one.
-//! 2. **A pull request's jobs.** Main's last passing CI run started by a push: the jobs a pull
-//!    request runs, the censuses left out (ADR-149 §2). A run whose `types` job was skipped
-//!    changed research notes alone, so most of its checks ran no step; the check passes over it
-//!    to the run before. A job whose run, from `started_at` to `completed_at`, passes 1,200 s
-//!    fails. The night's jobs are a full run's, not a pull request's; they are printed, not held.
+//!    git directory, or `$HPR_GATE_HISTORY`, as `scripts/gate.sh` writes it) at the branch's
+//!    head (`HEAD`, or `--head <commit>`) or a commit on it since it left `origin/main`. Over
+//!    1,800 s fails. A branch with no such run yet is a note: the gate is asked for before a
+//!    merge.
+//! 2. **A pull request's jobs.** Main's last passing CI run that ran a pull request's jobs: one
+//!    started by a push, or by hand without `full`, in which no `census` job ran (ADR-149 §2) and
+//!    `types` did. A run that skipped `types` changed research notes alone, so most of its checks
+//!    ran no step; the check reads the run before it. A job whose run, from `started_at` to
+//!    `completed_at`, passes 1,200 s fails. The night's jobs are a full run's, not a pull
+//!    request's; they are printed, not held.
 //! 3. **The night.** A passing run on main, nightly or started by hand with `full`, in which every
 //!    `census` job and `fit intervals` passed, started within the last 26 hours. None fails.
 //!
@@ -23,6 +25,7 @@
 //!
 //! [ADR-149]: ../../docs/decisions/0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md
 
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -33,9 +36,10 @@ pub const USAGE: &str = "  ci-budget [--head <commit>]
                            Check the time budget before a pull request (ADR-149): the
                            newest passing full gate on the branch whose head is HEAD (or
                            <commit>) within 30 minutes, every job of main's last passing
-                           push run of CI within 20, and a passing nightly (or
-                           hand-started full) run on main within 26 hours. Reads the
-                           gate's history and GitHub's runs with `gh`.";
+                           CI run with a pull request's jobs (pushed, or by hand without
+                           `full`) within 20, and a passing nightly (or hand-started full)
+                           run on main within 26 hours. Reads the gate's history and
+                           GitHub's runs with `gh`.";
 
 /// The repository whose runs are read.
 const REPOSITORY: &str = "nrdptel/fusionspace-eridanus";
@@ -55,6 +59,10 @@ const CENSUS_JOB_PREFIX: &str = "census (";
 const FIT_JOB: &str = "fit intervals";
 /// Push runs read before giving up on finding one that changed more than research notes.
 const PUSH_RUNS: usize = 30;
+/// Hand-started runs read, full or not.
+const HAND_RUNS: usize = 10;
+/// Nightly runs read.
+const NIGHT_RUNS: usize = 5;
 /// GitHub's largest page of jobs; a run with more is refused rather than read in part.
 const JOBS_PAGE: usize = 100;
 
@@ -227,11 +235,19 @@ pub(crate) fn gate_verdict(history: &str, commits: &[String]) -> Result<Verdict,
     })
 }
 
-/// Whether a run's `types` job was skipped: the run changed research notes alone, and most of
-/// its checks ran no step.
-pub(crate) fn notes_only(jobs: &[Job]) -> bool {
+/// Whether a run ran a pull request's jobs: its `types` job passed (a run that changed research
+/// notes alone skips it, and most of its checks run no step), and no `census` job ran (only a
+/// full run's do).
+pub(crate) fn pull_request_jobs(jobs: &[Job]) -> bool {
+    fn conclusion(job: &Job) -> Option<&str> {
+        job.conclusion.as_deref()
+    }
     jobs.iter()
-        .any(|job| job.name == NOTES_SKIP_JOB && job.conclusion.as_deref() == Some("skipped"))
+        .any(|job| job.name == NOTES_SKIP_JOB && conclusion(job) == Some("success"))
+        && jobs
+            .iter()
+            .filter(|job| job.name.starts_with(CENSUS_JOB_PREFIX))
+            .all(|job| conclusion(job) == Some("skipped"))
 }
 
 /// The jobs' check on main's last passing push run that changed more than research notes: every
@@ -248,8 +264,10 @@ pub(crate) fn jobs_verdict(run: &Run, jobs: &[Job]) -> Result<Verdict, String> {
         return Err(format!("run {}: no job with a start and an end", run.id));
     };
     let what = format!(
-        "jobs: main's last passing push run, {} at {} ({} jobs), longest `{name}` {longest} s ({})",
+        "jobs: main's last passing run with a pull request's jobs, {} ({}) at {} ({} jobs), \
+         longest `{name}` {longest} s ({})",
         run.id,
+        run.event,
         &run.head_sha[..run.head_sha.len().min(8)],
         timed.len(),
         minutes(longest)
@@ -436,18 +454,23 @@ pub fn run(args: &[String]) -> Result<(), String> {
     };
     verdicts.push(gate_verdict(&history, &branch_commits(head)?)?);
 
+    let hand = passing_runs("workflow_dispatch", HAND_RUNS)?;
+    let mut runs = passing_runs("push", PUSH_RUNS)?;
+    runs.extend(hand.iter().cloned());
+    runs.sort_by(|a, b| b.run_started_at.cmp(&a.run_started_at));
+    let mut read: HashMap<u64, Vec<Job>> = HashMap::new();
     let mut jobs_found = None;
-    for run in passing_runs("push", PUSH_RUNS)? {
-        let jobs = run_jobs(&run)?;
-        if !notes_only(&jobs) {
-            jobs_found = Some(jobs_verdict(&run, &jobs)?);
+    for run in &runs {
+        let jobs = read.entry(run.id).or_insert(run_jobs(run)?);
+        if pull_request_jobs(jobs) {
+            jobs_found = Some(jobs_verdict(run, jobs)?);
             break;
         }
     }
     verdicts.push(jobs_found.unwrap_or_else(|| {
         Verdict::Fail(format!(
-            "jobs: none of main's last {PUSH_RUNS} passing push runs changed more than research \
-             notes; read further back"
+            "jobs: none of main's last {PUSH_RUNS} passing push runs and {HAND_RUNS} hand-started \
+             ones ran a pull request's jobs; read further back"
         ))
     }));
 
@@ -456,23 +479,26 @@ pub fn run(args: &[String]) -> Result<(), String> {
         .map_err(|error| format!("the clock reads before 1970: {error}"))?
         .as_secs();
     let now = i64::try_from(now).map_err(|_| "the clock is past i64's seconds".to_owned())?;
-    let mut nights = passing_runs("schedule", 5)?;
-    nights.extend(passing_runs("workflow_dispatch", 10)?);
+    let mut nights = passing_runs("schedule", NIGHT_RUNS)?;
+    nights.extend(hand);
     nights.sort_by(|a, b| b.run_started_at.cmp(&a.run_started_at));
-    let mut read = Vec::new();
+    let mut with_jobs = Vec::new();
     let mut night_line = None;
     for run in nights {
-        let jobs = run_jobs(&run)?;
+        let jobs = match read.remove(&run.id) {
+            Some(jobs) => jobs,
+            None => run_jobs(&run)?,
+        };
         let full = full_pass(&run, &jobs);
-        if full && night_line.is_none() {
+        if full {
             night_line = Some(night_jobs_line(&jobs)?);
         }
-        read.push((run, jobs));
+        with_jobs.push((run, jobs));
         if full {
             break;
         }
     }
-    verdicts.push(night_verdict(&read, now)?);
+    verdicts.push(night_verdict(&with_jobs, now)?);
 
     for verdict in &verdicts {
         println!("{}", verdict.line());
@@ -630,11 +656,18 @@ mod tests {
     }
 
     #[test]
-    fn a_run_that_skipped_types_changed_research_notes_alone() {
+    fn a_pull_requests_jobs_ran_types_and_no_census() {
         let t = "2026-11-04T13:00:00Z";
-        assert!(notes_only(&[job("types", "skipped", t, t)]));
-        assert!(!notes_only(&[job("types", "success", t, t)]));
-        assert!(!notes_only(&[job("wasm-check", "skipped", t, t)]));
+        let types = |c: &str| job("types", c, t, t);
+        let census = |c: &str| job("census (windows-latest)", c, t, t);
+        assert!(pull_request_jobs(&[types("success")]));
+        assert!(pull_request_jobs(&[types("success"), census("skipped")]));
+        // Research notes alone: `types` skipped.
+        assert!(!pull_request_jobs(&[types("skipped"), census("skipped")]));
+        // A full run: a census ran.
+        assert!(!pull_request_jobs(&[types("success"), census("success")]));
+        // No `types` job at all is no pull request's run.
+        assert!(!pull_request_jobs(&[job("wasm-check", "success", t, t)]));
     }
 
     fn night_jobs(census: &str, fit: &str) -> Vec<Job> {
