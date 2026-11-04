@@ -1,5 +1,7 @@
 # What NAR's two R&D reports on surface finish measured
 
+Re-checked 2026-11-04: 7 claims corrected.
+
 [fdm-and-tube-friction](fdm-and-tube-friction.md) found no test of k_s on FDM prints or paper tube, and named two NAR
 R&D reports as possible finish series. This note reads both. **In short: one is a flight test of finish, the other is
 not about drag at all.** Bock's NARAM-41 report (1999) flew five painted-and-waxed Estes Alphas and five coated with
@@ -17,8 +19,8 @@ is **Inference** from a point-mass flight. Neither report tests FDM, bare paper 
   as "Drag vs Surface Finish on an Alpha" (G. Bock) and "Effects of Drag on Estes Alpha" (K. Bock), both NARAM-41
   [3]. The served file is Krysia Bock's report [1]; Greg Bock appears only in its photo caption (p. 2).
 - **No other title names a finish.** The page holds 547 document links, 540 distinct ids (counted 2026-10-28); only
-  Bock's title contains "finish". Surface, paint, sand, smooth, rough, wax or drag match 22 other titles; a selection
-  follows, with Hampton's boundary-layer title (not opened). DeMar's tunnel series (`1357937`) is read already [10]:
+  Bock's title contains "finish". Surface, paint, sand, smooth, rough, wax or drag match 23 other titles as whole words,
+  DeMar's tunnel series (`1357937`, read already [10]) among them; a selection follows, with Hampton's (not opened):
 
 | id | Title (author, meet, year) | Why it might bear on finish |
 | --- | --- | --- |
@@ -42,7 +44,7 @@ is **Inference** from a point-mass flight. Neither report tests FDM, bare paper 
 - **Motor.** Of B2-9, B4-6, B6-4 and B6-6, the B6-4's charge came closest to apogee on a test rocket [1] p. 5. The B6
   is NAR certified at 4.33 N·s, 0.86 s burn, 12.14 N peak, 5.6 g propellant [5].
 - **Mass.** Clay in the nose cones, then extra tracking powder, brought all ten to 58 g with the motor in [1] p. 7.
-- **Smooth.** Painted pink, then paste-waxed [1] pp. 5, 12. Whether fins were sealed first is not stated.
+- **Smooth.** Painted pink, then paste-waxed [1] pp. 5, 12. Sealer is on the p. 12 list; its use on fins isn't stated.
 - **Rough.** Strips of 3/4 in double-sided poster tape along the body tube and on the nose cone, sand poured on [1]
   pp. 5, 12. Fins were not taped (the follow-up plans propose taping them, p. 12), and the rough set was not painted
   (p. 4): **its fins were likely bare balsa**, a second difference from the smooth set. Earlier coatings (sealer
@@ -51,9 +53,8 @@ is **Inference** from a point-mass flight. Neither report tests FDM, bare paper 
   close-up photo has no readable scale (p. 7). Wentworth's fine sand is 0.125 to 0.25 mm [6]. One playground sand
   sieved by ASTM C136 has D10 0.185 mm, D30 0.29 mm and D60 0.45 mm, with 4.1% passing 0.15 mm and 78.4% passing 0.6 mm
   [7] pp. 1–2. This note takes 0.1 to 0.5 mm as the grain range (**Inference**).
-- **Flights.** 9 March 1997 at George Washington University, 50 °F (10 °C), "some wind", smooth set first [1] pp.
-  7–8. Two stations on a 230.77 m baseline read azimuth and elevation (printed in 0.5° steps); the vertical midpoint
-  method gave the heights [1] pp. 8–9.
+- **Flights.** 9 March 1997 at George Washington University, 10 °C, "some wind", smooth set first [1] pp. 7–8. Two
+  stations 230.77 m apart read azimuth and elevation (in 0.5° steps); vertical midpoints gave the heights [1] pp. 8–9.
 
 ## 3. Bock 1999: the altitudes
 
@@ -128,14 +129,14 @@ times the body's wetted area, with the factor 1 + 1/(2 f_B), over the reference 
   p. 5-4 (see [hobby-finish-roughness](hobby-finish-roughness.md) §1). Grains on tape: a monolayer, cover unknown.
 - **Other differences, same sign.** The grain layer widens the tube: frontal area +1.6% to +8.2% for 0.1 to 0.5 mm,
   more with the tape: at most +0.01 to +0.04 of C_D, if the whole C_D scaled with it (**Inference**). Bare balsa
-  fins on the rough set: DeMar's unfinished BT-20 model, kraft and bare balsa together, read +13% over primer and
-  paint [10] p. 7, so at most about +0.06 here. Tape ends, strip edges and clumps are discrete steps
-  ([discrete-steps-drag](discrete-steps-drag.md), [excrescence-drag](excrescence-drag.md)), unbounded here. Laminar
-  runs on the waxed set would lower its friction and widen the gap, also unbounded.
-- **Consistent in sign, at the coarse end in size.** Friction at k_s = d gives +0.11 to +0.25; with the other terms
-  at their largest, +0.18 to +0.35, against a measured +0.35 to +0.42. Agreement needs coarse grains, sparse cover
-  (k_s above d), or the unbounded terms. Nothing here suggests the rough-wall law overstates rough-model drag.
-- **No k_s from these data.** Read as all friction, ΔC_D 0.35 to 0.40 would mean k_s ≈ 1.3 to 2.9 mm, and the gap's
+  fins: DeMar's unfinished BT-20 model, kraft and balsa together, read +84%, +27% and +13% over primer and paint at
+  80, 100 and 120 km/h [10] p. 7; at C_D 0.44 to 0.50 that is +0.06 to +0.4, so the fins' term is unbounded. Tape
+  ends, strip edges and clumps are discrete steps ([discrete-steps-drag](discrete-steps-drag.md),
+  [excrescence-drag](excrescence-drag.md)), and laminar runs on the waxed set would widen the gap: both unbounded.
+- **Consistent in sign, loose in size.** Friction at k_s = d gives +0.11 to +0.25; adding area and fins at DeMar's
+  120 km/h reading, +0.18 to +0.36 (at 100 km/h, +0.24 to +0.42), against a measured +0.35 to +0.42. Agreement
+  needs coarse grains, sparse cover (k_s above d) or the loose terms. The rough-wall law is not shown to overstate.
+- **No k_s from these data.** Read as all friction, ΔC_D 0.35 to 0.40 would mean k_s ≈ 1.4 to 2.9 mm, and the gap's
   95% interval 0.4 to 6.9 mm, several times the grain. The confounds cannot be split from friction with one pair of
   sets, so this is an order of magnitude, not a k_s (**Inference**).
 
@@ -160,7 +161,7 @@ times the body's wetted area, with the factor 1 + 1/(2 f_B), over the reference 
   band (+0.22 to +0.51 at 95%). Expected effect: none on today's numbers; it guards the rough end of the law.
 - **The finish bands stay unchecked.** Bock's sand (0.1 to 0.5 mm, 5 to 25 times HPR Sim's 20 µm default) is far
   rougher than every paint, composite and paper band in [hobby-finish-roughness](hobby-finish-roughness.md) §3 (only
-  the antifouling row's top, 120 µm, reaches 0.1 mm); his smooth case is paint and wax. It overlaps only the coarse
+  the antifouling row's top, 120 µm, reaches 0.1 mm); its smooth case is paint and wax. It overlaps only the coarse
   end of the FDM band (11 to 197 µm), and loose grains are not layer ridges
   ([fdm-and-tube-friction](fdm-and-tube-friction.md) §2). Bare paper tube is not tested, and [#782][i782] (split the
   bias by printed parts) gets no data from either report.
@@ -169,8 +170,7 @@ times the body's wetted area, with the factor 1 + 1/(2 f_B), over the reference 
 
 ## Open questions
 
-- Grain size, cover and tape thickness on Bock's rough rockets: not in the report; a builder's sample would bound them.
-- Whether the rough set's fins were bare balsa (p. 4 implies it) and the smooth set's sealed: not stated.
+- Not in the report: grain size, cover and tape thickness on the rough set, and whether either set's fins were sealed.
 - The Alt 4.05e inputs (C_D, mass, launch-site air) behind the 212.05 m prediction.
 - The six NAR titles listed in §1 were not opened; any of them may hold a finish comparison.
 
@@ -184,7 +184,7 @@ All read 2026-10-28. NAR R&D index (public; reports need a member login), member
 2. B. Snowden (indexed as B. Sowden), "Comparison of Different Preparation Methods for Body Tubes", NAR R&D, NARAM-32,
    1990, 5 pp., index `id=1357877`, member login. <https://www.nar.org/docs.ashx?id=1357877>
 3. NAR, R&D reports in chronological order (index page above), copy saved 2026-10-17.
-4. Estes Industries, Alpha kit page, SKU 001225. <https://b2b.estesrockets.com/products/alpha>
+4. Estes Industries, Alpha kit page, SKU 001225, re-read 2026-11-04. <https://b2b.estesrockets.com/products/alpha>
 5. ThrustCurve, Estes B6 (NAR certified 1995-03-25) and its RASP file, from NAR data, in the
    project's motor catalog; data license unknown, cite only. <https://www.thrustcurve.org/motors/Estes/B6/>
 6. USGS Open-File Report 2006-1195, Wentworth grade scale chart, public domain.
@@ -192,7 +192,7 @@ All read 2026-10-28. NAR R&D index (public; reports need a member login), member
 7. Greely Sand & Gravel, playground sand sieve analysis, ASTM C136, lab no. 59351, May 2025, pp. 1–2; cite only.
    `04-PM0754_Greely-Sand-Gravel_Lab-Testing_Playground-Sand_Sieve_59351.pdf`,
    in <https://greelysand.com/wp-content/uploads/2025/05/>
-8. S. Niskanen, MSc thesis, 2009, eqs. 3.78–3.81, 3.85, pp. 43–46. <https://openrocket.sourceforge.net/thesis.pdf>
+8. S. Niskanen, MSc thesis, 2009, pp. 43–46 (SourceForge 403s, 2026-11-04). <https://openrocket.info/documentation.html>
 9. S. F. Hoerner, *Fluid-Dynamic Drag*, 1965, p. 5-4. <https://archive.org/details/FluidDynamicDragHoerner1965>
 10. J. S. DeMar, "Model Rocket Drag Analysis using a Computerized Wind Tunnel", NAR R&D, NARAM-37, 1995, p. 7.
     <https://www.rocketmime.com/rockets/ModelRocketDragAnalysis.pdf>
