@@ -423,28 +423,33 @@ the synthetic flights and two logs on all five platforms, in the `census` job, a
 parts on Linux. A test fails if a set of synthetic flights is left out, or if its job runs on any
 condition but a full run's, nightly or started by hand ([the synthetic flights' tests](physics/synthetic-flights.md)). A
 nightly failure opens an issue that is fixed before other work. Pull requests, on all five
-platforms, and `scripts/gate.sh` fly a slice of the synthetic flights and of two logs instead:
-every 21st flight of each set, 202 flights each. The command that writes a census writes its
-slice beside the report (`synthetic-flights.slice.json`, `two-logs.slice.json`): a line for each
-thing the census makes of each of those flights, to the census's digits. `--slice` flies them
-again and fails, naming the flight, if a line differs (by a byte on the build that writes the
-reports, by a word elsewhere, where a flight's numbers can move) or if a flight breaks a rule the census
+platforms, and `scripts/gate.sh` check a slice of each instead: every 21st flight of each set,
+202 flights each, and every 21st fit of each of the fit's runs, 444 fits (below). The command that writes a
+census writes its slice beside the report (`synthetic-flights.slice.json`, `two-logs.slice.json`,
+`fit-intervals.slice.json`): a line for each thing the census makes of each of those flights, to
+the census's digits. `--slice` flies them
+again and fails, naming the flight, if a line differs (byte for byte on the build that writes the
+reports; elsewhere in its words, each number masked and every other word compared, since a flight's
+numbers can move there but what the census counts, such as the side a truth falls on, must not) or if a flight breaks a rule the census
 holds every flight to, such as a reading past its bound. So a pull request's pass covers one flight
 in 21; the rest, and what only a whole set shows, its ranges, coverage tests and fitted shares,
-wait for the night. Reports are still written by the
-everyday build, and `scripts/gate.sh` runs the checks on your own machine before each merge: the
-slices of the synthetic flights and two logs in the everyday build, the fit whole in the optimized
-one, until it has a slice of its own ([the time budget](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md)). The gate's default run leaves these checks out only when a change is prose they don't read,
+wait for the night. `scripts/gate.sh` (the gate: the checks a change passes on the maintainer's Mac
+before it merges) runs the slices in the build that writes each report: the everyday build, the
+optimized one for the fit. The gate's default run leaves these checks out only when a change is prose they don't read,
 such as most pages under `docs/`, and a run that names its steps runs them only when `validate` is
 named. So a report in the repository has to reproduce from both builds, its slice in words. If the optimized build
 ever came out differently, the nightly run would fail and regenerating wouldn't fix it: that would need a
 decision record, not a looser check.
 
 The check on the least-squares fit, `cargo xtask fit`, takes longer than any other
-([the flight fit](physics/flight-fit.md)). It makes about 6,500 fits of synthetic flights: the first
-1,300 of sets A and B each; of each set's first 1,500 flights with a track logger, those past the
-1,300; and set A's first 200 again with each kind of pure noise in place of their logs. Then it
-tests that each fitted value's 90% interval holds the truth as often as a 90% interval should. In
+([the flight fit](physics/flight-fit.md)). Its report rests on 6,538 fits of synthetic flights: the
+first 1,300 of sets A and B each; the wind's flights, those of each set's first 1,500 flights with a
+track logger that aren't among the 1,300 (1,262 of set A's, 1,276 of set B's); and set A's first
+200 again with each of seven kinds of pure noise in place of their logs. Then it tests that each
+fitted value's 90% interval holds the truth as often as a 90% interval should. It also makes 2,654
+fits of the [calibration set](physics/synthetic-flights.md#the-sets), 9,192 in all, to check the
+shares (the two factors on a standard error that make each interval, [how it
+works](physics/flight-fit.md#how-it-works)) against those stored in the code. In
 one Linux job it took more than an hour, so CI runs it each night on Linux in eight jobs side by side:
 
 - Each job fits an eighth of the flights (`fit --part K/8`, with K from 1 to 8): every eighth
@@ -453,15 +458,28 @@ one Linux job it took more than an hour, so CI runs it each night on Linux in ei
   twice, parts of two different splits, and any flight not fitted exactly once.
 - Then it runs the check as on a platform other than the one that wrote the report
   (`--other-platform`; [the fit's decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md),
-  section 7). A count may stand 5 flights off the committed report, and a figure 5% of the larger
-  of the two values or 0.002, whichever allows more. The calibration set isn't fitted again.
+  section 7). A count may differ from the committed report by 5 flights. A figure, and each share
+  fitted on the calibration set, may differ by 5% of the larger of the two values or 0.002,
+  whichever allows more. The slice is held in its words, as above, not by these allowances.
 
 A flight's fit depends on that flight alone, not on what its thread or machine fitted before it. A
 test holds that to the bit. On a Mac, three parts put back together left no number of the report
 different. On Linux, eight printed the same summary of differences from the committed report as
-one job ([the decision record's amendment](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md), section 7). The gate, `scripts/gate.sh`, runs the whole check on your own machine instead,
-calibration included. On the platform that wrote the report, the result must match the committed
-report to the last digit.
+one job ([the decision record's amendment](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md), section 7).
+
+Where each part of the fit's check runs ([the time budget](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md)):
+
+| Where | Command | What it holds |
+|---|---|---|
+| A pull request, on all five platforms | `fit --slice --other-platform` | The slice's 444 fits, each line in its words (a calibration fit's lines carry no side, so only its first line's words can differ); the committed report's verdicts, as its stored bands give them; its stored shares against the code's |
+| The gate, before each merge | `fit --slice` | The same, each line byte for byte |
+| Each night, on Linux | `fit --part K/8`, then `fit --check --other-platform --parts` | All 9,192 fits: the report and the shares within the allowances above, the slice in its words |
+| By hand, on the Mac that writes the report | `fit --check` | The whole report to the last digit, and the shares to the code's three figures |
+
+The slice is the same 444 fits every time: part 1 of 21 of each run, its 1st, 22nd and 43rd fit
+and on. A change that moves only fits outside it, and by less than the night's allowances (a count
+by 5 flights or fewer), is found only by the check by hand
+([issue #1177](https://github.com/nrdptel/fusionspace-eridanus/issues/1177)).
 
 Then the `validate` job holds the committed reports to the accuracy census accepted last
 ([the regression check](decisions-and-roadmap.md#m2-4),

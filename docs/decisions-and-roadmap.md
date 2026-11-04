@@ -530,7 +530,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-16"></a>[M0.16][phase-0] | The time budget for CI and the gate | not yet done |
 | <a id="m0-16a"></a>[M0.16a][phase-0] | Fixed slices of the flight censuses, and the budget measured | not yet done |
 | <a id="m0-16a1"></a>[M0.16a1][done-0] | Two slices | done |
-| <a id="m0-16a2"></a>[M0.16a2][phase-0] | The fit's slice | not yet done |
+| <a id="m0-16a2"></a>[M0.16a2][done-0] | The fit's slice | done |
 | <a id="m0-16a3"></a>[M0.16a3][phase-0] | The budget checked | not yet done |
 | <a id="m1-1"></a>[M1.1][done-1] | Vectors and rotations, frames, the Earth's shape and gravity | done |
 | <a id="m1-2"></a>[M1.2][done-1] | The atmosphere and wind | done |

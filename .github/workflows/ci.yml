@@ -39,10 +39,10 @@ jobs:
   # Which checks this run needs (ADR-149, amended). `full` is true on the nightly run and on a run
   # started by hand with `full`: only then do the flight censuses run whole (the `census` job on
   # every platform, the `fit` jobs on Linux). A pull request or a push to main flies the slices of
-  # the synthetic flights and two logs (`validate`) and leaves the whole to that night's run, as
-  # `scripts/gate.sh` does on the Mac, which still runs the fit whole. `notes` is true
+  # the synthetic flights and two logs (`validate`) and fits the fit's slice (`fit-slice`), and
+  # leaves the whole to that night's run, as `scripts/gate.sh` does on the Mac. `notes` is true
   # when every file a pull request or push changes, renamed from or to, is a research note under
-  # docs/research/: `validate`, `examples` and `python` then run no step and pass, and `types`,
+  # docs/research/: `validate`, `fit-slice`, `examples` and `python` then run no step and pass, and `types`,
   # `wasm-check` and `phone` skip, each still reporting by name for branch protection. `test` and
   # `site`, which read the notes, run, and so do the quick Linux checks. A list GitHub can't give,
   # an empty one, or one of 300 files or more (the compare API's cap) counts as code.
@@ -361,13 +361,47 @@ jobs:
       - run: cargo run --locked --quiet --package xtask --profile report-check -- synthetic --check --sets b,calibration
       - run: cargo run --locked --quiet --package xtask --profile report-check -- two-logs --check
 
-  # The least-squares fit's 90% intervals (M7.3b, ADR-316): about 6,500 fits of flights of sets A
-  # and B, each parameter held to ADR-257's counts and probes. In one Linux job it took 60 to 102 minutes
-  # (eight runs, 2026-11-02). So eight jobs each fit an eighth of the flights: part K fits every
+  # The fit's slice (M0.16a2, ADR-149 amended): every 21st fit of each run of the fit's intervals,
+  # the calibration set's among them, made again, held to the report's rules for one fit and to its
+  # committed slice in every word, its numbers aside: a fit's numbers move off the Mac, where
+  # `scripts/gate.sh` holds them byte for byte. A job of its own, beside `validate`, so neither
+  # passes the 20 minutes a job may take. The whole fit runs each night (`fit-part`).
+  fit-slice:
+    name: fit slice (${{ matrix.os }})
+    needs: scope
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, windows-11-arm]
+    runs-on: ${{ matrix.os }}
+    env:
+      # No step runs for a change to research notes alone (`scope`).
+      RUN: ${{ needs.scope.outputs.notes != 'true' }}
+    steps:
+      - if: env.RUN == 'true'
+        uses: actions/checkout@v7
+      - if: env.RUN == 'true'
+        run: rustup toolchain install
+      - if: env.RUN == 'true'
+        run: scripts/native-toolchain.sh
+        shell: bash
+      - if: env.RUN == 'true'
+        uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - if: env.RUN == 'true'
+        run: cargo run --locked --quiet --package xtask --profile report-check -- fit --slice --other-platform
+
+  # The least-squares fit's 90% intervals (M7.3b, ADR-316): 6,538 fits of flights of sets A and B
+  # and of noise, each parameter held to ADR-257's counts and probes. In one Linux job those took 60
+  # to 102 minutes (eight runs, 2026-11-02), before the calibration set joined them. So eight jobs each fit an eighth of the flights: part K fits every
   # eighth flight of each run from the Kth (`fit --part K/8`), and hands its fits on. A fit doesn't
   # depend on what its thread or machine fitted before it (`fit::tests`), so the parts together are
-  # the fits one job would make. The committed report and the shares are held exactly by
-  # `scripts/gate.sh`, whole, on the platform that wrote them.
+  # the fits one job would make. The calibration set's 2,654 fits are among the parts' 9,192, so
+  # the night holds the shares in force too, within the few percent another platform may stand
+  # off. `scripts/gate.sh` holds the slice exactly and refits no shares; the whole report is held
+  # exactly only by `fit --check`, run by hand on the Mac, and the shares by it and by the run that
+  # writes the report.
   fit-part:
     name: fit intervals (${{ matrix.part }}/8)
     strategy:
@@ -585,7 +619,7 @@ jobs:
   # nightly run.
   deploy:
     name: deploy
-    needs: [fmt, clippy, test, examples, types, python, validate, fit-intervals, doc, evidence, wasm-check, phone, deny, site, scope]
+    needs: [fmt, clippy, test, examples, types, python, validate, fit-slice, fit-intervals, doc, evidence, wasm-check, phone, deny, site, scope]
     if: >-
       ${{ !cancelled() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
       && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
@@ -606,7 +640,7 @@ jobs:
   # amended; ADR-144 §4). A run started by hand reports to whoever started it.
   nightly-alert:
     name: nightly alert
-    needs: [scope, fmt, clippy, test, examples, types, python, validate, census, fit-intervals, doc, evidence, wasm-check, phone, deny, site]
+    needs: [scope, fmt, clippy, test, examples, types, python, validate, census, fit-intervals, fit-slice, doc, evidence, wasm-check, phone, deny, site]
     if: >-
       ${{ always() && github.event_name == 'schedule'
       && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')

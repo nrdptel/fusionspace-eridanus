@@ -42,8 +42,12 @@
 # optimized. Of the flight censuses (ADR-149, amended), which run whole each night, it runs the
 # synthetic flights' and two logs' slices (M0.16a1: every 21st flight of each set, held line for line
 # to the committed `.slice.json` and to the census's rules for one flight), as CI does on every pull
-# request, and the fit whole, in the optimized build, until it has a slice of its own. The dev profile
-# is the one that writes the reports, so this checks that what's committed is what it writes.
+# request, and the fit's slice (M0.16a2: every 21st fit of each run, the calibration set's among
+# them, held line for line to the committed `.slice.json`, and those of sets A and B to the
+# report's rules for one fit; the whole report and its shares only `fit --check` holds exactly),
+# in the optimized build that writes the fit's report, as CI does in every word on every pull
+# request. The dev profile writes the other reports, so this checks that what's committed is what
+# each writes, byte for byte.
 # The default run leaves validate out when the branch changes only prose that none of its five
 # checks reads: pages under docs/, the site's theme/ and book.toml, and Markdown files at the top,
 # but not README.md, docs/accuracy.md and docs/images/ (the census writes their tables and badges),
@@ -292,7 +296,7 @@ cmd_for() {
       fi ;;
     doc) echo "env RUSTDOCFLAGS=-D\\ warnings cargo doc --workspace --no-deps --all-features --locked" ;;
     wasm) echo "$XTASK wasm-check --locked" ;;
-    validate) echo "$XTASK validate --check && $XTASK synthetic --slice && $XTASK two-logs --slice && cargo run --locked --quiet --package xtask --profile report-check -- fit --check && $XTASK motor-catalog --check && $XTASK scoreboard --check --against origin/main" ;;
+    validate) echo "$XTASK validate --check && $XTASK synthetic --slice && $XTASK two-logs --slice && cargo run --locked --quiet --package xtask --profile report-check -- fit --slice && $XTASK motor-catalog --check && $XTASK scoreboard --check --against origin/main" ;;
     deny) echo "cargo deny check" ;;
     site) echo "$XTASK site --locked --cache" ;;
     pages) echo "$XTASK site --no-build" ;;

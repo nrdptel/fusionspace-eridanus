@@ -145,7 +145,7 @@ rocket any better than a scale does.
 are counted. Each count must fit a 99.9% Clopper-Pearson band (an exact binomial interval) around
 5%, 90% and 5%. An
 interval narrowed to 0.8, widened to 1.25, or shifted down one standard error must fail it.
-[The report][report] holds every count and each design's.
+[The report][report] holds every count and each design's ([how CI checks it](../VALIDATION.md#in-ci-and-regenerating-the-references)).
 
 Each set counts its first 1,000 logs with something to fit. Of set A's first 1,216 flights, 216 had
 nothing to fit; of set B's first 1,193, 193. Each has only a GNSS receiver's height. A wind's counts are on 1,500 flights of the logger with

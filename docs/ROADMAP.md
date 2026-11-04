@@ -135,9 +135,6 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
 - [ ] **M0.16 A time budget for CI** (ADR-149; Neer, 2026-11-03): a pull request's CI within 20
   minutes, a full gate within 30.
   - [ ] **M0.16a Census slices; the budget checked** (in three, ADR-149 amended 11-04): met when they are.
-    - [ ] **M0.16a2 The fit's slice.** *Done when:* the fit checks a fixed part of its flights
-      against the committed report (exact where written, else by its rule), failing on one changed
-      flight; the gate and pull requests check one part, the whole nightly.
     - [ ] **M0.16a3 The budget checked.** *Done when:* a pre-PR check fails on a full gate over 30
       minutes, a job over 20 in main's last passing CI, or no passing nightly in 26 hours; M7.3c3's
       fit follows before it merges.
