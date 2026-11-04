@@ -114,7 +114,7 @@ least-squares fit (ADR-316).
    part at four takes at most 1,000 s, whatever the build. On windows-latest, whose worst half took
    904 s, a part at six stays under the 20 minutes only if that half's build took 188 s or more:
    the slice's compute there is twice the half's, less its build. This pull request's run measured
-   parts of 575 to 811 s on the platforms it finished first. The night fits the whole report in 16
+   parts of 575 to 953 s on the five platforms, the posteriors' words holding on each. The night fits the whole report in 16
    parts on Linux, not the 32 this increment first ran with. A full run on main has 70 jobs; the slice's
    parts add 13 and 16 night parts 8, 91 in all, where 32 would make 107, past the 100 that
    `cargo xtask ci-budget` reads in one page and refuses beyond. The whole report, written again on the
