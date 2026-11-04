@@ -20,7 +20,6 @@ use std::time::Instant;
 use hpr_flightdata::readings::interval::{Interval, Shares};
 use hpr_forensics::synthetic::designs::DesignFiles;
 use hpr_forensics::synthetic::fits::{self, ASKED, Asked, Check, FlightFit, Identification};
-use hpr_forensics::synthetic::intervals::Test;
 use hpr_forensics::synthetic::{Flyer, Set};
 use serde::{Deserialize, Serialize};
 
@@ -567,13 +566,14 @@ impl Apart {
 }
 
 /// What doesn't come out as it must in `set`'s `checks`: a parameter's interval failing ADR-257's
-/// test, a probe of it passing, and on set A a scale not identified. Each test is taken again from
-/// its counts, so that a report's verdicts are its counts' (`fit --slice` reads them so).
+/// test, a probe of it passing, and on set A a scale not identified. A test's bands are worked out
+/// from its counts when the report is made, so a committed report's verdicts are its counts'
+/// (`fit --slice` reads them so).
 fn check_problems(set: Set, checks: &[Check]) -> Vec<String> {
     let mut broken = Vec::new();
     for check in checks {
         let c = check.test.counts;
-        if !Test::of(c).passes() {
+        if !check.test.passes() {
             broken.push(format!(
                 "{set:?}, {}: {} below, {} inside, {} above of {}: fails the test",
                 check.asked.name(),
@@ -585,7 +585,7 @@ fn check_problems(set: Set, checks: &[Check]) -> Vec<String> {
         }
         for (probe, test) in &check.probes {
             let c = test.counts;
-            if Test::of(c).passes() {
+            if test.passes() {
                 broken.push(format!(
                     "{set:?}, {}: the probe {} passes, {} below, {} inside, {} above of {}",
                     check.asked.name(),
@@ -1475,6 +1475,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
 )]
 mod tests {
     use super::*;
+    use hpr_forensics::synthetic::intervals::Test;
     use hpr_forensics::synthetic::logger::Profile;
 
     fn files() -> DesignFiles {
@@ -2069,17 +2070,18 @@ mod tests {
         };
         fails(
             &|r| {
-                let c = &mut r.sets[0].checks[0].test.counts;
+                let mut c = r.sets[0].checks[0].test.counts;
                 c.inside -= 60;
                 c.below += 60;
+                r.sets[0].checks[0].test = Test::of(c);
             },
             "A, drag scale: ",
         );
         fails(
             &|r| {
-                let counts = r.sets[1].checks[1].test.counts;
+                let passing = r.sets[1].checks[1].test;
                 let test = r.sets[1].checks[1].probes.values_mut().next().unwrap();
-                test.counts = counts;
+                *test = passing;
             },
             "the probe",
         );
