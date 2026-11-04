@@ -297,11 +297,11 @@ fn same_drag_speeds_and_cause_free_apogees_hold_adr_289s_bounds() {
 
 #[test]
 fn descents_hold_adr_319s_bounds() {
-    // ADR-319 holds the descent time, mean descent rate and drifts of the descents with no
-    // untraced difference to 0.3%: the largest difference so held is +0.0857% (Prometheus 2022's
+    // ADR-319 holds the descent time, mean descent rate and drifts of the descents with no written
+    // model difference to 0.3%: the largest difference so held is +0.0857% (Prometheus 2022's
     // east drift), 3.5 times inside, and RocketPy's own solver moves them by at most 3.41e-6 of
-    // their values. NDRT 2020 keeps the milestone's 3%, its descent time 0.705% off with no traced
-    // cause, and so do Valetudo's drifts, made by the Earth's rotation alone in still air. A case
+    // their values. NDRT 2020 keeps the milestone's 3%, its descent time 0.705% off from RocketPy's
+    // added mass, and so do Valetudo's drifts, made by the Earth's rotation alone in still air. A case
     // file widened back, or a new descent added at the old bound, fails here. The landing speed is
     // held to 0.1% since ADR-310.
     const METRICS: [&str; 5] = [

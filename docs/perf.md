@@ -19,7 +19,7 @@ the command, so a later run can be compared like for like.
   | measurement | before | after |
   |---|---|---|
   | `analyze` on `axial.csv` | 25.64 ms | 24.03 ms (−6.3%, spread 2%) |
-  | `analyze` on `synthetic-pnut.pf2` | 7.68 ms | −4.2% (spread 7%) |
+  | `analyze` on `synthetic-pnut.pf2` | 7.68 ms | −4.2%, inside its 7% spread |
   | 137 cached forum logs, total / slowest | 3.38 s / 165 ms | 3.18 s / 148 ms (−5.9% / −10.5%) |
 
 - **What moves.** No output bit: text and JSON are byte-identical on 206 logs (412 outputs), 68

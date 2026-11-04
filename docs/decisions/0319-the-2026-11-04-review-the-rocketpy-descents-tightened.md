@@ -1,12 +1,13 @@
 # ADR-319: The 2026-11-04 review: the RocketPy descents tightened (2026-11-04)
 
 - **Status:** accepted; tightens [M1.7a][m1-7a]'s gate on the RocketPy descents under a parachute, held at the milestone's 3% since [ADR-303][adr-303] kept them there, to 0.3% for the descent time, the mean descent rate and the three drifts of Calisto, Prometheus 2022 and Juno III, and for Valetudo's descent time and rate. NDRT 2020's descent and Valetudo's drifts keep 3%.
-- **Summary:** In the RocketPy descents flown from the same state under the same devices, the 17 numbers held here agree within 0.0857%, while RocketPy's own solver moves them by at most 3.41e-6 of their values. The bound goes from 3% to 0.3%, 3.5 times the largest difference. A drag area 1% too large now fails each of the four descents; before, it passed them all. NDRT 2020, whose descent time differs by 0.705% with no traced cause, and Valetudo's drifts, made by the Earth's rotation alone, keep 3%. These bound agreement between two codes, not accuracy against a flight.
+- **Summary:** In the RocketPy descents flown from the same state under the same devices, the 17 numbers held here agree within 0.0857%, while RocketPy's own solver moves them by at most 3.41e-6 of their values. The bound goes from 3% to 0.3%, 3.5 times the largest difference. A drag area 1% too large now fails each of the four descents held to 0.3%; at 3% they passed. NDRT 2020, whose descent time differs by 0.705% because RocketPy counts the air its main parachute drags along and HPR Sim doesn't, and Valetudo's drifts, made by the Earth's rotation alone, keep 3%. These bound agreement between two codes, not accuracy against a flight.
 
 [m1-7a]: ../decisions-and-roadmap.md#m1-7a
 [adr-303]: 0303-the-2026-10-28-review-the-rocketpy-peaks-tightened.md
 [adr-310]: 0310-the-2026-10-31-review-the-rocketpy-rail-exit-and-landing-speeds-tightened.md
 [adr-318]: 0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md
+[canopy]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/canopy-opening-loads.md
 [report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md
 [fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/recovery/rocketpy-descent.json
 
@@ -15,8 +16,11 @@ met bar is the cheapest way to make a check notice a regression sooner. Five of 
 rockets are flown down in both codes from the same state near apogee, with the same drag areas,
 triggers and wind. Their landing speed has been held to 0.1% since [ADR-310][adr-310]; every other
 descent number is held to the milestone's 3%. ADR-303 kept them all there because NDRT 2020's
-descent time differs by 0.705% with no traced cause. That gap is NDRT 2020's own: the 17 numbers
-held here, on the other four descents, agree 35 times inside 3%. In [the report][report]:
+descent time differs by 0.705%. That gap is NDRT 2020's own, a model difference: RocketPy adds the
+air a canopy drags along, 15.9 kg for NDRT 2020's main against a 20.8 kg rocket, and HPR Sim has no
+such term. Run without it, RocketPy's NDRT 2020 descent time differs by −0.116% and its north drift
+by −0.360% ([the canopy opening loads note][canopy]). The 17 numbers held here agree 35 times inside
+3%; Valetudo's drifts, the Earth's rotation alone, are kept apart below. In [the report][report]:
 
 | Descent | Descent time | Mean descent rate | Drift | East drift | North drift | Solver movement, largest |
 |---|---:|---:|---:|---:|---:|---:|
@@ -32,10 +36,10 @@ its drift is the Earth's rotation alone: 19 cm (7.5 in) east and 20 µm north, t
 RocketPy's own solver by 0.2%. No case has a floor.
 
 **Which side flatters.** A descent rate read too slow, or a drift read too short, is the flattering
-side: a faster landing or a larger recovery area than the prediction says. The bounds here are
+side: a faster descent or a larger recovery area than the prediction says. The bounds here are
 two-sided, so a row reading either way fails sooner than before. Of the numbers held here, Calisto's
-and Prometheus 2022's read their drifts long and their rates slow, Juno III's and Valetudo's the other
-way, all by under 0.09%. This record changes no model.
+and Prometheus 2022's read their drifts long and their rates slow, the rates on the flattering side;
+Juno III's and Valetudo's read the other way. All are under 0.09%. This record changes no model.
 
 **Decision.**
 
@@ -43,15 +47,18 @@ way, all by under 0.09%. This record changes no model.
    2022 and Juno III, and the descent time and mean descent rate of Valetudo, are held to 0.3%
    relative, with no floor: 3.5 times the largest difference (+0.0857%, Prometheus 2022's east
    drift) and 880 times RocketPy's largest solver movement on these numbers (3.41e-6, Calisto).
-2. NDRT 2020's five keep 3%: its descent time (+0.705%) has no traced cause, and its north drift
-   (+2.865%) follows RocketPy's added mass, 15.9 kg against a 20.8 kg rocket. Valetudo's three
-   drifts keep 3%: the Earth's rotation alone, the north one 20 µm.
+2. NDRT 2020's five keep 3%, for a written model difference: its descent time (+0.705%) and north
+   drift (+2.865%) follow RocketPy's added mass, as [ADR-318][adr-318] keeps 3% for the flights with a
+   written cause. Valetudo's three drifts keep 3%: the Earth's rotation alone, the north one about
+   20 µm.
 3. Test `descents_hold_adr_319s_bounds` (`crates/hpr-validate/src/tests.rs`) holds each descent
    case file to these bounds, failing on a case file widened back, given a floor or marked not
    scored, or a new descent added at the old bound. The unit test
-   `descent_matches_rocketpy_examples` (`crates/hpr-sim/src/recovery.rs`) holds the same numbers to
-   the same bounds, row by row; its trigger heights and descent rates under the drogue, which the
-   case files don't carry, keep 3%.
+   `descent_matches_rocketpy_examples` (`crates/hpr-sim/src/recovery.rs`) holds its own rows to
+   0.3% on the same four descents: the descent time, the landing speed (looser there than the case
+   files' 0.1%) and the drifts, Valetudo's drift excepted. It has no mean-rate row, and it compares
+   east and north drifts only past 10 m. NDRT 2020's rows, Valetudo's drift, and the trigger heights
+   and descent rates under the drogue, which the case files don't carry, keep 3%.
 
 **Measured.** A probe that makes each device's drag area 1% larger moves the four descents' times by
 +0.45% to +0.58% (Juno III +0.452%, Valetudo +0.453%, Prometheus 2022 +0.574%, Calisto +0.580%) and
@@ -64,15 +71,16 @@ record named.
 
 - **0.25%:** 2.9 times the largest difference, under the 3 times this project's reviews have asked
   of a tightening ([ADR-303][adr-303], [ADR-318][adr-318]).
-- **NDRT 2020's descent time to 2%:** 2.8 times inside; trace the 0.705% first.
+- **NDRT 2020's descent time to 2%:** 2.8 times inside, and a model difference sets it; an added-mass
+  term would close it first.
 - **The trigger heights (within 0.17%, RocketPy's trigger sampling) and the descent rates under the
   drogue:** the case files don't carry them, and the trigger heights sit 1.8 times inside 0.3%.
 
 **Consequences.**
 
-- A change that moves one of the four descents' times, rates or drifts by more than about a fifth of
-  a per cent (0.21 points on Prometheus 2022's east drift, 0.3 − 0.0857) now fails CI on every
-  platform instead of passing.
+- A change that moves one of the four descents' times, rates or drifts outside 0.3% now fails CI on
+  every platform instead of passing: as little as 0.21 points on the tightest row (Prometheus 2022's
+  east drift, 0.3 − 0.0857).
 - CI reproduces the committed report to 2e-6 m or 1e-7 of the value, whichever is larger, on macOS,
   Linux and Windows, well inside the new bound; the RocketPy references are committed, so
   RocketPy's own run-to-run noise doesn't enter CI.

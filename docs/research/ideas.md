@@ -102,7 +102,8 @@ Placed with [ADR-319][adr-319], which tightens a met target and promotes none of
   peak: PerfectFlite about 0.25 s early, RRC3 and AltOS on it, Raven 0.9 s late, Blue Raven 0.5 s
   late with a tail to 4 s, Eggtimer 0.9 s to nose-over before its typed delay
   ([apogee fire latency](apogee-fire-latency-in-logs.md)). A model that adds the typed delay alone
-  reads the speed at deployment low by up to 9 to 40 m/s (g·t, drag left out, an upper bound): the
+  reads the speed at deployment low by about 9 m/s for a Raven or an Eggtimer, and up to 40 m/s if
+  Blue Raven's tail is lag rather than a wait typed into it (g·t, drag left out, an upper bound): the
   flattering side for a charge and a harness. Workflow: [M6.8][m6-8]'s settings check and
   M7.4's late-drogue model time the drogue at apogee plus the typed delay plus the family's
   measured lag, drawn from its spread. Moves: the proposed `recovery.deploy-speed`, the speed at
@@ -121,7 +122,7 @@ Placed with [ADR-319][adr-319], which tightens a met target and promotes none of
   passes [ADR-257][adr-257]'s three counts, or the reading says it is withheld under that fault; and
   a probe that ignores the clipping fails the clipped set.
 - SOON: the mass a log implies. User: a flyer whose simulated apogee missed the logged one by 10%,
-  asking why. Forum threads name a wrong lift-off mass as the most common cause of such a gap, and
+  asking why. Forum threads often name a wrong lift-off mass as a cause of such a gap, and
   the collection's error is where HPR Sim trails OpenRocket (12.07% against 11.26%). Workflow: `hpr
   compare` prints the lift-off mass the boost implies, from [M7.3][m7-3]'s fit, beside the design's,
   with its 90% interval, and the apogee simulated at that mass. Moves: `accuracy.collection`, as a
