@@ -47,7 +47,7 @@ Of its first 1193, 193 had nothing to fit and aren't counted, 193 of them logs w
 | drag scale | 70 | 901 | 29 | passes | fails, fails, fails | 0.00523 | 0.123 / 0.36 | yes |
 | impulse scale | 54 | 910 | 36 | passes | fails, fails, fails | 0.00164 | 0.0408 / 0.108 | yes |
 | wind toward the east, m/s | 75 | 1349 | 73 | passes | fails, fails, fails | -0.021 | 0.407 / 12.7 | yes |
-| wind toward the north, m/s | 71 | 1362 | 64 | passes | fails, fails, fails | -0.00533 | 0.449 / 12.7 | yes |
+| wind toward the north, m/s | 71 | 1362 | 64 | passes | fails, fails, fails | -0.00532 | 0.449 / 12.7 | yes |
 | mass on the weighed mass | 42 | 900 | 58 | passes | fails, fails, fails | -0.000145 | 0.035 / 0.036 | no |
 
 By design (below / inside / above):
@@ -83,11 +83,11 @@ The smallest residual is that of the fits that came to one, a share of the sprea
 | ±5 m | none | the reader | 200 | 200 | none | wind toward the east, m/s | 12.7 / 12.7 | no |
 | ±5 m | none | the reader | 200 | 200 | none | wind toward the north, m/s | 12.7 / 12.7 | no |
 | ±5 m | none | the reader | 200 | 200 | none | mass on the weighed mass | 0.036 / 0.036 | no |
-| ±1000 m | none | the reader | 200 | 200 | none | drag scale | 0.36 / 0.36 | no |
-| ±1000 m | none | the reader | 200 | 200 | none | impulse scale | 0.108 / 0.108 | no |
-| ±1000 m | none | the reader | 200 | 200 | none | wind toward the east, m/s | 12.7 / 12.7 | no |
-| ±1000 m | none | the reader | 200 | 200 | none | wind toward the north, m/s | 12.7 / 12.7 | no |
-| ±1000 m | none | the reader | 200 | 200 | none | mass on the weighed mass | 0.036 / 0.036 | no |
+| ±1000 m | none | the reader | 200 | 200 | 0.994 | drag scale | 0.36 / 0.36 | no |
+| ±1000 m | none | the reader | 200 | 200 | 0.994 | impulse scale | 0.108 / 0.108 | no |
+| ±1000 m | none | the reader | 200 | 200 | 0.994 | wind toward the east, m/s | 12.7 / 12.7 | no |
+| ±1000 m | none | the reader | 200 | 200 | 0.994 | wind toward the north, m/s | 12.7 / 12.7 | no |
+| ±1000 m | none | the reader | 200 | 200 | 0.994 | mass on the weighed mass | 0.036 / 0.036 | no |
 | ±5 m | none | the fit | 200 | 200 | 0.958 | drag scale | 0.36 / 0.36 | no |
 | ±5 m | none | the fit | 200 | 200 | 0.958 | impulse scale | 0.108 / 0.108 | no |
 | ±5 m | none | the fit | 200 | 200 | 0.958 | wind toward the east, m/s | 12.7 / 12.7 | no |

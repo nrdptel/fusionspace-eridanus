@@ -871,7 +871,7 @@
       ],
       "log_rows": 611,
       "height_read_as": "barometric",
-      "clock_bound_s": 2.0450134422399953,
+      "clock_bound_s": 1.9986949156353693,
       "reaches_landing": false,
       "descent_flown": true,
       "past_simulation": 0,
@@ -879,24 +879,24 @@
         {
           "phase": "flight",
           "start_s": 0.0,
-          "end_s": 29.9,
-          "samples": 599,
-          "mean": 286.54664294215985,
-          "rms": 485.4606289568209,
-          "largest": 7815.364543406439,
-          "largest_at_s": 29.849999999999998
+          "end_s": 29.95,
+          "samples": 600,
+          "mean": 279.3694814882456,
+          "rms": 480.84148142489164,
+          "largest": 7814.379886143081,
+          "largest_at_s": 29.9
         }
       ],
       "speed_m_s": [
         {
           "phase": "flight",
           "start_s": 0.0,
-          "end_s": 29.9,
-          "samples": 599,
-          "mean": 1.7405505774820536,
-          "rms": 25.268691134574066,
-          "largest": -118.97944870851093,
-          "largest_at_s": 3.05
+          "end_s": 29.95,
+          "samples": 600,
+          "mean": 1.8331958461221083,
+          "rms": 24.925792776503368,
+          "largest": -122.20377887661297,
+          "largest_at_s": 3.0999999999999996
         }
       ],
       "speed_withheld": null,

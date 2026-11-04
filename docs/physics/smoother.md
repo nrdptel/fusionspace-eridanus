@@ -98,7 +98,7 @@ truths lay below the interval, and only 82% inside it. Every set, logger and mom
 ## A log written from launch
 
 Many loggers write little before they detect the launch. Of the
-[1,058 records of the sample logs][survey], 554 are smoothed: 379 on an assumed pad and 175 on their
+[1,058 records of the sample logs][survey], 549 are smoothed: 373 on an assumed pad and 176 on their
 own. A log with no zero to stand on, such as a track of pressures alone with no pad, gives no
 liftoff and is still withheld. With fewer than five barometer samples on the pad, the smoother
 assumes it:
@@ -120,8 +120,8 @@ To test this, each synthetic flight's log is cut at liftoff and smoothed again. 
 logger's true zero, so the test holds no error in that zero. On the [report][launch]'s sets A and B, every cell
 holds, overall and per logger (the command fails otherwise): 94.9% to 98.7% of truths lie inside the
 90% intervals overall. Real logs have no such truth ([evidence row G33](../evidence.md#g33)). Their
-smoothed apogee falls outside the reading's bound on 12 of the 379 on an assumed pad and 20 of the
-175 on their own. A log's own pad doesn't prevent it
+smoothed apogee falls outside the reading's bound on 12 of the 373 on an assumed pad and 20 of the
+176 on their own. A log's own pad doesn't prevent it
 ([an open issue](https://github.com/nrdptel/fusionspace-eridanus/issues/1073)). The card then says
 so, and the reading is the one to go by.
 
