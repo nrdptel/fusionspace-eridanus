@@ -387,17 +387,21 @@ A pull request's own run hasn't finished when it opens, so the check reads three
 stand in for it. `cargo xtask ci-budget` prints one line for each and fails if any is over:
 
 1. **The gate.** The newest passing full run of `scripts/gate.sh` on the branch, at its head or a
-   commit on it since it left main, from the history the gate writes in the git directory. Over
-   1,800 s fails. A branch with no full run yet only gets a note: the gate itself is required
-   before a merge.
+   commit on it since it left main, from the history the gate writes in the git directory. A step
+   run again after it on the branch, alone or with others (`scripts/gate.sh validate`), replaces
+   that step's time in it, by its newest passing reading; a step the prose rule left out of the
+   full run is added. Over 1,800 s fails. A branch with no full run yet only gets a note: the
+   gate itself is required before a merge.
 2. **A pull request's jobs.** Main's last passing CI run that ran a pull request's jobs: one
    started by a push, or by hand without `full`, in which no `census` job ran (§2 above) and
    `types` did. A run that skipped `types` changed research notes alone, and most of its checks
    ran no step, so the check reads the run before it. A job that ran longer than 1,200 s on its
    runner fails; the wait for a runner is left out, as §1 says.
 3. **The night.** The newest passing run on main started each night, or by hand with `full`, in
-   which every `census` job and `fit intervals` passed. If it started more than 26 hours ago, or
-   there is none, the check fails.
+   which every `census` job and `fit intervals` passed. If it was made more than 26 hours ago, by
+   its first attempt's time (GitHub's `created_at`; `run_started_at` moves to a re-run's, so a
+   night's failed jobs passed again days later would read as new), or there is none, the check
+   fails.
 
 It reads GitHub's runs with `gh`, so it needs the network; when it can't read them it fails and
 says why. The checks run before a pull request opens and before it merges call it, the latter at

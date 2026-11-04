@@ -18,7 +18,8 @@
 //!    `completed_at`, passes 1,200 s fails. The night's jobs are a full run's, not a pull
 //!    request's; they are printed, not held.
 //! 3. **The night.** A passing run on main, nightly or started by hand with `full`, in which every
-//!    `census` job and `fit intervals` passed, started within the last 26 hours. None fails.
+//!    `census` job and `fit intervals` passed, made within the last 26 hours by its first
+//!    attempt's time (a re-run of an old night's failed jobs is no new night). None fails.
 //!
 //! Reading GitHub's runs needs `gh` and the network; a failure to read them fails the check
 //! and says why.
@@ -26,6 +27,7 @@
 //! [ADR-149]: ../../docs/decisions/0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md
 
 use std::collections::HashMap;
+use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -96,8 +98,9 @@ pub(crate) struct Run {
     pub(crate) event: String,
     /// `success`, `failure`, ...; absent while the run is going.
     pub(crate) conclusion: Option<String>,
-    /// When the run started, UTC, `YYYY-MM-DDTHH:MM:SSZ`.
-    pub(crate) run_started_at: String,
+    /// When the run was made, UTC, `YYYY-MM-DDTHH:MM:SSZ`: its first attempt's time, which a
+    /// re-run keeps (`run_started_at` moves to the re-run's).
+    pub(crate) created_at: String,
     /// The commit it ran on.
     pub(crate) head_sha: String,
 }
@@ -189,49 +192,132 @@ fn minutes(seconds: i64) -> String {
     format!("{}m{:02}s", seconds / 60, seconds % 60)
 }
 
-/// The gate's check: the newest passing full run whose head is one of `commits` (the branch's
-/// head and its commits since `origin/main`), from the gate's history, one tab-separated line a
-/// run: UTC time, head, whether the tree had changes, whether every default step ran (`1`),
-/// `PASS` or `FAIL`, the seconds, each step's seconds.
+/// The first eight characters of a commit's name, or all of it if shorter or not ASCII there.
+fn short(sha: &str) -> &str {
+    sha.get(..8).unwrap_or(sha)
+}
+
+/// One run of the gate, a line of its history.
+struct GateRow<'a> {
+    time: &'a str,
+    head: &'a str,
+    full: bool,
+    passed: bool,
+    seconds: i64,
+    /// Each step's seconds, and whether it failed, in the order it ran.
+    steps: Vec<(&'a str, i64, bool)>,
+    /// The prose rule left validate out (`validate-left`).
+    validate_left: bool,
+}
+
+/// A line of the gate's history: UTC time, head, whether the tree had changes, whether every
+/// default step ran (`1`), `PASS` or `FAIL`, the seconds, and each step's `name=seconds`
+/// (`:FAIL` after a failed one), then `validate-left` when the prose rule left validate out.
+fn gate_row(n: usize, line: &str) -> Result<GateRow<'_>, String> {
+    let fields: Vec<&str> = line.split('\t').collect();
+    if fields.len() < 6 {
+        return Err(format!("gate history line {n}: fewer than six fields"));
+    }
+    let seconds = |text: &str| -> Result<i64, String> {
+        text.parse()
+            .map_err(|_| format!("gate history line {n}: `{text}` is no seconds"))
+    };
+    let mut steps = Vec::new();
+    let mut validate_left = false;
+    for token in fields.get(6).copied().unwrap_or("").split_whitespace() {
+        if token == "validate-left" {
+            validate_left = true;
+            continue;
+        }
+        let (name, time) = token
+            .split_once('=')
+            .ok_or_else(|| format!("gate history line {n}: `{token}` is no step's time"))?;
+        let (time, failed) = match time.strip_suffix(":FAIL") {
+            Some(time) => (time, true),
+            None => (time, false),
+        };
+        steps.push((name, seconds(time)?, failed));
+    }
+    Ok(GateRow {
+        time: fields[0],
+        head: fields[1],
+        full: fields[3] == "1",
+        passed: fields[4] == "PASS",
+        seconds: seconds(fields[5])?,
+        steps,
+        validate_left,
+    })
+}
+
+/// The gate's check, on the history's runs whose head is one of `commits` (the branch's head
+/// and its commits since `origin/main`): the newest passing full run's seconds, each step's
+/// replaced by the newest passing reading of that step in a later run, so a step run alone after
+/// it (`scripts/gate.sh validate`) still counts. Over [`GATE_BUDGET_S`] fails.
 pub(crate) fn gate_verdict(history: &str, commits: &[String]) -> Result<Verdict, String> {
-    let mut newest: Option<(&str, &str, i64)> = None;
+    let mut rows = Vec::new();
     for (n, line) in history.lines().enumerate() {
         if line.trim().is_empty() {
             continue;
         }
-        let fields: Vec<&str> = line.split('\t').collect();
-        if fields.len() < 6 {
-            return Err(format!(
-                "gate history line {}: fewer than six fields",
-                n + 1
-            ));
-        }
-        let (time, head, full, result) = (fields[0], fields[1], fields[3], fields[4]);
-        let seconds: i64 = fields[5]
-            .parse()
-            .map_err(|_| format!("gate history line {}: `{}` is no seconds", n + 1, fields[5]))?;
-        if full == "1" && result == "PASS" && commits.iter().any(|c| c == head) {
-            newest = Some((time, head, seconds));
+        let row = gate_row(n + 1, line)?;
+        if commits.iter().any(|c| c == row.head) {
+            rows.push(row);
         }
     }
-    Ok(match newest {
-        None => Verdict::Note(
+    let Some(at) = rows.iter().rposition(|row| row.full && row.passed) else {
+        return Ok(Verdict::Note(
             "gate: no passing full run on this branch yet (run `scripts/gate.sh`)".to_owned(),
-        ),
-        Some((time, head, seconds)) => {
-            let what = format!(
-                "gate: the newest passing full run on this branch, {time} at {}, took {seconds} s ({})",
-                &head[..head.len().min(8)],
-                minutes(seconds)
-            );
-            if seconds > GATE_BUDGET_S {
-                Verdict::Fail(format!(
-                    "{what}, over the {GATE_BUDGET_S} s budget: split what made it slow (ADR-149 §1)"
-                ))
-            } else {
-                Verdict::Ok(format!("{what}, within {GATE_BUDGET_S} s"))
+        ));
+    };
+    let full = &rows[at];
+    // The newest passing reading of each step after the full run, by name.
+    let mut newer: Vec<(&str, i64, &str)> = Vec::new();
+    for row in &rows[at + 1..] {
+        for &(name, seconds, failed) in &row.steps {
+            if failed {
+                continue;
             }
+            newer.retain(|(n, _, _)| *n != name);
+            newer.push((name, seconds, row.head));
         }
+    }
+    let mut total = full.seconds;
+    let mut changed = Vec::new();
+    for &(name, seconds, head) in &newer {
+        let old = full
+            .steps
+            .iter()
+            .find(|(n, _, _)| *n == name)
+            .map_or(0, |&(_, s, _)| s);
+        if seconds != old {
+            total += seconds - old;
+            changed.push(format!("{name} {seconds} s at {}", short(head)));
+        }
+    }
+    let mut what = format!(
+        "gate: the newest passing full run on this branch, {} at {}, took {} s ({})",
+        full.time,
+        short(full.head),
+        full.seconds,
+        minutes(full.seconds)
+    );
+    if full.validate_left {
+        what.push_str(", validate left out as the branch changed only prose");
+    }
+    if !changed.is_empty() {
+        let _ = write!(
+            what,
+            "; with the newer steps ({}), {total} s ({})",
+            changed.join(", "),
+            minutes(total)
+        );
+    }
+    Ok(if total > GATE_BUDGET_S {
+        Verdict::Fail(format!(
+            "{what}, over the {GATE_BUDGET_S} s budget: split what made it slow (ADR-149 §1)"
+        ))
+    } else {
+        Verdict::Ok(format!("{what}, within {GATE_BUDGET_S} s"))
     })
 }
 
@@ -268,7 +354,7 @@ pub(crate) fn jobs_verdict(run: &Run, jobs: &[Job]) -> Result<Verdict, String> {
          longest `{name}` {longest} s ({})",
         run.id,
         run.event,
-        &run.head_sha[..run.head_sha.len().min(8)],
+        short(&run.head_sha),
         timed.len(),
         minutes(longest)
     );
@@ -302,18 +388,19 @@ pub(crate) fn full_pass(run: &Run, jobs: &[Job]) -> bool {
 }
 
 /// The night's check, from main's passing nightly and hand-started runs, each with its jobs,
-/// newest first: the newest passing full run must have started within 26 hours of `now`.
+/// newest first: the newest passing full run must have been made within 26 hours of `now`, by
+/// its first attempt's time, so a re-run of an old night's failed jobs passes for no new night.
 pub(crate) fn night_verdict(runs: &[(Run, Vec<Job>)], now: i64) -> Result<Verdict, String> {
     for (run, jobs) in runs {
         if !full_pass(run, jobs) {
             continue;
         }
-        let age = now - unix_seconds(&run.run_started_at)?;
+        let age = now - unix_seconds(&run.created_at)?;
         let what = format!(
-            "night: main's newest passing full run, {} ({}) at {}, started {} ago",
+            "night: main's newest passing full run, {} ({}) made at {}, {} ago",
             run.id,
             run.event,
-            run.run_started_at,
+            run.created_at,
             hours(age)
         );
         return Ok(if age > NIGHT_WINDOW_S {
@@ -457,7 +544,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let hand = passing_runs("workflow_dispatch", HAND_RUNS)?;
     let mut runs = passing_runs("push", PUSH_RUNS)?;
     runs.extend(hand.iter().cloned());
-    runs.sort_by(|a, b| b.run_started_at.cmp(&a.run_started_at));
+    runs.sort_by(|a, b| b.created_at.cmp(&a.created_at));
     let mut read: HashMap<u64, Vec<Job>> = HashMap::new();
     let mut jobs_found = None;
     for run in &runs {
@@ -481,7 +568,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let now = i64::try_from(now).map_err(|_| "the clock is past i64's seconds".to_owned())?;
     let mut nights = passing_runs("schedule", NIGHT_RUNS)?;
     nights.extend(hand);
-    nights.sort_by(|a, b| b.run_started_at.cmp(&a.run_started_at));
+    nights.sort_by(|a, b| b.created_at.cmp(&a.created_at));
     let mut with_jobs = Vec::new();
     let mut night_line = None;
     for run in nights {
@@ -535,7 +622,7 @@ mod tests {
             id,
             event: event.to_owned(),
             conclusion: Some("success".to_owned()),
-            run_started_at: started.to_owned(),
+            created_at: started.to_owned(),
             head_sha: "0123456789abcdef".to_owned(),
         }
     }
@@ -605,6 +692,56 @@ mod tests {
         assert!(matches!(v, Verdict::Ok(_)), "{v:?}");
         assert!(gate_verdict("x\ty\n", &commits(&["y"])).is_err());
         assert!(gate_verdict("t\taaaa\t0\t1\tPASS\tfast\n", &commits(&["aaaa"])).is_err());
+        assert!(gate_verdict("t\taaaa\t0\t1\tPASS\t9\tfmt:7\n", &commits(&["aaaa"])).is_err());
+    }
+
+    /// A step run alone after the newest full run, at a later commit of the branch, replaces that
+    /// step's time in it: a full run of 600 s and a later validate alone of 7,867 s make 8,267 s.
+    /// A failed step's reading isn't one, and a step the prose rule left out is added.
+    #[test]
+    fn a_step_run_alone_after_the_full_run_counts() {
+        let history = "\
+t1\taaaa\t0\t1\tPASS\t600\tfmt=7 test=150 validate=200
+t2\tbbbb\t0\t0\tPASS\t7870\tvalidate=7867
+";
+        let v = gate_verdict(history, &commits(&["aaaa", "bbbb"])).unwrap();
+        let Verdict::Fail(text) = v else {
+            panic!("{v:?}")
+        };
+        assert!(text.contains("took 600 s"), "{text}");
+        assert!(text.contains("validate 7867 s at bbbb"), "{text}");
+        assert!(text.contains("8267 s"), "{text}");
+        // The later run off the branch isn't counted.
+        let v = gate_verdict(history, &commits(&["aaaa"])).unwrap();
+        assert!(
+            matches!(v, Verdict::Ok(ref t) if !t.contains("newer")),
+            "{v:?}"
+        );
+        // A failed step's time is no reading of it.
+        let failed = "\
+t1\taaaa\t0\t1\tPASS\t600\tfmt=7 test=150 validate=200
+t2\tbbbb\t0\t0\tFAIL\t7870\tvalidate=7867:FAIL
+";
+        let v = gate_verdict(failed, &commits(&["aaaa", "bbbb"])).unwrap();
+        assert!(matches!(v, Verdict::Ok(_)), "{v:?}");
+        // The newest reading wins: validate 7,867 s, then 250 s.
+        let again = format!("{history}t3\tbbbb\t0\t0\tPASS\t250\tvalidate=250\n");
+        let v = gate_verdict(&again, &commits(&["aaaa", "bbbb"])).unwrap();
+        assert!(
+            matches!(v, Verdict::Ok(ref t) if t.contains("650 s")),
+            "{v:?}"
+        );
+        // validate left out by the prose rule, then run: added, and the line says so.
+        let left = "\
+t1\taaaa\t0\t1\tPASS\t400\tfmt=7 test=150 validate-left
+t2\tbbbb\t0\t0\tPASS\t1500\tvalidate=1500
+";
+        let v = gate_verdict(left, &commits(&["aaaa", "bbbb"])).unwrap();
+        let Verdict::Fail(text) = v else {
+            panic!("{v:?}")
+        };
+        assert!(text.contains("validate left out"), "{text}");
+        assert!(text.contains("1900 s"), "{text}");
     }
 
     #[test]
@@ -724,11 +861,14 @@ mod tests {
     fn the_api_fields_read() {
         let runs: Runs = serde_json::from_str(
             r#"{"total_count":1,"workflow_runs":[{"id":41753918203,"event":"workflow_dispatch",
-            "conclusion":"success","run_started_at":"2026-11-04T01:25:08Z","head_sha":"abc",
+            "conclusion":"success","created_at":"2026-11-04T01:25:08Z","head_sha":"abc",
+            "run_started_at":"2026-11-05T01:25:08Z",
             "status":"completed"}]}"#,
         )
         .unwrap();
         assert_eq!(runs.workflow_runs[0].id, 41_753_918_203);
+        // The first attempt's time, not a re-run's.
+        assert_eq!(runs.workflow_runs[0].created_at, "2026-11-04T01:25:08Z");
         let jobs: Jobs = serde_json::from_str(
             r#"{"total_count":1,"jobs":[{"name":"deploy","conclusion":null,"started_at":null,
             "completed_at":null,"status":"queued"}]}"#,

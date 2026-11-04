@@ -343,10 +343,17 @@ impl Part {
     /// Part `self` of `outer`'s flights, as one part of a run: every `self.of`th of `outer`'s,
     /// from its `self.number`th, is every `outer.of * self.of`th flight of the run, from its
     /// `outer.number + (self.number - 1) * outer.of`th.
-    fn within(self, outer: Self) -> Self {
-        Self {
-            number: outer.number + (self.number - 1) * outer.of,
-            of: outer.of * self.of,
+    /// Refuses a split too fine to count.
+    fn within(self, outer: Self) -> Result<Self, String> {
+        let number = (self.number - 1)
+            .checked_mul(outer.of)
+            .and_then(|n| n.checked_add(outer.number));
+        match (number, outer.of.checked_mul(self.of)) {
+            (Some(number), Some(of)) => Ok(Self { number, of }),
+            _ => Err(format!(
+                "--part {}/{} is too fine a split",
+                self.number, self.of
+            )),
         }
     }
 
@@ -1341,7 +1348,7 @@ fn check_slice(
         Err(e) => problems.push(format!("{}: {e}", page_path.display())),
     }
     let start = Instant::now();
-    let made = fit_runs(files, part.within(SLICE))?;
+    let made = fit_runs(files, part.within(SLICE)?)?;
     let (slice, mut broken) = slice_part_of(&made, &drawn_of(&report), part)?;
     broken.extend(report_problems(&report));
     let slice_path = root.join(format!("{REPORT}.slice.json"));
@@ -2059,7 +2066,7 @@ mod tests {
                 for number in 1..=of {
                     let part = Part { number, of };
                     assert_eq!(
-                        part.within(SLICE).of_run(&run.indices),
+                        part.within(SLICE).unwrap().of_run(&run.indices),
                         part.of_run(&SLICE.of_run(&run.indices)),
                         "{} part {number}/{of}",
                         run.name()
@@ -2081,6 +2088,7 @@ mod tests {
                 .map(|(run, made)| {
                     let at: BTreeSet<u64> = part
                         .within(SLICE)
+                        .unwrap()
                         .of_run(&run.indices)
                         .into_iter()
                         .collect();
@@ -2126,6 +2134,20 @@ mod tests {
             problem.contains("flight 0: made, but not in this part"),
             "{problem}"
         );
+        // A split too fine to count is refused, not wrapped.
+        assert!(
+            Part {
+                number: 1,
+                of: usize::MAX
+            }
+            .within(SLICE)
+            .is_err()
+        );
+        let last = Part {
+            number: usize::MAX,
+            of: usize::MAX,
+        };
+        assert!(last.within(SLICE).is_err());
         // A part missing one of its fits is refused.
         let mut short = fits_of(part, &whole);
         short[0].pop();
