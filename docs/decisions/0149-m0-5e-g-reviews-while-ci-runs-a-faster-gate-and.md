@@ -303,9 +303,13 @@ the words hold what the census counts without one.
    Mac, writes the slice beside it as `fit-intervals.slice.json`. Each fit has a line for what it
    came to: fitted or with nothing to fit, a track or height alone, converged or at its step
    limit, its residual, its RMS, the flights it flew and its design. Then a line for each of the
-   five parameters: its value, standard error and truth, its error over its standard error, where
-   its truth fell against the 90% interval the report counts, and "not counted" where the report
-   counts none (a log with nothing to fit, a wind without a track). Numbers keep three significant
+   five parameters: its value, standard error and truth, its error over its standard error, and
+   where its truth fell against the 90% interval the report counts, or "not counted" where the
+   report counts none (a log with nothing to fit, a wind without a track). A fit of the calibration
+   set has neither: its errors are what the shares are fitted on, so some sit on an interval's end
+   by construction (calibration flight 441's wind toward the east, at the share's −0.369), where a
+   side would turn on a platform's last digits and say nothing the report counts. A physics review
+   of this change found it. Numbers keep three significant
    figures, shares three decimals, as in the other two slices. `fit --slice` makes the slice's fits
    again and holds them to the committed slice with the same comparison as the other two: byte for
    byte in the gate, which runs the build that writes it, and in words (`--other-platform`)
@@ -322,8 +326,11 @@ the words hold what the census counts without one.
    `fit --check`; CI's runs left the calibration set out. Now the run that writes the report and
    `fit --check` hold them to the library's to their three figures, and the night holds them
    within the rule the report's figures keep on another platform: 5% of the larger, or 0.002.
-   `--slice` checks no shares and no count of the report. It reads the committed report and
-   checks that it renders the committed page.
+   `--slice` fits no calibration set, but it reads the committed report and holds it to its own
+   rules from its counts: each test taken again from its counts must pass, each probe fail, set A's
+   scales be identified, nothing on noise, no fit past the misfit's cut, every log with nothing to
+   fit a GNSS receiver's alone, and its shares the library's. It also checks that the report
+   renders the committed page.
 4. **Where each runs.** `fit --slice` runs in the gate's validate step in place of `fit --check`.
    On every pull request but one that changes only research notes, a job of its own, `fit slice`,
    runs `fit --slice --other-platform` on all five platforms. It sits beside `validate`, which took
@@ -346,7 +353,11 @@ run on this change's first commit, `fit slice` held the slice in words on all fi
 fits took 266 to 464 s, the longest on `windows-latest`, and its jobs 8 to 18 minutes with a build
 from no cache, as a new job's first run has. The night's parts and `fit intervals` passed on
 Linux: 22 numbers of the report stood apart from the committed one, by at most one flight and
-3.38%, the shares held within their rule and the slice in every word.
+3.38%, the shares held within their rule and the slice in every word. The shares come from the fits alone, so the night's check run again on the Mac from those eight
+parts gives Linux's shares: at most 0.002 from the library's at three figures, against the rule's
+0.002 or 5%; it held the slice, its calibration lines without sides, in every word too. Each part now fits
+1,146 to 1,151 flights, not about 820, in 781 to 1,075 s, and its job took 951 to 1,301 s,
+against 587 to 999 s in main's last full run before it (run 41753918203, 2026-11-03).
 
 **The fit's slice's consequences.**
 
@@ -358,3 +369,6 @@ Linux: 22 numbers of the report stood apart from the committed one, by at most o
   of a fit in the slice, a number at its three figures or decimals or a word, fails the gate.
   Issue #1177 is open to hold the whole report exactly in an automatic run again.
 - A pull request's CI gains five jobs, each a build and 4 to 8 minutes of fits.
+- The night's fit parts now pass 20 minutes. The budget is a pull request's, but M0.16a3's check
+  reads main's last passing run, which may be a night's: that increment splits the parts further
+  if it counts them.

@@ -392,9 +392,9 @@ jobs:
       - if: env.RUN == 'true'
         run: cargo run --locked --quiet --package xtask --profile report-check -- fit --slice --other-platform
 
-  # The least-squares fit's 90% intervals (M7.3b, ADR-316): about 6,500 fits of flights of sets A
-  # and B, each parameter held to ADR-257's counts and probes. In one Linux job it took 60 to 102 minutes
-  # (eight runs, 2026-11-02). So eight jobs each fit an eighth of the flights: part K fits every
+  # The least-squares fit's 90% intervals (M7.3b, ADR-316): 6,538 fits of flights of sets A and B
+  # and of noise, each parameter held to ADR-257's counts and probes. In one Linux job those took 60
+  # to 102 minutes (eight runs, 2026-11-02), before the calibration set joined them. So eight jobs each fit an eighth of the flights: part K fits every
   # eighth flight of each run from the Kth (`fit --part K/8`), and hands its fits on. A fit doesn't
   # depend on what its thread or machine fitted before it (`fit::tests`), so the parts together are
   # the fits one job would make. The calibration set's 2,654 fits are among the parts' 9,192, so
