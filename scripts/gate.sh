@@ -38,10 +38,12 @@
 # (M5.7c, ADR-304: `analyze_stats.js --recount` works out which files pass from the raw
 # ThrustCurve.org snapshot with ThrustCurve.org's own code, and fails unless the index agrees).
 # Step validate runs `motor-catalog --check` as CI does, and with the raw snapshot under refs/ it
-# also holds the committed records and files to it. It runs that and `synthetic --check` in the dev
-# profile, whole, where CI runs them optimized, the flight censuses each night (ADR-149, amended): the dev
-# profile is the one that writes the reports, so this is the check that what's committed is what it
-# writes, and before a merge the only run of the censuses.
+# also holds the committed records and files to it. It runs that in the dev profile, where CI runs it
+# optimized. Of the flight censuses (ADR-149, amended), which run whole each night, it runs the
+# synthetic flights' and two logs' slices (M0.16a1: every 20th flight of each set, held line for line
+# to the committed `.slice.json` and to the census's rules for one flight), as CI does on every pull
+# request, and the fit whole, in the optimized build, until it has a slice of its own. The dev profile
+# is the one that writes the reports, so this checks that what's committed is what it writes.
 # The default run leaves validate out when the branch changes only prose that none of its five
 # checks reads: pages under docs/, the site's theme/ and book.toml, and Markdown files at the top,
 # but not README.md, docs/accuracy.md and docs/images/ (the census writes their tables and badges),
@@ -290,7 +292,7 @@ cmd_for() {
       fi ;;
     doc) echo "env RUSTDOCFLAGS=-D\\ warnings cargo doc --workspace --no-deps --all-features --locked" ;;
     wasm) echo "$XTASK wasm-check --locked" ;;
-    validate) echo "$XTASK validate --check && $XTASK synthetic --check && $XTASK two-logs --check && cargo run --locked --quiet --package xtask --profile report-check -- fit --check && $XTASK motor-catalog --check && $XTASK scoreboard --check --against origin/main" ;;
+    validate) echo "$XTASK validate --check && $XTASK synthetic --slice && $XTASK two-logs --slice && cargo run --locked --quiet --package xtask --profile report-check -- fit --check && $XTASK motor-catalog --check && $XTASK scoreboard --check --against origin/main" ;;
     deny) echo "cargo deny check" ;;
     site) echo "$XTASK site --locked --cache" ;;
     pages) echo "$XTASK site --no-build" ;;

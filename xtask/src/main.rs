@@ -80,6 +80,7 @@ mod release;
 mod roadmap;
 mod scoreboard;
 mod site;
+mod slice;
 mod spelling;
 mod steps;
 mod synthetic;
