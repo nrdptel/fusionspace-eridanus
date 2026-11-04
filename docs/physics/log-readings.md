@@ -254,7 +254,7 @@ for as long as a rocket at $A$ takes to cross the rise, 0.69 s on a PerfectFlite
 the track holds is no disturbance. The apogee is still read, from the samples resting before the
 fall, else the logger's zero; with no zero, nothing is. Liftoff's bound reaches back over the fall
 to the last sample on the pad, with no 90% interval; with none, liftoff is withheld. On the two such
-records that state their apogee, the reading comes within a foot of it; the first sample as the pad
+records that state their apogee, the reading comes within about 0.3 m (1 ft) of it; the first sample as the pad
 reads up to 268.8 m (882 ft) high, the fall's end up to 339.9 m (1,115 ft)
 ([the survey's report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md#disturbed-pads-against-stated-apogees)).
 
