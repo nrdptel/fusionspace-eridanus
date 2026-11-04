@@ -1671,7 +1671,7 @@
               "above": 24
             }
           },
-          "mean_error": -0.00533,
+          "mean_error": -0.00532,
           "identification": {
             "median_width": 0.449,
             "stated_width": 12.7,
@@ -1902,7 +1902,7 @@
       "how": "log",
       "size_m": 1000.0,
       "track_m": null,
-      "smallest_misfit": null,
+      "smallest_misfit": 0.994,
       "flights": 200,
       "said_nothing": 200,
       "identified": {

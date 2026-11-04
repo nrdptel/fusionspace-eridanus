@@ -175,7 +175,7 @@ impl Gathering {
     /// Reads `log`, a record of file `id` of `family`, and counts its readings.
     pub(super) fn add(&mut self, family: &str, id: &str, log: &FlightLog) {
         let read = readings::read(log);
-        if read.liftoff.reason() == Some(Reason::DisturbedPad)
+        if read.max_speed.reason() == Some(Reason::DisturbedPad)
             && let (Some(stated), Some(apogee), Some((time, heights))) = (
                 log.stated.apogee_m,
                 read.apogee.value(),

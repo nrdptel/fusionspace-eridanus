@@ -3853,9 +3853,8 @@
           "flight_time": {
             "given": 7,
             "withheld": {
-              "disturbed_pad": 1,
               "disturbed_top": 1,
-              "ends_before_landing": 3,
+              "ends_before_landing": 4,
               "no_climb": 1,
               "sampled_too_slowly": 1
             }
@@ -3870,9 +3869,8 @@
             }
           },
           "liftoff": {
-            "given": 11,
+            "given": 12,
             "withheld": {
-              "disturbed_pad": 1,
               "no_climb": 1,
               "sampled_too_slowly": 1
             }
@@ -3904,13 +3902,13 @@
           }
         },
         "smoother": {
-          "own_pad": 11,
+          "own_pad": 12,
           "assumed_pad": 0,
           "own_pad_past_bound": 0,
           "assumed_pad_past_bound": 0,
           "accelerometer_set_aside": 0,
           "withheld": {
-            "no_liftoff": 3
+            "no_liftoff": 2
           }
         }
       },
@@ -4721,9 +4719,8 @@
           "flight_time": {
             "given": 37,
             "withheld": {
-              "disturbed_pad": 1,
               "disturbed_top": 2,
-              "ends_before_landing": 8,
+              "ends_before_landing": 9,
               "no_height_track": 40,
               "short_pad": 1
             }
@@ -4737,9 +4734,8 @@
             }
           },
           "liftoff": {
-            "given": 47,
+            "given": 48,
             "withheld": {
-              "disturbed_pad": 1,
               "no_height_track": 40,
               "short_pad": 1
             }
@@ -4772,14 +4768,14 @@
           }
         },
         "smoother": {
-          "own_pad": 47,
+          "own_pad": 48,
           "assumed_pad": 0,
           "own_pad_past_bound": 3,
           "assumed_pad_past_bound": 0,
           "accelerometer_set_aside": 0,
           "withheld": {
             "no_barometer": 40,
-            "no_liftoff": 2
+            "no_liftoff": 1
           }
         }
       },
@@ -6547,9 +6543,9 @@
             }
           },
           "flight_time": {
-            "given": 140,
+            "given": 141,
             "withheld": {
-              "disturbed_pad": 3,
+              "disturbed_pad": 2,
               "disturbed_top": 14,
               "ends_before_landing": 10,
               "short_pad": 8
@@ -6563,9 +6559,9 @@
             }
           },
           "liftoff": {
-            "given": 164,
+            "given": 165,
             "withheld": {
-              "disturbed_pad": 3,
+              "disturbed_pad": 2,
               "short_pad": 8
             }
           },
@@ -6594,12 +6590,12 @@
         },
         "smoother": {
           "own_pad": 6,
-          "assumed_pad": 158,
+          "assumed_pad": 159,
           "own_pad_past_bound": 3,
           "assumed_pad_past_bound": 3,
           "accelerometer_set_aside": 0,
           "withheld": {
-            "no_liftoff": 11
+            "no_liftoff": 10
           }
         }
       },
@@ -6941,9 +6937,8 @@
             }
           },
           "burnout": {
-            "given": 65,
+            "given": 67,
             "withheld": {
-              "disturbed_pad": 2,
               "disturbed_top": 9,
               "sampled_too_fast": 1,
               "sampled_too_slowly": 1,
@@ -6961,9 +6956,8 @@
             }
           },
           "flight_time": {
-            "given": 64,
+            "given": 66,
             "withheld": {
-              "disturbed_pad": 2,
               "disturbed_top": 9,
               "ends_before_landing": 4,
               "sampled_too_fast": 1
@@ -6978,9 +6972,8 @@
             }
           },
           "liftoff": {
-            "given": 77,
+            "given": 79,
             "withheld": {
-              "disturbed_pad": 2,
               "sampled_too_fast": 1
             }
           },
@@ -6993,9 +6986,9 @@
             }
           },
           "max_acceleration": {
-            "given": 61,
+            "given": 63,
             "withheld": {
-              "direction_unstated": 3,
+              "direction_unstated": 1,
               "disturbed_top": 9,
               "gravity_unstated": 6,
               "sampled_too_fast": 1
@@ -7014,12 +7007,12 @@
         },
         "smoother": {
           "own_pad": 3,
-          "assumed_pad": 74,
+          "assumed_pad": 76,
           "own_pad_past_bound": 0,
           "assumed_pad_past_bound": 2,
-          "accelerometer_set_aside": 59,
+          "accelerometer_set_aside": 61,
           "withheld": {
-            "no_liftoff": 3
+            "no_liftoff": 1
           }
         }
       },
@@ -7036,9 +7029,8 @@
             }
           },
           "burnout": {
-            "given": 0,
+            "given": 1,
             "withheld": {
-              "disturbed_pad": 1,
               "disturbed_top": 1
             }
           },
@@ -7049,9 +7041,8 @@
             }
           },
           "flight_time": {
-            "given": 0,
+            "given": 1,
             "withheld": {
-              "disturbed_pad": 1,
               "disturbed_top": 1
             }
           },
@@ -7062,10 +7053,8 @@
             }
           },
           "liftoff": {
-            "given": 1,
-            "withheld": {
-              "disturbed_pad": 1
-            }
+            "given": 2,
+            "withheld": {}
           },
           "main_descent": {
             "given": 1,
@@ -7074,9 +7063,8 @@
             }
           },
           "max_acceleration": {
-            "given": 0,
+            "given": 1,
             "withheld": {
-              "direction_unstated": 1,
               "disturbed_top": 1
             }
           },
@@ -7090,13 +7078,11 @@
         },
         "smoother": {
           "own_pad": 0,
-          "assumed_pad": 1,
+          "assumed_pad": 2,
           "own_pad_past_bound": 0,
           "assumed_pad_past_bound": 0,
-          "accelerometer_set_aside": 0,
-          "withheld": {
-            "no_liftoff": 1
-          }
+          "accelerometer_set_aside": 1,
+          "withheld": {}
         }
       },
       "raven-fipa": {
@@ -8080,8 +8066,8 @@
       },
       {
         "reason": "direction_unstated",
-        "records": 9,
-        "first": "1a27f2a281c325ca",
+        "records": 6,
+        "first": "4ed6012a31b4a214",
         "invented": null
       },
       {

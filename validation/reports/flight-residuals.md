@@ -114,19 +114,19 @@ Readings, the simulation read as the log is:
 
 ## Juno III, Projeto Jupiter, Spaceport America Cup 2023 (the team's motor)
 
-Altimeter: barometric, read as a barometer. 611 log samples; clocks lined up within 2.05 s; the log ends before a landing, so the residuals stop at its end.
+Altimeter: barometric, read as a barometer. 611 log samples; clocks lined up within 2.00 s; the log ends before a landing, so the residuals stop at its end.
 
 Height:
 
 | phase | from (s) | to (s) | samples | mean (m) | RMS (m) | largest (m) | at (s) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| flight | 0.00 | 29.90 | 599 | +286.5 | 485.5 | +7815.4 | 29.85 |
+| flight | 0.00 | 29.95 | 600 | +279.4 | 480.8 | +7814.4 | 29.90 |
 
 Speed:
 
 | phase | from (s) | to (s) | samples | mean (m/s) | RMS (m/s) | largest (m/s) | at (s) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| flight | 0.00 | 29.90 | 599 | +1.7 | 25.3 | -119.0 | 3.05 |
+| flight | 0.00 | 29.95 | 600 | +1.8 | 24.9 | -122.2 | 3.10 |
 
 Readings, the simulation read as the log is:
 

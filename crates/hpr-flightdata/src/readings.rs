@@ -482,8 +482,9 @@ pub enum Reason {
     /// The track falls more than the climb's rise below its start before the climb, then climbs
     /// from the fall without resting again: a disturbance on the pad, such as a pressure pulse at
     /// the barometer at ignition (#1101). The pad is read from before the fall, or from the
-    /// logger's zero when too little of it comes before; liftoff and the top speed are withheld,
-    /// and every reading is when the track has no zero and too little pad before the fall.
+    /// logger's zero when too little of it comes before. The top speed is withheld; so is liftoff
+    /// when no sample before the fall is on the pad, its bound otherwise reaching back over the
+    /// fall; and every reading is when the track has no zero and too little pad before the fall.
     DisturbedPad,
     /// The log's accelerometers don't say which of them lies along the rocket's axis, such as a
     /// board's three axes, a phone's or a table's column read by its header: the top
@@ -1192,11 +1193,11 @@ fn heights(log: &FlightLog) -> Readings {
     else {
         return no_climb(readings, rise);
     };
-    let fall = fall_before_climb(&filtered, time, (head, climb), start, rise);
+    let pad_fall = fall_before_climb(&filtered, time, (head, climb), start, rise);
     // The pad: the median of the samples to the last within half the rise of the start before
     // the climb, the allowance and a step, so that the pad's noise doesn't end it early and the
     // climb lends it few samples; before a fall into the climb, those before the fall.
-    let on_pad = match &fall {
+    let on_pad = match &pad_fall {
         Some(fall) => fall.begin.max(head + 1),
         None => filtered[head..climb]
             .iter()
@@ -1218,7 +1219,9 @@ fn heights(log: &FlightLog) -> Readings {
     let pad_error_m = start_speed * start_speed / (2.0 * LIFTOFF_ACCELERATION_M_S2);
     // Before a fall into the climb, the samples are the pad only if they rest there.
     let short_pad = pad_error_m > LIFTOFF_ALLOWANCE_M
-        || fall.as_ref().is_some_and(|fall| stay_s < fall.resting_s);
+        || pad_fall
+            .as_ref()
+            .is_some_and(|fall| stay_s < fall.resting_s);
     // With no pad, the log's first sample stands for it: the zero a logger that records from
     // launch writes first, or the climb's first height in one that writes none.
     let measured_pad = if short_pad {
@@ -1257,12 +1260,11 @@ fn heights(log: &FlightLog) -> Readings {
         0.5 * rise,
         LIFTOFF_ALLOWANCE_M
     );
-    let fall_detail = fall.as_ref().map(|fall| {
+    let fall_detail = pad_fall.as_ref().map(|fall| {
         format!(
             "the track falls {:.1} m below its start before the climb, and climbs from the fall \
              without resting again for {:.2} s: a disturbance on the pad, such as a pressure \
-             pulse at ignition. The rocket left the pad somewhere in it or before it, so liftoff \
-             can't be told, and the climb's first speeds may be the disturbance's",
+             pulse at ignition",
             fall.depth_m, fall.resting_s
         )
     });
@@ -1448,15 +1450,28 @@ fn heights(log: &FlightLog) -> Readings {
 
     // Liftoff is read late by the time the rocket takes to climb out of the pad's reach, once
     // above it and once below, at the least acceleration off the pad, and by a sample either side.
-    let lifted = on_the_pad.map(|liftoff| {
+    // Before a fall into the climb, the rocket may have left the pad at any time from the last
+    // sample within the pad's allowance before the fall, read so, to the climb's: the bound
+    // reaches back over the fall. A log with no such sample may have started off the pad.
+    let lifted = on_the_pad.and_then(|liftoff| {
         let bound_s = (4.0 * (allowance + pad_error_m) / LIFTOFF_ACCELERATION_M_S2).sqrt()
             + 2.0 * local_interval(time, liftoff);
-        (liftoff, bound_s)
+        match &pad_fall {
+            None => Some((liftoff, bound_s)),
+            Some(fall) => filtered[head..fall.begin]
+                .iter()
+                .rposition(|h| (h - pad).abs() <= allowance)
+                .map(|rested| (liftoff, bound_s + time[liftoff] - time[head + rested])),
+        }
     });
     readings.liftoff = match lifted {
-        _ if fall_detail.is_some() => Reading::withheld(
+        None if fall_detail.is_some() => Reading::withheld(
             Reason::DisturbedPad,
-            fall_detail.clone().unwrap_or_default(),
+            format!(
+                "{}, and no sample before the fall is within the pad's {allowance:.1} m \
+                 allowance, so the rocket may have left the pad before the log starts",
+                fall_detail.clone().unwrap_or_default()
+            ),
         ),
         Some((liftoff, bound_s)) => Reading::Read(Liftoff {
             time_s: time[liftoff],
@@ -1498,9 +1513,7 @@ fn heights(log: &FlightLog) -> Readings {
     };
     readings.apogee = Reading::Read(Apogee {
         time_s: apogee_s,
-        time_after_liftoff_s: lifted
-            .filter(|_| fall_detail.is_none())
-            .map(|(index, _)| apogee_s - time[index]),
+        time_after_liftoff_s: lifted.map(|(index, _)| apogee_s - time[index]),
         time_bound_s: time_bound,
         time_interval_s: stated(interval::APOGEE_TIME_SHARES, apogee_s, time_bound),
         height_m: height,
@@ -1538,7 +1551,10 @@ fn heights(log: &FlightLog) -> Readings {
         );
     }
     if let Some(detail) = &fall_detail {
-        readings.max_speed = Reading::withheld(Reason::DisturbedPad, detail.clone());
+        readings.max_speed = Reading::withheld(
+            Reason::DisturbedPad,
+            format!("{detail}. The climb's first speeds may be the disturbance's"),
+        );
     }
     let apex = Apex {
         index: apogee_index,
@@ -2819,13 +2835,14 @@ mod tests {
     }
 
     /// A fall into the climb isn't the pad (#1101): the pad is read from before it, or from the
-    /// logger's zero when too little comes before it, so the apogee holds its bound of the truth;
-    /// liftoff and the top speed are withheld. With no zero and too little pad, nothing is read. A
-    /// fall to a level the track then holds is the pad's.
+    /// logger's zero when too little comes before it, so the apogee holds its bound of the truth.
+    /// The top speed is withheld; liftoff holds its bound, which reaches back over the fall, or is
+    /// withheld where the log starts in the fall. With no zero and too little pad, nothing is
+    /// read. A fall to a level the track then holds is the pad's.
     #[test]
     fn a_pulse_at_ignition_isnt_the_pad() {
         let truth_m = 10.0 * STANDARD_GRAVITY_MPS2;
-        let holds = |read: &Readings, case: &str| {
+        let holds = |read: &Readings, liftoff_s: Option<f64>, case: &str| {
             let apogee = read.apogee.value().unwrap();
             assert!(
                 (apogee.height_m - truth_m).abs() <= apogee.bound_m,
@@ -2833,19 +2850,39 @@ mod tests {
                 apogee.height_m,
                 apogee.bound_m
             );
-            assert!(apogee.time_after_liftoff_s.is_none(), "{case}");
-            assert_eq!(read.liftoff.reason(), Some(Reason::DisturbedPad), "{case}");
             assert_eq!(
                 read.max_speed.reason(),
                 Some(Reason::DisturbedPad),
                 "{case}"
             );
+            match liftoff_s {
+                Some(truth_s) => {
+                    let liftoff = read.liftoff.value().unwrap();
+                    assert!(
+                        (liftoff.time_s - truth_s).abs() <= liftoff.bound_s,
+                        "{case}: liftoff {} s, bound {} s",
+                        liftoff.time_s,
+                        liftoff.bound_s
+                    );
+                }
+                None => {
+                    assert_eq!(read.liftoff.reason(), Some(Reason::DisturbedPad), "{case}");
+                    assert!(apogee.time_after_liftoff_s.is_none(), "{case}");
+                }
+            }
         };
-        // On the logger's zero: a few samples of pad, none, or a long pad before the pulse.
-        for (t0, depth) in [(0.25, 300.0), (0.25, 30.0), (0.0, 300.0), (3.0, 300.0)] {
+        // On the logger's zero: a few samples of pad, a long pad, or none, the log starting in
+        // the fall after a liftoff before it.
+        for (t0, depth, lifted) in [
+            (0.25, 300.0, true),
+            (0.25, 30.0, true),
+            (3.0, 300.0, true),
+            (-0.2, 300.0, false),
+        ] {
             let read = read(&log(t0 + 30.0, pulsed(t0, depth)));
-            holds(&read, &format!("zero, pad {t0} s, fall {depth} m"));
-            assert_eq!(read.pad_altitude_m, Some(0.0), "pad {t0} s, fall {depth} m");
+            let case = format!("zero, liftoff at {t0} s, fall {depth} m");
+            holds(&read, lifted.then_some(t0), &case);
+            assert_eq!(read.pad_altitude_m, Some(0.0), "{case}");
         }
         // A pressure track has no zero: a long pad before the pulse places it, a short one can't.
         let on_pressure = |t0: f64| {
@@ -2856,7 +2893,7 @@ mod tests {
             );
             read(&pressure)
         };
-        holds(&on_pressure(3.0), "pressure, pad 3 s");
+        holds(&on_pressure(3.0), Some(3.0), "pressure, pad 3 s");
         let short = on_pressure(0.25);
         for reason in [
             short.liftoff.reason(),
