@@ -147,7 +147,7 @@ rocket any better than a scale does.
 are counted. Each count must fit a 99.9% Clopper-Pearson band (an exact binomial interval) around
 5%, 90% and 5%. An
 interval narrowed to 0.8, widened to 1.25, or shifted down one standard error must fail it.
-[The report][report] holds every count and each design's.
+[The report][report] holds every count and each design's ([how CI checks it](../VALIDATION.md#in-ci-and-regenerating-the-references)).
 
 Each set counts its first 1,000 logs with something to fit. Of set A's first 1,216 flights, 216 had
 nothing to fit; of set B's first 1,193, 193. Each has only a GNSS receiver's height. A wind's counts are on 1,500 flights of the logger with
@@ -202,7 +202,7 @@ Those counts have limits:
 ## The Bayesian option
 
 `hpr_forensics::fit::bayesian` runs the least-squares fit, then draws the posterior of the same
-unknowns around its answer ([ADR-317][adr-317], [ADR-319][adr-319]). Its 90% intervals don't pass
+unknowns around its answer ([ADR-317][adr-317], [ADR-320][adr-320]). Its 90% intervals don't pass
 their test yet: 4 of the 10 counts pass, 5 parameters on each of 2 sets. The wind's intervals are
 too wide. Set A's drag and set B's impulse miss too many truths on one side, so there they're too
 narrow or off center. Until they pass, read
@@ -259,7 +259,7 @@ known:
   a probe that must fail. Its median width on set A is 0.431 m/s (1.41 ft/s) east, against least
   squares' 0.345 m/s (1.13 ft/s). The likely cause, not yet measured, is the track's noise. The
   posterior takes it as the least-squares fit states it. That fit narrows its own intervals back,
-  with shares inside the bell curve's ±1.645 ([ADR-319][adr-319]).
+  with shares inside the bell curve's ±1.645 ([ADR-320][adr-320]).
 - **Set A's drag sits low and set B's impulse high.** 78 of set A's drag truths fall above, and
   83 of set B's impulse truths below. Of set A's 78, 70 are on logs of height alone, the only logs
   where the shear is drawn, though set A's wind doesn't shear. That points at the shear's stated
@@ -315,11 +315,11 @@ closed forms. A result under 100 effective draws is flagged as too few to read. 
 - M.-S. Oh and J. O. Berger, "Adaptive importance sampling in Monte Carlo integration", *Journal
   of Statistical Computation and Simulation* 41, 1992: widening the draws from a pilot's.
 - [ADR-317, the Bayesian option's plan][adr-317].
-- [ADR-319, the Bayesian option's decisions, with the measurements behind them][adr-319].
+- [ADR-320, the Bayesian option's decisions, with the measurements behind them][adr-320].
 
 [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 [adr-316]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md
 [adr-317]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0317-m7-3c-in-two-the-sampler-then-the-test.md
-[adr-319]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0319-m7-3c2-the-bayesian-option-in-two-blocks.md
+[adr-320]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0320-m7-3c2-the-bayesian-option-in-two-blocks.md
 [m7-3c4]: ../decisions-and-roadmap.md#m7-3c4
 [report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fit-intervals.md

@@ -31,10 +31,10 @@
 //! fit's drag and clock follow the wind on a log of height alone, leaves one Student-t about its
 //! peak few effective draws. [`sample_in_two`] draws the marked unknowns first, then the others
 //! about where the caller says they center given those, and widens its scales where a pilot's
-//! draws reach further ([ADR-319][adr-319]). [`crate::fit::bayesian`] draws a fit's posterior so,
+//! draws reach further ([ADR-320][adr-320]). [`crate::fit::bayesian`] draws a fit's posterior so,
 //! and `cargo xtask fit` counts its 90% intervals on the synthetic flights.
 //!
-//! [adr-319]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0319-m7-3c2-the-bayesian-option-in-two-blocks.md
+//! [adr-320]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0320-m7-3c2-the-bayesian-option-in-two-blocks.md
 
 use hpr_core::random::SeededRng;
 

@@ -77,57 +77,59 @@ the 2026-10-20 review's four ([ADR-286][adr-286]) and the 2026-10-24 review's fo
 to flight data and the ecosystem, and the 2026-10-26 review's four ([ADR-294][adr-294]) to flight
 data, clubs and the ecosystem. The 2026-10-28 review's four ([ADR-303][adr-303]) went to flight data and the ecosystem, and
 the 2026-10-31 review's five ([ADR-310][adr-310], [ADR-311][adr-311]) went there too; the milestone it
-promoted, every flight OpenRocket flies, is [M2.3c9][m2-3c9].
+promoted, every flight OpenRocket flies, is [M2.3c9][m2-3c9]. The 2026-11-02 review's four
+([ADR-318][adr-318]) went to flight data, avionics, clubs, and pad and recovery.
 
-## The 2026-11-02 planning review
+## The 2026-11-04 planning review
 
-Placed with [ADR-318][adr-318], which tightens a met target and promotes none of these. Each is SOON:
+Placed with [ADR-319][adr-319], which tightens a met target and promotes none of these. Each is SOON:
 
-- SOON: several flights, one drag. User: a team, or a Level 3 flyer, with three or more logs of one
-  airframe on different reloads of one motor. A drag fitted to one altimeter log can't tell a weak
-  reload from extra drag; one open-source fitter's README puts that at about 6% in drag at one
-  standard deviation and suggests fitting over several flights ([hpr-flight-sim][hfs]). Workflow: `hpr compare` given several logs of one
-  design fits one drag scale that every flight shares and an impulse scale for each
-  ([M7.3][m7-3]'s fit), and prints the drag scale's 90% interval with the count of flights. Moves:
-  new row `fit.drag-width`, the drag scale's mean 90% interval width, lower better; through it, the
-  proposed `accuracy.second-flight`. *Done when:* on barometer-only synthetic sets of 1, 2 and 4
-  flights of one design with a 3% scatter in reload impulse, the shared drag's intervals pass
-  [ADR-257][adr-257]'s three counts at each size; their mean width at 4 flights is at most 60% of
-  one flight's (1/√4 is 50%); and one flight alone says where drag and impulse aren't told apart.
-- SOON: the intervals by sample rate. User: a flyer whose logger records at 10 or 15 Hz, quoting a
-  log's apogee or top speed with its 90% interval. A 2026 preprint, down-sampling one logged
-  flight, finds the apogee from its accelerometer ranging over 66 m at 10 Hz against 12 m at 50 Hz,
-  while the barometer's stays within 0.3 m ([Varigonda][varigonda]).
-  Workflow: the synthetic flights' report counts each reading's 90% coverage
-  ([ADR-308][adr-308]) in three bands of the logger's rate: under 20 Hz, 20 to 100 Hz, and over
-  100 Hz, each band drawn to hold at least 200 readings. Moves: the proposed
-  `readings.inside-90`, by band. *Done when:* each band passes [ADR-257][adr-257]'s three counts
-  on sets A and B, or the reading is withheld below the rate where it fails; a probe that fits the
-  bound on the fastest band alone fails the slowest.
-- SOON: OpenRocket's next release, measured before it ships. User: a team's simulation lead who
-  will upgrade OpenRocket and wants to know which of their numbers move. Three changes merged to
-  OpenRocket's development branch on 2026-11-02 move printed numbers: a tangent ogive's supersonic
-  wave drag (a Mach 2.5 test rocket's apogee 5.5% lower, by the pull request's own figures,
-  [pull request 3431][or-3431]), jet damping in pitch and yaw, and the propulsive damping's lever
-  arm. Workflow: the fixture report flies the public and the collection's flights on a published
-  development build or pre-release of OpenRocket, run as an outside program, beside the pinned
-  24.12. Moves: the OpenRocket cells of `accuracy.collection` and `bias.collection` (11.26% and
-  +6.72%), shown as a forecast, never held. *Done when:* the report names the build and its date
-  and gives its mean absolute and mean apogee errors with the count and the flights that moved more
-  than 1%, aggregates only; while no build is published, it waits; [M2.3c3][m2-3c3] reuses the
-  harness on the release. New beside [ADR-212][adr-212], which already holds HPR Sim to the newest
-  release published before M2.7: a build before it ships, shown as a forecast, never held.
-- SOON: the wind's error as measured. User: a flyer whose recovery area ends at a road, flying on
-  a forecast of light wind. `hpr mc` scatters the wind as a fraction of its speed and a turn of its
-  direction, so a 2 m/s forecast scattered by 20% moves by 0.4 m/s, where reanalysis winds over
-  the US are inferred to miss measured ones by about 1.8 to 2.4 m/s in each component by day and
-  more than 3.2 m/s on the worst nights (a bracket from soundings and profilers, not a direct
-  measurement: [the ERA5 wind note](era5-wind-direction-us.md)). Too narrow an ellipse is
-  the flattering side. Workflow: `hpr mc --wind-error 2` adds an error in each horizontal
-  component, the same at every speed, beside the present scatters. Moves: the proposed
-  `landing.inside-90`. *Done when:* a test gets a calm forecast's ellipse from the component error
-  alone, derived by hand; a property test shows the option never narrows an ellipse; the page
-  gives the measured errors with their source.
+- SOON: fault odds from the field. User: a flyer reading the ranked causes of a flight that went
+  wrong, and anyone judging [M7.4][m7-4]'s benchmark. Its 200 faulty flights are drawn with no
+  stated mix, while clubs' launch reports put a motor fault on about 1.1% to 2.7% of H to O flights
+  and a recovery fault on 3% to 9%, a missing main or chute the largest mode
+  ([high-power outcome tallies](high-power-outcome-tallies.md), [MASA's recovery
+  modes](masa-recovery-modes.md)). A ranking that is right on a uniform mix can still put the
+  rare causes first on real flights. Workflow: the benchmark is run twice, on a uniform mix and on
+  one drawn from a committed table of field rates, and the ranker may take the table as its prior.
+  Moves: the proposed `diagnosis.top-1` and `diagnosis.top-3`, M7.4's 80% and 95%, on both mixes.
+  *Done when:* the table is committed with Clopper–Pearson bounds, each rate marked as a floor
+  where its source undercounts; the report gives top-1 and top-3 on both mixes; and a test pins
+  that the prior never ranks a nominal flight first where the evidence alone ranks a recovery fault
+  first, the flattering side.
+- SOON: the altimeter's own delay at deployment. User: a dual-deploy flyer setting an apogee delay
+  on a Raven, a Blue Raven or an Eggtimer. Logs show each family fires at its own lag after the
+  peak: PerfectFlite about 0.25 s early, RRC3 and AltOS on it, Raven 0.9 s late, Blue Raven 0.5 s
+  late with a tail to 4 s, Eggtimer 0.9 s to nose-over before its typed delay
+  ([apogee fire latency](apogee-fire-latency-in-logs.md)). A model that adds the typed delay alone
+  reads the speed at deployment low by about 9 m/s for a Raven or an Eggtimer, and up to 40 m/s if
+  Blue Raven's tail is lag rather than a wait typed into it (g·t, drag left out, an upper bound): the
+  flattering side for a charge and a harness. Workflow: [M6.8][m6-8]'s settings check and
+  M7.4's late-drogue model time the drogue at apogee plus the typed delay plus the family's
+  measured lag, drawn from its spread. Moves: the proposed `recovery.deploy-speed`, the speed at
+  drogue deployment, predicted less logged. *Done when:* the check prints that speed's range for the
+  altimeter named; on the public and the collection's logs that time their charge, its 90% range
+  passes [ADR-257][adr-257]'s three counts (aggregates only); and a test fails when the lag is
+  dropped.
+- SOON: readings that survive a sensor fault. User: a flyer whose log has a dropout, an
+  accelerometer pinned at its range or a pressure spike at ejection, quoting the log's apogee or
+  top speed with its interval. One new open-source ground station tests flight computers by
+  injecting such faults ([Aviary][aviary]); no flight-log tool reports how its readings hold up
+  under them. Workflow: the synthetic flights' report injects four faults, one at a time: a 0.5 s
+  dropout in the climb, the accelerometer clipped at 16 g, an ejection spike in the pressure, and
+  the barometer's error near Mach 1, and counts each reading's 90% coverage under each. Moves: the
+  proposed `readings.inside-90`, by fault. *Done when:* each fault's set, of at least 200 readings,
+  passes [ADR-257][adr-257]'s three counts, or the reading says it is withheld under that fault; and
+  a probe that ignores the clipping fails the clipped set.
+- SOON: the mass a log implies. User: a flyer whose simulated apogee missed the logged one by 10%,
+  asking why. Forum threads often name a wrong lift-off mass as a cause of such a gap, and
+  the collection's error is where HPR Sim trails OpenRocket (12.07% against 11.26%). Workflow: `hpr
+  compare` prints the lift-off mass the boost implies, from [M7.3][m7-3]'s fit, beside the design's,
+  with its 90% interval, and the apogee simulated at that mass. Moves: `accuracy.collection`, as a
+  shown diagnosis, never held: the share of the collection's error a mass outside its interval
+  explains. *Done when:* on synthetic flights with a known 5% mass error the implied mass passes
+  ADR-257's three counts; the report gives, as aggregates, how many of the collection's flights
+  imply a mass outside its interval and the mean absolute apogee error with and without them.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -191,3 +193,6 @@ Placed with [ADR-318][adr-318], which tightens a met target and promotes none of
 [or-3431]: https://github.com/openrocket/openrocket/pull/3431
 [adr-212]: ../decisions/0212-measure-against-openrockets-newest-release.md
 [m2-3c9]: ../decisions-and-roadmap.md#m2-3c9
+[m6-8]: ../decisions-and-roadmap.md#m6-8
+[adr-319]: ../decisions/0319-the-2026-11-04-review-the-rocketpy-descents-tightened.md
+[aviary]: https://github.com/Birdbrain-Aviation/aviary

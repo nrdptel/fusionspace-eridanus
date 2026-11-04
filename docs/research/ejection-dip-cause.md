@@ -1,13 +1,15 @@
 # What makes a StratoLogger's deep one-sample dip at deployment
 
+Re-checked 2026-11-04: 15 claims corrected.
+
 An earlier survey counted 7 of 17 public PerfectFlite logs dipping below −16 m for one or two samples at a
 deployment, down to −1,503 m, while the same flights' backups, firing later, dip only a few meters
 ([public-logs-evidence-gaps](public-logs-evidence-gaps.md) §5; §5 below counts per firing instead). Is that charge
 gas reaching the sensor, or the firing current pulling down the altimeter's supply? The answer sets how issue #725
-compares ejection pulses and how the synthetic flights' ejection pulse (`noise::PULSE_M`) should be drawn.
-Sources: the 17 StratoLogger logs and four other pairs already cached for that note, re-read sample by sample;
-makers' manuals and datasheets; Fetter's black-powder chamber tests, as in [suite-field-tools](suite-field-tools.md).
-Read 2026-10-28; no GPL code opened. **Inference** marks this note's own reasoning.
+compares ejection pulses and how the synthetic flights' ejection pulse (`noise::PULSE_M`) should be drawn. Sources:
+the 17 StratoLogger logs, three other pairs and one ISS booster log cached for that note, re-read sample by sample;
+makers' manuals and datasheets; Fetter's chamber tests, as in [suite-field-tools](suite-field-tools.md). Read
+2026-10-28; no GPL code opened. **Inference** marks this note's own reasoning.
 
 **In short.**
 
@@ -15,14 +17,14 @@ Read 2026-10-28; no GPL code opened. **Inference** marks this note's own reasoni
   dual-StratoLogger flights whose apogee charge dipped below −16 m, the unit that was *not* firing, with no change
   in its battery reading, saw the same dip 0.09 to 0.16 s after the firing, as deep or deeper: −86, −184, −227 and
   −325 m against the firing unit's −51, −106, −114 and −317 m (0.5 to 3.4 kPa).
-- **The firing current doesn't predict a dip.** The seven firings whose battery reading sagged most (2.4 to 9.2 V)
-  dipped below −16 m twice; 12 of the 24 that sagged 1.9 V or less did. A supply that merely scales the sensor's
-  reading can move it about ±21 to 24 m at most (the MS5611's ±2.5 mbar supply error), far short of −300 m.
-- **What dips is the first charge into a closed airframe.** Undelayed drogue charges: 7 of 10 below −16
-  m (−22 to −1,503 m, 95% interval 35% to 93%). Backups 1 to 2 s later, into an airframe already open
-  (**Inference**): 0 of 6 (0 to −4.3 m, at most 46%). Mains: 7 of 15 (−23 to −100 m), and in the two
-  flights whose mains fire 0.15 s apart, each dip shows only in the unit that fired. The mains stay
-  unexplained.
+- **The firing current doesn't predict a dip.** Over the outputs' 1.0 s on-time, the 8 firings whose battery
+  reading sagged most (2.4 to 9.2 V; one is two dropout rows) dipped below −16 m twice; 12 of the 23 sagging 1.9 V
+  or less did (7 and 24 to 0.6 s after firing). A supply that merely scales the sensor's reading can move it about
+  ±21 to 24 m at most (the MS5611's ±2.5 mbar supply error), far short of −300 m.
+- **What dips is the first charge into a closed airframe.** Undelayed drogue charges: 7 of 10 below −16 m (−22 to
+  −1,503 m, 95% interval 35% to 93%). Backups 1 to 2 s later, into an airframe already open (**Inference**): 0 of
+  6 (0 to −4.3 m, at most 46%). Mains: 7 of 15 (−23 to −100 m), and in the two flights whose mains fire 0.15 s
+  apart, each dip shows only in the unit that fired. The mains stay unexplained.
 - **The synthetic pulse is too shallow, and belongs to the bay.** `PULSE_M` dips −8 m then rises +16 m, scaled
   by a per-logger draw of 0 to 2 at every charge: at most −16 m (about 0.2 kPa), the bottom of the real
   first-charge range. Real first-charge dips are deeper, one or two samples, and shared by the bay.
@@ -30,11 +32,11 @@ Read 2026-10-28; no GPL code opened. **Inference** marks this note's own reasoni
 ## 1. The test: what the other altimeter reads
 
 UND-ARC's MIT full-scale flights carry two StratoLogger SL100s: a primary with no apogee delay and a secondary with
-a 1 s delay. Their flight counters advance in step and their temperatures agree within 1.3 °F at the drogue (1.7 °F
-over a flight), so they share one bay (**Inference**). Pairs were aligned by each log's 50%-of-apogee crossing on
-the way up (offsets −0.013 to +0.021 s), not by the dips. A dip is a reading's deviation from its ±0.5 s running
-median, below −16 m; the step in pressure uses the US Standard Atmosphere at the header's ground elevation.
-"Witness" is the unit not firing.
+a 1 s delay. Their flight counters advance together within each season and their temperatures agree within 1.3 °F at
+the drogue (1.7 °F over a flight), so they share one bay (**Inference**). Pairs were aligned by each log's
+50%-of-apogee crossing on the way up (offsets −0.013 to +0.021 s), not by the dips. A dip is a reading's deviation
+from its ±0.5 s running median, below −16 m; the step in pressure uses the US Standard Atmosphere at the header's
+ground elevation. "Witness" is the unit not firing.
 
 | Flight (file stem) | Firing unit: dip, samples, ΔV | Witness: dip, samples, delay | Witness ΔV | Step, kPa |
 |---|---|---|---|---|
@@ -43,7 +45,7 @@ median, below −16 m; the step in pressure uses the US Standard Atmosphere at t
 | `und23_..._NSLI_Launch_NASAFLIGHT` | −114 m, 2, −0.2 V | −227 m, 2, +0.09 s | 0.0 V | 1.16 / 2.32 |
 | `und24_Full_Scale_Launch_1` | −317 m, 2, −0.4 V | −325 m, 2, +0.11 s | 0.0 V | 3.31 / 3.38 |
 | `und24_..._PDF` | none (V to 0.00) | none | 0.0 V | none |
-| five, secondary's drogue, +1 s | to −4.3 m; ΔV to −2.6 V (`PDF` −7.7) | to −4.3 m | ≤ 0.1 V | ≤ 0.04 |
+| five, secondary's drogue, +1 s | to −4.3 m; ΔV to −2.7 V (`PDF` −7.7) | to −4.3 m | ≤ 0.1 V | ≤ 0.04 |
 
 - In `und24_Full_Scale_Launch_1` the three samples after firing read −44, −1,041 and −127 ft (primary) and −40,
   −1,066 and −134 ft (secondary), each against its own baseline; both recover within 0.20 s. Whatever the firing
@@ -51,9 +53,9 @@ median, below −16 m; the step in pressure uses the US Standard Atmosphere at t
 - In the other three flights the witness reads 1.7 to 2.0 times deeper than the firing unit, so no local term
   shows. After separation both units ring together, about 70 m peak to peak near 2 Hz for a second in
   `4-2-2023`: the bay's air settling as the airframe opens (**Inference**).
-- In `und24_..._PDF` the primary's battery reading fell to 0.00 V at its drogue firing and neither unit dipped,
-  then or at the backup. **Inference:** no gas reached the bay; the logs can't say whether the charges burned.
-- Battery sag alone makes no dip: the `FRR` secondary's drogue firing sagged 2.6 V (9.4 to 6.8 V) and read −0.6 m.
+- In `und24_..._PDF` the primary's battery reading fell to 0.00 V at its drogue firing and stayed there through
+  the backup; neither unit dipped. **Inference:** no gas reached the bay; the logs can't say if the charges burned.
+- Battery sag alone makes no dip: the `FRR` secondary's drogue firing sagged 2.7 V (9.40 to 6.70 V) and read −0.6 m.
 
 **Other makers.** In `nate_SpacePort_24` (no license, cited only) the RRC3 logged its drogue event first, and
 its altitude stayed flat through it; 0.95 s later, at the EasyMini's drogue firing, the EasyMini read −72 m and the
@@ -61,8 +63,8 @@ RRC3 −54 m on its next samples (logged steps 0.56 and 0.42 kPa). Bay-wide, but
 of that size (−61 and −55 m at 89.3 s), and the first firing made none, against the UND pattern. Two pairs show a
 dip in one unit only: a Blue Raven −88 m (two 50 Hz rows) beside a TeleMega reading −4.0 m
 (`werocketry/Hyperion-II`, MIT), and one SG1.2 StratoLogger −224 m beside its partner's −0.6 m (ISS, no license).
-The witness samples fall 0 to 36 ms from the dip as aligned, but the Hyperion pair's alignment is uncertain
-(+0.05 s by the ascent crossing, +1.43 s by descent wiggles), so a missed short pulse there rests on that
+The nearest witness sample falls 4 and 14 ms from the dip as aligned, but the Hyperion pair's alignment is
+uncertain (+0.05 s by the ascent crossing, +1.43 s by descent wiggles), so a missed short pulse there rests on that
 alignment (**Inference**); neither bay layout is published.
 
 ## 2. What the makers say
@@ -70,23 +72,23 @@ alignment (**Inference**); neither bay layout is published.
 - **PerfectFlite.** One battery runs the logic and fires the match; outputs are rated 10 A (SL100) or 5 A (CF),
   on for 1.0 s [1, pp. 10, 48], [2, pp. 10, 47]. The SL100 rides out a power loss of about 3 s [3]. Both bulkheads
   need "a good airtight seal" against ejection gas, and wires through them are to be sealed [1, pp. 7 to 8, 14]. The
-  warranty
-  excludes diaphragms broken by "ejection charge pressure/hot gasses" [1, p. 49]. Each log holds altitude,
+  warranty excludes diaphragms broken by "ejection charge pressure/hot gasses" [1, p. 49]. Each log holds altitude,
   temperature and battery voltage at 20 samples/s [3]; no manual describes rejecting spikes in the logged data.
   PerfectFlite's 2001 FAQ, from the microAlt era, warns that a shared supply's "voltage glitches" while firing
   "could cause corrupted data" [4, p. 2].
-- **Featherweight** says gas entering the bay leaves "misleading" recorded data, which its deployment logic
-  filters [5, p. 8]. **Entacore** supports and recommends a separate pyro battery, and still warns that an unsealed
-  bay gives "large spikes in the readings", adding that a fired charge usually shows a spike [6, pp. 45 to 46].
+- **Featherweight** says gas entering the bay leaves "misleading" recorded data, though its deployment logic filters
+  such transients [5, p. 8]. **Entacore** recommends a separate pyro battery [6, pp. 4, 10], yet warns that an
+  unsealed bay gives "large spikes in the readings", and a fired charge usually shows one [6, pp. 45 to 46].
 - **Missile Works** names both routes: over-pressure in an unsealed bay makes the RRC3 "malfunction" (p. 4), and
   firing demand can cause "power and processor brown-out" (p. 6), cured by a second battery [7]. **Eggtimer**
-  discusses only brownouts [8]. **Altus Metrum** covers brownouts, says the altimeters must be protected from
-  "ejection charge gasses", and its release notes filter "speed and acceleration spikes caused by ejection charge
-  firing" from its maxima [9]. No maker gives a leak size, a logic-rail sag or a pressure error measured in firing.
+  discusses only brownouts [8]. **Altus Metrum** warns that a protected battery may cut power at a pyro event, says
+  the altimeters must be protected from "ejection charge gasses", and its 1.4 release notes filter "speed and
+  acceleration spikes caused by ejection charge firing" from its maxima [9]. No maker gives a leak size, a
+  logic-rail sag or a pressure error measured in firing.
 - **Builders' reports (anecdote).** A Pnut and a MicroPeak in one model-rocket payload bay both dipped when the
-  motor's charge fired, neither altimeter firing [10]; a TeleMetrum's "big negative spike" at apogee was put down
-  by its owner, as an assumption, to a poorly sealed aft bulkhead [11]. Two Rocketry Forum threads on such spikes
-  returned 403 and were not read.
+  motor's charge fired, neither firing [10]. A PerfectFlite MiniAlt/WD logged a "big negative spike" as it fired the
+  apogee charge, its owner assumed from a poorly sealed aft bulkhead; the TeleMetrum in that rocket stopped logging
+  there (a firmware bug or, his guess, a short in its supply) [11]. Two forum threads on such spikes returned 403.
 
 ## 3. Sizes: what a dip means, and what each cause can make
 
@@ -102,7 +104,7 @@ Overpressure that reads a height h lower than the true one (US Standard Atmosphe
   (mean of 7) [12, pp. 24, 48]. The deepest dip, −1,503 m in a subscale (an 18.5 kPa step at its height), needs the
   bay at about 75% of that packed peak (**Inference**). Choked flow from 297 kPa absolute (Fetter's empty-chamber
   mean) at 1,500 K for 2 to 5 ms into a 1 to 2.4 L bay needs about 0.5 to 3 mm² of effective leak for −16 m, 9 to
-  50 mm² for −300 m and 46 to 280 mm² for −1,503 m, five times more if the gas cools in the bay (**Inference**, an
+  54 mm² for −300 m and 46 to 280 mm² for −1,503 m, five times more if the gas cools in the bay (**Inference**, an
   orifice model with Cd 0.6; the area scales inversely with that pressure, and a packed bay's 3.58 psi gauge would
   not choke the flow). Either way it is a gap, not a weeping seal.
 - **Supply.** The MS5611, which a NARCON 2017 paper found in a StratoLogger [13, Table 1], allows at most
@@ -117,15 +119,16 @@ Overpressure that reads a height h lower than the true one (US Standard Atmosphe
 
 ## 4. Dips to exclude, and dips with no firing
 
-- **Power-loss rows.** Five logs whose header reads `Apogee: PWRLOSS` end on one row of −1 ft, 31.98 °F and
-  25.50 V (both `FRR` units, both `PDF` units, `iss_20230305_AL1`). A deviation scan reads it as a dip of −1,170 m
-  or −293 m. It is a reset marker, not a pressure. Rows before it also carry 25.50 V (some with real altitudes),
-  and 0.00 V rows precede them, so a comparison should drop everything from the first 25.50 V row.
+- **Power-loss rows.** Five logs whose header reads `Apogee: PWRLOSS` (both `FRR` and both `PDF` units,
+  `iss_20230305_AL1`) end on a reset marker of −1 ft, 31.98 °F and 25.50 V, which a deviation scan reads as a dip
+  of −1,170 m or −293 m. In four the row before also reads 25.50 V: a second marker (255 ft) in `FRR`, a real
+  altitude in the `PDF` primary and `AL1`. In three (`FRR` both, `PDF` primary) 0.00 V rows come first. Drop
+  everything from the first 25.50 V row.
 - **Boost and landing.** Both units of a pair dip at landing (−26 and −111 m in `und24_Full_Scale_Launch_1`) and
-  in boost (−19 to −63 m, `iss_20230305`). Two ISS booster logs dip −63 to −197 m at 2.5 to 3.4 s; in SG1.1 the
-  temperature rises 2.7 °F within 0.7 s of the dip, and in SG1.2 both units see it: staging gas (**Inference**).
-  But two of these three dips land near pad level (32 and 40 ft above ground), so a corrupted reading isn't ruled
-  out there.
+  in boost (−58 and −63 m at 2.85 s, `iss_20230305`). Two ISS booster flights (three logs) dip −63 to −197 m at
+  2.5 to 3.4 s; in SG1.1 the temperature rises 2.7 °F within 0.7 s of the dip, and in SG1.2 both units see it:
+  staging gas (**Inference**). But two of these three dips land near pad level (32 and 40 ft above ground), so a
+  corrupted reading isn't ruled out there.
 - **A dip before any firing.** `iss_20221029_stratologger` reads −462 m 1.35 s before its own drogue; its battery
   column reads 9.10 V on every row, so it says nothing. Its own charges then read about −4 m. Some other charge
   (**Inference**; no record says what).
@@ -176,14 +179,22 @@ Documents below have no stated license unless noted.
 
 - [1] PerfectFlite, *StratoLogger* (SL100) manual, 2011; [2] *StratoLoggerCF* manual, 2014; [3] *SL100 info*,
   2011; [4] *PF FAQs*, 2001. All under <http://www.perfectflite.com/Downloads/>.
-- [5] Featherweight, *Blue Raven* manual, 2026-05-12. [6] Entacore, *AIM XTRA/BASE v4.x.x Manual*, 2025-02-02.
-- [7] Missile Works, *RRC3+/RRC3 User Manual*, rev. 1.71. [8] Eggtimer, *Quantum* guide 1.09G.
-- [9] Altus Metrum, *The Altus Metrum System* (CC BY-SA 3.0), §3.1 to 3.2, Installation, release notes.
-- [10] B. Cooke, "Altimeter funny business", 2015-09-07,
+- [5] Featherweight, *Blue Raven* manual, 2026-05-12,
+  <https://www.featherweightaltimeters.com/uploads/1/0/9/5/109510427/blue_raven_users_manual_2026may12.pdf>.
+- [6] Entacore, *AIM XTRA/BASE v4.x.x Manual*, 2025-02-02,
+  <https://downloads.entacore.com/aimxtra/AIM%20XTRA%20&%20BASE%20Manual%204.x.x%20v7.pdf>.
+- [7] Missile Works, *RRC3+/RRC3 User Manual*, rev. 1.71, <https://www.missileworks.com/downloads/>.
+- [8] Eggtimer, *Quantum* guide 1.09G,
+  <https://eggtimerrocketry.com/wp-content/uploads/2024/02/Eggtimer-Quantum-1_09G.pdf>.
+- [9] Altus Metrum, *The Altus Metrum System* v1.9.22.2, 2025-10-13 ("Creative Commons ShareAlike 3.0", in its
+  words), §3.1 to 3.2, Appendix C, release notes for 1.4, <https://altusmetrum.org/AltOS/doc/altusmetrum.pdf>.
+- [10] B. Cooke, "Altimeter funny business",
   <https://billsrockets.blogspot.com/2015/09/altimeter-funny-business.html>.
-- [11] B. Garbee, "TeleMetrum First Flight" (last edited 2013-07-03),
+- [11] B. Garbee, "TeleMetrum First Flight", 2009-04-20,
   <https://gag.com/bdale/blog/posts/TeleMetrum_First_Flight.html>.
-- [12] Fetter, "Using Black Powder for Parachute Deployment", vNARCON 2025, Rev 1.2.
+- [12] Fetter, "Using Black Powder for Parachute Deployment", vNARCON 2025, Rev 1.2,
+  <http://www.speedmotionrockets.com/Using%20Black%20Powder%20for%20Parachute%20Deployment%20-%20Rev1_2.pdf>.
 - [13] D. Wolf and M. Kuzel, "Development of a Digital Pressure Sensor Emulator for Altimeter Testing", NARCON
-  2017, 2017-02-24, nar.org (Wayback 2024-05-11).
-- [14] TE Connectivity, *MS5611-01BA03* datasheet, 06/2017.
+  2017, 2017-02-24; nar.org's copy now returns 403, so read the Wayback Machine's snapshot 20240511000532 of
+  `nar.org/wp-content/uploads/2016/07/Development-of-Altimeter-Sensor-Emulator-D.-Wolf-NARCON-2017.pdf`.
+- [14] TE Connectivity, *MS5611-01BA03* datasheet, 06/2017, <https://www.te.com/en/product-MS561101BA03-50.html>.

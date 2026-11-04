@@ -340,7 +340,7 @@ its reference and still pass.
 | [Aerodynamics](physics/aero.md) | where the miss sits, which can only be told so far | the measurement's own fit trades its slope at $\alpha \to 0$ against its curvature at a correlation of −0.96. At $\alpha \to 0$ HPR Sim is within 1.5 standard errors on every row outside the target, and on five of the six most of the gap is in the curvature body lift adds (1.3 to 2.8 times the measured, and ×12.20 at Mach 1.8 where the tunnel's curve barely bends); on the sixth, the short model at Mach 2.96, 77% of the gap is HPR Sim's own $\alpha \to 0$ slope |
 | [Aerodynamics](physics/aero.md) | NASA's wind-tunnel tests of the same two models, Mach 0.6 to 4.63: drag on the forebody (the models' bases sat on a sting), fins on and off, 44 readings ([Aerodynamics](physics/aero.md#drag-against-the-arcas-robin-wind-tunnel)) | 2 of 44 within 10%, and every reading high. With the fins off, +13.5% to +24.1% from Mach 1.5 and +12.0% to +54.1% below, most of it the models' 15° boattail, which HPR Sim over-predicts in a thick boundary layer. With the fins on, from Mach 1.5, +39.4% to +154.0%, where HPR Sim's fins' drag stays near 0.30 and the measured falls to 0.046. HPR Sim's base drag behind a plain cylinder is not measured by the tunnel and has been checked at no speed faster than Mach 0.3 |
 | [Aerodynamics](physics/aero.md#roll-forcing-and-damping) | NASA's wind-tunnel tests of the two Arcas Robin models, Mach 1.5 to 4.63: [roll forcing](glossary.md#roll-damping-and-roll-forcing), the rolling moment per degree of cant, 11 readings ([roll fixture][roll-fixture]) | from Mach 2.3, all 8 within 5.3%; at Mach 1.5 and 1.8, +14.3% to +47.8% |
-| [Aerodynamics](physics/aero.md#roll-forcing-and-damping) | The Basic Finner's roll damping measured in a wind tunnel, Mach 1.5 to 3.0, and Barrowman's computed value at Mach 0.07 ([roll fixture][roll-fixture]) | −5.9% to −16.2% against the wind tunnel, lower as the Mach number grows; −2.0% against Barrowman's computed value (a theory curve, not a measurement; it confirmed how HPR Sim reads his method) |
+| [Aerodynamics](physics/aero.md#roll-forcing-and-damping) | The Basic Finner's roll damping measured in the US Naval Ordnance Laboratory's (NOL's) wind tunnel, Mach 1.53 to 2.76 ([roll fixture][roll-fixture]); in the free-flight range of Canada's DREV, Mach 1.83 to 3.15, from cached readings ([DREV statistics][drev-stats]); and Barrowman's computed value at Mach 0.07 | +11.7% to +27.5% against NOL's tunnel, most at Mach 1.53: HPR Sim overstates the damping. Against DREV, 8.8% high on average and 12.4% at most in the core band (Mach 1.83 and 2.38); 5.0% on average and 8.7% at most in the extended band (2.72 and 3.15). −2.0% against Barrowman's computed value (a theory curve, not a measurement; it confirmed how HPR Sim reads his method). Barrowman's Fig. 5-7 points, once scored here (HPR Sim 5.9% to 16.2% below them), sit 1.27 times BRL 799's range data ([Aerodynamics](physics/aero.md#roll-against-the-arcas-robin-and-the-basic-finner)) and are no longer scored |
 | [Aerodynamics](physics/aero.md#boattails-faster-than-sound) | conical boattails measured in six NACA and NASA reports, jet off, Mach 0.3 to 3.24: the boattail's own pressure drag and the base pressure behind it ([drag fixture][drag-fixture]) | attached boattails of 3° to 10° from Mach 1.2: −21.9% to +28.3%, within 0.0123 (58 readings); from Mach 1.0 to 1.1, −18.2% to −5.4% (4), and −46.2% to +60.0% at points near Mach 1 their report calls questionable (27); through the rise from Mach 0.85 to 0.95, −77.5% to +7.6% (28); under Niskanen's rule to Mach 0.8, −100% to −83.5% (58). 16° in a boundary layer a fifth of the diameter thick, +26.4% to +54.2% (9). Separated 30° and 45°, −2.8% to +6.6% (3, which set the separation angles). |
 | [Aerodynamics](physics/aero.md) | the base drag behind them | within 0.0102 of the measured on the cylinder's area, though behind small bases that is up to about 40% of the base's own drag (8 of the 12 set the ratio below Mach 2.5) |
 | [Aerodynamics](physics/aero.md#tube-fins-against-openrocket) | [OpenRocket](glossary.md#openrocket) 24.12's normal-force slope and center of pressure for tube fins, on 14 probe designs and its *Tube fin rocket*, at Mach 0.05 to 0.75 ([the decision that measured it][adr-102]); a code-to-code comparison. Tube fins as a whole are unvalidated ([evidence row G27](evidence.md#g27)): no measurement of a tube fin's lift or center was found | not within the quarter caliber that [the tube-fin lesson](decisions-and-roadmap.md#l19) asks: HPR Sim's center of pressure is 0.42 to 3.0 calibers forward of OpenRocket's on every probe up to Mach 0.5, and 1.07 on the *Tube fin rocket*. From Mach 0.6, where OpenRocket moves the tubes' center to their leading edge, 5 of 28 are within it. OpenRocket's tubes lift 1.26 to 1.86 times HPR Sim's, and up to Mach 0.5 it puts their center at a quarter of their length, ahead of which HPR Sim's lies. All 70 probe gaps, and the *Tube fin rocket*'s, are pinned by a test |
@@ -389,7 +389,8 @@ The committed [validation report][report] gives the six numbers below for each d
 scored, and all are within tolerance. The largest difference is +2.865%.
 
 Each metric must agree within 3% of RocketPy's value (landing speed 0.1%, [the tighter
-gate][adr-310]), with no absolute floor. Each case file argues why,
+gate][adr-310]; most others 0.3%, [a tighter gate][adr-319]), with no absolute floor. Each case
+file argues why,
 for example [NDRT's][ndrt-case]. A floor would be a fixed allowance, in meters or
 seconds, that passes any smaller difference. The metrics:
 
@@ -1098,11 +1099,13 @@ rest.
   it is HPR Sim's body, which reads 6% to 10% low faster than sound against MIL-HDBK-762's worked
   example as well
   ([Aerodynamics](physics/aero.md#drag-against-rasaero-ii-through-mach-2)).
-- **Roll: the forcing high near Mach 1.5, the damping low, nothing measured below Mach 1.5.**
+- **Roll: the forcing high near Mach 1.5, the damping high, nothing committed below Mach 1.5.**
   The roll forcing from canted fins reads +47.8% at Mach 1.5
   and +14.3% to +17.8% at 1.8 against NASA's wind tunnel. There, linear theory's load climbs toward
-  Mach 1 faster than the fins' does. The roll damping reads 5.9% to 16.2% low against the Basic
-  Finner's. Nothing measured checks either below Mach 1.5
+  Mach 1 faster than the fins' does. The roll damping reads 11.7% to 27.5% high against the Basic
+  Finner's in NOL's wind tunnel, Mach 1.53 to 2.76, and against DREV's free-flight range 8.8% high
+  on average in the core band and 5.0% in the extended band. No committed comparison checks either below Mach 1.5, where uncommitted
+  measured sets put the damping 24.5% to 200% high
   ([Aerodynamics](physics/aero.md#roll-forcing-and-damping)).
 - **A flared rocket's supersonic normal force rests on one measured flare.** A conical flare now
   flies the shock-expansion method ([the change](decisions-and-roadmap.md#m1-8e17)). On a test
@@ -1199,6 +1202,7 @@ rest.
 [adr-289]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md
 [adr-294]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md
 [adr-310]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0310-the-2026-10-31-review-the-rocketpy-rail-exit-and-landing-speeds-tightened.md
+[adr-319]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0319-the-2026-11-04-review-the-rocketpy-descents-tightened.md
 [adr-318]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md
 [adr-293]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0293-cavours-log-read-to-its-apogee-event.md
 [adr-184]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0184-logged-apogees-of-the-private-collection.md
@@ -1233,3 +1237,4 @@ rest.
 [body-gap-fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/arcas-robin-body-gap.json
 [drag-fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/drag-vs-mach.json
 [roll-fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/roll-vs-mach.json
+[drev-stats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/basic-finner-roll-damping-drev.json

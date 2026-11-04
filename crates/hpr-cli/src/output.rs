@@ -2064,6 +2064,11 @@ pub enum WithheldReason {
     /// climbs to it: a coast doesn't, and a disturbance after apogee, such as a deployment's, does,
     /// so which is the apogee can't be told.
     DisturbedTop,
+    /// The track falls below its start before the climb, then climbs from the fall without
+    /// resting again: a disturbance on the pad, such as a pressure pulse at ignition. The top
+    /// speed is withheld, and liftoff where no sample before the fall is on the pad; every reading
+    /// is withheld when the track has no zero and too little pad before the fall.
+    DisturbedPad,
     /// The log's accelerometers don't say which lies along the rocket's axis, such as a board's
     /// three axes: the top acceleration and a burnout from the accelerometer need the axial one.
     AxisUnstated,

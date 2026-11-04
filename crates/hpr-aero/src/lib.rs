@@ -1572,6 +1572,7 @@ mod tests {
         let k_r = roll_damping_interference(d, 0.5 * d, 1.0).unwrap();
         close(f(&basic["roll_damping_interference"]), k_r, 1e-15, "k_R(B)");
         for (key, source) in [
+            ("nol_tunnel", "nol_tunnel_c_lp"),
             ("wind_tunnel", "wind_tunnel_c_lp"),
             ("barrowman_theory", "barrowman_theory_c_lp"),
         ] {
@@ -1592,19 +1593,42 @@ mod tests {
                 );
             }
         }
-        // The guide's summary: 5.9% to 16.2% low against the wind tunnel, 2.0% against
-        // Barrowman's own computed value.
-        let tunnel_errors: Vec<f64> = basic["wind_tunnel"]
+        // The guide's summary: 11.7% to 27.5% high against NOL's tunnel (NAVORD 6652 Table 2,
+        // the scored reference, #763); 5.9% to 16.2% low against Barrowman's Fig. 5-7 points,
+        // which sit a flat 1.27 times the range data (disputed); 2.0% against Barrowman's own
+        // computed value.
+        let range = |key: &str| {
+            basic[key]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|r| f(&r["error"]))
+                .fold((f64::INFINITY, f64::NEG_INFINITY), |(a, b), e| {
+                    (a.min(e), b.max(e))
+                })
+        };
+        let (lo, hi) = range("nol_tunnel");
+        assert_eq!(basic["nol_tunnel"].as_array().unwrap().len(), 5);
+        assert!(
+            (lo - 0.117).abs() < 5e-4 && (hi - 0.275).abs() < 5e-4,
+            "{lo} {hi}"
+        );
+        // NOL's printed coefficient is on one panel and the 3 d span: 144/π converts it.
+        for (row, reading) in basic["nol_tunnel"]
             .as_array()
             .unwrap()
             .iter()
-            .map(|r| f(&r["error"]))
-            .collect();
-        let (lo, hi) = tunnel_errors
-            .iter()
-            .fold((f64::INFINITY, f64::NEG_INFINITY), |(a, b), &e| {
-                (a.min(e), b.max(e))
-            });
+            .zip(finner["nol_tunnel_c_lp"].as_array().unwrap())
+        {
+            let printed = f(&reading["printed_average"]);
+            close(
+                f(&row["reference_c_lp"]),
+                -printed * 144.0 / PI,
+                5e-6,
+                "NOL's conversion",
+            );
+        }
+        let (lo, hi) = range("wind_tunnel");
         assert!(
             (lo + 0.162).abs() < 5e-4 && (hi + 0.059).abs() < 5e-4,
             "{lo} {hi}"

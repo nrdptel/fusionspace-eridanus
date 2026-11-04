@@ -1,14 +1,26 @@
 name: CI
 
-# Runs on every pull request, with no path filters, so docs-only PRs also get checks to merge on.
+# Runs on every pull request, with no path filters, so docs-only PRs also get checks to merge on;
+# the `scope` job says which checks a run needs. Each night, and when started by hand with `full`,
+# it runs on main with every check, the flight censuses too (ADR-149, amended).
 on:
   pull_request:
   push:
     branches: [main]
+  schedule:
+    # 08:17 UTC, the small hours in the US, off the hour, when GitHub's scheduled runs bunch up.
+    - cron: "17 8 * * *"
   workflow_dispatch:
+    inputs:
+      full:
+        description: Run every check, the flight censuses too, as the nightly run does
+        type: boolean
+        default: false
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  # The nightly and hand-started full runs queue apart from the same branch's other runs, so a push
+  # to main neither waits behind a census nor cancels one.
+  group: ci-${{ github.workflow }}-${{ github.ref }}-${{ (github.event_name == 'schedule' || inputs.full) && 'full' || 'checks' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
@@ -24,6 +36,60 @@ env:
   CARGO_PROFILE_TEST_DEBUG: line-tables-only
 
 jobs:
+  # Which checks this run needs (ADR-149, amended). `full` is true on the nightly run and on a run
+  # started by hand with `full`: only then do the flight censuses run whole (the `census` job on
+  # every platform, the `fit` jobs on Linux). A pull request or a push to main flies the slices of
+  # the synthetic flights and two logs (`validate`) and fits the fit's slice (`fit-slice`), and
+  # leaves the whole to that night's run, as `scripts/gate.sh` does on the Mac. `notes` is true
+  # when every file a pull request or push changes, renamed from or to, is a research note under
+  # docs/research/: `validate`, `fit-slice`, `examples` and `python` then run no step and pass, and `types`,
+  # `wasm-check` and `phone` skip, each still reporting by name for branch protection. `test` and
+  # `site`, which read the notes, run, and so do the quick Linux checks. A list GitHub can't give,
+  # an empty one, or one of 300 files or more (the compare API's cap) counts as code.
+  scope:
+    name: scope
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      full: ${{ steps.scope.outputs.full }}
+      notes: ${{ steps.scope.outputs.notes }}
+    steps:
+      - id: scope
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          FULL: ${{ inputs.full }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          full=false
+          if [[ $EVENT == schedule || ( $EVENT == workflow_dispatch && $FULL == true ) ]]; then
+            full=true
+          fi
+          # The files of the commits this run checks: a pull request's head against its base, or
+          # a push against the commit before it.
+          from="" to=""
+          if [[ $EVENT == pull_request ]]; then
+            from=$BASE to=$HEAD
+          elif [[ $EVENT == push && -n $BEFORE && ! $BEFORE =~ ^0+$ ]]; then
+            from=$BEFORE to=$GITHUB_SHA
+          fi
+          files=""
+          if [[ -n $from ]]; then
+            files=$(gh api "repos/$GITHUB_REPOSITORY/compare/$from...$to" \
+              --jq '.files[] | .filename, (.previous_filename // empty)') || files=""
+          fi
+          count=$(grep -c . <<<"$files" || true)
+          notes=false
+          if (( count > 0 && count < 300 )) && ! grep -qv '^docs/research/' <<<"$files"; then
+            notes=true
+          fi
+          echo "full=$full" >> "$GITHUB_OUTPUT"
+          echo "notes=$notes" >> "$GITHUB_OUTPUT"
+          echo "full=$full, notes=$notes: $count changed paths"
+
   fmt:
     name: fmt
     runs-on: ubuntu-latest
@@ -106,10 +172,10 @@ jobs:
 
   # Runs every example program, such as the Getting started page's first flight, and checks that
   # it prints what its committed `<name>.output.txt` says, on each OS. A job of its own, beside
-  # test: in test it added up to 10 minutes to CI's slowest job (ADR-149). The second half of the
-  # synthetic flights' check runs here too; `validate` below says why.
+  # test: in test it added up to 10 minutes to CI's slowest job (ADR-149).
   examples:
     name: examples (${{ matrix.os }})
+    needs: scope
     strategy:
       fail-fast: false
       matrix:
@@ -117,24 +183,33 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       RUSTFLAGS: -D warnings
+      # No step runs for a change to research notes alone (`scope`).
+      RUN: ${{ needs.scope.outputs.notes != 'true' }}
     steps:
-      - uses: actions/checkout@v7
-      - run: rustup toolchain install
-      - run: scripts/native-toolchain.sh
+      - if: env.RUN == 'true'
+        uses: actions/checkout@v7
+      - if: env.RUN == 'true'
+        run: rustup toolchain install
+      - if: env.RUN == 'true'
+        run: scripts/native-toolchain.sh
         shell: bash
-      - uses: Swatinem/rust-cache@v2
+      - if: env.RUN == 'true'
+        uses: Swatinem/rust-cache@v2
         with:
           # Only main saves: pull requests restore main's cache, and the repository stays under
           # GitHub's 10 GB cache limit instead of evicting main's entries.
           save-if: ${{ github.ref == 'refs/heads/main' }}
-      - run: cargo run --locked --quiet --package xtask -- examples --check --locked
-      - run: cargo run --locked --quiet --package xtask --profile report-check -- synthetic --check --sets b,calibration
+      - if: env.RUN == 'true'
+        run: cargo run --locked --quiet --package xtask -- examples --check --locked
 
   # Checks every public design's document, written as a literal of the generated `DesignFile`
   # type, with `tsc --strict` and `mypy --strict` at pinned versions (M3.3c, ADR-113). The
   # compilers come from npm and PyPI, so this runs once, on Linux.
   types:
     name: types
+    needs: scope
+    # Not for a change to research notes alone (`scope`); skipped, it still passes by name.
+    if: needs.scope.outputs.notes != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -160,6 +235,7 @@ jobs:
   # kept: a wheel handed out is a binary distribution, which needs its licence texts first (ADR-114).
   python:
     name: python (${{ matrix.os }})
+    needs: scope
     strategy:
       fail-fast: false
       matrix:
@@ -168,24 +244,33 @@ jobs:
     env:
       # The only job that compiles hpr-py (its Rust test binary is off), so its warnings fail here.
       RUSTFLAGS: -D warnings
+      # No step runs for a change to research notes alone (`scope`).
+      RUN: ${{ needs.scope.outputs.notes != 'true' }}
     steps:
-      - uses: actions/checkout@v7
-      - run: rustup toolchain install
-      - run: scripts/native-toolchain.sh
+      - if: env.RUN == 'true'
+        uses: actions/checkout@v7
+      - if: env.RUN == 'true'
+        run: rustup toolchain install
+      - if: env.RUN == 'true'
+        run: scripts/native-toolchain.sh
         shell: bash
-      - uses: Swatinem/rust-cache@v2
+      - if: env.RUN == 'true'
+        uses: Swatinem/rust-cache@v2
         with:
           # Only main saves: pull requests restore main's cache, and the repository stays under
           # GitHub's 10 GB cache limit instead of evicting main's entries.
           save-if: ${{ github.ref == 'refs/heads/main' }}
       # The Python maturin builds against: on Windows the abi3 module links its `python3.lib`.
-      - uses: actions/setup-python@v7
+      - if: env.RUN == 'true'
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       # setup-uv publishes no moving major tag, so it is pinned to a release's commit.
-      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+      - if: env.RUN == 'true'
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
       # CPython's Windows on ARM builds start at 3.11, so there the oldest Python tested is 3.11.
-      - run: scripts/python-tests.sh ${{ matrix.os == 'windows-11-arm' && '3.11 3.13' || '' }}
+      - if: env.RUN == 'true'
+        run: scripts/python-tests.sh ${{ matrix.os == 'windows-11-arm' && '3.11 3.13' || '' }}
         shell: bash
 
   # Runs every case in the validation lock against its committed reference, with no oracle and no
@@ -194,6 +279,71 @@ jobs:
   # are regenerated only by hand, by the `Regenerate references` workflow.
   validate:
     name: validate (${{ matrix.os }})
+    needs: scope
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, windows-11-arm]
+    runs-on: ${{ matrix.os }}
+    env:
+      # No step runs for a change to research notes alone (`scope`).
+      RUN: ${{ needs.scope.outputs.notes != 'true' }}
+    steps:
+      - if: env.RUN == 'true'
+        uses: actions/checkout@v7
+      - if: env.RUN == 'true'
+        run: rustup toolchain install
+      - if: env.RUN == 'true'
+        run: scripts/native-toolchain.sh
+        shell: bash
+      - if: env.RUN == 'true'
+        uses: Swatinem/rust-cache@v2
+        with:
+          # Only main saves: pull requests restore main's cache, and the repository stays under
+          # GitHub's 10 GB cache limit instead of evicting main's entries.
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - if: env.RUN == 'true'
+        run: cargo run --locked --quiet --package xtask -- validate --check
+      # The motor catalog (M5.7c, ADR-304): the index is what the snapshot's committed files
+      # write, every file stored as passing is within 1% of its record, worked out again from its
+      # bytes, and none stored as failing is, and every motor flies by name offline.
+      - if: env.RUN == 'true'
+        run: cargo run --locked --quiet --package xtask --profile report-check -- motor-catalog --check
+      # The flight censuses' slices (M0.16a1, ADR-149 amended): every 21st flight of each set of the
+      # synthetic flights and of two logs, flown again, held to the census's rules for one flight and
+      # to its committed slice in every word, its numbers aside: a flight's numbers can move
+      # off the Mac's everyday build, where `scripts/gate.sh` holds them byte for byte. The whole
+      # censuses run each night (`census`).
+      - if: env.RUN == 'true'
+        run: cargo run --locked --quiet --package xtask --profile report-check -- synthetic --slice --other-platform
+      - if: env.RUN == 'true'
+        run: cargo run --locked --quiet --package xtask --profile report-check -- two-logs --slice --other-platform
+      # The scoreboard held to main's (M0.10, ADR-240): none of HPR Sim's numbers worse than the
+      # one main committed, unless an accepted ADR names it. The checkout holds no main of its own.
+      - if: env.RUN == 'true' && matrix.os == 'ubuntu-latest'
+        run: git fetch --no-tags --depth=1 origin +refs/heads/main:refs/remotes/origin/main
+      - if: env.RUN == 'true' && matrix.os == 'ubuntu-latest'
+        run: cargo run --locked --quiet --package xtask -- scoreboard --check --against origin/main
+      # The iPhone build (ADR-227) runs here, not in a job of its own, so a run's macOS jobs fit
+      # the five GitHub runs at once.
+      - if: env.RUN == 'true' && matrix.os == 'macos-latest'
+        run: scripts/phone-build.sh aarch64-apple-ios aarch64-apple-ios-sim
+        shell: bash
+
+  # The flight censuses, whole, on every platform, each night (ADR-149, amended). The synthetic
+  # flights' census (M7.2a, ADR-280): every flight flown again, held to the committed census to the
+  # three figures the platforms share. The clock offset between two logs of one flight (M7.2f,
+  # ADR-312): held on two-logger and staged synthetic flights, on seeds of their own, to the
+  # committed report. On every pull request they made `validate` and `examples` CI's slowest jobs, 20 to 30
+  # minutes on Windows (issue #1018), so a pull request flies their slices (`validate`) and leaves
+  # the whole to that night's run, and so does `scripts/gate.sh` on the Mac. They run optimized (the
+  # `report-check` profile keeps the dev profile's assertions and overflow checks). Every set runs
+  # on every platform, on one line each, on no condition but this job's, which a test in xtask
+  # holds (`synthetic::tests`).
+  census:
+    name: census (${{ matrix.os }})
+    needs: scope
+    if: needs.scope.outputs.full == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -206,54 +356,99 @@ jobs:
         shell: bash
       - uses: Swatinem/rust-cache@v2
         with:
-          # Only main saves: pull requests restore main's cache, and the repository stays under
-          # GitHub's 10 GB cache limit instead of evicting main's entries.
           save-if: ${{ github.ref == 'refs/heads/main' }}
-      - run: cargo run --locked --quiet --package xtask -- validate --check
-      # The synthetic flights' census (M7.2a, ADR-280): every flight flown again, held to the
-      # committed census to the three figures the platforms share. Run whole in the dev profile it
-      # took this job past 40 minutes (issue #1018), so it runs optimized (the `report-check`
-      # profile keeps the dev profile's assertions and overflow checks) and in two halves, one here
-      # and one in `examples`: a sixth macOS job wouldn't fit the five GitHub runs at once. Every
-      # set runs in full on every platform, on one line each, which a test in xtask holds
-      # (`synthetic::tests`). The optimized build shares each job's rust-cache entry.
       - run: cargo run --locked --quiet --package xtask --profile report-check -- synthetic --check --sets tuning,a
-      # The clock offset between two logs of one flight (M7.2f, ADR-312): held on two-logger and
-      # staged synthetic flights, on seeds of their own, to the committed report.
+      - run: cargo run --locked --quiet --package xtask --profile report-check -- synthetic --check --sets b,calibration
       - run: cargo run --locked --quiet --package xtask --profile report-check -- two-logs --check
-      # The motor catalog (M5.7c, ADR-304): the index is what the snapshot's committed files
-      # write, every file stored as passing is within 1% of its record, worked out again from its
-      # bytes, and none stored as failing is, and every motor flies by name offline.
-      - run: cargo run --locked --quiet --package xtask --profile report-check -- motor-catalog --check
-      # The scoreboard held to main's (M0.10, ADR-240): none of HPR Sim's numbers worse than the
-      # one main committed, unless an accepted ADR names it. The checkout holds no main of its own.
-      - if: matrix.os == 'ubuntu-latest'
-        run: git fetch --no-tags --depth=1 origin +refs/heads/main:refs/remotes/origin/main
-      - if: matrix.os == 'ubuntu-latest'
-        run: cargo run --locked --quiet --package xtask -- scoreboard --check --against origin/main
-      # The iPhone build (ADR-227) runs here, not in a job of its own, so a run's macOS jobs fit
-      # the five GitHub runs at once.
-      - if: matrix.os == 'macos-latest'
-        run: scripts/phone-build.sh aarch64-apple-ios aarch64-apple-ios-sim
-        shell: bash
 
-  # The fit's 90% intervals (M7.3b, ADR-316; M7.3c2, ADR-319): about 6,500 fits of flights of sets
-  # A and B by least squares, each parameter held to ADR-257's counts and probes, and the Bayesian
-  # option's posterior drawn on each fit with something to fit. The least-squares fits alone took 60
-  # to 102 minutes in one Linux job (eight runs, 2026-11-02); with the posteriors' draws, two flights
-  # each, the report took 3 hours on a 10-core Mac, against 16 minutes before (ADR-319). So 32 jobs
-  # each fit a 32nd of the flights:
-  # part K fits every 32nd flight of each run from the Kth (`fit --part K/32`), and hands its fits
-  # on. A fit doesn't depend on what its thread or machine fitted before it (`fit::tests`), so the
-  # parts together are the fits one job would make. The committed report and the shares are held
-  # exactly by `scripts/gate.sh`, whole, on the platform that wrote them.
-  fit-part:
-    name: fit intervals (${{ matrix.part }}/32)
+  # The fit's slice (M0.16a2, ADR-149 amended): every 21st fit of each run of the fit's intervals,
+  # the calibration set's among them, made again, held to the report's rules for one fit and to its
+  # committed slice in every word, its numbers aside: a fit's numbers move off the Mac, where
+  # `scripts/gate.sh` holds them byte for byte. A job of its own, beside `validate`, so neither
+  # passes the 20 minutes a job may take. The whole fit runs each night (`fit-part`). The slice is
+  # fitted in parts, each every Nth fit of the slice's from the Kth (`--part K/N`): by least squares
+  # alone its job took up to 1,203 s on windows-latest from a cold cache (M0.16a3), and the Bayesian
+  # option's posteriors (M7.3c3, ADR-320) took the slice from 79 s to 335 s on a 10-core Mac. So
+  # three parts on each platform, and four on windows-latest, the slowest.
+  fit-slice-part:
+    name: fit slice (${{ matrix.os }}, ${{ matrix.part }})
+    needs: scope
     strategy:
       fail-fast: false
       matrix:
-        part: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
+        include:
+          - { os: ubuntu-latest, part: 1/3 }
+          - { os: ubuntu-latest, part: 2/3 }
+          - { os: ubuntu-latest, part: 3/3 }
+          - { os: ubuntu-24.04-arm, part: 1/3 }
+          - { os: ubuntu-24.04-arm, part: 2/3 }
+          - { os: ubuntu-24.04-arm, part: 3/3 }
+          - { os: macos-latest, part: 1/3 }
+          - { os: macos-latest, part: 2/3 }
+          - { os: macos-latest, part: 3/3 }
+          - { os: windows-latest, part: 1/4 }
+          - { os: windows-latest, part: 2/4 }
+          - { os: windows-latest, part: 3/4 }
+          - { os: windows-latest, part: 4/4 }
+          - { os: windows-11-arm, part: 1/3 }
+          - { os: windows-11-arm, part: 2/3 }
+          - { os: windows-11-arm, part: 3/3 }
+    runs-on: ${{ matrix.os }}
+    env:
+      # No step runs for a change to research notes alone (`scope`).
+      RUN: ${{ needs.scope.outputs.notes != 'true' }}
+    steps:
+      - if: env.RUN == 'true'
+        uses: actions/checkout@v7
+      - if: env.RUN == 'true'
+        run: rustup toolchain install
+      - if: env.RUN == 'true'
+        run: scripts/native-toolchain.sh
+        shell: bash
+      - if: env.RUN == 'true'
+        uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - if: env.RUN == 'true'
+        run: cargo run --locked --quiet --package xtask --profile report-check -- fit --slice --other-platform --part ${{ matrix.part }}
+
+  # The checks branch protection requires are `fit slice (<os>)`: each passes only when every part
+  # passed on every OS, as `test (<os>)` does for the tests' halves.
+  fit-slice:
+    name: fit slice (${{ matrix.os }})
+    needs: fit-slice-part
+    if: always()
+    strategy:
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, windows-11-arm]
     runs-on: ubuntu-latest
+    steps:
+      - name: Every part passed
+        run: test "${{ needs.fit-slice-part.result }}" = success
+
+  # The fit's 90% intervals (M7.3b, ADR-316; M7.3c3, ADR-320): 6,538 fits of flights of sets A and
+  # B and of noise, each parameter held to ADR-257's counts and probes, and the Bayesian option's
+  # posterior drawn on each fit with something to fit. By least squares alone those took 60 to 102
+  # minutes in one Linux job (eight runs, 2026-11-02), before the calibration set joined them; with
+  # the posteriors' draws the whole report took about 2 h 10 min on a 10-core Mac, against 16
+  # minutes before (ADR-320). So 16 jobs each fit a 16th of the flights: part K fits every
+  # 16th flight of each run from the Kth (`fit --part K/16`), and hands its fits on. A fit doesn't
+  # depend on what its thread or machine fitted before it (`fit::tests`), so the parts together are
+  # the fits one job would make. The calibration set's 2,654 fits are among the parts' 9,192, so
+  # the night holds the shares in force too, within the few percent another platform may stand
+  # off. `scripts/gate.sh` holds the slice exactly and refits no shares; the whole report is held
+  # exactly only by `fit --check`, run by hand on the Mac, and the shares by it and by the run that
+  # writes the report.
+  fit-part:
+    name: fit intervals (${{ matrix.part }}/16)
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    runs-on: ubuntu-latest
+    # Each night, with the censuses (ADR-149, amended; `scope`).
+    needs: scope
+    if: needs.scope.outputs.full == 'true'
     steps:
       - uses: actions/checkout@v7
       - run: rustup toolchain install
@@ -264,7 +459,7 @@ jobs:
           # One cache for the parts and the job that checks them: the same optimized build.
           shared-key: fit-intervals
           save-if: ${{ github.ref == 'refs/heads/main' && matrix.part == 1 }}
-      - run: cargo run --locked --quiet --package xtask --profile report-check -- fit --part ${{ matrix.part }}/32 --out target/fit-parts
+      - run: cargo run --locked --quiet --package xtask --profile report-check -- fit --part ${{ matrix.part }}/16 --out target/fit-parts
       - uses: actions/upload-artifact@v7
         with:
           name: fit-part-${{ matrix.part }}
@@ -274,11 +469,11 @@ jobs:
 
   # Passes only when every part passed. Then it puts the parts' fits back together, refusing a
   # part missing or there twice, parts of two splits and a flight not fitted once, and checks them
-  # as one job would. Not after a cancelled run, as when a newer push to a pull request replaces it.
+  # as one job would. Each night, with its parts; not after a cancelled run.
   fit-intervals:
     name: fit intervals
-    needs: fit-part
-    if: ${{ !cancelled() }}
+    needs: [scope, fit-part]
+    if: ${{ !cancelled() && needs.scope.outputs.full == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Every part passed
@@ -337,6 +532,9 @@ jobs:
 
   wasm-check:
     name: wasm-check
+    needs: scope
+    # Not for a change to research notes alone (`scope`); skipped, it still passes by name.
+    if: needs.scope.outputs.notes != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -353,6 +551,9 @@ jobs:
   # Build only: the tests run on phones when the mobile apps (M9.4) do.
   phone:
     name: phone (android)
+    needs: scope
+    # Not for a change to research notes alone (`scope`); skipped, it still passes by name.
+    if: needs.scope.outputs.notes != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -451,11 +652,15 @@ jobs:
           fi
 
   # Publishes the site and the API reference to GitHub Pages, from main only, and only once every
-  # other check has passed on that commit.
+  # other check has passed on that commit, or was left out by a `scope` that passed. Not from the
+  # nightly run.
   deploy:
     name: deploy
-    needs: [fmt, clippy, test, examples, types, python, validate, fit-intervals, doc, evidence, wasm-check, phone, deny, site]
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && needs.site.outputs.pages == 'true'
+    needs: [fmt, clippy, test, examples, types, python, validate, fit-slice, fit-intervals, doc, evidence, wasm-check, phone, deny, site, scope]
+    if: >-
+      ${{ !cancelled() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
+      && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+      && github.event_name != 'schedule' && needs.site.outputs.pages == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       pages: write
@@ -466,3 +671,35 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v5
+
+  # A nightly run that fails, or in which a census didn't run, files one P-critical issue, or
+  # comments on the one still open, so whatever broke a census is fixed before other work (ADR-149,
+  # amended; ADR-144 §4). A run started by hand reports to whoever started it.
+  nightly-alert:
+    name: nightly alert
+    needs: [scope, fmt, clippy, test, examples, types, python, validate, census, fit-intervals, fit-slice, doc, evidence, wasm-check, phone, deny, site]
+    if: >-
+      ${{ always() && github.event_name == 'schedule'
+      && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+      || needs.census.result != 'success' || needs['fit-intervals'].result != 'success') }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      NEEDS: ${{ toJSON(needs) }}
+    steps:
+      - run: |
+          failed=$(jq -r 'to_entries[] | select(.value.result != "success")
+            | "- `\(.key)`: \(.value.result)"' <<<"$NEEDS")
+          run="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          title="Nightly full checks failed on main"
+          body=$(printf 'The nightly run on main at %s failed: %s\n\n%s\n' "${GITHUB_SHA:0:8}" "$run" "$failed")
+          open=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"$title\" in:title" \
+            --json number --jq '.[0].number // empty')
+          if [[ -n $open ]]; then
+            gh issue comment "$open" --repo "$GITHUB_REPOSITORY" --body "$body"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" \
+              --label P-critical --label A-validation --body "$body"
+          fi

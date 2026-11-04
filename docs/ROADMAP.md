@@ -308,7 +308,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   preset meets ADR-246 §1: the 2027 handbook's 14 College/University limits by requirement number
   at both ballasts, the four winds, a closed-form second method, and a test and a mutation probe
   for the side each check errs.
-- [ ] **M6.4 Airbrakes.** Added by Neer on 2026-09-18 (VISION V16).
+- [ ] **M6.4 Airbrakes** (Neer, 2026-09-18; VISION V16).
   - Deployable drag surfaces: added drag as a function of deployment and Mach, from a table or a
     cited semi-empirical estimate; deployment rate limits.
   - A controller interface: a user's controller, sampled at a fixed rate, reads simulated sensors
@@ -329,8 +329,8 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   - With one flap stuck out, the check reports the trim angle of attack along the flight, from
     the flap's drag acting off the axis; a test and a mutation probe pin that it errs high.
   - Tests show the brakes stay retracted through boost and retract on each abort condition.
-- [ ] **M6.5 Roll control: tail-fin tabs and canards.** Added by Neer on 2026-09-18 (VISION V16);
-  re-scoped on 2026-10-07 (V45, ADR-193; [roll and drag control](research/roll-and-drag-control.md)).
+- [ ] **M6.5 Roll control: tail-fin tabs and canards** (Neer, 2026-09-18; VISION V16);
+  re-scoped 2026-10-07 (V45, ADR-193; [research](research/roll-and-drag-control.md)).
   - Roll only: M6.4's interface gains one roll command, which a fixed mixer turns into equal and
     opposite deflections; no pitch or yaw channel. A stuck surface is a fault, not a command.
   - Tabs first: a hinged trailing-edge tab on a tail fin turns the fin like a cant of τ·δ over the
@@ -432,9 +432,9 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   *Done when:* the C example and the Node test run in CI and reproduce a reference flight.
 ## Phase 5: Flight data and forensics
 
-M7.2's readings need no design file or simulator (ADR-046): `hpr-flightdata` may not depend on
-`hpr-sim`. Its synthetic flights, and M7.3 and M7.4, which compare a flight with its simulation,
-are in `hpr-forensics`. Formats, methods and the log corpus came from Debrief.
+Log readings need no design file or simulator (ADR-046): `hpr-flightdata` may not depend on
+`hpr-sim`; the synthetic flights, M7.3 and M7.4 are in `hpr-forensics`. Formats, methods and the
+log corpus came from Debrief.
 - [ ] **M7.3 A flight against its simulation.** Sim-versus-real residuals, then fitting Cd scale,
   mass, motor impulse scale and wind to a log (Levenberg–Marquardt plus a Bayesian option with
   uncertainty). The first milestone in `hpr-forensics`.
@@ -450,7 +450,7 @@ are in `hpr-forensics`. Formats, methods and the log corpus came from Debrief.
   - [ ] **M7.3c The Bayesian option** (ADR-317: in two, below; met when they are). *Done when:* the same
     parameters, by a Bayesian fit with uncertainty, pass the same test, truths drawn from the stated ranges and
     not its prior.
-    - [ ] **M7.3c2 The Bayesian fit under the test** (ADR-319: in two, below; met when they are). *Done when:*
+    - [ ] **M7.3c2 The Bayesian fit under the test** (ADR-320: in two, below; met when they are). *Done when:*
       `hpr_forensics::fit` has a Bayesian option,
       the posterior of the least-squares fit's unknowns sampled by M7.3c1 around its answer, flying each draw;
       `cargo xtask fit` writes its counts beside the least-squares fit's, on the same 1,000 fitted flights of
@@ -546,7 +546,7 @@ are in `hpr-forensics`. Formats, methods and the log corpus came from Debrief.
 (The M9.1–M9.4 *done when* criteria are written in M9.0; M9.2's include release 0.5's shell
 that opens a design or a log, flies and plots it, ADR-163; each includes the product system's
 checklists for its platform, ADR-164.)
-- [ ] **M9.5 Accounts and cloud saves.** Added by Neer on 2026-09-18 (VISION V20).
+- [ ] **M9.5 Accounts and cloud saves** (Neer, 2026-09-18; VISION V20).
   - Optional accounts that save designs and flights and sync them across devices. Everything still
     works signed out and offline; accounts only add sync and sharing.
   - A saved flight stores its inputs and seed and is re-flown on open, so storage stays small.

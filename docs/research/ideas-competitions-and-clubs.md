@@ -109,6 +109,22 @@ Placed by [ADR-194, the field tools][adr-194]; research in [field tools](suite-f
 - LATER: a wireless firing box, after the wired one.
 - LATER: camera recording reminders and a camera run-time budget against the pad hold.
 
+## From the 2026-11-02 planning review ([ADR-318][adr-318])
+
+- SOON: OpenRocket's next release, measured before it ships. User: a team's simulation lead who
+  will upgrade OpenRocket and wants to know which of their numbers move. Three changes merged to
+  OpenRocket's development branch on 2026-11-02 move printed numbers: a tangent ogive's supersonic
+  wave drag (a Mach 2.5 test rocket's apogee 5.5% lower, by the pull request's own figures,
+  [pull request 3431][or-3431]), jet damping in pitch and yaw, and the propulsive damping's lever
+  arm. Workflow: the fixture report flies the public and the collection's flights on a published
+  development build or pre-release of OpenRocket, run as an outside program, beside the pinned
+  24.12. Moves: the OpenRocket cells of `accuracy.collection` and `bias.collection` (11.26% and
+  +6.72%), shown as a forecast, never held. *Done when:* the report names the build and its date
+  and gives its mean absolute and mean apogee errors with the count and the flights that moved more
+  than 1%, aggregates only; while no build is published, it waits; [M2.3c3][m2-3c3] reuses the
+  harness on the release. New beside [ADR-212][adr-212], which already holds HPR Sim to the newest
+  release published before M2.7: a build before it ships, shown as a forecast, never held.
+
 [m6-3]: ../decisions-and-roadmap.md#m6-3
 [arc27]: https://www.rocketrychallenge.org/wp-content/uploads/2027_AmericanRocketryChallenge_Rules.pdf
 [irec27]: https://www.esrarocket.org/s/IREC-2027-Rules-and-Requirments-v10.pdf
@@ -116,3 +132,7 @@ Placed by [ADR-194, the field tools][adr-194]; research in [field tools](suite-f
 [adr-286]: ../decisions/0286-the-2026-10-20-review-the-export-bar-tightened.md
 [nf-fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/normal-force-vs-mach.json
 [adr-194]: ../decisions/0194-the-2026-10-07-field-tools-checklists-equipment-ground-tests.md
+[adr-212]: ../decisions/0212-measure-against-openrockets-newest-release.md
+[adr-318]: ../decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md
+[m2-3c3]: ../decisions-and-roadmap.md#m2-3c3
+[or-3431]: https://github.com/openrocket/openrocket/pull/3431

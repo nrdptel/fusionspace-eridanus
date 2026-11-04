@@ -159,6 +159,20 @@ From the 2026-10-24 planning review ([ADR-289][adr-289]):
   `accuracy.descent`, lower better; too gentle is the flattering side. *Done when:* signed and absolute errors with their counts for both simulators, aggregates only,
   and a test pinning which way too gentle reads.
 
+## From the 2026-11-02 planning review ([ADR-318][adr-318])
+
+- SOON: several flights, one drag. User: a team, or a Level 3 flyer, with three or more logs of one
+  airframe on different reloads of one motor. A drag fitted to one altimeter log can't tell a weak
+  reload from extra drag; one open-source fitter's README puts that at about 6% in drag at one
+  standard deviation and suggests fitting over several flights ([hpr-flight-sim][hfs]). Workflow: `hpr compare` given several logs of one
+  design fits one drag scale that every flight shares and an impulse scale for each
+  ([M7.3][m7-3]'s fit), and prints the drag scale's 90% interval with the count of flights. Moves:
+  new row `fit.drag-width`, the drag scale's mean 90% interval width, lower better; through it, the
+  proposed `accuracy.second-flight`. *Done when:* on barometer-only synthetic sets of 1, 2 and 4
+  flights of one design with a 3% scatter in reload impulse, the shared drag's intervals pass
+  [ADR-257][adr-257]'s three counts at each size; their mean width at 4 flights is at most 60% of
+  one flight's (1/√4 is 50%); and one flight alone says where drag and impulse aren't told apart.
+
 [m7-1]: ../decisions-and-roadmap.md#m7-1
 [m7-4]: ../decisions-and-roadmap.md#m7-4
 [m7-2]: ../decisions-and-roadmap.md#m7-2
@@ -178,3 +192,6 @@ From the 2026-10-24 planning review ([ADR-289][adr-289]):
 [adr-311]: ../decisions/0311-the-2026-10-31-review-every-flight-openrocket-flies.md
 [m7-3]: ../decisions-and-roadmap.md#m7-3
 [adr-308]: ../decisions/0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md
+[adr-257]: ../decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
+[adr-318]: ../decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md
+[hfs]: https://github.com/aneeshkaravadi/hpr-flight-sim

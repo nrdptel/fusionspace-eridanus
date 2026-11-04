@@ -472,6 +472,8 @@ only on simulated two-stage flights ([evidence row G36](evidence.md#g36)).
 - Tell a charge's spike from the top when the spike climbs into the top no faster than a coast
   can. Such a spike is read as the apogee, however high it stands
   ([#761](https://github.com/nrdptel/fusionspace-eridanus/issues/761)).
+- Give the top speed when the height drops at ignition, then climbs
+  ([`disturbed_pad`](physics/log-readings.md#the-pad-and-the-climb)).
 - Tell every disturbed top from the rocket's own. Some tops withheld as `disturbed_top` are the
   rocket's own ([#762](https://github.com/nrdptel/fusionspace-eridanus/issues/762)).
 - Correct a barometric altitude for the day's air. The altitude is the altimeter's own

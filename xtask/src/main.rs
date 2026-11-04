@@ -28,6 +28,7 @@ mod aero_mach;
 mod aero_override;
 mod aero_roll;
 mod census;
+mod ci_budget;
 mod cli;
 #[cfg(test)]
 mod conformance;
@@ -80,6 +81,7 @@ mod release;
 mod roadmap;
 mod scoreboard;
 mod site;
+mod slice;
 mod spelling;
 mod steps;
 mod synthetic;
@@ -102,8 +104,10 @@ Commands:
 {DESIGNS}
 {DESIGN_CHECKS}
 {AERO}
+{ROLL_DREV}
 {VALIDATE}
 {CENSUS}
+{CI_BUDGET}
 {SCOREBOARD}
 {CLI}
 {SITE}
@@ -140,8 +144,10 @@ fn usage() -> String {
         .replace("{DESIGNS}", designs::USAGE)
         .replace("{DESIGN_CHECKS}", design_checks::USAGE)
         .replace("{AERO}", aero::USAGE)
+        .replace("{ROLL_DREV}", aero_roll::USAGE)
         .replace("{VALIDATE}", validate::USAGE)
         .replace("{CENSUS}", census::USAGE)
+        .replace("{CI_BUDGET}", ci_budget::USAGE)
         .replace("{SCOREBOARD}", scoreboard::USAGE)
         .replace("{CLI}", cli::USAGE)
         .replace("{SITE}", site::USAGE)
@@ -180,8 +186,10 @@ fn main() -> ExitCode {
         Some("designs") => designs::run(&args.collect::<Vec<_>>()),
         Some("design-checks") => design_checks::run(&args.collect::<Vec<_>>()),
         Some("aero") => aero::run(&args.collect::<Vec<_>>()),
+        Some("roll-drev") => aero_roll::run_drev(&args.collect::<Vec<_>>()),
         Some("validate") => validate::run(&args.collect::<Vec<_>>()),
         Some("census") => census::run(&args.collect::<Vec<_>>()),
+        Some("ci-budget") => ci_budget::run(&args.collect::<Vec<_>>()),
         Some("scoreboard") => scoreboard::run(&args.collect::<Vec<_>>()),
         Some("cli") => cli::run(&args.collect::<Vec<_>>()),
         Some("site") => site::run(&args.collect::<Vec<_>>()),

@@ -1,5 +1,7 @@
 # How large real joint steps, band steps and proud heads are on HPR airframes
 
+Re-checked 2026-11-04: 10 claims corrected.
+
 [Excrescence drag](excrescence-drag.md) §4 sized the drag of joint mismatches, switch bands and screw heads on two
 invented rockets, with every feature size invented. This note replaces those sizes with makers' published dimensions and
 fastener standards. **In short: real parts are smaller than §4 assumed, about half its clean-airframe total.** Tubes of
@@ -23,7 +25,7 @@ was read; humidity can swell paper-based tubes by tenths of a millimeter. "Infer
 |---|---|---|---|
 | LOC kraft [T2]: inner 2.14, 3.0, 3.9 | 2.26 | 3.1 | 4.0 |
 | PML phenolic [T3]: inner 2.152, 3.002, 3.900, wall 0.062 | 2.276 | 3.126 | 4.024 |
-| Wildman G12 fiberglass [T4]: inner 2.152, 3.000, 3.9 | 2.276 | 3.120 | 4.020 |
+| Wildman G12 fiberglass [T4]: inner 2.152, 3, 3.9 | 2.276 | 3.120 | 4.020 |
 | Blue Tube 2.0 [T5]: inner 2.147, 3.000, 3.900, wall 0.062 | 2.271 | 3.124 | 4.024 |
 
 - **Spread (Inference).** Without LOC, the nominal outer diameters differ by 0.005, 0.006 and 0.004 in: radial steps of
@@ -35,8 +37,9 @@ was read; humidity can swell paper-based tubes by tenths of a millimeter. "Infer
   p. 1. An industrial filament-wound maker's sheet gives ±0.015 in sanded and ±0.050 in unsanded for 2.000–4.249 in [T6]
   p. 1. Two tubes each within ±t differ in radius by up to t; spread evenly, the mean is t/3 (Inference): sanded, 0.13
   mm mean and 0.38 mm worst; unsanded, 0.42 and 1.27 mm. Whether hobby G12 is sanded to size is not stated. Half of such
-  random joints face forward, half back. A buyer's review on Wildman's 3.0 in page reports the tube's sizes off by about
-  0.25 mm, without saying which [T4].
+  random joints face forward, half back. Of ten reviews on Wildman's 3.0 in page, one reports sizes off by about 0.25
+  mm, not saying which; one, a tube 0.075 in wider than an earlier purchase (0.95 mm in radius, near the unsanded
+  worst); one, for a non-rocket use, excellent tolerances (n = 1 each) [T4].
 - **For §4 (Inference):** one maker's tubes, about 0.1 mm typical (0.05–0.4 mm); a LOC part on another maker's tube,
   0.15–0.3 mm. §4's 0.2 mm (0.1–0.5), all facing forward, spans this, its top 0.1 mm above.
 
@@ -57,20 +60,20 @@ was read; humidity can swell paper-based tubes by tenths of a millimeter. "Infer
   tube, with no swelling figure [T5]. Vulcanized fiber grows 0.10% along and 0.25% across the sheet per 1% change in
   moisture content [T9] p. 2, [T10] p. 1.
 - **Paper's moisture** (bleached kraft linerboard) is 6.2% at 30% relative humidity, 9.6–9.7% at 60% and 12.7–13.0% at
-  80% [T11] p. 735, Table 1; using it for vulcanized fiber, whose curve was not found, is an assumption.
+  80% [T11] p. 734, Table 1; using it for vulcanized fiber, whose curve was not found, is an assumption.
 - **Its step (Inference).** A wound tube's hoop direction mixes both sheet directions, so 0.10–0.25% brackets it. From
-  30% to 60% humidity a 98 mm tube's radius grows 0.17–0.43 mm, a 54 mm one's 0.10–0.25 mm; to 80%, 0.33–0.83 mm and
-  0.19–0.47 mm. A step forms only where paper meets fiberglass (a fiberglass cone or band on a Blue Tube or kraft body),
-  paper proud when humid. How slowly a sealed tube follows the air is not bounded. Temperature is small: a 50 °F swing
-  moves the radius 0.02–0.04 mm, from the sheets' thermal expansion of 1.1–1.7 × 10⁻⁵ per °F [T9] p. 2.
+  30% to 60% humidity a 98 mm tube's outer radius grows 0.17–0.45 mm, a 54 mm one's 0.10–0.25 mm; to 80%, 0.33–0.87 mm
+  and 0.19–0.49 mm. A step forms only where paper meets fiberglass (a fiberglass cone or band on a Blue Tube or kraft
+  body), paper proud when humid. How slowly a sealed tube follows the air is not bounded. Temperature is small: a 50 °F
+  swing moves the radius 0.02–0.04 mm, from the sheets' thermal expansion of 1.1–1.7 × 10⁻⁵ per °F [T9] p. 2.
 
 ## 4. Shear pins, rivets and screw heads
 
-- **Nylon shear pins** keep the steel pan-head shape: a #2-56 head is 3.94–4.24 mm across and 1.14–1.35 mm tall, a #4-40
-  one 5.21–5.56 mm and 1.47–1.73 mm [H1], equal to ASME B18.6.3's slotted pan-head limits [H2] Table 1. Pins are sold 1
-  in long, to be cut to length [H3]. One kit maker's manuals use nylon screws or 0.060 in (1.5 mm) styrene rod, trimmed
-  with end-cutting pliers after fitting [H4] (Vertical Assault p. 20, Talon 4 p. 23): a trimmed pin leaves a stub near 0
-  mm. How often builders leave the head on is not known.
+- **Nylon shear pins** are nylon pan machine screws (Inference): Micro Plastics' nylon 6/6 pan screws have #2-56 heads
+  3.94–4.24 mm across and 1.14–1.35 mm tall, #4-40 ones 5.21–5.56 mm and 1.47–1.73 mm [H1], equal to ASME B18.6.3's
+  pan-head limits [H2] Table 1. Pins are sold 1 in long, to be cut to length [H3]. One kit maker's manuals use nylon
+  screws or 0.060 in (1.5 mm) styrene rod, trimmed with end-cutting pliers after fitting [H4] (Vertical Assault p. 20,
+  Talon 4 p. 23): a trimmed pin leaves a stub near 0 mm. How often heads are left on is unknown.
 - **Push rivets** are low domes. Giant Leap's small rivet head is 8.05 mm across and 1.98 mm tall [H5]; its large one
   reads 11.1 mm and 1.8 mm, and LOC's 8 mm and 1.8 mm [H6], both from unlabeled dimension letters (Inference).
 - **Bay, fin-can and nose screws** (Inference from the tables below: h 1.3–2.4 mm, 5–8 mm across for #4–#8 and M3–M4 pan
@@ -96,13 +99,12 @@ was read; humidity can swell paper-based tubes by tenths of a millimeter. "Infer
   no round head sticks out [H10]; Fruity Chutes lists countersunk 8-32 screws [H11]; Rail-Buttons.com's mini button
   takes a countersunk head, while its one-piece 1010 and 1515 pages don't state the head type [H3]. Its three-piece kit
   (button, spacer, washers) ships a #8 × 1/2 in screw whose photos show a pan-style head (Inference from photos):
-  2.16–2.44 mm proud and 7.8–8.2 mm across [H2]. Some kits glue their rail guides with no screw at all [H4] (Vertical
-  Assault p. 18).
+  2.16–2.44 mm proud and 7.8–8.2 mm across [H2]. Some kits glue rail guides on, no screw [H4] (Vertical Assault p. 18).
 - **So [excrescence drag](excrescence-drag.md) §5's 8 mm head 2–2.5 mm proud is the three-piece case only;** on a
   countersunk button it is 0 mm, and §4's rail-button row (0.4%, 0.15–0.7% at 98 mm) is an upper bound.
-- **Button size.** Apogee's 1010 button is 9.7 mm (0.381 in) across and 9.7 mm long [H10], against §5's invented 11 mm;
-  its 1515 button is 16.0 mm across and 11.2 mm long [H12]. Apogee's FAQ gives the 1010's length as 0.435 in. A 1010
-  rail's slot opening is 6.50 mm (0.256 in) [H13] p. 2-16, so a 1010 button's waist is under 6.5 mm, not §5's 7
+- **Button size.** Apogee's 1010 button is 9.7 mm (0.38–0.381 in) across and as long [H10], against §5's invented 11 mm;
+  its 1515 button is 16.0 mm across and 11.2 mm long [H12]. Its FAQ gives a standard button's length as 0.435 in [H10].
+  A 1010 rail's slot opening is 6.50 mm (0.256 in) [H13] p. 2-16, so a 1010 button's waist is under 6.5 mm, not §5's 7
   (Inference). Standoffs lift a button 1.6 mm [H3] or 3.3 mm [H14].
 
 ## 6. Excrescence drag §4 redone with these sizes (Inference)
@@ -126,9 +128,8 @@ ports as §4; rail-button heads 0 for countersunk buttons, §4's values for thre
   −0.31% to −0.57% per 1% of drag ([apogee bias](apogee-bias.md)), that is −0.24% to −0.67% and −0.42% to −1.5%: 3–8%
   and 5–17% of the +8.73% bias.
 - **Outside the sourced range:** unsanded tubes at their 1.27 mm worst would give 4.6% (98 mm) and 9.2% (54 mm) if all
-  three joints faced forward; one paper-to-fiberglass joint at 80% humidity adds about 0.9% (98 mm, 0.83 mm) and 0.8%
-  (54 mm, 0.47 mm). Paint built up on a band, and an external camera shroud or antenna (§4's 1–47%), are not changed
-  here.
+  three joints faced forward; one paper-to-fiberglass joint at 80% humidity adds about 0.9% at either size (0.87 mm at
+  98 mm, 0.49 mm at 54 mm). Band paint and a camera shroud or antenna (§4's 1–47%) are as §4.
 
 ## What the project can use
 
@@ -146,8 +147,7 @@ ports as §4; rail-button heads 0 for countersunk buttons, §4's values for thre
 
 ## Open questions
 
-- **Measured steps on built rockets.** Rocketry Forum threads on cone-to-tube steps (143684, 80690, 4047, 135324)
-  returned HTTP 403 on 2026-10-28; none was read.
+- **Measured steps on built rockets.** Rocketry Forum threads 143684, 80690, 4047, 135324: 403 on 2026-10-28, unread.
 - **Hobby tolerances:** whether G12 tubes are sanded to size, lot-to-lot outer diameters, and nose-cone base diameters
   (Wildman lists its cones by nominal size only [T7], LOC by the tube they fit [T2]).
 - **How many heads** a typical L2 dual-deploy rocket carries, and how often shear pins are trimmed flush.
@@ -155,7 +155,7 @@ ports as §4; rail-button heads 0 for countersunk buttons, §4's values for thre
 
 ## Sources
 
-All read 2026-10-28. No source carries an open license: cited only, with copies kept under `refs/`, never committed.
+Read 2026-10-28; T4, T5, T11, H1, H10, H12, H14 again 2026-11-04. No open license: cited, cached uncommitted in `refs/`.
 
 - **T1.** PML, *PML Airframes FAQ*, 2003, pp. 1, 2.
   <https://cdn.shopify.com/s/files/1/0588/8370/2933/files/PMLAirframesFAQ_22d4efad-3f6d-4b5b-835f-24a6f35b4b5d.pdf>

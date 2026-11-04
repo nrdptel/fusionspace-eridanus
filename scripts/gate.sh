@@ -28,6 +28,7 @@
 # nextest installed it falls back to `cargo test`.
 # Step refs (M0.5g, ADR-144 §1g): the checks that need the private reference data under refs/, which
 # CI can't run: `ork-flights --check`, `ork-flights --library --check`, `real-flights --check`,
+# `roll-drev --check` (#763: the Basic Finner's roll damping against DREV-TM-9703's cached range fits),
 # `ork-cli --check` (M4.5j; it reads the motor cache `ork-cli --fetch` fills),
 # `fixture-flights --check` (M2.3c1, ADR-184; it reads the private collection's manifest and records)
 # `ork-export-flights --check` (M3.2b; ADR-237: its records went stale unseen before it joined)
@@ -37,17 +38,25 @@
 # (M5.7c, ADR-304: `analyze_stats.js --recount` works out which files pass from the raw
 # ThrustCurve.org snapshot with ThrustCurve.org's own code, and fails unless the index agrees).
 # Step validate runs `motor-catalog --check` as CI does, and with the raw snapshot under refs/ it
-# also holds the committed records and files to it. It runs that and `synthetic --check` in the dev
-# profile, whole, where CI runs them optimized and in halves (issue #1018): the dev profile is the
-# one that writes the reports, so this is the check that what's committed is what it writes.
+# also holds the committed records and files to it. It runs that in the dev profile, where CI runs it
+# optimized. Of the flight censuses (ADR-149, amended), which run whole each night, it runs the
+# synthetic flights' and two logs' slices (M0.16a1: every 21st flight of each set, held line for line
+# to the committed `.slice.json` and to the census's rules for one flight), as CI does on every pull
+# request, and the fit's slice (M0.16a2: every 21st fit of each run, the calibration set's among
+# them, held line for line to the committed `.slice.json`, and those of sets A and B to the
+# report's rules for one fit; the whole report and its shares only `fit --check` holds exactly),
+# in the optimized build that writes the fit's report, as CI does in every word on every pull
+# request. The dev profile writes the other reports, so this checks that what's committed is what
+# each writes, byte for byte.
 # The default run leaves validate out when the branch changes only prose that none of its five
 # checks reads: pages under docs/, the site's theme/ and book.toml, and Markdown files at the top,
 # but not README.md, docs/accuracy.md and docs/images/ (the census writes their tables and badges),
 # docs/ROADMAP.md or docs/decisions/ (the scoreboard and its features table read them), nor a
 # deleted or renamed file (the features table checks its pages exist). Read on 2026-11-01, the five
-# checks' code reads no other prose, so such a change leaves what they compare as it was; CI still
-# runs all five on every pull request. 33 of the 96 pull requests merged from 2026-10-25 to 11-02
-# (UTC) changed only such prose. A run that leaves validate out this way still counts as a full
+# checks' code reads no other prose, so such a change leaves what they compare as it was; CI runs
+# validate and motor-catalog on every pull request but a change to research notes alone, and the
+# censuses each night. 33 of the 96 pull requests merged from 2026-10-25 to 11-02 (UTC) changed
+# only such prose. A run that leaves validate out this way still counts as a full
 # run. Name it to run it anyway (`scripts/gate.sh validate`), or set GATE_VALIDATE=1.
 # It joins any run that includes `test` (the default set, or a fix's `scripts/gate.sh clippy test`)
 # when refs/ is present and the branch changes a physics crate (hpr-aero, hpr-sim, hpr-motor,
@@ -287,7 +296,7 @@ cmd_for() {
       fi ;;
     doc) echo "env RUSTDOCFLAGS=-D\\ warnings cargo doc --workspace --no-deps --all-features --locked" ;;
     wasm) echo "$XTASK wasm-check --locked" ;;
-    validate) echo "$XTASK validate --check && $XTASK synthetic --check && $XTASK two-logs --check && cargo run --locked --quiet --package xtask --profile report-check -- fit --check && $XTASK motor-catalog --check && $XTASK scoreboard --check --against origin/main" ;;
+    validate) echo "$XTASK validate --check && $XTASK synthetic --slice && $XTASK two-logs --slice && cargo run --locked --quiet --package xtask --profile report-check -- fit --slice && $XTASK motor-catalog --check && $XTASK scoreboard --check --against origin/main" ;;
     deny) echo "cargo deny check" ;;
     site) echo "$XTASK site --locked --cache" ;;
     pages) echo "$XTASK site --no-build" ;;
@@ -297,7 +306,7 @@ cmd_for() {
     types) echo "$XTASK format --typecheck" ;;
     python) echo "scripts/python-tests.sh" ;;
     ego) echo "cargo bench --locked -p fusionspace-hpr-analysis --bench ego_hartmann6" ;;
-    refs) echo "$XTASK ork-flights --check && $XTASK ork-flights --library --check && $XTASK real-flights --check && $XTASK ghost --check && $XTASK ork-cli --check && $XTASK fixture-flights --check && $XTASK ork-export-flights --check && $XTASK logs --check && $XTASK evidence --samples && node validation/oracles/thrustcurve/analyze_stats.js --recount" ;;
+    refs) echo "$XTASK ork-flights --check && $XTASK roll-drev --check && $XTASK ork-flights --library --check && $XTASK real-flights --check && $XTASK ghost --check && $XTASK ork-cli --check && $XTASK fixture-flights --check && $XTASK ork-export-flights --check && $XTASK logs --check && $XTASK evidence --samples && node validation/oracles/thrustcurve/analyze_stats.js --recount" ;;
     *) return 1 ;;
   esac
 }

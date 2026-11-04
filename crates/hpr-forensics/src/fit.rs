@@ -37,7 +37,7 @@
 //! holds latitude and longitude, it reads the rocket's drift too, which is what speaks to the wind.
 //!
 //! **The Bayesian option.** [`bayesian`] fits as [`fit`] does, then draws the posterior of the same
-//! unknowns about its answer, each draw a flight flown ([ADR-317][adr-317], [ADR-319][adr-319]):
+//! unknowns about its answer, each draw a flight flown ([ADR-317][adr-317], [ADR-320][adr-320]):
 //! the wind first, then the rest about where a Gauss–Newton step puts them in that wind, the
 //! sensor's linear unknowns integrated out in closed form, and on a log of height alone the wind's
 //! shear exponent drawn too. Its 90% intervals are the posterior's 5% and 95% points, with no
@@ -53,7 +53,7 @@
 //! [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 //! [adr-316]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md
 //! [adr-317]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0317-m7-3c-in-two-the-sampler-then-the-test.md
-//! [adr-319]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0319-m7-3c2-the-bayesian-option-in-two-blocks.md
+//! [adr-320]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0320-m7-3c2-the-bayesian-option-in-two-blocks.md
 
 use std::cell::{Cell, RefCell};
 
@@ -639,7 +639,7 @@ pub struct Bayesian {
     pub posterior: Option<Posterior<FLOWN>>,
 }
 
-/// The Bayesian option ([ADR-317][adr-317], [ADR-319][adr-319]): [`fit`], then the posterior of
+/// The Bayesian option ([ADR-317][adr-317], [ADR-320][adr-320]): [`fit`], then the posterior of
 /// its unknowns drawn around its answer by [`posterior::sample_in_two`], each draw a flight flown.
 ///
 /// The posterior is the least-squares fit's own: the same residuals at the same noise, the noise
@@ -654,7 +654,7 @@ pub struct Bayesian {
 /// points as they come: no shares widen them.
 ///
 /// [adr-317]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0317-m7-3c-in-two-the-sampler-then-the-test.md
-/// [adr-319]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0319-m7-3c2-the-bayesian-option-in-two-blocks.md
+/// [adr-320]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0320-m7-3c2-the-bayesian-option-in-two-blocks.md
 pub fn bayesian(
     observed: Option<&Observations>,
     stated: &Stated,

@@ -2424,6 +2424,11 @@
           "const": "disturbed_top"
         },
         {
+          "description": "The track falls below its start before the climb, then climbs from the fall without\nresting again: a disturbance on the pad, such as a pressure pulse at ignition. The top\nspeed is withheld, and liftoff where no sample before the fall is on the pad; every reading\nis withheld when the track has no zero and too little pad before the fall.",
+          "type": "string",
+          "const": "disturbed_pad"
+        },
+        {
           "description": "The log's accelerometers don't say which lies along the rocket's axis, such as a board's\nthree axes: the top acceleration and a burnout from the accelerometer need the axial one.",
           "type": "string",
           "const": "axis_unstated"
