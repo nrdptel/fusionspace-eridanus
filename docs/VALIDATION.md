@@ -449,9 +449,10 @@ each job of a pull request's CI within 20 minutes, from the moment a GitHub mach
 again before it merges, and anyone signed in to GitHub's `gh` tool can run it. It needs the network, and
 fails, saying why, when it can't read GitHub's runs. It fails when:
 
-- the branch's newest *full gate*, a `scripts/gate.sh` run of every step, took over 30 minutes,
-  counting any step run again alone since then at its newer time. A branch with no full gate yet
-  gets a note, not a failure.
+- the branch's newest *full gate*, a `scripts/gate.sh` run of every default step (a branch that
+  changed only prose may leave `validate` out), took over 30 minutes. A step run again after it on
+  the branch, alone or with others, counts at its newest passing time, and a step the full gate
+  lacked is added. A branch with no full gate yet gets a note, not a failure.
 - any job of main's newest passing run of a pull request's checks took over 20 minutes. Such a run
   is one started by a push to main, or by hand without the `full` box ticked; a push that changed
   only research notes skips most checks, so the run before it is read.
@@ -459,7 +460,8 @@ fails, saying why, when it can't read GitHub's runs. It fails when:
   censuses: each night, or by hand with `full` ticked. It passes when every `census` job and the
   fit's whole check passed, and its age is counted from its first attempt, so a run made again
   later doesn't count as a new night. The night's jobs aren't held to the 20 minutes, since no pull
-  request waits for them; its census jobs take 22 to 38.
+  request waits for them. In the one full run read so far, started by hand on 4 November 2026, the
+  census jobs took 22 min 31 s to 37 min 11 s.
 
 The check on the least-squares fit, `cargo xtask fit`, takes longer than any other
 ([the flight fit](physics/flight-fit.md)). Its report rests on 6,538 fits of synthetic flights: the

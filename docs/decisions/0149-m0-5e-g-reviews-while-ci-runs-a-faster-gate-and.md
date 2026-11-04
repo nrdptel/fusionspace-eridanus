@@ -389,8 +389,9 @@ stand in for it. `cargo xtask ci-budget` prints one line for each and fails if a
 1. **The gate.** The newest passing full run of `scripts/gate.sh` on the branch, at its head or a
    commit on it since it left main, from the history the gate writes in the git directory. A step
    run again after it on the branch, alone or with others (`scripts/gate.sh validate`), replaces
-   that step's time in it, by its newest passing reading; a step the prose rule left out of the
-   full run is added. Over 1,800 s fails. A branch with no full run yet only gets a note: the
+   that step's time in it, by its newest passing reading; a step the full run lacked, such as
+   `validate` when the prose rule left it out, or `refs` or `python` when the branch didn't call
+   for them then, is added. Over 1,800 s fails. A branch with no full run yet only gets a note: the
    gate itself is required before a merge.
 2. **A pull request's jobs.** Main's last passing CI run that ran a pull request's jobs: one
    started by a push, or by hand without `full`, in which no `census` job ran (§2 above) and
