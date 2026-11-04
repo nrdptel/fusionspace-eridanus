@@ -1,7 +1,7 @@
 # ADR-149: M0.5e to g, reviews while CI runs, a faster gate and a split CI (2026-10-04)
 
 - **Status:** accepted; amended 2026-11-03 (below: a time budget for CI and the gate, the flight censuses each night) and 2026-11-04 (M0.16a in three; the slices of the synthetic flights and two logs)
-- **Summary:** Reviews start once the PR is open and CI runs, with a shared bar for blocking findings and scoped re-reviews; the gate runs tests in parallel and adds the private-data checks when physics changes; CI's slowest job is split. Amended 2026-11-03: a pull request's CI within 20 minutes and a passing full gate within 30; the flight censuses (the synthetic flights, two logs and the fit's intervals) run whole each night on main, a failure filing a P-critical issue, and a change to research notes alone skips the jobs that read none. Amended 2026-11-04: pull requests and the gate fly every 20th flight of the synthetic flights and two logs, held line for line to a committed slice.
+- **Summary:** Reviews start once the PR is open and CI runs, with a shared bar for blocking findings and scoped re-reviews; the gate runs tests in parallel and adds the private-data checks when physics changes; CI's slowest job is split. Amended 2026-11-03: a pull request's CI within 20 minutes and a passing full gate within 30; the flight censuses (the synthetic flights, two logs and the fit's intervals) run whole each night on main, a failure filing a P-critical issue, and a change to research notes alone skips the jobs that read none. Amended 2026-11-04: pull requests and the gate fly every 21st flight of the synthetic flights and two logs, held line for line to a committed slice.
 
 [adr-144]: 0144-the-2026-10-03-planning-review-leaner-bookkeeping.md
 [adr-222]: 0222-six-platforms-tested-on-every-pull-request.md
@@ -182,7 +182,7 @@ main's last passing CI, or no passing nightly in 26 hours; M7.3c3's fit follows 
    calibration set, 48 each of sets A and B, and 10 of the 200 staged flights. A flight's design,
    logger and conditions are drawn from streams of its own, so a fixed step samples them as fairly
    as a drawn one would. One draw does follow the index: the tuning and calibration sets give their
-   odd flights set B's model. So the step is odd, and each slice holds both models, half and half.
+   odd flights set B's model. So the step is odd, and their slices hold both models, half and half.
    A first version took every 20th flight and held none of them, which a claims check of this
    change found.
 2. **Exact where written.** The command that writes a census writes its slice beside the report,
@@ -230,9 +230,10 @@ the whole synthetic flights' run took 486 s and two logs' 205 s; their slices to
 The two whole runs wrote the reports byte for byte as committed, beside the two new slices of
 327 kB and 49 kB. In the five full gates that ran the validate step and passed from 2026-11-03
 21:40 to 11-04 04:59 UTC, it took 2,175 to 3,615 s. With the slices, this change's own full gate
-took 1,999 s and its validate step 1,478 s (one run, 2026-11-04, at every 20th flight). The rest of
-that step, the fit's whole run with the motor catalog and the scoreboard, isn't timed apart. The
-gate stays over its 30 minutes until M0.16a2.
+took 1,999 s and its validate step 1,478 s at every 20th flight, and 2,529 s and 1,466 s at every
+21st, its site step laying out every page again (one run each, 2026-11-04). The rest of that step,
+the validation cases, the fit's whole run, the motor catalog and the scoreboard, isn't timed apart.
+The gate stays over its 30 minutes until M0.16a2.
 
 **Alternatives to the slices.**
 
