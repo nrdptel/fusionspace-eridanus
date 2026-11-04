@@ -1,5 +1,7 @@
 # How far hobby parachutes glide, swing and turn in descent
 
+Re-checked 2026-11-04: 4 claims corrected.
+
 **In short: a solid flat or elliptical hobby main can glide sideways at roughly 1–3 m/s at hobby descent rates, and
 no source measures whether its turning averages that out.** Hobby-sized model canopies (45 in, 1949) glided at up to
 45° at 10 ft/s and swung or glided at 15–25 ft/s [1, p. 5-16]; read through their drag-coefficient curves, that is
@@ -70,24 +72,23 @@ Builds on [wind-from-descent](wind-from-descent.md) §4 (Knacke's oscillation ta
   per cone period) both occur: a flat canopy's natural motion is coning side to side about its descent line [8, p. 6],
   and a stable canopy with a draggy payload cones at its small trim angle [2, p. 13]. Coning cancels within a period
   or two; a held heading doesn't cancel at all (**Inference**).
-- **What turns look like when forced.** A paratrooper canopy with slots cut across 11 gores, steered by lines, turns
-  180° in 5 s at a glide ratio of 0.75 [1, p. 5-111]: likely an upper mark for how fast a gliding round canopy turns
-  (**Inference**). On model rockets the canopy "may fly around in tight circles", or swing like a pendulum, disturbed
-  by the payload [4, p. 6].
+- **Forced turns.** A line-steered paratrooper canopy with slots across 11 gores turns 180° in 5 s at a glide ratio of
+  0.75 [1, p. 5-111]: likely an upper mark for a gliding round canopy's turn rate (**Inference**). On model rockets
+  the canopy "may fly around in tight circles", or swing like a pendulum, disturbed by the payload [4, p. 6].
 - **One GPS track (thread 135349, the #903 flight).** Under the main from about T+97 to T+124 s the receiver's 1 Hz
-  positions give a ground velocity of 5.9 m/s on average; its east and north components scatter 0.73 and 0.74 m/s about
-  straight-line trends, and its heading stays inside a 32° band (computed here [L1], with the GPS clock 104 s behind
-  the altimeter's). A glide that rotated through a full turn in that time would add a component of amplitude g, scatter
-  g/√2, so g ≤ about 1.0 m/s; over the clock offsets the two logs allow (101–104 s) the scatter is 0.66–0.96
-  m/s and g ≤ 0.9–1.4 m/s (**Inference**, counting all the scatter as glide). A glide on a fixed heading is
-  indistinguishable from wind.
+  positions give a mean ground velocity of 5.9 m/s; its east and north components scatter 0.74 and 0.73 m/s about
+  straight-line trends, and its heading stays inside a 32° band (computed here [L1], with GPS time = altimeter
+  time + 104 s). A glide that rotated through a full turn would add a component of amplitude g, scatter g/√2, so g ≤
+  about 1.0 m/s; over the clock offsets the two logs allow (101–104 s) the scatter is 0.66–0.96 m/s and g ≤
+  0.9–1.4 m/s (**Inference**, counting all the scatter as glide). A glide on a fixed heading looks like wind.
 - **The airframe's heading is not the canopy's.** On public AltOS TeleMega logs under a steady main, the airframe's
-  rate about the vertical (gyro along the accelerometer's direction) is large: 87 °/s rms, peak 183 °/s and 0.68 sign
-  changes a second on ISSUIUC's 2023 flight at 6.5 m/s, and 107–169 °/s rms on a subscale flight's full-rate log at
-  7.5 m/s, depending on the window. It twists back and forth on its cord. On a full-scale flight at 7.0 m/s the
-  airframe spins one way instead: gyro and magnetometer agree on −1,163° against −1,168° over 23 s (94 °/s rms;
-  computed here). Either way the sensors track the airframe, which turns on its cord or swivel, so no log gives the
-  canopy's turn [L2] (**Inference**).
+  rate about the vertical (gyro along the accelerometer) is large: 87 °/s rms, peak 183 °/s and 0.68 sign changes a
+  second on ISSUIUC's 2023 flight at 6.5 m/s, and 107–169 °/s rms on a subscale flight's full-rate log at 7.4 m/s,
+  depending on the window: it twists back and forth on its cord. On a full-scale flight at 7.0 m/s it drifts one way
+  while still reversing: from 4 s after the main opened to 1 s before landing (32 s) the gyro gives −1,401° about up
+  (right-handed in the logger's axes) and the field seen in those axes turns the other way, +1,397°: the same turn;
+  98 °/s rms (computed here). Either way the sensors track the airframe on its cord or swivel, not the canopy [L2]
+  (**Inference**).
 
 ## 3. The swing on the shock cord, and what the barometer sees (#903)
 
@@ -100,8 +101,8 @@ Builds on [wind-from-descent](wind-from-descent.md) §4 (Knacke's oscillation ta
   oscillated at twice the swing frequency [9, p. 3]; one test swung to 24.5° with a 14.0 s period [9, p. 5]. The
   mean descent rate during the swing stayed within 2% of the test's time average (30.16 against 30.76 ft/s; 31.08
   against 30.82 ft/s) [9, pp. 4, 6].
-- **Breathing is faster.** 5–7 ft flat canopies on a guide wire, which stopped their coning, breathed at about 2 Hz
-  [8, pp. 2, 6, 8].
+- **Breathing is faster.** One flat circular canopy (7 ft; 5 ft in the figures) on a guide wire that "partially
+  constrained" its lateral motion and restrained coning breathed at about 2 Hz in test and model [8, pp. 3, 6–8].
 - **Vortex shedding can drive the swing.** A ringsail drop test swung 40–45° from 70,000 to 57,000 ft, put down
   to shedding at a Strouhal number of about 0.17 locking onto the pendulum [10, PDF pp. 20, 23]. At 5 m/s on a
   1.5 m canopy that shedding is near 0.6 Hz, against 0.2–0.35 Hz for a pendulum (**Inference**).
@@ -153,8 +154,8 @@ Builds on [wind-from-descent](wind-from-descent.md) §4 (Knacke's oscillation ta
 ## Open questions
 
 - A hobby canopy's turn rate and glide on a fixed heading: needs canopy-mounted heading data (none found).
-- Glide against porosity and spill-hole size for zero-porosity nylon; Heinrich and Haak's porosity report (AFFDL-TR-
-  71-58, DTIC AD0729858) was unreachable (DTIC under maintenance on 2026-10-28).
+- Glide against porosity and spill-hole size for zero-porosity nylon: Heinrich and Haak's AFFDL-TR-71-58 (DTIC
+  AD0729858) was unreachable on 2026-10-28.
 - Which vent layouts read the swing: the #903 bay's vents are unknown. A bay with a vent ring or a sealed reference
   would separate vent pressure from real motion (static-pressure-hobby-shapes §4 on rings).
 - Not read: NAR R&D reports "Hole-y Chutes" (NARAM-61), "Spinning Parachute Effect on Descent Rate" (NARAM 53) and
@@ -167,9 +168,8 @@ Read 2026-10-28 unless noted. [L1–L3] are this note's computations on public l
 1. T. W. Knacke, *Parachute Recovery Systems Design Manual*, NWC TP 6575 (1991), pp. 5-3, 5-4, 5-16, 5-18, 5-34,
    5-38, 5-71 to 5-73, 5-111; Tables 5-1, 5-3; Figs. 5-18, 5-63. <https://apps.dtic.mil/sti/pdfs/ADA247666.pdf>
    (read from the project's cached copy; DTIC was down on 2026-10-28).
-2. D. J. Cockrell, *The Aerodynamics of Parachutes*, AGARDograph 295 (1987), pp. 13, 17.
-   <https://apps.dtic.mil/sti/pdfs/ADA184620.pdf>; the copy read came from
-   <https://everyspec.com/NATO/NATO-ARMP/AGARD-AG-295_39039/>.
+2. D. J. Cockrell, *The Aerodynamics of Parachutes*, AGARDograph 295 (1987), pp. 13, 17 (DTIC ADA184620).
+   Read from <https://everyspec.com/NATO/NATO-ARMP/AGARD-AG-295_39039/>.
 3. T. Yavuz, *Aerodynamics of Parachutes and Like Bodies in Unsteady Motion*, PhD thesis, University of Leicester
    (1982), pp. 123, 179–184, 206–207.
    <https://figshare.le.ac.uk/articles/thesis/Aerodynamics_of_parachutes_and_like_bodies_in_unsteady_motion_/10181513>
@@ -180,7 +180,7 @@ Read 2026-10-28 unless noted. [L1–L3] are this note's computations on public l
 7. Fruity Chutes, NARCON 2013 handout, p. 2.
    <https://fruitychutes.com/files/help/NARCON-2013-Rocketry-Recovery-Technology.pdf> (cached 2026-10-17).
 8. B. Tutt, S. Roland, R. Charles, G. Noetscher, "Finite Mass Simulation Techniques in LS-DYNA", AIAA 2011-2592,
-   pp. 2, 6, 8. <https://airborne-sys.com/wp-content/uploads/2016/10/aiaa-2011-2592-finite_mass_simulation_te.pdf>
+   pp. 3, 6–8. <https://airborne-sys.com/wp-content/uploads/2016/10/aiaa-2011-2592-finite_mass_simulation_te.pdf>
 9. E. S. Ray, R. A. Machín, "Pendulum Motion in Main Parachute Clusters", 23rd AIAA ADS conference (2015), pp. 3–6.
    <https://ntrs.nasa.gov/api/citations/20150003485/downloads/20150003485.pdf>
 10. M. Bernatovich, I. Clark, "A Method to Characterize Parachute System Instability Modes", Georgia Tech AE 8900
