@@ -982,14 +982,16 @@ fn slice_lines(fit: &FlightFit) -> Vec<String> {
         } else {
             "at its step limit"
         },
-        fit.misfit_share.map_or("no residual".to_owned(), |misfit| format!(
-            "residual {} of the spread",
-            share(misfit)
-        )),
-        fit.rms_m.map_or("no residual RMS".to_owned(), |rms_m| format!(
-            "residual RMS {} m",
-            figures(rms_m)
-        )),
+        fit.misfit_share
+            .map_or("no residual".to_owned(), |misfit| format!(
+                "residual {} of the spread",
+                share(misfit)
+            )),
+        fit.rms_m
+            .map_or("no residual RMS".to_owned(), |rms_m| format!(
+                "residual RMS {} m",
+                figures(rms_m)
+            )),
         fit.flown,
     )];
     for (&asked, c) in ASKED.iter().zip(&fit.compared) {
@@ -1037,7 +1039,9 @@ fn slice_rules(set: Set, fit: &FlightFit, drawn: u64, track: &[u64]) -> Vec<Stri
     }
     if among_drawn
         && !fit.fitted
-        && hpr_forensics::synthetic::draw(set, fit.index).logger.profile
+        && hpr_forensics::synthetic::draw(set, fit.index)
+            .logger
+            .profile
             != hpr_forensics::synthetic::logger::Profile::GnssTracker
     {
         broken.push(format!(
@@ -1319,9 +1323,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
         }
         ["--slice"] => check_slice(&root, &files, crate::slice::Held::Exact),
         ["--slice", "--other-platform"] => check_slice(&root, &files, crate::slice::Held::Words),
-        ["--check", "--other-platform"] => {
-            other_platform(&root, &fit_runs(&files, Part::WHOLE)?)
-        }
+        ["--check", "--other-platform"] => other_platform(&root, &fit_runs(&files, Part::WHOLE)?),
         ["--check", "--other-platform", "--parts", dir] => {
             other_platform(&root, &fits_from_parts(Path::new(dir))?)
         }
@@ -1799,7 +1801,10 @@ mod tests {
             .collect();
         assert_eq!(counts[0], 62);
         assert_eq!(counts[2], 62);
-        assert!(counts[4..4 + NOISES.len()].iter().all(|&n| n == 10), "{counts:?}");
+        assert!(
+            counts[4..4 + NOISES.len()].iter().all(|&n| n == 10),
+            "{counts:?}"
+        );
         assert_eq!(counts[4 + NOISES.len()], 96);
         let calibration = SLICE.of_run(&runs[4 + NOISES.len()].indices);
         let odd = calibration.iter().filter(|index| *index % 2 == 1).count();
@@ -1848,7 +1853,11 @@ mod tests {
         assert_ne!(words(&slice_lines(&stopped))[0], words(&lines)[0]);
         let mut nothing = fit.clone();
         nothing.fitted = false;
-        assert!(slice_lines(&nothing)[1..].iter().all(|l| l.ends_with(", not counted")));
+        assert!(
+            slice_lines(&nothing)[1..]
+                .iter()
+                .all(|l| l.ends_with(", not counted"))
+        );
         // The wind is counted only with a track.
         assert!(lines[3].ends_with(", not counted"), "{lines:?}");
         let mut tracked = fit.clone();
@@ -1877,7 +1886,11 @@ mod tests {
         // A fit missing from a run is refused, not passed over.
         let mut short = committed;
         short[0].pop();
-        assert!(slice_of(&short, &drawn).unwrap_err().contains("61 of the slice's 62"));
+        assert!(
+            slice_of(&short, &drawn)
+                .unwrap_err()
+                .contains("61 of the slice's 62")
+        );
     }
 
     /// Each rule the report holds a fit to names the fit that breaks it, among the flights drawn
@@ -1949,15 +1962,16 @@ mod tests {
         ));
         assert_eq!(ci.matches("-- fit --slice").count(), 1);
         // What's deployed and the night's alert wait for it.
-        for needs in ["\n    needs: [fmt, clippy,", "\n    needs: [scope, fmt, clippy,"] {
+        for needs in [
+            "\n    needs: [fmt, clippy,",
+            "\n    needs: [scope, fmt, clippy,",
+        ] {
             let line = &ci[ci.find(needs).unwrap() + 1..];
             let line = &line[..line.find('\n').unwrap()];
             assert!(line.contains(" fit-slice,"), "{line}");
         }
         // The night fits the whole, the calibration set among it, and holds the slice in words.
-        assert!(ci.contains(
-            "-- fit --check --other-platform --parts target/fit-parts\n"
-        ));
+        assert!(ci.contains("-- fit --check --other-platform --parts target/fit-parts\n"));
         let gate = fs::read_to_string(root.join("scripts/gate.sh")).unwrap();
         let step = gate
             .lines()
