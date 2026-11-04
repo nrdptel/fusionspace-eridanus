@@ -381,15 +381,16 @@ Each night CI flies every flight again on macOS, Windows and Linux and holds the
   also checks that set B's three changes reach its flights' inputs while set A's keep HPR Sim's.
 - `cargo xtask synthetic --check`, in CI on every platform each night
   ([ADR-149's amendment, the time budget for CI](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md)),
-  and in `scripts/gate.sh` before each merge: the census reproduced. CI's `census` job flies the sets in
+  and by hand: the census reproduced. CI's `census` job flies the sets in
   two steps, `--sets tuning,a` and `--sets b,calibration`. Each compares what its sets make with
   their sections of the committed report, so every flight is flown and compared on every platform.
   A test reads `ci.yml` and fails if a set isn't on exactly one line of a job that runs on all five
   platforms, or if that job runs on any condition but a full run's, nightly or started by hand.
 - `cargo xtask synthetic --slice`, on pull requests on all five platforms and in
-  `scripts/gate.sh`: every 21st flight of each set (202 of 4,200) flown again, held line for line
-  to the `synthetic-flights.slice.json` the whole run writes and to the census's rules for one
-  flight. A test changes one flight's truth, then its log, and checks that its lines change.
+  `scripts/gate.sh`: every 21st flight of each set (202 of 4,200) flown again, held to the
+  census's rules for one flight and to the `synthetic-flights.slice.json` the whole run writes, by
+  the byte on the Mac's everyday build that writes it and by the word elsewhere (a last digit can
+  move between builds). A test changes one flight's truth, then its log, and checks that its lines change.
 
 ### References
 

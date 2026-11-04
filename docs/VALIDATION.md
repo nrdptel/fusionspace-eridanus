@@ -422,17 +422,19 @@ main, not on every pull request
 the synthetic flights and two logs on all five platforms, in the `census` job, and the fit in
 parts on Linux. A test fails if a set of synthetic flights is left out, or if its job runs on any
 condition but a full run's, nightly or started by hand ([the synthetic flights' tests](physics/synthetic-flights.md)). A
-nightly failure opens an issue that is fixed before other work. Each of those pull requests, on all
-five platforms, and `scripts/gate.sh` fly a slice of the synthetic flights and of two logs instead:
+nightly failure opens an issue that is fixed before other work. Pull requests, on all five
+platforms, and `scripts/gate.sh` fly a slice of the synthetic flights and of two logs instead:
 every 21st flight of each set, 202 flights each. The command that writes a census writes its
 slice beside the report (`synthetic-flights.slice.json`, `two-logs.slice.json`): a line for each
 thing the census makes of each of those flights, to the census's digits. `--slice` flies them
-again and fails if any line differs, naming the flight, or if the slice breaks a rule the census
-holds every flight to, such as a reading past its bound. What only a whole set shows, its ranges,
-coverage tests and fitted shares, waits for the night. Reports are still written by the
+again and fails, naming the flight, if a line differs (by a byte on the build that writes the
+reports, by a word elsewhere, where a last digit can move) or if a flight breaks a rule the census
+holds every flight to, such as a reading past its bound. So a pull request's pass covers one flight
+in 21; the rest, and what only a whole set shows, its ranges, coverage tests and fitted shares,
+wait for the night. Reports are still written by the
 everyday build, and `scripts/gate.sh` runs the checks on your own machine before each merge: the
 slices of the synthetic flights and two logs in the everyday build, the fit whole in the optimized
-one, until it has a slice of its own ([the time budget](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md)). A passing default run leaves them out only when a change is prose they don't read,
+one, until it has a slice of its own ([the time budget](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md)). The gate's default run leaves these checks out only when a change is prose they don't read,
 such as most pages under `docs/`, and a run that names its steps runs them only when `validate` is
 named. So a report in the repository has to reproduce from both builds. If the optimized build
 ever came out differently, the nightly run would fail and regenerating wouldn't fix it: that would need a

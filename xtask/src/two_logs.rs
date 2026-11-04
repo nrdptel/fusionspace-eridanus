@@ -58,10 +58,12 @@ struct Report {
 pub fn run(args: &[String]) -> Result<(), String> {
     let mut check_only = false;
     let mut only_slice = false;
+    let mut other_platform = false;
     for arg in args {
         match arg.as_str() {
             "--check" => check_only = true,
             "--slice" => only_slice = true,
+            "--other-platform" => other_platform = true,
             other => return Err(format!("unknown argument `{other}`\n\n{USAGE}")),
         }
     }
@@ -70,11 +72,19 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let two_stage = fs::read_to_string(root.join(TWO_STAGE_DESIGN))
         .map_err(|error| format!("{TWO_STAGE_DESIGN}: {error}"))?;
     let staged_flyer = Staged::new(two_stage);
+    if other_platform && !only_slice {
+        return Err("--other-platform goes with --slice".into());
+    }
     if only_slice {
         if check_only {
-            return Err("--slice runs alone: it takes no --check".into());
+            return Err("--slice takes no argument but --other-platform".into());
         }
-        return check_slice(&root, &files, &staged_flyer);
+        let held = if other_platform {
+            crate::slice::Held::Words
+        } else {
+            crate::slice::Held::Exact
+        };
+        return check_slice(&root, &files, &staged_flyer, held);
     }
     let mut broken = Vec::new();
 
@@ -147,18 +157,24 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let page_path = root.join(format!("{REPORT}.md"));
     let slice_path = root.join(format!("{REPORT}.slice.json"));
     if check_only {
-        if let Some(problem) = crate::slice::compare(&slice_path, &slice) {
-            return Err(problem);
-        }
+        // The whole check runs each night on every platform, in the optimized build: the slice's
+        // words, its numbers aside (`Held::Words`). The gate's `--slice` holds them exactly.
+        let mut problems: Vec<String> =
+            crate::slice::compare(&slice_path, &slice, crate::slice::Held::Words)
+                .into_iter()
+                .collect();
         for (path, made) in [(&json_path, &json), (&page_path, &page)] {
-            let committed =
-                fs::read_to_string(path).map_err(|error| format!("{}: {error}", path.display()))?;
-            if committed.replace("\r\n", "\n") != *made {
-                return Err(format!(
+            match fs::read_to_string(path) {
+                Ok(committed) if committed.replace("\r\n", "\n") == *made => {}
+                Ok(_) => problems.push(format!(
                     "{} doesn't match what the flights make; run `cargo xtask two-logs`",
                     path.display()
-                ));
+                )),
+                Err(error) => problems.push(format!("{}: {error}", path.display())),
             }
+        }
+        if !problems.is_empty() {
+            return Err(problems.join("\n"));
         }
         println!("the flights reproduce {REPORT}.json, .md and .slice.json");
     } else {
@@ -189,7 +205,14 @@ fn slice_flight(set: Set, logs: &TwoLogs) -> (crate::slice::Flight, Said) {
     let log = |profile: hpr_forensics::synthetic::logger::Profile,
                log: &hpr_flightdata::log::FlightLog| {
         let samples = log.time_s.len();
-        match log.altitude_m.iter().copied().reduce(f64::max) {
+        // A height that isn't a number shows as one: `f64::max` would pass over it.
+        let heights = log.altitude_m.iter().copied();
+        let highest = if log.altitude_m.iter().any(|h| !h.is_finite()) {
+            Some(f64::NAN)
+        } else {
+            heights.reduce(f64::max)
+        };
+        match highest {
             Some(highest) => format!(
                 "{}: {samples} samples, highest {} m",
                 profile.name(),
@@ -276,7 +299,12 @@ fn make_slice(
 
 /// `cargo xtask two-logs --slice`: the slice's flights flown, held to the committed slice and to
 /// the report's per-flight rules; the committed report read and its page rendered from it.
-fn check_slice(root: &std::path::Path, files: &DesignFiles, staged: &Staged) -> Result<(), String> {
+fn check_slice(
+    root: &std::path::Path,
+    files: &DesignFiles,
+    staged: &Staged,
+    held: crate::slice::Held,
+) -> Result<(), String> {
     let json_path = root.join(format!("{REPORT}.json"));
     let page_path = root.join(format!("{REPORT}.md"));
     let committed = fs::read_to_string(&json_path)
@@ -305,6 +333,7 @@ fn check_slice(root: &std::path::Path, files: &DesignFiles, staged: &Staged) -> 
     problems.extend(crate::slice::compare(
         &root.join(format!("{REPORT}.slice.json")),
         &made,
+        held,
     ));
     if !problems.is_empty() {
         return Err(format!(
@@ -314,9 +343,10 @@ fn check_slice(root: &std::path::Path, files: &DesignFiles, staged: &Staged) -> 
         ));
     }
     println!(
-        "the slice's {} flights reproduce {REPORT}.slice.json and keep the report's rules; \
+        "the slice's {} flights reproduce {REPORT}.slice.json {} and keep the report's rules; \
          {REPORT}.json reads and renders {REPORT}.md",
-        made.flights.len()
+        made.flights.len(),
+        crate::slice::held_text(held)
     );
     Ok(())
 }

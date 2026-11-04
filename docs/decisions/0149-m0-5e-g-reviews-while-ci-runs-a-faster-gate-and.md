@@ -192,7 +192,9 @@ main's last passing CI, or no passing nightly in 26 hours; M7.3c3's fit follows 
      reading's error as a share of its bound; how near its top acceleration came to the
      accelerometer's two ranges; on the tuning set and sets A and B, the smoother's checks (of the
      log, of the log written from launch, and with a GNSS track, of the track trusted from
-     liftoff), each error over its standard deviation, with where the truth fell; and on sets A and
+     liftoff), each error over its standard deviation, with where the truth fell, and its health:
+     whether it saw the pad, kept the accelerometer and trusted the track, its transonic and charge
+     spans, its unsolved steps, and each sensor's samples, rejected and set aside; and on sets A and
      B and the calibration set, what the log says of the readings that state an interval, with
      where each truth fell.
    - two logs: each log's sample count and highest height, and the offset's reading, truth and
@@ -202,7 +204,11 @@ main's last passing CI, or no passing nightly in 26 hours; M7.3c3's fit follows 
    step, so that an error near zero, whose last digits are rounding, writes the same on every
    platform. `--slice` flies the slice's flights again and fails if any line differs, if a flight
    is missing or added, or if the slice takes another step, naming up to 20 such flights and
-   counting the rest; flights in another order fail without one named.
+   counting the rest; flights in another order fail without one named. A line is held byte for
+   byte on the build that writes the reports, the Mac's everyday build, and in words everywhere
+   else (`--other-platform`): each number, NaN and infinity read as one mark, every word compared.
+   Words are what the census counts: where each truth fell, what was withheld and why, the
+   smoother's flags, the design, the logger and the model.
 3. **Else by its rule.** What only a whole set can show stays with the whole run: the census's
    ranges, counts and medians, the shares fitted on a calibration set, the smoother's coverage
    cells, and ADR-257's test with its probes. Each slice flight is held to the rules the census
@@ -215,15 +221,18 @@ main's last passing CI, or no passing nightly in 26 hours; M7.3c3's fit follows 
    rule is the flight's own, and its set where it is a count over the set's slice. `--slice` also
    reads the committed report and checks that it renders the committed page.
 4. **Where each runs.** `--slice` runs in `scripts/gate.sh`'s validate step, in place of the whole
-   check, and in CI's `validate` job on all five platforms on every pull request but one that
-   changes only research notes, in the optimized build. The whole `--check` runs each night and
-   flies the slice too, comparing it with the committed one, so the committed slice is always the
-   whole run's. A test reads `ci.yml` and `scripts/gate.sh` and fails if either check is missing,
+   check, byte for byte. CI's `validate` job runs `--slice --other-platform` on all five platforms,
+   in the optimized build, on every pull request but one that changes only research notes. The
+   whole `--check` runs each night and flies the slice too, holding it in words to the committed
+   one, which only the whole run writes. A test reads `ci.yml` and `scripts/gate.sh` and fails if either check is missing,
    runs on one platform, or may fail unseen.
 5. **One changed flight fails it.** A test changes one synthetic flight's truth by 0.5%, then its
    log, and checks that its lines change. Another moves one of two logs' clocks by 0.1 s, then
    reads one log 0.5% high. The comparison's own tests change one line of one flight and check that
-   the failure names that flight and only it.
+   the failure names that flight and only it, and that in words a moved number passes and a moved
+   word fails. On the committed synthetic slice, moving one share of set A's flight 399 from 0.031
+   to 0.041 fails `--slice` and passes `--slice --other-platform`; also writing it "above" for
+   "inside" fails both.
 
 **Measured.** On the Mac that writes the reports (10 cores, the everyday build, 2026-11-04),
 the whole synthetic flights' run took 486 s and two logs' 205 s; their slices took 27 s and 10 s.
@@ -234,6 +243,15 @@ took 1,999 s and its validate step 1,478 s at every 20th flight, and 2,529 s and
 21st, its site step laying out every page again (one run each, 2026-11-04). The rest of that step,
 the validation cases, the fit's whole run, the motor catalog and the scoreboard, isn't timed apart.
 The gate stays over its 30 minutes until M0.16a2.
+
+**Held two ways.** The first CI run of the slices held every line byte for byte on every
+platform, and failed on Arm Linux: set A's flight 399 and set B's flight 504 differed in the
+smoother's lines. The Mac shows the same: in the optimized build, `--slice` byte for byte finds one
+flight of the 202 differing, flight 399, its shares 0.031, −0.530, 0.946 and 0.820 written 0.033,
+−0.527, 0.948 and 0.823, each still inside; its words are the same. Its simulated apogee moves
+1.2e-6 of itself between the two builds, and the smoother, fitting through the noise, carries that
+into its errors over their standard deviations, which move in their third decimal. A tolerance on each
+number would have to know each flight's gain; the words hold what the census counts without one.
 
 **Alternatives to the slices.**
 
@@ -249,4 +267,7 @@ The gate stays over its 30 minutes until M0.16a2.
 - A change that moves only flights outside the slice reaches main and is found that night, as §4
   of the 2026-11-03 amendment says of the other platforms.
 - A change meant to move the flights now writes three files a census, where it wrote two.
+- Off the Mac, a pull request can't see a number that moves with no word: a share drifting inside
+  its bound, or a count. The gate holds those byte for byte before each merge, and the night holds
+  the whole census to its digits.
 - The fit still runs whole in the gate until M0.16a2 gives it a slice.

@@ -26,6 +26,7 @@ use serde::{Deserialize, Serialize};
 
 /// One flight of a slice and what the census makes of it.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Flight {
     /// Its set's name.
     pub set: String,
@@ -37,6 +38,7 @@ pub struct Flight {
 
 /// A census's slice as it is committed.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Slice {
     /// What it is.
     pub about: String,
@@ -165,10 +167,107 @@ pub fn json(slice: &Slice) -> Result<String, String> {
 /// The most flights a failed comparison names: the rest are counted.
 const FLIGHTS_SHOWN: usize = 20;
 
-/// What differs between the committed slice at `path` and `made`: each flight that differs, with
-/// its first differing line, a flight in one and not the other, or a different `every`. None when
-/// the committed file is exactly what `made` writes.
-pub fn compare(path: &Path, made: &Slice) -> Option<String> {
+/// How a slice is held to the committed one.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Held {
+    /// Byte for byte: on the build that writes the reports, the Mac's everyday build, which
+    /// `scripts/gate.sh` runs before each merge.
+    Exact,
+    /// Every word of every line, its numbers aside: on any other platform or build. A flight's
+    /// numbers can move there in their last kept digit: set A's flight 399, whose simulated apogee
+    /// moves 1.2e-6 of itself between the everyday and the optimized build on one Mac, has its
+    /// smoother's shares move by up to 0.003 (ADR-149, amended 2026-11-04). Its words don't: the
+    /// side each truth falls on, what was withheld and why, the smoother's flags, the design, the
+    /// logger and the model. Those are what the census counts, and the nightly run holds its
+    /// numbers whole, to the digits the platforms share.
+    Words,
+}
+
+/// `line` with each number in it, NaN and infinity too, written as `#`: what [`Held::Words`]
+/// compares.
+pub fn words(line: &str) -> String {
+    let chars: Vec<char> = line.chars().collect();
+    let mut out = String::with_capacity(line.len());
+    let mut at = 0;
+    let starts_word = |at: usize| at == 0 || !chars[at - 1].is_alphanumeric();
+    // A digit after a hyphen or underscore joined to a name is part of the name: `imu-500hz`.
+    let in_name = |at: usize| {
+        at >= 2 && matches!(chars[at - 1], '-' | '_') && chars[at - 2].is_alphanumeric()
+    };
+    let word_at = |at: usize, word: &str| {
+        let w: Vec<char> = word.chars().collect();
+        chars.len() >= at + w.len()
+            && chars[at..at + w.len()] == w[..]
+            && starts_word(at)
+            && chars.get(at + w.len()).is_none_or(|c| !c.is_alphanumeric())
+    };
+    while at < chars.len() {
+        let c = chars[at];
+        let signed = c == '-' && starts_word(at);
+        let digit_at = |i: usize| chars.get(i).is_some_and(char::is_ascii_digit);
+        if (c.is_ascii_digit() && starts_word(at) && !in_name(at)) || (signed && digit_at(at + 1)) {
+            let start = at;
+            at += 1;
+            while at < chars.len() {
+                let next = chars[at];
+                let exponent = (next == 'e' || next == 'E')
+                    && (digit_at(at + 1)
+                        || (matches!(chars.get(at + 1), Some('-' | '+')) && digit_at(at + 2)));
+                if next.is_ascii_digit() || (next == '.' && digit_at(at + 1)) {
+                    at += 1;
+                } else if exponent {
+                    at += if digit_at(at + 1) { 2 } else { 3 };
+                } else {
+                    break;
+                }
+            }
+            // Digits run into letters are a name too: `500hz`.
+            if chars.get(at).is_some_and(|c| c.is_alphanumeric()) {
+                out.extend(&chars[start..at]);
+            } else {
+                out.push('#');
+            }
+        } else if let Some(word) = ["-inf", "inf", "NaN"].iter().find(|w| word_at(at, w)) {
+            at += word.chars().count();
+            out.push('#');
+        } else {
+            out.push(c);
+            at += 1;
+        }
+    }
+    out
+}
+
+/// How a passing comparison was held, for its message.
+pub fn held_text(held: Held) -> &'static str {
+    match held {
+        Held::Exact => "byte for byte",
+        Held::Words => "in every word (its numbers aside)",
+    }
+}
+
+/// `slice` with every line as [`words`] gives it.
+fn in_words(slice: &Slice) -> Slice {
+    Slice {
+        about: slice.about.clone(),
+        every: slice.every,
+        flights: slice
+            .flights
+            .iter()
+            .map(|f| Flight {
+                set: f.set.clone(),
+                index: f.index,
+                made: f.made.iter().map(|line| words(line)).collect(),
+            })
+            .collect(),
+    }
+}
+
+/// What differs between the committed slice at `path` and `made`, held as `held` says: each
+/// flight that differs, with its first differing line, a flight in one and not the other, or a
+/// different `every`. None when the committed file is what `made` writes, byte for byte or in
+/// its words.
+pub fn compare(path: &Path, made: &Slice, held: Held) -> Option<String> {
     let made_json = match json(made) {
         Ok(json) => json,
         Err(error) => return Some(format!("{}: {error}", path.display())),
@@ -184,7 +283,14 @@ pub fn compare(path: &Path, made: &Slice) -> Option<String> {
         Ok(committed) => committed,
         Err(error) => return Some(format!("{}: {error}", path.display())),
     };
-    Some(differences(path, &committed, made))
+    match held {
+        Held::Exact => Some(differences(path, &committed, made)),
+        Held::Words => {
+            // Its layout is held by the exact check on the build that writes it.
+            let (committed, made) = (in_words(&committed), in_words(made));
+            (committed != made).then(|| differences(path, &committed, &made))
+        }
+    }
 }
 
 /// The differences between two slices, as [`compare`] names them.
@@ -315,9 +421,9 @@ mod tests {
     #[test]
     fn the_same_slice_compares_equal_and_crlf_is_read_as_lf() {
         let made = slice();
-        assert_eq!(compare(&written(&made).0, &made), None);
+        assert_eq!(compare(&written(&made).0, &made, Held::Exact), None);
         let crlf = tempfile_path::Path::with(&json(&made).unwrap().replace('\n', "\r\n"));
-        assert_eq!(compare(&crlf.0, &made), None);
+        assert_eq!(compare(&crlf.0, &made, Held::Exact), None);
     }
 
     #[test]
@@ -326,7 +432,7 @@ mod tests {
         let file = written(&committed);
         let mut made = committed.clone();
         made.flights[1].made[1] = "smoother: -0.2".to_owned();
-        let problem = compare(&file.0, &made).unwrap();
+        let problem = compare(&file.0, &made, Held::Exact).unwrap();
         assert!(problem.contains("(1 differences)"), "{problem}");
         assert!(
             problem
@@ -343,7 +449,7 @@ mod tests {
         let mut fewer = committed.clone();
         fewer.flights.pop();
         assert!(
-            compare(&file.0, &fewer)
+            compare(&file.0, &fewer, Held::Exact)
                 .unwrap()
                 .contains("a flight 20: committed, but not in the slice")
         );
@@ -354,17 +460,21 @@ mod tests {
             made: vec![],
         });
         assert!(
-            compare(&file.0, &more)
+            compare(&file.0, &more, Held::Exact)
                 .unwrap()
                 .contains("b flight 0: not in it")
         );
         let mut moved = committed.clone();
         moved.flights.reverse();
-        assert!(compare(&file.0, &moved).unwrap().contains("another order"));
+        assert!(
+            compare(&file.0, &moved, Held::Exact)
+                .unwrap()
+                .contains("another order")
+        );
         let mut every = committed.clone();
         every.every = 10;
         assert!(
-            compare(&file.0, &every)
+            compare(&file.0, &every, Held::Exact)
                 .unwrap()
                 .contains("it steps 20 flights at a time, the census 10")
         );
@@ -376,7 +486,7 @@ mod tests {
         let file = written(&committed);
         let mut made = committed.clone();
         made.flights[0].made.push("intervals: inside".to_owned());
-        let problem = compare(&file.0, &made).unwrap();
+        let problem = compare(&file.0, &made, Held::Exact).unwrap();
         assert!(
             problem.contains("a flight 0 differs: committed `(nothing)`, made `intervals: inside`"),
             "{problem}"
@@ -387,9 +497,9 @@ mod tests {
     fn a_missing_or_damaged_file_fails() {
         let made = slice();
         let missing = std::env::temp_dir().join("hpr-slice-test-none/slice.json");
-        assert!(compare(&missing, &made).is_some());
+        assert!(compare(&missing, &made, Held::Exact).is_some());
         let damaged = tempfile_path::Path::with("{ not json");
-        assert!(compare(&damaged.0, &made).is_some());
+        assert!(compare(&damaged.0, &made, Held::Exact).is_some());
     }
 
     #[test]
@@ -434,5 +544,59 @@ mod tests {
         .unwrap_err();
         assert!(error.contains("job 7: it panicked: seven"), "{error}");
         assert!(error.contains("job 9: nine"), "{error}");
+    }
+
+    #[test]
+    fn words_masks_every_number_and_keeps_every_word() {
+        assert_eq!(
+            words("smoother: altos, gnss yes; apogee height -0.530 inside; burnout 1.2e-5 above"),
+            "smoother: altos, gnss yes; apogee height # inside; burnout # above"
+        );
+        assert_eq!(
+            words("rrc3: 4585 samples, highest 3970 m"),
+            "rrc3: # samples, highest # m"
+        );
+        assert_eq!(
+            words("share NaN, -inf and inf; inside"),
+            "share #, # and #; inside"
+        );
+        // A number inside a name stays: a logger, a design, a reason.
+        assert_eq!(
+            words("imu-500hz, rocketpy-ndrt-2020"),
+            "imu-500hz, rocketpy-ndrt-2020"
+        );
+        assert_eq!(words("20 Hz in 10 Pa steps"), "# Hz in # Pa steps");
+    }
+
+    #[test]
+    fn held_in_words_a_number_may_move_but_no_word() {
+        let committed = slice();
+        let file = written(&committed);
+        let mut moved = committed.clone();
+        moved.flights[1].made[1] = "smoother: -0.103".to_owned();
+        moved.flights[0].made[0] = "census: apogee 1240 m".to_owned();
+        assert_eq!(compare(&file.0, &moved, Held::Words), None);
+        assert!(compare(&file.0, &moved, Held::Exact).is_some());
+        let mut side = committed.clone();
+        side.flights[1].made[1] = "smoother: -0.1 above".to_owned();
+        let problem = compare(&file.0, &side, Held::Words).unwrap();
+        assert!(problem.contains("a flight 20 differs"), "{problem}");
+        let mut fewer = committed.clone();
+        fewer.flights.pop();
+        assert!(compare(&file.0, &fewer, Held::Words).is_some());
+        let mut every = committed.clone();
+        every.every = 21;
+        assert!(compare(&file.0, &every, Held::Words).is_some());
+    }
+
+    #[test]
+    fn an_unknown_field_fails() {
+        let made = slice();
+        let text = json(&made)
+            .unwrap()
+            .replacen("\"every\"", "\"extra\": 1,\n  \"every\"", 1);
+        let file = tempfile_path::Path::with(&text);
+        let problem = compare(&file.0, &made, Held::Exact).unwrap();
+        assert!(problem.contains("unknown field"), "{problem}");
     }
 }

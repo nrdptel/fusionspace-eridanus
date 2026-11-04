@@ -451,12 +451,14 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let mut launch_started = false;
     let mut sets: Option<Vec<Set>> = None;
     let mut only_slice = false;
+    let mut other_platform = false;
     let mut args = args.iter();
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--check" => check = true,
             "--intervals" => only_intervals = true,
             "--slice" => only_slice = true,
+            "--other-platform" => other_platform = true,
             "--sets" => {
                 let list = args.next().ok_or("--sets takes a list of sets")?;
                 if sets.replace(parse_sets(list)?).is_some() {
@@ -490,6 +492,12 @@ pub fn run(args: &[String]) -> Result<(), String> {
             other => return Err(format!("unknown argument `{other}`\n\n{USAGE}")),
         }
     }
+    if only_slice && args_given(check, only_intervals, &probe, &sets, launch_started) {
+        return Err("--slice takes no argument but --other-platform".into());
+    }
+    if other_platform && !only_slice {
+        return Err("--other-platform goes with --slice".into());
+    }
     if sets.is_some() && (!check || only_intervals || probe.is_some()) {
         return Err(
             "--sets goes with --check alone: a report can only be written whole, and it takes no \
@@ -500,10 +508,12 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let root = crate::designs::root()?;
     let files = design_files(&root)?;
     if only_slice {
-        if args_given(check, only_intervals, &probe, &sets, launch_started) {
-            return Err("--slice runs alone: it takes no other argument".into());
-        }
-        return check_slice(&root, &files);
+        let held = if other_platform {
+            crate::slice::Held::Words
+        } else {
+            crate::slice::Held::Exact
+        };
+        return check_slice(&root, &files, held);
     }
     if only_intervals {
         if check || probe.is_some() {
@@ -535,8 +545,18 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let page_path = root.join(format!("{REPORT}.md"));
     let partial = sets.is_some();
     let flown = sets.unwrap_or_else(|| EVERY_SET.to_vec());
-    // A partial check reads the committed report before it flies anything, so a damaged file fails
-    // in a moment rather than at the end.
+    // A partial check reads the committed report and slice before it flies anything, so a damaged
+    // file fails in a moment rather than at the end.
+    let committed_slice = if partial {
+        let path = slice_path(&root);
+        let committed =
+            fs::read_to_string(&path).map_err(|error| format!("{}: {error}", path.display()))?;
+        let committed: crate::slice::Slice = serde_json::from_str(&committed)
+            .map_err(|error| format!("{}: {error}", path.display()))?;
+        Some(committed)
+    } else {
+        None
+    };
     let mut report = if partial {
         let committed = fs::read_to_string(&json_path)
             .map_err(|error| format!("{}: {error}", json_path.display()))?;
@@ -571,19 +591,19 @@ pub fn run(args: &[String]) -> Result<(), String> {
             broken.join("\n")
         ));
     }
-    let slice = if partial {
-        let path = slice_path(&root);
-        let committed =
-            fs::read_to_string(&path).map_err(|error| format!("{}: {error}", path.display()))?;
-        let committed: crate::slice::Slice = serde_json::from_str(&committed)
-            .map_err(|error| format!("{}: {error}", path.display()))?;
-        slice_onto(committed, slice, &flown)
-    } else {
-        slice
+    let slice = match committed_slice {
+        Some(committed) => slice_onto(committed, slice, &flown),
+        None => slice,
     };
     if check {
         let mut problems = Vec::new();
-        problems.extend(crate::slice::compare(&slice_path(&root), &slice));
+        // The whole check runs each night on every platform, in the optimized build: the slice's
+        // words, its numbers aside (`Held::Words`). The gate's `--slice` holds them exactly.
+        problems.extend(crate::slice::compare(
+            &slice_path(&root),
+            &slice,
+            crate::slice::Held::Words,
+        ));
         for (path, made) in [(&json_path, &json), (&page_path, &page)] {
             match fs::read_to_string(path) {
                 Ok(committed) if committed.replace("\r\n", "\n") == *made => {}
@@ -2699,6 +2719,52 @@ fn smoother_line(what: &str, check: &Checked) -> String {
         return line;
     }
     let _ = write!(line, ", gnss {}", if check.has_gnss { "yes" } else { "no" });
+    if let Some(health) = &check.health {
+        // What the census's health tally counts of the log (`smoothed::HealthTally`).
+        let yes = |b: bool, y: &str, n: &str| if b { y.to_owned() } else { n.to_owned() };
+        let _ = write!(
+            line,
+            "; {}, {}, {}, {}, {} transonic and {} charge spans, {} steps unsmoothed",
+            yes(health.assumed_pad, "pad assumed", "pad seen"),
+            yes(
+                health.accelerometer_set_aside,
+                "accelerometer set aside",
+                "accelerometer kept"
+            ),
+            yes(
+                health.apogee_past_reading_bound,
+                "apogee past the reading's bound",
+                "apogee within the reading's bound"
+            ),
+            yes(
+                health.gnss_trusted_s.is_some(),
+                "GNSS trusted",
+                "GNSS not trusted"
+            ),
+            health
+                .deweighted
+                .iter()
+                .filter(|s| matches!(s.why, hpr_flightdata::smoother::Deweighted::Transonic))
+                .count(),
+            health
+                .deweighted
+                .iter()
+                .filter(|s| matches!(s.why, hpr_flightdata::smoother::Deweighted::Charge))
+                .count(),
+            health.unsmoothed_steps
+        );
+        for sensor in &health.sensors {
+            let _ = write!(
+                line,
+                "; {} {} samples, {} rejected, {} unweighed, {} resets",
+                sensor.sensor.name(),
+                sensor.samples,
+                sensor.rejected,
+                sensor.unweighed,
+                sensor.resets
+            );
+        }
+    }
     for (moment, state, compared) in &check.compared {
         let _ = write!(
             line,
@@ -2808,12 +2874,10 @@ fn slice_lines(
             f(row.elevation_m),
             f(row.temperature_offset_k)
         )),
-        Err(error) => {
-            slice.not_flown = Some(error.clone());
-            made.push(format!("not flown: {error}"));
-        }
+        // The census leaves such a flight out of its counts, but still reads and smooths it.
+        Err(error) => made.push(format!("flight: not counted: {error}")),
     }
-    if set == Set::Tuning && slice.not_flown.is_none() {
+    if set == Set::Tuning {
         let logs = held::logs(flight, set.seed(), index).map_err(|e| e.to_string())?;
         let outcomes: Vec<(String, Vec<(Quantity, Outcome)>)> = logs
             .iter()
@@ -2834,7 +2898,7 @@ fn slice_lines(
         ));
         slice.outcomes = Some((index, outcomes));
     }
-    if Set::ALL.contains(&set) && slice.not_flown.is_none() {
+    if Set::ALL.contains(&set) {
         let check = smoothed::check(flight, Options::default());
         made.push(smoother_line("smoother", &check));
         if check.has_gnss && check.withheld.is_none() {
@@ -2851,7 +2915,7 @@ fn slice_lines(
         made.push(smoother_line("smoother, written from launch", &launch));
         slice.smoothed = Some((check, launch));
     }
-    if [Set::Calibration, Set::A, Set::B].contains(&set) && slice.not_flown.is_none() {
+    if [Set::Calibration, Set::A, Set::B].contains(&set) {
         let said = intervals::said(set.seed(), index, flight).map_err(|e| e.to_string())?;
         let mut line = format!(
             "intervals: {}, air {} K:",
@@ -2929,8 +2993,17 @@ fn make_slice(
             ));
         }
     }
-    // The intervals (M7.2e): every flight of A, B and the calibration set flies, and none leaves
-    // a reading out but by its rule.
+    // Every flight flies: the smoother's check fails a set with a flight not flown, and the
+    // intervals' a draw that doesn't fly.
+    for flight in &flights {
+        if let Some(why) = &flight.not_flown {
+            broken.push(format!(
+                "{} flight {}: not flown: {why}",
+                flight.flight.set, flight.flight.index
+            ));
+        }
+    }
+    // The intervals (M7.2e): none leaves a reading out but by its rule.
     for set in [Set::Calibration, Set::A, Set::B] {
         if !sets.contains(&set) {
             continue;
@@ -2939,15 +3012,6 @@ fn make_slice(
             .iter()
             .filter(|f| f.flight.set == set.name())
             .collect();
-        for flight in &of_set {
-            if let Some(why) = &flight.not_flown {
-                broken.push(format!(
-                    "{} flight {}: not flown: {why}",
-                    set.name(),
-                    flight.flight.index
-                ));
-            }
-        }
         let said: Vec<FlightSaid> = of_set.iter().filter_map(|f| f.said.clone()).collect();
         broken.extend(dropped(set, &said));
     }
@@ -2989,7 +3053,7 @@ fn slice_onto(
 
 /// `cargo xtask synthetic --slice`: the slice's flights flown, held to the committed slice and
 /// to the census's per-flight rules; the committed report read and its page rendered from it.
-fn check_slice(root: &Path, files: &DesignFiles) -> Result<(), String> {
+fn check_slice(root: &Path, files: &DesignFiles, held: crate::slice::Held) -> Result<(), String> {
     let json_path = root.join(format!("{REPORT}.json"));
     let page_path = root.join(format!("{REPORT}.md"));
     let committed = fs::read_to_string(&json_path)
@@ -3011,7 +3075,7 @@ fn check_slice(root: &Path, files: &DesignFiles) -> Result<(), String> {
     let (made, broken) = make_slice(&EVERY_SET, files)?;
     problems.extend(broken);
     let path = slice_path(root);
-    problems.extend(crate::slice::compare(&path, &made));
+    problems.extend(crate::slice::compare(&path, &made, held));
     if !problems.is_empty() {
         return Err(format!(
             "the synthetic flights' slice doesn't hold; run `cargo xtask synthetic` and commit \
@@ -3020,9 +3084,10 @@ fn check_slice(root: &Path, files: &DesignFiles) -> Result<(), String> {
         ));
     }
     println!(
-        "the slice's {} flights reproduce {REPORT}.slice.json and keep the census's rules; \
+        "the slice's {} flights reproduce {REPORT}.slice.json {} and keep the census's rules; \
          {REPORT}.json reads and renders {REPORT}.md",
-        made.flights.len()
+        made.flights.len(),
+        crate::slice::held_text(held)
     );
     Ok(())
 }
@@ -3333,7 +3398,7 @@ mod tests {
         for census in ["synthetic", "two-logs"] {
             let line = format!(
                 "\n      - if: env.RUN == 'true'\n        run: cargo run --locked --quiet --package \
-                 xtask --profile report-check -- {census} --slice\n"
+                 xtask --profile report-check -- {census} --slice --other-platform\n"
             );
             assert!(validate.contains(&line), "{census}");
             assert_eq!(ci.matches(&format!("-- {census} --slice")).count(), 1);
@@ -3350,6 +3415,8 @@ mod tests {
             );
             assert!(!step.contains(&format!("{census} --check")), "{step}");
         }
+        // The gate runs the build that writes the slices, so it holds them byte for byte.
+        assert!(!step.contains("--other-platform"), "{step}");
     }
 
     /// The slice's lines of `flight`.
@@ -3397,6 +3464,7 @@ mod tests {
         higher.truth.events.apogee_m *= 1.005;
         let changed = lines_of(&higher);
         assert_ne!(changed[0], made[0]);
+        assert_ne!(changed[1], made[1]);
         assert_ne!(changed[3], made[3]);
         // The log read 0.5% high, the truth as it was: the smoother's and the intervals' lines.
         let mut misread = flight.clone();
@@ -3407,6 +3475,37 @@ mod tests {
         assert_eq!(changed[0], made[0]);
         assert_ne!(changed[1], made[1]);
         assert_ne!(changed[3], made[3]);
+    }
+
+    /// A check of some sets puts their flights in place of the committed ones and keeps the rest,
+    /// in the census's order of sets; a committed flight of a set the census doesn't have is
+    /// dropped, so the comparison names it.
+    #[test]
+    fn a_check_of_some_sets_replaces_only_their_flights() {
+        let flight = |set: &str, index: u64, line: &str| crate::slice::Flight {
+            set: set.to_owned(),
+            index,
+            made: vec![line.to_owned()],
+        };
+        let slice = |flights| crate::slice::Slice {
+            about: SLICE_ABOUT.to_owned(),
+            every: SLICE_EVERY,
+            flights,
+        };
+        let committed = slice(vec![
+            flight("tuning", 0, "old tuning"),
+            flight("a", 0, "old a"),
+            flight("b", 0, "old b"),
+            flight("c", 0, "no such set"),
+            flight("calibration", 0, "old calibration"),
+        ]);
+        let made = slice(vec![
+            flight("a", 0, "new a"),
+            flight("calibration", 0, "new calibration"),
+        ]);
+        let onto = slice_onto(committed, made, &[Set::A, Set::Calibration]);
+        let lines: Vec<&str> = onto.flights.iter().map(|f| f.made[0].as_str()).collect();
+        assert_eq!(lines, ["old tuning", "new a", "old b", "new calibration"]);
     }
 
     /// The slice's flights are fixed: every 21st of each set, from the first, which holds both
