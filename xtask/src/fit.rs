@@ -511,7 +511,7 @@ struct SetReport {
 struct Draws {
     /// Fits with a posterior drawn.
     posteriors: u64,
-    /// Fits with something to fit and no posterior: no draw had a weight.
+    /// Fits with something to fit and no posterior drawn.
     without: u64,
     /// Posteriors whose draws read fell short of `MIN_EFFECTIVE_DRAWS`.
     too_few: u64,
@@ -1283,13 +1283,14 @@ fn slice_lines(fit: &FlightFit, calibration: bool) -> Vec<String> {
     }
     let Some(posterior) = &fit.posterior else {
         if fit.fitted && !calibration {
-            made.push("posterior: none, no draw had a weight".to_owned());
+            made.push("posterior: none drawn".to_owned());
         }
         return made;
     };
     made.push(format!(
-        "posterior: {} effective of {} draws, {} failed, {}",
+        "posterior: {} effective of the {} draws read, {} made, {} failed, {}",
         figures(posterior.effective_draws),
+        POSTERIOR_DRAWS,
         posterior.draws,
         posterior.failed,
         if posterior.enough {
@@ -1525,8 +1526,9 @@ fn other_platform(root: &Path, made_runs: &[Vec<FlightFit>]) -> Result<(), Strin
     }
     println!(
         "fit: by least squares every parameter passes on sets A and B, and every probe fails; the \
-         Bayesian option's counts are as committed; the calibration set gives the library's \
-         shares, and the slice's {} fits hold {REPORT}.slice.json {}",
+         Bayesian option's counts stand within the other-platform room of the committed ones; the \
+         calibration set gives the library's shares, and the slice's {} fits hold \
+         {REPORT}.slice.json {}",
         slice.flights.len(),
         crate::slice::held_text(crate::slice::Held::Words)
     );
@@ -1771,8 +1773,13 @@ pub fn run(args: &[String]) -> Result<(), String> {
             }
             println!(
                 "fit: by least squares every parameter passes on sets A and B, and every probe \
-                 fails; the Bayesian option's counts are as committed; the calibration set gives \
-                 the library's shares; the slice's {} fits {}",
+                 fails; the Bayesian option's counts {}; the calibration set gives the library's \
+                 shares; the slice's {} fits {}",
+                if check {
+                    "reproduce the committed report"
+                } else {
+                    "are written"
+                },
                 slice.flights.len(),
                 if check {
                     "reproduce it byte for byte"
@@ -2243,10 +2250,7 @@ mod tests {
         let fit = a_fit(21);
         let lines = slice_lines(&fit, false);
         assert_eq!(lines.len(), 2 + ASKED.len(), "{lines:?}");
-        assert_eq!(
-            lines[1 + ASKED.len()],
-            "posterior: none, no draw had a weight"
-        );
+        assert_eq!(lines[1 + ASKED.len()], "posterior: none drawn");
         assert_eq!(slice_lines(&fit.clone(), false), lines);
         assert!(lines[1].ends_with(", inside"), "{lines:?}");
         let words = |lines: &[String]| -> Vec<String> {
@@ -2294,7 +2298,7 @@ mod tests {
         assert_eq!(posterior[..=ASKED.len()], lines[..=ASKED.len()]);
         assert_eq!(
             posterior[1 + ASKED.len()],
-            "posterior: 150 effective of 500 draws, 2 failed, enough"
+            "posterior: 150 effective of the 400 draws read, 500 made, 2 failed, enough"
         );
         let bayesian = &posterior[2 + ASKED.len()..];
         assert_eq!(
@@ -2372,7 +2376,7 @@ mod tests {
     #[test]
     fn the_slices_parts_fit_it_once_and_each_holds_its_fits() {
         for run in runs() {
-            for of in 1..=6 {
+            for of in 1..=SLICE.of {
                 for number in 1..=of {
                     let part = Part { number, of };
                     assert_eq!(
@@ -2619,7 +2623,7 @@ mod tests {
             "windows-latest",
             "windows-11-arm",
         ];
-        // Each platform's parts are 1 to n of one split, n the same for each of them.
+        // Each platform's parts are 1 to n of one split, each platform with its own n.
         let mut parts: BTreeMap<&str, Vec<Part>> = BTreeMap::new();
         for line in job
             .lines()

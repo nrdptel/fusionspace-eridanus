@@ -500,17 +500,18 @@ Where each part of the fit's check runs ([the time budget](https://github.com/nr
 
 | Where | Command | What it holds |
 |---|---|---|
-| A pull request, on all five platforms | `fit --slice --other-platform --part K/N`, in three parts on each platform, four on macos-latest and six on windows-latest | The slice's 444 fits, each line in its words (a calibration fit's lines carry no side, so only its first line's words can differ), the Bayesian option's posterior among them; the committed report's verdicts, as its stored bands give them; its stored shares against the code's |
+| A pull request, on all five platforms | `fit --slice --other-platform --part K/N`, part K of N: N is 3 on Linux, Linux on ARM and Windows on ARM, 4 on macos-latest and 6 on windows-latest | The slice's 444 fits, each line in its words (a calibration fit's lines carry no side, so only its first line's words can differ), the Bayesian option's posterior among them; the committed report's verdicts, as its stored bands give them; its stored shares against the code's |
 | The gate, before each merge | `fit --slice` | The same, each line byte for byte |
 | Each night, on Linux | `fit --part K/16`, then `fit --check --other-platform --parts` | All 9,192 fits: the report and the shares within the allowances above, the slice in its words |
 | By hand, on the Mac that writes the report | `fit --check` | The whole report to the last digit, and the shares to the code's three figures |
 
-Each platform fits the slice in parts, each every Kth fit of the slice's, in jobs of their own. By
+Each platform fits the slice in parts, in jobs of their own: part K of N fits every Nth fit of the
+slice's, from the Kth. By
 least squares alone one job took 20 min 3 s on windows-latest with nothing cached, over the 20
 minutes a job may take, and the Bayesian option's posteriors took the slice from 79 s to 335 s on
 the maintainer's 10-core Mac ([the Bayesian option's decisions](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0320-m7-3c2-the-bayesian-option-in-two-blocks.md), section 9). Each
 of the slice's fits of sets A and B with something to fit carries its posterior: how many draws it
-made, how many failed, how many equal draws they're worth, and each parameter's 5% and 95% points
+made and how many failed, how many equal draws the 400 it reads are worth, and each parameter's 5% and 95% points
 and median, with the side its truth falls on where the report counts it.
 
 The slice is the same 444 fits every time: part 1 of 21 of each run, its 1st, 22nd and 43rd fit

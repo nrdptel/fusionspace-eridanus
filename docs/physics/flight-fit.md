@@ -1,7 +1,8 @@
 # The least-squares fit
 
 See how the library fits a flight's [log](../glossary.md#flight-log) to a simulation, and what that
-tells of its drag, impulse, wind and mass.
+tells of its drag, impulse, wind and mass. Its 90% intervals come by least squares, tested here, and by
+a Bayesian option that doesn't pass its tests yet.
 
 ## In short
 
@@ -28,11 +29,12 @@ tells of its drag, impulse, wind and mass.
   nothing to fit among the sets' counted draws, about one in six ([when](#when-a-log-has-nothing-to-fit)). Its wind is
   constant with height; on a log of height alone, a wind that grows with height only widens the intervals. It's
   told the design, rail, site and the day's air, and takes them as right. It's in the library only:
-  no command runs it on a log yet. The Bayesian option's intervals pass 4 of their 10 counts, 5
+  no command runs it on a log yet.
+- **The Bayesian option:** a second kind of interval, from drawing the unknowns' possible values at
+  random rather than reading the curvature at the answer. Its intervals pass 4 of their 10 tests, 5
   parameters on each of 2 sets. Its wind's are too wide. Set A's drag reads low, 78 truths above its
   intervals, and set B's impulse high, 83 below: each makes the rocket look better than it flew.
-  Read the least-squares intervals
-  ([The Bayesian option](#the-bayesian-option)).
+  Use the least-squares intervals ([The Bayesian option](#the-bayesian-option)).
 
 ## How it works
 
@@ -267,6 +269,8 @@ known:
   83 of set B's impulse truths below. Of set A's 78, 70 are on logs of height alone, the only logs
   where the shear is drawn, though set A's wind doesn't shear. That points at the shear's stated
   range, but it isn't measured yet, and set B's impulse leans the other way.
+- **Set A's impulse passes near its edge.** 70 of its truths fall below, 4 short of 74, the most
+  that pass, on the same side as set B's: it too reads high, which flatters the motor.
 
 Drag and impulse are identified on set A, at median widths of 0.0917 and 0.0391 (least squares:
 0.115 and 0.0399), of 0.36 and 0.108 stated. The mass isn't, at 0.0341 of 0.036. On pure noise
@@ -275,7 +279,8 @@ drawn, so that says nothing of the sampler itself.
 
 The draws are counted too. A posterior's effective draws are how many equally weighted draws its
 weighted ones are worth (Kish): 400 draws with one heavy weight are worth about 1. Under 100, a
-result is flagged as too few to read, but its interval still counts in the table above. Of the
+result is flagged as too few to read, but its interval still counts in the table above: so few
+draws can leave an interval too narrow or off center, so take it as rough. Of the
 flights counted, 2,276 on set A had a posterior, 319 of them with fewer than 100 effective draws;
 across all 2,276, the fewest was 1.13 and the median 232. On set B, 392 of 2,296 had fewer than 100;
 the fewest was 1.01 and the median 223. A
