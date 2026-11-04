@@ -73,8 +73,18 @@ appendix A, Figs. 5-6 and 5-7; Niskanen 2009 §3.3; TN D-4014 Fig. 14.
   0.007. Linear theory's load climbs as `1/β` toward Mach 1 and the fins' doesn't; Barrowman
   found the same on the Tomahawk ("the theoretical value at M = 1.5 is no good", p. 66).
 - *The damping against the Basic Finner:* −5.9%, −7.8%, −14.3%, −15.8%, −16.2% from Mach 1.51 to
-  3.00. Barrowman's curve, with Busemann's third-order terms, averages 5.68% from the same
-  points (p. 66); the fins are wedges 8% thick, which first order doesn't see, part of the gap.
+  3.00 against Barrowman's Fig. 5-7 points. Barrowman's curve, with Busemann's third-order terms,
+  is 5.68% from the same points by his text (p. 66), which doesn't say how it is taken; read off
+  the figure, the gap is 2% to 7%.
+- *Amended (#763):* the Fig. 5-7 points sit a flat 1.27 times BRL 799's range curve, which fits a
+  slip in convention (an inference), so they are no longer scored. Against NOL's wind tunnel (NAVORD Report 6652 Table 2,
+  Mach 1.53 to 2.76) HPR Sim reads +11.7% to +27.5% high; against DREV-TM-9703's range fits,
+  +5.0% to +8.8% on average by Mach band, +12.4% at most. The sign flips: HPR Sim overstates the
+  damping. The fins' 8% thickness is unlikely to explain that, since what evidence there is says
+  a thickness term would raise the damping; linear theory's `1/β` load near Mach 1.5, as in the forcing, is the likely
+  cause there (an inference). It leaves +11.7% to +18.3% from Mach 2.03 to 2.76 unexplained, part
+  of which may be NOL's: its tunnel values "fell slightly below" the free-flight data it plotted
+  (PDF p. 13).
 
 **Alternatives considered.**
 
