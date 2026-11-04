@@ -2498,7 +2498,8 @@ mod tests {
         let mut report = String::new();
         for (what, hpr, oracle, bound) in &rows {
             let error = (hpr - oracle) / oracle;
-            if !(error.abs() < *bound) {
+            // A NaN error fails too.
+            if error.is_nan() || error.abs() >= *bound {
                 failed.push(what.clone());
             }
             report.push_str(&format!(
