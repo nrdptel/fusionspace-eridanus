@@ -39,7 +39,7 @@ withholds one instead of guessing.
   every reading lands within its bound. Each but burnout's floor also lands within the tighter
   one its test works out ([evidence row G10](../evidence.md#g10)). A real log has no truth beside
   it. The 1,058 records of the project's sample logs show which readings each logger gives (an
-  apogee from 593 of them), not how right they are. All twelve readings' 90% intervals pass the
+  apogee from 592 of them), not how right they are. All twelve readings' 90% intervals pass the
   two-sided test of [ADR-257, calibrated intervals][adr-257] on the synthetic sets A and B, after
   their points were fitted on 2,000 flights of their own, and a floor's lower end passes that
   test's lower tail, a clipped top's on tops written near an imposed clip
