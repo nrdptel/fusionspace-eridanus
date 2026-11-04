@@ -1,8 +1,9 @@
 # ADR-320: M7.3c2 in two: the Bayesian option draws the wind first and integrates the sensor out; its raw intervals don't pass yet (2026-11-03)
 
-- **Status:** accepted; carries out [ADR-317][adr-317]'s M7.3c2 under [ADR-257][adr-257] §1 as far as M7.3c3, splits M7.3c2 in two (§8), and amends ADR-317 §1 (the proposal) and §2 (the likelihood); amends [ADR-316][adr-316] §7 (CI fits in 32 parts)
+- **Status:** accepted; carries out [ADR-317][adr-317]'s M7.3c2 under [ADR-257][adr-257] §1 as far as M7.3c3, splits M7.3c2 in two (§8), and amends ADR-317 §1 (the proposal) and §2 (the likelihood); amends [ADR-316][adr-316] §7 (CI fits in 16 parts) and holds the fit's slice of [ADR-149][adr-149] with its posteriors (§9)
 - **Summary:** M7.3c1's one Student-t about the least-squares answer kept a median of 14 effective draws in 300 on set A's first 60 flights, as the wind's ridge bends on heights alone. So the wind is drawn first and the rest about one Gauss-Newton step in that wind; a pilot widens the proposal where the posterior reaches further; the four linear sensor unknowns integrate out; on heights alone the wind's shear is drawn, uniform from 0 to 0.2. On 1,000 flights of each set the raw 90% intervals pass 4 of the 10 counts: set A's drag and set B's impulse fail, and the wind is too wide on both. So M7.3c3, the option counted, is met; M7.3c4 keeps the intervals passing.
 
+[adr-149]: 0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md
 [adr-257]: 0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 [adr-316]: 0316-m7-3b-the-least-squares-fit.md
 [adr-317]: 0317-m7-3c-in-two-the-sampler-then-the-test.md
@@ -78,7 +79,7 @@ least-squares fit (ADR-316).
    Mac that wrote the report. The report took 3 hours 1 minute there, 58,121 user CPU-seconds, against
    about 16 minutes before; another check shared the machine for its last hour. The 4,572
    posteriors the report counts made 2,286,000 draws; the uncounted flights fitted past them drew
-   posteriors too. CI fits it in 32 parts, not 8 (ADR-316 §7). The report's
+   posteriors too. CI fits it in 16 parts, not 8 (ADR-316 §7; §9). The report's
    threads now each take the next flight left, not every tenth, since a fit with a posterior costs
    many times one with nothing to fit; the run above had them every tenth and kept 5.4 of 10 cores
    busy on average. The calibration set draws no posterior, as only the least-squares shares are
@@ -97,6 +98,21 @@ least-squares fit (ADR-316).
    set A and nothing on noise, the page saying how far to trust it. This plans every remaining
    increment of M7.3c2: M7.3c4 is the only one, with what to try first under *What this leaves*.
    The roadmap holds both done-whens in full.
+9. **Under the time budget.** This increment first ran before the time budget's slices
+   ([ADR-149][adr-149], amended for M0.16), and its full report doesn't fit the gate's 30 minutes.
+   So the fit's slice, every 21st fit of each run, carries each posterior too: a line for its
+   draws (how many it made, how many failed, what they're worth, whether that's enough), then each
+   parameter's 5% and 95% points and median, with the side its truth falls on where the report
+   counts it. The gate holds it byte for byte, each pull request in its words. A fit with something
+   to fit and no posterior says so in a line of its own. On the 10-core Mac the slice took 335 s,
+   2,934 CPU-seconds, against 79 s by least squares alone. By least squares alone the slice's job
+   already took 422 to 943 s on CI's runners (five runs, 2026-11-04), so each platform now fits it
+   in three parts and windows-latest, the slowest, in four. The night fits the whole report in 16
+   parts on Linux, not the 32 this increment first ran with. A full run had 64 jobs; the slice's
+   parts add 10 and 16 night parts 8, 82 in all, where 32 would make 106, past the 100 that
+   `cargo xtask ci-budget` reads in one page and refuses beyond. The 8 parts took 875 to 1,322 s
+   by least squares (2026-11-04); half as many fits, each about eight times as costly, puts a part
+   near 1 to 1.5 hours, an estimate the next night measures, under the 6 hours GitHub gives a job.
 
 ## Evidence
 
