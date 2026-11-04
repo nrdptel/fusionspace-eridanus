@@ -1,12 +1,13 @@
 # A real Eggfinder GPX beside its flight's barometric log
 
-This note reads Rocketry Forum thread 135349 [S1]: an Eggfinder GPS track saved as GPX by the MapSphere app, the
-StratoLogger CF `.pf2` of the same J415W flight (2016-07-16), and an Eggtimer TRS receiver log from LDRS 35
-(2016-06-11) with GPS and barometer in one stream. It asks what the GPX `ele` is measured from, how far GNSS
-altitude misses the barometer in each phase, and what HPR Sim reads today. It serves [M7.2d](../ROADMAP.md)'s GNSS
-trust rule, evidence row [G1](../evidence.md#g1) (#654, with #645's datum) and M10.2's analyzer evidence, and
-builds on [gnss-in-boost](gnss-in-boost.md) and [public-logs-evidence-gaps](public-logs-evidence-gaps.md) §1.
-Read 2026-10-23; counts come from scripts run on the cached files. **Inference** marks this note's reasoning.
+Re-checked 2026-11-04: 9 claims corrected.
+
+This note reads Rocketry Forum thread 135349 [S1]: an Eggfinder GPS track saved as GPX by MapSphere, the StratoLogger CF
+`.pf2` of the same J415W flight (2016-07-16), and an Eggtimer TRS log from LDRS 35 (2016-06-11) with GPS and barometer
+in one stream. It asks what the GPX `ele` is measured from, how far GNSS altitude misses the barometer in each phase,
+and what HPR Sim reads today. It serves [M7.2d](../ROADMAP.md)'s GNSS trust rule, evidence row [G1](../evidence.md#g1)
+(#654, with #645's datum) and M10.2's analyzer evidence, and builds on [gnss-in-boost](gnss-in-boost.md) and
+[public-logs-evidence-gaps](public-logs-evidence-gaps.md) §1. **Inference** marks this note's reasoning.
 
 **In short.**
 
@@ -29,19 +30,18 @@ The thread's attachments hold seven distinct files (SHA-256 in `refs/.../SHA256S
 hash). "Adj" files are the original logs with each altitude replaced by a barometer's, done by a poster's
 spreadsheet (posts 13, 23 and 34 [S1]); none of their altitudes is a GNSS measurement.
 
-- **Raw GPX** (`gpslog_16072016_151524`, post 1): 245 points, 22:10:12 to 22:14:53 UTC, `ele` in meters, a
-  MapSphere `<valid>` extension on 131 points: `0` on every point from the second to T+0, on one at T+15 s and
-  on all 29 from T+129 s. MapSphere states no meaning for it.
+- **Raw GPX** (`gpslog_16072016_151524`, post 1): 245 points, 22:10:12 to 22:14:53 UTC, a MapSphere `<valid>` extension
+  on 131 points: `0` on every point from the second to T+0, on one at T+15 s and on all 29 from T+129 s.
 - **Adj GPX** (post 13, and its twin in the post-23 spreadsheet): the same positions and times. Each `ele` in the
   flight equals the `.pf2` height at (GPX time − 22:11:55 UTC) plus 189 ft, on all 116 points from 22:11:57 to
   22:14:05, to the foot. The 102 points before read 190 ft, and the 27 after the `.pf2` ends read 232 ft, its
   header's ground elevation. The post-13 copy adds one point with an empty `time`.
-- **`.pf2`**: 2,664 samples at 0.05 s, feet above the pad; header apogee 4,613 ft, ground 232 ft MSL, drogue at
+- **`.pf2`** (post 3): 2,664 samples at 0.05 s, feet above the pad; header apogee 4,613 ft, ground 232 ft MSL, drogue at
   19.00 s, main at 87.15 s.
 - **TRS raw NMEA** (post 21; the post-34 spreadsheet's input): 3,979 good GGA, 4,129 barometer lines `<n>`.
-- **TRS Adj NMEA and GPX** (post 34): GGA altitude = the next `<n>` + 2,855 ft, in meters, on 1,290 of 1,293 sentences
-  (at 16:22:20, where the raw log has no `<n>`, the mean of its neighbors); the GPX copies those altitudes in order,
-  but truncates each time to the minute (23 distinct times).
+- **TRS Adj NMEA and GPX** (post 34): GGA altitude = the next `<n>` + 2,855 ft, in meters, on 1,290 of 1,293 sentences;
+  the 3 with no `<n>` take their neighbors' mean (2,855 ft at 16:14:29 and 16:19:20 on the pad, 5,284 ft at 16:22:20).
+  The GPX copies those altitudes in order, but truncates each time to the minute (23 distinct times).
 
 ## 2. What `ele` is measured from
 
@@ -58,18 +58,18 @@ Wireless A2235H (post 28 [S1]), a SiRFstarIV module whose NMEA output offers GGA
 | 2016-06-11 LDRS 35, GGA altitude at launch | 874.2 m | +5.8 m | +37.3 m |
 | same, the poster's launch altitude | 2,855 ft (870.2 m) | +1.8 m | n/a |
 
-Terrain [S6] is 55.1 m at the 2016-07-16 pad, 55.3 m at its landing point, 868.4 m at the LDRS pad (NAVD88,
-within 0.25 m of EGM96 at both by NGS GEOID18). Ellipsoidal: `ele` less EGM96's −33.37 m and −31.44 m [S7]. The
-receiver's own separation was −31.0 m in all 3,979 GGA, 0.44 m from EGM96 and 0.31 m from EGM2008 [S7].
+Terrain [S6] is 55.1 m at the 2016-07-16 pad, 55.3 m at its landing point, 868.4 m at the LDRS pad (NAVD88). GEOID18 is
+within 0.25 m of EGM96 at both, NAVD88 about 0.5 m off global geoids [S9]. Ellipsoidal: `ele` less EGM96's −33.37 m
+and −31.44 m [S7]. The receiver's separation was −31.0 m in all 3,979 GGA, 0.44 m off EGM96, 0.31 m off EGM2008.
 
 - **Conclusion (Inference):** MapSphere wrote the GGA altitude, above mean sea level by the receiver's geoid
   model. The mean-sea-level reading misses the terrain by 7 m, the ellipsoidal one by 26 m. The receiver's own
   scatter at rest is about that size: −7 m before launch, +14 m after landing, so one pad cannot exclude the other
   datum outright. No file carries `geoidheight`, so #645's rule (sea level when `geoidheight` is present) is untested.
-- **The `.pf2` ground elevation is no datum check.** PerfectFlite calls it "approximate" [S5] p. 41 and converts
-  pressure by the US Standard Atmosphere [S5] p. 2 (that the elevation comes from pad pressure is **Inference**).
-  Altimeter settings of 29.77 to 29.78 inHg at 22:12 UTC [S8] give 312 to 321 ft pressure altitude here
-  (**Inference**), so 232 ft is 51 ft above terrain and 79 to 89 ft below that, unexplained.
+- **The `.pf2` ground elevation is no datum check.** PerfectFlite calls its telemetry's first value an "approximate"
+  ground elevation [S5] p. 41 (assumed true of the header's) and uses the US Standard Atmosphere [S5] p. 2 (pad pressure
+  as the source is **Inference**). Altimeter settings interpolated to 22:12 UTC, 29.775 to 29.784 inHg [S8], give 308 to
+  316 ft pressure altitude (**Inference**): 232 ft is 51 ft above terrain, 76 to 84 ft below that, unexplained.
 
 ## 3. Lining the two logs up
 
@@ -113,7 +113,7 @@ The StratoLogger CF states measurement precision ±(0.1% of reading + 1 ft) and 
 p. 47: ±1.7 m at apogee from precision, ±2.4 m with calibration. Its height is the pressure difference by the US
 Standard Atmosphere [S5] p. 2. The day was hot: 99 to 102 °F at Lemoore and Fresno between 21:53 and 22:56 UTC [S8],
 22.6 to 24.3 K above standard at the pad. A standard-atmosphere altimeter then reads the climb low by ΔT/T0 of the
-reading ([altimeter-height-formulas](altimeter-height-formulas.md) §3): 7.8 to 8.4%, 110 to 119 m at apogee, if the
+reading ([altimeter-height-formulas](altimeter-height-formulas.md) §3): 7.8 to 8.4%, 110 to 118 m at apogee, if the
 whole column was that warm. No sounding was read, so that is an upper value (**Inference**).
 
 - **Band (Inference):** a true GNSS height sits within −(0.15% + 0.3 m) and +(8.4% + 0.3 m) of the barometer.
@@ -149,12 +149,11 @@ at T+13 s; after landing it repeats 2,514 ft, the apogee it reports after landin
 | TRS raw NMEA (`4b002742`) | Read: 66 channels; 8,333 lines skipped as noise, the 4,129 barometer lines among them |
 | TRS Adj NMEA (`e1961240`) | Read; its GGA altitude, barometric plus 2,855 ft, is labeled a GNSS altitude |
 
-- **The `.pf2`'s main opening is 21.3 s late, outside its stated 0.76 s.** The 4 s rate falls from −18.2 to
-  −7.6 m/s between T+88 and T+92 s, and the header gives the main at 87.15 s. The drogue rate printed, 14.6 m/s
-  within 1.2 m/s, would be about 17.3 m/s on the header's main time (1,406.3 m to 211.5 m over 68.9 s; 17.2 m/s
-  from the last sample before the charge). **Inference** (`readings/canopies.rs`): the walk back from landing
-  stops where the 2 s running median of 1 s fits first passes its mark (about 5.8 m/s: the near-ground rate,
-  2.8 m/s, plus 3), at T+107 to 108.4 s; the faster stretch from T+88 to 99 s is never reached.
+- **The `.pf2`'s main opening is 21.3 s late, outside its stated 0.76 s.** The 4 s rate falls from −18.2 to −7.6 m/s
+  over T+88 to 92 s, and the header gives the main at 87.15 s. The drogue rate printed, 14.6 m/s within 1.2 m/s, would
+  be 17.3 m/s on the header's main time (1,406.3 m to 211.5 m over 68.9 s). **Inference** (`readings/canopies.rs`): the
+  walk back from landing stops where the 2 s running median of 1 s fits first passes its mark (about 5.8 m/s: the
+  near-ground rate, 2.8 m/s, plus 3), at T+107 to 108.4 s; the faster T+88 to 99 s stretch is never reached.
 - The withheld reason says a GNSS filter "overshoots its top"; both real tracks peaked far below it instead.
 
 ## What this suggests
@@ -176,7 +175,7 @@ at T+13 s; after landing it repeats 2,514 ft, the apogee it reports after landin
 
 - MapSphere's source for `ele` and the meaning of its `<valid>` flag: no document found.
 - Why the A2235H's vertical solution stalls: no dynamic-model or altitude-filter document read; unbounded.
-- Why the `.pf2` ground elevation sits 79 to 89 ft below the day's pressure altitude.
+- Why the `.pf2` ground elevation sits 76 to 84 ft below the day's pressure altitude.
 - The column's temperature aloft: a sounding would turn the 8.4% upper value into a measured bias.
 - The TRS `<n>` format and unit from Eggtimer's own manual; and which receiver the TRS used.
 - Whether `<n>` belongs to the GGA before or after it (post 24 [S1] asks). If after, apogee pairs with the
@@ -184,17 +183,18 @@ at T+13 s; after landing it repeats 2,514 ft, the apogee it reports after landin
 
 ## Sources
 
-Read 2026-10-23. [S1]'s files are cached in `refs/research/forum-eggfinder-gpx-vs-baro/files/` with `SHA256SUMS`,
-scripts and lookups beside them, never committed; no terms are stated, so cite only. The rest are cited.
+Read 2026-10-23 ([S9]: 2026-11-04). [S1]'s files are cached in `refs/research/forum-eggfinder-gpx-vs-baro/files/` with
+`SHA256SUMS` and scripts, never committed; no terms are stated, so cite only. The rest are cited.
 
-- [S1] Rocketry Forum thread 135349, "EggfinderTx --> Mapsphere, In-flight Position and Altitude Peformance?",
-  posts 1 to 34, 2016-07-20 to 07-24, pages 1 and 2 read without a login,
-  <https://www.rocketryforum.com/threads/135349/>; attachments from its `cdn.rocketryforum.com/a/` links.
+- [S1] Rocketry Forum thread 135349, "EggfinderTx --> Mapsphere, In-flight Position and Altitude Peformance?", posts 1
+  to 34, 2016-07-20 to 07-24, pages 1 and 2 read in a browser (plain fetches: HTTP 403, 2026-11-04),
+  <https://www.rocketryforum.com/threads/135349/>; attachments from its CDN links.
 - [S2] Topografix, GPX 1.1 schema, `ele` and `geoidheight`, <https://www.topografix.com/GPX/1/1/gpx.xsd>.
 - [S3] gpsd, "NMEA Revealed", GGA section, <https://gpsd.gitlab.io/gpsd/NMEA.html>.
 - [S4] Lantronix, A2235-H product page (tech specs), printed at <https://www.farnell.com/datasheets/3708589.pdf>.
 - [S5] PerfectFlite StratoLoggerCF manual, printed pp. 2, 41, 47, <http://www.perfectflite.com/Download.html>.
-- [S6] USGS Elevation Point Query Service, <https://epqs.nationalmap.gov/v1/json> at the three points above.
+- [S6] USGS EPQS, <https://epqs.nationalmap.gov/v1/json>; "typically" NAVD88 (USGS DEM datum FAQ, 2026-11-04).
 - [S7] GeographicLib GeoidEval, EGM96 and EGM2008, <https://geographiclib.sourceforge.io/cgi-bin/GeoidEval>.
-- [S8] Iowa Environmental Mesonet, ASOS NLC and FAT, 2016-07-16 20:00 to 24:00 UTC,
-  <https://mesonet.agron.iastate.edu/request/download.phtml>.
+- [S8] Iowa Environmental Mesonet ASOS, NLC/FAT, 2016-07-16, <https://mesonet.agron.iastate.edu/request/download.phtml>.
+- [S9] NGS GEOID18, <https://geodesy.noaa.gov/api/geoid/ght>; D. Roman, "Modernizing the geopotential datum:
+  replacing NAVD 88", 2010, slides 8-9, <https://geodesy.noaa.gov/web/about_ngs/info/2010Summit/Presentations/>.
