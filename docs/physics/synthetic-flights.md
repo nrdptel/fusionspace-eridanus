@@ -387,14 +387,9 @@ Each night CI flies every flight again on macOS, Windows and Linux and holds the
   A test reads `ci.yml` and fails if a set isn't on exactly one line of a job that runs on all five
   platforms, or if that job runs on any condition but a full run's, nightly or started by hand.
 - `cargo xtask synthetic --slice`, on every pull request on all five platforms and in
-  `scripts/gate.sh`: the slice, every 20th flight of each set (210 of the 4,200), flown again. The
-  whole run writes a line for each thing the census makes of each of them to
-  `validation/reports/synthetic-flights.slice.json`: the flight's row, each log's readings as
-  shares of their bounds, the smoother's errors over their standard deviations, and where each
-  truth fell against its interval. Any line that differs fails the check and names its flight, and
-  so does a slice flight that breaks a rule the census holds every flight to (a reading past its
-  bound, a log withheld with a barometer). A test changes one flight's truth, then its log, and
-  checks that its lines change.
+  `scripts/gate.sh`: every 20th flight of each set (210 of 4,200) flown again, held line for line
+  to the `synthetic-flights.slice.json` the whole run writes and to the census's rules for one
+  flight. A test changes one flight's truth, then its log, and checks that its lines change.
 
 ### References
 

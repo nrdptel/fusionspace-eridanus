@@ -1153,8 +1153,6 @@ two-logger sets A and B the interval held the truth 622 of 703 and 612 of 680 ti
 [the coverage test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md), and narrowed to 0.8, widened to 1.25 and shifted down it fails. All 135 offsets the 200
 staged flights gave stayed within their bounds; there the interval missed none, so it is wider than
 it need be on those flights ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/two-logs.md)).
-The whole check runs each night; every pull request flies every 20th flight of each set again,
-each held line for line to the report's slice and to its bound (`cargo xtask two-logs --slice`).
 
 **What it leaves out.** One number per pair: a clock running fast or slow isn't corrected, by about
 15 ms over a 300 s flight at a crystal's 50 ppm. A board that wakes late or a log cut before liftoff
@@ -1493,9 +1491,7 @@ truth beside the logs, that doesn't say how each rocket came down.
   median equals each window's own, bit for bit.
 - `cargo xtask synthetic --check`: every reading on the tuning set within its bound, at every rate,
   step and cut. That includes each accelerometer at 500, 100 and 20 samples a second, and the IMU's
-  part set to ±8 g. A floor is no more than its bound above the truth. The report is reproduced on every platform
-  each night; every pull request flies the slice, 10 of the tuning flights, each log's readings
-  held to the committed slice and to their bounds (`cargo xtask synthetic --slice`).
+  part set to ±8 g. A floor is no more than its bound above the truth. The report is reproduced on every platform.
 - `cargo xtask logs` and its tests: each invented sample read to its reason. And, where the sample
   logs are fetched, every record's readings counted and the report reproduced.
 - `crates/hpr-cli/tests/cli.rs`: `hpr analyze` on a log alone in a folder, its JSON checked against
