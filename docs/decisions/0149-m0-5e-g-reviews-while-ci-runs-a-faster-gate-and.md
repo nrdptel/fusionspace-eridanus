@@ -1,7 +1,7 @@
 # ADR-149: M0.5e to g, reviews while CI runs, a faster gate and a split CI (2026-10-04)
 
-- **Status:** accepted; amended 2026-11-03 (below: a time budget for CI and the gate, the flight censuses each night) and 2026-11-04 (M0.16a in three; the slices of the synthetic flights and two logs)
-- **Summary:** Reviews start once the PR is open and CI runs, with a shared bar for blocking findings and scoped re-reviews; the gate runs tests in parallel and adds the private-data checks when physics changes; CI's slowest job is split. Amended 2026-11-03: a pull request's CI within 20 minutes and a passing full gate within 30; the flight censuses (the synthetic flights, two logs and the fit's intervals) run whole each night on main, a failure filing a P-critical issue, and a change to research notes alone skips the jobs that read none. Amended 2026-11-04: pull requests and the gate fly every 21st flight of the synthetic flights and two logs, held line for line to a committed slice.
+- **Status:** accepted; amended 2026-11-03 (below: a time budget for CI and the gate, the flight censuses each night) and 2026-11-04 (M0.16a in three; the slices of the synthetic flights, two logs and the fit)
+- **Summary:** Reviews start once the PR is open and CI runs, with a shared bar for blocking findings and scoped re-reviews; the gate runs tests in parallel and adds the private-data checks when physics changes; CI's slowest job is split. Amended 2026-11-03: a pull request's CI within 20 minutes and a passing full gate within 30; the flight censuses (the synthetic flights, two logs and the fit's intervals) run whole each night on main, a failure filing a P-critical issue, and a change to research notes alone skips the jobs that read none. Amended 2026-11-04: pull requests and the gate fly every 21st flight of the synthetic flights and two logs, and every 21st fit of the fit, held line for line to a committed slice.
 
 [adr-144]: 0144-the-2026-10-03-planning-review-leaner-bookkeeping.md
 [adr-222]: 0222-six-platforms-tested-on-every-pull-request.md
@@ -287,3 +287,60 @@ the words hold what the census counts without one.
   writing the slice again on the Mac can't fix it; as with the reports, that needs a record, not a
   looser check.
 - The fit still runs whole in the gate until M0.16a2 gives it a slice.
+
+**The fit's slice (M0.16a2).**
+
+1. **A fixed part.** The fit's slice is part 1 of 21 of each of its runs (`fit --part 1/21`): the
+   1st, 22nd, 43rd fit and on. It holds 444 fits: 123 each of sets A and B, 62 of the first 1,300
+   flights and 61 of the wind's flights past them; 10 of each of the seven runs of pure noise; and
+   128 of the calibration set, 96 of its 2,000 flights and 32 of its wind's flights past them, half
+   of the 96 on each model. The calibration set's two runs join the fit's runs, so the parts CI
+   fits each night hold them too. A fit is the same whatever its thread or part fitted before it, a
+   test holds that to the bit, so the slice's fits are the whole run's at the same places.
+2. **Exact where written.** The run that writes the report, `fit` in the optimized build on the
+   Mac, writes the slice beside it as `fit-intervals.slice.json`. Each fit has a line for what it
+   came to: fitted or with nothing to fit, a track or height alone, converged or at its step
+   limit, its residual, its RMS, the flights it flew and its design. Then a line for each of the
+   five parameters: its value, standard error and truth, its error over its standard error, where
+   its truth fell against the 90% interval the report counts, and "not counted" where the report
+   counts none (a log with nothing to fit, a wind without a track). Numbers keep three significant
+   figures, shares three decimals, as in the other two slices. `fit --slice` makes the slice's fits
+   again and holds them to the committed slice with the same comparison as the other two: byte for
+   byte in the gate, which runs the build that writes it, and in words (`--other-platform`)
+   elsewhere. `fit --check` makes the slice from the whole run and holds it byte for byte; the
+   night's `--check --other-platform --parts` holds it in words.
+3. **Else by its rule.** The rules the report holds each fit to hold each of the slice's: on sets
+   A and B, a fit it counts, or one of the wind's, may not stand past the misfit's cut, and a log
+   among the flights drawn with nothing to fit must be a GNSS receiver's alone. Each names its
+   flight. The flights drawn are the committed report's. What only a whole run can show stays with
+   the night: the counts, the tests and their probes, the widths that say what's identified, and
+   the shares fitted on the calibration set. Those shares were checked only in the gate, which ran
+   `fit --check`; CI's runs left the calibration set out. Now the run that writes the report and
+   `fit --check` hold them to the library's to their three figures, and the night holds them
+   within the rule the report's figures keep on another platform: 5% of the larger, or 0.002.
+   `--slice` also reads the committed report and checks that it renders the committed page.
+4. **Where each runs.** `fit --slice` runs in the gate's validate step in place of `fit --check`.
+   On every pull request but one that changes only research notes, a job of its own, `fit slice`,
+   runs `fit --slice --other-platform` on all five platforms. It sits beside `validate`, which took
+   14 and 15 minutes on Windows and macOS on M0.16a1's pull request, so neither passes the 20
+   minutes. The whole fit runs each night in its eight parts on Linux. A test reads `ci.yml` and
+   `scripts/gate.sh` and fails if either check is missing, runs on fewer platforms or on a
+   condition, or may fail unseen, or if the deploy and the night's alert don't wait for it.
+5. **One changed fit fails it.** A test moves one made-up fit's value, its truth past its interval,
+   its convergence and whether it had something to fit, and checks that its lines change, in a number or a word, and
+   that a slice holding it fails naming that fit alone, byte for byte and in words. A probe on the
+   committed slice, not a test: set A's fit 819's drag share written 0.392 for 0.391 fails `fit
+   --slice` and passes `fit --slice --other-platform`; its "inside" written "above" fails both.
+
+**Measured.** On the Mac that writes the report (10 cores, the optimized build, 2026-11-04), the
+whole run, the calibration set's 2,000 fits and its wind's among them, took 1,329 s and wrote the
+report and its page byte for byte as committed, beside a slice of 286 kB. Part of that time a test
+build shared the machine. The slice took 78 s byte for byte and 77 s in words.
+
+**The fit's slice's consequences.**
+
+- The gate's validate step makes 444 fits, a 21st of the whole run's.
+- A change that moves only fits outside the slice, or the shares by less than a figure's rule, is
+  found that night on Linux; one that moves the shares on the Mac alone is found when the report is
+  written again.
+- A pull request's CI gains five jobs, each a build and a minute or more of fits.

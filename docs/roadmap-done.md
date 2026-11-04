@@ -112,6 +112,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.14b The front doors ([Phase 0](#phase-0-foundations))
 - M0.15 Damaged files refused, never a crash ([Phase 0](#phase-0-foundations))
 - M0.16a1 Two slices ([Phase 0](#phase-0-foundations))
+- M0.16a2 The fit's slice ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -750,6 +751,9 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M0.16a1 Two slices.** *Done when:* the synthetic flights and two logs each check a fixed
       part of their flights against the committed report (exact where written, else by its rule),
       failing on one changed flight; the gate and pull requests check one part, the whole nightly.
+    - [x] **M0.16a2 The fit's slice.** *Done when:* the fit checks a fixed part of its flights
+      against the committed report (exact where written, else by its rule), failing on one changed
+      flight; the gate and pull requests check one part, the whole nightly.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and
