@@ -178,8 +178,8 @@ pub enum Held {
     /// moves 1.2e-6 of itself between the everyday and the optimized build on one Mac, has its
     /// smoother's shares move by up to 0.003 (ADR-149, amended 2026-11-04). Its words don't: the
     /// side each truth falls on, what was withheld and why, the smoother's flags, the design, the
-    /// logger and the model. Those are what the census counts, and the nightly run holds its
-    /// numbers whole, to the digits the platforms share.
+    /// logger and the model. Those are what the census counts as outcomes; the nightly run holds
+    /// the report's tallies to the digits the platforms share, and the slice's flights in words.
     Words,
 }
 

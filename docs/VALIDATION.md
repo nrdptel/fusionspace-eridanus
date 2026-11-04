@@ -436,7 +436,7 @@ everyday build, and `scripts/gate.sh` runs the checks on your own machine before
 slices of the synthetic flights and two logs in the everyday build, the fit whole in the optimized
 one, until it has a slice of its own ([the time budget](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md)). The gate's default run leaves these checks out only when a change is prose they don't read,
 such as most pages under `docs/`, and a run that names its steps runs them only when `validate` is
-named. So a report in the repository has to reproduce from both builds. If the optimized build
+named. So a report in the repository has to reproduce from both builds, its slice in words. If the optimized build
 ever came out differently, the nightly run would fail and regenerating wouldn't fix it: that would need a
 decision record, not a looser check.
 

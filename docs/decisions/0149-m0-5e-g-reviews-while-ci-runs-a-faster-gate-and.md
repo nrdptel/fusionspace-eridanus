@@ -193,8 +193,10 @@ main's last passing CI, or no passing nightly in 26 hours; M7.3c3's fit follows 
      accelerometer's two ranges; on the tuning set and sets A and B, the smoother's checks (of the
      log, of the log written from launch, and with a GNSS track, of the track trusted from
      liftoff), each error over its standard deviation, with where the truth fell, and its health:
-     whether it saw the pad, kept the accelerometer and trusted the track, its transonic and charge
-     spans, its unsolved steps, and each sensor's samples, rejected and set aside; and on sets A and
+     whether it saw the pad, kept the accelerometer, found the apogee within the reading's bound and
+     trusted the track; its transonic and charge spans and unsmoothed steps; and each sensor's
+     samples, rejected, unweighed and resets (the flags are words, the counts
+     numbers); and on sets A and
      B and the calibration set, what the log says of the readings that state an interval, with
      where each truth fell.
    - two logs: each log's sample count and highest height, and the offset's reading, truth and
@@ -207,7 +209,7 @@ main's last passing CI, or no passing nightly in 26 hours; M7.3c3's fit follows 
    counting the rest; flights in another order fail without one named. A line is held byte for
    byte on the build that writes the reports, the Mac's everyday build, and in words everywhere
    else (`--other-platform`): each number, NaN and infinity read as one mark, every word compared.
-   Words are what the census counts: where each truth fell, what was withheld and why, the
+   Words are what the census counts as outcomes: where each truth fell, what was withheld and why, the
    smoother's flags, the design, the logger and the model.
 3. **Else by its rule.** What only a whole set can show stays with the whole run: the census's
    ranges, counts and medians, the shares fitted on a calibration set, the smoother's coverage
@@ -230,9 +232,9 @@ main's last passing CI, or no passing nightly in 26 hours; M7.3c3's fit follows 
    log, and checks that its lines change. Another moves one of two logs' clocks by 0.1 s, then
    reads one log 0.5% high. The comparison's own tests change one line of one flight and check that
    the failure names that flight and only it, and that in words a moved number passes and a moved
-   word fails. On the committed synthetic slice, moving one share of set A's flight 399 from 0.031
-   to 0.041 fails `--slice` and passes `--slice --other-platform`; also writing it "above" for
-   "inside" fails both.
+   word fails. A probe on the committed synthetic slice, not a test: set A's flight 399's "apogee
+   height 0.031 inside" written "0.041 inside" fails `--slice` and passes `--slice
+   --other-platform`; written "1.041 above" it fails `--slice --other-platform` too.
 
 **Measured.** On the Mac that writes the reports (10 cores, the everyday build, 2026-11-04),
 the whole synthetic flights' run took 486 s and two logs' 205 s; their slices took 27 s and 10 s.
@@ -249,8 +251,8 @@ platform, and failed on Arm Linux: set A's flight 399 and set B's flight 504 dif
 smoother's lines. The Mac shows the same: in the optimized build, `--slice` byte for byte finds one
 flight of the 202 differing, flight 399, its shares 0.031, −0.530, 0.946 and 0.820 written 0.033,
 −0.527, 0.948 and 0.823, each still inside; its words are the same. Its simulated apogee moves
-1.2e-6 of itself between the two builds, and the smoother, fitting through the noise, carries that
-into its errors over their standard deviations, which move in their third decimal. A tolerance on each
+1.2e-6 of itself between the two builds, and the smoother's errors over their standard deviations move with it, in their third
+decimal. A tolerance on each
 number would have to know each flight's gain; the words hold what the census counts without one.
 
 **Alternatives to the slices.**
@@ -268,6 +270,7 @@ number would have to know each flight's gain; the words hold what the census cou
   of the 2026-11-03 amendment says of the other platforms.
 - A change meant to move the flights now writes three files a census, where it wrote two.
 - Off the Mac, a pull request can't see a number that moves with no word: a share drifting inside
-  its bound, or a count. The gate holds those byte for byte before each merge, and the night holds
-  the whole census to its digits.
+  its bound, or a count. The gate holds those byte for byte before each merge. The night holds the
+  census's report to its digits, but a slice flight's own numbers only in words, so such a move
+  shows on the Mac's gate alone.
 - The fit still runs whole in the gate until M0.16a2 gives it a slice.
