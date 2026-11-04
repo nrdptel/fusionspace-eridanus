@@ -35,14 +35,15 @@ here the term is small: their 17 numbers agree 35 times inside 3%. In [the repor
 The solver's movement is each case's `solver.relative_change_from_loose` in
 [the RocketPy fixture][fixture], between `rtol` 1e-6 and 1e-8. Valetudo descends in still air, so
 its drift is the Earth's rotation alone: 19 cm (7.5 in) east and 20 µm north, the last moved by
-RocketPy's own solver by 0.2%. Its −0.889% gap is the added air again, which RocketPy's drag also has
-to push sideways. No case has a floor.
+RocketPy's own solver by 0.2%. Its gaps (−0.889% east, −1.766% north) are the added air again, which
+RocketPy's drag also has to push sideways. No case has a floor.
 
 **Which side flatters.** Predicting a slower descent than RocketPy, or a shorter drift, flatters:
 the real descent is faster, or the recovery area larger, than stated. The bounds here are two-sided,
 so a row reading either way fails sooner than before. Of the numbers held here, Calisto's and
 Prometheus 2022's rates read slow and Juno III's drifts short, each on the flattering side by under
-0.09%; Valetudo's kept drifts read 0.889% short. This record changes no model.
+0.09%; Valetudo's kept drifts read short too: east and total 0.889%, north 1.766%. This record
+changes no model.
 
 **Decision.**
 
@@ -53,7 +54,8 @@ Prometheus 2022's rates read slow and Juno III's drifts short, each on the flatt
 2. NDRT 2020's five keep 3%, for a written model difference: its descent time (+0.705%) and north
    drift (+2.865%) follow RocketPy's added mass, as [ADR-318][adr-318] keeps 3% for the flights with a
    written cause. Valetudo's three drifts keep 3%: the Earth's rotation alone, the north one about
-   20 µm and moved 0.2% by RocketPy's own solver, their −0.889% gap the same added air.
+   20 µm and moved 0.2% by RocketPy's own solver; their gaps (−0.889% east and total, −1.766%
+   north) are the same added air, which the note's probe takes to −0.011% on the north drift.
 3. Test `descents_hold_adr_319s_bounds` (`crates/hpr-validate/src/tests.rs`) holds each descent
    case file to these bounds, failing on a case file widened back, given a floor or marked not
    scored, or a new descent added at the old bound. The unit test
