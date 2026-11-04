@@ -722,12 +722,11 @@ Each reason with its case: the records the corpus withholds a reading of for it,
 
 ### Disturbed pads against stated apogees
 
-Each record whose top speed is withheld as `disturbed_pad`, its apogee read, and whose file states an apogee: the apogee read from each candidate for the pad, less the stated apogee. The reading's own pad is the samples resting before the fall, or the logger's zero where too few rest; the others take the log's first sample, or the fall's end, the lowest sample before apogee.
+The records whose top speed is withheld as `disturbed_pad`, their apogee read, and whose files state an apogee: for each candidate for the pad, the largest difference by size of the apogee read from it less the stated apogee, m. The reading's own pad is the samples resting before the fall, or the logger's zero where too few rest; the others take the log's first sample, or the fall's end, the lowest sample before apogee. Aggregates only, as the sample logs include a private collection.
 
-| File | Reading, m | First sample, m | Fall's end, m |
-|---|---:|---:|---:|
-| `0bbedeb8c6dd59cc` | +0.3 | +0.0 | +17.1 |
-| `ba517d0edf87ef99` | +0.0 | +268.8 | +339.9 |
+| Records | Reading, m | First sample, m | Fall's end, m |
+|---:|---:|---:|---:|
+| 2 | +0.3 | +268.8 | +339.9 |
 
 ### The smoother
 

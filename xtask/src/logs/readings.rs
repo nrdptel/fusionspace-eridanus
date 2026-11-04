@@ -88,19 +88,28 @@ pub(super) struct ReasonCase {
     pub invented: Option<String>,
 }
 
-/// A record whose track falls before the climb (#1101), its top speed withheld as `disturbed_pad`
-/// and its apogee read, whose file states an apogee: the apogee read from each candidate for the
-/// pad, less the stated apogee, m.
+/// The records whose track falls before the climb (#1101), their top speed withheld as
+/// `disturbed_pad` and their apogee read, whose files state an apogee: for each candidate for the
+/// pad, the largest difference by size, signed, of the apogee read from it less the stated one,
+/// m. Aggregates only: the sample logs include a private collection (ADR-151).
 #[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
-pub(super) struct DisturbedPad {
-    /// The file's id.
-    pub id: String,
-    /// The reading's own: from the samples resting before the fall, or the logger's zero.
-    pub reading_m: f64,
-    /// Taking the log's first sample for the pad.
-    pub first_sample_m: f64,
-    /// Taking the fall's end, the lowest sample before apogee, for the pad.
-    pub fall_end_m: f64,
+pub(super) struct DisturbedPads {
+    /// How many records.
+    pub records: usize,
+    /// The reading's own pad: the samples resting before the fall, or the logger's zero.
+    pub reading_m: Option<f64>,
+    /// The log's first sample.
+    pub first_sample_m: Option<f64>,
+    /// The fall's end, the lowest sample before apogee.
+    pub fall_end_m: Option<f64>,
+}
+
+/// The largest of `values` by size, keeping its sign; `None` if there are none.
+fn largest(values: impl Iterator<Item = f64>) -> Option<f64> {
+    values.fold(None, |most: Option<f64>, value| match most {
+        Some(most) if most.abs() >= value.abs() => Some(most),
+        _ => Some(value),
+    })
 }
 
 /// The readings over the corpus.
@@ -110,8 +119,8 @@ pub(super) struct Survey {
     pub families: BTreeMap<String, FamilyReadings>,
     /// Every reason, in the order the readings declare them.
     pub reasons: Vec<ReasonCase>,
-    /// Each disturbed pad whose file states an apogee, by id.
-    pub disturbed_pads: Vec<DisturbedPad>,
+    /// The disturbed pads whose files state an apogee.
+    pub disturbed_pads: DisturbedPads,
 }
 
 /// The survey being gathered.
@@ -119,7 +128,9 @@ pub(super) struct Survey {
 pub(super) struct Gathering {
     families: BTreeMap<String, FamilyReadings>,
     cases: BTreeMap<Reason, (usize, String)>,
-    disturbed_pads: Vec<DisturbedPad>,
+    /// Each disturbed pad's differences from its stated apogee: the reading's, the first
+    /// sample's and the fall's end's, m.
+    disturbed_pads: Vec<[f64; 3]>,
 }
 
 /// A reason's code, as the JSON names it.
@@ -186,12 +197,11 @@ impl Gathering {
             let before = time.partition_point(|t| *t < apogee.time_s);
             let finite = || heights[..before].iter().copied().filter(|h| h.is_finite());
             if let (Some(first), Some(lowest)) = (finite().next(), finite().reduce(f64::min)) {
-                self.disturbed_pads.push(DisturbedPad {
-                    id: id.to_owned(),
-                    reading_m: apogee.height_m - stated,
-                    first_sample_m: apogee.altitude_m - first - stated,
-                    fall_end_m: apogee.altitude_m - lowest - stated,
-                });
+                self.disturbed_pads.push([
+                    apogee.height_m - stated,
+                    apogee.altitude_m - first - stated,
+                    apogee.altitude_m - lowest - stated,
+                ]);
             }
         }
         let row = self.families.entry(family.to_owned()).or_default();
@@ -258,9 +268,14 @@ impl Gathering {
     }
 
     /// The survey, each reason with its case.
-    pub(super) fn finish(mut self) -> Survey {
-        self.disturbed_pads.sort_by(|a, b| a.id.cmp(&b.id));
-        self.disturbed_pads.dedup_by(|a, b| a.id == b.id);
+    pub(super) fn finish(self) -> Survey {
+        let rows = &self.disturbed_pads;
+        let disturbed_pads = DisturbedPads {
+            records: rows.len(),
+            reading_m: largest(rows.iter().map(|row| row[0])),
+            first_sample_m: largest(rows.iter().map(|row| row[1])),
+            fall_end_m: largest(rows.iter().map(|row| row[2])),
+        };
         let reasons = Reason::ALL
             .iter()
             .map(|&reason| {
@@ -287,7 +302,7 @@ impl Gathering {
         Survey {
             families: self.families,
             reasons,
-            disturbed_pads: self.disturbed_pads,
+            disturbed_pads,
         }
     }
 }
@@ -454,27 +469,23 @@ pub(super) fn markdown(survey: &Survey) -> String {
 
 /// The page's section on disturbed pads against the apogees their files state (#1101).
 fn disturbed_pad_section(survey: &Survey) -> String {
-    let mut out = String::from(
+    let pads = &survey.disturbed_pads;
+    let cell = |value: Option<f64>| value.map_or("none".to_owned(), |v| format!("{v:+.1}"));
+    format!(
         "\n### Disturbed pads against stated apogees\n\n\
-         Each record whose top speed is withheld as `disturbed_pad`, its apogee read, and whose \
-         file states an apogee: the apogee read from each candidate for the pad, less the stated \
-         apogee. \
-         The reading's own pad is the samples resting before the fall, or the logger's zero \
-         where too few rest; the others take the log's first sample, or the fall's end, the \
-         lowest sample before apogee.\n\n",
-    );
-    if survey.disturbed_pads.is_empty() {
-        out += "None.\n";
-        return out;
-    }
-    out += "| File | Reading, m | First sample, m | Fall's end, m |\n|---|---:|---:|---:|\n";
-    for pad in &survey.disturbed_pads {
-        out += &format!(
-            "| `{}` | {:+.1} | {:+.1} | {:+.1} |\n",
-            pad.id, pad.reading_m, pad.first_sample_m, pad.fall_end_m
-        );
-    }
-    out
+         The records whose top speed is withheld as `disturbed_pad`, their apogee read, and whose \
+         files state an apogee: for each candidate for the pad, the largest difference by size \
+         of the apogee read from it less the stated apogee, m. The reading's own pad is the \
+         samples resting before the fall, or the logger's zero where too few rest; the others \
+         take the log's first sample, or the fall's end, the lowest sample before apogee. \
+         Aggregates only, as the sample logs include a private collection.\n\n\
+         | Records | Reading, m | First sample, m | Fall's end, m |\n|---:|---:|---:|---:|\n\
+         | {} | {} | {} | {} |\n",
+        pads.records,
+        cell(pads.reading_m),
+        cell(pads.first_sample_m),
+        cell(pads.fall_end_m)
+    )
 }
 
 #[cfg(test)]

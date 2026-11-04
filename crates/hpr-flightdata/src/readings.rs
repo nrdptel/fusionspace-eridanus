@@ -92,6 +92,7 @@
 use hpr_atmos::Ussa76;
 use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
 use serde::{Deserialize, Serialize};
+use std::collections::VecDeque;
 
 use crate::filter::{median, running_median};
 use crate::log::{Channel, FlightLog, LogFormat, Quantity};
@@ -595,7 +596,8 @@ pub struct Liftoff {
     /// [`LIFTOFF_ACCELERATION_M_S2`], `√(4a/A)`, and the longer interval either side of the
     /// sample, twice.
     pub bound_s: f64,
-    /// Its 90% interval, s on the track's clock ([`interval::LIFTOFF_SHARES`]).
+    /// Its 90% interval, s on the track's clock ([`interval::LIFTOFF_SHARES`]); `None` on a
+    /// disturbed pad ([`Reason::DisturbedPad`]), whose bound reaches back over the fall.
     pub interval_s: Option<Interval>,
     /// The track it came from.
     pub source: Source,
@@ -1477,7 +1479,12 @@ fn heights(log: &FlightLog) -> Readings {
         Some((liftoff, bound_s)) => Reading::Read(Liftoff {
             time_s: time[liftoff],
             bound_s,
-            interval_s: interval::LIFTOFF_SHARES.interval(time[liftoff], bound_s),
+            // The shares were fitted on liftoffs off a resting pad, not on a bound reaching back
+            // over a fall, where the truth can lie at its far end.
+            interval_s: pad_fall
+                .is_none()
+                .then(|| interval::LIFTOFF_SHARES.interval(time[liftoff], bound_s))
+                .flatten(),
             source: track.source,
             provenance: Provenance::Measured,
             method: Method::LastOnThePad,
@@ -1971,7 +1978,7 @@ fn max_speed(
 /// A fall before the climb: where it leaves the start's band, how deep it goes, and the rest it
 /// lacks.
 struct Fall {
-    /// The sample after the last within the start's band before the fall's lowest point.
+    /// The sample after the last at or above the start's band before the fall's lowest point.
     begin: usize,
     /// How far below the start the filtered track falls, m.
     depth_m: f64,
@@ -1985,7 +1992,8 @@ struct Fall {
 /// drift ([`DRIFT_M_PER_S`]) below its start before the climb, then goes into the climb without
 /// resting anywhere on the way down or up, isn't the pad: by its look it is a pressure pulse at
 /// the barometer at ignition. Resting is staying within half the rise of one height for as long
-/// as a rocket leaving the pad at [`LIFTOFF_ACCELERATION_M_S2`] takes to cross the rise,
+/// as a rocket leaving the pad at [`LIFTOFF_ACCELERATION_M_S2`] takes to cross the rise, with no
+/// sample that isn't a number among them,
 /// `√(2 rise/A)`, so a fall to a level the track then holds, as a logger carried down to the pad
 /// or the weather moving the pressure, is no disturbance, and the pad is read as before (#1158
 /// for a level held for less time than the one above it). The samples
@@ -2011,12 +2019,40 @@ fn fall_before_climb(
         .rposition(|h| *h >= start - band)
         .map_or(head, |last| head + last + 1);
     let resting_s = (2.0 * rise / LIFTOFF_ACCELERATION_M_S2).sqrt();
-    // A rest is a run that stays within the band of its first sample for `resting_s`.
-    let mut anchor = begin;
+    // A rest is a run of finite samples whose highest and lowest lie within the rise, so all
+    // within half of it of their middle, for `resting_s`: the window's least and most are kept in
+    // two queues of indexes, each sample entering and leaving each once.
+    let mut from = begin;
+    let mut lows: VecDeque<usize> = VecDeque::new();
+    let mut highs: VecDeque<usize> = VecDeque::new();
     for index in begin..climb {
-        if !filtered[index].is_finite() || (filtered[index] - filtered[anchor]).abs() > band {
-            anchor = index;
-        } else if time[index] - time[anchor] >= resting_s {
+        let h = filtered[index];
+        if !h.is_finite() {
+            lows.clear();
+            highs.clear();
+            from = index + 1;
+            continue;
+        }
+        while lows.back().is_some_and(|&k| filtered[k] >= h) {
+            lows.pop_back();
+        }
+        lows.push_back(index);
+        while highs.back().is_some_and(|&k| filtered[k] <= h) {
+            highs.pop_back();
+        }
+        highs.push_back(index);
+        while let (Some(&low), Some(&high)) = (lows.front(), highs.front())
+            && filtered[high] - filtered[low] > 2.0 * band
+        {
+            from = low.min(high) + 1;
+            while lows.front().is_some_and(|&k| k < from) {
+                lows.pop_front();
+            }
+            while highs.front().is_some_and(|&k| k < from) {
+                highs.pop_front();
+            }
+        }
+        if time[index] - time[from] >= resting_s {
             return None;
         }
     }
@@ -2858,6 +2894,7 @@ mod tests {
             match liftoff_s {
                 Some(truth_s) => {
                     let liftoff = read.liftoff.value().unwrap();
+                    assert!(liftoff.interval_s.is_none(), "{case}");
                     assert!(
                         (liftoff.time_s - truth_s).abs() <= liftoff.bound_s,
                         "{case}: liftoff {} s, bound {} s",
@@ -2903,13 +2940,50 @@ mod tests {
         ] {
             assert_eq!(reason, Some(Reason::DisturbedPad));
         }
-        // Carried 30 m down to the pad and set there for 4 s: the pad is where it rests.
+        // Carried 30 m down to the pad and set there for 4 s: the pad is where it rests, its
+        // filtered heights spread over more than half the rise from any one of them, though
+        // within the rise (4.61 m on a PerfectFlite).
         let climb = flight(10.0);
-        let walked = read(&log(40.0, |t| if t < 2.0 { 30.0 } else { climb(t - 5.0) }));
-        assert!(walked.liftoff.value().is_some(), "{:?}", walked.liftoff);
-        assert!(walked.pad_altitude_m.unwrap().abs() < 1e-9);
-        let apogee = walked.apogee.value().unwrap();
-        assert!((apogee.height_m - truth_m).abs() <= apogee.bound_m);
+        for spread_m in [0.0, 1.6] {
+            let walked = read(&log(40.0, |t| {
+                let noise = if (t / DT).round() % 2.0 == 0.0 {
+                    spread_m
+                } else {
+                    -spread_m
+                };
+                if t < 2.0 {
+                    30.0
+                } else if t < 6.0 {
+                    noise
+                } else {
+                    climb(t - 5.0)
+                }
+            }));
+            assert!(
+                walked.liftoff.value().is_some(),
+                "{spread_m}: {:?}",
+                walked.liftoff
+            );
+            assert!(
+                walked.max_speed.reason() != Some(Reason::DisturbedPad),
+                "{spread_m}"
+            );
+            assert!(
+                walked.pad_altitude_m.unwrap().abs() <= spread_m,
+                "{spread_m}"
+            );
+            let apogee = walked.apogee.value().unwrap();
+            assert!(
+                (apogee.height_m - truth_m).abs() <= apogee.bound_m,
+                "{spread_m}"
+            );
+        }
+        // A gap in the samples during the fall isn't a rest: the fall is still found.
+        let mut gapped = log(33.0, pulsed(3.0, 300.0));
+        for h in &mut gapped.altitude_m[63..76] {
+            *h = f64::NAN;
+        }
+        assert_eq!(read(&gapped).max_speed.reason(), Some(Reason::DisturbedPad));
     }
 
     /// A log that starts 0.1 s before a fast liftoff, as a logger that records from launch writes

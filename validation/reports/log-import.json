@@ -8083,20 +8083,12 @@
         "invented": null
       }
     ],
-    "disturbed_pads": [
-      {
-        "id": "0bbedeb8c6dd59cc",
-        "reading_m": 0.3048000000000002,
-        "first_sample_m": 0.0,
-        "fall_end_m": 17.06880000000001
-      },
-      {
-        "id": "ba517d0edf87ef99",
-        "reading_m": 0.0,
-        "first_sample_m": 268.83359999999993,
-        "fall_end_m": 339.85199999999986
-      }
-    ]
+    "disturbed_pads": {
+      "records": 2,
+      "reading_m": 0.3048000000000002,
+      "first_sample_m": 268.83359999999993,
+      "fall_end_m": 339.85199999999986
+    }
   },
   "workbook_checks": [
     {
