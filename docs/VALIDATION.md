@@ -423,10 +423,11 @@ the synthetic flights and two logs on all five platforms, in the `census` job, a
 parts on Linux. A test fails if a set of synthetic flights is left out, or if its job runs on any
 condition but a full run's, nightly or started by hand ([the synthetic flights' tests](physics/synthetic-flights.md)). A
 nightly failure opens an issue that is fixed before other work, and `cargo xtask ci-budget`,
-run before a pull request opens and before it merges, fails when no full run on main has passed
-in 26 hours. It also fails when the branch's newest passing full `scripts/gate.sh` took over 30
-minutes, or when a job of main's last passing run started by a push, which runs a pull request's
-jobs, took over 20. Pull requests, on all five
+run before a pull request opens and before it merges, fails when no passing full run on main
+started in the last 26 hours. It also fails when the branch's newest passing full
+`scripts/gate.sh` took over 30 minutes, or when any job of main's last passing run with a pull
+request's jobs (started by a push, or by hand without `full`) ran over 20 minutes on its runner.
+Pull requests, on all five
 platforms, and `scripts/gate.sh` check a slice of each instead: every 21st flight of each set,
 202 flights each, and every 21st fit of each of the fit's runs, 444 fits (below). The command that writes a
 census writes its slice beside the report (`synthetic-flights.slice.json`, `two-logs.slice.json`,

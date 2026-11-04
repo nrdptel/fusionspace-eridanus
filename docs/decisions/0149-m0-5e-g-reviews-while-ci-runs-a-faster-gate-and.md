@@ -364,7 +364,7 @@ Linux: 22 numbers of the report stood apart from the committed one, by at most o
 parts gives Linux's shares: at most 0.002 from the library's at three figures, against the rule's
 0.002 or 5%; it held the slice, its calibration lines without sides, in every word too. Each part now fits
 1,146 to 1,151 flights, not about 820, in 781 to 1,075 s, and its job took 951 to 1,301 s,
-against 587 to 999 s in main's last full run before it (run 41753918203, 2026-11-03).
+against 587 to 999 s in main's last full run before it (run 41753918203, 2026-11-04).
 
 **The fit's slice's consequences.**
 
@@ -407,8 +407,9 @@ and the push and nightly triggers.
 
 **What "main's last passing CI" reads.** Only runs with a pull request's jobs. The night's runs
 pass on main too, but their jobs are a full run's: in the last one (run 41753918203, started by
-hand on 2026-11-04), the `census` jobs took 22 to 37 minutes on the five platforms and the fit's
-parts up to 17 minutes, and since M0.16a2 the parts take up to 22 minutes. Holding them to 20
+hand on 2026-11-04), the `census` jobs took 1,351 to 2,231 s (22 to 38 minutes) on the five
+platforms and the fit's parts up to 999 s; in a full run on M0.16a2's pull request the parts took
+up to 1,301 s. Holding them to 20
 would split each platform's census into more jobs, each with a build of its own, though no pull
 request waits for them. Reading the last passing run of any kind would also make the verdict
 depend on whether a push or the night came last. So the night's longest jobs are printed beside
@@ -425,12 +426,17 @@ fit once (a test). The other platforms fit theirs whole (`--part 1/1`). The chec
 protection requires stay `fit slice (<os>)`, one a platform, each passing only when every part
 did, as `test (<os>)` does for the tests' halves. A test reads `ci.yml` and fails if a platform's
 parts aren't 1 to n of one split. The gate fits the slice whole, byte for byte, as before.
+With main's cache saved, a run started by hand without `full` on the same commit (41849057955)
+took 943 s for `fit slice (windows-latest)` whole, its longest job; the check reads such a run
+too.
 
 **M7.3c3 waits for its fit to follow.** Run at [#1146][pr1146]'s head, the check fails: its newest
-full gate, on 2026-11-03, took 8,366 s, the fit's Bayesian draws run whole. The check before a
+full gate, on 2026-11-03, took 8,366 s, 7,867 s of it the validate step, which fits the whole
+report with its Bayesian draws. The check before a
 merge runs it, so #1146 merges only once its fit runs as M0.16a2's does, a slice in the gate and
 on pull requests and the whole each night, and a full gate passes within 30 minutes.
 
 **The night that didn't start.** The first scheduled night, 08:17 UTC on 2026-11-04, did not
 start: GitHub lists no scheduled run of CI at all (issue #1183). The check read the hand-started
-full run above instead, and fails from 03:25 UTC on 2026-11-05 unless a full run passes first.
+full run above instead, and fails after 03:25:08 UTC on 2026-11-05 unless a full run passes
+first.
