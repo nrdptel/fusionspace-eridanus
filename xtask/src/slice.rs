@@ -174,18 +174,18 @@ pub enum Held {
     /// `scripts/gate.sh` runs before each merge.
     Exact,
     /// Every word of every line, its numbers aside: on any other platform or build. A flight's
-    /// numbers can move there: set A's flight 399, whose simulated apogee
-    /// moves 1.2e-6 of itself between the everyday and the optimized build on one Mac, has its
-    /// smoother's shares move by up to 0.087 and a count of its GNSS fixes by 69 (ADR-149,
-    /// amended 2026-11-04). Its words don't: the
-    /// side each truth falls on, what was withheld and why, the smoother's flags, the design, the
-    /// logger and the model. Those are what the census counts as outcomes; the nightly run holds
-    /// the report's tallies to the digits the platforms share, and the slice's flights in words.
+    /// numbers can move there: set A's flight 399, whose simulated apogee moves 1.2e-6 of itself
+    /// between the everyday and the optimized build on one Mac, has its smoother's shares move by
+    /// up to 0.087 and a count of its GNSS fixes by 69 (ADR-149, amended 2026-11-04). Its words
+    /// didn't, in the builds and platforms compared: the side each truth falls on, what was
+    /// withheld and why, the smoother's flags, the design, the logger and the model. Those are what
+    /// the census counts as outcomes; the nightly run holds the report's tallies to the digits the
+    /// platforms share, and the slice's flights in words.
     Words,
 }
 
-/// `line` with each number in it, NaN and infinity too, written as `#`: what [`Held::Words`]
-/// compares.
+/// `line` with each number in it written as `#`: what [`Held::Words`] compares. NaN and infinity
+/// stay words: a share that stops being a number is a change, not a build's rounding.
 pub fn words(line: &str) -> String {
     let chars: Vec<char> = line.chars().collect();
     let mut out = String::with_capacity(line.len());
@@ -194,13 +194,6 @@ pub fn words(line: &str) -> String {
     // A digit after a hyphen or underscore joined to a name is part of the name: `imu-500hz`.
     let in_name = |at: usize| {
         at >= 2 && matches!(chars[at - 1], '-' | '_') && chars[at - 2].is_alphanumeric()
-    };
-    let word_at = |at: usize, word: &str| {
-        let w: Vec<char> = word.chars().collect();
-        chars.len() >= at + w.len()
-            && chars[at..at + w.len()] == w[..]
-            && starts_word(at)
-            && chars.get(at + w.len()).is_none_or(|c| !c.is_alphanumeric())
     };
     while at < chars.len() {
         let c = chars[at];
@@ -228,9 +221,6 @@ pub fn words(line: &str) -> String {
             } else {
                 out.push('#');
             }
-        } else if let Some(word) = ["-inf", "inf", "NaN"].iter().find(|w| word_at(at, w)) {
-            at += word.chars().count();
-            out.push('#');
         } else {
             out.push(c);
             at += 1;
@@ -557,9 +547,10 @@ mod tests {
             words("rrc3: 4585 samples, highest 3970 m"),
             "rrc3: # samples, highest # m"
         );
+        // NaN and infinity aren't a number that moved, so they stay.
         assert_eq!(
             words("share NaN, -inf and inf; inside"),
-            "share #, # and #; inside"
+            "share NaN, -inf and inf; inside"
         );
         // A number inside a name stays: a logger, a design, a reason.
         assert_eq!(
@@ -588,6 +579,13 @@ mod tests {
         let mut every = committed.clone();
         every.every = 21;
         assert!(compare(&file.0, &every, Held::Words).is_some());
+        // A number that turns NaN or infinite fails in words too.
+        for gone in ["NaN", "inf", "-inf"] {
+            let mut lost = committed.clone();
+            lost.flights[0].made[0] = format!("census: apogee {gone} m");
+            let problem = compare(&file.0, &lost, Held::Words).unwrap();
+            assert!(problem.contains("a flight 0 differs"), "{gone}: {problem}");
+        }
     }
 
     #[test]

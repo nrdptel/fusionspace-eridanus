@@ -428,7 +428,7 @@ every 21st flight of each set, 202 flights each. The command that writes a censu
 slice beside the report (`synthetic-flights.slice.json`, `two-logs.slice.json`): a line for each
 thing the census makes of each of those flights, to the census's digits. `--slice` flies them
 again and fails, naming the flight, if a line differs (by a byte on the build that writes the
-reports, by a word elsewhere, where one flight's numbers move) or if a flight breaks a rule the census
+reports, by a word elsewhere, where a flight's numbers can move) or if a flight breaks a rule the census
 holds every flight to, such as a reading past its bound. So a pull request's pass covers one flight
 in 21; the rest, and what only a whole set shows, its ranges, coverage tests and fitted shares,
 wait for the night. Reports are still written by the

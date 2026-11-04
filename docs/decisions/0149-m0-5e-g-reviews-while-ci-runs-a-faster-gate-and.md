@@ -203,11 +203,13 @@ main's last passing CI, or no passing nightly in 26 hours; M7.3c3's fit follows 
      bound, its error as a share of the bound, with where the truth fell.
 
    Numbers keep the census's three significant figures. A share is kept to three decimals, a fixed
-   step, so that an error near zero isn't written to digits that are only its rounding. `--slice` flies the slice's flights again and fails if any line differs, if a flight
+   step, so that an error near zero isn't written to digits that are only its rounding. `--slice`
+   flies the slice's flights again and fails if any line differs, if a flight
    is missing or added, or if the slice takes another step, naming up to 20 such flights and
    counting the rest; flights in another order fail without one named. A line is held byte for
    byte on the build that writes the reports, the Mac's everyday build, and in words everywhere
-   else (`--other-platform`): each number, NaN and infinity read as one mark, every word compared.
+   else (`--other-platform`): each number read as one mark, every word compared, NaN and infinity
+   kept as words, since a share that stops being a number is a change, not a build's rounding.
    Words are what the census counts as outcomes: where each truth fell, what was withheld and why, the
    smoother's flags, the design, the logger and the model.
 3. **Else by its rule.** What only a whole set can show stays with the whole run: the census's
@@ -225,7 +227,8 @@ main's last passing CI, or no passing nightly in 26 hours; M7.3c3's fit follows 
    check, byte for byte. CI's `validate` job runs `--slice --other-platform` on all five platforms,
    in the optimized build, on every pull request but one that changes only research notes. The
    whole `--check` runs each night and flies the slice too, holding it in words to the committed
-   one, which only the whole run writes. A test reads `ci.yml` and `scripts/gate.sh` and fails if either check is missing,
+   one, which only the whole run writes. So the gate is the one place a slice flight's numbers are
+   held byte for byte. A test reads `ci.yml` and `scripts/gate.sh` and fails if either check is missing,
    runs on one platform, or may fail unseen.
 5. **One changed flight fails it.** A test changes one synthetic flight's truth by 0.5%, then its
    log, and checks that its lines change. Another moves one of two logs' clocks by 0.1 s, then
@@ -238,22 +241,25 @@ main's last passing CI, or no passing nightly in 26 hours; M7.3c3's fit follows 
 **Measured.** On the Mac that writes the reports (10 cores, the everyday build, 2026-11-04),
 the whole synthetic flights' run took 486 s and two logs' 205 s; their slices took 27 s and 10 s.
 The two whole runs wrote the reports byte for byte as committed, beside the two new slices of
-327 kB and 49 kB. In the five full gates that ran the validate step and passed from 2026-11-03
+327 kB and 49 kB; with the smoother's health added, the synthetic slice is 375 kB, and the slices
+take 27 s and 10 s still. In the five full gates that ran the validate step and passed from 2026-11-03
 21:40 to 11-04 04:59 UTC, it took 2,175 to 3,615 s. With the slices, this change's own full gate
 took 1,999 s and its validate step 1,478 s at every 20th flight, and 2,529 s and 1,466 s at every
 21st, its site step laying out every page again (one run each, 2026-11-04). The rest of that step,
 the validation cases, the fit's whole run, the motor catalog and the scoreboard, isn't timed apart.
 The gate stays over its 30 minutes until M0.16a2.
 
-**Held two ways.** The first CI run of the slices held every line byte for byte on every
-platform, and failed on Arm Linux: set A's flight 399 and set B's flight 504 differed in the
-smoother's lines. The Mac shows the same. Its optimized build writes both reports and two logs' slice byte for
+**Held two ways.** Held byte for byte on every platform, the slices failed CI's optimized build on
+macOS and both Linux runners: set A's flight 399 on all three, and set B's flight 504 on Linux, in
+the smoother's lines; both Windows runners passed. The Mac reproduces flight
+399, not 504. Its optimized build writes both reports and two logs' slice byte for
 byte as the everyday build does, but the synthetic slice differs in one flight of the 202, flight
 399, in three of its lines. The smoother's four shares move in their third decimal (0.031 to
 0.033), its six shares with the GNSS track from liftoff by up to 0.004, and its eight shares on
 the log written from launch by up to 0.087 (0.357 to 0.270), with that log's unweighed GNSS fixes
 252 to 321. Each truth stays on its side, and every word is the same. The flight's simulated
-apogee moves 1.2e-6 of itself between the two builds, the spread issue #984 is open to measure.
+apogee moves 1.2e-6 of itself between the two builds (one measurement, on one Mac); issue #984 is
+open to measure the same kind of spread in the landing time, across platforms.
 A tolerance on each number would have to know each flight's gain from its truth to its shares;
 the words hold what the census counts without one.
 
@@ -275,4 +281,9 @@ the words hold what the census counts without one.
   its bound, or a count. The gate holds those byte for byte before each merge. The night holds the
   census's report to its digits, but a slice flight's own numbers only in words, so such a move
   shows on the Mac's gate alone.
+- A word can still flip off the Mac. In the committed slice, 27 of the smoother's shares, in 11
+  flights, sit within 0.087 of the 1.645 standard deviations its sides are taken at, though none
+  flipped in the builds and platforms compared. A flip fails that platform's pull requests, and
+  writing the slice again on the Mac can't fix it; as with the reports, that needs a record, not a
+  looser check.
 - The fit still runs whole in the gate until M0.16a2 gives it a slice.
