@@ -219,8 +219,9 @@ main's last passing CI, or no passing nightly in 26 hours; M7.3c3's fit follows 
 the whole synthetic flights' run took 495 s and two logs' 201 s; their slices took 25 s and 9 s.
 The two whole runs wrote the reports byte for byte as committed, beside the two new slices of
 375 kB and 51 kB. In the six full gates that passed from 2026-11-03 19:52 to 11-04 04:59 UTC, the
-validate step took 2,175 to 3,615 s, the fit's whole run most of it, so the gate stays over its
-30 minutes until M0.16a2.
+validate step took 2,175 to 3,615 s. With the slices, this change's own full gate took 1,999 s and
+its validate step 1,478 s (one run, 2026-11-04), the fit's whole run most of that, so the gate
+stays over its 30 minutes until M0.16a2.
 
 **Alternatives to the slices.**
 
