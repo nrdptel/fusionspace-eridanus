@@ -2372,7 +2372,7 @@ mod tests {
     #[test]
     fn the_slices_parts_fit_it_once_and_each_holds_its_fits() {
         for run in runs() {
-            for of in 1..=4 {
+            for of in 1..=6 {
                 for number in 1..=of {
                     let part = Part { number, of };
                     assert_eq!(

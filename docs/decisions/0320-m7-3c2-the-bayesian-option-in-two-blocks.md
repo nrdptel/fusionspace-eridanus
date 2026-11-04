@@ -108,9 +108,11 @@ least-squares fit (ADR-316).
    2,934 CPU-seconds, against 79 s by least squares alone. By least squares alone a job of the slice,
    whole or on windows-latest half, already took 422 to 943 s on CI's runners (four runs,
    2026-11-04), so each platform now fits it
-   in three parts and windows-latest, the slowest, in four. The night fits the whole report in 16
-   parts on Linux, not the 32 this increment first ran with. A full run had 64 jobs; the slice's
-   parts add 10 and 16 night parts 8, 82 in all, where 32 would make 106, past the 100 that
+   in three parts, macos-latest in four and windows-latest, the slowest, in six: the worst of
+   those jobs, its compute scaled by the Mac's 4.2, would near the 20 minutes at three and four. The
+   first pull request's run measures them. The night fits the whole report in 16
+   parts on Linux, not the 32 this increment first ran with. A full run on main has 70 jobs; the slice's
+   parts add 13 and 16 night parts 8, 91 in all, where 32 would make 107, past the 100 that
    `cargo xtask ci-budget` reads in one page and refuses beyond. The whole report, written again on the
    merged code with each thread taking the next flight left, took 6,496 s (1 h 48 min) on the Mac,
    against §7's 3 h 1 min and about 16 minutes by least squares alone: about seven times. The 8
@@ -134,9 +136,10 @@ option's below, inside and above:
 
 Every probe fails but the narrowed one on the north wind, on both sets. Drag and impulse are
 identified on set A (median widths 0.0917 and 0.0391, of 0.36 and 0.108 stated); on every kind of pure
-noise, nothing is. On set A, 319 of 2,276 posteriors had under 100 effective draws, the least 1.13
+noise, nothing is, though the fit refuses every noise log before a posterior is drawn, so that says
+nothing of the sampler. On set A, 319 of 2,276 posteriors had under 100 effective draws, the least 1.13
 and the median 232 of all 2,276; on set B, 392 of 2,296, the least 1.01 and the median 223. Of 1,138,000 draws on
-set A, 124 failed; of 1,148,000 on set B, 179. Every flight with something to fit has a posterior.
+set A, 124 failed; of 1,148,000 on set B, 179. Every flight counted with something to fit has a posterior.
 At 1,000 flights a tail passes with 29 to 74 truths; on the wind's 1,497, with 49 to 104, and the
 inside with 1,308 to 1,384.
 
@@ -146,7 +149,7 @@ inside with 1,308 to 1,384.
   each chosen after reading counts on the first 300 flights of each. Nothing is fitted to them; the
   shear's ends are stated, and the intervals are raw.
 - **The wind is too wide on a track.** The Bayesian option's median width is 0.431 m/s east on
-  set A, against least squares' 0.345, and 1.1% to 2.4% of truths fall in each tail, not 5%. The posterior reads
+  set A, against least squares' 0.345, and 1.07% to 2.40% of truths fall in each tail, not 5%. The posterior reads
   the track's noise as the least-squares fit states it, floored at 10 m (33 ft) and widened for
   residuals that run on (ADR-316 §3, §11). On logs with a track the least-squares shares in force
   narrow that back, −1.36 and 1.29 east, −1.5 and 1.38 north, against ±1.645 for a bell curve; the

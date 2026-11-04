@@ -29,8 +29,9 @@ tells of its drag, impulse, wind and mass.
   constant with height; on a log of height alone, a wind that grows with height only widens the intervals. It's
   told the design, rail, site and the day's air, and takes them as right. It's in the library only:
   no command runs it on a log yet. The Bayesian option's intervals pass 4 of their 10 counts, 5
-  parameters on each of 2 sets. Its wind's are too wide; set A's drag and set B's impulse miss too
-  many truths on one side, the side that flatters. Read the least-squares intervals
+  parameters on each of 2 sets. Its wind's are too wide. Set A's drag reads low, 78 truths above its
+  intervals, and set B's impulse high, 83 below: each makes the rocket look better than it flew.
+  Read the least-squares intervals
   ([The Bayesian option](#the-bayesian-option)).
 
 ## How it works
@@ -228,7 +229,7 @@ How it draws:
   reaches past the bell curve, the next 400 draws are spread wider, up to twice as wide, and never
   narrower (Oh and Berger). Only those 400 are read.
 - **The sensor's linear unknowns are worked out exactly.** The height offset, the drift, and a
-  barometer's gain and port coefficient change the heights in proportion. So their part of the
+  barometer's gain and port coefficient each enter the heights linearly. So their part of the
   posterior has a closed form. Seven unknowns are drawn, not eleven; eight with the shear, below.
 - **On height alone, the wind's shear is drawn too.** How fast the wind grows with height is an
   unknown there. It's an exponent stated anywhere from 0, a constant wind, to 0.2, IEC 61400-1's
@@ -256,7 +257,7 @@ On the 1,000 flights of drag, impulse and mass, a tail passes with 29 to 74 trut
 1,497, a tail passes with 49 to 104, and the inside with 1,308 to 1,384. What fails, as far as it's
 known:
 
-- **The wind is too wide on logs with a track.** From 1.1% to 2.4% of truths fall in each tail,
+- **The wind is too wide on logs with a track.** From 1.07% to 2.40% of truths fall in each tail,
   where 5% belong. The test can't even tell the north wind's intervals from ones narrowed to 0.8,
   a probe that must fail. Its median width on set A is 0.431 m/s (1.41 ft/s) east, against least
   squares' 0.345 m/s (1.13 ft/s). The likely cause, not yet measured, is the track's noise. The
@@ -280,7 +281,7 @@ across all 2,276, the fewest was 1.13 and the median 232. On set B, 392 of 2,296
 the fewest was 1.01 and the median 223. A
 draw fails when it can't be weighed, as when its flight can't fly. That's 124 of 1,138,000 on set A,
 and 179 of 1,148,000 on set B. Every
-flight with something to fit has a posterior. [M7.3c4][m7-3c4] is to make the counts pass.
+flight counted with something to fit has a posterior. [M7.3c4][m7-3c4] is to make the counts pass.
 
 ### The sampler's tests
 
