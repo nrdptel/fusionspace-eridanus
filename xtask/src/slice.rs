@@ -176,8 +176,8 @@ pub enum Held {
     /// Every word of every line, its numbers aside: on any other platform or build. A flight's
     /// numbers can move there: set A's flight 399, whose simulated apogee moves 1.2e-6 of itself
     /// between the everyday and the optimized build on one Mac, has its smoother's shares move by
-    /// up to 0.087 and a count of its GNSS fixes by 69 (ADR-149, amended 2026-11-04). Its words
-    /// didn't, in the builds and platforms compared: the side each truth falls on, what was
+    /// up to 0.087 and a count of its unweighed GNSS fixes by 69 (ADR-149, amended 2026-11-04). Its
+    /// words didn't, in the builds and platforms compared: the side each truth falls on, what was
     /// withheld and why, the smoother's flags, the design, the logger and the model. Those are what
     /// the census counts as outcomes; the nightly run holds the report's tallies to the digits the
     /// platforms share, and the slice's flights in words.
