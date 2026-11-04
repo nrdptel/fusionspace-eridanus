@@ -511,6 +511,7 @@ fn reading<A, B>(reading: &Reading<A>, value: impl FnOnce(&A) -> B) -> LogReadin
                 Reason::ShortPad => WithheldReason::ShortPad,
                 Reason::ClockOutOfOrder => WithheldReason::ClockOutOfOrder,
                 Reason::DisturbedTop => WithheldReason::DisturbedTop,
+                Reason::DisturbedPad => WithheldReason::DisturbedPad,
                 Reason::AxisUnstated => WithheldReason::AxisUnstated,
                 Reason::GravityUnstated => WithheldReason::GravityUnstated,
                 Reason::DirectionUnstated => WithheldReason::DirectionUnstated,

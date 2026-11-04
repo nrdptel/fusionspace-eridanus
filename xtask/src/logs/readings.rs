@@ -88,6 +88,20 @@ pub(super) struct ReasonCase {
     pub invented: Option<String>,
 }
 
+/// A record whose track falls before the climb (`disturbed_pad`, #1101) and whose file states an
+/// apogee: the apogee read from each candidate for the pad, less the stated apogee, m.
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+pub(super) struct DisturbedPad {
+    /// The file's id.
+    pub id: String,
+    /// The reading's own: from the samples resting before the fall, or the logger's zero.
+    pub reading_m: f64,
+    /// Taking the log's first sample for the pad.
+    pub first_sample_m: f64,
+    /// Taking the fall's end, the lowest sample before apogee, for the pad.
+    pub fall_end_m: f64,
+}
+
 /// The readings over the corpus.
 #[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 pub(super) struct Survey {
@@ -95,6 +109,8 @@ pub(super) struct Survey {
     pub families: BTreeMap<String, FamilyReadings>,
     /// Every reason, in the order the readings declare them.
     pub reasons: Vec<ReasonCase>,
+    /// Each disturbed pad whose file states an apogee, by id.
+    pub disturbed_pads: Vec<DisturbedPad>,
 }
 
 /// The survey being gathered.
@@ -102,6 +118,7 @@ pub(super) struct Survey {
 pub(super) struct Gathering {
     families: BTreeMap<String, FamilyReadings>,
     cases: BTreeMap<Reason, (usize, String)>,
+    disturbed_pads: Vec<DisturbedPad>,
 }
 
 /// A reason's code, as the JSON names it.
@@ -158,6 +175,24 @@ impl Gathering {
     /// Reads `log`, a record of file `id` of `family`, and counts its readings.
     pub(super) fn add(&mut self, family: &str, id: &str, log: &FlightLog) {
         let read = readings::read(log);
+        if read.liftoff.reason() == Some(Reason::DisturbedPad)
+            && let (Some(stated), Some(apogee), Some((time, heights))) = (
+                log.stated.apogee_m,
+                read.apogee.value(),
+                readings::height_track(log),
+            )
+        {
+            let before = time.partition_point(|t| *t < apogee.time_s);
+            let finite = || heights[..before].iter().copied().filter(|h| h.is_finite());
+            if let (Some(first), Some(lowest)) = (finite().next(), finite().reduce(f64::min)) {
+                self.disturbed_pads.push(DisturbedPad {
+                    id: id.to_owned(),
+                    reading_m: apogee.height_m - stated,
+                    first_sample_m: apogee.altitude_m - first - stated,
+                    fall_end_m: apogee.altitude_m - lowest - stated,
+                });
+            }
+        }
         let row = self.families.entry(family.to_owned()).or_default();
         row.records += 1;
         let track = read.source.map_or_else(
@@ -222,7 +257,9 @@ impl Gathering {
     }
 
     /// The survey, each reason with its case.
-    pub(super) fn finish(self) -> Survey {
+    pub(super) fn finish(mut self) -> Survey {
+        self.disturbed_pads.sort_by(|a, b| a.id.cmp(&b.id));
+        self.disturbed_pads.dedup_by(|a, b| a.id == b.id);
         let reasons = Reason::ALL
             .iter()
             .map(|&reason| {
@@ -249,6 +286,7 @@ impl Gathering {
         Survey {
             families: self.families,
             reasons,
+            disturbed_pads: self.disturbed_pads,
         }
     }
 }
@@ -408,7 +446,32 @@ pub(super) fn markdown(survey: &Survey) -> String {
                 .map_or("none".to_owned(), |file| format!("`{file}`")),
         );
     }
+    out += &disturbed_pad_section(survey);
     out += &smoother_section(survey);
+    out
+}
+
+/// The page's section on disturbed pads against the apogees their files state (#1101).
+fn disturbed_pad_section(survey: &Survey) -> String {
+    let mut out = String::from(
+        "\n### Disturbed pads against stated apogees\n\n\
+         Each record whose track falls before the climb (`disturbed_pad`) and whose file states \
+         an apogee: the apogee read from each candidate for the pad, less the stated apogee. \
+         The reading's own pad is the samples resting before the fall, or the logger's zero \
+         where too few rest; the others take the log's first sample, or the fall's end, the \
+         lowest sample before apogee.\n\n",
+    );
+    if survey.disturbed_pads.is_empty() {
+        out += "None.\n";
+        return out;
+    }
+    out += "| File | Reading, m | First sample, m | Fall's end, m |\n|---|---:|---:|---:|\n";
+    for pad in &survey.disturbed_pads {
+        out += &format!(
+            "| `{}` | {:+.1} | {:+.1} | {:+.1} |\n",
+            pad.id, pad.reading_m, pad.first_sample_m, pad.fall_end_m
+        );
+    }
     out
 }
 
