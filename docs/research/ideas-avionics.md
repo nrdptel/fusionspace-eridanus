@@ -66,6 +66,19 @@ Placed by [ADR-191, the 2026-10-06 ideas][adr-191]; research in [the web tools](
   canards, roll only (M6.5, queued before M13.3); drag-only airbrake and roll-only tab firmware and
   hardware (M13.6; roll canards later), held for a ruling ([roll and drag control](roll-and-drag-control.md)).
 
+## From the 2026-11-02 planning review ([ADR-318][adr-318])
+
+- SOON: the intervals by sample rate. User: a flyer whose logger records at 10 or 15 Hz, quoting a
+  log's apogee or top speed with its 90% interval. A 2026 preprint, down-sampling one logged
+  flight, finds the apogee from its accelerometer ranging over 66 m at 10 Hz against 12 m at 50 Hz,
+  while the barometer's stays within 0.3 m ([Varigonda][varigonda]).
+  Workflow: the synthetic flights' report counts each reading's 90% coverage
+  ([ADR-308][adr-308]) in three bands of the logger's rate: under 20 Hz, 20 to 100 Hz, and over
+  100 Hz, each band drawn to hold at least 200 readings. Moves: the proposed
+  `readings.inside-90`, by band. *Done when:* each band passes [ADR-257][adr-257]'s three counts
+  on sets A and B, or the reading is withheld below the rate where it fails; a probe that fits the
+  bound on the fastest band alone fails the slowest.
+
 [m6-4]: ../decisions-and-roadmap.md#m6-4
 [m7-1]: ../decisions-and-roadmap.md#m7-1
 [m7-4]: ../decisions-and-roadmap.md#m7-4
@@ -73,3 +86,7 @@ Placed by [ADR-191, the 2026-10-06 ideas][adr-191]; research in [the web tools](
 [adr-191]: ../decisions/0191-the-2026-10-06-ideas-web-tools-watches-repo-layout-hardware.md
 [adr-193]: ../decisions/0193-the-2026-10-07-control-scope-drag-only-brakes-roll-only-surfaces.md
 [sphs]: static-pressure-hobby-shapes.md
+[adr-257]: ../decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
+[adr-308]: ../decisions/0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md
+[adr-318]: ../decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md
+[varigonda]: https://doi.org/10.31224/8645
