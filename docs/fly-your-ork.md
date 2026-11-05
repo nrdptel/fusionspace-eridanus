@@ -107,8 +107,9 @@ with feet or feet per second in parentheses:
 - `rail exit speed` is the speed as the rocket leaves the rail. The slower it is, the more a
   crosswind tips the rocket just after.
 - `delay` gives the coast from burnout to apogee, with the charges held, beside the delay the
-  file sets. Here the H170M's 10 s charge fires about half a second after apogee, and the line
-  ends with the speeds at either end of the delay's tolerance.
+  file sets. Here the H170M's 10 s charge fires about half a second after apogee. The line ends
+  with how far the delay may fire short or long, and the speed at either end where the simulator
+  predicts one.
   [Pick a motor](pick-a-motor.md#choose-the-delay) says how to choose one.
 - `descent` is how fast the rocket comes down under its open parachutes, without the wind's
   drift.

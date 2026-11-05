@@ -960,7 +960,7 @@
           "format": "double"
         },
         "speeds_until_s": {
-          "description": "Until when the flight with the charges held is the flight a charge firing then meets, s\nafter launch: the first opening of the stack's other devices (those on the apogee, a\nheight or the launch), and no later than [`BRAKED_WITHIN_S`](crate::sim::BRAKED_WITHIN_S)\nafter its apogee, past which its fall, tail first with nothing open, is no prediction.",
+          "description": "Until when the flight with the charges held is the flight a charge firing then meets, s\nafter launch: the first opening of the stack's devices not on a motor's charge (on the\napogee, a height, the launch or a split), and no later than [`BRAKED_WITHIN_S`](crate::sim::BRAKED_WITHIN_S)\nafter its apogee, past which its fall, tail first with nothing open, is no prediction.",
           "type": "number",
           "format": "double"
         },
@@ -970,7 +970,7 @@
           "format": "double"
         },
         "until_opens": {
-          "description": "The device whose opening ends `speeds_until_s`, by name; `None` where the held apogee does.",
+          "description": "The device whose opening ends `speeds_until_s`, by name; `None` where the second after the\nheld apogee does.",
           "type": [
             "string",
             "null"

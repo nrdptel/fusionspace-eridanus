@@ -1025,9 +1025,9 @@ pub fn optimum_delays(simulation: &Simulation) -> Result<Option<Vec<OptimumDelay
     optimum_delays_observed(simulation, &mut ())
 }
 
-/// [`optimum_delays`], with `observer` seeing the held flight as it flies. Until a charge would
-/// have fired, the held flight is the one flown, so its steps give, for instance, how fast the
-/// rocket moves when a delay of any length fires.
+/// [`optimum_delays`], with `observer` seeing the held flight as it flies. Until a held device or
+/// split would have opened, the held flight is the one flown, so up to then its steps give, for
+/// instance, how fast the rocket moves when a delay of that length fires.
 ///
 /// # Errors
 ///

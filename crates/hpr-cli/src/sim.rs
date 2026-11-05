@@ -207,7 +207,7 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         (devices.len() - added, &separations),
         flight.result(),
     );
-    let held = held.map(|held| predicted(held, &recovery));
+    let held = held.map(|held| predicted(held, &devices, &recovery));
     // The stack's, or the part's that keeps the nose after a split with nothing left to burn.
     let apogee_s = flight.summary().apogee.map(|apogee| apogee.time_s);
     let braked = braked(&recovery, apogee_s);
@@ -804,7 +804,7 @@ pub(crate) fn delay_tolerance_s(delay_s: f64) -> f64 {
 /// [`metrics::optimum_delays`]): its apogee, the coast to it from the last burnout and, for a
 /// single motor lit at launch with a delay in seconds, how fast the rocket climbs or falls at
 /// either end of the delay's tolerance. Until a device opens, the held flight is the one flown;
-/// [`predicted`] keeps the speeds only where no other device has opened. `None` where the held
+/// [`predicted`] keeps the speeds only where no device off the charge has opened. `None` where the held
 /// flight can't be flown, reaches no apogee, or no motor burns out before it: the line then gives
 /// no coast rather than one cut short by a charge.
 fn held(builder: &FlightBuilder<'_>, motors: &[SimMotor]) -> Option<SimHeld> {
@@ -853,16 +853,20 @@ fn held(builder: &FlightBuilder<'_>, motors: &[SimMotor]) -> Option<SimHeld> {
 }
 
 /// The held flight's band (see [`held`]) with its speeds kept only where it is a prediction of
-/// what a charge firing then meets: before the flown flight's first opening of a stack device the
-/// motor's charge doesn't fire (on the apogee, a height or the launch), which the held flight
-/// leaves shut, and no later than [`BRAKED_WITHIN_S`] after the held apogee, past which the held
-/// flight falls tail first with nothing open, a fall the aerodynamics don't hold for.
-fn predicted(mut held: SimHeld, recovery: &[SimDevice]) -> SimHeld {
+/// what a charge firing then meets: before the flown flight's first opening of a stack device that
+/// isn't on a motor's charge (on the apogee, a height, the launch or a split), which the held flight leaves shut, and no later than [`BRAKED_WITHIN_S`] after the held
+/// apogee, past which the held flight falls tail first with nothing open, a fall the aerodynamics
+/// don't hold for. A split set to the charge is read as one at burnout plus the delay, so a device
+/// it opens counts too: the band then gives no speed past it, which errs toward saying less.
+/// `recovery` is [`recovery_flown`]'s, one entry for each of `devices`.
+fn predicted(mut held: SimHeld, devices: &[hpr::Device], recovery: &[SimDevice]) -> SimHeld {
     if let Some(band) = held.delay_band.as_mut() {
-        let first_other = recovery
+        let first_other = devices
             .iter()
+            .zip(recovery)
+            .filter(|(device, _)| !matches!(device.trigger, hpr::Trigger::MotorDelay { .. }))
+            .map(|(_, flown)| flown)
             .filter(|device| device.body.is_none() && !device.added)
-            .filter(|device| device.opens_at != DeviceEvent::Ejection)
             .filter_map(|device| Some((device.name.as_str(), device.opened_s?)))
             .min_by(|a, b| a.1.total_cmp(&b.1));
         if let Some((name, opened_s)) = first_other

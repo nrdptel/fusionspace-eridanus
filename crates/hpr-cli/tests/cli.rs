@@ -1347,7 +1347,10 @@ fn sim_flies_a_payload_dropped_with_nothing_left_to_burn_as_the_library_does() {
              at ",
             coast_s - 2.0
         ),
-        " to after `Payload chute` opens\n",
+        &format!(
+            " to past {split_s:.2} s, when `Payload chute` opens as flown (no speed: the flight \
+             with the charges held leaves it shut)\n"
+        ),
         &format!(
             "descent               {:.1} m/s ({:.0} ft/s) at landing under `Payload chute`",
             landing.descent_rate_m_s,
@@ -8037,10 +8040,12 @@ fn the_delay_band_gives_no_speed_the_held_flight_doesnt_predict() {
     assert!(band["longest_vertical_speed_m_s"].is_null(), "{band}");
     let printed = streams(&args).out;
     assert!(
-        printed.contains(
-            "the delay may fire 1.6 s short or long (NFPA 1125): after `Drogue parachute` opens \
-             at either end"
-        ),
+        printed.contains(&format!(
+            "the delay may fire 1.6 s short or long (NFPA 1125): past {:.2} s, when `Drogue \
+                 parachute` opens as flown (no speed: the flight with the charges held leaves it \
+                 shut) at either end",
+            number(&drogue["opened_s"])
+        )),
         "{printed}"
     );
 }

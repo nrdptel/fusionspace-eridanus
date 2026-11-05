@@ -479,7 +479,11 @@ fn delay(flight: &SimFlight) -> Option<String> {
             Some(v) if v >= 0.0 => format!("climbing at {}", speed(v)),
             Some(v) => format!("falling at {}", speed(-v)),
             None => match &band.until_opens {
-                Some(name) if time_s > band.speeds_until_s => format!("after `{name}` opens"),
+                Some(name) if time_s > band.speeds_until_s => format!(
+                    "past {:.2} s, when `{name}` opens as flown (no speed: the flight with the \
+                     charges held leaves it shut)",
+                    band.speeds_until_s
+                ),
                 _ if time_s > held.apogee_s => {
                     format!("{:.2} s after apogee", time_s - held.apogee_s)
                 }
