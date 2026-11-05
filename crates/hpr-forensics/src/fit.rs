@@ -1417,8 +1417,9 @@ const RECEIVER_LOOP_DAMPING: f64 = std::f64::consts::FRAC_1_SQRT_2;
 const RECEIVER_LOOP_NODES: u32 = 96;
 
 /// The track noise's correlation from one bin to the next, as the Bayesian option takes it:
-/// uniform from 0 to this, the least-squares fit's own cap ([`MAX_CORRELATION`]), stated, not
-/// fitted.
+/// uniform from 0 to this, stated, not fitted. It reaches past the least-squares fit's cap,
+/// [`MAX_CORRELATION`], so the integral doesn't cut off a closer run than that cap allows; it
+/// stops short of 1, where the noise would have no scale of its own.
 const TRACK_CORRELATION_STATED: f64 = 0.99;
 
 /// The midpoint rule's nodes over [`TRACK_CORRELATION_STATED`]'s range, `0.005` apart: a track of
