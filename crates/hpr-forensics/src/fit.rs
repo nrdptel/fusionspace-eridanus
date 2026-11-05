@@ -36,6 +36,13 @@
 //! to its apogee, on the reader's pad; before an ejection charge's pressure spike. Where the log
 //! holds latitude and longitude, it reads the rocket's drift too, which is what speaks to the wind.
 //!
+//! **The Bayesian option.** [`bayesian`] fits as [`fit`] does, then draws the posterior of the same
+//! unknowns about its answer, each draw a flight flown ([ADR-317][adr-317], [ADR-320][adr-320]):
+//! the wind first, then the rest about where a Gauss–Newton step puts them in that wind, the
+//! sensor's linear unknowns integrated out in closed form, and on a log of height alone the wind's
+//! shear exponent drawn too. Its 90% intervals are the posterior's 5% and 95% points, with no
+//! shares.
+//!
 //! **How far to trust it.** The errors are linearized about the solution, so they say nothing of a
 //! second solution elsewhere. The 90% intervals hold on synthetic flights ([`crate::synthetic::fits`]
 //! and the committed report), where the fit knows the design, rail, site and day's air: on a real
@@ -45,14 +52,17 @@
 //! [m7-3]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-3
 //! [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 //! [adr-316]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md
+//! [adr-317]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0317-m7-3c-in-two-the-sampler-then-the-test.md
+//! [adr-320]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0320-m7-3c2-the-bayesian-option-in-two-blocks.md
 
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 
 use hpr_flightdata::log::{FlightLog, Quantity};
 use hpr_flightdata::readings::interval::Z_90;
 use hpr_flightdata::readings::{self, Reading, Readings};
 use serde::{Deserialize, Serialize};
 
+use crate::posterior::{self, Posterior};
 use crate::residuals::{HeightKind, Simulated};
 
 /// The width of a bin of samples, s.
@@ -79,6 +89,9 @@ pub const FLOWN: usize = 6;
 /// Its unknowns: the flown parameters, the clock offset, the height offset, and the sensor's gain,
 /// drift and port.
 const UNKNOWNS: usize = FLOWN + 5;
+/// Where the wind's components stand among them, in [`Parameters::to_array`]'s order.
+const WIND_EAST: usize = 3;
+const WIND_NORTH: usize = 4;
 
 /// What a fit may change in a flight.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -599,8 +612,74 @@ pub fn fit(
     noise: Noise,
     forward: &mut dyn Forward,
 ) -> Fit {
+    fit_and_sample(observed, stated, noise, forward, None).0
+}
+
+/// How the Bayesian option draws its posterior ([`bayesian`]).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Sampling {
+    /// The pilot's draws, which widen the proposal and aren't read
+    /// ([`posterior::sample_in_two`]).
+    pub pilot: usize,
+    /// The draws read after it.
+    pub draws: usize,
+    /// The draws' seed.
+    pub seed: u64,
+}
+
+/// The Bayesian option's answer: the least-squares fit it starts from, and the posterior of the
+/// flown parameters drawn around that fit's answer.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Bayesian {
+    /// The least-squares fit, as [`fit`] gives it.
+    pub least_squares: Fit,
+    /// The flown parameters' 5%, 50% and 95% points, in [`Parameters::to_array`]'s order, with the
+    /// draws' counts. `None` where the least-squares fit wasn't fitted, so that each parameter is
+    /// what was stated of it, or where no draw had a weight.
+    pub posterior: Option<Posterior<FLOWN>>,
+}
+
+/// The Bayesian option ([ADR-317][adr-317], [ADR-320][adr-320]): [`fit`], then the posterior of
+/// its unknowns drawn around its answer by [`posterior::sample_in_two`], each draw a flight flown.
+///
+/// The posterior is the least-squares fit's own: the same residuals at the same noise, the noise
+/// widened for a residual that runs on from bin to bin as the fit's errors widen it, the same
+/// bins read and the same priors. The sensor's four linear unknowns (height offset, gain, drift,
+/// port) are integrated out in closed form, `−2 ln p(θ) = χ²_min(θ) + ln det H(θ)`, so seven
+/// unknowns are drawn: the six flown and the clock. On a log of height alone the wind's shear
+/// exponent is an eighth, uniform on `[0, SHEAR_EXPONENT]`. The wind is drawn first, from its
+/// block of the fit's covariance at the answer; the rest about where one Gauss-Newton step puts
+/// them in that wind, from their covariance given the wind; a pilot widens either block's scale
+/// where the posterior reaches further. Its 90% credible intervals are the posterior's 5% and 95%
+/// points as they come: no shares widen them.
+///
+/// [adr-317]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0317-m7-3c-in-two-the-sampler-then-the-test.md
+/// [adr-320]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0320-m7-3c2-the-bayesian-option-in-two-blocks.md
+pub fn bayesian(
+    observed: Option<&Observations>,
+    stated: &Stated,
+    noise: Noise,
+    forward: &mut dyn Forward,
+    sampling: Sampling,
+) -> Bayesian {
+    let (least_squares, posterior) =
+        fit_and_sample(observed, stated, noise, forward, Some(sampling));
+    Bayesian {
+        least_squares,
+        posterior,
+    }
+}
+
+/// [`fit`], and with `sampling` the posterior [`bayesian`] draws.
+fn fit_and_sample(
+    observed: Option<&Observations>,
+    stated: &Stated,
+    noise: Noise,
+    forward: &mut dyn Forward,
+    sampling: Option<Sampling>,
+) -> (Fit, Option<Posterior<FLOWN>>) {
     let Some(observed) = observed else {
-        return Fit::of_nothing(stated);
+        return (Fit::of_nothing(stated), None);
     };
     // Long enough for a rocket that flies well past the stated flight's top.
     let until_s = 1.6 * observed.flown_s + 5.0;
@@ -622,7 +701,7 @@ pub fn fit(
         ..Fit::of_nothing(stated)
     };
     let Some(mut at_x) = fly(&x) else {
-        return nothing();
+        return (nothing(), None);
     };
     let open_sensors = |height_sd_m: f64, horizontal_sd_m: f64| Problem {
         observed,
@@ -699,7 +778,7 @@ pub fn fit(
             })
             .collect();
         if problem.read.iter().filter(|read| **read).count() <= UNKNOWNS {
-            return nothing();
+            return (nothing(), None);
         }
         converged = false;
         let mut lambda = 1e-3;
@@ -802,7 +881,7 @@ pub fn fit(
         let mut ahead = x;
         ahead[j] += step;
         let Some(flight) = fly(&ahead) else {
-            return nothing();
+            return (nothing(), None);
         };
         let mut column = problem.residuals(&ahead, &flight);
         for (c, b) in column.iter_mut().zip(&r) {
@@ -819,7 +898,7 @@ pub fn fit(
         }
     }
     let Some(l) = cholesky(&information) else {
-        return nothing();
+        return (nothing(), None);
     };
     let mut parameters = [0.0; FLOWN];
     parameters.copy_from_slice(&x[..FLOWN]);
@@ -846,7 +925,7 @@ pub fn fit(
             forward.fly(&with_wind(0.0), until_s),
             forward.fly_sheared(&with_wind(top), until_s, SHEAR_EXPONENT),
         ) else {
-            return nothing();
+            return (nothing(), None);
         };
         let moved = |flight: &Simulated| {
             let to = problem.residuals(&x, flight);
@@ -874,12 +953,39 @@ pub fn fit(
     let (rms_m, _) = residual_noise(&problem, &x, &at_x);
     let misfit_share = rms_m / problem.read_spread_m();
     if misfit_share.is_nan() || misfit_share > MISFIT_SHARE {
-        return Fit {
-            misfit_share: Some(misfit_share),
-            ..nothing()
-        };
+        return (
+            Fit {
+                misfit_share: Some(misfit_share),
+                ..nothing()
+            },
+            None,
+        );
     }
-    Fit {
+    let posterior = sampling.and_then(|sampling| {
+        let mut covariance = [[0.0; UNKNOWNS]; UNKNOWNS];
+        for j in 0..UNKNOWNS {
+            let mut unit = [0.0; UNKNOWNS];
+            unit[j] = 1.0;
+            for (i, value) in solve(&l, &unit).into_iter().enumerate() {
+                covariance[i][j] = value;
+            }
+        }
+        let laplace = Laplace {
+            x: &x,
+            covariance: &covariance,
+            columns: &columns,
+            problem: &problem,
+            until_s,
+        };
+        // On heights alone, the wind's growth with height is unknown too, as the errors' strong
+        // wind is sheared.
+        if matches!(noise, Noise::FromResiduals) && observed.horizontal.is_empty() {
+            draw_posterior::<{ DRAWN + 1 }>(&laplace, forward, sampling)
+        } else {
+            draw_posterior::<DRAWN>(&laplace, forward, sampling)
+        }
+    });
+    let fit = Fit {
         parameters: Parameters::from_array(parameters),
         standard_errors,
         clock_offset_s: x[FLOWN],
@@ -892,7 +998,213 @@ pub fn fit(
         misfit_share: Some(misfit_share),
         read: problem.read,
         flown: flown.get(),
+    };
+    (fit, posterior)
+}
+
+/// What the Bayesian option draws about: the least-squares answer, its Laplace covariance, the
+/// Jacobian's columns there, the problem as it ends, and how long a flight flies.
+struct Laplace<'a> {
+    x: &'a [f64; UNKNOWNS],
+    covariance: &'a [[f64; UNKNOWNS]; UNKNOWNS],
+    columns: &'a [Vec<f64>],
+    problem: &'a Problem<'a>,
+    until_s: f64,
+}
+
+/// The wind's shear exponent on a log of height alone, where the Bayesian option draws it as an
+/// unknown: uniform from a constant wind's 0 to [`SHEAR_EXPONENT`], stated, not fitted.
+const SHEAR_STATED: [f64; 2] = [0.0, SHEAR_EXPONENT];
+
+/// The unknowns the Bayesian option draws: the flown parameters and the clock's offset. The
+/// height offset and the sensor's gain, drift and port come after them, and are integrated out.
+const DRAWN: usize = FLOWN + 1;
+
+/// The sensor's unknowns that enter a height linearly, each with a normal prior: the height
+/// offset, gain, drift and port. With the rest held, the fit's χ² is a quadratic in them.
+const LINEAR: usize = UNKNOWNS - DRAWN;
+
+/// The fit's χ² on given flown parameters and clock offset with the linear sensor unknowns
+/// integrated out ([`Problem::integrated`]).
+struct Integrated {
+    /// The least χ² over the linear unknowns.
+    chi2_min: f64,
+    /// `ln det H`, `H` the χ²'s curvature in them, over 2.
+    log_det: f64,
+    /// Where they make it least, `β*`.
+    #[cfg_attr(
+        not(test),
+        expect(dead_code, reason = "read by the tests' check of the integral")
+    )]
+    best: [f64; LINEAR],
+    /// The residuals there.
+    at: Vec<f64>,
+}
+
+impl Integrated {
+    /// `−2 ln` of the posterior, up to a constant: `χ²_min + ln det H`.
+    fn minus_two_log(&self) -> f64 {
+        self.chi2_min + self.log_det
     }
+}
+
+impl Problem<'_> {
+    /// The fit's χ² on `theta`, the flown parameters and the clock offset, with the linear sensor
+    /// unknowns `β` integrated out. The residuals are exactly linear in them, `r = r₀ + A β`, so
+    /// `χ²(β) = χ²_min + (β − β*)ᵀ H (β − β*)` with `H = AᵀA` and
+    /// `∫ exp(−χ²/2) dβ ∝ exp(−χ²_min/2) det(H)^(−1/2)`, `H` changing with `theta` through the
+    /// gain's and the port's columns. `None` where `H` isn't positive definite.
+    fn integrated(&self, theta: &[f64; DRAWN], flown: &Simulated) -> Option<Integrated> {
+        let mut base = [0.0; UNKNOWNS];
+        base[..DRAWN].copy_from_slice(theta);
+        let r0 = self.residuals(&base, flown);
+        let columns: [Vec<f64>; LINEAR] = std::array::from_fn(|k| {
+            let mut unit = base;
+            unit[DRAWN + k] = 1.0;
+            let mut column = self.residuals(&unit, flown);
+            for (c, b) in column.iter_mut().zip(&r0) {
+                *c -= b;
+            }
+            column
+        });
+        let mut h = [[0.0; LINEAR]; LINEAR];
+        let mut pull = [0.0; LINEAR];
+        for i in 0..LINEAR {
+            pull[i] = -columns[i].iter().zip(&r0).map(|(a, b)| a * b).sum::<f64>();
+            for j in 0..=i {
+                let value: f64 = columns[i].iter().zip(&columns[j]).map(|(a, b)| a * b).sum();
+                h[i][j] = value;
+                h[j][i] = value;
+            }
+        }
+        let l = cholesky(&h)?;
+        let best = solve(&l, &pull);
+        let mut at = r0;
+        for (k, column) in columns.iter().enumerate() {
+            for (r, c) in at.iter_mut().zip(column) {
+                *r += best[k] * c;
+            }
+        }
+        Some(Integrated {
+            chi2_min: chi2(&at),
+            log_det: (0..LINEAR).map(|i| 2.0 * l[i][i].ln()).sum(),
+            best,
+            at,
+        })
+    }
+}
+
+/// The posterior of the flown parameters about `laplace`'s answer, by [`posterior::sample_in_two`],
+/// the linear sensor unknowns integrated out ([`Problem::integrated`]): the wind first, and with
+/// `M` = [`DRAWN`] + 1 its shear exponent with it, drawn uniform on [`SHEAR_STATED`] and flown by
+/// [`Forward::fly_sheared`]; then the rest, about where a Gauss–Newton step from the answer puts
+/// them, `Δy = −H_y⁻¹ J_yᵀ r(w, y, β*)`, `H_y` the answer's information on them with the linear
+/// unknowns integrated out (its Schur complement). `M` is [`DRAWN`] or one more.
+fn draw_posterior<const M: usize>(
+    laplace: &Laplace<'_>,
+    forward: &mut dyn Forward,
+    sampling: Sampling,
+) -> Option<Posterior<FLOWN>> {
+    let sheared = M > DRAWN;
+    let (x, problem) = (laplace.x, laplace.problem);
+    let [shear_low, shear_high] = SHEAR_STATED;
+    let mut peak = [0.0; M];
+    peak[..DRAWN].copy_from_slice(&x[..DRAWN]);
+    // A normal's marginal is its covariance's block.
+    let mut covariance = [[0.0; M]; M];
+    for (row, from) in covariance.iter_mut().zip(laplace.covariance).take(DRAWN) {
+        row[..DRAWN].copy_from_slice(&from[..DRAWN]);
+    }
+    let mut outer = [false; M];
+    outer[WIND_EAST] = true;
+    outer[WIND_NORTH] = true;
+    if sheared {
+        // The uniform's middle and variance.
+        peak[DRAWN] = 0.5 * (shear_low + shear_high);
+        covariance[DRAWN][DRAWN] = (shear_high - shear_low).powi(2) / 12.0;
+        outer[DRAWN] = true;
+    }
+    let inner: Vec<usize> = (0..DRAWN).filter(|&i| !outer[i]).collect();
+    // The information on the drawn unknowns with the linear ones integrated out: the inverse of
+    // the covariance's block.
+    let mut block = [[0.0; DRAWN]; DRAWN];
+    for (row, from) in block.iter_mut().zip(laplace.covariance) {
+        row.copy_from_slice(&from[..DRAWN]);
+    }
+    let block = cholesky(&block)?;
+    let mut held = [[0.0; DRAWN - 2]; DRAWN - 2];
+    let mut held_full = [[0.0; DRAWN]; DRAWN];
+    for j in 0..DRAWN {
+        let mut unit = [0.0; DRAWN];
+        unit[j] = 1.0;
+        for (i, value) in solve(&block, &unit).into_iter().enumerate() {
+            held_full[i][j] = value;
+        }
+    }
+    for (a, &i) in inner.iter().enumerate() {
+        for (b, &j) in inner.iter().enumerate() {
+            held[a][b] = held_full[i][j];
+        }
+    }
+    let held = cholesky(&held)?;
+    let forward = RefCell::new(forward);
+    let fly_at = |point: &[f64; M]| {
+        let mut parameters = [0.0; FLOWN];
+        parameters.copy_from_slice(&point[..FLOWN]);
+        let parameters = Parameters::from_array(parameters);
+        let mut forward = forward.borrow_mut();
+        if sheared {
+            forward.fly_sheared(&parameters, laplace.until_s, point[DRAWN])
+        } else {
+            forward.fly(&parameters, laplace.until_s)
+        }
+        .ok()
+    };
+    let theta = |point: &[f64; M]| -> [f64; DRAWN] { std::array::from_fn(|i| point[i]) };
+    let outside = |point: &[f64; M]| sheared && !(shear_low..=shear_high).contains(&point[DRAWN]);
+    let drawn = posterior::sample_in_two(
+        &peak,
+        &covariance,
+        &outer,
+        sampling.pilot,
+        sampling.draws,
+        sampling.seed,
+        |point| {
+            if outside(point) {
+                // Its weight is nothing: no flight is needed for where it centers.
+                return Some(*point);
+            }
+            let flight = fly_at(point)?;
+            let at = problem.integrated(&theta(point), &flight)?.at;
+            let pull: [f64; DRAWN - 2] = std::array::from_fn(|a| {
+                laplace.columns[inner[a]]
+                    .iter()
+                    .zip(&at)
+                    .map(|(c, v)| c * v)
+                    .sum()
+            });
+            let step = solve(&held, &pull);
+            let mut middle = *point;
+            for (a, &i) in inner.iter().enumerate() {
+                middle[i] = x[i] - step[a];
+            }
+            Some(middle)
+        },
+        |point| {
+            if outside(point) {
+                return Some(f64::NEG_INFINITY);
+            }
+            let flight = fly_at(point)?;
+            Some(-0.5 * problem.integrated(&theta(point), &flight)?.minus_two_log())
+        },
+    )?;
+    Some(Posterior {
+        quantiles: std::array::from_fn(|j| drawn.quantiles[j]),
+        effective_draws: drawn.effective_draws,
+        draws: drawn.draws,
+        failed: drawn.failed,
+        enough: drawn.enough,
+    })
 }
 
 impl Problem<'_> {
@@ -1084,6 +1396,161 @@ mod tests {
             liftoff_s: 0.0,
             flown_s: 20.0,
             reads_transonic: true,
+        }
+    }
+
+    /// Many draws, so that a test's points stand far from their Monte Carlo error.
+    const MANY: Sampling = Sampling {
+        pilot: 500,
+        draws: 4_000,
+        seed: 9,
+    };
+
+    #[test]
+    fn on_a_line_the_bayesian_points_are_the_closed_forms() {
+        // A linear model with normal priors and noise: the posterior is the normal the
+        // least-squares fit's errors give, so its points are the answer ± 1.645 of them.
+        let seen = observed(1.1, 0.9, 3.0, -2.0);
+        let mut seen_noisy = seen.clone();
+        let mut rng = hpr_core::random::SeededRng::seed_from_u64(3);
+        for (_, h) in &mut seen_noisy.heights {
+            *h += rng.standard_normal();
+        }
+        let mut stated = wide();
+        stated[0].sd = 0.2;
+        let got = bayesian(
+            Some(&seen_noisy),
+            &stated,
+            Noise::Known {
+                height_m: 1.0,
+                horizontal_m: 1.0,
+            },
+            &mut Line,
+            MANY,
+        );
+        let fit = &got.least_squares;
+        let posterior = got.posterior.expect("a posterior");
+        assert!(posterior.enough, "{}", posterior.effective_draws);
+        let values = fit.parameters.to_array();
+        for j in [0, 1, 3, 4] {
+            let se = fit.standard_errors[j];
+            let [low, mid, high] = posterior.quantiles[j];
+            for (got, want) in [low, mid, high].into_iter().zip([
+                values[j] - Z_90 * se,
+                values[j],
+                values[j] + Z_90 * se,
+            ]) {
+                assert!(
+                    ((got - want) / se).abs() < 0.1,
+                    "{j}: {got} against {want}, se {se}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn on_heights_alone_the_wind_shear_is_drawn_as_stated() {
+        // A sheared wind pulls the line's speed down by 10 α, and the wind moves no height: so
+        // heights alone tell 100 d − 10 α, and with α uniform on 0 to 0.2 the drag's posterior on
+        // them is its posterior with a track (where the shear isn't drawn, and the track speaks
+        // to the wind alone) plus an independent uniform on 0 to 0.02. Each point then stands
+        // between its place with a track and 0.02 above it; the median about the uniform's mean,
+        // 0.01, above; the 5% point less than that and the 95% point more, as the sum is wider.
+        let tracked_seen = observed(1.0, 1.0, 0.0, 0.0);
+        let tracked = bayesian(
+            Some(&tracked_seen),
+            &wide(),
+            Noise::FromResiduals,
+            &mut Line,
+            MANY,
+        );
+        let with_track = tracked.posterior.expect("a posterior").quantiles[0];
+        let mut seen = tracked_seen;
+        seen.horizontal.clear();
+        let alone = bayesian(Some(&seen), &wide(), Noise::FromResiduals, &mut Line, MANY);
+        assert!(alone.least_squares.fitted);
+        let alone = alone.posterior.expect("a posterior").quantiles[0];
+        let shift: Vec<f64> = alone.iter().zip(&with_track).map(|(a, t)| a - t).collect();
+        assert!(shift.iter().all(|d| (0.0..0.02).contains(d)), "{shift:?}");
+        assert!((shift[1] - 0.01).abs() < 0.001, "{shift:?}");
+        assert!(shift[0] < 0.009 && shift[2] > 0.011, "{shift:?}");
+    }
+
+    #[test]
+    fn the_linear_sensor_unknowns_integrate_out_exactly() {
+        // On a barometer's log, every sensor's unknown open: χ²(β) less its least is the quadratic
+        // in β − β* that H gives, to rounding, for any β.
+        let mut seen = observed(1.05, 0.95, 0.0, 0.0);
+        seen.kind = HeightKind::Barometric;
+        seen.horizontal.clear();
+        for (k, (t, h)) in seen.heights.iter_mut().enumerate() {
+            *h = 1.003 * *h + 2.0 + 0.02 * *t + if k % 2 == 0 { 0.4 } else { -0.4 };
+        }
+        let stated = wide();
+        let problem = Problem {
+            observed: &seen,
+            stated: &stated,
+            clock_mean_s: 0.0,
+            clock_sd_s: CLOCK_OFFSET_SD_S,
+            height_offset_sd_m: HEIGHT_OFFSET_SD_M,
+            gain_sd: GAIN_SD,
+            drift_sd_m_s: DRIFT_SD_M_S,
+            port_mean: PORT_MEAN,
+            port_sd: PORT_SD,
+            height_sd_m: 0.5,
+            horizontal_sd_m: FLOOR_HORIZONTAL_M,
+            read: vec![true; seen.heights.len()],
+        };
+        let theta = [1.04, 0.96, 1.0, 0.0, 0.0, 1.0, 0.01];
+        let mut parameters = [0.0; FLOWN];
+        parameters.copy_from_slice(&theta[..FLOWN]);
+        let flown = Line.fly(&Parameters::from_array(parameters), 30.0).unwrap();
+        let got = problem.integrated(&theta, &flown).unwrap();
+        let mut at_best = [0.0; UNKNOWNS];
+        at_best[..DRAWN].copy_from_slice(&theta);
+        at_best[DRAWN..].copy_from_slice(&got.best);
+        assert!((chi2(&problem.residuals(&at_best, &flown)) - got.chi2_min).abs() < 1e-6);
+        let mut rng = hpr_core::random::SeededRng::seed_from_u64(5);
+        for _ in 0..5 {
+            let offset: [f64; LINEAR] = [
+                rng.standard_normal(),
+                1e-3 * rng.standard_normal(),
+                0.05 * rng.standard_normal(),
+                0.01 * rng.standard_normal(),
+            ];
+            let mut x = at_best;
+            for (v, o) in x[DRAWN..].iter_mut().zip(offset) {
+                *v += o;
+            }
+            let rise = chi2(&problem.residuals(&x, &flown)) - got.chi2_min;
+            // H by the columns, as the integration takes them.
+            let r0 = problem.residuals(&at_best, &flown);
+            let quadratic: f64 = {
+                let mut total = 0.0;
+                let columns: Vec<Vec<f64>> = (0..LINEAR)
+                    .map(|k| {
+                        let mut unit = at_best;
+                        unit[DRAWN + k] += 1.0;
+                        problem
+                            .residuals(&unit, &flown)
+                            .iter()
+                            .zip(&r0)
+                            .map(|(a, b)| a - b)
+                            .collect()
+                    })
+                    .collect();
+                for i in 0..LINEAR {
+                    for j in 0..LINEAR {
+                        let hij: f64 = columns[i].iter().zip(&columns[j]).map(|(a, b)| a * b).sum();
+                        total += offset[i] * hij * offset[j];
+                    }
+                }
+                total
+            };
+            assert!(
+                (rise - quadratic).abs() < 1e-6 * quadratic.max(1.0),
+                "{rise} against {quadratic}"
+            );
         }
     }
 

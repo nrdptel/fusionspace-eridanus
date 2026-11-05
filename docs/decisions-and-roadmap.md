@@ -348,6 +348,7 @@ until someone rewrites it in plainer words.
 | [ADR-317: M7.3c in two: the posterior's sampler, then the test][adr-317] | the Bayesian option draws each flight's posterior by importance sampling around the |  |
 | [ADR-318: The 2026-11-02 review: the cause-free apogees tightened][adr-318] | In the RocketPy comparisons flown on the same inputs, the six apogees with no written model difference agree within 0.1123%, while RocketPy's own solver moves an apogee by at most 6.35e-6 of its value. The bound goes from 0.5% to 0.35%, 3.1 times the largest difference. All nine same-drag apogees read high, the cautious side for a waiver, and a test now stops one reading low. These bound agreement between two codes, not accuracy against a flight. |  |
 | [ADR-319: The 2026-11-04 review: the RocketPy descents tightened][adr-319] | In the RocketPy descents flown from the same state under the same devices, the 17 numbers held here agree within 0.0857%, while RocketPy's own solver moves them by at most 3.41e-6. The bound goes from 3% to 0.3%, 3.5 times the largest difference. A drag area 1% too large now fails each of the four descents held to 0.3%; at 3% they passed. RocketPy counts the air a parachute drags along and HPR Sim doesn't: a small difference on these four, a large one on NDRT 2020, whose descent time differs by 0.705%. NDRT 2020's descent and Valetudo's drifts, made by the Earth's rotation alone, keep 3%. These bound agreement between two codes, not accuracy against a flight. |  |
+| [ADR-320: M7.3c2 in two: the Bayesian option draws the wind first and integrates the sensor out; its raw intervals don't pass yet][adr-320] | [M7.3c1](#m7-3c1)'s one Student-t about the least-squares answer kept a median of 14 effective draws in 300 on set A's first 60 flights, as the wind's ridge bends on heights alone. So the wind is drawn first and the rest about one Gauss-Newton step in that wind; a pilot widens the proposal where the posterior reaches further; the four linear sensor unknowns integrate out; on heights alone the wind's shear is drawn, uniform from 0 to 0.2. On 1,000 flights of each set the raw 90% intervals pass 4 of the 10 counts: set A's drag and set B's impulse fail, and the wind is too wide on both. So [M7.3c3](#m7-3c3), the option counted, is met; [M7.3c4](#m7-3c4) keeps the intervals passing. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -835,6 +836,8 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-3c"></a>[M7.3c][phase-5] | The Bayesian option | not yet done |
 | <a id="m7-3c1"></a>[M7.3c1][done-5] | The posterior's sampler | done |
 | <a id="m7-3c2"></a>[M7.3c2][phase-5] | The Bayesian fit under the test | not yet done |
+| <a id="m7-3c3"></a>[M7.3c3][done-5] | The Bayesian option, counted | done |
+| <a id="m7-3c4"></a>[M7.3c4][phase-5] | The Bayesian intervals pass | not yet done |
 | <a id="m7-3d"></a>[M7.3d][phase-5] | From the boost | not yet done |
 | <a id="m7-3e"></a>[M7.3e][phase-5] | The post-flight comparison | not yet done |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |
@@ -1308,6 +1311,7 @@ is the milestone that added or will add that test.
 [adr-317]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0317-m7-3c-in-two-the-sampler-then-the-test.md
 [adr-318]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md
 [adr-319]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0319-the-2026-11-04-review-the-rocketpy-descents-tightened.md
+[adr-320]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0320-m7-3c2-the-bayesian-option-in-two-blocks.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

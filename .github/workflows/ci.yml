@@ -365,9 +365,12 @@ jobs:
   # the calibration set's among them, made again, held to the report's rules for one fit and to its
   # committed slice in every word, its numbers aside: a fit's numbers move off the Mac, where
   # `scripts/gate.sh` holds them byte for byte. A job of its own, beside `validate`, so neither
-  # passes the 20 minutes a job may take. The whole fit runs each night (`fit-part`). On
-  # windows-latest the slice is fitted in two halves, each every other fit of the slice's (`--part
-  # K/2`): whole, its job took 1,203 s on main from a cold cache (M0.16a3), past the 20 minutes.
+  # passes the 20 minutes a job may take. The whole fit runs each night (`fit-part`). The slice is
+  # fitted in parts, each every Nth fit of the slice's from the Kth (`--part K/N`): by least squares
+  # alone its job took up to 1,203 s on windows-latest from a cold cache (M0.16a3), and the Bayesian
+  # option's posteriors (M7.3c3, ADR-320) took the slice from 79 s to 335 s on a 10-core Mac. So
+  # three parts on each platform, four on macos-latest and six on windows-latest, the slowest: by
+  # least squares their jobs took up to 943 s on macos-latest and 904 s a half on windows-latest.
   fit-slice-part:
     name: fit slice (${{ matrix.os }}, ${{ matrix.part }})
     needs: scope
@@ -375,12 +378,25 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-latest, part: 1/1 }
-          - { os: ubuntu-24.04-arm, part: 1/1 }
-          - { os: macos-latest, part: 1/1 }
-          - { os: windows-latest, part: 1/2 }
-          - { os: windows-latest, part: 2/2 }
-          - { os: windows-11-arm, part: 1/1 }
+          - { os: ubuntu-latest, part: 1/3 }
+          - { os: ubuntu-latest, part: 2/3 }
+          - { os: ubuntu-latest, part: 3/3 }
+          - { os: ubuntu-24.04-arm, part: 1/3 }
+          - { os: ubuntu-24.04-arm, part: 2/3 }
+          - { os: ubuntu-24.04-arm, part: 3/3 }
+          - { os: macos-latest, part: 1/4 }
+          - { os: macos-latest, part: 2/4 }
+          - { os: macos-latest, part: 3/4 }
+          - { os: macos-latest, part: 4/4 }
+          - { os: windows-latest, part: 1/6 }
+          - { os: windows-latest, part: 2/6 }
+          - { os: windows-latest, part: 3/6 }
+          - { os: windows-latest, part: 4/6 }
+          - { os: windows-latest, part: 5/6 }
+          - { os: windows-latest, part: 6/6 }
+          - { os: windows-11-arm, part: 1/3 }
+          - { os: windows-11-arm, part: 2/3 }
+          - { os: windows-11-arm, part: 3/3 }
     runs-on: ${{ matrix.os }}
     env:
       # No step runs for a change to research notes alone (`scope`).
@@ -414,10 +430,13 @@ jobs:
       - name: Every part passed
         run: test "${{ needs.fit-slice-part.result }}" = success
 
-  # The least-squares fit's 90% intervals (M7.3b, ADR-316): 6,538 fits of flights of sets A and B
-  # and of noise, each parameter held to ADR-257's counts and probes. In one Linux job those took 60
-  # to 102 minutes (eight runs, 2026-11-02), before the calibration set joined them. So eight jobs each fit an eighth of the flights: part K fits every
-  # eighth flight of each run from the Kth (`fit --part K/8`), and hands its fits on. A fit doesn't
+  # The fit's 90% intervals (M7.3b, ADR-316; M7.3c3, ADR-320): 6,538 fits of flights of sets A and
+  # B and of noise, each parameter held to ADR-257's counts and probes, and the Bayesian option's
+  # posterior drawn on each fit with something to fit. By least squares alone those took 60 to 102
+  # minutes in one Linux job (eight runs, 2026-11-02), before the calibration set joined them; with
+  # the posteriors' draws the whole report took 1 h 48 min on a 10-core Mac, against 16
+  # minutes before (ADR-320). So 16 jobs each fit a 16th of the flights: part K fits every
+  # 16th flight of each run from the Kth (`fit --part K/16`), and hands its fits on. A fit doesn't
   # depend on what its thread or machine fitted before it (`fit::tests`), so the parts together are
   # the fits one job would make. The calibration set's 2,654 fits are among the parts' 9,192, so
   # the night holds the shares in force too, within the few percent another platform may stand
@@ -425,11 +444,11 @@ jobs:
   # exactly only by `fit --check`, run by hand on the Mac, and the shares by it and by the run that
   # writes the report.
   fit-part:
-    name: fit intervals (${{ matrix.part }}/8)
+    name: fit intervals (${{ matrix.part }}/16)
     strategy:
       fail-fast: false
       matrix:
-        part: [1, 2, 3, 4, 5, 6, 7, 8]
+        part: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
     runs-on: ubuntu-latest
     # Each night, with the censuses (ADR-149, amended; `scope`).
     needs: scope
@@ -444,7 +463,7 @@ jobs:
           # One cache for the parts and the job that checks them: the same optimized build.
           shared-key: fit-intervals
           save-if: ${{ github.ref == 'refs/heads/main' && matrix.part == 1 }}
-      - run: cargo run --locked --quiet --package xtask --profile report-check -- fit --part ${{ matrix.part }}/8 --out target/fit-parts
+      - run: cargo run --locked --quiet --package xtask --profile report-check -- fit --part ${{ matrix.part }}/16 --out target/fit-parts
       - uses: actions/upload-artifact@v7
         with:
           name: fit-part-${{ matrix.part }}

@@ -474,16 +474,20 @@ track logger that aren't among the 1,300 (1,262 of set A's, 1,276 of set B's); a
 fitted value's 90% interval holds the truth as often as a 90% interval should. It also makes 2,654
 fits of the [calibration set](physics/synthetic-flights.md#the-sets), 9,192 in all, to check the
 shares (the two factors on a standard error that make each interval, [how it
-works](physics/flight-fit.md#how-it-works)) against those stored in the code. In
-one Linux job it took more than an hour, so CI runs it each night on Linux in eight jobs side by side:
+works](physics/flight-fit.md#how-it-works)) against those stored in the code, and the
+[Bayesian option](physics/flight-fit.md#the-bayesian-option)'s posterior on each fit of sets A and B
+with something to fit. By least squares alone it took more than an hour in one Linux job, and the
+posteriors make the whole about seven times as long, so CI runs it each night on Linux in 16 jobs
+side by side:
 
-- Each job fits an eighth of the flights (`fit --part K/8`, with K from 1 to 8): every eighth
+- Each job fits a 16th of the flights (`fit --part K/16`, with K from 1 to 16): every 16th
   flight, from the Kth. It saves its fits for the last job.
-- The last job, `fit intervals`, puts the eight back together. It refuses a part missing or there
+- The last job, `fit intervals`, puts the 16 back together. It refuses a part missing or there
   twice, parts of two different splits, and any flight not fitted exactly once.
 - Then it runs the check as on a platform other than the one that wrote the report
   (`--other-platform`; [the fit's decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md),
-  section 7). A count may differ from the committed report by 5 flights. A figure, and each share
+  section 7). A count may differ from the committed report by 5, whether of flights, posteriors or
+  failed draws, and the draws made, 500 to a posterior, by 5 posteriors' worth, 2,500. A figure, and each share
   fitted on the calibration set, may differ by 5% of the larger of the two values or 0.002,
   whichever allows more. The slice is held in its words, as above, not by these allowances.
 
@@ -496,13 +500,19 @@ Where each part of the fit's check runs ([the time budget](https://github.com/nr
 
 | Where | Command | What it holds |
 |---|---|---|
-| A pull request, on all five platforms | `fit --slice --other-platform`; on windows-latest in two halves, `--part 1/2` and `--part 2/2` (part 1 of 2, part 2 of 2) | The slice's 444 fits, each line in its words (a calibration fit's lines carry no side, so only its first line's words can differ); the committed report's verdicts, as its stored bands give them; its stored shares against the code's |
+| A pull request, on all five platforms | `fit --slice --other-platform --part K/N`, part K of N: N is 3 on Linux, Linux on ARM and Windows on ARM, 4 on macos-latest and 6 on windows-latest | The slice's 444 fits, each line in its words (a calibration fit's lines carry no side, so only its first line's words can differ), the Bayesian option's posterior among them; the committed report's verdicts, as its stored bands give them; its stored shares against the code's |
 | The gate, before each merge | `fit --slice` | The same, each line byte for byte |
-| Each night, on Linux | `fit --part K/8`, then `fit --check --other-platform --parts` | All 9,192 fits: the report and the shares within the allowances above, the slice in its words |
+| Each night, on Linux | `fit --part K/16`, then `fit --check --other-platform --parts` | All 9,192 fits: the report and the shares within the allowances above, the slice in its words |
 | By hand, on the Mac that writes the report | `fit --check` | The whole report to the last digit, and the shares to the code's three figures |
 
-Windows fits the slice in two jobs, 223 and 221 fits, because one job there took 20 min 3 s with
-nothing cached, over the 20 minutes a job may take.
+Each platform fits the slice in parts, in jobs of their own: part K of N fits every Nth fit of the
+slice's, from the Kth. By
+least squares alone one job took 20 min 3 s on windows-latest with nothing cached, over the 20
+minutes a job may take, and the Bayesian option's posteriors took the slice from 79 s to 335 s on
+the maintainer's 10-core Mac ([the Bayesian option's decisions](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0320-m7-3c2-the-bayesian-option-in-two-blocks.md), section 9). Each
+of the slice's fits of sets A and B with something to fit carries its posterior: how many draws it
+made and how many failed, how many equal draws the 400 it reads are worth, and each parameter's 5% and 95% points
+and median, with the side its truth falls on where the report counts it.
 
 The slice is the same 444 fits every time: part 1 of 21 of each run, its 1st, 22nd and 43rd fit
 and on. A change that moves only fits outside it, and by less than the night's allowances (a count

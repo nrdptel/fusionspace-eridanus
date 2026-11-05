@@ -1,6 +1,7 @@
-//! `cargo xtask fit`: the least-squares fit's 90% intervals held to ADR-257's test on the synthetic
-//! flights (M7.3b, ADR-316): each parameter's three counts on sets A and B, its three probes, what
-//! the log can tell of it, and every parameter on pure noise.
+//! `cargo xtask fit`: the fit's 90% intervals held to ADR-257's test on the synthetic flights, the
+//! least-squares fit's (M7.3b, ADR-316) and the Bayesian option's beside them on the same fits
+//! (M7.3c2, ADR-320): each parameter's three counts on sets A and B, its three probes, what the log
+//! can tell of it, and every parameter on pure noise, by each method.
 //!
 //! The flights are flown and fitted on every core, each thread taking every `n`th index with a
 //! [`Flyer`] of its own; a fit is the same however many came before it on its thread (the shared
@@ -15,23 +16,29 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Instant;
 
 use hpr_flightdata::readings::interval::{Interval, Shares};
 use hpr_forensics::synthetic::designs::DesignFiles;
-use hpr_forensics::synthetic::fits::{self, ASKED, Asked, Check, FlightFit, Identification};
+use hpr_forensics::synthetic::fits::{
+    self, ASKED, Asked, Check, FlightFit, Identification, Method, POSTERIOR_DRAWS, POSTERIOR_PILOT,
+};
 use hpr_forensics::synthetic::{Flyer, Set};
 use serde::{Deserialize, Serialize};
 
 pub const USAGE: &str =
     "  fit [--check]            Fit every flight of the synthetic sets A and B by least squares (
-                           ADR-316) and the calibration set, and write
+                           ADR-316) and the calibration set, draw each fit's posterior by the
+                           Bayesian option (ADR-320), and write
                            validation/reports/fit-intervals.{json,md} and the slice,
                            fit-intervals.slice.json. --check writes nothing and fails unless the
-                           fits reproduce all three. Either fails if a parameter's interval fails
-                           ADR-257's test, a probe of it passes, a scale isn't identified on set A,
-                           anything is identified on pure noise, or the calibration set doesn't
-                           give the library's shares.
+                           fits reproduce all three. Either fails if a least-squares interval
+                           fails ADR-257's test or a probe of it passes, if by either method a
+                           scale isn't identified on set A or anything is identified on pure
+                           noise, or if the calibration set doesn't give the library's shares.
+                           The Bayesian option's counts and probes are held as committed but
+                           break nothing until M7.3c4 (ADR-320 §8).
   fit --check --other-platform
                            The same rules, on a platform other than the one that wrote the report:
                            its counts may stand a few flights off, its figures and the shares a
@@ -49,7 +56,8 @@ pub const USAGE: &str =
                            are parts 1 to n of one split, and fit each flight once.
   fit --calibrate          Fit the calibration set and print each parameter's shares; writes nothing.
   fit --try <set> <count>  Fit a set's first flights, print each parameter's shares and counts on
-                           them, and the seconds a fit takes; writes nothing.";
+                           them by both methods, the posteriors' effective draws, and the seconds
+                           a fit takes; writes nothing.";
 
 /// The report's path under the repository, without its extension.
 const REPORT: &str = "validation/reports/fit-intervals";
@@ -128,7 +136,9 @@ enum Noisy {
 }
 
 /// Flights `indices` of `set`, or pure noise of `noise_size_m` in place of their logs, on every
-/// core, in index order.
+/// core, in index order. Each thread takes the next flight left, since a fit with a posterior to
+/// draw costs many times one with nothing to fit. The calibration set's fits draw no posterior: only
+/// the least-squares shares are fitted there.
 fn fit_set(
     set: Set,
     indices: &[u64],
@@ -136,14 +146,17 @@ fn fit_set(
     noise: Option<Noise>,
 ) -> Result<Vec<FlightFit>, String> {
     let threads = std::thread::available_parallelism().map_or(1, usize::from);
+    let bayesian = set != Set::Calibration;
+    let next = AtomicUsize::new(0);
     let results: Vec<Result<Vec<FlightFit>, String>> = std::thread::scope(|scope| {
         let handles: Vec<_> = (0..threads)
-            .map(|thread| {
+            .map(|_| {
+                let next = &next;
                 scope.spawn(move || -> Result<Vec<FlightFit>, String> {
                     let mut flyer = Flyer::new(files.clone());
                     let mut tables = BTreeMap::new();
                     let mut made = Vec::new();
-                    for &index in indices.iter().skip(thread).step_by(threads) {
+                    while let Some(&index) = indices.get(next.fetch_add(1, Ordering::Relaxed)) {
                         let flight = flyer
                             .flight(set, index)
                             .map_err(|e| format!("{set:?} flight {index}: {e}"))?;
@@ -156,6 +169,7 @@ fn fit_set(
                                 made.push(fits::fit_noise_bins(
                                     &flight,
                                     set,
+                                    bayesian,
                                     size_m,
                                     track_m,
                                     files,
@@ -171,7 +185,7 @@ fn fit_set(
                             None => flight.log.clone(),
                         };
                         made.push(
-                            fits::fit_log(&log, &flight, set, files, &mut tables)
+                            fits::fit_log(&log, &flight, set, bayesian, files, &mut tables)
                                 .map_err(|e| format!("{set:?} flight {index}: {e}"))?,
                         );
                     }
@@ -483,7 +497,76 @@ struct SetReport {
     /// The largest residual of any fit to a flight drawn or of the wind's, refused ones included, as a
     /// share of the spread of the heights read.
     largest_misfit: f64,
+    /// The least-squares fit's checks.
     checks: Vec<Check>,
+    /// The Bayesian option's, on the same flights.
+    bayesian: Vec<Check>,
+    /// What its draws came to.
+    draws: Draws,
+}
+
+/// What the Bayesian option's draws came to on a set's flights counted here or for the wind, each
+/// once.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+struct Draws {
+    /// Fits with a posterior drawn.
+    posteriors: u64,
+    /// Fits with something to fit and no posterior drawn.
+    without: u64,
+    /// Posteriors whose draws read fell short of `MIN_EFFECTIVE_DRAWS`.
+    too_few: u64,
+    /// The least of the posteriors' effective draws, their 10% point and their median.
+    least_effective: f64,
+    tenth_effective: f64,
+    median_effective: f64,
+    /// Draws made, the pilots' included, and of them those that failed.
+    made: u64,
+    failed: u64,
+}
+
+impl Draws {
+    /// Over `fits`.
+    fn of<'a>(fits: impl Iterator<Item = &'a FlightFit>) -> Self {
+        let fits: Vec<&FlightFit> = fits.filter(|f| f.fitted).collect();
+        let mut effective: Vec<f64> = fits
+            .iter()
+            .filter_map(|f| f.posterior.as_ref())
+            .map(|p| p.effective_draws)
+            .collect();
+        effective.sort_by(f64::total_cmp);
+        let at = |share: f64| {
+            #[expect(
+                clippy::cast_possible_truncation,
+                clippy::cast_sign_loss,
+                clippy::cast_precision_loss,
+                reason = "an index into a list of fits"
+            )]
+            let k = (share * effective.len() as f64) as usize;
+            effective.get(k).copied().unwrap_or(f64::NAN)
+        };
+        Self {
+            posteriors: effective.len() as u64,
+            without: fits.iter().filter(|f| f.posterior.is_none()).count() as u64,
+            too_few: fits
+                .iter()
+                .filter_map(|f| f.posterior.as_ref())
+                .filter(|p| !p.enough)
+                .count() as u64,
+            least_effective: effective.first().copied().unwrap_or(f64::NAN),
+            tenth_effective: at(0.1),
+            median_effective: at(0.5),
+            made: fits
+                .iter()
+                .filter_map(|f| f.posterior.as_ref())
+                .map(|p| p.draws as u64)
+                .sum(),
+            failed: fits
+                .iter()
+                .filter_map(|f| f.posterior.as_ref())
+                .map(|p| p.failed as u64)
+                .sum(),
+        }
+    }
 }
 
 /// One size of noise's identification, for the report.
@@ -496,7 +579,10 @@ struct NoiseReport {
     smallest_misfit: Option<f64>,
     flights: u64,
     said_nothing: u64,
+    /// The least-squares fit's.
     identified: BTreeMap<Asked, Identification>,
+    /// The Bayesian option's.
+    bayesian: BTreeMap<Asked, Identification>,
 }
 
 /// The committed report.
@@ -559,7 +645,17 @@ impl Apart {
                 if let (Some(a), Some(b)) = (a.as_u64(), b.as_u64()) {
                     let flights = a.abs_diff(b);
                     self.most_flights = self.most_flights.max(flights);
-                    if flights > OTHER_PLATFORM_FLIGHTS {
+                    // A posterior makes 500 draws, so the draws made, 500 for each posterior,
+                    // may stand as many draws off as the posteriors may flights. A failed draw
+                    // is one draw's own event, not a flight's 500: the failed draws are held to
+                    // the flights' room, which CI's Linux runner kept within 1 on every count,
+                    // these included (the 32 parts put together on 2026-11-03).
+                    let allowed = if at.ends_with("/draws/made") {
+                        OTHER_PLATFORM_FLIGHTS * (POSTERIOR_PILOT + POSTERIOR_DRAWS) as u64
+                    } else {
+                        OTHER_PLATFORM_FLIGHTS
+                    };
+                    if flights > allowed {
                         self.broken.push(format!("{at}: {a} committed, {b} made"));
                     }
                 } else if a.is_f64() != b.is_f64() {
@@ -583,17 +679,21 @@ impl Apart {
     }
 }
 
-/// What doesn't come out as it must in `set`'s `checks`: a parameter's interval failing ADR-257's
-/// test, a probe of it passing, and on set A a scale not identified. It reads each test's stored
-/// bands, worked out from its counts when the report was made; `fit --slice` reads a committed
-/// report's so, and doesn't work them out again.
-fn check_problems(set: Set, checks: &[Check]) -> Vec<String> {
+/// What doesn't come out as it must in `set`'s `checks` by `method`: a least-squares interval
+/// failing ADR-257's test or a probe of it passing, and on set A a scale not identified by either
+/// method. The Bayesian option's counts and probes break nothing yet: they don't pass on either
+/// set, and passing is M7.3c4's (ADR-320 §8). It reads each test's stored bands, worked out from
+/// its counts when the report was made; `fit --slice` reads a committed report's so, and doesn't
+/// work them out again.
+fn check_problems(set: Set, method: Method, checks: &[Check]) -> Vec<String> {
     let mut broken = Vec::new();
+    let name = method.name();
+    let held = method == Method::LeastSquares;
     for check in checks {
         let c = check.test.counts;
-        if !check.test.passes() {
+        if held && !check.test.passes() {
             broken.push(format!(
-                "{set:?}, {}: {} below, {} inside, {} above of {}: fails the test",
+                "{set:?}, {name}, {}: {} below, {} inside, {} above of {}: fails the test",
                 check.asked.name(),
                 c.below,
                 c.inside,
@@ -603,9 +703,9 @@ fn check_problems(set: Set, checks: &[Check]) -> Vec<String> {
         }
         for (probe, test) in &check.probes {
             let c = test.counts;
-            if test.passes() {
+            if held && test.passes() {
                 broken.push(format!(
-                    "{set:?}, {}: the probe {} passes, {} below, {} inside, {} above of {}",
+                    "{set:?}, {name}, {}: the probe {} passes, {} below, {} inside, {} above of {}",
                     check.asked.name(),
                     probe.name(),
                     c.below,
@@ -620,7 +720,7 @@ fn check_problems(set: Set, checks: &[Check]) -> Vec<String> {
             && !check.identification.identified
         {
             broken.push(format!(
-                "{}: not identified on set A, median {} against {} stated",
+                "{name}, {}: not identified on set A, median {} against {} stated",
                 check.asked.name(),
                 check.identification.median_width,
                 check.identification.stated_width
@@ -638,7 +738,8 @@ fn check_problems(set: Set, checks: &[Check]) -> Vec<String> {
 fn report_problems(report: &Report) -> Vec<String> {
     let mut broken = Vec::new();
     for set in &report.sets {
-        broken.extend(check_problems(set.set, &set.checks));
+        broken.extend(check_problems(set.set, Method::LeastSquares, &set.checks));
+        broken.extend(check_problems(set.set, Method::Bayesian, &set.bayesian));
         if set.flights < COUNTED_FLIGHTS as u64 {
             broken.push(format!(
                 "{:?}: {} flights counted, under {COUNTED_FLIGHTS}",
@@ -659,13 +760,19 @@ fn report_problems(report: &Report) -> Vec<String> {
         }
     }
     for noise in &report.noise {
-        for (asked, id) in &noise.identified {
-            if id.identified {
-                broken.push(format!(
-                    "{}: identified on noise of ±{} m",
-                    asked.name(),
-                    noise.size_m
-                ));
+        for (method, ids) in [
+            (Method::LeastSquares, &noise.identified),
+            (Method::Bayesian, &noise.bayesian),
+        ] {
+            for (asked, id) in ids {
+                if id.identified {
+                    broken.push(format!(
+                        "{}, {}: identified on noise of ±{} m",
+                        method.name(),
+                        asked.name(),
+                        noise.size_m
+                    ));
+                }
             }
         }
     }
@@ -680,25 +787,29 @@ fn report_problems(report: &Report) -> Vec<String> {
     broken
 }
 
-/// The set's report, with what doesn't come out as it must.
+/// The set's report, with what doesn't come out as it must ([`check_problems`], by each method).
 fn set_report(
     set: Set,
     fits_made: &[FlightFit],
     tracked: &[FlightFit],
 ) -> (SetReport, Vec<String>) {
     let mut broken = Vec::new();
-    let checks: Vec<Check> = ASKED
-        .iter()
-        .map(|&asked| {
-            let on = if asked.stated_on_height_alone() {
-                fits_made
-            } else {
-                tracked
-            };
-            fits::check(asked, on)
-        })
-        .collect();
-    broken.extend(check_problems(set, &checks));
+    let by = |method: Method| -> Vec<Check> {
+        ASKED
+            .iter()
+            .map(|&asked| {
+                let on = if asked.stated_on_height_alone() {
+                    fits_made
+                } else {
+                    tracked
+                };
+                fits::check_by(method, asked, on)
+            })
+            .collect()
+    };
+    let (checks, bayesian) = (by(Method::LeastSquares), by(Method::Bayesian));
+    broken.extend(check_problems(set, Method::LeastSquares, &checks));
+    broken.extend(check_problems(set, Method::Bayesian, &bayesian));
     (
         SetReport {
             set,
@@ -709,6 +820,8 @@ fn set_report(
             not_converged: 0,
             largest_misfit: 0.0,
             checks,
+            bayesian,
+            draws: Draws::of(std::iter::empty()),
         },
         broken,
     )
@@ -718,16 +831,24 @@ fn set_report(
 fn rounded(mut report: Report) -> Report {
     for set in &mut report.sets {
         set.largest_misfit = three(set.largest_misfit);
-        for check in &mut set.checks {
+        for check in set.checks.iter_mut().chain(&mut set.bayesian) {
             check.mean_error = three(check.mean_error);
             let id = &mut check.identification;
             id.median_width = three(id.median_width);
             id.stated_width = three(id.stated_width);
         }
+        let draws = &mut set.draws;
+        draws.least_effective = three(draws.least_effective);
+        draws.tenth_effective = three(draws.tenth_effective);
+        draws.median_effective = three(draws.median_effective);
     }
     for noise in &mut report.noise {
         noise.smallest_misfit = noise.smallest_misfit.map(three);
-        for id in noise.identified.values_mut() {
+        for id in noise
+            .identified
+            .values_mut()
+            .chain(noise.bayesian.values_mut())
+        {
             id.median_width = three(id.median_width);
             id.stated_width = three(id.stated_width);
         }
@@ -735,13 +856,68 @@ fn rounded(mut report: Report) -> Report {
     report
 }
 
+/// A table of `checks`' counts, probes and identification.
+fn counts_table(out: &mut String, checks: &[Check]) {
+    let _ = writeln!(
+        out,
+        "| Parameter | Below | Inside | Above | Test | Narrowed, widened, shifted | Mean error | \
+         Median width / stated | Identified |\n|---|---:|---:|---:|---|---|---:|---:|---|"
+    );
+    for c in checks {
+        let probes: Vec<&str> = c
+            .probes
+            .values()
+            .map(|t| if t.passes() { "passes" } else { "fails" })
+            .collect();
+        let _ = writeln!(
+            out,
+            "| {} | {} | {} | {} | {} | {} | {} | {} / {} | {} |",
+            c.asked.name(),
+            c.test.counts.below,
+            c.test.counts.inside,
+            c.test.counts.above,
+            if c.test.passes() { "passes" } else { "fails" },
+            probes.join(", "),
+            c.mean_error,
+            c.identification.median_width,
+            c.identification.stated_width,
+            if c.identification.identified {
+                "yes"
+            } else {
+                "no"
+            }
+        );
+    }
+}
+
+/// A table of `checks`' counts by design.
+fn design_table(out: &mut String, checks: &[Check]) {
+    let names: Vec<String> = checks
+        .first()
+        .map(|c| c.by_design.keys().cloned().collect())
+        .unwrap_or_default();
+    let header: Vec<&str> = checks.iter().map(|c| c.asked.name()).collect();
+    let _ = writeln!(out, "| Design | {} |", header.join(" | "));
+    let _ = writeln!(out, "|---|{}", "---:|".repeat(checks.len()));
+    for name in &names {
+        let cells: Vec<String> = checks
+            .iter()
+            .map(|c| {
+                let d = c.by_design.get(name).copied().unwrap_or_default();
+                format!("{} / {} / {}", d.below, d.inside, d.above)
+            })
+            .collect();
+        let _ = writeln!(out, "| {name} | {} |", cells.join(" | "));
+    }
+}
+
 /// The report's page.
 fn page(report: &Report) -> String {
     let mut out = String::new();
     let _ = writeln!(
         out,
-        "# The least-squares fit's 90% intervals\n\n{}\n\nWritten by `cargo xtask fit`. How to read \
-         it: [the fit's page](../../docs/physics/flight-fit.md).\n",
+        "# The fit's 90% intervals: least squares and Bayesian\n\n{}\n\nWritten by `cargo xtask fit`. \
+         How to read it: [the fit's page](../../docs/physics/flight-fit.md).\n",
         report.about
     );
     for set in &report.sets {
@@ -752,9 +928,7 @@ fn page(report: &Report) -> String {
              takes no apogee. A wind is counted on the {} of {TRACK_FLIGHTS} flights of the logger \
              with a track, some past these, fitted with a track read. Of the flights counted here or \
              for the wind, {} reached the fit's step limit. The largest residual of any of them is {} \
-             of the spread of the heights read; past {} a fit says nothing.\n\n| Parameter | Below | Inside | Above | \
-             Test | Narrowed, widened, shifted | Mean error | Median width / stated | Identified |\n\
-             |---|---:|---:|---:|---|---|---:|---:|---|",
+             of the spread of the heights read; past {} a fit says nothing.\n\n### Least squares\n",
             set.set,
             set.flights,
             set.drawn,
@@ -768,51 +942,10 @@ fn page(report: &Report) -> String {
             set.largest_misfit,
             hpr_forensics::fit::MISFIT_SHARE,
         );
-        for c in &set.checks {
-            let probes: Vec<&str> = c
-                .probes
-                .values()
-                .map(|t| if t.passes() { "passes" } else { "fails" })
-                .collect();
-            let _ = writeln!(
-                out,
-                "| {} | {} | {} | {} | {} | {} | {} | {} / {} | {} |",
-                c.asked.name(),
-                c.test.counts.below,
-                c.test.counts.inside,
-                c.test.counts.above,
-                if c.test.passes() { "passes" } else { "fails" },
-                probes.join(", "),
-                c.mean_error,
-                c.identification.median_width,
-                c.identification.stated_width,
-                if c.identification.identified {
-                    "yes"
-                } else {
-                    "no"
-                }
-            );
-        }
+        counts_table(&mut out, &set.checks);
         let _ = writeln!(out, "\nBy design (below / inside / above):\n");
-        let names: Vec<String> = set
-            .checks
-            .first()
-            .map(|c| c.by_design.keys().cloned().collect())
-            .unwrap_or_default();
+        design_table(&mut out, &set.checks);
         let header: Vec<&str> = set.checks.iter().map(|c| c.asked.name()).collect();
-        let _ = writeln!(out, "| Design | {} |", header.join(" | "));
-        let _ = writeln!(out, "|---|{}", "---:|".repeat(set.checks.len()));
-        for name in &names {
-            let cells: Vec<String> = set
-                .checks
-                .iter()
-                .map(|c| {
-                    let d = c.by_design.get(name).copied().unwrap_or_default();
-                    format!("{} / {} / {}", d.below, d.inside, d.above)
-                })
-                .collect();
-            let _ = writeln!(out, "| {name} | {} |", cells.join(" | "));
-        }
         let _ = writeln!(
             out,
             "\nBy how well the flight's heights fit (below / inside / above):\n"
@@ -830,6 +963,27 @@ fn page(report: &Report) -> String {
                 .collect();
             let _ = writeln!(out, "| {name} | {} |", cells.join(" | "));
         }
+        let d = set.draws;
+        let _ = writeln!(
+            out,
+            "\n### Bayesian\n\nThe posterior's 5% and 95% points, as they come. Of the {} flights \
+             counted here or for the wind with a posterior drawn, {} fell short of {} effective draws; \
+             their effective draws run from {}, with a 10% point of {} and a median of {}. Of the {} \
+             draws made, the pilots' included, {} failed; {} flights with something to fit have no \
+             posterior.\n",
+            d.posteriors,
+            d.too_few,
+            hpr_forensics::posterior::MIN_EFFECTIVE_DRAWS,
+            d.least_effective,
+            d.tenth_effective,
+            d.median_effective,
+            d.made,
+            d.failed,
+            d.without
+        );
+        counts_table(&mut out, &set.bayesian);
+        let _ = writeln!(out, "\nBy design (below / inside / above):\n");
+        design_table(&mut out, &set.bayesian);
         let _ = writeln!(out);
     }
     let _ = writeln!(
@@ -837,14 +991,19 @@ fn page(report: &Report) -> String {
         "## Pure noise in place of the log\n\nThe smallest residual is that of the fits that came to \
          one, a share of the spread of the heights read; past {} a log says nothing.\n\n| Height noise \
          | Track noise | Reaches | Flights | With nothing to fit | Smallest residual | Parameter | \
-         Median width / stated | Identified |\n|---:|---:|---|---:|---:|---:|---|---:|---|",
+         Median width / stated, least squares | Identified | Median width / stated, Bayesian | \
+         Identified |\n|---:|---:|---|---:|---:|---:|---|---:|---|---:|---|",
         hpr_forensics::fit::MISFIT_SHARE
     );
+    let yes = |id: &Identification| if id.identified { "yes" } else { "no" };
     for noise in &report.noise {
         for (asked, id) in &noise.identified {
+            let Some(bayes) = noise.bayesian.get(asked) else {
+                continue;
+            };
             let _ = writeln!(
                 out,
-                "| ±{} m | {} | {} | {} | {} | {} | {} | {} / {} | {} |",
+                "| ±{} m | {} | {} | {} | {} | {} | {} | {} / {} | {} | {} / {} | {} |",
                 noise.size_m,
                 noise
                     .track_m
@@ -861,7 +1020,10 @@ fn page(report: &Report) -> String {
                 asked.name(),
                 id.median_width,
                 id.stated_width,
-                if id.identified { "yes" } else { "no" }
+                yes(id),
+                bayes.median_width,
+                bayes.stated_width,
+                yes(bayes)
             );
         }
     }
@@ -912,6 +1074,14 @@ fn report_of(made_runs: &[Vec<FlightFit>]) -> Result<(Report, Vec<String>), Stri
             .map(|f| f.index)
             .collect();
         report.not_converged = stopped.len() as u64;
+        // The flights counted and the wind's, each once.
+        let mut seen = BTreeSet::new();
+        report.draws = Draws::of(
+            counted
+                .iter()
+                .chain(&tracked)
+                .filter(|f| seen.insert(f.index)),
+        );
         report.said_nothing_gnss_alone = made
             .iter()
             .filter(|f| !f.fitted && f.index < report.drawn)
@@ -958,18 +1128,27 @@ fn report_of(made_runs: &[Vec<FlightFit>]) -> Result<(Report, Vec<String>), Stri
             size_m,
             track_m,
         } = given;
-        let identified: BTreeMap<Asked, Identification> = ASKED
-            .iter()
-            .map(|&asked| (asked, Identification::of(asked, made)))
-            .collect();
-        for (asked, id) in &identified {
-            if id.identified {
-                broken.push(format!(
-                    "{}: identified on noise of ±{size_m} m, median {} against {} stated",
-                    asked.name(),
-                    id.median_width,
-                    id.stated_width
-                ));
+        let by = |method: Method| -> BTreeMap<Asked, Identification> {
+            ASKED
+                .iter()
+                .map(|&asked| (asked, Identification::by(method, asked, made)))
+                .collect()
+        };
+        let (identified, bayesian) = (by(Method::LeastSquares), by(Method::Bayesian));
+        for (method, ids) in [
+            (Method::LeastSquares, &identified),
+            (Method::Bayesian, &bayesian),
+        ] {
+            for (asked, id) in ids {
+                if id.identified {
+                    broken.push(format!(
+                        "{}, {}: identified on noise of ±{size_m} m, median {} against {} stated",
+                        method.name(),
+                        asked.name(),
+                        id.median_width,
+                        id.stated_width
+                    ));
+                }
             }
         }
         noise.push(NoiseReport {
@@ -984,6 +1163,7 @@ fn report_of(made_runs: &[Vec<FlightFit>]) -> Result<(Report, Vec<String>), Stri
             flights: made.len() as u64,
             said_nothing: made.iter().filter(|f| !f.fitted).count() as u64,
             identified,
+            bayesian,
         });
     }
     // The calibration set's runs, which [`shares_problems`] reads.
@@ -994,7 +1174,9 @@ fn report_of(made_runs: &[Vec<FlightFit>]) -> Result<(Report, Vec<String>), Stri
         rounded(Report {
             about: "On sets A and B of the synthetic flights, each parameter's 90% interval is held \
                     to three counts, each with a two-sided 99.9% Clopper–Pearson band: the two tails' \
-                    bands must hold 5% and the inside's 90%. Shares fitted on the calibration set."
+                    bands must hold 5% and the inside's 90%. The least-squares fit's intervals take \
+                    shares fitted on the calibration set; the Bayesian option's are its posterior's \
+                    5% and 95% points as they come, on the same flights."
                 .to_owned(),
             shares: ASKED
                 .iter()
@@ -1017,9 +1199,10 @@ const SLICE: Part = Part { number: 1, of: 21 };
 
 /// The slice's `about` line.
 const SLICE_ABOUT: &str = "The fit's slice (M0.16a2, ADR-149 amended): every 21st fit of each run, \
-                           from the first, what it came to and each parameter's interval, written \
-                           by `cargo run --profile report-check -p xtask -- fit`; `fit --slice` \
-                           holds it.";
+                           from the first, what it came to and each parameter's interval, by least \
+                           squares and, where the fit drew a posterior, by the Bayesian option \
+                           (ADR-320), written by `cargo run --profile report-check -p xtask -- \
+                           fit`; `fit --slice` holds it.";
 
 /// Where `truth` falls against `interval`, as the report counts it: a truth that isn't a number
 /// misses on both sides, and a fit that states no interval is counted as missing on both.
@@ -1042,7 +1225,10 @@ fn side(interval: Option<Interval>, truth: f64) -> &'static str {
 /// the report counts, or "not counted" where the report counts none (a log with nothing to fit, or
 /// a wind without a track). A fit of the calibration set, `calibration`, has neither: its errors
 /// are what the shares are fitted on, so some sit on an interval's end by construction, where a
-/// side would turn on a platform's last digits and say nothing the report counts.
+/// side would turn on a platform's last digits and say nothing the report counts. Then the
+/// Bayesian option's posterior, where the fit drew one (ADR-320): its draws, and each parameter's
+/// 5% and 95% points and median, with where its truth fell against them where the report counts
+/// it.
 fn slice_lines(fit: &FlightFit, calibration: bool) -> Vec<String> {
     use crate::slice::{figures, share};
     let design = hpr_forensics::synthetic::designs::DESIGNS
@@ -1095,6 +1281,41 @@ fn slice_lines(fit: &FlightFit, calibration: bool) -> Vec<String> {
             figures(c.standard_error),
             figures(c.truth),
             share(c.share()),
+        ));
+    }
+    let Some(posterior) = &fit.posterior else {
+        if fit.fitted && !calibration {
+            made.push("posterior: none drawn".to_owned());
+        }
+        return made;
+    };
+    made.push(format!(
+        "posterior: {} effective of the {} draws read, {} made, {} failed, {}",
+        figures(posterior.effective_draws),
+        POSTERIOR_DRAWS,
+        posterior.draws,
+        posterior.failed,
+        if posterior.enough {
+            "enough"
+        } else {
+            "too few effective"
+        }
+    ));
+    for (&asked, c) in ASKED.iter().zip(&fit.compared) {
+        let [low, median, high] = posterior.quantiles[asked.index()];
+        let counted = fit.fitted && (fit.drift || asked.stated_on_height_alone());
+        let outcome = if counted {
+            let interval = fits::interval_of(Method::Bayesian, fit, asked);
+            format!(", {}", side(interval, c.truth))
+        } else {
+            ", not counted".to_owned()
+        };
+        made.push(format!(
+            "{}, Bayesian: {} to {}, median {}{outcome}",
+            asked.name(),
+            figures(low),
+            figures(high),
+            figures(median),
         ));
     }
     made
@@ -1306,8 +1527,10 @@ fn other_platform(root: &Path, made_runs: &[Vec<FlightFit>]) -> Result<(), Strin
         ));
     }
     println!(
-        "fit: every parameter passes on sets A and B, and every probe fails; the calibration set \
-         gives the library's shares, and the slice's {} fits hold {REPORT}.slice.json {}",
+        "fit: by least squares every parameter passes on sets A and B, and every probe fails; the \
+         Bayesian option's counts stand within the other-platform room of the committed ones; the \
+         calibration set gives the library's shares, and the slice's {} fits hold \
+         {REPORT}.slice.json {}",
         slice.flights.len(),
         crate::slice::held_text(crate::slice::Held::Words)
     );
@@ -1444,7 +1667,44 @@ pub fn run(args: &[String]) -> Result<(), String> {
                     check.identification.median_width,
                     check.identification.stated_width
                 );
+                let bayes = fits::check_by(Method::Bayesian, asked, &made);
+                let c = bayes.test.counts;
+                println!(
+                    "{:32} Bayesian {}/{}/{}; mean error {:.4}; median width {:.4}; by drift {:?}",
+                    "",
+                    c.below,
+                    c.inside,
+                    c.above,
+                    bayes.mean_error,
+                    bayes.identification.median_width,
+                    bayes.by_drift
+                );
             }
+            let mut effective: Vec<f64> = made
+                .iter()
+                .filter_map(|f| f.posterior.as_ref())
+                .map(|p| p.effective_draws)
+                .collect();
+            effective.sort_by(f64::total_cmp);
+            let failed: usize = made
+                .iter()
+                .filter_map(|f| f.posterior.as_ref())
+                .map(|p| p.failed)
+                .sum();
+            println!(
+                "posteriors {}; too few effective {}; effective draws least {:?}, 10% {:?}, median {:?}; failed draws {failed}; fitted without a posterior {}",
+                effective.len(),
+                made.iter()
+                    .filter_map(|f| f.posterior.as_ref())
+                    .filter(|p| !p.enough)
+                    .count(),
+                effective.first(),
+                effective.get(effective.len() / 10),
+                effective.get(effective.len() / 2),
+                made.iter()
+                    .filter(|f| f.fitted && f.posterior.is_none())
+                    .count()
+            );
             Ok(())
         }
         ["--part", part, "--out", dir] => {
@@ -1514,8 +1774,14 @@ pub fn run(args: &[String]) -> Result<(), String> {
                 ));
             }
             println!(
-                "fit: every parameter passes on sets A and B, and every probe fails; the \
-                 calibration set gives the library's shares; the slice's {} fits {}",
+                "fit: by least squares every parameter passes on sets A and B, and every probe \
+                 fails; the Bayesian option's counts {}; the calibration set gives the library's \
+                 shares; the slice's {} fits {}",
+                if check {
+                    "reproduce the committed report"
+                } else {
+                    "are written"
+                },
                 slice.flights.len(),
                 if check {
                     "reproduce it byte for byte"
@@ -1561,6 +1827,7 @@ mod tests {
             compared: [compared; ASKED.len()],
             rms_m: Some(1.5),
             flown: 70,
+            posterior: None,
         }
     }
 
@@ -1598,7 +1865,8 @@ mod tests {
                 .map(|&index| {
                     let flight = flyer.flight(Set::A, index).unwrap();
                     let fit =
-                        fits::fit_log(&flight.log, &flight, Set::A, &files, &mut tables).unwrap();
+                        fits::fit_log(&flight.log, &flight, Set::A, false, &files, &mut tables)
+                            .unwrap();
                     assert!(fit.fitted, "flight {index}");
                     let mut bytes = Vec::new();
                     ciborium::into_writer(&fit, &mut bytes).unwrap();
@@ -1874,6 +2142,31 @@ mod tests {
                 .is_empty()
         );
         assert!(!apart(json!([1, 2]), json!([1])).broken.is_empty());
+        // The draws made may stand five posteriors' 500 draws off, no more.
+        let made = |made: u64| {
+            apart(
+                json!({"draws": {"made": 1_138_000_u64}}),
+                json!({"draws": {"made": made}}),
+            )
+            .broken
+        };
+        assert!(made(1_140_500).is_empty(), "{:?}", made(1_140_500));
+        assert!(made(1_135_500).is_empty(), "{:?}", made(1_135_500));
+        assert!(!made(1_140_501).is_empty());
+        assert!(!made(1_135_499).is_empty());
+        // The failed draws stand only the flights' five off, not five posteriors' draws.
+        let failed = |failed: u64| {
+            apart(
+                json!({"draws": {"failed": 124}}),
+                json!({"draws": {"failed": failed}}),
+            )
+            .broken
+        };
+        assert!(failed(129).is_empty(), "{:?}", failed(129));
+        assert!(failed(119).is_empty(), "{:?}", failed(119));
+        assert!(!failed(130).is_empty());
+        assert!(!failed(118).is_empty());
+        assert!(!failed(624).is_empty());
     }
 
     /// The worked example on the fit's page is this flight's.
@@ -1983,7 +2276,8 @@ mod tests {
     fn one_changed_fit_writes_other_lines_and_fails_the_slice() {
         let fit = a_fit(21);
         let lines = slice_lines(&fit, false);
-        assert_eq!(lines.len(), 1 + ASKED.len(), "{lines:?}");
+        assert_eq!(lines.len(), 2 + ASKED.len(), "{lines:?}");
+        assert_eq!(lines[1 + ASKED.len()], "posterior: none drawn");
         assert_eq!(slice_lines(&fit.clone(), false), lines);
         assert!(lines[1].ends_with(", inside"), "{lines:?}");
         let words = |lines: &[String]| -> Vec<String> {
@@ -2015,6 +2309,53 @@ mod tests {
         let mut tracked = fit.clone();
         tracked.drift = true;
         assert!(!slice_lines(&tracked, false)[3].ends_with(", not counted"));
+        // A posterior drawn: its draws, then each parameter's 5% and 95% points and median, with
+        // its truth's side where the report counts it. Its numbers move no word; enough effective
+        // draws or too few, and a truth past its 95% point, are words.
+        let mut drawn_one = fit.clone();
+        drawn_one.posterior = Some(hpr_forensics::posterior::Posterior {
+            quantiles: [[0.5, 1.0, 1.5]; hpr_forensics::fit::FLOWN],
+            effective_draws: 150.0,
+            draws: 500,
+            failed: 2,
+            enough: true,
+        });
+        let posterior = slice_lines(&drawn_one, false);
+        assert_eq!(posterior.len(), 2 + 2 * ASKED.len(), "{posterior:?}");
+        assert_eq!(posterior[..=ASKED.len()], lines[..=ASKED.len()]);
+        assert_eq!(
+            posterior[1 + ASKED.len()],
+            "posterior: 150 effective of the 400 draws read, 500 made, 2 failed, enough"
+        );
+        let bayesian = &posterior[2 + ASKED.len()..];
+        assert_eq!(
+            bayesian[0],
+            format!(
+                "{}, Bayesian: 0.5 to 1.5, median 1, inside",
+                ASKED[0].name()
+            )
+        );
+        // The wind, without a track, isn't counted by either method.
+        assert!(bayesian[2].ends_with(", not counted"), "{bayesian:?}");
+        let mut fewer = drawn_one.clone();
+        if let Some(p) = fewer.posterior.as_mut() {
+            p.effective_draws = 140.0;
+        }
+        let fewer_lines = slice_lines(&fewer, false);
+        assert_ne!(fewer_lines, posterior);
+        assert_eq!(words(&fewer_lines), words(&posterior));
+        if let Some(p) = fewer.posterior.as_mut() {
+            p.enough = false;
+        }
+        assert_ne!(words(&slice_lines(&fewer, false)), words(&posterior));
+        let mut past = drawn_one.clone();
+        past.compared[0].truth = 1.6;
+        let past = slice_lines(&past, false);
+        assert!(past[2 + ASKED.len()].ends_with(", above"), "{past:?}");
+        assert!(past[1].ends_with(", inside"), "{past:?}");
+        // A calibration fit draws no posterior, and says nothing of one.
+        assert_eq!(slice_lines(&fit, true).len(), 1 + ASKED.len());
+
         // A calibration fit's lines carry its numbers alone: its errors make the shares.
         let calibration = slice_lines(&fit, true);
         assert_eq!(calibration[0], lines[0]);
@@ -2062,7 +2403,7 @@ mod tests {
     #[test]
     fn the_slices_parts_fit_it_once_and_each_holds_its_fits() {
         for run in runs() {
-            for of in 1..=4 {
+            for of in 1..=SLICE.of {
                 for number in 1..=of {
                     let part = Part { number, of };
                     assert_eq!(
@@ -2239,7 +2580,31 @@ mod tests {
                 c.below += 60;
                 r.sets[0].checks[0].test = Test::of(c);
             },
-            "A, drag scale: ",
+            "A, least squares, drag scale: ",
+        );
+        // The Bayesian option's counts and probes break nothing until M7.3c4 (ADR-320 §8); its
+        // identification does, on set A and on noise.
+        let mut bayesian_failing = report.clone();
+        let passing = bayesian_failing.sets[0].checks[0].test;
+        let bayes = &mut bayesian_failing.sets[0].bayesian[0];
+        let mut c = bayes.test.counts;
+        c.inside = c.inside.saturating_sub(60);
+        c.below += 60;
+        bayes.test = Test::of(c);
+        for test in bayes.probes.values_mut() {
+            *test = passing;
+        }
+        assert_eq!(report_problems(&bayesian_failing), Vec::<String>::new());
+        fails(
+            &|r| r.sets[0].bayesian[1].identification.identified = false,
+            "Bayesian, impulse scale: not identified on set A",
+        );
+        fails(
+            &|r| {
+                let id = r.noise[0].bayesian.values_mut().next().unwrap();
+                id.identified = true;
+            },
+            "Bayesian, drag scale: identified on noise",
         );
         fails(
             &|r| {
@@ -2285,7 +2650,7 @@ mod tests {
             "windows-latest",
             "windows-11-arm",
         ];
-        // Each platform's parts are 1 to n of one split, n the same for each of them.
+        // Each platform's parts are 1 to n of one split, each platform with its own n.
         let mut parts: BTreeMap<&str, Vec<Part>> = BTreeMap::new();
         for line in job
             .lines()

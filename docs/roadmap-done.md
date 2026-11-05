@@ -375,6 +375,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.3a Residuals ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3b The least-squares fit ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3c1 The posterior's sampler ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.3c3 The Bayesian option, counted ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1974,6 +1975,15 @@ One line per milestone or increment, in the order it was archived within its pha
       within 0.06 standard deviations of the closed form, and on a curved one within 0.08 of a quadrature, each
       test failing when the proposal's density is left out of the weights; a draw that can't be had has no
       weight and is counted; too few effective draws says so; the same seed gives the same answer, bit for bit.
+    - **M7.3c2** is open; its entry: [roadmap](ROADMAP.md#phase-5-flight-data-and-forensics).
+      - [x] **M7.3c3 The Bayesian option, counted.** *Done when:* `hpr_forensics::fit::bayesian` draws the
+        posterior of the least-squares fit's unknowns around its answer, flying each draw; `cargo xtask fit`
+        writes its raw 90% credible intervals' three counts and three probes beside the least-squares fit's, on
+        the same 1,000 fitted flights of each of sets A and B and the same 1,500 flights for the wind, truths
+        drawn from the stated ranges and not its prior, counted per design, each test's pass or fail on the
+        report and its counts held by `fit --check`; the drag and impulse scales are identified on set A, and
+        every parameter comes back not identified on pure noise; its effective and failed draws are counted;
+        the fit's page says what it adds, which counts fail and by how much.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

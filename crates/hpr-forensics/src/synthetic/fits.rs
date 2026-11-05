@@ -38,7 +38,10 @@ use super::logger::Profile;
 use super::noise::between;
 use super::truth::{self};
 use super::{Draw, Flight, Model, Set, SyntheticError};
-use crate::fit::{self, FLOWN, Fit, Forward, Noise, Observations, Parameters, Prior, Stated};
+use crate::fit::{
+    self, FLOWN, Fit, Forward, Noise, Observations, Parameters, Prior, Sampling, Stated,
+};
+use crate::posterior::Posterior;
 use crate::residuals::{HeightKind, Simulated, Track};
 
 /// The parameters asked of the fit, in the report's order.
@@ -49,6 +52,52 @@ pub const ASKED: [Asked; 5] = [
     Asked::WindNorth,
     Asked::MassScale,
 ];
+
+/// How a fit states a parameter's 90% interval.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Method {
+    /// The least-squares fit's standard error times the shares fitted on the calibration set
+    /// ([`shares`]).
+    LeastSquares,
+    /// The Bayesian option's 5% and 95% points as they come ([`fit::bayesian`]).
+    Bayesian,
+}
+
+impl Method {
+    /// Both, in the report's order.
+    pub const ALL: [Self; 2] = [Self::LeastSquares, Self::Bayesian];
+
+    /// Its name in the report.
+    #[must_use]
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::LeastSquares => "least squares",
+            Self::Bayesian => "Bayesian",
+        }
+    }
+}
+
+/// The pilot's draws the Bayesian option makes of a flight's posterior, which widen its proposal
+/// where the posterior reaches further ([`crate::posterior::sample_in_two`]), and the draws read
+/// after them; each draw flies twice, once for the middle of the unknowns other than the wind and
+/// once for its weight. By estimate a few hundred keep 100 effective draws
+/// ([`crate::posterior::MIN_EFFECTIVE_DRAWS`]) on a posterior near its peak's Gaussian. A judgment;
+/// the report counts the flights where they fell short.
+pub const POSTERIOR_PILOT: usize = 100;
+/// And the draws read.
+pub const POSTERIOR_DRAWS: usize = 400;
+
+/// How flight `index` of `set` draws its posterior: [`POSTERIOR_PILOT`] and [`POSTERIOR_DRAWS`],
+/// on a seed of its own.
+#[must_use]
+pub fn sampling(set: Set, index: u64) -> Sampling {
+    Sampling {
+        pilot: POSTERIOR_PILOT,
+        draws: POSTERIOR_DRAWS,
+        seed: SeededRng::for_stream(set.seed(), &[index, super::POSTERIOR_KEY]).next_u64(),
+    }
+}
 
 /// A parameter asked of the fit.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -334,8 +383,11 @@ pub struct FlightFit {
     pub compared: [Compared; ASKED.len()],
     /// The heights' residual's RMS, m.
     pub rms_m: Option<f64>,
-    /// Flights flown for it, the noise-free fit's included.
+    /// Flights flown for it, the noise-free fit's included, the Bayesian option's draws not.
     pub flown: u64,
+    /// The Bayesian option's posterior of the flown parameters, where it was asked for and the
+    /// least-squares fit had something to fit.
+    pub posterior: Option<Posterior<FLOWN>>,
 }
 
 /// The bins of `observed` that its fit read (`read`, [`Fit::read`]) as the noise-free flight fills
@@ -444,6 +496,7 @@ pub fn fit_log(
     log: &FlightLog,
     flight: &Flight,
     set: Set,
+    bayesian: bool,
     files: &DesignFiles,
     tables: &mut BTreeMap<usize, Simulation>,
 ) -> Result<FlightFit, SyntheticError> {
@@ -452,10 +505,10 @@ pub fn fit_log(
     let read = readings::read(log);
     let observed = fit::observations(log, &read);
     let told = stated_for(observed.as_ref());
-    let answer = fit::fit(
+    let (answer, posterior) = fitted_and_sampled(
         observed.as_ref(),
         &told,
-        Noise::FromResiduals,
+        bayesian.then(|| sampling(set, draw.index)),
         &mut Flown::new(draw, files, weighed, tables),
     );
     let mut flown = answer.flown;
@@ -512,7 +565,27 @@ pub fn fit_log(
         compared,
         rms_m: answer.rms_m,
         flown,
+        posterior,
     })
+}
+
+/// A log's fit from its residuals' noise, and with `sampling` the Bayesian option's posterior.
+fn fitted_and_sampled(
+    observed: Option<&Observations>,
+    told: &Stated,
+    sampling: Option<Sampling>,
+    forward: &mut dyn Forward,
+) -> (Fit, Option<Posterior<FLOWN>>) {
+    match sampling {
+        Some(sampling) => {
+            let answer = fit::bayesian(observed, told, Noise::FromResiduals, forward, sampling);
+            (answer.least_squares, answer.posterior)
+        }
+        None => (
+            fit::fit(observed, told, Noise::FromResiduals, forward),
+            None,
+        ),
+    }
 }
 
 /// A log of pure noise in place of `log`: the same clock, each height a uniform draw of `size_m`
@@ -554,6 +627,7 @@ fn shares_of(fit: &FlightFit, asked: Asked) -> Shares {
 pub fn fit_noise_bins(
     flight: &Flight,
     set: Set,
+    bayesian: bool,
     size_m: f64,
     track_m: Option<f64>,
     files: &DesignFiles,
@@ -585,10 +659,10 @@ pub fn fit_noise_bins(
         reads_transonic: false,
     };
     let weighed = weighed_factor(set, index);
-    let answer = fit::fit(
+    let (answer, posterior) = fitted_and_sampled(
         Some(&observed),
         &stated_for(Some(&observed)),
-        Noise::FromResiduals,
+        bayesian.then(|| sampling(set, index)),
         &mut Flown::new(&flight.draw, files, weighed, tables),
     );
     let values = answer.parameters.to_array();
@@ -606,6 +680,31 @@ pub fn fit_noise_bins(
         }),
         rms_m: answer.rms_m,
         flown: answer.flown,
+        posterior,
+    }
+}
+
+/// `asked`'s 90% interval on `fit` by `method`; `None` where it can't be stated. A log that said
+/// nothing states the stated range's own by either: what was stated of it is all there is.
+#[must_use]
+pub fn interval_of(method: Method, fit: &FlightFit, asked: Asked) -> Option<Interval> {
+    let slot = ASKED.iter().position(|a| *a == asked)?;
+    let compared = fit.compared[slot];
+    match method {
+        Method::Bayesian if fit.fitted => {
+            let [low, _, high] = fit.posterior.as_ref()?.quantiles[asked.index()];
+            (low.is_finite() && high.is_finite() && low <= high).then_some(Interval { low, high })
+        }
+        _ => shares_of(fit, asked).interval(compared.value, compared.standard_error),
+    }
+}
+
+/// `asked`'s point on `fit` by `method`: the least-squares answer, or the posterior's median.
+fn point_of(method: Method, fit: &FlightFit, asked: Asked, slot: usize) -> f64 {
+    match (method, &fit.posterior) {
+        (Method::Bayesian, Some(posterior)) if fit.fitted => posterior.quantiles[asked.index()][1],
+        (Method::Bayesian, None) if fit.fitted => f64::NAN,
+        _ => fit.compared[slot].value,
     }
 }
 
@@ -626,12 +725,23 @@ impl Identification {
     /// `asked`'s, over `fits`.
     #[must_use]
     pub fn of(asked: Asked, fits: &[FlightFit]) -> Self {
+        Self::by(Method::LeastSquares, asked, fits)
+    }
+
+    /// `asked`'s, over `fits`, by `method`. An interval that can't be stated counts as wider than
+    /// any.
+    #[must_use]
+    pub fn by(method: Method, asked: Asked, fits: &[FlightFit]) -> Self {
         let slot = ASKED.iter().position(|a| *a == asked).unwrap_or(0);
         let mut widths: Vec<f64> = fits
             .iter()
-            .map(|f| {
-                let shares = shares_of(f, asked);
-                (shares.high - shares.low) * f.compared[slot].standard_error
+            .map(|f| match method {
+                Method::LeastSquares => {
+                    let shares = shares_of(f, asked);
+                    (shares.high - shares.low) * f.compared[slot].standard_error
+                }
+                Method::Bayesian => interval_of(method, f, asked)
+                    .map_or(f64::INFINITY, |interval| interval.high - interval.low),
             })
             .collect();
         widths.sort_by(f64::total_cmp);
@@ -671,9 +781,15 @@ pub struct Check {
     pub identification: Identification,
 }
 
-/// `asked`'s check over `fits`.
+/// `asked`'s check over `fits`, of the least-squares fit's intervals.
 #[must_use]
 pub fn check(asked: Asked, fits: &[FlightFit]) -> Check {
+    check_by(Method::LeastSquares, asked, fits)
+}
+
+/// `asked`'s check over `fits`, of `method`'s intervals.
+#[must_use]
+pub fn check_by(method: Method, asked: Asked, fits: &[FlightFit]) -> Check {
     let slot = ASKED.iter().position(|a| *a == asked).unwrap_or(0);
     let mut counts = Counts::default();
     let mut probes: BTreeMap<Probe, Counts> =
@@ -691,8 +807,7 @@ pub fn check(asked: Asked, fits: &[FlightFit]) -> Check {
         }
         stated_count += 1;
         let compared = fit.compared[slot];
-        let shares = shares_of(fit, asked);
-        let Some(interval) = shares.interval(compared.value, compared.standard_error) else {
+        let Some(interval) = interval_of(method, fit, asked) else {
             // An interval that can't be stated misses on both sides.
             let nowhere = Interval {
                 low: f64::NAN,
@@ -738,7 +853,7 @@ pub fn check(asked: Asked, fits: &[FlightFit]) -> Check {
                 .or_default()
                 .add(interval, compared.truth);
         }
-        error_sum += compared.value - compared.truth;
+        error_sum += point_of(method, fit, asked, slot) - compared.truth;
     }
     Check {
         asked,
@@ -748,7 +863,7 @@ pub fn check(asked: Asked, fits: &[FlightFit]) -> Check {
         by_drift,
         by_residual,
         mean_error: error_sum / f64::from(stated_count.max(1)),
-        identification: Identification::of(asked, fits),
+        identification: Identification::by(method, asked, fits),
     }
 }
 
@@ -834,6 +949,62 @@ mod tests {
             let width = 2.0 * Z_90 * told.sd;
             assert!((width - asked.stated_width()).abs() < 1e-12, "{asked:?}");
         }
+    }
+
+    #[test]
+    fn each_method_states_its_own_interval() {
+        let compared = Compared {
+            value: 1.0,
+            standard_error: 0.1,
+            truth: 1.05,
+        };
+        let posterior = Posterior {
+            // Each unknown's row its own: 0.9 − i/10 to 1.3 + i/10.
+            quantiles: std::array::from_fn(|i| {
+                let i = f64::from(u8::try_from(i).unwrap());
+                [0.9 - 0.1 * i, 1.0, 1.3 + 0.1 * i]
+            }),
+            effective_draws: 150.0,
+            draws: 500,
+            failed: 0,
+            enough: true,
+        };
+        let fit = FlightFit {
+            index: 0,
+            design: 0,
+            fitted: true,
+            drift: false,
+            converged: true,
+            misfit_share: Some(0.01),
+            compared: [compared; ASKED.len()],
+            rms_m: Some(0.5),
+            flown: 70,
+            posterior: Some(posterior),
+        };
+        // The posterior's 5% and 95% points as they come, for the parameter's own row.
+        let bayes = interval_of(Method::Bayesian, &fit, Asked::DragScale).unwrap();
+        assert_eq!((bayes.low, bayes.high), (0.9, 1.3));
+        let mass = interval_of(Method::Bayesian, &fit, Asked::MassScale).unwrap();
+        assert!((mass.low - 0.4).abs() < 1e-12 && (mass.high - 1.8).abs() < 1e-12);
+        // The least squares' from its shares.
+        let shares = shares(Asked::DragScale, false);
+        let least = interval_of(Method::LeastSquares, &fit, Asked::DragScale).unwrap();
+        assert!((least.low - (1.0 - shares.high * 0.1)).abs() < 1e-12);
+        // A fitted log whose posterior had no weight states none; a log that said nothing states
+        // its stated range by either.
+        let without = FlightFit {
+            posterior: None,
+            ..fit.clone()
+        };
+        assert!(interval_of(Method::Bayesian, &without, Asked::DragScale).is_none());
+        let nothing = FlightFit {
+            fitted: false,
+            posterior: None,
+            ..fit
+        };
+        let both = Method::ALL.map(|m| interval_of(m, &nothing, Asked::DragScale).unwrap());
+        assert_eq!(both[0], both[1]);
+        assert!((both[0].high - (1.0 + Z_90 * 0.1)).abs() < 1e-12);
     }
 
     #[test]
