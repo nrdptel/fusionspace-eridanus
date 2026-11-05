@@ -11,7 +11,7 @@ builds on [transonic-body-normal-force](transonic-body-normal-force.md),
 and moves that issue and the Arcas CP row of [accuracy](../accuracy.md).
 
 **In short: the short model's Mach 0.9 row is what the report plotted, the walls can't move it, and a corrected row
-leaves the whole +1.34-caliber gap (best estimate +1.35, range +1.33 to +1.66).**
+leaves the whole +1.34-caliber gap (best estimate +1.35, range +1.31 to +1.37).**
 
 - **The reading holds.** An independent re-read of the 300-ppi scans returns every committed short-model slope within
   0.3 per rad. The fin share still falls 19% (9.62 to 7.81 per rad, about 2.4 standard errors); the fins-off slope reads
@@ -23,8 +23,8 @@ leaves the whole +1.34-caliber gap (best estimate +1.35, range +1.33 to +1.66).*
   faired flush ([1] pp. 3–4). The fins-off pitching moment puts the extra Mach 0.9 lift at about 88% of length, near the
   anchors. If they inflate the baseline, the fin-share dip halves (−9%, not −19%); the CP gap doesn't move.
 - **The gap rests on Fig. 11, not on the slopes.** Fig. 11 re-reads as 71.56% (committed 71.6%); the per-angle points
-  over −2° to 2° give 69.9%, a gap of +1.66. Only a straight line in Mach from 0.8 to 0.95 (+0.80) or a −3° to 4° window
-  (+0.85) shrinks it, and the plotted data support neither.
+  over −2° to 2° give 71.8%, a gap of +1.31. Only a straight line in Mach from 0.8 to 0.95 (+0.80) or a −3° to 4° window
+  (+0.77) shrinks it, and the plotted data support neither.
 
 Confidence: high that the row is no reading or wall artifact (two channels agree, wall terms bounded); medium on its
 cause (anchors or an aft-body effect can't be told apart); ±0.13 caliber on the per-angle CP.
@@ -66,17 +66,17 @@ cause (anchors or an aft-body effect can't be told apart); ±0.13 caliber on the
 |---|--:|--:|--:|--:|--:|
 | 0.6 | 75.3% | 74.4% | 76.3% | 76.9% | 74.7% |
 | 0.8 | 71.0% | 71.7% | 70.2% | 74.4% | 70.9% |
-| 0.9 | 69.9% | 71.5% | 68.1% | 74.3% | 71.6% |
+| 0.9 | 71.8% | 71.5% | 72.1% | 74.7% | 71.6% |
 | 0.95 | 76.7% | 74.3% | 79.1% | 77.2% | 76.45% |
 | 1.0 | 82.4% | 82.2% | 82.6% | 81.5% | 83.55% |
 
-- **Curve against points.** Over −2° to 2° they agree within 0.12 caliber at 0.6, 0.8 and 0.95. At 0.9 the points sit
-  0.31 caliber forward of the curve, at 1.0 0.20 forward, as a faired curve smoothing a sharp minimum would.
+- **Curve against points.** Over −2° to 2° they agree within 0.12 caliber at 0.6, 0.8, 0.9 and 0.95; at 1.0 the points
+  sit 0.20 forward. Mach 0.9 is corrected by [arcas-fin-share-cp-station](arcas-fin-share-cp-station.md) §1.
 - **Uncertainty at 0.9.** At ±0.03 a point, C_mα over −2° to 2° carries ±0.6 per rad, ±0.07 caliber of CP; the stated
   balance accuracy (C_N ±0.03, C_m ±0.05 [1] p. 4) adds about ±0.11 if independent between angles.
 - **The window matters.** The report calls the short model "almost neutral" from −2° to 2° at Mach 0.60, 0.80 and 0.90
   [1] p. 6. Zero lift falls about 0.5° below the corrected α = 0 (fins-on C_N +0.06 to +0.09 there); the two
-  half-windows (0° to 2°, −2° to 0°) span 68.1% to 71.5%.
+  half-windows (0° to 2°, −2° to 0°) span 71.5% to 72.1%.
 - **The long model takes the same step.** Its Fig. 12 (p. 61) CP goes from 75.6% to 76.2% from Mach 0.8 to 0.9, +0.14
   caliber aft; the short model's moves +0.13 aft. The gap grows from +0.91 at 0.8 to +1.34 at 0.9 because HPR Sim's CP
   moves 0.56 caliber aft (75.9% to 79.0% of length).
@@ -149,14 +149,14 @@ HPR Sim's CP held at its −2° to 2° value, 78.98% of length (Inference throug
 |---|--:|--:|
 | committed (Fig. 11) | 71.6% | +1.34 |
 | Fig. 11 re-read | 71.56% | +1.35 |
-| per-angle points, −2° to 2° | 69.88% | +1.66 (±0.07 reading, ±0.11 balance) |
+| per-angle points, −2° to 2° | 71.77% | +1.31 (±0.07 reading, ±0.11 balance) |
 | per-angle points, 0° to 2° | 71.46% | +1.37 |
 | Mach 0.8 row plus the long model's 0.8 to 0.9 step | 71.69% | +1.33 |
 | any row above, wall-corrected | ±0.2% | ±0.04 |
 | straight line in Mach, 0.8 (70.9%) to 0.95 (76.45%) | 74.60% | +0.80 |
-| per-angle points, −3° to 4° (HPR Sim not refitted) | 74.31% | +0.85 |
+| per-angle points, −3° to 4° (HPR Sim not refitted) | 74.74% | +0.77 |
 
-- **Best estimate +1.35 caliber (+1.33 to +1.66).** Every row the figures support is on the flattering side: HPR Sim's
+- **Best estimate +1.35 caliber (+1.31 to +1.37).** Every row the figures support is on the flattering side: HPR Sim's
   CP aft of the tunnel's, its stability margin too large.
 - **The two rows that shrink it lack support.** The straight line skips the minimum Fig. 11 and the points both put at
   Mach 0.85 to 0.9; the −3° to 4° window leaves Fig. 11's stated −2° to 2° and a flight's small angles.
@@ -165,7 +165,7 @@ HPR Sim's CP held at its −2° to 2° value, 78.98% of length (Inference throug
 
 1. **Keep [#1198](https://github.com/nrdptel/fusionspace-eridanus/issues/1198) and the Arcas Robin CP row of
    [accuracy](../accuracy.md) as they are,** and don't drop or reweight the Mach 0.9 row as a reading error. The
-   committed 71.6% is the plotted value; a corrected row moves the gap −0.01 to +0.32 caliber, larger if anything.
+   committed 71.6% is the plotted value; a corrected row moves the gap −0.03 to +0.03 caliber.
 2. **Flag the short model's fins-off rows as anchors-on** in `arcas-robin-wind-tunnel.json`, and score the fin share on
    the long model, whose fins-off body is clean. Expected effect: the dip a fin method must explain shrinks from about
    19% to about 9%; the whole-rocket CP rows don't change.
