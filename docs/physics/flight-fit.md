@@ -15,10 +15,10 @@ impulse, wind and mass, and where its Bayesian option fails its tests.
 - **How well it is validated:** use the least-squares intervals; the Bayesian option's don't pass
   yet. Both are tested only on [synthetic flights](synthetic-flights.md), and only as a whole. By
   least squares, each parameter's interval passes on two sets of test flights
-  ([the sets](synthetic-flights.md#the-sets)). Set A flies the simulator's own model; set B flies a
-  deliberately different one. A truth is the value a test flight was flown with (on set B, for all
-  but the mass, the fit of its noise-free samples). The wind passes only on logs with a track, the log's latitude and
-  longitude. Choices in the model were made after seeing those two sets; the intervals' sizes come
+  ([the sets](synthetic-flights.md#the-sets)), set B's drag at the edge of its test. Set A flies the
+  simulator's own model; set B flies a deliberately different one. A truth is the value a test
+  flight was flown with. On set B it's the fit to the same flight with no noise, for all but the
+  mass. The wind passes only on logs with a track, the log's latitude and longitude. Choices in the model were made after seeing those two sets; the intervals' sizes come
   from a third. An interval holds 90% over a set, not on each design or flight
   ([How well it holds](#how-well-it-holds)). No real flight has checked it
   ([evidence row G38](../evidence.md#g38)); on a real flight, the model's own errors go into the scales with
@@ -145,8 +145,9 @@ rocket any better than a scale does.
 
 ## How well it holds
 
-[ADR-257][adr-257] sets the test. Set B's model has no true drag scale, so its truth, but for the
-mass's, is the same fit run on the flight's noise-free samples. On each set, the truths below an interval, inside it and above it
+[ADR-257][adr-257] sets the test. Set B's drag curve, thrust and wind are shaped otherwise, so it
+has no flown drag or impulse scale or wind. Their truth is the same fit run on the flight's
+noise-free samples; only the mass keeps its flown value. On each set, the truths below an interval, inside it and above it
 are counted. Each count must fit a 99.9% Clopper-Pearson band (an exact binomial interval) around
 5%, 90% and 5%. An
 interval narrowed to 0.8, widened to 1.25, or shifted down one standard error must fail it.
@@ -206,7 +207,7 @@ Those counts have limits:
 
 `hpr_forensics::fit::bayesian` runs the least-squares fit, then draws the posterior of the same
 unknowns around its answer ([ADR-317][adr-317]: importance sampling; [ADR-320][adr-320]: the
-draws in two blocks). Its 90% intervals don't pass
+wind drawn first, then the rest). Its 90% intervals don't pass
 their test yet: 4 of the 10 counts pass, 5 parameters on each of 2 sets. The wind's intervals are
 too wide. Set A's drag and set B's impulse miss too many truths on one side, so there they're too
 narrow or off center. Until they pass, read
@@ -239,7 +240,7 @@ How it draws:
   normal profile. The least-squares fit carries the same doubt in its errors instead.
 
 A fit with something to fit flies about 1,000 times, against about 70 for least squares on set A.
-In one run on a 10-core Mac, the whole report took 1 hour 48 minutes, against 16 minutes before. So each pull request checks every
+In one run on a 10-core Mac, the whole report took 1 hour 48 minutes, against about 16 minutes by least squares alone. So each pull request checks every
 21st fit, its posterior with it, and CI fits the whole each night
 ([In CI](../VALIDATION.md#in-ci-and-regenerating-the-references)).
 
@@ -281,8 +282,8 @@ drawn, so that says nothing of the sampler itself.
 The draws are counted too. A posterior's effective draws are how many equally weighted draws its
 weighted ones are worth (Kish): 400 draws with one heavy weight are worth about 1. Under 100, a
 result is flagged as too few to read, but its interval still counts in the table above: so few
-draws can leave an interval too narrow or off center, so take it as rough. The 4 of 10 include
-those posteriors; how many of the misses they cause isn't measured. Of the
+draws can leave an interval too narrow or off center, so take it as rough. All 10 counts, the 4
+that pass and the 6 that fail, include those posteriors; how many of the misses they cause isn't measured. Of the
 flights counted, 2,276 on set A had a posterior, 319 of them with fewer than 100 effective draws;
 across all 2,276, the fewest was 1.13 and the median 232. On set B, 392 of 2,296 had fewer than 100;
 the fewest was 1.01 and the median 223. A
