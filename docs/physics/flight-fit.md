@@ -16,12 +16,12 @@ impulse, wind and mass, and where its Bayesian option fails its tests.
   yet. Both are tested only on [synthetic flights](synthetic-flights.md), and only as a whole. By
   least squares, each parameter's interval passes on two sets of test flights
   ([the sets](synthetic-flights.md#the-sets)). Set A flies the simulator's own model; set B flies a
-  deliberately different one. A truth is the value a test flight was flown with (on set B, the fit
-  of its noise-free samples). The wind passes only on logs with a track, the log's latitude and
+  deliberately different one. A truth is the value a test flight was flown with (on set B, for all
+  but the mass, the fit of its noise-free samples). The wind passes only on logs with a track, the log's latitude and
   longitude. Choices in the model were made after seeing those two sets; the intervals' sizes come
   from a third. An interval holds 90% over a set, not on each design or flight
   ([How well it holds](#how-well-it-holds)). No real flight has checked it
-  ([evidence row G38](../evidence.md#g38)); on one, the model's own errors go into the scales with
+  ([evidence row G38](../evidence.md#g38)); on a real flight, the model's own errors go into the scales with
   nothing to say so. The Bayesian option draws the unknowns' possible values at random rather than
   reading the curvature at the answer. Its intervals pass 4 of their 10 tests, 5 parameters on each
   of 2 sets. Its wind's are too wide. Set A's drag reads low, 78 of 1,000 truths above its
@@ -120,8 +120,8 @@ removed a flight from either set ([the report][report]).
 
 ### A worked example
 
-Flight 140 of set A flies the Calisto design, one of the
-[example rockets](../glossary.md#example-rockets), its getting-started variant with the motor at
+Flight 140 of set A flies the Calisto design (one of the
+[example rockets](../glossary.md#example-rockets)) in its getting-started variant with the motor at
 −1.255 m (−4.12 ft), with a logger that holds a track. The report keeps only counts, so a test,
 `the_pages_worked_example_is_a_real_flights`, fits this flight again and checks these rows.
 Its heights fit to 0.97 m (3.2 ft), in 63 simulated flights. A factor is times the simulator's
@@ -145,8 +145,8 @@ rocket any better than a scale does.
 
 ## How well it holds
 
-[ADR-257][adr-257] sets the test. Set B's model has no true drag scale, so its truth is the same fit
-run on the flight's noise-free samples. On each set, the truths below an interval, inside it and above it
+[ADR-257][adr-257] sets the test. Set B's model has no true drag scale, so its truth, but for the
+mass's, is the same fit run on the flight's noise-free samples. On each set, the truths below an interval, inside it and above it
 are counted. Each count must fit a 99.9% Clopper-Pearson band (an exact binomial interval) around
 5%, 90% and 5%. An
 interval narrowed to 0.8, widened to 1.25, or shifted down one standard error must fail it.
