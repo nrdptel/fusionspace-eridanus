@@ -21,11 +21,11 @@ impulse, wind and mass, and where its Bayesian option fails its tests.
   mass. The wind passes only on logs with a track, the log's latitude and longitude. Choices in the model were made after seeing those two sets; the intervals' sizes come
   from a third. An interval holds 90% over a set, not on each design or flight
   ([How well it holds](#how-well-it-holds)). No real flight has checked it
-  ([evidence row G38](../evidence.md#g38)); on a real flight, the model's own errors go into the scales with
-  nothing to say so. The Bayesian option draws the unknowns' possible values at random rather than
+  ([evidence row G38](../evidence.md#g38)). On a real flight, the model's own errors go into the
+  scales with nothing to say so. The Bayesian option draws the unknowns' possible values at random rather than
   reading the curvature at the answer. Its intervals pass 4 of their 10 tests, 5 parameters on each
-  of 2 sets. Its wind's are too wide. Set A's drag reads low, 78 of 1,000 truths above its
-  intervals, and set B's impulse high, 83 below, where a tail passes with at most 74: each makes the
+  of 2 sets. Its wind's are too wide. A tail passes with at most 74 of 1,000 truths. Set
+  A's drag reads low, 78 above its intervals, and set B's impulse high, 83 below. Each makes the
   rocket look better than it flew ([The Bayesian option](#the-bayesian-option)).
 - **What it leaves out:** anything past apogee, and the accelerometer. A log whose only height is a
   GNSS receiver's isn't fitted, since the log reader takes no apogee from it; that's every log with
@@ -206,8 +206,8 @@ Those counts have limits:
 ## The Bayesian option
 
 `hpr_forensics::fit::bayesian` runs the least-squares fit, then draws the posterior of the same
-unknowns around its answer ([ADR-317][adr-317]: importance sampling; [ADR-320][adr-320]: the
-wind drawn first, then the rest). Its 90% intervals don't pass
+unknowns around its answer. [ADR-317][adr-317] chose importance sampling; [ADR-320][adr-320] draws
+the wind first, then the rest. Its 90% intervals don't pass
 their test yet: 4 of the 10 counts pass, 5 parameters on each of 2 sets. The wind's intervals are
 too wide. Set A's drag and set B's impulse miss too many truths on one side, so there they're too
 narrow or off center. Until they pass, read
