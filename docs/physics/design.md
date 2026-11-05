@@ -230,7 +230,10 @@ Errors inside a stage or component name it (`DesignError::InComponent`).
 
 - A component's overrides cover the component alone. With
   `overrides_include_children`, they cover the component and everything attached to it. A stage's
-  overrides cover the whole stage, measured from its forward end. Motors are never covered.
+  overrides cover the whole stage, measured from its forward end. Motors are never covered. A
+  `.ork` stage override whose flag says it doesn't cover the stage's parts, or that writes no flag,
+  is held back instead ([The `.ork` format](../format/ork.md#the-values-inside-the-tags)): OpenRocket adds it to the
+  parts' mass.
 - A component or stage can also state a drag coefficient (`drag_override`, with its own
   `include_children`). It plays no part in mass or inertia; the aerodynamics read it
   ([A part's stated drag coefficient](aero.md#a-parts-stated-drag-coefficient)).

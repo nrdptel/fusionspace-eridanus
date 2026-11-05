@@ -299,8 +299,35 @@ fn stage(
     let at = format!("openrocket/rocket/stage[{index}]");
     let mut values = Values::new(element, &at, warnings);
     let name = values.word(&["name"]).unwrap_or_default();
-    let (overrides, _, drag_override) = overrides(&mut values);
-    // A stage's override is the whole stage's ([`hpr_design::Rocket::layout`]).
+    let (overrides, covers_parts, drag_override) = overrides(&mut values);
+    // A stage's override is the whole stage's ([`hpr_design::Rocket::layout`]). OpenRocket 24.12
+    // adds one whose flag is false, or not written, to what the stage's parts weigh, and ignores a
+    // center of gravity override alone (measured: `conventions.py`'s stage probes, #1225). HPR Sim
+    // doesn't read that yet, so such a stage is held back.
+    if !covers_parts && (overrides.mass_kg.is_some() || overrides.cg_aft_m.is_some()) {
+        let own = if overrides.mass_kg.is_some() {
+            "overridesubcomponentsmass"
+        } else {
+            "overridesubcomponentscg"
+        };
+        // As read: the per-quantity flag, or the single older one setting all three.
+        let said = if [own, "overridesubcomponents"]
+            .iter()
+            .any(|name| element.child(name).is_some())
+        {
+            "reads false"
+        } else {
+            "is not written"
+        };
+        values.warn_at(
+            WarningKind::Dropped,
+            format!(
+                "the stage's override doesn't cover its parts (`{own}` {said}). OpenRocket adds such an \
+                 override to what the parts weigh; HPR Sim reads a stage's override as the whole \
+                 stage's, so the design isn't flown"
+            ),
+        );
+    }
     let covered = Covered::default().within("stage", &overrides, true, drag_override);
     let id = ids.take(&mut Values::new(element, &at, warnings), "stage");
     if let Some(separation) = recovery::separation(element, &at, warnings) {
