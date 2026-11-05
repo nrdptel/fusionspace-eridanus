@@ -264,7 +264,7 @@ How it draws:
   start flies more, about 21 flights a fit. If the fit is given a noise level rather than taking
   it from the log, the track is read the old way, as the least-squares fit states it.
 
-  How far to trust it: the synthetic receivers are filters of this same shape, inside the stated
+  This model's limits: the synthetic receivers are filters of this same shape, inside the stated
   range. So the wind's pass below doesn't test the shape. The noise model, the filter, the pad and
   where the draws start were chosen after reading counts on the first 300 tracked flights of each
   set. Those flights are among the 1,497 counted. A real receiver's loop speed isn't
