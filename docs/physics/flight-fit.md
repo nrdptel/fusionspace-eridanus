@@ -124,7 +124,8 @@ Flight 140 of set A flies the Calisto design (one of the
 [example rockets](../glossary.md#example-rockets)) in its getting-started variant with the motor at
 −1.255 m (−4.12 ft), with a logger that holds a track. The report keeps only counts, so a test,
 `the_pages_worked_example_is_a_real_flights`, fits this flight again and checks these rows.
-Its heights fit to 0.97 m (3.2 ft), in 63 simulated flights. A factor is times the simulator's
+Its heights fit to 0.97 m (3.2 ft), in 84 simulated flights: 63 by least squares and 21 by the
+Bayesian option's search for its posterior's peak. A factor is times the simulator's
 value; the mass's, times the weighed mass:
 
 | Parameter | Fitted (factor) | 90% interval (factor) | Truth (factor) |

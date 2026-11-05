@@ -415,7 +415,8 @@ pub struct Fit {
     /// nothing. A barometer's bins at or past [`readings::TRANSONIC_MACH`] on the flight found are
     /// left out.
     pub read: Vec<bool>,
-    /// Flights flown.
+    /// Flights flown: the least-squares fit's and, by the Bayesian option on a log with a track,
+    /// its search for the posterior's peak. The posterior's draws are counted apart.
     pub flown: u64,
 }
 
@@ -650,11 +651,14 @@ pub struct Bayesian {
 /// The Bayesian option ([ADR-317][adr-317], [ADR-320][adr-320]): [`fit`], then the posterior of
 /// its unknowns drawn around its answer by [`posterior::sample_in_two`], each draw a flight flown.
 ///
-/// The posterior is the least-squares fit's own: the same residuals at the same noise, the noise
-/// widened for a residual that runs on from bin to bin as the fit's errors widen it, the same
-/// bins read and the same priors. The sensor's four linear unknowns (height offset, gain, drift,
-/// port) are integrated out in closed form, `−2 ln p(θ) = χ²_min(θ) + ln det H(θ)`, so seven
-/// unknowns are drawn: the six flown and the clock. On a log of height alone the wind's shear
+/// The posterior is the least-squares fit's own on the heights: the same residuals at the same
+/// noise, the noise widened for a residual that runs on from bin to bin as the fit's errors widen
+/// it, the same bins read and the same priors. On a track whose noise the fit takes from the log,
+/// it reads the drift through a receiver's navigation filter and integrates out the track's noise,
+/// its run and the pad's position ([ADR-321][adr-321], `Problem::track_noise_integrated`); its
+/// draws are then centered on that posterior's peak, found by three Gauss-Newton steps. The
+/// sensor's four linear unknowns (height offset, gain, drift, port) are integrated out in closed
+/// form, `−2 ln p(θ) = χ²_min(θ) + ln det H(θ)`, so seven unknowns are drawn: the six flown and the clock. On a log of height alone the wind's shear
 /// exponent is an eighth, uniform on `[0, SHEAR_EXPONENT]`. The wind is drawn first, from its
 /// block of the fit's covariance at the answer; the rest about where one Gauss-Newton step puts
 /// them in that wind, from their covariance given the wind; a pilot widens either block's scale
@@ -663,6 +667,7 @@ pub struct Bayesian {
 ///
 /// [adr-317]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0317-m7-3c-in-two-the-sampler-then-the-test.md
 /// [adr-320]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0320-m7-3c2-the-bayesian-option-in-two-blocks.md
+/// [adr-321]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0321-m7-3c4-in-three-the-track-as-a-receiver-reads-it.md
 pub fn bayesian(
     observed: Option<&Observations>,
     stated: &Stated,
