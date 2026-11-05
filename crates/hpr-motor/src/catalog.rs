@@ -2,7 +2,7 @@
 //! license.
 //!
 //! [`Catalog::bundled`] is the catalog compiled into the crate: ThrustCurve.org's whole solid
-//! catalog, captured 2026-10-28, with 1,004 motors and 1,700 curve files; 80 of the motors have no
+//! catalog, captured 2026-10-28, with 1,004 motors and 1,701 curve files; 80 of the motors have no
 //! file that reads, and can't fly. Every lookup reads it ([ADR-302][adr-302]). The decision record
 //! on solid motors and the first bundled catalog is [ADR-005][adr-005]. Newer curves are fetched
 //! and cached by `hpr-net`, the online layer that starts at [M5.1][m5-1].
@@ -1344,7 +1344,7 @@ mod tests {
             .filter(|c| c.check.passes)
             .count();
         assert_eq!(checked, passing);
-        // M5.7b1's snapshot: 412 of its 1,700 files pass (`cargo xtask motor-catalog`).
+        // M5.7b1's snapshot: 412 of its 1,701 files pass (`cargo xtask motor-catalog`).
         assert_eq!(passing, 412);
         assert_eq!(
             listed,
@@ -1398,14 +1398,14 @@ mod tests {
                 counts.files,
                 counts.left_out
             ),
-            (1_004, 924, 1_700, 6)
+            (1_004, 924, 1_701, 5)
         );
         assert_eq!((counts.files_passing, counts.motors_passing), (412, 239));
         // Every file compiled in is one the index reads, so the two sums agree; and the total is
-        // the bytes `wc -c` gives for `data/thrustcurve/catalog.json` and those 1,700 files.
+        // the bytes `wc -c` gives for `data/thrustcurve/catalog.json` and those 1,701 files.
         assert_eq!(bundled::CURVE_FILES.len(), files);
         assert_eq!(bundled_size_bytes(), bytes);
-        assert_eq!(bytes, 4_163_396);
+        assert_eq!(bytes, 4_164_364);
     }
 
     /// Every bundled entry's size, masses and delays are its default curve file header's (#295):

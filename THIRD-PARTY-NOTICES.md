@@ -120,10 +120,8 @@ adds a source.
   - `files.json`: every data file the download answers list for those motors, 1,706, each entry
     copied unchanged but for the file's bytes, with its license label.
   - `curves/`: each file's bytes, unchanged: 589 that ThrustCurve.org marks public domain
-    (`PD`), 33 marked free to use (`free`) and 1,083 with no license. A file marked `other`
-    (restricted by its uploader) is never bundled; this snapshot has none. One file with no
-    license is held back until the maintainer clears it, and isn't in the repository (issue
-    #1006). The bundle uses each
+    (`PD`), 33 marked free to use (`free`) and 1,084 with no license. A file marked `other`
+    (restricted by its uploader) is never bundled; this snapshot has none. The bundle uses each
     file's measured points as facts, as ADR-287 uses the records; each file's label is kept beside
     it, so a file can be found and taken out if its uploader asks (ADR-288 §2, the project's own
     reading, not legal advice).

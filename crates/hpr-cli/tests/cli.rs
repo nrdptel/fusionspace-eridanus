@@ -585,8 +585,8 @@ fn motors_show_lists_every_file_with_its_check_and_label() {
         assert_eq!(flown.len(), 1, "{name}");
         assert_eq!(source["format"], flown[0]["format"], "{name}");
     }
-    // The catalog's 1,700 files, of its 924 motors with one; 80 have none.
-    assert_eq!((seen, curveless), (1700, 80));
+    // The catalog's 1,701 files, of its 924 motors with one; 80 have none.
+    assert_eq!((seen, curveless), (1701, 80));
 }
 
 /// A name several catalog motors share shows each of them.

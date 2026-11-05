@@ -92,6 +92,12 @@ about 40 of the command-line tests failed. The causes are separate pieces of wor
    *done when* isn't met by it: M5.7b1 is marked blocked on the maintainer, and is checked off
    once the file is in. Nothing else in M5.7b1 waits on it, and M5.7b2 can go ahead: the file's
    motor has another file that reads.
+
+   *Amended 2026-11-05:* the maintainer cleared the file. `snapshot.py` writes it and the index
+   reads it like the rest; `HELD` is gone from both. Five files are left out. It is a
+   certification RASP file for the AeroTech H195, which had only a user's RockSim file, and it now
+   ranks first as that motor's default. Its curve gives the same total impulse, average thrust and
+   burn time as the other file, to the last bit, so no figure the motor lists moves.
 6. **Tests held to the 32 until M5.7c.** The lesson-L42 and statistics-code oracle tests and the
    converter's round trip run on M5.7a's 32 files. The round trip over every file is
    [issue #1002](https://github.com/nrdptel/fusionspace-eridanus/issues/1002).

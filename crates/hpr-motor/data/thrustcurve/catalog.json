@@ -18302,6 +18302,23 @@
       },
       "curves": [
         {
+          "simfile_id": "5f4294d20002e900000007de",
+          "format": "RASP",
+          "source": "cert",
+          "license": "unknown",
+          "file": "curves/5f4294d20002e900000007de.eng",
+          "sha256": "c5fbe937a889f6ed17bd82645104a10b5b1297b03ed168dd3f2decbcd510c748",
+          "url": "https://www.thrustcurve.org/simfiles/5f4294d20002e900000007de/download/data.eng",
+          "info_url": "https://www.thrustcurve.org/simfiles/5f4294d20002e900000007de/",
+          "retrieved": "2026-10-28",
+          "check": {
+            "total_impulse_ns": 236.859104,
+            "average_thrust_n": 204.8605641818889,
+            "burn_time_s": 1.1561966791700362,
+            "passes": false
+          }
+        },
+        {
           "simfile_id": "5f9244341bca580004171745",
           "format": "RockSim",
           "source": "user",
@@ -57968,11 +57985,6 @@
       "simfile_id": "5f4294d20002e900000003be",
       "motor_id": "5f4294d200023100000001ce",
       "reason": "unreadable: .rse line 35: time 0.605 s is before the previous point's 0.61 s"
-    },
-    {
-      "simfile_id": "5f4294d20002e900000007de",
-      "motor_id": "5f4294d200023100000003f3",
-      "reason": "held back: its bytes aren't in this repository until the maintainer clears them"
     }
   ]
 }
