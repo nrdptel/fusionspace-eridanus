@@ -352,26 +352,32 @@ measured: a value other than `true` or `false`, which is dropped with a warning 
 not flown). Also not measured: a flag tag written twice on one part, which is read at its first
 copy, with a warning too.
 
-**A stage's override** is read as the whole stage's, which is what a flag of `true` says. A stage
-whose flag is `false`, or that writes none (in a schema 1.10 file), means something else to
-OpenRocket 24.12, measured on four [probe designs](../glossary.md#probe-design) of a 0.40 kg stage
-with a 2 kg override:
+**A stage's override** is read as the whole stage's, which is what a flag of `true` says: in
+OpenRocket, the override's "Override for all subcomponents" box is ticked. With the box unticked,
+the flag is `false`, and OpenRocket 24.12 reads the override differently. A stage that writes no
+flag reads the same way. Four [probe designs](../glossary.md#probe-design) measured it on a stage
+whose parts weigh 0.40 kg, with a 2 kg mass override, a center of gravity override at 0.4 m
+(1.3 ft), or both:
 
-| The stage's override, not covering its parts | OpenRocket's stage | Read as the whole stage's |
+| Stage override, box unticked | OpenRocket's stage | Read as the whole stage's |
 |---|---|---|
 | mass, flag `false` | 2.40 kg: the parts and 2 kg more, at the parts' center | 2 kg |
 | mass, no flag | 2.40 kg, as above | 2 kg |
-| center of gravity at 0.4 m (1.3 ft) alone, flag `false` | 0.40 kg at the parts' center, 0.47 m (1.5 ft): no effect | the center at 0.4 m (1.3 ft) |
+| center at 0.4 m (1.3 ft) alone, flag `false` | 0.40 kg at the parts' center, 0.47 m (1.5 ft): no effect | the center at 0.4 m (1.3 ft) |
 | both, flags `false` | 2.40 kg, the 2 kg at 0.4 m (1.3 ft) | 2 kg at 0.4 m (1.3 ft) |
 
-So OpenRocket adds the override to the parts. HPR Sim can't say that yet, so such a stage is
-**held back**: a `Dropped` warning names the flag (`overridesubcomponentsmass`, or
-`overridesubcomponentscg` for a center alone) and says whether it reads false or isn't written,
-and the design is not flown. Taking the override as the whole stage's would fly a stage whose
-override adds 300 g of paint as weighing 300 g in all: far too light, so its descent rate would read
-low, the side that flatters. The test
-`a_stage_override_not_covering_its_parts_is_held_back` in `hpr_validate::openrocket` holds HPR
-Sim to the probes.
+So OpenRocket adds such a mass override to the parts, and a center override alone changes
+nothing. HPR Sim can't say that yet, so such a stage is **held back**, in a file of any schema
+(only 1.10 was measured). A `Dropped` warning names the flag (`overridesubcomponentsmass`, the
+older single `overridesubcomponents`, or `overridesubcomponentscg` for a center alone) and says
+whether it is false or isn't written. The override is left out of the design, and the design is
+not flown. An export writes the override and its flags back as the file had them. Taking the
+override as the whole stage's would be the flattering side. For example, a stage whose override
+adds 300 g of paint would weigh 300 g in all: far too light, so its descent rate would read low.
+To fly such a design, tick the box and enter the whole stage's mass, or put the extra mass in a
+mass component of its own. The tests `a_stage_override_not_covering_its_parts_is_held_back` in
+`hpr_validate::openrocket` and `a_stage_override_not_covering_its_parts_is_held_and_written_back`
+in the `.ork` writer hold HPR Sim to this.
 
 ### Warnings, not failures
 

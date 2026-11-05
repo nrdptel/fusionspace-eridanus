@@ -554,29 +554,28 @@ mod tests {
     const STAGE_NOT_COVERING: [(&str, &str); 4] = [
         (
             "a mass override on the stage, not its parts",
-            "`overridesubcomponentsmass` reads false",
+            "`overridesubcomponentsmass` is false",
         ),
         (
             "a centre of gravity override on the stage, not its parts",
-            "`overridesubcomponentscg` reads false",
+            "`overridesubcomponentscg` is false",
         ),
         (
             "both overrides on the stage, not its parts",
-            "`overridesubcomponentsmass` reads false",
+            "`overridesubcomponentsmass` is false",
         ),
         (
             "a mass override on the stage with no flag",
-            "`overridesubcomponentsmass` is not written",
+            "`overridesubcomponentsmass` isn't written",
         ),
     ];
 
     /// OpenRocket 24.12 adds a stage's mass override that doesn't cover the stage's parts to what
     /// the parts weigh, whether its flag is `false` or not written, and leaves a center of gravity
-    /// override alone without effect. HPR Sim reads a stage's override as the whole stage's, so
-    /// each of these stages is held back by a `Dropped` warning naming the flag, rather than flown
-    /// at the wrong mass: on these probes OpenRocket's mass is the parts' plus 2 kg, never the 2 kg
-    /// HPR Sim's reading gives, or, for a center of gravity override alone, the parts' at their own
-    /// center, not at the override's 0.4 m.
+    /// override alone without effect. HPR Sim reads a stage's override as the whole stage's, which
+    /// would make these stages 2 kg, or move the parts' center to 0.4 m. So each is held back by a
+    /// warning naming the flag, and the override is left out of the held design: the parts alone.
+    /// (`hpr_io`'s own test pins the warning's kind and the export of the kept tags.)
     #[test]
     fn a_stage_override_not_covering_its_parts_is_held_back() {
         let record = record();
@@ -598,11 +597,11 @@ mod tests {
                 "{question}: OpenRocket weighs {} kg",
                 theirs[0]
             );
-            // Read as the whole stage's, the mass is 2 kg, or the center is moved to 0.4 m.
-            let apart = relative(ours[0], theirs[0])
-                .abs()
-                .max((ours[1] - theirs[1]).abs());
-            assert!(apart > 0.05, "{question}: {ours:?} {theirs:?}");
+            // The held design leaves the override out: the parts alone.
+            assert!(
+                relative(ours[0], parts_kg).abs() < 1e-6,
+                "{question}: {ours:?} {theirs:?}"
+            );
             let held: Vec<&String> = warnings
                 .iter()
                 .filter(|w| w.contains("doesn't cover its parts"))

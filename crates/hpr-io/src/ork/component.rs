@@ -299,34 +299,48 @@ fn stage(
     let at = format!("openrocket/rocket/stage[{index}]");
     let mut values = Values::new(element, &at, warnings);
     let name = values.word(&["name"]).unwrap_or_default();
-    let (overrides, covers_parts, drag_override) = overrides(&mut values);
+    let (mut overrides, covers_parts, drag_override) = overrides(&mut values);
     // A stage's override is the whole stage's ([`hpr_design::Rocket::layout`]). OpenRocket 24.12
-    // adds one whose flag is false, or not written, to what the stage's parts weigh, and ignores a
-    // center of gravity override alone (measured: `conventions.py`'s stage probes, #1225). HPR Sim
-    // doesn't read that yet, so such a stage is held back.
+    // adds a mass override whose flag is false, or not written, to what the stage's parts weigh,
+    // and a center of gravity override alone so flagged changes nothing (measured:
+    // `conventions.py`'s stage probes, #1225). HPR Sim can't say that yet, so such a stage is
+    // held back: the override is left out of the design and its tags kept as the file wrote them,
+    // so that an export writes back what the file said, not a flag of its own.
     if !covers_parts && (overrides.mass_kg.is_some() || overrides.cg_aft_m.is_some()) {
         let own = if overrides.mass_kg.is_some() {
             "overridesubcomponentsmass"
         } else {
             "overridesubcomponentscg"
         };
-        // As read: the per-quantity flag, or the single older one setting all three.
-        let said = if [own, "overridesubcomponents"]
-            .iter()
-            .any(|name| element.child(name).is_some())
-        {
-            "reads false"
-        } else {
-            "is not written"
-        };
+        // The tag that says false: the per-quantity flag, or the single older one.
+        let said = [own, "overridesubcomponents"]
+            .into_iter()
+            .find(|name| {
+                element
+                    .child(name)
+                    .is_some_and(|flag| flag.text().trim() == "false")
+            })
+            .map_or_else(
+                || {
+                    if element.child(own).is_some() {
+                        format!("`{own}` isn't readable")
+                    } else {
+                        format!("`{own}` isn't written")
+                    }
+                },
+                |name| format!("`{name}` is false"),
+            );
         values.warn_at(
             WarningKind::Dropped,
             format!(
-                "the stage's override doesn't cover its parts (`{own}` {said}). OpenRocket adds such an \
-                 override to what the parts weigh; HPR Sim reads a stage's override as the whole \
-                 stage's, so the design isn't flown"
+                "the stage's override doesn't cover its parts ({said}). OpenRocket adds such a \
+                 mass override to what the parts weigh; HPR Sim reads a stage's override as the \
+                 whole stage's, so the override was left out and the design isn't flown"
             ),
         );
+        values.forget(&["overridemass", "overridecg"]);
+        values.forget(&OVERRIDE_FLAGS);
+        overrides = Overrides::default();
     }
     let covered = Covered::default().within("stage", &overrides, true, drag_override);
     let id = ids.take(&mut Values::new(element, &at, warnings), "stage");

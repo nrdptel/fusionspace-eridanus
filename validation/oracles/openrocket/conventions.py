@@ -44,7 +44,7 @@ import mass  # noqa: E402 - the structure and the per-part breakdown, asked the 
 
 
 # Provenance written into the fixture (docs/VALIDATION.md). Update when regenerating.
-GENERATED = "2026-09-28"
+GENERATED = "2026-11-05"
 
 
 def uid(n):

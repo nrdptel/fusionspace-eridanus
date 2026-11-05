@@ -1,9 +1,9 @@
 {
  "command": "refs/venv/bin/python validation/oracles/openrocket/conventions.py validation/fixtures/ork/openrocket-conventions.json",
- "generated": "2026-09-28",
+ "generated": "2026-11-05",
  "inputs_sha256": {
   "automatic_radius.py": "71c7eaafeebb0d076714f773ad72aa2ca8484dbd5b0a596c4e270aca82836da3",
-  "conventions.py": "9dc2be283634468a2882379b979d1f99bb2728855ecb6cb9442f52406b8c6fad",
+  "conventions.py": "02dbf2a51bfc8d89149c9a87c14cc40cfa0710d3e8c9fcfbd40728c5edfb08dc",
   "mass.py": "ce8b915d342ff631d3ad3ec74244d2c2faf55321f710a4b036eda5d7671cabe5"
  },
  "jar_sha256": "4959b72f52f5f607941e9722abbb7b7f0c4a38ebbbf84204a329db9f31c4f897",
