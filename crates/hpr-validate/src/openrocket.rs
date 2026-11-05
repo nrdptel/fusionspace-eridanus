@@ -549,6 +549,68 @@ mod tests {
         }
     }
 
+    /// A stage override that doesn't cover the stage's parts, by a flag of `false` or by none
+    /// written, with the flag the warning names (#1225).
+    const STAGE_NOT_COVERING: [(&str, &str); 4] = [
+        (
+            "a mass override on the stage, not its parts",
+            "`overridesubcomponentsmass` is false",
+        ),
+        (
+            "a centre of gravity override on the stage, not its parts",
+            "`overridesubcomponentscg` is false",
+        ),
+        (
+            "both overrides on the stage, not its parts",
+            "`overridesubcomponentsmass` is false",
+        ),
+        (
+            "a mass override on the stage with no flag",
+            "`overridesubcomponentsmass` isn't written",
+        ),
+    ];
+
+    /// OpenRocket 24.12 adds a stage's mass override that doesn't cover the stage's parts to what
+    /// the parts weigh, whether its flag is `false` or not written, and leaves a center of gravity
+    /// override alone without effect. HPR Sim reads a stage's override as the whole stage's, which
+    /// would make these stages 2 kg, or move the parts' center to 0.4 m. So each is held back by a
+    /// warning naming the flag, and the override is left out of the held design: the parts alone.
+    /// (`hpr_io`'s own test pins the warning's kind and the export of the kept tags.)
+    #[test]
+    fn a_stage_override_not_covering_its_parts_is_held_back() {
+        let record = record();
+        let parts_kg = both(probe(
+            &record,
+            "a mass override on the stage, not its parts",
+        ))
+        .1[0]
+            - 2.0;
+        for (question, said) in STAGE_NOT_COVERING {
+            let (ours, theirs, warnings) = both(probe(&record, question));
+            let added = if question.contains("gravity") {
+                0.0
+            } else {
+                2.0
+            };
+            assert!(
+                relative(theirs[0], parts_kg + added).abs() < 1e-9,
+                "{question}: OpenRocket weighs {} kg",
+                theirs[0]
+            );
+            // The held design leaves the override out: the parts alone.
+            assert!(
+                relative(ours[0], parts_kg).abs() < 1e-6,
+                "{question}: {ours:?} {theirs:?}"
+            );
+            let held: Vec<&String> = warnings
+                .iter()
+                .filter(|w| w.contains("doesn't cover its parts"))
+                .collect();
+            assert_eq!(held.len(), 1, "{question}: {warnings:?}");
+            assert!(held[0].contains(said), "{question}: {held:?}");
+        }
+    }
+
     /// The single subcomponent-override flag written before schema 1.9, and how far hpr's center
     /// of mass is from OpenRocket's, in meters, on each probe of it.
     const OLD_FLAG: [(&str, f64); 11] = [
@@ -2008,6 +2070,7 @@ mod tests {
         read.extend(INERTIA.iter().map(|(question, _)| *question));
         read.extend(ALONE.iter().map(|(question, _)| *question));
         read.extend(OLD_FLAG.iter().map(|(question, _)| *question));
+        read.extend(STAGE_NOT_COVERING.iter().map(|(question, _)| *question));
         read.extend(BORES);
         read.push(BORE_REFUSED);
         read.extend(TUBE_FINS);

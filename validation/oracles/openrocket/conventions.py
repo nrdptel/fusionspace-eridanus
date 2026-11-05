@@ -44,7 +44,7 @@ import mass  # noqa: E402 - the structure and the per-part breakdown, asked the 
 
 
 # Provenance written into the fixture (docs/VALIDATION.md). Update when regenerating.
-GENERATED = "2026-09-28"
+GENERATED = "2026-11-05"
 
 
 def uid(n):
@@ -286,6 +286,24 @@ STAGE_PROBES = {
     "a stage override over a part's own": (
         overrides(mass_kg=2.0, children_mass="true"),
         [nose(overrides(mass_kg=0.5)), tube()],
+    ),
+    # #1225: a stage's override whose flag says it doesn't cover the stage's parts, and one with no
+    # flag at all in a schema 1.10 file.
+    "a mass override on the stage, not its parts": (
+        overrides(mass_kg=2.0, children_mass="false"),
+        [nose(), tube()],
+    ),
+    "a centre of gravity override on the stage, not its parts": (
+        overrides(cg_m=0.4, children_cg="false"),
+        [nose(), tube()],
+    ),
+    "both overrides on the stage, not its parts": (
+        overrides(2.0, 0.4, "false", "false"),
+        [nose(), tube()],
+    ),
+    "a mass override on the stage with no flag": (
+        overrides(mass_kg=2.0),
+        [nose(), tube()],
     ),
 }
 
