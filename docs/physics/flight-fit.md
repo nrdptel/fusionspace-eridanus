@@ -12,22 +12,21 @@ impulse, wind and mass, and where its Bayesian option fails its tests.
 - **Sources:** Levenberg-Marquardt as in *Numerical Recipes*; the widening for correlated residuals
   from Wilks; the wind's growth with height from IEC 61400-1 ([Sources](#sources)). The test of an
   interval is [ADR-257's][adr-257].
-- **How well it is validated:** only on [synthetic flights](synthetic-flights.md), and only as a
-  whole. By least squares, each parameter's interval passes on two sets of test flights
+- **How well it is validated:** use the least-squares intervals; the Bayesian option's don't pass
+  yet. Both are tested only on [synthetic flights](synthetic-flights.md), and only as a whole. By
+  least squares, each parameter's interval passes on two sets of test flights
   ([the sets](synthetic-flights.md#the-sets)). Set A flies the simulator's own model; set B flies a
-  deliberately different one. The wind passes only on logs with a track, the log's latitude and
-  longitude ([How well it holds](#how-well-it-holds)). Choices in the model were made after seeing those two
-  sets; the intervals' sizes come from a third. No real flight has checked it
-  ([evidence row G38](../evidence.md#g38)). An interval holds 90% over a set, not on each design or
-  flight: on set B, the Prometheus design's drag interval holds 68 of its 96 truths. Set B's drag
-  passes at the edge of its test. On set B, "truth" is the same fit run on the flight's noise-free
-  samples, since that model has no true drag scale. On a real flight, the model's own errors go into
-  the scales with nothing to say so. The Bayesian option is a second kind of interval, from drawing
-  the unknowns' possible values at random rather than reading the curvature at the answer. Its
-  intervals pass 4 of their 10 tests, 5 parameters on each of 2 sets. Its wind's are too wide. Set
-  A's drag reads low, 78 of 1,000 truths above its intervals, and set B's impulse high, 83 below,
-  where a tail passes with at most 74: each makes the rocket look better than it flew. Use the
-  least-squares intervals ([The Bayesian option](#the-bayesian-option)).
+  deliberately different one. A truth is the value a test flight was flown with (on set B, the fit
+  of its noise-free samples). The wind passes only on logs with a track, the log's latitude and
+  longitude. Choices in the model were made after seeing those two sets; the intervals' sizes come
+  from a third. An interval holds 90% over a set, not on each design or flight
+  ([How well it holds](#how-well-it-holds)). No real flight has checked it
+  ([evidence row G38](../evidence.md#g38)); on one, the model's own errors go into the scales with
+  nothing to say so. The Bayesian option draws the unknowns' possible values at random rather than
+  reading the curvature at the answer. Its intervals pass 4 of their 10 tests, 5 parameters on each
+  of 2 sets. Its wind's are too wide. Set A's drag reads low, 78 of 1,000 truths above its
+  intervals, and set B's impulse high, 83 below, where a tail passes with at most 74: each makes the
+  rocket look better than it flew ([The Bayesian option](#the-bayesian-option)).
 - **What it leaves out:** anything past apogee, and the accelerometer. A log whose only height is a
   GNSS receiver's isn't fitted, since the log reader takes no apogee from it; that's every log with
   nothing to fit among the sets' counted draws, about one in six ([when](#when-a-log-has-nothing-to-fit)). Its wind is
@@ -121,7 +120,8 @@ removed a flight from either set ([the report][report]).
 
 ### A worked example
 
-Flight 140 of set A flies the Calisto design, its getting-started variant with the motor at
+Flight 140 of set A flies the Calisto design, one of the
+[example rockets](../glossary.md#example-rockets), its getting-started variant with the motor at
 −1.255 m (−4.12 ft), with a logger that holds a track. The report keeps only counts, so a test,
 `the_pages_worked_example_is_a_real_flights`, fits this flight again and checks these rows.
 Its heights fit to 0.97 m (3.2 ft), in 63 simulated flights. A factor is times the simulator's
@@ -145,7 +145,8 @@ rocket any better than a scale does.
 
 ## How well it holds
 
-[ADR-257][adr-257] sets the test. On each set, the truths below an interval, inside it and above it
+[ADR-257][adr-257] sets the test. Set B's model has no true drag scale, so its truth is the same fit
+run on the flight's noise-free samples. On each set, the truths below an interval, inside it and above it
 are counted. Each count must fit a 99.9% Clopper-Pearson band (an exact binomial interval) around
 5%, 90% and 5%. An
 interval narrowed to 0.8, widened to 1.25, or shifted down one standard error must fail it.
@@ -195,7 +196,7 @@ Those counts have limits:
   holds 68 of its 96 truths, and its wind toward the north 127 of 161.
 - Coverage holds over a set, not on each flight. A flight whose heights fit to 1 m (3.3 ft) or worse
   misses more often. Set B's drag interval holds 376 of 453 such flights, and 525 of 547 that fit
-  better ([#1108](https://github.com/nrdptel/fusionspace-eridanus/issues/1108)).
+  better (the issue that tracks it: [#1108](https://github.com/nrdptel/fusionspace-eridanus/issues/1108)).
 - Some fits stop short of the bottom of $\chi^2$. Among the flights counted and the wind's, 2 on set
   A and 7 on set B did, counting set B's truths' own fits.
 - A wind on a log of height alone isn't counted and shouldn't be read. Height alone can't tell a
@@ -204,7 +205,8 @@ Those counts have limits:
 ## The Bayesian option
 
 `hpr_forensics::fit::bayesian` runs the least-squares fit, then draws the posterior of the same
-unknowns around its answer ([ADR-317][adr-317], [ADR-320][adr-320]). Its 90% intervals don't pass
+unknowns around its answer ([ADR-317][adr-317]: importance sampling; [ADR-320][adr-320]: the
+draws in two blocks). Its 90% intervals don't pass
 their test yet: 4 of the 10 counts pass, 5 parameters on each of 2 sets. The wind's intervals are
 too wide. Set A's drag and set B's impulse miss too many truths on one side, so there they're too
 narrow or off center. Until they pass, read
@@ -223,7 +225,7 @@ points, as they come, with no shares. So a posterior that bends or leans one way
 How it draws:
 
 - **The wind first.** On a log of height alone the heights can't tell the wind. The drag, the
-  impulse and the clock follow the wind along a curve. So each draw takes the wind first, then the
+  impulse and the clock offset follow the wind along a curve. So each draw takes the wind first, then the
   other unknowns around where one step of the least-squares fit's search puts them in that wind. That step is a flight,
   so each draw flies twice.
 - **A pilot widens the draws.** 100 pilot draws measure how far the posterior reaches. Where it
@@ -237,7 +239,7 @@ How it draws:
   normal profile. The least-squares fit carries the same doubt in its errors instead.
 
 A fit with something to fit flies about 1,000 times, against about 70 for least squares on set A.
-The whole report takes 1 hour 48 minutes on 10 cores, against 16 minutes before. So each pull request checks every
+In one run on a 10-core Mac, the whole report took 1 hour 48 minutes, against 16 minutes before. So each pull request checks every
 21st fit, its posterior with it, and CI fits the whole each night
 ([In CI](../VALIDATION.md#in-ci-and-regenerating-the-references)).
 
@@ -279,7 +281,8 @@ drawn, so that says nothing of the sampler itself.
 The draws are counted too. A posterior's effective draws are how many equally weighted draws its
 weighted ones are worth (Kish): 400 draws with one heavy weight are worth about 1. Under 100, a
 result is flagged as too few to read, but its interval still counts in the table above: so few
-draws can leave an interval too narrow or off center, so take it as rough. Of the
+draws can leave an interval too narrow or off center, so take it as rough. The 4 of 10 include
+those posteriors; how many of the misses they cause isn't measured. Of the
 flights counted, 2,276 on set A had a posterior, 319 of them with fewer than 100 effective draws;
 across all 2,276, the fewest was 1.13 and the median 232. On set B, 392 of 2,296 had fewer than 100;
 the fewest was 1.01 and the median 223. A
