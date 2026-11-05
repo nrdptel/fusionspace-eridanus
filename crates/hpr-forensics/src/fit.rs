@@ -1479,10 +1479,7 @@ fn track_minus_two_log(series: [&[f64]; 2]) -> f64 {
         return 0.0;
     }
     let total: f64 = axes.iter().map(|a| a[0]).sum();
-    #[expect(
-        clippy::cast_precision_loss,
-        reason = "two axes at most"
-    )]
+    #[expect(clippy::cast_precision_loss, reason = "two axes at most")]
     let offsets = axes.len() as f64;
     let nodes = f64::from(TRACK_CORRELATION_NODES);
     let logs: Vec<f64> = (0..TRACK_CORRELATION_NODES)
@@ -2228,13 +2225,18 @@ mod tests {
         let north = [-0.6, 0.2, 0.8, 1.9, 1.4, -0.3];
         let got = track_minus_two_log([&east, &north]);
         let dense = dense_track_minus_two_log([&east, &north]);
-        assert!((got - dense).abs() < 1e-9 * dense.abs().max(1.0), "{got} and {dense}");
+        assert!(
+            (got - dense).abs() < 1e-9 * dense.abs().max(1.0),
+            "{got} and {dense}"
+        );
         let moved: Vec<f64> = east.iter().map(|v| v + 40.0).collect();
         let shifted = track_minus_two_log([&moved, &north]);
         assert!((shifted - got).abs() < 1e-9, "{shifted} and {got}");
         let k: f64 = 3.0;
-        let (big_east, big_north): (Vec<f64>, Vec<f64>) =
-            (east.iter().map(|v| k * v).collect(), north.iter().map(|v| k * v).collect());
+        let (big_east, big_north): (Vec<f64>, Vec<f64>) = (
+            east.iter().map(|v| k * v).collect(),
+            north.iter().map(|v| k * v).collect(),
+        );
         let scaled = track_minus_two_log([&big_east, &big_north]);
         let expected = got + (13.0 - 2.0) * (k * k).ln();
         assert!((scaled - expected).abs() < 1e-9, "{scaled} and {expected}");

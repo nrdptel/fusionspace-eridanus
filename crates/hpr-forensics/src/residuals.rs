@@ -294,7 +294,11 @@ impl Simulated {
         let mut error = [0.0_f64; 2];
         let mut error_rate = [0.0_f64; 2];
         let mut speed: [Option<f64>; 2] = [Some(0.0), Some(0.0)];
-        let mut previous = (first.time_s, [first.east_m, first.north_m], [first.east_m, first.north_m]);
+        let mut previous = (
+            first.time_s,
+            [first.east_m, first.north_m],
+            [first.east_m, first.north_m],
+        );
         let mut wanted = times_s.iter().copied().peekable();
         while let Some(&t) = wanted.peek() {
             if t > first.time_s {
@@ -1461,7 +1465,10 @@ mod tests {
             }
             let got = flight.lagged_drift_m(omega, std::f64::consts::FRAC_1_SQRT_2, &times);
             for ((t, want), (have, _)) in times.iter().zip(&expected).zip(&got) {
-                assert!((want - have).abs() < 1e-3, "ωn {omega}, {t} s: {want} and {have}");
+                assert!(
+                    (want - have).abs() < 1e-3,
+                    "ωn {omega}, {t} s: {want} and {have}"
+                );
             }
         }
     }
