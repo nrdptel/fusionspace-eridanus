@@ -55,9 +55,11 @@ pub const USAGE: &str =
                            The check above, on the fits of every part in <dir>. Fails unless they
                            are parts 1 to n of one split, and fit each flight once.
   fit --calibrate          Fit the calibration set and print each parameter's shares; writes nothing.
-  fit --try <set> <count>  Fit a set's first flights, print each parameter's shares and counts on
-                           them by both methods, the posteriors' effective draws, and the seconds
-                           a fit takes; writes nothing.";
+  fit --try <set> <count> [--track]
+                           Fit a set's first flights, or with --track its first flights with a
+                           track logger, print each parameter's shares and counts on them by both
+                           methods, the posteriors' effective draws, and the seconds a fit takes;
+                           writes nothing.";
 
 /// The report's path under the repository, without its extension.
 const REPORT: &str = "validation/reports/fit-intervals";
@@ -1634,7 +1636,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
             }
             Ok(())
         }
-        ["--try", set, count] => {
+        ["--try", set, count] | ["--try", set, count, "--track"] => {
+            let tracked = args.len() == 4;
             let set = match set {
                 "a" => Set::A,
                 "b" => Set::B,
@@ -1643,7 +1646,12 @@ pub fn run(args: &[String]) -> Result<(), String> {
             };
             let count: u64 = count.parse().map_err(|_| "--try takes a count")?;
             let start = Instant::now();
-            let made = fit_set(set, &first(count), &files, None)?;
+            let indices = if tracked {
+                fits::track_flights(set, count)
+            } else {
+                first(count)
+            };
+            let made = fit_set(set, &indices, &files, None)?;
             let seconds = start.elapsed().as_secs_f64();
             let flown: u64 = made.iter().map(|f| f.flown).sum();
             println!(

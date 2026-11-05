@@ -463,6 +463,7 @@ const KNOWN_SD: f64 = 1e-4;
 
 /// The fit's residual, weighted: heights, then the horizontal track's east and north, then each
 /// flown parameter from what is stated of it, then the two offsets.
+#[derive(Clone)]
 struct Problem<'a> {
     observed: &'a Observations,
     stated: &'a Stated,
@@ -475,6 +476,14 @@ struct Problem<'a> {
     port_sd: f64,
     height_sd_m: f64,
     horizontal_sd_m: f64,
+    /// The natural frequency of the receiver's navigation filter the track's rows are read
+    /// through, rad/s ([`Simulated::lagged_drift_m`]); `None` reads the drift as flown. Only the
+    /// Bayesian option's proposal sets it.
+    receiver_rad_s: Option<f64>,
+    /// Whether the Bayesian option takes the track's noise, run, pad and receiver's filter as
+    /// unknowns ([`Problem::track_noise_integrated`]): only where the noise comes from the log's
+    /// own residuals, [`Noise::FromResiduals`]; noise given or known is taken as it is given.
+    track_unknowns: bool,
     /// Whether each height bin is read: a barometer's bin at or past [`readings::TRANSONIC_MACH`]
     /// on the flight first flown isn't, as its port reads the flow over the nose.
     read: Vec<bool>,
@@ -509,10 +518,9 @@ impl Problem<'_> {
                 0.0
             });
         }
-        for &(t, e, n) in &self.observed.horizontal {
-            let (east, north) = flown.drift_m(t - tau);
-            r.push((e - east) / self.horizontal_sd_m);
-            r.push((n - north) / self.horizontal_sd_m);
+        for (east, north) in self.track_misfit_m(tau, flown) {
+            r.push(east / self.horizontal_sd_m);
+            r.push(north / self.horizontal_sd_m);
         }
         for (value, prior) in x.iter().zip(self.stated) {
             r.push((value - prior.mean) / prior.sd);
@@ -731,6 +739,8 @@ fn fit_and_sample(
         },
         height_sd_m,
         horizontal_sd_m,
+        receiver_rad_s: None,
+        track_unknowns: matches!(noise, Noise::FromResiduals),
         read: Vec::new(),
     };
     let mut problem = match noise {
@@ -754,6 +764,8 @@ fn fit_and_sample(
             port_sd: KNOWN_SD,
             height_sd_m: height_m,
             horizontal_sd_m: horizontal_m,
+            receiver_rad_s: None,
+            track_unknowns: false,
             read: Vec::new(),
         },
     };
@@ -962,19 +974,93 @@ fn fit_and_sample(
         );
     }
     let posterior = sampling.and_then(|sampling| {
+        // The Bayesian option reads the track through the receiver's navigation filter and weighs
+        // it by its own noise, both integrated out (`Problem::track_noise_integrated`), not as the
+        // least-squares fit does. So its proposal is centered on that posterior's peak, found by
+        // Gauss-Newton steps from the answer, each reading the track through the filter the
+        // track's likelihood favors there and weighing it by its misfit's RMS, widened for a
+        // misfit that runs on; the covariance and Jacobian are those of the last step.
+        let mut posterior_problem = problem.clone();
+        let mut posterior_columns = columns.clone();
+        let mut posterior_l = l;
+        let mut center = x;
+        if problem.track_unknowns && !observed.horizontal.is_empty() {
+            let as_parameters = |x: &[f64; UNKNOWNS]| {
+                let mut parameters = [0.0; FLOWN];
+                parameters.copy_from_slice(&x[..FLOWN]);
+                Parameters::from_array(parameters)
+            };
+            for _ in 0..PEAK_STEPS {
+                flown.set(flown.get() + 1);
+                let at_center = forward.fly(&as_parameters(&center), until_s).ok()?;
+                let omega = posterior_problem
+                    .receiver_logs(center[FLOWN], &at_center)
+                    .into_iter()
+                    .max_by(|a, b| a.1.total_cmp(&b.1))
+                    .map(|(omega, _)| omega)?;
+                posterior_problem.receiver_rad_s = Some(omega);
+                let (_, rms_m) = residual_noise(&posterior_problem, &center, &at_center);
+                let (_, rho) = residual_correlation(&posterior_problem, &center, &at_center);
+                posterior_problem.horizontal_sd_m =
+                    rms_m.max(PROPOSAL_HORIZONTAL_FLOOR_M) * inflation(rho).sqrt();
+                let r = posterior_problem.residuals(&center, &at_center);
+                let mut step_columns: Vec<Vec<f64>> = Vec::with_capacity(UNKNOWNS);
+                for (j, step) in STEPS.iter().enumerate() {
+                    let mut ahead = center;
+                    ahead[j] += step;
+                    flown.set(flown.get() + 1);
+                    let flight = forward.fly(&as_parameters(&ahead), until_s).ok()?;
+                    let mut column = posterior_problem.residuals(&ahead, &flight);
+                    for (c, b) in column.iter_mut().zip(&r) {
+                        *c = (*c - b) / step;
+                    }
+                    step_columns.push(column);
+                }
+                step_columns.extend(posterior_problem.sensor_columns(&center, &at_center));
+                let mut information = [[0.0; UNKNOWNS]; UNKNOWNS];
+                for i in 0..UNKNOWNS {
+                    for j in 0..=i {
+                        let value: f64 = step_columns[i]
+                            .iter()
+                            .zip(&step_columns[j])
+                            .map(|(a, b)| a * b)
+                            .sum();
+                        information[i][j] = value;
+                        information[j][i] = value;
+                    }
+                }
+                let factor = cholesky(&information)?;
+                let pull: [f64; UNKNOWNS] = std::array::from_fn(|j| {
+                    -step_columns[j]
+                        .iter()
+                        .zip(&r)
+                        .map(|(c, v)| c * v)
+                        .sum::<f64>()
+                });
+                let step = solve(&factor, &pull);
+                posterior_columns = step_columns;
+                posterior_l = factor;
+                if !step.iter().all(|v| v.is_finite()) {
+                    break;
+                }
+                for (c, d) in center.iter_mut().zip(step) {
+                    *c += d;
+                }
+            }
+        }
         let mut covariance = [[0.0; UNKNOWNS]; UNKNOWNS];
         for j in 0..UNKNOWNS {
             let mut unit = [0.0; UNKNOWNS];
             unit[j] = 1.0;
-            for (i, value) in solve(&l, &unit).into_iter().enumerate() {
+            for (i, value) in solve(&posterior_l, &unit).into_iter().enumerate() {
                 covariance[i][j] = value;
             }
         }
         let laplace = Laplace {
-            x: &x,
+            x: &center,
             covariance: &covariance,
-            columns: &columns,
-            problem: &problem,
+            columns: &posterior_columns,
+            problem: &posterior_problem,
             until_s,
         };
         // On heights alone, the wind's growth with height is unknown too, as the errors' strong
@@ -1195,7 +1281,12 @@ fn draw_posterior<const M: usize>(
                 return Some(f64::NEG_INFINITY);
             }
             let flight = fly_at(point)?;
-            Some(-0.5 * problem.integrated(&theta(point), &flight)?.minus_two_log())
+            let theta = theta(point);
+            let integrated = problem.integrated(&theta, &flight)?;
+            Some(
+                -0.5 * (integrated.minus_two_log()
+                    + problem.track_noise_integrated(theta[FLOWN], &flight, &integrated.at)),
+            )
         },
     )?;
     Some(Posterior {
@@ -1228,6 +1319,195 @@ impl Problem<'_> {
     }
 }
 
+impl Problem<'_> {
+    /// What the Bayesian option's `−2 ln p` takes in place of the track's share of `at`, the
+    /// residuals [`Problem::residuals`] gives: [`track_minus_two_log`] of the track's residuals in
+    /// meters, less their weighted squares, which `χ²` holds. 0 for a log with no track. The track's
+    /// residuals depend on no linear sensor unknown, so its share of `χ²_min` is theirs as they are.
+    fn track_noise_integrated(&self, clock_s: f64, flown: &Simulated, at: &[f64]) -> f64 {
+        if !self.track_unknowns || self.observed.horizontal.is_empty() {
+            return 0.0;
+        }
+        // The residuals hold one per height bin, then east and north for each track bin.
+        let start = self.observed.heights.len();
+        let rows = &at[start..start + 2 * self.observed.horizontal.len()];
+        let logs: Vec<f64> = self
+            .receiver_logs(clock_s, flown)
+            .into_iter()
+            .map(|(_, log)| log)
+            .collect();
+        let top = logs.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+        let sum: f64 = logs.iter().map(|l| (l - top).exp()).sum();
+        let nodes = f64::from(RECEIVER_LOOP_NODES);
+        -2.0 * (top + (sum / nodes).ln()) - chi2(rows)
+    }
+
+    /// At each of [`RECEIVER_LOOP_NODES`] natural frequencies over [`RECEIVER_LOOP_STATED_RAD_S`],
+    /// evenly in its logarithm, that frequency and `ln` of the track's likelihood read through a
+    /// filter of it, the noise integrated out ([`track_minus_two_log`]), on clock offset `clock_s`.
+    fn receiver_logs(&self, clock_s: f64, flown: &Simulated) -> Vec<(f64, f64)> {
+        let times: Vec<f64> = self
+            .observed
+            .horizontal
+            .iter()
+            .map(|&(t, _, _)| t - clock_s)
+            .collect();
+        let nodes = f64::from(RECEIVER_LOOP_NODES);
+        let [low, high] = RECEIVER_LOOP_STATED_RAD_S;
+        (0..RECEIVER_LOOP_NODES)
+            .map(|i| {
+                let omega = low * (high / low).powf((f64::from(i) + 0.5) / nodes);
+                let lagged = flown.lagged_drift_m(omega, RECEIVER_LOOP_DAMPING, &times);
+                let (east, north): (Vec<f64>, Vec<f64>) = self
+                    .observed
+                    .horizontal
+                    .iter()
+                    .zip(&lagged)
+                    .map(|(&(_, e, n), &(east, north))| (e - east, n - north))
+                    .unzip();
+                (omega, -0.5 * track_minus_two_log([&east, &north]))
+            })
+            .collect()
+    }
+
+    /// The track's misfit, east and north, m, at each track bin on clock offset `clock_s`: the
+    /// log's drift less the flight's, read through [`Problem::receiver_rad_s`]'s filter where set.
+    fn track_misfit_m(&self, clock_s: f64, flown: &Simulated) -> Vec<(f64, f64)> {
+        let observed = &self.observed.horizontal;
+        match self.receiver_rad_s {
+            None => observed
+                .iter()
+                .map(|&(t, e, n)| {
+                    let (east, north) = flown.drift_m(t - clock_s);
+                    (e - east, n - north)
+                })
+                .collect(),
+            Some(omega) => {
+                let times: Vec<f64> = observed.iter().map(|&(t, _, _)| t - clock_s).collect();
+                let misfit: Vec<(f64, f64)> = observed
+                    .iter()
+                    .zip(flown.lagged_drift_m(omega, RECEIVER_LOOP_DAMPING, &times))
+                    .map(|(&(_, e, n), (east, north))| (e - east, n - north))
+                    .collect();
+                // The pad's position is integrated out too, so each axis's mean is taken off.
+                #[expect(
+                    clippy::cast_precision_loss,
+                    reason = "a count of bins is far below 2^53"
+                )]
+                let count = misfit.len().max(1) as f64;
+                let east = misfit.iter().map(|m| m.0).sum::<f64>() / count;
+                let north = misfit.iter().map(|m| m.1).sum::<f64>() / count;
+                misfit.iter().map(|m| (m.0 - east, m.1 - north)).collect()
+            }
+        }
+    }
+}
+
+/// A receiver's navigation filter's natural frequency, rad/s, as the Bayesian option takes it:
+/// log-uniform over this range, stated, not fitted. It reaches under and past the 0.47 to
+/// 0.69 rad/s a type-2 filter on 3 m fixes took in docs/research/gnss-in-boost.md §4's
+/// simulation; at its top a filter lags a 10 g boost by `a/ωn²`, 3.9 m, near a receiver that
+/// follows its own Doppler (under 1 m, the same §).
+const RECEIVER_LOOP_STATED_RAD_S: [f64; 2] = [0.2, 5.0];
+
+/// The navigation filter's damping ratio, 1/√2, the usual choice for a second-order loop.
+const RECEIVER_LOOP_DAMPING: f64 = std::f64::consts::FRAC_1_SQRT_2;
+
+/// The midpoint rule's nodes over [`RECEIVER_LOOP_STATED_RAD_S`], in its logarithm: 3.4% apart.
+const RECEIVER_LOOP_NODES: u32 = 96;
+
+/// The track noise's correlation from one bin to the next, as the Bayesian option takes it:
+/// uniform from 0 to this, the least-squares fit's own cap ([`MAX_CORRELATION`]), stated, not
+/// fitted.
+const TRACK_CORRELATION_STATED: f64 = 0.99;
+
+/// The midpoint rule's nodes over [`TRACK_CORRELATION_STATED`]'s range, `0.005` apart: a track of
+/// `N` residuals settles the correlation to about `1/√N`, 0.08 on a short one of 160.
+const TRACK_CORRELATION_NODES: u32 = 198;
+
+/// The Gauss-Newton steps the Bayesian option takes toward its posterior's peak on a log with a
+/// track, from the least-squares answer, each `1 +` [`FLOWN`] flights.
+const PEAK_STEPS: usize = 3;
+
+/// The least the Bayesian option's proposal takes a track bin's noise as, m. The proposal only
+/// sets where the draws fall; the weights are the posterior's own, whatever it is.
+const PROPOSAL_HORIZONTAL_FLOOR_M: f64 = 0.5;
+
+/// `−2 ln` of the horizontal track's likelihood with its noise's scale and its correlation from one
+/// bin to the next integrated out, up to a constant, on its residuals in meters, east and north.
+///
+/// Each axis's residuals `e₁ … eₙ`, in the order of their bins, are taken as a first-order
+/// autoregression of one standard deviation `σ` and one lag-one correlation `φ` for both axes. Its
+/// exact Gaussian likelihood (J. D. Hamilton, *Time Series Analysis*, Princeton, 1994, §5.2) is
+/// `−2 ln p(e | σ, φ) = N ln σ² − S ln(1 − φ²) + Q(φ)/σ² + const`, `N` residuals in `S` series,
+/// `Q(φ) = Σ [(1 − φ²) e₁² + Σₖ₌₂ (eₖ − φ eₖ₋₁)²]` over the axes, a quadratic in `φ`. Jeffreys'
+/// prior on a scale, `p(σ) ∝ 1/σ`, integrates `σ` out in closed form,
+/// `∫ σ^(−N−1) exp(−Q/2σ²) dσ ∝ Q^(−N/2)` (G. E. P. Box and G. C. Tiao, *Bayesian Inference in
+/// Statistical Analysis*, Addison-Wesley, 1973, §2.4), leaving
+/// `p(e | φ) ∝ (1 − φ²)^(S/2) Q(φ)^(−N/2)`. `φ` is uniform on `[0, 0.9]`
+/// ([`TRACK_CORRELATION_STATED`]), integrated by the midpoint rule on
+/// [`TRACK_CORRELATION_NODES`] nodes, in logarithms. No flight is flown for it.
+///
+/// So the track is weighed by its own scatter and run, where the least-squares fit states it: at
+/// least [`FLOOR_HORIZONTAL_M`], widened for residuals that run on.
+fn track_minus_two_log(series: [&[f64]; 2]) -> f64 {
+    // Per axis: its count, `e₁`, `Σ e²`, `Σ eₖeₖ₋₁`, `Σ eₖ₋₁²` less `e₁²` (the values strictly
+    // inside), `Σₖ₌₂ eₖ` and `Σₖ₌₂ eₖ₋₁`.
+    let axes: Vec<[f64; 7]> = series
+        .iter()
+        .filter(|e| e.len() >= 2)
+        .map(|e| {
+            let m = e.len();
+            #[expect(
+                clippy::cast_precision_loss,
+                reason = "a count of residuals is far below 2^53"
+            )]
+            let count = m as f64;
+            [
+                count,
+                e[0],
+                e.iter().map(|v| v * v).sum(),
+                e.windows(2).map(|w| w[0] * w[1]).sum(),
+                e[1..m - 1].iter().map(|v| v * v).sum(),
+                e[1..].iter().sum(),
+                e[..m - 1].iter().sum(),
+            ]
+        })
+        .collect();
+    if axes.is_empty() {
+        return 0.0;
+    }
+    let total: f64 = axes.iter().map(|a| a[0]).sum();
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "two axes at most"
+    )]
+    let offsets = axes.len() as f64;
+    let nodes = f64::from(TRACK_CORRELATION_NODES);
+    let logs: Vec<f64> = (0..TRACK_CORRELATION_NODES)
+        .map(|i| {
+            let phi = (f64::from(i) + 0.5) * TRACK_CORRELATION_STATED / nodes;
+            let keep = 1.0 - phi * phi;
+            let (mut q, mut log_det) = (0.0, 0.0);
+            for &[count, first, all, along, inner, later, earlier] in &axes {
+                // The whitened residuals `w` and the whitened constant `x`: `w₁ = √(1−φ²) e₁`,
+                // `wₖ = eₖ − φ eₖ₋₁`; `x₁ = √(1−φ²)`, `xₖ = 1 − φ`.
+                let ww = all - 2.0 * phi * along + phi * phi * inner;
+                let wx = keep * first + (1.0 - phi) * (later - phi * earlier);
+                let xx = keep + (count - 1.0) * (1.0 - phi).powi(2);
+                q += ww - wx * wx / xx;
+                log_det += xx.ln();
+            }
+            0.5 * offsets * keep.ln()
+                - 0.5 * log_det
+                - 0.5 * (total - offsets) * q.max(f64::MIN_POSITIVE).ln()
+        })
+        .collect();
+    let top = logs.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+    let sum: f64 = logs.iter().map(|l| (l - top).exp()).sum();
+    -2.0 * (top + (sum / nodes).ln())
+}
+
 /// The heights' and the horizontal track's residuals' RMS at `x`, m; 0 for a track with none.
 fn residual_noise(problem: &Problem<'_>, x: &[f64; UNKNOWNS], flown: &Simulated) -> (f64, f64) {
     let tau = x[FLOWN];
@@ -1251,13 +1531,10 @@ fn residual_noise(problem: &Problem<'_>, x: &[f64; UNKNOWNS], flown: &Simulated)
             read += 1;
         }
     }
-    let horizontal: f64 = observed
-        .horizontal
+    let horizontal: f64 = problem
+        .track_misfit_m(tau, flown)
         .iter()
-        .map(|&(t, e, n)| {
-            let (east, north) = flown.drift_m(t - tau);
-            (e - east).powi(2) + (n - north).powi(2)
-        })
+        .map(|(east, north)| east.powi(2) + north.powi(2))
         .sum();
     (
         rms(heights, read),
@@ -1293,14 +1570,8 @@ fn residual_correlation(
         .filter(|(_, used)| **used)
         .map(|(&(t, y), _)| y - problem.height_m(x, flown, t))
         .collect();
-    let (east, north): (Vec<f64>, Vec<f64>) = observed
-        .horizontal
-        .iter()
-        .map(|&(t, e, n)| {
-            let (east, north) = flown.drift_m(t - x[FLOWN]);
-            (e - east, n - north)
-        })
-        .unzip();
+    let (east, north): (Vec<f64>, Vec<f64>) =
+        problem.track_misfit_m(x[FLOWN], flown).into_iter().unzip();
     (lag_one(&[&heights]), lag_one(&[&east, &north]))
 }
 
@@ -1456,7 +1727,18 @@ mod tests {
         // to the wind alone) plus an independent uniform on 0 to 0.02. Each point then stands
         // between its place with a track and 0.02 above it; the median about the uniform's mean,
         // 0.01, above; the 5% point less than that and the 95% point more, as the sum is wider.
-        let tracked_seen = observed(1.0, 1.0, 0.0, 0.0);
+        // A barometer's and a receiver's noise, white, as a log's: on noise-free heights the
+        // residuals are rounding, and how far their run widens the heights' noise is chance; a
+        // noise-free track leaves the track's noise, integrated out, nothing to settle on.
+        let mut tracked_seen = observed(1.0, 1.0, 0.0, 0.0);
+        let mut rng = hpr_core::random::SeededRng::seed_from_u64(5);
+        for (_, h) in &mut tracked_seen.heights {
+            *h += rng.standard_normal();
+        }
+        for (_, east, north) in &mut tracked_seen.horizontal {
+            *east += 2.0 * rng.standard_normal();
+            *north += 2.0 * rng.standard_normal();
+        }
         let tracked = bayesian(
             Some(&tracked_seen),
             &wide(),
@@ -1499,6 +1781,8 @@ mod tests {
             port_sd: PORT_SD,
             height_sd_m: 0.5,
             horizontal_sd_m: FLOOR_HORIZONTAL_M,
+            receiver_rad_s: None,
+            track_unknowns: false,
             read: vec![true; seen.heights.len()],
         };
         let theta = [1.04, 0.96, 1.0, 0.0, 0.0, 1.0, 0.01];
@@ -1867,5 +2151,98 @@ mod tests {
         let x = solve(&l, &[6.0, 5.0]);
         assert!((x[0] - 1.0).abs() < 1e-12 && (x[1] - 1.0).abs() < 1e-12);
         assert!(cholesky(&[[1.0, 2.0], [2.0, 1.0]]).is_none());
+    }
+
+    /// `−2 ln` of the track's likelihood by dense matrices, apart from the whitening: on each
+    /// axis the AR(1) covariance `Σᵢⱼ = φ^|i−j| / (1 − φ²)` of unit innovations, the offset
+    /// integrated as generalized least squares on a column of ones, `σ` by Jeffreys' prior, then
+    /// `φ` by the same midpoint rule.
+    #[expect(
+        clippy::needless_range_loop,
+        clippy::cast_possible_wrap,
+        clippy::cast_possible_truncation,
+        clippy::cast_precision_loss,
+        reason = "a dense matrix written out by its indices, of a few rows"
+    )]
+    fn dense_track_minus_two_log(series: [&[f64]; 2]) -> f64 {
+        let nodes = f64::from(TRACK_CORRELATION_NODES);
+        let total: usize = series.iter().map(|e| e.len()).sum();
+        let logs: Vec<f64> = (0..TRACK_CORRELATION_NODES)
+            .map(|i| {
+                let phi = (f64::from(i) + 0.5) * TRACK_CORRELATION_STATED / nodes;
+                let (mut q, mut log_terms) = (0.0, 0.0);
+                for e in series {
+                    let m = e.len();
+                    // Σ⁻¹ by Gauss–Jordan on [Σ | I].
+                    let mut a = vec![vec![0.0; 2 * m]; m];
+                    for r in 0..m {
+                        for c in 0..m {
+                            a[r][c] = phi.powi((r as i32 - c as i32).abs()) / (1.0 - phi * phi);
+                        }
+                        a[r][m + r] = 1.0;
+                    }
+                    let mut log_det = 0.0;
+                    for c in 0..m {
+                        let pivot = a[c][c];
+                        log_det += pivot.ln();
+                        for v in a[c].iter_mut() {
+                            *v /= pivot;
+                        }
+                        for r in 0..m {
+                            if r != c {
+                                let f = a[r][c];
+                                let row = a[c].clone();
+                                for (v, w) in a[r].iter_mut().zip(&row) {
+                                    *v -= f * w;
+                                }
+                            }
+                        }
+                    }
+                    let inv = |r: usize, c: usize| a[r][m + c];
+                    let (mut ee, mut oe, mut oo) = (0.0, 0.0, 0.0);
+                    for r in 0..m {
+                        for c in 0..m {
+                            ee += e[r] * inv(r, c) * e[c];
+                            oe += inv(r, c) * e[c];
+                            oo += inv(r, c);
+                        }
+                    }
+                    q += ee - oe * oe / oo;
+                    log_terms += -0.5 * log_det - 0.5 * oo.ln();
+                }
+                log_terms - 0.5 * (total as f64 - 2.0) * q.ln()
+            })
+            .collect();
+        let top = logs.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+        let sum: f64 = logs.iter().map(|l| (l - top).exp()).sum();
+        -2.0 * (top + (sum / nodes).ln())
+    }
+
+    /// The track's likelihood with its noise, run and pad integrated out is the dense
+    /// computation's, takes no notice of a constant added to an axis (the pad), and moves by
+    /// `(N − 2) ln k²` when every residual is `k` times as large.
+    #[test]
+    fn the_tracks_noise_and_pad_integrate_out_as_the_dense_computation_does() {
+        let east = [1.3, -0.4, 2.2, 0.9, -1.7, 0.5, 1.1];
+        let north = [-0.6, 0.2, 0.8, 1.9, 1.4, -0.3];
+        let got = track_minus_two_log([&east, &north]);
+        let dense = dense_track_minus_two_log([&east, &north]);
+        assert!((got - dense).abs() < 1e-9 * dense.abs().max(1.0), "{got} and {dense}");
+        let moved: Vec<f64> = east.iter().map(|v| v + 40.0).collect();
+        let shifted = track_minus_two_log([&moved, &north]);
+        assert!((shifted - got).abs() < 1e-9, "{shifted} and {got}");
+        let k: f64 = 3.0;
+        let (big_east, big_north): (Vec<f64>, Vec<f64>) =
+            (east.iter().map(|v| k * v).collect(), north.iter().map(|v| k * v).collect());
+        let scaled = track_minus_two_log([&big_east, &big_north]);
+        let expected = got + (13.0 - 2.0) * (k * k).ln();
+        assert!((scaled - expected).abs() < 1e-9, "{scaled} and {expected}");
+        // A residual that runs on is likelier read with its run than a scattered one of the same
+        // spread, so the integral favors it: the order of its values matters.
+        let run = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0];
+        let mut scattered = run;
+        scattered.swap(1, 5);
+        scattered.swap(2, 6);
+        assert!(track_minus_two_log([&run, &[]]) < track_minus_two_log([&scattered, &[]]));
     }
 }
