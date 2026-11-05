@@ -117,5 +117,7 @@ reason. It is a certification RASP file for the AeroTech H195, which had only a 
 and it now ranks first as that motor's default. Its curve gives the same total impulse, average
 thrust and burn time as the other file, to the last bit, so no figure the motor lists moves. Neither
 file passes the 1% check: both burn times are 1.4% over the record's. With the file in, M5.7b1's
-*done when* is met as written: every file but a restricted one is in, and the five left out are each
-listed with their reason, as its second clause asks. M5.7 is done.
+*done when* is met as written: `snapshot.py` writes every one of the 1,706 files into `hpr-motor`'s
+data byte for byte (none is restricted), and the index reads 1,701 of them; the five it can't read
+as their motor's curve are left out of the index, each listed with its reason, as its second clause
+asks. M5.7 is done.
