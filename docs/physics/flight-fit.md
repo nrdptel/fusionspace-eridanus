@@ -23,18 +23,17 @@ a Bayesian option that doesn't pass its tests yet.
   flight: on set B, the Prometheus design's drag interval holds 68 of its 96 truths. Set B's drag
   passes at the edge of its test. On set B, "truth" is the same fit run on the flight's noise-free
   samples, since that model has no true drag scale. On a real flight, the model's own errors go into
-  the scales with nothing to say so.
+  the scales with nothing to say so. The Bayesian option is a second kind of interval, from drawing
+  the unknowns' possible values at random rather than reading the curvature at the answer. Its
+  intervals pass 4 of their 10 tests, 5 parameters on each of 2 sets. Its wind's are too wide. Set A's drag reads low, 78 truths above its
+  intervals, and set B's impulse high, 83 below: each makes the rocket look better than it flew.
+  Use the least-squares intervals ([The Bayesian option](#the-bayesian-option)).
 - **What it leaves out:** anything past apogee, and the accelerometer. A log whose only height is a
   GNSS receiver's isn't fitted, since the log reader takes no apogee from it; that's every log with
   nothing to fit among the sets' counted draws, about one in six ([when](#when-a-log-has-nothing-to-fit)). Its wind is
   constant with height; on a log of height alone, a wind that grows with height only widens the intervals. It's
   told the design, rail, site and the day's air, and takes them as right. It's in the library only:
   no command runs it on a log yet.
-- **The Bayesian option:** a second kind of interval, from drawing the unknowns' possible values at
-  random rather than reading the curvature at the answer. Its intervals pass 4 of their 10 tests, 5
-  parameters on each of 2 sets. Its wind's are too wide. Set A's drag reads low, 78 truths above its
-  intervals, and set B's impulse high, 83 below: each makes the rocket look better than it flew.
-  Use the least-squares intervals ([The Bayesian option](#the-bayesian-option)).
 
 ## How it works
 
