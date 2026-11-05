@@ -1411,8 +1411,9 @@ impl Problem<'_> {
 /// A receiver's navigation filter's natural frequency, rad/s, as the Bayesian option takes it:
 /// log-uniform over this range, stated, not fitted. It reaches under and past the 0.47 to
 /// 0.69 rad/s a type-2 filter on 3 m fixes took in docs/research/gnss-in-boost.md §4's
-/// simulation; at its top a filter lags a 10 g boost by `a/ωn²`, 3.9 m, near a receiver that
-/// follows its own Doppler (under 1 m, the same §).
+/// simulation. At its top a filter lags a 10 g boost by `a/ωn²`, 3.9 m; a receiver that follows
+/// its own Doppler lags under 1 m (the same §), which would take about 10 rad/s, so such a
+/// receiver lies outside the range.
 const RECEIVER_LOOP_STATED_RAD_S: [f64; 2] = [0.2, 5.0];
 
 /// The navigation filter's damping ratio, 1/√2, the usual choice for a second-order loop.
@@ -1439,8 +1440,9 @@ const PEAK_STEPS: usize = 3;
 /// sets where the draws fall; the weights are the posterior's own, whatever it is.
 const PROPOSAL_HORIZONTAL_FLOOR_M: f64 = 0.5;
 
-/// `−2 ln` of the horizontal track's likelihood with its noise's scale and its correlation from one
-/// bin to the next integrated out, up to a constant, on its residuals in meters, east and north.
+/// `−2 ln` of the horizontal track's likelihood with its noise's scale, its correlation from one
+/// bin to the next and a constant per axis (the pad's position) integrated out, up to a constant,
+/// on its residuals in meters, east and north.
 ///
 /// Each axis's residuals `e₁ … eₙ`, in the order of their bins, are taken as a first-order
 /// autoregression of one standard deviation `σ` and one lag-one correlation `φ` for both axes. Its
@@ -1449,8 +1451,12 @@ const PROPOSAL_HORIZONTAL_FLOOR_M: f64 = 0.5;
 /// `Q(φ) = Σ [(1 − φ²) e₁² + Σₖ₌₂ (eₖ − φ eₖ₋₁)²]` over the axes, a quadratic in `φ`. Jeffreys'
 /// prior on a scale, `p(σ) ∝ 1/σ`, integrates `σ` out in closed form,
 /// `∫ σ^(−N−1) exp(−Q/2σ²) dσ ∝ Q^(−N/2)` (G. E. P. Box and G. C. Tiao, *Bayesian Inference in
-/// Statistical Analysis*, Addison-Wesley, 1973, §2.4), leaving
-/// `p(e | φ) ∝ (1 − φ²)^(S/2) Q(φ)^(−N/2)`. `φ` is uniform on `[0, 0.9]`
+/// Statistical Analysis*, Addison-Wesley, 1973, §2.4). Each axis's constant `c`, under a flat
+/// prior, enters `eₖ − c` linearly; integrating it out takes off its weighted least-squares value
+/// and leaves a factor `xx^(−1/2)` and one residual fewer, with `xx = (1 − φ²) + (n − 1)(1 − φ)²`
+/// the axis's weight on a constant. That leaves
+/// `p(e | φ) ∝ (1 − φ²)^(S/2) Πₐ xxₐ^(−1/2) Q̃(φ)^(−(N−S)/2)`, `Q̃` the quadratic with each
+/// axis's constant taken off. `φ` is uniform on `[0, 0.99]`
 /// ([`TRACK_CORRELATION_STATED`]), integrated by the midpoint rule on
 /// [`TRACK_CORRELATION_NODES`] nodes, in logarithms. No flight is flown for it.
 ///

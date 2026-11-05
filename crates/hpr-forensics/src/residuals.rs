@@ -275,7 +275,8 @@ impl Simulated {
     /// `times_s`, ascending: a second-order loop of natural frequency `omega_rad_s` and damping
     /// `zeta` on each axis, `ẍ = ωn² (p − x) + 2ζωn (ṗ − ẋ)`, settled on the pad at launch. It is
     /// a type-2 loop, so it follows a constant speed exactly and settles `a/ωn²` behind a constant
-    /// acceleration `a` (docs/research/gnss-in-boost.md §4, on E. D. Kaplan's loop forms). It
+    /// acceleration `a` (docs/research/gnss-in-boost.md §4, an inference from the type-2 loop's
+    /// form; no source on a receiver's own filter was read). It
     /// integrates the error `e = p − x`, `ë = p̈ − ωn² e − 2ζωn ė`, by semi-implicit Euler over the
     /// flight's own moments, the speed and acceleration by their differences, and reads each
     /// time between moments linearly. Before the first moment it reads the pad, after the last

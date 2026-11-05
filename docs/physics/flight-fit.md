@@ -23,8 +23,8 @@ impulse, wind and mass, and where its Bayesian option fails its tests.
   ([How well it holds](#how-well-it-holds)). No real flight has checked it
   ([evidence row G38](../evidence.md#g38)). On a real flight, the model's own errors go into the
   scales with nothing to say so. The Bayesian option draws the unknowns' possible values at random rather than
-  reading the curvature at the answer. Its intervals pass 8 of their 10 tests, 5 parameters on each
-  of 2 sets, the wind on both. A tail passes with at most 74 of 1,000 truths. Set
+  reading the curvature at the answer. Its intervals pass 8 of their 10 counts, 5 parameters on each
+  of 2 sets, the wind on both, though set B's drag passes with its widened probe passing too. A tail passes with at most 74 of 1,000 truths. Set
   A's drag reads low, 83 above its intervals, and set B's impulse high, 85 below. Each makes the
   rocket look better than it flew ([The Bayesian option](#the-bayesian-option)).
 - **What it leaves out:** anything past apogee, and the accelerometer. A log whose only height is a
@@ -209,7 +209,8 @@ Those counts have limits:
 `hpr_forensics::fit::bayesian` runs the least-squares fit, then draws the posterior of the same
 unknowns around its answer. [ADR-317][adr-317] chose importance sampling; [ADR-320][adr-320] draws
 the wind first, then the rest. Its 90% intervals don't pass
-their test yet: 8 of the 10 counts pass, 5 parameters on each of 2 sets. Set A's drag and set B's
+their test yet: 8 of the 10 counts pass, 5 parameters on each of 2 sets, and one of those 8, set B's
+drag, passes with a probe that should fail passing too. Set A's drag and set B's
 impulse miss too many truths on one side, so there they're too narrow or off center. Until they
 pass, read the least-squares intervals. Like the fit, it's in the library only, and no real flight has checked
 it.
@@ -248,8 +249,11 @@ How it draws:
   each axis. None is fitted: the posterior averages over each in closed form or on a grid, so
   nothing more is flown. Only the search for where the draws start flies more, about 21 flights a
   fit. This holds where the fit takes its noise from the log, not where a noise is given. The
-  synthetic flights' receivers are filters of this same shape. A real receiver's filter isn't
-  published, so one of another shape is outside this model, and no real flight has checked it.
+  synthetic flights' receivers are filters of this same shape, so the wind's pass below doesn't
+  test the shape. A real receiver's loop bandwidth isn't published, and the lag is the research
+  note's inference, measured there only in altitude. A receiver of another shape, or one that
+  follows its own Doppler and lags under 1 m (3.3 ft), is outside this model, and no real flight has
+  checked it.
 
 A fit with something to fit flies about 1,000 times, against about 70 for least squares on set A.
 On a log with a track, the search for the posterior's peak adds about 21. In one run on a 10-core
@@ -276,18 +280,20 @@ as far as it's known:
 
 - **The wind passes on both sets** since the track is read as a receiver reports it
   ([ADR-321][adr-321]). Before, the posterior took the track's noise as the least-squares fit
-  states it, and from 1.06% to 2.41% of truths fell in each tail, where 5% belong. Its median width
+  states it. Then from 1.06% to 2.41% of truths fell in each tail, where 5% belong. Its median width
   on set A is now 0.364 m/s (1.19 ft/s) east, against least squares' 0.345 m/s (1.13 ft/s). Set
-  B's wind leans: 86 and 81 of its truths fall above, near the 104 that pass, and its mean error is
-  −0.035 m/s (−0.11 ft/s) east. Set B's wind grows with height, and on a track the posterior's wind doesn't.
+  B's wind leans: 86 and 81 of its truths fall above, near the 104 that pass. Its mean error is
+  −0.035 m/s (−0.11 ft/s) east. Set B's wind grows with height, and on a track the posterior's wind
+  doesn't, which may be why; that isn't measured. Set A's passes at the wide edge: 1,380 and 1,384
+  of 1,497 fall inside, against 1,384 at most.
 - **Set A's drag sits low and set B's impulse high.** 83 of set A's drag truths fall above, and
   85 of set B's impulse truths below. Before the track was read anew, 70 of set A's 78 above were on
-  logs of height alone, whose posteriors this left as they were. Those are the only logs where the
+  logs of height alone, 776 of its 1,000 flights. Reading the track left those logs as they were. Those are the only logs where the
   shear is drawn, though set A's wind doesn't shear. That points at the
   shear's stated range, but it isn't measured yet, and set B's impulse leans the other way. Those are
   [M7.3c6][m7-3c6] and [M7.3c7][m7-3c7].
 - **Set A's impulse passes near its edge.** 72 of its truths fall below, 2 short of 74, the most
-  that pass, on the same side as set B's: it too reads high, which flatters the motor.
+  that pass. That's the same side as set B's: it too reads high, which flatters the motor.
 - **Set B's drag passes, but so does its widened probe.** The test can't tell its intervals from
   ones widened to 1.25 times, so they may be wider than they need be.
 
@@ -303,7 +309,7 @@ draws can leave an interval too narrow or off center, so take it as rough. All 1
 that pass and the 2 that fail, include those posteriors; how many of the misses they cause isn't measured. Of the
 flights counted, 2,276 on set A had a posterior, 563 of them with fewer than 100 effective draws;
 across all 2,276, the fewest was 1 and the median 153. On set B, 711 of 2,296 had fewer than 100;
-the fewest was 1 and the median 138. Reading the track anew left fewer: before it, 319 and 392 fell
+the fewest was 1 and the median 138. Reading the track anew left fewer effective draws: before it, 319 and 392 fell
 short, at medians of 232 and 223. A
 draw fails when it can't be weighed, as when its flight can't fly. That's 126 of 1,138,000 on set A,
 and 149 of 1,148,000 on set B. Every

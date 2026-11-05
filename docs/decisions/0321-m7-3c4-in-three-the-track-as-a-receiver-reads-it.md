@@ -1,7 +1,7 @@
 # ADR-321: M7.3c4 in three: the track as a receiver reports it, then the drag on heights alone, then every count (2026-11-05)
 
-- **Status:** accepted; narrows M7.3c4 into M7.3c5, M7.3c6 and M7.3c7 and plans every remaining increment of M7.3c4, whose *done when* M7.3c7 keeps whole; amends [ADR-320][adr-320] §6 (on a log with a track, the posterior's likelihood) and [ADR-317][adr-317] §2 (the likelihood)
-- **Summary:** ADR-320's posterior took the track's noise as the least-squares fit states it, at least 10 m (33 ft), and its wind intervals came out too wide. Its own noise made them too narrow, as the receiver's filter lags the boost. So on a log with a track the posterior now reads the drift through a second-order filter of stated range and integrates out the track's noise, its run from bin to bin and the pad's position. The wind's four counts now pass, and no count that passed before fails. M7.3c4 is split in three: M7.3c5 the wind, M7.3c6 set A's drag, M7.3c7 every count.
+- **Status:** accepted; narrows M7.3c4 into M7.3c5, M7.3c6 and M7.3c7 and plans every remaining increment of M7.3c4, whose *done when* M7.3c7 keeps whole; amends [ADR-320][adr-320] §8 (M7.3c4 as its only remaining increment) and [ADR-317][adr-317] §2 (the likelihood: on a track, the posterior no longer takes the noise [ADR-316][adr-316] §3 and §11 state)
+- **Summary:** ADR-320's posterior took the track's noise as the least-squares fit states it, at least 10 m (33 ft), and its wind intervals came out too wide. Its own noise made them too narrow; reading the receiver's filter, centering the draws and integrating out the pad's position brought them in. So on a log with a track the posterior now reads the drift through a second-order filter of stated range and integrates out the track's noise, its run from bin to bin and the pad's position. The wind's four counts now pass, and no count that passed before fails. M7.3c4 is split in three: M7.3c5 the wind, M7.3c6 set A's drag, M7.3c7 every count.
 
 [adr-257]: 0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 [adr-316]: 0316-m7-3b-the-least-squares-fit.md
@@ -43,9 +43,10 @@ as ADR-320's were.
    with a time constant about `1/(ζωn)` ([the note][note] §4). The posterior reads the flight's
    drift through such a loop, `ζ = 1/√2`, its natural frequency log-uniform from 0.2 to 5 rad/s,
    integrated by the midpoint rule on 96 nodes. That range reaches past the note's 0.47 to 0.69 rad/s
-   both ways; at its top a 10 g boost lags 3.9 m, near a receiver that follows its own Doppler.
-   Integrating over the frequency flies nothing either. A test holds the loop to `a/ωn²` and to the
-   synthetic receiver's own loop, written apart, within a millimeter.
+   both ways; at its top a 10 g boost lags 3.9 m (13 ft). A receiver that follows its own Doppler lags under
+   1 m (the note, §4), which would take about 10 rad/s, so it lies outside the range.
+   Integrating over the frequency flies nothing either. A test holds the loop to `a/ωn²` within 5 cm, and
+   to the synthetic receiver's own loop, written apart, within a millimeter.
 3. **The proposal is centered where that posterior peaks.** The least-squares answer weighs the
    track at 10 m or more, so the posterior's peak lies away from it. Three Gauss-Newton steps from
    the answer, each reading the track through the filter the track's likelihood favors there, its
@@ -56,8 +57,8 @@ as ADR-320's were.
 4. **Only on a log's own noise.** The track is taken this way only where the fit takes its noise
    from the log's residuals. A noise given or known is used as given, so the sampler's closed-form
    tests on a line stand.
-5. **M7.3c4 in three.** The wind is the first that moved. Set A's drag on heights alone is a cause
-   of its own, and set B's impulse a third, not yet measured. So M7.3c4 is split, each with its own
+5. **M7.3c4 in three.** The wind is the first that moved. Set A's drag on heights alone has a place of
+   its own, and set B's impulse a third, not yet measured. So M7.3c4 is split, each with its own
    *done when*, and met when all three are. This plans every remaining increment of M7.3c4:
    - **M7.3c5 The wind on a track.** *Done when:* on a log with a track, the Bayesian option reads
      the track through a receiver's navigation filter, its natural frequency integrated over a
@@ -122,11 +123,15 @@ Two things moved the wrong way:
 
 - **The filter is the synthetic receiver's shape.** The synthetic flights' receivers are type-2 loops
   of `ζ = 1/√2`, `ωn` from 0.25 to 1 rad/s, and the posterior reads the track through the same
-  shape. A real receiver's filter isn't published ([the note][note], *Open questions*); one that
-  isn't a type-2 loop, or that drops fixes in the boost differently, is outside this model, and no
-  real flight has checked it.
+  shape, so the wind's pass doesn't test the shape. A real receiver's loop bandwidth isn't published
+  ([the note][note], *Open questions*); the note's measured lags are in altitude, and the lag model
+  is its inference. A receiver that isn't a type-2 loop, one that follows its own Doppler (under 1 m
+  of lag), or one that drops fixes in the boost differently is outside this model, and no real
+  flight has checked it.
 - **Set B's wind shears; the posterior's doesn't, on a track.** The drift carries the shear into
   the wind's posterior unmodeled there, as in ADR-320.
+- **Set A's wind passes at the wide edge.** 1,380 and 1,384 of 1,497 fall inside, against 1,384 at
+  most.
 - **Set B's impulse and set A's drag** still fail, by about as much as before: M7.3c6 and M7.3c7.
 - **The sets were seen.** The noise model, the filter, the pad and the proposal were chosen after
   reading counts on the first 300 tracked flights of each set.
