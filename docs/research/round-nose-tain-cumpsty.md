@@ -1,5 +1,7 @@
 # A round-nosed plate's leading-edge drag at Mach 0.8, from Tain and Cumpsty's own test
 
+Re-checked 2026-11-04: 5 claims corrected.
+
 **In short: reduced from Tain and Cumpsty's test (Inference), an unswept semicircular leading edge on a 2% fin
 comes to about 0.18–0.38 at Mach 0.8 when the chord Reynolds number is 1 × 10⁶, and 0.09–0.27 at 1 × 10⁷.** That
 widens [thin-edge-mach-dependence](thin-edge-mach-dependence.md)'s 0.23–0.36 and, for larger or faster fins, moves
@@ -21,7 +23,7 @@ note's arithmetic; figures are read by pixel.
 - **Shapes and Mach.** A circular nose only; elliptic ones appear only in the low-speed work it summarizes [1]
   p. 223. Inlet Mach 0.5, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.88, 0.9 and 0.95 [1] p. 226, Table 1.
 - **Reynolds number.** R_r = U r/ν at inlet static conditions: about 12,000 for most runs, 8,000–20,000 in the
-  Reynolds-number series at Mach 0.6, 0.75, 0.85 and 0.90 [1] pp. 224, 234.
+  Reynolds-number series at Mach 0.6, 0.75, 0.85 and 0.90 [1] pp. 223–224, 234.
 - **Incidence.** "Zero" meant an effective incidence under 1.5° [1] p. 225. Table 1 lists −1.4° to −0.8°, −0.9°
   at Mach 0.8 and −0.0° at 0.85 [1] p. 226.
 - **Turbulence.** The tunnel's own level is not stated; a grid gave 3.5–4% r.m.s. in earlier use [1] pp. 224–225.
@@ -79,8 +81,7 @@ Fig. 9 [1] p. 230 holds θ/r at R_r 12,000, zero incidence and no grid; read her
   [1] p. 236, Fig. 18. Only the upper face was traversed. Doubling it at Mach 0.8's −0.9° misreads both faces' sum
   by up to ±0.04 in the drag coefficient below, sign unknown at 0.8 (Inference).
 - **Reynolds number.** θ falls with R_r at every Mach number, steeply only at 0.90 [1] p. 235. From 8,000 to
-  20,000, θ/r goes 0.153 → 0.121 at Mach 0.6, 0.228 → 0.197 at 0.75 and 0.283 → 0.222 at 0.85 [1] p. 239, Fig. 22
-  (pixel).
+  20,000, θ/r goes 0.153 → 0.121 at Mach 0.6, 0.228 → 0.197 at 0.75 and 0.283 → 0.222 at 0.85 [1] Fig. 22, p. 239.
 - **Turbulence.** The grid halved the thicknesses at Mach 0.6 and 0.75 [1] p. 235 and, the paper says, cut them to
   under a third at 0.85 except at the lowest R_r [1] p. 238. That fits δ*; read from Fig. 25, θ/r falls only to
   0.36–0.42 of its no-grid value at R_r 10,000–20,000 (0.106 against 0.264 at 12,000) [1] p. 241.
@@ -88,15 +89,14 @@ Fig. 9 [1] p. 230 holds θ/r at R_r 12,000, zero incidence and no grid; read her
 ## 4. From θ/r to an edge drag coefficient, redone
 
 The momentum lost from the stream equals the drag on the surface ahead of the station [2] p. 2-4, eq. 19, stated
-for constant static pressure; applying it to nose and bubble loss is Inference. Per unit
-span, each face carries ρU²θ. On the edge's frontal area t = 2r, both faces give c_d = 2θ/r, taking the speed at the
-station as free stream (Inference, as in [3] §5). Friction over the first 17.9 r is subtracted, since the
-simulator charges skin friction apart.
+for constant static pressure; applying it to nose and bubble loss is Inference. Per unit span, each face carries
+ρU²θ. On the edge's frontal area t = 2r, both faces give c_d = 2θ/r, taking the speed at the station as free stream
+(Inference, as in [3] §5). Friction over the first 17.9 r is subtracted, as the simulator charges friction apart.
 
 - **Friction to subtract (Inference).** Over x = 17.9 r at R_r 12,000, Re_x = 214,800. Turbulent from the nose,
   C_f = 0.074/Re_x^0.2 [2] p. 2-5, gives θ_f/r = 0.037 × 17.9^0.8 × 12,000^−0.2 = 0.057. Laminar,
-  C_f = 1.328/√Re_x [2] p. 2-4, gives 0.026. Compressibility, left out, cuts turbulent friction about 6% at Mach
-  0.8 (θ_f 0.054), which would raise the low ends below by under 0.01.
+  C_f = 1.328/√Re_x [2] p. 2-4, gives 0.026. Compressibility, left out, cuts turbulent friction 6% at Mach 0.8
+  ([2] p. 15-9, eq. 14: × (1 − 0.09 M²); θ_f 0.054), which would raise the low ends below by under 0.01.
 - **Mach 0.8 in the test (Inference).** With Fig. 9's 0.214: 2 × (0.214 − 0.057) = 0.31 to 2 × (0.214 − 0.026) =
   0.38. With the repeat spread, 0.17–0.235: 2 × (0.17 − 0.057) = 0.23 to 2 × (0.235 − 0.026) = 0.42.
 - **Mach 0.5 in the test (Inference).** 2 × (0.097 − 0.057) = 0.08 to 2 × (0.097 − 0.026) = 0.14, perhaps up to
@@ -115,7 +115,7 @@ Each factor scales the test's 0.23–0.42 (Inference unless cited).
 | Reynolds number, R_r 1 × 10⁵ (Re_c 1 × 10⁷) | lowers | ×0.53–0.74 | extrapolated 5 times past the data |
 | Incidence of the test points | either | ±0.04 | §3 |
 | Free-stream turbulence | lowers | to about 0.10–0.16 at Mach 0.85 with the grid | §3, below |
-| Shock loss outside the layer | raises | ≤ 0.013–0.032 × h/2r, height h unknown | normal shock, Fig. 7's peak |
+| Shock loss outside the layer | raises | ≤ 0.013–0.032 × h/2r, height h unknown | normal shock at Fig. 7's 1.16–1.22 |
 | Free-jet speed at the station | lowers slightly | about −2% on ρU² at Mach 0.8 | Fig. 6: station Mach 0.79 |
 
 - **Station to trailing edge.** A thickened turbulent layer behind the nose rubs less downstream, so part of the
@@ -168,13 +168,13 @@ Each is unswept, with ±0.04 for incidence on top; sweep is as [3] §6 has it.
 
 ## What the project can use
 
-- **The paper [1]** (© IMechE 2000), **Hoerner [2]** and **Goodhand [5]** stay cached for reading and citing only,
-  as [3] records. No figure or table is reproduced; pixel readings are restated with their figure and page.
+- **Cited only:** [1] (© IMechE 2000; the cached copy is a subscriber's download, kept under `refs/`); [2] and [5],
+  cached for reading, as [3] records. No figure or table is reproduced; pixel readings give their figure and page.
 
 ## Open questions
 
 - No data above R_r 20,000. A 2% fin at Re_c above about 2 × 10⁶ is past the test, and §5's low end is an
-  extrapolation of end-point fits (a fit to all five points per Mach number moves the factors by 0.01 or less).
+  extrapolation (a least-squares fit to all five points per Mach number gives 0.54–0.74 at 1 × 10⁵, not 0.53–0.74).
   A test or a calibrated MSES-style run at R_r 1 × 10⁵ would settle it.
 - Tain's 1999 dissertation [1] ref. 8 holds the complete incidence and turbulence series and the tuned MSES
   parameters; it was not sought here. It may explain the repeat spread at Mach 0.85.
@@ -190,7 +190,7 @@ All read 2026-10-29. Page numbers are the journal's printed pages.
 1. L. Tain and N. A. Cumpsty, *Compressor blade leading edges in subsonic compressible flow*, Proc. IMechE Part C
    214(1), 2000, pp. 221–242. <https://doi.org/10.1243/0954406001522921> (the publisher's page refused a plain
    fetch; read from the cached copy).
-2. S. F. Hoerner, *Fluid-Dynamic Drag*, 1965, pp. 2-4, 2-5. <https://archive.org/details/FluidDynamicDragHoerner1965>
+2. Hoerner, *Fluid-Dynamic Drag*, 1965, pp. 2-4, 2-5, 15-9. <https://archive.org/details/FluidDynamicDragHoerner1965>
 3. [thin-edge-mach-dependence](thin-edge-mach-dependence.md), this project's note, §§4–7 and Open questions.
 4. [fin-edge-drag](fin-edge-drag.md), this project's note, §§4 and 6.
 5. M. N. Goodhand, *Compressor Leading Edges*, PhD dissertation, University of Cambridge, 2010.
