@@ -239,10 +239,10 @@ How it draws:
   normal profile. The least-squares fit carries the same doubt in its errors instead.
 - **On a track, the receiver's filter, noise and pad are unknowns too** ([ADR-321][adr-321]). A
   GNSS receiver smooths its fixes through a navigation filter, which lags behind a boost and catches
-  up after burnout ([GNSS in the boost](../research/gnss-in-boost.md)). So the posterior reads the
+  up after burnout ([GNSS in the boost](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/gnss-in-boost.md)). So the posterior reads the
   flight's drift as a second-order filter of damping $1/\sqrt{2}$ would report it. The filter's
   natural frequency is anywhere from 0.2 to 5 rad/s, evenly in its logarithm. At 5 rad/s a steady
-  10 g boost leaves it 3.9 m behind; the lag grows as the square of a slower filter's period. The track's noise is taken to run on from one bin to the
+  10 g boost leaves it 3.9 m (13 ft) behind; the lag grows as the square of a slower filter's period. The track's noise is taken to run on from one bin to the
   next, by a correlation anywhere from 0 to 0.99, and the pad's position is an offset of its own on
   each axis. None is fitted: the posterior averages over each in closed form or on a grid, so
   nothing more is flown. Only the search for where the draws start flies more, about 21 flights a
@@ -278,7 +278,7 @@ as far as it's known:
   states it, and from 1.06% to 2.41% of truths fell in each tail, where 5% belong. Its median width
   on set A is now 0.364 m/s (1.19 ft/s) east, against least squares' 0.345 m/s (1.13 ft/s). Set
   B's wind leans: 86 and 81 of its truths fall above, near the 104 that pass, and its mean error is
-  −0.035 m/s east. Set B's wind grows with height, and on a track the posterior's wind doesn't.
+  −0.035 m/s (−0.11 ft/s) east. Set B's wind grows with height, and on a track the posterior's wind doesn't.
 - **Set A's drag sits low and set B's impulse high.** 83 of set A's drag truths fall above, and
   85 of set B's impulse truths below. Before the track was read anew, 70 of set A's 78 above were on
   logs of height alone, whose posteriors this left as they were. Those are the only logs where the
