@@ -447,11 +447,17 @@ log corpus came from Debrief.
       on sets A and B, counted per design, its three probes failing; the drag and impulse scales are
       identified on set A, and every parameter comes back not identified on pure noise; its effective and
       failed draws are counted; the fit's page says what it adds and how far to trust it.
-      - [ ] **M7.3c4 The Bayesian intervals pass.** *Done when:* the Bayesian option's raw 90% credible
-        intervals pass ADR-257 §1's three counts on sets A and B, counted per design, its three probes failing,
+      - [ ] **M7.3c4 The Bayesian intervals pass** (ADR-321: in three, below; met when they are). *Done when:*
+        the Bayesian option's raw 90% credible intervals pass ADR-257 §1's three counts on sets A and B,
+        counted per design, its three probes failing,
         on the same flights, truths drawn from the stated ranges and not its prior; `fit --check` fails when
         one doesn't; the drag and impulse scales stay identified on set A and every parameter not identified
         on pure noise; the fit's page says how far to trust it.
+        - [ ] **M7.3c6 The drag on heights alone.** *Done when:* set A's drag scale's raw 90% credible
+          intervals pass ADR-257 §1's three counts on the same 1,000 flights, counted per design, their probes
+          failing, and no Bayesian count that passed before it fails; whatever the posterior states of the
+          wind's shear on heights alone is stated with its source, not fitted.
+        - [ ] **M7.3c7 Every count.** *Done when:* M7.3c4's *done when*, whole.
   - [ ] **M7.3d From the boost.** *Done when:* apogee predicted from the log cut at burnout stays bit-identical
     when every later sample is replaced with noise; a committed report gives the 7 public flights' fits, the
     collection's as aggregates, and that prediction's mean absolute and signed errors beside the forward
