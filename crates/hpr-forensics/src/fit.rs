@@ -2267,4 +2267,14 @@ mod tests {
         scattered.swap(2, 6);
         assert!(track_minus_two_log([&run, &[]]) < track_minus_two_log([&scattered, &[]]));
     }
+
+    /// A NaN residual leaves the track's likelihood NaN, so its draw fails, rather than the floor
+    /// on the misfit reading it as a perfect fit, the likeliest draw of all.
+    #[test]
+    fn a_nan_residual_leaves_the_tracks_likelihood_nan() {
+        let east = [1.3, -0.4, f64::NAN, 0.9, -1.7];
+        let north = [-0.6, 0.2, 0.8, 1.9];
+        assert!(track_minus_two_log([&east, &north]).is_nan());
+        assert!(track_minus_two_log([&north, &east]).is_nan());
+    }
 }

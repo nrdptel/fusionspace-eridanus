@@ -250,8 +250,8 @@ How it draws:
   filter 3.9 m (13 ft) behind. A 1 rad/s one would trail by 98 m (322 ft), had the boost lasted
   long enough.
   - The frequency is anywhere from 0.2 to 5 rad/s, evenly in its logarithm. The synthetic
-    receivers' run from 0.25 to 1 rad/s; the research note infers 0.47 to 0.69 rad/s for real
-    ones, from lags in altitude alone.
+    receivers' run from 0.25 to 1 rad/s. The research note's simulation of a boost used 0.47 to
+    0.69 rad/s; no hobby receiver's loop speed is published or measured.
   - The track's noise runs on from one bin to the next by a correlation $\varphi$ anywhere from 0
     to 0.99. That's a first-order autoregression; its exact likelihood is J. D. Hamilton's (*Time
     Series Analysis*, 1994, §5.2). Its size takes Jeffreys' prior $1/\sigma$ and is integrated out in
@@ -267,8 +267,7 @@ How it draws:
   This model's limits: the synthetic receivers are filters of this same shape, inside the stated
   range. So the wind's pass below doesn't test the shape. The noise model, the filter, the pad and
   where the draws start were chosen after reading counts on the first 300 tracked flights of each
-  set. Those flights are among the 1,497 counted. A real receiver's loop speed isn't
-  published. A receiver of another shape is outside this model. So is one that also measures its
+  set. All of set B's and 299 of set A's are among the 1,497 counted. A receiver of another shape is outside this model. So is one that also measures its
   speed from the satellites' Doppler shift and lags under 1 m (3.3 ft). No real flight has checked it.
 
 A fit with something to fit flies about 1,000 times, against about 70 for least squares on set A.
@@ -296,7 +295,7 @@ as far as it's known:
 
 - **The wind passes on both sets** since the track is read as a receiver reports it
   ([ADR-321][adr-321]). Before, the posterior took the track's noise as the least-squares fit
-  states it. Then from 1.07% to 2.41% of truths fell in each tail, where 5% belong. Its median width
+  states it. Then from 1.06% to 2.41% of truths fell in each tail, where 5% belong. Its median width
   on set A is now 0.364 m/s (1.19 ft/s) east, against least squares' 0.345 m/s (1.13 ft/s). Set
   B's wind leans: 86 and 81 of its truths fall above, near the 104 that pass. Its mean error is
   −0.035 m/s (−0.11 ft/s) east. Set B's wind grows with height, and on a track the posterior's wind
@@ -331,7 +330,7 @@ that pass and the 2 that fail, include those posteriors. On the wind, the slice 
 cause more than their share of misses (above). Of the
 flights counted, 2,276 on set A had a posterior, 563 of them with fewer than 100 effective draws;
 across all 2,276, the fewest was 1 and the median 153. On set B, 711 of 2,296 had fewer than 100;
-the fewest was 1 and the median 138. That's about a quarter on set A and a third on set B, the
+the fewest was 1 and the median 138. That's about a quarter on set A and nearly a third on set B, the
 loss on logs with a track: before the track was read anew, 319 and 392 fell short. A
 draw fails when it can't be weighed, as when its flight can't fly. That's 126 of 1,138,000 on set A,
 and 149 of 1,148,000 on set B. Every
