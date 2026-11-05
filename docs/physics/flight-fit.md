@@ -252,7 +252,7 @@ How it draws:
   - The frequency is anywhere from 0.2 to 5 rad/s, evenly in its logarithm. The synthetic
     receivers' run from 0.25 to 1 rad/s. The research note's simulation of a boost used 0.47 to
     0.69 rad/s. The loop speeds of the u-blox, Quectel and SkyTraq parts it read are unpublished,
-    and no consumer receiver's lag has been measured against a truth in a real boost.
+    and no consumer receiver's filter lag has been measured against a truth in a real boost.
   - The track's noise runs on from one bin to the next by a correlation $\varphi$ anywhere from 0
     to 0.99. That's a first-order autoregression; its exact likelihood is J. D. Hamilton's (*Time
     Series Analysis*, 1994, §5.2). Its size takes Jeffreys' prior $1/\sigma$ and is integrated out in
