@@ -2759,6 +2759,126 @@ pub(super) mod tests {
         }
     }
 
+    /// A stage's override that doesn't cover the stage's parts, which OpenRocket adds to them
+    /// (#1225), holds the design back with a `Dropped` warning naming the flag. The override is
+    /// left out of the design and its tags are written back as the file had them, with no flag of
+    /// the writer's own, so the file read back says the same and is held back again. A stage
+    /// override that covers its parts, or a drag override alone, is read and written as before.
+    #[test]
+    fn a_stage_override_not_covering_its_parts_is_held_and_written_back() {
+        let stage = |tags: &str| {
+            tube_of("").replacen(
+                "<id>sustainer</id>",
+                &format!("<id>sustainer</id>{tags}"),
+                1,
+            )
+        };
+        let cases: [(String, &str, &Holds<'_>); 5] = [
+            (
+                stage(
+                    "<overridemass>2.0</overridemass>\
+                     <overridesubcomponentsmass>false</overridesubcomponentsmass>",
+                ),
+                "`overridesubcomponentsmass` is false",
+                &[
+                    ("<overridemass>2.0</overridemass>", 1),
+                    (
+                        "<overridesubcomponentsmass>false</overridesubcomponentsmass>",
+                        1,
+                    ),
+                    ("<overridesubcomponentsmass>", 1),
+                ],
+            ),
+            (
+                stage("<overridemass>2.0</overridemass>"),
+                "`overridesubcomponentsmass` isn't written",
+                &[
+                    ("<overridemass>2.0</overridemass>", 1),
+                    ("<overridesubcomponents", 0),
+                ],
+            ),
+            (
+                stage(
+                    "<overridesubcomponents>false</overridesubcomponents>\
+                     <overridemass>2.0</overridemass>",
+                ),
+                "`overridesubcomponents` is false",
+                &[
+                    ("<overridesubcomponents>false</overridesubcomponents>", 1),
+                    ("<overridesubcomponentsmass>", 0),
+                ],
+            ),
+            (
+                stage(
+                    "<overridecg>0.4</overridecg>\
+                     <overridesubcomponentscg>false</overridesubcomponentscg>",
+                ),
+                "`overridesubcomponentscg` is false",
+                &[
+                    ("<overridecg>0.4</overridecg>", 1),
+                    (
+                        "<overridesubcomponentscg>false</overridesubcomponentscg>",
+                        1,
+                    ),
+                    ("<overridesubcomponentsmass>", 0),
+                ],
+            ),
+            // A drag override beside it is still read, and its flag written back once.
+            (
+                stage(
+                    "<overridemass>2.0</overridemass>\
+                     <overridesubcomponentsmass>false</overridesubcomponentsmass>\
+                     <overridecd>0.5</overridecd>\
+                     <overridesubcomponentscd>true</overridesubcomponentscd>",
+                ),
+                "`overridesubcomponentsmass` is false",
+                &[
+                    (
+                        "<overridesubcomponentsmass>false</overridesubcomponentsmass>",
+                        1,
+                    ),
+                    ("<overridesubcomponentscd>true</overridesubcomponentscd>", 1),
+                    ("<overridecd>", 1),
+                ],
+            ),
+        ];
+        for (xml, warning, tags) in &cases {
+            let (held, _) = kept_as_written(xml, Some(warning), tags);
+            let stage = &held.rocket.stages[0];
+            assert_eq!(stage.overrides, Overrides::default(), "{warning}");
+            let file = read(uuids(xml).as_bytes())
+                .expect("the test design reads")
+                .value;
+            let warnings = design(&file).warnings;
+            assert_eq!(warnings.len(), 1, "{warnings:?}");
+            assert_eq!(warnings[0].kind, crate::ork::WarningKind::Dropped);
+        }
+        // Covering its parts, or a drag override alone: read, flown and written as before.
+        let (covering, _) = kept_as_written(
+            &stage(
+                "<overridemass>2.0</overridemass>\
+                 <overridesubcomponentsmass>true</overridesubcomponentsmass>",
+            ),
+            None,
+            &[(
+                "<overridesubcomponentsmass>true</overridesubcomponentsmass>",
+                1,
+            )],
+        );
+        assert_eq!(covering.rocket.stages[0].overrides.mass_kg, Some(2.0));
+        kept_as_written(
+            &stage(
+                "<overridecd>0.5</overridecd>\
+                 <overridesubcomponentscd>false</overridesubcomponentscd>",
+            ),
+            None,
+            &[(
+                "<overridesubcomponentscd>false</overridesubcomponentscd>",
+                1,
+            )],
+        );
+    }
+
     /// A drag override is written from the design, with its own flag and no warning (ADR-167);
     /// beside the single older flag, which covers drag too, the flags are all kept in the order
     /// that says which wins.
