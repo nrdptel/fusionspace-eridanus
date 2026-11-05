@@ -398,7 +398,8 @@ fn figure(out: &mut dyn Write, name: &str, value: &str) -> io::Result<()> {
 
 /// The ejection delay: how long the rocket coasts from its last burnout to apogee, beside the
 /// delays the design sets and, for one motor lit at launch, when its charge fires against apogee
-/// and how fast the rocket moves at either end of the delay's tolerance.
+/// and how fast the rocket moves at either end of the delay's tolerance, where the flight with the
+/// charges held predicts it ([`crate::output::SimDelayBand::speeds_until_s`]).
 ///
 /// The coast is the flight's with every recovery charge held ([`SimFlight::held`], Loft lesson
 /// L94): a charge that fires before apogee cuts the flown coast short, and would make a delay that
@@ -471,19 +472,47 @@ fn delay(flight: &SimFlight) -> Option<String> {
         },
         _ => None,
     };
-    // How far the delay may run short or long, and how fast the rocket moves then.
-    let band = held.and_then(|held| held.delay_band.as_ref()).map(|band| {
-        let moving = |speed_m_s: Option<f64>| match speed_m_s {
+    // How far the delay may run short or long, and how fast the rocket moves then, where the
+    // flight with the charges held predicts it.
+    let band = held.and_then(|held| Some((held, held.delay_band.as_ref()?))).map(|(held, band)| {
+        let moving = |time_s: f64, speed_m_s: Option<f64>| match speed_m_s {
             Some(v) if v >= 0.0 => format!("climbing at {}", speed(v)),
             Some(v) => format!("falling at {}", speed(-v)),
-            None => "after the flight ends".to_owned(),
+            None => match &band.until_opens {
+                Some(name) if time_s > band.speeds_until_s => format!("after `{name}` opens"),
+                _ if time_s > held.apogee_s => {
+                    format!("{:.2} s after apogee", time_s - held.apogee_s)
+                }
+                _ => "at a time the flight doesn't give a speed for".to_owned(),
+            },
+        };
+        // Rounded up: a band printed narrower than it is would flatter the delay.
+        let tolerance_s = (band.tolerance_s * 10.0 - 1e-9).ceil() / 10.0;
+        let soonest = if band.tolerance_s > band.delay_s {
+            ", but no sooner than burnout"
+        } else {
+            ""
+        };
+        // Past the held apogee with no device to name, the held flight falls with nothing open.
+        let unbraked = band.until_opens.is_none()
+            && [band.shortest_vertical_speed_m_s, band.longest_vertical_speed_m_s].contains(&None)
+            && band.longest_s > held.apogee_s;
+        let (shortest, longest) = (
+            moving(band.shortest_s, band.shortest_vertical_speed_m_s),
+            moving(band.longest_s, band.longest_vertical_speed_m_s),
+        );
+        let ends = if shortest == longest {
+            format!("{shortest} at either end")
+        } else {
+            format!("{shortest} to {longest}")
         };
         format!(
-            "a {} s delay may fire {:.1} s short or long (NFPA 1125): {} to {}",
-            band.delay_s,
-            band.tolerance_s,
-            moving(band.shortest_vertical_speed_m_s),
-            moving(band.longest_vertical_speed_m_s)
+            "the delay may fire {tolerance_s:.1} s short or long (NFPA 1125){soonest}: {ends}{}",
+            if unbraked {
+                " (no speed: falling with nothing open, a fall HPR Sim doesn't predict)"
+            } else {
+                ""
+            }
         )
     });
     let apart = split_s.map(|split_s| {

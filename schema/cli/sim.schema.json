@@ -925,11 +925,16 @@
       ]
     },
     "SimDelayBand": {
-      "description": "The span a motor's ejection delay may fire in, by NFPA 1125 (2019, §8.2.7): its label, give or\ntake 1.5 s or 20 %, whichever is greater, but not more than 3 s.",
+      "description": "The span a motor's ejection delay may fire in, by NFPA 1125 (2019, §8.1.7 and §8.2.7): its\nlabel, give or take 1.5 s or 20 %, whichever is greater, but not more than 3 s. The code holds a\nmotor type's certification firings to it; it bounds no single motor, nor a delay drilled to a\ntime no label gives.",
       "type": "object",
       "properties": {
         "delay_s": {
           "description": "The motor's set delay, s after burnout.",
+          "type": "number",
+          "format": "double"
+        },
+        "longest_s": {
+          "description": "When a delay that long fires, s after launch.",
           "type": "number",
           "format": "double"
         },
@@ -941,23 +946,43 @@
           ],
           "format": "double"
         },
+        "shortest_s": {
+          "description": "When a delay that short fires, s after launch: no sooner than burnout.",
+          "type": "number",
+          "format": "double"
+        },
         "shortest_vertical_speed_m_s": {
-          "description": "The rocket's vertical speed when a delay that short fires, m/s, up positive. `None` where\nthe held flight doesn't reach that time.",
+          "description": "The rocket's vertical speed when a delay that short fires, m/s, up positive. `None` past\n`speeds_until_s`.",
           "type": [
             "number",
             "null"
           ],
           "format": "double"
         },
+        "speeds_until_s": {
+          "description": "Until when the flight with the charges held is the flight a charge firing then meets, s\nafter launch: the first opening of the stack's other devices (those on the apogee, a\nheight or the launch), and no later than [`BRAKED_WITHIN_S`](crate::sim::BRAKED_WITHIN_S)\nafter its apogee, past which its fall, tail first with nothing open, is no prediction.",
+          "type": "number",
+          "format": "double"
+        },
         "tolerance_s": {
           "description": "How far the delay may fire either side of it, s.",
           "type": "number",
           "format": "double"
+        },
+        "until_opens": {
+          "description": "The device whose opening ends `speeds_until_s`, by name; `None` where the held apogee does.",
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "required": [
         "delay_s",
-        "tolerance_s"
+        "tolerance_s",
+        "shortest_s",
+        "longest_s",
+        "speeds_until_s"
       ]
     },
     "SimDesign": {

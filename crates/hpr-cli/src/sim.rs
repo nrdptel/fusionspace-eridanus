@@ -207,6 +207,7 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         (devices.len() - added, &separations),
         flight.result(),
     );
+    let held = held.map(|held| predicted(held, &recovery));
     // The stack's, or the part's that keeps the nose after a split with nothing left to burn.
     let apogee_s = flight.summary().apogee.map(|apogee| apogee.time_s);
     let braked = braked(&recovery, apogee_s);
@@ -792,13 +793,9 @@ pub(crate) fn input(error: hpr::Error) -> Failure {
     )
 }
 
-/// A refusal raised by the flight's builder, as the command reports it (#405): a Mach number
-/// past the aerodynamics' range in words of its own, anything else said of the simulator in the
-/// library's words, each long number rounded ([`rounded`]) and a library's hint split off; then
-/// a `help:` line naming what shaped the flight: the launch options typed, or else the design. The product system's `cli.md` and
-/// `writing.md` (*Errors*) ask for what happened, then what to do, naming things as typed.
-/// How far an ejection delay may fire from its label by NFPA 1125 (2019, §8.2.7): "1.5 seconds or
-/// 20 percent (whichever is greater, but not to exceed 3 seconds)", quoted in `docs/monte-carlo.md`.
+/// How far an ejection delay may fire from its label by NFPA 1125 (2019, §8.1.7 and §8.2.7): "1.5
+/// seconds or 20 percent (whichever is greater, but not to exceed 3 seconds)", quoted in
+/// `docs/monte-carlo.md`.
 pub(crate) fn delay_tolerance_s(delay_s: f64) -> f64 {
     (0.2 * delay_s).clamp(1.5, 3.0)
 }
@@ -806,10 +803,10 @@ pub(crate) fn delay_tolerance_s(delay_s: f64) -> f64 {
 /// The flight with every recovery charge held, which the `delay` line reads (Loft lesson L94,
 /// [`metrics::optimum_delays`]): its apogee, the coast to it from the last burnout and, for a
 /// single motor lit at launch with a delay in seconds, how fast the rocket climbs or falls at
-/// either end of the delay's tolerance. Until a charge fires, the held flight is the one flown, so
-/// its speed at a time is the speed a charge firing then meets. `None` where the held flight
-/// can't be flown, reaches no apogee, or no motor burns out before it: the line then gives no
-/// coast rather than one cut short by a charge.
+/// either end of the delay's tolerance. Until a device opens, the held flight is the one flown;
+/// [`predicted`] keeps the speeds only where no other device has opened. `None` where the held
+/// flight can't be flown, reaches no apogee, or no motor burns out before it: the line then gives
+/// no coast rather than one cut short by a charge.
 fn held(builder: &FlightBuilder<'_>, motors: &[SimMotor]) -> Option<SimHeld> {
     let simulation = builder.simulation().ok()?;
     let optimum = metrics::optimum_delays(&simulation).ok()??;
@@ -821,17 +818,25 @@ fn held(builder: &FlightBuilder<'_>, motors: &[SimMotor]) -> Option<SimHeld> {
         [motor] if motor.ignition == "at launch" => match motor.delay {
             Some(crate::output::Delay::Seconds(delay_s)) if delay_s > 0.0 => {
                 let tolerance_s = delay_tolerance_s(delay_s);
+                let times_s = [
+                    last.burnout_s + (delay_s - tolerance_s).max(0.0),
+                    last.burnout_s + delay_s + tolerance_s,
+                ];
                 let mut at = SpeedsAt {
-                    times_s: [
-                        last.burnout_s + (delay_s - tolerance_s).max(0.0),
-                        last.burnout_s + delay_s + tolerance_s,
-                    ],
+                    times_s,
                     speeds_m_s: [None, None],
                 };
-                metrics::optimum_delays_observed(&simulation, &mut at).ok()?;
+                // A second flight that fails costs the band its speeds, not the coast.
+                if metrics::optimum_delays_observed(&simulation, &mut at).is_err() {
+                    at.speeds_m_s = [None, None];
+                }
                 Some(SimDelayBand {
                     delay_s,
                     tolerance_s,
+                    shortest_s: times_s[0],
+                    longest_s: times_s[1],
+                    speeds_until_s: last.apogee_s + BRAKED_WITHIN_S,
+                    until_opens: None,
                     shortest_vertical_speed_m_s: at.speeds_m_s[0],
                     longest_vertical_speed_m_s: at.speeds_m_s[1],
                 })
@@ -847,7 +852,39 @@ fn held(builder: &FlightBuilder<'_>, motors: &[SimMotor]) -> Option<SimHeld> {
     })
 }
 
-/// The vertical speed of the center of gravity at each of two times, as a flight passes them.
+/// The held flight's band (see [`held`]) with its speeds kept only where it is a prediction of
+/// what a charge firing then meets: before the flown flight's first opening of a stack device the
+/// motor's charge doesn't fire (on the apogee, a height or the launch), which the held flight
+/// leaves shut, and no later than [`BRAKED_WITHIN_S`] after the held apogee, past which the held
+/// flight falls tail first with nothing open, a fall the aerodynamics don't hold for.
+fn predicted(mut held: SimHeld, recovery: &[SimDevice]) -> SimHeld {
+    if let Some(band) = held.delay_band.as_mut() {
+        let first_other = recovery
+            .iter()
+            .filter(|device| device.body.is_none() && !device.added)
+            .filter(|device| device.opens_at != DeviceEvent::Ejection)
+            .filter_map(|device| Some((device.name.as_str(), device.opened_s?)))
+            .min_by(|a, b| a.1.total_cmp(&b.1));
+        if let Some((name, opened_s)) = first_other
+            && opened_s < band.speeds_until_s
+        {
+            band.speeds_until_s = opened_s;
+            band.until_opens = Some(name.to_owned());
+        }
+        for (time_s, speed) in [band.shortest_s, band.longest_s].into_iter().zip([
+            &mut band.shortest_vertical_speed_m_s,
+            &mut band.longest_vertical_speed_m_s,
+        ]) {
+            if time_s > band.speeds_until_s {
+                *speed = None;
+            }
+        }
+    }
+    held
+}
+
+/// The vertical speed of the center of gravity at each of two times, as a flight passes them;
+/// `None` for a time the flight doesn't reach or can't sample.
 struct SpeedsAt {
     times_s: [f64; 2],
     speeds_m_s: [Option<f64>; 2],
@@ -857,13 +894,21 @@ impl hpr_sim::Observer for SpeedsAt {
     fn step(&mut self, step: &dyn hpr_sim::FlightStep) -> Result<(), hpr_sim::SimError> {
         for (time_s, speed) in self.times_s.iter().zip(&mut self.speeds_m_s) {
             if speed.is_none() && (step.start_s()..=step.end_s()).contains(time_s) {
-                *speed = Some(step.sample(*time_s)?.vertical_speed_m_s);
+                *speed = step
+                    .sample(*time_s)
+                    .ok()
+                    .map(|state| state.vertical_speed_m_s);
             }
         }
         Ok(())
     }
 }
 
+/// A refusal raised by the flight's builder, as the command reports it (#405): a Mach number
+/// past the aerodynamics' range in words of its own, anything else said of the simulator in the
+/// library's words, each long number rounded ([`rounded`]) and a library's hint split off; then
+/// a `help:` line naming what shaped the flight: the launch options typed, or else the design. The product system's `cli.md` and
+/// `writing.md` (*Errors*) ask for what happened, then what to do, naming things as typed.
 pub(crate) fn flight_refused(error: &hpr::Error, flight: &FlightArgs) -> Failure {
     // A library's own hint, split off as `lib.rs` does for every refusal, goes before ours.
     let (message, mut help) = match past_mach(error) {
@@ -3434,8 +3479,6 @@ fn sim_event(
 mod tests {
     use super::*;
 
-    /// A computed number, seven significant digits or more, is rounded to four, or to a whole
-    /// number past 1000; a number typed by hand, an id's digits and a range's ends are left.
     /// NFPA 1125's delay tolerance: 1.5 s up to a 7.5 s delay, 20% of it from there, and never
     /// more than 3 s, reached at 15 s. A band too narrow would flatter the delay, so each regime
     /// and both corners are pinned.
@@ -3458,6 +3501,8 @@ mod tests {
         }
     }
 
+    /// A computed number, seven significant digits or more, is rounded to four, or to a whole
+    /// number past 1000; a number typed by hand, an id's digits and a range's ends are left.
     #[test]
     fn long_numbers_in_library_words_are_rounded() {
         for (text, expected) in [

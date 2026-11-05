@@ -576,16 +576,29 @@ pub struct SimHeld {
     pub delay_band: Option<SimDelayBand>,
 }
 
-/// The span a motor's ejection delay may fire in, by NFPA 1125 (2019, §8.2.7): its label, give or
-/// take 1.5 s or 20 %, whichever is greater, but not more than 3 s.
+/// The span a motor's ejection delay may fire in, by NFPA 1125 (2019, §8.1.7 and §8.2.7): its
+/// label, give or take 1.5 s or 20 %, whichever is greater, but not more than 3 s. The code holds a
+/// motor type's certification firings to it; it bounds no single motor, nor a delay drilled to a
+/// time no label gives.
 #[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
 pub struct SimDelayBand {
     /// The motor's set delay, s after burnout.
     pub delay_s: f64,
     /// How far the delay may fire either side of it, s.
     pub tolerance_s: f64,
-    /// The rocket's vertical speed when a delay that short fires, m/s, up positive. `None` where
-    /// the held flight doesn't reach that time.
+    /// When a delay that short fires, s after launch: no sooner than burnout.
+    pub shortest_s: f64,
+    /// When a delay that long fires, s after launch.
+    pub longest_s: f64,
+    /// Until when the flight with the charges held is the flight a charge firing then meets, s
+    /// after launch: the first opening of the stack's other devices (those on the apogee, a
+    /// height or the launch), and no later than [`BRAKED_WITHIN_S`](crate::sim::BRAKED_WITHIN_S)
+    /// after its apogee, past which its fall, tail first with nothing open, is no prediction.
+    pub speeds_until_s: f64,
+    /// The device whose opening ends `speeds_until_s`, by name; `None` where the held apogee does.
+    pub until_opens: Option<String>,
+    /// The rocket's vertical speed when a delay that short fires, m/s, up positive. `None` past
+    /// `speeds_until_s`.
     pub shortest_vertical_speed_m_s: Option<f64>,
     /// The same, for a delay that long.
     pub longest_vertical_speed_m_s: Option<f64>,
