@@ -13,7 +13,7 @@ impulse, wind and mass, and where its Bayesian option fails its tests.
   from Wilks; the wind's growth with height from IEC 61400-1 ([Sources](#sources)). The test of an
   interval is [ADR-257's][adr-257].
 - **How well it is validated:** only on [synthetic flights](synthetic-flights.md), and only as a
-  whole. Each parameter's interval passes on two sets of test flights
+  whole. By least squares, each parameter's interval passes on two sets of test flights
   ([the sets](synthetic-flights.md#the-sets)). Set A flies the simulator's own model; set B flies a
   deliberately different one. The wind passes only on logs with a track, the log's latitude and
   longitude ([How well it holds](#how-well-it-holds)). Choices in the model were made after seeing those two
@@ -257,22 +257,22 @@ On the 1,000 flights of drag, impulse and mass, a tail passes with 29 to 74 trut
 1,497, a tail passes with 49 to 104, and the inside with 1,308 to 1,384. What fails, as far as it's
 known:
 
-- **The wind is too wide on logs with a track.** From 1.07% to 2.40% of truths fall in each tail,
+- **The wind is too wide on logs with a track.** From 1.06% to 2.41% of truths fall in each tail,
   where 5% belong. The test can't even tell the north wind's intervals from ones narrowed to 0.8,
   a probe that must fail. Its median width on set A is 0.431 m/s (1.41 ft/s) east, against least
   squares' 0.345 m/s (1.13 ft/s). The likely cause, not yet measured, is the track's noise. The
   posterior takes it as the least-squares fit states it. That fit narrows its own intervals back,
   with shares inside the bell curve's ±1.645 ([ADR-320][adr-320]).
 - **Set A's drag sits low and set B's impulse high.** 78 of set A's drag truths fall above, and
-  83 of set B's impulse truths below. Of set A's 78, 70 are on logs of height alone, the only logs
-  where the shear is drawn, though set A's wind doesn't shear. That points at the shear's stated
+  83 of set B's impulse truths below. Of set A's 78, 70 are on logs of height alone (776 of its 1,000
+  flights), the only logs where the shear is drawn, though set A's wind doesn't shear. That points at the shear's stated
   range, but it isn't measured yet, and set B's impulse leans the other way.
 - **Set A's impulse passes near its edge.** 70 of its truths fall below, 4 short of 74, the most
   that pass, on the same side as set B's: it too reads high, which flatters the motor.
 
 Drag and impulse are identified on set A, at median widths of 0.0917 and 0.0391 (least squares:
 0.115 and 0.0399), of 0.36 and 0.108 stated. The mass isn't, at 0.0341 of 0.036. On pure noise
-nothing is identified by either method. But the fit refuses every noise log before a posterior is
+nothing is identified by either method. But the reader or the fit turns away every noise log before a posterior is
 drawn, so that says nothing of the sampler itself.
 
 The draws are counted too. A posterior's effective draws are how many equally weighted draws its

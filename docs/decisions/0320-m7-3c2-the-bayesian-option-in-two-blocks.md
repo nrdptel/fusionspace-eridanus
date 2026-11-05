@@ -140,7 +140,7 @@ option's below, inside and above:
 
 Every probe fails but the narrowed one on the north wind, on both sets. Drag and impulse are
 identified on set A (median widths 0.0917 and 0.0391, of 0.36 and 0.108 stated); on every kind of pure
-noise, nothing is, though the fit refuses every noise log before a posterior is drawn, so that says
+noise, nothing is, though the reader or the fit turns away every noise log before a posterior is drawn, so that says
 nothing of the sampler. On set A, 319 of 2,276 posteriors had under 100 effective draws, the least 1.13
 and the median 232 of all 2,276; on set B, 392 of 2,296, the least 1.01 and the median 223. Of 1,138,000 draws on
 set A, 124 failed; of 1,148,000 on set B, 179. Every flight counted with something to fit has a posterior.
@@ -153,7 +153,7 @@ inside with 1,308 to 1,384.
   each chosen after reading counts on the first 300 flights of each. Nothing is fitted to them; the
   shear's ends are stated, and the intervals are raw.
 - **The wind is too wide on a track.** The Bayesian option's median width is 0.431 m/s east on
-  set A, against least squares' 0.345, and 1.07% to 2.40% of truths fall in each tail, not 5%. The posterior reads
+  set A, against least squares' 0.345, and 1.06% to 2.41% of truths fall in each tail, not 5%. The posterior reads
   the track's noise as the least-squares fit states it, floored at 10 m (33 ft) and widened for
   residuals that run on (ADR-316 §3, §11). On logs with a track the least-squares shares in force
   narrow that back, −1.36 and 1.29 east, −1.5 and 1.38 north, against ±1.645 for a bell curve; the
