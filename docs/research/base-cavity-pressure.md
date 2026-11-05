@@ -1,12 +1,14 @@
 # How an open base or a motor-tube cavity changes base pressure, Mach 0.3 to 1.3
 
+Re-checked 2026-11-05: 8 claims corrected.
+
 **In short: a cavity in a blunt base lowers its base drag by 0 to 0.02 on the base area from Mach 0.3 to 1.3, about
 the scatter of each measured set.** A cavity as wide as the base gains 0.004–0.012 in base pressure at Mach 0.3–0.9,
 and the gain peaks at about 0.15 d deep, not deeper (Compton 1968, a tunnel at flight Reynolds numbers). A shallow
-full-width cavity flown at Mach 0.70–0.93 changed base drag by 0.01 at most, which Powers (1988) calls not
-significant. Low-speed tunnels read up to 7 times larger and two-dimensional bases about 15 times, so neither sizes a
+full-width cavity flown at Mach 0.70–0.85 changed base drag by 0.01 at most, which Powers (1988) calls not
+significant. Low-speed tunnels read up to 6 times larger and two-dimensional bases 12–14 times, so neither sizes a
 rocket's correction. The two sting-free open-base sets behind [cylinder-base-drag](cylinder-base-drag.md) read *low*
-for a closed base: Hart's hollow body by 0.015–0.019, and Cubbage's jet-off nozzles by an amount bounded only to
+for a closed base: Hart's hollow body by 0.013–0.020, and Cubbage's jet-off nozzles by an amount bounded only to
 ±0.02. The one flown closed-against-open pair, Peck's dummy rocket chamber, nets 0.000 to −0.011, inside its 0.06
 model-to-model scatter. Closing Hart's base cuts the base rule's high error at Mach 0.9 from +0.071 to about +0.053;
 it still fails a ±0.03 bound, so [#68](https://github.com/nrdptel/fusionspace-eridanus/issues/68) stands. No test
@@ -38,10 +40,10 @@ this note's own arithmetic.
   to about 0.01 at Mach 0.4 and 0.6, so the gain is about one repeat-scatter wide.
 - **Boattails.** On 3°–10° boattails the gain is 0.01–0.03 and needs deeper cavities [S1] pp. 1, 9. Past some depth
   there is "little or no effect" [S1] pp. 1, 9, 11. Rims were not measured [S1] p. 5.
-- **Powers 1988 [S2], flown.** An 8 in body of revolution, fineness 10.9, flown as the cap of an F-111's vertical
-  fin. Solid-wall and vented-wall extensions 2.8 in deep (0.35 d) at Mach 0.70, 0.80 and 0.93 changed C_D,base by
-  0 to −0.01 [S2] p. 4, Fig. 9 p. 12, read by eye ±0.005; Powers calls 0.01 not significant. The airplane's angle of
-  attack was 3.9°–6.6° [S2] p. 4. This is the HPR shape of an airframe overhanging its aft ring.
+- **Powers 1988 [S2], flown.** An 8 in body of revolution, fineness 10.9, flown as the cap of an F-111's vertical fin.
+  Solid- and vented-wall extensions 2.8 in deep (0.35 d) at Mach 0.70, 0.80 and 0.85 (one merged symbol there) changed
+  C_D,base by 0.01 at most [S2] p. 4; Fig. 9 p. 12 reads −0.005 to −0.015, ±0.005. Powers calls them not significant.
+  The airplane flew at 3.9°–6.6° angle of attack [S2] p. 4. HPR's match: an airframe past its aft ring.
 
 ## 3. Low-speed and two-dimensional tests read larger
 
@@ -57,8 +59,8 @@ this note's own arithmetic.
 - **Two-dimensional.** Nash et al. 1963 [S5], a blunt trailing edge in a slotted tunnel with a cavity 1 h deep
   ([S5] §2.2). [S5] Fig. 47 p. 60, read off: plain C_pb −0.61 to −0.74 at Mach 0.2–0.8, the cavity −0.47 to −0.57,
   a gain of +0.14 to +0.17 (22–25%); about 20% subsonic and none supersonic, from a weaker vortex street [S5] p. 23.
-- **Reading (Inference).** Low-speed axisymmetric gains, 0.02–0.07, are 1.7–7 times §2's ≤ 0.012. A 2D base's suction
-  is 4–5 times an axisymmetric one, and its gain about 15 times. Compton argues axisymmetric bases shed less
+- **Reading (Inference).** Low-speed axisymmetric gains, 0.02–0.07, are 1.7–6 times §2's ≤ 0.012. A 2D base's suction
+  is about 5 times an axisymmetric one, and its gain 12–14 times. Compton argues axisymmetric bases shed less
   regularly [S1] p. 11. Only §2's data should size a rocket's correction.
 
 ## 4. Peck 1955: the one closed-against-open pair, flown
@@ -113,12 +115,12 @@ The peaks sit at Mach 1.01–1.04: A edge 0.223, B edge 0.243, A center 0.243, B
 
 - **HA is already area-weighted.** Hart's Fig. 8 puts "rim- and center-base pressures … over the entire respective
   areas" [S7] p. 16. **Inference:** fitting HA (cylinder-base-drag §2) as (1 − s)·rim + s·inside gives the inside's
-  share s = 0.37 at Mach 0.8, 0.37 at 1.05, 0.38 at 1.2; a 3.00 in hole in a 5.00 in base gives 0.36. The finned
+  share s = 0.37 at Mach 0.8, 0.37 at 1.05, 0.36 at 1.2; a 3.00 in hole in a 5.00 in base gives 0.36. The finned
   body C reads −0.122 to −0.125 rim (−0.134 at 0.9) and −0.105 to −0.111 inside at Mach 0.7–0.9.
-- **HA closed (Inference).** The rim alone sits 0.015–0.019 above HA: 0.019 at Mach 0.8, 0.018 at 1.05, 0.015 at
-  1.2. That is how much closing the hole would raise HA if a closed base read like its rim. Peck's closed center
-  reads more suction than its edge (0.031–0.038 below Mach 1, 0.017 at 1.08, §4), so the rise could be a little larger.
-  Hart's error bound is the same size: ±0.030 at Mach 0.8, ±0.013 at 1.25 [S7] p. 5.
+- **HA closed (Inference).** The rim alone sits 0.013–0.020 above HA: 0.020 at Mach 0.7, 0.019 at 0.8, 0.017 at 0.9,
+  0.018 at 1.05, 0.013–0.015 at 1.2–1.25. That is how much closing the hole would raise HA if a closed base read like
+  its rim. Peck's closed center reads more suction than its edge (0.031–0.038 below Mach 1, 0.017 at 1.08, §4), so
+  the rise could be larger. Hart's error bound is the same size: ±0.030 at Mach 0.8, ±0.013 at 1.25 [S7] p. 5.
 - **Cubbage 1956, set CU [S8].** A 2 in tube cantilevered from the tunnel entrance, no sting [S8] p. 4. Sonic nozzle
   exits are 0.25, 0.45, 0.65 and 0.75 of the base, supersonic ones 0.75 and 0.85 [S8] Fig. 3(a) p. 18, pp. 4–5;
   each opens back into the tube that ducts the jet air [S8] p. 4. **Inference:** jet off, each is a cavity many
@@ -137,10 +139,10 @@ The peaks sit at Mach 1.01–1.04: A edge 0.223, B edge 0.243, A center 0.243, B
 ## 6. What it does to the base rule (Inference)
 
 - **#68's error against a closed HA.** The rule reads 0.225 at Mach 0.9 against HA 0.154 and HA rim 0.172
-  (cylinder-base-drag §2): +0.071 for the open base, +0.053 rim-only. At Mach 0.8, +0.048 and +0.029 to +0.031
-  (this note's rim read or that note's). Past Mach 1.05 the rule's small low error against HA grows by the same
-  0.015–0.019: −0.035 rim-only at Mach 1.25. The ±0.03 done-when proposed in cylinder-base-drag still fails at
-  Mach 0.9–0.95 and 1.25, and is marginal at 0.8.
+  (cylinder-base-drag §2): +0.071 for the open base, +0.053 rim-only. At Mach 0.8, +0.048 and +0.029 to +0.031 (this
+  note's rim read or that note's). From Mach 1.05 on, the rule's small low error against HA grows by 0.013–0.018:
+  −0.035 rim-only at Mach 1.25. The ±0.03 done-when proposed in cylinder-base-drag still fails at Mach 0.9–0.95 and
+  1.25, and is marginal at 0.8.
 - **Sizes by HPR shape.** An airframe past its aft ring, full width and shallow: 0–0.012 [S1, S2]. A shallow
   recessed retainer or motor-tube lip (d_c/d 0.3–0.8): no test; assumed no larger than the full-width 0.012. A
   spent motor, a small opening into a deep case: the opening's area share times 0.03–0.05 at the floor, partly
@@ -154,7 +156,7 @@ The peaks sit at Mach 1.01–1.04: A edge 0.223, B edge 0.243, A center 0.243, B
   §5) and ±0.02 on CU, and add Peck A's area-weighted closed values (§4) as a finned closed-base check with its 0.06
   scatter. The rule's verdict holds with either reading.
 - **No cavity term in the base rule.** Measured effects on axisymmetric bodies at flight Reynolds numbers are below
-  0.02 and below the scatter; a term would rest on low-speed or 2D data that read up to 15 times larger.
+  0.02 and below the scatter; a term would rest on low-speed or 2D data that read up to 14 times larger.
 - **Users' designs.** A motor-tube cavity need not enter the design input for base drag; a note in the aero page can
   cite §6's 0–0.02.
 
