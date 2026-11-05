@@ -42,30 +42,30 @@ By how well the flight's heights fit (below / inside / above):
 
 ### Bayesian
 
-The posterior's 5% and 95% points, as they come. Of the 2276 flights counted here or for the wind with a posterior drawn, 319 fell short of 100 effective draws; their effective draws run from 1.13, with a 10% point of 85.6 and a median of 232. Of the 1138000 draws made, the pilots' included, 124 failed; 0 flights with something to fit have no posterior.
+The posterior's 5% and 95% points, as they come. Of the 2276 flights counted here or for the wind with a posterior drawn, 563 fell short of 100 effective draws; their effective draws run from 1, with a 10% point of 47.3 and a median of 153. Of the 1138000 draws made, the pilots' included, 126 failed; 0 flights with something to fit have no posterior.
 
 | Parameter | Below | Inside | Above | Test | Narrowed, widened, shifted | Mean error | Median width / stated | Identified |
 |---|---:|---:|---:|---|---|---:|---:|---|
-| drag scale | 27 | 895 | 78 | fails | fails, fails, fails | -0.0104 | 0.0917 / 0.36 | yes |
-| impulse scale | 70 | 881 | 49 | passes | fails, fails, fails | 0.00136 | 0.0391 / 0.108 | yes |
-| wind toward the east, m/s | 29 | 1452 | 16 | fails | fails, fails, fails | -0.00413 | 0.431 / 12.7 | yes |
-| wind toward the north, m/s | 34 | 1429 | 34 | fails | passes, fails, fails | 0.00237 | 0.439 / 12.7 | yes |
-| mass on the weighed mass | 52 | 887 | 61 | passes | fails, fails, fails | -0.000145 | 0.0341 / 0.036 | no |
+| drag scale | 30 | 887 | 83 | fails | fails, fails, fails | -0.0106 | 0.0919 / 0.36 | yes |
+| impulse scale | 72 | 878 | 50 | passes | fails, fails, fails | 0.00132 | 0.0391 / 0.108 | yes |
+| wind toward the east, m/s | 59 | 1380 | 58 | passes | fails, fails, fails | -0.00768 | 0.364 / 12.7 | yes |
+| wind toward the north, m/s | 55 | 1384 | 58 | passes | fails, fails, fails | 0.00908 | 0.36 / 12.7 | yes |
+| mass on the weighed mass | 56 | 882 | 62 | passes | fails, fails, fails | -0.000163 | 0.034 / 0.036 | no |
 
 By design (below / inside / above):
 
 | Design | drag scale | impulse scale | wind toward the east, m/s | wind toward the north, m/s | mass on the weighed mass |
 |---|---:|---:|---:|---:|---:|
-| rocketpy-bella-lui | 5 / 82 / 5 | 7 / 82 / 3 | 6 / 133 / 7 | 3 / 138 / 5 | 8 / 77 / 7 |
-| rocketpy-calisto-getting-started-motor-at-minus-1.255 | 4 / 83 / 9 | 6 / 84 / 6 | 2 / 151 / 1 | 2 / 151 / 1 | 4 / 86 / 6 |
-| rocketpy-calisto-tests-motor-at-minus-1.373 | 0 / 96 / 6 | 3 / 94 / 5 | 2 / 139 / 0 | 2 / 134 / 5 | 2 / 94 / 6 |
-| rocketpy-cavour | 5 / 91 / 4 | 8 / 90 / 2 | 4 / 165 / 2 | 6 / 156 / 9 | 11 / 83 / 6 |
-| rocketpy-genesis | 2 / 94 / 11 | 7 / 90 / 10 | 5 / 149 / 0 | 4 / 147 / 3 | 5 / 92 / 10 |
-| rocketpy-juno-iii | 5 / 77 / 11 | 11 / 80 / 2 | 0 / 146 / 2 | 3 / 145 / 0 | 7 / 81 / 5 |
-| rocketpy-lince | 0 / 83 / 9 | 5 / 79 / 8 | 1 / 146 / 3 | 5 / 142 / 3 | 6 / 80 / 6 |
-| rocketpy-ndrt-2020-nose-to-tail | 1 / 116 / 6 | 10 / 109 / 4 | 1 / 145 / 0 | 0 / 146 / 0 | 4 / 114 / 5 |
-| rocketpy-prometheus-2022-generic-motor | 4 / 79 / 13 | 7 / 82 / 7 | 5 / 151 / 1 | 6 / 145 / 6 | 3 / 84 / 9 |
-| rocketpy-valetudo | 1 / 94 / 4 | 6 / 91 / 2 | 3 / 127 / 0 | 3 / 125 / 2 | 2 / 96 / 1 |
+| rocketpy-bella-lui | 7 / 80 / 5 | 7 / 82 / 3 | 4 / 130 / 12 | 7 / 133 / 6 | 8 / 76 / 8 |
+| rocketpy-calisto-getting-started-motor-at-minus-1.255 | 4 / 81 / 11 | 5 / 84 / 7 | 4 / 144 / 6 | 7 / 143 / 4 | 4 / 85 / 7 |
+| rocketpy-calisto-tests-motor-at-minus-1.373 | 0 / 96 / 6 | 3 / 94 / 5 | 7 / 132 / 2 | 4 / 130 / 7 | 2 / 94 / 6 |
+| rocketpy-cavour | 5 / 91 / 4 | 9 / 89 / 2 | 8 / 157 / 6 | 9 / 152 / 10 | 13 / 81 / 6 |
+| rocketpy-genesis | 2 / 92 / 13 | 7 / 90 / 10 | 6 / 142 / 6 | 3 / 144 / 7 | 5 / 92 / 10 |
+| rocketpy-juno-iii | 3 / 79 / 11 | 11 / 80 / 2 | 2 / 142 / 4 | 3 / 143 / 2 | 7 / 81 / 5 |
+| rocketpy-lince | 1 / 81 / 10 | 5 / 80 / 7 | 10 / 137 / 3 | 8 / 138 / 4 | 7 / 79 / 6 |
+| rocketpy-ndrt-2020-nose-to-tail | 1 / 116 / 6 | 10 / 109 / 4 | 6 / 134 / 6 | 6 / 136 / 4 | 4 / 114 / 5 |
+| rocketpy-prometheus-2022-generic-motor | 5 / 78 / 13 | 8 / 81 / 7 | 7 / 139 / 11 | 5 / 144 / 8 | 3 / 85 / 8 |
+| rocketpy-valetudo | 2 / 93 / 4 | 7 / 89 / 3 | 5 / 123 / 2 | 3 / 121 / 6 | 3 / 95 / 1 |
 
 ## Set B: 1000 flights counted
 
@@ -105,30 +105,30 @@ By how well the flight's heights fit (below / inside / above):
 
 ### Bayesian
 
-The posterior's 5% and 95% points, as they come. Of the 2296 flights counted here or for the wind with a posterior drawn, 392 fell short of 100 effective draws; their effective draws run from 1.01, with a 10% point of 73.4 and a median of 223. Of the 1148000 draws made, the pilots' included, 179 failed; 0 flights with something to fit have no posterior.
+The posterior's 5% and 95% points, as they come. Of the 2296 flights counted here or for the wind with a posterior drawn, 711 fell short of 100 effective draws; their effective draws run from 1, with a 10% point of 28.7 and a median of 138. Of the 1148000 draws made, the pilots' included, 149 failed; 0 flights with something to fit have no posterior.
 
 | Parameter | Below | Inside | Above | Test | Narrowed, widened, shifted | Mean error | Median width / stated | Identified |
 |---|---:|---:|---:|---|---|---:|---:|---|
-| drag scale | 66 | 884 | 50 | passes | fails, fails, fails | -0.00351 | 0.0969 / 0.36 | yes |
-| impulse scale | 83 | 888 | 29 | fails | fails, fails, fails | 0.00255 | 0.0401 / 0.108 | yes |
-| wind toward the east, m/s | 26 | 1439 | 32 | fails | fails, fails, fails | -0.0302 | 0.503 / 12.7 | yes |
-| wind toward the north, m/s | 31 | 1430 | 36 | fails | passes, fails, fails | -0.011 | 0.515 / 12.7 | yes |
-| mass on the weighed mass | 63 | 870 | 67 | passes | fails, fails, fails | -0.00002 | 0.034 / 0.036 | no |
+| drag scale | 69 | 877 | 54 | passes | fails, passes, fails | -0.00347 | 0.0969 / 0.36 | yes |
+| impulse scale | 85 | 881 | 34 | fails | fails, fails, fails | 0.00243 | 0.0401 / 0.108 | yes |
+| wind toward the east, m/s | 58 | 1353 | 86 | passes | fails, fails, fails | -0.035 | 0.427 / 12.7 | yes |
+| wind toward the north, m/s | 71 | 1345 | 81 | passes | fails, fails, fails | -0.0287 | 0.447 / 12.7 | yes |
+| mass on the weighed mass | 61 | 870 | 69 | passes | fails, fails, fails | -0.000106 | 0.034 / 0.036 | no |
 
 By design (below / inside / above):
 
 | Design | drag scale | impulse scale | wind toward the east, m/s | wind toward the north, m/s | mass on the weighed mass |
 |---|---:|---:|---:|---:|---:|
-| rocketpy-bella-lui | 0 / 97 / 0 | 7 / 90 / 0 | 3 / 137 / 4 | 1 / 140 / 3 | 6 / 87 / 4 |
-| rocketpy-calisto-getting-started-motor-at-minus-1.255 | 3 / 93 / 5 | 11 / 86 / 4 | 0 / 171 / 1 | 1 / 169 / 2 | 9 / 82 / 10 |
-| rocketpy-calisto-tests-motor-at-minus-1.373 | 7 / 105 / 5 | 4 / 110 / 3 | 0 / 154 / 2 | 1 / 155 / 0 | 5 / 100 / 12 |
-| rocketpy-cavour | 8 / 83 / 2 | 8 / 84 / 1 | 4 / 126 / 4 | 3 / 125 / 6 | 6 / 80 / 7 |
-| rocketpy-genesis | 10 / 92 / 5 | 6 / 98 / 3 | 0 / 128 / 5 | 3 / 127 / 3 | 5 / 98 / 4 |
-| rocketpy-juno-iii | 6 / 85 / 12 | 6 / 89 / 8 | 0 / 155 / 1 | 3 / 151 / 2 | 7 / 85 / 11 |
-| rocketpy-lince | 10 / 78 / 7 | 17 / 73 / 5 | 8 / 135 / 5 | 8 / 132 / 8 | 8 / 81 / 6 |
-| rocketpy-ndrt-2020-nose-to-tail | 0 / 80 / 3 | 1 / 82 / 0 | 1 / 133 / 0 | 1 / 133 / 0 | 3 / 76 / 4 |
-| rocketpy-prometheus-2022-generic-motor | 22 / 63 / 11 | 20 / 73 / 3 | 7 / 147 / 7 | 8 / 142 / 11 | 9 / 86 / 1 |
-| rocketpy-valetudo | 0 / 108 / 0 | 3 / 103 / 2 | 3 / 153 / 3 | 2 / 156 / 1 | 5 / 95 / 8 |
+| rocketpy-bella-lui | 0 / 97 / 0 | 7 / 90 / 0 | 3 / 136 / 5 | 5 / 135 / 4 | 6 / 87 / 4 |
+| rocketpy-calisto-getting-started-motor-at-minus-1.255 | 3 / 92 / 6 | 11 / 84 / 6 | 2 / 167 / 3 | 4 / 166 / 2 | 9 / 83 / 9 |
+| rocketpy-calisto-tests-motor-at-minus-1.373 | 8 / 104 / 5 | 4 / 110 / 3 | 0 / 150 / 6 | 3 / 150 / 3 | 5 / 100 / 12 |
+| rocketpy-cavour | 10 / 80 / 3 | 9 / 82 / 2 | 10 / 111 / 13 | 6 / 116 / 12 | 5 / 79 / 9 |
+| rocketpy-genesis | 10 / 91 / 6 | 6 / 97 / 4 | 6 / 119 / 8 | 7 / 115 / 11 | 5 / 98 / 4 |
+| rocketpy-juno-iii | 8 / 83 / 12 | 7 / 89 / 7 | 1 / 149 / 6 | 6 / 143 / 7 | 7 / 84 / 12 |
+| rocketpy-lince | 11 / 76 / 8 | 17 / 71 / 7 | 15 / 117 / 16 | 15 / 118 / 15 | 9 / 79 / 7 |
+| rocketpy-ndrt-2020-nose-to-tail | 0 / 80 / 3 | 1 / 81 / 1 | 4 / 128 / 2 | 2 / 130 / 2 | 3 / 76 / 4 |
+| rocketpy-prometheus-2022-generic-motor | 19 / 66 / 11 | 20 / 74 / 2 | 15 / 125 / 21 | 21 / 121 / 19 | 7 / 89 / 0 |
+| rocketpy-valetudo | 0 / 108 / 0 | 3 / 103 / 2 | 2 / 151 / 6 | 2 / 151 / 6 | 5 / 95 / 8 |
 
 ## Pure noise in place of the log
 

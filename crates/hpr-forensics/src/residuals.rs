@@ -271,6 +271,80 @@ impl Simulated {
         self.held_at(t).map_or(f64::NAN, |moment| moment.mach)
     }
 
+    /// The drift east and north, m, as a receiver's navigation filter reports it at each of
+    /// `times_s`, ascending: a second-order loop of natural frequency `omega_rad_s` and damping
+    /// `zeta` on each axis, `ẍ = ωn² (p − x) + 2ζωn (ṗ − ẋ)`, settled on the pad at launch. It is
+    /// a type-2 loop, so it follows a constant speed exactly and settles `a/ωn²` behind a constant
+    /// acceleration `a` (docs/research/gnss-in-boost.md §4, an inference from the type-2 loop's
+    /// form; no source on a receiver's own filter was read). It
+    /// integrates the error `e = p − x`, `ë = p̈ − ωn² e − 2ζωn ė`, by semi-implicit Euler over the
+    /// flight's own moments, the speed and acceleration by their differences, and reads each
+    /// time between moments linearly. Before the first moment it reads the pad, after the last
+    /// the last.
+    pub(crate) fn lagged_drift_m(
+        &self,
+        omega_rad_s: f64,
+        zeta: f64,
+        times_s: &[f64],
+    ) -> Vec<(f64, f64)> {
+        let mut out = Vec::with_capacity(times_s.len());
+        let Some(first) = self.moments.first() else {
+            return vec![(f64::NAN, f64::NAN); times_s.len()];
+        };
+        let (w, damping) = (omega_rad_s, 2.0 * zeta * omega_rad_s);
+        let mut error = [0.0_f64; 2];
+        let mut error_rate = [0.0_f64; 2];
+        let mut speed: [Option<f64>; 2] = [Some(0.0), Some(0.0)];
+        let mut previous = (
+            first.time_s,
+            [first.east_m, first.north_m],
+            [first.east_m, first.north_m],
+        );
+        let mut wanted = times_s.iter().copied().peekable();
+        while let Some(&t) = wanted.peek() {
+            if t > first.time_s {
+                break;
+            }
+            out.push((first.east_m, first.north_m));
+            wanted.next();
+        }
+        for moment in self.moments.iter().skip(1) {
+            if wanted.peek().is_none() {
+                break;
+            }
+            let dt = moment.time_s - previous.0;
+            if dt.is_nan() || dt <= 0.0 {
+                continue;
+            }
+            let p = [moment.east_m, moment.north_m];
+            let mut output = [0.0; 2];
+            for axis in 0..2 {
+                let rate = (p[axis] - previous.1[axis]) / dt;
+                let accel = speed[axis].map_or(0.0, |before| (rate - before) / dt);
+                speed[axis] = Some(rate);
+                error_rate[axis] += dt * (accel - w * w * error[axis] - damping * error_rate[axis]);
+                error[axis] += dt * error_rate[axis];
+                output[axis] = p[axis] - error[axis];
+            }
+            while let Some(&t) = wanted.peek() {
+                if t > moment.time_s {
+                    break;
+                }
+                let share = (t - previous.0) / dt;
+                out.push((
+                    previous.2[0] + share * (output[0] - previous.2[0]),
+                    previous.2[1] + share * (output[1] - previous.2[1]),
+                ));
+                wanted.next();
+            }
+            previous = (moment.time_s, p, output);
+        }
+        for _ in wanted {
+            out.push((previous.2[0], previous.2[1]));
+        }
+        out
+    }
+
     /// Meters east and north of where the flight starts at `t`.
     pub(crate) fn drift_m(&self, t: f64) -> (f64, f64) {
         self.held_at(t).map_or((f64::NAN, f64::NAN), |moment| {
@@ -1336,5 +1410,67 @@ mod tests {
         assert_eq!(names, [Phase::Boost, Phase::Coast, Phase::Descent]);
         assert!((phases[0].end_s - 3.0).abs() < 0.5, "{phases:?}");
         assert!((phases[1].end_s - top_s).abs() < 1.0, "{phases:?}");
+    }
+
+    /// A navigation filter settles `a/ωn²` behind a constant acceleration and follows a constant
+    /// speed with no lag: a type-2 loop. A fast one barely lags at all.
+    #[test]
+    fn a_receivers_filter_lags_a_constant_acceleration_by_a_over_omega_squared() {
+        let (a, v, omega) = (2.0, 3.0, 0.5);
+        let flight = tests_support::simulated_of(40.0, |t| (0.0, 0.5 * a * t * t, v * t));
+        let times = [30.0, 35.0, 39.0];
+        let lagged = flight.lagged_drift_m(omega, std::f64::consts::FRAC_1_SQRT_2, &times);
+        for (&t, &(east, north)) in times.iter().zip(&lagged) {
+            let lag = 0.5 * a * t * t - east;
+            assert!((lag - a / (omega * omega)).abs() < 0.05, "{t} s: {lag}");
+            assert!((v * t - north).abs() < 0.01, "{t} s: {}", v * t - north);
+        }
+        let fast = flight.lagged_drift_m(50.0, std::f64::consts::FRAC_1_SQRT_2, &times);
+        for (&t, &(east, _)) in times.iter().zip(&fast) {
+            assert!((0.5 * a * t * t - east).abs() < 0.01, "{t} s");
+        }
+        // Before the flight's first moment it reads the pad.
+        let before = flight.lagged_drift_m(omega, std::f64::consts::FRAC_1_SQRT_2, &[-1.0]);
+        assert_eq!(before, vec![(0.0, 0.0)]);
+    }
+
+    /// The fit's filter is the synthetic receiver's (`synthetic::noise::Lag`), integrated apart:
+    /// fed the same boost, coast and turn, the two agree to a millimeter.
+    #[test]
+    fn a_receivers_filter_matches_the_synthetic_receivers_loop() {
+        // A boost of 20 m/s² for 2 s, then a coast that slows at 3 m/s², then a turn.
+        let east = |t: f64| {
+            if t < 2.0 {
+                10.0 * t * t
+            } else if t < 8.0 {
+                40.0 + 40.0 * (t - 2.0) - 1.5 * (t - 2.0).powi(2)
+            } else {
+                40.0 + 240.0 - 54.0 + 22.0 * (t - 8.0) + 0.2 * (t - 8.0).powi(3)
+            }
+        };
+        let flight = tests_support::simulated_of(20.0, |t| (0.0, east(t), 0.0));
+        for omega in [0.25, 0.6, 1.0] {
+            let mut lag = crate::synthetic::noise::Lag::new(omega, 0.0);
+            lag.step(0.0, 0.0, 0.0);
+            let mut expected = Vec::new();
+            let times: Vec<f64> = (1..=19).map(f64::from).collect();
+            let mut now = 0.0_f64;
+            for &t in &times {
+                while now < t - 1e-9 {
+                    let next = (now + 0.01).min(t);
+                    let rate = (east(next) - east(now)) / (next - now);
+                    lag.step(next - now, east(next), rate);
+                    now = next;
+                }
+                expected.push(lag.output());
+            }
+            let got = flight.lagged_drift_m(omega, std::f64::consts::FRAC_1_SQRT_2, &times);
+            for ((t, want), (have, _)) in times.iter().zip(&expected).zip(&got) {
+                assert!(
+                    (want - have).abs() < 1e-3,
+                    "ωn {omega}, {t} s: {want} and {have}"
+                );
+            }
+        }
     }
 }
