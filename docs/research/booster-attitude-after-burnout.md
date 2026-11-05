@@ -1,5 +1,7 @@
 # Booster attitude after burnout: nose-first, tail-low, flat or tumbling
 
+Re-checked 2026-11-05: 6 claims corrected.
+
 What attitude a spent finned booster takes on its way down, and what decides it, for #179 (which descent band a
 separated booster flies) and #666 (evidence G13, a dropped booster's logged flight). Attitude moves its descent about
 4×. It builds on [broadside-body-drag.md](broadside-body-drag.md) (§2, §7),
@@ -34,14 +36,14 @@ with 2,000 lb of aft slag gives 1.0% nose-first, 46.5% broadside and 53.5% tail-
 pressure the main sensitivities (p. 11). Then "the FS entered into a flat spin" about 90° (p. 12), by eye 60° to
 130° until the parachute near 180 s (Fig. 14). Finless and forced to tumble, it checks the CG sign only.
 
-**Shuttle SRBs** (Bacchus, Kross and Moog [2]; Lockheed [3]). Spent SRBs reenter "in a random tumbling mode" ([2]
-p. 189) "until they are captured in a trim condition" ([3] §5, PDF p. 28). The STS-1 and STS-2 flight band in [3]
-Fig. 4-5 (p. 4-7, by eye) spans Mach 0.46 to 1.08: about 140° to 149° near Mach 1.05, 132° to 143° at Mach 1.0, a
-minimum of 82° to 90° near Mach 0.7 (the "large pitch down below Mach 1.0", p. 4-2) and 125° to 131° near Mach 0.5.
-Predicted trims match flight only from Mach 1.1 (p. 4-7). With the CG "ideally located at approximately 53 percent"
-of length, "near centroid of area", it would trim near 90°; the real burnout CG, 5 to 6% further aft, trims "somewhat
-tail first", and a 59% limit guards against a tail-first "lock-up" ([2] p. 190). A CG almost 3 ft further aft trims
-about 10° more tail-first (p. 194). Finless, Reynolds number near 2e7 (p. 191): the sign transfers, the angles don't.
+**Shuttle SRBs** (Bacchus, Kross and Moog [2]; Lockheed [3]). Spent SRBs reenter "in a random tumbling mode" ([2] p.
+189) "until they are captured in a trim condition" ([3] §5, PDF p. 28). The STS-1 and STS-2 flight band in [3] Fig. 4-5
+(p. 4-7, by pixel, ±1.5°) spans Mach 0.47 to 1.09: about 135° to 145° at Mach 1.05, 131° to 141° at Mach 1.0, a minimum
+of 82° to 90° near Mach 0.7 (the "large pitch down below Mach 1.0", p. 4-2) and 120° to 129° near Mach 0.49. Predicted
+trims match flight only from Mach 1.1 (p. 4-7). With the CG "ideally located at approximately 53 percent" of length,
+"near centroid of area", it would trim near 90°; the real burnout CG, 5 to 6% further aft, trims "somewhat tail first",
+and a 59% limit guards against a tail-first "lock-up" ([2] p. 190). A CG almost 3 ft further aft trims about 10° more
+tail-first (p. 194). Finless, Reynolds number near 2e7 (p. 191): the sign transfers, the angles don't.
 
 **Wallops boosters** (McFall, 1964 [4]). "Booster motors were seen descending in a flat spin with a propeller like
 rotation after shedding their fins" (p. 2). No count, size or speed. A cylinder has a stable trim at 90° (p. 1).
@@ -62,11 +64,10 @@ at or up to 1/4 in ahead of the balance point with the spent casing).
 ## 2. The static test: CG against the broadside centroid
 
 **The body.** Jorgensen's method [7] splits a body's normal force into a potential term, placed at the nose below 90°
-and at the base above, and a crossflow term η·C_dn·(A_p/A)·sin²α at the side-area centroid (eqs. 1, 4, 5, pp. 3 to
-4). C_dn is about 1.2 for subcritical crossflow up to a crossflow Reynolds number of about 2e5, and 0.15 to 0.30
-supercritical (p. 5). It was checked from 0 to 180° only at Mach 2.86 (p. 1); TR R-474 [8] covers Mach 0.6 to 2.0 to
-60° only (0 to 180° only at Mach 2.9). Nothing validates it for finned bodies at subsonic Mach past 60°, nor for an
-open front.
+and at the base above, and a crossflow term η·C_dn·(A_p/A)·sin²α at the side-area centroid (eqs. 1, 4, 5, pp. 3 to 4).
+C_dn is about 1.2 for subcritical crossflow up to a crossflow Reynolds number of about 2e5, and 0.15 to 0.30
+supercritical (p. 5). It was checked from 0 to 180° only at Mach 2.86 (p. 1); TR R-474 [8] covers Mach 0.6 to 2.0 to 60°
+only (0 to 180° only at Mach 2.9). Nothing validates it for finned bodies at subsonic Mach past 60°, or an open front.
 
 **The fins.** Koenig's semispan wings at Reynolds number 1.5 to 2.2e6 [9]: C_D about 1.22 (aspect ratio 2, swept)
 and 1.19 (delta) at 90° (Fig. 3, p. 10, by eye). **Inference** from C_m (Fig. 5, p. 18, by eye, taking the reference
@@ -82,9 +83,9 @@ tube, fins of root 0.15 m, tip 0.075 m, span 0.10 m and sweep 0.075 m (margin wi
 | Fins | CG (fraction of L) | Barrowman margin (cal) | Other trims (u unstable, s stable) |
 | --- | ---: | ---: | --- |
 | 4 | 0.55, 0.60 | 1.96, 1.46 | none: nose-first from any attitude |
-| 4 | 0.65 | 0.96 | u 79°, s 95° |
-| 4 | 0.70 | 0.46 | u 29.5°, s 110.5° |
+| 4 | 0.65, 0.70 | 0.96, 0.46 | u 79°, s 95°; u 29.5°, s 110.5° |
 | 4 | 0.75, 0.80 | −0.04, −0.54 | s 127.5°; s 144° |
+| 3 | 0.65 | 0.53 | u 45°, s 103° |
 | 3 | 0.75, 0.80 | −0.47, −0.97 | s 136.5°; s 151° |
 
 Over l/d 5 to 20, fin scale 0.5 to 2, three or four fins, η × 0.6 or 1, fin C_N at 90° of 1.2 or 1.8 and CG 0.30 to
@@ -99,14 +100,14 @@ centroid, on the example fins:
 | 15 | 2.24 | 2.60 | not run | not run |
 | 20 | 3.59 | 4.16 | 4.84 | 2.26 |
 
-Half-size fins put the threshold at −0.70 to 0.48 cal, double-size at 0.39 to 0.50 (l/d 10) and 3.43 to 3.71
-(l/d 20). A tool giving a headless tube no front lift puts the CP 1.7 to 2.1 cal further aft at l/d 10 (3.5 to 4.4 at
-l/d 20) and reads every threshold that much higher. The trim moves about 3.2° per 1% of length of CG shift (three
-fins), the same direction as the SRB's (p. 194). A fast fall (C_dn 0.4, above Jorgensen's supercritical band) moves
-the centroid aft, so a booster can gain a tail-low trim as it slows. Dahlquist's tunnel data [11] agree in sign only:
-the center of pressure moves forward with angle of attack, the lateral-area center is "a rough, conservative
-estimate" of it at 90° (PDF p. 1), and the worst case is 13° of safe angle per caliber over four rockets (PDF p. 3).
-**Inference:** that angle is the nose-first basin's edge; the model's is 2.5 to 6× wider (64 to 82° per caliber).
+Half-size fins put the threshold at −0.82 to 0.48 cal (l/d 10 to 20), double-size at 0.39 to 0.50 (l/d 10) and 3.43 to
+3.71 (l/d 20). A tool giving a headless tube no front lift puts the CP 1.7 to 2.1 cal further aft at l/d 10 (3.5 to 4.4
+at l/d 20) and reads every threshold that much higher. The trim moves about 3.2° per 1% of length of CG shift (three
+fins), the same direction as the SRB's (p. 194). A fast fall (C_dn 0.4, above Jorgensen's supercritical band) moves the
+centroid aft, so a booster can gain a tail-low trim as it slows. Dahlquist's tunnel data [11] agree in sign only: the
+center of pressure moves forward with angle of attack, the lateral-area center is "a rough, conservative estimate" of it
+at 90° (PDF p. 1), and the worst case is 13° of safe angle per caliber over four rockets (PDF p. 3). **Inference:** that
+angle is the nose-first basin's edge; the model's is 4.9 to 6.5× wider (64 to 84° per caliber, three and four fins).
 
 ## 3. Near the booster's apogee
 
@@ -125,8 +126,7 @@ separation, 60 to 104° from 85°, 154 to 158° from 89°. Outcome on the l/d 10
 
 - CG at 0.58 to 0.64 L (margin 1.66 to 1.06 cal): nose-first by 25 to 30 s from every separation angle, 70° to 89°.
 - CG at 0.68 L (0.66 cal): trimmed at 104° from 83° to 89°, else nose-first; 0.72 L (0.26 cal): 117° from all.
-- CG at 0.66 L (0.86 cal): trimmed at 98° only from 85°, nose-first at 87° and 89°: near the threshold it turns on
-  the swing.
+- CG at 0.66 L (0.86 cal), near the threshold: trimmed at 98° only from 85°, else nose-first; the swing decides.
 
 It falls at about 67 m/s nose-first, 17 m/s trimmed. At l/d 20 (2 m, 4 kg), 4.4 and 5.2 cal ended nose-first, 2.0
 cal trimmed at 132° from 80° up, 1.2 cal at 145° from every angle: well past the threshold any separation reaches
