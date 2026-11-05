@@ -2773,7 +2773,7 @@ pub(super) mod tests {
                 1,
             )
         };
-        let cases: [(String, &str, &Holds<'_>); 4] = [
+        let cases: [(String, &str, &Holds<'_>); 5] = [
             (
                 stage(
                     "<overridemass>2.0</overridemass>\
@@ -2821,6 +2821,24 @@ pub(super) mod tests {
                         1,
                     ),
                     ("<overridesubcomponentsmass>", 0),
+                ],
+            ),
+            // A drag override beside it is still read, and its flag written back once.
+            (
+                stage(
+                    "<overridemass>2.0</overridemass>\
+                     <overridesubcomponentsmass>false</overridesubcomponentsmass>\
+                     <overridecd>0.5</overridecd>\
+                     <overridesubcomponentscd>true</overridesubcomponentscd>",
+                ),
+                "`overridesubcomponentsmass` is false",
+                &[
+                    (
+                        "<overridesubcomponentsmass>false</overridesubcomponentsmass>",
+                        1,
+                    ),
+                    ("<overridesubcomponentscd>true</overridesubcomponentscd>", 1),
+                    ("<overridecd>", 1),
                 ],
             ),
         ];
