@@ -24,9 +24,10 @@ impulse, wind and mass, and where its Bayesian option fails its tests.
   samples, since that model has no true drag scale. On a real flight, the model's own errors go into
   the scales with nothing to say so. The Bayesian option is a second kind of interval, from drawing
   the unknowns' possible values at random rather than reading the curvature at the answer. Its
-  intervals pass 4 of their 10 tests, 5 parameters on each of 2 sets. Its wind's are too wide. Set A's drag reads low, 78 truths above its
-  intervals, and set B's impulse high, 83 below: each makes the rocket look better than it flew.
-  Use the least-squares intervals ([The Bayesian option](#the-bayesian-option)).
+  intervals pass 4 of their 10 tests, 5 parameters on each of 2 sets. Its wind's are too wide. Set
+  A's drag reads low, 78 of 1,000 truths above its intervals, and set B's impulse high, 83 below,
+  where a tail passes with at most 74: each makes the rocket look better than it flew. Use the
+  least-squares intervals ([The Bayesian option](#the-bayesian-option)).
 - **What it leaves out:** anything past apogee, and the accelerometer. A log whose only height is a
   GNSS receiver's isn't fitted, since the log reader takes no apogee from it; that's every log with
   nothing to fit among the sets' counted draws, about one in six ([when](#when-a-log-has-nothing-to-fit)). Its wind is

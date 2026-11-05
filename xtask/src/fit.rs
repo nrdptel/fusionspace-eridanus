@@ -645,10 +645,12 @@ impl Apart {
                 if let (Some(a), Some(b)) = (a.as_u64(), b.as_u64()) {
                     let flights = a.abs_diff(b);
                     self.most_flights = self.most_flights.max(flights);
-                    // A posterior's draws come 500 to a flight, so a draw count may stand as
-                    // many draws off as the flights may.
-                    let draws = at.ends_with("/draws/made") || at.ends_with("/draws/failed");
-                    let allowed = if draws {
+                    // A posterior makes 500 draws, so the draws made, 500 for each posterior,
+                    // may stand as many draws off as the posteriors may flights. A failed draw
+                    // is one draw's own event, not a flight's 500: the failed draws are held to
+                    // the flights' room, which CI's Linux runner kept within 1 on every count,
+                    // these included (the 32 parts put together on 2026-11-03).
+                    let allowed = if at.ends_with("/draws/made") {
                         OTHER_PLATFORM_FLIGHTS * (POSTERIOR_PILOT + POSTERIOR_DRAWS) as u64
                     } else {
                         OTHER_PLATFORM_FLIGHTS
@@ -2140,6 +2142,31 @@ mod tests {
                 .is_empty()
         );
         assert!(!apart(json!([1, 2]), json!([1])).broken.is_empty());
+        // The draws made may stand five posteriors' 500 draws off, no more.
+        let made = |made: u64| {
+            apart(
+                json!({"draws": {"made": 1_138_000_u64}}),
+                json!({"draws": {"made": made}}),
+            )
+            .broken
+        };
+        assert!(made(1_140_500).is_empty(), "{:?}", made(1_140_500));
+        assert!(made(1_135_500).is_empty(), "{:?}", made(1_135_500));
+        assert!(!made(1_140_501).is_empty());
+        assert!(!made(1_135_499).is_empty());
+        // The failed draws stand only the flights' five off, not five posteriors' draws.
+        let failed = |failed: u64| {
+            apart(
+                json!({"draws": {"failed": 124}}),
+                json!({"draws": {"failed": failed}}),
+            )
+            .broken
+        };
+        assert!(failed(129).is_empty(), "{:?}", failed(129));
+        assert!(failed(119).is_empty(), "{:?}", failed(119));
+        assert!(!failed(130).is_empty());
+        assert!(!failed(118).is_empty());
+        assert!(!failed(624).is_empty());
     }
 
     /// The worked example on the fit's page is this flight's.

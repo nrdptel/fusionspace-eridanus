@@ -486,8 +486,8 @@ side by side:
   twice, parts of two different splits, and any flight not fitted exactly once.
 - Then it runs the check as on a platform other than the one that wrote the report
   (`--other-platform`; [the fit's decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md),
-  section 7). A count may differ from the committed report by 5 flights, and a count of the
-  posteriors' draws by 5 flights' draws, 2,500. A figure, and each share
+  section 7). A count may differ from the committed report by 5, flights or failed draws, and the
+  posteriors' draws made by 5 posteriors' 500 draws, 2,500. A figure, and each share
   fitted on the calibration set, may differ by 5% of the larger of the two values or 0.002,
   whichever allows more. The slice is held in its words, as above, not by these allowances.
 
