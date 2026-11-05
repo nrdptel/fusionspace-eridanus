@@ -170,7 +170,8 @@ pinned `motors.json`, the 152 motors typed `hybrid` left out:
   motors' RASP files read with `hpr motors show`.
 - A one-off script, not committed, gave these counts; M5.7's tool prints its own: `hpr motors update
   --offline` gives the 2026-10-28 bundle as 4,164,364 bytes, its index and the 1,701 files it reads
-  (4,163,396 bytes and 1,700 files until one held-back file was taken in on 2026-11-05).
+  (4,163,396 bytes and 1,700 files until the file once held back, #1006, was taken in on
+  2026-11-05).
 
 ## Pins
 

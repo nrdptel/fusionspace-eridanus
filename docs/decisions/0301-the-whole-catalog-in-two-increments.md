@@ -92,7 +92,9 @@ about 40 of the command-line tests failed. The causes are separate pieces of wor
    *done when* isn't met by it: M5.7b1 is marked blocked on the maintainer, and is checked off
    once the file is in. Nothing else in M5.7b1 waits on it, and M5.7b2 can go ahead: the file's
    motor has another file that reads.
-   The maintainer cleared it on 2026-11-05 (the amendment below).
+   The maintainer cleared it on 2026-10-28
+   ([ADR-305](0305-the-2026-10-28-licensing-calls.md) §3), and it was taken in on 2026-11-05 (the
+   amendment below).
 6. **Tests held to the 32 until M5.7c.** The lesson-L42 and statistics-code oracle tests and the
    converter's round trip run on M5.7a's 32 files. The round trip over every file is
    [issue #1002](https://github.com/nrdptel/fusionspace-eridanus/issues/1002).
@@ -108,11 +110,12 @@ about 40 of the command-line tests failed. The causes are separate pieces of wor
 
 **Amended 2026-11-05: the held file taken in (M5.7b1).**
 
-The maintainer cleared the file §5 held back. `snapshot.py` writes it and the index reads it like
-the rest; `HELD` is gone from both, and five files are left out, each `NAMED` with its reason. It
-is a certification RASP file for the AeroTech H195, which had only a user's RockSim file, and it
-now ranks first as that motor's default. Its curve gives the same total impulse, average thrust
-and burn time as the other file, to the last bit, so no figure the motor lists moves. Neither file
-passes the 1% check: both burn times are 1.4% over the record's. With the file in, M5.7b1's *done
-when* is met as written: every file but a restricted one is in, and the five left out are each
+The maintainer cleared the file §5 held back on 2026-10-28
+([ADR-305](0305-the-2026-10-28-licensing-calls.md) §3). `snapshot.py` writes it and the index reads
+it like the rest; `HELD` is gone from both, and five files are left out, each `NAMED` with its
+reason. It is a certification RASP file for the AeroTech H195, which had only a user's RockSim file,
+and it now ranks first as that motor's default. Its curve gives the same total impulse, average
+thrust and burn time as the other file, to the last bit, so no figure the motor lists moves. Neither
+file passes the 1% check: both burn times are 1.4% over the record's. With the file in, M5.7b1's
+*done when* is met as written: every file but a restricted one is in, and the five left out are each
 listed with their reason, as its second clause asks. M5.7 is done.
