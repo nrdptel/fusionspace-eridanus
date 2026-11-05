@@ -556,6 +556,39 @@ pub struct SimFlight {
     /// The known errors in HPR Sim's drag the flight meets, each by its issue number (decision
     /// record ADR-180): empty for a flight that meets none.
     pub issues: Vec<SimIssue>,
+    /// The same flight with every recovery charge held, which the `delay` line reads: a charge
+    /// that fires before apogee cuts the coast short, so the coast, and the delay that would fire
+    /// at apogee, come from this flight (Loft lesson L94). `None` where it reaches no apogee, no
+    /// motor burns out before it, or it can't be flown.
+    pub held: Option<SimHeld>,
+}
+
+/// The flight with every recovery charge held: its apogee and coast, and where a delay fires.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct SimHeld {
+    /// Its apogee, s after launch.
+    pub apogee_s: f64,
+    /// The coast: from the last burnout before that apogee to the apogee, s. The ejection delay
+    /// that would fire that motor's charge at apogee.
+    pub coast_s: f64,
+    /// For a single motor lit at launch with a delay in seconds: how far that delay may run long
+    /// or short, and how fast the rocket climbs or falls at either end. `None` otherwise.
+    pub delay_band: Option<SimDelayBand>,
+}
+
+/// The span a motor's ejection delay may fire in, by NFPA 1125 (2019, §8.2.7): its label, give or
+/// take 1.5 s or 20 %, whichever is greater, but not more than 3 s.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct SimDelayBand {
+    /// The motor's set delay, s after burnout.
+    pub delay_s: f64,
+    /// How far the delay may fire either side of it, s.
+    pub tolerance_s: f64,
+    /// The rocket's vertical speed when a delay that short fires, m/s, up positive. `None` where
+    /// the held flight doesn't reach that time.
+    pub shortest_vertical_speed_m_s: Option<f64>,
+    /// The same, for a delay that long.
+    pub longest_vertical_speed_m_s: Option<f64>,
 }
 
 /// `hpr mc`: a design flown many times, each flight's inputs scattered at random about the

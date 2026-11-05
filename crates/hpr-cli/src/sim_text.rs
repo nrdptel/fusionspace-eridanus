@@ -397,13 +397,17 @@ fn figure(out: &mut dyn Write, name: &str, value: &str) -> io::Result<()> {
 }
 
 /// The ejection delay: how long the rocket coasts from its last burnout to apogee, beside the
-/// delays the design sets and, for one motor lit at launch, when its charge fires against apogee.
-/// With a motor still burning at apogee there is no coast to tell, nor when the stack comes apart
-/// before its apogee with nothing left to burn: the apogee is then the part's that keeps the nose,
-/// under its own devices from the split. `None` with neither a coast nor a delay to tell.
+/// delays the design sets and, for one motor lit at launch, when its charge fires against apogee
+/// and how fast the rocket moves at either end of the delay's tolerance.
+///
+/// The coast is the flight's with every recovery charge held ([`SimFlight::held`], Loft lesson
+/// L94): a charge that fires before apogee cuts the flown coast short, and would make a delay that
+/// is too short look nearly right. With a motor still burning at apogee there is no coast to tell.
+/// When the stack comes apart before its apogee with nothing left to burn, that is said too.
+/// `None` with neither a coast nor a delay to tell.
 fn delay(flight: &SimFlight) -> Option<String> {
     let apogee_s = flight.summary.apogee.as_ref().map(|apogee| apogee.time_s);
-    // A stack that flies on after its split, a sustainer's, has its own apogee and coast.
+    // A stack that flies on after its split, a sustainer's, has its own apogee.
     let split_s = flight
         .events
         .iter()
@@ -411,19 +415,23 @@ fn delay(flight: &SimFlight) -> Option<String> {
         .map(|e| e.time_s)
         .filter(|_| flight.summary.termination == Termination::Separated)
         .filter(|split_s| apogee_s.is_some_and(|apogee_s| *split_s < apogee_s));
-    let apogee_s = apogee_s.filter(|_| split_s.is_none());
     let burnouts = || {
         flight
             .events
             .iter()
             .filter(|e| e.kind == EventKind::Burnout)
     };
-    let burnout_s = apogee_s
-        .filter(|apogee_s| burnouts().all(|e| e.time_s <= *apogee_s))
-        .and_then(|_| burnouts().map(|e| e.time_s).reduce(f64::max));
-    let coast = burnout_s
-        .zip(apogee_s)
-        .map(|(burnout_s, apogee_s)| format!("apogee {:.2} s after burnout", apogee_s - burnout_s));
+    // Every burn ends before the held apogee, or there is no coast to tell.
+    let held = flight
+        .held
+        .as_ref()
+        .filter(|held| burnouts().all(|e| e.time_s <= held.apogee_s));
+    let coast = held.map(|held| {
+        format!(
+            "apogee {:.2} s after burnout, with the charges held",
+            held.coast_s
+        )
+    });
     let mut set: Vec<String> = Vec::new();
     for (designation, delay) in flight
         .motors
@@ -447,24 +455,37 @@ fn delay(flight: &SimFlight) -> Option<String> {
     }
     let set = (!set.is_empty()).then(|| set.join(", "));
     // One motor, lit at launch: the coast ends where its burn does.
-    let fires = match (&flight.motors[..], burnout_s, apogee_s) {
-        ([motor], Some(burnout_s), Some(apogee_s)) if motor.ignition == "at launch" => {
-            match motor.delay {
-                Some(Delay::Seconds(s)) if s > 0.0 => {
-                    let early_s = apogee_s - (burnout_s + s);
-                    Some(if early_s.abs() < 0.005 {
-                        "its charge fires at apogee".to_owned()
-                    } else if early_s > 0.0 {
-                        format!("its charge fires {early_s:.2} s before apogee")
-                    } else {
-                        format!("its charge fires {:.2} s after apogee", -early_s)
-                    })
-                }
-                _ => None,
+    let fires = match (&flight.motors[..], held) {
+        ([motor], Some(held)) if motor.ignition == "at launch" => match motor.delay {
+            Some(Delay::Seconds(s)) if s > 0.0 => {
+                let early_s = held.coast_s - s;
+                Some(if early_s.abs() < 0.005 {
+                    "its charge fires at apogee".to_owned()
+                } else if early_s > 0.0 {
+                    format!("its charge fires {early_s:.2} s before apogee")
+                } else {
+                    format!("its charge fires {:.2} s after apogee", -early_s)
+                })
             }
-        }
+            _ => None,
+        },
         _ => None,
     };
+    // How far the delay may run short or long, and how fast the rocket moves then.
+    let band = held.and_then(|held| held.delay_band.as_ref()).map(|band| {
+        let moving = |speed_m_s: Option<f64>| match speed_m_s {
+            Some(v) if v >= 0.0 => format!("climbing at {}", speed(v)),
+            Some(v) => format!("falling at {}", speed(-v)),
+            None => "after the flight ends".to_owned(),
+        };
+        format!(
+            "a {} s delay may fire {:.1} s short or long (NFPA 1125): {} to {}",
+            band.delay_s,
+            band.tolerance_s,
+            moving(band.shortest_vertical_speed_m_s),
+            moving(band.longest_vertical_speed_m_s)
+        )
+    });
     let apart = split_s.map(|split_s| {
         let last_s = burnouts().map(|e| e.time_s).reduce(f64::max);
         match last_s.filter(|last_s| *last_s <= split_s) {
@@ -475,7 +496,10 @@ fn delay(flight: &SimFlight) -> Option<String> {
             None => format!("the stack comes apart at {split_s:.2} s, before apogee"),
         }
     });
-    let parts: Vec<String> = [coast, apart, set, fires].into_iter().flatten().collect();
+    let parts: Vec<String> = [coast, apart, set, fires, band]
+        .into_iter()
+        .flatten()
+        .collect();
     (!parts.is_empty()).then(|| parts.join("; "))
 }
 

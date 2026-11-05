@@ -55,7 +55,7 @@ static margin         1.70 calibers off the rail; least 1.70 calibers, at 0.12 s
 CG and CP             0.811 m (31.9 in) and 0.923 m (36.3 in) aft of the nose tip, off the rail
 apogee                1065.1 m (3494 ft) above the site at 11.62 s
 rail exit speed       26.3 m/s (86 ft/s)
-delay                 apogee 9.48 s after burnout; the motor's set delay: 10 s; its charge fires 0.52 s after apogee
+delay                 apogee 9.48 s after burnout, with the charges held; the motor's set delay: 10 s; its charge fires 0.52 s after apogee; a 10 s delay may fire 2.0 s short or long (NFPA 1125): climbing at 14.7 m/s (48 ft/s) to falling at 19.9 m/s (65 ft/s)
 descent               4.4 m/s (15 ft/s) at landing under `Parachute`
 
 motor: 1 × H170M (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch
@@ -106,9 +106,10 @@ with feet or feet per second in parentheses:
 - `apogee` is the highest point of the center of gravity, above the launch site.
 - `rail exit speed` is the speed as the rocket leaves the rail. The slower it is, the more a
   crosswind tips the rocket just after.
-- `delay` gives the coast from burnout to apogee, beside the delay the file sets. Here the
-  H170M's 10 s charge fires about half a second after apogee. [Pick a motor](pick-a-motor.md#choose-the-delay)
-  says how to choose one.
+- `delay` gives the coast from burnout to apogee, with the charges held, beside the delay the
+  file sets. Here the H170M's 10 s charge fires about half a second after apogee, and the line
+  ends with the speeds at either end of the delay's tolerance.
+  [Pick a motor](pick-a-motor.md#choose-the-delay) says how to choose one.
 - `descent` is how fast the rocket comes down under its open parachutes, without the wind's
   drift.
 
@@ -144,7 +145,7 @@ static margin         1.69 calibers off the rail; least 1.69 calibers, at 0.17 s
 CG and CP             0.811 m (31.9 in) and 0.923 m (36.3 in) aft of the nose tip, off the rail
 apogee                1174.3 m (3853 ft) above the site at 11.51 s
 rail exit speed       36.8 m/s (121 ft/s)
-delay                 apogee 9.54 s after burnout; the motor's set delay: 9 s; its charge fires 0.54 s before apogee
+delay                 apogee 10.42 s after burnout, with the charges held; the motor's set delay: 9 s; its charge fires 1.42 s before apogee; a 9 s delay may fire 1.8 s short or long (NFPA 1125): climbing at 32.4 m/s (106 ft/s) to falling at 3.4 m/s (11 ft/s)
 descent               4.9 m/s (16 ft/s) at landing under `Parachute`
 
 motor: 1 × I175WS (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch

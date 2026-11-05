@@ -29,6 +29,17 @@
         "$ref": "#/$defs/SimFlag"
       }
     },
+    "held": {
+      "description": "The same flight with every recovery charge held, which the `delay` line reads: a charge\nthat fires before apogee cuts the coast short, so the coast, and the delay that would fire\nat apogee, come from this flight (Loft lesson L94). `None` where it reaches no apogee, no\nmotor burns out before it, or it can't be flown.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SimHeld"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "issues": {
       "description": "The known errors in HPR Sim's drag the flight meets, each by its issue number (decision\nrecord ADR-180): empty for a flight that meets none.",
       "type": "array",
@@ -913,6 +924,42 @@
         }
       ]
     },
+    "SimDelayBand": {
+      "description": "The span a motor's ejection delay may fire in, by NFPA 1125 (2019, §8.2.7): its label, give or\ntake 1.5 s or 20 %, whichever is greater, but not more than 3 s.",
+      "type": "object",
+      "properties": {
+        "delay_s": {
+          "description": "The motor's set delay, s after burnout.",
+          "type": "number",
+          "format": "double"
+        },
+        "longest_vertical_speed_m_s": {
+          "description": "The same, for a delay that long.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "shortest_vertical_speed_m_s": {
+          "description": "The rocket's vertical speed when a delay that short fires, m/s, up positive. `None` where\nthe held flight doesn't reach that time.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "tolerance_s": {
+          "description": "How far the delay may fire either side of it, s.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "delay_s",
+        "tolerance_s"
+      ]
+    },
     "SimDesign": {
       "description": "The design flown.",
       "type": "object",
@@ -1086,6 +1133,37 @@
         "flag",
         "peak",
         "message"
+      ]
+    },
+    "SimHeld": {
+      "description": "The flight with every recovery charge held: its apogee and coast, and where a delay fires.",
+      "type": "object",
+      "properties": {
+        "apogee_s": {
+          "description": "Its apogee, s after launch.",
+          "type": "number",
+          "format": "double"
+        },
+        "coast_s": {
+          "description": "The coast: from the last burnout before that apogee to the apogee, s. The ejection delay\nthat would fire that motor's charge at apogee.",
+          "type": "number",
+          "format": "double"
+        },
+        "delay_band": {
+          "description": "For a single motor lit at launch with a delay in seconds: how far that delay may run long\nor short, and how fast the rocket climbs or falls at either end. `None` otherwise.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SimDelayBand"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "apogee_s",
+        "coast_s"
       ]
     },
     "SimIssue": {
