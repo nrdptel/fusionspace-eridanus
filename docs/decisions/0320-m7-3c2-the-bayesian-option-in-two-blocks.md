@@ -153,7 +153,7 @@ inside with 1,308 to 1,384.
   each chosen after reading counts on the first 300 flights of each. Nothing is fitted to them; the
   shear's ends are stated, and the intervals are raw.
 - **The wind is too wide on a track.** The Bayesian option's median width is 0.431 m/s east on
-  set A, against least squares' 0.345, and 1.06% to 2.41% of truths fall in each tail, not 5%. The posterior reads
+  set A, against least squares' 0.345, and on both sets 1.06% to 2.41% of truths fall in each tail, not 5%. The posterior reads
   the track's noise as the least-squares fit states it, floored at 10 m (33 ft) and widened for
   residuals that run on (ADR-316 §3, §11). On logs with a track the least-squares shares in force
   narrow that back, −1.36 and 1.29 east, −1.5 and 1.38 north, against ±1.645 for a bell curve; the
