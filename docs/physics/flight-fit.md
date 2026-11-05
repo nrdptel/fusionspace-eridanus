@@ -23,10 +23,12 @@ impulse, wind and mass, and where its Bayesian option fails its tests.
   ([How well it holds](#how-well-it-holds)). No real flight has checked it
   ([evidence row G38](../evidence.md#g38)). On a real flight, the model's own errors go into the
   scales with nothing to say so. The Bayesian option draws the unknowns' possible values at random rather than
-  reading the curvature at the answer. Its intervals pass 8 of their 10 counts, 5 parameters on each
-  of 2 sets, the wind on both, though set B's drag passes with its widened probe passing too. A tail passes with at most 74 of 1,000 truths. Set
-  A's drag reads low, 83 above its intervals, and set B's impulse high, 85 below. Each makes the
-  rocket look better than it flew ([The Bayesian option](#the-bayesian-option)).
+  reading the curvature at the answer. Its intervals pass 8 of their 10 tests, 5 parameters on each
+  of 2 sets. The wind passes on both sets, on a model of the receiver tuned on those same flights.
+  Set B's drag passes, but so does a copy widened on purpose. A tail passes with at most 74 of
+  1,000 truths. Set A's drag reads low, 83 above its intervals, and set B's impulse high, 85 below.
+  Each makes the rocket look better than it flew. Until all pass, use the least-squares intervals
+  ([The Bayesian option](#the-bayesian-option)).
 - **What it leaves out:** anything past apogee, and the accelerometer. A log whose only height is a
   GNSS receiver's isn't fitted, since the log reader takes no apogee from it; that's every log with
   nothing to fit among the sets' counted draws, about one in six ([when](#when-a-log-has-nothing-to-fit)). Its wind is
@@ -124,8 +126,8 @@ Flight 140 of set A flies the Calisto design (one of the
 [example rockets](../glossary.md#example-rockets)) in its getting-started variant with the motor at
 −1.255 m (−4.12 ft), with a logger that holds a track. The report keeps only counts, so a test,
 `the_pages_worked_example_is_a_real_flights`, fits this flight again and checks these rows.
-Its heights fit to 0.97 m (3.2 ft), in 84 simulated flights: 63 by least squares and 21 by the
-Bayesian option's search for its posterior's peak. A factor is times the simulator's
+Its heights fit to 0.97 m (3.2 ft), in 84 simulated flights. The table is the least-squares fit's;
+21 of those flights are the Bayesian option's, finding where to start its draws. A factor is times the simulator's
 value; the mass's, times the weighed mass:
 
 | Parameter | Fitted (factor) | 90% interval (factor) | Truth (factor) |
@@ -209,7 +211,7 @@ Those counts have limits:
 `hpr_forensics::fit::bayesian` runs the least-squares fit, then draws the posterior of the same
 unknowns around its answer. [ADR-317][adr-317] chose importance sampling; [ADR-320][adr-320] draws
 the wind first, then the rest. Its 90% intervals don't pass
-their test yet: 8 of the 10 counts pass, 5 parameters on each of 2 sets, and one of those 8, set B's
+their test yet: 8 of the 10 tests pass, 5 parameters on each of 2 sets. One of those 8, set B's
 drag, passes with a probe that should fail passing too. Set A's drag and set B's
 impulse miss too many truths on one side, so there they're too narrow or off center. Until they
 pass, read the least-squares intervals. Like the fit, it's in the library only, and no real flight has checked
@@ -240,20 +242,34 @@ How it draws:
   unknown there. It's an exponent stated anywhere from 0, a constant wind, to 0.2, IEC 61400-1's
   normal profile. The least-squares fit carries the same doubt in its errors instead.
 - **On a track, the receiver's filter, noise and pad are unknowns too** ([ADR-321][adr-321]). A
-  GNSS receiver smooths its fixes through a navigation filter, which lags behind a boost and catches
-  up after burnout ([GNSS in the boost](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/gnss-in-boost.md)). So the posterior reads the
-  flight's drift as a second-order filter of damping $1/\sqrt{2}$ would report it. The filter's
-  natural frequency is anywhere from 0.2 to 5 rad/s, evenly in its logarithm. At 5 rad/s a steady
-  10 g boost leaves it 3.9 m (13 ft) behind; the lag grows as the square of a slower filter's period. The track's noise is taken to run on from one bin to the
-  next, by a correlation anywhere from 0 to 0.99, and the pad's position is an offset of its own on
-  each axis. None is fitted: the posterior averages over each in closed form or on a grid, so
-  nothing more is flown. Only the search for where the draws start flies more, about 21 flights a
-  fit. This holds where the fit takes its noise from the log, not where a noise is given. The
-  synthetic flights' receivers are filters of this same shape, so the wind's pass below doesn't
-  test the shape. A real receiver's loop bandwidth isn't published, and the lag is the research
-  note's inference, measured there only in altitude. A receiver of another shape, or one that
-  follows its own Doppler and lags under 1 m (3.3 ft), is outside this model, and no real flight has
-  checked it.
+  GNSS receiver smooths its raw fixes with a filter. The filter lags behind a hard boost and catches
+  up after burnout ([GNSS in the boost](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/gnss-in-boost.md)).
+  The posterior models it as a standard two-pole loop of damping $1/\sqrt{2}$, the usual
+  choice for such a loop. The loop's speed is its natural frequency: the lower it is, the more the filter lags.
+  Under a steady acceleration $a$ the lag settles at $a/\omega_n^2$. A 10 g boost leaves a 5 rad/s
+  filter 3.9 m (13 ft) behind. A 1 rad/s one would trail by 98 m (322 ft), had the boost lasted
+  long enough.
+  - The frequency is anywhere from 0.2 to 5 rad/s, evenly in its logarithm. The synthetic
+    receivers' run from 0.25 to 1 rad/s; the research note infers 0.47 to 0.69 rad/s for real
+    ones, from lags in altitude alone.
+  - The track's noise runs on from one bin to the next by a correlation $\varphi$ anywhere from 0
+    to 0.99. That's a first-order autoregression; its exact likelihood is J. D. Hamilton's (*Time
+    Series Analysis*, 1994, §5.2). Its size takes Jeffreys' prior $1/\sigma$ and is integrated out in
+    closed form (G. E. P. Box and G. C. Tiao, *Bayesian Inference in Statistical Analysis*, 1973,
+    §2.4).
+  - The pad's position is an offset of its own on each axis, under a flat prior, also integrated
+    out in closed form.
+
+  None of these is fitted, and nothing more is flown for them. Only the search for where the draws
+  start flies more, about 21 flights a fit. If the fit is given a noise level rather than taking
+  it from the log, the track is read the old way, as the least-squares fit states it.
+
+  How far to trust it: the synthetic receivers are filters of this same shape, inside the stated
+  range. So the wind's pass below doesn't test the shape. The noise model, the filter, the pad and
+  where the draws start were chosen after reading counts on the first 300 tracked flights of each
+  set. Those flights are among the 1,497 counted. A real receiver's loop speed isn't
+  published. A receiver of another shape is outside this model. So is one that also measures its
+  speed from the satellites' Doppler shift and lags under 1 m (3.3 ft). No real flight has checked it.
 
 A fit with something to fit flies about 1,000 times, against about 70 for least squares on set A.
 On a log with a track, the search for the posterior's peak adds about 21. In one run on a 10-core
@@ -280,18 +296,23 @@ as far as it's known:
 
 - **The wind passes on both sets** since the track is read as a receiver reports it
   ([ADR-321][adr-321]). Before, the posterior took the track's noise as the least-squares fit
-  states it. Then from 1.06% to 2.41% of truths fell in each tail, where 5% belong. Its median width
+  states it. Then from 1.07% to 2.41% of truths fell in each tail, where 5% belong. Its median width
   on set A is now 0.364 m/s (1.19 ft/s) east, against least squares' 0.345 m/s (1.13 ft/s). Set
   B's wind leans: 86 and 81 of its truths fall above, near the 104 that pass. Its mean error is
   −0.035 m/s (−0.11 ft/s) east. Set B's wind grows with height, and on a track the posterior's wind
-  doesn't, which may be why; that isn't measured. Set A's passes at the wide edge: 1,380 and 1,384
-  of 1,497 fall inside, against 1,384 at most.
+  doesn't, which may be why; that isn't measured. Set A's wind is close to too wide: 1,380 and
+  1,384 of 1,497 truths fall inside, and 1,384 is the most that pass.
+- **The wind's pass leans on thin posteriors.** On the committed slice, every 21st fit, 294 wind
+  intervals are counted. The 218 from posteriors of 100 or more effective draws miss 12 truths,
+  5.5%, where 10% belong. The 76 under 100 miss 11, 14.5%. So the well-drawn intervals may still be
+  too wide, and the thin ones, too narrow, may bring the tails up to 5%. The report doesn't split
+  its counts this way yet.
 - **Set A's drag sits low and set B's impulse high.** 83 of set A's drag truths fall above, and
-  85 of set B's impulse truths below. Before the track was read anew, 70 of set A's 78 above were on
-  logs of height alone, 776 of its 1,000 flights. Reading the track left those logs as they were. Those are the only logs where the
-  shear is drawn, though set A's wind doesn't shear. That points at the
-  shear's stated range, but it isn't measured yet, and set B's impulse leans the other way. Those are
-  [M7.3c6][m7-3c6] and [M7.3c7][m7-3c7].
+  85 of set B's impulse truths below. 70 of set A's 83 above are on logs of height alone, 776 of
+  its 1,000 flights, as before the track was read anew. Height-alone logs are the only ones where
+  the shear is drawn, though set A's wind doesn't shear. That points at the shear's stated range,
+  but it isn't measured yet, and set B's impulse leans the other way. Set A's drag is
+  [M7.3c6][m7-3c6]; set B's impulse and the rest are [M7.3c7][m7-3c7].
 - **Set A's impulse passes near its edge.** 72 of its truths fall below, 2 short of 74, the most
   that pass. That's the same side as set B's: it too reads high, which flatters the motor.
 - **Set B's drag passes, but so does its widened probe.** The test can't tell its intervals from
@@ -305,12 +326,13 @@ drawn, so that says nothing of the sampler itself.
 The draws are counted too. A posterior's effective draws are how many equally weighted draws its
 weighted ones are worth (Kish): 400 draws with one heavy weight are worth about 1. Under 100, a
 result is flagged as too few to read, but its interval still counts in the table above: so few
-draws can leave an interval too narrow or off center, so take it as rough. All 10 counts, the 8
-that pass and the 2 that fail, include those posteriors; how many of the misses they cause isn't measured. Of the
+draws can leave an interval too narrow or off center, so take it as rough. All 10 tests, the 8
+that pass and the 2 that fail, include those posteriors. On the wind, the slice suggests they
+cause more than their share of misses (above). Of the
 flights counted, 2,276 on set A had a posterior, 563 of them with fewer than 100 effective draws;
 across all 2,276, the fewest was 1 and the median 153. On set B, 711 of 2,296 had fewer than 100;
-the fewest was 1 and the median 138. Reading the track anew left fewer effective draws: before it, 319 and 392 fell
-short, at medians of 232 and 223. A
+the fewest was 1 and the median 138. That's about a quarter on set A and a third on set B, the
+loss on logs with a track: before the track was read anew, 319 and 392 fell short. A
 draw fails when it can't be weighed, as when its flight can't fly. That's 126 of 1,138,000 on set A,
 and 149 of 1,148,000 on set B. Every
 flight counted with something to fit has a posterior. [M7.3c4][m7-3c4] is to make the counts pass.

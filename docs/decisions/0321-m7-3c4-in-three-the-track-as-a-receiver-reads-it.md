@@ -130,6 +130,13 @@ Two things moved the wrong way:
   flight has checked it.
 - **Set B's wind shears; the posterior's doesn't, on a track.** The drift carries the shear into
   the wind's posterior unmodeled there, as in ADR-320.
+- **The wind's pass leans on thin posteriors.** Tallied from the committed slice's lines (every
+  21st fit, 294 wind intervals counted), the 218 from posteriors of 100 or more effective draws miss
+  12 truths, 5.5%, where 10% belong, and the 76 under 100 miss 11, 14.5%. So the well-drawn
+  intervals may still be too wide, and the thin ones, too narrow, may bring the tails up to 5%. The
+  four-times-the-draws run above was on the model before the pad, so it doesn't answer this for
+  the model shipped. The report should split its counts by effective draws; M7.3c7 needs that
+  answered.
 - **Set A's wind passes at the wide edge.** 1,380 and 1,384 of 1,497 fall inside, against 1,384 at
   most.
 - **Set B's impulse and set A's drag** still fail, by about as much as before: M7.3c6 and M7.3c7.

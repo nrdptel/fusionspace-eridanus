@@ -415,8 +415,9 @@ pub struct Fit {
     /// nothing. A barometer's bins at or past [`readings::TRANSONIC_MACH`] on the flight found are
     /// left out.
     pub read: Vec<bool>,
-    /// Flights flown: the least-squares fit's and, by the Bayesian option on a log with a track,
-    /// its search for the posterior's peak. The posterior's draws are counted apart.
+    /// Flights flown: the least-squares fit's and, by the Bayesian option on a log with a track
+    /// whose noise the fit takes from the log, its search for the posterior's peak (21). The
+    /// posterior's draws are counted apart.
     pub flown: u64,
 }
 
@@ -656,14 +657,15 @@ pub struct Bayesian {
 /// it, the same bins read and the same priors. On a track whose noise the fit takes from the log,
 /// it reads the drift through a receiver's navigation filter and integrates out the track's noise,
 /// its run and the pad's position ([ADR-321][adr-321], `Problem::track_noise_integrated`); its
-/// draws are then centered on that posterior's peak, found by three Gauss-Newton steps. The
+/// draws are then centered near that posterior's peak, by three Gauss-Newton steps. The
 /// sensor's four linear unknowns (height offset, gain, drift, port) are integrated out in closed
-/// form, `−2 ln p(θ) = χ²_min(θ) + ln det H(θ)`, so seven unknowns are drawn: the six flown and the clock. On a log of height alone the wind's shear
-/// exponent is an eighth, uniform on `[0, SHEAR_EXPONENT]`. The wind is drawn first, from its
-/// block of the fit's covariance at the answer; the rest about where one Gauss-Newton step puts
-/// them in that wind, from their covariance given the wind; a pilot widens either block's scale
-/// where the posterior reaches further. Its 90% credible intervals are the posterior's 5% and 95%
-/// points as they come: no shares widen them.
+/// form, `−2 ln p(θ) = χ²_min(θ) + ln det H(θ)`, so seven unknowns are drawn: the six flown and
+/// the clock. On a log of height alone the wind's shear exponent is an eighth, uniform on
+/// `[0, SHEAR_EXPONENT]`. The wind is drawn first, from its block of the fit's covariance at the
+/// answer; the rest about where one Gauss-Newton step puts them in that wind, from their
+/// covariance given the wind; a pilot widens either block's scale where the posterior reaches
+/// further. Its 90% credible intervals are the posterior's 5% and 95% points as they come: no
+/// shares widen them.
 ///
 /// [adr-317]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0317-m7-3c-in-two-the-sampler-then-the-test.md
 /// [adr-320]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0320-m7-3c2-the-bayesian-option-in-two-blocks.md
@@ -981,9 +983,9 @@ fn fit_and_sample(
     let posterior = sampling.and_then(|sampling| {
         // The Bayesian option reads the track through the receiver's navigation filter and weighs
         // it by its own noise, both integrated out (`Problem::track_noise_integrated`), not as the
-        // least-squares fit does. So its proposal is centered on that posterior's peak, found by
-        // Gauss-Newton steps from the answer, each reading the track through the filter the
-        // track's likelihood favors there and weighing it by its misfit's RMS, widened for a
+        // least-squares fit does. So its proposal is centered near that posterior's peak: three
+        // undamped Gauss-Newton steps from the answer, each reading the track through the filter
+        // the track's likelihood favors there and weighing it by its misfit's RMS, widened for a
         // misfit that runs on; the covariance and Jacobian are those of the last step.
         let mut posterior_problem = problem.clone();
         let mut posterior_columns = columns.clone();
@@ -1376,7 +1378,9 @@ impl Problem<'_> {
     }
 
     /// The track's misfit, east and north, m, at each track bin on clock offset `clock_s`: the
-    /// log's drift less the flight's, read through [`Problem::receiver_rad_s`]'s filter where set.
+    /// log's drift less the flight's. Where [`Problem::receiver_rad_s`] is set, the flight's drift
+    /// is read through that filter and each axis's mean is taken off, standing in for the pad's
+    /// offset, so the noise and correlation measured from it are those after the offset.
     fn track_misfit_m(&self, clock_s: f64, flown: &Simulated) -> Vec<(f64, f64)> {
         let observed = &self.observed.horizontal;
         match self.receiver_rad_s {
@@ -1506,6 +1510,10 @@ fn track_minus_two_log(series: [&[f64]; 2]) -> f64 {
                 let xx = keep + (count - 1.0) * (1.0 - phi).powi(2);
                 q += ww - wx * wx / xx;
                 log_det += xx.ln();
+            }
+            // A NaN misfit stays NaN, so the draw fails rather than `max` making it the likeliest.
+            if q.is_nan() {
+                return f64::NAN;
             }
             0.5 * offsets * keep.ln()
                 - 0.5 * log_det
