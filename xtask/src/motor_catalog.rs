@@ -23,8 +23,7 @@
 //! A file is left out, listed in the index with the reason, when its uploader marked it
 //! restricted, its text doesn't parse as one motor's curve, its header's sizes or masses can't be
 //! a motor's, or its header's diameter is more than 10% from its record's (the check
-//! [Loft lesson L43][l43] asks for: a header that said 75 mm for a 54 mm motor), or the
-//! repository holds it back ([`HELD`]). [`NAMED`] names
+//! [Loft lesson L43][l43] asks for: a header that said 75 mm for a 54 mm motor). [`NAMED`] names
 //! each file this snapshot leaves out, with its reason: a refusal it doesn't name fails the
 //! command, and so does a name no file is refused under.
 //!
@@ -129,16 +128,7 @@ const NAMED: &[(&str, &str)] = &[
         "5f4294d20002e90000000396",
         "its header's diameter is 38 mm, but its record's is 29 mm",
     ),
-    // A file this repository doesn't hold the bytes of (ADR-301 §5); `snapshot.py`'s `HELD`
-    // doesn't write it.
-    ("5f4294d20002e900000007de", HELD),
 ];
-
-/// The reason a file is left out when a check on what this repository commits keeps its bytes
-/// out until the maintainer clears them (ADR-301 §5). It is left out without being read, and
-/// `snapshot.py` doesn't write it.
-const HELD: &str =
-    "held back: its bytes aren't in this repository until the maintainer clears them";
 
 /// Runs `cargo xtask motor-catalog`.
 pub fn run(args: &[String]) -> Result<(), String> {
@@ -398,14 +388,6 @@ pub(crate) fn generate(root: &Path) -> Result<Catalog, String> {
         let mut read = Vec::new();
         for file in files.iter().filter(|f| f["motorId"] == motor_id) {
             let simfile_id = text(file, "simfileId", FILES)?;
-            if NAMED.contains(&(simfile_id, HELD)) {
-                left_out.push(LeftOut {
-                    simfile_id: simfile_id.to_owned(),
-                    motor_id: motor_id.to_owned(),
-                    reason: HELD.to_owned(),
-                });
-                continue;
-            }
             match curve(&curves_dir, record, file, &date)? {
                 Ok(curve) => read.push(curve),
                 Err(reason) => left_out.push(LeftOut {
@@ -773,7 +755,6 @@ fn matches_raw_snapshot(
         for entry in answer["results"].as_array().cloned().unwrap_or_default() {
             let id = text(&entry, "simfileId", "the download answer")?.to_owned();
             if entry["license"] != "other"
-                && !NAMED.contains(&(id.as_str(), HELD))
                 && (entry["format"] == "RASP" || entry["format"] == "RockSim")
                 && let Some(data) = entry["data"].as_str()
             {
@@ -827,11 +808,9 @@ fn matches_raw_snapshot(
     }
     println!(
         "raw snapshot {captured}: {} solid motors, {} files in {batch} download answers; the \
-         records, the file list and every curve file written, all but {} held back, are the \
-         answers'",
+         records, the file list and every curve file written are the answers'",
         solid.len(),
         listed.len(),
-        NAMED.iter().filter(|(_, reason)| *reason == HELD).count()
     );
     Ok(Some(expected(&solid, &listed, "raw snapshot's")))
 }
@@ -1103,37 +1082,6 @@ mod tests {
             error.contains(&curve.simfile_id) && error.contains("is stored as failing"),
             "{error}"
         );
-    }
-
-    /// A held-back file is the same in both lists, `snapshot.py`'s `HELD` and [`NAMED`], has no
-    /// bytes under `curves/`, and is left out in the index with [`HELD`]'s reason.
-    #[test]
-    fn a_held_file_is_left_out_and_unwritten() {
-        let root = crate::designs::root().unwrap();
-        let script =
-            fs::read_to_string(root.join("validation/oracles/thrustcurve/snapshot.py")).unwrap();
-        let line = script.lines().find(|l| l.starts_with("HELD = {")).unwrap();
-        let held: Vec<&str> = NAMED
-            .iter()
-            .filter(|(_, reason)| *reason == HELD)
-            .map(|(id, _)| *id)
-            .collect();
-        assert!(!held.is_empty());
-        assert_eq!(line.matches('"').count(), 2 * held.len(), "{line}");
-        let catalog = hpr_motor::Catalog::bundled().unwrap();
-        for id in held {
-            assert!(line.contains(&format!("\"{id}\"")), "{id}");
-            for extension in ["eng", "rse"] {
-                let path = root.join(DATA).join(format!("curves/{id}.{extension}"));
-                assert!(!path.exists(), "{}", path.display());
-            }
-            assert!(
-                catalog
-                    .left_out
-                    .iter()
-                    .any(|o| o.simfile_id == id && o.reason == HELD)
-            );
-        }
     }
 
     /// Loft lesson L43's header that said 75 mm for a 54 mm motor is refused by its record, in

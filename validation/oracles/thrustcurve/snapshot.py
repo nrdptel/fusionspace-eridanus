@@ -22,8 +22,8 @@ crates/hpr-motor/data/thrustcurve/:
   order, with the snapshot's date.
 - curves/<simfileId>.eng (RASP) or .rse (RockSim): each file's bytes, decoded from base64 and
   written byte for byte, but for a file whose license is "other", which its uploader restricted
-  (ADR-288 section 2), or one held back (HELD, ADR-301 section 5): it is listed in files.json and
-  no file is written. Curve files the snapshot doesn't list are removed.
+  (ADR-288 section 2): it is listed in files.json and no file is written. Curve files the snapshot
+  doesn't list are removed.
 
 It reads nothing else and decides nothing about the files: `cargo xtask motor-catalog` reads what
 it writes, checks each file, and lists each file it leaves out with the reason. With --from DIR it
@@ -55,9 +55,6 @@ SNAPSHOTS = os.path.join(ROOT, "refs", "snapshots", "thrustcurve")
 SOLID = ("SU", "reload")
 BATCH = 250
 EXTENSION = {"RASP": ".eng", "RockSim": ".rse"}
-# Files whose bytes this repository doesn't hold until the maintainer clears them (ADR-301
-# section 5): listed in files.json, not written. `cargo xtask motor-catalog` leaves each out.
-HELD = {"5f4294d20002e900000007de"}
 
 
 def post(endpoint, body):
@@ -122,7 +119,7 @@ def write(directory):
             data = entry.get("data")
             listed = {k: v for k, v in entry.items() if k != "data"}
             files.append(listed)
-            if entry.get("license") == "other" or entry["simfileId"] in HELD:
+            if entry.get("license") == "other":
                 continue
             if data is None or entry.get("format") not in EXTENSION:
                 # Listed with what the answer says; the index writer names the reason.

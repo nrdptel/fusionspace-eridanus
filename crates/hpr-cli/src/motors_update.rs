@@ -229,7 +229,7 @@ fn bundle_lines(bundle: &BundledCatalog) -> Vec<String> {
     ]
 }
 
-/// A size in megabytes (10⁶ bytes), to one decimal, with the bytes: `4.2 MB (4163396 bytes)`.
+/// A size in megabytes (10⁶ bytes), to one decimal, with the bytes: `4.2 MB (4164364 bytes)`.
 fn megabytes(bytes: usize) -> String {
     // A size well inside f64's exact integers; the bytes print exactly beside it.
     #[allow(clippy::cast_precision_loss, reason = "a few megabytes, exact in f64")]

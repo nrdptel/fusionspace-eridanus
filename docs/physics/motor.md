@@ -159,7 +159,7 @@ it burns ([The whole motor](#the-whole-motor) gives the details).
 #### The whole catalog
 
 `hpr-motor` carries a copy of ThrustCurve.org's whole solid catalog, taken on October 28, 2026:
-the record of every single-use and reload motor, 1,004 of them, in production or not, and 1,700
+the record of every single-use and reload motor, 1,004 of them, in production or not, and 1,701
 of the 1,706 files listed for them. Every lookup reads it: `hpr motors`, `hpr sim --motor` and a
 design's motor ([every motor by name](../decisions-and-roadmap.md#m5-7b2)). 32 designations are
 shared by several makers. Such a motor's *selector*, the name that finds it alone, is its maker's
@@ -169,28 +169,25 @@ short name and designation; `hpr motors list --json` gives each motor's selector
   default file's own: a passing file where it has one, else the first by format and by who
   measured it. The 80 motors with no file that reads list their record's figures, and can't fly:
   `hpr motors list` names them in a closing note, and `hpr motors show` and `hpr sim --motor` refuse them.
-- Each file is stored with its 1% check, passing or not. 412 of the 1,700 files pass, and 239 of
+- Each file is stored with its 1% check, passing or not. 412 of the 1,701 files pass, and 239 of
   the 924 motors with a file have one that does. The other 685 fly with a warning naming each
   failing figure.
 - ThrustCurve.org's statistics code checks the figures of the 412 files that pass
-  ([Validation](#validation)). The 1,288 that fail have only the 1% check. The comparison with
+  ([Validation](#validation)). The 1,289 that fail have only the 1% check. The comparison with
   OpenRocket and the `.eng`/`.rse` round trip cover the 32 files first bundled. The round trip
   over every file is planned
   ([issue #1002](https://github.com/nrdptel/fusionspace-eridanus/issues/1002)).
-- Of the 1,700 indexed files, 589 are public domain, 33 free to use, and 1,078 carry no
+- Of the 1,701 indexed files, 589 are public domain, 33 free to use, and 1,079 carry no
   license; none is marked restricted. The [third-party notices](https://github.com/nrdptel/fusionspace-eridanus/blob/main/THIRD-PARTY-NOTICES.md)
   say how each is used.
-- Six files are left out, each listed in the index with its reason:
+- Five files are left out, each listed in the index with its reason:
   - two RockSim files whose times run backwards;
   - three whose header's diameter is more than 10% from the record's, either way: two give
     75 mm (3.0 in) for a 54 mm reload ([Loft lesson L43](../decisions-and-roadmap.md#l43)), and one
     38 mm (1.5 in) for a 29 mm single-use motor. Every other header sits within 7.3% of its
     record (four files give a Pro150 reload's 150 mm (5.9 in) where the record gives
     161 mm (6.3 in)); the three are 31% to 39% off. Sizes closer than 10% apart, such as
-    152 mm (6.0 in) and 161 mm (6.3 in), aren't told apart;
-  - one held back: the repository's check on what it commits refused its bytes, and the
-    maintainer has yet to review them
-    ([issue #1006](https://github.com/nrdptel/fusionspace-eridanus/issues/1006)). It isn't read.
+    152 mm (6.0 in) and 161 mm (6.3 in), aren't told apart.
 - 48 motors' default files give a propellant mass more than 5% below their record's, and 151
   more than 5% above it
   ([issue #1003](https://github.com/nrdptel/fusionspace-eridanus/issues/1003)). Either side may be
@@ -207,9 +204,9 @@ date, counts and size:
 $ hpr motors update --offline
 The bundled catalog: ThrustCurve.org's solid motors as of 2026-10-28
   motors           1004, 924 with a file that reads
-  files            1700, and 6 left out
+  files            1701, and 5 left out
   passing          412 files within 1% of their records, of 239 motors
-  size             4.2 MB (4163396 bytes)
+  size             4.2 MB (4164364 bytes)
 note: offline, with no whole update cached; online, `hpr motors update` looks for motors and files newer than 2026-10-28
 Motor data and thrust curves courtesy of ThrustCurve.org, https://www.thrustcurve.org/
 ```
@@ -681,7 +678,7 @@ The tests that pin the motor model, and the whole example program.
 
 - **Catalog** (`catalog::tests`): every figure the catalog lists is its curve file's own, bit for
   bit, so what `hpr motors` lists is what flies. Each file's stored check is worked out again from
-  the file and its motor's committed record. 412 of the 1,700 files pass. For the 32 first bundled,
+  the file and its motor's committed record. 412 of the 1,701 files pass. For the 32 first bundled,
   1% was **the bundling rule**, and all 32 pass. In Loft,
   a mis-sourced curve flew about 26% high
   ([Loft lesson L42](../decisions-and-roadmap.md#l42)). Of 554 public-domain curves, 196 passed
@@ -715,7 +712,7 @@ The tests that pin the motor model, and the whole example program.
     burn time is 0.61% longer here.
   - **The recount** (`analyze_stats.js --recount`) works out which files pass from the raw
     snapshot ThrustCurve.org answered, with [TC-A] and not HPR Sim's code, and fails unless the
-    index agrees. It agrees on all 1,700 files the index holds: 412 pass, and 239 motors have one
+    index agrees. It agrees on all 1,701 files the index holds: 412 pass, and 239 motors have one
     that does. One file passes with every sample kept and would fail with the merge: Cesaroni's
     2765L730-P file, whose burn time is 0.68% short of its record here and 1.28% short after the
     merge. The raw snapshot isn't committed, so the recount runs on the maintainer's machine, not

@@ -1583,9 +1583,9 @@ answer missing names the bundle's date and succeeds:
 $ hpr motors update --offline
 The bundled catalog: ThrustCurve.org's solid motors as of 2026-10-28
   motors           1004, 924 with a file that reads
-  files            1700, and 6 left out
+  files            1701, and 5 left out
   passing          412 files within 1% of their records, of 239 motors
-  size             4.2 MB (4163396 bytes)
+  size             4.2 MB (4164364 bytes)
 note: offline, with no whole update cached; online, `hpr motors update` looks for motors and files newer than 2026-10-28
 Motor data and thrust curves courtesy of ThrustCurve.org, https://www.thrustcurve.org/
 ```

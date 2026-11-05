@@ -25,60 +25,59 @@ Open work only; done work is [archived](roadmap-done.md) unchanged by `cargo xta
 The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163): lines
 `N. M<id> title`, ids open in this file (`cargo test -p xtask` checks).
 
-1. M5.7 Every solid motor, offline
-2. M7.3 A flight against its simulation
-3. M10.2 Release 0.2: the flight analyzer
-4. M0.13 Awareness and care on the sites
-5. M0.9g The figures' digits and the command line's words
-6. M2.3c2 Logged traces
-7. M2.3c3 OpenRocket's newest release
-8. M2.3c9 Every flight OpenRocket flies
-9. M2.3c6 The gap to OpenRocket, by cause
-10. M2.7 Held-out flights, predictions first
-11. M2.8 Honest uncertainty
-12. M2.6 An open benchmark
-13. M1.14 Accuracy inside the envelope
-14. M7.4 Fault diagnosis
-15. M7.5 The bias every simulator shares
-16. M10.3 Release 0.3: accuracy and diagnosis
-17. M2.11 Fin flutter held to measurement
-18. M2.3c7 Faster than sound: published flights
-19. M6.3 Challenge specs and presets
-20. M6.4 Airbrakes
-21. M6.2e Robust mode
-22. M6.6 Submission packs
-23. M6.7 Ejection charges
-24. M3.5 RASAero `.CDX1` import/export
-25. M3.6 RocketPy interop
-26. M2.9 The other tools' cells
-27. M6.8 Field kit: checklists, the settings check and the ground-test log
-28. M0.7b Rocketry explained: recovery, wind and motors
-29. M10.4 Release 0.4: the competition kit
-30. M4.4 C ABI and WASM
-31. M9.0 UI architecture ADR plus a spike
-32. M9.2 3D flight replay with a ghost
-33. M10.5 Release 0.5: the app preview
-34. M0.7c Rocketry explained: live figures
-35. M5.6a A catalog of hpr's own: format, search and a parts list
-36. M8.2 Edit model for UIs
-37. M9.1 Desktop app shell
-38. M5.6b Parachutes and recovery hardware
-39. M8.1 Design assistant
-40. M5.6c Motor hardware and rail buttons
-41. M5.6d More makers and electronics
-42. M3.4 RockSim `.rkt` import/export
-43. M9.3 Web PWA
-44. M10.6 Release 1.0: the app
-45. M0.7d Rocketry explained: the rest of the hobby
-46. M11.1 A motor of your own
-47. M11.2 Experimental solids
-48. M12.1 Parachute gores
-49. M12.2 Opening loads
-50. M9.4 Mobile
-51. M9.6 The four web tools, rebuilt
-52. M6.5 Roll control: tail-fin tabs and canards
-53. M13.3 Flight computer logic
-54. M13.1 Ground station
+1. M7.3 A flight against its simulation
+2. M10.2 Release 0.2: the flight analyzer
+3. M0.13 Awareness and care on the sites
+4. M0.9g The figures' digits and the command line's words
+5. M2.3c2 Logged traces
+6. M2.3c3 OpenRocket's newest release
+7. M2.3c9 Every flight OpenRocket flies
+8. M2.3c6 The gap to OpenRocket, by cause
+9. M2.7 Held-out flights, predictions first
+10. M2.8 Honest uncertainty
+11. M2.6 An open benchmark
+12. M1.14 Accuracy inside the envelope
+13. M7.4 Fault diagnosis
+14. M7.5 The bias every simulator shares
+15. M10.3 Release 0.3: accuracy and diagnosis
+16. M2.11 Fin flutter held to measurement
+17. M2.3c7 Faster than sound: published flights
+18. M6.3 Challenge specs and presets
+19. M6.4 Airbrakes
+20. M6.2e Robust mode
+21. M6.6 Submission packs
+22. M6.7 Ejection charges
+23. M3.5 RASAero `.CDX1` import/export
+24. M3.6 RocketPy interop
+25. M2.9 The other tools' cells
+26. M6.8 Field kit: checklists, the settings check and the ground-test log
+27. M0.7b Rocketry explained: recovery, wind and motors
+28. M10.4 Release 0.4: the competition kit
+29. M4.4 C ABI and WASM
+30. M9.0 UI architecture ADR plus a spike
+31. M9.2 3D flight replay with a ghost
+32. M10.5 Release 0.5: the app preview
+33. M0.7c Rocketry explained: live figures
+34. M5.6a A catalog of hpr's own: format, search and a parts list
+35. M8.2 Edit model for UIs
+36. M9.1 Desktop app shell
+37. M5.6b Parachutes and recovery hardware
+38. M8.1 Design assistant
+39. M5.6c Motor hardware and rail buttons
+40. M5.6d More makers and electronics
+41. M3.4 RockSim `.rkt` import/export
+42. M9.3 Web PWA
+43. M10.6 Release 1.0: the app
+44. M0.7d Rocketry explained: the rest of the hobby
+45. M11.1 A motor of your own
+46. M11.2 Experimental solids
+47. M12.1 Parachute gores
+48. M12.2 Opening loads
+49. M9.4 Mobile
+50. M9.6 The four web tools, rebuilt
+51. M6.5 Roll control: tail-fin tabs and canards
+52. M13.3 Flight computer logic
+53. M13.1 Ground station
 
 ## Phase 0: Foundations
 
@@ -274,17 +273,6 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     family's spread takes the part's mass from its geometry; a unit's tolerance draws uniformly in
     Monte Carlo, CG and inertia with it; the margin and descent rate report its worst end, a test
     pinning the direction.
-- [ ] **M5.7 Every solid motor, offline** (ADR-288; Neer, 2026-10-21; VISION V56). ThrustCurve.org's
-  solid catalog compiled in ([research](research/thrustcurve-data.md)). Split a to d (ADR-298);
-  b in two (ADR-301).
-  - [ ] [blocked] **M5.7b1 The whole catalog compiled in.** Blocked on the maintainer: 1,700 of
-    the 1,706 files are in, five are left out with their reasons, and one held back (ADR-301 §5,
-    #1006) waits for the maintainer to clear it; the rest holds. *Done when:* a fresh snapshot's
-    every solid motor and every file but a restricted one are in `hpr-motor`, figures and labels
-    equal to the snapshot's; each file left out is listed with its reason, and one past the
-    snapshot's named refusals fails; M5.7a's check holds on every file it adds, failing files
-    stored.
-
 ## Phase 3: Uncertainty, optimization, challenges
 
 - [ ] **M6.2 Optimization engine.**

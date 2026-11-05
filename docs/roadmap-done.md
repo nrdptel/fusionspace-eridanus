@@ -313,10 +313,12 @@ One line per milestone or increment, in the order it was archived within its pha
 - M4.6 Monte Carlo from the CLI and Python ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.6a `hpr mc` ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.6b Monte Carlo in Python ([Phase 2](#phase-2-library-surfaces-and-interop))
+- M5.7 Every solid motor, offline ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M5.7a Each file's check and the default file ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M5.7b2 Every motor by name, offline ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M5.7c Every passing file held to the oracles ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M5.7d Newer motors online, and the bundle described ([Phase 2](#phase-2-library-surfaces-and-interop))
+- M5.7b1 The whole catalog compiled in ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M6.1 Monte Carlo and sensitivity ([Phase 3](#phase-3-uncertainty-optimization-challenges))
 - M6.1a Seeded dispersion ([Phase 3](#phase-3-uncertainty-optimization-challenges))
 - M6.1b Landing ellipses ([Phase 3](#phase-3-uncertainty-optimization-challenges))
@@ -1629,7 +1631,9 @@ One line per milestone or increment, in the order it was archived within its pha
     seed, bit for bit.
   - [x] **M4.6b Monte Carlo in Python** (ADR-183). *Done when:* Python returns M4.6a's runs as arrays, its
     failed runs counted, equal bit for bit to `hpr mc`'s CSV from the same build and seed.
-- **M5.7** is open; its entry: [roadmap](ROADMAP.md#phase-2-library-surfaces-and-interop).
+- [x] **M5.7 Every solid motor, offline** (ADR-288; Neer, 2026-10-21; VISION V56). ThrustCurve.org's
+  solid catalog compiled in ([research](research/thrustcurve-data.md)). Split a to d (ADR-298);
+  b in two (ADR-301).
   - [x] **M5.7a Each file's check and the default file.** *Done when:* on the bundled files, with
     their 32 motors' records committed: each file stores its ADR-005 1% check (definition A); the
     default is a passing file where one exists; `hpr motors show` lists every file, its check and
@@ -1645,6 +1649,12 @@ One line per milestone or increment, in the order it was archived within its pha
   - [x] **M5.7d Newer motors online, and the bundle described.** (ADR-307) *Done when:* `hpr motors update`
     adds a newer motor or file from a recorded answer, and offline names the bundle's date; the
     motor page gives the date, counts, passing motors and size, from the tool.
+
+  - [x] **M5.7b1 The whole catalog compiled in.** (ADR-301 §5, amended) *Done when:* a fresh snapshot's
+    every solid motor and every file but a restricted one are in `hpr-motor`, figures and labels
+    equal to the snapshot's; each file left out is listed with its reason, and one past the
+    snapshot's named refusals fails; M5.7a's check holds on every file it adds, failing files
+    stored.
 
 ## Phase 3: Uncertainty, optimization, challenges
 
