@@ -712,7 +712,7 @@ The tests that pin the motor model, and the whole example program.
     burn time is 0.61% longer here.
   - **The recount** (`analyze_stats.js --recount`) works out which files pass from the raw
     snapshot ThrustCurve.org answered, with [TC-A] and not HPR Sim's code, and fails unless the
-    index agrees. It agrees on all 1,700 files the index holds: 412 pass, and 239 motors have one
+    index agrees. It agrees on all 1,701 files the index holds: 412 pass, and 239 motors have one
     that does. One file passes with every sample kept and would fail with the merge: Cesaroni's
     2765L730-P file, whose burn time is 0.68% short of its record here and 1.28% short after the
     merge. The raw snapshot isn't committed, so the recount runs on the maintainer's machine, not

@@ -113,5 +113,6 @@ the rest; `HELD` is gone from both, and five files are left out, each `NAMED` wi
 is a certification RASP file for the AeroTech H195, which had only a user's RockSim file, and it
 now ranks first as that motor's default. Its curve gives the same total impulse, average thrust
 and burn time as the other file, to the last bit, so no figure the motor lists moves. Neither file
-is within 1% of the record. With the file in, M5.7b1's *done when* is met as written, and M5.7 is
-done.
+passes the 1% check: both burn times are 1.4% over the record's. With the file in, M5.7b1's *done
+when* is met as written: every file but a restricted one is in, and the five left out are each
+listed with their reason, as its second clause asks. M5.7 is done.
