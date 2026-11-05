@@ -1,5 +1,7 @@
 # Why Barrowman's Basic Finner roll damping points sit 1.27 times Nicolaides' range data
 
+Re-checked 2026-11-05: 8 claims corrected.
+
 This note asks why the five "wind tunnel" roll-damping points in Barrowman's Fig. 5-7 sit about 1.27 times Nicolaides'
 own range data. HPR Sim's roll-damping row is scored against those points
 ([ADR-031](../decisions/0031-roll-from-canted-fins-and-roll-damping-by.md),
@@ -71,13 +73,14 @@ BRL 799 is Nicolaides and Bolz's range report on the pure rolling motion of finn
 range (BRL Report No. 799)" beside NOL's tunnel points, in NOL's coefficient L/(q·A_p·b·n) per p·b/(2V) [F5 PDF
 pp. 6–7]. NOL finds its own values "slightly below the free flight data" (PDF p. 13).
 
-**How it was read (Inference).** Fig. 7 was rendered at 200 dpi and each page calibrated on its own printed grid
-(residuals 0.5 px or less); the "2.0", "4.0" and "5.0" labels confirm the scale. The calibration puts NOL's Table 2
-tunnel points (PDF p. 17) within 0.002 of their tabulated values, with the fifth plotted at Table 1's Mach 2.76, not
-Table 2's 2.70. The range curve was fitted to clean columns away from the circles; reading error about ±0.002 in C.
-A first reading, on a scale fitted with 2.70, read the Mach 1.50 circle (0.587) as the curve (0.573); a second,
-independent reading caught it. The factor 45.84 (144/π: four 1 d × 1 d panels on a 3 d span) puts NOL's form on
-πd²/4 and d [finner-reference-data.md §1].
+**How it was read (Inference).** Fig. 7 was rendered at 200 dpi and each page fitted in pixels to its own printed
+grid: x = 844.4 + 345.05·M, y = 1713.9 − 1451.6·|C| on PDF p. 31 and x = −934.7 + 343.31·M, y = 1733.1 − 1452.8·|C| on
+p. 32, residuals under 0.7 px (0.002 in Mach); the "2.0", "4.0" and "5.0" labels confirm the scale. The calibration
+puts NOL's Table 2 tunnel points (PDF p. 17) within 0.002 of their tabulated values, with the fifth plotted at Table
+1's Mach 2.76, not Table 2's 2.70. The range curve was fitted to clean columns away from the circles; reading error
+about ±0.002 in C. A first reading, on a scale fitted with 2.70, read the Mach 1.50 circle (0.587) as the curve
+(0.573); a second, independent reading caught it. The factor 45.84 (144/π: four 1 d × 1 d panels on a 3 d span) puts
+NOL's form on πd²/4 and d [finner-reference-data.md §1].
 
 | Mach | Fig. 5-7 | BRL 799 curve, NOL form | × 45.84 | Fig. 5-7 ÷ curve | nearest BRL 799 round (Mach, NOL form) |
 |--:|--:|--:|--:|--:|---|
@@ -94,7 +97,7 @@ independent reading caught it. The factor 45.84 (144/π: four 1 d × 1 d panels 
   nearest. The figure has at least 14 circles. **Inference:** Barrowman's five points are BRL 799 rounds (or round
   groups), passed on with one constant factor.
 - **The other sets agree with NOL's replot, not with Fig. 5-7.** DREV's range (four rows, Mach 1.83 to 3.15) lies
-  within about 5% of the BRL 799 curve and below Fig. 5-7 at every row. NOL's tunnel reads 0.91 to 0.97 times the
+  within about 5% of the BRL 799 curve and below Fig. 5-7 at every row. NOL's tunnel reads 0.92 to 0.97 times the
   curve; AEDC's Mach 2.5 point is about 3% above it, and BRL 711 with its journal points 0% to 15% above it
   (**Inference**, read against the curve) [finner-reference-data.md §1]. Fig. 5-7 is 1.12 to 1.38 times them all.
 
@@ -113,7 +116,7 @@ ratio over the candidate, minus one.
 | Frontal area with the fins' bases (0.32 d² added) | 1.407 | −9.8% (−11.3% to −8.5%) | excluded |
 | Per degree against per radian, alone | 57.3 | far off | excluded |
 
-- **The two that fit can't be separated here.** They differ by 1.8%, about the reading error of Fig. 5-7 (±0.3, 0.9%
+- **The two that fit can't be separated here.** They differ by 1.9%, about the reading error of Fig. 5-7 (±0.3, 0.9%
   to 1.6%) plus that of NOL's Fig. 7. The curve favors 4/π; matching single rounds favors 1.25, since 57.3 times the
   NOL-form round values reproduces four of Fig. 5-7's points within 2%. No convention gives 180/π by itself, so the
   1.25 row is a coincidence until a source shows the step.
@@ -126,22 +129,23 @@ ratio over the candidate, minus one.
 
 - NOL's tunnel against the same range curve: 0.941, 0.967, 0.932, 0.965, then 0.923 at Mach 2.76 as plotted, a
   non-monotonic 3% to 8% spread, which NOL ascribes partly to the range's small yaw (PDF p. 13).
-- Fin thickness raises the damping through Busemann's second-order term, as in Barrowman's FIN method [B1 PDF p. 92].
-  For a single wedge of half-angle ε the lift slope grows by 1 + 2(K₂/K₁)ε, with K₁ = 2/β and
-  K₂ = ((γ+1)M⁴ − 4β²)/(4β⁴). For ε = 0.04 rad (fins 8% of the diameter thick, B1 Fig. 5-6) that is +5.1% at Mach
-  1.5, +5.1% at 2.0 and +7.2% at 3.0: at most a third of the gap, and it changes with Mach. BRL 711's thicker fins
-  would add about twice as much.
+- Fin thickness raises the damping through Busemann's second-order term [B1 PDF pp. 92–94]: for a wedge of
+  half-angle ε the lift slope grows by 1 + 2(K₂/K₁)ε, with K₁ = 2/β and K₂ = ((γ+1)M⁴ − 4β²)/(2β⁴) [V1 eq. 48].
+  Barrowman prints 4β⁴ (PDF pp. 13 and 94); an exact oblique shock at Mach 2, 0.04 rad gives C_p 0.0486, against
+  0.0485 from 2β⁴ and 0.0474 from 4β⁴. For ε = 0.04 rad (fins 8% of the diameter thick, B1 Fig. 5-6) that is
+  +10.2%, +10.2% and +14.4% at Mach 1.5, 2.0 and 3.0 (exact shocks +11%, +11%, +15%): up to half of Fig. 5-7's gap,
+  not flat, and twice that for BRL 711's thicker fins. HPR Sim has no such term; it would widen its lead (§5).
 - A blunt-base, Reynolds-number or model-scale effect of 27% at every Mach from 1.5 to 3.0 has no support in any
   of the five sets. None is bounded here, but none would be flat.
 
 **What it says about Barrowman's supersonic theory (Inference).** His computed curve lies 2% to 7% from the points.
-If the points are 1.27 times too large, his curve reads roughly 20% to 35% above the measured damping, so its
+If the points are 1.27 times too large, his curve reads about 23% to 37% above the measured damping, so its
 agreement is no evidence for his supersonic method. HPR Sim's first-order damping sits between them (§5). ADR-031's
 subsonic check against his Mach 0.07 value is untouched: no data, and no factor, enter it.
 
 ## 5. What it moves in HPR Sim
 
-HPR Sim's damping, N·C_lp·k_R(B), is −31.62, −25.31, −20.12, −17.61 and −15.36 at the five Mach numbers (aero page).
+HPR Sim's damping, N·C_lp·k_R(B), is −31.62, −25.31, −20.12, −17.61 and −15.36 (ADR-031's percentages on Fig. 5-7).
 
 | Mach | vs Fig. 5-7 (now) | vs BRL 799 curve | vs Fig. 5-7 × π/4 | vs Fig. 5-7 ÷ 1.25 |
 |--:|--:|--:|--:|--:|
@@ -166,13 +170,9 @@ HPR Sim's damping, N·C_lp·k_R(B), is −31.62, −25.31, −20.12, −17.61 an
 - **NAVORD 6652 Fig. 7** [F5]: "Released to DDC by the Naval Ordnance Laboratory without restrictions". The BRL 799
   curve readings above can be committed as a fixture with their method and ±0.002 band: the only free range set
   that spans Mach 1.5 to 3.0 (BRL 711's public points span 1.59 to 2.68), and Nicolaides' own.
-- **Suggestion (#763):** score the roll-damping row against BRL 799's curve and NOL's Table 2, with BRL 711 and
-  ARL-TR-846 as committed points and DREV committed too (#1119, #763). Expected row: +5.4% to +20.4% on
-  BRL 799, +11% to +30% on NOL's tunnel. Keep Fig. 5-7's points out of the scored row, or carry them as a disputed
-  set divided by 1.27 with this note as the reason. ADR-031's −5.9% to −16.2% and the aero page's "reads low for want
-  of a thickness term" would both change: the sign flips, and thickness would push HPR Sim further high.
-- **Wording.** ADR-031 and the aero page say Barrowman's curve is 5.68% from the points "on average"; his text
-  doesn't say "average", and the largest gap read off the figure is about 7%.
+- **Suggestion (#763), done in part.** ADR-031 and the aero page now score NOL's Table 2 (+11.7% to +27.5%) and
+  DREV, hold Fig. 5-7 as a disputed set, no longer blame thickness, and no longer call the 5.68% an average. Left:
+  commit the BRL 799 curve readings and score the row on them too (expected +5.4% to +20.4%).
 
 ## Open questions
 
@@ -190,10 +190,11 @@ HPR Sim's damping, N·C_lp·k_R(B), is −31.62, −25.31, −20.12, −17.61 an
 - **N2.** Nicolaides et al., *Flight Dynamics of the Basic Finner in Various Degrees of Freedom*, AFATL-TR-68-82, 1968.
   <https://archive.org/details/DTIC_AD0852114>
 - **N3.** Daniels, Hardy, NSWC TR-3773, 1978. <https://archive.org/details/DTIC_ADA055718>
+- **V1.** Van Dyke, NACA Report 1081, 1952 (read 2026-11-05). <https://ntrs.nasa.gov/citations/19930090965>
 - **B1.** Barrowman, NASA/TM-2001-209983 (MS thesis, 1967). <https://ntrs.nasa.gov/citations/20010047838>
 - **F5.** Regan, NAVORD Report 6652, 1964. <https://archive.org/details/DTIC_AD0600975>
 - **F1, F2, F6, F7** (DREV-TM-9703, BRL 711, AEDC-TR-76-58, ARL-TR-846): as in
   [finner-reference-data.md](finner-reference-data.md#sources-all-read-2026-10-18), read 2026-10-18.
 
-US Government reports (N1–N3, B1, F5) are released without restriction. DREV-TM-9703 is a public release, Crown
+US Government reports (N1–N3, V1, B1, F5) are released without restriction. DREV-TM-9703 is a public release, Crown
 copyright: this note gives it in words and ranges, though its values may be committed (#1119, #763).
