@@ -1334,8 +1334,12 @@ fn sim_flies_a_payload_dropped_with_nothing_left_to_burn_as_the_library_does() {
     for line in [
         "recovery: `Payload chute` at the separation, ",
         "recovery: `Booster chute` on part 1 at the ejection charge",
-        // The payload's apogee, under its parachute from the split, is not a coast to tell.
-        "delay                 the stack comes apart 2.00 s after burnout, before apogee; the motor's set delay: 2 s\n",
+        // The payload's apogee, under its parachute from the split, is not a coast to tell; the
+        // coast is the stack's with the charge held (#1257), so the line says the charge fires
+        // while the rocket climbs.
+        "s after burnout, with the charges held; the stack comes apart 2.00 s after burnout, \
+         before apogee; the motor's set delay: 2 s; its charge fires ",
+        "s before apogee; a 2 s delay may fire 1.5 s short or long (NFPA 1125): climbing at ",
         &format!(
             "descent               {:.1} m/s ({:.0} ft/s) at landing under `Payload chute`",
             landing.descent_rate_m_s,
@@ -1353,7 +1357,8 @@ fn sim_flies_a_payload_dropped_with_nothing_left_to_burn_as_the_library_does() {
     let all = text.both();
     assert!(!all.contains("under power"), "{all}");
     assert!(!all.contains("the flight ended"), "{all}");
-    assert!(!all.contains("its charge fires"), "{all}");
+    // When the charge fires is measured against the held apogee, not the payload's: once, above.
+    assert_eq!(all.matches("its charge fires").count(), 1, "{all}");
     // The notes, on standard error.
     let text = text.err;
     // A dropped part that climbs above the payload's apogee is said; one that doesn't, not.
@@ -3278,7 +3283,8 @@ fn sim_text_reads_by_name() {
         flown.contains("\nconfiguration 1 of 1: [168H54-10A]\n"),
         "{flown}"
     );
-    // The coast is the flight's own: apogee less burnout, from its events.
+    // The coast is the flight's with the charges held. This probe opens nothing at the charge,
+    // so that is the flight's own: apogee less burnout, from its events.
     let document = json(&["sim", &delayed], 0, "sim.schema.json");
     let at = |kind: &str| {
         document["events"]
@@ -3294,8 +3300,9 @@ fn sim_text_reads_by_name() {
     assert!(coast_s > 3.0 && coast_s < 10.0, "{coast_s}");
     // Set 10 s, the charge fires after apogee; set 3 s, before. The sign is the check.
     let late = format!(
-        "\ndelay                 apogee {coast_s:.2} s after burnout; the motor's set delay: 10 s; \
-         its charge fires {:.2} s after apogee\n",
+        "\ndelay                 apogee {coast_s:.2} s after burnout, with the charges held; the \
+         motor's set delay: 10 s; its charge fires {:.2} s after apogee; a 10 s delay may fire \
+         2.0 s short or long (NFPA 1125): ",
         10.0 - coast_s
     );
     assert!(flown.contains(&late), "{late}: {flown}");
@@ -3310,7 +3317,8 @@ fn sim_text_reads_by_name() {
     );
     let flown = streams(&["sim", &early]).out;
     let early = format!(
-        "; the motor's set delay: 3 s; its charge fires {:.2} s before apogee\n",
+        "; the motor's set delay: 3 s; its charge fires {:.2} s before apogee; a 3 s delay may \
+         fire 1.5 s short or long (NFPA 1125): climbing at ",
         coast_s - 3.0
     );
     assert!(flown.contains(&early), "{early}: {flown}");
