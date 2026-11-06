@@ -459,7 +459,7 @@ log corpus came from Debrief.
           failing, and no Bayesian count that passed before it fails; whatever the posterior states of the
           wind's shear on heights alone is stated with its source, not fitted.
         - [ ] **M7.3c7 Every count.** *Done when:* M7.3c4's *done when*, whole.
-  - [ ] **M7.3d From the boost** (ADR-324: in three, below; met when they are). *Done when:* apogee predicted from
+  - [ ] **M7.3d From the boost** (ADR-321: in three, below; met when they are). *Done when:* apogee predicted from
     the log cut at burnout stays bit-identical when
     every later sample is replaced with noise; a committed report gives the 7 public flights' fits, the collection's
     as aggregates, and that prediction's mean absolute and signed errors beside the forward simulation's on the same
