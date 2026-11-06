@@ -166,7 +166,17 @@ private collection), and each needs a full gate, reviews and CI, so one incremen
    (`SPIKE_WINDOW_S`), its burnout mean (`BURNOUT_MEAN_S`) and its noise span (`NOISE_SPAN_S`)
    are centered windows, and `readings::read` takes the whole log at once. The cut is
    therefore set at the last sample any of the finder's windows read, not at burnout itself, and
-   the pad and liftoff come from the samples before that cut.
+   the pad and liftoff come from the samples before that cut. The plan:
+   - The finder walks the samples forward and decides at each one from it and those before it:
+     on the axial accelerometer, the first sample after the burn where a trailing mean drops
+     below the pad's noise bound under zero thrust; without one, where a trailing estimate of the
+     vertical speed falls a noise bound below its running top. The cut is the sample it stops on.
+   - Every reading after that runs on the log truncated at the cut, so later samples can't reach
+     it by construction. The test then compares the prediction on the whole log with the one on
+     the log whose later samples are noise, bit for bit.
+   - The fit needs observations that end at the cut rather than at apogee: `observations` runs
+     from liftoff to the apogee reading, which on a log cut on the climb is no apogee at all
+     (withheld, or a floor at the cut; `Readings::ends_on_the_climb`).
 2. **M7.3d2 The public flights.** A committed report gives the 7 public logged flights' fits, the
    prediction's mean absolute and signed apogee errors, and the forward simulation's on the same
    flights in the same launch-day air and wind, with the exact sign-flip interval on their
