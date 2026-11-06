@@ -152,7 +152,7 @@ flights with an exact sign-flip interval; the collection's flights as aggregates
 bootstrap 95% interval; and a scoreboard row, `accuracy.from-boost`. [ADR-322][adr-322] §2 adds
 that the collection's numbers come for each of M2.7's halves, with the held-out half's fits sealed
 until M7.5. On 2026-11-06 `hpr_forensics` has the least-squares and Bayesian fits of M7.3b and
-M7.3c (`crates/hpr-forensics/src/fit.rs`) but no cut at burnout and no prediction from one. Each
+M7.3c (`fit.rs` and `posterior.rs` in `crates/hpr-forensics/src/`) but no cut at burnout and no prediction from one. Each
 of the three parts touches different code and data (the library, the public flights' report, the
 private collection), and each needs a full gate, reviews and CI, so one increment can't hold them.
 
@@ -168,19 +168,23 @@ private collection), and each needs a full gate, reviews and CI, so one incremen
    therefore set at the last sample any of the finder's windows read, not at burnout itself, and
    the pad and liftoff come from the samples before that cut. The plan:
    - The finder walks the log's height track forward and decides at each sample from it
-     and those before it: liftoff 10 m (33 ft) above the track's first height, then a speed
+     and those before it: liftoff 10 m (32.8 ft) above the track's first height, then a speed
      fitted over the last 0.5 s, and the cut where it has stayed 10% below its top, and at least
-     10 m/s (33 ft/s), for 1 s: a barometer's dip near Mach 1 cut 17 of set A's first 60 flights
-     before burnout at the first fall, none held 1 s. The cut is the sample it stops on, two or
-     three seconds after burnout: ADR-257
-     §3's "cut at burnout" is read as the sample where burnout is found from those up to it, so
-     the log keeps the coast's start. M7.3d2 gives the error; whether an accelerometer's cut,
-     sooner, would do better isn't measured.
+     10 m/s (32.8 ft/s), for 1 s. A barometer's jump near Mach 1 cut 17 of set A's first 60
+     flights before burnout at the first fall, and none with the 1 s hold. The cut is the sample it
+     stops on: ADR-257 §3's "cut at burnout" is read as the sample where burnout is found from
+     those up to it, so the log keeps the coast's start. On set A's 200 synthetic flights (a
+     test) every barometer's log is cut after the true peak of the vertical speed and at most
+     2.75 s after burnout, 2 of them up to 0.11 s before it. M7.3d2 gives the error; whether an
+     accelerometer's cut, sooner, would do better isn't measured.
+   - A GNSS receiver's track isn't cut: in the boost its fix can drop out or lag the climb by
+     hundreds of meters ([GNSS in boost](../research/gnss-in-boost.md)), and on set A's first 60
+     flights such tracks were cut up to 11 s after burnout or not at all.
    - Every reading after that runs on the log truncated at the cut, so later samples can't reach
      it by construction. The test then compares the prediction on the whole log with the one on
      the log whose later samples are noise, bit for bit.
    - The fit needs observations that end at the cut rather than at apogee: `observations` runs
-     from liftoff to the apogee reading, which on a log cut on the climb is no apogee at all
+     from a second before liftoff to the apogee reading, which on a log cut on the climb is no apogee at all
      (withheld, or a floor at the cut; `Readings::ends_on_the_climb`).
 2. **M7.3d2 The public flights.** A committed report gives the 7 public logged flights' fits, the
    prediction's mean absolute and signed apogee errors, and the forward simulation's on the same
@@ -192,7 +196,7 @@ private collection), and each needs a full gate, reviews and CI, so one incremen
 
 *Consequences.* M7.3d is met when M7.3d3 is. The search index has no room (ADR-323), so the fit
 page's paragraph in M7.3d1 needs [#414](https://github.com/nrdptel/fusionspace-eridanus/issues/414)
-or a page left out of the index first; whichever comes first is recorded in its PR. The three
+or a page left out of the index first; whichever comes first is recorded in its PR. The split's
 entries take the roadmap past its 52,500-byte budget, which rises to 53,500, as earlier planning
 PRs raised it for the increments they added.
 
