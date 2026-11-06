@@ -208,11 +208,14 @@ struct GateRow<'a> {
     steps: Vec<(&'a str, i64, bool)>,
     /// The prose rule left validate out (`validate-left`).
     validate_left: bool,
+    /// The page-prose rule left the site's layout check out (`site-left`).
+    site_left: bool,
 }
 
 /// A line of the gate's history: UTC time, head, whether the tree had changes, whether every
 /// default step ran (`1`), `PASS` or `FAIL`, the seconds, and each step's `name=seconds`
-/// (`:FAIL` after a failed one), then `validate-left` when the prose rule left validate out.
+/// (`:FAIL` after a failed one), then `validate-left` and `site-left` when the prose rules left
+/// validate or the site's layout check out.
 fn gate_row(n: usize, line: &str) -> Result<GateRow<'_>, String> {
     let fields: Vec<&str> = line.split('\t').collect();
     if fields.len() < 6 {
@@ -224,9 +227,14 @@ fn gate_row(n: usize, line: &str) -> Result<GateRow<'_>, String> {
     };
     let mut steps = Vec::new();
     let mut validate_left = false;
+    let mut site_left = false;
     for token in fields.get(6).copied().unwrap_or("").split_whitespace() {
         if token == "validate-left" {
             validate_left = true;
+            continue;
+        }
+        if token == "site-left" {
+            site_left = true;
             continue;
         }
         let (name, time) = token
@@ -246,6 +254,7 @@ fn gate_row(n: usize, line: &str) -> Result<GateRow<'_>, String> {
         seconds: seconds(fields[5])?,
         steps,
         validate_left,
+        site_left,
     })
 }
 
@@ -303,6 +312,9 @@ pub(crate) fn gate_verdict(history: &str, commits: &[String]) -> Result<Verdict,
     );
     if full.validate_left {
         what.push_str(", validate left out as the branch changed only prose");
+    }
+    if full.site_left {
+        what.push_str(", the site left out as the branch changed only the words of pages");
     }
     if !changed.is_empty() {
         let _ = write!(
@@ -742,6 +754,15 @@ t2\tbbbb\t0\t0\tPASS\t1500\tvalidate=1500
         };
         assert!(text.contains("validate left out"), "{text}");
         assert!(text.contains("1900 s"), "{text}");
+        // The site left out by the page-prose rule: read, not refused as a step with no time.
+        let site = "t1\taaaa\t0\t1\tPASS\t300\tfmt=7 pages=80 validate-left site-left\n";
+        let v = gate_verdict(site, &commits(&["aaaa"])).unwrap();
+        let Verdict::Ok(text) = v else {
+            panic!("{v:?}")
+        };
+        assert!(text.contains("the site left out"), "{text}");
+        assert!(text.contains("validate left out"), "{text}");
+        assert!(text.contains("300 s"), "{text}");
     }
 
     #[test]
