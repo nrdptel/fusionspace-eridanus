@@ -461,9 +461,12 @@ log corpus came from Debrief.
         - [ ] **M7.3c7 Every count.** *Done when:* M7.3c4's *done when*, whole.
   - [ ] **M7.3d From the boost.** *Done when:* apogee predicted from the log cut at burnout stays bit-identical when
     every later sample is replaced with noise; a committed report gives the 7 public flights' fits, the collection's
-    as aggregates for both of M2.7's halves (ADR-322), and that prediction's mean absolute and signed errors beside
-    the forward simulation's on the same flights in the same air and wind, with ADR-257 §3's intervals; the
-    scoreboard has `accuracy.from-boost`, each other tool's cell read from its docs.
+    as aggregates, and that prediction's mean absolute and signed errors beside the forward simulation's on the same
+    flights in the same air and wind, with ADR-257 §3's intervals; the scoreboard has `accuracy.from-boost`, each
+    other tool's cell read from its docs. The collection's numbers come for each of M2.7's halves, split by
+    ADR-322's encoding, the SHA-256 of the sorted held-out ids committed before any half's number; the held-out
+    half's fit aggregates stay in the private collection, only their file's hash committed, until M7.5 publishes
+    them (ADR-322).
   - [ ] **M7.3e The post-flight comparison.** *Done when:* one `hpr` command draws predicted and logged altitude
     and velocity, liftoff to landing, as designed and under launch-day conditions: the log's site and date with
     the weather source's wind and air, or values entered, so it works offline; a test runs it on a public
@@ -485,7 +488,8 @@ log corpus came from Debrief.
 - [ ] **M7.5 The bias every simulator shares** (ADR-209 §6). *Done when:* a correction fitted on
   the calibration flights' logs, for airframe drag and delivered impulse, lowers the held-out mean
   absolute error and bias, and ships named in each flight's output; or an ADR records that it
-  doesn't, and nothing ships.
+  doesn't, and nothing ships. Either way, chosen first, M7.3d's sealed held-out fit aggregates are
+  then published, their file matching its committed hash (ADR-322).
 - [ ] **M8.1 Design assistant.**
   - Templates: minimum diameter, 3FNC, dual deploy L1/L2/L3.
   - Automatic checks (stability window, motor fit, rail buttons, flutter margin, recovery sizing).

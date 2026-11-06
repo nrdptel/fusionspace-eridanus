@@ -1,6 +1,6 @@
 # ADR-322: The 2026-11-05 progress review: accuracy before reader-facing work (2026-11-05)
 
-- **Status:** accepted; reorders the [queue][queue] (moves [M7.3][m7-3]'s other increments, [M10.2][m10-2], [M0.13][m0-13], [M0.9g][m0-9], [M2.3c3][m2-3] and [M2.6][m2-6] later, amending [ADR-163][adr-163]'s and [ADR-226][adr-226]'s order and [ADR-314][adr-314]'s order of M7.3's parts), and tightens [M7.3d][m7-3]'s *done when* to give the collection's aggregates for both of [M2.7][m2-7]'s halves.
+- **Status:** accepted; reorders the [queue][queue] (moves [M7.3][m7-3]'s other increments, [M10.2][m10-2], [M0.13][m0-13], [M0.9g][m0-9], [M2.3c3][m2-3], [M2.6][m2-6] and M7.4 later, amending [ADR-163][adr-163]'s and [ADR-226][adr-226]'s order and [ADR-314][adr-314]'s order of M7.3's parts), and tightens [M7.3d][m7-3]'s *done when* to give its numbers for both of [M2.7][m2-7]'s halves, fixes the halves' encoding and seals the held-out fits until M7.5 publishes them.
 - **Summary:** In the four weeks to 2026-11-05 the measured accuracy did not move: FusionSpace HPR's mean absolute apogee error on the private collection's 60 logged flights is 12.07% against OpenRocket 24.12's 11.26%, a gap of 0.8 to 0.9 points since 10-08, and no aerodynamics fix has closed since 10-15. There are no outside users yet. The work goes to what is hard to add later, correct numbers and accuracy against real flights, and holds what matters only once someone reads it: the 0.2 release, the sites' calendar banner, the figures' digit check. Next: M7.3d, its fits split by the held-out halves, then M2.7, M7.5, M2.3c6 and M1.14.
 
 [queue]: ../ROADMAP.md#queue
@@ -21,11 +21,11 @@
 weeks since the repository restarted on 10-08:
 
 - **Accuracy.** The [scoreboard](../../validation/reports/scoreboard.md)'s collection rows have not
-  moved except by adding flights (53 to 60). About 40 open `P-high` issues concern the simulator's
-  and the analyzer's numbers. About 18 are known model limitations, most from the aerodynamics work
-  before 10-08, for example transonic cone and ogive drag at 2 to 3 times the measured values (#67)
-  and supersonic pressure drag about twice OpenRocket's on one design (#222). The queue's first item
-  to change a model, M1.14, stood twelfth.
+  moved except by adding flights (53 to 60). Open `P-high` issues on the simulator's and the
+  analyzer's numbers (labelled `A-aero`, `A-flight` or `A-motor`) number 47. About 18 are known
+  model limitations, most from the aerodynamics work before 10-08, for example transonic cone and
+  ogive drag at 2 to 3 times the measured values (#67) and supersonic pressure drag about twice
+  OpenRocket's on one design (#222). The queue's first item to change a model, M1.14, stood twelfth.
 - **The analyzer.** Its readings (M7.1, M7.2) are done on `main`. The least-squares fit (M7.3b)
   passes its interval test on synthetic flights, but no real flight has checked it. The Bayesian
   option, a second kind of interval from the same fit, was split three times in four days (ADRs
@@ -44,17 +44,28 @@ run on real logs, which M7.3d gives. The Bayesian pass and the post-flight plot 
    M2.3c2 Logged traces; M2.3c9 Every flight OpenRocket flies; M2.8 Honest uncertainty. Then M7.3
    (its other increments, unchanged), M10.2, M0.13, M0.9g, M2.3c3, M2.6, M7.4, M10.3, and the rest
    of the queue in its old order.
-2. **M7.3d's fits are split by the held-out halves.** Its committed report gives the collection's
-   aggregates for both of M2.7's halves, a flight held out when SHA-256 of its id and the seed
-   `ADR-209` falls in the lowest third ([ADR-209][adr-209] §4). That rule is fixed already, so
-   reading M7.3d's results can't move the split. M7.5's correction may then be chosen from the
-   calibration half alone, and the held-out half still judges it.
+2. **M7.3d's numbers are split by the held-out halves, and the held-out fits are sealed.** ADR-209
+   §4 states the rule in words; this fixes its encoding, before any code computes it. A flight's id
+   is its `flight_id` in the private collection's manifest, which is stable as the collection grows
+   (a report's case numbers are not). Its digest is SHA-256 of that id's UTF-8 bytes followed
+   directly by the seven bytes `ADR-209`, with no separator. The flight is held out when the
+   digest's first eight bytes, read as a big-endian unsigned integer, are below 2^64 / 3 (at most
+   6,148,914,691,236,517,205). Before any half's number is reported, a commit holds the SHA-256 of
+   the held-out ids, sorted, one per line with a newline after each; the ids stay private (ADR-151).
+   M7.3d's report gives the collection's prediction errors and intervals for both halves, and the
+   calibration half's fit aggregates. The held-out half's fit aggregates, the drag and impulse
+   scales that M7.5 would correct, stay in the private collection with only their file's hash
+   committed. M7.5 chooses its correction on the calibration half alone, then publishes them, so
+   held-out flights never feed a choice of model.
 3. **M7.5 goes before M2.3c6.** Both simulators read high, HPR by +7.76% and OpenRocket by +6.72%
    on the same flights, so a cause they share is the larger prize. M7.5's own *done when* covers
    the case where no correction helps: an ADR records it and nothing ships. M2.3c6 then follows.
    It runs against OpenRocket 24.12, as its *done when* already says. ADR-226 queued it after
-   M2.3c3 so the gap would be against OpenRocket's newest release. M2.3c3 waits on a release after
-   24.12, and the gap study's swaps can be rerun on that release when it lands.
+   M2.3c3 without a stated reason; ADR-212 asks for the newest release beside 24.12. M2.3c3 waits on
+   a release after 24.12, and the gap study's swaps can be rerun on that release when it lands. M1.14
+   now sits before M2.3c3 though its *done when* also names the newest release: while none after
+   24.12 exists that clause compares with 24.12, and when one lands, M2.3c3 goes before M1.14's last
+   open increment.
 4. **Held, not dropped:** the Bayesian pass (M7.3c's open increments) and the post-flight plot
    (M7.3e), each with its *done when* whole; release 0.2 until there is someone to give it to or
    a result to show; the calendar banner (M0.13); the digit and wording check (M0.9g); the open
