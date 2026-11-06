@@ -1099,8 +1099,9 @@ impl CatalogMotor {
             .collect()
     }
 
-    /// The warning for flying `curve` when its header's propellant mass is more than
-    /// [`PROPELLANT_SHORT_BOUND`] below the record's, naming both masses and the gap; `None` when
+    /// The warning for flying `curve` when the propellant mass it flies with (the entry's, else
+    /// its header's; [`CatalogMotor::motor`]) is more than [`PROPELLANT_SHORT_BOUND`] below the
+    /// record's, naming both masses and the gap; `None` when
     /// it isn't (a file exactly at the bound draws none), when the record states no propellant
     /// mass, or when the file isn't bundled or doesn't read.
     pub fn propellant_warning(&self, curve: &CatalogCurve) -> Option<String> {
@@ -1111,19 +1112,29 @@ impl CatalogMotor {
         let text = bundled_curve_text(&curve.file)?;
         let (_, propellant_kg, _) = read_curve_file(curve, text).ok()?;
         let file_g = propellant_kg * 1000.0;
-        // Compared as masses, so a file exactly at the bound doesn't warn; a NaN warns.
-        if file_g >= record_g * (1.0 - PROPELLANT_SHORT_BOUND) {
+        // The mass flown ([`CatalogMotor::motor`]): the entry's, the default file's, where it
+        // gives one, so a file other than the default is held to the mass it flies with.
+        let flown_g = self.propellant_mass_g.unwrap_or(file_g);
+        // Compared as masses, so a mass exactly at the bound doesn't warn; a NaN warns.
+        if flown_g >= record_g * (1.0 - PROPELLANT_SHORT_BOUND) {
             return None;
         }
-        Some(format!(
-            "{} {}'s curve file {} gives {file_g:.1} g of propellant, {:+.2}% from \
-             ThrustCurve.org's record of {record_g:.1} g. If the file's loaded mass is right, it \
-             flies too heavy a burnout mass and too low an apogee",
-            self.manufacturer_abbrev,
-            self.designation,
-            curve.simfile_id,
-            (file_g / record_g - 1.0) * 100.0
-        ))
+        let gap = (flown_g / record_g - 1.0) * 100.0;
+        Some(if flown_g.to_bits() == file_g.to_bits() {
+            format!(
+                "{} {}'s curve file {} gives {flown_g:.1} g of propellant, {gap:+.2}% from \
+                 ThrustCurve.org's record of {record_g:.1} g. If the file's loaded mass is right, \
+                 it flies too heavy a burnout mass and too low an apogee",
+                self.manufacturer_abbrev, self.designation, curve.simfile_id,
+            )
+        } else {
+            format!(
+                "{} {} flies with curve file {} the default file's {flown_g:.1} g of propellant, \
+                 {gap:+.2}% from ThrustCurve.org's record of {record_g:.1} g. If the loaded mass \
+                 is right, it flies too heavy a burnout mass and too low an apogee",
+                self.manufacturer_abbrev, self.designation, curve.simfile_id,
+            )
+        })
     }
 
     /// The warnings for the masses flying `curve` takes ([`CatalogMotor::motor`]): a loaded mass
@@ -2692,6 +2703,55 @@ mod tests {
         for shift in [0.049, -0.049] {
             assert!(burnout(shift).is_empty(), "{shift}");
         }
+    }
+
+    /// Issue #1233's physics review: a file other than the default flies the entry's propellant
+    /// mass (the default file's), so the propellant warning is held to that mass, not the
+    /// file's header. AeroTech I225FJ's other file flies 241.7 g against the record's 264 g.
+    #[test]
+    fn a_non_default_file_is_warned_of_the_propellant_it_flies() {
+        let catalog = bundled();
+        let mut checked = 0;
+        for motor in &catalog.motors {
+            let Some(record_g) = motor.stated.propellant_mass_g.filter(|g| *g > 0.0) else {
+                continue;
+            };
+            let Some(flown_g) = motor.propellant_mass_g else {
+                continue;
+            };
+            for curve in &motor.curves {
+                if bundled_curve_text(&curve.file).is_none() {
+                    continue;
+                }
+                let short = flown_g < record_g * (1.0 - PROPELLANT_SHORT_BOUND);
+                assert_eq!(
+                    motor.propellant_warning(curve).is_some(),
+                    short,
+                    "{} {}",
+                    motor.designation,
+                    curve.simfile_id
+                );
+                checked += 1;
+            }
+        }
+        assert!(checked > 1_000, "{checked}");
+        let i225 = catalog
+            .motors
+            .iter()
+            .find(|motor| motor.designation == "I225FJ")
+            .expect("the I225FJ");
+        let other = i225
+            .curves
+            .iter()
+            .find(|curve| {
+                Some(curve.simfile_id.as_str())
+                    != i225.default_curve().map(|c| c.simfile_id.as_str())
+                    && bundled_curve_text(&curve.file).is_some()
+            })
+            .expect("a second bundled file");
+        let warning = i225.propellant_warning(other).expect("warns");
+        assert!(warning.contains("241.7 g of propellant"), "{warning}");
+        assert!(warning.contains("record of 264.0 g"), "{warning}");
     }
 
     /// [`PROPELLANT_SHARE_SPAN`] is the span of the bundled records' shares, propellant over
