@@ -239,7 +239,7 @@ def test_a_subsonic_flight_meets_no_shape_drag_issue():
 def test_a_supersonic_ogive_nose_meets_its_drag_issues_by_number(repo):
     """The synthetic two-stage rocket, past Mach 1: its tangent-ogive nose meets #67 and #222,
     and its conical interstage, a shoulder, #67; base drag (#68) and friction (#18) need no
-    part. Past Mach 0.8 its margin may read high (#1198, after #172, which needs only a margin).
+    part. Past Mach 0.8 its flight margin may read high (#1198, after #172, which needs only a margin).
     Its rail buttons put its center of gravity off the axis (#219), and past the body's
     supersonic join's start its damping stations leave their centers of pressure (#106): two
     issues of the flight's path, whose signs depend on the case (ADR-201)."""

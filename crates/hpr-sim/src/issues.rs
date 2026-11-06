@@ -144,7 +144,7 @@ pub const TRANSONIC_CP_MACH: f64 = hpr_aero::fins::TRANSONIC_START_MACH;
 /// nearer Mach 1 the error turns both ways (the short model 0.41 calibers forward at Mach
 /// 1.0; the long model's +2.36 there rests on a faired curve its plotted points contradict,
 /// `docs/research/arcas-fin-share-cp-station.md`). These are errors in the flight margin, taken
-/// at the flight's Mach number; the static margin, taken at Mach 0, has none of them.
+/// at the flight's Mach number; the static margin, taken at Mach 0, is clear of the join.
 pub const TRANSONIC_CP_AFT_CAL: (f64, f64) = (0.67, 1.35);
 
 /// Where a forward-swept fin's warning starts: Mach 1 ([ADR-188][adr-188]). Its measured error is
@@ -268,7 +268,7 @@ pub enum KnownIssue {
     MarginReadsHigh,
     /// [#1198](https://github.com/nrdptel/fusionspace-eridanus/issues/1198): past Mach 0.8 the
     /// center of pressure sits aft of the measured, so the flight margin reads high; the static
-    /// margin, taken at Mach 0, does not.
+    /// margin, taken at Mach 0, is clear of the join.
     TransonicCenterOfPressure,
     /// [#64](https://github.com/nrdptel/fusionspace-eridanus/issues/64): a fin whose leading edge sweeps
     /// forward takes a supersonic normal-force slope that rises past linear theory's start,
@@ -373,7 +373,7 @@ impl KnownIssue {
     }
 
     /// Which numbers the issue bears on: the margin and center of pressure for #64, #87, #120,
-    /// #121, #172, #325 and #326; the flight's path for #8, #106, #213 and #219, whose signs
+    /// #121, #172, #325, #326 and #1198; the flight's path for #8, #106, #213 and #219, whose signs
     /// depend on the case ([ADR-201][adr-201]); the drag for the rest.
     ///
     /// [adr-201]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0201-the-unknown-signs.md
@@ -453,8 +453,8 @@ pub struct IssueWarning {
     pub max_mach: Peak,
     /// The ids of the parts whose shape meets the issue's condition, in the layout's order;
     /// empty for base drag ([`KnownIssue::BaseDrag`]) and friction ([`KnownIssue::TurbulentFriction`]),
-    /// which every rocket has, for the issues that name no part (#121, #172, #179, #354), and for
-    /// the wind's (#8, [`KnownIssue::NearCalmWindDirection`]) and the center of gravity's (#219,
+    /// which every rocket has, for the issues that name no part (#121, #172, #179, #354, #1198),
+    /// and for the wind's (#8, [`KnownIssue::NearCalmWindDirection`]) and the center of gravity's (#219,
     /// [`KnownIssue::OffAxisCenterOfGravity`]), which are no part's.
     pub parts: Vec<String>,
     /// The flight's own figures the message quotes, for the issues that have them (#8, #106,

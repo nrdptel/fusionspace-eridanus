@@ -13,9 +13,9 @@
 `normal_force_against_mach` test). At Mach 0.9 it sits aft on both Arcas Robin models, by 1.34
 calibers (short) and 0.68 (long), each more than its reading's uncertainty (0.055 and 0.071). An
 aft center of pressure makes the flight margin, taken at the flight's Mach number, read high: the
-flattering side. The static margin, taken at Mach 0, has no such error. At Mach 0.8 the fins are
+flattering side. The static margin, taken at Mach 0, is clear of the join. At Mach 0.8 the fins are
 still on Prandtl-Glauert; the long model's +0.067 there is inside its uncertainty, but the short
-model's +0.912 is not, and #1290 follows it below the join. Near Mach 1
+model's +0.912 is not, and #1290 tracks it below the join. Near Mach 1
 the error turns both ways: the short model reads 0.41 calibers forward at Mach 1.0. The long
 model's +2.36 at Mach 1.0 rests on a faired curve that its plotted points contradict
 (`docs/research/arcas-fin-share-cp-station.md` §4). No public fin method closes the Mach 0.9 gap
@@ -34,7 +34,7 @@ join; the model's correction belongs to #619, #841 and #860.
 2. A test reads the fixture's Mach 0.9 rows. It pins that HPR Sim's center of pressure
    sits aft of the measured at Mach 0.9 on both models, by more than the reading's uncertainty,
    and that the quoted range holds every error within 0.01 caliber. Swapping the two centers of
-   pressure in one row, with its stored error's sign, fails it, and so does inverting the Mach
+   pressure in one row and negating its stored error fails it, and so does inverting the Mach
    condition.
 3. **The index.** The guides show real `hpr sim` output, and the warning adds 9 lines to indexed
    pages. Built, the index stood 9,123 bytes past mdBook's warning, which the site
@@ -53,7 +53,7 @@ join; the model's correction belongs to #619, #841 and #860.
 
    With the docs' own lines for #1198, the index passes with almost nothing to spare.
 
-**Consequences.** A flyer past Mach 0.8 is told the margin may read high, with the measured size.
+**Consequences.** A flyer past Mach 0.8 is told the flight margin may read high, with the measured size.
 A terminal line no longer holds a clickable address; its number and the one help line give it.
 The index is full again: #414 (a chunked index, measured by download size) comes before any
 milestone that adds site prose.
