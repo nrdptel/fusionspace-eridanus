@@ -1201,8 +1201,9 @@ impl CatalogMotor {
         {
             warnings.push(format!(
                 "{} {} flies a loaded mass of {total_g:.1} g, {:+.1}% from ThrustCurve.org's \
-                 record of {record_g:.1} g; one of them is wrong. Too heavy a motor gives too low \
-                 an apogee; too light, too high a margin after burnout",
+                 record of {record_g:.1} g; the two disagree, so check which describes the motor you fly. \
+                 Too heavy a motor gives too low an apogee; too light, too high a margin after \
+                 burnout",
                 self.manufacturer_abbrev,
                 self.designation,
                 (total_g / record_g - 1.0) * 100.0
@@ -2625,8 +2626,8 @@ mod tests {
     /// Issue #1233: the Quest D8's default file gives 454 g loaded where ThrustCurve.org's record
     /// gives 45.6 g, ten times as heavy, so it flew a 32 m apogee where the record's mass gives
     /// about 369 m, with no word. Flying it now warns twice, naming both loaded masses and its
-    /// 4.8% propellant share, below every record's. A loaded mass at the 5% bound draws no
-    /// warning, one past it either way does, and a record with no mass gives none.
+    /// 4.8% propellant share, below every record's. A loaded mass 4.9% from the record draws no
+    /// warning, one 5.1% from it either way does, and a record with no mass gives none.
     #[test]
     fn a_loaded_mass_far_from_its_record_warns_naming_both() {
         let catalog = bundled();

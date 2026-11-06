@@ -558,8 +558,8 @@ fn from_catalog(name: &str) -> Result<(MotorShow, Vec<Option<String>>), Failure>
 }
 
 /// The warnings `hpr sim --motor` gives for flying the catalog motor `motor` on `curve`: a file
-/// that fails its 1% check (decision record ADR-298 §6) and one light on propellant (ADR-302).
-/// Empty when the file passes both.
+/// that fails its 1% check (decision record ADR-298 §6), one light on propellant (ADR-302), and
+/// masses far from the record's ([`CatalogMotor::mass_warnings`]). Empty when none holds.
 pub(crate) fn check_warnings(motor: &CatalogMotor, curve: &CatalogCurve) -> Vec<InputWarning> {
     motor
         .flight_warnings(curve)

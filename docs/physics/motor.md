@@ -105,10 +105,9 @@ They aren't the maker's data. Each file is checked against them: its total impul
 thrust and burn time must each be within 1% of the record's to pass. A gap is the file's figure
 less the record's, as a share of the record's, so `+` means the file reads high. A motor flies a
 passing file where it has one, else the first by format and by who measured it. Flying a failing
-file in `hpr sim` warns, naming each failing figure: `burn time +2.00%`. So does flying a default
-file whose propellant mass is more than 5% below the record's. The library gives the same
-warnings: Rust's `Motor::from_catalog` keeps them in `warnings()`, and Python's raises each as a
-`UserWarning`. Check such a file against the maker's data.
+file in `hpr sim` warns, naming each failing figure: `burn time +2.00%`. So does a mass far
+from the record's ([below](#the-whole-catalog)). The library gives the same warnings: Rust's
+`Motor::from_catalog` keeps them in `warnings()`, and Python's raises each as a `UserWarning`. Check such a file against the maker's data.
 `hpr motors show` lists each file with its check. `cargo xtask motor-catalog` writes the catalog,
 and a test fails if the committed one differs.
 
@@ -188,17 +187,17 @@ short name and designation; `hpr motors list --json` gives each motor's selector
     record (four files give a Pro150 reload's 150 mm (5.9 in) where the record gives
     161 mm (6.3 in)); the three are 31% to 39% off. Sizes closer than 10% apart, such as
     152 mm (6.0 in) and 161 mm (6.3 in), aren't told apart.
-- 48 motors' default files give a propellant mass more than 5% below their record's, and 151
+- 48 motors' default files give a propellant mass more than 5% below their record's, and warn; 151
   more than 5% above it
   ([issue #1003](https://github.com/nrdptel/fusionspace-eridanus/issues/1003)). Either side may be
   the wrong one.
 - 36 of the 840 motors whose file and record both give a loaded mass are more than 5% apart, 17
   heavier and 19 lighter ([issue #1233](https://github.com/nrdptel/fusionspace-eridanus/issues/1233)),
-  and warn, naming both. The Quest D8's file gives 454 g (16 oz), its record 45.6 g (1.6 oz). A
-  heavy motor gives too low an apogee, a light one too high a margin. A propellant share outside
-  the records' 11.5% to 75% warns too (the D8's 4.8%). With the loaded mass within 5%, a burnout
-  mass more than 5% of the loaded mass off the record's warns: 67 more. `cargo xtask
-  motor-catalog` prints these counts.
+  and warn, naming both. The Quest D8's file gives 454 g (16 oz), its record 45.6 g (1.6 oz).
+  Either may be wrong; if the record is right, a heavier file gives too low an apogee, a lighter
+  one too high a margin. A propellant share outside the records' span, about 11.5% to 75%, warns
+  too (the D8's 4.8%). With the loaded mass within 5%, a burnout mass more than 5% of the
+  record's loaded mass off the record's warns: 67 more. `cargo xtask motor-catalog` prints them.
 
 Online, `hpr motors update` caches the motors and files ThrustCurve.org's records show as added
 since; it can miss a file swapped for another under an unchanged record

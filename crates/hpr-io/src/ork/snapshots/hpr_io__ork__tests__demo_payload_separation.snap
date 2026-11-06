@@ -121,7 +121,7 @@ expression: snapshot_of(&design)
     {
       "at": "openrocket/rocket/stage[1]/bodytube[0]/innertube[0]",
       "kind": "unusual",
-      "says": "AeroTech F50T flies a loaded mass of 89.8 g, +5.8% from ThrustCurve.org's record of 84.9 g; one of them is wrong. Too heavy a motor gives too low an apogee; too light, too high a margin after burnout"
+      "says": "AeroTech F50T flies a loaded mass of 89.8 g, +5.8% from ThrustCurve.org's record of 84.9 g; the two disagree, so check which describes the motor you fly. Too heavy a motor gives too low an apogee; too light, too high a margin after burnout"
     }
   ]
 }
