@@ -239,7 +239,8 @@ def test_a_subsonic_flight_meets_no_shape_drag_issue():
 def test_a_supersonic_ogive_nose_meets_its_drag_issues_by_number(repo):
     """The synthetic two-stage rocket, past Mach 1: its tangent-ogive nose meets #67 and #222,
     and its conical interstage, a shoulder, #67; base drag (#68) and friction (#18) need no
-    part. Its rail buttons put its center of gravity off the axis (#219), and past the body's
+    part. Past Mach 0.8 its margin may read high (#1198, after #172, which needs only a margin).
+    Its rail buttons put its center of gravity off the axis (#219), and past the body's
     supersonic join's start its damping stations leave their centers of pressure (#106): two
     issues of the flight's path, whose signs depend on the case (ADR-201)."""
     rocket = hpr.Rocket.from_file(
@@ -247,11 +248,12 @@ def test_a_supersonic_ogive_nose_meets_its_drag_issues_by_number(repo):
     )
     flight = hpr.Flight(rocket, hpr.Environment(32.99, -106.97, 1400.0), 1.5)
     warnings = flight.issue_warnings
-    assert [warning["issue"] for warning in warnings] == [67, 68, 222, 18, 172, 219, 106]
+    assert [warning["issue"] for warning in warnings] == [67, 68, 222, 18, 172, 1198, 219, 106]
     assert [warning["parts"] for warning in warnings] == [
         ["nose", "interstage"],
         [],
         ["nose"],
+        [],
         [],
         [],
         [],
@@ -265,17 +267,17 @@ def test_a_supersonic_ogive_nose_meets_its_drag_issues_by_number(repo):
             "issue", "kind", "url", "max_mach", "time_s", "parts", "message"
         }
     assert [warning["kind"] for warning in warnings] == (
-        ["drag"] * 4 + ["stability"] + ["flight"] * 2
+        ["drag"] * 4 + ["stability"] * 2 + ["flight"] * 2
     )
     # Flown on a drag table of its own, the flight's drag isn't hpr's, so it meets none of the
-    # drag issues, #18 among them; the normal force is still hpr's, so #172 stays, and so do
-    # the flight path's, which no drag changes.
+    # drag issues, #18 among them; the normal force is still hpr's, so #172 and #1198 stay, and
+    # so do the flight path's, which no drag changes.
     table = hpr.DragTable([(0.0, 0.5), (3.0, 0.5)])
     tabled = hpr.Flight(
         rocket, hpr.Environment(32.99, -106.97, 1400.0), 1.5, drag_table=table
     )
     assert tabled.max_mach > 1.0
-    assert [warning["issue"] for warning in tabled.issue_warnings] == [172, 219, 106]
+    assert [warning["issue"] for warning in tabled.issue_warnings] == [172, 1198, 219, 106]
 
 
 def test_a_catalog_motor_whose_file_fails_its_check_warns():
