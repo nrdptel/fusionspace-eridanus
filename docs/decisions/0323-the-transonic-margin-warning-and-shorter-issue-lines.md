@@ -47,7 +47,7 @@ join; the model's correction belongs to #619, #841 and #860.
      (ADR-188), so the message overstated the drag's error. It now says a laminar run "lowers
      it [the friction], by 3.6%".
 
-   With the docs' own lines for #1198, the index passes with a few hundred bytes to spare.
+   With the docs' own lines for #1198, the index passes with almost nothing to spare.
 
 **Consequences.** A flyer past Mach 0.8 is told the margin may read high, with the measured size.
 A terminal line no longer holds a clickable address; its number and the one help line give it.

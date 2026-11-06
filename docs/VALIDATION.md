@@ -156,7 +156,7 @@ edge. The rest have both, each edge exclusive as the flags' are:
 | [#18](https://github.com/nrdptel/fusionspace-eridanus/issues/18) | skin friction, taken as fully turbulent: where a smooth surface keeps a laminar run, Barrowman's transitional term takes 3.6% off the friction on RocketPy's Calisto at Mach 0.3, about 2% of its drag at zero lift; nothing says how rough a surface must be to trip the flow at once | every flight, at any speed and on any finish ([the decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0190-the-friction-and-freeform-fin-warnings.md)) |
 
 "Past Mach 0.8" means the flight's top Mach number is above 0.8; one at exactly 0.8 doesn't warn.
-Drag that reads high makes the apogee, the top speed and the drift read low. It also makes the
+Drag that reads high makes the apogee, top speed and drift read low. It also makes the
 flutter margin and the largest [dynamic pressure](glossary.md#dynamic-pressure) look better than
 they are. Each warning says so. #68's adds, for a flight past Mach 1.2, that from Mach 1.5 its
 error turns the other way.

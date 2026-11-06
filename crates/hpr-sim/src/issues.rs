@@ -134,8 +134,8 @@ pub const MARGIN_HIGH_BOUND_CAL: f64 = 0.1108;
 pub const TRANSONIC_CP_MACH: f64 = hpr_aero::fins::TRANSONIC_START_MACH;
 
 /// How far aft of the measured center of pressure HPR Sim's sat on NASA TN D-4013's two Arcas
-/// Robin wind-tunnel models at Mach 0.9, calibers, the two each rounded outward: 0.6794 (the long
-/// model) and 1.3426 (the short), from `validation/fixtures/aero/normal-force-vs-mach.json`, whose
+/// Robin wind-tunnel models at Mach 0.9, calibers, rounded outward from 0.67936 (the long model)
+/// and 1.34260 (the short), from `validation/fixtures/aero/normal-force-vs-mach.json`, whose
 /// figures a test recomputes from the committed designs and the tunnel's points. Mach 0.9 is the
 /// one speed on the join where both models read aft by more than the reading's uncertainty: at
 /// Mach 0.8 the fins are still on Prandtl-Glauert, and the long model's +0.067 is inside its
