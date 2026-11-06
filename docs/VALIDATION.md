@@ -455,7 +455,8 @@ fails, saying why, when it can't read GitHub's runs. It fails when:
 
 - the branch's newest *full gate*, a `scripts/gate.sh` run of every default step (a branch that
   changed only prose may leave `validate` out, and one that changed only the words of pages may
-  leave out `site`, whose checks CI runs at every width), took over 30 minutes. A step run again after it on
+  leave out `site`, the docs site's build and checks, which CI runs at every width), took over 30
+  minutes. A step run again after it on
   the branch, alone or with others, counts at its newest passing time, and a step the full gate
   lacked is added. A branch with no full gate yet gets a note, not a failure.
 - any job of main's newest passing run of a pull request's checks took over 20 minutes. Such a run

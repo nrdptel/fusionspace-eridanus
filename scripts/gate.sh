@@ -308,11 +308,13 @@ if [ -z "${*:-}" ] && [ "${GATE_VALIDATE:-0}" != 1 ]; then
   fi
 fi
 # Step site leaves the default run when the branch changes only the words of pages (see the
-# header); the page checks, added above, stay.
+# header); the page checks, added above, stay, and site stays in when they don't run.
 SITE_LEFT=""
 if [ -z "${*:-}" ] && [ "${GATE_SITE:-0}" != 1 ]; then
   touches_layout; layout=$?
-  if [ "$layout" -eq 1 ]; then
+  if [ "$layout" -eq 1 ] && [[ " $STEPS " != *" pages "* ]]; then
+    echo "site stays in: the branch changes only the words of pages, but the page checks aren't running (GATE_PAGES=0), and site holds them too"
+  elif [ "$layout" -eq 1 ]; then
     STEPS=" $STEPS "; STEPS="${STEPS/ site / }"; STEPS="${STEPS# }"; STEPS="${STEPS% }"
     SITE_LEFT=1
     echo "SKIP site: the branch changes only the words of pages (CI checks the built site at every width; GATE_SITE=1 runs it here)"

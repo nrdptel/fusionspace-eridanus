@@ -1,15 +1,15 @@
 # ADR-324: One full gate a pull request, and the site step on prose left to CI (2026-11-06)
 
 - **Status:** accepted; amends [ADR-149][adr-149] §1 (the gate passes, then the pull request opens) and the merge checklist's gate rule, and narrows the gate's default run (`scripts/gate.sh`).
-- **Summary:** A pull request passes one full gate on its diff before it opens. A later commit, such as a review's fix, passes the gate steps it touches and CI on its head, not a second full gate. A merge of main still needs one. Main itself gets a full gate, its `refs/` checks included, once for each new commit on main, before the next piece of work starts. The gate's default run leaves the site step out when a branch changes only the words of pages: CI builds and checks the site on every pull request, at every width of its layout grid, and a merge needs that check to pass.
+- **Summary:** The gate (`scripts/gate.sh`) is the maintainer's local run of CI's checks; a *full* gate runs every default step. A pull request passes one full gate on its diff before it opens. A later commit, such as a review's fix, passes the gate steps it touches and CI on its head, not a second full gate. Merging main into the branch after it opens still needs a new one. Main itself gets a full gate, its `refs/` checks (on the private reference data) included, once for each new commit on main, before the next piece of work starts. The gate's default run leaves the site step out when a branch changes only the words of pages: CI builds and checks the site on every pull request, at every width of its layout grid, and a merge needs that check to pass.
 
 [adr-149]: 0149-m0-5e-g-reviews-while-ci-runs-a-faster-gate-and.md
 [adr-282]: 0282-the-project-tests-each-ui-milestone-itself.md
 
 **Context.** The gate (`scripts/gate.sh`) runs CI's own checks on the maintainer's Mac, plus the
-checks on the private reference data under `refs/` that CI can't run. Its history
-(`.git/gate-history.tsv`, one line a run) was read for the 42 pull requests merged from
-2026-10-30 to 11-05:
+checks on the private reference data under `refs/` that CI can't run. Its history (one line a
+run, kept on the maintainer's Mac and not in the repository, so these figures can't be rechecked
+from it) was read for the 42 pull requests merged from 2026-10-30 to 11-05:
 
 - **Full runs.** The gate ran 380 times, 173 of them planned as full (every default step; 41 of
   those stopped at the first step or the page checks). A merged pull request took 3.8 full runs on
@@ -56,7 +56,8 @@ checks on the private reference data under `refs/` that CI can't run. Its histor
    The merge check accepts it only while the branch still changes only the words of pages;
    otherwise it wants a passing `scripts/gate.sh site` on a commit that holds every other change.
    `GATE_SITE=1`, or naming the step, runs it anyway.
-4. **Captures of such a pull request** ([ADR-282][adr-282]) are taken from the site CI built and
+4. **Captures of such a pull request**, the screenshots looked at for clipping when pages change
+   ([ADR-282][adr-282]: the project tests each UI change itself), are taken from the site CI built and
    checked on the head (the `github-pages` artifact of its run, once the site jobs pass), or after a
    local `scripts/gate.sh site`, so they still follow a passing layout check.
 

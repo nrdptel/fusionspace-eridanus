@@ -755,7 +755,7 @@ t2\tbbbb\t0\t0\tPASS\t1500\tvalidate=1500
         assert!(text.contains("validate left out"), "{text}");
         assert!(text.contains("1900 s"), "{text}");
         // The site left out by the page-prose rule: read, not refused as a step with no time.
-        let site = "t1\taaaa\t0\t1\tPASS\t300\tfmt=7 pages=80 site-left validate-left\n";
+        let site = "t1\taaaa\t0\t1\tPASS\t300\tfmt=7 pages=80 validate-left site-left\n";
         let v = gate_verdict(site, &commits(&["aaaa"])).unwrap();
         let Verdict::Ok(text) = v else {
             panic!("{v:?}")
