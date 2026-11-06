@@ -11,7 +11,7 @@ PR and in the changelog's known gaps, and that a flight reaching its regime prin
 it. It names five issues for 0.1 and says the rule, not that list, is the condition.
 
 M10.1d's survey read every open `env-core` issue on 2026-10-06 (no `P-critical` issue was open):
-37 issues (#1198 added 2026-11-06), each sorted by its own evidence. The warnings in
+37 issues (38 with #1198, added 2026-11-06), each sorted by its own evidence. The warnings in
 `crates/hpr-sim/src/issues.rs` cover the issues of [ADR-163](0163-the-second-pass-products-and-priorities.md) §4's list; #67 of those is
 now closed.
 

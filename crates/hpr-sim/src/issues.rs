@@ -23,7 +23,7 @@
 //! a forward-swept fin past Mach 1 ([#64][i64]), fin sets sharing a station ([#325][i325]), a
 //! freeform fin set at any speed ([#326][i326], [ADR-190][adr-190]), the
 //! supersonic switches (#87, #120, #121), #172 on every flight ([ADR-189][adr-189]), and the
-//! fins' transonic join on every flight with a margin past Mach 0.8 ([#1198][i1198]).
+//! transonic center of pressure on every flight with a margin past Mach 0.8 ([#1198][i1198]).
 //!
 //! Two more warn where a part flies on its own after a separation, with only its devices' drag
 //! ([`separated_part_issue_warnings`]): a booster ([#179][i179]), and a part that starts with
@@ -139,9 +139,12 @@ pub const TRANSONIC_CP_MACH: f64 = hpr_aero::fins::TRANSONIC_START_MACH;
 /// figures a test recomputes from the committed designs and the tunnel's points. Mach 0.9 is the
 /// one speed on the join where both models read aft by more than the reading's uncertainty: at
 /// Mach 0.8 the fins are still on Prandtl-Glauert, and the long model's +0.067 is inside its
-/// ±0.071; nearer Mach 1 the error turns both ways (the short model 0.41 calibers forward at Mach
+/// ±0.071, though the short model's +0.912 there, against ±0.055, is already aft on
+/// Prandtl-Glauert ([issue #1290](https://github.com/nrdptel/fusionspace-eridanus/issues/1290));
+/// nearer Mach 1 the error turns both ways (the short model 0.41 calibers forward at Mach
 /// 1.0; the long model's +2.36 there rests on a faired curve its plotted points contradict,
-/// `docs/research/arcas-fin-share-cp-station.md`).
+/// `docs/research/arcas-fin-share-cp-station.md`). These are errors in the flight margin, taken
+/// at the flight's Mach number; the static margin, taken at Mach 0, has none of them.
 pub const TRANSONIC_CP_AFT_CAL: (f64, f64) = (0.67, 1.35);
 
 /// Where a forward-swept fin's warning starts: Mach 1 ([ADR-188][adr-188]). Its measured error is
@@ -263,9 +266,9 @@ pub enum KnownIssue {
     /// [#172](https://github.com/nrdptel/fusionspace-eridanus/issues/172): the static margin read up to
     /// 0.1108 calibers higher than OpenRocket's on four private designs, cause unknown.
     MarginReadsHigh,
-    /// [#1198](https://github.com/nrdptel/fusionspace-eridanus/issues/1198): from Mach 0.8 the fins'
-    /// normal force follows a straight-line join to linear theory, which puts the center of
-    /// pressure aft of the measured, so the margin reads high.
+    /// [#1198](https://github.com/nrdptel/fusionspace-eridanus/issues/1198): past Mach 0.8 the
+    /// center of pressure sits aft of the measured, so the flight margin reads high; the static
+    /// margin, taken at Mach 0, does not.
     TransonicCenterOfPressure,
     /// [#64](https://github.com/nrdptel/fusionspace-eridanus/issues/64): a fin whose leading edge sweeps
     /// forward takes a supersonic normal-force slope that rises past linear theory's start,
@@ -604,13 +607,13 @@ impl IssueWarning {
                 )
             }
             KnownIssue::MarginReadsHigh => format!(
-                "the margin read up to {MARGIN_HIGH_BOUND_CAL} calibers above OpenRocket's on \
-                 four private designs, cause unknown; this flight's may read high by as much"
+                "the static margin read up to {MARGIN_HIGH_BOUND_CAL} calibers above OpenRocket's \
+                 on four private designs, cause unknown; this flight's may read high by as much"
             ),
             KnownIssue::TransonicCenterOfPressure => format!(
-                "from Mach {TRANSONIC_CP_MACH} the fins' straight-line join put the center of \
-                 pressure {} to {} calibers aft of a wind tunnel's at Mach 0.9, so the \
-                 margin may read high",
+                "the center of pressure sat {} to {} calibers aft of a wind tunnel's on two \
+                 models at Mach 0.9, so past Mach {TRANSONIC_CP_MACH} the flight margin may read \
+                 high",
                 TRANSONIC_CP_AFT_CAL.0, TRANSONIC_CP_AFT_CAL.1
             ),
             KnownIssue::ForwardSweptFinSlope => format!(
@@ -1760,7 +1763,7 @@ mod tests {
 
     /// Issue #1198: a flight with a margin past Mach 0.8 meets the transonic warning after #172;
     /// one at Mach 0.8 or slower, or with no margin, doesn't, and a NaN top speed does. Its
-    /// message quotes the measured range and says the margin may read high.
+    /// message quotes the measured range and says the flight margin may read high.
     #[test]
     fn a_margin_past_mach_0_8_meets_1198() {
         let margin = at(1.5);
@@ -1782,13 +1785,18 @@ mod tests {
         let message = warning.message();
         assert!(
             message.starts_with(
-                "issue #1198: from Mach 0.8 the fins' straight-line join put the center of \
-                 pressure 0.67 to 1.35 calibers aft of a wind tunnel's at Mach 0.9, so the \
-                 margin may read high. This flight reaches Mach 0.95"
+                "issue #1198: the center of pressure sat 0.67 to 1.35 calibers aft of a wind \
+                 tunnel's on two models at Mach 0.9, so past Mach 0.8 the flight margin may \
+                 read high. This flight reaches Mach 0.95"
             ),
             "{message}"
         );
         assert!(message.ends_with("issues/1198)"), "{message}");
+        // A record names it so.
+        assert_eq!(
+            serde_json::to_string(&KnownIssue::TransonicCenterOfPressure).unwrap(),
+            "\"transonic_center_of_pressure\""
+        );
     }
 
     /// Issue #1198's direction and quoted range, from the committed fixture whose every figure

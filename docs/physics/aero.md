@@ -3838,7 +3838,7 @@ other programs.
     ([#222: which is right is open](https://github.com/nrdptel/fusionspace-eridanus/issues/222)).
   - Between Mach 0.8 and linear theory's start $M_s$, the normal force is the straight-line join
     of [Fins through Mach 1](#fins-through-mach-1). Against the wind tunnel its slope reads up to
-    27.1% high (Mach 1.2), and its CP 0.67 to 1.35 calibers aft at Mach 0.9: the margin reads high
+    27.1% high (Mach 1.2), and its CP 0.67 to 1.35 calibers aft at Mach 0.9: the flight margin reads high
     ([#1198](https://github.com/nrdptel/fusionspace-eridanus/issues/1198) warns). Past Mach 3 the
     normal force's body terms read low ([Normal force through Mach 1](#normal-force-through-mach-1)).
   - [N09] eq. 3.35–3.36 would start moving a fin set's CP aft at Mach 0.5. By Mach 0.8 the CP would reach about 0.30 of the

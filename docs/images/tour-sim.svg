@@ -35,11 +35,11 @@
 <text x="52" y="535" xml:space="preserve" fill="#0B0F1C">    run near the nose lowers it, by 3.6% on RocketPy&apos;s Calisto at Mach 0.3. If this surface is that</text>
 <text x="52" y="551" xml:space="preserve" fill="#0B0F1C">    smooth, the apogee, top speed and drift read low, and the flutter margin and largest dynamic</text>
 <text x="52" y="567" xml:space="preserve" fill="#0B0F1C">    pressure look better than they are</text>
-<text x="52" y="583" xml:space="preserve" fill="#0B0F1C">warning: stability: issue #172: the margin read up to 0.1108 calibers above OpenRocket&apos;s on four</text>
-<text x="52" y="599" xml:space="preserve" fill="#0B0F1C">    private designs, cause unknown; this flight&apos;s may read high by as much</text>
-<text x="52" y="615" xml:space="preserve" fill="#0B0F1C">warning: stability: issue #1198: from Mach 0.8 the fins&apos; straight-line join put the center of</text>
-<text x="52" y="631" xml:space="preserve" fill="#0B0F1C">    pressure 0.67 to 1.35 calibers aft of a wind tunnel&apos;s at Mach 0.9, so the margin may read high.</text>
-<text x="52" y="647" xml:space="preserve" fill="#0B0F1C">    This flight reaches Mach 0.84 at 1.7 s</text>
+<text x="52" y="583" xml:space="preserve" fill="#0B0F1C">warning: stability: issue #172: the static margin read up to 0.1108 calibers above OpenRocket&apos;s on</text>
+<text x="52" y="599" xml:space="preserve" fill="#0B0F1C">    four private designs, cause unknown; this flight&apos;s may read high by as much</text>
+<text x="52" y="615" xml:space="preserve" fill="#0B0F1C">warning: stability: issue #1198: the center of pressure sat 0.67 to 1.35 calibers aft of a wind</text>
+<text x="52" y="631" xml:space="preserve" fill="#0B0F1C">    tunnel&apos;s on two models at Mach 0.9, so past Mach 0.8 the flight margin may read high. This</text>
+<text x="52" y="647" xml:space="preserve" fill="#0B0F1C">    flight reaches Mach 0.84 at 1.7 s</text>
 <text x="52" y="663" xml:space="preserve" fill="#0B0F1C">help: issues: https://github.com/nrdptel/fusionspace-eridanus/issues/&lt;number&gt;</text>
 <text x="52" y="695" xml:space="preserve" fill="#0B0F1C">event                   time                 height                    speed</text>
 <text x="52" y="711" xml:space="preserve" fill="#0B0F1C">liftoff               0.00 s      0.4 m      (1 ft)     0.0 m/s     (0 ft/s)</text>

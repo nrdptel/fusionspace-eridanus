@@ -65,8 +65,8 @@ note: the file's 1 recovery device flies as OpenRocket flies it. Each opens full
 warning: drag: issue #67: a cone-like nose's or shoulder's pressure drag reads high from Mach 0.8 (about twice a measured cone's at Mach 0.85, still +15% at 1.5). So the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are. This flight reaches Mach 0.84 at 1.7 s
 warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 against a measured 0.156 at Mach 0.9). So the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are. This flight reaches Mach 0.84 at 1.7 s
 warning: drag: issue #18: skin friction is taken as fully turbulent; on a smooth surface a laminar run near the nose lowers it, by 3.6% on RocketPy's Calisto at Mach 0.3. If this surface is that smooth, the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are
-warning: stability: issue #172: the margin read up to 0.1108 calibers above OpenRocket's on four private designs, cause unknown; this flight's may read high by as much
-warning: stability: issue #1198: from Mach 0.8 the fins' straight-line join put the center of pressure 0.67 to 1.35 calibers aft of a wind tunnel's at Mach 0.9, so the margin may read high. This flight reaches Mach 0.84 at 1.7 s
+warning: stability: issue #172: the static margin read up to 0.1108 calibers above OpenRocket's on four private designs, cause unknown; this flight's may read high by as much
+warning: stability: issue #1198: the center of pressure sat 0.67 to 1.35 calibers aft of a wind tunnel's on two models at Mach 0.9, so past Mach 0.8 the flight margin may read high. This flight reaches Mach 0.84 at 1.7 s
 help: issues: https://github.com/nrdptel/fusionspace-eridanus/issues/<number>
 
 event                   time                 height                    speed
@@ -158,8 +158,8 @@ note: the file's 1 recovery device flies as OpenRocket flies it. Each opens full
 warning: drag: issue #67: a cone-like nose's or shoulder's pressure drag reads high from Mach 0.8 (about twice a measured cone's at Mach 0.85, still +15% at 1.5). So the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are. This flight reaches Mach 0.87 at 1.8 s
 warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 against a measured 0.156 at Mach 0.9). So the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are. This flight reaches Mach 0.87 at 1.8 s
 warning: drag: issue #18: skin friction is taken as fully turbulent; on a smooth surface a laminar run near the nose lowers it, by 3.6% on RocketPy's Calisto at Mach 0.3. If this surface is that smooth, the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are
-warning: stability: issue #172: the margin read up to 0.1108 calibers above OpenRocket's on four private designs, cause unknown; this flight's may read high by as much
-warning: stability: issue #1198: from Mach 0.8 the fins' straight-line join put the center of pressure 0.67 to 1.35 calibers aft of a wind tunnel's at Mach 0.9, so the margin may read high. This flight reaches Mach 0.87 at 1.8 s
+warning: stability: issue #172: the static margin read up to 0.1108 calibers above OpenRocket's on four private designs, cause unknown; this flight's may read high by as much
+warning: stability: issue #1198: the center of pressure sat 0.67 to 1.35 calibers aft of a wind tunnel's on two models at Mach 0.9, so past Mach 0.8 the flight margin may read high. This flight reaches Mach 0.87 at 1.8 s
 help: issues: https://github.com/nrdptel/fusionspace-eridanus/issues/<number>
 
 event                   time                 height                    speed
