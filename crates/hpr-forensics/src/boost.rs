@@ -29,7 +29,7 @@
 use std::collections::VecDeque;
 
 use hpr_flightdata::log::FlightLog;
-use hpr_flightdata::readings::{self, Readings};
+use hpr_flightdata::readings;
 use serde::{Deserialize, Serialize};
 
 use crate::fit::{self, Fit, Forward, Noise, Observations, Stated};
@@ -59,7 +59,8 @@ pub const APOGEE_HORIZON_S: f64 = 300.0;
 /// Where the boost's log is cut.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Cut {
-    /// The index of the last sample of the height track the finder read: the cut's.
+    /// The index, in [`readings::height_track`]'s samples, of the last one the finder read: the
+    /// cut's.
     pub index: usize,
     /// That sample's time on the log's clock, s. The log is kept up to it, inclusive.
     pub time_s: f64,
@@ -185,15 +186,17 @@ pub struct Prediction {
     pub cut: Cut,
     /// The fit of the log up to the cut.
     pub fit: Fit,
-    /// The fitted flight's apogee, s after its start.
+    /// The fitted flight's apogee, s after its start, on the simulation's clock: the fit's
+    /// `clock_offset_s` places it on the log's.
     pub apogee_s: f64,
-    /// The fitted flight's apogee, m above the pad.
+    /// The fitted flight's apogee, m above the pad: the height climbed, not what a barometer reads
+    /// for it.
     pub apogee_above_pad_m: f64,
 }
 
 /// What the prediction reads of `log`, and the log it read: the log [`truncated`] at the cut
 /// and `extra` samples of its track past it (none but in the test's probe).
-fn read_to_cut(log: &FlightLog, extra: usize) -> Option<(Cut, Readings, Observations)> {
+fn read_to_cut(log: &FlightLog, extra: usize) -> Option<(Cut, Observations)> {
     let cut = find_cut(log)?;
     let to_s = match extra {
         0 => cut.time_s,
@@ -212,7 +215,7 @@ fn read_to_cut(log: &FlightLog, extra: usize) -> Option<(Cut, Readings, Observat
     let kind = HeightKind::of(read.source?);
     // The probe reads its extra sample into the fit, past the whole bins the prediction keeps to.
     let observed = fit::observations_until(&boost, &read, to_s.next_up(), kind, extra == 0)?;
-    Some((cut, read, observed))
+    Some((cut, observed))
 }
 
 /// Apogee predicted from `log` cut just after burnout: the boost fitted by [`fit::fit`], each parameter
@@ -220,6 +223,7 @@ fn read_to_cut(log: &FlightLog, extra: usize) -> Option<(Cut, Readings, Observat
 /// apogee. `None` where the log has no cut, the boost says nothing to fit, or the fitted flight
 /// doesn't reach an apogee within [`APOGEE_HORIZON_S`]. The fit's own `converged` says whether
 /// it settled.
+#[must_use]
 pub fn predict(
     log: &FlightLog,
     stated: impl FnOnce(&Observations) -> Stated,
@@ -236,7 +240,7 @@ fn predict_reading(
     noise: Noise,
     forward: &mut dyn Forward,
 ) -> Option<Prediction> {
-    let (cut, _, observed) = read_to_cut(log, extra)?;
+    let (cut, observed) = read_to_cut(log, extra)?;
     let fit = fit::fit(Some(&observed), &stated(&observed), noise, forward);
     if !fit.fitted {
         return None;
