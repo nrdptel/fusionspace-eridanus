@@ -1,6 +1,6 @@
 # Measured Basic Finner roll damping, Mach 0.2 to 1.4
 
-Re-checked 2026-11-02: 13 claims corrected. Re-checked 2026-11-06: 3 claims corrected, all three left by the first re-check.
+Re-checked 2026-11-02: 13 claims corrected. Re-checked 2026-11-06: 3 claims corrected, all three missed on 11-02.
 
 HPR Sim's roll-damping row ([aero](../physics/aero.md#roll-against-the-arcas-robin-and-the-basic-finner),
 [ADR-031](../decisions/0031-roll-from-canted-fins-and-roll-damping-by.md)) checks nothing measured below Mach 1.5: its
@@ -74,7 +74,7 @@ others state the target convention (DREV's rate scaling inferred, below). "Read"
   convention and found excellent agreement (Fig. 17, all terms; PDF p. 27), so its rate is read as p·d/(2V) (both
   **Inference**). Its Mach 1.377 shot, a 4° round, grew to 10° angle of attack (PDF p. 28). DRDC's terms bar third-party
   release ([D] PDF p. 5, #619): only rounded bands for it here. DREV-TM-9703 is public release, unlimited ([F] PDF
-  pp. 2, 4, 150; Crown copyright, p. 5): cited. Re: [D] Table 11, PDF p. 45 (4.1–8.1 × 10⁶: §3.2.3, PDF p. 20); [F] Table V.
+  pp. 2, 4, 150; Crown ©, p. 5): cited. Re: [D] Table 11, PDF p. 45 (4.1–8.1 × 10⁶: §3.2.3, PDF p. 20); [F] Table V.
 
 ## 2. Spin rate, and which sets are clean
 
@@ -168,7 +168,7 @@ Measured, the steady pd/2V is 0.77/17.8 = 0.043, as observed, so bearing frictio
 - **Terms.** NAVORD 6652 (released "without restrictions"), AEDC-TR-76-58, AD-A068327, AFATL-TR-68-82 (changed to
   public release) and ARL-TR-846 are open US Government reports: readings can be committed with method. Samardžić 2013
   is "All rights reserved" (p. 189), Bunescu 2024 CC BY-NC-ND 4.0 (p. 15): cite their values, no fixture. Murthy 1982
-  is AIAA's: cite through [I]. DRDC stays local (#619), DREV may be committed (#763); [S], [I] cached in `refs/research/`.
+  is AIAA's: cite through [I]. DRDC stays local (#619), DREV may be committed (#763); [S], [I] cached in refs/research/.
 - **Suggestion: replace the row's Mach 0.07 entry** with committed readings at Mach 0.22: AEDC Fig. 9a (−18 ± 0.7), NOL
   Fig. 3's 50 rev/s curve (−17.0 ± 0.15) and its other curves as a spin-rate band. Cite T-38, INCAS and NAL beside them.
   Expected row: about +66% to +99% at Mach 0.2 to 0.4 (−2.0% today). Keep −34.21 as the theory check.
