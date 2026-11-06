@@ -853,8 +853,8 @@ pub struct SimFlag {
 #[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
 pub struct SimIssue {
     /// The issue's number on GitHub: 18, 67, 68, 70, 72, 73 or 222 for drag; 179 or 354 for a
-    /// separated part's drag, also of kind drag; 64, 87, 120, 121, 172, 325 or 326 for stability;
-    /// 8, 106, 213 or 219 for the flight's path, whose signs depend on the case.
+    /// separated part's drag, also of kind drag; 64, 87, 120, 121, 172, 325, 326 or 1198 for
+    /// stability; 8, 106, 213 or 219 for the flight's path, whose signs depend on the case.
     pub issue: u32,
     /// Which numbers it bears on.
     pub kind: IssueKind,

@@ -17,7 +17,7 @@ now closed.
 
 | sort | issues | warned |
 |---|---|---|
-| flattering (13) | #70, #72, #87, #120, #121, #172 | yes |
+| flattering (14) | #70, #72, #87, #120, #121, #172, #1198 (added 2026-11-06) | yes |
 | | #18, #64, #179, #325, #326, #354, #367 | no |
 | mixed, flattering in some regime (2) | #68 | yes, in that regime |
 | | #73 | no |

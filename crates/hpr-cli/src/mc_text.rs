@@ -13,7 +13,8 @@ use std::io::{self, Write};
 use crate::console::{Diagnostics, Level, Text};
 use crate::output::{EllipseKind, FlagKind, IssueKind, McDispersion, McRun, McSpread};
 use crate::sim_text::{
-    design_lines, flag_help, flag_prefix, launch_lines, motor_lines, note_lines,
+    design_lines, flag_help, flag_prefix, issue_help, issue_text, launch_lines, motor_lines,
+    note_lines,
 };
 use crate::units::{FOOT_M, bearing, fixed, meters};
 
@@ -105,9 +106,10 @@ pub(crate) fn print(
         };
         diagnostics.line(
             Level::Warning,
-            &format!("{kind}, the nominal flight: {}", issue.message),
+            &format!("{kind}, the nominal flight: {}", issue_text(issue)),
         )?;
     }
+    issue_help(&run.issues, diagnostics)?;
     if let Some(export) = &run.export {
         writeln!(
             out,

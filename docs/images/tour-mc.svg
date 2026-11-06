@@ -28,22 +28,22 @@
 <text x="52" y="439" xml:space="preserve" fill="#0B0F1C">    point under the open devices&apos; drag alone</text>
 <text x="52" y="455" xml:space="preserve" fill="#0B0F1C">warning: drag, the nominal flight: issue #67: a cone-like nose&apos;s or shoulder&apos;s pressure drag reads</text>
 <text x="52" y="471" xml:space="preserve" fill="#0B0F1C">    high from Mach 0.8 (about twice a measured cone&apos;s at Mach 0.85, still +15% at 1.5). So the</text>
-<text x="52" y="487" xml:space="preserve" fill="#0B0F1C">    apogee, the top speed and the drift read low. The flutter margin and the largest dynamic</text>
-<text x="52" y="503" xml:space="preserve" fill="#0B0F1C">    pressure then look better than they are. This flight reaches Mach 0.84 at 1.7 s</text>
-<text x="52" y="519" xml:space="preserve" fill="#0B0F1C">    (https://github.com/nrdptel/fusionspace-eridanus/issues/67)</text>
-<text x="52" y="535" xml:space="preserve" fill="#0B0F1C">warning: drag, the nominal flight: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225</text>
-<text x="52" y="551" xml:space="preserve" fill="#0B0F1C">    against a measured 0.156 at Mach 0.9). So the apogee, the top speed and the drift read low. The</text>
-<text x="52" y="567" xml:space="preserve" fill="#0B0F1C">    flutter margin and the largest dynamic pressure then look better than they are. This flight</text>
-<text x="52" y="583" xml:space="preserve" fill="#0B0F1C">    reaches Mach 0.84 at 1.7 s (https://github.com/nrdptel/fusionspace-eridanus/issues/68)</text>
-<text x="52" y="599" xml:space="preserve" fill="#0B0F1C">warning: drag, the nominal flight: issue #18: skin friction is taken as fully turbulent, but on a</text>
-<text x="52" y="615" xml:space="preserve" fill="#0B0F1C">    smooth surface the flow stays laminar near the nose, where friction is lower. HPR Sim&apos;s drag</text>
-<text x="52" y="631" xml:space="preserve" fill="#0B0F1C">    reads high by 3.6% on RocketPy&apos;s Calisto at Mach 0.3. If this surface is that smooth, the</text>
-<text x="52" y="647" xml:space="preserve" fill="#0B0F1C">    apogee, the top speed and the drift read low. The flutter margin and the largest dynamic</text>
-<text x="52" y="663" xml:space="preserve" fill="#0B0F1C">    pressure then look better than they are</text>
-<text x="52" y="679" xml:space="preserve" fill="#0B0F1C">    (https://github.com/nrdptel/fusionspace-eridanus/issues/18)</text>
-<text x="52" y="695" xml:space="preserve" fill="#0B0F1C">warning: stability, the nominal flight: issue #172: the static margin read up to 0.1108 calibers</text>
-<text x="52" y="711" xml:space="preserve" fill="#0B0F1C">    higher than OpenRocket&apos;s on four private designs, for a reason not yet found. This flight&apos;s</text>
-<text x="52" y="727" xml:space="preserve" fill="#0B0F1C">    margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)</text>
+<text x="52" y="487" xml:space="preserve" fill="#0B0F1C">    apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look</text>
+<text x="52" y="503" xml:space="preserve" fill="#0B0F1C">    better than they are. This flight reaches Mach 0.84 at 1.7 s</text>
+<text x="52" y="519" xml:space="preserve" fill="#0B0F1C">warning: drag, the nominal flight: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225</text>
+<text x="52" y="535" xml:space="preserve" fill="#0B0F1C">    against a measured 0.156 at Mach 0.9). So the apogee, top speed and drift read low, and the</text>
+<text x="52" y="551" xml:space="preserve" fill="#0B0F1C">    flutter margin and largest dynamic pressure look better than they are. This flight reaches Mach</text>
+<text x="52" y="567" xml:space="preserve" fill="#0B0F1C">    0.84 at 1.7 s</text>
+<text x="52" y="583" xml:space="preserve" fill="#0B0F1C">warning: drag, the nominal flight: issue #18: skin friction is taken as fully turbulent; on a</text>
+<text x="52" y="599" xml:space="preserve" fill="#0B0F1C">    smooth surface a laminar run near the nose lowers it, by 3.6% on RocketPy&apos;s Calisto at Mach</text>
+<text x="52" y="615" xml:space="preserve" fill="#0B0F1C">    0.3. If this surface is that smooth, the apogee, top speed and drift read low, and the flutter</text>
+<text x="52" y="631" xml:space="preserve" fill="#0B0F1C">    margin and largest dynamic pressure look better than they are</text>
+<text x="52" y="647" xml:space="preserve" fill="#0B0F1C">warning: stability, the nominal flight: issue #172: the margin read up to 0.1108 calibers above</text>
+<text x="52" y="663" xml:space="preserve" fill="#0B0F1C">    OpenRocket&apos;s on four private designs, cause unknown; this flight&apos;s may read high by as much</text>
+<text x="52" y="679" xml:space="preserve" fill="#0B0F1C">warning: stability, the nominal flight: issue #1198: from Mach 0.8 the fins&apos; straight-line join put</text>
+<text x="52" y="695" xml:space="preserve" fill="#0B0F1C">    the center of pressure 0.06 to 1.35 calibers aft of a wind tunnel&apos;s at Mach 0.8 to 0.9, so the</text>
+<text x="52" y="711" xml:space="preserve" fill="#0B0F1C">    margin may read high. This flight reaches Mach 0.84 at 1.7 s</text>
+<text x="52" y="727" xml:space="preserve" fill="#0B0F1C">help: issues: https://github.com/nrdptel/fusionspace-eridanus/issues/&lt;number&gt;</text>
 <text x="52" y="759" xml:space="preserve" fill="#0B0F1C">How far to trust it. Simulated from the design file, not measured; the spread above comes from the</text>
 <text x="52" y="775" xml:space="preserve" fill="#0B0F1C">inputs&apos; scatter alone, not from the model&apos;s error. Against 60 logged flights of fliers&apos; own designs,</text>
 <text x="52" y="791" xml:space="preserve" fill="#0B0F1C">the simulated apogee averaged 7.8% above the logged one. Each logged apogee is the height climbed in</text>
