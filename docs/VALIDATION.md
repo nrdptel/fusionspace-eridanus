@@ -156,7 +156,7 @@ edge. The rest have both, each edge exclusive as the flags' are:
 | [#18](https://github.com/nrdptel/fusionspace-eridanus/issues/18) | skin friction, taken as fully turbulent: where a smooth surface keeps a laminar run, Barrowman's transitional term takes 3.6% off the friction on RocketPy's Calisto at Mach 0.3, about 2% of its drag at zero lift; nothing says how rough a surface must be to trip the flow at once | every flight, at any speed and on any finish ([the decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0190-the-friction-and-freeform-fin-warnings.md)) |
 
 "Past Mach 0.8" means the flight's top Mach number is above 0.8; one at exactly 0.8 doesn't warn.
-Drag that reads high makes the apogee, the top speed and the drift read low. It also makes the
+Drag that reads high makes the apogee, top speed and drift read low. It also makes the
 flutter margin and the largest [dynamic pressure](glossary.md#dynamic-pressure) look better than
 they are. Each warning says so. #68's adds, for a flight past Mach 1.2, that from Mach 1.5 its
 error turns the other way.
@@ -180,7 +180,7 @@ Mach 1 has airfoil fins or a steep boattail. Unit tests pin their edges. That co
 before #73, #18, #179, #354 and the four `flight` warnings below joined the list
 ([the missing warnings](decisions-and-roadmap.md#m10-1d2)).
 
-Seven more warn where the stability margin reads high
+Eight more warn where the stability margin reads high
 ([the stability issue warnings](decisions-and-roadmap.md#m1-14a3);
 [their decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0181-the-stability-issue-warnings.md)):
 
@@ -190,6 +190,7 @@ Seven more warn where the stability margin reads high
 | [#120](https://github.com/nrdptel/fusionspace-eridanus/issues/120) | the same, for a lip behind a boattail longer than the boattail's drop in diameter (−33.0% and 1.77 calibers) | such a lip, past Mach 1.2 |
 | [#121](https://github.com/nrdptel/fusionspace-eridanus/issues/121) | the same, for a pointed tip steeper than the cone tables' 30° (−7.7% and 0.81 calibers) | such a tip, past Mach 1.2 |
 | [#172](https://github.com/nrdptel/fusionspace-eridanus/issues/172) | the static margin read up to 0.1108 calibers higher than OpenRocket 24.12's on four private designs (0.0350 to 0.1108), for a reason not yet found | every flight with a static margin |
+| [#1198](https://github.com/nrdptel/fusionspace-eridanus/issues/1198) | from Mach 0.8 the fins' normal force is a straight-line join to linear theory; against TN D-4013's two Arcas Robin models the center of pressure sits 0.6794 and 1.343 calibers aft of the tunnel's at Mach 0.9 (0.67 to 1.35, rounded outward), each beyond its reading's uncertainty, so the flight margin reads high; near Mach 1 the error turns both ways (the short model 0.41 calibers forward at Mach 1.0) | every flight with a static margin past Mach 0.8 |
 | [#64](https://github.com/nrdptel/fusionspace-eridanus/issues/64) | a fin whose leading edge sweeps forward: supersonic linear theory's slope rises by up to 7.7% past Mach 1.2, where it should fall, so the center of pressure sits aft | such a fin (a trapezoid's tip ahead of its root, or a freeform point ahead of the root's leading edge), past Mach 1 |
 | [#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325) | fin sets at one station are counted apart for fin-fin interference, where OpenRocket counts them together: about 0.029 of the 0.071 to 0.076 calibers HPR Sim reads above OpenRocket on its *Pods-\-airframes and winglets* example | fin sets whose roots overlap or touch along the axis, on one airframe or pod set, with more than four fins between them, on any flight |
 | [#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326) | a kinked freeform fin's center of pressure sits 1.6 mm (0.063 in) aft of OpenRocket 24.12's, about 0.047 calibers of that example's gap; other freeform outlines are unprobed | every freeform fin set, at any speed ([the decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0190-the-friction-and-freeform-fin-warnings.md)) |

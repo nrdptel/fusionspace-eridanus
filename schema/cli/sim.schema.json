@@ -1196,7 +1196,7 @@
       "type": "object",
       "properties": {
         "issue": {
-          "description": "The issue's number on GitHub: 18, 67, 68, 70, 72, 73 or 222 for drag; 179 or 354 for a\nseparated part's drag, also of kind drag; 64, 87, 120, 121, 172, 325 or 326 for stability;\n8, 106, 213 or 219 for the flight's path, whose signs depend on the case.",
+          "description": "The issue's number on GitHub: 18, 67, 68, 70, 72, 73 or 222 for drag; 179 or 354 for a\nseparated part's drag, also of kind drag; 64, 87, 120, 121, 172, 325, 326 or 1198 for\nstability; 8, 106, 213 or 219 for the flight's path, whose signs depend on the case.",
           "type": "integer",
           "format": "uint32",
           "minimum": 0

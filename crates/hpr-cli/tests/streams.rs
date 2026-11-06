@@ -131,8 +131,9 @@ fn sim_writes_its_diagnostics_to_stderr() {
     let printed = split(&["sim", &design], cache.path(), &PREFIXES);
     assert!(printed.out.contains("\napogee "), "{}", printed.out);
     // The issue's count was seven lines, which once went to standard output; the help line
-    // pointing at the Accuracy page has since become the trust note that ends the result.
-    assert_eq!(printed.err.lines().count(), 6, "{}", printed.err);
+    // pointing at the Accuracy page has since become the trust note that ends the result. Past
+    // Mach 0.8 the flight meets #1198 too, and one help line gives the issues' address.
+    assert_eq!(printed.err.lines().count(), 8, "{}", printed.err);
     assert!(
         printed.out.contains("\nHow far to trust it. Simulated"),
         "{}",
@@ -308,11 +309,15 @@ fn json_output_is_one_document_carrying_the_warnings() {
                 warning["message"].as_str().unwrap()
             ));
         }
+        // The JSON keeps each issue's address in its message; the text leaves it to one help
+        // line.
         for issue in document["issues"].as_array().unwrap() {
+            let url = issue["url"].as_str().unwrap();
+            let message = issue["message"].as_str().unwrap();
             said.push(format!(
                 "warning: {}: {}",
                 issue["kind"].as_str().unwrap(),
-                issue["message"].as_str().unwrap()
+                message.strip_suffix(&format!(" ({url})")).unwrap()
             ));
         }
         assert!(!said.is_empty(), "{document:#}");

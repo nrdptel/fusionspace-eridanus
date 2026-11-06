@@ -18,7 +18,7 @@ use std::io::{self, Write};
 use crate::console::{Diagnostics, Level, Text};
 use crate::output::{
     Delay, DeviceEvent, EventKind, FlagKind, InputWarning, IssueKind, Launch, SimDesign, SimDevice,
-    SimEvent, SimFlight, SimMotor, SimMotorSource, Termination,
+    SimEvent, SimFlight, SimIssue, SimMotor, SimMotorSource, Termination,
 };
 use crate::sim::{braked, first_opened, in_fall};
 use crate::units::{
@@ -84,8 +84,9 @@ pub(crate) fn print(
             IssueKind::Stability => "stability",
             IssueKind::Flight => "flight",
         };
-        diagnostics.line(Level::Warning, &format!("{kind}: {}", issue.message))?;
+        diagnostics.line(Level::Warning, &format!("{kind}: {}", issue_text(issue)))?;
     }
+    issue_help(&flight.issues, diagnostics)?;
     writeln!(out)?;
     events(&flight.events, out)?;
     writeln!(out)?;
@@ -312,6 +313,34 @@ pub(crate) fn flag_help(kinds: &[FlagKind], diagnostics: &mut Diagnostics<'_>) -
         )?;
     }
     Ok(())
+}
+
+/// Where every known issue's page is: its number after this address
+/// ([`hpr::hpr_sim::issues::KnownIssue::url`]).
+pub(crate) const ISSUES_URL: &str = "https://github.com/nrdptel/fusionspace-eridanus/issues/";
+
+/// A known issue's warning as the text output prints it: its message less the closing
+/// `(address)`, which [`issue_help`] gives once for every issue, so a flight with several
+/// warnings doesn't repeat it on each. A message that doesn't end with its own address, under
+/// [`ISSUES_URL`], prints whole.
+pub(crate) fn issue_text(issue: &SimIssue) -> &str {
+    let own = format!("{ISSUES_URL}{}", issue.issue);
+    if issue.url != own {
+        return &issue.message;
+    }
+    issue
+        .message
+        .strip_suffix(&format!(" ({own})"))
+        .unwrap_or(&issue.message)
+}
+
+/// After the known issues' warnings, one `help:` line saying where each issue's page is; none
+/// when the flight meets none.
+pub(crate) fn issue_help(issues: &[SimIssue], diagnostics: &mut Diagnostics<'_>) -> io::Result<()> {
+    if issues.is_empty() {
+        return Ok(());
+    }
+    diagnostics.line(Level::Help, &format!("issues: {ISSUES_URL}<number>"))
 }
 
 /// The figures a flyer checks first: margin, apogee, rail exit speed, delay and descent.
@@ -790,5 +819,57 @@ mod tests {
             assert_eq!(hemisphere(value, "N", "S"), expected, "{value}");
         }
         assert_eq!(hemisphere(-106.97, "E", "W"), "106.97000° W");
+    }
+
+    fn issue(number: u32, url: &str, message: &str) -> SimIssue {
+        SimIssue {
+            issue: number,
+            kind: IssueKind::Stability,
+            url: url.to_owned(),
+            max_mach: crate::output::Peak {
+                value: 0.9,
+                time_s: 1.0,
+                height_above_ground_m: 100.0,
+                after_apogee: false,
+            },
+            parts: Vec::new(),
+            message: message.to_owned(),
+        }
+    }
+
+    /// A known issue's text line leaves its own address to the one `help:` line after the
+    /// issues; a message closing on another address, or none, prints whole. Every known issue's
+    /// address is [`ISSUES_URL`] and its number (`KnownIssue::url`), so every one is shortened.
+    #[test]
+    fn an_issue_line_leaves_its_address_to_one_help_line() {
+        let own = format!("{ISSUES_URL}1198");
+        let full = format!("issue #1198: the margin may read high ({own})");
+        assert_eq!(
+            issue_text(&issue(1198, &own, &full)),
+            "issue #1198: the margin may read high"
+        );
+        let elsewhere = "issue #1198: the margin may read high (https://example.com/1198)";
+        assert_eq!(issue_text(&issue(1198, &own, elsewhere)), elsewhere);
+        assert_eq!(issue_text(&issue(172, &own, &full)), full);
+        let help = |issues: &[SimIssue]| {
+            let mut bytes = Vec::new();
+            let mut diagnostics = Diagnostics::new(&mut bytes, crate::console::Paint { on: false });
+            issue_help(issues, &mut diagnostics).unwrap();
+            assert!(diagnostics.failure().is_none());
+            String::from_utf8(bytes).unwrap()
+        };
+        assert_eq!(help(&[]), "");
+        assert_eq!(
+            help(&[issue(1198, &own, &full), issue(172, &own, &full)]),
+            "help: issues: \
+             https://github.com/nrdptel/fusionspace-eridanus/issues/<number>\n"
+        );
+        use hpr::hpr_sim::issues::KnownIssue;
+        for known in [
+            KnownIssue::MarginReadsHigh,
+            KnownIssue::TransonicCenterOfPressure,
+        ] {
+            assert_eq!(known.url(), format!("{ISSUES_URL}{}", known.number()));
+        }
     }
 }
