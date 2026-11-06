@@ -1,6 +1,6 @@
 # Measured flutter onsets near Mach 1, against Martin's formula
 
-Re-checked 2026-10-29: 21 claims corrected.
+Re-checked 2026-10-29: 21 claims corrected. Re-checked 2026-11-05: 7 claims corrected (4 wrong, 3 unsupported).
 
 **In short: three more reports give measured onsets of low-aspect-ratio wings between Mach 0.8 and 1.2 with geometry
 and stiffness stated, and on them HPR Sim's reading of Martin's eq. 18 reads up to 1.41 times the onset on stiffness
@@ -28,7 +28,7 @@ RM L55I15a (1956); TN 4197's figure 3 holds tunnel data beyond its references (p
   is a fixed $q_f$ per fin at every Mach number and height ([the flutter page](../physics/flutter.md#the-criterion)).
   The ratio is then $\sqrt{q_f/q_e}$, with $q_e$ the measured onset dynamic pressure; it varies with Mach as $q_e$ does.
 - **The measured $q_e$ dips near Mach 1.** On the tunnel planforms the lowest flutter dynamic pressure lies between
-  Mach 0.78 (one point) and 1.15 (TM X-136's 3% wing at 0.68), then rises steeply: on TN D-1594's 645 wing from 1,103
+  Mach 0.68 (TM X-136's 3% wing) and 1.15 (the 645 wing), then rises steeply: on TN D-1594's 645 wing from 1,103
   lb/ft² at Mach 1.153 to 2,586 at 1.321 (S1, Table II(g), p. 30). On several models it sits at the lowest Mach tested,
   so the fall into the dip shows on some wings only. The lower edge of R&M 2949's measured over 2-D incompressible
   speeds bottoms out near Mach 1.1 (0.95 normal to the sweep; S3, s. 6.3.1, p. 6). Above Mach 1.2 the solid wings fall
@@ -60,7 +60,7 @@ flutter point, found by raising tunnel pressure at about constant Mach number (p
   computed from density and speed). The 245 wing (pine and balsa, panel aspect ratio 0.91) has no measured stiffness,
   and its points "do not necessarily identify the precise flutter boundary" (p. 12): not scored.
 - **The 645 check.** Its stiffness curve is the report's scaling of an aluminum wing's measured one by the metals'
-  moduli (Fig. 6, p. 35); $G_E$ from it is 2.25 to 2.47 Msi (15.5 to 17.0 GPa) along the span, a magnesium modulus, so
+  moduli (Fig. 6, p. 35); $G_E$ from it is 2.17 to 2.47 Msi (15.0 to 17.0 GPa) along the span, a magnesium modulus, so
   $GJ$ on the section normal to the sweep with $J = c\,t^3/6$ recovers the shear modulus, HPR Sim's solid-fin reading.
   It reads 1.07 to 1.21 at Mach 0.83 to 1.15, a metal fin on the flattering side, highest at Mach 1.153, 1,103 lb/ft².
 - **The 460 wings** read high at every Mach number tested, so sweep or their soft tips, not the dip alone, drive them.
@@ -118,7 +118,7 @@ divergent or, on 13 models, intermittent oscillation began (s. 3, s. 6.1, pp. 2�
 
 | Input | Direction | Size | Applies to |
 |---|---|---|---|
-| Station on the stiffness curve | either | 460: −26% to +24% (−28 to −34%, +31% re-read); 645: −3% to +1% | S1, S2 |
+| Station on the stiffness curve | either | 460: −26% to +24% (−28 to −34%, +31% re-read); 645: −5% to +1% | S1, S2 |
 | Streamwise instead of normal chord in $G_E$ | lower | ×0.96 (30°) to ×0.73 (60°); 645 ×0.86 | S1, S2 |
 | Untested models scaled by torsion frequency² | either | up to ×1.40 in $G_E$, ×1.18 ratio (460 model 4) | S1, S2 |
 | Panel-mean torsion frequency where panels differ | either | about ±5% | S1 |
@@ -142,7 +142,7 @@ rm2949.py; d1594.py reproduces the project's aluminum example, 1,169 m/s) and
   tests", S10, p. 6); RM L8I30 (1948, one wing at Mach 0.92) too. RM L52K14 (1953): their tunnel copies, aspect
   ratio 7.38. TM X-79 (1959): foam-covered aluminum inserts and flat plates at Mach 0.70 to 1.10 in Freon-12 (p. 3).
 - **Survival only:** RM L51K28a (45° magnesium and steel, no flutter to Mach 1.23), YF-102 scale wings. The F-100's
-  (solid magnesium, 45°) met mild bending flutter at Mach 1.06 to 1.15, outside eq. 18's torsion criterion (S9, p. 5).
+  (solid magnesium, 45°) met mild bending flutter at Mach 1.06 to 1.15, outside eq. 18's torsion test (S9 pp. 1, 4, 8).
 
 ## What the project can use
 
@@ -154,7 +154,7 @@ rm2949.py; d1594.py reproduces the project's aluminum example, 1,169 m/s) and
   scans and PDF stay in `refs/`; Inference, not legal advice; R&M 2944 is the same case).
 - **The flattering-side bound near Mach 1** is 1.41 on line-of-flight stiffness, on two RAE reports, and 1.47 on R&M
   2949's normal stiffness (1161, Mach 1.14). Solid wings: 1.37 (60° compreg; 1.01 to 1.70 by station as scripted,
-  0.91 to 1.80 re-read), 1.31 (TM X-136) and 1.21 for a solid metal wing (645, 1.17 to 1.22 by station).
+  0.91 to 1.80 re-read), 1.31 (TM X-136) and 1.21 for a solid metal wing (645, 1.15 to 1.22 by station).
 
 ## What this suggests
 
@@ -166,7 +166,7 @@ rm2949.py; d1594.py reproduces the project's aluminum example, 1,169 m/s) and
   the 460 wings, 7 on TM X-136's 4% wing) at up to 1.20 (0.35 needed; 0.31 with the 460's faired root). It is a fitted
   bound: at 0.5 above Mach 1.2 too, the tunnel wings' speed is 1.6 to 3.0 times conservative, 1.04 to 1.18 on the 60°
   ones (up to 1.19 high on their stiffest station); R&M 2949's two wings there, 1.1 and 1.7 (1.1 and 1.2 normal).
-- The 645 wing (solid magnesium) is the cleanest new case for a sign test: no station ambiguity above 3%.
+- The 645 wing (solid magnesium) is the cleanest new case for a sign test: no station ambiguity above 5%.
 
 ## Open questions
 
@@ -177,9 +177,9 @@ rm2949.py; d1594.py reproduces the project's aluminum example, 1,169 m/s) and
 - Sweep: eq. 18 has no sweep term, and the 60° compreg wings read high at every Mach number. Uniform swept wings read
   high too (R&M 2949's 60° solid spruce 1.17 and 1.18, or 1.42 and 1.37 normal; the 45° magnesium 645 1.07 to 1.21),
   which points at sweep more than soft tips; a 60° wing of one known modulus in a tunnel would settle it.
-- Figures were read by pixel; a second trace found the 645 curve first read 1–7% high (corrected here), and others agree
-  within about 1–6% apart from the tips, whose re-reads (Fig. 7(a); TM X-136 Fig. 2, 63 against 70 lb·in²) aren't in
-  the scripts. TN D-1594 Figs. 2, 3 and 5 were traced once. All 194 hand-transcribed onset rows were re-read.
+- Figures were read by pixel: two traces of the 645 curve (Fig. 6) agree within 1% at 30 to 70% span but put the tip
+  at 391 or 405 lb·in²; re-reads of Fig. 7(a) and TM X-136 Fig. 2 (63 against 70 lb·in²) aren't in the scripts. A
+  second re-read of the 194 onset rows found one Mach digit off (430 model 2, run 10, point 4: 1.095, not 1.099).
 - No case is a fin bonded to a tube; the soft-root factor of fin-flutter-tests (0.77 to 0.98) would add to these.
 
 ## Sources (NTRS: <https://ntrs.nasa.gov/citations/ID>), all read 2026-10-29
@@ -197,4 +197,4 @@ rm2949.py; d1594.py reproduces the project's aluminum example, 1,169 m/s) and
 - **S10.** Martin, NACA TN 4197 (1958), pp. 5–6, eq. 12 p. 13, references pp. 16–17. ID 19930085030.
 - **S11.** Molyneux, Ruddlesden and Cutt, ARC R&M 2944 (dated 1951, published 1956), Table 1 p. 8.
   <https://aerade.cranfield.ac.uk/handle/1826.2/3507>
-- **S12.** CDPA 1988 Sch. 1 para. 41, Copyright Act 1956 s. 39 (legislation.gov.uk); 17 U.S.C. § 104A; TNA FAQs.
+- **S12.** CDPA 1988 Sch. 1 para. 41, Copyright Act 1956 s. 39 (legislation.gov.uk); 17 U.S.C. § 104A; TNA flowchart.
