@@ -1,6 +1,8 @@
 # Streamer and tumble drag: the sources M1.7b can use
 
 Re-checked 2026-10-17: 20 claims corrected.
+Re-checked 2026-11-06, from the sources alone: 1 claim corrected (unsupported, not wrong), 0 still
+wrong after the first re-check, 4 readings made precise.
 
 Written while shipping M1.7a, whose sources cover canopies only: Knacke's manual has **no streamer
 data at all** (checked: the type tables 5-1 to 5-5, the measured-drag section 5.2.3, the
@@ -19,16 +21,16 @@ C_Dm = 0.034 · (ρ_m + 25 g/m²)/(105 g/m²) · (l + 1 m)/l          (C.6)
 
 on the reference area `A_ref = w · l` (one side of the strip; eq. C.4, printed page 116), with `l` the
 length, `w` the width and `ρ_m` the material's surface density. The same appendix appears in
-Niskanen's 2009 thesis (printed page 115, pinned as `niskanen-2009-thesis`, CC BY-NC-ND: read, never
-copy).
+Niskanen's 2009 thesis (from printed page 111, with C.6 on printed page 115; pinned as
+`niskanen-2009-thesis`, CC BY-NC-ND: read, never copy).
 
 Its own validation, printed page 117: an independent set of streamers gives 12 to 27% error in the
 normalized drag coefficient, which the text puts at 10 to 15% in descent velocity. The fit came
 from a 40×40×120 cm wind tunnel at 6, 9 and 12 m/s (printed page 114) and `ρ_m` of 10 to 80 g/m²
 (polyethylene, cellophane, crêpe paper; Table C.1, printed page 118). The text states no width or
-length range; Figure C.1's axes (printed page 115) span roughly `w` 0.01 to 0.09 m and `l` 0.2 to
-1.0 m. The appendix says the rocket hangs below the streamer as a point mass and that the twirling
-("labile") regime cannot be measured in a tunnel (printed page 113).
+length range; Figure C.1's measured points (printed page 115; its axes start at zero) span roughly
+`w` 0.01 to 0.09 m and `l` 0.2 to 1.0 m. The appendix says the rocket hangs below the streamer as a
+point mass and that the twirling ("labile") regime cannot be measured in a tunnel (printed page 113).
 
 **Carruthers and Filippone, "Aerodynamic Drag of Streamers and Flags", *J. Aircraft* 42(4), 2005,
 pp. 976–982, DOI 10.2514/1.9754.** Peer-reviewed and independent. On the one-side planform area:
@@ -57,13 +59,14 @@ Kidwell puts crêpe's poor result down to having none, so crêpe is the only fla
 
 **What Kidwell's drops imply.** Taking 2.80 m/s as the average over a fall from rest, not as the
 terminal speed, the crêpe streamer's terminal speed is 2.88 m/s and its drag coefficient on the
-planform is 0.155. C.6 gives 0.0367 at Kidwell's 32.2 g/m², so the measured drag is about 4.2 times
-C.6's, about a factor of two (2.06) in terminal speed. Carruthers and Filippone's curves at
-`AR = 10` give 0.130 (0.075 m²) and 0.186 (0.025 m²), −16% and +20% from the measured 0.155. The
-streamer, 0.1032 m² and 0.1016 m wide, is just outside both models' fits, not inside C.6's. The
-shipped replay (`docs/physics/recovery.md`) predicts the flat crêpe streamer +9% fast with the
-Carruthers–Filippone default and +88% fast with C.6, and pleated Micafilm (implied 0.338) +58% and
-+154% fast, because hpr models no pleats.
+planform is 0.155, with the falling mass taken as the 5 g weight plus the strip's own 3.3 g, as the
+shipped test does (0.093 on the weight alone). C.6 gives 0.0367 at Kidwell's 32.2 g/m², so the
+measured drag is about 4.2 times C.6's, about a factor of two (2.06) in terminal speed. Carruthers
+and Filippone's curves at `AR = 10` give 0.130 (0.075 m²) and 0.186 (0.025 m²), −16% and +20% from
+the measured 0.155. The streamer, 0.1032 m² and 0.1016 m wide, is just outside both models' fits,
+not inside C.6's. The shipped replay (`docs/physics/recovery.md`) predicts the flat crêpe streamer
++9% fast with the Carruthers–Filippone default and +88% fast with C.6, and pleated Micafilm (implied
+0.338) +58% and +154% fast, because hpr models no pleats.
 
 **What shipped.** ADR-013 made the Carruthers–Filippone curves the default (`Filippone`, all three
 curves, interpolated in `ln S`, clamped at the end curves) and kept C.6 as `OpenRocket`, for
@@ -86,16 +89,21 @@ C_D,f  = 1.42  on the effective fin area: one fin's area times an efficiency fac
 Table 3.4, printed page 55, the efficiency factors by fin count: 1 → 0.50, 2 → 1.00, 3 → 1.50,
 4 → 1.41, 5 → 1.81, 6 → 1.73, 7 → 1.90, 8 → 1.85. The constants were fitted to 22 m drop tests of
 five models, and the document says they predict terminal velocity within 3 to 14%. Replaying its
-Table 3.3 (printed page 54) through equation 3.98 gives −5.8, −5.4, −7.2, +19.0 and −10.0%, so
-**−10 to +19%**; the outlier is the finless tube, which wants a body coefficient near 0.79. That
-replay is what `docs/physics/recovery.md`, ADR-013 and `docs/accuracy.md` quote.
+Table 3.3 (printed page 54) through equation 3.98, at its stated air density of 1.31 kg/m³, gives
+−5.8, −5.4, −7.2, +19.0 and −10.0%, so **−10 to +19%**; the outlier is the finless tube, which wants
+a body coefficient near 0.79. That replay is what `docs/physics/recovery.md`, ADR-013 and
+`docs/accuracy.md` quote.
 
 The text says the fin half is the unreliable one (changing the error function moved `C_D,f` but
 barely moved `C_D,bt`). It calls 0.56 "exactly half" a circular cylinder's crossflow coefficient
 (so 1.12, a figure it doesn't print), as expected of a cylinder falling at a random angle, and calls
 1.42 similar to a flat plate's 1.17 or an open hemispherical cup's 1.42: it equals the cup's value
-and is above the plate's. Its citation for those, Hoerner's *Fluid-Dynamic Drag* (1965), is
-copyrighted with no legal free copy, so it can't be pinned.
+and is above the plate's. Its citation for those, Hoerner's *Fluid-Dynamic Drag* (1965), is a
+copyrighted book; this note found no copy under terms that allow caching it, so it isn't pinned.
+Read for this check: its Figure 18 (page 3-11) fits a cylinder's crossflow drag as 1.1 sin³α + 0.02,
+which is 1.12 at 90°, so the halved value is Hoerner's own curve; its Figure 32 (page 3-17) carries
+the disk's 1.17 and the open cup's 1.42, and Figure 33 (page 3-17) a plain 2-D cylinder's 1.17 in
+subcritical flow.
 
 **Free replacements for Hoerner's numbers.** Both are US Government works, read from their PDFs:
 
@@ -123,7 +131,8 @@ the 2-D one gives 0.37 to 0.46 for `l/d` 3 to 20, below OpenRocket's 0.56, which
 
 **Reynolds number is the open limit.** A 41 mm booster at 6 m/s is at `Re_d` ≈ 1.7e4 and a 100 mm
 one at 25 m/s at 1.7e5 (sea-level air), both subcritical, where these constants were fitted (the
-drop tests themselves ran at about 1.8e4 to 5.3e4). TR R-474 puts the drag crisis from about 2e5.
+drop tests themselves ran at about 1.8e4 to 5.3e4 in the cold air their stated density, 1.31 kg/m³,
+implies, or 1.6e4 to 4.7e4 at sea-level viscosity). TR R-474 puts the drag crisis from about 2e5.
 TN D-540's finite cylinders above it, read per fineness ratio, fall to about 0.27 to 0.6 of their
 subcritical value, so a large bare tube would really descend about 1.3 to 1.9 times faster than
 the constants say (inference from one figure; the 0.6 end, at `l/d = 2`, is read by eye). A finned stage
