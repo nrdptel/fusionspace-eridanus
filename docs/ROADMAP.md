@@ -22,62 +22,63 @@ Open work only; done work is [archived](roadmap-done.md) unchanged by `cargo xta
 
 ## Queue
 
-The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163): lines
+The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, ADR-322): lines
 `N. M<id> title`, ids open in this file (`cargo test -p xtask` checks).
 
-1. M7.3 A flight against its simulation
-2. M10.2 Release 0.2: the flight analyzer
-3. M0.13 Awareness and care on the sites
-4. M0.9g The figures' digits and the command line's words
-5. M2.3c2 Logged traces
-6. M2.3c3 OpenRocket's newest release
+1. M7.3d From the boost
+2. M2.7 Held-out flights, predictions first
+3. M7.5 The bias every simulator shares
+4. M2.3c6 The gap to OpenRocket, by cause
+5. M1.14 Accuracy inside the envelope
+6. M2.3c2 Logged traces
 7. M2.3c9 Every flight OpenRocket flies
-8. M2.3c6 The gap to OpenRocket, by cause
-9. M2.7 Held-out flights, predictions first
-10. M2.8 Honest uncertainty
-11. M2.6 An open benchmark
-12. M1.14 Accuracy inside the envelope
-13. M7.4 Fault diagnosis
-14. M7.5 The bias every simulator shares
-15. M10.3 Release 0.3: accuracy and diagnosis
-16. M2.11 Fin flutter held to measurement
-17. M2.3c7 Faster than sound: published flights
-18. M6.3 Challenge specs and presets
-19. M6.4 Airbrakes
-20. M6.2e Robust mode
-21. M6.6 Submission packs
-22. M6.7 Ejection charges
-23. M3.5 RASAero `.CDX1` import/export
-24. M3.6 RocketPy interop
-25. M2.9 The other tools' cells
-26. M6.8 Field kit: checklists, the settings check and the ground-test log
-27. M0.7b Rocketry explained: recovery, wind and motors
-28. M10.4 Release 0.4: the competition kit
-29. M4.4 C ABI and WASM
-30. M9.0 UI architecture ADR plus a spike
-31. M9.2 3D flight replay with a ghost
-32. M10.5 Release 0.5: the app preview
-33. M0.7c Rocketry explained: live figures
-34. M5.6a A catalog of hpr's own: format, search and a parts list
-35. M8.2 Edit model for UIs
-36. M9.1 Desktop app shell
-37. M5.6b Parachutes and recovery hardware
-38. M8.1 Design assistant
-39. M5.6c Motor hardware and rail buttons
-40. M5.6d More makers and electronics
-41. M3.4 RockSim `.rkt` import/export
-42. M9.3 Web PWA
-43. M10.6 Release 1.0: the app
-44. M0.7d Rocketry explained: the rest of the hobby
-45. M11.1 A motor of your own
-46. M11.2 Experimental solids
-47. M12.1 Parachute gores
-48. M12.2 Opening loads
-49. M9.4 Mobile
-50. M9.6 The four web tools, rebuilt
-51. M6.5 Roll control: tail-fin tabs and canards
-52. M13.3 Flight computer logic
-53. M13.1 Ground station
+8. M2.8 Honest uncertainty
+9. M7.3 A flight against its simulation
+10. M10.2 Release 0.2: the flight analyzer
+11. M0.13 Awareness and care on the sites
+12. M0.9g The figures' digits and the command line's words
+13. M2.3c3 OpenRocket's newest release
+14. M2.6 An open benchmark
+15. M7.4 Fault diagnosis
+16. M10.3 Release 0.3: accuracy and diagnosis
+17. M2.11 Fin flutter held to measurement
+18. M2.3c7 Faster than sound: published flights
+19. M6.3 Challenge specs and presets
+20. M6.4 Airbrakes
+21. M6.2e Robust mode
+22. M6.6 Submission packs
+23. M6.7 Ejection charges
+24. M3.5 RASAero `.CDX1` import/export
+25. M3.6 RocketPy interop
+26. M2.9 The other tools' cells
+27. M6.8 Field kit: checklists, the settings check and the ground-test log
+28. M0.7b Rocketry explained: recovery, wind and motors
+29. M10.4 Release 0.4: the competition kit
+30. M4.4 C ABI and WASM
+31. M9.0 UI architecture ADR plus a spike
+32. M9.2 3D flight replay with a ghost
+33. M10.5 Release 0.5: the app preview
+34. M0.7c Rocketry explained: live figures
+35. M5.6a A catalog of hpr's own: format, search and a parts list
+36. M8.2 Edit model for UIs
+37. M9.1 Desktop app shell
+38. M5.6b Parachutes and recovery hardware
+39. M8.1 Design assistant
+40. M5.6c Motor hardware and rail buttons
+41. M5.6d More makers and electronics
+42. M3.4 RockSim `.rkt` import/export
+43. M9.3 Web PWA
+44. M10.6 Release 1.0: the app
+45. M0.7d Rocketry explained: the rest of the hobby
+46. M11.1 A motor of your own
+47. M11.2 Experimental solids
+48. M12.1 Parachute gores
+49. M12.2 Opening loads
+50. M9.4 Mobile
+51. M9.6 The four web tools, rebuilt
+52. M6.5 Roll control: tail-fin tabs and canards
+53. M13.3 Flight computer logic
+54. M13.1 Ground station
 
 ## Phase 0: Foundations
 
@@ -458,11 +459,14 @@ log corpus came from Debrief.
           failing, and no Bayesian count that passed before it fails; whatever the posterior states of the
           wind's shear on heights alone is stated with its source, not fitted.
         - [ ] **M7.3c7 Every count.** *Done when:* M7.3c4's *done when*, whole.
-  - [ ] **M7.3d From the boost.** *Done when:* apogee predicted from the log cut at burnout stays bit-identical
-    when every later sample is replaced with noise; a committed report gives the 7 public flights' fits, the
-    collection's as aggregates, and that prediction's mean absolute and signed errors beside the forward
-    simulation's on the same flights in the same air and wind, with ADR-257 §3's intervals; the scoreboard has
-    `accuracy.from-boost`, each other tool's cell read from its docs.
+  - [ ] **M7.3d From the boost.** *Done when:* apogee predicted from the log cut at burnout stays bit-identical when
+    every later sample is replaced with noise; a committed report gives the 7 public flights' fits, the collection's
+    as aggregates, and that prediction's mean absolute and signed errors beside the forward simulation's on the same
+    flights in the same air and wind, with ADR-257 §3's intervals; the scoreboard has `accuracy.from-boost`, each
+    other tool's cell read from its docs. The collection's numbers come for each of M2.7's halves, split by
+    ADR-322's encoding, the SHA-256 of the sorted held-out ids committed before any half's number; the held-out
+    half's fit aggregates stay in the private collection, only their file's hash committed, until M7.5 publishes
+    them (ADR-322).
   - [ ] **M7.3e The post-flight comparison.** *Done when:* one `hpr` command draws predicted and logged altitude
     and velocity, liftoff to landing, as designed and under launch-day conditions: the log's site and date with
     the weather source's wind and air, or values entered, so it works offline; a test runs it on a public
@@ -484,7 +488,8 @@ log corpus came from Debrief.
 - [ ] **M7.5 The bias every simulator shares** (ADR-209 §6). *Done when:* a correction fitted on
   the calibration flights' logs, for airframe drag and delivered impulse, lowers the held-out mean
   absolute error and bias, and ships named in each flight's output; or an ADR records that it
-  doesn't, and nothing ships.
+  doesn't, and nothing ships. Either way, chosen first, M7.3d's sealed held-out fit aggregates are
+  then published, their file matching its committed hash (ADR-322).
 - [ ] **M8.1 Design assistant.**
   - Templates: minimum diameter, 3FNC, dual deploy L1/L2/L3.
   - Automatic checks (stability window, motor fit, rail buttons, flutter margin, recovery sizing).
