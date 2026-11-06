@@ -23,7 +23,7 @@
 //! a forward-swept fin past Mach 1 ([#64][i64]), fin sets sharing a station ([#325][i325]), a
 //! freeform fin set at any speed ([#326][i326], [ADR-190][adr-190]), the
 //! supersonic switches (#87, #120, #121), #172 on every flight ([ADR-189][adr-189]), and the
-//! fins' transonic join on every flight past Mach 0.8 ([#1198][i1198]).
+//! fins' transonic join on every flight with a margin past Mach 0.8 ([#1198][i1198]).
 //!
 //! Two more warn where a part flies on its own after a separation, with only its devices' drag
 //! ([`separated_part_issue_warnings`]): a booster ([#179][i179]), and a part that starts with
@@ -134,13 +134,15 @@ pub const MARGIN_HIGH_BOUND_CAL: f64 = 0.1108;
 pub const TRANSONIC_CP_MACH: f64 = hpr_aero::fins::TRANSONIC_START_MACH;
 
 /// How far aft of the measured center of pressure HPR Sim's sat on NASA TN D-4013's two Arcas
-/// Robin wind-tunnel models at Mach 0.8 and 0.9, calibers, least and most, each rounded outward:
-/// 0.0669 (the long model at Mach 0.8) to 1.3426 (the short model at Mach 0.9), from
-/// `validation/fixtures/aero/normal-force-vs-mach.json`, whose figures a test recomputes from the
-/// committed designs and the tunnel's points. Nearer Mach 1 the error turns both ways (the short
-/// model 0.41 calibers forward at Mach 1.0), so the warning quotes only the span where it is aft
-/// on both models.
-pub const TRANSONIC_CP_AFT_CAL: (f64, f64) = (0.06, 1.35);
+/// Robin wind-tunnel models at Mach 0.9, calibers, the two each rounded outward: 0.6794 (the long
+/// model) and 1.3426 (the short), from `validation/fixtures/aero/normal-force-vs-mach.json`, whose
+/// figures a test recomputes from the committed designs and the tunnel's points. Mach 0.9 is the
+/// one speed on the join where both models read aft by more than the reading's uncertainty: at
+/// Mach 0.8 the fins are still on Prandtl-Glauert, and the long model's +0.067 is inside its
+/// ±0.071; nearer Mach 1 the error turns both ways (the short model 0.41 calibers forward at Mach
+/// 1.0; the long model's +2.36 there rests on a faired curve its plotted points contradict,
+/// `docs/research/arcas-fin-share-cp-station.md`).
+pub const TRANSONIC_CP_AFT_CAL: (f64, f64) = (0.67, 1.35);
 
 /// Where a forward-swept fin's warning starts: Mach 1 ([ADR-188][adr-188]). Its measured error is
 /// a normal-force slope that rises by up to 7.7% past linear theory's start, Mach 1.2
@@ -607,7 +609,7 @@ impl IssueWarning {
             ),
             KnownIssue::TransonicCenterOfPressure => format!(
                 "from Mach {TRANSONIC_CP_MACH} the fins' straight-line join put the center of \
-                 pressure {} to {} calibers aft of a wind tunnel's at Mach 0.8 to 0.9, so the \
+                 pressure {} to {} calibers aft of a wind tunnel's at Mach 0.9, so the \
                  margin may read high",
                 TRANSONIC_CP_AFT_CAL.0, TRANSONIC_CP_AFT_CAL.1
             ),
@@ -1781,7 +1783,7 @@ mod tests {
         assert!(
             message.starts_with(
                 "issue #1198: from Mach 0.8 the fins' straight-line join put the center of \
-                 pressure 0.06 to 1.35 calibers aft of a wind tunnel's at Mach 0.8 to 0.9, so the \
+                 pressure 0.67 to 1.35 calibers aft of a wind tunnel's at Mach 0.9, so the \
                  margin may read high. This flight reaches Mach 0.95"
             ),
             "{message}"
@@ -1792,9 +1794,9 @@ mod tests {
     /// Issue #1198's direction and quoted range, from the committed fixture whose every figure
     /// `hpr_aero`'s `normal_force_against_mach` recomputes from the committed designs and the
     /// tunnel's points: at Mach 0.9 HPR Sim's center of pressure sits aft of the measured on both
-    /// Arcas Robin models, by more than the reading's own uncertainty, and at Mach 0.8 and 0.9 the
-    /// errors fall inside [`TRANSONIC_CP_AFT_CAL`], whose ends are each within 0.01 caliber of the
-    /// least and the most.
+    /// Arcas Robin models, by more than the reading's own uncertainty, and the two errors fall
+    /// inside [`TRANSONIC_CP_AFT_CAL`], whose ends are each within 0.01 caliber of the least and
+    /// the most.
     #[test]
     fn the_transonic_center_of_pressure_sits_aft_of_the_tunnel() {
         let fixture: serde_json::Value = serde_json::from_str(include_str!(
@@ -1810,30 +1812,26 @@ mod tests {
                 .find(|r| r["id"] == id)
                 .unwrap();
             let diameter_m = reference["reference_diameter_m"].as_f64().unwrap();
-            for mach in [0.8, 0.9] {
-                let row = reference["rows"]
-                    .as_array()
-                    .unwrap()
-                    .iter()
-                    .find(|r| r["mach"].as_f64() == Some(mach))
-                    .unwrap();
-                let hpr_m = row["hpr_cp_m"].as_f64().unwrap();
-                let measured_m = row["reference_cp_m"].as_f64().unwrap();
-                // Positive aft: HPR Sim's station, from the nose tip, less the tunnel's.
-                let error = (hpr_m - measured_m) / diameter_m;
-                assert!(
-                    (error - row["cp_error_calibers"].as_f64().unwrap()).abs() < 1e-12,
-                    "{id} at Mach {mach}"
-                );
-                if mach == 0.9 {
-                    let uncertainty = row["cp_uncertainty_calibers"].as_f64().unwrap();
-                    assert!(
-                        hpr_m > measured_m && error > uncertainty,
-                        "{id} at Mach 0.9: {error} calibers"
-                    );
-                }
-                errors.push(error);
-            }
+            let row = reference["rows"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|r| r["mach"].as_f64() == Some(0.9))
+                .unwrap();
+            let hpr_m = row["hpr_cp_m"].as_f64().unwrap();
+            let measured_m = row["reference_cp_m"].as_f64().unwrap();
+            // Positive aft: HPR Sim's station, from the nose tip, less the tunnel's.
+            let error = (hpr_m - measured_m) / diameter_m;
+            assert!(
+                (error - row["cp_error_calibers"].as_f64().unwrap()).abs() < 1e-12,
+                "{id}"
+            );
+            let uncertainty = row["cp_uncertainty_calibers"].as_f64().unwrap();
+            assert!(
+                hpr_m > measured_m && error > uncertainty,
+                "{id} at Mach 0.9: {error} calibers"
+            );
+            errors.push(error);
         }
         let least = errors.iter().copied().fold(f64::INFINITY, f64::min);
         let most = errors.iter().copied().fold(f64::NEG_INFINITY, f64::max);

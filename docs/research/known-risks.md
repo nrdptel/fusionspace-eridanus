@@ -15,7 +15,7 @@ account of each model's accuracy is on the site's model pages and *Accuracy*.
 - Aero (M1.5a) is small-angle only; the Recruiter's six fins miss the printed slope by +3.42%
   (ADR-008). Body lift (Jorgensen, M1.8e6) reads 1–16% high where the crossflow is supersonic. The
   normal force misses the tunnel between Mach 0.8 and 1.2, its CP aft (the margin high) at Mach
-  0.8 and 0.9 (#1198 warns); fins off, the body reads 14–38% high from
+  0.9 (#1198 warns); fins off, the body reads 14–38% high from
   Mach 1.5 to 2.96 (M1.8e9's bullet).
 - A blunt tip's cap (M1.8e7) is checked only on a sphere-cone (#101); a boattail past 16° is worth
   0.67 to 1.35 calibers of doubt.
