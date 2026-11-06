@@ -205,8 +205,8 @@ fn within_mass_bound(gap_g: f64, record_g: f64) -> bool {
 }
 
 /// The span of propellant shares, propellant over loaded mass, that the bundled ThrustCurve.org
-/// records state: from 2.1 g of 18.2 g (Estes A3) to 0.75 (Estes B1, Ellis GG-75-6000), over
-/// the 878 records giving both masses, leaving out one whose propellant is twice its loaded mass,
+/// records state: from 2.1 g of 18.2 g (Quest A3) to 0.75 (Jambol B1, Ultra B1, AMW
+/// GG-75-6000), over the 878 records giving both masses, leaving out one whose propellant is twice its loaded mass,
 /// which no motor can be. A flown share outside it warns ([`CatalogMotor::mass_warnings`]).
 pub const PROPELLANT_SHARE_SPAN: (f64, f64) = (2.1 / 18.2, 0.75);
 
