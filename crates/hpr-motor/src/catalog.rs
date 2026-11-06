@@ -1120,7 +1120,13 @@ impl CatalogMotor {
             return None;
         }
         let gap = (flown_g / record_g - 1.0) * 100.0;
-        Some(if flown_g.to_bits() == file_g.to_bits() {
+        // The entry's masses are its default file's, so that file, or any where the entry gives
+        // none, flies its own.
+        let own = self.propellant_mass_g.is_none()
+            || self
+                .default_curve()
+                .is_some_and(|default| default.simfile_id == curve.simfile_id);
+        Some(if own {
             format!(
                 "{} {}'s curve file {} gives {flown_g:.1} g of propellant, {gap:+.2}% from \
                  ThrustCurve.org's record of {record_g:.1} g. If the file's loaded mass is right, \
@@ -2750,7 +2756,10 @@ mod tests {
             })
             .expect("a second bundled file");
         let warning = i225.propellant_warning(other).expect("warns");
-        assert!(warning.contains("241.7 g of propellant"), "{warning}");
+        assert!(
+            warning.contains("the default file's 241.7 g of propellant"),
+            "{warning}"
+        );
         assert!(warning.contains("record of 264.0 g"), "{warning}");
     }
 
