@@ -188,7 +188,7 @@ short name and designation; `hpr motors list --json` gives each motor's selector
     161 mm (6.3 in)); the three are 31% to 39% off. Sizes closer than 10% apart, such as
     152 mm (6.0 in) and 161 mm (6.3 in), aren't told apart.
 - 48 motors' default files give a propellant mass more than 5% below their record's, and warn;
-  151 more than 5% above it, which doesn't
+  151 more than 5% above it, which alone doesn't
   ([issue #1003](https://github.com/nrdptel/fusionspace-eridanus/issues/1003)). Either side may be
   the wrong one.
 - 36 of the 840 motors whose file and record both give a loaded mass are more than 5% apart, 17
