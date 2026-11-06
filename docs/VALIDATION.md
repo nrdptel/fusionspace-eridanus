@@ -454,7 +454,8 @@ again before it merges, and anyone signed in to GitHub's `gh` tool can run it. I
 fails, saying why, when it can't read GitHub's runs. It fails when:
 
 - the branch's newest *full gate*, a `scripts/gate.sh` run of every default step (a branch that
-  changed only prose may leave `validate` out), took over 30 minutes. A step run again after it on
+  changed only prose may leave `validate` out, and one that changed only the words of pages the
+  site's layout check, which CI runs at every width), took over 30 minutes. A step run again after it on
   the branch, alone or with others, counts at its newest passing time, and a step the full gate
   lacked is added. A branch with no full gate yet gets a note, not a failure.
 - any job of main's newest passing run of a pull request's checks took over 20 minutes. Such a run

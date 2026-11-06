@@ -82,6 +82,16 @@
 # CI's site job runs without --cache and checks every page. On 2026-11-02 (UTC) the whole step
 # took 801 s with no cache, 51 s with no page changed, and 92 to 96 s with one page edited (2 of
 # the 81 pages checked again).
+# The default run leaves site out when the branch changes only the words of pages: Markdown files
+# under docs/ or at the top, but not docs/SUMMARY.md (the sidebar), nor a deleted or renamed file
+# (links to it), nor anything else (the site's theme/ and book.toml, xtask's site checks, the
+# rustdoc under api/ and the reports the pages show). CI's site jobs build the site and check every
+# page's layout at every width on every pull request, and a merge waits for them, so no clipping
+# check is lost: only the local run of the same check goes. From 2026-10-25 to 11-05 the site step
+# took 52 of the gate's hours and failed 58 times, each on a flaky or self-made cause (ADR-324);
+# 33 of the 96 pull requests merged from 10-25 to 11-02 changed only prose. The page checks
+# (step pages) still run on such a branch. A run that leaves site out this way still counts as a
+# full run. Name it to run it anyway (`scripts/gate.sh site`), or set GATE_SITE=1.
 # Step ego (M6.2d2, ADR-152): EGO's 20 runs on Hartmann's six-variable function, each held within
 # 1% of the minimum in 250 evaluations (`cargo bench -p fusionspace-hpr-analysis --bench ego_hartmann6`, a
 # release build; about 3 minutes on 10 cores, hours in the debug build CI tests with, so CI doesn't
@@ -150,6 +160,24 @@ touches_validate() {
   grep -q '^D' <<<"$status" && return 0
   grep -vqE "$VALIDATE_PROSE" <<<"$changed" && return 0
   grep -qE "$VALIDATE_READS" <<<"$changed" && return 0
+  return 1
+}
+
+# Whether this branch changes more than the words of pages, so the default run keeps its site
+# step (see the header): exit 0 to keep it, 1 when only page prose changed, 2 when there is no
+# origin/main to compare with. No change at all keeps it (a run on main checks main).
+SITE_PROSE='^(docs/.+|[^/]+)\.md$'
+touches_layout() {
+  local base changed status
+  base=$(git merge-base HEAD origin/main 2>/dev/null) || return 2
+  changed=$( { git diff --name-only "$base"; git diff --name-only; git diff --name-only --cached
+    git ls-files --others --exclude-standard; } 2>/dev/null)
+  [ -n "$changed" ] || return 0
+  status=$( { git diff --name-status --no-renames "$base"
+    git diff --name-status --no-renames --cached; } 2>/dev/null)
+  grep -q '^D' <<<"$status" && return 0
+  grep -vqE "$SITE_PROSE" <<<"$changed" && return 0
+  grep -qx 'docs/SUMMARY.md' <<<"$changed" && return 0
   return 1
 }
 
@@ -279,6 +307,19 @@ if [ -z "${*:-}" ] && [ "${GATE_VALIDATE:-0}" != 1 ]; then
     echo "validate stays in: no origin/main to tell whether what it reads changed (git fetch origin)"
   fi
 fi
+# Step site leaves the default run when the branch changes only the words of pages (see the
+# header); the page checks, added above, stay.
+SITE_LEFT=""
+if [ -z "${*:-}" ] && [ "${GATE_SITE:-0}" != 1 ]; then
+  touches_layout; layout=$?
+  if [ "$layout" -eq 1 ]; then
+    STEPS=" $STEPS "; STEPS="${STEPS/ site / }"; STEPS="${STEPS# }"; STEPS="${STEPS% }"
+    SITE_LEFT=1
+    echo "SKIP site: the branch changes only the words of pages (CI checks the built site at every width; GATE_SITE=1 runs it here)"
+  elif [ "$layout" -eq 2 ]; then
+    echo "site stays in: no origin/main to tell whether only page prose changed (git fetch origin)"
+  fi
+fi
 TAIL="${GATE_TAIL:-40}"
 LOGDIR="target/gate"
 XTASK="cargo run --locked --quiet --package xtask --"
@@ -397,16 +438,20 @@ total=$(( $(date +%s) - start_all ))
 # One line a run in the git directory, where `cargo clean` can't reach it, so gate times and failed
 # runs can be compared across weeks: UTC time, HEAD, whether the tree had changes, whether every
 # default step ran, the result, the seconds, and each step's seconds (`:FAIL` marks a failed one),
-# then `validate-left` when the prose rule left validate out, so a check of the history can tell
-# such a full run from one that ran it.
+# then `validate-left` and `site-left` when the prose rules left validate or site out, so a check
+# of the history can tell such a full run from one that ran them.
 history="${HPR_GATE_HISTORY:-}"
 if [ -z "$history" ] && gitdir=$(git rev-parse --git-common-dir 2>/dev/null); then
   history="$gitdir/gate-history.tsv"
 fi
 [ -n "$VALIDATE_LEFT" ] && times="$times validate-left"
+[ -n "$SITE_LEFT" ] && times="$times site-left"
 full=1
 for s in $ALL; do
-  case " $STEPS " in *" $s "*) ;; *) [ "$s" = validate ] && [ -n "$VALIDATE_LEFT" ] || full=0 ;; esac
+  case " $STEPS " in
+    *" $s "*) ;;
+    *) { [ "$s" = validate ] && [ -n "$VALIDATE_LEFT" ]; } || { [ "$s" = site ] && [ -n "$SITE_LEFT" ]; } || full=0 ;;
+  esac
 done
 if [ -n "$history" ]; then
   { printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$head" "$dirty" "$full" \
