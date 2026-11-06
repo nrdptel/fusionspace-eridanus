@@ -293,11 +293,14 @@ def test_a_catalog_motor_whose_file_fails_its_check_warns():
         warnings.simplefilter("error")
         h54 = hpr.Motor.from_catalog("H54")
     assert h54.warnings == []
-    # G142's file passes its check but holds more than 5% less propellant than the record: one
-    # warning, the propellant's. F62T's draws both, each raised.
-    for name, count in [("G142", 1), ("F62T", 2)]:
+    # G142's file passes its check but holds more than 5% less propellant than the record, and
+    # its burnout mass is more than 5% of its loaded mass from the record's (#1233): two
+    # warnings. F62T's draws those and its check's, each raised.
+    for name, count in [("G142", 2), ("F62T", 3)]:
         with pytest.warns(UserWarning) as raised:
             motor = hpr.Motor.from_catalog(name)
         assert len(motor.warnings) == count, name
         assert [str(w.message) for w in raised] == motor.warnings, name
-        assert "from ThrustCurve.org's record of" in motor.warnings[-1], name
+        assert "of propellant" in motor.warnings[-2], name
+        assert "burnout mass" in motor.warnings[-1], name
+        assert "from ThrustCurve.org's record of" in motor.warnings[-2], name
