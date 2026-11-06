@@ -179,8 +179,8 @@ pub struct StatedFigures {
     /// Peak thrust, N, where the record states one. No file is checked against it.
     pub max_thrust_n: Option<f64>,
     /// Propellant mass, g, where the record states one. A file isn't checked against it, but
-    /// flying one whose header gives more than [`PROPELLANT_SHORT_BOUND`] less warns
-    /// ([`CatalogMotor::propellant_warning`]).
+    /// flying with a propellant mass more than [`PROPELLANT_SHORT_BOUND`] less (the entry's, else
+    /// the file header's) warns ([`CatalogMotor::propellant_warning`]).
     #[serde(default)]
     pub propellant_mass_g: Option<f64>,
     /// Loaded mass, g, propellant and case, where the record states one (its API's
