@@ -17,7 +17,7 @@ Open work only; done work is [archived](roadmap-done.md) unchanged by `cargo xta
   renumbered or moved later in the order without an ADR, and an archived entry is never edited.
 - A `Loft lessons:` line lists ids from `docs/research/loft-lessons.md`; a milestone owning one
   (first on its row) ships its named tests, which `cargo test -p xtask` checks once it is done.
-- Budgets (`cargo test -p xtask`): this file 52,500 bytes, a line 120 characters, an entry 40
+- Budgets (`cargo test -p xtask`): this file 53,500 bytes, a line 120 characters, an entry 40
   lines.
 
 ## Queue
@@ -25,7 +25,7 @@ Open work only; done work is [archived](roadmap-done.md) unchanged by `cargo xta
 The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, ADR-322): lines
 `N. M<id> title`, ids open in this file (`cargo test -p xtask` checks).
 
-1. M7.3d From the boost
+1. M7.3d1 The prediction from the boost
 2. M2.7 Held-out flights, predictions first
 3. M7.5 The bias every simulator shares
 4. M2.3c6 The gap to OpenRocket, by cause
@@ -459,7 +459,8 @@ log corpus came from Debrief.
           failing, and no Bayesian count that passed before it fails; whatever the posterior states of the
           wind's shear on heights alone is stated with its source, not fitted.
         - [ ] **M7.3c7 Every count.** *Done when:* M7.3c4's *done when*, whole.
-  - [ ] **M7.3d From the boost.** *Done when:* apogee predicted from the log cut at burnout stays bit-identical when
+  - [ ] **M7.3d From the boost** (ADR-324: in three, below; met when they are). *Done when:* apogee predicted from
+    the log cut at burnout stays bit-identical when
     every later sample is replaced with noise; a committed report gives the 7 public flights' fits, the collection's
     as aggregates, and that prediction's mean absolute and signed errors beside the forward simulation's on the same
     flights in the same air and wind, with ADR-257 §3's intervals; the scoreboard has `accuracy.from-boost`, each
@@ -467,6 +468,12 @@ log corpus came from Debrief.
     ADR-322's encoding, the SHA-256 of the sorted held-out ids committed before any half's number; the held-out
     half's fit aggregates stay in the private collection, only their file's hash committed, until M7.5 publishes
     them (ADR-322).
+    - [ ] **M7.3d1 The prediction from the boost.** *Done when:* `hpr_forensics` cuts a log at burnout, found
+      from the samples up to it, fits it and flies it on to apogee; that apogee stays bit-identical when every later
+      sample is noise, a probe reading one more failing; the fit's page says how far to trust it.
+    - [ ] **M7.3d2 The public flights.** *Done when:* a committed report gives the 7 public flights' fits and the
+      prediction's mean absolute and signed errors beside the forward simulation's, with ADR-257 §3's interval.
+    - [ ] **M7.3d3 The collection by halves.** *Done when:* M7.3d's *done when*, whole.
   - [ ] **M7.3e The post-flight comparison.** *Done when:* one `hpr` command draws predicted and logged altitude
     and velocity, liftoff to landing, as designed and under launch-day conditions: the log's site and date with
     the weather source's wind and air, or values entered, so it works offline; a test runs it on a public
