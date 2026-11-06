@@ -198,7 +198,8 @@ fn read_to_cut(log: &FlightLog, extra: usize) -> Option<(Cut, Readings, Observat
     let boost = truncated(log, to_s);
     let read = readings::read(&boost);
     let kind = HeightKind::of(read.source?);
-    let observed = fit::observations_until(&boost, &read, to_s.next_up(), kind)?;
+    // The probe reads its extra sample into the fit, past the whole bins the prediction keeps to.
+    let observed = fit::observations_until(&boost, &read, to_s.next_up(), kind, extra == 0)?;
     Some((cut, read, observed))
 }
 
@@ -323,6 +324,17 @@ mod tests {
             cut.top_speed_s < cut.time_s && cut.time_s < apogee_s,
             "{cut:?}"
         );
+        // The finder decides from the samples up to the cut: on the log cut there it finds the same
+        // cut, and on the log cut one sample sooner none.
+        assert_eq!(find_cut(&truncated(&flight.log, cut.time_s)), Some(cut));
+        let (times, _) = readings::height_track(&flight.log).expect("the log has a track");
+        let sooner = times[..cut.index]
+            .iter()
+            .rev()
+            .copied()
+            .find(|t| t.is_finite())
+            .expect("samples before the cut");
+        assert_eq!(find_cut(&truncated(&flight.log, sooner)), None);
         let noisy_log = noisy_after(&flight.log, cut.time_s);
         assert_ne!(noisy_log, flight.log);
         let noisy = predicted(&noisy_log, 0).expect("the noisy log predicts as well");
@@ -336,7 +348,8 @@ mod tests {
             noisy.fit.parameters.to_array().map(f64::to_bits),
             clean.fit.parameters.to_array().map(f64::to_bits)
         );
-        // The probe: one more sample of the track, and the noise reaches the prediction.
+        // The probe: one more sample of the track read into the fit, and the noise reaches the
+        // prediction.
         let one_more = (predicted(&flight.log, 1), predicted(&noisy_log, 1));
         assert_ne!(one_more.0, one_more.1, "the probe must see the noise");
     }

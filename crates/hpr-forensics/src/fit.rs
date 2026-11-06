@@ -260,17 +260,27 @@ pub fn observations(log: &FlightLog, read: &Readings) -> Option<Observations> {
     let Reading::Read(apogee) = &read.apogee else {
         return None;
     };
-    observations_until(log, read, apogee.time_s, HeightKind::of(apogee.source))
+    observations_until(
+        log,
+        read,
+        apogee.time_s,
+        HeightKind::of(apogee.source),
+        false,
+    )
 }
 
 /// A log's height and any horizontal track, on `read`'s pad, from `read`'s liftoff up to `to_s`
 /// (not including it), its heights of `kind`; `None` where the reader withheld the pad, the window
-/// is empty or longer than [`MAX_WINDOW_S`], or too few bins hold a sample to fit.
+/// is empty or longer than [`MAX_WINDOW_S`], or too few bins hold a sample to fit. With
+/// `whole_bins` the window ends at the last edge of a whole [`BIN_S`] bin at or before `to_s`: a
+/// bin is read at its middle, and a part bin's samples, all early in it, would be read late, as
+/// they are on a climb cut short (at apogee the height barely moves, so the whole log needs none).
 pub(crate) fn observations_until(
     log: &FlightLog,
     read: &Readings,
     to_s: f64,
     kind: HeightKind,
+    whole_bins: bool,
 ) -> Option<Observations> {
     let pad_m = read.pad_altitude_m?;
     let (times, heights) = readings::height_track(log)?;
@@ -284,6 +294,14 @@ pub(crate) fn observations_until(
         return None;
     }
     let from_s = liftoff_s - 1.0;
+    let apogee_s = if whole_bins {
+        from_s + ((apogee_s - from_s) / BIN_S).floor() * BIN_S
+    } else {
+        apogee_s
+    };
+    if apogee_s <= liftoff_s {
+        return None;
+    }
     let track = times.iter().copied().zip(heights.iter().map(|h| h - pad_m));
     let bins = binned(track, from_s, apogee_s);
     if bins.len() <= UNKNOWNS {
