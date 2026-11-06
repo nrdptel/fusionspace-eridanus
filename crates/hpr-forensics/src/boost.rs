@@ -136,7 +136,7 @@ fn in_order_count(times: &[f64], cut_s: f64) -> usize {
 /// receiver's, it never lifts off, never holds 3 samples in a [`SPEED_WINDOW_S`] window (a log
 /// slower than 4 Hz), or never slows by [`DROP_SHARE`] of its top speed and [`DROP_FLOOR_M_S`] for
 /// [`DROP_HOLD_S`]. A GNSS receiver's altitude in the boost can drop out at ignition and burnout and
-/// lag the climb by hundreds of meters while its fix reads valid
+/// lag the climb, by up to 440 m in one measured flight, while its fix reads valid
 /// ([GNSS in boost](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/gnss-in-boost.md)):
 /// on set A's first 60 synthetic flights such tracks were cut up to 11 s after burnout or not at
 /// all (a sweep run once). A staged flight is cut at the

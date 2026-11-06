@@ -178,7 +178,7 @@ private collection), and each needs a full gate, reviews and CI, so one incremen
      2.75 s after burnout, 2 of them up to 0.11 s before it. M7.3d2 gives the error; whether an
      accelerometer's cut, sooner, would do better isn't measured.
    - A GNSS receiver's track isn't cut: in the boost its fix can drop out or lag the climb by
-     hundreds of meters ([GNSS in boost](../research/gnss-in-boost.md)), and on set A's first 60
+     up to 440 m in one measured flight ([GNSS in boost](../research/gnss-in-boost.md)), and on set A's first 60
      flights such tracks were cut up to 11 s after burnout or not at all.
    - Every reading after that runs on the log truncated at the cut, so later samples can't reach
      it by construction. The test then compares the prediction on the whole log with the one on
