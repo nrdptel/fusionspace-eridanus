@@ -592,8 +592,9 @@ pub struct SimDelayBand {
     pub longest_s: f64,
     /// Until when the flight with the charges held is the flight a charge firing then meets, s
     /// after launch: the first opening of the stack's devices not on a motor's charge (on the
-    /// apogee, a height, the launch or a split), and no later than [`BRAKED_WITHIN_S`](crate::sim::BRAKED_WITHIN_S)
-    /// after its apogee, past which its fall, tail first with nothing open, is no prediction.
+    /// apogee, a height, the launch or a split), and no later than
+    /// [`BRAKED_WITHIN_S`](crate::sim::BRAKED_WITHIN_S) after its apogee, past which its fall, tail
+    /// first with nothing open, is no prediction.
     pub speeds_until_s: f64,
     /// The device whose opening ends `speeds_until_s`, by name; `None` where the second after the
     /// held apogee does.
