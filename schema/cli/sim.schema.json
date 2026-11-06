@@ -960,7 +960,7 @@
           "format": "double"
         },
         "speeds_until_s": {
-          "description": "Until when the flight with the charges held is the flight a charge firing then meets, s\nafter launch: the first opening of the stack's devices not on a motor's charge (on the\napogee, a height, the launch or a split), and no later than [`BRAKED_WITHIN_S`](crate::sim::BRAKED_WITHIN_S)\nafter its apogee, past which its fall, tail first with nothing open, is no prediction.",
+          "description": "Until when the flight with the charges held is the flight a charge firing then meets, s\nafter launch: the first opening of the stack's devices not on a motor's charge (on the\napogee, a height, the launch or a split), and no later than\n[`BRAKED_WITHIN_S`](crate::sim::BRAKED_WITHIN_S) after its apogee, past which its fall, tail\nfirst with nothing open, is no prediction.",
           "type": "number",
           "format": "double"
         },
