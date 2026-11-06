@@ -51,7 +51,7 @@ run on real logs, which M7.3d gives. The Bayesian pass and the post-flight plot 
    directly by the seven bytes `ADR-209`, with no separator. The flight is held out when the
    digest's first eight bytes, read as a big-endian unsigned integer, are below 2^64 / 3 (at most
    6,148,914,691,236,517,205). Before any half's number is reported, a commit holds the SHA-256 of
-   the held-out ids, sorted, one per line with a newline after each; the ids stay private (ADR-151).
+   the held-out ids, sorted bytewise, one per line with a newline after each; the ids stay private (ADR-151).
    M7.3d's report gives the collection's prediction errors and intervals for both halves, and the
    calibration half's fit aggregates. The held-out half's fit aggregates, the drag and impulse
    scales that M7.5 would correct, stay in the private collection with only their file's hash
