@@ -252,7 +252,9 @@ impl Motor {
     /// What building the motor warned of. A catalog motor ([`Motor::from_catalog`]) carries its
     /// default curve file's warnings ([`hpr_motor::catalog::CatalogMotor::flight_warnings`]): a
     /// file more than 1% from ThrustCurve.org's figures for it, each failing figure's gap named,
-    /// and a file whose propellant is more than 5% lighter than the record's. A motor from a file
+    /// a propellant mass more than 5% lighter than the record's, a loaded mass more than 5% from
+    /// it or a burnout mass off by more than 5% of it, and a propellant share outside the
+    /// records' span. A motor from a file
     /// or built with [`Motor::new`] has none. Setting the delay keeps them.
     #[must_use]
     pub fn warnings(&self) -> &[String] {

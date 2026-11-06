@@ -105,8 +105,8 @@ They aren't the maker's data. Each file is checked against them: its total impul
 thrust and burn time must each be within 1% of the record's to pass. A gap is the file's figure
 less the record's, as a share of the record's, so `+` means the file reads high. A motor flies a
 passing file where it has one, else the first by format and by who measured it. Flying a failing
-file in `hpr sim` warns, naming each failing figure: `burn time +2.00%`. So does a mass far
-from the record's ([below](#the-whole-catalog)). The library gives the same warnings: Rust's
+file in `hpr sim` warns, naming each failing figure: `burn time +2.00%`. So does a failing mass
+check ([below](#the-whole-catalog)). The library gives the same warnings: Rust's
 `Motor::from_catalog` keeps them in `warnings()`, and Python's raises each as a `UserWarning`. Check such a file against the maker's data.
 `hpr motors show` lists each file with its check. `cargo xtask motor-catalog` writes the catalog,
 and a test fails if the committed one differs.
@@ -187,8 +187,8 @@ short name and designation; `hpr motors list --json` gives each motor's selector
     record (four files give a Pro150 reload's 150 mm (5.9 in) where the record gives
     161 mm (6.3 in)); the three are 31% to 39% off. Sizes closer than 10% apart, such as
     152 mm (6.0 in) and 161 mm (6.3 in), aren't told apart.
-- 48 motors' default files give a propellant mass more than 5% below their record's, and warn; 151
-  more than 5% above it
+- 48 motors' default files give a propellant mass more than 5% below their record's, and warn;
+  151 more than 5% above it, which doesn't
   ([issue #1003](https://github.com/nrdptel/fusionspace-eridanus/issues/1003)). Either side may be
   the wrong one.
 - 36 of the 840 motors whose file and record both give a loaded mass are more than 5% apart, 17
