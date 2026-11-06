@@ -343,7 +343,7 @@ mod tests {
             }
         };
         // A clock's later times: noise within 2.5 s of the cut, some at or before it.
-        let mut clock = |times: &mut Vec<f64>, fill: &mut dyn FnMut(&[f64], &mut [f64])| {
+        let clock = |times: &mut Vec<f64>, fill: &mut dyn FnMut(&[f64], &mut [f64])| {
             let original = times.clone();
             let mut noise = original.clone();
             fill(&original, &mut noise);
