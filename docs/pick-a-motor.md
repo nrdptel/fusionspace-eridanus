@@ -129,7 +129,7 @@ static margin         1.59 calibers off the rail; least 1.59 calibers, at 0.17 s
 CG and CP             0.818 m (32.2 in) and 0.923 m (36.3 in) aft of the nose tip, off the rail
 apogee                914.5 m (3000 ft) above the site at 11.42 s
 rail exit speed       25.9 m/s (85 ft/s)
-delay                 apogee 9.42 s after burnout; the motor's set delay: 10 s; its charge fires 0.58 s after apogee
+delay                 apogee 9.42 s after burnout, with the charges held; the motor's set delay: 10 s; its charge fires 0.58 s after apogee; the delay may fire 2.0 s short or long (NFPA 1125): climbing at 14.1 m/s (46 ft/s) to 2.58 s after apogee (no speed: falling with nothing open, a fall HPR Sim doesn't predict)
 descent               4.7 m/s (15 ft/s) at landing under `Parachute`
 
 motor: 1 × H125-CT (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch
@@ -178,7 +178,7 @@ static margin         1.18 calibers off the rail; least 1.18 calibers, at 0.08 s
 CG and CP             0.845 m (33.3 in) and 0.923 m (36.3 in) aft of the nose tip, off the rail
 apogee                1320.4 m (4332 ft) above the site at 12.02 s
 rail exit speed       42.3 m/s (139 ft/s)
-delay                 apogee 10.59 s after burnout; the motor's set delay: 10 s; its charge fires 0.59 s before apogee
+delay                 apogee 11.02 s after burnout, with the charges held; the motor's set delay: 10 s; its charge fires 1.02 s before apogee; the delay may fire 2.0 s short or long (NFPA 1125): climbing at 30.8 m/s (101 ft/s) to falling at 9.5 m/s (31 ft/s)
 descent               5.0 m/s (16 ft/s) at landing under `Parachute`
 
 motor: 1 × I377-CT (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch
@@ -249,19 +249,39 @@ flight as data, for a script that tabulates many.
 
 ## Choose the delay
 
-**The `delay` line's first figure is the coast, from burnout to apogee. A delay near it fires the
-charge near apogee, where the rocket moves slowest.** The second figure is the delay you gave, and
-the third says how far from apogee the charge then fires. In the events table, the `charge` row
-gives the speed at that moment. The further the charge is from apogee, the faster the rocket moves
-when the parachute comes out.
+**The `delay` line's first figure is the coast, from burnout to apogee, with the charges held. A
+delay near it fires the charge near apogee, where the rocket moves slowest.** The coast is taken
+from the same flight flown with no charge firing. A charge that fires early opens the parachute
+while the rocket climbs, and the coast would come out short. A delay that is too short would then
+look nearly right. So the `delay` line's apogee can come later than the `apogee` line's, which is
+the flight as flown. The gap is the climb an early parachute cost. The second figure is the delay
+you gave, and the third says how far from the held apogee the charge fires. In the events table,
+the `charge` row gives the speed at that moment. The further the charge is from apogee, the faster
+the rocket moves when the parachute comes out.
+
+The last figure is how far the delay may fire from its label. Then come the speeds at its short
+end and its long end. NFPA 1125, the code commercial motors are certified to, lets a delay miss
+its label by 1.5 s or 20%, whichever is greater, up to 3 s
+([Choosing the numbers](monte-carlo.md#choosing-the-numbers)). The limit holds for a motor type's
+certification firings. It doesn't bound every motor, nor a delay drilled to a time no label gives.
+The band's speeds are vertical, up or down; the events table's are the total speed.
+
+An end gets no speed where the flight with the charges held stops matching the one a charge
+meets. That happens more than 1 s past apogee, where it falls tail first with nothing open, a fall
+the simulator doesn't predict. It also happens after another parachute or streamer opens, such as
+a drogue at apogee. The line says which. Pick a delay whose two ends both suit your recovery.
+Compare the climb at the short end and the fall at the long end with your parachute's and
+harness's ratings.
 
 In the H125 flight above, the coast is 9.42 s, and the 10 s delay fires the charge 0.58 s after
-apogee. The H125 comes in delays of 8, 10, 12, 14 and 18 s, more than its file's header lists, so
-10 s is the nearest. The simulator flies any delay you give. Give one the maker sells, or one your
-motor's delay can be adjusted to.
+apogee. A delay 2.0 s short fires it climbing at 14.1 m/s (46 ft/s). One 2.0 s long fires it
+2.58 s after apogee, in the fall the simulator gives no speed for. The H125 comes in delays of 8,
+10, 12, 14 and 18 s, more than its file's header lists, so 10 s is the nearest. The simulator
+flies any delay you give. Give one the maker sells, or one your motor's delay can be adjusted to.
 
 A delay is a burning fuse, and real ones vary from motor to motor. The simulator flies the stated
-time exactly. [Monte Carlo dispersion](monte-carlo.md), in the library, can scatter it.
+time exactly. The band on the `delay` line shows what the code's tolerance means for your rocket.
+[Monte Carlo dispersion](monte-carlo.md), in the library, can scatter the delay.
 
 The guide rocket's own second configuration, `[I175WS-9]`, is an example where the set delay
 fires before apogee:
@@ -279,7 +299,7 @@ static margin         1.67 calibers off the rail; least 1.67 calibers, at 0.14 s
 CG and CP             0.813 m (32.0 in) and 0.923 m (36.3 in) aft of the nose tip, off the rail
 apogee                1100.7 m (3611 ft) above the site at 11.48 s
 rail exit speed       28.9 m/s (95 ft/s)
-delay                 apogee 9.51 s after burnout; the motor's set delay: 9 s; its charge fires 0.51 s before apogee
+delay                 apogee 9.82 s after burnout, with the charges held; the motor's set delay: 9 s; its charge fires 0.82 s before apogee; the delay may fire 1.8 s short or long (NFPA 1125): climbing at 26.6 m/s (87 ft/s) to falling at 9.5 m/s (31 ft/s)
 descent               4.5 m/s (15 ft/s) at landing under `Parachute`
 
 motor: 1 × I175WS (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch

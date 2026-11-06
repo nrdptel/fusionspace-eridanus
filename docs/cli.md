@@ -375,7 +375,7 @@ static margin         2.69 calibers off the rail; least 2.69 calibers, at 0.15 s
 CG and CP             0.480 m (18.9 in) and 0.641 m (25.2 in) aft of the nose tip, off the rail
 apogee                846.1 m (2776 ft) above the site at 11.21 s
 rail exit speed       21.3 m/s (70 ft/s)
-delay                 apogee 7.71 s after burnout
+delay                 apogee 7.71 s after burnout, with the charges held
 descent               no recovery device opened, so the fall is not a prediction
 
 motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-10-28) in `Motor mount`, lit at launch
@@ -416,7 +416,7 @@ What each part says:
 | `CG and CP` | the stations the margin off the rail comes from: the [center of gravity](glossary.md#center-of-gravity-cg) and the [center of pressure](glossary.md#center-of-pressure-cp), each in meters and inches aft of the nose tip, as the rocket leaves the rail. The margin is their distance apart over the reference diameter. The JSON gives them as `cg_station_m` and `cp_station_m` |
 | `apogee` | the [apogee](glossary.md#apogee): the height of the center of gravity above the site, and when |
 | `rail exit speed` | the speed at [rail exit](glossary.md#rail-exit-and-rail-exit-velocity) |
-| `delay` | the coast: the time from burnout to apogee. For one motor lit at launch, a delay no longer than that fires at or before apogee. Then the delay the design sets for its motor, if it sets one, and, for one motor lit at launch, how many seconds before or after apogee its charge fires. `--motor` sets no delay without `--delay`, so the example shows the coast alone; OpenRocket's example *A simple model rocket*, with its C6-5, prints `apogee 5.49 s after burnout; the motor's set delay: 5 s; its charge fires 0.49 s before apogee` |
+| `delay` | the coast, from burnout to apogee, in the flight flown with no charge firing, so an early charge doesn't cut it short. Then the delay the design sets, if any, and, for one motor lit at launch, how far before or after that apogee its charge fires, and how far the delay may fire short or long by NFPA 1125, with the vertical speed at either end where the simulator predicts it ([Choose the delay](pick-a-motor.md#choose-the-delay)). `--motor` sets no delay without `--delay`, so the example shows the coast alone; one with a delay follows the table |
 | `descent` | the vertical speed under each set of open parachutes or streamers, when the next one opens and at landing, without the wind's drift. It rests on the drag area the file gives each device ([the landing](#the-landing), where an example shows it). With none open, it says so and gives no speed |
 | `motor: ...` | the motor, how many of it fly (a [cluster](glossary.md#cluster)'s tubes and a [pod](glossary.md#pod) set's pods each carry one), and the motor mount it sits in, by name |
 | `recovery: ...` | each parachute or streamer the file flies: its name, its event and delay, its drag area, and when it opened, such as ``recovery: `Drogue parachute` at apogee, 0.133 m² of drag area, opened at 9.12 s`` (`recovery` in the JSON, [below](#the-landing)); the example's file has none |
@@ -428,6 +428,11 @@ What each part says:
 | `warning: drag:`, `warning: stability:`, `warning: flight:` | a known error in the simulator's drag (#18, #67, #68, #70, #72, #73 or #222), in a separated part's drag (#179 or #354, [when they warn](VALIDATION.md#the-separated-parts-warnings)), in the stability margin (#64, #87, #120, #121, #172, #325 or #326) or in the flight's path (#8, #106, #213 or #219, [when they warn](VALIDATION.md#the-flight-path-warnings)) that the flight meets, by its issue number ([the list, with each one's condition](VALIDATION.md#operating-envelope)). Each says which way its numbers lean. A flight on a drag table of your own prints no drag warning except #179 and #354, which concern a separated part and not your table, and keeps the stability and flight warnings; a normal-force table of its own prints no stability warning. |
 | the events | each [event](glossary.md#event)'s time, the height of the [center of gravity](glossary.md#center-of-gravity-cg) above the launch site, and the speed over the ground; the height at liftoff isn't zero, as the rocket stands on the rail |
 | the last figures | the top speed and [Mach number](glossary.md#mach-number), and the landing |
+
+OpenRocket's example *A simple model rocket*, with its C6-5, prints this `delay` line:
+`apogee 5.91 s after burnout, with the charges held; the motor's set delay: 5 s; its charge fires
+0.91 s before apogee; the delay may fire 1.5 s short or long (NFPA 1125): climbing at 25.1 m/s
+(82 ft/s) to falling at 5.7 m/s (19 ft/s)`.
 
 In the JSON, `issues` lists the drag, stability and flight warnings, each with its `issue` number, its `kind` (`drag`, `stability` or `flight`), `url`, the flight's `max_mach` peak, the `parts` that meet it (their ids; none for #8, #18, #68, #121, #172, #179, #219 or #354) and its `message`.
 
@@ -507,7 +512,7 @@ static margin         6.25 calibers off the rail; least 6.25 calibers, at 0.27 s
 CG and CP             1.005 m (39.6 in) and 1.354 m (53.3 in) aft of the nose tip, off the rail
 apogee                324.0 m (1063 ft) above the site at 9.12 s
 rail exit speed       11.2 m/s (37 ft/s)
-delay                 apogee 5.62 s after burnout
+delay                 apogee 5.62 s after burnout, with the charges held
 descent               14.1 m/s (46 ft/s) at 150.0 m (492 ft) under `Drogue parachute`; 4.7 m/s (15 ft/s) at landing with `Main parachute` open too
 
 motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-10-28) in `Booster / motor bay`, lit at launch
@@ -736,7 +741,7 @@ static margin         2.71 calibers off the rail; least 2.71 calibers, at 0.21 s
 CG and CP             0.478 m (18.8 in) and 0.641 m (25.2 in) aft of the nose tip, off the rail
 apogee                877.4 m (2879 ft) above the site at 11.48 s
 rail exit speed       30.2 m/s (99 ft/s)
-delay                 apogee 7.98 s after burnout
+delay                 apogee 7.98 s after burnout, with the charges held
 descent               no recovery device opened, so the fall is not a prediction
 
 motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-10-28) in `Motor mount`, lit at launch

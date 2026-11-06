@@ -1322,6 +1322,8 @@ fn sim_flies_a_payload_dropped_with_nothing_left_to_burn_as_the_library_does() {
     }
 
     let text = streams(&["sim", &path]);
+    let coast_s = document["held"]["coast_s"].as_f64().unwrap();
+    assert!(coast_s > 2.0 + 1.5, "{coast_s}");
     let landing = summary
         .body_landings
         .iter()
@@ -1334,8 +1336,21 @@ fn sim_flies_a_payload_dropped_with_nothing_left_to_burn_as_the_library_does() {
     for line in [
         "recovery: `Payload chute` at the separation, ",
         "recovery: `Booster chute` on part 1 at the ejection charge",
-        // The payload's apogee, under its parachute from the split, is not a coast to tell.
-        "delay                 the stack comes apart 2.00 s after burnout, before apogee; the motor's set delay: 2 s\n",
+        // The payload's apogee, under its parachute from the split, is not a coast to tell; the
+        // coast is the stack's with the charge held (#1257), so the line says the charge fires
+        // while the rocket climbs, measured against that apogee. The band's long end comes after
+        // the payload's parachute opens at the split, which the held flight leaves shut.
+        &format!(
+            "apogee {coast_s:.2} s after burnout, with the charges held; the stack comes apart \
+             2.00 s after burnout, before apogee; the motor's set delay: 2 s; its charge fires \
+             {:.2} s before apogee; the delay may fire 1.5 s short or long (NFPA 1125): climbing \
+             at ",
+            coast_s - 2.0
+        ),
+        &format!(
+            " to past {split_s:.2} s, when `Payload chute` opens as flown (no speed: the flight \
+             with the charges held leaves it shut)\n"
+        ),
         &format!(
             "descent               {:.1} m/s ({:.0} ft/s) at landing under `Payload chute`",
             landing.descent_rate_m_s,
@@ -1353,7 +1368,8 @@ fn sim_flies_a_payload_dropped_with_nothing_left_to_burn_as_the_library_does() {
     let all = text.both();
     assert!(!all.contains("under power"), "{all}");
     assert!(!all.contains("the flight ended"), "{all}");
-    assert!(!all.contains("its charge fires"), "{all}");
+    // When the charge fires is measured against the held apogee, not the payload's: once, above.
+    assert_eq!(all.matches("its charge fires").count(), 1, "{all}");
     // The notes, on standard error.
     let text = text.err;
     // A dropped part that climbs above the payload's apogee is said; one that doesn't, not.
@@ -3278,7 +3294,8 @@ fn sim_text_reads_by_name() {
         flown.contains("\nconfiguration 1 of 1: [168H54-10A]\n"),
         "{flown}"
     );
-    // The coast is the flight's own: apogee less burnout, from its events.
+    // The coast is the flight's with the charges held. This probe opens nothing at the charge,
+    // so that is the flight's own: apogee less burnout, from its events.
     let document = json(&["sim", &delayed], 0, "sim.schema.json");
     let at = |kind: &str| {
         document["events"]
@@ -3294,8 +3311,9 @@ fn sim_text_reads_by_name() {
     assert!(coast_s > 3.0 && coast_s < 10.0, "{coast_s}");
     // Set 10 s, the charge fires after apogee; set 3 s, before. The sign is the check.
     let late = format!(
-        "\ndelay                 apogee {coast_s:.2} s after burnout; the motor's set delay: 10 s; \
-         its charge fires {:.2} s after apogee\n",
+        "\ndelay                 apogee {coast_s:.2} s after burnout, with the charges held; the \
+         motor's set delay: 10 s; its charge fires {:.2} s after apogee; the delay may fire 2.0 \
+         s short or long (NFPA 1125): ",
         10.0 - coast_s
     );
     assert!(flown.contains(&late), "{late}: {flown}");
@@ -3310,7 +3328,8 @@ fn sim_text_reads_by_name() {
     );
     let flown = streams(&["sim", &early]).out;
     let early = format!(
-        "; the motor's set delay: 3 s; its charge fires {:.2} s before apogee\n",
+        "; the motor's set delay: 3 s; its charge fires {:.2} s before apogee; the delay may \
+         fire 1.5 s short or long (NFPA 1125): climbing at ",
         coast_s - 3.0
     );
     assert!(flown.contains(&early), "{early}: {flown}");
@@ -7885,5 +7904,148 @@ fn compare_reports_residuals_for_a_real_flight() {
         document["speed_m_s"]["status"] == "read",
         "{}",
         document["speed_m_s"]
+    );
+}
+
+/// Issue #1257: a delay too short fires the charge while the rocket climbs, so the flown apogee
+/// comes early and the flown coast is cut short. The `delay` line's coast is the flight's with
+/// the charge held (Loft lesson L94), and "fires N s before apogee" is measured against that
+/// apogee. With no delay given no charge fires, so that flight is the held one. The delay's
+/// tolerance band reads the held flight's vertical speed, which a flight whose delay is the
+/// band's short end meets at its charge.
+#[test]
+fn the_delay_lines_coast_is_the_flights_with_the_charges_held() {
+    let design = repo_file("validation/fixtures/ork/guides/level-1.ork");
+    let fly = |delay: Option<&str>| {
+        let mut args = vec!["sim", design.as_str(), "--motor", "H125-CT"];
+        if let Some(delay) = delay {
+            args.extend(["--delay", delay]);
+        }
+        json(&args, 0, "sim.schema.json")
+    };
+    let number = |value: &Value| value.as_f64().expect("a number");
+    let held = fly(None);
+    let held_apogee_s = number(&held["summary"]["apogee"]["time_s"]);
+    assert_eq!(number(&held["held"]["apogee_s"]), held_apogee_s);
+    let short = fly(Some("6"));
+    assert_eq!(number(&short["held"]["apogee_s"]), held_apogee_s);
+    let coast_s = number(&short["held"]["coast_s"]);
+    assert_eq!(coast_s, number(&held["held"]["coast_s"]));
+    // The parachute opened at the charge, climbing, well before the held apogee.
+    let flown_apogee_s = number(&short["summary"]["apogee"]["time_s"]);
+    assert!(flown_apogee_s < held_apogee_s - 2.0, "{flown_apogee_s}");
+    let printed = streams(&["sim", &design, "--motor", "H125-CT", "--delay", "6"]);
+    let line = printed
+        .out
+        .lines()
+        .find(|line| line.starts_with("delay "))
+        .expect("a delay line");
+    for words in [
+        format!("apogee {coast_s:.2} s after burnout, with the charges held"),
+        format!("its charge fires {:.2} s before apogee", coast_s - 6.0),
+        "the delay may fire 1.5 s short or long (NFPA 1125): climbing at ".to_owned(),
+    ] {
+        assert!(line.contains(&words), "{words:?} not in {line}");
+    }
+    let band = &short["held"]["delay_band"];
+    assert_eq!(number(&band["tolerance_s"]), 1.5);
+    let shortest = number(&band["shortest_vertical_speed_m_s"]);
+    let longest = number(&band["longest_vertical_speed_m_s"]);
+    assert!(shortest > longest && longest > 0.0, "{shortest} {longest}");
+    // Each end is what a flight whose delay is that end meets at its charge, both before the
+    // held apogee, so both are predicted. The held flight samples a time inside one of its steps
+    // from the step's interpolant, where the flown one ends a step at its charge: at 7.5 s they
+    // part by 1.4e-4 m/s, against 16.5 m/s for a long end taken at the set delay.
+    assert!(number(&band["speeds_until_s"]) > number(&band["longest_s"]));
+    for (delay, end, speed, within) in [
+        ("4.5", "shortest_s", shortest, 1e-6),
+        ("7.5", "longest_s", longest, 1e-3),
+    ] {
+        let flown = fly(Some(delay));
+        let charge = flown["events"]
+            .as_array()
+            .expect("events")
+            .iter()
+            .find(|event| event["kind"] == "trigger")
+            .expect("a charge");
+        let at_charge = number(&charge["vertical_velocity_m_s"]);
+        assert!(
+            (at_charge - speed).abs() < within,
+            "{delay} s: {at_charge} {speed}"
+        );
+        let when_s = number(&charge["time_s"]);
+        assert!(
+            (when_s - number(&band[end])).abs() < 1e-6,
+            "{delay} s: {when_s}"
+        );
+    }
+}
+
+/// Issue #1257: past the held apogee the held flight falls tail first with nothing open, which
+/// the aerodynamics don't hold for more than `BRAKED_WITHIN_S` (1 s) after apogee, and once
+/// another device opens it isn't the flight a charge meets at all. The band then gives no speed
+/// and says why: a speed there would be a guess, and could read gentler than the real one.
+#[test]
+fn the_delay_band_gives_no_speed_the_held_flight_doesnt_predict() {
+    let number = |value: &Value| value.as_f64().expect("a number");
+    let level_1 = repo_file("validation/fixtures/ork/guides/level-1.ork");
+    let long = [
+        "sim",
+        level_1.as_str(),
+        "--motor",
+        "H125-CT",
+        "--delay",
+        "10",
+    ];
+    let flight = json(&long, 0, "sim.schema.json");
+    let band = &flight["held"]["delay_band"];
+    let apogee_s = number(&flight["held"]["apogee_s"]);
+    assert_eq!(number(&band["speeds_until_s"]), apogee_s + 1.0);
+    assert!(band["until_opens"].is_null());
+    // The short end climbs, before the held apogee; the long end is 2.58 s past it.
+    assert!(number(&band["shortest_vertical_speed_m_s"]) > 0.0);
+    assert!(number(&band["longest_s"]) > apogee_s + 1.0);
+    assert!(band["longest_vertical_speed_m_s"].is_null(), "{band}");
+    let line = streams(&long)
+        .out
+        .lines()
+        .find(|line| line.starts_with("delay "))
+        .expect("a delay line")
+        .to_owned();
+    assert!(
+        line.contains("the delay may fire 2.0 s short or long (NFPA 1125): climbing at "),
+        "{line}"
+    );
+    let past = format!(
+        "to {:.2} s after apogee (no speed: falling with nothing open, a fall HPR Sim doesn't \
+         predict)",
+        number(&band["longest_s"]) - apogee_s
+    );
+    assert!(line.ends_with(&past), "{line}");
+    // A drogue at apogee: the flown flight's drogue opens before either end of a 8 s delay.
+    let dual = repo_file("validation/fixtures/ork/loft-demo/demo-dual-deploy.ork");
+    let args = ["sim", dual.as_str(), "--motor", "H54", "--delay", "8"];
+    let flight = json(&args, 0, "sim.schema.json");
+    let band = &flight["held"]["delay_band"];
+    assert_eq!(band["until_opens"], "Drogue parachute");
+    let drogue = flight["recovery"]
+        .as_array()
+        .expect("recovery")
+        .iter()
+        .find(|device| device["name"] == "Drogue parachute")
+        .expect("a drogue");
+    assert_eq!(band["speeds_until_s"], drogue["opened_s"]);
+    assert!(number(&band["shortest_s"]) > number(&drogue["opened_s"]));
+    assert!(band["shortest_vertical_speed_m_s"].is_null(), "{band}");
+    assert!(band["longest_vertical_speed_m_s"].is_null(), "{band}");
+    let printed = streams(&args).out;
+    assert!(
+        printed.contains(&format!(
+            "the delay may fire 1.6 s short or long (NFPA 1125): past {:.2} s, when `Drogue \
+                 parachute` opens as flown (no speed: the flight with the charges held leaves it \
+                 shut) at either end",
+            number(&drogue["opened_s"])
+        )),
+        "{printed}"
     );
 }

@@ -1022,8 +1022,22 @@ pub struct OptimumDelay {
 ///
 /// [l94]: https://hpr.fusionspace.co/decisions-and-roadmap.html#l94
 pub fn optimum_delays(simulation: &Simulation) -> Result<Option<Vec<OptimumDelay>>, SimError> {
+    optimum_delays_observed(simulation, &mut ())
+}
+
+/// [`optimum_delays`], with `observer` seeing the held flight as it flies. Until a held device,
+/// split, mass shift or release would have fired, the held flight is the one flown, so up to then
+/// its steps give, for instance, how fast the rocket moves when a delay of that length fires.
+///
+/// # Errors
+///
+/// The flight's.
+pub fn optimum_delays_observed(
+    simulation: &Simulation,
+    observer: &mut dyn crate::Observer,
+) -> Result<Option<Vec<OptimumDelay>>, SimError> {
     let held = simulation.with_recovery_held();
-    let result = held.run(&mut ())?;
+    let result = held.run(observer)?;
     let Some((apogee_s, apogee_height_above_ground_m)) = result
         .event(EventKind::Apogee)
         .map(|event| (event.sample.time_s, event.sample.height_above_ground_m))
