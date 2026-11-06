@@ -169,8 +169,10 @@ private collection), and each needs a full gate, reviews and CI, so one incremen
    the pad and liftoff come from the samples before that cut. The plan:
    - The finder walks the log's height track forward and decides at each sample from it
      and those before it: liftoff 10 m (33 ft) above the track's first height, then a speed
-     fitted over the last 0.5 s, and the cut where it has fallen 10% below its top, and at least
-     10 m/s (33 ft/s). The cut is the sample it stops on, a second or two after burnout: ADR-257
+     fitted over the last 0.5 s, and the cut where it has stayed 10% below its top, and at least
+     10 m/s (33 ft/s), for 1 s: a barometer's dip near Mach 1 cut 17 of set A's first 60 flights
+     before burnout at the first fall, none held 1 s. The cut is the sample it stops on, two or
+     three seconds after burnout: ADR-257
      §3's "cut at burnout" is read as the sample where burnout is found from those up to it, so
      the log keeps the coast's start. M7.3d2 gives the error; whether an accelerometer's cut,
      sooner, would do better isn't measured.

@@ -7,10 +7,10 @@
 //! - [`find_cut`] walks the height track forward and decides at each sample from that sample and
 //!   the ones before it: liftoff where the height first stands [`LIFTOFF_RISE_M`] above the
 //!   track's first, then a vertical speed fitted over the last [`SPEED_WINDOW_S`] of samples, and
-//!   the cut at the first sample where that speed has fallen [`DROP_SHARE`] of its top, and at
-//!   least [`DROP_FLOOR_M_S`], below it. After burnout gravity takes about 9.8 m/s off the
-//!   vertical speed every second, drag more, so the cut comes a second or two after burnout:
-//!   the log keeps the coast's start.
+//!   the cut where that speed has stayed [`DROP_SHARE`] of its top, and at least
+//!   [`DROP_FLOOR_M_S`], below it for [`DROP_HOLD_S`]. After burnout gravity takes about 9.8 m/s
+//!   off the vertical speed every second, drag more, so the cut comes two or three seconds after
+//!   burnout: the log keeps the coast's start.
 //! - Everything after that reads the log [`truncated`] at the cut: its readings, the fit's
 //!   observations and so the fit.
 //!
@@ -52,6 +52,13 @@ pub const DROP_SHARE: f64 = 0.1;
 /// The least fall below the top speed for the cut, m/s: about a second of gravity alone, so a
 /// slow flight's noise doesn't cut it during the boost. HPR Sim's choice.
 pub const DROP_FLOOR_M_S: f64 = 10.0;
+
+/// How long the fall below the top speed must hold, unbroken, for the cut, s. A barometer's
+/// reading dips as the rocket nears Mach 1 and the fitted speed with it, during the boost; on set
+/// A's first 60 synthetic flights a cut at the first fall came before burnout on 17, and holding
+/// it 1 s on none, with 45 within 3 s after burnout (a sweep run once, not yet a test). HPR Sim's
+/// choice.
+pub const DROP_HOLD_S: f64 = 1.0;
 
 /// How long the fitted flight is flown to find its apogee, s: past any hobby rocket's climb.
 pub const APOGEE_HORIZON_S: f64 = 300.0;
@@ -102,6 +109,8 @@ pub fn find_cut(log: &FlightLog) -> Option<Cut> {
     let mut lifted = false;
     let mut window: VecDeque<(f64, f64)> = VecDeque::new();
     let mut top: Option<(f64, f64)> = None;
+    // When the fall below the top began, unbroken since.
+    let mut held_from: Option<f64> = None;
     for (index, (&t, &h)) in times.iter().zip(&heights).enumerate() {
         // A sample out of order or not a number is passed over, as it is read.
         if !t.is_finite() || !h.is_finite() || t <= last_s {
@@ -122,7 +131,12 @@ pub fn find_cut(log: &FlightLog) -> Option<Cut> {
         };
         match top {
             Some((best, at)) if speed <= best => {
-                if best - speed >= (DROP_SHARE * best).max(DROP_FLOOR_M_S) {
+                if best - speed < (DROP_SHARE * best).max(DROP_FLOOR_M_S) {
+                    held_from = None;
+                    continue;
+                }
+                let start = *held_from.get_or_insert(t);
+                if t - start >= DROP_HOLD_S {
                     return Some(Cut {
                         index,
                         time_s: t,
@@ -131,7 +145,10 @@ pub fn find_cut(log: &FlightLog) -> Option<Cut> {
                     });
                 }
             }
-            _ => top = Some((speed, t)),
+            _ => {
+                top = Some((speed, t));
+                held_from = None;
+            }
         }
     }
     None

@@ -358,8 +358,8 @@ closed forms. A result under 100 effective draws is flagged as too few to read. 
 
 Not yet validated. The library predicts apogee from a log cut just after burnout
 (`hpr_forensics::boost`). A climb speed is fitted to the heights over the last half second; the cut
-is the first sample where it has fallen below its top by 10% of it, and by at least 10 m/s
-(33 ft/s), so the log keeps a second or two of the coast. The log up to there is fitted, and the
+is where it has stayed below its top by 10% of it, and by at least 10 m/s
+(33 ft/s), for a second, so the log keeps two or three seconds of the coast. The log up to there is fitted, and the
 fit flown on to apogee. A test puts noise in every later value and the prediction stays the same,
 bit for bit (`cargo test -p fusionspace-hpr-forensics boost`). How close it comes to a logged apogee
 is [not measured yet](../decisions-and-roadmap.md#m7-3d).
