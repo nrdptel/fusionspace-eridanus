@@ -192,17 +192,13 @@ short name and designation; `hpr motors list --json` gives each motor's selector
   more than 5% above it
   ([issue #1003](https://github.com/nrdptel/fusionspace-eridanus/issues/1003)). Either side may be
   the wrong one.
-- 36 of the 840 motors whose default file and record both give a loaded mass are more than 5%
-  apart: 17 files heavier than the record and 19 lighter
-  ([issue #1233](https://github.com/nrdptel/fusionspace-eridanus/issues/1233)). Flying one warns,
-  naming both masses. The worst is the Quest D8, whose file gives 454 g (16 oz) against the
-  record's 45.6 g (1.6 oz). A heavy motor gives too low an apogee, and a light one too high a
-  margin after burnout. A propellant share, propellant over loaded mass, outside the span the
-  records give, 11.5% to 75%, warns too; only the D8's 4.8% is outside it. Where the loaded
-  mass is within 5%, the burnout mass, loaded less propellant, is held to the same bound, 5% of
-  the record's loaded mass, so it can't move the rocket's mass after burnout more than the
-  loaded check allows at the pad: 67 more motors' files are further off than that, and warn.
-  `cargo xtask motor-catalog` prints these counts.
+- 36 of the 840 motors whose file and record both give a loaded mass are more than 5% apart, 17
+  heavier and 19 lighter ([issue #1233](https://github.com/nrdptel/fusionspace-eridanus/issues/1233)),
+  and warn, naming both. The Quest D8's file gives 454 g (16 oz), its record 45.6 g (1.6 oz). A
+  heavy motor gives too low an apogee, a light one too high a margin. A propellant share outside
+  the records' 11.5% to 75% warns too (the D8's 4.8%). With the loaded mass within 5%, a burnout
+  mass more than 5% of the loaded mass off the record's warns: 67 more. `cargo xtask
+  motor-catalog` prints these counts.
 
 Online, `hpr motors update` caches the motors and files ThrustCurve.org's records show as added
 since; it can miss a file swapped for another under an unchanged record
