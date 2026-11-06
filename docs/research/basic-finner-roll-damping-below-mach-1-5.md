@@ -1,6 +1,6 @@
 # Measured Basic Finner roll damping, Mach 0.2 to 1.4
 
-Re-checked 2026-11-02: 13 claims corrected.
+Re-checked 2026-11-02: 13 claims corrected. Re-checked 2026-11-06: 3 claims corrected, all three left by the first re-check.
 
 HPR Sim's roll-damping row ([aero](../physics/aero.md#roll-against-the-arcas-robin-and-the-basic-finner),
 [ADR-031](../decisions/0031-roll-from-canted-fins-and-roll-damping-by.md)) checks nothing measured below Mach 1.5: its
@@ -38,7 +38,7 @@ others state the target convention (DREV's rate scaling inferred, below). "Read"
 |---|---|--:|---|---|--:|---|
 | NAVORD 6652 [N] | NOL tunnel, spin decay | 0.22 | 0.04, 0.07, 0.10 | 1.0 × 10⁶ | −17.0, −18.4, −20.3 | pixel, Fig. 3 |
 | NAVORD 6652 [N] | same | 0.77 | 0.012, 0.021, 0.030 | 2.5 × 10⁶ | −8.8, −15.5, −17.4 | pixel, Fig. 4 |
-| AEDC-TR-76-58 [A] | VKF Tunnel A, spin-up | 0.22 | fit 0.005–0.03 | 1.05 × 10⁶ | about −18 | eye, Fig. 9a |
+| AEDC-TR-76-58 [A] | VKF Tunnel A (Fig. 7c), spin-up | 0.22 | fit 0.005–0.03 | 1.05 × 10⁶ | about −18 | eye, Fig. 9a |
 | Samardžić 2013 [S] | VTI T-38, forced | 0.2 | under 0.004 | not stated | −19.2 (−18.5 to −19.8) | pixel, Fig. 11, §1 |
 | Bunescu 2024 [I] | INCAS trisonic, free decay | 0.4 | up to 0.02 | not stated | −17.41 | Table 3 |
 | Bunescu 2024 [I] | same | 0.95 | up to 0.01 | not stated | −17.14 | Table 3 |
@@ -74,7 +74,7 @@ others state the target convention (DREV's rate scaling inferred, below). "Read"
   convention and found excellent agreement (Fig. 17, all terms; PDF p. 27), so its rate is read as p·d/(2V) (both
   **Inference**). Its Mach 1.377 shot, a 4° round, grew to 10° angle of attack (PDF p. 28). DRDC's terms bar third-party
   release ([D] PDF p. 5, #619): only rounded bands for it here. DREV-TM-9703 is public release, unlimited ([F] PDF
-  pp. 2, 4, 150; Crown copyright, p. 5): cited. Re: [D] Table 11 (4.1–8.1 × 10⁶, PDF p. 20); [F] Table V.
+  pp. 2, 4, 150; Crown copyright, p. 5): cited. Re: [D] Table 11, PDF p. 45 (4.1–8.1 × 10⁶: §3.2.3, PDF p. 20); [F] Table V.
 
 ## 2. Spin rate, and which sets are clean
 
@@ -92,7 +92,7 @@ others state the target convention (DREV's rate scaling inferred, below). "Read"
 
 HPR Sim's value is N·C_lp·k_R(B) from the aero page's equations, computed by this note, not flown: below Mach 0.8 the
 fin's slope over its strips, a straight line to the supersonic value at M_s = 1.2, then linear theory with tip cones.
-The same arithmetic reproduces the page's five published values (−31.62 at Mach 1.51 to −15.36 at 3.00) and −33.53 at
+The same arithmetic reproduces the page's five NOL-row values (−31.08 at Mach 1.53 to −16.63 at 2.76) and −33.53 at
 0.07 to 0.01, with k_R(B) = 1.1667 at τ = 3. Error is (HPR Sim − measured)/measured; positive means more damping.
 
 | Mach | Set | Measured | HPR Sim | HPR Sim error | Barrowman's −34.21 |
@@ -168,7 +168,7 @@ Measured, the steady pd/2V is 0.77/17.8 = 0.043, as observed, so bearing frictio
 - **Terms.** NAVORD 6652 (released "without restrictions"), AEDC-TR-76-58, AD-A068327, AFATL-TR-68-82 (changed to
   public release) and ARL-TR-846 are open US Government reports: readings can be committed with method. Samardžić 2013
   is "All rights reserved" (p. 189), Bunescu 2024 CC BY-NC-ND 4.0 (p. 15): cite their values, no fixture. Murthy 1982
-  is AIAA's: cite through [I]. DRDC stays local (#619); DREV may be committed (#763). [S] and [I] are cached under `refs/research/`.
+  is AIAA's: cite through [I]. DRDC stays local (#619), DREV may be committed (#763); [S], [I] cached in `refs/research/`.
 - **Suggestion: replace the row's Mach 0.07 entry** with committed readings at Mach 0.22: AEDC Fig. 9a (−18 ± 0.7), NOL
   Fig. 3's 50 rev/s curve (−17.0 ± 0.15) and its other curves as a spin-rate band. Cite T-38, INCAS and NAL beside them.
   Expected row: about +66% to +99% at Mach 0.2 to 0.4 (−2.0% today). Keep −34.21 as the theory check.
@@ -183,7 +183,7 @@ Measured, the steady pd/2V is 0.77/17.8 = 0.043, as observed, so bearing frictio
 - Whether AEDC's +41% forcing excess holds at the 1.0 d chord, and above Mach 0.22 (no public forcing set found).
 - Why NAL dips near Mach 1.1 while the ranges don't; Murthy's note would say.
 
-## Sources (read 2026-10-29, re-checked 2026-11-02)
+## Sources (read 2026-10-29, re-checked 2026-11-02 and 11-06)
 
 1. **[N]** F. J. Regan, NAVORD Report 6652, 1964. <https://archive.org/details/DTIC_AD0600975> (`refs/papers/`).
 2. **[A]** L. M. Jenke, AEDC-TR-76-58, 1976. <https://archive.org/details/DTIC_ADA027027> (`refs/papers/`).
