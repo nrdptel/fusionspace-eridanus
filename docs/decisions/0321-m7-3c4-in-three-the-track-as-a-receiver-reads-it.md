@@ -143,7 +143,7 @@ Two things moved the wrong way:
 - **The sets were seen.** The noise model, the filter, the pad and the proposal were chosen after
   reading counts on the first 300 tracked flights of each set.
 
-**Amendment, 2026-11-06: M7.3d in three.** The same rule, one plan for M7.3, splits M7.3d.
+**Amended 2026-11-06: M7.3d in three.** The same rule, one plan for M7.3, splits M7.3d.
 
 *Context.* [ADR-257][adr-257] §3 sets out the prediction from the boost: the log cut at
 burnout, found from the samples up to it before any smoothing or fitting, so that replacing every
