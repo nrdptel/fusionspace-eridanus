@@ -85,12 +85,12 @@
 # The default run leaves site out when the branch changes only the words of pages: Markdown files
 # under docs/ or at the top, but not docs/SUMMARY.md (the sidebar), nor a deleted or renamed file
 # (links to it), nor anything else (the site's theme/ and book.toml, xtask's site checks, the
-# rustdoc under api/ and the reports the pages show). CI's site jobs build the site and check every
-# page's layout at every width on every pull request, and a merge waits for them, so no clipping
-# check is lost: only the local run of the same check goes. From 2026-10-25 to 11-05 the site step
-# took 52 of the gate's hours and failed 58 times, each on a flaky or self-made cause (ADR-324);
-# 33 of the 96 pull requests merged from 10-25 to 11-02 changed only prose. The page checks
-# (step pages) still run on such a branch. A run that leaves site out this way still counts as a
+# rustdoc under api/ and the reports the pages show). CI's site jobs build the site, check its
+# links and check every page's layout across its grid of widths on every pull request, and branch
+# protection requires them, so no clipping check is lost: only the local run of the same checks
+# goes. From 2026-10-25 to 11-05 the site step took 52 of the gate's hours and failed 58 times; a
+# study classed all 58 as self-made or flaky and found no layout defect CI missed (ADR-324). The
+# page checks (step pages) still run on such a branch. A run that leaves site out this way still counts as a
 # full run. Name it to run it anyway (`scripts/gate.sh site`), or set GATE_SITE=1.
 # Step ego (M6.2d2, ADR-152): EGO's 20 runs on Hartmann's six-variable function, each held within
 # 1% of the minimum in 250 evaluations (`cargo bench -p fusionspace-hpr-analysis --bench ego_hartmann6`, a
