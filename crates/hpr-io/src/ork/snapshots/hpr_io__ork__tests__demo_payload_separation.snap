@@ -117,6 +117,11 @@ expression: snapshot_of(&design)
       "at": "openrocket/rocket/stage[1]/bodytube[0]/innertube[0]",
       "kind": "unusual",
       "says": "AeroTech F50T's curve file 5f4294d20002e9000000045b gives 33.6 g of propellant, -11.35% from ThrustCurve.org's record of 37.9 g. If the file's loaded mass is right, it flies too heavy a burnout mass and too low an apogee"
+    },
+    {
+      "at": "openrocket/rocket/stage[1]/bodytube[0]/innertube[0]",
+      "kind": "unusual",
+      "says": "AeroTech F50T flies a loaded mass of 89.8 g, +5.8% from ThrustCurve.org's record of 84.9 g; one of them is wrong. Too heavy a motor gives too low an apogee; too light, too high a margin after burnout"
     }
   ]
 }

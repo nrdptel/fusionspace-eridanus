@@ -198,6 +198,12 @@ pub struct StatedFigures {
 /// further apart than this (issue #1233); the Quest D8's file gives 454 g against 45.6 g.
 pub const LOADED_MASS_BOUND: f64 = 0.05;
 
+/// Whether a mass gap `gap_g` is within [`LOADED_MASS_BOUND`] of a record's loaded mass
+/// `record_g`, `|gap| ≤ 0.05 × record`; a NaN either side isn't.
+fn within_mass_bound(gap_g: f64, record_g: f64) -> bool {
+    gap_g.abs() <= LOADED_MASS_BOUND * record_g
+}
+
 /// The span of propellant shares, propellant over loaded mass, that the bundled ThrustCurve.org
 /// records state: from 2.1 g of 18.2 g (Estes A3) to 0.75 (Estes B1, Ellis GG-75-6000), over
 /// the 878 records giving both masses, leaving out one whose propellant is twice its loaded mass,
@@ -1136,15 +1142,15 @@ impl CatalogMotor {
         };
         let propellant_g = self
             .propellant_mass_g
-            .map_or(header_propellant_kg * 1000.0, |g| g);
-        let total_g = self.total_mass_g.map_or(header_total_kg * 1000.0, |g| g);
+            .unwrap_or(header_propellant_kg * 1000.0);
+        let total_g = self.total_mass_g.unwrap_or(header_total_kg * 1000.0);
         let mut warnings = Vec::new();
         let record_g = self
             .stated
             .total_mass_g
             .filter(|g| g.is_finite() && *g > 0.0);
-        let loaded_off = record_g
-            .is_some_and(|record_g| !((total_g - record_g).abs() <= LOADED_MASS_BOUND * record_g));
+        let loaded_off =
+            record_g.is_some_and(|record_g| !within_mass_bound(total_g - record_g, record_g));
         // The burnout mass, loaded less propellant, held to the same mass as the loaded one: a
         // burnout mass off by more than 5% of the record's loaded mass moves the rocket's mass
         // after burnout by more than the loaded bound lets it move at the pad.
@@ -1156,8 +1162,10 @@ impl CatalogMotor {
         if let Some((record_g, record_propellant_g)) = record_burnout_g
             && !loaded_off
             && record_propellant_g < record_g
-            && !(((total_g - propellant_g) - (record_g - record_propellant_g)).abs()
-                <= LOADED_MASS_BOUND * record_g)
+            && !within_mass_bound(
+                (total_g - propellant_g) - (record_g - record_propellant_g),
+                record_g,
+            )
         {
             warnings.push(format!(
                 "{} {} flies a burnout mass, loaded less propellant, of {:.1} g where \
@@ -2637,7 +2645,7 @@ mod tests {
             .find_map(|motor| {
                 let curve = motor.default_curve()?;
                 (motor.mass_warnings(curve).is_empty() && motor.stated.total_mass_g.is_some())
-                    .then(|| (motor, curve))
+                    .then_some((motor, curve))
             })
             .expect("a motor drawing no mass warning");
         let flown_g = base.total_mass_g.expect("a loaded mass");
