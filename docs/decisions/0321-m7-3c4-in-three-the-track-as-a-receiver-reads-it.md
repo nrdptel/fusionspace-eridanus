@@ -1,6 +1,6 @@
 # ADR-321: M7.3c4 in three: the track as a receiver reports it, then the drag on heights alone, then every count (2026-11-05)
 
-- **Status:** accepted; narrows M7.3c4 into M7.3c5, M7.3c6 and M7.3c7 and plans every remaining increment of M7.3c4, whose *done when* M7.3c7 keeps whole; amends [ADR-320][adr-320] §8 (M7.3c4 as its only remaining increment) and [ADR-317][adr-317] §2 (the likelihood: on a track, the posterior no longer takes the noise [ADR-316][adr-316] §3 and §11 state); amended 2026-11-06 to split M7.3d into M7.3d1, M7.3d2 and M7.3d3, M7.3d3 keeping its *done when* whole (*M7.3d in three*, below)
+- **Status:** accepted; narrows M7.3c4 into M7.3c5, M7.3c6 and M7.3c7 and plans every remaining increment of M7.3c4, whose *done when* M7.3c7 keeps whole; amends [ADR-320][adr-320] §8 (M7.3c4 as its only remaining increment) and [ADR-317][adr-317] §2 (the likelihood: on a track, the posterior no longer takes the noise [ADR-316][adr-316] §3 and §11 state); amended 2026-11-06 to split M7.3d into M7.3d1, M7.3d2 and M7.3d3, M7.3d3 keeping its *done when* whole (*M7.3d in three*, below), its cut read as the sample where burnout is found
 - **Summary:** ADR-320's posterior took the track's noise as the least-squares fit states it, at least 10 m (33 ft), and its wind intervals came out too wide. Its own noise made them too narrow; reading the receiver's filter, centering the draws and integrating out the pad's position brought them in. So on a log with a track the posterior now reads the drift through a second-order filter of stated range and integrates out the track's noise, its run from bin to bin and the pad's position. The wind's four counts now pass, and no count that passed before fails. M7.3c4 is split in three: M7.3c5 the wind, M7.3c6 set A's drag, M7.3c7 every count.
 
 [adr-257]: 0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
@@ -167,11 +167,13 @@ private collection), and each needs a full gate, reviews and CI, so one incremen
    are centered windows, and `readings::read` takes the whole log at once. The cut is
    therefore set at the last sample any of the finder's windows read, not at burnout itself, and
    the pad and liftoff come from the samples before that cut. The plan:
-   - The finder walks the height track every log has forward and decides at each sample from it
+   - The finder walks the log's height track forward and decides at each sample from it
      and those before it: liftoff 10 m (33 ft) above the track's first height, then a speed
      fitted over the last 0.5 s, and the cut where it has fallen 10% below its top, and at least
-     10 m/s (33 ft/s). The cut is the sample it stops on. An accelerometer could cut sooner;
-     M7.3d2's report shows whether the heights' cut costs accuracy.
+     10 m/s (33 ft/s). The cut is the sample it stops on, a second or two after burnout: ADR-257
+     §3's "cut at burnout" is read as the sample where burnout is found from those up to it, so
+     the log keeps the coast's start. M7.3d2 gives the error; whether an accelerometer's cut,
+     sooner, would do better isn't measured.
    - Every reading after that runs on the log truncated at the cut, so later samples can't reach
      it by construction. The test then compares the prediction on the whole log with the one on
      the log whose later samples are noise, bit for bit.

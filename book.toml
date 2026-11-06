@@ -83,13 +83,13 @@ heading-split-level = 2
 # And again in M7.3b, at 10.00 MB, with the fit's widened errors: the page on geodesy
 # (`physics/geodesy.md`), the ellipsoid's conversions, which the frames' and the flight's pages use
 # and describe by what they give, is left out too; it is still in the sidebar and linked from them.
-# And in M7.3d1, at 10.003 MB, with the fit's apogee from the boost: the page on frames and sign
-# conventions (`physics/frames.md`), the axes the flight's pages use and describe by what they give,
-# is left out too; it is still in the sidebar and linked from those pages.
 # And in M7.3c3, at 10.02 MB, with the fit's Bayesian option: the page on gravity and the Earth's
 # rotation (`physics/gravity.md`), WGS 84's normal gravity and the Coriolis term, which the flight's
 # pages describe by what they give, is left out too (the index's JSON 51.8 KB smaller, about 9.97 MB by
 # mdBook's count); it is still in the sidebar and linked from those pages and the glossary.
+# And in M7.3d1, at 10.003 MB, with the fit's apogee from the boost: the page on frames and sign
+# conventions (`physics/frames.md`), the axes the flight's, aerodynamics' and mass pages use and
+# describe by what they give, is left out too; it is still in the sidebar and linked from them.
 [output.html.search.chapter]
 "decisions-and-roadmap.md" = { enable = false }
 "writing.md" = { enable = false }

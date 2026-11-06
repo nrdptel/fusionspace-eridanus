@@ -8,8 +8,9 @@
 //!   the ones before it: liftoff where the height first stands [`LIFTOFF_RISE_M`] above the
 //!   track's first, then a vertical speed fitted over the last [`SPEED_WINDOW_S`] of samples, and
 //!   the cut at the first sample where that speed has fallen [`DROP_SHARE`] of its top, and at
-//!   least [`DROP_FLOOR_M_S`], below it. After burnout gravity and drag slow the rocket by at
-//!   least 9.8 m/s every second, so the cut comes about a second or two after it.
+//!   least [`DROP_FLOOR_M_S`], below it. After burnout gravity takes about 9.8 m/s off the
+//!   vertical speed every second, drag more, so the cut comes a second or two after burnout:
+//!   the log keeps the coast's start.
 //! - Everything after that reads the log [`truncated`] at the cut: its readings, the fit's
 //!   observations and so the fit.
 //!
@@ -34,14 +35,14 @@ use serde::{Deserialize, Serialize};
 use crate::fit::{self, Fit, Forward, Noise, Observations, Stated};
 use crate::residuals::HeightKind;
 
-/// How far above the track's first height the rocket must stand for liftoff, m: past a
-/// barometer's noise on the pad and a gust's pressure swing, a few meters, while a hobby rocket
-/// passes it in well under a second. HPR Sim's choice.
+/// How far above the track's first height the rocket must stand for liftoff, m: well past a
+/// barometer's noise on the pad, while a hobby rocket climbs it in about a second or less. HPR
+/// Sim's choice.
 pub const LIFTOFF_RISE_M: f64 = 10.0;
 
 /// The span of the trailing window the vertical speed is fitted over, s: a straight line by
 /// least squares through the samples in it. HPR Sim's choice: long enough to average a
-/// barometer's noise over 10 samples at 20 Hz, short against a boost of a few seconds.
+/// barometer's noise over about 10 samples at 20 Hz, short against a boost of a few seconds.
 pub const SPEED_WINDOW_S: f64 = 0.5;
 
 /// The share of its top the fitted speed must fall below that top for the cut. HPR Sim's choice:
@@ -88,8 +89,10 @@ fn slope(window: &VecDeque<(f64, f64)>) -> Option<f64> {
 }
 
 /// Where the boost's log is cut, decided at each sample of the height track from it and the ones
-/// before it (the module's rules); `None` where the log holds no track, never lifts off, or never
-/// slows by [`DROP_SHARE`] of its top speed.
+/// before it (the module's rules); `None` where the log holds no height track, never lifts off,
+/// never holds 3 samples in a [`SPEED_WINDOW_S`] window (a log at 4 Hz or slower), or never slows
+/// by [`DROP_SHARE`] of its top speed and [`DROP_FLOOR_M_S`]. A staged flight is cut at its first
+/// burnout.
 #[must_use]
 pub fn find_cut(log: &FlightLog) -> Option<Cut> {
     let (times, heights) = readings::height_track(log)?;
@@ -202,7 +205,8 @@ fn read_to_cut(log: &FlightLog, extra: usize) -> Option<(Cut, Readings, Observat
 /// Apogee predicted from `log` cut at burnout: the boost fitted by [`fit::fit`], each parameter
 /// held to what `stated` gives for the boost's observations, then flown on by `forward` to its
 /// apogee. `None` where the log has no cut, the boost says nothing to fit, or the fitted flight
-/// doesn't reach an apogee within [`APOGEE_HORIZON_S`].
+/// doesn't reach an apogee within [`APOGEE_HORIZON_S`]. The fit's own `converged` says whether
+/// it settled.
 pub fn predict(
     log: &FlightLog,
     stated: impl FnOnce(&Observations) -> Stated,
