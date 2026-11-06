@@ -194,6 +194,37 @@ pub fn run(args: &[String]) -> Result<(), String> {
          their bytes, and the rest are not"
     );
     compare_with_thrustcurve(&root, &catalog)?;
+    // Issue #1233: the warnings a default file's masses draw, counted as `hpr sim` gives them.
+    let (mut heavy, mut light, mut burnout, mut share, mut both) = (0, 0, 0, 0, 0);
+    for motor in held.motors.iter() {
+        let Some(curve) = motor.default_curve() else {
+            continue;
+        };
+        let (Some(flown_g), Some(record_g)) = (motor.total_mass_g, motor.stated.total_mass_g)
+        else {
+            continue;
+        };
+        both += 1;
+        for warning in motor.mass_warnings(curve) {
+            if warning.contains("propellant share") {
+                share += 1;
+            } else if warning.contains("burnout mass") {
+                burnout += 1;
+            } else if flown_g > record_g {
+                heavy += 1;
+            } else {
+                light += 1;
+            }
+        }
+    }
+    println!(
+        "loaded mass: of {both} motors whose default file and record both give one, {} are more \
+         than {:.0}% from the record ({heavy} heavier, {light} lighter); {burnout} more with a \
+         burnout mass that far from the record's; {share} with a propellant share outside the \
+         records' span",
+        heavy + light,
+        100.0 * hpr_motor::catalog::LOADED_MASS_BOUND
+    );
     if check {
         motor_flights::check(held, &expected)?;
     }
@@ -581,6 +612,7 @@ fn stated(record: &Value) -> Result<StatedFigures, String> {
         burn_time_s: number(record, "burnTimeS", &of)?,
         max_thrust_n: record["maxThrustN"].as_f64(),
         propellant_mass_g: record["propWeightG"].as_f64(),
+        total_mass_g: record["totalWeightG"].as_f64(),
     })
 }
 
