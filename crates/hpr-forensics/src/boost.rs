@@ -404,4 +404,41 @@ mod tests {
         let one_more = (predicted(&flight.log, 1), predicted(&noisy_log, 1));
         assert_ne!(one_more.0, one_more.1, "the probe must see the noise");
     }
+
+    /// Over set A's first 60 synthetic flights, no cut falls before the true burnout, none at or
+    /// past apogee, and at least 45 fall within 3 s after burnout (the 1 s hold and the half-second
+    /// window put a cut about 1.5 s after it). Measured: 45 within 3 s, 8 later (4.3 to 10.9 s), 7
+    /// with no cut, most of them slow flights.
+    #[test]
+    fn the_cut_falls_just_after_the_true_burnout() {
+        let mut flyer = Flyer::new(DesignFiles::committed());
+        let (mut within, mut late, mut none) = (0_usize, 0_usize, 0_usize);
+        for k in 0..60 {
+            let flight = flyer.flight(Set::A, k).expect("set A's flights fly");
+            let Some(cut) = find_cut(&flight.log) else {
+                none += 1;
+                continue;
+            };
+            let pad_s = flight.draw.logger.pad_s;
+            let events = &flight.truth.events;
+            let after_burnout_s = cut.time_s - (pad_s + events.burnout_s);
+            assert!(
+                after_burnout_s > 0.0,
+                "flight {k} cut {after_burnout_s} s after burnout"
+            );
+            assert!(
+                cut.time_s < pad_s + events.apogee_s,
+                "flight {k} cut at or past apogee"
+            );
+            if after_burnout_s <= 3.0 {
+                within += 1;
+            } else {
+                late += 1;
+            }
+        }
+        assert!(
+            within >= 45,
+            "within 3 s: {within}, later: {late}, no cut: {none}"
+        );
+    }
 }
