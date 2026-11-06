@@ -1054,8 +1054,8 @@ fn curve(
             );
             match found.motor(curve, text) {
                 Ok(solid) => {
-                    // A file that fails its 1% check, or is light on propellant against its
-                    // record, flies with a warning (ADR-298 §6, ADR-302).
+                    // A file that fails its 1% check, is light on propellant, or fails a mass
+                    // check against its record flies with a warning (ADR-298 §6, ADR-302, #1233).
                     for message in found.flight_warnings(curve) {
                         warnings.push(Warning::new(at, WarningKind::Unusual, message));
                     }

@@ -108,8 +108,10 @@ impl Motor {
     }
 
     /// What building the motor warned of: for a catalog motor, its default curve file more than
-    /// 1% from ThrustCurve.org's figures, or more than 5% lighter in propellant than the record.
-    /// Empty for a motor from a file.
+    /// 1% from ThrustCurve.org's figures, a propellant mass more than 5% below the record's, a
+    /// loaded mass more than 5% from the record's, a burnout mass off by more than 5% of the
+    /// record's loaded mass, or a propellant share outside the records' span. Empty for a motor from
+    /// a file.
     #[getter]
     fn warnings(&self) -> Vec<String> {
         self.motor.warnings().to_vec()

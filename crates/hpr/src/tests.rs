@@ -432,14 +432,19 @@ fn a_catalog_motor_carries_its_default_files_warnings() {
     assert_eq!(h54.warnings(), h54_entry.flight_warnings(h54_curve));
     assert!(h54.warnings().iter().all(|w| !w.contains("more than 1%")));
 
-    for (name, count) in [("G142", 1), ("F62T", 2)] {
+    // Each also flies a burnout mass more than 5% of its loaded mass from its record's (#1233).
+    for (name, count) in [("G142", 2), ("F62T", 3)] {
         let entry = catalog.find(name).next().unwrap();
         let curve = entry.default_curve().unwrap();
         assert_eq!(curve.check.passes, name == "G142", "{name}");
         let motor = Motor::from_catalog(name).unwrap();
         assert_eq!(motor.warnings(), entry.flight_warnings(curve), "{name}");
         assert_eq!(motor.warnings().len(), count, "{name}");
-        let propellant = motor.warnings().last().unwrap();
+        let masses = entry.mass_warnings(curve);
+        assert_eq!(masses.len(), 1, "{name}: {masses:?}");
+        assert!(masses[0].contains("burnout mass"), "{name}: {masses:?}");
+        assert!(motor.warnings().ends_with(&masses), "{name}");
+        let propellant = &motor.warnings()[count - 2];
         assert_eq!(entry.propellant_warning(curve).as_ref(), Some(propellant));
         assert!(
             propellant.contains("from ThrustCurve.org's record of"),

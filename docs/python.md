@@ -139,8 +139,8 @@ Line by line:
 - `Motor.from_catalog` finds one of the [924 bundled motors with a curve](physics/motor.md#the-whole-catalog)
   by its name. It doesn't take the delay from the designation (the H54's full one is 168H54-10A).
   So give it as `delay_s`: a parachute opened by the motor needs one. A motor whose bundled file
-  is more than 1% from ThrustCurve.org's figures, or more than 5% light in propellant, still
-  flies. `from_catalog` issues a `UserWarning` for each problem (it doesn't stop the script), and
+  is more than 1% from ThrustCurve.org's figures, or that fails a
+  [mass check](physics/motor.md#the-whole-catalog), still flies. `from_catalog` issues a `UserWarning` for each problem (it doesn't stop the script), and
   the motor's `warnings` keeps them. Check such a file against the maker's data.
   `Motor.from_file` reads a RASP [`.eng`](format/eng.md) or RockSim [`.rse`](format/rse.md) file.
 - `static_margin_cal(0.0, 0.3)` is the stability margin at ignition (0 s) and Mach 0.3.
