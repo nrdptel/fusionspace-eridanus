@@ -151,6 +151,13 @@ pub fn truncated(log: &FlightLog, cut_s: f64) -> FlightLog {
         .iter()
         .take_while(|&&t| kept_at(t, cut_s))
         .count();
+    truncated_at(log, kept, cut_s)
+}
+
+/// `log` with the first `kept` samples of its own clock's columns, and each channel's samples and
+/// its events at or before `cut_s`. A channel on a clock of its own is cut by its times, so its
+/// clock is trusted; the log's own clock is cut by position, so a later time can't enter.
+fn truncated_at(log: &FlightLog, kept: usize, cut_s: f64) -> FlightLog {
     let cut = |values: &Vec<f64>| values.iter().copied().take(kept).collect::<Vec<f64>>();
     let mut boost = log.clone();
     boost.time_s = cut(&log.time_s);
@@ -195,7 +202,12 @@ fn read_to_cut(log: &FlightLog, extra: usize) -> Option<(Cut, Readings, Observat
             *times.get(cut.index + extra)?
         }
     };
-    let boost = truncated(log, to_s);
+    // On the log's own clock, the track the finder read, the cut is by position.
+    let boost = if log.time_s.is_empty() {
+        truncated(log, to_s)
+    } else {
+        truncated_at(log, cut.index + extra + 1, to_s)
+    };
     let read = readings::read(&boost);
     let kind = HeightKind::of(read.source?);
     // The probe reads its extra sample into the fit, past the whole bins the prediction keeps to.
@@ -270,6 +282,24 @@ mod tests {
         };
         let times = noisy.time_s.clone();
         fill(&times, &mut noisy.altitude_m);
+        // The log's own clock after the cut is noise too, some of it at or before the cut.
+        let mut clock = noisy.time_s.clone();
+        fill(&times, &mut clock);
+        noisy.time_s = clock
+            .iter()
+            .zip(&times)
+            .map(|(&noise, &t)| {
+                if t > cut_s {
+                    cut_s + noise / 1_000.0
+                } else {
+                    t
+                }
+            })
+            .collect();
+        // The first of them a millisecond before the cut, out of order.
+        if let Some(first) = times.iter().position(|&t| t > cut_s) {
+            noisy.time_s[first] = cut_s - 1e-3;
+        }
         for column in [
             &mut noisy.vertical_speed_m_s,
             &mut noisy.temperature_k,
