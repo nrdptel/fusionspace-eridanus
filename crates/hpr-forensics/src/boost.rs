@@ -1,4 +1,4 @@
-//! Apogee predicted from the boost: a log cut at burnout, fitted, and flown on to apogee
+//! Apogee predicted from the boost: a log cut just after burnout, fitted, and flown on to apogee
 //! ([ADR-257][adr-257] §3; [ADR-321][adr-321], amended 2026-11-06).
 //!
 //! The cut must not read the flight after it. A test replaces every later sample with noise and
@@ -90,9 +90,9 @@ fn slope(window: &VecDeque<(f64, f64)>) -> Option<f64> {
 
 /// Where the boost's log is cut, decided at each sample of the height track from it and the ones
 /// before it (the module's rules); `None` where the log holds no height track, never lifts off,
-/// never holds 3 samples in a [`SPEED_WINDOW_S`] window (a log at 4 Hz or slower), or never slows
-/// by [`DROP_SHARE`] of its top speed and [`DROP_FLOOR_M_S`]. A staged flight is cut at its first
-/// burnout.
+/// never holds 3 samples in a [`SPEED_WINDOW_S`] window (a log slower than 4 Hz), or never slows
+/// by [`DROP_SHARE`] of its top speed and [`DROP_FLOOR_M_S`]. A staged flight is cut at the first
+/// burnout whose coast lasts long enough for that fall, about a second; untested on one.
 #[must_use]
 pub fn find_cut(log: &FlightLog) -> Option<Cut> {
     let (times, heights) = readings::height_track(log)?;
@@ -202,7 +202,7 @@ fn read_to_cut(log: &FlightLog, extra: usize) -> Option<(Cut, Readings, Observat
     Some((cut, read, observed))
 }
 
-/// Apogee predicted from `log` cut at burnout: the boost fitted by [`fit::fit`], each parameter
+/// Apogee predicted from `log` cut just after burnout: the boost fitted by [`fit::fit`], each parameter
 /// held to what `stated` gives for the boost's observations, then flown on by `forward` to its
 /// apogee. `None` where the log has no cut, the boost says nothing to fit, or the fitted flight
 /// doesn't reach an apogee within [`APOGEE_HORIZON_S`]. The fit's own `converged` says whether
@@ -286,7 +286,7 @@ mod tests {
         noisy
     }
 
-    /// Apogee predicted from a synthetic flight's log cut at burnout stays bit-identical
+    /// Apogee predicted from a synthetic flight's log cut just after burnout stays bit-identical
     /// when every later sample is noise; a probe that lets the cut read one more sample of the
     /// track doesn't. The cut falls after the top speed and before apogee.
     #[test]
