@@ -25,7 +25,7 @@ Open work only; done work is [archived](roadmap-done.md) unchanged by `cargo xta
 The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, ADR-322): lines
 `N. M<id> title`, ids open in this file (`cargo test -p xtask` checks).
 
-1. M7.3d1 The prediction from the boost
+1. M7.3d2 The public flights
 2. M2.7 Held-out flights, predictions first
 3. M7.5 The bias every simulator shares
 4. M2.3c6 The gap to OpenRocket, by cause
@@ -468,9 +468,6 @@ log corpus came from Debrief.
     ADR-322's encoding, the SHA-256 of the sorted held-out ids committed before any half's number; the held-out
     half's fit aggregates stay in the private collection, only their file's hash committed, until M7.5 publishes
     them (ADR-322).
-    - [ ] **M7.3d1 The prediction from the boost.** *Done when:* `hpr_forensics` cuts a log at burnout, found
-      from the samples up to it, fits it and flies it on to apogee; that apogee stays bit-identical when every later
-      sample is noise, a probe reading one more failing; the fit's page says how far to trust it.
     - [ ] **M7.3d2 The public flights.** *Done when:* a committed report gives the 7 public flights' fits and the
       prediction's mean absolute and signed errors beside the forward simulation's, with ADR-257 §3's interval.
     - [ ] **M7.3d3 The collection by halves.** *Done when:* M7.3d's *done when*, whole.

@@ -167,10 +167,11 @@ private collection), and each needs a full gate, reviews and CI, so one incremen
    are centered windows, and `readings::read` takes the whole log at once. The cut is
    therefore set at the last sample any of the finder's windows read, not at burnout itself, and
    the pad and liftoff come from the samples before that cut. The plan:
-   - The finder walks the samples forward and decides at each one from it and those before it:
-     on the axial accelerometer, the first sample after the burn where a trailing mean drops
-     below the pad's noise bound under zero thrust; without one, where a trailing estimate of the
-     vertical speed falls a noise bound below its running top. The cut is the sample it stops on.
+   - The finder walks the height track every log has forward and decides at each sample from it
+     and those before it: liftoff 10 m (33 ft) above the track's first height, then a speed
+     fitted over the last 0.5 s, and the cut where it has fallen 10% below its top, and at least
+     10 m/s (33 ft/s). The cut is the sample it stops on. An accelerometer could cut sooner;
+     M7.3d2's report shows whether the heights' cut costs accuracy.
    - Every reading after that runs on the log truncated at the cut, so later samples can't reach
      it by construction. The test then compares the prediction on the whole log with the one on
      the log whose later samples are noise, bit for bit.

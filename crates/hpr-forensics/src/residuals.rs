@@ -253,6 +253,18 @@ impl Simulated {
         self.at(t).or_else(|| self.moments.last().copied())
     }
 
+    /// The flight's highest moment: its time, s, and its height climbed from the pad, m. `None`
+    /// where it holds no moment, or its highest is its last, so that it may have climbed on.
+    pub(crate) fn top(&self) -> Option<(f64, f64)> {
+        let (at, top) = self
+            .moments
+            .iter()
+            .enumerate()
+            .filter(|(_, moment)| moment.height_m.is_finite())
+            .max_by(|(_, a), (_, b)| a.height_m.total_cmp(&b.height_m))?;
+        (at + 1 < self.moments.len()).then_some((top.time_s, top.height_m))
+    }
+
     /// The height as a sensor of `kind` reads it at `t`, above the pad, m.
     pub(crate) fn read_height_m(&self, t: f64, kind: HeightKind) -> f64 {
         self.held_at(t).map_or(f64::NAN, |moment| match kind {

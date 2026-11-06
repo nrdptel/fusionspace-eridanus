@@ -13,8 +13,9 @@
 //!
 //! [`synthetic`] makes the flights whose truth is known, on which a log's readings and fits are
 //! tested ([the synthetic flights first][adr-280]). [`residuals`] sets a log against a simulation
-//! of it, and [`fit`] fits one to the other. Fault diagnosis is planned ([the roadmap][roadmap]).
+//! of it, and [`fit`] fits one to the other; [`boost`] predicts apogee from a log cut at burnout. Fault diagnosis is planned ([the roadmap][roadmap]).
 
+pub mod boost;
 pub mod fit;
 pub mod posterior;
 pub mod residuals;
