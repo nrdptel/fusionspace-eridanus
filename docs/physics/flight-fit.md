@@ -394,7 +394,7 @@ measured.
 **Why it can be trusted not to peek.** A test replaces every sample's value and time after the
 cut with noise, and the prediction stays the same, bit for bit. It runs on three logs, one with a GNSS
 receiver's channels beside its barometer. Letting the prediction read half a second more changes
-it. On those logs the prediction reads no sample logged after the cut. A channel on a clock of its own
+it. On those logs every sample the prediction reads was logged at or before the cut. A channel on a clock of its own
 is cut by its times: a sample it stamps in order at or before the cut is read wherever the file puts it. Run
 `cargo test -p fusionspace-hpr-forensics boost`. No worked example yet: one waits for a logged
 apogee to compare it with.
