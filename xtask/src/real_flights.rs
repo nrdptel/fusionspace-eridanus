@@ -15,7 +15,8 @@ pub const USAGE: &str = "  real-flights [--check]
                            Fly RocketPy's example rockets that have a flight log, in their
                            ERA5 weather, and compare each with its log; needs refs/rocketpy.
                            Writes validation/reports/real-flights.{md,json} and each flight's
-                           residuals, flight-residuals.{md,json}; --check writes nothing and
+                           residuals, flight-residuals.{md,json}, and apogee predicted from
+                           each one's boost, from-boost.{md,json}; --check writes nothing and
                            fails unless the committed reports reproduce.";
 
 /// Flies the flights and writes or checks the report.
@@ -75,12 +76,14 @@ pub fn run(args: &[String]) -> Result<(), String> {
             .map_err(|error| format!("reading {REPORT_MD}: {error}"))?;
         committed.check_consistent(&page)?;
         println!("real-flights: the committed report reproduces");
-        return crate::flight_residuals::run(&root, true);
+        crate::flight_residuals::run(&root, true)?;
+        return crate::from_boost::run(&root, &report, true);
     }
     let json = serde_json::to_string_pretty(&report).map_err(|error| error.to_string())? + "\n";
     for (path, text) in [(REPORT_JSON, json), (REPORT_MD, markdown)] {
         fs::write(root.join(path), text).map_err(|error| format!("writing {path}: {error}"))?;
     }
     println!("real-flights: wrote {REPORT_JSON} and {REPORT_MD}");
-    crate::flight_residuals::run(&root, false)
+    crate::flight_residuals::run(&root, false)?;
+    crate::from_boost::run(&root, &report, false)
 }

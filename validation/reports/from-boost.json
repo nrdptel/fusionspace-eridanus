@@ -1,0 +1,888 @@
+{
+  "stated": [
+    {
+      "name": "drag scale",
+      "mean": 1.0,
+      "sd": 0.10943222974411845
+    },
+    {
+      "name": "impulse scale",
+      "mean": 1.0,
+      "sd": 0.032829668923235536
+    },
+    {
+      "name": "burn time scale",
+      "mean": 1.0,
+      "sd": 0.05471611487205923
+    },
+    {
+      "name": "wind toward the east (m/s)",
+      "mean": null,
+      "sd": 3.8751841894698664
+    },
+    {
+      "name": "wind toward the north (m/s)",
+      "mean": null,
+      "sd": 3.8751841894698664
+    },
+    {
+      "name": "structure mass scale",
+      "mean": 1.0,
+      "sd": 0.010943222974411845
+    }
+  ],
+  "flights": [
+    {
+      "id": "bella-lui",
+      "title": "Bella Lui, EPFL Rocket Team, 2020 (K828FJ)",
+      "altimeter": "barometric, assumed",
+      "files": [
+        {
+          "path": "refs/rocketpy/data/rockets/EPFL_Bella_Lui/bella_lui_flight_data_filtered.csv",
+          "sha256": "ccf8bcecd91d5b912e8f8b3bcf9efe13248453e1a81dc79d2b4daea4e985de2d"
+        },
+        {
+          "path": "refs/rocketpy/data/motors/aerotech/AeroTech_K828FJ.eng",
+          "sha256": "ba778b6add25bb0d866ca22b68eb63a0bac93313f4ed65afc5a720f396073d1b"
+        },
+        {
+          "path": "validation/designs/rocketpy-bella-lui.json",
+          "sha256": "9452ee3fea7edb2b0beb7b03587740bbd0ac9d6c284b6d983be2b5c34fdc33b9"
+        },
+        {
+          "path": "refs/rocketpy/data/weather/bella_lui_weather_data_ERA5.nc",
+          "sha256": "51a60794fca3a4511436ee54821307a557576399fe5d1252bbf7c7b639809e95"
+        }
+      ],
+      "log_apogee_m": 458.971,
+      "forward_apogee_m": 462.9051903863798,
+      "forward_error_percent": 0.8571762456407447,
+      "forward_max_mach": 0.2639183474659623,
+      "same_flight_m": 0.0,
+      "burn_time_s": 2.43,
+      "liftoff_s": 0.21,
+      "stated_wind_m_s": [
+        0.6658797130678186,
+        1.0902055455847104
+      ],
+      "stated_apogee_m": 462.869343509533,
+      "whole": {
+        "fitted": true,
+        "converged": true,
+        "drift": false,
+        "rms_m": 2.0588972035290225,
+        "misfit_share": 0.013190928838837322,
+        "flown": 51,
+        "parameters": [
+          {
+            "name": "drag scale",
+            "value": 1.0162355954560487,
+            "standard_error": 0.10256323196888782,
+            "interval_90": [
+              0.8695701737405391,
+              1.1464909000565362
+            ]
+          },
+          {
+            "name": "impulse scale",
+            "value": 0.9961156260968705,
+            "standard_error": 0.020988523835682525,
+            "interval_90": [
+              0.9652624960584172,
+              1.0282280675654647
+            ]
+          },
+          {
+            "name": "burn time scale",
+            "value": 0.9864669746814257,
+            "standard_error": 0.045985967340562824,
+            "interval_90": null
+          },
+          {
+            "name": "wind toward the east (m/s)",
+            "value": 0.8211897985550989,
+            "standard_error": 3.839301552520023,
+            "interval_90": null
+          },
+          {
+            "name": "wind toward the north (m/s)",
+            "value": 1.3075829971987336,
+            "standard_error": 3.797673763907709,
+            "interval_90": null
+          },
+          {
+            "name": "structure mass scale",
+            "value": 1.0002754331996646,
+            "standard_error": 0.01059826690237131,
+            "interval_90": [
+              0.9825763274727045,
+              1.017868556257601
+            ]
+          }
+        ]
+      },
+      "whole_unread": null,
+      "boost": {
+        "Unpredicted": {
+          "NothingToFit": {
+            "index": 40,
+            "time_s": 2.46,
+            "top_speed_s": 2.28,
+            "top_speed_m_s": 91.54366925064599
+          }
+        }
+      }
+    },
+    {
+      "id": "ndrt-2020",
+      "title": "NDRT 2020, Notre Dame Rocketry Team (L1395)",
+      "altimeter": "barometric",
+      "files": [
+        {
+          "path": "refs/rocketpy/data/rockets/NDRT_2020/ndrt_2020_flight_data.csv",
+          "sha256": "5e64b446199988ac183b2f3965d76da27e57496bb2a33f78df73aa23fd18d7b8"
+        },
+        {
+          "path": "refs/rocketpy/data/motors/cesaroni/Cesaroni_4895L1395-P.eng",
+          "sha256": "eb09768c01f3c5f7290e77e93ee5fc307ca282c079558cf7195b5a17c7bb9784"
+        },
+        {
+          "path": "validation/designs/rocketpy-ndrt-2020-nose-to-tail.json",
+          "sha256": "f3b3eb71a9d1f7cb344607d0441740d3d01be08de2b7ba8c2bfac392b2bfb03a"
+        },
+        {
+          "path": "refs/rocketpy/data/weather/ndrt_2020_weather_data_ERA5.nc",
+          "sha256": "e23b2e402bd2b8ed22cee249264601bf85d40e46391daa32dbd7b781b9979034"
+        }
+      ],
+      "log_apogee_m": 1320.3570240000001,
+      "forward_apogee_m": 1457.640613100426,
+      "forward_error_percent": 10.397459672273143,
+      "forward_max_mach": 0.5364414429182354,
+      "same_flight_m": 0.0,
+      "burn_time_s": 3.433,
+      "liftoff_s": 0.495,
+      "stated_wind_m_s": [
+        10.46003129902524,
+        6.254651703792871
+      ],
+      "stated_apogee_m": 1407.090807591049,
+      "whole": {
+        "fitted": true,
+        "converged": true,
+        "drift": false,
+        "rms_m": 3.2467137904517993,
+        "misfit_share": 0.00712989190312403,
+        "flown": 92,
+        "parameters": [
+          {
+            "name": "drag scale",
+            "value": 0.7093991501660912,
+            "standard_error": 0.07223871651071186,
+            "interval_90": [
+              0.6060977855557733,
+              0.8011423201346953
+            ]
+          },
+          {
+            "name": "impulse scale",
+            "value": 0.9495624827976704,
+            "standard_error": 0.02398897566346686,
+            "interval_90": [
+              0.9142986885723742,
+              0.9862656155627747
+            ]
+          },
+          {
+            "name": "burn time scale",
+            "value": 1.0619632123822016,
+            "standard_error": 0.03497795091654989,
+            "interval_90": null
+          },
+          {
+            "name": "wind toward the east (m/s)",
+            "value": 13.814043943576857,
+            "standard_error": 3.5832155643798114,
+            "interval_90": null
+          },
+          {
+            "name": "wind toward the north (m/s)",
+            "value": 8.299532975161457,
+            "standard_error": 3.768607145869843,
+            "interval_90": null
+          },
+          {
+            "name": "structure mass scale",
+            "value": 1.0068111119854184,
+            "standard_error": 0.010685865591095287,
+            "interval_90": [
+              0.9889657164482892,
+              1.0245496488666366
+            ]
+          }
+        ]
+      },
+      "whole_unread": null,
+      "boost": {
+        "Predicted": {
+          "cut": {
+            "index": 96,
+            "time_s": 4.845,
+            "top_speed_s": 3.795,
+            "top_speed_m_s": 161.92344829090905
+          },
+          "fit": {
+            "fitted": true,
+            "converged": true,
+            "drift": false,
+            "rms_m": 0.8780523321394701,
+            "misfit_share": 0.006029317771092527,
+            "flown": 57,
+            "parameters": [
+              {
+                "name": "drag scale",
+                "value": 1.0170947535963475,
+                "standard_error": 0.10863116861843969,
+                "interval_90": [
+                  0.8617521824719787,
+                  1.155056337741766
+                ]
+              },
+              {
+                "name": "impulse scale",
+                "value": 0.9630115815585402,
+                "standard_error": 0.026872842891693845,
+                "interval_90": [
+                  0.9235085025077502,
+                  1.0041270311828316
+                ]
+              },
+              {
+                "name": "burn time scale",
+                "value": 1.0588014108988526,
+                "standard_error": 0.04127395749324134,
+                "interval_90": null
+              },
+              {
+                "name": "wind toward the east (m/s)",
+                "value": 12.653357433388104,
+                "standard_error": 3.609310631194813,
+                "interval_90": null
+              },
+              {
+                "name": "wind toward the north (m/s)",
+                "value": 7.6060175492822015,
+                "standard_error": 3.7764100003873007,
+                "interval_90": null
+              },
+              {
+                "name": "structure mass scale",
+                "value": 1.003385448834209,
+                "standard_error": 0.010810995941129914,
+                "interval_90": [
+                  0.9853310856125221,
+                  1.0213317020964847
+                ]
+              }
+            ]
+          },
+          "apogee_above_pad_m": 1246.1354694868144,
+          "apogee_reading_m": 1269.1621130714564,
+          "error_percent": -3.877353624662035
+        }
+      }
+    },
+    {
+      "id": "prometheus-2022",
+      "title": "Prometheus, Western Engineering, Spaceport America Cup 2022 (M1520)",
+      "altimeter": "barometric",
+      "files": [
+        {
+          "path": "refs/rocketpy/data/rockets/prometheus/2022-06-24-serial-5115-flight-0001-TeleMetrum.csv",
+          "sha256": "9fe8d17a25e7944267b34a45ed955303afd5818b3f18479a5f7ffb31a574cecf"
+        },
+        {
+          "path": "refs/rocketpy/data/motors/cesaroni/Cesaroni_7579M1520-P.eng",
+          "sha256": "f38ad06972a07e4ef04164a60718f099d732de6e433185e211dd87083f89e4ca"
+        },
+        {
+          "path": "validation/designs/rocketpy-prometheus-2022-generic-motor.json",
+          "sha256": "079b7b6d8ee71e24e219a882c2990ea291661791a08868393748f1d9fa0d2622"
+        },
+        {
+          "path": "refs/rocketpy/data/weather/spaceport_america_pressure_levels_2023_hourly.nc",
+          "sha256": "25d48e9d03554251dc2d0601dcaa1e441ca7e7c502f573fceb4ce5c058da8694"
+        }
+      ],
+      "log_apogee_m": 3895.83,
+      "forward_apogee_m": 3549.286727859384,
+      "forward_error_percent": -8.895235986699008,
+      "forward_max_mach": 0.9589040599839289,
+      "same_flight_m": 0.0,
+      "burn_time_s": 4.877,
+      "liftoff_s": 0.23,
+      "stated_wind_m_s": [
+        9.773773567668528,
+        2.1117986621016196
+      ],
+      "stated_apogee_m": 3639.7834862071068,
+      "whole": {
+        "fitted": true,
+        "converged": true,
+        "drift": true,
+        "rms_m": 22.40340086278896,
+        "misfit_share": 0.016806540570987884,
+        "flown": 405,
+        "parameters": [
+          {
+            "name": "drag scale",
+            "value": 0.9156024142880164,
+            "standard_error": 0.07358244878906116,
+            "interval_90": [
+              0.7574001493915349,
+              1.0097879487380146
+            ]
+          },
+          {
+            "name": "impulse scale",
+            "value": 1.0188108954452397,
+            "standard_error": 0.02542130022753669,
+            "interval_90": [
+              0.9722899160288476,
+              1.0569428457865448
+            ]
+          },
+          {
+            "name": "burn time scale",
+            "value": 1.0726603644188626,
+            "standard_error": 0.05432216575352139,
+            "interval_90": null
+          },
+          {
+            "name": "wind toward the east (m/s)",
+            "value": 11.737238663336765,
+            "standard_error": 3.86960262917611,
+            "interval_90": [
+              6.745451271699583,
+              16.999898239016275
+            ]
+          },
+          {
+            "name": "wind toward the north (m/s)",
+            "value": 0.5983441324516002,
+            "standard_error": 3.113253465014409,
+            "interval_90": [
+              -3.697945649268284,
+              5.268224329973213
+            ]
+          },
+          {
+            "name": "structure mass scale",
+            "value": 0.9873569454758169,
+            "standard_error": 0.010848771143957754,
+            "interval_90": [
+              0.9689140345310887,
+              1.0056913687091056
+            ]
+          }
+        ]
+      },
+      "whole_unread": null,
+      "boost": {
+        "Unpredicted": {
+          "NothingToFit": {
+            "index": 232,
+            "time_s": 2.02,
+            "top_speed_s": 1.8,
+            "top_speed_m_s": 61.9049773755656
+          }
+        }
+      }
+    },
+    {
+      "id": "juno-iii",
+      "title": "Juno III, Projeto Jupiter, Spaceport America Cup 2023 (the team's motor)",
+      "altimeter": "barometric",
+      "files": [
+        {
+          "path": "refs/rocketpy/data/rockets/juno3/cots_altimeter.csv",
+          "sha256": "eef81b3bcc4c285667727c1e2c9ca502a67cb374f5e31bc4f87ed76b8a04c1ee"
+        },
+        {
+          "path": "refs/rocketpy/data/motors/projeto-jupiter/mandioca_thrust_curve.csv",
+          "sha256": "25e9cd7a80fa346df7575ce466400426abe8f37990ebe268491d5fbb3245ec44"
+        },
+        {
+          "path": "validation/designs/rocketpy-juno-iii.json",
+          "sha256": "4a31096f5f5f4169a7aadbe559a1c1e7ac44bda5102da9aeac511fe24e167d4e"
+        },
+        {
+          "path": "refs/rocketpy/data/weather/spaceport_america_pressure_levels_2023_hourly.nc",
+          "sha256": "25d48e9d03554251dc2d0601dcaa1e441ca7e7c502f573fceb4ce5c058da8694"
+        }
+      ],
+      "log_apogee_m": 3151.507,
+      "forward_apogee_m": 2923.3555414853654,
+      "forward_error_percent": -7.239440004881304,
+      "forward_max_mach": 0.732813703648889,
+      "same_flight_m": 0.0,
+      "burn_time_s": 5.68969571230982,
+      "liftoff_s": 0.55,
+      "stated_wind_m_s": [
+        13.042902651471163,
+        7.0595894249827165
+      ],
+      "stated_apogee_m": 2862.1324642712934,
+      "whole": {
+        "fitted": false,
+        "converged": false,
+        "drift": false,
+        "rms_m": null,
+        "misfit_share": null,
+        "flown": 0,
+        "parameters": [
+          {
+            "name": "drag scale",
+            "value": 1.0,
+            "standard_error": 0.10943222974411845,
+            "interval_90": null
+          },
+          {
+            "name": "impulse scale",
+            "value": 1.0,
+            "standard_error": 0.032829668923235536,
+            "interval_90": null
+          },
+          {
+            "name": "burn time scale",
+            "value": 1.0,
+            "standard_error": 0.05471611487205923,
+            "interval_90": null
+          },
+          {
+            "name": "wind toward the east (m/s)",
+            "value": 13.042902651471163,
+            "standard_error": 3.8751841894698664,
+            "interval_90": null
+          },
+          {
+            "name": "wind toward the north (m/s)",
+            "value": 7.0595894249827165,
+            "standard_error": 3.8751841894698664,
+            "interval_90": null
+          },
+          {
+            "name": "structure mass scale",
+            "value": 1.0,
+            "standard_error": 0.010943222974411845,
+            "interval_90": null
+          }
+        ]
+      },
+      "whole_unread": "its apogee is withheld: the track climbs 42.1 m into its top at 26.20 s in 1.00 s. That is more than the 17.5 m a coast slowing at twice gravity climbs. The track falls 17.1 m from it by 26.50 s, more than the 16.8 m a body at rest there can fall. Each is past twice its noise and step. Its top is a spike, such as a charge's, so which is the apogee can't be told",
+      "boost": {
+        "Unpredicted": {
+          "NothingToFit": {
+            "index": 27,
+            "time_s": 1.35,
+            "top_speed_s": 1.2,
+            "top_speed_m_s": 131.25661454545457
+          }
+        }
+      }
+    },
+    {
+      "id": "cavour",
+      "title": "Cavour, Politecnico di Torino, EuRoC 2023 (L995)",
+      "altimeter": "barometric, assumed",
+      "files": [
+        {
+          "path": "refs/rocketpy/data/rockets/polito/altimeter_cavour.csv",
+          "sha256": "f912724676eea0ca9ba031c3779e48f861538814170b050b7bda2887c31f29a8"
+        },
+        {
+          "path": "refs/rocketpy/data/motors/cesaroni/Cesaroni_3618L995-P.eng",
+          "sha256": "efc04492a3527bdb626d8ec0c18bbbd51f02012393d3b82e00b11d167b2dad2b"
+        },
+        {
+          "path": "validation/designs/rocketpy-cavour.json",
+          "sha256": "a86c9be1f9cf7aed8354eca352df30a49cd5bc4152f5898b691192529b9bf10f"
+        },
+        {
+          "path": "refs/rocketpy/data/weather/euroc_2023_all_windows.nc",
+          "sha256": "a3d9e08eb3bb4480d1b8ef03b06878a1a1f76397fdc9dcc929fe5cc856f61d56"
+        }
+      ],
+      "log_apogee_m": 2785.0,
+      "forward_apogee_m": 2945.972573999202,
+      "forward_error_percent": 5.779984703741538,
+      "forward_max_mach": 0.9329676689816341,
+      "same_flight_m": 0.0,
+      "burn_time_s": 3.6,
+      "liftoff_s": 0.2,
+      "stated_wind_m_s": [
+        8.887670808670293,
+        6.641493639915367
+      ],
+      "stated_apogee_m": 2926.5650127957383,
+      "whole": {
+        "fitted": true,
+        "converged": true,
+        "drift": true,
+        "rms_m": 10.721422054995124,
+        "misfit_share": 0.012241283125058676,
+        "flown": 74,
+        "parameters": [
+          {
+            "name": "drag scale",
+            "value": 1.0776333603056176,
+            "standard_error": 0.023844953120200723,
+            "interval_90": [
+              1.0263667110971861,
+              1.1081549002994746
+            ]
+          },
+          {
+            "name": "impulse scale",
+            "value": 0.9716372993232386,
+            "standard_error": 0.012485779006049042,
+            "interval_90": [
+              0.9487883237421688,
+              0.9903659678323122
+            ]
+          },
+          {
+            "name": "burn time scale",
+            "value": 1.2417223323991375,
+            "standard_error": 0.03681755965316624,
+            "interval_90": null
+          },
+          {
+            "name": "wind toward the east (m/s)",
+            "value": 10.88030841912566,
+            "standard_error": 0.6648116953245831,
+            "interval_90": [
+              10.022701332156947,
+              11.784452324767093
+            ]
+          },
+          {
+            "name": "wind toward the north (m/s)",
+            "value": 3.872240445471243,
+            "standard_error": 0.5509696315493037,
+            "interval_90": [
+              3.1119023539332042,
+              4.698694892795198
+            ]
+          },
+          {
+            "name": "structure mass scale",
+            "value": 1.0030334402595702,
+            "standard_error": 0.010408902932094012,
+            "interval_90": [
+              0.9853383052750104,
+              1.020624486214809
+            ]
+          }
+        ]
+      },
+      "whole_unread": null,
+      "boost": {
+        "Unpredicted": {
+          "NoCut": {
+            "Transonic": {
+              "time_s": 3.2,
+              "speed_m_s": 306.9999999999998
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "genesis",
+      "title": "Genesis, EuRoC 2023 (L995)",
+      "altimeter": "barometric, assumed",
+      "files": [
+        {
+          "path": "refs/rocketpy/data/rockets/genesis/flight_data_faraday.csv",
+          "sha256": "d88a7fc53cbd55d1dafeed5d5c6fcfcad27c7cf8e0a15221e67aae97eaa05a74"
+        },
+        {
+          "path": "refs/rocketpy/data/motors/cesaroni/Cesaroni_3618L995-P.eng",
+          "sha256": "efc04492a3527bdb626d8ec0c18bbbd51f02012393d3b82e00b11d167b2dad2b"
+        },
+        {
+          "path": "validation/designs/rocketpy-genesis.json",
+          "sha256": "031ae8f647f8e81472ed14527f98f18d72f4166b186daf31311516e3398742e7"
+        },
+        {
+          "path": "refs/rocketpy/data/weather/euroc_2023_all_windows.nc",
+          "sha256": "a3d9e08eb3bb4480d1b8ef03b06878a1a1f76397fdc9dcc929fe5cc856f61d56"
+        }
+      ],
+      "log_apogee_m": 2916.691650390625,
+      "forward_apogee_m": 2745.9602450525335,
+      "forward_error_percent": -5.853598041987944,
+      "forward_max_mach": 0.8539057109674085,
+      "same_flight_m": 0.0,
+      "burn_time_s": 3.6,
+      "liftoff_s": 0.25,
+      "stated_wind_m_s": [
+        1.2206988774795777,
+        3.647472415287173
+      ],
+      "stated_apogee_m": 2744.724988354801,
+      "whole": {
+        "fitted": true,
+        "converged": true,
+        "drift": false,
+        "rms_m": 4.057091997454208,
+        "misfit_share": 0.004073809855406105,
+        "flown": 113,
+        "parameters": [
+          {
+            "name": "drag scale",
+            "value": 1.0248652814747725,
+            "standard_error": 0.0593889800256982,
+            "interval_90": [
+              0.9399390400380241,
+              1.1002892861074092
+            ]
+          },
+          {
+            "name": "impulse scale",
+            "value": 1.0521775749756543,
+            "standard_error": 0.01644628555545987,
+            "interval_90": [
+              1.0280015352091283,
+              1.077340391875508
+            ]
+          },
+          {
+            "name": "burn time scale",
+            "value": 1.2470559345857695,
+            "standard_error": 0.03555335353014072,
+            "interval_90": null
+          },
+          {
+            "name": "wind toward the east (m/s)",
+            "value": 1.9304197183017988,
+            "standard_error": 3.867393767266797,
+            "interval_90": null
+          },
+          {
+            "name": "wind toward the north (m/s)",
+            "value": 1.7618786643896787,
+            "standard_error": 3.824853207802225,
+            "interval_90": null
+          },
+          {
+            "name": "structure mass scale",
+            "value": 0.9935889943459223,
+            "standard_error": 0.010369835739017345,
+            "interval_90": [
+              0.9762713686617633,
+              1.010802921672691
+            ]
+          }
+        ]
+      },
+      "whole_unread": null,
+      "boost": {
+        "Unpredicted": {
+          "NoCut": {
+            "Transonic": {
+              "time_s": 3.12,
+              "speed_m_s": 229.01909958507136
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "lince",
+      "title": "Lince, EuRoC 2023 (M1101)",
+      "altimeter": "barometric, assumed",
+      "files": [
+        {
+          "path": "refs/rocketpy/data/rockets/lince/main_data.csv",
+          "sha256": "a9cf47fe2b2e5be03168d36b1c41f0a5651a0c3b6db4ed091e1afc274bd7473e"
+        },
+        {
+          "path": "refs/rocketpy/data/motors/cesaroni/Cesaroni_M1101.eng",
+          "sha256": "8ebd097ec531581451f170380d7258029b61d0a36f37444f9329a8dc4e936d50"
+        },
+        {
+          "path": "validation/designs/rocketpy-lince.json",
+          "sha256": "860ca414f18ea7b017fb56cf652ae9abb1c73a9befa38b6117f4785f1553435f"
+        },
+        {
+          "path": "refs/rocketpy/data/weather/euroc_2023_all_windows.nc",
+          "sha256": "a3d9e08eb3bb4480d1b8ef03b06878a1a1f76397fdc9dcc929fe5cc856f61d56"
+        }
+      ],
+      "log_apogee_m": 3587.7236328125,
+      "forward_apogee_m": 3709.240012233322,
+      "forward_error_percent": 3.3870050164806718,
+      "forward_max_mach": 0.9928882606614836,
+      "same_flight_m": 0.0,
+      "burn_time_s": 4.668,
+      "liftoff_s": 0.18,
+      "stated_wind_m_s": [
+        1.7056783738423855,
+        2.8663595900675825
+      ],
+      "stated_apogee_m": 3715.58914690055,
+      "whole": {
+        "fitted": true,
+        "converged": true,
+        "drift": false,
+        "rms_m": 11.846822812815988,
+        "misfit_share": 0.010098059219924788,
+        "flown": 128,
+        "parameters": [
+          {
+            "name": "drag scale",
+            "value": 1.3272197942652053,
+            "standard_error": 0.059237914200360405,
+            "interval_90": [
+              1.24250957695869,
+              1.402451945299663
+            ]
+          },
+          {
+            "name": "impulse scale",
+            "value": 1.1144603862812865,
+            "standard_error": 0.017791597593217905,
+            "interval_90": [
+              1.0883067378192561,
+              1.1416815305989099
+            ]
+          },
+          {
+            "name": "burn time scale",
+            "value": 0.9385360456862325,
+            "standard_error": 0.040145224645271045,
+            "interval_90": null
+          },
+          {
+            "name": "wind toward the east (m/s)",
+            "value": 1.629476555099066,
+            "standard_error": 3.854269677437265,
+            "interval_90": null
+          },
+          {
+            "name": "wind toward the north (m/s)",
+            "value": 3.0057633910489243,
+            "standard_error": 3.753537940299004,
+            "interval_90": null
+          },
+          {
+            "name": "structure mass scale",
+            "value": 0.9811725635941381,
+            "standard_error": 0.010326317878165516,
+            "interval_90": [
+              0.9639276127376016,
+              0.9983142512718928
+            ]
+          }
+        ]
+      },
+      "whole_unread": null,
+      "boost": {
+        "Predicted": {
+          "cut": {
+            "index": 333,
+            "time_s": 2.58,
+            "top_speed_s": 2.45,
+            "top_speed_m_s": 224.08885341245866
+          },
+          "fit": {
+            "fitted": true,
+            "converged": true,
+            "drift": false,
+            "rms_m": 4.764348208427039,
+            "misfit_share": 0.07184244470014617,
+            "flown": 49,
+            "parameters": [
+              {
+                "name": "drag scale",
+                "value": 1.001170157360346,
+                "standard_error": 0.10940884511468554,
+                "interval_90": [
+                  0.8447155088463456,
+                  1.1401193906559965
+                ]
+              },
+              {
+                "name": "impulse scale",
+                "value": 0.9860479929737134,
+                "standard_error": 0.03151379234758309,
+                "interval_90": [
+                  0.9397227182227662,
+                  1.0342640952655155
+                ]
+              },
+              {
+                "name": "burn time scale",
+                "value": 1.048904787913768,
+                "standard_error": 0.045212731384836384,
+                "interval_90": null
+              },
+              {
+                "name": "wind toward the east (m/s)",
+                "value": 1.6468224942021974,
+                "standard_error": 3.8744935125299325,
+                "interval_90": null
+              },
+              {
+                "name": "wind toward the north (m/s)",
+                "value": 3.096129920537737,
+                "standard_error": 3.868079097707431,
+                "interval_90": null
+              },
+              {
+                "name": "structure mass scale",
+                "value": 1.001501929121772,
+                "standard_error": 0.010899398017808079,
+                "interval_90": [
+                  0.9832999344320325,
+                  1.0195949298313334
+                ]
+              }
+            ]
+          },
+          "apogee_above_pad_m": 3829.303215115896,
+          "apogee_reading_m": 3666.186184008899,
+          "error_percent": 2.1869731123879927
+        }
+      }
+    }
+  ],
+  "summary": {
+    "flights": 7,
+    "predicted": [
+      "ndrt-2020",
+      "lince"
+    ],
+    "prediction_mean_absolute_percent": 3.032163368525014,
+    "prediction_mean_percent": -0.845190256137021,
+    "forward_mean_absolute_percent": 6.892232344376907,
+    "forward_mean_percent": 6.892232344376907,
+    "stated_mean_absolute_percent": 5.066468901909305,
+    "stated_mean_percent": 5.066468901909305,
+    "difference_points": -3.8600689758518936,
+    "difference_interval": [
+      null,
+      null
+    ],
+    "cut_in_burn": [
+      "bella-lui",
+      "prometheus-2022",
+      "juno-iii",
+      "lince"
+    ],
+    "forward_all_mean_absolute_percent": 6.058557095957765,
+    "forward_all_mean_percent": -0.2238069136331656
+  }
+}

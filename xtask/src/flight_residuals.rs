@@ -222,7 +222,11 @@ fn devices(id: &str) -> Vec<Device> {
 
 /// The whole log, as `hpr compare` reads it: by its format's own reader, or by the mapping
 /// `analyze_writes_a_ghost_of_each_of_rocketpys_logs` reads it by.
-fn flight_log(root: &Path, flight: &RealFlight, bytes: &[u8]) -> Result<FlightLog, String> {
+pub(crate) fn flight_log(
+    root: &Path,
+    flight: &RealFlight,
+    bytes: &[u8],
+) -> Result<FlightLog, String> {
     let stem = flight.log.file.trim_end_matches(".csv").replace('/', "-");
     let mapping = root.join(format!("{MAPPINGS}/{stem}.json"));
     if !mapping.exists() {
@@ -450,7 +454,7 @@ impl Report {
 }
 
 /// Whether two JSON documents agree, numbers within [`REPRODUCES_WITHIN`].
-fn agrees(path: &str, a: &Value, b: &Value) -> Result<(), String> {
+pub(crate) fn agrees(path: &str, a: &Value, b: &Value) -> Result<(), String> {
     match (a, b) {
         (Value::Number(x), Value::Number(y)) => {
             let (x, y) = (
