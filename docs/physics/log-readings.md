@@ -262,13 +262,15 @@ reads up to 268.8 m (882 ft) high, the fall's end up to 339.9 m (1,115 ft)
 **Two levels.** A logger switched on above the pad and carried down to it rests at two levels, and
 so does a reading the pressure moves before liftoff. Where the track falls as above and the
 medians of its stay at the start and of its last rest before the climb lie more than the rise
-apart, the pad is that last rest, read back from the climb while its samples stay within the rise
-of each other. Where the stay at the start lasted longer, either level may be the pad, and every
-reading is withheld (`disturbed_pad`,
-[#1158](https://github.com/nrdptel/fusionspace-eridanus/issues/1158)). A synthetic log resting
-30 m (98 ft) up for 2 s, then 4 s on the pad, reads its 98.1 m (322 ft) apogee as 98.0 m (321 ft)
-(`the_pad_is_the_last_rest_before_the_climb`). The climb is still found from the log's start. A
-fall from the last rest into the climb is a pulse, as one from the start is.
+apart, the pad is that last rest, read back from the rest's end while its samples stay within the
+rise of each other. That needs the rest to have lasted at least as long as the stay at the start,
+and the climb to be seen leaving it: a rocket leaves its pad from rest, so some filtered sample
+lies between the two levels. Otherwise either level may be the pad, and every reading is withheld
+(`disturbed_pad`, [#1158](https://github.com/nrdptel/fusionspace-eridanus/issues/1158)). On a
+synthetic log resting 30 m (98 ft) up for 2 s, then 4 s on the pad, the logger's zero reads a
+98.1 m (322 ft) apogee as 97.96 m (321 ft) (`the_pad_is_the_last_rest_before_the_climb`). The climb
+is still found from the log's start. A fall from the last rest into the climb is a pulse, as one
+from the start is.
 
 ### Each reading
 
@@ -1383,8 +1385,9 @@ truth beside the logs, that doesn't say how each rocket came down.
   the rocket is slow, stays within its bound on the tuning set, whose fastest flight reaches Mach
   1.12.
 - **A short stay on the pad.** The climb's first rise counts toward a rest, so a stay on the pad
-  of 0.2 s or less after a carry down, before a 4 g climb, is read as a pulse from the higher
-  level. The apogee then reads low by the drop, past its bound.
+  of up to 0.2 s after a carry down, before a 4 g climb at 20 samples a second (0.15 s on a
+  pressure track), is read as a pulse from the higher level. The apogee then reads low by the
+  drop, past its bound for a drop of more than about 10 m (33 ft).
 - **Wide pulses.** A pulse wider than half the median's window passes it. The bounds were held on
   the synthetic flights' pulses, which are shaped like the public Pnut log's and scaled by 0 to 2.
   A wider or taller one isn't covered.

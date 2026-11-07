@@ -1303,20 +1303,26 @@ fn heights(log: &FlightLog) -> Readings {
         readings.landing = Reading::withheld(Reason::StartsOffThePad, detail);
         return readings;
     }
-    // Two rests further apart than the rise (by their medians, above), the one at the start the
-    // longer: either may be the
-    // pad, a logger carried down to it or a level the pressure sank to before liftoff, and the
-    // track can't tell which (#1158). A last rest at least as long is the pad, the level the
-    // median of both would take.
+    // Two rests further apart than the rise (by their medians, above): the last is the pad, a
+    // logger carried down to it, only where it lasted at least as long as the stay at the start
+    // and the climb is seen to leave it, a filtered sample between the two levels' bands. A
+    // rocket leaves its pad from rest, while a track that steps from the lower level straight
+    // back to the start's, as a running median keeps a step, came back to it before liftoff.
+    // Otherwise either level may be the pad, the start or a level the pressure moved to, and the
+    // track can't tell which (#1158).
     if let BeforeClimb::Rests {
         level_m, before_s, ..
     } = before_climb
-        && before_s > stay_s
+        && (before_s > stay_s
+            || !filtered[on_pad..climb]
+                .iter()
+                .any(|h| *h > level_m + 0.5 * rise && *h < start - 0.5 * rise))
     {
         let detail = format!(
-            "the track rests {:.1} m from its start for {stay_s:.2} s before the climb, after \
-             staying at its start for {before_s:.2} s. Either level may be the pad: a logger \
-             carried to the pad, or a pressure that moved before liftoff",
+            "the track rests {:.1} m below its start for {stay_s:.2} s before the climb, after \
+             staying at its start for {before_s:.2} s, and either level may be the pad: a logger \
+             carried down to it, or a level the pressure moved to before liftoff. The last is \
+             taken only where it lasted at least as long and the climb is seen to leave it",
             start - level_m
         );
         let mut withheld = every(source, Reason::DisturbedPad, &detail);
@@ -2138,9 +2144,9 @@ fn last_rest_samples(
 /// sample that isn't a number among them,
 /// `√(2 rise/A)`, so a fall to a level the track then holds, as a logger carried down to the pad
 /// or the weather moving the pressure, is no disturbance. The pad is then the level the track
-/// rests at last before the climb, however long it rested above it first: a logger switched on
-/// above the pad and carried down to it reads from the pad, unless it stayed longer at its start
-/// (the caller withholds that). A rest is a run of windows that each rest, every one ending on the
+/// rests at last before the climb: a logger switched on above the pad and carried down to it
+/// reads from the pad, unless it stayed longer at its start or the climb isn't seen to leave the
+/// rest (the caller withholds those). A rest is a run of windows that each rest, every one ending on the
 /// sample after the one before. Its level is where it ends, the lowest filtered height of its
 /// last window: the climb only rises from it, and the weather may have moved the pad's reading
 /// while it rested. A fall from it deeper than the rise before the climb is a pulse at ignition,
@@ -3169,10 +3175,10 @@ mod tests {
 
     /// A log that rests at a higher level, then on the pad before the climb (#1158). The median of
     /// every sample near the log's start took the higher level for the pad, and the apogee read low
-    /// by the drop, outside its bound. Now the last rest before the climb is the pad when it is
-    /// the longer of the two, and every reading is withheld when the higher one lasted longer: a
-    /// logger carried down to the pad and a level the pressure sank to before liftoff look alike.
-    /// So no case reads its apogee outside its bound. Each case runs on the logger's zero and on a
+    /// by the drop, outside its bound. Now the last rest before the climb is the pad when it
+    /// lasted at least as long and the climb is seen to leave it, and every reading is withheld
+    /// otherwise: a logger carried down to the pad and a level the pressure sank to before liftoff
+    /// look alike. No case here reads its apogee outside its bound. Each case runs on the logger's zero and on a
     /// pressure track, quiet and with heights alternating 3.2 m apart, more than half the rise
     /// (2.30 m on a PerfectFlite) though within it (4.61 m).
     #[test]
@@ -3232,7 +3238,7 @@ mod tests {
                 }
             }
         }
-        // The issue's cases, longer at the higher level: withheld, never read low.
+        // Two of the issue's cases and two more, longer at the higher level: withheld, not read low.
         for (above_s, pad_s) in [(5.0, 3.0), (20.0, 10.0), (10.0, 0.8), (10.0, 1.5)] {
             let before = |t: f64| if t < above_s { 30.0 } else { 0.0 };
             for (track, read) in both(above_s + pad_s, 0.0, &before) {
@@ -3279,6 +3285,38 @@ mod tests {
                 "{case}"
             );
         }
+        // A plateau below the start held as long as it or longer, then a step straight back up to
+        // the start's level and the climb from there: the climb isn't seen to leave the plateau,
+        // so withheld. The same plateau climbed from, a level the pressure moved to, is the pad.
+        for (low_m, plateau_s) in [(30.0, 3.0), (30.0, 5.0), (100.0, 3.0), (100.0, 5.0)] {
+            let before = |t: f64| if t < 3.0 { 0.0 } else { -low_m };
+            for (track, read) in both(3.0 + plateau_s, 0.0, &before) {
+                let case = format!("{track}: {plateau_s} s at -{low_m} m, back up at liftoff");
+                assert!(
+                    matches!(
+                        read.apogee.reason(),
+                        Some(Reason::DisturbedPad | Reason::NoClimb)
+                    ),
+                    "{case}: {:?}",
+                    read.apogee
+                );
+            }
+        }
+        let sank = log(38.0, |t| {
+            if t < 3.0 {
+                0.0
+            } else if t < 8.0 {
+                -30.0
+            } else {
+                climb(t - 7.0) - 30.0
+            }
+        });
+        reads(
+            &read(&sank),
+            8.0,
+            -30.0,
+            "zero: 5 s at -30 m, climbed from there",
+        );
         // A level below the pad held for less time than the pad before liftoff, a stretch 30 or
         // 1,000 m low with a short return to the pad, or a plateau ending at liftoff: withheld,
         // as which level is the pad can't be told; never read past its bound.
