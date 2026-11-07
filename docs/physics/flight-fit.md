@@ -385,8 +385,9 @@ flown on to apogee.
 [Set A](synthetic-flights.md#the-sets)'s first 200 synthetic flights are mostly fast. Of them, 51
 were cut, each after the true peak of its vertical speed. Each cut came 0.33 s to 1.48 s after
 burnout. 43 GNSS logs and 106 fast flights were refused. The slowest of those truly peaked at
-221.3 m/s (726 ft/s): the fitted speed reads a little above the true one. One bad reading of 12 to
-100 m (39 to 328 ft), put in at five places on each, moved no cut by more than 0.05 s (measured). Two bad readings side by side can still
+221.3 m/s (726 ft/s): the fitted speed reads a little above the true one. One bad reading, 12, 15, 30 or
+100 m (39 to 328 ft) off, put in one at a time at four places (the pad, the first sample, halfway
+and four fifths through the burn), moved no cut by more than 0.05 s (measured). Two bad readings side by side can still
 cut it early. A test pins the order, the spikes and at least 51 cuts; the counts and times are
 measured.
 
@@ -394,7 +395,7 @@ measured.
 cut with noise, and the prediction stays the same, bit for bit. It runs on three logs, one with a GNSS
 receiver's channels beside its barometer. Letting the prediction read half a second more changes
 it. On those logs the prediction reads no sample logged after the cut. A channel on a clock of its own
-is cut by its times: a sample it stamps in order before the cut is read wherever the file puts it. Run
+is cut by its times: a sample it stamps in order at or before the cut is read wherever the file puts it. Run
 `cargo test -p fusionspace-hpr-forensics boost`. No worked example yet: one waits for a logged
 apogee to compare it with.
 

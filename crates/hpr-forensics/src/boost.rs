@@ -7,11 +7,11 @@
 //! - [`find_cut`] walks the height track forward and decides at each sample from that sample and
 //!   the ones before it. A vertical speed is fitted by least squares over the last
 //!   [`SPEED_WINDOW_S`] of samples, leaving out a sample the analyzer's Hampel rule calls bad: one
-//!   bad reading put in set A's flights moved a cut by 0.05 s at most (measured). Liftoff is where
-//!   that line stands [`LIFTOFF_RISE_M`] above the first window's, and the cut is at the first
-//!   sample where the speed has fallen below its top by [`DROP_SHARE`] of it, and by at least
-//!   [`DROP_FLOOR_M_S`]. After burnout gravity takes about 9.8 m/s off the vertical speed every
-//!   second, drag more, so the log keeps the coast's start.
+//!   bad reading of 12 to 100 m put in set A's flights moved a cut by 0.05 s at most (measured).
+//!   Liftoff is where that line stands [`LIFTOFF_RISE_M`] above the first window's, and the cut is
+//!   at the first sample where the speed has fallen below its top by [`DROP_SHARE`] of it, and by
+//!   at least [`DROP_FLOOR_M_S`]. After burnout gravity takes about 9.8 m/s off the vertical speed
+//!   every second, drag more, so the log keeps the coast's start.
 //! - Everything after that reads the log cut there: its readings, the fit's observations and so
 //!   the fit. The log's own clock is cut at the cut's sample, by position, so a time it logs later
 //!   can't enter. A channel on a clock of its own is cut at its first time past the cut or out of
@@ -608,8 +608,9 @@ mod tests {
     /// fifths of it, 12 m up on the pad, or 15 m down at the first. Measured, not asserted: 51 cut,
     /// 0.33 s to 1.48 s after burnout; 43 GNSS logs and 106 fast ones refused, the slowest of those
     /// at 221.3 m/s; a bad sample made or lost no cut and moved one by 0.05 s at most (and by three
-    /// samples at most, 0.03 s on a 100 Hz log), on 8 of the 785 logs. Set B's first 200, run once,
-    /// not in the test: 57 cut, 0.35 s to 1.55 s after burnout, 34 GNSS and 109 fast refused.
+    /// samples at most, 0.03 s on a 100 Hz log), on 8 of the 785 logs (255 of them on flights that
+    /// are cut). Set B's first 200, run once, not in the test: 57 cut, 0.35 s to 1.55 s after
+    /// burnout, 34 GNSS and 109 fast refused.
     #[test]
     fn the_cut_falls_just_after_the_true_burnout() {
         let latest_s = (DROP_SHARE * readings::TRANSONIC_SPEED_M_S).max(DROP_FLOOR_M_S)
