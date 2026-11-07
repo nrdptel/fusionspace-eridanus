@@ -195,7 +195,8 @@ taken before the rocket moved. Three rules do it, each with a number set from th
    ([an open issue](https://github.com/nrdptel/fusionspace-eridanus/issues/1103)).
 3. **The pad** is the median of the samples up to the last one within half that rise of the start,
    before the climb. Half the rise is 2.30 m (7.6 ft) on a PerfectFlite. The median means that no
-   one sample's jitter sets the pad, and the half rise means the climb lends it few samples.
+   one sample's jitter sets the pad, and the half rise means the climb lends it few samples. A
+   track that rests at two levels before the climb is read as *two levels*, below.
 
 **The pad's error.** A log that starts just before liftoff holds little of the pad, and a rocket
 may already be moving when its first sample is taken. Take a rocket that leaves the pad at $A = 2g$ or
@@ -257,6 +258,19 @@ to the last sample on the pad, with no 90% interval; with none, liftoff is withh
 records that state their apogee, the reading comes within about 0.3 m (1 ft) of it; the first sample as the pad
 reads up to 268.8 m (882 ft) high, the fall's end up to 339.9 m (1,115 ft)
 ([the survey's report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md#disturbed-pads-against-stated-apogees)).
+
+**Two levels.** A logger switched on above the pad and carried down to it rests at two levels, and
+so does a reading the pressure moves before liftoff. The track can't tell the two apart. Where it
+falls as above and the medians of its stay at the start and of its last rest before the climb lie
+more than the rise apart, the pad is that last rest, read back from the rest's end while its
+samples stay within the rise of each other. The gap between the two levels enters the pad's
+error, as either may be the pad, so the bounds hold whichever of the two it was, while the pad's
+noise stays within the rise and bar the short stay below. The pad reported is the last rest's
+level alone ([#1158](https://github.com/nrdptel/fusionspace-eridanus/issues/1158)). A synthetic log resting
+30 m (98 ft) up for 5 s, then 3 s on the pad, reads its 98.1 m (322 ft) apogee as 97.96 m
+(321 ft) on the logger's zero, with a bound of 40.9 m (134 ft)
+(`the_pad_is_the_last_rest_before_the_climb`). The climb is still found from the log's start. A
+fall from the last rest into the climb is a pulse, as one from the start is.
 
 ### Each reading
 
@@ -1370,6 +1384,13 @@ truth beside the logs, that doesn't say how each rocket came down.
   aren't checked for the port's error near the speed of sound. The apogee, read near the top where
   the rocket is slow, stays within its bound on the tuning set, whose fastest flight reaches Mach
   1.12.
+- **A short stay on the pad.** The climb's first rise counts toward a rest, so a short stay on
+  the pad after a carry down is read as a pulse from the higher level. After a 30 m (98 ft) carry
+  and before a 4 g climb, that is up to 0.2 s from the stay's first sample to its last at 20
+  samples a second (0.15 s on a pressure track), up to 0.35 s with the pad's noise 2.3 m
+  (7.5 ft) either side, two samples at 5 and at 3.3 a second, and one at 2.5. The apogee then reads low by
+  the drop, past its bound on a 98 m (322 ft) flight at 20 samples a second for a drop of more
+  than about 10 m (33 ft).
 - **Wide pulses.** A pulse wider than half the median's window passes it. The bounds were held on
   the synthetic flights' pulses, which are shaped like the public Pnut log's and scaled by 0 to 2.
   A wider or taller one isn't covered.
