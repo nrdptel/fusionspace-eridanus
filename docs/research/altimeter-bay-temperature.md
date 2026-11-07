@@ -1,15 +1,16 @@
 # How far an altimeter's own temperature moves between pad and apogee
 
+Re-checked 2026-11-07: 8 claims corrected.
+
 This note asks how far a barometric altimeter's sensor temperature moves from the pad to apogee in hobby flights,
 how fast, and what that does to the pressure reading and the apogee height, with its sign. It builds on
 [altimeter-sensor-noise](altimeter-sensor-noise.md) §2 (the datasheets' tempcos; "no source found measures a bay's
 temperature change in flight") and [altimeter-mach-error](altimeter-mach-error.md) §4–5 (how a vented bay lags).
-Sources are 96 public flight logs that record the sensor's temperature, the makers' datasheets and handling notes,
-one radiosonde paper and textbook heat transfer. **Inference** marks this note's arithmetic (1976 atmosphere, pad at
-sea level unless stated). Read 2026-10-19.
+Sources (read 2026-10-19): 96 public flight logs with the sensor's temperature, datasheets, handling notes, a radiosonde
+paper, heat transfer texts. **Inference** marks this note's arithmetic (1976 atmosphere, sea-level pad unless stated).
 
-**In short.** By apogee the sensor still reads its pad temperature: the temperature term is a few tenths of a meter
-below 4 km, far under the ±8–11 m per-flight band bias of altimeter-sensor-noise §6.
+**In short.** By apogee the sensor still reads its pad temperature: the temperature term is under 0.75 m below
+4 km, far under the ±8–11 m per-flight band bias of altimeter-sensor-noise §6.
 - **The sensor barely moves on the way up.** In 86 logs from commercial altimeters (55 flights, apogees 259 m to
   18.9 km, median 2.3 km), the logged temperature at apogee is within ±0.6 K of the pad's in 76; 10–90% −0.30 to
   +0.60 K. The outside air cools 7–37 K over the same climbs (10–90%), so the sensor sees about 0 ± 3% of it (§2).
@@ -18,10 +19,10 @@ below 4 km, far under the ±8–11 m per-flight band bias of altimeter-sensor-no
 - **The cooling arrives in the descent.** Sealed bays cool a median 0.71 K/min after apogee and land a median 1.0 K
   under the pad (10–90% −6.2 to +0.1 K); a sensor opened to the air at deployment falls 4–34 K within a minute (§3).
 - **Pads are hot.** Pad readings run 3.7–55.8 °C (median 28.5 °C); team-built boards with long pad records warm
-  +2.3 to +13.1 K before launch, most still rising at liftoff (§4).
+  +2.2 to +13.1 K before launch, most still rising at liftoff (§4).
 - **No maker states a sign; the error is either sign (Inference).** At the stated tempcos (0.5–1.5 Pa/K Bosch and
-  Infineon, about 2 Pa/K and at most 4 Pa/K read from the MS5607's bands), 0.6 K is at most 0.27 m at a 3 km apogee;
-  6.7 K at 6 km is at most 4.1 m (0.07%). One typical MS5607 curve gives both signs by where the die sits (§5–7).
+  Infineon; the MS5607's bands' 25 K means 6 Pa/K, 8 below 700 hPa), 0.6 K is at most 0.40 m at a
+  3 km apogee; 6.7 K at 6 km is at most 8.3 m (0.14%). One MS5607 curve gives both signs by where the die sits (§5–7).
 - **Two fixed-sign terms are unsized:** a temperature reading that trails the MS5607's die (+221 Pa per K of lag at
   sea level) and a skipped second-order step below 20 °C. Neither is known to occur in a hobby altimeter (§6).
 
@@ -60,11 +61,10 @@ for the 62 logs that start at liftoff. The air's change is the standard lapse ra
 
 - **Rate.** During the climb, median 0.000 K per 1,000 m (10–90% −0.135 to +0.172 K/km), against −6.5 K/km outside.
 - **High and fast flights warm.** Ten logs read at least +0.5 K at apogee; nine flew over 5 km. The largest, a 6.0 km
-  flight near 650–700 m/s in its first 4 s (**Inference** from its heights), rose +10.5 K in 8 s (1.3 K/s), read
+  flight near 600–650 m/s in its first 4 s (**Inference** from its heights), rose +10.5 K in 8 s (1.3 K/s), read
   +6.7 K at apogee and landed 7.2 K under its pad value. The only clearly colder apogee is −1.25 K (5.2 km).
 - **Two altimeters on one flight** agree at apogee within 0.0–0.4 K (28 groups); their pads differ by up to 7.4 K.
-- **Inference: the altimeter's temperature is not the air's.** At apogee it reads the pad, so an outside-air
-  correction to the height formula cannot use it.
+- **Inference:** reading the pad at apogee, the altimeter's temperature can't stand in for the air's.
 
 ## 3. After apogee: a slow sealed bay, a fast open sensor
 
@@ -72,22 +72,20 @@ for the 62 logs that start at liftoff. The air's change is the standard lapse ra
   789 s after liftoff from 8.6 km. Cooling from apogee to landing: median −0.71 K/min (10–90% −1.56 to +0.08).
 - **The lag outlasts the descent.** In 36 of 67 the coldest reading falls in the last 10% of the descent, while the
   air around it is warming again. A first-order fit relaxing to standard-lapse air gives τ median 1,259 s (10–90%
-  240 s to the fit's 10⁵ s limit). It assumes the bay starts at air temperature, so τ is an order of magnitude
-  (**Inference**).
+  240 s to the fit's 10⁵ s limit); it assumes the bay starts at air temperature, so τ is a rough size (**Inference**).
 - **Fast falls.** Four commercial logs fall 4–34 K within 60 s of apogee (two in one payload section, the CATS Vega,
   one primary altimeter), τ 50–180 s, and a team-built air-brake board 7 K. **Inference:** these sensors met outside
-  air at deployment; the logs don't show how. Still warming at the log's end, two bound how far the pad bay sat above
-  the air: at most 18 and 23 K.
+  air at deployment; the logs don't show how. Still warming at the end, two put the pad bay ≤ 18 and 23 K over the air.
 
 ## 4. The pad
 
-- **Readings** span 3.7–55.8 °C (median 28.5, 10–90% 16.5–40.8 °C); 12 logs start at 40 °C or more. Two altimeters on
-  one flight differ by 0.6–3.0 K on the pad (14 pairs); payload and main bays of one rocket by 3.5–7.4 K.
-- **Soak.** Only team-built boards keep long pad records: seven sensors on five boards warm +2.3 to +13.1 K over
+- **Readings** span 3.7–55.8 °C (median 28.5, 10–90% 16.5–40.8 °C); 12 logs start at 40 °C or more. Altimeters on one
+  flight differ by 0.1–7.4 K on the pad (28 groups; one team's primary and backup 0.6–3.0 K in 14 pairs).
+- **Soak.** Only team-built boards keep long pad records: seven sensors on five boards warm +2.2 to +13.1 K over
   9–91 min, six of them still rising at liftoff (0.06–0.96 K/min over the last 10 min). One warms quickly enough
   (+13.1 K in 13 min) to be power-on self-heating. No commercial log shows a soak trend.
-- **Published:** no paper or team report logs a bay's temperature in flight. A builder estimates 10–40 °F above the
-  outside by airframe color [TRF]; §3's 18–23 K is the same size. Altus Metrum asks for opaque bays (sunlight) [AM].
+- **Published:** no paper or team report logs a bay's temperature in flight. An altimeter maker estimates 10–40 °F above
+  the outside by airframe color [TRF]; §3's 18–23 K is the same size. Altus Metrum asks for opaque bays (sunlight) [AM].
 
 ## 5. What the datasheets state about temperature
 
@@ -100,15 +98,16 @@ for the 62 logs that start at liftoff. The air's change is the standard lapse ra
 | MS5607 | none; ±0.5 / ±1.0 / ±2.5 mbar after a one-point zero | 25 / 0–50 / −20–85 °C | ± | [S1] p. 4 |
 | MS5611 | none; ±0.5 / ±1.0 / ±2.5 / ±5.0 mbar | 25 / 10–50 / −20–85 / −40–85 °C | ± | [S2] p. 4 |
 
-- **The MS5607's bands as a slope (Inference).** From ±0.5 mbar at 25 °C to ±1.0 over 0–50 °C adds 0.5 mbar over
-  25 K: 2 Pa/K. The whole ±1.0 mbar over 25 K, 4 Pa/K, is a ceiling. The wider band also widens pressure to 300 mbar,
-  so part of the 0.5 mbar is not temperature.
+- **The MS5607's bands as a slope (Inference).** ±0.5 mbar at 25 °C widening to ±1.0 over 0–50 °C is about 2 Pa/K.
+  Bands bound the error, not its slope: −0.5 at 25 °C to +1.0 at 0 °C is a mean 6 Pa/K (700–1100 mbar); below
+  700 mbar, no 25 °C band, ±1.0 allows 8 Pa/K; shorter spans allow more. The smooth typical curve [S1] p. 19 slopes
+  about 3–4 Pa/K over short stretches. Part of the band is pressure, not temperature.
 - **Transients.** No maker sizes one. Bosch says that above 3.0 °C/s a correction note applies, from a representative
   [B3] p. 10, [B2] p. 14 (its public link withdrawn in 2019 [B3] p. 19); its internal temperature is "typically above
   ambient" [S3] p. 8; light on the port hole affects the reading [B3] p. 10. TE, Infineon and ST say nothing.
 - **A measurement in flight.** On 36 twin flights, two radiosonde models' pressures drift apart to 0.5–0.6 hPa over
-  the first 5 km [K17] p. 2489 as the air cools about 32 K. The paper blames no cause; if all of it were temperature,
-  about 2 Pa/K, an upper bound (**Inference**).
+  the first 5 km [K17] p. 2489 as the air cools about 32 K; the paper suspects solar heating [K17] p. 2485. If all
+  of it were temperature, the two tempcos would differ by 1.6–1.9 Pa/K, a size for neither (**Inference**).
 
 ## 6. The MS5607's compensation: two fixed-sign terms
 
@@ -131,26 +130,28 @@ for the 62 logs that start at liftoff. The air's change is the standard lapse ra
   14 J for a 54 × 200 mm bay to 3 km. Spread over walls, sled and board, with a board time constant C/(hA) of
   80–8,000 s (C 10–80 J/K, h 2–25 W/m²K [H], A 0.005 m²), the die should move 0.1–2 K by apogee; §2 sits low in it.
 - **Radio self-heating:** about 0.15 W at +15 dBm [TI], at most 0.015 K/s on the board; steady on the pad.
-- **The apogee error** is −k·ΔT·dh/dp, with dh/dp 0.0857, 0.1122 and 0.154 m/Pa at 300 m, 3 km and 6 km.
+- **The apogee error** is −k·ΔT·dh/dp, with dh/dp 0.0857, 0.1122, 0.1246 and 0.154 m/Pa at 300 m, 3, 4 and 6 km;
+  k is taken as 6 Pa/K above 700 hPa (about 3 km) and 8 Pa/K below, the bands' 25 K means (§5).
 
 | Case | ΔT | k, Pa/K | Error at apogee |
 |---|---|---|---|
-| Below 4 km, 10–90% of logs | ±0.6 K | 0.5–4 | ±0.03–0.27 m at 3 km; ≤ ±0.21 m (0.07%) at 300 m; under 0.36 m at 4 km above a 1,500 m pad, up to +15 K (0.6 K, 4 Pa/K) |
-| Over 4 km, typical warm | +0.7 to +2.6 K | 0.5–4 | ±0.05–1.6 m at 6 km (≤ 0.03%) |
-| Largest logged | +6.7 K | 0.5–4 | ±0.5–4.1 m at 6 km (≤ 0.07%) |
-| Stress case | 20 K | 4 | ±6.9 m at 300 m (2.3%), ±9.0 m at 3 km |
+| Below 4 km, 10–90% of logs | ±0.6 K | 0.5–8 | ±0.03–0.40 m at 3 km; ≤ ±0.31 m (0.10%) at 300 m; ≤ 0.60 m at 4 km |
+| 4 km above a 1,500 m pad, +15 K | ±0.6 K | 8 | ≤ 0.72 m |
+| Over 4 km, typical warm | +0.7 to +2.6 K | 0.5–8 | ±0.05–3.2 m at 6 km (≤ 0.05%) |
+| Largest logged | +6.7 K | 0.5–8 | ±0.5–8.3 m at 6 km (≤ 0.14%) |
+| Stress case | 20 K | 6 | ±10.3 m at 300 m (3.4%), ±13.5 m at 3 km |
 
 - **Sign.** Every stated tempco is ± or bare. One typical MS5607 curve [S1] p. 19, read by pixels, moves +16 Pa for a
-  die cooling 5 K from 25 °C and −20 Pa from 10 °C: altitude low in one, high in the other. Use a symmetric bound.
+  die cooling 5 K from 25 °C and about −15 Pa from 10 °C: altitude low in one, high in the other. Use a symmetric bound.
 
 ## What this suggests
 
 1. **M7.2's synthetic logs can keep the temperature term out, now on a measurement.** Below 4 km the term is under
-   0.3 m at apogee from a sea-level pad on a standard day (under 0.36 m from a 1,500 m one at up to +15 K), far under the ±8–11 m band bias. A stress option would draw
-   k_T·ΔT with k_T ±0.5–4 Pa/K and ΔT ±0.6 K below 4 km, 0 to +2.6 K above (+6.7 K rare); the physics page's reason
-   ("no source gives a bay's change") can cite §2 instead.
-2. **apogee-bias's measurement term:** at 4 Pa/K the temperature part is under 0.1% of apogee in all 86 logs
-   (largest 0.07%); the skipped second-order step and the trailing reading are fixed-sign terms of unknown occurrence.
+   0.60 m at apogee from a sea-level pad on a standard day and 0.72 m from a 1,500 m one at +15 K; at 4.8 km above
+   that pad, with +2.5 K (90th percentile of the logs over 4 km), about 3.2 m. All are far under the ±8–11 m band
+   bias. A stress option would draw k_T·ΔT, k_T ±0.5–8 Pa/K, ΔT ±0.6 K below 4 km, 0 to +2.6 K above (+6.7 K rare).
+2. **apogee-bias's measurement term:** at 8 Pa/K the temperature part is under 0.15% of apogee in all 86 logs
+   (largest 0.14%); the skipped second-order step and the trailing reading are fixed-sign terms of unknown occurrence.
 3. **Don't take the altimeter's temperature as the air's** in any height correction or forensic fit: it reads the
    pad (§2). Outside-air temperature has to come from a weather source.
 4. **A temperature-change flag in readings:** a log whose sensor moves over 3 K before apogee, or over 1 K/s, is
@@ -167,10 +168,9 @@ for the 62 logs that start at liftoff. The air's change is the standard lapse ra
 
 ## Sources
 
-Datasheets and handling notes carry no reuse license: cited, cached privately. Logs without a license: statistics
-only, no rows quoted.
-- [S1] TE MS5607-02BA03 (03/2024), pp. 2, 4, 8–9, 19.
-  <https://pages.hmc.edu/spjut/AdvRoc/PDF/MS5607-02BA03DataSheet.pdf>
+Datasheets and handling notes carry no reuse license: cited, cached privately. Unlicensed logs: statistics only.
+- [S1] TE MS5607-02BA03 (03/2024), pp. 2, 4, 8–9, 19; the link serves the 06/2017 edition (same p. 4 and
+  pp. 8–9, curve on p. 18). <https://pages.hmc.edu/spjut/AdvRoc/PDF/MS5607-02BA03DataSheet.pdf>
 - [S2] TE MS5611-01BA03 (06/2017), pp. 4, 8–9, 19.
   <https://www.amsys-sensor.com/downloads/data/MS5611-01BA03-AMSYS-datasheet.pdf>
 - [S3] Bosch BMP390 DS002-07, pp. 7–8; [S4] BMP388 DS001-07, p. 7; [S5] BMP280 DS001-26, Table 2.
