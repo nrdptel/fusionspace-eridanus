@@ -5769,28 +5769,28 @@
             "given": 2,
             "withheld": {
               "clock_out_of_order": 1,
-              "ends_before_landing": 3,
+              "ends_before_landing": 4,
               "needs": 3,
               "no_height_track": 6,
-              "one_canopy": 2,
+              "one_canopy": 1,
               "sampled_too_slowly": 2,
               "short_leg": 1
             }
           },
           "flight_time": {
-            "given": 7,
+            "given": 6,
             "withheld": {
               "clock_out_of_order": 1,
-              "ends_before_landing": 3,
+              "ends_before_landing": 4,
               "no_height_track": 6,
               "receiver_dropout": 3
             }
           },
           "landing": {
-            "given": 7,
+            "given": 6,
             "withheld": {
               "clock_out_of_order": 1,
-              "ends_before_landing": 3,
+              "ends_before_landing": 4,
               "needs": 3,
               "no_height_track": 6
             }
@@ -5804,10 +5804,10 @@
             }
           },
           "main_descent": {
-            "given": 4,
+            "given": 3,
             "withheld": {
               "clock_out_of_order": 1,
-              "ends_before_landing": 3,
+              "ends_before_landing": 4,
               "needs": 3,
               "no_height_track": 6,
               "sampled_too_slowly": 2,
@@ -7593,20 +7593,19 @@
             "given": 3,
             "withheld": {
               "clock_out_of_order": 3,
-              "ends_before_landing": 3,
+              "ends_before_landing": 4,
               "no_height_track": 4,
               "one_canopy": 2,
-              "sampled_too_slowly": 1,
               "short_pad": 3,
               "slower_than_free_coast": 1,
               "unstated_sensor": 11
             }
           },
           "flight_time": {
-            "given": 6,
+            "given": 5,
             "withheld": {
               "clock_out_of_order": 3,
-              "ends_before_landing": 3,
+              "ends_before_landing": 4,
               "no_height_track": 4,
               "short_pad": 3,
               "slower_than_free_coast": 1,
@@ -7614,10 +7613,10 @@
             }
           },
           "landing": {
-            "given": 6,
+            "given": 5,
             "withheld": {
               "clock_out_of_order": 3,
-              "ends_before_landing": 3,
+              "ends_before_landing": 4,
               "no_height_track": 4,
               "short_pad": 3,
               "slower_than_free_coast": 1,
@@ -7638,9 +7637,8 @@
             "given": 5,
             "withheld": {
               "clock_out_of_order": 3,
-              "ends_before_landing": 3,
+              "ends_before_landing": 4,
               "no_height_track": 4,
-              "sampled_too_slowly": 1,
               "short_pad": 3,
               "slower_than_free_coast": 1,
               "unstated_sensor": 11
@@ -7934,7 +7932,7 @@
       },
       {
         "reason": "ends_before_landing",
-        "records": 121,
+        "records": 123,
         "first": "00d315962a4eccb3",
         "invented": null
       },
@@ -8072,7 +8070,7 @@
       },
       {
         "reason": "one_canopy",
-        "records": 181,
+        "records": 180,
         "first": "0040ac8c3e5af57b",
         "invented": null
       },

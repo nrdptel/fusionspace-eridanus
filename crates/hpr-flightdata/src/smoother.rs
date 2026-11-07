@@ -3477,8 +3477,10 @@ mod tests {
     }
 
     /// Good first samples, a low stretch far below them, then seconds on the pad, at 20 and 10
-    /// samples a second: the pad's reach takes in the stretch, so the apogee is withheld, not read
-    /// from it. A small stretch leaves the reading as on the clean log (#1076, #1101).
+    /// samples a second: the apogee is not read from the stretch. The pad is the last rest before
+    /// the climb (#1158), after the stretch, so a deep stretch reads as the clean log does, as a
+    /// small one does (#1076, #1101). Before #1158 the pad's reach took in a deep stretch and the
+    /// apogee was withheld.
     #[test]
     fn a_low_stretch_that_returns_to_the_pad_reads_no_wrong_height() {
         for (every, low) in [(1, 3..15), (2, 2..10)] {
@@ -3491,14 +3493,13 @@ mod tests {
                 }
                 readings::read(&bad).apogee
             };
-            assert!(
-                matches!(with_low(1_000.0), readings::Reading::Withheld(w) if w.reason == readings::Reason::NoClimb)
-            );
-            let height = with_low(30.0).value().unwrap().height_m;
-            assert!(
-                (height - clean_height).abs() < 5.0,
-                "{height} against {clean_height}"
-            );
+            for depth_m in [1_000.0, 30.0] {
+                let height = with_low(depth_m).value().unwrap().height_m;
+                assert!(
+                    (height - clean_height).abs() < 5.0,
+                    "{depth_m}: {height} against {clean_height}"
+                );
+            }
         }
     }
 

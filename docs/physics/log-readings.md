@@ -196,6 +196,15 @@ taken before the rocket moved. Three rules do it, each with a number set from th
 3. **The pad** is the median of the samples up to the last one within half that rise of the start,
    before the climb. Half the rise is 2.30 m (7.6 ft) on a PerfectFlite. The median means that no
    one sample's jitter sets the pad, and the half rise means the climb lends it few samples.
+   A track can fall more than the rise below its start and then rest at the lower level, as a
+   logger does when it is switched on above the pad and carried down to it. Then the pad is the
+   level it rests at last before the climb, however long it rested higher up first. Before this
+   rule ([#1158](https://github.com/nrdptel/fusionspace-eridanus/issues/1158)), a logger that
+   rested 30 m up for 5 s and then on the pad for 3 s took 30 m for the pad, and read a 98.1 m
+   apogee as 68.0 m. That is low, the flattering side, and outside its 8.8 m bound. It now reads
+   98.0 m. The last rest is read back from the climb for as long as its samples stay within the
+   rise of each other. On a long wait the weather may move the reading by more than that, and
+   the pad is then read from the end of the wait.
 
 **The pad's error.** A log that starts just before liftoff holds little of the pad, and a rocket
 may already be moving when its first sample is taken. Take a rocket that leaves the pad at $A = 2g$ or
@@ -251,7 +260,9 @@ counted as pad, every height would read high. Where the filtered track falls bel
 than the rise plus 0.015 m/s (0.05 ft/s) of drift since the log began, then climbs without resting,
 the top speed is withheld (`disturbed_pad`). To rest is to stay within half the rise of one height
 for as long as a rocket at $A$ takes to cross the rise, 0.69 s on a PerfectFlite; a fall to a level
-the track holds is no disturbance. The apogee is still read, from the samples resting before the
+the track holds is no disturbance, and the pad is the last such level ([above](#the-pad-and-the-climb)). A
+stay on the pad shorter than that can't follow a carry down to it, and is read as a pulse at ignition: the
+pad comes from before the fall, or from the logger's zero. The apogee is still read, from the samples resting before the
 fall, else the logger's zero; with no zero, nothing is. Liftoff's bound reaches back over the fall
 to the last sample on the pad, with no 90% interval; with none, liftoff is withheld. On the two such
 records that state their apogee, the reading comes within about 0.3 m (1 ft) of it; the first sample as the pad
