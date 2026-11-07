@@ -1,5 +1,7 @@
 # RocketPy's rocket mass properties
 
+Re-checked 2026-11-07: 5 claims corrected.
+
 RocketPy v1.13.0 (MIT), read from `refs/rocketpy`; paths below are relative to `rocketpy/`. This is
 the reference for M1.4b's comparison ("mass, CG and inertia match RocketPy's example rockets where
 RocketPy exposes them"). RocketPy's `Rocket` takes its own mass, CG and inertia as inputs and adds
@@ -34,18 +36,27 @@ geometry.
 
 ## Example rockets with solid motors
 
-Given as radius (m), mass without motor (kg), `I_11`/`I_33` (kg·m²), CG without motor (m), and
-motor position (m). The rocket is `tail_to_nose` and the motor `nozzle_to_combustion_chamber`
-unless noted.
+Each entry gives radius (m), mass without motor (kg), `I_11`/`I_33` (kg·m²), CG without motor (m)
+and motor position (m), then the motor. The rocket is `tail_to_nose` and the motor
+`nozzle_to_combustion_chamber` unless noted.
 
-| rocket (source) | inputs | motor |
-|---|---|---|
-| Calisto (`docs/notebooks/getting_started.ipynb`) | 0.0635, 14.426, 6.321/0.034, 0, **−1.255** (RocketPy's tests use **−1.373**, `tests/fixtures/rockets/rocket_fixtures.py:50`) | `cesaroni/Cesaroni_M1670.eng`, burn 3.9 s, dry 1.815 kg, dry I 0.125/0.002, dry CG 0.317; 5 BATES grains ρ 1815, R 0.033, r 0.015, h 0.12, gap 0.005, grains CG 0.397 |
-| Bella Lui (`docs/examples/bella_lui_flight_sim.ipynb`) | 0.078, 18.226, 0.78267/0.064244, 0, −1.1356 | `aerotech/AeroTech_K828FJ.eng`, 3 grains; dry mass 0.001, so propellant only |
-| NDRT 2020 (`docs/examples/ndrt_2020_flight_sim.ipynb`), `nose_to_tail`, motor `combustion_chamber_to_nozzle` | 0.1015, 18.998, 73.316/0.15982, 1.3, 3.391 | `cesaroni/Cesaroni_4895L1395-P.eng`, dry 1.848, dry I 0, 5 grains |
-| Valetudo (`docs/examples/valetudo_flight_sim.ipynb`) | 0.04045, 8.257, 3.675/0.007, 0, −1.024 | `projeto-jupiter/keron_thrust_curve.csv`, 6 grains, dry 0.001 |
-| Juno III (`docs/examples/juno3_flight_sim.ipynb`) | 0.0655, 24.05, 15.07/0.067, 0, 0 | `projeto-jupiter/mandioca_thrust_curve.csv` reshaped to 5.8 s and 8800 N·s, 5 grains; nozzle at −1.294, dry and grain CG −0.683, dry mass 1e-11 |
-| Valkyrie (`docs/examples/valkyrie_flight_sim.ipynb`, values from `data/rockets/valkyrie/VLK.json`) | 0.055, 5.65, 1.806/0.0183, 0.844, 0 | `cesaroni/Cesaroni_1997K650-21A.eng`, dry 0.6449 at 0.246, dry I 0.0343/0.0008, 5 grains |
+- **Calisto** (`docs/notebooks/getting_started.ipynb`): 0.0635, 14.426, 6.321/0.034, 0, **−1.255**.
+  RocketPy's tests use **−1.373** (`tests/fixtures/rockets/rocket_fixtures.py:50`). Motor
+  `cesaroni/Cesaroni_M1670.eng`, burn 3.9 s, dry 1.815 kg, dry I 0.125/0.002, dry CG 0.317;
+  5 BATES grains, ρ 1815, R 0.033, r 0.015, h 0.12, gap 0.005, grains CG 0.397.
+- **Bella Lui** (`docs/examples/bella_lui_flight_sim.ipynb`): 0.078, 18.226, 0.78267/0.064244, 0,
+  −1.1356. Motor `aerotech/AeroTech_K828FJ.eng`, 3 grains; dry mass 0.001, so propellant only.
+- **NDRT 2020** (`docs/examples/ndrt_2020_flight_sim.ipynb`), `nose_to_tail`, motor
+  `combustion_chamber_to_nozzle`: 0.1015, 18.998, 73.316/0.15982, 1.3, 3.391. Motor
+  `cesaroni/Cesaroni_4895L1395-P.eng`, dry 1.848, dry I 0, 5 grains.
+- **Valetudo** (`docs/examples/valetudo_flight_sim.ipynb`): 0.04045, 8.257, 3.675/0.007, 0, −1.024.
+  Motor `projeto-jupiter/keron_thrust_curve.csv`, 6 grains, dry 0.001.
+- **Juno III** (`docs/examples/juno3_flight_sim.ipynb`): 0.0655, 24.05, 15.07/0.067, 0, 0. Motor
+  `projeto-jupiter/mandioca_thrust_curve.csv` reshaped to 5.8 s and 8800 N·s, 5 grains; nozzle at
+  −1.294, dry and grain CG −0.683, dry mass 1e-11.
+- **Valkyrie** (`docs/examples/valkyrie_flight_sim.ipynb`, values from
+  `data/rockets/valkyrie/VLK.json`): 0.055, 5.65, 1.806/0.0183, 0.844, 0. Motor
+  `cesaroni/Cesaroni_1997K650-21A.eng`, dry 0.6449 at 0.246, dry I 0.0343/0.0008, 5 grains.
 
 Every thrust file named exists under `refs/rocketpy/data/motors/`. Prometheus uses a
 `GenericMotor`, which models the propellant as a solid cylinder, so it tests a different model.
@@ -69,13 +80,20 @@ The −1.373 value at `t = 0`, 10.516648, matches RocketPy's own pinned test val
 ## Outcome (M1.4b)
 
 - **Fixture.** `validation/oracles/rocketpy/rocket_mass.py` writes
-  `validation/fixtures/design/rocketpy-rocket-mass.json` with seven cases: Calisto at both motor
-  positions, Bella Lui, NDRT 2020, Valetudo, Juno III and Prometheus. M1.5b added Cavour, for its
-  RASAero-labeled drag curve (ADR-009).
+  `validation/fixtures/design/rocketpy-rocket-mass.json`. It now holds ten cases from nine rockets:
+  M1.4b's seven (Calisto at both motor positions, Bella Lui, NDRT 2020, Valetudo, Juno III and
+  Prometheus), Cavour, added in M1.5b for its RASAero-labeled drag curve (ADR-009), and Genesis and
+  Lince, added in M2.3b for their logged flights. The test checks that its design list
+  (`ROCKETPY_DESIGNS`, ten entries) matches the fixture's cases. Cavour, Genesis and Lince have
+  massless motor dry parts; their designs give the motor 1e-15 kg, since hpr needs a positive one.
   - Prometheus's `GenericMotor` is hpr's propellant column: a fixed center, solid-cylinder inertia,
     and impulse-fraction consumption (`motors/motor.py:470-524`, `:1566-1661`).
-  - Valkyrie is left out. Its inputs exist only in `data/rockets/valkyrie/VLK.json`, and RocketPy's
-    data files carry their own terms.
+  - Left out: Valkyrie, whose inputs exist only in `data/rockets/valkyrie/VLK.json`, and Andromeda,
+    Astra, Camoes and Erebus 11, whose motors test only the propellant. ADR-007 takes inputs only
+    from RocketPy's notebooks and tests, since its data files "carry their own terms".
+  - **Inference:** that policy is caution, not a sourced term. RocketPy has one MIT license with no
+    data exception; team permissions are recorded in one data folder (`data/rockets/juno3/README.txt`)
+    and in 14 of the 17 example notebooks.
 - **Curves.** RocketPy's thrust files are data files too. Each case keeps the example's inputs but
   uses the bundled public-domain curve nearest in impulse (ADR-007).
   - Values at ignition don't depend on the curve, and at burnout they agree to 1e-9. So hpr's
@@ -85,11 +103,11 @@ The −1.373 value at `t = 0`, 10.516648, matches RocketPy's own pinned test val
 - **Calisto's tests rocket** has no geometry in RocketPy's tests, so its design takes the
   `calisto_robust` fixture's surfaces, about 0.118 m aft of the notebook's.
 - **Agreement** (`hpr_design::config::tests::matches_rocketpy_example_rockets`):
-  - Dry scalars match to 2e-16, and the products of inertia are exactly zero.
+  - Dry scalars, and initial and column propellant mass, match to 2.4e-16, and the products of inertia are exactly zero.
   - At RocketPy's LSODA knots, where its grain geometry holds computed values: mass, center and
     inertia match to 8e-10, and propellant mass to 2.4e-9. That is the solver's accuracy.
   - Between knots, on an even grid: mass to 1.3e-5 (Lince), center to 3.6e-6 of the length, `I_11` to
     2.6e-5 and `I_33` to 1.4e-5.
   - That residual is RocketPy's resampling. `SolidMotor` interpolates grain volumes linearly
-    between LSODA knots (`motors/solid_motor.py:375-383`, `:603-630`). `GenericMotor` samples its
+    between LSODA knots (`motors/solid_motor.py:385-399`, `:603-630`). `GenericMotor` samples its
     inertias at thrust knots.
