@@ -1385,9 +1385,10 @@ truth beside the logs, that doesn't say how each rocket came down.
   the rocket is slow, stays within its bound on the tuning set, whose fastest flight reaches Mach
   1.12.
 - **A short stay on the pad.** The climb's first rise counts toward a rest, so a short stay on
-  the pad after a carry down is read as a pulse from the higher level: up to 0.2 s before a 4 g
-  climb at 20 samples a second (0.15 s on a pressure track), up to 0.35 s where the pad's noise
-  nearly fills the rise, and one or two samples at 2.5 a second. The apogee then reads low by the
+  the pad after a carry down is read as a pulse from the higher level: up to 0.2 s from its first
+  sample to its last before a 4 g climb at 20 samples a second (0.15 s on a pressure track), up to
+  0.35 s where the pad's noise nearly fills the rise, two samples at 3 to 5 a second and one at
+  2.5. The apogee then reads low by the
   drop, past its bound on a 98 m (322 ft) flight for a drop of more than about 10 m (33 ft).
 - **Wide pulses.** A pulse wider than half the median's window passes it. The bounds were held on
   the synthetic flights' pulses, which are shaped like the public Pnut log's and scaled by 0 to 2.
