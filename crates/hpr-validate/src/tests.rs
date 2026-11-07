@@ -2805,6 +2805,9 @@ fn the_validated_range_is_the_fastest_public_reference() {
         "flight-residuals.json",
         // The fit's intervals on synthetic flights, counted by parameter: no Mach number in it.
         "fit-intervals.json",
+        // Apogee from the boost on the flights `real-flights.json` already holds: its one Mach
+        // number a flight, the forward simulation's top, restates that report's.
+        "from-boost.json",
         // The slices of the synthetic flights, two logs (M0.16a1) and the fit (M0.16a2): each
         // flight's lines as text, hpr's own flights with no reference, as in the reports they sit
         // beside.
@@ -2855,6 +2858,11 @@ fn the_validated_range_is_the_fastest_public_reference() {
         "latest.json compares no top Mach number"
     );
     assert_eq!(mach_keys(&read("real-flights.json")), ["hpr_max_mach"]);
+    assert_eq!(
+        mach_keys(&read("from-boost.json")),
+        ["forward_max_mach"],
+        "from-boost.json: real-flights.json's own top Mach numbers; a reference's key belongs above"
+    );
     assert_eq!(
         mach_keys(&read("guide-rocket-cp.json")),
         ["angle_mach", "by_mach", "fins_supersonic_mach", "mach"],

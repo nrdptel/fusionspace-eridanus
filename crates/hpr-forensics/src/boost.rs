@@ -214,22 +214,56 @@ fn in_order_count(times: &[f64], cut_s: f64) -> usize {
 /// [gnss]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/gnss-in-boost.md
 #[must_use]
 pub fn find_cut(log: &FlightLog) -> Option<Cut> {
+    try_cut(log).ok()
+}
+
+/// Why [`find_cut`] finds no cut in a log, in the order it decides.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub enum NoCut {
+    /// The log holds no height track.
+    NoTrack,
+    /// Its track is a GNSS receiver's.
+    Gnss,
+    /// A [`SPEED_WINDOW_S`] of it holds more samples than the analyzer's fastest rate allows.
+    TooFast,
+    /// No [`SPEED_WINDOW_S`] of it holds [`readings::SPEED_MIN_SAMPLES`]: a log slower than 8 Hz.
+    TooSparse,
+    /// Its fitted line never stands [`LIFTOFF_RISE_M`] above the first.
+    NeverLifted,
+    /// Its fitted speed reached [`readings::TRANSONIC_SPEED_M_S`] before any cut.
+    Transonic {
+        /// The end of the window that reached it, s on the log's clock.
+        time_s: f64,
+        /// That window's fitted speed, m/s.
+        speed_m_s: f64,
+    },
+    /// Its speed never fell by [`DROP_SHARE`] of its top and [`DROP_FLOOR_M_S`].
+    NeverSlowed,
+}
+
+/// [`find_cut`]'s cut, or why there is none.
+///
+/// # Errors
+///
+/// [`NoCut`]: the first of the finder's refusals the log meets.
+pub fn try_cut(log: &FlightLog) -> Result<Cut, NoCut> {
     // On a log with its own clock the track is that clock's: its channels are never read here.
     let ordered = if log.time_s.is_empty() {
         Cow::Owned(in_order(log))
     } else {
         Cow::Borrowed(log)
     };
-    if readings::height_track_source(&ordered)? == readings::Source::Gnss {
-        return None;
+    if readings::height_track_source(&ordered).ok_or(NoCut::NoTrack)? == readings::Source::Gnss {
+        return Err(NoCut::Gnss);
     }
-    let (times, heights) = readings::height_track(&ordered)?;
+    let (times, heights) = readings::height_track(&ordered).ok_or(NoCut::NoTrack)?;
     let most = most_in(SPEED_WINDOW_S);
     let mut last_s = f64::NEG_INFINITY;
     let mut window: VecDeque<(f64, f64)> = VecDeque::new();
     let mut pad_m: Option<f64> = None;
     let mut lifted = false;
     let mut top: Option<(f64, f64)> = None;
+    let mut full = false;
     for (index, (&t, &h)) in times.iter().zip(&heights).enumerate() {
         // A sample out of order or not a number is passed over, as it is read.
         if !t.is_finite() || !h.is_finite() || t <= last_s {
@@ -242,11 +276,12 @@ pub fn find_cut(log: &FlightLog) -> Option<Cut> {
         }
         // Faster than the analyzer reads a log: refused, which also bounds each sample's work.
         if window.len() > most {
-            return None;
+            return Err(NoCut::TooFast);
         }
         if window.len() < readings::SPEED_MIN_SAMPLES {
             continue;
         }
+        full = true;
         let Some((speed, level)) = robust_line(&window) else {
             continue;
         };
@@ -259,12 +294,15 @@ pub fn find_cut(log: &FlightLog) -> Option<Cut> {
         }
         // The analyzer's transonic speed: a barometer's speed this fast may be the flow's.
         if speed >= readings::TRANSONIC_SPEED_M_S {
-            return None;
+            return Err(NoCut::Transonic {
+                time_s: t,
+                speed_m_s: speed,
+            });
         }
         match top {
             Some((best, at)) if speed <= best => {
                 if best - speed >= (DROP_SHARE * best).max(DROP_FLOOR_M_S) {
-                    return Some(Cut {
+                    return Ok(Cut {
                         index,
                         time_s: t,
                         top_speed_s: at,
@@ -275,7 +313,11 @@ pub fn find_cut(log: &FlightLog) -> Option<Cut> {
             _ => top = Some((speed, t)),
         }
     }
-    None
+    Err(match (full, lifted) {
+        (false, _) => NoCut::TooSparse,
+        (true, false) => NoCut::NeverLifted,
+        (true, true) => NoCut::NeverSlowed,
+    })
 }
 
 /// The most samples a trailing window of `span_s` holds on a log sampled no faster than the
@@ -351,17 +393,43 @@ pub struct Prediction {
     /// The fitted flight's apogee, m above the pad: the height climbed, not what a barometer reads
     /// for it.
     pub apogee_above_pad_m: f64,
+    /// The fitted flight's height at its apogee as the log's sensor reads it, m above the pad: a
+    /// barometer's reading of the day's pressure there, or the height climbed for a sensor of
+    /// height. What a log's own apogee is compared with.
+    pub apogee_reading_m: f64,
+}
+
+/// Why a log gives no prediction.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub enum Unpredicted {
+    /// The finder found no cut, and why.
+    NoCut(NoCut),
+    /// The log up to the cut holds too little to fit: no pad or liftoff read, or no more bins of
+    /// [`fit::BIN_S`] with a sample, from a second before liftoff, than the fit has unknowns (11).
+    /// A log cut within 2 s of its liftoff can't hold 12, nor a later one logged from liftoff only.
+    NothingToFit(Cut),
+    /// The fit came back with what was stated: its residual more than [`fit::MISFIT_SHARE`] of the
+    /// spread of the heights it read (`misfit_share`), or a flight it couldn't fly.
+    NotFitted {
+        /// The cut.
+        cut: Cut,
+        /// The fit's residual as a share of the heights' spread, where it came to one.
+        misfit_share: Option<f64>,
+    },
+    /// The fitted flight reaches no apogee within [`APOGEE_HORIZON_S`], or can't be flown.
+    NoApogee(Cut),
 }
 
 /// What the prediction reads of `log`, and the log it read: the log [`truncated`] at the cut
 /// and `extra` samples of its track past it (none but in the test's probe).
-fn read_to_cut(log: &FlightLog, extra: usize) -> Option<(Cut, Observations)> {
-    let cut = find_cut(log)?;
+fn read_to_cut(log: &FlightLog, extra: usize) -> Result<(Cut, Observations), Unpredicted> {
+    let cut = try_cut(log).map_err(Unpredicted::NoCut)?;
+    let nothing = Unpredicted::NothingToFit(cut);
     let to_s = match extra {
         0 => cut.time_s,
         _ => {
-            let (times, _) = readings::height_track(&in_order(log))?;
-            *times.get(cut.index + extra)?
+            let (times, _) = readings::height_track(&in_order(log)).ok_or(nothing)?;
+            *times.get(cut.index + extra).ok_or(nothing)?
         }
     };
     // On the log's own clock, the track the finder read, the cut is by position.
@@ -371,24 +439,28 @@ fn read_to_cut(log: &FlightLog, extra: usize) -> Option<(Cut, Observations)> {
         truncated_at(log, cut.index + extra + 1, to_s)
     };
     let read = readings::read(&boost);
-    let kind = HeightKind::of(read.source?);
+    let kind = HeightKind::of(read.source.ok_or(nothing)?);
     // The probe reads its extra sample into the fit, past the whole bins the prediction keeps to.
-    let observed = fit::observations_until(&boost, &read, to_s.next_up(), kind, extra == 0)?;
-    Some((cut, observed))
+    let observed =
+        fit::observations_until(&boost, &read, to_s.next_up(), kind, extra == 0).ok_or(nothing)?;
+    Ok((cut, observed))
 }
 
 /// Apogee predicted from `log` cut just after burnout: the boost fitted by [`fit::fit`], each
 /// parameter held to what `stated` gives for the boost's observations, then flown on by `forward`
-/// to its apogee. `None` where the log has no cut, the boost says nothing to fit, or the fitted
-/// flight doesn't reach an apogee within [`APOGEE_HORIZON_S`]. The fit's own `converged` says
-/// whether it settled.
-#[must_use]
+/// to its apogee. The fit's own `converged` says whether it settled.
+///
+/// # Errors
+///
+/// [`Unpredicted`]: why there is no prediction, where the log has no cut, the boost says nothing
+/// to fit, the fit keeps to what was stated, or the fitted flight doesn't reach an apogee within
+/// [`APOGEE_HORIZON_S`].
 pub fn predict(
     log: &FlightLog,
     stated: impl FnOnce(&Observations) -> Stated,
     noise: Noise,
     forward: &mut dyn Forward,
-) -> Option<Prediction> {
+) -> Result<Prediction, Unpredicted> {
     predict_reading(log, 0, stated, noise, forward)
 }
 
@@ -398,20 +470,82 @@ fn predict_reading(
     stated: impl FnOnce(&Observations) -> Stated,
     noise: Noise,
     forward: &mut dyn Forward,
-) -> Option<Prediction> {
+) -> Result<Prediction, Unpredicted> {
     let (cut, observed) = read_to_cut(log, extra)?;
     let fit = fit::fit(Some(&observed), &stated(&observed), noise, forward);
     if !fit.fitted {
-        return None;
+        return Err(Unpredicted::NotFitted {
+            cut,
+            misfit_share: fit.misfit_share,
+        });
     }
-    let flown = forward.fly(&fit.parameters, APOGEE_HORIZON_S).ok()?;
-    let (apogee_s, apogee_above_pad_m) = flown.top()?;
-    Some(Prediction {
+    let no_apogee = Unpredicted::NoApogee(cut);
+    let flown = forward
+        .fly(&fit.parameters, APOGEE_HORIZON_S)
+        .map_err(|_| no_apogee)?;
+    let (apogee_s, apogee_above_pad_m) = flown.top().ok_or(no_apogee)?;
+    let apogee_reading_m = flown.top_reading_m(observed.kind).ok_or(no_apogee)?;
+    Ok(Prediction {
         cut,
         fit,
         apogee_s,
         apogee_above_pad_m,
+        apogee_reading_m,
     })
+}
+
+/// The exact sign-flip interval on the center of `differences`, at a coverage of at least
+/// `level`: the paired difference of two methods' errors on the same flights, where a bootstrap
+/// undercovers on a few ([ADR-257][adr-257] §3).
+///
+/// The sign-flip test of a center `μ` takes the `2ⁿ` ways of flipping the signs of `dᵢ − μ` as
+/// equally likely, as they are when each difference is drawn from a distribution symmetric about
+/// `μ` and independent. Inverted, it gives Hartigan's interval (J. A. Hartigan, "Using subsample values as typical
+/// values", *J. Am. Stat. Assoc.* 64, 1969, pp. 1303–1317, Theorem 1): the means of the `2ⁿ − 1`
+/// non-empty subsets of the differences cut the line into `2ⁿ` intervals, each holding the
+/// center with probability `2⁻ⁿ`. From the `k`-th smallest subset mean to the `k`-th largest
+/// holds it with probability `1 − 2k/2ⁿ`, for independent differences each symmetric about it, so
+/// `k` is the largest whole number with
+/// `2k/2ⁿ ≤ 1 − level`. Where `k` is 0, no pattern of signs is rare enough to reject anything:
+/// the interval is the whole line, `(−∞, ∞)`, as it is at 95% for 5 flights or fewer.
+///
+/// Returns `None` for no differences, more than 20 (a million subsets), a level not inside 0 to
+/// 1, or a difference that isn't a number.
+///
+/// [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
+#[must_use]
+pub fn sign_flip_interval(differences: &[f64], level: f64) -> Option<(f64, f64)> {
+    let n = differences.len();
+    if n == 0
+        || n > 20
+        || !(level > 0.0 && level < 1.0)
+        || differences.iter().any(|d| !d.is_finite())
+    {
+        return None;
+    }
+    let patterns = 1_u32 << n;
+    // The largest k with 2k ≤ (1 − level)·2ⁿ.
+    #[expect(
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss,
+        reason = "a count below 2^20, rounded down from a positive product"
+    )]
+    let k = ((1.0 - level) * f64::from(patterns) / 2.0).floor() as usize;
+    if k == 0 {
+        return Some((f64::NEG_INFINITY, f64::INFINITY));
+    }
+    let mut means: Vec<f64> = (1..patterns)
+        .map(|subset| {
+            let (sum, count) = differences
+                .iter()
+                .enumerate()
+                .filter(|(i, _)| subset & (1 << i) != 0)
+                .fold((0.0, 0_u32), |(sum, count), (_, d)| (sum + d, count + 1));
+            sum / f64::from(count)
+        })
+        .collect();
+    means.sort_by(f64::total_cmp);
+    Some((means[k - 1], means[means.len() - k]))
 }
 
 #[cfg(test)]
@@ -576,6 +710,10 @@ mod tests {
             );
             assert_eq!(noisy.apogee_s.to_bits(), clean.apogee_s.to_bits());
             assert_eq!(
+                noisy.apogee_reading_m.to_bits(),
+                clean.apogee_reading_m.to_bits()
+            );
+            assert_eq!(
                 noisy.fit.parameters.to_array().map(f64::to_bits),
                 clean.fit.parameters.to_array().map(f64::to_bits)
             );
@@ -605,7 +743,8 @@ mod tests {
     /// burnout, before apogee, and within 2.83 s of burnout: the time the largest fall the cut
     /// needs takes under gravity alone, plus a window. Each cut found on a log with one bad sample
     /// put in passes the same checks: 100 m or 15 m up halfway through the burn, 30 m down at four
-    /// fifths of it, 12 m up on the pad, or 15 m down at the first. Measured, not asserted: 51 cut,
+    /// fifths of it, 12 m up on the pad, or 15 m down at the first. A GNSS log is refused as one, and
+    /// any other uncut log for its speed. Measured, not asserted: 51 cut,
     /// 0.33 s to 1.48 s after burnout; 43 GNSS logs and 106 fast ones refused, the slowest of those
     /// at 221.3 m/s; a bad sample made or lost no cut and moved one by 0.05 s at most (and by three
     /// samples at most, 0.03 s on a 100 Hz log), on 8 of the 785 logs (255 of them on flights that
@@ -622,7 +761,7 @@ mod tests {
             let flight = flyer.flight(Set::A, k).expect("set A's flights fly");
             let cut = find_cut(&flight.log);
             if flight.draw.logger.profile == Profile::GnssTracker {
-                assert_eq!(cut, None, "flight {k}: a GNSS track is cut");
+                assert_eq!(try_cut(&flight.log), Err(NoCut::Gnss), "flight {k}");
                 continue;
             }
             let peak = flight
@@ -654,11 +793,18 @@ mod tests {
                     cut_count += 1;
                     check(cut, "");
                 }
-                None => assert!(
-                    peak.vertical_speed_m_s >= 0.9 * readings::TRANSONIC_SPEED_M_S,
-                    "flight {k}, its top {} m/s, has no cut",
-                    peak.vertical_speed_m_s
-                ),
+                None => {
+                    assert!(
+                        peak.vertical_speed_m_s >= 0.9 * readings::TRANSONIC_SPEED_M_S,
+                        "flight {k}, its top {} m/s, has no cut",
+                        peak.vertical_speed_m_s
+                    );
+                    assert!(
+                        matches!(try_cut(&flight.log), Err(NoCut::Transonic { speed_m_s, .. })
+                            if speed_m_s >= readings::TRANSONIC_SPEED_M_S),
+                        "flight {k}: refused, but not for its speed"
+                    );
+                }
             }
             let burn_s = pad_s + events.burnout_s;
             for (at_s, by_m) in [
@@ -682,7 +828,7 @@ mod tests {
         assert!(cut_count >= 51, "{cut_count} cut");
     }
 
-    /// A hostile log is refused without a panic: no samples, one,
+    /// A hostile log is refused without a panic, and each refusal names its reason: no samples, one,
     /// times all equal, not numbers or infinite, heights at the float's edge, and a log sampled
     /// every microsecond, faster than the analyzer reads, 200,000 samples refused at its first
     /// window.
@@ -726,5 +872,97 @@ mod tests {
         for log in &cases {
             assert_eq!(find_cut(log), None);
         }
+        // And says why: the dense log reads too fast; a steady climb logged at 5 Hz too sparse, at
+        // 20 Hz never slowing, and a log at rest at 20 Hz never lifting off.
+        assert_eq!(try_cut(&cases[5]), Err(NoCut::TooFast));
+        let (t, h) = climb(100, 0.2);
+        assert_eq!(try_cut(&with(t, h)), Err(NoCut::TooSparse));
+        let (t, h) = climb(400, 0.05);
+        assert_eq!(try_cut(&with(t.clone(), h)), Err(NoCut::NeverSlowed));
+        assert_eq!(try_cut(&with(t, vec![0.0; 400])), Err(NoCut::NeverLifted));
+    }
+
+    /// The two one-sided p-values of the sign-flip test of the center `mu`, every pattern of signs
+    /// counted: the share of patterns whose sum of `dᵢ − μ` is at most the observed one's, and at
+    /// least.
+    fn sign_flip_p(differences: &[f64], mu: f64) -> (f64, f64) {
+        let n = differences.len();
+        let observed: f64 = differences.iter().map(|d| d - mu).sum();
+        let (mut low, mut high) = (0_u32, 0_u32);
+        for pattern in 0..(1_u32 << n) {
+            let sum: f64 = differences
+                .iter()
+                .enumerate()
+                .map(|(i, d)| {
+                    if pattern & (1 << i) == 0 {
+                        d - mu
+                    } else {
+                        mu - d
+                    }
+                })
+                .sum();
+            low += u32::from(sum <= observed);
+            high += u32::from(sum >= observed);
+        }
+        let all = f64::from(1_u32 << n);
+        (f64::from(low) / all, f64::from(high) / all)
+    }
+
+    /// Up to 5 differences no pattern of signs is rare enough at 95%: the whole line. At 6 the
+    /// interval runs from the least to the greatest, holding the center with probability
+    /// `1 − 2/64`. At 7 and 9 each end is where the test, every pattern counted, first rejects at
+    /// 2.5% a side: a center just inside holds both p-values above 2.5%, one just outside doesn't.
+    #[test]
+    fn the_sign_flip_interval_is_the_tests_inversion() {
+        let five = [1.0, -2.0, 3.5, 0.25, 7.0];
+        assert_eq!(
+            sign_flip_interval(&five, 0.95),
+            Some((f64::NEG_INFINITY, f64::INFINITY))
+        );
+        let six = [1.0, -2.0, 3.5, 0.25, 7.0, -0.5];
+        assert_eq!(sign_flip_interval(&six, 0.95), Some((-2.0, 7.0)));
+        for differences in [
+            vec![-3.1, 0.4, 2.2, -0.7, 5.3, 1.9, -1.2],
+            vec![0.3, -4.2, 1.1, 2.7, -0.2, 3.3, 6.1, -2.4, 0.9],
+        ] {
+            let (low, high) = sign_flip_interval(&differences, 0.95).expect("an interval");
+            assert!(low.is_finite() && high.is_finite() && low < high);
+            let step = 1e-9;
+            for (mu, inside) in [
+                (low + step, true),
+                (high - step, true),
+                (low - step, false),
+                (high + step, false),
+            ] {
+                let (p_low, p_high) = sign_flip_p(&differences, mu);
+                assert_eq!(
+                    p_low > 0.025 && p_high > 0.025,
+                    inside,
+                    "{differences:?} at {mu}: p {p_low}, {p_high}"
+                );
+            }
+        }
+        assert_eq!(sign_flip_interval(&[], 0.95), None);
+        assert_eq!(sign_flip_interval(&[1.0, f64::NAN], 0.95), None);
+        assert_eq!(sign_flip_interval(&six, 1.0), None);
+    }
+
+    /// On 20,000 draws of 7 differences from a symmetric distribution about 0.3 (a uniform one, on
+    /// a fixed stream), the interval holds the center about `1 − 6/128 = 95.3%` of the time:
+    /// within 0.8 points, five standard errors. Narrowed by one subset mean a side it would hold
+    /// it `1 − 8/128 = 93.75%` of the time, which the band excludes.
+    #[test]
+    fn the_sign_flip_interval_covers_as_it_states() {
+        let mut draw = draws();
+        let trials = 20_000;
+        let mut held = 0_u32;
+        for _ in 0..trials {
+            let differences: Vec<f64> = (0..7).map(|_| 0.3 + draw() / 2_500.0).collect();
+            let (low, high) = sign_flip_interval(&differences, 0.95).expect("an interval");
+            held += u32::from(low <= 0.3 && 0.3 <= high);
+        }
+        let share = f64::from(held) / f64::from(trials);
+        assert!((share - (1.0 - 6.0 / 128.0)).abs() < 0.008, "held {share}");
+        assert!(share > 1.0 - 8.0 / 128.0 + 0.008, "held {share}");
     }
 }

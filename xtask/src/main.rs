@@ -46,6 +46,7 @@ mod fixture_flights;
 mod flight_residuals;
 mod format;
 mod format_types;
+mod from_boost;
 mod ghost;
 mod grib2;
 mod guides;
