@@ -1,7 +1,7 @@
 # ADR-325: M7.3d2, apogee predicted from the boost on the public flights (2026-11-07)
 
 - **Status:** accepted; carries out [ADR-321][adr-321]'s M7.3d2 and [ADR-257][adr-257] §3's report on the 7 public logged flights; `hpr_forensics::boost::predict` now says why it gives no prediction.
-- **Summary:** The 7 public flights' logs are fitted whole and up to the boost's cut, in each flight's ERA5 air, with a wind of ERA5's averaged over the climb. Two flights get a prediction, missing the logged apogee by 3.03% on average where the forward simulation misses by 6.89%. Only NDRT 2020's is the case the method is meant for, cut after its burn on a log under the transonic limit: −3.88% against +10.40%. Hartigan's exact sign-flip interval on the difference is unbounded below 6 flights. On real barometers the cut can fall inside the burn, as 3 of the 5 cuts do, Lince's among them: measured and reported, not fixed here (#1307).
+- **Summary:** The 7 public flights' logs are fitted whole and up to the boost's cut, in each flight's ERA5 air, with ERA5's wind averaged in height from the pad to apogee. Two flights get a prediction, with a mean absolute miss of 3.03% where the forward simulation's is 6.89%. Only NDRT 2020's is the case the method is meant for, cut after its burn on a log under the transonic limit: −3.88% against +10.40%. Hartigan's exact sign-flip interval on the difference is unbounded below 6 flights. On real barometers the cut can fall inside the burn: 4 of the 5 cuts do (Bella Lui's at its end), Lince's among them, measured and reported, not fixed here (#1307).
 
 [adr-257]: 0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 [adr-316]: 0316-m7-3b-the-least-squares-fit.md
@@ -69,7 +69,9 @@ the cut falling early on real barometers.
    once). The fix needs its own test on logs with such dips ([#1307][i1307]). Until then the
    report lists each cut that comes less than its thrust file's burn after liftoff, and each
    flight whose log, read whole, climbs at or past the transonic limit: a cut before that speed
-   on such a log came on a dip, not at burnout. Lince's is both. The summary gives its means
+   on such a log came on a dip, not at burnout. Lince's and Prometheus's are both; a log whose top
+   speed the analyzer withholds for another reason (Juno III's spike) isn't counted in the
+   method's case either. The summary gives its means
    twice: over every prediction, as the library gives it, and over the case the method is meant
    for, a cut after the burn on a log that stays under the limit. On these flights that case is
    NDRT 2020 alone.

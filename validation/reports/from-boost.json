@@ -422,7 +422,7 @@
       "same_flight_m": 0.0,
       "burn_time_s": 5.68969571230982,
       "liftoff_s": 0.55,
-      "log_past_transonic": false,
+      "log_past_transonic": null,
       "stated_wind_m_s": [
         13.042902651471163,
         7.0595894249827165
@@ -894,6 +894,9 @@
       "cavour",
       "genesis",
       "lince"
+    ],
+    "top_speed_unread": [
+      "juno-iii"
     ],
     "forward_all_mean_absolute_percent": 6.058557095957765,
     "forward_all_mean_percent": -0.2238069136331656

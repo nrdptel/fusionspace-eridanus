@@ -19,11 +19,11 @@ Written by `cargo xtask real-flights` ([M7.3d2][m7-3d], decisions [ADR-257][adr-
 
 ## Summary
 
-- Every flight with a prediction, 2 (ndrt-2020, lince): the prediction's mean absolute apogee error is 3.03% (-0.85% with its sign); the forward simulation's on the same flights 6.89% (+6.89% with its sign); the fit's model at what was stated, nothing fitted, 5.07% (+5.07% with its sign). The prediction's absolute error less the forward simulation's is -3.86 percentage points on average; its exact sign-flip interval: unbounded, as on 2 flights no pattern of signs is rare enough at 95% (it takes 6 flights).
+- Every flight with a prediction, as the library gives it, the method's case and the rest together, 2 (ndrt-2020, lince): the prediction's mean absolute apogee error is 3.03% (-0.85% with its sign); the forward simulation's on the same flights 6.89% (+6.89% with its sign); the fit's model at what was stated, nothing fitted, 5.07% (+5.07% with its sign). The prediction's absolute error less the forward simulation's is -3.86 percentage points on average; its exact sign-flip interval: unbounded, as on 2 flights no pattern of signs is rare enough at 95% (it takes 6 flights).
 - In the case the method is meant for, 1 (ndrt-2020): the prediction's mean absolute apogee error is 3.88% (-3.88% with its sign); the forward simulation's on the same flights 10.40% (+10.40% with its sign); the fit's model at what was stated, nothing fitted, 6.57% (+6.57% with its sign). The prediction's absolute error less the forward simulation's is -6.52 percentage points on average; its exact sign-flip interval: unbounded, as on 1 flight no pattern of signs is rare enough at 95% (it takes 6 flights).
 - Set beside the forward simulation's, the stated model's error shows what the fit's constant wind alone moves; beside the prediction's, what the fit to the boost moves.
 - Cut less than the thrust file's burn after liftoff: bella-lui, prometheus-2022, juno-iii, lince. The finder can read a dip in a barometer's fitted speed during the boost as burnout ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)).
-- Climbing at or past 227.7 m/s, the log read whole: prometheus-2022, cavour, genesis, lince. A cut before that speed on such a log came on a dip, not at burnout.
+- Climbing at or past 227.7 m/s, the log read whole: prometheus-2022, cavour, genesis, lince. A cut before that speed on such a log came on a dip, not at burnout. Top speed not read, withheld for another reason, so not in the method's case: juno-iii.
 - The forward simulation on all 7 flights: mean absolute apogee error 6.06% (-0.22% with its sign).
 
 ## The prediction
@@ -49,7 +49,7 @@ Times are on the log's clock; the burn is the thrust file's, as flown.
 | Bella Lui, EPFL Rocket Team, 2020 (K828FJ) | 0.21 | 2.46 | 91.5 | 2.43 | yes | no | 0.264 |
 | NDRT 2020, Notre Dame Rocketry Team (L1395) | 0.49 | 4.84 | 161.9 | 3.43 | no | no | 0.536 |
 | Prometheus, Western Engineering, Spaceport America Cup 2022 (M1520) | 0.23 | 2.02 | 61.9 | 4.88 | yes | yes | 0.959 |
-| Juno III, Projeto Jupiter, Spaceport America Cup 2023 (the team's motor) | 0.55 | 1.35 | 131.3 | 5.69 | yes | no | 0.733 |
+| Juno III, Projeto Jupiter, Spaceport America Cup 2023 (the team's motor) | 0.55 | 1.35 | 131.3 | 5.69 | yes | not read | 0.733 |
 | Cavour, Politecnico di Torino, EuRoC 2023 (L995) | 0.20 | none | none | 3.60 | none | yes | 0.933 |
 | Genesis, EuRoC 2023 (L995) | 0.25 | none | none | 3.60 | none | yes | 0.854 |
 | Lince, EuRoC 2023 (M1101) | 0.18 | 2.58 | 224.1 | 4.67 | yes | yes | 0.993 |
@@ -69,7 +69,7 @@ Each parameter is held to a normal distribution about its middle, as on the synt
 
 ## The fits
 
-Each log fitted whole, from a second before liftoff to its apogee, and up to its cut where it has a prediction. A whole-log fit's 90% interval is the standard error times the shares fitted on the synthetic calibration set's whole-log fits. The burn time's scale, which the fit isn't asked for, has none. Nor has the wind on a log with no track, whose shares were fitted with the synthetic flights' own stated wind, nor any fit up to the cut, which no shares were fitted on. A scale is the factor that best fits one flight, not the rocket's drag or motor at every speed; on a real flight the model's own errors go into it.
+Each log is fitted whole where the analyzer reads its apogee, from a second before liftoff to that apogee, and up to its cut where it has a prediction. A whole-log fit's 90% interval is the standard error times the shares fitted on the synthetic calibration set's whole-log fits. The burn time's scale, which the fit isn't asked for, has none. Nor has the wind on a log with no track, whose shares were fitted with the synthetic flights' own stated wind, nor any fit up to the cut, which no shares were fitted on. A scale is the factor that best fits one flight, not the rocket's drag or motor at every speed; on a real flight the model's own errors go into it.
 
 ### Bella Lui, EPFL Rocket Team, 2020 (K828FJ)
 

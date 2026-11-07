@@ -259,8 +259,10 @@ pub struct FlightBoost {
     /// The log's liftoff as the analyzer reads the whole log, s on the log's clock.
     pub liftoff_s: Option<f64>,
     /// Whether the analyzer, reading the whole log past the cut, withholds its top speed as at or
-    /// past [`readings::TRANSONIC_SPEED_M_S`]: the climb leaves the range the cut is meant for.
-    pub log_past_transonic: bool,
+    /// past [`readings::TRANSONIC_SPEED_M_S`] (`Some(true)`: the climb leaves the range the cut is
+    /// meant for), reads it below that (`Some(false)`), or withholds it for another reason, so the
+    /// log's top speed isn't known (`None`).
+    pub log_past_transonic: Option<bool>,
     /// ERA5's wind averaged over the forward simulation's climb, toward the east and north, m/s:
     /// what the fit is told of the wind.
     pub stated_wind_m_s: (f64, f64),
@@ -301,7 +303,7 @@ impl FlightBoost {
     fn in_range(&self) -> bool {
         self.error_percent().is_some()
             && self.cut_in_burn() == Some(false)
-            && !self.log_past_transonic
+            && self.log_past_transonic == Some(false)
     }
 
     /// The stated model's apogee error, %.
@@ -382,6 +384,8 @@ pub struct Summary {
     pub cut_in_burn: Vec<String>,
     /// The flights whose whole log climbs at or past the transonic speed.
     pub past_transonic: Vec<String>,
+    /// The flights whose whole log's top speed the analyzer withholds for another reason.
+    pub top_speed_unread: Vec<String>,
     /// The forward simulation's mean absolute apogee error on all the flights, %.
     pub forward_all_mean_absolute_percent: f64,
     /// Its mean error with its sign on all of them, %.
@@ -430,7 +434,8 @@ impl Summary {
             predicted: Means::of(flights.iter().filter(|f| f.error_percent().is_some())),
             in_range: Means::of(flights.iter().filter(|f| f.in_range())),
             cut_in_burn: ids(&|f| f.cut_in_burn() == Some(true)),
-            past_transonic: ids(&|f| f.log_past_transonic),
+            past_transonic: ids(&|f| f.log_past_transonic == Some(true)),
+            top_speed_unread: ids(&|f| f.log_past_transonic.is_none()),
             forward_all_mean_absolute_percent: mean(
                 flights.iter().map(|f| f.forward_error_percent.abs()),
             )
@@ -562,10 +567,7 @@ fn fly(root: &Path, flight: &RealFlight, row: &FlightRow) -> Result<FlightBoost,
         whole_fit.fitted && drift(observed.as_ref()),
         true,
     );
-    let log_past_transonic = matches!(
-        &whole_read.max_speed,
-        Reading::Withheld(withheld) if withheld.reason == Reason::Transonic
-    );
+    let log_past_transonic = past_transonic(&whole_read.max_speed);
     let whole_unread = observed.is_none().then(|| match &whole_read.apogee {
         Reading::Withheld(withheld) => format!("its apogee is withheld: {}", withheld.detail),
         Reading::Read(_) => {
@@ -626,6 +628,15 @@ fn or_none(value: Option<f64>, digits: usize) -> String {
 /// A signed percentage, or "none".
 fn percent(value: Option<f64>) -> String {
     value.map_or_else(|| "none".to_owned(), |v| format!("{v:+.2}%"))
+}
+
+/// Whether a whole log's top speed, as the analyzer reads it, is at or past the transonic speed:
+/// `Some(true)` withheld for it, `Some(false)` read below it, `None` withheld for another reason.
+fn past_transonic(max_speed: &Reading<readings::MaxSpeed>) -> Option<bool> {
+    match max_speed {
+        Reading::Read(_) => Some(false),
+        Reading::Withheld(withheld) => (withheld.reason == Reason::Transonic).then_some(true),
+    }
 }
 
 /// Why there's no prediction, in words.
@@ -767,7 +778,12 @@ impl Report {
              [real]: real-flights.md\n"
         );
         let _ = writeln!(page, "## Summary\n");
-        means_line(&mut page, "Every flight with a prediction", &s.predicted);
+        means_line(
+            &mut page,
+            "Every flight with a prediction, as the library gives it, the method's case and the rest \
+             together",
+            &s.predicted,
+        );
         means_line(
             &mut page,
             "In the case the method is meant for",
@@ -788,8 +804,10 @@ impl Report {
         let _ = writeln!(
             page,
             "- Climbing at or past 227.7 m/s, the log read whole: {}. A cut before that speed on such a \
-             log came on a dip, not at burnout.",
-            names(&s.past_transonic)
+             log came on a dip, not at burnout. Top speed not read, withheld for another reason, so not \
+             in the method's case: {}.",
+            names(&s.past_transonic),
+            names(&s.top_speed_unread)
         );
         let _ = writeln!(
             page,
@@ -855,7 +873,7 @@ impl Report {
                 or_none(cut.map(|c| c.top_speed_m_s), 1),
                 f.burn_time_s,
                 f.cut_in_burn().map_or("none", yes),
-                yes(f.log_past_transonic),
+                f.log_past_transonic.map_or("not read", yes),
                 f.forward_max_mach
             );
         }
@@ -884,8 +902,8 @@ impl Report {
         let _ = writeln!(page, "## The fits\n");
         let _ = writeln!(
             page,
-            "Each log fitted whole, from a second before liftoff to its apogee, and up to its cut where \
-             it has a prediction. A whole-log fit's 90% interval is the standard error times the shares \
+            "Each log is fitted whole where the analyzer reads its apogee, from a second before liftoff \
+             to that apogee, and up to its cut where it has a prediction. A whole-log fit's 90% interval is the standard error times the shares \
              fitted on the synthetic calibration set's whole-log fits. The burn time's scale, which the \
              fit isn't asked for, has none. Nor has the wind on a log with no track, whose shares were \
              fitted with the synthetic flights' own stated wind, nor any fit up to the cut, which no \
@@ -1071,6 +1089,45 @@ mod tests {
         }
     }
 
+    /// A top speed withheld as transonic is past the speed; one read is under it; one withheld for
+    /// another reason, such as a spike at the top, is unknown and keeps the flight out of range.
+    #[test]
+    fn a_top_speed_withheld_for_another_reason_is_unknown() {
+        let withheld = |reason| {
+            Reading::Withheld(readings::Withheld {
+                reason,
+                detail: String::new(),
+            })
+        };
+        assert_eq!(past_transonic(&withheld(Reason::Transonic)), Some(true));
+        assert_eq!(past_transonic(&withheld(Reason::DisturbedTop)), None);
+        let (report, _) = committed();
+        let read = report.flights.iter().find(|f| f.id == "ndrt-2020").unwrap();
+        assert_eq!(read.log_past_transonic, Some(false));
+        let mut unknown = read.clone();
+        assert!(unknown.in_range());
+        unknown.log_past_transonic = None;
+        assert!(!unknown.in_range());
+    }
+
+    /// A cut fit's parameters get no interval: no shares were fitted on a cut log.
+    #[test]
+    fn a_cut_fit_has_no_interval() {
+        let (report, _) = committed();
+        let mut cut_fits = 0;
+        for flight in &report.flights {
+            if let Outcome::Predicted { fit, .. } = &flight.boost {
+                cut_fits += 1;
+                assert!(
+                    fit.parameters.iter().all(|p| p.interval_90.is_none()),
+                    "{}",
+                    flight.id
+                );
+            }
+        }
+        assert_eq!(cut_fits, 2);
+    }
+
     /// A prediction's error is its apogee reading against the log's.
     #[test]
     fn a_predictions_error_is_against_the_logs_apogee() {
@@ -1105,7 +1162,7 @@ mod tests {
             forward_error_percent: forward,
             liftoff_s: Some(0.5),
             burn_time_s: 2.0,
-            log_past_transonic: false,
+            log_past_transonic: Some(false),
             boost: Outcome::Predicted {
                 cut,
                 fit: template.whole.clone(),
@@ -1140,7 +1197,7 @@ mod tests {
         assert_eq!(summary.in_range.forward_mean_percent, Some(6.0));
         // So does a log that later climbs past the transonic speed.
         flights[1].burn_time_s = 2.0;
-        flights[0].log_past_transonic = true;
+        flights[0].log_past_transonic = Some(true);
         let summary = Summary::of(&flights);
         assert_eq!(summary.past_transonic, [flights[0].id.clone()]);
         assert_eq!(summary.predicted.flights.len(), 2);
