@@ -1,5 +1,7 @@
 # How far a barometric altimeter misreads through Mach 1 and through its vents
 
+Re-checked 2026-11-06: 5 claims corrected.
+
 This note asks what published sources measure for the static-pressure error on a rocket's body tube near Mach 1
 (its sign and size by port position), how far a vented bay lags the outside air against vent area and bay volume,
 and whether the makers' vent rules agree. It turns both into an altitude error at Mach 0.9–1.2 and at apogee. It
@@ -32,13 +34,13 @@ well-vented bay and can reach a hundred in a small one. Neither reaches a vented
 
 **Wind tunnel, ogive-cylinder [N1].** A 4.096 in cylinder, 3-caliber ogive nose, 50.0 in long, at zero incidence
 in Langley's 8-foot transonic pressure tunnel, 34 orifices, turbulent boundary layer [N1] pp. 3–5. At Mach 1.0 a
-shock stands 2.9 calibers behind the 12.3 in shoulder; at 1.1 and 1.2 the nose shock reflects off the tunnel wall
-onto the model, so stations behind about 30 and 48 in are artifacts [N1] p. 6. Cp by calibers behind the
-shoulder, read from [N1] Fig. 5 (p. 27) by a pixel trace to about ±0.01 (**Inference**):
+shock stands 2.9 calibers behind the 12.3 in shoulder; at 1.1 and 1.2 the nose shock reflects back onto the model
+at about 30 and 48 in [N1] pp. 6, 12; cells behind are taken here as artifacts. Cp by calibers aft, from [N1]
+Fig. 5 (p. 27) by pixel trace to ±0.01, the shoulder row with the scan's 0.4° tilt removed (**Inference**):
 
 | Calibers aft | Mach 0.7 | 0.9 | 1.0 | 1.1 | 1.2 |
 |---|---|---|---|---|---|
-| 0 (shoulder) | −0.07 | −0.08 | −0.20 | −0.14 | −0.11 |
+| 0 (shoulder) | −0.07 | −0.08 | −0.23 | −0.17 | −0.13 |
 | 1 | −0.02 | −0.02 | −0.08 | −0.07 | −0.04 |
 | 2 | −0.01 | −0.01 | −0.06 | −0.05 | −0.01 |
 | 3 | −0.01 | −0.01 | +0.03 | −0.02 | −0.01 |
@@ -52,7 +54,7 @@ shoulder, read from [N1] Fig. 5 (p. 27) by a pixel trace to about ±0.01 (**Infe
   1.02 [N3] p. 6; a shock sweeps aft over three orifices between Mach 0.997 and 1.005 [N3] p. 9. Zero-error
   stations move with Mach; a vent's error is "comparatively irregular" [N2] p. 659.
 - **Ahead of a fin the error is positive below Mach 1 [N2] p. 647:** booms ahead of a tail fin peak at +0.075 to
-  +0.12 of impact pressure near Mach 0.95–1.16, then one reads −0.035 to −0.055 past Mach 1 [N2] Fig. 35, p. 659,
+  +0.12 of impact pressure near Mach 0.95–1.16, then one reads −0.035 to −0.05 past Mach 1 [N2] Fig. 35, p. 659,
   sizes Gracey calls open to question [N2] p. 658.
 
 ## 2. From pressure coefficient to altitude error (Inference)
@@ -75,8 +77,7 @@ Altitude error at sea level / 3 km, from the unrounded trace (+ reads high; ±0.
 - **The step.** The shock moves aft as Mach rises [N3] p. 9: a port goes from +0.03 to −0.04, jumping up about
   410 m at sea level, 390 m at 3 km, within about 0.04 in Mach (0.14 s at 10 g), and drops as much coasting back
   ([static-pressure-hobby-shapes](static-pressure-hobby-shapes.md) §2).
-- **At apogee it is gone:** Cp 0.05 at Mach 0.1 is about 3 m. It reaches a baro apogee only through filters,
-  detection timing and lag (§4).
+- **At apogee it is gone:** Cp 0.05 at Mach 0.1 is 3 m; it reaches an apogee only via filters, timing, lag (§4).
 
 ## 3. What the makers say about Mach
 
@@ -132,7 +133,7 @@ Three invented bays, inside diameter × free length with no sled: 38 × 150 mm (
 - **They disagree on size.** PerfectFlite's rule, and Missile Works' below 100 in³, grow area with volume
   squared; Eggtimer's and Missile Works' above 100 in³ grow it with volume and are the same rule. PerfectFlite's
   vents less than Eggtimer's below 151 in³ (2.47 L). Stroick's sizes for about 1 m of steady lag at the design
-  speed; Eggtimer's equals it at Mach 1.28. He finds no stated derivation for four of five rules [ST] pp. 2–5.
+  speed; Eggtimer's equals it at Mach 1.28. He finds no stated derivation for four of five rules [ST] pp. 2–6.
 - **Lag in an invented flight** (vertical, peak 365 m/s or Mach 1.07, apogee 3,320 m; orifice plus viscous flow
   through a 2 mm wall, Cd 0.62; isothermal / adiabatic bay):
 
@@ -177,24 +178,23 @@ Three invented bays, inside diameter × free length with no sled: 38 × 150 mm (
 ## Sources
 
 NTRS reports are US government works, cached under the ignored `refs/`. Makers' manuals and the two hobby articles
-are cited only; the Altus Metrum manual is Creative Commons ShareAlike 3.0. Manual pages are PDF pages. Read 2026-10-16.
+are cited only; the Altus Metrum manual is CC BY-SA 3.0. Manual pages are PDF pages. Read 2026-10-16, 2026-11-06.
 
-- [N1] K. R. Czarnecki, W. J. Monta, NASA TN D-3516 (1966).
-  <https://ntrs.nasa.gov/api/citations/19660024157/downloads/19660024157.pdf>
+- [N1] Czarnecki, Monta, TN D-3516 (1966). <https://ntrs.nasa.gov/api/citations/19660024157/downloads/19660024157.pdf>
 - [N2] W. Gracey, NACA Report 1364 (1958). <https://ntrs.nasa.gov/api/citations/19930092348/downloads/19930092348.pdf>
 - [N3] Thompson, NACA RM L9J27 (1950). <https://ntrs.nasa.gov/api/citations/19930086141/downloads/19930086141.pdf>
 - [N4] W. Gracey, *Measurement of Aircraft Speed and Altitude*, NASA RP-1046 (1980), ch. X and app. B.
   <https://ntrs.nasa.gov/api/citations/19800015804/downloads/19800015804.pdf>
 - [N5] Sinclair, Robins, NACA TN 2793. <https://ntrs.nasa.gov/api/citations/19930083485/downloads/19930083485.pdf>
 - [PF1] PerfectFlite, StratoLoggerCF manual; [PF3] Alt15K manual. <http://www.perfectflite.com/Downloads/>
-- [MW1] Missile Works, RRC3 manual rev. 1.71 (2024); [MW2] RRC2+ and RRC2L manuals rev. 1.03.
+- [MW1] Missile Works, RRC3 manual rev. 1.71 (2024); [MW2] RRC2+ rev. 1.03 and RRC2L rev. 1.02 manuals.
   <https://www.missileworks.com/downloads/>
 - [F1] [F2] Featherweight Raven (2014) and Blue Raven (2026-05-12) manuals. <https://www.featherweightaltimeters.com/>
 - [E1] [E2] [E3] Eggtimer Quantum 1.09G, Proton 2.01C and TRS 2.07 guides. <https://eggtimerrocketry.com/>
 - [A1] Altus Metrum manual v1.9.22.2 (2025-10-13). <https://altusmetrum.org/AltOS/doc/altusmetrum.pdf>
 - [EN] Entacore AIM XTRA/BASE manual 4.x.x v7 (2025). [J1] Jolly Logic AltimeterTwo guide 64G. <https://jollylogic.com/>
 - [P1] B. Cawley Jr., Peak of Flight 543 (2021). <https://www.apogeerockets.com/education/downloads/Newsletter543.pdf>
-- [ST] G. Stroick, "HPR Research – Static Port Holes from Nescience to Science".
-  <https://offwegorocketry.com/userfiles/file/Documents/Static%20Port%20Holes.pdf>
+- [ST] G. Stroick, "HPR Research – Static Port Holes from Nescience to Science" (archived; its site is gone).
+  <https://web.archive.org/web/2024/https://www.offwegorocketry.com/userfiles/file/Documents/Static%20Port%20Holes.pdf>
 - [OR] OpenRocket issue #2442, "Vent hole component". <https://github.com/openrocket/openrocket/issues/2442>
 - [RF1] [RF2] Rocketry Forum: vent-hole placement (2017); "10,000 ft." (2006), p. 2. <https://www.rocketryforum.com/>
