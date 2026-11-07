@@ -7,16 +7,21 @@
 //! - [`find_cut`] walks the height track forward and decides at each sample from that sample and
 //!   the ones before it: liftoff where the height first stands [`LIFTOFF_RISE_M`] above the
 //!   track's first, then a vertical speed fitted over the last [`SPEED_WINDOW_S`] of samples, and
-//!   the cut where that speed has stayed [`DROP_SHARE`] of its top, and at least
-//!   [`DROP_FLOOR_M_S`], below it for [`DROP_HOLD_S`]. After burnout gravity takes about 9.8 m/s
-//!   off the vertical speed every second, drag more, so the log keeps the coast's start. On set
-//!   A's 200 synthetic flights (a test) every barometer's log is cut after the true peak of the
-//!   vertical speed and at most 2.75 s after burnout; 2 of them before burnout, by 0.11 s and
-//!   0.01 s, where a barometer's jump near Mach 1 read as the top speed. A GNSS receiver's track
-//!   isn't cut ([`find_cut`] says why).
+//!   the cut at the first sample where that speed has fallen below its top by [`DROP_SHARE`] of
+//!   it, and by at least [`DROP_FLOOR_M_S`]. After burnout gravity takes about 9.8 m/s off the
+//!   vertical speed every second, drag more, so the log keeps the coast's start.
 //! - Everything after that reads the log [`truncated`] at the cut: its readings, the fit's
-//!   observations and so the fit. Each clock is cut by position, at its first time past the cut
-//!   or out of order, so a time logged later can't enter.
+//!   observations and so the fit. Each clock is cut by position, at the cut's sample on the log's
+//!   own clock and at each channel's first time past the cut or out of order, so a time logged
+//!   later can't enter.
+//!
+//! The finder refuses the tracks the analyzer distrusts in the boost: a GNSS receiver's, and a
+//! barometer's once its speed reaches [`readings::TRANSONIC_SPEED_M_S`] (Mach 0.8 in the coldest
+//! air), where the port may read the transonic flow. Without that rule the barometer's jump near
+//! Mach 1 read as the top speed on 57 of set A's first 200 synthetic flights, so the cut followed
+//! the jump rather than burnout (a sweep run once, with a 1 s hold then in the rule). So a
+//! flight that reaches about 220 m/s gets no prediction from its barometer; an accelerometer's cut
+//! isn't built.
 //!
 //! The analyzer's own burnout reading isn't used: its spike filter, its burnout mean and its
 //! noise span are centered windows, and [`readings::read`] takes the whole log at once.
@@ -50,19 +55,14 @@ pub const LIFTOFF_RISE_M: f64 = 10.0;
 pub const SPEED_WINDOW_S: f64 = 0.5;
 
 /// The share of its top the fitted speed must fall below that top for the cut. HPR Sim's choice:
-/// 10%, past the window's noise on a fast flight's speed.
+/// 10%, a margin over the window's noise on a fast flight's speed, as a barometer's noise in height
+/// grows with altitude. Unmeasured: on set A's first 200 synthetic flights the cut's test passes on
+/// [`DROP_FLOOR_M_S`] alone.
 pub const DROP_SHARE: f64 = 0.1;
 
 /// The least fall below the top speed for the cut, m/s: about a second of gravity alone, so a
 /// slow flight's noise doesn't cut it during the boost. HPR Sim's choice.
 pub const DROP_FLOOR_M_S: f64 = 10.0;
-
-/// How long the fall below the top speed must hold, unbroken, for the cut, s. A barometer's
-/// reading jumps as the rocket nears Mach 1, and the fitted speed with it, during the boost; on
-/// set A's first 60 synthetic flights a cut at the first fall came before burnout on 17 (a sweep
-/// run once), and with the 1 s hold on none of them (`the_cut_falls_just_after_the_true_burnout`
-/// fails with no hold). HPR Sim's choice.
-pub const DROP_HOLD_S: f64 = 1.0;
 
 /// How long the fitted flight is flown to find its apogee, s: past any hobby rocket's climb.
 pub const APOGEE_HORIZON_S: f64 = 300.0;
@@ -75,8 +75,7 @@ pub struct Cut {
     pub index: usize,
     /// That sample's time on the log's clock, s. The log is kept up to it, inclusive.
     pub time_s: f64,
-    /// The end of the window whose fitted speed was the top, s: on a clean climb burnout falls
-    /// in the [`SPEED_WINDOW_S`] before it.
+    /// The end of the window whose fitted speed was the top, s.
     pub top_speed_s: f64,
     /// That top speed, m/s.
     pub top_speed_m_s: f64,
@@ -134,13 +133,15 @@ fn in_order_count(times: &[f64], cut_s: f64) -> usize {
 /// Where the boost's log is cut, decided at each sample of the height track from it and the ones
 /// before it (the module's rules); `None` where the log holds no height track, its track is a GNSS
 /// receiver's, it never lifts off, never holds 3 samples in a [`SPEED_WINDOW_S`] window (a log
-/// slower than 4 Hz), or never slows by [`DROP_SHARE`] of its top speed and [`DROP_FLOOR_M_S`] for
-/// [`DROP_HOLD_S`]. A GNSS receiver's altitude in the boost can drop out at ignition and burnout and
-/// lag the climb, by up to 440 m in one measured flight, while its fix reads valid
+/// slower than 4 Hz), its fitted speed reaches [`readings::TRANSONIC_SPEED_M_S`] before the cut,
+/// or it never slows by [`DROP_SHARE`] of its top speed and [`DROP_FLOOR_M_S`].
+///
+/// A GNSS receiver's altitude in the boost can drop out at ignition and burnout and lag the climb,
+/// by up to 440 m in one flight a flyer reports, while its fix reads valid
 /// ([GNSS in boost](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/gnss-in-boost.md)):
 /// on set A's first 60 synthetic flights such tracks were cut up to 11 s after burnout or not at
-/// all (a sweep run once). A staged flight is cut at the
-/// first burnout whose coast lasts long enough for that fall; untested on one.
+/// all (a sweep run once). A staged flight is cut at the first burnout whose coast lasts long
+/// enough for that fall; untested on one.
 #[must_use]
 pub fn find_cut(log: &FlightLog) -> Option<Cut> {
     let ordered = in_order(log);
@@ -153,8 +154,6 @@ pub fn find_cut(log: &FlightLog) -> Option<Cut> {
     let mut lifted = false;
     let mut window: VecDeque<(f64, f64)> = VecDeque::new();
     let mut top: Option<(f64, f64)> = None;
-    // When the fall below the top began, unbroken since.
-    let mut held_from: Option<f64> = None;
     for (index, (&t, &h)) in times.iter().zip(&heights).enumerate() {
         // A sample out of order or not a number is passed over, as it is read.
         if !t.is_finite() || !h.is_finite() || t <= last_s {
@@ -173,14 +172,13 @@ pub fn find_cut(log: &FlightLog) -> Option<Cut> {
         let Some(speed) = slope(&window) else {
             continue;
         };
+        // The analyzer's rule: a barometer's speed this fast may be the transonic flow's.
+        if speed >= readings::TRANSONIC_SPEED_M_S {
+            return None;
+        }
         match top {
             Some((best, at)) if speed <= best => {
-                if best - speed < (DROP_SHARE * best).max(DROP_FLOOR_M_S) {
-                    held_from = None;
-                    continue;
-                }
-                let start = *held_from.get_or_insert(t);
-                if t - start >= DROP_HOLD_S {
+                if best - speed >= (DROP_SHARE * best).max(DROP_FLOOR_M_S) {
                     return Some(Cut {
                         index,
                         time_s: t,
@@ -189,10 +187,7 @@ pub fn find_cut(log: &FlightLog) -> Option<Cut> {
                     });
                 }
             }
-            _ => {
-                top = Some((speed, t));
-                held_from = None;
-            }
+            _ => top = Some((speed, t)),
         }
     }
     None
@@ -204,16 +199,12 @@ fn kept_at(t: f64, cut_s: f64) -> bool {
     t <= cut_s || t.is_nan()
 }
 
-/// `log` with only its samples at or before `cut_s`: its own clock's columns, each channel's
-/// samples and its events. What it says of itself is kept.
+/// `log` with only its samples up to `cut_s`: its own clock's columns and each channel's samples
+/// up to their first time past `cut_s` or out of order, and its events at or before `cut_s`. What
+/// it says of itself is kept.
 #[must_use]
 pub fn truncated(log: &FlightLog, cut_s: f64) -> FlightLog {
-    let kept = log
-        .time_s
-        .iter()
-        .take_while(|&&t| kept_at(t, cut_s))
-        .count();
-    truncated_at(log, kept, cut_s)
+    truncated_at(log, in_order_count(&log.time_s, cut_s), cut_s)
 }
 
 /// `log` with the first `kept` samples of its own clock's columns, each channel's samples up to
@@ -470,16 +461,21 @@ mod tests {
         }
     }
 
-    /// Over set A's 200 synthetic flights: no GNSS tracker's log is cut; every other log is, after
-    /// the true peak of the vertical speed (the fall the finder looks for begins there), before
-    /// apogee and at most 3 s after burnout. At most 2 cut before burnout, by under 0.25 s, both
-    /// where a barometer's jump near Mach 1 read as the top speed. Measured: 155 within 3 s after
-    /// burnout (at most 2.75 s), 2 before it (0.11 s and 0.01 s, both after the speed's peak), 43 GNSS
-    /// logs refused; set B's 200, run once: 166, none and 34.
+    /// Over set A's first 200 synthetic flights: no GNSS tracker's log is cut, nor any whose
+    /// fitted speed reaches the transonic speed; every flight whose true top vertical speed stays
+    /// 10% below that speed is cut. Every cut falls after the true peak of the vertical speed and
+    /// after burnout, before apogee, and no later after burnout than the fall the cut needs at its
+    /// largest takes under gravity alone, plus a window (drag only shortens it): 2.82 s.
+    /// Measured: 51 cut, 0.33 s to 1.48 s after burnout; 43 GNSS logs and 106 fast ones refused,
+    /// the slowest of those at 221 m/s. Set B's first 200, run once, not in the test: 57 cut, 0.35 s
+    /// to 1.55 s after burnout, 34 GNSS and 109 fast refused.
     #[test]
     fn the_cut_falls_just_after_the_true_burnout() {
+        let latest_s = (DROP_SHARE * readings::TRANSONIC_SPEED_M_S).max(DROP_FLOOR_M_S)
+            / hpr_core::gravity::STANDARD_GRAVITY_MPS2
+            + SPEED_WINDOW_S;
         let mut flyer = Flyer::new(DesignFiles::committed());
-        let (mut within, mut early) = (0_usize, 0_usize);
+        let mut cut_count = 0_usize;
         for k in 0..200 {
             let flight = flyer.flight(Set::A, k).expect("set A's flights fly");
             let cut = find_cut(&flight.log);
@@ -487,42 +483,38 @@ mod tests {
                 assert_eq!(cut, None, "flight {k}: a GNSS track is cut");
                 continue;
             }
-            let cut = cut.unwrap_or_else(|| panic!("flight {k} has no cut"));
-            let pad_s = flight.draw.logger.pad_s;
-            let events = &flight.truth.events;
-            let peak_s = flight
+            let peak = flight
                 .truth
                 .samples
                 .iter()
                 .max_by(|a, b| a.vertical_speed_m_s.total_cmp(&b.vertical_speed_m_s))
-                .expect("the truth has samples")
-                .time_s;
+                .expect("the truth has samples");
+            let Some(cut) = cut else {
+                assert!(
+                    peak.vertical_speed_m_s >= 0.9 * readings::TRANSONIC_SPEED_M_S,
+                    "flight {k}, its top {} m/s, has no cut",
+                    peak.vertical_speed_m_s
+                );
+                continue;
+            };
+            cut_count += 1;
+            let pad_s = flight.draw.logger.pad_s;
+            let events = &flight.truth.events;
             let after_burnout_s = cut.time_s - (pad_s + events.burnout_s);
             assert!(
-                cut.time_s > pad_s + peak_s,
+                cut.time_s > pad_s + peak.time_s,
                 "flight {k} cut before the speed's peak"
+            );
+            assert!(
+                after_burnout_s > 0.0 && after_burnout_s <= latest_s,
+                "flight {k} cut {after_burnout_s} s after burnout"
             );
             assert!(
                 cut.time_s < pad_s + events.apogee_s,
                 "flight {k} cut at or past apogee"
             );
-            assert!(
-                after_burnout_s <= 3.0,
-                "flight {k} cut {after_burnout_s} s after burnout"
-            );
-            if after_burnout_s > 0.0 {
-                within += 1;
-            } else {
-                assert!(
-                    after_burnout_s > -0.25,
-                    "flight {k} cut {after_burnout_s} s after burnout"
-                );
-                early += 1;
-            }
+            assert!(cut.top_speed_m_s < readings::TRANSONIC_SPEED_M_S);
         }
-        assert!(
-            within >= 155 && early <= 2,
-            "within 3 s: {within}, before burnout: {early}"
-        );
+        assert!(cut_count >= 51, "{cut_count} cut");
     }
 }

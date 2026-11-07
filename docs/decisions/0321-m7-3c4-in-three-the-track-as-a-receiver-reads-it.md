@@ -169,17 +169,23 @@ private collection), and each needs a full gate, reviews and CI, so one incremen
    the pad and liftoff come from the samples before that cut. The plan:
    - The finder walks the log's height track forward and decides at each sample from it
      and those before it: liftoff 10 m (32.8 ft) above the track's first height, then a speed
-     fitted over the last 0.5 s, and the cut where it has stayed 10% below its top, and at least
-     10 m/s (32.8 ft/s), for 1 s. A barometer's jump near Mach 1 cut 17 of set A's first 60
-     flights before burnout at the first fall, and none with the 1 s hold. The cut is the sample it
-     stops on: ADR-257 §3's "cut at burnout" is read as the sample where burnout is found from
-     those up to it, so the log keeps the coast's start. On set A's 200 synthetic flights (a
-     test) every barometer's log is cut after the true peak of the vertical speed and at most
-     2.75 s after burnout, 2 of them up to 0.11 s before it. M7.3d2 gives the error; whether an
-     accelerometer's cut, sooner, would do better isn't measured.
-   - A GNSS receiver's track isn't cut: in the boost its fix can drop out or lag the climb by
-     up to 440 m in one measured flight ([GNSS in boost](../research/gnss-in-boost.md)), and on set A's first 60
-     flights such tracks were cut up to 11 s after burnout or not at all.
+     fitted by least squares over the last 0.5 s, and the cut at the first sample where it has
+     fallen below its top by 10% of it, and by at least 10 m/s (32.8 ft/s). ADR-257 §3's "before
+     any smoothing or fitting" is read as before any centered window: the fit is a trailing one.
+     The cut is the sample it stops on: ADR-257 §3's "cut at burnout" is read as the sample where
+     burnout is found from those up to it, so the log keeps the coast's start. M7.3d2 gives the
+     error; whether an accelerometer's cut, sooner, would do better isn't measured.
+   - The finder refuses the tracks the analyzer distrusts in the boost. A GNSS receiver's: its fix
+     can drop out or lag the climb, by up to 440 m in one flight a flyer reports
+     ([GNSS in boost](../research/gnss-in-boost.md)), and on set A's first 60 flights such tracks
+     were cut up to 11 s after burnout or not at all (a sweep run once). A barometer's, once its
+     fitted speed reaches the analyzer's transonic speed (Mach 0.8 in the coldest air, 227.7 m/s):
+     its port may read the transonic flow, and the jump near Mach 1 read as the top speed on 57 of
+     set A's first 200 flights (a sweep run once), so the cut followed the jump, not burnout.
+   - On set A's first 200 synthetic flights (a test) every cut falls after the true peak of the
+     vertical speed, after burnout and at most 2.82 s after it (the largest fall needed, under
+     gravity alone, plus a window); measured 0.33 s to 1.48 s. 51 are cut; 43 GNSS logs and 106
+     that reach about 220 m/s are refused.
    - Every reading after that runs on the log truncated at the cut, so later samples can't reach
      it by construction. The test then compares the prediction on the whole log with the one on
      the log whose later samples are noise, bit for bit.

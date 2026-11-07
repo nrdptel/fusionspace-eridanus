@@ -358,13 +358,15 @@ closed forms. A result under 100 effective draws is flagged as too few to read. 
 
 Not yet validated. The library predicts apogee from a log cut just after burnout
 (`hpr_forensics::boost`). A climb speed is fitted to the heights over the last half second; the cut
-is where it has stayed below its top by 10% of it, and by at least 10 m/s (32.8 ft/s), for a
-second, so the log keeps the coast's start. On 200 synthetic flights every barometer's log was cut
-after the true peak of its vertical speed and at most 2.75 s after burnout. A GNSS tracker's log isn't cut, as a
-receiver's altitude can drop out or lag in the boost ([GNSS in the boost](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/gnss-in-boost.md)).
-The log up to the cut is fitted, and the fit flown on to apogee. A test puts noise in every later
-reading, time and event name, and the prediction stays the same, bit for bit
-(`cargo test -p fusionspace-hpr-forensics boost`). How close it comes to a logged apogee is
+is the first sample where it has fallen below its top by 10% of it, and by at least 10 m/s
+(32.8 ft/s), so the log keeps the coast's start. It is only made on a barometer's log of a flight
+slower than about 220 m/s (720 ft/s). Past that the barometer may read the
+[transonic](../glossary.md#transonic-and-supersonic) flow, and the analyzer withholds its top speed
+there; a GNSS receiver's altitude can drop out or lag in the boost ([GNSS in the boost](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/gnss-in-boost.md)).
+On [set A](synthetic-flights.md#the-sets)'s first 200 synthetic flights, 51 were cut, each after the true peak of its vertical speed and 0.33 s to
+1.48 s after burnout; the other 149 were refused. The log up to the cut is fitted, and the fit flown
+on to apogee. A test puts noise in every later value, time and event name of two logs, and the
+prediction stays the same, bit for bit (`cargo test -p fusionspace-hpr-forensics boost`). How close it comes to a logged apogee is
 [not measured yet](../decisions-and-roadmap.md#m7-3d).
 
 ## Sources
