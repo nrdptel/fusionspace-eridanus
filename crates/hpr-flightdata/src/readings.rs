@@ -26,7 +26,8 @@
 //!   the samples after them are bad, unless the track stays at their level again before a top well above it,
 //!   and the readings leave them out;
 //! - the **pad** is the median of the samples to the last within half that of the start before
-//!   the climb. A rocket that leaves the pad at [`LIFTOFF_ACCELERATION_M_S2`] or more, moving at
+//!   the climb, or, after a fall deeper than the rise and the drift to a level the track rests at,
+//!   of the last rest before the climb (#1158). A rocket that leaves the pad at [`LIFTOFF_ACCELERATION_M_S2`] or more, moving at
 //!   `v` when the log starts, climbs `v t + A t²/2` while the track stays near its start, so its
 //!   samples bound `v`, and with it how far up the rocket may already be, `v²/(2A)`: that much
 //!   enters the bounds. Where it could pass the allowance, the pad is short
@@ -1236,7 +1237,7 @@ fn heights(log: &FlightLog) -> Readings {
         }
     };
     // How high the rocket may already be when the log starts. The track stays within half the
-    // rise of its start for `stay_s`; a rocket that left the pad at [`LIFTOFF_ACCELERATION_M_S2`]
+    // rise of its start, or rests at the last rest's level, for `stay_s`; a rocket that left the pad at [`LIFTOFF_ACCELERATION_M_S2`]
     // or more, moving at `v` at the start, climbs `v t + A t²/2` in that time, no more than the
     // rise with the noise at either end, so `v ≤ (rise − A stay²/2)/stay`, and it had climbed
     // `v²/(2A)`. A log that may start further up than the allowance has no pad to tell liftoff by:
@@ -3062,10 +3063,11 @@ mod tests {
     /// A log that rests at a higher level, then on the pad for less time before the climb, reads
     /// from the pad, the level the track rests at last before the climb (#1158): the median of
     /// every sample near the log's start took the higher level, and the apogee read low by the
-    /// drop, outside its bound. The issue's three cases, the pad's least rest (0.69 s on a
-    /// PerfectFlite) and more, on the logger's zero and on a pressure track, quiet and with the
-    /// filtered heights spread over more than half the rise (4.61 m). A level above the apogee
-    /// leaves no climb from the log's start, and every height is withheld.
+    /// drop, outside its bound. The issue's three cases and stays of 0.8 and 1.5 s on the pad, a
+    /// little over the 0.69 s a rocket at 2 g takes to cross the rise on a PerfectFlite, on the
+    /// logger's zero and on a pressure track, quiet and with heights alternating 3.2 m apart, more
+    /// than half the rise (2.30 m) though within it (4.61 m). A level above the apogee leaves no
+    /// climb from the log's start, and the apogee is withheld.
     #[test]
     fn the_pad_is_the_last_rest_before_the_climb() {
         let truth_m = 10.0 * STANDARD_GRAVITY_MPS2;

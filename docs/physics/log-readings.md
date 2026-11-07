@@ -182,8 +182,8 @@ taken before the rocket moved. Three rules do it, each with a number set from th
      pulse on the pad at ignition.
    - The track stays at their level again, for at least as long as a rocket at 2 g takes to leave
      that band, before a top further above it than a coast through the band reaches. That level is
-     the pad. A low stretch far below it counts in the pad's reach, so the apogee is withheld as
-     `no_climb`.
+     the pad. A low stretch far below it isn't: the pad is the last rest before the climb, below.
+     The apogee then reads as on a clean log.
 
    Eight sample logs have good first samples and then fall 31 to 654 m (102 to 2,146 ft) into the
    climb: a disturbed pad, below.
@@ -196,12 +196,14 @@ taken before the rocket moved. Three rules do it, each with a number set from th
 3. **The pad** is the median of the samples up to the last one within half that rise of the start,
    before the climb. Half the rise is 2.30 m (7.6 ft) on a PerfectFlite. The median means that no
    one sample's jitter sets the pad, and the half rise means the climb lends it few samples.
-   A track that falls more than the rise below its start and then rests, as a logger carried
-   down to the pad does, takes the level it rests at last before the climb, read back from the
-   climb while its samples stay within the rise of each other
+   A track that falls more than the rise and the drift below its start and then rests, as a
+   logger carried down to the pad does, takes the level it rests at last before the climb, read
+   back from the climb while its samples stay within the rise of each other
    ([#1158](https://github.com/nrdptel/fusionspace-eridanus/issues/1158)). Rested 30 m (98 ft) up
    for 5 s, then 3 s on the pad, a 98.1 m (322 ft) apogee read 68.0 m (223 ft), past its bound;
-   it now reads 98.0 m (322 ft).
+   it now reads 98.0 m (321 ft). The climb's first rise counts toward a rest, so a stay on the
+   pad of 0.2 s or less before a 4 g climb reads as a pulse, below, and the apogee low by the
+   drop.
 
 **The pad's error.** A log that starts just before liftoff holds little of the pad, and a rocket
 may already be moving when its first sample is taken. Take a rocket that leaves the pad at $A = 2g$ or
