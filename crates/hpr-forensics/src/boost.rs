@@ -7,7 +7,7 @@
 //! - [`find_cut`] walks the height track forward and decides at each sample from that sample and
 //!   the ones before it. A vertical speed is fitted by least squares over the last
 //!   [`SPEED_WINDOW_S`] of samples, leaving out a sample the analyzer's Hampel rule calls bad: one
-//!   bad reading moved a cut by 0.05 s at most on the tests' flights. Liftoff is where that line
+//!   bad reading put in set A's flights moved a cut by 0.05 s at most (measured). Liftoff is where that line
 //!   stands [`LIFTOFF_RISE_M`] above the first window's, and the cut is at the first sample where
 //!   the speed has fallen below its top by [`DROP_SHARE`] of it, and by at least
 //!   [`DROP_FLOOR_M_S`]. After burnout gravity takes about 9.8 m/s off the vertical speed every
@@ -54,10 +54,10 @@ use serde::{Deserialize, Serialize};
 use crate::fit::{self, Fit, Forward, Noise, Observations, Stated};
 use crate::residuals::HeightKind;
 
-/// How far above the first window's fitted line the rocket's must stand for liftoff, m: past the
-/// largest excursion from the track's first height on the pad, 6.8 m over sets A and B's first 200
-/// synthetic flights each (their barometers' logs, measured once), while a hobby rocket climbs it
-/// in about a second or less. HPR Sim's choice.
+/// How far the window's fitted line must stand above the first window's for liftoff, m: past the
+/// largest excursion of a raw height from the track's first on the pad, 6.8 m over sets A and B's
+/// first 200 synthetic flights each (their barometers' logs, measured once), while a hobby rocket
+/// climbs it in about a second or less. HPR Sim's choice.
 pub const LIFTOFF_RISE_M: f64 = 10.0;
 
 /// The span of the trailing window the vertical speed is fitted over, s: a straight line by
@@ -607,8 +607,8 @@ mod tests {
     /// put in passes the same checks: 100 m or 15 m up halfway through the burn, 30 m down at four
     /// fifths of it, 12 m up on the pad, or 15 m down at the first. Measured, not asserted: 51 cut,
     /// 0.33 s to 1.48 s after burnout; 43 GNSS logs and 106 fast ones refused, the slowest of those
-    /// at 221.3 m/s; a bad sample made or lost no cut and moved one by 0.05 s at most (up to three
-    /// samples on a 100 Hz log), on 8 of the 785 logs. Set B's first 200, run once, not in the
+    /// at 221.3 m/s; a bad sample made or lost no cut and moved one by 0.05 s at most (and by three
+    /// samples at most, 0.03 s on a 100 Hz log), on 8 of the 785 logs. Set B's first 200, run once, not in the
     /// test: 57 cut, 0.35 s to 1.55 s after burnout, 34 GNSS and 109 fast refused.
     #[test]
     fn the_cut_falls_just_after_the_true_burnout() {

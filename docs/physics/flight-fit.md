@@ -359,13 +359,12 @@ closed forms. A result under 100 effective draws is flagged as too few to read. 
 
 Not yet validated: how close it comes to a logged apogee is
 [not measured yet](../decisions-and-roadmap.md#m7-3d). The library predicts a flight's apogee from
-its climb alone, a log cut just after burnout (`hpr_forensics::boost`). It is a forecast made
-from the climb and about the first second of the coast. Once logged apogees check it, it will show how well the fit carries a
-flight forward.
+its climb and the start of its coast: a log cut just after burnout (`hpr_forensics::boost`), 0.33 s
+to 1.48 s after it on the synthetic flights below. Once logged apogees check it, it will show how
+well the fit carries a flight forward.
 
 **The cut.** The library follows the climb speed: a straight line fitted to each half second of
-heights. One reading far from the rest is left out, as the analyzer's spike rule does: on the
-tests' flights it moved a cut by 0.05 s at most. The cut is
+heights. One reading far from the rest is left out, as the analyzer's spike rule does. The cut is
 the first sample where the speed has dropped 10% below its peak, and at least 10 m/s (32.8 ft/s).
 After burnout gravity alone takes 9.8 m/s (32.2 ft/s) off the speed every second. So on the
 synthetic flights' motors the cut comes just after burnout, and the log keeps the start of the coast. The log up to the cut is fitted, and the fit
@@ -380,22 +379,22 @@ flown on to apogee.
   coldest air. Nearer the speed of sound ([transonic](../glossary.md#transonic-and-supersonic)
   flow), the pressure at the port may stop following the height. The analyzer withholds its top
   speed there too.
-- A log sampled slower than 8 or faster than 500 times a second, or one that never climbs 10 m
-  (32.8 ft) or never slows by that much.
+- A log sampled slower than 8 or faster than 500 times a second, one that never climbs 10 m
+  (32.8 ft), or one whose speed never drops as far as the cut needs.
 
 [Set A](synthetic-flights.md#the-sets)'s first 200 synthetic flights are mostly fast. Of them, 51
 were cut, each after the true peak of its vertical speed. Each cut came 0.33 s to 1.48 s after
 burnout. 43 GNSS logs and 106 fast flights were refused. The slowest of those truly peaked at
-221.3 m/s (726 ft/s): the fitted speed reads a little above the true one. One bad reading, up to
-100 m (328 ft) off, moved no cut by more than 0.05 s. Two bad readings side by side can still
+221.3 m/s (726 ft/s): the fitted speed reads a little above the true one. One bad reading of 12 to
+100 m (39 to 328 ft), put in at five places on each, moved no cut by more than 0.05 s (measured). Two bad readings side by side can still
 cut it early. A test pins the order, the spikes and at least 51 cuts; the counts and times are
 measured.
 
 **Why it can be trusted not to peek.** A test replaces every sample's value and time after the
 cut with noise, and the prediction stays the same, bit for bit. It runs on three logs, one with a GNSS
 receiver's channels beside its barometer. Letting the prediction read half a second more changes
-it. So the prediction reads no sample logged after the cut. A channel on a clock of its own is cut by
-its times: a sample it stamps before the cut is read wherever the file puts it. Run
+it. On those logs the prediction reads no sample logged after the cut. A channel on a clock of its own
+is cut by its times: a sample it stamps in order before the cut is read wherever the file puts it. Run
 `cargo test -p fusionspace-hpr-forensics boost`. No worked example yet: one waits for a logged
 apogee to compare it with.
 
