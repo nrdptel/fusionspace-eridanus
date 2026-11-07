@@ -1,16 +1,18 @@
 # What roughness hobby rocket finishes have, as equivalent sand grain
 
+Re-checked 2026-11-07: 7 claims corrected.
+
 HPR Sim gives a part with no finish 20 µm, OpenRocket 60 µm (a `.ork` outside part now reads 60 µm, [#216][i216]); in
 the friction model both use, that step adds about 25% ([apogee-bias](apogee-bias.md) §2). This note asks what hobby
 finishes really measure. **In short: painted, gel-coated and sanded surfaces are far smoother than either default.**
 Published values put automotive-type paint at Ra 0.04 to 2 µm and sanded fiberglass at 0.6 to 2.3 µm: k_s about 0.1 to
 14 µm at the usual 2 to 6 Ra. Only bare FDM prints (Ra 5 to 33 µm across 0.1 to 0.3 mm layers), perhaps bare kraft and
 wood, and coarse marine coatings reach the defaults' size. 20 µm is Hoerner's 1965 grain size for aircraft production
-paint; 60 µm has no published source. A 1 m rocket at 100 to 300 m/s is hydraulically smooth below k_s of about 7 to 19
-µm, yet the shared model applies its fully rough constant above 57 m/s for 20 µm. **Inference:** a truer finish lowers
-both codes' friction and raises their apogee, so finish cannot explain the collection's high bias; it more likely hides
-part of it. How far to trust this: Ra is measured, but no k_s on any hobby finish; the conversion spans a factor of 3;
-the apogee sign is arithmetic only.
+paint; 60 µm is published [3][6] but derived nowhere. A 1 m rocket at 100 to 300 m/s is hydraulically smooth below k_s
+of about 7 to 19 µm, yet the shared model applies its fully rough constant above 57 m/s for 20 µm. **Inference:** a
+truer finish lowers both codes' friction and raises their apogee, so finish cannot explain the collection's high bias;
+it more likely hides part of it. How far to trust this: Ra is measured, but no k_s on any hobby finish; the conversion
+spans a factor of 3; the apogee sign is arithmetic only.
 
 ## 1. What the defaults and named finishes are
 
@@ -28,12 +30,11 @@ heights R_s and feeds them to the critical Reynolds number 51 (R_s/l)^−1.039 a
 [3][4]. The friction equation is Hoerner's eq. 4, p. 5-3 [1]. So both codes carry k/d ≈ 1 silently. That is Hoerner's
 own estimate for paint, but nothing measured on hobby finishes stands behind it (**Inference**).
 
-**OpenRocket's names.** The user guide lists Rough, Unfinished, Regular paint, Smooth paint and Polished with no
-values [5]. The program uses 500, 150, 60, 20 and 2 µm (#216 reads 60 µm from its API); a 2013 forum post by its
-author lists them without a source [6]. Against Hoerner: 500 is raw wood, 150 dip-galvanized metal, 20 aircraft
-production paint, 2 sheet metal. 60 µm has no row; Niskanen says only that regular paint "corresponds to an average
-surface roughness of 60 µm" for a test rocket whose roughness was not measured [3] p. 83, [4] p. 85 (**Inference:** a
-round number).
+**OpenRocket's names.** The user guide lists Rough, Unfinished, Regular paint, Smooth paint and Polished with no values
+[5]. The program uses 500, 150, 60, 20 and 2 µm (#216 reads 60 µm from its API); a 2013 forum post by its author lists
+them without a source [6]. Against Hoerner: 500 is raw wood, 150 dip-galvanized metal, 20 aircraft production paint, 2
+sheet metal. 60 µm has no row; Niskanen says only that regular paint "corresponds to an average surface roughness of 60
+µm" for a test rocket whose roughness was not measured [3] p. 83, [4] p. 85 (**Inference:** a round number).
 
 ## 2. From a measured roughness to k_s
 
@@ -79,21 +80,21 @@ spreads of 2 to 10 times between sources are expected (**Inference**). k_s is th
 | FDM side wall, 0.3 mm layers | Ra 13.1–32.8 | 26–197 | [20][21] |
 | FDM, wet sanded to P4000; acetone vapor 10 min | Ra 0.72; 0.2 | 1.4–4.3; 0.4–1.2 | [22]; [24] |
 
-- **Paint.** No measurement of aerosol-can paint was found; hand-sprayed automotive paint [14] is the closest.
-  Unsanded spray raised plate friction by up to 7.3% over the same film polished, and 600-grit sanding left a
-  measurable rise [12] abstract. A primer-surfacer on a NACA wing section added 30% of its smooth profile drag at the
-  top test speeds (10 to 14% at cruise) until wet-sanded with No. 400 paper [23] pp. 2, 4. Orange peel is waviness
-  (about 1 µm at 0.1 to 30 mm wavelengths [25]), outside the cutoff; likely small, but no source bounds it.
+- **Paint.** No measurement of aerosol-can paint was found; hand-sprayed automotive paint [14] is the closest. Unsanded
+  spray raised plate friction by up to 7.3% over the same film polished, and 600-grit sanding left a measurable rise
+  [12] abstract. On a NACA wing section spray paint added 10% of the smooth profile drag at high speed (10 to 14% across
+  high-speed and cruising), and none after sanding with No. 400 [23] pp. 1, 3, 6. Orange peel is waviness (about 1 µm
+  at 0.1 to 30 mm wavelengths [25]), outside the cutoff; likely small, but no source bounds it.
 - **Composites.** Carbon fiber cured against a polished tool plots below Ra 0.3 µm [26]; on release films a student
-  project read 1.2 to 5.6 µm, 21 µm with a liquid release agent [27] abstract. None found for wound tubes or peel ply.
-- **Paper and wood.** [18]'s stylus tip is 1.0 mm across, 250 times the usual 2 µm tip radius, so kraft's Ra is a floor.
+  project read 1.2 to 5.6 µm, 11.5 to 20.9 with a liquid release agent [27]; none found for wound tubes or peel ply.
+- **Paper and wood.** [18]'s stylus tip is 1.0 mm across, 250 times the usual 2 µm tip radius: kraft's Ra is a floor.
   No spiral seam height was found; a seam is a discrete step at most one ply deep (0.1 to 0.25 mm by [18]'s
   thicknesses, **Inference**), not sand-grain roughness. None was found for phenolic or balsa.
 - **FDM.** Ra scales with layer height h: Ra/h is 0.04 to 0.16 across five studies (**Inference**, arithmetic), and
   Rz/Ra about 4.4 [22][24]. Along the layers the same walls read Ra 1.1 to 8.6 [20]. A vertically printed tube shows
   the flow the across-layer profile (**Inference**).
 - **Grit.** On a painted plate, 600 to 60 grit gave Rq 0.67 to 1.63 µm [13]; on glass-fiber laminate P800 to P60
-  gave Ra 0.62 to 2.30 [17]. Grit labels mix US and FEPA scales above about 220, so the finest rows are uncertain.
+  gave Ra 0.62 to 2.30 [17].
 
 ## 4. Smooth, transitional or fully rough on a rocket
 
@@ -126,8 +127,8 @@ Nikuradse-type surface in transition, gives at most +6%, +20% and +28% (**Infere
   Its proposed levels (0.5, 60, 150 µm, p. 73) are Hoerner's and OpenRocket's; no hobby finish factor follows.
 - **Model-rocket data.** At 120 km/h DeMar's BT-20 tunnel models gave C_D 0.77 unfinished (kraft, bare balsa), 0.68
   primer and Krylon, 0.61 polished: +13% and −10% [29] p. 7; at 80 km/h polished read above painted, and the gaps are
-  2 to 3 counts of the 0.5 g resolution (p. 5).
-  Gregorek estimates (not tests) 51 µm wood grain at C_D 25% above smooth at 91 m/s (300 ft/s) [30] p. 35.
+  2 to 3 counts of the 0.5 g resolution (p. 5). Gregorek estimates (not tests) 51 µm wood grain at C_D 25% above
+  smooth at 91 m/s (300 ft/s) [30] p. 35.
 - **The bias.** On the collection, HPR Sim's apogee runs +8.73% above the logs ([apogee-bias](apogee-bias.md)). On
   #216's six probes, stating 60 µm instead of leaving 20 µm (about +25% friction) cut HPR Sim's gap to OpenRocket
   from +6.0–7.3% to +0.4–0.8%, about 5 to 7 points of apogee. **Inference:** if painted hobby rockets are near
@@ -149,9 +150,10 @@ Nikuradse-type surface in transition, gives at most +6%, +20% and +28% (**Infere
 
 ## Open questions
 
-- No k_s was found measured on any hobby finish (rattle-can paint, kraft or phenolic tubes, FDM); a towed-plate or
-  pipe test of one would replace the 2–6 Ra conversion with a number.
+- No measured k_s was found on any hobby finish (rattle-can, kraft, phenolic, FDM); a towed-plate or pipe test
+  of one would replace the 2–6 Ra conversion.
 - Flack and Schultz 2010 (public copy down on 2026-10-16) and Schultz 2004 were read only through citing papers.
+  Dropped on re-check, as uncited: that US and FEPA grit labels diverge above about 220 grit.
 - Whether the CFD study behind "17–75%" exists as cited: one title search found it only in [28]'s reference list.
 - How much discrete steps (spiral seams, fin fillets, paint edges) add on a hobby rocket: no measurement was found.
 - The +3% to +8% apogee estimate in §5 rests on six related probes' sensitivity; a collection run would replace it.
@@ -161,8 +163,7 @@ Nikuradse-type surface in transition, gives at most +6%, +20% and +28% (**Infere
 All read 2026-10-16. Cite only unless a license is named; copies under `refs/papers/` where cached.
 
 1. S. F. Hoerner, *Fluid-Dynamic Drag*, 1965, pp. 5-2 to 5-5. <https://archive.org/details/FluidDynamicDragHoerner1965>
-2. J. S. Barrowman, MS thesis, 1967 (NASA/TM-2001-209983), Table 4-1, eqs. 4-7, 4-8.
-   <https://ntrs.nasa.gov/api/citations/20010047838/downloads/20010047838.pdf>
+2. J. S. Barrowman 1967, NASA/TM-2001-209983, Table 4-1, eqs. 4-7, 4-8. <https://ntrs.nasa.gov/citations/20010047838>
 3. S. Niskanen, MSc thesis, 2009, Table 3.2, eqs. 3.78–3.80, p. 83. <https://openrocket.sourceforge.net/thesis.pdf>
 4. OpenRocket technical documentation v13.05, Table 3.2 p. 44, p. 85. <https://openrocket.sourceforge.net/techdoc.pdf>
 5. OpenRocket user guide. <https://openrocket.readthedocs.io/en/latest/user_guide/overrides_and_surface_finish.html>
@@ -180,13 +181,13 @@ All read 2026-10-16. Cite only unless a license is named; copies under `refs/pap
 15. Gebbie 2005, AFIT MS thesis, abstract. <https://scholar.afit.edu/etd/3669>
 16. Ravenna et al. 2022, A. Yücel Odabaşı Colloquium, Table 3. <https://strathprints.strath.ac.uk/84014/>
 17. Nazari et al. 2024, arXiv:2406.15292, Table 3, CC BY-SA 4.0. <https://arxiv.org/abs/2406.15292>
-18. Park et al. 2021, *BioResources* 16(3), 5667–5678, Tables 1, 3. <https://bioresources.cnr.ncsu.edu/?p=41023>
+18. Park et al. 2021, *BioResources* 16(3), 5667–5678, Tables 1, 3. <https://doi.org/10.15376/biores.16.3.5667-5678>
 19. Sofuoğlu, Kurtoğlu 2015, *Drvna industrija* 66(4), 265–272, abstract. <https://hrcak.srce.hr/en/150794>
 20. Alsoufi, Elsayed 2017, *Am. J. Mech. Eng.* 5(5), CC BY 4.0. <http://pubs.sciepub.com/ajme/5/5/4/index.html>
 21. Djurović et al. 2025, ICPES 2025, 371–374. <https://scidar.kg.ac.rs/handle/123456789/22692>
 22. Kočiško et al. 2025, *Materials* 18(20), 4672, CC BY 4.0. <https://pmc.ncbi.nlm.nih.gov/articles/PMC12566055/>
 23. Hood 1938, NACA SR-78, effect of surface irregularities on wing drag. <https://ntrs.nasa.gov/citations/20090015316>
-24. Kordikova et al. 2024, *Trudy BGTU* ser. 2, 2(283), 176–183 <https://elib.belstu.by/bitstream/123456789/67095/1/>;
+24. Kordikova et al. 2024, *Trudy BGTU* ser. 2, 2(283), 176–183 <https://elib.belstu.by/handle/123456789/67095>;
     Pérez et al. 2018, *Materials* 11(8), 1382, Table 6, CC BY 4.0 (0.15 and 0.25 mm layers).
 25. Kigle-Böckler 2006, "Controlling appearance", *PCI Magazine*. <https://pcimag.com/articles/94460>
 26. Herring, Fox 2011, *Compos. B* 42, 1035–1043, Figs. 1–3.
