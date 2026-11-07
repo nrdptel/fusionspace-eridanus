@@ -30,6 +30,7 @@ mod aero_roll;
 mod census;
 mod ci_budget;
 mod cli;
+mod collection_boost;
 #[cfg(test)]
 mod conformance;
 mod damaged;

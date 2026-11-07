@@ -8363,7 +8363,7 @@ fn unit_decision(note: &str) -> Option<&str> {
 const UNKNOWN_FIGURE: &str = "a figure HPR Sim doesn't know kept as written";
 
 /// The records of a CSV text, quotes and doubled quotes honored.
-fn csv_records(text: &str) -> Vec<Vec<String>> {
+pub(crate) fn csv_records(text: &str) -> Vec<Vec<String>> {
     let mut records = Vec::new();
     let mut record = Vec::new();
     let mut cell = String::new();
