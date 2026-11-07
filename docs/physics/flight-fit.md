@@ -34,9 +34,8 @@ impulse, wind and mass, and where its Bayesian option fails its tests.
   nothing to fit among the sets' counted draws, about one in six ([when](#when-a-log-has-nothing-to-fit)). Its wind is
   constant with height; on a log of height alone, a wind that grows with height only widens the intervals. It's
   told the design, rail, site and the day's air, and takes them as right. It's in the library only:
-  no command runs it on a log yet.
-- **From the boost:** the library also predicts apogee from a log cut just after burnout. It's not
-  yet validated ([below](#apogee-from-the-boost)).
+  no command runs it on a log yet. Its [prediction from the boost](#apogee-from-the-boost) isn't
+  validated yet.
 
 ## How it works
 
@@ -367,7 +366,7 @@ flight forward.
 **The cut.** The library follows the climb speed: a straight line fitted to each half second of
 heights. One reading far from the rest is left out, as the analyzer's spike rule does. The cut is
 the first sample where the speed has dropped 10% below its peak, and at least 10 m/s (32.8 ft/s).
-After burnout gravity alone takes 9.8 m/s off the speed every second. So the cut comes just after
+After burnout gravity alone takes 9.8 m/s (32.2 ft/s) off the speed every second. So the cut comes just after
 burnout, and the log keeps the start of the coast. The log up to the cut is fitted, and the fit
 flown on to apogee.
 
