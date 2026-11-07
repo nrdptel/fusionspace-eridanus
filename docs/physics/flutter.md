@@ -38,8 +38,8 @@ other, to your fins and your rocket's flight.
     on ARC Report 2949's swept wings, their stiffness taken normal to the sweep
     ([transonic flutter onsets][transonic-note], §4);
   - stiffness inboard with the tip and trailing edge soft, such as a fin that tapers in thickness
-    or a stiff core with soft edges: Langley's rocket-model wings W2 (1.05; 1.00 on Martin's own
-    torsion constant), W4 (1.14) and D2 (1.43 or more, a lower bound) ([fin flutter tests][tests-note], §2);
+    or a stiff core with soft edges: Langley's rocket-model wings W2 (1.05), W4 (1.14) and D2
+    (1.43 or more, a lower bound) ([fin flutter tests][tests-note], §2);
   - solid swept fins: in Langley's transonic tunnel, tested at Mach 0.66 to 1.42, each wing's
     worst point 1.21 to 1.37, from a 60° compreg wing (1.37), a 45° resin-paper wing (1.31) and a
     45° solid magnesium wing (1.21), and the 60° wings read high at every Mach number tested; other
@@ -56,14 +56,12 @@ other, to your fins and your rocket's flight.
   Flat plates and other fins of one material read below 1, the safe side, as tested: 0.14 to 0.65
   on the counted plates, all clamped at the root ([measured flutter onsets][onsets-note]), and 0.35
   to 0.84 on the uniform fins of [fin flutter tests][tests-note], a few held more softly (the ASROC
-  plate clamped over 6.0 in of a root about 8.9 in long, Liège's plates not rigid in plunge). A hobby
+  plate clamped over 6.0 in of its 8.9 in root, Liège's plates not rigid in plunge). A hobby
   rocket's fin seen fluttering in flight, PSAS's LV2c, reads 0.49 to 0.82 if its fins were G10, as
   inferred, and 1.23 to 1.51 if they were aluminum, at the speed it was seen fluttering, which may
-  lie above the onset (§5). A softer root lowers the onset. The ASROC missile fin's plate with its
-  root restraint cut reads up to 1.10 on its printed air density, but 0.88 on its printed dynamic
-  pressure, a row the note sets aside (§3). On two root tests the highest safe-side ratios, 0.82 to
-  0.84, would become 1.06 to 1.09 on the measured torsion frequency, 0.90 to 0.93 on the
-  calculated one (§4, an inference). None of these was
+  lie above the onset (§5). A softer root lowers the onset: the ASROC missile fin's plate
+  with its root restraint cut reaches 1.10 on discarded data (§3), and on two root tests the highest
+  safe-side ratios, 0.82 to 0.84, would become 0.90 to 1.09 (§4, an inference). None of these was
   a fin glued to a tube, and the figures are not a bound: a fin of one of these kinds may flutter
   further below HPR Sim's speed than any of them did.
 - **What it leaves out:** sweep, and how the fin is mounted. Martin's wings were clamped at the
