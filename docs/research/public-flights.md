@@ -1,11 +1,12 @@
 # More public flights with their designs and logs
 
-HPR Sim checks itself against seven public real flights, all from RocketPy's examples
-([accuracy: real flights](../accuracy.md#real-flights)), and Release 0.3 needs held-out flights
-([ADR-209: the release bar](../decisions/0209-the-2026-10-08-best-on-the-market-measured.md)).
-This note asks where more flights pair a design with a measured apogee or log under usable terms:
-per source, what it holds, its license, its formats and whether HPR Sim reads them. RASAero II's
-comparison list is left out ([M2.3c7](../ROADMAP.md) covers it). All read on 2026-10-11.
+Re-checked 2026-11-07: 10 claims corrected.
+
+HPR Sim checks itself against seven public real flights, all from RocketPy's examples ([accuracy: real
+flights](../accuracy.md#real-flights)), and Release 0.3 needs held-out flights ([ADR-209: the release
+bar](../decisions/0209-the-2026-10-08-best-on-the-market-measured.md)). This note asks where more flights pair a design
+with a measured apogee or log under usable terms: per source, what it holds, its license, its formats and whether HPR
+Sim reads them. RASAero II's comparison list is left out ([M2.3c7](../ROADMAP.md) covers it). All read on 2026-10-11.
 
 **In short.** 14 more COTS flights are usable under the MIT license, all but one subsonic:
 - **Three from RocketPy's own examples:** Astra, Andromeda and Erebus 11. They need only EuRoC
@@ -17,7 +18,7 @@ comparison list is left out ([M2.3c7](../ROADMAP.md) covers it). All read on 202
 scored there only in aggregate: going public lets each be reported and held out by name, but adds
 no flight the project lacks. Larger sets carry no usable license, so they can only be cited:
 - **Spaceport America Cup / IREC:** 264 official apogees with a public report, but no design file.
-- **A college course archive (DOFPro):** 39 barometric flights on 7 OpenRocket designs, under a
+- **A college course archive (DOFPro):** 39 barometric flights on 6 of its 7 OpenRocket designs, under a
   Creative Commons license it never names.
 
 Two record fixes turned up: three of HPR Sim's seven logs are byte-identical to files in a GPL-3.0
@@ -30,7 +31,7 @@ repository, and Erebus 11 flew a COTS Cesaroni motor, not the team motor the rec
 RocketPy's examples page lists 16 rockets with a simulated and a measured apogee
 ([RocketPy](https://github.com/RocketPy-Team/RocketPy) v1.13.0, `docs/examples/index.rst`); HPR Sim flies 7. No example
 ships a design file: HPR Sim builds each design from the notebook's Python inputs ([ADR-082: real flights read from
-refs](../decisions/0082-real-flights-read-from-refs-compared-over-the.md)). The other 9:
+refs](../decisions/0082-real-flights-read-from-refs-compared-over-the.md)). The other 9 (Calisto never flew):
 
 | rocket (year) | measured apogee | log | motor | status |
 |---|---|---|---|---|
@@ -44,7 +45,7 @@ refs](../decisions/0082-real-flights-read-from-refs-compared-over-the.md)). The 
 | Defiance (2024) | 9,308 m | apogee only | hybrid | outside scope |
 | Valetudo (2019) | 860 m | apogee only | team-built motor | outside scope |
 
-Rows counted from the CSVs; Andromeda's apogees are the index's and the notebook's. Calisto never flew.
+Rows counted from the CSVs; Andromeda's apogees are the index's and the notebook's, its log 2 Hz past apogee.
 
 - **Weather.** Astra, Andromeda and Erebus 11 read `euroc_2022_all_windows.nc`, a netCDF-4 file
   (HDF5 signature) that HPR Sim's reader refuses; converted, the three take the set from 7 to 10.
@@ -71,14 +72,14 @@ raw peak is an ejection-charge spike up to 1.6% higher. Mach is **Inference** fr
 
 | flight | log | apogee | motor | Mach |
 |---|---|---|---|---|
-| UND Student Launch 2023 subscale, 2022-12-04 | `.pf2` | 854 ft | AeroTech G80 or H55W | ≈0.20 |
+| UND Student Launch 2023 subscale, 2022-12-04 | `.pf2` | 854 ft | AeroTech G80 (**Inference**) | ≈0.20 |
 | UND SL 2023 full scale, 2023-03-05 | 2 × `.pf2` | 7,185 / 7,193 ft \* | AeroTech L1420R | ≈0.80 |
 | UND SL 2023 full scale, 2023-04-02 | 2 × `.pf2` | 5,776 / 5,785 ft | L1420R | ≈0.68 |
 | UND SL 2023 launch week | 2 × `.pf2` | 5,146 / 5,157 ft | L1420R | ≈0.56 |
 | UND SL 2024 subscale | `.pf2` | 743 ft | AeroTech H268R or H219T | ≈0.18 |
 | UND SL 2024 full scale | 2 × `.pf2` | 4,377 / 4,391 ft | L1420R | ≈0.50 |
 | UND SL 2024 payload demonstration (**Inference**) | 2 × `.pf2` | 3,892 / 3,898 ft \* | L1420R | ≈0.42 |
-| UND SL 2024 launch week | StratoLogger CSV | 4,053 ft (raw peak) | L1420R | ≈0.48 |
+| UND SL 2024 launch week | StratoLogger CSV | 4,035 ft (spike left out) | L1420R | ≈0.48 |
 | Hyperion-II, 2025-08-21 | Blue Raven + TeleMega CSV | 2,852 / 2,854 m | Cesaroni M2505 | ≈0.80 |
 | numericalrocketry model rocket | Altus-style CSV | 115.67 m | Estes C11-5 | ≈0.12 |
 | UTRGV Lonestar launch, 2026-03-29 | Blue Raven CSV, GPS | 9,543 ft | AeroTech M2500T | ≈1.0 |
@@ -91,9 +92,9 @@ Sources, all MIT by GitHub's license API (the private catalog's "none stated" fo
 [Lmx154/RL-RocketPy-Notebook](https://github.com/Lmx154/RL-RocketPy-Notebook) (`data/`).
 
 Caveats, each unbounded until the team's own flight report is read:
-- **Which design and mass flew.** UND keeps several `.ork` versions a year. The 2023-03-05 flight's
-  7,185 ft is about 12.5% above its matching file's stored 6,386 ft, so ballast or the motor may
-  differ. The repositories' flight-versus-simulation workbooks may say; they were not opened.
+- **Which design and mass flew.** UND keeps several `.ork` versions a year. The 2023-03-05 flight's 7,185 ft is about
+  25% above the flight-day file's stored 5,751 ft (a file committed four days later stores 6,386 ft, +12.5%), so ballast
+  or the motor may differ. The repositories' flight-versus-simulation workbooks may say; they were not opened.
 - **Hyperion-II's air brakes** may have opened. That can only lower apogee: it measured 2,854 m
   (backup) against its design file's stored 3,003 m (−5%).
 - **numericalrocketry's** simulator was written from OpenRocket's source, so only its data files
@@ -101,11 +102,11 @@ Caveats, each unbounded until the team's own flight report is read:
 - **UTRGV's** figures are the Blue Raven's own summary: 1,143 ft/s (348 m/s, about Mach 1.0 at its
   66 °F pad), with the gyro saturated at 0.1 s and 38° tilt at burnout; not checked against the log.
 
-Not counted: UND's 2024 Spaceport America Cup flight (MIT, AeroTech N3300R) peaked at 3,582 m against a 9,100 m
-prediction, cause unstated. Notre Dame's `EamonTracey/apogee` (MIT) holds 4 flights, `apogee2` (MIT) 2 subscale logs
-with no servo column, 4 full-scale flights and a log of ground rows; the air brakes were commanded open before the
-peak on `apogee`'s 4 flights and on three of `apogee2`'s 4 (not Huntsville), and neither states a motor per flight.
-The 10 license-less repositories, among them Stanford's `rockets-irec` and Ohio State's `irec`, can only be cited.
+Not counted: UND's 2024 Spaceport America Cup flight (MIT, AeroTech N3300R) peaked at 3,582 m against a 9,174 m (30,100
+ft) prediction, cause unstated. Notre Dame's `EamonTracey/apogee` (MIT) holds 4 flights, `apogee2` (MIT) 2 subscale logs
+with no servo column, 4 full-scale flights and a log of ground rows; the air brakes were commanded open before the peak
+on `apogee`'s 4 flights and on three of `apogee2`'s 4 (not Huntsville), and neither states a motor per flight. The 10
+license-less repositories, among them Stanford's `rockets-irec` and Ohio State's `irec`, can only be cited.
 
 ## Large, cited only: no license or no design file
 
@@ -122,7 +123,7 @@ mostly predicted apogee) and some years every team's report ([2024](https://www.
 | 2024, 2025, 2026 | 80, 93, 81 | 78, 93, 81 |
 
 That makes 264 flights with an official apogee and a report.
-- **The apogee is measured.** The official log is a COTS barometric altimeter read by a judge ([IREC
+- **The apogee is measured.** The official log is a COTS barometric altimeter read at postflight inspection ([IREC
   rules](https://www.esrarocket.org/s/IREC-Rules-and-Requirements-Document-2026-v10-f8wf.pdf), 2026 v1.0, §2.5, p. 13).
 - **The report is not a design file.** Its Appendix A gives length, diameter, fins, masses, CG,
   CP, motor and predicted apogee (§2.6.2.9.1, pp. 18–19), but no nose shape, mass layout or
@@ -136,14 +137,13 @@ That makes 264 flights with an official apogee and a report.
 
 ### DOFPro: a college course's flight archive
 
-The Harvey Mudd College high-power course archive
-([DOFPro flight data](https://dofpro.org/RCK/fltdata/FlightData.html)) links 7 OpenRocket designs and 89 data files,
-2017 to 2023. 39 barometric flights on 6 of the designs (Raven FIP CSV, Entacore AIM CSV, a Teensy logger's raw
-pressure) and 10 GPS-only ones pair with a design, all on COTS C to J motors. HPR Sim flies 3 designs as written and 3
-more only past its fit checks, and refuses one whose mass and CG overrides disagree; it reads none of the log formats
-yet (M7.1). The site calls its resources Creative Commons without naming a license; its course page says the original
-course sites are not CC-licensed. The project's private collection already holds 59 flights from this course, so a
-license would make flights public rather than add new ones.
+The Harvey Mudd College high-power course archive ([DOFPro flight data](https://dofpro.org/RCK/fltdata/FlightData.html))
+links 7 OpenRocket designs and 89 data files, 2017 to 2023. 39 barometric flights (a CATO left out) on 6 of the designs
+(Raven FIP CSV, Entacore AIM CSV, a Teensy logger's raw pressure) and 10 GPS-only ones pair with a design, all on COTS C
+to J motors. HPR Sim flies 3 designs as written and 3 more only past its fit checks, and refuses one whose mass and CG
+overrides disagree; it has read all three log formats since M7.1. The site calls its resources Creative Commons without
+naming a license; its course page says the original course sites are not CC-licensed. The project's private collection
+already holds 59 flights from this course, so a license would make flights public rather than add new ones.
 
 ## Searched, nothing usable
 
@@ -184,8 +184,8 @@ license would make flights public rather than add new ones.
 1. Convert EuRoC 2022's weather to classic netCDF and fly Astra, Andromeda and Erebus 11: 7 → 10
    public flights, the cheapest gain. Fly Andromeda on its team curve, with the 17% stated.
 2. Pin the MIT team repositories under `refs/`, like RocketPy, and fly the seven `.pf2` UND flights once each flight's
-   design, ballast and motor are confirmed from the team's reports. The CSV flights wait for the Blue Raven, TeleMega
-   and StratoLogger CSV readers (M7.1). Correct the collection catalog's license field for the UND flights.
+   design, ballast and motor are confirmed from the team's reports. HPR Sim has read the CSV flights' Blue Raven,
+   TeleMega and StratoLogger formats since M7.1. Correct the collection catalog's license field for the UND flights.
 3. Two permissions are worth asking for, a maintainer's call: ESRA's license for its reports and
    score sheets, and DOFPro's named Creative Commons license.
 4. Record GPL-3.0 for the Genesis and Lince logs, and COTS for Erebus 11 (done). Only UTRGV's flight may
