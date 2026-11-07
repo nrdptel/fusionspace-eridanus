@@ -426,7 +426,7 @@ Log readings need no design file or simulator (ADR-046): `hpr-flightdata` may no
 log corpus came from Debrief.
 - [ ] **M7.3 A flight against its simulation.** Sim-versus-real residuals, then fitting Cd scale,
   mass, motor impulse scale and wind to a log (Levenberg–Marquardt plus a Bayesian option with
-  uncertainty). The first milestone in `hpr-forensics`.
+  uncertainty).
 
   *Done when* (all of ADR-257 §1–4): residuals are reported for a real flight against its
   simulation; each fitted parameter's 90% interval, least squares and Bayesian, passes M7.2's
@@ -468,7 +468,17 @@ log corpus came from Debrief.
     ADR-322's encoding, the SHA-256 of the sorted held-out ids committed before any half's number; the held-out
     half's fit aggregates stay in the private collection, only their file's hash committed, until M7.5 publishes
     them (ADR-322).
-    - [ ] **M7.3d3 The collection by halves.** *Done when:* M7.3d's *done when*, whole.
+    - [ ] **M7.3d3 The collection by halves** (ADR-326: in four, below; met when they are). *Done when:* M7.3d's
+      *done when*, whole.
+      - [ ] **M7.3d5 The cut on a real barometer** (#1307). *Done when:* synthetic logs with a barometer's dips as deep
+        and long as the public logs' (up to 0.5 s) are cut after burnout, set A's within the test's 2.83 s bound;
+        both reports count the cuts before the motor's burn ends.
+      - [ ] **M7.3d6 The collection's errors by halves.** *Done when:* each cut log's fit is flown to apogee as
+        `fixture-flights` flies it; a committed report gives each half's mean absolute and signed errors beside the
+        forward simulation's on the same flights, ADR-257 §3's paired bootstrap 95% intervals and the calibration
+        half's fit aggregates; the held-out half's stay private, their file's SHA-256 committed and checked.
+      - [ ] **M7.3d7 The scoreboard row.** *Done when:* M7.3d's *done when*, whole, the scoreboard's
+        `accuracy.from-boost` included.
   - [ ] **M7.3e The post-flight comparison.** *Done when:* one `hpr` command draws predicted and logged altitude
     and velocity, liftoff to landing, as designed and under launch-day conditions: the log's site and date with
     the weather source's wind and air, or values entered, so it works offline; a test runs it on a public

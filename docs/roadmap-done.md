@@ -381,6 +381,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.3c5 The wind on a track ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3d1 The prediction from the boost ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3d2 The public flights ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.3d4 The halves sealed ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -2011,6 +2012,13 @@ One line per milestone or increment, in the order it was archived within its pha
       sample is noise, a probe reading one more failing; the fit's page says how far to trust it.
     - [x] **M7.3d2 The public flights.** *Done when:* a committed report gives the 7 public flights' fits and the
       prediction's mean absolute and signed errors beside the forward simulation's, with ADR-257 §3's interval.
+    - **M7.3d3** is open; its entry: [roadmap](ROADMAP.md#phase-5-flight-data-and-forensics).
+      - [x] **M7.3d4 The halves sealed.** *Done when:* `cargo xtask fixture-flights` splits the private collection's
+        flights by ADR-322's encoding, a test pinning it on invented ids against digests computed outside the code,
+        with a mutation of its bound failing; the SHA-256 of the sorted held-out ids is committed, and
+        `fixture-flights --check` fails when it no longer matches; each flight's log is chosen by a stated rule from
+        its pinned logs, read, and cut or refused for its reason, counted over the whole collection in a committed
+        report that gives no half's number.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)
