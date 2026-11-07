@@ -385,8 +385,9 @@ flown on to apogee.
 were cut, each after the true peak of its vertical speed. Each cut came 0.33 s to 1.48 s after
 burnout. 43 GNSS logs and 106 fast flights were refused. The slowest of those truly peaked at
 221 m/s (726 ft/s): the fitted speed reads a little above the true one. One bad reading, up to
-100 m (328 ft) off, moved no cut by more than a sample (0.05 s). A test pins the order, the spikes
-and at least 51 cuts; the counts and times are measured.
+100 m (328 ft) off, moved no cut by more than 0.05 s. Two bad readings side by side can still
+cut it early. A test pins the order, the spikes and at least 51 cuts; the counts and times are
+measured.
 
 **Why it can be trusted not to peek.** A test replaces every value and time after the cut with
 noise, and the prediction stays the same, bit for bit. It runs on three logs, one with a GNSS

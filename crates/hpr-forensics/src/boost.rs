@@ -24,7 +24,8 @@
 //! synthetic flights, the barometer's jump near Mach 1 read as the top, so the cut's place followed
 //! the jump rather than burnout (a sweep run once). So a flight whose fitted climb speed reaches
 //! 227.7 m/s gets no prediction from its barometer: on that set the slowest refused had a true top
-//! of 221 m/s and the fastest cut 233 m/s (measured once). An accelerometer's cut isn't built.
+//! of 221 m/s and the fastest cut a true 233 m/s, its fitted speed under the limit (measured
+//! once). An accelerometer's cut isn't built.
 //!
 //! A motor whose thrust falls below the rocket's weight and drag well before it burns out, as a
 //! long tail-off does, slows the climb by the fall the cut needs while still burning, and is cut
@@ -108,7 +109,8 @@ fn line(points: &[(f64, f64)]) -> Option<(f64, f64)> {
         (num + dt * (h - mh), den + dt * dt)
     });
     let slope = (den > 0.0).then(|| num / den)?;
-    Some((slope, mh - slope * mt))
+    let intercept = mh - slope * mt;
+    (slope.is_finite() && intercept.is_finite()).then_some((slope, intercept))
 }
 
 /// The vertical speed over `window`, m/s, and the height the line gives at its last time, m: a
@@ -117,7 +119,8 @@ fn line(points: &[(f64, f64)]) -> Option<(f64, f64)> {
 /// [`readings::SPIKE_THRESHOLD`] robust standard deviations (1.4826 times the residuals' median
 /// absolute deviation) from their median, the analyzer's Hampel rule (Pearson et al., EUSIPCO
 /// 2015, §2). One bad sample, a pulse at the port or a corrupt reading, is so left out of every
-/// window that holds it. `None` where fewer than [`readings::SPEED_MIN_SAMPLES`] are kept or the
+/// window that holds it; two side by side can carry the first line with them, and aren't handled.
+/// Where most residuals are 0, as on a quantized pad, only the samples on the line are kept. `None` where fewer than [`readings::SPEED_MIN_SAMPLES`] are kept or the
 /// times don't spread.
 fn robust_line(window: &VecDeque<(f64, f64)>) -> Option<(f64, f64)> {
     let points: Vec<(f64, f64)> = window.iter().copied().collect();
@@ -192,8 +195,8 @@ fn in_order_count(times: &[f64], cut_s: f64) -> usize {
 
 /// Where the boost's log is cut, decided at each sample of the height track from it and the ones
 /// before it (the module's rules); `None` where the log holds no height track, its track is a GNSS
-/// receiver's, its samples come closer than [`readings::MIN_INTERVAL_S`] (faster than the
-/// analyzer reads), it never lifts off, it never holds [`readings::SPEED_MIN_SAMPLES`] in a
+/// receiver's, any [`SPEED_WINDOW_S`] of it holds more samples than the analyzer's fastest rate
+/// allows ([`readings::MIN_INTERVAL_S`]), it never lifts off, it never holds [`readings::SPEED_MIN_SAMPLES`] in a
 /// [`SPEED_WINDOW_S`] window (a log slower than 8 Hz), its fitted speed reaches
 /// [`readings::TRANSONIC_SPEED_M_S`] before the cut, or it never slows by [`DROP_SHARE`] of its
 /// top speed and [`DROP_FLOOR_M_S`].
@@ -373,8 +376,8 @@ fn read_to_cut(log: &FlightLog, extra: usize) -> Option<(Cut, Observations)> {
 
 /// Apogee predicted from `log` cut just after burnout: the boost fitted by [`fit::fit`], each
 /// parameter held to what `stated` gives for the boost's observations, then flown on by `forward`
-/// to its apogee. `None` where the log has no cut, the boost says nothing to fit, or the fitted flight
-/// doesn't reach an apogee within [`APOGEE_HORIZON_S`]. The fit's own `converged` says whether
+/// to its apogee. `None` where the log has no cut, the boost says nothing to fit, or the fitted
+/// flight doesn't reach an apogee within [`APOGEE_HORIZON_S`]. The fit's own `converged` says whether
 /// it settled.
 #[must_use]
 pub fn predict(
@@ -601,8 +604,8 @@ mod tests {
     /// in the log: 100 m or 15 m up halfway through the burn, 30 m down at four fifths of it, 12 m
     /// up on the pad, or 15 m down at the first. Measured, not asserted: 51 cut, 0.33 s to 1.48 s
     /// after burnout; 43 GNSS logs and 106 fast ones refused, the slowest of those at 221.3 m/s;
-    /// a bad sample moved a cut by one sample, 0.05 s at most, on 8 of the 785 logs, and made or
-    /// lost none. Set B's first 200, run once, not in the test: 57 cut,
+    /// a bad sample moved a cut by 0.05 s at most (up to three samples on a 100 Hz log), on 8 of
+    /// the 785 logs, and made or lost none. Set B's first 200, run once, not in the test: 57 cut,
     /// 0.35 s to 1.55 s after burnout, 34 GNSS and 109 fast refused.
     #[test]
     fn the_cut_falls_just_after_the_true_burnout() {
