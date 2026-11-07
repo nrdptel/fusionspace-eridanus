@@ -3093,9 +3093,7 @@ mod tests {
                         climb(t - liftoff_s + 1.0)
                     }
                 });
-                let pressure = as_channel(&carried, Quantity::Pressure, |h| {
-                    101_325.0 - 12.0 * h
-                });
+                let pressure = as_channel(&carried, Quantity::Pressure, |h| 101_325.0 - 12.0 * h);
                 for (track, read) in [("zero", read(&carried)), ("pressure", read(&pressure))] {
                     let case = format!(
                         "{track}: {above_s} s at {high_m} m, {pad_s} s on the pad, spread \
