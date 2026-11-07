@@ -354,6 +354,7 @@ until someone rewrites it in plainer words.
 | [ADR-323: The transonic margin warning, and shorter known-issue lines][adr-323] | From Mach 0.8 the fins' straight-line join puts the center of pressure aft of a wind tunnel's, by 0.6794 and 1.343 calibers on two Arcas Robin models at Mach 0.9, so the flight margin reads high, and nothing warned. Every flight with a margin past Mach 0.8 now warns (#1198). To keep the guides' example output inside the search index's 10 MB limit, a known issue's text line leaves its address to one `help:` line, and the always-on warnings are shorter; #18's message now says its 3.6% is of the friction, not the drag. #414 comes before any further prose. |  |
 | [ADR-324: One full gate a pull request, and the site step on prose left to CI][adr-324] | The gate (`scripts/gate.sh`) is the maintainer's local run of most of CI's checks; a *full* gate runs every default step. A pull request passes one full gate before it opens. A later commit, such as a review's fix, passes the steps it touches and CI on its head, unless main is merged in. Main gets its own full gate, with the checks on the private reference data, on each new tip of main before the next piece of work. The gate's default run leaves the site step out when a branch changes only the words of pages: CI builds and checks the site at every width on every pull request, and a merge needs it to pass. |  |
 | [ADR-325: M7.3d2, apogee predicted from the boost on the public flights][adr-325] | The 7 public flights' logs are fitted whole where the apogee reads (6) and up to the boost's cut where there's a prediction (2), in each flight's ERA5 air. Two flights get a prediction, with a mean absolute miss of 3.03% where the forward simulation's is 6.89%. Only NDRT 2020's is the case the method is meant for, cut after its burn on a log under the transonic limit: −3.88% against +10.40%. Hartigan's exact sign-flip interval on the difference is unbounded below 6 flights. On these logs the cut can fall inside the burn: 4 of the 5 cuts do (Bella Lui's 0.18 s short of its end), Lince's among them, measured and reported, not fixed here (#1307). |  |
+| [ADR-326: M7.3d3 in four, the halves sealed first][adr-326] | The private collection's held-out flights are fixed by [ADR-322][adr-322]'s encoding, and the SHA-256 of their sorted ids is committed on its own, before any half's number exists. Each flight's log is chosen from its pinned logs by the apogee nearest the one the collection states, read and cut at the boost, counted over the whole collection only: of 72 flights not left out, 64 have a barometer's log the analyzer reads an apogee from, 32 are cut, 30 refused at the transonic limit and 2 for a log slower than 8 Hz. The fix to the cut ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)), the collection's errors by halves and the scoreboard row follow, in that order. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -850,6 +851,10 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-3d1"></a>[M7.3d1][done-5] | The prediction from the boost | done |
 | <a id="m7-3d2"></a>[M7.3d2][done-5] | The public flights | done |
 | <a id="m7-3d3"></a>[M7.3d3][phase-5] | The collection by halves | not yet done |
+| <a id="m7-3d4"></a>[M7.3d4][done-5] | The halves sealed | done |
+| <a id="m7-3d5"></a>[M7.3d5][phase-5] | The cut on a real barometer | not yet done |
+| <a id="m7-3d6"></a>[M7.3d6][phase-5] | The collection's errors by halves | not yet done |
+| <a id="m7-3d7"></a>[M7.3d7][phase-5] | The scoreboard row | not yet done |
 | <a id="m7-3e"></a>[M7.3e][phase-5] | The post-flight comparison | not yet done |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |
 | <a id="m7-5"></a>[M7.5][phase-6] | The bias every simulator shares | not yet done |
@@ -1328,6 +1333,7 @@ is the milestone that added or will add that test.
 [adr-323]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0323-the-transonic-margin-warning-and-shorter-issue-lines.md
 [adr-324]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0324-one-full-gate-a-pull-request.md
 [adr-325]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0325-m7-3d2-the-public-flights-prediction-from-the-boost.md
+[adr-326]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0326-m7-3d3-in-four-the-halves-sealed-first.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

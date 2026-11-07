@@ -34,6 +34,17 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
 .nav-wrapper .fs-nav-name { display: grid; gap: 2px; min-width: 0; }
 .nav-wrapper .fs-nav-dir { font: 400 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fs-ink-muted); }
 .nav-wrapper .fs-nav-title { overflow-wrap: anywhere; }
+/* mdBook makes the arrows' wrapper a block while the sidebar shows (its rule, matched here so
+   this later one wins), which stacked the buttons in a stair; on screen it stays the flex box the
+   system's theme draws (a row, or the column under 520 px). */
+@media screen { #mdbook-sidebar-toggle-anchor:checked ~ .page-wrapper .nav-wrapper { display: flex; } }
+/* Under 520 px the two buttons stack, each the column's width: side by side at 320 px a title
+   had under 80 px, and a long word ("Interpolation") broke inside itself. */
+@media only screen and (max-width: 519.98px) {
+    .page-wrapper .nav-wrapper { flex-direction: column; }
+    .page-wrapper .nav-wrapper .mobile-nav-chapters { max-width: none; }
+    .page-wrapper .nav-wrapper .mobile-nav-chapters.next { margin-inline-start: 0; }
+}
 /* The page's frame (#384; `foundations.md`, *Type* and *Space and layout*) is the product system's
    mdBook theme's (`fusionspace-mdbook.css`, Rev D): the type scale on mdBook's elements, growing
    with the window inside the page; the column centered beside the sidebar up to 1,120 px with
@@ -91,7 +102,7 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
 }
 @media only screen and (min-width: 720px) and (max-width: 1380px) {
     html:not(.js) #mdbook-sidebar-toggle-anchor ~ .page-wrapper .nav-wide-wrapper { display: none; }
-    html:not(.js) #mdbook-sidebar-toggle-anchor ~ .page-wrapper .nav-wrapper { display: block; }
+    html:not(.js) #mdbook-sidebar-toggle-anchor ~ .page-wrapper .nav-wrapper { display: flex; }
 }
 /* The menu bar holds its buttons and the lockup on one row from 520 px (below, the lockup takes a
    row of its own) only with the buttons closed up: at mdBook's spacing they take 512 px, more than

@@ -272,6 +272,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let report = fly_all(&root, &entries, &index, &supply)?;
     let markdown = report.to_markdown();
     report.check_consistent(&markdown)?;
+    crate::collection_boost::run(&root, &entries, check)?;
     if check {
         let text = fs::read_to_string(root.join(REPORT_JSON))
             .map_err(|error| format!("reading {REPORT_JSON}: {error}"))?;

@@ -2808,6 +2808,9 @@ fn the_validated_range_is_the_fastest_public_reference() {
         // Apogee from the boost on the flights `real-flights.json` already holds: its one Mach
         // number a flight, the forward simulation's top, restates that report's.
         "from-boost.json",
+        // The private collection's logs counted up to the boost's cut: counts only, no Mach
+        // number in it.
+        "collection-boost.json",
         // The slices of the synthetic flights, two logs (M0.16a1) and the fit (M0.16a2): each
         // flight's lines as text, hpr's own flights with no reference, as in the reports they sit
         // beside.
