@@ -138,9 +138,9 @@ and 40 about 18 (*inference*): no distance on a rocket of ordinary length is sho
 - A rocket is a body, not a flat wall: the wake can spread round the body and, at incidence, crossflow carries it
   toward the leeward fins. Neither is in these data. A fin at 45° from the brake is about 0.39 D round the skin; for
   a brake 0.46 D tall and as wide, that is about one width off axis, inside the wake from about 5 h back (section 3).
-- At 9 D for 20 h, even the lowest estimate for a square brake spans much of an ordinary rocket's length. That is consistent
-  with the WVU study's brakes 6 D (about 13 h) ahead of the fins still costing up to 1.14 calibers, though part of
-  that loss is the brakes' own normal force (parent note §1, §6).
+- At 9 D for 20 h, even the lowest estimate for a square brake spans much of an ordinary rocket's length. That is
+  consistent with the WVU study's brakes 6 D (about 13 h) ahead of the fins still costing up to 1.14 calibers, though
+  part of that loss is the brakes' own normal force (parent note §1, §6).
 
 ## What this suggests
 
