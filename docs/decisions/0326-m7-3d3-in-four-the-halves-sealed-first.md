@@ -44,8 +44,8 @@ each for both of M2.7's halves ([ADR-322][adr-322] §2), and the scoreboard's
      for its reason, counted over the whole collection in a committed report that gives no
      half's number.
    - **M7.3d5 The cut on a real barometer** (#1307). *Done when:* synthetic logs with a barometer's
-     dips as deep and long as the public logs' (up to 0.5 s) are cut after burnout, set A's within
-     the test's 2.83 s bound; both reports count the cuts before the motor's burn ends.
+     dips as deep and long as the public logs' (to 0.5 s) are cut after burnout, set A's within
+     its 2.83 s bound; `from-boost` and `collection-boost` count the cuts inside the burn.
    - **M7.3d6 The collection's errors by halves.** *Done when:* each cut log's fit is flown to
      apogee as `fixture-flights` flies it; a committed report gives each half's mean absolute and
      signed errors beside the forward simulation's on the same flights, ADR-257 §3's paired

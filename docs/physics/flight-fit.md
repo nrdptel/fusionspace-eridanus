@@ -364,8 +364,8 @@ It predicts 2 of the 7 public flights, too few to say at 95% whether it beats th
 simulation ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)). Only NDRT 2020 is the case it's meant for. On these
 logs the cut can fall inside the burn, as Lince's did, and Lince's log later climbs past
 the speed limit described below ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)).
-On the private collection, 64 flights have a barometer's log to start from: 32 are cut, 30 refused
-at that limit and 2 as sampled under 8 Hz ([the count](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md)). The cut flights' errors will come for
+On the private collection, 64 flights have a barometer's log the analyzer reads an apogee from: 32
+are cut, 30 refused at the speed limit and 2 as sampled under 8 Hz ([the count](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md)). The cut flights' errors will come for
 each half, the held-out list sealed first by its hash ([ADR-322, held-out flights](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0322-the-2026-11-05-progress-review-accuracy-before-reader-facing-work.md)).
 
 **The cut.** The library follows the climb speed: a straight line fitted to each half second of

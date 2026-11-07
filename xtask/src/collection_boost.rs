@@ -52,13 +52,27 @@ const HELD_OUT_MOST: u64 = u64::MAX / 3;
 /// Whether a flight is held out (ADR-322 §2): SHA-256 of its id's UTF-8 bytes then `ADR-209`,
 /// its first eight bytes big-endian below 2⁶⁴ / 3.
 pub fn held_out(flight_id: &str) -> bool {
+    leading_is_held_out(leading(flight_id))
+}
+
+/// The first eight bytes of SHA-256 of the id's UTF-8 bytes then `ADR-209`, read big-endian.
+fn leading(flight_id: &str) -> u64 {
     let digest = Sha256::new()
         .chain_update(flight_id.as_bytes())
         .chain_update(SEED)
         .finalize();
     let mut first = [0u8; 8];
     first.copy_from_slice(&digest[..8]);
-    leading_is_held_out(u64::from_be_bytes(first))
+    u64::from_be_bytes(first)
+}
+
+/// Whether a height track is a barometer's: the logger's altitude, a pressure, or a barometric
+/// altitude channel. A GNSS receiver's is not, nor no track.
+fn barometric(source: Option<Source>) -> bool {
+    matches!(
+        source,
+        Some(Source::Barometer | Source::Pressure | Source::AltitudeChannel)
+    )
 }
 
 /// The bound on a digest's leading eight bytes, read big-endian.
@@ -103,7 +117,7 @@ pub struct Report {
     pub flights: usize,
     /// Of those, the ones the manifest leaves out of the apogee errors.
     pub excluded: usize,
-    /// The pinned logs of the rest, each counted once a flight.
+    /// The pinned files of the rest, each path counted once a flight.
     pub logs: usize,
     /// Of those, the ones read alone.
     pub logs_read: usize,
@@ -124,10 +138,10 @@ pub struct Report {
     pub cut: usize,
 }
 
-/// The share of the logged apogee within which a chosen log's own apogee reading is counted as
-/// the logged altimeter's: 2%, a count of how often the nearest log is far from the logged
-/// number (a log of another altimeter in the same rocket, or of a reading the analyzer takes
-/// differently), not a filter.
+/// The share of the logged apogee past which a chosen log's own apogee reading is counted: 2%, a
+/// count of how often the nearest log is far from the logged number (a log of another altimeter
+/// in the same rocket, or a reading the analyzer takes differently), not a filter. Within it the
+/// log may still be another altimeter's: two in one rocket often agree that closely.
 pub const GAP_SHARE: f64 = 0.02;
 
 /// A flight's chosen log: its own apogee reading, and the boost's cut or why there's none.
@@ -231,11 +245,8 @@ fn count(root: &Path, entries: &[Entry]) -> Result<Report, String> {
             let Some(apogee) = readings.apogee.value() else {
                 continue;
             };
-            let barometric = matches!(
-                readings.source,
-                Some(Source::Barometer | Source::Pressure | Source::AltitudeChannel)
-            );
-            if !barometric {
+            // A height that isn't a number, chosen first, would never be replaced by a nearer one.
+            if !barometric(readings.source) || !apogee.height_m.is_finite() {
                 continue;
             }
             report.logs_with_apogee += 1;
@@ -270,44 +281,55 @@ impl Report {
     /// The page, written from the counts alone.
     pub fn to_markdown(&self) -> String {
         let mut page = String::new();
+        let refused: usize = self.refused.values().sum();
+        let _ = writeln!(page, "# The private collection's logs, cut at the boost\n");
         let _ = writeln!(
             page,
-            "# The private collection's logs, cut at the boost ({}, {})\n",
+            "This page counts how many of the [private collection's](fixture-flights.md) flights \
+             have a barometer's log that a prediction from the boost can start from: the log cut \
+             just after burnout, fitted, and flown on to apogee, as the \
+             [public flights' report](from-boost.md) does for 7 public flights. It predicts \
+             nothing yet, so none of these counts measures accuracy. A cut is not yet known to be \
+             at burnout: on the public flights' barometers it can fall inside the burn \
+             ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)). The \
+             collection's license allows only aggregates, so no flight is named.\n"
+        );
+        let _ = writeln!(
+            page,
+            "Written by `cargo xtask fixture-flights`; do not edit. It is the first of four steps \
+             toward the collection's predictions ({}, decision record \
+             [{}](../../docs/decisions/0326-m7-3d3-in-four-the-halves-sealed-first.md)).\n",
             self.milestone, self.decision
         );
         let _ = writeln!(
             page,
-            "Written by `cargo xtask fixture-flights`; do not edit. This is the first step of \
-             predicting the [private collection's](fixture-flights.md) apogees from each log cut \
-             just after burnout, as the [public flights' report](from-boost.md) does for 7 \
-             public flights. It counts which flights have a log the prediction can start from, \
-             over the whole collection. It gives no prediction and no error yet, and nothing for \
-             either half of the collection, so none of these counts is a prediction \
-             error. The collection's license allows only aggregates, so no flight is named.\n"
-        );
-        let _ = writeln!(
-            page,
-            "**The halves.** A flight is held out, kept from every choice of model \
+            "**The halves.** The predictions' errors will be given for two halves: a held-out \
+             third of the flights, kept from every choice of model \
              ([ADR-209 §4](../../docs/decisions/0209-the-2026-10-08-best-on-the-market-measured.md)), \
-             when the SHA-256 of its id followed by `ADR-209` starts with eight bytes below \
-             2⁶⁴ / 3: a third of the flights in expectation \
+             and the rest. A flight is held out when a hash of its id puts it there: the first \
+             eight bytes of the SHA-256 of the id followed by `ADR-209`, read as a number, fall \
+             below 2⁶⁴ / 3, a third of the flights in expectation \
              ([ADR-322](../../docs/decisions/0322-the-2026-11-05-progress-review-accuracy-before-reader-facing-work.md)). \
-             The held-out ids stay private; the SHA-256 of their sorted list is committed in \
-             [`held-out.sha256`](held-out.sha256) before any half's number is reported, so any \
-             later change to which flights are held out shows as a change to that hash.\n"
+             Which flights, and how many, stay private until the errors are given. The SHA-256 \
+             of their sorted ids is committed in [`held-out.sha256`](held-out.sha256) before any \
+             half's number, so any later change to which flights are held out shows as a change \
+             to that hash. This page gives nothing for either half.\n"
         );
         let _ = writeln!(
             page,
             "**Each flight's log.** A flight may have several logs, from more than one \
-             altimeter or file. Each of its logs in the collection's catalog, outside the \
-             catalog's unpinned `_scratch/` folder, is read alone, with no sheet chosen and no \
-             companion file. Of those whose height track is barometric (the logger's altitude, a \
-             pressure, or a barometric altitude channel) and gives an apogee, the flight's log is \
-             the one whose apogee is nearest the logged apogee the collection states. The \
-             library's boost finder then cuts it where its climb speed falls from its top, meant \
-             to be just after burnout, or says why it can't.\n"
+             altimeter or file.\n\n\
+             - **Which files:** those the collection's catalog lists for the flight, outside its \
+             `_scratch/` folder, which the collection's pinned version doesn't fix. Each is read \
+             on its own: a workbook without exactly one sheet that reads as a log, or a log that \
+             needs a second file or a stated column layout to read, counts as unread.\n\
+             - **Which log:** of those whose height track is a barometer's (the logger's \
+             altitude, a pressure, or a barometric altitude channel, never a GNSS receiver's) \
+             and gives an apogee, the one whose apogee is nearest the logged apogee the \
+             collection states; on a tie, the first in the catalog's order.\n\
+             - **The cut:** the library's boost finder cuts it where its climb speed falls from \
+             its top, or says why it can't.\n"
         );
-        let refused: usize = self.refused.values().sum();
         let _ = writeln!(page, "| | flights |\n|---|---:|");
         let _ = writeln!(page, "| in the collection's manifest | {} |", self.flights);
         let _ = writeln!(
@@ -315,24 +337,25 @@ impl Report {
             "| left out of the apogee errors by the manifest | {} |",
             self.excluded
         );
-        let _ = writeln!(page, "| no log reads alone | {} |", self.no_log_read);
+        let _ = writeln!(page, "| no file reads on its own | {} |", self.no_log_read);
         let _ = writeln!(
             page,
-            "| a log read, but none gives an apogee on a barometric track | {} |",
+            "| a file read, but none gives an apogee on a barometer's track | {} |",
             self.no_apogee
         );
         let _ = writeln!(page, "| a log chosen | {} |", self.chosen);
-        let _ = writeln!(page, "| of those, refused a cut | {refused} |");
+        let _ = writeln!(page, "| chosen, then refused a cut | {refused} |");
         for (why, n) in &self.refused {
-            let _ = writeln!(page, "| … {why} | {n} |");
+            let _ = writeln!(page, "| … refused: {why} | {n} |");
         }
-        let _ = writeln!(page, "| of those, cut | {} |", self.cut);
+        let _ = writeln!(page, "| chosen and cut | {} |", self.cut);
         let _ = writeln!(
             page,
-            "\nOf the flights not left out, {} pinned logs were tried, {} read alone and {} gave \
-             an apogee on a barometric track. Of the chosen logs, {} read an apogee more than \
+            "\nOf the flights not left out, {} files were tried, {} read on their own and {} gave \
+             an apogee on a barometer's track. Of the chosen logs, {} read an apogee more than \
              {:.0}% from the logged one: the nearest log may be another altimeter's, or a \
-             reading the analyzer takes differently.\n",
+             reading the analyzer takes differently. The 2% is a line for counting, not a \
+             filter.\n",
             self.logs,
             self.logs_read,
             self.logs_with_apogee,
@@ -341,15 +364,14 @@ impl Report {
         );
         let _ = writeln!(
             page,
-            "**How far to trust it.** The cut is found on the log as it stands. On the public \
-             flights' barometers it can fall inside the burn \
-             ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)), so a count \
-             of cuts is not yet a count of cuts at burnout. The finder refuses a log whose fitted \
-             climb speed reaches 227.7 m/s (747 ft/s) before its cut, where a barometer's reading \
-             may be the airflow's, not the height's. A cut that falls early on a dip can come \
-             before that speed, as Lince's did in the [public flights' report](from-boost.md), so some cuts counted here may be on logs that \
-             climb past it later. A log that needs a stated column mapping or a companion file to read \
-             counts as unread here."
+            "**The refusals.** The finder refuses a log whose fitted climb speed reaches \
+             227.7 m/s (747 ft/s), Mach 0.8 in the coldest air, before its cut: nearer the \
+             [speed of sound](../../docs/glossary.md#transonic-and-supersonic) a barometer's \
+             reading may follow the airflow, not the height. A cut that falls early on a dip can \
+             come before that speed, as Lince's did in the [public flights' report](from-boost.md), \
+             so some cuts counted here may be on logs that climb past it later. A log with fewer \
+             than 5 samples in any half second, slower than 8 a second, is too sparse to follow \
+             the climb."
         );
         page
     }
@@ -436,12 +458,8 @@ mod tests {
             ("a", 0x6637_8107_71ca_7524, false),
             ("", 0xe709_4cf5_1404_339f, false),
         ];
-        for (id, leading, expected) in cases {
-            let digest = Sha256::new()
-                .chain_update(id.as_bytes())
-                .chain_update(SEED)
-                .finalize();
-            assert_eq!(digest[..8], leading.to_be_bytes(), "{id}'s digest");
+        for (id, first, expected) in cases {
+            assert_eq!(leading(id), first, "{id}'s digest");
             assert_eq!(held_out(id), expected, "{id}");
         }
         // Of the first twelve invented ids, these five are held out (Python, as above).
@@ -485,6 +503,18 @@ mod tests {
             held_out_digest([]),
             "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         );
+    }
+
+    /// Only a barometer's track is a candidate: the three barometric sources, never a GNSS
+    /// receiver's, the accelerometer, or no track.
+    #[test]
+    fn only_a_barometers_track_is_chosen() {
+        for source in [Source::Barometer, Source::Pressure, Source::AltitudeChannel] {
+            assert!(barometric(Some(source)), "{source:?}");
+        }
+        for source in [Some(Source::Gnss), Some(Source::Accelerometer), None] {
+            assert!(!barometric(source), "{source:?}");
+        }
     }
 
     /// The nearest apogee wins, the first on a tie.
