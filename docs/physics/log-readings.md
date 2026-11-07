@@ -260,17 +260,16 @@ reads up to 268.8 m (882 ft) high, the fall's end up to 339.9 m (1,115 ft)
 ([the survey's report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md#disturbed-pads-against-stated-apogees)).
 
 **Two levels.** A logger switched on above the pad and carried down to it rests at two levels, and
-so does a reading the pressure moves before liftoff. Where the track falls as above and the
-medians of its stay at the start and of its last rest before the climb lie more than the rise
-apart, the pad is that last rest, read back from the rest's end while its samples stay within the
-rise of each other. That needs the rest to have lasted at least as long as the stay at the start,
-and the climb to be seen leaving it: a rocket leaves its pad from rest, so some filtered sample
-lies between the two levels. Otherwise either level may be the pad, and every reading is withheld
-(`disturbed_pad`, [#1158](https://github.com/nrdptel/fusionspace-eridanus/issues/1158)). On a
-synthetic log resting 30 m (98 ft) up for 2 s, then 4 s on the pad, the logger's zero reads a
-98.1 m (322 ft) apogee as 97.96 m (321 ft) (`the_pad_is_the_last_rest_before_the_climb`). The climb
-is still found from the log's start. A fall from the last rest into the climb is a pulse, as one
-from the start is.
+so does a reading the pressure moves before liftoff. The track can't tell the two apart. Where it
+falls as above and the medians of its stay at the start and of its last rest before the climb lie
+more than the rise apart, the pad is that last rest, read back from the rest's end while its
+samples stay within the rise of each other. The gap between the two levels enters the pad's
+error, as either may be the pad, so the bounds hold whichever of the two it was
+([#1158](https://github.com/nrdptel/fusionspace-eridanus/issues/1158)). A synthetic log resting
+30 m (98 ft) up for 5 s, then 3 s on the pad, reads its 98.1 m (322 ft) apogee as 97.96 m
+(321 ft) on the logger's zero, with a bound of 40.9 m (134 ft)
+(`the_pad_is_the_last_rest_before_the_climb`). The climb is still found from the log's start. A
+fall from the last rest into the climb is a pulse, as one from the start is.
 
 ### Each reading
 
@@ -1105,7 +1104,7 @@ reasons:
 | `step_too_coarse` | the step is coarser than 10 m (33 ft) or 100 Pa; or so coarse for the descent near the ground that a fit holding four steps would span more than 10 s | all; or both canopies' descents |
 | `slower_than_free_coast` | the track loses no more than twice its noise and step in the 4 s before its top | all |
 | `disturbed_top` | the track falls more than twice its noise and step below a peak in the 4 s before its top, then climbs to that top; or, within a second either side, it climbs into its top faster than a coast and falls from it faster than a body at rest | apogee, the top speed, landing, and the readings that need them |
-| `disturbed_pad` | the track falls before the climb and climbs without resting, or rests at two levels, longer at the first | the top speed; liftoff with no pad before the fall; all on a short pad with no zero, or at two levels |
+| `disturbed_pad` | the track falls before the climb and climbs without resting | the top speed; liftoff with no pad before the fall; all on a short pad with no zero |
 | `clock_out_of_order` | the height track's clock doesn't increase; or the accelerometer's runs back | all; or the top acceleration, and burnout from the accelerometer |
 | `no_height_track` | the log holds no altitude, pressure or GNSS track | all |
 | `unstated_sensor` | the log's only height doesn't say whether a barometer or a GNSS receiver measured it | all |
@@ -1386,8 +1385,9 @@ truth beside the logs, that doesn't say how each rocket came down.
   1.12.
 - **A short stay on the pad.** The climb's first rise counts toward a rest, so a stay on the pad
   of up to 0.2 s after a carry down, before a 4 g climb at 20 samples a second (0.15 s on a
-  pressure track), is read as a pulse from the higher level. The apogee then reads low by the
-  drop, past its bound for a drop of more than about 10 m (33 ft).
+  pressure track, 0.3 s on a noisy pad), is read as a pulse from the higher level. The apogee
+  then reads low by the drop, past its bound on a 98 m (322 ft) flight for a drop of more than
+  about 10 m (33 ft).
 - **Wide pulses.** A pulse wider than half the median's window passes it. The bounds were held on
   the synthetic flights' pulses, which are shaped like the public Pnut log's and scaled by 0 to 2.
   A wider or taller one isn't covered.
