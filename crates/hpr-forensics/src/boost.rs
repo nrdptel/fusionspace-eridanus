@@ -17,11 +17,12 @@
 //!
 //! The finder refuses the tracks the analyzer distrusts in the boost: a GNSS receiver's, and a
 //! barometer's once its speed reaches [`readings::TRANSONIC_SPEED_M_S`] (Mach 0.8 in the coldest
-//! air), where the port may read the transonic flow. Without that rule the barometer's jump near
-//! Mach 1 read as the top speed on 57 of set A's first 200 synthetic flights, so the cut followed
-//! the jump rather than burnout (a sweep run once, with a 1 s hold then in the rule). So a
-//! flight that reaches about 220 m/s gets no prediction from its barometer; an accelerometer's cut
-//! isn't built.
+//! air), where the port may read the transonic flow. Without that rule, and with a 1 s hold then
+//! in it, the fitted top speed was over 1.1 times the true one on 57 of set A's first 200
+//! synthetic flights, the barometer's jump near Mach 1 read as the top, so the cut's place followed
+//! the jump rather than burnout (a sweep run once). So a flight whose fitted climb speed reaches
+//! 227.7 m/s gets no prediction from its barometer: on that set the slowest refused had a true top
+//! of 221 m/s and the fastest cut 233 m/s (measured once). An accelerometer's cut isn't built.
 //!
 //! The analyzer's own burnout reading isn't used: its spike filter, its burnout mean and its
 //! noise span are centered windows, and [`readings::read`] takes the whole log at once.
@@ -44,8 +45,9 @@ use serde::{Deserialize, Serialize};
 use crate::fit::{self, Fit, Forward, Noise, Observations, Stated};
 use crate::residuals::HeightKind;
 
-/// How far above the track's first height the rocket must stand for liftoff, m: well past a
-/// barometer's noise on the pad, while a hobby rocket climbs it in about a second or less. HPR
+/// How far above the track's first height the rocket must stand for liftoff, m: past the largest
+/// excursion from it on the pad, 6.8 m over sets A and B's first 200 synthetic flights each (their
+/// barometers' logs, measured once), while a hobby rocket climbs it in about a second or less. HPR
 /// Sim's choice.
 pub const LIFTOFF_RISE_M: f64 = 10.0;
 
@@ -70,8 +72,9 @@ pub const APOGEE_HORIZON_S: f64 = 300.0;
 /// Where the boost's log is cut.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Cut {
-    /// The index, in [`readings::height_track`]'s samples, of the last one the finder read: the
-    /// cut's.
+    /// The index of the last sample the finder read, the cut's, in the height track of the log
+    /// with each channel kept up to its first time out of order (on the log's own clock, in its
+    /// samples).
     pub index: usize,
     /// That sample's time on the log's clock, s. The log is kept up to it, inclusive.
     pub time_s: f64,
@@ -140,7 +143,7 @@ fn in_order_count(times: &[f64], cut_s: f64) -> usize {
 /// by up to 440 m in one flight a flyer reports, while its fix reads valid
 /// ([GNSS in boost](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/gnss-in-boost.md)):
 /// on set A's first 60 synthetic flights such tracks were cut up to 11 s after burnout or not at
-/// all (a sweep run once). A staged flight is cut at the first burnout whose coast lasts long
+/// all (a sweep run once, with a 1 s hold then in the rule). A staged flight is cut at the first burnout whose coast lasts long
 /// enough for that fall; untested on one.
 #[must_use]
 pub fn find_cut(log: &FlightLog) -> Option<Cut> {
@@ -462,12 +465,12 @@ mod tests {
     }
 
     /// Over set A's first 200 synthetic flights: no GNSS tracker's log is cut, nor any whose
-    /// fitted speed reaches the transonic speed; every flight whose true top vertical speed stays
-    /// 10% below that speed is cut. Every cut falls after the true peak of the vertical speed and
-    /// after burnout, before apogee, and no later after burnout than the fall the cut needs at its
-    /// largest takes under gravity alone, plus a window (drag only shortens it): 2.82 s.
-    /// Measured: 51 cut, 0.33 s to 1.48 s after burnout; 43 GNSS logs and 106 fast ones refused,
-    /// the slowest of those at 221 m/s. Set B's first 200, run once, not in the test: 57 cut, 0.35 s
+    /// fitted speed reaches the transonic speed; every other flight whose true top vertical speed
+    /// stays 10% below that speed is cut. Every cut falls after the true peak of the vertical speed
+    /// and after burnout, before apogee, and no later after burnout than the fall the cut needs at
+    /// its largest takes under gravity alone, plus a window (drag only shortens it): 2.83 s. At
+    /// least 51 are cut. Measured, not asserted: 51 cut, 0.33 s to 1.48 s after burnout; 43 GNSS
+    /// logs and 106 fast ones refused, the slowest of those at 221 m/s. Set B's first 200, run once, not in the test: 57 cut, 0.35 s
     /// to 1.55 s after burnout, 34 GNSS and 109 fast refused.
     #[test]
     fn the_cut_falls_just_after_the_true_burnout() {

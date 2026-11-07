@@ -178,14 +178,15 @@ private collection), and each needs a full gate, reviews and CI, so one incremen
    - The finder refuses the tracks the analyzer distrusts in the boost. A GNSS receiver's: its fix
      can drop out or lag the climb, by up to 440 m in one flight a flyer reports
      ([GNSS in boost](../research/gnss-in-boost.md)), and on set A's first 60 flights such tracks
-     were cut up to 11 s after burnout or not at all (a sweep run once). A barometer's, once its
-     fitted speed reaches the analyzer's transonic speed (Mach 0.8 in the coldest air, 227.7 m/s):
-     its port may read the transonic flow, and the jump near Mach 1 read as the top speed on 57 of
-     set A's first 200 flights (a sweep run once), so the cut followed the jump, not burnout.
+     were cut up to 11 s after burnout or not at all (a sweep run once, with a 1 s hold then in
+     the rule). A barometer's, once its fitted speed reaches the analyzer's transonic speed (Mach
+     0.8 in the coldest air, 227.7 m/s): its port may read the transonic flow, and with a 1 s hold
+     in the rule and no such refusal the fitted top was over 1.1 times the true one on 57 of set
+     A's first 200 flights (a sweep run once), the jump near Mach 1 read as the top.
    - On set A's first 200 synthetic flights (a test) every cut falls after the true peak of the
-     vertical speed, after burnout and at most 2.82 s after it (the largest fall needed, under
-     gravity alone, plus a window); measured 0.33 s to 1.48 s. 51 are cut; 43 GNSS logs and 106
-     that reach about 220 m/s are refused.
+     vertical speed, after burnout and at most 2.83 s after it (the largest fall needed, under
+     gravity alone, plus a window), and at least 51 are cut; measured once, 51 cut 0.33 s to
+     1.48 s after burnout, 43 GNSS logs and 106 whose fitted speed reached 227.7 m/s refused.
    - Every reading after that runs on the log truncated at the cut, so later samples can't reach
      it by construction. The test then compares the prediction on the whole log with the one on
      the log whose later samples are noise, bit for bit.
