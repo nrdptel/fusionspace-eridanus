@@ -187,7 +187,7 @@ private collection), and each needs a full gate, reviews and CI, so one incremen
      A's first 200 flights (a sweep run once), the jump near Mach 1 read as the top.
    - On set A's first 200 synthetic flights (a test) every cut falls after the true peak of the
      vertical speed, after burnout and at most 2.83 s after it (the largest fall needed, under
-     gravity alone, plus a window), with or without one bad sample put in the log, and at least
+     gravity alone, plus a window), each cut found with one bad sample put in the log too, and at least
      51 are cut; measured, 51 cut 0.33 s to 1.48 s after burnout, 43 GNSS logs and 106 whose
      fitted speed reached 227.7 m/s refused.
    - Every reading after that runs on the log cut there. The log's own clock is cut by position,

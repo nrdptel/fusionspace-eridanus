@@ -6,11 +6,12 @@
 //!
 //! - [`find_cut`] walks the height track forward and decides at each sample from that sample and
 //!   the ones before it. A vertical speed is fitted by least squares over the last
-//!   [`SPEED_WINDOW_S`] of samples, leaving out a sample the analyzer's Hampel rule calls bad, so
-//!   that one bad reading moves nothing. Liftoff is where that line stands [`LIFTOFF_RISE_M`] above
-//!   the first, and the cut is at the first sample where the speed has fallen below its top by
-//!   [`DROP_SHARE`] of it, and by at least [`DROP_FLOOR_M_S`]. After burnout gravity takes about
-//!   9.8 m/s off the vertical speed every second, drag more, so the log keeps the coast's start.
+//!   [`SPEED_WINDOW_S`] of samples, leaving out a sample the analyzer's Hampel rule calls bad: one
+//!   bad reading moved a cut by 0.05 s at most on the tests' flights. Liftoff is where that line
+//!   stands [`LIFTOFF_RISE_M`] above the first window's, and the cut is at the first sample where
+//!   the speed has fallen below its top by [`DROP_SHARE`] of it, and by at least
+//!   [`DROP_FLOOR_M_S`]. After burnout gravity takes about 9.8 m/s off the vertical speed every
+//!   second, drag more, so the log keeps the coast's start.
 //! - Everything after that reads the log cut there: its readings, the fit's observations and so
 //!   the fit. The log's own clock is cut at the cut's sample, by position, so a time it logs later
 //!   can't enter. A channel on a clock of its own is cut at its first time past the cut or out of
@@ -53,10 +54,10 @@ use serde::{Deserialize, Serialize};
 use crate::fit::{self, Fit, Forward, Noise, Observations, Stated};
 use crate::residuals::HeightKind;
 
-/// How far above the track's first height the rocket must stand for liftoff, m: past the largest
-/// excursion from it on the pad, 6.8 m over sets A and B's first 200 synthetic flights each (their
-/// barometers' logs, measured once), while a hobby rocket climbs it in about a second or less. HPR
-/// Sim's choice.
+/// How far above the first window's fitted line the rocket's must stand for liftoff, m: past the
+/// largest excursion from the track's first height on the pad, 6.8 m over sets A and B's first 200
+/// synthetic flights each (their barometers' logs, measured once), while a hobby rocket climbs it
+/// in about a second or less. HPR Sim's choice.
 pub const LIFTOFF_RISE_M: f64 = 10.0;
 
 /// The span of the trailing window the vertical speed is fitted over, s: a straight line by
@@ -115,12 +116,13 @@ fn line(points: &[(f64, f64)]) -> Option<(f64, f64)> {
 
 /// The vertical speed over `window`, m/s, and the height the line gives at its last time, m: a
 /// straight line fitted by least squares without each sample whose residual from a first, robust
-/// line (the median of the slopes between samples half the window apart) lies further than
-/// [`readings::SPIKE_THRESHOLD`] robust standard deviations (1.4826 times the residuals' median
-/// absolute deviation) from their median, the analyzer's Hampel rule (Pearson et al., EUSIPCO
-/// 2015, §2). One bad sample, a pulse at the port or a corrupt reading, is so left out of every
-/// window that holds it; two side by side can carry the first line with them, and aren't handled.
-/// Where most residuals are 0, as on a quantized pad, only the samples on the line are kept.
+/// line (the median of the slopes between samples half the window's samples apart) lies further
+/// than [`readings::SPIKE_THRESHOLD`] robust standard deviations (1.4826 times the residuals'
+/// median absolute deviation) from their median, the analyzer's Hampel rule (Pearson et al.,
+/// EUSIPCO 2015, §2). One bad sample that far out, a pulse at the port or a corrupt reading, is so
+/// left out of every window that holds it; two side by side can carry the first line with them, and
+/// aren't handled. Where most residuals are 0, as on a quantized pad, only the samples on the line
+/// are kept.
 /// `None` where fewer than [`readings::SPEED_MIN_SAMPLES`] are kept or the times don't spread.
 fn robust_line(window: &VecDeque<(f64, f64)>) -> Option<(f64, f64)> {
     let points: Vec<(f64, f64)> = window.iter().copied().collect();
@@ -598,16 +600,16 @@ mod tests {
 
     /// Over set A's first 200 synthetic flights: no GNSS tracker's log is cut, nor any whose
     /// fitted speed reaches the transonic speed; every other flight whose true top vertical speed
-    /// stays 10% below that speed is cut (the fitted speed can read above the true one by its
-    /// noise and the port's error). Every cut falls after the true peak of the vertical speed and
-    /// after burnout, before apogee, and within 2.83 s of burnout: the time the largest fall the
-    /// cut needs takes under gravity alone, plus a window. The same holds with one bad sample put
-    /// in the log: 100 m or 15 m up halfway through the burn, 30 m down at four fifths of it, 12 m
-    /// up on the pad, or 15 m down at the first. Measured, not asserted: 51 cut, 0.33 s to 1.48 s
-    /// after burnout; 43 GNSS logs and 106 fast ones refused, the slowest of those at 221.3 m/s;
-    /// a bad sample moved a cut by 0.05 s at most (up to three samples on a 100 Hz log), on 8 of
-    /// the 785 logs, and made or lost none. Set B's first 200, run once, not in the test: 57 cut,
-    /// 0.35 s to 1.55 s after burnout, 34 GNSS and 109 fast refused.
+    /// stays 10% below that speed is cut (the fitted speed can read above the true one by its noise
+    /// and the port's error). Every cut falls after the true peak of the vertical speed and after
+    /// burnout, before apogee, and within 2.83 s of burnout: the time the largest fall the cut
+    /// needs takes under gravity alone, plus a window. Each cut found on a log with one bad sample
+    /// put in passes the same checks: 100 m or 15 m up halfway through the burn, 30 m down at four
+    /// fifths of it, 12 m up on the pad, or 15 m down at the first. Measured, not asserted: 51 cut,
+    /// 0.33 s to 1.48 s after burnout; 43 GNSS logs and 106 fast ones refused, the slowest of those
+    /// at 221.3 m/s; a bad sample made or lost no cut and moved one by 0.05 s at most (up to three
+    /// samples on a 100 Hz log), on 8 of the 785 logs. Set B's first 200, run once, not in the
+    /// test: 57 cut, 0.35 s to 1.55 s after burnout, 34 GNSS and 109 fast refused.
     #[test]
     fn the_cut_falls_just_after_the_true_burnout() {
         let latest_s = (DROP_SHARE * readings::TRANSONIC_SPEED_M_S).max(DROP_FLOOR_M_S)
@@ -679,7 +681,7 @@ mod tests {
         assert!(cut_count >= 51, "{cut_count} cut");
     }
 
-    /// A hostile log is refused, or cut, without a panic and in a bounded time: no samples, one,
+    /// A hostile log is refused without a panic: no samples, one,
     /// times all equal, not numbers or infinite, heights at the float's edge, and a log sampled
     /// every microsecond, faster than the analyzer reads, 200,000 samples refused at its first
     /// window.
