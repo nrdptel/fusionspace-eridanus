@@ -120,8 +120,8 @@ fn line(points: &[(f64, f64)]) -> Option<(f64, f64)> {
 /// absolute deviation) from their median, the analyzer's Hampel rule (Pearson et al., EUSIPCO
 /// 2015, §2). One bad sample, a pulse at the port or a corrupt reading, is so left out of every
 /// window that holds it; two side by side can carry the first line with them, and aren't handled.
-/// Where most residuals are 0, as on a quantized pad, only the samples on the line are kept. `None` where fewer than [`readings::SPEED_MIN_SAMPLES`] are kept or the
-/// times don't spread.
+/// Where most residuals are 0, as on a quantized pad, only the samples on the line are kept.
+/// `None` where fewer than [`readings::SPEED_MIN_SAMPLES`] are kept or the times don't spread.
 fn robust_line(window: &VecDeque<(f64, f64)>) -> Option<(f64, f64)> {
     let points: Vec<(f64, f64)> = window.iter().copied().collect();
     let t0 = points.first()?.0;
@@ -196,8 +196,9 @@ fn in_order_count(times: &[f64], cut_s: f64) -> usize {
 /// Where the boost's log is cut, decided at each sample of the height track from it and the ones
 /// before it (the module's rules); `None` where the log holds no height track, its track is a GNSS
 /// receiver's, any [`SPEED_WINDOW_S`] of it holds more samples than the analyzer's fastest rate
-/// allows ([`readings::MIN_INTERVAL_S`]), it never lifts off, it never holds [`readings::SPEED_MIN_SAMPLES`] in a
-/// [`SPEED_WINDOW_S`] window (a log slower than 8 Hz), its fitted speed reaches
+/// allows ([`readings::MIN_INTERVAL_S`]), it never lifts off, it never holds
+/// [`readings::SPEED_MIN_SAMPLES`] in a [`SPEED_WINDOW_S`] window (a log slower than 8 Hz), its
+/// fitted speed reaches
 /// [`readings::TRANSONIC_SPEED_M_S`] before the cut, or it never slows by [`DROP_SHARE`] of its
 /// top speed and [`DROP_FLOOR_M_S`].
 ///
@@ -377,8 +378,8 @@ fn read_to_cut(log: &FlightLog, extra: usize) -> Option<(Cut, Observations)> {
 /// Apogee predicted from `log` cut just after burnout: the boost fitted by [`fit::fit`], each
 /// parameter held to what `stated` gives for the boost's observations, then flown on by `forward`
 /// to its apogee. `None` where the log has no cut, the boost says nothing to fit, or the fitted
-/// flight doesn't reach an apogee within [`APOGEE_HORIZON_S`]. The fit's own `converged` says whether
-/// it settled.
+/// flight doesn't reach an apogee within [`APOGEE_HORIZON_S`]. The fit's own `converged` says
+/// whether it settled.
 #[must_use]
 pub fn predict(
     log: &FlightLog,
