@@ -35,6 +35,8 @@ impulse, wind and mass, and where its Bayesian option fails its tests.
   constant with height; on a log of height alone, a wind that grows with height only widens the intervals. It's
   told the design, rail, site and the day's air, and takes them as right. It's in the library only:
   no command runs it on a log yet.
+- **From the boost:** the library also predicts apogee from a log cut just after burnout. It's not
+  yet validated ([below](#apogee-from-the-boost)).
 
 ## How it works
 
@@ -356,20 +358,44 @@ closed forms. A result under 100 effective draws is flagged as too few to read. 
 
 ## Apogee from the boost
 
-Not yet validated. The library predicts apogee from a log cut just after burnout
-(`hpr_forensics::boost`). A climb speed is fitted to the heights over the last half second; the cut
-is the first sample where it has fallen below its top by 10% of it, and by at least 10 m/s
-(32.8 ft/s), so the log keeps the coast's start. It is only made on a barometer's log whose
-fitted climb speed stays under 227.7 m/s (747 ft/s). Past that the barometer may read the
-[transonic](../glossary.md#transonic-and-supersonic) flow, and the analyzer withholds its top speed
-there; a GNSS receiver's altitude can drop out or lag in the boost ([GNSS in the boost](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/gnss-in-boost.md)).
-On [set A](synthetic-flights.md#the-sets)'s first 200 synthetic flights, 51 were cut, each after
-the true peak of its vertical speed and after burnout, 0.33 s to 1.48 s after it; the other 149
-were refused, the slowest at a true 221 m/s (725 ft/s). A test pins the order and at least 51
-cuts; the counts and times are measured. The log up to the cut is fitted, and the fit flown
-on to apogee. A test puts noise in every later value, time and event name of two logs, and the
-prediction stays the same, bit for bit (`cargo test -p fusionspace-hpr-forensics boost`). How close it comes to a logged apogee is
-[not measured yet](../decisions-and-roadmap.md#m7-3d).
+Not yet validated: how close it comes to a logged apogee is
+[not measured yet](../decisions-and-roadmap.md#m7-3d). The library predicts a flight's apogee from
+its climb alone, a log cut just after burnout (`hpr_forensics::boost`). It is a forecast made
+before the coast is seen. Once logged apogees check it, it will show how well the fit carries a
+flight forward.
+
+**The cut.** The library follows the climb speed: a straight line fitted to each half second of
+heights. One reading far from the rest is left out, as the analyzer's spike rule does. The cut is
+the first sample where the speed has dropped 10% below its peak, and at least 10 m/s (32.8 ft/s).
+After burnout gravity alone takes 9.8 m/s off the speed every second. So the cut comes just after
+burnout, and the log keeps the start of the coast. The log up to the cut is fitted, and the fit
+flown on to apogee.
+
+**What gets no cut.**
+
+- A GNSS tracker's log. In the boost a receiver's altitude can drop out or lag the climb
+  ([GNSS in the boost](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/gnss-in-boost.md)).
+  One flyer reports a lag of 440 m (1,444 ft).
+- A barometer's log whose fitted climb speed reaches 227.7 m/s (747 ft/s), Mach 0.8 in the
+  coldest air. Nearer the speed of sound ([transonic](../glossary.md#transonic-and-supersonic)
+  flow), the pressure at the port stops following the height. The analyzer withholds its top
+  speed there too.
+- A log slower than 8 samples a second, or one that never slows by that much.
+
+[Set A](synthetic-flights.md#the-sets)'s first 200 synthetic flights are mostly fast. Of them, 51
+were cut, each after the true peak of its vertical speed. Each cut came 0.33 s to 1.48 s after
+burnout. 43 GNSS logs and 106 fast flights were refused. The slowest of those truly peaked at
+221 m/s (726 ft/s): the fitted speed reads a little above the true one. One bad reading, up to
+100 m (328 ft) off, moved no cut by more than a sample (0.05 s). A test pins the order, the spikes
+and at least 51 cuts; the counts and times are measured.
+
+**Why it can be trusted not to peek.** A test replaces every value and time after the cut with
+noise, and the prediction stays the same, bit for bit. It runs on three logs, one with a GNSS
+receiver's channels beside its barometer. Letting the prediction read half a second more changes
+it. So the prediction uses nothing logged after the cut. A channel on a clock of its own is cut by
+its times: a sample it stamps before the cut is read wherever the file puts it. Run
+`cargo test -p fusionspace-hpr-forensics boost`. No worked example yet: one waits for a logged
+apogee to compare it with.
 
 ## Sources
 

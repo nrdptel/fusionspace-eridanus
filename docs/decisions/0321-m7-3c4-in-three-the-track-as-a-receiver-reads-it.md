@@ -168,10 +168,12 @@ private collection), and each needs a full gate, reviews and CI, so one incremen
    therefore set at the last sample any of the finder's windows read, not at burnout itself, and
    the pad and liftoff come from the samples before that cut. The plan:
    - The finder walks the log's height track forward and decides at each sample from it
-     and those before it: liftoff 10 m (32.8 ft) above the track's first height, then a speed
-     fitted by least squares over the last 0.5 s, and the cut at the first sample where it has
-     fallen below its top by 10% of it, and by at least 10 m/s (32.8 ft/s). ADR-257 §3's "before
-     any smoothing or fitting" is read as before any centered window: the fit is a trailing one.
+     and those before it: a speed fitted by least squares over the last 0.5 s, leaving out a
+     sample the analyzer's Hampel rule calls bad (5 robust standard deviations from a robust first
+     line), liftoff where that line stands 10 m (32.8 ft) above the first, and the cut at the
+     first sample where the speed has fallen below its top by 10% of it, and by at least 10 m/s
+     (32.8 ft/s). ADR-257 §3's "before any smoothing or fitting" is read as before any centered
+     window: the fit is a trailing one.
      The cut is the sample it stops on: ADR-257 §3's "cut at burnout" is read as the sample where
      burnout is found from those up to it, so the log keeps the coast's start. M7.3d2 gives the
      error; whether an accelerometer's cut, sooner, would do better isn't measured.
@@ -185,11 +187,15 @@ private collection), and each needs a full gate, reviews and CI, so one incremen
      A's first 200 flights (a sweep run once), the jump near Mach 1 read as the top.
    - On set A's first 200 synthetic flights (a test) every cut falls after the true peak of the
      vertical speed, after burnout and at most 2.83 s after it (the largest fall needed, under
-     gravity alone, plus a window), and at least 51 are cut; measured once, 51 cut 0.33 s to
-     1.48 s after burnout, 43 GNSS logs and 106 whose fitted speed reached 227.7 m/s refused.
-   - Every reading after that runs on the log truncated at the cut, so later samples can't reach
-     it by construction. The test then compares the prediction on the whole log with the one on
-     the log whose later samples are noise, bit for bit.
+     gravity alone, plus a window), with or without one bad sample put in the log, and at least
+     51 are cut; measured, 51 cut 0.33 s to 1.48 s after burnout, 43 GNSS logs and 106 whose
+     fitted speed reached 227.7 m/s refused.
+   - Every reading after that runs on the log cut there. The log's own clock is cut by position,
+     so a later sample can't reach it by construction; a channel on a clock of its own is cut by
+     its times, in order, so a sample it stamps in order before the cut is read wherever the file
+     puts it. The test then compares the prediction on the whole log with the one on the log whose
+     later values and times are noise, bit for bit, on three logs, one with channels besides its
+     track.
    - The fit needs observations that end at the cut rather than at apogee: `observations` runs
      from a second before liftoff to the apogee reading, which on a log cut on the climb is no apogee at all
      (withheld, or a floor at the cut; `Readings::ends_on_the_climb`).
