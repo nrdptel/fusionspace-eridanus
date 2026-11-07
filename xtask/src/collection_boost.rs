@@ -282,8 +282,8 @@ impl Report {
              just after burnout, as the [public flights' report](from-boost.md) does for 7 \
              public flights. It counts which flights have a log the prediction can start from, \
              over the whole collection. It gives no prediction and no error yet, and nothing for \
-             either half of the collection, so none of these counts is an error against a \
-             flight. The collection's license allows only aggregates, so no flight is named.\n"
+             either half of the collection, so none of these counts is a prediction \
+             error. The collection's license allows only aggregates, so no flight is named.\n"
         );
         let _ = writeln!(
             page,
@@ -347,7 +347,7 @@ impl Report {
              of cuts is not yet a count of cuts at burnout. The finder refuses a log whose fitted \
              climb speed reaches 227.7 m/s (747 ft/s) before its cut, where a barometer's reading \
              may be the airflow's, not the height's. A cut that falls early on a dip can come \
-             before that speed, as Lince's did, so some cuts counted here may be on logs that \
+             before that speed, as Lince's did in the [public flights' report](from-boost.md), so some cuts counted here may be on logs that \
              climb past it later. A log that needs a stated column mapping or a companion file to read \
              counts as unread here."
         );
