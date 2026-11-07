@@ -157,8 +157,9 @@ run from [Mach](glossary.md#mach-number) 0 to 5. Both are checked against a wind
 0.6 to 4.63, and the drag reads high at most speeds. A part's own drag coefficient, stated in a
 `.ork` file, flies as OpenRocket flies it
 ([A part's stated drag coefficient](physics/aero.md#a-parts-stated-drag-coefficient)). OpenRocket's
-*Base drag hack* example relies on that. It flies within 4.52% of OpenRocket's apogee on two of its
-three motors. On the third it's 7.80% high, which misses the 5% bar. The detail is in
+*Base drag hack* example relies on that. With recovery in both programs, it flies within 4.52% of
+OpenRocket's apogee on two of its three motors. On the third it's 7.80% high, which misses the 5%
+bar ([the table](format/ork.md#the-simulators-flights-against-openrockets)). The detail is in
 [Aerodynamics](physics/aero.md).
 
 ### Flight
@@ -174,7 +175,7 @@ Parachutes, [streamers](glossary.md#streamer) and [tumbling](glossary.md#tumble-
 rocket down, and HPR Sim gives the [drift](glossary.md#drift) they carry it downwind. A rocket can
 [separate](glossary.md#separation) into bodies that each descend on their own. A `.ork` file's
 parachutes and streamers fly as OpenRocket flies them, in `hpr sim` too. HPR Sim's landing speed is
-within 0.02% of OpenRocket's on 50 of its 53 example flights, and within 0.12% on all 53
+within 0.021% of OpenRocket's on 50 of its 53 example flights, and within 0.12% on all 53
 ([Recovery](physics/recovery.md#from-an-openrocket-file)). `hpr sim` also flies a `.ork`'s powered
 separations, one or several, though a dropped booster's landing is rough
 ([powered separation in `hpr sim`](decisions-and-roadmap.md#m4-5g1)). Staged flights and a
@@ -653,7 +654,10 @@ zero while a motor burns says its apogee isn't a prediction. The results so far:
     with fins past Mach 1. 2 of 44 measurements are within the 10% target set before measuring
     ([Aerodynamics](physics/aero.md#drag-against-the-arcas-robin-wind-tunnel)). The normal force
     and center of pressure were checked at Mach 0 against Barrowman's worked examples. From Mach
-    0.6 to 4.63, against the same wind tunnel, they miss between Mach 0.8 and 1.2, and past Mach 3.
+    0.6 to 4.63, against the same wind tunnel, they miss at Mach 0.8, 0.9, 0.95 and 1.2 on the
+    short model, and at 0.9, 1.0, 1.2, 1.8 and 2.3 on the long one. At 1.8 and 2.3 its center of
+    pressure sits 0.52 to 0.53 calibers forward of the tunnel's, the cautious side for the margin.
+    From Mach 2.96 up, both are within target.
     [Aerodynamics](physics/aero.md#normal-force-through-mach-1) reports the current comparison and
     its measured range.
   - The drag was compared with drag curves that come with RocketPy's example rockets, labeled as

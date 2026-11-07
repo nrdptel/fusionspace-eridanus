@@ -474,7 +474,7 @@ or `.hprz` converted from a `.ork`. `hpr sim` flies them through
 fully at once, the file's delay after its event. The rocket then comes down under the open devices'
 drag alone.
 
-The landing speed is within 0.02% of OpenRocket's on 50 of its 53 example flights, and within 0.12%
+The landing speed is within 0.021% of OpenRocket's on 50 of its 53 example flights, and within 0.12%
 on all 53 ([Recovery](physics/recovery.md#from-an-openrocket-file)). Those flights are in calm air.
 They check how fast and how long the rocket comes down, not where wind drifts it.
 
