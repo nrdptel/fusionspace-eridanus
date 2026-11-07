@@ -4,6 +4,7 @@ This note asks what NAR S&T's 2026-08-20 notice on six Animal Motor Works (AMW) 
 measured against their certification and against the ThrustCurve curves HPR Sim flies. It follows
 [high-power lot impulse](hpr-lot-impulse.md) §3 and feeds [motor data](motor-data.md) §5 and
 [apogee bias](apogee-bias.md) §1. Read 2026-10-15; **Inference** marks this note's arithmetic and readings.
+Re-checked 2026-11-07: 5 claims corrected (§2's TMT lists; §3's catalog, burn-time, apogee lines; §5), 3 added.
 
 **In short.** The topic's premise is wrong: the notice publishes **no measured number**, nor does any source found.
 - **The notice is one page.** It names six motors, a test date (2026-06-24) and casing rules. It says only that new
@@ -66,15 +67,16 @@ the sheet doesn't print it (**Inference**).
   August 12, but the six rows and their sheet links are identical in the 2025-02-11, 2026-06-08 and 2026-10-15
   captures [L1, L2, L3]. The August 12 update falls after the test and before the notice.
 - **Other certifiers.** TMT's archived K, L and M lists (2003–2012) carry those four as NAR certifications with NAR's
-  figures, no TMT test [A1]; the cached TMT N/O lists date from 2003, before the N motors. CAR's index has none
+  figures, no TMT test [A1]; the cached TMT N/O lists (2003, 2012) carry neither N motor. CAR's index has none
   of the six (its 23 "AMW" rows are Cesaroni's Pro lines) [C1].
 
 ## 3. ThrustCurve's entries and the curves HPR Sim flies
 
-None of the six is in HPR Sim's bundled catalog; `hpr motors fetch` takes the first RASP file by source rank
-(cert, then maker, then user) and builds the motor from that file's header masses (`crates/hpr-net/src/
-on_demand.rs`, `crates/hpr-cli/src/motor_fetch.rs`). Each motor has one RASP and one RockSim file [S1, S2]; no
-file states a license. Impulse is the trapezoid sum from (0, 0); burn time is between the 5%-of-peak points.
+`hpr motors fetch` takes the first RASP file by source rank (cert, then maker, then user) and builds the motor
+from its header masses (`crates/hpr-net/src/on_demand.rs`). Since 2026-10-28 the bundled catalog holds all six
+([#1005](https://github.com/nrdptel/fusionspace-eridanus/pull/1005)); its N2700BB and N4000BB fly the same light
+masses, which its propellant warning flags. Each motor has one RASP and one RockSim file [S1, S2], none stating
+a license. Impulse is the trapezoid sum from (0, 0); burn time is between the 5%-of-peak points.
 
 | Motor | File HPR takes | Curve, N·s | vs mean | Peak, N | Burn 5%, s | Avg, N | File propellant | Catalog I / F / t |
 |---|---|---:|---:|---:|---:|---:|---|---|
@@ -90,15 +92,17 @@ file states a license. Impulse is the trapezoid sum from (0, 0); burn time is be
   for these motors counts from the old measured mean the curves carry, not from the list (**Inference**).
 - **Peaks.** N2700BB's curve peaks 2.8% under its sheet's 3,622.57 N, N4000BB's 1.1% under 5,354.56 N.
 - **Catalog fields** are mostly the name's nominal thrust: M1900BB's 2.85 s is 11.8% short of the sheet's 3.23 s.
-  The sheets' burn times are within 0.01 s of each curve's last sample: last-action times (**Inference**).
+  Each sheet's burn time is within 0.01 s of its curve's last sample, but files of four motors say they were drawn
+  to it, as does each sheet's own curve: that shows how the curves were made, not that S&T timed to last action.
 - **Masses (a defect, not a lot effect).** N2700BB's and N4000BB's files, in both formats, give the sheet's
-  *mass after firing* as the propellant mass, the loaded mass right. HPR Sim then burns 4.78 kg instead of
-  5.15 kg (−7.1%) and 6.10 kg instead of 7.57 kg (−19.3%): burnout is 0.36 kg (+7.6%) and 1.46 kg (+24.0%)
-  heavy. The exhaust velocities, 2,373 and 2,666 m/s against the sheets' 2,225 and 2,176, pass the
-  200–5,000 m/s guard ([exhaust-velocity guard](exhaust-velocity-guard.md)); the RockSim files print 242 and 272 s.
-- **Their size (Inference).** A vertical point-mass flight with constant drag (C_D 0.45, invented airframes of
-  102 and 157 mm, 12–25 kg empty) loses 0.9–1.2% of apogee on N4000BB and 0.3% on N2700BB. Apogee low is the
-  waiver-flattering side. Script: `refs/research/amw-retests/scripts/toy_apogee.py`.
+  *mass after firing* (to 0.1 g) as the propellant mass, the loaded mass right; ThrustCurve's `propWeightG` holds
+  the sheets' 5,147.1 and 7,565.7 g. HPR Sim then burns 4.78 kg instead of 5.15 kg (−7.1%) and 6.10 kg instead of
+  7.57 kg (−19.3%): burnout is 0.36 kg (+7.6%) and 1.46 kg (+24.0%) heavy. Exhaust velocities, 2,373 and 2,666 m/s
+  against the sheets' 2,225 and 2,176, pass the 200–5,000 m/s [guard](exhaust-velocity-guard.md); RockSim: 242, 272 s.
+- **Their size (Inference; low flatters a waiver).** A vertical point-mass flight (C_D 0.45, 8.5 km scale height,
+  invented 102 and 157 mm airframes, 12–25 kg empty) moves apogee −2.2% to +1.5% on N4000BB, −0.75% to +0.24% on
+  N2700BB: low on heavier, narrower rockets, high on the lightest 157 mm ones (N4000BB 12–15 kg, N2700BB 12 kg),
+  whose heavier coast loses less to drag ([#1314](https://github.com/nrdptel/fusionspace-eridanus/issues/1314)).
 - **Smaller slips.** M1350WW's cert file gives a loaded mass of 5,403 g against the sheet's 5,632.2 (−4.1%), and
   its RockSim file 2,967.3 g of propellant against 2,927.3. L1300BB's RASP header says 75 mm for a 54 mm motor.
 
@@ -110,8 +114,8 @@ p. 6/9]. Its test rules (2021 revision, §8.2.7) hold three numbers, besides a d
 motors [N2, FR-8, p. 7/9]: the samples' impulse σ at most 6.7% of their mean; the labeled average thrust within
 20% of the measured; the printed impulse equal to the measured mean.
 NAR's manual (v1.5, 2011) adds the retest rules [M1]:
-- **Count:** two per delay up to 5,120 N·s, one above [§3.3.3, §3.3.5, p. 7]. Plugged, the minimum is 2 each for
-  K1000SK and L1300BB and 1 each for the four M and N motors: 8 firings, unless more were fired (**Inference**).
+- **Count:** two per delay up to 5,120 N·s, one above [§3.3.3, §3.3.5, p. 7]. Plugged: 2 each for K1000SK and
+  L1300BB, 1 for each M and N motor: at least 8 firings, 14 as new certifications [§3.3.1, §3.3.4] (**Inference**).
 - **Impulse:** a single recertification firing more than 13.1% from the original mean forces a full retest
   [§6.2.3, p. 11]. A mean outside the letter class must be relabeled or retested if more than 1% out and not
   explained by test conditions; the chair may waive it [§6.6.1–6.6.3, p. 12].
@@ -146,7 +150,7 @@ NAR's manual (v1.5, 2011) adds the retest rules [M1]:
 - **Not today's mainstream production.** One maker, restarted in 2026 after years out of production, six motors
   against 20-year-old means. It says nothing about AeroTech, Cesaroni or Loki lots.
 - **What it moves, at 0.6–1.3% of apogee per 1% of impulse** ([apogee bias](apogee-bias.md), from toy flights on
-  H to L motors, stretched here): a lot at L1300BB's bound reads 2.5–6.7% high; one at −13.1%, 8–17% (**Inference**).
+  H to L motors, stretched here): a lot at L1300BB's bound reads 2.5–6.8% high; one at −13.1%, 8–17% (**Inference**).
 - **The figure that would:** each June 2026 firing's impulse, average thrust and burn time, split new and original
   production, with temperature and elevation: the summary NAR publishes on its small-motor retest sheets.
 
@@ -159,7 +163,7 @@ NAR's manual (v1.5, 2011) adds the retest rules [M1]:
   unmeasured" reading.
 - **A fetched-file mass check** could compare a RASP header with ThrustCurve's own `propWeightG` and refuse or warn
   past a few percent: N4000BB's 6,102.6 g against the record's 7,565.7 g. The guard's range can't see it.
-  Expected effect: removes a 0.3–1.2% low apogee on these two motors (on the invented rockets above).
+  Expected effect: removes an apogee error of −2.2% to +1.5% on these two motors (on the invented rockets above).
 - **A catalog note** for K1000SK: its list figure is 2.05% above the measured mean the curve integrates to.
 
 ## Open questions
@@ -176,8 +180,7 @@ NAR's manual (v1.5, 2011) adds the retest rules [M1]:
 Read 2026-10-15. Cached under `refs/research/amw-retests/` (and the notice and thread pages under
 `refs/research/hpr-lot-impulse/web/`), never committed. None states a license: cite, don't copy.
 
-1. **N1** NAR S&T, "Animal Motor Works Test Results", 2026-08-20, one page; attachment of post 1 of `trf:` below,
-   `https://www.rocketryforum.com/threads/nar-s-t-notification-amw-2026-08-20.198601/`.
+1. **N1** NAR S&T, "Animal Motor Works Test Results", 2026-08-20, one page; attachment of post 1 of F1 below.
 2. **N2** NFPA 1125 A2021 First Revisions, `https://docinfofiles.nfpa.org/files/AboutTheCodes/1125/` +
    `1125_A2021_PYR_AAA_FD_FRStatements.pdf`, FR-4 (§8.2.6), p. 6/9; FR-8 (§8.2.7), p. 7/9.
    **N3** The same path, `1125_A2025_PYR_AAA_FD_FRStatements.pdf`, FR-3 (§7.8.5), p. 3/4.
@@ -189,9 +192,8 @@ Read 2026-10-15. Cached under `refs/research/amw-retests/` (and the notice and t
 5. **D1–D6** NAR data sheets, `https://www.nar.org/docs.ashx?id=` 1481390 (K1000SK), 1481398 (L1300BB), 1481400
    (M1350WW), 1481403 (M1900BB), 1481411 (N2700BB, p. 2 per firing), 1481413 (N4000BB); 1481404 (M2200SK).
 6. **S1** ThrustCurve search API, `https://www.thrustcurve.org/api/v1/search.json`, manufacturer AMW (89 motors).
-   **S2** Download API, `/api/v1/download.json`, the six motors (12 files); simfile pages, e.g.
-   `https://www.thrustcurve.org/simfiles/5f4294d20002e90000000115/`. **S3** `/motors/AMW/BB-98-17500/`, live and
-   Internet Archive capture `20241121030623`.
+   **S2** Download API, `/api/v1/download.json`, the six motors (12 files); simfile pages such as
+   `/simfiles/5f4294d20002e90000000115/`. **S3** `/motors/AMW/BB-98-17500/`, live and archive capture `20241121030623`.
 7. **A1** Archived TMT class lists, as [hpr-lot-impulse](hpr-lot-impulse.md) A2 (K, L, M lists 2003–2012).
    **C1** CAR Certified Motor Index, as hpr-lot-impulse S10 (256 rows, read 2026-10-11).
 8. **F1–F3** `trf:` is `https://www.rocketryforum.com/threads/`: `nar-s-t-notification-amw-2026-08-20.198601/`
