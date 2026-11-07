@@ -25,16 +25,16 @@
 //!   samples that stand more than that rise and three times the noise above the second lowest of
 //!   the samples after them are bad, unless the track stays at their level again before a top well above it,
 //!   and the readings leave them out;
-//! - the **pad** is the median of the samples to the last within half that of the start before
-//!   the climb, or, after a fall deeper than the rise and the drift to a level the track rests at,
-//!   of the last rest before the climb (#1158). A rocket that leaves the pad at [`LIFTOFF_ACCELERATION_M_S2`] or more, moving at
-//!   `v` when the log starts, climbs `v t + A t²/2` while the track stays near its start, so its
-//!   samples bound `v`, and with it how far up the rocket may already be, `v²/(2A)`: that much
-//!   enters the bounds. Where it could pass the allowance, the pad is short
-//!   ([`Reason::ShortPad`]): a track on a zero, the logger's own or one only a mapping's or a
-//!   column's word vouches for, reads its heights from that zero, the zero's possible error
-//!   entering the bounds, and any other withholds them. A track that is above the pad only by a
-//!   word must start within [`PAD_ZERO_M`] of its zero;
+//! - the **pad** is the median of the samples to the last within half that of the start before the
+//!   climb, or of the last rest before the climb where the track falls to it and it lies more than
+//!   the rise from the start, unless the start lasted longer (#1158). A rocket that leaves the pad
+//!   at [`LIFTOFF_ACCELERATION_M_S2`] or more, moving at `v` when the log starts, climbs
+//!   `v t + A t²/2` while the track stays near its start, so its samples bound `v`, and with it
+//!   how far up the rocket may already be, `v²/(2A)`: that much enters the bounds. Where it could
+//!   pass the allowance, the pad is short ([`Reason::ShortPad`]): a track on a zero, the logger's
+//!   own or one only a mapping's or a column's word vouches for, reads its heights from that zero,
+//!   the zero's possible error entering the bounds, and any other withholds them. A track that is
+//!   above the pad only by a word must start within [`PAD_ZERO_M`] of its zero;
 //! - **liftoff** is the last sample before apogee within the pad's allowance: how far the filtered
 //!   pad strays from its median, at least [`LIFTOFF_ALLOWANCE_M`], and a step;
 //! - **apogee** is the filtered track's highest value, at the middle of the run of samples that
@@ -487,7 +487,9 @@ pub enum Reason {
     /// logger's zero when too little of it comes before. The top speed is withheld; so is liftoff
     /// when no sample before the fall is on the pad, its bound otherwise reaching back over the
     /// fall; and every reading is withheld when the track has no zero and too little pad before
-    /// the fall.
+    /// the fall. Every reading is withheld too when the track rests at two levels more than the
+    /// rise apart before the climb, longer at the first: a logger carried down to the pad and a
+    /// level the pressure moved to before liftoff look alike (#1158).
     DisturbedPad,
     /// The log's accelerometers don't say which of them lies along the rocket's axis, such as a
     /// board's three axes, a phone's or a table's column read by its header: the top
@@ -1197,15 +1199,44 @@ fn heights(log: &FlightLog) -> Readings {
     else {
         return no_climb(readings, rise);
     };
-    let before_climb = before_climb(&filtered, time, (head, climb), start, rise);
+    let before_climb = match before_climb(&filtered, time, (head, climb), start, rise) {
+        // A last rest at the start's level, by the medians of both, is the start's pad: a noisy
+        // pad's lowest filtered heights can stand the rise below its first.
+        BeforeClimb::Rests {
+            from,
+            last,
+            level_m,
+            before_end,
+            ..
+        } if {
+            let (pad_from, on_pad) = last_rest_samples(&filtered, (from, last), level_m, rise);
+            let level = |range: &[f64]| {
+                let mut finite: Vec<f64> =
+                    range.iter().copied().filter(|h| h.is_finite()).collect();
+                median(&mut finite)
+            };
+            match (
+                level(&heights[pad_from..on_pad]),
+                level(&heights[head..before_end]),
+            ) {
+                (Some(last_m), Some(start_m)) => (last_m - start_m).abs() <= rise,
+                _ => false,
+            }
+        } =>
+        {
+            BeforeClimb::AtStart
+        }
+        other => other,
+    };
     let pad_fall = match before_climb {
         BeforeClimb::Falls(fall) => Some(fall),
-        BeforeClimb::AtStart | BeforeClimb::Rests { .. } => None,
+        BeforeClimb::Rests { then_falls, .. } => then_falls,
+        BeforeClimb::AtStart => None,
     };
     // The pad: the median of the samples to the last within half the rise of the start before
     // the climb, the allowance and a step, so that the pad's noise doesn't end it early and the
     // climb lends it few samples; before a fall into the climb, those before the fall; after a
-    // fall to a level the track rests at, the last rest before the climb (#1158): back from the
+    // fall to a level the track rests at, the last rest before the climb (#1158): back from its
     // last sample within half the rise of where it ends, for as long as the samples rest.
     let (pad_from, on_pad) = match before_climb {
         BeforeClimb::Falls(fall) => (head, fall.begin.max(head + 1)),
@@ -1216,32 +1247,20 @@ fn heights(log: &FlightLog) -> Readings {
                 .rposition(|h| *h <= start + 0.5 * rise)
                 .map_or(head + 1, |last| head + last + 1),
         ),
-        BeforeClimb::Rests { from, level_m } => {
-            let on_pad = filtered[from..climb]
-                .iter()
-                .rposition(|h| *h <= level_m + 0.5 * rise)
-                .map_or(from + 1, |last| from + last + 1);
-            // Back from there while the samples rest, their highest and lowest within the rise.
-            let (mut lowest, mut highest) = (f64::INFINITY, f64::NEG_INFINITY);
-            let mut pad_from = on_pad - 1;
-            for index in (from..on_pad).rev() {
-                let h = filtered[index];
-                lowest = lowest.min(h);
-                highest = highest.max(h);
-                if !h.is_finite() || highest - lowest > rise {
-                    break;
-                }
-                pad_from = index;
-            }
-            (pad_from, on_pad)
-        }
+        BeforeClimb::Rests {
+            from,
+            last,
+            level_m,
+            ..
+        } => last_rest_samples(&filtered, (from, last), level_m, rise),
     };
-    // How high the rocket may already be when the log starts. The track stays within half the
-    // rise of its start, or rests at the last rest's level, for `stay_s`; a rocket that left the pad at [`LIFTOFF_ACCELERATION_M_S2`]
-    // or more, moving at `v` at the start, climbs `v t + A t²/2` in that time, no more than the
-    // rise with the noise at either end, so `v ≤ (rise − A stay²/2)/stay`, and it had climbed
-    // `v²/(2A)`. A log that may start further up than the allowance has no pad to tell liftoff by:
-    // a logger that records from launch writes its zero, then climbs.
+    // How high the rocket may already be when the log starts. The track stays within half the rise
+    // of its start, or rests at the last rest's level, for `stay_s`; a rocket that left the pad at
+    // [`LIFTOFF_ACCELERATION_M_S2`] or more, moving at `v` at the start, climbs `v t + A t²/2` in
+    // that time, no more than the rise with the noise at either end, so
+    // `v ≤ (rise − A stay²/2)/stay`, and it had climbed `v²/(2A)`. A log that may start further up
+    // than the allowance has no pad to tell liftoff by: a logger that records from launch writes
+    // its zero, then climbs.
     let stay_s = time[on_pad - 1] - time[pad_from];
     let start_speed = if stay_s > 0.0 {
         ((rise - 0.5 * LIFTOFF_ACCELERATION_M_S2 * stay_s * stay_s) / stay_s).max(0.0)
@@ -1284,6 +1303,29 @@ fn heights(log: &FlightLog) -> Readings {
         readings.landing = Reading::withheld(Reason::StartsOffThePad, detail);
         return readings;
     }
+    // Two rests further apart than the rise (by their medians, above), the one at the start the
+    // longer: either may be the
+    // pad, a logger carried down to it or a level the pressure sank to before liftoff, and the
+    // track can't tell which (#1158). A last rest at least as long is the pad, the level the
+    // median of both would take.
+    if let BeforeClimb::Rests {
+        level_m, before_s, ..
+    } = before_climb
+        && before_s > stay_s
+    {
+        let detail = format!(
+            "the track rests {:.1} m from its start for {stay_s:.2} s before the climb, after \
+             staying at its start for {before_s:.2} s. Either level may be the pad: a logger \
+             carried to the pad, or a pressure that moved before liftoff",
+            start - level_m
+        );
+        let mut withheld = every(source, Reason::DisturbedPad, &detail);
+        withheld.sample_interval_s = readings.sample_interval_s;
+        withheld.step_m = readings.step_m;
+        withheld.median_window_s = readings.median_window_s;
+        withheld.peak_bound_m = readings.peak_bound_m;
+        return withheld;
+    }
     let short_detail = format!(
         "the track stays within {:.1} m of its start for {stay_s:.2} s, so the rocket may have \
          climbed {pad_error_m:.1} m before the log starts. That is more than the pad's {:.0} m \
@@ -1293,8 +1335,13 @@ fn heights(log: &FlightLog) -> Readings {
         LIFTOFF_ALLOWANCE_M
     );
     let fall_detail = pad_fall.as_ref().map(|fall| {
+        let below = if fall.after_rest {
+            "the level it rests at last"
+        } else {
+            "its start"
+        };
         format!(
-            "the track falls {:.1} m below its start before the climb, and climbs from the fall \
+            "the track falls {:.1} m below {below} before the climb, and climbs from the fall \
              without resting again for {:.2} s: a disturbance on the pad, such as a pressure \
              pulse at ignition",
             fall.depth_m, fall.resting_s
@@ -2021,6 +2068,8 @@ struct Fall {
     depth_m: f64,
     /// The time the track would have to stay within the band to rest, s.
     resting_s: f64,
+    /// Whether it falls from the last rest before the climb (#1158), not from the log's start.
+    after_rest: bool,
 }
 
 /// What the track does before the climb, for reading the pad.
@@ -2030,16 +2079,52 @@ enum BeforeClimb {
     /// start.
     AtStart,
     /// It falls further, to a level it rests at: the pad is the last rest before the climb
-    /// (#1158), which starts at the sample `from` and ends at `level_m`, the lowest filtered height
-    /// of its last resting window.
+    /// (#1158).
     Rests {
         /// The first sample of the last rest before the climb.
         from: usize,
-        /// The lowest filtered height of that rest's last resting window, m.
+        /// The last sample whose window rested in it.
+        last: usize,
+        /// The lowest filtered height of that last window, m: where the rest ends.
         level_m: f64,
+        /// The sample after the track's last within half the rise of its start before it falls.
+        before_end: usize,
+        /// How long the track stays within half the rise of its start before it falls, s.
+        before_s: f64,
+        /// A fall from the rest into the climb, deeper than the rise below `level_m`: a pulse at
+        /// ignition after the rest (#1101).
+        then_falls: Option<Fall>,
     },
     /// It falls further and goes into the climb without resting (#1101).
     Falls(Fall),
+}
+
+/// The samples of the last rest before the climb, as a range `pad_from..on_pad` of `filtered`
+/// (#1158): from its last sample within half the rise of `level_m`, where it ends, back while the
+/// samples rest, their highest and lowest within the rise. `from..=last` is the rest's run of
+/// resting windows.
+fn last_rest_samples(
+    filtered: &[f64],
+    (from, last): (usize, usize),
+    level_m: f64,
+    rise: f64,
+) -> (usize, usize) {
+    let on_pad = filtered[from..=last]
+        .iter()
+        .rposition(|h| *h <= level_m + 0.5 * rise)
+        .map_or(from + 1, |found| from + found + 1);
+    let (mut lowest, mut highest) = (f64::INFINITY, f64::NEG_INFINITY);
+    let mut pad_from = on_pad - 1;
+    for index in (from..on_pad).rev() {
+        let h = filtered[index];
+        lowest = lowest.min(h);
+        highest = highest.max(h);
+        if !h.is_finite() || highest - lowest > rise {
+            break;
+        }
+        pad_from = index;
+    }
+    (pad_from, on_pad)
 }
 
 /// What the track does before the climb: stays near its start, falls to a level it rests at
@@ -2054,11 +2139,13 @@ enum BeforeClimb {
 /// `√(2 rise/A)`, so a fall to a level the track then holds, as a logger carried down to the pad
 /// or the weather moving the pressure, is no disturbance. The pad is then the level the track
 /// rests at last before the climb, however long it rested above it first: a logger switched on
-/// above the pad and carried down to it reads from the pad. A rest is a run of windows that each
-/// rest, every one ending on the sample after the one before. Its level is where it ends, the
-/// lowest filtered height of its last window: the climb only rises from it, and the weather may
-/// have moved the pad's reading while it rested. The samples before a fall into the climb are the
-/// pad only if they rest too; else the pad is the logger's zero, or can't be placed.
+/// above the pad and carried down to it reads from the pad, unless it stayed longer at its start
+/// (the caller withholds that). A rest is a run of windows that each rest, every one ending on the
+/// sample after the one before. Its level is where it ends, the lowest filtered height of its
+/// last window: the climb only rises from it, and the weather may have moved the pad's reading
+/// while it rested. A fall from it deeper than the rise before the climb is a pulse at ignition,
+/// as a fall from the start is. The samples before a fall into the climb are the pad only if they
+/// rest too; else the pad is the logger's zero, or can't be placed.
 fn before_climb(
     filtered: &[f64],
     time: &[f64],
@@ -2127,13 +2214,33 @@ fn before_climb(
             };
         }
     }
-    match last_rest {
-        Some((from, level_m, _)) => BeforeClimb::Rests { from, level_m },
-        None => BeforeClimb::Falls(Fall {
+    let Some((from, level_m, last)) = last_rest else {
+        return BeforeClimb::Falls(Fall {
             begin,
             depth_m,
             resting_s,
-        }),
+            after_rest: false,
+        });
+    };
+    let then_falls = (last + 1..climb)
+        .filter(|index| filtered[*index].is_finite())
+        .map(|index| filtered[index])
+        .min_by(f64::total_cmp)
+        .map(|lowest| level_m - lowest)
+        .filter(|depth_m| *depth_m > rise)
+        .map(|depth_m| Fall {
+            begin: last + 1,
+            depth_m,
+            resting_s,
+            after_rest: true,
+        });
+    BeforeClimb::Rests {
+        from,
+        last,
+        level_m,
+        before_end: begin,
+        before_s: time[begin.saturating_sub(1).max(head)] - time[head],
+        then_falls,
     }
 }
 
@@ -3060,73 +3167,64 @@ mod tests {
         assert_eq!(read(&gapped).max_speed.reason(), Some(Reason::DisturbedPad));
     }
 
-    /// A log that rests at a higher level, then on the pad for less time before the climb, reads
-    /// from the pad, the level the track rests at last before the climb (#1158): the median of
-    /// every sample near the log's start took the higher level, and the apogee read low by the
-    /// drop, outside its bound. The issue's three cases and stays of 0.8 and 1.5 s on the pad, a
-    /// little over the 0.69 s a rocket at 2 g takes to cross the rise on a PerfectFlite, on the
-    /// logger's zero and on a pressure track, quiet and with heights alternating 3.2 m apart, more
-    /// than half the rise (2.30 m) though within it (4.61 m). A level above the apogee leaves no
-    /// climb from the log's start, and the apogee is withheld.
+    /// A log that rests at a higher level, then on the pad before the climb (#1158). The median of
+    /// every sample near the log's start took the higher level for the pad, and the apogee read low
+    /// by the drop, outside its bound. Now the last rest before the climb is the pad when it is
+    /// the longer of the two, and every reading is withheld when the higher one lasted longer: a
+    /// logger carried down to the pad and a level the pressure sank to before liftoff look alike.
+    /// So no case reads its apogee outside its bound. Each case runs on the logger's zero and on a
+    /// pressure track, quiet and with heights alternating 3.2 m apart, more than half the rise
+    /// (2.30 m on a PerfectFlite) though within it (4.61 m).
     #[test]
     fn the_pad_is_the_last_rest_before_the_climb() {
         let truth_m = 10.0 * STANDARD_GRAVITY_MPS2;
         let climb = flight(10.0);
-        for (above_s, pad_s) in [
-            (5.0, 3.0),
-            (20.0, 10.0),
-            (2.0, 4.0),
-            (10.0, 0.8),
-            (10.0, 1.5),
-        ] {
-            for (spread_m, high_m) in [(0.0, 30.0), (1.6, 30.0), (0.0, 60.0), (0.0, 300.0)] {
+        // The log's height from `before` until `liftoff_s`, then the climb; read on both tracks.
+        let both = |liftoff_s: f64, spread_m: f64, before: &dyn Fn(f64) -> f64| {
+            let carried = log(liftoff_s + 30.0, |t| {
+                let noise = if (t / DT).round() % 2.0 == 0.0 {
+                    spread_m
+                } else {
+                    -spread_m
+                };
+                if t < liftoff_s {
+                    before(t) + noise
+                } else {
+                    climb(t - liftoff_s + 1.0)
+                }
+            });
+            let pressure = as_channel(&carried, Quantity::Pressure, |h| 101_325.0 - 12.0 * h);
+            [("zero", read(&carried)), ("pressure", read(&pressure))]
+        };
+        let reads = |read: &Readings, liftoff_s: f64, pad_m: f64, case: &str| {
+            if let Some(pad) = read.pad_altitude_m.filter(|_| case.starts_with("zero")) {
+                assert!((pad - pad_m).abs() <= 1.6, "{case}: pad {pad} m");
+            }
+            let apogee = read.apogee.value().unwrap();
+            assert!(
+                (apogee.height_m - truth_m).abs() <= apogee.bound_m,
+                "{case}: {} m, bound {} m",
+                apogee.height_m,
+                apogee.bound_m
+            );
+            let liftoff = read.liftoff.value().unwrap();
+            assert!(
+                (liftoff.time_s - liftoff_s).abs() <= liftoff.bound_s,
+                "{case}: liftoff {} s, bound {} s",
+                liftoff.time_s,
+                liftoff.bound_s
+            );
+        };
+        // Carried 30 or 60 m down and resting longer on the pad: read from the pad.
+        for (above_s, high_m, pad_s) in [(2.0, 30.0, 4.0), (3.0, 30.0, 5.0), (2.0, 60.0, 4.0)] {
+            for spread_m in [0.0, 1.6] {
                 let liftoff_s = above_s + pad_s;
-                let carried = log(liftoff_s + 30.0, |t| {
-                    let noise = if (t / DT).round() % 2.0 == 0.0 {
-                        spread_m
-                    } else {
-                        -spread_m
-                    };
-                    if t < above_s {
-                        high_m + noise
-                    } else if t < liftoff_s {
-                        noise
-                    } else {
-                        climb(t - liftoff_s + 1.0)
-                    }
-                });
-                let pressure = as_channel(&carried, Quantity::Pressure, |h| 101_325.0 - 12.0 * h);
-                for (track, read) in [("zero", read(&carried)), ("pressure", read(&pressure))] {
+                let before = |t: f64| if t < above_s { high_m } else { 0.0 };
+                for (track, read) in both(liftoff_s, spread_m, &before) {
                     let case = format!(
-                        "{track}: {above_s} s at {high_m} m, {pad_s} s on the pad, spread \
-                         {spread_m} m"
+                        "{track}: {above_s} s at {high_m} m, {pad_s} s on the pad, spread {spread_m} m"
                     );
-                    // Above the apogee, the track never climbs from its start: withheld.
-                    if high_m > truth_m {
-                        assert_eq!(read.apogee.reason(), Some(Reason::NoClimb), "{case}");
-                        continue;
-                    }
-                    if track == "zero" {
-                        assert!(
-                            read.pad_altitude_m.unwrap().abs() <= spread_m,
-                            "{case}: pad {:?}",
-                            read.pad_altitude_m
-                        );
-                    }
-                    let apogee = read.apogee.value().unwrap();
-                    assert!(
-                        (apogee.height_m - truth_m).abs() <= apogee.bound_m,
-                        "{case}: {} m, bound {} m",
-                        apogee.height_m,
-                        apogee.bound_m
-                    );
-                    let liftoff = read.liftoff.value().unwrap();
-                    assert!(
-                        (liftoff.time_s - liftoff_s).abs() <= liftoff.bound_s,
-                        "{case}: liftoff {} s, bound {} s",
-                        liftoff.time_s,
-                        liftoff.bound_s
-                    );
+                    reads(&read, liftoff_s, 0.0, &case);
                     assert!(
                         read.max_speed.reason() != Some(Reason::DisturbedPad),
                         "{case}"
@@ -3134,8 +3232,79 @@ mod tests {
                 }
             }
         }
+        // The issue's cases, longer at the higher level: withheld, never read low.
+        for (above_s, pad_s) in [(5.0, 3.0), (20.0, 10.0), (10.0, 0.8), (10.0, 1.5)] {
+            let before = |t: f64| if t < above_s { 30.0 } else { 0.0 };
+            for (track, read) in both(above_s + pad_s, 0.0, &before) {
+                let case = format!("{track}: {above_s} s at 30 m, {pad_s} s on the pad");
+                assert_eq!(read.apogee.reason(), Some(Reason::DisturbedPad), "{case}");
+            }
+        }
+        // Above the apogee, the track never climbs from its start: withheld.
+        let before = |t: f64| if t < 5.0 { 300.0 } else { 0.0 };
+        for (track, read) in both(8.0, 0.0, &before) {
+            assert_eq!(read.apogee.reason(), Some(Reason::NoClimb), "{track}");
+        }
+        // Carried down slowly, at 1 m/s, then 2 s on the pad: the pad is read back from the climb,
+        // not from where the walk down began to count as a rest.
+        let before = |t: f64| (30.0 - (t - 2.0).max(0.0)).max(0.0);
+        for (track, read) in both(34.0, 0.0, &before) {
+            reads(&read, 34.0, 0.0, &format!("{track}: carried down slowly"));
+        }
+        // Carried down, resting 5 s on the pad, then a pulse at ignition: read from the rest, the
+        // top speed withheld as for a pulse from the start (#1101).
+        let pulse = pulsed(7.0, 30.0);
+        let carried = log(37.0, |t| {
+            if t < 2.0 {
+                30.0
+            } else if t < 7.0 {
+                0.0
+            } else {
+                pulse(t)
+            }
+        });
+        let pressure = as_channel(&carried, Quantity::Pressure, |h| 101_325.0 - 12.0 * h);
+        for (track, read) in [("zero", read(&carried)), ("pressure", read(&pressure))] {
+            let case = format!("{track}: carried down, then a pulse");
+            let apogee = read.apogee.value().unwrap();
+            assert!(
+                (apogee.height_m - truth_m).abs() <= apogee.bound_m,
+                "{case}: {} m, bound {} m",
+                apogee.height_m,
+                apogee.bound_m
+            );
+            assert_eq!(
+                read.max_speed.reason(),
+                Some(Reason::DisturbedPad),
+                "{case}"
+            );
+        }
+        // A level below the pad held for less time than the pad before liftoff, a stretch 30 or
+        // 1,000 m low with a short return to the pad, or a plateau ending at liftoff: withheld,
+        // as which level is the pad can't be told; never read past its bound.
+        for (low_m, back_s) in [(30.0, 0.0), (30.0, 0.1), (1_000.0, 0.1), (1_000.0, 0.2)] {
+            let before = |t: f64| if (3.0..4.0).contains(&t) { -low_m } else { 0.0 };
+            for (track, read) in both(4.0 + back_s, 0.0, &before) {
+                let case = format!("{track}: 1 s at -{low_m} m, back {back_s} s");
+                match read.apogee.value() {
+                    Some(apogee) => assert!(
+                        (apogee.height_m - truth_m).abs() <= apogee.bound_m,
+                        "{case}: {} m, bound {} m",
+                        apogee.height_m,
+                        apogee.bound_m
+                    ),
+                    None => assert!(
+                        matches!(
+                            read.apogee.reason(),
+                            Some(Reason::DisturbedPad | Reason::NoClimb)
+                        ),
+                        "{case}: {:?}",
+                        read.apogee
+                    ),
+                }
+            }
+        }
     }
-
     /// A log that starts 0.1 s before a fast liftoff, as a logger that records from launch writes
     /// its pad: its samples can't rule out that the rocket had climbed 52 m before the log, so the
     /// pad is the logger's zero, and liftoff is read at the last sample within its allowance.
