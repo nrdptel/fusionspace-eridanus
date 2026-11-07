@@ -23,7 +23,7 @@ Written by `cargo xtask real-flights` ([M7.3d2][m7-3d], decisions [ADR-257][adr-
 - In the case the method is meant for, 1 (ndrt-2020): the prediction's mean absolute apogee error is 3.88% (-3.88% with its sign); the forward simulation's on the same flights 10.40% (+10.40% with its sign); the fit's model at what was stated, nothing fitted, 6.57% (+6.57% with its sign). The prediction's absolute error less the forward simulation's is -6.52 percentage points on average; its exact sign-flip interval: unbounded, as on 1 flight no pattern of signs is rare enough at 95% (it takes 6 flights).
 - Set beside the forward simulation's, the stated model's error shows what the fit's constant wind alone moves; beside the prediction's, what the fit to the boost moves.
 - Cut less than the thrust file's burn after liftoff: bella-lui, prometheus-2022, juno-iii, lince. The finder can read a dip in a barometer's fitted speed during the boost as burnout ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)).
-- Climbing at or past 227.7 m/s, the log read whole: prometheus-2022, cavour, genesis, lince. A cut before that speed on such a log came on a dip, not at burnout. Top speed not read, withheld for another reason, so not in the method's case: juno-iii.
+- Climbing at or past 227.7 m/s, the log read whole: prometheus-2022, cavour, genesis, lince. A cut before that speed on such a log came on a dip, not at burnout. Top speed withheld for another reason, such as a spike at the top, so the log can't be set against that speed: juno-iii.
 - The forward simulation on all 7 flights: mean absolute apogee error 6.06% (-0.22% with its sign).
 
 ## The prediction

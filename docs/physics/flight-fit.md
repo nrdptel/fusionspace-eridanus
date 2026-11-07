@@ -361,8 +361,8 @@ closed forms. A result under 100 effective draws is flagged as too few to read. 
 The library predicts a flight's apogee from its climb and the start of its coast: a log cut just
 after burnout (`hpr_forensics::boost`), 0.33 s to 1.48 s after it on the synthetic flights below.
 It predicts 2 of the 7 public flights, too few to say at 95% whether it beats the forward
-simulation ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)). Only NDRT 2020 is the case it's meant for. On real
-barometers the cut can fall inside the burn, as Lince's did, and Lince's log later climbs past
+simulation ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)). Only NDRT 2020 is the case it's meant for. On these
+logs the cut can fall inside the burn, as Lince's did, and Lince's log later climbs past
 the speed limit described below ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)).
 
 **The cut.** The library follows the climb speed: a straight line fitted to each half second of
@@ -404,10 +404,11 @@ is cut by its times: a sample it stamps in order at or before the cut is read wh
 liftoff, its climb speed at least 10% below its 161.9 m/s (531 ft/s) top. The fit to the log
 up to there flies on to 1,269 m (4,164 ft), as the barometer reads it. The log's apogee is 1,320 m
 (4,332 ft): the prediction is 3.9% low. The forward simulation, nothing fitted, reads 1,458 m
-(4,782 ft), 10.4% high. The fit's wind, constant with height, moves it 3.8 points: flown in it
-with nothing fitted, the rocket reaches 1,407 m (4,616 ft), 6.6% high. Fitting the boost moves it
-10.4 points more, past the log, to the 3.9% low. Up to the cut the fit reads the impulse 0.96 and
-the drag 1.02, near the 1 it was told; the whole log reads 0.95 and 0.71. The other flights are in
+(4,782 ft), 10.4% high. ERA5's wind, averaged and held constant with height as the fit holds it,
+moves it down 3.8 points: the rocket reaches 1,407 m (4,616 ft), 6.6% high. Fitting the boost
+moves it down another 10.4 points, past the log, to the 3.9% low. The log up to the cut says
+little of the drag, so the fit leaves it at 1.02, near the 1 it was told. It reads the impulse
+0.96. The whole log reads 0.95 and 0.71. The other flights are in
 ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)).
 
 ## Sources

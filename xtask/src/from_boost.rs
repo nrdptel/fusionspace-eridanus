@@ -804,8 +804,8 @@ impl Report {
         let _ = writeln!(
             page,
             "- Climbing at or past 227.7 m/s, the log read whole: {}. A cut before that speed on such a \
-             log came on a dip, not at burnout. Top speed not read, withheld for another reason, so not \
-             in the method's case: {}.",
+             log came on a dip, not at burnout. Top speed withheld for another reason, such as a spike at \
+             the top, so the log can't be set against that speed: {}.",
             names(&s.past_transonic),
             names(&s.top_speed_unread)
         );
