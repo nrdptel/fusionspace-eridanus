@@ -364,9 +364,9 @@ It predicts 2 of the 7 public flights, too few to say at 95% whether it beats th
 simulation ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)). Only NDRT 2020 is the case it's meant for. On these
 logs the cut can fall inside the burn, as Lince's did, and Lince's log later climbs past
 the speed limit described below ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)).
-On the private collection, 32 of the 64 flights with a barometer's log are cut and 30 refused at
-that limit ([the count](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md)). Their errors will be given for each
-half, the held-out flights sealed first ([ADR-322, held-out flights](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0322-the-2026-11-05-progress-review-accuracy-before-reader-facing-work.md)).
+On the private collection, 64 flights have a barometer's log to start from: 32 are cut, 30 refused
+at that limit and 2 as too slow ([the count](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md)). The cut flights' errors will come for
+each half, the held-out list sealed first by its hash ([ADR-322, held-out flights](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0322-the-2026-11-05-progress-review-accuracy-before-reader-facing-work.md)).
 
 **The cut.** The library follows the climb speed: a straight line fitted to each half second of
 heights. One reading far from the rest is left out, as the analyzer's spike rule does. The cut is
@@ -390,15 +390,15 @@ flown on to apogee.
 [Set A](synthetic-flights.md#the-sets)'s first 200 synthetic flights are mostly fast. Of them, 51
 were cut, each after the true peak of its vertical speed. Each cut came 0.33 s to 1.48 s after
 burnout. 43 GNSS logs and 106 fast flights were refused. The slowest of those truly peaked at
-221.3 m/s (726 ft/s): the fitted speed reads a little above the true one. One bad reading 12 to 100 m (39 to 328 ft) off, put in
-at the pad, the first sample, or halfway or four fifths through the burn, moved no cut by more than 0.05 s. Two bad readings side by side can still
+221.3 m/s (726 ft/s): the fitted speed reads a little above the true one. Five single bad readings, 12 to 100 m (39 to 328 ft) off, at
+the pad, the first sample, halfway or four fifths through the burn, moved no cut by more than 0.05 s (measured). Two bad readings side by side can still
 cut it early. A test pins the order, the spikes and at least 51 cuts; the counts and times are
 measured.
 
 **Why it can be trusted not to peek.** A test replaces every sample's value and time after the
 cut with noise, and the prediction stays the same, bit for bit. It runs on three logs, one with a GNSS
 receiver's channels beside its barometer. Letting the prediction read half a second more changes
-it. A channel on a clock of its own is cut by its times, wherever the file puts its samples. Run
+it. A channel on a clock of its own is cut by its times: an in-order sample at or before the cut is read wherever the file puts it. Run
 `cargo test -p fusionspace-hpr-forensics boost`.
 
 **A worked example.** NDRT 2020's motor burns 3.43 s. Its barometer's log is cut 4.35 s after

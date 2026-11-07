@@ -282,25 +282,30 @@ impl Report {
              just after burnout, as the [public flights' report](from-boost.md) does for 7 \
              public flights. It counts which flights have a log the prediction can start from, \
              over the whole collection. It gives no prediction and no error yet, and nothing for \
-             either half of the collection, so no number here can have steered a choice of \
-             model. The collection's license allows only aggregates, so no flight is named.\n"
+             either half of the collection, so none of these counts is an error against a \
+             flight. The collection's license allows only aggregates, so no flight is named.\n"
         );
         let _ = writeln!(
             page,
-            "**The halves.** A flight is held out (ADR-209 §4) when the SHA-256 of its id \
-             followed by `ADR-209` starts with eight bytes below 2⁶⁴ / 3, about a third of the \
-             flights (ADR-322). The held-out ids stay private; the SHA-256 of their sorted list \
-             is committed in [`held-out.sha256`](held-out.sha256) before any half's number is \
-             reported, so the split can't be changed after the numbers are seen.\n"
+            "**The halves.** A flight is held out, kept from every choice of model \
+             ([ADR-209 §4](../../docs/decisions/0209-the-2026-10-08-best-on-the-market-measured.md)), \
+             when the SHA-256 of its id followed by `ADR-209` starts with eight bytes below \
+             2⁶⁴ / 3: a third of the flights in expectation \
+             ([ADR-322](../../docs/decisions/0322-the-2026-11-05-progress-review-accuracy-before-reader-facing-work.md)). \
+             The held-out ids stay private; the SHA-256 of their sorted list is committed in \
+             [`held-out.sha256`](held-out.sha256) before any half's number is reported, so any \
+             later change to which flights are held out shows as a change to that hash.\n"
         );
         let _ = writeln!(
             page,
             "**Each flight's log.** A flight may have several logs, from more than one \
-             altimeter or file. Each pinned log is read alone, with no sheet chosen and no \
-             companion file. Of those whose height track is a barometer's and gives an apogee, \
-             the flight's log is the one whose apogee is nearest the logged apogee \
-             the collection states. The library's boost finder then cuts it just after burnout, \
-             or says why it can't.\n"
+             altimeter or file. Each of its logs in the collection's catalog, outside the \
+             catalog's unpinned `_scratch/` folder, is read alone, with no sheet chosen and no \
+             companion file. Of those whose height track is barometric (the logger's altitude, a \
+             pressure, or a barometric altitude channel) and gives an apogee, the flight's log is \
+             the one whose apogee is nearest the logged apogee the collection states. The \
+             library's boost finder then cuts it where its climb speed falls from its top, meant \
+             to be just after burnout, or says why it can't.\n"
         );
         let refused: usize = self.refused.values().sum();
         let _ = writeln!(page, "| | flights |\n|---|---:|");
@@ -326,7 +331,7 @@ impl Report {
             page,
             "\nOf the flights not left out, {} pinned logs were tried, {} read alone and {} gave \
              an apogee on a barometric track. Of the chosen logs, {} read an apogee more than \
-             {:.0}% from the logged one: the nearest log is then another altimeter's, or a \
+             {:.0}% from the logged one: the nearest log may be another altimeter's, or a \
              reading the analyzer takes differently.\n",
             self.logs,
             self.logs_read,
@@ -339,9 +344,11 @@ impl Report {
             "**How far to trust it.** The cut is found on the log as it stands. On the public \
              flights' barometers it can fall inside the burn \
              ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)), so a count \
-             of cuts is not yet a count of cuts at burnout. The finder refuses a log whose climb \
-             reaches 227.7 m/s (747 ft/s), where a barometer's reading may be the airflow's, not \
-             the height's. A log that needs a stated column mapping or a companion file to read \
+             of cuts is not yet a count of cuts at burnout. The finder refuses a log whose fitted \
+             climb speed reaches 227.7 m/s (747 ft/s) before its cut, where a barometer's reading \
+             may be the airflow's, not the height's. A cut that falls early on a dip can come \
+             before that speed, as Lince's did, so some cuts counted here may be on logs that \
+             climb past it later. A log that needs a stated column mapping or a companion file to read \
              counts as unread here."
         );
         page
