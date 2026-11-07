@@ -385,8 +385,8 @@ flown on to apogee.
 [Set A](synthetic-flights.md#the-sets)'s first 200 synthetic flights are mostly fast. Of them, 51
 were cut, each after the true peak of its vertical speed. Each cut came 0.33 s to 1.48 s after
 burnout. 43 GNSS logs and 106 fast flights were refused. The slowest of those truly peaked at
-221.3 m/s (726 ft/s): the fitted speed reads a little above the true one. One bad reading, 12, 15, 30 or
-100 m (39 to 328 ft) off, put in one at a time at four places (the pad, the first sample, halfway
+221.3 m/s (726 ft/s): the fitted speed reads a little above the true one. One bad reading, 12 m (39 ft), 15 m (49 ft),
+30 m (98 ft) or 100 m (328 ft) off, put in one at a time at four places (the pad, the first sample, halfway
 and four fifths through the burn), moved no cut by more than 0.05 s (measured). Two bad readings side by side can still
 cut it early. A test pins the order, the spikes and at least 51 cuts; the counts and times are
 measured.
