@@ -655,10 +655,10 @@ zero while a motor burns says its apogee isn't a prediction. The results so far:
     ([Aerodynamics](physics/aero.md#drag-against-the-arcas-robin-wind-tunnel)). The normal force
     and center of pressure were checked at Mach 0 against Barrowman's worked examples. From Mach
     0.6 to 4.63, against the same wind tunnel, they miss at Mach 0.8, 0.9, 0.95 and 1.2 on the
-    short model, and at 0.9, 1.0, 1.2, 1.8 and 2.3 on the long one. Up to Mach 1.2 the center of
-    pressure reads 0.67 to 2.36 calibers aft of the tunnel's, the flattering side for the margin
-    (the short model misses at 1.2 on lift alone). At 1.8 and 2.3 it reads 0.52 to 0.53 calibers
-    forward, the cautious side. From Mach 2.96 up, both are within target.
+    short model, and at 0.9, 1.0, 1.2, 1.8 and 2.3 on the long one. Where the center of pressure
+    misses up to Mach 1.2, it reads 0.67 to 2.36 calibers aft of the tunnel's, the flattering side for the
+    margin; the short model's miss at 1.2 is on lift alone. At 1.8 and 2.3 it reads 0.52 to 0.53
+    calibers forward, the cautious side. From Mach 2.96 up, both are within target.
     [Aerodynamics](physics/aero.md#normal-force-through-mach-1) reports the current comparison and
     its measured range.
   - The drag was compared with drag curves that come with RocketPy's example rockets, labeled as
