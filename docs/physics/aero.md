@@ -3351,7 +3351,7 @@ parts left. On the *Base drag hack* example the rise is 6.8% of their friction (
 as though the body were shorter. HPR Sim keeps each part's friction as its shape gives it: the parts
 are all still there.
 
-**On the example's flights.** With recovery in both, *Base drag hack* reads +1.95% and +4.52% on OpenRocket's apogee on C11-5 and D12-3 motors, and +7.80% on an E12-4. Flown on OpenRocket's
+**On the example's flights.** With recovery in both, *Base drag hack* reads +1.95% and +4.52% on OpenRocket's apogee on C11-5 and D12-3 motors, and +7.80% on an E12-4 (the report's `descent.apogee_m`, [tabled](../format/ork.md#the-simulators-flights-against-openrockets)). Flown on OpenRocket's
 own drag curve, HPR Sim comes within 0.1% of OpenRocket's flight with nothing deployed. So what is
 left is the drag coefficient: by OpenRocket's breakdown, the stubby ellipsoid nose (0.58
 [calibers](../glossary.md#caliber) long). OpenRocket gives it 0.064 at Mach 0.3. HPR Sim gives it 0.0008, read off a straight line

@@ -27,7 +27,7 @@ part drifts and lands.
   - Against measured drop tests, tumbling is −10 to +19% off, and the default streamer model
     predicts a descent +9% faster than Kidwell's one flat streamer.
   - A `.ork` file's parachutes and streamers fly as [OpenRocket](../glossary.md#openrocket) flies
-    them. The landing speed is within 0.02% of OpenRocket's on 50 of its 53 example flights and
+    them. The landing speed is within 0.021% of OpenRocket's on 50 of its 53 example flights and
     within 0.12% on all 53. Of the 51 with no named cause for an apogee gap, drop the *Base drag
     hack*'s three. The flight time of the other 48 is −1.57% to +3.16% off
     ([From an OpenRocket file](#from-an-openrocket-file)).
@@ -767,7 +767,7 @@ How a `.ork` file's recovery is read and flown, and the tests and comparisons th
 ### From an OpenRocket file
 
 **A `.ork` file's parachutes and streamers fly as OpenRocket flies them. They land at OpenRocket's
-speed to within 0.02% on 50 of its 53 example flights, and within 0.12% on all 53.** The function
+speed to within 0.021% on 50 of its 53 example flights, and within 0.12% on all 53.** The function
 [`hpr::ork::recovery`](../api/hpr/ork/fn.recovery.html) turns each parachute and streamer of the
 configuration flown into one of the devices above. [`hpr sim`](../cli.md#hpr-sim) flies a
 `.ork` file's devices through it. The model is OpenRocket's, not Knacke's, as the file's author

@@ -732,11 +732,13 @@ What the example can't do yet, and where to go from here.
   `hpr::ork::separations`, and pass them to the flight. Give each part a recovery device too, since
   the simulator refuses the flight without them. The example
   [`ork_two_stage.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/ork_two_stage.rs)
-  does both. Staged, clustered and air-start flights of OpenRocket's examples are within 5% of
-  OpenRocket's apogee and largest speed. Three cluster apogees are compared with OpenRocket's
-  flight without its parachute, which opened before apogee
-  ([a two-stage and a cluster design against OpenRocket](decisions-and-roadmap.md#m1-9c);
-  [results](format/ork.md#staged-clustered-and-air-start-flights)).
+  does both. The flights of OpenRocket's two-stage, three-stage, cluster, air-start and
+  parallel-booster examples are within 5% of OpenRocket's apogee and largest speed, with three
+  cluster apogees compared with OpenRocket's flight without the cluster's parachute, which opened
+  before apogee ([a two-stage and a cluster design against OpenRocket](decisions-and-roadmap.md#m1-9c);
+  [results](format/ork.md#staged-clustered-and-air-start-flights)). One of a pod example's staged
+  flights isn't: in the conditions of OpenRocket's recorded flight its sustainer turns over before
+  apogee in both programs, and reads 37.93% low ([Design files](start-here.md#design-files)).
 - Pieces that land on their own are yours to declare. A nose cone on a shock cord comes down with
   its rocket, and that's what the simulator flies unless you say otherwise. To fly a nose cone, a
   section or a payload that leaves and lands on its own, give the flight an `Ejection` for each.

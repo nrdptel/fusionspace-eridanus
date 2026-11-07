@@ -59,7 +59,7 @@ can't fly as written, such as a payload that would coast with no drag after its 
   caches it, as [motors from ThrustCurve.org](../cli.md#motors-from-thrustcurveorg) describes.
   With those curves `hpr sim` flies **136** of the 170 as saved, and 25 more with
   `--accept-design-errors` ([the count](#how-many-configurations-hpr-sim-flies)).
-- **Parachutes and streamers fly as OpenRocket flies them.** HPR Sim lands within 0.02% of
+- **Parachutes and streamers fly as OpenRocket flies them.** HPR Sim lands within 0.021% of
   OpenRocket's landing speed on 50 of its 53 example flights and within 0.12% on all 53. Take the
   51 with no named cause for an apogee gap, less the *Base drag hack*'s three. On these, HPR Sim's
   flight time is −1.57% to +3.16% off
@@ -2370,7 +2370,7 @@ The same probe measures three things the words do not say:
 #### Flown as OpenRocket flies them
 
 **A configuration's parachutes and streamers fly as OpenRocket flies them. They land at
-OpenRocket's speed to within 0.02% on 50 of its 53 example flights, and within 0.12% on all 53.**
+OpenRocket's speed to within 0.021% on 50 of its 53 example flights, and within 0.12% on all 53.**
 [`hpr::ork::recovery`](../api/hpr/ork/fn.recovery.html) turns each one into a flight device, and
 [`hpr sim`](../cli.md#hpr-sim) flies them through it, so its numbers are the library's. This is
 checked against OpenRocket alone, not against a real flight. [Recovery](../physics/recovery.md#from-an-openrocket-file)
