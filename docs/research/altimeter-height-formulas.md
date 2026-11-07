@@ -1,34 +1,33 @@
 # How each hobby altimeter turns pressure into height
 
-This note asks, for each common hobby altimeter, what formula and reference its maker's documents give for turning
-pressure into height: the standard atmosphere from a ground-zeroed pressure, a temperature-corrected form, the
-onboard temperature, a fixed sea-level pressure. Where the documents are silent it says so, and it works out what
-each choice does to a reading on a day 20 K off standard. It serves the real-flight comparisons, which read HPR
-Sim's apogee "the way each log's altimeter reads the air" ([accuracy](../accuracy.md#real-flights)), and the flight
-log importers. It builds on [dual-altimeter spread](dual-altimeter-spread.md) (§3's pad-as-sea-level form; height
-columns 21% and 5.8% off their own pressure) and [AerospaceNU's flights](aerospacenu-flights.md). Sources are
-makers' manuals, FAQs and a maker's forum post, the 1976 standard atmosphere, and checks of published and private
-logs (aggregates only). **Inference** marks this note's reasoning and arithmetic. Read 2026-10-16.
+Re-checked 2026-11-06: 10 claims corrected.
+
+This note asks what formula and reference each common hobby altimeter's maker documents for turning pressure into
+height, says where the documents are silent, and works out what each choice does on a day 20 K off standard. It serves
+the real-flight comparisons, which read HPR Sim's apogee "the way each log's altimeter reads the air"
+([accuracy](../accuracy.md#real-flights)), and the flight log importers. It builds on [dual-altimeter
+spread](dual-altimeter-spread.md) §1 and §3 and [AerospaceNU's flights](aerospacenu-flights.md). Sources: makers'
+manuals, FAQs and a forum post, the 1976 standard atmosphere, and checks of public and private logs (aggregates only).
+**Inference** marks this note's reasoning and arithmetic. Read 2026-10-16.
 
 **In short.** Every maker that names a model names the standard atmosphere; none documents an onboard temperature
 correction; every family zeroes at the pad.
-- **Two makers print or name the formula, and their files bear it out.** Missile Works prints NOAA's
-  pressure-altitude formula, h = 145,366.45 ft × (1 − (P/1013.25 mb)^0.190284) [MW1] p. 23; an RRC3's exported
-  height is that formula of its own pressure less the pad's, to 0.007 ft, on 49 of 51 flights. Featherweight's
-  Raven names the International Standard Atmosphere [FW1] PDF p. 12; Raven and Blue Raven height columns are the ISA
-  altitude of their own logged pressure to 0.22 ft and 4.5 ft (§1, §2).
+- **Two makers print or name the formula, and their files bear it out.** Missile Works prints NOAA's pressure-altitude
+  formula, h = 145,366.45 ft × (1 − (P/1013.25 mb)^0.190284) [MW1] p. 23, which reads 0.041% below the 1976 standard; an
+  RRC3's exported height is that formula of its own pressure less the pad's, to 0.007 ft, on 49 of 51 flights.
+  Featherweight's Raven names the International Standard Atmosphere [FW1] PDF p. 12; Raven and Blue Raven height columns
+  are the ISA altitude of their own logged pressure to 0.22 ft and 4.5 ft (§1, §2).
 - **Three more name the standard atmosphere without a formula.** PerfectFlite ("US Standard Atmosphere model"),
   Entacore ("Standard Atmospheric table data") and MARSA (its display); Altus Metrum, Jolly Logic, Eggtimer and the
   Blue Raven's guide name no model (§1).
-- **No onboard temperature enters any height column checked.** Bay temperatures of 42–118 °F left the Raven and
-  Blue Raven columns on the standard curve. The temperature corrections documented are by hand, off the board:
-  Missile Works' mDACS "Geopotential" option [MW1] pp. 23–24, and the Raven manual's pointer to NOAA soundings (§1).
+- **No onboard temperature enters any height column checked.** Bay temperatures of 42–118 °F (public Raven file medians)
+  left the Raven and Blue Raven columns on the standard curve. The temperature corrections documented are by hand,
+  off the board: mDACS' "Geopotential" option [MW1] pp. 23–24 and the Raven manual's pointer to NOAA soundings (§1).
 - **On a column 20 K warmer than standard, a pad-zeroed standard reading is 6.49% short of the climb; 20 K colder,
-  7.46% long**: exactly T0/(T0 + ΔT) of the climb, at any pad height and climb (**Inference**, §3). A height above
+  7.46% long**: T0/(T0 + ΔT) of the climb at any pad height, exact in geopotential (**Inference**, §3). A height above
   fixed sea-level pressure less a surveyed pad errs −15.6% to +17.9% on a 1,000 m climb from a 1,400 m pad.
-- **Of the real-flight comparisons' seven logs, one more reading is now documented.** The NDRT 2020 Raven's formula
-  is in its manual and its files; the four assumed logs are a CATS Vega's or teams' own filtered boards, which this
-  note's families don't cover (§4).
+- **Of the real-flight comparisons' seven logs, one more reading is now documented:** the NDRT 2020 Raven's, in its
+  manual and files. The four assumed logs are a CATS Vega's or teams' own filtered boards, outside these families (§4).
 
 ## 1. What each maker's documents say
 
@@ -58,8 +57,10 @@ Pages are printed pages unless marked "PDF p.". Each row's cells are Sourced unl
   the RRC2L names the same method [MW3] p. 11; the RRC2+ manual names none [MW4]. On the pad the unit updates its
   "floor" altitude by a running average [MW1] p. 23. The RRC3 stores 20 Hz pressure and mDACS computes height from
   it [MW2] p. 2; the CSV export holds time, altitude and pressure [MW2] p. 10. mDACS also offers a "Geopotential"
-  method taking the flyer's launch and apogee temperatures and launch humidity [MW2] p. 5, [MW1] pp. 23–24.
-  **Inference (computed):** NOAA's constants read 0.04% below ISA's troposphere for the same pressures.
+  method taking the flyer's launch and apogee temperatures and launch humidity [MW2] p. 5, [MW1] pp. 23–24; the
+  other choice is the "Standard Atmospheric Model" [MW2] p. 5. NOAA's own sheet names no model [N]. **Inference
+  (computed):** its constants are not the 1976 standard's (145,366.45 ft is 288.0 K over 6.5 K/km, not 288.15 K;
+  exponent 0.190284, not 0.190263 [U] pp. 2–3, 9), so it reads 0.041% below it: 0.83 m (2.7 ft) in a 2 km climb.
 - **Featherweight.** The Raven uses the "International Standard Atmosphere (ISA) model", three layers to
   104,987 ft, in floating point; warm air can make heights "low by 10% or more", and NOAA's balloon soundings give
   a correction [FW1] PDF p. 12. Its FIP exports `Baro (Atm)`, `Temperature (F)` and heights above sea level and the
@@ -95,22 +96,21 @@ Pages are printed pages unless marked "PDF p.". Each row's cells are Sourced unl
 ## 2. Checked against the makers' own files
 
 Where a family logs pressure, its height column can be recomputed from it (**Inference**).
-- **RRC3.** 91 mDACS exports in the private collection, 51 distinct flights. On 49 flights the altitude column is
-  h(P) − h(P_pad) through NOAA's constants to 0.007 ft; ISA's constants would miss by about 1 ft on a 3,000 ft
-  flight, so the check tells them apart. The other 2 flights carry a step of about 40 ft in the subtracted pad
-  reading, same formula. 22 flights logged temperature swings over 5 °F; none moved a height.
+- **RRC3.** 91 private mDACS exports, 51 distinct flights. On 49 the altitude column is h(P) − h(P_pad) through NOAA's
+  constants to 0.007 ft (ISA's would miss by 1.2 ft on a 3,000 ft flight); the other 2 carry a step of about 40 ft in
+  the subtracted pad reading, same formula. 22 logged temperature swings over 5 °F; none moved a height.
 - **Raven.** 37 public FIP files from a college course archive [D1], flights to 13,000 ft: the ASL column is ISA's
-  altitude of the logged pressure (101,325 Pa sea level) to 0.22 ft, where NOAA's constants miss by 1.0–6.9 ft
-  (median 2.0 ft); AGL is ASL less a constant (spread ≤ 0.10 ft). The private collection's Raven files agree.
-- **Blue Raven.** In a published example log [D2] the ASL column is ISA of the logged pressure to 1.8 ft, with the
-  bay at 104–108 °F; on 45 app CSVs in the private collection, to 4.5 ft (median per-file maximum 1.4 ft, about the
-  logged pressure's rounding). AGL is ASL less a constant.
+  altitude of the logged pressure (101,325 Pa sea level) to 0.22 ft, where NOAA's constants miss by 1.0–6.5 ft
+  (median 1.9 ft); AGL is ASL less a constant (spread ≤ 0.10 ft). The private collection's Raven files agree to 0.31 ft
+  down to 0.3 atm, the stated accuracy range's edge [FW1] PDF p. 12, and to 0.4 ft down to 0.22 atm, the base of ISA's
+  11 km layer; below that, two flights read low by up to 2.6 ft and 256 ft.
+- **Blue Raven.** In a published example log [D2] the ASL column is ISA of the logged pressure to 1.8 ft (bay at
+  104–108 °F); on 45 private app CSVs, to 4.5 ft (median file maximum 1.4 ft); AGL is ASL less a constant.
 
 ## 3. What each choice does on a day 20 K off standard (Inference)
 
-The column: sea-level 101,325 Pa, lapse −6.5 K/km′, every level ΔT off standard; dry, hydrostatic. Pressure from
-eq. (33a) [U] p. 12, the layer from Table 4 [U] p. 3, geopotential from eq. (18) [U] p. 8. Cells: the misreading
-of the true climb, m (% of it).
+The column: sea level at 101,325 Pa, lapse −6.5 K/km′, every level ΔT off standard; dry, hydrostatic. Pressure:
+eq. (33a) [U] p. 12; layer: Table 4 [U] p. 3; geopotential: eq. (18) [U] p. 8. Cells: misreading of the climb, m (%).
 
 | Pad, climb | ΔT | a: standard, pad-zeroed | b: 101,325 Pa less surveyed pad | c2: pad T, isothermal | d: 8,434.5 m |
 |---|--:|--:|--:|--:|--:|
@@ -122,7 +122,8 @@ of the true climb, m (% of it).
 | 1,400 m, 3,000 m | +20 K | −194.9 (−6.50%) | −285.8 (−9.53%) | +102.2 (+3.41%) | −10.9 (−0.36%) |
 
 - **(a) Standard, pad-zeroed: what every documented family does.** Inverting eq. (33a) gives a standard height of
-  exactly h·T0/(T0 + ΔT), so the climb reads −ΔT/(T0 + ΔT): 0.32–0.37% per kelvin. **On a hot day a standard
+  exactly h·T0/(T0 + ΔT) for a geopotential climb h (geometric: within 0.01 percentage points). It misreads the climb by
+  −ΔT/(T0 + ΔT), 0.32–0.37% of it per kelvin, or ΔT/T0 = 0.347% of the reading per kelvin. **On a hot day a standard
   altimeter under-reads the climb; on a cold one it over-reads.** This matches the project's worked example
   ([atmosphere](../physics/atmosphere.md#pressure-altitude-what-a-barometric-altimeter-reads)).
 - **(b) Fixed sea-level pressure less a surveyed pad.** Adds the pad's own misreading and the day's weather:
@@ -154,16 +155,14 @@ of the true climb, m (% of it).
 
 - **Record each log's reading as sourced or assumed by family.** RRC3, Raven, Blue Raven and TeleMetrum are
   sourced by file; PerfectFlite, Entacore and MARSA by document; Eggtimer and Jolly Logic remain assumed standard.
-- **Tag each imported height column's provenance:** pressure, standard height above the pad, standard height above
-  sea level, filtered, or integrated (§4).
+- **Tag each height column's provenance:** pressure, standard height above pad or sea level, filtered, integrated (§4).
 - **Where a log keeps pressure, read the pressure, not the height column.** One documented formula then covers
   RRC3, Raven, Blue Raven, Altus Metrum and Entacore, and the 2 RRC3 flights with a stepped pad reading show why.
-- **Carry rule (a)'s 0.32–0.37% per kelvin** as the reading's sensitivity to an uncertain column temperature (§3).
+- **Carry rule (a)'s 0.347% of the reading per kelvin** as its sensitivity to an uncertain column temperature (§3).
 
 ## Open questions
 
-- Whether PerfectFlite and Eggtimer take the difference of two standard altitudes or treat the pad as sea level:
-  documents are silent and no file keeps pressure (+0.68% to +2.78% apart at 300–1,200 m pads).
+- Whether PerfectFlite and Eggtimer subtract standard heights or use the pad as sea level (0.68–2.78%, 0.3–1.2 km pads).
 - Whether Altus Metrum's CSV `height` is the filter state or the raw conversion; its pad-averaging window.
 - Entacore's calibration (a height shift or a reference pressure); the AltimeterThree's export; a MARSA33L manual.
 - The CATS Vega's documented conversion and filter, which would settle two of the four assumed logs.
@@ -178,10 +177,9 @@ Altus Metrum documents are Creative Commons ShareAlike 3.0. All read 2026-10-16.
   FireFly manuals say the same. <http://www.perfectflite.com/Download.html>
 - [MW1] Missile Works RRC3+/RRC3 manual v1.71; [MW2] mDACS manual v1.71; [MW3] RRC2L manual v1.02; [MW4] RRC2+
   manual rev. 1.03. <https://www.missileworks.com/downloads/>
-- [FW1] Featherweight Raven manual (2014-05-20); [FW2] Blue Raven user's guide (2026-05-12).
-  <https://www.featherweightaltimeters.com/>
-- [FW3] Featherweight's designer, Blue Raven development thread, 2023-03-31.
-  <https://www.rocketryforum.com/goto/post?id=2440706>
+- [FW1] Featherweight Raven manual (2014-05-20; its 2020-08-15 edition says the same, PDF p. 12); [FW2] Blue Raven
+  user's guide (2026-05-12). <https://www.featherweightaltimeters.com/>
+- [FW3] Featherweight's designer, Blue Raven thread, 2023-03-31. <https://www.rocketryforum.com/goto/post?id=2440706>
 - [E1]–[E8] Eggtimer Rocketry: Classic 1.52 RevD, Quantum 1.09G, Proton 2.01C, Apogee, TRS 2.07, Quasar 1.02S guides,
   Quantum release notes 1.09G, Excel graphing guide. <https://eggtimerrocketry.com/home/support/>
 - [A1] Altus Metrum manual v1.9.22.2. <https://altusmetrum.org/AltOS/doc/altusmetrum.pdf>
@@ -194,7 +192,9 @@ Altus Metrum documents are Creative Commons ShareAlike 3.0. All read 2026-10-16.
   <https://dept.aem.umn.edu/~./faculty/flaten/Rocketry_Remote_Lessons_Fall_2021/AIM_USB_4_Manual.pdf>
 - [M1] MARSA4 manual v1.0 (2009), a cached copy (www.marsa4.com refused the connection); [M2] MARSA54L manual
   v1.4 (2014). <http://3.17.74.168/wp-content/uploads/2022/04/MARSA54L-Flight-Computer-User-V1.0.pdf>
-- [U] *U.S. Standard Atmosphere, 1976*, NOAA/NASA/USAF, eqs. (18) p. 8, (33a) p. 12, Table 4 p. 3.
+- [N] NWS El Paso, *Pressure Altitude*: [MW1] p. 23 links it on srh.noaa.gov, which no longer resolves; read 2026-11-06.
+  <https://www.weather.gov/media/epz/wxcalc/pressureAltitude.pdf>
+- [U] *U.S. Standard Atmosphere, 1976*, NOAA/NASA/USAF: eqs. (18) p. 8, (33a) p. 12, Table 4 p. 3, constants pp. 2–3, 9.
 - [D1] DOFPro flight data, Harvey Mudd College. <https://dofpro.org/RCK/fltdata/FlightData.html>; Creative Commons
   with no license named: cited, aggregates only.
 - [D2] rex-mcall/Shred-O-Vision at 619af886f4, `examples/mothman_avenged/BlRv_wvuer1_LR_06-17-2026_09_25_14.csv`, MIT.
