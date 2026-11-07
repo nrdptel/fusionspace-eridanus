@@ -399,7 +399,7 @@ it. On those logs every sample the prediction reads was logged at or before the 
 is cut by its times: a sample it stamps in order at or before the cut is read wherever the file puts it. Run
 `cargo test -p fusionspace-hpr-forensics boost`.
 
-**A worked example.** NDRT 2020's L1395 burns 3.43 s. Its barometer's log is cut 4.35 s after
+**A worked example.** NDRT 2020's motor burns 3.43 s. Its barometer's log is cut 4.35 s after
 liftoff, its climb speed 10% below its 161.9 m/s (531 ft/s) top. The fit to the log
 up to there flies on to 1,269 m (4,164 ft), as the barometer reads it. The log's apogee is 1,320 m
 (4,332 ft): the prediction is 3.9% low. The forward simulation, nothing fitted, reads 1,458 m
