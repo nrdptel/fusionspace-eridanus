@@ -61,6 +61,7 @@
       "same_flight_m": 0.0,
       "burn_time_s": 2.43,
       "liftoff_s": 0.21,
+      "log_past_transonic": false,
       "stated_wind_m_s": [
         0.6658797130678186,
         1.0902055455847104
@@ -162,6 +163,7 @@
       "same_flight_m": 0.0,
       "burn_time_s": 3.433,
       "liftoff_s": 0.495,
+      "log_past_transonic": false,
       "stated_wind_m_s": [
         10.46003129902524,
         6.254651703792871
@@ -243,19 +245,13 @@
                 "name": "drag scale",
                 "value": 1.0170947535963475,
                 "standard_error": 0.10863116861843969,
-                "interval_90": [
-                  0.8617521824719787,
-                  1.155056337741766
-                ]
+                "interval_90": null
               },
               {
                 "name": "impulse scale",
                 "value": 0.9630115815585402,
                 "standard_error": 0.026872842891693845,
-                "interval_90": [
-                  0.9235085025077502,
-                  1.0041270311828316
-                ]
+                "interval_90": null
               },
               {
                 "name": "burn time scale",
@@ -279,10 +275,7 @@
                 "name": "structure mass scale",
                 "value": 1.003385448834209,
                 "standard_error": 0.010810995941129914,
-                "interval_90": [
-                  0.9853310856125221,
-                  1.0213317020964847
-                ]
+                "interval_90": null
               }
             ]
           },
@@ -321,6 +314,7 @@
       "same_flight_m": 0.0,
       "burn_time_s": 4.877,
       "liftoff_s": 0.23,
+      "log_past_transonic": true,
       "stated_wind_m_s": [
         9.773773567668528,
         2.1117986621016196
@@ -428,6 +422,7 @@
       "same_flight_m": 0.0,
       "burn_time_s": 5.68969571230982,
       "liftoff_s": 0.55,
+      "log_past_transonic": false,
       "stated_wind_m_s": [
         13.042902651471163,
         7.0595894249827165
@@ -520,6 +515,7 @@
       "same_flight_m": 0.0,
       "burn_time_s": 3.6,
       "liftoff_s": 0.2,
+      "log_past_transonic": true,
       "stated_wind_m_s": [
         8.887670808670293,
         6.641493639915367
@@ -627,6 +623,7 @@
       "same_flight_m": 0.0,
       "burn_time_s": 3.6,
       "liftoff_s": 0.25,
+      "log_past_transonic": true,
       "stated_wind_m_s": [
         1.2206988774795777,
         3.647472415287173
@@ -728,6 +725,7 @@
       "same_flight_m": 0.0,
       "burn_time_s": 4.668,
       "liftoff_s": 0.18,
+      "log_past_transonic": true,
       "stated_wind_m_s": [
         1.7056783738423855,
         2.8663595900675825
@@ -809,19 +807,13 @@
                 "name": "drag scale",
                 "value": 1.001170157360346,
                 "standard_error": 0.10940884511468554,
-                "interval_90": [
-                  0.8447155088463456,
-                  1.1401193906559965
-                ]
+                "interval_90": null
               },
               {
                 "name": "impulse scale",
                 "value": 0.9860479929737134,
                 "standard_error": 0.03151379234758309,
-                "interval_90": [
-                  0.9397227182227662,
-                  1.0342640952655155
-                ]
+                "interval_90": null
               },
               {
                 "name": "burn time scale",
@@ -845,10 +837,7 @@
                 "name": "structure mass scale",
                 "value": 1.001501929121772,
                 "standard_error": 0.010899398017808079,
-                "interval_90": [
-                  0.9832999344320325,
-                  1.0195949298313334
-                ]
+                "interval_90": null
               }
             ]
           },
@@ -861,25 +850,49 @@
   ],
   "summary": {
     "flights": 7,
-    "predicted": [
-      "ndrt-2020",
-      "lince"
-    ],
-    "prediction_mean_absolute_percent": 3.032163368525014,
-    "prediction_mean_percent": -0.845190256137021,
-    "forward_mean_absolute_percent": 6.892232344376907,
-    "forward_mean_percent": 6.892232344376907,
-    "stated_mean_absolute_percent": 5.066468901909305,
-    "stated_mean_percent": 5.066468901909305,
-    "difference_points": -3.8600689758518936,
-    "difference_interval": [
-      null,
-      null
-    ],
+    "predicted": {
+      "flights": [
+        "ndrt-2020",
+        "lince"
+      ],
+      "prediction_mean_absolute_percent": 3.032163368525014,
+      "prediction_mean_percent": -0.845190256137021,
+      "forward_mean_absolute_percent": 6.892232344376907,
+      "forward_mean_percent": 6.892232344376907,
+      "stated_mean_absolute_percent": 5.066468901909305,
+      "stated_mean_percent": 5.066468901909305,
+      "difference_points": -3.8600689758518936,
+      "difference_interval": [
+        null,
+        null
+      ]
+    },
+    "in_range": {
+      "flights": [
+        "ndrt-2020"
+      ],
+      "prediction_mean_absolute_percent": 3.877353624662035,
+      "prediction_mean_percent": -3.877353624662035,
+      "forward_mean_absolute_percent": 10.397459672273143,
+      "forward_mean_percent": 10.397459672273143,
+      "stated_mean_absolute_percent": 6.568964455408456,
+      "stated_mean_percent": 6.568964455408456,
+      "difference_points": -6.520106047611108,
+      "difference_interval": [
+        null,
+        null
+      ]
+    },
     "cut_in_burn": [
       "bella-lui",
       "prometheus-2022",
       "juno-iii",
+      "lince"
+    ],
+    "past_transonic": [
+      "prometheus-2022",
+      "cavour",
+      "genesis",
       "lince"
     ],
     "forward_all_mean_absolute_percent": 6.058557095957765,

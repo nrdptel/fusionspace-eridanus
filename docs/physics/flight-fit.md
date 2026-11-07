@@ -20,7 +20,7 @@ impulse, wind and mass, and where its Bayesian option fails its tests.
   flight was flown with. On set B it's the fit to the same flight with no noise, for all but the
   mass. The wind passes only on logs with a track, the log's latitude and longitude. Choices in the model were made after seeing those two sets; the intervals' sizes come
   from a third. An interval holds 90% over a set, not on each design or flight
-  ([How well it holds](#how-well-it-holds)). No real flight has checked it
+  ([How well it holds](#how-well-it-holds)). No real flight has checked its intervals
   ([evidence row G38](../evidence.md#g38)). On a real flight, the model's own errors go into the
   scales with nothing to say so. The Bayesian option draws the unknowns' possible values at random rather than
   reading the curvature at the answer. Its intervals pass 8 of their 10 tests, 5 parameters on each
@@ -33,9 +33,10 @@ impulse, wind and mass, and where its Bayesian option fails its tests.
   GNSS receiver's isn't fitted, since the log reader takes no apogee from it; that's every log with
   nothing to fit among the sets' counted draws, about one in six ([when](#when-a-log-has-nothing-to-fit)). Its wind is
   constant with height; on a log of height alone, a wind that grows with height only widens the intervals. It's
-  told the design, rail, site and the day's air, and takes them as right. It's in the library only:
-  no command runs it on a log yet. Its [prediction from the boost](#apogee-from-the-boost) has met a
-  logged apogee on 2 public flights so far, one of them cut inside its burn.
+  told the design, rail, site and the day's air, and takes them as right. It's in the library only,
+  with no `hpr` command yet. Its [prediction from the boost](#apogee-from-the-boost) has been
+  compared with a logged apogee on 2 public flights. Only one was cut after its burn, on a log that
+  stays under the speed limit.
 
 ## How it works
 
@@ -359,10 +360,10 @@ closed forms. A result under 100 effective draws is flagged as too few to read. 
 
 The library predicts a flight's apogee from its climb and the start of its coast: a log cut just
 after burnout (`hpr_forensics::boost`), 0.33 s to 1.48 s after it on the synthetic flights below.
-It has met a logged apogee on 2 of the 7 public flights, too few to say at 95% whether it beats
-the forward simulation ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)). On real barometers the cut can
-fall inside the burn, which one of the two was
-([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)).
+It predicts 2 of the 7 public flights, too few to say at 95% whether it beats the forward
+simulation ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)). Only NDRT 2020 is the case it's meant for. On real
+barometers the cut can fall inside the burn, as Lince's did, and Lince's log later climbs past
+the speed limit below ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)).
 
 **The cut.** The library follows the climb speed: a straight line fitted to each half second of
 heights. One reading far from the rest is left out, as the analyzer's spike rule does. The cut is
@@ -403,11 +404,10 @@ is cut by its times: a sample it stamps in order at or before the cut is read wh
 liftoff, its climb speed at least 10% below its 161.9 m/s (531 ft/s) top. The fit to the log
 up to there flies on to 1,269 m (4,164 ft), as the barometer reads it. The log's apogee is 1,320 m
 (4,332 ft): the prediction is 3.9% low. The forward simulation, nothing fitted, reads 1,458 m
-(4,782 ft), 10.4% high. Part of that gap is the fit's wind, constant with height: flown in it with
-nothing fitted, the rocket reaches 1,407 m (4,616 ft), 6.6% high. The rest is the fit to the
-boost. On Lince, the other prediction, the cut came 2.4 s after liftoff with the motor still
-burning. Cavour and Genesis, read as barometers, climb too fast for the cut. Bella Lui, Prometheus and Juno
-III are cut too soon for anything to fit, the last two inside their burns
+(4,782 ft), 10.4% high. Part of that gap is the fit's wind, constant with height. Flown in it
+with nothing fitted, the rocket reaches 1,407 m (4,616 ft), 6.6% high. The rest, about 10 points,
+is the fit to the boost. It reads the impulse 4% low, and up to the cut it leaves the drag near
+what was stated, 1.02, where the whole log reads 0.71. The other flights are in
 ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)).
 
 ## Sources

@@ -18,16 +18,16 @@ use std::path::Path;
 use hpr::hpr_analysis::montecarlo::dispersed_motor;
 use hpr_atmos::{ConstantWind, PowerLawWind};
 use hpr_design::Rocket;
-use hpr_flightdata::readings::{self, Reading};
+use hpr_flightdata::readings::{self, Reading, Reason};
 use hpr_forensics::boost::{self, Cut, NoCut, Unpredicted};
 use hpr_forensics::fit::{self, Fit, Forward, Noise, Observations, Parameters, Stated};
-use hpr_forensics::residuals::{Simulated, Track};
+use hpr_forensics::residuals::{HeightKind, Simulated, Track};
 use hpr_forensics::synthetic::fits::{self as synthetic_fits, Asked, shares};
 use hpr_forensics::synthetic::truth::SHEAR_REFERENCE_HEIGHT_M;
 use hpr_sim::{Environment, FlightSettings, Simulation};
 use hpr_validate::real_flight::{
-    FLIGHTS, FileRead, FlightRow, ROCKETPY, RealFlight, RealFlightReport, example_thrust,
-    launch_day, parse_thrust, rail_of, read_bytes, rocket_on_curve, sha256_hex,
+    Altimeter, FLIGHTS, FileRead, FlightRow, ROCKETPY, RealFlight, RealFlightReport,
+    example_thrust, launch_day, parse_thrust, rail_of, read_bytes, rocket_on_curve, sha256_hex,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -141,10 +141,11 @@ pub struct Fitted {
     pub value: f64,
     /// Its standard error.
     pub standard_error: f64,
-    /// Its 90% interval, the standard error times the shares fitted on the calibration set
-    /// (`hpr_forensics::synthetic::fits::shares`); `None` for the burn time's scale, which the fit
-    /// isn't asked for, and for the wind on a log with no track, whose shares were fitted with the
-    /// synthetic flights' own stated wind and don't carry over to a flight's own.
+    /// Its 90% interval, the standard error times the shares fitted on the calibration set's
+    /// whole-log fits (`hpr_forensics::synthetic::fits::shares`). `None` for the burn time's
+    /// scale, which the fit isn't asked for; for the wind on a log with no track, whose shares
+    /// were fitted with the synthetic flights' own stated wind and don't carry over to a flight's
+    /// own; and for every parameter of a fit up to the cut, which no shares were fitted on.
     pub interval_90: Option<(f64, f64)>,
 }
 
@@ -161,14 +162,15 @@ pub struct FitRow {
     pub rms_m: Option<f64>,
     /// That residual as a share of the spread of the heights read.
     pub misfit_share: Option<f64>,
-    /// Flights flown for it.
+    /// Simulations flown for it.
     pub flown: u64,
     /// The parameters, in the fit's order.
     pub parameters: Vec<Fitted>,
 }
 
 impl FitRow {
-    fn of(fit: &Fit, drift: bool) -> Self {
+    /// `fit`'s row; with `calibrated`, the parameters' 90% intervals where shares apply.
+    fn of(fit: &Fit, drift: bool, calibrated: bool) -> Self {
         let values = fit.parameters.to_array();
         let names = [
             ("drag scale", Some(Asked::DragScale)),
@@ -187,7 +189,8 @@ impl FitRow {
                 standard_error,
                 interval_90: asked
                     .filter(|asked| {
-                        fit.fitted
+                        calibrated
+                            && fit.fitted
                             && (drift || !matches!(asked, Asked::WindEast | Asked::WindNorth))
                     })
                     .and_then(|asked| {
@@ -220,7 +223,7 @@ pub enum Outcome {
         fit: FitRow,
         /// The fitted flight's apogee, m above the pad, as climbed.
         apogee_above_pad_m: f64,
-        /// That apogee as the log's barometer reads it, m: what is set against the log's.
+        /// That apogee as the log's sensor reads it, m: what is set against the log's.
         apogee_reading_m: f64,
         /// Its error against the log's apogee, %.
         error_percent: f64,
@@ -246,15 +249,18 @@ pub struct FlightBoost {
     pub forward_apogee_m: f64,
     /// Its error, %, as `real-flights` gives it.
     pub forward_error_percent: f64,
-    /// The forward simulation's largest Mach number.
+    /// The forward simulation's largest Mach number, as `real-flights` gives it.
     pub forward_max_mach: f64,
     /// The fit's model flown in ERA5's own wind with nothing changed, less the forward
     /// simulation's apogee, m: under [`SAME_FLIGHT_WITHIN_M`], or the run fails.
     pub same_flight_m: f64,
-    /// The thrust file's burn, as flown: its last time with thrust, s.
+    /// The thrust file's burn, as flown and not scaled by any fit: its last time with thrust, s.
     pub burn_time_s: f64,
     /// The log's liftoff as the analyzer reads the whole log, s on the log's clock.
     pub liftoff_s: Option<f64>,
+    /// Whether the analyzer, reading the whole log past the cut, withholds its top speed as at or
+    /// past [`readings::TRANSONIC_SPEED_M_S`]: the climb leaves the range the cut is meant for.
+    pub log_past_transonic: bool,
     /// ERA5's wind averaged over the forward simulation's climb, toward the east and north, m/s:
     /// what the fit is told of the wind.
     pub stated_wind_m_s: (f64, f64),
@@ -290,6 +296,14 @@ impl FlightBoost {
         Some(self.cut()?.time_s - self.liftoff_s? < self.burn_time_s)
     }
 
+    /// Whether the flight has a prediction from a cut after its burn, on a log whose climb stays
+    /// under the transonic speed: the case the method is meant for.
+    fn in_range(&self) -> bool {
+        self.error_percent().is_some()
+            && self.cut_in_burn() == Some(false)
+            && !self.log_past_transonic
+    }
+
     /// The stated model's apogee error, %.
     fn stated_error_percent(&self) -> f64 {
         100.0 * (self.stated_apogee_m - self.log_apogee_m) / self.log_apogee_m
@@ -304,13 +318,11 @@ impl FlightBoost {
     }
 }
 
-/// The report's summary, all of it computed from its rows.
+/// The errors on a set of predicted flights, side by side.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Summary {
+pub struct Means {
     /// The flights.
-    pub flights: usize,
-    /// Those with a prediction.
-    pub predicted: Vec<String>,
+    pub flights: Vec<String>,
     /// The prediction's mean absolute apogee error on them, %.
     pub prediction_mean_absolute_percent: Option<f64>,
     /// Its mean error with its sign, %.
@@ -328,10 +340,48 @@ pub struct Summary {
     /// simulation's, percentage points: below zero, the prediction came closer.
     pub difference_points: Option<f64>,
     /// That difference's exact sign-flip interval at [`LEVEL`], each end `None` where it is
-    /// unbounded.
+    /// unbounded; `None` for no flights.
     pub difference_interval: Option<(Option<f64>, Option<f64>)>,
+}
+
+impl Means {
+    fn of<'a>(flights: impl Iterator<Item = &'a FlightBoost> + Clone) -> Self {
+        let errors = || flights.clone().filter_map(FlightBoost::error_percent);
+        let forward = || flights.clone().map(|f| f.forward_error_percent);
+        let stated = || flights.clone().map(FlightBoost::stated_error_percent);
+        let differences: Vec<f64> = flights
+            .clone()
+            .filter_map(|f| Some(f.error_percent()?.abs() - f.forward_error_percent.abs()))
+            .collect();
+        let finite = |x: f64| x.is_finite().then_some(x);
+        Self {
+            flights: flights.clone().map(|f| f.id.clone()).collect(),
+            prediction_mean_absolute_percent: mean(errors().map(f64::abs)),
+            prediction_mean_percent: mean(errors()),
+            forward_mean_absolute_percent: mean(forward().map(f64::abs)),
+            forward_mean_percent: mean(forward()),
+            stated_mean_absolute_percent: mean(stated().map(f64::abs)),
+            stated_mean_percent: mean(stated()),
+            difference_points: mean(differences.iter().copied()),
+            difference_interval: boost::sign_flip_interval(&differences, LEVEL)
+                .map(|(low, high)| (finite(low), finite(high))),
+        }
+    }
+}
+
+/// The report's summary, all of it computed from its rows.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Summary {
+    /// The flights.
+    pub flights: usize,
+    /// Every flight with a prediction.
+    pub predicted: Means,
+    /// Those of them cut after the burn, on a log whose climb stays under the transonic speed.
+    pub in_range: Means,
     /// The flights cut less than their thrust file's burn after liftoff.
     pub cut_in_burn: Vec<String>,
+    /// The flights whose whole log climbs at or past the transonic speed.
+    pub past_transonic: Vec<String>,
     /// The forward simulation's mean absolute apogee error on all the flights, %.
     pub forward_all_mean_absolute_percent: f64,
     /// Its mean error with its sign on all of them, %.
@@ -368,35 +418,19 @@ fn mean(values: impl Iterator<Item = f64>) -> Option<f64> {
 
 impl Summary {
     fn of(flights: &[FlightBoost]) -> Self {
-        let predicted: Vec<&FlightBoost> = flights
-            .iter()
-            .filter(|f| f.error_percent().is_some())
-            .collect();
-        let errors = || predicted.iter().filter_map(|f| f.error_percent());
-        let forward = || predicted.iter().map(|f| f.forward_error_percent);
-        let stated = || predicted.iter().map(|f| f.stated_error_percent());
-        let differences: Vec<f64> = predicted
-            .iter()
-            .filter_map(|f| Some(f.error_percent()?.abs() - f.forward_error_percent.abs()))
-            .collect();
-        let finite = |x: f64| x.is_finite().then_some(x);
+        let ids = |keep: &dyn Fn(&FlightBoost) -> bool| -> Vec<String> {
+            flights
+                .iter()
+                .filter(|f| keep(f))
+                .map(|f| f.id.clone())
+                .collect()
+        };
         Self {
             flights: flights.len(),
-            predicted: predicted.iter().map(|f| f.id.clone()).collect(),
-            prediction_mean_absolute_percent: mean(errors().map(f64::abs)),
-            prediction_mean_percent: mean(errors()),
-            forward_mean_absolute_percent: mean(forward().map(f64::abs)),
-            forward_mean_percent: mean(forward()),
-            stated_mean_absolute_percent: mean(stated().map(f64::abs)),
-            stated_mean_percent: mean(stated()),
-            difference_points: mean(differences.iter().copied()),
-            difference_interval: boost::sign_flip_interval(&differences, LEVEL)
-                .map(|(low, high)| (finite(low), finite(high))),
-            cut_in_burn: flights
-                .iter()
-                .filter(|f| f.cut_in_burn() == Some(true))
-                .map(|f| f.id.clone())
-                .collect(),
+            predicted: Means::of(flights.iter().filter(|f| f.error_percent().is_some())),
+            in_range: Means::of(flights.iter().filter(|f| f.in_range())),
+            cut_in_burn: ids(&|f| f.cut_in_burn() == Some(true)),
+            past_transonic: ids(&|f| f.log_past_transonic),
             forward_all_mean_absolute_percent: mean(
                 flights.iter().map(|f| f.forward_error_percent.abs()),
             )
@@ -429,11 +463,11 @@ fn mean_wind(
     Ok((east, north))
 }
 
-/// The highest reading of `flown`, as the log's barometer reads it, m: at its top.
-fn top_reading(forward: &mut Flown<'_>, p: &Parameters) -> Result<f64, String> {
+/// The flight on `p`'s apogee as a sensor of `kind` reads it, m.
+fn top_reading(forward: &mut Flown<'_>, p: &Parameters, kind: HeightKind) -> Result<f64, String> {
     let flown = forward.fly(p, boost::APOGEE_HORIZON_S)?;
     flown
-        .top_reading_m(hpr_forensics::residuals::HeightKind::Barometric)
+        .top_reading_m(kind)
         .ok_or_else(|| "the flight reaches no apogee".to_owned())
 }
 
@@ -471,6 +505,14 @@ fn fly(root: &Path, flight: &RealFlight, row: &FlightRow) -> Result<FlightBoost,
         .filter(|&&(_, thrust)| thrust > 0.0)
         .map(|&(t, _)| t)
         .fold(f64::NAN, f64::max);
+    if !burn_time_s.is_finite() {
+        return Err(failed(&format!("{thrust_path} holds no thrust")));
+    }
+    // The log's height as `real-flights` reads it.
+    let kind = match flight.log.altimeter {
+        Altimeter::Height(_) => HeightKind::Geometric,
+        Altimeter::Barometric(_) | Altimeter::AssumedBarometric(_) => HeightKind::Barometric,
+    };
     let design_path = format!("validation/designs/{}.json", flight.design);
     let design_bytes = read(design_path.clone(), "reading a design")?;
     let design: Value = serde_json::from_slice(&design_bytes).map_err(|error| failed(&error))?;
@@ -493,8 +535,9 @@ fn fly(root: &Path, flight: &RealFlight, row: &FlightRow) -> Result<FlightBoost,
         flight,
         era5_wind: true,
     };
-    let same_flight_m =
-        top_reading(&mut forward, &nominal).map_err(|error| failed(&error))? - row.hpr_apogee_m;
+    let same_flight_m = top_reading(&mut forward, &nominal, kind)
+        .map_err(|error| failed(&error))?
+        - row.hpr_apogee_m;
     if same_flight_m.abs() > SAME_FLIGHT_WITHIN_M || !same_flight_m.is_finite() {
         return Err(failed(&format!(
             "the fit's model in ERA5's wind lands {same_flight_m:+.3} m from the forward \
@@ -502,7 +545,8 @@ fn fly(root: &Path, flight: &RealFlight, row: &FlightRow) -> Result<FlightBoost,
         )));
     }
     forward.era5_wind = false;
-    let stated_apogee_m = top_reading(&mut forward, &nominal).map_err(|error| failed(&error))?;
+    let stated_apogee_m =
+        top_reading(&mut forward, &nominal, kind).map_err(|error| failed(&error))?;
 
     let whole_read = readings::read(&log);
     let observed = fit::observations(&log, &whole_read);
@@ -513,7 +557,15 @@ fn fly(root: &Path, flight: &RealFlight, row: &FlightRow) -> Result<FlightBoost,
         &mut forward,
     );
     let drift = |o: Option<&Observations>| o.is_some_and(|o| !o.horizontal.is_empty());
-    let whole = FitRow::of(&whole_fit, whole_fit.fitted && drift(observed.as_ref()));
+    let whole = FitRow::of(
+        &whole_fit,
+        whole_fit.fitted && drift(observed.as_ref()),
+        true,
+    );
+    let log_past_transonic = matches!(
+        &whole_read.max_speed,
+        Reading::Withheld(withheld) if withheld.reason == Reason::Transonic
+    );
     let whole_unread = observed.is_none().then(|| match &whole_read.apogee {
         Reading::Withheld(withheld) => format!("its apogee is withheld: {}", withheld.detail),
         Reading::Read(_) => {
@@ -537,7 +589,7 @@ fn fly(root: &Path, flight: &RealFlight, row: &FlightRow) -> Result<FlightBoost,
     ) {
         Ok(prediction) => Outcome::Predicted {
             cut: prediction.cut,
-            fit: FitRow::of(&prediction.fit, boost_drift),
+            fit: FitRow::of(&prediction.fit, boost_drift, false),
             apogee_above_pad_m: prediction.apogee_above_pad_m,
             apogee_reading_m: prediction.apogee_reading_m,
             error_percent: 100.0 * (prediction.apogee_reading_m - row.log_apogee_m)
@@ -557,6 +609,7 @@ fn fly(root: &Path, flight: &RealFlight, row: &FlightRow) -> Result<FlightBoost,
         same_flight_m,
         burn_time_s,
         liftoff_s,
+        log_past_transonic,
         stated_wind_m_s,
         stated_apogee_m,
         whole,
@@ -605,52 +658,53 @@ fn end_text(end: Option<f64>) -> String {
     end.map_or_else(|| "unbounded".to_owned(), |v| format!("{v:+.2}"))
 }
 
+/// The summary's lines for one set of predicted flights.
+fn means_line(page: &mut String, which: &str, m: &Means) {
+    let pair = |a: Option<f64>, b: Option<f64>| match (a, b) {
+        (Some(a), Some(b)) => format!("{a:.2}% ({b:+.2}% with its sign)"),
+        _ => "none".to_owned(),
+    };
+    let names = if m.flights.is_empty() {
+        "none".to_owned()
+    } else {
+        m.flights.join(", ")
+    };
+    let _ = writeln!(
+        page,
+        "- {which}, {} ({names}): the prediction's mean absolute apogee error is {}; the forward \
+         simulation's on the same flights {}; the fit's model at what was stated, nothing fitted, {}. \
+         The prediction's absolute error less the forward simulation's is {} percentage points on \
+         average; its exact sign-flip interval: {}.",
+        m.flights.len(),
+        pair(
+            m.prediction_mean_absolute_percent,
+            m.prediction_mean_percent
+        ),
+        pair(m.forward_mean_absolute_percent, m.forward_mean_percent),
+        pair(m.stated_mean_absolute_percent, m.stated_mean_percent),
+        m.difference_points
+            .map_or_else(|| "none".to_owned(), |v| format!("{v:+.2}")),
+        match m.difference_interval {
+            None => "none".to_owned(),
+            Some((None, None)) => format!(
+                "unbounded, as on {} no pattern of signs is rare enough at {:.0}% (it takes 6 flights)",
+                match m.flights.len() {
+                    1 => "1 flight".to_owned(),
+                    n => format!("{n} flights"),
+                },
+                100.0 * LEVEL
+            ),
+            Some((low, high)) => format!("{} to {}", end_text(low), end_text(high)),
+        }
+    );
+}
+
 impl Report {
     /// The report's page.
     #[must_use]
     pub fn to_markdown(&self) -> String {
         let mut page = String::new();
         let s = &self.summary;
-        let _ = writeln!(
-            page,
-            "# Apogee predicted from the boost, on the logs of real flights\n"
-        );
-        let _ = writeln!(
-            page,
-            "Written by `cargo xtask real-flights` ([M7.3d2][m7-3d], decisions [ADR-257][adr-257] §3 and \
-             [ADR-321][adr-321]). How the prediction works is on the [fit's page][site].\n"
-        );
-        let _ = writeln!(
-            page,
-            "- **What is flown:** the 7 flights of the [real-flights report][real], each in its ERA5 air, \
-             from its example's thrust file, rail and site.\n\
-             - **The prediction:** `hpr_forensics::boost` cuts the log just after burnout, as it finds \
-             burnout from the samples up to the cut, fits the log up to the cut, and flies the fit on to \
-             apogee. A barometer's log whose fitted climb speed reaches 227.7 m/s (747 ft/s) gets no \
-             cut. Its apogee is read as the forward simulation's is, from the ERA5 pressure at its \
-             center of mass, less the pad's, and set against the same log apogee.\n\
-             - **The fit:** least squares, told the design, rail, site and ERA5 air. Its wind is constant \
-             with height; what's stated of it is ERA5's, averaged evenly in height from the pad to the \
-             forward simulation's apogee. Each parameter is held to what's stated of it (below).\n\
-             - **The forward simulation:** the [real-flights report][real]'s, in ERA5's air and wind, \
-             nothing fitted.\n\
-             - **The interval:** on each predicted flight's absolute error from the prediction less the \
-             forward simulation's. It is the exact sign-flip interval (Hartigan, 1969), whose coverage is \
-             at least {:.0}% for independent differences, each drawn symmetric about their center. With 5 flights or \
-             fewer, no pattern of signs is rare enough at that level, and it is unbounded.\n\
-             - **Files:** the logs, thrust files and weather files are read from the pinned RocketPy \
-             checkout and never committed; each one's SHA-256 is in the JSON.\n",
-            100.0 * LEVEL
-        );
-        let _ = writeln!(
-            page,
-            "[m7-3d]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-3d\n\
-             [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md\n\
-             [adr-321]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0321-m7-3c4-in-three-the-track-as-a-receiver-reads-it.md\n\
-             [site]: https://hpr.fusionspace.co/physics/flight-fit.html#apogee-from-the-boost\n\
-             [real]: real-flights.md\n"
-        );
-        let _ = writeln!(page, "## Summary\n");
         let names = |ids: &[String]| {
             if ids.is_empty() {
                 "none".to_owned()
@@ -660,87 +714,102 @@ impl Report {
         };
         let _ = writeln!(
             page,
-            "- Flights: {}; with a prediction: {} ({}).",
-            s.flights,
-            s.predicted.len(),
-            names(&s.predicted)
+            "# Apogee predicted from the boost, on the logs of real flights\n"
         );
         let _ = writeln!(
             page,
-            "- The prediction's mean absolute apogee error: {}; with its sign: {}.",
-            s.prediction_mean_absolute_percent
-                .map_or_else(|| "none".to_owned(), |v| format!("{v:.2}%")),
-            percent(s.prediction_mean_percent)
+            "This report asks whether apogee predicted from a log cut just after burnout comes closer to \
+             the logged apogee than the forward simulation, the simulator's flight of the design with \
+             nothing fitted. It covers the 7 public logged flights. {} get a prediction, {} of them in \
+             the case the method is meant for, so it can't yet say at {:.0}% which comes closer. An \
+             error is an apogee less the log's, as a share of the log's: + is too high.\n",
+            s.predicted.flights.len(),
+            s.in_range.flights.len(),
+            100.0 * LEVEL
         );
         let _ = writeln!(
             page,
-            "- The forward simulation's on the same flights: {}; with its sign: {}.",
-            s.forward_mean_absolute_percent
-                .map_or_else(|| "none".to_owned(), |v| format!("{v:.2}%")),
-            percent(s.forward_mean_percent)
+            "Written by `cargo xtask real-flights` ([M7.3d2][m7-3d], decisions [ADR-257][adr-257] §3 and \
+             [ADR-325][adr-325]). How the prediction works is on the [fit's page][site].\n"
         );
         let _ = writeln!(
             page,
-            "- The fit's model at what was stated, nothing fitted, on the same flights: {}; with its \
-             sign: {}. Against the forward simulation's, this is what the model's constant wind \
-             moves; against the prediction's, what the fit to the boost moves.",
-            s.stated_mean_absolute_percent
-                .map_or_else(|| "none".to_owned(), |v| format!("{v:.2}%")),
-            percent(s.stated_mean_percent)
+            "- **What is flown:** the 7 flights of the [real-flights report][real], each in its ERA5 air, \
+             from its example's thrust file, rail and site.\n\
+             - **The prediction:** the library finds burnout from the samples before the cut, cuts the \
+             log there, fits it, and flies the fit on to apogee (`hpr_forensics::boost`). A barometer's \
+             log whose fitted climb speed reaches 227.7 m/s (747 ft/s) before the cut gets none. Its \
+             apogee is read as the forward simulation's is: the standard atmosphere's altitude of the \
+             ERA5 pressure at the center of mass, less the pad's.\n\
+             - **The fit:** least squares, told the design, rail, site and ERA5 air. Its wind is constant \
+             with height; what's stated of it is ERA5's, averaged evenly in height from the pad to the \
+             forward simulation's apogee. Each parameter is held to what's stated of it (below): the \
+             synthetic flights' spreads, not a measure of a real flight's model error.\n\
+             - **The case the method is meant for:** a cut after the thrust file's burn, on a log whose \
+             climb, read whole, stays under 227.7 m/s. A cut less than the burn after liftoff counts as \
+             inside it; as liftoff lags ignition, that also takes in a cut up to that lag after the \
+             burn's end. The burn is the file's, not scaled by any fit.\n\
+             - **The interval:** on the difference, flight by flight, between the prediction's absolute \
+             error and the forward simulation's. It is the exact sign-flip interval (Hartigan, 1969), \
+             whose coverage is at least {:.0}% for independent differences, each drawn symmetric about \
+             their center. With 5 flights or fewer, no pattern of signs is rare enough at that level, \
+             and it is unbounded.\n\
+             - **Files:** the logs, thrust files and weather files are read from the pinned RocketPy \
+             checkout and never committed; each one's SHA-256 is in the JSON.\n",
+            100.0 * LEVEL
         );
         let _ = writeln!(
             page,
-            "- The prediction's absolute error less the forward simulation's, on average: {} \
-             percentage points; its exact sign-flip interval: {}.",
-            s.difference_points
-                .map_or_else(|| "none".to_owned(), |v| format!("{v:+.2}")),
-            match s.difference_interval {
-                None => "none".to_owned(),
-                Some((None, None)) => format!(
-                    "unbounded, as on {} flights no pattern of signs is rare enough at {:.0}% (it \
-                     takes 6)",
-                    s.predicted.len(),
-                    100.0 * LEVEL
-                ),
-                Some((low, high)) => format!("{} to {}", end_text(low), end_text(high)),
-            }
+            "[m7-3d]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-3d\n\
+             [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md\n\
+             [adr-325]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0325-m7-3d2-the-public-flights-prediction-from-the-boost.md\n\
+             [site]: https://hpr.fusionspace.co/physics/flight-fit.html#apogee-from-the-boost\n\
+             [real]: real-flights.md\n"
+        );
+        let _ = writeln!(page, "## Summary\n");
+        means_line(&mut page, "Every flight with a prediction", &s.predicted);
+        means_line(
+            &mut page,
+            "In the case the method is meant for",
+            &s.in_range,
         );
         let _ = writeln!(
             page,
-            "- Cut less than the thrust file's burn after liftoff: {}. Each is inside the burn, or \
-             after its end by no more than liftoff's lag behind ignition. On some of these logs the \
-             fitted speed dips by more than the cut's fall for up to half a second during the boost \
-             (measured once on four of them), which the finder reads as burnout \
-             ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)). A prediction \
-             from such a cut is in the counts above as the library gives it.",
+            "- Set beside the forward simulation's, the stated model's error shows what the fit's \
+             constant wind alone moves; beside the prediction's, what the fit to the boost moves."
+        );
+        let _ = writeln!(
+            page,
+            "- Cut less than the thrust file's burn after liftoff: {}. The finder can read a dip in a \
+             barometer's fitted speed during the boost as burnout \
+             ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)).",
             names(&s.cut_in_burn)
         );
         let _ = writeln!(
             page,
-            "- The forward simulation on all {} flights: mean absolute apogee error {:.2}%, with its \
-             sign {:+.2}%.\n",
+            "- Climbing at or past 227.7 m/s, the log read whole: {}. A cut before that speed on such a \
+             log came on a dip, not at burnout.",
+            names(&s.past_transonic)
+        );
+        let _ = writeln!(
+            page,
+            "- The forward simulation on all {} flights: mean absolute apogee error {:.2}% ({:+.2}% with \
+             its sign).\n",
             s.flights, s.forward_all_mean_absolute_percent, s.forward_all_mean_percent
         );
 
         let _ = writeln!(page, "## The prediction\n");
         let _ = writeln!(
             page,
-            "Times are on the log's clock. The burn is the thrust file's, as flown. The stated apogee is \
-             the fit's model, nothing fitted, in its constant wind: set beside the forward simulation's, \
-             it shows what that wind alone moves.\n"
+            "The stated apogee is the fit's model, nothing fitted, in its constant wind.\n"
         );
         let _ = writeln!(
             page,
-            "| flight | liftoff (s) | cut (s) | top speed (m/s) | burn (s) | outcome | log apogee (m) | \
-             predicted (m) | error | forward (m) | forward error | stated (m) | stated error | forward's \
-             largest Mach |"
+            "| flight | outcome | log apogee (m) | predicted (m) | error | forward (m) | forward error | \
+             stated (m) | stated error |"
         );
-        let _ = writeln!(
-            page,
-            "|---|---:|---:|---:|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|"
-        );
+        let _ = writeln!(page, "|---|---|---:|---:|---:|---:|---:|---:|---:|");
         for f in &self.flights {
-            let cut = f.cut();
             let (outcome, predicted) = match &f.boost {
                 Outcome::Predicted {
                     apogee_reading_m, ..
@@ -749,12 +818,8 @@ impl Report {
             };
             let _ = writeln!(
                 page,
-                "| {} | {} | {} | {} | {:.2} | {} | {:.1} | {} | {} | {:.1} | {:+.2}% | {:.1} | {:+.2}% | {:.3} |",
+                "| {} | {} | {:.1} | {} | {} | {:.1} | {:+.2}% | {:.1} | {:+.2}% |",
                 f.title,
-                or_none(f.liftoff_s, 2),
-                or_none(cut.map(|c| c.time_s), 2),
-                or_none(cut.map(|c| c.top_speed_m_s), 1),
-                f.burn_time_s,
                 outcome,
                 f.log_apogee_m,
                 predicted,
@@ -762,7 +827,35 @@ impl Report {
                 f.forward_apogee_m,
                 f.forward_error_percent,
                 f.stated_apogee_m,
-                f.stated_error_percent(),
+                f.stated_error_percent()
+            );
+        }
+        let _ = writeln!(page);
+
+        let _ = writeln!(page, "## The cut\n");
+        let _ = writeln!(
+            page,
+            "Times are on the log's clock; the burn is the thrust file's, as flown.\n"
+        );
+        let _ = writeln!(
+            page,
+            "| flight | liftoff (s) | cut (s) | top speed before the cut (m/s) | burn (s) | cut in the burn | \
+             climbs past 227.7 m/s | forward's largest Mach |"
+        );
+        let _ = writeln!(page, "|---|---:|---:|---:|---:|---|---|---:|");
+        let yes = |b: bool| if b { "yes" } else { "no" };
+        for f in &self.flights {
+            let cut = f.cut();
+            let _ = writeln!(
+                page,
+                "| {} | {} | {} | {} | {:.2} | {} | {} | {:.3} |",
+                f.title,
+                or_none(f.liftoff_s, 2),
+                or_none(cut.map(|c| c.time_s), 2),
+                or_none(cut.map(|c| c.top_speed_m_s), 1),
+                f.burn_time_s,
+                f.cut_in_burn().map_or("none", yes),
+                yes(f.log_past_transonic),
                 f.forward_max_mach
             );
         }
@@ -792,11 +885,12 @@ impl Report {
         let _ = writeln!(
             page,
             "Each log fitted whole, from a second before liftoff to its apogee, and up to its cut where \
-             it has a prediction. A 90% interval is the standard error times the shares fitted on the \
-             synthetic calibration set; the burn time's scale, which the fit isn't asked for, has none, \
-             and nor has the wind on a log with no track, whose shares were fitted with the synthetic \
-             flights' own stated wind. A scale is the factor that best fits one flight, not the rocket's drag or motor at every \
-             speed; on a real flight the model's own errors go into it.\n"
+             it has a prediction. A whole-log fit's 90% interval is the standard error times the shares \
+             fitted on the synthetic calibration set's whole-log fits. The burn time's scale, which the \
+             fit isn't asked for, has none. Nor has the wind on a log with no track, whose shares were \
+             fitted with the synthetic flights' own stated wind, nor any fit up to the cut, which no \
+             shares were fitted on. A scale is the factor that best fits one flight, not the rocket's \
+             drag or motor at every speed; on a real flight the model's own errors go into it.\n"
         );
         for f in &self.flights {
             let _ = writeln!(page, "### {}\n", f.title);
@@ -806,23 +900,22 @@ impl Report {
                  ERA5's own wind lands {:+.3} m from the forward simulation's apogee.\n",
                 f.stated_wind_m_s.0, f.stated_wind_m_s.1, f.same_flight_m
             );
+            if let Some(why) = &f.whole_unread {
+                let _ = writeln!(page, "The whole log has nothing to fit: {why}.\n");
+            }
             let mut fits = vec![("whole log", &f.whole)];
             if let Outcome::Predicted { fit, .. } = &f.boost {
                 fits.push(("up to the cut", fit));
             }
-            if let Some(why) = &f.whole_unread {
-                let _ = writeln!(page, "The whole log has nothing to fit: {why}.\n");
-            }
             for (which, fit) in fits {
+                if !fit.fitted {
+                    let _ = writeln!(page, "Fitted {which}: not fitted.\n");
+                    continue;
+                }
                 let _ = writeln!(
                     page,
-                    "Fitted {which}: {}{}, residual RMS {} m, misfit share {}, {} flights flown.\n",
-                    if fit.fitted { "fitted" } else { "not fitted" },
-                    if fit.fitted && !fit.converged {
-                        ", not converged"
-                    } else {
-                        ""
-                    },
+                    "Fitted {which}: {}residual RMS {} m, misfit share {}, {} simulations flown.\n",
+                    if fit.converged { "" } else { "not converged, " },
                     or_none(fit.rms_m, 2),
                     or_none(fit.misfit_share, 4),
                     fit.flown
@@ -966,6 +1059,10 @@ mod tests {
                 flight.forward_error_percent.to_bits(),
                 row.apogee_error_percent.to_bits()
             );
+            assert_eq!(
+                flight.forward_max_mach.to_bits(),
+                row.hpr_max_mach.to_bits()
+            );
             assert!(
                 flight.same_flight_m.abs() <= SAME_FLIGHT_WITHIN_M,
                 "{}",
@@ -1008,6 +1105,7 @@ mod tests {
             forward_error_percent: forward,
             liftoff_s: Some(0.5),
             burn_time_s: 2.0,
+            log_past_transonic: false,
             boost: Outcome::Predicted {
                 cut,
                 fit: template.whole.clone(),
@@ -1019,17 +1117,34 @@ mod tests {
         };
         flights = vec![with(-2.0, 6.0), with(3.0, -1.0)];
         let summary = Summary::of(&flights);
-        assert_eq!(summary.prediction_mean_absolute_percent, Some(2.5));
-        assert_eq!(summary.prediction_mean_percent, Some(0.5));
-        assert_eq!(summary.forward_mean_absolute_percent, Some(3.5));
-        assert_eq!(summary.forward_mean_percent, Some(2.5));
-        assert_eq!(summary.difference_points, Some(-1.0));
-        assert_eq!(summary.difference_interval, Some((None, None)));
+        for m in [&summary.predicted, &summary.in_range] {
+            assert_eq!(m.flights.len(), 2);
+            assert_eq!(m.prediction_mean_absolute_percent, Some(2.5));
+            assert_eq!(m.prediction_mean_percent, Some(0.5));
+            assert_eq!(m.forward_mean_absolute_percent, Some(3.5));
+            assert_eq!(m.forward_mean_percent, Some(2.5));
+            assert_eq!(m.difference_points, Some(-1.0));
+            assert_eq!(m.difference_interval, Some((None, None)));
+        }
         assert!(
             summary.cut_in_burn.is_empty(),
             "cut 2.5 s after liftoff, a 2 s burn"
         );
+        // A cut inside the burn keeps the flight among the predicted, out of the range.
         flights[1].burn_time_s = 2.6;
-        assert_eq!(Summary::of(&flights).cut_in_burn.len(), 1);
+        let summary = Summary::of(&flights);
+        assert_eq!(summary.cut_in_burn, [flights[1].id.clone()]);
+        assert_eq!(summary.predicted.flights.len(), 2);
+        assert_eq!(summary.in_range.flights.len(), 1);
+        assert_eq!(summary.in_range.prediction_mean_absolute_percent, Some(2.0));
+        assert_eq!(summary.in_range.forward_mean_percent, Some(6.0));
+        // So does a log that later climbs past the transonic speed.
+        flights[1].burn_time_s = 2.0;
+        flights[0].log_past_transonic = true;
+        let summary = Summary::of(&flights);
+        assert_eq!(summary.past_transonic, [flights[0].id.clone()]);
+        assert_eq!(summary.predicted.flights.len(), 2);
+        assert_eq!(summary.in_range.flights.len(), 1);
+        assert_eq!(summary.in_range.prediction_mean_absolute_percent, Some(3.0));
     }
 }

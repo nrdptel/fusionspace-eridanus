@@ -2859,6 +2859,11 @@ fn the_validated_range_is_the_fastest_public_reference() {
     );
     assert_eq!(mach_keys(&read("real-flights.json")), ["hpr_max_mach"]);
     assert_eq!(
+        mach_keys(&read("from-boost.json")),
+        ["forward_max_mach"],
+        "from-boost.json: real-flights.json's own top Mach numbers; a reference's key belongs above"
+    );
+    assert_eq!(
         mach_keys(&read("guide-rocket-cp.json")),
         ["angle_mach", "by_mach", "fins_supersonic_mach", "mach"],
         "guide-rocket-cp.json: hpr's model alone; a reference's key belongs above"

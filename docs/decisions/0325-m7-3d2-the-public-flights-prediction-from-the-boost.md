@@ -1,7 +1,7 @@
 # ADR-325: M7.3d2, apogee predicted from the boost on the public flights (2026-11-07)
 
 - **Status:** accepted; carries out [ADR-321][adr-321]'s M7.3d2 and [ADR-257][adr-257] §3's report on the 7 public logged flights; `hpr_forensics::boost::predict` now says why it gives no prediction.
-- **Summary:** The 7 public flights' logs are fitted whole and up to the boost's cut, in each flight's ERA5 air, the fit told the example's design and a wind of ERA5's averaged over the climb. Two flights get a prediction: on them it misses the logged apogee by 3.03% on average (−0.85% with its sign), where the forward simulation misses by 6.89%. Hartigan's exact sign-flip interval on the difference is unbounded on 2 flights, as it is below 6. On these logs the cut can fall inside the burn: 3 of the 5 cuts fall well inside it, Lince's prediction among them, and Bella Lui's at its end. That is measured and reported, not fixed here (#1307).
+- **Summary:** The 7 public flights' logs are fitted whole and up to the boost's cut, in each flight's ERA5 air, with a wind of ERA5's averaged over the climb. Two flights get a prediction, missing the logged apogee by 3.03% on average where the forward simulation misses by 6.89%. Only NDRT 2020's is the case the method is meant for, cut after its burn on a log under the transonic limit: −3.88% against +10.40%. Hartigan's exact sign-flip interval on the difference is unbounded below 6 flights. On real barometers the cut can fall inside the burn, as 3 of the 5 cuts do, Lince's among them: measured and reported, not fixed here (#1307).
 
 [adr-257]: 0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 [adr-316]: 0316-m7-3b-the-least-squares-fit.md
@@ -35,13 +35,17 @@ the cut falling early on real barometers.
    1 ± 0.011, as standard deviations. A constant wind moves a flight from the forward
    simulation's apogee by itself, so the report also flies the fit's model at what was stated,
    nothing fitted. On the two predicted flights that alone takes the mean absolute error from
-   6.89% to 5.07%. The rest is the fit to the boost.
+   6.89% to 5.07%. The rest is the fit to the boost. These spreads are the synthetic flights',
+   not a measure of a real flight's model error: NDRT 2020's whole-log fit reads its drag scale
+   0.71, 2.7 of the stated standard deviations from 1, so on a real flight they may hold a
+   parameter too tightly.
 3. **The intervals.** A fitted parameter's 90% interval is its standard error times the shares
    fitted on the synthetic calibration set, as the fit's page states. The wind's on a log with no
    track gets none: those shares were fitted with the synthetic flights' own stated wind, toward
    the east at the range's RMS speed. On a flight's own stated wind they gave Bella Lui's east
    wind an interval of −11.7 to 2.2 m/s about 0.8 m/s (a first run, measured once, not
-   committed).
+   committed). A fit up to the cut gets none: the shares were fitted on whole-log fits only, and
+   none on a cut log.
 4. **The difference's interval** is on each predicted flight's absolute error from the
    prediction less the forward simulation's, in percentage points. It is the exact inversion of
    the sign-flip test of its center: J. A. Hartigan, "Using subsample values as typical values",
@@ -63,8 +67,12 @@ the cut falling early on real barometers.
    to a new top 4.85 s after liftoff, against a 3.43 s burn. A hold long enough to pass Lince's
    dip would pass over all three, so NDRT's cut would come more than 6.0 s after liftoff (measured
    once). The fix needs its own test on logs with such dips ([#1307][i1307]). Until then the
-   report lists each cut that comes less than its thrust file's burn after liftoff. A prediction
-   from such a cut is counted as the library gives it, and the report says so.
+   report lists each cut that comes less than its thrust file's burn after liftoff, and each
+   flight whose log, read whole, climbs at or past the transonic limit: a cut before that speed
+   on such a log came on a dip, not at burnout. Lince's is both. The summary gives its means
+   twice: over every prediction, as the library gives it, and over the case the method is meant
+   for, a cut after the burn on a log that stays under the limit. On these flights that case is
+   NDRT 2020 alone.
 6. **Why there's no prediction.** `boost::predict` returns `Unpredicted` rather than `None`: no
    cut (and `boost::try_cut`'s reason: no track, a GNSS track, too fast or too sparse a log, no
    liftoff, the transonic limit with the speed and time, or no fall), too little before the cut
@@ -75,7 +83,8 @@ the cut falling early on real barometers.
 
 **The result** (`validation/reports/from-boost.md`). NDRT 2020: predicted 1,269.2 m against the
 log's 1,320.4 m, −3.88%, where the forward simulation reads +10.40% and the stated model +6.57%.
-Lince, from a cut inside its burn: +2.19% against +3.39%. Cavour and Genesis are refused at
+Lince, from a cut inside its burn, on a log that later climbs past the transonic limit: +2.19%
+against +3.39%. Cavour and Genesis are refused at
 307.0 and 229.0 m/s; Bella Lui, Prometheus and Juno III are cut too soon to leave the 12 bins the
 fit needs. The whole-log fits come back for 6 of the 7; Juno III's log has no apogee the reader
 will take (a spike at its top). The forward simulation on all 7 stays 6.06% (−0.22% with its
