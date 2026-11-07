@@ -1,12 +1,13 @@
 # Published smoothing and apogee methods for hobby altimeter data
 
-This note asks what models and noise settings published rocket-altimeter Kalman filters use, how they treat the
-transonic baro error and the ejection spike, what accuracy they report against a truth, how makers' documents
-describe their onboard filters, and which offline smoother suits a log after the flight. It serves M7.2, whose
-smoother must recover a synthetic truth inside 90% intervals that pass ADR-257's coverage test. It builds on
-[sensor noise](altimeter-sensor-noise.md), [Mach error](altimeter-mach-error.md) and [CATS
-logs](sample-logs-cats-juno.md). Sources are papers, team reports, makers' manuals (documents only), NASA reports,
-PX4's docs and a textbook. **Inference** marks this note's reasoning, arithmetic and probe (§6). Read 2026-10-17.
+Re-checked 2026-11-06: 3 claims corrected.
+
+This note asks what models and noise settings published altimeter Kalman filters use, how they treat the transonic baro
+error and the ejection spike, what accuracy they report against a truth, how makers describe their onboard filters, and
+which offline smoother suits a log. It serves M7.2's smoother, whose 90% intervals on synthetic flights must pass
+ADR-257's coverage test. It builds on [sensor noise](altimeter-sensor-noise.md), [Mach error](altimeter-mach-error.md)
+and [CATS logs](sample-logs-cats-juno.md). Sources: papers, team reports, makers' manuals (documents only), NASA
+reports, PX4's docs, a textbook. **Inference** marks this note's reasoning, arithmetic and probe (§6).
 
 **In short.** The published filters are small and alike, they handle Mach 1 by schedule, and none is checked
 against an independent truth on a hobby flight. A linear RTS smoother suits a log, if its model is honest.
@@ -45,9 +46,9 @@ against an independent truth on a hobby flight. A linear RTS smoother suits a lo
 | Altus Metrum | Kalman: height, speed, acceleration [A1] p. 66 | 100 Hz up, 10 down [A1] p. 77 | baro height |
 | CATS Vega | Kalman: height, velocity, accel offset [C1] | 100 Hz sensors [C2] p. 2 | not named |
 | Entacore AIM XTRA | "Kalman", no model [EN] p. 3 | set per sensor [EN] p. 20 | baro; Kalman view |
-| Featherweight Blue Raven | low-pass baro, 2-of-3 vote [F2] p. 15 | 50 and 500 Hz sets | pressure; inertial |
-| Eggtimer Quantum, Proton, TRS | moving average [E3] p. 31 | 20, up to 33 Hz [E1] p. 25 | `Alt` raw, `FAlt` |
-| Missile Works RRC3 | average, then 21-element FIR [MW1] p. 24 | 20 Hz | pressure |
+| Featherweight Blue Raven | low-pass baro, 2-of-3 vote [F2] p. 15 | baro 50, IMU 500 Hz [F4] | pressure; inertial |
+| Eggtimer Quantum, Proton, TRS | moving average [E3] p. 31 | 20 up (10–33), 2 down [E1] p. 25 | `Alt` raw, `FAlt` |
+| Missile Works RRC3 | average, then 21-element FIR [MW1] p. 24 | 20 Hz [MW1] p. 23 | pressure |
 | PerfectFlite StratoLoggerCF | "smoothed velocity" [PF1] p. 2 | 20 Hz [PF1] p. 47 | not stated |
 | Jolly Logic AltimeterTwo | none described [J1] | not stated | none logged |
 
@@ -88,9 +89,8 @@ against an independent truth on a hobby flight. A linear RTS smoother suits a lo
 | [R7] pp. 18–19 | 1,024-trial Monte Carlo, reentry fit | apogee | 470,400 ft ± 9,100 ft (1σ) |
 | [R11] pp. 11–12 | reference INS with GPS | down position, GPS-aided MEMS INS | 16.8 m (3σ, filter's own) |
 
-- **Inference on [R1]:** a timing error Δt at apogee costs g·Δt²/2 of height; at the mean errors, 0.35 m for the
-  Kalman filter, 11.3 m for the boxcar (the mean cost is higher). Its accelerometer bias made speed cross zero
-  about 1 s early (p. 25).
+- **Inference on [R1]:** a timing error Δt at apogee costs g·Δt²/2 of height; at the mean timing errors, 0.35 m (Kalman)
+  and 11.3 m (boxcar); the mean cost is higher. Its accelerometer bias made speed cross zero about 1 s early (p. 25).
 - **[R10] alone checks consistency:** mean NEES 2.91, 3.04 and 2.96 for position, velocity and attitude against 3
   expected. On a sounding rocket, GPS lost lock or overshot by several hundred meters for up to 10 s at liftoff and
   burnout [R11] p. 5. No maker reports error against a truth; CATS counts 18 units on 13 rockets [C2] p. 5.
@@ -100,9 +100,9 @@ against an independent truth on a hobby flight. A linear RTS smoother suits a lo
 - **RTS.** After a forward Kalman filter (m_k, P_k): G_k = P_k Aᵀ(A P_k Aᵀ + Q)⁻¹, m_k^s = m_k + G_k(m_{k+1}^s −
   A m_k), P_k^s = P_k + G_k(P_{k+1}^s − P_{k+1}⁻)G_kᵀ, run backward [B1] Thm 12.2, eq. 12.6, pp. 255–256 (after
   [B2]). P_k^s is exact only for a linear-Gaussian model with white noise and the right Q and R [B1] eq. 12.5.
-- **NASA practice** prefers the Fraser–Potter forward-backward form to RTS for numerical robustness; only states
-  driven by process noise gain from smoothing, so a constant bias gains nothing [N1] p. 113. It edits measurements by
-  the squared Mahalanobis innovation against χ², flagged accept, inhibit or force per type [N1] p. 101.
+- **NASA practice** prefers the Fraser–Potter two-filter form to RTS on numerical grounds; only states driven by process
+  noise gain from smoothing, so a constant bias gains nothing [N1] p. 113. It edits measurements by the squared
+  Mahalanobis innovation against χ², flagged accept, inhibit or force per type [N1] p. 101.
 - **Process noise.** For [h, v] with white-noise acceleration of density q_c, Q(Δt) = q_c[[Δt³/3, Δt²/2], [Δt²/2,
   Δt]], exact for any Δt [B1] eq. 4.18, p. 51, so irregular rates and gaps need nothing more; for [h, v, a] a
   white-jerk form [B5] eq. 20, p. 16. **Inference:** with the accelerometer as input [B1] §5.3, q_c is its noise
@@ -126,9 +126,9 @@ m/s²; state [h, v, accel bias, (AR(1) baro error)], accelerometer as input; 4,0
 | same as a step, 3σ gate (innovation statistic > 9) | 91.7% | 94.5% |
 | same as a ramp to 15 m, 3σ gate (18% of samples leak) | 26.3% (truth below: 71.3%) | 22.8% |
 
-- **What the rows say.** They confirm [sensor noise](altimeter-sensor-noise.md)'s √3 ≈ 1.7 factor on a smoothed
-  reading. A bad region left in reads apogee low, the flattering side for a waiver; a leaked ramp reads it high. A
-  gate catches a jump but not an error that grows with Mach, so windows should come from physics (Mach, events).
+- **What the rows say.** R × 3 restores coverage, per [sensor noise](altimeter-sensor-noise.md)'s √3 rule, though σ at
+  apogee grew only 1.5×. A bad region left in reads apogee low, the flattering side for a waiver; a leaked ramp reads it
+  high. A gate catches a jump but not an error that grows with Mach, so windows should come from Mach and events.
 - **Bias and scale.** An unmodeled 0.3 m/s² bias did no harm while baro was trusted; with baro weighted as σ = 100 m
   the apogee interval held 16.4%. White noise alone gives a 4–6 cm σ at apogee: real intervals are set by
   per-flight systematic terms (calibration, temperature, atmosphere model), which a test must draw per flight.
@@ -164,15 +164,14 @@ m/s²; state [h, v, accel bias, (AR(1) baro error)], accelerometer as input; 4,0
 
 - No source bounds a filtered apogee's error on a hobby log against GPS, radar or a theodolite. How fast does a real
   transonic baro error rise? It decides whether a gate catches it (§6). A 3-D flight with GNSS was not probed.
-- Not read: the RTS paper and Bar-Shalom's book (paywalled; cited through [B1] and [B6]), Zarchan and Musoff past
-  their chapter openings [B4], Utah State's 2009 airbrake EKF (fetches refused), Schultz's NAR R&D reports (members
-  only). No claim here rests on them. Unpublished: CATS's Q, R and velocity function, Altus Metrum's noise values
-  (in GPL firmware, not read), Featherweight's and Eggtimer's filter time constants.
+- Not read: the RTS paper and Bar-Shalom's book (paywalled; via [B1], [B6]), Zarchan and Musoff past their chapter
+  openings [B4], Utah State's 2009 airbrake EKF (fetches refused), Schultz's NAR R&D reports (members only); no claim
+  rests on them. Unpublished: CATS's Q, R and velocity function, Altus Metrum's noise values (GPL firmware, not read),
+  Featherweight's and Eggtimer's filter time constants.
 
 ## Sources
 
-Read 2026-10-17. Sources without a license, [R3] and [R11] (authors' copyright), [B1] (personal use) and arXiv
-papers [B5], [B6], [B8] are cited and cached privately, not copied; [X4] is CC BY-SA 3.0.
+Read 2026-10-17. [R3], [R11] (authors' copyright), [B1] (personal use), arXiv [B5], [B6], [B8]: cached, not copied.
 - [R1] Dougal, Kwok, Luckett, *Digital Detection of Rocket Apogee*, Rice/Connexions (2013), CC BY 3.0.
   <https://repository.rice.edu/server/api/core/bitstreams/0fbefe49-d831-4891-b83f-d8c2f05ce2f9/content>
 - [R2] Kimani, Osodo, Aoki, JKUAT SRI conference (2021), pp. 57–60.
@@ -190,9 +189,10 @@ papers [B5], [B6], [B8] are cited and cached privately, not copied; [X4] is CC B
   <https://arxiv.org/abs/2511.04725>; [EN] Entacore AIM XTRA manual v7; [J1] Jolly Logic AltimeterTwo guide
 - [F2] Featherweight Blue Raven manual (2026); [E1] Eggtimer Quantum 1.09G, [E3] TRS 2.07 guides; [MW1] Missile
   Works RRC3 manual v1.71; [PF1] PerfectFlite StratoLoggerCF manual
+- [F4] Blue Raven product page (2026-11-06; cited) <https://www.featherweightaltimeters.com/blue-raven-altimeter.html>
 - [X1] PX4, "Using PX4's Navigation Filter (EKF2)", [X2] parameter reference (CC BY 4.0), [X3] `EstimatorStatus.msg`
   (field names only) <https://docs.px4.io/main/en/advanced_config/tuning_the_ecl_ekf.html>; [X4] ArduPilot, "EKF
-  Failsafe" <https://ardupilot.org/copter/docs/common-ekf-inav-failsafe.html>
+  Failsafe", CC BY-SA 3.0 <https://ardupilot.org/copter/docs/common-ekf-inav-failsafe.html>
 - [B1] Särkkä, Svensson, *Bayesian Filtering and Smoothing*, 2nd ed. (2023)
   <https://users.aalto.fi/~ssarkka/pub/bfs_book_2023_online.pdf>; [B2] Rauch, Tung, Striebel, AIAA J. 3(8),
   1445–1450 (1965); [B3] Shumway, Stoffer, J. Time Series Anal. 3(4) (1982); [B4] Zarchan, Musoff (2005)
