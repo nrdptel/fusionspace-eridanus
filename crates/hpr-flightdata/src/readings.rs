@@ -939,7 +939,8 @@ pub struct Readings {
     pub peak_bound_m: Option<f64>,
     /// The pad, m on the track's own scale: the median of the samples surely before liftoff, or,
     /// in a log that starts after liftoff, the logger's zero; `None` when every reading is
-    /// withheld before it is found.
+    /// withheld before it is found. After a fall to a second level, the last rest's (#1158): the
+    /// start's level may have been the pad, and the gap enters the bounds, not this value.
     pub pad_altitude_m: Option<f64>,
     /// Whether the track's top lies at the log's end, within half the filter's window, so the log
     /// may have stopped before the rocket did: the apogee and the top speed are then floors, and
@@ -2054,8 +2055,9 @@ struct Fall {
 /// What the track does before the climb, for reading the pad.
 #[derive(Clone, Copy)]
 enum BeforeClimb {
-    /// It falls no further below its start than the rise and the drift: the pad is read from its
-    /// start.
+    /// It falls no further below its start than the rise and the drift, or (as the caller decides)
+    /// rests last at a level whose median lies within the rise of the start's: the pad is read
+    /// from its start.
     AtStart,
     /// It falls further, to a level it rests at: the pad is the last rest before the climb
     /// (#1158).
@@ -2066,7 +2068,8 @@ enum BeforeClimb {
         last: usize,
         /// The lowest filtered height of that last window, m: where the rest ends.
         level_m: f64,
-        /// The sample after the track's last within half the rise of its start before it falls.
+        /// The sample after the track's last at or above half the rise below its start, before the
+        /// fall's lowest point.
         before_end: usize,
         /// A fall from the rest into the climb, deeper than the rise below `level_m`: a pulse at
         /// ignition after the rest (#1101).

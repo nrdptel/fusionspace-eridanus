@@ -264,8 +264,9 @@ so does a reading the pressure moves before liftoff. The track can't tell the tw
 falls as above and the medians of its stay at the start and of its last rest before the climb lie
 more than the rise apart, the pad is that last rest, read back from the rest's end while its
 samples stay within the rise of each other. The gap between the two levels enters the pad's
-error, as either may be the pad, so the bounds hold whichever of the two it was
-([#1158](https://github.com/nrdptel/fusionspace-eridanus/issues/1158)). A synthetic log resting
+error, as either may be the pad, so the bounds hold whichever of the two it was, while the pad's
+noise stays within the rise and bar the short stay below. The pad reported is the last rest's
+level alone ([#1158](https://github.com/nrdptel/fusionspace-eridanus/issues/1158)). A synthetic log resting
 30 m (98 ft) up for 5 s, then 3 s on the pad, reads its 98.1 m (322 ft) apogee as 97.96 m
 (321 ft) on the logger's zero, with a bound of 40.9 m (134 ft)
 (`the_pad_is_the_last_rest_before_the_climb`). The climb is still found from the log's start. A
@@ -1383,11 +1384,11 @@ truth beside the logs, that doesn't say how each rocket came down.
   aren't checked for the port's error near the speed of sound. The apogee, read near the top where
   the rocket is slow, stays within its bound on the tuning set, whose fastest flight reaches Mach
   1.12.
-- **A short stay on the pad.** The climb's first rise counts toward a rest, so a stay on the pad
-  of up to 0.2 s after a carry down, before a 4 g climb at 20 samples a second (0.15 s on a
-  pressure track, 0.3 s on a noisy pad), is read as a pulse from the higher level. The apogee
-  then reads low by the drop, past its bound on a 98 m (322 ft) flight for a drop of more than
-  about 10 m (33 ft).
+- **A short stay on the pad.** The climb's first rise counts toward a rest, so a short stay on
+  the pad after a carry down is read as a pulse from the higher level: up to 0.2 s before a 4 g
+  climb at 20 samples a second (0.15 s on a pressure track), up to 0.35 s where the pad's noise
+  nearly fills the rise, and one or two samples at 2.5 a second. The apogee then reads low by the
+  drop, past its bound on a 98 m (322 ft) flight for a drop of more than about 10 m (33 ft).
 - **Wide pulses.** A pulse wider than half the median's window passes it. The bounds were held on
   the synthetic flights' pulses, which are shaped like the public Pnut log's and scaled by 0 to 2.
   A wider or taller one isn't covered.
