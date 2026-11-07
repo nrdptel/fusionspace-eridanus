@@ -1622,6 +1622,13 @@ pub fn height_track(log: &FlightLog) -> Option<(Vec<f64>, Vec<f64>)> {
     track(log).ok().map(|track| (track.time_s, track.height_m))
 }
 
+/// Which sensor the readings' height track comes from, as [`height_track`] takes it; `None` if
+/// the log holds no track.
+#[must_use]
+pub fn height_track_source(log: &FlightLog) -> Option<Source> {
+    track(log).ok().map(|track| track.source)
+}
+
 /// The track the readings take, the first the log holds: the logger's own altitude, a pressure,
 /// a barometric altitude channel, a GNSS altitude; or why there is none.
 pub(crate) fn track(log: &FlightLog) -> Result<Track, (Reason, String)> {

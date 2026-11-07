@@ -87,6 +87,9 @@ heading-split-level = 2
 # rotation (`physics/gravity.md`), WGS 84's normal gravity and the Coriolis term, which the flight's
 # pages describe by what they give, is left out too (the index's JSON 51.8 KB smaller, about 9.97 MB by
 # mdBook's count); it is still in the sidebar and linked from those pages and the glossary.
+# And in M7.3d1, at 10.003 MB, with the fit's apogee from the boost: the page on frames and sign
+# conventions (`physics/frames.md`), the axes the flight's, aerodynamics' and mass pages use and
+# describe by what they give, is left out too; it is still in the sidebar and linked from them.
 [output.html.search.chapter]
 "decisions-and-roadmap.md" = { enable = false }
 "writing.md" = { enable = false }
@@ -102,6 +105,7 @@ heading-split-level = 2
 "physics/interpolation.md" = { enable = false }
 "physics/geodesy.md" = { enable = false }
 "physics/gravity.md" = { enable = false }
+"physics/frames.md" = { enable = false }
 
 # The equations (`xtask/src/site/math.rs`): each `$…$` and `$$…$$` becomes MathML before mdBook
 # renders the page, so the browser draws it in the math face with no script. `cargo xtask site`

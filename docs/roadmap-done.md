@@ -379,6 +379,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.3c1 The posterior's sampler ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3c3 The Bayesian option, counted ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3c5 The wind on a track ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.3d1 The prediction from the boost ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -2003,6 +2004,10 @@ One line per milestone or increment, in the order it was archived within its pha
           on the same 1,497 tracked flights, their probes failing; no Bayesian count that passes in ADR-320's
           report fails; the drag and impulse scales stay identified on set A and nothing on pure noise; the
           fit's page says how the track is read and how far to trust it.
+  - **M7.3d** is open; its entry: [roadmap](ROADMAP.md#phase-5-flight-data-and-forensics).
+    - [x] **M7.3d1 The prediction from the boost.** *Done when:* `hpr_forensics` cuts a log at burnout, found
+      from the samples up to it, fits it and flies it on to apogee; that apogee stays bit-identical when every later
+      sample is noise, a probe reading one more failing; the fit's page says how far to trust it.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

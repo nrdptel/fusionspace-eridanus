@@ -1,6 +1,6 @@
 # ADR-321: M7.3c4 in three: the track as a receiver reports it, then the drag on heights alone, then every count (2026-11-05)
 
-- **Status:** accepted; narrows M7.3c4 into M7.3c5, M7.3c6 and M7.3c7 and plans every remaining increment of M7.3c4, whose *done when* M7.3c7 keeps whole; amends [ADR-320][adr-320] §8 (M7.3c4 as its only remaining increment) and [ADR-317][adr-317] §2 (the likelihood: on a track, the posterior no longer takes the noise [ADR-316][adr-316] §3 and §11 state)
+- **Status:** accepted; narrows M7.3c4 into M7.3c5, M7.3c6 and M7.3c7 and plans every remaining increment of M7.3c4, whose *done when* M7.3c7 keeps whole; amends [ADR-320][adr-320] §8 (M7.3c4 as its only remaining increment) and [ADR-317][adr-317] §2 (the likelihood: on a track, the posterior no longer takes the noise [ADR-316][adr-316] §3 and §11 state); amended 2026-11-06 to split M7.3d into M7.3d1, M7.3d2 and M7.3d3, M7.3d3 keeping its *done when* whole (*M7.3d in three*, below), its cut read as the sample where burnout is found
 - **Summary:** ADR-320's posterior took the track's noise as the least-squares fit states it, at least 10 m (33 ft), and its wind intervals came out too wide. Its own noise made them too narrow; reading the receiver's filter, centering the draws and integrating out the pad's position brought them in. So on a log with a track the posterior now reads the drift through a second-order filter of stated range and integrates out the track's noise, its run from bin to bin and the pad's position. The wind's four counts now pass, and no count that passed before fails. M7.3c4 is split in three: M7.3c5 the wind, M7.3c6 set A's drag, M7.3c7 every count.
 
 [adr-257]: 0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
@@ -142,3 +142,75 @@ Two things moved the wrong way:
 - **Set B's impulse and set A's drag** still fail, by about as much as before: M7.3c6 and M7.3c7.
 - **The sets were seen.** The noise model, the filter, the pad and the proposal were chosen after
   reading counts on the first 300 tracked flights of each set.
+
+**Amended 2026-11-06: M7.3d in three.** The same rule, one plan for M7.3, splits M7.3d.
+
+*Context.* [ADR-257][adr-257] §3 sets out the prediction from the boost: the log cut at
+burnout, found from the samples up to it before any smoothing or fitting, so that replacing every
+later sample with noise leaves the prediction bit-identical; a report on the 7 public logged
+flights with an exact sign-flip interval; the collection's flights as aggregates with a paired
+bootstrap 95% interval; and a scoreboard row, `accuracy.from-boost`. [ADR-322][adr-322] §2 adds
+that the collection's numbers come for each of M2.7's halves, with the held-out half's fits sealed
+until M7.5. On 2026-11-06 `hpr_forensics` has the least-squares and Bayesian fits of M7.3b and
+M7.3c (`fit.rs` and `posterior.rs` in `crates/hpr-forensics/src/`) but no cut at burnout and no prediction from one. Each
+of the three parts touches different code and data (the library, the public flights' report, the
+private collection), and each needs a full gate, reviews and CI, so one increment can't hold them.
+
+*Decision.*
+
+1. **M7.3d1 The prediction from the boost.** `hpr_forensics` finds burnout from a log's samples up
+   to it, cuts the log there, fits it, and flies the fit on to apogee. A test replaces every later
+   sample with noise and the prediction stays bit-identical; a probe that lets the cut read one
+   later sample fails it. The fit's page says what the prediction is and how far to trust it.
+   The analyzer's burnout reading can't be reused as it is: its spike filter
+   (`SPIKE_WINDOW_S`), its burnout mean (`BURNOUT_MEAN_S`) and its noise span (`NOISE_SPAN_S`)
+   are centered windows, and `readings::read` takes the whole log at once. The cut is
+   therefore set at the last sample any of the finder's windows read, not at burnout itself, and
+   the pad and liftoff come from the samples before that cut. The plan:
+   - The finder walks the log's height track forward and decides at each sample from it
+     and those before it: a speed fitted by least squares over the last 0.5 s, leaving out a
+     sample the analyzer's Hampel rule calls bad (5 robust standard deviations from a robust first
+     line), liftoff where that line stands 10 m (32.8 ft) above the first, and the cut at the
+     first sample where the speed has fallen below its top by 10% of it, and by at least 10 m/s
+     (32.8 ft/s). ADR-257 §3's "before any smoothing or fitting" is read as before any centered
+     window: the fit is a trailing one.
+     The cut is the sample it stops on: ADR-257 §3's "cut at burnout" is read as the sample where
+     burnout is found from those up to it, so the log keeps the coast's start. M7.3d2 gives the
+     error; whether an accelerometer's cut, sooner, would do better isn't measured.
+   - The finder refuses the tracks the analyzer distrusts in the boost. A GNSS receiver's: its fix
+     can drop out or lag the climb, by up to 440 m in one flight a flyer reports
+     ([GNSS in boost](../research/gnss-in-boost.md)), and on set A's first 60 flights such tracks
+     were cut up to 11 s after burnout or not at all (a sweep run once, with a 1 s hold then in
+     the rule). A barometer's, once its fitted speed reaches the analyzer's transonic speed (Mach
+     0.8 in the coldest air, 227.7 m/s): its port may read the transonic flow, and with a 1 s hold
+     in the rule and no such refusal the fitted top was over 1.1 times the true one on 57 of set
+     A's first 200 flights (a sweep run once), the jump near Mach 1 read as the top.
+   - On set A's first 200 synthetic flights (a test) every cut falls after the true peak of the
+     vertical speed, after burnout and at most 2.83 s after it (the largest fall needed, under
+     gravity alone, plus a window), each cut found with one bad sample put in the log too, and at least
+     51 are cut; measured, 51 cut 0.33 s to 1.48 s after burnout, 43 GNSS logs and 106 whose
+     fitted speed reached 227.7 m/s refused.
+   - Every reading after that runs on the log cut there. The log's own clock is cut by position,
+     so a later sample can't reach it by construction; a channel on a clock of its own is cut by
+     its times, in order, so a sample it stamps in order before the cut is read wherever the file
+     puts it. The test then compares the prediction on the whole log with the one on the log whose
+     later values and times are noise, bit for bit, on three logs, one with channels besides its
+     track.
+   - The fit needs observations that end at the cut rather than at apogee: `observations` runs
+     from a second before liftoff to the apogee reading, which on a log cut on the climb is no apogee at all
+     (withheld, or a floor at the cut; `Readings::ends_on_the_climb`).
+2. **M7.3d2 The public flights.** A committed report gives the 7 public logged flights' fits, the
+   prediction's mean absolute and signed apogee errors, and the forward simulation's on the same
+   flights in the same launch-day air and wind, with the exact sign-flip interval on their
+   difference.
+3. **M7.3d3 The collection by halves.** M7.3d's *done when*, whole: the collection's aggregates for
+   each of M2.7's halves under ADR-322's encoding, the held-out ids' hash committed first, the
+   held-out fits sealed, and the scoreboard's `accuracy.from-boost` row.
+
+*Consequences.* M7.3d is met when M7.3d3 is. The search index has no room (ADR-323), so the fit
+page's paragraph in M7.3d1 needs [#414](https://github.com/nrdptel/fusionspace-eridanus/issues/414)
+or a page left out of the index first; whichever comes first is recorded in its PR. The split's
+entries take the roadmap past its 52,500-byte budget, which rises to 53,500, as earlier planning
+PRs raised it for the increments they added.
+
+[adr-322]: 0322-the-2026-11-05-progress-review-accuracy-before-reader-facing-work.md

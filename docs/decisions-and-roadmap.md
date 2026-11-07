@@ -846,6 +846,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-3c6"></a>[M7.3c6][phase-5] | The drag on heights alone | not yet done |
 | <a id="m7-3c7"></a>[M7.3c7][phase-5] | Every count | not yet done |
 | <a id="m7-3d"></a>[M7.3d][phase-5] | From the boost | not yet done |
+| <a id="m7-3d1"></a>[M7.3d1][done-5] | The prediction from the boost | done |
+| <a id="m7-3d2"></a>[M7.3d2][phase-5] | The public flights | not yet done |
+| <a id="m7-3d3"></a>[M7.3d3][phase-5] | The collection by halves | not yet done |
 | <a id="m7-3e"></a>[M7.3e][phase-5] | The post-flight comparison | not yet done |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |
 | <a id="m7-5"></a>[M7.5][phase-6] | The bias every simulator shares | not yet done |

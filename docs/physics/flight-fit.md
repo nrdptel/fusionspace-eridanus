@@ -34,7 +34,8 @@ impulse, wind and mass, and where its Bayesian option fails its tests.
   nothing to fit among the sets' counted draws, about one in six ([when](#when-a-log-has-nothing-to-fit)). Its wind is
   constant with height; on a log of height alone, a wind that grows with height only widens the intervals. It's
   told the design, rail, site and the day's air, and takes them as right. It's in the library only:
-  no command runs it on a log yet.
+  no command runs it on a log yet. Its [prediction from the boost](#apogee-from-the-boost) isn't
+  validated yet.
 
 ## How it works
 
@@ -353,6 +354,50 @@ likelihood is left out of the weights, and check that a pilot widens and never n
 fit, a straight line's drag, impulse and two winds come within a tenth of a standard error of their
 closed forms. A result under 100 effective draws is flagged as too few to read. Run `cargo test -p fusionspace-hpr-forensics posterior` and
 `cargo test -p fusionspace-hpr-forensics fit::tests`.
+
+## Apogee from the boost
+
+Not yet validated: how close it comes to a logged apogee is
+[not measured yet](../decisions-and-roadmap.md#m7-3d). The library predicts a flight's apogee from
+its climb and the start of its coast: a log cut just after burnout (`hpr_forensics::boost`), 0.33 s
+to 1.48 s after it on the synthetic flights below. Once logged apogees check it, it will show how
+well the fit carries a flight forward.
+
+**The cut.** The library follows the climb speed: a straight line fitted to each half second of
+heights. One reading far from the rest is left out, as the analyzer's spike rule does. The cut is
+the first sample where the speed has dropped 10% below its peak, and at least 10 m/s (32.8 ft/s).
+After burnout gravity alone takes 9.8 m/s (32.2 ft/s) off the speed every second. So on the
+synthetic flights' motors the cut comes just after burnout, and the log keeps the start of the coast. The log up to the cut is fitted, and the fit
+flown on to apogee.
+
+**What gets no cut.**
+
+- A GNSS tracker's log. In the boost a receiver's altitude can drop out or lag the climb
+  ([GNSS in the boost](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/gnss-in-boost.md)).
+  One flyer reports a lag of up to 440 m (1,444 ft).
+- A barometer's log whose fitted climb speed reaches 227.7 m/s (747 ft/s), Mach 0.8 in the
+  coldest air. Nearer the speed of sound ([transonic](../glossary.md#transonic-and-supersonic)
+  flow), the pressure at the port may stop following the height. The analyzer withholds its top
+  speed there too.
+- A log sampled slower than 8 or faster than 500 times a second, one that never climbs 10 m
+  (32.8 ft), or one whose speed never drops as far as the cut needs.
+
+[Set A](synthetic-flights.md#the-sets)'s first 200 synthetic flights are mostly fast. Of them, 51
+were cut, each after the true peak of its vertical speed. Each cut came 0.33 s to 1.48 s after
+burnout. 43 GNSS logs and 106 fast flights were refused. The slowest of those truly peaked at
+221.3 m/s (726 ft/s): the fitted speed reads a little above the true one. One bad reading, 12 m (39 ft), 15 m (49 ft),
+30 m (98 ft) or 100 m (328 ft) off, put in one at a time at four places (the pad, the first sample, halfway
+and four fifths through the burn), moved no cut by more than 0.05 s (measured). Two bad readings side by side can still
+cut it early. A test pins the order, the spikes and at least 51 cuts; the counts and times are
+measured.
+
+**Why it can be trusted not to peek.** A test replaces every sample's value and time after the
+cut with noise, and the prediction stays the same, bit for bit. It runs on three logs, one with a GNSS
+receiver's channels beside its barometer. Letting the prediction read half a second more changes
+it. On those logs every sample the prediction reads was logged at or before the cut. A channel on a clock of its own
+is cut by its times: a sample it stamps in order at or before the cut is read wherever the file puts it. Run
+`cargo test -p fusionspace-hpr-forensics boost`. No worked example yet: one waits for a logged
+apogee to compare it with.
 
 ## Sources
 
