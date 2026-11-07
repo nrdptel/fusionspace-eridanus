@@ -266,9 +266,9 @@ impl Simulated {
         (at > 0 && at + 1 < self.moments.len()).then_some((top.time_s, top.height_m))
     }
 
-    /// The flight's apogee as a sensor of `kind` reads it, m above the pad: its reading at the
-    /// highest moment [`Simulated::top`] finds, a barometer's of the day's pressure there or the
-    /// height climbed. `None` where that finds none.
+    /// The flight's apogee as a sensor of `kind` reads it, m above the pad: its reading at its
+    /// highest moment, a barometer's of the day's pressure there or the height climbed. `None`
+    /// where it holds no moment, never climbed, or is highest at its last, so may climb on.
     #[must_use]
     pub fn top_reading_m(&self, kind: HeightKind) -> Option<f64> {
         let (at, _) = self.top()?;

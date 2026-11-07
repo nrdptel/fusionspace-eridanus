@@ -6,7 +6,7 @@ Written by `cargo xtask real-flights` ([M7.3d2][m7-3d], decisions [ADR-257][adr-
 - **The prediction:** `hpr_forensics::boost` cuts the log just after burnout, as it finds burnout from the samples up to the cut, fits the log up to the cut, and flies the fit on to apogee. A barometer's log whose fitted climb speed reaches 227.7 m/s (747 ft/s) gets no cut. Its apogee is read as the forward simulation's is, from the ERA5 pressure at its center of mass, less the pad's, and set against the same log apogee.
 - **The fit:** least squares, told the design, rail, site and ERA5 air. Its wind is constant with height; what's stated of it is ERA5's, averaged evenly in height from the pad to the forward simulation's apogee. Each parameter is held to what's stated of it (below).
 - **The forward simulation:** the [real-flights report][real]'s, in ERA5's air and wind, nothing fitted.
-- **The interval:** on each predicted flight's absolute error from the prediction less the forward simulation's. It is the exact sign-flip interval (Hartigan, 1969), whose coverage is at least 95% for differences drawn symmetric about their center. With 5 flights or fewer, no pattern of signs is rare enough at that level, and it is unbounded.
+- **The interval:** on each predicted flight's absolute error from the prediction less the forward simulation's. It is the exact sign-flip interval (Hartigan, 1969), whose coverage is at least 95% for independent differences, each drawn symmetric about their center. With 5 flights or fewer, no pattern of signs is rare enough at that level, and it is unbounded.
 - **Files:** the logs, thrust files and weather files are read from the pinned RocketPy checkout and never committed; each one's SHA-256 is in the JSON.
 
 [m7-3d]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-3d
@@ -22,7 +22,7 @@ Written by `cargo xtask real-flights` ([M7.3d2][m7-3d], decisions [ADR-257][adr-
 - The forward simulation's on the same flights: 6.89%; with its sign: +6.89%.
 - The fit's model at what was stated, nothing fitted, on the same flights: 5.07%; with its sign: +5.07%. Against the forward simulation's, this is what the model's constant wind moves; against the prediction's, what the fit to the boost moves.
 - The prediction's absolute error less the forward simulation's, on average: -3.86 percentage points; its exact sign-flip interval: unbounded, as on 2 flights no pattern of signs is rare enough at 95% (it takes 6).
-- Cut less than the thrust file's burn after liftoff, so in the boost or at its end, not after it: bella-lui, prometheus-2022, juno-iii, lince. On these logs a real barometer's fitted speed dips by more than the cut's fall for up to half a second during the boost, which the finder reads as burnout ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)). A prediction from such a cut is in the counts above as the library gives it.
+- Cut less than the thrust file's burn after liftoff: bella-lui, prometheus-2022, juno-iii, lince. Each is inside the burn, or after its end by no more than liftoff's lag behind ignition. On some of these logs the fitted speed dips by more than the cut's fall for up to half a second during the boost (measured once on four of them), which the finder reads as burnout ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)). A prediction from such a cut is in the counts above as the library gives it.
 - The forward simulation on all 7 flights: mean absolute apogee error 6.06%, with its sign -0.22%.
 
 ## The prediction

@@ -244,7 +244,7 @@ In the library, a [least-squares fit](physics/flight-fit.md) goes further: it fi
 a constant wind and the mass to a log, each with a 90% interval that passes its test on the synthetic
 flights (the wind's on logs with a track), on sets seen while its model was chosen. No command runs it yet, and no real flight has checked it.
 A [Bayesian option](physics/flight-fit.md#the-bayesian-option) gives a second kind of interval from the same fit; it doesn't pass its test yet, so use the least-squares ones.
-The library also [predicts apogee from a log cut just after burnout](physics/flight-fit.md#apogee-from-the-boost), on a barometer's log whose climb stays under 227.7 m/s (747 ft/s). On the 2 public flights it predicts so far it missed the logged apogee by −3.9% and +2.2%, where the forward simulation missed by +10.4% and +3.4%; one of the two was cut inside its burn ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)).
+The library also [predicts apogee from a log cut just after burnout](physics/flight-fit.md#apogee-from-the-boost), on a barometer's log whose climb stays under 227.7 m/s (747 ft/s). It predicts 2 of the 7 public flights, too few to say whether it beats the forward simulation: it missed their logged apogees by −3.9% and +2.2%, the forward simulation by +10.4% and +3.4%, and one of the two was cut inside its burn ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)).
 
 The library reads each format into one record, every column kept on its own clock. The formats
 come from PerfectFlite ([`.pf2` files](format/pf2.md)), AltOS, Featherweight's Raven and Blue Raven, Missile Works' RRC3 and RTx,

@@ -636,7 +636,7 @@ impl Report {
              nothing fitted.\n\
              - **The interval:** on each predicted flight's absolute error from the prediction less the \
              forward simulation's. It is the exact sign-flip interval (Hartigan, 1969), whose coverage is \
-             at least {:.0}% for differences drawn symmetric about their center. With 5 flights or \
+             at least {:.0}% for independent differences, each drawn symmetric about their center. With 5 flights or \
              fewer, no pattern of signs is rare enough at that level, and it is unbounded.\n\
              - **Files:** the logs, thrust files and weather files are read from the pinned RocketPy \
              checkout and never committed; each one's SHA-256 is in the JSON.\n",
@@ -707,9 +707,10 @@ impl Report {
         );
         let _ = writeln!(
             page,
-            "- Cut less than the thrust file's burn after liftoff, so in the boost or at its end, not \
-             after it: {}. On these logs a real barometer's fitted speed dips by more than the cut's \
-             fall for up to half a second during the boost, which the finder reads as burnout \
+            "- Cut less than the thrust file's burn after liftoff: {}. Each is inside the burn, or \
+             after its end by no more than liftoff's lag behind ignition. On some of these logs the \
+             fitted speed dips by more than the cut's fall for up to half a second during the boost \
+             (measured once on four of them), which the finder reads as burnout \
              ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)). A prediction \
              from such a cut is in the counts above as the library gives it.",
             names(&s.cut_in_burn)

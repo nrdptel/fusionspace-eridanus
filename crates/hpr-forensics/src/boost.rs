@@ -405,8 +405,8 @@ pub enum Unpredicted {
     /// The finder found no cut, and why.
     NoCut(NoCut),
     /// The log up to the cut holds too little to fit: no pad or liftoff read, or no more bins of
-    /// [`fit::BIN_S`] from a second before liftoff than the fit has unknowns (11), which a log cut
-    /// within about 1.75 s of its liftoff can't hold.
+    /// [`fit::BIN_S`] with a sample, from a second before liftoff, than the fit has unknowns (11).
+    /// A log cut within 2 s of its liftoff can't hold 12, nor a later one logged from liftoff only.
     NothingToFit(Cut),
     /// The fit came back with what was stated: its residual more than [`fit::MISFIT_SHARE`] of the
     /// spread of the heights it read (`misfit_share`), or a flight it couldn't fly.
@@ -500,11 +500,12 @@ fn predict_reading(
 ///
 /// The sign-flip test of a center `μ` takes the `2ⁿ` ways of flipping the signs of `dᵢ − μ` as
 /// equally likely, as they are when each difference is drawn from a distribution symmetric about
-/// `μ`. Inverted, it gives Hartigan's interval (J. A. Hartigan, "Using subsample values as typical
+/// `μ` and independent. Inverted, it gives Hartigan's interval (J. A. Hartigan, "Using subsample values as typical
 /// values", *J. Am. Stat. Assoc.* 64, 1969, pp. 1303–1317, Theorem 1): the means of the `2ⁿ − 1`
 /// non-empty subsets of the differences cut the line into `2ⁿ` intervals, each holding the
 /// center with probability `2⁻ⁿ`. From the `k`-th smallest subset mean to the `k`-th largest
-/// holds it with probability `1 − 2k/2ⁿ`, so `k` is the largest whole number with
+/// holds it with probability `1 − 2k/2ⁿ`, for independent differences each symmetric about it, so
+/// `k` is the largest whole number with
 /// `2k/2ⁿ ≤ 1 − level`. Where `k` is 0, no pattern of signs is rare enough to reject anything:
 /// the interval is the whole line, `(−∞, ∞)`, as it is at 95% for 5 flights or fewer.
 ///

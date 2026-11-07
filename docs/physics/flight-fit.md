@@ -400,13 +400,13 @@ is cut by its times: a sample it stamps in order at or before the cut is read wh
 `cargo test -p fusionspace-hpr-forensics boost`.
 
 **A worked example.** NDRT 2020's motor burns 3.43 s. Its barometer's log is cut 4.35 s after
-liftoff, its climb speed 10% below its 161.9 m/s (531 ft/s) top. The fit to the log
+liftoff, its climb speed at least 10% below its 161.9 m/s (531 ft/s) top. The fit to the log
 up to there flies on to 1,269 m (4,164 ft), as the barometer reads it. The log's apogee is 1,320 m
 (4,332 ft): the prediction is 3.9% low. The forward simulation, nothing fitted, reads 1,458 m
 (4,782 ft), 10.4% high. Part of that gap is the fit's wind, constant with height: flown in it with
 nothing fitted, the rocket reaches 1,407 m (4,616 ft), 6.6% high. The rest is the fit to the
 boost. On Lince, the other prediction, the cut came 2.4 s after liftoff with the motor still
-burning. Cavour and Genesis climb too fast for a barometer's cut. Bella Lui, Prometheus and Juno
+burning. Cavour and Genesis, read as barometers, climb too fast for the cut. Bella Lui, Prometheus and Juno
 III are cut too soon for anything to fit, the last two inside their burns
 ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)).
 
