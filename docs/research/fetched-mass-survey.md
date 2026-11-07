@@ -5,6 +5,7 @@ and compares its header masses with the record's `propWeightG` and `totalWeightG
 [AMW retests](amw-retests.md) §3 and feeds [issue #578](https://github.com/nrdptel/fusionspace-eridanus/issues/578)
 (a fetched-mass cross-check), [motor data](motor-data.md) and [apogee bias](apogee-bias.md). Read 2026-10-15;
 **Inference** marks this note's own readings. Corrected 2026-10-16: mass-expended files fly the right burnout mass.
+Re-checked 2026-11-07: 5 claims corrected.
 
 **In short.** Disagreement is common, mostly harmless in sign, and has no natural gap to set a tolerance.
 - **One file in three is off by more than 2%.** Of 685 motors with a file and a record, the file's propellant mass
@@ -21,8 +22,8 @@ and compares its header masses with the record's `propWeightG` and `totalWeightG
   propellant leaves the 98 mass-expended motors heavy at burnout by a median 6.7%. Two records hold CAR's burnout
   mass instead (§4).
 - **No natural gap; the guard sees none of it.** Down to −20.5% the file-low gaps have no step over 2.1 points; six
-  more scatter from −24.6% to −52.5%. The 200–5,000 m/s exhaust-velocity guard refuses no taken file (§5). On toy
-  rockets a 20% low file costs 0.5–0.8% of apogee.
+  more scatter from −24.6% to −52.5%. The 200–5,000 m/s exhaust-velocity guard refuses no taken file. A 20% low
+  file costs 0.5–0.8% of apogee on three toy rockets; on light, fast ones a low file raises apogee (§5).
 
 ## 1. Population and the file taken
 
@@ -37,11 +38,9 @@ Script `refs/research/fetched-mass-survey/scripts/survey.py` (download: `fetch.p
   file `Motor::from_eng` builds; RockSim (`from_rse`) only when no RASP file builds. The build is emulated in
   Python: UTF-8, the `.eng` reader's rules, one motor, the curve's checks, propellant below loaded mass, and the
   exhaust-velocity range. RockSim XML is read with ElementTree, not roxmltree: an approximation.
-- **Within-rank order.** 17 motors have two RASP files tied at the top rank. Per-motor GETs, the request HPR Sim
-  sends, gave the same order as the batches for all 17.
+- **Within-rank order.** 17 motors tie two RASP files at the top; per-motor GETs, HPR Sim's request, kept the order.
 - **Result.** Every motor's first-ranked file builds: no file is skipped, and the guard changes no choice. Taken:
-  601 RASP (cert 355, mfr 132, user 114) and 85 RockSim (cert 20, mfr 29, user 36). Their licenses: none 412,
-  PD 247, free 27.
+  601 RASP (cert 355, mfr 132, user 114) and 85 RockSim (cert 20, mfr 29, user 36); licenses as S2 gives them.
 - **Record fields.** `propWeightG` is on 738 of 739 records (685 of the 686 taken; AMW SK-98-17500 lacks it);
   `totalWeightG` on 644 (632 taken).
 
@@ -58,13 +57,12 @@ Gap = (file − record)/record, on the 685 taken files with a `propWeightG` (`sc
 | Source mfr | 161 | | 47 | 38 | 22 | 8 | 2 | 6.0% | 32.1% |
 | Source user | 149 | | 45 | 40 | 27 | 15 | 5 | 9.9% | 87.6% |
 
-- **Rounding.** 312 agree exactly; 74 more lie within 0.5%, the size of rounding a header to the gram on a motor
-  over 100 g. Gaps of 0.5–1% hold 18 files. Above 1% the gap is not rounding, with one caveat: a header printed
+- **Rounding.** 341 agree to 10⁻⁶ g; 45 more lie within 0.5%, the size of rounding a header to the gram on a
+  motor over 100 g. Gaps of 0.5–1% hold 18 files. Above 1% the gap is not rounding, with one caveat: a header printed
   to 0.1 kg can hide either. 502I120-15A's `0.3` kg is the mass-expended 300 g of §3, not a rounded 263 g.
-- **Median |gap|** 0.005%; p95 12.6%. RASP and RockSim differ little: beyond 5%, 121 of 600 and 15 of 85.
+- **Median |gap|** 0.005%; p95 12.6%. Beyond 5%: RASP 121 of 600, RockSim 15 of 85; regular 111 of 520, OOP 25 of 165.
 - **By maker, beyond 2%:** Cesaroni 129 of 248 (123 file-high, 6 file-low), AeroTech 48 of 205,
   AMW 13 of 87, Loki 9 of 55, Gorilla 8 of 45, KBA 7 of 24, Ellis 9 of 18; two others (Kosdon, Estes) 0 of 3.
-- **Production status:** beyond 5%, 111 of 520 regular motors and 25 of 165 OOP.
 - **Loaded mass** (n = 632): 57 beyond 1%, 28 beyond 2%, 9 beyond 5%, p90 0.80%. The two beyond 20% are Cesaroni
   273H225-14A (RockSim file 293 g against 193 g) and Loki K690-SF (1,800 g against 2,400 g).
 
@@ -102,6 +100,7 @@ Patterns found by `scripts/classify.py` (one quantity equal to another within 1 
   K690-SF −32.1% with the loaded mass −25%; Ellis J148 +87.6% (670 against 357.2 g), side unknown.
 - **The rest.** About 104 of the 223 match no pattern: 115 before the 11 after-firing fits above are taken out,
   which were 43 Cesaroni (39 with no CAR row by name), 40 AeroTech (28 cert files) and 32 from five other makers.
+  These take out all nine shared-header groups; taking out only the sibling-mass cases leaves 118 and 107.
 
 ## 4. Which side is wrong
 
@@ -127,52 +126,55 @@ Patterns found by `scripts/classify.py` (one quantity equal to another within 1 
 
 ## 5. Tolerance, guard and size
 
-**There is no natural gap.** The file-low gaps beyond −0.5% run −0.5, −0.6, … −2.0, −2.2,
-−2.3, −2.4, −2.9 … −9.8, −11.4, −12.0 … −17.3, −19.3, −20.5, then −24.6, −26.3, −32.1,
-−33.5, −35.2, −52.5 (106 values). No step down to −20.5% exceeds 2.1 points; the six beyond
-it are scattered, with steps up to 17.3 points, too few to set a bound. The two-sided ladder
-is denser still, filled by the mass-expended files at +1 to +15%.
+**There is no natural gap.** The file-low gaps beyond −0.5% run −0.5, −0.6, … −2.0, −2.2, −2.3, −2.4, −2.9 …
+−9.8, −11.4, −12.0 … −17.3, −19.3, −20.5, then −24.6, −26.3, −32.1, −33.5, −35.2, −52.5 (106 values). No step down
+to −20.5% exceeds 2.1 points; the six beyond it are scattered, with steps up to 17.3 points, too few to set a
+bound. The two-sided ladder is denser still, filled by the mass-expended files at +1 to +15%.
 
 | Tolerance on propellant | 1% | 2% | 3% | 5% | 7.5% | 10% | 15% | 20% |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
 | Taken files flagged, either sign (of 685) | 281 | 223 | 197 | 136 | 82 | 49 | 23 | 16 |
 | Taken files flagged, file below record | 92 | 55 | 49 | 33 | 24 | 17 | 10 | 7 |
 
-- **Which way each errs.** A file-low propellant leaves the burnout mass heavy and the apogee low: the
-  waiver-flattering side. A two-sided check at 2–5% would also fire on most of the 98 mass-expended files, which
-  fly the measured burnout mass. A one-sided check at 5% flags 33 motors, both AMW N files among them; at
-  10% it misses N2700BB (**Inference**).
+- **Which way each errs.** A file-low propellant leaves the burnout mass heavy; on the three toy rockets the
+  apogee is then low, the waiver-flattering side, though not on every rocket (below). A two-sided check at 2–5%
+  would also fire on most of the 98 mass-expended files, which fly the measured burnout mass. A one-sided check
+  at 5% flags 33 motors, both AMW N files among them; at 10% it misses N2700BB (**Inference**).
 - **The guard.** Every taken file's `c` is 1,274 to 4,128 m/s (`analyze.py`), inside 200–5,000 m/s, so the guard
   refuses none, and it can't: a 20% mass error moves `c` by 25%, a unit slip by 1,000 times.
 - **Apogee size.** `scripts/toy_sensitivity.py` flies three invented rockets (H128W on 1.2 kg, K456DM on 4 kg,
   M1297W on 12 kg; C_D 0.45) with the propellant scaled at a fixed loaded mass. Apogee moves 0.026–0.042% per 1%
   of propellant gap: −20% costs 0.52–0.84%, +10% adds 0.23–0.41% (not for mass-expended files, whose burnout
   mass is right). AMW retests found 0.9–1.2% for N4000BB.
-- **Bundled catalog** (built from headers, [ThrustCurve data](thrustcurve-data.md) §6): of 22 H+ curves,
-  21062O3400-P (+3.1%) carries the mass-expended header and so flies CAR's 5,570 g burnout mass; 3300L3200-P
-  is +6.6% with no CAR row to tell.
+- **Not a bound, nor a sign (Inference; 1-D re-flights, 2026-11-07, `verify-fetched-mass-survey/pass2/`).** Past
+  10–27% of liftoff mass in propellant (lower on wider airframes) the sign flips: the heavier coast loses less to
+  drag. A −5% file raises apogee 0.2–0.7% on light airframes (K456DM on 1.0–1.5 kg at 56 mm, M1297W on 3 kg at
+  80 mm, H128W on 0.3 kg at 41 mm; more with a transonic drag rise), where a file-high one flatters.
+- **Bundled catalog at the read date** (32 curves, [ThrustCurve data](thrustcurve-data.md) §6; 1,004 motors now,
+  not re-surveyed): of 22 H+ curves, 21062O3400-P (+3.1%) carries the mass-expended header and so flies CAR's
+  5,570 g burnout mass; 3300L3200-P is +6.6% with no CAR row to tell.
 
 ## What this suggests
 
-- **Issue #578's check, one-sided.** Warn when the file's propellant mass is below the record's by more than a stated
-  tolerance, naming both masses. No natural gap sets the number; 5% is a choice: it catches both AMW N files,
-  flags 33 of 685 motors, and what it lets through costs about 0.2% of apogee or less on the toy rockets.
-  Its tests would pin N4000BB-like and N2700BB-like files and one at −4.9%.
+- **Issue #578's check, one-sided.** Warn when the file's propellant mass is below the record's by more than a
+  stated tolerance, naming both masses. No natural gap sets the number; 5% is a choice: it catches both AMW N
+  files, flags 33 of 685 motors, and what it lets through costs about 0.2% of apogee or less on the three toy
+  rockets, up to 0.55% on narrow heavy ones (K456DM on 5 kg at 56 mm, Inference), and on light ones a low file
+  raises apogee (§5). Its tests would pin N4000BB-like and N2700BB-like files and one at −4.9%.
 - **Not the record's propellant on its own.** Swapping it in for the file's would fix the propellant on 174 of
   179 CAR-matched motors, but leave the 98 mass-expended motors heavy at burnout (median 6.7%), the
-  waiver-flattering side. A record-plausibility bound at 2,450 m/s would refuse seven records: the two
-  burnout-mass ones, and 654J316-17A, J148, M6000ST, HP-H135W and K400C, whose files agree (**Inference**).
+  waiver-flattering side. A 2,450 m/s record bound would refuse six records on their own impulse: the
+  two burnout-mass ones, 654J316-17A, J148, HP-H135W and K400C (**Inference**; M6000ST only on its file's, §4).
 - **Motor data's trust statement:** a fetched file's propellant is within 0.5% of the record for 386 of 685 H+
   motors and beyond 5% for 136; the loaded mass is beyond 1% for 57 of 632.
 - **Apogee bias:** on the three toy rockets, the low-apogee share from fetched masses is under 1% of apogee on all
   but about six of the 55 file-low motors (up to about 2% for J228), and near zero on the median motor. On those
-  rockets it cannot explain a bias of several percent.
+  rockets it cannot explain a bias of several percent; on light ones its sign can flip (§5).
 
 ## Open questions
 
 - How much of the mass-expended excess leaves before burnout: delay, charge and liner masses per reload.
-- Whether TRA's or NAR's sheets confirm the AeroTech, Loki, KBA and Ellis tail cases; only CAR's index and one
-  AeroTech page were read here.
+- Whether TRA or NAR sheets confirm the AeroTech, Loki, KBA and Ellis tail cases (only CAR and one AeroTech page read).
 - Why HP-H135W and K400C imply 2,793 and 2,652 m/s in both file and record: an impulse or a propellant mass slip.
 - Where the 14005N1100-P file's 4,517 g, the K690-SF file and the J148 record come from.
 
@@ -185,16 +187,14 @@ Read 2026-10-15 unless noted. Downloads cached under `refs/research/fetched-mass
 2. **S2** ThrustCurve download API, `https://www.thrustcurve.org/api/v1/download.json`, POST by format
    (`download/`, 8 answers, 1,249 files); 17 per-motor GETs (`pergets/`). Each file carries its own license
    field (412 of the taken files none, 247 PD, 27 free): cache only.
-3. **S3** HPR Sim source: `crates/hpr-net/src/on_demand.rs` (`find_with`, `rank`), `crates/hpr-cli/src/
-   motor_fetch.rs` (`fetch`), `crates/hpr/src/motor.rs` (`from_eng`, `from_rse`), `crates/hpr-motor/src/
-   motor.rs` (`from_envelope`, `EXHAUST_VELOCITY_RANGE_M_S`), at the worktree's `main`.
+3. **S3** HPR Sim source, at `main`: `hpr-net/src/on_demand.rs` (`find_with`, `rank`), `hpr-cli/src/motor_fetch.rs`,
+   `hpr/src/motor.rs` (`from_eng`, `from_rse`), `hpr-motor/src/motor.rs` (`EXHAUST_VELOCITY_RANGE_M_S`).
 4. **S4** CAR Certified Motor Index, Airtable view `https://airtable.com/appK3MU9MDNJXqpSy/shrDAtESEzXPPAxP3`,
-   linked from `https://car-acf.org/en/certifications/motor-certifications`; read 2026-10-11 for
-   [high-power lot impulse](hpr-lot-impulse.md) S10, rows copied to `certs/car-rows.json` (256 rows; columns
-   propellant, loaded and burnout weight, ISP). No license stated: cite, don't copy.
+   linked from `https://car-acf.org/en/certifications/motor-certifications`; read 2026-10-11 for [high-power lot
+   impulse](hpr-lot-impulse.md) S10, 256 rows cached in `certs/car-rows.json`. No license stated: cite, don't copy.
 5. **S5** AeroTech, "H148R-14A RMS-38/240 Reload Kit", `https://aerotech-rocketry.com/products/` +
    `product_5234c3bb-3833-ae4e-3b1a-e7c2ce572d9a` (`makers/at-H148R.html`): propellant 115 g, motor 274 g.
 6. **S6** NAR data sheets for AMW N2700BB and N4000BB, as [AMW retests](amw-retests.md) D5, D6.
 7. **Scripts** (`refs/research/fetched-mass-survey/scripts/`, run with `python3 -I`): `fetch.py`, `survey.py`
    (writes `data/rows.json`), `analyze.py`, `classify.py`, `car_check.py`, `shared.py`, `tolerance.py`,
-   `toy_sensitivity.py`; their outputs are the `data/*-out.txt` files. `verify/` holds the check pass's recounts.
+   `toy_sensitivity.py`; outputs in `data/*-out.txt`. `verify/` and `../verify-fetched-mass-survey/` hold recounts.
