@@ -1,7 +1,7 @@
 # ADR-325: M7.3d2, apogee predicted from the boost on the public flights (2026-11-07)
 
 - **Status:** accepted; carries out [ADR-321][adr-321]'s M7.3d2 and [ADR-257][adr-257] §3's report on the 7 public logged flights; `hpr_forensics::boost::predict` now says why it gives no prediction.
-- **Summary:** The 7 public flights' logs are fitted whole where the apogee reads (6) and up to the boost's cut where there's a prediction (2), in each flight's ERA5 air. Two flights get a prediction, with a mean absolute miss of 3.03% where the forward simulation's is 6.89%. Only NDRT 2020's is the case the method is meant for, cut after its burn on a log under the transonic limit: −3.88% against +10.40%. Hartigan's exact sign-flip interval on the difference is unbounded below 6 flights. On these logs the cut can fall inside the burn: 4 of the 5 cuts do (Bella Lui's at its end), Lince's among them, measured and reported, not fixed here (#1307).
+- **Summary:** The 7 public flights' logs are fitted whole where the apogee reads (6) and up to the boost's cut where there's a prediction (2), in each flight's ERA5 air. Two flights get a prediction, with a mean absolute miss of 3.03% where the forward simulation's is 6.89%. Only NDRT 2020's is the case the method is meant for, cut after its burn on a log under the transonic limit: −3.88% against +10.40%. Hartigan's exact sign-flip interval on the difference is unbounded below 6 flights. On these logs the cut can fall inside the burn: 4 of the 5 cuts do (Bella Lui's 0.18 s short of its end), Lince's among them, measured and reported, not fixed here (#1307).
 
 [adr-257]: 0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 [adr-316]: 0316-m7-3b-the-least-squares-fit.md
@@ -16,7 +16,7 @@ only. M7.3d2's report sets that prediction against the 7 public flights' logs (t
 [real-flights report](../../validation/reports/real-flights.md)), beside the forward simulation's
 apogee, with an exact sign-flip interval on the difference. The fit needs a model of each real
 flight to fly, something stated of each parameter, and an interval. The first run also showed
-the cut falling early on real barometers.
+the cut falling early on these logs.
 
 **Decision.**
 
@@ -97,5 +97,5 @@ sign).
 rows, and the forward simulation's numbers to the real-flights report's. Two predictions bound
 nothing at 95%; M7.3d3's collection is where the comparison can say something, and #1307 may
 add or remove public predictions first. The fit's page gains a worked example on NDRT 2020. The
-site's search index measured 9,991,414 bytes with it, 4,499 more than main's and 8,586 under
-mdBook's warning ([ADR-323][adr-323]: until [#414][i414] lands, prose must fit).
+site's search index grows with it, and CI's site step holds it under mdBook's warning
+([ADR-323][adr-323]: until [#414][i414] lands, prose must fit).
