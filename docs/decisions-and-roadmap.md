@@ -353,6 +353,7 @@ until someone rewrites it in plainer words.
 | [ADR-322: The 2026-11-05 progress review: accuracy before reader-facing work][adr-322] | In the four weeks to 2026-11-05 the measured accuracy did not move: FusionSpace HPR's mean absolute apogee error on the private collection's 60 logged flights is 12.07% against OpenRocket 24.12's 11.26%, a gap of 0.8 to 0.9 points since 10-08, and no aerodynamics fix has closed since 10-15. There are no outside users yet. The work goes to what is hard to add later, correct numbers and accuracy against real flights, and holds what matters only once someone reads it: the 0.2 release, the sites' calendar banner, the figures' digit check. Next: [M7.3d](#m7-3d), its fits split by the held-out halves, then [M2.7](#m2-7), [M7.5](#m7-5), [M2.3c6](#m2-3c6) and [M1.14](#m1-14). |  |
 | [ADR-323: The transonic margin warning, and shorter known-issue lines][adr-323] | From Mach 0.8 the fins' straight-line join puts the center of pressure aft of a wind tunnel's, by 0.6794 and 1.343 calibers on two Arcas Robin models at Mach 0.9, so the flight margin reads high, and nothing warned. Every flight with a margin past Mach 0.8 now warns (#1198). To keep the guides' example output inside the search index's 10 MB limit, a known issue's text line leaves its address to one `help:` line, and the always-on warnings are shorter; #18's message now says its 3.6% is of the friction, not the drag. #414 comes before any further prose. |  |
 | [ADR-324: One full gate a pull request, and the site step on prose left to CI][adr-324] | The gate (`scripts/gate.sh`) is the maintainer's local run of most of CI's checks; a *full* gate runs every default step. A pull request passes one full gate before it opens. A later commit, such as a review's fix, passes the steps it touches and CI on its head, unless main is merged in. Main gets its own full gate, with the checks on the private reference data, on each new tip of main before the next piece of work. The gate's default run leaves the site step out when a branch changes only the words of pages: CI builds and checks the site at every width on every pull request, and a merge needs it to pass. |  |
+| [ADR-325: M7.3d2, apogee predicted from the boost on the public flights][adr-325] | The 7 public flights' logs are fitted whole and up to the boost's cut, in each flight's ERA5 air, the fit told the example's design and a wind of ERA5's averaged over the climb. Two flights get a prediction: on them it misses the logged apogee by 3.03% on average (−0.85% with its sign), where the forward simulation misses by 6.89%. Hartigan's exact sign-flip interval on the difference is unbounded on 2 flights, as it is below 6. On real barometers the cut can fall inside the burn: 4 of the 5 cuts do, Lince's prediction among them. That is measured and reported, not fixed here (#1307). |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -847,7 +848,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-3c7"></a>[M7.3c7][phase-5] | Every count | not yet done |
 | <a id="m7-3d"></a>[M7.3d][phase-5] | From the boost | not yet done |
 | <a id="m7-3d1"></a>[M7.3d1][done-5] | The prediction from the boost | done |
-| <a id="m7-3d2"></a>[M7.3d2][phase-5] | The public flights | not yet done |
+| <a id="m7-3d2"></a>[M7.3d2][done-5] | The public flights | done |
 | <a id="m7-3d3"></a>[M7.3d3][phase-5] | The collection by halves | not yet done |
 | <a id="m7-3e"></a>[M7.3e][phase-5] | The post-flight comparison | not yet done |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |
@@ -1326,6 +1327,7 @@ is the milestone that added or will add that test.
 [adr-322]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0322-the-2026-11-05-progress-review-accuracy-before-reader-facing-work.md
 [adr-323]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0323-the-transonic-margin-warning-and-shorter-issue-lines.md
 [adr-324]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0324-one-full-gate-a-pull-request.md
+[adr-325]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0325-m7-3d2-the-public-flights-prediction-from-the-boost.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

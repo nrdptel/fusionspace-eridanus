@@ -34,8 +34,8 @@ impulse, wind and mass, and where its Bayesian option fails its tests.
   nothing to fit among the sets' counted draws, about one in six ([when](#when-a-log-has-nothing-to-fit)). Its wind is
   constant with height; on a log of height alone, a wind that grows with height only widens the intervals. It's
   told the design, rail, site and the day's air, and takes them as right. It's in the library only:
-  no command runs it on a log yet. Its [prediction from the boost](#apogee-from-the-boost) isn't
-  validated yet.
+  no command runs it on a log yet. Its [prediction from the boost](#apogee-from-the-boost) has met a
+  logged apogee on 2 public flights so far, one of them cut inside its burn.
 
 ## How it works
 
@@ -357,11 +357,12 @@ closed forms. A result under 100 effective draws is flagged as too few to read. 
 
 ## Apogee from the boost
 
-Not yet validated: how close it comes to a logged apogee is
-[not measured yet](../decisions-and-roadmap.md#m7-3d). The library predicts a flight's apogee from
-its climb and the start of its coast: a log cut just after burnout (`hpr_forensics::boost`), 0.33 s
-to 1.48 s after it on the synthetic flights below. Once logged apogees check it, it will show how
-well the fit carries a flight forward.
+The library predicts a flight's apogee from its climb and the start of its coast: a log cut just
+after burnout (`hpr_forensics::boost`), 0.33 s to 1.48 s after it on the synthetic flights below.
+It has met a logged apogee on 2 of the 7 public flights, too few to say at 95% whether it beats
+the forward simulation ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)). On real barometers the cut can
+fall inside the burn, which one of the two was
+([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)).
 
 **The cut.** The library follows the climb speed: a straight line fitted to each half second of
 heights. One reading far from the rest is left out, as the analyzer's spike rule does. The cut is
@@ -396,8 +397,18 @@ cut with noise, and the prediction stays the same, bit for bit. It runs on three
 receiver's channels beside its barometer. Letting the prediction read half a second more changes
 it. On those logs every sample the prediction reads was logged at or before the cut. A channel on a clock of its own
 is cut by its times: a sample it stamps in order at or before the cut is read wherever the file puts it. Run
-`cargo test -p fusionspace-hpr-forensics boost`. No worked example yet: one waits for a logged
-apogee to compare it with.
+`cargo test -p fusionspace-hpr-forensics boost`.
+
+**A worked example.** NDRT 2020's L1395 burns 3.43 s. Its barometer's log is cut 4.35 s after
+liftoff, its climb speed 10% below its 161.9 m/s (531 ft/s) top. The fit to the log
+up to there flies on to 1,269 m (4,164 ft), as the barometer reads it. The log's apogee is 1,320 m
+(4,332 ft): the prediction is 3.9% low. The forward simulation, nothing fitted, reads 1,458 m
+(4,782 ft), 10.4% high. Part of that gap is the fit's wind, constant with height: flown in it with
+nothing fitted, the rocket reaches 1,407 m (4,616 ft), 6.6% high. The rest is the fit to the
+boost. On Lince, the other prediction, the cut came 2.4 s after liftoff with the motor still
+burning. Cavour and Genesis climb too fast for a barometer's cut. Bella Lui, Prometheus and Juno
+III are cut too soon for anything to fit, the last two inside their burns
+([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)).
 
 ## Sources
 
@@ -418,12 +429,17 @@ apogee to compare it with.
   of Statistical Computation and Simulation* 41, 1992: widening the draws from a pilot's.
 - [ADR-317, the Bayesian option's plan][adr-317].
 - [ADR-320, the Bayesian option's decisions, with the measurements behind them][adr-320].
+- J. A. Hartigan, "Using subsample values as typical values", *Journal of the American
+  Statistical Association* 64, 1969, pp. 1303–1317: the exact sign-flip interval the public
+  flights' report gives on the prediction's difference from the forward simulation.
+- [ADR-325, the public flights' prediction, with the measurements behind it][adr-325].
 
 [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 [adr-316]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md
 [adr-317]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0317-m7-3c-in-two-the-sampler-then-the-test.md
 [adr-320]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0320-m7-3c2-the-bayesian-option-in-two-blocks.md
 [adr-321]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0321-m7-3c4-in-three-the-track-as-a-receiver-reads-it.md
+[adr-325]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0325-m7-3d2-the-public-flights-prediction-from-the-boost.md
 [m7-3c4]: ../decisions-and-roadmap.md#m7-3c4
 [m7-3c6]: ../decisions-and-roadmap.md#m7-3c6
 [m7-3c7]: ../decisions-and-roadmap.md#m7-3c7
