@@ -307,10 +307,11 @@ impl Report {
              third of the flights, kept from every choice of model \
              ([ADR-209 §4](../../docs/decisions/0209-the-2026-10-08-best-on-the-market-measured.md)), \
              and the rest. A flight is held out when a hash of its id puts it there: the first \
-             eight bytes of the SHA-256 of the id followed by `ADR-209`, read as a number, fall \
+             eight bytes of the SHA-256 of the id followed by `ADR-209`, read as a big-endian number, fall \
              below 2⁶⁴ / 3, a third of the flights in expectation \
              ([ADR-322](../../docs/decisions/0322-the-2026-11-05-progress-review-accuracy-before-reader-facing-work.md)). \
-             Which flights, and how many, stay private until the errors are given. The SHA-256 \
+             The held-out ids stay private \
+             ([ADR-151](../../docs/decisions/0151-hpr-sim-fixtures-joins-the-reference-library-as.md)). The SHA-256 \
              of their sorted ids is committed in [`held-out.sha256`](held-out.sha256) before any \
              half's number, so any later change to which flights are held out shows as a change \
              to that hash. This page gives nothing for either half.\n"
@@ -322,7 +323,9 @@ impl Report {
              - **Which files:** those the collection's catalog lists for the flight, outside its \
              `_scratch/` folder, which the collection's pinned version doesn't fix. Each is read \
              on its own: a workbook without exactly one sheet that reads as a log, or a log that \
-             needs a second file or a stated column layout to read, counts as unread.\n\
+             needs a second file or a stated column layout to read, counts as unread. A table whose \
+             altitude column doesn't say which sensor measured it reads, but gives no apogee, so \
+             it can't be chosen.\n\
              - **Which log:** of those whose height track is a barometer's (the logger's \
              altitude, a pressure, or a barometric altitude channel, never a GNSS receiver's) \
              and gives an apogee, the one whose apogee is nearest the logged apogee the \
@@ -369,9 +372,8 @@ impl Report {
              [speed of sound](../../docs/glossary.md#transonic-and-supersonic) a barometer's \
              reading may follow the airflow, not the height. A cut that falls early on a dip can \
              come before that speed, as Lince's did in the [public flights' report](from-boost.md), \
-             so some cuts counted here may be on logs that climb past it later. A log with fewer \
-             than 5 samples in any half second, slower than 8 a second, is too sparse to follow \
-             the climb."
+             so some cuts counted here may be on logs that climb past it later. A log in which no \
+             half second holds 5 samples (under 8 a second) is too sparse to follow the climb."
         );
         page
     }
