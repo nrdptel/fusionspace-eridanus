@@ -140,13 +140,13 @@ fn robust_line(window: &VecDeque<(f64, f64)>) -> Option<(f64, f64)> {
         .iter()
         .map(|&(t, h)| h - (intercept + slope * (t - t0)))
         .collect();
-    let centre = median(residuals.iter().copied());
-    let spread = 1.4826 * median(residuals.iter().map(|r| (r - centre).abs()));
+    let center = median(residuals.iter().copied());
+    let spread = 1.4826 * median(residuals.iter().map(|r| (r - center).abs()));
     let limit = readings::SPIKE_THRESHOLD * spread;
     let kept: Vec<(f64, f64)> = points
         .iter()
         .zip(&residuals)
-        .filter(|&(_, r)| (r - centre).abs() <= limit)
+        .filter(|&(_, r)| (r - center).abs() <= limit)
         .map(|(&point, _)| point)
         .collect();
     if kept.len() < readings::SPEED_MIN_SAMPLES {
