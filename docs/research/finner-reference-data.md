@@ -1,5 +1,7 @@
 # Measured coefficients of standard finned test bodies, Mach 1.5–2.5
 
+Re-checked 2026-11-07: 6 claims corrected.
+
 [ADR-143](../decisions/0143-the-operating-envelope-and-a-stop-rule-for.md) §6b names three sources for
 [M1.14b, references from Mach 1.5 to 2.5](../decisions-and-roadmap.md#m1-14b): the Basic Finner's free-flight data
 (DREV-TM-9703), "ARL-TN-1128's measured supersonic coefficients (HSARV)" and a Mach 2.45 tunnel drag point
@@ -12,7 +14,7 @@ Finner's tunnel points ([aero](../physics/aero.md#roll-against-the-arcas-robin-a
 
 - **The Basic Finner is the reference.** DREV-TM-9703 tabulates C_X0, C_Nα, C_mα, C_mq and C_lp from Mach 1.08 to
   4.3. Four measured sets of its roll damping, DREV's range, BRL's range, NOL's tunnel and AEDC's tunnel, each lie
-  within about 11% of DREV (up to 19% apart from each other). The Nicolaides points that HPR Sim compares against,
+  within about 11% of DREV (up to 22% apart from each other). The Nicolaides points that HPR Sim compares against,
   read from Barrowman's Fig. 5-7, sit **above** DREV's at matched Mach. Against DREV, HPR Sim's damping
   reads **+2% to +13% high** at Mach 1.82–3.00, not 5.9% to 16.2% low. Near Mach 1.5 it reads +26% to +30% high
   against BRL and NOL. The cause of the gap is not found (**Inference**, §2).
@@ -33,13 +35,12 @@ trailing edge. The moment reference is 5.5 d from the nose [F1 §3.1, PDF p. 16,
 
 - **The chord is 1.0 d.** That is DREV's value and NOL's drawing [F5 PDF p. 19]. AEDC's Fig. 2 draws 0.94 d
   [F6 PDF p. 25], but its text says "approximately one caliber" (PDF p. 9). **Inference:** 0.94 d belongs to AEDC's
-  own 1.8 in model only. This settles the open question in
-  [transonic-normal-force.md](transonic-normal-force.md#open-questions).
+  own 1.8 in model only, settling [transonic-normal-force.md](transonic-normal-force.md#open-questions)'s question.
 - **BRL 711's fins** are thicker: its Fig. 8 draws a 0.125 in trailing edge on a 0.786 in body, 0.16 d [F2 PDF p. 30].
 
 **DREV-TM-9703** (Dupuis and Hathaway, August 1997) [F1]: a spark-range free-flight test of 30 mm models, Mach 1.06
 to 4.47, small yaw. Table IX (PDF pp. 48–49) gives multiple fits of C_X0, C_Nα, C_mα about 5.5 d, C_mq and C_lp
-from Mach 1.077 to 4.300; this note uses its rows at Mach 1.832, 2.375, 2.718 and 3.147 (C_Nα's probable errors 2%
+from Mach 1.077 to 4.300; this note uses its rows at Mach 1.832, 2.375, 2.718 and 3.147 (C_Nα's probable errors 1%
 to 4% where printed). The readings are cached under `refs/`; as a public release it may be committed (#1119, #763).
 
 - The CP is 5.5 d − C_mα/C_Nα. C_lp's probable errors print as 0%; C_X0 has none, fitted shot by shot (PDF p. 23).
@@ -53,11 +54,11 @@ to 4% where printed). The readings are cached under `refs/`; as a public release
   1.75. Its coefficient is L/(q·A_p·b·n) per p·b/(2V), with A_p one panel, n fins and b the 3 d span (PDF p. 18).
   **Inference:** × A_p·n·b²/(πd⁴/4) = 144/π = 45.84 gives −25.0 to −25.9. ARL-TR-846 [F7 Table 7,
   PDF p. 21] lists the same within 0.1, and adds −19.54, −19.44 and −18.39 at Mach 2.25, 2.42 and 2.68 from
-  the journal version of BRL 711 (J. Aero. Sci., 1950; PDF p. 20).
+  the journal version of BRL 711 (J. Aero. Sci., 1950; PDF p. 35).
 - **NAVORD Report 6652** (Regan 1964, NOL tunnel, spin decay, α = 0) [F5 Table 2, PDF p. 17] uses the same
   definition as BRL 711 (PDF p. 6). The averages are 0.532, 0.422, 0.371, 0.352 and 0.315 at Mach 1.53, 2.03, 2.27,
-  2.54 and 2.76 (Table 2 prints 2.70; Table 1, 2.76). × 45.84 gives −24.4, −19.3, −17.0, −16.1 and
-  −14.4. NOL calls its values "slightly below" BRL 799's (PDF p. 13).
+  2.54 and 2.76 (Table 2 prints 2.70; Table 1, 2.76). × 45.84 gives −24.4, −19.3, −17.0, −16.1 and −14.4,
+  "slightly below" BRL 799's; each averages 50 to 100 rps (PDF p. 13; Table 2's footnote says 50 to 150).
 - **AEDC-TR-76-58** (Jenke 1976, tunnel, Mach 2.50) [F6 Figs. 9b–c, PDF pp. 43–44] is defined per p·d/(2V) on
   πd²/4. **Inference**, read by eye: −17.5 ± 0.5 at α = 0, the same at two Reynolds numbers, growing
   to about −30 near α = 35°. Its Fig. 9b plots NOL's Mach 2.5 point near −16, which confirms the factor of 45.84.
@@ -78,9 +79,8 @@ interpolated linearly in Mach (**Inference**).
 | 3.00 | −18.32 | −15.4 | none | −13.8 | +11% |
 
 - **Against DREV** (readings cached under `refs/`, §1), at Mach 1.82 to 3.00 (its 1.832 row, then interpolated), HPR
-  Sim reads +2% to +13% high, and Fig. 5-7's points sit above DREV's.
-- **Fig. 5-7's points sit above DREV's** (in magnitude) at the four Mach numbers compared. **Inference:** a reference-area slip
-  between TN-100A and Fig. 5-7 could explain it, unproven while TN-100A is unread; Barrowman doesn't state their accuracy.
+  Sim reads +2% to +13% high; Fig. 5-7's points sit above DREV's in magnitude at all four. **Inference:** a slip in
+  reference area between TN-100A and Fig. 5-7 could explain it, unproven (TN-100A unread; Barrowman gives no accuracy).
 - **What changes.** On the measured consensus the row's sign flips: HPR Sim overstates the Basic Finner's
   supersonic roll damping, and the aero page's account (first-order theory reads low for want of a thickness
   term) no longer fits.
@@ -89,8 +89,8 @@ interpolated linearly in Mach (**Inference**).
 
 **Other coefficients.** BRL 934 [F3 Table III, PDF p. 41] gives range C_D 0.710 at Mach 1.506, 0.604 to 0.662 at
 1.78 to 1.83 and 0.449 at 2.468; its C_Nα is too scattered to use (low-yaw rounds' probable errors 14% to 93%).
-NOL's static tunnel [F4 Figs. 29–30], by eye, gives C_Nα about 13.2 at Mach 1.58 and 9.7 at 2.48, CP 8.2 d to
-7.2 d: DREV's within reading error.
+NOL's static tunnel [F4 Figs. 29–30], by eye, gives C_Nα about 13.3 at Mach 1.58 and 9.5 at 2.48, CP 8.2 d to
+7.2 d. CP is DREV's within reading error; C_Nα at 2.48 sits 5% below DREV's 10.06 (no DREV point at 1.58).
 
 **Design tree.** HPR Sim can draw the body: a `Conical` nose, a body tube, and a four-fin `FinSet` with root = tip =
 1 d, span 1 d and no sweep, flush with the base. What it can't draw is the single wedge: `FinCrossSection` offers only
@@ -126,10 +126,10 @@ Model at Ma 2.45", *Transactions on Aerospace Research* 276(3), 2024, pp. 86–1
 
 - **Model** (p. 89): a 1:50 sounding rocket, 10 mm body cut to 180 mm, four fins (19 mm root, 8 mm tip, 6.5 mm
   span), sweep not given; the three noses (von Kármán and ogive types, l/d 3.1) are "confidential". **Test**
-  (pp. 88, 92, 96): IMP PAN blowdown tunnel, static 6 kPa and 130 K, α = 0, axial force only on a 0–10 N cell
-  (±0.05 N); reference area the frontal area with fins.
+  (pp. 88, 92, 96): IMP PAN indraft tunnel (vacuum tanks), static 6 kPa and 130 K, α = 0, axial force only on a
+  0–10 N cell (±0.05 N); reference area the frontal area with fins.
 - **Values** (Fig. 8, p. 97): C_D 0.189, 0.138 and 0.160 for the three noses; the authors' RANS gives 0.568 for
-  nose 2. The model bent in the flow, and the setup "should be reconsidered" (p. 98).
+  nose 2. The model's axis deflected upward in the flow, and the setup "should be reconsidered" (pp. 97–98).
 - **Inference:** 0.138 is about 0.29 N, so the cell's ±0.05 N alone is ±0.024 in C_D; friction on an 18-caliber
   body plus base drag is about 0.35, so the CFD is the plausible value. **License:** CC BY-NC-ND 4.0 (landing page
   and Crossref): cite a value as a fact, never as a fixture.
@@ -171,11 +171,10 @@ Model at Ma 2.45", *Transactions on Aerospace Research* 276(3), 2024, pp. 86–1
 
 ## Open questions
 
-- **Why Nicolaides' points sit above DREV's** (they are 1.12–1.20 times BRL's, 1.28–1.38 NOL's). BuWeps TN-100A
-  wasn't reached, nor was BRL 799, seen only as replotted by DREV and NOL. Whether BRL 711's thicker fins explain its
-  higher values is open.
-- DREV's rate convention is inferred from its agreement with AEDC. DRDC TM 2002-136, DREV Table X (C_lδ),
-  BRL 934's centers of gravity and AGARD Model A's drag (NACA Report 1160) were not read.
+- **Why Nicolaides' points sit above DREV's** (1.12–1.20 times BRL's, 1.28–1.38 NOL's): BuWeps TN-100A and BRL 799
+  (seen only as DREV and NOL replot it) weren't reached. Whether BRL 711's thicker fins explain its higher C_lp is open.
+- DREV's rate convention rests on its agreement with AEDC and its replot of BRL 799 (PDF p. 27, Fig. 17e p. 79). DRDC
+  TM 2002-136, DREV Table X (C_lδ), BRL 934's centers of gravity and AGARD Model A's drag (NACA Report 1160): unread.
 
 ## Sources (all read 2026-10-18)
 
@@ -193,7 +192,7 @@ Model at Ma 2.45", *Transactions on Aerospace Research* 276(3), 2024, pp. 86–1
 - **B1.** Bromm, NACA TN 3300, 1954. <https://ntrs.nasa.gov/citations/19930084038>
 - **B2.** Hills (ed.), AGARDograph 64, 1961 (NATO STO archive; read from a Wayback copy).
 - **B3.** Iijima et al., JAXA-RR-06-046, 2007. <https://jaxa.repo.nii.ac.jp/record/2185/files/63877000.pdf>
-- **A1.** Svorcan et al., OTEH 2024, pp. 24–27. <https://doi.org/10.5937/OTEH24005S>
+- **A1.** Svorcan et al., OTEH 2024, pp. 24–27. <https://doi.org/10.5937/OTEH24005S> (CC BY 4.0)
 
 US Government reports (F2–F7, B1) are public (F5 by its "without restrictions" box, B1 on NTRS). DREV-TM-9703 (F1)
 is approved for public release, distribution unlimited (DTIC page, PDF p. 2; its own pp. 4, 150), Crown copyright
