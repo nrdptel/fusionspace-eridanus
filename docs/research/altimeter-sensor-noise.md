@@ -1,5 +1,7 @@
 # Noise and error of the sensors in hobby altimeters
 
+Re-checked 2026-11-06: 8 claims corrected.
+
 This note asks which pressure sensors and accelerometers the common hobby altimeters carry, what their datasheets
 state for noise, accuracy, range and behavior past full scale, and what public logs measure at rest. It ends with a
 noise model per family for M7.2's synthetic smoother test (a simulated flight plus a noise model). It builds on
@@ -10,9 +12,9 @@ datasheets, 24 public logs and a paper. **Inference** marks this note's arithmet
 - **Three makers name their pressure parts.** Missile Works and Altus Metrum use the TE MS5607 (Altus's first boards
   an MP3H6115); Eggtimer names a Bosch BMP085/180 and, for the TRS, a TE MS5637. Altus Metrum's accelerometers are
   the MMA6555 (102 g), then the ADXL375 (200 g). The other makers name no part (§1).
-- **Measured rest noise is 0.16–1.14 m (1σ), above the datasheet's best rows.** Blue Raven 0.43–0.71 m at 50 Hz
-  (one settling rest 1.13 m); StratoLoggerCF 0.16–0.25 m at 20 Hz; Altus Metrum 0.52–1.14 m at 100 Hz on short pad
-  windows. The MS5607 sheet gives 0.20 m (2.4 Pa) at best. Blue Raven samples correlate (lag-1 +0.40 to +0.54) (§3).
+- **Measured rest noise is 0.16–1.14 m (1σ), above the datasheet's best rows.** Blue Raven 0.43–0.71 m at 50 Hz (one
+  settling rest 1.13 m); StratoLoggerCF 0.16–0.25 m at 20 Hz; Altus Metrum 0.52–1.14 m at 100 Hz on short pad windows.
+  The MS5607 sheet gives 0.20 m (2.4 Pa) at best. Blue Raven samples correlate (lag-1 +0.38 to +0.54) (§3).
 - **Bias outweighs noise by an order of magnitude.** An MS5607 zeroed on the pad holds ±1.0 mbar at 0–50 °C: ±11 m
   at 3,000 m, 28 times its 0.40 m noise at oversampling 2048. The 0.4%-per-unit scatter in dual-altimeter-spread
   (12 m at 3,000 m) is bias-sized. An accelerometer bias b adds ½·b·t²: 0.49 m per mg over 10 s (§2, §6).
@@ -60,8 +62,8 @@ in hPa (= mbar = 100 Pa). The ceiling is the range's low edge in the 1976 atmosp
 | DPS310 | 2.5, 1, 0.5, 0.4, 0.35, 0.3, 0.2 | ±0.06 per 1 hPa | ±1.0 | 0.5 | 300–1200 (9,177 m) | [S6] T. 3, 7, 16 |
 | LPS22HB | 0.75 (filtered, one value) | ±0.1 | ±1 | none | 260–1260 (10,125 m) | [S8] Table 3 |
 
-- † After a zero at one pressure (the pad zero): ±0.5 mbar at 25 °C and 700–1100 mbar, ±1.0 at 0–50 °C, ±2.5 at
-  −20–85 °C [S1] p. 4. ‡ Its ADC stays linear over 10–1200 mbar [S1] p. 4; 10 mbar is 31,207 m (**Inference**).
+- † After the pad zero: ±0.5 mbar at 25 °C over 700–1100 mbar; ±1.0 at 0–50 °C and ±2.5 at −20–85 °C over 300–1100 mbar
+  [S1] p. 4. ‡ ADC linear over 10–1200 mbar (06/2017 sheet, p. 4; 10 mbar is 31,207 m, **Inference**).
 - **Pascals to meters.** dh = −dp/(ρg): 0.083, 0.096, 0.112 and 0.219 m/Pa at 0, 1,500, 3,000 and 9,000 m
   (**Inference**), so σ is 0.02–1.1 m at sea level, 0.04–2.8 m at 9 km. MS5607 conversions take 0.54–8.22 ms [S1].
 - **Temperature.** Tempcos are 0.04–0.125 m/K at sea level; the MS5607 states none. No source found measures a
@@ -82,27 +84,26 @@ handling and ignition, so they are upper bounds on sensor noise. Logs are from p
 | Team-built board, LPS-class (1) | 3 Hz | pad, 1 h (10,781) | 0.77 | 8.1 | about 1 Pa |
 | Missile Works RRC3 (1) | 20 Hz | no pad in the log | none | none | 10 Pa (0.95 m) |
 
-- **Not white.** Detrended Blue Raven altitude has lag-1 autocorrelation +0.40 to +0.54 in six windows, the TeleMega
-  rest +0.36; two 18-sample Altus pad windows give −0.35 and −0.29. The 1 h record's Allan deviation falls from
-  6.6 Pa at τ = 0.33 s to 1.25 Pa near 33 s, then rises to 3.0 Pa at 328 s: white noise below about 10 s, drift
-  (weather, heat) above 30 s (**Inference**).
-- **One published rest model** has the same shape: a BMP085 at 50 Hz, 10 min static, gives white noise of σ
-  0.22–0.27 m plus a first-order Gauss–Markov term of σ 0.24–0.29 m with τ 0.65–1.26 s [P1] Tables 1–2. No
-  third-party rest test of the MS5607, MS5611, DPS310 or LPS22 was found; a 3 s hobby test gives BMP390 2.5 Pa [P2].
+- **Not white.** Detrended Blue Raven altitude's lag-1 correlation is +0.38 to +0.54 in eight windows (one settling rest
+  +0.78), the TeleMega rest +0.36, five short Altus pads −0.31 to +0.28. A 1 h record's Allan deviation falls from
+  6.6 Pa at 0.33 s to 1.25 Pa near 33 s, rising to 3.0 Pa at 328 s: white below 10 s, drift above 30 s (**Inference**).
+- **One published rest model:** a BMP085 at 50 Hz, 10 min static, detrended, 4-point averaged and decimated to 10 Hz
+  (§2.5), gives white σ 0.22–0.27 m plus a first-order Gauss–Markov term of σ 0.24–0.29 m, τ 0.65–1.26 s [P1]
+  Tables 1–2. No third-party rest test of an MS5607, MS5611, DPS310 or LPS22 was found; a 3 s test: BMP390 2.5 Pa [P2].
 - **Against the datasheet.** Altus Metrum's 5.5–12 Pa sits between the MS5607's 1024 and 256 oversampling rows; its
   setting isn't in the published docs. The RRC3 reads at oversampling 2048 (3.6 Pa) and averages 50 Hz down to
   20 Hz [MW1] p. 24: about 2.3 Pa if samples are independent (**Inference**).
-- **Accelerometers at rest.** Blue Raven high-range axis (500 Hz, about 760 samples): σ 0.007–0.030 g, printed in
-  0.01 g steps, mean 0.5–1.0% below 1 g. Altus Metrum logs 0.49 m/s² (TeleMega) and 0.53 m/s² (TeleMetrum) steps.
-- **Two public dual-altimeter pairs** agree on apogee within 0.138% (TeleMetrum against TeleMega, 3,904 against
-  3,898 m) [L5] and 0.085% (Blue Raven against TeleMega, 2,852 against 2,854 m) [L2]. Descent residuals about 2 s
-  quadratic fits, 0.3–7.5 m robust σ, carry swinging and gusts: they bound flight noise, not sensor noise.
+- **Accelerometers at rest.** Blue Raven's 500 Hz axial (its ±32 g parts at rest [F3] p. 24; about 760 samples): σ
+  0.007–0.030 g in 0.01 g steps, mean 0.5–1.0% below 1 g. Altus Metrum steps: 0.49 and 0.53 m/s² (TeleMega, TeleMetrum).
+- **Two dual-altimeter pairs** agree on apogee to 0.138% (TeleMetrum 3,904 m, TeleMega 3,898 m) [L5] and 0.085% (Blue
+  Raven 2,852 m, TeleMega 2,854 m) [L2]. Residuals about 2 s quadratic fits on public descents are 0.3–7.5 m robust σ
+  (re-checked: 0.3–7.1 m on 18; the pairs' 1.9–2.1 m): flight noise (swinging, gusts; **Inference**), not sensor noise.
 
 ## 4. Accelerometers: what the datasheets state
 
 | Part | Range; step | Noise density | Zero-g offset; drift | Scale; tempco | Source |
 |---|---|---|---|---|---|
-| ADXL375 | ±200 g (min ±180); 49 mg | 5 mg/√Hz | ±0.4 g typ, ±6 max; ±10 mg/°C | ±10%; ±0.02%/°C | [D1] p. 3 ¶ |
+| ADXL375 | ±200 g (min ±180); 49 mg | 5 mg/√Hz | ±0.4 g typ, ±6 max; ±10 mg/°C | ±10%; ±0.02%/°C | [D1] p. 3 |
 | H3LIS331DL | ±100/200/400 g; 49–195 mg | 15 mg/√Hz | ±1 g; ±5 mg/°C | not given; ±0.01%/°C | [D2] p. 4 |
 | MMA6555 | ±105 g; 55 mg | ≤1 LSB RMS, 400 Hz | ±3.3 g; ±14 mg cancelled | ±5% | [D4] p. 7 |
 | ADXL377 (analog) | ±200 g | 2.7 (x, y), 4.3 (z) mg/√Hz | ±15 g; z ±30 mg/°C | ±11%; ±0.02%/°C | [D6] p. 3 |
@@ -126,10 +127,9 @@ handling and ignition, so they are upper bounds on sensor noise. Logs are from p
   Entacore) (**Inference**). The ideas list's
   9,100 m for BMP280/388/390 holds to 1%: 300 hPa is 9,177 m, the edge of the specified range, not a known clip.
 - **Acceleration.** BMX160 data hold at the maximum code [D8] p. 32; the MMA6555's output window is ±1,920 LSB
-  (±105.5 g), its converter clipping at 375–450 g [D4] p. 7; analog parts stop at their output swing (ADXL377 about
-  −215 g and +200 g, **Inference** from [D6] p. 3). The BMI088 sheet says its ±24 g range is there "to avoid signal
-  clipping" [D3] p. 2. The H3LIS331DL says nothing. Blue Raven switches from its ±32 g
-  parts to the high-range part past 32 g [F3] p. 24.
+  (±105.5 g), its converter clipping at 375–450 g [D4] p. 7; analog parts stop at their output swing (ADXL377 about −215
+  and +200 g, **Inference**, [D6] p. 3). The BMI088's ±24 g range is there "to avoid signal clipping" [D3] p. 2. The
+  H3LIS331DL says nothing. Blue Raven switches from its ±32 g parts to the high-range part past 32 g [F3] p. 24.
 
 ## 6. A noise model per family
 
@@ -139,17 +139,17 @@ a_meas = Q(clip((1 + s)·a + b_a + n_a, ±FS_min)). b, s and b_a are drawn once 
 | Family | n (1σ) | Per-flight bias | Other terms | Basis |
 |---|---|---|---|---|
 | MS5607 (Missile Works, Altus) | 2.4–13 Pa; RRC3 2.3 Pa | ±1.0 mbar after pad zero | 1 Pa; RRC3 log 10 Pa | [S1] |
-| Bosch BMP3xx, DPS310 | 0.2–6.6 Pa by setting | ±0.03–0.08 hPa per 100 hPa | 0.5–0.75 Pa/K | [S3], [S4], [S6] |
+| BMP3xx, DPS310 | 0.2–6.6 Pa by setting | ±0.03–0.08/100 hPa; DPS310 ±0.06/1 hPa | 0.5–0.75 Pa/K | [S3], [S4], [S6] |
 | Measured, as a field model | 0.5 m at 50 Hz, AR(1) φ ≈ 0.5 | as above | 1–3 Pa drift, 30–300 s | §3, [P1] |
 | High-g digital (ADXL375) | 44 mg at 50 Hz | ±10 mg/°C × ΔT | ±10% scale; clip ±180 g | [D1] |
 | High-g (H3LIS331DL) | 133 mg at 50 Hz | ±5 mg/°C × ΔT | clip at the set range | [D2] |
 | Low-g IMU axes | 1.6–8 mg | ±20–80 mg raw | clip ±16–32 g | [D3], [D8]–[D10] |
 
 - **What each term does (Inference).** A ±1.0 mbar baro bias is ±8.3, 9.6, 11.2 and 21.9 m at 0, 1,500, 3,000 and
-  9,000 m; Bosch's relative spec read as a gain over a 3,000 m climb is ±1.0 m (BMP390), ±2.8 m (BMP388). An
-  accelerometer bias adds ½·b·t²: the ADXL375's typical 0.4 g raw offset is 196 m in 10 s, 100 mg of drift 49 m.
-  A scale error s adds s·(h + ½·g·t²): 1% on a flight reaching 1,000 m in 10 s is 15 m. White noise adds
-  N·t^{3/2}/√3, about 0.9 m for the ADXL375 at 10 s. A clipped boost loses ∫(a − FS) dt of speed and reads low.
+  9,000 m; Bosch's relative spec as a gain over a 3,000 m climb is ±1.0 m (BMP390), ±2.8 m (BMP388). An accelerometer
+  bias adds ½·b·t²: the ADXL375's 0.4 g typical offset is 196 m in 10 s, 100 mg of drift 49 m. A scale error s adds
+  s·(h + ½·g·t²): 1% on a flight reaching 1,000 m in 10 s is 15 m. One-sided white density N adds N·t^{3/2}/√6: ADXL375,
+  0.63 m at 10 s (0.9 m as a random-walk coefficient). Clipping loses ∫(a − FS) dt of speed and reads low.
 - **Correlated noise.** At φ ≈ 0.5, white-noise math understates an average's σ by √((1+φ)/(1−φ)) ≈ 1.7.
 
 ## What this suggests
@@ -169,8 +169,8 @@ a_meas = Q(clip((1 + s)·a + b_a + n_a, ±FS_min)). b, s and b_a are drawn once 
 - Which parts do PerfectFlite, Featherweight, Jolly Logic, Entacore, MARSA and Silicdyne fit? A chip-marking photo
   would settle each. How far does bay temperature move in flight? What accelerometer bias survives a pad zero?
 - No public log has over 2 s of pad data at 50 Hz or more; no Eggtimer, Jolly Logic or EasyMini log was found.
-- ¶ The ADXL375 row (and its ±180 g clip) was read once and could not be re-read against the sheet; the maker's
-  product page confirms only ±200 g. An LSM6DSO32 row was dropped for the same reason.
+- How does the MS5607's ±1.0 mbar (0–50 °C, 300–1100 mbar) grow with the change from the pad? A pure gain: ±0.125%
+  (±0.31% at −20–85 °C; **Inference**). An LSM6DSO32 row was dropped, its sheet read once.
 
 ## Sources
 
