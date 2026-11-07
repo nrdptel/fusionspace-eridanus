@@ -1,6 +1,6 @@
 # ADR-326: M7.3d3 in four, the halves sealed first (2026-11-07)
 
-- **Status:** accepted; splits [M7.3d3][m7-3] into M7.3d4 to M7.3d7, each with its own *done when*, M7.3d's *done when* whole in the last; carries out M7.3d4 under [ADR-322][adr-322] §2.
+- **Status:** accepted; splits [M7.3d3][m7-3] into M7.3d4 to M7.3d7, each with its own *done when*, M7.3d's *done when* whole in the last, and so plans every remaining increment of M7.3d; carries out M7.3d4 under [ADR-322][adr-322] §2.
 - **Summary:** The private collection's held-out flights are fixed by ADR-322's encoding, and the SHA-256 of their sorted ids is committed on its own, before any half's number exists. Each flight's log is chosen from its pinned logs by the apogee nearest the one the collection states, read and cut at the boost, counted over the whole collection only: of 72 flights not left out, 64 have a barometer's log the analyzer reads an apogee from, 32 are cut and 30 refused at the transonic limit. The fix to the cut ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)), the collection's errors by halves and the scoreboard row follow, in that order.
 
 [adr-151]: 0151-hpr-sim-fixtures-joins-the-reference-library-as.md
