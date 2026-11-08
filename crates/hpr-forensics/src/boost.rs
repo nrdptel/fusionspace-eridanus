@@ -15,7 +15,7 @@
 //!   drag more, so the speed keeps falling and the log keeps the coast's start. A barometer's
 //!   reading can dip in the boost and catch up: on the public logs the falls that dips gave
 //!   recovered within the hold (measured once), and on the synthetic dips the fall back from a
-//!   catch-up's overshoot, which can outlast it, levelled off while the motor burned.
+//!   catch-up's overshoot, which can outlast it, leveled off while the motor burned.
 //! - Everything after that reads the log cut there: its readings, the fit's observations and so
 //!   the fit. The log's own clock is cut at the cut's sample, by position, so a time it logs later
 //!   can't enter. A channel on a clock of its own is cut at its first time past the cut or out of

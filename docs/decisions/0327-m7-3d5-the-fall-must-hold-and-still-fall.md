@@ -22,7 +22,7 @@ a new top.
    that sample, so the log is cut there: nothing later is read.
 2. **And still be falling.** At that sample the speed must also be the lowest of the last 0.75 s.
    A dip's catch-up can read above the true speed; the fall back from that false top can outlast
-   0.75 s, but on the synthetic dips it levelled off while the motor burned. With the hold alone, 416 of 778 synthetic dipped logs whose falls outlast 0.5 s were cut
+   0.75 s, but on the synthetic dips it leveled off while the motor burned. With the hold alone, 416 of 778 synthetic dipped logs whose falls outlast 0.5 s were cut
    in the burn (run once); with both conditions none is.
 3. **The test.** On each of set A's first 200 synthetic flights that is cut, a dip
    `depth · sin²(π (t − start) / span)` is taken off the height: start at ignition, 0.3 or 0.6 of

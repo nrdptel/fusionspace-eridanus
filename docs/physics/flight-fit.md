@@ -380,7 +380,7 @@ barometer's reading can dip during the boost and catch up
 logs the speed fell that far for up to 0.48 s, and by up to 63.2 m/s (207 ft/s), then recovered
 (measured once). The 0.75 s passes such a
 dip. The catch-up can read above the true speed. The fall back from it can last longer, but on the synthetic dips it
-levelled off while the motor burned: its speed wasn't the lowest of the last 0.75 s. So on the
+leveled off while the motor burned: its speed wasn't the lowest of the last 0.75 s. So on the
 synthetic flights' motors the cut comes after burnout, and the log keeps the start of the coast. The log up to the cut is fitted, and the fit
 flown on to apogee.
 
