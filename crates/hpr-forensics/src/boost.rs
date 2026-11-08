@@ -251,8 +251,8 @@ fn in_order_count(times: &[f64], cut_s: f64) -> usize {
 /// The cut stands where the window's line is more than [`LIFTOFF_RISE_M`] above the first
 /// window's: three bad samples side by side on the pad can lift the line past that for a sample,
 /// and the speed then falls back as it does at burnout. A pad spike faster than the flight's own
-/// top speed, or a step of 10 m or more on the pad that stays (a 15 m step cut before the peak on
-/// 142 of 157 logs, measured once, not committed), still moves the cut ([#1362][i1362]).
+/// top speed, or a step on the pad that stays (steps of 11 to 60 m cut before the peak on 128 to
+/// 142 of 157 logs, measured once, not committed), can still move the cut ([#1362][i1362]).
 ///
 /// A GNSS receiver's altitude in the boost can drop out at ignition and burnout and lag the
 /// climb, by up to 440 m in one flight a flyer reports, while its fix reads valid
@@ -1328,8 +1328,9 @@ mod tests {
     /// A hostile log is refused without a panic, and each refusal names its reason: no samples, one,
     /// times all equal, not numbers or infinite, heights at the float's edge, and a log sampled
     /// every microsecond, faster than the analyzer reads, 200,000 samples refused at its first
-    /// window; a log of channels alone is refused the same way with its track emptied, its times or
-    /// values not numbers, its values infinite, or its samples a microsecond apart. A log at the
+    /// window; a log of channels alone is refused too, naming its reason: too sparse with its track
+    /// emptied, its times or values not numbers, or its values infinite; too fast with its samples a
+    /// microsecond apart. A log at the
     /// analyzer's fastest rate fills a
     /// window to the most it allows, 251 samples, and is read.
     #[test]
@@ -1485,7 +1486,7 @@ mod tests {
         }
     }
 
-    /// Each variant of [`Unpredicted`] is matched by one log: a log with no cut says why the finder
+    /// Each variant of [`Unpredicted`] is matched by one case: a log with no cut says why the finder
     /// found none; a boost cut within 2 s of liftoff holds too little to fit; a flight that can't be
     /// flown keeps the fit to what was stated; and a fitted flight that can't be flown to its apogee
     /// reaches none. The flight that predicts is set A's first with a cut. Not pinned: the other
