@@ -1,23 +1,29 @@
 # Student Launch flights with a weighed mass and a published altimeter log
 
-**In short: no public flight has it all.** NASA's Student Launch handbooks since at least 2024 make teams submit raw
-altimeter data as .csv or .xlsx in the FRR and the post-launch assessment review (PLAR). NASA does not publish those
-files, and almost no team does either. Across 11 teams' archives and 12 GitHub searches, no flight pairs a weighed
-mass, motor, wind and apogee with a log as data under terms the project may use. The nearest is NC State's
-2025-03-08 vehicle demonstration flight (VDF): 42.9 lb fully ballasted, L1520T, 13 mph, and an MIT log from its
-air-brake computer showing the brakes stayed shut. But that 42.9 lb is the FRR's as-built table with the full ballast
-added (39.68 − 0.46 + 3.7 = 42.92 lb), not a stated scale reading, and the log is not the scoring altimeter's.
-**14 flights by 6 teams** state a weighed or part-by-part mass with its value, the motor, the wind and the apogee, but
-show the log only as a plotted figure; 13 of them had no motor anomaly. Logs as data exist for 14 NC State,
-10 Notre Dame and 3 USF flights, mostly under MIT, but none has a weighed mass beside it, and most flew deployed air
-brakes. How sure: high on what each source states (every number was re-read in a separate pass); medium on the
-counts, which come from keyword scans and hand tallies of cached reports, not a proof that no other flight exists.
+Re-checked 2026-11-07: 10 claims corrected.
+
+**In short: no public flight has it all; Toledo's 2026 VDF misses only on terms.** NASA's Student Launch handbooks
+since at least 2024 make teams submit raw altimeter data as .csv or .xlsx in the FRR and the post-launch assessment
+review (PLAR). NASA does not publish those files, and almost no team does either. Across 11 teams' archives and 12
+GitHub searches, no flight pairs a weighed mass, motor, wind and apogee with a log as data under terms the project may
+use. The nearest is the University of Toledo's 2026-02-28 vehicle demonstration flight (VDF): a 40.9 lb lift-off mass
+marked "Measurement", L1256WS, 5 mph, 5,327 ft, no air brakes, and both scoring RRC3+ logs linked from the FRR as CSV
+files; no license is stated (§2). Next is NC State's 2025-03-08 VDF: 42.9 lb fully ballasted, L1520T, 13 mph, and an
+MIT log from its air-brake computer showing the brakes stayed shut. But that 42.9 lb is the FRR's as-built table with
+the full ballast added (39.68 − 0.46 + 3.7 = 42.92 lb), not a stated scale reading, and the log is not the scoring
+altimeter's. **13 flights by 6 teams** state a weighed or part-by-part mass with its value, the motor, the wind and
+the apogee; 12 show the log only as a figure, Toledo's VDF as CSV. 12 had no motor anomaly; of those, Notre Dame 2021
+had its drag tabs out slightly near apogee. Other logs as data exist for 14 NC State, 10 Notre Dame and 3 USF flights,
+mostly under MIT, but none has a weighed mass, and most flew deployed air brakes. How sure: high on what each source
+states (every number was re-read in a separate pass); medium on the counts, which come from keyword scans and hand
+tallies of cached reports, not a proof that no other flight exists.
 
 This builds on [as-built-mass-growth](as-built-mass-growth.md) §4, where five of six flights flown at a weighed or
 as-built mass still came in 3.6% to 18.4% under their own simulations (the sixth flew 4.4% over), and on
 [student-launch-apogees](student-launch-apogees.md), whose report list and file names this note reuses. The question
-is whether flights with mass removed as a cause could size the drag share of the private collection's +8.73% mean
-bias ([accuracy](../accuracy.md#real-flights)).
+is whether flights with mass removed as a cause could size the drag share of the private collection's +7.76% mean
+bias over 60 flights ([accuracy](../accuracy.md#real-flights-of-the-private-collection); +8.73% over 53 when this
+note was first written).
 
 ## How the flights were read
 
@@ -36,15 +42,28 @@ bias ([accuracy](../accuracy.md#real-flights)).
   lift-off and landing masses (p. 34); the PLAR outline for motor, altitude, profile and raw data (p. 41). The FRR
   addendum outline asks for the altimeter's flight profile and plots, not raw files. Nothing requires the mass to be
   weighed [H26].
-- **2024 handbook:** the same raw-data lines in the FRR (p. 34) and PLAR (p. 41) outlines [H24]. 2022 asked only that
-  the flights be "flown and flight data reported in the FRR and/or FRR Addendum" (p. 23) [H22]; 2020 asked for
-  altimeter output as proof of flight (p. 11–12) [H20]. The 2023 and 2025 handbooks weren't reached, so the raw-CSV
-  rule began in 2023 or 2024.
+- **2024 handbook:** the same raw-data lines in the FRR (p. 34) and PLAR (p. 41) outlines [H24]. 2022 asked that the
+  flights be "flown and flight data reported in the FRR and/or FRR Addendum" (p. 23) and, for the VDF, "flight
+  profile data output" with plots (p. 15), in no stated format [H22]; 2020 asked for altimeter output as proof of
+  flight (p. 11–12) [H20]. The 2023 and 2025 handbooks weren't reached, so the raw-CSV rule began in 2023 or 2024.
 - **Publication:** no NASA page or archive of team reports or raw data turned up. NC State writes that its 2025 files
   "have been submitted with the FRR package" [N25F p. 95] but did not post them. **Inference:** the CSVs exist at
   most teams since 2024; a request to each team is the only route to them.
 
-## 2. The nearest flight: NC State, 2025-03-08
+## 2. The nearest flights
+
+### Toledo, 2026-02-28
+
+- **Report** [T26F p. 99–106]: lift-off mass 40.9 lb, length and CG all marked "Measurement" in the VDF inputs table
+  (Table 32, p. 105); AeroTech L1256WS; wind 5 mph by a weather app (5–8 mph, p. 98); launch angle 2° from photos.
+  Apogee 5,327 ft on the primary RRC3+ and 5,311 ft on the secondary, 30.6% above the team's 4,078 ft prediction
+  (p. 99, 106). Air brakes were cut from the project (p. 14–15).
+- **Logs** [T26F p. 101, §5.1.10]: "Linked CSV" for both RRC3+ units and a Featherweight GPS, on Google Drive, read
+  without a login on 2026-11-07. The primary log peaks at 5,327.35 ft (1,725 rows). The CDR links the subscale's log
+  the same way (T26C p. 46; peak 1,225.7 ft).
+- **Gaps:** no license is stated (cite, and read from `refs/` only); no design file is public, only drawings and tables.
+
+### NC State, 2025-03-08
 
 - **Report** [N25F p. 94–95, 183]: "Fully ballasted and flown on an AeroTech L1520T motor, the launch vehicle weighed
   42.9 lbs". Wind 13 mph (10–20), 70 °F, 99,900 Pa. Apogee 3,571 ft on the primary StratoLogger CF and 3,635 ft on
@@ -60,7 +79,7 @@ bias ([accuracy](../accuracy.md#real-flights)).
 - **Other gaps:** no design file is public for this rocket, only the FRR's drawings and tables; the log metadata
   gives 24.05 km/h (14.9 mph) wind where the FRR gives 13 mph; the wind was gusty and the rocket weathercocked.
 
-## 3. Weighed mass, motor, wind and apogee, log only as a figure (14 flights)
+## 3. Weighed mass, motor, wind and apogee (14 flights, 13 with the mass's value)
 
 | flight | mass | motor | wind | apogee (ft) | note | source |
 |---|---|---|---|---|---|---|
@@ -69,25 +88,25 @@ bias ([accuracy](../accuracy.md#real-flights)).
 | NC State 2021 VDF | P | L1520T | 7 mph | 2,995 | | N21F 100, 104–105 |
 | NC State 2022 VDF | P | L850W | 15 mph | 3,294 | 0.5 lb ballast | N22F 47, 83, 86 |
 | NC State 2024 re-flight | W 52.5 lb | L1940X | 7 mph | 3,812 | | N24Ad 6, 13–14 |
-| NC State 2024 launch week | W 48.8 lb | L1940X | 2.5 mph | 4,038 | motor liner failure | N24PL 6–7 |
+| NC State 2024 launch week | W 48.8 lb | L1940X | 2.5 mph | 4,038 | motor liner failure | N24PL 6–7, 13 |
 | Georgia Tech 2018 VDF | P | L1390G | 7.8 mph, gusts 33 | 4,734 | | G18f 67, 81, 84 |
 | Purdue 2020 VDF | P | L1115 | 14 mph | 4,588 mean | motor mass guessed | U20f 35–36, 45, 48 |
 | Notre Dame 2018 VDF | P | L1115 | 2 mph | 5,765 | | D18f 102, 106 |
-| Notre Dame 2021 VDF | P | L1395 | 8 mph | 5,472 | | D21F 11–14, 83–85 |
+| Notre Dame 2021 VDF | P | L1395 | 8 mph | 5,472 | drag tabs out slightly near apogee | D21F 11–14, 83–85 |
 | Notre Dame 2022 VDF | P | L2200G | 13 mph | 5,815 | | D22F 26, 69 |
 | USF 2018 flight 1, 01-27 | P | L1420R | 14 mph, gusts 20 | 5,578 mean | | F18f 25, 65–67 |
-| Toledo 2026 subscale | W | H130W | 4 mph | 1,225 | | T26C 49–50 |
-| Toledo 2026 VDF | W 40.9 lb | L1256WS | 5 mph | 5,327 | | T26F 98–99, 105 |
+| Toledo 2026 subscale | W, no value | H130W | 4 mph | 1,225 | log as CSV | T26C 46, 49–50 |
+| Toledo 2026 VDF | W 40.9 lb | L1256WS | 5 mph | 5,327 | log as CSV | T26F 98–101, 105 |
 
-- **Counts** (by hand from the table): NC State 6, Notre Dame 3, Toledo 2, Georgia Tech 1, Purdue 1, USF 1; 13
-  without a motor anomaly. NC State 2017's "actual component weights" (p. 13) is the weakest P: it doesn't say each
-  part was put on a scale.
+- **Counts** (by hand from the table): NC State 6, Notre Dame 3, Toledo 2, Georgia Tech 1, Purdue 1, USF 1. Toledo's
+  subscale says it "was weighed" but prints no mass (T26C p. 50), so 13 count; 12 of those had no motor anomaly, and
+  Notre Dame 2021's apogee control was "Active", its tabs extending slightly near apogee (D21F p. 83–84). NC State
+  2017's "actual component weights" (p. 13) is the weakest P: it doesn't say each part was put on a scale.
 - **Left out:** NC State 2020 says its RockSim file was updated "once the full-scale vehicle was assembled and
   measured" (p. 37), but prints no measured figure; the 47.5 lb on p. 12 is the design's. The 2025-03-08 flight (§2)
   is class T. Other team-seasons scanned gave masses of type T or none near a flight.
-- **Printed log:** NC State's 2024 FRR prints its VDF's RRC3 log (20 Hz, 999 rows, p. 271–291) and Eggtimer Quasar log
-  (439 rows, p. 292–300) as text [N24F]. That is the only scoring-altimeter log in data form beside a mass, and the
-  mass is an as-built table (T), so it is not usable here.
+- **Printed log:** NC State's 2024 FRR prints its VDF's RRC3 log (20 Hz, 1,000 rows, p. 271–291) and Eggtimer Quasar
+  log (439 rows, p. 292–300) as text [N24F]. The mass beside it is an as-built table (T), so it is not usable here.
 - **Design files:** none of the 14 has one public; each rocket would be rebuilt from drawings and tables, with fin
   shapes, nose shapes and finish read from figures.
 
@@ -101,17 +120,18 @@ bias ([accuracy](../accuracy.md#real-flights)).
   then 4 counts) 7.6 s before apogee, while the team's note says the brakes opened in free fall.
 - **NC State launch catalog** [NL] (no terms stated): six 2025-26 flights, each with motor, "Dry Mass (kg)", wind,
   rail angle, apogee, EasyMini and Fluctus CSVs, an air-brake log and an OpenRocket file; four of them add to the
-  AirbrakesV2 set, for 14 NC State flights. The altimeter logs agree with the page's apogees within 1.32% (the largest
-  gap, Government Work 2: page 2,376.6 ft against 2,408 ft on the EasyMini). Five of the six flights commanded the
-  brakes open in coast. The sixth, the 2026 subscale 2 (J825R, 22.7 km/h, 13° rod), is the closest near-miss: its
-  dry mass is 5.15 kg on the page and 4.77 kg in the metadata, method unstated, and the team says the motor
-  underperformed ("undershot our apogee because of the motor").
-- **Notre Dame** [ND1, ND2] (`EamonTracey/apogee` and `apogee2`, MIT): the apogee-control computers' logs, 30–40 Hz
-  BMP390 barometer and IMU with the commanded servo angle. 2023-24: 4 flights, brakes commanded open in coast on all.
-  2024-25: 2 subscale logs (no servo column), 4 full-scale flights and one log with only ground rows. Only Huntsville
-  2025-05-04 kept 0° through coast; its log peaks at about 1,479 m (4,850 ft) above the pad. The repositories state
-  no motor per flight, no launch-day wind and only a model mass (the 2024-25 vehicle file: 1.01243 slug, 14.78 kg,
-  apparently without motor). The team's 2024-25 reports are not online.
+  AirbrakesV2 set, for 14 NC State flights. The altimeter logs agree with the page's apogees within 1.33% (the largest
+  gap, Government Work 2: page 2,376.6 ft against 2,408.2 ft on the EasyMini, 1.33%). Five of the six flights
+  commanded the brakes open in coast. The sixth, the 2026 subscale 2 (J825R, 22.7 km/h, 13° rod), is the closest
+  near-miss: its dry mass is 5.15 kg on the page and 4.77 kg in the metadata, method unstated, and the AirbrakesV2
+  metadata says the motor underperformed ("undershot our apogee because of the motor") [NA].
+- **Notre Dame** [ND1, ND2] (`EamonTracey/apogee` and `apogee2`, MIT): the apogee-control computers' logs: BMP390
+  barometer and IMU at 38–50 Hz (2023-24) and about 30 Hz (2024-25), with the commanded servo angle. 2023-24: 4
+  flights, brakes commanded open in coast on all. 2024-25: 2 subscale logs (no servo column), 4 full-scale flights and
+  one log with only ground rows. Only Huntsville 2025-05-04 kept 0° through coast; its log peaks at about 1,479 m
+  (4,850 ft) above the pad. The repositories state no motor per flight (`apogee2` holds AeroTech L1940X and I600R
+  motor files), no launch-day wind and only a model mass (the 2024-25 vehicle file: 1.01243 slug, 14.78 kg, apparently
+  without motor). The team's 2024-25 reports are not online.
 - **USF SOAR** [USF] (MIT): three 2024-25 flights. The 2024-12-21 subscale RRC3 log (20 Hz, peak 2,184 ft), a rough
   Huntsville telemetry log and a 2025-06-06 air-brake flight; no mass, motor or wind. **UND** (MIT) logs and `.ork`
   files are covered by [und-flight-configs](und-flight-configs.md); no report states a flown mass.
@@ -129,11 +149,12 @@ bias ([accuracy](../accuracy.md#real-flights)).
 
 ## What this suggests
 
-1. **No public Student Launch set can isolate the drag share of the bias yet.** No flight meets every test, and the
-   nearest has a computed mass, gusty wind and weathercocking, which can't be told apart from a drag error.
-2. **The 13 clean flights in §3 are an apogee-only check with design error stated**, not a drag measurement: they
-   fix the mass but need every rocket rebuilt from drawings. If they were flown, they would test the bias sign at a
-   known mass, as [as-built-mass-growth](as-built-mass-growth.md) §4's six flights did with the teams' own tools.
+1. **No public Student Launch set can isolate the drag share of the bias yet.** No flight meets every test: Toledo's
+   2026 VDF fails only on terms, and NC State's 2025-03-08 VDF has a computed mass, gusty wind and weathercocking.
+2. **The 11 clean flights in §3 are an apogee-only check with design error stated**, not a drag measurement: they fix
+   the mass but need every rocket rebuilt from drawings. If they were flown, they would test the bias sign at a known
+   mass, as [as-built-mass-growth](as-built-mass-growth.md) §4's six flights did with the teams' own tools. Toledo's
+   2026 VDF is the one with the scoring altimeter's log as data; it flew 30.6% above its team's prediction.
 3. **NC State's 2025-26 catalog is the nearest thing to a public validation set**: OpenRocket file, motor, wind, rail
    angle and three logs per flight. It can only serve a model of commanded air brakes, or the one flight without
    them, and its terms allow citing only. An air-brake case would test drag-device modeling, not the mass question.
@@ -153,6 +174,7 @@ bias ([accuracy](../accuracy.md#real-flights)).
   could come from a public airport record.
 - Where the brakes were on flights with no encoder (2024-09-28, both 2024-11-16 flights) or one that reads 0
   even when commanded open (the four 2026 full-scale flights).
+- Toledo's terms for its linked logs: no license is stated on the reports or the Drive files.
 - The Toledo 2024 re-flight's mass method: the earlier note calls it weighed; this scan found no statement.
 
 ## Sources (read 2026-10-18)
@@ -162,9 +184,10 @@ bias ([accuracy](../accuracy.md#real-flights)).
   <https://www.nasa.gov/wp-content/uploads/2023/08/2024-sli-handbook-final-copy1.pdf>.
 - **N** NC State report archive, <https://ncsurocketry.org/report-archive/>: FRRs N17f, N18f, N20f, N21F, N22F, N24F,
   N25F; addendum N24Ad; PLAR N24PL (file names as in student-launch-apogees).
-- **NL** NC State launch catalog, <https://ncsurocketry.org/launches/>, and its CSVs under
+- **NL** NC State launch catalog, <https://ncsurocketry.org/launch-catalog/> (was `/launches/`, now 404), CSVs under
   `wp-content/uploads/2026/04/`.
-- **NA** <https://github.com/NCSU-High-Powered-Rocketry-Club/AirbrakesV2> at afdcecb44e97, `launch_data/`.
+- **NA** <https://github.com/NCSU-High-Powered-Rocketry-Club/AirbrakesV2> at afdcecb44e97, `launch_data/`;
+  FlightMetrics, <https://github.com/NCSU-High-Powered-Rocketry-Club/FlightMetrics> (MIT).
 - **ND1** <https://github.com/EamonTracey/apogee> at 8d704c2454a3; **ND2** <https://github.com/EamonTracey/apogee2> at
   4bbc068b5b95, `data/launches/`, `data/vehicles/fullscale25.json`.
 - **USF** <https://github.com/usfsoar/NSL_25-26_EECS> at 78e7344ec3f7, `24-25_Code/Launch_Data/`.
@@ -172,5 +195,5 @@ bias ([accuracy](../accuracy.md#real-flights)).
   <https://purdueseds.space/wp-content/uploads/psp-sl/casper/frr/Purdue%20University%20-%202020%20FRR%20Report.pdf>.
 - **D18f, D21F, D22F** Notre Dame FRRs, <https://seniordesign.ee.nd.edu/>. **F18f** USF 2018 FRR (Wayback copy, as in
   student-launch-apogees). **T26C, T26F** Toledo 2026 CDR and FRR,
-  <https://www.utrocketry.club/projects/nasa-usli-2026>.
+  <https://www.utrocketry.club/projects/nasa-usli-2026>; their linked log CSVs on Google Drive (read 2026-11-07).
 - **FAMU-FSU 2024**, <https://eng-web1.eng.famu.fsu.edu/me/senior_design/2024/team502/documents/launches/>.
