@@ -113,20 +113,22 @@ Placed with [ADR-328][adr-328], which promotes the first; the other three are SO
   apogee case for that kit. Workflow: the kit built from its maker's published dimensions and
   masses, flown on the three motors in the archive's stated conditions, each prediction merged
   before its error, as [M2.3d][m2-3d] orders. Moves: a cited comparison beside `accuracy.public`,
-  per flight only if the archive's license allows (it says only "Creative Commons", with no variant). *Done when:* the three
-  flights are flown with each input's source and the archive's license recorded (aggregates only if
-  it is unclear), and the report gives HPR Sim's errors beside the other tool's, dated.
+  per flight only if the archive's license allows (it names "Creative Commons", no variant). *Done
+  when:* the three flights are flown with each input's source and the archive's license recorded
+  (aggregates only if it is unclear), and the report gives HPR Sim's errors beside the other tool's,
+  dated.
 - SOON: a part's mass held to its material. User: a flyer whose design holds a mass typed ten times
-  off, as one recovery tool's catalog did until a 2026-11-07 test release, listing a 462 g parachute at 46 g ([its
-  release notes][recsys]). A bundled motor's mass is checked against its record ([#1233][i1233]); a
-  part's typed or library mass isn't checked against its size. Workflow: at import, each part's mass
-  is set against its volume times the density range of its stated material, or of any hobby material
-  when none is stated, and a mass outside it is named with the part, the mass and the range. Moves:
-  `accuracy.collection`, as a shown diagnosis: the mean absolute apogee error of the flights with a
-  flagged part beside the rest. *Done when:* the density ranges are committed with their sources;
-  the count of the collection's designs with a flagged part is reported, as an aggregate; a test
-  fails when a tenfold slip either way in a body tube's or a parachute's mass goes unflagged; and
-  the share of ordinary parts flagged is counted, as a false-alarm rate.
+  off, as one recovery tool's catalog did until a 2026-11-07 test release, listing a 462 g parachute
+  at 46 g ([its release notes][recsys]). A bundled motor's mass is checked against its record
+  ([#1233][i1233]); a part's typed or library mass isn't checked against its size. Workflow: at
+  import, each part's mass is set against its volume times the density range of its stated material,
+  or of any hobby material when none is stated, and a mass outside it is named with the part, the
+  mass and the range. Moves: `accuracy.collection`, as a shown diagnosis: the mean absolute apogee
+  error of the flights with a flagged part beside the rest. *Done when:* the density ranges are
+  committed with their sources; the count of the collection's designs with a flagged part is
+  reported, as an aggregate; a test fails when a tenfold slip either way in a body tube's or a
+  parachute's mass goes unflagged; and the share of ordinary parts flagged is counted, as a
+  false-alarm rate.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -180,12 +182,10 @@ Placed with [ADR-328][adr-328], which promotes the first; the other three are SO
 [adr-289]: ../decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md
 [adr-294]: ../decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md
 [adr-303]: ../decisions/0303-the-2026-10-28-review-the-rocketpy-peaks-tightened.md
-[adr-308]: ../decisions/0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md
 [adr-310]: ../decisions/0310-the-2026-10-31-review-the-rocketpy-rail-exit-and-landing-speeds-tightened.md
 [adr-311]: ../decisions/0311-the-2026-10-31-review-every-flight-openrocket-flies.md
 [adr-305]: ../decisions/0305-the-2026-10-28-licensing-calls.md
 [adr-318]: ../decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md
-[or-3431]: https://github.com/openrocket/openrocket/pull/3431
 [adr-212]: ../decisions/0212-measure-against-openrockets-newest-release.md
 [m2-3c9]: ../decisions-and-roadmap.md#m2-3c9
 [adr-319]: ../decisions/0319-the-2026-11-04-review-the-rocketpy-descents-tightened.md
