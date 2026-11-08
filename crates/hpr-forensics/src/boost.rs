@@ -138,42 +138,71 @@ fn line(points: &[(f64, f64)]) -> Option<(f64, f64)> {
 /// aren't handled. Where most residuals are 0, as on a quantized pad, only the samples on the line
 /// are kept.
 /// `None` where fewer than [`readings::SPEED_MIN_SAMPLES`] are kept or the times don't spread.
-fn robust_line(window: &VecDeque<(f64, f64)>) -> Option<(f64, f64)> {
-    let points: Vec<(f64, f64)> = window.iter().copied().collect();
+fn robust_line(window: &VecDeque<(f64, f64)>, scratch: &mut Scratch) -> Option<(f64, f64)> {
+    let Scratch {
+        points,
+        values,
+        residuals,
+        kept,
+    } = scratch;
+    points.clear();
+    points.extend(window.iter().copied());
     let t0 = points.first()?.0;
     // The first line, robust to one bad sample: the median of the slopes between samples half the
     // window apart, each sample in at most two of them, and the median of the heights' offsets.
     let apart = (points.len() / 2).max(1);
-    let slope = median(
+    values.clear();
+    values.extend(
         points
             .iter()
             .zip(points.iter().skip(apart))
             .filter(|(a, b)| b.0 > a.0)
             .map(|(a, b)| (b.1 - a.1) / (b.0 - a.0)),
     );
-    let intercept = median(points.iter().map(|&(t, h)| h - slope * (t - t0)));
+    let slope = median_of(values);
+    values.clear();
+    values.extend(points.iter().map(|&(t, h)| h - slope * (t - t0)));
+    let intercept = median_of(values);
     if !slope.is_finite() || !intercept.is_finite() {
         return None;
     }
-    let residuals: Vec<f64> = points
-        .iter()
-        .map(|&(t, h)| h - (intercept + slope * (t - t0)))
-        .collect();
-    let center = median(residuals.iter().copied());
-    let spread = 1.4826 * median(residuals.iter().map(|r| (r - center).abs()));
+    residuals.clear();
+    residuals.extend(
+        points
+            .iter()
+            .map(|&(t, h)| h - (intercept + slope * (t - t0))),
+    );
+    values.clear();
+    values.extend(residuals.iter().copied());
+    let center = median_of(values);
+    values.clear();
+    values.extend(residuals.iter().map(|r| (r - center).abs()));
+    let spread = 1.4826 * median_of(values);
     let limit = readings::SPIKE_THRESHOLD * spread;
-    let kept: Vec<(f64, f64)> = points
-        .iter()
-        .zip(&residuals)
-        .filter(|&(_, r)| (r - center).abs() <= limit)
-        .map(|(&point, _)| point)
-        .collect();
+    kept.clear();
+    kept.extend(
+        points
+            .iter()
+            .zip(residuals.iter())
+            .filter(|&(_, r)| (r - center).abs() <= limit)
+            .map(|(&point, _)| point),
+    );
     if kept.len() < readings::SPEED_MIN_SAMPLES {
         return None;
     }
-    let (slope, intercept) = line(&kept)?;
+    let (slope, intercept) = line(kept)?;
     let last_s = kept.last()?.0 - kept.first()?.0;
     Some((slope, intercept + slope * last_s))
+}
+
+/// The buffers [`robust_line`] fills at each sample, kept from one sample to the next so a walk
+/// allocates them once rather than seven times a sample.
+#[derive(Default)]
+struct Scratch {
+    points: Vec<(f64, f64)>,
+    values: Vec<f64>,
+    residuals: Vec<f64>,
+    kept: Vec<(f64, f64)>,
 }
 
 /// `log` with each channel kept up to its first time that doesn't follow the one before it: a
@@ -291,6 +320,7 @@ fn walk(log: &FlightLog, hold_s: f64, fell: &mut dyn FnMut(f64, f64, f64)) -> Re
     // The speeds of the last `hold_s` since liftoff, to tell a fall still going from one settled.
     let mut recent: VecDeque<(f64, f64)> = VecDeque::new();
     let mut full = false;
+    let mut scratch = Scratch::default();
     for (index, (&t, &h)) in times.iter().zip(&heights).enumerate() {
         // A sample out of order or not a number is passed over, as it is read.
         if !t.is_finite() || !h.is_finite() || t <= last_s {
@@ -309,7 +339,7 @@ fn walk(log: &FlightLog, hold_s: f64, fell: &mut dyn FnMut(f64, f64, f64)) -> Re
             continue;
         }
         full = true;
-        let Some((speed, level)) = robust_line(&window) else {
+        let Some((speed, level)) = robust_line(&window, &mut scratch) else {
             continue;
         };
         // Liftoff where the window's line, refitted without its outliers, stands high enough
@@ -332,13 +362,22 @@ fn walk(log: &FlightLog, hold_s: f64, fell: &mut dyn FnMut(f64, f64, f64)) -> Re
         while recent.front().is_some_and(|&(s, _)| s < t - hold_s) {
             recent.pop_front();
         }
-        let lowest = recent.iter().all(|&(_, v)| speed <= v);
         recent.push_back((t, speed));
+        // Whether this speed is the lowest of the last `hold_s`, the samples before this one; read
+        // only once the fall has held, so a walk with no hold to end it (the tests' `fell` walks,
+        // with an infinite hold and so every sample since liftoff kept) doesn't rescan the climb at
+        // every sample.
+        let lowest = |recent: &VecDeque<(f64, f64)>| {
+            recent
+                .iter()
+                .take(recent.len() - 1)
+                .all(|&(_, v)| speed <= v)
+        };
         match top {
             Some((best, at)) if best - speed >= (DROP_SHARE * best).max(DROP_FLOOR_M_S) => {
                 let (since, deepest) = falling.get_or_insert((t, 0.0));
                 *deepest = deepest.max(best - speed);
-                if t - *since >= hold_s && lowest {
+                if t - *since >= hold_s && lowest(&recent) {
                     return Ok(Cut {
                         index,
                         time_s: t,
@@ -383,18 +422,23 @@ fn most_in(span_s: f64) -> usize {
     most + 1
 }
 
-/// The median of `values`: the middle one, or the mean of the middle two.
-fn median(values: impl Iterator<Item = f64>) -> f64 {
-    let mut sorted: Vec<f64> = values.collect();
-    sorted.sort_by(f64::total_cmp);
-    let mid = sorted.len() / 2;
-    match (sorted.len() % 2, sorted.get(mid)) {
-        (1, Some(&middle)) => middle,
-        (_, Some(&upper)) => sorted
-            .get(mid.wrapping_sub(1))
-            .map_or(upper, |&lower| (lower + upper) / 2.0),
-        (_, None) => f64::NAN,
+/// The median of `values`, reordering them: the middle one, or the mean of the middle two, in
+/// `f64::total_cmp`'s order. Selection finds the same middle values a full sort would put there.
+fn median_of(values: &mut [f64]) -> f64 {
+    let count = values.len();
+    if count == 0 {
+        return f64::NAN;
     }
+    let (lower, &mut upper, _) = values.select_nth_unstable_by(count / 2, f64::total_cmp);
+    if count % 2 == 1 {
+        return upper;
+    }
+    // The largest of those below the middle is the sorted order's one before it.
+    lower
+        .iter()
+        .copied()
+        .max_by(f64::total_cmp)
+        .map_or(upper, |below| (below + upper) / 2.0)
 }
 
 /// Whether a sample at `t` stays in a log cut at `cut_s`: at or before it, or with no time to
@@ -896,6 +940,55 @@ mod tests {
              spiked logs {moved} moved, by {moved_most_s:.3} s at most, {made_or_lost} made or lost"
         );
         assert!(cut_count >= 51, "{cut_count} cut");
+    }
+
+    /// [`median_of`] gives exactly what sorting by `f64::total_cmp` and taking the middle gives,
+    /// on odd and even counts, repeats, signed zeros, infinities and NaN.
+    #[test]
+    fn the_median_by_selection_is_the_sorted_one() {
+        let sorted_median = |values: &[f64]| {
+            let mut sorted = values.to_vec();
+            sorted.sort_by(f64::total_cmp);
+            let mid = sorted.len() / 2;
+            match (sorted.len() % 2, sorted.get(mid)) {
+                (1, Some(&middle)) => middle,
+                (_, Some(&upper)) => sorted
+                    .get(mid.wrapping_sub(1))
+                    .map_or(upper, |&lower| (lower + upper) / 2.0),
+                (_, None) => f64::NAN,
+            }
+        };
+        let mut state = 0x9e37_79b9_7f4a_7c15_u64;
+        let specials = [
+            0.0,
+            -0.0,
+            1.0,
+            f64::INFINITY,
+            f64::NEG_INFINITY,
+            f64::NAN,
+            1e-300,
+        ];
+        for count in 0..40 {
+            for round in 0..50 {
+                let values: Vec<f64> = (0..count)
+                    .map(|_| {
+                        state ^= state << 13;
+                        state ^= state >> 7;
+                        state ^= state << 17;
+                        let pick = usize::try_from(state % 64).unwrap_or(0);
+                        if round % 5 == 0 && pick < specials.len() {
+                            specials[pick]
+                        } else {
+                            // Coarse values repeat often.
+                            f64::from(u32::try_from(state % 7).unwrap_or(0)) - 3.0
+                        }
+                    })
+                    .collect();
+                let want = sorted_median(&values);
+                let got = median_of(&mut values.clone());
+                assert_eq!(want.to_bits(), got.to_bits(), "{values:?}");
+            }
+        }
     }
 
     /// A barometer's dip in the boost isn't burnout. Over set A's first 200 synthetic flights, on
