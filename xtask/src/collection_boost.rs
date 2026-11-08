@@ -152,13 +152,11 @@ pub struct Report {
 /// log may still be another altimeter's: two in one rocket often agree that closely.
 pub const GAP_SHARE: f64 = 0.02;
 
-/// A log read: its own apogee reading, its liftoff on its clock, and the boost's cut or why
-/// there's none.
+/// A log read: its own apogee reading and its liftoff on its clock.
 struct Chosen {
     log: FlightLog,
     apogee_m: f64,
     liftoff_s: Option<f64>,
-    cut: Result<boost::Cut, NoCut>,
 }
 
 /// A refusal's name in the report.
@@ -282,7 +280,6 @@ fn count(root: &Path, entries: &[Entry], burns: &BTreeMap<String, f64>) -> Resul
             read.push(Chosen {
                 apogee_m: apogee.height_m,
                 liftoff_s: readings.liftoff.value().map(|l| l.time_s),
-                cut: boost::try_cut(&log),
                 log,
             });
         }
@@ -290,6 +287,14 @@ fn count(root: &Path, entries: &[Entry], burns: &BTreeMap<String, f64>) -> Resul
             report.no_log_read += 1;
             continue;
         }
+        // The candidates' apogees, to count where the choice had others to choose from (#1332).
+        let (low, high) = read
+            .iter()
+            .fold((f64::INFINITY, f64::NEG_INFINITY), |(l, h), c| {
+                (l.min(c.apogee_m), h.max(c.apogee_m))
+            });
+        let other_logs = read.len() > 1;
+        let other_logs_apart = other_logs && high - low > GAP_SHARE * entry.logged_apogee_m;
         let Some(chosen) = choose(read, |c| c.apogee_m, entry.logged_apogee_m) else {
             report.no_apogee += 1;
             continue;
@@ -298,7 +303,8 @@ fn count(root: &Path, entries: &[Entry], burns: &BTreeMap<String, f64>) -> Resul
         if (chosen.apogee_m - entry.logged_apogee_m).abs() > GAP_SHARE * entry.logged_apogee_m {
             report.chosen_past_gap += 1;
         }
-        match &chosen.cut {
+        // Only the chosen log is cut.
+        match &boost::try_cut(&chosen.log) {
             Ok(cut) => {
                 report.cut += 1;
                 let in_burn =
@@ -312,6 +318,8 @@ fn count(root: &Path, entries: &[Entry], burns: &BTreeMap<String, f64>) -> Resul
                     flight_id: entry.flight_id.clone(),
                     log: chosen.log,
                     cut_in_burn: in_burn,
+                    other_logs,
+                    other_logs_apart,
                 });
             }
             Err(why) => {

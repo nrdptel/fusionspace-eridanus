@@ -43,6 +43,8 @@ Of the flights not left out, 241 files were tried, 199 read on their own and 117
 | … with a deployment before apogee | 4 | 6 |
 | … cut less than the motor's burn after liftoff | 0 | 0 |
 | … cut, the burn or the liftoff not known | 2 | 1 |
+| … with another barometer's log of the flight | 6 | 7 |
+| … … the logs' apogees more than 2% apart | 0 | 0 |
 | **every flight predicted** | **12** | **9** |
 | prediction from the boost: mean absolute error | 3.22% | 3.56% |
 | … mean error with its sign | -0.05% | +1.50% |
@@ -60,7 +62,7 @@ Of the flights not left out, 241 files were tried, 199 read on their own and 117
 | … paired bootstrap 95% interval | -12.66 to -2.28 | -10.38 to -3.50 |
 | … exact sign-flip 95% interval | -13.76 to -0.79 | unbounded |
 
-A difference below zero means the prediction came closer. Both methods fly nothing deployed, and the fit reads the log only up to its cut, so a deployment before apogee lowers the logged apogee beneath both; the rows without those flights leave them out, as the forward report's own set does. Interval ends are rounded outward. The bootstrap resamples each half's flights 10,000 times (seed 329), each flight's two errors kept together, and takes the 2.5% and 97.5% points of the resampled means. On a few flights it can cover less than 95%, so the exact sign-flip interval, which the public flights' report uses, stands beside it: it assumes only that each flight's difference is drawn independently and symmetrically about the center.
+A difference below zero means the prediction came closer. Both methods fly nothing deployed, and the fit reads the log only up to its cut, so a deployment before apogee lowers the logged apogee beneath both; the rows without those flights leave them out, as the forward report's own set does. Where a flight has other logs on a barometer's track, the rule above takes the one nearest the logged apogee; two rows count how often there was such a choice, and how often the candidates' apogees lay more than 2% apart, where the choice could move an error. Interval ends are rounded outward. The bootstrap resamples each half's flights 10,000 times (seed 329), each flight's two errors kept together, and takes the 2.5% and 97.5% points of the resampled means. On a few flights it can cover less than 95%, so the exact sign-flip interval, which the public flights' report uses, stands beside it: it assumes only that each flight's difference is drawn independently and symmetrically about the center.
 
 **The calibration half's fits.** 12 fits of the logs up to the cut, 12 of them converged; their residuals' RMS averages 2.72 m. Over those fits:
 

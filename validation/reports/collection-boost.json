@@ -32,6 +32,8 @@
         "early_deployments": 4,
         "cut_in_burn": 0,
         "cut_burn_unknown": 2,
+        "with_other_logs": 6,
+        "other_logs_apart": 0,
         "every": {
           "flights": 12,
           "prediction_mean_absolute_percent": 3.2187205831233743,
@@ -76,6 +78,8 @@
         "early_deployments": 6,
         "cut_in_burn": 0,
         "cut_burn_unknown": 1,
+        "with_other_logs": 7,
+        "other_logs_apart": 0,
         "every": {
           "flights": 9,
           "prediction_mean_absolute_percent": 3.564541705974107,

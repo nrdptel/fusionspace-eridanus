@@ -151,6 +151,11 @@ pub(crate) struct CutFlight {
     /// Whether the cut came less than the motor's burn after the log's liftoff; `None` where
     /// either isn't known.
     pub cut_in_burn: Option<bool>,
+    /// Whether another of the flight's logs on a barometer's track gave an apogee.
+    pub other_logs: bool,
+    /// Whether those logs' apogees lie more than `collection_boost::GAP_SHARE` of the logged
+    /// apogee apart.
+    pub other_logs_apart: bool,
 }
 
 /// One flight's outcome, kept on this machine.
@@ -161,6 +166,8 @@ struct Outcome {
     result: Result<(f64, f64, Fit), String>,
     early: bool,
     cut_in_burn: Option<bool>,
+    other_logs: bool,
+    other_logs_apart: bool,
     same_flight_m: Option<f64>,
 }
 
@@ -193,6 +200,8 @@ fn predict(
                 result: Err((*why).to_owned()),
                 early: false,
                 cut_in_burn: cut.cut_in_burn,
+                other_logs: cut.other_logs,
+                other_logs_apart: cut.other_logs_apart,
                 same_flight_m: None,
             });
         }
@@ -238,6 +247,8 @@ fn predict(
         result,
         early: forward.early,
         cut_in_burn: cut.cut_in_burn,
+        other_logs: cut.other_logs,
+        other_logs_apart: cut.other_logs_apart,
         same_flight_m: Some(same_flight_m),
     })
 }
@@ -289,6 +300,11 @@ pub struct Half {
     pub cut_in_burn: usize,
     /// Of those, the ones whose burn or liftoff isn't known.
     pub cut_burn_unknown: usize,
+    /// Of those, the ones with another log on a barometer's track that gave an apogee, which the
+    /// rule for choosing a log passed over.
+    pub with_other_logs: usize,
+    /// Of those, the ones whose logs' apogees lie more than 2% of the logged apogee apart.
+    pub other_logs_apart: usize,
     /// The errors on every flight predicted.
     pub every: Errors,
     /// The errors on those without a deployment before apogee.
@@ -397,6 +413,8 @@ impl Half {
                 .iter()
                 .filter(|(o, _, _)| o.cut_in_burn.is_none())
                 .count(),
+            with_other_logs: rows.iter().filter(|(o, _, _)| o.other_logs).count(),
+            other_logs_apart: rows.iter().filter(|(o, _, _)| o.other_logs_apart).count(),
             every: Errors::of(rows.iter().map(|(_, p, f)| (*p, *f))),
             without_early: Errors::of(
                 rows.iter()
@@ -413,6 +431,8 @@ impl Half {
             && self.cut_in_burn + self.cut_burn_unknown <= self.predicted
             && self.every.flights == self.predicted
             && self.without_early.flights + self.early_deployments == self.predicted
+            && self.other_logs_apart <= self.with_other_logs
+            && self.with_other_logs <= self.predicted
     }
 }
 
@@ -644,7 +664,7 @@ impl Predictions {
                 n(held)
             );
         }
-        let counts: [Row; 4] = [
+        let counts: [Row; 6] = [
             ("predicted", |h| h.predicted.to_string()),
             ("… with a deployment before apogee", |h| {
                 h.early_deployments.to_string()
@@ -654,6 +674,12 @@ impl Predictions {
             }),
             ("… cut, the burn or the liftoff not known", |h| {
                 h.cut_burn_unknown.to_string()
+            }),
+            ("… with another barometer's log of the flight", |h| {
+                h.with_other_logs.to_string()
+            }),
+            ("… … the logs' apogees more than 2% apart", |h| {
+                h.other_logs_apart.to_string()
             }),
         ];
         for (label, value) in counts {
@@ -717,7 +743,11 @@ impl Predictions {
             "\nA difference below zero means the prediction came closer. Both methods fly nothing \
              deployed, and the fit reads the log only up to its cut, so a deployment before apogee \
              lowers the logged apogee beneath both; the rows without those flights leave them \
-             out, as the forward report's own set does. Interval ends are rounded outward. The \
+             out, as the forward report's own set does. Where a flight has other logs on a \
+             barometer's track, the rule above takes the one nearest the logged apogee; two rows \
+             count how often there was such a choice, and how often the candidates' apogees lay \
+             more than 2% apart, where the choice could move an error. Interval ends are rounded \
+             outward. The \
              bootstrap \
              resamples each half's flights {} times (seed {}), each flight's two errors kept \
              together, and takes the 2.5% and 97.5% points of the resampled means. On a few \
@@ -786,6 +816,8 @@ mod tests {
             result: result.map(|(p, f)| (p, f, fit())).map_err(str::to_owned),
             early,
             cut_in_burn: Some(false),
+            other_logs: early,
+            other_logs_apart: false,
             same_flight_m: Some(0.1),
         }
     }
@@ -805,6 +837,7 @@ mod tests {
         assert_eq!(half.predicted, 2);
         assert_eq!(half.unpredicted.get(NOT_REACHED), Some(&1));
         assert_eq!(half.early_deployments, 1);
+        assert_eq!((half.with_other_logs, half.other_logs_apart), (1, 0));
         let every = &half.every;
         assert_eq!(every.flights, 2);
         assert_eq!(every.prediction_mean_absolute_percent, Some(3.0));

@@ -10,6 +10,7 @@
 [adr-325]: 0325-m7-3d2-the-public-flights-prediction-from-the-boost.md
 [adr-326]: 0326-m7-3d3-in-four-the-halves-sealed-first.md
 [i181]: https://github.com/nrdptel/fusionspace-eridanus/issues/181
+[i1332]: https://github.com/nrdptel/fusionspace-eridanus/issues/1332
 [i359]: https://github.com/nrdptel/fusionspace-eridanus/issues/359
 [i364]: https://github.com/nrdptel/fusionspace-eridanus/issues/364
 [m7-3]: ../ROADMAP.md#phase-5-flight-data-and-forensics
@@ -66,6 +67,15 @@ was computed.
    committed in `validation/reports/held-out-fits.sha256`, and `fixture-flights --check` fails
    when the recomputed aggregates' digest differs. Nothing is given per flight
    ([ADR-151][adr-151]).
+
+8. **The log's choice, bounded by a count ([#1332][i1332]).** The rule takes, of a flight's logs
+   on a barometer's track, the one whose apogee is nearest the logged one. A gain error in a log
+   would scale its boost's heights too, so the page counts where the rule had a choice: 13 of the
+   21 predicted flights had another such log (6 and 7 by half), and on none did those logs'
+   apogees lie more than 2% apart. Only the chosen log is cut now; the counts didn't move. The
+   heights are like with like: the fit sets the log's readings against the simulated barometer's
+   readings in the day's air, and both errors set a height climbed against the logged apogee as
+   a height climbed. #1332's test of the counting on invented logs stays open.
 
 **What it shows.** The prediction's mean absolute error is below the forward simulation's in
 both halves, and in both sets of each. Every paired bootstrap interval lies below zero, and so
