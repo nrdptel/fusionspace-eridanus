@@ -36,18 +36,18 @@ Mach 1.
 | Flight | Motor | Log | What it waits on |
 |---|---|---|---|
 | Astra, EuRoC 2022 | Cesaroni L1350 | 64 rows, 1 Hz | its weather, a [netCDF-4][netcdf] file HPR Sim's reader refuses ([#478][i478]); a design from the example's inputs |
-| Andromeda, EuRoC 2022 | Cesaroni M2020; the team's curve, 17% more impulse than the catalog's | 1,139 rows, 20 Hz to apogee, 2 Hz after | the same |
+| Andromeda, EuRoC 2022 | Cesaroni M2020; the team's curve, 17% more impulse than the catalog's | 1,139 rows, 20 Hz to just past apogee, 2 Hz after | the same |
 | Erebus 11, EuRoC 2022 | Cesaroni K660 (Inference: its curve integrates within 0.8% of the catalog's) | 746 rows, 20 Hz | the same |
 | Macie XL, flight 1 | AeroTech I284W | StratoLogger `.pf2` | an ejection spike in the log; the logged apogee is 20% above the design file's own stored simulation ([#1266][i1266]) |
 | Macie XL, flight 2 | Cesaroni 601I350 | StratoLogger `.pf2` | the logged apogee is 41% above the stored simulation ([#1266][i1266]) |
 
-RocketPy's code is MIT. Its notebooks record a team's permission to RocketPy (14 of 17, these three among them) and
-no terms for anyone else, so, as the
-real-flights report already does, the logs and the weather file are read from `refs/` and never
-committed; only statistics and SHA-256 hashes are. The Macie XL design and logs are MIT
-(`rlhatcher/rocketry-files`). The design file's stored simulations miss its logs by −16.4% and −29.3%,
-which may point to a mass or a motor the file doesn't record (Inference: the repository doesn't say
-which).
+RocketPy's code is MIT. Its notebooks record that a named person gave permission to use the flight
+data (14 of 17, these three among them), with no terms for anyone else, so, as the real-flights
+report already does, the logs and the weather file are read from `refs/` and never committed; only
+statistics and SHA-256 hashes are. The Macie XL design and logs are MIT
+(`rlhatcher/rocketry-files`). The design file's stored simulations miss its logs by −16.4% and
+−29.3%, which may point to a mass or a motor the file doesn't record (Inference: the repository
+doesn't say which).
 
 **Decision.**
 
@@ -66,21 +66,22 @@ which).
      prediction beside its apogee and error, and fails when a merged prediction differs from the
      flown one without a "revised, because" entry that keeps both numbers. `accuracy.public` and
      `bias.public` are taken over all 12 and shown beside them over the flights whose inputs are
-     all traced, as tagged in (a), and over the merged predictions where any was revised. Moves: `accuracy.public` and `bias.public`, from 7 flights to 12.
+     all traced, as tagged in (a), and over the merged predictions where any was revised. Moves:
+     `accuracy.public` and `bias.public`, from 7 flights to 12.
 2. **Third, after M2.7, before M7.5.** Merged first, the new flights' predictions exist before
-   M7.5's correction does. Their published apogees are already in the research notes, though no
-   log has been read into a reference apogee yet. Merging the predictions first guards against tuning HPR Sim to its own error,
-   not against knowing the target, so each input must come from its named record. Pull requests
-   here are squash-merged ([ADR-326][adr-326]), so only a merged pull request of its own shows the
-   order on `main`. Any of the five that also sit in the private collection follow
-   [ADR-322][adr-322]'s split there, so only those in its held-out half are blind to
-   [M7.5][m7-5]'s fit.
+   M7.5's correction does. Their logged apogees are already in the research notes, though none has
+   been adopted as a reference apogee under the predictions file's rule. Merging the predictions
+   first guards against tuning HPR Sim to its own error, not against knowing the target, so each
+   input must come from its named record. Pull requests here are squash-merged ([ADR-326][adr-326]),
+   so only a merged pull request of its own shows the order on `main`. Any of the five that also sit
+   in the private collection follow [ADR-322][adr-322]'s split there, so only those in its held-out
+   half are blind to [M7.5][m7-5]'s fit.
 3. **No flight is dropped for its error.** A flight whose record can't be traced is flown on what is
    stated and tagged; it stays in the 12. Leaving out the flights that miss most would flatter the
    mean absolute error, the worst side for an accuracy claim.
 
 **Consequences.** Two P-high issues, #478 and #1266, become a milestone with a *done when*. The
-public mean may rise: the Macie XL design file's own stored simulations miss by −16.4% and −29.3%, and
-nothing here promises HPR Sim flies closer. The scoreboard's public rows then rest on 12 flights
+public mean may rise: the Macie XL design file's own stored simulations miss by −16.4% and
+−29.3%, and nothing here promises HPR Sim flies closer. The scoreboard's public rows then rest on 12 flights
 instead of 7. This follows [ADR-209][adr-209] §4's order for new flights; because these flights are
 public, the prediction itself is committed rather than kept private behind a hash.
