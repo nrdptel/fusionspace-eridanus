@@ -422,7 +422,7 @@ burnout. 43 GNSS logs and 106 fast flights were refused. The slowest of those tr
 the pad, the first sample, or halfway or four fifths through the burn. They moved the cut on 8 of the 255 spiked logs of cut flights (785 in all), none by more than 0.70 s (measured).
 Two bad readings side by side moved 9 cuts, by up to 0.70 s. Three side by side moved 23, by up to 1.35 s, and
 lost 40: the speed then read past 227.7 m/s (747 ft/s), so those logs were refused. Every cut found still came after the peak
-and after burnout. Before the cut had to stand 10 m above the pad, three 12 m (39 ft) readings there cut 33 flights on the
+and after burnout. Before the cut had to stand 10 m (32.8 ft) above the pad, three 12 m (39 ft) readings there cut 33 flights on the
 pad, 2.4 to 7.9 s before burnout. A test pins the order, the spikes, the place of every cut and at least 51 cuts; the counts and
 times are measured.
 
