@@ -134,8 +134,9 @@ fn line(points: &[(f64, f64)]) -> Option<(f64, f64)> {
 /// than [`readings::SPIKE_THRESHOLD`] robust standard deviations (1.4826 times the residuals'
 /// median absolute deviation) from their median, the analyzer's Hampel rule (Pearson et al.,
 /// EUSIPCO 2015, §2). One bad sample that far out, a pulse at the port or a corrupt reading, is so
-/// left out of every window that holds it; three side by side can carry the first line with them
-/// (the cut's test measures what that does). Where most residuals are 0, as on a quantized pad, only the samples on the line
+/// left out of every window that holds it; at 20 Hz three side by side can carry the first line
+/// with them (the cut's test measures what that does), and at 8 to 10 Hz, with 5 or 6 samples to
+/// a window, two may (untested). Where most residuals are 0, as on a quantized pad, only the samples on the line
 /// are kept.
 /// `None` where fewer than [`readings::SPEED_MIN_SAMPLES`] are kept or the times don't spread.
 fn robust_line(window: &VecDeque<(f64, f64)>, scratch: &mut Scratch) -> Option<(f64, f64)> {
@@ -249,7 +250,8 @@ fn in_order_count(times: &[f64], cut_s: f64) -> usize {
 /// top speed and [`DROP_FLOOR_M_S`] for [`HOLD_S`], at a speed the lowest of the last [`HOLD_S`].
 /// The cut stands where the window's line is more than [`LIFTOFF_RISE_M`] above the first
 /// window's: three bad samples side by side on the pad can lift the line past that for a sample,
-/// and the speed then falls back as it does at burnout.
+/// and the speed then falls back as it does at burnout. A pad spike faster than the flight's own
+/// top speed, or a step of 10 m or more that stays, can still move the cut ([#1362][i1362]).
 ///
 /// A GNSS receiver's altitude in the boost can drop out at ignition and burnout and lag the
 /// climb, by up to 440 m in one flight a flyer reports, while its fix reads valid
@@ -259,6 +261,7 @@ fn in_order_count(times: &[f64], cut_s: f64) -> usize {
 /// one.
 ///
 /// [gnss]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/gnss-in-boost.md
+/// [i1362]: https://github.com/nrdptel/fusionspace-eridanus/issues/1362
 #[must_use]
 pub fn find_cut(log: &FlightLog) -> Option<Cut> {
     try_cut(log).ok()
@@ -954,9 +957,9 @@ mod tests {
     /// bad sample made or lost no cut and moved 8 by 0.70 s at most; two side by side, 9 by 0.70 s
     /// at most, none made or lost; three side by side moved 23 by 1.35 s at most and lost 40, their
     /// speed read past the transonic one (100 m up halfway through the burn, or 30 m down at four
-    /// fifths). Before a cut had to stand above the pad by [`LIFTOFF_RISE_M`], three 12 m up on the
-    /// pad cut 33 flights before the speed's peak, 32 of them before ignition, 2.37 s to 7.85 s
-    /// before burnout. Set B's first 200, run once before the
+    /// fifths). Measured once on the earlier rule, before a cut had to stand above the pad by
+    /// [`LIFTOFF_RISE_M`]: three 12 m up on the pad gave 33 cuts before the speed's peak, 32 of them
+    /// before ignition, 2.37 s to 7.85 s before burnout. Set B's first 200, run once before the
     /// [`HOLD_S`] rule, not in the test: 57 cut, 0.35 s to 1.55 s after burnout, 34 GNSS and 109
     /// fast refused.
     #[test]
@@ -971,7 +974,8 @@ mod tests {
         struct Spiked {
             logs: usize,
             moved: usize,
-            made_or_lost: usize,
+            made: usize,
+            lost: usize,
             moved_most_s: f64,
         }
         let mut runs: [Spiked; 3] = Default::default();
@@ -1005,6 +1009,10 @@ mod tests {
                     "flight {k}{what}: cut at or past apogee"
                 );
                 assert!(cut.top_speed_m_s < readings::TRANSONIC_SPEED_M_S);
+                assert!(
+                    cut.top_speed_s > pad_s,
+                    "flight {k}{what}: top speed read before ignition"
+                );
             };
             match &cut {
                 Some(cut) => {
@@ -1064,9 +1072,9 @@ mod tests {
                                 matches!(try_cut(&spiked), Err(NoCut::Transonic { .. })),
                                 "flight {k}{what}: cut lost, but not for its speed"
                             );
-                            tally.made_or_lost += 1;
+                            tally.lost += 1;
                         }
-                        (None, Some(_)) => tally.made_or_lost += 1,
+                        (None, Some(_)) => tally.made += 1,
                         _ => {}
                     }
                 }
@@ -1075,12 +1083,13 @@ mod tests {
         println!("set A: {cut_count} cut, {early:.2} s to {late:.2} s after burnout");
         for (run, tally) in runs.iter().enumerate() {
             println!(
-                "{} bad side by side: of {} spiked logs {} moved, by {:.3} s at most, {} made or lost",
+                "{} bad side by side: of {} spiked logs {} moved, by {:.3} s at most, {} made, {} lost",
                 run + 1,
                 tally.logs,
                 tally.moved,
                 tally.moved_most_s,
-                tally.made_or_lost
+                tally.made,
+                tally.lost
             );
         }
         assert!(cut_count >= 51, "{cut_count} cut");
@@ -1382,12 +1391,13 @@ mod tests {
         assert_eq!(try_cut(&with(t.clone(), h)), Err(NoCut::NeverSlowed));
         assert_eq!(try_cut(&with(t, vec![0.0; 400])), Err(NoCut::NeverLifted));
         // At the analyzer's fastest rate, 500 Hz, and with intervals a part in a thousand shorter,
-        // a window holds 251 samples, the most allowed, and is read; with intervals 2% shorter it
-        // holds 256 and is refused.
+        // a window holds 251 samples, the most allowed, and is read; with intervals 0.6% or 2%
+        // shorter it holds 252 or 256 and is refused.
         assert_eq!(most_in(SPEED_WINDOW_S), 251);
         for (dt, held, why) in [
             (readings::MIN_INTERVAL_S, 251, NoCut::NeverSlowed),
             (readings::MIN_INTERVAL_S * 0.999, 251, NoCut::NeverSlowed),
+            (readings::MIN_INTERVAL_S * 0.994, 252, NoCut::TooFast),
             (readings::MIN_INTERVAL_S * 0.98, 256, NoCut::TooFast),
         ] {
             let (t, h) = climb(1_000, dt);
@@ -1398,7 +1408,8 @@ mod tests {
         }
         // A log of channels alone, with no clock of its own, its pressure channel the track: emptied,
         // its times or values not numbers, or its values infinite, the track holds no window of
-        // samples it can read; its samples 1 µs apart, it reads too fast.
+        // samples it can read; its samples 1 µs apart, it reads too fast. An emptied channel is
+        // still the log's track, so it is too sparse, where a log with no columns has none.
         let only = (0..60)
             .find_map(|k| channels_only(&flyer.flight(Set::A, k).ok()?.log))
             .expect("one of set A's first 60 flights logs pressure");
@@ -1532,7 +1543,7 @@ mod tests {
             })
             .collect();
         let short = find_cut(&log).expect("the short boost is cut");
-        assert!(short.time_s < 4.5, "{short:?}");
+        assert!(short.time_s < 4.0, "{short:?}");
         assert_eq!(
             predicted(&log, |_| false),
             Err(Unpredicted::NothingToFit(short))
