@@ -125,6 +125,22 @@ Placed by [ADR-194, the field tools][adr-194]; research in [field tools](suite-f
   harness on the release. New beside [ADR-212][adr-212], which already holds HPR Sim to the newest
   release published before M2.7: a build before it ships, shown as a forecast, never held.
 
+## From the 2026-11-04 planning review ([ADR-319][adr-319])
+
+- SOON: fault odds from the field. User: a flyer reading the ranked causes of a flight that went
+  wrong, and anyone judging [M7.4][m7-4]'s benchmark. Its 200 faulty flights are drawn with no
+  stated mix, while clubs' launch reports put a motor fault on about 1.1% to 2.7% of H to O flights
+  and a recovery fault on 3% to 9%, a missing main or chute the largest mode
+  ([high-power outcome tallies](high-power-outcome-tallies.md), [MASA's recovery
+  modes](masa-recovery-modes.md)). A ranking that is right on a uniform mix can still put the
+  rare causes first on real flights. Workflow: the benchmark is run twice, on a uniform mix and on
+  one drawn from a committed table of field rates, and the ranker may take the table as its prior.
+  Moves: the proposed `diagnosis.top-1` and `diagnosis.top-3`, M7.4's 80% and 95%, on both mixes.
+  *Done when:* the table is committed with Clopper–Pearson bounds, each rate marked as a floor
+  where its source undercounts; the report gives top-1 and top-3 on both mixes; and a test pins
+  that the prior never ranks a nominal flight first where the evidence alone ranks a recovery fault
+  first, the flattering side.
+
 [m6-3]: ../decisions-and-roadmap.md#m6-3
 [arc27]: https://www.rocketrychallenge.org/wp-content/uploads/2027_AmericanRocketryChallenge_Rules.pdf
 [irec27]: https://www.esrarocket.org/s/IREC-2027-Rules-and-Requirments-v10.pdf
@@ -136,3 +152,5 @@ Placed by [ADR-194, the field tools][adr-194]; research in [field tools](suite-f
 [adr-318]: ../decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md
 [m2-3c3]: ../decisions-and-roadmap.md#m2-3c3
 [or-3431]: https://github.com/openrocket/openrocket/pull/3431
+[adr-319]: ../decisions/0319-the-2026-11-04-review-the-rocketpy-descents-tightened.md
+[m7-4]: ../decisions-and-roadmap.md#m7-4

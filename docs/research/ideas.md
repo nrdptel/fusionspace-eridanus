@@ -65,7 +65,7 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
 - LATER: live prices through `hpr-net`, cached and dated.
 - LATER: regional vendors (Klima, Wizard Rockets); parts that fit `.orc` offered upstream.
 
-## Earlier planning reviews (2026-10-08 to 2026-10-28)
+## Earlier planning reviews (2026-10-08 to 2026-11-04)
 
 PROMOTED: OpenRocket's newest release as the bar ([M2.3c3][m2-3c3], ADR-212), the gap to it by
 cause (M2.3c6, [ADR-226][adr-226]) with OpenRocket's supersonic ogive drag as its own cause
@@ -78,58 +78,57 @@ to flight data and the ecosystem, and the 2026-10-26 review's four ([ADR-294][ad
 data, clubs and the ecosystem. The 2026-10-28 review's four ([ADR-303][adr-303]) went to flight data and the ecosystem, and
 the 2026-10-31 review's five ([ADR-310][adr-310], [ADR-311][adr-311]) went there too; the milestone it
 promoted, every flight OpenRocket flies, is [M2.3c9][m2-3c9]. The 2026-11-02 review's four
-([ADR-318][adr-318]) went to flight data, avionics, clubs, and pad and recovery.
+([ADR-318][adr-318]) went to flight data, avionics, clubs, and pad and recovery. The 2026-11-04
+review's four ([ADR-319][adr-319]) went to avionics and clubs.
 
-## The 2026-11-04 planning review
+## The 2026-11-08 planning review
 
-Placed with [ADR-319][adr-319], which tightens a met target and promotes none of these. Each is SOON:
+Placed with [ADR-328][adr-328], which promotes the first; the other three are SOON:
 
-- SOON: fault odds from the field. User: a flyer reading the ranked causes of a flight that went
-  wrong, and anyone judging [M7.4][m7-4]'s benchmark. Its 200 faulty flights are drawn with no
-  stated mix, while clubs' launch reports put a motor fault on about 1.1% to 2.7% of H to O flights
-  and a recovery fault on 3% to 9%, a missing main or chute the largest mode
-  ([high-power outcome tallies](high-power-outcome-tallies.md), [MASA's recovery
-  modes](masa-recovery-modes.md)). A ranking that is right on a uniform mix can still put the
-  rare causes first on real flights. Workflow: the benchmark is run twice, on a uniform mix and on
-  one drawn from a committed table of field rates, and the ranker may take the table as its prior.
-  Moves: the proposed `diagnosis.top-1` and `diagnosis.top-3`, M7.4's 80% and 95%, on both mixes.
-  *Done when:* the table is committed with Clopper–Pearson bounds, each rate marked as a floor
-  where its source undercounts; the report gives top-1 and top-3 on both mixes; and a test pins
-  that the prior never ranks a nominal flight first where the evidence alone ranks a recovery fault
-  first, the flattering side.
-- SOON: the altimeter's own delay at deployment. User: a dual-deploy flyer setting an apogee delay
-  on a Raven, a Blue Raven or an Eggtimer. Logs show each family fires at its own lag after the
-  peak: PerfectFlite about 0.25 s early, RRC3 and AltOS on it, Raven 0.9 s late, Blue Raven 0.5 s
-  late with a tail to 4 s, Eggtimer 0.9 s to nose-over before its typed delay
-  ([apogee fire latency](apogee-fire-latency-in-logs.md)). A model that adds the typed delay alone
-  reads the speed at deployment low by about 9 m/s for a Raven or an Eggtimer, and up to 40 m/s if
-  Blue Raven's tail is lag rather than a wait typed into it (g·t, drag left out, an upper bound): the
-  flattering side for a charge and a harness. Workflow: [M6.8][m6-8]'s settings check and
-  M7.4's late-drogue model time the drogue at apogee plus the typed delay plus the family's
-  measured lag, drawn from its spread. Moves: the proposed `recovery.deploy-speed`, the speed at
-  drogue deployment, predicted less logged. *Done when:* the check prints that speed's range for the
-  altimeter named; on the public and the collection's logs that time their charge, its 90% range
-  passes [ADR-257][adr-257]'s three counts (aggregates only); and a test fails when the lag is
-  dropped.
-- SOON: readings that survive a sensor fault. User: a flyer whose log has a dropout, an
-  accelerometer pinned at its range or a pressure spike at ejection, quoting the log's apogee or
-  top speed with its interval. One new open-source ground station tests flight computers by
-  injecting such faults ([Aviary][aviary]); no flight-log tool reports how its readings hold up
-  under them. Workflow: the synthetic flights' report injects four faults, one at a time: a 0.5 s
-  dropout in the climb, the accelerometer clipped at 16 g, an ejection spike in the pressure, and
-  the barometer's error near Mach 1, and counts each reading's 90% coverage under each. Moves: the
-  proposed `readings.inside-90`, by fault. *Done when:* each fault's set, of at least 200 readings,
-  passes [ADR-257][adr-257]'s three counts, or the reading says it is withheld under that fault; and
-  a probe that ignores the clipping fails the clipped set.
-- SOON: the mass a log implies. User: a flyer whose simulated apogee missed the logged one by 10%,
-  asking why. Forum threads often name a wrong lift-off mass as a cause of such a gap, and
-  the collection's error is where HPR Sim trails OpenRocket (12.07% against 11.26%). Workflow: `hpr
-  compare` prints the lift-off mass the boost implies, from [M7.3][m7-3]'s fit, beside the design's,
-  with its 90% interval, and the apogee simulated at that mass. Moves: `accuracy.collection`, as a
-  shown diagnosis, never held: the share of the collection's error a mass outside its interval
-  explains. *Done when:* on synthetic flights with a known 5% mass error the implied mass passes
-  ADR-257's three counts; the report gives, as aggregates, how many of the collection's flights
-  imply a mass outside its interval and the mean absolute apogee error with and without them.
+- PROMOTED ([M2.3d][m2-3d]): twelve public flights, predictions first. User: a flyer reading the
+  accuracy page to judge how far to trust an apogee, and anyone running [M2.6][m2-6]'s open
+  benchmark. `accuracy.public`, 6.06%, rests on 7 flights, all from RocketPy's examples. Five more
+  public flights with a COTS motor and a log can join them ([public flights](public-flights.md),
+  [since October](public-flights-2026.md)): RocketPy's Astra, Andromeda and Erebus 11, which wait on
+  their netCDF-4 weather ([#478][i478]) and designs built from their examples, and two MIT-licensed
+  flights of one OpenRocket design ([#1266][i1266]). Workflow: each new flight's inputs and
+  predicted apogee are merged before its error is computed. Moves: `accuracy.public` and
+  `bias.public`, from 7 flights to 12. *Done when:* M2.3d's.
+- SOON: the flyer's own run as a baseline. User: a flyer who already simulates in OpenRocket, asking
+  whether HPR Sim tells them more than the run they made with their own settings. 237 of the private
+  collection's 240 distinct design files (by SHA-256) store at least one OpenRocket run with an
+  apogee (counted 2026-11-08); the scoreboard compares HPR Sim with OpenRocket 24.12 re-run in a
+  standard atmosphere through the pad's temperature and pressure, not with what the flyer saw.
+  Workflow: the fixture report reads the stored run of each flown configuration, with the version
+  and settings it records, and gives its apogee error beside HPR Sim's and the re-run's. A stored
+  run may postdate the flight and be tuned to it, which the file can't show, so the column is shown,
+  never held. Moves: `accuracy.collection`, a shown column. *Done when:* the report gives the stored
+  runs' mean absolute and signed errors on the flights that have one, how many have none, and a
+  paired bootstrap 95% interval on HPR Sim's error less theirs, as aggregates.
+- SOON: a public case another open simulator scored. User: anyone comparing simulators on the same
+  public flights rather than on each tool's own claims. A new Apache-2.0 simulator scored itself
+  blind on three flights of one kit from a college course's flight archive (DOFPro), a Madcow Mini
+  DX3 on a G77R, a G79W and an H128W: +7.0%, +6.1% and +10.2%, each a fail by its own test
+  ([Astraea's accuracy page][astraea], read 2026-11-08). HPR Sim reads DOFPro logs but has no public
+  apogee case for that kit. Workflow: the kit built from its maker's published dimensions and
+  masses, flown on the three motors in the archive's stated conditions, each prediction merged
+  before its error, as [M2.3d][m2-3d] orders. Moves: a cited comparison beside `accuracy.public`,
+  per flight only if the archive's license allows (it names "Creative Commons", no variant). *Done
+  when:* the three flights are flown with each input's source and the archive's license recorded
+  (aggregates only if it is unclear), and the report gives HPR Sim's errors beside the other tool's,
+  dated.
+- SOON: a part's mass held to its material. User: a flyer whose design holds a mass typed ten times
+  off, as one recovery tool's catalog did until a 2026-11-07 test release, listing a 462 g parachute
+  at 46 g ([its release notes][recsys]). A bundled motor's mass is checked against its record
+  ([#1233][i1233]); a part's typed or library mass isn't checked against its size. Workflow: at
+  import, each part's mass is set against its volume times the density range of its stated material,
+  or of any hobby material when none is stated, and a mass outside it is named with the part, the
+  mass and the range. Moves: `accuracy.collection`, as a shown diagnosis: the mean absolute apogee
+  error of the flights with a flagged part beside the rest. *Done when:* the density ranges are
+  committed with their sources; the count of the collection's designs with a flagged part is
+  reported, as an aggregate; a test fails when a tenfold slip either way in a body tube's or a
+  parachute's mass goes unflagged; and the share of ordinary parts flagged is counted, as a
+  false-alarm rate.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -183,16 +182,18 @@ Placed with [ADR-319][adr-319], which tightens a met target and promotes none of
 [adr-289]: ../decisions/0289-the-2026-10-24-review-the-rocketpy-speed-and-apogee-gates-tightened.md
 [adr-294]: ../decisions/0294-the-2026-10-26-review-the-rocketpy-times-burnout-heights-and-traces-tightened.md
 [adr-303]: ../decisions/0303-the-2026-10-28-review-the-rocketpy-peaks-tightened.md
-[adr-308]: ../decisions/0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md
 [adr-310]: ../decisions/0310-the-2026-10-31-review-the-rocketpy-rail-exit-and-landing-speeds-tightened.md
 [adr-311]: ../decisions/0311-the-2026-10-31-review-every-flight-openrocket-flies.md
 [adr-305]: ../decisions/0305-the-2026-10-28-licensing-calls.md
 [adr-318]: ../decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md
-[hfs]: https://github.com/aneeshkaravadi/hpr-flight-sim
-[varigonda]: https://doi.org/10.31224/8645
-[or-3431]: https://github.com/openrocket/openrocket/pull/3431
 [adr-212]: ../decisions/0212-measure-against-openrockets-newest-release.md
 [m2-3c9]: ../decisions-and-roadmap.md#m2-3c9
-[m6-8]: ../decisions-and-roadmap.md#m6-8
 [adr-319]: ../decisions/0319-the-2026-11-04-review-the-rocketpy-descents-tightened.md
-[aviary]: https://github.com/Birdbrain-Aviation/aviary
+[adr-328]: ../decisions/0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md
+[m2-3d]: ../decisions-and-roadmap.md#m2-3d
+[m2-6]: ../decisions-and-roadmap.md#m2-6
+[astraea]: https://github.com/akhan157/astraea/blob/main/docs/accuracy.md
+[recsys]: https://github.com/akhan157/RecoverySys/releases
+[i478]: https://github.com/nrdptel/fusionspace-eridanus/issues/478
+[i1266]: https://github.com/nrdptel/fusionspace-eridanus/issues/1266
+[i1233]: https://github.com/nrdptel/fusionspace-eridanus/issues/1233

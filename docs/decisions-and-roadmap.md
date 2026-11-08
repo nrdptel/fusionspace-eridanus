@@ -356,6 +356,7 @@ until someone rewrites it in plainer words.
 | [ADR-325: M7.3d2, apogee predicted from the boost on the public flights][adr-325] | The 7 public flights' logs are fitted whole where the apogee reads (6) and up to the boost's cut where there's a prediction (2), in each flight's ERA5 air. Two flights get a prediction, with a mean absolute miss of 3.03% where the forward simulation's is 6.89%. Only NDRT 2020's is the case the method is meant for, cut after its burn on a log under the transonic limit: −3.88% against +10.40%. Hartigan's exact sign-flip interval on the difference is unbounded below 6 flights. On these logs the cut can fall inside the burn: 4 of the 5 cuts do (Bella Lui's 0.18 s short of its end), Lince's among them, measured and reported, not fixed here (#1307). |  |
 | [ADR-326: M7.3d3 in four, the halves sealed first][adr-326] | The private collection's held-out flights are fixed by [ADR-322][adr-322]'s encoding, and the SHA-256 of their sorted ids is committed on its own, before any half's number exists. Each flight's log is chosen from its pinned logs by the apogee nearest the one the collection states, read and cut at the boost, counted over the whole collection only: of 72 flights not left out, 64 have a barometer's log the analyzer reads an apogee from, 32 are cut, 30 refused at the transonic limit and 2 for a log slower than 8 Hz. The fix to the cut ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)), the collection's errors by halves and the scoreboard row follow, in that order. |  |
 | [ADR-327: M7.3d5, the fall must hold and still fall][adr-327] | The boost's cut waits until the climb speed's fall has held 0.75 s and the speed is the lowest of those 0.75 s. On the public logs no cut falls inside the burn now (4 of 5 did): Bella Lui and NDRT 2020 are cut after their burns, and the other 5 reach the transonic limit first. Set A's cuts come 1.08 s to 2.30 s after burnout, inside the 2.83 s bound; 1,787 of 2,295 dipped synthetic logs fall by the cut's amount before burnout; each is cut after burnout or refused as transonic. The collection: 26 cut; none of the 20 whose burn and liftoff are known is cut inside its motor's burn. |  |
+| [ADR-328: The 2026-11-08 review: twelve public flights, predictions first][adr-328] | HPR Sim's accuracy against public real flights rests on 7 flights, all from RocketPy's examples. Five more public flights can join them: RocketPy's Astra, Andromeda and Erebus 11, once their netCDF-4 weather is read and their designs are built from the examples' inputs, and two MIT-licensed flights of one OpenRocket design. The new milestone merges each new flight's inputs and predicted apogee in a pull request of its own before any of their errors is computed, then puts `accuracy.public` and `bias.public` over the 12. It changes no model and loosens nothing; it raises how many real flights the public numbers rest on, from 7 to 12. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -671,6 +672,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-3c6"></a>[M2.3c6][phase-1] | The gap to OpenRocket, by cause | not yet done |
 | <a id="m2-3c7"></a>[M2.3c7][phase-1] | Faster than sound: published flights | not yet done |
 | <a id="m2-3c9"></a>[M2.3c9][phase-1] | Every flight OpenRocket flies | not yet done |
+| <a id="m2-3d"></a>[M2.3d][phase-1] | Twelve public flights, predictions first | not yet done |
+| <a id="m2-3d1"></a>[M2.3d1][phase-1] | The predictions | not yet done |
+| <a id="m2-3d2"></a>[M2.3d2][phase-1] | The errors | not yet done |
 | <a id="m2-4"></a>[M2.4][done-1] | A summary of accuracy for the README, and CI that fails on any regression ([ADR-084][adr-084], [Accuracy: the census](accuracy.md#the-census)) | done |
 | <a id="m2-6"></a>[M2.6][phase-1] | An open benchmark | not yet done |
 | <a id="m2-7"></a>[M2.7][phase-1] | Held-out flights, predictions first | not yet done |
@@ -1336,6 +1340,7 @@ is the milestone that added or will add that test.
 [adr-325]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0325-m7-3d2-the-public-flights-prediction-from-the-boost.md
 [adr-326]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0326-m7-3d3-in-four-the-halves-sealed-first.md
 [adr-327]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0327-m7-3d5-the-fall-must-hold-and-still-fall.md
+[adr-328]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

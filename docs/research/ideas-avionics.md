@@ -79,6 +79,42 @@ Placed by [ADR-191, the 2026-10-06 ideas][adr-191]; research in [the web tools](
   on sets A and B, or the reading is withheld below the rate where it fails; a probe that fits the
   bound on the fastest band alone fails the slowest.
 
+## From the 2026-11-04 planning review ([ADR-319][adr-319])
+
+- SOON: the altimeter's own delay at deployment. User: a dual-deploy flyer setting an apogee delay
+  on a Raven, a Blue Raven or an Eggtimer. Logs show each family fires at its own lag after the
+  peak: PerfectFlite about 0.25 s early, RRC3 and AltOS on it, Raven 0.9 s late, Blue Raven 0.5 s
+  late with a tail to 4 s, Eggtimer 0.9 s to nose-over before its typed delay
+  ([apogee fire latency](apogee-fire-latency-in-logs.md)). A model that adds the typed delay alone
+  reads the speed at deployment low by about 9 m/s for a Raven or an Eggtimer, and up to 40 m/s if
+  Blue Raven's tail is lag rather than a wait typed into it (g·t, drag left out, an upper bound): the
+  flattering side for a charge and a harness. Workflow: [M6.8][m6-8]'s settings check and
+  M7.4's late-drogue model time the drogue at apogee plus the typed delay plus the family's
+  measured lag, drawn from its spread. Moves: the proposed `recovery.deploy-speed`, the speed at
+  drogue deployment, predicted less logged. *Done when:* the check prints that speed's range for the
+  altimeter named; on the public and the collection's logs that time their charge, its 90% range
+  passes [ADR-257][adr-257]'s three counts (aggregates only); and a test fails when the lag is
+  dropped.
+- SOON: readings that survive a sensor fault. User: a flyer whose log has a dropout, an
+  accelerometer pinned at its range or a pressure spike at ejection, quoting the log's apogee or
+  top speed with its interval. One new open-source ground station tests flight computers by
+  injecting such faults ([Aviary][aviary]); no flight-log tool reports how its readings hold up
+  under them. Workflow: the synthetic flights' report injects four faults, one at a time: a 0.5 s
+  dropout in the climb, the accelerometer clipped at 16 g, an ejection spike in the pressure, and
+  the barometer's error near Mach 1, and counts each reading's 90% coverage under each. Moves: the
+  proposed `readings.inside-90`, by fault. *Done when:* each fault's set, of at least 200 readings,
+  passes [ADR-257][adr-257]'s three counts, or the reading says it is withheld under that fault; and
+  a probe that ignores the clipping fails the clipped set.
+- SOON: the mass a log implies. User: a flyer whose simulated apogee missed the logged one by 10%,
+  asking why. Forum threads often name a wrong lift-off mass as a cause of such a gap, and
+  the collection's error is where HPR Sim trails OpenRocket (12.07% against 11.26%). Workflow: `hpr
+  compare` prints the lift-off mass the boost implies, from [M7.3][m7-3]'s fit, beside the design's,
+  with its 90% interval, and the apogee simulated at that mass. Moves: `accuracy.collection`, as a
+  shown diagnosis, never held: the share of the collection's error a mass outside its interval
+  explains. *Done when:* on synthetic flights with a known 5% mass error the implied mass passes
+  ADR-257's three counts; the report gives, as aggregates, how many of the collection's flights
+  imply a mass outside its interval and the mean absolute apogee error with and without them.
+
 [m6-4]: ../decisions-and-roadmap.md#m6-4
 [m7-1]: ../decisions-and-roadmap.md#m7-1
 [m7-4]: ../decisions-and-roadmap.md#m7-4
@@ -90,3 +126,7 @@ Placed by [ADR-191, the 2026-10-06 ideas][adr-191]; research in [the web tools](
 [adr-308]: ../decisions/0308-m7-2e-in-four-the-intervals-by-reading-then-the-surfaces.md
 [adr-318]: ../decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md
 [varigonda]: https://doi.org/10.31224/8645
+[adr-319]: ../decisions/0319-the-2026-11-04-review-the-rocketpy-descents-tightened.md
+[aviary]: https://github.com/Birdbrain-Aviation/aviary
+[m6-8]: ../decisions-and-roadmap.md#m6-8
+[m7-3]: ../decisions-and-roadmap.md#m7-3
