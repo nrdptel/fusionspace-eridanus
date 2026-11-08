@@ -35,8 +35,8 @@ impulse, wind and mass, and where its Bayesian option fails its tests.
   constant with height; on a log of height alone, a wind that grows with height only widens the intervals. It's
   told the design, rail, site and the day's air, and takes them as right. It's in the library only,
   with no `hpr` command yet. Its [prediction from the boost](#apogee-from-the-boost) has been
-  compared with a logged apogee on 2 public flights. Only one was cut after its burn, on a log that
-  stays under 227.7 m/s (747 ft/s).
+  compared with a logged apogee on 2 public flights, both cut after their burn, on logs that
+  stay under 227.7 m/s (747 ft/s): an anecdote, not a measure.
 
 ## How it works
 
@@ -358,22 +358,31 @@ closed forms. A result under 100 effective draws is flagged as too few to read. 
 
 ## Apogee from the boost
 
-The library predicts a flight's apogee from its climb and the start of its coast: a log cut just
-after burnout (`hpr_forensics::boost`), 0.33 s to 1.48 s after it on the synthetic flights below.
-It predicts 2 of the 7 public flights, too few to say at 95% whether it beats the forward
-simulation ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)). Only NDRT 2020 is the case it's meant for. On these
-logs the cut can fall inside the burn, as Lince's did, and Lince's log later climbs past
-the speed limit described below ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)).
-Of the 72 flights the private collection's manifest doesn't leave out of its apogee errors, 64 have a barometer's log
-the analyzer reads an apogee from: 32 are cut, 30 refused at the speed limit and 2 as sampled under 8 Hz ([the count](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md)). The errors of the predictions
-from those cuts will come for each half, the held-out list sealed first by its hash ([ADR-322, held-out flights](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0322-the-2026-11-05-progress-review-accuracy-before-reader-facing-work.md)). A cut can
-leave too little to fit, as 3 of the 5 public cuts did.
+The library predicts a flight's apogee from its climb and the start of its coast: a log cut after
+burnout, once the climb speed has kept falling for 0.75 s (`hpr_forensics::boost`). That is 1.08 s to 2.30 s after burnout on the synthetic
+flights below, and 1.3 s (Bella Lui) and 3.5 s (NDRT 2020) after the burn on the two public ones.
+It predicts 2 of the 7 public flights, Bella Lui and NDRT 2020, both cut after the motor's burn.
+That is too few to say at 95% whether it beats the forward simulation
+([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)).
+The other 5 reach the speed limit described below before a cut.
+The private collection's manifest keeps 72 flights in its apogee errors. Of them, 64 have a barometer's log
+the analyzer reads an apogee from ([the count](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md)).
+26 are cut, 36 refused at the speed limit and 2 as sampled under 8 Hz.
+Of those 26, the 20 whose motor's burn and log's liftoff are known are each cut after its thrust curve's burn. For the other 6 it isn't known. The errors of the predictions
+from those cuts will come for each half, the held-out list sealed first by its hash ([ADR-322, held-out flights](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0322-the-2026-11-05-progress-review-accuracy-before-reader-facing-work.md)).
 
 **The cut.** The library follows the climb speed: a straight line fitted to each half second of
-heights. One reading far from the rest is left out, as the analyzer's spike rule does. The cut is
-the first sample where the speed has dropped 10% below its peak, and at least 10 m/s (32.8 ft/s).
-After burnout gravity alone takes 9.8 m/s (32.2 ft/s) off the speed every second. So on the
-synthetic flights' motors the cut comes just after burnout, and the log keeps the start of the coast. The log up to the cut is fitted, and the fit
+heights. One reading far from the rest is left out, as the analyzer's spike rule does. The cut needs
+the speed to stay 10% below its peak, and at least 10 m/s (32.8 ft/s) below it, for 0.75 s. It
+comes at the first sample where that holds and the speed is the lowest of those 0.75 s. After burnout gravity alone
+takes 9.8 m/s (32.2 ft/s) off the speed every second, drag more, so the speed keeps falling. A
+barometer's reading can dip during the boost and catch up
+([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)). In the burns of the public flights'
+logs the speed fell that far for up to 0.48 s, then recovered (measured once). The deepest such
+fall was 63.2 m/s (207 ft/s), a one-off measurement not committed. The 0.75 s passes such a
+dip. The catch-up can read above the true speed. On 778 of the 1,787 dipped logs below a fall lasted over 0.5 s, likely the fall back from that overshoot (not traced). But on the synthetic dips the speed
+had begun to rise again while the motor burned, so it wasn't the lowest of the last 0.75 s. So on the
+synthetic flights' motors the cut comes after burnout, and the log keeps the start of the coast. The log up to the cut is fitted, and the fit
 flown on to apogee.
 
 **What gets no cut.**
@@ -386,15 +395,23 @@ flown on to apogee.
   flow), the pressure at the port may stop following the height. The analyzer withholds its top
   speed there too.
 - A log sampled slower than 8 or faster than 500 times a second, one that never climbs 10 m
-  (32.8 ft), or one whose speed never drops as far as the cut needs.
+  (32.8 ft), or one whose speed never drops as far as the cut needs for 0.75 s.
 
 [Set A](synthetic-flights.md#the-sets)'s first 200 synthetic flights are mostly fast. Of them, 51
-were cut, each after the true peak of its vertical speed. Each cut came 0.33 s to 1.48 s after
+were cut, each after the true peak of its vertical speed. Each cut came 1.08 s to 2.30 s after
 burnout. 43 GNSS logs and 106 fast flights were refused. The slowest of those truly peaked at
-221.3 m/s (726 ft/s): the fitted speed reads a little above the true one. Five single bad readings, 12 to 100 m (39 to 328 ft) off, at
-the pad, the first sample, halfway or four fifths through the burn, moved no cut by more than 0.05 s (measured). Two bad readings side by side can still
-cut it early. A test pins the order, the spikes and at least 51 cuts; the counts and times are
+221.3 m/s (726 ft/s): the fitted speed reads a little above the true one. Five single bad readings were tried, 12 to 100 m (39 to 328 ft) off. They sat at
+the pad, the first sample, or halfway or four fifths through the burn. They moved the cut on 8 of the 255 spiked logs of cut flights (785 in all), none by more than 0.70 s (measured). Two bad readings side by side
+weren't tried with the hold. A test pins the order, the spikes and at least 51 cuts; the counts and times are
 measured.
+
+A second test puts a dip in each cut flight's height: 0.2 to 0.6 s long, 10 to 40 m (33 to
+131 ft) deep. It starts at ignition, or 0.3 or 0.6 of the way through the burn. Of 2,295 dipped logs,
+1,787 have a speed that falls by the cut's amount (10% of the top, at least 10 m/s (33 ft/s)) before burnout. 1,635 of them were cut, 0.14 s to 2.30 s after
+burnout, and 152 refused at the speed limit, which a catch-up can reach. None was cut in the burn.
+On 791 dipped logs every fall lasted 0.5 s at most and recovered in the burn, as the public logs'
+did. Those falls went as deep as 98.9 m/s (324 ft/s), past the public logs' 63.2 m/s (207 ft/s).
+On 218 more a fall still ran at burnout. Its depth takes in the coast's, so it isn't counted.
 
 **Why it can be trusted not to peek.** A test replaces every sample's value and time after the
 cut with noise, and the prediction stays the same, bit for bit. It runs on three logs, one with a GNSS
@@ -402,15 +419,16 @@ receiver's channels beside its barometer. Letting the prediction read half a sec
 it. A channel on a clock of its own is cut at its first time past the cut or out of order; the samples before that are read wherever the file puts them. Run
 `cargo test -p fusionspace-hpr-forensics boost`.
 
-**A worked example.** NDRT 2020's motor burns 3.43 s. Its barometer's log is cut 4.35 s after
-liftoff, its climb speed at least 10% below its 161.9 m/s (531 ft/s) top. The fit to the log
-up to there flies on to 1,269 m (4,164 ft), as the barometer reads it. The log's apogee is 1,320 m
-(4,332 ft): the prediction is 3.9% low. The forward simulation, nothing fitted, reads 1,458 m
+**A worked example.** NDRT 2020's motor burns 3.43 s. Its barometer's log is cut 6.90 s after
+liftoff, its climb speed at least 10% below its 168.5 m/s (553 ft/s) top for 0.75 s. That top
+is 1.4 s into the coast, a reading above the speed at burnout. So the cut comes about 3.5 s after the burn ends. The fit to the log
+up to there flies on to 1,273 m (4,177 ft), as the barometer reads it. The log's apogee is 1,320 m
+(4,332 ft): the prediction is 3.6% low. The forward simulation, nothing fitted, reads 1,458 m
 (4,782 ft), 10.4% high. ERA5's wind, averaged and held constant with height as the fit holds it,
 moves it down 3.8 points: the rocket reaches 1,407 m (4,616 ft), 6.6% high. Fitting the boost
-moves it down another 10.4 points, past the log, to the 3.9% low. The log up to the cut says
-little of the drag, so the fit leaves it at 1.02, near the 1 it was told. It reads the impulse
-0.96. The whole log reads the impulse 0.95 and the drag 0.71. The other flights are in
+moves it down another 10.1 points, past the log, to the 3.6% low. The log up to the cut says
+little of the drag, so the fit leaves it at 0.95, near the 1 it was told. It reads the impulse
+0.955. The whole log reads the impulse 0.95 and the drag 0.71. The other flights are in
 ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)).
 
 ## Sources

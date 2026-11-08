@@ -272,7 +272,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let report = fly_all(&root, &entries, &index, &supply)?;
     let markdown = report.to_markdown();
     report.check_consistent(&markdown)?;
-    crate::collection_boost::run(&root, &entries, check)?;
+    crate::collection_boost::run(&root, &entries, &burns(&root, &entries, &supply)?, check)?;
     if check {
         let text = fs::read_to_string(root.join(REPORT_JSON))
             .map_err(|error| format!("reading {REPORT_JSON}: {error}"))?;
@@ -304,6 +304,39 @@ pub fn run(args: &[String]) -> Result<(), String> {
     }
     println!("fixture-flights: wrote {REPORT_JSON} and {REPORT_MD}");
     Ok(())
+}
+
+/// Each flight's motor's burn, s: the end of its thrust curve in the configuration flown. A flight
+/// whose design holds no such configuration, no curve, more than one motor or a staging event has
+/// none: a later stage's or delayed motor's burn could end after any one curve's.
+fn burns(
+    root: &Path,
+    entries: &[Entry],
+    supply: &crate::ork_supply::Supply,
+) -> Result<BTreeMap<String, f64>, String> {
+    let mut burns = BTreeMap::new();
+    for entry in entries {
+        let design = design(root, entry, supply)?;
+        // The motor's configuration, whatever the weather: a flight without an ERA5 file still
+        // has a burn.
+        let Ok(chosen) = configuration(&design, entry) else {
+            continue;
+        };
+        let [motor] = chosen.motors.as_slice() else {
+            continue;
+        };
+        if chosen.stagings().next().is_some() {
+            continue;
+        }
+        let burn_s = motor
+            .curve
+            .motor()
+            .map_or(f64::NAN, hpr_motor::SolidMotor::burnout_time_s);
+        if burn_s.is_finite() {
+            burns.insert(entry.flight_id.clone(), burn_s);
+        }
+    }
+    Ok(burns)
 }
 
 /// Reads the manifest and checks it holds each tier-A `.ork` flight once, with numbers that can

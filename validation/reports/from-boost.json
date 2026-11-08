@@ -124,13 +124,62 @@
       },
       "whole_unread": null,
       "boost": {
-        "Unpredicted": {
-          "NothingToFit": {
-            "index": 40,
-            "time_s": 2.46,
+        "Predicted": {
+          "cut": {
+            "index": 63,
+            "time_s": 3.96,
             "top_speed_s": 2.28,
             "top_speed_m_s": 91.54366925064599
-          }
+          },
+          "fit": {
+            "fitted": true,
+            "converged": true,
+            "drift": false,
+            "rms_m": 3.0378358202442475,
+            "misfit_share": 0.03804212280941827,
+            "flown": 37,
+            "parameters": [
+              {
+                "name": "drag scale",
+                "value": 0.9989801888677375,
+                "standard_error": 0.10918509101490544,
+                "interval_90": null
+              },
+              {
+                "name": "impulse scale",
+                "value": 1.0001081134004783,
+                "standard_error": 0.021425842086344765,
+                "interval_90": null
+              },
+              {
+                "name": "burn time scale",
+                "value": 0.9930664859928174,
+                "standard_error": 0.04785282363508614,
+                "interval_90": null
+              },
+              {
+                "name": "wind toward the east (m/s)",
+                "value": 0.6527422284486342,
+                "standard_error": 3.853915174975198,
+                "interval_90": null
+              },
+              {
+                "name": "wind toward the north (m/s)",
+                "value": 1.0707852272133922,
+                "standard_error": 3.827454039591922,
+                "interval_90": null
+              },
+              {
+                "name": "structure mass scale",
+                "value": 0.9999979921398298,
+                "standard_error": 0.010610614435562526,
+                "interval_90": null
+              }
+            ]
+          },
+          "apogee_above_pad_m": 464.3472462639672,
+          "apogee_reading_m": 463.64792356742277,
+          "error_percent": 1.0190019777769754
         }
       }
     },
@@ -228,60 +277,60 @@
       "boost": {
         "Predicted": {
           "cut": {
-            "index": 96,
-            "time_s": 4.845,
-            "top_speed_s": 3.795,
-            "top_speed_m_s": 161.92344829090905
+            "index": 147,
+            "time_s": 7.395,
+            "top_speed_s": 5.345,
+            "top_speed_m_s": 168.47847709090908
           },
           "fit": {
             "fitted": true,
             "converged": true,
             "drift": false,
-            "rms_m": 0.8780523321394701,
-            "misfit_share": 0.006029317771092527,
-            "flown": 57,
+            "rms_m": 3.3678336524331187,
+            "misfit_share": 0.013103745620856732,
+            "flown": 61,
             "parameters": [
               {
                 "name": "drag scale",
-                "value": 1.0170947535963475,
-                "standard_error": 0.10863116861843969,
+                "value": 0.9471274607830146,
+                "standard_error": 0.10190002421702454,
                 "interval_90": null
               },
               {
                 "name": "impulse scale",
-                "value": 0.9630115815585402,
-                "standard_error": 0.026872842891693845,
+                "value": 0.9547922629325977,
+                "standard_error": 0.02623444315506397,
                 "interval_90": null
               },
               {
                 "name": "burn time scale",
-                "value": 1.0588014108988526,
-                "standard_error": 0.04127395749324134,
+                "value": 1.0610699865078914,
+                "standard_error": 0.03488296594842869,
                 "interval_90": null
               },
               {
                 "name": "wind toward the east (m/s)",
-                "value": 12.653357433388104,
-                "standard_error": 3.609310631194813,
+                "value": 12.630254932810733,
+                "standard_error": 3.6006104860135726,
                 "interval_90": null
               },
               {
                 "name": "wind toward the north (m/s)",
-                "value": 7.6060175492822015,
-                "standard_error": 3.7764100003873007,
+                "value": 7.595173140925068,
+                "standard_error": 3.7732409888339538,
                 "interval_90": null
               },
               {
                 "name": "structure mass scale",
-                "value": 1.003385448834209,
-                "standard_error": 0.010810995941129914,
+                "value": 1.0048269007314694,
+                "standard_error": 0.010789732381773413,
                 "interval_90": null
               }
             ]
           },
-          "apogee_above_pad_m": 1246.1354694868144,
-          "apogee_reading_m": 1269.1621130714564,
-          "error_percent": -3.877353624662035
+          "apogee_above_pad_m": 1250.0177273186014,
+          "apogee_reading_m": 1273.084467371827,
+          "error_percent": -3.5802859203158297
         }
       }
     },
@@ -384,11 +433,11 @@
       "whole_unread": null,
       "boost": {
         "Unpredicted": {
-          "NothingToFit": {
-            "index": 232,
-            "time_s": 2.02,
-            "top_speed_s": 1.8,
-            "top_speed_m_s": 61.9049773755656
+          "NoCut": {
+            "Transonic": {
+              "time_s": 4.73,
+              "speed_m_s": 229.92932126696812
+            }
           }
         }
       }
@@ -477,11 +526,11 @@
       "whole_unread": "its apogee is withheld: the track climbs 42.1 m into its top at 26.20 s in 1.00 s. That is more than the 17.5 m a coast slowing at twice gravity climbs. The track falls 17.1 m from it by 26.50 s, more than the 16.8 m a body at rest there can fall. Each is past twice its noise and step. Its top is a spike, such as a charge's, so which is the apogee can't be told",
       "boost": {
         "Unpredicted": {
-          "NothingToFit": {
-            "index": 27,
-            "time_s": 1.35,
-            "top_speed_s": 1.2,
-            "top_speed_m_s": 131.25661454545457
+          "NoCut": {
+            "Transonic": {
+              "time_s": 2.8,
+              "speed_m_s": 233.69560000000007
+            }
           }
         }
       }
@@ -788,62 +837,13 @@
       },
       "whole_unread": null,
       "boost": {
-        "Predicted": {
-          "cut": {
-            "index": 333,
-            "time_s": 2.58,
-            "top_speed_s": 2.45,
-            "top_speed_m_s": 224.08885341245866
-          },
-          "fit": {
-            "fitted": true,
-            "converged": true,
-            "drift": false,
-            "rms_m": 4.764348208427039,
-            "misfit_share": 0.07184244470014617,
-            "flown": 49,
-            "parameters": [
-              {
-                "name": "drag scale",
-                "value": 1.001170157360346,
-                "standard_error": 0.10940884511468554,
-                "interval_90": null
-              },
-              {
-                "name": "impulse scale",
-                "value": 0.9860479929737134,
-                "standard_error": 0.03151379234758309,
-                "interval_90": null
-              },
-              {
-                "name": "burn time scale",
-                "value": 1.048904787913768,
-                "standard_error": 0.045212731384836384,
-                "interval_90": null
-              },
-              {
-                "name": "wind toward the east (m/s)",
-                "value": 1.6468224942021974,
-                "standard_error": 3.8744935125299325,
-                "interval_90": null
-              },
-              {
-                "name": "wind toward the north (m/s)",
-                "value": 3.096129920537737,
-                "standard_error": 3.868079097707431,
-                "interval_90": null
-              },
-              {
-                "name": "structure mass scale",
-                "value": 1.001501929121772,
-                "standard_error": 0.010899398017808079,
-                "interval_90": null
-              }
-            ]
-          },
-          "apogee_above_pad_m": 3829.303215115896,
-          "apogee_reading_m": 3666.186184008899,
-          "error_percent": 2.1869731123879927
+        "Unpredicted": {
+          "NoCut": {
+            "Transonic": {
+              "time_s": 3.17,
+              "speed_m_s": 227.8564195518247
+            }
+          }
         }
       }
     }
@@ -852,16 +852,16 @@
     "flights": 7,
     "predicted": {
       "flights": [
-        "ndrt-2020",
-        "lince"
+        "bella-lui",
+        "ndrt-2020"
       ],
-      "prediction_mean_absolute_percent": 3.032163368525014,
-      "prediction_mean_percent": -0.845190256137021,
-      "forward_mean_absolute_percent": 6.892232344376907,
-      "forward_mean_percent": 6.892232344376907,
-      "stated_mean_absolute_percent": 5.066468901909305,
-      "stated_mean_percent": 5.066468901909305,
-      "difference_points": -3.8600689758518936,
+      "prediction_mean_absolute_percent": 2.2996439490464025,
+      "prediction_mean_percent": -1.2806419712694272,
+      "forward_mean_absolute_percent": 5.627317958956944,
+      "forward_mean_percent": 5.627317958956944,
+      "stated_mean_absolute_percent": 3.7091652152495187,
+      "stated_mean_percent": 3.7091652152495187,
+      "difference_points": -3.3276740099105413,
       "difference_interval": [
         null,
         null
@@ -869,26 +869,22 @@
     },
     "in_range": {
       "flights": [
+        "bella-lui",
         "ndrt-2020"
       ],
-      "prediction_mean_absolute_percent": 3.877353624662035,
-      "prediction_mean_percent": -3.877353624662035,
-      "forward_mean_absolute_percent": 10.397459672273143,
-      "forward_mean_percent": 10.397459672273143,
-      "stated_mean_absolute_percent": 6.568964455408456,
-      "stated_mean_percent": 6.568964455408456,
-      "difference_points": -6.520106047611108,
+      "prediction_mean_absolute_percent": 2.2996439490464025,
+      "prediction_mean_percent": -1.2806419712694272,
+      "forward_mean_absolute_percent": 5.627317958956944,
+      "forward_mean_percent": 5.627317958956944,
+      "stated_mean_absolute_percent": 3.7091652152495187,
+      "stated_mean_percent": 3.7091652152495187,
+      "difference_points": -3.3276740099105413,
       "difference_interval": [
         null,
         null
       ]
     },
-    "cut_in_burn": [
-      "bella-lui",
-      "prometheus-2022",
-      "juno-iii",
-      "lince"
-    ],
+    "cut_in_burn": [],
     "past_transonic": [
       "prometheus-2022",
       "cavour",

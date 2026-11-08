@@ -1,7 +1,7 @@
 //! `cargo xtask real-flights` also predicts each public flight's apogee from its boost (M7.3d2,
 //! ADR-257 §3, ADR-321): `validation/reports/from-boost.{json,md}`.
 //!
-//! Each flight's log is fitted whole by `hpr_forensics::fit`, and cut just after burnout by
+//! Each flight's log is fitted whole by `hpr_forensics::fit`, and cut after burnout by
 //! `hpr_forensics::boost`, which fits the log up to the cut and flies the fit on to apogee. The
 //! fit flies the flight as `real-flights` does: from the example's thrust file, rail and site, in
 //! its ERA5 air, with its motor, drag, mass and wind changed as the fit asks. Its wind is constant
@@ -729,7 +729,7 @@ impl Report {
         );
         let _ = writeln!(
             page,
-            "This report asks whether apogee predicted from a log cut just after burnout comes closer to \
+            "This report asks whether apogee predicted from a log cut after burnout comes closer to \
              the logged apogee than the forward simulation, the simulator's flight of the design with \
              nothing fitted. It covers the 7 public logged flights. {} get a prediction, {} of them in \
              the case the method is meant for, so it can't yet say at {:.0}% which comes closer. An \
@@ -747,8 +747,9 @@ impl Report {
             page,
             "- **What is flown:** the 7 flights of the [real-flights report][real], each in its ERA5 air, \
              from its example's thrust file, rail and site.\n\
-             - **The prediction:** the library finds burnout from the samples before the cut, cuts the \
-             log there, fits it, and flies the fit on to apogee (`hpr_forensics::boost`). A barometer's \
+             - **The prediction:** the library finds the cut from the samples up to it (the first \
+             sample where the climb speed's fall has held 0.75 s and the speed is the lowest of those \
+             0.75 s), cuts the log there, fits it, and flies the fit on to apogee (`hpr_forensics::boost`). A barometer's \
              log whose fitted climb speed reaches 227.7 m/s (747 ft/s) before the cut gets none. Its \
              apogee is read as the forward simulation's is: the standard atmosphere's altitude of the \
              ERA5 pressure at the center of mass, less the pad's.\n\
@@ -796,15 +797,18 @@ impl Report {
         );
         let _ = writeln!(
             page,
-            "- Cut less than the thrust file's burn after liftoff: {}. The finder can read a dip in a \
-             barometer's fitted speed during the boost as burnout \
+            "- Cut less than the thrust file's burn after liftoff, {} of the {} cut: {}. The cut waits \
+             for the climb speed's fall to hold {:.2} s, so that a dip in a barometer's reading \
+             during the boost isn't read as burnout \
              ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)).",
-            names(&s.cut_in_burn)
+            s.cut_in_burn.len(),
+            self.flights.iter().filter(|f| f.cut().is_some()).count(),
+            names(&s.cut_in_burn),
+            boost::HOLD_S
         );
         let _ = writeln!(
             page,
-            "- Climbing at or past 227.7 m/s, the log read whole: {}. A cut before that speed on such a \
-             log came on a dip, not at burnout. Top speed withheld for another reason, such as a spike at \
+            "- Climbing at or past 227.7 m/s, the log read whole: {}. Top speed withheld for another reason, such as a spike at \
              the top, so the log can't be set against that speed: {}.",
             names(&s.past_transonic),
             names(&s.top_speed_unread)
