@@ -28,10 +28,10 @@ examples, each flown in [ERA5][era5] weather (Prometheus's a year after its flig
 rows rest on 60 flights that no reader can re-run. A mean over 7 flights leans on each one: NDRT
 2020's +10.40% is 1.5 points of the 6.06% (10.40/7), and the other six average 5.34%.
 
-Two surveys list 16 more MIT-licensed public flights with a [COTS motor][cots]
-and a log, 14 and then 2 ([public flights][pf], [public flights since October][pf26]). Five can
-be flown from sources in hand. The others wait on a confirmed ballast or motor, a weather file or
-a license, may have flown air brakes or near Mach 1, or have synthetic rows in their log.
+Two surveys list 16 more public flights in MIT-licensed repositories with a
+[COTS motor][cots] and a log, 14 and then 2 ([public flights][pf], [public flights since
+October][pf26]). Five can be flown from sources in hand. The others wait on a confirmed ballast or
+motor, may have flown air brakes or near Mach 1, or have synthetic rows in their log.
 
 | Flight | Motor | Log | What it waits on |
 |---|---|---|---|
