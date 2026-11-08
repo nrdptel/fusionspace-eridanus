@@ -917,77 +917,140 @@ mod tests {
         let latest_s = (DROP_SHARE * readings::TRANSONIC_SPEED_M_S).max(DROP_FLOOR_M_S)
             / hpr_core::gravity::STANDARD_GRAVITY_MPS2
             + SPEED_WINDOW_S;
-        let mut flyer = Flyer::new(DesignFiles::committed());
-        let (mut dipped_count, mut cut_count, mut refused) = (0_usize, 0_usize, 0_usize);
-        let mut longer = 0_usize;
-        let (mut longest_s, mut deepest_m_s) = (0.0_f64, 0.0_f64);
-        let (mut earliest_s, mut latest_found_s) = (f64::INFINITY, 0.0_f64);
-        for k in 0..200 {
-            let flight = flyer.flight(Set::A, k).expect("set A's flights fly");
-            if find_cut(&flight.log).is_none() {
-                continue;
-            }
-            let pad_s = flight.draw.logger.pad_s;
-            let events = &flight.truth.events;
-            let burnout_s = pad_s + events.burnout_s;
-            for start in [0.0, 0.3, 0.6] {
-                for span_s in [0.2, 0.3, 0.4, 0.5, 0.6] {
-                    for depth_m in [10.0, 20.0, 40.0] {
-                        let start_s = pad_s + start * events.burnout_s;
-                        let mut dipped = flight.log.clone();
-                        for (t, h) in dipped.time_s.iter().zip(&mut dipped.altitude_m) {
-                            if (start_s..=start_s + span_s).contains(t) {
-                                *h -= depth_m
-                                    * (std::f64::consts::PI * (t - start_s) / span_s)
-                                        .sin()
-                                        .powi(2);
+        /// One worker's counts; each is a sum, a least or a most, so the order the workers' flights
+        /// are taken in can't change the totals.
+        #[derive(Clone, Copy)]
+        struct Tally {
+            dipped: usize,
+            cut: usize,
+            refused: usize,
+            longer: usize,
+            longest_s: f64,
+            deepest_m_s: f64,
+            earliest_s: f64,
+            latest_s: f64,
+        }
+        let empty = Tally {
+            dipped: 0,
+            cut: 0,
+            refused: 0,
+            longer: 0,
+            longest_s: 0.0,
+            deepest_m_s: 0.0,
+            earliest_s: f64::INFINITY,
+            latest_s: 0.0,
+        };
+        // The 200 flights are independent: each worker flies every `workers`-th one with a flyer
+        // of its own, so the test's wall time is a share of its 2,295 dipped logs, every one still
+        // flown and held to the same assertions.
+        let fly = |worker: u64, workers: u64| -> Tally {
+            let mut flyer = Flyer::new(DesignFiles::committed());
+            let mut tally = empty;
+            for k in (0..200_u64).filter(|k| k % workers == worker) {
+                let flight = flyer.flight(Set::A, k).expect("set A's flights fly");
+                if find_cut(&flight.log).is_none() {
+                    continue;
+                }
+                let pad_s = flight.draw.logger.pad_s;
+                let events = &flight.truth.events;
+                let burnout_s = pad_s + events.burnout_s;
+                for start in [0.0, 0.3, 0.6] {
+                    for span_s in [0.2, 0.3, 0.4, 0.5, 0.6] {
+                        for depth_m in [10.0, 20.0, 40.0] {
+                            let start_s = pad_s + start * events.burnout_s;
+                            let mut dipped = flight.log.clone();
+                            for (t, h) in dipped.time_s.iter().zip(&mut dipped.altitude_m) {
+                                if (start_s..=start_s + span_s).contains(t) {
+                                    *h -= depth_m
+                                        * (std::f64::consts::PI * (t - start_s) / span_s)
+                                            .sin()
+                                            .powi(2);
+                                }
                             }
-                        }
-                        // Each fall's time before burnout, a fall still holding at the walk's
-                        // end included.
-                        let mut falls = Vec::new();
-                        let _ = walk(&dipped, f64::INFINITY, &mut |since, until, deepest| {
-                            if since < burnout_s {
-                                falls.push((until.min(burnout_s) - since, deepest));
+                            // Each fall's time before burnout, a fall still holding at the walk's
+                            // end included.
+                            let mut falls = Vec::new();
+                            let _ = walk(&dipped, f64::INFINITY, &mut |since, until, deepest| {
+                                if since < burnout_s {
+                                    falls.push((until.min(burnout_s) - since, deepest));
+                                }
+                            });
+                            if falls.is_empty() {
+                                continue;
                             }
-                        });
-                        if falls.is_empty() {
-                            continue;
-                        }
-                        dipped_count += 1;
-                        if falls.iter().any(|&(held_s, _)| held_s > 0.5) {
-                            longer += 1;
-                        } else {
-                            for &(held_s, deepest) in &falls {
-                                longest_s = longest_s.max(held_s);
-                                deepest_m_s = deepest_m_s.max(deepest);
+                            tally.dipped += 1;
+                            if falls.iter().any(|&(held_s, _)| held_s > 0.5) {
+                                tally.longer += 1;
+                            } else {
+                                for &(held_s, deepest) in &falls {
+                                    tally.longest_s = tally.longest_s.max(held_s);
+                                    tally.deepest_m_s = tally.deepest_m_s.max(deepest);
+                                }
                             }
-                        }
-                        let what = format!(
-                            "flight {k}, a {depth_m} m dip over {span_s} s from {start_s} s \
+                            let what = format!(
+                                "flight {k}, a {depth_m} m dip over {span_s} s from {start_s} s \
                              (burnout {burnout_s} s)"
-                        );
-                        match try_cut(&dipped) {
-                            Ok(cut) => {
-                                cut_count += 1;
-                                let after_s = cut.time_s - burnout_s;
-                                assert!(
-                                    after_s > 0.0 && after_s <= latest_s,
-                                    "{what}: cut {after_s} s after burnout"
-                                );
-                                assert!(cut.time_s < pad_s + events.apogee_s, "{what}");
-                                earliest_s = earliest_s.min(after_s);
-                                latest_found_s = latest_found_s.max(after_s);
+                            );
+                            match try_cut(&dipped) {
+                                Ok(cut) => {
+                                    tally.cut += 1;
+                                    let after_s = cut.time_s - burnout_s;
+                                    assert!(
+                                        after_s > 0.0 && after_s <= latest_s,
+                                        "{what}: cut {after_s} s after burnout"
+                                    );
+                                    assert!(cut.time_s < pad_s + events.apogee_s, "{what}");
+                                    tally.earliest_s = tally.earliest_s.min(after_s);
+                                    tally.latest_s = tally.latest_s.max(after_s);
+                                }
+                                Err(NoCut::Transonic { .. }) => tally.refused += 1,
+                                Err(why) => panic!("{what}: refused, {why:?}"),
                             }
-                            Err(NoCut::Transonic { .. }) => refused += 1,
-                            Err(why) => panic!("{what}: refused, {why:?}"),
                         }
                     }
                 }
             }
+            tally
+        };
+        let workers =
+            std::thread::available_parallelism().map_or(1, |n| u64::try_from(n.get()).unwrap_or(1));
+        let fly = &fly;
+        let tallies: Vec<Tally> = std::thread::scope(|scope| {
+            let handles: Vec<_> = (0..workers)
+                .map(|worker| scope.spawn(move || fly(worker, workers)))
+                .collect();
+            handles
+                .into_iter()
+                .map(|handle| {
+                    handle
+                        .join()
+                        .expect("a worker's assertion failed; see its message")
+                })
+                .collect()
+        });
+        let mut all = empty;
+        for tally in tallies {
+            all.dipped += tally.dipped;
+            all.cut += tally.cut;
+            all.refused += tally.refused;
+            all.longer += tally.longer;
+            all.longest_s = all.longest_s.max(tally.longest_s);
+            all.deepest_m_s = all.deepest_m_s.max(tally.deepest_m_s);
+            all.earliest_s = all.earliest_s.min(tally.earliest_s);
+            all.latest_s = all.latest_s.max(tally.latest_s);
         }
+        let Tally {
+            dipped,
+            cut,
+            refused,
+            longer,
+            longest_s,
+            deepest_m_s,
+            earliest_s,
+            latest_s: latest_found_s,
+        } = all;
         println!(
-            "{dipped_count} dipped logs, {cut_count} cut {earliest_s:.2} s to {latest_found_s:.2} s \
+            "{dipped} dipped logs, {cut} cut {earliest_s:.2} s to {latest_found_s:.2} s \
              after burnout, {refused} refused as transonic; falls up to {longest_s:.2} s and \
              {deepest_m_s:.1} m/s in those whose falls each held 0.5 s at most; {longer} with a \
              longer one"
@@ -1000,7 +1063,7 @@ mod tests {
             deepest_m_s >= 63.2,
             "the deepest fall kept went {deepest_m_s} m/s"
         );
-        assert!(cut_count >= 1600, "{cut_count} dipped logs cut");
+        assert!(cut >= 1600, "{cut} dipped logs cut");
     }
 
     /// A hostile log is refused without a panic, and each refusal names its reason: no samples, one,
