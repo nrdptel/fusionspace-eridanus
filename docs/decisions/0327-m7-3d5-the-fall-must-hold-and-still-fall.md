@@ -29,13 +29,13 @@ between them.
    the way through the burn, span 0.2 to 0.6 s, depth 10, 20 or 40 m. Every dipped log whose speed
    falls by the cut's amount before burnout must be cut after burnout, within the 2.83 s bound,
    before apogee, or refused as transonic. Among the dips whose falls each last 0.5 s at most, as
-   the public logs' did, the falls must reach 63 m/s and 0.45 s (the public logs': 63.2 m/s,
-   0.48 s). Measured: 1,787 dipped logs whose
+   the public logs' did, the falls must reach the public logs' 63.2 m/s and 0.48 s. Measured: 1,787 dipped logs whose
    speed falls by the cut's amount, 1,635 cut 0.14 s to 2.30 s after burnout, 152 refused as
    transonic; 1,009 with every fall within 0.5 s, those falls to 0.5 s and 295 m/s.
 4. **The counts.** `from-boost` gives the cuts inside the thrust file's burn, `collection-boost`
    those inside the motor's burn, the end of the `.ork` configuration's thrust curve after the log's
-   liftoff (on a design with several motors, the longest), and how many it can't tell.
+   liftoff (a design with more than one motor or a staging event counts as not known), and how
+   many it can't tell.
 
 **Results.** Public logs: Bella Lui cut at 3.96 s (burn 2.43 s after liftoff at 0.21 s), predicted
 +1.02% against the forward simulation's +0.86%; NDRT 2020 cut at 7.39 s, 6.90 s after liftoff,

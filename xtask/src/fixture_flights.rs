@@ -308,7 +308,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
 
 /// Each flight's motor's burn, s: the end of its thrust curve in the configuration flown. A flight
 /// whose design holds no such configuration, no curve, more than one motor or a staging event has
-/// none: a later motor's burn would end after any one curve's.
+/// none: a later stage's or delayed motor's burn could end after any one curve's.
 fn burns(
     root: &Path,
     entries: &[Entry],
