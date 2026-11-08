@@ -388,8 +388,8 @@ scales may.
 
 **The cut.** The library follows the climb speed: a straight line fitted to each half second of
 heights. One reading far from the rest is left out, as the analyzer's spike rule does. The cut never
-comes where the line stands within 10 m (32.8 ft) of where it began, or below it: three bad readings
-side by side on the pad can lift the line past that for a moment, and its fall back reads like a
+comes where the line stands within 10 m (32.8 ft) of where it began, or below it. Three bad readings
+side by side on the pad can lift the line past that for a moment. Its fall back then reads like a
 burnout's. The cut needs
 the speed to stay 10% below its peak, and at least 10 m/s (32.8 ft/s) below it, for 0.75 s. It
 comes at the first sample where that holds and the speed is the lowest of those 0.75 s. After burnout gravity alone
