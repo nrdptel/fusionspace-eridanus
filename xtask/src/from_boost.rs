@@ -796,9 +796,12 @@ impl Report {
         );
         let _ = writeln!(
             page,
-            "- Cut less than the thrust file's burn after liftoff: {}. The finder can read a dip in a \
-             barometer's fitted speed during the boost as burnout \
+            "- Cut less than the thrust file's burn after liftoff, {} of the {} cut: {}. The cut waits \
+             for the climb speed's fall to hold 0.75 s, so that a dip in a barometer's reading during \
+             the boost isn't read as burnout \
              ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)).",
+            s.cut_in_burn.len(),
+            self.flights.iter().filter(|f| f.cut().is_some()).count(),
             names(&s.cut_in_burn)
         );
         let _ = writeln!(

@@ -272,7 +272,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let report = fly_all(&root, &entries, &index, &supply)?;
     let markdown = report.to_markdown();
     report.check_consistent(&markdown)?;
-    crate::collection_boost::run(&root, &entries, check)?;
+    crate::collection_boost::run(&root, &entries, &burns(&root, &entries, &supply)?, check)?;
     if check {
         let text = fs::read_to_string(root.join(REPORT_JSON))
             .map_err(|error| format!("reading {REPORT_JSON}: {error}"))?;
@@ -304,6 +304,33 @@ pub fn run(args: &[String]) -> Result<(), String> {
     }
     println!("fixture-flights: wrote {REPORT_JSON} and {REPORT_MD}");
     Ok(())
+}
+
+/// Each flight's motor's burn, s: the end of its thrust curve in the configuration flown, the
+/// longest where it holds more than one motor. A flight whose design holds no such configuration,
+/// or no curve, has none.
+fn burns(
+    root: &Path,
+    entries: &[Entry],
+    supply: &crate::ork_supply::Supply,
+) -> Result<BTreeMap<String, f64>, String> {
+    let mut burns = BTreeMap::new();
+    for entry in entries {
+        let design = design(root, entry, supply)?;
+        let Ok(chosen) = collection_cause(&design, entry) else {
+            continue;
+        };
+        let burn_s = chosen
+            .motors
+            .iter()
+            .filter_map(|motor| motor.curve.motor())
+            .map(hpr_motor::SolidMotor::burnout_time_s)
+            .fold(f64::NAN, f64::max);
+        if burn_s.is_finite() {
+            burns.insert(entry.flight_id.clone(), burn_s);
+        }
+    }
+    Ok(burns)
 }
 
 /// Reads the manifest and checks it holds each tier-A `.ork` flight once, with numbers that can

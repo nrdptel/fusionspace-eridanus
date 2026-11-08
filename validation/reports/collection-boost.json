@@ -1,5 +1,5 @@
 {
-  "milestone": "M7.3d4",
+  "milestone": "M7.3d5",
   "decision": "ADR-326",
   "flights": 83,
   "excluded": 11,
@@ -12,7 +12,9 @@
   "chosen_past_gap": 1,
   "refused": {
     "a log slower than 8 Hz": 2,
-    "the transonic limit before a cut": 30
+    "the transonic limit before a cut": 36
   },
-  "cut": 32
+  "cut": 26,
+  "cut_in_burn": 0,
+  "cut_burn_unknown": 6
 }

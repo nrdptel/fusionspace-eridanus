@@ -7,11 +7,15 @@
 //! - [`find_cut`] walks the height track forward and decides at each sample from that sample and
 //!   the ones before it. A vertical speed is fitted by least squares over the last
 //!   [`SPEED_WINDOW_S`] of samples, leaving out a sample the analyzer's Hampel rule calls bad: one
-//!   bad reading of 12 to 100 m put in set A's flights moved a cut by 0.05 s at most (measured).
-//!   Liftoff is where that line stands [`LIFTOFF_RISE_M`] above the first window's, and the cut is
-//!   at the first sample where the speed has fallen below its top by [`DROP_SHARE`] of it, and by
-//!   at least [`DROP_FLOOR_M_S`]. After burnout gravity takes about 9.8 m/s off the vertical speed
-//!   every second, drag more, so the log keeps the coast's start.
+//!   bad reading of 12 to 100 m put in set A's flights moved a cut by 0.70 s at most (measured).
+//!   Liftoff is where that line stands [`LIFTOFF_RISE_M`] above the first window's. The cut is at
+//!   the first sample where the speed has stood below its top by [`DROP_SHARE`] of it, and by at
+//!   least [`DROP_FLOOR_M_S`], for [`HOLD_S`], and is the lowest it has been over the last
+//!   [`HOLD_S`]. After burnout gravity takes about 9.8 m/s off the vertical speed every second,
+//!   drag more, so the speed keeps falling and the log keeps the coast's start. A barometer's
+//!   reading can dip in the boost and catch up: the fall its speed shows recovers within the hold,
+//!   and the fall back from the catch-up's overshoot, which can outlast it, levels off while the
+//!   motor burns.
 //! - Everything after that reads the log cut there: its readings, the fit's observations and so
 //!   the fit. The log's own clock is cut at the cut's sample, by position, so a time it logs later
 //!   can't enter. A channel on a clock of its own is cut at its first time past the cut or out of
@@ -74,6 +78,16 @@ pub const DROP_SHARE: f64 = 0.1;
 /// The least fall below the top speed for the cut, m/s: about a second of gravity alone, so a
 /// slow flight's noise doesn't cut it during the boost. HPR Sim's choice.
 pub const DROP_FLOOR_M_S: f64 = 10.0;
+
+/// How long the fall must hold before the cut, s, and the span its speed must be the lowest of:
+/// a barometer's fitted speed can fall by [`DROP_FLOOR_M_S`] and more during the boost and
+/// recover. On the public flights' logs, the longest such fall inside a burn lasted 0.48 s from
+/// its first sample to the one it recovered at, and the deepest went 63 m/s below its top (Lince
+/// and Juno III, measured once); after burnout gravity and drag keep the speed falling. HPR Sim's
+/// choice: half again the longest, 0.75 s. It moves each cut later by about that much: set A's
+/// first 200 synthetic flights are cut 1.08 s to 2.30 s after burnout, 0.33 s to 1.48 s before it
+/// held.
+pub const HOLD_S: f64 = 0.75;
 
 /// How long the fitted flight is flown to find its apogee, s: past any hobby rocket's climb.
 pub const APOGEE_HORIZON_S: f64 = 300.0;
@@ -202,7 +216,7 @@ fn in_order_count(times: &[f64], cut_s: f64) -> usize {
 /// [`readings::SPEED_MIN_SAMPLES`] in a [`SPEED_WINDOW_S`] window (a log slower than 8 Hz), its
 /// fitted speed reaches
 /// [`readings::TRANSONIC_SPEED_M_S`] before the cut, or it never slows by [`DROP_SHARE`] of its
-/// top speed and [`DROP_FLOOR_M_S`].
+/// top speed and [`DROP_FLOOR_M_S`] for [`HOLD_S`], at a speed the lowest of the last [`HOLD_S`].
 ///
 /// A GNSS receiver's altitude in the boost can drop out at ignition and burnout and lag the
 /// climb, by up to 440 m in one flight a flyer reports, while its fix reads valid
@@ -237,7 +251,8 @@ pub enum NoCut {
         /// That window's fitted speed, m/s.
         speed_m_s: f64,
     },
-    /// Its speed never fell by [`DROP_SHARE`] of its top and [`DROP_FLOOR_M_S`].
+    /// Its speed never fell by [`DROP_SHARE`] of its top and [`DROP_FLOOR_M_S`] for [`HOLD_S`], at
+    /// a speed the lowest of the last [`HOLD_S`].
     NeverSlowed,
 }
 
@@ -247,6 +262,14 @@ pub enum NoCut {
 ///
 /// [`NoCut`]: the first of the finder's refusals the log meets.
 pub fn try_cut(log: &FlightLog) -> Result<Cut, NoCut> {
+    walk(log, HOLD_S, &mut |_, _, _| {})
+}
+
+/// [`try_cut`]'s walk, with the fall held for `hold_s` before the cut, telling `fell` of each fall
+/// that doesn't reach the cut: the time the fall first held, the first time it no longer did
+/// (infinite for one still holding where the walk ends without a cut), and how far it went below
+/// the top, m/s.
+fn walk(log: &FlightLog, hold_s: f64, fell: &mut dyn FnMut(f64, f64, f64)) -> Result<Cut, NoCut> {
     // On a log with its own clock the track is that clock's: its channels are never read here.
     let ordered = if log.time_s.is_empty() {
         Cow::Owned(in_order(log))
@@ -263,6 +286,10 @@ pub fn try_cut(log: &FlightLog) -> Result<Cut, NoCut> {
     let mut pad_m: Option<f64> = None;
     let mut lifted = false;
     let mut top: Option<(f64, f64)> = None;
+    // Since when, and how deep, the speed has stood below its top by the fall the cut needs.
+    let mut falling: Option<(f64, f64)> = None;
+    // The speeds of the last `hold_s` since liftoff, to tell a fall still going from one settled.
+    let mut recent: VecDeque<(f64, f64)> = VecDeque::new();
     let mut full = false;
     for (index, (&t, &h)) in times.iter().zip(&heights).enumerate() {
         // A sample out of order or not a number is passed over, as it is read.
@@ -294,14 +321,24 @@ pub fn try_cut(log: &FlightLog) -> Result<Cut, NoCut> {
         }
         // The analyzer's transonic speed: a barometer's speed this fast may be the flow's.
         if speed >= readings::TRANSONIC_SPEED_M_S {
+            if let Some((since, deepest)) = falling {
+                fell(since, f64::INFINITY, deepest);
+            }
             return Err(NoCut::Transonic {
                 time_s: t,
                 speed_m_s: speed,
             });
         }
+        while recent.front().is_some_and(|&(s, _)| s < t - hold_s) {
+            recent.pop_front();
+        }
+        let lowest = recent.iter().all(|&(_, v)| speed <= v);
+        recent.push_back((t, speed));
         match top {
-            Some((best, at)) if speed <= best => {
-                if best - speed >= (DROP_SHARE * best).max(DROP_FLOOR_M_S) {
+            Some((best, at)) if best - speed >= (DROP_SHARE * best).max(DROP_FLOOR_M_S) => {
+                let (since, deepest) = falling.get_or_insert((t, 0.0));
+                *deepest = deepest.max(best - speed);
+                if t - *since >= hold_s && lowest {
                     return Ok(Cut {
                         index,
                         time_s: t,
@@ -310,8 +347,22 @@ pub fn try_cut(log: &FlightLog) -> Result<Cut, NoCut> {
                     });
                 }
             }
-            _ => top = Some((speed, t)),
+            // A fall that doesn't hold: a dip in the reading, not burnout.
+            Some((best, _)) if speed <= best => {
+                if let Some((since, deepest)) = falling.take() {
+                    fell(since, t, deepest);
+                }
+            }
+            _ => {
+                if let Some((since, deepest)) = falling.take() {
+                    fell(since, t, deepest);
+                }
+                top = Some((speed, t));
+            }
         }
+    }
+    if let Some((since, deepest)) = falling {
+        fell(since, f64::INFINITY, deepest);
     }
     Err(match (full, lifted) {
         (false, _) => NoCut::TooSparse,
@@ -745,11 +796,11 @@ mod tests {
     /// put in passes the same checks: 100 m or 15 m up halfway through the burn, 30 m down at four
     /// fifths of it, 12 m up on the pad, or 15 m down at the first. A GNSS log is refused as one, and
     /// any other uncut log for its speed. Measured, not asserted: 51 cut,
-    /// 0.33 s to 1.48 s after burnout; 43 GNSS logs and 106 fast ones refused, the slowest of those
-    /// at 221.3 m/s; a bad sample made or lost no cut and moved one by 0.05 s at most (and by three
-    /// samples at most, 0.03 s on a 100 Hz log), on 8 of the 785 logs (255 of them on flights that
-    /// are cut). Set B's first 200, run once, not in the test: 57 cut, 0.35 s to 1.55 s after
-    /// burnout, 34 GNSS and 109 fast refused.
+    /// 1.08 s to 2.30 s after burnout; 43 GNSS logs and 106 fast ones refused, the slowest of those
+    /// at 221.3 m/s; a bad sample made or lost no cut and moved one by 0.70 s at most, on 8 of the
+    /// 785 logs (255 of them on flights that are cut). Set B's first 200, run once before the
+    /// [`HOLD_S`] rule, not in the test: 57 cut, 0.35 s to 1.55 s after burnout, 34 GNSS and 109
+    /// fast refused.
     #[test]
     fn the_cut_falls_just_after_the_true_burnout() {
         let latest_s = (DROP_SHARE * readings::TRANSONIC_SPEED_M_S).max(DROP_FLOOR_M_S)
@@ -757,6 +808,8 @@ mod tests {
             + SPEED_WINDOW_S;
         let mut flyer = Flyer::new(DesignFiles::committed());
         let mut cut_count = 0_usize;
+        let (mut early, mut late) = (f64::INFINITY, 0.0_f64);
+        let (mut spiked_logs, mut moved, mut made_or_lost, mut moved_most_s) = (0, 0, 0, 0.0_f64);
         for k in 0..200 {
             let flight = flyer.flight(Set::A, k).expect("set A's flights fly");
             let cut = find_cut(&flight.log);
@@ -791,6 +844,9 @@ mod tests {
             match &cut {
                 Some(cut) => {
                     cut_count += 1;
+                    let after = cut.time_s - (pad_s + events.burnout_s);
+                    early = early.min(after);
+                    late = late.max(after);
                     check(cut, "");
                 }
                 None => {
@@ -820,12 +876,130 @@ mod tests {
                 };
                 spiked.altitude_m[i] += by_m;
                 let what = format!(" with {by_m} m at {at_s} s (burnout {burn_s} s)");
-                if let Some(spiked_cut) = find_cut(&spiked) {
-                    check(&spiked_cut, &what);
+                let spiked_found = find_cut(&spiked);
+                if let Some(spiked_cut) = &spiked_found {
+                    check(spiked_cut, &what);
+                }
+                spiked_logs += 1;
+                match (&cut, &spiked_found) {
+                    (Some(a), Some(b)) if a.time_s != b.time_s => {
+                        moved += 1;
+                        moved_most_s = moved_most_s.max((a.time_s - b.time_s).abs());
+                    }
+                    (Some(_), None) | (None, Some(_)) => made_or_lost += 1,
+                    _ => {}
                 }
             }
         }
+        println!(
+            "set A: {cut_count} cut, {early:.2} s to {late:.2} s after burnout; of {spiked_logs} \
+             spiked logs {moved} moved, by {moved_most_s:.3} s at most, {made_or_lost} made or lost"
+        );
         assert!(cut_count >= 51, "{cut_count} cut");
+    }
+
+    /// A barometer's dip in the boost isn't burnout. Over set A's first 200 synthetic flights, on
+    /// each one cut, a dip is put in the height, `depth · sin²(π (t − start) / span)` below it, its
+    /// start at ignition or 0.3 or 0.6 of the way through the burn, its span 0.2 to 0.6 s and its
+    /// depth 10, 20 or 40 m. Every dipped log whose fitted speed falls before burnout by what the
+    /// cut needs is cut after burnout, within the 2.83 s of
+    /// [`the_cut_falls_just_after_the_true_burnout`], before apogee, or refused for the transonic
+    /// speed its catch-up can read. Among the logs whose falls each last 0.5 s at most before
+    /// burnout, as the public logs' did, the falls reach the public logs' deepest, 63 m/s, and
+    /// come within 0.05 s of 0.5 s. Measured, not asserted: of 51 flights, 1,787 dipped logs give
+    /// such a fall; 1,635 are cut, 0.14 s to 2.30 s after burnout, and 152 refused as transonic.
+    /// 1,009 hold every fall to 0.5 s, up to 295 m/s deep; on the other 778 the catch-up
+    /// overshoots, and the fall back from it lasts longer. With the hold alone, not the lowest
+    /// speed, 416 of those 778 were cut in the burn (run once).
+    #[test]
+    fn a_dip_in_the_boost_is_not_burnout() {
+        let latest_s = (DROP_SHARE * readings::TRANSONIC_SPEED_M_S).max(DROP_FLOOR_M_S)
+            / hpr_core::gravity::STANDARD_GRAVITY_MPS2
+            + SPEED_WINDOW_S;
+        let mut flyer = Flyer::new(DesignFiles::committed());
+        let (mut dipped_count, mut cut_count, mut refused) = (0_usize, 0_usize, 0_usize);
+        let mut longer = 0_usize;
+        let (mut longest_s, mut deepest_m_s) = (0.0_f64, 0.0_f64);
+        let (mut earliest_s, mut latest_found_s) = (f64::INFINITY, 0.0_f64);
+        for k in 0..200 {
+            let flight = flyer.flight(Set::A, k).expect("set A's flights fly");
+            if find_cut(&flight.log).is_none() {
+                continue;
+            }
+            let pad_s = flight.draw.logger.pad_s;
+            let events = &flight.truth.events;
+            let burnout_s = pad_s + events.burnout_s;
+            for start in [0.0, 0.3, 0.6] {
+                for span_s in [0.2, 0.3, 0.4, 0.5, 0.6] {
+                    for depth_m in [10.0, 20.0, 40.0] {
+                        let start_s = pad_s + start * events.burnout_s;
+                        let mut dipped = flight.log.clone();
+                        for (t, h) in dipped.time_s.iter().zip(&mut dipped.altitude_m) {
+                            if (start_s..=start_s + span_s).contains(t) {
+                                *h -= depth_m
+                                    * (std::f64::consts::PI * (t - start_s) / span_s)
+                                        .sin()
+                                        .powi(2);
+                            }
+                        }
+                        // Each fall's time before burnout, a fall still holding at the walk's
+                        // end included.
+                        let mut falls = Vec::new();
+                        let _ = walk(&dipped, f64::INFINITY, &mut |since, until, deepest| {
+                            if since < burnout_s {
+                                falls.push((until.min(burnout_s) - since, deepest));
+                            }
+                        });
+                        if falls.is_empty() {
+                            continue;
+                        }
+                        dipped_count += 1;
+                        if falls.iter().any(|&(held_s, _)| held_s > 0.5) {
+                            longer += 1;
+                        } else {
+                            for &(held_s, deepest) in &falls {
+                                longest_s = longest_s.max(held_s);
+                                deepest_m_s = deepest_m_s.max(deepest);
+                            }
+                        }
+                        let what = format!(
+                            "flight {k}, a {depth_m} m dip over {span_s} s from {start_s} s \
+                             (burnout {burnout_s} s)"
+                        );
+                        match try_cut(&dipped) {
+                            Ok(cut) => {
+                                cut_count += 1;
+                                let after_s = cut.time_s - burnout_s;
+                                assert!(
+                                    after_s > 0.0 && after_s <= latest_s,
+                                    "{what}: cut {after_s} s after burnout"
+                                );
+                                assert!(cut.time_s < pad_s + events.apogee_s, "{what}");
+                                earliest_s = earliest_s.min(after_s);
+                                latest_found_s = latest_found_s.max(after_s);
+                            }
+                            Err(NoCut::Transonic { .. }) => refused += 1,
+                            Err(why) => panic!("{what}: refused, {why:?}"),
+                        }
+                    }
+                }
+            }
+        }
+        println!(
+            "{dipped_count} dipped logs, {cut_count} cut {earliest_s:.2} s to {latest_found_s:.2} s \
+             after burnout, {refused} refused as transonic; falls up to {longest_s:.2} s and \
+             {deepest_m_s:.1} m/s in those whose falls each held 0.5 s at most; {longer} with a \
+             longer one"
+        );
+        assert!(
+            longest_s >= 0.45,
+            "the longest fall kept held {longest_s} s"
+        );
+        assert!(
+            deepest_m_s >= 63.0,
+            "the deepest fall kept went {deepest_m_s} m/s"
+        );
+        assert!(cut_count >= 1600, "{cut_count} dipped logs cut");
     }
 
     /// A hostile log is refused without a panic, and each refusal names its reason: no samples, one,

@@ -382,6 +382,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.3d1 The prediction from the boost ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3d2 The public flights ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3d4 The halves sealed ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.3d5 The cut on a real barometer ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -2019,6 +2020,9 @@ One line per milestone or increment, in the order it was archived within its pha
         `fixture-flights --check` fails when it no longer matches; each flight's log is chosen by a stated rule from
         its pinned logs, read, and cut or refused for its reason, counted over the whole collection in a committed
         report that gives no half's number.
+      - [x] **M7.3d5 The cut on a real barometer** (#1307, ADR-327). *Done when:* synthetic logs with a barometer's dips as deep
+        and long as the public logs' (to 0.5 s) are cut after burnout, set A's within its 2.83 s bound;
+        `from-boost` and `collection-boost` count the cuts inside the burn.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

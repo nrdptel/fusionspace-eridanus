@@ -1,6 +1,6 @@
 # Apogee predicted from the boost, on the logs of real flights
 
-This report asks whether apogee predicted from a log cut just after burnout comes closer to the logged apogee than the forward simulation, the simulator's flight of the design with nothing fitted. It covers the 7 public logged flights. 2 get a prediction, 1 of them in the case the method is meant for, so it can't yet say at 95% which comes closer. An error is an apogee less the log's, as a share of the log's: + is too high.
+This report asks whether apogee predicted from a log cut just after burnout comes closer to the logged apogee than the forward simulation, the simulator's flight of the design with nothing fitted. It covers the 7 public logged flights. 2 get a prediction, 2 of them in the case the method is meant for, so it can't yet say at 95% which comes closer. An error is an apogee less the log's, as a share of the log's: + is too high.
 
 Written by `cargo xtask real-flights` ([M7.3d2][m7-3d], decisions [ADR-257][adr-257] §3 and [ADR-325][adr-325]). How the prediction works is on the [fit's page][site].
 
@@ -19,10 +19,10 @@ Written by `cargo xtask real-flights` ([M7.3d2][m7-3d], decisions [ADR-257][adr-
 
 ## Summary
 
-- Every flight with a prediction, as the library gives it, the method's case and the rest together, 2 (ndrt-2020, lince): the prediction's mean absolute apogee error is 3.03% (-0.85% with its sign); the forward simulation's on the same flights 6.89% (+6.89% with its sign); the fit's model at what was stated, nothing fitted, 5.07% (+5.07% with its sign). The prediction's absolute error less the forward simulation's is -3.86 percentage points on average; its exact sign-flip interval: unbounded, as on 2 flights no pattern of signs is rare enough at 95% (it takes 6 flights).
-- In the case the method is meant for, 1 (ndrt-2020): the prediction's mean absolute apogee error is 3.88% (-3.88% with its sign); the forward simulation's on the same flights 10.40% (+10.40% with its sign); the fit's model at what was stated, nothing fitted, 6.57% (+6.57% with its sign). The prediction's absolute error less the forward simulation's is -6.52 percentage points on average; its exact sign-flip interval: unbounded, as on 1 flight no pattern of signs is rare enough at 95% (it takes 6 flights).
+- Every flight with a prediction, as the library gives it, the method's case and the rest together, 2 (bella-lui, ndrt-2020): the prediction's mean absolute apogee error is 2.30% (-1.28% with its sign); the forward simulation's on the same flights 5.63% (+5.63% with its sign); the fit's model at what was stated, nothing fitted, 3.71% (+3.71% with its sign). The prediction's absolute error less the forward simulation's is -3.33 percentage points on average; its exact sign-flip interval: unbounded, as on 2 flights no pattern of signs is rare enough at 95% (it takes 6 flights).
+- In the case the method is meant for, 2 (bella-lui, ndrt-2020): the prediction's mean absolute apogee error is 2.30% (-1.28% with its sign); the forward simulation's on the same flights 5.63% (+5.63% with its sign); the fit's model at what was stated, nothing fitted, 3.71% (+3.71% with its sign). The prediction's absolute error less the forward simulation's is -3.33 percentage points on average; its exact sign-flip interval: unbounded, as on 2 flights no pattern of signs is rare enough at 95% (it takes 6 flights).
 - Set beside the forward simulation's, the stated model's error shows what the fit's constant wind alone moves; beside the prediction's, what the fit to the boost moves.
-- Cut less than the thrust file's burn after liftoff: bella-lui, prometheus-2022, juno-iii, lince. The finder can read a dip in a barometer's fitted speed during the boost as burnout ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)).
+- Cut less than the thrust file's burn after liftoff, 0 of the 2 cut: none. The cut waits for the climb speed's fall to hold 0.75 s, so that a dip in a barometer's reading during the boost isn't read as burnout ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)).
 - Climbing at or past 227.7 m/s, the log read whole: prometheus-2022, cavour, genesis, lince. A cut before that speed on such a log came on a dip, not at burnout. Top speed withheld for another reason, such as a spike at the top, so the log can't be set against that speed: juno-iii.
 - The forward simulation on all 7 flights: mean absolute apogee error 6.06% (-0.22% with its sign).
 
@@ -32,13 +32,13 @@ The stated apogee is the fit's model, nothing fitted, in its constant wind.
 
 | flight | outcome | log apogee (m) | predicted (m) | error | forward (m) | forward error | stated (m) | stated error |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
-| Bella Lui, EPFL Rocket Team, 2020 (K828FJ) | cut, but too little before the cut to fit | 459.0 | none | none | 462.9 | +0.86% | 462.9 | +0.85% |
-| NDRT 2020, Notre Dame Rocketry Team (L1395) | predicted | 1320.4 | 1269.2 | -3.88% | 1457.6 | +10.40% | 1407.1 | +6.57% |
-| Prometheus, Western Engineering, Spaceport America Cup 2022 (M1520) | cut, but too little before the cut to fit | 3895.8 | none | none | 3549.3 | -8.90% | 3639.8 | -6.57% |
-| Juno III, Projeto Jupiter, Spaceport America Cup 2023 (the team's motor) | cut, but too little before the cut to fit | 3151.5 | none | none | 2923.4 | -7.24% | 2862.1 | -9.18% |
+| Bella Lui, EPFL Rocket Team, 2020 (K828FJ) | predicted | 459.0 | 463.6 | +1.02% | 462.9 | +0.86% | 462.9 | +0.85% |
+| NDRT 2020, Notre Dame Rocketry Team (L1395) | predicted | 1320.4 | 1273.1 | -3.58% | 1457.6 | +10.40% | 1407.1 | +6.57% |
+| Prometheus, Western Engineering, Spaceport America Cup 2022 (M1520) | no cut: climbing at 229.9 m/s at 4.73 s, too fast | 3895.8 | none | none | 3549.3 | -8.90% | 3639.8 | -6.57% |
+| Juno III, Projeto Jupiter, Spaceport America Cup 2023 (the team's motor) | no cut: climbing at 233.7 m/s at 2.80 s, too fast | 3151.5 | none | none | 2923.4 | -7.24% | 2862.1 | -9.18% |
 | Cavour, Politecnico di Torino, EuRoC 2023 (L995) | no cut: climbing at 307.0 m/s at 3.20 s, too fast | 2785.0 | none | none | 2946.0 | +5.78% | 2926.6 | +5.08% |
 | Genesis, EuRoC 2023 (L995) | no cut: climbing at 229.0 m/s at 3.12 s, too fast | 2916.7 | none | none | 2746.0 | -5.85% | 2744.7 | -5.90% |
-| Lince, EuRoC 2023 (M1101) | predicted | 3587.7 | 3666.2 | +2.19% | 3709.2 | +3.39% | 3715.6 | +3.56% |
+| Lince, EuRoC 2023 (M1101) | no cut: climbing at 227.9 m/s at 3.17 s, too fast | 3587.7 | none | none | 3709.2 | +3.39% | 3715.6 | +3.56% |
 
 ## The cut
 
@@ -46,13 +46,13 @@ Times are on the log's clock; the burn is the thrust file's, as flown.
 
 | flight | liftoff (s) | cut (s) | top speed before the cut (m/s) | burn (s) | cut in the burn | climbs past 227.7 m/s | forward's largest Mach |
 |---|---:|---:|---:|---:|---|---|---:|
-| Bella Lui, EPFL Rocket Team, 2020 (K828FJ) | 0.21 | 2.46 | 91.5 | 2.43 | yes | no | 0.264 |
-| NDRT 2020, Notre Dame Rocketry Team (L1395) | 0.49 | 4.84 | 161.9 | 3.43 | no | no | 0.536 |
-| Prometheus, Western Engineering, Spaceport America Cup 2022 (M1520) | 0.23 | 2.02 | 61.9 | 4.88 | yes | yes | 0.959 |
-| Juno III, Projeto Jupiter, Spaceport America Cup 2023 (the team's motor) | 0.55 | 1.35 | 131.3 | 5.69 | yes | not read | 0.733 |
+| Bella Lui, EPFL Rocket Team, 2020 (K828FJ) | 0.21 | 3.96 | 91.5 | 2.43 | no | no | 0.264 |
+| NDRT 2020, Notre Dame Rocketry Team (L1395) | 0.49 | 7.39 | 168.5 | 3.43 | no | no | 0.536 |
+| Prometheus, Western Engineering, Spaceport America Cup 2022 (M1520) | 0.23 | none | none | 4.88 | none | yes | 0.959 |
+| Juno III, Projeto Jupiter, Spaceport America Cup 2023 (the team's motor) | 0.55 | none | none | 5.69 | none | not read | 0.733 |
 | Cavour, Politecnico di Torino, EuRoC 2023 (L995) | 0.20 | none | none | 3.60 | none | yes | 0.933 |
 | Genesis, EuRoC 2023 (L995) | 0.25 | none | none | 3.60 | none | yes | 0.854 |
-| Lince, EuRoC 2023 (M1101) | 0.18 | 2.58 | 224.1 | 4.67 | yes | yes | 0.993 |
+| Lince, EuRoC 2023 (M1101) | 0.18 | none | none | 4.67 | none | yes | 0.993 |
 
 ## What is stated before a log
 
@@ -86,6 +86,17 @@ Fitted whole log: residual RMS 2.06 m, misfit share 0.0132, 51 simulations flown
 | wind toward the north (m/s) | 1.308 | 3.798 | none |
 | structure mass scale | 1.000 | 0.011 | 0.983 to 1.018 |
 
+Fitted up to the cut: residual RMS 3.04 m, misfit share 0.0380, 37 simulations flown.
+
+| parameter | value | standard error | 90% interval |
+|---|---:|---:|---:|
+| drag scale | 0.999 | 0.109 | none |
+| impulse scale | 1.000 | 0.021 | none |
+| burn time scale | 0.993 | 0.048 | none |
+| wind toward the east (m/s) | 0.653 | 3.854 | none |
+| wind toward the north (m/s) | 1.071 | 3.827 | none |
+| structure mass scale | 1.000 | 0.011 | none |
+
 ### NDRT 2020, Notre Dame Rocketry Team (L1395)
 
 Stated wind: 10.46 m/s toward the east, 6.25 m/s toward the north. The fit's model in ERA5's own wind lands +0.000 m from the forward simulation's apogee.
@@ -101,16 +112,16 @@ Fitted whole log: residual RMS 3.25 m, misfit share 0.0071, 92 simulations flown
 | wind toward the north (m/s) | 8.300 | 3.769 | none |
 | structure mass scale | 1.007 | 0.011 | 0.989 to 1.025 |
 
-Fitted up to the cut: residual RMS 0.88 m, misfit share 0.0060, 57 simulations flown.
+Fitted up to the cut: residual RMS 3.37 m, misfit share 0.0131, 61 simulations flown.
 
 | parameter | value | standard error | 90% interval |
 |---|---:|---:|---:|
-| drag scale | 1.017 | 0.109 | none |
-| impulse scale | 0.963 | 0.027 | none |
-| burn time scale | 1.059 | 0.041 | none |
-| wind toward the east (m/s) | 12.653 | 3.609 | none |
-| wind toward the north (m/s) | 7.606 | 3.776 | none |
-| structure mass scale | 1.003 | 0.011 | none |
+| drag scale | 0.947 | 0.102 | none |
+| impulse scale | 0.955 | 0.026 | none |
+| burn time scale | 1.061 | 0.035 | none |
+| wind toward the east (m/s) | 12.630 | 3.601 | none |
+| wind toward the north (m/s) | 7.595 | 3.773 | none |
+| structure mass scale | 1.005 | 0.011 | none |
 
 ### Prometheus, Western Engineering, Spaceport America Cup 2022 (M1520)
 
@@ -179,15 +190,4 @@ Fitted whole log: residual RMS 11.85 m, misfit share 0.0101, 128 simulations flo
 | wind toward the east (m/s) | 1.629 | 3.854 | none |
 | wind toward the north (m/s) | 3.006 | 3.754 | none |
 | structure mass scale | 0.981 | 0.010 | 0.964 to 0.998 |
-
-Fitted up to the cut: residual RMS 4.76 m, misfit share 0.0718, 49 simulations flown.
-
-| parameter | value | standard error | 90% interval |
-|---|---:|---:|---:|
-| drag scale | 1.001 | 0.109 | none |
-| impulse scale | 0.986 | 0.032 | none |
-| burn time scale | 1.049 | 0.045 | none |
-| wind toward the east (m/s) | 1.647 | 3.874 | none |
-| wind toward the north (m/s) | 3.096 | 3.868 | none |
-| structure mass scale | 1.002 | 0.011 | none |
 

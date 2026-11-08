@@ -136,6 +136,10 @@ pub struct Report {
     pub refused: BTreeMap<String, usize>,
     /// The chosen logs cut.
     pub cut: usize,
+    /// Of those, the ones cut less than the flight's motor's burn after the log's liftoff.
+    pub cut_in_burn: usize,
+    /// Of those cut, the ones whose motor's burn or log's liftoff isn't known.
+    pub cut_burn_unknown: usize,
 }
 
 /// The share of the logged apogee past which a chosen log's own apogee reading is counted: 2%, a
@@ -144,9 +148,11 @@ pub struct Report {
 /// log may still be another altimeter's: two in one rocket often agree that closely.
 pub const GAP_SHARE: f64 = 0.02;
 
-/// A flight's chosen log: its own apogee reading, and the boost's cut or why there's none.
+/// A log read: its own apogee reading, its liftoff on its clock, and the boost's cut or why
+/// there's none.
 struct Chosen {
     apogee_m: f64,
+    liftoff_s: Option<f64>,
     cut: Result<boost::Cut, NoCut>,
 }
 
@@ -164,17 +170,24 @@ fn refusal_name(why: &NoCut) -> &'static str {
 }
 
 /// Of the logs read, the one whose apogee reading is nearest `logged_m`, the first on a tie.
-fn choose(read: Vec<(f64, Result<boost::Cut, NoCut>)>, logged_m: f64) -> Option<Chosen> {
+fn choose(read: Vec<Chosen>, logged_m: f64) -> Option<Chosen> {
     let mut best: Option<Chosen> = None;
-    for (apogee_m, cut) in read {
+    for log in read {
         let nearer = best
             .as_ref()
-            .is_none_or(|b| (apogee_m - logged_m).abs() < (b.apogee_m - logged_m).abs());
+            .is_none_or(|b| (log.apogee_m - logged_m).abs() < (b.apogee_m - logged_m).abs());
         if nearer {
-            best = Some(Chosen { apogee_m, cut });
+            best = Some(log);
         }
     }
     best
+}
+
+/// Whether a cut came less than the motor's burn after the log's liftoff; `None` where either
+/// isn't known. Liftoff follows ignition, so this also takes in a cut up to that lag after the
+/// burn ends, as the public flights' report counts it.
+fn cut_in_burn(cut: &boost::Cut, liftoff_s: Option<f64>, burn_s: Option<f64>) -> Option<bool> {
+    Some(cut.time_s - liftoff_s? < burn_s?)
 }
 
 /// The catalog's pinned logs of each flight, by flight id, in the catalog's order.
@@ -207,10 +220,10 @@ fn pinned_logs(root: &Path) -> Result<BTreeMap<String, Vec<String>>, String> {
 }
 
 /// Reads the flights' logs and counts what comes of each.
-fn count(root: &Path, entries: &[Entry]) -> Result<Report, String> {
+fn count(root: &Path, entries: &[Entry], burns: &BTreeMap<String, f64>) -> Result<Report, String> {
     let logs = pinned_logs(root)?;
     let mut report = Report {
-        milestone: "M7.3d4".to_owned(),
+        milestone: "M7.3d5".to_owned(),
         decision: "ADR-326".to_owned(),
         flights: entries.len(),
         excluded: 0,
@@ -223,6 +236,8 @@ fn count(root: &Path, entries: &[Entry]) -> Result<Report, String> {
         chosen_past_gap: 0,
         refused: BTreeMap::new(),
         cut: 0,
+        cut_in_burn: 0,
+        cut_burn_unknown: 0,
     };
     for entry in entries {
         if entry.excluded.is_some() {
@@ -250,7 +265,11 @@ fn count(root: &Path, entries: &[Entry]) -> Result<Report, String> {
                 continue;
             }
             report.logs_with_apogee += 1;
-            read.push((apogee.height_m, boost::try_cut(&log)));
+            read.push(Chosen {
+                apogee_m: apogee.height_m,
+                liftoff_s: readings.liftoff.value().map(|l| l.time_s),
+                cut: boost::try_cut(&log),
+            });
         }
         if !any_read {
             report.no_log_read += 1;
@@ -264,12 +283,19 @@ fn count(root: &Path, entries: &[Entry]) -> Result<Report, String> {
         if (chosen.apogee_m - entry.logged_apogee_m).abs() > GAP_SHARE * entry.logged_apogee_m {
             report.chosen_past_gap += 1;
         }
-        match chosen.cut {
-            Ok(_) => report.cut += 1,
+        match &chosen.cut {
+            Ok(cut) => {
+                report.cut += 1;
+                match cut_in_burn(cut, chosen.liftoff_s, burns.get(&entry.flight_id).copied()) {
+                    Some(true) => report.cut_in_burn += 1,
+                    Some(false) => {}
+                    None => report.cut_burn_unknown += 1,
+                }
+            }
             Err(why) => {
                 *report
                     .refused
-                    .entry(refusal_name(&why).to_owned())
+                    .entry(refusal_name(why).to_owned())
                     .or_default() += 1
             }
         }
@@ -289,14 +315,12 @@ impl Report {
              have a barometer's log that a prediction from the boost can start from: the log cut \
              just after burnout, fitted, and flown on to apogee, as the \
              [public flights' report](from-boost.md) does for 7 public flights. It predicts \
-             nothing yet, so none of these counts measures accuracy. A cut is not yet known to be \
-             at burnout: on the public flights' barometers it can fall inside the burn \
-             ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)). The \
+             nothing yet, so none of these counts measures accuracy. The \
              collection's license allows only aggregates, so no flight is named.\n"
         );
         let _ = writeln!(
             page,
-            "Written by `cargo xtask fixture-flights`; do not edit. It is the first of four steps \
+            "Written by `cargo xtask fixture-flights`; do not edit. It is the second of four steps \
              toward the collection's predictions ({}, decision record \
              [{}](../../docs/decisions/0326-m7-3d3-in-four-the-halves-sealed-first.md)).\n",
             self.milestone, self.decision
@@ -358,6 +382,16 @@ impl Report {
         let _ = writeln!(page, "| chosen and cut | {} |", self.cut);
         let _ = writeln!(
             page,
+            "| … cut less than the motor's burn after liftoff | {} |",
+            self.cut_in_burn
+        );
+        let _ = writeln!(
+            page,
+            "| … cut, the motor's burn or the log's liftoff not known | {} |",
+            self.cut_burn_unknown
+        );
+        let _ = writeln!(
+            page,
             "\nOf the flights not left out, {} files were tried, {} read on their own and {} gave \
              an apogee on a barometer's track. Of the chosen logs, {} read an apogee more than \
              {:.0}% from the logged one: the nearest log may be another altimeter's, or a \
@@ -374,10 +408,20 @@ impl Report {
             "**The refusals.** The finder refuses a log whose fitted climb speed reaches \
              227.7 m/s (747 ft/s), Mach 0.8 in the coldest air, before its cut: nearer the \
              [speed of sound](../../docs/glossary.md#transonic-and-supersonic) a barometer's \
-             reading may follow the airflow, not the height. A cut that falls early on a dip can \
-             come before that speed, as Lince's did in the [public flights' report](from-boost.md), \
-             so some cuts counted here may be on logs that climb past it later. A log in which no \
-             half second holds 5 samples (under 8 a second) is too sparse to follow the climb."
+             reading may follow the airflow, not the height. A log in which no half second holds \
+             5 samples (under 8 a second) is too sparse to follow the climb.\n"
+        );
+        let _ = writeln!(
+            page,
+            "**Cuts inside the burn.** A barometer's reading can dip in the boost and catch up, \
+             so the finder cuts only where the climb speed's fall has held 0.75 s and the speed \
+             is the lowest it has been over that span \
+             ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)). A cut counts \
+             as inside the burn when it comes less than the motor's burn after the log's liftoff: \
+             the burn is the end of the motor's thrust curve, as the flight's `.ork` and the \
+             curves supplied for it give it (on a design with more than one motor, the longest). \
+             Liftoff follows ignition, so that also takes in a cut up to that lag after the burn \
+             ends. A prediction from such a cut wouldn't be the method's case."
         );
         page
     }
@@ -388,6 +432,7 @@ impl Report {
         let flights_ok = self.excluded + self.no_log_read + self.no_apogee + self.chosen
             == self.flights
             && refused + self.cut == self.chosen
+            && self.cut_in_burn + self.cut_burn_unknown <= self.cut
             && self.chosen_past_gap <= self.chosen
             && self.logs_with_apogee <= self.logs_read
             && self.logs_read <= self.logs;
@@ -404,7 +449,12 @@ impl Report {
 }
 
 /// Writes, or with `check` checks, the held-out digest and the report.
-pub fn run(root: &Path, entries: &[Entry], check: bool) -> Result<(), String> {
+pub fn run(
+    root: &Path,
+    entries: &[Entry],
+    burns: &BTreeMap<String, f64>,
+    check: bool,
+) -> Result<(), String> {
     let digest = held_out_digest(
         entries
             .iter()
@@ -412,7 +462,7 @@ pub fn run(root: &Path, entries: &[Entry], check: bool) -> Result<(), String> {
             .filter(|id| held_out(id)),
     );
     let sealed = held_out_text(&digest);
-    let report = count(root, entries)?;
+    let report = count(root, entries, burns)?;
     let page = report.to_markdown();
     report.check_consistent(&page)?;
     if check {
@@ -523,13 +573,33 @@ mod tests {
         }
     }
 
+    /// A cut is inside the burn when it comes less than the burn after liftoff; unknown without
+    /// either.
+    #[test]
+    fn a_cut_inside_the_burn_is_less_than_the_burn_after_liftoff() {
+        let cut = boost::Cut {
+            index: 0,
+            time_s: 4.0,
+            top_speed_s: 3.0,
+            top_speed_m_s: 100.0,
+        };
+        assert_eq!(cut_in_burn(&cut, Some(0.5), Some(3.6)), Some(true));
+        assert_eq!(cut_in_burn(&cut, Some(0.5), Some(3.5)), Some(false));
+        assert_eq!(cut_in_burn(&cut, None, Some(3.6)), None);
+        assert_eq!(cut_in_burn(&cut, Some(0.5), None), None);
+    }
+
     /// The nearest apogee wins, the first on a tie.
     #[test]
     fn the_nearest_log_is_chosen() {
-        let refused = || Err(NoCut::NeverSlowed);
-        let chosen = choose(vec![(900.0, refused()), (1_010.0, refused())], 1_000.0).unwrap();
+        let log = |apogee_m| Chosen {
+            apogee_m,
+            liftoff_s: None,
+            cut: Err(NoCut::NeverSlowed),
+        };
+        let chosen = choose(vec![log(900.0), log(1_010.0)], 1_000.0).unwrap();
         assert_eq!(chosen.apogee_m, 1_010.0);
-        let tie = choose(vec![(990.0, refused()), (1_010.0, refused())], 1_000.0).unwrap();
+        let tie = choose(vec![log(990.0), log(1_010.0)], 1_000.0).unwrap();
         assert_eq!(tie.apogee_m, 990.0);
         assert!(choose(Vec::new(), 1_000.0).is_none());
     }
