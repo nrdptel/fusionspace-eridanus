@@ -134,8 +134,8 @@ fn line(points: &[(f64, f64)]) -> Option<(f64, f64)> {
 /// than [`readings::SPIKE_THRESHOLD`] robust standard deviations (1.4826 times the residuals'
 /// median absolute deviation) from their median, the analyzer's Hampel rule (Pearson et al.,
 /// EUSIPCO 2015, §2). One bad sample that far out, a pulse at the port or a corrupt reading, is so
-/// left out of every window that holds it; two or three side by side can carry the first line with
-/// them (the cut's test measures what that does). Where most residuals are 0, as on a quantized pad, only the samples on the line
+/// left out of every window that holds it; three side by side can carry the first line with them
+/// (the cut's test measures what that does). Where most residuals are 0, as on a quantized pad, only the samples on the line
 /// are kept.
 /// `None` where fewer than [`readings::SPEED_MIN_SAMPLES`] are kept or the times don't spread.
 fn robust_line(window: &VecDeque<(f64, f64)>, scratch: &mut Scratch) -> Option<(f64, f64)> {
@@ -248,8 +248,8 @@ fn in_order_count(times: &[f64], cut_s: f64) -> usize {
 /// [`readings::TRANSONIC_SPEED_M_S`] before the cut, or it never slows by [`DROP_SHARE`] of its
 /// top speed and [`DROP_FLOOR_M_S`] for [`HOLD_S`], at a speed the lowest of the last [`HOLD_S`].
 /// The cut stands where the window's line is more than [`LIFTOFF_RISE_M`] above the first
-/// window's: a run of bad samples on the pad can lift the line past that for a sample and then
-/// fall back as a burnout does.
+/// window's: three bad samples side by side on the pad can lift the line past that for a sample,
+/// and the speed then falls back as it does at burnout.
 ///
 /// A GNSS receiver's altitude in the boost can drop out at ignition and burnout and lag the
 /// climb, by up to 440 m in one flight a flyer reports, while its fix reads valid
@@ -383,8 +383,8 @@ fn walk(log: &FlightLog, hold_s: f64, fell: &mut dyn FnMut(f64, f64, f64)) -> Re
             Some((best, at)) if best - speed >= (DROP_SHARE * best).max(DROP_FLOOR_M_S) => {
                 let (since, deepest) = falling.get_or_insert((t, 0.0));
                 *deepest = deepest.max(best - speed);
-                // Never on the pad: a run of bad samples there can lift the line past the rise for
-                // a sample, and the fall back after it holds as burnout's does.
+                // Never on the pad: three bad samples side by side there can lift the line past
+                // the rise for a sample, and the speed's fall back after it holds as burnout's does.
                 if t - *since >= hold_s && lowest(&recent) && aloft {
                     return Ok(Cut {
                         index,
@@ -955,7 +955,8 @@ mod tests {
     /// at most, none made or lost; three side by side moved 23 by 1.35 s at most and lost 40, their
     /// speed read past the transonic one (100 m up halfway through the burn, or 30 m down at four
     /// fifths). Before a cut had to stand above the pad by [`LIFTOFF_RISE_M`], three 12 m up on the
-    /// pad cut 33 flights there, 2.37 s to 7.85 s before burnout. Set B's first 200, run once before the
+    /// pad cut 33 flights before the speed's peak, 32 of them before ignition, 2.37 s to 7.85 s
+    /// before burnout. Set B's first 200, run once before the
     /// [`HOLD_S`] rule, not in the test: 57 cut, 0.35 s to 1.55 s after burnout, 34 GNSS and 109
     /// fast refused.
     #[test]
