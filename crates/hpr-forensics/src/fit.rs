@@ -271,10 +271,9 @@ pub fn observations(log: &FlightLog, read: &Readings) -> Option<Observations> {
 
 /// A log's height and any horizontal track, on `read`'s pad, from a second before `read`'s
 /// liftoff up to `to_s` (not including it), its heights of `kind`; `None` where the reader
-/// withheld the pad, the climb from liftoff to `to_s` is empty or longer than [`MAX_WINDOW_S`], or
-/// too few bins hold a
-/// sample to fit. With
-/// `whole_bins` the window ends at the last edge of a whole [`BIN_S`] bin at or before `to_s`: a
+/// withheld the pad, the log holds no height track, the climb from liftoff to `to_s` (to its last
+/// whole bin, with `whole_bins`) is empty or longer than [`MAX_WINDOW_S`], or too few bins hold a
+/// sample to fit. With `whole_bins` the window ends at the last edge of a whole [`BIN_S`] bin at or before `to_s`: a
 /// bin is read at its middle, and a part bin's samples, all early in it, would be read late, as
 /// they are on a climb cut short (at apogee the height barely moves, so the whole log needs none).
 pub(crate) fn observations_until(
