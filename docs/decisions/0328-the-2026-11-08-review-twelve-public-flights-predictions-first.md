@@ -69,7 +69,7 @@ doesn't say which).
      all traced, as tagged in (a), and over the merged predictions where any was revised. Moves:
      `accuracy.public` and `bias.public`, from 7 flights to 12.
 2. **Third, after M2.7, before M7.5.** Merged first, the new flights' predictions exist before
-   M7.5's correction does. Their logged apogees are already in the research notes, though none has
+   M7.5's correction does. Their measured apogees are already in the research notes, though none has
    been adopted as a reference apogee under the predictions file's rule. Merging the predictions
    first guards against tuning HPR Sim to its own error, not against knowing the target, so each
    input must come from its named record. Pull requests here are squash-merged ([ADR-326][adr-326]),
