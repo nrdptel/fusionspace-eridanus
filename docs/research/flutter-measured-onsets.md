@@ -84,7 +84,7 @@ stressed-skin wings give 1.07–1.15, the 30% spar wings 0.92–1.14, the 25% sp
 from +50% at Mach 0.4 to −25% at Mach 0.9 (Summary, s. 5.3). Caveats: the conversion reads Table 1's stiffness
 "measured at 0.7 s" as torque over twist at 0.7 span; taking $JG$ as the stiffness times 1 ft moves every ratio −15%,
 times the span +20%, and the transonic wings stay above 1 (lowest 1.05). One group and one planform, three to five times
-hobby size. Crown copyright, published 1956; it has most likely expired, but that is not a legal check, so cite only.
+hobby size. Crown copyright (1956), likely expired; the maintainer approved committing its values, cited (2026-11-01).
 
 ## 4. Hobby flights: failures and survivals
 
@@ -145,9 +145,9 @@ Table 1). Neither is applied above.
 ## What the project can use
 
 - **The cases for M2.11, by license.** Public domain: TM X-53's six plates (S3), with every point's air state in the
-  table; TM 4180 and TM 100492 as analogues. Cite the numbers only: B1 (S1), the three MIT plates (S4) and R&M 2944's 16
-  designs (S7). CC BY: S2, which adds no fin. That is ten tunnel fins from three groups (Belgrade, MIT, Langley) and
-  sixteen flight-measured designs from a fourth (RAE); only Belgrade's and MIT's are surely outside Martin's data.
+  table; TM 4180 and TM 100492 as analogues. Cite the numbers only: B1 (S1), the three MIT plates (S4); R&M 2944's
+  16 designs (S7) may be committed, cited. CC BY: S2 (no fin). That is ten tunnel fins from three groups (Belgrade,
+  MIT, Langley) and 16 flown designs from a fourth (RAE); only Belgrade's and MIT's are surely outside Martin's data.
 - **Air state, marked per case.** Measured per point in S3, S5 and S6; assumed near sea level for S1 and S4 (S4 logged
   it but didn't tabulate it); assumed for S7 (ground launch, onset within the 1.6 s burn).
 - **The sign test M2.11 asks for.** Ratios run 0.14–1.42 over the counted tunnel fins and 0.92–1.41 over the flight

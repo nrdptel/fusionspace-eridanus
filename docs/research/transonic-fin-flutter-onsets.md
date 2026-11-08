@@ -150,8 +150,8 @@ rm2949.py; d1594.py reproduces the project's aluminum example, 1,169 m/s) and
   onsets, air measured per point) and TM X-136's five (39 onsets), a Langley transonic-tunnel source. R&M 2949's 32
   wings (air assumed) add wings, not a group. Its Crown copyright (published 1956) ended in the UK at the end of 2006
   (S12: CDPA Sch. 1 para. 41(2)(a), 1956 Act s. 39), but US copyright was likely restored to 2051 (17 U.S.C. § 104A);
-  measured values are facts, so a table the project lays out, citing it, looks defensible, a maintainer's call (tables,
-  scans and PDF stay in `refs/`; Inference, not legal advice; R&M 2944 is the same case).
+  measured values are facts, so a table the project lays out, citing it, is defensible, and the maintainer
+  approved it on 2026-11-01 (scans and PDF stay in `refs/`; inference, not legal advice; R&M 2944 is the same case).
 - **The flattering-side bound near Mach 1** is 1.41 on line-of-flight stiffness, on two RAE reports, and 1.47 on R&M
   2949's normal stiffness (1161, Mach 1.14). Solid wings: 1.37 (60° compreg; 1.01 to 1.70 by station as scripted,
   0.91 to 1.80 re-read), 1.31 (TM X-136) and 1.21 for a solid metal wing (645, 1.15 to 1.22 by station).
