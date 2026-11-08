@@ -655,12 +655,13 @@ pub fn sign_flip_interval(differences: &[f64], level: f64) -> Option<(f64, f64)>
 /// 1993, §13.3, the percentile interval). Pairing keeps each flight's two errors together, so what
 /// the flights share cancels in the difference.
 ///
-/// It is approximate: on a few flights it covers less than `level` (Efron and Tibshirani, §13.5,
-/// §14), which is why the public flights' 7 get [`sign_flip_interval`] instead. Same differences,
-/// level, count and seed, same interval, bit for bit.
+/// It is approximate: on a few flights it can cover less than `level` (Efron and Tibshirani,
+/// §13.5), which is why the public flights' report, on 7 flights at most, gives
+/// [`sign_flip_interval`] instead. Same differences, level, count and seed, same interval, bit for
+/// bit.
 ///
 /// Returns `None` for no differences, no resamples, a level not inside 0 to 1, or a difference
-/// that isn't a number.
+/// that isn't finite.
 ///
 /// [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 #[must_use]
@@ -1462,8 +1463,9 @@ mod tests {
 
     /// On 2,000 draws of 40 differences from a symmetric distribution about 0.3 (a uniform one, on
     /// a fixed stream), the 95% interval holds the center 92% to 96.5% of the time: the percentile
-    /// interval's coverage on 40 is near its level, and the band is about 4 standard errors of the
-    /// share a side. At a 90% level it would hold it about 90% of the time, outside the band.
+    /// interval's coverage on 40 is near its level. Against 95% the band runs about 6 standard
+    /// errors of the share below and 3 above. Taking a 90% interval instead held it 89.25% of the
+    /// time, outside the band (a probe, run once).
     #[test]
     fn the_paired_bootstrap_covers_near_its_level() {
         let mut draw = draws();

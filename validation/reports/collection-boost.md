@@ -32,7 +32,7 @@ Of the flights not left out, 241 files were tried, 199 read on their own and 117
 
 **Cuts inside the burn.** A barometer's reading can dip in the boost and catch up, so the finder cuts only where the climb speed's fall has held 0.75 s and the speed is the lowest it has been over that span ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)). A cut counts as inside the burn when it comes less than the motor's burn after the log's liftoff: the burn is the end of the motor's thrust curve, as the flight's `.ork` and the curves supplied for it give it; a design with more than one motor or a staging event counts as not known. Liftoff follows ignition, so that also takes in a cut up to that lag after the burn ends. A prediction from such a cut wouldn't be the method's case.
 
-**The predictions.** Each cut flight that the [forward report](fixture-flights.md) compares is flown as it flies it in hpr: its `.ork` and motor configuration, its rail and its day's ERA5 air, with nothing deployed. The fit changes only the motor's impulse, the drag, the structure's mass and a wind constant with height, centered on ERA5's wind averaged over the climb. Flown with nothing changed in ERA5's own wind, each lands within 0.50 m of the forward simulation's apogee (largest 0.000 m). The log up to the cut is fitted and the fit flown on to apogee, as the [public flights' report](from-boost.md) does. Both errors are against the same number: the logged apogee as a height climbed in the day's air, as the forward report takes it.
+**The predictions.** Each cut flight that the [forward report](fixture-flights.md) compares is flown as it flies it in hpr: its `.ork` and motor configuration, its rail and its day's ERA5 air, with nothing deployed. The fit changes only the motor's impulse and burn time, the drag, the structure's mass and a wind constant with height, centered on ERA5's wind averaged over the climb. Flown with nothing changed in ERA5's own wind, each lands within 0.50 m of the forward simulation's apogee (largest 0.000 m). The log up to the cut is fitted and the fit flown on to apogee, as the [public flights' report](from-boost.md) does. Both errors are against the same number: the logged apogee as a height climbed in the day's air, as the forward report takes it.
 
 | | calibration half | held-out half |
 |---|---:|---:|
@@ -49,18 +49,18 @@ Of the flights not left out, 241 files were tried, 199 read on their own and 117
 | forward simulation, same flights: mean absolute error | 9.35% | 16.86% |
 | … mean error with its sign | +8.87% | +15.83% |
 | absolute errors' difference, prediction less forward (points) | -6.13 | -13.29 |
-| … paired bootstrap 95% interval | -10.07 to -2.71 | -19.00 to -7.97 |
-| … exact sign-flip 95% interval | -10.62 to -2.07 | -20.41 to -6.45 |
+| … paired bootstrap 95% interval | -10.07 to -2.70 | -19.01 to -7.97 |
+| … exact sign-flip 95% interval | -10.63 to -2.07 | -20.42 to -6.45 |
 | **without a deployment before apogee** | **8** | **3** |
 | prediction from the boost: mean absolute error | 3.04% | 3.08% |
 | … mean error with its sign | -1.11% | -1.54% |
 | forward simulation, same flights: mean absolute error | 10.06% | 10.40% |
 | … mean error with its sign | +9.34% | +10.40% |
 | absolute errors' difference, prediction less forward (points) | -7.02 | -7.32 |
-| … paired bootstrap 95% interval | -12.66 to -2.29 | -10.38 to -3.50 |
+| … paired bootstrap 95% interval | -12.66 to -2.28 | -10.38 to -3.50 |
 | … exact sign-flip 95% interval | -13.76 to -0.79 | unbounded |
 
-A difference below zero means the prediction came closer. Both methods fly nothing deployed, and the cut comes before any deployment, so a deployment before apogee lowers the logged apogee beneath both; the rows without those flights leave them out, as the forward report's own set does. The bootstrap resamples each half's flights 10,000 times (seed 329), each flight's two errors kept together, and takes the 2.5% and 97.5% points of the resampled means. On a few flights it covers less than 95%, so the exact sign-flip interval, which the public flights' report uses, stands beside it: it assumes only that each flight's difference is drawn independently and symmetrically about the center.
+A difference below zero means the prediction came closer. Both methods fly nothing deployed, and the fit reads the log only up to its cut, so a deployment before apogee lowers the logged apogee beneath both; the rows without those flights leave them out, as the forward report's own set does. Interval ends are rounded outward. The bootstrap resamples each half's flights 10,000 times (seed 329), each flight's two errors kept together, and takes the 2.5% and 97.5% points of the resampled means. On a few flights it can cover less than 95%, so the exact sign-flip interval, which the public flights' report uses, stands beside it: it assumes only that each flight's difference is drawn independently and symmetrically about the center.
 
 **The calibration half's fits.** 12 fits of the logs up to the cut, 12 of them converged; their residuals' RMS averages 2.72 m. Over those fits:
 

@@ -561,9 +561,14 @@ fn unsigned(value: Option<f64>) -> String {
     value.map_or_else(|| "none".to_owned(), |v| format!("{v:.2}%"))
 }
 
-/// An interval's end in points, "unbounded" where it is.
-fn end(value: Option<f64>) -> String {
-    value.map_or_else(|| "unbounded".to_owned(), |v| format!("{v:+.2}"))
+/// An interval's end in points to two decimals, rounded outward by `outward` (`f64::floor` for
+/// the low end, `f64::ceil` for the high), so the printed interval holds the computed one;
+/// "unbounded" where it is.
+fn end(value: Option<f64>, outward: fn(f64) -> f64) -> String {
+    value.map_or_else(
+        || "unbounded".to_owned(),
+        |v| format!("{:+.2}", outward(v * 100.0) / 100.0),
+    )
 }
 
 /// An interval, or "none".
@@ -572,7 +577,7 @@ fn interval(value: Option<(Option<f64>, Option<f64>)>) -> String {
         || "none".to_owned(),
         |(low, high)| match (low, high) {
             (None, None) => "unbounded".to_owned(),
-            _ => format!("{} to {}", end(low), end(high)),
+            _ => format!("{} to {}", end(low, f64::floor), end(high, f64::ceil)),
         },
     )
 }
@@ -609,7 +614,7 @@ impl Predictions {
             "\n**The predictions.** Each cut flight that the [forward report](fixture-flights.md) \
              compares is flown as it flies it in hpr: its `.ork` and motor configuration, its \
              rail and its day's ERA5 air, with nothing deployed. The fit changes only the motor's \
-             impulse, the drag, the structure's mass and a wind constant with height, centered on \
+             impulse and burn time, the drag, the structure's mass and a wind constant with height, centered on \
              ERA5's wind averaged over the climb. Flown with nothing changed in ERA5's own wind, \
              each lands within {:.2} m of the forward simulation's apogee (largest {}). The log \
              up to the cut is fitted and the fit flown on to apogee, as the \
@@ -710,12 +715,13 @@ impl Predictions {
         let _ = writeln!(
             page,
             "\nA difference below zero means the prediction came closer. Both methods fly nothing \
-             deployed, and the cut comes before any deployment, so a deployment before apogee \
+             deployed, and the fit reads the log only up to its cut, so a deployment before apogee \
              lowers the logged apogee beneath both; the rows without those flights leave them \
-             out, as the forward report's own set does. The bootstrap \
+             out, as the forward report's own set does. Interval ends are rounded outward. The \
+             bootstrap \
              resamples each half's flights {} times (seed {}), each flight's two errors kept \
              together, and takes the 2.5% and 97.5% points of the resampled means. On a few \
-             flights it covers less than 95%, so the exact sign-flip interval, which the public \
+             flights it can cover less than 95%, so the exact sign-flip interval, which the public \
              flights' report uses, stands beside it: it assumes only that each flight's \
              difference is drawn independently and symmetrically about the center.\n",
             grouped(self.resamples),
@@ -815,6 +821,24 @@ mod tests {
         assert_eq!(without.forward_mean_percent, Some(6.0));
         assert_eq!(without.difference_points, Some(-4.0));
         assert!(half.adds_up());
+    }
+
+    /// Interval ends round outward, each to two decimals, so the printed interval holds the
+    /// computed one; an end that is already on two decimals stays.
+    #[test]
+    fn interval_ends_round_outward() {
+        assert_eq!(
+            interval(Some((Some(-2.709_4), Some(-2.285_2)))),
+            "-2.71 to -2.28"
+        );
+        assert_eq!(
+            interval(Some((Some(-19.004_8), Some(-7.972_5)))),
+            "-19.01 to -7.97"
+        );
+        assert_eq!(interval(Some((Some(-4.0), Some(2.5)))), "-4.00 to +2.50");
+        assert_eq!(interval(Some((None, Some(1.0)))), "unbounded to +1.00");
+        assert_eq!(interval(Some((None, None))), "unbounded");
+        assert_eq!(interval(None), "none");
     }
 
     /// Groups of three digits, from the right.
