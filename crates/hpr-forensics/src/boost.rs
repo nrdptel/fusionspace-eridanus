@@ -1380,9 +1380,9 @@ mod tests {
         let (t, h) = climb(400, 0.05);
         assert_eq!(try_cut(&with(t.clone(), h)), Err(NoCut::NeverSlowed));
         assert_eq!(try_cut(&with(t, vec![0.0; 400])), Err(NoCut::NeverLifted));
-        // At the analyzer's fastest rate, 500 Hz, and a part in a thousand faster, a window
-        // holds 251 samples, the most allowed, and is read; at 2% faster it holds 256 and is
-        // refused.
+        // At the analyzer's fastest rate, 500 Hz, and with intervals a part in a thousand shorter,
+        // a window holds 251 samples, the most allowed, and is read; with intervals 2% shorter it
+        // holds 256 and is refused.
         assert_eq!(most_in(SPEED_WINDOW_S), 251);
         for (dt, held, why) in [
             (readings::MIN_INTERVAL_S, 251, NoCut::NeverSlowed),
@@ -1470,10 +1470,11 @@ mod tests {
         }
     }
 
-    /// Each reason [`predict`] gives no prediction is the one it names: a log with no cut says
-    /// why the finder found none; a boost cut within 2 s of liftoff holds too little to fit; a
-    /// flight that can't be flown keeps the fit to what was stated; and a fitted flight that can't
-    /// be flown to its apogee reaches none. The flight that predicts is set A's first with a cut.
+    /// Each variant of [`Unpredicted`] is matched by one log: a log with no cut says why the finder
+    /// found none; a boost cut within 2 s of liftoff holds too little to fit; a flight that can't be
+    /// flown keeps the fit to what was stated; and a fitted flight that can't be flown to its apogee
+    /// reaches none. The flight that predicts is set A's first with a cut. Not pinned: the other
+    /// ways a boost holds too little, and a fit refused for its misfit share.
     #[test]
     fn each_refusal_of_a_prediction_names_its_reason() {
         let files = DesignFiles::committed();
