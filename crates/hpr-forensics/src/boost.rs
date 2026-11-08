@@ -251,7 +251,8 @@ fn in_order_count(times: &[f64], cut_s: f64) -> usize {
 /// The cut stands where the window's line is more than [`LIFTOFF_RISE_M`] above the first
 /// window's: three bad samples side by side on the pad can lift the line past that for a sample,
 /// and the speed then falls back as it does at burnout. A pad spike faster than the flight's own
-/// top speed, or a step of 10 m or more that stays, can still move the cut ([#1362][i1362]).
+/// top speed, or a step of 10 m or more on the pad that stays (a 15 m step cut before the peak on
+/// 142 of 157 logs, measured once, not committed), still moves the cut ([#1362][i1362]).
 ///
 /// A GNSS receiver's altitude in the boost can drop out at ignition and burnout and lag the
 /// climb, by up to 440 m in one flight a flyer reports, while its fix reads valid
@@ -1327,7 +1328,9 @@ mod tests {
     /// A hostile log is refused without a panic, and each refusal names its reason: no samples, one,
     /// times all equal, not numbers or infinite, heights at the float's edge, and a log sampled
     /// every microsecond, faster than the analyzer reads, 200,000 samples refused at its first
-    /// window; the same of a log of channels alone. A log at the analyzer's fastest rate fills a
+    /// window; a log of channels alone is refused the same way with its track emptied, its times or
+    /// values not numbers, its values infinite, or its samples a microsecond apart. A log at the
+    /// analyzer's fastest rate fills a
     /// window to the most it allows, 251 samples, and is read.
     #[test]
     fn a_hostile_log_is_refused_without_a_panic() {

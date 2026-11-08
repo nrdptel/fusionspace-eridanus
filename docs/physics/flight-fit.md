@@ -390,7 +390,8 @@ scales may.
 heights. One reading far from the rest is left out, as the analyzer's spike rule does. The cut needs
 the speed to stay 10% below its peak, and at least 10 m/s (32.8 ft/s) below it, for 0.75 s. It
 comes at the first sample where that holds and the speed is the lowest of those 0.75 s. It also
-never comes while the fitted height is less than 10 m (32.8 ft) above the first half second's fitted height.
+never comes unless the fitted height stands more than 10 m (32.8 ft) above the height fitted to the log's
+first five samples.
 Three bad readings in a row on the pad can lift the fit past that for one sample. The fitted speed
 then falls back and stays down, as it does after burnout, so only this height rule stops a cut there. After burnout gravity alone
 takes 9.8 m/s (32.2 ft/s) off the speed every second, drag more, so the speed keeps falling. A
@@ -420,13 +421,15 @@ were cut, each after the true peak of its vertical speed. Each cut came 1.08 s t
 burnout. 43 GNSS logs and 106 fast flights were refused. The slowest of those truly peaked at
 221.3 m/s (726 ft/s): the fitted speed reads a little above the true one. Five single bad readings were tried, 12 to 100 m (39 to 328 ft) off. They sat at
 the pad, the first sample, or halfway or four fifths through the burn. They moved the cut on 8 of the 255 spiked logs of cut flights (785 in all), none by more than 0.70 s (measured).
-The same five were then tried as two and as three bad readings in a row. Of the same 255 logs, two in a row
+The same five were then tried as two and as three bad readings in a row. Of the 255 logs of cut flights at each length, two in a row
 moved 9 cuts, by up to 0.70 s, and three in a row moved 23, by up to 1.35 s. Three in a row also left 40 of
 those 255 logs uncut: the speed then read past 227.7 m/s (747 ft/s), so they were refused. Every cut in these
 runs still came after the peak and after burnout. Four or more in a row weren't tried. A larger pad blip, one
 that reads faster than the flight's own top speed, can still move the cut early
-([#1362](https://github.com/nrdptel/fusionspace-eridanus/issues/1362)). Without the height rule, three
-12 m (39 ft) readings in a row on the pad gave 33 cuts before the speed's peak, of the 157 logs spiked
+([#1362](https://github.com/nrdptel/fusionspace-eridanus/issues/1362)). A step of 10 m (32.8 ft) or more on
+the pad that stays does the same: a 15 m (49 ft) step halfway through the pad cut before the peak on 142 of
+the 157 logs (measured once, not committed). Without the height rule, three readings 12 m (39 ft) too high
+in a row on the pad gave 33 cuts before the speed's peak, of the 157 logs spiked
 there (all but the 43 GNSS logs; measured once, not pinned by a test). 32 came
 before ignition, the other 0.04 s after it, and all 2.4 to 7.9 s before burnout. A test pins the order, the
 spikes, the place of every cut and at least 51 cuts; the counts and times are measured.
