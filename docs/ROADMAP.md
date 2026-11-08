@@ -83,7 +83,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
 
 ## Phase 0: Foundations
 
-- [ ] **M0.7 Rocketry explained** (ADR-195; Neer, 2026-10-07; VISION V49, V50). Guides to
+- [ ] **M0.7 Rocketry explained** (ADR-195; VISION V49, V50). Guides to
   high-power rocketry on the docs site, illustrated, then live ([research](research/guides.md)).
   Each opens with its scope, reader and how far to trust it; words before equations; a worked
   example a CI-run program prints; one idea per figure, in the drawing language, made from hpr's
@@ -102,13 +102,13 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
     M0.7a; rule pages carry a source date, a stale-after date CI fails past, and "not legal
     advice".
 
-- [ ] **M0.8 Product guides** (ADR-196; Neer, 2026-10-07; VISION V51). Each product gets a
+- [ ] **M0.8 Product guides** (ADR-196; VISION V51). Each product gets a
   landing page and an illustrated tour ending on a public real flight, in M0.7's format and checks
   ([research](research/product-guides.md)). No picture is taken by hand: CLI output as terminal
   figures from `xtask cli --check`'s runs, plots from hpr, app screens from end-to-end tests at
   fixed device sizes, labels in captions; phone and watch captures also fail on crossing the
   device's safe area. From 0.2 on, each release's checklist needs its guide (Phase 8).
-- [ ] **M0.9 One name, one design** (ADR-205; Neer, 2026-10-08). Every surface says FusionSpace
+- [ ] **M0.9 One name, one design** (ADR-205). Every surface says FusionSpace
   HPR as ADR-199 §1 has it, and follows the pinned design system rule by rule, each checked.
   - [ ] **M0.9g The figures' digits and the command line's words** (ADR-296). *Done when:* #966
     and #973 are closed: a check of the site and both READMEs fails a figure quoted to more
@@ -116,7 +116,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
     dash between two words, and a sentence with two or more colons in `hpr`'s messages and the
     plot's words; a test fails a column head without a label and a unit in a table `hpr` prints;
     the command line and the plot pass them; and the audit's rows name the checks.
-- [ ] **M0.13 Awareness and care on the sites** (ADR-275; Neer, 2026-10-14; VISION V53). A thin
+- [ ] **M0.13 Awareness and care on the sites** (ADR-275; VISION V53). A thin
   banner and a footer line that change through the year (heritage and awareness months, health,
   access, science and space days, rocketry safety), from a dated, sourced table
   ([calendar](research/awareness-calendar.md), [practice](research/awareness-practice.md)).
@@ -189,9 +189,12 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
       shows fewer exist; beside RASAero II's published errors, reconstructions flagged. The
       fixture report splits at Mach 1 too.
       Moves: accuracy above Mach 1.
-- [ ] **M2.3d Twelve public flights, predictions first** (ADR-328). *Done when:* ADR-328 §1's,
-  whole: `real-flights` flies 12 public flights (#478, #1266), each new one's predicted apogee
-  committed before its error, `accuracy.public` and `bias.public` over all 12. Moves: accuracy.
+- [ ] **M2.3d Twelve public flights, predictions first** (ADR-328, in two; met when they are).
+  *Done when:* ADR-328 §1's, whole. Moves: accuracy.
+  - [ ] **M2.3d1 The predictions.** *Done when:* ADR-328 §1a's: its own pull request merges the
+    five new flights' inputs, sources and predicted apogees, computing no error.
+  - [ ] **M2.3d2 The errors.** *Done when:* ADR-328 §1b's: `real-flights` flies all 12, each new
+    prediction beside its error; `accuracy.public` and `bias.public` over all 12.
 - [ ] **M2.7 Held-out flights, predictions first** (ADR-209 §4). *Done when:* a flight is held out
   when SHA-256 of its id and the seed `ADR-209` falls in the lowest third, fixed before any held-out
   error is computed; the fixture report gives both halves as aggregates; a refs check fails when a
@@ -255,7 +258,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
     row (+16.9% in the body-alone C_Nα; conservative on the finned rocket, CP forward).
 ## Phase 2: Library surfaces and interop
 
-- [ ] **M5.6 A catalog of hpr's own** (ADR-197; Neer, 2026-10-07; VISION V52). Commercial parts
+- [ ] **M5.6 A catalog of hpr's own** (ADR-197; VISION V52). Commercial parts
   beyond OpenRocket's catalog, which stays the base ([research](research/parts-catalog.md)).
   Every value carries its source, the date read and whether it was stated, measured or derived.
   Facts only: no vendor text or photos; vendors' published dimensions and masses are used with
@@ -301,7 +304,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
   preset meets ADR-246 §1: the 2027 handbook's 14 College/University limits by requirement number
   at both ballasts, the four winds, a closed-form second method, and a test and a mutation probe
   for the side each check errs.
-- [ ] **M6.4 Airbrakes** (Neer, 2026-09-18; VISION V16).
+- [ ] **M6.4 Airbrakes** (VISION V16).
   - Deployable drag surfaces: added drag as a function of deployment and Mach, from a table or a
     cited semi-empirical estimate; deployment rate limits.
   - A controller interface: a user's controller, sampled at a fixed rate, reads simulated sensors
@@ -363,7 +366,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
   low-drag end; a declared apogee carries a two-sided 95%/95% Wilks bound, n printed, failed runs
   counted, the measured model error beside it; a ballast solver re-checks the margin and refuses
   a target it can't reach.
-- [ ] **M6.7 Ejection charges** (ADR-163; Neer, 2026-10-03; VISION V25). *Done when:* the black
+- [ ] **M6.7 Ejection charges** (ADR-163; VISION V25). *Done when:* the black
   powder mass for a bay's gross volume and a target gauge pressure, or the shear pins' load at the
   high end of their strength, follows a cited sizing with an efficiency factor from published
   ground tests; it errs high against that measured basis (a test and a mutation probe), prints the
@@ -376,8 +379,8 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
   (3.58 to 0.9 psi), linear in ambient pressure between his 14.7 and 3.3 psia shots, the
   bulkhead load never falls, and above 20,000 ft no black-powder size is printed, sealed
   canisters or CO₂ named instead.
-- [ ] **M6.8 Field kit: checklists, the settings check and the ground-test log** (ADR-194; Neer,
-  2026-10-07; VISION V46–V48). Library, CLI and print
+- [ ] **M6.8 Field kit: checklists, the settings check and the ground-test log** (ADR-194;
+  VISION V46–V48). Library, CLI and print
   ([field tools](research/suite-field-tools.md)).
   - A launch checklist and guide built from the design: steps chosen by recovery type,
     altimeters, tracker, staging and charge type, grouped in Student Launch's ten procedure
@@ -526,7 +529,7 @@ log corpus came from Debrief.
   - [ ] **M8.3d STEP export.** *Done when:* B-rep solids through a permissively licensed kernel.
   - [ ] **M8.3e Mesh import.** *Done when:* exact mass properties; aero recognized, or flagged.
   - [ ] **M8.3f STEP import.** *Done when:* a permissive B-rep reader, or Neer's licensing call.
-  - [ ] **M8.3g Printed parts** (ADR-191; Neer, 2026-10-06). *Done when:* a part exported for
+  - [ ] **M8.3g Printed parts** (ADR-191). *Done when:* a part exported for
     printing names its material's heat-deflection temperature at ISO 75's 1.80 MPa load from a
     cited datasheet; a fin printed upright, so that bending pulls its layers apart, warns; a
     printed fin's flutter speed takes a measured or cited shear modulus, says it is unvalidated,
@@ -558,7 +561,7 @@ log corpus came from Debrief.
 (The M9.1–M9.4 *done when* criteria are written in M9.0; M9.2's include release 0.5's shell
 that opens a design or a log, flies and plots it, ADR-163; each includes the product system's
 checklists for its platform, ADR-164.)
-- [ ] **M9.5 Accounts and cloud saves** (Neer, 2026-09-18; VISION V20).
+- [ ] **M9.5 Accounts and cloud saves** (VISION V20).
   - Optional accounts that save designs and flights and sync them across devices. Everything still
     works signed out and offline; accounts only add sync and sharing.
   - A saved flight stores its inputs and seed and is re-flown on open, so storage stays small.
@@ -571,7 +574,7 @@ checklists for its platform, ADR-164.)
   - Sign-in, save, sync and delete-my-data are tested end to end, and edits made offline merge on
     reconnect without loss (a property test).
 
-- [ ] **M9.6 The four web tools, rebuilt** (ADR-191; Neer, 2026-10-06; VISION V42). Charge, Window
+- [ ] **M9.6 The four web tools, rebuilt** (ADR-191; VISION V42). Charge, Window
   and Muster move into the library and the app; Motor Finder's pages become the app's motor picker,
   and its scraper stays a hosted service ([research](research/suite-web-tools.md)). No old site is
   turned off before its replacement ships; turning one off is Neer's.
@@ -587,7 +590,7 @@ checklists for its platform, ADR-164.)
   - Charge's backup file imports with its logs intact, and each old site's URLs have a tested map
     into the app;
   - its acceptance pass, in its PR, reaches each screen (ADR-282).
-- [ ] **M9.7 Field equipment and frequencies** (ADR-194; Neer, 2026-10-07; VISION V47). A register
+- [ ] **M9.7 Field equipment and frequencies** (ADR-194; VISION V47). A register
   of altimeters, trackers, radios, cameras, payloads and batteries, a settings snapshot with each
   flight, a pad-hold battery budget and a club frequency board across vendors; offline, shared
   between phones by file or QR code.
@@ -687,7 +690,7 @@ Avionics (VISION V39):
   written in that ADR; each lockout's test is mutation-probed.
 - [ ] **M13.4 Avionics hardware,** with Neer. *Done when:* Neer has built and bench-tested a board, ERC
   and DRC pass in CI, and it has flown beside a commercial primary.
-- [ ] **M13.5 More boards** (ADR-191; Neer, 2026-10-06). Trackers and flight computers in several
+- [ ] **M13.5 More boards** (ADR-191). Trackers and flight computers in several
   sizes and radios on one firmware ([hardware line](research/suite-hardware-line.md)). *Done when:*
   a second board runs the M13.2 or M13.3 firmware with only its board-support module changed,
   and Neer has built and bench-tested it.

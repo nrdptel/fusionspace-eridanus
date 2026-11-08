@@ -79,7 +79,6 @@ Placed by [ADR-191, the 2026-10-06 ideas][adr-191]; research in [the web tools](
   on sets A and B, or the reading is withheld below the rate where it fails; a probe that fits the
   bound on the fastest band alone fails the slowest.
 
-
 ## From the 2026-11-04 planning review ([ADR-319][adr-319])
 
 - SOON: the altimeter's own delay at deployment. User: a dual-deploy flyer setting an apogee delay

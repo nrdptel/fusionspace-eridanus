@@ -125,7 +125,6 @@ Placed by [ADR-194, the field tools][adr-194]; research in [field tools](suite-f
   harness on the release. New beside [ADR-212][adr-212], which already holds HPR Sim to the newest
   release published before M2.7: a build before it ships, shown as a forecast, never held.
 
-
 ## From the 2026-11-04 planning review ([ADR-319][adr-319])
 
 - SOON: fault odds from the field. User: a flyer reading the ranked causes of a flight that went

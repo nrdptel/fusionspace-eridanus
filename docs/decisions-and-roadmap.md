@@ -673,6 +673,8 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-3c7"></a>[M2.3c7][phase-1] | Faster than sound: published flights | not yet done |
 | <a id="m2-3c9"></a>[M2.3c9][phase-1] | Every flight OpenRocket flies | not yet done |
 | <a id="m2-3d"></a>[M2.3d][phase-1] | Twelve public flights, predictions first | not yet done |
+| <a id="m2-3d1"></a>[M2.3d1][phase-1] | The predictions | not yet done |
+| <a id="m2-3d2"></a>[M2.3d2][phase-1] | The errors | not yet done |
 | <a id="m2-4"></a>[M2.4][done-1] | A summary of accuracy for the README, and CI that fails on any regression ([ADR-084][adr-084], [Accuracy: the census](accuracy.md#the-census)) | done |
 | <a id="m2-6"></a>[M2.6][phase-1] | An open benchmark | not yet done |
 | <a id="m2-7"></a>[M2.7][phase-1] | Held-out flights, predictions first | not yet done |

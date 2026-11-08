@@ -87,45 +87,46 @@ Placed with [ADR-328][adr-328], which promotes the first; the other three are SO
 
 - PROMOTED ([M2.3d][m2-3d]): twelve public flights, predictions first. User: a flyer reading the
   accuracy page to judge how far to trust an apogee, and anyone running [M2.6][m2-6]'s open
-  benchmark. `accuracy.public`, 6.06%, rests on 7 flights, all RocketPy's examples. Five more are
-  public with a design, a COTS motor and a log ([public flights](public-flights.md),
+  benchmark. `accuracy.public`, 6.06%, rests on 7 flights, all from RocketPy's examples. Five more
+  public flights with a COTS motor and a log can join them ([public flights](public-flights.md),
   [since October](public-flights-2026.md)): RocketPy's Astra, Andromeda and Erebus 11, which wait on
-  their netCDF-4 weather (#478), and two MIT-licensed flights of one OpenRocket design (#1266).
-  Workflow: each new flight's inputs and predicted apogee are committed before its error is
-  computed. Moves: `accuracy.public` and `bias.public`, from 7 flights to 12. *Done when:* M2.3d's.
+  their netCDF-4 weather ([#478][i478]) and designs built from their examples, and two MIT-licensed
+  flights of one OpenRocket design ([#1266][i1266]). Workflow: each new flight's inputs and
+  predicted apogee are merged before its error is computed. Moves: `accuracy.public` and
+  `bias.public`, from 7 flights to 12. *Done when:* M2.3d's.
 - SOON: the flyer's own run as a baseline. User: a flyer who already simulates in OpenRocket, asking
-  whether HPR Sim tells them more than the run they made with their own settings. 352 of the private
-  collection's 389 design files store at least one OpenRocket run with an apogee (counted
-  2026-11-08); the scoreboard compares HPR Sim with OpenRocket 24.12 re-run in the collection's
-  weather, not with what the flyer saw. Workflow: the fixture report reads the stored run of each
-  flown configuration, with the version and settings it records, and gives its apogee error beside
-  HPR Sim's and the re-run's. A stored run may postdate the flight and be tuned to it, which the
-  file can't show, so the column is shown, never held. Moves: `accuracy.collection`, a shown
-  column. *Done when:* the report gives the stored runs' mean absolute and signed errors on the
-  flights that have one, how many have none, and a paired bootstrap 95% interval on HPR Sim's error
-  less theirs, as aggregates.
+  whether HPR Sim tells them more than the run they made with their own settings. 228 of the private
+  collection's 240 distinct design files (by SHA-256) store at least one OpenRocket run with an
+  apogee (counted 2026-11-08); the scoreboard compares HPR Sim with OpenRocket 24.12 re-run in a
+  standard atmosphere through the pad's temperature and pressure, not with what the flyer saw.
+  Workflow: the fixture report reads the stored run of each flown configuration, with the version
+  and settings it records, and gives its apogee error beside HPR Sim's and the re-run's. A stored
+  run may postdate the flight and be tuned to it, which the file can't show, so the column is shown,
+  never held. Moves: `accuracy.collection`, a shown column. *Done when:* the report gives the stored
+  runs' mean absolute and signed errors on the flights that have one, how many have none, and a
+  paired bootstrap 95% interval on HPR Sim's error less theirs, as aggregates.
 - SOON: a public case another open simulator scored. User: anyone comparing simulators on the same
   public flights rather than on each tool's own claims. A new Apache-2.0 simulator scored itself
-  blind on three flights of one kit from the DOFPro altimeter's public archive, a Madcow Mini DX3 on
-  a G77R, a G79W and an H128W: +7.0%, +6.1% and +10.2%, each a fail by its own test
-  ([Astraea's accuracy page][astraea], read 2026-11-08). HPR Sim reads DOFPro logs but has no apogee
-  case for that kit. Workflow: the kit built from its maker's published dimensions and masses,
-  flown on the three motors in the archive's stated conditions, scored as `real-flights` scores its
-  flights. Moves: `accuracy.public`, by three flights, beside another tool's published errors on
-  them. *Done when:* the three flights are flown with each input's source and the archive's license
-  recorded (aggregates only if it is unclear), and the report gives HPR Sim's errors beside the
-  other tool's, dated.
+  blind on three flights of one kit from a college course's flight archive (DOFPro), a Madcow Mini
+  DX3 on a G77R, a G79W and an H128W: +7.0%, +6.1% and +10.2%, each a fail by its own test
+  ([Astraea's accuracy page][astraea], read 2026-11-08). HPR Sim reads DOFPro logs but has no public
+  apogee case for that kit. Workflow: the kit built from its maker's published dimensions and
+  masses, flown on the three motors in the archive's stated conditions, each prediction merged
+  before its error, as [M2.3d][m2-3d] orders. Moves: a cited comparison beside `accuracy.public`,
+  per flight only if the archive's license allows (it names none today). *Done when:* the three
+  flights are flown with each input's source and the archive's license recorded (aggregates only if
+  it is unclear), and the report gives HPR Sim's errors beside the other tool's, dated.
 - SOON: a part's mass held to its material. User: a flyer whose design holds a mass typed ten times
-  off, as one recovery tool's catalog did until 2026-11-07, listing a 462 g parachute at 46 g
-  ([its release notes][recsys]). A bundled motor's mass is checked against its record (#1233); a
-  part's typed or library mass isn't checked against its size. Workflow: at import, each part's
-  mass is set against its volume times the density range of its stated material, or of any hobby
-  material when none is stated, and a mass outside it is named with the part, the mass and the
-  range. Moves: `accuracy.collection`, as a shown diagnosis: the mean absolute apogee error of the
-  flights with a flagged part beside the rest. *Done when:* the density ranges are committed with
-  their sources; the count of the collection's designs with a flagged part is reported, as an
-  aggregate; and a test fails when a tenfold slip in a body tube's or a parachute's mass goes
-  unflagged.
+  off, as one recovery tool's catalog did until 2026-11-07, listing a 462 g parachute at 46 g ([its
+  release notes][recsys]). A bundled motor's mass is checked against its record ([#1233][i1233]); a
+  part's typed or library mass isn't checked against its size. Workflow: at import, each part's mass
+  is set against its volume times the density range of its stated material, or of any hobby material
+  when none is stated, and a mass outside it is named with the part, the mass and the range. Moves:
+  `accuracy.collection`, as a shown diagnosis: the mean absolute apogee error of the flights with a
+  flagged part beside the rest. *Done when:* the density ranges are committed with their sources;
+  the count of the collection's designs with a flagged part is reported, as an aggregate; a test
+  fails when a tenfold slip either way in a body tube's or a parachute's mass goes unflagged; and
+  the share of ordinary parts flagged is counted, as a false-alarm rate.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -184,8 +185,6 @@ Placed with [ADR-328][adr-328], which promotes the first; the other three are SO
 [adr-311]: ../decisions/0311-the-2026-10-31-review-every-flight-openrocket-flies.md
 [adr-305]: ../decisions/0305-the-2026-10-28-licensing-calls.md
 [adr-318]: ../decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md
-[hfs]: https://github.com/aneeshkaravadi/hpr-flight-sim
-[varigonda]: https://doi.org/10.31224/8645
 [or-3431]: https://github.com/openrocket/openrocket/pull/3431
 [adr-212]: ../decisions/0212-measure-against-openrockets-newest-release.md
 [m2-3c9]: ../decisions-and-roadmap.md#m2-3c9
@@ -195,3 +194,6 @@ Placed with [ADR-328][adr-328], which promotes the first; the other three are SO
 [m2-6]: ../decisions-and-roadmap.md#m2-6
 [astraea]: https://github.com/akhan157/astraea/blob/main/docs/accuracy.md
 [recsys]: https://github.com/akhan157/RecoverySys/releases
+[i478]: https://github.com/nrdptel/fusionspace-eridanus/issues/478
+[i1266]: https://github.com/nrdptel/fusionspace-eridanus/issues/1266
+[i1233]: https://github.com/nrdptel/fusionspace-eridanus/issues/1233
