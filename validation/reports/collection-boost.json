@@ -26,7 +26,8 @@
         "name": "calibration",
         "cut": 14,
         "unpredicted": {
-          "hpr's forward simulation doesn't fly it": 2
+          "hpr's forward simulation doesn't fly it": 1,
+          "the collection has no ERA5 file of the flight's day": 1
         },
         "predicted": 12,
         "early_deployments": 4,
@@ -103,10 +104,7 @@
           "forward_mean_absolute_percent": 10.396684699805915,
           "forward_mean_percent": 10.396684699805915,
           "difference_points": -7.320853510478426,
-          "bootstrap_interval": [
-            -10.376952512967856,
-            -3.5045767497993077
-          ],
+          "bootstrap_interval": null,
           "sign_flip_interval": [
             null,
             null

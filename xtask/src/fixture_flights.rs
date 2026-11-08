@@ -841,6 +841,16 @@ pub(crate) const OPENROCKET_UNFLOWN: &str =
 /// Why a flight has no [`ForwardFlight`]: the manifest leaves it out of the errors.
 pub(crate) const LEFT_OUT: &str = "the manifest leaves it out of the errors";
 
+/// Why a flight has no [`ForwardFlight`]: the collection's own cause where there is one (no
+/// ERA5 file of its day, no configuration of its motor), then hpr's refusal, then OpenRocket's.
+pub(crate) fn no_forward_reason(collection: Option<&'static str>, hpr_flew: bool) -> &'static str {
+    match (collection, hpr_flew) {
+        (Some(cause), _) => cause,
+        (None, false) => HPR_UNFLOWN,
+        (None, true) => OPENROCKET_UNFLOWN,
+    }
+}
+
 /// Flies every flight and builds the report, keeping each compared flight's forward flight by
 /// id, or why it has none.
 #[expect(
@@ -880,7 +890,7 @@ fn fly_all(
             Ok(chosen) => chosen,
             Err(cause) => {
                 *causes.entry((COLLECTION, cause.to_owned())).or_default() += 1;
-                kept.insert(at.clone(), Err(HPR_UNFLOWN));
+                kept.insert(at.clone(), Err(no_forward_reason(Some(cause), false)));
                 continue;
             }
         };
@@ -944,12 +954,7 @@ fn fly_all(
             *causes.entry((OPENROCKET, cause.clone())).or_default() += 1;
         }
         let (Ok((hpr_m, hpr_standard_m)), Ok(openrocket_m)) = (hpr, openrocket) else {
-            let why = if hpr_flew {
-                OPENROCKET_UNFLOWN
-            } else {
-                HPR_UNFLOWN
-            };
-            kept.insert(at.clone(), Err(why));
+            kept.insert(at.clone(), Err(no_forward_reason(None, hpr_flew)));
             continue;
         };
         counts.flown_by_both += 1;
@@ -1505,6 +1510,19 @@ impl Report {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A flight with no forward flight is counted under the collection's own cause first (a
+    /// missing ERA5 file isn't hpr's refusal), then hpr's, then OpenRocket's.
+    #[test]
+    fn a_flight_without_a_forward_flight_names_whose_cause() {
+        assert_eq!(no_forward_reason(Some(NO_ERA5), false), NO_ERA5);
+        assert_eq!(
+            no_forward_reason(Some(NO_CONFIGURATION), true),
+            NO_CONFIGURATION
+        );
+        assert_eq!(no_forward_reason(None, false), HPR_UNFLOWN);
+        assert_eq!(no_forward_reason(None, true), OPENROCKET_UNFLOWN);
+    }
 
     /// The committed report holds to itself, here and in CI, where the flights can't be flown.
     #[test]

@@ -160,6 +160,7 @@ pub(crate) struct CutFlight {
 
 /// One flight's outcome, kept on this machine.
 struct Outcome {
+    flight_id: String,
     held_out: bool,
     /// The prediction's error and the forward simulation's against the same logged apogee, %,
     /// and the fit; or why there is none.
@@ -196,6 +197,7 @@ fn predict(
                 _ => NOT_REACHED,
             };
             return Ok(Outcome {
+                flight_id: cut.flight_id.clone(),
                 held_out,
                 result: Err((*why).to_owned()),
                 early: false,
@@ -243,6 +245,7 @@ fn predict(
         Err(why) => Err(unpredicted_name(&why)),
     };
     Ok(Outcome {
+        flight_id: cut.flight_id.clone(),
         held_out,
         result,
         early: forward.early,
@@ -350,6 +353,18 @@ pub struct Predictions {
     pub calibration_fits: FitAggregates,
 }
 
+/// Whether a percentile bootstrap on `n` flights at `level` gives more than the flights' own
+/// range: a resample of one flight drawn `n` times comes `(1/n)ⁿ` of the time for each, so where
+/// that is at least `(1 − level)/2` both ends are the smallest and largest difference, an interval
+/// that holds a symmetric center only `1 − 2·2⁻ⁿ` of the time (75% on 3) and is two flights' own
+/// values. At 95% that is 3 flights or fewer.
+fn resolves(n: usize, level: f64) -> bool {
+    let Ok(count) = i32::try_from(n) else {
+        return true;
+    };
+    n > 0 && (1.0 / f64::from(count)).powi(count) < (1.0 - level) / 2.0
+}
+
 /// The mean of `values`; `None` for none.
 fn mean(values: impl Iterator<Item = f64>) -> Option<f64> {
     let (sum, count) = values.fold((0.0, 0_u32), |(s, c), v| (s + v, c + 1));
@@ -449,12 +464,9 @@ impl Errors {
             forward_mean_absolute_percent: mean(pairs.iter().map(|(_, f)| f.abs())),
             forward_mean_percent: mean(pairs.iter().map(|(_, f)| *f)),
             difference_points: mean(differences.iter().copied()),
-            bootstrap_interval: boost::paired_bootstrap_interval(
-                &differences,
-                LEVEL,
-                RESAMPLES,
-                SEED,
-            ),
+            bootstrap_interval: resolves(differences.len(), LEVEL)
+                .then(|| boost::paired_bootstrap_interval(&differences, LEVEL, RESAMPLES, SEED))
+                .flatten(),
             sign_flip_interval: boost::sign_flip_interval(&differences, LEVEL)
                 .map(|(low, high)| (finite(low), finite(high))),
         }
@@ -466,7 +478,7 @@ impl Errors {
 pub(crate) fn predict_all(
     cuts: &[CutFlight],
     forward: &BTreeMap<String, Result<ForwardFlight, &'static str>>,
-) -> Result<(Predictions, FitAggregates), String> {
+) -> Result<(Predictions, FitAggregates, String), String> {
     let threads = std::thread::available_parallelism().map_or(4, usize::from);
     let chunk = cuts.len().div_ceil(threads).max(1);
     let outcomes: Vec<Outcome> = std::thread::scope(|scope| {
@@ -480,13 +492,11 @@ pub(crate) fn predict_all(
                 })
             })
             .collect();
+        // Every thread is joined before the first error is returned, in the flights' order.
+        let joined: Vec<_> = handles.into_iter().map(|handle| handle.join()).collect();
         let mut all = Vec::new();
-        for handle in handles {
-            all.extend(
-                handle
-                    .join()
-                    .map_err(|_| "a prediction's thread panicked".to_owned())??,
-            );
+        for part in joined {
+            all.extend(part.map_err(|_| "a prediction's thread panicked".to_owned())??);
         }
         Ok::<_, String>(all)
     })?;
@@ -512,7 +522,42 @@ pub(crate) fn predict_all(
         ],
         calibration_fits: FitAggregates::of(CALIBRATION, &fits(false)),
     };
-    Ok((predictions, FitAggregates::of(HELD_OUT, &fits(true))))
+    let audit: Vec<serde_json::Value> = outcomes
+        .iter()
+        .map(|o| {
+            let (prediction, forward, why) = match &o.result {
+                Ok((p, f, _)) => (Some(*p), Some(*f), None),
+                Err(why) => (None, None, Some(why.as_str())),
+            };
+            serde_json::json!({
+                "flight_id": o.flight_id,
+                "half": if o.held_out { HELD_OUT } else { CALIBRATION },
+                "prediction_error_percent": prediction,
+                "forward_error_percent": forward,
+                "unpredicted": why,
+                "early_deployment": o.early,
+                "cut_in_burn": o.cut_in_burn,
+                "other_logs": o.other_logs,
+                "other_logs_apart": o.other_logs_apart,
+                "same_flight_m": o.same_flight_m,
+            })
+        })
+        .collect();
+    let audit = serde_json::to_string_pretty(&audit).map_err(|error| error.to_string())? + "\n";
+    Ok((predictions, FitAggregates::of(HELD_OUT, &fits(true)), audit))
+}
+
+/// Each cut flight's outcome, by id, for checking the page's aggregates on this machine (private,
+/// gitignored, beside [`HELD_OUT_FITS`]).
+pub const AUDIT: &str = "corpus-out/hpr-sim-fixtures/collection-predictions.json";
+
+/// Writes [`AUDIT`].
+pub(crate) fn write_audit(root: &Path, audit: &str) -> Result<(), String> {
+    let path = root.join(AUDIT);
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|error| format!("{AUDIT}: {error}"))?;
+    }
+    fs::write(path, audit).map_err(|error| format!("writing {AUDIT}: {error}"))
 }
 
 /// [`HELD_OUT_FITS`]'s text.
@@ -546,6 +591,21 @@ pub(crate) fn seal_held_out_fits(
                 "{HELD_OUT_FITS_SHA} doesn't hold the SHA-256 of the held-out half's fit \
                  aggregates; run `cargo xtask fixture-flights`"
             ));
+        }
+        // The digest seals the recomputed aggregates; the private file, where this machine has
+        // one, must be them too.
+        match fs::read_to_string(root.join(HELD_OUT_FITS)) {
+            Ok(private) if private != text => {
+                return Err(format!(
+                    "{HELD_OUT_FITS} isn't the recomputed aggregates; run `cargo xtask \
+                     fixture-flights`"
+                ));
+            }
+            Ok(_) => {}
+            Err(_) => println!(
+                "fixture-flights: {HELD_OUT_FITS} isn't on this machine; its digest holds the \
+                 recomputed aggregates"
+            ),
         }
         return Ok(());
     }
@@ -602,6 +662,9 @@ fn interval(value: Option<(Option<f64>, Option<f64>)>) -> String {
     )
 }
 
+/// The row of flights whose candidate logs disagree, by [`collection_boost::GAP_SHARE`].
+const OTHER_LOGS_APART: &str = "… … the logs' apogees more than 2% apart";
+
 /// A row of the halves' table: its label, and its value for a half.
 type Row = (&'static str, fn(&Half) -> String);
 
@@ -628,7 +691,13 @@ impl Predictions {
 
     /// The page's part.
     pub(crate) fn write_markdown(&self, page: &mut String) {
-        let [calibration, held] = [&self.halves[0], &self.halves[1]];
+        let [calibration, held] = self.halves.as_slice() else {
+            let _ = writeln!(
+                page,
+                "\n**The predictions.** None: the halves weren't computed."
+            );
+            return;
+        };
         let _ = writeln!(
             page,
             "\n**The predictions.** Each cut flight that the [forward report](fixture-flights.md) \
@@ -636,11 +705,14 @@ impl Predictions {
              rail and its day's ERA5 air, with nothing deployed. The fit changes only the motor's \
              impulse and burn time, the drag, the structure's mass and a wind constant with height, centered on \
              ERA5's wind averaged over the climb. Flown with nothing changed in ERA5's own wind, \
-             each lands within {:.2} m of the forward simulation's apogee (largest {}). The log \
+             the fit's model must land within {:.2} m of the forward simulation's apogee; the \
+             largest miss was {}. The log \
              up to the cut is fitted and the fit flown on to apogee, as the \
              [public flights' report](from-boost.md) does. Both errors are against the same \
              number: the logged apogee as a height climbed in the day's air, as the forward \
-             report takes it.\n",
+             report takes it. Each half's last rows give the difference: each flight's absolute \
+             error from the prediction less the forward simulation's, averaged, in percentage \
+             points; below zero, the prediction came closer.\n",
             SAME_FLIGHT_WITHIN_M,
             self.largest_same_flight_m
                 .map_or_else(|| "none".to_owned(), |m| format!("{m:.3} m"))
@@ -679,9 +751,7 @@ impl Predictions {
                 "… with another log of the flight on a barometer's track",
                 |h| h.with_other_logs.to_string(),
             ),
-            ("… … the logs' apogees more than 2% apart", |h| {
-                h.other_logs_apart.to_string()
-            }),
+            (OTHER_LOGS_APART, |h| h.other_logs_apart.to_string()),
         ];
         for (label, value) in counts {
             let _ = writeln!(
@@ -713,7 +783,10 @@ impl Predictions {
                 },
             ),
             ("… paired bootstrap 95% interval", |e| {
-                interval(e.bootstrap_interval.map(|(l, u)| (Some(l), Some(u))))
+                match e.bootstrap_interval {
+                    None if e.flights > 0 => "too few flights to resample".to_owned(),
+                    bootstrap => interval(bootstrap.map(|(l, u)| (Some(l), Some(u)))),
+                }
             }),
             ("… exact sign-flip 95% interval", |e| {
                 interval(e.sign_flip_interval)
@@ -741,13 +814,13 @@ impl Predictions {
         }
         let _ = writeln!(
             page,
-            "\nA difference below zero means the prediction came closer. Both methods fly nothing \
+            "\nBoth methods fly nothing \
              deployed, and the fit reads the log only up to its cut, so a deployment before apogee \
              lowers the logged apogee beneath both; the rows without those flights leave them \
              out, as the forward report's own set does. Where a flight has other logs on a \
              barometer's track, the rule above takes the one nearest the logged apogee; two rows \
              count how often there was such a choice, and how often the candidates' apogees lay \
-             more than 2% apart, where the choice could move an error. Interval ends are rounded \
+             more than {:.0}% apart, where the choice could move an error. Interval ends are rounded \
              outward. The \
              bootstrap \
              resamples each half's flights {} times (seed {}), each flight's two errors kept \
@@ -755,6 +828,7 @@ impl Predictions {
              flights it can cover less than 95%, so the exact sign-flip interval, which the public \
              flights' report uses, stands beside it: it assumes only that each flight's \
              difference is drawn independently and symmetrically about the center.\n",
+            crate::collection_boost::GAP_SHARE * 100.0,
             grouped(self.resamples),
             self.seed
         );
@@ -813,6 +887,7 @@ mod tests {
 
     fn outcome(held_out: bool, result: Result<(f64, f64), &str>, early: bool) -> Outcome {
         Outcome {
+            flight_id: "example-flight".to_owned(),
             held_out,
             result: result.map(|(p, f)| (p, f, fit())).map_err(str::to_owned),
             early,
@@ -847,7 +922,8 @@ mod tests {
         assert_eq!(every.forward_mean_percent, Some(2.0));
         // |−2| − |6| = −4 and |4| − |−2| = 2.
         assert_eq!(every.difference_points, Some(-1.0));
-        assert_eq!(every.bootstrap_interval, Some((-4.0, 2.0)));
+        // Two flights are too few to resample: the interval would be their range.
+        assert_eq!(every.bootstrap_interval, None);
         // Without the early deployment: the first flight alone.
         let without = &half.without_early;
         assert_eq!(without.flights, 1);
@@ -855,6 +931,29 @@ mod tests {
         assert_eq!(without.forward_mean_percent, Some(6.0));
         assert_eq!(without.difference_points, Some(-4.0));
         assert!(half.adds_up());
+    }
+
+    /// A percentile bootstrap gives more than the flights' range from 4 flights on at 95%: on 3,
+    /// a resample of one flight three times comes 1/27 of the time, above 2.5%.
+    #[test]
+    fn the_bootstrap_needs_four_flights_at_95_percent() {
+        assert!(!resolves(0, 0.95));
+        assert!(!resolves(1, 0.95));
+        assert!(!resolves(3, 0.95));
+        assert!(resolves(4, 0.95));
+        assert!(resolves(12, 0.95));
+        let three = Errors::of([(1.0, 5.0), (2.0, 6.0), (3.0, 4.0)].into_iter());
+        assert_eq!(three.bootstrap_interval, None);
+        assert!(three.sign_flip_interval.is_some());
+        let four = Errors::of([(1.0, 5.0), (2.0, 6.0), (3.0, 4.0), (1.5, 2.0)].into_iter());
+        assert!(four.bootstrap_interval.is_some());
+    }
+
+    /// The disagreeing logs' row names the share the count uses.
+    #[test]
+    fn the_logs_row_names_the_gap_it_counts() {
+        let share = format!("{:.0}%", crate::collection_boost::GAP_SHARE * 100.0);
+        assert!(OTHER_LOGS_APART.contains(&share), "{OTHER_LOGS_APART}");
     }
 
     /// Interval ends round outward, each to two decimals, so the printed interval holds the

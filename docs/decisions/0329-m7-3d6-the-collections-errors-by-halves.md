@@ -35,13 +35,17 @@ printed bound by 0.01 at most, and the others add numbers without changing any.
    flights' report does ([ADR-325][adr-325]). Flown with nothing changed in ERA5's own wind it
    must land within 0.5 m of the forward apogee, or the run fails. It lands within 0.000 m on
    every flight: both read the same apogee sample. With the drag 1% higher in that check, one
-   flight landed 0.98 m off and the run stopped (run once, not committed).
+   flight landed 0.98 m off and the run stopped (run once, not committed). The structure's mass
+   scale holds until the flight first splits (`Simulation::with_structure_mass_scale`), so on a
+   staged flight it acts on the boost alone; its stated range is ±2%, and the calibration half's
+   fits move it by 0.002 (standard deviation).
 2. **Only the flights the forward report compares.** A flight the forward report leaves out, or
    that hpr or OpenRocket doesn't fly, has no forward error to stand beside, and a flight HPR Sim
    doesn't fly has no flight to fit. They are counted under their reason, not predicted: 4 cut
-   flights, 2 in each half, each one HPR Sim's forward simulation doesn't fly (three refusals, each
-   tracked by an open issue, [#359][i359] and [#181][i181], and one day without an ERA5 file,
-   [#364][i364]). So every cut log `fixture-flights` flies in HPR Sim goes to the fit (none of the 26 was left
+   flights, 2 in each half. HPR Sim's forward simulation refuses the design of 3, each refusal
+   tracked by an open issue ([#359][i359], [#181][i181]); the collection has no ERA5 file of the
+   4th flight's day ([#364][i364]), counted under that cause, as the forward report counts it. So
+   every cut log `fixture-flights` flies in HPR Sim goes to the fit (none of the 26 was left
    out or missed by OpenRocket alone): 21 are
    fitted and flown on to apogee, and 1 is refused as too little up to its cut to fit
    (`Unpredicted::NothingToFit`: fewer bins with a sample than the fit has unknowns). The
@@ -59,8 +63,10 @@ printed bound by 0.01 at most, and the others add numbers without changing any.
    one, as on the public flights. Its paired bootstrap interval is the percentile interval
    (Efron and Tibshirani, 1993, §13.3) on 10,000 resamples, seed 329, both fixed before any number
    (`hpr_forensics::boost::paired_bootstrap_interval`). On 9 and 12 flights a percentile bootstrap
-   can cover less than its level, so the exact sign-flip interval stands beside it. The page rounds
-   each interval's ends outward.
+   can cover less than its level, so the exact sign-flip interval stands beside it. On 3 flights
+   or fewer a 95% percentile interval is only the smallest and largest difference, which holds a
+   symmetric center 75% of the time on 3 and gives two flights' own values: the page says "too few
+   flights to resample" there instead. The page rounds each interval's ends outward.
 6. **Two sets a half.** Every flight predicted, and those without a deployment before apogee,
    the forward report's own second set: 10 of the 21 predicted flights deployed something before
    apogee, which lowers the logged apogee somewhat beneath both methods; the fit reads the log
@@ -69,8 +75,10 @@ printed bound by 0.01 at most, and the others add numbers without changing any.
    deviation, the fits converged and their mean RMS are written for each half. The held-out
    half's go to the gitignored `corpus-out/hpr-sim-fixtures/held-out-fits.json`. Its SHA-256 is
    committed in `validation/reports/held-out-fits.sha256`, and `fixture-flights --check` fails
-   when the recomputed aggregates' digest differs. Nothing is given per flight
-   ([ADR-151][adr-151]).
+   when the recomputed aggregates' digest differs, or the private file, where this machine has
+   it, isn't them. Nothing is given per flight ([ADR-151][adr-151]); each flight's outcome goes
+   to the gitignored `corpus-out/hpr-sim-fixtures/collection-predictions.json`, for checking the
+   aggregates on this machine. The page carries the collection's and ERA5's credits.
 
 8. **The log's choice, bounded by a count ([#1332][i1332]).** The rule takes, of a flight's logs
    on a barometer's track, the one whose apogee is nearest the logged one. A gain error in a log
@@ -82,9 +90,11 @@ printed bound by 0.01 at most, and the others add numbers without changing any.
    a height climbed. #1332's test of the counting on invented logs stays open.
 
 **What it shows.** The prediction's mean absolute error is below the forward simulation's in
-both halves, and in both sets of each. Every paired bootstrap interval lies below zero, and so
-does every sign-flip interval but one: the held-out half's 3 flights without a deployment before
-apogee, where it is unbounded. The calibration half's fits read the motor's impulse
+both halves, and in both sets of each. Each paired bootstrap interval the page gives lies below
+zero, and so does each sign-flip interval but one: the held-out half's 3 flights without a
+deployment before apogee are too few to resample, and their sign-flip interval is unbounded. In
+the held-out half the forward error falls from 16.86% to 10.40% without the deployments while
+the prediction's moves from 3.56% to 3.08%; why the forward error moves more isn't traced. The calibration half's fits read the motor's impulse
 0.957 on average (standard deviation 0.033) and the drag 1.018 (0.048). That is not a measured
 impulse: the scale takes up some of what the model gets wrong in the boost, as the other scales do. The forward errors on
 these flights run higher than on the whole collection (+8.87% and +15.83% with their sign,

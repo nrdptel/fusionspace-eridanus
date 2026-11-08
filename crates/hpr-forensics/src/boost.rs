@@ -660,8 +660,13 @@ pub fn sign_flip_interval(differences: &[f64], level: f64) -> Option<(f64, f64)>
 /// [`sign_flip_interval`] instead. Same differences, level, count and seed, same interval, bit for
 /// bit.
 ///
-/// Returns `None` for no differences, no resamples, a level not inside 0 to 1, or a difference
-/// that isn't finite.
+/// It keeps every resample's mean, 8 bytes each: 10,000 resamples take 80 kB. On `n` flights a
+/// resample of one flight `n` times comes `(1/n)ⁿ` of the time; where that is at least
+/// `(1 − level)/2` (3 flights or fewer at 95%) both ends are the smallest and largest difference,
+/// and the interval is only their range.
+///
+/// Returns `None` for no differences, no resamples, a level not inside 0 to 1, a difference that
+/// isn't finite, or a mean that overflows to an infinity.
 ///
 /// [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 #[must_use]
@@ -708,7 +713,8 @@ pub fn paired_bootstrap_interval(
     means.sort_by(f64::total_cmp);
     let tail = (1.0 - level) / 2.0;
     let at = |share: f64| means[percentile_rank(share, resamples) - 1];
-    Some((at(tail), at(1.0 - tail)))
+    let (low, high) = (at(tail), at(1.0 - tail));
+    (low.is_finite() && high.is_finite()).then_some((low, high))
 }
 
 /// The 1-based rank in `resamples` sorted values of the `share` quantile: the smallest `r` with
@@ -1445,6 +1451,20 @@ mod tests {
             paired_bootstrap_interval(&[1.0, f64::NAN], 0.95, 10, 1),
             None
         );
+        // Finite differences whose sum overflows.
+        assert_eq!(paired_bootstrap_interval(&[f64::MAX; 3], 0.95, 10, 1), None);
+    }
+
+    /// On 2 resamples the 2.5% point is rank 1, the lower mean, and the 97.5% point rank 2, the
+    /// higher: an off-by-one in the rank would put both ends on one mean. Seed 3 draws two
+    /// different resample means of these two differences (a resample's mean is −2, 1.5 or 5).
+    #[test]
+    fn the_paired_bootstrap_takes_each_rank_from_the_sorted_means() {
+        let (low, high) = paired_bootstrap_interval(&[-2.0, 5.0], 0.95, 2, 3).expect("an interval");
+        assert!(low < high, "{low}, {high}");
+        for end in [low, high] {
+            assert!([-2.0, 1.5, 5.0].contains(&end), "{end}");
+        }
     }
 
     /// Same differences and seed, same interval bit for bit; another seed moves it a little.

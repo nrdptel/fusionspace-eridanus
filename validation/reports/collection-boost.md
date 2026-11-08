@@ -32,12 +32,13 @@ Of the flights not left out, 241 files were tried, 199 read on their own and 117
 
 **Cuts inside the burn.** A barometer's reading can dip in the boost and catch up, so the finder cuts only where the climb speed's fall has held 0.75 s and the speed is the lowest it has been over that span ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)). A cut counts as inside the burn when it comes less than the motor's burn after the log's liftoff: the burn is the end of the motor's thrust curve, as the flight's `.ork` and the curves supplied for it give it; a design with more than one motor or a staging event counts as not known. Liftoff follows ignition, so that also takes in a cut up to that lag after the burn ends. A prediction from such a cut wouldn't be the method's case.
 
-**The predictions.** Each cut flight that the [forward report](fixture-flights.md) compares is flown as it flies it in hpr: its `.ork` and motor configuration, its rail and its day's ERA5 air, with nothing deployed. The fit changes only the motor's impulse and burn time, the drag, the structure's mass and a wind constant with height, centered on ERA5's wind averaged over the climb. Flown with nothing changed in ERA5's own wind, each lands within 0.50 m of the forward simulation's apogee (largest 0.000 m). The log up to the cut is fitted and the fit flown on to apogee, as the [public flights' report](from-boost.md) does. Both errors are against the same number: the logged apogee as a height climbed in the day's air, as the forward report takes it.
+**The predictions.** Each cut flight that the [forward report](fixture-flights.md) compares is flown as it flies it in hpr: its `.ork` and motor configuration, its rail and its day's ERA5 air, with nothing deployed. The fit changes only the motor's impulse and burn time, the drag, the structure's mass and a wind constant with height, centered on ERA5's wind averaged over the climb. Flown with nothing changed in ERA5's own wind, the fit's model must land within 0.50 m of the forward simulation's apogee; the largest miss was 0.000 m. The log up to the cut is fitted and the fit flown on to apogee, as the [public flights' report](from-boost.md) does. Both errors are against the same number: the logged apogee as a height climbed in the day's air, as the forward report takes it. Each half's last rows give the difference: each flight's absolute error from the prediction less the forward simulation's, averaged, in percentage points; below zero, the prediction came closer.
 
 | | calibration half | held-out half |
 |---|---:|---:|
 | flights cut | 14 | 12 |
-| … no prediction: hpr's forward simulation doesn't fly it | 2 | 2 |
+| … no prediction: hpr's forward simulation doesn't fly it | 1 | 2 |
+| … no prediction: the collection has no ERA5 file of the flight's day | 1 | 0 |
 | … no prediction: too little up to the cut to fit | 0 | 1 |
 | predicted | 12 | 9 |
 | … with a deployment before apogee | 4 | 6 |
@@ -59,10 +60,10 @@ Of the flights not left out, 241 files were tried, 199 read on their own and 117
 | forward simulation, same flights: mean absolute error | 10.06% | 10.40% |
 | … mean error with its sign | +9.34% | +10.40% |
 | absolute errors' difference, prediction less forward (points) | -7.02 | -7.32 |
-| … paired bootstrap 95% interval | -12.66 to -2.28 | -10.38 to -3.50 |
+| … paired bootstrap 95% interval | -12.66 to -2.28 | too few flights to resample |
 | … exact sign-flip 95% interval | -13.76 to -0.79 | unbounded |
 
-A difference below zero means the prediction came closer. Both methods fly nothing deployed, and the fit reads the log only up to its cut, so a deployment before apogee lowers the logged apogee beneath both; the rows without those flights leave them out, as the forward report's own set does. Where a flight has other logs on a barometer's track, the rule above takes the one nearest the logged apogee; two rows count how often there was such a choice, and how often the candidates' apogees lay more than 2% apart, where the choice could move an error. Interval ends are rounded outward. The bootstrap resamples each half's flights 10,000 times (seed 329), each flight's two errors kept together, and takes the 2.5% and 97.5% points of the resampled means. On a few flights it can cover less than 95%, so the exact sign-flip interval, which the public flights' report uses, stands beside it: it assumes only that each flight's difference is drawn independently and symmetrically about the center.
+Both methods fly nothing deployed, and the fit reads the log only up to its cut, so a deployment before apogee lowers the logged apogee beneath both; the rows without those flights leave them out, as the forward report's own set does. Where a flight has other logs on a barometer's track, the rule above takes the one nearest the logged apogee; two rows count how often there was such a choice, and how often the candidates' apogees lay more than 2% apart, where the choice could move an error. Interval ends are rounded outward. The bootstrap resamples each half's flights 10,000 times (seed 329), each flight's two errors kept together, and takes the 2.5% and 97.5% points of the resampled means. On a few flights it can cover less than 95%, so the exact sign-flip interval, which the public flights' report uses, stands beside it: it assumes only that each flight's difference is drawn independently and symmetrically about the center.
 
 **The calibration half's fits.** 12 fits of the logs up to the cut, 12 of them converged; their residuals' RMS averages 2.72 m. Over those fits:
 
@@ -73,3 +74,7 @@ A difference below zero means the prediction came closer. Both methods fly nothi
 | structure mass scale | 1.004 | 0.002 |
 
 The held-out half's fit aggregates, the drag and impulse scales a later correction of the shared bias would aim at, stay private until that correction is chosen on the calibration half alone; the SHA-256 of their file is committed in [`held-out-fits.sha256`](held-out-fits.sha256), so a change to them shows.
+
+**Sources.** Flight data published by university rocketry teams, rocketry courses and hobbyists on GitHub, team websites and The Rocketry Forum.
+
+Generated using Copernicus Climate Change Service information 2026. Contains modified Copernicus Climate Change Service information 2026 (the Earth Data Hub subsets). Neither the European Commission nor ECMWF is responsible for any use that may be made of the Copernicus information or data it contains. ERA5: Hersbach, H. et al. (2020), *The ERA5 global reanalysis*, Q. J. R. Meteorol. Soc. 146, 1999–2049, <https://doi.org/10.1002/qj.3803>; ERA5 hourly data on single levels (<https://doi.org/10.24381/cds.adbb2d47>) and on pressure levels (<https://doi.org/10.24381/cds.bd0915c6>), Copernicus Climate Data Store.

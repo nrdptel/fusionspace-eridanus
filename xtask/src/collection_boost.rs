@@ -460,6 +460,12 @@ impl Report {
             boost::HOLD_S
         );
         self.predictions.write_markdown(&mut page);
+        let _ = writeln!(
+            page,
+            "\n**Sources.** {}\n\n{}",
+            crate::fixture_flights::FLIGHT_DATA_CREDIT,
+            crate::fixture_flights::ERA5_CREDIT
+        );
         page
     }
 
@@ -502,11 +508,11 @@ pub fn run(
     );
     let sealed = held_out_text(&digest);
     let Counts { mut report, cuts } = count(root, entries, burns)?;
-    let (predictions, held_out_fits) = crate::collection_errors::predict_all(&cuts, forward)?;
+    let (predictions, held_out_fits, audit) =
+        crate::collection_errors::predict_all(&cuts, forward)?;
     report.predictions = predictions;
     let page = report.to_markdown();
     report.check_consistent(&page)?;
-    crate::collection_errors::seal_held_out_fits(root, &held_out_fits, check)?;
     if check {
         let committed = fs::read_to_string(root.join(HELD_OUT))
             .map_err(|error| format!("reading {HELD_OUT}: {error}"))?;
@@ -528,6 +534,7 @@ pub fn run(
         let committed_page = fs::read_to_string(root.join(REPORT_MD))
             .map_err(|error| format!("reading {REPORT_MD}: {error}"))?;
         stored.check_consistent(&committed_page)?;
+        crate::collection_errors::seal_held_out_fits(root, &held_out_fits, true)?;
         println!(
             "fixture-flights: the held-out digests, the boost's counts and the halves' errors reproduce"
         );
@@ -537,6 +544,9 @@ pub fn run(
     for (path, text) in [(HELD_OUT, sealed), (REPORT_JSON, json), (REPORT_MD, page)] {
         fs::write(root.join(path), text).map_err(|error| format!("writing {path}: {error}"))?;
     }
+    // Sealed after the report it goes with is written.
+    crate::collection_errors::seal_held_out_fits(root, &held_out_fits, false)?;
+    crate::collection_errors::write_audit(root, &audit)?;
     println!("fixture-flights: wrote {HELD_OUT}, {REPORT_JSON} and {REPORT_MD}");
     Ok(())
 }
