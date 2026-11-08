@@ -65,7 +65,7 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
 - LATER: live prices through `hpr-net`, cached and dated.
 - LATER: regional vendors (Klima, Wizard Rockets); parts that fit `.orc` offered upstream.
 
-## Earlier planning reviews (2026-10-08 to 2026-10-28)
+## Earlier planning reviews (2026-10-08 to 2026-11-04)
 
 PROMOTED: OpenRocket's newest release as the bar ([M2.3c3][m2-3c3], ADR-212), the gap to it by
 cause (M2.3c6, [ADR-226][adr-226]) with OpenRocket's supersonic ogive drag as its own cause
@@ -113,7 +113,7 @@ Placed with [ADR-328][adr-328], which promotes the first; the other three are SO
   apogee case for that kit. Workflow: the kit built from its maker's published dimensions and
   masses, flown on the three motors in the archive's stated conditions, each prediction merged
   before its error, as [M2.3d][m2-3d] orders. Moves: a cited comparison beside `accuracy.public`,
-  per flight only if the archive's license allows (it names none today). *Done when:* the three
+  per flight only if the archive's license allows (it says only "Creative Commons", with no variant). *Done when:* the three
   flights are flown with each input's source and the archive's license recorded (aggregates only if
   it is unclear), and the report gives HPR Sim's errors beside the other tool's, dated.
 - SOON: a part's mass held to its material. User: a flyer whose design holds a mass typed ten times
