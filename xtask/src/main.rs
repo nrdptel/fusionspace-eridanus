@@ -31,6 +31,7 @@ mod census;
 mod ci_budget;
 mod cli;
 mod collection_boost;
+mod collection_errors;
 #[cfg(test)]
 mod conformance;
 mod damaged;

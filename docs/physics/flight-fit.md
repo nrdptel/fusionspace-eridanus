@@ -368,8 +368,18 @@ The other 5 reach the speed limit described below before a cut.
 The private collection's manifest keeps 72 flights in its apogee errors. Of them, 64 have a barometer's log
 the analyzer reads an apogee from ([the count](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md)).
 26 are cut, 36 refused at the speed limit and 2 as sampled under 8 Hz.
-Of those 26, the 20 whose motor's burn and log's liftoff are known are each cut after its thrust curve's burn. For the other 6 it isn't known. The errors of the predictions
-from those cuts will come for each half, the held-out list sealed first by its hash ([ADR-322, held-out flights](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0322-the-2026-11-05-progress-review-accuracy-before-reader-facing-work.md)).
+Of those 26, the 20 whose motor's burn and log's liftoff are known are each cut after its thrust curve's burn. For the other 6 it isn't known.
+Of the 26, 21 are predicted. hpr's forward simulation doesn't fly 4 of them, so there is nothing to fit or compare, and 1 has too little up to its cut to fit.
+They are split into two halves: a held-out share, a third of the collection in expectation, fixed by a hash of each flight's id, and the rest
+([ADR-322, held-out flights](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0322-the-2026-11-05-progress-review-accuracy-before-reader-facing-work.md)).
+On the 12 in the calibration half the prediction's mean absolute apogee error is 3.22%, against the forward simulation's
+9.35% on the same flights. On the 9 held out it is 3.56%, against 16.86%. Each half's paired bootstrap 95% interval on the
+difference lies below zero: −10.07 to −2.71 and −19.00 to −7.97 points
+([the errors](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md),
+[ADR-329, the choices behind them](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0329-m7-3d6-the-collections-errors-by-halves.md)).
+Both methods fly nothing deployed, and 10 of the 21 flights deployed something before apogee. Without them the gap is
+about 7 points in each half. The fits read the motor's impulse 0.957 on average in the calibration half. That number is
+a fit's factor, not a measured impulse: it takes up whatever the model gets wrong in the boost.
 
 **The cut.** The library follows the climb speed: a straight line fitted to each half second of
 heights. One reading far from the rest is left out, as the analyzer's spike rule does. The cut needs
@@ -454,6 +464,8 @@ little of the drag, so the fit leaves it at 0.95, near the 1 it was told. It rea
   Statistical Association* 64, 1969, pp. 1303–1317: the exact sign-flip interval the public
   flights' report gives on the prediction's difference from the forward simulation.
 - [ADR-325, the public flights' prediction, with the measurements behind it][adr-325].
+- B. Efron and R. J. Tibshirani, *An Introduction to the Bootstrap*, Chapman & Hall, 1993, §13.3:
+  the percentile interval, the paired bootstrap the collection's report gives on that difference.
 
 [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 [adr-316]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md

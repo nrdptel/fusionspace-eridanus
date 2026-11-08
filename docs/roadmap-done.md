@@ -383,6 +383,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.3d2 The public flights ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3d4 The halves sealed ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3d5 The cut on a real barometer ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.3d6 The collection's errors by halves ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -2023,6 +2024,10 @@ One line per milestone or increment, in the order it was archived within its pha
       - [x] **M7.3d5 The cut on a real barometer** (#1307, ADR-327). *Done when:* synthetic logs with a barometer's dips as deep
         and long as the public logs' (to 0.5 s) are cut after burnout, set A's within its 2.83 s bound;
         `from-boost` and `collection-boost` count the cuts inside the burn.
+      - [x] **M7.3d6 The collection's errors by halves.** *Done when:* each cut log's fit is flown to apogee as
+        `fixture-flights` flies it; a committed report gives each half's mean absolute and signed errors beside the
+        forward simulation's on the same flights, ADR-257 §3's paired bootstrap 95% intervals and the calibration
+        half's fit aggregates; the held-out half's stay private, their file's SHA-256 committed and checked.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

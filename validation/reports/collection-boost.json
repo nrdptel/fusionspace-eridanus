@@ -1,5 +1,5 @@
 {
-  "milestone": "M7.3d5",
+  "milestone": "M7.3d6",
   "decision": "ADR-326",
   "flights": 83,
   "excluded": 11,
@@ -16,5 +16,122 @@
   },
   "cut": 26,
   "cut_in_burn": 0,
-  "cut_burn_unknown": 6
+  "cut_burn_unknown": 6,
+  "predictions": {
+    "resamples": 10000,
+    "seed": 329,
+    "largest_same_flight_m": 0.0,
+    "halves": [
+      {
+        "name": "calibration",
+        "cut": 14,
+        "unpredicted": {
+          "hpr's forward simulation doesn't fly it": 2
+        },
+        "predicted": 12,
+        "early_deployments": 4,
+        "cut_in_burn": 0,
+        "cut_burn_unknown": 2,
+        "every": {
+          "flights": 12,
+          "prediction_mean_absolute_percent": 3.2187205831233743,
+          "prediction_mean_percent": -0.04713376957600047,
+          "forward_mean_absolute_percent": 9.345594591873684,
+          "forward_mean_percent": 8.868383440239027,
+          "difference_points": -6.126874008750309,
+          "bootstrap_interval": [
+            -10.0692156657003,
+            -2.7093883039174713
+          ],
+          "sign_flip_interval": [
+            -10.622823383535573,
+            -2.0740876176955636
+          ]
+        },
+        "without_early": {
+          "flights": 8,
+          "prediction_mean_absolute_percent": 3.0380583384871986,
+          "prediction_mean_percent": -1.1083368526664803,
+          "forward_mean_absolute_percent": 10.059100005416061,
+          "forward_mean_percent": 9.343283277964074,
+          "difference_points": -7.021041666928861,
+          "bootstrap_interval": [
+            -12.659838383701107,
+            -2.2851792191922016
+          ],
+          "sign_flip_interval": [
+            -13.75573890220891,
+            -0.792920991121556
+          ]
+        }
+      },
+      {
+        "name": "held out",
+        "cut": 12,
+        "unpredicted": {
+          "hpr's forward simulation doesn't fly it": 2,
+          "too little up to the cut to fit": 1
+        },
+        "predicted": 9,
+        "early_deployments": 6,
+        "cut_in_burn": 0,
+        "cut_burn_unknown": 1,
+        "every": {
+          "flights": 9,
+          "prediction_mean_absolute_percent": 3.564541705974107,
+          "prediction_mean_percent": 1.5002783096647292,
+          "forward_mean_absolute_percent": 16.859400857231194,
+          "forward_mean_percent": 15.832193749583663,
+          "difference_points": -13.29485915125709,
+          "bootstrap_interval": [
+            -19.004788085442172,
+            -7.972501287311719
+          ],
+          "sign_flip_interval": [
+            -20.41057516302789,
+            -6.45050979614035
+          ]
+        },
+        "without_early": {
+          "flights": 3,
+          "prediction_mean_absolute_percent": 3.075831189327491,
+          "prediction_mean_percent": -1.5367726216155753,
+          "forward_mean_absolute_percent": 10.396684699805915,
+          "forward_mean_percent": 10.396684699805915,
+          "difference_points": -7.320853510478426,
+          "bootstrap_interval": [
+            -10.376952512967856,
+            -3.5045767497993077
+          ],
+          "sign_flip_interval": [
+            null,
+            null
+          ]
+        }
+      }
+    ],
+    "calibration_fits": {
+      "half": "calibration",
+      "fits": 12,
+      "converged": 12,
+      "parameters": [
+        {
+          "name": "drag scale",
+          "mean": 1.0183714370187087,
+          "sd": 0.04838386796047001
+        },
+        {
+          "name": "impulse scale",
+          "mean": 0.9573819936340621,
+          "sd": 0.03320131667130466
+        },
+        {
+          "name": "structure mass scale",
+          "mean": 1.0035204189619868,
+          "sd": 0.002192738077255608
+        }
+      ],
+      "rms_mean_m": 2.721751249514309
+    }
+  }
 }

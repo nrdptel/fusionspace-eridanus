@@ -1,0 +1,77 @@
+# ADR-329: M7.3d6, the collection's errors by halves (2026-11-08)
+
+- **Status:** accepted; carries out [M7.3d6][m7-3] under [ADR-326][adr-326] §1 and [ADR-322][adr-322] §2.
+- **Summary:** Each private collection flight with a cut log, among the flights the forward report compares, is fitted up to its cut and flown on to apogee on the flight as `fixture-flights` flies it in hpr: 21 predicted, 12 in the calibration half and 9 held out. The prediction's mean absolute apogee error is 3.22% in the calibration half and 3.56% in the held-out half, against the forward simulation's 9.35% and 16.86% on the same flights; the paired bootstrap 95% intervals on the difference are −10.07 to −2.71 and −19.00 to −7.97 points. The held-out half's fit aggregates stay private; their file's SHA-256 is committed and checked.
+
+[adr-151]: 0151-hpr-sim-fixtures-joins-the-reference-library-as.md
+[adr-209]: 0209-the-2026-10-08-best-on-the-market-measured.md
+[adr-257]: 0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
+[adr-322]: 0322-the-2026-11-05-progress-review-accuracy-before-reader-facing-work.md
+[adr-325]: 0325-m7-3d2-the-public-flights-prediction-from-the-boost.md
+[adr-326]: 0326-m7-3d3-in-four-the-halves-sealed-first.md
+[i181]: https://github.com/nrdptel/fusionspace-eridanus/issues/181
+[i359]: https://github.com/nrdptel/fusionspace-eridanus/issues/359
+[i364]: https://github.com/nrdptel/fusionspace-eridanus/issues/364
+[m7-3]: ../ROADMAP.md#phase-5-flight-data-and-forensics
+
+**Context.** [ADR-326][adr-326] sealed the held-out flights (M7.3d4) and fixed the cut (M7.3d5):
+of the collection's 64 chosen logs, 26 are cut, none inside its motor's burn where the burn is
+known. M7.3d6 asks for each cut log's fit flown to apogee as `fixture-flights` flies it, each
+half's errors beside the forward simulation's on the same flights, [ADR-257][adr-257] §3's paired
+bootstrap 95% intervals, and the calibration half's fit aggregates, the held-out half's kept
+private with their file's hash committed. The choices below were made before any half's number
+was computed.
+
+**Decision.**
+
+1. **The flight is the forward simulation's.** The fit's model flies the flight's `.ork`, its
+   configuration with the separations the climb flies, its rail and its day's ERA5 air, with
+   `accept_design_errors` as the forward report sets it. It changes the motors' impulse and burn,
+   the drag, the structure's mass and the wind, which is constant with height, as the public
+   flights' report does ([ADR-325][adr-325]). Flown with nothing changed in ERA5's own wind it
+   must land within 0.5 m of the forward apogee, or the run fails. It lands within 0.000 m on
+   every flight: both read the same apogee sample. With the drag 1% higher in that check, one
+   flight landed 0.98 m off and the run stopped (run once, not committed).
+2. **Only the flights the forward report compares.** A flight the forward report leaves out, or
+   that hpr or OpenRocket doesn't fly, has no forward error to stand beside, and a flight hpr
+   doesn't fly has no flight to fit. They are counted under their reason, not predicted: 4 cut
+   flights, 2 in each half, each one hpr's forward simulation doesn't fly (three refusals, each
+   tracked by an open issue, [#359][i359] and [#181][i181], and one day without an ERA5 file,
+   [#364][i364]). So every cut log `fixture-flights` flies in hpr is fitted and flown.
+3. **One reference for both errors.** The prediction's apogee is the height climbed. It is set
+   against the manifest's logged apogee as a height climbed in the day's air, the number the
+   forward errors use. It is not the chosen log's own reading: that log may be another altimeter
+   in the same rocket.
+4. **What the fit is told is the public report's.** The synthetic flights' stated ranges, the
+   wind centered on ERA5's averaged evenly in height over the forward climb. Tuning them on these
+   flights would be a model choice drawing on the held-out half ([ADR-209][adr-209] §4).
+5. **The interval.** The difference is each flight's absolute prediction error less its forward
+   one, as on the public flights. Its paired bootstrap interval is the percentile interval
+   (Efron and Tibshirani, 1993, §13.3) on 10,000 resamples, seed 329, both fixed before any number
+   (`hpr_forensics::boost::paired_bootstrap_interval`). On 9 and 12 flights a percentile bootstrap
+   can cover less than its level, so the exact sign-flip interval stands beside it.
+6. **Two sets a half.** Every flight predicted, and those without a deployment before apogee,
+   the forward report's own second set: 10 of the 21 predicted flights deployed something before
+   apogee, which lowers the logged apogee beneath both methods. Without them the difference is
+   −7.02 points (8 flights) and −7.32 (3).
+7. **The held-out fits, sealed.** The drag, impulse and structure mass scales' mean and standard
+   deviation, the fits converged and their mean RMS are written for each half. The held-out
+   half's go to the gitignored `corpus-out/hpr-sim-fixtures/held-out-fits.json`. Its SHA-256 is
+   committed in `validation/reports/held-out-fits.sha256`, and `fixture-flights --check` fails
+   when the recomputed aggregates' digest differs. Nothing is given per flight
+   ([ADR-151][adr-151]).
+
+**What it shows.** The prediction from the boost comes closer than the forward simulation in
+both halves, and in both sets of each. The calibration half's fits read the motor's impulse
+0.957 on average (standard deviation 0.033) and the drag 1.018 (0.048). That is not a measured
+impulse: the scale takes up whatever the model gets wrong in the boost. The forward errors on
+these flights run higher than on the whole collection (+8.87% and +15.83% with their sign,
+against +7.76% on the 60 flights compared); why isn't traced. The halves aren't blind: the
+forward errors on every flight were published before the seal ([ADR-322][adr-322]).
+
+**What doesn't change.** M7.3d7's *done when*, and with it M7.3d's, stands whole: the scoreboard
+row, each other tool's cell read from its docs.
+
+**Consequences.** `fixture-flights --check`, in the gate's `refs` step, flies the 21 fits in
+parallel: about 14 s more. CI, without `refs/`, holds the page to its data, the counts to each
+other and the held-out fits' digest to its form.
