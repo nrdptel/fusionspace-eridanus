@@ -748,7 +748,8 @@ impl Report {
             "- **What is flown:** the 7 flights of the [real-flights report][real], each in its ERA5 air, \
              from its example's thrust file, rail and site.\n\
              - **The prediction:** the library finds the cut from the samples up to it (the first \
-             sample where the climb speed's fall has held 0.75 s), cuts the log there, fits it, and flies the fit on to apogee (`hpr_forensics::boost`). A barometer's \
+             sample where the climb speed's fall has held 0.75 s and the speed is the lowest of those \
+             0.75 s), cuts the log there, fits it, and flies the fit on to apogee (`hpr_forensics::boost`). A barometer's \
              log whose fitted climb speed reaches 227.7 m/s (747 ft/s) before the cut gets none. Its \
              apogee is read as the forward simulation's is: the standard atmosphere's altitude of the \
              ERA5 pressure at the center of mass, less the pad's.\n\

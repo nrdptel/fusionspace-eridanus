@@ -368,7 +368,7 @@ The other 5 reach the speed limit described below before a cut.
 The private collection's manifest keeps 72 flights in its apogee errors. Of them, 64 have a barometer's log
 the analyzer reads an apogee from ([the count](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md)).
 26 are cut, 36 refused at the speed limit and 2 as sampled under 8 Hz.
-Of those 26, the 20 whose motor's burn and log's liftoff are known are each cut after the burn. For the other 6 it isn't known. The errors of the predictions
+Of those 26, the 20 whose motor's burn and log's liftoff are known are each cut after its thrust curve's burn. For the other 6 it isn't known. The errors of the predictions
 from those cuts will come for each half, the held-out list sealed first by its hash ([ADR-322, held-out flights](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0322-the-2026-11-05-progress-review-accuracy-before-reader-facing-work.md)).
 
 **The cut.** The library follows the climb speed: a straight line fitted to each half second of
@@ -377,11 +377,11 @@ the speed to stay 10% below its peak, and at least 10 m/s (32.8 ft/s) below it, 
 comes at the first sample where that holds and the speed is the lowest of those 0.75 s. After burnout gravity alone
 takes 9.8 m/s (32.2 ft/s) off the speed every second, drag more, so the speed keeps falling. A
 barometer's reading can dip during the boost and catch up
-([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)). On the public flights'
+([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)). In the burns of the public flights'
 logs the speed fell that far for up to 0.48 s, then recovered (measured once). The deepest such
 fall was 63.2 m/s (207 ft/s), a one-off measurement not committed. The 0.75 s passes such a
-dip. The catch-up can read above the true speed. On 778 of the 1,787 dipped logs below a fall lasted over 0.5 s, likely the fall back from that overshoot (not traced). But on the synthetic dips it
-leveled off while the motor burned, so its speed wasn't the lowest of the last 0.75 s. So on the
+dip. The catch-up can read above the true speed. On 778 of the 1,787 dipped logs below a fall lasted over 0.5 s, likely the fall back from that overshoot (not traced). But on the synthetic dips the speed
+had begun to rise again while the motor burned, so it wasn't the lowest of the last 0.75 s. So on the
 synthetic flights' motors the cut comes after burnout, and the log keeps the start of the coast. The log up to the cut is fitted, and the fit
 flown on to apogee.
 

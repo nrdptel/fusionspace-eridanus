@@ -696,7 +696,7 @@ mod tests {
             .expect("one of set A's first 60 flights of each kind has a cut")
     }
 
-    /// Apogee predicted from a synthetic flight's log cut just after burnout stays bit-identical
+    /// Apogee predicted from a synthetic flight's log cut after burnout stays bit-identical
     /// when every later value and time is noise; a probe that lets the prediction read a whole bin
     /// past the cut, the values noise but the times kept, doesn't. Run on three of set A's flights:
     /// the first with a cut; the first with a cut whose logger, like a TeleMetrum, writes channels
