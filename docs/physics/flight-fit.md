@@ -367,7 +367,7 @@ The other 5 reach the speed limit described below before a cut.
 The private collection's manifest keeps 72 flights in its apogee errors. Of them, 64 have a barometer's log
 the analyzer reads an apogee from ([the count](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md)).
 26 are cut, 36 refused at the speed limit and 2 as sampled under 8 Hz.
-Of those 26, the 20 whose motor's burn and log's liftoff are known are each cut after the burn; for the other 6 it isn't known. The errors of the predictions
+Of those 26, the 20 whose motor's burn and log's liftoff are known are each cut after the burn. For the other 6 it isn't known. The errors of the predictions
 from those cuts will come for each half, the held-out list sealed first by its hash ([ADR-322, held-out flights](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0322-the-2026-11-05-progress-review-accuracy-before-reader-facing-work.md)).
 
 **The cut.** The library follows the climb speed: a straight line fitted to each half second of
@@ -377,10 +377,10 @@ comes at the first sample where that holds and the speed is the lowest of those 
 takes 9.8 m/s (32.2 ft/s) off the speed every second, drag more, so the speed keeps falling. A
 barometer's reading can dip during the boost and catch up
 ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)). On the public flights'
-logs the speed fell that far for up to 0.48 s, and by up to 63.2 m/s (207 ft/s), then recovered
-(measured once). The 0.75 s passes such a
-dip. The catch-up can read above the true speed. The fall back from it can last longer, but on the synthetic dips it
-leveled off while the motor burned: its speed wasn't the lowest of the last 0.75 s. So on the
+logs the speed fell that far for up to 0.48 s, then recovered (measured once). The deepest such
+fall was 63.2 m/s (207 ft/s). The 0.75 s passes such a
+dip. The catch-up can read above the true speed. The fall back from it can last longer. But on the synthetic dips it
+leveled off while the motor burned, so its speed wasn't the lowest of the last 0.75 s. So on the
 synthetic flights' motors the cut comes after burnout, and the log keeps the start of the coast. The log up to the cut is fitted, and the fit
 flown on to apogee.
 
@@ -399,8 +399,8 @@ flown on to apogee.
 [Set A](synthetic-flights.md#the-sets)'s first 200 synthetic flights are mostly fast. Of them, 51
 were cut, each after the true peak of its vertical speed. Each cut came 1.08 s to 2.30 s after
 burnout. 43 GNSS logs and 106 fast flights were refused. The slowest of those truly peaked at
-221.3 m/s (726 ft/s): the fitted speed reads a little above the true one. Five single bad readings were tried, 12 to 100 m (39 to 328 ft) off, at
-the pad, the first sample, halfway or four fifths through the burn. They moved the cut on 8 of the 255 spiked logs of cut flights (785 in all), none by more than 0.70 s (measured). Two bad readings side by side
+221.3 m/s (726 ft/s): the fitted speed reads a little above the true one. Five single bad readings were tried, 12 to 100 m (39 to 328 ft) off. They sat at
+the pad, the first sample, or halfway or four fifths through the burn. They moved the cut on 8 of the 255 spiked logs of cut flights (785 in all), none by more than 0.70 s (measured). Two bad readings side by side
 weren't tried with the hold. A test pins the order, the spikes and at least 51 cuts; the counts and times are
 measured.
 
@@ -419,7 +419,7 @@ it. A channel on a clock of its own is cut at its first time past the cut or out
 
 **A worked example.** NDRT 2020's motor burns 3.43 s. Its barometer's log is cut 6.90 s after
 liftoff, its climb speed at least 10% below its 168.5 m/s (553 ft/s) top for 0.75 s. That top
-is 1.4 s into the coast, a reading above the speed at burnout, so the cut comes about 3.5 s after the burn ends. The fit to the log
+is 1.4 s into the coast, a reading above the speed at burnout. So the cut comes about 3.5 s after the burn ends. The fit to the log
 up to there flies on to 1,273 m (4,177 ft), as the barometer reads it. The log's apogee is 1,320 m
 (4,332 ft): the prediction is 3.6% low. The forward simulation, nothing fitted, reads 1,458 m
 (4,782 ft), 10.4% high. ERA5's wind, averaged and held constant with height as the fit holds it,

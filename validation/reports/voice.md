@@ -4,13 +4,13 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target. The 135 held pages are every page the site's table of contents lists, with the README and the 404 page, less the records page ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)), each snapshot of an `hpr` command's `--help`, the census of what the commands say, a page for each crate's `src/` directory, the Python package's README and its docstrings as `help()` shows them, and each crate's front page, the `//!` docs of its `src/lib.rs` ([ADR-292](../../docs/decisions/0292-the-programs-words-in-four.md)).
 
-143 pages, 544280 words, 0 stock phrases. 138 pages are within every limit.
+143 pages, 544285 words, 0 stock phrases. 139 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
 | Bold-label items | 0.50 | 4 | 1.85, `docs/perf.md` |
 | Labels | 0.50 | 3 | 3.62, `docs/VISION.md` |
-| Sentences over 25 words | 0.50 | 4 | 1.17, `docs/perf.md` |
+| Sentences over 25 words | 0.50 | 3 | 1.17, `docs/perf.md` |
 | Hedges | 1.00 | 0 | 0.55, `crates/hpr-sim/src/` |
 | Stacked hedges | 0.10 | 0 | 0.03, `crates/hpr-sim/src/` |
 | Minimizers | 0.10 | 1 | 0.11, `docs/ARCHITECTURE.md` |
@@ -87,7 +87,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/physics/aero.md` (`ref`, `held`) | 59479 | 14.5 | 1% | 0.35 | 0.34 | 0.05 | 0.07 | 0.01 | 0.01 | 0.01 | 0.00 | 0.00 | 0.00 | 0.02 | 0.12 |
 | `docs/physics/atmosphere.md` (`ref`, `held`) | 2349 | 12.5 | 1% | 0.13 | 0.30 | 0.05 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.18 |
 | `docs/physics/design.md` (`ref`, `held`) | 9193 | 14.2 | 0% | 0.14 | 0.18 | 0.00 | 0.10 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.02 | 0.47 |
-| `docs/physics/flight-fit.md` (`ref`, `held`) | 5588 | 15.7 | 9% | 0.22 | 0.27 | **0.52** | 0.13 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 1.01 |
+| `docs/physics/flight-fit.md` (`ref`, `held`) | 5593 | 15.5 | 8% | 0.22 | 0.27 | 0.43 | 0.13 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 1.01 |
 | `docs/physics/flight.md` (`ref`, `held`) | 4657 | 13.7 | 0% | 0.26 | 0.33 | 0.00 | 0.03 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.09 |
 | `docs/physics/flutter.md` (`ref`, `held`) | 3439 | 15.9 | 7% | 0.30 | 0.06 | 0.35 | 0.12 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.12 | 0.15 |
 | `docs/physics/frames.md` (`ref`, `held`) | 1369 | 12.4 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
