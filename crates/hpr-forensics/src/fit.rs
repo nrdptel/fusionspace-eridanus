@@ -204,7 +204,7 @@ fn median(values: &mut Vec<f64>) -> Option<f64> {
     }
 }
 
-/// The longest climb a log may state, s, from a second before liftoff to apogee: past any hobby
+/// The longest climb a log may state, s, from liftoff to apogee: past any hobby
 /// rocket's by far, so a clock that jumps can't ask for bins beyond any memory.
 const MAX_WINDOW_S: f64 = 1_000.0;
 

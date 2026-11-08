@@ -64,8 +64,8 @@ printed bound by 0.01 at most, and the others add numbers without changing any.
    one, as on the public flights. Its paired bootstrap interval is the percentile interval
    (Efron and Tibshirani, 1993, §13.3) on 10,000 resamples, seed 329, both fixed before any number
    (`hpr_forensics::boost::paired_bootstrap_interval`). On a few flights (each set here has 12 or
-   fewer) a percentile bootstrap can cover less than its level (§13.5; the coverage test runs on
-   40), so the exact sign-flip interval stands beside it. On 3 flights
+   fewer) a percentile bootstrap can cover less than its level (Efron and
+   Tibshirani, §13.5), so the exact sign-flip interval stands beside it. On 3 flights
    or fewer a 95% percentile interval is only the smallest and largest difference, which holds a
    symmetric center 75% of the time on 3 and gives two flights' own values: the page says "too few
    flights to resample" there instead. The page rounds each interval's ends outward.

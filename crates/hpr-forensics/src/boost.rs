@@ -502,7 +502,8 @@ pub enum Unpredicted {
     /// The log up to the cut holds too little to fit: no pad or height track read, a window from
     /// liftoff to the cut that is empty or longer than 1,000 s, or no more bins of
     /// [`fit::BIN_S`] with a sample, from a second before liftoff, than the fit has unknowns (11).
-    /// A log with no liftoff read is fitted from its first sample.
+    /// A log with no liftoff read stands its first sample for liftoff, so that alone doesn't
+    /// refuse it.
     /// A log cut within 2 s of its liftoff can't hold 12, nor a later one logged from liftoff only.
     NothingToFit(Cut),
     /// The fit came back with what was stated: its residual more than [`fit::MISFIT_SHARE`] of the
