@@ -797,17 +797,17 @@ impl Report {
         let _ = writeln!(
             page,
             "- Cut less than the thrust file's burn after liftoff, {} of the {} cut: {}. The cut waits \
-             for the climb speed's fall to hold 0.75 s, so that a dip in a barometer's reading during \
-             the boost isn't read as burnout \
+             for the climb speed's fall to hold {:.2} s, so that a dip in a barometer's reading \
+             during the boost isn't read as burnout \
              ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)).",
             s.cut_in_burn.len(),
             self.flights.iter().filter(|f| f.cut().is_some()).count(),
-            names(&s.cut_in_burn)
+            names(&s.cut_in_burn),
+            boost::HOLD_S
         );
         let _ = writeln!(
             page,
-            "- Climbing at or past 227.7 m/s, the log read whole: {}. A cut before that speed on such a \
-             log came on a dip, not at burnout. Top speed withheld for another reason, such as a spike at \
+            "- Climbing at or past 227.7 m/s, the log read whole: {}. Top speed withheld for another reason, such as a spike at \
              the top, so the log can't be set against that speed: {}.",
             names(&s.past_transonic),
             names(&s.top_speed_unread)

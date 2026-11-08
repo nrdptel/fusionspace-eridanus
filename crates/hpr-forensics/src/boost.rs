@@ -13,9 +13,9 @@
 //!   least [`DROP_FLOOR_M_S`], for [`HOLD_S`], and is the lowest it has been over the last
 //!   [`HOLD_S`]. After burnout gravity takes about 9.8 m/s off the vertical speed every second,
 //!   drag more, so the speed keeps falling and the log keeps the coast's start. A barometer's
-//!   reading can dip in the boost and catch up: the fall its speed shows recovers within the hold,
-//!   and the fall back from the catch-up's overshoot, which can outlast it, levels off while the
-//!   motor burns.
+//!   reading can dip in the boost and catch up: on the public logs the falls that dips gave
+//!   recovered within the hold (measured once), and on the synthetic dips the fall back from a
+//!   catch-up's overshoot, which can outlast it, levelled off while the motor burned.
 //! - Everything after that reads the log cut there: its readings, the fit's observations and so
 //!   the fit. The log's own clock is cut at the cut's sample, by position, so a time it logs later
 //!   can't enter. A channel on a clock of its own is cut at its first time past the cut or out of
@@ -24,8 +24,8 @@
 //!
 //! The finder refuses the tracks the analyzer distrusts in the boost: a GNSS receiver's, and a
 //! barometer's once its speed reaches [`readings::TRANSONIC_SPEED_M_S`] (Mach 0.8 in the coldest
-//! air), where the port may read the transonic flow. Without that rule, and with a 1 s hold then
-//! in it, the fitted top speed was over 1.1 times the true one on 57 of set A's first 200
+//! air), where the port may read the transonic flow. Without that rule, and with an earlier rule's 1 s
+//! hold in the cut, the fitted top speed was over 1.1 times the true one on 57 of set A's first 200
 //! synthetic flights, the barometer's jump near Mach 1 read as the top, so the cut's place followed
 //! the jump rather than burnout (a sweep run once). So a flight whose fitted climb speed reaches
 //! 227.7 m/s gets no prediction from its barometer: on that set the slowest refused had a true top
@@ -82,11 +82,10 @@ pub const DROP_FLOOR_M_S: f64 = 10.0;
 /// How long the fall must hold before the cut, s, and the span its speed must be the lowest of:
 /// a barometer's fitted speed can fall by [`DROP_FLOOR_M_S`] and more during the boost and
 /// recover. On the public flights' logs, the longest such fall inside a burn lasted 0.48 s from
-/// its first sample to the one it recovered at, and the deepest went 63 m/s below its top (Lince
+/// its first sample to the one it recovered at, and the deepest went 63.2 m/s below its top (Lince
 /// and Juno III, measured once); after burnout gravity and drag keep the speed falling. HPR Sim's
-/// choice: half again the longest, 0.75 s. It moves each cut later by about that much: set A's
-/// first 200 synthetic flights are cut 1.08 s to 2.30 s after burnout, 0.33 s to 1.48 s before it
-/// held.
+/// choice: about half again the longest, 0.75 s. On set A's first 200 synthetic flights the cuts
+/// came 1.08 s to 2.30 s after burnout, 0.33 s to 1.48 s before this rule.
 pub const HOLD_S: f64 = 0.75;
 
 /// How long the fitted flight is flown to find its apogee, s: past any hobby rocket's climb.
@@ -221,7 +220,7 @@ fn in_order_count(times: &[f64], cut_s: f64) -> usize {
 /// A GNSS receiver's altitude in the boost can drop out at ignition and burnout and lag the
 /// climb, by up to 440 m in one flight a flyer reports, while its fix reads valid
 /// ([GNSS in boost][gnss]): on set A's first 60 synthetic flights such tracks were cut up to 11 s
-/// after burnout or not at all (a sweep run once, with a 1 s hold then in the rule). A staged
+/// after burnout or not at all (a sweep run once, with an earlier rule's 1 s hold in the cut). A staged
 /// flight is cut at the first burnout whose coast lasts long enough for that fall; untested on
 /// one.
 ///
@@ -798,7 +797,7 @@ mod tests {
     /// any other uncut log for its speed. Measured, not asserted: 51 cut,
     /// 1.08 s to 2.30 s after burnout; 43 GNSS logs and 106 fast ones refused, the slowest of those
     /// at 221.3 m/s; a bad sample made or lost no cut and moved one by 0.70 s at most, on 8 of the
-    /// 785 logs (255 of them on flights that are cut). Set B's first 200, run once before the
+    /// 255 spiked logs of flights that are cut (785 in all). Set B's first 200, run once before the
     /// [`HOLD_S`] rule, not in the test: 57 cut, 0.35 s to 1.55 s after burnout, 34 GNSS and 109
     /// fast refused.
     #[test]
@@ -905,11 +904,12 @@ mod tests {
     /// cut needs is cut after burnout, within the 2.83 s of
     /// [`the_cut_falls_just_after_the_true_burnout`], before apogee, or refused for the transonic
     /// speed its catch-up can read. Among the logs whose falls each last 0.5 s at most before
-    /// burnout, as the public logs' did, the falls reach the public logs' deepest, 63 m/s, and
+    /// burnout, as the public logs' did, the falls reach the public logs' deepest, 63.2 m/s, and
     /// come within 0.05 s of 0.5 s. Measured, not asserted: of 51 flights, 1,787 dipped logs give
     /// such a fall; 1,635 are cut, 0.14 s to 2.30 s after burnout, and 152 refused as transonic.
-    /// 1,009 hold every fall to 0.5 s, up to 295 m/s deep; on the other 778 the catch-up
-    /// overshoots, and the fall back from it lasts longer. With the hold alone, not the lowest
+    /// 1,009 hold every fall to 0.5 s, up to 295 m/s deep; the other 778 have a fall that lasts
+    /// longer (likely the fall back from a catch-up's overshoot, not traced). The other 508 dipped
+    /// logs give no such fall. With the hold alone, not the lowest
     /// speed, 416 of those 778 were cut in the burn (run once).
     #[test]
     fn a_dip_in_the_boost_is_not_burnout() {
