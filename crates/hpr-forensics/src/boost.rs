@@ -251,8 +251,8 @@ fn in_order_count(times: &[f64], cut_s: f64) -> usize {
 /// The cut stands where the window's line is more than [`LIFTOFF_RISE_M`] above the first
 /// window's: three bad samples side by side on the pad can lift the line past that for a sample,
 /// and the speed then falls back as it does at burnout. A pad spike faster than the flight's own
-/// top speed, or a step on the pad that stays (steps of 11 to 60 m cut before the peak on 128 to
-/// 142 of 157 logs, measured once, not committed), can still move the cut ([#1362][i1362]).
+/// top speed, or a step up on the pad that stays, can still move the cut ([#1362][i1362] has the
+/// measurements).
 ///
 /// A GNSS receiver's altitude in the boost can drop out at ignition and burnout and lag the
 /// climb, by up to 440 m in one flight a flyer reports, while its fix reads valid
