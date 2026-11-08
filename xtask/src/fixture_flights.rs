@@ -306,9 +306,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
     Ok(())
 }
 
-/// Each flight's motor's burn, s: the end of its thrust curve in the configuration flown, the
-/// longest where it holds more than one motor. A flight whose design holds no such configuration,
-/// or no curve, has none.
+/// Each flight's motor's burn, s: the end of its thrust curve in the configuration flown. A flight
+/// whose design holds no such configuration, no curve, more than one motor or a staging event has
+/// none: a later motor's burn would end after any one curve's.
 fn burns(
     root: &Path,
     entries: &[Entry],
@@ -317,15 +317,21 @@ fn burns(
     let mut burns = BTreeMap::new();
     for entry in entries {
         let design = design(root, entry, supply)?;
-        let Ok(chosen) = collection_cause(&design, entry) else {
+        // The motor's configuration, whatever the weather: a flight without an ERA5 file still
+        // has a burn.
+        let Ok(chosen) = configuration(&design, entry) else {
             continue;
         };
-        let burn_s = chosen
-            .motors
-            .iter()
-            .filter_map(|motor| motor.curve.motor())
-            .map(hpr_motor::SolidMotor::burnout_time_s)
-            .fold(f64::NAN, f64::max);
+        let [motor] = chosen.motors.as_slice() else {
+            continue;
+        };
+        if chosen.stagings().next().is_some() {
+            continue;
+        }
+        let burn_s = motor
+            .curve
+            .motor()
+            .map_or(f64::NAN, hpr_motor::SolidMotor::burnout_time_s);
         if burn_s.is_finite() {
             burns.insert(entry.flight_id.clone(), burn_s);
         }

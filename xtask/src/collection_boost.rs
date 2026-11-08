@@ -419,7 +419,8 @@ impl Report {
              ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)). A cut counts \
              as inside the burn when it comes less than the motor's burn after the log's liftoff: \
              the burn is the end of the motor's thrust curve, as the flight's `.ork` and the \
-             curves supplied for it give it (on a design with more than one motor, the longest). \
+             curves supplied for it give it; a design with more than one motor or a staging event \
+             counts as not known. \
              Liftoff follows ignition, so that also takes in a cut up to that lag after the burn \
              ends. A prediction from such a cut wouldn't be the method's case.",
             boost::HOLD_S

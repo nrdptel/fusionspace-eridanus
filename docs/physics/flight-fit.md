@@ -35,8 +35,8 @@ impulse, wind and mass, and where its Bayesian option fails its tests.
   constant with height; on a log of height alone, a wind that grows with height only widens the intervals. It's
   told the design, rail, site and the day's air, and takes them as right. It's in the library only,
   with no `hpr` command yet. Its [prediction from the boost](#apogee-from-the-boost) has been
-  compared with a logged apogee on 2 public flights. Only one was cut after its burn, on a log that
-  stays under 227.7 m/s (747 ft/s).
+  compared with a logged apogee on 2 public flights, both cut after their burn, on logs that
+  stay under 227.7 m/s (747 ft/s): an anecdote, not a measure.
 
 ## How it works
 
@@ -358,8 +358,8 @@ closed forms. A result under 100 effective draws is flagged as too few to read. 
 
 ## Apogee from the boost
 
-The library predicts a flight's apogee from its climb and the start of its coast: a log cut just
-after burnout (`hpr_forensics::boost`), 1.08 s to 2.30 s after it on the synthetic flights below.
+The library predicts a flight's apogee from its climb and the start of its coast: a log cut soon
+after burnout, once the climb speed has kept falling for 0.75 s (`hpr_forensics::boost`), 1.08 s to 2.30 s after it on the synthetic flights below.
 It predicts 2 of the 7 public flights, Bella Lui and NDRT 2020, both cut after the motor's burn.
 That is too few to say at 95% whether it beats the forward simulation
 ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)).

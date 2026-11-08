@@ -905,7 +905,7 @@ mod tests {
     /// [`the_cut_falls_just_after_the_true_burnout`], before apogee, or refused for the transonic
     /// speed its catch-up can read. Among the logs whose falls each last 0.5 s at most before
     /// burnout, as the public logs' did, the falls reach the public logs' deepest, 63.2 m/s, and
-    /// come within 0.05 s of 0.5 s. Measured, not asserted: of 51 flights, 1,787 dipped logs give
+    /// last at least the public logs' longest, 0.48 s. Measured, not asserted: of 51 flights, 1,787 dipped logs give
     /// such a fall; 1,635 are cut, 0.14 s to 2.30 s after burnout, and 152 refused as transonic.
     /// 1,009 hold every fall to 0.5 s, up to 295 m/s deep; the other 778 have a fall that lasts
     /// longer (likely the fall back from a catch-up's overshoot, not traced). The other 508 dipped
@@ -992,11 +992,11 @@ mod tests {
              longer one"
         );
         assert!(
-            longest_s >= 0.45,
+            longest_s >= 0.48,
             "the longest fall kept held {longest_s} s"
         );
         assert!(
-            deepest_m_s >= 63.0,
+            deepest_m_s >= 63.2,
             "the deepest fall kept went {deepest_m_s} m/s"
         );
         assert!(cut_count >= 1600, "{cut_count} dipped logs cut");
