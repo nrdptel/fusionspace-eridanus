@@ -422,13 +422,13 @@ burnout. 43 GNSS logs and 106 fast flights were refused. The slowest of those tr
 the pad, the first sample, or halfway or four fifths through the burn. They moved the cut on 8 of the 255 spiked logs of cut flights (785 in all), none by more than 0.70 s (measured).
 The same five were then tried as two and as three bad readings in a row. Of the same 255 logs, two in a row
 moved 9 cuts, by up to 0.70 s, and three in a row moved 23, by up to 1.35 s. Three in a row also left 40 of
-those 255 logs uncut: the speed then read past 227.7 m/s (747 ft/s), so they were refused. Every cut found
-still came after the peak and after burnout. Four or more in a row weren't tried. A larger pad blip, one
+those 255 logs uncut: the speed then read past 227.7 m/s (747 ft/s), so they were refused. Every cut in these
+runs still came after the peak and after burnout. Four or more in a row weren't tried. A larger pad blip, one
 that reads faster than the flight's own top speed, can still move the cut early
 ([#1362](https://github.com/nrdptel/fusionspace-eridanus/issues/1362)). Without the height rule, three
 12 m (39 ft) readings in a row on the pad gave 33 cuts before the speed's peak, of the 157 logs spiked
 there (all but the 43 GNSS logs; measured once, not pinned by a test). 32 came
-before ignition, the other just after it, and all 2.4 to 7.9 s before burnout. A test pins the order, the
+before ignition, the other 0.04 s after it, and all 2.4 to 7.9 s before burnout. A test pins the order, the
 spikes, the place of every cut and at least 51 cuts; the counts and times are measured.
 
 A second test puts a dip in each cut flight's height: 0.2 to 0.6 s long, 10 to 40 m (33 to
