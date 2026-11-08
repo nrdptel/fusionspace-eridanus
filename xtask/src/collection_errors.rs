@@ -994,7 +994,7 @@ mod tests {
         assert_eq!(sd(&[]), None);
     }
 
-    /// The digest's file names what it seals, and a change to the aggregates changes it.
+    /// The digest is 64 hex digits, and a change to the aggregates changes it.
     #[test]
     fn the_held_out_fits_are_sealed_by_their_text() {
         let fits = FitAggregates::of(HELD_OUT, &[]);

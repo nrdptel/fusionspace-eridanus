@@ -383,8 +383,8 @@ choices behind them in [ADR-329](https://github.com/nrdptel/fusionspace-eridanus
 Both methods fly nothing deployed, and 10 of the 21 flights deployed something before apogee. Without them (8 and 3
 flights) the difference is −7.0 and −7.3 points. Three flights are too few to resample, and their sign-flip interval
 is unbounded. The fitted impulse scale averages 0.957 in the calibration half: the thrust curve's impulse times 0.957. That
-is a fit's factor, not a measured impulse. It takes up some of what the model gets wrong in the boost, as the other
-scales do.
+is a fit's factor, not a measured impulse. It may take up some of what the model gets wrong in the boost, as the other
+scales may.
 
 **The cut.** The library follows the climb speed: a straight line fitted to each half second of
 heights. One reading far from the rest is left out, as the analyzer's spike rule does. The cut needs

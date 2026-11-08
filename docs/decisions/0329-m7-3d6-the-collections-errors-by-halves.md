@@ -23,8 +23,10 @@ half's errors beside the forward simulation's on the same flights, [ADR-257][adr
 bootstrap 95% intervals, and the calibration half's fit aggregates, the held-out half's kept
 private with their file's hash committed. Choices 1 to 4, 7, and 5's bootstrap and its seed
 were made before any half's number was computed. The set without deployments (6), the outward
-rounding (5) and the log-choice count (8) came after the first numbers; the rounding moved a
-printed bound by 0.01 at most, and the others add numbers without changing any.
+rounding and the rule giving no bootstrap on 3 flights or fewer (5), the missing-ERA5 cause (2)
+and the log-choice count (8) came after the first numbers. The rounding moved a printed bound by
+0.01 at most; the 3-flight rule replaced one computed interval, also below zero, with "too few
+flights to resample"; the others add counts or split one.
 
 **Decision.**
 
@@ -98,7 +100,7 @@ deployment before apogee are too few to resample, and their sign-flip interval i
 the held-out half the forward error falls from 16.86% to 10.40% without the deployments while
 the prediction's moves from 3.56% to 3.08%; why the forward error moves more isn't traced. The calibration half's fits read the motor's impulse
 0.957 on average (standard deviation 0.033) and the drag 1.018 (0.048). That is not a measured
-impulse: the scale takes up some of what the model gets wrong in the boost, as the other scales do. The forward errors on
+impulse: the scale may take up some of what the model gets wrong in the boost, as the other scales may. The forward errors on
 these flights run higher than on the whole collection (+8.87% and +15.83% with their sign,
 against +7.76% on the 60 flights compared); why isn't traced. The halves aren't blind: the
 forward errors on every flight were published before the seal ([ADR-322][adr-322]).
