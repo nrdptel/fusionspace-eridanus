@@ -134,8 +134,8 @@ fn line(points: &[(f64, f64)]) -> Option<(f64, f64)> {
 /// than [`readings::SPIKE_THRESHOLD`] robust standard deviations (1.4826 times the residuals'
 /// median absolute deviation) from their median, the analyzer's Hampel rule (Pearson et al.,
 /// EUSIPCO 2015, §2). One bad sample that far out, a pulse at the port or a corrupt reading, is so
-/// left out of every window that holds it; two side by side can carry the first line with them, and
-/// aren't handled. Where most residuals are 0, as on a quantized pad, only the samples on the line
+/// left out of every window that holds it; two or three side by side can carry the first line with
+/// them (the cut's test measures what that does). Where most residuals are 0, as on a quantized pad, only the samples on the line
 /// are kept.
 /// `None` where fewer than [`readings::SPEED_MIN_SAMPLES`] are kept or the times don't spread.
 fn robust_line(window: &VecDeque<(f64, f64)>, scratch: &mut Scratch) -> Option<(f64, f64)> {
@@ -242,10 +242,14 @@ fn in_order_count(times: &[f64], cut_s: f64) -> usize {
 /// before it (the module's rules); `None` where the log holds no height track, its track is a GNSS
 /// receiver's, any [`SPEED_WINDOW_S`] of it holds more samples than the analyzer's fastest rate
 /// allows ([`readings::MIN_INTERVAL_S`]), it never lifts off, it never holds
-/// [`readings::SPEED_MIN_SAMPLES`] in a [`SPEED_WINDOW_S`] window (a log slower than 8 Hz), its
+/// [`readings::SPEED_MIN_SAMPLES`] in a [`SPEED_WINDOW_S`] window (a log slower than 8 Hz, or one
+/// whose samples can't be read), its
 /// fitted speed reaches
 /// [`readings::TRANSONIC_SPEED_M_S`] before the cut, or it never slows by [`DROP_SHARE`] of its
 /// top speed and [`DROP_FLOOR_M_S`] for [`HOLD_S`], at a speed the lowest of the last [`HOLD_S`].
+/// Where the window's line comes back within [`LIFTOFF_RISE_M`] of the pad's, the walk starts
+/// over: a run of bad samples on the pad lifts the line for a window at most, shorter than the
+/// hold, and a flight stands higher than that from liftoff to apogee.
 ///
 /// A GNSS receiver's altitude in the boost can drop out at ignition and burnout and lag the
 /// climb, by up to 440 m in one flight a flyer reports, while its fix reads valid
@@ -313,6 +317,7 @@ fn walk(log: &FlightLog, hold_s: f64, fell: &mut dyn FnMut(f64, f64, f64)) -> Re
     let mut last_s = f64::NEG_INFINITY;
     let mut window: VecDeque<(f64, f64)> = VecDeque::new();
     let mut pad_m: Option<f64> = None;
+    // Whether the line ever stood above the pad by the rise: a refusal's reason, not the walk's.
     let mut lifted = false;
     let mut top: Option<(f64, f64)> = None;
     // Since when, and how deep, the speed has stood below its top by the fall the cut needs.
@@ -343,12 +348,20 @@ fn walk(log: &FlightLog, hold_s: f64, fell: &mut dyn FnMut(f64, f64, f64)) -> Re
             continue;
         };
         // Liftoff where the window's line, refitted without its outliers, stands high enough
-        // above the first: one bad sample on the pad doesn't lift it.
+        // above the first: one bad sample on the pad doesn't lift it. A line back that low again
+        // flies no boost: a run of bad samples on the pad, which can carry the line up for a
+        // window but not for the fall's hold, so the walk starts over. A flight stands higher
+        // from liftoff to its apogee, past any cut.
         let pad = *pad_m.get_or_insert(level);
-        lifted = lifted || level - pad > LIFTOFF_RISE_M;
-        if !lifted {
+        if level - pad <= LIFTOFF_RISE_M {
+            if let Some((since, deepest)) = falling.take() {
+                fell(since, t, deepest);
+            }
+            top = None;
+            recent.clear();
             continue;
         }
+        lifted = true;
         // The analyzer's transonic speed: a barometer's speed this fast may be the flow's.
         if speed >= readings::TRANSONIC_SPEED_M_S {
             if let Some((since, deepest)) = falling {
@@ -937,12 +950,17 @@ mod tests {
     /// the port's error). Every cut falls after the true peak of the vertical speed and after
     /// burnout, before apogee, and within 2.83 s of burnout: the time the largest fall the cut
     /// needs takes under gravity alone, plus a window. Each cut found on a log with one bad sample
-    /// put in passes the same checks: 100 m or 15 m up halfway through the burn, 30 m down at four
-    /// fifths of it, 12 m up on the pad, or 15 m down at the first. A GNSS log is refused as one, and
+    /// put in, or two or three side by side, passes the same checks: 100 m or 15 m up halfway
+    /// through the burn, 30 m down at four fifths of it, 12 m up on the pad, or 15 m down at the
+    /// first. A cut the bad samples lose is refused for its speed. A GNSS log is refused as one, and
     /// any other uncut log for its speed. Measured, not asserted: 51 cut,
     /// 1.08 s to 2.30 s after burnout; 43 GNSS logs and 106 fast ones refused, the slowest of those
-    /// at 221.3 m/s; a bad sample made or lost no cut and moved one by 0.70 s at most, on 8 of the
-    /// 255 spiked logs of flights that are cut (785 in all). Set B's first 200, run once before the
+    /// at 221.3 m/s. Of the 785 spiked logs of each run's length, 255 of flights that are cut: one
+    /// bad sample made or lost no cut and moved 8 by 0.70 s at most; two side by side, 9 by 0.70 s
+    /// at most, none made or lost; three side by side moved 23 by 1.35 s at most and lost 40, their
+    /// speed read past the transonic one (100 m up halfway through the burn, or 30 m down at four
+    /// fifths). Before the walk started over where the line came back to the pad, three 12 m up on
+    /// the pad cut 33 flights there, up to 7.9 s before burnout. Set B's first 200, run once before the
     /// [`HOLD_S`] rule, not in the test: 57 cut, 0.35 s to 1.55 s after burnout, 34 GNSS and 109
     /// fast refused.
     #[test]
@@ -953,7 +971,14 @@ mod tests {
         let mut flyer = Flyer::new(DesignFiles::committed());
         let mut cut_count = 0_usize;
         let (mut early, mut late) = (f64::INFINITY, 0.0_f64);
-        let (mut spiked_logs, mut moved, mut made_or_lost, mut moved_most_s) = (0, 0, 0, 0.0_f64);
+        #[derive(Default)]
+        struct Spiked {
+            logs: usize,
+            moved: usize,
+            made_or_lost: usize,
+            moved_most_s: f64,
+        }
+        let mut runs: [Spiked; 3] = Default::default();
         for k in 0..200 {
             let flight = flyer.flight(Set::A, k).expect("set A's flights fly");
             let cut = find_cut(&flight.log);
@@ -1014,31 +1039,54 @@ mod tests {
                 (0.5 * pad_s, 12.0),
                 (f64::NEG_INFINITY, -15.0),
             ] {
-                let mut spiked = flight.log.clone();
-                let Some(i) = spiked.time_s.iter().position(|&t| t >= at_s) else {
+                let Some(i) = flight.log.time_s.iter().position(|&t| t >= at_s) else {
                     continue;
                 };
-                spiked.altitude_m[i] += by_m;
-                let what = format!(" with {by_m} m at {at_s} s (burnout {burn_s} s)");
-                let spiked_found = find_cut(&spiked);
-                if let Some(spiked_cut) = &spiked_found {
-                    check(spiked_cut, &what);
-                }
-                spiked_logs += 1;
-                match (&cut, &spiked_found) {
-                    (Some(a), Some(b)) if a.time_s != b.time_s => {
-                        moved += 1;
-                        moved_most_s = moved_most_s.max((a.time_s - b.time_s).abs());
+                for run in 1..=3 {
+                    let mut spiked = flight.log.clone();
+                    let Some(bad) = spiked.altitude_m.get_mut(i..i + run) else {
+                        continue;
+                    };
+                    for h in bad {
+                        *h += by_m;
                     }
-                    (Some(_), None) | (None, Some(_)) => made_or_lost += 1,
-                    _ => {}
+                    let what = format!(" with {by_m} m on {run} at {at_s} s (burnout {burn_s} s)");
+                    let spiked_found = find_cut(&spiked);
+                    if let Some(spiked_cut) = &spiked_found {
+                        check(spiked_cut, &what);
+                    }
+                    let tally = &mut runs[run - 1];
+                    tally.logs += 1;
+                    match (&cut, &spiked_found) {
+                        (Some(a), Some(b)) if a.time_s != b.time_s => {
+                            tally.moved += 1;
+                            tally.moved_most_s =
+                                tally.moved_most_s.max((a.time_s - b.time_s).abs());
+                        }
+                        (Some(_), None) => {
+                            assert!(
+                                matches!(try_cut(&spiked), Err(NoCut::Transonic { .. })),
+                                "flight {k}{what}: cut lost, but not for its speed"
+                            );
+                            tally.made_or_lost += 1;
+                        }
+                        (None, Some(_)) => tally.made_or_lost += 1,
+                        _ => {}
+                    }
                 }
             }
         }
-        println!(
-            "set A: {cut_count} cut, {early:.2} s to {late:.2} s after burnout; of {spiked_logs} \
-             spiked logs {moved} moved, by {moved_most_s:.3} s at most, {made_or_lost} made or lost"
-        );
+        println!("set A: {cut_count} cut, {early:.2} s to {late:.2} s after burnout");
+        for (run, tally) in runs.iter().enumerate() {
+            println!(
+                "{} bad side by side: of {} spiked logs {} moved, by {:.3} s at most, {} made or lost",
+                run + 1,
+                tally.logs,
+                tally.moved,
+                tally.moved_most_s,
+                tally.made_or_lost
+            );
+        }
         assert!(cut_count >= 51, "{cut_count} cut");
     }
 
