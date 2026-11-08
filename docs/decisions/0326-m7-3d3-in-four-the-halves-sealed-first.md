@@ -22,9 +22,9 @@ each for both of M2.7's halves ([ADR-322][adr-322] §2), and the scoreboard's
   number is reported. Pull requests here are squash-merged, so a branch's commit order doesn't
   reach main: only a pull request of its own puts the seal on main first.
 - **Each flight's log.** The manifest names the flight, its design and its logged apogee, but not
-  which log read that apogee: it says so in free text. 63 of its 83 flights have more than one
-  log file in the collection's catalog, from a second altimeter, a GNSS tracker, a raw and a
-  processed export, or a summary.
+  which log read that apogee: it says so in free text. 63 of its 83 flights have more than one log
+  file in the collection's catalog outside its `_scratch/` folder, from a second altimeter, a GNSS
+  tracker, a raw and a processed export, or a summary.
 - **The cut.** On the public flights' barometers the boost's cut falls inside the burn on 4 of 5
   cuts ([ADR-325][adr-325] §5, [#1307][i1307]). A prediction from such a cut is not the method's
   case, so the collection's errors are worth reporting only after the cut is fixed, or the cuts
@@ -55,11 +55,11 @@ each for both of M2.7's halves ([ADR-322][adr-322] §2), and the scoreboard's
      `accuracy.from-boost` included.
 2. **The seal covers the whole manifest.** The digest is of every held-out id among the
    manifest's 83 flights, the population M7.3d's collection numbers draw from, whether or not a
-   flight is left out of the errors or has a usable log. A flight's half depends on its id alone,
-   so when the manifest gains a flight the old flights stay where they were and
-   `fixture-flights` writes a new digest; `--check` fails until it is committed. The digest's file
-   is `validation/reports/held-out.sha256`. A test pins the encoding on invented ids whose digests
-   Python's `hashlib` computed; another pins the bound at ⌊(2⁶⁴ − 1) / 3⌋ =
+   flight is left out of the errors or has a usable log. A flight's half depends on its id alone, so
+   when the manifest gains a flight the old flights stay where they were; if the new one is held
+   out, `fixture-flights` writes a new digest and `--check` fails until it is committed. The
+   digest's file is `validation/reports/held-out.sha256`. A test pins the encoding on invented ids
+   whose digests Python's `hashlib` computed; another pins the bound at ⌊(2⁶⁴ − 1) / 3⌋ =
    6,148,914,691,236,517,205 (2⁶⁴ − 1 is divisible by 3, so that is the largest integer below
    2⁶⁴ / 3), and fails when `<=` becomes `<` (run once).
 3. **A flight's log is the one nearest its logged apogee.** Of the flight's logs in the catalog,
@@ -87,5 +87,5 @@ rule that held-out flights never feed a choice of model ([ADR-209][adr-209] §4)
 holds both, in the gate's `refs` step. CI, without `refs/`, holds the committed page to its
 counts and the digest's file to its form. The 30 flights refused at the transonic limit can't
 be predicted by this method: a barometer's reading past it may follow the airflow, not the
-height. The collection's predictions will come from at most the 32 cut, fewer if M7.3d5 moves
-cuts.
+height. The collection's predictions will come from at most the flights cut, 32 now (on the public flights 2 of 5 cut logs gave a
+prediction), a count M7.3d5 may move either way.

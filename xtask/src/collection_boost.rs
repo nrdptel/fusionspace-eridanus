@@ -304,9 +304,13 @@ impl Report {
         let _ = writeln!(
             page,
             "**The halves.** The predictions' errors will be given for two halves: a held-out \
-             third of the flights, kept from every choice of model \
+             share of the flights, kept from every later choice of model \
              ([ADR-209 §4](../../docs/decisions/0209-the-2026-10-08-best-on-the-market-measured.md)), \
-             and the rest. A flight is held out when a hash of its id puts it there: the first \
+             and the rest. The collection's [forward errors](fixture-flights.md#apogee-errors) \
+             (hpr's simulated apogee against the logged one) were published before the held-out \
+             digest was sealed on 2026-11-07, so the model choices made before then could draw on \
+             every flight: the held-out flights are kept only from choices made after it (held \
+             out, not blind). A flight is held out when a hash of its id puts it there: the first \
              eight bytes of the SHA-256 of the id followed by `ADR-209`, read as a big-endian number, fall \
              below 2⁶⁴ / 3, a third of the flights in expectation \
              ([ADR-322](../../docs/decisions/0322-the-2026-11-05-progress-review-accuracy-before-reader-facing-work.md)). \
