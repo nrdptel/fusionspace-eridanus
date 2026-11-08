@@ -247,9 +247,9 @@ fn in_order_count(times: &[f64], cut_s: f64) -> usize {
 /// fitted speed reaches
 /// [`readings::TRANSONIC_SPEED_M_S`] before the cut, or it never slows by [`DROP_SHARE`] of its
 /// top speed and [`DROP_FLOOR_M_S`] for [`HOLD_S`], at a speed the lowest of the last [`HOLD_S`].
-/// Where the window's line comes back within [`LIFTOFF_RISE_M`] of the pad's, the walk starts
-/// over: a run of bad samples on the pad lifts the line for a window at most, shorter than the
-/// hold, and a flight stands higher than that from liftoff to apogee.
+/// The cut stands where the window's line is more than [`LIFTOFF_RISE_M`] above the first
+/// window's: a run of bad samples on the pad can lift the line past that for a sample and then
+/// fall back as a burnout does.
 ///
 /// A GNSS receiver's altitude in the boost can drop out at ignition and burnout and lag the
 /// climb, by up to 440 m in one flight a flyer reports, while its fix reads valid
@@ -318,7 +318,6 @@ fn walk(log: &FlightLog, hold_s: f64, fell: &mut dyn FnMut(f64, f64, f64)) -> Re
     let mut last_s = f64::NEG_INFINITY;
     let mut window: VecDeque<(f64, f64)> = VecDeque::new();
     let mut pad_m: Option<f64> = None;
-    // Whether the line ever stood above the pad by the rise: a refusal's reason, not the walk's.
     let mut lifted = false;
     let mut top: Option<(f64, f64)> = None;
     // Since when, and how deep, the speed has stood below its top by the fall the cut needs.
@@ -349,20 +348,13 @@ fn walk(log: &FlightLog, hold_s: f64, fell: &mut dyn FnMut(f64, f64, f64)) -> Re
             continue;
         };
         // Liftoff where the window's line, refitted without its outliers, stands high enough
-        // above the first: one bad sample on the pad doesn't lift it. A line back that low again
-        // flies no boost: a run of bad samples on the pad, which can carry the line up for a
-        // window but not for the fall's hold, so the walk starts over. A flight stands higher
-        // from liftoff to its apogee, past any cut.
+        // above the first: one bad sample on the pad doesn't lift it.
         let pad = *pad_m.get_or_insert(level);
-        if level - pad <= LIFTOFF_RISE_M {
-            if let Some((since, deepest)) = falling.take() {
-                fell(since, t, deepest);
-            }
-            top = None;
-            recent.clear();
+        let aloft = level - pad > LIFTOFF_RISE_M;
+        lifted = lifted || aloft;
+        if !lifted {
             continue;
         }
-        lifted = true;
         // The analyzer's transonic speed: a barometer's speed this fast may be the flow's.
         if speed >= readings::TRANSONIC_SPEED_M_S {
             if let Some((since, deepest)) = falling {
@@ -391,7 +383,9 @@ fn walk(log: &FlightLog, hold_s: f64, fell: &mut dyn FnMut(f64, f64, f64)) -> Re
             Some((best, at)) if best - speed >= (DROP_SHARE * best).max(DROP_FLOOR_M_S) => {
                 let (since, deepest) = falling.get_or_insert((t, 0.0));
                 *deepest = deepest.max(best - speed);
-                if t - *since >= hold_s && lowest(&recent) {
+                // Never on the pad: a run of bad samples there can lift the line past the rise for
+                // a sample, and the fall back after it holds as burnout's does.
+                if t - *since >= hold_s && lowest(&recent) && aloft {
                     return Ok(Cut {
                         index,
                         time_s: t,
@@ -960,8 +954,8 @@ mod tests {
     /// bad sample made or lost no cut and moved 8 by 0.70 s at most; two side by side, 9 by 0.70 s
     /// at most, none made or lost; three side by side moved 23 by 1.35 s at most and lost 40, their
     /// speed read past the transonic one (100 m up halfway through the burn, or 30 m down at four
-    /// fifths). Before the walk started over where the line came back to the pad, three 12 m up on
-    /// the pad cut 33 flights there, up to 7.9 s before burnout. Set B's first 200, run once before the
+    /// fifths). Before a cut had to stand above the pad by [`LIFTOFF_RISE_M`], three 12 m up on the
+    /// pad cut 33 flights there, 2.37 s to 7.85 s before burnout. Set B's first 200, run once before the
     /// [`HOLD_S`] rule, not in the test: 57 cut, 0.35 s to 1.55 s after burnout, 34 GNSS and 109
     /// fast refused.
     #[test]
