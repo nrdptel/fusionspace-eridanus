@@ -269,10 +269,16 @@ pub fn run(args: &[String]) -> Result<(), String> {
     if conditions_only {
         return write_conditions(&root, &entries, &index, &supply);
     }
-    let report = fly_all(&root, &entries, &index, &supply)?;
+    let (report, forward) = fly_all(&root, &entries, &index, &supply)?;
     let markdown = report.to_markdown();
     report.check_consistent(&markdown)?;
-    crate::collection_boost::run(&root, &entries, &burns(&root, &entries, &supply)?, check)?;
+    crate::collection_boost::run(
+        &root,
+        &entries,
+        &burns(&root, &entries, &supply)?,
+        &forward,
+        check,
+    )?;
     if check {
         let text = fs::read_to_string(root.join(REPORT_JSON))
             .map_err(|error| format!("reading {REPORT_JSON}: {error}"))?;
@@ -696,14 +702,7 @@ fn hpr_apogee(
         settings,
     )
     .map_err(|error| error.to_string())?;
-    let stagings: Vec<ork::Staging> = configuration.stagings().cloned().collect();
-    let stagings = crate::ork_flights::climbing(&stagings, simulation.assembly())
-        .map_err(|error| error.to_string())?;
-    let simulation = if stagings.is_empty() {
-        simulation
-    } else {
-        crate::ork_flights::staged(simulation, stagings).map_err(|error| error.to_string())?
-    };
+    let simulation = as_flown(simulation, configuration)?;
     let mut climb = Climb::default();
     let result = simulation
         .run(&mut climb)
@@ -713,6 +712,40 @@ fn hpr_apogee(
         .ok_or("hpr's flight has no apogee")?;
     let start = climb.start_m.ok_or("hpr's flight has no steps")?;
     Ok(apogee.sample.height_above_ground_m - start)
+}
+
+/// `simulation` with the separations of `configuration`'s stagings that the climb flies.
+pub(crate) fn as_flown(
+    simulation: Simulation,
+    configuration: &ork::MotorConfiguration,
+) -> Result<Simulation, String> {
+    let stagings: Vec<ork::Staging> = configuration.stagings().cloned().collect();
+    let stagings = crate::ork_flights::climbing(&stagings, simulation.assembly())
+        .map_err(|error| error.to_string())?;
+    if stagings.is_empty() {
+        Ok(simulation)
+    } else {
+        crate::ork_flights::staged(simulation, stagings).map_err(|error| error.to_string())
+    }
+}
+
+/// One compared flight as hpr flew it, kept on this machine for the predictions from the boost
+/// (M7.3d6): what it flew and in what air, its apogee, and the logged one as a height climbed.
+pub(crate) struct ForwardFlight {
+    /// The design as hpr reads it.
+    pub design: ork::Design,
+    /// The configuration flown.
+    pub configuration: ork::MotorConfiguration,
+    /// The day's ERA5 air and wind.
+    pub day: Environment,
+    /// The rail.
+    pub rail: Rail,
+    /// hpr's apogee in the day's air: the center of mass's height above where it started, m.
+    pub hpr_m: f64,
+    /// The logged apogee as a height climbed in the day's air, m.
+    pub logged_m: f64,
+    /// Whether the manifest says a deployment came before apogee.
+    pub early: bool,
 }
 
 /// The record's flights by id, after checking it was written by OpenRocket 24.12, by the
@@ -800,13 +833,42 @@ impl Compared {
     }
 }
 
-/// Flies every flight and builds the report.
+/// Why a flight has no [`ForwardFlight`]: hpr doesn't fly it.
+pub(crate) const HPR_UNFLOWN: &str = "hpr's forward simulation doesn't fly it";
+/// Why a flight has no [`ForwardFlight`]: OpenRocket doesn't, so the report doesn't compare it.
+pub(crate) const OPENROCKET_UNFLOWN: &str =
+    "OpenRocket doesn't fly it, so the forward report doesn't compare it";
+/// Why a flight has no [`ForwardFlight`]: the manifest leaves it out of the errors.
+pub(crate) const LEFT_OUT: &str = "the manifest leaves it out of the errors";
+
+/// Why a flight has no [`ForwardFlight`]: the collection's own cause where there is one (no
+/// ERA5 file of its day, no configuration of its motor), then hpr's refusal, then OpenRocket's.
+pub(crate) fn no_forward_reason(collection: Option<&'static str>, hpr_flew: bool) -> &'static str {
+    match (collection, hpr_flew) {
+        (Some(cause), _) => cause,
+        (None, false) => HPR_UNFLOWN,
+        (None, true) => OPENROCKET_UNFLOWN,
+    }
+}
+
+/// Flies every flight and builds the report, keeping each compared flight's forward flight by
+/// id, or why it has none.
+#[expect(
+    clippy::type_complexity,
+    reason = "the report, and each flight's forward flight or why there's none"
+)]
 fn fly_all(
     root: &Path,
     entries: &[Entry],
     index: &BTreeMap<String, String>,
     supply: &crate::ork_supply::Supply,
-) -> Result<Report, String> {
+) -> Result<
+    (
+        Report,
+        BTreeMap<String, Result<ForwardFlight, &'static str>>,
+    ),
+    String,
+> {
     let record = openrocket_record(root, &conditions(root, entries, index, supply)?)?;
     let mut causes: BTreeMap<(&'static str, String), usize> = BTreeMap::new();
     let mut excluded: BTreeMap<String, usize> = BTreeMap::new();
@@ -818,6 +880,7 @@ fn fly_all(
     };
     let mut logged = Logged::default();
     let mut ratios = Vec::new();
+    let mut kept = BTreeMap::new();
     for entry in entries {
         let at = &entry.flight_id;
         counts.assumed_times += usize::from(entry.launch_time_assumed);
@@ -827,6 +890,7 @@ fn fly_all(
             Ok(chosen) => chosen,
             Err(cause) => {
                 *causes.entry((COLLECTION, cause.to_owned())).or_default() += 1;
+                kept.insert(at.clone(), Err(no_forward_reason(Some(cause), false)));
                 continue;
             }
         };
@@ -836,6 +900,7 @@ fn fly_all(
                 .map_err(|error| format!("{at}: {error}"))?;
         let earth = Earth::wgs84(site).map_err(|error| format!("{at}: {error}"))?;
         let rail = rail(entry);
+        let day = Environment::new(earth, weather.sounding.clone(), weather.wind.clone());
 
         // hpr, in the whole profile and in OpenRocket's air.
         let hpr = match &chosen.left_out {
@@ -852,9 +917,8 @@ fn fly_all(
                 let anchored =
                     Ussa76::anchored(entry.elevation_m, pad.temperature_k, pad.pressure_pa)
                         .map_err(|error| format!("{at}: {error}"))?;
-                let day = Environment::new(earth, weather.sounding.clone(), weather.wind.clone());
                 let standard = Environment::new(earth, anchored, weather.wind.clone());
-                hpr_apogee(&design, chosen, day, rail)
+                hpr_apogee(&design, chosen, day.clone(), rail)
                     .and_then(|day| Ok((day, hpr_apogee(&design, chosen, standard, rail)?)))
                     .map_err(|error| {
                         let cause = named_cause(&error, FLIGHT_FAILED);
@@ -880,7 +944,8 @@ fn fly_all(
                 ));
             }
         };
-        counts.flown_by_hpr += usize::from(hpr.is_ok());
+        let hpr_flew = hpr.is_ok();
+        counts.flown_by_hpr += usize::from(hpr_flew);
         counts.flown_by_openrocket += usize::from(openrocket.is_ok());
         if let Err(cause) = &hpr {
             *causes.entry((HPR, cause.clone())).or_default() += 1;
@@ -889,11 +954,13 @@ fn fly_all(
             *causes.entry((OPENROCKET, cause.clone())).or_default() += 1;
         }
         let (Ok((hpr_m, hpr_standard_m)), Ok(openrocket_m)) = (hpr, openrocket) else {
+            kept.insert(at.clone(), Err(no_forward_reason(None, hpr_flew)));
             continue;
         };
         counts.flown_by_both += 1;
         if let Some(class) = &entry.excluded_class {
             *excluded.entry(class.clone()).or_default() += 1;
+            kept.insert(at.clone(), Err(LEFT_OUT));
             continue;
         }
 
@@ -933,6 +1000,18 @@ fn fly_all(
             early,
             below_tier_a,
         );
+        kept.insert(
+            at.clone(),
+            Ok(ForwardFlight {
+                design: design.clone(),
+                configuration: chosen.clone(),
+                day,
+                rail,
+                hpr_m,
+                logged_m,
+                early,
+            }),
+        );
         println!(
             "fixture-flights: {at:<48} hpr {:+7.2}%  OpenRocket {:+7.2}%  hpr in its air {:+7.2}%{}{}",
             row.hpr_percent,
@@ -971,18 +1050,21 @@ fn fly_all(
         ));
     }
     let sets = error_sets(&compared);
-    Ok(Report {
-        milestone: "M2.3c1, rechecked in M2.3c5".to_owned(),
-        decision: "ADR-184, ADR-238".to_owned(),
-        counts,
-        not_flown,
-        excluded: excluded
-            .into_iter()
-            .map(|(reason, flights)| Tally { reason, flights })
-            .collect(),
-        logged,
-        sets,
-    })
+    Ok((
+        Report {
+            milestone: "M2.3c1, rechecked in M2.3c5".to_owned(),
+            decision: "ADR-184, ADR-238".to_owned(),
+            counts,
+            not_flown,
+            excluded: excluded
+                .into_iter()
+                .map(|(reason, flights)| Tally { reason, flights })
+                .collect(),
+            logged,
+            sets,
+        },
+        kept,
+    ))
 }
 
 /// The three sets of flights the errors are taken over.
@@ -1428,6 +1510,19 @@ impl Report {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A flight with no forward flight is counted under the collection's own cause first (a
+    /// missing ERA5 file isn't hpr's refusal), then hpr's, then OpenRocket's.
+    #[test]
+    fn a_flight_without_a_forward_flight_names_whose_cause() {
+        assert_eq!(no_forward_reason(Some(NO_ERA5), false), NO_ERA5);
+        assert_eq!(
+            no_forward_reason(Some(NO_CONFIGURATION), true),
+            NO_CONFIGURATION
+        );
+        assert_eq!(no_forward_reason(None, false), HPR_UNFLOWN);
+        assert_eq!(no_forward_reason(None, true), OPENROCKET_UNFLOWN);
+    }
 
     /// The committed report holds to itself, here and in CI, where the flights can't be flown.
     #[test]

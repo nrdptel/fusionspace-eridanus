@@ -65,8 +65,11 @@ const PUSH_RUNS: usize = 30;
 const HAND_RUNS: usize = 10;
 /// Nightly runs read.
 const NIGHT_RUNS: usize = 5;
-/// GitHub's largest page of jobs; a run with more is refused rather than read in part.
-const JOBS_PAGE: usize = 100;
+/// Jobs read a page. GitHub allows 100, but on 2026-11-08 it answered every page of 100 of a
+/// rerun nightly (91 jobs) with HTTP 502 and pages of 50 at once, so a run is read in pages of 50.
+const JOBS_PAGE: usize = 50;
+/// The most pages of jobs read before a run is refused rather than read in part.
+const JOBS_PAGES: usize = 10;
 
 /// What one of the three checks found.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -481,21 +484,48 @@ fn passing_runs(event: &str, count: usize) -> Result<Vec<Run>, String> {
     Ok(runs.workflow_runs)
 }
 
-/// A run's jobs, its latest attempt's, refusing one with more than a page of them.
+/// A run's jobs, its latest attempt's, read page by page.
 fn run_jobs(run: &Run) -> Result<Vec<Job>, String> {
-    let path = format!(
-        "repos/{REPOSITORY}/actions/runs/{}/jobs?filter=latest&per_page={JOBS_PAGE}",
-        run.id
-    );
-    let jobs: Jobs = serde_json::from_str(&gh_api(&path)?)
-        .map_err(|error| format!("reading run {}'s jobs: {error}", run.id))?;
-    if jobs.total_count > jobs.jobs.len() {
-        return Err(format!(
-            "run {} has {} jobs, more than one page of {JOBS_PAGE}: read them all",
-            run.id, jobs.total_count
-        ));
+    every_page(run.id, |page| {
+        let path = format!(
+            "repos/{REPOSITORY}/actions/runs/{}/jobs?filter=latest&per_page={JOBS_PAGE}&page={page}",
+            run.id
+        );
+        serde_json::from_str(&gh_api(&path)?)
+            .map_err(|error| format!("reading run {}'s jobs: {error}", run.id))
+    })
+}
+
+/// Every job of run `id`, from `page(1)`, `page(2)`, ... until the run's whole count is read;
+/// refusing a run whose count a page contradicts, an empty page before the count is reached, or
+/// more than [`JOBS_PAGES`] pages, rather than reading it in part.
+fn every_page(
+    id: u64,
+    mut page: impl FnMut(usize) -> Result<Jobs, String>,
+) -> Result<Vec<Job>, String> {
+    let mut jobs = Vec::new();
+    let mut total = None;
+    for number in 1..=JOBS_PAGES {
+        let read = page(number)?;
+        if *total.get_or_insert(read.total_count) != read.total_count {
+            return Err(format!("run {id}'s job count changed between pages"));
+        }
+        let empty = read.jobs.is_empty();
+        jobs.extend(read.jobs);
+        if jobs.len() >= read.total_count {
+            return Ok(jobs);
+        }
+        if empty {
+            return Err(format!(
+                "run {id} has {} jobs, but its pages hold {}",
+                read.total_count,
+                jobs.len()
+            ));
+        }
     }
-    Ok(jobs.jobs)
+    Err(format!(
+        "run {id} has more than {JOBS_PAGES} pages of {JOBS_PAGE} jobs: read them all"
+    ))
 }
 
 /// `git <args>`'s output, run in the current directory: the branch being checked.
@@ -619,6 +649,53 @@ pub fn run(args: &[String]) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Pages of `sizes` jobs, each saying the run has `total`; the pages asked for are counted.
+    fn pages(total: usize, sizes: &[usize], asked: &mut Vec<usize>) -> Result<Vec<Job>, String> {
+        every_page(7, |number| {
+            asked.push(number);
+            let size = sizes.get(number - 1).copied().unwrap_or(0);
+            Ok(Jobs {
+                total_count: total,
+                jobs: (0..size)
+                    .map(|i| job(&format!("job {number}.{i}"), "success", "", ""))
+                    .collect(),
+            })
+        })
+    }
+
+    #[test]
+    fn a_runs_jobs_are_read_to_their_whole_count() {
+        let mut asked = Vec::new();
+        let jobs = pages(91, &[50, 41], &mut asked).expect("two pages hold 91");
+        assert_eq!((jobs.len(), asked), (91, vec![1, 2]));
+        assert_eq!(jobs[50].name, "job 2.0");
+        let mut asked = Vec::new();
+        assert_eq!(pages(0, &[], &mut asked).map(|j| j.len()), Ok(0));
+        assert_eq!(asked, vec![1]);
+    }
+
+    #[test]
+    fn a_run_read_in_part_is_refused() {
+        // An empty page before the count is reached.
+        let error = pages(91, &[50], &mut Vec::new()).expect_err("41 jobs missing");
+        assert!(error.contains("91 jobs, but its pages hold 50"), "{error}");
+        // More pages than the cap, each full.
+        let full = [JOBS_PAGE; JOBS_PAGES + 1];
+        let error = pages(JOBS_PAGE * (JOBS_PAGES + 1), &full, &mut Vec::new()).expect_err("cap");
+        assert!(error.contains("more than 10 pages"), "{error}");
+        // A count that changes between pages.
+        let mut number = 0;
+        let error = every_page(7, |_| {
+            number += 1;
+            Ok(Jobs {
+                total_count: 90 + number,
+                jobs: vec![job("a", "success", "", "")],
+            })
+        })
+        .expect_err("count moved");
+        assert!(error.contains("changed between pages"), "{error}");
+    }
 
     fn job(name: &str, conclusion: &str, start: &str, end: &str) -> Job {
         Job {

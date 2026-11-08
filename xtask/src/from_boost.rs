@@ -448,7 +448,7 @@ impl Summary {
 
 /// ERA5's wind toward the east and north, averaged evenly in height over the forward
 /// simulation's climb, from the pad to its apogee as climbed.
-fn mean_wind(
+pub(crate) fn mean_wind(
     environment: &Environment,
     pad_msl_m: f64,
     climb_m: f64,

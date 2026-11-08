@@ -368,8 +368,23 @@ The other 5 reach the speed limit described below before a cut.
 The private collection's manifest keeps 72 flights in its apogee errors. Of them, 64 have a barometer's log
 the analyzer reads an apogee from ([the count](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md)).
 26 are cut, 36 refused at the speed limit and 2 as sampled under 8 Hz.
-Of those 26, the 20 whose motor's burn and log's liftoff are known are each cut after its thrust curve's burn. For the other 6 it isn't known. The errors of the predictions
-from those cuts will come for each half, the held-out list sealed first by its hash ([ADR-322, held-out flights](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0322-the-2026-11-05-progress-review-accuracy-before-reader-facing-work.md)).
+Of those 26, the 20 whose motor's burn and log's liftoff are known are each cut after its thrust curve's burn. For the other 6 it isn't known.
+Of the 26, 21 are predicted. HPR Sim's forward simulation refuses the design of 3, and 1 has no weather file for its day. There is nothing to fit or compare for those.
+One more has too little up to its cut to fit. The flights are split into two halves by a hash of each flight's id
+([ADR-322, held-out flights](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0322-the-2026-11-05-progress-review-accuracy-before-reader-facing-work.md)).
+The held-out half is a third of the collection in expectation, and the calibration half is the rest.
+It is held out, not blind: the forward errors on every flight were published before its list was sealed.
+On the 12 in the calibration half the prediction's mean absolute apogee error is 3.22%, against the forward simulation's
+9.35% on the same flights. On the 9 held out it is 3.56%, against 16.86%. The difference is each flight's absolute
+error from the prediction less the forward simulation's, averaged, in percentage points. Each half's paired bootstrap
+95% interval on it lies below zero: −10.07 to −2.70 and −19.01 to −7.97 points. The numbers are in
+[the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md), and the
+choices behind them in [ADR-329](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0329-m7-3d6-the-collections-errors-by-halves.md).
+Both methods fly nothing deployed, and 10 of the 21 flights deployed something before apogee. Without them (8 and 3
+flights) the difference is −7.0 and −7.3 points. Three flights are too few to resample, and their sign-flip interval
+is unbounded. The fitted impulse scale averages 0.957 in the calibration half: the thrust curve's impulse times 0.957. That
+is a fit's factor, not a measured impulse. It may take up some of what the model gets wrong in the boost, as the other
+scales may.
 
 **The cut.** The library follows the climb speed: a straight line fitted to each half second of
 heights. One reading far from the rest is left out, as the analyzer's spike rule does. The cut needs
@@ -454,6 +469,8 @@ little of the drag, so the fit leaves it at 0.95, near the 1 it was told. It rea
   Statistical Association* 64, 1969, pp. 1303–1317: the exact sign-flip interval the public
   flights' report gives on the prediction's difference from the forward simulation.
 - [ADR-325, the public flights' prediction, with the measurements behind it][adr-325].
+- B. Efron and R. J. Tibshirani, *An Introduction to the Bootstrap*, Chapman & Hall, 1993, §13.3:
+  the collection's percentile interval.
 
 [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 [adr-316]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0316-m7-3b-the-least-squares-fit.md

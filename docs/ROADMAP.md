@@ -477,10 +477,6 @@ log corpus came from Debrief.
     them (ADR-322).
     - [ ] **M7.3d3 The collection by halves** (ADR-326: in four, below; met when they are). *Done when:* M7.3d's
       *done when*, whole.
-      - [ ] **M7.3d6 The collection's errors by halves.** *Done when:* each cut log's fit is flown to apogee as
-        `fixture-flights` flies it; a committed report gives each half's mean absolute and signed errors beside the
-        forward simulation's on the same flights, ADR-257 §3's paired bootstrap 95% intervals and the calibration
-        half's fit aggregates; the held-out half's stay private, their file's SHA-256 committed and checked.
       - [ ] **M7.3d7 The scoreboard row.** *Done when:* M7.3d's *done when*, whole, the scoreboard's
         `accuracy.from-boost` included.
   - [ ] **M7.3e The post-flight comparison.** *Done when:* one `hpr` command draws predicted and logged altitude

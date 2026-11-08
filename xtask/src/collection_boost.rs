@@ -24,12 +24,14 @@ use std::fs;
 use std::path::Path;
 
 use hpr_flightdata::import;
+use hpr_flightdata::log::FlightLog;
 use hpr_flightdata::readings::{self, Source};
 use hpr_forensics::boost::{self, NoCut};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
-use crate::fixture_flights::Entry;
+use crate::collection_errors::{CutFlight, Predictions};
+use crate::fixture_flights::{Entry, ForwardFlight};
 
 /// The SHA-256 of the held-out flight ids (ADR-322 §2), committed before any half's number.
 pub const HELD_OUT: &str = "validation/reports/held-out.sha256";
@@ -140,6 +142,8 @@ pub struct Report {
     pub cut_in_burn: usize,
     /// Of those cut, the ones whose motor's burn or log's liftoff isn't known.
     pub cut_burn_unknown: usize,
+    /// The cut flights' predictions and errors by halves (M7.3d6).
+    pub predictions: Predictions,
 }
 
 /// The share of the logged apogee past which a chosen log's own apogee reading is counted: 2%, a
@@ -148,12 +152,11 @@ pub struct Report {
 /// log may still be another altimeter's: two in one rocket often agree that closely.
 pub const GAP_SHARE: f64 = 0.02;
 
-/// A log read: its own apogee reading, its liftoff on its clock, and the boost's cut or why
-/// there's none.
+/// A log read: its own apogee reading and its liftoff on its clock.
 struct Chosen {
+    log: FlightLog,
     apogee_m: f64,
     liftoff_s: Option<f64>,
-    cut: Result<boost::Cut, NoCut>,
 }
 
 /// A refusal's name in the report.
@@ -170,12 +173,12 @@ fn refusal_name(why: &NoCut) -> &'static str {
 }
 
 /// Of the logs read, the one whose apogee reading is nearest `logged_m`, the first on a tie.
-fn choose(read: Vec<Chosen>, logged_m: f64) -> Option<Chosen> {
-    let mut best: Option<Chosen> = None;
+fn choose<T>(read: Vec<T>, apogee_m: impl Fn(&T) -> f64, logged_m: f64) -> Option<T> {
+    let mut best: Option<T> = None;
     for log in read {
         let nearer = best
             .as_ref()
-            .is_none_or(|b| (log.apogee_m - logged_m).abs() < (b.apogee_m - logged_m).abs());
+            .is_none_or(|b| (apogee_m(&log) - logged_m).abs() < (apogee_m(b) - logged_m).abs());
         if nearer {
             best = Some(log);
         }
@@ -219,11 +222,18 @@ fn pinned_logs(root: &Path) -> Result<BTreeMap<String, Vec<String>>, String> {
     Ok(logs)
 }
 
-/// Reads the flights' logs and counts what comes of each.
-fn count(root: &Path, entries: &[Entry], burns: &BTreeMap<String, f64>) -> Result<Report, String> {
+/// The counts, before the predictions.
+struct Counts {
+    report: Report,
+    cuts: Vec<CutFlight>,
+}
+
+/// Reads the flights' logs and counts what comes of each, keeping each cut flight's log.
+fn count(root: &Path, entries: &[Entry], burns: &BTreeMap<String, f64>) -> Result<Counts, String> {
     let logs = pinned_logs(root)?;
+    let mut cuts = Vec::new();
     let mut report = Report {
-        milestone: "M7.3d5".to_owned(),
+        milestone: "M7.3d6".to_owned(),
         decision: "ADR-326".to_owned(),
         flights: entries.len(),
         excluded: 0,
@@ -238,6 +248,8 @@ fn count(root: &Path, entries: &[Entry], burns: &BTreeMap<String, f64>) -> Resul
         cut: 0,
         cut_in_burn: 0,
         cut_burn_unknown: 0,
+        // Filled once the cut flights are predicted.
+        predictions: Predictions::default(),
     };
     for entry in entries {
         if entry.excluded.is_some() {
@@ -268,14 +280,22 @@ fn count(root: &Path, entries: &[Entry], burns: &BTreeMap<String, f64>) -> Resul
             read.push(Chosen {
                 apogee_m: apogee.height_m,
                 liftoff_s: readings.liftoff.value().map(|l| l.time_s),
-                cut: boost::try_cut(&log),
+                log,
             });
         }
         if !any_read {
             report.no_log_read += 1;
             continue;
         }
-        let Some(chosen) = choose(read, entry.logged_apogee_m) else {
+        // The candidates' apogees, to count where the choice had others to choose from (#1332).
+        let (low, high) = read
+            .iter()
+            .fold((f64::INFINITY, f64::NEG_INFINITY), |(l, h), c| {
+                (l.min(c.apogee_m), h.max(c.apogee_m))
+            });
+        let other_logs = read.len() > 1;
+        let other_logs_apart = other_logs && high - low > GAP_SHARE * entry.logged_apogee_m;
+        let Some(chosen) = choose(read, |c| c.apogee_m, entry.logged_apogee_m) else {
             report.no_apogee += 1;
             continue;
         };
@@ -283,14 +303,24 @@ fn count(root: &Path, entries: &[Entry], burns: &BTreeMap<String, f64>) -> Resul
         if (chosen.apogee_m - entry.logged_apogee_m).abs() > GAP_SHARE * entry.logged_apogee_m {
             report.chosen_past_gap += 1;
         }
-        match &chosen.cut {
+        // Only the chosen log is cut.
+        match &boost::try_cut(&chosen.log) {
             Ok(cut) => {
                 report.cut += 1;
-                match cut_in_burn(cut, chosen.liftoff_s, burns.get(&entry.flight_id).copied()) {
+                let in_burn =
+                    cut_in_burn(cut, chosen.liftoff_s, burns.get(&entry.flight_id).copied());
+                match in_burn {
                     Some(true) => report.cut_in_burn += 1,
                     Some(false) => {}
                     None => report.cut_burn_unknown += 1,
                 }
+                cuts.push(CutFlight {
+                    flight_id: entry.flight_id.clone(),
+                    log: chosen.log,
+                    cut_in_burn: in_burn,
+                    other_logs,
+                    other_logs_apart,
+                });
             }
             Err(why) => {
                 *report
@@ -300,7 +330,7 @@ fn count(root: &Path, entries: &[Entry], burns: &BTreeMap<String, f64>) -> Resul
             }
         }
     }
-    Ok(report)
+    Ok(Counts { report, cuts })
 }
 
 impl Report {
@@ -314,20 +344,23 @@ impl Report {
             "This page counts how many of the [private collection's](fixture-flights.md) flights \
              have a barometer's log that a prediction from the boost can start from: the log cut \
              after burnout, fitted, and flown on to apogee, as the \
-             [public flights' report](from-boost.md) does for 7 public flights. It predicts \
-             nothing yet, so none of these counts measures accuracy. The \
-             collection's license allows only aggregates, so no flight is named.\n"
+             [public flights' report](from-boost.md) does for 7 public flights. Then it gives \
+             those predictions' apogee errors for each half of the flights, beside the forward \
+             simulation's on the same flights. The collection's license allows only aggregates, \
+             so no flight is named.\n"
         );
         let _ = writeln!(
             page,
-            "Written by `cargo xtask fixture-flights`; do not edit. It is the second of four steps \
-             toward the collection's predictions ({}, decision record \
-             [{}](../../docs/decisions/0326-m7-3d3-in-four-the-halves-sealed-first.md)).\n",
+            "Written by `cargo xtask fixture-flights`; do not edit. It is the third of four steps \
+             toward the collection's numbers for apogee from the boost ({}, decision record \
+             [{}](../../docs/decisions/0326-m7-3d3-in-four-the-halves-sealed-first.md); this \
+             step's choices are in \
+             [ADR-329](../../docs/decisions/0329-m7-3d6-the-collections-errors-by-halves.md)).\n",
             self.milestone, self.decision
         );
         let _ = writeln!(
             page,
-            "**The halves.** The predictions' errors will be given for two halves: a held-out \
+            "**The halves.** The predictions' errors are given for two halves: a held-out \
              share of the flights, kept from every later choice of model \
              ([ADR-209 §4](../../docs/decisions/0209-the-2026-10-08-best-on-the-market-measured.md)), \
              and the rest. The collection's [forward errors](fixture-flights.md#apogee-errors) \
@@ -342,7 +375,8 @@ impl Report {
              ([ADR-151](../../docs/decisions/0151-hpr-sim-fixtures-joins-the-reference-library-as.md)). The SHA-256 \
              of their sorted ids is committed in [`held-out.sha256`](held-out.sha256) before any \
              half's number, so any later change to which flights are held out shows as a change \
-             to that hash. This page gives nothing for either half.\n"
+             to that hash. This page gives each half's errors, and the calibration half's fits as \
+             aggregates.\n"
         );
         let _ = writeln!(
             page,
@@ -425,6 +459,13 @@ impl Report {
              ends. A prediction from such a cut wouldn't be the method's case.",
             boost::HOLD_S
         );
+        self.predictions.write_markdown(&mut page);
+        let _ = writeln!(
+            page,
+            "\n**Sources.** {}\n\n{}",
+            crate::fixture_flights::FLIGHT_DATA_CREDIT,
+            crate::fixture_flights::ERA5_CREDIT
+        );
         page
     }
 
@@ -437,7 +478,8 @@ impl Report {
             && self.cut_in_burn + self.cut_burn_unknown <= self.cut
             && self.chosen_past_gap <= self.chosen
             && self.logs_with_apogee <= self.logs_read
-            && self.logs_read <= self.logs;
+            && self.logs_read <= self.logs
+            && self.predictions.adds_up(self.cut);
         if !flights_ok {
             return Err(format!("{REPORT_JSON}: its counts don't add up"));
         }
@@ -455,6 +497,7 @@ pub fn run(
     root: &Path,
     entries: &[Entry],
     burns: &BTreeMap<String, f64>,
+    forward: &BTreeMap<String, Result<ForwardFlight, &'static str>>,
     check: bool,
 ) -> Result<(), String> {
     let digest = held_out_digest(
@@ -464,7 +507,10 @@ pub fn run(
             .filter(|id| held_out(id)),
     );
     let sealed = held_out_text(&digest);
-    let report = count(root, entries, burns)?;
+    let Counts { mut report, cuts } = count(root, entries, burns)?;
+    let (predictions, held_out_fits, audit) =
+        crate::collection_errors::predict_all(&cuts, forward)?;
+    report.predictions = predictions;
     let page = report.to_markdown();
     report.check_consistent(&page)?;
     if check {
@@ -488,13 +534,19 @@ pub fn run(
         let committed_page = fs::read_to_string(root.join(REPORT_MD))
             .map_err(|error| format!("reading {REPORT_MD}: {error}"))?;
         stored.check_consistent(&committed_page)?;
-        println!("fixture-flights: the held-out digest and the boost's counts reproduce");
+        crate::collection_errors::seal_held_out_fits(root, &held_out_fits, true)?;
+        println!(
+            "fixture-flights: the held-out digests, the boost's counts and the halves' errors reproduce"
+        );
         return Ok(());
     }
     let json = serde_json::to_string_pretty(&report).map_err(|error| error.to_string())? + "\n";
     for (path, text) in [(HELD_OUT, sealed), (REPORT_JSON, json), (REPORT_MD, page)] {
         fs::write(root.join(path), text).map_err(|error| format!("writing {path}: {error}"))?;
     }
+    // Sealed after the report it goes with is written.
+    crate::collection_errors::seal_held_out_fits(root, &held_out_fits, false)?;
+    crate::collection_errors::write_audit(root, &audit)?;
     println!("fixture-flights: wrote {HELD_OUT}, {REPORT_JSON} and {REPORT_MD}");
     Ok(())
 }
@@ -594,16 +646,13 @@ mod tests {
     /// The nearest apogee wins, the first on a tie.
     #[test]
     fn the_nearest_log_is_chosen() {
-        let log = |apogee_m| Chosen {
-            apogee_m,
-            liftoff_s: None,
-            cut: Err(NoCut::NeverSlowed),
-        };
-        let chosen = choose(vec![log(900.0), log(1_010.0)], 1_000.0).unwrap();
-        assert_eq!(chosen.apogee_m, 1_010.0);
-        let tie = choose(vec![log(990.0), log(1_010.0)], 1_000.0).unwrap();
-        assert_eq!(tie.apogee_m, 990.0);
-        assert!(choose(Vec::new(), 1_000.0).is_none());
+        // Each log by its apogee reading and its place in the catalog.
+        let apogee = |log: &(f64, usize)| log.0;
+        let chosen = choose(vec![(900.0, 0), (1_010.0, 1)], apogee, 1_000.0).unwrap();
+        assert_eq!(chosen, (1_010.0, 1));
+        let tie = choose(vec![(990.0, 0), (1_010.0, 1)], apogee, 1_000.0).unwrap();
+        assert_eq!(tie, (990.0, 0));
+        assert!(choose(Vec::<(f64, usize)>::new(), apogee, 1_000.0).is_none());
     }
 
     /// The committed digest is one line, and the committed report holds to itself, here and in

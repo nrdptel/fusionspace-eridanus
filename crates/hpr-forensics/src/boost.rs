@@ -499,8 +499,11 @@ pub struct Prediction {
 pub enum Unpredicted {
     /// The finder found no cut, and why.
     NoCut(NoCut),
-    /// The log up to the cut holds too little to fit: no pad or liftoff read, or no more bins of
+    /// The log up to the cut holds too little to fit: no pad or height track read, a window from
+    /// liftoff to the cut that is empty or longer than 1,000 s, or no more bins of
     /// [`fit::BIN_S`] with a sample, from a second before liftoff, than the fit has unknowns (11).
+    /// A log with no liftoff read stands its first sample for liftoff, so that alone doesn't
+    /// refuse it.
     /// A log cut within 2 s of its liftoff can't hold 12, nor a later one logged from liftoff only.
     NothingToFit(Cut),
     /// The fit came back with what was stated: its residual more than [`fit::MISFIT_SHARE`] of the
@@ -641,6 +644,103 @@ pub fn sign_flip_interval(differences: &[f64], level: f64) -> Option<(f64, f64)>
         .collect();
     means.sort_by(f64::total_cmp);
     Some((means[k - 1], means[means.len() - k]))
+}
+
+/// The paired bootstrap's percentile interval on the mean of `differences`, at `level`: the
+/// paired difference of two methods' errors on the same flights, resampled by flight, as
+/// [ADR-257][adr-257] §3 asks for the private collection's flights.
+///
+/// Each of `resamples` resamples draws `n` of the `n` differences with replacement, each index
+/// equally likely, from a xoshiro256++ stream seeded with `seed` (`hpr_core::random`), and takes
+/// their mean. The interval runs from the resample means' `(1 − level)/2` quantile to their
+/// `(1 + level)/2` quantile, each the smallest mean at or below which that share of the means
+/// lies (B. Efron and R. J. Tibshirani, *An Introduction to the Bootstrap*, Chapman & Hall,
+/// 1993, §13.3, the percentile interval). Pairing keeps each flight's two errors together, so what
+/// the flights share cancels in the difference.
+///
+/// It is approximate: on a few flights it can cover less than `level` (Efron and Tibshirani,
+/// §13.5), which is why the public flights' report, on 7 flights at most, gives
+/// [`sign_flip_interval`] instead. Same differences, level, count and seed, same interval, bit for
+/// bit.
+///
+/// It keeps every resample's mean, 8 bytes each: 10,000 resamples take 80 kB. On `n` flights a
+/// resample of one flight `n` times comes `(1/n)ⁿ` of the time; where that is at least
+/// `(1 − level)/2` (3 flights or fewer at 95%) both ends are the smallest and largest difference,
+/// and the interval is only their range.
+///
+/// Returns `None` for no differences, no resamples, a level not inside 0 to 1, a difference that
+/// isn't finite, or an interval end that isn't finite (a mean overflowing in more than the
+/// tail's share of the resamples).
+///
+/// [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
+#[must_use]
+pub fn paired_bootstrap_interval(
+    differences: &[f64],
+    level: f64,
+    resamples: u32,
+    seed: u64,
+) -> Option<(f64, f64)> {
+    let n = differences.len();
+    if n == 0
+        || resamples == 0
+        || !(level > 0.0 && level < 1.0)
+        || differences.iter().any(|d| !d.is_finite())
+    {
+        return None;
+    }
+    let count = u64::try_from(n).ok()?;
+    // A draw below the largest multiple of n that fits is kept, so each index is exactly as
+    // likely as every other; the rest are drawn again.
+    let zone = u64::MAX - u64::MAX % count;
+    let mut rng = hpr_core::random::SeededRng::seed_from_u64(seed);
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "a count of flights, far below 2^53"
+    )]
+    let size = n as f64;
+    let mut means: Vec<f64> = (0..resamples)
+        .map(|_| {
+            let mut sum = 0.0;
+            for _ in 0..n {
+                let index = loop {
+                    let draw = rng.next_u64();
+                    if draw < zone {
+                        break draw % count;
+                    }
+                };
+                // The index is below n, a usize.
+                sum += differences[usize::try_from(index).unwrap_or(0)];
+            }
+            sum / size
+        })
+        .collect();
+    means.sort_by(f64::total_cmp);
+    let tail = (1.0 - level) / 2.0;
+    let at = |share: f64| means[percentile_rank(share, resamples) - 1];
+    let (low, high) = (at(tail), at(1.0 - tail));
+    (low.is_finite() && high.is_finite()).then_some((low, high))
+}
+
+/// The 1-based rank in `resamples` sorted values of the `share` quantile: the smallest `r` with
+/// `r ≥ share · resamples`, at least 1 and at most `resamples`. A product within `1e-9 ·
+/// resamples` of a whole number counts as that number, so `(1 − 0.95)/2` of 10,000 is rank 250,
+/// not 251.
+fn percentile_rank(share: f64, resamples: u32) -> usize {
+    let total = f64::from(resamples);
+    let product = share * total;
+    let rounded = product.round();
+    let rank = if (product - rounded).abs() <= 1e-9 * total {
+        rounded
+    } else {
+        product.ceil()
+    };
+    #[expect(
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss,
+        reason = "a rank clamped to 1..=resamples, below 2^32"
+    )]
+    let rank = rank.clamp(1.0, total) as usize;
+    rank
 }
 
 #[cfg(test)]
@@ -1307,5 +1407,102 @@ mod tests {
         let share = f64::from(held) / f64::from(trials);
         assert!((share - (1.0 - 6.0 / 128.0)).abs() < 0.008, "held {share}");
         assert!(share > 1.0 - 8.0 / 128.0 + 0.008, "held {share}");
+    }
+
+    /// The quantile's rank: 2.5% and 97.5% of 10,000 are ranks 250 and 9,750 (as `(1 − 0.95)/2`
+    /// computes them too, a hair above 0.025), a share between two ranks takes the higher, a share
+    /// of 0 takes the first rank (clamped up from 0) and a share of 1 the last.
+    #[test]
+    fn the_percentile_rank_is_the_smallest_reaching_the_share() {
+        assert_eq!(percentile_rank(0.025, 10_000), 250);
+        assert_eq!(percentile_rank((1.0 - 0.95) / 2.0, 10_000), 250);
+        assert_eq!(percentile_rank(1.0 - (1.0 - 0.95) / 2.0, 10_000), 9_750);
+        assert_eq!(percentile_rank(0.5, 3), 2);
+        assert_eq!(percentile_rank(0.0001, 100), 1);
+        assert_eq!(percentile_rank(0.0, 100), 1);
+        assert_eq!(percentile_rank(1.0, 100), 100);
+    }
+
+    /// Exact cases, whatever the stream draws. One difference: every resample is it. Equal ones:
+    /// the same. Two, `a` and `b`: a resample's mean is `a` a quarter of the time, so both 2.5%
+    /// tails sit on the ends. Four zeros and a 10: a resample's mean is 2k for k ~ Binomial(5, 1/5),
+    /// P(k ≤ 2) = 0.942 and P(k ≤ 3) = 0.9933, so the 97.5% quantile is 6 and the 2.5% one is 0
+    /// (P(k = 0) = 0.328); on 10,000 resamples each share sits more than 11 standard errors from 97.5%.
+    #[test]
+    fn the_paired_bootstrap_takes_the_percentiles() {
+        for seed in [1, 7, 2_026] {
+            assert_eq!(
+                paired_bootstrap_interval(&[3.5], 0.95, 10_000, seed),
+                Some((3.5, 3.5))
+            );
+            assert_eq!(
+                paired_bootstrap_interval(&[-1.25; 6], 0.95, 10_000, seed),
+                Some((-1.25, -1.25))
+            );
+            assert_eq!(
+                paired_bootstrap_interval(&[-2.0, 5.0], 0.95, 10_000, seed),
+                Some((-2.0, 5.0))
+            );
+            assert_eq!(
+                paired_bootstrap_interval(&[0.0, 0.0, 10.0, 0.0, 0.0], 0.95, 10_000, seed),
+                Some((0.0, 6.0))
+            );
+        }
+        assert_eq!(paired_bootstrap_interval(&[], 0.95, 10_000, 1), None);
+        assert_eq!(paired_bootstrap_interval(&[1.0], 0.95, 0, 1), None);
+        assert_eq!(paired_bootstrap_interval(&[1.0], 1.0, 10_000, 1), None);
+        assert_eq!(
+            paired_bootstrap_interval(&[1.0, f64::NAN], 0.95, 10, 1),
+            None
+        );
+        // Finite differences whose sum overflows.
+        assert_eq!(paired_bootstrap_interval(&[f64::MAX; 3], 0.95, 10, 1), None);
+    }
+
+    /// On 2 resamples the 2.5% point is rank 1, the lower mean, and the 97.5% point rank 2, the
+    /// higher: an off-by-one in the rank would put both ends on one mean. Seed 3 draws two
+    /// different resample means of these two differences (a resample's mean is −2, 1.5 or 5).
+    #[test]
+    fn the_paired_bootstrap_takes_each_rank_from_the_sorted_means() {
+        let (low, high) = paired_bootstrap_interval(&[-2.0, 5.0], 0.95, 2, 3).expect("an interval");
+        assert!(low < high, "{low}, {high}");
+        for end in [low, high] {
+            assert!([-2.0, 1.5, 5.0].contains(&end), "{end}");
+        }
+    }
+
+    /// Same differences and seed, same interval bit for bit; another seed moves it a little.
+    #[test]
+    fn the_paired_bootstrap_is_its_seeds() {
+        let differences = [-3.1, 0.4, 2.2, -0.7, 5.3, 1.9, -1.2, 0.8, -2.6, 4.4];
+        let one = paired_bootstrap_interval(&differences, 0.95, 2_000, 11).expect("an interval");
+        let again = paired_bootstrap_interval(&differences, 0.95, 2_000, 11).expect("an interval");
+        let other = paired_bootstrap_interval(&differences, 0.95, 2_000, 12).expect("an interval");
+        assert_eq!(
+            (one.0.to_bits(), one.1.to_bits()),
+            (again.0.to_bits(), again.1.to_bits())
+        );
+        assert_ne!(one, other);
+        assert!(one.0 < 0.74 && 0.74 < one.1, "{one:?} holds the mean");
+    }
+
+    /// On 2,000 draws of 40 differences from a symmetric distribution about 0.3 (a uniform one, on
+    /// a fixed stream), the 95% interval holds the center 92% to 96.5% of the time: the percentile
+    /// interval's coverage on 40 is near its level. Against 95% the band runs about 6 standard
+    /// errors of the share below and 3 above. Taking a 90% interval instead held it 89.25% of the
+    /// time, outside the band (a probe, run once).
+    #[test]
+    fn the_paired_bootstrap_covers_near_its_level() {
+        let mut draw = draws();
+        let trials = 2_000;
+        let mut held = 0_u32;
+        for trial in 0..trials {
+            let differences: Vec<f64> = (0..40).map(|_| 0.3 + draw() / 2_500.0).collect();
+            let (low, high) =
+                paired_bootstrap_interval(&differences, 0.95, 1_000, trial).expect("an interval");
+            held += u32::from(low <= 0.3 && 0.3 <= high);
+        }
+        let share = f64::from(held) / 2_000.0;
+        assert!((0.92..=0.965).contains(&share), "held {share}");
     }
 }
