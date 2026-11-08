@@ -675,9 +675,10 @@ impl Predictions {
             ("… cut, the burn or the liftoff not known", |h| {
                 h.cut_burn_unknown.to_string()
             }),
-            ("… with another barometer's log of the flight", |h| {
-                h.with_other_logs.to_string()
-            }),
+            (
+                "… with another log of the flight on a barometer's track",
+                |h| h.with_other_logs.to_string(),
+            ),
             ("… … the logs' apogees more than 2% apart", |h| {
                 h.other_logs_apart.to_string()
             }),
@@ -857,7 +858,7 @@ mod tests {
     }
 
     /// Interval ends round outward, each to two decimals, so the printed interval holds the
-    /// computed one; an end that is already on two decimals stays.
+    /// computed one; an end exact in binary (−4.0, 2.5) stays.
     #[test]
     fn interval_ends_round_outward() {
         assert_eq!(

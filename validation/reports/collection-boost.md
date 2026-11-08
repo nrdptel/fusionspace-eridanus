@@ -43,7 +43,7 @@ Of the flights not left out, 241 files were tried, 199 read on their own and 117
 | … with a deployment before apogee | 4 | 6 |
 | … cut less than the motor's burn after liftoff | 0 | 0 |
 | … cut, the burn or the liftoff not known | 2 | 1 |
-| … with another barometer's log of the flight | 6 | 7 |
+| … with another log of the flight on a barometer's track | 6 | 7 |
 | … … the logs' apogees more than 2% apart | 0 | 0 |
 | **every flight predicted** | **12** | **9** |
 | prediction from the boost: mean absolute error | 3.22% | 3.56% |

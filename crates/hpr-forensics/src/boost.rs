@@ -712,8 +712,9 @@ pub fn paired_bootstrap_interval(
 }
 
 /// The 1-based rank in `resamples` sorted values of the `share` quantile: the smallest `r` with
-/// `r ≥ share · resamples`, at least 1 and at most `resamples`. A product within rounding of a
-/// whole number counts as that number, so `(1 − 0.95)/2` of 10,000 is rank 250, not 251.
+/// `r ≥ share · resamples`, at least 1 and at most `resamples`. A product within `1e-9 ·
+/// resamples` of a whole number counts as that number, so `(1 − 0.95)/2` of 10,000 is rank 250,
+/// not 251.
 fn percentile_rank(share: f64, resamples: u32) -> usize {
     let total = f64::from(resamples);
     let product = share * total;
@@ -1399,8 +1400,8 @@ mod tests {
     }
 
     /// The quantile's rank: 2.5% and 97.5% of 10,000 are ranks 250 and 9,750 (as `(1 − 0.95)/2`
-    /// computes them too, a hair above 0.025), a share between two ranks takes the higher, and the
-    /// ends clamp to the first and last.
+    /// computes them too, a hair above 0.025), a share between two ranks takes the higher, a share
+    /// of 0 takes the first rank (clamped up from 0) and a share of 1 the last.
     #[test]
     fn the_percentile_rank_is_the_smallest_reaching_the_share() {
         assert_eq!(percentile_rank(0.025, 10_000), 250);

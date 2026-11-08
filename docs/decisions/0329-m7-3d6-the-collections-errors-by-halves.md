@@ -9,19 +9,22 @@
 [adr-322]: 0322-the-2026-11-05-progress-review-accuracy-before-reader-facing-work.md
 [adr-325]: 0325-m7-3d2-the-public-flights-prediction-from-the-boost.md
 [adr-326]: 0326-m7-3d3-in-four-the-halves-sealed-first.md
+[adr-327]: 0327-m7-3d5-the-fall-must-hold-and-still-fall.md
 [i181]: https://github.com/nrdptel/fusionspace-eridanus/issues/181
 [i1332]: https://github.com/nrdptel/fusionspace-eridanus/issues/1332
 [i359]: https://github.com/nrdptel/fusionspace-eridanus/issues/359
 [i364]: https://github.com/nrdptel/fusionspace-eridanus/issues/364
 [m7-3]: ../ROADMAP.md#phase-5-flight-data-and-forensics
 
-**Context.** [ADR-326][adr-326] sealed the held-out flights (M7.3d4) and fixed the cut (M7.3d5):
+**Context.** [ADR-326][adr-326] sealed the held-out flights (M7.3d4) and [ADR-327][adr-327] fixed the cut (M7.3d5):
 of the collection's 64 chosen logs, 26 are cut, none inside its motor's burn where the burn is
 known. M7.3d6 asks for each cut log's fit flown to apogee as `fixture-flights` flies it, each
 half's errors beside the forward simulation's on the same flights, [ADR-257][adr-257] §3's paired
 bootstrap 95% intervals, and the calibration half's fit aggregates, the held-out half's kept
-private with their file's hash committed. The choices below were made before any half's number
-was computed.
+private with their file's hash committed. Choices 1 to 4, 7, and 5's bootstrap and its seed
+were made before any half's number was computed. The set without deployments (6), the outward
+rounding (5) and the log-choice count (8) came after the first numbers; the rounding moved a
+printed bound by 0.01 at most, and the others add numbers without changing any.
 
 **Decision.**
 
@@ -38,7 +41,8 @@ was computed.
    doesn't fly has no flight to fit. They are counted under their reason, not predicted: 4 cut
    flights, 2 in each half, each one HPR Sim's forward simulation doesn't fly (three refusals, each
    tracked by an open issue, [#359][i359] and [#181][i181], and one day without an ERA5 file,
-   [#364][i364]). So every cut log `fixture-flights` flies in HPR Sim goes to the fit: 21 are
+   [#364][i364]). So every cut log `fixture-flights` flies in HPR Sim goes to the fit (none of the 26 was left
+   out or missed by OpenRocket alone): 21 are
    fitted and flown on to apogee, and 1 is refused as too little up to its cut to fit
    (`Unpredicted::NothingToFit`: fewer bins with a sample than the fit has unknowns). The
    *done when*'s "each cut log's fit" is read over the cut logs that have a flight to fly and a
