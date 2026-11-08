@@ -313,7 +313,7 @@ impl Report {
             page,
             "This page counts how many of the [private collection's](fixture-flights.md) flights \
              have a barometer's log that a prediction from the boost can start from: the log cut \
-             just after burnout, fitted, and flown on to apogee, as the \
+             after burnout, fitted, and flown on to apogee, as the \
              [public flights' report](from-boost.md) does for 7 public flights. It predicts \
              nothing yet, so none of these counts measures accuracy. The \
              collection's license allows only aggregates, so no flight is named.\n"

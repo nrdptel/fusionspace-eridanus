@@ -379,8 +379,8 @@ takes 9.8 m/s (32.2 ft/s) off the speed every second, drag more, so the speed ke
 barometer's reading can dip during the boost and catch up
 ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)). On the public flights'
 logs the speed fell that far for up to 0.48 s, then recovered (measured once). The deepest such
-fall was 63.2 m/s (207 ft/s). The 0.75 s passes such a
-dip. The catch-up can read above the true speed. The fall back from it can last longer. But on the synthetic dips it
+fall was 63.2 m/s (207 ft/s), a one-off measurement not committed. The 0.75 s passes such a
+dip. The catch-up can read above the true speed. On 778 of the 1,787 dipped logs below a fall lasted over 0.5 s, likely the fall back from that overshoot (not traced). But on the synthetic dips it
 leveled off while the motor burned, so its speed wasn't the lowest of the last 0.75 s. So on the
 synthetic flights' motors the cut comes after burnout, and the log keeps the start of the coast. The log up to the cut is fitted, and the fit
 flown on to apogee.
@@ -406,8 +406,8 @@ weren't tried with the hold. A test pins the order, the spikes and at least 51 c
 measured.
 
 A second test puts a dip in each cut flight's height: 0.2 to 0.6 s long, 10 to 40 m (33 to
-131 ft) deep. It starts at ignition, or 0.3 or 0.6 of the way through the burn. On 1,787 dipped logs
-the speed falls by the cut's 10% before burnout. 1,635 of them were cut, 0.14 s to 2.30 s after
+131 ft) deep. It starts at ignition, or 0.3 or 0.6 of the way through the burn. Of 2,295 dipped logs,
+1,787 have a speed that falls by the cut's amount (10% of the top, at least 10 m/s (33 ft/s)) before burnout. 1,635 of them were cut, 0.14 s to 2.30 s after
 burnout, and 152 refused at the speed limit, which a catch-up can reach. None was cut in the burn.
 The dips whose falls each lasted 0.5 s at most went as deep as 295 m/s (968 ft/s). That is past
 the public logs' 63.2 m/s (207 ft/s).

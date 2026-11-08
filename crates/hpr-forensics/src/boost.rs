@@ -1,4 +1,4 @@
-//! Apogee predicted from the boost: a log cut just after burnout, fitted, and flown on to apogee
+//! Apogee predicted from the boost: a log cut after burnout, fitted, and flown on to apogee
 //! ([ADR-257][adr-257] §3; [ADR-321][adr-321], amended 2026-11-06).
 //!
 //! The cut must not read the flight after it. A test replaces every later value and time with
@@ -83,7 +83,7 @@ pub const DROP_FLOOR_M_S: f64 = 10.0;
 /// a barometer's fitted speed can fall by [`DROP_FLOOR_M_S`] and more during the boost and
 /// recover. On the public flights' logs, the longest such fall inside a burn lasted 0.48 s from
 /// its first sample to the one it recovered at, and the deepest went 63.2 m/s below its top (Lince
-/// and Juno III, measured once); after burnout gravity and drag keep the speed falling. HPR Sim's
+/// and Juno III, measured once in a run not committed); after burnout gravity and drag keep the speed falling. HPR Sim's
 /// choice: about half again the longest, 0.75 s. On set A's first 200 synthetic flights the cuts
 /// came 1.08 s to 2.30 s after burnout, 0.33 s to 1.48 s before this rule.
 pub const HOLD_S: f64 = 0.75;
@@ -496,7 +496,7 @@ fn read_to_cut(log: &FlightLog, extra: usize) -> Result<(Cut, Observations), Unp
     Ok((cut, observed))
 }
 
-/// Apogee predicted from `log` cut just after burnout: the boost fitted by [`fit::fit`], each
+/// Apogee predicted from `log` cut after burnout: the boost fitted by [`fit::fit`], each
 /// parameter held to what `stated` gives for the boost's observations, then flown on by `forward`
 /// to its apogee. The fit's own `converged` says whether it settled.
 ///

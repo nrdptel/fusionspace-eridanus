@@ -1,6 +1,6 @@
 # The private collection's logs, cut at the boost
 
-This page counts how many of the [private collection's](fixture-flights.md) flights have a barometer's log that a prediction from the boost can start from: the log cut just after burnout, fitted, and flown on to apogee, as the [public flights' report](from-boost.md) does for 7 public flights. It predicts nothing yet, so none of these counts measures accuracy. The collection's license allows only aggregates, so no flight is named.
+This page counts how many of the [private collection's](fixture-flights.md) flights have a barometer's log that a prediction from the boost can start from: the log cut after burnout, fitted, and flown on to apogee, as the [public flights' report](from-boost.md) does for 7 public flights. It predicts nothing yet, so none of these counts measures accuracy. The collection's license allows only aggregates, so no flight is named.
 
 Written by `cargo xtask fixture-flights`; do not edit. It is the second of four steps toward the collection's predictions (M7.3d5, decision record [ADR-326](../../docs/decisions/0326-m7-3d3-in-four-the-halves-sealed-first.md)).
 

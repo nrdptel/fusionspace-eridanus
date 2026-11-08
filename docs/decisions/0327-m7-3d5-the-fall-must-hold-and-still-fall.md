@@ -1,7 +1,7 @@
 # ADR-327: M7.3d5, the fall must hold and still fall (2026-11-07)
 
 - **Status:** accepted; carries out [M7.3d5][m7-3] under [ADR-326][adr-326] §1 and closes [#1307][i1307].
-- **Summary:** The boost's cut waits until the climb speed's fall has held 0.75 s and the speed is the lowest of those 0.75 s. On the public logs no cut falls inside the burn now (4 of 5 did): Bella Lui and NDRT 2020 are cut after their burns, and the other 5 reach the transonic limit first. Set A's cuts come 1.08 s to 2.30 s after burnout, inside the 2.83 s bound; 1,787 synthetic logs with a dip in the boost are each cut after burnout or refused as transonic. The collection: 26 cut; none of the 20 whose burn and liftoff are known is cut inside its motor's burn.
+- **Summary:** The boost's cut waits until the climb speed's fall has held 0.75 s and the speed is the lowest of those 0.75 s. On the public logs no cut falls inside the burn now (4 of 5 did): Bella Lui and NDRT 2020 are cut after their burns, and the other 5 reach the transonic limit first. Set A's cuts come 1.08 s to 2.30 s after burnout, inside the 2.83 s bound; 1,787 of 2,295 dipped synthetic logs fall by the cut's amount before burnout; each is cut after burnout or refused as transonic. The collection: 26 cut; none of the 20 whose burn and liftoff are known is cut inside its motor's burn.
 
 [adr-325]: 0325-m7-3d2-the-public-flights-prediction-from-the-boost.md
 [adr-326]: 0326-m7-3d3-in-four-the-halves-sealed-first.md
@@ -11,7 +11,7 @@
 **Context.** The cut was the first sample where the climb speed, a line fitted over the last
 0.5 s, fell 10% and at least 10 m/s below its top. On the public flights' barometers that cut 4 of
 5 logs inside the burn ([ADR-325][adr-325] §5, [#1307][i1307]). Measured once on those logs with no
-cut taken, each fall that far during a burn recovered within 0.48 s of its first sample, and the
+cut taken (a one-off run, not committed), each fall that far during a burn recovered within 0.48 s of its first sample, and the
 deepest went 63.2 m/s below its top. NDRT 2020's coast shows falls of up to 0.45 s, and a new top
 between them.
 
@@ -21,8 +21,8 @@ between them.
    `HOLD_S` = 0.75 s, about half again the longest fall measured inside a burn. The cut is decided at
    that sample, so the log is cut there: nothing later is read.
 2. **And still be falling.** At that sample the speed must also be the lowest of the last 0.75 s.
-   A dip's catch-up can read above the true speed; the fall back from that false top can outlast
-   0.75 s, but on the synthetic dips it leveled off while the motor burned. With the hold alone, 416 of 778 synthetic dipped logs whose falls outlast 0.5 s were cut
+   A dip's catch-up can read above the true speed; a fall can last longer, likely the fall back from that false top (778 of
+   1,787 dipped logs had a fall over 0.5 s; not traced), but on the synthetic dips it leveled off while the motor burned. With the hold alone, 416 of 778 synthetic dipped logs whose falls outlast 0.5 s were cut
    in the burn (run once); with both conditions none is.
 3. **The test.** On each of set A's first 200 synthetic flights that is cut, a dip
    `depth · sin²(π (t − start) / span)` is taken off the height: start at ignition, 0.3 or 0.6 of
