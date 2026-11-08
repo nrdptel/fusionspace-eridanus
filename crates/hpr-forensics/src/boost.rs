@@ -666,7 +666,8 @@ pub fn sign_flip_interval(differences: &[f64], level: f64) -> Option<(f64, f64)>
 /// and the interval is only their range.
 ///
 /// Returns `None` for no differences, no resamples, a level not inside 0 to 1, a difference that
-/// isn't finite, or a mean that overflows to an infinity.
+/// isn't finite, or an interval end that isn't finite (a mean overflowing in more than the
+/// tail's share of the resamples).
 ///
 /// [adr-257]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 #[must_use]

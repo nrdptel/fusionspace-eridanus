@@ -42,13 +42,14 @@ printed bound by 0.01 at most, and the others add numbers without changing any.
 2. **Only the flights the forward report compares.** A flight the forward report leaves out, or
    that hpr or OpenRocket doesn't fly, has no forward error to stand beside, and a flight HPR Sim
    doesn't fly has no flight to fit. They are counted under their reason, not predicted: 4 cut
-   flights, 2 in each half. HPR Sim's forward simulation refuses the design of 3, each refusal
-   tracked by an open issue ([#359][i359], [#181][i181]); the collection has no ERA5 file of the
+   flights, 2 in each half. HPR Sim's forward simulation refuses the design of 3 (the forward report lists its
+   refusals by cause, open issues such as [#359][i359] and [#181][i181]); the collection has no ERA5 file of the
    4th flight's day ([#364][i364]), counted under that cause, as the forward report counts it. So
    every cut log `fixture-flights` flies in HPR Sim goes to the fit (none of the 26 was left
    out or missed by OpenRocket alone): 21 are
    fitted and flown on to apogee, and 1 is refused as too little up to its cut to fit
-   (`Unpredicted::NothingToFit`: fewer bins with a sample than the fit has unknowns). The
+   (`Unpredicted::NothingToFit`: no pad or liftoff read, or no more bins with a sample than the
+   fit's 11 unknowns). The
    *done when*'s "each cut log's fit" is read over the cut logs that have a flight to fly and a
    fit, as the public flights' report counts its flights with no prediction; the 5 without are
    counted on the page under their reason, not dropped.
@@ -62,8 +63,8 @@ printed bound by 0.01 at most, and the others add numbers without changing any.
 5. **The interval.** The difference is each flight's absolute prediction error less its forward
    one, as on the public flights. Its paired bootstrap interval is the percentile interval
    (Efron and Tibshirani, 1993, §13.3) on 10,000 resamples, seed 329, both fixed before any number
-   (`hpr_forensics::boost::paired_bootstrap_interval`). On 9 and 12 flights a percentile bootstrap
-   can cover less than its level, so the exact sign-flip interval stands beside it. On 3 flights
+   (`hpr_forensics::boost::paired_bootstrap_interval`). On 4 to 12 flights a percentile bootstrap
+   can cover less than its level (the 8- and 9-flight sets included), so the exact sign-flip interval stands beside it. On 3 flights
    or fewer a 95% percentile interval is only the smallest and largest difference, which holds a
    symmetric center 75% of the time on 3 and gives two flights' own values: the page says "too few
    flights to resample" there instead. The page rounds each interval's ends outward.

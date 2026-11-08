@@ -662,7 +662,7 @@ fn interval(value: Option<(Option<f64>, Option<f64>)>) -> String {
     )
 }
 
-/// The row of flights whose candidate logs disagree, by [`collection_boost::GAP_SHARE`].
+/// The row of flights whose candidate logs disagree, by [`crate::collection_boost::GAP_SHARE`].
 const OTHER_LOGS_APART: &str = "… … the logs' apogees more than 2% apart";
 
 /// A row of the halves' table: its label, and its value for a half.
@@ -710,7 +710,7 @@ impl Predictions {
              up to the cut is fitted and the fit flown on to apogee, as the \
              [public flights' report](from-boost.md) does. Both errors are against the same \
              number: the logged apogee as a height climbed in the day's air, as the forward \
-             report takes it. Each half's last rows give the difference: each flight's absolute \
+             report takes it. Each set's last three rows give the difference and its intervals: each flight's absolute \
              error from the prediction less the forward simulation's, averaged, in percentage \
              points; below zero, the prediction came closer.\n",
             SAME_FLIGHT_WITHIN_M,
@@ -827,7 +827,10 @@ impl Predictions {
              together, and takes the 2.5% and 97.5% points of the resampled means. On a few \
              flights it can cover less than 95%, so the exact sign-flip interval, which the public \
              flights' report uses, stands beside it: it assumes only that each flight's \
-             difference is drawn independently and symmetrically about the center.\n",
+             difference is drawn independently and symmetrically about the center. On 3 flights \
+             or fewer the bootstrap's 95% points are only the smallest and largest difference, \
+             so the page gives none. On 5 flights or fewer no pattern of signs is rare enough at \
+             95%, so the sign-flip interval is the whole line: \"unbounded\".\n",
             crate::collection_boost::GAP_SHARE * 100.0,
             grouped(self.resamples),
             self.seed
