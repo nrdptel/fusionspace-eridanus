@@ -28,10 +28,11 @@ between them.
    `depth · sin²(π (t − start) / span)` is taken off the height: start at ignition, 0.3 or 0.6 of
    the way through the burn, span 0.2 to 0.6 s, depth 10, 20 or 40 m. Every dipped log whose speed
    falls by the cut's amount before burnout must be cut after burnout, within the 2.83 s bound,
-   before apogee, or refused as transonic. Among the dips whose falls each last 0.5 s at most, as
+   before apogee, or refused as transonic. Among the dips whose falls each last 0.5 s at most and recover in the burn, as
    the public logs' did, the falls must reach the public logs' 63.2 m/s and 0.48 s. Measured: 1,787 dipped logs whose
    speed falls by the cut's amount, 1,635 cut 0.14 s to 2.30 s after burnout, 152 refused as
-   transonic; 1,009 with every fall within 0.5 s, those falls to 0.5 s and 295 m/s.
+   transonic; 791 with every fall within 0.5 s and recovered in the burn, those falls to 0.5 s and
+   98.9 m/s; 218 with a fall still running at burnout, whose depth takes in the coast's.
 4. **The counts.** `from-boost` gives the cuts inside the thrust file's burn, `collection-boost`
    those inside the motor's burn, the end of the `.ork` configuration's thrust curve after the log's
    liftoff (a design with more than one motor or a staging event counts as not known), and how

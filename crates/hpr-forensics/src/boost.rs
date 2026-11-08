@@ -997,12 +997,13 @@ mod tests {
     /// depth 10, 20 or 40 m. Every dipped log whose fitted speed falls before burnout by what the
     /// cut needs is cut after burnout, within the 2.83 s of
     /// [`the_cut_falls_just_after_the_true_burnout`], before apogee, or refused for the transonic
-    /// speed its catch-up can read. Among the logs whose falls each last 0.5 s at most before
-    /// burnout, as the public logs' did, the falls reach the public logs' deepest, 63.2 m/s, and
+    /// speed its catch-up can read. Among the logs whose falls each last 0.5 s at most and recover
+    /// before burnout, as the public logs' did, the falls reach the public logs' deepest, 63.2 m/s, and
     /// last at least the public logs' longest, 0.48 s. Measured, not asserted: of 51 flights, 1,787 dipped logs give
     /// such a fall; 1,635 are cut, 0.14 s to 2.30 s after burnout, and 152 refused as transonic.
-    /// 1,009 hold every fall to 0.5 s, up to 295 m/s deep; the other 778 have a fall that lasts
-    /// longer (likely the fall back from a catch-up's overshoot, not traced). The other 508 dipped
+    /// 791 hold every fall to 0.5 s and recover in the burn, up to 98.9 m/s deep; 218 have a fall
+    /// still running at burnout, whose depth takes in the coast's, so it isn't counted; the other
+    /// 778 have a fall that lasts longer (likely the fall back from a catch-up's overshoot, not traced). The other 508 dipped
     /// logs give no such fall. With the hold alone, not the lowest
     /// speed, 416 of those 778 were cut in the burn (run once).
     #[test]
@@ -1018,6 +1019,7 @@ mod tests {
             cut: usize,
             refused: usize,
             longer: usize,
+            running: usize,
             longest_s: f64,
             deepest_m_s: f64,
             earliest_s: f64,
@@ -1028,6 +1030,7 @@ mod tests {
             cut: 0,
             refused: 0,
             longer: 0,
+            running: 0,
             longest_s: 0.0,
             deepest_m_s: 0.0,
             earliest_s: f64::INFINITY,
@@ -1061,21 +1064,28 @@ mod tests {
                                 }
                             }
                             // Each fall's time before burnout, a fall still holding at the walk's
-                            // end included.
+                            // end included, and whether it still runs at burnout: its depth then
+                            // takes in the coast's, so it isn't a dip's.
                             let mut falls = Vec::new();
                             let _ = walk(&dipped, f64::INFINITY, &mut |since, until, deepest| {
                                 if since < burnout_s {
-                                    falls.push((until.min(burnout_s) - since, deepest));
+                                    falls.push((
+                                        until.min(burnout_s) - since,
+                                        deepest,
+                                        until > burnout_s,
+                                    ));
                                 }
                             });
                             if falls.is_empty() {
                                 continue;
                             }
                             tally.dipped += 1;
-                            if falls.iter().any(|&(held_s, _)| held_s > 0.5) {
+                            if falls.iter().any(|&(held_s, _, _)| held_s > 0.5) {
                                 tally.longer += 1;
+                            } else if falls.iter().any(|&(_, _, running)| running) {
+                                tally.running += 1;
                             } else {
-                                for &(held_s, deepest) in &falls {
+                                for &(held_s, deepest, _) in &falls {
                                     tally.longest_s = tally.longest_s.max(held_s);
                                     tally.deepest_m_s = tally.deepest_m_s.max(deepest);
                                 }
@@ -1127,6 +1137,7 @@ mod tests {
             all.cut += tally.cut;
             all.refused += tally.refused;
             all.longer += tally.longer;
+            all.running += tally.running;
             all.longest_s = all.longest_s.max(tally.longest_s);
             all.deepest_m_s = all.deepest_m_s.max(tally.deepest_m_s);
             all.earliest_s = all.earliest_s.min(tally.earliest_s);
@@ -1137,6 +1148,7 @@ mod tests {
             cut,
             refused,
             longer,
+            running,
             longest_s,
             deepest_m_s,
             earliest_s,
@@ -1145,8 +1157,8 @@ mod tests {
         println!(
             "{dipped} dipped logs, {cut} cut {earliest_s:.2} s to {latest_found_s:.2} s \
              after burnout, {refused} refused as transonic; falls up to {longest_s:.2} s and \
-             {deepest_m_s:.1} m/s in those whose falls each held 0.5 s at most; {longer} with a \
-             longer one"
+             {deepest_m_s:.1} m/s in those whose falls each held 0.5 s at most and recovered in \
+             the burn; {longer} with a longer one; {running} with one still running at burnout"
         );
         assert!(
             longest_s >= 0.48,

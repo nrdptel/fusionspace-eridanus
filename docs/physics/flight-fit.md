@@ -409,8 +409,9 @@ A second test puts a dip in each cut flight's height: 0.2 to 0.6 s long, 10 to 4
 131 ft) deep. It starts at ignition, or 0.3 or 0.6 of the way through the burn. Of 2,295 dipped logs,
 1,787 have a speed that falls by the cut's amount (10% of the top, at least 10 m/s (33 ft/s)) before burnout. 1,635 of them were cut, 0.14 s to 2.30 s after
 burnout, and 152 refused at the speed limit, which a catch-up can reach. None was cut in the burn.
-The dips whose falls each lasted 0.5 s at most went as deep as 295 m/s (968 ft/s). That is past
-the public logs' 63.2 m/s (207 ft/s).
+On 791 dipped logs every fall lasted 0.5 s at most and recovered in the burn, as the public logs'
+did. Those falls went as deep as 98.9 m/s (324 ft/s), past the public logs' 63.2 m/s (207 ft/s).
+On 218 more a fall still ran at burnout. Its depth takes in the coast's, so it isn't counted.
 
 **Why it can be trusted not to peek.** A test replaces every sample's value and time after the
 cut with noise, and the prediction stays the same, bit for bit. It runs on three logs, one with a GNSS
