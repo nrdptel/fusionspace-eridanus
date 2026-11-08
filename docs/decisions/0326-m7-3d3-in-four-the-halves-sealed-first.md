@@ -87,4 +87,5 @@ rule that held-out flights never feed a choice of model ([ADR-209][adr-209] §4)
 holds both, in the gate's `refs` step. CI, without `refs/`, holds the committed page to its
 counts and the digest's file to its form. The 30 flights refused at the transonic limit can't
 be predicted by this method: a barometer's reading past it may follow the airflow, not the
-height. The collection's predictions will come from the 32 cut, a count M7.3d5 may move.
+height. The collection's predictions will come from at most the flights cut, 32 now (on the public flights 2 of 5 cut logs gave a
+prediction), a count M7.3d5 may move either way.
