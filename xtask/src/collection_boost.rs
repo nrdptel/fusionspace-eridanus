@@ -414,14 +414,15 @@ impl Report {
         let _ = writeln!(
             page,
             "**Cuts inside the burn.** A barometer's reading can dip in the boost and catch up, \
-             so the finder cuts only where the climb speed's fall has held 0.75 s and the speed \
+             so the finder cuts only where the climb speed's fall has held {:.2} s and the speed \
              is the lowest it has been over that span \
              ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)). A cut counts \
              as inside the burn when it comes less than the motor's burn after the log's liftoff: \
              the burn is the end of the motor's thrust curve, as the flight's `.ork` and the \
              curves supplied for it give it (on a design with more than one motor, the longest). \
              Liftoff follows ignition, so that also takes in a cut up to that lag after the burn \
-             ends. A prediction from such a cut wouldn't be the method's case."
+             ends. A prediction from such a cut wouldn't be the method's case.",
+            boost::HOLD_S
         );
         page
     }

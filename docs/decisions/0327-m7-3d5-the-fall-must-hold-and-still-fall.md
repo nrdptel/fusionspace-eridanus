@@ -12,8 +12,8 @@
 0.5 s, fell 10% and at least 10 m/s below its top. On the public flights' barometers that cut 4 of
 5 logs inside the burn ([ADR-325][adr-325] §5, [#1307][i1307]). Measured once on those logs with no
 cut taken, each fall that far during a burn recovered within 0.48 s of its first sample, and the
-deepest went 63.2 m/s below its top. NDRT 2020's coast shows falls of up to 0.45 s, each followed by
-a new top.
+deepest went 63.2 m/s below its top. NDRT 2020's coast shows falls of up to 0.45 s, and a new top
+between them.
 
 **Decision.**
 
@@ -30,8 +30,9 @@ a new top.
    falls by the cut's amount before burnout must be cut after burnout, within the 2.83 s bound,
    before apogee, or refused as transonic. Among the dips whose falls each last 0.5 s at most, as
    the public logs' did, the falls must reach 63 m/s and 0.45 s (the public logs': 63.2 m/s,
-   0.48 s). Measured: 1,787 such logs, 1,635
-   cut 0.14 s to 2.30 s after burnout, 152 refused as transonic; falls to 0.5 s and 295 m/s.
+   0.48 s). Measured: 1,787 dipped logs whose
+   speed falls by the cut's amount, 1,635 cut 0.14 s to 2.30 s after burnout, 152 refused as
+   transonic; 1,009 with every fall within 0.5 s, those falls to 0.5 s and 295 m/s.
 4. **The counts.** `from-boost` gives the cuts inside the thrust file's burn, `collection-boost`
    those inside the motor's burn, the end of the `.ork` configuration's thrust curve after the log's
    liftoff (on a design with several motors, the longest), and how many it can't tell.
@@ -44,8 +45,9 @@ predicted −3.58% against +10.40%. Prometheus, Juno III and Lince, once cut on 
 isn't known.
 
 **Consequences.** Cuts come later. On set A they come 1.08 s to 2.30 s after burnout, from 0.33 s
-to 1.48 s: the earliest 0.75 s and the latest 0.82 s later. The public cuts moved more, 1.50 s
-(Bella Lui) and 2.55 s (NDRT 2020), their earlier cuts having been on dips. NDRT 2020's fitted
+to 1.48 s: the range's ends 0.75 s and 0.82 s later. The public cuts moved more, 1.50 s
+(Bella Lui) and 2.55 s (NDRT 2020): Bella Lui's earlier cut came before its burn's end, NDRT
+2020's before a later top in its coast. NDRT 2020's fitted
 speed reads a new top 1.4 s into its coast, and its cut, about 3.5 s after the burn ends, waits for
 the fall from it: past the 2.83 s that bounds set A's. A later cut leaves the fit more of the coast, so its predictions are not the
 same test as before; the 2.83 s bound the set A test holds was set for the cut without the hold and
