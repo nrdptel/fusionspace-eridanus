@@ -95,7 +95,7 @@ Placed with [ADR-328][adr-328], which promotes the first; the other three are SO
   predicted apogee are merged before its error is computed. Moves: `accuracy.public` and
   `bias.public`, from 7 flights to 12. *Done when:* M2.3d's.
 - SOON: the flyer's own run as a baseline. User: a flyer who already simulates in OpenRocket, asking
-  whether HPR Sim tells them more than the run they made with their own settings. 228 of the private
+  whether HPR Sim tells them more than the run they made with their own settings. 237 of the private
   collection's 240 distinct design files (by SHA-256) store at least one OpenRocket run with an
   apogee (counted 2026-11-08); the scoreboard compares HPR Sim with OpenRocket 24.12 re-run in a
   standard atmosphere through the pad's temperature and pressure, not with what the flyer saw.
@@ -117,7 +117,7 @@ Placed with [ADR-328][adr-328], which promotes the first; the other three are SO
   flights are flown with each input's source and the archive's license recorded (aggregates only if
   it is unclear), and the report gives HPR Sim's errors beside the other tool's, dated.
 - SOON: a part's mass held to its material. User: a flyer whose design holds a mass typed ten times
-  off, as one recovery tool's catalog did until 2026-11-07, listing a 462 g parachute at 46 g ([its
+  off, as one recovery tool's catalog did until a 2026-11-07 test release, listing a 462 g parachute at 46 g ([its
   release notes][recsys]). A bundled motor's mass is checked against its record ([#1233][i1233]); a
   part's typed or library mass isn't checked against its size. Workflow: at import, each part's mass
   is set against its volume times the density range of its stated material, or of any hobby material
