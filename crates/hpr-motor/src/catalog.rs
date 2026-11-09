@@ -1184,9 +1184,8 @@ impl CatalogMotor {
             .stated
             .total_mass_g
             .filter(|g| g.is_finite() && *g > 0.0);
-        let loaded_off = record_g.is_some_and(|record_g| {
-            !within_share(total_g - record_g, record_g, LOADED_MASS_BOUND)
-        });
+        let loaded_off = record_g
+            .is_some_and(|record_g| !within_share(total_g - record_g, record_g, LOADED_MASS_BOUND));
         // The burnout mass, loaded less propellant, held to its own share of the record's burnout
         // mass: it is what sets the center of gravity after burnout (issue #1294).
         let record_burnout_g = record_g.zip(

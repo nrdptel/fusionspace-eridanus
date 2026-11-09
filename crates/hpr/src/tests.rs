@@ -2341,7 +2341,10 @@ fn a_burnout_mass_at_its_bound_moves_calistos_margin_little() {
     let heavy = margin(1.0 + BURNOUT_MASS_BOUND) - nominal;
     assert!((nominal - 3.179).abs() < 5e-4, "{nominal}");
     assert!(light > 0.0 && heavy < 0.0, "{light} {heavy}");
-    assert!(light < 0.04, "a light case raises the margin {light} calibers");
+    assert!(
+        light < 0.04,
+        "a light case raises the margin {light} calibers"
+    );
     assert!((light - 0.037).abs() < 5e-4, "{light}");
     let earlier = margin(1.0 - 0.05 * 4.771 / 1.815) - nominal;
     assert!((earlier - 0.098).abs() < 5e-4, "{earlier}");
