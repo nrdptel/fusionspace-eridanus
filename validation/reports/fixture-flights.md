@@ -1,4 +1,4 @@
-# Real flights of the private collection: logged apogees (M2.3c1, rechecked in M2.3c5, ADR-184, ADR-238)
+# Real flights of the private collection: logged apogees (M2.3c1, rechecked in M2.3c5, halved in M2.7a, ADR-184, ADR-238, ADR-332)
 
 Written by `cargo xtask fixture-flights`; do not edit. The flights are the tier-A flights of a private collection of designs paired with logs of the same flight (ADR-151). Its license allows only aggregate statistics, so no flight is named or numbered here. Tier A is the collection's first grading of its best-documented flights. Each flight's day, logged apogee, early deployment and reason to be left out were rechecked against the collection's catalog, a second reading of each flight's sources (ADR-238, which sets out what the recheck moved). The catalog proposes some flights below tier A: one of the design, motor, log, day or site inferred (B), or the design not shown to be the rocket flown (C).
 
@@ -16,6 +16,7 @@ Written by `cargo xtask fixture-flights`; do not edit. The flights are the tier-
 | of those, with an early deployment | 19 |
 | of those, deployment not known | 0 |
 | of those, proposed below tier A by the catalog | 11 |
+| of those, in the held-out half (below) | 23 |
 | of the 83, launch hour not known (local noon flown) | 26 |
 | of the 83, rail not known (6 ft flown) | 2 |
 
@@ -75,6 +76,28 @@ Each simulator's apogee less the logged one, over the logged one, per cent. hpr 
 | OpenRocket | +6.09% | +5.84% | 10.84% | 13.08% | 10 | 26 | 0 0 0 0 6 6 2 8 10 5 5 5 1 1 |
 | hpr in OpenRocket's air | +7.14% | +6.49% | 11.68% | 14.24% | 11 | 27 | 0 0 0 0 4 6 4 7 10 5 4 5 3 1 |
 | hpr against OpenRocket | +0.83% | +0.55% | 1.64% | 2.40% | 48 | 49 | 0 0 0 0 0 0 15 33 1 0 0 0 0 0 |
+
+## The halves
+
+The two halves of the flights compared (M2.7a, ADR-322, ADR-332). A flight is held out when SHA-256 of its id followed by the seven characters `ADR-209` starts with eight bytes that, read as a big-endian integer, are below 2⁶⁴ / 3; the rest are the calibration half. The held-out ids' digest, [`held-out.sha256`](held-out.sha256), was committed before any half's number. Only the calibration half may feed a fit across flights. Such a fit must take its flights through a guard that stops `cargo xtask fixture-flights` when one is held out; the guard checks only the fits that take it, and review holds a new fit to it. Today the calibration half's fit aggregates in `collection-boost.json` take it. So does the calibration half's table below, which the scoreboard holds its collection rows by. The held-out half is held out, not blind: the first set above, over every flight compared, was published before the held-out half was sealed.
+
+### the calibration half (37 flights)
+
+| | mean | median | mean absolute | RMS | within 5% | within 10% | histogram |
+|---|---:|---:|---:|---:|---:|---:|---|
+| hpr | +4.24% | +4.21% | 9.43% | 11.57% | 11 | 23 | 0 0 0 1 2 6 2 9 6 7 1 1 2 0 |
+| OpenRocket | +3.64% | +3.41% | 8.95% | 11.02% | 11 | 23 | 0 0 0 1 4 4 3 8 8 4 2 2 1 0 |
+| hpr in OpenRocket's air | +4.38% | +3.80% | 9.54% | 11.72% | 11 | 23 | 0 0 0 1 2 6 2 9 6 6 2 1 2 0 |
+| hpr against OpenRocket | +0.57% | +0.54% | 1.64% | 2.24% | 37 | 37 | 0 0 0 0 0 0 11 26 0 0 0 0 0 0 |
+
+### the held-out half (23 flights)
+
+| | mean | median | mean absolute | RMS | within 5% | within 10% | histogram |
+|---|---:|---:|---:|---:|---:|---:|---|
+| hpr | +13.42% | +12.69% | 16.32% | 20.15% | 3 | 9 | 0 0 0 0 2 0 2 1 6 3 1 4 2 2 |
+| OpenRocket | +11.68% | +11.69% | 14.98% | 18.28% | 2 | 8 | 0 0 0 0 2 2 0 2 4 4 3 4 0 2 |
+| hpr in OpenRocket's air | +13.58% | +13.03% | 16.40% | 20.21% | 3 | 8 | 0 0 0 0 2 0 2 1 5 3 2 5 1 2 |
+| hpr against OpenRocket | +1.50% | +0.87% | 1.65% | 2.50% | 22 | 23 | 0 0 0 0 0 0 5 17 1 0 0 0 0 0 |
 
 ## Sources
 

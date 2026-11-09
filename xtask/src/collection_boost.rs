@@ -57,6 +57,50 @@ pub fn held_out(flight_id: &str) -> bool {
     leading_is_held_out(leading(flight_id))
 }
 
+/// The flights a fit across the collection's flights may take: the calibration half's only
+/// (ADR-209 §4: held-out flights never feed a fit or tuning across flights, or a choice of
+/// model; M2.7a, ADR-332).
+///
+/// It is built only by [`Calibration::of`], which reads each flight's half from its id again,
+/// whatever its caller's own filter said, and refuses the whole set when any flight is held out.
+/// A fit across flights must take a `Calibration`, so a held-out flight fed to one stops
+/// `cargo xtask fixture-flights`, and with it `--check`, the gate's `refs` step; the guard checks
+/// only the fits that take it. Today two take one: the calibration half's fit aggregates (the
+/// drag, impulse and structure-mass scales M7.5's correction, for drag and impulse, would be
+/// chosen from, ADR-322 §2; that correction must take one too), and the fixture report's
+/// calibration half, the threshold the scoreboard holds its collection rows by (ADR-332 §4).
+#[derive(Debug)]
+pub struct Calibration<T>(Vec<T>);
+
+impl<T> Calibration<T> {
+    /// The flights, each beside its manifest `flight_id`; an error naming how many are held out
+    /// (not which: the ids are private, ADR-151) when any is.
+    pub fn of<'a>(flights: impl IntoIterator<Item = (&'a str, T)>) -> Result<Self, String> {
+        let mut kept = Vec::new();
+        let mut held = 0_usize;
+        for (flight_id, flight) in flights {
+            if held_out(flight_id) {
+                held += 1;
+            } else {
+                kept.push(flight);
+            }
+        }
+        if held > 0 {
+            return Err(format!(
+                "{held} held-out flight{} fed a fit across flights: only the calibration half may \
+                 (ADR-209 §4, ADR-322 §2)",
+                if held == 1 { "" } else { "s" }
+            ));
+        }
+        Ok(Self(kept))
+    }
+
+    /// The flights, in the order given.
+    pub fn flights(&self) -> &[T] {
+        &self.0
+    }
+}
+
 /// The first eight bytes of SHA-256 of the id's UTF-8 bytes then `ADR-209`, read big-endian.
 fn leading(flight_id: &str) -> u64 {
     let digest = Sha256::new()
@@ -581,6 +625,27 @@ mod tests {
             held,
             [6, 7, 8, 9, 10].map(|k| format!("example-flight-{k}"))
         );
+    }
+
+    /// A fit across flights takes the calibration half only: a held-out flight among its flights,
+    /// whatever the caller's own filter said, refuses the set, counting the held-out flights and
+    /// naming none. Of the invented ids, 6 to 10 are held out (above).
+    #[test]
+    fn a_held_out_flight_never_feeds_a_fit_across_flights() {
+        let ids: Vec<String> = (1..=12).map(|k| format!("example-flight-{k}")).collect();
+        let calibration = Calibration::of(
+            ids.iter()
+                .filter(|id| !held_out(id))
+                .map(|id| (id.as_str(), id.len())),
+        )
+        .unwrap();
+        assert_eq!(calibration.flights().len(), 7);
+        let one = Calibration::of([("example-flight-1", 1), ("example-flight-6", 6)]).unwrap_err();
+        assert!(one.starts_with("1 held-out flight fed a fit"), "{one}");
+        assert!(!one.contains("example-flight"), "{one}");
+        let all = Calibration::of(ids.iter().map(|id| (id.as_str(), ()))).unwrap_err();
+        assert!(all.starts_with("5 held-out flights fed a fit"), "{all}");
+        assert!(Calibration::<()>::of([]).unwrap().flights().is_empty());
     }
 
     /// The bound is 2⁶⁴ / 3 = 6,148,914,691,236,517,205.33…: its floor is held out, the next

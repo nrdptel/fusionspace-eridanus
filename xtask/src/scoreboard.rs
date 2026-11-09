@@ -18,7 +18,12 @@
 //!
 //! A cell is worse when its row's [`Worse`] rule says so at the printed precision, when it counts
 //! fewer flights or designs, or when a measured cell is no longer measured; a worsening passes only when an accepted ADR names the
-//! cell and the next release in a `- **Scoreboard:**` line (ADR-240). Speed is reported, never
+//! cell and the next release in a `- **Scoreboard:**` line (ADR-240). A cell may carry another
+//! number the check holds it by in place of its value ([`Held`]): HPR Sim's collection cells are
+//! held by the calibration half's, so a worse error on the held-out half alone can't block a
+//! change of model (a drop in the cell's flight count still does). Where both scoreboards carry one, it is compared and the cell's own value is
+//! shown, not held, though its count still is; against a scoreboard without one, the cells' own
+//! values are compared (ADR-332 §4). Speed is reported, never
 //! gated (ADR-209 §3), and the other tools' numbers are shown, not held. The `xtask` tests hold
 //! the committed scoreboard to the committed reports, and each unmeasured cell's milestone to an
 //! open entry in `docs/ROADMAP.md`, so closing that milestone without wiring its cell fails.
@@ -81,6 +86,9 @@ const ROADMAP: &str = "docs/ROADMAP.md";
 
 /// The private collection's set the scoreboard reads: every flight both tools flew and compared.
 const EVERY_FLIGHT: &str = "every flight compared";
+/// Its calibration half (M2.7a, ADR-332 §4): the ratchet holds HPR Sim's collection cells by it,
+/// so a worse error on the held-out half alone can't block a change of model.
+const CALIBRATION_HALF: &str = "the calibration half";
 
 /// A tool with a column.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -186,6 +194,26 @@ pub(crate) struct Cell {
     /// that HPR Sim can't do until its milestone does.
     #[serde(default)]
     pub cannot: Option<String>,
+    /// The number the ratchet holds the cell by in place of its own value, where the cell
+    /// counts flights that must not veto a change (ADR-332 §4).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub held_by: Option<Held>,
+}
+
+/// What the ratchet holds a cell by in place of its value: the private collection's calibration
+/// half, for a row over every flight compared, so a worse error on the held-out half alone can't
+/// block a change of model, though a drop in the cell's flight count still does (ADR-209 §4,
+/// ADR-322 §2, ADR-332 §4).
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub(crate) struct Held {
+    /// The value at the row's printed precision.
+    pub value: f64,
+    /// How many flights it counts over.
+    pub count: u64,
+    /// Which flights, in words.
+    pub what: String,
+    /// The report and the key it was read from.
+    pub source: String,
 }
 
 /// One measure on one axis, with a cell per tool.
@@ -217,6 +245,11 @@ impl Row {
             note: Some(note),
             ..self
         }
+    }
+
+    /// The row with `note`, if any, printed under its axis's table.
+    fn with_note_if(self, note: Option<String>) -> Self {
+        Self { note, ..self }
     }
 
     /// Whether the ratchet holds `tool`'s value in this row: HPR Sim's numbers only, which are
@@ -460,36 +493,69 @@ pub(crate) fn worsenings(old: &Scoreboard, new: &Scoreboard) -> Vec<Worsening> {
             let id = format!("{}.{}", row.id, cell.tool.slug());
             let new_cell =
                 new_row.and_then(|new_row| new_row.cells.iter().find(|c| c.tool == cell.tool));
-            let now = new_cell.and_then(|c| c.value.map(|value| (value, c.count)));
-            match now {
-                None => found.push(Worsening {
+            let Some((now, after)) = new_cell.and_then(|c| c.value.map(|value| (value, c.count)))
+            else {
+                found.push(Worsening {
                     cell: id,
                     was: value_text(row, was),
                     now: new_cell
                         .and_then(|c| c.cannot.clone())
                         .unwrap_or_else(|| "not measured".to_owned()),
-                }),
-                Some((now, _)) if row.holds(cell.tool) && row.worse.worse(was, now) => {
-                    found.push(Worsening {
-                        cell: id,
-                        was: value_text(row, was),
-                        now: value_text(row, now),
-                    });
-                }
-                Some((now, Some(after)))
-                    if row.holds(cell.tool) && cell.count.is_some_and(|before| after < before) =>
-                {
-                    let counted = |value, count| match count_text(row, count) {
-                        Some(words) => format!("{} {words}", value_text(row, value)),
-                        None => format!("{} over {count}", value_text(row, value)),
-                    };
-                    found.push(Worsening {
-                        cell: id,
-                        was: counted(was, cell.count.unwrap_or(after)),
-                        now: counted(now, after),
-                    });
-                }
-                Some(_) => {}
+                });
+                continue;
+            };
+            if !row.holds(cell.tool) {
+                continue;
+            }
+            // Where both sides hold the cell by another number, that number is compared and the
+            // cell's own is shown, not held (ADR-332 §4); otherwise the cells' own values.
+            let (own_before, own_after) = (cell.count, after);
+            let (was, before, now, after, by) = match (
+                cell.held_by.as_ref(),
+                new_cell.and_then(|c| c.held_by.as_ref()),
+            ) {
+                (Some(old), Some(new)) => (
+                    old.value,
+                    Some(old.count),
+                    new.value,
+                    Some(new.count),
+                    Some(new.what.as_str()),
+                ),
+                _ => (was, cell.count, now, after, None),
+            };
+            let on = |text: String| match by {
+                Some(what) => format!("{text} on {what}"),
+                None => text,
+            };
+            if row.worse.worse(was, now) {
+                found.push(Worsening {
+                    cell: id,
+                    was: on(value_text(row, was)),
+                    now: on(value_text(row, now)),
+                });
+            } else if let (Some(before), Some(after)) = (before, after)
+                && after < before
+            {
+                let counted = |value, count| match count_text(row, count) {
+                    Some(words) => format!("{} {words}", value_text(row, value)),
+                    None => format!("{} over {count}", value_text(row, value)),
+                };
+                found.push(Worsening {
+                    cell: id,
+                    was: on(counted(was, before)),
+                    now: on(counted(now, after)),
+                });
+            } else if by.is_some()
+                && let (Some(before), Some(after)) = (own_before, own_after)
+                && after < before
+            {
+                // A held cell still counts every flight: leaving any out, the held-out half's
+                // included, is a number made better by leaving data out.
+                found.push(Worsening {
+                    cell: id,
+                    was: format!("over {before}"),
+                    now: format!("over {after}"),
+                });
             }
         }
     }
@@ -718,6 +784,7 @@ fn measured(tool: Tool, value: f64, decimals: u32, count: u64, source: String) -
         source: Some(source),
         milestone: None,
         cannot: None,
+        held_by: None,
     }
 }
 
@@ -730,6 +797,7 @@ fn later(tool: Tool, milestone: &str) -> Cell {
         source: None,
         milestone: Some(milestone.to_owned()),
         cannot: None,
+        held_by: None,
     }
 }
 
@@ -782,6 +850,12 @@ fn tools(reports: &Reports) -> Result<BTreeMap<Tool, String>, String> {
 /// The private collection's set of every compared flight, and its flight count, checked to be
 /// each tool's count.
 fn every_flight(reports: &Reports) -> Result<(&Value, String, u64), String> {
+    fixture_set(reports, EVERY_FLIGHT)
+}
+
+/// The private collection's set named `name`, its pointer, and its flight count, checked to be
+/// each tool's count.
+fn fixture_set<'a>(reports: &'a Reports, name: &str) -> Result<(&'a Value, String, u64), String> {
     let sets = reports
         .fixture_flights
         .pointer("/sets")
@@ -789,8 +863,8 @@ fn every_flight(reports: &Reports) -> Result<(&Value, String, u64), String> {
         .ok_or_else(|| format!("{FIXTURE_FLIGHTS} has no sets"))?;
     let index = sets
         .iter()
-        .position(|set| set.get("name").and_then(Value::as_str) == Some(EVERY_FLIGHT))
-        .ok_or_else(|| format!("{FIXTURE_FLIGHTS} has no set named \"{EVERY_FLIGHT}\""))?;
+        .position(|set| set.get("name").and_then(Value::as_str) == Some(name))
+        .ok_or_else(|| format!("{FIXTURE_FLIGHTS} has no set named \"{name}\""))?;
     let set = &sets[index];
     let pointer = format!("/sets/{index}");
     let flights = whole(set, FIXTURE_FLIGHTS, "/flights")?;
@@ -952,6 +1026,7 @@ fn cannot_by_page(
             "can't: {reason} ([{}]({}))",
             source.title, source.url
         )),
+        held_by: None,
     })
 }
 
@@ -965,6 +1040,8 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
     let public = &reports.real_flights;
     let public_flights = whole(public, REAL_FLIGHTS, "/summary/flights")?;
     let (set, set_pointer, collection_flights) = every_flight(reports)?;
+    let (calibration_set, calibration_pointer, calibration_flights) =
+        fixture_set(reports, CALIBRATION_HALF)?;
     let percent = |axis, id: &str, label: &str, signed, worse, cells| Row {
         id: id.to_owned(),
         axis,
@@ -985,6 +1062,36 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
             2,
             collection_flights,
             format!("{FIXTURE_FLIGHTS} {set_pointer}{pointer}"),
+        ))
+    };
+    // HPR Sim's collection cells are held by the calibration half's numbers (ADR-332 §4).
+    let held_collection = |field: &str| -> Result<Cell, String> {
+        let pointer = format!("/hpr/{field}");
+        let mut cell = collection(field, Hpr, "hpr")?;
+        cell.held_by = Some(Held {
+            value: rounded(number(calibration_set, FIXTURE_FLIGHTS, &pointer)?, 2),
+            count: calibration_flights,
+            what: CALIBRATION_HALF.to_owned(),
+            source: format!("{FIXTURE_FLIGHTS} {calibration_pointer}{pointer}"),
+        });
+        Ok(cell)
+    };
+    // The note under a held collection row: what the ratchet holds, and why.
+    let held_note = |id: &str, signed: bool, cell: &Cell| -> Option<String> {
+        let held = cell.held_by.as_ref()?;
+        let value = if signed {
+            format!("{:+.2}%", held.value)
+        } else {
+            format!("{:.2}%", held.value)
+        };
+        Some(format!(
+            "**`{id}`**: the scoreboard's check (see *How far to trust it*) holds HPR Sim's \
+             cell by {}'s {value} over {} flights, not by the cell's own, so a worse error on \
+             the held-out half alone can't block a change of model, though a drop in the cell's \
+             flight count still does; the cell still shows every flight compared ([ADR-332](https://github.com/nrdptel/\
+             fusionspace-eridanus/blob/main/docs/decisions/\
+             0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md)).",
+            held.what, held.count
         ))
     };
     let public_cell = |pointer: &str| -> Result<Cell, String> {
@@ -1060,6 +1167,10 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
         };
 
     let (boost_cell, boost_note) = from_boost(reports)?;
+    let accuracy_held = held_collection("mean_absolute_percent")?;
+    let accuracy_note = held_note("accuracy.collection", false, &accuracy_held);
+    let bias_held = held_collection("mean_percent")?;
+    let bias_note = held_note("bias.collection", true, &bias_held);
     let mut rows = vec![
         percent(
             Axis::Accuracy,
@@ -1080,11 +1191,12 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
             false,
             Worse::Higher,
             vec![
-                collection("mean_absolute_percent", Hpr, "hpr")?,
+                accuracy_held,
                 collection("mean_absolute_percent", Openrocket, "openrocket")?,
                 later(Rocketpy, "M2.9"),
             ],
-        ),
+        )
+        .with_note_if(accuracy_note),
         percent(
             Axis::Accuracy,
             "accuracy.held-out",
@@ -1142,11 +1254,12 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
             true,
             Worse::FartherFromZero,
             vec![
-                collection("mean_percent", Hpr, "hpr")?,
+                bias_held,
                 collection("mean_percent", Openrocket, "openrocket")?,
                 later(Rocketpy, "M2.9"),
             ],
-        ),
+        )
+        .with_note_if(bias_note),
         percent(
             Axis::Bias,
             "bias.held-out",
@@ -1371,6 +1484,7 @@ fn step_cell(
                 source: Some(source),
                 milestone: None,
                 cannot: None,
+                held_by: None,
             }
         }
         Outcome::Cannot {
@@ -1392,6 +1506,7 @@ fn step_cell(
                 (None, false) => format!("can't: {reason}"),
             }),
             milestone,
+            held_by: None,
         },
     })
 }
@@ -1867,6 +1982,16 @@ pub(crate) fn render(scoreboard: &Scoreboard) -> String {
             if let Some(source) = &cell.source {
                 let _ = writeln!(page, "- `{}.{}`: `{source}`", row.id, cell.tool.slug());
             }
+            if let Some(held) = &cell.held_by {
+                let _ = writeln!(
+                    page,
+                    "- `{}.{}`, held by {}: `{}`",
+                    row.id,
+                    cell.tool.slug(),
+                    held.what,
+                    held.source
+                );
+            }
         }
     }
     let _ = writeln!(page, "\n## Credits\n");
@@ -2112,6 +2237,109 @@ mod tests {
         assert!(error.contains("comparator"), "{error}");
     }
 
+    /// The collection rows are held by the calibration half (ADR-332 §4): a worse number over
+    /// every flight with the calibration half's unchanged, which only the held-out half can do,
+    /// shows in the cell and fails nothing; a worse calibration half fails; and against a
+    /// scoreboard from before the hold, the cells' own values are compared.
+    #[test]
+    fn the_collection_rows_are_held_by_the_calibration_half() {
+        let (root, reports, committed) = committed();
+        let release = next_release(&root).expect("the release");
+        let none = BTreeSet::new();
+        let every = every_flight(&reports).expect("every flight").1;
+        let calibration = fixture_set(&reports, CALIBRATION_HALF)
+            .expect("the calibration half")
+            .1;
+        assert_ne!(every, calibration);
+        let row = |board: &Scoreboard, id: &str| -> Cell {
+            board
+                .rows
+                .iter()
+                .find(|row| row.id == id)
+                .and_then(|row| row.cells.iter().find(|cell| cell.tool == Tool::Hpr))
+                .cloned()
+                .expect("the cell")
+        };
+        let held = row(&committed, "accuracy.collection")
+            .held_by
+            .expect("held by the calibration half");
+        assert_eq!(
+            held.source,
+            format!("{FIXTURE_FLIGHTS} {calibration}/hpr/mean_absolute_percent")
+        );
+        assert!(row(&committed, "bias.collection").held_by.is_some());
+        // One number in the fixture report moved by `step`, the scoreboard built again.
+        let changed = |pointer: &str, step: &dyn Fn(f64) -> f64| -> Scoreboard {
+            let mut reports = Reports::read(&root).expect("the committed reports");
+            let value = number(&reports.fixture_flights, FIXTURE_FLIGHTS, pointer).expect("it");
+            *reports
+                .fixture_flights
+                .pointer_mut(pointer)
+                .expect("the number") = step(value).into();
+            scoreboard(&reports).expect("the scoreboard")
+        };
+        // Worse by one printed step: a higher error, or a bias farther from zero.
+        let worse = |set: &str, field: &str| -> Scoreboard {
+            changed(&format!("{set}/hpr/{field}"), &|value| {
+                value + 0.01 * value.signum()
+            })
+        };
+
+        // The whole collection's numbers worse, the calibration half's not: shown, not held.
+        for (id, field) in [
+            ("accuracy.collection", "mean_absolute_percent"),
+            ("bias.collection", "mean_percent"),
+        ] {
+            let moved = worse(&every, field);
+            let was = row(&committed, id).value.expect("measured");
+            let shown = row(&moved, id).value.expect("measured");
+            assert!(shown.abs() > was.abs(), "{id}: {was} → {shown}");
+            assert!(gate(&committed, &moved, &release, &none).is_ok(), "{id}");
+        }
+
+        // The calibration half's worse: refused, and said to be the calibration half's.
+        for (id, field) in [
+            ("accuracy.collection.hpr", "mean_absolute_percent"),
+            ("bias.collection.hpr", "mean_percent"),
+        ] {
+            let error = gate(&committed, &worse(&calibration, field), &release, &none)
+                .expect_err("a worse calibration half fails");
+            assert!(error.contains(id), "{error}");
+            assert!(error.contains("on the calibration half"), "{error}");
+        }
+
+        // Fewer flights, in the calibration half or in the cell's own count (a held-out flight
+        // left out): refused, though no value is worse.
+        let fewer = |set: &str| -> Scoreboard {
+            let mut reports = Reports::read(&root).expect("the committed reports");
+            for key in ["/flights", "/hpr/n", "/openrocket/n"] {
+                let at = format!("{set}{key}");
+                let n = whole(&reports.fixture_flights, FIXTURE_FLIGHTS, &at).expect("a count");
+                *reports.fixture_flights.pointer_mut(&at).expect("a count") = (n - 1).into();
+            }
+            scoreboard(&reports).expect("the scoreboard")
+        };
+        for set in [&calibration, &every] {
+            let error =
+                gate(&committed, &fewer(set), &release, &none).expect_err("fewer flights fail");
+            for id in ["accuracy.collection.hpr", "bias.collection.hpr"] {
+                assert!(error.contains(id), "{set}: {error}");
+            }
+            // The calibration half's count is named as its; the cell's own count isn't.
+            let half = error.contains("on the calibration half");
+            assert_eq!(half, set == &calibration, "{set}: {error}");
+        }
+
+        // Against a scoreboard that held the cells' own values, those are compared.
+        let mut before = committed.clone();
+        for cell in before.rows.iter_mut().flat_map(|row| row.cells.iter_mut()) {
+            cell.held_by = None;
+        }
+        let moved = worse(&every, "mean_absolute_percent");
+        let error = gate(&before, &moved, &release, &none).expect_err("the cell's own, worse");
+        assert!(error.contains("accuracy.collection.hpr"), "{error}");
+    }
+
     /// A worse HPR Sim number in a report fails the gate, for each kind of rule that holds a
     /// measured cell today; a better one passes.
     #[test]
@@ -2123,6 +2351,10 @@ mod tests {
         let fixture = reports.fixture_flights.clone();
         let export = reports.export_flights.clone();
         let set = every_flight(&reports).expect("the set").1;
+        // HPR Sim's collection cells are held by the calibration half (ADR-332 §4).
+        let calibration = fixture_set(&reports, CALIBRATION_HALF)
+            .expect("the calibration half")
+            .1;
 
         // A higher mean absolute error, by one printed step.
         let pointer = "/summary/mean_absolute_apogee_error_percent";
@@ -2144,7 +2376,7 @@ mod tests {
         reports.real_flights = real;
 
         // A bias farther from zero on the other side.
-        let pointer = format!("{set}/hpr/mean_percent");
+        let pointer = format!("{calibration}/hpr/mean_percent");
         let value = number(&fixture, FIXTURE_FLIGHTS, &pointer).expect("the bias");
         *reports
             .fixture_flights

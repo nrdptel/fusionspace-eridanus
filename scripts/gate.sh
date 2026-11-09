@@ -61,8 +61,9 @@
 # It joins any run that includes `test` (the default set, or a fix's `scripts/gate.sh clippy test`)
 # when refs/ is present and the branch changes a physics crate (hpr-aero, hpr-sim, hpr-motor,
 # hpr-design, hpr-atmos, hpr-io), the log readers (hpr-flightdata), the command line (hpr-cli,
-# which `ork-cli --check` runs) or the evidence register
-# (validation/evidence.toml, whose samples `evidence --samples` checks) against origin/main, and
+# which `ork-cli --check` runs), the evidence register
+# (validation/evidence.toml, whose samples `evidence --samples` checks) or the xtask files that
+# split and guard the private collection's halves (`fixture-flights --check`) against origin/main, and
 # says so when it can't. Name it to run it
 # anyway (`scripts/gate.sh refs`), or set GATE_REFS=0 to leave it out.
 # Step evidence (M2.10, ADR-278): `xtask evidence`, the evidence register held to the guide's pages,
@@ -141,6 +142,9 @@ touches_physics() {
   grep -qx "validation/evidence.toml" <<<"$changed" && return 0
   # What `ghost --check` reads the real logs with: CI holds only the invented flights.
   grep -qE "^(validation/oracles/ghost/|validation/fixtures/logs/rocketpy-mappings/|xtask/src/ghost.rs)" <<<"$changed" && return 0
+  # What `fixture-flights --check` holds the held-out half and its guard with (M2.7a, ADR-332):
+  # CI has no private collection to run it on.
+  grep -qE "^xtask/src/(fixture_flights|collection_boost|collection_errors).rs$" <<<"$changed" && return 0
   return 1
 }
 

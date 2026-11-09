@@ -194,11 +194,15 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
     five new flights' inputs, sources and predicted apogees, computing no error.
   - [ ] **M2.3d2 The errors.** *Done when:* ADR-328 §1b's: `real-flights` flies all 12, each new
     prediction beside its error; `accuracy.public` and `bias.public` over all 12.
-- [ ] **M2.7 Held-out flights, predictions first** (ADR-209 §4). *Done when:* a flight is held out
+- [ ] **M2.7 Held-out flights, predictions first** (ADR-209 §4; ADR-332, in two; met when they
+  are). *Done when:* a flight is held out
   when SHA-256 of its id and the seed `ADR-209` falls in the lowest third, fixed before any held-out
   error is computed; the fixture report gives both halves as aggregates; a refs check fails when a
   held-out flight feeds a fit across flights; new flights' predictions sit in the private
   collection before their logs are compared, only their files' hashes committed. Moves: accuracy.
+  - [ ] **M2.7b New flights predicted first.** *Done when:* M2.7's last clause, whole; a flight
+    added after M2.7a is compared only once its prediction's hash merged earlier (ADR-332 §1);
+    the scoreboard's held-out rows measured, shown not held (ADR-332 §4).
 - [ ] **M2.8 Honest uncertainty** (ADR-209 §5). *Done when:* each logged flight is also flown as a
   dispersion, and the report gives how often its 50% and 90% apogee ranges hold the log, on both
   halves, with two-sided 95% Clopper–Pearson bounds, a failed run counted as a miss; and #401
