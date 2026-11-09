@@ -201,7 +201,9 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
   held-out flight feeds a fit across flights; new flights' predictions sit in the private
   collection before their logs are compared, only their files' hashes committed. Moves: accuracy.
   - [ ] **M2.7b New flights predicted first.** *Done when:* M2.7's last clause, whole; a flight
-    added after M2.7a is compared only once its prediction's hash merged earlier (ADR-332 §1).
+    added after M2.7a is compared only once its prediction's hash merged earlier (ADR-332 §1);
+    the scoreboard's held-out rows measured, shown not held; its collection rows held on the
+    calibration half alone (ADR-332 §4).
 - [ ] **M2.8 Honest uncertainty** (ADR-209 §5). *Done when:* each logged flight is also flown as a
   dispersion, and the report gives how often its 50% and 90% apogee ranges hold the log, on both
   halves, with two-sided 95% Clopper–Pearson bounds, a failed run counted as a miss; and #401

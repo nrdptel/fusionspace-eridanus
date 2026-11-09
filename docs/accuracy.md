@@ -931,31 +931,29 @@ investigated ([report][real-report]).
 These are a private collection's [logged apogees](decisions-and-roadmap.md#m2-3c1)
 ([the decision][adr-184]), [rechecked](decisions-and-roadmap.md#m2-3c5) against the collection's
 catalog ([the recheck][adr-238]). **In short: HPR Sim and [OpenRocket](glossary.md#openrocket) flew
-60 real flights in the weather of their day. Each pairs a design with the log of the same flight.
-Both over-predict: HPR Sim's [apogees](glossary.md#apogee) are +7.76% above the logs on average
-(mean absolute 12.07%), OpenRocket's +6.72% (11.26%). The two codes agree within 5% on 59 of the
-60 ([report][fixture-report]). Neither meets the 5% target.**
+60 real flights in the weather of their day. Both over-predict: HPR Sim's
+[apogees](glossary.md#apogee) are +7.76% above the logs on average (mean absolute 12.07%),
+OpenRocket's +6.72% (11.26%). The two codes agree within 5% on 59 of the 60
+([report][fixture-report]). Neither meets the 5% target.**
 
 The [report][fixture-report]'s histogram gives the low side, the one a waiver depends on: its bins
-below zero hold the flights simulated under the log. Each logged apogee is the
-height climbed in the day's air, the altimeter's reading corrected for the weather as the report
-sets out.
+below zero hold the flights simulated under the log. Each logged apogee is the height climbed in
+the day's air, the altimeter's reading corrected for the weather as the report sets out.
 
-HPR Sim and OpenRocket agree with each other far better than with the logs. So the gap isn't a
-difference between the two codes. What causes it isn't shown here. The flights' owners allow only
-aggregate statistics, so no flight is named here. The logs' readings were taken by hand from free
-text.
+The gap to the logs isn't a difference between the two codes, and what causes it isn't shown
+here. The flights' owners allow only aggregate statistics, so no flight is named here. The logs'
+readings were taken by hand from free text.
 
 **Held out.** A hash of each flight's id holds out a third in expectation, 23 of the 60
 ([decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md)).
-From now on no fit across flights may use them. On them HPR Sim misses by 16.32% (mean absolute)
-and OpenRocket by 14.98%; on the other 37, 9.43% and 8.95% ([report][fixture-report]). They were
-seen before the split, so they aren't blind.
+From now on no value fitted across flights may use them. On them HPR Sim misses by 16.32% (mean
+absolute) and OpenRocket by 14.98%; on the other 37, 9.43% and 8.95% ([report][fixture-report]).
+They were seen before the split, so they aren't blind.
 
 **What is flown.** The collection pairs each design as flown with its own flight's log, the
 motor, date, site and the [ERA5](glossary.md#reanalysis) weather of the day
 ([decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0151-hpr-sim-fixtures-joins-the-reference-library-as.md)).
-Of its 89 best-documented flights, its tier A, 83 have an OpenRocket `.ork` design
+Of its 89 best-documented flights, its tier A (a first grading), 83 have an OpenRocket `.ork` design
 ([report][fixture-report]). Its catalog, a
 second reading of each flight's sources made later, proposes a tier for each again
 ([recheck][adr-238]):
