@@ -386,10 +386,6 @@ is unbounded. The fitted impulse scale averages 0.957 in the calibration half: t
 is a fit's factor, not a measured impulse. It may take up some of what the model gets wrong in the boost, as the other
 scales may.
 
-The [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md) lists the
-calibration half's 3.22% as `accuracy.from-boost`, with which flights it counts
-([ADR-330](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0330-m7-3d7-the-from-boost-scoreboard-row.md), the row).
-
 **The cut.** The library follows the climb speed: a straight line fitted to each half second of
 heights. One reading far from the rest is left out, as the analyzer's spike rule does. The cut needs
 the speed to stay 10% below its peak, and at least 10 m/s (32.8 ft/s) below it, for 0.75 s. It
