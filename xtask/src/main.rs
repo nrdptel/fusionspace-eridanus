@@ -74,6 +74,7 @@ mod ork_motors;
 mod ork_recovery;
 mod ork_simulations;
 mod ork_supply;
+mod predict_first;
 #[cfg(test)]
 mod python_names;
 mod real_flights;
