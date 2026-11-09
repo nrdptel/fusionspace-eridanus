@@ -2313,9 +2313,9 @@ fn a_geoid_undulation_moves_the_flights_heights_for_its_wind() {
 /// Issue #1294: a motor's burnout mass [`hpr_motor::catalog::BURNOUT_MASS_BOUND`] from its
 /// record's, the most the burnout-mass check passes, moves the static margin after burnout of
 /// RocketPy's Calisto (its getting-started design: RocketPy's 1.815 kg case and five grains, 4.771 kg
-/// loaded, flown on an M1378LR thrust curve, leaving the case in a 16.24 kg rocket after burnout)
-/// by 0.037 calibers, at Mach 0.3 and 10 s: a light case raises it, the
-/// flattering side, and a heavy one lowers it. The test holds the light case's rise under 0.04
+/// loaded, flown on an M1378LR thrust curve, leaving the case in a 16.24 kg rocket after burnout):
+/// at Mach 0.3 and 10 s it raises it by 0.037 calibers when the case is light, the
+/// flattering side, and lowers it by 0.036 when heavy (its sign asserted). The test holds the light case's rise under 0.04
 /// calibers, so a looser bound fails it; the earlier bound, 5% of the loaded mass, let the case be
 /// 13.1% light, 0.098 calibers.
 #[test]
