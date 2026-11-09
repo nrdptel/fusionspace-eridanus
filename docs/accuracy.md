@@ -26,15 +26,13 @@ kinds are assumed, and none is calibrated ([evidence row G21](evidence.md#g21)).
 average. They miss by 12.07% (mean absolute), also outside the target. OpenRocket's are +6.72%
 above** ([private collection](#real-flights-of-the-private-collection), [report][fixture-report]).
 
-Neither set is held out. Both were seen during development, so neither is a blind test. That waits
-for [held-out flights](decisions-and-roadmap.md#m2-7), predicted before their logs are read.
+Neither set is blind: both were seen during development. [Blind flights](decisions-and-roadmap.md#m2-7)
+are predicted before their logs are read.
 
 > **How far to trust it.** Comparisons, most of them with other programs. Agreement with RocketPy or
 > OpenRocket shows that HPR Sim computes what they compute, not that any of them matches the world.
-> Only the real flights are measurements.
->
-> On the real flights, public and private, the apogee misses by more than the 5% target on
-> average ([report][real-report]).
+> Only the real flights are measurements, and on them the apogee misses by more than the 5% target
+> on average ([report][real-report]).
 >
 > The [census](#the-census) adds no evidence of its own. It's exactly as good as the reports it
 > counts. Where a number matters, plan with the whole
@@ -948,11 +946,17 @@ difference between the two codes. What causes it isn't shown here. The flights' 
 aggregate statistics, so no flight is named here. The logs' readings were taken by hand from free
 text.
 
+**Held out.** A hash of each flight's id holds out about a third
+([decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md)).
+No fit across flights may use them. On the 23 held out, HPR Sim misses by 16.32% (mean absolute)
+and OpenRocket by 14.98%; on the other 37, 9.43% and 8.95% ([report][fixture-report]). Their errors
+were published before the split, so they aren't blind.
+
 **What is flown.** The collection pairs each design as flown with its own flight's log, the
 motor, date, site and the [ERA5](glossary.md#reanalysis) weather of the day
 ([decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0151-hpr-sim-fixtures-joins-the-reference-library-as.md)).
-Of its 89 best-documented flights, 83 have an OpenRocket `.ork` design
-([report][fixture-report]). Those 89 are its tier A, the collection's first grading. Its catalog, a
+Of its 89 best-documented flights, its tier A, 83 have an OpenRocket `.ork` design
+([report][fixture-report]). Its catalog, a
 second reading of each flight's sources made later, proposes a tier for each again
 ([recheck][adr-238]):
 
