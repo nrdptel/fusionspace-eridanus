@@ -1775,6 +1775,16 @@ mod tests {
         moved.counts.held_out += 1;
         let error = moved.check_consistent(&page).unwrap_err();
         assert!(error.contains(CALIBRATION_HALF), "{error}");
+        // The held-out set is held to the count itself, not only through the calibration half.
+        let mut grown = report.clone();
+        grown.sets[4].flights += 1;
+        let error = grown.check_consistent(&page).unwrap_err();
+        let expected = format!(
+            "{HELD_OUT_HALF} holds {} flights, not {}",
+            c.held_out + 1,
+            c.held_out
+        );
+        assert!(error.contains(&expected), "{error}");
         let mut past = report;
         past.counts.held_out = past.counts.compared + 1;
         let error = past.check_consistent(&page).unwrap_err();
