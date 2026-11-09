@@ -50,7 +50,7 @@ number prints worse ([ADR-240][adr-240]).
 3. **The other tools can't, by their documentation.** Each cell names its reason and links the page
    that the features record (`validation/features/simulator.toml`) cites for the tool's `log`
    capability, which says whether it reads a flight log: OpenRocket no (its planned features),
-   RocketPy yes (its Flight Comparator). The scoreboard refuses to build when either cell's yes or no
+   RocketPy yes (its Flight Comparator). The scoreboard refuses to build when either cell's answer
    changes, which sends the reason back to be read again; the test pins the linked pages. These pages, OpenRocket's 24.12 release notes and the pages below were read again on
    2026-11-08:
    - **OpenRocket 24.12:** its guide lists importing and plotting altimeter data among planned
@@ -59,8 +59,8 @@ number prints worse ([ADR-240][adr-240]).
      rerun and compare until satisfied
      ([overrides](https://openrocket.readthedocs.io/en/latest/user_guide/overrides_and_surface_finish.html)).
    - **RocketPy 1.13.0:** its Flight Comparator, added in 1.12.0 by its changelog, takes logged data,
-     aligns it with a simulated flight and gives their difference (RMS and mean absolute). Its
-     documentation names no class or function that fits the rocket's drag, motor impulse or mass to
+     aligns it with a simulated flight and gives their difference (RMS and mean absolute). In the
+     pages read, its documentation names no class or function that fits the rocket's drag, motor impulse or mass to
      a flight log, or predicts apogee from part of one. The only function on its utilities
      reference page that turns a measurement into a model parameter is a parachute's drag area from
      a drop test's landing speed.
@@ -78,7 +78,13 @@ wind constant with height fitted to the log. On the 2 public flights the fit's m
 fitted, in that constant wind, errs 3.71% against the forward simulation's 5.63%; the collection's
 report gives no such figure. The scoreboard's opening now counts 54 cells, 15 measured.
 
-**What doesn't change.** M7.3d's *done when* stands whole and is met with this row. The halves, the
+**What doesn't change.** M7.3d's *done when* stands whole and is met with this row. Its "on the
+same flights in the same air and wind" is [ADR-257][adr-257] §3's "the forward simulation's on the
+same flights, flown in the same launch-day air and wind": the forward simulation flies each flight
+in its day's ERA5 air and wind, not a standard day, and the prediction flies the same ERA5 air with
+a wind fitted to the log and centered on ERA5's, as M7.3d2 and M7.3d6 did ([ADR-325][adr-325] §2,
+[ADR-329][adr-329] §1 and §4). What that wind alone moves on the collection is
+[#1366](https://github.com/nrdptel/fusionspace-eridanus/issues/1366). The halves, the
 seal, the reports and their checks are as ADR-326 and ADR-329 left them.
 
 **Consequences.** M7.3d3 and M7.3d close. M7.3 stays open on M7.3c (the Bayesian option) and

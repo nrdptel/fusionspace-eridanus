@@ -858,13 +858,18 @@ fn from_boost(reports: &Reports) -> Result<(Cell, String), String> {
         COLLECTION_BOOST,
         "/every/forward_mean_absolute_percent",
     )?;
+    let cut = whole(half, COLLECTION_BOOST, "/cut")?;
+    let in_burn = whole(half, COLLECTION_BOOST, "/cut_in_burn")?;
+    let burn_unknown = whole(half, COLLECTION_BOOST, "/cut_burn_unknown")?;
     let limit = hpr_flightdata::readings::TRANSONIC_SPEED_M_S;
     let note = format!(
         "**`accuracy.from-boost`** counts only the flights the method can predict: the {flights} \
          of the calibration half whose barometer's log was cut before its climb reached \
          {limit:.1} m/s ({:.0} ft/s), with enough of the log up to the cut to fit, among those the \
          forward report compares and flies in the day's ERA5 air; a faster climb gets no \
-         prediction. On those {flights} flights the forward simulation's mean absolute error is \
+         prediction. Of the half's {cut} cut logs, {in_burn} whose motor's burn is known were cut \
+         inside it, and for {burn_unknown} the burn isn't known. On the {flights} predicted \
+         flights the forward simulation's mean absolute error is \
          {forward:.2}%. On the {held_flights} held-out flights predicted (held out from choices \
          made after the seal, not blind) the prediction's is {held_prediction:.2}% and the \
          forward simulation's {held_forward:.2}%, shown on [the collection's \
@@ -877,7 +882,7 @@ fn from_boost(reports: &Reports) -> Result<(Cell, String), String> {
 /// Why each other tool can't predict apogee from a log cut after burnout, read from its
 /// documentation (ADR-257 §3, ADR-330): the tool, what the features record's `log` capability
 /// says of it when this was read, and what its documentation shows. The page is the one that
-/// cell cites; a change in the cell's yes or no fails the scoreboard until the reason is read
+/// cell cites; a change in the cell's answer fails the scoreboard until the reason is read
 /// again, and the test pins the linked pages.
 const FROM_BOOST_CANNOT: [(Tool, features::Has, &str); 2] = [
     (
@@ -1800,8 +1805,8 @@ pub(crate) fn render(scoreboard: &Scoreboard) -> String {
     }
     let _ = writeln!(
         page,
-        "- **can't** means the tool has no way to do the row's task that way, by the page the \
-         cell links, or for the steps rows by the source *Steps, one by one* names; **can't \
+        "- **can't** means the tool has no way to do the row's task that way, by the documentation \
+         the cell cites, or for the steps rows by the source *Steps, one by one* names; **can't \
          yet** is {hpr}'s, with the milestone that brings it."
     );
     let _ = writeln!(
