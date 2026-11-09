@@ -225,8 +225,8 @@ pub(crate) struct MotorName {
     pub designation: String,
 }
 
-/// What a flight was to fly, and where and when: everything a prediction may read, and nothing
-/// from its log (M2.7b, ADR-332 §1). A manifest entry holds one, then the log's fields.
+/// What a flight was to fly, and where and when: everything a prediction may read, and no
+/// logged result (M2.7b, ADR-332 §1). A manifest entry holds one, then the log's fields.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub(crate) struct Plan {
     pub flight_id: String,

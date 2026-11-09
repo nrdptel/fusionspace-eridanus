@@ -22,7 +22,9 @@ guessed id could be confirmed against them.
 1. **A flight's plan.** A manifest entry now reads as a *plan*, the fields a prediction may read
    (its id, design, configuration, motor, launch time, site, rail and ERA5 file), then its log's
    fields. `cargo xtask fixture-flights predict <plan.json>` reads a file holding a plan and
-   refuses one holding any other field, a logged apogee among them. It flies the plan as
+   refuses one holding any other top-level field, a logged apogee among them. The plan's own
+   fields are hand-read; the curation took some flights' rail angle or pad elevation from their
+   logs. A new flight's must come from its launch's records instead, which the check can't tell. It flies the plan as
    `fixture-flights` flies hpr's own row, in the day's ERA5 air with nothing deployed, through the
    same steps. It then writes `refs/hpr-sim-fixtures/predictions/<id>.json`, never over an
    older one. The file holds the plan, the SHA-256 of its design file and of its ERA5 file, the
@@ -36,13 +38,13 @@ guessed id could be confirmed against them.
    line, and comment lines. The check reads it at `git merge-base HEAD origin/main`, where the branch left main, not
    in the working tree. Pull requests here are squash-merged, so, as [ADR-326][adr-326] found for
    the seal, a hash is there only if it merged in a pull request of its own before the branch
-   began. A flight marked new is refused, by id and on this machine only, when its prediction is
+   last took main. A flight marked new is refused, by id and on this machine only, when its prediction is
    missing, when the hash isn't on that list, or when the prediction is of another plan, design
    file or ERA5 file than the flight compared. A test runs the list's reading in a scratch
    repository: a hash added on the branch, or merged on main after the branch began, isn't on it.
 4. **Shown on an invented flight.** No flight has joined the manifest since M2.7a. The tests use an
    invented flight's plan and prediction for each refusal and for the flight compared. A
-   probe on the real collection added an invented flight, a copy of a compared flight under a new
+   probe by hand on the real collection, which no test repeats, added an invented flight, a copy of a compared flight under a new
    id, and was refused three times, then removed: by its id with no prediction, and with its
    prediction's hash only in the working tree's list; by the manifest's count when left unmarked.
 5. **The report.** The fixture report counts a flight added after M2.7a among its tier-A `.ork`
@@ -61,6 +63,10 @@ prediction's apogee is recorded, not reported: #1376 asks for its error beside t
 once a new flight is compared. M2.3d commits its public predictions whole ([ADR-328][adr-328]).
 
 **Consequences.** Adding a flight to the collection now takes two pull requests. The first commits
-the prediction's hash, the prediction itself going into the collection. The second, begun after
-the first merged, compares the flight. A model change between the two moves the compared apogee
-but not the prediction, which keeps the commit that flew it.
+the prediction's hash, the prediction itself going into the collection. The second, holding main
+from after the first merged, compares the flight. A model change between the two moves the
+compared apogee but not the prediction, which keeps the commit that flew it. The second also
+rewrites the reports by `cargo xtask fixture-flights`. Where the new id falls in the held-out
+third, that run rewrites the two held-out digests too: `held-out.sha256` and
+`held-out-fits.sha256`. The set they seal grows; the rule that sorts each flight into a half,
+fixed by ADR-322 §2 on ids that stay stable as the collection grows, doesn't change.

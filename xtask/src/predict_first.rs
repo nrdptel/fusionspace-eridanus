@@ -4,13 +4,14 @@
 //! pull request.
 //!
 //! - `cargo xtask fixture-flights predict <plan.json>` reads a flight's [`Plan`]: its design,
-//!   motor, day and site, and refuses a file holding any other field, a log's included. It flies
+//!   motor, day and site, and refuses a file holding any other top-level field, a logged
+//!   result's included. It flies
 //!   it as `fixture-flights` does ([`crate::fixture_flights::predicted_apogee`]), writes the
 //!   prediction under [`PREDICTIONS`] in the collection, never over an older one, and prints the
 //!   file's SHA-256, the line for [`LIST`].
 //! - [`LIST`], committed, holds only those hashes. Pull requests here are squash-merged, so a
 //!   hash is on main before a comparison only if it merged in a pull request of its own: the
-//!   check reads the list as it stands where the branch left main (`git merge-base HEAD
+//!   check reads the list as it stands where the branch last took main (`git merge-base HEAD
 //!   origin/main`), not in the working tree.
 //! - [`BEFORE`], committed, is the SHA-256 of M2.7a's manifest ids. The flights not marked
 //!   `added_after_m2_7a` must be exactly those, so a new flight can't pass as an old one, nor an
@@ -92,14 +93,14 @@ pub(crate) fn sha256_hex(bytes: &[u8]) -> String {
         })
 }
 
-/// A plan from a plan file's text, refusing any field that isn't a plan's.
+/// A plan from a plan file's text, refusing any top-level field that isn't a plan's.
 pub(crate) fn read_plan(text: &str) -> Result<Plan, String> {
     let value: Value = serde_json::from_str(text).map_err(|error| error.to_string())?;
     let object = value.as_object().ok_or("a plan is one JSON object")?;
     if let Some(key) = object.keys().find(|key| !PLAN_KEYS.contains(&key.as_str())) {
         return Err(format!(
             "`{key}` is not a field of a flight's plan: a prediction is written from the design, \
-             motor, day and site alone, without the log (ADR-332 §1)"
+             motor, day and site alone, with no logged result (ADR-332 §1)"
         ));
     }
     serde_json::from_value(value).map_err(|error| error.to_string())
@@ -141,7 +142,7 @@ fn git(root: &Path, args: &[&str]) -> Result<Option<String>, String> {
         .then(|| String::from_utf8_lossy(&output.stdout).into_owned()))
 }
 
-/// The list as it stands where `HEAD` left [`MAIN`]: only hashes merged before this branch.
+/// The list as it stands where `HEAD` last took [`MAIN`]: only hashes merged before then.
 /// No list there is an empty one.
 pub(crate) fn list_at_main(root: &Path) -> Result<BTreeSet<String>, String> {
     let base = git(root, &["merge-base", "HEAD", MAIN])?
@@ -608,8 +609,8 @@ mod tests {
         assert_eq!(parse_list(&format!("  {a}\r\n")), Ok(BTreeSet::from([a])));
     }
 
-    /// The manifest's flights not marked new must be M2.7a's: a new flight left unmarked
-    /// changes the digest, and an old one marked new changes the count.
+    /// The manifest's flights not marked new must be M2.7a's: a flight left unmarked, or an old
+    /// one marked new, changes the count; a swap that keeps the count changes the digest.
     #[test]
     fn unmarked_flights_are_m2_7a_s() {
         let entry = |id: &str, added: bool| -> Entry {

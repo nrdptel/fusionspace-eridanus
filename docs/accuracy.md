@@ -947,7 +947,7 @@ shown here. The flights' owners allow only aggregate statistics, so no flight is
 On them HPR Sim misses by 16.32% (mean absolute) and OpenRocket by 14.98%; on the other 37, 9.43%
 and 8.95% ([report][fixture-report]). Fits across flights, the scoreboard's check included, leave
 the 23 out. All 60 were seen before the split, so neither half is blind. A flight added later is
-compared only once its prediction, made without its log, has its hash merged first.
+compared only once its prediction, made with no logged apogee, has its hash merged first.
 
 **What is flown.** The collection pairs each design as flown with its own flight's log, the
 motor, date, site and the [ERA5](glossary.md#reanalysis) weather of the day
