@@ -198,22 +198,26 @@ pub struct StatedFigures {
 /// further apart than this (issue #1233); the Quest D8's file gives 454 g against 45.6 g.
 pub const LOADED_MASS_BOUND: f64 = 0.05;
 
-/// How far a flown burnout mass, loaded less propellant, may be from its record's, either way, as a
-/// share of the record's burnout mass, before flying it warns: 5%, the share [`LOADED_MASS_BOUND`]
-/// and [`PROPELLANT_SHORT_BOUND`] hold, applied to the mass the rocket carries after burnout. A
-/// light burnout mass puts the center of gravity forward after burnout, so the margin then reads
-/// high, the flattering side; a heavy one gives too low an apogee.
+/// How far a flown burnout mass (loaded less propellant: the empty case) may be from its record's,
+/// either way, as a share of the record's burnout mass, before flying it warns: 5%, the share
+/// [`LOADED_MASS_BOUND`] and [`PROPELLANT_SHORT_BOUND`] hold, applied to the motor's mass after
+/// burnout. For a motor aft of the center of gravity, as on nearly every rocket, a light burnout
+/// mass puts the center of gravity forward after burnout, so the margin then reads high, the
+/// flattering side; a heavy one gives too low an apogee and too low a margin.
 ///
 /// The margin it moves: a mass `Δm` missing at the motor's center of gravity moves the rocket's
-/// forward by `Δm·(x_motor − x_cg)/(M − Δm)`, `M` the rocket's mass after burnout, so the margin
-/// in calibers rises by that over the reference diameter. On RocketPy's Calisto (its
-/// getting-started design, `validation/designs/rocketpy-calisto-getting-started-motor-at-minus-1.255.json`,
-/// from J. M. Ceotto et al., "RocketPy: Six Degree-of-Freedom Rocket Trajectory Simulator",
-/// *J. Aerosp. Eng.* 34(6), 2021), whose M1378LR leaves a 1.815 kg case in a 16.24 kg rocket, a
-/// case 5% light raises the margin after burnout from 3.179 to 3.216 calibers, 0.037; the
-/// earlier bound, 5% of the 4.771 kg loaded mass, let the case be 13.1% light, 0.098 calibers. A
-/// rocket whose case is a larger share of its mass after burnout, or sits further aft of its
-/// center of gravity, such as a minimum-diameter one, moves further.
+/// forward by `Δm·(x_motor − x_cg)/(M − Δm)`, `x` measured aft from the nose and `M` the rocket's
+/// mass after burnout with the case at its record's mass, so the margin in calibers rises by that
+/// over the reference diameter. On RocketPy's Calisto (its getting-started design,
+/// `validation/designs/rocketpy-calisto-getting-started-motor-at-minus-1.255.json`, from RocketPy
+/// 1.13.0's getting-started notebook; the project's paper is G. H. Ceotto et al., "RocketPy: Six
+/// Degree-of-Freedom Rocket Trajectory Simulator", *J. Aerosp. Eng.* 34(6), 2021), whose motor
+/// inputs (RocketPy's 1.815 kg case and five grains, 4.771 kg loaded, flown on an M1378LR thrust
+/// curve) leave the case in a 16.24 kg rocket after burnout, a case 5% light raises the margin
+/// after burnout from 3.179 to 3.215 calibers, a rise of 0.037; the earlier bound, 5% of the
+/// loaded mass, let the case be 13.1% light, 0.098 calibers. A rocket whose case is a larger share
+/// of its mass after burnout, sits further aft of its center of gravity, or has a smaller reference
+/// diameter moves further in calibers (not measured here).
 pub const BURNOUT_MASS_BOUND: f64 = 0.05;
 
 /// Whether a mass gap `gap_g` is within `bound` of a record's mass `record_g`,
@@ -2697,8 +2701,11 @@ mod tests {
         };
         let heavy = warning(Some(flown_g / 1.051));
         assert_eq!(heavy.len(), 1, "5.1% heavy: {heavy:?}");
+        assert!(heavy[0].contains("a loaded mass of"), "{heavy:?}");
         assert!(heavy[0].contains("+5.1%"), "{heavy:?}");
         let light = warning(Some(flown_g / 0.949));
+        assert_eq!(light.len(), 1, "5.1% light: {light:?}");
+        assert!(light[0].contains("a loaded mass of"), "{light:?}");
         assert!(light[0].contains("-5.1%"), "{light:?}");
         assert!(warning(Some(flown_g / 1.049)).is_empty(), "4.9% heavy");
         assert!(warning(Some(flown_g / 0.951)).is_empty(), "4.9% light");
@@ -2731,6 +2738,7 @@ mod tests {
                 warnings[0].contains(&record_burnout) && warnings[0].contains(said),
                 "{record_burnout} {said}: {warnings:?}"
             );
+            // History, not the library: the earlier bound, 5% of the loaded mass, passed it.
             assert!(
                 (flown_burnout_g / (1.0 + gap) - flown_burnout_g).abs()
                     < LOADED_MASS_BOUND * flown_g,
@@ -2740,6 +2748,14 @@ mod tests {
         for gap in [0.049, -0.049] {
             assert!(burnout(gap).is_empty(), "{gap}");
         }
+        // A loaded mass 4.9% light with the record's propellant: the whole gap falls on the case,
+        // more than 5% of its mass, so the burnout mass warns, though the loaded mass doesn't.
+        let mut light_case = base.clone();
+        light_case.stated.total_mass_g = Some(flown_g / 0.951);
+        light_case.stated.propellant_mass_g = Some(flown_propellant_g);
+        let warnings = light_case.mass_warnings(curve);
+        assert_eq!(warnings.len(), 1, "{warnings:?}");
+        assert!(warnings[0].contains("burnout mass"), "{warnings:?}");
     }
 
     /// Issue #1233's physics review: a file other than the default flies the entry's propellant

@@ -432,7 +432,7 @@ fn a_catalog_motor_carries_its_default_files_warnings() {
     assert_eq!(h54.warnings(), h54_entry.flight_warnings(h54_curve));
     assert!(h54.warnings().iter().all(|w| !w.contains("more than 1%")));
 
-    // Each also flies a burnout mass more than 5% of its loaded mass from its record's (#1233).
+    // Each also flies a burnout mass more than 5% from its record's burnout mass (#1233, #1294).
     for (name, count) in [("G142", 2), ("F62T", 3)] {
         let entry = catalog.find(name).next().unwrap();
         let curve = entry.default_curve().unwrap();
@@ -2311,9 +2311,10 @@ fn a_geoid_undulation_moves_the_flights_heights_for_its_wind() {
 }
 
 /// Issue #1294: a motor's burnout mass [`hpr_motor::catalog::BURNOUT_MASS_BOUND`] from its
-/// record's, the most the catalog's mass check passes unwarned, moves the static margin after
-/// burnout of RocketPy's Calisto (its getting-started design, an M1378LR leaving a 1.815 kg case
-/// in a 16.24 kg rocket) by 0.037 calibers, at Mach 0.3 and 10 s: a light case raises it, the
+/// record's, the most the burnout-mass check passes, moves the static margin after burnout of
+/// RocketPy's Calisto (its getting-started design: RocketPy's 1.815 kg case and five grains, 4.771 kg
+/// loaded, flown on an M1378LR thrust curve, leaving the case in a 16.24 kg rocket after burnout)
+/// by 0.037 calibers, at Mach 0.3 and 10 s: a light case raises it, the
 /// flattering side, and a heavy one lowers it. The test holds the light case's rise under 0.04
 /// calibers, so a looser bound fails it; the earlier bound, 5% of the loaded mass, let the case be
 /// 13.1% light, 0.098 calibers.

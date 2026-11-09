@@ -253,7 +253,7 @@ impl Motor {
     /// default curve file's warnings ([`hpr_motor::catalog::CatalogMotor::flight_warnings`]): a
     /// file more than 1% from ThrustCurve.org's figures for it, each failing figure's gap named,
     /// a propellant mass more than 5% lighter than the record's, a loaded mass more than 5% from
-    /// the record's or a burnout mass off by more than 5% of the record's loaded mass, and a
+    /// the record's or a burnout mass more than 5% from the record's burnout mass, and a
     /// propellant share outside the records' span. A motor from a file or built with
     /// [`Motor::new`] has none. Setting the delay keeps them.
     #[must_use]
