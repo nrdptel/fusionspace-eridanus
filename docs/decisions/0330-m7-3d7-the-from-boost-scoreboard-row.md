@@ -1,6 +1,6 @@
 # ADR-330: M7.3d7, the from-boost scoreboard row (2026-11-08)
 
-- **Status:** accepted; carries out [M7.3d7][m7-3] under [ADR-326][adr-326] §1 and [ADR-257][adr-257] §3, and with it closes M7.3d3 and M7.3d. Withdrawn by [ADR-331](0331-withdraw-the-from-boost-row-to-land-it-again.md) and landed again unchanged.
+- **Status:** accepted; carries out [M7.3d7][m7-3] under [ADR-326][adr-326] §1 and [ADR-257][adr-257] §3, and with it closes M7.3d3 and M7.3d.
 - **Summary:** The scoreboard gains `accuracy.from-boost`, the mean absolute error of the apogee predicted from the log cut after burnout: HPR Sim 3.22% on the 12 calibration-half flights it can predict, with a note on which flights and the forward simulation's 9.35% on them. OpenRocket and RocketPy say *can't*, by their documentation.
 
 [adr-209]: 0209-the-2026-10-08-best-on-the-market-measured.md
@@ -96,3 +96,5 @@ checks are as ADR-326 and ADR-329 left them.
 M7.3e (the post-flight comparison command). A change that makes the printed calibration-half error
 higher, or counts fewer flights, now needs an accepted ADR whose `- **Scoreboard:**` line names
 `accuracy.from-boost.hpr` and the release it ships in ([ADR-240][adr-240]).
+
+**Amended 2026-11-09.** Withdrawn by [ADR-331](0331-withdraw-the-from-boost-row-to-land-it-again.md) and landed again unchanged.
