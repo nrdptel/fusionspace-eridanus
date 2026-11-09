@@ -53,12 +53,13 @@
    and put into a model or a correction: a fitted scale, a tuned constant. One flight's own fit,
    such as its drag scale from its boost, is not. Nor is a measurement that judges a model and puts
    no value into it, such as the fixture report's errors or M7.5's test on the held-out half
-   (ADR-209 §6). Tuning a model until such a number improves would be a fit. ADR-209 §4 names a
-   third case beside a fit and tuning, a choice of model: a change kept or refused by a measured
-   number. M2.7's *done when* asks a check of fits; §4 says where the held-out half still reaches a
-   choice of model, and how M2.7b ends it. A fit across flights must take its flights through `collection_boost::Calibration`, which can be built only by
-   `Calibration::of`. That reads each
-   flight's half from its manifest id again, whatever the caller's own filter said, and refuses the
+   (ADR-209 §6). Tuning a model until such a number improves would be a fit, and so would a value
+   put into a tolerance or a threshold; the guard sees neither unless it takes the guard, and
+   review does. ADR-209 §4 names one more case beside fits, tuning included: a choice of model, a
+   change kept or refused by a measured number. M2.7's *done when* asks a check of fits; §4 says
+   where the held-out half still reaches a choice of model, and how M2.7b ends it. A fit across
+   flights must take its flights through `collection_boost::Calibration`, which can be built only
+   by `Calibration::of`. That reads each flight's half from its manifest id again, whatever the caller's own filter said, and refuses the
    whole set when any flight is held out, counting them and naming none ([ADR-151][adr-151]). The
    calibration half's fit aggregates take one. M7.5's correction must take one too. The guard
    checks only the fits that take it; a new fit across flights is reviewed for it. The held-out
@@ -87,7 +88,7 @@
    so.
 
 **What doesn't change.** M2.7's *done when* is whole across the two increments, and no clause is
-narrowed. M2.7b adds how its clause is shown; it doesn't replace it. ADR-322's encoding and the
+narrowed. M2.7b adds how its clause is shown, and §4's scoreboard work; it replaces nothing. ADR-322's encoding and the
 sealed digest stand.
 
 **Consequences.** M7.5 must choose its correction on the calibration half alone, through the

@@ -940,8 +940,8 @@ The [report][fixture-report]'s histogram gives the low side, the one a waiver de
 below zero hold the flights simulated under the log. Each logged apogee is the height climbed in
 the day's air, the altimeter's reading corrected for the weather as the report sets out.
 
-The gap to the logs isn't a difference between the two codes, and what causes it isn't shown
-here. The flights' owners allow only aggregate statistics, so no flight is named here. The logs'
+The gap to the logs is mostly not a difference between the two codes, and what causes it isn't
+shown here. The flights' owners allow only aggregate statistics, so no flight is named here. The logs'
 readings were taken by hand from free text.
 
 **Held out.** A hash of each flight's id holds out a third in expectation, 23 of the 60
