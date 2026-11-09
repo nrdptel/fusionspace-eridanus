@@ -151,6 +151,42 @@
       ]
     },
     {
+      "id": "accuracy.from-boost",
+      "axis": "accuracy",
+      "label": "Mean absolute error of the apogee predicted from the log cut at burnout, the private collection's calibration half",
+      "unit": "%",
+      "decimals": 2,
+      "count_words": "over {n} flights",
+      "signed": false,
+      "worse": "higher",
+      "cells": [
+        {
+          "tool": "hpr",
+          "value": 3.22,
+          "count": 12,
+          "source": "validation/reports/collection-boost.json /predictions/halves/0/every/prediction_mean_absolute_percent",
+          "milestone": null,
+          "cannot": null
+        },
+        {
+          "tool": "openrocket",
+          "value": null,
+          "count": null,
+          "source": null,
+          "milestone": null,
+          "cannot": "can't: it reads no flight log: its guide lists importing altimeter data among planned features ([OpenRocket's guide: Features, planned future features](https://openrocket.readthedocs.io/en/latest/introduction/features.html#planned-future-features))"
+        },
+        {
+          "tool": "rocketpy",
+          "value": null,
+          "count": null,
+          "source": null,
+          "milestone": null,
+          "cannot": "can't: its Flight Comparator sets a log beside a simulated flight and gives their difference; it fits nothing to the log ([RocketPy's guide: Flight Comparator](https://docs.rocketpy.org/en/latest/user/flight_comparator.html))"
+        }
+      ]
+    },
+    {
       "id": "bias.public",
       "axis": "bias",
       "label": "Mean apogee error, public logged flights",

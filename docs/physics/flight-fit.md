@@ -385,6 +385,10 @@ flights) the difference is −7.0 and −7.3 points. Three flights are too few t
 is unbounded. The fitted impulse scale averages 0.957 in the calibration half: the thrust curve's impulse times 0.957. That
 is a fit's factor, not a measured impulse. It may take up some of what the model gets wrong in the boost, as the other
 scales may.
+The [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md)'s
+`accuracy.from-boost` holds the calibration half's 3.22%; by their documentation, OpenRocket and RocketPy can't
+predict from a log
+([ADR-330](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0330-m7-3d7-the-from-boost-scoreboard-row.md)).
 
 **The cut.** The library follows the climb speed: a straight line fitted to each half second of
 heights. One reading far from the rest is left out, as the analyzer's spike rule does. The cut needs
