@@ -153,7 +153,7 @@
     {
       "id": "accuracy.from-boost",
       "axis": "accuracy",
-      "label": "Mean absolute error of the apogee predicted from the log cut after burnout, the private collection's calibration half",
+      "label": "Mean absolute error of the apogee predicted from the log cut after burnout, the private collection's calibration-half flights it can predict",
       "unit": "%",
       "decimals": 2,
       "count_words": "over {n} flights",
@@ -174,7 +174,7 @@
           "count": null,
           "source": null,
           "milestone": null,
-          "cannot": "can't: it reads no flight log; its guide lists importing altimeter data among planned features ([OpenRocket's guide: Features, planned future features](https://openrocket.readthedocs.io/en/latest/introduction/features.html#planned-future-features))"
+          "cannot": "can't: its documentation describes importing altimeter data only as a planned feature ([OpenRocket's guide: Features, planned future features](https://openrocket.readthedocs.io/en/latest/introduction/features.html#planned-future-features))"
         },
         {
           "tool": "rocketpy",
@@ -182,9 +182,10 @@
           "count": null,
           "source": null,
           "milestone": null,
-          "cannot": "can't: its Flight Comparator sets a log beside a simulated flight and gives their difference; it fits nothing to the log ([RocketPy's guide: Flight Comparator](https://docs.rocketpy.org/en/latest/user/flight_comparator.html))"
+          "cannot": "can't: its documentation describes a Flight Comparator, a log set beside a simulated flight with their difference, but no fit to the log ([RocketPy's guide: Flight Comparator](https://docs.rocketpy.org/en/latest/user/flight_comparator.html))"
         }
-      ]
+      ],
+      "note": "**`accuracy.from-boost`** counts only the flights the method can predict: the 12 of the calibration half whose barometer's log was cut before its climb reached 227.7 m/s (747 ft/s), among those the forward simulation flies; a faster climb gets no prediction. On those 12 flights the forward simulation's mean absolute error is 9.35%. On the 9 held-out flights the prediction's is 3.56% and the forward simulation's 16.86%, shown on [the collection's page](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md) and not held."
     },
     {
       "id": "bias.public",

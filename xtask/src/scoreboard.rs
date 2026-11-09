@@ -58,6 +58,10 @@ const FIXTURE_FLIGHTS: &str = "validation/reports/fixture-flights.json";
 const FIXTURE_FLIGHTS_MD: &str = "validation/reports/fixture-flights.md";
 /// The private collection's apogee predicted from the boost, by halves (M7.3d6, ADR-329).
 const COLLECTION_BOOST: &str = crate::collection_boost::REPORT_JSON;
+/// That report's page.
+const COLLECTION_BOOST_MD: &str = crate::collection_boost::REPORT_MD;
+/// Where the repository's files are read on GitHub, for the page's links.
+const BLOB: &str = "https://github.com/nrdptel/fusionspace-eridanus/blob/main";
 /// The half of M2.7's split whose from-boost error the scoreboard holds (ADR-330).
 const FROM_BOOST_HALF: &str = "calibration";
 /// OpenRocket flying HPR Sim's `.ork` exports (M3.2b).
@@ -199,9 +203,20 @@ pub(crate) struct Row {
     pub signed: bool,
     pub worse: Worse,
     pub cells: Vec<Cell>,
+    /// What a reader needs beside the row's cells to read them, printed under its axis's table.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
 }
 
 impl Row {
+    /// The row with `note` printed under its axis's table.
+    fn with_note(self, note: String) -> Self {
+        Self {
+            note: Some(note),
+            ..self
+        }
+    }
+
     /// Whether the ratchet holds `tool`'s value in this row: HPR Sim's numbers only, which are
     /// its own column's and every round trip's (a round trip through OpenRocket's file is HPR
     /// Sim's reading and writing), and never speed's.
@@ -788,10 +803,8 @@ fn every_flight(reports: &Reports) -> Result<(&Value, String, u64), String> {
     Ok((set, pointer, flights))
 }
 
-/// HPR Sim's cell in `accuracy.from-boost`: the mean absolute error of the apogee predicted from
-/// the log cut after burnout, over every flight [`FROM_BOOST_HALF`] predicts (ADR-329, ADR-330),
-/// checked to count the half's predicted flights.
-fn from_boost(reports: &Reports) -> Result<Cell, String> {
+/// The half of the collection's errors named `name` in the from-boost report, and its index.
+fn boost_half<'a>(reports: &'a Reports, name: &str) -> Result<(&'a Value, usize), String> {
     let halves = reports
         .collection_boost
         .pointer("/predictions/halves")
@@ -799,9 +812,13 @@ fn from_boost(reports: &Reports) -> Result<Cell, String> {
         .ok_or_else(|| format!("{COLLECTION_BOOST} has no halves"))?;
     let index = halves
         .iter()
-        .position(|half| half.get("name").and_then(Value::as_str) == Some(FROM_BOOST_HALF))
-        .ok_or_else(|| format!("{COLLECTION_BOOST} has no half named \"{FROM_BOOST_HALF}\""))?;
-    let half = &halves[index];
+        .position(|half| half.get("name").and_then(Value::as_str) == Some(name))
+        .ok_or_else(|| format!("{COLLECTION_BOOST} has no half named \"{name}\""))?;
+    Ok((&halves[index], index))
+}
+
+/// The flights a half's errors count, checked to be every flight it predicts.
+fn boost_flights(half: &Value, index: usize) -> Result<u64, String> {
     let flights = whole(half, COLLECTION_BOOST, "/every/flights")?;
     let predicted = whole(half, COLLECTION_BOOST, "/predicted")?;
     if flights != predicted || flights == 0 {
@@ -810,54 +827,108 @@ fn from_boost(reports: &Reports) -> Result<Cell, String> {
              of the {predicted} predicted"
         ));
     }
+    Ok(flights)
+}
+
+/// HPR Sim's cell in `accuracy.from-boost`: the mean absolute error of the apogee predicted from
+/// the log cut after burnout, over every flight [`FROM_BOOST_HALF`] predicts (ADR-329, ADR-330),
+/// checked to count the half's predicted flights; and the note the page gives under the table:
+/// which flights those are, the forward simulation's error on them, and the held-out half's.
+fn from_boost(reports: &Reports) -> Result<(Cell, String), String> {
+    let (half, index) = boost_half(reports, FROM_BOOST_HALF)?;
+    let flights = boost_flights(half, index)?;
     let pointer = "/every/prediction_mean_absolute_percent";
-    Ok(measured(
+    let cell = measured(
         Tool::Hpr,
         number(half, COLLECTION_BOOST, pointer)?,
         2,
         flights,
         format!("{COLLECTION_BOOST} /predictions/halves/{index}{pointer}"),
-    ))
+    );
+    let forward = number(
+        half,
+        COLLECTION_BOOST,
+        "/every/forward_mean_absolute_percent",
+    )?;
+    let (held, held_index) = boost_half(reports, "held out")?;
+    let held_flights = boost_flights(held, held_index)?;
+    let held_prediction = number(held, COLLECTION_BOOST, pointer)?;
+    let held_forward = number(
+        held,
+        COLLECTION_BOOST,
+        "/every/forward_mean_absolute_percent",
+    )?;
+    let limit = hpr_flightdata::readings::TRANSONIC_SPEED_M_S;
+    let note = format!(
+        "**`accuracy.from-boost`** counts only the flights the method can predict: the {flights} \
+         of the calibration half whose barometer's log was cut before its climb reached \
+         {limit:.1} m/s ({:.0} ft/s), among those the forward simulation flies; a faster climb \
+         gets no prediction. On those {flights} flights the forward simulation's mean absolute \
+         error is {forward:.2}%. On the {held_flights} held-out flights the prediction's is \
+         {held_prediction:.2}% and the forward simulation's {held_forward:.2}%, shown on [the \
+         collection's page]({BLOB}/{COLLECTION_BOOST_MD}) and not held.",
+        limit / 0.3048
+    );
+    Ok((cell, note))
 }
 
 /// Why each other tool can't predict apogee from a log cut after burnout, read from its
-/// documentation (ADR-257 §3, ADR-330): the tool, the id of its page in the features record, and
-/// what the page shows.
-const FROM_BOOST_CANNOT: [(Tool, &str, &str); 2] = [
+/// documentation (ADR-257 §3, ADR-330): the tool, what the features record's `log` capability
+/// says of it when this was read, and what its documentation shows. The page is the one that
+/// cell cites, so a changed cell fails the scoreboard until the reason is read again.
+const FROM_BOOST_CANNOT: [(Tool, features::Has, &str); 2] = [
     (
         Tool::Openrocket,
-        "planned",
-        "it reads no flight log; its guide lists importing altimeter data among planned \
-         features",
+        features::Has::No,
+        "its documentation describes importing altimeter data only as a planned feature",
     ),
     (
         Tool::Rocketpy,
-        "comparator",
-        "its Flight Comparator sets a log beside a simulated flight and gives their difference; \
-         it fits nothing to the log",
+        features::Has::Yes,
+        "its documentation describes a Flight Comparator, a log set beside a simulated flight \
+         with their difference, but no fit to the log",
     ),
 ];
 
-/// A cell for a tool that can't do the row's task, its reason ending in a link to the page of
-/// the features record's tool that shows it.
+/// The features record's capability whose cells say whether a tool reads a flight log.
+const LOG_CAPABILITY: &str = "log";
+
+/// A cell for a tool that can't do the row's task, its reason ending in a link to the page the
+/// features record's `log` cell cites for the tool, refused unless that cell still says `has`.
 fn cannot_by_page(
     features: &features::Record,
     tool: Tool,
-    page: &str,
+    has: features::Has,
     reason: &str,
 ) -> Result<Cell, String> {
-    let source = features
+    let record = features::RECORD;
+    let slug = tool.slug();
+    let cell = features
+        .capability
+        .iter()
+        .find(|capability| capability.id == LOG_CAPABILITY)
+        .and_then(|capability| capability.cell.iter().find(|cell| cell.tool == slug))
+        .ok_or_else(|| format!("{record}: no `{LOG_CAPABILITY}` cell for {slug}"))?;
+    if cell.has != has {
+        return Err(format!(
+            "{record}: {slug}'s `{LOG_CAPABILITY}` cell no longer says {has:?}: read its \
+             documentation again for `accuracy.from-boost` (ADR-330)"
+        ));
+    }
+    let page = cell
+        .source
+        .as_deref()
+        .ok_or_else(|| format!("{record}: {slug}'s `{LOG_CAPABILITY}` cell cites no page"))?;
+    let tool_record = features
         .tool
         .iter()
-        .find(|candidate| candidate.id == tool.slug())
-        .and_then(|candidate| candidate.source.iter().find(|source| source.id == page))
-        .ok_or_else(|| {
-            format!(
-                "{}: {} names no page \"{page}\"",
-                features::RECORD,
-                tool.slug()
-            )
-        })?;
+        .find(|candidate| candidate.id == slug)
+        .ok_or_else(|| format!("{record} has no tool {slug}"))?;
+    let source = tool_record
+        .source
+        .iter()
+        .find(|source| source.id == page)
+        .ok_or_else(|| format!("{record}: {slug} names no page \"{page}\""))?;
     Ok(Cell {
         tool,
         value: None,
@@ -891,6 +962,7 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
         signed,
         worse,
         cells,
+        note: None,
     };
     let collection = |field: &str, tool: Tool, key: &str| -> Result<Cell, String> {
         let pointer = format!("/{key}/{field}");
@@ -971,8 +1043,10 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
                 ),
                 later(Rocketpy, "M2.9"),
             ],
+            note: None,
         };
 
+    let (boost_cell, boost_note) = from_boost(reports)?;
     let mut rows = vec![
         percent(
             Axis::Accuracy,
@@ -1026,15 +1100,16 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
             Axis::Accuracy,
             "accuracy.from-boost",
             "Mean absolute error of the apogee predicted from the log cut after burnout, the \
-             private collection's calibration half",
+             private collection's calibration-half flights it can predict",
             false,
             Worse::Higher,
-            std::iter::once(from_boost(reports))
-                .chain(FROM_BOOST_CANNOT.iter().map(|&(tool, page, reason)| {
-                    cannot_by_page(&reports.features, tool, page, reason)
+            std::iter::once(Ok(boost_cell))
+                .chain(FROM_BOOST_CANNOT.iter().map(|&(tool, has, reason)| {
+                    cannot_by_page(&reports.features, tool, has, reason)
                 }))
                 .collect::<Result<Vec<_>, _>>()?,
-        ),
+        )
+        .with_note(boost_note),
         percent(
             Axis::Bias,
             "bias.public",
@@ -1109,6 +1184,7 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
                 later(Openrocket, "M2.9"),
                 later(Rocketpy, "M2.9"),
             ],
+            note: None,
         },
         counted(
             "interop.changed",
@@ -1151,6 +1227,7 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
                 ),
                 later(Rocketpy, "M2.9"),
             ],
+            note: None,
         },
         Row {
             id: "features.count".to_owned(),
@@ -1179,6 +1256,7 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
                     )
                 })
                 .collect(),
+            note: None,
         },
     ];
     rows.extend(step_rows(&reports.steps)?);
@@ -1237,6 +1315,7 @@ fn step_rows(record: &steps::Record) -> Result<Vec<Row>, String> {
                 signed: false,
                 worse: Worse::Higher,
                 cells,
+                note: None,
             })
         })
         .collect()
@@ -1384,8 +1463,9 @@ fn axis_words(axis: Axis, hpr: &str) -> String {
             before their logs are compared. Predicted from the boost, the simulation is fitted to \
             a flight's own log, cut after motor burnout, then flown on to apogee ([apogee from \
             the boost](https://hpr.fusionspace.co/physics/flight-fit.html#apogee-from-the-boost)). \
-            Since the prediction reads the flight's own log up to its cut, its error isn't \
-            comparable with the rows above it. The calibration half is the part of the collection a correction may be \
+            Since the prediction reads the flight's own log up to its cut, and covers only the \
+            flights it can predict (below the table), its error isn't comparable with the rows \
+            above it. The calibration half is the part of the collection a correction may be \
             tuned on."
             .to_owned(),
         Axis::Bias => "The same errors with their signs, averaged: above zero, the simulator's \
@@ -1546,7 +1626,6 @@ fn standing(scoreboard: &Scoreboard) -> String {
 
 /// The page's list of every tool's steps, one by one, with where each comes from.
 fn write_steps(page: &mut String, scoreboard: &Scoreboard) {
-    const BLOB: &str = "https://github.com/nrdptel/fusionspace-eridanus/blob/main";
     if scoreboard.steps.is_empty() {
         return;
     }
@@ -1719,7 +1798,8 @@ pub(crate) fn render(scoreboard: &Scoreboard) -> String {
     let _ = writeln!(
         page,
         "- **can't** means the tool has no way to do the row's task that way, by the page the \
-         cell links or the source *Steps, one by one* names; **can't yet** is {hpr}'s, with the milestone that brings it."
+         cell links, or for the steps rows by the source *Steps, one by one* names; **can't \
+         yet** is {hpr}'s, with the milestone that brings it."
     );
     let _ = writeln!(
         page,
@@ -1757,6 +1837,14 @@ pub(crate) fn render(scoreboard: &Scoreboard) -> String {
             .is_none_or(|next| next.axis != row.axis)
         {
             page.push('\n');
+            for note in scoreboard
+                .rows
+                .iter()
+                .filter(|other| other.axis == row.axis)
+                .filter_map(|other| other.note.as_deref())
+            {
+                let _ = writeln!(page, "{note}\n");
+            }
         }
     }
     write_steps(&mut page, scoreboard);
@@ -1830,9 +1918,10 @@ mod tests {
     }
 
     /// `accuracy.from-boost` reads the calibration half wherever it stands in the report and
-    /// holds it; a worse held-out error doesn't fail the check; a count that isn't the half's predicted
-    /// flights, or a page the features record doesn't have, fails; the other tools' cells link
-    /// their pages.
+    /// holds it; a worse held-out error doesn't fail the check; its note gives the forward
+    /// simulation's error on the same flights and the held-out half's, from the report; a count
+    /// that isn't the half's predicted flights, a page the features record doesn't have, or a
+    /// changed `log` cell fails; the other tools' cells link their pages.
     #[test]
     fn the_from_boost_row_reads_the_calibration_half() {
         let (root, mut reports, committed) = committed();
@@ -1872,13 +1961,25 @@ mod tests {
             "the halves' errors must differ for this test to tell them apart"
         );
 
-        let committed_row = row(&committed);
-        let mine = &committed_row.cells[0];
+        let built = row(&scoreboard(&reports).expect("the scoreboard"));
+        assert_eq!(built, row(&committed), "the committed row is the built one");
+        let mine = &built.cells[0];
         assert_eq!(mine.tool, Tool::Hpr);
         assert_eq!(mine.value, Some(rounded(value, 2)));
         assert_eq!(mine.count, Some(flights));
-        for (cell, url) in committed_row.cells[1..].iter().zip([
-            "https://openrocket.readthedocs.io/en/latest/introduction/features.html#planned-future-features",
+        let note = built.note.as_deref().expect("the note");
+        for (key, half) in [
+            ("/every/forward_mean_absolute_percent", calibration),
+            ("/every/forward_mean_absolute_percent", held_out),
+            (pma, held_out),
+        ] {
+            let figure = format!("{:.2}%", number(half, COLLECTION_BOOST, key).expect(key));
+            assert!(note.contains(&figure), "{figure} in {note}");
+        }
+        assert!(note.contains("227.7 m/s (747 ft/s)"), "{note}");
+        for (cell, url) in built.cells[1..].iter().zip([
+            "https://openrocket.readthedocs.io/en/latest/introduction/\
+             features.html#planned-future-features",
             "https://docs.rocketpy.org/en/latest/user/flight_comparator.html",
         ]) {
             let cannot = cell.cannot.as_deref().expect("can't");
@@ -1942,6 +2043,21 @@ mod tests {
         let error = scoreboard(&reports).expect_err("a short count fails");
         assert!(error.contains("predicted"), "{error}");
         reports.collection_boost = original;
+
+        // A `log` cell that no longer says what was read.
+        let features = reports.features.clone();
+        for capability in &mut reports.features.capability {
+            if capability.id == LOG_CAPABILITY {
+                for cell in &mut capability.cell {
+                    if cell.tool == "openrocket" {
+                        cell.has = features::Has::Yes;
+                    }
+                }
+            }
+        }
+        let error = scoreboard(&reports).expect_err("a changed log cell fails");
+        assert!(error.contains("openrocket's `log` cell"), "{error}");
+        reports.features = features;
 
         // A page the features record doesn't have.
         for tool in &mut reports.features.tool {
