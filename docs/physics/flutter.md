@@ -38,8 +38,9 @@ other, to your fins and your rocket's flight.
     on ARC Report 2949's swept wings, their stiffness taken normal to the sweep
     ([transonic flutter onsets][transonic-note], §4);
   - stiffness inboard with the tip and trailing edge soft, such as a fin that tapers in thickness
-    or a stiff core with soft edges: Langley's rocket-model wings W2 (1.05), W4 (1.14) and D2
-    (1.43 or more, a lower bound) ([fin flutter tests][tests-note], §2);
+    or a stiff core with soft edges: Langley's rocket-model wings W2 (1.00 to 1.05) and W4 (1.09
+    to 1.14), the low ends on Martin's own torsion constant, so W2 is marginal, and D2 (1.43 or
+    more, a lower bound) ([fin flutter tests][tests-note], §2);
   - solid swept fins: in Langley's transonic tunnel, tested at Mach 0.66 to 1.42, each wing's
     worst point 1.21 to 1.37, from a 60° compreg wing (1.37), a 45° resin-paper wing (1.31) and a
     45° solid magnesium wing (1.21), and the 60° wings read high at every Mach number tested; other
@@ -59,16 +60,39 @@ other, to your fins and your rocket's flight.
   plate clamped over 6.0 in of its 8.9 in root, Liège's plates not rigid in plunge). A hobby
   rocket's fin seen fluttering in flight, PSAS's LV2c, reads 0.49 to 0.82 if its fins were G10, as
   inferred, and 1.23 to 1.51 if they were aluminum, at the speed it was seen fluttering, which may
-  lie above the onset (§5). A softer root lowers the onset: the ASROC missile fin's plate
-  with its root restraint cut reaches 1.10 on discarded data (§3), and on two root tests the highest
-  safe-side ratios, 0.82 to 0.84, would become 0.90 to 1.09 (§4, an inference). None of these was
-  a fin glued to a tube, and the figures are not a bound: a fin of one of these kinds may flutter
-  further below HPR Sim's speed than any of them did.
+  lie above the onset (§5).
+
+  A softer root lowers the onset. On two partial-root tests the highest safe-side ratios, 0.82 to
+  0.84, would become 0.90 to 1.09 ([fin flutter tests][tests-note], §4, an inference). The ASROC
+  missile fin's plate with its root restraint cut reads up to 1.10 on its printed air density but
+  0.88 on its printed dynamic pressure. That row is left out because the two disagree (§3).
+
+  Root springs cut the onset further ([root mounting stiffness][mount-note], §2). In a supersonic
+  tunnel, halving the root pitch spring of small fighter-wing panels cut the onset speed to 0.63 to
+  0.65 of the stiffer spring's on one wing and 0.44 to 0.51 on another, both compared in the same
+  air. These are fits near the top of the stiffness range tested, and lower in the range the drop
+  was larger. On those factors the 0.82 to 0.84 ratios would read 1.26 to 1.33 and 1.61 to 1.91
+  (an inference).
+
+  On half-scale missile elevators, which pitch on a spring, softening the spring onto coincidence
+  (bending and pitch frequencies matched) cut the flutter speed below 0.42 of the speed at which a
+  stiffer spring hadn't fluttered. That is where flutter stopped; where it began, the figure is
+  below 0.46 to 0.62. Past coincidence the sign turns: softening that elevator's spring further
+  raised its flutter speed 1.57 times, at one Mach number. That is no reason to count on a softer
+  root helping a fin.
+
+  None of these was a fin glued to a tube. None is a bound: a fin may flutter further below HPR
+  Sim's speed than any of them did. HPR Sim's flutter speed takes no mounting factor, so it carries
+  none of these effects.
 - **What it leaves out:** sweep, and how the fin is mounted. Martin's wings were clamped at the
-  root, and a fin glued to a tube is less stiff there. Also left out are stall flutter at high
-  angles of attack and Mach-number effects, such as a dip near Mach 1. So are the rocket body's
-  own bending and fins that aren't trapezoids. G10/FR-4, the commonest fiberglass fin sheet, has
-  no built-in modulus ([Shear moduli](#shear-moduli)).
+  root. A glued root's stiffness against a clamp is unmeasured: no test has set a fin glued to a
+  tube beside the same fin clamped. One carbon fin epoxied through the tube wall rang 1.17 times the
+  first bending frequency of a separate fin of its design clamped on a bench, so stiffer in
+  bending. Its twisting, which drives flutter, wasn't measured
+  ([root mounting stiffness][mount-note], §1). Also left out are stall flutter at high angles of
+  attack and Mach-number effects, such as a dip near Mach 1. So are the rocket body's own bending
+  and fins that aren't trapezoids. G10/FR-4, the commonest fiberglass fin sheet, has no built-in
+  modulus ([Shear moduli](#shear-moduli)).
 
 ## The model
 
@@ -369,3 +393,4 @@ The decision behind these choices is [ADR-078][adr-078], from the
 [onsets-note]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/flutter-measured-onsets.md
 [transonic-note]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/transonic-fin-flutter-onsets.md
 [tests-note]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/fin-flutter-tests.md
+[mount-note]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/fin-root-mounting-stiffness.md
