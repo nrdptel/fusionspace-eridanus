@@ -97,18 +97,18 @@
       "cells": [
         {
           "tool": "hpr",
-          "value": null,
-          "count": null,
-          "source": null,
-          "milestone": "M2.7",
+          "value": 16.32,
+          "count": 23,
+          "source": "validation/reports/fixture-flights.json /sets/4/hpr/mean_absolute_percent",
+          "milestone": null,
           "cannot": null
         },
         {
           "tool": "openrocket",
-          "value": null,
-          "count": null,
-          "source": null,
-          "milestone": "M2.7",
+          "value": 14.98,
+          "count": 23,
+          "source": "validation/reports/fixture-flights.json /sets/4/openrocket/mean_absolute_percent",
+          "milestone": null,
           "cannot": null
         },
         {
@@ -119,7 +119,9 @@
           "milestone": "M2.9",
           "cannot": null
         }
-      ]
+      ],
+      "note": "**`accuracy.held-out`**: the 23 flights compared of the private collection's held-out half, the third that no model, setting or correction may be tuned on, chosen by a hash of each flight's id. Shown, not held: the check holds no cell of this row, so these flights can't veto a change of model. They are held out, not blind: the errors over every flight compared were published before the halves were sealed. A flight added to the collection from now on is compared only after its prediction's hash is committed ([ADR-332](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md)).",
+      "shown_only": true
     },
     {
       "id": "accuracy.supersonic",
@@ -285,18 +287,18 @@
       "cells": [
         {
           "tool": "hpr",
-          "value": null,
-          "count": null,
-          "source": null,
-          "milestone": "M2.7",
+          "value": 13.42,
+          "count": 23,
+          "source": "validation/reports/fixture-flights.json /sets/4/hpr/mean_percent",
+          "milestone": null,
           "cannot": null
         },
         {
           "tool": "openrocket",
-          "value": null,
-          "count": null,
-          "source": null,
-          "milestone": "M2.7",
+          "value": 11.68,
+          "count": 23,
+          "source": "validation/reports/fixture-flights.json /sets/4/openrocket/mean_percent",
+          "milestone": null,
           "cannot": null
         },
         {
@@ -307,7 +309,9 @@
           "milestone": "M2.9",
           "cannot": null
         }
-      ]
+      ],
+      "note": "**`bias.held-out`**: the same 23 flights as `accuracy.held-out`, likewise shown, not held.",
+      "shown_only": true
     },
     {
       "id": "uncertainty.range-50",
