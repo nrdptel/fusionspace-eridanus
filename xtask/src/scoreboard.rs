@@ -852,7 +852,11 @@ fn cannot_by_page(
         .find(|candidate| candidate.id == tool.slug())
         .and_then(|candidate| candidate.source.iter().find(|source| source.id == page))
         .ok_or_else(|| {
-            format!("{}: {} names no page \"{page}\"", features::RECORD, tool.slug())
+            format!(
+                "{}: {} names no page \"{page}\"",
+                features::RECORD,
+                tool.slug()
+            )
         })?;
     Ok(Cell {
         tool,
@@ -860,7 +864,10 @@ fn cannot_by_page(
         count: None,
         source: None,
         milestone: None,
-        cannot: Some(format!("can't: {reason} ([{}]({}))", source.title, source.url)),
+        cannot: Some(format!(
+            "can't: {reason} ([{}]({}))",
+            source.title, source.url
+        )),
     })
 }
 
@@ -1857,7 +1864,10 @@ mod tests {
         let flights = whole(calibration, COLLECTION_BOOST, "/every/flights").expect("flights");
         assert_ne!(
             rounded(value, 2),
-            rounded(number(held_out, COLLECTION_BOOST, pma).expect("held out"), 2),
+            rounded(
+                number(held_out, COLLECTION_BOOST, pma).expect("held out"),
+                2
+            ),
             "the halves' errors must differ for this test to tell them apart"
         );
 
