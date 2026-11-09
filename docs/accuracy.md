@@ -946,8 +946,9 @@ shown here. The flights' owners allow only aggregate statistics, so no flight is
 **Held out.** A hash of each flight's id holds out a third in expectation, here 23 of the 60
 ([decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md)).
 On them HPR Sim misses by 16.32% (mean absolute) and OpenRocket by 14.98%; on the other 37, 9.43%
-and 8.95% ([report][fixture-report]). Fits across flights, the scoreboard's check included, now
-leave the 23 out. All 60 were seen before the split, so neither half is blind.
+and 8.95% ([report][fixture-report]). Fits across flights, the scoreboard's check included, leave
+the 23 out. All 60 were seen before the split, so neither half is blind. A flight added later is
+compared only after its prediction, made without its log, is committed by hash.
 
 **What is flown.** The collection pairs each design as flown with its own flight's log, the
 motor, date, site and the [ERA5](glossary.md#reanalysis) weather of the day
@@ -965,7 +966,7 @@ HPR Sim flies the whole ERA5 profile of the launch hour: temperature, pressure a
 level. OpenRocket 24.12 can take only a temperature and pressure at the pad, with the standard
 atmosphere above. So it gets those, and the same wind every 50 m (164 ft) ([report][fixture-report]).
 Both fly OpenRocket's curve for the motor the file names, from the same rail, with no parachute
-opened. So each apogee is the climb's. A third row flies HPR Sim in OpenRocket's air, which shows
+opened. A third row flies HPR Sim in OpenRocket's air, which shows
 how much of the difference between the codes is the atmosphere.
 
 **What each log says.** Every log here is a [barometric

@@ -361,6 +361,7 @@ until someone rewrites it in plainer words.
 | [ADR-330: M7.3d7, the from-boost scoreboard row][adr-330] | The scoreboard gains `accuracy.from-boost`, the mean absolute error of the apogee predicted from the log cut after burnout: HPR Sim 3.22% on the 12 calibration-half flights it can predict, with a note on which flights and the forward simulation's 9.35% on them. OpenRocket and RocketPy say *can't*, by their documentation. |
 | [ADR-331: Withdraw the from-boost row to land it again][adr-331] | #1365, the scoreboard's `accuracy.from-boost` row, merged with seven commits that came after its last review; #1368 then tightened the row's test. From here, a pull request merges only once each review it needs has read its last commit, so both are withdrawn and land again together with their reviews first. While withdrawn, the scoreboard has no `accuracy.from-boost` row. |  |
 | [ADR-332: M2.7 in two, the halves and the fits' guard, then predictions first][adr-332] | The private collection's report gives its apogee errors over both halves, as aggregates: of the 60 flights compared, 37 are in the calibration half and 23 held out. A fit across the collection's flights must take its flights through a guard that reads each flight's half from its id again and refuses a held-out one, so `cargo xtask fixture-flights --check` fails when a held-out flight reaches a fit that takes it: the calibration half's fit aggregates, and the report's calibration half, by which the scoreboard's check now holds its collection rows. New flights predicted before their logs are compared are the second increment. |  |
+| [ADR-333: M2.7b, new flights predicted first][adr-333] | A flight the private collection's manifest gains after [M2.7a](#m2-7a) is compared with its log only when the collection holds its prediction, written from the flight's plan alone, and that file's SHA-256 sits in `validation/reports/predictions.sha256` where the branch left main, so it merged in an earlier pull request; otherwise `fixture-flights` refuses it by id. A committed digest of [M2.7a](#m2-7a)'s 83 manifest ids tells a new flight from an old one. Shown on an invented flight; no flight is new yet, so the list is empty. The scoreboard's held-out rows read the fixture report's held-out half, HPR Sim 16.32% and OpenRocket 24.12 14.98% over 23 flights (bias +13.42% and +11.68%), shown, not held. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -681,9 +682,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-3d2"></a>[M2.3d2][phase-1] | The errors | not yet done |
 | <a id="m2-4"></a>[M2.4][done-1] | A summary of accuracy for the README, and CI that fails on any regression ([ADR-084][adr-084], [Accuracy: the census](accuracy.md#the-census)) | done |
 | <a id="m2-6"></a>[M2.6][phase-1] | An open benchmark | not yet done |
-| <a id="m2-7"></a>[M2.7][phase-1] | Held-out flights, predictions first | not yet done |
+| <a id="m2-7"></a>[M2.7][done-1] | Held-out flights, predictions first | done |
 | <a id="m2-7a"></a>[M2.7a][done-1] | The halves and the fits' guard | done |
-| <a id="m2-7b"></a>[M2.7b][phase-1] | New flights predicted first | not yet done |
+| <a id="m2-7b"></a>[M2.7b][done-1] | New flights predicted first | done |
 | <a id="m2-8"></a>[M2.8][phase-1] | Honest uncertainty | not yet done |
 | <a id="m2-9"></a>[M2.9][phase-1] | The other tools' cells | not yet done |
 | <a id="m2-10"></a>[M2.10][done-1] | Evidence register | done |
@@ -1351,6 +1352,7 @@ is the milestone that added or will add that test.
 [adr-330]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0330-m7-3d7-the-from-boost-scoreboard-row.md
 [adr-331]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0331-withdraw-the-from-boost-row-to-land-it-again.md
 [adr-332]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md
+[adr-333]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0333-m2-7b-new-flights-predicted-first.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
