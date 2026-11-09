@@ -870,8 +870,8 @@ fn from_boost(reports: &Reports) -> Result<(Cell, String), String> {
          prediction. Of the {flights} predicted flights, {in_burn} were cut less than the motor's \
          burn after liftoff, and for {burn_unknown} the motor's burn or the log's liftoff isn't \
          known. On those {flights} the forward simulation's mean absolute error is \
-         {forward:.2}%. On the {held_flights} held-out flights predicted (held out from choices \
-         made after the seal, not blind) the prediction's is {held_prediction:.2}% and the \
+         {forward:.2}%. On the {held_flights} flights of the held-out half that were predicted (held out \
+         from choices made after the seal, not blind) the prediction's is {held_prediction:.2}% and the \
          forward simulation's {held_forward:.2}%, shown on [the collection's \
          page]({BLOB}/{COLLECTION_BOOST_MD}) and not held.",
         limit / 0.3048
@@ -1926,8 +1926,9 @@ mod tests {
     }
 
     /// `accuracy.from-boost` reads the calibration half wherever it stands in the report and
-    /// holds it; a worse held-out error doesn't fail the check; its note gives the burn's counts,
-    /// the forward simulation's error on the same flights and the held-out half's, from the report; a count
+    /// holds it; a worse held-out error doesn't fail the check; its note gives the burn's
+    /// counts, the forward simulation's error on the same flights and the held-out half's, from
+    /// the report; a count
     /// that isn't the half's predicted flights, a page the features record doesn't have, or a
     /// changed `log` cell fails; the other tools' cells link their pages.
     #[test]

@@ -390,10 +390,11 @@ The [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/valid
 calibration half's 3.22% as `accuracy.from-boost`, and its check fails if the printed number gets worse, unless a decision record
 accepts it. It counts only the
 flights the method can predict, so it isn't comparable with the forward simulation's rows there. The pages read of
-[OpenRocket's](https://openrocket.readthedocs.io/en/latest/user_guide/overrides_and_surface_finish.html) and
+[OpenRocket's](https://openrocket.readthedocs.io/en/latest/introduction/features.html#planned-future-features) and
 [RocketPy's](https://docs.rocketpy.org/en/latest/user/flight_comparator.html) documentation describe no way to fit a
-simulation to a log automatically and fly it on to apogee; OpenRocket's guide describes adjusting the drag and
-rerunning until the user is satisfied with the match
+simulation to a log automatically and fly it on to apogee; [OpenRocket's
+guide](https://openrocket.readthedocs.io/en/latest/user_guide/overrides_and_surface_finish.html) describes adjusting
+the drag and rerunning until the user is satisfied with the match
 ([ADR-330, the scoreboard row](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0330-m7-3d7-the-from-boost-scoreboard-row.md)).
 
 **The cut.** The library follows the climb speed: a straight line fitted to each half second of

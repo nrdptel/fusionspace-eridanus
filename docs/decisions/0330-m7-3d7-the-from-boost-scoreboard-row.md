@@ -1,7 +1,7 @@
 # ADR-330: M7.3d7, the from-boost scoreboard row (2026-11-08)
 
 - **Status:** accepted; carries out [M7.3d7][m7-3] under [ADR-326][adr-326] §1 and [ADR-257][adr-257] §3, and with it closes M7.3d3 and M7.3d.
-- **Summary:** The scoreboard gains `accuracy.from-boost`: the mean absolute error of the apogee predicted from the log cut after burnout. HPR Sim's cell reads the private collection's calibration-half flights the method can predict, 3.22% over 12, from `collection-boost.json`, and the check holds it as it holds HPR Sim's other cells. A note under the table says which flights those are and gives the forward simulation's 9.35% on them and the held-out half's numbers. OpenRocket 24.12's and RocketPy 1.13.0's cells say *can't*, each linking the page the features record cites for its log capability: OpenRocket's documentation describes importing altimeter data only as a planned feature, and RocketPy's Flight Comparator sets a log beside a simulated flight but fits nothing to it.
+- **Summary:** The scoreboard gains `accuracy.from-boost`: the mean absolute error of the apogee predicted from the log cut after burnout. HPR Sim's cell reads the private collection's calibration-half flights the method can predict, 3.22% over 12, from `collection-boost.json`, and the check holds it as it holds HPR Sim's other cells. A note under the table says which flights those are and gives the forward simulation's 9.35% on them and the held-out half's numbers. OpenRocket 24.12's and RocketPy 1.13.0's cells say *can't*, each linking the page the features record cites for its log capability: OpenRocket's documentation describes importing altimeter data only as a planned feature, and RocketPy's Flight Comparator sets a log beside a simulated flight but its page describes no fit to it.
 
 [adr-209]: 0209-the-2026-10-08-best-on-the-market-measured.md
 [adr-240]: 0240-the-scoreboard.md
@@ -75,7 +75,8 @@ the flight's own log up to the cut, which the forward simulation doesn't, and co
 flights it can predict. On the same 12 flights the forward simulation's mean absolute error is
 9.35%, with the paired bootstrap interval of the difference on the collection's page. Part of that
 difference may come from the wind: the forward simulation flies ERA5's wind profile, the prediction
-a wind constant with height that the fit may move, within a range stated about ERA5's. On the 2 public flights the fit's model with nothing
+a wind constant with height that the fit may move, held toward ERA5's climb-averaged wind by a
+stated spread (±3.88 m/s on each component). On the 2 public flights the fit's model with nothing
 fitted, in that constant wind, errs 3.71% against the forward simulation's 5.63%; the collection's
 report gives no such figure. The scoreboard's opening now counts 54 cells, 15 measured.
 
@@ -84,7 +85,8 @@ follows. Its "on the same flights in the same air and wind" is [ADR-257][adr-257
 simulation's on the same flights, flown in the same launch-day air and wind", which this ADR reads
 of the forward simulation: it flies each flight's own launch day, ERA5's air and wind, not a
 standard day. The prediction flies the same ERA5 air, but its wind is a constant with height that
-the fit may move, within a range stated about ERA5's, as M7.3d2 and M7.3d6 did
+the fit may move, held toward ERA5's climb-averaged wind by a stated spread (±3.88 m/s on each
+component), as M7.3d2 and M7.3d6 did
 ([ADR-325][adr-325] §2, [ADR-329][adr-329] §1 and §4). Read as asking both to fly one wind
 profile, the clause would not be met; [#1366](https://github.com/nrdptel/fusionspace-eridanus/issues/1366)
 sizes what that wind alone moves on the collection. The halves, the seal, the reports and their
