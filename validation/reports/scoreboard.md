@@ -31,6 +31,8 @@ How far each simulator's apogee lands from the logged one, its sign dropped, ave
 | Mean absolute apogee error, published flights past Mach 1 (`accuracy.supersonic`) | lower | not measured: [M2.3c7, published flights past Mach 1](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3c7) | not measured: [M2.9, the other tools' cells](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-9) | not measured: [M2.9, the other tools' cells](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-9) |
 | Mean absolute error of the apogee predicted from the log cut after burnout, the private collection's calibration-half flights it can predict (`accuracy.from-boost`) | lower | 3.22% over 12 flights | can't: its documentation describes importing altimeter data only as a planned feature ([OpenRocket's guide: Features, planned future features](https://openrocket.readthedocs.io/en/latest/introduction/features.html#planned-future-features)) | can't: its documentation describes a Flight Comparator, a log set beside a simulated flight with their difference, but no fit to the log ([RocketPy's guide: Flight Comparator](https://docs.rocketpy.org/en/latest/user/flight_comparator.html)) |
 
+**`accuracy.collection`**: the check holds HPR Sim's cell by the calibration half's 9.43% over 37 flights, not by the cell's own, so the held-out half never vetoes a change of model; the cell still shows every flight compared ([ADR-332](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md)).
+
 **`accuracy.from-boost`** counts only the flights the method can predict: the 12 of the calibration half whose barometer's log was cut before its climb reached 227.7 m/s (747 ft/s), with enough of the log up to the cut to fit, among those the forward report compares and flies in the day's ERA5 air; a faster climb gets no prediction. Of the 12 predicted flights, 0 were cut less than the motor's burn after liftoff, and for 2 the motor's burn or the log's liftoff isn't known. On those 12 the forward simulation's mean absolute error is 9.35%. On the 9 flights of the held-out half that were predicted (held out from choices made after the seal, not blind) the prediction's is 3.56% and the forward simulation's 16.86%, shown on [the collection's page](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md) and not held.
 
 ## Bias
@@ -42,6 +44,8 @@ The same errors with their signs, averaged: above zero, the simulator's apogee c
 | Mean apogee error, public logged flights (`bias.public`) | nearer zero | −0.22% over 7 flights | not measured: [M2.6, an open benchmark](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-6) | not measured: [M2.9, the other tools' cells](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-9) |
 | Mean apogee error, the private collection's logged flights (`bias.collection`) | nearer zero | +7.76% over 60 flights | +6.72% over 60 flights | not measured: [M2.9, the other tools' cells](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-9) |
 | Mean apogee error, held-out flights (`bias.held-out`) | nearer zero | not measured: [M2.7, held-out flights](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-7) | not measured: [M2.7, held-out flights](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-7) | not measured: [M2.9, the other tools' cells](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-9) |
+
+**`bias.collection`**: the check holds HPR Sim's cell by the calibration half's +4.24% over 37 flights, not by the cell's own, so the held-out half never vetoes a change of model; the cell still shows every flight compared ([ADR-332](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md)).
 
 ## Honest uncertainty
 
@@ -153,10 +157,12 @@ RocketPy flies a rocket typed in as Python and scatters it in a Monte Carlo run;
 
 - `accuracy.public.hpr`: `validation/reports/real-flights.json /summary/mean_absolute_apogee_error_percent`
 - `accuracy.collection.hpr`: `validation/reports/fixture-flights.json /sets/0/hpr/mean_absolute_percent`
+- `accuracy.collection.hpr`, held by the calibration half: `validation/reports/fixture-flights.json /sets/3/hpr/mean_absolute_percent`
 - `accuracy.collection.openrocket`: `validation/reports/fixture-flights.json /sets/0/openrocket/mean_absolute_percent`
 - `accuracy.from-boost.hpr`: `validation/reports/collection-boost.json /predictions/halves/0/every/prediction_mean_absolute_percent`
 - `bias.public.hpr`: `validation/reports/real-flights.json /summary/mean_apogee_error_percent`
 - `bias.collection.hpr`: `validation/reports/fixture-flights.json /sets/0/hpr/mean_percent`
+- `bias.collection.hpr`, held by the calibration half: `validation/reports/fixture-flights.json /sets/3/hpr/mean_percent`
 - `bias.collection.openrocket`: `validation/reports/fixture-flights.json /sets/0/openrocket/mean_percent`
 - `interop.changed.openrocket`: `validation/reports/openrocket-export-flights.json /total: compared − within + unmatched`
 - `interop.failed.openrocket`: `validation/reports/openrocket-export-flights.json /total: originals_opened − exports_opened + only_exports_opened + unread + refused_differently`

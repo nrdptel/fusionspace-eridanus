@@ -192,11 +192,11 @@ Say what a thing is before its label. Use a label (a milestone or a decision num
 the reader needs to follow it. A sentence that opens with one sends the reader to look it up
 before they know why.
 
-*Before*, in an earlier version of [Accuracy](accuracy.md): "Neither set is held out: both were seen during development,
+*Before*: "Neither set is held out: both were seen during development,
 so neither is a blind test until [M2.7](decisions-and-roadmap.md#m2-7) holds flights out, predicted
 before their logs are read."
 
-*After* (an earlier rewrite): "Neither set is held out. Both were seen during development, so neither is a blind test.
+*After*: "Neither set is held out. Both were seen during development, so neither is a blind test.
 That waits for the planned milestone that holds flights out, predicted before their logs are read
 ([held-out flights](decisions-and-roadmap.md#m2-7))."
 

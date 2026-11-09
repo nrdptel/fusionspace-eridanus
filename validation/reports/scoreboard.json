@@ -58,7 +58,13 @@
           "count": 60,
           "source": "validation/reports/fixture-flights.json /sets/0/hpr/mean_absolute_percent",
           "milestone": null,
-          "cannot": null
+          "cannot": null,
+          "held_by": {
+            "value": 9.43,
+            "count": 37,
+            "what": "the calibration half",
+            "source": "validation/reports/fixture-flights.json /sets/3/hpr/mean_absolute_percent"
+          }
         },
         {
           "tool": "openrocket",
@@ -76,7 +82,8 @@
           "milestone": "M2.9",
           "cannot": null
         }
-      ]
+      ],
+      "note": "**`accuracy.collection`**: the check holds HPR Sim's cell by the calibration half's 9.43% over 37 flights, not by the cell's own, so the held-out half never vetoes a change of model; the cell still shows every flight compared ([ADR-332](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md))."
     },
     {
       "id": "accuracy.held-out",
@@ -239,7 +246,13 @@
           "count": 60,
           "source": "validation/reports/fixture-flights.json /sets/0/hpr/mean_percent",
           "milestone": null,
-          "cannot": null
+          "cannot": null,
+          "held_by": {
+            "value": 4.24,
+            "count": 37,
+            "what": "the calibration half",
+            "source": "validation/reports/fixture-flights.json /sets/3/hpr/mean_percent"
+          }
         },
         {
           "tool": "openrocket",
@@ -257,7 +270,8 @@
           "milestone": "M2.9",
           "cannot": null
         }
-      ]
+      ],
+      "note": "**`bias.collection`**: the check holds HPR Sim's cell by the calibration half's +4.24% over 37 flights, not by the cell's own, so the held-out half never vetoes a change of model; the cell still shows every flight compared ([ADR-332](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md))."
     },
     {
       "id": "bias.held-out",

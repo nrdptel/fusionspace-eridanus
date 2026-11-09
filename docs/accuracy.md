@@ -937,23 +937,22 @@ OpenRocket's +6.72% (11.26%). The two codes agree within 5% on 59 of the 60
 ([report][fixture-report]). Neither meets the 5% target.**
 
 The [report][fixture-report]'s histogram gives the low side, the one a waiver depends on: its bins
-below zero hold the flights simulated under the log. Each logged apogee is the height climbed in
+below zero hold the flights whose simulated apogee is below the logged one. Each logged apogee is the height climbed in
 the day's air, the altimeter's reading corrected for the weather as the report sets out.
 
 The gap to the logs is mostly not a difference between the two codes, and what causes it isn't
-shown here. The flights' owners allow only aggregate statistics, so no flight is named here. The logs'
-readings were taken by hand from free text.
+shown here. The flights' owners allow only aggregate statistics, so no flight is named here.
 
 **Held out.** A hash of each flight's id holds out a third in expectation, 23 of the 60
 ([decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md)).
 From now on no value fitted across flights may use them. On them HPR Sim misses by 16.32% (mean
 absolute) and OpenRocket by 14.98%; on the other 37, 9.43% and 8.95% ([report][fixture-report]).
-They were seen before the split, so they aren't blind.
+Neither half was tuned on. They were seen before the split, so they aren't blind.
 
 **What is flown.** The collection pairs each design as flown with its own flight's log, the
 motor, date, site and the [ERA5](glossary.md#reanalysis) weather of the day
 ([decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0151-hpr-sim-fixtures-joins-the-reference-library-as.md)).
-Of its 89 best-documented flights, its tier A (a first grading), 83 have an OpenRocket `.ork` design
+Of its 89 best-documented flights (tier A, a first grading), 83 have an OpenRocket `.ork` design
 ([report][fixture-report]). Its catalog, a
 second reading of each flight's sources made later, proposes a tier for each again
 ([recheck][adr-238]):

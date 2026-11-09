@@ -1,7 +1,7 @@
 # ADR-332: M2.7 in two, the halves and the fits' guard, then predictions first (2026-11-09)
 
-- **Status:** accepted; splits [M2.7][m2-7] into M2.7a and M2.7b, each with its own *done when*, M2.7's *done when* whole across the two, and so plans every remaining increment of M2.7; carries out M2.7a under [ADR-209][adr-209] §4 and [ADR-322][adr-322] §2.
-- **Summary:** The private collection's report gives its apogee errors over both halves, as aggregates: of the 60 flights compared, 37 are in the calibration half and 23 held out. A fit across the collection's flights must take its flights through one guard that reads each flight's half from its id again and refuses a held-out one, so `cargo xtask fixture-flights --check`, in the gate's `refs` step, fails when a held-out flight reaches a fit that takes the guard; today that is the calibration half's fit aggregates, and a new fit is reviewed for it. New flights predicted before their logs are compared, with only their files' hashes committed, are M2.7b.
+- **Status:** accepted; splits [M2.7][m2-7] into M2.7a and M2.7b, each with its own *done when*, M2.7's *done when* whole across the two, and so plans every remaining increment of M2.7; carries out M2.7a under [ADR-209][adr-209] §4 and [ADR-322][adr-322] §2, which holds the scoreboard's collection rows by the calibration half (§4).
+- **Summary:** The private collection's report gives its apogee errors over both halves, as aggregates: of the 60 flights compared, 37 are in the calibration half and 23 held out. A fit across the collection's flights must take its flights through one guard that reads each flight's half from its id again and refuses a held-out one, so `cargo xtask fixture-flights --check`, in the gate's `refs` step, fails when a held-out flight reaches a fit that takes the guard; today those are the calibration half's fit aggregates and the report's calibration half, by which the scoreboard's check now holds its collection rows, and a new fit is reviewed for it. New flights predicted before their logs are compared, with only their files' hashes committed, are M2.7b.
 
 [adr-151]: 0151-hpr-sim-fixtures-joins-the-reference-library-as.md
 [adr-209]: 0209-the-2026-10-08-best-on-the-market-measured.md
@@ -47,21 +47,21 @@
      when the private collection holds its prediction, written without reading its log, whose
      file's SHA-256 is in a committed list that reached main in an earlier pull request; otherwise
      it is refused by name. With no new flight yet, this is shown on an invented one. And (§4) the
-     scoreboard's held-out rows are measured, shown but not held, and its collection rows are held
-     on the calibration half alone.
+     scoreboard's held-out rows are measured, shown but not held.
 2. **A fit across flights** is any value estimated from more than one of the collection's flights
    and put into a model or a correction: a fitted scale, a tuned constant. One flight's own fit,
    such as its drag scale from its boost, is not. Nor is a measurement that judges a model and puts
    no value into it, such as the fixture report's errors or M7.5's test on the held-out half
    (ADR-209 §6). Tuning a model until such a number improves would be a fit, and so would a value
-   put into a tolerance or a threshold; the guard sees neither unless it takes the guard, and
-   review does. ADR-209 §4 names one more case beside fits, tuning included: a choice of model, a
-   change kept or refused by a measured number. M2.7's *done when* asks a check of fits; §4 says
-   where the held-out half still reaches a choice of model, and how M2.7b ends it. A fit across
-   flights must take its flights through `collection_boost::Calibration`, which can be built only
-   by `Calibration::of`. That reads each flight's half from its manifest id again, whatever the caller's own filter said, and refuses the
-   whole set when any flight is held out, counting them and naming none ([ADR-151][adr-151]). The
-   calibration half's fit aggregates take one. M7.5's correction must take one too. The guard
+   put into a tolerance or a threshold; the guard sees neither unless that fit takes its flights
+   through it, and review does. ADR-209 §4 names one more case beside fits, tuning included: a
+   choice of model, a change kept or refused by a measured number. A threshold a change is held
+   to is both, so §4's scoreboard rows take the guard too. A fit across flights must take its
+   flights through `collection_boost::Calibration`, which can be built only by `Calibration::of`.
+   That reads each flight's half from its manifest id again, whatever the caller's own filter
+   said, and refuses the whole set when any flight is held out, counting them and naming none
+   ([ADR-151][adr-151]). The calibration half's fit aggregates take one, and so does the fixture
+   report's calibration half (§4). M7.5's correction must take one too. The guard
    checks only the fits that take it; a new fit across flights is reviewed for it. The held-out
    half's fit aggregates are not a fit across flights: they are sealed, their file's hash committed,
    and published only after M7.5 chooses on the calibration half (ADR-322 §2).
@@ -76,25 +76,26 @@
 
    The held-out half is held out, not blind: the errors over every flight compared were published,
    as aggregates, before the halves were sealed.
-4. **The scoreboard.** Its `accuracy.held-out` and `bias.held-out` rows wait on M2.7, and the
-   scoreboard's tests fail if M2.7 closes with them unmeasured, so M2.7b fills them from this
-   report's held-out set. They are shown, not held: the ratchet fails a change that prints one of
-   HPR Sim's cells worse, and held on held-out flights it would let them veto a change of model,
-   which [ADR-330][adr-330] ruled out for the from-boost row. The same reason reaches the
-   `accuracy.collection` and `bias.collection` rows: they are taken over every flight compared,
-   the held-out half included, and held. So from M2.7b the ratchet holds those two rows by the
-   calibration half's numbers alone, while their cells still show the whole collection's. Until
-   then the held-out half reaches a choice of model through those two rows, and this record says
-   so.
+4. **The scoreboard.** Its check fails a change that prints one of HPR Sim's cells worse. Held on
+   held-out flights, it would let them veto a change of model, which [ADR-330][adr-330] ruled out
+   for the from-boost row. The `accuracy.collection` and `bias.collection` rows are taken over
+   every flight compared, the held-out half included, so from M2.7a the check holds HPR Sim's
+   cells there by the calibration half's numbers (9.43% and +4.24% over 37 flights), recorded in
+   each cell beside its own value, while the cells still show every flight's. The fixture report
+   builds that half through the guard, so a held-out flight reaching it stops
+   `fixture-flights --check`. Against a scoreboard from before this hold, the cells' own values
+   are compared, so this change moves no number. The `accuracy.held-out` and `bias.held-out` rows
+   wait on M2.7, and the scoreboard's tests fail if M2.7 closes with them unmeasured, so M2.7b
+   fills them from this report's held-out set, shown but not held.
 
 **What doesn't change.** M2.7's *done when* is whole across the two increments, and no clause is
-narrowed. M2.7b adds how its clause is shown, and §4's scoreboard work; it replaces nothing. ADR-322's encoding and the
-sealed digest stand.
+narrowed. M2.7b adds how its clause is shown, and §4's held-out rows; it replaces nothing.
+ADR-322's encoding and the sealed digest stand.
 
 **Consequences.** M7.5 must choose its correction on the calibration half alone, through the
 guard, and is judged on the held-out half. The two halves' forward errors differ: HPR Sim's signed
-mean is +4.24% on the calibration half and +13.42% on the held-out half. No choice made them
-differ, since the split was sealed before either half's number was reported. The gap is 9.18
+mean is +4.24% on the calibration half and +13.42% on the held-out half. No choice was made on
+either half: the split was sealed before either half's number was reported. The gap is 9.18
 points, and this report gives no interval on it; flights of one owner or one rocket can share
 their errors, so the halves may hold fewer independent flights than they count. M2.7b comes
 before M2.3d's predictions (ADR-328), which commit their public predictions whole rather than a

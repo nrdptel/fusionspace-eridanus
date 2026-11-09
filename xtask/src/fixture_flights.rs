@@ -791,6 +791,8 @@ fn openrocket_record(root: &Path, conditions: &str) -> Result<BTreeMap<String, V
 
 /// One flight's numbers, kept on this machine.
 struct Compared {
+    /// Its manifest id, which only the guard on the calibration half reads.
+    flight_id: String,
     hpr_percent: f64,
     openrocket_percent: f64,
     hpr_in_openrocket_air_percent: f64,
@@ -817,7 +819,7 @@ struct Apogees {
 impl Compared {
     /// One flight's row: each simulator's apogee less the logged one, over the logged one, so a
     /// simulated apogee below the logged one is a negative miss.
-    fn of(apogees: Apogees, early: bool, below_tier_a: bool, held_out: bool) -> Self {
+    fn of(flight_id: &str, apogees: Apogees, early: bool, below_tier_a: bool) -> Self {
         let Apogees {
             hpr_m,
             openrocket_m,
@@ -825,13 +827,14 @@ impl Compared {
             logged_m,
         } = apogees;
         Self {
+            flight_id: flight_id.to_owned(),
+            held_out: crate::collection_boost::held_out(flight_id),
             hpr_percent: percent(hpr_m, logged_m),
             openrocket_percent: percent(openrocket_m, logged_m),
             hpr_in_openrocket_air_percent: percent(hpr_standard_m, logged_m),
             hpr_over_openrocket_percent: percent(hpr_m, openrocket_m),
             early,
             below_tier_a,
-            held_out,
         }
     }
 }
@@ -993,9 +996,8 @@ fn fly_all(
         counts.early_unknown += usize::from(entry.early_deployment.is_none());
         let below_tier_a = entry.catalog_tier != CatalogTier::A;
         counts.below_tier_a += usize::from(below_tier_a);
-        let held_out = crate::collection_boost::held_out(at);
-        counts.held_out += usize::from(held_out);
         let row = Compared::of(
+            at,
             Apogees {
                 hpr_m,
                 openrocket_m,
@@ -1004,8 +1006,8 @@ fn fly_all(
             },
             early,
             below_tier_a,
-            held_out,
         );
+        counts.held_out += usize::from(row.held_out);
         kept.insert(
             at.clone(),
             Ok(ForwardFlight {
@@ -1055,7 +1057,7 @@ fn fly_all(
             missing.join("; ")
         ));
     }
-    let sets = error_sets(&compared);
+    let sets = error_sets(&compared)?;
     Ok((
         Report {
             milestone: "M2.3c1, rechecked in M2.3c5, halved in M2.7a".to_owned(),
@@ -1083,8 +1085,11 @@ pub(crate) const CALIBRATION_HALF: &str = "the calibration half";
 pub(crate) const HELD_OUT_HALF: &str = "the held-out half";
 
 /// The errors over each set: every flight compared, those without an early deployment, those
-/// the catalog keeps in tier A, then M2.7's calibration and held-out halves.
-fn error_sets(compared: &[Compared]) -> Vec<ErrorSet> {
+/// the catalog keeps in tier A, then M2.7's calibration and held-out halves. The scoreboard's
+/// ratchet holds its collection rows by the calibration half's numbers, a threshold across
+/// flights, so that half is taken through the guard, which refuses a held-out flight
+/// (ADR-332 §4).
+fn error_sets(compared: &[Compared]) -> Result<Vec<ErrorSet>, String> {
     let set = |name: &str, rows: Vec<&Compared>| ErrorSet {
         name: name.to_owned(),
         flights: rows.len(),
@@ -1093,7 +1098,13 @@ fn error_sets(compared: &[Compared]) -> Vec<ErrorSet> {
         hpr_in_openrocket_air: Stats::of(rows.iter().map(|r| r.hpr_in_openrocket_air_percent)),
         hpr_over_openrocket: Stats::of(rows.iter().map(|r| r.hpr_over_openrocket_percent)),
     };
-    vec![
+    let calibration = crate::collection_boost::Calibration::of(
+        compared
+            .iter()
+            .filter(|row| !row.held_out)
+            .map(|row| (row.flight_id.as_str(), row)),
+    )?;
+    Ok(vec![
         set(EVERY_FLIGHT, compared.iter().collect()),
         set(
             WITHOUT_EARLY,
@@ -1103,15 +1114,12 @@ fn error_sets(compared: &[Compared]) -> Vec<ErrorSet> {
             CATALOG_TIER_A,
             compared.iter().filter(|row| !row.below_tier_a).collect(),
         ),
-        set(
-            CALIBRATION_HALF,
-            compared.iter().filter(|row| !row.held_out).collect(),
-        ),
+        set(CALIBRATION_HALF, calibration.flights().to_vec()),
         set(
             HELD_OUT_HALF,
             compared.iter().filter(|row| row.held_out).collect(),
         ),
-    ]
+    ])
 }
 
 /// The committed report: aggregates only, no flight named.
@@ -1509,14 +1517,17 @@ impl Report {
                 let _ = writeln!(page, "\n## The halves\n");
                 let _ = writeln!(
                     page,
-                    "M2.7's two halves of the flights compared (ADR-322, ADR-332). A flight is held \
-                     out when SHA-256 of its id followed by `ADR-209` starts with eight bytes that, \
+                    "The two halves of the flights compared (M2.7a, ADR-322, ADR-332). A flight is \
+                     held out when SHA-256 of its id followed by the seven characters `ADR-209` \
+                     starts with eight bytes that, \
                      read as a big-endian integer, are below 2⁶⁴ / 3; the rest are the calibration \
                      half. The held-out ids' digest, [`held-out.sha256`](held-out.sha256), was \
                      committed before any half's number. Only the calibration half may feed a fit \
                      across flights. Such a fit must take its flights through a guard that stops \
                      `cargo xtask fixture-flights` when one is held out; today the calibration \
-                     half's fit aggregates in `collection-boost.json` do. The held-out half is held \
+                     half's fit aggregates in `collection-boost.json` do, and so does the \
+                     calibration half below, which the scoreboard's check holds its collection \
+                     rows by. The held-out half is held \
                      out, not blind: the first set above, over every flight compared, was \
                      published before the held-out half was sealed."
                 );
@@ -1621,13 +1632,13 @@ mod tests {
         // Each simulator's own apogee against the log, in the row the report is built from: hpr
         // low, OpenRocket high, hpr in OpenRocket's air low.
         let row = Compared::of(
+            "example-flight-1",
             Apogees {
                 hpr_m: 90.0,
                 openrocket_m: 110.0,
                 hpr_standard_m: 95.0,
                 logged_m: 100.0,
             },
-            false,
             false,
             false,
         );
@@ -1714,24 +1725,34 @@ mod tests {
 
     /// Each set holds its flights: an early deployment leaves the second, a flight below tier A
     /// the third, a held-out flight the fourth and only it is in the fifth, and every flight is
-    /// in the first.
+    /// in the first. Of the invented ids, `example-flight-6` to `-10` are held out
+    /// (`collection_boost`'s tests).
     #[test]
     fn each_set_holds_its_flights() {
-        let row = |percent: f64, early: bool, below_tier_a: bool, held_out: bool| Compared {
-            hpr_percent: percent,
-            openrocket_percent: percent,
-            hpr_in_openrocket_air_percent: percent,
-            hpr_over_openrocket_percent: 0.0,
-            early,
-            below_tier_a,
-            held_out,
+        let row = |k: u32, percent: f64, early: bool, below_tier_a: bool| {
+            let flight_id = format!("example-flight-{k}");
+            Compared {
+                held_out: crate::collection_boost::held_out(&flight_id),
+                flight_id,
+                hpr_percent: percent,
+                openrocket_percent: percent,
+                hpr_in_openrocket_air_percent: percent,
+                hpr_over_openrocket_percent: 0.0,
+                early,
+                below_tier_a,
+            }
         };
-        let sets = error_sets(&[
-            row(1.0, false, false, false),
-            row(20.0, true, false, true),
-            row(-40.0, false, true, false),
-            row(4.0, false, false, true),
-        ]);
+        let rows = [
+            row(1, 1.0, false, false),
+            row(6, 20.0, true, false),
+            row(2, -40.0, false, true),
+            row(7, 4.0, false, false),
+        ];
+        assert_eq!(
+            rows.iter().map(|r| r.held_out).collect::<Vec<_>>(),
+            [false, true, false, true]
+        );
+        let sets = error_sets(&rows).unwrap();
         let names: Vec<&str> = sets.iter().map(|s| s.name.as_str()).collect();
         assert_eq!(
             names,
@@ -1759,6 +1780,12 @@ mod tests {
             sets.iter().map(|s| s.flights).collect::<Vec<_>>(),
             [4, 3, 3, 2, 2]
         );
+        // A held-out flight marked as calibration, whatever its flag, stops the report: the
+        // calibration half is the scoreboard's threshold across flights (ADR-332 §4).
+        let mut mislabelled = rows;
+        mislabelled[1].held_out = false;
+        let error = error_sets(&mislabelled).unwrap_err();
+        assert!(error.starts_with("1 held-out flight fed a fit"), "{error}");
     }
 
     /// The halves follow the held-out count: a count that disagrees with either half, or exceeds
