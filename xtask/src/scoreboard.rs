@@ -833,7 +833,8 @@ fn boost_flights(half: &Value, index: usize) -> Result<u64, String> {
 /// HPR Sim's cell in `accuracy.from-boost`: the mean absolute error of the apogee predicted from
 /// the log cut after burnout, over every flight [`FROM_BOOST_HALF`] predicts (ADR-329, ADR-330),
 /// checked to count the half's predicted flights; and the note the page gives under the table:
-/// which flights those are, the forward simulation's error on them, and the held-out half's.
+/// which flights those are, the burn's counts, the forward simulation's error on them, and the
+/// held-out half's.
 fn from_boost(reports: &Reports) -> Result<(Cell, String), String> {
     let (half, index) = boost_half(reports, FROM_BOOST_HALF)?;
     let flights = boost_flights(half, index)?;
@@ -1925,8 +1926,8 @@ mod tests {
     }
 
     /// `accuracy.from-boost` reads the calibration half wherever it stands in the report and
-    /// holds it; a worse held-out error doesn't fail the check; its note gives the forward
-    /// simulation's error on the same flights and the held-out half's, from the report; a count
+    /// holds it; a worse held-out error doesn't fail the check; its note gives the burn's counts,
+    /// the forward simulation's error on the same flights and the held-out half's, from the report; a count
     /// that isn't the half's predicted flights, a page the features record doesn't have, or a
     /// changed `log` cell fails; the other tools' cells link their pages.
     #[test]

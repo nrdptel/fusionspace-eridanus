@@ -75,8 +75,7 @@ the flight's own log up to the cut, which the forward simulation doesn't, and co
 flights it can predict. On the same 12 flights the forward simulation's mean absolute error is
 9.35%, with the paired bootstrap interval of the difference on the collection's page. Part of that
 difference may come from the wind: the forward simulation flies ERA5's wind profile, the prediction
-a wind constant with height that the fit may move, held near ERA5's by its stated range (a
-barometer's heights say little of the wind). On the 2 public flights the fit's model with nothing
+a wind constant with height that the fit may move, within a range stated about ERA5's. On the 2 public flights the fit's model with nothing
 fitted, in that constant wind, errs 3.71% against the forward simulation's 5.63%; the collection's
 report gives no such figure. The scoreboard's opening now counts 54 cells, 15 measured.
 
@@ -85,7 +84,7 @@ follows. Its "on the same flights in the same air and wind" is [ADR-257][adr-257
 simulation's on the same flights, flown in the same launch-day air and wind", which this ADR reads
 of the forward simulation: it flies each flight's own launch day, ERA5's air and wind, not a
 standard day. The prediction flies the same ERA5 air, but its wind is a constant with height that
-the fit may move, held near ERA5's by its stated range, as M7.3d2 and M7.3d6 did
+the fit may move, within a range stated about ERA5's, as M7.3d2 and M7.3d6 did
 ([ADR-325][adr-325] §2, [ADR-329][adr-329] §1 and §4). Read as asking both to fly one wind
 profile, the clause would not be met; [#1366](https://github.com/nrdptel/fusionspace-eridanus/issues/1366)
 sizes what that wind alone moves on the collection. The halves, the seal, the reports and their
