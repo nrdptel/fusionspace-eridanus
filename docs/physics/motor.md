@@ -200,19 +200,10 @@ short name and designation; `hpr motors list --json` gives each motor's selector
   more than 5% from the record's burnout mass, either way, warns: 208 more. `cargo xtask
   motor-catalog` prints them.
 - What still passes unwarned: a burnout mass (the empty case) up to 5% from the record's, either
-  way, on every motor whose record gives both masses and whose curve file reads, except one record
-  (Cesaroni 25E75-17A) whose propellant exceeds its loaded mass. For a motor aft of the center of
-  gravity, as on nearly every rocket, a light case moves the center of gravity forward after
-  burnout, so the [stability margin](../glossary.md#stability-margin) then reads high; a heavy one
-  reads low. A mass `Δm` missing from a case at `x_motor` moves the center of gravity forward by
-  `Δm·(x_motor − x_cg)/(M − Δm)`, `x` measured aft from the nose and `M` the rocket's mass after
-  burnout. On RocketPy's Calisto (its getting-started rocket: a 1.815 kg (4.0 lb) case left in a
-  16.24 kg (35.8 lb) rocket after burnout), a case 5% light raises the margin after burnout from
-  3.179 to 3.215 [calibers](../glossary.md#caliber), at Mach 0.3: a rise of 0.037. The earlier
-  bound, 5% of the 4.771 kg (10.5 lb) loaded mass, let that case be 13.1% light: 0.098 calibers
-  ([issue #1294](https://github.com/nrdptel/fusionspace-eridanus/issues/1294)). A test pins both. A
-  rocket whose case is a larger share of its mass after burnout, sits further aft of its center of
-  gravity, or has a smaller diameter moves further (not measured here).
+  way, while the loaded mass is within 5%; past that only the loaded-mass warning fires. A light
+  case moves the center of gravity forward, so the margin after burnout reads high. On RocketPy's
+  Calisto, a case 5% light adds 0.037 [calibers](../glossary.md#caliber); the earlier bound
+  allowed 0.098 ([issue #1294](https://github.com/nrdptel/fusionspace-eridanus/issues/1294)).
 
 Online, `hpr motors update` caches the motors and files ThrustCurve.org's records show as added
 since; it can miss a file swapped for another under an unchanged record

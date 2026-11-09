@@ -2328,7 +2328,7 @@ fn a_burnout_mass_at_its_bound_moves_calistos_margin_little() {
     let margin = |share: f64| {
         let mut design = json.clone();
         let dry = &mut design["configurations"][0]["motors"][0]["motor"]["dry"]["mass_kg"];
-        assert_eq!(dry.as_f64(), Some(1.815), "the M1378LR's case");
+        assert_eq!(dry.as_f64(), Some(1.815), "RocketPy's case");
         *dry = serde_json::json!(1.815 * share);
         let design: hpr_design::Rocket = serde_json::from_value(design).unwrap();
         Rocket::from_design(design, "example")

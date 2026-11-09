@@ -206,7 +206,7 @@ pub const LOADED_MASS_BOUND: f64 = 0.05;
 /// flattering side; a heavy one gives too low an apogee and too low a margin.
 ///
 /// The margin it moves: a mass `Δm` missing at the motor's center of gravity moves the rocket's
-/// forward by `Δm·(x_motor − x_cg)/(M − Δm)`, `x` measured aft from the nose and `M` the rocket's
+/// center of gravity forward by `Δm·(x_motor − x_cg)/(M − Δm)`, `x` measured aft from the nose and `M` the rocket's
 /// mass after burnout with the case at its record's mass, so the margin in calibers rises by that
 /// over the reference diameter. On RocketPy's Calisto (its getting-started design,
 /// `validation/designs/rocketpy-calisto-getting-started-motor-at-minus-1.255.json`, from RocketPy
@@ -214,8 +214,8 @@ pub const LOADED_MASS_BOUND: f64 = 0.05;
 /// Degree-of-Freedom Rocket Trajectory Simulator", *J. Aerosp. Eng.* 34(6), 2021), whose motor
 /// inputs (RocketPy's 1.815 kg case and five grains, 4.771 kg loaded, flown on an M1378LR thrust
 /// curve) leave the case in a 16.24 kg rocket after burnout, a case 5% light raises the margin
-/// after burnout from 3.179 to 3.215 calibers, a rise of 0.037; the earlier bound, 5% of the
-/// loaded mass, let the case be 13.1% light, 0.098 calibers. A rocket whose case is a larger share
+/// after burnout by 0.037 calibers (3.1786 to 3.2155); the earlier bound, 5% of the loaded mass
+/// (the case and the grains' 2.956 kg), let the case be 13.1% light, 0.098 calibers. A rocket whose case is a larger share
 /// of its mass after burnout, sits further aft of its center of gravity, or has a smaller reference
 /// diameter moves further in calibers (not measured here).
 pub const BURNOUT_MASS_BOUND: f64 = 0.05;
