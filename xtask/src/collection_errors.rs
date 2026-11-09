@@ -18,7 +18,8 @@
 //!
 //! **The halves.** Each half's errors, its paired bootstrap 95% interval
 //! ([`boost::paired_bootstrap_interval`], [`RESAMPLES`] resamples, seed [`SEED`]) and the exact
-//! sign-flip interval beside it are published. The calibration half's fit aggregates are; the
+//! sign-flip interval beside it are published. The calibration half's fit aggregates are, taken
+//! through [`Calibration`], which refuses a held-out flight (M2.7a, ADR-332); the
 //! held-out half's are written to the gitignored [`HELD_OUT_FITS`], and only that file's SHA-256 is
 //! committed, in [`HELD_OUT_FITS_SHA`], until M7.5 publishes them (ADR-322 §2).
 
@@ -39,6 +40,7 @@ use hpr_sim::{Environment, FlightSettings, Simulation};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
+use crate::collection_boost::Calibration;
 use crate::fixture_flights::{ForwardFlight, as_flown};
 
 /// The interval's coverage, as ADR-257 §3 asks.
@@ -381,6 +383,18 @@ fn sd(values: &[f64]) -> Option<f64> {
 }
 
 impl FitAggregates {
+    /// The calibration half's: a fit across flights, so it takes a [`Calibration`], which no
+    /// held-out flight passes (ADR-209 §4).
+    fn calibration(fits: &Calibration<&Fit>) -> Self {
+        Self::of(CALIBRATION, fits.flights())
+    }
+
+    /// The held-out half's, sealed in [`HELD_OUT_FITS`] and published by no report until M7.5
+    /// has chosen its correction on the calibration half alone (ADR-322 §2).
+    fn held_out(fits: &[&Fit]) -> Self {
+        Self::of(HELD_OUT, fits)
+    }
+
     fn of(half: &str, fits: &[&Fit]) -> Self {
         let parameter = |name: &str, value: fn(&Parameters) -> f64| {
             let values: Vec<f64> = fits.iter().map(|f| value(&f.parameters)).collect();
@@ -502,13 +516,15 @@ pub(crate) fn predict_all(
     })?;
     let half =
         |held: bool| -> Vec<&Outcome> { outcomes.iter().filter(|o| o.held_out == held).collect() };
-    let fits = |held: bool| -> Vec<&Fit> {
+    let fits = |held: bool| {
         outcomes
             .iter()
-            .filter(|o| o.held_out == held)
-            .filter_map(|o| o.result.as_ref().ok().map(|(_, _, fit)| fit))
-            .collect()
+            .filter(move |o| o.held_out == held)
+            .filter_map(|o| Some((o.flight_id.as_str(), &o.result.as_ref().ok()?.2)))
     };
+    // The calibration half's fits feed a fit across flights, so they pass the guard, which reads
+    // each flight's half from its id again.
+    let calibration = Calibration::of(fits(false))?;
     let predictions = Predictions {
         resamples: RESAMPLES,
         seed: SEED,
@@ -520,7 +536,7 @@ pub(crate) fn predict_all(
             Half::of(CALIBRATION, &half(false)),
             Half::of(HELD_OUT, &half(true)),
         ],
-        calibration_fits: FitAggregates::of(CALIBRATION, &fits(false)),
+        calibration_fits: FitAggregates::calibration(&calibration),
     };
     let audit: Vec<serde_json::Value> = outcomes
         .iter()
@@ -544,7 +560,8 @@ pub(crate) fn predict_all(
         })
         .collect();
     let audit = serde_json::to_string_pretty(&audit).map_err(|error| error.to_string())? + "\n";
-    Ok((predictions, FitAggregates::of(HELD_OUT, &fits(true)), audit))
+    let held_out: Vec<&Fit> = fits(true).map(|(_, fit)| fit).collect();
+    Ok((predictions, FitAggregates::held_out(&held_out), audit))
 }
 
 /// Each cut flight's outcome, by id, for checking the page's aggregates on this machine (private,
@@ -997,7 +1014,7 @@ mod tests {
     /// The digest is 64 hex digits, and a change to the aggregates changes it.
     #[test]
     fn the_held_out_fits_are_sealed_by_their_text() {
-        let fits = FitAggregates::of(HELD_OUT, &[]);
+        let fits = FitAggregates::held_out(&[]);
         let text = held_out_fits_text(&fits).unwrap();
         let sealed = held_out_fits_sha_text(&text);
         let digest = sealed.split("  ").next().unwrap();
