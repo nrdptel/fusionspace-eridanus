@@ -1,6 +1,6 @@
 # ADR-332: M2.7 in two, the halves and the fits' guard, then predictions first (2026-11-09)
 
-- **Status:** accepted; splits [M2.7][m2-7] into M2.7a and M2.7b, each with its own *done when*, M2.7's *done when* whole across the two, and so plans every remaining increment of M2.7; carries out M2.7a under [ADR-209][adr-209] §4 and [ADR-322][adr-322] §2, which holds the scoreboard's collection rows by the calibration half (§4).
+- **Status:** accepted; splits [M2.7][m2-7] into M2.7a and M2.7b, each with its own *done when*, M2.7's *done when* whole across the two, and so plans every remaining increment of M2.7; carries out M2.7a under [ADR-209][adr-209] §4 and [ADR-322][adr-322] §2; its §4 holds the scoreboard's collection rows by the calibration half.
 - **Summary:** The private collection's report gives its apogee errors over both halves, as aggregates: of the 60 flights compared, 37 are in the calibration half and 23 held out. A fit across the collection's flights must take its flights through a guard that reads each flight's half from its id again and refuses a held-out one, so `cargo xtask fixture-flights --check` fails when a held-out flight reaches a fit that takes it: the calibration half's fit aggregates, and the report's calibration half, by which the scoreboard's check now holds its collection rows. New flights predicted before their logs are compared are the second increment.
 
 [adr-151]: 0151-hpr-sim-fixtures-joins-the-reference-library-as.md
@@ -94,8 +94,8 @@ ADR-322's encoding and the sealed digest stand.
 
 **Consequences.** M7.5 must choose its correction on the calibration half alone, through the
 guard, and is judged on the held-out half. The two halves' forward errors differ: HPR Sim's signed
-mean is +4.24% on the calibration half and +13.42% on the held-out half. No choice was made on
-either half: the split was sealed before either half's number was reported. The gap is 9.18
+mean is +4.24% on the calibration half and +13.42% on the held-out half. No choice is recorded
+as made on either half, and the split was sealed before either half's number was reported. The gap is 9.18
 points, and this report gives no interval on it; flights of one owner or one rocket can share
 their errors, so the halves may hold fewer independent flights than they count. M2.7b comes
 before M2.3d's predictions (ADR-328), which commit their public predictions whole rather than a

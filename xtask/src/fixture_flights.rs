@@ -1524,9 +1524,10 @@ impl Report {
                      half. The held-out ids' digest, [`held-out.sha256`](held-out.sha256), was \
                      committed before any half's number. Only the calibration half may feed a fit \
                      across flights. Such a fit must take its flights through a guard that stops \
-                     `cargo xtask fixture-flights` when one is held out; today the calibration \
-                     half's fit aggregates in `collection-boost.json` do, and so does the \
-                     calibration half below, which the scoreboard's check holds its collection \
+                     `cargo xtask fixture-flights` when one is held out; the guard checks only the \
+                     fits that take it, and review holds a new fit to it. Today the calibration \
+                     half's fit aggregates in `collection-boost.json` take it. So does the \
+                     calibration half's table below, which the scoreboard holds its collection \
                      rows by. The held-out half is held \
                      out, not blind: the first set above, over every flight compared, was \
                      published before the held-out half was sealed."

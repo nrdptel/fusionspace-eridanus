@@ -372,7 +372,7 @@ Of those 26, the 20 whose motor's burn and log's liftoff are known are each cut 
 Of the 26, 21 are predicted. HPR Sim's forward simulation refuses the design of 3, and 1 has no weather file for its day. There is nothing to fit or compare for those.
 One more has too little up to its cut to fit. The flights are split into two halves by a hash of each flight's id
 ([ADR-322, held-out flights](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0322-the-2026-11-05-progress-review-accuracy-before-reader-facing-work.md)).
-A third is held out in expectation and the rest are the calibration half; neither is blind, as the forward errors over the 60 compared were published before the split.
+A third is held out in expectation and the rest are the calibration half; neither is blind, as the fixture report's forward errors on its 60 flights were published before the split.
 On the 12 in the calibration half the prediction's mean absolute apogee error is 3.22%, against the forward simulation's
 9.35% on the same flights. On the 9 held out it is 3.56%, against 16.86%. The difference is each flight's absolute
 error from the prediction less the forward simulation's, averaged, in percentage points. Each half's paired bootstrap
