@@ -864,7 +864,8 @@ fn from_boost(reports: &Reports) -> Result<(Cell, String), String> {
     let in_burn = whole(half, COLLECTION_BOOST, "/cut_in_burn")?;
     let burn_unknown = whole(half, COLLECTION_BOOST, "/cut_burn_unknown")?;
     let limit = hpr_flightdata::readings::TRANSONIC_SPEED_M_S;
-    // The halves' names, as the report spells them, name them in the note.
+    // The halves' names, from the constants the lookups use, name them in the note
+    // (hyphenated for the held-out half).
     let held_name = FROM_BOOST_HELD_OUT.replace(' ', "-");
     let note = format!(
         "**`accuracy.from-boost`** counts only the flights the method can predict: the {flights} \
@@ -1987,9 +1988,14 @@ mod tests {
             format!("{:.2}%", number(half, COLLECTION_BOOST, key).expect(key))
         };
         let held_flights = whole(held_out, COLLECTION_BOOST, "/every/flights").expect("flights");
-        assert!(
-            (flights, figure(calibration, fma)) != (held_flights, figure(held_out, fma)),
-            "the halves' counts or forward errors must differ for this test to tell them apart"
+        assert_ne!(
+            flights, held_flights,
+            "the halves' counts must differ to tell them apart"
+        );
+        assert_ne!(
+            figure(calibration, fma),
+            figure(held_out, fma),
+            "the halves' forward errors must differ to tell them apart"
         );
         for sentence in [
             format!("the {flights} of the calibration half whose barometer's log"),
