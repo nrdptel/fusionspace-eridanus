@@ -424,8 +424,9 @@ The same five were then tried as two and as three bad readings in a row. Of the 
 moved 9 cuts, by up to 0.70 s. Three in a row moved 23, by up to 1.35 s. Three in a row also left 40 of
 those 255 logs uncut: the speed then read past 227.7 m/s (747 ft/s), so they were refused. Every cut in these
 runs still came after the peak and after burnout. Four or more in a row weren't tried. A larger pad blip, one
-that reads faster than the flight's own top speed, can still move the cut early. So can a step up on the
-pad that stays ([#1362](https://github.com/nrdptel/fusionspace-eridanus/issues/1362) has the measurements). Without the height rule, three readings 12 m (39 ft) too high
+that reads faster than the flight's own top speed, can still move the cut early. So can a step up of 11 to 60 m
+(36 to 197 ft) on the pad that stays: it cut before the peak on most of the logs tried
+([#1362](https://github.com/nrdptel/fusionspace-eridanus/issues/1362) has the counts). Without the height rule, three readings 12 m (39 ft) too high
 in a row on the pad gave 33 cuts before the speed's peak, of the 157 logs spiked
 there (all but the 43 GNSS logs; measured once, not pinned by a test). 32 came
 before ignition, the other 0.04 s after it, and all 2.4 to 7.9 s before burnout. A test pins the order, the
