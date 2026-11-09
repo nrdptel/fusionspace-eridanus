@@ -359,6 +359,7 @@ until someone rewrites it in plainer words.
 | [ADR-328: The 2026-11-08 review: twelve public flights, predictions first][adr-328] | HPR Sim's accuracy against public real flights rests on 7 flights, all from RocketPy's examples. Five more public flights can join them: RocketPy's Astra, Andromeda and Erebus 11, once their netCDF-4 weather is read and their designs are built from the examples' inputs, and two MIT-licensed flights of one OpenRocket design. The new milestone merges each new flight's inputs and predicted apogee in a pull request of its own before any of their errors is computed, then puts `accuracy.public` and `bias.public` over the 12. It changes no model and loosens nothing; it raises how many real flights the public numbers rest on, from 7 to 12. |  |
 | [ADR-329: M7.3d6, the collection's errors by halves][adr-329] | Each private collection flight with a cut log, among the flights the forward report compares, goes to the fit up to its cut, on the flight as `fixture-flights` flies it in HPR Sim, and is flown on to apogee: 21 predicted, 12 in the calibration half and 9 held out; 1 has too little up to its cut to fit. The prediction's mean absolute apogee error is 3.22% in the calibration half and 3.56% in the held-out half, against the forward simulation's 9.35% and 16.86% on the same flights; the paired bootstrap 95% intervals on the difference are −10.07 to −2.70 and −19.01 to −7.97 points. The held-out half's fit aggregates stay private; their file's SHA-256 is committed and checked. |  |
 | [ADR-330: M7.3d7, the from-boost scoreboard row][adr-330] | The scoreboard gains `accuracy.from-boost`, the mean absolute error of the apogee predicted from the log cut after burnout: HPR Sim 3.22% on the 12 calibration-half flights it can predict, with a note on which flights and the forward simulation's 9.35% on them. OpenRocket and RocketPy say *can't*, by their documentation. |
+| [ADR-331: Withdraw the from-boost row to land it again][adr-331] | #1365, the scoreboard's `accuracy.from-boost` row, merged with seven late commits that its reviews had not read. Those commits were reviewed after the merge with no blocking finding, and #1368 fixed what the reviews found. The project's rule is that a pull request merges only once every review has read its final head, so both are withdrawn here and land again together with their reviews first. While withdrawn, the row is absent. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -854,14 +855,14 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-3c5"></a>[M7.3c5][done-5] | The wind on a track | done |
 | <a id="m7-3c6"></a>[M7.3c6][phase-5] | The drag on heights alone | not yet done |
 | <a id="m7-3c7"></a>[M7.3c7][phase-5] | Every count | not yet done |
-| <a id="m7-3d"></a>[M7.3d][done-5] | From the boost | done |
+| <a id="m7-3d"></a>[M7.3d][phase-5] | From the boost | not yet done |
 | <a id="m7-3d1"></a>[M7.3d1][done-5] | The prediction from the boost | done |
 | <a id="m7-3d2"></a>[M7.3d2][done-5] | The public flights | done |
-| <a id="m7-3d3"></a>[M7.3d3][done-5] | The collection by halves | done |
+| <a id="m7-3d3"></a>[M7.3d3][phase-5] | The collection by halves | not yet done |
 | <a id="m7-3d4"></a>[M7.3d4][done-5] | The halves sealed | done |
 | <a id="m7-3d5"></a>[M7.3d5][done-5] | The cut on a real barometer | done |
 | <a id="m7-3d6"></a>[M7.3d6][done-5] | The collection's errors by halves | done |
-| <a id="m7-3d7"></a>[M7.3d7][done-5] | The scoreboard row | done |
+| <a id="m7-3d7"></a>[M7.3d7][phase-5] | The scoreboard row | not yet done |
 | <a id="m7-3e"></a>[M7.3e][phase-5] | The post-flight comparison | not yet done |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |
 | <a id="m7-5"></a>[M7.5][phase-6] | The bias every simulator shares | not yet done |
@@ -1345,6 +1346,7 @@ is the milestone that added or will add that test.
 [adr-328]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md
 [adr-329]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0329-m7-3d6-the-collections-errors-by-halves.md
 [adr-330]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0330-m7-3d7-the-from-boost-scoreboard-row.md
+[adr-331]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0331-withdraw-the-from-boost-row-to-land-it-again.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
