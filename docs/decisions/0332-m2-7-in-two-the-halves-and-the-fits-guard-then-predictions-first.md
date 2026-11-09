@@ -20,7 +20,7 @@
   [ADR-329][adr-329]) reported the first half's number on 2026-11-08.
 - **The fixture report's halves.** `validation/reports/fixture-flights.{json,md}` gives its errors
   over every flight compared, without the early deployments, and without the flights the catalog
-  proposes below tier A. It has no half.
+  proposes below tier A. Before this record it had no half.
 - **A refs check on fits across flights.** The one fit across the collection's flights today is the
   calibration half's fit aggregates in `validation/reports/collection-boost.json`: the drag, impulse
   and structure-mass scales, of which M7.5 corrects drag and impulse. Nothing reads them yet. They are taken over the outcomes whose
@@ -50,11 +50,13 @@
      scoreboard's held-out rows are measured, shown but not held, and its collection rows are held
      on the calibration half alone.
 2. **A fit across flights** is any value estimated from more than one of the collection's flights
-   that feeds a model, a correction, a tolerance or a choice of model. One flight's own fit, such as
-   its drag scale from its boost, is not. Nor is a measurement that judges a model and feeds no
-   value into it, such as the fixture report's errors or M7.5's test on the held-out half
-   (ADR-209 §6). Tuning a model until such a number improves would be a fit. A fit across flights
-   must take its flights through `collection_boost::Calibration`, which can be built only by
+   and put into a model or a correction: a fitted scale, a tuned constant. One flight's own fit,
+   such as its drag scale from its boost, is not. Nor is a measurement that judges a model and puts
+   no value into it, such as the fixture report's errors or M7.5's test on the held-out half
+   (ADR-209 §6). Tuning a model until such a number improves would be a fit. ADR-209 §4 names a
+   third case beside a fit and tuning, a choice of model: a change kept or refused by a measured
+   number. M2.7's *done when* asks a check of fits; §4 says where the held-out half still reaches a
+   choice of model, and how M2.7b ends it. A fit across flights must take its flights through `collection_boost::Calibration`, which can be built only by
    `Calibration::of`. That reads each
    flight's half from its manifest id again, whatever the caller's own filter said, and refuses the
    whole set when any flight is held out, counting them and naming none ([ADR-151][adr-151]). The

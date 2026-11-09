@@ -1517,8 +1517,8 @@ impl Report {
                      across flights. Such a fit must take its flights through a guard that stops \
                      `cargo xtask fixture-flights` when one is held out; today the calibration \
                      half's fit aggregates in `collection-boost.json` do. The held-out half is held \
-                     out, not blind: the sets above, over every flight compared, were published \
-                     before it was sealed."
+                     out, not blind: the first set above, over every flight compared, was \
+                     published before it was sealed."
                 );
             }
             let _ = writeln!(page, "\n### {} ({} flights)\n", set.name, set.flights);

@@ -196,7 +196,7 @@ before they know why.
 so neither is a blind test until [M2.7](decisions-and-roadmap.md#m2-7) holds flights out, predicted
 before their logs are read."
 
-*After*: "Neither set is held out. Both were seen during development, so neither is a blind test.
+*After* (an earlier rewrite): "Neither set is held out. Both were seen during development, so neither is a blind test.
 That waits for the planned milestone that holds flights out, predicted before their logs are read
 ([held-out flights](decisions-and-roadmap.md#m2-7))."
 
