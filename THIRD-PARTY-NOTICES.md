@@ -165,8 +165,9 @@ adds a source.
   (M5.5b, ADR-133).
 
 - **RocketPy example rocket inputs** (MIT, RocketPy v1.13.0): the masses, inertias, positions,
-  motor dimensions and aerodynamic-surface dimensions of seven example rockets, taken from RocketPy's
-  notebooks and test code (never from its data files). They are recorded
+  motor dimensions and aerodynamic-surface dimensions of nine example rockets (ten cases, with
+  Calisto at two motor positions), taken from RocketPy's notebooks and test code (never from its
+  data files). They are recorded
   in `validation/fixtures/design/rocketpy-rocket-mass.json` with RocketPy's outputs (and, for six
   of them, the rail length, inclination and heading in
   `validation/fixtures/flight/rocketpy-whole-flight.json`, whose drag is declared by the generator

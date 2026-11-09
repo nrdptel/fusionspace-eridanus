@@ -16,7 +16,7 @@ measured overrides, mounts motors and flags impossible designs.
   Dynamics* for the [parallel-axis theorem](../glossary.md#parallel-axis-theorem).
 - **How well it is validated:** by analytic tests and
   [code-to-code comparison](../glossary.md#code-to-code-comparison), the first and third of four
-  [kinds of evidence][levels]. A hand-worked rocket agrees to 1e-12 through the burn. Eight cases
+  [kinds of evidence][levels]. A hand-worked rocket agrees to 1e-12 through the burn. Ten cases
   of [RocketPy](../glossary.md#rocketpy)'s [example rockets](../glossary.md#example-rockets) are
   compared, each a given structure with its motor placed. At the times RocketPy computed, mass,
   center and inertia agree within 8.0e-10 (relative). Between those times, mass agrees within
@@ -873,13 +873,12 @@ unless the caller sets
   cap anywhere along its parent, off its parent's axis, or over both ends.
 
 - Against RocketPy 1.13.0, in `config::tests::matches_rocketpy_example_rockets`:
-  - Eight cases of the [fixture](../glossary.md#reference-value-and-fixture)
-    [`validation/fixtures/design/rocketpy-rocket-mass.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/design/rocketpy-rocket-mass.json):
-    seven [example rockets](../glossary.md#example-rockets) (Calisto at two motor positions) and
-    Prometheus's `GenericMotor`. That is RocketPy's motor described by its masses alone, with no
-    grain geometry. Cavour (added for its drag curve in
-    [the drag milestone](../decisions-and-roadmap.md#m1-5b)) has no motor dry mass. Its design
-    gives the motor 1e-15 kg, since HPR Sim needs a positive one.
+  - Ten cases of the [fixture](../glossary.md#reference-value-and-fixture)
+    [`validation/fixtures/design/rocketpy-rocket-mass.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/design/rocketpy-rocket-mass.json),
+    from nine [example rockets](../glossary.md#example-rockets) (Calisto at two motor positions).
+    Prometheus flies a `GenericMotor`, RocketPy's motor described by its masses alone. Cavour,
+    Genesis and Lince have no motor dry mass. Their designs give it 1e-15 kg, since HPR Sim needs
+    a positive one.
     [`docs/research/rocketpy-rocket-mass.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/rocketpy-rocket-mass.md)
     gives the curve substitution and the examples left out.
   - The test derives the stage override, nozzle station and motor inputs from the fixture itself,
@@ -912,9 +911,9 @@ unless the caller sets
 
 - The public designs are in
   [`validation/designs/`](https://github.com/nrdptel/fusionspace-eridanus/tree/main/validation/designs),
-  written by `cargo xtask designs`, which a test keeps in sync. The eight RocketPy cases and two
-  synthetic rockets resolve with no findings. They assemble into valid bodies at ignition,
-  mid-burn and burnout.
+  written by `cargo xtask designs`, which a test keeps in sync. Seven RocketPy cases (not Cavour,
+  Genesis or Lince) and two synthetic rockets are tested. Each resolves with no findings and
+  assembles into a valid body at ignition, mid-burn and burnout.
 
 - Lessons: [Loft lesson L47](../decisions-and-roadmap.md#l47) `tests::reference_diameter_ignores_internal_components`;
   [Loft lesson L50](../decisions-and-roadmap.md#l50) `checks::tests::motor_wider_than_mount_is_rejected` and
