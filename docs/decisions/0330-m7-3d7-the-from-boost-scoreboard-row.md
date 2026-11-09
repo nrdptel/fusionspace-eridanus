@@ -14,10 +14,12 @@
 
 **Context.** [ADR-257][adr-257] §3 asked for a new [scoreboard][adr-240] row, `accuracy.from-boost`,
 with each other tool's cell read from its documentation: a number if the tool can do it, otherwise
-*can't*. M7.3d's other clauses are on main: the public flights' report ([ADR-325][adr-325]), the
+*can't*. M7.3d's other clauses are on main: the prediction that reads nothing past its cut
+(M7.3d1), the public flights' report ([ADR-325][adr-325]), the
 halves sealed ([ADR-326][adr-326]) and the collection's errors by halves ([ADR-329][adr-329]).
 Four sets of flights could fill HPR Sim's cell: the 2 public flights predicted, the 12 of the
-calibration half, the 9 held out, or both halves pooled. The cell is one number, and the check
+calibration half, the 9 held out, or both halves pooled; each with every flight or only those without a deployment
+before apogee. The cell is one number, and the check
 holds it.
 
 **Decision.**
@@ -29,8 +31,8 @@ holds it.
    flights. Why this half:
    - **Not the public flights.** Two are predicted; their report says that is too few to tell, at
      95%, whether the prediction beats the forward simulation.
-   - **Not the held-out half, nor both halves pooled.** The check fails any change that makes the
-     cell worse. Held on held-out flights, it would let them veto changes to the method, a choice
+   - **Not the held-out half, nor both halves pooled.** The check fails a change that prints the
+     cell worse, unless an accepted ADR names it. Held on held-out flights, it would let them veto changes to the method, a choice
      of model drawing on them, which [ADR-209][adr-209] §4 and [ADR-322][adr-322] §2 rule out. The
      held-out half's errors stay on the collection's page, shown and not held.
    - **Every flight, not only those without a deployment before apogee.** The other measured accuracy
@@ -38,11 +40,12 @@ holds it.
 2. **The other tools can't, by their documentation.** Each cell names its reason and links the page,
    taken from the features record (`validation/features/simulator.toml`), which names each tool's
    release and the date its pages were read. The two pages the cells link, and OpenRocket's
-   release notes, were read again on 2026-11-08 and match the record; the other pages named below
-   aren't in it:
+   release notes, were read again on 2026-11-08 and match the record's yes or no for each. The
+   overrides page and RocketPy's changelog aren't in the record, and its utilities page is there
+   only for its fin-flutter entry:
    - **OpenRocket 24.12:** its guide lists importing and plotting altimeter data among planned
      features, and the 24.12 release notes add no log import. Its guide's advice after a first
-     flight is to compare by hand and adjust the drag
+     flight is to compare the two, adjust the drag or surface finish and rerun until they agree
      ([overrides](https://openrocket.readthedocs.io/en/latest/user_guide/overrides_and_surface_finish.html)).
    - **RocketPy 1.13.0:** its Flight Comparator, added in 1.12.0 by its changelog, takes logged data,
      aligns it with a simulated flight and gives their difference (RMS and mean absolute). Its
@@ -59,8 +62,9 @@ holds it.
    collection a correction may be tuned on. The legend's *can't* now covers a cell that links its
    page.
 
-**What it shows.** The prediction's 3.22% is not comparable with the forward rows' errors: it reads
-the flight's own log up to the cut, which the forward simulation doesn't. On the same 12 flights the
+**What it shows.** The prediction's 3.22% is not comparable with the forward rows above it, which are
+forward simulations over other flights: it reads the flight's own log up to the cut, which the
+forward simulation doesn't. On the same 12 flights the
 forward simulation's mean absolute error is 9.35%, on the collection's page with the paired
 bootstrap interval of the difference. The scoreboard's opening now counts 54 cells, 15 measured.
 
