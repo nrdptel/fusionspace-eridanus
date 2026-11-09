@@ -1,7 +1,7 @@
 # ADR-333: M2.7b, new flights predicted first (2026-11-09)
 
 - **Status:** accepted; carries out [M2.7b][m2-7b] under [ADR-332][adr-332] §1 and §4, and with it closes M2.7.
-- **Summary:** A flight the private collection's manifest gains after M2.7a is compared with its log only when the collection holds its prediction, written from the flight's plan alone, and that file's SHA-256 sits in `validation/reports/predictions.sha256` where the branch left main, so it merged in an earlier pull request; otherwise `fixture-flights` refuses it by id. A committed digest of M2.7a's 83 manifest ids tells a new flight from an old one. Shown on an invented flight; no flight is new yet, so the list is empty. The scoreboard's held-out rows read the fixture report's held-out half, HPR Sim 16.32% and OpenRocket 24.12 14.98% over 23 flights (bias +13.42% and +11.68%), shown, not held.
+- **Summary:** A flight the private collection's manifest gains after M2.7a is compared with its log only when the collection holds its prediction, written from the flight's plan alone, and that file's SHA-256 sits in `validation/reports/predictions.sha256` where the branch last took main, so it merged in an earlier pull request; otherwise `fixture-flights` refuses it by id. A committed digest of M2.7a's 83 manifest ids tells a new flight from an old one. Shown on an invented flight; no flight is new yet, so the list is empty. The scoreboard's held-out rows read the fixture report's held-out half, HPR Sim 16.32% and OpenRocket 24.12 14.98% over 23 flights (bias +13.42% and +11.68%), shown, not held.
 
 [adr-151]: 0151-hpr-sim-fixtures-joins-the-reference-library-as.md
 [adr-326]: 0326-m7-3d3-in-four-the-halves-sealed-first.md
@@ -35,13 +35,13 @@ guessed id could be confirmed against them.
    or the run stops. So a new flight can't pass as an old one, nor an old one be marked new: 82
    would be left unmarked.
 3. **Earlier, read from git.** `validation/reports/predictions.sha256` holds only hashes, one a
-   line, and comment lines. The check reads it at `git merge-base HEAD origin/main`, where the branch left main, not
+   line, with comment and blank lines. The check reads it at `git merge-base HEAD origin/main`, where the branch last took main, not
    in the working tree. Pull requests here are squash-merged, so, as [ADR-326][adr-326] found for
    the seal, a hash is there only if it merged in a pull request of its own before the branch
    last took main. A flight marked new is refused, by id and on this machine only, when its prediction is
    missing, when the hash isn't on that list, or when the prediction is of another plan, design
    file or ERA5 file than the flight compared. A test runs the list's reading in a scratch
-   repository: a hash added on the branch, or merged on main after the branch began, isn't on it.
+   repository: a hash added on the branch, or merged on main after the branch last took main, isn't on it.
 4. **Shown on an invented flight.** No flight has joined the manifest since M2.7a. The tests use an
    invented flight's plan and prediction for each refusal and for the flight compared. A
    probe by hand on the real collection, which no test repeats, added an invented flight, a copy of a compared flight under a new
@@ -67,6 +67,6 @@ the prediction's hash, the prediction itself going into the collection. The seco
 from after the first merged, compares the flight. A model change between the two moves the
 compared apogee but not the prediction, which keeps the commit that flew it. The second also
 rewrites the reports by `cargo xtask fixture-flights`. Where the new id falls in the held-out
-third, that run rewrites the two held-out digests too: `held-out.sha256` and
-`held-out-fits.sha256`. The set they seal grows; the rule that sorts each flight into a half,
+third, that run rewrites `held-out.sha256` too, and `held-out-fits.sha256` when the boost
+method predicts the flight. The set they seal grows; the rule that sorts each flight into a half,
 fixed by ADR-322 §2 on ids that stay stable as the collection grows, doesn't change.
