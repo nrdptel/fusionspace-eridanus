@@ -1514,9 +1514,11 @@ impl Report {
                      read as a big-endian integer, are below 2⁶⁴ / 3; the rest are the calibration \
                      half. The held-out ids' digest, [`held-out.sha256`](held-out.sha256), was \
                      committed before any half's number. Only the calibration half may feed a fit \
-                     across flights; `cargo xtask fixture-flights` stops when a held-out flight \
-                     feeds one. The held-out half is held out, not blind: every flight's error was \
-                     published, in the sets above, before it was sealed."
+                     across flights. Such a fit must take its flights through a guard that stops \
+                     `cargo xtask fixture-flights` when one is held out; today the calibration \
+                     half's fit aggregates in `collection-boost.json` do. The held-out half is held \
+                     out, not blind: the sets above, over every flight compared, were published \
+                     before it was sealed."
                 );
             }
             let _ = writeln!(page, "\n### {} ({} flights)\n", set.name, set.flights);

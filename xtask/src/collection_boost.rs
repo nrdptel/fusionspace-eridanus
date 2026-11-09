@@ -63,10 +63,11 @@ pub fn held_out(flight_id: &str) -> bool {
 ///
 /// It is built only by [`Calibration::of`], which reads each flight's half from its id again,
 /// whatever its caller's own filter said, and refuses the whole set when any flight is held out.
-/// A fit across flights takes a `Calibration`, so a held-out flight fed to one stops
-/// `cargo xtask fixture-flights`, and with it `--check`, the gate's `refs` step. Today the one
-/// such fit is the calibration half's fit aggregates, the drag, impulse and mass scales a later
-/// correction (M7.5) is chosen from; that correction must take a `Calibration` too.
+/// A fit across flights must take a `Calibration`, so a held-out flight fed to one stops
+/// `cargo xtask fixture-flights`, and with it `--check`, the gate's `refs` step; the guard checks
+/// only the fits that take it. Today the one such fit is the calibration half's fit aggregates,
+/// the drag, impulse and mass scales a later correction (M7.5) is chosen from; that correction
+/// must take a `Calibration` too.
 #[derive(Debug)]
 pub struct Calibration<T>(Vec<T>);
 

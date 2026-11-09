@@ -26,13 +26,13 @@ kinds are assumed, and none is calibrated ([evidence row G21](evidence.md#g21)).
 average. They miss by 12.07% (mean absolute), also outside the target. OpenRocket's are +6.72%
 above** ([private collection](#real-flights-of-the-private-collection), [report][fixture-report]).
 
-Neither set is blind: both were seen during development. [Blind flights](decisions-and-roadmap.md#m2-7)
-are predicted before their logs are read.
+No flight here is blind yet: all were seen during development. [Blind
+flights](decisions-and-roadmap.md#m2-7) will be predicted before their logs are read.
 
 > **How far to trust it.** Comparisons, most of them with other programs. Agreement with RocketPy or
 > OpenRocket shows that HPR Sim computes what they compute, not that any of them matches the world.
 > Only the real flights are measurements, and on them the apogee misses by more than the 5% target
-> on average ([report][real-report]).
+> on average ([public][real-report], [private][fixture-report]).
 >
 > The [census](#the-census) adds no evidence of its own. It's exactly as good as the reports it
 > counts. Where a number matters, plan with the whole
@@ -936,8 +936,8 @@ Both over-predict: HPR Sim's [apogees](glossary.md#apogee) are +7.76% above the 
 (mean absolute 12.07%), OpenRocket's +6.72% (11.26%). The two codes agree within 5% on 59 of the
 60 ([report][fixture-report]). Neither meets the 5% target.**
 
-The [report][fixture-report]'s histogram gives the low side, the one a waiver depends on. Its bins
-below zero hold the flights whose simulated apogee read under the log. Each logged apogee is the
+The [report][fixture-report]'s histogram gives the low side, the one a waiver depends on: its bins
+below zero hold the flights simulated under the log. Each logged apogee is the
 height climbed in the day's air, the altimeter's reading corrected for the weather as the report
 sets out.
 
@@ -946,11 +946,11 @@ difference between the two codes. What causes it isn't shown here. The flights' 
 aggregate statistics, so no flight is named here. The logs' readings were taken by hand from free
 text.
 
-**Held out.** A hash of each flight's id holds out about a third
+**Held out.** A hash of each flight's id holds out a third in expectation, 23 of the 60
 ([decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md)).
-No fit across flights may use them. On the 23 held out, HPR Sim misses by 16.32% (mean absolute)
-and OpenRocket by 14.98%; on the other 37, 9.43% and 8.95% ([report][fixture-report]). Their errors
-were published before the split, so they aren't blind.
+From now on no fit across flights may use them. On them HPR Sim misses by 16.32% (mean absolute)
+and OpenRocket by 14.98%; on the other 37, 9.43% and 8.95% ([report][fixture-report]). They were
+seen before the split, so they aren't blind.
 
 **What is flown.** The collection pairs each design as flown with its own flight's log, the
 motor, date, site and the [ERA5](glossary.md#reanalysis) weather of the day
