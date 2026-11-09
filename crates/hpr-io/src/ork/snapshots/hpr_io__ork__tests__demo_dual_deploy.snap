@@ -107,6 +107,11 @@ expression: snapshot_of(&design)
       "at": "openrocket/rocket/stage[0]/bodytube[2]",
       "kind": "unusual",
       "says": "K550W's curve file 5f4294d20002e90000000071 is more than 1% from ThrustCurve.org's figures for it: total impulse +5.57%, average thrust +35.66%, burn time -22.18%"
+    },
+    {
+      "at": "openrocket/rocket/stage[0]/bodytube[2]",
+      "kind": "unusual",
+      "says": "AeroTech K550W flies a burnout mass, loaded less propellant, of 567.6 g where ThrustCurve.org's record gives 598.3 g, -5.1%, more than 5% apart. Too heavy gives too low an apogee; too light, too high a margin after burnout"
     }
   ]
 }

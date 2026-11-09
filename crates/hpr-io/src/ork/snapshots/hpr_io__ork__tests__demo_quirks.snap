@@ -126,6 +126,11 @@ expression: snapshot_of(&design)
       "at": "openrocket/rocket/stage[0]/bodytube[3]",
       "kind": "unusual",
       "says": "J420R's curve file 5f4294d20002e90000000057 is more than 1% from ThrustCurve.org's figures for it: total impulse -1.03%, burn time -1.97%"
+    },
+    {
+      "at": "openrocket/rocket/stage[0]/bodytube[3]",
+      "kind": "unusual",
+      "says": "AeroTech J420R flies a burnout mass, loaded less propellant, of 273.3 g where ThrustCurve.org's record gives 304.6 g, -10.3%, more than 5% apart. Too heavy gives too low an apogee; too light, too high a margin after burnout"
     }
   ]
 }
