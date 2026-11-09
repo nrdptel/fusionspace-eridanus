@@ -38,19 +38,20 @@ number prints worse ([ADR-240][adr-240]).
    - **Every flight, not only those without a deployment before apogee.** The other measured
      accuracy rows count every compared flight. The report's second set stays on its page.
 2. **A note says which flights.** The method predicts only a barometer's log cut before its climb
-   reaches the analyzer's transonic speed, 227.7 m/s (747 ft/s), among the flights the forward
-   simulation flies: 12 of the calibration half. The label says "the calibration-half flights it
+   reaches the analyzer's transonic speed, 227.7 m/s (747 ft/s), with enough of the log up to the
+   cut to fit, among the flights the forward report compares and flies in the day's ERA5 air: 12 of
+   the calibration half. The label says "the calibration-half flights it
    can predict", and a note under the accuracy table, its numbers read from the same report, says
    so, gives the forward simulation's mean absolute error on the same 12 (9.35%), and the held-out
-   half's prediction and forward errors (3.56% and 16.86% on 9), shown and not held. The accuracy
+   half's prediction and forward errors (3.56% and 16.86% on 9; held out from choices made after
+   the seal, not blind), shown and not held. The accuracy
    section's words say why the row isn't comparable with the forward rows above it: the prediction
    reads the flight's own log up to its cut, and covers only the flights it can predict.
 3. **The other tools can't, by their documentation.** Each cell names its reason and links the page
    that the features record (`validation/features/simulator.toml`) cites for the tool's `log`
    capability, which says whether it reads a flight log: OpenRocket no (its planned features),
-   RocketPy yes (its Flight Comparator). The scoreboard refuses to build when either cell no longer
-   says what it said when the reason was written, so a changed record sends the reason back to be
-   read again. These pages, OpenRocket's 24.12 release notes and the pages below were read again on
+   RocketPy yes (its Flight Comparator). The scoreboard refuses to build when either cell's yes or no
+   changes, which sends the reason back to be read again; the test pins the linked pages. These pages, OpenRocket's 24.12 release notes and the pages below were read again on
    2026-11-08:
    - **OpenRocket 24.12:** its guide lists importing and plotting altimeter data among planned
      features, and the 24.12 release notes add no log import. Its guide's advice after a first
@@ -80,7 +81,7 @@ report gives no such figure. The scoreboard's opening now counts 54 cells, 15 me
 **What doesn't change.** M7.3d's *done when* stands whole and is met with this row. The halves, the
 seal, the reports and their checks are as ADR-326 and ADR-329 left them.
 
-**Consequences.** M7.3d3 and M7.3d close. M7.3 stays open on M7.3c (the Bayesian intervals) and
+**Consequences.** M7.3d3 and M7.3d close. M7.3 stays open on M7.3c (the Bayesian option) and
 M7.3e (the post-flight comparison command). A change that makes the printed calibration-half error
 higher, or counts fewer flights, now needs an accepted ADR whose `- **Scoreboard:**` line names
 `accuracy.from-boost.hpr` and the release it ships in ([ADR-240][adr-240]).

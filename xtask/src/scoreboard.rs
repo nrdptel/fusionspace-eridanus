@@ -862,11 +862,13 @@ fn from_boost(reports: &Reports) -> Result<(Cell, String), String> {
     let note = format!(
         "**`accuracy.from-boost`** counts only the flights the method can predict: the {flights} \
          of the calibration half whose barometer's log was cut before its climb reached \
-         {limit:.1} m/s ({:.0} ft/s), among those the forward simulation flies; a faster climb \
-         gets no prediction. On those {flights} flights the forward simulation's mean absolute \
-         error is {forward:.2}%. On the {held_flights} held-out flights the prediction's is \
-         {held_prediction:.2}% and the forward simulation's {held_forward:.2}%, shown on [the \
-         collection's page]({BLOB}/{COLLECTION_BOOST_MD}) and not held.",
+         {limit:.1} m/s ({:.0} ft/s), with enough of the log up to the cut to fit, among those the \
+         forward report compares and flies in the day's ERA5 air; a faster climb gets no \
+         prediction. On those {flights} flights the forward simulation's mean absolute error is \
+         {forward:.2}%. On the {held_flights} held-out flights predicted (held out from choices \
+         made after the seal, not blind) the prediction's is {held_prediction:.2}% and the \
+         forward simulation's {held_forward:.2}%, shown on [the collection's \
+         page]({BLOB}/{COLLECTION_BOOST_MD}) and not held.",
         limit / 0.3048
     );
     Ok((cell, note))
@@ -875,7 +877,8 @@ fn from_boost(reports: &Reports) -> Result<(Cell, String), String> {
 /// Why each other tool can't predict apogee from a log cut after burnout, read from its
 /// documentation (ADR-257 §3, ADR-330): the tool, what the features record's `log` capability
 /// says of it when this was read, and what its documentation shows. The page is the one that
-/// cell cites, so a changed cell fails the scoreboard until the reason is read again.
+/// cell cites; a change in the cell's yes or no fails the scoreboard until the reason is read
+/// again, and the test pins the linked pages.
 const FROM_BOOST_CANNOT: [(Tool, features::Has, &str); 2] = [
     (
         Tool::Openrocket,
