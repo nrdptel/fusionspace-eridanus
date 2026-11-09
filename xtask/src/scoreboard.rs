@@ -64,6 +64,8 @@ const COLLECTION_BOOST_MD: &str = crate::collection_boost::REPORT_MD;
 const BLOB: &str = "https://github.com/nrdptel/fusionspace-eridanus/blob/main";
 /// The half of M2.7's split whose from-boost error the scoreboard holds (ADR-330).
 const FROM_BOOST_HALF: &str = "calibration";
+/// The other half, whose from-boost errors the note shows and the scoreboard doesn't hold.
+const FROM_BOOST_HELD_OUT: &str = "held out";
 /// OpenRocket flying HPR Sim's `.ork` exports (M3.2b).
 const EXPORT_FLIGHTS: &str = "validation/reports/openrocket-export-flights.json";
 /// HPR Sim against OpenRocket's flights of its own examples, which names its release.
@@ -851,7 +853,7 @@ fn from_boost(reports: &Reports) -> Result<(Cell, String), String> {
         COLLECTION_BOOST,
         "/every/forward_mean_absolute_percent",
     )?;
-    let (held, held_index) = boost_half(reports, "held out")?;
+    let (held, held_index) = boost_half(reports, FROM_BOOST_HELD_OUT)?;
     let held_flights = boost_flights(held, held_index)?;
     let held_prediction = number(held, COLLECTION_BOOST, pointer)?;
     let held_forward = number(
@@ -862,15 +864,18 @@ fn from_boost(reports: &Reports) -> Result<(Cell, String), String> {
     let in_burn = whole(half, COLLECTION_BOOST, "/cut_in_burn")?;
     let burn_unknown = whole(half, COLLECTION_BOOST, "/cut_burn_unknown")?;
     let limit = hpr_flightdata::readings::TRANSONIC_SPEED_M_S;
+    // The halves' names, from the constants the lookups use, name them in the note
+    // (hyphenated for the held-out half).
+    let held_name = FROM_BOOST_HELD_OUT.replace(' ', "-");
     let note = format!(
         "**`accuracy.from-boost`** counts only the flights the method can predict: the {flights} \
-         of the calibration half whose barometer's log was cut before its climb reached \
+         of the {FROM_BOOST_HALF} half whose barometer's log was cut before its climb reached \
          {limit:.1} m/s ({:.0} ft/s), with enough of the log up to the cut to fit, among those the \
          forward report compares and flies in the day's ERA5 air; a faster climb gets no \
          prediction. Of the {flights} predicted flights, {in_burn} were cut less than the motor's \
          burn after liftoff, and for {burn_unknown} the motor's burn or the log's liftoff isn't \
          known. On those {flights} the forward simulation's mean absolute error is \
-         {forward:.2}%. On the {held_flights} flights of the held-out half that were predicted (held out \
+         {forward:.2}%. On the {held_flights} flights of the {held_name} half that were predicted (held out \
          from choices made after the seal, not blind) the prediction's is {held_prediction:.2}% and the \
          forward simulation's {held_forward:.2}%, shown on [the collection's \
          page]({BLOB}/{COLLECTION_BOOST_MD}) and not held.",
@@ -1956,7 +1961,7 @@ mod tests {
             .expect("the calibration half");
         let held_out = halves
             .iter()
-            .find(|half| half["name"] == "held out")
+            .find(|half| half["name"] == FROM_BOOST_HELD_OUT)
             .expect("the held-out half");
         let pma = "/every/prediction_mean_absolute_percent";
         let value = number(calibration, COLLECTION_BOOST, pma).expect("the error");
@@ -1977,13 +1982,36 @@ mod tests {
         assert_eq!(mine.value, Some(rounded(value, 2)));
         assert_eq!(mine.count, Some(flights));
         let note = built.note.as_deref().expect("the note");
-        for (key, half) in [
-            ("/every/forward_mean_absolute_percent", calibration),
-            ("/every/forward_mean_absolute_percent", held_out),
-            (pma, held_out),
+        // Each figure in the sentence that names its half, so a swap between the halves fails.
+        let fma = "/every/forward_mean_absolute_percent";
+        let figure = |half: &Value, key: &str| {
+            format!("{:.2}%", number(half, COLLECTION_BOOST, key).expect(key))
+        };
+        let held_flights = whole(held_out, COLLECTION_BOOST, "/every/flights").expect("flights");
+        assert_ne!(
+            flights, held_flights,
+            "the halves' counts must differ to tell them apart"
+        );
+        assert_ne!(
+            figure(calibration, fma),
+            figure(held_out, fma),
+            "the halves' forward errors must differ to tell them apart"
+        );
+        for sentence in [
+            format!("the {flights} of the calibration half whose barometer's log"),
+            format!(
+                "On those {flights} the forward simulation's mean absolute error is {}.",
+                figure(calibration, fma)
+            ),
+            format!(
+                "On the {held_flights} flights of the held-out half that were predicted (held out \
+                 from choices made after the seal, not blind) the prediction's is {} and the \
+                 forward simulation's {},",
+                figure(held_out, pma),
+                figure(held_out, fma)
+            ),
         ] {
-            let figure = format!("{:.2}%", number(half, COLLECTION_BOOST, key).expect(key));
-            assert!(note.contains(&figure), "{figure} in {note}");
+            assert!(note.contains(&sentence), "{sentence} in {note}");
         }
         assert!(note.contains("227.7 m/s (747 ft/s)"), "{note}");
         let count = |key: &str| whole(calibration, COLLECTION_BOOST, key).expect(key);
@@ -2028,7 +2056,7 @@ mod tests {
         let at = |name: &str, key: &str| format!("/predictions/halves/{}{key}", index(name));
         *reports
             .collection_boost
-            .pointer_mut(&at("held out", pma))
+            .pointer_mut(&at(FROM_BOOST_HELD_OUT, pma))
             .expect("held out") = 99.0.into();
         gate(
             &committed,
