@@ -1782,9 +1782,9 @@ mod tests {
         );
         // A held-out flight marked as calibration, whatever its flag, stops the report: the
         // calibration half is the scoreboard's threshold across flights (ADR-332 §4).
-        let mut mislabelled = rows;
-        mislabelled[1].held_out = false;
-        let error = error_sets(&mislabelled).unwrap_err();
+        let mut mislabeled = rows;
+        mislabeled[1].held_out = false;
+        let error = error_sets(&mislabeled).unwrap_err();
         assert!(error.starts_with("1 held-out flight fed a fit"), "{error}");
     }
 
