@@ -557,6 +557,20 @@ mod tests {
         assert!(parse_list(&format!("{a}  a note\n")).is_err());
         assert!(parse_list(&"A".repeat(64)).is_err());
         assert!(parse_list(&"a".repeat(63)).is_err());
+        // Hostile lines: a control character, an escape, a long name with emoji, a negative
+        // number, NaN, a hash with a character past ASCII at the same byte length.
+        for line in [
+            format!("{}\u{7}", "a".repeat(63)),
+            format!("\u{1b}[31m{a}"),
+            "🚀".repeat(130),
+            "-1".to_owned(),
+            "NaN".to_owned(),
+            format!("{}é", "a".repeat(62)),
+        ] {
+            assert!(parse_list(&line).is_err(), "{line:?}");
+        }
+        // A carriage return or spaces around a hash are whitespace, read past.
+        assert_eq!(parse_list(&format!("  {a}\r\n")), Ok(BTreeSet::from([a])));
     }
 
     /// The manifest's flights not marked new must be M2.7a's: a new flight left unmarked
@@ -594,6 +608,12 @@ mod tests {
         let mut unmarked = old.clone();
         unmarked.push(entry("invented-20270101", false));
         assert!(held_to_before(&unmarked, &committed).is_err());
+        // An old flight swapped for a new one left unmarked, the count unchanged: refused by
+        // the digest.
+        let mut swapped = old.clone();
+        swapped[0] = entry("invented-20270101", false);
+        assert_eq!(swapped.len(), TIER_A_ORK);
+        assert!(held_to_before(&swapped, &committed).is_err());
         // An old flight marked new: refused.
         let mut remarked = old.clone();
         remarked[0].added_after_m2_7a = true;
