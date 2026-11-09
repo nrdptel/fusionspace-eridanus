@@ -1,7 +1,7 @@
 # ADR-330: M7.3d7, the from-boost scoreboard row (2026-11-08)
 
 - **Status:** accepted; carries out [M7.3d7][m7-3] under [ADR-326][adr-326] §1 and [ADR-257][adr-257] §3, and with it closes M7.3d3 and M7.3d.
-- **Summary:** The scoreboard gains `accuracy.from-boost`: the mean absolute error of the apogee predicted from the log cut after burnout. HPR Sim's cell reads the private collection's calibration-half flights the method can predict, 3.22% over 12, from `collection-boost.json`, and the check holds it. A note under the table says which flights those are and gives the forward simulation's 9.35% on them and the held-out half's numbers. OpenRocket 24.12's and RocketPy 1.13.0's cells say *can't*, each linking the page the features record cites for its log capability: OpenRocket's documentation describes importing altimeter data only as a planned feature, and RocketPy's Flight Comparator sets a log beside a simulated flight but its page describes no fit to it.
+- **Summary:** The scoreboard gains `accuracy.from-boost`, the mean absolute error of the apogee predicted from the log cut after burnout: HPR Sim 3.22% on the 12 calibration-half flights it can predict, with a note on which flights and the forward simulation's 9.35% on them. OpenRocket and RocketPy say *can't*, by their documentation.
 
 [adr-209]: 0209-the-2026-10-08-best-on-the-market-measured.md
 [adr-240]: 0240-the-scoreboard.md
