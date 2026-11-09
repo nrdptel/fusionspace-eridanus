@@ -1103,12 +1103,16 @@ HPR Sim's named finishes. Those names ("raw wood", "dip-galvanized metal") mean 
 happen to share a height.
 
 **`polished` is the one to doubt.** Its 2 µm rests on a 2013 forum post and on nothing else. The
-number also sits oddly. In the [table the OpenRocket technical documentation itself
-reprints][techdoc] (Table 3.2, from Hoerner), 2 µm is *aircraft-type sheet metal*. In that table
-"finished and polished surface" is **0.5 µm**. So OpenRocket's "Polished" is not the row its name
-points at, and a later version could reasonably have moved it. Rocketry-forum posts from 2023
-onward list nine finishes rather than five. That suggests the list has indeed changed, though
-neither the 23.09 nor the 24.12 release notes mention it.
+number also sits oddly. In Hoerner's table of surface roughness (*Fluid-Dynamic Drag*, 1965,
+p. 5-3), 2 µm is *aircraft-type sheet-metal surfaces*. [Barrowman's 1967 thesis][barrowman-1967],
+the source of the method OpenRocket's aerodynamics follow, copies all 15 of Hoerner's rows in its
+Table 4-1, that one included. The [OpenRocket technical documentation][techdoc] reprints the table
+as its Table 3.2 but keeps only 10 rows, and the 2 µm row is not one of them. All three put
+"finished and polished" surfaces at **0.5 µm**. So OpenRocket's "Polished" is not the row its
+name points at, and a later version could reasonably have moved it.
+
+Rocketry-forum posts from 2023 onward list nine finishes rather than five. That suggests the
+list has indeed changed, though neither the 23.09 nor the 24.12 release notes mention it.
 
 What it would cost: skin friction in the fully-rough branch goes as $R_s^{0.2}$
 ([drag](../physics/aero.md)). So 0.5 µm instead of 2 µm is a **1.32×** change in the
@@ -1834,6 +1838,7 @@ a radius the file doesn't give are
 [adr-054]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0054-an-automatic-radius-with-nothing-to-take-is.md
 [adr-053]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0053-the-parts-on-and-inside-a-ork-body-degrees-what.md
 [techdoc]: https://openrocket.sourceforge.net/techdoc.pdf
+[barrowman-1967]: https://ntrs.nasa.gov/citations/20010047838
 [dialog]: https://openrocket.readthedocs.io/en/latest/_images/body_tube_config.png
 [finishes]: https://openrocket.readthedocs.io/en/latest/user_guide/overrides_and_surface_finish.html
 [forum]: https://www.rocketryforum.com/threads/open-rocket-finishes.57558/post-585716
