@@ -21,8 +21,8 @@
 - **The fixture report's halves.** `validation/reports/fixture-flights.{json,md}` gives its errors
   over every flight compared, without the early deployments, and without the flights the catalog
   proposes below tier A. Before this record it had no half.
-- **A refs check on fits across flights.** The one fit across the collection's flights today is the
-  calibration half's fit aggregates in `validation/reports/collection-boost.json`: the drag, impulse
+- **A refs check on fits across flights.** The one fit across the collection's flights put into a model
+  or a correction today is the calibration half's fit aggregates in `validation/reports/collection-boost.json`: the drag, impulse
   and structure-mass scales, of which M7.5 corrects drag and impulse. Nothing reads them yet. They are taken over the outcomes whose
   `held_out` flag is false. Nothing would stop a change to that filter, or a new fit, from taking a
   held-out flight, and no check fails if one does.

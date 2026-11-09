@@ -946,8 +946,8 @@ shown here. The flights' owners allow only aggregate statistics, so no flight is
 **Held out.** A hash of each flight's id holds out a third in expectation, here 23 of the 60
 ([decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md)).
 On them HPR Sim misses by 16.32% (mean absolute) and OpenRocket by 14.98%; on the other 37, 9.43%
-and 8.95% ([report][fixture-report]). No fit across flights has used the 23 since the split. All
-60 were seen before it, so neither half is blind.
+and 8.95% ([report][fixture-report]). Fits across flights, the scoreboard's check included, now
+leave the 23 out. All 60 were seen before the split, so neither half is blind.
 
 **What is flown.** The collection pairs each design as flown with its own flight's log, the
 motor, date, site and the [ERA5](glossary.md#reanalysis) weather of the day

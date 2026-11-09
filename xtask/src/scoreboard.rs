@@ -201,8 +201,9 @@ pub(crate) struct Cell {
 }
 
 /// What the ratchet holds a cell by in place of its value: the private collection's calibration
-/// half, for a row over every flight compared, so a worse number on the held-out half alone can't
-/// block a change of model (ADR-209 §4, ADR-322 §2, ADR-332 §4).
+/// half, for a row over every flight compared, so a worse error on the held-out half alone can't
+/// block a change of model, though a drop in the cell's flight count still does (ADR-209 §4,
+/// ADR-322 §2, ADR-332 §4).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub(crate) struct Held {
     /// The value at the row's printed precision.
