@@ -4,7 +4,7 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target. The 135 held pages are every page the site's table of contents lists, with the README and the 404 page, less the records page ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)), each snapshot of an `hpr` command's `--help`, the census of what the commands say, a page for each crate's `src/` directory, the Python package's README and its docstrings as `help()` shows them, and each crate's front page, the `//!` docs of its `src/lib.rs` ([ADR-292](../../docs/decisions/0292-the-programs-words-in-four.md)).
 
-143 pages, 545073 words, 0 stock phrases. 139 pages are within every limit.
+143 pages, 545147 words, 0 stock phrases. 139 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
@@ -49,7 +49,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `crates/hpr-cli/tests/help/hpr-weather.help` (`ref`, `held`) | 199 | 11.8 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `crates/hpr-cli/tests/help/hpr.help` (`ref`, `held`) | 303 | 13.2 | 5% | 0.00 | 0.00 | 0.34 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `crates/hpr-py/README.md` (`held`) | 341 | 12.0 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.30 | 0.30 |
-| `crates/hpr-py/tests/docstrings.md` (`ref`, `held`) | 4098 | 13.4 | 2% | 0.00 | 0.00 | 0.10 | 0.05 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.08 | 0.71 |
+| `crates/hpr-py/tests/docstrings.md` (`ref`, `held`) | 4096 | 13.4 | 2% | 0.00 | 0.00 | 0.10 | 0.05 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.08 | 0.71 |
 | `docs/404.md` (`held`) | 51 | 12.0 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 1.97 | 0.00 |
 | `docs/ARCHITECTURE.md` | 1860 | 11.7 | 7% | **1.13** | **2.42** | 0.38 | 0.06 | 0.00 | **0.11** | 0.00 | | 0.00 | 0.11 | 0.00 | 0.11 |
 | `docs/VALIDATION.md` (`held`) | 12418 | 16.3 | 9% | 0.21 | 0.09 | 0.39 | 0.10 | 0.02 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.05 | 0.54 |
@@ -99,7 +99,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/physics/magnetic.md` (`ref`, `held`) | 2231 | 13.9 | 1% | 0.14 | 0.00 | 0.05 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.14 | 0.00 |
 | `docs/physics/mass.md` (`ref`, `held`) | 9868 | 12.9 | 1% | 0.21 | 0.04 | 0.05 | 0.07 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.10 | 0.35 |
 | `docs/physics/metrics.md` (`ref`, `held`) | 5554 | 14.2 | 0% | 0.04 | 0.22 | 0.00 | 0.04 | 0.00 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.02 | 0.11 |
-| `docs/physics/motor.md` (`ref`, `held`) | 6908 | 14.8 | 6% | 0.29 | 0.19 | 0.38 | 0.06 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.05 | 0.25 |
+| `docs/physics/motor.md` (`ref`, `held`) | 6989 | 14.9 | 6% | 0.29 | 0.19 | 0.39 | 0.06 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.05 | 0.26 |
 | `docs/physics/moving-mass.md` (`ref`, `held`) | 2488 | 13.4 | 0% | 0.09 | 0.05 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.09 | 0.65 |
 | `docs/physics/quadrature.md` (`ref`, `held`) | 494 | 11.3 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | `docs/physics/recovery.md` (`ref`, `held`) | 12594 | 14.0 | 0% | 0.20 | 0.22 | 0.00 | 0.10 | 0.00 | 0.01 | 0.01 | 0.00 | 0.00 | 0.00 | 0.06 | 0.16 |
@@ -135,7 +135,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `crates/hpr/src/` (`ref`, `held`) | 615 | 7.1 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.98 |
 | `crates/hpr-sim/src/` (`ref`, `held`) | 3469 | 12.8 | 2% | 0.00 | 0.00 | 0.09 | 0.55 | 0.03 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.67 |
 | `crates/hpr-io/src/` (`ref`, `held`) | 5960 | 9.5 | 1% | 0.00 | 0.00 | 0.02 | 0.17 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.04 | 0.00 | 0.29 |
-| `crates/hpr-motor/src/` (`ref`, `held`) | 1401 | 8.9 | 2% | 0.00 | 0.00 | 0.22 | 0.08 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.08 | 0.58 |
+| `crates/hpr-motor/src/` (`ref`, `held`) | 1396 | 8.8 | 2% | 0.00 | 0.00 | 0.15 | 0.08 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.08 | 0.58 |
 | `crates/hpr-design/src/` (`ref`, `held`) | 2533 | 9.9 | 1% | 0.00 | 0.00 | 0.04 | 0.04 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.36 |
 | `crates/hpr-aero/src/` (`ref`, `held`) | 1604 | 7.7 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.07 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.44 |
 | `crates/hpr-core/src/` (`ref`, `held`) | 241 | 6.1 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |

@@ -432,7 +432,7 @@ fn a_catalog_motor_carries_its_default_files_warnings() {
     assert_eq!(h54.warnings(), h54_entry.flight_warnings(h54_curve));
     assert!(h54.warnings().iter().all(|w| !w.contains("more than 1%")));
 
-    // Each also flies a burnout mass more than 5% of its loaded mass from its record's (#1233).
+    // Each also flies a burnout mass more than 5% from its record's burnout mass (#1233, #1294).
     for (name, count) in [("G142", 2), ("F62T", 3)] {
         let entry = catalog.find(name).next().unwrap();
         let curve = entry.default_curve().unwrap();
@@ -2308,4 +2308,45 @@ fn a_geoid_undulation_moves_the_flights_heights_for_its_wind() {
     // Placed past the top, it doesn't.
     let above = fly(top + 25.0);
     assert!(!numbers(&above).contains(&8), "{:?}", numbers(&above));
+}
+
+/// Issue #1294: a motor's burnout mass [`hpr_motor::catalog::BURNOUT_MASS_BOUND`] from its
+/// record's, the most the burnout-mass check passes, moves the static margin after burnout of
+/// RocketPy's Calisto (its getting-started design: RocketPy's 1.815 kg case and five grains, 4.771 kg
+/// loaded, flown on an M1378LR thrust curve, leaving the case in a 16.24 kg rocket after burnout):
+/// at Mach 0.3 and 10 s it raises it by 0.037 calibers when the case is light, the
+/// flattering side, and lowers it by 0.036 when heavy (its sign asserted). The test holds the light case's rise under 0.04
+/// calibers, so a looser bound fails it; the earlier bound, 5% of the loaded mass, let the case be
+/// 13.1% light, 0.098 calibers.
+#[test]
+fn a_burnout_mass_at_its_bound_moves_calistos_margin_little() {
+    use hpr_motor::catalog::BURNOUT_MASS_BOUND;
+    let json: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../validation/designs/rocketpy-calisto-getting-started-motor-at-minus-1.255.json"
+    ))
+    .unwrap();
+    let margin = |share: f64| {
+        let mut design = json.clone();
+        let dry = &mut design["configurations"][0]["motors"][0]["motor"]["dry"]["mass_kg"];
+        assert_eq!(dry.as_f64(), Some(1.815), "RocketPy's case");
+        *dry = serde_json::json!(1.815 * share);
+        let design: hpr_design::Rocket = serde_json::from_value(design).unwrap();
+        Rocket::from_design(design, "example")
+            .unwrap()
+            .static_margin_cal(10.0, 0.3)
+            .unwrap()
+            .unwrap()
+    };
+    let nominal = margin(1.0);
+    let light = margin(1.0 - BURNOUT_MASS_BOUND) - nominal;
+    let heavy = margin(1.0 + BURNOUT_MASS_BOUND) - nominal;
+    assert!((nominal - 3.179).abs() < 5e-4, "{nominal}");
+    assert!(light > 0.0 && heavy < 0.0, "{light} {heavy}");
+    assert!(
+        light < 0.04,
+        "a light case raises the margin {light} calibers"
+    );
+    assert!((light - 0.037).abs() < 5e-4, "{light}");
+    let earlier = margin(1.0 - 0.05 * 4.771 / 1.815) - nominal;
+    assert!((earlier - 0.098).abs() < 5e-4, "{earlier}");
 }

@@ -503,9 +503,9 @@ The total impulse, N·s.
 
 What building the motor warned of: for a catalog motor, its default curve file more than
 1% from ThrustCurve.org's figures, a propellant mass more than 5% below the record's, a
-loaded mass more than 5% from the record's, a burnout mass off by more than 5% of the
-record's loaded mass, or a propellant share outside the records' span. Empty for a motor from
-a file.
+loaded mass more than 5% from the record's, a burnout mass more than 5% from the record's
+burnout mass, or a propellant share outside the records' span. Empty for a motor from a
+file.
 
 ## `Rocket`
 

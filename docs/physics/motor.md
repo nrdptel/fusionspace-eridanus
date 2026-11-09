@@ -196,8 +196,15 @@ short name and designation; `hpr motors list --json` gives each motor's selector
   and warn, naming both. The Quest D8's file gives 454 g (16 oz), its record 45.6 g (1.6 oz).
   Either may be wrong; if the record is right, a heavier file gives too low an apogee, a lighter
   one too high a margin. A propellant share outside the records' span, about 11.5% to 75%, warns
-  too (the D8's 4.8%). With the loaded mass within 5%, a burnout mass more than 5% of the
-  record's loaded mass off the record's warns: 67 more. `cargo xtask motor-catalog` prints them.
+  too (the D8's 4.8%). With the loaded mass within 5%, a burnout mass (loaded less propellant)
+  more than 5% from the record's burnout mass, either way, warns: 208 more. `cargo xtask
+  motor-catalog` prints them.
+- What still passes unwarned: a burnout mass (the empty case) up to 5% from the record's, either
+  way, while the loaded mass is within 5%; past that the burnout check doesn't run, and the
+  loaded-mass warning fires instead. A light case, aft of the center of gravity as on nearly every
+  rocket, moves it forward, so the margin after burnout reads high. On RocketPy's
+  Calisto, a case 5% light adds 0.037 [calibers](../glossary.md#caliber); the earlier bound
+  allowed 0.098 ([issue #1294](https://github.com/nrdptel/fusionspace-eridanus/issues/1294)).
 
 Online, `hpr motors update` caches the motors and files ThrustCurve.org's records show as added
 since; it can miss a file swapped for another under an unchanged record
