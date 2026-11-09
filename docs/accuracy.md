@@ -937,8 +937,7 @@ OpenRocket's +6.72% (11.26%). The two codes agree within 5% on 59 of the 60
 ([report][fixture-report]). Neither meets the 5% target.**
 
 The [report][fixture-report]'s histogram gives the low side, the one a waiver depends on: its bins
-below zero hold the flights whose simulated apogee is below the logged one. Each logged apogee is the height climbed in
-the day's air, the altimeter's reading corrected for the weather as the report sets out.
+below zero hold the flights whose simulated apogee is below the logged one.
 
 The gap to the logs is mostly not a difference between the two codes, and what causes it isn't
 shown here. The flights' owners allow only aggregate statistics, so no flight is named here.
@@ -948,7 +947,7 @@ shown here. The flights' owners allow only aggregate statistics, so no flight is
 On them HPR Sim misses by 16.32% (mean absolute) and OpenRocket by 14.98%; on the other 37, 9.43%
 and 8.95% ([report][fixture-report]). Fits across flights, the scoreboard's check included, leave
 the 23 out. All 60 were seen before the split, so neither half is blind. A flight added later is
-compared only after its prediction, made without its log, is committed by hash.
+compared only once its prediction, made without its log, has its hash merged first.
 
 **What is flown.** The collection pairs each design as flown with its own flight's log, the
 motor, date, site and the [ERA5](glossary.md#reanalysis) weather of the day

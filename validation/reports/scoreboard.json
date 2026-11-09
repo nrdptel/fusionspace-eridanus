@@ -120,7 +120,7 @@
           "cannot": null
         }
       ],
-      "note": "**`accuracy.held-out`**: the 23 flights compared of the private collection's held-out half, the third that no model, setting or correction may be tuned on, chosen by a hash of each flight's id. Shown, not held: the check holds no cell of this row, so these flights can't veto a change of model. They are held out, not blind: the errors over every flight compared were published before the halves were sealed. A flight added to the collection from now on is compared only after its prediction's hash is committed ([ADR-332](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md)).",
+      "note": "**`accuracy.held-out`**: the 23 flights compared of the private collection's held-out half, the part, a third in expectation, that no model, setting or correction may be tuned on, chosen by a hash of each flight's id. Shown, not held: the check holds none of this row's values or flight counts, so these flights can't veto a change of model, though a measured cell must stay measured. They are held out, not blind: the errors over every flight compared were published before the halves were sealed. A flight added to the collection from now on is compared only once its prediction's hash has merged in an earlier pull request ([ADR-332](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md)).",
       "shown_only": true
     },
     {

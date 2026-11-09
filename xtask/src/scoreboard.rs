@@ -24,7 +24,8 @@
 //! change of model (a drop in the cell's flight count still does). Where both scoreboards carry one, it is compared and the cell's own value is
 //! shown, not held, though its count still is; against a scoreboard without one, the cells' own
 //! values are compared (ADR-332 §4). Speed is reported, never
-//! gated (ADR-209 §3), and the other tools' numbers are shown, not held. The `xtask` tests hold
+//! gated (ADR-209 §3), and the other tools' numbers are shown, not held, as are the held-out
+//! rows' values and counts ([`Row::shown_only`], ADR-333), though their cells must stay measured. The `xtask` tests hold
 //! the committed scoreboard to the committed reports, and each unmeasured cell's milestone to an
 //! open entry in `docs/ROADMAP.md`, so closing that milestone without wiring its cell fails.
 
@@ -238,8 +239,9 @@ pub(crate) struct Row {
     /// What a reader needs beside the row's cells to read them, printed under its axis's table.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
-    /// Whether the check holds none of the row's cells: a row over the held-out flights, shown
-    /// so that they can't veto a change of model (ADR-209 §4, ADR-330, ADR-332 §4).
+    /// Whether the check holds none of the row's values or flight counts: a row over the
+    /// held-out flights, shown so that they can't veto a change of model (ADR-209 §4, ADR-330,
+    /// ADR-332 §4). A measured cell must still stay measured.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub shown_only: bool,
 }
@@ -267,8 +269,8 @@ impl Row {
             && (tool == Tool::Hpr || self.axis == Axis::Interop)
     }
 
-    /// The row with no cell held ([`Row::shown_only`]).
-    fn shown_only(self) -> Self {
+    /// The row shown only ([`Row::shown_only`]).
+    fn not_held(self) -> Self {
         Self {
             shown_only: true,
             ..self
@@ -1050,11 +1052,13 @@ fn cannot_by_page(
 fn held_out_note(id: &str, flights: u64) -> String {
     format!(
         "**`{id}`**: the {flights} flights compared of the private collection's held-out half, \
-         the third that no model, setting or correction may be tuned on, chosen by a hash of \
-         each flight's id. Shown, not held: the check holds no cell of this row, so these flights \
-         can't veto a change of model. They are held out, not blind: the errors over every \
+         the part, a third in expectation, that no model, setting or correction may be tuned \
+         on, chosen by a hash of each flight's id. Shown, not held: the check holds none of this \
+         row's values or flight counts, so these flights can't veto a change of model, though a \
+         measured cell must stay measured. They are held out, not blind: the errors over every \
          flight compared were published before the halves were sealed. A flight added to the \
-         collection from now on is compared only after its prediction's hash is committed \
+         collection from now on is compared only once its prediction's hash has merged in an \
+         earlier pull request \
          ([ADR-332](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/\
          0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md))."
     )
@@ -1253,7 +1257,7 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
                 later(Rocketpy, "M2.9"),
             ],
         )
-        .shown_only()
+        .not_held()
         .with_note(held_out_note("accuracy.held-out", held_out_flights)),
         percent(
             Axis::Accuracy,
@@ -1318,7 +1322,7 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
                 later(Rocketpy, "M2.9"),
             ],
         )
-        .shown_only()
+        .not_held()
         .with_note(format!(
             "**`bias.held-out`**: the same {held_out_flights} flights as `accuracy.held-out`, \
              likewise shown, not held."
@@ -1642,8 +1646,8 @@ fn axis_words(axis: Axis, hpr: &str) -> String {
             dropped, averaged over the flights: the mean absolute error, per cent of the logged \
             apogee. The public flights are RocketPy's example rockets whose altimeter logs are \
             published; the private collection's are logged flights whose owners allow only \
-            aggregates. Held-out flights are the third of the collection that no model or setting \
-            may be tuned on (below the table). Predicted from the boost, the simulation is fitted to \
+            aggregates. Held-out flights are the part of the collection, a third in expectation, \
+            that no model or setting may be tuned on (below the table). Predicted from the boost, the simulation is fitted to \
             a flight's own log, cut after motor burnout, then flown on to apogee ([apogee from \
             the boost](https://hpr.fusionspace.co/physics/flight-fit.html#apogee-from-the-boost)). \
             Since the prediction reads the flight's own log up to its cut, and covers only the \
@@ -1946,7 +1950,7 @@ pub(crate) fn render(scoreboard: &Scoreboard) -> String {
          designs, or a measured cell is no longer measured, unless an accepted decision record \
          names that cell and the release the change ships in \
          ([ADR-240](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0240-the-scoreboard.md), \
-         how the check works). The other tools' numbers are shown, not held, and so are speed and the held-out rows.\n"
+         how the check works). The other tools' numbers are shown, not held, and so are speed and the held-out rows' values and counts.\n"
     );
     let mut milestones: BTreeMap<&str, Vec<String>> = BTreeMap::new();
     for row in &scoreboard.rows {

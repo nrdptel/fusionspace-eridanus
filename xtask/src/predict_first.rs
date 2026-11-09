@@ -12,9 +12,9 @@
 //!   hash is on main before a comparison only if it merged in a pull request of its own: the
 //!   check reads the list as it stands where the branch left main (`git merge-base HEAD
 //!   origin/main`), not in the working tree.
-//! - [`BEFORE`], committed, is the SHA-256 of M2.7a's manifest ids. A flight not marked
-//!   `added_after_m2_7a` must be one of them, so a new flight can't pass as an old one, and an old
-//!   one marked new needs a prediction it can't have had: either way the run stops.
+//! - [`BEFORE`], committed, is the SHA-256 of M2.7a's manifest ids. The flights not marked
+//!   `added_after_m2_7a` must be exactly those, so a new flight can't pass as an old one, nor an
+//!   old one be marked new: either way the run stops.
 //! - [`admit`] refuses, by id, every flight marked new whose prediction is missing, whose hash is
 //!   not on the list at main, or whose prediction is of another plan, design file or ERA5 file
 //!   than the flight compared. The ids are private (ADR-151); the refusal is printed on this
@@ -178,15 +178,18 @@ fn held_to_before(entries: &[Entry], committed: &str) -> Result<(), String> {
         .map(|entry| entry.flight_id.as_str())
         .collect();
     let digest = crate::collection_boost::held_out_digest(before.iter().copied());
-    if before.len() != TIER_A_ORK || committed != before_text(&digest) {
-        return Err(format!(
-            "the manifest's flights not marked `added_after_m2_7a` are {} that aren't M2.7a's \
-             {TIER_A_ORK} ({BEFORE}): a flight added since must be marked, and compared only once \
-             its prediction's hash reached main earlier (ADR-332 §1)",
-            before.len()
-        ));
-    }
-    Ok(())
+    let why = if before.len() != TIER_A_ORK {
+        format!("are {}, not M2.7a's {TIER_A_ORK}", before.len())
+    } else if committed != before_text(&digest) {
+        format!("are {TIER_A_ORK}, but not M2.7a's: their ids' SHA-256 isn't {BEFORE}'s")
+    } else {
+        return Ok(());
+    };
+    Err(format!(
+        "the manifest's flights not marked `added_after_m2_7a` {why}. A flight added since must \
+         be marked, and is compared only once its prediction's hash reached main earlier; a \
+         flight of M2.7a's can't be marked (ADR-332 §1)"
+    ))
 }
 
 /// A flight marked new, with what the check reads of it.
@@ -288,6 +291,24 @@ pub(crate) fn admit(root: &Path, entries: &[Entry]) -> Result<(), String> {
     refusals(&flights, &list_at_main(root)?)
 }
 
+/// The commit checked out, refused when a tracked file differs from it: a prediction names the
+/// code that flew it.
+pub(crate) fn flown_commit(root: &Path) -> Result<String, String> {
+    let changed = git(root, &["status", "--porcelain", "--untracked-files=no"])?
+        .ok_or("git status failed")?;
+    if !changed.trim().is_empty() {
+        return Err(
+            "a tracked file differs from the commit checked out: commit it first, as a \
+             prediction names the commit that flew it"
+                .to_owned(),
+        );
+    }
+    Ok(git(root, &["rev-parse", "HEAD"])?
+        .ok_or("git rev-parse HEAD failed")?
+        .trim()
+        .to_owned())
+}
+
 /// `fixture-flights predict <plan.json> [--out <file>]`.
 pub(crate) fn run(root: &Path, args: &[String]) -> Result<(), String> {
     let usage = || format!("usage:\n{}", crate::fixture_flights::USAGE);
@@ -315,10 +336,7 @@ pub(crate) fn run(root: &Path, args: &[String]) -> Result<(), String> {
         design_sha256: file_sha256(root, &plan.design)
             .ok_or_else(|| format!("{at}: can't read {}", plan.design))?,
         era5_sha256: file_sha256(root, era5).ok_or_else(|| format!("{at}: can't read {era5}"))?,
-        hpr_commit: git(root, &["rev-parse", "HEAD"])?
-            .ok_or("git rev-parse HEAD failed")?
-            .trim()
-            .to_owned(),
+        hpr_commit: flown_commit(root)?,
         predicted_apogee_m: crate::fixture_flights::predicted_apogee(root, &plan)?,
         what: WHAT.to_owned(),
         plan,
@@ -437,7 +455,10 @@ mod tests {
         // The plan changed after the prediction: refused.
         let mut moved = plan.clone();
         moved.elevation_m += 1.0;
-        assert!(refusal(&flight(&moved, Some(bytes.clone())), &on_main).is_some());
+        assert_eq!(
+            refusal(&flight(&moved, Some(bytes.clone())), &on_main).as_deref(),
+            Some("its prediction is of another plan than the manifest's")
+        );
         // The design or the day's file changed after it: refused.
         let mut redesigned = flight(&plan, Some(bytes.clone()));
         redesigned.design_sha256 = "f".repeat(64);
@@ -445,12 +466,14 @@ mod tests {
             refusal(&redesigned, &on_main).as_deref(),
             Some("its design file changed after the prediction")
         );
-        let mut reweathered = flight(&plan, Some(bytes.clone()));
-        reweathered.era5_sha256 = None;
-        assert_eq!(
-            refusal(&reweathered, &on_main).as_deref(),
-            Some("its ERA5 file changed after the prediction")
-        );
+        for era5 in [Some("f".repeat(64)), None] {
+            let mut reweathered = flight(&plan, Some(bytes.clone()));
+            reweathered.era5_sha256 = era5;
+            assert_eq!(
+                refusal(&reweathered, &on_main).as_deref(),
+                Some("its ERA5 file changed after the prediction")
+            );
+        }
         // Every refused flight is named, not only the first.
         let error = refusals(&[flight(&plan, None), flight(&other, None)], &on_main)
             .expect_err("both refused");
@@ -512,6 +535,18 @@ mod tests {
         // On main itself, all it holds.
         run(&["switch", "-q", "main"]);
         assert_eq!(list_at_main(root), Ok(BTreeSet::from([a, c])));
+        // A prediction names a clean commit: a tracked file changed is refused, an untracked
+        // one isn't.
+        let head = flown_commit(root).expect("a clean tree");
+        assert_eq!(head.len(), 40);
+        fs::write(root.join("scratch"), "x\n").expect("an untracked file");
+        assert_eq!(flown_commit(root), Ok(head));
+        fs::write(root.join("README"), "changed\n").expect("a change");
+        assert!(
+            flown_commit(root)
+                .expect_err("dirty")
+                .starts_with("a tracked file differs")
+        );
     }
 
     /// A plan file holding a log's field, or any field that isn't a plan's, is refused; the
