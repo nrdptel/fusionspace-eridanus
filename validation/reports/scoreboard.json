@@ -83,7 +83,7 @@
           "cannot": null
         }
       ],
-      "note": "**`accuracy.collection`**: the scoreboard's check (see *How far to trust it*) holds HPR Sim's cell by the calibration half's 9.43% over 37 flights, not by the cell's own, so a worse number on the held-out half alone can't block a change of model; the cell still shows every flight compared ([ADR-332](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md))."
+      "note": "**`accuracy.collection`**: the scoreboard's check (see *How far to trust it*) holds HPR Sim's cell by the calibration half's 9.43% over 37 flights, not by the cell's own, so a worse error on the held-out half alone can't block a change of model, though a drop in the cell's flight count still does; the cell still shows every flight compared ([ADR-332](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md))."
     },
     {
       "id": "accuracy.held-out",
@@ -271,7 +271,7 @@
           "cannot": null
         }
       ],
-      "note": "**`bias.collection`**: the scoreboard's check (see *How far to trust it*) holds HPR Sim's cell by the calibration half's +4.24% over 37 flights, not by the cell's own, so a worse number on the held-out half alone can't block a change of model; the cell still shows every flight compared ([ADR-332](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md))."
+      "note": "**`bias.collection`**: the scoreboard's check (see *How far to trust it*) holds HPR Sim's cell by the calibration half's +4.24% over 37 flights, not by the cell's own, so a worse error on the held-out half alone can't block a change of model, though a drop in the cell's flight count still does; the cell still shows every flight compared ([ADR-332](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md))."
     },
     {
       "id": "bias.held-out",

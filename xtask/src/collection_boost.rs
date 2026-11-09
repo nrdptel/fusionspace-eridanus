@@ -67,7 +67,7 @@ pub fn held_out(flight_id: &str) -> bool {
 /// `cargo xtask fixture-flights`, and with it `--check`, the gate's `refs` step; the guard checks
 /// only the fits that take it. Today two take one: the calibration half's fit aggregates, the
 /// drag, impulse and structure-mass scales M7.5's correction (for drag and impulse) would be
-/// chosen from (ADR-322 §2), which must take a `Calibration` too; and the fixture report's
+/// chosen from (ADR-322 §2), M7.5's correction to take one too; and the fixture report's
 /// calibration half, the threshold the scoreboard holds its collection rows by (ADR-332 §4).
 #[derive(Debug)]
 pub struct Calibration<T>(Vec<T>);

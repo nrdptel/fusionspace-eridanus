@@ -943,11 +943,11 @@ the day's air, the altimeter's reading corrected for the weather as the report s
 The gap to the logs is mostly not a difference between the two codes, and what causes it isn't
 shown here. The flights' owners allow only aggregate statistics, so no flight is named here.
 
-**Held out.** A hash of each flight's id holds out a third in expectation, 23 of the 60
+**Held out.** A hash of each flight's id holds out a third in expectation, here 23 of the 60
 ([decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md)).
 On them HPR Sim misses by 16.32% (mean absolute) and OpenRocket by 14.98%; on the other 37, 9.43%
-and 8.95% ([report][fixture-report]). No fit across flights has used them since the split. They
-were seen before it, so they aren't blind.
+and 8.95% ([report][fixture-report]). No fit across flights has used the 23 since the split. All
+60 were seen before it, so neither half is blind.
 
 **What is flown.** The collection pairs each design as flown with its own flight's log, the
 motor, date, site and the [ERA5](glossary.md#reanalysis) weather of the day

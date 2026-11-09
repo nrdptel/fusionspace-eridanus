@@ -20,8 +20,8 @@
 //! fewer flights or designs, or when a measured cell is no longer measured; a worsening passes only when an accepted ADR names the
 //! cell and the next release in a `- **Scoreboard:**` line (ADR-240). A cell may carry another
 //! number the check holds it by in place of its value ([`Held`]): HPR Sim's collection cells are
-//! held by the calibration half's, so a worse number on the held-out half alone can't block a
-//! change of model. Where both scoreboards carry one, it is compared and the cell's own value is
+//! held by the calibration half's, so a worse error on the held-out half alone can't block a
+//! change of model (a drop in the cell's flight count still does). Where both scoreboards carry one, it is compared and the cell's own value is
 //! shown, not held, though its count still is; against a scoreboard without one, the cells' own
 //! values are compared (ADR-332 §4). Speed is reported, never
 //! gated (ADR-209 §3), and the other tools' numbers are shown, not held. The `xtask` tests hold
@@ -87,7 +87,7 @@ const ROADMAP: &str = "docs/ROADMAP.md";
 /// The private collection's set the scoreboard reads: every flight both tools flew and compared.
 const EVERY_FLIGHT: &str = "every flight compared";
 /// Its calibration half (M2.7a, ADR-332 §4): the ratchet holds HPR Sim's collection cells by it,
-/// so a worse number on the held-out half alone can't block a change of model.
+/// so a worse error on the held-out half alone can't block a change of model.
 const CALIBRATION_HALF: &str = "the calibration half";
 
 /// A tool with a column.
@@ -1085,9 +1085,9 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
         };
         Some(format!(
             "**`{id}`**: the scoreboard's check (see *How far to trust it*) holds HPR Sim's \
-             cell by {}'s {value} over {} flights, not by the cell's own, so a worse number on \
-             the held-out half alone can't block a change of model; the cell still shows every \
-             flight compared ([ADR-332](https://github.com/nrdptel/\
+             cell by {}'s {value} over {} flights, not by the cell's own, so a worse error on \
+             the held-out half alone can't block a change of model, though a drop in the cell's \
+             flight count still does; the cell still shows every flight compared ([ADR-332](https://github.com/nrdptel/\
              fusionspace-eridanus/blob/main/docs/decisions/\
              0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md)).",
             held.what, held.count
@@ -2321,15 +2321,20 @@ mod tests {
         for set in [&calibration, &every] {
             let error =
                 gate(&committed, &fewer(set), &release, &none).expect_err("fewer flights fail");
-            assert!(error.contains("accuracy.collection.hpr"), "{set}: {error}");
+            for id in ["accuracy.collection.hpr", "bias.collection.hpr"] {
+                assert!(error.contains(id), "{set}: {error}");
+            }
+            // The calibration half's count is named as its; the cell's own count isn't.
+            let half = error.contains("on the calibration half");
+            assert_eq!(half, set == &calibration, "{set}: {error}");
         }
-        let moved = worse(&every, "mean_absolute_percent");
 
         // Against a scoreboard that held the cells' own values, those are compared.
         let mut before = committed.clone();
         for cell in before.rows.iter_mut().flat_map(|row| row.cells.iter_mut()) {
             cell.held_by = None;
         }
+        let moved = worse(&every, "mean_absolute_percent");
         let error = gate(&before, &moved, &release, &none).expect_err("the cell's own, worse");
         assert!(error.contains("accuracy.collection.hpr"), "{error}");
     }

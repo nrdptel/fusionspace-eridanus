@@ -81,7 +81,8 @@
    for the from-boost row. The `accuracy.collection` and `bias.collection` rows are taken over
    every flight compared, the held-out half included, so from M2.7a the check holds HPR Sim's
    cells there by the calibration half's numbers (9.43% and +4.24% over 37 flights), recorded in
-   each cell beside its own value, while the cells still show every flight's. The fixture report
+   each cell beside its own value, while the cells still show every flight's; a drop in a cell's
+   own flight count still fails. The fixture report
    builds that half through the guard, so a held-out flight reaching it stops
    `fixture-flights --check`. Against a scoreboard from before this hold, the cells' own values
    are compared, so this change moves no number. The `accuracy.held-out` and `bias.held-out` rows
@@ -95,8 +96,8 @@ ADR-322's encoding and the sealed digest stand.
 **Consequences.** M7.5 must choose its correction on the calibration half alone, through the
 guard, and is judged on the held-out half. The two halves' forward errors differ: HPR Sim's signed
 mean is +4.24% on the calibration half and +13.42% on the held-out half. No choice is recorded
-as made on either half, and the split was sealed before either half's number was reported. The gap is 9.18
-points, and this report gives no interval on it; flights of one owner or one rocket can share
+as made on either half's apogee errors, and the split was sealed before either half's number was
+reported. The gap is 9.18 points, and this report gives no interval on it; flights of one owner or one rocket can share
 their errors, so the halves may hold fewer independent flights than they count. M2.7b comes
 before M2.3d's predictions (ADR-328), which commit their public predictions whole rather than a
 hash.
