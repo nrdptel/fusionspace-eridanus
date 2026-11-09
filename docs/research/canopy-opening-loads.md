@@ -63,8 +63,8 @@ The factor is F_peak/(q C_D S), recomputed here; NDRT's is 8.08 g read by eye ov
   (Figure 106, p. 100) shows the charge spike, then about 260 ft/s² (8 g, read by eye) as the main opens 2.3 s later.
   The true peak may be higher at 100 Hz; a damaged drogue (p. 91) means a faster deployment, so a lower true factor.
 - **CSU Long Beach** [5] gave C_x 0.29 from a leaf-blower test; below 1, so (**Inference**) its q was overstated.
-- **One builder's traces** [8] (0.46 kg, 18 in main): +86 g from the apogee charge, −8 g of snatch, −93 g at the
-  main's shear-pin break, and no worrying peak at opening. Deployment spikes are mostly charge and separation.
+- **One builder's traces** [8]: +86 g from the apogee charge, −8 g of snatch, −93 g at the main's shear-pin
+  break, and no worrying peak at opening. Deployment spikes are mostly charge and separation.
 - **Hobby texts.** Nakka gives C_x 1.7 flat, 1.6 ellipsoidal, 1.2 cross, and designs to X_1 = 1 though Pflanz gives
   his 3 kg rocket 0.21 [7]. No factor was found from Fruity Chutes [9], Rocketman, Apogee, NAR or Tripoli.
 
