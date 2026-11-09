@@ -198,10 +198,28 @@ pub struct StatedFigures {
 /// further apart than this (issue #1233); the Quest D8's file gives 454 g against 45.6 g.
 pub const LOADED_MASS_BOUND: f64 = 0.05;
 
-/// Whether a mass gap `gap_g` is within [`LOADED_MASS_BOUND`] of a record's loaded mass
-/// `record_g`, `|gap| ≤ 0.05 × record`; a NaN either side isn't.
-fn within_mass_bound(gap_g: f64, record_g: f64) -> bool {
-    gap_g.abs() <= LOADED_MASS_BOUND * record_g
+/// How far a flown burnout mass, loaded less propellant, may be from its record's, either way, as a
+/// share of the record's burnout mass, before flying it warns: 5%, the share [`LOADED_MASS_BOUND`]
+/// and [`PROPELLANT_SHORT_BOUND`] hold, applied to the mass the rocket carries after burnout. A
+/// light burnout mass puts the center of gravity forward after burnout, so the margin then reads
+/// high, the flattering side; a heavy one gives too low an apogee.
+///
+/// The margin it moves: a mass `Δm` missing at the motor's center of gravity moves the rocket's
+/// forward by `Δm·(x_motor − x_cg)/(M − Δm)`, `M` the rocket's mass after burnout, so the margin
+/// in calibers rises by that over the reference diameter. On RocketPy's Calisto (its
+/// getting-started design, `validation/designs/rocketpy-calisto-getting-started-motor-at-minus-1.255.json`,
+/// from J. M. Ceotto et al., "RocketPy: Six Degree-of-Freedom Rocket Trajectory Simulator",
+/// *J. Aerosp. Eng.* 34(6), 2021), whose M1378LR leaves a 1.815 kg case in a 16.24 kg rocket, a
+/// case 5% light raises the margin after burnout from 3.179 to 3.216 calibers, 0.037; the
+/// earlier bound, 5% of the 4.771 kg loaded mass, let the case be 13.1% light, 0.098 calibers. A
+/// rocket whose case is a larger share of its mass after burnout, or sits further aft of its
+/// center of gravity, such as a minimum-diameter one, moves further.
+pub const BURNOUT_MASS_BOUND: f64 = 0.05;
+
+/// Whether a mass gap `gap_g` is within `bound` of a record's mass `record_g`,
+/// `|gap| ≤ bound × record`; a NaN either side isn't.
+fn within_share(gap_g: f64, record_g: f64, bound: f64) -> bool {
+    gap_g.abs() <= bound * record_g
 }
 
 /// The span of propellant shares, propellant over loaded mass, that the bundled ThrustCurve.org
@@ -1145,8 +1163,8 @@ impl CatalogMotor {
 
     /// The warnings for the masses flying `curve` takes ([`CatalogMotor::motor`]): a loaded mass
     /// more than [`LOADED_MASS_BOUND`] from the record's, either way, naming both masses; else a
-    /// burnout mass, loaded less propellant, more than that share of the record's loaded mass
-    /// from the record's, naming both; and a
+    /// burnout mass, loaded less propellant, more than [`BURNOUT_MASS_BOUND`] of the record's
+    /// burnout mass from it, either way, naming both; and a
     /// propellant share outside [`PROPELLANT_SHARE_SPAN`], the span the records state. Empty when
     /// neither holds, or when the file isn't bundled or doesn't read. Compared as masses, so a
     /// loaded mass exactly at the bound draws none; a NaN warns.
@@ -1166,11 +1184,11 @@ impl CatalogMotor {
             .stated
             .total_mass_g
             .filter(|g| g.is_finite() && *g > 0.0);
-        let loaded_off =
-            record_g.is_some_and(|record_g| !within_mass_bound(total_g - record_g, record_g));
-        // The burnout mass, loaded less propellant, held to the same mass as the loaded one: a
-        // burnout mass off by more than 5% of the record's loaded mass moves the rocket's mass
-        // after burnout by more than the loaded bound lets it move at the pad.
+        let loaded_off = record_g.is_some_and(|record_g| {
+            !within_share(total_g - record_g, record_g, LOADED_MASS_BOUND)
+        });
+        // The burnout mass, loaded less propellant, held to its own share of the record's burnout
+        // mass: it is what sets the center of gravity after burnout (issue #1294).
         let record_burnout_g = record_g.zip(
             self.stated
                 .propellant_mass_g
@@ -1179,21 +1197,23 @@ impl CatalogMotor {
         if let Some((record_g, record_propellant_g)) = record_burnout_g
             && !loaded_off
             && record_propellant_g < record_g
-            && !within_mass_bound(
+            && !within_share(
                 (total_g - propellant_g) - (record_g - record_propellant_g),
-                record_g,
+                record_g - record_propellant_g,
+                BURNOUT_MASS_BOUND,
             )
         {
+            let record_burnout_g = record_g - record_propellant_g;
             warnings.push(format!(
                 "{} {} flies a burnout mass, loaded less propellant, of {:.1} g where \
-                 ThrustCurve.org's record gives {:.1} g, more than {:.0}% of its {record_g:.1} g \
-                 loaded mass apart. Too heavy gives too low an apogee; too light, too high a \
-                 margin after burnout",
+                 ThrustCurve.org's record gives {record_burnout_g:.1} g, {:+.1}%, more than \
+                 {:.0}% apart. Too heavy gives too low an apogee; too light, too high a margin \
+                 after burnout",
                 self.manufacturer_abbrev,
                 self.designation,
                 total_g - propellant_g,
-                record_g - record_propellant_g,
-                LOADED_MASS_BOUND * 100.0
+                ((total_g - propellant_g) / record_burnout_g - 1.0) * 100.0,
+                BURNOUT_MASS_BOUND * 100.0
             ));
         }
         if let Some(record_g) = record_g
@@ -2667,9 +2687,13 @@ mod tests {
             })
             .expect("a motor drawing no mass warning");
         let flown_g = base.total_mass_g.expect("a loaded mass");
+        let flown_propellant_g = base.propellant_mass_g.expect("a propellant mass");
+        // A record scaled as a whole, its propellant with its loaded mass, so that its burnout
+        // mass is the same share from the flown one and only the loaded bound is tried.
         let warning = |record_g: Option<f64>| {
             let mut motor = base.clone();
             motor.stated.total_mass_g = record_g;
+            motor.stated.propellant_mass_g = record_g.map(|g| flown_propellant_g * g / flown_g);
             motor.mass_warnings(curve)
         };
         let heavy = warning(Some(flown_g / 1.051));
@@ -2688,27 +2712,34 @@ mod tests {
             "a NaN record is no record"
         );
 
-        // The loaded mass the record's, the burnout mass off by 5.1% of it either way: warns,
-        // naming both burnout masses; at 4.9%, not.
-        let propellant_g = base.propellant_mass_g.expect("a propellant mass");
-        let burnout = |shift: f64| {
+        // The loaded mass the record's, the burnout mass 5.1% of the record's burnout mass from
+        // it either way: warns, naming both burnout masses and the gap; at 4.9%, not (issue
+        // #1294). The earlier bound, 5% of the loaded mass, warned of neither 5.1% gap.
+        let flown_burnout_g = flown_g - flown_propellant_g;
+        let burnout = |gap: f64| {
+            // The record whose burnout mass the flown one is `gap` of it from.
             let mut motor = base.clone();
             motor.stated.total_mass_g = Some(flown_g);
-            motor.stated.propellant_mass_g = Some(propellant_g + shift * flown_g);
+            motor.stated.propellant_mass_g = Some(flown_g - flown_burnout_g / (1.0 + gap));
             motor.mass_warnings(curve)
         };
-        for shift in [0.051, -0.051] {
-            let warnings = burnout(shift);
-            assert_eq!(warnings.len(), 1, "{shift}: {warnings:?}");
-            let record_burnout = format!("{:.1} g", flown_g - propellant_g - shift * flown_g);
+        for (gap, said) in [(0.051, "+5.1%"), (-0.051, "-5.1%")] {
+            let warnings = burnout(gap);
+            assert_eq!(warnings.len(), 1, "{gap}: {warnings:?}");
+            let record_burnout = format!("gives {:.1} g", flown_burnout_g / (1.0 + gap));
             assert!(warnings[0].contains("burnout mass"), "{warnings:?}");
             assert!(
-                warnings[0].contains(&record_burnout),
-                "{record_burnout}: {warnings:?}"
+                warnings[0].contains(&record_burnout) && warnings[0].contains(said),
+                "{record_burnout} {said}: {warnings:?}"
+            );
+            assert!(
+                (flown_burnout_g / (1.0 + gap) - flown_burnout_g).abs()
+                    < LOADED_MASS_BOUND * flown_g,
+                "the earlier bound passed it"
             );
         }
-        for shift in [0.049, -0.049] {
-            assert!(burnout(shift).is_empty(), "{shift}");
+        for gap in [0.049, -0.049] {
+            assert!(burnout(gap).is_empty(), "{gap}");
         }
     }
 
