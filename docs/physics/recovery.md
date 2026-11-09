@@ -35,9 +35,21 @@ part drifts and lands.
     ([ejection](../glossary.md#ejection)). They are checked against exact answers only: no
     simulator or flight has been compared with them yet.
 - **What it leaves out:**
-  - Two effects on the [opening load](../glossary.md#opening-load) are left out. One is the drag
-    overshoot as a canopy fills. The other is the way a light rocket slows while it fills, when the
-    canopy opens at once (the default). So the simulator's peak opening load is no safe bound either way. Don't size recovery
+  - Three effects on the [opening load](../glossary.md#opening-load) are left out. One is the drag
+    overshoot as a canopy fills. Another is the way a light rocket slows while it fills, when the
+    canopy opens at once (the default). The third is the snatch load at
+    [line stretch](../glossary.md#deployment): the cord's pull when the separated sections first
+    take up the slack, before the canopy fills.
+  - The snatch load can exceed the reported peak. It grows with the sections' relative speed, the
+    cord's stiffness and the sections' masses (AFFDL-TR-78-151, p. 337). Three public flights of
+    two small rockets on Kevlar cord were logged at 500 Hz. At every drogue event, the acceleration
+    as the cord paid out read 2.3 to 11 times the default `Instant` load
+    ([Inflation](#inflation)). At two of three mains it read 1.9 to 4.3 times; the third showed no
+    pulse above the charge's tail. These are 50 ms means of one accelerometer, not cord tensions.
+    That accelerometer can't tell the cord's pull from the tape on its folds breaking
+    ([the snatch-load research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/hobby-snatch-loads.md),
+    §6).
+  - So the simulator's peak opening load is no safe bound either way. Don't size recovery
     hardware from it: use a dedicated opening-load method and the hardware's own ratings.
   - Airframe drag: a separated body falls with no drag until its device opens, so its
     [deployment](../glossary.md#deployment) speed can read high. The airframe's own drag under
@@ -62,6 +74,9 @@ Sources:
 - T. W. Knacke, *Parachute Recovery Systems Design Manual*, NWC TP 6575 (1991), for canopy drag
   coefficients, filling times, drag-area growth and the equilibrium descent speed. Its title page
   limits distribution, so it is cited, never redistributed (`docs/VALIDATION.md`).
+- E. G. Ewing, H. W. Bixby and T. W. Knacke, *Recovery Systems Design Guide*, AFFDL-TR-78-151
+  (1978), p. 337, for the snatch load when two bodies take up a connecting cord. The simulator
+  doesn't model it.
 - RocketPy 1.13.0 (MIT), `rocketpy/simulation/flight.py:2710-2790` and
   `rocketpy/rocket/parachute.py`, for the point-mass descent that the parachute milestone
   ([M1.7a](../decisions-and-roadmap.md#m1-7a)) is compared against.
