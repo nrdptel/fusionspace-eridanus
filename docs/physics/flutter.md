@@ -71,15 +71,14 @@ other, to your fins and your rocket's flight.
   tunnel, halving the root pitch spring of small fighter-wing panels cut the onset speed to 0.63 to
   0.65 of the stiffer spring's on one wing and 0.44 to 0.51 on another, both compared in the same
   air. These are fits near the top of the stiffness range tested, and lower in the range the drop
-  was larger. On those factors the 0.82 to 0.84 ratios would read 1.26 to 1.33 and 1.61 to 1.91
-  (an inference).
+  was larger. On either factor the 0.82 to 0.84 ratios would read well above 1 (an inference).
 
   On half-scale missile elevators, which pitch on a spring, softening the spring onto coincidence
   (bending and pitch frequencies matched) cut the flutter speed below 0.42 of the speed at which a
-  stiffer spring hadn't fluttered. That is where flutter stopped; where it began, the figure is
-  below 0.46 to 0.62. Past coincidence the sign turns: softening that elevator's spring further
-  raised its flutter speed 1.57 times, at one Mach number. That is no reason to count on a softer
-  root helping a fin.
+  stiffer spring hadn't fluttered ([root mounting stiffness][mount-note], §2). That figure is where
+  flutter stopped; where it began, the drop was smaller. Past coincidence the sign turns: softening
+  that elevator's spring further raised its flutter speed 1.57 times, at one Mach number. That is
+  no reason to count on a softer root helping a fin.
 
   None of these was a fin glued to a tube. None is a bound: a fin may flutter further below HPR
   Sim's speed than any of them did. HPR Sim's flutter speed takes no mounting factor, so it carries
