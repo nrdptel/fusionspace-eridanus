@@ -379,11 +379,14 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.3c1 The posterior's sampler ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3c3 The Bayesian option, counted ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3c5 The wind on a track ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.3d From the boost ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3d1 The prediction from the boost ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3d2 The public flights ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.3d3 The collection by halves ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3d4 The halves sealed ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3d5 The cut on a real barometer ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3d6 The collection's errors by halves ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.3d7 The scoreboard row ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -2008,13 +2011,22 @@ One line per milestone or increment, in the order it was archived within its pha
           on the same 1,497 tracked flights, their probes failing; no Bayesian count that passes in ADR-320's
           report fails; the drag and impulse scales stay identified on set A and nothing on pure noise; the
           fit's page says how the track is read and how far to trust it.
-  - **M7.3d** is open; its entry: [roadmap](ROADMAP.md#phase-5-flight-data-and-forensics).
+  - [x] **M7.3d From the boost** (ADR-321: in three, below; met when they are). *Done when:* apogee predicted from
+    the log cut at burnout stays bit-identical when
+    every later sample is replaced with noise; a committed report gives the 7 public flights' fits, the collection's
+    as aggregates, and that prediction's mean absolute and signed errors beside the forward simulation's on the same
+    flights in the same air and wind, with ADR-257 §3's intervals; the scoreboard has `accuracy.from-boost`, each
+    other tool's cell read from its docs. The collection's numbers come for each of M2.7's halves, split by
+    ADR-322's encoding, the SHA-256 of the sorted held-out ids committed before any half's number; the held-out
+    half's fit aggregates stay in the private collection, only their file's hash committed, until M7.5 publishes
+    them (ADR-322).
     - [x] **M7.3d1 The prediction from the boost.** *Done when:* `hpr_forensics` cuts a log at burnout, found
       from the samples up to it, fits it and flies it on to apogee; that apogee stays bit-identical when every later
       sample is noise, a probe reading one more failing; the fit's page says how far to trust it.
     - [x] **M7.3d2 The public flights.** *Done when:* a committed report gives the 7 public flights' fits and the
       prediction's mean absolute and signed errors beside the forward simulation's, with ADR-257 §3's interval.
-    - **M7.3d3** is open; its entry: [roadmap](ROADMAP.md#phase-5-flight-data-and-forensics).
+    - [x] **M7.3d3 The collection by halves** (ADR-326: in four, below; met when they are). *Done when:* M7.3d's
+      *done when*, whole.
       - [x] **M7.3d4 The halves sealed.** *Done when:* `cargo xtask fixture-flights` splits the private collection's
         flights by ADR-322's encoding, a test pinning it on invented ids against digests computed outside the code,
         with a mutation of its bound failing; the SHA-256 of the sorted held-out ids is committed, and
@@ -2028,6 +2040,8 @@ One line per milestone or increment, in the order it was archived within its pha
         `fixture-flights` flies it; a committed report gives each half's mean absolute and signed errors beside the
         forward simulation's on the same flights, ADR-257 §3's paired bootstrap 95% intervals and the calibration
         half's fit aggregates; the held-out half's stay private, their file's SHA-256 committed and checked.
+      - [x] **M7.3d7 The scoreboard row** (ADR-330). *Done when:* M7.3d's *done when*, whole, the scoreboard's
+        `accuracy.from-boost` included.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)
