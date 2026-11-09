@@ -2412,6 +2412,21 @@ mod tests {
         let release = next_release(&root).expect("the release");
         let none = BTreeSet::new();
         let (_, pointer, flights) = fixture_set(&reports, HELD_OUT_HALF).expect("the half");
+        // Only the held-out rows are shown only: any other row so marked would lose its ratchet.
+        let shown: Vec<&str> = committed
+            .rows
+            .iter()
+            .filter(|row| row.shown_only)
+            .map(|row| row.id.as_str())
+            .collect();
+        assert_eq!(shown, ["accuracy.held-out", "bias.held-out"]);
+        // A measured held-out cell no longer measured still fails.
+        let mut unmeasured = committed.clone();
+        for row in unmeasured.rows.iter_mut().filter(|row| row.shown_only) {
+            row.cells[0].value = None;
+        }
+        let error = gate(&committed, &unmeasured, &release, &none).expect_err("unmeasured");
+        assert!(error.contains("accuracy.held-out.hpr"), "{error}");
         for (id, field) in [
             ("accuracy.held-out", "mean_absolute_percent"),
             ("bias.held-out", "mean_percent"),

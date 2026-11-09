@@ -20,8 +20,8 @@ guessed id could be confirmed against them.
 **Decision.**
 
 1. **A flight's plan.** A manifest entry now reads as a *plan*, the fields a prediction may read
-   (its id, design, configuration, motor, launch time, site, rail and ERA5 file), then its log's
-   fields. `cargo xtask fixture-flights predict <plan.json>` reads a file holding a plan and
+   (its id, design, configuration, motor, launch time, site, rail and ERA5 file), then what its
+   log and the collection's catalog gave, and whether it was added after M2.7a. `cargo xtask fixture-flights predict <plan.json>` reads a file holding a plan and
    refuses one holding any other top-level field, a logged apogee among them. The plan's own
    fields are hand-read; the curation took some flights' rail angle or pad elevation from their
    logs. A new flight's must come from its launch's records instead, which the check can't tell. It flies the plan as
@@ -43,7 +43,11 @@ guessed id could be confirmed against them.
    file or ERA5 file than the flight compared. A test runs the list's reading in a scratch
    repository: a hash added on the branch, or merged on main after the branch last took main, isn't on it.
 4. **Shown on an invented flight.** No flight has joined the manifest since M2.7a. The tests use an
-   invented flight's plan and prediction for each refusal and for the flight compared. A
+   invented flight's plan and prediction for each refusal and for the flight compared, and one
+   runs `admit`, the check `fixture-flights` calls, on an invented flight in a scratch repository
+   and collection: refused with no prediction and with its hash only on a branch, compared once
+   main holds the hash, refused again when its design file changes. `predict` comes first on the
+   command line, alone; elsewhere it is refused. A
    probe by hand on the real collection, which no test repeats, added an invented flight, a copy of a compared flight under a new
    id, and was refused three times, then removed: by its id with no prediction, and with its
    prediction's hash only in the working tree's list; by the manifest's count when left unmarked.
@@ -60,7 +64,8 @@ guessed id could be confirmed against them.
 **What doesn't change.** M2.7's *done when* is met whole by M2.7a and this record, no clause
 narrowed. The held-out seal, the calibration half's guard and the held rows of ADR-332 stand. A
 prediction's apogee is recorded, not reported: #1376 asks for its error beside the compared one
-once a new flight is compared. M2.3d commits its public predictions whole ([ADR-328][adr-328]).
+once a new flight is compared. #1381 asks for three more: a prediction that records why hpr
+can't fly a flight, hashes of every input, and one path for the prediction and the comparison. M2.3d commits its public predictions whole ([ADR-328][adr-328]).
 
 **Consequences.** Adding a flight to the collection now takes two pull requests. The first commits
 the prediction's hash, the prediction itself going into the collection. The second, holding main

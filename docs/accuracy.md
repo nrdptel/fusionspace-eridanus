@@ -170,15 +170,15 @@ per axis the project judges itself by.** The axes are:
 - steps to a first answer.
 
 Every number is read from a committed report. Many cells aren't measured yet. Each says so and
-links the milestone that will measure it. The page opens with how many cells are measured for each
-tool. On each row where HPR Sim and another tool both are, it says which is ahead.
+links the milestone that will measure it. On each row where HPR Sim and another tool both are, it
+says which is ahead.
 
 It's also a check. CI fails when one of HPR Sim's numbers there gets worse than the one main
 holds, counts fewer flights, or stops being measured. The exception is a cell a decision record
 accepts for the release the change ships in
 ([how the scoreboard works](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0240-the-scoreboard.md)).
-The other tools' numbers are shown, not held. `cargo xtask scoreboard` writes it from the
-committed reports.
+The other tools' numbers, and HPR Sim's on held-out flights, are shown, not held. `cargo xtask
+scoreboard` writes it from the committed reports.
 
 Its steps rows count how many steps it takes to open a design's `.ork` file, fly it once and get
 its landing spread. Commands, script lines, clicks and typed entries are each counted apart. These

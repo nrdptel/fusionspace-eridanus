@@ -56,7 +56,8 @@ pub const USAGE: &str =
                            writes validation/reports/fixture-flights.{md,json}, aggregates
                            only; --check writes nothing and fails unless they reproduce.
                            `predict` writes a new flight's prediction from its plan alone
-                           (no log) into the collection and prints its file's SHA-256 for
+                           (no logged result) into the collection, or with --out to that
+                           file, and prints its file's SHA-256 for
                            validation/reports/predictions.sha256 (M2.7b).";
 
 /// The hand-read manifest of the flights, one entry each (private, gitignored).
@@ -244,8 +245,8 @@ pub(crate) struct Plan {
     pub era5: Option<String>,
 }
 
-/// One flight of the manifest: its plan, then what its log gave. The curation's own notes are
-/// read and ignored.
+/// One flight of the manifest: its plan, then what its log and the collection's catalog gave,
+/// and whether it was added after M2.7a. The curation's own notes are read and ignored.
 #[derive(Debug, Clone, Deserialize)]
 pub(crate) struct Entry {
     #[serde(flatten)]
@@ -270,23 +271,49 @@ impl std::ops::Deref for Entry {
     }
 }
 
-/// Flies, or writes OpenRocket's conditions.
-pub fn run(args: &[String]) -> Result<(), String> {
-    let mut check = false;
-    let mut conditions_only = false;
-    for arg in args.iter().take_while(|arg| *arg != "predict") {
-        match arg.as_str() {
-            "--check" => check = true,
-            "conditions" => conditions_only = true,
-            other => return Err(format!("unknown argument `{other}`\n\n{USAGE}")),
-        }
-    }
-    let root = crate::designs::root()?;
+/// What the command line asks for.
+#[derive(Debug, PartialEq)]
+enum Mode<'a> {
+    /// `predict` and its own arguments, which must come first.
+    Predict(&'a [String]),
+    /// Fly, or with `conditions` write OpenRocket's conditions; `--check` writes nothing.
+    Fly { check: bool, conditions_only: bool },
+}
+
+/// The command line read: `predict` first and alone, or the other arguments in any order.
+fn mode(args: &[String]) -> Result<Mode<'_>, String> {
     if let [first, rest @ ..] = args
         && first == "predict"
     {
-        return crate::predict_first::run(&root, rest);
+        return Ok(Mode::Predict(rest));
     }
+    let mut check = false;
+    let mut conditions_only = false;
+    for arg in args {
+        match arg.as_str() {
+            "--check" => check = true,
+            "conditions" => conditions_only = true,
+            "predict" => return Err(format!("`predict` comes first, alone\n\n{USAGE}")),
+            other => return Err(format!("unknown argument `{other}`\n\n{USAGE}")),
+        }
+    }
+    Ok(Mode::Fly {
+        check,
+        conditions_only,
+    })
+}
+
+/// Flies, or writes OpenRocket's conditions, or writes a new flight's prediction.
+pub fn run(args: &[String]) -> Result<(), String> {
+    let mode = mode(args)?;
+    let root = crate::designs::root()?;
+    let (check, conditions_only) = match mode {
+        Mode::Predict(rest) => return crate::predict_first::run(&root, rest),
+        Mode::Fly {
+            check,
+            conditions_only,
+        } => (check, conditions_only),
+    };
     let entries = manifest(&root)?;
     crate::predict_first::admit(&root, &entries)?;
     let index = era5_index(&root)?;
@@ -1659,6 +1686,29 @@ impl Report {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// `predict` comes first and alone; anywhere else it is refused, not ignored.
+    #[test]
+    fn predict_comes_first() {
+        let args = |words: &[&str]| words.iter().map(|w| (*w).to_owned()).collect::<Vec<_>>();
+        let predict = args(&["predict", "plan.json", "--out", "x.json"]);
+        assert_eq!(mode(&predict), Ok(Mode::Predict(&predict[1..])));
+        assert_eq!(
+            mode(&args(&["conditions", "--check"])),
+            Ok(Mode::Fly {
+                check: true,
+                conditions_only: true
+            })
+        );
+        for misplaced in [
+            args(&["--check", "predict", "plan.json"]),
+            args(&["conditions", "predict", "plan.json"]),
+        ] {
+            let error = mode(&misplaced).expect_err("refused");
+            assert!(error.starts_with("`predict` comes first"), "{error}");
+        }
+        assert!(mode(&args(&["--chekc"])).is_err());
+    }
 
     /// A flight with no forward flight is counted under the collection's own cause first (a
     /// missing ERA5 file isn't hpr's refusal), then hpr's, then OpenRocket's.

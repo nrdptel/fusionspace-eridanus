@@ -4,7 +4,7 @@
 //! pull request.
 //!
 //! - `cargo xtask fixture-flights predict <plan.json>` reads a flight's [`Plan`]: its design,
-//!   motor, day and site, and refuses a file holding any other top-level field, a logged
+//!   motor, day, site and rail, and refuses a file holding any other top-level field, a logged
 //!   result's included. It flies
 //!   it as `fixture-flights` does ([`crate::fixture_flights::predicted_apogee`]), writes the
 //!   prediction under [`PREDICTIONS`] in the collection, never over an older one, and prints the
@@ -25,7 +25,6 @@ use std::collections::BTreeSet;
 use std::fmt::Write as _;
 use std::fs;
 use std::path::Path;
-use std::process::Command;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -100,7 +99,7 @@ pub(crate) fn read_plan(text: &str) -> Result<Plan, String> {
     if let Some(key) = object.keys().find(|key| !PLAN_KEYS.contains(&key.as_str())) {
         return Err(format!(
             "`{key}` is not a field of a flight's plan: a prediction is written from the design, \
-             motor, day and site alone, with no logged result (ADR-332 §1)"
+             motor, day, site and rail alone, with no logged result (ADR-332 §1)"
         ));
     }
     serde_json::from_value(value).map_err(|error| error.to_string())
@@ -129,10 +128,10 @@ pub(crate) fn parse_list(text: &str) -> Result<BTreeSet<String>, String> {
     Ok(hashes)
 }
 
-/// Runs git in `root`, its standard output on success.
+/// Runs git in `root`, its standard output on success; never another repository a hook's
+/// environment points at.
 fn git(root: &Path, args: &[&str]) -> Result<Option<String>, String> {
-    let output = Command::new("git")
-        .current_dir(root)
+    let output = crate::refs::tool::git(root)
         .args(args)
         .output()
         .map_err(|error| format!("running git: {error}"))?;
@@ -199,8 +198,8 @@ pub(crate) struct NewFlight<'a> {
     pub plan: &'a Plan,
     /// Its prediction file's bytes, if the collection holds one.
     pub prediction: Option<Vec<u8>>,
-    /// SHA-256 of its design file now.
-    pub design_sha256: String,
+    /// SHA-256 of its design file now, if it can be read.
+    pub design_sha256: Option<String>,
     /// SHA-256 of its day's ERA5 file now, if it names one.
     pub era5_sha256: Option<String>,
 }
@@ -229,7 +228,10 @@ pub(crate) fn refusal(flight: &NewFlight<'_>, earlier: &BTreeSet<String>) -> Opt
     if prediction.flight_id != flight.plan.flight_id || &prediction.plan != flight.plan {
         return Some("its prediction is of another plan than the manifest's".to_owned());
     }
-    if prediction.design_sha256 != flight.design_sha256 {
+    let Some(design_sha256) = &flight.design_sha256 else {
+        return Some("its design file can't be read".to_owned());
+    };
+    if &prediction.design_sha256 != design_sha256 {
         return Some("its design file changed after the prediction".to_owned());
     }
     if Some(&prediction.era5_sha256) != flight.era5_sha256.as_ref() {
@@ -282,7 +284,7 @@ pub(crate) fn admit(root: &Path, entries: &[Entry]) -> Result<(), String> {
         .map(|entry| NewFlight {
             plan: &entry.plan,
             prediction: fs::read(root.join(format!("{PREDICTIONS}/{}.json", entry.flight_id))).ok(),
-            design_sha256: file_sha256(root, &entry.design).unwrap_or_default(),
+            design_sha256: file_sha256(root, &entry.design),
             era5_sha256: entry
                 .era5
                 .as_deref()
@@ -310,6 +312,21 @@ pub(crate) fn flown_commit(root: &Path) -> Result<String, String> {
         .to_owned())
 }
 
+/// Writes `bytes` to a new file at `path`, never over an older one: a second prediction would be
+/// written knowing more.
+fn write_once(path: &Path, bytes: &[u8]) -> Result<(), String> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|error| format!("{}: {error}", parent.display()))?;
+    }
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(path)
+        .map_err(|error| format!("{}: {error} (a prediction is written once)", path.display()))?;
+    std::io::Write::write_all(&mut file, bytes)
+        .map_err(|error| format!("{}: {error}", path.display()))
+}
+
 /// `fixture-flights predict <plan.json> [--out <file>]`.
 pub(crate) fn run(root: &Path, args: &[String]) -> Result<(), String> {
     let usage = || format!("usage:\n{}", crate::fixture_flights::USAGE);
@@ -322,6 +339,10 @@ pub(crate) fn run(root: &Path, args: &[String]) -> Result<(), String> {
         fs::read_to_string(plan_path).map_err(|error| format!("reading {plan_path}: {error}"))?;
     let plan = read_plan(&text).map_err(|error| format!("{plan_path}: {error}"))?;
     let at = plan.flight_id.clone();
+    // One path segment: the prediction's file is named by it.
+    if at.is_empty() || at.contains(['/', '\\']) || at.contains("..") {
+        return Err(format!("`{at}` is not a flight id"));
+    }
     let folder = format!("refs/hpr-sim-fixtures/flights/{at}/");
     if !root.join(&folder).is_dir() || !plan.design.starts_with(&folder) {
         return Err(format!(
@@ -348,17 +369,7 @@ pub(crate) fn run(root: &Path, args: &[String]) -> Result<(), String> {
         || root.join(format!("{PREDICTIONS}/{at}.json")),
         |out| Path::new(out).to_path_buf(),
     );
-    if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent).map_err(|error| format!("{}: {error}", parent.display()))?;
-    }
-    // Never over an older prediction: a second one would be written knowing more.
-    let mut file = fs::OpenOptions::new()
-        .write(true)
-        .create_new(true)
-        .open(&path)
-        .map_err(|error| format!("{}: {error} (a prediction is written once)", path.display()))?;
-    std::io::Write::write_all(&mut file, bytes.as_bytes())
-        .map_err(|error| format!("{}: {error}", path.display()))?;
+    write_once(&path, bytes.as_bytes())?;
     println!(
         "fixture-flights predict: wrote {}\n{}\nAdd that line to {LIST} in a pull request of its \
          own and merge it before the flight's log is compared; commit the prediction to the \
@@ -405,7 +416,7 @@ mod tests {
         NewFlight {
             plan,
             prediction,
-            design_sha256: "d".repeat(64),
+            design_sha256: Some("d".repeat(64)),
             era5_sha256: Some("e".repeat(64)),
         }
     }
@@ -462,10 +473,15 @@ mod tests {
         );
         // The design or the day's file changed after it: refused.
         let mut redesigned = flight(&plan, Some(bytes.clone()));
-        redesigned.design_sha256 = "f".repeat(64);
+        redesigned.design_sha256 = Some("f".repeat(64));
         assert_eq!(
             refusal(&redesigned, &on_main).as_deref(),
             Some("its design file changed after the prediction")
+        );
+        redesigned.design_sha256 = None;
+        assert_eq!(
+            refusal(&redesigned, &on_main).as_deref(),
+            Some("its design file can't be read")
         );
         for era5 in [Some("f".repeat(64)), None] {
             let mut reweathered = flight(&plan, Some(bytes.clone()));
@@ -486,16 +502,9 @@ mod tests {
     /// as CI's checkouts are one commit deep).
     #[test]
     fn the_list_is_read_where_the_branch_left_main() {
-        let dir = tempfile::tempdir().expect("a scratch directory");
+        let dir = scratch_repository();
         let root = dir.path();
-        let run = |args: &[&str]| {
-            let status = Command::new("git")
-                .current_dir(root)
-                .args(args)
-                .output()
-                .expect("git");
-            assert!(status.status.success(), "git {args:?}: {status:?}");
-        };
+        let run = |args: &[&str]| git_ok(root, args);
         let write_list = |hashes: &[&str]| {
             fs::create_dir_all(root.join("validation/reports")).expect("dirs");
             let text = std::iter::once("# predictions".to_owned())
@@ -505,15 +514,7 @@ mod tests {
             fs::write(root.join(LIST), text + "\n").expect("the list");
         };
         let (a, b, c) = ("a".repeat(64), "b".repeat(64), "c".repeat(64));
-        run(&["init", "-q", "-b", "main"]);
-        run(&["config", "user.email", "test@example.com"]);
-        run(&["config", "user.name", "test"]);
-        run(&["config", "commit.gpgsign", "false"]);
         // No list on main yet: an empty one.
-        fs::write(root.join("README"), "x\n").expect("a file");
-        run(&["add", "."]);
-        run(&["commit", "-q", "-m", "first"]);
-        run(&["update-ref", "refs/remotes/origin/main", "HEAD"]);
         assert_eq!(list_at_main(root), Ok(BTreeSet::new()));
         // A merged on main; then a branch adds B.
         write_list(&[&a]);
@@ -548,6 +549,114 @@ mod tests {
                 .expect_err("dirty")
                 .starts_with("a tracked file differs")
         );
+    }
+
+    /// Runs git in a scratch repository, which must succeed.
+    fn git_ok(root: &Path, args: &[&str]) {
+        let output = crate::refs::tool::git(root)
+            .args(args)
+            .output()
+            .expect("git");
+        assert!(output.status.success(), "git {args:?}: {output:?}");
+    }
+
+    /// A new scratch repository with one commit on `main`, which `origin/main` points at.
+    fn scratch_repository() -> tempfile::TempDir {
+        let dir = tempfile::tempdir().expect("a scratch directory");
+        let root = dir.path();
+        git_ok(root, &["init", "-q", "-b", "main"]);
+        git_ok(root, &["config", "user.email", "test@example.com"]);
+        git_ok(root, &["config", "user.name", "test"]);
+        git_ok(root, &["config", "commit.gpgsign", "false"]);
+        fs::write(root.join("README"), "x\n").expect("a file");
+        git_ok(root, &["add", "."]);
+        git_ok(root, &["commit", "-q", "-m", "first"]);
+        git_ok(root, &["update-ref", "refs/remotes/origin/main", "HEAD"]);
+        dir
+    }
+
+    /// `admit` itself, as `fixture-flights` calls it, on an invented flight in a scratch
+    /// collection: refused by its id with no prediction, and with its prediction's hash only on
+    /// the branch; compared once that hash is on main where the branch last took it; a flight not
+    /// marked new isn't read.
+    #[test]
+    fn admit_compares_an_invented_flight_only_once_its_hash_is_on_main() {
+        let dir = scratch_repository();
+        let root = dir.path();
+        let id = "invented-20270101";
+        let plan = invented(id);
+        let entry = |added: bool| -> Entry {
+            let mut value = serde_json::to_value(&plan).expect("json");
+            for (key, field) in [
+                ("logged_apogee_m", json!(1000.0)),
+                ("logged_kind", json!("barometric")),
+                ("early_deployment", json!(null)),
+                ("excluded", json!(null)),
+                ("excluded_class", json!(null)),
+                ("catalog_tier", json!("A")),
+                ("added_after_m2_7a", json!(added)),
+            ] {
+                value[key] = field;
+            }
+            serde_json::from_value(value).expect("an entry")
+        };
+        // Not marked: nothing is read, not even the list at main.
+        assert_eq!(admit(root, &[entry(false)]), Ok(()));
+        let new = [entry(true)];
+        let era5 = plan.era5.clone().expect("an ERA5 file");
+        for (path, bytes) in [(&plan.design, b"a design".as_slice()), (&era5, b"a day")] {
+            fs::create_dir_all(root.join(path).parent().expect("a folder")).expect("dirs");
+            fs::write(root.join(path), bytes).expect("a file");
+        }
+        let error = admit(root, &new).expect_err("no prediction");
+        assert!(error.contains(&format!("{id}: no prediction")), "{error}");
+
+        // Its prediction in the collection, its hash committed on a branch only.
+        let prediction = Prediction {
+            flight_id: id.to_owned(),
+            plan: plan.clone(),
+            design_sha256: sha256_hex(b"a design"),
+            era5_sha256: sha256_hex(b"a day"),
+            hpr_commit: "0".repeat(40),
+            predicted_apogee_m: 1234.5,
+            what: WHAT.to_owned(),
+        };
+        let bytes = serde_json::to_string_pretty(&prediction).expect("json") + "\n";
+        write_once(
+            &root.join(format!("{PREDICTIONS}/{id}.json")),
+            bytes.as_bytes(),
+        )
+        .expect("written");
+        fs::create_dir_all(root.join("validation/reports")).expect("dirs");
+        fs::write(root.join(LIST), sha256_hex(bytes.as_bytes()) + "\n").expect("the list");
+        git_ok(root, &["switch", "-q", "-c", "hash"]);
+        git_ok(root, &["add", LIST]);
+        git_ok(root, &["commit", "-q", "-m", "the hash"]);
+        let error = admit(root, &new).expect_err("only on the branch");
+        assert!(
+            error.contains(&format!("{id}: its prediction's SHA-256")),
+            "{error}"
+        );
+
+        // The hash merged: main holds it, and a branch from there compares the flight.
+        git_ok(root, &["update-ref", "refs/remotes/origin/main", "HEAD"]);
+        git_ok(root, &["switch", "-q", "-c", "compare"]);
+        assert_eq!(admit(root, &new), Ok(()));
+        // The design changed since: refused again.
+        fs::write(root.join(&plan.design), b"another design").expect("a change");
+        let error = admit(root, &new).expect_err("a changed design");
+        assert!(error.contains("its design file changed"), "{error}");
+    }
+
+    /// A prediction is written once: a second write to its file is refused and leaves the first.
+    #[test]
+    fn a_prediction_is_written_once() {
+        let dir = tempfile::tempdir().expect("a scratch directory");
+        let path = dir.path().join("predictions/invented.json");
+        write_once(&path, b"first").expect("written");
+        let error = write_once(&path, b"second").expect_err("written once");
+        assert!(error.contains("a prediction is written once"), "{error}");
+        assert_eq!(fs::read(&path).expect("the file"), b"first");
     }
 
     /// A plan file holding a log's field, or any field that isn't a plan's, is refused; the
