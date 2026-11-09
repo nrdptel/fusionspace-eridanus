@@ -336,6 +336,31 @@ Candidates that break a limit are kept and ranked, not redrawn. So a run can clo
 that sits on a limit, as most good designs do. Only a point that keeps every limit counts as
 reaching a target. The [`Optimum`] reports its `violation`, zero when it keeps them all.
 
+The limits hold on one flight, the nominal one, with every input at its planned value. A run that
+closes in on a limit stops on it, so its answer usually keeps that limit with nothing to spare. A
+real rocket is built and flown a little differently, and a figure such as the margin is a model's,
+with its own error ([Accuracy](accuracy.md)). So write each limit with an allowance beyond the rule
+you must meet. Then fly the winner through a dispersion: in code ([Monte Carlo
+dispersion](monte-carlo.md)), or with [`hpr mc`](cli.md#hpr-mc) on the winner saved as a design
+file. Check that every dispersed flight keeps the limits too. The `--export` table gives each
+flight's rail-exit speed and least margins, but not its largest.
+
+The [`Optimum`] doesn't say whether a variable ended on one of its bounds. Compare its `point`
+with the bounds yourself. A variable on its bound often means the goal pushes it there and nothing
+holds it back, which may mean a missing limit.
+
+A fin variable needs a flutter limit. Without one, nothing stops a run from choosing thin or long
+fins. A thinner fin is lighter and has less drag, so a run for the highest apogee that varies fin
+thickness ends at the thickness's lower bound, though the flutter speed grows as the thickness to
+the power 1.5. Write the limit from Martin's chart, as HPR Sim's [flutter
+check](physics/flutter.md#the-line-in-martins-data) does: [`FlutterPanel`]'s `figure_3_ratio` at the
+launch site's pressure must be below the band. As a limit scaled by the band's lower edge, that's
+$g = (D/G_E)/0.25 - 1$. A design whose `FlutterPanel` can't be built returns `Evaluation::failed()`.
+Below the band is no guarantee: a wing Langley tested sat below it and still fluttered ([A rocket's
+fins](physics/flutter.md#a-rockets-fins)). Give this limit an allowance too. The shear modulus $G_E$
+is your fin material's. HPR Sim has one for 14 built-in materials, but not for G10 fiberglass
+([Shear moduli](physics/flutter.md#shear-moduli)).
+
 For a bound the answer will sit on, leave the variable unbounded on that side and write the bound as
 a limit. Clamp the value you fly (no negative ballast), and work the limit out from the unclamped
 one. A design that can't be flown at all returns `Evaluation::failed()`, which ranks behind every
@@ -489,6 +514,16 @@ centimeter of the target.
 The winner was flown again, with the integrator's tolerances as set and then 100 times tighter.
 Both flights are within 0.1 m (0.3 ft) of 3,048 m (10,000 ft), and keep every limit over the
 whole ascent.
+
+"Every limit" means the margins and the rail-exit speed listed above, and none of them is flutter.
+The winner's fins are 3.175 mm (0.125 in) G10, and HPR Sim has no shear modulus for G10, so the
+example can't check them ([Shear moduli](physics/flutter.md#shear-moduli)). A check by hand
+from Martin's chart, at the pressure of the 1,400 m (4,593 ft) launch site, says what they'd need.
+To sit below the band, these fins would need a shear modulus above about 15 GPa ([The line in Martin's
+data](physics/flutter.md#the-line-in-martins-data)). That's three times the built-in carbon fiber's
+4.83 GPa, so HPR Sim's own rule doesn't show them safe. Take the winner as a demonstration of the
+search, not a design to build. Your own run needs a flutter limit ([Limits on a
+design](#limits-on-a-design)).
 
 Read the table as what this one run saw, not as what each motor can do. A few designs, or a few
 dozen, say little about a motor.
@@ -971,6 +1006,7 @@ The API reference is
 [adr-139]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0139-optimization-constraints-by-debs-feasibility.md
 [`Stop`]: api/hpr_analysis/optimize/cmaes/enum.Stop.html
 [`Optimum`]: api/hpr_analysis/optimize/cmaes/struct.Optimum.html
+[`FlutterPanel`]: api/hpr_sim/flutter/struct.FlutterPanel.html
 [`Run`]: api/hpr_analysis/optimize/cmaes/struct.Run.html
 [`Cmaes::with_population`]: api/hpr_analysis/optimize/cmaes/struct.Cmaes.html#method.with_population
 [`Nsga2`]: api/hpr_analysis/optimize/nsga2/struct.Nsga2.html

@@ -70,6 +70,15 @@ A factor with $\mu^*$ near zero can be left at its planned value. The screening 
 standard error, which shrinks as $1/\sqrt{r}$: ten paths are usually enough to rank, and the cost is
 $r(k + 1)$ runs.
 
+A $\mu^*$ of zero after a few paths isn't evidence that a factor does nothing. Its standard error is
+zero too, so the screening looks sure. A factor can act only in one corner of the other factors'
+ranges, and a few paths may never step it there. Take a factor that acts only when two others both
+sit at their top level. On a four-level grid, each of the two is at its top level at the moment of
+the factor's step in one path in four, and both are in one path in 16. So the chance that no path
+sees the factor act is $(15/16)^r$: 52% after 10 paths, 27% after 20. Before leaving a factor with a
+$\mu^*$ of zero at its planned value, ask whether it could act only together with others. If it
+could, run more paths, or check it with [Sobol' indices](#sobol-indices).
+
 For example, Ishigami's test function (below) has the term $a \sin^2 x_2$, with $a = 7$. On a
 four-level grid from $-\pi$ to $\pi$, a step of $x_2$ moves $\sin^2$ by exactly 3/4, up or down. So
 every effect of $x_2$ is $\pm(3/4)(7)/(2/3) = \pm 7.875$. The example's screening finds
@@ -299,7 +308,9 @@ range.
   places in each range, at the same cost per path. But the step stays about half the range, so
   more levels don't help with a response that repeats (see [Morris screening](#morris-screening)).
 - **Paths:** ten to twenty to rank. Check $\mu^*$'s standard error: two factors whose $\mu^*$s
-  differ by less than a couple of errors aren't ranked yet.
+  differ by less than a couple of errors aren't ranked yet. A $\mu^*$ of zero with no error can
+  still hide an effect that needs other factors at the ends of their ranges
+  ([Morris screening](#morris-screening)).
 - **Rows:** a Sobol' analysis needs about 8,000 rows, each $k + 2$ runs, to pin an index to about
   ±0.01 to ±0.015 (one standard error). Use Morris to find the few factors that matter, then
   Sobol' on those if you need the shares or the order of two close ones.
