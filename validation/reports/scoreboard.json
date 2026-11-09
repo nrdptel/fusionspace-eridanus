@@ -153,7 +153,7 @@
     {
       "id": "accuracy.from-boost",
       "axis": "accuracy",
-      "label": "Mean absolute error of the apogee predicted from the log cut just after burnout, the private collection's calibration half",
+      "label": "Mean absolute error of the apogee predicted from the log cut after burnout, the private collection's calibration half",
       "unit": "%",
       "decimals": 2,
       "count_words": "over {n} flights",

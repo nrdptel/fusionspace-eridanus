@@ -789,7 +789,7 @@ fn every_flight(reports: &Reports) -> Result<(&Value, String, u64), String> {
 }
 
 /// HPR Sim's cell in `accuracy.from-boost`: the mean absolute error of the apogee predicted from
-/// the log cut at burnout, over every flight [`FROM_BOOST_HALF`] predicts (ADR-329, ADR-330),
+/// the log cut after burnout, over every flight [`FROM_BOOST_HALF`] predicts (ADR-329, ADR-330),
 /// checked to count the half's predicted flights.
 fn from_boost(reports: &Reports) -> Result<Cell, String> {
     let halves = reports
@@ -820,7 +820,7 @@ fn from_boost(reports: &Reports) -> Result<Cell, String> {
     ))
 }
 
-/// Why each other tool can't predict apogee from a log cut at burnout, read from its
+/// Why each other tool can't predict apogee from a log cut after burnout, read from its
 /// documentation (ADR-257 §3, ADR-330): the tool, the id of its page in the features record, and
 /// what the page shows.
 const FROM_BOOST_CANNOT: [(Tool, &str, &str); 2] = [
@@ -1025,7 +1025,7 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
         percent(
             Axis::Accuracy,
             "accuracy.from-boost",
-            "Mean absolute error of the apogee predicted from the log cut just after burnout, the \
+            "Mean absolute error of the apogee predicted from the log cut after burnout, the \
              private collection's calibration half",
             false,
             Worse::Higher,
@@ -1382,11 +1382,10 @@ fn axis_words(axis: Axis, hpr: &str) -> String {
             published; the private collection's are logged flights whose owners allow only \
             aggregates. Held-out flights are ones no model or setting was tuned on, predicted \
             before their logs are compared. Predicted from the boost, the simulation is fitted to \
-            a flight's own log up to just after motor burnout, then flown on to apogee \
-            ([apogee from the \
-            boost](https://hpr.fusionspace.co/physics/flight-fit.html#apogee-from-the-boost)). \
-            It reads the flight's own log up to the cut, so its error isn't comparable with the \
-            rows above it. The calibration half is the part of the collection a correction may be \
+            a flight's own log, cut after motor burnout, then flown on to apogee ([apogee from \
+            the boost](https://hpr.fusionspace.co/physics/flight-fit.html#apogee-from-the-boost)). \
+            Since the prediction reads the flight's own log up to its cut, its error isn't \
+            comparable with the rows above it. The calibration half is the part of the collection a correction may be \
             tuned on."
             .to_owned(),
         Axis::Bias => "The same errors with their signs, averaged: above zero, the simulator's \
