@@ -247,6 +247,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M1.14a2 Drag issue warnings ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.14a3 Stability issue warnings ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.10 Evidence register ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M2.7a The halves and the fits' guard ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M4.1 Facade API ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.1a The builder ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.1b Custom models and the rustdoc guide ([Phase 2](#phase-2-library-surfaces-and-interop))
@@ -1390,6 +1391,8 @@ One line per milestone or increment, in the order it was archived within its pha
   each but G23 (at its wanted kind) short of it with an open issue; a docs page shows a committed report counting
   rows by kind and surface, with no combined score, and the rows due a search (none yet, or the
   last over 30 days old); each format page's sample request links its issue. Moves: honest trust.
+- **M2.7** is open; its entry: [roadmap](ROADMAP.md#phase-1-physics-core-the-heart-with-validation-interleaved).
+  - [x] **M2.7a The halves and the fits' guard.** *Done when:* M2.7's first three clauses, whole.
 ## Phase 2: Library surfaces and interop
 
 - [x] **M4.1 Facade API.** The `hpr` crate offers a RocketPy-like builder (`Environment`, `Motor`,
