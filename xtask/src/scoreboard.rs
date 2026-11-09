@@ -1385,7 +1385,7 @@ fn axis_words(axis: Axis, hpr: &str) -> String {
             a flight's own log, cut after motor burnout, then flown on to apogee ([apogee from \
             the boost](https://hpr.fusionspace.co/physics/flight-fit.html#apogee-from-the-boost)). \
             Since the prediction reads the flight's own log up to its cut, its error isn't \
-            comparable with the rows above it, forward simulations over other flights. The calibration half is the part of the collection a correction may be \
+            comparable with the rows above it. The calibration half is the part of the collection a correction may be \
             tuned on."
             .to_owned(),
         Axis::Bias => "The same errors with their signs, averaged: above zero, the simulator's \
@@ -1830,7 +1830,7 @@ mod tests {
     }
 
     /// `accuracy.from-boost` reads the calibration half wherever it stands in the report and
-    /// holds it; the held-out half never moves it; a count that isn't the half's predicted
+    /// holds it; a worse held-out error doesn't fail the check; a count that isn't the half's predicted
     /// flights, or a page the features record doesn't have, fails; the other tools' cells link
     /// their pages.
     #[test]

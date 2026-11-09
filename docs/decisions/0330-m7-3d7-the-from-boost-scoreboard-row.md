@@ -17,9 +17,9 @@ with each other tool's cell read from its documentation: a number if the tool ca
 *can't*. M7.3d's other clauses are on main: the prediction that reads nothing past its cut
 (M7.3d1), the public flights' report ([ADR-325][adr-325]), the
 halves sealed ([ADR-326][adr-326]) and the collection's errors by halves ([ADR-329][adr-329]).
-Four sets of flights could fill HPR Sim's cell: the 2 public flights predicted, the 12 of the
-calibration half, the 9 held out, or both halves pooled; each with every flight or only those without a deployment
-before apogee. The cell is one number, and the check
+Four sets of flights could fill HPR Sim's cell: the 2 public flights predicted, or the 12 of the
+calibration half, the 9 held out, or both halves pooled, each with every flight or only those without a
+deployment before apogee. The cell is one number, and the check
 holds it.
 
 **Decision.**
@@ -39,13 +39,13 @@ holds it.
      rows count every compared flight. The report's second set stays on its page.
 2. **The other tools can't, by their documentation.** Each cell names its reason and links the page,
    taken from the features record (`validation/features/simulator.toml`), which names each tool's
-   release and the date its pages were read. The two pages the cells link, and OpenRocket's
-   release notes, were read again on 2026-11-08 and match the record's yes or no for each. The
-   overrides page and RocketPy's changelog aren't in the record, and its utilities page is there
+   release and the date its pages were read. The two pages the cells link match the record's `log`
+   cells (OpenRocket no, RocketPy yes), and OpenRocket's release notes, which the record cites for
+   other capabilities, add no log import; each was read again on 2026-11-08. The overrides page and RocketPy's changelog aren't in the record, and its utilities page is there
    only for its fin-flutter entry:
    - **OpenRocket 24.12:** its guide lists importing and plotting altimeter data among planned
      features, and the 24.12 release notes add no log import. Its guide's advice after a first
-     flight is to compare the two, adjust the drag or surface finish and rerun until they agree
+     flight is to compare the two, adjust the drag or surface finish, rerun and compare until satisfied
      ([overrides](https://openrocket.readthedocs.io/en/latest/user_guide/overrides_and_surface_finish.html)).
    - **RocketPy 1.13.0:** its Flight Comparator, added in 1.12.0 by its changelog, takes logged data,
      aligns it with a simulated flight and gives their difference (RMS and mean absolute). Its
@@ -62,8 +62,7 @@ holds it.
    collection a correction may be tuned on. The legend's *can't* now covers a cell that links its
    page.
 
-**What it shows.** The prediction's 3.22% is not comparable with the forward rows above it, which are
-forward simulations over other flights: it reads the flight's own log up to the cut, which the
+**What it shows.** The prediction's 3.22% is not comparable with the forward rows above it: it reads the flight's own log up to the cut, which the
 forward simulation doesn't. On the same 12 flights the
 forward simulation's mean absolute error is 9.35%, on the collection's page with the paired
 bootstrap interval of the difference. The scoreboard's opening now counts 54 cells, 15 measured.

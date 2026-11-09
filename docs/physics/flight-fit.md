@@ -388,8 +388,8 @@ scales may.
 The [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md)'s
 `accuracy.from-boost` holds the calibration half's 3.22%. Neither OpenRocket's nor RocketPy's documentation describes
 fitting a simulation to a log automatically and flying it on to apogee; OpenRocket's guide describes adjusting the drag
-and rerunning until the flight matches
-([ADR-330](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0330-m7-3d7-the-from-boost-scoreboard-row.md)).
+and rerunning until the simulation is close enough to the flight
+([ADR-330, the scoreboard row](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0330-m7-3d7-the-from-boost-scoreboard-row.md)).
 
 **The cut.** The library follows the climb speed: a straight line fitted to each half second of
 heights. One reading far from the rest is left out, as the analyzer's spike rule does. The cut needs
