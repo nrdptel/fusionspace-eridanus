@@ -858,7 +858,6 @@ fn from_boost(reports: &Reports) -> Result<(Cell, String), String> {
         COLLECTION_BOOST,
         "/every/forward_mean_absolute_percent",
     )?;
-    let cut = whole(half, COLLECTION_BOOST, "/cut")?;
     let in_burn = whole(half, COLLECTION_BOOST, "/cut_in_burn")?;
     let burn_unknown = whole(half, COLLECTION_BOOST, "/cut_burn_unknown")?;
     let limit = hpr_flightdata::readings::TRANSONIC_SPEED_M_S;
@@ -867,9 +866,9 @@ fn from_boost(reports: &Reports) -> Result<(Cell, String), String> {
          of the calibration half whose barometer's log was cut before its climb reached \
          {limit:.1} m/s ({:.0} ft/s), with enough of the log up to the cut to fit, among those the \
          forward report compares and flies in the day's ERA5 air; a faster climb gets no \
-         prediction. Of the half's {cut} cut logs, {in_burn} whose motor's burn is known were cut \
-         inside it, and for {burn_unknown} the burn isn't known. On the {flights} predicted \
-         flights the forward simulation's mean absolute error is \
+         prediction. Of the {flights} predicted flights, {in_burn} were cut less than the motor's \
+         burn after liftoff, and for {burn_unknown} the motor's burn or the log's liftoff isn't \
+         known. On those {flights} the forward simulation's mean absolute error is \
          {forward:.2}%. On the {held_flights} held-out flights predicted (held out from choices \
          made after the seal, not blind) the prediction's is {held_prediction:.2}% and the \
          forward simulation's {held_forward:.2}%, shown on [the collection's \
@@ -1985,6 +1984,14 @@ mod tests {
             assert!(note.contains(&figure), "{figure} in {note}");
         }
         assert!(note.contains("227.7 m/s (747 ft/s)"), "{note}");
+        let count = |key: &str| whole(calibration, COLLECTION_BOOST, key).expect(key);
+        let counts = format!(
+            "Of the {flights} predicted flights, {} were cut less than the motor's burn after \
+             liftoff, and for {} the motor's burn",
+            count("/cut_in_burn"),
+            count("/cut_burn_unknown")
+        );
+        assert!(note.contains(&counts), "{counts} in {note}");
         for (cell, url) in built.cells[1..].iter().zip([
             "https://openrocket.readthedocs.io/en/latest/introduction/\
              features.html#planned-future-features",

@@ -40,19 +40,20 @@ number prints worse ([ADR-240][adr-240]).
 2. **A note says which flights.** The method predicts only a barometer's log cut before its climb
    reaches the analyzer's transonic speed, 227.7 m/s (747 ft/s), with enough of the log up to the
    cut to fit, among the flights the forward report compares and flies in the day's ERA5 air: 12 of
-   the calibration half. The label says "the calibration-half flights it
-   can predict", and a note under the accuracy table, its numbers read from the same report, says
-   so, gives the forward simulation's mean absolute error on the same 12 (9.35%), and the held-out
-   half's prediction and forward errors (3.56% and 16.86% on 9; held out from choices made after
-   the seal, not blind), shown and not held. The accuracy
-   section's words say why the row isn't comparable with the forward rows above it: the prediction
-   reads the flight's own log up to its cut, and covers only the flights it can predict.
+   the calibration half. The label says "the calibration-half flights it can predict", and a note
+   under the accuracy table, its numbers read from the same report, says so. It counts the
+   predicted flights cut less than the motor's burn after liftoff (0) and those whose burn or
+   liftoff isn't known (2 of 12), gives the forward simulation's mean absolute error on the same 12
+   (9.35%), and the held-out half's prediction and forward errors (3.56% and 16.86% on 9; held out
+   from choices made after the seal, not blind), shown and not held. The accuracy section's words
+   say why the row isn't comparable with the forward rows above it: the prediction reads the
+   flight's own log up to its cut, and covers only the flights it can predict.
 3. **The other tools can't, by their documentation.** Each cell names its reason and links the page
    that the features record (`validation/features/simulator.toml`) cites for the tool's `log`
    capability, which says whether it reads a flight log: OpenRocket no (its planned features),
    RocketPy yes (its Flight Comparator). The scoreboard refuses to build when either cell's answer
-   changes, which sends the reason back to be read again; the test pins the linked pages. These pages, OpenRocket's 24.12 release notes and the pages below were read again on
-   2026-11-08:
+   changes, which sends the reason back to be read again; the test pins the linked pages. These
+   pages, OpenRocket's 24.12 release notes and the pages below were read again on 2026-11-08:
    - **OpenRocket 24.12:** its guide lists importing and plotting altimeter data among planned
      features, and the 24.12 release notes add no log import. Its guide's advice after a first
      flight is to compare the simulation with the flight's data, adjust the drag or surface finish,
@@ -60,32 +61,35 @@ number prints worse ([ADR-240][adr-240]).
      ([overrides](https://openrocket.readthedocs.io/en/latest/user_guide/overrides_and_surface_finish.html)).
    - **RocketPy 1.13.0:** its Flight Comparator, added in 1.12.0 by its changelog, takes logged data,
      aligns it with a simulated flight and gives their difference (RMS and mean absolute). In the
-     pages read, its documentation names no class or function that fits the rocket's drag, motor impulse or mass to
-     a flight log, or predicts apogee from part of one. The only function on its utilities
-     reference page that turns a measurement into a model parameter is a parachute's drag area from
-     a drop test's landing speed.
+     pages read, its documentation names no class or function that fits the rocket's drag, motor
+     impulse or mass to a flight log, or predicts apogee from part of one. The only function on its
+     utilities reference page that turns a measurement into a model parameter is a parachute's drag
+     area from a drop test's landing speed.
 
    A *can't* cell is shown, not held, as the other tools' cells are. A tool that adds the method
    gets a number once a run or its documentation shows one. The legend's *can't* now covers a cell
-   that links its page.
+   by the documentation it cites.
 
 **What it shows.** The prediction's 3.22% is not comparable with the forward rows above it: it reads
 the flight's own log up to the cut, which the forward simulation doesn't, and covers only the
 flights it can predict. On the same 12 flights the forward simulation's mean absolute error is
 9.35%, with the paired bootstrap interval of the difference on the collection's page. Part of that
-difference may come from the wind: the forward simulation flies ERA5's wind profile, the prediction a
-wind constant with height fitted to the log. On the 2 public flights the fit's model with nothing
+difference may come from the wind: the forward simulation flies ERA5's wind profile, the prediction
+a wind constant with height that the fit may move, held near ERA5's by its stated range (a
+barometer's heights say little of the wind). On the 2 public flights the fit's model with nothing
 fitted, in that constant wind, errs 3.71% against the forward simulation's 5.63%; the collection's
 report gives no such figure. The scoreboard's opening now counts 54 cells, 15 measured.
 
-**What doesn't change.** M7.3d's *done when* stands whole and is met with this row. Its "on the
-same flights in the same air and wind" is [ADR-257][adr-257] §3's "the forward simulation's on the
-same flights, flown in the same launch-day air and wind": the forward simulation flies each flight
-in its day's ERA5 air and wind, not a standard day, and the prediction flies the same ERA5 air with
-a wind fitted to the log and centered on ERA5's, as M7.3d2 and M7.3d6 did ([ADR-325][adr-325] §2,
-[ADR-329][adr-329] §1 and §4). What that wind alone moves on the collection is
-[#1366](https://github.com/nrdptel/fusionspace-eridanus/issues/1366). The halves, the
-seal, the reports and their checks are as ADR-326 and ADR-329 left them.
+**What doesn't change.** M7.3d's *done when* stands whole and is met with this row, read as
+follows. Its "on the same flights in the same air and wind" is [ADR-257][adr-257] §3's "the forward
+simulation's on the same flights, flown in the same launch-day air and wind", which this ADR reads
+of the forward simulation: it flies each flight's own launch day, ERA5's air and wind, not a
+standard day. The prediction flies the same ERA5 air, but its wind is a constant with height that
+the fit may move, held near ERA5's by its stated range, as M7.3d2 and M7.3d6 did
+([ADR-325][adr-325] §2, [ADR-329][adr-329] §1 and §4). Read as asking both to fly one wind
+profile, the clause would not be met; [#1366](https://github.com/nrdptel/fusionspace-eridanus/issues/1366)
+sizes what that wind alone moves on the collection. The halves, the seal, the reports and their
+checks are as ADR-326 and ADR-329 left them.
 
 **Consequences.** M7.3d3 and M7.3d close. M7.3 stays open on M7.3c (the Bayesian option) and
 M7.3e (the post-flight comparison command). A change that makes the printed calibration-half error
