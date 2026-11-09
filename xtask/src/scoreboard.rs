@@ -827,7 +827,7 @@ const FROM_BOOST_CANNOT: [(Tool, &str, &str); 2] = [
     (
         Tool::Openrocket,
         "planned",
-        "it reads no flight log: its guide lists importing altimeter data among planned \
+        "it reads no flight log; its guide lists importing altimeter data among planned \
          features",
     ),
     (
@@ -1025,8 +1025,8 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
         percent(
             Axis::Accuracy,
             "accuracy.from-boost",
-            "Mean absolute error of the apogee predicted from the log cut at burnout, the private \
-             collection's calibration half",
+            "Mean absolute error of the apogee predicted from the log cut just after burnout, the \
+             private collection's calibration half",
             false,
             Worse::Higher,
             std::iter::once(from_boost(reports))
@@ -1384,8 +1384,10 @@ fn axis_words(axis: Axis, hpr: &str) -> String {
             before their logs are compared. Predicted from the boost, the simulation is fitted to \
             a flight's own log up to just after motor burnout, then flown on to apogee \
             ([apogee from the \
-            boost](https://hpr.fusionspace.co/physics/flight-fit.html#apogee-from-the-boost)); \
-            the calibration half is the part of the collection a correction may be tuned on."
+            boost](https://hpr.fusionspace.co/physics/flight-fit.html#apogee-from-the-boost)). \
+            It reads the flight's own log up to the cut, so its error isn't comparable with the \
+            rows above it. The calibration half is the part of the collection a correction may be \
+            tuned on."
             .to_owned(),
         Axis::Bias => "The same errors with their signs, averaged: above zero, the simulator's \
             apogee comes out higher than the log on average."
