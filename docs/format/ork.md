@@ -356,22 +356,27 @@ copy, with a warning too.
 flag. A flag of `true` says the override covers the stage's parts: in OpenRocket, the override's
 box for all subcomponents is ticked ("override for all subcomponents", in its user guide's words).
 The override is then the whole stage's. With the box unticked the flag is `false`, and the guide
-says the value "is added to the calculated value". A flag that isn't written reads as `false`, and
-so does the older single flag saying `false`.
+says the value "is added to the calculated value". The guide says so of the center of gravity
+too, but OpenRocket 24.12 itself changes nothing for a center alone (the table's second row). A
+flag that isn't written reads as `false`, beside a written one too, and so does the older single
+flag saying `false`. That is measured in schema 1.10 files, and the older flag in schema 1.4; the
+reader applies it to every schema.
 
 [Probe designs](../glossary.md#probe-design) measured where the added mass goes. This table is
-the stage they share: parts that weigh 0.40 kg, centered 0.470 m (1.54 ft) aft of the tip, with a
-2 kg mass override, a center of gravity override at 0.4 m (1.3 ft), or both.
+the one-stage probes' stage: parts that weigh 0.40 kg, centered 0.470 m (1.54 ft) aft of the tip,
+with a 2 kg mass override, a center of gravity override at 0.4 m (1.3 ft), or both.
 
 | The stage's override | OpenRocket's stage | In the design |
 |---|---|---|
 | mass, flag `false` or not written | 2.40 kg at 0.470 m (1.54 ft): the 2 kg sits at the parts' center | an `added_mass` of 2 kg |
 | center alone, flag `false` or not written | 0.40 kg at 0.470 m (1.54 ft): no effect | nothing |
 | both, flags `false` or not written | 2.40 kg at 0.412 m (1.35 ft): the 2 kg sits at 0.4 m (1.3 ft) | an `added_mass` of 2 kg at 0.4 m (1.3 ft) |
-| mass flag `false`, center flag `true` | 2.40 kg at 0.4 m (1.3 ft): the parts and the 2 kg together are moved | an `added_mass` of 2 kg, under the stage's center override |
-| mass flag `true`, center flag `false` | 2.00 kg at 0.4 m (1.3 ft), exactly as with both `true` | the stage's mass and center overrides |
+| mass flag `false` or not written, center flag `true` | 2.40 kg at 0.4 m (1.3 ft): the parts and the 2 kg together are moved | an `added_mass` of 2 kg, under the stage's center override |
+| both, mass flag `true`, center flag `false` or not written | 2.00 kg at 0.4 m (1.3 ft), exactly as with both `true` | the stage's mass and center overrides |
+| center alone, flag `true` | 0.40 kg at 0.4 m (1.3 ft): the parts are moved | the stage's center override |
 
-**Policy:** the reader follows the table, and raises no warning for any row, so the design flies.
+**Policy:** the reader follows the table, and raises no warning for any row, so it no longer
+holds such a design back.
 [A stage's added mass](../physics/design.md#a-stages-added-mass) gives the rule and a worked
 example, and [the decision record][adr-335] gives the measurements.
 
@@ -388,14 +393,15 @@ example, and [the decision record][adr-335] gives the measurements.
 - **A flag that says neither `true` nor `false`** is warned of where it is read, which holds the
   design back, and is taken as not written.
 - **An export** writes an added mass back as a mass override whose flag is `false`. One with a
-  station is written beside a center override whose flag is `false` too. A file that wrote no
-  flag, or the older single flag, comes back with the per-quantity flags, which read the same.
+  station is written beside a center override whose flag is `false` too. So an added mass read
+  from a file that wrote no flag, or the older single flag, comes back with the per-quantity
+  flags, which read the same.
 - **Not flown yet:** a parallel stage's override that doesn't cover its pods is still warned of,
   as a pod set's is. And a flight refuses a mass that moves, a mass that is released, or a
   parting through a stage, where that stage carries an added mass.
 
-The tests `a_stage_override_not_covering_its_parts_adds_to_them` (17 probes),
-`a_stage_override_covering_its_parts_beside_one_that_does_not` (5 probes) and
+The tests `a_stage_override_not_covering_its_parts_adds_to_them` (19 probes),
+`a_stage_override_covering_its_parts_beside_one_that_does_not` (7 probes) and
 `a_motor_aboard_does_not_move_a_stages_added_mass` in `hpr_validate::openrocket` hold HPR Sim to
 OpenRocket's answers, and `a_stage_override_not_covering_its_parts_is_read_and_written_back` in
 the `.ork` writer holds the export. Until this was read, such a stage was held back

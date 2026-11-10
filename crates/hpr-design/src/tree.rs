@@ -796,12 +796,12 @@ impl Overrides {
 /// parts (`<overridesubcomponentsmass>false</overridesubcomponentsmass>`, or no flag written). Its
 /// user guide says such a value "is added to the calculated value" ([Overrides and Surface
 /// Finish][guide]); where the mass goes is measured on probe designs, which hold this rule's mass,
-/// center and inertia to OpenRocket's ([ADR-335][adr-335]): at the center of the stage's own
-/// parts, with or without a motor aboard, or at the stage's center of gravity override when that
-/// doesn't cover the parts either.
+/// center and inertia to OpenRocket's structure ([ADR-335][adr-335]): at the center of the stage's
+/// own parts, or at the stage's center of gravity override when that doesn't cover the parts
+/// either. A motor aboard doesn't move it in OpenRocket, and a [`Layout`] holds no motor.
 ///
-/// An added mass of zero changes nothing. One with no station on a stage whose parts weigh nothing
-/// has no place to sit, and [`Rocket::layout`] refuses it.
+/// An added mass of zero changes nothing. One above zero with no station, on a stage whose parts
+/// weigh nothing, has no place to sit, and [`Rocket::layout`] refuses it.
 ///
 /// [guide]: https://openrocket.readthedocs.io/en/latest/user_guide/overrides_and_surface_finish.html
 /// [adr-335]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0335-a-stage-s-added-mass-as-openrocket-weighs-it.md

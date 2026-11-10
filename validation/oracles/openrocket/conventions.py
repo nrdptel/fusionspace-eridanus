@@ -345,6 +345,24 @@ STAGE_PROBES = {
         overrides(2.0, -0.1, "false", "false"),
         [nose(), tube()],
     ),
+    # Both overrides with one flag written and the other not: does the missing one read as
+    # `false` there too?
+    "both overrides on the stage, only the mass flag written, false": (
+        overrides(2.0, 0.4, children_mass="false"),
+        [nose(), tube()],
+    ),
+    "both overrides on the stage, only the center flag written, false": (
+        overrides(2.0, 0.4, children_cg="false"),
+        [nose(), tube()],
+    ),
+    "both overrides on the stage, only the mass flag written, true": (
+        overrides(2.0, 0.4, children_mass="true"),
+        [nose(), tube()],
+    ),
+    "both overrides on the stage, only the center flag written, true": (
+        overrides(2.0, 0.4, children_cg="true"),
+        [nose(), tube()],
+    ),
     # Parts that weigh nothing have no center for the mass to sit at: where does OpenRocket put it?
     "a mass override on a stage of parts that weigh nothing, not its parts": (
         overrides(mass_kg=2.0, children_mass="false"),

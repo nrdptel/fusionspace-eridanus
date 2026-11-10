@@ -552,8 +552,8 @@ mod tests {
     /// Stages whose mass override doesn't cover their parts, or whose center of gravity override
     /// doesn't, with no override that covers them: by a flag of `false`, by none written, and by
     /// the single older flag; on one stage and on a rocket of two; over a part with an override of
-    /// its own; and a mass of nothing.
-    const STAGE_ADDS: [&str; 17] = [
+    /// its own; a mass of nothing; and both overrides with only one flag written, `false`.
+    const STAGE_ADDS: [&str; 19] = [
         "a mass override on the stage, not its parts",
         "a centre of gravity override on the stage, not its parts",
         "both overrides on the stage, not its parts",
@@ -564,6 +564,8 @@ mod tests {
         "both overrides on the stage, not its parts, over a part's own",
         "a mass override of nothing on the stage, not its parts",
         "both overrides on the stage, not its parts, the center ahead of the tip",
+        "both overrides on the stage, only the mass flag written, false",
+        "both overrides on the stage, only the center flag written, false",
         "the old flag, false, on a stage's mass override, schema 1.4",
         "the old flag, false, on both of a stage's overrides, schema 1.4",
         "two stages with no override",
@@ -577,11 +579,19 @@ mod tests {
     /// beside a mass override that doesn't cover them, and a mass override beside a center of
     /// gravity override that doesn't. Each with how far hpr's roll and pitch inertias are from
     /// OpenRocket's (relative): the departure ADR-061 wrote for an override that covers the parts.
-    const STAGE_WHOLE: [(&str, [f64; 2]); 5] = [
+    const STAGE_WHOLE: [(&str, [f64; 2]); 7] = [
         ("a center of gravity override on the stage", [0.0, -0.1104]),
         (
             "a mass override on the stage, not its parts, and a center that covers them",
             [0.0, -0.1104],
+        ),
+        (
+            "both overrides on the stage, only the center flag written, true",
+            [0.0, -0.1104],
+        ),
+        (
+            "both overrides on the stage, only the mass flag written, true",
+            [4.005, 3.4526],
         ),
         (
             "a lower stage's mass override, not its parts, and a center that covers them",
@@ -619,6 +629,28 @@ mod tests {
             structure("a mass override that covers the stage's parts and a center that doesn't"),
             structure("both overrides on the stage")
         );
+        // A flag that isn't written reads as `false` beside one that is: OpenRocket weighs each
+        // of these four exactly as it does the same pairing with both flags written.
+        for (one_flag, both_flags) in [
+            (
+                "both overrides on the stage, only the mass flag written, true",
+                "both overrides on the stage",
+            ),
+            (
+                "both overrides on the stage, only the center flag written, true",
+                "a mass override on the stage, not its parts, and a center that covers them",
+            ),
+            (
+                "both overrides on the stage, only the mass flag written, false",
+                "both overrides on the stage, not its parts",
+            ),
+            (
+                "both overrides on the stage, only the center flag written, false",
+                "both overrides on the stage, not its parts",
+            ),
+        ] {
+            assert_eq!(structure(one_flag), structure(both_flags), "{one_flag}");
+        }
         // The added mass brings no departure of its own: beside a center that covers the parts,
         // each tool's inertias are what that tool gives under the center alone.
         let alone = both(probe(&record, "a center of gravity override on the stage"));
@@ -776,8 +808,9 @@ mod tests {
     /// carry no motor, so they can't tell the parts' center from the parts' and the motor's
     /// together. This record can: the motor is what launch, or burnout, adds to the structure
     /// with no override, and under each override OpenRocket's launch and burnout are that same
-    /// motor added to the overridden structure. HPR Sim adds its motors to the structure the same
-    /// way ([`hpr_design::AddedMass`], ADR-335), and its structure of each probe is OpenRocket's.
+    /// motor added to the overridden structure. HPR Sim's layout holds no motor, so its added mass
+    /// sits among the structure's parts ([`hpr_design::AddedMass`], ADR-335), and its structure of
+    /// each probe is OpenRocket's.
     #[test]
     fn a_motor_aboard_does_not_move_a_stages_added_mass() {
         let record = added_mass_record();
