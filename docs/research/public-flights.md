@@ -76,7 +76,7 @@ raw peak is an ejection-charge spike up to 1.6% higher. Mach is **Inference** fr
 | UND SL 2023 full scale, 2023-03-05 | 2 × `.pf2` | 7,185 / 7,193 ft \* | AeroTech L1420R | ≈0.80 |
 | UND SL 2023 full scale, 2023-04-02 | 2 × `.pf2` | 5,776 / 5,785 ft | L1420R | ≈0.68 |
 | UND SL 2023 launch week | 2 × `.pf2` | 5,146 / 5,157 ft | L1420R | ≈0.56 |
-| UND SL 2024 subscale | `.pf2` | 743 ft | AeroTech H268R or H219T | ≈0.18 |
+| UND SL 2024 subscale | `.pf2` | 743 ft | not on record; about 216 N·s (H182R) fits (**Inference**) | ≈0.18 |
 | UND SL 2024 full scale | 2 × `.pf2` | 4,377 / 4,391 ft | L1420R | ≈0.50 |
 | UND SL 2024 payload demonstration (**Inference**) | 2 × `.pf2` | 3,892 / 3,898 ft \* | L1420R | ≈0.42 |
 | UND SL 2024 launch week | StratoLogger CSV | 4,035 ft (spike left out) | L1420R | ≈0.48 |
@@ -92,9 +92,9 @@ Sources, all MIT by GitHub's license API (the private catalog's "none stated" fo
 [Lmx154/RL-RocketPy-Notebook](https://github.com/Lmx154/RL-RocketPy-Notebook) (`data/`).
 
 Caveats, each unbounded until the team's own flight report is read:
-- **Which design and mass flew.** UND keeps several `.ork` versions a year. The 2023-03-05 flight's 7,185 ft is about
-  25% above the flight-day file's stored 5,751 ft (a file committed four days later stores 6,386 ft, +12.5%), so ballast
-  or the motor may differ. The repositories' flight-versus-simulation workbooks may say; they were not opened.
+- **Which design and mass flew.** UND keeps several `.ork` versions a year. The 2023-03-05 flight's 7,185 ft is 24%
+  above its flight-day file run in OpenRocket 24.12, 5,791 ft (team export 5,788 ft; its stored run, saved by OpenRocket
+  15.03, 5,751 ft). A file reworked four days later stores 6,386 ft ([und-flight-configs](und-flight-configs.md)).
 - **Hyperion-II's air brakes** may have opened. That can only lower apogee: it measured 2,854 m
   (backup) against its design file's stored 3,003 m (−5%).
 - **numericalrocketry's** simulator was written from OpenRocket's source, so only its data files
