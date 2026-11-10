@@ -79,6 +79,29 @@ wind to 0.11 mm/s. The older
 file stores its values as 16-bit whole numbers. The newer one carries the rounding of ECMWF's own
 archive. So the gaps are consistent with each file's rounding. The test pins these largest gaps.
 
+A second check runs on a whole file. Three public flights of EuRoC 2022 fly in one netCDF-4 file
+that RocketPy ships ([predicted before compared](../accuracy.md#predicted-before-compared)).
+The script
+[`euroc_2022.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/netcdf/euroc_2022.py)
+converts it as above. It fails unless all 148,000 values of the four fields are the same bit for
+bit, and RocketPy reads the same 37 levels from both files at each flight's site and hour. Its
+[record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/weather/euroc-2022-conversion.json)
+keeps both files' SHA-256 and those levels. Each time a prediction is flown, HPR Sim's own reading
+of the converted file is held to them: the same pressures, and the temperature, wind and
+geopotential height within 1e-12 of each value's size (1e-12 outright for a value under 1).
+
+To run it, from the repository's root and in this order:
+
+1. `cargo xtask refs fetch rocketpy python` fetches RocketPy's files and the oracle environment.
+2. `refs/venv/bin/python validation/oracles/netcdf/euroc_2022.py > /dev/null` is the conversion.
+   It writes the converted file under `refs/` and prints the record, which is already committed.
+3. The same command ending in `--check`, not `> /dev/null`, converts again into a scratch file.
+   It fails unless it finds the recorded hashes and levels, and unless the converted file
+   already in `refs/` has the recorded SHA-256.
+4. `cargo xtask public-predictions --check` flies the predictions in that file.
+
+Neither check runs in CI, which has no RocketPy files.
+
 ### Reading it
 
 The example program
@@ -279,3 +302,6 @@ The documents the reader follows, and the tests that hold it to them.
 - `hpr_io::era5::tests::between_hours_it_weights_the_two_hours_in_time`.
 - `hpr_io::era5::tests::the_current_data_store_file_converted_as_the_guide_says_reads_like_the_older_file`.
 - The extracts and RocketPy's reading come from `validation/oracles/netcdf/era5.py`.
+- `validation/oracles/netcdf/euroc_2022.py --check`: the whole EuRoC 2022 file's conversion.
+  `cargo xtask public-predictions --check`: HPR Sim's reading of the converted file against
+  RocketPy's levels. Both need RocketPy's files, so neither check runs in CI.

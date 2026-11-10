@@ -70,6 +70,13 @@ flight data were committed 2026-06-15. Both flights belong to its "MRC Summer 26
   The stored runs' peak speeds, 120.0 and 122.6 m/s, sit 20% to 25% under the logs'. On flight 2 the 978 m tops
   every one of the file's nine stored runs, including a J350W at 825.8 m. **Inference:** the stored runs predate
   the as-flown mass, or flight 2 flew more motor than its label. The repository doesn't say which.
+- **The stage's override (found November 10, 2026).** The design's stage carries a mass override whose flag
+  says it doesn't cover the stage's parts. OpenRocket 24.12 adds such a mass to what the parts weigh
+  ([the `.ork` page](../format/ork.md#the-values-inside-the-tags)). HPR Sim holds such a stage back, so `hpr sim`
+  refuses the file and neither flight can be predicted until it flies one
+  ([ADR-334](../decisions/0334-m2-3d1-in-three-the-euroc-2022-predictions-first.md)). **Inference:** if the
+  builder meant the override as the whole rocket's mass, the stored runs fly a heavier rocket than the one
+  that flew, which would read low, the side the gap is on. The repository doesn't say which was meant.
 - **Reads today.** `.pf2` has a reader ([flight logs](../format/flight-logs.md)); the page lists EasyTimer V2 logs
   among formats with no tested sample. The Grissom CSV states units in its header, so the unit-header table reader
   likely takes it. None of these was run for this note (**Inference**).

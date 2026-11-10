@@ -1,0 +1,269 @@
+{
+  "name": "RocketPy example: erebus-11",
+  "stages": [
+    {
+      "id": "rocket",
+      "name": "",
+      "components": [
+        {
+          "id": "nose",
+          "name": "",
+          "part": {
+            "nose_cone": {
+              "shape": {
+                "kind": "haack",
+                "parameter": 0.0
+              },
+              "length_m": 0.391113,
+              "base_radius_m": 0.04575,
+              "wall": {
+                "kind": "shell",
+                "thickness_m": 0.002
+              },
+              "shoulder": null,
+              "material": {
+                "name": "Fiberglass laminate (G10/FR-4)",
+                "density": {
+                  "kind": "bulk",
+                  "kg_m3": 1800.0
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "body-tube-1",
+          "name": "",
+          "part": {
+            "body_tube": {
+              "length_m": 1.7022000000000002,
+              "outer_radius_m": 0.04575,
+              "thickness_m": 0.002,
+              "material": {
+                "name": "Fiberglass laminate (G10/FR-4)",
+                "density": {
+                  "kind": "bulk",
+                  "kg_m3": 1800.0
+                }
+              }
+            }
+          },
+          "children": [
+            {
+              "id": "motor-mount",
+              "name": "",
+              "part": {
+                "inner_tube": {
+                  "length_m": 0.586,
+                  "outer_radius_m": 0.0285,
+                  "thickness_m": 0.0015,
+                  "radial_offset_m": 0.0,
+                  "angle_rad": 0.0,
+                  "material": {
+                    "name": "Fiberglass laminate (G10/FR-4)",
+                    "density": {
+                      "kind": "bulk",
+                      "kg_m3": 1800.0
+                    }
+                  }
+                }
+              },
+              "position": {
+                "from": "bottom",
+                "aft_offset_m": 0.0
+              },
+              "motor_mount": {
+                "overhang_m": 0.07911899999999994
+              }
+            },
+            {
+              "id": "fins-1",
+              "name": "",
+              "part": {
+                "fin_set": {
+                  "count": 4,
+                  "planform": {
+                    "kind": "trapezoidal",
+                    "root_chord_m": 0.12,
+                    "tip_chord_m": 0.05,
+                    "span_m": 0.08,
+                    "sweep_m": 0.06999999999999999
+                  },
+                  "thickness_m": 0.003,
+                  "cross_section": "square",
+                  "tab": null,
+                  "cant_rad": 0.0,
+                  "base_angle_rad": 0.0,
+                  "material": {
+                    "name": "Fiberglass laminate (G10/FR-4)",
+                    "density": {
+                      "kind": "bulk",
+                      "kg_m3": 1800.0
+                    }
+                  }
+                }
+              },
+              "position": {
+                "from": "absolute",
+                "station_m": 1.9883130000000002
+              }
+            },
+            {
+              "id": "rail-buttons",
+              "name": "",
+              "part": {
+                "rail_button": {
+                  "outer_diameter_m": 0.0113,
+                  "inner_diameter_m": 0.0064,
+                  "height_m": 0.0081,
+                  "base_height_m": 0.002,
+                  "flange_height_m": 0.002,
+                  "screw_height_m": 0.0,
+                  "angle_rad": 0.7853981633974483,
+                  "count": 2,
+                  "spacing_m": 0.7,
+                  "material": {
+                    "name": "Acetal (POM, Delrin)",
+                    "density": {
+                      "kind": "bulk",
+                      "kg_m3": 1420.0
+                    }
+                  }
+                }
+              },
+              "position": {
+                "from": "absolute",
+                "station_m": 0.9864500000000002
+              }
+            }
+          ]
+        },
+        {
+          "id": "tail-1",
+          "name": "",
+          "part": {
+            "transition": {
+              "shape": {
+                "kind": "conical"
+              },
+              "clipped": false,
+              "length_m": 0.079119,
+              "fore_radius_m": 0.04575,
+              "aft_radius_m": 0.03575,
+              "wall": {
+                "kind": "shell",
+                "thickness_m": 0.002
+              },
+              "fore_shoulder": null,
+              "aft_shoulder": null,
+              "material": {
+                "name": "Fiberglass laminate (G10/FR-4)",
+                "density": {
+                  "kind": "bulk",
+                  "kg_m3": 1800.0
+                }
+              }
+            }
+          }
+        }
+      ],
+      "overrides": {
+        "mass_kg": 5.82,
+        "cg_aft_m": 1.1921000000000002,
+        "cg_xy_m": [
+          0.0,
+          0.0
+        ],
+        "inertia": {
+          "xx_kg_m2": 2.571,
+          "yy_kg_m2": 2.571,
+          "zz_kg_m2": 0.0056233,
+          "xy_kg_m2": 0.0,
+          "xz_kg_m2": 0.0,
+          "yz_kg_m2": 0.0
+        }
+      }
+    }
+  ],
+  "reference_diameter": {
+    "kind": "maximum"
+  },
+  "configurations": [
+    {
+      "id": "example",
+      "name": "the example's motor inputs with the 2430K661-P curve in place of rockets/erebus11/thrust_source.csv",
+      "motors": [
+        {
+          "mount": "motor-mount",
+          "designation": "2430K661-P",
+          "diameter_m": 0.054,
+          "length_m": 0.586,
+          "motor": {
+            "curve": {
+              "times_s": [
+                0.0,
+                0.041,
+                0.073,
+                0.122,
+                0.225,
+                0.679,
+                1.039,
+                1.241,
+                1.832,
+                2.298,
+                2.729,
+                3.195,
+                3.367,
+                3.584,
+                3.672,
+                3.72,
+                3.798
+              ],
+              "thrusts_n": [
+                0.0,
+                588.591,
+                659.371,
+                635.157,
+                634.226,
+                713.388,
+                751.572,
+                758.091,
+                727.357,
+                687.311,
+                667.753,
+                645.402,
+                670.547,
+                182.538,
+                55.879,
+                18.626,
+                0.0
+              ]
+            },
+            "propellant": {
+              "model": "grains",
+              "count": 1,
+              "density_kg_m3": 1196.6353410211093,
+              "outer_radius_m": 0.027,
+              "initial_inner_radius_m": 0.0135,
+              "initial_height_m": 0.572,
+              "separation_m": 0.0,
+              "center_m": 0.3,
+              "inhibited_ends": false
+            },
+            "dry": {
+              "mass_kg": 1e-15,
+              "cg_m": 0.0,
+              "axial_inertia_kg_m2": 0.0,
+              "transverse_inertia_kg_m2": 0.0
+            },
+            "nozzle": {
+              "exit_radius_m": 0.02025,
+              "throat_radius_m": 0.0135,
+              "reference_pressure_pa": null
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

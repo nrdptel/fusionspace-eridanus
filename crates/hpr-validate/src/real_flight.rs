@@ -1043,10 +1043,10 @@ pub fn compare_traces(
 }
 
 /// Keeps hpr's height above its start on a fixed grid of the dense output.
-struct Heights {
+pub(crate) struct Heights {
     /// The next grid point's index: its time is `GRID_S` times it.
-    next: u32,
-    rows: Vec<(f64, f64)>,
+    pub(crate) next: u32,
+    pub(crate) rows: Vec<(f64, f64)>,
 }
 
 impl Observer for Heights {
@@ -1069,14 +1069,27 @@ impl Observer for Heights {
 
 /// The flight's case in [`MASS_FIXTURE`], the design fixture's record of the example.
 fn fixture_case(root: &Path, flight: &RealFlight) -> Result<Value, RealFlightError> {
+    fixture_case_of(root, flight.id, flight.design)
+}
+
+/// The case of the flight `id`, whose design is `design`, in [`MASS_FIXTURE`].
+///
+/// # Errors
+///
+/// [`RealFlightError`] if the fixture can't be read or has no such case.
+pub(crate) fn fixture_case_of(
+    root: &Path,
+    id: &str,
+    design: &str,
+) -> Result<Value, RealFlightError> {
     let input = |what: String| RealFlightError::Input {
-        flight: flight.id.to_owned(),
+        flight: id.to_owned(),
         what,
     };
     let bytes = read_bytes(root, MASS_FIXTURE, "reading the design fixture")?;
     let mut fixture: Value = serde_json::from_slice(&bytes)
         .map_err(|error| input(format!("{MASS_FIXTURE}: {error}")))?;
-    let name = flight.design.trim_start_matches("rocketpy-");
+    let name = design.trim_start_matches("rocketpy-");
     fixture
         .get_mut("cases")
         .and_then(Value::as_array_mut)
@@ -1091,19 +1104,32 @@ fn fixture_case(root: &Path, flight: &RealFlight) -> Result<Value, RealFlightErr
 
 /// The example's own thrust file, by its path from the repository root, with its burn time and
 /// its reshape (a burn time and an impulse), each when the example gives one.
-type ExampleThrust = (String, Option<f64>, Option<(f64, f64)>);
+pub(crate) type ExampleThrust = (String, Option<f64>, Option<(f64, f64)>);
 
 /// A file read, by its path from the repository root, and its bytes.
 type ReadFile = (String, Vec<u8>);
 
 /// The example's own thrust file and burn options, from [`MASS_FIXTURE`]'s record of the case.
 pub fn example_thrust(root: &Path, flight: &RealFlight) -> Result<ExampleThrust, RealFlightError> {
+    example_thrust_of(root, flight.id, flight.design)
+}
+
+/// [`example_thrust`] for the flight `id`, whose design is `design`.
+///
+/// # Errors
+///
+/// [`RealFlightError`] if the fixture has no such case or the file is not where it says.
+pub(crate) fn example_thrust_of(
+    root: &Path,
+    id: &str,
+    design: &str,
+) -> Result<ExampleThrust, RealFlightError> {
     let input = |what: String| RealFlightError::Input {
-        flight: flight.id.to_owned(),
+        flight: id.to_owned(),
         what,
     };
-    let case = fixture_case(root, flight)?;
-    let name = flight.design.trim_start_matches("rocketpy-");
+    let case = fixture_case_of(root, id, design)?;
+    let name = design.trim_start_matches("rocketpy-");
     let file = case["original_thrust_source"]
         .as_str()
         .ok_or_else(|| input(format!("{name} records no thrust file")))?;
@@ -1123,7 +1149,24 @@ pub fn example_thrust(root: &Path, flight: &RealFlight) -> Result<ExampleThrust,
         },
         None => None,
     };
-    // The fixture records the file's name; RocketPy keeps motors by maker.
+    // A file the example keeps with its rocket is recorded by its path under RocketPy's `data/`.
+    if file.contains('/') {
+        let plain = Path::new(file)
+            .components()
+            .all(|part| matches!(part, std::path::Component::Normal(_)));
+        if !plain {
+            return Err(input(format!(
+                "{name}'s thrust file `{file}` is not a path under RocketPy's data"
+            )));
+        }
+        let relative = format!("{ROCKETPY}/data/{file}");
+        return if root.join(&relative).is_file() {
+            Ok((relative, burn, reshape))
+        } else {
+            Err(input(format!("{relative} is not a file")))
+        };
+    }
+    // Otherwise the fixture records the file's name; RocketPy keeps motors by maker.
     let motors = root.join(ROCKETPY).join("data/motors");
     let entries = fs::read_dir(&motors).map_err(|source| RealFlightError::Io {
         what: "listing RocketPy's motors",
@@ -1239,8 +1282,23 @@ pub fn rocket_on_curve(
     thrust_path: &str,
     curve: &[(f64, f64)],
 ) -> Result<Rocket, RealFlightError> {
+    rocket_with_curve(flight.id, design, design_path, thrust_path, curve)
+}
+
+/// [`rocket_on_curve`] for the flight `id`.
+///
+/// # Errors
+///
+/// [`RealFlightError`] if the design has no motor or doesn't read with the curve.
+pub(crate) fn rocket_with_curve(
+    id: &str,
+    design: &Value,
+    design_path: &str,
+    thrust_path: &str,
+    curve: &[(f64, f64)],
+) -> Result<Rocket, RealFlightError> {
     let input = |what: String| RealFlightError::Input {
-        flight: flight.id.to_owned(),
+        flight: id.to_owned(),
         what,
     };
     let mut design = design.clone();
@@ -1274,20 +1332,42 @@ pub fn launch_day(
     weather_path: &str,
     weather_bytes: &[u8],
 ) -> Result<(Environment, SoundingProfile), RealFlightError> {
+    launch_day_at(
+        flight.id,
+        flight.site,
+        flight.utc,
+        weather_path,
+        weather_bytes,
+    )
+}
+
+/// [`launch_day`] for the flight `id` at `site` (latitude and longitude, degrees; elevation, m)
+/// and the hour `utc` (year, month, day, hour).
+///
+/// # Errors
+///
+/// [`RealFlightError`] if the file doesn't read as ERA5 at that place and hour.
+pub(crate) fn launch_day_at(
+    id: &str,
+    site: (f64, f64, f64),
+    utc: (i32, u32, u32, u32),
+    weather_path: &str,
+    weather_bytes: &[u8],
+) -> Result<(Environment, SoundingProfile), RealFlightError> {
     let input = |what: String| RealFlightError::Input {
-        flight: flight.id.to_owned(),
+        flight: id.to_owned(),
         what,
     };
     let sim = |source: SimError| RealFlightError::Sim {
-        flight: flight.id.to_owned(),
+        flight: id.to_owned(),
         source,
     };
     let file =
         NetCdf::parse(weather_bytes).map_err(|error| input(format!("{weather_path}: {error}")))?;
-    let (year, month, day, hour) = flight.utc;
+    let (year, month, day, hour) = utc;
     let time = UtcTime::from_civil(year, month, day, hour, 0, 0.0)
         .map_err(|error| input(error.to_string()))?;
-    let (latitude_deg, longitude_deg, elevation_m) = flight.site;
+    let (latitude_deg, longitude_deg, elevation_m) = site;
     let profile = Era5Profile::read(
         &file,
         Era5Request {
@@ -1313,7 +1393,13 @@ pub fn launch_day(
 
 /// The flight's rail.
 pub fn rail_of(flight: &RealFlight) -> Rail {
-    let (length_m, inclination_deg, heading_deg) = flight.rail;
+    rail_from(flight.rail)
+}
+
+/// A rail from its length, m, its inclination from the horizontal and its heading from north,
+/// degrees.
+pub(crate) fn rail_from(rail: (f64, f64, f64)) -> Rail {
+    let (length_m, inclination_deg, heading_deg) = rail;
     Rail {
         length_m,
         azimuth_rad: heading_deg.to_radians(),
@@ -2195,7 +2281,7 @@ impl RealFlightReport {
     }
 }
 
-fn fmt_number(value: f64, decimals: usize) -> String {
+pub(crate) fn fmt_number(value: f64, decimals: usize) -> String {
     format!("{value:.decimals$}")
 }
 

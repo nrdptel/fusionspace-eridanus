@@ -75,6 +75,7 @@ mod ork_recovery;
 mod ork_simulations;
 mod ork_supply;
 mod predict_first;
+mod public_predictions;
 #[cfg(test)]
 mod python_names;
 mod real_flights;
@@ -135,6 +136,7 @@ Commands:
 {TWO_LOGS}
 {GHOST}
 {REAL_FLIGHTS}
+{PUBLIC_PREDICTIONS}
 {RECORDS}
 {ROADMAP_CURRENT}
 {MOTOR_CATALOG}
@@ -175,6 +177,7 @@ fn usage() -> String {
         .replace("{TWO_LOGS}", two_logs::USAGE)
         .replace("{GHOST}", ghost::USAGE)
         .replace("{REAL_FLIGHTS}", real_flights::USAGE)
+        .replace("{PUBLIC_PREDICTIONS}", public_predictions::USAGE)
         .replace("{RECORDS}", records::USAGE)
         .replace("{ROADMAP_CURRENT}", roadmap::CURRENT_USAGE)
         .replace("{MOTOR_CATALOG}", motor_catalog::USAGE)
@@ -212,6 +215,7 @@ fn main() -> ExitCode {
         Some("ork-export-flights") => ork_export_flights::run(&args.collect::<Vec<_>>()),
         Some("fixture-flights") => fixture_flights::run(&args.collect::<Vec<_>>()),
         Some("real-flights") => real_flights::run(&args.collect::<Vec<_>>()),
+        Some("public-predictions") => public_predictions::run(&args.collect::<Vec<_>>()),
         Some("logs") => logs::run(&args.collect::<Vec<_>>()),
         Some("fit") => fit::run(&args.collect::<Vec<_>>()),
         Some("synthetic") => synthetic::run(&args.collect::<Vec<_>>()),

@@ -61,25 +61,28 @@ height, centred at `chamber_position` with inertia in proportion to the remainin
 `center_of_dry_mass_position` left as None, RocketPy uses `chamber_position` (motor.py:1518-1523).
 
 Thrust curves. RocketPy's data files carry their own terms (THIRD-PARTY-NOTICES.md), so each case
-reads the bundled public-domain .eng curve (crates/hpr-motor/data/thrustcurve/catalog.json) closest
-in total impulse to the example's motor, with `burn_time=None` (the curve's own knot range), no
-reshaping, and linear interpolation. The script checks the catalog's license and SHA-256. The output
+reads a bundled public-domain .eng curve (crates/hpr-motor/data/thrustcurve/catalog.json) near the
+example's motor in total impulse (the cases' comments give the impulses), with `burn_time=None` (the curve's own knot range), no
+reshaping, and linear interpolation. Andromeda's is the one exception: its example flies a team
+file of 9867 N s under the name of a Cesaroni M2020, and the case takes the bundled M2020 (8429 N s),
+so the design flies the catalog motor as it stands. The script checks the catalog's license and SHA-256. The output
 records the curve's path and SHA-256, the example's original thrust file name, and the burn options
 the example gave it. The propellant mass comes from the grain geometry (SolidMotor) or the stated
 initial mass (GenericMotor), so the substitute changes when the propellant burns, not how much there
 is. An .eng file must not contain a `0 0` point (see solid_motor.py); no bundled curve does.
 
-Which examples. Ten cases from nine rockets (Calisto at two motor positions), Prometheus's with a
-`GenericMotor`. Cavour's motor has no dry mass or inertia, so its mass tests little that Juno III
-doesn't; it is here because its drag curve is labelled RASAero II, which M1.5b compares (ADR-009).
-Genesis and Lince, whose motors have none either, are here for their logged flights (M2.3b).
+Which examples. Thirteen cases from twelve rockets (Calisto at two motor positions), Prometheus's
+with a `GenericMotor`. Cavour's motor has no dry mass or inertia, so its mass tests little that
+Juno III doesn't; it is here because its drag curve is labelled RASAero II, which M1.5b compares
+(ADR-009). Genesis and Lince, whose motors have none either, are here for their logged flights
+(M2.3b), and Astra, Andromeda and Erebus 11, whose motors have none either, for theirs (M2.3d3).
 Left out: Valkyrie, whose inputs exist only in RocketPy's data file
-`data/rockets/valkyrie/VLK.json` (data files carry their own terms), and Andromeda, Astra, Camoes
-and Erebus 11, whose motors have no dry mass or inertia and so test nothing Bella Lui, Valetudo and
-Juno III don't.
+`data/rockets/valkyrie/VLK.json` (data files carry their own terms), and Camoes, whose motor has no
+dry mass or inertia and so tests nothing Bella Lui, Valetudo and Juno III don't.
 
-`--example-curves` reads each example's own thrust file from refs/rocketpy/data/motors with the
-example's burn options instead, as a local cross-check of docs/research/rocketpy-rocket-mass.md.
+`--example-curves` reads each example's own thrust file from refs/rocketpy/data/motors (or, where
+the example keeps it with the rocket, refs/rocketpy/data/rockets) with the example's burn options
+instead, as a local cross-check of docs/research/rocketpy-rocket-mass.md.
 Its output stays under refs/ and is never committed.
 
 Run from the repository root with the oracle environment (optionally naming cases to keep):
@@ -642,6 +645,168 @@ CASES = [
         },
     },
     {
+        # docs/examples/astra_flight_sim.ipynb: motor :155-171 (Cesaroni_4263L1350-P.eng, burn_time
+        # 3.284, one grain, zero dry mass and inertia, default "nozzle_to_combustion_chamber"),
+        # rocket :247-255, rail buttons :257, add_motor :259, nose and fins :268-280 (no tail, no
+        # parachute). Added in M2.3d3 for its logged flight. Substitute: the bundled public-domain
+        # Cesaroni 4263L1350-P itself (4280 N s over its whole curve against 4263 N s stated).
+        "name": "astra",
+        "source": "docs/examples/astra_flight_sim.ipynb:155-171 (motor), :247-259 (rocket, rail "
+                  "buttons, add_motor), :268-280 (nose, fins)",
+        "rocket": {
+            "radius": 0.047,
+            "mass": 10.6462,
+            "inertia": [6.6986, 6.6986, 0.040824],
+            "center_of_mass_without_motor": 1.3957,
+            "coordinate_system_orientation": "tail_to_nose",
+            "motor_position": 0.7146163949,
+        },
+        "motor_kind": "solid",
+        "motor": {
+            "dry_mass": 0,
+            "dry_inertia": [0, 0, 0],
+            "center_of_dry_mass_position": 0,
+            "nozzle_position": 0,
+            "nozzle_radius": 0.028125,
+            "throat_radius": 0.01875,
+            "grain_number": 1,
+            "grain_density": 1256.7753406541794,
+            "grain_outer_radius": 0.0375,
+            "grain_initial_inner_radius": 0.01875,
+            "grain_initial_height": 0.486,
+            "grain_separation": 0,
+            "grains_center_of_mass_position": 0.243,
+            "coordinate_system_orientation": "nozzle_to_combustion_chamber",
+            "burn_time": None,
+            "reshape_thrust_curve": False,
+            "interpolation_method": "linear",
+            "only_radial_burn": False,
+        },
+        "thrust_file": "curves/5f4294d20002e900000007c6.eng",
+        "example_thrust": {"file": "cesaroni/Cesaroni_4263L1350-P.eng", "burn_time": 3.284},
+        "geometry": {
+            "nose": {"length": 0.27, "kind": "vonKarman", "position": 2.5214},
+            "fin_sets": [{
+                "type": "trapezoidal", "n": 4, "span": 0.117, "root_chord": 0.2,
+                "tip_chord": 0.118, "position": 0.9134,
+            }],
+            "tails": [],
+            "rail_buttons": {"upper_button_position": 1.5957, "lower_button_position": 1.1957},
+            "parachutes": [],
+        },
+    },
+    {
+        # docs/examples/andromeda_flight_sim.ipynb: motor :162-179 (the team's own
+        # data/rockets/andromeda/thrust_curve.csv, burn_time 3.76, with the catalog file
+        # Cesaroni_8429M2020-P.eng commented out at :163; one grain, zero dry mass and inertia,
+        # default "nozzle_to_combustion_chamber"), rocket :244-252, rail buttons :254, add_motor
+        # :256, nose and fins :265-277 (no tail), parachutes :279-285 (noise left at its default).
+        # Added in M2.3d3 for its logged flight. Substitute: the bundled public-domain Cesaroni
+        # 8429M2020-P (8429 N s), the motor the notebook names, not the curve nearest the team
+        # file's 9867 N s: the design then flies the catalog motor as it stands (ADR-334).
+        "name": "andromeda",
+        "source": "docs/examples/andromeda_flight_sim.ipynb:162-179 (motor), :244-256 (rocket, "
+                  "rail buttons, add_motor), :265-277 (nose, fins), :279-285 (parachutes)",
+        "rocket": {
+            "radius": 0.07535,
+            "mass": 20.9767,
+            "inertia": [11.249, 11.249, 0.12377],
+            "center_of_mass_without_motor": 1.3998,
+            "coordinate_system_orientation": "tail_to_nose",
+            "motor_position": 0,
+        },
+        "motor_kind": "solid",
+        "motor": {
+            "dry_mass": 0,
+            "dry_inertia": [0, 0, 0],
+            "center_of_dry_mass_position": 0.5,
+            "nozzle_position": 0,
+            "nozzle_radius": 0.028125,
+            "throat_radius": 0.01875,
+            "grain_number": 1,
+            "grain_density": 1468.9079097925262,
+            "grain_outer_radius": 0.0375,
+            "grain_initial_inner_radius": 0.01875,
+            "grain_initial_height": 0.893,
+            "grain_separation": 0,
+            "grains_center_of_mass_position": 0.5613903872259161,
+            "coordinate_system_orientation": "nozzle_to_combustion_chamber",
+            "burn_time": None,
+            "reshape_thrust_curve": False,
+            "interpolation_method": "linear",
+            "only_radial_burn": False,
+        },
+        "thrust_file": "curves/5f4294d20002e90000000746.eng",
+        "example_thrust": {"file": "../rockets/andromeda/thrust_curve.csv", "burn_time": 3.76},
+        "geometry": {
+            "nose": {"length": 0.3, "kind": "vonKarman", "position": 2.4996},
+            "fin_sets": [{
+                "type": "trapezoidal", "n": 3, "span": 0.185, "root_chord": 0.23,
+                "tip_chord": 0.11, "position": 0.3546,
+            }],
+            "tails": [],
+            "rail_buttons": {"upper_button_position": 1.5998, "lower_button_position": 0.8998},
+            "parachutes": [
+                {"name": "Drogue", "cd_s": 0.84665922014, "trigger": APOGEE,
+                 "sampling_rate": 100, "lag": 0},
+                {"name": "Main", "cd_s": 8.362919643856031, "trigger": below(500),
+                 "sampling_rate": 100, "lag": 0},
+            ],
+        },
+    },
+    {
+        # docs/examples/erebus_flight_sim.ipynb: motor :162-179 (the example's
+        # data/rockets/erebus11/thrust_source.csv, burn_time 3.657, one grain, zero dry mass and
+        # inertia), rocket :251-259, rail buttons :261, add_motor :263, nose :272, fins :274-280,
+        # tail :282-284 (no parachute: "for comparison purposes", :242). Added in M2.3d3 for its
+        # logged flight. Substitute: Cesaroni 2430K661-P (2436 N s against the file's 2418 N s).
+        "name": "erebus-11",
+        "source": "docs/examples/erebus_flight_sim.ipynb:162-179 (motor), :251-263 (rocket, rail "
+                  "buttons, add_motor), :272-284 (nose, fins, tail)",
+        "rocket": {
+            "radius": 0.04575,
+            "mass": 5.82,
+            "inertia": [2.571, 2.571, 0.0056233],
+            "center_of_mass_without_motor": 1.192,
+            "coordinate_system_orientation": "tail_to_nose",
+            "motor_position": 0.211668,
+        },
+        "motor_kind": "solid",
+        "motor": {
+            "dry_mass": 0,
+            "dry_inertia": [0, 0, 0],
+            "center_of_dry_mass_position": 0,
+            "nozzle_position": 0,
+            "nozzle_radius": 0.02025,
+            "throat_radius": 0.0135,
+            "grain_number": 1,
+            "grain_density": 1196.6353410211093,
+            "grain_outer_radius": 0.027,
+            "grain_initial_inner_radius": 0.0135,
+            "grain_initial_height": 0.572,
+            "grain_separation": 0,
+            "grains_center_of_mass_position": 0.3,
+            "coordinate_system_orientation": "nozzle_to_combustion_chamber",
+            "burn_time": None,
+            "reshape_thrust_curve": False,
+            "interpolation_method": "linear",
+            "only_radial_burn": False,
+        },
+        "thrust_file": "curves/5f4294d20002e900000007c5.eng",
+        "example_thrust": {"file": "../rockets/erebus11/thrust_source.csv", "burn_time": 3.657},
+        "geometry": {
+            "nose": {"length": 0.391113, "kind": "vonKarman", "position": 2.3841},
+            "fin_sets": [{
+                "type": "trapezoidal", "n": 4, "span": 0.08, "root_chord": 0.12,
+                "tip_chord": 0.05, "position": 0.395787,
+            }],
+            "tails": [{"bottom_radius": 0.03575, "length": 0.079119, "position": 0.290787,
+                       "top_radius": 0.04575}],
+            "rail_buttons": {"upper_button_position": 1.392, "lower_button_position": 0.692},
+            "parachutes": [],
+        },
+    },
+    {
         # docs/examples/prometheus_2022_flight_sim.ipynb: GenericMotor :194-205
         # (Cesaroni_7579M1520-P.eng, burn_time 4.897; nozzle position, dry inertia, dry centre and
         # orientation left at their defaults), rocket :252-264, rail buttons :266, add_motor :268,
@@ -796,6 +961,16 @@ def sample(name, rocket, motor, z_cdm, times):
     return series
 
 
+def original_thrust_source(case):
+    """The example's thrust file: its name when RocketPy keeps it by maker under data/motors, its
+    path under data/ when the example keeps it with the rocket (two rockets' folders hold a
+    `thrust_source.csv`)."""
+    file = case["example_thrust"]["file"]
+    if file.startswith("../"):
+        return file[len("../"):]
+    return Path(file).name
+
+
 def run(case, example_curves):
     name = case["name"]
     motor, motor_kwargs, thrust_path = build_motor(case, example_curves)
@@ -856,7 +1031,7 @@ def run(case, example_curves):
     return {
         "name": name,
         "source": case["source"],
-        "original_thrust_source": Path(case["example_thrust"]["file"]).name,
+        "original_thrust_source": original_thrust_source(case),
         "original_thrust_options": {k: v for k, v in case["example_thrust"].items() if k != "file"},
         "rocket": inputs,
         "motor": motor_record,

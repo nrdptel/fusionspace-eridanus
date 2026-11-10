@@ -18,7 +18,7 @@
 # `as_of` is the date the report counts a row's last search from: a row with no search, or whose
 # last is over 30 days before it, is due one.
 
-as_of = "2026-11-02"
+as_of = "2026-11-10"
 
 [[row]]
 id = "G1"
@@ -1022,3 +1022,21 @@ looked = [
   "Zenodo, Dryad and Hugging Face for rocket flight data",
 ]
 found = "a lead with no log. The Florida State report states the launch-ready vehicle's final mass, its sections' weights, the wind speed and a TeleMetrum's apogee, but publishes no log or motor test. It is cited only, cached under refs/samples-search/G38. The data sites hold no flight log with a weighed mass, a static test or a measured wind"
+
+[[row]]
+id = "G39"
+surface = "Public flights predicted first"
+claim = "Astra's, Andromeda's and Erebus 11's logs are each taken as a barometric altimeter's, and each prediction is read the same way"
+pages = ["accuracy.md#predicted-before-compared"]
+kind = "reasoning"
+wanted = "real"
+not_checked = "each of the three altimeters' make and sensor"
+issue = 1403
+
+[[row.searched]]
+on = "2026-11-10"
+looked = [
+  "RocketPy v1.13.0's example notebooks for the three flights (astra_flight_sim.ipynb, andromeda_flight_sim.ipynb, erebus_flight_sim.ipynb)",
+  "each flight's folder under RocketPy's data/rockets",
+]
+found = "no answer. Each notebook imports its log under the name COTS Altimeter Flight and names no make or sensor; Astra's also labels the series Telemetry. The folders hold the log, a drag curve and, for two, a thrust file. The logs are a time and a height (Astra's with a position, Andromeda's with a vertical speed), and none has a header naming a device"

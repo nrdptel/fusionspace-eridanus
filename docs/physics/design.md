@@ -16,11 +16,11 @@ measured overrides, mounts motors and flags impossible designs.
   Dynamics* for the [parallel-axis theorem](../glossary.md#parallel-axis-theorem).
 - **How well it is validated:** by analytic tests and
   [code-to-code comparison](../glossary.md#code-to-code-comparison), the first and third of four
-  [kinds of evidence][levels]. A hand-worked rocket agrees to 1e-12 through the burn. Ten cases
+  [kinds of evidence][levels]. A hand-worked rocket agrees to 1e-12 through the burn. Thirteen cases
   of [RocketPy](../glossary.md#rocketpy)'s [example rockets](../glossary.md#example-rockets) are
   compared, each a given structure with its motor placed. At the times RocketPy computed, mass,
   center and inertia agree within 8.0e-10 (relative). Between those times, mass agrees within
-  1.3e-5 and inertia within 2.6e-5. The propellant grains' mass agrees within 2.4e-9 at those times and 4.9e-5 between them, of
+  1.4e-5 and inertia within 2.6e-5. The propellant grains' mass agrees within 2.5e-9 at those times and 6.4e-5 between them, of
   its initial value. Placement, automatic radii and overrides are checked by hand. On 71 designs
   compared with OpenRocket, the whole structure is within 1% in mass on 70 and in center of mass
   on 70 ([mass properties](mass.md#checked-against-openrocket)). Body radii are checked against
@@ -873,12 +873,12 @@ unless the caller sets
   cap anywhere along its parent, off its parent's axis, or over both ends.
 
 - Against RocketPy 1.13.0, in `config::tests::matches_rocketpy_example_rockets`:
-  - Ten cases of the [fixture](../glossary.md#reference-value-and-fixture)
+  - Thirteen cases of the [fixture](../glossary.md#reference-value-and-fixture)
     [`validation/fixtures/design/rocketpy-rocket-mass.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/design/rocketpy-rocket-mass.json),
-    from nine [example rockets](../glossary.md#example-rockets) (Calisto at two motor positions).
+    from twelve [example rockets](../glossary.md#example-rockets) (Calisto at two motor positions).
     Prometheus flies a `GenericMotor`, RocketPy's motor described by its masses alone. Cavour,
-    Genesis and Lince have no motor dry mass. Their designs give it 1e-15 kg, since HPR Sim needs
-    a positive one.
+    Genesis, Lince, Astra, Andromeda and Erebus 11 have no motor dry mass. Their designs give it
+    1e-15 kg, since HPR Sim needs a positive one.
     [`docs/research/rocketpy-rocket-mass.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/rocketpy-rocket-mass.md)
     gives the curve substitution and the examples left out.
   - The test derives the stage override, nozzle station and motor inputs from the fixture itself,
@@ -888,19 +888,19 @@ unless the caller sets
     grain geometry.
     Errors are relative: to the value itself, or to what a row names in brackets (the rocket's
     length for a center).
-  - Worst measured, with the test's tolerance:
+  - Worst measured, rounded up, with the test's tolerance:
 
     | quantity | worst | tolerance, ratio |
     |---|---|--:|
-    | dry mass, center, `I_11`, `I_33`; initial and column propellant mass | 2.4e-16 | 1e-12 |
+    | dry mass, center, `I_11`, `I_33`; initial and column propellant mass | 3.5e-16 | 1e-12 |
     | products of inertia (of `I_11`) | 0 | 1e-15 |
     | at LSODA knots: total mass, center (of length), `I_11`, `I_33` | 8.0e-10 | 1e-8 |
-    | at LSODA knots: grain propellant mass (of initial) | 2.4e-9 | 1e-8 |
-    | even grid: total mass | 1.3e-5 (Lince) | 5e-5 |
-    | even grid: center of mass (of the rocket's length) | 3.6e-6 (Cavour) | 2e-5 |
+    | at LSODA knots: grain propellant mass (of initial) | 2.5e-9 | 1e-8 |
+    | even grid: total mass | 1.4e-5 (Lince) | 5e-5 |
+    | even grid: center of mass (of the rocket's length) | 4.0e-6 (Erebus 11) | 2e-5 |
     | even grid: `I_11` about the dry center and about the center of mass | 2.6e-5 | 1e-4 |
-    | even grid: `I_33` | 1.4e-5 | 1e-4 |
-    | even grid: grain propellant mass (of initial) | 4.9e-5 | 2.5e-4 |
+    | even grid: `I_33` | 1.5e-5 | 1e-4 |
+    | even grid: grain propellant mass (of initial) | 6.4e-5 (Erebus 11) | 2.5e-4 |
 
   - At RocketPy's knots, agreement is the ODE solver's own accuracy (rtol 1e-11).
   - Between knots, the residual is RocketPy's resampling: it interpolates grain volumes linearly
@@ -912,7 +912,7 @@ unless the caller sets
 - The public designs are in
   [`validation/designs/`](https://github.com/nrdptel/fusionspace-eridanus/tree/main/validation/designs),
   written by `cargo xtask designs`, which a test keeps in sync. Seven RocketPy cases (not Cavour,
-  Genesis or Lince) and two synthetic rockets are tested. Each resolves with no findings and
+  Genesis, Lince, Astra, Andromeda or Erebus 11) and two synthetic rockets are tested. Each resolves with no findings and
   assembles into a valid body at ignition, mid-burn and burnout.
 
 - Lessons: [Loft lesson L47](../decisions-and-roadmap.md#l47) `tests::reference_diameter_ignores_internal_components`;

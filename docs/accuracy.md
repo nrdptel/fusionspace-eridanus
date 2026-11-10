@@ -27,7 +27,10 @@ average. They miss by 12.07% (mean absolute), also outside the target. OpenRocke
 above** ([private collection](#real-flights-of-the-private-collection), [report][fixture-report]).
 
 No flight here is blind yet: all were seen during development. [Blind
-flights](decisions-and-roadmap.md#m2-7) will be predicted before their logs are read.
+flights](decisions-and-roadmap.md#m2-7) will be predicted before their logs are read. Three more
+public flights are predicted and not compared yet
+([predicted before compared](#predicted-before-compared)). They aren't blind either: their measured
+apogees were already public.
 
 > **How far to trust it.** Comparisons, most of them with other programs. Agreement with RocketPy or
 > OpenRocket shows that HPR Sim computes what they compute, not that any of them matches the world.
@@ -299,9 +302,9 @@ its reference and still pass.
 | [Wind](physics/wind.md) | the drift of RocketPy's four descents with wind ([Recovery](physics/recovery.md#against-rocketpy)) | the distance drifted within 0.28% |
 | [Turbulence](physics/turbulence.md) | the [Dryden](glossary.md#turbulence-dryden) gust spectra, published formulas for how gust strength spreads over wavelength, over 2²⁰ random samples (about a million) | within 4 standard errors (the scatter expected by chance) in every octave band (a range of wavelengths spanning a factor of two): ±1–3% in the wide bands. Unvalidated for rockets ([evidence row G12](evidence.md#g12)) |
 | [Design tree](physics/design.md) | a rocket worked by hand, loaded, burning and burnt out | mass within 1e-12 kg, center of mass within 1e-12 m, inertia within 1e-12 relative |
-| [Design tree](physics/design.md) | RocketPy, for eight cases of its example rockets, at the times its equation solver computed the burning grains (up to 60 per case) | mass, center of mass and inertia within 8.0e-10 relative (the center as a fraction of the rocket's length) |
-| [Design tree](physics/design.md) | the same, at 103 even times through the burn and after it, where RocketPy interpolates between its solver's times | mass within 1.3e-5 relative, inertia within 2.6e-5 relative |
-| [Design tree](physics/design.md) | the propellant mass left in the grains, at both sets of times | within 2.4e-9 of the initial propellant mass at the solver's times, and 4.9e-5 between them |
+| [Design tree](physics/design.md) | RocketPy, for twelve cases of its example rockets, at the times its equation solver computed the burning grains (up to 60 per case; the thirteenth case, Prometheus's, has a motor with no such times) | mass, center of mass and inertia within 8.0e-10 relative (the center as a fraction of the rocket's length) |
+| [Design tree](physics/design.md) | RocketPy, for all thirteen cases, at 103 even times through the burn and after it, where RocketPy interpolates between its solver's times | mass within 1.4e-5 relative, inertia within 2.6e-5 relative |
+| [Design tree](physics/design.md) | the propellant mass left in the grains, at both sets of times | within 2.5e-9 of the initial propellant mass at the solver's times, and 6.4e-5 between them |
 | [Shapes](physics/shapes.md) | exact formulas (closed forms) for filled noses and transitions | within 1e-10 relative |
 | [Shapes](physics/shapes.md) | separately computed high-precision integrals, for 22 noses and transitions | within 1e-12 relative |
 | [Shapes](physics/shapes.md) | the same kind of integrals, for 20 hollow shells of a given wall thickness | within 1e-10 relative |
@@ -801,7 +804,7 @@ example's ERA5 file, a [reanalysis](glossary.md#reanalysis) of the atmosphere
 
 | rockets | why not yet |
 |---|---|
-| Astra, Andromeda, Erebus 11 | their weather file is in a newer format that needs converting first ([decision][adr-082]); Erebus 11 flies a [COTS motor](glossary.md#cots-motor), a Cesaroni Pro54 K, most likely the 2437K660: its thrust file gives 2,418 N·s over 3.657 s against that motor's 2,437 N·s and 3.69 s |
+| Astra, Andromeda, Erebus 11 | flown and [predicted](#predicted-before-compared), not compared yet: their logs are compared once all five new public flights' predictions are merged ([decision][adr-334]). Erebus 11 flies a [COTS motor](glossary.md#cots-motor), a Cesaroni Pro54 K, most likely the 2437K660: its thrust file gives 2,418 N·s over 3.657 s against that motor's 2,437 N·s and 3.69 s ([decision][adr-082]) |
 | Camões, Halcyon, Hedy | they fly their teams' own motors, outside HPR Sim's scope of commercial motors ([decision][adr-082]) |
 | Valetudo, Defiance | their logs give an apogee, not a climb ([decision][adr-082]) |
 | Valkyrie | its inputs are only in a data file ([decision][adr-082]) |
@@ -925,6 +928,80 @@ investigated ([report][real-report]).
 > of the four that are filtered, and the assumed kind of four of them all sit in the reference.
 > Drift and landing aren't compared, nor speeds. HPR Sim's designs of these rockets have placeholder
 > fin edges and surface finish, which move its drag.
+
+### Predicted before compared
+
+**In short: three more of RocketPy's logged flights are now flown, Astra, Andromeda and Erebus 11
+from EuRoC 2022. Their predicted [apogees](glossary.md#apogee) were merged before any of them was
+compared with its log ([the predictions][predictions], [the decision][adr-334]). Nothing here is
+an error yet.**
+
+The seven flights above were compared as soon as they were flown. A number published only after
+its comparison could have been tuned to its own miss, even without meaning to. These three go the
+other way round. Their inputs, the rule each log's apogee will be read by, and HPR Sim's
+predictions went onto `main` first. The comparison comes in a later change, which must print each
+prediction below beside its error
+([twelve public flights, predictions first](decisions-and-roadmap.md#m2-3d)).
+
+| flight | impulse flown (N·s) | predicted apogee (m) | as a height climbed (m) | every input traced |
+|---|---:|---:|---:|---|
+| [Astra][predictions] (Cesaroni 4263L1350-P) | 4,280.2 | 3,037.1 | 3,155.4 | yes |
+| [Andromeda][predictions] (its team's thrust file) | 9,866.7 | 3,581.0 | 3,729.5 | no |
+| [Erebus 11][predictions] (a Cesaroni Pro54 K, the example's thrust file) | 2,418.2 | 2,714.1 | 2,808.7 | yes |
+
+The predicted apogee is what a [barometric altimeter](glossary.md#barometric-altimeter) would
+read on the day, because each log is taken to be a barometric altimeter's. That is assumed: no
+notebook says how its altimeter makes a height ([evidence row G39](evidence.md#g39)). For Astra
+that is 3,037.1 m (9,964 ft), against a predicted climb of 3,155.4 m (10,352 ft)
+([the predictions][predictions]). The reading is the lower of the two because an altimeter turns
+pressure into height with the standard atmosphere, and the air over the site that day was warmer
+than that
+([pressure altitude](physics/atmosphere.md#pressure-altitude-what-a-barometric-altimeter-reads),
+[the weather's record][euroc-weather]). The comparison will use the reading, as it does for the
+seven.
+
+**Traced** means the flight's own record, here RocketPy's example notebook, states every input
+that moves the apogee, bar what no RocketPy example records: the surface finish, the rail
+buttons' size, the fins' thickness where no airfoil file gives it, and their edge shape where no
+airfoil file or published section does. Those are placeholders in the designs built from the examples, the seven's too, and
+they move the drag (the fin edges are [evidence row G21](evidence.md#g21)'s guesses). So a traced
+flight's inputs are stated, not exact.
+
+**How they are flown.** By the seven's method: the design built from the example's masses and shapes,
+on the example's own thrust file, from its rail and site, in the launch hour's ERA5 air. The three
+share one weather file in a newer format. A committed script converts it and checks that the four
+fields' values survived bit for bit ([ERA5 weather files](format/era5.md#converting-a-current-file)).
+
+**Andromeda is tagged not traced.** Two things that move its apogee aren't settled by its record.
+It flew air brakes, and nothing public says whether, when or how far they opened. If they did, a
+flight with none, like this one, reads high by an unknown amount. Its thrust file also holds
+9,866.7 N·s, more than the 8,428.7 N·s on the bundled certified curve of the Cesaroni M2020 it is
+named for. On that curve the same design, at the same mass, is predicted at 3,050.3 m (10,008 ft).
+That figure is shown for scale and will enter no average of errors. The counted prediction is the
+team's file's, as every RocketPy flight here flies its example's own thrust file. It is also the
+one prediction of the three that passes Mach 1, at Mach 1.019
+([the predictions][predictions],
+[Andromeda's thrust curve](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/andromeda-impulse.md)).
+
+**What is still to come.** Two flights of an OpenRocket design, Macie XL, join these three once
+HPR Sim can fly a stage whose mass override adds to its parts
+([a stage's override that adds to its parts](decisions-and-roadmap.md#m2-3d4)). Then all twelve
+public flights are compared together.
+
+> **How far to trust it.** These are predictions, not results. No log has been compared, so they
+> say nothing yet about accuracy. RocketPy had already published the measured apogees, so the
+> targets were known when the inputs were written down. Each log was also looked at, for its
+> columns and for a spike near its peak, before its rule was fixed. Merging first does one thing:
+> an input changed after seeing HPR Sim's own miss now shows as a change to a merged number. The
+> code keeps the merged apogees as first merged, to the digit the page prints, and a test that CI
+> runs fails a committed prediction that has moved from them.
+
+**Flying them again** needs RocketPy's files, which CI doesn't have. After
+`cargo xtask refs fetch rocketpy` and the weather file's
+[conversion](format/era5.md#converting-a-current-file),
+`cargo xtask public-predictions --check` fails when a prediction flown now differs from the
+committed one. The list of merged apogees is in the code, so a change to it shows in the code's
+history.
 
 ### Real flights of the private collection
 
@@ -1210,6 +1287,9 @@ rest.
 [adr-309]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0309-a-fin-tab-weighed-as-stated.md
 [adr-102]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0102-tube-fins-centre-of-pressure-measured-against.md
 [adr-082]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0082-real-flights-read-from-refs-compared-over-the.md
+[adr-334]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0334-m2-3d1-in-three-the-euroc-2022-predictions-first.md
+[predictions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/public-predictions.md
+[euroc-weather]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/weather/euroc-2022-conversion.json
 [adr-083]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0083-m2-3c-blocked-no-private-design-is-the-rocket-of.md
 [report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md
 [rocket-notes]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/rocketpy-rocket-mass.md

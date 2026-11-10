@@ -250,6 +250,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M2.7 Held-out flights, predictions first ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.7a The halves and the fits' guard ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.7b New flights predicted first ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M2.3d3 The EuRoC 2022 predictions ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M4.1 Facade API ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.1a The builder ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.1b Custom models and the rustdoc guide ([Phase 2](#phase-2-library-surfaces-and-interop))
@@ -1403,6 +1404,13 @@ One line per milestone or increment, in the order it was archived within its pha
   - [x] **M2.7b New flights predicted first.** *Done when:* M2.7's last clause, whole; a flight
     added after M2.7a is compared only once its prediction's hash merged earlier (ADR-332 §1);
     the scoreboard's held-out rows measured, shown not held (ADR-332 §4).
+- **M2.3d** is open; its entry: [roadmap](ROADMAP.md#phase-1-physics-core-the-heart-with-validation-interleaved).
+  - **M2.3d1** is open; its entry: [roadmap](ROADMAP.md#phase-1-physics-core-the-heart-with-validation-interleaved).
+    - [x] **M2.3d3 The EuRoC 2022 predictions.** *Done when:* its own pull request merges
+      Astra's, Andromeda's and Erebus 11's inputs, sources, apogee rules and predicted apogees,
+      flown in their ERA5 air from the netCDF-4 file converted by a committed, tested script
+      with both files' SHA-256 committed, Andromeda counted on its team's curve with the catalog
+      curve's prediction beside it, and no error computed.
 ## Phase 2: Library surfaces and interop
 
 - [x] **M4.1 Facade API.** The `hpr` crate offers a RocketPy-like builder (`Environment`, `Motor`,

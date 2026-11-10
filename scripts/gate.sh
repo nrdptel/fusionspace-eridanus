@@ -28,6 +28,8 @@
 # nextest installed it falls back to `cargo test`.
 # Step refs (M0.5g, ADR-144 §1g): the checks that need the private reference data under refs/, which
 # CI can't run: `ork-flights --check`, `ork-flights --library --check`, `real-flights --check`,
+# `public-predictions --check` (M2.3d3, ADR-334: the predicted flights reproduce, on the converted
+# EuRoC 2022 weather file `validation/oracles/netcdf/euroc_2022.py` writes under refs/),
 # `roll-drev --check` (#763: the Basic Finner's roll damping against DREV-TM-9703's cached range fits),
 # `ork-cli --check` (M4.5j; it reads the motor cache `ork-cli --fetch` fills),
 # `fixture-flights --check` (M2.3c1, ADR-184; it reads the private collection's manifest and records)
@@ -355,7 +357,7 @@ cmd_for() {
     types) echo "$XTASK format --typecheck" ;;
     python) echo "scripts/python-tests.sh" ;;
     ego) echo "cargo bench --locked -p fusionspace-hpr-analysis --bench ego_hartmann6" ;;
-    refs) echo "$XTASK ork-flights --check && $XTASK roll-drev --check && $XTASK ork-flights --library --check && $XTASK real-flights --check && $XTASK ghost --check && $XTASK ork-cli --check && $XTASK fixture-flights --check && $XTASK ork-export-flights --check && $XTASK logs --check && $XTASK evidence --samples && node validation/oracles/thrustcurve/analyze_stats.js --recount" ;;
+    refs) echo "$XTASK ork-flights --check && $XTASK roll-drev --check && $XTASK ork-flights --library --check && $XTASK real-flights --check && $XTASK public-predictions --check && $XTASK ghost --check && $XTASK ork-cli --check && $XTASK fixture-flights --check && $XTASK ork-export-flights --check && $XTASK logs --check && $XTASK evidence --samples && node validation/oracles/thrustcurve/analyze_stats.js --recount" ;;
     *) return 1 ;;
   esac
 }
