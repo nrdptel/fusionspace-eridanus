@@ -1070,7 +1070,7 @@ number of words it finds in a field, differs from mdBook's.
 
 The build then holds the file to what readers downloaded before the rebuild: 1,675,059 bytes
 compressed with gzip, when fifteen pages were left out to stay under mdBook's 10 MB warning. With
-every page in, the file came to 1,599,753 bytes. GitHub Pages compresses a little less well (it
+every page in, the file came to about 1.60 MB. GitHub Pages compresses a little less well (it
 sent 1,754,850 bytes for the old file), but the limit and the file are measured the same way. The
 line that starts `site search:` prints the figures. A page that grows the file past the limit fails the
 build: shorten it, or measure a new limit and say why
