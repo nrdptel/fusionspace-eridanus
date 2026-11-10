@@ -3,17 +3,17 @@
 [Apogee-bias](apogee-bias.md) §2 sized rail buttons and launch lugs among the causes of HPR Sim's +8.73% apogee bias on
 real flights. This note sizes the rest of the small features: joint gaps, tube-to-tube steps, switch bands, vent and
 static-port holes, screw, rivet and shear-pin heads, the screw head on a rail button, camera shrouds and antennas. **In
-short: on an invented, clean 98 mm L2 dual-deploy rocket they add about 2% of C_D (0.6–6%), on a 54 mm one about 4%
-(1.4–11%).** That is about 0.6–2.5% of apogee, 7–29% of the bias, always on the side that makes the codes fly high:
-neither HPR Sim nor OpenRocket has a term for any of them. Steps are the largest clean-airframe term: a switch band
-standing proud, or one tube a few tenths of a millimeter larger than the next. Gaps and ports are negligible. One
-external camera shroud outweighs everything else: 1–5% of C_D if faired, 5–14% if blunt (98 mm), about three times that
-on 54 mm; a whip antenna sticking straight out is 4–6%. Faster than sound, the steps' drag on their own area is about 1
-to 3 times the low-speed value. How far to trust it: the coefficients are measured, mostly on flat tunnel walls in the
-1930s and 1940s, and applied to a rocket through a flat-plate boundary layer; the one rocket-body flight test (Hopko
-1952, Mach 1.25–2) agrees in size. No hobby rocket measurement of any of them was found; the sizes are invented.
-"Inference" marks this note's own arithmetic. Spiral seams, paint edges and decals are left to the `discrete-steps-drag`
-topic.
+short: on an invented, clean 98 mm L2 dual-deploy rocket at 300 m/s they add about 2.1–2.6% of C_D (0.6–7.5%), on a
+54 mm one about 4.4–5.4% (1.4–14.0%), each span running from Hoerner's step law to a wall-unit law (§2).** That is about
+0.6–3.1% of apogee, 7–35% of the bias, always on the side that makes the codes fly high: neither HPR Sim nor OpenRocket
+has a term for any of them. Steps are the largest clean-airframe term: a switch band standing proud, or one tube a few
+tenths of a millimeter larger than the next. Gaps and ports are negligible. One external camera shroud outweighs
+everything else: 1–5% of C_D if faired, 5–14% if blunt (98 mm), about three times that on 54 mm; a whip antenna sticking
+straight out is 4–6%. Faster than sound, the steps' drag on their own area is about 1 to 3 times Hoerner's low-speed
+law. How far to trust it: the coefficients are measured, mostly on flat tunnel walls in the 1930s and 1940s, and applied
+to a rocket through a flat-plate boundary layer; the one rocket-body flight test (Hopko 1952, Mach 1.25–2) agrees in
+size. No hobby rocket measurement of any of them was found; the sizes are invented. "Inference" marks this note's own
+arithmetic. Spiral seams, paint edges and decals are left to the `discrete-steps-drag` topic.
 
 ## 1. How drag inside the boundary layer scales
 
@@ -40,7 +40,8 @@ topic.
   on free-stream q [E1] p. 3-21 eq. 36, matches the 0.22–0.24.
 - **In free-stream terms (Inference).** On h times the circumference: forward step 0.30 (h/δ)^(1/3), backward 0.18
   (h/δ)^(1/3), proud band 0.525 (h/δ)^(1/3). A 0.2 mm step under a 14 mm layer scores 0.073 facing forward and 0.044
-  facing back.
+  facing back. At 300 m/s the wall-unit law of [discrete steps](discrete-steps-drag.md) §1 scores the forward one
+  0.106–0.125 (height 132 wall units), and 0.2–1 mm steps 1.45–1.80 times Hoerner's; backward steps agree within 0–22%.
 - **Steps faster than sound, on a rocket body (free flight).** Hopko flew 56 in (1.42 m) bodies of 5 in (127 mm)
   diameter to Mach 2.1, with four 0.064 in (1.63 mm) laps [E3] pp. 1–2. Read from fig. 7 [E3] p. 12 (±0.005), forward
   laps added about 0.090, 0.065 and 0.051 to C_D at Mach 1.25, 1.55 and 2.0, against a smooth body's 0.36, 0.31 and
@@ -96,8 +97,8 @@ Two invented rockets: 98 mm (3.9 in) across, 2.0 m long, reference area 7,543 mm
 Each has a nose shoulder joint, two body joints at a switch band's edges, four static ports, 6–8 screw, rivet or
 shear-pin heads, and two rail buttons. Typical sizes, with the range tried: joint gaps 0.5 mm (0.2–1.0); tube mismatch
 0.2 mm (0.1–0.5) at each joint; band proud by 0.5 mm (0.1–1.0); ports 4 × 4 mm (1 × 2 mm to 4 × 6 mm); heads 1–3 mm
-proud. Each share is ΔC_D over a whole-rocket C_D of 0.5 (0.45–0.6) on the body's cross-section, at 300 m/s; 150 m/s is
-within 4%.
+proud. Each share is ΔC_D over a whole-rocket C_D of 0.5 (0.45–0.6) on the body's cross-section, at 300 m/s. Step rows
+span both laws of §2, also at 150 m/s, where the 0.1 mm low ends extrapolate the wall-unit fit; others hold within 4%.
 
 - **Worked line.** One forward mismatch at the 98 mm band, 300 m/s: 0.30 × (0.2/14.0)^(1/3) = 0.073; times 0.2 mm ×
   307.9 mm of circumference = 61.6 mm² gives 4.5 mm² of drag area; over 7,543 mm², ΔC_D = 0.00060, 0.12% of C_D.
@@ -106,32 +107,32 @@ within 4%.
   its low-Reynolds curve, 0.35–0.5 on its high-Reynolds one. A pan head by fig. 14 gives up to 8.4 mm² below the
   critical Reynolds number, 2.0–2.6 above it; a countersunk 0.3.
 
-| feature | 98 mm: % of C_D, typical (range) | 54 mm: % of C_D, typical (range) |
+| feature | 98 mm: % of C_D at 300 m/s, typical (range) | 54 mm: % of C_D at 300 m/s, typical (range) |
 |---|---|---|
 | 3 joint gaps | 0.05 (0.01–0.12) | 0.09 (0.03–0.23) |
-| 3 tube mismatches, facing forward | 0.39 (0.15–1.3) | 0.78 (0.31–2.7) |
-| switch band, proud | 0.71 (0.08–1.8) | 1.4 (0.16–3.5) |
+| 3 tube mismatches, facing forward | 0.39–0.65 (0.15–2.3); 150 m/s: 0.37–0.52 (0.09–2.1) | 0.78–1.3 (0.31–4.5); 150 m/s: 0.76–1.0 (0.19–4.0) |
+| switch band, proud | 0.71–0.99 (0.08–2.4); 150 m/s: 0.68–0.90 (0.06–2.3) | 1.4–1.9 (0.16–4.6); 150 m/s: 1.3–1.7 (0.11–4.3) |
 | 4 static ports | 0.01 (0.00–0.05) | 0.04 (0.00–0.17) |
 | 6–8 screw, rivet and shear-pin heads | 0.5 (0.2–2.0) | 0.8 (0.35–2.3) |
 | 2 rail-button screw heads (§5) | 0.4 (0.15–0.7) | 1.3 (0.5–2.3) |
-| **clean airframe, total** | **2.0 (0.6–6.0)** | **4.4 (1.4–11.2)** |
+| **clean airframe, total** | **2.1–2.6 (0.6–7.5)**; 150 m/s: 2.0–2.4 (0.5–7.2) | **4.4–5.4 (1.4–14.0)**; 150 m/s: 4.3–5.0 (1.2–13.3) |
 | one camera shroud, 25 × 40 × 80 mm, faired | 1.1–4.7 | 3.5–15.5 |
 | the same shroud, blunt front or back | 5.3–14 | 17–47 |
 | a 2 × 80 mm whip antenna, straight out | 3.9–5.6 | 13–18 |
 
-- **Mismatches facing back** instead score 0.23% (98 mm) and 0.47% (54 mm). A flush band with tight, matched joints
-  leaves only the gaps and ports: under 0.15%.
+- **Mismatches facing back** instead score 0.23–0.27% (98 mm) and 0.47–0.52% (54 mm). A flush band with tight, matched
+  joints leaves only the gaps and ports: under 0.15%.
 - **The shroud** has a frontal area of about 800 mm² and C_D 0.06–0.2 if faired at both ends (fig. 9's correlation,
   0.058, and fig. 10's plane wall, about 0.07, at length over height 3.2; 0.2 is this note's cap, since fig. 10's
   fuselage points climb off the chart there), 0.3–0.6 if it has a flat lens window or a cut-off back (fig. 13's blocks
   in the layer). Its transonic rise is not bounded: stores under a swept wing read C_D 0.65 at Mach 1.6 and about 1.0 at
   Mach 1.1, interference included [E1] p. 20-13.
-- **Faster than sound,** with the steps at 2–3 times near Mach 1.2–1.6, the clean total rises to about 3–4% (98 mm) and
-  6–9% (54 mm). Heads follow stagnation pressure, as does the rest of the rocket's pressure drag, so their share holds
-  near the subsonic one.
+- **Faster than sound,** with the steps at 2–3 times Hoerner's law near Mach 1.2–1.6, the clean total rises to about
+  3–4% (98 mm) and 6–9% (54 mm). Heads follow stagnation pressure, as does the rest of the rocket's pressure drag, so
+  their share holds near the subsonic one.
 - **In apogee,** at the −0.31% to −0.57% of apogee per 1% of drag in apogee-bias's sensitivity table: the clean 98 mm
-  airframe's 2.0% is −0.6% to −1.1% of apogee, 7–13% of the bias; the 54 mm one's 4.4% is −1.4% to −2.5%, 16–29%. Rail
-  buttons themselves (apogee-bias §2, 0.6–4% of apogee) come on top. A shroud or whip adds −0.3% to −8% more on 98 mm.
+  airframe's 2.1–2.6% is −0.6% to −1.5% of apogee, 7–17% of the bias; the 54 mm one's 4.4–5.4% is −1.4% to −3.1%,
+  16–35%. Rail buttons (apogee-bias §2, 0.6–4% of apogee) come on top. A shroud or whip adds −0.3% to −8% on 98 mm.
 
 ## 5. What HPR Sim and OpenRocket model
 
@@ -141,9 +142,9 @@ within 4%.
 - **A step drawn as a larger tube is overcharged.** A step up in radius takes 0.8 sin² φ on its annulus, Niskanen's
   nose-joint rule [E6] pp. 47–48 eq. 3.86, 0.8 for a square step; a step down counts as a boattail of no length and
   takes the full base drag [E6] p. 49 eq. 3.88. Both rules are for features far taller than the layer. A 0.5 mm proud
-  band drawn as its own tube costs about ΔC_D 0.021 on the 98 mm rocket, 4.2% of C_D, about 6 times §2's measured
-  0.0035; a 0.2 mm step up gets 0.8 against a measured 0.073, 11 times (Inference). Drawing the band overshoots more
-  than leaving it out undershoots.
+  band drawn as its own tube costs about ΔC_D 0.021 on the 98 mm rocket, 4.2% of C_D, 4–6 times §2's measured
+  0.0035–0.0049; a 0.2 mm step up gets 0.8 against a measured 0.073–0.125, 6–11 times (Inference). Drawing the band
+  overshoots more than leaving it out undershoots.
 - **The rail button's screw head flies as nothing.** HPR Sim weighs a `.ork` button's screw head but gives it no drag
   (`rail_buttons` in drag.rs; [mass](../physics/mass.md)). An invented 1010-class button (11 mm across, 7 mm waist)
   flies 0.85 × (11 × 4 + 7 × 5) = 67 mm² of drag area in HPR Sim. An 8 mm pan or dome head 2–2.5 mm proud has 13–17 mm²
@@ -156,11 +157,11 @@ within 4%.
 
 ## What this suggests
 
-- **An optional airframe-joints term:** per joint, C_D' × 0.75 (h/δ)^(1/3) on the step height times the circumference, δ
-  from the flat-plate law at the joint's station, with heights the user states. Expected effect: +1–2% of C_D on a clean
-  rocket, −0.3% to −1.5% of apogee: small against the bias, but one-signed.
+- **An optional airframe-joints term:** per joint, C_D' × 0.75 (h/δ)^(1/3) or the wall-unit law (§2) on the step height
+  times the circumference, δ and c_f from the flat-plate laws at the joint's station, with heights the user states.
+  Expected effect, gaps included: +1.1–1.7% of C_D (98 mm), +2.3–3.3% (54 mm), −0.3% to −1.9% of apogee, one-signed.
 - **For drawn steps shorter than the layer,** the boundary-layer step law instead of the nose-joint rule. Expected
-  effect: a drawn proud band's drag falls about 6 times, raising apogee by a few percent on files that draw one.
+  effect: a drawn proud band's drag falls 4–6 times, raising apogee by about 1–2% on files that draw one.
 - **Fly the rail button's screw head** as a dome at C_D 0.3–0.8 on its side profile: +0.3–0.4% of C_D on 98 mm, +1–1.5%
   on 54 mm.
 - **A shroud or antenna part,** C_D 0.06–0.6 on frontal area by shape: the only items here that move apogee by percents
@@ -173,8 +174,8 @@ within 4%.
   71181), Gaudet and Winter (RAE TM Aero 1538) [E8], AGARDograph 264 [E9] and Gaudet 1987 [E10] cover it; DTIC returned
   403 and then a maintenance page on 2026-10-18. ESDU 75031 (steps and ridges) and 76008 (rivet rows) are proprietary,
   titles only.
-- **How large are real hobby joint mismatches, band steps and heads?** No survey was found; every size in §4 is
-  invented.
+- **How large are real hobby joint mismatches, band steps and heads?** Makers' tube sizes put steps near 0.1 mm
+  ([hobby airframe tolerances](hobby-airframe-tolerances.md) §6 redoes §4 with them); none from built rockets found.
 - **A body of revolution's layer** differs from a plate's, thicker on a boattail [E1] p. 8-5; how that moves a feature
   near the tail is not bounded.
 - **How OpenRocket treats two touching tubes of different diameter** isn't stated in the thesis.
@@ -183,7 +184,6 @@ within 4%.
 
 All read 2026-10-18. NACA and NASA reports (public use per NTRS) are cached in the gitignored `refs/`; the rest are all
 rights reserved or unstated: cited, not copied.
-
 
 - **E1.** Hoerner, S. F., *Fluid-Dynamic Drag*, author-published, 1965; printed pages 2-3, 3-3, 3-21, 5-6 to 5-12, 8-4
   to 8-7, 15-2, 16-3, 17-7, 20-13, 20-14. Copyrighted; cite only.
