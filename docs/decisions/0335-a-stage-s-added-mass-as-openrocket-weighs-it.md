@@ -1,7 +1,7 @@
 # ADR-335: A stage's added mass, as OpenRocket weighs it (2026-11-10)
 
 - **Status:** accepted; carries out [M2.3d4][m2-3d4] under [ADR-334][adr-334]. [ADR-061][adr-061]'s rule for the inertia under an override that covers the parts is unchanged.
-- **Summary:** The `.ork` reader no longer holds back a stage whose mass override doesn't cover its parts. OpenRocket 24.12 adds such a mass to what the parts weigh, as a point: at the center of that stage's parts, or at the stage's center of gravity override when that doesn't cover the parts either. The design holds it as the stage's added mass, and on 19 probes HPR Sim's structure matches OpenRocket's: the center within 0.2 µm, the mass and the inertias within 3 parts in a million. A motor aboard doesn't move the added mass. Where one of the stage's overrides covers the parts, the inertia stays HPR Sim's own rule, on the probes from 11.04% under OpenRocket's to 400.5% over.
+- **Summary:** The `.ork` reader no longer holds back a stage whose mass override doesn't cover its parts. OpenRocket 24.12 adds such a mass to what the parts weigh, as a point: at the center of that stage's parts, or at the stage's center of gravity override when that doesn't cover the parts either. The design holds that mass as the stage's added mass, and on 19 probes HPR Sim's structure matches OpenRocket's: the center within 0.2 µm, the mass and the inertias within 3 parts in a million. A motor aboard doesn't move the added mass. Where an override covers the parts, the inertia stays HPR Sim's own rule: on such stages' probes, from 11.04% under OpenRocket's to 400.5% over.
 
 [m2-3d4]: ../decisions-and-roadmap.md#m2-3d4
 [m2-3d5]: ../decisions-and-roadmap.md#m2-3d5
