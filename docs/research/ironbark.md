@@ -69,11 +69,9 @@ and the text (pp. 7–8) to 0.01 point at Tolarno. At the Cup, Table 3's magnitu
   daytime June ERA5 hours since 2000 ([1] p. 10), weather alone spread the apogee by a standard deviation of 262 ft
   (0.85%), skewed low ([1] Table 7, p. 11: variance 68,596 ft², skew −1.97; the root is this note's).
 - **Motor.** No motor cause is discussed. Ironbark leaves out ambient pressure's effect on thrust ([1] p. 4), which
-  reads apogee low. At a 1,300 m field against a sea-level curve,
-  [apogee-bias](apogee-bias.md#1-the-motor-three-terms-two-of-them-opposed) §1 sizes it at about +0.4% to +3.8% of
-  apogee for AeroTech's drawn exits; the Cup flight (1,401 m) is the one it bears on. Bluewren's motors are
-  Cesaroni's, which publish no exit size, only bounds on it ([nozzle exits](nozzle-exits.md#4-cesaroni-bounds-only)
-  §4), so the effect's size on them is unknown.
+  reads apogee low. At a 1,300 m field on a sea-level curve, [apogee-bias](apogee-bias.md) §1 sizes it at +0.4% to
+  +3.8% of apogee for AeroTech's drawn exits. Bluewren's motors are Cesaroni's, whose exits have bounds only ([nozzle
+  exits](nozzle-exits.md#4-cesaroni-bounds-only) §4), so its size at the Cup (1,401 m) is unknown.
 - **Recovery** doesn't touch apogee. Predicted landing speeds were 6.71 to 7.72 m/s on the day's three weather
   models, against 7.9 m/s measured: 2% to 15% low ([1] p. 11).
 
@@ -120,11 +118,10 @@ against the tunnel values the paper plots (read):
   fixture. The paper's own tunnel slopes sit 2% to 14% below the fixture's (most at Mach 1.5), which shows how
   loosely the plots pin a slope. The paper calls the subsonic trend "slightly divergent" ([1] p. 6).
 - **Drag (Inference).** At Mach 0.6 the paper's tunnel value with the fins on, 0.259, is below the base-corrected
-  forebody value in HPR Sim's fixture, 0.2987. So it is likely the raw sting-mounted reading; TN D-4013 says its
-  $C_A$ plots are not corrected for base axial force ([3] p. 4). The comparison then mixes Ironbark's free-flight
-  base drag with a sting's base, a difference near 0.04 here. It is not like-for-like with HPR Sim's +39.4% to
-  +105.0% forebody error from Mach 1.5 to 2.96. Still, the gap differs in kind: HPR Sim takes the thin double-wedge
-  fins as blunt-edged.
+  forebody value in HPR Sim's fixture, 0.2987. So it is likely the raw sting-mounted reading; TN D-4013 says its $C_A$
+  plots are not corrected for base axial force ([3] p. 4). The comparison then mixes Ironbark's free-flight base drag
+  with a sting's base, a difference near 0.04 here. It is not like-for-like with HPR Sim's +39.4% to +105.0% forebody
+  error from Mach 1.5 to 2.96. Still, the gap differs in kind: HPR Sim takes the thin double-wedge fins as blunt-edged.
 - **Pitching moment: no verdict.** The paper doesn't state Ironbark's moment center. The reports use 70% of the
   length from Mach 0.6 through 1.2 and 63.37% from 1.5 ([3] p. 2; [4] p. 2), and the paper's tunnel values fit
   each report's own center (Inference: the fixture's center of pressure gives −5.8 per radian at Mach 2.96; the
@@ -167,10 +164,9 @@ needed, and a transonic method, which the panel code doesn't give. The Arcas fix
    named. Not dropped: past Mach 1.5 its drag tracks the tunnel within +4% to +15% (fins on), where HPR Sim's fins
    miss widely. The step that would decide it: run PANAIR offline on the Arcas design and score it against the
    committed fixture, a reference that doesn't touch the core. Expected effect: a measured answer either way.
-3. **Fix the cheaper cause first.** The Arcas supersonic drag gap is mostly the fins' edges. A thin-section
-   supersonic fin wave-drag term (linear theory, as PANAIR's) may close most of it without a panel code (Inference;
-   it needs its own source). Its sign: lower supersonic drag, higher supersonic apogees. Its size on flights is
-   unbounded here.
+3. **Fix the cheaper cause first.** The Arcas supersonic drag gap is mostly the fins' edges. A thin-section supersonic
+   fin wave-drag term (linear theory, as PANAIR's) may close most of it without a panel code (Inference; it needs its
+   own source). Its sign: lower supersonic drag, higher supersonic apogees. Its size on flights is unbounded here.
 4. **Weigh TM X-2774 [5]** as a second supersonic reference: four fin planforms of one exposed area ([2] p. 6), the
    variable the Arcas data lack.
 5. **Don't add Bluewren** to the real-flight set: its inputs are not published.
