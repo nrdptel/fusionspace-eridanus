@@ -69,7 +69,11 @@ and the text (pp. 7–8) to 0.01 point at Tolarno. At the Cup, Table 3's magnitu
   daytime June ERA5 hours since 2000 ([1] p. 10), weather alone spread the apogee by a standard deviation of 262 ft
   (0.85%), skewed low ([1] Table 7, p. 11: variance 68,596 ft², skew −1.97; the root is this note's).
 - **Motor.** No motor cause is discussed. Ironbark leaves out ambient pressure's effect on thrust ([1] p. 4), which
-  reads apogee low; [apogee-bias](apogee-bias.md) sizes that effect at 0.3–1.5%.
+  reads apogee low. At a 1,300 m field against a sea-level curve,
+  [apogee-bias](apogee-bias.md#1-the-motor-three-terms-two-of-them-opposed) §1 sizes it at about +0.4% to +3.8% of
+  apogee for AeroTech's drawn exits; the Cup flight (1,401 m) is the one it bears on. Bluewren's motors are
+  Cesaroni's, which publish no exit size, only bounds on it ([nozzle exits](nozzle-exits.md#4-cesaroni-bounds-only)
+  §4), so the effect's size on them is unknown.
 - **Recovery** doesn't touch apogee. Predicted landing speeds were 6.71 to 7.72 m/s on the day's three weather
   models, against 7.9 m/s measured: 2% to 15% low ([1] p. 11).
 
