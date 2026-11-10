@@ -74,7 +74,8 @@ a published simulator, as RocketPy's airbrakes are; they go ahead. Control *firm
     never "actively guided towards a designated spatial target or GPS location";
   - §7.2.1: stable with the controls inert and neutral;
   - §7.3 and §7.4: surfaces go neutral on an abort, and don't move until burnout or a set
-    height;
+    height. The 2027 guide, REV P1 (effective 2026-10-15), keeps only neutral on an abort or a
+    power loss (D&T-7.3.1, p. 35);
   - §9.1.3: payloads "may not implement gliders, drones, balloons, or any other UAS".
 - **NASA Student Launch 2026:** a drone stays tethered until the range safety officer allows its
   release ([handbook](https://www.nasa.gov/wp-content/uploads/2025/08/g-677852-2026-sli-handbook-508-aug-7-optimized.pdf)).
@@ -82,8 +83,9 @@ a published simulator, as RocketPy's airbrakes are; they go ahead. Control *firm
   rules (Part 107 or the recreational exception, and Remote ID), whose line-of-sight and 400 ft
   limits don't fit a release at apogee.
 
-IREC's §7 makes good checks for the simulated airbrakes: stable with the surfaces inert, dormant
-until burnout, neutral beyond a tilt limit.
+IREC's 2026 §7 makes good checks for the simulated airbrakes: stable with the surfaces inert,
+dormant until burnout, neutral beyond a tilt limit. IREC's 2027 guide drops the last two; hpr keeps
+them as its own safety checks ([#881](https://github.com/nrdptel/fusionspace-eridanus/issues/881)).
 
 ## Radio rules beyond the avionics note
 
@@ -139,7 +141,7 @@ output: too high is the worst error.
 
 Simulation work, gated only by physics:
 
-1. Airbrakes (M6.4), with IREC §7's checks.
+1. Airbrakes (M6.4), with IREC 2026 §7's checks, two of them now hpr's own.
 2. 3MF export (M8.3a), then the printed-part warnings.
 3. A camera shroud as a protuberance, checked against OpenRocket.
 4. Released payloads as chained flights, then a glide model.

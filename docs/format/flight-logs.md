@@ -3044,8 +3044,7 @@ written.
 More on the note's items:
 
 - **Checked.** The telemetry pressures are compared at a shared tick. Every row of the export is at
-  a tick the file holds. The climb check's 11 passes have ratios from 0.859 to 1.400, where the
-  reader accepts 0.6 to 5/3. The twelfth, at 1.988, keeps its acceleration and pressure as counts.
+  a tick the file holds.
 - **Assumed.** The exports of the TeleMetrum v1's flights agree.
 - **Unchecked.** Those 4 files are decoded by the same rules and pass the reader's own checks. The
   14 files are 9 with an export, 1 with telemetry alone, and those 4
@@ -3062,12 +3061,16 @@ states:
 | Log format number | Record size | Boards |
 |---:|---:|---|
 | 1 | 8 bytes | TeleMetrum v1 |
-| 6 | 16 bytes | EasyMini v1 |
+| 6 | 16 bytes | EasyMini v1 and v3 |
 | 7 | 16 bytes | TeleMetrum v2 and newer |
 | 14 | 16 bytes | EasyMini v2 |
 | 15 | 32 bytes | TeleMega v4 |
 | 16 | 32 bytes | EasyMega v2 |
 | 22 | 32 bytes | TeleMega v6 |
+
+Format 6's two boards come from the headers of
+[public files](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/public-logs-evidence-gaps.md#3-altos-telemetry-eeprom-and-arts2-g3-g4-g5),
+as no Altus Metrum document numbers the formats.
 
 Any other number refuses the file, as misaligned bytes would read as a plausible flight. Firmware
 before 1.0 states no log format. A TeleMetrum v1's file is then format 1, as the manual's release

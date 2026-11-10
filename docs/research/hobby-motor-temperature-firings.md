@@ -90,7 +90,6 @@ prints ambient values only and overlays three curves at −65, +70 and +165 °F 
 - **Read by pixel (Inference):** curve ends at about 2.08, 1.78 and 1.58 s, the middle one matching the printed
   1.78 s; peak about 86, 102 (printed 103) and 123 lbf. Per 10 K: burn time −2.1% on the cold leg (75 K), −2.3% on
   the warm leg (53 K); peak +2.4%, +3.4%. Ends taken at 10% of peak give −2.05% and −2.5%.
-  [HPR burn-time scatter](hpr-burn-time-scatter.md) §4 read 2.05 and 1.55 s by eye, mixing the two definitions.
 - **Reading error.** ±0.05 s on the end of burn moves the cold-leg slope ±0.3 points and the warm-leg ±0.6, so the
   burn-time asymmetry is not established; ±2 lbf leaves the peak asymmetry standing.
 - **Impulse by temperature** is not printed, and the overlapping curves can't be integrated to 1% by eye. Peak
