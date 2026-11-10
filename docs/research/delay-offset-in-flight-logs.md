@@ -20,8 +20,8 @@ Trust it for the sign and rough size of in-use scatter in model motors (26 fligh
 - **4 of 30 flights broke NFPA 1125's band (13%, 95% 3.8% to 30.7%):** three early, one late by 2.4 s. With
   Staab's 5 of 39, field flights miss 9 of 69 times (13.0%, 95% 6.1% to 23.3%); certification firings almost never.
 - **A log's burnout can come before the certification clock starts,** so a log-timed delay read 0.03 to 0.22 s long
-  on the high-power flights and the D13 (**Inference**). That is the opposite sign to motor delay spread §1's
-  inference; on the black-powder flights the two clocks agree within 0.01 s.
+  on the high-power flights and the D13 (**Inference**). That sign holds when drag at burnout tops 5% of peak
+  thrust (motor delay spread §1); on the black-powder flights the two clocks agree within 0.01 s.
 - **Not bounded here:** drilled delays (none confirmed flown), high power beyond 4 flights, and any temperature slope.
 
 ## 1. What was timed, and how
@@ -115,12 +115,12 @@ where thrust falls under drag, which comes earlier whenever drag exceeds 5% of p
   On each type's ThrustCurve curve, thrust takes 0.03 s (H128W) to 0.22 s (J270W) to fall from there to
   5% [5]. So the certification-clock delay is that much shorter than the log's.
 - On the Raven's black-powder flights the two clocks agree within 0.01 s: drag was 3% to 9% of peak, and the
-  thrust drop is steep. On six of them drag was under 5%, where §1's sign holds, by under 0.01 s. On the D13-10W,
+  thrust drop is steep. On six of them drag was under 5%, where the log reads short, by under 0.01 s. On the D13-10W,
   drag was 12% of peak: about 0.17 s on its certified curve.
 - **An inertial "acceleration below zero" starts earlier still**, where thrust falls under drag plus weight. On the
   forum flight in §7 that crossing came 0.07 to 0.10 s before the specific-force one.
-- Motor delay spread §1 inferred "a delay timed from a log reads short": true only if drag at burnout is under 5%
-  of peak thrust.
+- Motor delay spread §1 states both signs with this condition: a log-timed delay reads long when drag at burnout
+  tops 5% of peak thrust, short when it is under.
 
 ## 6. Temperature and altitude
 
@@ -159,7 +159,7 @@ where thrust falls under drag, which comes earlier whenever drag exceeds 5% of p
 - **Give M7.4's delay mismatch a field rate of about 13%** (9 of 69 flights, 95% 6.1% to 23.3%), most of them early.
   A log showing a charge 2 s or more off the label is not rare enough to call a fault on its own.
 - **Time a logged delay from the log's own burnout, and say so.** The analyzer should state that its burnout comes
-  before the 5%-of-peak point, so it reads 0 to 0.2 s long against a certified delay. Correct motor delay spread §1.
+  before the 5%-of-peak point, so it reads 0 to 0.2 s long against a certified delay.
 - **Fold in AltimeterCloud.** Its flight pages print "Burnout (first)" and "Possible ejection" times from Mercury
   accelerometer logs [7]; the static page showed no motor and no terms, its script-built parts weren't read.
 
