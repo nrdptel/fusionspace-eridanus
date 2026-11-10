@@ -59,8 +59,10 @@ collection here is an aggregate (ADR-151). How sure: high that 18 of the 19 char
   Mach 1.38 and 1.50) fired 0.4 to 0.5 s before their peaks. A Mach false apogee, where the shock's pressure rise reads
   as descent [4] p. 2, [9] PDF p. 8, [2] p. 39, would fire near burnout, many seconds early (**Inference**).
 - **Motor delays scatter, and selection runs the wrong way.** NFPA 1125 lets a delay differ from its label by 1.5 s or
-  20%, whichever is greater, up to 3 s [10] p. 7. On about a hundred NAR data sheets (some 250 labeled delays,
-  counted twice), the median ran 0.13 to 0.14 s (2% to 2.5%) short [11]. **Inference:** every cause that makes a
+  20%, whichever is greater, up to 3 s [10] p. 7. On NAR data sheets, delays ran a median 0.19 s (2.9%) short, with a
+  standard deviation of 0.61 s [11]. That is 249 motor-and-delay values from 110 sheets with labeled delays; eight
+  sheets that repeat another's data were dropped
+  ([motor delay spread §3](motor-delay-spread.md#3-measured-nar-data-sheets)). **Inference:** every cause that makes a
   simulation read high shortens the real coast, so a delay picked from that simulation fires late. Early motor charges
   should mark rockets with a *lower* bias, not a higher one.
 
