@@ -50,7 +50,8 @@ withholds one instead of guessing.
   Loggers noisier than the tuning set's [six simulated logger
   profiles](synthetic-flights.md#the-loggers) and rockets slower off the pad than 2 g can be read
   outside their bound. Air more than 15 K from standard is out too, and so is any correction for
-  the day's air, which sits in the bound instead. A canopy's filling time isn't in the opening's
+  the day's air, which sits in the bound instead. Where the log records the pad's temperature, a
+  day past 15 K is noted with its size ([A day past 15 K](#a-day-past-15-k)). A canopy's filling time isn't in the opening's
   bound ([#779](https://github.com/nrdptel/fusionspace-eridanus/issues/779)). A fall under no
   canopy is read as one canopy's
   ([#780](https://github.com/nrdptel/fusionspace-eridanus/issues/780)). A canopy far above the
@@ -999,6 +1000,81 @@ top may be much higher than either. Use the reading plus its bound only for a to
   A. Gammerman and G. Shafer, *Algorithmic Learning in a Random World*, Springer, 2005, ch. 2,
   for its origin.
 
+### A day past 15 K
+
+Each bound holds the day's air to 15 K from standard, and a summer afternoon often passes that.
+At a 1,190 m (3,904 ft) field, 35 °C (95 °F) is 27.7 K over standard. On such a day a barometric
+height reads low by more than its bound allows, and so does a speed or a rate of descent worked out
+from the heights. That is the flattering side: an apogee too low for a waiver, a descent too slow.
+Where the log records a temperature, the readings check the day against the 15 K
+([#1259](https://github.com/nrdptel/fusionspace-eridanus/issues/1259)).
+
+**What it compares.** The day's offset $\Delta T$ is the log's temperature at the pad less the
+1976 standard atmosphere's at the pad's height above sea level. The standard's temperature falls
+6.5 K a kilometer from 288.15 K at sea level, to 216.65 K at 11 km, and holds there:
+
+$$
+\Delta T = T_{\mathrm{log}} - T_{\mathrm{std}}(z_{\mathrm{pad}}), \qquad
+T_{\mathrm{std}}(z) = 288.15\,\mathrm{K} - 0.0065\,\mathrm{K/m}\; z
+$$
+
+$T_{\mathrm{log}}$ is the median of the log's temperature samples over the span the pad is read
+from. The pad's height above sea level, $z_{\mathrm{pad}}$, is the first of three. A pressure
+channel over the same span, turned into a height by the standard atmosphere, gives the pad's
+pressure altitude, the height whose standard temperature the logger's conversion assumes. Next
+comes an altitude channel above sea level, then the ground elevation the logger states.
+
+**When it notes.** When $|\Delta T|$ is more than 15 K. `hpr analyze` then prints a line above the
+readings with the log's temperature, the offset and where the pad's height came from. Below the
+apogee, the top speed, landing's mean rate and each canopy's rate, it prints a note with the size.
+Its JSON carries the comparison as `day_air` whenever the log has one, with `offset_k`, `covered`
+and `share`.
+
+**The size.** By the hypsometric equation, $\mathrm{d}z = -(R T/g)\,\mathrm{d}p/p$, the height
+between two pressures goes as the air's mean temperature between them. So a height read by the
+standard atmosphere is off by $\Delta T/\bar T$ of itself, where $\bar T$ is the standard's mean
+over the layer ([the height formulas note][formulas]). The note takes the standard's temperature
+at the apogee's height above sea level, the coldest air the climb spans. So its share is the
+largest the layer allows:
+
+$$
+s_{\mathrm{day}} = \frac{|\Delta T|}{T_{\mathrm{std}}(z_{\mathrm{pad}} + h_a)}
+$$
+
+On a hot day the true value may lie up to $s_{\mathrm{day}}$ of the reading above it; on a cold
+day, below. The bound's own term is $s_T$, 6.92%. A speed or a rate is a height over a time, so it
+takes the same share.
+
+**A worked example,** with invented numbers. The pad's pressure altitude is 1,190 m (3,904 ft) and
+the log reads 308.15 K (35 °C) there. The standard there is 288.15 − 0.0065 × 1,190 = 280.415 K,
+so $\Delta T$ is 27.735 K, past the 15 K. The apogee reads 2,738 m (8,983 ft) above the pad, 3,928 m
+(12,887 ft) above sea level, where the standard is 262.618 K. So $s_{\mathrm{day}}$ is
+27.735/262.618 = 10.56%, 289.2 m (949 ft) of the reading. The bound holds 6.92% of it, 189.6 m
+(622 ft). The day's air alone may put the true apogee 99.6 m (327 ft) past the bound.
+
+**A note, not a wider bound.** A logger's temperature channel is often the board's or the sensor
+chip's, in the electronics bay. The sun and the electronics warm it, so on a hot pad it can read
+above the air. Widening every bound to it would move the bounds, and the 90% intervals calibrated
+on the synthetic flights, by a figure that may be the bay's. So the bounds stay as they are, and
+the note gives the size for the flyer to weigh against the field's own weather reading.
+
+**Its limits.**
+
+- A log with no temperature, or with no pressure, altitude above sea level or stated ground
+  elevation, gets no check. Nothing then says whether the day was within 15 K.
+- A temperature outside −100 °C to 100 °C isn't taken for the air, such as a column of zeros from a
+  logger with no sensor.
+- A stated ground elevation may be the field's surveyed height, not its pressure altitude. The
+  two differ by up to a few hundred meters with the weather, a kelvin or two of $T_{\mathrm{std}}$.
+- The offset is taken at the pad and held up the climb. A hot pad's air often cools faster with
+  height than the standard's, so the note then overstates. A cool layer at the ground under warmer
+  air, such as a morning inversion, makes it understate.
+- `hpr_flightdata::readings::day_air` pins it. On an invented flight from a 1,190 m (3,904 ft)
+  field, in air 30 K over standard at every height, the note fires and its share matches the rule.
+  The true apogee lies past the reading plus its bound, and within the reading plus the note's share.
+  The same flight 30 K under standard notes the other way, and 10 K over is covered. An offset of
+  exactly 15 K is covered, and 15.01 K isn't.
+
 ### Before any reading
 
 A log passes four checks before any reading is taken from it. Each keeps the readings inside the
@@ -1366,7 +1442,9 @@ truth beside the logs, that doesn't say how each rocket came down.
   standard atmosphere. On a warm day a barometric altimeter reads low, 6.5% on a day 20 K warmer
   than standard ([Atmosphere](atmosphere.md#pressure-altitude-what-a-barometric-altimeter-reads)).
   HPR Sim doesn't correct it: it widens the bound by 6.92% of the height instead, which covers air
-  up to 15 K from standard. On a day further off, a height can pass its bound.
+  up to 15 K from standard. On a day further off, a height can pass its bound. Where the log
+  records the pad's temperature, `hpr analyze` notes such a day with its size, and leaves the
+  bound as it is ([A day past 15 K](#a-day-past-15-k)).
 - **Loggers unlike the tuning set's.** The bounds hold on the tuning set's
   [six simulated logger profiles](synthetic-flights.md#the-loggers), at their noise. A logger
   noisier than they are, or a rocket slower off the pad than 2 g, can be read outside its bound.
@@ -1504,6 +1582,12 @@ truth beside the logs, that doesn't say how each rocket came down.
   it, naming no main. One canopy from 8.6 km (28,215 ft) read as one at the ground's density. Samples
   bunched at landing leaving the median its window. A short drogue leg withheld.
   A track too coarse for the main's fit withholding both.
+- `hpr_flightdata::readings::day_air`: an invented flight in air 30 K over standard, its note,
+  its share against the rule and the truth within it; 30 K under, the other way; 10 K over,
+  covered. The edge, exactly 15 K, covered both ways and 15.01 K not. No note with no height above
+  sea level, no temperature, or one that can't be the air. The standard's temperature against its
+  table. `hpr analyze`'s own tests: the notes below each reading on a hot pad, none at 70 °F, and
+  the drogue's line calling its rate the mean from apogee.
 - `hpr_flightdata::synthetic`: the invented flight, its readings against the truth (burnout, the
   main's opening and both legs among them). The Hampel filter keeping the pulse the median
   removes.
@@ -1545,6 +1629,11 @@ truth beside the logs, that doesn't say how each rocket came down.
   2005, §2.4. $\tau$ is its integral from any speed down to $v_1$, HPR Sim's step.
 - A canopy's rate: drag balancing the weight, $v = \sqrt{2mg/(\rho C_D S)}$, so the rate goes as
   the density to the −½ ([Recovery](recovery.md#the-descent)).
+- The day's air past 15 K: the hypsometric equation, $\mathrm{d}z = -(R T/g)\,\mathrm{d}p/p$, and
+  the temperatures of *U.S. Standard Atmosphere, 1976*, `NOAA-S/T 76-1562`, as
+  [the height formulas note][formulas] lays them out. The range a logged temperature must fall in
+  sits beyond the coldest and hottest air on record, −89.2 °C at Vostok and 56.7 °C at Death
+  Valley, from the WMO's archive of weather and climate extremes.
 - The density scale height: *U.S. Standard Atmosphere, 1976*, `NOAA-S/T 76-1562`, its
   troposphere's lapse of 6.5 K/km and its tropopause's 216.65 K
   ([Atmosphere](atmosphere.md)). The formula $H = RT/(g - RL)$ follows from its pressure and temperature.
