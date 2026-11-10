@@ -2,11 +2,12 @@
 //!
 //! mdBook 0.5.4 builds `searchindex.js` with elasticlunr-rs 3.0.2, which hands each field of a
 //! section the words of every field before it: the body's postings hold the heading's words, and
-//! the breadcrumbs' postings hold the heading's and the whole body's. On this site that copy of
-//! the body was 3.5 MB of a 9.7 MB index, and it is what pushed the index past mdBook's 10 MB
-//! warning and kept pages out of search. elasticlunr-rs 3.1.0 fixed it (its changelog's
-//! "tokens from earlier fields leaking into later fields' indices", pull request #60); mdBook's
-//! next release takes that version, and until then [`rebuild`] does.
+//! the breadcrumbs' postings hold the heading's and the whole body's. On this site the
+//! breadcrumbs' postings were 3.65 MB of the 10.0 MB (9,999,756 bytes) mdBook counted, 52 KB once
+//! rebuilt, and that copy is what held the index at mdBook's 10 MB warning and kept pages out of
+//! search. elasticlunr-rs 3.1.0 fixed it (its changelog's "tokens from earlier fields leaking
+//! into later fields' indices", pull request #60). mdBook's main branch takes that version, its
+//! latest release (0.5.4) doesn't, and until one does [`rebuild`] does the same.
 //!
 //! - **What it reads.** mdBook keeps each section's heading, body and breadcrumbs as text in the
 //!   index's document store, already cut into sections and with its white space collapsed. The
@@ -15,13 +16,18 @@
 //!   elasticlunr's English pipeline (trimmer, stop words, stemmer).
 //! - **What it keeps.** Everything but the three fields' postings: the options, the sections'
 //!   addresses, the document store, the field list and pipeline. The rebuilt document store is
-//!   compared with mdBook's and must be the same, word counts included, so a section missed or a
-//!   word split differently fails the build rather than shipping a thinner index.
+//!   compared with mdBook's and must be the same, each section's text and its word count in each
+//!   field included, so a section missed or a field's words counted differently fails the build
+//!   rather than shipping a thinner index. (A word stemmed differently, with the same count,
+//!   would pass: the stemmer is elasticlunr's own, 3.1.0's rather than 3.0.2's.)
 //! - **What changes for a reader.** A section is found by the same words. Its body and
 //!   breadcrumbs no longer count its heading's and body's words twice or three times, so ranking
-//!   follows the weights `book.toml` gives each field, as mdBook means it to.
-//! - **Its size,** checked against [`LIMIT_GZIP_BYTES`], is what a reader downloads when they
-//!   open the search: the file as GitHub Pages sends it, compressed with gzip.
+//!   follows the weights mdBook gives each field (title 2, body 1, breadcrumbs 1).
+//! - **Its size,** checked against [`LIMIT_GZIP_BYTES`], stands for what a reader downloads
+//!   when they open the search: the file compressed with gzip at the default level ([`gzip_len`]).
+//!   GitHub Pages compresses a little less well: for the same file it sent 1,754,850 bytes on
+//!   November 10, 2026, against 1,675,059 here. The limit and the file are measured the same
+//!   way, so the comparison holds.
 
 use std::io::Write as _;
 use std::path::Path;
@@ -40,14 +46,13 @@ const SUFFIX: &str = "'));";
 /// replaces, so the build checks the shipped file's size instead ([`LIMIT_GZIP_BYTES`]).
 pub(super) const MDBOOK_SIZE_WARNING: &str = "search index is very large (";
 
-/// The most the shipped index may weigh as gzip sends it: 1,687,860 bytes, what readers
-/// downloaded on main at b7313b32 (10,020,860 bytes before compression), the last build before
-/// this rebuild, with fifteen pages left out of search to stay under mdBook's warning. Every page back
-/// in, the rebuilt index must still cost a reader no more than that.
-pub(super) const LIMIT_GZIP_BYTES: usize = 1_687_860;
+/// The most the shipped index may weigh compressed by [`gzip_len`]: 1,675,059 bytes, main's file
+/// at b7313b32 (10,020,860 bytes before compression) measured the same way, the last build before
+/// this rebuild, with fifteen pages left out of search to stay under mdBook's warning. Every page
+/// back in, the rebuilt index must still cost a reader no more than that.
+pub(super) const LIMIT_GZIP_BYTES: usize = 1_675_059;
 
-/// mdBook leaves out words longer than this, in bytes, so a long string of digits or a URL
-/// doesn't fill the index.
+/// mdBook leaves out words longer than this, in bytes.
 const MAX_WORD_BYTES: usize = 80;
 
 /// What the rebuild did, for the build's summary line.
@@ -59,7 +64,7 @@ pub(super) struct Rebuilt {
     pub mdbook_bytes: usize,
     /// The file as rebuilt, in bytes.
     pub bytes: usize,
-    /// The rebuilt file as gzip sends it, in bytes.
+    /// The rebuilt file compressed with gzip ([`gzip_len`]), in bytes.
     pub gzip_bytes: usize,
     /// A word in a section's field, counted over the three fields: mdBook's, then the rebuild's.
     pub mdbook_postings: usize,
@@ -81,8 +86,8 @@ fn rebuild_within(output: &Path, limit: usize) -> Result<Rebuilt, String> {
         .map_err(|err| format!("could not write the search index {}: {err}", path.display()))?;
     if report.gzip_bytes > limit {
         return Err(format!(
-            "the search index weighs {} bytes as gzip sends it, more than the {limit} \
-             readers downloaded before it was rebuilt (xtask/src/site/search.rs); a page's words \
+            "the search index weighs {} bytes compressed with gzip, more than the {limit} \
+             readers downloaded before it was rebuilt, measured the same way (xtask/src/site/search.rs); a page's words \
              grew it: shorten them, or measure a new limit there",
             report.gzip_bytes
         ));
@@ -171,7 +176,7 @@ fn reindex(old: &Value, sections: usize) -> Result<Value, String> {
     let fresh = serde_json::to_value(&index)
         .map_err(|err| format!("could not turn the rebuilt search index into JSON: {err}"))?;
     // Everything but the postings must be mdBook's: the document store holds each section's text
-    // and its word count in each field, so a section or a word read differently shows here.
+    // and its word count in each field, so a section missed or counted differently shows here.
     for key in old
         .as_object()
         .into_iter()
@@ -253,8 +258,8 @@ fn escape(json: &str) -> String {
     json.replace('\\', "\\\\").replace('\'', "\\'")
 }
 
-/// `bytes`' length compressed with gzip at the default level, as the site check measures what
-/// GitHub Pages sends.
+/// `bytes`' length compressed with gzip at the default level, as the site check measures a page's
+/// download (flate2's pure-Rust backend; `gzip -6` and GitHub Pages give a little more).
 fn gzip_len(bytes: &[u8]) -> Result<usize, String> {
     let mut encoder = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
     encoder
@@ -426,7 +431,7 @@ mod tests {
         assert!(rebuild_within(&dir, report.gzip_bytes).is_ok());
         std::fs::write(dir.join(FILE), FIXTURE).unwrap();
         let err = rebuild_within(&dir, report.gzip_bytes - 1).unwrap_err();
-        assert!(err.contains("as gzip sends it"), "{err}");
+        assert!(err.contains("compressed with gzip"), "{err}");
         std::fs::remove_dir_all(&dir).unwrap();
     }
 }

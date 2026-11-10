@@ -40,10 +40,10 @@ runnable = false
 # in the index. mdBook 0.5.4 writes the index with each field holding the words of the fields
 # before it, so `cargo xtask site` rebuilds it with each field's words alone (#414,
 # `xtask/src/site/search.rs`) and holds the rebuilt file to what readers downloaded before:
-# 1,687,860 bytes as gzip sends it, at b7313b32, with fifteen pages left out of search to stay under
-# mdBook's 10 MB warning. Rebuilt, with all of them in, it is 7.71 MB, 1,599,217 bytes as gzip
-# sends it. Landing on the `###` section (1,725,479) or the `####` one (1,765,977) would cost a
-# reader more than that, so the split stays at `##`.
+# 1,675,059 bytes compressed with gzip, at b7313b32, with fifteen pages left out of search to stay
+# under mdBook's 10 MB warning. Rebuilt, with all of them in, it is 7.72 MB, 1,599,753 bytes
+# compressed. Landing on the `###` section (1,726,244) or the `####` one (1,767,113) would cost a
+# reader more than before, so the split stays at `##`.
 [output.html.search]
 heading-split-level = 2
 

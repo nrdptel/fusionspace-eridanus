@@ -258,7 +258,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let index = search::rebuild(&output)?;
     println!(
         "site search: {} sections indexed, each field with its own words only (#414): {} \
-         postings, not mdBook's {}; {} bytes, not {}; {} as gzip sends it (at most {})",
+         postings, not mdBook's {}; {} bytes, not {}; {} compressed with gzip (at most {})",
         index.sections,
         index.postings,
         index.mdbook_postings,

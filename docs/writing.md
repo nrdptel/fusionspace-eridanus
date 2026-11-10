@@ -1057,19 +1057,22 @@ What it took to pass is recorded in
 ### The search index
 
 The search box reads one file, `searchindex.js`, which a page loads when a reader first opens the
-search. Being one file, it also works in a copy of the site opened from disk. Every page of the
+search. A page loads it as a script, not by a request of its own, so search also works in a copy
+of the site opened from disk. Every page of the
 guide is in it, and a search lands on the page's `##` section.
 
 mdBook 0.5.4 builds that file with an old release of its search library, which files each
 section's heading words under its body too, and its heading and body words under its breadcrumbs
-(the page and section names above it). That doubled the file. So `cargo xtask site` builds the
-three fields again from the text mdBook stores, each with its own words, as the library's 3.1.0
-release does. It fails if the rebuild reads any section differently from mdBook.
+(the page and section names above it). That nearly doubled the index's entries and made the file
+56% larger. So `cargo xtask site` builds the three fields again from the text mdBook stores, each
+with its own words, as the library's 3.1.0 release does. It fails if any section's text, or the
+number of words it finds in a field, differs from mdBook's.
 
-The build then holds the file to what readers downloaded before the rebuild: 1,687,860 bytes as
-GitHub Pages sends it, compressed with gzip, when fifteen pages were left out to stay under
-mdBook's 10 MB warning. With every page in, the file came to 1,599,217 bytes. The line that
-starts `site search:` prints the figures. A page that grows the file past the limit fails the
+The build then holds the file to what readers downloaded before the rebuild: 1,675,059 bytes
+compressed with gzip, when fifteen pages were left out to stay under mdBook's 10 MB warning. With
+every page in, the file came to 1,599,753 bytes. GitHub Pages compresses a little less well (it
+sent 1,754,850 bytes for the old file), but the limit and the file are measured the same way. The
+line that starts `site search:` prints the figures. A page that grows the file past the limit fails the
 build: shorten it, or measure a new limit and say why
 ([#414](https://github.com/nrdptel/fusionspace-eridanus/issues/414), the search index's issue).
 
