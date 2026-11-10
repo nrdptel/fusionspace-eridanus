@@ -310,7 +310,10 @@ with OpenRocket 24.12, and by hand.
 - Under a center override that covers the parts, HPR Sim's inertia is its own rule, as for any
   override that covers them (the last bullet of [Overrides](#overrides)). With the added mass
   beside such a center, its inertia across the axis is 11.0% under OpenRocket's on the one-stage
-  probe and 1.5% over on the lower stage's. The mass and the center agree.
+  probe and 1.5% over on the lower stage's. The mass and the center agree. The added mass brings
+  no difference of its own: on the one-stage probe each tool's inertias are the ones it gives
+  under that center alone, to 12 significant digits. Whether the added mass should change the
+  rule there is open ([#1407](https://github.com/nrdptel/fusionspace-eridanus/issues/1407)).
 - A parallel stage can't carry an added mass, and neither can the stage one hangs on: where the
   mass sits beside the pods is not measured, and the layout refuses it.
 - An added mass with no station on parts that weigh nothing has no center to sit at, and is

@@ -619,6 +619,20 @@ mod tests {
             structure("a mass override that covers the stage's parts and a center that doesn't"),
             structure("both overrides on the stage")
         );
+        // The added mass brings no departure of its own: beside a center that covers the parts,
+        // each tool's inertias are what that tool gives under the center alone.
+        let alone = both(probe(&record, "a center of gravity override on the stage"));
+        let beside = both(probe(
+            &record,
+            "a mass override on the stage, not its parts, and a center that covers them",
+        ));
+        for k in [2, 3] {
+            assert!(relative(beside.0[k], alone.0[k]).abs() < 1e-12, "hpr {k}");
+            assert!(
+                relative(beside.1[k], alone.1[k]).abs() < 1e-12,
+                "OpenRocket {k}"
+            );
+        }
         for (question, pinned) in STAGE_WHOLE {
             let (ours, theirs, warnings) = both(probe(&record, question));
             assert!(warnings.is_empty(), "{question}: {warnings:?}");

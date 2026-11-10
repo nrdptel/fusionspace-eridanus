@@ -9,6 +9,7 @@
 [adr-095]: 0095-the-single-pre-1-9-override-flag-read-as.md
 [adr-334]: 0334-m2-3d1-in-three-the-euroc-2022-predictions-first.md
 [i1225]: https://github.com/nrdptel/fusionspace-eridanus/issues/1225
+[i1407]: https://github.com/nrdptel/fusionspace-eridanus/issues/1407
 [guide]: https://openrocket.readthedocs.io/en/latest/user_guide/overrides_and_surface_finish.html
 [ork-stage]: ../format/ork.md#the-values-inside-the-tags
 [design-added]: ../physics/design.md#a-stages-added-mass
@@ -105,7 +106,10 @@ and 3 parts in a million of the inertia about the axis and across it. On the fiv
 override covers the parts, the mass and the center are within the same bounds, and the inertia
 across the axis is hpr's rule: 11.0% under OpenRocket's with a center that covers one stage's
 parts and the added mass, 1.5% over on the lower of two stages, and ADR-061's scaled inertia under
-a mass that covers them.
+a mass that covers them. The added mass brings no difference of its own: on the one-stage probe,
+each tool's inertias beside the added mass are the ones it gives under that center alone, to 12
+significant digits, so the 11.0% is the same 11.0% a covering center already had. Whether the
+added mass should change the rule there is [#1407][i1407].
 
 **What doesn't change.** A stage override whose flags say it covers the parts reads and flies as
 before. So do a part's overrides, a pod set's, and every drag override. No tolerance moved.
