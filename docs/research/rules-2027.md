@@ -7,14 +7,14 @@ dated presets, M6.6's submission packs, [#417](https://github.com/nrdptel/fusion
 rules) and the IREC score idea in [competition ideas](ideas-competitions-and-clubs.md). It builds on
 [ADR-246](../decisions/0246-the-2026-10-12-review-student-launch-by-requirement-and-oracle-defects.md) (Student
 Launch's 14 limits) and [roll and drag control](roll-and-drag-control.md). Read 2026-10-18 from the organizers' own
-documents; **Inference** marks this note's own reading. Trust the numbers as printed on that date: every rule set
-changes yearly, and two of the four are not final for 2027.
+documents, IREC's 2027 REV P1 added 2026-11-10 ([irec-dteg-2027](irec-dteg-2027.md)). **Inference** marks this note's
+own reading. Trust the numbers as printed on those dates: rules change yearly; EuRoC's 2027 isn't out.
 
 **In short.**
-- **IREC's 2027 rules change no simulation number; its 2027 guide isn't out.** The Rules and Requirements v1.0
-  (2026-10-12) keep the targets, the 350-point altitude score and the predicted-flight table. Every limit (rail exit
-  25 m/s, margin 7.5% to 18% of length) is in the 2026 guide, still current. ESRA has announced that the 2027 guide
-  lets control run in the burn and drops the 30° tilt shutoff and the 50% flutter margin.
+- **IREC's 2027 guide, REV P1 of 2026-10-15, drops three limits and moves two.** The R&R REV P1 keeps the 350-point
+  altitude score and the predicted-flight table. The guide keeps rail exit 25 m/s and the 7.5% to 18% margins. It
+  drops boost dormancy, the 30° tilt shutoff and the 50% flutter margin, ends the stability window at burnout, and
+  leaves out the 890 m site elevation.
 - **Student Launch 2027 keeps all 14 of ADR-246's limits** (each checked), but descent rose from 90 to 100 s and the
   2026 drift asks (0 to 20 mph, apogee over the pad) are gone. No altitude-score formula is printed.
 - **ARC 2027 moves the target** to 800 ft and 37 to 40 s (were 750 ft, 36 to 39 s), with two eggs. It scores the
@@ -38,29 +38,29 @@ limit. Pages are printed numbers.
   flight-profile graph and the drogue and main deployment altitudes and descent rates. 2026: §2.6.2.9.1, pp. 18 to 19.
 - **New in 2027:** §4.3.5.6 (p. 19) has each major analysis state its assumptions, input uncertainties, margins and
   sensitivity; the 30-point rubric row (Table B-1, p. 35) existed in 2026 (p. 39). No rule asks for Monte Carlo.
-- **Payload:** at least 4.4 lb in §3.1.1 (p. 10) but 5.0 lb in §3.4.1.1 (p. 12), passing at 95% of 5.0 lb
-  (§3.4.1.5). 2026 said 4.4 lb (§2.3.1). The 2027 text contradicts itself.
+- **Payload:** v1.0 said 4.4 lb in §3.1.1 (p. 10) but 5.0 lb in §3.4.1.1 (p. 12). REV P1 (2026-10-15) says 4.4 lb
+  in all three places (R&R-3.1.1, p. 7; 3.4.1.1 and 3.4.1.5, p. 9), as 2026 did (§2.3.1).
 
-From the 2026 DTEG V1.1 (effective 2026-02-23), in force until a 2027 edition ships (DTEG pages, footers):
+From the 2026 DTEG V1.1 (effective 2026-02-23), with what 2027 REV P1 (effective 2026-10-15) changed marked "2027":
 
 - **Rail exit** at least 25 m/s (82 ft/s) at the effective rail length, the travel until one button is left on the
   rail (§5.3.1 to 5.3.2, p. 12); rails are 17 ft single-stage and 21 ft two-stage (§5.3.1; solids, §11.1). Elevation
   typically 84° ± 2° single-stage, 87° ± 2° multistage (§10.1.1, p. 30).
-- **Stability, as a share of rocket length** (not calibers): at least 7.5% subsonic and 10% supersonic from launch
-  to first deployment (§10.2.1); at most 18% at launch and 25% in flight (§10.3.1, p. 30). Evidence is a no-wind
-  simulation of the margin in calibers plus the initial margin in percent (§10.2.3). Fin span at least 0.8 calibers.
+- **Stability, as a share of length** (not calibers): at least 7.5% subsonic and 10% supersonic from launch to first
+  deployment (§10.2.1; 2027: to burnout, p. 43); at most 18% at launch, 25% in flight (§10.3.1, p. 30). Evidence: a
+  no-wind simulation of the caliber margin plus the initial percent (§10.2.3). Fin span at least 0.8 calibers.
 - **Recovery:** main open no higher than 1,500 ft (457 m) AGL (§6.4.1); drogue 20 to 40 m/s when the main deploys
-  (§6.3.3); landing under 11 m/s (§6.4.3), both computed at an 890 m site elevation (p. 18). No drift distance:
-  hardware leaving the safe area is lost, and the safety officer may reject a design likely to leave it (§6.2).
-- **Active control** (§7, p. 24): only pitch or roll stability augmentation or braking, never guidance (§7.1).
-  Neutral (no moment, "aerodynamic surfaces trimmed or retracted", §7.3.2) on an abort, a power loss or past 30°
-  from the launch elevation (§7.3); dormant until burnout, max Q, or 6,000 m AGL (30K, 45K) or 2,000 m (10K) (§7.4).
-- **Flutter** speed at least 1.5 times peak speed (§8.2.2, p. 26). **Not limited:** thrust to weight (only reported),
-  landing kinetic energy, drift distance, dispersion.
+  (§6.3.3); landing under 11 m/s (§6.4.3), both computed at an 890 m site elevation (p. 18; 2027: the site's own,
+  fn. 9, p. 27). No drift distance: hardware leaving the safe area is lost, and the safety officer may reject a design
+  likely to leave it (§6.2).
+- **Active control** (§7, p. 24): only pitch or roll stability augmentation or braking, never guidance (§7.1). Neutral
+  (no moment, "aerodynamic surfaces trimmed or retracted", §7.3.2) on an abort, a power loss or past 30° from the
+  launch elevation (§7.3); dormant until burnout, max Q, or 6,000 m (30K, 45K) or 2,000 m (10K) AGL (§7.4). 2027:
+  abort or power loss only (p. 35).
+- **Flutter** speed at least 1.5 times peak speed (§8.2.2, p. 26; 2027: reported, no margin, p. 37). **Not limited:**
+  thrust to weight (only reported), landing kinetic energy, drift distance, dispersion.
 
-**Announced for 2027** (ESRA news, 2026-09-05): control may operate during the motor burn (the max-Q and altitude
-gates' fate is unsaid); the 30° shutoff goes (written "30%"); fail-neutral stays; the 50% flutter margin goes, a
-flutter analysis stays; stability rules stay. V1.1 sits under "Work-In-Progress For 2027", undated; PDR 2026-12-14.
+**Announced for 2027** (ESRA news, 2026-09-05): the control and flutter changes; stability was to stay. PDR 2026-12-14.
 
 ## 2. NASA Student Launch 2027 (handbook issued 2026-08-05; printed pages)
 
@@ -156,26 +156,26 @@ the flight (EuRoC): a preset must say which, and when it is measured.
 
 ## What this suggests
 
-- **M6.3's presets can cite these sections now, with stale-after dates:** IREC's R&R v1.0 plus the 2026 DTEG
-  until the 2027 DTEG ships (by the PDR, 2026-12-14, is an **Inference**); Student Launch 2027 to 2027-08-31 (ADR-246);
-  ARC rev. 27 to the 2028 rules (June or July 2027 by past dates); EuRoC 2026 issue 1.1 until 2027's (February to May).
+- **M6.3's presets can cite these sections now, with stale-after dates:** IREC's R&R and DTEG 2027 REV P1 (2026-10-15)
+  until ESRA's next revision (Tripoli's code update may force one); Student Launch 2027 to 2027-08-31 (ADR-246); ARC
+  rev. 27 to the 2028 rules (June or July 2027 by past dates); EuRoC 2026 issue 1.1 until 2027's (February to May).
 - **M6.6's Student Launch numbers name 2026's drift asks** (0 to 20 mph, apogee over the pad), which 2027 dropped;
   a drift check against the 2,500 ft radius (3.10) still has a basis, but the cited source should change.
 - **#417 can say where EuRoC's rule lives:** the SRD's RQT-0670 note, not the Competition Rules. Its IREC defaults
-  (retract until burnout, retract past 30°) are announced to go in 2027; fail-neutral stays.
+  (retract until burnout, past 30°) left IREC's rules in 2027 (p. 35) but stay as the project's own (#881).
 - **An ARC preset needs an altimeter model:** the score uses the reading, about 5% below true height at 30 °C.
 - **The IREC score idea holds as written** (§6.6.1, p. 28); 2027's §4.3.5.6 asks for sensitivity and margins,
   which a Monte Carlo report would answer, though no rule requires one.
 
 ## Open questions
 
-- The 2027 DTEG's text and date, and whether brakes still retract on a fault (2026 §7.3.2 counts retracted as
-  neutral); the post promises only fail-neutral. Tripoli's code update, expected in early 2027, may move more.
+- *Answered 2026-11-10:* retracted still counts as neutral. DTEG 2027 REV P1 keeps neutral on an abort or a power loss
+  (D&T-7.3.1, p. 35), giving "trimmed or retracted" as examples (7.3.2). Tripoli's 2027 code update may move more.
 - Student Launch's scoring rubric is unpublished; its FAQ, which overrides the handbook (p. 10), touches no flight
   number as read.
 - Whether EuRoC 2027 publishes a flight-score formula; the 2021 one, as printed, doesn't reach zero at its own
   ±67% band (**Inference**); 2022 and 2023 rules were not read.
-- Which IREC payload minimum (4.4 or 5.0 lb) ESRA means. ARC 2027's title block carries a 2025 revision date.
+- ARC 2027's title block carries a 2025 revision date. (IREC's payload minimum is answered: 4.4 lb, §1.)
 
 ## Sources
 

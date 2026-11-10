@@ -33,10 +33,10 @@ Three conditions hold for all three devices:
 - **Built so it can't steer.** The controller has only two commands, brake deployment and roll.
   A fixed mixer turns the roll command into equal and opposite deflections. Without a pitch or yaw
   channel, a stuck or broken surface is the only way to make a side force.
-- **Quiet through boost.** The surfaces stay neutral until burnout (IREC also allows waking at max Q
-  or an altitude), and go neutral again on an abort, a power loss, or an attitude more than 30° from
-  the launch elevation (IREC §7.3.1 and §7.4). EuRoC differs for brakes: on a fault or abort they
-  are to be "attempted fully extended" (RQT-0670).
+- **Quiet through boost.** The surfaces stay neutral until burnout (IREC 2026 also allowed max Q or an altitude), and
+  go neutral on an abort, a power loss, or an attitude over 30° from the launch elevation (IREC 2026 §7.3.1, §7.4).
+  IREC 2027 (REV P1, 2026-10-15) keeps only the abort and power loss (D&T-7.3.1, p. 35); hpr keeps the burnout and 30°
+  rules as its own ([ADR-193][adr-193]). EuRoC's brakes are "attempted fully extended" on a fault or abort (RQT-0670).
 
 ## What the rules say about this class
 

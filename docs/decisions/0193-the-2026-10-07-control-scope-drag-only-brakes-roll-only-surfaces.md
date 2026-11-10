@@ -39,11 +39,17 @@ The research is in [the roll and drag control note](../research/roll-and-drag-co
      command.
    - Hardware (M13.6) drives each function from one actuator through a common linkage where the
      design allows it. Otherwise the stuck-surface check covers each actuator.
-3. **The flight rules become checks:**
-   - neutral through boost (IREC §7.4);
+3. **The flight rules become checks** (IREC's 2026 guide, V1.1):
+   - neutral through boost (§7.4);
    - neutral on an abort, a power loss, or an attitude more than 30° from the launch elevation
      (§7.3.1);
    - stable when inert (§7.2.1).
+
+   *Update, November 10, 2026* ([#881][i881]): IREC's 2027 guide, REV P1 (effective October 15,
+   2026), keeps neutral on an abort or a power loss (its paragraph D&T-7.3.1, p. 35), with "trimmed
+   or retracted" still counted as neutral (D&T-7.3.2), and stable when inert (D&T-7.2.1). It
+   removes the 30° limit and the 2026 §7.4, boost dormancy (App. F, p. 64). Both checks stay as the
+   project's own safety rules, so no done-when changes.
 4. **Tabs before canards for roll.** M6.5 models both. Tabs come first: they sit on the tail, so
    no tail can cancel them, and they don't move the center of pressure forward. Canards carry a
    warning wherever the tail's exposed span exceeds 0.75 of theirs, the bound TP-2157 found for
@@ -93,3 +99,4 @@ The research is in [the roll and drag control note](../research/roll-and-drag-co
 [adr-192]: 0192-the-2026-10-06-follow-up-best-over-first-and-export-control.md
 [m6-4]: ../decisions-and-roadmap.md#m6-4
 [m6-5]: ../decisions-and-roadmap.md#m6-5
+[i881]: https://github.com/nrdptel/fusionspace-eridanus/issues/881

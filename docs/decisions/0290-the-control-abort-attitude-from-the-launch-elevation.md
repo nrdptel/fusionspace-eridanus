@@ -1,7 +1,7 @@
 # ADR-290: The control abort's 30° measured from the launch elevation, and TP-1353's aileron points to Mach 2.96 (2026-10-24)
 
 - **Status:** accepted; corrects two citations in [M6.4][m6-4] and [M6.5][m6-5] ([issue #690][i690]) and the same abort wording in [ADR-193][adr-193]; neither milestone has started, and no other done-when changes
-- **Summary:** The airbrakes and roll surfaces go inert on an attitude more than 30° from the launch elevation, as the IREC student competition's rule §7.3.1 words it, not 30° from vertical. M6.5's supersonic tab check compares against NASA TP-1353's tail-fin ailerons from Mach 1.6 to 2.96, the range of the report's Figure 18 points.
+- **Summary:** The airbrakes and roll surfaces go inert on an attitude more than 30° from the launch elevation, as the IREC student competition's 2026 rule §7.3.1 words it, not 30° from vertical. M6.5's supersonic tab check compares against NASA TP-1353's tail-fin ailerons from Mach 1.6 to 2.96, the range of the report's Figure 18 points.
 
 [m6-3]: ../decisions-and-roadmap.md#m6-3
 [m6-4]: ../decisions-and-roadmap.md#m6-4
@@ -10,17 +10,18 @@
 [note]: ../research/roll-and-drag-control.md
 [i690]: https://github.com/nrdptel/fusionspace-eridanus/issues/690
 [i688]: https://github.com/nrdptel/fusionspace-eridanus/issues/688
+[i881]: https://github.com/nrdptel/fusionspace-eridanus/issues/881
 
 **Context.** A re-check of the [roll and drag control note][note] ([#688][i688]) found two wrong
 source citations in the roadmap entries for M6.4 (airbrakes) and M6.5 (roll tabs and canards).
 Inert means the brakes retracted and the roll surfaces neutral.
 
-- The abort rule said "a tilt past 30°", which reads as 30° from vertical. The design, test and
-  evaluation guide of IREC, the student rocket competition, says otherwise in §7.3.1, and Launch
-  Canada's rule R7.3.1 says the same: the surfaces go inert when the rocket "exceeds 30° from its
-  launch elevation". The launch elevation is the rail's angle above the horizon. On a rail canted
-  5°, a check measured from vertical trips 5° early on the side the rail leans to and 5° late on
-  the other.
+- The abort rule said "a tilt past 30°", which reads as 30° from vertical. The 2026 design, test
+  and evaluation guide (V1.1) of IREC, the student rocket competition, says otherwise in §7.3.1,
+  and Launch Canada's rule R7.3.1 says the same: the surfaces go inert when the rocket "exceeds 30°
+  from its launch elevation". The launch elevation is the rail's angle above the horizon. On a rail
+  canted 5°, a check measured from vertical trips 5° early on the side the rail leans to and 5°
+  late on the other.
 - M6.5's done-when cited NASA Technical Paper 1353's tail-fin ailerons at "Mach 1.6–2.86". The
   report's test conditions (p. 5) are Mach 1.60, 1.80, 2.16, 2.96 and 4.63, and its Figure 18
   has aileron points at 1.6, 2.16, 2.96 and 4.63. No point sits at 2.86.
@@ -28,7 +29,13 @@ Inert means the brakes retracted and the roll surfaces neutral.
 **Decision.**
 
 1. M6.4 and M6.5 put the surfaces inert on an abort, a power loss, or an attitude more than 30°
-   from the launch elevation (IREC §7.3.1). ADR-193's list of flight-rule checks reads the same.
+   from the launch elevation (IREC 2026 V1.1 §7.3.1). ADR-193's list of flight-rule checks reads
+   the same.
+
+   *Update, November 10, 2026* ([#881][i881]): IREC's 2027 guide, REV P1 (effective October 15,
+   2026), drops the 30° limit and keeps only the abort and the power loss (its paragraph D&T-7.3.1,
+   p. 35). M6.4 and M6.5 keep the 30° check as the project's own safety rule, measured as decided
+   here, so no done-when changes.
 2. M6.5's supersonic tab error is published against TP-1353's Figure 18 from Mach 1.6 to 2.96.
    The 4.63 point stays out, as it did before: it is above Mach 3.5, the top of the project's
    range.
