@@ -252,10 +252,11 @@ Errors inside a stage or component name it (`DesignError::InComponent`).
 
 ### A stage's added mass
 
-This is how HPR Sim reads an OpenRocket stage whose mass override doesn't cover its parts. Its
-mass, center and inertia match OpenRocket 24.12's on 19 probe designs. Where one of the stage's
-two overrides covers the parts, the mass and the center still match and the inertia doesn't
-([below](#a-stages-added-mass-leaves-out)).
+This is how HPR Sim reads an OpenRocket stage whose mass override doesn't cover its parts. On
+19 probe designs the mass, center and inertia match OpenRocket 24.12's (the whole rocket's, on
+the five probes of a rocket of two). Where one of the stage's two overrides covers the parts,
+the mass and the center still match, the inertia across the axis doesn't, and nor does the
+inertia about it under a mass that covers them ([below](#a-stages-added-mass-leaves-out)).
 
 A finished rocket weighs more than its parts: glue, paint, wiring. A stage can carry that as an
 [`AddedMass`](../api/hpr_design/tree/struct.AddedMass.html): a point mass $m_a$ added to the
@@ -314,8 +315,9 @@ stage's flags into an added mass, a whole-stage override, both, or nothing
 **How well it is validated.** By [code-to-code comparison](../glossary.md#code-to-code-comparison)
 with OpenRocket 24.12, and by hand.
 
-- On 19 probe designs with no override that covers the parts, HPR Sim's stage matches
-  OpenRocket's within the test's bounds: 5 parts in 10 million of the mass, 0.2 µm of the center
+- On 19 probe designs with no override that covers the parts, HPR Sim's structure matches
+  OpenRocket's (the whole rocket's, on the five probes of a rocket of two) within the test's
+  bounds: 5 parts in 10 million of the mass, 0.2 µm of the center
   and 3 parts in a million of each inertia. The probes cover one stage and a rocket of two, a
   flag that says `false`, a flag not written and the older single flag, and a part with an
   override of its own.

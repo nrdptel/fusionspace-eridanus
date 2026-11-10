@@ -149,7 +149,7 @@ mass that covers the parts:
 
 On the motor's airframe and on the one with one pod, under a mass beside a center that covers
 the parts, OpenRocket adds 0.00070 and 0.00035 kg·m² across the axis where hpr adds none: 2.4%
-and 1.2% of OpenRocket's inertia across the axis there. A test pins both.
+and 1.2% of OpenRocket's inertia across the axis there. A test pins each.
 
 The added mass brings no difference of its own: on the one-stage probe, each tool's inertias
 beside the added mass are the ones it gives under that center alone, within 1 part in a million

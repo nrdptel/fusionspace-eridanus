@@ -355,8 +355,10 @@ copy, with a warning too.
 #### A stage's mass and center of gravity overrides
 
 **A stage's override** is read as OpenRocket 24.12 weighs it, and that depends on the override's
-flag. A mass override that doesn't cover the stage's parts is added to them and flies; what is
-still refused is in the last bullet below. A flag of `true` says the override covers the stage's parts: in OpenRocket, the override's
+flag. A mass override that doesn't cover the stage's parts is added to them and flies. Where
+one of the stage's overrides covers the parts, the inertia across the axis is not OpenRocket's
+(**The inertia where one override covers the parts**, below). What is still refused is in the
+last bullet below. A flag of `true` says the override covers the stage's parts: in OpenRocket, the override's
 box for all subcomponents is ticked ("override for all subcomponents", in its user guide's words).
 The override is then the whole stage's. With the box unticked the flag is `false`, and the guide
 says the value "is added to the calculated value". The guide says so of the center of gravity
@@ -379,8 +381,8 @@ with a 2 kg mass override, a center of gravity override at 0.4 m (1.3 ft), or bo
 | both, mass flag `true`, center flag `false` or not written | 2.00 kg at 0.4 m (1.3 ft), exactly as with both `true` | the stage's mass and center overrides |
 | center alone, flag `true` | 0.40 kg at 0.4 m (1.3 ft): the parts are moved | the stage's center override |
 
-**Policy:** the reader follows the table, and raises no warning for any row on a stage on the
-axis, so it no longer holds such a design back.
+**Policy:** the reader follows the table, and raises no warning for any row on a stage that
+isn't a [parallel stage](../glossary.md#parallel-stage), so it no longer holds such a design back.
 [A stage's added mass](../physics/design.md#a-stages-added-mass) gives the rule and a worked
 example, and [the decision record][adr-335] gives the measurements.
 
@@ -402,8 +404,8 @@ example, and [the decision record][adr-335] gives the measurements.
   the axis the two agree. With a mass that covers the parts beside a center that doesn't, HPR Sim
   scales the parts' inertia with the mass and OpenRocket leaves it: on the one-stage probe HPR
   Sim's is 400.5% over about the axis and 345.3% over across it. On a rocket of two stages with
-  the override on the lower, the rocket's inertias are 255.8% and 18.5% over. Such a stage was held back before, and now flies
-  ([#1407](https://github.com/nrdptel/fusionspace-eridanus/issues/1407) is open on both).
+  the override on the lower, the rocket's inertias are 255.8% and 18.5% over. Such a stage was held back before, and now flies.
+  [Issue #1407](https://github.com/nrdptel/fusionspace-eridanus/issues/1407) is open on both cases.
 - **A center alone that doesn't cover the parts** changes nothing in OpenRocket. It is left out
   of the design and kept as the file wrote it, so an export writes it back.
 - **A flag that says neither `true` nor `false`** is warned of where it is read, which holds the
