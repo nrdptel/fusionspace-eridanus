@@ -10,7 +10,7 @@
 //! time, is off by the same share. Each bound holds [`TEMPERATURE_SHARE`] for it: 15 K over the
 //! coldest standard air below 20 km. On a hot day the heights read low, and so do the speeds and
 //! the rates; on a cold day, high. A summer afternoon at a high plains or desert field is often more
-//! than 15 K over standard: at a 1,190 m field, 35 °C is 27.6 K over.
+//! than 15 K over standard: at a 1,190 m field, 35 °C is 27.7 K over.
 //!
 //! **What is read.** The day's offset is the log's temperature at the pad less the standard
 //! atmosphere's at the pad's height above sea level, `ΔT = T_log − T_std(z_pad)`. The log's

@@ -1014,8 +1014,11 @@ Where the log records a temperature, the readings check the day against the 15 K
 6.5 K a kilometer from 288.15 K at sea level, to 216.65 K at 11 km, and holds there:
 
 $$
-\Delta T = T_{\mathrm{log}} - T_{\mathrm{std}}(z_{\mathrm{pad}}), \qquad
-T_{\mathrm{std}}(z) = 288.15\,\mathrm{K} - 0.0065\,\mathrm{K/m}\; z
+\Delta T = T_{\mathrm{log}} - T_{\mathrm{std}}(z_{\mathrm{pad}})
+$$
+
+$$
+T_{\mathrm{std}}(z) = 288.15\,\mathrm{K} - 0.0065\,\mathrm{K/m} \cdot z
 $$
 
 $T_{\mathrm{log}}$ is the median of the log's temperature samples over the span the pad is read
@@ -1034,11 +1037,12 @@ and `share`.
 between two pressures goes as the air's mean temperature between them. So a height read by the
 standard atmosphere is off by $\Delta T/\bar T$ of itself, where $\bar T$ is the standard's mean
 over the layer ([the height formulas note][formulas]). The note takes the standard's temperature
-at the apogee's height above sea level, the coldest air the climb spans. So its share is the
+at the apogee's height above sea level, $z_{\mathrm{top}}$, the pad's plus the apogee's reading:
+the coldest air the climb spans. So its share is the
 largest the layer allows:
 
 $$
-s_{\mathrm{day}} = \frac{|\Delta T|}{T_{\mathrm{std}}(z_{\mathrm{pad}} + h_a)}
+s_{\mathrm{day}} = \frac{|\Delta T|}{T_{\mathrm{std}}(z_{\mathrm{top}})}
 $$
 
 On a hot day the true value may lie up to $s_{\mathrm{day}}$ of the reading above it; on a cold
