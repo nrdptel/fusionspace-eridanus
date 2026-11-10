@@ -146,13 +146,8 @@ of the jump on the body's basis (6.43 per rad). Candidates for the rest, none bo
   results are linear theory only, two-dimensional (Fig. 11) and triangular wings (Fig. 12), outside the band near
   Mach 1 [3].
 - **The roots over the 15° boattail, and the fin anchors** ([6] Fig. 1(b), p. 10; pp. 3–4): outside any method.
-- **The slotted-wall tunnel near Mach 1** ([6] p. 3), the 8-ft Transonic Pressure Tunnel. The reflection-free lengths of
-  about 4 in at Mach 1.025 to 36 in at 1.14 were measured in its predecessor, the 8-ft Transonic Tunnel (NACA Report
-  1389, PDF p. 15, superseding RM L51K14; [dense-transonic-fin-body](dense-transonic-fin-body.md) §2). The pressure
-  tunnel's own band is unmeasured. A Mach-line estimate scaled from the older tunnel puts its clean edge near Mach 1.17
-  for the Arcas's short model and 1.24 for the long one (Inference, rough). The older tunnel showed no clear reflection
-  effect up to Mach 1.025, so none is expected at the Mach 0.9 rows (Inference;
-  [arcas-short-model-mach-0-9 §3](arcas-short-model-mach-0-9.md#3-the-tunnel-walls)).
+- **The slotted-wall tunnel near Mach 1** ([6] p. 3), the 8-ft Transonic Pressure Tunnel, whose reflection band is
+  unmeasured, unlike the 8-ft Transonic Tunnel's 4 to 36 in (Report 1389; [Arcas §3](arcas-short-model-mach-0-9.md)).
 
 DATCOM's shape matches the other finned bodies (Inference): for the Arcas a peak at Mach 1.07, 21% to 25% over 0.8;
 the Basic Finner at 1.07 to 1.10, 22% (tunnel, 0° roll) to 26% (range), 17% roll-averaged
