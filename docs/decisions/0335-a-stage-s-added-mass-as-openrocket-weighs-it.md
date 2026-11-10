@@ -86,7 +86,7 @@ stage that starts at the tip, no motor, and no pairing where one flag is `true` 
    - A parallel stage with an added mass, or one hanging on a stage that carries one: where the
      mass sits beside the pods isn't measured. A parallel stage's override in a `.ork` is read as
      a pod set's, as before, and one that doesn't cover its pods is still warned of.
-   - An added mass with no station on parts that weigh nothing. OpenRocket reports that stage's
+   - An added mass above zero with no station, on parts that weigh nothing. OpenRocket reports that stage's
      center at the tip on one probe, which doesn't say whether that is the stage's forward end.
    - A flight with a mass that moves, a mass that is released, or a parting through a stage, where
      that stage carries an added mass. A stage whose mass is overridden is refused the same way.
@@ -143,9 +143,9 @@ mass that covers the parts:
 | The stage | Inertia about the axis | Inertia across the axis |
 |---|---:|---:|
 | a center that covers the parts, alone or beside an added mass | within 3 parts in a million | 11.04% under |
-| the same beside an added mass, on the lower of two stages | within 3 parts in a million | 1.5% over |
+| the same beside an added mass, on the lower of two stages (the rocket's inertias) | within 3 parts in a million | 1.5% over |
 | a mass that covers the parts beside a center that doesn't | 400.5% over | 345.3% over |
-| the same on the lower of two stages | 255.8% over | 18.5% over |
+| the same on the lower of two stages (the rocket's inertias) | 255.8% over | 18.5% over |
 
 On the motor's airframe and on the one with one pod, under a mass beside a center that covers
 the parts, OpenRocket adds 0.00070 and 0.00035 kg·m² across the axis where hpr adds none: 2.4%

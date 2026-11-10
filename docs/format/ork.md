@@ -397,11 +397,12 @@ example, and [the decision record][adr-335] gives the measurements.
 - **The inertia where one override covers the parts** is HPR Sim's own rule, as for any override
   that covers them ([Mass properties](../physics/mass.md#what-a-ork-leaves-unsaid-and-overrides)), and across the axis it is not
   OpenRocket's. The mass and the center still match. With a center that covers the parts beside
-  an added mass, the inertia across the axis is 11.04% under OpenRocket's on the one-stage probe
-  and 1.5% over on a lower stage's; about the axis the two agree. With a mass that covers the parts beside a center that doesn't, HPR Sim
+  an added mass, the inertia across the axis is 11.04% under OpenRocket's on the one-stage probe.
+  On a rocket of two stages with the override on the lower, the rocket's is 1.5% over. About
+  the axis the two agree. With a mass that covers the parts beside a center that doesn't, HPR Sim
   scales the parts' inertia with the mass and OpenRocket leaves it: on the one-stage probe HPR
-  Sim's is 400.5% over about the axis and 345.3% over across it, and on a lower stage's 255.8%
-  and 18.5% over. Such a stage was held back before, and now flies
+  Sim's is 400.5% over about the axis and 345.3% over across it. On a rocket of two stages with
+  the override on the lower, the rocket's inertias are 255.8% and 18.5% over. Such a stage was held back before, and now flies
   ([#1407](https://github.com/nrdptel/fusionspace-eridanus/issues/1407) is open on both).
 - **A center alone that doesn't cover the parts** changes nothing in OpenRocket. It is left out
   of the design and kept as the file wrote it, so an export writes it back.
@@ -415,7 +416,7 @@ example, and [the decision record][adr-335] gives the measurements.
   is then left out, with a warning.
 - **Not flown yet:** a parallel stage's override that doesn't cover its pods is still warned of,
   as a pod set's is. The layout refuses an added mass on the stage a parallel stage hangs on,
-  and one with no center stated on parts that weigh nothing. And a flight refuses a mass that
+  and an added mass above zero with no center stated, on parts that weigh nothing. And a flight refuses a mass that
   moves, a mass that is released, or a parting through a stage, where that stage carries an
   added mass.
 
