@@ -305,6 +305,11 @@ Beside the readings, the dict says how they were taken: the track's ``source``,
 ``peak_bound_m``. It gives ``pad_altitude_m`` too, and the axial ``accelerometer`` the top
 acceleration and burnout came from, or ``None``.
 
+``day_air`` compares the log's temperature at the pad with the standard atmosphere's at the
+pad's height above sea level, or is ``None`` where the log has no temperature or no such
+height. ``offset_k`` is the difference, ``covered`` whether the bounds' 15 K allowance holds
+it, and ``share`` how much the day's air may move a barometric height, speed or rate.
+
 ### `FlightLog.serial_number`
 
 The logger's serial number, as the file states it, or ``None``.

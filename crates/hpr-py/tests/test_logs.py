@@ -121,6 +121,7 @@ READINGS = [
     "flight_time",
     "drogue_descent",
     "main_descent",
+    "day_air",
 ]
 METHOD = [
     "source",
