@@ -705,7 +705,7 @@ prediction has to change, the comparison's pull request must show the new number
 one. Until then the code's list of merged apogees (`MERGED`) keeps each flight's, as a reading
 and as a height, to the digit the page prints, and the writer and CI both refuse a prediction that
 has moved from it. CI, without the checkout, also holds the
-committed predictions to the code's list of flights, to the committed designs' digests, to their
+committed predictions to the code's list of flights, to the committed designs' and the design fixture's digests, to their
 page, and to the file's own text: a key for an error or a measured value fails.
 
 ## Simulators and papers

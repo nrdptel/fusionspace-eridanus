@@ -90,20 +90,17 @@ keeps both files' SHA-256 and those levels. Each time a prediction is flown, HPR
 of the converted file is held to them: the same pressures, and the temperature, wind and
 geopotential height within 1e-12 of each value's size (1e-12 outright for a value under 1).
 
-To run it, fetch RocketPy's files and the oracle environment, convert, then check:
+To run it, from the repository's root and in this order:
 
-```text
-cargo xtask refs fetch rocketpy python
-refs/venv/bin/python validation/oracles/netcdf/euroc_2022.py > /dev/null
-refs/venv/bin/python validation/oracles/netcdf/euroc_2022.py --check
-cargo xtask public-predictions --check
-```
+1. `cargo xtask refs fetch rocketpy python` fetches RocketPy's files and the oracle environment.
+2. `refs/venv/bin/python validation/oracles/netcdf/euroc_2022.py > /dev/null` is the conversion.
+   It writes the converted file under `refs/` and prints the record, which is already committed.
+3. The same command ending in `--check`, not `> /dev/null`, converts again into a scratch file.
+   It fails unless it finds the recorded hashes and levels, and unless the converted file
+   already in `refs/` has the recorded SHA-256.
+4. `cargo xtask public-predictions --check` flies the predictions in that file.
 
-The second command is the conversion: it writes the converted file under `refs/` and prints the
-record, which is already committed. Run it once, first. With `--check` the script converts again
-into a scratch file and fails unless it finds the recorded hashes and levels, and unless the
-converted file already in `refs/` has the recorded SHA-256. The last command flies the predictions in that file. Neither check runs
-in CI, which has no RocketPy files.
+Neither check runs in CI, which has no RocketPy files.
 
 ### Reading it
 

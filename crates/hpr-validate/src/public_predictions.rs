@@ -148,8 +148,8 @@ pub struct PredictedFlight {
     pub id: &'static str,
     /// The rocket, the team and the event, in words.
     pub title: &'static str,
-    /// The design flown, by file stem under `validation/designs/`, which is also its case name in
-    /// [`MASS_FIXTURE`].
+    /// The design flown, by file stem under `validation/designs/`, which, less its `rocketpy-`,
+    /// is its case name in [`MASS_FIXTURE`].
     pub design: &'static str,
     /// Where the site, date, rail and geometry come from, in RocketPy 1.13.0's notebook.
     pub source: &'static str,
@@ -235,7 +235,7 @@ pub const NEW_FLIGHTS: [PredictedFlight; 3] = [
             rule: "the highest reading of the log's `alt(m)` column, the log read whole",
             altimeter: Altimeter::AssumedBarometric(
                 "the notebook calls it a COTS altimeter (andromeda_flight_sim.ipynb:459-461), \
-                 logged in feet with a vertical speed, and records no more: barometric assumed, as \
+                 logged in feet and in meters with a vertical speed, and records no more: barometric assumed, as \
                  hobby altimeters are",
             ),
         },
@@ -260,7 +260,7 @@ pub const NEW_FLIGHTS: [PredictedFlight; 3] = [
         design: "rocketpy-erebus-11",
         source: "erebus_flight_sim.ipynb:123-131 (site, date), :251-284 (rocket, rail buttons, \
                  motor position, nose, fins, tail), :320-322 (rail)",
-        motor: "a Cesaroni Pro54 K-class motor, as the notebook says; the team's thrust file",
+        motor: "a Cesaroni Pro54 K-class motor, as the notebook says; the example's thrust file",
         motor_source: "erebus_flight_sim.ipynb:153 and :162-165, cut at the notebook's burn time",
         mass_source: "erebus_flight_sim.ipynb:253-255 (mass, inertia and center without the \
                       motor), :166-172 (the grain), :163 and :173-174 (no motor dry mass or \

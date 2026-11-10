@@ -104,12 +104,13 @@ The −1.373 value at `t = 0`, 10.516648, matches RocketPy's own pinned test val
     `refs/`.
 - **Calisto's tests rocket** has no geometry in RocketPy's tests, so its design takes the
   `calisto_robust` fixture's surfaces, about 0.118 m aft of the notebook's.
-- **Agreement** (`hpr_design::config::tests::matches_rocketpy_example_rockets`):
+- **Agreement** (`hpr_design::config::tests::matches_rocketpy_example_rockets`; each worst gap
+  rounded up):
   - Dry scalars, and initial and column propellant mass, match to 3.5e-16, and the products of inertia are exactly zero.
   - At RocketPy's LSODA knots, where its grain geometry holds computed values: mass, center and
     inertia match to 8e-10, and propellant mass to 2.5e-9. That is the solver's accuracy.
   - Between knots, on an even grid: mass to 1.4e-5 (Lince), center to 4.0e-6 of the length, `I_11` to
-    2.6e-5 and `I_33` to 1.5e-5 (each rounded up).
+    2.6e-5 and `I_33` to 1.5e-5.
   - That residual is RocketPy's resampling. `SolidMotor` interpolates grain volumes linearly
     between LSODA knots (`motors/solid_motor.py:385-399`, `:603-630`). `GenericMotor` samples its
     inertias at thrust knots.

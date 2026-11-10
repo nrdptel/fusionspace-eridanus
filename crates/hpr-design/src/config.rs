@@ -1407,13 +1407,13 @@ mod tests {
         // - At RocketPy's LSODA knots, where its grain geometry holds computed values: total mass
         //   3.4e-10, center 1.4e-10 of the length, `I_11` 8.0e-10, `I_33` 1.8e-10, grain propellant
         //   mass 2.5e-9 of its initial value. That is the solver's own accuracy (rtol 1e-11); the
-        //   tolerance is 1e-8, a margin of 4 to 74.
+        //   tolerance is 1e-8, a margin of 4 to 73.
         // - On the even grid, between knots: total mass 1.4e-5 (Lince), center 4.0e-6 (Erebus 11),
         //   `I_11` 2.6e-5, `I_33` 1.5e-5, grain propellant mass 6.4e-5 (Erebus 11). `SolidMotor`
         //   interpolates its grain volumes linearly between LSODA knots
         //   (`solid_motor.py:375-383`, `:603-630`) and
         //   `GenericMotor` samples its inertias at the thrust knots, while hpr's are exact for a
-        //   piecewise-linear curve. Tolerances: 5e-5 (margin 3.8), 2e-5 (5.0), 1e-4 (3.9 and 7) and
+        //   piecewise-linear curve. Tolerances: 5e-5 (margin 3.8), 2e-5 (5.0), 1e-4 (3.8 and 7) and
         //   2.5e-4 (3.9).
         let tolerance = |what: &str| match what {
             "initial propellant mass"

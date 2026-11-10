@@ -91,7 +91,7 @@
       "reference_log_sha256": "ebd3b757555b564c63937b69d2c222d6596355fc6e938d49537af293a9d48d14",
       "reference_rule": "the highest reading of the log's `alt(m)` column, the log read whole",
       "altimeter": "barometric, assumed",
-      "altimeter_evidence": "the notebook calls it a COTS altimeter (andromeda_flight_sim.ipynb:459-461), logged in feet with a vertical speed, and records no more: barometric assumed, as hobby altimeters are",
+      "altimeter_evidence": "the notebook calls it a COTS altimeter (andromeda_flight_sim.ipynb:459-461), logged in feet and in meters with a vertical speed, and records no more: barometric assumed, as hobby altimeters are",
       "all_inputs_traced": false,
       "untraced": [
         "the flight carried the team's air brakes, and no record says when or how far they opened: none is flown here, so any opening leaves this prediction high",
@@ -131,7 +131,7 @@
           "sha256": "ebd3b757555b564c63937b69d2c222d6596355fc6e938d49537af293a9d48d14"
         }
       ],
-      "inputs_sha256": "a7870c26cd3d03a0122444ef00b53e67b07d7e8ca17596d485f16ad2eb213c93",
+      "inputs_sha256": "616fecd37a168776f3e9b25efcae03370f39fd2c273d23526ef0a67a31a16486",
       "note": "both tags are the research note's findings (docs/research/andromeda-impulse.md), written down before this flight was flown"
     },
     {
@@ -139,7 +139,7 @@
       "title": "Erebus 11, BME Suborbitals, EuRoC 2022 (a Cesaroni Pro54 K)",
       "design": "rocketpy-erebus-11",
       "source": "erebus_flight_sim.ipynb:123-131 (site, date), :251-284 (rocket, rail buttons, motor position, nose, fins, tail), :320-322 (rail)",
-      "motor": "a Cesaroni Pro54 K-class motor, as the notebook says; the team's thrust file",
+      "motor": "a Cesaroni Pro54 K-class motor, as the notebook says; the example's thrust file",
       "motor_source": "erebus_flight_sim.ipynb:153 and :162-165, cut at the notebook's burn time",
       "thrust_file": "refs/rocketpy/data/rockets/erebus11/thrust_source.csv",
       "burn_time_s": 3.657,
@@ -188,7 +188,7 @@
           "sha256": "045f5b9ed473b80095805d3ca7b831ca4b67c5afbe9156d58d1e91df9fc0b4a9"
         }
       ],
-      "inputs_sha256": "d883d8366620d91de89b261f5edc98ef893cf10740b2b8af050ad1365e10f8cc",
+      "inputs_sha256": "ef00d42e4d631f50168d1714e1f4993ac9fd158dcd47efa37a304a05bd5140f0",
       "note": ""
     }
   ]

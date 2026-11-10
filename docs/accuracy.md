@@ -947,7 +947,7 @@ prediction below beside its error
 |---|---:|---:|---:|---|
 | [Astra][predictions] (Cesaroni 4263L1350-P) | 4,280.2 | 3,037.1 | 3,155.4 | yes |
 | [Andromeda][predictions] (its team's thrust file) | 9,866.7 | 3,581.0 | 3,729.5 | no |
-| [Erebus 11][predictions] (a Cesaroni Pro54 K, its team's file) | 2,418.2 | 2,714.1 | 2,808.7 | yes |
+| [Erebus 11][predictions] (a Cesaroni Pro54 K, the example's thrust file) | 2,418.2 | 2,714.1 | 2,808.7 | yes |
 
 The predicted apogee is what a [barometric altimeter](glossary.md#barometric-altimeter) would
 read on the day, because each log is taken to be a barometric altimeter's. That is assumed: no
@@ -969,8 +969,8 @@ flight's inputs are stated, not exact.
 
 **How they are flown.** By the seven's method: the design built from the example's masses and shapes,
 on the example's own thrust file, from its rail and site, in the launch hour's ERA5 air. The three
-share one weather file in a newer format. A committed script converts it and checks that every
-value survived ([ERA5 weather files](format/era5.md#converting-a-current-file)).
+share one weather file in a newer format. A committed script converts it and checks that the four
+fields' values survived bit for bit ([ERA5 weather files](format/era5.md#converting-a-current-file)).
 
 **Andromeda is tagged not traced.** Two things that move its apogee aren't settled by its record.
 It flew air brakes, and nothing public says whether, when or how far they opened. If they did, a
