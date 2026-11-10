@@ -1228,13 +1228,18 @@ mod tests {
     /// a kelvin less from 5 s on, so that it varies as a sensor's does, and its text. With `None`,
     /// the fixture's own channel, 70 °F throughout.
     fn pnut_at(temperature_k: Option<f64>) -> (Analyze, Vec<String>) {
+        pnut_with(temperature_k, 0.5)
+    }
+
+    /// [`pnut_at`], the channel `drop_k` less from 5 s on: 0 for one value throughout.
+    fn pnut_with(temperature_k: Option<f64>, drop_k: f64) -> (Analyze, Vec<String>) {
         let text = include_str!("../../../validation/fixtures/logs/synthetic-pnut.pf2");
         let mut log = hpr::hpr_flightdata::perfectflite::read(text).unwrap();
         if let Some(temperature_k) = temperature_k {
             for channel in &mut log.channels {
                 if channel.quantity == Quantity::Temperature {
                     for (value, t) in channel.values.iter_mut().zip(&channel.time_s) {
-                        *value = temperature_k - if *t >= 5.0 { 0.5 } else { 0.0 };
+                        *value = temperature_k - if *t >= 5.0 { drop_k } else { 0.0 };
                     }
                 }
             }
@@ -1314,7 +1319,8 @@ mod tests {
     /// above the readings says so, and each barometric reading the day's air moves carries a note
     /// below it, its size the share of the reading rounded up, the true value above the reading.
     /// At 70 °F, 7.3 K over, the bounds cover the day: no note. The fixture's own 70 °F, one value
-    /// throughout, isn't taken for a sensor's: no day's air.
+    /// throughout but not a unit's zero, is read the same: covered, no note. Its 0 °F, one value
+    /// throughout, is a logger with no sensor: no day's air.
     #[test]
     fn a_hot_day_notes_each_barometric_reading() {
         let (document, lines) = pnut_at(Some(318.15));
@@ -1348,11 +1354,34 @@ mod tests {
             "{lines:#?}"
         );
         let (document, lines) = pnut_at(None);
+        assert!(document.day_air.is_some_and(|air| air.covered));
+        assert!(
+            !lines.iter().any(|line| line.contains("day's air")),
+            "{lines:#?}"
+        );
+        let (document, lines) = pnut_with(Some((0.0 - 32.0) * 5.0 / 9.0 + 273.15), 0.0);
         assert_eq!(document.day_air, None);
         assert!(
             !lines.iter().any(|line| line.contains("day's air")),
             "{lines:#?}"
         );
+    }
+
+    /// A logger quantized to a degree can read one value over a short log: a constant 318.15 K
+    /// (113 °F) isn't a unit's zero, so it is read, and the hot notes fire as on a varying channel.
+    #[test]
+    fn a_constant_hot_reading_is_noted() {
+        let (document, lines) = pnut_with(Some(318.15), 0.0);
+        let air = document.day_air.as_ref().expect("the day's air");
+        assert!(!air.covered && air.offset_k > 31.0, "{air:?}");
+        let percent = rounded_up(100.0 * air.share, 1);
+        let notes = expected_notes(&document, &|what, size| {
+            format!(
+                "the day's air may put the true {what} up to {size} above the reading, \
+                 {percent:.1}%, where the bound allows 6.9%"
+            )
+        });
+        assert_notes(&lines, &notes);
     }
 
     /// A pad 250 K, 37.0 K under standard: the line says under, and each note puts the true value

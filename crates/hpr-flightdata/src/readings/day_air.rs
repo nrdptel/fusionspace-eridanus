@@ -22,8 +22,10 @@
 //! read at, as the logger's conversion reads it); from a barometric altitude channel above sea
 //! level; or from the ground elevation the logger states. With none of these, or no temperature
 //! channel, there is nothing to compare, and no [`DayAir`]. Nor with a temperature channel that
-//! can't be the air: one whose finite samples are all one value over the whole log, as a logger
-//! with no sensor writes, or one outside [`LOGGED_AIR_RANGE_K`].
+//! can't be the air: one whose finite samples are all one value, and that value a unit's zero read
+//! as kelvin ([`UNIT_ZEROS_K`]), as a logger with no sensor writes, or one outside
+//! [`LOGGED_AIR_RANGE_K`]. A channel of one other value is read: a logger quantized to a degree
+//! can read one value over a short log.
 //!
 //! **The size**, stated on the unflattering side: `|ΔT| / T_std(z_top)`, the standard temperature
 //! at the apogee's height above sea level, the coldest standard air the climb spans, so the
@@ -57,9 +59,17 @@ pub const COLDEST_STANDARD_K: f64 = 216.65;
 /// Valley, WMO's archive of weather extremes), and room for a sun-warmed bay. A channel outside it
 /// isn't the air, and gives no [`DayAir`]. It catches a column of zeros only in kelvin: the readers
 /// turn a column into kelvin first, so zeros in °C read 273.15 K and in °F 255.37 K, both inside
-/// it. Those, and any channel whose finite samples are all one value over the whole log, as a
-/// logger with no sensor writes, are refused apart from the range.
+/// it. Those are refused apart from the range, by [`UNIT_ZEROS_K`].
 pub const LOGGED_AIR_RANGE_K: (f64, f64) = (173.15, 373.15);
+
+/// A unit's zero read as kelvin, K: 0 K, 0 °C (273.15 K) and 0 °F ((0 − 32) × 5/9 + 273.15 =
+/// 255.372 K). A temperature channel whose finite samples are all one value, and that value
+/// within [`UNIT_ZERO_TOLERANCE_K`] of one of these, is taken for a logger with no sensor writing
+/// zeros, and gives no [`DayAir`]. A channel of one other value is read as the air.
+pub const UNIT_ZEROS_K: [f64; 3] = [0.0, 273.15, (0.0 - 32.0) * 5.0 / 9.0 + 273.15];
+
+/// How near a constant channel's value must lie to one of [`UNIT_ZEROS_K`] to be refused, K.
+pub const UNIT_ZERO_TOLERANCE_K: f64 = 0.01;
 
 /// The 1976 standard atmosphere's temperature at a height above sea level, K: 288.15 K at sea
 /// level, less its 6.5 K/km lapse to 11 km, then its isothermal 216.65 K, taken to hold above
@@ -132,8 +142,8 @@ impl DayAir {
 
 /// The day's air at the pad, from the log's temperature over the pad's span `[from, to]` s, or
 /// `None` where the log has no temperature, no height above sea level for the pad, or a
-/// temperature that can't be the air's: one value throughout the log, or outside
-/// [`LOGGED_AIR_RANGE_K`].
+/// temperature that can't be the air's: one value throughout the log, that value a unit's zero
+/// ([`UNIT_ZEROS_K`]), or outside [`LOGGED_AIR_RANGE_K`].
 pub(crate) fn day_air(log: &FlightLog, pad_span_s: (f64, f64)) -> Option<DayAir> {
     let (temperature_column, pad_temperature_k) = pad_temperature(log, pad_span_s)?;
     let (pad_height_msl_m, pad_height_from) = pad_height(log, pad_span_s)?;
@@ -154,8 +164,9 @@ pub(crate) fn day_air(log: &FlightLog, pad_span_s: (f64, f64)) -> Option<DayAir>
 
 /// The log's temperature at the pad, K, and the column it came from: the first temperature
 /// channel, or the record's own temperature on its clock. `None` where that channel's finite
-/// samples are all one value over the whole log: a column of zeros, or any fixed figure, written
-/// by a logger with no sensor, which may read as air in range once turned into kelvin.
+/// samples are all one value over the whole log and that value a unit's zero ([`UNIT_ZEROS_K`]):
+/// a column of zeros written by a logger with no sensor, which may read as air in range once
+/// turned into kelvin.
 fn pad_temperature(log: &FlightLog, span: (f64, f64)) -> Option<(String, f64)> {
     let (column, time_s, values) = match log.channels_of(Quantity::Temperature).next() {
         Some(channel) => (
@@ -169,7 +180,7 @@ fn pad_temperature(log: &FlightLog, span: (f64, f64)) -> Option<(String, f64)> {
             log.temperature_k.as_deref()?,
         ),
     };
-    if !varies(values) {
+    if is_unit_zero_column(time_s, values) {
         return None;
     }
     let value = over_span(time_s, values, span)?;
@@ -178,12 +189,20 @@ fn pad_temperature(log: &FlightLog, span: (f64, f64)) -> Option<(String, f64)> {
         .then_some((column, value))
 }
 
-/// Whether a channel's finite samples take more than one value.
-fn varies(values: &[f64]) -> bool {
-    let mut finite = values.iter().filter(|value| value.is_finite());
-    finite
-        .next()
-        .is_some_and(|first| finite.any(|value| value != first))
+/// Whether a channel's samples, those with a finite time and value as [`over_span`] takes them,
+/// are all one value, and that value within [`UNIT_ZERO_TOLERANCE_K`] of a unit's zero.
+fn is_unit_zero_column(time_s: &[f64], values: &[f64]) -> bool {
+    let mut finite = time_s
+        .iter()
+        .zip(values)
+        .filter(|(t, v)| t.is_finite() && v.is_finite())
+        .map(|(_, v)| *v);
+    finite.next().is_some_and(|first| {
+        UNIT_ZEROS_K
+            .iter()
+            .any(|zero| (first - zero).abs() <= UNIT_ZERO_TOLERANCE_K)
+            && finite.all(|value| value == first)
+    })
 }
 
 /// The pad's height above sea level, m, and where it came from.
@@ -461,7 +480,7 @@ mod tests {
     /// A temperature channel that can't be the air's, such as zeros from a logger with no sensor,
     /// or no temperature at all, gives no day's air. Zeros in °C and °F reach the readings as
     /// 273.15 K and 255.372 K, inside the range a temperature may take: refused for being one
-    /// value throughout, not for the range. The same log's air, varying, is read.
+    /// value throughout, a unit's zero, not for the range. The same log's air, varying, is read.
     #[test]
     fn no_temperature_or_one_that_isnt_air_gives_none() {
         let mut log = day_log(0.0);
@@ -477,6 +496,28 @@ mod tests {
         let readings = read(&log);
         assert!(readings.apogee.value().is_some());
         assert_eq!(readings.day_air, None);
+    }
+
+    /// A logger quantized to a degree can read one value over a short log: a constant 318.15 K
+    /// (113 °F) at the invented field isn't a unit's zero, so it is read, past the allowance and
+    /// hot, and not refused for being one value.
+    #[test]
+    fn a_constant_hot_reading_that_isnt_a_zero_is_read() {
+        let mut log = day_log(0.0);
+        log.channels[1].values.fill(318.15);
+        let readings = read(&log);
+        let air = uncovered(&readings);
+        assert!(air.is_hot(), "{air:?}");
+        assert_eq!(air.pad_temperature_k, 318.15);
+        assert!(air.share > TEMPERATURE_SHARE, "{air:?}");
+    }
+
+    /// The units' zeros: 0 °F is exactly (0 − 32) × 5/9 + 273.15 K.
+    #[test]
+    fn the_units_zeros_are_kelvin_celsius_and_fahrenheit() {
+        assert_eq!(UNIT_ZEROS_K[0], 0.0);
+        assert_eq!(UNIT_ZEROS_K[1], 273.15);
+        assert!((UNIT_ZEROS_K[2] - 255.372_222).abs() < 1e-6);
     }
 
     /// The allowance is strict at its edge: an offset of exactly 15 K is covered, and one a

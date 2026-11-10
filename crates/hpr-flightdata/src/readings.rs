@@ -411,7 +411,10 @@ macro_rules! with_all {
 mod day_air;
 
 pub(crate) use day_air::standard_temperature_k;
-pub use day_air::{COLDEST_STANDARD_K, DayAir, LOGGED_AIR_RANGE_K, PadHeightFrom};
+pub use day_air::{
+    COLDEST_STANDARD_K, DayAir, LOGGED_AIR_RANGE_K, PadHeightFrom, UNIT_ZERO_TOLERANCE_K,
+    UNIT_ZEROS_K,
+};
 
 with_all! {
 /// The reason a reading was withheld.
@@ -976,8 +979,10 @@ pub struct Readings {
     pub accelerometer: Option<Accelerometer>,
     /// The day's air at the pad, from the log's own temperature against the standard
     /// atmosphere's, and whether the bounds' allowance for it, [`AIR_TEMPERATURE_SPREAD_K`],
-    /// covers it; `None` where the log has no temperature, one that never changes over the log,
-    /// no height above sea level for the pad, or the pad isn't found. Left out of a record written before the field was.
+    /// covers it; `None` where the log has no temperature, no height above sea level for the pad,
+    /// a temperature outside −100 to 100 °C ([`LOGGED_AIR_RANGE_K`]), a column of one value at a
+    /// unit's zero ([`UNIT_ZEROS_K`]: 0 K, 0 °C or 0 °F), or the pad isn't found. Left out of a
+    /// record written before the field was.
     #[serde(default)]
     pub day_air: Option<DayAir>,
 }
