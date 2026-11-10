@@ -3780,7 +3780,7 @@ mod tests {
 
     #[test]
     fn only_mdbooks_search_size_warning_passes() {
-        // mdBook 0.5.4's lines, as it logs them.
+        // Lines in mdBook's log format; the size warning's words are mdBook 0.5.4's.
         assert!(!complaint(
             " WARN search index is very large (12003726 bytes)"
         ));

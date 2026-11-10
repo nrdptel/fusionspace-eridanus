@@ -1061,15 +1061,16 @@ reader first opens the search. Since no `fetch` is involved, search also works i
 opened from disk. Every page of the guide is in it, and a search lands on the page's `##` section.
 A test fails if `book.toml` leaves a page out again.
 
-mdBook 0.5.4 builds that file with elasticlunr-rs 3.0.2, its search library. That release files
-each section's heading words under its body too, and its heading and body words under its
-breadcrumbs (the names of the page, the pages above it and the section). That made the file 56% larger before
-compression, and nearly doubled its postings, a posting being one word filed under one section.
-Release 3.1.0 fixed it, but no mdBook release uses 3.1.0 yet. So `cargo xtask site` builds the three
-fields again from the text mdBook stores, each with its own words. It fails if the number of
-sections, or the words it counts in any field of any section, differs from mdBook's. Once an mdBook
-release ships elasticlunr-rs 3.1.0, the rebuild changes nothing, and `xtask/src/site/search.rs`
-can go.
+mdBook 0.5.4 builds that file with elasticlunr-rs 3.0.2, its search library, and 3.0.2 files each
+section's heading words under its body too, and its heading and body words under its breadcrumbs
+(the names of the page, its parent pages and the section). That made the file 56% larger before
+compression, and nearly doubled its postings, a posting being one word filed under one section in
+one field (the `site search:` line prints both sizes). Release 3.1.0 fixed it, but no mdBook release
+uses 3.1.0 yet. So `cargo xtask site` builds the three fields again from the text mdBook stores,
+each with its own words. It fails if the number of sections, or the words it counts in any field of
+any section, differs from mdBook's; a word only stemmed differently, with the same count, would
+pass. Once an mdBook release ships elasticlunr-rs 3.1.0, the rebuild should change nothing, and
+`xtask/src/site/search.rs` can go.
 
 The build then holds the file to a limit, `LIMIT_GZIP_BYTES` in that file:
 
@@ -1080,8 +1081,8 @@ The build then holds the file to a limit, `LIMIT_GZIP_BYTES` in that file:
   the old file), but the limit and the file are measured alike.
 - **The line** that starts `site search:` prints both figures on every build.
 - **When a page's words push the file past the limit,** the build fails. Shorten the words the
-  page added. Raise the limit only with a decision record that measures the new one. The limit's
-  measurements are in [the search index's issue](https://github.com/nrdptel/fusionspace-eridanus/issues/414).
+  page added. Raise the limit only with a decision record that measures the new one. How the
+  limit was measured is written beside it, in `xtask/src/site/search.rs`.
 
 ## Where this comes from
 

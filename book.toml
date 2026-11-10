@@ -42,9 +42,10 @@ runnable = false
 # `xtask/src/site/search.rs`) and holds the rebuilt file to what the last file before it weighed,
 # measured the same way: 1,675,059 bytes compressed with gzip (GitHub Pages sent 1,754,850), at
 # b7313b32, with fifteen pages left out of search to stay under mdBook's 10 MB warning. Rebuilt,
-# with all of them in, it is 7.72 MB, about 1.60 MB compressed. Landing on the `###` section (about 1.73 MB) or the `####` one (1.77 MB) would cost a
-# reader more than before, so the split stays at `##`. No page is left out of search (a test in
-# `search.rs` fails on an `[output.html.search.chapter]` table).
+# with all of them in, it is 7.72 MB, about 1.60 MB compressed. Landing on the `###` section or
+# the `####` one (about 1.73 MB and 1.77 MB, measured the same way) would cost a reader more than
+# before, so the split stays at `##`. No page is left out of search (a test in `search.rs` fails
+# on an `[output.html.search.chapter]` table).
 [output.html.search]
 heading-split-level = 2
 

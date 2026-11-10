@@ -2,15 +2,16 @@
 //!
 //! mdBook 0.5.4 builds `searchindex.js` with elasticlunr-rs 3.0.2, which hands each field of a
 //! section the words of every field before it: the body's postings hold the heading's words, and
-//! the breadcrumbs' postings hold the heading's and the whole body's. On this site the
-//! breadcrumbs' postings were 3.65 MB of the 10.0 MB (9,999,756 bytes) mdBook counted, 52 KB once
-//! rebuilt, and that copy is what held the index at mdBook's 10 MB warning and kept pages out of
-//! search. elasticlunr-rs 3.1.0 fixed it (its changelog's "tokens from earlier fields leaking
-//! into later fields' indices", pull request #60). mdBook's main branch takes that version, its
-//! latest release (0.5.4) doesn't, and until one does [`rebuild`] does the same.
+//! the breadcrumbs' postings hold the heading's and the whole body's. In main's index at b7313b32
+//! (fifteen pages left out) the breadcrumbs' postings were 3.65 MB of the 10.0 MB (9,999,756 bytes)
+//! mdBook counted, 52 KB once rebuilt, and that copy is what held the index at mdBook's 10 MB
+//! warning and kept pages out of search. elasticlunr-rs 3.1.0 fixed it (its changelog's "tokens
+//! from earlier fields leaking into later fields' indices", pull request #60). mdBook's main branch
+//! takes that version, its latest release (0.5.4) doesn't, and until one does [`rebuild`] does the
+//! same.
 //!
 //! - **What it reads.** mdBook keeps each section's heading, body and breadcrumbs as text in the
-//!   index's document store, already cut into sections and with its white space collapsed. The
+//!   index's document store, already cut into sections and with runs of white space collapsed. The
 //!   rebuild indexes that text again, field by field, splitting words as mdBook does (at white
 //!   space and hyphens, lowercased, words over 80 bytes left out: [`tokenize`]) and running
 //!   elasticlunr's English pipeline (trimmer, stop words, stemmer).
@@ -25,9 +26,9 @@
 //!   follows the weights mdBook gives each field (title 2, body 1, breadcrumbs 1).
 //! - **Its size,** checked against [`LIMIT_GZIP_BYTES`], stands for what a reader downloads
 //!   when they open the search: the file compressed with gzip at the default level ([`gzip_len`]).
-//!   GitHub Pages compresses a little less well: for the same file it sent 1,754,850 bytes on
-//!   November 10, 2026 (UTC), against 1,675,059 here. The limit and the file are measured the same
-//!   way, so the comparison holds.
+//!   GitHub Pages compresses a little less well: for main's file at b7313b32 it sent 1,754,850
+//!   bytes (measured 2026-11-10 05:10 UTC), against 1,675,059 here. The limit and the file are
+//!   measured the same way, so the comparison holds.
 
 use std::io::Write as _;
 use std::path::Path;
@@ -195,7 +196,7 @@ fn reindex(old: &Value, sections: usize) -> Result<Value, String> {
 }
 
 /// Splits a field's text into words as mdBook 0.5 does before elasticlunr's pipeline:
-/// elasticlunr's own English split (at white space and hyphens, each word lowercased), with words
+/// elasticlunr's white-space split (at white space and hyphens, each word lowercased), with words
 /// over [`MAX_WORD_BYTES`] left out. The document store's word counts, which [`reindex`]
 /// compares, hold the rebuild to mdBook's split.
 fn tokenize(text: &str) -> Vec<String> {
@@ -459,12 +460,17 @@ mod tests {
         // rebuild made room for every page (#414), so the table must stay empty.
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../book.toml");
         let book: toml::Table = std::fs::read_to_string(path).unwrap().parse().unwrap();
-        let search = &book["output"]["html"]["search"];
+        let search = book
+            .get("output")
+            .and_then(|o| o.get("html"))
+            .and_then(|h| h.get("search"))
+            .expect("book.toml has an [output.html.search] table");
         assert!(
             search.get("chapter").is_none(),
             "book.toml leaves pages out of search"
         );
-        // The table read where mdBook reads it.
+        // Search itself stays on, and the table is the one mdBook reads.
+        assert_ne!(search.get("enable"), Some(&toml::Value::Boolean(false)));
         assert!(search.get("heading-split-level").is_some());
     }
 }
