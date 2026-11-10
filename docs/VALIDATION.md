@@ -682,14 +682,14 @@ impulse. Four of the seven altimeters' kinds are assumed barometric
 
 ### Public flights predicted first
 
-`cargo xtask public-predictions [--check]` flies the public real flights that haven't been
+`cargo xtask public-predictions [--check]` flies the listed public real flights that haven't been
 compared with their logs yet, each from its record alone
 ([the EuRoC 2022 predictions](decisions-and-roadmap.md#m2-3d3),
 [why they merge first](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md)).
 Today they're Astra, Andromeda and Erebus 11. It writes each one's inputs with their sources, the
 rule its log's apogee will be read by, and the predicted apogee to
 `validation/reports/public-predictions.{json,md}`. It hashes each log, to pin the file, and never
-reads one as numbers. The report has no field for a measured apogee or an error.
+parses one. The report has no field for a measured apogee or an error.
 
 The three fly in one ERA5 file that is netCDF-4.
 `validation/oracles/netcdf/euroc_2022.py` converts it as the
@@ -700,7 +700,8 @@ holds both files' SHA-256, and a prediction flies the converted file only if it 
 one.
 
 `--check` flies the predictions again and fails when one differs from the committed one: a merged
-prediction isn't changed, it's revised beside the old number. CI, without the checkout, holds the
+prediction changed later is to be revised beside the old number, which the comparison's own
+change must show. CI, without the checkout, holds the
 committed predictions to the code's list of flights, to the committed designs' digests and to
 their page.
 
@@ -901,7 +902,7 @@ Other sources:
 | RockSim `.rse` spec | https://www.thrustcurve.org/thirdparty/RockSim%20Engine%20File%20Format.pdf | n/a | XML; real files disagree with the guide on names and units. Reader and writer: `docs/format/rse.md` |
 | ThrustCurve.org statistics code | `simulate/analyze/analyze.js` at commit `577afa6` (`thrustcurve3-analyze`) | ISC | `validation/oracles/thrustcurve/analyze_stats.js` runs it unchanged on every file stored as passing (412) → `validation/fixtures/motor/thrustcurve-analyze-stats.json`; HPR Sim's impulse, burn window and thrusts agree to 3e-15, with the code's 50 µs merge also turned off on the 8 files it merges ([ADR-304](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0304-every-passing-file-held-to-the-oracles.md)); `--recount` recounts the passing files from the raw snapshot ([solid motors](decisions-and-roadmap.md#m5-7c)) |
 | RocketPy `SolidMotor` | mass, centers and inertia vs time for BATES grains | MIT | `validation/oracles/rocketpy/solid_motor.py` → `validation/fixtures/motor/rocketpy-solid-motor.json` (three bundled curves). Total mass and both inertias agree within 7.9e-5 relative, the center of mass within 5.9e-6 of the motor length; propellant quantities within 1e-4 of their ignition values ([solid motors](decisions-and-roadmap.md#m1-3); scales in `docs/physics/motor.md`) |
-| RocketPy `Rocket` with a motor | total mass, center of mass and inertia vs time for twelve example rockets (Calisto at two motor positions), Prometheus's with a `GenericMotor` | MIT (notebooks and tests only; Valkyrie's data-file inputs are left out) | `validation/oracles/rocketpy/rocket_mass.py` → `validation/fixtures/design/rocketpy-rocket-mass.json`: each example's own inputs, with the bundled public-domain curve nearest in impulse in place of its thrust file ([the design tree](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0007-design-tree-stations-placement-automatic-radii.md)). HPR Sim's designs (`validation/designs/`) agree at RocketPy's LSODA knots within 8e-10 (grain propellant mass 2.4e-9), and between knots within 1.3e-5 in mass, 3.6e-6 of the length in center and 2.6e-5 in inertia, RocketPy's resampling; dry values to 2e-16. Four examples whose motors have no dry mass are not cases; Cavour is, for its drag curve, and Genesis and Lince for their logged flights ([real flights](decisions-and-roadmap.md#m2-3b)) ([design tree](decisions-and-roadmap.md#m1-4b), [drag](decisions-and-roadmap.md#m1-5b), `docs/physics/design.md`) |
+| RocketPy `Rocket` with a motor | total mass, center of mass and inertia vs time for twelve example rockets (Calisto at two motor positions), Prometheus's with a `GenericMotor` | MIT (notebooks and tests only; Valkyrie's data-file inputs are left out) | `validation/oracles/rocketpy/rocket_mass.py` → `validation/fixtures/design/rocketpy-rocket-mass.json`: each example's own inputs, with a bundled public-domain curve near its thrust file's impulse in place of that file (Andromeda's is the catalog motor its notebook names) ([the design tree](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0007-design-tree-stations-placement-automatic-radii.md)). HPR Sim's designs (`validation/designs/`) agree at RocketPy's LSODA knots within 8e-10 (grain propellant mass 2.5e-9), and between knots within 1.4e-5 in mass, 4.0e-6 of the length in center and 2.6e-5 in inertia, RocketPy's resampling; dry values to 3.5e-16. Camões, whose motor has no dry mass, is not a case; Cavour is, for its drag curve, and Genesis and Lince for their logged flights ([real flights](decisions-and-roadmap.md#m2-3b)), as Astra, Andromeda and Erebus 11 are ([the EuRoC 2022 predictions](decisions-and-roadmap.md#m2-3d3)) ([design tree](decisions-and-roadmap.md#m1-4b), [drag](decisions-and-roadmap.md#m1-5b), `docs/physics/design.md`) |
 | `broofa/thrustcurve-db` | JSON snapshot including thrust samples | ISC (code) | handy offline seed; check the data terms per curve |
 | openrocket/motor-database | weekly SQLite mirror | GPL-3.0 | run-only reference; don't bundle |
 | motor.fusionspace.co API v1 | live US stock and prices (AeroTech, Cesaroni, Loki) | CC BY 4.0, credit "Motor stock data from motor.fusionspace.co" | `https://motor.fusionspace.co/api/v1/{meta,motors,in-stock,vendors}.json`, `/motors/{mfr}/{designation}.json` (`/` becomes `~`), `/openapi.json`. Refreshed hourly, CORS-open, no key. Prices are in integer cents. `schema_version` is 1. Docs: https://github.com/nrdptel/Hobby-Rocket-Motor-Finder/blob/main/docs/api.md |

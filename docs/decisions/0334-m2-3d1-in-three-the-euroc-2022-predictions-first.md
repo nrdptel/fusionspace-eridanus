@@ -1,7 +1,7 @@
 # ADR-334: M2.3d1 in three, the EuRoC 2022 predictions first (2026-11-10)
 
-- **Status:** accepted; splits [M2.3d1][m2-3d1] into M2.3d3, M2.3d4 and M2.3d5, each with its own *done when*, M2.3d1's *done when* whole across the three, and so plans every remaining increment of M2.3d1; carries out [M2.3d3][m2-3d3] under [ADR-328][adr-328] §1a. [M2.3d2][m2-3d2], the errors, stays last, after all three.
-- **Summary:** HPR Sim can't fly the Macie XL design yet: its stage's mass override adds to its parts, and HPR Sim holds such a stage back. So the five predictions merge in two pull requests, and no error is computed until both have merged. This record merges the first three, flown from their example notebooks in their launch hours' ERA5 air: Astra 3,037.1 m (9,964 ft), Andromeda 3,581.0 m (11,749 ft) and Erebus 11 2,714.1 m (8,905 ft), as their altimeters would read them. Andromeda is counted on its team's thrust file and tagged *not traced*; the catalog motor's 3,050.3 m (10,008 ft) is shown beside it and never counted.
+- **Status:** accepted; splits [M2.3d1][m2-3d1] into [M2.3d3][m2-3d3], [M2.3d4][m2-3d4] and [M2.3d5][m2-3d5], each with its own *done when*, M2.3d1's *done when* whole across the three, and so plans every remaining increment of M2.3d1; carries out M2.3d3 under [ADR-328][adr-328] §1a. [M2.3d2][m2-3d2], the errors, stays last, after all three.
+- **Summary:** HPR Sim can't fly the Macie XL design yet: its stage's mass override adds to its parts, and HPR Sim holds such a stage back. So the five predictions merge in two pull requests, and no error is computed until both have merged. This record merges the first three, flown from their example notebooks in their launch hours' ERA5 air: Astra 3,037.1 m (9,964 ft), Andromeda 3,581.0 m (11,749 ft) and Erebus 11 2,714.1 m (8,904 ft), as their altimeters would read them. Andromeda is counted on its team's thrust file and tagged *not traced*; the catalog motor's 3,050.3 m (10,008 ft) is shown beside it and never counted.
 
 [m2-3d1]: ../decisions-and-roadmap.md#m2-3d1
 [m2-3d2]: ../decisions-and-roadmap.md#m2-3d2
@@ -11,7 +11,6 @@
 [adr-082]: 0082-real-flights-read-from-refs-compared-over-the.md
 [adr-328]: 0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md
 [i1225]: https://github.com/nrdptel/fusionspace-eridanus/issues/1225
-[i1266]: https://github.com/nrdptel/fusionspace-eridanus/issues/1266
 [ork-stage]: ../format/ork.md#the-values-inside-the-tags
 [era5-convert]: ../format/era5.md#converting-a-current-file
 [andromeda]: ../research/andromeda-impulse.md
@@ -28,7 +27,7 @@ Astra, Andromeda and Erebus 11 from RocketPy's examples, and two flights of the 
 
 The Macie XL design can't be flown today. `hpr sim` refuses it with *the stage's override doesn't
 cover its parts (`overridesubcomponentsmass` is false)*. The file's stage carries a mass override
-and a center of gravity override, both with that flag false. OpenRocket 24.12 adds such a mass to
+and a center of gravity override, each with its own such flag false. OpenRocket 24.12 adds such a mass to
 what the parts weigh, measured on four probe designs ([the `.ork` page][ork-stage]). HPR Sim reads
 a stage's override as the whole stage's, so since [#1225][i1225] it holds such a stage back
 rather than fly it far too light. Flying it as OpenRocket weighs it is work on the design tree
@@ -59,9 +58,9 @@ the seven flown ones do, and their weather needs only the conversion the guide a
    that flight's error is computed, which two pull requests give as well as one. M2.3d2 stays
    after M2.3d5, so none of the five is compared until all five are merged. A test fails if one
    of the three joins the compared flights while it is still only on the predictions list.
-3. **The apogee rule, fixed before the flights were flown.** Each of the three is read as the
-   seven are ([ADR-082][adr-082]): the highest reading of its log's height column. The log is
-   read whole, with no cut: each was looked at for its columns and for a transient near its
+3. **The apogee rule, fixed before the flights were flown.** Each of the three is read by the
+   seven's rule ([ADR-082][adr-082]): the highest reading of its log's height column. Four of
+   the seven logs are cut before a transient; these three are read whole: each was looked at for its columns and for a transient near its
    peak, and each peak is the whole log's highest reading. No notebook says how its altimeter
    makes a height, so each is taken as barometric, as the four of the seven with no record are,
    and the prediction is read the same way. The height climbed is kept beside it. The measured
@@ -85,8 +84,10 @@ the seven flown ones do, and their weather needs only the conversion the guide a
    [record][record] holds both files' SHA-256, and `public-predictions` flies the converted file
    only if its SHA-256 is the recorded one.
 7. **What a prediction may read.** The module that flies a prediction hashes its flight's log,
-   which pins the file the rule will be applied to, and never reads it as numbers. Its report has
-   no field for a measured apogee or an error, and a test fails if one appears.
+   which pins the file the rule will be applied to, and never parses it. Its report has no field
+   for a measured apogee or an error, and a test fails if a field named for an error, a measured
+   value, a residual, an RMS or a miss appears, or if the module's source names one of the log
+   readers' functions.
 
 **The predictions.** From [the committed page][predictions]:
 
@@ -94,7 +95,7 @@ the seven flown ones do, and their weather needs only the conversion the guide a
 |---|---:|---:|---:|---:|---|
 | Astra | 4,280.2 | 12.670 | 3,037.1 m (9,964 ft) | 3,155.4 m (10,352 ft) | yes |
 | Andromeda, the team's curve | 9,866.7 | 25.323 | 3,581.0 m (11,749 ft) | 3,729.5 m (12,236 ft) | no |
-| Erebus 11 | 2,418.2 | 6.996 | 2,714.1 m (8,905 ft) | 2,808.7 m (9,215 ft) | yes |
+| Erebus 11 | 2,418.2 | 6.996 | 2,714.1 m (8,904 ft) | 2,808.7 m (9,215 ft) | yes |
 
 Andromeda on the catalog M2020, never counted: 8,428.7 N·s, 3,050.3 m (10,008 ft).
 

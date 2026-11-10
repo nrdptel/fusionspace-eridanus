@@ -61,8 +61,8 @@ height, centred at `chamber_position` with inertia in proportion to the remainin
 `center_of_dry_mass_position` left as None, RocketPy uses `chamber_position` (motor.py:1518-1523).
 
 Thrust curves. RocketPy's data files carry their own terms (THIRD-PARTY-NOTICES.md), so each case
-reads the bundled public-domain .eng curve (crates/hpr-motor/data/thrustcurve/catalog.json) closest
-in total impulse to the example's motor, with `burn_time=None` (the curve's own knot range), no
+reads a bundled public-domain .eng curve (crates/hpr-motor/data/thrustcurve/catalog.json) near the
+example's motor in total impulse (the cases' comments give the impulses), with `burn_time=None` (the curve's own knot range), no
 reshaping, and linear interpolation. Andromeda's is the one exception: its example flies a team
 file of 9867 N s under the name of a Cesaroni M2020, and the case takes the bundled M2020 (8429 N s),
 so the design flies the catalog motor as it stands. The script checks the catalog's license and SHA-256. The output
@@ -759,7 +759,7 @@ CASES = [
         # data/rockets/erebus11/thrust_source.csv, burn_time 3.657, one grain, zero dry mass and
         # inertia), rocket :251-259, rail buttons :261, add_motor :263, nose :272, fins :274-280,
         # tail :282-284 (no parachute: "for comparison purposes", :242). Added in M2.3d3 for its
-        # logged flight. Substitute: Cesaroni 2430K661-P (2437 N s against the file's 2418 N s).
+        # logged flight. Substitute: Cesaroni 2430K661-P (2436 N s against the file's 2418 N s).
         "name": "erebus-11",
         "source": "docs/examples/erebus_flight_sim.ipynb:162-179 (motor), :251-263 (rocket, rail "
                   "buttons, add_motor), :272-284 (nose, fins, tail)",

@@ -89,14 +89,15 @@ The −1.373 value at `t = 0`, 10.516648, matches RocketPy's own pinned test val
   massless motor dry parts; their designs give the motor 1e-15 kg, since hpr needs a positive one.
   - Prometheus's `GenericMotor` is hpr's propellant column: a fixed center, solid-cylinder inertia,
     and impulse-fraction consumption (`motors/motor.py:470-524`, `:1566-1661`).
-  - Left out: Valkyrie, whose inputs exist only in `data/rockets/valkyrie/VLK.json`, and Andromeda,
-    Astra, Camoes and Erebus 11, whose motors test only the propellant. ADR-007 takes inputs only
+  - Left out: Valkyrie, whose inputs exist only in `data/rockets/valkyrie/VLK.json`, and Camoes,
+    whose motor tests only the propellant. ADR-007 takes inputs only
     from RocketPy's notebooks and tests, since its data files "carry their own terms".
   - **Inference:** that policy is caution, not a sourced term. RocketPy has one MIT license with no
     data exception; team permissions are recorded in one data folder (`data/rockets/juno3/README.txt`)
     and in 14 of the 17 example notebooks.
 - **Curves.** RocketPy's thrust files are data files too. Each case keeps the example's inputs but
-  uses the bundled public-domain curve nearest in impulse (ADR-007).
+  uses a bundled public-domain curve near the example's in impulse (ADR-007); the script's comments
+  on the cases give the impulses. Andromeda's is the catalog M2020 its notebook names.
   - Values at ignition don't depend on the curve, and at burnout they agree to 1e-9. So hpr's
     match there is also a match to the table above.
   - With `--example-curves` the script reproduces that table exactly; its output stays under
@@ -106,9 +107,9 @@ The −1.373 value at `t = 0`, 10.516648, matches RocketPy's own pinned test val
 - **Agreement** (`hpr_design::config::tests::matches_rocketpy_example_rockets`):
   - Dry scalars, and initial and column propellant mass, match to 3.5e-16, and the products of inertia are exactly zero.
   - At RocketPy's LSODA knots, where its grain geometry holds computed values: mass, center and
-    inertia match to 8e-10, and propellant mass to 2.4e-9. That is the solver's accuracy.
-  - Between knots, on an even grid: mass to 1.3e-5 (Lince), center to 4.0e-6 of the length, `I_11` to
-    2.6e-5 and `I_33` to 1.4e-5.
+    inertia match to 8e-10, and propellant mass to 2.5e-9. That is the solver's accuracy.
+  - Between knots, on an even grid: mass to 1.4e-5 (Lince), center to 4.0e-6 of the length, `I_11` to
+    2.6e-5 and `I_33` to 1.5e-5 (each rounded up).
   - That residual is RocketPy's resampling. `SolidMotor` interpolates grain volumes linearly
     between LSODA knots (`motors/solid_motor.py:385-399`, `:603-630`). `GenericMotor` samples its
     inertias at thrust knots.

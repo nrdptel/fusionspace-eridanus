@@ -21,7 +21,7 @@ These are built from `validation/fixtures/design/rocketpy-rocket-mass.json`, whi
 - **Mass:** the stage override is the example's mass, centre of mass (on the axis) and inertia
   without its motor, as RocketPy takes them.
 - **Motor:** the example's grains or chamber, dry mass, nozzle and position, on hpr's motor axis.
-  The thrust curve is the bundled public-domain curve nearest in impulse (Andromeda's is the one
+  The thrust curve is a bundled public-domain curve near the example's in impulse (Andromeda's is the one
   exception, below), because RocketPy's motor files carry their own terms (ADR-007). The configuration's name says which curve replaces which.
 - **Case size:** the examples give none, so the case is the propellant's envelope. The mount is a
   tube that fits it exactly, in the last body tube forward of the nozzle.

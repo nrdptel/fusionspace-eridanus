@@ -1,4 +1,4 @@
-//! `cargo xtask public-predictions [--check]`: flies the public real flights that have not been
+//! `cargo xtask public-predictions [--check]`: flies the listed public real flights that have not been
 //! compared with their logs yet, from each one's record alone, and writes their predicted apogees
 //! (M2.3d3, ADR-328 §1a, ADR-334).
 //!
@@ -19,7 +19,7 @@ pub const USAGE: &str = "  public-predictions [--check]
                            Fly the public real flights not yet compared with their logs, each
                            from its record alone, and write their predicted apogees; needs
                            refs/rocketpy and the converted EuRoC 2022 weather file. Hashes
-                           each log and never reads one. Writes
+                           each log and never parses one. Writes
                            validation/reports/public-predictions.{md,json}; --check writes
                            nothing and fails unless the committed predictions reproduce.";
 

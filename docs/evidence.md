@@ -62,7 +62,7 @@ the checks fetch into. Its hash lets every check confirm it reads the same bytes
 
 <!-- evidence: report; written by `cargo xtask evidence` from validation/evidence.toml; do not edit -->
 
-The register holds 38 rows, as of November 2, 2026.
+The register holds 39 rows, as of November 10, 2026.
 
 **By kind.** Each surface's rows, counted by the kind of evidence behind them now:
 
@@ -84,9 +84,10 @@ The register holds 38 rows, as of November 2, 2026.
 | One logger to a stage on one timeline | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
 | Ghost files | 1 | 0 | 0 | 0 | 0 | 0 | 1 |
 | The least-squares fit | 0 | 0 | 0 | 1 | 0 | 0 | 1 |
-| All | 2 | 6 | 8 | 7 | 11 | 4 | 38 |
+| Public flights predicted first | 0 | 0 | 0 | 0 | 1 | 0 | 1 |
+| All | 2 | 6 | 8 | 7 | 12 | 4 | 39 |
 
-**Short of what's wanted.** 36 of the 38 rows don't yet have the kind of evidence they want. Each has an open issue labeled `needs-sample`, linked in its row below.
+**Short of what's wanted.** 37 of the 39 rows don't yet have the kind of evidence they want. Each has an open issue labeled `needs-sample`, linked in its row below.
 
 **The rows.**
 
@@ -130,8 +131,9 @@ The register holds 38 rows, as of November 2, 2026.
 | <a id="g36"></a>G36 | One logger to a stage on one timeline | A shared liftoff lines up a logger in each stage of a staged flight, within a bound that held on 135 simulated two-stage flights. **Not checked:** a real flight's log from each stage, where a booster's board may read the pad's shock and the separation otherwise. | calibration | real | [#1084](https://github.com/nrdptel/fusionspace-eridanus/issues/1084) | 2026-11-02 |
 | <a id="g37"></a>G37 | Ghost files | Each of the 22 real flight logs in RocketPy's repository with an altitude or a GNSS track gives a ghost file as JSON, CZML and glTF, which outside readers read back and hold to each other. **Not checked:** a person looking at one in Cesium or a modeling tool: every check is of the numbers; east and north against the real logs' fixes, only the invented cases and a hand check on three. | real | real | none | 2026-11-02 |
 | <a id="g38"></a>G38 | The least-squares fit | Each of the drag scale, impulse scale, wind on logs with a track, and mass has a 90% interval that passes its test on two sets of synthetic flights, seen while its model was chosen. **Not checked:** a real flight's fit against what was measured apart from the log: a weighed mass, a static test's impulse, a measured wind. | calibration | real | [#1104](https://github.com/nrdptel/fusionspace-eridanus/issues/1104) | 2026-11-02 |
+| <a id="g39"></a>G39 | Public flights predicted first | Astra's, Andromeda's and Erebus 11's logs are each taken as a barometric altimeter's, and each prediction is read the same way. **Not checked:** each of the three altimeters' make and sensor. | reasoning | real | [#1403](https://github.com/nrdptel/fusionspace-eridanus/issues/1403) | 2026-11-10 |
 
-**Due a search.** A row is due one when it has none yet, or its last was more than 30 days before November 2, 2026: none.
+**Due a search.** A row is due one when it has none yet, or its last was more than 30 days before November 10, 2026: none.
 
 **Searches so far.**
 
@@ -392,6 +394,11 @@ The register holds 38 rows, as of November 2, 2026.
   - Zenodo, Dryad and Hugging Face for rocket flight data
 
   It found a lead with no log. The Florida State report states the launch-ready vehicle's final mass, its sections' weights, the wind speed and a TeleMetrum's apogee, but publishes no log or motor test. It is cited only, cached under refs/samples-search/G38. The data sites hold no flight log with a weighed mass, a static test or a measured wind.
+- [G39](#g39), November 10, 2026, looked at:
+  - RocketPy v1.13.0's example notebooks for the three flights (astra_flight_sim.ipynb, andromeda_flight_sim.ipynb, erebus_flight_sim.ipynb)
+  - each flight's folder under RocketPy's data/rockets
+
+  It found no answer. Each notebook imports its log under the name COTS Altimeter Flight and names no make or sensor; Astra's also labels the series Telemetry. The folders hold the log, a drag curve and, for two, a thrust file. The logs are a time and a height (Astra's with a position, Andromeda's with a vertical speed), and none has a header naming a device.
 
 **Real samples.** Each file a real row reads, kept under `refs/`, with its SHA-256 and the test that reads it:
 

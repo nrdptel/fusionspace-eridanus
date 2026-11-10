@@ -9,9 +9,9 @@ that conversion, word for word as the guide gives it (`docs/format/era5.md`):
         .to_netcdf(out, format="NETCDF3_64BIT")
 
 and writes `refs/converted/rocketpy/euroc_2022_all_windows.nc`. The converted file stays under
-the gitignored `refs/`, as the source does (the weather file came to RocketPy with its flights'
-data, whose terms are RocketPy's teams'); only the two files' SHA-256 are committed, in the JSON
-this script prints.
+the gitignored `refs/`, as the source and RocketPy's other whole ERA5 files do
+(THIRD-PARTY-NOTICES.md); only the two files' SHA-256 are committed, in the JSON this script
+prints.
 
 It then tests the converted file, and fails unless every check holds:
 

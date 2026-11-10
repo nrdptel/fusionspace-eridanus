@@ -4,10 +4,10 @@ Written by `cargo xtask public-predictions` ([M2.3d3][m2-3d3], decisions [ADR-32
 
 - **What this is:** 3 public real flights that join the seven of the [real-flights report][real], each flown by HPR Sim from its record alone. This page was merged before any of their logs was compared, so no number here could be tuned to its own error.
 - **What it holds:** each flight's inputs with their sources, the rule its log's apogee will be read by, and HPR Sim's predicted apogee. It holds no measured apogee and no error: those come in a later pull request, which must print each prediction below beside its error.
-- **How it is flown:** as the seven are. The design is built from the example's inputs and flown on the example's own thrust file, from its rail and site, in the ERA5 air of its launch hour, on HPR Sim's own aerodynamics.
+- **How it is flown:** by the seven's method. The design is built from the example's inputs and flown on the example's own thrust file, from its rail and site, in the ERA5 air of its launch hour, on HPR Sim's own aerodynamics.
 - **The predicted apogee** is read as the log's altimeter would read it: the standard atmosphere's altitude of the day's pressure at the apogee, less the pad's. The height climbed is beside it.
 - **Traced:** An input is traced when the flight's own record states it: here RocketPy's example notebook, which holds the team's inputs. What no RocketPy example records, the surface finish and the fin edges, is a placeholder in every design built from one and doesn't count against the tag. A flight is tagged not traced when its record leaves out, or contradicts, something that moves the apogee.
-- **Files:** the thrust files, logs and weather file are read from the pinned RocketPy checkout and never committed; each one's SHA-256 is in the JSON. A log's bytes are hashed to pin the file its rule will be applied to; they are never read as numbers here.
+- **Files:** the examples' thrust files and the logs are read from the pinned RocketPy checkout, and the weather file is converted from the checkout's; none is committed, and each one's SHA-256 is in the JSON. A log's bytes are hashed to pin the file its rule will be applied to; they are never read as numbers here.
 
 [m2-3d3]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3d3
 [adr-328]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md

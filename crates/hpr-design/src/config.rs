@@ -1398,21 +1398,23 @@ mod tests {
                 }
             }
         }
-        // Measured worst (RocketPy 1.13.0), and each tolerance's margin over it:
+        // Measured worst (RocketPy 1.13.0), rounded up, and each tolerance's margin over the
+        // worst before rounding:
         //
         // - Exact quantities: dry mass, center and inertias, initial propellant mass and the
-        //   column's propellant mass agree to 2.4e-16 (tolerance 1e-12). Products of inertia are
+        //   column's propellant mass agree to 3.5e-16 (tolerance 1e-12). Products of inertia are
         //   exactly zero (1e-15).
         // - At RocketPy's LSODA knots, where its grain geometry holds computed values: total mass
-        //   3.3e-10, center 1.4e-10 of the length, `I_11` 8.0e-10, `I_33` 1.8e-10, grain propellant
-        //   mass 2.4e-9 of its initial value. That is the solver's own accuracy (rtol 1e-11); the
-        //   tolerance is 1e-8, a margin of 4 to 70.
-        // - On the even grid, between knots: total mass 1.3e-5 (Lince), center 3.6e-6, `I_11` 2.6e-5,
-        //   `I_33` 1.4e-5, grain propellant mass 4.9e-5. `SolidMotor` interpolates its grain
-        //   volumes linearly between LSODA knots (`solid_motor.py:375-383`, `:603-630`) and
+        //   3.4e-10, center 1.4e-10 of the length, `I_11` 8.0e-10, `I_33` 1.8e-10, grain propellant
+        //   mass 2.5e-9 of its initial value. That is the solver's own accuracy (rtol 1e-11); the
+        //   tolerance is 1e-8, a margin of 4 to 74.
+        // - On the even grid, between knots: total mass 1.4e-5 (Lince), center 4.0e-6 (Erebus 11),
+        //   `I_11` 2.6e-5, `I_33` 1.5e-5, grain propellant mass 6.4e-5 (Erebus 11). `SolidMotor`
+        //   interpolates its grain volumes linearly between LSODA knots
+        //   (`solid_motor.py:375-383`, `:603-630`) and
         //   `GenericMotor` samples its inertias at the thrust knots, while hpr's are exact for a
-        //   piecewise-linear curve. Tolerances: 5e-5 (margin 3.8), 2e-5 (5.6), 1e-4 (3.9 and 7) and
-        //   2.5e-4 (5).
+        //   piecewise-linear curve. Tolerances: 5e-5 (margin 3.8), 2e-5 (5.0), 1e-4 (3.9 and 7) and
+        //   2.5e-4 (3.9).
         let tolerance = |what: &str| match what {
             "initial propellant mass"
             | "dry mass"

@@ -20,7 +20,7 @@ measured overrides, mounts motors and flags impossible designs.
   of [RocketPy](../glossary.md#rocketpy)'s [example rockets](../glossary.md#example-rockets) are
   compared, each a given structure with its motor placed. At the times RocketPy computed, mass,
   center and inertia agree within 8.0e-10 (relative). Between those times, mass agrees within
-  1.3e-5 and inertia within 2.6e-5. The propellant grains' mass agrees within 2.4e-9 at those times and 6.3e-5 between them, of
+  1.4e-5 and inertia within 2.6e-5. The propellant grains' mass agrees within 2.5e-9 at those times and 6.4e-5 between them, of
   its initial value. Placement, automatic radii and overrides are checked by hand. On 71 designs
   compared with OpenRocket, the whole structure is within 1% in mass on 70 and in center of mass
   on 70 ([mass properties](mass.md#checked-against-openrocket)). Body radii are checked against
@@ -888,19 +888,19 @@ unless the caller sets
     grain geometry.
     Errors are relative: to the value itself, or to what a row names in brackets (the rocket's
     length for a center).
-  - Worst measured, with the test's tolerance:
+  - Worst measured, rounded up, with the test's tolerance:
 
     | quantity | worst | tolerance, ratio |
     |---|---|--:|
     | dry mass, center, `I_11`, `I_33`; initial and column propellant mass | 3.5e-16 | 1e-12 |
     | products of inertia (of `I_11`) | 0 | 1e-15 |
     | at LSODA knots: total mass, center (of length), `I_11`, `I_33` | 8.0e-10 | 1e-8 |
-    | at LSODA knots: grain propellant mass (of initial) | 2.4e-9 | 1e-8 |
-    | even grid: total mass | 1.3e-5 (Lince) | 5e-5 |
+    | at LSODA knots: grain propellant mass (of initial) | 2.5e-9 | 1e-8 |
+    | even grid: total mass | 1.4e-5 (Lince) | 5e-5 |
     | even grid: center of mass (of the rocket's length) | 4.0e-6 (Erebus 11) | 2e-5 |
     | even grid: `I_11` about the dry center and about the center of mass | 2.6e-5 | 1e-4 |
-    | even grid: `I_33` | 1.4e-5 | 1e-4 |
-    | even grid: grain propellant mass (of initial) | 6.3e-5 (Erebus 11) | 2.5e-4 |
+    | even grid: `I_33` | 1.5e-5 | 1e-4 |
+    | even grid: grain propellant mass (of initial) | 6.4e-5 (Erebus 11) | 2.5e-4 |
 
   - At RocketPy's knots, agreement is the ODE solver's own accuracy (rtol 1e-11).
   - Between knots, the residual is RocketPy's resampling: it interpolates grain volumes linearly

@@ -770,15 +770,16 @@ impl PredictionsReport {
              apogee will be read by, and HPR Sim's predicted apogee. It holds no measured apogee \
              and no error: those come in a later pull request, which must print each prediction \
              below beside its error.\n\
-             - **How it is flown:** as the seven are. The design is built from the example's \
+             - **How it is flown:** by the seven's method. The design is built from the example's \
              inputs and flown on the example's own thrust file, from its rail and site, in the \
              ERA5 air of its launch hour, on HPR Sim's own aerodynamics.\n\
              - **The predicted apogee** is read as the log's altimeter would read it: the standard \
              atmosphere's altitude of the day's pressure at the apogee, less the pad's. The height \
              climbed is beside it.\n\
              - **Traced:** {}\n\
-             - **Files:** the thrust files, logs and weather file are read from the pinned \
-             RocketPy checkout and never committed; each one's SHA-256 is in the JSON. A log's \
+             - **Files:** the examples' thrust files and the logs are read from the pinned \
+             RocketPy checkout, and the weather file is converted from the checkout's; none is \
+             committed, and each one's SHA-256 is in the JSON. A log's \
              bytes are hashed to pin the file its rule will be applied to; they are never read as \
              numbers here.\n\n\
              [m2-3d3]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3d3\n\
