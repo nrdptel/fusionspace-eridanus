@@ -35,15 +35,14 @@ burn, mass and ejection delay.
   ([the whole catalog](#the-whole-catalog)). Propellant burns in proportion to the
   impulse delivered, an approximation. With only catalog data, the center of mass stays at
   mid-length. Commercial motor files give no nozzle exit size, so thrust at altitude goes
-  uncorrected unless one is supplied.
-- **Grain temperature isn't modelled.** Every motor flies its certified curve, fired with the
-  grain at about 15 to 25 °C. A grain 10 K warmer burns shorter and harder, and delivers 0.1% to
-  0.8% more impulse. That impulse adds 0.06% to 1.3% to apogee. The shorter burn moves apogee
-  by −0.2% to +0.4% too, or by +1.1% to +2.2% for a slow, long burn. So on a hot day the predicted
-  apogee can read low, the flattering side for a waiver. A grain 20 K cold loses 0.1% to 2.6% of
-  apogee to impulse alone. The figures are borrowed from military and sounding-rocket motors. One
-  hobby test of 71 F-class motors agrees (+0.2% impulse per 10 K), but no hobby propellant has a
-  published sensitivity ([propellant temperature][propellant-temperature]).
+  uncorrected unless one is supplied. Grain temperature isn't modeled either: every motor flies
+  its certified curve, fired with the grain at about 15 to 25 °C. A grain 10 K warmer delivers
+  0.1% to 0.8% more impulse, which adds 0.06% to 1.3% to apogee. Its shorter, harder burn moves
+  apogee by −0.2% to +0.4% too, or by +1.1% to +2.2% for a slow, long burn. So on a hot day the
+  predicted apogee can read low, the flattering side for a waiver. A grain 20 K cold loses 0.1%
+  to 2.6% of apogee to impulse alone. These figures are borrowed from military and
+  sounding-rocket motors; one hobby test of 71 F-class motors agrees (+0.2% impulse per 10 K)
+  ([propellant temperature][propellant-temperature]).
 
 ## Using a motor
 
