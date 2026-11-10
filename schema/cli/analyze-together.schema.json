@@ -110,7 +110,7 @@
           "$ref": "#/$defs/LogReading5"
         },
         "day_air": {
-          "description": "The day's air at the pad, from the log's own temperature against the 1976 standard\natmosphere's, and whether the bounds' 15 K allowance for it covers it; `null` where the log\nhas no temperature, or no height above sea level for the pad (issue #1259).",
+          "description": "The day's air at the pad, from the log's own temperature against the 1976 standard\natmosphere's, and whether the bounds' 15 K allowance for it covers it; `null` where the log\nhas no temperature, one that never changes over the log (no sensor), or no height above sea\nlevel for the pad (issue #1259).",
           "anyOf": [
             {
               "$ref": "#/$defs/DayAirReading"
@@ -685,7 +685,7 @@
           "type": "string"
         },
         "top_standard_temperature_k": {
-          "description": "The standard temperature the share is taken at, K: at the apogee's height above sea level,\nor the standard's coldest, 216.65 K, with no apogee read.",
+          "description": "The standard temperature the share is taken at, K: at the apogee's height above sea level,\nor the standard's coldest, 216.65 K, with no apogee read or an apogee that is only a floor.",
           "type": "number",
           "format": "double"
         }

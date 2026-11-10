@@ -1654,7 +1654,8 @@ pub struct Analyze {
     pub main_descent: LogReading<DescentReading>,
     /// The day's air at the pad, from the log's own temperature against the 1976 standard
     /// atmosphere's, and whether the bounds' 15 K allowance for it covers it; `null` where the log
-    /// has no temperature, or no height above sea level for the pad (issue #1259).
+    /// has no temperature, one that never changes over the log (no sensor), or no height above sea
+    /// level for the pad (issue #1259).
     pub day_air: Option<DayAirReading>,
     /// The smoother's run over every sensor, with its health card (decision record ADR-300).
     pub smoother: SmootherOutcome,
@@ -1684,7 +1685,7 @@ pub struct DayAirReading {
     /// Whether the bounds' allowance for the day's air, 15 K, covers the offset.
     pub covered: bool,
     /// The standard temperature the share is taken at, K: at the apogee's height above sea level,
-    /// or the standard's coldest, 216.65 K, with no apogee read.
+    /// or the standard's coldest, 216.65 K, with no apogee read or an apogee that is only a floor.
     pub top_standard_temperature_k: f64,
     /// The share the day's air may move a barometric height, speed or rate by, `|ΔT| / T`: up
     /// from the reading on a hot day, down on a cold one. The bounds hold 15/216.65 = 6.92%.

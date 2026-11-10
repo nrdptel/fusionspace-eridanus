@@ -976,8 +976,8 @@ pub struct Readings {
     pub accelerometer: Option<Accelerometer>,
     /// The day's air at the pad, from the log's own temperature against the standard
     /// atmosphere's, and whether the bounds' allowance for it, [`AIR_TEMPERATURE_SPREAD_K`],
-    /// covers it; `None` where the log has no temperature or no height above sea level for the
-    /// pad, or the pad isn't found. Left out of a record written before the field was.
+    /// covers it; `None` where the log has no temperature, one that never changes over the log,
+    /// no height above sea level for the pad, or the pad isn't found. Left out of a record written before the field was.
     #[serde(default)]
     pub day_air: Option<DayAir>,
 }
