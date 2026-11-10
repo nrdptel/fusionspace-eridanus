@@ -32,9 +32,11 @@ mostly AeroTech-built, none above J); not for cold composite delays or high site
   single-use high-power motor may be altered only as the maker permits, written for adjustable delays such as
   AeroTech's DMS [4, FR-3 p. 4/9; 5, PI-7 p. 3/11]; issued editions, which need an account, were not read.
 - **When the clock starts.** No NFPA text reached defines it. CAR times from burn end (thrust first under 5% of peak)
-  to the ejection charge, rounded to 0.25 s [7, §12.1.1 to §12.1.2, pp. 19–20]; Cesaroni, Estes and an RCS patent
-  say "from burnout" [12, 13, 15]. **Inference:** a log's burnout (acceleration turning negative) falls after the
-  5%-of-peak point on a long tail-off, so a delay timed from a log reads short.
+  to the ejection charge, rounded to 0.25 s [7, §12.1.1 to §12.1.2, pp. 19–20]; Cesaroni, Estes and an RCS patent say
+  "from burnout" [12, 13, 15]. **Inference:** a log's burnout (specific force turning negative) is where thrust falls
+  under drag. With drag there over 5% of peak thrust, it comes before burn end and a log-timed delay reads long; under
+  5%, short. In [flight logs](delay-offset-in-flight-logs.md) §5, drag of 9% to 19% of peak specific force read 0.03 s
+  (H128W) to 0.22 s (J270W) long; 12% on a D13-10W, about 0.17 s long; 3% to 9% on black powder, within 0.01 s.
 
 ## 2. What the certifiers fire
 
@@ -158,8 +160,6 @@ target in seconds, timed from 5%-of-peak burnout, at 20 °C and sea level.
 - **NAR R&D reports, not read:** "Delay Time Variability for APCP F Motors" (2013), "Igniter Placement vs Delay
   Times in Composite Motors" (2004), "Age Related Changes in Motor Ejection Delay Time" (1989), "Effect of Extreme
   Cold on BP Motors" (1984), all NARAM reports in NAR's index [24]. They need a member login; not read.
-- Composite delays when cold, Cesaroni delays at all, high-power delays above J; flight logs could time delays in
-  use (burnout to the charge's pressure spike), which no source tallies.
 
 ## Sources
 
