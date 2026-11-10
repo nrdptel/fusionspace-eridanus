@@ -35,7 +35,14 @@ burn, mass and ejection delay.
   ([the whole catalog](#the-whole-catalog)). Propellant burns in proportion to the
   impulse delivered, an approximation. With only catalog data, the center of mass stays at
   mid-length. Commercial motor files give no nozzle exit size, so thrust at altitude goes
-  uncorrected unless one is supplied.
+  uncorrected unless one is supplied. Grain temperature isn't modeled either: every motor flies
+  its certified curve, fired with the grain at about 15 to 25 °C. A grain 10 K warmer delivers
+  0.1% to 0.8% more impulse, which adds 0.06 to 1.3% to apogee. Its shorter, harder burn moves
+  apogee by −0.2 to +0.4% too, or by +1.1 to +2.2% for a slow, long burn. So on a hot day the
+  predicted apogee can read low, the flattering side for a waiver. A grain 20 K cold loses 0.1%
+  to 2.6% of apogee to impulse alone. These figures are borrowed from military and
+  sounding-rocket motors. One hobby test of 71 F-class motors agrees (+0.2% impulse per 10 K)
+  ([propellant temperature][propellant-temperature], [hobby firings][hobby-firings]).
 
 ## Using a motor
 
@@ -669,7 +676,7 @@ $$
   first moments, while the pressure inside the motor builds. The tail-off is the end of the burn,
   while that pressure falls. In both, the real exit pressure is far from its full-flow value, so
   the term misstates thrust there. In the tail-off, where the exit pressure falls with the
-  chamber's, the term overstates thrust. Take the 411I175, with a 9.5 mm (0.37 in) exit, in vacuum. In the 0.14 s
+  chamber's, the term overstates thrust. Take the 411I175, with a 9.5 mm (0.37 in) exit radius, 19 mm (0.75 in) across, in vacuum. In the 0.14 s
   after the NFPA 1125 burn ends, the term adds 3.9 N·s, and the curve itself delivers 0.45 N·s.
   The 3.9 N·s is 0.95% of total impulse.
 
@@ -1022,6 +1029,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 [adr-304]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0304-every-passing-file-held-to-the-oracles.md
 [adr-067]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0067-curves-come-from-openrockets-own-database-by.md
 [levels]: ../accuracy.md#four-kinds-of-evidence
+[propellant-temperature]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/propellant-temperature.md
+[hobby-firings]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/hobby-motor-temperature-firings.md
 [sp]: https://ntrs.nasa.gov/api/citations/19720011135/downloads/19720011135.pdf
 [nar]: https://web.archive.org/web/20140205181530/http://www.nar.org/NARmotors.html
 [tc-g]: https://www.thrustcurve.org/info/glossary.html
