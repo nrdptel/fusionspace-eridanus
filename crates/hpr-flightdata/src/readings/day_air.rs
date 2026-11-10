@@ -191,7 +191,8 @@ fn pad_height(log: &FlightLog, span: (f64, f64)) -> Option<(f64, PadHeightFrom)>
 /// sample nearest the span, if within [`MAX_INTERVAL_S`] of it, as a channel sampled more slowly
 /// than the track may hold none on a short pad.
 fn over_span(time_s: &[f64], values: &[f64], (from, to): (f64, f64)) -> Option<f64> {
-    if !(from <= to) {
+    // A span the wrong way round, or not a number, holds no time.
+    if from.partial_cmp(&to).is_none_or(std::cmp::Ordering::is_gt) {
         return None;
     }
     let finite = || {
@@ -331,7 +332,7 @@ mod tests {
     #[test]
     fn a_hot_day_past_the_allowance_is_noted_with_its_size() {
         let readings = read(&day_log(30.0));
-        let apogee = readings.apogee.value().expect("an apogee").clone();
+        let apogee = *readings.apogee.value().expect("an apogee");
         let air = uncovered(&readings);
         assert!(air.is_hot());
         assert_eq!(air.pad_height_from, PadHeightFrom::Pressure);
@@ -370,7 +371,7 @@ mod tests {
     #[test]
     fn a_cold_day_past_the_allowance_is_noted_the_other_way() {
         let readings = read(&day_log(-30.0));
-        let apogee = readings.apogee.value().expect("an apogee").clone();
+        let apogee = *readings.apogee.value().expect("an apogee");
         let air = uncovered(&readings);
         assert!(!air.is_hot());
         let (offset, share) = expected(-30.0, apogee.height_m);
