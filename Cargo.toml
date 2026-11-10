@@ -51,6 +51,10 @@ clap_complete = "4.6.11"
 ciborium = "0.2.2"
 # Benchmarks only: statistics and the cargo bench harness, without the plotting and rayon defaults.
 criterion = { version = "0.8.2", default-features = false, features = ["cargo_bench_support"] }
+# xtask only: the site's search index, rebuilt with the release that keeps each field's words to
+# that field (3.1.0's fix #60; mdBook 0.5.4 builds it with 3.0.2), as mdBook does (#414). MIT OR
+# Apache-2.0; English only, no language features; regex, serde and serde_json are in the tree.
+elasticlunr-rs = { version = "3.1.0", default-features = false }
 glam = { version = "0.33.7", default-features = false, features = ["f64", "serde", "std"] }
 # Geodesics on an ellipsoid: georust's port of Karney's GeographicLib (MIT). No default features,
 # so not the `accurate` crate (polygon areas only); `libm` is its one dependency.
