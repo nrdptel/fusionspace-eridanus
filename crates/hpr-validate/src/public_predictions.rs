@@ -64,10 +64,11 @@ const MAX_TIME_S: f64 = 600.0;
 pub const TRACED_RULE: &str = "An input is traced when the flight's own record states it: here \
     RocketPy's example notebook, which holds the team's inputs. What no RocketPy example records \
     is a placeholder in the designs built from them, the seven compared flights' too, and doesn't \
-    count against the tag: the surface finish, the rail buttons' size, and the fins' thickness \
-    and edge shape where no airfoil file or published section gives them. They move the drag, so \
-    a traced flight's inputs are stated, not exact. A flight is tagged not traced when its record \
-    leaves out, or contradicts, something else that moves the apogee.";
+    count against the tag: the surface finish, the rail buttons' size, the fins' thickness where \
+    no airfoil file gives it, and their edge shape where no airfoil file or published section \
+    does. They move the drag, so a traced flight's inputs are stated, not exact. A flight is \
+    tagged not traced when its record leaves out, or contradicts, something else that moves the \
+    apogee.";
 
 /// A prediction as it was first merged, in the digits its page prints.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -82,12 +83,18 @@ pub struct MergedPrediction {
     pub catalog_apogee_m: Option<f64>,
 }
 
-/// The predictions as first merged (M2.3d3), which [`PredictionsReport::check_consistent`] holds
-/// every report to, the committed one in CI and a flown one before it is written.
+/// The predictions as first merged ([the EuRoC 2022 predictions][m2-3d3]), which
+/// [`PredictionsReport::check_consistent`] holds every report to, the committed one in CI and a
+/// flown one before it is written: each flight's apogee as a reading and as a height, and
+/// Andromeda's on the catalog curve.
 ///
 /// These lines are not edited. A prediction that has to change is revised beside its merged
-/// number, with the reason, by the change that compares it (ADR-328 §1b); until that exists, a
-/// changed prediction fails here and the writer refuses it.
+/// number, with the reason, by the change that compares it ([twelve public flights, predictions
+/// first][adr-328], §1b); until that exists, a changed prediction fails here and the writer
+/// refuses it.
+///
+/// [m2-3d3]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3d3
+/// [adr-328]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md
 pub const MERGED: [MergedPrediction; 3] = [
     MergedPrediction {
         id: "astra",

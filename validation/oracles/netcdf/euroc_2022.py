@@ -12,7 +12,7 @@ and writes `refs/converted/rocketpy/euroc_2022_all_windows.nc`. The converted fi
 the gitignored `refs/`, as the source and RocketPy's other whole ERA5 files do
 (THIRD-PARTY-NOTICES.md). What is committed is the JSON this script prints: the two files'
 SHA-256, what was compared, and RocketPy's levels at each flight's site and hour (below), which
-are ERA5 values interpolated to the site and carry the dataset's notice.
+are ERA5 values as RocketPy reads them at the site and carry the dataset's notice.
 
 It then tests the converted file, and fails unless every check holds:
 
@@ -26,8 +26,9 @@ It then tests the converted file, and fails unless every check holds:
 
 The record keeps those levels for each flight, with the Earth radius RocketPy turned the
 geopotential into a height with. `cargo xtask public-predictions` holds HPR Sim's own reading of
-the converted file to them before it flies a prediction in it: the same pressures, temperatures,
-winds and geopotential heights RocketPy reads from the file RocketPy ships. The two programs then
+the converted file to them before it flies a prediction in it: the same pressures, and
+temperatures, winds and geopotential heights within 1e-12 of those RocketPy reads from the file
+RocketPy ships. The two programs then
 turn a geopotential height into a height above sea level each in its own way (`docs/format/era5.md`).
 
 The launch hours are the notebooks' local times (`timezone="Portugal"`, Western European Summer
@@ -274,8 +275,9 @@ def main():
             "Contains modified Copernicus Climate Change Service information 2022: ERA5 hourly "
             "data on pressure levels (Hersbach et al., 2023, doi:10.24381/cds.bd0915c6), CC BY "
             "4.0, as redistributed by RocketPy v1.13.0. The levels below are RocketPy's reading "
-            "of it, interpolated to each flight's site. Neither the European Commission nor "
-            "ECMWF is responsible for any use made of it."
+            "of it at each flight's site: bilinear in latitude and longitude, the geopotential "
+            "turned into a height. Neither the European Commission nor ECMWF is responsible for "
+            "any use made of it."
         ),
         "packages": {
             name: importlib.metadata.version(name)

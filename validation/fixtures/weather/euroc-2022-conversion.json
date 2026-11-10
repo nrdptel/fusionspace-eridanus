@@ -3,7 +3,7 @@
   "command": "refs/venv/bin/python validation/oracles/netcdf/euroc_2022.py > validation/fixtures/weather/euroc-2022-conversion.json",
   "generated": "2026-11-10",
   "conversion": "xarray.open_dataset(source).drop_vars([\"number\", \"expver\"], errors=\"ignore\").to_netcdf(out, format=\"NETCDF3_64BIT\")",
-  "notice": "Contains modified Copernicus Climate Change Service information 2022: ERA5 hourly data on pressure levels (Hersbach et al., 2023, doi:10.24381/cds.bd0915c6), CC BY 4.0, as redistributed by RocketPy v1.13.0. The levels below are RocketPy's reading of it, interpolated to each flight's site. Neither the European Commission nor ECMWF is responsible for any use made of it.",
+  "notice": "Contains modified Copernicus Climate Change Service information 2022: ERA5 hourly data on pressure levels (Hersbach et al., 2023, doi:10.24381/cds.bd0915c6), CC BY 4.0, as redistributed by RocketPy v1.13.0. The levels below are RocketPy's reading of it at each flight's site: bilinear in latitude and longitude, the geopotential turned into a height. Neither the European Commission nor ECMWF is responsible for any use made of it.",
   "packages": {
     "xarray": "2026.7.0",
     "netCDF4": "1.7.4",

@@ -69,9 +69,10 @@ the seven flown ones do, and their weather needs only the conversion the guide a
    repository in one change, so no check can show it.
 4. **Traced means the record states it.** A flight's record here is its example notebook. What
    no RocketPy example records is a placeholder in the designs built from them, the seven's too,
-   and doesn't count against the tag: the surface finish, the rail buttons' size, and the fins'
-   thickness and edge shape where no airfoil file or published section gives them. They move the
-   drag, so traced means stated, not exact. Astra and Erebus 11 are tagged traced.
+   and doesn't count against the tag: the surface finish, the rail buttons' size, the fins'
+   thickness where no airfoil file gives it, and their edge shape where no airfoil file or
+   published section does. They move the drag, so traced means stated, not exact. Astra and
+   Erebus 11 are tagged traced.
    Andromeda is not: it flew air brakes whose opening no record gives, and its thrust file holds
    more impulse than the reload it is named for ([the research note][andromeda]).
 5. **Andromeda's two curves.** The counted prediction flies the team's thrust file, as ADR-328
@@ -91,14 +92,15 @@ the seven flown ones do, and their weather needs only the conversion the guide a
    [record][record] holds both files' SHA-256 and the levels RocketPy read. `public-predictions`
    flies the converted file only if its SHA-256 is the recorded one and HPR Sim reads those
    levels from it: the same pressures, and the temperature, wind and geopotential height within
-   1e-12 of each value.
+   1e-12 of each value's size (1e-12 outright for a value under 1).
 7. **What a prediction may read.** The module that flies a prediction hashes its flight's log,
    which pins the file the rule will be applied to, and never parses it. Its report has no field
    for a measured apogee or an error. A test fails if the committed file is not, byte for byte,
    what the report's types write, if a key in it names an error, a measured value or a
    difference, or if the module's source names one of the log readers' functions.
-8. **The merged numbers are kept in the code.** The three apogees, as first merged and to the
-   digit the page prints, are a list in the module. The writer refuses a flown prediction that
+8. **The merged numbers are kept in the code.** Each flight's apogee, as a reading and as a
+   height, and Andromeda's on the catalog curve, as first merged and to the digit the page
+   prints, are a list in the module. The writer refuses a flown prediction that
    has moved from it, and CI fails a committed one that has. A prediction that has to change is
    revised beside its merged number by the change that compares it (ADR-328 §1b).
 

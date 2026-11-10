@@ -224,8 +224,9 @@ adds a source.
   netCDF-4 by `validation/oracles/netcdf/euroc_2022.py` into `refs/` and is **not** committed.
   `validation/fixtures/weather/euroc-2022-conversion.json` holds both files' SHA-256 and RocketPy's
   reading of the file at each flight's site and hour: 37 levels of pressure, height, temperature
-  and wind, values of the same dataset under the same license, interpolated to the site
-  (modified). The record says so in its `notice`: "Contains modified Copernicus Climate Change
+  and wind, values of the same dataset under the same license as RocketPy reads them at the site
+  (bilinear in latitude and longitude, the geopotential turned into a height: modified). The
+  record says so in its `notice`: "Contains modified Copernicus Climate Change
   Service information 2022".
 - **Open-Meteo weather answers** (<https://open-meteo.com>):
   `crates/hpr-net/tests/fixtures/replay/open-meteo-historical.json` and `open-meteo-forecast.json`

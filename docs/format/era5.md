@@ -88,7 +88,7 @@ bit, and RocketPy reads the same 37 levels from both files at each flight's site
 [record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/weather/euroc-2022-conversion.json)
 keeps both files' SHA-256 and those levels. Each time a prediction is flown, HPR Sim's own reading
 of the converted file is held to them: the same pressures, and the temperature, wind and
-geopotential height within 1e-12 of each value.
+geopotential height within 1e-12 of each value's size (1e-12 outright for a value under 1).
 
 To run it, fetch RocketPy's files and the oracle environment, convert, then check:
 
@@ -101,8 +101,8 @@ cargo xtask public-predictions --check
 
 The second command is the conversion: it writes the converted file under `refs/` and prints the
 record, which is already committed. Run it once, first. With `--check` the script converts again
-into a scratch file and fails unless it finds the recorded hashes and levels, and the converted
-file already in `refs/`. The last command flies the predictions in that file. Neither check runs
+into a scratch file and fails unless it finds the recorded hashes and levels, and unless the
+converted file already in `refs/` has the recorded SHA-256. The last command flies the predictions in that file. Neither check runs
 in CI, which has no RocketPy files.
 
 ### Reading it
