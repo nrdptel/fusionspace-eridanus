@@ -265,7 +265,8 @@ flight alone and leaves them on the terminal.
 
 **A stage that weighs more than its parts.** If your stage has a mass override with OpenRocket's
 *override for all subcomponents* box unticked, OpenRocket adds that mass to what the parts weigh,
-and so does the simulator. It used to refuse such a stage
+and so does the simulator. It used to refuse such a stage. A few cases are still refused, such
+as one that carries strap-on boosters (a parallel stage)
 ([a stage's mass and center of gravity overrides](format/ork.md#a-stages-mass-and-center-of-gravity-overrides)).
 
 ## What it leaves out

@@ -389,16 +389,16 @@ example, and [the decision record][adr-335] gives the measurements.
   stage's added mass sits at the lower stage's parts' center, not the rocket's. A stage's pods
   are among its parts. A center that doesn't cover the parts is a
   [station](../glossary.md#station) measured from the stage's forward end, and the mass sits
-  there, level with the parts' center: on the axis, unless the parts' center is off it, as one
-  pod alone puts it.
+  there, as far off the axis as the parts' center is: on it, unless the parts' center is off
+  it, as one pod alone puts it.
 - **A motor doesn't move it.** OpenRocket's rocket at launch and at burnout is the motor added to
   the structure above, with the added mass where the structure put it (four more probes, with an
   AeroTech H128W aboard).
 - **The inertia where one override covers the parts** is HPR Sim's own rule, as for any override
-  that covers them ([Mass properties](../physics/mass.md#what-a-ork-leaves-unsaid-and-overrides)), and it is not OpenRocket's.
-  The mass and the center still match. With a center that covers the parts beside an added mass,
-  the inertia across the axis is 11.0% under OpenRocket's on the one-stage probe and 1.5% over on
-  a lower stage's. With a mass that covers the parts beside a center that doesn't, HPR Sim
+  that covers them ([Mass properties](../physics/mass.md#what-a-ork-leaves-unsaid-and-overrides)), and across the axis it is not
+  OpenRocket's. The mass and the center still match. With a center that covers the parts beside
+  an added mass, the inertia across the axis is 11.04% under OpenRocket's on the one-stage probe
+  and 1.5% over on a lower stage's; about the axis the two agree. With a mass that covers the parts beside a center that doesn't, HPR Sim
   scales the parts' inertia with the mass and OpenRocket leaves it: on the one-stage probe HPR
   Sim's is 400.5% over about the axis and 345.3% over across it, and on a lower stage's 255.8%
   and 18.5% over. Such a stage was held back before, and now flies

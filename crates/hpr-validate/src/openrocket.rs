@@ -831,7 +831,8 @@ mod tests {
     /// override OpenRocket's center stays that far off it: an added mass at a station sits level
     /// with the parts' center, not on the axis, as a center override moves a stage along the axis
     /// only. HPR Sim's structure of each probe has OpenRocket's mass, its center along the axis
-    /// and off it, and, where no override covers the parts, the inertia the override adds.
+    /// and its distance off it, and, where no override covers the parts, the inertia the override
+    /// adds. Under the center that covers them the inertia is hpr's own rule, pinned (ADR-061).
     #[test]
     fn a_stages_added_mass_sits_among_its_pods_and_level_with_their_center() {
         let record = added_mass_record();
@@ -909,6 +910,13 @@ mod tests {
                 // What the override adds to the inertia, against the same airframe with none.
                 // Under a center that covers the parts the inertia is hpr's own rule (ADR-061).
                 if question.ends_with("a center that covers them") {
+                    // hpr moves the stage whole and adds nothing; OpenRocket adds the parts'
+                    // inertia about the overridden center, 1.2% of the stage's across the axis.
+                    assert!((ours[2] - bare_ours[2]).abs() < 1e-12, "{question}");
+                    assert!((ours[3] - bare_ours[3]).abs() < 1e-12, "{question}");
+                    assert!((theirs_[2] - bare_theirs[2]).abs() < 1e-12, "{question}");
+                    let adds = theirs_[3] - bare_theirs[3];
+                    assert!((adds - 3.490e-4).abs() < 1e-7, "{question}: {adds:e}");
                     continue;
                 }
                 for k in [2, 3] {
@@ -986,6 +994,13 @@ mod tests {
             // And so is the inertia the override adds to this airframe's, where no override
             // covers the parts (under a center that does, the inertia is hpr's own rule, ADR-061).
             if question == ADDED_WITH_A_MOTOR[2] {
+                // hpr moves the stage whole and adds nothing; OpenRocket adds the parts' inertia
+                // about the overridden center, 2.4% of the stage's across the axis.
+                assert!((ours[2] - bare_ours[2]).abs() < 1e-12, "{question}");
+                assert!((ours[3] - bare_ours[3]).abs() < 1e-12, "{question}");
+                assert!((theirs[2] - bare_theirs[2]).abs() < 1e-12, "{question}");
+                let adds = theirs[3] - bare_theirs[3];
+                assert!((adds - 7.006e-4).abs() < 1e-7, "{question}: {adds:e}");
                 continue;
             }
             for k in [2, 3] {

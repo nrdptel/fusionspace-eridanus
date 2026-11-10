@@ -348,8 +348,9 @@ impl Shifts {
                         }
                         NotCarried::StageAddedMass => {
                             "a mass shift in a stage that carries an added mass, which isn't \
-                             flown yet (with no station that mass sits at the center of the \
-                             stage's parts, which the shift would move)"
+                             flown yet (that mass sits at the center of the stage's parts, or \
+                             as far off the axis as it at a station, and the shift would move \
+                             that center)"
                         }
                         NotCarried::CoveredOverride => {
                             "a mass shift inside a component whose overridden mass covers what it \

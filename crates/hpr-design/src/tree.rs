@@ -786,8 +786,9 @@ impl Overrides {
 /// - **No station** (`cg_aft_m` is `None`): the point sits at the parts' center of mass. The stage
 ///   weighs `m_p + m_a`; its center and its inertia about that center are the parts'.
 /// - **A station** `s` aft of the stage's forward end `x_0`: the point sits at `x_a = x_0 + s`
-///   along the axis, level with the parts' center of mass (on the axis when that center is, as on
-///   any rocket that is the same all the way round). The stage weighs `m_p + m_a`, its center is at
+///   along the axis, as far off the axis as the parts' center of mass is: on it when that center
+///   is, as on any rocket that is the same all the way round, and when the parts weigh nothing.
+///   The stage weighs `m_p + m_a`, its center is at
 ///   `(m_p x_p + m_a x_a) / (m_p + m_a)`, and its inertia about that center is the parts' and the
 ///   point's by the parallel-axis theorem ([`MassProperties::combine`]).
 ///
@@ -811,8 +812,9 @@ impl Overrides {
 pub struct AddedMass {
     /// The mass added, kg.
     pub mass_kg: f64,
-    /// How far aft of the stage's forward end it sits, m, level with the center of mass of the
-    /// stage's parts: on the axis when that center is. `None` puts it at that center.
+    /// How far aft of the stage's forward end it sits, m, as far off the axis as the center of
+    /// mass of the stage's parts is: on the axis when that center is. `None` puts it at that
+    /// center.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cg_aft_m: Option<f64>,
 }
@@ -4123,9 +4125,9 @@ mod tests {
     }
 
     /// A stage's added mass is a point mass among its parts ([`AddedMass`]), worked by hand: with
-    /// no station it sits at the parts' center and moves nothing; with one it sits on the axis
-    /// that far aft of its own stage's forward end, and the stage's center and inertia follow
-    /// the parallel-axis theorem. A whole-stage center override then moves the two together.
+    /// no station it sits at the parts' center and moves nothing; with one it sits that far aft
+    /// of its own stage's forward end, as far off the axis as the parts' center is, and the
+    /// stage's center and inertia follow the parallel-axis theorem. A whole-stage center override then moves the two together.
     #[test]
     fn a_stages_added_mass_is_a_point_among_its_parts() {
         // Two stages, so that the lower one's forward end isn't the tip.

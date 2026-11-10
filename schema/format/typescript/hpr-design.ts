@@ -48,8 +48,9 @@ export interface DesignFile {
  * - **No station** (`cg_aft_m` is `None`): the point sits at the parts' center of mass. The stage
  *   weighs `m_p + m_a`; its center and its inertia about that center are the parts'.
  * - **A station** `s` aft of the stage's forward end `x_0`: the point sits at `x_a = x_0 + s`
- *   along the axis, level with the parts' center of mass (on the axis when that center is, as on
- *   any rocket that is the same all the way round). The stage weighs `m_p + m_a`, its center is at
+ *   along the axis, as far off the axis as the parts' center of mass is: on it when that center
+ *   is, as on any rocket that is the same all the way round, and when the parts weigh nothing.
+ *   The stage weighs `m_p + m_a`, its center is at
  *   `(m_p x_p + m_a x_a) / (m_p + m_a)`, and its inertia about that center is the parts' and the
  *   point's by the parallel-axis theorem (`MassProperties::combine`).
  *
@@ -71,8 +72,9 @@ export interface DesignFile {
  */
 export interface AddedMass {
   /**
-   * How far aft of the stage's forward end it sits, m, level with the center of mass of the
-   * stage's parts: on the axis when that center is. `None` puts it at that center.
+   * How far aft of the stage's forward end it sits, m, as far off the axis as the center of
+   * mass of the stage's parts is: on the axis when that center is. `None` puts it at that
+   * center.
    */
   cg_aft_m?: number | null;
   /** The mass added, kg. */
