@@ -4,11 +4,11 @@
 the larger term is the humidity the project leaves out, 0.08–0.65% of apogee and always sim low.** The real-flight
 comparisons fly HPR Sim through the ERA5 air of the hour and convert between logged readings and heights through the
 same air, so a temperature error enters twice and mostly cancels. The comparison moves by −(1 − |e_D|)/T̄ per kelvin of
-ERA5 running warm, −0.14 to −0.25% (e_D is apogee's elasticity to drag), not the 0.35% that
-[apogee-bias](apogee-bias.md) §3 gives for the height alone. ERA5 runs slightly cool at a hot afternoon's pad and warm
-in a night inversion; its layer mean above the lowest few hundred meters is within about ±0.5 K. **How far to trust
-it:** the algebra is checked; the errors come from Iranian and Taklimakan soundings and global statistics, not from a
-US launch field, and no source gives the pad-to-3 km layer mean directly. Those layer means are **Inference**.
+ERA5 running warm, −0.14 to −0.25% (e_D is apogee's elasticity to drag), not the 0.35% of the height alone. ERA5 runs
+slightly cool at a hot afternoon's pad and warm in a night inversion; its layer mean above the lowest few hundred meters
+is within about ±0.5 K. **How far to trust it:** the algebra is checked; the errors come from Iranian and Taklimakan
+soundings and global statistics, not from a US launch field; those layer means are **Inference**. One sonde site
+measured since, [Santa Teresa](era5-santa-teresa-midday.md), NM, reads +0.11 to +0.15 K near midday, a lower bound.
 
 ## How an ERA5 error reaches the comparison
 
@@ -63,7 +63,9 @@ about 1.5–2.2 times worse at the same levels (**Inference**, from the RMSEs be
   daily cycle is too flat at both ends, as apogee-bias's [C8] found for western North America in summer.
 - **Layer means (Inference).** Hot-desert afternoon, pad to 1–3 km: bias −0.5 to +0.2 K, a per-flight 1σ of
   0.9–1.35 K (Tazhong's level RMSEs, averaged at a level-to-level correlation of 0.3–1). Cold morning, 0–1 km: the
-  aloft −0.16 to +0.55 K, plus a near-ground excess of +0.2 to +3 K over an assumed 0.1–0.3 km that no source sizes.
+  aloft −0.16 to +0.55 K, plus an assumed near-ground excess of +0.2 to +3 K over 0.1–0.3 km. Measured since: +0.47 K
+  over 200 m at a cold inland sunrise, within about 100 m of the ground ([dawn inversion](era5-dawn-inversion-depth.md)
+  §3).
 - **Humidity in the height piece is small.** T_v ≈ T(1 + 0.61q), so 1 g/kg is 0.18 K at 300 K. ERA5's specific
   humidity RMSE at Tazhong is 1.0–1.2 g/kg below 700 hPa [4]; the lowest-500 m mixing-ratio mean error over North
   America and Europe is −0.18 g/kg, on unstable days only [2] Table 2. **Inference:** about 0.2 K random and
@@ -99,19 +101,25 @@ about 1.5–2.2 times worse at the same levels (**Inference**, from the RMSEs be
 
 | launch | ΔT̄ (bias) | T̄ | net shift | sign |
 |---|---:|---:|---:|---|
-| hot desert, 1.2–1.4 km field, 35 °C, mid-afternoon | −0.5 to +0.2 K | 303 K | −0.05 to +0.11% | mostly sim high |
+| hot desert, 1.2–1.4 km field, 11:00 MDT, 0–1 and 0–3 km (measured) | +0.15, +0.11 K | 296, 289 K | −0.03% | sim low |
+| the same, 17:00 MDT, 0–1 km (measured) | −0.06 K | 300.5 K | +0.01% | about zero |
+| the same, 35 °C, mid-afternoon, as first inferred | −0.5 to +0.2 K | 303 K | −0.05 to +0.11% | mostly sim high |
 | the same, one thin station's 850 hPa value as the mean | to −2.6 K | 303 K | up to +0.6% | sim high |
-| cold morning, 2 °C, 8–9 am, warm error through the column | +0.1 to +0.55 K | 277 K | −0.02 to −0.14% | sim low |
-| the same, +3 K in the lowest 200 m only, 1,000 m apogee | +0.6 K | 277 K | −0.17 to +0.03% | either |
+| cold morning, 2 °C, 10–11 am, warm error through the column | +0.1 to +0.55 K | 277 K | −0.02 to −0.14% | sim low |
+| cold sunrise, lowest 200 m, 1,140 m apogee (measured) | +0.47 K (p95 +1.81) | 280 K | −0.03% (p95 −0.06%) | sim low |
 
-- **The last row (Inference).** The height piece is 3 K × 200/1,000 / 277 K = 0.22%. The air is 1.1% thin where a
-  share w of the drag loss happens; w is unmeasured, 0.15–0.4 taken because speed peaks near burnout, low in the
-  climb. That gives 0.05–0.25%, so drag can outweigh the height there.
+- **The measured rows** ([Santa Teresa](era5-santa-teresa-midday.md) §2, §5–6): 149 soundings each hour, May–September
+  2026, likely assimilated, so a lower bound; sim low near midday, but +0.11 K is inside the sonde's 0.2 K accuracy.
+- **The cold-sunrise row** ([dawn inversion](era5-dawn-inversion-depth.md) §3–6), lower bounds from 2,672 inland
+  Australian soundings: cold sunrises read +0.47 K over 200 m, not the +3 K first assumed; −0.03% is the whole profile's
+  shift, −0.06% the 95th percentile's. w(200 m), the share of drag sensitivity there, is 0.16 at 1,140 m, the low end of
+  the 0.15–0.4 guessed; even +3 K gives −0.10%, never "either". The column row fits 10–11 am (0–1 km +0.2 to +0.25 K).
 - **Per flight, the scatter is larger than the bias.** A 1σ layer mean of 0.9–1.35 K moves one flight's comparison by
-  0.13–0.31% (**Inference**). Over the private collection's 53 scored flights it averages down, but flights at one
-  field on one day share their error.
-- **Against the collection's +8.73%** ([apogee-bias](apogee-bias.md)): a few hundredths of it at most, on the side of
-  the bias by day and against it at dawn.
+  0.13–0.31% (**Inference**); measured at Santa Teresa, 0.17–0.40 K and ±0.04–0.07%, up to about 0.15% far from a sonde
+  (that note's §6). Over the private collection's 53 scored flights it averages down, but flights at one field on one
+  day share their error.
+- **Against the collection's +8.73%** ([apogee-bias](apogee-bias.md)): a few hundredths of it at most, against it near
+  midday (measured) and at sunrise, slightly with it by 8 am.
 
 ## 4. Humidity: a larger, one-sided term
 
@@ -147,21 +155,18 @@ launch. Santa Teresa's 17 UTC release (11:00 MDT) since May 2026 is the one near
 
 ## What this suggests
 
-1. **Replace apogee-bias §3's ERA5 item** with the net term, −(1 − |e_D|)/T̄ per kelvin: about 0.1% either way at
-   the hours flown, a 0.13–0.31% per-flight scatter, and not "2 K is 0.7%".
-2. **Read ERA5's humidity** in the real-flight comparisons: a bounded, one-sided correction of 0.08–0.65%.
-3. **Weather dispersion for [M2.8, honest uncertainty](../ROADMAP.md):** a layer-mean temperature 1σ of about 1 K,
-   correlated through the column and larger in the lowest 300 m at dawn, and about 0.6 hPa of surface pressure,
-   rather than independent noise per level.
-4. **A direct measurement:** ERA5 against Santa Teresa's 17 UTC soundings, May–September 2026, gives the pad-to-3 km
-   layer-mean error at a desert field near midday (a lower bound; assimilated).
+1. **Read ERA5's humidity** in the real-flight comparisons: a bounded, one-sided correction of 0.08–0.65%.
+2. **Weather dispersion for [M2.8, honest uncertainty](../ROADMAP.md):** layer-mean temperature errors drawn apart for
+   0–1 km and 1–3 km, 1σ about 0.4 and 0.2 K at a sonde and twice that far from one, about 1 K over the lowest 100 m at
+   dawn, and about 0.6 hPa of surface pressure.
 
 ## Open questions
 
-- ERA5's pad-to-3 km layer-mean temperature error and its vertical correlation at a US launch field, by hour.
-- How deep ERA5's warm night layer is at sunrise and how fast it erodes by a 9–11 am launch; the cold rows above
-  assume 0.1–0.3 km.
-- The share w of a flight's drag loss in its lowest 200 m (one simulation would bound it).
+- ERA5's pad-to-3 km layer-mean temperature error and its vertical correlation at a US launch field far from a sonde, by
+  hour; at one sonde site, [Santa Teresa](era5-santa-teresa-midday.md) measures both near midday.
+- How deep ERA5's warm night layer is at sunrise, and how fast it erodes: over dry inland ground, within about 100 m and
+  gone 1–2 h after sunrise ([dawn inversion](era5-dawn-inversion-depth.md) §3); no US field is sampled.
+- The share w of drag loss in the lowest 200 m: 0.16 at 1,140 m, 0.05 at 3,170 m, 0.63 at 440 m (that note's §5).
 - ERA5's 850–700 hPa geopotential error against US sondes, and a height-corrected surface-pressure error at desert
   stations; any temperature step at the 21 UTC window seam.
 - Transonic flights: a warm error lowers the Mach number by ε/2, which moves C_D either way. Unbounded here.

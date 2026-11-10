@@ -1,7 +1,6 @@
 # What motor makers and certifiers publish beyond the thrust curve
 
 Re-checked 2026-10-17: 25 claims corrected.
-
 This note counts what the makers of COTS solid motors and the three certifiers (NAR, Tripoli's TMT, CAR) publish
 per motor besides the thrust curve: nozzle throat and exit, grains, case and hardware masses, delays, and measured
 impulse against the nominal. It backs the thrust-at-altitude idea ([ideas](ideas.md)), motor mass properties
@@ -95,7 +94,8 @@ Single-use nozzles go with the reload's designation, graphite ones with the case
   letters lose exactly zero beyond it. **Inference:** their burnout mass was computed, not weighed.
 - **Sources disagree on one motor's propellant.** N3300R: 7,338 g on the instruction sheet, 7,512 g in the matrix,
   the TRA letter and ThrustCurve [M8, M15, S23]. ThrustCurve's propellant mass is CAR's burnout mass on 4 Cesaroni
-  motors (41F36-11A: 69 g against 29.5 g) [S1, S7].
+  motors (41F36-11A: 69 g against 29.5 g) [S1, S7]. Fetched files ([fetched-mass-survey](fetched-mass-survey.md) §2):
+  propellant beyond 5% of the record for 136 of 685 H+ motors, within 0.5% for 386; loaded mass beyond 1% for 57 of 632.
 
 ## 5. Measured impulse against the nominal
 
@@ -110,11 +110,13 @@ Single-use nozzles go with the reload's designation, graphite ones with the case
   [S7], and within 1% of the reload page's value on all 237 that parsed [C7]: the pages repeat the certification.
   CAR integrates between the 5% points [S18, §12.1.3]; the tail outside is a median 0.13% of impulse
   ([thrustcurve-data](thrustcurve-data.md) §2), so CAR figures read low by about that (**Inference**).
-- **Makers publish no per-lot data; NAR's retests do.** The matrix's N3300R is 14,041 N·s, as ThrustCurve; its letter
-  measured 14,091 (+0.36%) [M15, S23]. Since 2023 NAR S&T retested 18 listed motors, all F or smaller, with lot ids
-  (17) and each firing, and lists the retest mean [S24]. On 17 matching their original sheet (146 firings; 4 CATOs left
-  out), impulse is a median −9.4% from the 1992–2012 mean (−21.5% to +8.5%; 15 low, 7 below −10%). The catalog keeps
-  the old mean on 15, nominal on 2: **sim high** on 15, low on E12, F15. H and up: [lot impulse](hpr-lot-impulse.md).
+- **Makers publish no per-lot data; NAR's retests do.** Since 2023 NAR S&T retested 18 listed motors, all F or smaller,
+  with lot ids (17) and each firing, and lists the retest mean [S24]. On 17 matching their original sheet (146 firings;
+  4 CATOs left out), impulse is a median −9.4% from the 1992–2012 mean (−21.5% to +8.5%; 15 low, 7 below −10%). The
+  catalog keeps the old mean on 15, nominal on 2: **sim high** on 15, low on E12, F15.
+- **H and up** ([hpr-lot-impulse](hpr-lot-impulse.md)): one weak bound. If NAR applied its manual, six AMW reloads
+  retested in 2026 were within ±13.1% a firing of their old means, and L1300BB's mean at most 5.2% below, waivable
+  ([amw-retests](amw-retests.md) §4). K1000SK's list impulse is 2.05% above its measured mean (§2 there).
 
 ## 6. Delays
 
@@ -151,8 +153,6 @@ view with no license [S7]. **None grants redistribution:** cite facts; re-enter 
 ## Open questions
 
 - Is the L1500T's pre-2003 nozzle still shipped? Why does the I195J, nozzle near its letter's, peak at 216 N, not 452 N?
-- Where TMT fired before 2017 and whether it corrects ([TMT test sites](tmt-test-sites.md)); TRA's "±"; the L2350's
-  correction. Dropped on re-check, unsupported: Loki 98 mm "in the kit"; "the 1999 nozzle may not be today's".
 - Whether Cesaroni's 2001–2014 page masses describe current reloads. AMW's site is a placeholder, Ellis Mountain's
   domain is gone, Estes's C6-5 page gives nominal impulse and masses but no nozzle or grain [E1]; Quest is unread.
 

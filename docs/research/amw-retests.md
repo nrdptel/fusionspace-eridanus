@@ -41,7 +41,7 @@ Re-checked 2026-11-07: 5 claims corrected (§2's TMT lists; §3's catalog, burn-
   but not listed. Why is not public. NAR's manual keeps other test data private but exempts the published summary
   of successful tests, and asks that tests leading to certification have their summary published within 30 days
   [M1, §7.2–7.3, p. 14]. So the manual does not explain the missing numbers; no source found does.
-- hpr-lot-impulse §3 says "numbers need a forum login"; the cached pages show that is not so.
+- hpr-lot-impulse §3 said "numbers need a forum login"; the cached pages show that is not so.
 
 ## 2. The certified record
 

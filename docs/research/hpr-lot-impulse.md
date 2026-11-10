@@ -90,9 +90,10 @@ without a year come from lists with no test date: the 5 dated pairs are 4–6 ye
 
 - **H220T reads high in the catalog.** ThrustCurve lists 220 N·s, the NAR figure [S2]; TMT measured 199.7 in 2004,
   with 102 g of propellant against 106.4 [A1]. If TMT's is current, the catalog is 10.2% high (**Inference**).
-- **AMW, 2026.** NAR S&T fired AMW K1000SK, L1300BB, M1350WW, M1900BB, N2700BB and N4000BB on 2026-06-24 and said
-  new and original production were "within the allowable performance variances" of NFPA 1125 [F3]; numbers need a
-  forum login. **Inference:** under NAR's rule each firing was within ±13.1% of its original mean, no tighter.
+- **AMW, 2026.** NAR S&T fired six AMW reloads in 2026 and called new and original production "within the allowable
+  performance variances" of NFPA 1125 [F3]. It gave no numbers, though NAR's manual asks for a summary of certification
+  tests ([AMW retests](amw-retests.md) §1). **Inference** (its §4), if S&T applied its manual: each firing within ±13.1%
+  of its 2002–06 mean; waivable class floors cap the mean's drop: L1300BB 5.2%, M1350WW 11.2%, N2700BB 11.5%.
 - **CAR and Cesaroni.** CAR's index (256 rows, 2002–2014) has no recertification column [S10]; Cesaroni's 284 reload
   pages give one test date each, 2001–2014 [S11]. Every one up to L was due again by 2017 (**Inference**).
 - **Makers.** No maker publishes lot testing; TMT may ask for "internal quality control data" [T1, §10.5.1].
@@ -141,7 +142,6 @@ without a year come from lists with no test date: the 5 dated pairs are 4–6 ye
 
 ## What this suggests
 
-- **Motor data §5 can replace "high power unbounded"** with §5's table here; no printed number changes.
 - **A Monte Carlo impulse spread** could take 2.5–3% (1σ, one certification test's scatter from the TMT pairs)
   rather than NFPA's 6.7% ceiling, leaving the sign of lot drift a stated unknown.
 - **A catalog check** could flag a motor whose catalog impulse exceeds a later certifier figure: H220T (+10.2%), the
@@ -152,7 +152,7 @@ without a year come from lists with no test date: the 5 dated pairs are 4–6 ye
 
 ## Open questions
 
-- The AMW 2026 retest figures (behind a forum login); whether CAR or TMT has retested any motor since 2014.
+- The AMW 2026 retest figures (none found); whether CAR or TMT has retested any motor since 2014.
 - Where TMT fired in 1998–2004, and how many motors each 2001–04 test fired.
 - Whether the EUCASS stand was calibrated; who fired the KBA M2900R raw file; the M1850W post's load cell.
 - Which J1799N impulse AeroTech ships today: its page's 1,066 N·s or the TRA figure on ThrustCurve, 1,214.8.
