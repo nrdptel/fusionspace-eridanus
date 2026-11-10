@@ -1417,7 +1417,8 @@ One line per milestone or increment, in the order it was archived within its pha
       it, its mass, center and inertia held to OpenRocket's on probe designs, and is no longer
       held back. *Result (ADR-335):* met on the 19 probes where no override covers the parts. On
       the eight with a stage where one override does, the mass and the center are held and the
-      inertia is not met: HPR Sim keeps its own rule there, up to 400.5% over OpenRocket's
+      inertia is not met: HPR Sim keeps its own rule there, from 11.04% under OpenRocket's to
+      400.5% over
       ([#1407](https://github.com/nrdptel/fusionspace-eridanus/issues/1407)).
 ## Phase 2: Library surfaces and interop
 

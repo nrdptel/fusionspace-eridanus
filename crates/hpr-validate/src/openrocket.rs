@@ -828,9 +828,9 @@ mod tests {
     /// added mass along the axis only (ADR-335). Three pods move the parts' center aft, and
     /// OpenRocket 24.12's added mass with no station leaves the center there: it sits at the
     /// center with the pods counted. One pod pulls the parts' center off the axis, and under every
-    /// override OpenRocket's center stays that far off it: an added mass at a station sits level
-    /// with the parts' center, not on the axis, as a center override moves a stage along the axis
-    /// only. HPR Sim's structure of each probe has OpenRocket's mass, its center along the axis
+    /// override OpenRocket's center stays that far off it: an added mass at a station sits as far
+    /// off the axis as the parts' center, not on it, as a center override moves a stage along
+    /// the axis only. HPR Sim's structure of each probe has OpenRocket's mass, its center along the axis
     /// and its distance off it, and, where no override covers the parts, the inertia the override
     /// adds. Under the center that covers them the inertia is hpr's own rule, pinned (ADR-061).
     #[test]
@@ -911,7 +911,8 @@ mod tests {
                 // Under a center that covers the parts the inertia is hpr's own rule (ADR-061).
                 if question.ends_with("a center that covers them") {
                     // hpr moves the stage whole and adds nothing; OpenRocket adds the parts'
-                    // inertia about the overridden center, 1.2% of the stage's across the axis.
+                    // inertia about the overridden center: 1.2% of OpenRocket's inertia
+                    // across the axis there.
                     assert!((ours[2] - bare_ours[2]).abs() < 1e-12, "{question}");
                     assert!((ours[3] - bare_ours[3]).abs() < 1e-12, "{question}");
                     assert!((theirs_[2] - bare_theirs[2]).abs() < 1e-12, "{question}");
@@ -995,7 +996,8 @@ mod tests {
             // covers the parts (under a center that does, the inertia is hpr's own rule, ADR-061).
             if question == ADDED_WITH_A_MOTOR[2] {
                 // hpr moves the stage whole and adds nothing; OpenRocket adds the parts' inertia
-                // about the overridden center, 2.4% of the stage's across the axis.
+                // about the overridden center: 2.4% of OpenRocket's inertia across the axis
+                // there.
                 assert!((ours[2] - bare_ours[2]).abs() < 1e-12, "{question}");
                 assert!((ours[3] - bare_ours[3]).abs() < 1e-12, "{question}");
                 assert!((theirs[2] - bare_theirs[2]).abs() < 1e-12, "{question}");

@@ -276,8 +276,16 @@ inertia across the axis is the one that resists pitch and yaw; the inertia about
 
   Its inertia across the axis is the parts' and the point's about that center, by the
   [parallel-axis theorem](../glossary.md#parallel-axis-theorem):
-  $I = I_p + m_p (x_p - x)^2$ $+\, m_a (x_a - x)^2$. The inertia about the axis is the parts' when their center is on it. Off
-  the axis the code sums both in three dimensions, as it does any two masses.
+
+  $$
+  \begin{aligned}
+  I &= I_p + m_p (x_p - x)^2 \\
+    &\quad + m_a (x_a - x)^2.
+  \end{aligned}
+  $$
+
+  The inertia about the axis is the parts' when their center is on it. Off the axis the code
+  sums both in three dimensions, as it does any two masses.
 
 The stage's overrides then apply to the parts and the added mass together. A center override
 moves both; a mass override is the mass of both.
@@ -290,7 +298,7 @@ tip, with an inertia across the axis of 0.015838 kg·m². The stage starts at th
 - Add 2 kg at a station of 0.4 m (1.3 ft). The stage weighs 2.3996 kg. Its center is at
   $(0.3996 \times 0.4701 + 2 \times 0.4)$ $/\, 2.3996$ $= 0.4117\,\mathrm{m}$ (1.351 ft). Its inertia across the
   axis is $0.015838$ $+\, 0.3996 \times 0.0584^2$ $+\, 2 \times 0.0117^2$
-  $= 0.017475\,\mathrm{kg\cdot m^2}$.
+  $= 0.017475\,\mathrm{kg\cdot m^2}.$
 
 Both are OpenRocket 24.12's numbers for the same stage (2.3996 kg at 0.4117 m (1.351 ft),
 0.017476 kg·m²; the hand sum above rounds its distances).
@@ -311,14 +319,15 @@ with OpenRocket 24.12, and by hand.
   and 3 parts in a million of each inertia. The probes cover one stage and a rocket of two, a
   flag that says `false`, a flag not written and the older single flag, and a part with an
   override of its own.
-- Four more probes carry a motor. OpenRocket's rocket at launch and at burnout is that motor
-  added to the same structure, so in OpenRocket the added mass doesn't follow the motor. HPR Sim
+- Ten more probes are on an airframe with a motor aboard, and four of them ask whether the
+  motor moves the added mass. OpenRocket's rocket at launch and at burnout is that motor added
+  to the same structure, so in OpenRocket the added mass doesn't follow the motor. HPR Sim
   is compared on the structure: its layout holds no motor, and motors are added to it afterward.
   Where no override covers the parts, the inertia the override adds to that airframe's is
   within 1e-9 kg·m² of what it adds in OpenRocket (0.00059 kg·m² across the axis for the mass at
   a station).
-- Six more carry pods. With three pods round the tube, the parts' center is more than 3 cm
-  (1.2 in) aft of the airframe's with none, and OpenRocket's added mass leaves it there: a
+- The other six carry pods. With three pods round the tube, the parts' center is 3.7 cm
+  (1.5 in) aft of the airframe's with none, and OpenRocket's added mass leaves it there: a
   stage's pods are among its parts. With one pod, the parts' center is 2.7 mm (0.11 in) off the
   axis, and OpenRocket's center stays that far off it under each of the three overrides probed
   (the mass alone, the mass at a station, and the mass beside a center that covers the parts):
@@ -342,7 +351,7 @@ with OpenRocket 24.12, and by hand.
     of its own: on the one-stage probe each tool's inertias are the ones it gives under that
     center alone, within 1 part in a million million. On the motor's airframe and on the one
     with one pod, OpenRocket adds 0.00070 and 0.00035 kg·m² across the axis where HPR Sim adds
-    none: 2.4% and 1.2% of the stage's.
+    none: 2.4% and 1.2% of OpenRocket's inertia across the axis there.
   - *A mass that covers the parts, beside a center that doesn't.* On the one-stage probe
     OpenRocket weighs this exactly as it does both covering the parts, and HPR Sim reads it so, which scales the parts' inertia
     with the mass where OpenRocket leaves it. On the one-stage probe, 2 kg on parts of 0.40 kg,

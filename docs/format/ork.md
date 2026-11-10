@@ -392,8 +392,8 @@ example, and [the decision record][adr-335] gives the measurements.
   there, as far off the axis as the parts' center is: on it, unless the parts' center is off
   it, as one pod alone puts it.
 - **A motor doesn't move it.** OpenRocket's rocket at launch and at burnout is the motor added to
-  the structure above, with the added mass where the structure put it (four more probes, with an
-  AeroTech H128W aboard).
+  the structure above, with the added mass where the structure put it (four more probes, on an
+  airframe with an AeroTech H128W aboard).
 - **The inertia where one override covers the parts** is HPR Sim's own rule, as for any override
   that covers them ([Mass properties](../physics/mass.md#what-a-ork-leaves-unsaid-and-overrides)), and across the axis it is not
   OpenRocket's. The mass and the center still match. With a center that covers the parts beside

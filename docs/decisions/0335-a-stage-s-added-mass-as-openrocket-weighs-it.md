@@ -1,7 +1,7 @@
 # ADR-335: A stage's added mass, as OpenRocket weighs it (2026-11-10)
 
 - **Status:** accepted; carries out [M2.3d4][m2-3d4] under [ADR-334][adr-334]. [ADR-061][adr-061]'s rule for the inertia under an override that covers the parts is unchanged.
-- **Summary:** The `.ork` reader no longer holds back a stage whose mass override doesn't cover its parts. OpenRocket 24.12 adds such a mass to what the parts weigh, as a point: at the center of that stage's own parts, or at the stage's center of gravity override when that doesn't cover the parts either. Where one of the stage's overrides covers the parts, the inertia stays HPR Sim's own rule, up to 400.5% over OpenRocket's. The design holds it as the stage's added mass, and on 19 probe designs HPR Sim's structure matches OpenRocket's: the center within 0.2 µm, the mass and the inertias within 3 parts in a million. A motor aboard doesn't move the added mass.
+- **Summary:** The `.ork` reader no longer holds back a stage whose mass override doesn't cover its parts. OpenRocket 24.12 adds such a mass to what the parts weigh, as a point: at the center of that stage's own parts, or at the stage's center of gravity override when that doesn't cover the parts either. Where one of the stage's overrides covers the parts, the inertia stays HPR Sim's own rule, from 11.04% under OpenRocket's to 400.5% over. The design holds it as the stage's added mass, and on 19 probe designs HPR Sim's structure matches OpenRocket's: the center within 0.2 µm, the mass and the inertias within 3 parts in a million. A motor aboard doesn't move the added mass.
 
 [m2-3d4]: ../decisions-and-roadmap.md#m2-3d4
 [m2-3d5]: ../decisions-and-roadmap.md#m2-3d5
@@ -71,9 +71,10 @@ stage that starts at the tip, no motor, and no pairing where one flag is `true` 
    departure.
 
    So [M2.3d4][m2-3d4]'s *done when* is met where no override covers the parts, and in mass and
-   center on every probe. Its inertia clause is not met on a stage where one override covers the
-   parts and the other doesn't: eight of the probes, six of the nose-and-tube stages and two on
-   the motor's airframe. The reason is ADR-061's. Under a center that covers the parts, hpr
+   center on each of the 36 probes hpr lays out (the one whose parts weigh nothing is refused).
+   Its inertia clause is not met on a stage where one override covers the parts and the other
+   doesn't. That is eight of the probes: four on the one-stage rocket, two on a lower stage,
+   and two on the motor's airframe. The reason is ADR-061's. Under a center that covers the parts, hpr
    moves the assembly whole, so its inertia about the new center is the assembly's own, where
    OpenRocket takes the parts' inertia about the overridden center. Under a mass
    that covers the parts, OpenRocket leaves the stage the inertia of its parts: a 2 kg stage with
@@ -130,12 +131,14 @@ inertia across the axis of 0.015838 kg·m². The mass override is 2 kg and the c
 **How well HPR Sim agrees.** On the 19 probes where no override covers the parts, its structure is
 within the test's bounds of OpenRocket's: 5 parts in 10 million of the mass, 0.2 µm of the center,
 and 3 parts in a million of the inertia about the axis and across it. On the ten probes of the
-motor's airframe, six of them with pods, the mass and the center are within the same bounds, the
-distance off the axis too. Where no override covers the parts, the inertia an override adds there is within
+motor's airframe, the mass and the center are within the same bounds, and on the six with pods
+the distance off the axis too. Where no override covers the parts, the inertia an override adds there is within
 1e-9 kg·m² of what it adds in OpenRocket.
 
-On the seven probes where one override covers the parts, the mass and the center are within the
-same bounds, and the inertia is hpr's rule, not OpenRocket's:
+Seven of the nose-and-tube probes have an override that covers the parts: a center alone, and
+the six of the eight above. On them the mass and the center are within the same bounds, and the
+inertia across the axis is hpr's rule, not OpenRocket's; about the axis it differs only under a
+mass that covers the parts:
 
 | The stage | Inertia about the axis | Inertia across the axis |
 |---|---:|---:|
@@ -146,7 +149,7 @@ same bounds, and the inertia is hpr's rule, not OpenRocket's:
 
 On the motor's airframe and on the one with one pod, under a mass beside a center that covers
 the parts, OpenRocket adds 0.00070 and 0.00035 kg·m² across the axis where hpr adds none: 2.4%
-and 1.2% of the stage's. A test pins both.
+and 1.2% of OpenRocket's inertia across the axis there. A test pins both.
 
 The added mass brings no difference of its own: on the one-stage probe, each tool's inertias
 beside the added mass are the ones it gives under that center alone, within 1 part in a million
@@ -158,7 +161,8 @@ either rule is [#1407][i1407].
 whose flags both say so, read and fly as before. So do a part's overrides, a pod set's, and every
 drag override. No tolerance moved. A stage's mass override that covers the parts beside a center
 whose flag is `false` or not written was held back with a warning that the flags disagree. It now
-flies, read as both covering the parts, which is exactly how OpenRocket weighs it.
+flies, read as both covering the parts, which on the one-stage probe is exactly how OpenRocket
+weighs it.
 
 **Consequences.** The Macie XL design's stage is the row where neither override covers the parts
 ([ADR-334][adr-334]), which the reader no longer holds back; [M2.3d5][m2-3d5] flies it. Other `.ork`

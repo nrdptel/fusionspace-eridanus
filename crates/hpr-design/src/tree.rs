@@ -4275,7 +4275,7 @@ mod tests {
         );
 
         // A station moves the point along the axis only: beside parts whose center is off the
-        // axis it sits level with that center, so the stage's center stays as far off it.
+        // axis it sits as far off it as that center, so the stage's center stays there too.
         let off_axis = MassProperties::point(0.25, DVec3::new(0.003, -0.004, -0.4));
         let level = stationed.add_to(off_axis, 1.0).unwrap();
         close(level.cg_m.x, 0.003, 1e-15, "off the axis, one way");
@@ -4284,7 +4284,7 @@ mod tests {
             -level.cg_m.z,
             (0.25 * 0.4 + 0.5 * 1.1) / 0.75,
             1e-15,
-            "center level with the parts'",
+            "center along the axis",
         );
         close(
             pitch(&level),

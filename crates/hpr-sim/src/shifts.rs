@@ -125,8 +125,8 @@ pub(crate) enum NotCarried {
     /// Its stage's mass is overridden, and the override doesn't say how much of it is the part's.
     StageOverride,
     /// Its stage carries an added mass ([`hpr_design::AddedMass`]), which sits at the center of
-    /// the stage's parts, or level with it at a station: a center the part's leaving or moving
-    /// would change.
+    /// the stage's parts, or at a station as far off the axis as that center: a center the
+    /// part's leaving or moving would change.
     StageAddedMass,
     /// A component around it has an overridden mass that covers what it holds.
     CoveredOverride,
@@ -349,8 +349,8 @@ impl Shifts {
                         NotCarried::StageAddedMass => {
                             "a mass shift in a stage that carries an added mass, which isn't \
                              flown yet (that mass sits at the center of the stage's parts, or \
-                             as far off the axis as it at a station, and the shift would move \
-                             that center)"
+                             at a station as far off the axis as that center, and the shift \
+                             would move that center)"
                         }
                         NotCarried::CoveredOverride => {
                             "a mass shift inside a component whose overridden mass covers what it \

@@ -190,8 +190,8 @@ impl Releases {
                         NotCarried::StageAddedMass => {
                             "a mass release in a stage that carries an added mass, which isn't \
                              flown yet (that mass sits at the center of the stage's parts, or \
-                             as far off the axis as it at a station, and the release would \
-                             move that center)"
+                             at a station as far off the axis as that center, and the release \
+                             would move that center)"
                         }
                         NotCarried::CoveredOverride => {
                             "a mass release inside a component whose overridden mass covers what \
