@@ -877,13 +877,14 @@ fn day_air_note(air: &DayAirReading, what: &str, size: &str) -> String {
     if air.share <= TEMPERATURE_SHARE {
         return format!(
             "the day is past {AIR_TEMPERATURE_SPREAD_K} K, but at this flight's height the day's \
-             air may put the true {what} only {size} {way} the reading, within the bound's {:.1}%",
+             air may put the true {what} only {size} {way} the reading, within the bound's {:.1}% \
+             for the day's air",
             100.0 * TEMPERATURE_SHARE
         );
     }
     format!(
         "the day's air may put the true {what} up to {size} {way} the reading, {}%, where the \
-         bound allows {:.1}%",
+         bound allows {:.1}% for the day's air",
         fixed_up(100.0 * air.share),
         100.0 * TEMPERATURE_SHARE
     )
@@ -1342,7 +1343,7 @@ mod tests {
         let notes = expected_notes(&document, &|what, size| {
             format!(
                 "the day's air may put the true {what} up to {size} above the reading, \
-                 {percent:.1}%, where the bound allows 6.9%"
+                 {percent:.1}%, where the bound allows 6.9% for the day's air"
             )
         });
         assert_notes(&lines, &notes);
@@ -1378,7 +1379,7 @@ mod tests {
         let notes = expected_notes(&document, &|what, size| {
             format!(
                 "the day's air may put the true {what} up to {size} above the reading, \
-                 {percent:.1}%, where the bound allows 6.9%"
+                 {percent:.1}%, where the bound allows 6.9% for the day's air"
             )
         });
         assert_notes(&lines, &notes);
@@ -1406,7 +1407,7 @@ mod tests {
         let notes = expected_notes(&document, &|what, size| {
             format!(
                 "the day's air may put the true {what} up to {size} below the reading, \
-                 {percent:.1}%, where the bound allows 6.9%"
+                 {percent:.1}%, where the bound allows 6.9% for the day's air"
             )
         });
         assert_notes(&lines, &notes);
@@ -1424,7 +1425,7 @@ mod tests {
         let notes = expected_notes(&document, &|what, size| {
             format!(
                 "the day is past 15 K, but at this flight's height the day's air may put the true \
-                 {what} only {size} above the reading, within the bound's 6.9%"
+                 {what} only {size} above the reading, within the bound's 6.9% for the day's air"
             )
         });
         assert_notes(&lines, &notes);
