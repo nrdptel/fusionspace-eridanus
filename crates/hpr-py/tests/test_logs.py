@@ -194,6 +194,46 @@ def test_the_readings_are_the_commands(repo, hpr_cli):
     assert abs(burnout["time_s"] - 3.45) <= burnout["bound_s"]
 
 
+def hot_day_table(path):
+    """An invented flight from a field at about 1,090 m, its pad 34 °C, 26 K over the standard
+    atmosphere there: pressure by the standard atmosphere's troposphere, and a temperature cooling
+    6.5 K a kilometer up the climb, written as a table of pressure and °C."""
+    rows = ["Time (s),Pressure (Pa),Temperature (C)"]
+    g = 9.80665
+    top_s, top_m = 3.0 + 120.0 / g, 120.0 + 120.0**2 / (2.0 * g)
+    main_s = top_s + (top_m - 200.0) / 25.0
+    for i in range(1801):
+        t = i * 0.05
+        if t <= 1.0:
+            h = 0.0
+        elif t < 3.0:
+            h = 30.0 * (t - 1.0) ** 2
+        elif t < top_s:
+            c = t - 3.0
+            h = 120.0 + 120.0 * c - 0.5 * g * c * c
+        elif t < main_s:
+            h = top_m - 25.0 * (t - top_s)
+        else:
+            h = max(200.0 - 6.0 * (t - main_s), 0.0)
+        z = 1090.0 + h
+        pressure = 101325.0 * (1.0 - 0.0065 * z / 288.15) ** 5.25588
+        rows.append(f"{t:.2f},{pressure:.1f},{34.0 - 0.0065 * h:.2f}")
+    path.write_text("\n".join(rows) + "\n")
+
+
+def test_a_hot_day_reads_as_the_command_reads_it(tmp_path, hpr_cli):
+    path = tmp_path / "hot.csv"
+    hot_day_table(path)
+    air = hpr.FlightLog.read(path).readings()["day_air"]
+    assert air["pad_height_from"] == "pressure"
+    assert abs(air["pad_height_msl_m"] - 1090.0) < 1.0
+    assert air["covered"] is False
+    # 307.15 K against the standard's 288.15 − 0.0065 × 1,090 = 281.065 K.
+    assert abs(air["offset_k"] - 26.085) < 0.1
+    assert air["share"] > 15.0 / 216.65
+    assert air == analyzed(hpr_cli, path)["day_air"]
+
+
 def test_a_log_read_by_its_own_reader_is_the_commands(repo, hpr_cli):
     path = repo / "validation/fixtures/logs/synthetic-pnut.pf2"
     read = hpr.FlightLog.read(path)
