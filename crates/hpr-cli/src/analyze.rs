@@ -842,30 +842,45 @@ fn uncovered_air(document: &Analyze) -> Option<&DayAirReading> {
 }
 
 /// The day's air past the bounds' allowance, said once above the readings: the log's temperature
-/// at the pad, its offset from the standard and where the pad's height came from.
+/// at the pad, its offset from the standard and where the pad's height came from. The column is
+/// named in backticks, as the file names it, so a `Temperature (F)` beside a figure in kelvin reads
+/// as the column's name, not the figure's unit.
 fn day_air_line(air: &DayAirReading) -> String {
     let side = if air.offset_k > 0.0 { "over" } else { "under" };
-    let from = match air.pad_height_from {
-        PadHeightSource::Pressure => "its pressure",
-        PadHeightSource::AltitudeMsl => "its altitude above sea level",
-        PadHeightSource::StatedGroundElevation => "the logger's stated ground elevation",
-        PadHeightSource::Other => "the log",
+    let height = meters(air.pad_height_msl_m);
+    let at = match air.pad_height_from {
+        PadHeightSource::Pressure => format!("at the pad's pressure altitude, {height}"),
+        PadHeightSource::AltitudeMsl => {
+            format!("at {height} above sea level (from its altitude above sea level)")
+        }
+        PadHeightSource::StatedGroundElevation => {
+            format!("at {height} above sea level (from the logger's stated ground elevation)")
+        }
+        PadHeightSource::Other => format!("at {height} above sea level"),
     };
     format!(
-        "the day's air: the log's {} reads {:.1} K at the pad, {} K {side} standard at {} above \
-         sea level (from {from}), past the {AIR_TEMPERATURE_SPREAD_K} K the bounds allow; a \
-         logger's sensor in a warm bay can read above the air",
+        "the day's air: the log's `{}` column reads {:.1} K at the pad, {} K {side} standard {at}, \
+         past the {AIR_TEMPERATURE_SPREAD_K} K the bounds allow; a logger's sensor in a warm bay \
+         can read above the air",
         air.temperature_column,
         air.pad_temperature_k,
         fixed_up(air.offset_k.abs()),
-        meters(air.pad_height_msl_m),
     )
 }
 
-/// The note beside a barometric reading the day's air moves past its bound: how far the true
-/// value may lie from the reading, `share × value`, rounded up, and which way.
+/// The note beside a barometric reading on a day past the bounds' allowance: how far the true
+/// value may lie from the reading, `share × value`, rounded up, and which way. A day just past
+/// 15 K under a low flight's warmer air can move a reading by less than the bound's own share,
+/// [`TEMPERATURE_SHARE`]; the note then says the day is past 15 K but within that share here.
 fn day_air_note(air: &DayAirReading, what: &str, size: &str) -> String {
     let way = if air.offset_k > 0.0 { "above" } else { "below" };
+    if air.share <= TEMPERATURE_SHARE {
+        return format!(
+            "the day is past {AIR_TEMPERATURE_SPREAD_K} K, but at this flight's height the day's \
+             air may put the true {what} only {size} {way} the reading, within the bound's {:.1}%",
+            100.0 * TEMPERATURE_SHARE
+        );
+    }
     format!(
         "the day's air may put the true {what} up to {size} {way} the reading, {}%, where the \
          bound allows {:.1}%",
@@ -954,8 +969,8 @@ fn withheld_after(reading: &WithheldReading, above: &[(&str, Option<&WithheldRea
 
 /// A canopy's descent: its rate and the leg it was read over, from apogee or the main's opening
 /// (found back from landing, so with its own bound) to the main's opening or landing. A leg from
-/// apogee is a chord, the height lost over the time taken, so it takes in the fall from rest at
-/// apogee and reads slower than the canopy's steady rate (#1259).
+/// apogee is the mean rate from there, the height lost over the time taken, so it takes in the
+/// fall from rest at apogee and reads slower than the canopy's steady rate (#1259).
 fn descent_row(leg: &DescentReading, to: &str) -> String {
     let from = match &leg.opening {
         Some(opening) => format!(
@@ -966,13 +981,14 @@ fn descent_row(leg: &DescentReading, to: &str) -> String {
         ),
         None => format!("apogee at {:.2} s", leg.from_s),
     };
-    let chord = if leg.opening.is_none() {
-        "; the mean rate from apogee (a chord), the fall from rest there included"
+    let mean = if leg.opening.is_none() {
+        "; the mean rate from apogee: height lost over time taken, so the fall from rest there is \
+         included"
     } else {
         ""
     };
     format!(
-        "{}, within {}{}, from {from} to {to} at {:.2} s, {} to {} up{chord}",
+        "{}, within {}{}, from {from} to {to} at {:.2} s, {} to {} up{mean}",
         speed(leg.rate_m_s),
         speed_bound(leg.bound_m_s),
         rate_interval(leg.interval_m_s),
@@ -1208,15 +1224,18 @@ mod tests {
         );
     }
 
-    /// The synthetic Pnut log, its temperature channel set to `temperature_k` throughout, and its
-    /// text.
+    /// The synthetic Pnut log, its temperature channel set to `temperature_k` on the pad and half
+    /// a kelvin less from 5 s on, so that it varies as a sensor's does, and its text. With `None`,
+    /// the fixture's own channel, 70 °F throughout.
     fn pnut_at(temperature_k: Option<f64>) -> (Analyze, Vec<String>) {
         let text = include_str!("../../../validation/fixtures/logs/synthetic-pnut.pf2");
         let mut log = hpr::hpr_flightdata::perfectflite::read(text).unwrap();
         if let Some(temperature_k) = temperature_k {
             for channel in &mut log.channels {
                 if channel.quantity == Quantity::Temperature {
-                    channel.values.fill(temperature_k);
+                    for (value, t) in channel.values.iter_mut().zip(&channel.time_s) {
+                        *value = temperature_k - if *t >= 5.0 { 0.5 } else { 0.0 };
+                    }
                 }
             }
         }
@@ -1239,75 +1258,182 @@ mod tests {
         (document, lines)
     }
 
+    /// The line below each barometric reading the day's air moves, worked here from the document:
+    /// `note(what, size)`, the size the reading's share rounded up, as a height or a speed.
+    fn expected_notes(
+        document: &Analyze,
+        note: &dyn Fn(&str, String) -> String,
+    ) -> Vec<(&'static str, String)> {
+        let share = document.day_air.as_ref().expect("the day's air").share;
+        let LogReading::Read(apogee) = &document.apogee else {
+            panic!("{:?}", document.apogee);
+        };
+        let LogReading::Read(top) = &document.max_speed else {
+            panic!("{:?}", document.max_speed);
+        };
+        let LogReading::Read(landing) = &document.landing else {
+            panic!("{:?}", document.landing);
+        };
+        let LogReading::Read(drogue) = &document.drogue_descent else {
+            panic!("{:?}", document.drogue_descent);
+        };
+        let LogReading::Read(main) = &document.main_descent else {
+            panic!("{:?}", document.main_descent);
+        };
+        let rate = |rate_m_s: f64| speed_bound(share * rate_m_s.abs());
+        [
+            (
+                "apogee ",
+                note("height", meters_bound(share * apogee.height_m)),
+            ),
+            ("top speed ", note("speed", rate(top.speed_m_s))),
+            (
+                "landing ",
+                note("mean rate", rate(landing.mean_descent_rate_m_s)),
+            ),
+            ("drogue descent ", note("rate", rate(drogue.rate_m_s))),
+            ("main descent ", note("rate", rate(main.rate_m_s))),
+        ]
+        .into_iter()
+        .map(|(name, line)| (name, format!("{:<18}{line}", "")))
+        .collect()
+    }
+
+    /// Each expected note sits on the line below its reading's row.
+    fn assert_notes(lines: &[String], notes: &[(&str, String)]) {
+        for (name, note) in notes {
+            let at = lines
+                .iter()
+                .position(|line| line.starts_with(name))
+                .unwrap_or_else(|| panic!("{name}: {lines:#?}"));
+            assert_eq!(&lines[at + 1], note, "{name}: {lines:#?}");
+        }
+    }
+
     /// A pad 45 °C at a field the logger states 600 ft up, 31.2 K over standard (#1259): a line
     /// above the readings says so, and each barometric reading the day's air moves carries a note
     /// below it, its size the share of the reading rounded up, the true value above the reading.
-    /// At 70 °F, 7.3 K over, the bounds cover the day: no note.
+    /// At 70 °F, 7.3 K over, the bounds cover the day: no note. The fixture's own 70 °F, one value
+    /// throughout, isn't taken for a sensor's: no day's air.
     #[test]
     fn a_hot_day_notes_each_barometric_reading() {
         let (document, lines) = pnut_at(Some(318.15));
         let air = document.day_air.as_ref().expect("the day's air");
         assert!(!air.covered && air.offset_k > 31.0, "{air:?}");
+        assert!(air.share > TEMPERATURE_SHARE, "{air:?}");
         assert_eq!(air.pad_height_from, PadHeightSource::StatedGroundElevation);
         assert!(
             lines.contains(
-                &"the day's air: the log's Temperature (F) reads 318.1 K at the pad, 31.2 K over \
-                  standard at 182.9 m (600 ft) above sea level (from the logger's stated ground \
-                  elevation), past the 15 K the bounds allow; a logger's sensor in a warm bay can \
-                  read above the air"
+                &"the day's air: the log's `Temperature (F)` column reads 318.1 K at the pad, \
+                  31.2 K over standard at 182.9 m (600 ft) above sea level (from the logger's \
+                  stated ground elevation), past the 15 K the bounds allow; a logger's sensor in a \
+                  warm bay can read above the air"
                     .to_owned()
             ),
             "{lines:#?}"
         );
-        let LogReading::Read(apogee) = &document.apogee else {
-            panic!("{:?}", document.apogee);
-        };
-        let note = format!(
-            "{:<18}the day's air may put the true height up to {} above the reading, {:.1}%, \
-             where the bound allows 6.9%",
-            "",
-            meters_bound(air.share * apogee.height_m),
-            rounded_up(100.0 * air.share, 1)
-        );
-        let at = |name: &str| {
-            lines
-                .iter()
-                .position(|line| line.starts_with(name))
-                .unwrap_or_else(|| panic!("{name}: {lines:#?}"))
-        };
-        assert_eq!(lines[at("apogee ") + 1], note, "{lines:#?}");
-        for (name, what) in [
-            ("top speed ", "speed"),
-            ("landing ", "mean rate"),
-            ("drogue descent ", "rate"),
-            ("main descent ", "rate"),
-        ] {
-            let below = &lines[at(name) + 1];
-            assert!(
-                below.starts_with(&format!(
-                    "{:<18}the day's air may put the true {what} up to ",
-                    ""
-                )) && below.contains(" above the reading, "),
-                "{name}: {lines:#?}"
-            );
-        }
-        let (document, lines) = pnut_at(None);
+        let percent = rounded_up(100.0 * air.share, 1);
+        let notes = expected_notes(&document, &|what, size| {
+            format!(
+                "the day's air may put the true {what} up to {size} above the reading, \
+                 {percent:.1}%, where the bound allows 6.9%"
+            )
+        });
+        assert_notes(&lines, &notes);
+
+        let (document, lines) = pnut_at(Some(294.261));
         assert!(document.day_air.is_some_and(|air| air.covered));
+        assert!(
+            !lines.iter().any(|line| line.contains("day's air")),
+            "{lines:#?}"
+        );
+        let (document, lines) = pnut_at(None);
+        assert_eq!(document.day_air, None);
         assert!(
             !lines.iter().any(|line| line.contains("day's air")),
             "{lines:#?}"
         );
     }
 
-    /// The drogue's rate, a leg from apogee, says it is the mean from there, the fall from rest
-    /// included (#1259); the main's, from its opening, doesn't.
+    /// A pad 250 K, 37.0 K under standard: the line says under, and each note puts the true value
+    /// below the reading, with its size.
     #[test]
-    fn a_leg_from_apogee_says_it_is_a_chord() {
+    fn a_cold_day_notes_each_reading_the_other_way() {
+        let (document, lines) = pnut_at(Some(250.0));
+        let air = document.day_air.as_ref().expect("the day's air");
+        assert!(!air.covered && air.offset_k < -36.0, "{air:?}");
+        assert!(air.share > TEMPERATURE_SHARE, "{air:?}");
+        assert!(
+            lines.contains(
+                &"the day's air: the log's `Temperature (F)` column reads 250.0 K at the pad, \
+                  37.0 K under standard at 182.9 m (600 ft) above sea level (from the logger's \
+                  stated ground elevation), past the 15 K the bounds allow; a logger's sensor in a \
+                  warm bay can read above the air"
+                    .to_owned()
+            ),
+            "{lines:#?}"
+        );
+        let percent = rounded_up(100.0 * air.share, 1);
+        let notes = expected_notes(&document, &|what, size| {
+            format!(
+                "the day's air may put the true {what} up to {size} below the reading, \
+                 {percent:.1}%, where the bound allows 6.9%"
+            )
+        });
+        assert_notes(&lines, &notes);
+    }
+
+    /// A pad 16 K over standard, past the 15 K, under a flight low enough that its share stays
+    /// within the bound's 6.92%: the notes still fire, and say the day's air is within the bound's
+    /// share here rather than set a larger figure beside a smaller one.
+    #[test]
+    fn a_day_just_past_15_k_says_its_share_is_within_the_bound() {
+        let (document, lines) = pnut_at(Some(288.15 - 0.0065 * 600.0 * 0.3048 + 16.0));
+        let air = document.day_air.as_ref().expect("the day's air");
+        assert!(!air.covered, "{air:?}");
+        assert!(air.share <= TEMPERATURE_SHARE, "{air:?}");
+        let notes = expected_notes(&document, &|what, size| {
+            format!(
+                "the day is past 15 K, but at this flight's height the day's air may put the true \
+                 {what} only {size} above the reading, within the bound's 6.9%"
+            )
+        });
+        assert_notes(&lines, &notes);
+    }
+
+    /// A pad height from a pressure channel is named as the pad's pressure altitude, not a height
+    /// above sea level.
+    #[test]
+    fn a_pad_height_from_pressure_is_called_its_pressure_altitude() {
+        let air = DayAirReading {
+            pad_temperature_k: 307.41,
+            temperature_column: "Temperature (C)".to_owned(),
+            pad_height_msl_m: 1_088.0,
+            pad_height_from: PadHeightSource::Pressure,
+            pad_standard_temperature_k: 281.078,
+            offset_k: 26.332,
+            covered: false,
+            top_standard_temperature_k: 270.0,
+            share: 0.0975,
+        };
+        assert_eq!(
+            day_air_line(&air),
+            "the day's air: the log's `Temperature (C)` column reads 307.4 K at the pad, 26.4 K \
+             over standard at the pad's pressure altitude, 1088.0 m (3570 ft), past the 15 K the \
+             bounds allow; a logger's sensor in a warm bay can read above the air"
+        );
+    }
+
+    /// The drogue's rate, a leg from apogee, says it is the mean rate from there, the fall from
+    /// rest included (#1259); the main's, from its opening, doesn't.
+    #[test]
+    fn a_leg_from_apogee_says_it_is_the_mean_rate_from_there() {
         let (_, lines) = pnut_at(None);
-        let chord = "; the mean rate from apogee (a chord), the fall from rest there included";
+        let mean = "; the mean rate from apogee: height lost over time taken, so the fall from \
+                    rest there is included";
         let line = |name: &str| lines.iter().find(|line| line.starts_with(name)).unwrap();
-        assert!(line("drogue descent ").ends_with(chord), "{lines:#?}");
-        assert!(!line("main descent ").contains(chord), "{lines:#?}");
+        assert!(line("drogue descent ").ends_with(mean), "{lines:#?}");
+        assert!(!line("main descent ").contains(mean), "{lines:#?}");
     }
 
     /// Every reason, source, provenance and method the library has maps to the command's own, of
