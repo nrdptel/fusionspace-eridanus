@@ -30,7 +30,8 @@ These are built from `validation/fixtures/design/rocketpy-rocket-mass.json`, whi
     example's positions.
   - Body tubes fill the gaps, and a closing tube reaches the nozzle or the fins when no tail
     does.
-  - Walls, fin thickness and materials are placeholders; the override replaces their mass.
+  - Walls, fin thickness, the rail buttons' size and materials are placeholders; the override
+    replaces their mass.
   - Parachutes are left out: RocketPy gives only their drag area.
 - **Drag inputs** (ADR-009):
   - Fins with a NACA 00xx airfoil in the example get an airfoil section that thick at the mean
@@ -42,12 +43,12 @@ These are built from `validation/fixtures/design/rocketpy-rocket-mass.json`, whi
     theirs. The others keep the default finish.
 - **Cavour, Genesis, Lince, Astra, Andromeda and Erebus 11** have no motor dry mass in RocketPy;
   hpr's motor needs a positive one, so each gets 1e-15 kg. Genesis and Lince are here for their
-  logged flights (M2.3b, `cargo xtask real-flights`), which fly each example's own thrust file in
-  place of the stand-in. Astra, Andromeda and Erebus 11 are here for theirs (M2.3d3,
-  `cargo xtask public-predictions`).
+  logged flights (M2.3b, the real-flights report, `cargo xtask real-flights`), which fly each
+  example's own thrust file in place of the stand-in. Astra, Andromeda and Erebus 11 are here for
+  theirs (M2.3d3, the EuRoC 2022 predictions, `cargo xtask public-predictions`).
 - **Andromeda** carries the bundled Cesaroni 8429M2020-P, the motor its notebook names, not the
   curve nearest its team's thrust file (9,867 N·s): the design as committed flies the catalog
-  motor (ADR-334).
+  motor (ADR-334, the decision that splits the public predictions in two).
 - **Calisto at −1.373 m:** RocketPy's tests give no geometry for this rocket, so it takes the
   `calisto_robust` test fixture's surfaces.
 

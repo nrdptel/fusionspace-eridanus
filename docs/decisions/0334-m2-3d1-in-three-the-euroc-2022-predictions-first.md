@@ -65,29 +65,41 @@ the seven flown ones do, and their weather needs only the conversion the guide a
    makes a height, so each is taken as barometric, as the four of the seven with no record are,
    and the prediction is read the same way. The height climbed is kept beside it. The measured
    apogees are already in the research notes; the rule guards the inputs, not that knowledge.
-4. **Traced means the record states it.** A flight's record here is its example notebook. The
-   surface finish and the fin edges, which no RocketPy example records, are placeholders in every
-   design built from one and don't count against the tag. Astra and Erebus 11 are tagged traced.
+   That the rules came before the flights is the maintainer's statement: both reached the
+   repository in one change, so no check can show it.
+4. **Traced means the record states it.** A flight's record here is its example notebook. What
+   no RocketPy example records is a placeholder in every design built from one, the seven's too,
+   and doesn't count against the tag: the surface finish, the fins' thickness and edge shape, and
+   the rail buttons' size. They move the drag, so traced means stated, not exact. Astra and
+   Erebus 11 are tagged traced.
    Andromeda is not: it flew air brakes whose opening no record gives, and its thrust file holds
    more impulse than the reload it is named for ([the research note][andromeda]).
 5. **Andromeda's two curves.** The counted prediction flies the team's thrust file, as ADR-328
    says and as every RocketPy flight flies its example's own file. Its design carries the bundled
    public-domain Cesaroni 8429M2020-P, the motor the notebook names, in place of the bundled
    curve nearest the team file's impulse. The committed design then flies the catalog motor as it
-   stands, and that flight is the one shown beside the counted prediction. It enters no mean.
+   stands, at the counted flight's mass, and that flight is the one shown beside the counted
+   prediction. It enters no mean. The other cases' stand-in curves are near their examples' in
+   impulse, not always the nearest: the catalog has grown since the first were chosen, and the
+   oracle script's comments give the impulses.
 6. **The weather is converted by a script, not read in Rust.** ADR-328 allows either. A netCDF-4
    file is HDF5 inside, and a reader for it is a large dependency for one file. The guide's
    [conversion][era5-convert] is already held by a test on a converted extract. The
    [script][script] runs that conversion on the whole file and fails unless the four fields keep
    their values bit for bit (148,000 of them), the axes and times are the source's, and RocketPy
    builds the same 37 levels from both files at each flight's site and hour. Its
-   [record][record] holds both files' SHA-256, and `public-predictions` flies the converted file
-   only if its SHA-256 is the recorded one.
+   [record][record] holds both files' SHA-256 and the levels RocketPy read. `public-predictions`
+   flies the converted file only if its SHA-256 is the recorded one and HPR Sim reads those
+   levels from it, within 1e-12.
 7. **What a prediction may read.** The module that flies a prediction hashes its flight's log,
    which pins the file the rule will be applied to, and never parses it. Its report has no field
-   for a measured apogee or an error, and a test fails if a field named for an error, a measured
-   value, a residual, an RMS or a miss appears, or if the module's source names one of the log
-   readers' functions.
+   for a measured apogee or an error. A test fails if the committed file is not, byte for byte,
+   what the report's types write, if a key in it names an error, a measured value or a
+   difference, or if the module's source names one of the log readers' functions.
+8. **The merged numbers are kept in the code.** The three apogees, as first merged and to the
+   digit the page prints, are a list in the module. The writer refuses a flown prediction that
+   has moved from it, and CI fails a committed one that has. A prediction that has to change is
+   revised beside its merged number by the change that compares it (ADR-328 §1b).
 
 **The predictions.** From [the committed page][predictions]:
 
@@ -99,13 +111,16 @@ the seven flown ones do, and their weather needs only the conversion the guide a
 
 Andromeda on the catalog M2020, never counted: 8,428.7 N·s, 3,050.3 m (10,008 ft).
 
-**What doesn't change.** M2.3d's and M2.3d1's *done when* stand, no clause narrowed: the five
-predictions still merge before any of their errors, and no flight is dropped. No model changes.
+**What doesn't change.** M2.3d's and M2.3d1's *done when* stand but for one clause: the five
+predictions merge in two pull requests of their own, not one (decision 2). They still merge
+before any of their errors, and no flight is dropped. No model changes.
 The seven flights' report reproduces; only the SHA-256 it records for the design fixture moved,
 because the fixture gained three cases.
 
 **Consequences.** The public predictions are on `main` for three of the five. The Macie XL
 flights wait on M2.3d4, which also lets other `.ork` designs with such a stage fly. Until
 M2.3d2, the real-flights report still rests on 7 flights. Anyone can check that these three
-predictions were not changed afterward: `cargo xtask public-predictions --check` fails when a
-flown prediction differs from the merged one.
+predictions were not changed afterward: the merged apogees are in the code, CI fails a committed
+prediction that has moved from them, and where RocketPy's files are,
+`cargo xtask public-predictions --check` fails when a flown prediction differs from the
+committed one.

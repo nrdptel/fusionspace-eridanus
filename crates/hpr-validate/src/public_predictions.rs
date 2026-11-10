@@ -31,6 +31,8 @@ use std::fmt::Write as _;
 use std::path::Path;
 
 use hpr_design::Rocket;
+use hpr_io::era5::{Era5Profile, Era5Request, UtcTime};
+use hpr_io::netcdf::NetCdf;
 use hpr_sim::{EventKind, FlightMetrics, FlightSettings, Simulation};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -57,10 +59,56 @@ const MAX_TIME_S: f64 = 600.0;
 
 /// What "traced" means in [`PredictedFlight::untraced`], as the page says it.
 pub const TRACED_RULE: &str = "An input is traced when the flight's own record states it: here \
-    RocketPy's example notebook, which holds the team's inputs. What no RocketPy example records, \
-    the surface finish and the fin edges, is a placeholder in every design built from one and \
-    doesn't count against the tag. A flight is tagged not traced when its record leaves out, or \
-    contradicts, something that moves the apogee.";
+    RocketPy's example notebook, which holds the team's inputs. What no RocketPy example records \
+    is a placeholder in every design built from one, the seven compared flights' too, and doesn't \
+    count against the tag: the surface finish, the fins' thickness and edge shape, and the rail \
+    buttons' size. They move the drag, so a traced flight's inputs are stated, not exact. A flight \
+    is tagged not traced when its record leaves out, or contradicts, something else that moves \
+    the apogee.";
+
+/// A prediction as it was first merged, in the digits its page prints.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct MergedPrediction {
+    /// The flight's public id.
+    pub id: &'static str,
+    /// Its predicted apogee as the log's altimeter would read it, m.
+    pub apogee_m: f64,
+    /// Its predicted apogee as a height above the pad, m.
+    pub height_apogee_m: f64,
+    /// Its catalog curve's predicted apogee as the altimeter would read it, m, where it has one.
+    pub catalog_apogee_m: Option<f64>,
+}
+
+/// The predictions as first merged (M2.3d3), which [`PredictionsReport::check_consistent`] holds
+/// every report to, the committed one in CI and a flown one before it is written.
+///
+/// These lines are not edited. A prediction that has to change is revised beside its merged
+/// number, with the reason, by the change that compares it (ADR-328 §1b); until that exists, a
+/// changed prediction fails here and the writer refuses it.
+pub const MERGED: [MergedPrediction; 3] = [
+    MergedPrediction {
+        id: "astra",
+        apogee_m: 3037.1,
+        height_apogee_m: 3155.4,
+        catalog_apogee_m: None,
+    },
+    MergedPrediction {
+        id: "andromeda",
+        apogee_m: 3581.0,
+        height_apogee_m: 3729.5,
+        catalog_apogee_m: Some(3050.3),
+    },
+    MergedPrediction {
+        id: "erebus-11",
+        apogee_m: 2714.1,
+        height_apogee_m: 2808.7,
+        catalog_apogee_m: None,
+    },
+];
+
+/// How far a prediction may sit from its merged number and still print as it: half of the last
+/// digit the page prints, m.
+const MERGED_WITHIN_M: f64 = 0.05;
 
 /// The apogee a flight's log will be read at: the rule, never the value.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -126,7 +174,8 @@ pub struct PredictedFlight {
 ///
 /// Every rule and tag here was written before any of the three was flown, and each log was looked
 /// at only for its columns and for a transient near its peak (none: each peak is the whole log's
-/// highest reading).
+/// highest reading). That order is the maintainer's statement: the rules and the first flown
+/// numbers reached the repository in one change, so no check can show it.
 pub const NEW_FLIGHTS: [PredictedFlight; 3] = [
     PredictedFlight {
         id: "astra",
@@ -232,6 +281,9 @@ pub struct CatalogCurveRow {
     pub why: String,
     /// The impulse flown, N s.
     pub total_impulse_ns: f64,
+    /// The mass at liftoff, kg: the counted flight's, since the design's propellant is its
+    /// grains' and only the curve differs.
+    pub liftoff_mass_kg: f64,
     /// Its predicted apogee as the log's altimeter would read it, m. Never counted.
     pub predicted_apogee_m: f64,
     /// Its predicted apogee as a height above the pad, m.
@@ -378,6 +430,112 @@ fn conversion(root: &Path) -> Result<WeatherConversion, RealFlightError> {
     })
 }
 
+/// How far HPR Sim's reading of a level may sit from RocketPy's, relative (to 1 for a value under
+/// 1): the two do the same arithmetic on the same stored numbers, and this leaves room for its
+/// order, as `hpr_io`'s own comparison on the committed extracts does.
+const LEVELS_WITHIN: f64 = 1e-12;
+
+/// Holds HPR Sim's reading of the converted weather file, at a flight's site and hour, to the
+/// levels RocketPy read from it, which [`CONVERSION_RECORD`] keeps: the same pressures, and the
+/// temperature, both wind components and the geopotential height within [`LEVELS_WITHIN`].
+///
+/// RocketPy records a geometric height `h = R Z/(R − Z)` for its Earth radius `R`; it is turned
+/// back into the geopotential height `Z = R h/(R + h)` to compare with the file's own.
+///
+/// # Errors
+///
+/// [`RealFlightError::Input`] naming the first level that differs, or what the record lacks.
+fn levels_are_rocketpys(
+    root: &Path,
+    flight: &PredictedFlight,
+    weather: &WeatherConversion,
+    weather_bytes: &[u8],
+) -> Result<usize, RealFlightError> {
+    let input = |what: String| RealFlightError::Input {
+        flight: flight.id.to_owned(),
+        what,
+    };
+    let bytes = read_bytes(root, CONVERSION_RECORD, "reading the conversion's record")?;
+    let record: Value = serde_json::from_slice(&bytes)
+        .map_err(|error| input(format!("{CONVERSION_RECORD}: {error}")))?;
+    let lacks = || input(format!("{CONVERSION_RECORD} has no levels for this flight"));
+    let reading = record["rocketpy_readings"]
+        .as_array()
+        .and_then(|readings| readings.iter().find(|reading| reading["id"] == flight.id))
+        .ok_or_else(lacks)?;
+    let radius = reading["earth_radius_m"].as_f64().ok_or_else(lacks)?;
+    let theirs = reading["levels"].as_array().ok_or_else(lacks)?;
+    let file = NetCdf::parse(weather_bytes)
+        .map_err(|error| input(format!("{}: {error}", weather.converted)))?;
+    let (year, month, day, hour) = flight.utc;
+    let (latitude_deg, longitude_deg, _) = flight.site;
+    let time = UtcTime::from_civil(year, month, day, hour, 0, 0.0)
+        .map_err(|error| input(error.to_string()))?;
+    let profile = Era5Profile::read(
+        &file,
+        Era5Request {
+            latitude_deg,
+            longitude_deg,
+            time,
+        },
+    )
+    .map_err(|error| input(format!("{}: {error}", weather.converted)))?;
+    if profile.times.len() != 1 || profile.levels.len() != theirs.len() || theirs.is_empty() {
+        return Err(input(format!(
+            "{}: HPR Sim reads {} levels at {} times, and RocketPy read {} at one",
+            weather.converted,
+            profile.levels.len(),
+            profile.times.len(),
+            theirs.len()
+        )));
+    }
+    // RocketPy sorts by height and HPR Sim by pressure; both are lowest first.
+    for (ours, theirs) in profile.levels.iter().zip(theirs) {
+        let number = |key: &str| theirs[key].as_f64().ok_or_else(lacks);
+        let pressure_pa = number("pressure_pa")?;
+        let height_m = number("height_m")?;
+        let pairs = [
+            ("pressure", ours.pressure_pa, pressure_pa, 0.0),
+            (
+                "temperature",
+                ours.temperature_k,
+                number("temperature_k")?,
+                LEVELS_WITHIN,
+            ),
+            (
+                "east wind",
+                ours.wind_east_m_s,
+                number("wind_east_m_s")?,
+                LEVELS_WITHIN,
+            ),
+            (
+                "north wind",
+                ours.wind_north_m_s,
+                number("wind_north_m_s")?,
+                LEVELS_WITHIN,
+            ),
+            (
+                "geopotential height",
+                ours.geopotential_height_m,
+                radius * height_m / (radius + height_m),
+                LEVELS_WITHIN,
+            ),
+        ];
+        for (what, ours, theirs, within) in pairs {
+            // A NaN on either side is a difference too.
+            let gap = (ours - theirs).abs();
+            if gap.is_nan() || gap > within * theirs.abs().max(1.0) {
+                return Err(input(format!(
+                    "{}: at {pressure_pa} Pa HPR Sim reads a {what} of {ours}, and RocketPy \
+                     read {theirs}",
+                    weather.converted
+                )));
+            }
+        }
+    }
+    Ok(theirs.len())
+}
+
 /// Predicts one flight: flies it from its record and reads its apogee as its log's altimeter
 /// would. The log is hashed, never parsed.
 ///
@@ -421,13 +579,21 @@ pub fn predict(
         ));
     }
     let thrust_bytes = read(thrust_path.clone(), "reading a thrust file")?;
-    let (curve, _) = parse_thrust(
+    let (curve, zeroed_ns) = parse_thrust(
         flight.id,
         &thrust_path,
         &String::from_utf8_lossy(&thrust_bytes),
         burn,
         None,
     )?;
+    // The seven's report records the impulse a zeroed negative thrust removes; this one has no
+    // place for it, so a file that holds one is refused, not flown changed.
+    if zeroed_ns != 0.0 {
+        return Err(input(format!(
+            "{thrust_path} holds negative thrust ({zeroed_ns} N s), which no prediction here \
+             expects"
+        )));
+    }
     let design_path = format!("validation/designs/{}.json", flight.design);
     let design_bytes = read(design_path.clone(), "reading a design")?;
     let design: Value = serde_json::from_slice(&design_bytes)
@@ -435,7 +601,10 @@ pub fn predict(
     let rocket = rocket_with_curve(flight.id, &design, &design_path, &thrust_path, &curve)?;
 
     // The weather: the converted file, only if it is the committed conversion.
-    let weather_bytes = read(weather.converted.clone(), "reading the converted ERA5 file")?;
+    let weather_bytes = read(
+        weather.converted.clone(),
+        "reading the converted ERA5 file, which validation/oracles/netcdf/euroc_2022.py writes",
+    )?;
     if sha256_hex(&weather_bytes) != weather.converted_sha256 {
         return Err(input(format!(
             "{} is not the conversion {CONVERSION_RECORD} records: run \
@@ -443,6 +612,8 @@ pub fn predict(
             weather.converted
         )));
     }
+    // And only if HPR Sim reads from it, here and now, the levels RocketPy read.
+    levels_are_rocketpys(root, flight, weather, &weather_bytes)?;
     let (environment, air) = launch_day_at(
         flight.id,
         flight.site,
@@ -525,6 +696,7 @@ pub fn predict(
                 motor: catalog.motor.to_owned(),
                 why: catalog.why.to_owned(),
                 total_impulse_ns: flown.total_impulse_ns,
+                liftoff_mass_kg: flown.liftoff_mass_kg,
                 predicted_apogee_m: flown.apogee_m,
                 predicted_height_apogee_m: flown.height_apogee_m,
             })
@@ -583,6 +755,22 @@ pub fn predict(
 /// The first flight's [`RealFlightError`].
 pub fn run(root: &Path) -> Result<PredictionsReport, RealFlightError> {
     let weather_conversion = conversion(root)?;
+    // The file the conversion was made from is the one in the checkout.
+    let source = read_bytes(
+        root,
+        &weather_conversion.source,
+        "reading RocketPy's EuRoC 2022 ERA5 file",
+    )?;
+    if sha256_hex(&source) != weather_conversion.source_sha256 {
+        return Err(RealFlightError::Input {
+            flight: "the EuRoC 2022 weather".to_owned(),
+            what: format!(
+                "{} is not the file {CONVERSION_RECORD} was made from: run \
+                 validation/oracles/netcdf/euroc_2022.py",
+                weather_conversion.source
+            ),
+        });
+    }
     let flights = NEW_FLIGHTS
         .iter()
         .map(|flight| predict(root, flight, &weather_conversion))
@@ -623,6 +811,7 @@ impl PredictionsReport {
                     catalog.predicted_height_apogee_m,
                 ));
                 heights.push(("catalog curve's impulse", catalog.total_impulse_ns));
+                heights.push(("catalog curve's liftoff mass", catalog.liftoff_mass_kg));
             }
             if let Some((what, value)) = heights
                 .iter()
@@ -642,6 +831,57 @@ impl PredictionsReport {
             if row.reference_log_sha256.len() != 64 {
                 return Err(format!("{}: its log has no SHA-256", row.id));
             }
+            // The numbers first merged ([`MERGED`]), to the digit the page prints.
+            let merged = MERGED
+                .iter()
+                .find(|merged| merged.id == row.id)
+                .ok_or_else(|| format!("{}: it has no merged prediction to be held to", row.id))?;
+            let catalog_apogee_m = row
+                .catalog_curve
+                .as_ref()
+                .map(|catalog| catalog.predicted_apogee_m);
+            if merged.catalog_apogee_m.is_some() != catalog_apogee_m.is_some() {
+                return Err(format!(
+                    "{}: its catalog curve is not its merged prediction's",
+                    row.id
+                ));
+            }
+            let held = [
+                (
+                    "predicted apogee",
+                    Some(row.predicted_apogee_m),
+                    Some(merged.apogee_m),
+                ),
+                (
+                    "predicted apogee as a height",
+                    Some(row.predicted_height_apogee_m),
+                    Some(merged.height_apogee_m),
+                ),
+                (
+                    "catalog curve's apogee",
+                    catalog_apogee_m,
+                    merged.catalog_apogee_m,
+                ),
+            ];
+            for (what, now, first) in held {
+                if let (Some(now), Some(first)) = (now, first)
+                    && (now - first).abs() > MERGED_WITHIN_M
+                {
+                    return Err(format!(
+                        "{}: its {what} is {now} m, and its merged prediction is {first} m: a \
+                         merged prediction is not changed, it is revised beside the old one \
+                         (ADR-328 §1b)",
+                        row.id
+                    ));
+                }
+            }
+        }
+        if self.flights.len() != MERGED.len() {
+            return Err(format!(
+                "{} flights, and {} merged predictions",
+                self.flights.len(),
+                MERGED.len()
+            ));
         }
         if markdown != self.to_markdown() {
             return Err(format!(
@@ -692,6 +932,7 @@ impl PredictionsReport {
                 }
                 if let Some(catalog) = &mut row.catalog_curve {
                     catalog.total_impulse_ns = 0.0;
+                    catalog.liftoff_mass_kg = 0.0;
                     catalog.predicted_apogee_m = 0.0;
                     catalog.predicted_height_apogee_m = 0.0;
                 }
@@ -730,6 +971,11 @@ impl PredictionsReport {
                     y.total_impulse_ns,
                 ));
                 numbers.push((
+                    "catalog curve's liftoff mass",
+                    x.liftoff_mass_kg,
+                    y.liftoff_mass_kg,
+                ));
+                numbers.push((
                     "catalog curve's apogee",
                     x.predicted_apogee_m,
                     y.predicted_apogee_m,
@@ -759,13 +1005,16 @@ impl PredictionsReport {
         let _ = write!(
             out,
             "# Public flights predicted before they are compared\n\n\
-             Written by `cargo xtask public-predictions` ([M2.3d3][m2-3d3], decisions \
-             [ADR-328][adr-328] and [ADR-334][adr-334]). What it is for is on the \
-             [documentation site][site].\n\n\
+             Written by `cargo xtask public-predictions` ([the EuRoC 2022 predictions, \
+             M2.3d3][m2-3d3]; decisions: [twelve public flights, predictions first, \
+             ADR-328][adr-328] and [the predictions in two parts, ADR-334][adr-334]). What it is \
+             for is on the [documentation site][site].\n\n\
              - **What this is:** {} public real flights that join the seven of the \
              [real-flights report][real], each flown by HPR Sim from its record alone. This page \
-             was merged before any of their logs was compared, so no number here could be tuned \
-             to its own error.\n\
+             was merged before any of their logs was compared. Their measured apogees were \
+             already public, so the targets were known; what merging first does is make an input \
+             changed after seeing HPR Sim's own miss show as a change to a merged number. The \
+             code holds each prediction to the number first merged.\n\
              - **What it holds:** each flight's inputs with their sources, the rule its log's \
              apogee will be read by, and HPR Sim's predicted apogee. It holds no measured apogee \
              and no error: those come in a later pull request, which must print each prediction \
@@ -778,7 +1027,8 @@ impl PredictionsReport {
              climbed is beside it.\n\
              - **Traced:** {}\n\
              - **Files:** the examples' thrust files and the logs are read from the pinned \
-             RocketPy checkout, and the weather file is converted from the checkout's; none is \
+             RocketPy checkout (`refs/rocketpy`, which `cargo xtask refs fetch rocketpy` \
+             fetches), and the weather file is converted from the checkout's; none is \
              committed, and each one's SHA-256 is in the JSON. A log's \
              bytes are hashed to pin the file its rule will be applied to; they are never read as \
              numbers here.\n\n\
@@ -815,29 +1065,37 @@ impl PredictionsReport {
             .iter()
             .filter_map(|row| row.catalog_curve.as_ref().map(|catalog| (row, catalog)))
             .collect();
+        // A title without the bracket that says which curve the counted flight is on.
+        let name = |row: &PredictionRow| -> String {
+            row.title
+                .rsplit_once(" (")
+                .map_or(row.title.as_str(), |(name, _)| name)
+                .to_owned()
+        };
         if !catalog.is_empty() {
             out.push_str(
                 "\n## On the catalog curve, never counted\n\n\
-                 The same design on the bundled certified curve of the motor its record names, \
-                 where the counted flight is on another curve. It is here so the reader can see \
-                 what the choice of curve moves; it enters no mean.\n\n\
-                 | flight | catalog motor | impulse flown (N s) | predicted apogee (m) | as a \
-                 height (m) |\n|---|---|---:|---:|---:|\n",
+                 The same design, at the same mass, on the bundled certified curve of the motor \
+                 its record names, where the counted flight is on another curve. It is here so \
+                 the reader can see what the choice of curve moves; it enters no mean.\n\n\
+                 | flight | catalog motor | impulse flown (N s) | liftoff mass (kg) | predicted \
+                 apogee (m) | as a height (m) |\n|---|---|---:|---:|---:|---:|\n",
             );
             for (row, catalog) in &catalog {
                 let _ = writeln!(
                     out,
-                    "| {} | {} | {} | {} | {} |",
-                    row.title,
+                    "| {} | {} | {} | {} | {} | {} |",
+                    name(row),
                     catalog.motor,
                     fmt_number(catalog.total_impulse_ns, 1),
+                    fmt_number(catalog.liftoff_mass_kg, 3),
                     fmt_number(catalog.predicted_apogee_m, 1),
                     fmt_number(catalog.predicted_height_apogee_m, 1),
                 );
             }
             out.push('\n');
             for (row, catalog) in &catalog {
-                let _ = writeln!(out, "- **{}:** {}.", row.title, catalog.why);
+                let _ = writeln!(out, "- **{}:** {}.", name(row), catalog.why);
             }
         }
         out.push_str("\n## Each flight's inputs and its apogee rule\n\n");

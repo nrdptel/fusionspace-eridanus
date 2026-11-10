@@ -219,7 +219,8 @@ adds a source.
   and so does this notice. Neither the European Commission nor ECMWF is responsible for any use
   that may be made of the Copernicus information or data it contains. The full files stay in
   `refs/`. The example `crates/hpr/examples/era5_weather.rs` reads the Bella Lui extract.
-  RocketPy's EuRoC 2022 file, which three predicted flights fly in (M2.3d3), is converted from
+  RocketPy's EuRoC 2022 file, which three predicted flights fly in (M2.3d3, the EuRoC 2022
+  predictions), is converted from
   netCDF-4 by `validation/oracles/netcdf/euroc_2022.py` into `refs/` and is **not** committed: only
   both files' SHA-256 are, in `validation/fixtures/weather/euroc-2022-conversion.json`.
 - **Open-Meteo weather answers** (<https://open-meteo.com>):

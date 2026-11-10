@@ -83,8 +83,8 @@ The −1.373 value at `t = 0`, 10.516648, matches RocketPy's own pinned test val
   `validation/fixtures/design/rocketpy-rocket-mass.json`. It now holds thirteen cases from twelve rockets:
   M1.4b's seven (Calisto at both motor positions, Bella Lui, NDRT 2020, Valetudo, Juno III and
   Prometheus), Cavour, added in M1.5b for its RASAero-labeled drag curve (ADR-009), and Genesis and
-  Lince, added in M2.3b for their logged flights, and Astra, Andromeda and Erebus 11, added in
-  M2.3d3 for theirs. The test checks that its design list (`ROCKETPY_DESIGNS`, thirteen entries)
+  Lince, added in M2.3b for their logged flights, and Astra, Andromeda and Erebus 11, added for
+  the EuRoC 2022 predictions (M2.3d3). The test checks that its design list (`ROCKETPY_DESIGNS`, thirteen entries)
   matches the fixture's cases. Cavour, Genesis, Lince and M2.3d3's three have
   massless motor dry parts; their designs give the motor 1e-15 kg, since hpr needs a positive one.
   - Prometheus's `GenericMotor` is hpr's propellant column: a fixed center, solid-cylinder inertia,

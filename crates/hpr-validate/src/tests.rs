@@ -2263,16 +2263,60 @@ fn real_flight_cases_report_apogee_and_trace_rms() {
     assert!(page.contains("Mean absolute apogee error"));
 }
 
+/// The committed predictions' file, as text.
+fn committed_predictions_text() -> String {
+    std::fs::read_to_string(root().join(crate::public_predictions::PREDICTIONS_JSON))
+        .expect("the predictions are committed")
+        .replace("\r\n", "\n")
+}
+
 /// The committed predictions, read.
 fn committed_predictions() -> (crate::public_predictions::PredictionsReport, String) {
-    use crate::public_predictions::{PREDICTIONS_JSON, PREDICTIONS_MD};
-    let text = std::fs::read_to_string(root().join(PREDICTIONS_JSON))
-        .expect("the predictions are committed");
-    let page = std::fs::read_to_string(root().join(PREDICTIONS_MD)).expect("the page is committed");
+    let page = std::fs::read_to_string(root().join(crate::public_predictions::PREDICTIONS_MD))
+        .expect("the page is committed")
+        .replace("\r\n", "\n");
     (
-        serde_json::from_str(&text).expect("the predictions read"),
+        serde_json::from_str(&committed_predictions_text()).expect("the predictions read"),
         page,
     )
+}
+
+/// The key in `text`, a JSON document, that names an error, a measured value or a difference, if
+/// one does: the words no predictions file may hold.
+fn key_for_an_error(text: &str) -> Option<String> {
+    let json: serde_json::Value = serde_json::from_str(text).ok()?;
+    let mut stack = vec![&json];
+    while let Some(value) = stack.pop() {
+        match value {
+            serde_json::Value::Object(map) => {
+                for (key, value) in map {
+                    let lower = key.to_lowercase();
+                    let named = [
+                        "error",
+                        "measured",
+                        "log_apogee",
+                        "residual",
+                        "rms",
+                        "miss",
+                        "delta",
+                        "diff",
+                        "actual",
+                        "observed",
+                        "logged",
+                    ]
+                    .iter()
+                    .any(|word| lower.contains(word));
+                    if named {
+                        return Some(key.clone());
+                    }
+                    stack.push(value);
+                }
+            }
+            serde_json::Value::Array(items) => stack.extend(items),
+            _ => {}
+        }
+    }
+    None
 }
 
 #[test]
@@ -2327,6 +2371,22 @@ fn public_predictions_are_the_listed_flights_and_hold_no_error() {
         .iter()
         .map(|reading| reading["utc"].as_str().unwrap())
         .collect();
+    // And it keeps RocketPy's levels at each, which a prediction's air is held to where the
+    // files are (`levels_are_rocketpys`).
+    for reading in record["rocketpy_readings"].as_array().unwrap() {
+        assert_eq!(reading["levels_identical"], 37, "{}", reading["id"]);
+        assert_eq!(
+            reading["levels"].as_array().map(Vec::len),
+            Some(37),
+            "{}",
+            reading["id"]
+        );
+        assert!(
+            reading["earth_radius_m"]
+                .as_f64()
+                .is_some_and(|r| r > 6.3e6)
+        );
+    }
 
     for (row, flight) in report.flights.iter().zip(&NEW_FLIGHTS) {
         // The words the predictions carry are the ones the code flies with now.
@@ -2436,37 +2496,49 @@ fn public_predictions_are_the_listed_flights_and_hold_no_error() {
     }
     let andromeda = &report.flights[1];
     let catalog = andromeda.catalog_curve.as_ref().expect("Andromeda's");
+    // The catalog flight is the committed design's own motor, at the counted flight's mass.
+    let designation = catalog.motor.rsplit(' ').next().unwrap();
+    let design = std::fs::read_to_string(
+        root().join(format!("validation/designs/{}.json", andromeda.design)),
+    )
+    .unwrap();
+    assert!(
+        design.contains(&format!("\"{designation}\"")),
+        "the design doesn't carry {designation}"
+    );
+    assert_eq!(catalog.liftoff_mass_kg, andromeda.liftoff_mass_kg);
     assert!(catalog.total_impulse_ns < andromeda.total_impulse_ns);
     assert!(catalog.predicted_apogee_m < andromeda.predicted_apogee_m);
     assert!(!andromeda.all_inputs_traced);
     assert!(report.flights[0].all_inputs_traced && report.flights[2].all_inputs_traced);
 
-    // Neither the data nor the page has a place for a measured apogee or an error.
-    let text = serde_json::to_string(&report).unwrap();
-    let json: serde_json::Value = serde_json::from_str(&text).unwrap();
-    let mut keys = Vec::new();
-    let mut stack = vec![&json];
-    while let Some(value) = stack.pop() {
-        match value {
-            serde_json::Value::Object(map) => {
-                for (key, value) in map {
-                    keys.push(key.clone());
-                    stack.push(value);
-                }
-            }
-            serde_json::Value::Array(items) => stack.extend(items),
-            _ => {}
-        }
-    }
-    for key in &keys {
-        for word in ["error", "measured", "log_apogee", "residual", "rms", "miss"] {
-            assert!(!key.contains(word), "the predictions hold a `{key}`");
-        }
-    }
+    // Neither the data nor the page has a place for a measured apogee or an error. The committed
+    // file is the report's own writing, byte for byte, so it holds no key the report's types
+    // don't have; and no key it does hold, read from the file itself, names an error.
+    let text = committed_predictions_text();
+    assert_eq!(
+        text,
+        serde_json::to_string_pretty(&report).unwrap() + "\n",
+        "the committed predictions are not what the report writes: a key it has no field for, \
+         or a hand edit; rerun `cargo xtask public-predictions`"
+    );
+    assert_eq!(key_for_an_error(&text), None, "the predictions hold it");
     assert!(!page.contains('%'), "the page states a percentage");
-    // Nor does the module read a log as numbers: it names none of the functions that do.
+    // Nor does the module read a log as numbers: it names none of the functions that do, the
+    // compared flights' own among them.
     let source = include_str!("public_predictions.rs");
-    for reader in ["parse_log", "compare_traces", "read_rows", "highest("] {
+    for reader in [
+        "parse_log",
+        "compare_traces",
+        "read_rows",
+        "highest(",
+        "real_flight::fly",
+        "real_flight::run",
+        "::fly(",
+        " fly(",
+        " fly,",
+        "{fly",
+    ] {
         assert!(!source.contains(reader), "the predictions call `{reader}`");
     }
     // And no compared report holds one of these flights.
@@ -2518,14 +2590,79 @@ fn a_prediction_that_changes_or_stops_holding_fails() {
             .unwrap_err()
             .contains("no heavier")
     );
+    // A prediction moved from the number first merged, however it got into the file: the writer
+    // checks the same thing before it writes, so it refuses a flown one that moved too.
     let moved = altered(&|report| report.flights[0].predicted_apogee_m += 0.5);
+    let error = moved.check_consistent(&moved.to_markdown()).unwrap_err();
     assert!(
-        moved
+        error.contains("astra") && error.contains("merged prediction is 3037.1 m"),
+        "{error}"
+    );
+    let lower = altered(&|report| report.flights[2].predicted_height_apogee_m -= 0.2);
+    assert!(
+        lower
+            .check_consistent(&lower.to_markdown())
+            .unwrap_err()
+            .contains("merged prediction is 2808.7 m")
+    );
+    let recurved = altered(&|report| {
+        report.flights[1]
+            .catalog_curve
+            .as_mut()
+            .unwrap()
+            .predicted_apogee_m += 0.2;
+    });
+    assert!(
+        recurved
+            .check_consistent(&recurved.to_markdown())
+            .unwrap_err()
+            .contains("merged prediction is 3050.3 m")
+    );
+    let uncurved = altered(&|report| report.flights[1].catalog_curve = None);
+    assert!(
+        uncurved
+            .check_consistent(&uncurved.to_markdown())
+            .unwrap_err()
+            .contains("catalog curve")
+    );
+    let renamed = altered(&|report| report.flights[0].id = "astra-2".to_owned());
+    assert!(
+        renamed
+            .check_consistent(&renamed.to_markdown())
+            .unwrap_err()
+            .contains("no merged prediction")
+    );
+    // A page that is not the data's.
+    let retitled = altered(&|report| report.flights[0].title.push('!'));
+    assert!(
+        retitled
             .check_consistent(&page)
             .unwrap_err()
             .contains("rendering"),
-        "a page with the old apogee passes"
+        "a page with the old title passes"
     );
+    // A key for an error or a measured value in the file itself, which reading it into the
+    // report's types would drop without a word.
+    let text = committed_predictions_text();
+    assert_eq!(key_for_an_error(&text), None);
+    for key in [
+        "measured_apogee_m",
+        "apogee_error_percent",
+        "delta_m",
+        "observed_m",
+    ] {
+        let edited = text.replacen(
+            "\"predicted_apogee_m\"",
+            &format!("\"{key}\": 1.0,\n      \"predicted_apogee_m\""),
+            1,
+        );
+        assert_ne!(edited, text);
+        assert_eq!(key_for_an_error(&edited).as_deref(), Some(key));
+        // It still reads as a report, which is why the file's own text is what is checked.
+        let read: crate::public_predictions::PredictionsReport =
+            serde_json::from_str(&edited).unwrap();
+        assert_ne!(serde_json::to_string_pretty(&read).unwrap() + "\n", edited);
+    }
     // Against a flight flown now: half a meter of apogee, a catalog apogee, a reworded source.
     assert_eq!(report.reproduces(&report), Ok(()));
     let error = report.reproduces(&moved).unwrap_err();

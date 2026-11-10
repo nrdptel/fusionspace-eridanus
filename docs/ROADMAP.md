@@ -189,7 +189,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
       Moves: accuracy above Mach 1.
 - [ ] **M2.3d Twelve public flights, predictions first** (ADR-328, in two; met when they are).
   *Done when:* ADR-328 §1's, whole. Moves: accuracy.
-  - [ ] **M2.3d1 The predictions** (ADR-334: in three, below; met when they are). *Done when:*
+  - [ ] **M2.3d1 The predictions** (ADR-334: in three, M2.3d3 done and two below; met when they are). *Done when:*
     ADR-328 §1a's: its own pull request merges the five new flights' inputs, sources and
     predicted apogees, computing no error.
     - [ ] **M2.3d4 A stage's override that adds to its parts.** *Done when:* an `.ork` stage

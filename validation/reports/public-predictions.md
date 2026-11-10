@@ -1,13 +1,13 @@
 # Public flights predicted before they are compared
 
-Written by `cargo xtask public-predictions` ([M2.3d3][m2-3d3], decisions [ADR-328][adr-328] and [ADR-334][adr-334]). What it is for is on the [documentation site][site].
+Written by `cargo xtask public-predictions` ([the EuRoC 2022 predictions, M2.3d3][m2-3d3]; decisions: [twelve public flights, predictions first, ADR-328][adr-328] and [the predictions in two parts, ADR-334][adr-334]). What it is for is on the [documentation site][site].
 
-- **What this is:** 3 public real flights that join the seven of the [real-flights report][real], each flown by HPR Sim from its record alone. This page was merged before any of their logs was compared, so no number here could be tuned to its own error.
+- **What this is:** 3 public real flights that join the seven of the [real-flights report][real], each flown by HPR Sim from its record alone. This page was merged before any of their logs was compared. Their measured apogees were already public, so the targets were known; what merging first does is make an input changed after seeing HPR Sim's own miss show as a change to a merged number. The code holds each prediction to the number first merged.
 - **What it holds:** each flight's inputs with their sources, the rule its log's apogee will be read by, and HPR Sim's predicted apogee. It holds no measured apogee and no error: those come in a later pull request, which must print each prediction below beside its error.
 - **How it is flown:** by the seven's method. The design is built from the example's inputs and flown on the example's own thrust file, from its rail and site, in the ERA5 air of its launch hour, on HPR Sim's own aerodynamics.
 - **The predicted apogee** is read as the log's altimeter would read it: the standard atmosphere's altitude of the day's pressure at the apogee, less the pad's. The height climbed is beside it.
-- **Traced:** An input is traced when the flight's own record states it: here RocketPy's example notebook, which holds the team's inputs. What no RocketPy example records, the surface finish and the fin edges, is a placeholder in every design built from one and doesn't count against the tag. A flight is tagged not traced when its record leaves out, or contradicts, something that moves the apogee.
-- **Files:** the examples' thrust files and the logs are read from the pinned RocketPy checkout, and the weather file is converted from the checkout's; none is committed, and each one's SHA-256 is in the JSON. A log's bytes are hashed to pin the file its rule will be applied to; they are never read as numbers here.
+- **Traced:** An input is traced when the flight's own record states it: here RocketPy's example notebook, which holds the team's inputs. What no RocketPy example records is a placeholder in every design built from one, the seven compared flights' too, and doesn't count against the tag: the surface finish, the fins' thickness and edge shape, and the rail buttons' size. They move the drag, so a traced flight's inputs are stated, not exact. A flight is tagged not traced when its record leaves out, or contradicts, something else that moves the apogee.
+- **Files:** the examples' thrust files and the logs are read from the pinned RocketPy checkout (`refs/rocketpy`, which `cargo xtask refs fetch rocketpy` fetches), and the weather file is converted from the checkout's; none is committed, and each one's SHA-256 is in the JSON. A log's bytes are hashed to pin the file its rule will be applied to; they are never read as numbers here.
 
 [m2-3d3]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3d3
 [adr-328]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md
@@ -25,13 +25,13 @@ Written by `cargo xtask public-predictions` ([M2.3d3][m2-3d3], decisions [ADR-32
 
 ## On the catalog curve, never counted
 
-The same design on the bundled certified curve of the motor its record names, where the counted flight is on another curve. It is here so the reader can see what the choice of curve moves; it enters no mean.
+The same design, at the same mass, on the bundled certified curve of the motor its record names, where the counted flight is on another curve. It is here so the reader can see what the choice of curve moves; it enters no mean.
 
-| flight | catalog motor | impulse flown (N s) | predicted apogee (m) | as a height (m) |
-|---|---|---:|---:|---:|
-| Andromeda, Aristotle Space and Aeronautics Team, EuRoC 2022 (the team's curve) | Cesaroni 8429M2020-P | 8428.7 | 3050.3 | 3176.1 |
+| flight | catalog motor | impulse flown (N s) | liftoff mass (kg) | predicted apogee (m) | as a height (m) |
+|---|---|---:|---:|---:|---:|
+| Andromeda, Aristotle Space and Aeronautics Team, EuRoC 2022 | Cesaroni 8429M2020-P | 8428.7 | 25.323 | 3050.3 | 3176.1 |
 
-- **Andromeda, Aristotle Space and Aeronautics Team, EuRoC 2022 (the team's curve):** the reload the notebook names, on its certified curve as bundled, whole. Shown beside the counted prediction and never counted: every RocketPy flight here is counted on its example's own thrust file.
+- **Andromeda, Aristotle Space and Aeronautics Team, EuRoC 2022:** the reload the notebook names, on its certified curve as bundled, whole. Shown beside the counted prediction and never counted: every RocketPy flight here is counted on its example's own thrust file.
 
 ## Each flight's inputs and its apogee rule
 

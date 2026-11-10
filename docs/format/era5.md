@@ -84,7 +84,22 @@ that RocketPy ships ([predicted before compared](../accuracy.md#predicted-before
 The script
 [`euroc_2022.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/netcdf/euroc_2022.py)
 converts it as above. It fails unless all 148,000 values of the four fields are the same bit for
-bit, and RocketPy reads the same 37 levels from both files at each flight's site and hour.
+bit, and RocketPy reads the same 37 levels from both files at each flight's site and hour. Its
+[record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/weather/euroc-2022-conversion.json)
+keeps both files' SHA-256 and those levels. Each time a prediction is flown, HPR Sim's own reading
+of the converted file is held to them, within 1e-12.
+
+To run it, fetch RocketPy's files and the oracle environment, then convert and check:
+
+```text
+cargo xtask refs fetch rocketpy python
+refs/venv/bin/python validation/oracles/netcdf/euroc_2022.py --check
+cargo xtask public-predictions --check
+```
+
+The first check converts into a scratch file and fails unless it finds the recorded hashes and
+levels. Without `--check` the script writes the converted file under `refs/` and prints the
+record. Neither command runs in CI, which has no RocketPy files.
 
 ### Reading it
 
@@ -286,3 +301,6 @@ The documents the reader follows, and the tests that hold it to them.
 - `hpr_io::era5::tests::between_hours_it_weights_the_two_hours_in_time`.
 - `hpr_io::era5::tests::the_current_data_store_file_converted_as_the_guide_says_reads_like_the_older_file`.
 - The extracts and RocketPy's reading come from `validation/oracles/netcdf/era5.py`.
+- `validation/oracles/netcdf/euroc_2022.py --check`: the whole EuRoC 2022 file's conversion.
+  `cargo xtask public-predictions --check`: HPR Sim's reading of the converted file against
+  RocketPy's levels. Both need RocketPy's files, so neither runs in CI.

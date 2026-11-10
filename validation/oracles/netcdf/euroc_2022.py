@@ -23,12 +23,19 @@ It then tests the converted file, and fails unless every check holds:
    three flights' site and launch hour, builds the same levels from the converted file as from the
    source, bit for bit: pressure, geometric height, temperature and both wind components.
 
+The record keeps those levels for each flight, with the Earth radius RocketPy turned the
+geopotential into a height with. `cargo xtask public-predictions` holds HPR Sim's own reading of
+the converted file to them before it flies a prediction in it, so the air a prediction is flown in
+is the air RocketPy reads from the file RocketPy ships.
+
 The launch hours are the notebooks' local times (`timezone="Portugal"`, Western European Summer
 Time in October 2022, UTC+1) in UTC: `docs/examples/astra_flight_sim.ipynb:123-131`,
 `andromeda_flight_sim.ipynb:123-131` and `erebus_flight_sim.ipynb:123-131`.
 
-Run from the repository root with the oracle environment (`--check` writes no JSON and fails
-unless the committed JSON's hashes are the ones this run finds):
+Run from the repository root with the oracle environment. `--check` converts into a scratch file
+beside the converted one, runs the same checks on it, and fails unless what it finds is the
+committed JSON's: both hashes, what was compared and each flight's reading. It also fails if the
+converted file in `refs/` is not the recorded one. It writes no JSON and leaves that file alone:
 
     refs/venv/bin/python validation/oracles/netcdf/euroc_2022.py \\
         > validation/fixtures/weather/euroc-2022-conversion.json
@@ -96,11 +103,10 @@ def sha256(path):
 
 
 def convert(source, out):
-    """The guide's conversion, word for word."""
+    """The guide's conversion, word for word, the source closed after it."""
     out.parent.mkdir(parents=True, exist_ok=True)
-    xarray.open_dataset(source).drop_vars(DROPPED, errors="ignore").to_netcdf(
-        out, format="NETCDF3_64BIT"
-    )
+    with xarray.open_dataset(source) as dataset:
+        dataset.drop_vars(DROPPED, errors="ignore").to_netcdf(out, format="NETCDF3_64BIT")
 
 
 def raw(dataset, name):
@@ -183,7 +189,27 @@ def rocketpy_levels(path, flight):
         warnings.simplefilter("ignore")
         env.set_atmospheric_model(type="Reanalysis", file=str(path), dictionary="ECMWF")
     functions = (env.pressure, env.temperature, env.wind_velocity_x, env.wind_velocity_y)
-    return [np.asarray(f.source, dtype=np.float64) for f in functions]
+    return [np.asarray(f.source, dtype=np.float64) for f in functions], float(env.earth_radius)
+
+
+def levels_record(arrays):
+    """The levels as the record keeps them, lowest first: each array is (height, value) rows."""
+    pressure, temperature, east, north = arrays
+    for other in (temperature, east, north):
+        if not np.array_equal(other[:, 0], pressure[:, 0]):
+            fail("RocketPy's levels are not on one set of heights")
+    return [
+        {
+            "pressure_pa": float(p),
+            "height_m": float(h),
+            "temperature_k": float(t),
+            "wind_east_m_s": float(u),
+            "wind_north_m_s": float(v),
+        }
+        for h, p, t, u, v in zip(
+            pressure[:, 0], pressure[:, 1], temperature[:, 1], east[:, 1], north[:, 1]
+        )
+    ]
 
 
 def same_reading(source, out, times):
@@ -196,7 +222,12 @@ def same_reading(source, out, times):
         )
         if unix_s not in times:
             fail(f"{flight['id']}: the file has no {year}-{month:02}-{day:02}T{hour:02}:00Z")
-        before, after = rocketpy_levels(source, flight), rocketpy_levels(out, flight)
+        (before, radius_before), (after, radius) = (
+            rocketpy_levels(source, flight),
+            rocketpy_levels(out, flight),
+        )
+        if radius_before != radius:
+            fail(f"{flight['id']}: RocketPy's Earth radius differs between the files")
         for a, b in zip(before, after):
             if a.shape != b.shape or a.tobytes() != b.tobytes():
                 fail(f"{flight['id']}: RocketPy reads the converted file differently")
@@ -204,6 +235,8 @@ def same_reading(source, out, times):
             "id": flight["id"],
             "utc": f"{year}-{month:02}-{day:02}T{hour:02}:00Z",
             "levels_identical": int(before[0].shape[0]),
+            "earth_radius_m": radius,
+            "levels": levels_record(after),
         })
     return readings
 
@@ -216,9 +249,17 @@ def main():
         fail(f"{SOURCE} is not there: cargo xtask refs fetch rocketpy")
     if SOURCE.read_bytes()[:4] != b"\x89HDF":
         fail(f"{SOURCE} is not a netCDF-4 (HDF5) file")
-    convert(SOURCE, OUT)
-    checks, times = same_values(SOURCE, OUT)
-    readings = same_reading(SOURCE, OUT, times)
+    check = args == ["--check"]
+    # A check converts beside the converted file, so a run in another environment can't replace it.
+    out = OUT.with_name(OUT.stem + ".check.nc") if check else OUT
+    try:
+        convert(SOURCE, out)
+        checks, times = same_values(SOURCE, out)
+        readings = same_reading(SOURCE, out, times)
+        converted_sha256 = sha256(out)
+    finally:
+        if check:
+            out.unlink(missing_ok=True)
     record = {
         "generator": "validation/oracles/netcdf/euroc_2022.py",
         "command": COMMAND,
@@ -231,20 +272,27 @@ def main():
             name: importlib.metadata.version(name)
             for name in ("xarray", "netCDF4", "numpy", "rocketpy")
         },
-        "source": {"path": str(SOURCE), "sha256": sha256(SOURCE)},
-        "converted": {"path": str(OUT), "sha256": sha256(OUT)},
+        "source": {"path": SOURCE.as_posix(), "sha256": sha256(SOURCE)},
+        "converted": {"path": OUT.as_posix(), "sha256": converted_sha256},
         "dropped": DROPPED,
         "checks": checks,
         "rocketpy_readings": readings,
     }
-    if args == ["--check"]:
+    if check:
         committed = json.loads(RECORD.read_text())
-        for key in ("source", "converted"):
+        for key in ("conversion", "source", "converted", "dropped", "checks", "rocketpy_readings"):
             if committed[key] != record[key]:
-                fail(f"{RECORD}'s {key} is {committed[key]}, and this run's is {record[key]}")
+                fail(
+                    f"{RECORD}'s {key} is {committed[key]}, and this run's is {record[key]} "
+                    f"(this run's packages: {record['packages']}; the record's: "
+                    f"{committed['packages']})"
+                )
+        if not OUT.is_file() or sha256(OUT) != committed["converted"]["sha256"]:
+            fail(f"{OUT} is not the conversion {RECORD} records: run this script without --check")
         print(f"euroc_2022.py: {OUT} is the committed conversion", file=sys.stderr)
     else:
         print(json.dumps(record, indent=2))
 
 
-main()
+if __name__ == "__main__":
+    main()

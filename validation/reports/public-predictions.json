@@ -1,6 +1,6 @@
 {
   "generator": "cargo xtask public-predictions",
-  "traced_rule": "An input is traced when the flight's own record states it: here RocketPy's example notebook, which holds the team's inputs. What no RocketPy example records, the surface finish and the fin edges, is a placeholder in every design built from one and doesn't count against the tag. A flight is tagged not traced when its record leaves out, or contradicts, something that moves the apogee.",
+  "traced_rule": "An input is traced when the flight's own record states it: here RocketPy's example notebook, which holds the team's inputs. What no RocketPy example records is a placeholder in every design built from one, the seven compared flights' too, and doesn't count against the tag: the surface finish, the fins' thickness and edge shape, and the rail buttons' size. They move the drag, so a traced flight's inputs are stated, not exact. A flight is tagged not traced when its record leaves out, or contradicts, something else that moves the apogee.",
   "weather_conversion": {
     "record": "validation/fixtures/weather/euroc-2022-conversion.json",
     "conversion": "xarray.open_dataset(source).drop_vars([\"number\", \"expver\"], errors=\"ignore\").to_netcdf(out, format=\"NETCDF3_64BIT\")",
@@ -105,6 +105,7 @@
         "motor": "Cesaroni 8429M2020-P",
         "why": "the reload the notebook names, on its certified curve as bundled, whole. Shown beside the counted prediction and never counted: every RocketPy flight here is counted on its example's own thrust file",
         "total_impulse_ns": 8428.6623225,
+        "liftoff_mass_kg": 25.323,
         "predicted_apogee_m": 3050.317905285291,
         "predicted_height_apogee_m": 3176.101536207199
       },

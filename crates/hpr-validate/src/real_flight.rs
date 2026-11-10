@@ -1077,7 +1077,11 @@ fn fixture_case(root: &Path, flight: &RealFlight) -> Result<Value, RealFlightErr
 /// # Errors
 ///
 /// [`RealFlightError`] if the fixture can't be read or has no such case.
-pub fn fixture_case_of(root: &Path, id: &str, design: &str) -> Result<Value, RealFlightError> {
+pub(crate) fn fixture_case_of(
+    root: &Path,
+    id: &str,
+    design: &str,
+) -> Result<Value, RealFlightError> {
     let input = |what: String| RealFlightError::Input {
         flight: id.to_owned(),
         what,
@@ -1100,7 +1104,7 @@ pub fn fixture_case_of(root: &Path, id: &str, design: &str) -> Result<Value, Rea
 
 /// The example's own thrust file, by its path from the repository root, with its burn time and
 /// its reshape (a burn time and an impulse), each when the example gives one.
-pub type ExampleThrust = (String, Option<f64>, Option<(f64, f64)>);
+pub(crate) type ExampleThrust = (String, Option<f64>, Option<(f64, f64)>);
 
 /// A file read, by its path from the repository root, and its bytes.
 type ReadFile = (String, Vec<u8>);
@@ -1115,7 +1119,7 @@ pub fn example_thrust(root: &Path, flight: &RealFlight) -> Result<ExampleThrust,
 /// # Errors
 ///
 /// [`RealFlightError`] if the fixture has no such case or the file is not where it says.
-pub fn example_thrust_of(
+pub(crate) fn example_thrust_of(
     root: &Path,
     id: &str,
     design: &str,
@@ -1147,6 +1151,14 @@ pub fn example_thrust_of(
     };
     // A file the example keeps with its rocket is recorded by its path under RocketPy's `data/`.
     if file.contains('/') {
+        let plain = Path::new(file)
+            .components()
+            .all(|part| matches!(part, std::path::Component::Normal(_)));
+        if !plain {
+            return Err(input(format!(
+                "{name}'s thrust file `{file}` is not a path under RocketPy's data"
+            )));
+        }
         let relative = format!("{ROCKETPY}/data/{file}");
         return if root.join(&relative).is_file() {
             Ok((relative, burn, reshape))
@@ -1278,7 +1290,7 @@ pub fn rocket_on_curve(
 /// # Errors
 ///
 /// [`RealFlightError`] if the design has no motor or doesn't read with the curve.
-pub fn rocket_with_curve(
+pub(crate) fn rocket_with_curve(
     id: &str,
     design: &Value,
     design_path: &str,
@@ -1335,7 +1347,7 @@ pub fn launch_day(
 /// # Errors
 ///
 /// [`RealFlightError`] if the file doesn't read as ERA5 at that place and hour.
-pub fn launch_day_at(
+pub(crate) fn launch_day_at(
     id: &str,
     site: (f64, f64, f64),
     utc: (i32, u32, u32, u32),
@@ -1386,7 +1398,7 @@ pub fn rail_of(flight: &RealFlight) -> Rail {
 
 /// A rail from its length, m, its inclination from the horizontal and its heading from north,
 /// degrees.
-pub fn rail_from(rail: (f64, f64, f64)) -> Rail {
+pub(crate) fn rail_from(rail: (f64, f64, f64)) -> Rail {
     let (length_m, inclination_deg, heading_deg) = rail;
     Rail {
         length_m,
