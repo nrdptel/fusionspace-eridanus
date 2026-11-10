@@ -552,7 +552,9 @@ mod tests {
     /// Stages whose mass override doesn't cover their parts, or whose center of gravity override
     /// doesn't, with no override that covers them: by a flag of `false`, by none written, and by
     /// the single older flag; on one stage and on a rocket of two; over a part with an override of
-    /// its own; a mass of nothing; and both overrides with only one flag written, `false`.
+    /// its own; a mass of nothing; a center ahead of the tip; and both overrides with only one
+    /// flag written, `false`. One is the rocket of two stages with no override at all, which the
+    /// others of its kind are read against.
     const STAGE_ADDS: [&str; 19] = [
         "a mass override on the stage, not its parts",
         "a centre of gravity override on the stage, not its parts",
@@ -630,7 +632,9 @@ mod tests {
             structure("both overrides on the stage")
         );
         // A flag that isn't written reads as `false` beside one that is: OpenRocket weighs each
-        // of these four exactly as it does the same pairing with both flags written.
+        // of these four exactly as it does a pairing with both flags written, the missing one
+        // `false` (a mass that covers the parts weighs the same whatever the center's flag says,
+        // the assertion above).
         for (one_flag, both_flags) in [
             (
                 "both overrides on the stage, only the mass flag written, true",
@@ -809,8 +813,8 @@ mod tests {
     /// together. This record can: the motor is what launch, or burnout, adds to the structure
     /// with no override, and under each override OpenRocket's launch and burnout are that same
     /// motor added to the overridden structure. HPR Sim's layout holds no motor, so its added mass
-    /// sits among the structure's parts ([`hpr_design::AddedMass`], ADR-335), and its structure of
-    /// each probe is OpenRocket's.
+    /// sits among the structure's parts ([`hpr_design::AddedMass`], ADR-335), and its structure's
+    /// mass and center on each probe are OpenRocket's.
     #[test]
     fn a_motor_aboard_does_not_move_a_stages_added_mass() {
         let record = added_mass_record();

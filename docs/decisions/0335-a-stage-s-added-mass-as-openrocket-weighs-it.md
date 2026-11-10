@@ -1,7 +1,7 @@
 # ADR-335: A stage's added mass, as OpenRocket weighs it (2026-11-10)
 
 - **Status:** accepted; carries out [M2.3d4][m2-3d4] under [ADR-334][adr-334]. [ADR-061][adr-061]'s rule for the inertia under an override that covers the parts is unchanged.
-- **Summary:** An `.ork` stage whose mass override doesn't cover its parts now flies. OpenRocket 24.12 adds such a mass to what the parts weigh, as a point: at the center of that stage's own parts, or at the stage's center of gravity override when that doesn't cover the parts either. The design holds it as the stage's added mass, and on 19 probe designs HPR Sim's structure matches OpenRocket's: the center within 0.2 µm, the mass and the inertias within 3 parts in a million. A motor aboard doesn't move the added mass.
+- **Summary:** An `.ork` stage whose mass override doesn't cover its parts is no longer held back. OpenRocket 24.12 adds such a mass to what the parts weigh, as a point: at the center of that stage's own parts, or at the stage's center of gravity override when that doesn't cover the parts either. The design holds it as the stage's added mass, and on 19 probe designs HPR Sim's structure matches OpenRocket's: the center within 0.2 µm, the mass and the inertias within 3 parts in a million. A motor aboard doesn't move the added mass.
 
 [m2-3d4]: ../decisions-and-roadmap.md#m2-3d4
 [m2-3d5]: ../decisions-and-roadmap.md#m2-3d5
@@ -95,15 +95,15 @@ inertia across the axis of 0.015838 kg·m². The mass override is 2 kg and the c
 
 - **The second row** is the parts' center and inertia to every digit: a point at the parts' center.
 - **The third row** is a 2 kg point at 0.4 m beside the parts:
-  $(0.3996 \times 0.4701 + 2 \times 0.4) / 2.3996 = 0.4117$ m.
+  $(0.3996 \times 0.4701 + 2 \times 0.4) / 2.3996 = 0.4117\,\mathrm{m}$.
 - **On a rocket of two stages** the lower stage starts 0.8 m aft of the tip and its one tube is
   centered at 1.05 m. A 2 kg mass override on it that doesn't cover its parts leaves the rocket's
   center at 0.9644 m: the point is at 1.05 m, the lower stage's parts' center, not at the rocket's
   0.7225 m. With a center override of 0.4 m that doesn't cover the parts either, the rocket's
   center is 1.0752 m: the point is at 1.2 m, measured from the stage's forward end.
 - **With a motor aboard** (an AeroTech H128W in a different airframe), OpenRocket's rocket at
-  launch and at burnout is the motor added to the overridden structure, to 1e-12 in mass and
-  center. Had the 2 kg sat at the center of the parts and the motor together, the launch center
+  launch and at burnout is the motor added to the overridden structure, to 1e-12 kg in mass and
+  1e-12 m in center. Had the 2 kg sat at the center of the parts and the motor together, the launch center
   would be more than 5 cm further aft.
 
 **How well HPR Sim agrees.** On the 19 probes where no override covers the parts, its structure is
@@ -113,8 +113,8 @@ override covers the parts, the mass and the center are within the same bounds, a
 across the axis is hpr's rule: 11.0% under OpenRocket's with a center that covers one stage's
 parts and the added mass, 1.5% over on the lower of two stages, and ADR-061's scaled inertia under
 a mass that covers them. The added mass brings no difference of its own: on the one-stage probe,
-each tool's inertias beside the added mass are the ones it gives under that center alone, to 12
-significant digits, so the 11.0% is the same 11.0% a covering center already had. Whether the
+each tool's inertias beside the added mass are the ones it gives under that center alone, within
+1 part in a million million, so the 11.0% is the same 11.0% a covering center already had. Whether the
 added mass should change the rule there is [#1407][i1407].
 
 **What doesn't change.** A stage's one override whose flag says it covers the parts, and two
@@ -123,7 +123,8 @@ drag override. No tolerance moved. A stage's mass override that covers the parts
 whose flag is `false` or not written was held back with a warning that the flags disagree. It now
 flies, read as both covering the parts, which is exactly how OpenRocket weighs it.
 
-**Consequences.** The Macie XL design can be flown, which [M2.3d5][m2-3d5] needs. Other `.ork`
+**Consequences.** The reader no longer holds the Macie XL design back, which [M2.3d5][m2-3d5]
+needs. Other `.ork`
 designs with such a stage fly too, unless decision 5 refuses them, with the mass their author
 entered on top of the parts. The
 design format has one more optional field, so a design written with an added mass doesn't read in

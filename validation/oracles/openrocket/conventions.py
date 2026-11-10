@@ -17,8 +17,8 @@ probes of the single subcomponent-override flag written before schema 1.9, with 
 OpenRocket reads each part with. M2.2e7 added probes of fillets and of an automatic outer radius
 inside a nose cone or transition (ADR-096). M2.2e8 added probes of tube fin sets, among them
 sets whose radius OpenRocket works out from the body (#133). M2.3d4 added probes of a stage's
-mass and center of gravity overrides under every pairing of their flags, on one stage and on a
-rocket of two (ADR-335).
+mass and center of gravity overrides: under every pairing of their flags on one stage, and under
+five of them on a rocket of two (ADR-335).
 
 OpenRocket is run, never read: its source is GPL, and nothing here comes from it. The class and
 method names used are the public API `javap` prints for the jar. Each probe is saved once, to a

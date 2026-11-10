@@ -983,8 +983,9 @@ one prediction of the three that passes Mach 1, at Mach 1.019
 ([the predictions][predictions],
 [Andromeda's thrust curve](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/andromeda-impulse.md)).
 
-**What is still to come.** Two flights of an OpenRocket design, Macie XL, join these three once
-HPR Sim can fly a stage whose mass override adds to its parts
+**What is still to come.** Two flights of an OpenRocket design, Macie XL, join these three next
+([the Macie XL predictions](decisions-and-roadmap.md#m2-3d5)). Its stage's mass override adds to
+its parts, which HPR Sim now reads as OpenRocket weighs it
 ([a stage's override that adds to its parts](decisions-and-roadmap.md#m2-3d4)). Then all twelve
 public flights are compared together.
 

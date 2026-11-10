@@ -279,8 +279,8 @@ tip, with an inertia across the axis of 0.015838 kg·m². The stage starts at th
 - Add 2 kg with no station. The stage weighs 2.3996 kg. Its center stays where the parts' is, and
   its inertia at 0.015838 kg·m².
 - Add 2 kg at a station of 0.4 m (1.3 ft). The stage weighs 2.3996 kg. Its center is at
-  $(0.3996 \times 0.4701 + 2 \times 0.4) / 2.3996 = 0.4117$ m (1.351 ft). Its inertia across the
-  axis is $0.015838 + 0.3996 \times 0.0584^2 + 2 \times 0.0117^2 = 0.017475$ kg·m².
+  $(0.3996 \times 0.4701 + 2 \times 0.4) / 2.3996 = 0.4117\,\mathrm{m}$ (1.351 ft). Its inertia across the
+  axis is $0.015838 + 0.3996 \times 0.0584^2 + 2 \times 0.0117^2 = 0.017475\,\mathrm{kg\cdot m^2}$.
 
 Both are OpenRocket 24.12's numbers for the same stage (2.3996 kg at 0.4117 m (1.351 ft),
 0.017476 kg·m²; the hand sum above rounds its distances).
@@ -289,7 +289,7 @@ Both are OpenRocket 24.12's numbers for the same stage (2.3996 kg at 0.4117 m (1
 doesn't cover the stage's parts. Its user guide says such a value "is added to the calculated
 value" ([Overrides and Surface Finish][or-overrides]). Where the mass goes is measured on
 [probe designs](../glossary.md#probe-design), and the `.ork` reader turns each pairing of the
-stage's flags into an added mass or a whole-stage override
+stage's flags into an added mass, a whole-stage override, or nothing
 ([A stage's override](../format/ork.md#the-values-inside-the-tags),
 [the decision record][adr-335]).
 
@@ -316,7 +316,7 @@ with OpenRocket 24.12, and by hand.
   beside such a center, its inertia across the axis is 11.0% under OpenRocket's on the one-stage
   probe and 1.5% over on the lower stage's. The mass and the center agree. The added mass brings
   no difference of its own: on the one-stage probe each tool's inertias are the ones it gives
-  under that center alone, to 12 significant digits. Whether the added mass should change the
+  under that center alone, within 1 part in a million million. Whether the added mass should change the
   rule there is open ([#1407](https://github.com/nrdptel/fusionspace-eridanus/issues/1407)).
 - A parallel stage can't carry an added mass, and neither can the stage one hangs on: where the
   mass sits beside the pods is not measured, and the layout refuses it.

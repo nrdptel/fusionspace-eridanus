@@ -4115,9 +4115,6 @@ mod tests {
         }
     }
 
-    /// A layout written before the move to US spelling, its parts and stages holding
-    /// `centre_overridden`, reads as the same layout: a part and a stage that set an axial center
-    /// hold `true` under the old key, which a missing alias would read as `false`.
     /// A stage's added mass is a point mass among its parts ([`AddedMass`]), worked by hand: with
     /// no station it sits at the parts' center and moves nothing; with one it sits on the axis
     /// that far aft of its own stage's forward end, and the stage's center and inertia follow
@@ -4275,6 +4272,9 @@ mod tests {
         assert_eq!(serde_json::from_str::<Rocket>(&json).unwrap(), carrying);
     }
 
+    /// A layout written before the move to US spelling, its parts and stages holding
+    /// `centre_overridden`, reads as the same layout: a part and a stage that set an axial center
+    /// hold `true` under the old key, which a missing alias would read as `false`.
     #[test]
     fn a_layout_with_the_old_uk_key_reads_the_same() {
         let mut design = three_fin_rocket();
