@@ -392,32 +392,41 @@ the mean descent rate and each canopy's rate, a note gives how far the day's air
 true value from the reading:
 
 ```text
-the day's air may put the true height up to 289.2 m (949 ft) above the reading, 10.6%, where the bound allows 6.9%
+the day's air may put the true height up to 289.2 m (949 ft) above the reading, 10.6%, where the bound allows 6.9% for the day's air
 ```
 
-That figure is from the worked example on the physics page, not a real log. On a low flight, a
+That figure is from the worked example on the physics page, not a real log. Its "up to" assumes the
+pad's offset from the standard holds up the climb; under an inversion the day's air can move the
+reading more. On a low flight, a
 day just past 15 K can move a reading by less than the bound's 6.92%. The note then says the day
 is past 15 K, but within the bound's share at this flight's height. What to do then:
 
 1. **Check the temperature.** A logger's temperature is often the electronics bay's, warmed by the
    sun and the electronics. Take the field's own weather reading at launch time. Subtract the
    standard's at the field's height, 15 °C less 6.5 °C a kilometer: 7.3 °C (45.1 °F) at 1,190 m
-   (3,904 ft). If that is within 15 K, the day's-air part of the bounds holds.
-2. **If the air was past 15 K,** the bound doesn't cover the day. The note's share less 6.92% (if
-   positive) is the least the day's air may add beyond the bound, on the side the note names. In
-   the example that is 10.561% less 6.924%, 3.637% of 2,738 m (8,983 ft): 99.6 m (327 ft). It is
-   not a validated bound, and it can understate. Under a morning inversion, where the air near the
-   ground is cooler than the air above it, a hot pad's offset grows up the climb. The 90% interval
-   doesn't hold on that day either. A waiver, a record or a safety figure may rest on the reading.
-   Then take the larger figure and show the note with it. The call is the RSO's and the safety
-   code's.
-3. **For the descent rates,** the same holds. A hot day's true rate is faster than the reading.
-   It may lie beyond the bound by the note's share less 6.92% (if positive), or more under an
-   inversion. Take the larger rate with the note, and leave the call on the recovery to the RSO.
+   (3,904 ft). If that is within 15 K, the pad's reading suggests the day's-air part of the bounds
+   holds; the air aloft isn't measured.
+2. **If the air was past 15 K,** the bound may not cover the day. Call the note's share less
+   6.92% (if positive) its extra share. If the pad's offset holds up the climb, the extra share is
+   the most the day's air may add beyond the bound, on the side the note names. In the example
+   that is 10.561% less 6.924%, 3.637% of 2,738 m (8,983 ft): 99.6 m (327 ft). It is not a
+   validated bound, and it can understate. A morning inversion leaves the air near the ground
+   cooler than the air above it. A hot pad's offset then grows up the climb, and the day's air can
+   move the reading more. The 90% interval isn't validated past 15 K. A waiver, a record or a
+   safety figure may rest on the reading. Then move the reading by its bound and by the extra
+   share, the way the note gives. That is above the reading on a hot day, below it on a cold one.
+   Show the note with that figure, and leave the call to the RSO and the safety code.
+3. **For the descent rates,** the same holds. A hot day's true rate is faster than the reading, a
+   cold day's slower. Move the rate by its bound and by the note's extra share, the way the note
+   gives: above the reading on a hot day, below it on a cold one. Show the note with that rate,
+   and leave the call on the recovery to the RSO and the safety code.
 
 A log with no temperature, or with no pressure, no altitude above sea level and no stated ground
-elevation, gets no check. Nothing then tells you the day was within 15 K, so check the day's
-temperature at the field yourself.
+elevation, gets no check. Nor does a temperature outside −100 to 100 °C. Nor does a temperature
+column of one value throughout at a unit's zero (0 K, 0 °C or 0 °F), as a logger with no sensor
+writes. Nothing then tells you the day was within 15 K, so check the day's temperature at
+the field yourself. The text output is silent both when the day is within 15 K and when there was
+no check. `--json`'s `day_air` tells them apart: `null` means no check.
 
 ## The 90% intervals and the health card
 
