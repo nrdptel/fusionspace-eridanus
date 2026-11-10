@@ -312,6 +312,15 @@ pub(crate) fn flown_commit(root: &Path) -> Result<String, String> {
         .to_owned())
 }
 
+/// Whether `id` can name a prediction's file: letters, digits, `-` and `_` only, so it is one
+/// path segment on every system.
+fn is_flight_id(id: &str) -> bool {
+    !id.is_empty()
+        && id
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-' || byte == b'_')
+}
+
 /// Writes `bytes` to a new file at `path`, never over an older one: a second prediction would be
 /// written knowing more.
 fn write_once(path: &Path, bytes: &[u8]) -> Result<(), String> {
@@ -339,8 +348,7 @@ pub(crate) fn run(root: &Path, args: &[String]) -> Result<(), String> {
         fs::read_to_string(plan_path).map_err(|error| format!("reading {plan_path}: {error}"))?;
     let plan = read_plan(&text).map_err(|error| format!("{plan_path}: {error}"))?;
     let at = plan.flight_id.clone();
-    // One path segment: the prediction's file is named by it.
-    if at.is_empty() || at.contains(['/', '\\']) || at.contains("..") {
+    if !is_flight_id(&at) {
         return Err(format!("`{at}` is not a flight id"));
     }
     let folder = format!("refs/hpr-sim-fixtures/flights/{at}/");
@@ -600,7 +608,7 @@ mod tests {
             }
             serde_json::from_value(value).expect("an entry")
         };
-        // Not marked: nothing is read, not even the list at main.
+        // Not marked: admitted.
         assert_eq!(admit(root, &[entry(false)]), Ok(()));
         let new = [entry(true)];
         let era5 = plan.era5.clone().expect("an ERA5 file");
@@ -646,6 +654,16 @@ mod tests {
         fs::write(root.join(&plan.design), b"another design").expect("a change");
         let error = admit(root, &new).expect_err("a changed design");
         assert!(error.contains("its design file changed"), "{error}");
+    }
+
+    /// A flight id is one path segment of letters, digits, `-` and `_`.
+    #[test]
+    fn a_flight_id_is_one_segment() {
+        assert!(is_flight_id("invented-20270101"));
+        assert!(is_flight_id("a_b-9"));
+        for id in ["", ".", "..", "a/b", "a\\b", "../x", "a:b", "a b", "é"] {
+            assert!(!is_flight_id(id), "{id:?}");
+        }
     }
 
     /// A prediction is written once: a second write to its file is refused and leaves the first.
