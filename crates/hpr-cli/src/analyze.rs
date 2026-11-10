@@ -32,22 +32,23 @@ use hpr::hpr_flightdata::error::LogError;
 use hpr::hpr_flightdata::import;
 use hpr::hpr_flightdata::log::{FlightLog, Quantity};
 use hpr::hpr_flightdata::readings::{
-    self, Clip, Descent, Gravity, GravityBy, Method, Provenance, Reading, Readings, Reason, Source,
+    self, AIR_TEMPERATURE_SPREAD_K, Clip, DayAir, Descent, Gravity, GravityBy, Method,
+    PadHeightFrom, Provenance, Reading, Readings, Reason, Source, TEMPERATURE_SHARE,
 };
 use hpr::hpr_flightdata::smoother::{self, INTERVAL_Z, Options};
 
 use crate::console::Level;
 use crate::output::{
     AccelerometerGravity, Analyze, AnalyzeMethod, AnalyzedAccelerometer, AnalyzedChannel,
-    AnalyzedLog, ApogeeReading, BurnoutReading, DescentReading, FlightTimeReading,
+    AnalyzedLog, ApogeeReading, BurnoutReading, DayAirReading, DescentReading, FlightTimeReading,
     GravitySettledBy, HighestSample, LandingReading, LiftoffReading, LogReading, LoggerStated,
-    MaxAccelerationReading, MaxSpeedReading, OpeningReading, ReadingClip, ReadingInterval,
-    ReadingMethod, ReadingProvenance, ReadingSource, SmootherOutcome, SmootherReading,
-    WithheldReading, WithheldReason,
+    MaxAccelerationReading, MaxSpeedReading, OpeningReading, PadHeightSource, ReadingClip,
+    ReadingInterval, ReadingMethod, ReadingProvenance, ReadingSource, SmootherOutcome,
+    SmootherReading, WithheldReading, WithheldReason,
 };
 use crate::units::{
     acceleration_bound, acceleration_interval, gravities, meters, meters_bound, meters_interval,
-    rounded_down, seconds_bound, seconds_interval, speed, speed_bound, speed_interval,
+    rounded_down, rounded_up, seconds_bound, seconds_interval, speed, speed_bound, speed_interval,
 };
 use crate::{Failure, Out};
 
@@ -442,7 +443,31 @@ fn document(args: &AnalyzeArgs, log: &FlightLog, read: &Readings) -> Analyze {
         }),
         drogue_descent: reading(&read.drogue_descent, descent),
         main_descent: reading(&read.main_descent, descent),
+        day_air: read.day_air.as_ref().map(day_air),
         smoother: smoother_outcome(log, read),
+    }
+}
+
+fn day_air(air: &DayAir) -> DayAirReading {
+    DayAirReading {
+        pad_temperature_k: air.pad_temperature_k,
+        temperature_column: air.temperature_column.clone(),
+        pad_height_msl_m: air.pad_height_msl_m,
+        pad_height_from: pad_height_from(air.pad_height_from),
+        pad_standard_temperature_k: air.pad_standard_temperature_k,
+        offset_k: air.offset_k,
+        covered: air.covered,
+        top_standard_temperature_k: air.top_standard_temperature_k,
+        share: air.share,
+    }
+}
+
+fn pad_height_from(from: PadHeightFrom) -> PadHeightSource {
+    match from {
+        PadHeightFrom::Pressure => PadHeightSource::Pressure,
+        PadHeightFrom::AltitudeMsl => PadHeightSource::AltitudeMsl,
+        PadHeightFrom::StatedGroundElevation => PadHeightSource::StatedGroundElevation,
+        _ => PadHeightSource::Other,
     }
 }
 
@@ -662,6 +687,9 @@ fn text_lines(document: &Analyze) -> Vec<String> {
     if !stated.is_empty() {
         lines.push(format!("the logger states: {}", stated.join("; ")));
     }
+    if let Some(air) = uncovered_air(document) {
+        lines.push(day_air_line(air));
+    }
     lines.push(String::new());
 
     let row = |name: &str, value: String| format!("{name:<18}{value}");
@@ -808,6 +836,49 @@ fn text_lines(document: &Analyze) -> Vec<String> {
     lines
 }
 
+/// The day's air, where the log's temperature at the pad lies past the bounds' allowance for it.
+fn uncovered_air(document: &Analyze) -> Option<&DayAirReading> {
+    document.day_air.as_ref().filter(|air| !air.covered)
+}
+
+/// The day's air past the bounds' allowance, said once above the readings: the log's temperature
+/// at the pad, its offset from the standard and where the pad's height came from.
+fn day_air_line(air: &DayAirReading) -> String {
+    let side = if air.offset_k > 0.0 { "over" } else { "under" };
+    let from = match air.pad_height_from {
+        PadHeightSource::Pressure => "its pressure",
+        PadHeightSource::AltitudeMsl => "its altitude above sea level",
+        PadHeightSource::StatedGroundElevation => "the logger's stated ground elevation",
+        PadHeightSource::Other => "the log",
+    };
+    format!(
+        "the day's air: the log's {} reads {:.1} K at the pad, {} K {side} standard at {} above \
+         sea level (from {from}), past the {AIR_TEMPERATURE_SPREAD_K} K the bounds allow; a \
+         logger's sensor in a warm bay can read above the air",
+        air.temperature_column,
+        air.pad_temperature_k,
+        fixed_up(air.offset_k.abs()),
+        meters(air.pad_height_msl_m),
+    )
+}
+
+/// The note beside a barometric reading the day's air moves past its bound: how far the true
+/// value may lie from the reading, `share × value`, rounded up, and which way.
+fn day_air_note(air: &DayAirReading, what: &str, size: &str) -> String {
+    let way = if air.offset_k > 0.0 { "above" } else { "below" };
+    format!(
+        "the day's air may put the true {what} up to {size} {way} the reading, {}%, where the \
+         bound allows {:.1}%",
+        fixed_up(100.0 * air.share),
+        100.0 * TEMPERATURE_SHARE
+    )
+}
+
+/// A figure rounded up to a tenth, as a size the reader shouldn't take for less than it is.
+fn fixed_up(value: f64) -> String {
+    format!("{:.1}", rounded_up(value, 1))
+}
+
 /// How a floor's lower end is named in the text: on the synthetic flights, about 95% of truths lay
 /// above it.
 const LOWER_END: &str = "95% lower end";
@@ -882,7 +953,9 @@ fn withheld_after(reading: &WithheldReading, above: &[(&str, Option<&WithheldRea
 }
 
 /// A canopy's descent: its rate and the leg it was read over, from apogee or the main's opening
-/// (found back from landing, so with its own bound) to the main's opening or landing.
+/// (found back from landing, so with its own bound) to the main's opening or landing. A leg from
+/// apogee is a chord, the height lost over the time taken, so it takes in the fall from rest at
+/// apogee and reads slower than the canopy's steady rate (#1259).
 fn descent_row(leg: &DescentReading, to: &str) -> String {
     let from = match &leg.opening {
         Some(opening) => format!(
@@ -893,8 +966,13 @@ fn descent_row(leg: &DescentReading, to: &str) -> String {
         ),
         None => format!("apogee at {:.2} s", leg.from_s),
     };
+    let chord = if leg.opening.is_none() {
+        "; the mean rate from apogee (a chord), the fall from rest there included"
+    } else {
+        ""
+    };
     format!(
-        "{}, within {}{}, from {from} to {to} at {:.2} s, {} to {} up",
+        "{}, within {}{}, from {from} to {to} at {:.2} s, {} to {} up{chord}",
         speed(leg.rate_m_s),
         speed_bound(leg.bound_m_s),
         rate_interval(leg.interval_m_s),
@@ -908,6 +986,15 @@ fn descent_row(leg: &DescentReading, to: &str) -> String {
 /// within, rounded up.
 fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec<String> {
     let method = &document.method;
+    let air = uncovered_air(document);
+    let rate_note = |rate_m_s: f64, what: &str| {
+        air.map(|air| {
+            row(
+                "",
+                day_air_note(air, what, &speed_bound(air.share * rate_m_s.abs())),
+            )
+        })
+    };
     let withheld = |reading: &WithheldReading| format!("withheld: {}", reading.detail);
     let mut lines = vec![row(
         "liftoff",
@@ -941,6 +1028,10 @@ fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec
                 value.push_str("; the log ends at its peak, so the rocket may have gone higher");
             }
             lines.push(row("apogee", value));
+            if let Some(air) = air {
+                let size = meters_bound(air.share * apogee.height_m.abs());
+                lines.push(row("", day_air_note(air, "height", &size)));
+            }
             // Above what the median's own rounding of the peak, the track's step and its noise
             // explain, the median set a pulse aside.
             let highest = &apogee.highest_sample;
@@ -982,6 +1073,9 @@ fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec
             LogReading::Withheld(reading) => withheld(reading),
         },
     ));
+    if let LogReading::Read(top) = &document.max_speed {
+        lines.extend(rate_note(top.speed_m_s, "speed"));
+    }
     lines.push(row(
         "landing",
         match &document.landing {
@@ -1004,6 +1098,9 @@ fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec
             LogReading::Withheld(reading) => withheld(reading),
         },
     ));
+    if let LogReading::Read(landing) = &document.landing {
+        lines.extend(rate_note(landing.mean_descent_rate_m_s, "mean rate"));
+    }
     let above = [
         ("liftoff", withheld_of(&document.liftoff)),
         ("landing", withheld_of(&document.landing)),
@@ -1027,6 +1124,9 @@ fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec
             LogReading::Withheld(reading) => withheld_after(reading, &above),
         },
     ));
+    if let LogReading::Read(leg) = &document.drogue_descent {
+        lines.extend(rate_note(leg.rate_m_s, "rate"));
+    }
     lines.push(row(
         "main descent",
         match &document.main_descent {
@@ -1034,6 +1134,9 @@ fn reading_rows(document: &Analyze, row: &dyn Fn(&str, String) -> String) -> Vec
             LogReading::Withheld(reading) => withheld_after(reading, &above),
         },
     ));
+    if let LogReading::Read(leg) = &document.main_descent {
+        lines.extend(rate_note(leg.rate_m_s, "rate"));
+    }
     lines
 }
 
@@ -1105,6 +1208,108 @@ mod tests {
         );
     }
 
+    /// The synthetic Pnut log, its temperature channel set to `temperature_k` throughout, and its
+    /// text.
+    fn pnut_at(temperature_k: Option<f64>) -> (Analyze, Vec<String>) {
+        let text = include_str!("../../../validation/fixtures/logs/synthetic-pnut.pf2");
+        let mut log = hpr::hpr_flightdata::perfectflite::read(text).unwrap();
+        if let Some(temperature_k) = temperature_k {
+            for channel in &mut log.channels {
+                if channel.quantity == Quantity::Temperature {
+                    channel.values.fill(temperature_k);
+                }
+            }
+        }
+        let args = AnalyzeArgs {
+            log: "synthetic-pnut.pf2".to_owned(),
+            with: Vec::new(),
+            stages: false,
+            mapping: None,
+            layout: None,
+            sheet: None,
+            recording: None,
+            fip_header: None,
+            print_mapping: false,
+            record: false,
+            ghost: Vec::new(),
+            pad: None,
+        };
+        let document = document(&args, &log, &readings::read(&log));
+        let lines = text_lines(&document);
+        (document, lines)
+    }
+
+    /// A pad 45 °C at a field the logger states 600 ft up, 31.2 K over standard (#1259): a line
+    /// above the readings says so, and each barometric reading the day's air moves carries a note
+    /// below it, its size the share of the reading rounded up, the true value above the reading.
+    /// At 70 °F, 7.3 K over, the bounds cover the day: no note.
+    #[test]
+    fn a_hot_day_notes_each_barometric_reading() {
+        let (document, lines) = pnut_at(Some(318.15));
+        let air = document.day_air.as_ref().expect("the day's air");
+        assert!(!air.covered && air.offset_k > 31.0, "{air:?}");
+        assert_eq!(air.pad_height_from, PadHeightSource::StatedGroundElevation);
+        assert!(
+            lines.contains(
+                &"the day's air: the log's Temperature (F) reads 318.1 K at the pad, 31.2 K over \
+                  standard at 182.9 m (600 ft) above sea level (from the logger's stated ground \
+                  elevation), past the 15 K the bounds allow; a logger's sensor in a warm bay can \
+                  read above the air"
+                    .to_owned()
+            ),
+            "{lines:#?}"
+        );
+        let LogReading::Read(apogee) = &document.apogee else {
+            panic!("{:?}", document.apogee);
+        };
+        let note = format!(
+            "{:<18}the day's air may put the true height up to {} above the reading, {:.1}%, \
+             where the bound allows 6.9%",
+            "",
+            meters_bound(air.share * apogee.height_m),
+            rounded_up(100.0 * air.share, 1)
+        );
+        let at = |name: &str| {
+            lines
+                .iter()
+                .position(|line| line.starts_with(name))
+                .unwrap_or_else(|| panic!("{name}: {lines:#?}"))
+        };
+        assert_eq!(lines[at("apogee ") + 1], note, "{lines:#?}");
+        for (name, what) in [
+            ("top speed ", "speed"),
+            ("landing ", "mean rate"),
+            ("drogue descent ", "rate"),
+            ("main descent ", "rate"),
+        ] {
+            let below = &lines[at(name) + 1];
+            assert!(
+                below.starts_with(&format!(
+                    "{:<18}the day's air may put the true {what} up to ",
+                    ""
+                )) && below.contains(" above the reading, "),
+                "{name}: {lines:#?}"
+            );
+        }
+        let (document, lines) = pnut_at(None);
+        assert!(document.day_air.is_some_and(|air| air.covered));
+        assert!(
+            !lines.iter().any(|line| line.contains("day's air")),
+            "{lines:#?}"
+        );
+    }
+
+    /// The drogue's rate, a leg from apogee, says it is the mean from there, the fall from rest
+    /// included (#1259); the main's, from its opening, doesn't.
+    #[test]
+    fn a_leg_from_apogee_says_it_is_a_chord() {
+        let (_, lines) = pnut_at(None);
+        let chord = "; the mean rate from apogee (a chord), the fall from rest there included";
+        let line = |name: &str| lines.iter().find(|line| line.starts_with(name)).unwrap();
+        assert!(line("drogue descent ").ends_with(chord), "{lines:#?}");
+        assert!(!line("main descent ").contains(chord), "{lines:#?}");
+    }
+
     /// Every reason, source, provenance and method the library has maps to the command's own, of
     /// the same name: a library variant added without a mapping would reach the JSON as `other`.
     #[test]
@@ -1158,6 +1363,14 @@ mod tests {
         for from in GravityBy::ALL.iter().copied() {
             let mapped = gravity_by(from);
             assert_ne!(mapped, GravitySettledBy::Other, "{from:?}");
+            assert_eq!(
+                serde_json::to_value(mapped).unwrap(),
+                serde_json::to_value(from).unwrap()
+            );
+        }
+        for from in PadHeightFrom::ALL.iter().copied() {
+            let mapped = pad_height_from(from);
+            assert_ne!(mapped, PadHeightSource::Other, "{from:?}");
             assert_eq!(
                 serde_json::to_value(mapped).unwrap(),
                 serde_json::to_value(from).unwrap()
