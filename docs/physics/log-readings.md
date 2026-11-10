@@ -1018,8 +1018,8 @@ reached at these temperatures at the pad:
 | 1,000 m (3,281 ft) | 8.5 °C (47.3 °F) | 23.5 °C (74.3 °F) |
 | 1,500 m (4,921 ft) | 5.25 °C (41.45 °F) | 20.25 °C (68.45 °F) |
 
-Past that, the bound may not hold. A barometric height then reads low by more than its bound
-allows, and so does a speed or a rate of descent worked out from the heights. That is the
+Past that, the bound may not hold. A barometric height then can read low by more than the bound
+allows for the day's air, and so can a speed or a rate of descent worked out from the heights. That is the
 flattering side: an apogee too low for a waiver, a descent too slow. Where the log records the
 pad's temperature and its height above sea level, the readings check the day against the 15 K
 ([#1259](https://github.com/nrdptel/fusionspace-eridanus/issues/1259)).
@@ -1073,8 +1073,8 @@ a time, so it takes the same share.
 the log reads 308.15 K (35 °C) there. The standard there is 288.15 − 0.0065 × 1,190 = 280.415 K,
 so $\Delta T$ is 27.735 K, past the 15 K. The apogee reads 2,738 m (8,983 ft) above the pad, 3,928 m
 (12,887 ft) above sea level, where the standard is 262.618 K. So $s_{\mathrm{day}}$ is
-27.735/262.618 = 10.561%, 289.2 m (949 ft) of the reading. The bound holds 6.924% of it, 189.6 m
-(622 ft). The difference, 3.637% of the reading, is 99.6 m (327 ft): the day's air alone may put
+27.735/262.618 = 10.561%, 289.2 m (949 ft) of the reading. The bound allows 6.924% of it for the
+day's air, 189.6 m (622 ft). The difference, 3.637% of the reading, is 99.6 m (327 ft): the day's air alone may put
 the true apogee that far past the day's-air part of the bound.
 
 **A note, not a wider bound.** A logger's temperature channel is often the board's or the sensor
@@ -1087,10 +1087,12 @@ the note gives the size for the flyer to weigh against the field's own weather r
 
 - A log with no temperature, or with no pressure, altitude above sea level or stated ground
   elevation, gets no check. Nothing then says whether the day was within 15 K.
-- A temperature channel whose samples are all one value over the whole log isn't taken for the
-  air. A logger with no sensor writes a fixed figure, often zero. The readers turn it into kelvin
-  first, so zeros in °C read 273.15 K and in °F 255.37 K, both plausible air. A real sensor
-  too coarse to change over the whole log is refused the same way, and gets no check. A
+- A temperature channel whose samples are all one value over the whole log, and that value a
+  unit's zero read as kelvin within 0.01 K, isn't taken for the air: 0 K, 273.15 K (0 °C) or
+  255.372 K (0 °F, $(0 - 32) \times 5/9 + 273.15$). A logger with no sensor writes zeros, and the
+  readers turn them into kelvin first, so zeros in °C and °F read as plausible air. A channel of
+  one other value is read: a logger quantized to a degree can read one value over a short log. A
+  real sensor that reads exactly 0 °C or 0 °F throughout is refused too, and gets no check. A
   temperature outside −100 °C to 100 °C isn't taken for the air either.
 - A stated ground elevation may be the field's surveyed height, not its pressure altitude. The
   two differ by up to a few hundred meters with the weather, a kelvin or two of $T_{\mathrm{std}}$.
