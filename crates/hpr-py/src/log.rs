@@ -308,7 +308,7 @@ impl FlightLog {
     /// pad's height above sea level, or is ``None`` where the log has no temperature, no such
     /// height, a temperature outside −100 to 100 °C, a column of one value at a unit's zero (0 K,
     /// 0 °C or 0 °F: no sensor), or the pad isn't found. ``offset_k`` is the difference,
-    /// ``covered`` whether the bounds' 15 K allowance holds it, and ``share`` how much the day's
+    /// ``covered`` whether the bounds' 15 K allowance covers it, and ``share`` how much the day's
     /// air may move a barometric height, speed or rate.
     fn readings<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         to_python(py, &readings::read(&self.log))

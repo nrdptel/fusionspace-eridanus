@@ -194,7 +194,8 @@ pub const TRANSONIC_SPEED_M_S: f64 = 227.736_107_633_374_67;
 pub const PORT_PRESSURE_COEFFICIENT: f64 = 0.02;
 /// How far the day's air may be from the 1976 standard atmosphere for the bounds to hold, K: the
 /// synthetic flights' range ([ADR-280] §2). Where the log's temperature at the pad lies further
-/// off, [`Readings::day_air`] says so, with the share the day may move a reading by (#1259).
+/// off and the log gives the pad's height above sea level, [`Readings::day_air`] says so, with the
+/// share the day may move a reading by (#1259).
 ///
 /// [ADR-280]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md
 pub const AIR_TEMPERATURE_SPREAD_K: f64 = 15.0;

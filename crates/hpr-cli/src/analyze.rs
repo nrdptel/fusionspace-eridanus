@@ -870,8 +870,9 @@ fn day_air_line(air: &DayAirReading) -> String {
 
 /// The note beside a barometric reading on a day past the bounds' allowance: how far the true
 /// value may lie from the reading, `share × value`, rounded up, and which way. A day just past
-/// 15 K under a low flight's warmer air can move a reading by less than the bound's own share,
-/// [`TEMPERATURE_SHARE`]; the note then says the day is past 15 K but within that share here.
+/// 15 K over a low flight, whose standard air is warmer, can move a reading by less than the
+/// bound's own share, [`TEMPERATURE_SHARE`]; the note then says the day is past 15 K but within
+/// that share here.
 fn day_air_note(air: &DayAirReading, what: &str, size: &str) -> String {
     let way = if air.offset_k > 0.0 { "above" } else { "below" };
     if air.share <= TEMPERATURE_SHARE {
