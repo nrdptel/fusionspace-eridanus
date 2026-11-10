@@ -63,8 +63,9 @@ class AddedMass(TypedDict):
 
     - **No station** (`cg_aft_m` is `None`): the point sits at the parts' center of mass. The stage
       weighs `m_p + m_a`; its center and its inertia about that center are the parts'.
-    - **A station** `s` aft of the stage's forward end `x_0`: the point sits on the axis at
-      `x_a = x_0 + s`. The stage weighs `m_p + m_a`, its center is at
+    - **A station** `s` aft of the stage's forward end `x_0`: the point sits at `x_a = x_0 + s`
+      along the axis, level with the parts' center of mass (on the axis when that center is, as on
+      any rocket that is the same all the way round). The stage weighs `m_p + m_a`, its center is at
       `(m_p x_p + m_a x_a) / (m_p + m_a)`, and its inertia about that center is the parts' and the
       point's by the parallel-axis theorem (`MassProperties::combine`).
 
@@ -74,7 +75,7 @@ class AddedMass(TypedDict):
     parts (`<overridesubcomponentsmass>false</overridesubcomponentsmass>`, or no flag written). Its
     user guide says such a value "is added to the calculated value" ([Overrides and Surface
     Finish][guide]); where the mass goes is measured on probe designs, which hold this rule's mass,
-    center and inertia to OpenRocket's structure ([ADR-335][adr-335]): at the center of the stage's
+    center and inertia to OpenRocket's structure ([the decision record][adr-335]): at the center of the stage's
     own parts, or at the stage's center of gravity override when that doesn't cover the parts
     either. A motor aboard doesn't move it in OpenRocket, and a `Layout` holds no motor.
 
@@ -86,8 +87,8 @@ class AddedMass(TypedDict):
     """
 
     cg_aft_m: NotRequired[Union[float, None]]
-    """Where it sits on the axis, m aft of the stage's forward end. `None` puts it at the center
-    of mass of the stage's parts.
+    """How far aft of the stage's forward end it sits, m, level with the center of mass of the
+    stage's parts: on the axis when that center is. `None` puts it at that center.
     """
 
     mass_kg: float

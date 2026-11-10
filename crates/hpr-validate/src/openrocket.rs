@@ -682,6 +682,13 @@ mod tests {
             );
             let found = [2, 3].map(|k| (relative(ours[k], theirs[k]) * 1e4).round() / 1e4);
             assert_eq!(found, pinned, "{question}");
+            // A pin of nothing is held as tightly as the probes with no departure are.
+            for (k, pin) in [2, 3].into_iter().zip(pinned) {
+                assert!(
+                    pin != 0.0 || relative(ours[k], theirs[k]).abs() < 3e-6,
+                    "{question}: inertia {k} {ours:?} {theirs:?}"
+                );
+            }
         }
     }
 
@@ -800,6 +807,122 @@ mod tests {
         record
     }
 
+    /// `stage_added_mass.py`'s probes on the airframe with pods: the airframe with no override,
+    /// then that airframe under each override.
+    const ADDED_WITH_PODS: [(&str, &[&str]); 2] = [
+        (
+            "three pods and no override",
+            &["three pods and a mass override on the stage, not its parts"],
+        ),
+        (
+            "one pod and no override",
+            &[
+                "one pod and a mass override on the stage, not its parts",
+                "one pod and both overrides on the stage, not its parts",
+                "one pod and a mass override on the stage, not its parts, and a center that covers them",
+            ],
+        ),
+    ];
+
+    /// A stage's pods are among the parts its added mass sits among, and a station moves the
+    /// added mass along the axis only (ADR-335). Three pods move the parts' center aft, and
+    /// OpenRocket 24.12's added mass with no station leaves the center there: it sits at the
+    /// center with the pods counted. One pod pulls the parts' center off the axis, and under every
+    /// override OpenRocket's center stays that far off it: an added mass at a station sits level
+    /// with the parts' center, not on the axis, as a center override moves a stage along the axis
+    /// only. HPR Sim's structure of each probe has OpenRocket's mass, its center along the axis
+    /// and off it, and, where no override covers the parts, the inertia the override adds.
+    #[test]
+    fn a_stages_added_mass_sits_among_its_pods_and_level_with_their_center() {
+        let record = added_mass_record();
+        let theirs = |question: &str, key: &str| {
+            probe(&record, question)["structure"][key]
+                .as_f64()
+                .expect("a number")
+        };
+        let off_axis_m =
+            |question: &str| theirs(question, "cm_y_m").hypot(theirs(question, "cm_z_m"));
+        // Three pods: the parts' center is centimeters aft of the airframe's with none, and the
+        // added mass doesn't move it.
+        let [three, three_added] = [
+            "three pods and no override",
+            "three pods and a mass override on the stage, not its parts",
+        ];
+        assert!(theirs(three, "cm_x_m") - theirs("no override", "cm_x_m") > 0.03);
+        assert!((theirs(three_added, "cm_x_m") - theirs(three, "cm_x_m")).abs() < 1e-12);
+        assert!((theirs(three_added, "mass_kg") - theirs(three, "mass_kg") - 2.0).abs() < 1e-12);
+        // One pod: the parts' center is millimeters off the axis, and stays there under each
+        // override. On the axis, a 2 kg point would pull it most of the way back.
+        let (one, one_added) = ADDED_WITH_PODS[1];
+        assert!(off_axis_m(one) > 0.0025, "{}", off_axis_m(one));
+        for question in one_added {
+            assert!(
+                (off_axis_m(question) - off_axis_m(one)).abs() < 1e-12,
+                "{question}: {}",
+                off_axis_m(question)
+            );
+        }
+
+        // Every probe in the record is read, here or with the motor above.
+        let mut read: Vec<&str> = std::iter::once("no override")
+            .chain(ADDED_WITH_A_MOTOR)
+            .collect();
+        for (bare, added) in ADDED_WITH_PODS {
+            read.push(bare);
+            read.extend(added);
+        }
+        read.sort_unstable();
+        let mut recorded: Vec<&str> = record["probes"]
+            .as_object()
+            .expect("the record's probes")
+            .keys()
+            .map(String::as_str)
+            .collect();
+        recorded.sort_unstable();
+        assert_eq!(read, recorded);
+
+        // The station's probe gains an inertia across the axis that the bound below can tell
+        // from none: 2.9e-4 kg·m², against a bound of 1e-9.
+        let gained = (theirs(one_added[1], "iyy") + theirs(one_added[1], "izz")) / 2.0
+            - (theirs(one, "iyy") + theirs(one, "izz")) / 2.0;
+        assert!(gained > 2.9e-4, "{gained:e}");
+        for (bare, added) in ADDED_WITH_PODS {
+            let (bare_ours, bare_theirs, _) = both(probe(&record, bare));
+            for question in std::iter::once(bare).chain(added.iter().copied()) {
+                let (layout, warnings) = hpr(probe(&record, question));
+                let (ours, theirs_, _) = both(probe(&record, question));
+                assert!(warnings.is_empty(), "{question}: {warnings:?}");
+                assert!(
+                    relative(ours[0], theirs_[0]).abs() < 5e-7,
+                    "{question}: mass {ours:?} {theirs_:?}"
+                );
+                assert!(
+                    (ours[1] - theirs_[1]).abs() < 2e-7,
+                    "{question}: center {ours:?} {theirs_:?}"
+                );
+                let center = layout.structure.cg_m;
+                assert!(
+                    (center.x.hypot(center.y) - off_axis_m(question)).abs() < 2e-7,
+                    "{question}: {center:?} against {}",
+                    off_axis_m(question)
+                );
+                // What the override adds to the inertia, against the same airframe with none.
+                // Under a center that covers the parts the inertia is hpr's own rule (ADR-061).
+                if question.ends_with("a center that covers them") {
+                    continue;
+                }
+                for k in [2, 3] {
+                    let (ours_adds, theirs_adds) =
+                        (ours[k] - bare_ours[k], theirs_[k] - bare_theirs[k]);
+                    assert!(
+                        (ours_adds - theirs_adds).abs() < 1e-9,
+                        "{question}: inertia {k} gains {ours_adds:e}, OpenRocket's {theirs_adds:e}"
+                    );
+                }
+            }
+        }
+    }
+
     /// The overrides `stage_added_mass.py` gives its airframe's stage, beside `no override`.
     const ADDED_WITH_A_MOTOR: [&str; 3] = [
         "a mass override on the stage, not its parts",
@@ -848,6 +971,7 @@ mod tests {
             assert!(with_m - got_m > 0.05, "{when}: {with_m} {got_m}");
         }
         // hpr's structure of each probe is OpenRocket's: the 2 kg added, where OpenRocket has it.
+        let (bare_ours, bare_theirs, _) = both(probe(&record, "no override"));
         for question in std::iter::once("no override").chain(ADDED_WITH_A_MOTOR) {
             let (ours, theirs, warnings) = both(probe(&record, question));
             assert!(warnings.is_empty(), "{question}: {warnings:?}");
@@ -859,7 +983,21 @@ mod tests {
                 (ours[1] - theirs[1]).abs() < 2e-7,
                 "{question}: center {ours:?} {theirs:?}"
             );
+            // And so is the inertia the override adds to this airframe's, where no override
+            // covers the parts (under a center that does, the inertia is hpr's own rule, ADR-061).
+            if question == ADDED_WITH_A_MOTOR[2] {
+                continue;
+            }
+            for k in [2, 3] {
+                let (ours_adds, theirs_adds) = (ours[k] - bare_ours[k], theirs[k] - bare_theirs[k]);
+                assert!(
+                    (ours_adds - theirs_adds).abs() < 1e-9,
+                    "{question}: inertia {k} gains {ours_adds:e}, OpenRocket's {theirs_adds:e}"
+                );
+            }
         }
+        let gained = both(probe(&record, ADDED_WITH_A_MOTOR[1])).1[3] - bare_theirs[3];
+        assert!(gained > 5.9e-4, "{gained:e}");
         let [added_kg, _] = weighed(ADDED_WITH_A_MOTOR[0], "structure");
         assert!((added_kg - bare_kg - 2.0).abs() < 1e-12, "{added_kg}");
     }

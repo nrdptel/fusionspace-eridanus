@@ -6,7 +6,7 @@
   "conventions.py": "ace6e84dc5298fc10130f5a071d18a6b13000d3618e57b943f273803882caddb",
   "events.py": "313b72db4daae061e476be01cd429db7c2f34432ae45d314f1bbb1586e1f585d",
   "pod_probes.py": "e9b8f81ec68abd2e9d49accca25a842642848890caf2d86f1d06307afc26978c",
-  "stage_added_mass.py": "f935f9ee9f43367d0f74c80fd4609490f19771590591b7172f9b27fb6fd0b04d"
+  "stage_added_mass.py": "d7a6433124204c8bf804fd1b617d481373d8c0d8f523c6125372a3224a46ae75"
  },
  "jar_sha256": "4959b72f52f5f607941e9722abbb7b7f0c4a38ebbbf84204a329db9f31c4f897",
  "java": "17.0.20.1",
@@ -16,6 +16,8 @@
   "a mass override on the stage, not its parts": {
    "burnout": {
     "cm_x_m": 0.371567417591187,
+    "cm_y_m": 0.0,
+    "cm_z_m": 0.0,
     "ixx": 0.00042930685023652817,
     "iyy": 0.04084416289046826,
     "izz": 0.04084416289046826,
@@ -24,6 +26,8 @@
    "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim pod probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><motorconfiguration configid=\"00000000-0000-4000-8000-000000000097\" default=\"true\"><stage number=\"0\" active=\"true\"/></motorconfiguration><referencetype>maximum</referencetype><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><overridemass>2.0</overridemass><overridesubcomponentsmass>false</overridesubcomponentsmass><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.2</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.03</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish><subcomponents><masscomponent><name>Ballast</name><id>00000000-0000-4000-8000-000000000005</id><axialoffset method=\"top\">0.1</axialoffset><position type=\"top\">0.1</position><packedlength>0.02</packedlength><packedradius>0.01</packedradius><mass>0.15</mass></masscomponent></subcomponents></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.6</length><thickness>0.001</thickness><radius>0.03</radius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish><subcomponents><innertube><name>Motor mount</name><id>00000000-0000-4000-8000-000000000003</id><axialoffset method=\"bottom\">0.0</axialoffset><position type=\"bottom\">0.0</position><length>0.2</length><outerradius>0.015</outerradius><thickness>0.0005</thickness><material type=\"bulk\" density=\"1000.0\">Probe</material><motormount><ignitionevent>automatic</ignitionevent><ignitiondelay>0.0</ignitiondelay><overhang>0.0</overhang><motor configid=\"00000000-0000-4000-8000-000000000097\"><type>single</type><manufacturer>AeroTech</manufacturer><designation>H128W</designation><digest>501239de7374691072270406476cb243</digest><diameter>0.029</diameter><length>0.194</length><delay>0.0</delay></motor></motormount></innertube><trapezoidfinset><name>Fins</name><id>00000000-0000-4000-8000-000000000004</id><instancecount>3</instancecount><fincount>3</fincount><radiusoffset method=\"surface\">0.0</radiusoffset><angleoffset method=\"relative\">0.0</angleoffset><rotation>0.0</rotation><axialoffset method=\"bottom\">0.0</axialoffset><position type=\"bottom\">0.0</position><rootchord>0.12</rootchord><tipchord>0.06</tipchord><sweeplength>0.06</sweeplength><height>0.08</height><thickness>0.003</thickness><crosssection>square</crosssection><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish></trapezoidfinset></subcomponents></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
    "launch": {
     "cm_x_m": 0.38368843308739753,
+    "cm_y_m": 0.0,
+    "cm_z_m": 0.0,
     "ixx": 0.00043919701023652815,
     "iyy": 0.051100684809241195,
     "izz": 0.051100684809241195,
@@ -34,6 +38,8 @@
    ],
    "structure": {
     "cm_x_m": 0.3565369233995061,
+    "cm_y_m": 0.0,
+    "cm_z_m": 0.0,
     "ixx": 0.00041800381023652817,
     "iyy": 0.02815486236732158,
     "izz": 0.02815486236732158,
@@ -43,6 +49,8 @@
   "a mass override on the stage, not its parts, and a center that covers them": {
    "burnout": {
     "cm_x_m": 0.41314494977290417,
+    "cm_y_m": 0.0,
+    "cm_z_m": 0.0,
     "ixx": 0.00042930685023652817,
     "iyy": 0.03906520854466338,
     "izz": 0.03906520854466338,
@@ -51,6 +59,8 @@
    "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim pod probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><motorconfiguration configid=\"00000000-0000-4000-8000-000000000097\" default=\"true\"><stage number=\"0\" active=\"true\"/></motorconfiguration><referencetype>maximum</referencetype><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><overridemass>2.0</overridemass><overridecg>0.4</overridecg><overridesubcomponentsmass>false</overridesubcomponentsmass><overridesubcomponentscg>true</overridesubcomponentscg><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.2</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.03</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish><subcomponents><masscomponent><name>Ballast</name><id>00000000-0000-4000-8000-000000000005</id><axialoffset method=\"top\">0.1</axialoffset><position type=\"top\">0.1</position><packedlength>0.02</packedlength><packedradius>0.01</packedradius><mass>0.15</mass></masscomponent></subcomponents></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.6</length><thickness>0.001</thickness><radius>0.03</radius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish><subcomponents><innertube><name>Motor mount</name><id>00000000-0000-4000-8000-000000000003</id><axialoffset method=\"bottom\">0.0</axialoffset><position type=\"bottom\">0.0</position><length>0.2</length><outerradius>0.015</outerradius><thickness>0.0005</thickness><material type=\"bulk\" density=\"1000.0\">Probe</material><motormount><ignitionevent>automatic</ignitionevent><ignitiondelay>0.0</ignitiondelay><overhang>0.0</overhang><motor configid=\"00000000-0000-4000-8000-000000000097\"><type>single</type><manufacturer>AeroTech</manufacturer><designation>H128W</designation><digest>501239de7374691072270406476cb243</digest><diameter>0.029</diameter><length>0.194</length><delay>0.0</delay></motor></motormount></innertube><trapezoidfinset><name>Fins</name><id>00000000-0000-4000-8000-000000000004</id><instancecount>3</instancecount><fincount>3</fincount><radiusoffset method=\"surface\">0.0</radiusoffset><angleoffset method=\"relative\">0.0</angleoffset><rotation>0.0</rotation><axialoffset method=\"bottom\">0.0</axialoffset><position type=\"bottom\">0.0</position><rootchord>0.12</rootchord><tipchord>0.06</tipchord><sweeplength>0.06</sweeplength><height>0.08</height><thickness>0.003</thickness><crosssection>square</crosssection><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish></trapezoidfinset></subcomponents></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
    "launch": {
     "cm_x_m": 0.42374540893694584,
+    "cm_y_m": 0.0,
+    "cm_z_m": 0.0,
     "ixx": 0.00043919701023652815,
     "iyy": 0.047322128752197753,
     "izz": 0.047322128752197753,
@@ -61,6 +71,8 @@
    ],
    "structure": {
     "cm_x_m": 0.4000000000000001,
+    "cm_y_m": 0.0,
+    "cm_z_m": 0.0,
     "ixx": 0.00041800381023652817,
     "iyy": 0.02885548590142642,
     "izz": 0.02885548590142642,
@@ -70,6 +82,8 @@
   "both overrides on the stage, not its parts": {
    "burnout": {
     "cm_x_m": 0.40664078847617247,
+    "cm_y_m": 0.0,
+    "cm_z_m": 0.0,
     "ixx": 0.00042930685023652817,
     "iyy": 0.03896036165322053,
     "izz": 0.03896036165322053,
@@ -78,6 +92,8 @@
    "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim pod probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><motorconfiguration configid=\"00000000-0000-4000-8000-000000000097\" default=\"true\"><stage number=\"0\" active=\"true\"/></motorconfiguration><referencetype>maximum</referencetype><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><overridemass>2.0</overridemass><overridecg>0.4</overridecg><overridesubcomponentsmass>false</overridesubcomponentsmass><overridesubcomponentscg>false</overridesubcomponentscg><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.2</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.03</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish><subcomponents><masscomponent><name>Ballast</name><id>00000000-0000-4000-8000-000000000005</id><axialoffset method=\"top\">0.1</axialoffset><position type=\"top\">0.1</position><packedlength>0.02</packedlength><packedradius>0.01</packedradius><mass>0.15</mass></masscomponent></subcomponents></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.6</length><thickness>0.001</thickness><radius>0.03</radius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish><subcomponents><innertube><name>Motor mount</name><id>00000000-0000-4000-8000-000000000003</id><axialoffset method=\"bottom\">0.0</axialoffset><position type=\"bottom\">0.0</position><length>0.2</length><outerradius>0.015</outerradius><thickness>0.0005</thickness><material type=\"bulk\" density=\"1000.0\">Probe</material><motormount><ignitionevent>automatic</ignitionevent><ignitiondelay>0.0</ignitiondelay><overhang>0.0</overhang><motor configid=\"00000000-0000-4000-8000-000000000097\"><type>single</type><manufacturer>AeroTech</manufacturer><designation>H128W</designation><digest>501239de7374691072270406476cb243</digest><diameter>0.029</diameter><length>0.194</length><delay>0.0</delay></motor></motormount></innertube><trapezoidfinset><name>Fins</name><id>00000000-0000-4000-8000-000000000004</id><instancecount>3</instancecount><fincount>3</fincount><radiusoffset method=\"surface\">0.0</radiusoffset><angleoffset method=\"relative\">0.0</angleoffset><rotation>0.0</rotation><axialoffset method=\"bottom\">0.0</axialoffset><position type=\"bottom\">0.0</position><rootchord>0.12</rootchord><tipchord>0.06</tipchord><sweeplength>0.06</sweeplength><height>0.08</height><thickness>0.003</thickness><crosssection>square</crosssection><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish></trapezoidfinset></subcomponents></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
    "launch": {
     "cm_x_m": 0.4174791151404296,
+    "cm_y_m": 0.0,
+    "cm_z_m": 0.0,
     "ixx": 0.00043919701023652815,
     "iyy": 0.04722111627795876,
     "izz": 0.04722111627795876,
@@ -88,6 +104,8 @@
    ],
    "structure": {
     "cm_x_m": 0.39320087446685636,
+    "cm_y_m": 0.0,
+    "cm_z_m": 0.0,
     "ixx": 0.00041800381023652817,
     "iyy": 0.02874588419504838,
     "izz": 0.02874588419504838,
@@ -97,6 +115,8 @@
   "no override": {
    "burnout": {
     "cm_x_m": 0.43440276786991777,
+    "cm_y_m": 0.0,
+    "cm_z_m": 0.0,
     "ixx": 0.00042930685023652817,
     "iyy": 0.03850343864438256,
     "izz": 0.03850343864438256,
@@ -105,6 +125,8 @@
    "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim pod probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><motorconfiguration configid=\"00000000-0000-4000-8000-000000000097\" default=\"true\"><stage number=\"0\" active=\"true\"/></motorconfiguration><referencetype>maximum</referencetype><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.2</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.03</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish><subcomponents><masscomponent><name>Ballast</name><id>00000000-0000-4000-8000-000000000005</id><axialoffset method=\"top\">0.1</axialoffset><position type=\"top\">0.1</position><packedlength>0.02</packedlength><packedradius>0.01</packedradius><mass>0.15</mass></masscomponent></subcomponents></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.6</length><thickness>0.001</thickness><radius>0.03</radius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish><subcomponents><innertube><name>Motor mount</name><id>00000000-0000-4000-8000-000000000003</id><axialoffset method=\"bottom\">0.0</axialoffset><position type=\"bottom\">0.0</position><length>0.2</length><outerradius>0.015</outerradius><thickness>0.0005</thickness><material type=\"bulk\" density=\"1000.0\">Probe</material><motormount><ignitionevent>automatic</ignitionevent><ignitiondelay>0.0</ignitiondelay><overhang>0.0</overhang><motor configid=\"00000000-0000-4000-8000-000000000097\"><type>single</type><manufacturer>AeroTech</manufacturer><designation>H128W</designation><digest>501239de7374691072270406476cb243</digest><diameter>0.029</diameter><length>0.194</length><delay>0.0</delay></motor></motormount></innertube><trapezoidfinset><name>Fins</name><id>00000000-0000-4000-8000-000000000004</id><instancecount>3</instancecount><fincount>3</fincount><radiusoffset method=\"surface\">0.0</radiusoffset><angleoffset method=\"relative\">0.0</angleoffset><rotation>0.0</rotation><axialoffset method=\"bottom\">0.0</axialoffset><position type=\"bottom\">0.0</position><rootchord>0.12</rootchord><tipchord>0.06</tipchord><sweeplength>0.06</sweeplength><height>0.08</height><thickness>0.003</thickness><crosssection>square</crosssection><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish></trapezoidfinset></subcomponents></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
    "launch": {
     "cm_x_m": 0.478542714167579,
+    "cm_y_m": 0.0,
+    "cm_z_m": 0.0,
     "ixx": 0.00043919701023652815,
     "iyy": 0.044475401989204834,
     "izz": 0.044475401989204834,
@@ -115,10 +137,210 @@
    ],
    "structure": {
     "cm_x_m": 0.3565369233995061,
+    "cm_y_m": 0.0,
+    "cm_z_m": 0.0,
     "ixx": 0.00041800381023652817,
     "iyy": 0.02815486236732158,
     "izz": 0.02815486236732158,
     "mass_kg": 0.37088886141343297
+   }
+  },
+  "one pod and a mass override on the stage, not its parts": {
+   "burnout": {
+    "cm_x_m": 0.3844506178297721,
+    "cm_y_m": 0.00256789393059976,
+    "cm_z_m": 0.0,
+    "ixx": 0.0004843333582410077,
+    "iyy": 0.04136120932944495,
+    "izz": 0.04136120932944495,
+    "mass_kg": 2.498589279084705
+   },
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim pod probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><motorconfiguration configid=\"00000000-0000-4000-8000-000000000097\" default=\"true\"><stage number=\"0\" active=\"true\"/></motorconfiguration><referencetype>maximum</referencetype><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><overridemass>2.0</overridemass><overridesubcomponentsmass>false</overridesubcomponentsmass><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.2</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.03</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish><subcomponents><masscomponent><name>Ballast</name><id>00000000-0000-4000-8000-000000000005</id><axialoffset method=\"top\">0.1</axialoffset><position type=\"top\">0.1</position><packedlength>0.02</packedlength><packedradius>0.01</packedradius><mass>0.15</mass></masscomponent></subcomponents></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.6</length><thickness>0.001</thickness><radius>0.03</radius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish><subcomponents><innertube><name>Motor mount</name><id>00000000-0000-4000-8000-000000000003</id><axialoffset method=\"bottom\">0.0</axialoffset><position type=\"bottom\">0.0</position><length>0.2</length><outerradius>0.015</outerradius><thickness>0.0005</thickness><material type=\"bulk\" density=\"1000.0\">Probe</material><motormount><ignitionevent>automatic</ignitionevent><ignitiondelay>0.0</ignitiondelay><overhang>0.0</overhang><motor configid=\"00000000-0000-4000-8000-000000000097\"><type>single</type><manufacturer>AeroTech</manufacturer><designation>H128W</designation><digest>501239de7374691072270406476cb243</digest><diameter>0.029</diameter><length>0.194</length><delay>0.0</delay></motor></motormount></innertube><trapezoidfinset><name>Fins</name><id>00000000-0000-4000-8000-000000000004</id><instancecount>3</instancecount><fincount>3</fincount><radiusoffset method=\"surface\">0.0</radiusoffset><angleoffset method=\"relative\">0.0</angleoffset><rotation>0.0</rotation><axialoffset method=\"bottom\">0.0</axialoffset><position type=\"bottom\">0.0</position><rootchord>0.12</rootchord><tipchord>0.06</tipchord><sweeplength>0.06</sweeplength><height>0.08</height><thickness>0.003</thickness><crosssection>square</crosssection><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish></trapezoidfinset><podset><name>Pods</name><id>00000000-0000-4000-8000-000000000020</id><instancecount>1</instancecount><radiusoffset method=\"relative\">0.01</radiusoffset><angleoffset method=\"relative\">0.0</angleoffset><axialoffset method=\"top\">0.25</axialoffset><position type=\"top\">0.25</position><subcomponents><nosecone><name>Pod nose</name><id>00000000-0000-4000-8000-000000000021</id><length>0.06</length><thickness>0.001</thickness><shape>conical</shape><aftradius>0.012</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish></nosecone><bodytube><name>Pod tube</name><id>00000000-0000-4000-8000-000000000022</id><length>0.25</length><thickness>0.001</thickness><radius>0.012</radius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish></bodytube></subcomponents></podset></subcomponents></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "launch": {
+    "cm_x_m": 0.3960097959001641,
+    "cm_y_m": 0.0024747129518533644,
+    "cm_z_m": 0.0,
+    "ixx": 0.000494821377859727,
+    "iyy": 0.050861448718374426,
+    "izz": 0.050861448718374426,
+    "mass_kg": 2.592669279084705
+   },
+   "motors": [
+    "H128W"
+   ],
+   "structure": {
+    "cm_x_m": 0.3701263028170118,
+    "cm_y_m": 0.0026833652629585517,
+    "cm_z_m": 0.0,
+    "ixx": 0.0004722894412115344,
+    "iyy": 0.02961727212805965,
+    "izz": 0.02961727212805965,
+    "mass_kg": 2.391069279084705
+   }
+  },
+  "one pod and a mass override on the stage, not its parts, and a center that covers them": {
+   "burnout": {
+    "cm_x_m": 0.41303878163278374,
+    "cm_y_m": 0.00256789393059976,
+    "cm_z_m": 0.0,
+    "ixx": 0.0004843333582410077,
+    "iyy": 0.040060322121844745,
+    "izz": 0.040060322121844745,
+    "mass_kg": 2.498589279084705
+   },
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim pod probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><motorconfiguration configid=\"00000000-0000-4000-8000-000000000097\" default=\"true\"><stage number=\"0\" active=\"true\"/></motorconfiguration><referencetype>maximum</referencetype><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><overridemass>2.0</overridemass><overridecg>0.4</overridecg><overridesubcomponentsmass>false</overridesubcomponentsmass><overridesubcomponentscg>true</overridesubcomponentscg><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.2</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.03</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish><subcomponents><masscomponent><name>Ballast</name><id>00000000-0000-4000-8000-000000000005</id><axialoffset method=\"top\">0.1</axialoffset><position type=\"top\">0.1</position><packedlength>0.02</packedlength><packedradius>0.01</packedradius><mass>0.15</mass></masscomponent></subcomponents></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.6</length><thickness>0.001</thickness><radius>0.03</radius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish><subcomponents><innertube><name>Motor mount</name><id>00000000-0000-4000-8000-000000000003</id><axialoffset method=\"bottom\">0.0</axialoffset><position type=\"bottom\">0.0</position><length>0.2</length><outerradius>0.015</outerradius><thickness>0.0005</thickness><material type=\"bulk\" density=\"1000.0\">Probe</material><motormount><ignitionevent>automatic</ignitionevent><ignitiondelay>0.0</ignitiondelay><overhang>0.0</overhang><motor configid=\"00000000-0000-4000-8000-000000000097\"><type>single</type><manufacturer>AeroTech</manufacturer><designation>H128W</designation><digest>501239de7374691072270406476cb243</digest><diameter>0.029</diameter><length>0.194</length><delay>0.0</delay></motor></motormount></innertube><trapezoidfinset><name>Fins</name><id>00000000-0000-4000-8000-000000000004</id><instancecount>3</instancecount><fincount>3</fincount><radiusoffset method=\"surface\">0.0</radiusoffset><angleoffset method=\"relative\">0.0</angleoffset><rotation>0.0</rotation><axialoffset method=\"bottom\">0.0</axialoffset><position type=\"bottom\">0.0</position><rootchord>0.12</rootchord><tipchord>0.06</tipchord><sweeplength>0.06</sweeplength><height>0.08</height><thickness>0.003</thickness><crosssection>square</crosssection><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish></trapezoidfinset><podset><name>Pods</name><id>00000000-0000-4000-8000-000000000020</id><instancecount>1</instancecount><radiusoffset method=\"relative\">0.01</radiusoffset><angleoffset method=\"relative\">0.0</angleoffset><axialoffset method=\"top\">0.25</axialoffset><position type=\"top\">0.25</position><subcomponents><nosecone><name>Pod nose</name><id>00000000-0000-4000-8000-000000000021</id><length>0.06</length><thickness>0.001</thickness><shape>conical</shape><aftradius>0.012</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish></nosecone><bodytube><name>Pod tube</name><id>00000000-0000-4000-8000-000000000022</id><length>0.25</length><thickness>0.001</thickness><radius>0.012</radius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish></bodytube></subcomponents></podset></subcomponents></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "launch": {
+    "cm_x_m": 0.42356058309973293,
+    "cm_y_m": 0.0024747129518533644,
+    "cm_z_m": 0.0,
+    "ixx": 0.000494821377859727,
+    "iyy": 0.04822916117405603,
+    "izz": 0.04822916117405603,
+    "mass_kg": 2.592669279084705
+   },
+   "motors": [
+    "H128W"
+   ],
+   "structure": {
+    "cm_x_m": 0.39999999999999997,
+    "cm_y_m": 0.0026833652629585517,
+    "cm_z_m": 0.0,
+    "ixx": 0.0004722894412115344,
+    "iyy": 0.029966277128634353,
+    "izz": 0.029966277128634353,
+    "mass_kg": 2.391069279084705
+   }
+  },
+  "one pod and both overrides on the stage, not its parts": {
+   "burnout": {
+    "cm_x_m": 0.40836306909421644,
+    "cm_y_m": 0.00256789393059976,
+    "cm_z_m": 0.0,
+    "ixx": 0.0004843333582410077,
+    "iyy": 0.04000569724407303,
+    "izz": 0.04000569724407303,
+    "mass_kg": 2.498589279084705
+   },
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim pod probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><motorconfiguration configid=\"00000000-0000-4000-8000-000000000097\" default=\"true\"><stage number=\"0\" active=\"true\"/></motorconfiguration><referencetype>maximum</referencetype><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><overridemass>2.0</overridemass><overridecg>0.4</overridecg><overridesubcomponentsmass>false</overridesubcomponentsmass><overridesubcomponentscg>false</overridesubcomponentscg><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.2</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.03</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish><subcomponents><masscomponent><name>Ballast</name><id>00000000-0000-4000-8000-000000000005</id><axialoffset method=\"top\">0.1</axialoffset><position type=\"top\">0.1</position><packedlength>0.02</packedlength><packedradius>0.01</packedradius><mass>0.15</mass></masscomponent></subcomponents></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.6</length><thickness>0.001</thickness><radius>0.03</radius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish><subcomponents><innertube><name>Motor mount</name><id>00000000-0000-4000-8000-000000000003</id><axialoffset method=\"bottom\">0.0</axialoffset><position type=\"bottom\">0.0</position><length>0.2</length><outerradius>0.015</outerradius><thickness>0.0005</thickness><material type=\"bulk\" density=\"1000.0\">Probe</material><motormount><ignitionevent>automatic</ignitionevent><ignitiondelay>0.0</ignitiondelay><overhang>0.0</overhang><motor configid=\"00000000-0000-4000-8000-000000000097\"><type>single</type><manufacturer>AeroTech</manufacturer><designation>H128W</designation><digest>501239de7374691072270406476cb243</digest><diameter>0.029</diameter><length>0.194</length><delay>0.0</delay></motor></motormount></innertube><trapezoidfinset><name>Fins</name><id>00000000-0000-4000-8000-000000000004</id><instancecount>3</instancecount><fincount>3</fincount><radiusoffset method=\"surface\">0.0</radiusoffset><angleoffset method=\"relative\">0.0</angleoffset><rotation>0.0</rotation><axialoffset method=\"bottom\">0.0</axialoffset><position type=\"bottom\">0.0</position><rootchord>0.12</rootchord><tipchord>0.06</tipchord><sweeplength>0.06</sweeplength><height>0.08</height><thickness>0.003</thickness><crosssection>square</crosssection><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish></trapezoidfinset><podset><name>Pods</name><id>00000000-0000-4000-8000-000000000020</id><instancecount>1</instancecount><radiusoffset method=\"relative\">0.01</radiusoffset><angleoffset method=\"relative\">0.0</angleoffset><axialoffset method=\"top\">0.25</axialoffset><position type=\"top\">0.25</position><subcomponents><nosecone><name>Pod nose</name><id>00000000-0000-4000-8000-000000000021</id><length>0.06</length><thickness>0.001</thickness><shape>conical</shape><aftradius>0.012</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish></nosecone><bodytube><name>Pod tube</name><id>00000000-0000-4000-8000-000000000022</id><length>0.25</length><thickness>0.001</thickness><radius>0.012</radius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish></bodytube></subcomponents></podset></subcomponents></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "launch": {
+    "cm_x_m": 0.41905453779916524,
+    "cm_y_m": 0.0024747129518533644,
+    "cm_z_m": 0.0,
+    "ixx": 0.000494821377859727,
+    "iyy": 0.04817651846521818,
+    "izz": 0.04817651846521818,
+    "mass_kg": 2.592669279084705
+   },
+   "motors": [
+    "H128W"
+   ],
+   "structure": {
+    "cm_x_m": 0.3951140331553178,
+    "cm_y_m": 0.0026833652629585517,
+    "cm_z_m": 0.0,
+    "ixx": 0.0004722894412115344,
+    "iyy": 0.029909195915987955,
+    "izz": 0.029909195915987955,
+    "mass_kg": 2.391069279084705
+   }
+  },
+  "one pod and no override": {
+   "burnout": {
+    "cm_x_m": 0.4419099961744346,
+    "cm_y_m": 0.0021047017313179373,
+    "cm_z_m": 0.0,
+    "ixx": 0.00048419972014303574,
+    "iyy": 0.03930470485658273,
+    "izz": 0.03930470485658273,
+    "mass_kg": 0.49858927908470485
+   },
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim pod probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><motorconfiguration configid=\"00000000-0000-4000-8000-000000000097\" default=\"true\"><stage number=\"0\" active=\"true\"/></motorconfiguration><referencetype>maximum</referencetype><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.2</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.03</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish><subcomponents><masscomponent><name>Ballast</name><id>00000000-0000-4000-8000-000000000005</id><axialoffset method=\"top\">0.1</axialoffset><position type=\"top\">0.1</position><packedlength>0.02</packedlength><packedradius>0.01</packedradius><mass>0.15</mass></masscomponent></subcomponents></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.6</length><thickness>0.001</thickness><radius>0.03</radius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish><subcomponents><innertube><name>Motor mount</name><id>00000000-0000-4000-8000-000000000003</id><axialoffset method=\"bottom\">0.0</axialoffset><position type=\"bottom\">0.0</position><length>0.2</length><outerradius>0.015</outerradius><thickness>0.0005</thickness><material type=\"bulk\" density=\"1000.0\">Probe</material><motormount><ignitionevent>automatic</ignitionevent><ignitiondelay>0.0</ignitiondelay><overhang>0.0</overhang><motor configid=\"00000000-0000-4000-8000-000000000097\"><type>single</type><manufacturer>AeroTech</manufacturer><designation>H128W</designation><digest>501239de7374691072270406476cb243</digest><diameter>0.029</diameter><length>0.194</length><delay>0.0</delay></motor></motormount></innertube><trapezoidfinset><name>Fins</name><id>00000000-0000-4000-8000-000000000004</id><instancecount>3</instancecount><fincount>3</fincount><radiusoffset method=\"surface\">0.0</radiusoffset><angleoffset method=\"relative\">0.0</angleoffset><rotation>0.0</rotation><axialoffset method=\"bottom\">0.0</axialoffset><position type=\"bottom\">0.0</position><rootchord>0.12</rootchord><tipchord>0.06</tipchord><sweeplength>0.06</sweeplength><height>0.08</height><thickness>0.003</thickness><crosssection>square</crosssection><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish></trapezoidfinset><podset><name>Pods</name><id>00000000-0000-4000-8000-000000000020</id><instancecount>1</instancecount><radiusoffset method=\"relative\">0.01</radiusoffset><angleoffset method=\"relative\">0.0</angleoffset><axialoffset method=\"top\">0.25</axialoffset><position type=\"top\">0.25</position><subcomponents><nosecone><name>Pod nose</name><id>00000000-0000-4000-8000-000000000021</id><length>0.06</length><thickness>0.001</thickness><shape>conical</shape><aftradius>0.012</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish></nosecone><bodytube><name>Pod tube</name><id>00000000-0000-4000-8000-000000000022</id><length>0.25</length><thickness>0.001</thickness><radius>0.012</radius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish></bodytube></subcomponents></podset></subcomponents></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "launch": {
+    "cm_x_m": 0.4833552818113819,
+    "cm_y_m": 0.001770602519716838,
+    "cm_z_m": 0.0,
+    "ixx": 0.000494440477747991,
+    "iyy": 0.044999925729148085,
+    "izz": 0.044999925729148085,
+    "mass_kg": 0.5926692790847049
+   },
+   "motors": [
+    "H128W"
+   ],
+   "structure": {
+    "cm_x_m": 0.37012630281701187,
+    "cm_y_m": 0.0026833652629585517,
+    "cm_z_m": 0.0,
+    "ixx": 0.0004722894412115344,
+    "iyy": 0.02961727212805965,
+    "izz": 0.02961727212805965,
+    "mass_kg": 0.3910692790847049
+   }
+  },
+  "three pods and a mass override on the stage, not its parts": {
+   "burnout": {
+    "cm_x_m": 0.40659829717558255,
+    "cm_y_m": -6.016548876240478e-19,
+    "cm_z_m": 1.2033097752480955e-18,
+    "ixx": 0.0006006113665178363,
+    "iyy": 0.042458075754530936,
+    "izz": 0.042458075754530936,
+    "mass_kg": 2.538950114427249
+   },
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim pod probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><motorconfiguration configid=\"00000000-0000-4000-8000-000000000097\" default=\"true\"><stage number=\"0\" active=\"true\"/></motorconfiguration><referencetype>maximum</referencetype><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><overridemass>2.0</overridemass><overridesubcomponentsmass>false</overridesubcomponentsmass><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.2</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.03</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish><subcomponents><masscomponent><name>Ballast</name><id>00000000-0000-4000-8000-000000000005</id><axialoffset method=\"top\">0.1</axialoffset><position type=\"top\">0.1</position><packedlength>0.02</packedlength><packedradius>0.01</packedradius><mass>0.15</mass></masscomponent></subcomponents></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.6</length><thickness>0.001</thickness><radius>0.03</radius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish><subcomponents><innertube><name>Motor mount</name><id>00000000-0000-4000-8000-000000000003</id><axialoffset method=\"bottom\">0.0</axialoffset><position type=\"bottom\">0.0</position><length>0.2</length><outerradius>0.015</outerradius><thickness>0.0005</thickness><material type=\"bulk\" density=\"1000.0\">Probe</material><motormount><ignitionevent>automatic</ignitionevent><ignitiondelay>0.0</ignitiondelay><overhang>0.0</overhang><motor configid=\"00000000-0000-4000-8000-000000000097\"><type>single</type><manufacturer>AeroTech</manufacturer><designation>H128W</designation><digest>501239de7374691072270406476cb243</digest><diameter>0.029</diameter><length>0.194</length><delay>0.0</delay></motor></motormount></innertube><trapezoidfinset><name>Fins</name><id>00000000-0000-4000-8000-000000000004</id><instancecount>3</instancecount><fincount>3</fincount><radiusoffset method=\"surface\">0.0</radiusoffset><angleoffset method=\"relative\">0.0</angleoffset><rotation>0.0</rotation><axialoffset method=\"bottom\">0.0</axialoffset><position type=\"bottom\">0.0</position><rootchord>0.12</rootchord><tipchord>0.06</tipchord><sweeplength>0.06</sweeplength><height>0.08</height><thickness>0.003</thickness><crosssection>square</crosssection><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish></trapezoidfinset><podset><name>Pods</name><id>00000000-0000-4000-8000-000000000020</id><instancecount>3</instancecount><radiusoffset method=\"relative\">0.01</radiusoffset><angleoffset method=\"relative\">0.0</angleoffset><axialoffset method=\"top\">0.25</axialoffset><position type=\"top\">0.25</position><subcomponents><nosecone><name>Pod nose</name><id>00000000-0000-4000-8000-000000000021</id><length>0.06</length><thickness>0.001</thickness><shape>conical</shape><aftradius>0.012</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish></nosecone><bodytube><name>Pod tube</name><id>00000000-0000-4000-8000-000000000022</id><length>0.25</length><thickness>0.001</thickness><radius>0.012</radius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish></bodytube></subcomponents></podset></subcomponents></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "launch": {
+    "cm_x_m": 0.41718893647322197,
+    "cm_y_m": -5.80157339412381e-19,
+    "cm_z_m": 1.160314678824762e-18,
+    "ixx": 0.0006105015265178363,
+    "iyy": 0.050728063541451276,
+    "izz": 0.050728063541451276,
+    "mass_kg": 2.6330301144272488
+   },
+   "motors": [
+    "H128W"
+   ],
+   "structure": {
+    "cm_x_m": 0.39349115052202205,
+    "cm_y_m": -6.282606013287068e-19,
+    "cm_z_m": 1.2565212026574136e-18,
+    "ixx": 0.0005893083265178363,
+    "iyy": 0.032251433767896805,
+    "izz": 0.032251433767896805,
+    "mass_kg": 2.4314301144272488
+   }
+  },
+  "three pods and no override": {
+   "burnout": {
+    "cm_x_m": 0.45523785138549194,
+    "cm_y_m": -5.02923249973564e-19,
+    "cm_z_m": 1.005846499947128e-18,
+    "ixx": 0.0006006113665178363,
+    "iyy": 0.04083942962734888,
+    "izz": 0.04083942962734888,
+    "mass_kg": 0.5389501144272487
+   },
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim pod probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><motorconfiguration configid=\"00000000-0000-4000-8000-000000000097\" default=\"true\"><stage number=\"0\" active=\"true\"/></motorconfiguration><referencetype>maximum</referencetype><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.2</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.03</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish><subcomponents><masscomponent><name>Ballast</name><id>00000000-0000-4000-8000-000000000005</id><axialoffset method=\"top\">0.1</axialoffset><position type=\"top\">0.1</position><packedlength>0.02</packedlength><packedradius>0.01</packedradius><mass>0.15</mass></masscomponent></subcomponents></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.6</length><thickness>0.001</thickness><radius>0.03</radius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish><subcomponents><innertube><name>Motor mount</name><id>00000000-0000-4000-8000-000000000003</id><axialoffset method=\"bottom\">0.0</axialoffset><position type=\"bottom\">0.0</position><length>0.2</length><outerradius>0.015</outerradius><thickness>0.0005</thickness><material type=\"bulk\" density=\"1000.0\">Probe</material><motormount><ignitionevent>automatic</ignitionevent><ignitiondelay>0.0</ignitiondelay><overhang>0.0</overhang><motor configid=\"00000000-0000-4000-8000-000000000097\"><type>single</type><manufacturer>AeroTech</manufacturer><designation>H128W</designation><digest>501239de7374691072270406476cb243</digest><diameter>0.029</diameter><length>0.194</length><delay>0.0</delay></motor></motormount></innertube><trapezoidfinset><name>Fins</name><id>00000000-0000-4000-8000-000000000004</id><instancecount>3</instancecount><fincount>3</fincount><radiusoffset method=\"surface\">0.0</radiusoffset><angleoffset method=\"relative\">0.0</angleoffset><rotation>0.0</rotation><axialoffset method=\"bottom\">0.0</axialoffset><position type=\"bottom\">0.0</position><rootchord>0.12</rootchord><tipchord>0.06</tipchord><sweeplength>0.06</sweeplength><height>0.08</height><thickness>0.003</thickness><crosssection>square</crosssection><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish></trapezoidfinset><podset><name>Pods</name><id>00000000-0000-4000-8000-000000000020</id><instancecount>3</instancecount><radiusoffset method=\"relative\">0.01</radiusoffset><angleoffset method=\"relative\">0.0</angleoffset><axialoffset method=\"top\">0.25</axialoffset><position type=\"top\">0.25</position><subcomponents><nosecone><name>Pod nose</name><id>00000000-0000-4000-8000-000000000021</id><length>0.06</length><thickness>0.001</thickness><shape>conical</shape><aftradius>0.012</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish></nosecone><bodytube><name>Pod tube</name><id>00000000-0000-4000-8000-000000000022</id><length>0.25</length><thickness>0.001</thickness><radius>0.012</radius><material type=\"bulk\" density=\"1000.0\">Probe</material><finish>normal</finish></bodytube></subcomponents></podset></subcomponents></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "launch": {
+    "cm_x_m": 0.49205989572495085,
+    "cm_y_m": -4.2817953987325935e-19,
+    "cm_z_m": 8.563590797465187e-19,
+    "ixx": 0.0006105015265178363,
+    "iyy": 0.04605634149085654,
+    "izz": 0.04605634149085654,
+    "mass_kg": 0.6330301144272488
+   },
+   "motors": [
+    "H128W"
+   ],
+   "structure": {
+    "cm_x_m": 0.39349115052202205,
+    "cm_y_m": -6.282606013287068e-19,
+    "cm_z_m": 1.2565212026574136e-18,
+    "ixx": 0.0005893083265178363,
+    "iyy": 0.032251433767896805,
+    "izz": 0.032251433767896805,
+    "mass_kg": 0.43143011442724877
    }
   }
  },

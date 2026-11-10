@@ -1162,7 +1162,8 @@ impl<'a> Writer<'a> {
                     "a stage's added mass beside an override of the whole stage's mass, or its \
                      station beside one of the whole stage's center of gravity, which a `.ork` \
                      can't say together; the added mass was left out. Read back, the stage \
-                     weighs what its override says, or the added mass less",
+                     weighs what its override says, or the added mass less, and its center and \
+                     inertia can move with that",
                 );
                 None
             }

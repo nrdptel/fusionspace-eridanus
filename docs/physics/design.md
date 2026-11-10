@@ -252,15 +252,21 @@ Errors inside a stage or component name it (`DesignError::InComponent`).
 
 ### A stage's added mass
 
+This is how HPR Sim reads an OpenRocket stage whose mass override doesn't cover its parts. Its
+mass, center and inertia match OpenRocket 24.12's on 19 probe designs; where another override
+covers the parts the inertia doesn't ([below](#a-stages-added-mass-leaves-out)).
+
 A finished rocket weighs more than its parts: glue, paint, wiring. A stage can carry that as an
 [`AddedMass`](../api/hpr_design/tree/struct.AddedMass.html): a point mass $m_a$ added to the
 stage's parts, before the stage's overrides apply. Motors are not among the parts. Write the
-parts' mass as $m_p$ and the station of their center as $x_p$.
+parts' mass as $m_p$ and the [station](../glossary.md#station) of their center as $x_p$. The
+inertia across the axis is the one that resists pitch and yaw; the inertia about the axis, roll.
 
 - **With no station**, the point sits at the parts' center. The stage weighs $m_p + m_a$. Its
   center, and its inertia about that center, are the parts'.
-- **With a station** $s$ (`cg_aft_m`), the point sits on the axis that far aft of the stage's
-  forward end $x_0$, at $x_a = x_0 + s$. The stage weighs $m_p + m_a$, and its center is at
+- **With a station** $s$ (`cg_aft_m`), the point sits that far aft of the stage's forward end
+  $x_0$, at $x_a = x_0 + s$, level with the parts' center: on the axis when that center is, as
+  on any rocket that is the same all the way round. The stage weighs $m_p + m_a$, and its center is at
 
   $$
   x = \frac{m_p x_p + m_a x_a}{m_p + m_a}.
@@ -268,7 +274,8 @@ parts' mass as $m_p$ and the station of their center as $x_p$.
 
   Its inertia across the axis is the parts' and the point's about that center, by the
   [parallel-axis theorem](../glossary.md#parallel-axis-theorem):
-  $I = I_p + m_p (x_p - x)^2$ $+\, m_a (x_a - x)^2$. The inertia about the axis is the parts'.
+  $I = I_p + m_p (x_p - x)^2$ $+\, m_a (x_a - x)^2$. The inertia about the axis is the parts' when their center is on it. Off
+  the axis the code sums both in three dimensions, as it does any two masses.
 
 The stage's overrides then apply to the parts and the added mass together. A center override
 moves both; a mass override is the mass of both.
@@ -291,7 +298,7 @@ doesn't cover the stage's parts. Its user guide says such a value "is added to t
 value" ([Overrides and Surface Finish][or-overrides]). Where the mass goes is measured on
 [probe designs](../glossary.md#probe-design), and the `.ork` reader turns each pairing of the
 stage's flags into an added mass, a whole-stage override, both, or nothing
-([A stage's override](../format/ork.md#the-values-inside-the-tags),
+([A stage's override](../format/ork.md#a-stages-mass-and-center-of-gravity-overrides),
 [the decision record][adr-335]).
 
 **How well it is validated.** By [code-to-code comparison](../glossary.md#code-to-code-comparison)
@@ -305,27 +312,42 @@ with OpenRocket 24.12, and by hand.
 - Four more probes carry a motor. OpenRocket's rocket at launch and at burnout is that motor
   added to the same structure, so in OpenRocket the added mass doesn't follow the motor. HPR Sim
   is compared on the structure: its layout holds no motor, and motors are added to it afterward.
+  The inertia each override adds to that airframe's is within 1e-9 kg·m² of what it adds in
+  OpenRocket (0.00059 kg·m² across the axis for the mass at a station).
+- Six more carry pods. With three pods round the tube, the parts' center is more than 3 cm aft
+  of the airframe's with none, and OpenRocket's added mass leaves it there: a stage's pods are
+  among its parts. With one pod, the parts' center is 2.7 mm off the axis, and under every
+  override OpenRocket's center stays that far off it: a station moves the added mass along the
+  axis only. HPR Sim's mass and center match on all six, within the bounds above, off the axis
+  too.
 - `tree::tests::a_stages_added_mass_is_a_point_among_its_parts` works both forms by hand on a
   lower stage: the mass and the center to 1e-15 (kg, m), the inertia across the axis to
   1e-12 kg·m².
 
-**What it leaves out.**
+<a id="a-stages-added-mass-leaves-out"></a>**What it leaves out.**
 
-- Under a center override that covers the parts, HPR Sim's inertia is its own rule, as for any
-  override that covers them (the row *a center override covers the parts inside* under
-  [Mass properties](mass.md#what-a-ork-leaves-unsaid-and-overrides)). With the added mass
-  beside such a center, its inertia across the axis is 11.0% under OpenRocket's on the one-stage
-  probe and 1.5% over on the lower stage's. The mass and the center agree. The added mass brings
-  no difference of its own: on the one-stage probe each tool's inertias are the ones it gives
-  under that center alone, within 1 part in a million million. Whether the added mass should change the
-  rule there is open ([#1407](https://github.com/nrdptel/fusionspace-eridanus/issues/1407)).
+- Where one of the stage's two overrides covers the parts, the mass and the center match
+  OpenRocket's and the inertia doesn't. It is HPR Sim's own rule for an override that covers the
+  parts (the table under [Mass properties](mass.md#what-a-ork-leaves-unsaid-and-overrides)),
+  which this leaves as it was ([#1407](https://github.com/nrdptel/fusionspace-eridanus/issues/1407) is open on
+  both cases below).
+  - *A center that covers the parts, beside an added mass.* HPR Sim moves the stage whole.
+    Its inertia across the axis is 11.0% under OpenRocket's on the one-stage probe and 1.5% over
+    on the lower stage's. The added mass brings no difference of its own: on the one-stage
+    probe each tool's inertias are the ones it gives under that center alone, within 1 part in a
+    million million.
+  - *A mass that covers the parts, beside a center that doesn't.* OpenRocket weighs this exactly
+    as it does both covering the parts, and so does HPR Sim, which scales the parts' inertia
+    with the mass where OpenRocket leaves it. On the one-stage probe, 2 kg on parts of 0.40 kg,
+    HPR Sim's inertia is 400.5% over OpenRocket's about the axis and 345.3% over across it. On
+    the lower stage's it is 255.8% and 18.5% over. Such a stage was held back before, and now
+    flies.
 - A parallel stage can't carry an added mass, and neither can the stage one hangs on: where the
   mass sits beside the pods is not measured, and the layout refuses it.
 - An added mass above zero with no station, on parts that weigh nothing, has no center to sit
-  at, and is refused. OpenRocket reports the stage's center at the tip on the one probe of it, which doesn't
+  at, and the layout refuses it. OpenRocket reports the stage's center at the tip on the one probe of it, which doesn't
   say whether that is the stage's forward end, so it wasn't taken as a rule.
-- The station is on the axis. No probe of an added mass has a stage whose parts' center is off
-  the axis.
+- Off the axis, one probe is all there is: one pod, 2.7 mm.
 - A flight refuses a mass that moves, a mass that is released, or a parting through a stage,
   where that stage carries an added mass.
 

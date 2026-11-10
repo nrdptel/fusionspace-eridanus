@@ -785,8 +785,9 @@ impl Overrides {
 ///
 /// - **No station** (`cg_aft_m` is `None`): the point sits at the parts' center of mass. The stage
 ///   weighs `m_p + m_a`; its center and its inertia about that center are the parts'.
-/// - **A station** `s` aft of the stage's forward end `x_0`: the point sits on the axis at
-///   `x_a = x_0 + s`. The stage weighs `m_p + m_a`, its center is at
+/// - **A station** `s` aft of the stage's forward end `x_0`: the point sits at `x_a = x_0 + s`
+///   along the axis, level with the parts' center of mass (on the axis when that center is, as on
+///   any rocket that is the same all the way round). The stage weighs `m_p + m_a`, its center is at
 ///   `(m_p x_p + m_a x_a) / (m_p + m_a)`, and its inertia about that center is the parts' and the
 ///   point's by the parallel-axis theorem ([`MassProperties::combine`]).
 ///
@@ -796,7 +797,7 @@ impl Overrides {
 /// parts (`<overridesubcomponentsmass>false</overridesubcomponentsmass>`, or no flag written). Its
 /// user guide says such a value "is added to the calculated value" ([Overrides and Surface
 /// Finish][guide]); where the mass goes is measured on probe designs, which hold this rule's mass,
-/// center and inertia to OpenRocket's structure ([ADR-335][adr-335]): at the center of the stage's
+/// center and inertia to OpenRocket's structure ([the decision record][adr-335]): at the center of the stage's
 /// own parts, or at the stage's center of gravity override when that doesn't cover the parts
 /// either. A motor aboard doesn't move it in OpenRocket, and a [`Layout`] holds no motor.
 ///
@@ -810,8 +811,8 @@ impl Overrides {
 pub struct AddedMass {
     /// The mass added, kg.
     pub mass_kg: f64,
-    /// Where it sits on the axis, m aft of the stage's forward end. `None` puts it at the center
-    /// of mass of the stage's parts.
+    /// How far aft of the stage's forward end it sits, m, level with the center of mass of the
+    /// stage's parts: on the axis when that center is. `None` puts it at that center.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cg_aft_m: Option<f64>,
 }
@@ -841,6 +842,12 @@ impl AddedMass {
             return Ok(parts);
         }
         let at = match self.cg_aft_m {
+            // The station moves the point along the axis only, as a stage's center override
+            // does ([`Overrides::apply`]): it stays as far off the axis as the parts' center is,
+            // which is where OpenRocket 24.12 has it on a stage with one pod (ADR-335).
+            Some(aft) if parts.mass_kg > 0.0 => {
+                DVec3::new(parts.cg_m.x, parts.cg_m.y, -(fore_station_m + aft))
+            }
             Some(aft) => DVec3::new(0.0, 0.0, -(fore_station_m + aft)),
             // Weightless parts have no center of mass for the point to sit at. (`combine` gives
             // them the average of their places, which is no one's reading of where glue goes.)
@@ -975,7 +982,7 @@ pub struct PlacedStage {
     pub fore_station_m: f64,
     /// Station of its aft end, m.
     pub aft_station_m: f64,
-    /// Its mass properties in body axes, without motors, after its overrides.
+    /// Its mass properties in body axes, without motors, after its added mass and its overrides.
     pub mass: MassProperties,
     /// Whether the stage's own overrides move its center of mass along the axis (`cg_aft_m`), or
     /// its added mass sits at a station ([`AddedMass::cg_aft_m`]).
@@ -4253,10 +4260,41 @@ mod tests {
             what(added, weightless),
             "added mass with no station, on parts that weigh nothing (kg)"
         );
-        // With a station the point is the whole stage.
+        // With a station the point is the whole stage, on the axis even if the weightless
+        // parts' place is off it.
         assert_eq!(
             stationed.add_to(weightless, 1.0).unwrap(),
             MassProperties::point(0.5, DVec3::new(0.0, 0.0, -1.1))
+        );
+        let nowhere = MassProperties::point(0.0, DVec3::new(0.02, 0.0, -0.4));
+        assert_eq!(
+            stationed.add_to(nowhere, 1.0).unwrap(),
+            MassProperties::point(0.5, DVec3::new(0.0, 0.0, -1.1))
+        );
+
+        // A station moves the point along the axis only: beside parts whose center is off the
+        // axis it sits level with that center, so the stage's center stays as far off it.
+        let off_axis = MassProperties::point(0.25, DVec3::new(0.003, -0.004, -0.4));
+        let level = stationed.add_to(off_axis, 1.0).unwrap();
+        close(level.cg_m.x, 0.003, 1e-15, "off the axis, one way");
+        close(level.cg_m.y, -0.004, 1e-15, "off the axis, the other");
+        close(
+            -level.cg_m.z,
+            (0.25 * 0.4 + 0.5 * 1.1) / 0.75,
+            1e-15,
+            "center level with the parts'",
+        );
+        close(
+            pitch(&level),
+            0.25 * 0.5 / 0.75 * 0.7_f64.powi(2),
+            1e-15,
+            "inertia of two points in line with the axis",
+        );
+        close(
+            roll(&level),
+            0.0,
+            1e-18,
+            "roll inertia of two points in line",
         );
 
         // It is written only when there is one, and read back the same.

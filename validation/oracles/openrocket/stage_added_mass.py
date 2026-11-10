@@ -1,4 +1,4 @@
-"""Whether a motor aboard moves the mass OpenRocket 24.12 adds for a stage's override.
+"""Whether a motor aboard, or pods, move the mass OpenRocket 24.12 adds for a stage's override.
 
 A stage's mass override that doesn't cover the stage's parts is added to what the parts weigh
 (`conventions.py`'s stage probes, ADR-335). With no center of gravity stated, OpenRocket puts
@@ -21,6 +21,17 @@ hpr's test `hpr_validate::openrocket::tests` reads the record: the motor is what
 the structure with no override, and with each override OpenRocket's launch and burnout are that
 same motor added to the overridden structure. So the added mass stays where the structure puts
 it, motor or no motor.
+
+It also asks whether a stage's pods are among "the stage's parts", and where the added mass sits
+when the parts' center is off the axis. The same airframe carries three pods around its tube
+(`pod_probes.py`'s `pods-bodies-3`), or one pod alone, which pulls the parts' center off the axis:
+
+- `three pods and no override`, `three pods and a mass override on the stage, not its parts`;
+- `one pod and no override`, and one pod under each of the three overrides above.
+
+Three pods move the parts' center aft, so the record says whether the added mass sits at the
+center with the pods counted. One pod moves it sideways too, so the record says whether an added
+mass at a station sits on the axis or level with the parts' center.
 
 OpenRocket is run, never read: its source is GPL, and nothing here comes from it. The class and
 method names used are the public API that `javap` prints for the jar. OpenRocket 24.12 needs Java
@@ -49,6 +60,35 @@ import pod_probes  # noqa: E402 - the airframe and its motor
 # Provenance written into the fixture (docs/VALIDATION.md). Update when regenerating.
 GENERATED = "2026-11-10"
 
+THREE_PODS = pod_probes.pod_set(
+    3, "0.01", "0.0", "0.25", pod_probes.pod_nose(21, "0.012") + pod_probes.pod_tube(22, "0.012", "0.25")
+)
+ONE_POD = pod_probes.pod_set(
+    1, "0.01", "0.0", "0.25", pod_probes.pod_nose(21, "0.012") + pod_probes.pod_tube(22, "0.012", "0.25")
+)
+
+#: Each probe on the airframe with pods: its pods, then its stage's override tags.
+POD_PROBES = {
+    "three pods and no override": (THREE_PODS, ""),
+    "three pods and a mass override on the stage, not its parts": (
+        THREE_PODS,
+        conventions.overrides(mass_kg=2.0, children_mass="false"),
+    ),
+    "one pod and no override": (ONE_POD, ""),
+    "one pod and a mass override on the stage, not its parts": (
+        ONE_POD,
+        conventions.overrides(mass_kg=2.0, children_mass="false"),
+    ),
+    "one pod and both overrides on the stage, not its parts": (
+        ONE_POD,
+        conventions.overrides(2.0, 0.4, "false", "false"),
+    ),
+    "one pod and a mass override on the stage, not its parts, and a center that covers them": (
+        ONE_POD,
+        conventions.overrides(2.0, 0.4, "false", "true"),
+    ),
+}
+
 PROBES = {
     "no override": "",
     "a mass override on the stage, not its parts": conventions.overrides(
@@ -61,10 +101,10 @@ PROBES = {
 }
 
 
-def document(stage_tags):
-    """The pod probes' airframe with no pods, its stage carrying `stage_tags`."""
+def document(stage_tags, pods=""):
+    """The pod probes' airframe with `pods` (none by default), its stage carrying `stage_tags`."""
     stage_id = f"<id>{conventions.uid(99)}</id>"
-    text = pod_probes.document("Probe", "")
+    text = pod_probes.document("Probe", pods)
     if text.count(stage_id) != 1:
         sys.exit("the stage's id is not written exactly once in the probe airframe")
     return text.replace(stage_id, stage_id + stage_tags)
@@ -75,6 +115,8 @@ def weighed(body):
     return {
         "mass_kg": float(body.getMass()),
         "cm_x_m": float(body.getCM().x),
+        "cm_y_m": float(body.getCM().y),
+        "cm_z_m": float(body.getCM().z),
         "ixx": float(body.getIxx()),
         "iyy": float(body.getIyy()),
         "izz": float(body.getIzz()),
@@ -119,6 +161,8 @@ def main():
     with tempfile.TemporaryDirectory() as scratch:
         for k, (question, tags) in enumerate(PROBES.items()):
             probes[question] = measure(document(tags), scratch, f"probe-{k}")
+        for k, (question, (pods, tags)) in enumerate(POD_PROBES.items()):
+            probes[question] = measure(document(tags, pods), scratch, f"pod-probe-{k}")
 
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(

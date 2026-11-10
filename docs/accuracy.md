@@ -986,7 +986,7 @@ one prediction of the three that passes Mach 1, at Mach 1.019
 **What is still to come.** Two flights of an OpenRocket design, Macie XL, join these three next
 ([the Macie XL predictions](decisions-and-roadmap.md#m2-3d5)). Its stage's mass override adds to
 its parts, which HPR Sim now reads as OpenRocket weighs it
-([a stage's override that adds to its parts](decisions-and-roadmap.md#m2-3d4)). Then all twelve
+([a stage's added mass](physics/design.md#a-stages-added-mass)). Then all twelve
 public flights are compared together.
 
 > **How far to trust it.** These are predictions, not results. No log has been compared, so they

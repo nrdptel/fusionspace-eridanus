@@ -11,7 +11,7 @@
 [i1225]: https://github.com/nrdptel/fusionspace-eridanus/issues/1225
 [i1407]: https://github.com/nrdptel/fusionspace-eridanus/issues/1407
 [guide]: https://openrocket.readthedocs.io/en/latest/user_guide/overrides_and_surface_finish.html
-[ork-stage]: ../format/ork.md#the-values-inside-the-tags
+[ork-stage]: ../format/ork.md#a-stages-mass-and-center-of-gravity-overrides
 [design-added]: ../physics/design.md#a-stages-added-mass
 [conventions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/openrocket/conventions.py
 [with-motor]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/openrocket/stage_added_mass.py
@@ -35,8 +35,9 @@ stage that starts at the tip, no motor, and no pairing where one flag is `true` 
 1. **A stage can carry an added mass.** `hpr-design`'s `Stage` gains `added_mass`: a mass, and
    optionally a station aft of the stage's forward end. It is a point mass added to the stage's
    parts before the stage's overrides apply. With no station it sits at the parts' center of
-   mass, so it moves neither the center nor the inertia about it. With a station it sits there on
-   the axis, and the stage's center and inertia follow the parallel-axis theorem. The page
+   mass, so it moves neither the center nor the inertia about it. With a station it sits that
+   far aft, level with the parts' center (on the axis when that center is), and the stage's
+   center and inertia follow the parallel-axis theorem. The page
    [A stage's added mass][design-added] gives the equations and a worked example.
 2. **The `.ork` reader follows OpenRocket 24.12, row by row.** A flag that isn't written reads as
    `false`, beside a written one too, and so does the older single flag saying `false`
@@ -60,12 +61,21 @@ stage that starts at the tip, no motor, and no pairing where one flag is `true` 
    flag that says `true`, says `false` or isn't written. The rest are the older flag, a part with
    an override of its own, a mass of nothing, a station ahead of the tip, parts that weigh
    nothing, and a rocket of two stages with the override on either stage or both. [`stage_added_mass.py`][with-motor] is new:
-   four probes with a motor aboard.
+   four probes with a motor aboard, and six on the same airframe with pods.
 4. **The inertia under an override that covers the parts stays hpr's own.** [ADR-061][adr-061]
    keeps hpr's rule there: a center that covers the parts moves the assembly whole, and a mass
    that covers them scales its inertia. Where a stage's added mass sits beside such a center, the
    mass and the center are OpenRocket's and the inertia is hpr's rule, pinned by a test as
    ADR-061's other departures are. Where no override covers the parts, there is no departure.
+
+   So [M2.3d4][m2-3d4]'s *done when* is met where no override covers the parts, and in mass and
+   center everywhere. Its inertia clause is not met on a stage where one override covers the
+   parts and the other doesn't, which is six of the probes. The reason is ADR-061's. Under a mass
+   that covers the parts, OpenRocket leaves the stage the inertia of its parts: a 2 kg stage with
+   the inertia of 0.40 kg of parts. hpr scales it with the mass, as if the extra mass sat where
+   the parts' mass does. Neither is measured on a real rocket, and holding hpr to OpenRocket's
+   there would trade a rule that follows the mass for one that ignores it. The measured gaps are
+   under *How well HPR Sim agrees*, and [#1407][i1407] holds what is left.
 5. **What is refused, not guessed.**
    - A parallel stage with an added mass, or one hanging on a stage that carries one: where the
      mass sits beside the pods isn't measured. A parallel stage's override in a `.ork` is read as
@@ -101,6 +111,12 @@ inertia across the axis of 0.015838 kg·m². The mass override is 2 kg and the c
   center at 0.9644 m: the point is at 1.05 m, the lower stage's parts' center, not at the rocket's
   0.7225 m. With a center override of 0.4 m that doesn't cover the parts either, the rocket's
   center is 1.0752 m: the point is at 1.2 m, measured from the stage's forward end.
+- **With pods** (the motor probes' airframe), three pods round the tube put the parts' center
+  0.0370 m aft of the airframe's with none, and a 2 kg mass override that doesn't cover the
+  parts leaves the center there: the pods are among the stage's parts. One pod alone puts the
+  parts' center 2.68 mm off the axis, and it stays 2.68 mm off under the mass override, under
+  both overrides and under a center that covers the parts. A 2 kg point on the axis would have
+  pulled it back to 0.44 mm. So a station moves the added mass along the axis only.
 - **With a motor aboard** (an AeroTech H128W in a different airframe), OpenRocket's rocket at
   launch and at burnout is the motor added to the overridden structure, to 1e-12 kg in mass and
   1e-12 m in center. Had the 2 kg sat at the center of the parts and the motor together, the launch center
@@ -108,14 +124,26 @@ inertia across the axis of 0.015838 kg·m². The mass override is 2 kg and the c
 
 **How well HPR Sim agrees.** On the 19 probes where no override covers the parts, its structure is
 within the test's bounds of OpenRocket's: 5 parts in 10 million of the mass, 0.2 µm of the center,
-and 3 parts in a million of the inertia about the axis and across it. On the seven probes where one
-override covers the parts, the mass and the center are within the same bounds, and the inertia
-across the axis is hpr's rule: 11.0% under OpenRocket's with a center that covers one stage's
-parts and the added mass, 1.5% over on the lower of two stages, and ADR-061's scaled inertia under
-a mass that covers them. The added mass brings no difference of its own: on the one-stage probe,
-each tool's inertias beside the added mass are the ones it gives under that center alone, within
-1 part in a million million, so the 11.0% is the same 11.0% a covering center already had. Whether the
-added mass should change the rule there is [#1407][i1407].
+and 3 parts in a million of the inertia about the axis and across it. On the ten probes of the
+motor's airframe, six of them with pods, the mass and the center are within the same bounds, off
+the axis too. Where no override covers the parts, the inertia an override adds there is within
+1e-9 kg·m² of what it adds in OpenRocket.
+
+On the seven probes where one override covers the parts, the mass and the center are within the
+same bounds, and the inertia is hpr's rule, not OpenRocket's:
+
+| The stage | Inertia about the axis | Inertia across the axis |
+|---|---:|---:|
+| a center that covers the parts, alone or beside an added mass | within 3 parts in a million | 11.04% under |
+| the same beside an added mass, on the lower of two stages | within 3 parts in a million | 1.5% over |
+| a mass that covers the parts beside a center that doesn't | 400.5% over | 345.3% over |
+| the same on the lower of two stages | 255.8% over | 18.5% over |
+
+The added mass brings no difference of its own: on the one-stage probe, each tool's inertias
+beside the added mass are the ones it gives under that center alone, within 1 part in a million
+million, so the 11.04% is the same 11.04% a covering center already had. The 400.5% and 345.3%
+are what both overrides covering the parts already gave. Whether an added mass should change
+either rule is [#1407][i1407].
 
 **What doesn't change.** A stage's one override whose flag says it covers the parts, and two
 whose flags both say so, read and fly as before. So do a part's overrides, a pod set's, and every
@@ -126,7 +154,6 @@ flies, read as both covering the parts, which is exactly how OpenRocket weighs i
 **Consequences.** The Macie XL design's stage is the row where neither override covers the parts
 ([ADR-334][adr-334]), which the reader no longer holds back; [M2.3d5][m2-3d5] flies it. Other `.ork`
 designs with such a stage fly too, unless decision 5 refuses them, with the mass their author
-entered on top of the parts. The
-design format has one more optional field, so a design written with an added mass doesn't read in
+entered on top of the parts. The design format has one more optional field, so a design written with an added mass doesn't read in
 an older HPR Sim. The gaps left are the refusals in decision 5 and the inertia in decision 4; the
 pages [A stage's override][ork-stage] and [A stage's added mass][design-added] list them.

@@ -124,8 +124,9 @@ pub(crate) enum NotCarried {
     HoldsMotor,
     /// Its stage's mass is overridden, and the override doesn't say how much of it is the part's.
     StageOverride,
-    /// Its stage carries an added mass ([`hpr_design::AddedMass`]), which with no station sits at
-    /// the center of the stage's parts: a center the part's leaving or moving would change.
+    /// Its stage carries an added mass ([`hpr_design::AddedMass`]), which sits at the center of
+    /// the stage's parts, or level with it at a station: a center the part's leaving or moving
+    /// would change.
     StageAddedMass,
     /// A component around it has an overridden mass that covers what it holds.
     CoveredOverride,

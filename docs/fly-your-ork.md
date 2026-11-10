@@ -263,6 +263,11 @@ but buildable, such as a motor longer than its mount tube. The flight goes on. W
 notes and `help:` lines go to standard error, so `hpr sim rocket.ork > flight.txt` saves the
 flight alone and leaves them on the terminal.
 
+**A stage that weighs more than its parts.** If your stage has a mass override with OpenRocket's
+*override for all subcomponents* box unticked, OpenRocket adds that mass to what the parts weigh,
+and so does the simulator. It used to refuse such a stage
+([a stage's mass and center of gravity overrides](format/ork.md#a-stages-mass-and-center-of-gravity-overrides)).
+
 ## What it leaves out
 
 - The launch conditions in your file. Give them as options,

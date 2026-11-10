@@ -1415,7 +1415,10 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M2.3d4 A stage's override that adds to its parts** (ADR-335). *Done when:* an `.ork` stage
       whose mass or center override doesn't cover its parts is flown as OpenRocket 24.12 weighs
       it, its mass, center and inertia held to OpenRocket's on probe designs, and is no longer
-      held back.
+      held back. *Result (ADR-335):* met on the 19 probes where no override covers the parts. On
+      the six with a stage where one override does, the mass and the center are held and the
+      inertia is not met: HPR Sim keeps its own rule there, up to 400.5% over OpenRocket's
+      ([#1407](https://github.com/nrdptel/fusionspace-eridanus/issues/1407)).
 ## Phase 2: Library surfaces and interop
 
 - [x] **M4.1 Facade API.** The `hpr` crate offers a RocketPy-like builder (`Environment`, `Motor`,
