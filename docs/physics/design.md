@@ -268,7 +268,7 @@ parts' mass as $m_p$ and the station of their center as $x_p$.
 
   Its inertia across the axis is the parts' and the point's about that center, by the
   [parallel-axis theorem](../glossary.md#parallel-axis-theorem):
-  $I = I_p + m_p (x_p - x)^2 + m_a (x_a - x)^2$. The inertia about the axis is the parts'.
+  $I = I_p + m_p (x_p - x)^2$ $+\, m_a (x_a - x)^2$. The inertia about the axis is the parts'.
 
 The stage's overrides then apply to the parts and the added mass together. A center override
 moves both; a mass override is the mass of both.
@@ -279,8 +279,9 @@ tip, with an inertia across the axis of 0.015838 kg·m². The stage starts at th
 - Add 2 kg with no station. The stage weighs 2.3996 kg. Its center stays where the parts' is, and
   its inertia at 0.015838 kg·m².
 - Add 2 kg at a station of 0.4 m (1.3 ft). The stage weighs 2.3996 kg. Its center is at
-  $(0.3996 \times 0.4701 + 2 \times 0.4) / 2.3996 = 0.4117\,\mathrm{m}$ (1.351 ft). Its inertia across the
-  axis is $0.015838 + 0.3996 \times 0.0584^2 + 2 \times 0.0117^2 = 0.017475\,\mathrm{kg\cdot m^2}$.
+  $(0.3996 \times 0.4701 + 2 \times 0.4)$ $/\, 2.3996$ $= 0.4117\,\mathrm{m}$ (1.351 ft). Its inertia across the
+  axis is $0.015838$ $+\, 0.3996 \times 0.0584^2$ $+\, 2 \times 0.0117^2$
+  $= 0.017475\,\mathrm{kg\cdot m^2}$.
 
 Both are OpenRocket 24.12's numbers for the same stage (2.3996 kg at 0.4117 m (1.351 ft),
 0.017476 kg·m²; the hand sum above rounds its distances).
