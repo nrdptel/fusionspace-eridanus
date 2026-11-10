@@ -626,9 +626,18 @@ For a worked example with numbers, see
   would need reducing is refused instead. The whole body then keeps slender-body theory
   ([issue #123: a cylinder's or a boattail's reduced
   element](https://github.com/nrdptel/fusionspace-eridanus/issues/123)).
-- **Mach number over nose fineness.** The report states the method for 0.4 to 2. HPR Sim doesn't
-  enforce it (the report's own Mach 6.28 rows are at 2.09, and the Arcas Robin at Mach 1.5 is at
-  0.36).
+- **Mach number over nose fineness.** The report states the method for 0.4 to 2, and HPR Sim
+  doesn't enforce it. A nose of [fineness](../glossary.md#fineness-ratio) $f_n$ is below the
+  range up to Mach $0.4 f_n$: a 5:1 nose up to Mach 2.0, a 6:1 nose up to Mach 2.4. A flight
+  starts using the method between Mach 1.2 and 1.5, so such a nose spends most of the way to
+  Mach 2.5 below the range. One measured row sits there, the short Arcas Robin at Mach 1.5, at
+  0.36. Its body alone reads 4% above the tunnel at $\alpha \to 0$, inside the measurement's
+  ±0.32 per radian. On the slope fitted at the plotted angles it reads 37.7% above
+  ([The body alone, against the 15% target](#the-body-alone-against-the-15-target)). On that row
+  the whole rocket's center of pressure, fins on, reads 0.25 calibers aft of the tunnel's, the
+  side that makes the margin look larger
+  ([Normal force through Mach 1](#normal-force-through-mach-1)). The report's own Mach 6.28 rows
+  sit above the range, at 2.09.
 - **Its range.** The report states the method for Mach number over nose fineness from 0.4 to 2,
   within ±0.2 per radian and ±0.2 calibers of its measurements. Fig. 2 covers Mach 3 to 10; below
   Mach 3 HPR Sim holds the Mach 3 curve, an assumption. The tip's shock must be attached, and the
