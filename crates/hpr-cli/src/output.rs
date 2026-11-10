@@ -1654,16 +1654,17 @@ pub struct Analyze {
     pub main_descent: LogReading<DescentReading>,
     /// The day's air at the pad, from the log's own temperature against the 1976 standard
     /// atmosphere's, and whether the bounds' 15 K allowance for it covers it; `null` where the log
-    /// has no temperature, one that never changes over the log (no sensor), or no height above sea
-    /// level for the pad (issue #1259).
+    /// has no temperature, no height above sea level for the pad, a temperature outside −100 to
+    /// 100 °C, a column of one value at a unit's zero (0 K, 0 °C or 0 °F: no sensor), or the pad
+    /// isn't found (issue #1259).
     pub day_air: Option<DayAirReading>,
     /// The smoother's run over every sensor, with its health card (decision record ADR-300).
     pub smoother: SmootherOutcome,
 }
 
 /// The day's air at the pad. By the hypsometric equation a barometric height, speed or rate of
-/// descent read by the standard atmosphere is off by about `ΔT/T` of itself; each bound holds 15 K
-/// of it. The log's temperature channel may be the electronics bay's rather than the air's, so the
+/// descent read by the standard atmosphere is off by about `ΔT/T` of itself; each bound allows
+/// 15 K of it. The log's temperature channel may be the electronics bay's rather than the air's, so the
 /// bounds stay as they are and the text prints a note beside each such reading when `covered` is
 /// false.
 #[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
@@ -1688,7 +1689,7 @@ pub struct DayAirReading {
     /// or the standard's coldest, 216.65 K, with no apogee read or an apogee that is only a floor.
     pub top_standard_temperature_k: f64,
     /// The share the day's air may move a barometric height, speed or rate by, `|ΔT| / T`: up
-    /// from the reading on a hot day, down on a cold one. The bounds hold 15/216.65 = 6.92%.
+    /// from the reading on a hot day, down on a cold one. The bounds allow 15/216.65 = 6.92%.
     pub share: f64,
 }
 
