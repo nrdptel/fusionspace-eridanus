@@ -1011,7 +1011,7 @@ Where the log records a temperature, the readings check the day against the 15 K
 
 **What it compares.** The day's offset $\Delta T$ is the log's temperature at the pad less the
 1976 standard atmosphere's at the pad's height above sea level. The standard's temperature falls
-6.5 K a kilometer from 288.15 K at sea level, to 216.65 K at 11 km, and holds there:
+6.5 K a kilometer from 288.15 K at sea level, to 216.65 K at 11 km (6.8 mi), and holds there:
 
 $$
 \Delta T = T_{\mathrm{log}} - T_{\mathrm{std}}(z_{\mathrm{pad}})

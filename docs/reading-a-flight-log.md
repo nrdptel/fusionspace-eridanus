@@ -373,25 +373,7 @@ Among them are those that came with the accelerometer and the canopies:
 - `one_canopy` (no drogue's leg in the descent)
 - `short_leg` (a leg too short to read)
 
-## The 90% intervals and the health card
-
-Beside its bound, a reading may give a 90% interval: where the truth lay nine times in ten on the
-[synthetic flights](physics/synthetic-flights.md). No real flight has checked one
-([evidence row G34](evidence.md#g34)). The bound is the size every error stayed within on the tuning set, and the one to use for
-a waiver or a load, unless the reading is a floor, which has no upper figure. A burnout floor or a clipped top acceleration gives a "95% lower end" in its place: about 19 truths in 20 lay above it. An apogee or top speed floor gives neither.
-
-An interval can lie wholly to one side of its reading, as the reading's error leans one way. Liftoff
-is read late, so its interval lies earlier (0.80 s, interval 0.41 to 0.64 s). The flight time, landing
-less liftoff, reads short, so its interval lies later (45.00 s, interval 45.38 to 46.11 s).
-
-The last rows are [the smoother](physics/smoother.md)'s, every sensor together, also unchecked on a
-real flight ([evidence row G33](evidence.md#g33)). Its apogee is a cross-check: report the reading.
-Its [health card](physics/smoother.md#the-health-card) says how each sensor fared. It can say the pad
-was assumed, as on a log that starts at launch, or the accelerometer set aside. Neither asks anything
-of you, though the track then rests on less. If it says the smoothed apogee is past the reading's
-bound, go by the reading.
-
-## A hot or cold day
+### A hot or cold day
 
 Each bound allows for air up to 15 K from the standard atmosphere, and a summer launch often
 passes that. At a 1,190 m (3,904 ft) field, 35 °C (95 °F) is 27.7 K over standard. On a hot day a
@@ -425,6 +407,24 @@ That figure is from the worked example on the physics page, not a real log. What
 A log with no temperature, or with no pressure, no altitude above sea level and no stated ground
 elevation, gets no check. Nothing then tells you the day was within 15 K, so check the day's
 temperature at the field yourself.
+
+## The 90% intervals and the health card
+
+Beside its bound, a reading may give a 90% interval: where the truth lay nine times in ten on the
+[synthetic flights](physics/synthetic-flights.md). No real flight has checked one
+([evidence row G34](evidence.md#g34)). The bound is the size every error stayed within on the tuning set, and the one to use for
+a waiver or a load, unless the reading is a floor, which has no upper figure. A burnout floor or a clipped top acceleration gives a "95% lower end" in its place: about 19 truths in 20 lay above it. An apogee or top speed floor gives neither.
+
+An interval can lie wholly to one side of its reading, as the reading's error leans one way. Liftoff
+is read late, so its interval lies earlier (0.80 s, interval 0.41 to 0.64 s). The flight time, landing
+less liftoff, reads short, so its interval lies later (45.00 s, interval 45.38 to 46.11 s).
+
+The last rows are [the smoother](physics/smoother.md)'s, every sensor together, also unchecked on a
+real flight ([evidence row G33](evidence.md#g33)). Its apogee is a cross-check: report the reading.
+Its [health card](physics/smoother.md#the-health-card) says how each sensor fared. It can say the pad
+was assumed, as on a log that starts at launch, or the accelerometer set aside. Neither asks anything
+of you, though the track then rests on less. If it says the smoothed apogee is past the reading's
+bound, go by the reading.
 
 ## Two logs of one flight
 
