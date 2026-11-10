@@ -24,8 +24,8 @@ years and two test sites, so they mix scatter with drift.
   correlate weakly (pooled −0.33, median −0.12 on 17 sheets of three or more firings); across years r = 0.11 (16
   steps, 95% −0.41 to +0.57). Average thrust, impulse over burn time, takes the change (§2, §3).
 - **Temperature explains little of it.** Certification holds grains at 20 ± 5 °C, ±0.6–1.1% of burn time. A
-  maker-posted HTPB/AP motor gives 2.0–2.4% per 10 K, at and above propellant-temperature's 1.2–2.2%; a 10 K
-  test-to-test σ would explain 2–7% of the TMT variance, and the seasons run the wrong way (§4).
+  maker-posted HTPB/AP motor's burn time to curve end falls 2.1–2.3% per 10 K warmer (propellant-temperature:
+  1.2–2.2%); a 10 K test-to-test σ would explain 2–7% of TMT's variance; seasons run the wrong way (§4).
 - **Hobby Monte Carlo burn-time σ of 1.5–19%:** 2–4% matches one lot, about 9% a catalog test against a motor
   bought years later; 19% matches only the worst single NAR sheet or a product change.
 
@@ -135,12 +135,12 @@ average thrust as their ratio. Steps are later over earlier; all motors are Aero
   expiry [B1, §3.2, p. 7]. UAH's motors came from two vendors, two each [B2, PDF p. 13]. Burn time fits §2.
 - **A NAR S&T member, 2007,** on model-motor certification: impulse over a lot of 10 test motors varies "on the
   order of 1% or less"; burn time and thrust "on the average" under about ±5%, up to ±20% [F1, posts 6, 16].
-- **Maker-side temperature data.** AeroTech's forum account posted, as an example of performance against
-  temperature, Industrial Solid Propulsion's RDS-700 sheet: a 711 N·s HTPB/AP extraction motor, not a hobby reload,
-  at −65, +70 and +165 °F [F2, post 9]. Read by eye (±0.05 s): burn time about 2.05, 1.78 (printed) and 1.55 s,
-  +2.0% per 10 K colder, −2.4% hotter (**Inference**). A 2008 science-fair set of F-class composite motors (about 24
-  each at −18, room and 49 °C) gives about −2.2% per 10 K, impulse 1.5% lower cold [F2, posts 8, 13] (**Inference**,
-  bars read by pixel). No Cesaroni statement was found.
+- **Maker-side temperature data.** AeroTech's forum account posted, as a temperature example, Industrial Solid
+  Propulsion's RDS-700 sheet: a 711 N·s HTPB/AP extraction motor, not a hobby reload, at −65, +70 and +165 °F [F2,
+  post 9]. Its curves end near 2.08, 1.78 and 1.58 s: burn time to curve end falls 2.1% per 10 K warmer on the cold
+  leg, 2.3% on the warm (±0.3, ±0.6 points). A 2008 science-fair set of F-class composites (about 24 each at −18, room
+  and 49 °C) gives −2.2% per 10 K warmer, impulse 1.3% lower cold [F2, posts 8, 13]. All read by pixel (**Inference**;
+  [hobby motor temperature firings](hobby-motor-temperature-firings.md) §2–3). No Cesaroni statement found.
 - **Share of the spread (Inference).** The certification band ±5 K is ±0.6–1.1% of burn time at 1.2–2.2% per 10 K
   ([propellant temperature](propellant-temperature.md) §4), part of NAR's median 2% but not its tail. TMT's 2020
   procedures name no test temperature [T3, §4.13] but defer to NFPA 1125's 20 ± 5 °C, so a 10 K σ between tests
@@ -166,7 +166,7 @@ average thrust as their ratio. Steps are later over earlier; all motors are Aero
 - The σ convention of the 51 NAR sheets without firing rows: all dividing by n would make burn time 4.9%, impulse 1.3%.
 - Lot-to-lot spread at one stand: NAR posts no H-and-up recertification, and TMT's later tests mix site and product
   with lot; how many motors each TMT test fired; why later tests burned shorter; why 2004-03-27 scatters more.
-- No hobby propellant's temperature sensitivity; RDS-700 is read by eye; NFPA 1125's clause 7.8.3 was not reached.
+- No hobby propellant's temperature sensitivity; RDS-700 is read by pixel; NFPA 1125's clause 7.8.3 was not reached.
 - Loki, current Cesaroni Pro and current AeroTech reloads have no posted multi-firing record.
 
 ## Sources
