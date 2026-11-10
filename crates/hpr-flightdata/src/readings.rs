@@ -1027,7 +1027,11 @@ pub fn read(log: &FlightLog) -> Readings {
         readings.main_descent = Reading::Withheld(withheld.clone());
     }
     readings.flight_time = flight_time(&readings);
-    if let (Some(air), Reading::Read(apogee)) = (&mut readings.day_air, &readings.apogee) {
+    // An apogee that is only a floor may lie below the top: the share stays at the coldest
+    // standard air's, the larger, rather than taken at a height the rocket may have passed.
+    if let (Some(air), Reading::Read(apogee)) = (&mut readings.day_air, &readings.apogee)
+        && !apogee.is_floor
+    {
         air.set_top(apogee.height_m);
     }
     let (accelerometer, max_acceleration, burnout) = accelerometer::read(log, &readings);

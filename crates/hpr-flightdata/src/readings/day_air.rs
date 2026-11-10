@@ -9,8 +9,9 @@
 //! U.S. Standard Atmosphere, 1976, NOAA-S/T 76-1562). A speed or a rate of descent, a height over a
 //! time, is off by the same share. Each bound holds [`TEMPERATURE_SHARE`] for it: 15 K over the
 //! coldest standard air below 20 km. On a hot day the heights read low, and so do the speeds and
-//! the rates; on a cold day, high. A summer afternoon at a high plains or desert field is often more
-//! than 15 K over standard: at a 1,190 m field, 35 °C is 27.7 K over.
+//! the rates; on a cold day, high. Standard air is 15 °C less 6.5 °C per km of height, so 15 K
+//! over is 30 °C at a sea-level field and about 22 °C at a 1,190 m one; past that, the bound may
+//! not hold.
 //!
 //! **What is read.** The day's offset is the log's temperature at the pad less the standard
 //! atmosphere's at the pad's height above sea level, `ΔT = T_log − T_std(z_pad)`. The log's
@@ -20,12 +21,15 @@
 //! atmosphere (its pressure altitude: the height the standard atmosphere's own temperature is
 //! read at, as the logger's conversion reads it); from a barometric altitude channel above sea
 //! level; or from the ground elevation the logger states. With none of these, or no temperature
-//! channel, there is nothing to compare, and no [`DayAir`].
+//! channel, there is nothing to compare, and no [`DayAir`]. Nor with a temperature channel that
+//! can't be the air: one whose finite samples are all one value over the whole log, as a logger
+//! with no sensor writes, or one outside [`LOGGED_AIR_RANGE_K`].
 //!
 //! **The size**, stated on the unflattering side: `|ΔT| / T_std(z_top)`, the standard temperature
 //! at the apogee's height above sea level, the coldest standard air the climb spans, so the
-//! largest share the layer's mean temperature allows. With no apogee read, the coldest standard
-//! air below 20 km, 216.65 K, stands for it.
+//! largest share the layer's mean temperature allows. With no apogee read, or one that is only a
+//! floor (the log ends on the climb, so the top lay higher), the coldest standard air below 20 km,
+//! 216.65 K, stands for it.
 //!
 //! **A note, not a wider bound.** A logger's temperature channel is often the board's or the
 //! sensor die's, warmed in the electronics bay by the sun and the electronics, not the air's
@@ -50,9 +54,11 @@ pub const COLDEST_STANDARD_K: f64 = 216.65;
 
 /// The range a logged temperature must fall in to be taken for the pad's air, K: −100 °C to
 /// +100 °C, well past the coldest and hottest air on record (−89.2 °C at Vostok, 56.7 °C at Death
-/// Valley, WMO's archive of weather extremes), and room for a sun-warmed bay. A channel outside it,
-/// such as a column of zeros a logger with no sensor writes, isn't the air, and gives no
-/// [`DayAir`].
+/// Valley, WMO's archive of weather extremes), and room for a sun-warmed bay. A channel outside it
+/// isn't the air, and gives no [`DayAir`]. It catches a column of zeros only in kelvin: the readers
+/// turn a column into kelvin first, so zeros in °C read 273.15 K and in °F 255.37 K, both inside
+/// it. Those, and any channel whose finite samples are all one value over the whole log, as a
+/// logger with no sensor writes, are refused apart from the range.
 pub const LOGGED_AIR_RANGE_K: (f64, f64) = (173.15, 373.15);
 
 /// The 1976 standard atmosphere's temperature at a height above sea level, K: 288.15 K at sea
@@ -99,7 +105,8 @@ pub struct DayAir {
     /// [`AIR_TEMPERATURE_SPREAD_K`].
     pub covered: bool,
     /// The standard temperature the share is taken at, K: at the apogee's height above sea level,
-    /// the coldest standard air the climb spans; [`COLDEST_STANDARD_K`] with no apogee read.
+    /// the coldest standard air the climb spans; [`COLDEST_STANDARD_K`] with no apogee read, or an
+    /// apogee that is only a floor.
     pub top_standard_temperature_k: f64,
     /// The share of a barometric height, speed or rate of descent the day's air may move it by,
     /// `|ΔT| / T_std(z_top)` (the hypsometric equation): up from the reading on a hot day, down on
@@ -125,7 +132,8 @@ impl DayAir {
 
 /// The day's air at the pad, from the log's temperature over the pad's span `[from, to]` s, or
 /// `None` where the log has no temperature, no height above sea level for the pad, or a
-/// temperature that can't be the air's ([`LOGGED_AIR_RANGE_K`]).
+/// temperature that can't be the air's: one value throughout the log, or outside
+/// [`LOGGED_AIR_RANGE_K`].
 pub(crate) fn day_air(log: &FlightLog, pad_span_s: (f64, f64)) -> Option<DayAir> {
     let (temperature_column, pad_temperature_k) = pad_temperature(log, pad_span_s)?;
     let (pad_height_msl_m, pad_height_from) = pad_height(log, pad_span_s)?;
@@ -145,21 +153,37 @@ pub(crate) fn day_air(log: &FlightLog, pad_span_s: (f64, f64)) -> Option<DayAir>
 }
 
 /// The log's temperature at the pad, K, and the column it came from: the first temperature
-/// channel, or the record's own temperature on its clock.
+/// channel, or the record's own temperature on its clock. `None` where that channel's finite
+/// samples are all one value over the whole log: a column of zeros, or any fixed figure, written
+/// by a logger with no sensor, which may read as air in range once turned into kelvin.
 fn pad_temperature(log: &FlightLog, span: (f64, f64)) -> Option<(String, f64)> {
-    let (column, value) = match log.channels_of(Quantity::Temperature).next() {
+    let (column, time_s, values) = match log.channels_of(Quantity::Temperature).next() {
         Some(channel) => (
             channel.column.clone(),
-            over_span(&channel.time_s, &channel.values, span)?,
+            channel.time_s.as_slice(),
+            channel.values.as_slice(),
         ),
         None => (
             "temperature".to_owned(),
-            over_span(&log.time_s, log.temperature_k.as_deref()?, span)?,
+            log.time_s.as_slice(),
+            log.temperature_k.as_deref()?,
         ),
     };
+    if !varies(values) {
+        return None;
+    }
+    let value = over_span(time_s, values, span)?;
     (LOGGED_AIR_RANGE_K.0..=LOGGED_AIR_RANGE_K.1)
         .contains(&value)
         .then_some((column, value))
+}
+
+/// Whether a channel's finite samples take more than one value.
+fn varies(values: &[f64]) -> bool {
+    let mut finite = values.iter().filter(|value| value.is_finite());
+    finite
+        .next()
+        .is_some_and(|first| finite.any(|value| value != first))
 }
 
 /// The pad's height above sea level, m, and where it came from.
@@ -435,11 +459,19 @@ mod tests {
     }
 
     /// A temperature channel that can't be the air's, such as zeros from a logger with no sensor,
-    /// or no temperature at all, gives no day's air.
+    /// or no temperature at all, gives no day's air. Zeros in °C and °F reach the readings as
+    /// 273.15 K and 255.372 K, inside the range a temperature may take: refused for being one
+    /// value throughout, not for the range. The same log's air, varying, is read.
     #[test]
     fn no_temperature_or_one_that_isnt_air_gives_none() {
         let mut log = day_log(0.0);
-        log.channels[1].values.fill(0.0);
+        assert!(read(&log).day_air.is_some());
+        for zeros in [0.0, 273.15, 255.372] {
+            log.channels[1].values.fill(zeros);
+            assert_eq!(read(&log).day_air, None, "{zeros}");
+        }
+        // One value throughout, gaps aside, is still one value.
+        log.channels[1].values[7] = f64::NAN;
         assert_eq!(read(&log).day_air, None);
         log.channels.truncate(1);
         let readings = read(&log);
@@ -465,13 +497,42 @@ mod tests {
             log.channels.clear();
             log.time_s.clone_from(&channel.time_s);
             log.altitude_m = log.time_s.iter().map(|t| flight(*t)).collect();
-            log.temperature_k = Some(vec![standard + offset; log.time_s.len()]);
+            // The pad's air, then half a kelvin cooler once the rocket is away: a varying
+            // channel, its median over the pad the pad's.
+            log.temperature_k = Some(
+                log.time_s
+                    .iter()
+                    .map(|t| standard + offset - if *t > 2.0 { 0.5 } else { 0.0 })
+                    .collect(),
+            );
             log.stated.ground_elevation_msl_m = Some(ground);
             let air = read(&log).day_air.expect("the day's air");
             assert_eq!(air.temperature_column, "temperature");
             assert_eq!(air.offset_k.abs() <= AIR_TEMPERATURE_SPREAD_K, covered);
             assert_eq!(air.covered, covered, "{offset}: {air:?}");
         }
+    }
+
+    /// A log that ends on the climb reads its apogee as a floor, which may lie below the top: the
+    /// share is then taken at the coldest standard air, 216.65 K, the larger, not at the floor's
+    /// height above sea level.
+    #[test]
+    fn a_floor_takes_the_share_at_the_coldest_standard_air() {
+        let mut log = day_log(30.0);
+        for channel in &mut log.channels {
+            let end = channel.time_s.iter().take_while(|t| **t <= 6.0).count();
+            channel.time_s.truncate(end);
+            channel.values.truncate(end);
+        }
+        let readings = read(&log);
+        let Reading::Read(apogee) = &readings.apogee else {
+            panic!("{:?}", readings.apogee);
+        };
+        assert!(apogee.is_floor, "{apogee:?}");
+        assert!(apogee.height_m > 300.0, "{apogee:?}");
+        let air = uncovered(&readings);
+        assert_eq!(air.top_standard_temperature_k, COLDEST_STANDARD_K);
+        assert_eq!(air.share, air.offset_k.abs() / COLDEST_STANDARD_K);
     }
 
     /// The standard atmosphere's temperature: 288.15 K at sea level, 6.5 K/km less up to 11 km,
