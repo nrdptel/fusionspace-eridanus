@@ -170,15 +170,15 @@ per axis the project judges itself by.** The axes are:
 - steps to a first answer.
 
 Every number is read from a committed report. Many cells aren't measured yet. Each says so and
-links the milestone that will measure it. The page opens with how many cells are measured for each
-tool. On each row where HPR Sim and another tool both are, it says which is ahead.
+links the milestone that will measure it. On each row where HPR Sim and another tool both are, it
+says which is ahead.
 
 It's also a check. CI fails when one of HPR Sim's numbers there gets worse than the one main
 holds, counts fewer flights, or stops being measured. The exception is a cell a decision record
 accepts for the release the change ships in
 ([how the scoreboard works](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0240-the-scoreboard.md)).
-The other tools' numbers are shown, not held. `cargo xtask scoreboard` writes it from the
-committed reports.
+The other tools' numbers, and HPR Sim's on held-out flights, are shown, not held. `cargo xtask
+scoreboard` writes it from the committed reports.
 
 Its steps rows count how many steps it takes to open a design's `.ork` file, fly it once and get
 its landing spread. Commands, script lines, clicks and typed entries are each counted apart. These
@@ -937,8 +937,7 @@ OpenRocket's +6.72% (11.26%). The two codes agree within 5% on 59 of the 60
 ([report][fixture-report]). Neither meets the 5% target.**
 
 The [report][fixture-report]'s histogram gives the low side, the one a waiver depends on: its bins
-below zero hold the flights whose simulated apogee is below the logged one. Each logged apogee is the height climbed in
-the day's air, the altimeter's reading corrected for the weather as the report sets out.
+below zero hold the flights whose simulated apogee is below the logged one.
 
 The gap to the logs is mostly not a difference between the two codes, and what causes it isn't
 shown here. The flights' owners allow only aggregate statistics, so no flight is named here.
@@ -946,8 +945,9 @@ shown here. The flights' owners allow only aggregate statistics, so no flight is
 **Held out.** A hash of each flight's id holds out a third in expectation, here 23 of the 60
 ([decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md)).
 On them HPR Sim misses by 16.32% (mean absolute) and OpenRocket by 14.98%; on the other 37, 9.43%
-and 8.95% ([report][fixture-report]). Fits across flights, the scoreboard's check included, now
-leave the 23 out. All 60 were seen before the split, so neither half is blind.
+and 8.95% ([report][fixture-report]). Fits across flights, the scoreboard's check included, leave
+the 23 out. All 60 were seen before the split, so neither half is blind. A flight added later is
+compared only once its prediction, made with no logged apogee, has its hash merged first.
 
 **What is flown.** The collection pairs each design as flown with its own flight's log, the
 motor, date, site and the [ERA5](glossary.md#reanalysis) weather of the day
@@ -965,7 +965,7 @@ HPR Sim flies the whole ERA5 profile of the launch hour: temperature, pressure a
 level. OpenRocket 24.12 can take only a temperature and pressure at the pad, with the standard
 atmosphere above. So it gets those, and the same wind every 50 m (164 ft) ([report][fixture-report]).
 Both fly OpenRocket's curve for the motor the file names, from the same rail, with no parachute
-opened. So each apogee is the climb's. A third row flies HPR Sim in OpenRocket's air, which shows
+opened. A third row flies HPR Sim in OpenRocket's air, which shows
 how much of the difference between the codes is the atmosphere.
 
 **What each log says.** Every log here is a [barometric

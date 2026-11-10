@@ -1,0 +1,4 @@
+# SHA-256 of each new flight's prediction file in the private collection (M2.7b, ADR-332 §1,
+# ADR-333), one a line, lowercase hex. A flight the manifest gains after M2.7a is compared with
+# its log only once its prediction's hash is here on main, merged in an earlier pull request.
+# `cargo xtask fixture-flights predict <plan.json>` writes a prediction and prints its line.

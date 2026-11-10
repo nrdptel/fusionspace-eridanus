@@ -47,13 +47,18 @@ use hpr_validate::real_flight::Barometer;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
-pub const USAGE: &str = "  fixture-flights [conditions | --check]
+pub const USAGE: &str =
+    "  fixture-flights [conditions | --check | predict <plan.json> [--out <file>]]
                            Fly the private collection's tier-A .ork flights in their ERA5
                            weather, in hpr and OpenRocket, against their logged apogees;
                            needs refs/hpr-sim-fixtures and the manifest under corpus/.
                            `conditions` writes what the OpenRocket oracle flies; then
                            writes validation/reports/fixture-flights.{md,json}, aggregates
-                           only; --check writes nothing and fails unless they reproduce.";
+                           only; --check writes nothing and fails unless they reproduce.
+                           `predict` writes a new flight's prediction from its plan alone
+                           (no logged result) into the collection, or with --out to that
+                           file, and prints its file's SHA-256 for
+                           validation/reports/predictions.sha256 (M2.7b).";
 
 /// The hand-read manifest of the flights, one entry each (private, gitignored).
 pub(crate) const MANIFEST: &str = "corpus/hpr-sim-fixtures/manifest.json";
@@ -216,14 +221,15 @@ pub(crate) enum CatalogTier {
 }
 
 /// The motor flown, by its designation (the manufacturer's name is read and ignored).
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub(crate) struct MotorName {
     pub designation: String,
 }
 
-/// One flight of the manifest. The curation's own notes are read and ignored.
-#[derive(Debug, Clone, Deserialize)]
-pub(crate) struct Entry {
+/// What a flight was to fly, and where and when: everything a prediction may read, and no
+/// logged result (M2.7b, ADR-332 §1). A manifest entry holds one, then the log's fields.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub(crate) struct Plan {
     pub flight_id: String,
     pub design: String,
     pub configuration_id: Option<String>,
@@ -237,6 +243,18 @@ pub(crate) struct Entry {
     pub rail_from_vertical_deg: Option<f64>,
     pub rail_heading_deg: Option<f64>,
     pub era5: Option<String>,
+}
+
+/// One flight of the manifest: its plan, then what its log and the collection's catalog gave,
+/// and whether it was added after M2.7a. The curation's own notes are read and ignored.
+#[derive(Debug, Clone, Deserialize)]
+pub(crate) struct Entry {
+    #[serde(flatten)]
+    pub plan: Plan,
+    /// Whether the flight joined the manifest after M2.7a, so it is compared only once its
+    /// prediction's hash reached main in an earlier pull request (M2.7b, ADR-332 §1).
+    #[serde(default)]
+    pub added_after_m2_7a: bool,
     pub logged_apogee_m: f64,
     pub logged_kind: LoggedKind,
     pub early_deployment: Option<bool>,
@@ -245,19 +263,59 @@ pub(crate) struct Entry {
     pub catalog_tier: CatalogTier,
 }
 
-/// Flies, or writes OpenRocket's conditions.
-pub fn run(args: &[String]) -> Result<(), String> {
+impl std::ops::Deref for Entry {
+    type Target = Plan;
+
+    fn deref(&self) -> &Plan {
+        &self.plan
+    }
+}
+
+/// What the command line asks for.
+#[derive(Debug, PartialEq)]
+enum Mode<'a> {
+    /// `predict` and its own arguments, which must come first.
+    Predict(&'a [String]),
+    /// Fly, or with `conditions` write OpenRocket's conditions; `--check` writes nothing.
+    Fly { check: bool, conditions_only: bool },
+}
+
+/// The command line read: `predict` first and alone, or the other arguments in any order.
+fn mode(args: &[String]) -> Result<Mode<'_>, String> {
+    if let [first, rest @ ..] = args
+        && first == "predict"
+    {
+        return Ok(Mode::Predict(rest));
+    }
     let mut check = false;
     let mut conditions_only = false;
     for arg in args {
         match arg.as_str() {
             "--check" => check = true,
             "conditions" => conditions_only = true,
+            "predict" => return Err(format!("`predict` comes first, alone\n\n{USAGE}")),
             other => return Err(format!("unknown argument `{other}`\n\n{USAGE}")),
         }
     }
+    Ok(Mode::Fly {
+        check,
+        conditions_only,
+    })
+}
+
+/// Flies, or writes OpenRocket's conditions, or writes a new flight's prediction.
+pub fn run(args: &[String]) -> Result<(), String> {
+    let mode = mode(args)?;
     let root = crate::designs::root()?;
+    let (check, conditions_only) = match mode {
+        Mode::Predict(rest) => return crate::predict_first::run(&root, rest),
+        Mode::Fly {
+            check,
+            conditions_only,
+        } => (check, conditions_only),
+    };
     let entries = manifest(&root)?;
+    crate::predict_first::admit(&root, &entries)?;
     let index = era5_index(&root)?;
     let supply = crate::ork_supply::Supply::load(&root, true)?;
     if !supply.is_present() {
@@ -346,18 +404,14 @@ fn burns(
 }
 
 /// Reads the manifest and checks it holds each tier-A `.ork` flight once, with numbers that can
-/// be flown and an exclusion class from the list.
+/// be flown and an exclusion class from the list, and that its flights from before M2.7b are
+/// M2.7a's ([`crate::predict_first::check_before`]).
 fn manifest(root: &Path) -> Result<Vec<Entry>, String> {
     let text = fs::read_to_string(root.join(MANIFEST))
         .map_err(|error| format!("reading {MANIFEST}: {error}"))?;
     let entries: Vec<Entry> =
         serde_json::from_str(&text).map_err(|error| format!("reading {MANIFEST}: {error}"))?;
-    if entries.len() != TIER_A_ORK {
-        return Err(format!(
-            "{MANIFEST} holds {} flights, not the collection's {TIER_A_ORK}",
-            entries.len()
-        ));
-    }
+    crate::predict_first::check_before(root, &entries)?;
     let mut seen = std::collections::BTreeSet::new();
     for entry in &entries {
         let at = &entry.flight_id;
@@ -420,11 +474,7 @@ struct Weather {
     wind: LayeredWind,
 }
 
-fn weather(
-    root: &Path,
-    entry: &Entry,
-    index: &BTreeMap<String, String>,
-) -> Result<Weather, String> {
+fn weather(root: &Path, entry: &Plan, index: &BTreeMap<String, String>) -> Result<Weather, String> {
     let at = &entry.flight_id;
     let era5 = entry
         .era5
@@ -455,7 +505,7 @@ fn weather(
 }
 
 /// The launch time, from the manifest's `YYYY-MM-DDTHH:MM:00Z`.
-fn launch_time(entry: &Entry) -> Result<UtcTime, String> {
+fn launch_time(entry: &Plan) -> Result<UtcTime, String> {
     let text = &entry.launch_utc;
     let bad = || {
         format!(
@@ -482,7 +532,7 @@ fn launch_time(entry: &Entry) -> Result<UtcTime, String> {
 }
 
 /// The rail as the manifest gives it, or [`DEFAULT_RAIL_M`] long and upright.
-fn rail(entry: &Entry) -> Rail {
+fn rail(entry: &Plan) -> Rail {
     let from_vertical_deg = entry.rail_from_vertical_deg.unwrap_or(0.0);
     Rail {
         length_m: entry.rail_length_m.unwrap_or(DEFAULT_RAIL_M),
@@ -496,7 +546,7 @@ fn rail(entry: &Entry) -> Rail {
 /// The design as hpr reads it, with OpenRocket's curves for the digests it records.
 fn design(
     root: &Path,
-    entry: &Entry,
+    entry: &Plan,
     supply: &crate::ork_supply::Supply,
 ) -> Result<ork::Design, String> {
     let bytes = fs::read(root.join(&entry.design))
@@ -549,7 +599,7 @@ fn designation_key(designation: &str) -> String {
 /// motor of the flown designation (the first, if several do).
 fn configuration<'a>(
     design: &'a ork::Design,
-    entry: &Entry,
+    entry: &Plan,
 ) -> Result<&'a ork::MotorConfiguration, &'static str> {
     let configurations = &design.motors.configurations;
     if let Some(id) = &entry.configuration_id {
@@ -572,7 +622,7 @@ fn configuration<'a>(
 /// The configuration a flight flies, or the collection's cause for flying it in neither code.
 fn collection_cause<'a>(
     design: &'a ork::Design,
-    entry: &Entry,
+    entry: &Plan,
 ) -> Result<&'a ork::MotorConfiguration, &'static str> {
     if entry.era5.is_none() {
         return Err(NO_ERA5);
@@ -680,6 +730,39 @@ impl Observer for Climb {
         }
         Ok(())
     }
+}
+
+/// The flight's site on the WGS-84 earth, and its day: the ERA5 profile and wind over it.
+fn day(plan: &Plan, weather: &Weather) -> Result<(Earth, Environment), String> {
+    let at = &plan.flight_id;
+    let site = Geodetic::from_degrees(plan.latitude_deg, plan.longitude_deg, plan.elevation_m)
+        .map_err(|error| format!("{at}: {error}"))?;
+    let earth = Earth::wgs84(site).map_err(|error| format!("{at}: {error}"))?;
+    let day = Environment::new(earth, weather.sounding.clone(), weather.wind.clone());
+    Ok((earth, day))
+}
+
+/// hpr's apogee of a flight from its plan alone, as [`fly_all`] flies it in the day's ERA5 air
+/// with nothing deployed: the prediction M2.7b writes before the flight's log is compared
+/// (ADR-332 §1). It reads the design, the motor's curve, the day's weather and the site; no log.
+pub(crate) fn predicted_apogee(root: &Path, plan: &Plan) -> Result<f64, String> {
+    let at = &plan.flight_id;
+    let supply = crate::ork_supply::Supply::load(root, true)?;
+    if !supply.is_present() {
+        return Err(format!(
+            "{} is missing; run validation/oracles/openrocket/motor_database.py",
+            crate::ork_supply::RECORD
+        ));
+    }
+    let index = era5_index(root)?;
+    let design = design(root, plan, &supply)?;
+    let chosen = collection_cause(&design, plan).map_err(|cause| format!("{at}: {cause}"))?;
+    if let Some(out) = &chosen.left_out {
+        return Err(format!("{at}: hpr doesn't fly it: {}", out.message));
+    }
+    let weather = weather(root, plan, &index)?;
+    let (_, day) = day(plan, &weather)?;
+    hpr_apogee(&design, chosen, day, rail(plan)).map_err(|error| format!("{at}: {error}"))
 }
 
 /// hpr's apogee of `entry` in `environment`, nothing deployed: the center of mass's height at
@@ -876,12 +959,17 @@ fn fly_all(
     String,
 > {
     let record = openrocket_record(root, &conditions(root, entries, index, supply)?)?;
+    let added = entries
+        .iter()
+        .filter(|entry| entry.added_after_m2_7a)
+        .count();
     let mut causes: BTreeMap<(&'static str, String), usize> = BTreeMap::new();
     let mut excluded: BTreeMap<String, usize> = BTreeMap::new();
     let mut compared = Vec::new();
     let mut counts = Counts {
-        tier_a: TIER_A,
+        tier_a: TIER_A + added,
         from_ork: entries.len(),
+        added_after_m2_7a: added,
         ..Counts::default()
     };
     let mut logged = Logged::default();
@@ -901,12 +989,8 @@ fn fly_all(
             }
         };
         let weather = weather(root, entry, index)?;
-        let site =
-            Geodetic::from_degrees(entry.latitude_deg, entry.longitude_deg, entry.elevation_m)
-                .map_err(|error| format!("{at}: {error}"))?;
-        let earth = Earth::wgs84(site).map_err(|error| format!("{at}: {error}"))?;
+        let (earth, day) = day(entry, &weather)?;
         let rail = rail(entry);
-        let day = Environment::new(earth, weather.sounding.clone(), weather.wind.clone());
 
         // hpr, in the whole profile and in OpenRocket's air.
         let hpr = match &chosen.left_out {
@@ -1158,6 +1242,16 @@ pub(crate) struct Counts {
     pub assumed_times: usize,
     /// Of all, the flights flown on [`DEFAULT_RAIL_M`].
     pub default_rails: usize,
+    /// Of all, the flights the manifest gained after M2.7a, each compared only once its
+    /// prediction's hash reached main earlier (M2.7b, ADR-332 §1); left out of the data while
+    /// there are none, so the report written before M2.7b reproduces.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub added_after_m2_7a: usize,
+}
+
+/// Whether a count is zero.
+fn is_zero(count: &usize) -> bool {
+    *count == 0
 }
 
 /// A cause of flights not flown.
@@ -1320,9 +1414,11 @@ impl Report {
                 .map(|cause| cause.flights)
                 .sum()
         };
-        if c.from_ork != TIER_A_ORK || c.tier_a != TIER_A {
+        // A flight added after M2.7a is a tier-A `.ork` flight beyond the pinned collection's.
+        let added = c.added_after_m2_7a;
+        if c.from_ork != TIER_A_ORK + added || c.tier_a != TIER_A + added {
             return fail(format!(
-                "{} of {} flights, not {TIER_A_ORK} of {TIER_A}",
+                "{} of {} flights, not {TIER_A_ORK} of {TIER_A} and the {added} added after M2.7a",
                 c.from_ork, c.tier_a
             ));
         }
@@ -1435,27 +1531,45 @@ impl Report {
         );
         let _ = writeln!(page, "## Flights\n");
         let _ = writeln!(page, "| | flights |\n|---|---:|");
+        let added = (c.added_after_m2_7a > 0).then_some((
+            "of those, added after M2.7a and predicted first".to_owned(),
+            c.added_after_m2_7a,
+        ));
+        let of_all = |what: &str| format!("of the {}, {what}", c.from_ork);
         for (what, n) in [
-            ("tier A", c.tier_a),
-            ("from a `.ork`", c.from_ork),
-            ("flown by hpr", c.flown_by_hpr),
-            ("flown by OpenRocket 24.12", c.flown_by_openrocket),
-            ("flown by both", c.flown_by_both),
-            ("left out of the errors (below)", c.excluded),
-            ("compared with the log", c.compared),
-            ("of those, with an early deployment", c.early_deployments),
-            ("of those, deployment not known", c.early_unknown),
+            ("tier A".to_owned(), c.tier_a),
+            ("from a `.ork`".to_owned(), c.from_ork),
+        ]
+        .into_iter()
+        .chain(added)
+        .chain([
+            ("flown by hpr".to_owned(), c.flown_by_hpr),
             (
-                "of those, proposed below tier A by the catalog",
+                "flown by OpenRocket 24.12".to_owned(),
+                c.flown_by_openrocket,
+            ),
+            ("flown by both".to_owned(), c.flown_by_both),
+            ("left out of the errors (below)".to_owned(), c.excluded),
+            ("compared with the log".to_owned(), c.compared),
+            (
+                "of those, with an early deployment".to_owned(),
+                c.early_deployments,
+            ),
+            ("of those, deployment not known".to_owned(), c.early_unknown),
+            (
+                "of those, proposed below tier A by the catalog".to_owned(),
                 c.below_tier_a,
             ),
-            ("of those, in the held-out half (below)", c.held_out),
             (
-                "of the 83, launch hour not known (local noon flown)",
+                "of those, in the held-out half (below)".to_owned(),
+                c.held_out,
+            ),
+            (
+                of_all("launch hour not known (local noon flown)"),
                 c.assumed_times,
             ),
-            ("of the 83, rail not known (6 ft flown)", c.default_rails),
-        ] {
+            (of_all("rail not known (6 ft flown)"), c.default_rails),
+        ]) {
             let _ = writeln!(page, "| {what} | {n} |");
         }
         if !self.not_flown.is_empty() {
@@ -1572,6 +1686,29 @@ impl Report {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// `predict` comes first and alone; anywhere else it is refused, not ignored.
+    #[test]
+    fn predict_comes_first() {
+        let args = |words: &[&str]| words.iter().map(|w| (*w).to_owned()).collect::<Vec<_>>();
+        let predict = args(&["predict", "plan.json", "--out", "x.json"]);
+        assert_eq!(mode(&predict), Ok(Mode::Predict(&predict[1..])));
+        assert_eq!(
+            mode(&args(&["conditions", "--check"])),
+            Ok(Mode::Fly {
+                check: true,
+                conditions_only: true
+            })
+        );
+        for misplaced in [
+            args(&["--check", "predict", "plan.json"]),
+            args(&["conditions", "predict", "plan.json"]),
+        ] {
+            let error = mode(&misplaced).expect_err("refused");
+            assert!(error.starts_with("`predict` comes first"), "{error}");
+        }
+        assert!(mode(&args(&["--chekc"])).is_err());
+    }
 
     /// A flight with no forward flight is counted under the collection's own cause first (a
     /// missing ERA5 file isn't hpr's refusal), then hpr's, then OpenRocket's.
