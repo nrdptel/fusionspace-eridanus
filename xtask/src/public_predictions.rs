@@ -3,8 +3,8 @@
 //! (M2.3d3, ADR-328 §1a, ADR-334).
 //!
 //! It reads the thrust files and the converted ERA5 file from the gitignored `refs/` (`cargo
-//! xtask refs fetch rocketpy`, then `validation/oracles/netcdf/euroc_2022.py`), so it runs where
-//! they are, not in CI. It hashes each flight's log and never parses one. It writes
+//! xtask refs fetch rocketpy python`, then `validation/oracles/netcdf/euroc_2022.py`), so it
+//! runs where they are, not in CI. It hashes each flight's log and never parses one. It writes
 //! `validation/reports/public-predictions.{json,md}`; `--check` writes nothing and fails unless
 //! the committed predictions reproduce. CI, without `refs/`, holds the committed predictions to
 //! the code's list of flights and the page to its data (`hpr_validate::tests`).

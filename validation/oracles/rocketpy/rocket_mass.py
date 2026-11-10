@@ -755,7 +755,7 @@ CASES = [
         },
     },
     {
-        # docs/examples/erebus_flight_sim.ipynb: motor :162-179 (the team's
+        # docs/examples/erebus_flight_sim.ipynb: motor :162-179 (the example's
         # data/rockets/erebus11/thrust_source.csv, burn_time 3.657, one grain, zero dry mass and
         # inertia), rocket :251-259, rail buttons :261, add_motor :263, nose :272, fins :274-280,
         # tail :282-284 (no parachute: "for comparison purposes", :242). Added in M2.3d3 for its
