@@ -24,7 +24,8 @@
 //! change of model (a drop in the cell's flight count still does). Where both scoreboards carry one, it is compared and the cell's own value is
 //! shown, not held, though its count still is; against a scoreboard without one, the cells' own
 //! values are compared (ADR-332 §4). Speed is reported, never
-//! gated (ADR-209 §3), and the other tools' numbers are shown, not held. The `xtask` tests hold
+//! gated (ADR-209 §3), and the other tools' numbers are shown, not held, as are the held-out
+//! rows' values and counts ([`Row::shown_only`], ADR-333), though their cells must stay measured. The `xtask` tests hold
 //! the committed scoreboard to the committed reports, and each unmeasured cell's milestone to an
 //! open entry in `docs/ROADMAP.md`, so closing that milestone without wiring its cell fails.
 
@@ -89,6 +90,8 @@ const EVERY_FLIGHT: &str = "every flight compared";
 /// Its calibration half (M2.7a, ADR-332 §4): the ratchet holds HPR Sim's collection cells by it,
 /// so a worse error on the held-out half alone can't block a change of model.
 const CALIBRATION_HALF: &str = "the calibration half";
+/// Its held-out half (M2.7b, ADR-332 §4): the held-out rows' cells, shown, not held.
+const HELD_OUT_HALF: &str = "the held-out half";
 
 /// A tool with a column.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -236,6 +239,11 @@ pub(crate) struct Row {
     /// What a reader needs beside the row's cells to read them, printed under its axis's table.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
+    /// Whether the check holds none of the row's values or flight counts: a row over the
+    /// held-out flights, shown so that they can't veto a change of model (ADR-209 §4, ADR-330,
+    /// ADR-332 §4). A measured cell must still stay measured.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub shown_only: bool,
 }
 
 impl Row {
@@ -254,9 +262,19 @@ impl Row {
 
     /// Whether the ratchet holds `tool`'s value in this row: HPR Sim's numbers only, which are
     /// its own column's and every round trip's (a round trip through OpenRocket's file is HPR
-    /// Sim's reading and writing), and never speed's.
+    /// Sim's reading and writing), and never speed's nor a row shown only.
     fn holds(&self, tool: Tool) -> bool {
-        self.worse != Worse::NotGated && (tool == Tool::Hpr || self.axis == Axis::Interop)
+        !self.shown_only
+            && self.worse != Worse::NotGated
+            && (tool == Tool::Hpr || self.axis == Axis::Interop)
+    }
+
+    /// The row shown only ([`Row::shown_only`]).
+    fn not_held(self) -> Self {
+        Self {
+            shown_only: true,
+            ..self
+        }
     }
 }
 
@@ -1030,6 +1048,22 @@ fn cannot_by_page(
     })
 }
 
+/// The note under a held-out row: what its flights are, and why the check doesn't hold it.
+fn held_out_note(id: &str, flights: u64) -> String {
+    format!(
+        "**`{id}`**: the {flights} flights compared of the private collection's held-out half, \
+         the part, a third in expectation, that no model, setting or correction may be tuned \
+         on, chosen by a hash of each flight's id. Shown, not held: the check holds none of this \
+         row's values or flight counts, so these flights can't veto a change of model, though a \
+         measured cell must stay measured. They are held out, not blind: the errors over every \
+         flight compared were published before the halves were sealed. A flight added to the \
+         collection from now on is compared only once its prediction's hash has merged in an \
+         earlier pull request \
+         ([ADR-332](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/\
+         0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md))."
+    )
+}
+
 /// The test that runs HPR Sim's step files.
 const FIRST_ANSWER_TEST: &str = "crates/hpr-py/tests/test_first_answer.py";
 
@@ -1042,6 +1076,18 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
     let (set, set_pointer, collection_flights) = every_flight(reports)?;
     let (calibration_set, calibration_pointer, calibration_flights) =
         fixture_set(reports, CALIBRATION_HALF)?;
+    let (held_out_set, held_out_pointer, held_out_flights) = fixture_set(reports, HELD_OUT_HALF)?;
+    // A cell over the held-out half, shown, not held (ADR-332 §4).
+    let held_out = |field: &str, tool: Tool, key: &str| -> Result<Cell, String> {
+        let pointer = format!("/{key}/{field}");
+        Ok(measured(
+            tool,
+            number(held_out_set, FIXTURE_FLIGHTS, &pointer)?,
+            2,
+            held_out_flights,
+            format!("{FIXTURE_FLIGHTS} {held_out_pointer}{pointer}"),
+        ))
+    };
     let percent = |axis, id: &str, label: &str, signed, worse, cells| Row {
         id: id.to_owned(),
         axis,
@@ -1053,6 +1099,7 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
         worse,
         cells,
         note: None,
+        shown_only: false,
     };
     let collection = |field: &str, tool: Tool, key: &str| -> Result<Cell, String> {
         let pointer = format!("/{key}/{field}");
@@ -1164,6 +1211,7 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
                 later(Rocketpy, "M2.9"),
             ],
             note: None,
+            shown_only: false,
         };
 
     let (boost_cell, boost_note) = from_boost(reports)?;
@@ -1204,11 +1252,13 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
             false,
             Worse::Higher,
             vec![
-                later(Hpr, "M2.7"),
-                later(Openrocket, "M2.7"),
+                held_out("mean_absolute_percent", Hpr, "hpr")?,
+                held_out("mean_absolute_percent", Openrocket, "openrocket")?,
                 later(Rocketpy, "M2.9"),
             ],
-        ),
+        )
+        .not_held()
+        .with_note(held_out_note("accuracy.held-out", held_out_flights)),
         percent(
             Axis::Accuracy,
             "accuracy.supersonic",
@@ -1267,11 +1317,16 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
             true,
             Worse::FartherFromZero,
             vec![
-                later(Hpr, "M2.7"),
-                later(Openrocket, "M2.7"),
+                held_out("mean_percent", Hpr, "hpr")?,
+                held_out("mean_percent", Openrocket, "openrocket")?,
                 later(Rocketpy, "M2.9"),
             ],
-        ),
+        )
+        .not_held()
+        .with_note(format!(
+            "**`bias.held-out`**: the same {held_out_flights} flights as `accuracy.held-out`, \
+             likewise shown, not held."
+        )),
         percent(
             Axis::Uncertainty,
             "uncertainty.range-50",
@@ -1311,6 +1366,7 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
                 later(Rocketpy, "M2.9"),
             ],
             note: None,
+            shown_only: false,
         },
         counted(
             "interop.changed",
@@ -1354,6 +1410,7 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
                 later(Rocketpy, "M2.9"),
             ],
             note: None,
+            shown_only: false,
         },
         Row {
             id: "features.count".to_owned(),
@@ -1383,6 +1440,7 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
                 })
                 .collect(),
             note: None,
+            shown_only: false,
         },
     ];
     rows.extend(step_rows(&reports.steps)?);
@@ -1442,6 +1500,7 @@ fn step_rows(record: &steps::Record) -> Result<Vec<Row>, String> {
                 worse: Worse::Higher,
                 cells,
                 note: None,
+                shown_only: false,
             })
         })
         .collect()
@@ -1587,8 +1646,8 @@ fn axis_words(axis: Axis, hpr: &str) -> String {
             dropped, averaged over the flights: the mean absolute error, per cent of the logged \
             apogee. The public flights are RocketPy's example rockets whose altimeter logs are \
             published; the private collection's are logged flights whose owners allow only \
-            aggregates. Held-out flights are ones no model or setting was tuned on, predicted \
-            before their logs are compared. Predicted from the boost, the simulation is fitted to \
+            aggregates. Held-out flights are the part of the collection, a third in expectation, \
+            that no model or setting may be tuned on (below the table). Predicted from the boost, the simulation is fitted to \
             a flight's own log, cut after motor burnout, then flown on to apogee ([apogee from \
             the boost](https://hpr.fusionspace.co/physics/flight-fit.html#apogee-from-the-boost)). \
             Since the prediction reads the flight's own log up to its cut, and covers only the \
@@ -1891,7 +1950,7 @@ pub(crate) fn render(scoreboard: &Scoreboard) -> String {
          designs, or a measured cell is no longer measured, unless an accepted decision record \
          names that cell and the release the change ships in \
          ([ADR-240](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0240-the-scoreboard.md), \
-         how the check works). The other tools' numbers are shown, not held, and so is speed.\n"
+         how the check works). The other tools' numbers are shown, not held, and so are speed and the held-out rows' values and counts.\n"
     );
     let mut milestones: BTreeMap<&str, Vec<String>> = BTreeMap::new();
     for row in &scoreboard.rows {
@@ -1956,7 +2015,11 @@ pub(crate) fn render(scoreboard: &Scoreboard) -> String {
             "| {} (`{}`) | {} | {} |",
             row.label,
             row.id,
-            row.worse.words(),
+            if row.shown_only {
+                format!("{}, not held", row.worse.words())
+            } else {
+                row.worse.words()
+            },
             cells.join(" | ")
         );
         if scoreboard
@@ -2340,6 +2403,91 @@ mod tests {
         assert!(error.contains("accuracy.collection.hpr"), "{error}");
     }
 
+    /// The held-out rows are measured from the fixture report's held-out half, HPR Sim's and
+    /// OpenRocket's cells over its flights, and shown, not held: a worse held-out error, or
+    /// fewer held-out flights, fails nothing (ADR-332 §4), while a row that holds still fails.
+    #[test]
+    fn the_held_out_rows_are_shown_not_held() {
+        let (root, reports, committed) = committed();
+        let release = next_release(&root).expect("the release");
+        let none = BTreeSet::new();
+        let (_, pointer, flights) = fixture_set(&reports, HELD_OUT_HALF).expect("the half");
+        // Only the held-out rows are shown only: any other row so marked would lose its ratchet.
+        let shown: Vec<&str> = committed
+            .rows
+            .iter()
+            .filter(|row| row.shown_only)
+            .map(|row| row.id.as_str())
+            .collect();
+        assert_eq!(shown, ["accuracy.held-out", "bias.held-out"]);
+        // A measured held-out cell no longer measured still fails.
+        let mut unmeasured = committed.clone();
+        for row in unmeasured.rows.iter_mut().filter(|row| row.shown_only) {
+            row.cells[0].value = None;
+        }
+        let error = gate(&committed, &unmeasured, &release, &none).expect_err("unmeasured");
+        assert!(error.contains("accuracy.held-out.hpr"), "{error}");
+        for (id, field) in [
+            ("accuracy.held-out", "mean_absolute_percent"),
+            ("bias.held-out", "mean_percent"),
+        ] {
+            let row = committed
+                .rows
+                .iter()
+                .find(|row| row.id == id)
+                .expect("the row");
+            assert!(row.shown_only, "{id}");
+            assert!(!row.holds(Tool::Hpr), "{id}");
+            for (tool, key) in [(Tool::Hpr, "hpr"), (Tool::Openrocket, "openrocket")] {
+                let cell = row.cells.iter().find(|c| c.tool == tool).expect("the cell");
+                assert!(cell.value.is_some(), "{id}: {key} measured");
+                assert_eq!(cell.count, Some(flights), "{id}");
+                assert_eq!(
+                    cell.source.as_deref(),
+                    Some(format!("{FIXTURE_FLIGHTS} {pointer}/{key}/{field}").as_str())
+                );
+            }
+        }
+        // The held-out half worse, or smaller, each alone: shown, nothing fails; the same rows
+        // held, each fails.
+        let worse = |reports: &mut Reports| {
+            for field in ["mean_absolute_percent", "mean_percent"] {
+                let at = format!("{pointer}/hpr/{field}");
+                let value = number(&reports.fixture_flights, FIXTURE_FLIGHTS, &at).expect("it");
+                *reports.fixture_flights.pointer_mut(&at).expect("it") =
+                    (value + 5.0 * value.signum()).into();
+            }
+        };
+        let smaller = |reports: &mut Reports| {
+            for key in ["/flights", "/hpr/n", "/openrocket/n"] {
+                let at = format!("{pointer}{key}");
+                let n = whole(&reports.fixture_flights, FIXTURE_FLIGHTS, &at).expect("a count");
+                *reports.fixture_flights.pointer_mut(&at).expect("a count") = (n - 1).into();
+            }
+        };
+        for what in ["worse", "smaller"] {
+            let mut reports = Reports::read(&root).expect("the committed reports");
+            if what == "worse" {
+                worse(&mut reports);
+            } else {
+                smaller(&mut reports);
+            }
+            let moved = scoreboard(&reports).expect("the scoreboard");
+            assert_ne!(moved, committed, "{what}");
+            assert!(gate(&committed, &moved, &release, &none).is_ok(), "{what}");
+            let mut holding = committed.clone();
+            let mut moved_held = moved;
+            for board in [&mut holding, &mut moved_held] {
+                for row in &mut board.rows {
+                    row.shown_only = false;
+                }
+            }
+            let error = gate(&holding, &moved_held, &release, &none).expect_err(what);
+            assert!(error.contains("accuracy.held-out.hpr"), "{what}: {error}");
+            assert!(error.contains("bias.held-out.hpr"), "{what}: {error}");
+        }
+    }
+
     /// A worse HPR Sim number in a report fails the gate, for each kind of rule that holds a
     /// measured cell today; a better one passes.
     #[test]
@@ -2669,7 +2817,13 @@ mod tests {
         assert!(error.contains("uncertainty.range-50.hpr"), "{error}");
         // A milestone the page has no words for fails, open or not.
         let mut unknown = scoreboard.clone();
-        unknown.rows[2].cells[0].milestone = Some("M9.99".to_owned());
+        let unmeasured = unknown
+            .rows
+            .iter_mut()
+            .find(|row| row.id == "accuracy.supersonic")
+            .expect("an unmeasured row");
+        assert_eq!(unmeasured.cells[0].value, None);
+        unmeasured.cells[0].milestone = Some("M9.99".to_owned());
         let open = format!("{open}- [ ] **M9.99 x\n");
         let error = check_milestones(&unknown, &open).expect_err("no words");
         assert!(error.contains("M9.99"), "{error}");

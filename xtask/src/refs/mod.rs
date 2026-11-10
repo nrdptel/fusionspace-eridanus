@@ -23,7 +23,7 @@ mod hash;
 mod java;
 mod lock;
 mod python;
-mod tool;
+pub(crate) mod tool;
 
 use std::path::{Path, PathBuf};
 

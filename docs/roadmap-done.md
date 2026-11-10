@@ -247,7 +247,9 @@ One line per milestone or increment, in the order it was archived within its pha
 - M1.14a2 Drag issue warnings ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.14a3 Stability issue warnings ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.10 Evidence register ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M2.7 Held-out flights, predictions first ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.7a The halves and the fits' guard ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M2.7b New flights predicted first ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M4.1 Facade API ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.1a The builder ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.1b Custom models and the rustdoc guide ([Phase 2](#phase-2-library-surfaces-and-interop))
@@ -1391,8 +1393,16 @@ One line per milestone or increment, in the order it was archived within its pha
   each but G23 (at its wanted kind) short of it with an open issue; a docs page shows a committed report counting
   rows by kind and surface, with no combined score, and the rows due a search (none yet, or the
   last over 30 days old); each format page's sample request links its issue. Moves: honest trust.
-- **M2.7** is open; its entry: [roadmap](ROADMAP.md#phase-1-physics-core-the-heart-with-validation-interleaved).
+- [x] **M2.7 Held-out flights, predictions first** (ADR-209 §4; ADR-332, in two; met when they
+  are). *Done when:* a flight is held out
+  when SHA-256 of its id and the seed `ADR-209` falls in the lowest third, fixed before any held-out
+  error is computed; the fixture report gives both halves as aggregates; a refs check fails when a
+  held-out flight feeds a fit across flights; new flights' predictions sit in the private
+  collection before their logs are compared, only their files' hashes committed. Moves: accuracy.
   - [x] **M2.7a The halves and the fits' guard.** *Done when:* M2.7's first three clauses, whole.
+  - [x] **M2.7b New flights predicted first.** *Done when:* M2.7's last clause, whole; a flight
+    added after M2.7a is compared only once its prediction's hash merged earlier (ADR-332 §1);
+    the scoreboard's held-out rows measured, shown not held (ADR-332 §4).
 ## Phase 2: Library surfaces and interop
 
 - [x] **M4.1 Facade API.** The `hpr` crate offers a RocketPy-like builder (`Environment`, `Motor`,
