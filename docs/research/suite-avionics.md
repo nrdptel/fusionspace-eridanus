@@ -47,11 +47,14 @@ limits but for their documented formats, as the clean-room rule says.
 - **70 cm amateur band:** needs a license.
 - **EU, 865 to 868 MHz:** 25 mW and a 1% duty cycle or listen-before-talk
   ([ERC 70-03](https://docdb.cept.org/download/3700)).
-- **GNSS limits:** u-blox M10 in its airborne mode stops giving fixes above 80 km or 500 m/s
-  ([MAX-M10S manual](https://content.u-blox.com/sites/default/files/MAX-M10S_IntegrationManual_UBX-20053088.pdf)).
-  The airborne mode also limits acceleration (under 4 g), which a boost exceeds. A tracker has
-  no fix above 500 m/s, about Mach 1.47 at sea level and Mach 1.7 at 11 km, so the design must
-  expect a dropout and a resume.
+- **GNSS limits:** the MAX-M10S datasheet gives operational limits of at most 4 g dynamics,
+  80,000 m and 500 m/s, "Assuming Airborne 4 g platform"
+  ([datasheet](https://content.u-blox.com/sites/default/files/MAX-M10S_DataSheet_UBX-20035208.pdf),
+  Table 1 p. 4). It doesn't say what passing the 4 g row does to a fix. No u-blox document read
+  says whether the altitude and speed limits act together or apart, and one tracker maker's two
+  manuals read them differently. 500 m/s is about Mach 1.47 at sea level and Mach 1.7 at 11 km.
+  Trackers in boost lose fix or lag, so the design must expect a dropout and a resume
+  ([GNSS in boost](gnss-in-boost.md), §1 and §2).
 - **Export control:** published open-source software is generally outside the EAR
   ([15 CFR 734.7](https://www.law.cornell.edu/cfr/text/15/734.7)). GNSS receivers built for
   missiles, or giving fixes above 600 m/s, are controlled (ECCN 7A105,
