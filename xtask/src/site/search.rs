@@ -48,8 +48,8 @@ const SUFFIX: &str = "'));";
 pub(super) const MDBOOK_SIZE_WARNING: &str = "search index is very large (";
 
 /// The most the shipped index may weigh compressed by [`gzip_len`]: 1,675,059 bytes, main's file
-/// at b7313b32 (10,020,860 bytes before compression) measured the same way, the last build before
-/// this rebuild, with fifteen pages left out of search to stay under mdBook's warning. Every page
+/// at b7313b32 (10,020,860 bytes before compression) measured the same way, built before this
+/// rebuild, with fifteen pages left out of search to stay under mdBook's warning. Every page
 /// back in, the rebuilt index must still cost a reader no more than that.
 pub(super) const LIMIT_GZIP_BYTES: usize = 1_675_059;
 
@@ -87,8 +87,8 @@ fn rebuild_within(output: &Path, limit: usize) -> Result<Rebuilt, String> {
         .map_err(|err| format!("could not write the search index {}: {err}", path.display()))?;
     if report.gzip_bytes > limit {
         return Err(format!(
-            "the search index weighs {} bytes compressed with gzip, more than the {limit} its \
-             last build before the rebuild weighed, measured the same way \
+            "the search index weighs {} bytes compressed with gzip, more than the {limit} \
+             main's file at b7313b32 weighed before the rebuild, measured the same way \
              (xtask/src/site/search.rs): shorten the words a page added; raise the limit only \
              with a decision record that measures the new one",
             report.gzip_bytes

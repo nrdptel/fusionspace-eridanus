@@ -39,7 +39,7 @@ runnable = false
 # Search lands on a page's `##` section, which holds its `###` and `####` ones, and every page is
 # in the index. mdBook 0.5.4 writes the index with each field holding the words of the fields
 # before it, so `cargo xtask site` rebuilds it with each field's words alone (#414,
-# `xtask/src/site/search.rs`) and holds the rebuilt file to what the last file before it weighed,
+# `xtask/src/site/search.rs`) and holds the rebuilt file to what main's file weighed before it,
 # measured the same way: 1,675,059 bytes compressed with gzip (GitHub Pages sent 1,754,850), at
 # b7313b32, with fifteen pages left out of search to stay under mdBook's 10 MB warning. Rebuilt,
 # with all of them in, it is 7.72 MB, about 1.60 MB compressed. Landing on the `###` section or
