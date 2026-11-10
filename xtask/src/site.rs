@@ -668,7 +668,8 @@ fn failure(what: &str, problems: &[String]) -> String {
 }
 
 /// Builds the site with mdBook into [`OUTPUT`], from scratch so no page of an earlier build
-/// survives to hide a broken link. A warning fails the build like an error does.
+/// survives to hide a broken link. A warning fails the build like an error does, but mdBook's
+/// warning about the size of the search index, which `search::rebuild` replaces ([`complaint`]).
 fn mdbook_build(root: &Path) -> Result<(), String> {
     let version = Command::new("mdbook")
         .arg("--version")

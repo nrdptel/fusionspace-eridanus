@@ -1076,13 +1076,13 @@ The build then holds the file to a limit, `LIMIT_GZIP_BYTES` in that file:
 
 - **The limit** is what main's file weighed at
   [b7313b32](https://github.com/nrdptel/fusionspace-eridanus/commit/b7313b32), before the rebuild: 1,675,059 bytes
-  compressed by the check's gzip (flate2 at its default level; the `gzip` command gives 1,687,875).
+  compressed by the check's gzip (flate2 at its default level).
   That build left fifteen pages out to stay under mdBook's 10 MB warning.
 - **The rebuilt file,** every page in, came to about 1.60 MB, measured the same way, so about
   75 KB of room is left. GitHub Pages compresses a little less well (it sent 1,754,850 bytes for
   the old file), but the limit and the file are measured alike.
-- **The line** that starts `site search:` prints the sizes and postings, mdBook's and the
-  rebuild's, and the limit, on every build that passes.
+- **The line** that starts `site search:` prints the postings and bytes, mdBook's and the
+  rebuild's, the rebuild's compressed size and the limit, on every build that passes.
 - **When a page's words push the file past the limit,** the build fails. Shorten the words the
   page added. Raise the limit only with a decision record that measures the new one. How the
   limit was measured is written beside it, in `xtask/src/site/search.rs`.
