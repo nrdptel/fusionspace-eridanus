@@ -162,8 +162,8 @@ adds a source.
   (M5.5b, ADR-133).
 
 - **RocketPy example rocket inputs** (MIT, RocketPy v1.13.0): the masses, inertias, positions,
-  motor dimensions and aerodynamic-surface dimensions of nine example rockets (ten cases, with
-  Calisto at two motor positions), taken from RocketPy's notebooks and test code (never from its
+  motor dimensions and aerodynamic-surface dimensions of twelve example rockets (thirteen cases,
+  with Calisto at two motor positions), taken from RocketPy's notebooks and test code (never from its
   data files). They are recorded
   in `validation/fixtures/design/rocketpy-rocket-mass.json` with RocketPy's outputs (and, for six
   of them, the rail length, inclination and heading in
@@ -219,6 +219,9 @@ adds a source.
   and so does this notice. Neither the European Commission nor ECMWF is responsible for any use
   that may be made of the Copernicus information or data it contains. The full files stay in
   `refs/`. The example `crates/hpr/examples/era5_weather.rs` reads the Bella Lui extract.
+  RocketPy's EuRoC 2022 file, which three predicted flights fly in (M2.3d3), is converted from
+  netCDF-4 by `validation/oracles/netcdf/euroc_2022.py` into `refs/` and is **not** committed: only
+  both files' SHA-256 are, in `validation/fixtures/weather/euroc-2022-conversion.json`.
 - **Open-Meteo weather answers** (<https://open-meteo.com>):
   `crates/hpr-net/tests/fixtures/replay/open-meteo-historical.json` and `open-meteo-forecast.json`
   are two answers recorded unchanged on 2026-09-30 from Open-Meteo's historical-forecast and

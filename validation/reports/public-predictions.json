@@ -1,0 +1,194 @@
+{
+  "generator": "cargo xtask public-predictions",
+  "traced_rule": "An input is traced when the flight's own record states it: here RocketPy's example notebook, which holds the team's inputs. What no RocketPy example records, the surface finish and the fin edges, is a placeholder in every design built from one and doesn't count against the tag. A flight is tagged not traced when its record leaves out, or contradicts, something that moves the apogee.",
+  "weather_conversion": {
+    "record": "validation/fixtures/weather/euroc-2022-conversion.json",
+    "conversion": "xarray.open_dataset(source).drop_vars([\"number\", \"expver\"], errors=\"ignore\").to_netcdf(out, format=\"NETCDF3_64BIT\")",
+    "source": "refs/rocketpy/data/weather/euroc_2022_all_windows.nc",
+    "source_sha256": "b4583116c89c9e2b8fb9a88ef61d6f7c2c25329559184f7bde7040694ac0d52d",
+    "converted": "refs/converted/rocketpy/euroc_2022_all_windows.nc",
+    "converted_sha256": "3a3b43a749938e07cee8ad1d705dc89dc8a0c1fcac135c76520e17ad8860b003"
+  },
+  "flights": [
+    {
+      "id": "astra",
+      "title": "Astra, Faraday Rocketry UPV, EuRoC 2022 (L1350)",
+      "design": "rocketpy-astra",
+      "source": "astra_flight_sim.ipynb:123-131 (site, date), :247-280 (rocket, rail buttons, motor position, nose, fins), :316-318 (rail)",
+      "motor": "Cesaroni 4263L1350-P",
+      "motor_source": "astra_flight_sim.ipynb:155-157: RocketPy's copy of the certified curve, cut at the notebook's burn time",
+      "thrust_file": "refs/rocketpy/data/motors/cesaroni/Cesaroni_4263L1350-P.eng",
+      "burn_time_s": 3.284,
+      "total_impulse_ns": 4280.1672115,
+      "mass_source": "astra_flight_sim.ipynb:249-251 (mass, inertia and center without the motor), :158-162 (the grain, whose density and size give the propellant), :168-170 (no motor dry mass or inertia)",
+      "mass_without_motor_kg": 10.6462,
+      "liftoff_mass_kg": 12.670000000000002,
+      "latitude_deg": 39.3897,
+      "longitude_deg": -8.2889639,
+      "elevation_m": 160.0,
+      "rail_length_m": 12.0,
+      "rail_inclination_deg": 84.0,
+      "rail_heading_deg": 133.0,
+      "weather_time_utc": "2022-10-13T15:00Z",
+      "reference_log": "refs/rocketpy/data/rockets/astra/flight_data.csv",
+      "reference_log_sha256": "dd5287b375e84be8961a7c867dc9af764a42752af3109c25086d228978e4acae",
+      "reference_rule": "the highest reading of the log's `alt` column, in meters, the log read whole",
+      "altimeter": "barometric, assumed",
+      "altimeter_evidence": "the notebook calls it a COTS altimeter's flight (astra_flight_sim.ipynb:383-385), one row a second beside a latitude and a longitude, and records no more: barometric assumed, as hobby altimeters are",
+      "all_inputs_traced": true,
+      "untraced": [],
+      "predicted_apogee_m": 3037.1127560279933,
+      "predicted_height_apogee_m": 3155.3563752661757,
+      "predicted_time_to_apogee_s": 24.396969343786495,
+      "hpr_max_mach": 0.9107866567317453,
+      "catalog_curve": null,
+      "files": [
+        {
+          "path": "validation/fixtures/design/rocketpy-rocket-mass.json",
+          "sha256": "2f8e624c5c53fa4bbbfeb48c42d4419bcdcc40503c3aadbfc8bf83fc2748088c"
+        },
+        {
+          "path": "refs/rocketpy/data/motors/cesaroni/Cesaroni_4263L1350-P.eng",
+          "sha256": "8399eae18641308e5a302f40bfcb97572093368891ba69a80eb85a46d3775c2e"
+        },
+        {
+          "path": "validation/designs/rocketpy-astra.json",
+          "sha256": "a06537df68b5782899556133ff359092e351ea7be6420f72c10d6c74b5092380"
+        },
+        {
+          "path": "refs/converted/rocketpy/euroc_2022_all_windows.nc",
+          "sha256": "3a3b43a749938e07cee8ad1d705dc89dc8a0c1fcac135c76520e17ad8860b003"
+        },
+        {
+          "path": "refs/rocketpy/data/rockets/astra/flight_data.csv",
+          "sha256": "dd5287b375e84be8961a7c867dc9af764a42752af3109c25086d228978e4acae"
+        }
+      ],
+      "inputs_sha256": "95251e9590a47b2d007cf523f2252400bfbb9d77e3349425b1e6f5ff9beecb06",
+      "note": ""
+    },
+    {
+      "id": "andromeda",
+      "title": "Andromeda, Aristotle Space and Aeronautics Team, EuRoC 2022 (the team's curve)",
+      "design": "rocketpy-andromeda",
+      "source": "andromeda_flight_sim.ipynb:123-131 (site, date), :244-277 (rocket, rail buttons, motor position, nose, fins), :388-390 (rail)",
+      "motor": "the team's thrust file, flown in the notebook under the name of a Cesaroni M2020",
+      "motor_source": "andromeda_flight_sim.ipynb:153 and :162-165: \"obtained by the team, after testing\", cut at the notebook's burn time; the catalog file is commented out at :163",
+      "thrust_file": "refs/rocketpy/data/rockets/andromeda/thrust_curve.csv",
+      "burn_time_s": 3.76,
+      "total_impulse_ns": 9866.668746589688,
+      "mass_source": "andromeda_flight_sim.ipynb:246-248 (mass, inertia and center without the motor), :166-170 (the grain), :176-178 (no motor dry mass or inertia)",
+      "mass_without_motor_kg": 20.9767,
+      "liftoff_mass_kg": 25.323,
+      "latitude_deg": 39.388692,
+      "longitude_deg": -8.287814,
+      "elevation_m": 160.0,
+      "rail_length_m": 12.0,
+      "rail_inclination_deg": 84.0,
+      "rail_heading_deg": 133.0,
+      "weather_time_utc": "2022-10-14T13:00Z",
+      "reference_log": "refs/rocketpy/data/rockets/andromeda/flight_data.csv",
+      "reference_log_sha256": "ebd3b757555b564c63937b69d2c222d6596355fc6e938d49537af293a9d48d14",
+      "reference_rule": "the highest reading of the log's `alt(m)` column, the log read whole",
+      "altimeter": "barometric, assumed",
+      "altimeter_evidence": "the notebook calls it a COTS altimeter (andromeda_flight_sim.ipynb:459-461), logged in feet with a vertical speed, and records no more: barometric assumed, as hobby altimeters are",
+      "all_inputs_traced": false,
+      "untraced": [
+        "the flight carried the team's air brakes, and no record says when or how far they opened: none is flown here, so any opening leaves this prediction high",
+        "the thrust file holds more impulse than the Cesaroni M2020 reload it is named for is certified at, so the notebook does not settle which motor the logged flight burned"
+      ],
+      "predicted_apogee_m": 3580.9591363955515,
+      "predicted_height_apogee_m": 3729.530744661521,
+      "predicted_time_to_apogee_s": 26.297760374724934,
+      "hpr_max_mach": 1.0186103005458185,
+      "catalog_curve": {
+        "motor": "Cesaroni 8429M2020-P",
+        "why": "the reload the notebook names, on its certified curve as bundled, whole. Shown beside the counted prediction and never counted: every RocketPy flight here is counted on its example's own thrust file",
+        "total_impulse_ns": 8428.6623225,
+        "predicted_apogee_m": 3050.317905285291,
+        "predicted_height_apogee_m": 3176.101536207199
+      },
+      "files": [
+        {
+          "path": "validation/fixtures/design/rocketpy-rocket-mass.json",
+          "sha256": "2f8e624c5c53fa4bbbfeb48c42d4419bcdcc40503c3aadbfc8bf83fc2748088c"
+        },
+        {
+          "path": "refs/rocketpy/data/rockets/andromeda/thrust_curve.csv",
+          "sha256": "5ffd815f0f2a259e98cecbf6186af58d45feded84d0cc6a2d5ef4abbc8b913dd"
+        },
+        {
+          "path": "validation/designs/rocketpy-andromeda.json",
+          "sha256": "5eda637e03cb18f05eeb3e6c910c7e1e004a89e6b1b44d9b33c396513320c972"
+        },
+        {
+          "path": "refs/converted/rocketpy/euroc_2022_all_windows.nc",
+          "sha256": "3a3b43a749938e07cee8ad1d705dc89dc8a0c1fcac135c76520e17ad8860b003"
+        },
+        {
+          "path": "refs/rocketpy/data/rockets/andromeda/flight_data.csv",
+          "sha256": "ebd3b757555b564c63937b69d2c222d6596355fc6e938d49537af293a9d48d14"
+        }
+      ],
+      "inputs_sha256": "a7870c26cd3d03a0122444ef00b53e67b07d7e8ca17596d485f16ad2eb213c93",
+      "note": "both tags are the research note's findings (docs/research/andromeda-impulse.md), written down before this flight was flown"
+    },
+    {
+      "id": "erebus-11",
+      "title": "Erebus 11, BME Suborbitals, EuRoC 2022 (a Cesaroni Pro54 K)",
+      "design": "rocketpy-erebus-11",
+      "source": "erebus_flight_sim.ipynb:123-131 (site, date), :251-284 (rocket, rail buttons, motor position, nose, fins, tail), :320-322 (rail)",
+      "motor": "a Cesaroni Pro54 K-class motor, as the notebook says; the team's thrust file",
+      "motor_source": "erebus_flight_sim.ipynb:153 and :162-165, cut at the notebook's burn time",
+      "thrust_file": "refs/rocketpy/data/rockets/erebus11/thrust_source.csv",
+      "burn_time_s": 3.657,
+      "total_impulse_ns": 2418.2112049999996,
+      "mass_source": "erebus_flight_sim.ipynb:253-255 (mass, inertia and center without the motor), :166-172 (the grain), :163 and :173-174 (no motor dry mass or inertia)",
+      "mass_without_motor_kg": 5.82,
+      "liftoff_mass_kg": 6.995700000000001,
+      "latitude_deg": 39.3897,
+      "longitude_deg": -8.2889639,
+      "elevation_m": 160.0,
+      "rail_length_m": 12.0,
+      "rail_inclination_deg": 84.0,
+      "rail_heading_deg": 133.0,
+      "weather_time_utc": "2022-10-15T15:00Z",
+      "reference_log": "refs/rocketpy/data/rockets/erebus11/flight_data_filtered.csv",
+      "reference_log_sha256": "045f5b9ed473b80095805d3ca7b831ca4b67c5afbe9156d58d1e91df9fc0b4a9",
+      "reference_rule": "the highest reading of the log's `alt` column, in meters, the log read whole",
+      "altimeter": "barometric, assumed",
+      "altimeter_evidence": "the notebook calls it a COTS altimeter (erebus_flight_sim.ipynb:390-392), a file named filtered, and records no more: barometric assumed, as hobby altimeters are",
+      "all_inputs_traced": true,
+      "untraced": [],
+      "predicted_apogee_m": 2714.062086372772,
+      "predicted_height_apogee_m": 2808.7090595388167,
+      "predicted_time_to_apogee_s": 22.449524603817682,
+      "hpr_max_mach": 0.8755469772496574,
+      "catalog_curve": null,
+      "files": [
+        {
+          "path": "validation/fixtures/design/rocketpy-rocket-mass.json",
+          "sha256": "2f8e624c5c53fa4bbbfeb48c42d4419bcdcc40503c3aadbfc8bf83fc2748088c"
+        },
+        {
+          "path": "refs/rocketpy/data/rockets/erebus11/thrust_source.csv",
+          "sha256": "c8e9c18faead7844db42cc733f4aa2516b8e806136041e0d282b2eaf3f63c53f"
+        },
+        {
+          "path": "validation/designs/rocketpy-erebus-11.json",
+          "sha256": "db6c69fa5dfb751fc4eb5f0a6b5d5b7e471bf0f8e863b82c417ec9c291332262"
+        },
+        {
+          "path": "refs/converted/rocketpy/euroc_2022_all_windows.nc",
+          "sha256": "3a3b43a749938e07cee8ad1d705dc89dc8a0c1fcac135c76520e17ad8860b003"
+        },
+        {
+          "path": "refs/rocketpy/data/rockets/erebus11/flight_data_filtered.csv",
+          "sha256": "045f5b9ed473b80095805d3ca7b831ca4b67c5afbe9156d58d1e91df9fc0b4a9"
+        }
+      ],
+      "inputs_sha256": "d883d8366620d91de89b261f5edc98ef893cf10740b2b8af050ad1365e10f8cc",
+      "note": ""
+    }
+  ]
+}

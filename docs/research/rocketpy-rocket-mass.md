@@ -80,11 +80,12 @@ The −1.373 value at `t = 0`, 10.516648, matches RocketPy's own pinned test val
 ## Outcome (M1.4b)
 
 - **Fixture.** `validation/oracles/rocketpy/rocket_mass.py` writes
-  `validation/fixtures/design/rocketpy-rocket-mass.json`. It now holds ten cases from nine rockets:
+  `validation/fixtures/design/rocketpy-rocket-mass.json`. It now holds thirteen cases from twelve rockets:
   M1.4b's seven (Calisto at both motor positions, Bella Lui, NDRT 2020, Valetudo, Juno III and
   Prometheus), Cavour, added in M1.5b for its RASAero-labeled drag curve (ADR-009), and Genesis and
-  Lince, added in M2.3b for their logged flights. The test checks that its design list
-  (`ROCKETPY_DESIGNS`, ten entries) matches the fixture's cases. Cavour, Genesis and Lince have
+  Lince, added in M2.3b for their logged flights, and Astra, Andromeda and Erebus 11, added in
+  M2.3d3 for theirs. The test checks that its design list (`ROCKETPY_DESIGNS`, thirteen entries)
+  matches the fixture's cases. Cavour, Genesis, Lince and M2.3d3's three have
   massless motor dry parts; their designs give the motor 1e-15 kg, since hpr needs a positive one.
   - Prometheus's `GenericMotor` is hpr's propellant column: a fixed center, solid-cylinder inertia,
     and impulse-fraction consumption (`motors/motor.py:470-524`, `:1566-1661`).
@@ -103,10 +104,10 @@ The −1.373 value at `t = 0`, 10.516648, matches RocketPy's own pinned test val
 - **Calisto's tests rocket** has no geometry in RocketPy's tests, so its design takes the
   `calisto_robust` fixture's surfaces, about 0.118 m aft of the notebook's.
 - **Agreement** (`hpr_design::config::tests::matches_rocketpy_example_rockets`):
-  - Dry scalars, and initial and column propellant mass, match to 2.4e-16, and the products of inertia are exactly zero.
+  - Dry scalars, and initial and column propellant mass, match to 3.5e-16, and the products of inertia are exactly zero.
   - At RocketPy's LSODA knots, where its grain geometry holds computed values: mass, center and
     inertia match to 8e-10, and propellant mass to 2.4e-9. That is the solver's accuracy.
-  - Between knots, on an even grid: mass to 1.3e-5 (Lince), center to 3.6e-6 of the length, `I_11` to
+  - Between knots, on an even grid: mass to 1.3e-5 (Lince), center to 4.0e-6 of the length, `I_11` to
     2.6e-5 and `I_33` to 1.4e-5.
   - That residual is RocketPy's resampling. `SolidMotor` interpolates grain volumes linearly
     between LSODA knots (`motors/solid_motor.py:385-399`, `:603-630`). `GenericMotor` samples its

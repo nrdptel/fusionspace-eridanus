@@ -15,7 +15,7 @@
         },
         {
           "path": "validation/fixtures/design/rocketpy-rocket-mass.json",
-          "sha256": "4ae6e9567e60390e1c4b7b604a2d8ddd294f316aeef7e171df9f49b84bb8400c"
+          "sha256": "2f8e624c5c53fa4bbbfeb48c42d4419bcdcc40503c3aadbfc8bf83fc2748088c"
         },
         {
           "path": "refs/rocketpy/data/motors/aerotech/AeroTech_K828FJ.eng",
@@ -71,7 +71,7 @@
         },
         {
           "path": "validation/fixtures/design/rocketpy-rocket-mass.json",
-          "sha256": "4ae6e9567e60390e1c4b7b604a2d8ddd294f316aeef7e171df9f49b84bb8400c"
+          "sha256": "2f8e624c5c53fa4bbbfeb48c42d4419bcdcc40503c3aadbfc8bf83fc2748088c"
         },
         {
           "path": "refs/rocketpy/data/motors/cesaroni/Cesaroni_4895L1395-P.eng",
@@ -127,7 +127,7 @@
         },
         {
           "path": "validation/fixtures/design/rocketpy-rocket-mass.json",
-          "sha256": "4ae6e9567e60390e1c4b7b604a2d8ddd294f316aeef7e171df9f49b84bb8400c"
+          "sha256": "2f8e624c5c53fa4bbbfeb48c42d4419bcdcc40503c3aadbfc8bf83fc2748088c"
         },
         {
           "path": "refs/rocketpy/data/motors/cesaroni/Cesaroni_7579M1520-P.eng",
@@ -187,7 +187,7 @@
         },
         {
           "path": "validation/fixtures/design/rocketpy-rocket-mass.json",
-          "sha256": "4ae6e9567e60390e1c4b7b604a2d8ddd294f316aeef7e171df9f49b84bb8400c"
+          "sha256": "2f8e624c5c53fa4bbbfeb48c42d4419bcdcc40503c3aadbfc8bf83fc2748088c"
         },
         {
           "path": "refs/rocketpy/data/motors/projeto-jupiter/mandioca_thrust_curve.csv",
@@ -251,7 +251,7 @@
         },
         {
           "path": "validation/fixtures/design/rocketpy-rocket-mass.json",
-          "sha256": "4ae6e9567e60390e1c4b7b604a2d8ddd294f316aeef7e171df9f49b84bb8400c"
+          "sha256": "2f8e624c5c53fa4bbbfeb48c42d4419bcdcc40503c3aadbfc8bf83fc2748088c"
         },
         {
           "path": "refs/rocketpy/data/motors/cesaroni/Cesaroni_3618L995-P.eng",
@@ -315,7 +315,7 @@
         },
         {
           "path": "validation/fixtures/design/rocketpy-rocket-mass.json",
-          "sha256": "4ae6e9567e60390e1c4b7b604a2d8ddd294f316aeef7e171df9f49b84bb8400c"
+          "sha256": "2f8e624c5c53fa4bbbfeb48c42d4419bcdcc40503c3aadbfc8bf83fc2748088c"
         },
         {
           "path": "refs/rocketpy/data/motors/cesaroni/Cesaroni_3618L995-P.eng",
@@ -379,7 +379,7 @@
         },
         {
           "path": "validation/fixtures/design/rocketpy-rocket-mass.json",
-          "sha256": "4ae6e9567e60390e1c4b7b604a2d8ddd294f316aeef7e171df9f49b84bb8400c"
+          "sha256": "2f8e624c5c53fa4bbbfeb48c42d4419bcdcc40503c3aadbfc8bf83fc2748088c"
         },
         {
           "path": "refs/rocketpy/data/motors/cesaroni/Cesaroni_M1101.eng",

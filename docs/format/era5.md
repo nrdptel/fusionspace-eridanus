@@ -79,6 +79,13 @@ wind to 0.11 mm/s. The older
 file stores its values as 16-bit whole numbers. The newer one carries the rounding of ECMWF's own
 archive. So the gaps are consistent with each file's rounding. The test pins these largest gaps.
 
+A second check runs on a whole file. Three public flights of EuRoC 2022 fly in one netCDF-4 file
+that RocketPy ships ([predicted before compared](../accuracy.md#predicted-before-compared)).
+The script
+[`euroc_2022.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/netcdf/euroc_2022.py)
+converts it as above. It fails unless all 148,000 values of the four fields are the same bit for
+bit, and RocketPy reads the same 37 levels from both files at each flight's site and hour.
+
 ### Reading it
 
 The example program

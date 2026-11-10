@@ -984,7 +984,19 @@ mod tests {
         ));
     }
     /// The RocketPy example designs in `validation/designs/`, by oracle case name.
-    const ROCKETPY_DESIGNS: [(&str, &str); 10] = [
+    const ROCKETPY_DESIGNS: [(&str, &str); 13] = [
+        (
+            "astra",
+            include_str!("../../../validation/designs/rocketpy-astra.json"),
+        ),
+        (
+            "andromeda",
+            include_str!("../../../validation/designs/rocketpy-andromeda.json"),
+        ),
+        (
+            "erebus-11",
+            include_str!("../../../validation/designs/rocketpy-erebus-11.json"),
+        ),
         (
             "calisto-getting-started-motor-at-minus-1.255",
             include_str!(

@@ -21,8 +21,8 @@ These are built from `validation/fixtures/design/rocketpy-rocket-mass.json`, whi
 - **Mass:** the stage override is the example's mass, centre of mass (on the axis) and inertia
   without its motor, as RocketPy takes them.
 - **Motor:** the example's grains or chamber, dry mass, nozzle and position, on hpr's motor axis.
-  The thrust curve is the bundled public-domain curve nearest in impulse, because RocketPy's motor
-  files carry their own terms (ADR-007). The configuration's name says which curve replaces which.
+  The thrust curve is the bundled public-domain curve nearest in impulse (Andromeda's is the one
+  exception, below), because RocketPy's motor files carry their own terms (ADR-007). The configuration's name says which curve replaces which.
 - **Case size:** the examples give none, so the case is the propellant's envelope. The mount is a
   tube that fits it exactly, in the last body tube forward of the nozzle.
 - **Geometry**, for the aerodynamics milestones:
@@ -40,9 +40,14 @@ These are built from `validation/fixtures/design/rocketpy-rocket-mass.json`, whi
   - The rockets whose curves RocketPy labels RASAero (both Calisto designs, Juno III, Cavour,
     Valetudo) take RASAero II's default smooth finish (`mirror`), because the exports don't record
     theirs. The others keep the default finish.
-- **Cavour, Genesis and Lince** have no motor dry mass in RocketPy; hpr's motor needs a positive
-  one, so each gets 1e-15 kg. Genesis and Lince are here for their logged flights (M2.3b,
-  `cargo xtask real-flights`), which fly each example's own thrust file in place of the stand-in.
+- **Cavour, Genesis, Lince, Astra, Andromeda and Erebus 11** have no motor dry mass in RocketPy;
+  hpr's motor needs a positive one, so each gets 1e-15 kg. Genesis and Lince are here for their
+  logged flights (M2.3b, `cargo xtask real-flights`), which fly each example's own thrust file in
+  place of the stand-in. Astra, Andromeda and Erebus 11 are here for theirs (M2.3d3,
+  `cargo xtask public-predictions`).
+- **Andromeda** carries the bundled Cesaroni 8429M2020-P, the motor its notebook names, not the
+  curve nearest its team's thrust file (9,867 N·s): the design as committed flies the catalog
+  motor (ADR-334).
 - **Calisto at −1.373 m:** RocketPy's tests give no geometry for this rocket, so it takes the
   `calisto_robust` test fixture's surfaces.
 

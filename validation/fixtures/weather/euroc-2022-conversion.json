@@ -1,0 +1,48 @@
+{
+  "generator": "validation/oracles/netcdf/euroc_2022.py",
+  "command": "refs/venv/bin/python validation/oracles/netcdf/euroc_2022.py > validation/fixtures/weather/euroc-2022-conversion.json",
+  "generated": "2026-11-10",
+  "conversion": "xarray.open_dataset(source).drop_vars([\"number\", \"expver\"], errors=\"ignore\").to_netcdf(out, format=\"NETCDF3_64BIT\")",
+  "packages": {
+    "xarray": "2026.7.0",
+    "netCDF4": "1.7.4",
+    "numpy": "2.5.3",
+    "rocketpy": "1.13.0"
+  },
+  "source": {
+    "path": "refs/rocketpy/data/weather/euroc_2022_all_windows.nc",
+    "sha256": "b4583116c89c9e2b8fb9a88ef61d6f7c2c25329559184f7bde7040694ac0d52d"
+  },
+  "converted": {
+    "path": "refs/converted/rocketpy/euroc_2022_all_windows.nc",
+    "sha256": "3a3b43a749938e07cee8ad1d705dc89dc8a0c1fcac135c76520e17ad8860b003"
+  },
+  "dropped": [
+    "number",
+    "expver"
+  ],
+  "checks": {
+    "field_values_identical": 148000,
+    "times": 40,
+    "pressure_levels": 37,
+    "first_time_unix_s": 1665655200,
+    "last_time_unix_s": 1666026000
+  },
+  "rocketpy_readings": [
+    {
+      "id": "astra",
+      "utc": "2022-10-13T15:00Z",
+      "levels_identical": 37
+    },
+    {
+      "id": "andromeda",
+      "utc": "2022-10-14T13:00Z",
+      "levels_identical": 37
+    },
+    {
+      "id": "erebus-11",
+      "utc": "2022-10-15T15:00Z",
+      "levels_identical": 37
+    }
+  ]
+}
