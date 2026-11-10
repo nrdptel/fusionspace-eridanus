@@ -7,9 +7,13 @@ and [P-high](https://github.com/nrdptel/fusionspace-eridanus/issues?q=is%3Aopen+
 account of each model's accuracy is on the site's model pages and *Accuracy*.
 
 - Two M1.2 sources are pinned from third-party mirrors (MIL-F-8785C, WMO-No. 8). Dryden turbulence
-  is an aircraft model, unvalidated for rockets, and no flight uses it (#39). Only 32 motor curves
-  are bundled (none in class A); the rest wait for M5's cache, whose checks ran on unpinned
-  `refs/samples/`. Wall and fin mass may differ from OpenRocket's (M2.2);
+  is an aircraft model, unvalidated for rockets, and no flight uses it (#39). ThrustCurve.org's
+  whole solid catalog ships (ADR-288, ADR-301), though the site grants no license for its motor
+  records and reserves copyright. 1,084 of its 1,706 curve files carry no license. Records and
+  files are used as published facts, the project's own reading, not legal advice (ADR-287,
+  ADR-288 §2).
+  Motors newer than the snapshot go to M5's cache, whose checks ran on unpinned `refs/samples/`.
+  Wall and fin mass may differ from OpenRocket's (M2.2);
 - `.CDX1` has no public spec, ERA5 `.nc` may be netCDF4. A new RustSec notice can turn CI red with
   no code change. Barrowman 1966, TIR-33, Galejs, the `.rse` spec and Knacke: never redistribute.
 - Aero (M1.5a) is small-angle only; the Recruiter's six fins miss the printed slope by +3.42%
