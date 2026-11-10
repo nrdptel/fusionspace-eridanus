@@ -374,7 +374,7 @@ impl Pieces {
         }
 
         // The structure: a stage wholly in one piece by its own mass, which carries the stage's
-        // overrides; otherwise its components, each by its subtree's mass where that subtree is in
+        // overrides and added mass; otherwise its components, each by its subtree's mass where that subtree is in
         // one piece and by its own mass plus its children's where it isn't.
         let mut structure: Vec<Vec<MassProperties>> = vec![Vec::new(); count];
         for (stage, placed) in assembly.layout.stages.iter().enumerate() {
@@ -397,6 +397,18 @@ impl Pieces {
                 return Err(refuse(
                     "a parting through a stage whose mass is overridden (the override doesn't \
                      say which piece its mass is in)",
+                    &placed.id,
+                ));
+            }
+            if rocket
+                .stages
+                .iter()
+                .find(|stage| stage.id == placed.id)
+                .is_some_and(|stage| stage.added_mass.is_some())
+            {
+                return Err(refuse(
+                    "a parting through a stage that carries an added mass (it doesn't say \
+                     which piece the mass is in)",
                     &placed.id,
                 ));
             }
@@ -2611,6 +2623,33 @@ mod tests {
                 "sustainer".to_owned()
             )
         );
+
+        // Nor can a stage that carries an added mass, with a station or without.
+        for cg_aft_m in [None, Some(0.3)] {
+            let mut rocket = with_payload();
+            rocket.stages[0].added_mass = Some(hpr_design::AddedMass {
+                mass_kg: 1.0,
+                cg_aft_m,
+            });
+            let error = Simulation::new(
+                &rocket,
+                "i175",
+                analytic_environment(UniformAir::sea_level(), G),
+                Rail::vertical(3.0),
+                FlightSettings::default(),
+            )
+            .unwrap()
+            .with_ejections(vec![Ejection::payload(apogee, "payload")])
+            .unwrap_err();
+            assert_eq!(
+                what(error),
+                (
+                    "a parting through a stage that carries an added mass (it doesn't say which \
+                     piece the mass is in)",
+                    "sustainer".to_owned()
+                )
+            );
+        }
 
         // Nor can an airframe whose override covers what it holds lose a payload from inside.
         let mut rocket = with_payload();

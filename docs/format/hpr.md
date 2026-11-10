@@ -119,6 +119,11 @@ in `stages` after the stage it hangs on. Its optional `parallel` key holds:
 A stage on the axis leaves `parallel` out, so a 0.2 document written before it reads
 the same ([Parallel stages](../physics/design.md#parallel-stages)).
 
+A stage can carry mass beyond what its parts weigh, such as glue and paint: its optional
+`added_mass` key holds the mass (`mass_kg`) and, when it has one, its station aft of the stage's
+forward end (`cg_aft_m`). A stage with none leaves the key out, so a 0.2 document written before it
+reads the same ([A stage's added mass](../physics/design.md#a-stages-added-mass)).
+
 A motor that flies is written out in full, its thrust curve included, so a document flies with no
 motor database. That has a consequence for sharing. When a program supplies curves from a motor
 database, as this project's checks supply OpenRocket's, the document holds those curves.

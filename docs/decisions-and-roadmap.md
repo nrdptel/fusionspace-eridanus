@@ -363,6 +363,7 @@ until someone rewrites it in plainer words.
 | [ADR-332: M2.7 in two, the halves and the fits' guard, then predictions first][adr-332] | The private collection's report gives its apogee errors over both halves, as aggregates: of the 60 flights compared, 37 are in the calibration half and 23 held out. A fit across the collection's flights must take its flights through a guard that reads each flight's half from its id again and refuses a held-out one, so `cargo xtask fixture-flights --check` fails when a held-out flight reaches a fit that takes it: the calibration half's fit aggregates, and the report's calibration half, by which the scoreboard's check now holds its collection rows. New flights predicted before their logs are compared are the second increment. |  |
 | [ADR-333: M2.7b, new flights predicted first][adr-333] | A flight the private collection's manifest gains after [M2.7a](#m2-7a) is compared with its log only when the collection holds its prediction, written from the flight's plan alone, and that file's SHA-256 sits in `validation/reports/predictions.sha256` where the branch last took main, so it merged in an earlier pull request; otherwise `fixture-flights` refuses it by id. A committed digest of [M2.7a](#m2-7a)'s 83 manifest ids tells a new flight from an old one. Shown on an invented flight; no flight is new yet, so the list is empty. The scoreboard's held-out rows read the fixture report's held-out half, HPR Sim 16.32% and OpenRocket 24.12 14.98% over 23 flights (bias +13.42% and +11.68%), shown, not held. |  |
 | [ADR-334: M2.3d1 in three, the EuRoC 2022 predictions first][adr-334] | HPR Sim can't fly the Macie XL design yet: its stage's mass override adds to its parts, and HPR Sim holds such a stage back. So the five predictions merge in two pull requests, and no error is computed until both have merged. This record merges the first three, flown from their example notebooks in their launch hours' ERA5 air: Astra 3,037.1 m (9,964 ft), Andromeda 3,581.0 m (11,749 ft) and Erebus 11 2,714.1 m (8,904 ft), as their altimeters would read them. Andromeda is counted on its team's thrust file and tagged *not traced*; the catalog motor's 3,050.3 m (10,008 ft) is shown beside it and never counted. |  |
+| [ADR-335: A stage's added mass, as OpenRocket weighs it][adr-335] | An `.ork` stage whose mass override doesn't cover its parts now flies. OpenRocket 24.12 adds such a mass to what the parts weigh, as a point: at the center of that stage's own parts, or at the stage's center of gravity override when that doesn't cover the parts either. The design holds it as the stage's added mass, and on 17 probe designs HPR Sim's mass, center and inertias are OpenRocket's. A motor aboard doesn't move the added mass. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -682,7 +683,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-3d1"></a>[M2.3d1][phase-1] | The predictions | not yet done |
 | <a id="m2-3d2"></a>[M2.3d2][phase-1] | The errors | not yet done |
 | <a id="m2-3d3"></a>[M2.3d3][done-1] | The EuRoC 2022 predictions | done |
-| <a id="m2-3d4"></a>[M2.3d4][phase-1] | A stage's override that adds to its parts | not yet done |
+| <a id="m2-3d4"></a>[M2.3d4][done-1] | A stage's override that adds to its parts | done |
 | <a id="m2-3d5"></a>[M2.3d5][phase-1] | The Macie XL predictions | not yet done |
 | <a id="m2-4"></a>[M2.4][done-1] | A summary of accuracy for the README, and CI that fails on any regression ([ADR-084][adr-084], [Accuracy: the census](accuracy.md#the-census)) | done |
 | <a id="m2-6"></a>[M2.6][phase-1] | An open benchmark | not yet done |
@@ -1358,6 +1359,7 @@ is the milestone that added or will add that test.
 [adr-332]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md
 [adr-333]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0333-m2-7b-new-flights-predicted-first.md
 [adr-334]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0334-m2-3d1-in-three-the-euroc-2022-predictions-first.md
+[adr-335]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0335-a-stage-s-added-mass-as-openrocket-weighs-it.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

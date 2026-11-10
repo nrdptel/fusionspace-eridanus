@@ -97,6 +97,11 @@ pub struct Stage {
         deserialize_with = "object_only"
     )]
     pub overrides: Overrides,
+    /// Mass the stage carries beyond what its parts weigh ([`AddedMass`]): a point mass, added to
+    /// the parts before `overrides` apply. A parallel stage can't carry one, and neither can a
+    /// stage a parallel stage hangs on ([`Rocket::layout`]).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub added_mass: Option<AddedMass>,
     /// A drag coefficient stated for the stage ([`DragOverride`]): added to the rocket's drag, or,
     /// covering its children, in place of everything in the stage.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -773,6 +778,86 @@ impl Overrides {
     }
 }
 
+/// Mass a stage carries beyond what its parts weigh, such as glue and paint weighed on the
+/// finished rocket: a point mass added to the stage's parts, motors not counted.
+///
+/// With parts of mass `m_p` whose center of mass is at station `x_p`, and an added mass `m_a`:
+///
+/// - **No station** (`cg_aft_m` is `None`): the point sits at the parts' center of mass. The stage
+///   weighs `m_p + m_a`; its center and its inertia about that center are the parts'.
+/// - **A station** `s` aft of the stage's forward end `x_0`: the point sits on the axis at
+///   `x_a = x_0 + s`. The stage weighs `m_p + m_a`, its center is at
+///   `(m_p x_p + m_a x_a) / (m_p + m_a)`, and its inertia about that center is the parts' and the
+///   point's by the parallel-axis theorem ([`MassProperties::combine`]).
+///
+/// The stage's [`Overrides`] apply afterward, to the parts and the added mass together.
+///
+/// This is how OpenRocket 24.12 weighs a stage's mass override that doesn't cover the stage's
+/// parts (`<overridesubcomponentsmass>false</overridesubcomponentsmass>`, or no flag written). Its
+/// user guide says such a value "is added to the calculated value" ([Overrides and Surface
+/// Finish][guide]); where the mass goes is measured on probe designs, which hold this rule's mass,
+/// center and inertia to OpenRocket's ([ADR-335][adr-335]): at the center of the stage's own
+/// parts, with or without a motor aboard, or at the stage's center of gravity override when that
+/// doesn't cover the parts either.
+///
+/// An added mass of zero changes nothing. One with no station on a stage whose parts weigh nothing
+/// has no place to sit, and [`Rocket::layout`] refuses it.
+///
+/// [guide]: https://openrocket.readthedocs.io/en/latest/user_guide/overrides_and_surface_finish.html
+/// [adr-335]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0335-a-stage-s-added-mass-as-openrocket-weighs-it.md
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct AddedMass {
+    /// The mass added, kg.
+    pub mass_kg: f64,
+    /// Where it sits on the axis, m aft of the stage's forward end. `None` puts it at the center
+    /// of mass of the stage's parts.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cg_aft_m: Option<f64>,
+}
+
+impl AddedMass {
+    /// `parts` with this mass added, a station measured from `fore_station_m`.
+    ///
+    /// # Errors
+    ///
+    /// [`DesignError::Domain`] for a negative or non-finite mass, a non-finite station, or a mass
+    /// with no station added to parts that weigh nothing.
+    pub fn add_to(
+        &self,
+        parts: MassProperties,
+        fore_station_m: f64,
+    ) -> Result<MassProperties, DesignError> {
+        check_dimension("added mass (kg)", self.mass_kg, true)?;
+        if let Some(aft) = self.cg_aft_m
+            && !aft.is_finite()
+        {
+            return Err(DesignError::Domain {
+                what: "added mass's station (m)",
+                value: aft,
+            });
+        }
+        if self.mass_kg == 0.0 {
+            return Ok(parts);
+        }
+        let at = match self.cg_aft_m {
+            Some(aft) => DVec3::new(0.0, 0.0, -(fore_station_m + aft)),
+            // Weightless parts have no center of mass for the point to sit at. (`combine` gives
+            // them the average of their places, which is no one's reading of where glue goes.)
+            None if parts.mass_kg > 0.0 => parts.cg_m,
+            None => {
+                return Err(DesignError::Domain {
+                    what: "added mass with no station, on parts that weigh nothing (kg)",
+                    value: self.mass_kg,
+                });
+            }
+        };
+        let out = MassProperties::combine(&[parts, MassProperties::point(self.mass_kg, at)]);
+        out.validate()?;
+        Ok(out)
+    }
+}
+
 /// How the reference diameter (for aerodynamic coefficients) is chosen.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
@@ -892,7 +977,8 @@ pub struct PlacedStage {
     pub aft_station_m: f64,
     /// Its mass properties in body axes, without motors, after its overrides.
     pub mass: MassProperties,
-    /// Whether the stage's own overrides move its center of mass along the axis (`cg_aft_m`).
+    /// Whether the stage's own overrides move its center of mass along the axis (`cg_aft_m`), or
+    /// its added mass sits at a station ([`AddedMass::cg_aft_m`]).
     /// Written before the move to US spelling as `centre_overridden`, which is still read and never written.
     #[serde(default, alias = "centre_overridden")]
     pub center_overridden: bool,
@@ -1010,7 +1096,8 @@ impl Rocket {
     ///   place (an attached part in a stage's list, a body component attached anywhere but in a pod
     ///   set, anything else in a pod set, fins or pods on anything but a body tube, a pod set in a
     ///   pod, children under anything but a body component, inner tube or pod set), a pod set with
-    ///   an override that doesn't cover its pods, a missing or
+    ///   an override that doesn't cover its pods, an added mass on a parallel stage or on the
+    ///   stage one hangs on, a missing or
     ///   unexpected position, an automatic dimension that doesn't apply or can't be resolved, or a
     ///   motor mount on anything but a body tube or inner tube.
     /// - [`DesignError::Domain`] for a pod set of no pods or more than [`PodSet::MAX_COUNT`], a
@@ -1057,6 +1144,20 @@ impl Rocket {
                 return Err(tree(
                     &stage.id,
                     "a parallel stage is placed along the tube it hangs on, not after a sibling",
+                ));
+            }
+            // An added mass sits at the center of its stage's parts or at a station from the
+            // stage's forward end. Whether a parallel stage's parts count among the stage it hangs
+            // on, and where a parallel stage's own added mass sits among its pods, is not measured.
+            if stage.added_mass.is_some() || self.stages[carrier.stage].added_mass.is_some() {
+                return Err(tree(
+                    &stage.id,
+                    format!(
+                        "a parallel stage hangs on `{}`, and it or the stage it hangs on carries \
+                         an added mass. Where that mass sits beside a parallel stage isn't \
+                         measured",
+                        on.id
+                    ),
                 ));
             }
             // A mass override that covers what the tube holds, or the whole stage it is in, doesn't
@@ -1154,17 +1255,23 @@ impl Rocket {
         let carriers = self.carriers()?;
         for ((stage, masses), ends) in self.stages.iter().zip(&masses.masses).zip(&masses.ends) {
             let (fore, aft) = ends.unwrap_or((0.0, 0.0));
-            let mass = stage
-                .overrides
-                .apply(MassProperties::combine(masses), fore)
-                .map_err(|e| within(&stage.id, e))?;
+            let parts = MassProperties::combine(masses);
+            let mass = match stage.added_mass {
+                Some(added) => added.add_to(parts, fore),
+                None => Ok(parts),
+            }
+            .and_then(|mass| stage.overrides.apply(mass, fore))
+            .map_err(|e| within(&stage.id, e))?;
             let hung_on = carriers[stages.len()].map(|carrier| carrier.stage);
             stages.push(PlacedStage {
                 id: stage.id.clone(),
                 fore_station_m: fore,
                 aft_station_m: aft,
                 mass,
-                center_overridden: stage.overrides.sets_axial_center(),
+                center_overridden: stage.overrides.sets_axial_center()
+                    || stage
+                        .added_mass
+                        .is_some_and(|added| added.cg_aft_m.is_some()),
                 drag_override: stage.drag_override,
                 hung_on,
             });
@@ -2855,6 +2962,18 @@ mod tests {
         tube.layout().unwrap();
         tube.stages[0].components[1].overrides_include_children = true;
         refused(&tube, covered);
+        // An added mass, on the parallel stage or on the stage it hangs on: where it sits beside
+        // the pods isn't measured.
+        for stage in [0, 1] {
+            for cg_aft_m in [None, Some(0.1)] {
+                let mut added = boosted(2, 0.0);
+                added.stages[stage].added_mass = Some(AddedMass {
+                    mass_kg: 0.1,
+                    cg_aft_m,
+                });
+                refused(&added, "carries an added mass");
+            }
+        }
         // Its pods are checked as a pod set's: a part that isn't a body component in the stack.
         let mut loose = boosted(2, 0.0);
         loose.stages[1].components[0] = attached("pod-tube", fins(0.1, 0.06), top(0.0));
@@ -3480,6 +3599,15 @@ mod tests {
         );
         assert_eq!(layout.structure, stage_mass);
 
+        // An added mass comes before the stage's override, which covers it too.
+        design.stages[0].added_mass = Some(AddedMass {
+            mass_kg: 1.0,
+            cg_aft_m: Some(0.1),
+        });
+        let under = design.layout().unwrap().stages[0].mass;
+        close(under.mass_kg, 3.0, 0.0, "stage mass over an added mass");
+        close(under.cg_m.z, -0.5, 1e-15, "stage center over an added mass");
+
         // A massless body given a mass becomes a point mass at its center.
         let center = DVec3::new(0.0, 0.0, -0.4);
         let point = Overrides {
@@ -3990,6 +4118,163 @@ mod tests {
     /// A layout written before the move to US spelling, its parts and stages holding
     /// `centre_overridden`, reads as the same layout: a part and a stage that set an axial center
     /// hold `true` under the old key, which a missing alias would read as `false`.
+    /// A stage's added mass is a point mass among its parts ([`AddedMass`]), worked by hand: with
+    /// no station it sits at the parts' center and moves nothing; with one it sits on the axis
+    /// that far aft of its own stage's forward end, and the stage's center and inertia follow
+    /// the parallel-axis theorem. A whole-stage center override then moves the two together.
+    #[test]
+    fn a_stages_added_mass_is_a_point_among_its_parts() {
+        // Two stages, so that the lower one's forward end isn't the tip.
+        let mut design = three_fin_rocket();
+        let mut booster = design.stages[0].clone();
+        booster.id = "booster".to_owned();
+        booster
+            .components
+            .retain(|c| matches!(c.part, Part::BodyTube(_)));
+        for (index, component) in booster.components.iter_mut().enumerate() {
+            component.id = format!("booster-{index}");
+            component.children.clear();
+        }
+        design.stages.push(booster);
+        let plain = design.layout().unwrap();
+        let parts = plain.stages[1].mass;
+        let fore = plain.stages[1].fore_station_m;
+        assert!(fore > 0.5 && parts.mass_kg > 0.0, "{fore} {parts:?}");
+        let with = |added: Option<AddedMass>, overrides: Overrides| {
+            let mut design = design.clone();
+            design.stages[1].added_mass = added;
+            design.stages[1].overrides = overrides;
+            design.layout()
+        };
+        let none = Overrides::default();
+        let pitch = |mass: &MassProperties| mass.inertia_kg_m2.x_axis.x;
+        let roll = |mass: &MassProperties| mass.inertia_kg_m2.z_axis.z;
+
+        // No station: at the parts' center. Only the mass changes.
+        let added = AddedMass {
+            mass_kg: 0.5,
+            cg_aft_m: None,
+        };
+        let layout = with(Some(added), none).unwrap();
+        let stage = layout.stages[1].mass;
+        close(stage.mass_kg, parts.mass_kg + 0.5, 1e-15, "mass");
+        close(stage.cg_m.z, parts.cg_m.z, 1e-15, "center");
+        close(pitch(&stage), pitch(&parts), 1e-12, "pitch inertia");
+        close(roll(&stage), roll(&parts), 1e-15, "roll inertia");
+        assert!(!layout.stages[1].center_overridden);
+        // The other stage is untouched, and the rocket is the two stages.
+        assert_eq!(layout.stages[0], plain.stages[0]);
+        close(
+            layout.structure.mass_kg,
+            plain.structure.mass_kg + 0.5,
+            1e-15,
+            "rocket mass",
+        );
+
+        // A station, 0.1 m aft of the lower stage's forward end.
+        let stationed = AddedMass {
+            mass_kg: 0.5,
+            cg_aft_m: Some(0.1),
+        };
+        let layout = with(Some(stationed), none).unwrap();
+        let stage = layout.stages[1].mass;
+        let (m_p, x_p, x_a) = (parts.mass_kg, -parts.cg_m.z, fore + 0.1);
+        let x = (m_p * x_p + 0.5 * x_a) / (m_p + 0.5);
+        close(stage.mass_kg, m_p + 0.5, 1e-15, "mass");
+        close(-stage.cg_m.z, x, 1e-15, "center");
+        assert!(
+            (x - x_p).abs() > 0.01,
+            "the point moves the center: {x} {x_p}"
+        );
+        close(
+            pitch(&stage),
+            pitch(&parts) + m_p * (x_p - x).powi(2) + 0.5 * (x_a - x).powi(2),
+            1e-12,
+            "pitch inertia",
+        );
+        close(roll(&stage), roll(&parts), 1e-15, "roll inertia");
+        assert_eq!((stage.cg_m.x, stage.cg_m.y), (0.0, 0.0));
+        assert!(layout.stages[1].center_overridden);
+
+        // A whole-stage center moves the parts and the added mass together; a whole-stage mass
+        // is the two together's.
+        let center = Overrides {
+            cg_aft_m: Some(0.3),
+            ..Overrides::default()
+        };
+        let stage = with(Some(added), center).unwrap().stages[1].mass;
+        close(stage.mass_kg, m_p + 0.5, 1e-15, "mass under a center");
+        close(-stage.cg_m.z, fore + 0.3, 1e-15, "center under a center");
+        close(
+            pitch(&stage),
+            pitch(&parts),
+            1e-12,
+            "inertia under a center",
+        );
+        let heavy = Overrides {
+            mass_kg: Some(4.0),
+            ..Overrides::default()
+        };
+        let stage = with(Some(stationed), heavy).unwrap().stages[1].mass;
+        close(stage.mass_kg, 4.0, 0.0, "mass under a mass");
+        close(-stage.cg_m.z, x, 1e-15, "center under a mass");
+
+        // Nothing added changes nothing, at a station or not.
+        for cg_aft_m in [None, Some(0.1)] {
+            let nothing = AddedMass {
+                mass_kg: 0.0,
+                cg_aft_m,
+            };
+            let layout = with(Some(nothing), none).unwrap();
+            assert_eq!(layout.stages[1].mass, plain.stages[1].mass);
+            assert_eq!(layout.structure, plain.structure);
+        }
+
+        // Refused: a negative or non-finite mass, a non-finite station, and a mass with no
+        // station on parts that weigh nothing.
+        let what = |added: AddedMass, parts: MassProperties| match added.add_to(parts, 0.0) {
+            Err(DesignError::Domain { what, .. }) => what,
+            other => panic!("{other:?}"),
+        };
+        for mass_kg in [-0.1, f64::NAN, f64::INFINITY] {
+            let bad = AddedMass {
+                mass_kg,
+                cg_aft_m: None,
+            };
+            assert_eq!(what(bad, parts), "added mass (kg)");
+            assert!(with(Some(bad), none).is_err());
+        }
+        for station in [f64::NAN, f64::NEG_INFINITY] {
+            let bad = AddedMass {
+                mass_kg: 0.5,
+                cg_aft_m: Some(station),
+            };
+            assert_eq!(what(bad, parts), "added mass's station (m)");
+        }
+        let weightless = MassProperties::point(0.0, DVec3::new(0.0, 0.0, -0.4));
+        assert_eq!(
+            what(added, weightless),
+            "added mass with no station, on parts that weigh nothing (kg)"
+        );
+        // With a station the point is the whole stage.
+        assert_eq!(
+            stationed.add_to(weightless, 1.0).unwrap(),
+            MassProperties::point(0.5, DVec3::new(0.0, 0.0, -1.1))
+        );
+
+        // It is written only when there is one, and read back the same.
+        let json = serde_json::to_string(&design).unwrap();
+        assert!(!json.contains("added_mass"), "{json}");
+        let mut carrying = design.clone();
+        carrying.stages[1].added_mass = Some(stationed);
+        let json = serde_json::to_string(&carrying).unwrap();
+        assert!(
+            json.contains(r#""added_mass":{"mass_kg":0.5,"cg_aft_m":0.1}"#),
+            "{json}"
+        );
+        assert_eq!(serde_json::from_str::<Rocket>(&json).unwrap(), carrying);
+    }
+
     #[test]
     fn a_layout_with_the_old_uk_key_reads_the_same() {
         let mut design = three_fin_rocket();

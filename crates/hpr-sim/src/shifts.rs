@@ -48,7 +48,8 @@ pub const SHIFT_STOPS: usize = 16;
 /// can't be a body component or an external one, one copy of a cluster's, or hold a motor (the
 /// motor would stay where it is). Its mass can't be under an override: not its stage's, and not
 /// one on a component around it that covers what that component holds, since the override doesn't
-/// say how much of the mass is the part's. Shifts of one part add; a part can't move inside
+/// say how much of the mass is the part's. Its stage can't carry an added mass
+/// ([`hpr_design::AddedMass`]) either: that isn't flown yet. Shifts of one part add; a part can't move inside
 /// another part that moves. Every shift of a part, forward ones together and aft ones together,
 /// must keep it inside the component that holds it, or no further out than the design already
 /// puts it.
@@ -123,6 +124,9 @@ pub(crate) enum NotCarried {
     HoldsMotor,
     /// Its stage's mass is overridden, and the override doesn't say how much of it is the part's.
     StageOverride,
+    /// Its stage carries an added mass ([`hpr_design::AddedMass`]), which with no station sits at
+    /// the center of the stage's parts: a center the part's leaving or moving would change.
+    StageAddedMass,
     /// A component around it has an overridden mass that covers what it holds.
     CoveredOverride,
 }
@@ -180,6 +184,14 @@ pub(crate) fn check_carried(
         .is_some_and(|written| !written.overrides.is_empty())
     {
         return Err(NotCarried::StageOverride);
+    }
+    if rocket
+        .stages
+        .iter()
+        .find(|written| written.id == stage.id)
+        .is_some_and(|written| written.added_mass.is_some())
+    {
+        return Err(NotCarried::StageAddedMass);
     }
     let mut at = components[index].parent;
     while let Some(parent) = at {
@@ -332,6 +344,11 @@ impl Shifts {
                         NotCarried::StageOverride => {
                             "a mass shift in a stage whose mass is overridden (the override \
                              doesn't say how much of it is the part's)"
+                        }
+                        NotCarried::StageAddedMass => {
+                            "a mass shift in a stage that carries an added mass, which isn't \
+                             flown yet (with no station that mass sits at the center of the \
+                             stage's parts, which the shift would move)"
                         }
                         NotCarried::CoveredOverride => {
                             "a mass shift inside a component whose overridden mass covers what it \
@@ -1062,6 +1079,21 @@ mod tests {
             "{what}"
         );
         assert_eq!(id, "ballast");
+
+        // A stage that carries an added mass, with a station or without.
+        for cg_aft_m in [None, Some(0.3)] {
+            let mut added = with_ballast(0.0);
+            added.stages[0].added_mass = Some(hpr_design::AddedMass {
+                mass_kg: 1.0,
+                cg_aft_m,
+            });
+            let (what, id) = shift_refusal(lenient(&added), vec![move_by("ballast", 0.1)]);
+            assert!(
+                what.starts_with("a mass shift in a stage that carries an added mass"),
+                "{what}"
+            );
+            assert_eq!(id, "ballast");
+        }
 
         // A holder whose overridden mass covers what it holds; one covering itself alone is fine.
         for covers_children in [false, true] {

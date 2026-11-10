@@ -53,8 +53,8 @@ pub use parts::{
 pub use shapes::{NoseShape, Profile};
 pub use solids::{RevolvedGeometry, Wall, revolve};
 pub use tree::{
-    AutoDimension, Component, DragOverride, InertiaOverride, Layout, Overrides, ParallelStage,
-    Part, PlacedComponent, PlacedStage, Position, ReferenceDiameter, Rocket, Stage,
+    AddedMass, AutoDimension, Component, DragOverride, InertiaOverride, Layout, Overrides,
+    ParallelStage, Part, PlacedComponent, PlacedStage, Position, ReferenceDiameter, Rocket, Stage,
     UnresolvableRadius,
 };
 

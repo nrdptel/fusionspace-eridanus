@@ -38,7 +38,7 @@ use super::super::attached::cluster_pattern;
 use super::super::document::Element;
 use super::super::extensions::{OpenRocketExtension, tag_key};
 use super::super::left_out::{Around, Counted, Covered, Lean, NOTHING_DEPENDS};
-use super::super::value::Dimension;
+use super::super::value::{Dimension, OVERRIDE_FLAGS};
 use super::super::warning::{Warning, WarningKind};
 use super::xml::{self, Build as _};
 use super::{motors, recovery};
@@ -246,15 +246,7 @@ impl<'a> Writer<'a> {
         let mut element = xml::element("stage");
         element.leaf("name", stage.name.clone());
         self.id(&mut element, at, "stage", &stage.id);
-        // A stage's override is the whole stage's, so it covers everything inside it.
-        let covers = !stage.overrides.is_empty();
-        self.overrides(
-            &mut element,
-            at,
-            &stage.overrides,
-            covers,
-            stage.drag_override,
-        );
+        self.stage_overrides(&mut element, at, stage);
         self.copies(&mut element, at);
         for tag in recovery::stage(design, index, stage) {
             element.push(tag);
@@ -364,6 +356,13 @@ impl<'a> Writer<'a> {
         if let Some(parallel) = &stage.parallel {
             axial_offset(&mut element, parallel.position);
             self.pod_set(&mut element, at, &parallel.pods);
+        }
+        if stage.added_mass.is_some() {
+            self.warn(
+                at,
+                "an added mass on a parallel stage, which HPR Sim doesn't lay out \
+                 (`Rocket::layout` refuses it); it was left out",
+            );
         }
         // A stage's override is the whole stage's, so it covers everything inside it.
         let covers = !stage.overrides.is_empty();
@@ -1139,6 +1138,59 @@ impl<'a> Writer<'a> {
         }
     }
 
+    /// An axial stage's override tags, as the reader reads them back (`stage_overrides` in
+    /// `super::super::component`).
+    ///
+    /// An override is the whole stage's, so its flags say it covers the stage's parts. An added
+    /// mass ([`hpr_design::AddedMass`]) is a mass override that doesn't cover them: with a
+    /// station, beside a center of gravity override that doesn't either; with none, alone or
+    /// beside the whole stage's center, whose flag says it covers the parts.
+    ///
+    /// A `.ork` has one mass tag and one center tag, so it can't say an added mass beside a
+    /// whole-stage mass override, or an added mass's station beside a whole-stage center. The
+    /// added mass is then left out, with a warning.
+    fn stage_overrides(&mut self, element: &mut Element, at: &str, stage: &Stage) {
+        let whole = &stage.overrides;
+        let drag = stage.drag_override;
+        let added = match stage.added_mass {
+            Some(added)
+                if whole.mass_kg.is_some()
+                    || (added.cg_aft_m.is_some() && whole.cg_aft_m.is_some()) =>
+            {
+                self.warn(
+                    at,
+                    "a stage's added mass beside an override of the whole stage's mass, or its \
+                     station beside one of the whole stage's center of gravity, which a `.ork` \
+                     can't say together; the added mass was left out. Read back, the stage \
+                     weighs what its override says, or the added mass less",
+                );
+                None
+            }
+            added => added,
+        };
+        let Some(added) = added else {
+            self.overrides(element, at, whole, !whole.is_empty(), drag);
+            return;
+        };
+        element
+            .maybe_number("overridemass", Some(added.mass_kg))
+            .maybe_number("overridecg", added.cg_aft_m.or(whole.cg_aft_m))
+            .maybe_number("overridecd", drag.map(|d| d.coefficient));
+        let kept_flags = OVERRIDE_FLAGS.iter().any(|name| self.keeps_tag(at, name));
+        if !kept_flags {
+            element.flag("overridesubcomponentsmass", false);
+            if added.cg_aft_m.is_some() || whole.cg_aft_m.is_some() {
+                element.flag("overridesubcomponentscg", added.cg_aft_m.is_none());
+            }
+            if let Some(drag) = drag {
+                element.flag("overridesubcomponentscd", drag.include_children);
+            }
+        }
+        if let Some(message) = left_out_overrides(whole) {
+            self.warn(at, message);
+        }
+    }
+
     /// The finish, by the word the reader turns into its roughness.
     ///
     /// OpenRocket and HPR Sim's reader take an outside part with none as regular paint, 60 µm
@@ -1515,7 +1567,7 @@ pub(super) fn is_uuid(text: &str) -> bool {
 
 #[cfg(test)]
 pub(super) mod tests {
-    use hpr_design::Finish;
+    use hpr_design::{AddedMass, Finish};
 
     use super::super::super::{Design, design, read};
     use super::super::document;
@@ -2759,13 +2811,15 @@ pub(super) mod tests {
         }
     }
 
-    /// A stage's override that doesn't cover the stage's parts, which OpenRocket adds to them
-    /// (#1225), holds the design back with a `Dropped` warning naming the flag. The override is
-    /// left out of the design and its tags are written back as the file had them, with no flag of
-    /// the writer's own, so the file read back says the same and is held back again. A stage
-    /// override that covers its parts, or a drag override alone, is read and written as before.
+    /// A stage's override that doesn't cover the stage's parts is read as OpenRocket 24.12 weighs
+    /// it (ADR-335) and raises no warning, so the design flies: a mass is added to the parts
+    /// ([`AddedMass`]), at the station of a center of gravity override that doesn't cover them
+    /// either; a center of gravity override that covers them is the whole stage's; one alone that
+    /// doesn't changes nothing, and is kept as the file wrote it. Written, each says the same
+    /// again with the per-quantity flags, and reads back as the same design. A stage override
+    /// that covers its parts, or a drag override alone, is read and written as before.
     #[test]
-    fn a_stage_override_not_covering_its_parts_is_held_and_written_back() {
+    fn a_stage_override_not_covering_its_parts_is_read_and_written_back() {
         let stage = |tags: &str| {
             tube_of("").replacen(
                 "<id>sustainer</id>",
@@ -2773,85 +2827,142 @@ pub(super) mod tests {
                 1,
             )
         };
-        let cases: [(String, &str, &Holds<'_>); 5] = [
+        let added = |mass_kg, cg_aft_m| Some(AddedMass { mass_kg, cg_aft_m });
+        let whole = |mass_kg, cg_aft_m| Overrides {
+            mass_kg,
+            cg_aft_m,
+            ..Overrides::default()
+        };
+        const MASS: &str = "<overridemass>2.5</overridemass>";
+        const CENTER: &str = "<overridecg>0.4</overridecg>";
+        const MASS_FALSE: &str = "<overridesubcomponentsmass>false</overridesubcomponentsmass>";
+        const MASS_TRUE: &str = "<overridesubcomponentsmass>true</overridesubcomponentsmass>";
+        const CENTER_FALSE: &str = "<overridesubcomponentscg>false</overridesubcomponentscg>";
+        const CENTER_TRUE: &str = "<overridesubcomponentscg>true</overridesubcomponentscg>";
+        type Case<'a> = (String, Option<AddedMass>, Overrides, &'a Holds<'a>);
+        let cases: [Case<'_>; 10] = [
+            // The mass alone: its flag false, not written, or the single older flag saying false.
             (
-                stage(
-                    "<overridemass>2.0</overridemass>\
-                     <overridesubcomponentsmass>false</overridesubcomponentsmass>",
-                ),
-                "`overridesubcomponentsmass` is false",
-                &[
-                    ("<overridemass>2.0</overridemass>", 1),
-                    (
-                        "<overridesubcomponentsmass>false</overridesubcomponentsmass>",
-                        1,
-                    ),
-                    ("<overridesubcomponentsmass>", 1),
-                ],
+                stage(&format!("{MASS}{MASS_FALSE}")),
+                added(2.5, None),
+                whole(None, None),
+                &[(MASS, 1), (MASS_FALSE, 1), ("<overridesubcomponentscg>", 0)],
             ),
             (
-                stage("<overridemass>2.0</overridemass>"),
-                "`overridesubcomponentsmass` isn't written",
-                &[
-                    ("<overridemass>2.0</overridemass>", 1),
-                    ("<overridesubcomponents", 0),
-                ],
+                stage(MASS),
+                added(2.5, None),
+                whole(None, None),
+                &[(MASS, 1), (MASS_FALSE, 1)],
             ),
             (
-                stage(
-                    "<overridesubcomponents>false</overridesubcomponents>\
-                     <overridemass>2.0</overridemass>",
-                ),
-                "`overridesubcomponents` is false",
+                stage(&format!(
+                    "<overridesubcomponents>false</overridesubcomponents>{MASS}"
+                )),
+                added(2.5, None),
+                whole(None, None),
+                &[(MASS, 1), (MASS_FALSE, 1), ("<overridesubcomponents>", 0)],
+            ),
+            // The center alone changes nothing: left out, and kept as written.
+            (
+                stage(&format!("{CENTER}{CENTER_FALSE}")),
+                None,
+                whole(None, None),
                 &[
-                    ("<overridesubcomponents>false</overridesubcomponents>", 1),
+                    (CENTER, 1),
+                    (CENTER_FALSE, 1),
                     ("<overridesubcomponentsmass>", 0),
                 ],
             ),
             (
-                stage(
-                    "<overridecg>0.4</overridecg>\
-                     <overridesubcomponentscg>false</overridesubcomponentscg>",
-                ),
-                "`overridesubcomponentscg` is false",
-                &[
-                    ("<overridecg>0.4</overridecg>", 1),
-                    (
-                        "<overridesubcomponentscg>false</overridesubcomponentscg>",
-                        1,
-                    ),
-                    ("<overridesubcomponentsmass>", 0),
-                ],
+                stage(CENTER),
+                None,
+                whole(None, None),
+                &[(CENTER, 1), ("<overridesubcomponents", 0)],
+            ),
+            // Both, neither covering the parts: the mass sits at the center's station.
+            (
+                stage(&format!("{MASS}{CENTER}{MASS_FALSE}{CENTER_FALSE}")),
+                added(2.5, Some(0.4)),
+                whole(None, None),
+                &[(MASS, 1), (CENTER, 1), (MASS_FALSE, 1), (CENTER_FALSE, 1)],
+            ),
+            (
+                stage(&format!("{MASS}{CENTER}")),
+                added(2.5, Some(0.4)),
+                whole(None, None),
+                &[(MASS, 1), (CENTER, 1), (MASS_FALSE, 1), (CENTER_FALSE, 1)],
+            ),
+            // The mass added, under a center that covers the parts and the mass together.
+            (
+                stage(&format!("{MASS}{CENTER}{MASS_FALSE}{CENTER_TRUE}")),
+                added(2.5, None),
+                whole(None, Some(0.4)),
+                &[(MASS, 1), (CENTER, 1), (MASS_FALSE, 1), (CENTER_TRUE, 1)],
+            ),
+            // A mass that covers the parts beside a center that doesn't weighs as both covering
+            // them do, and is written so.
+            (
+                stage(&format!("{MASS}{CENTER}{MASS_TRUE}{CENTER_FALSE}")),
+                None,
+                whole(Some(2.5), Some(0.4)),
+                &[(MASS, 1), (CENTER, 1), (MASS_TRUE, 1), (CENTER_TRUE, 1)],
             ),
             // A drag override beside it is still read, and its flag written back once.
             (
-                stage(
-                    "<overridemass>2.0</overridemass>\
-                     <overridesubcomponentsmass>false</overridesubcomponentsmass>\
-                     <overridecd>0.5</overridecd>\
-                     <overridesubcomponentscd>true</overridesubcomponentscd>",
-                ),
-                "`overridesubcomponentsmass` is false",
+                stage(&format!(
+                    "{MASS}{MASS_FALSE}<overridecd>0.5</overridecd>\
+                     <overridesubcomponentscd>true</overridesubcomponentscd>"
+                )),
+                added(2.5, None),
+                whole(None, None),
                 &[
-                    (
-                        "<overridesubcomponentsmass>false</overridesubcomponentsmass>",
-                        1,
-                    ),
+                    (MASS_FALSE, 1),
                     ("<overridesubcomponentscd>true</overridesubcomponentscd>", 1),
                     ("<overridecd>", 1),
                 ],
             ),
         ];
-        for (xml, warning, tags) in &cases {
-            let (held, _) = kept_as_written(xml, Some(warning), tags);
-            let stage = &held.rocket.stages[0];
-            assert_eq!(stage.overrides, Overrides::default(), "{warning}");
-            let file = read(uuids(xml).as_bytes())
-                .expect("the test design reads")
-                .value;
-            let warnings = design(&file).warnings;
-            assert_eq!(warnings.len(), 1, "{warnings:?}");
-            assert_eq!(warnings[0].kind, crate::ork::WarningKind::Dropped);
+        for (xml, added, whole, tags) in &cases {
+            let (read, text) = kept_as_written(xml, None, tags);
+            let stage = &read.rocket.stages[0];
+            assert_eq!(stage.added_mass, *added, "{text}");
+            assert_eq!(stage.overrides, *whole, "{text}");
+        }
+        // A flag that says neither is warned of where it is read, which holds the design back,
+        // and is written back as the file had it.
+        let (unreadable, _) = kept_as_written(
+            &stage(&format!(
+                "{MASS}<overridesubcomponentsmass>maybe</overridesubcomponentsmass>"
+            )),
+            Some("neither true nor false"),
+            &[
+                (MASS, 1),
+                (
+                    "<overridesubcomponentsmass>maybe</overridesubcomponentsmass>",
+                    1,
+                ),
+                ("<overridesubcomponentsmass>", 1),
+            ],
+        );
+        assert_eq!(unreadable.rocket.stages[0].added_mass, added(2.5, None));
+        // What a `.ork` can't say: an added mass beside a whole-stage mass, or a station beside a
+        // whole-stage center. The added mass is left out, with a warning.
+        let (mut design, _) = kept_as_written(&cases[5].0, None, &[]);
+        for overrides in [whole(Some(3.0), None), whole(None, Some(0.2))] {
+            design.rocket.stages[0].overrides = overrides;
+            let written = document(&design);
+            assert_eq!(written.warnings.len(), 1, "{:?}", written.warnings);
+            assert!(
+                written.warnings[0]
+                    .message
+                    .contains("which a `.ork` can't say together"),
+                "{:?}",
+                written.warnings
+            );
+            let text = written.value.to_xml();
+            assert_eq!(text.matches(MASS).count(), 0, "{text}");
+            assert_eq!(text.matches(MASS_FALSE).count(), 0, "{text}");
+            assert_eq!(text.matches(CENTER_FALSE).count(), 0, "{text}");
         }
         // Covering its parts, or a drag override alone: read, flown and written as before.
         let (covering, _) = kept_as_written(

@@ -549,66 +549,268 @@ mod tests {
         }
     }
 
-    /// A stage override that doesn't cover the stage's parts, by a flag of `false` or by none
-    /// written, with the flag the warning names (#1225).
-    const STAGE_NOT_COVERING: [(&str, &str); 4] = [
+    /// Stages whose mass override doesn't cover their parts, or whose center of gravity override
+    /// doesn't, with no override that covers them: by a flag of `false`, by none written, and by
+    /// the single older flag; on one stage and on a rocket of two; over a part with an override of
+    /// its own; and a mass of nothing.
+    const STAGE_ADDS: [&str; 17] = [
+        "a mass override on the stage, not its parts",
+        "a centre of gravity override on the stage, not its parts",
+        "both overrides on the stage, not its parts",
+        "a mass override on the stage with no flag",
+        "both overrides on the stage with no flag",
+        "a center of gravity override on the stage with no flag",
+        "a mass override on the stage, not its parts, over a part's own",
+        "both overrides on the stage, not its parts, over a part's own",
+        "a mass override of nothing on the stage, not its parts",
+        "both overrides on the stage, not its parts, the center ahead of the tip",
+        "the old flag, false, on a stage's mass override, schema 1.4",
+        "the old flag, false, on both of a stage's overrides, schema 1.4",
+        "two stages with no override",
+        "a lower stage's mass override, not its parts",
+        "a lower stage's overrides, not its parts",
+        "an upper stage's mass override, not its parts, above another stage",
+        "two stages' overrides, not their parts",
+    ];
+
+    /// Stages with an override that covers their parts: a center of gravity override alone, one
+    /// beside a mass override that doesn't cover them, and a mass override beside a center of
+    /// gravity override that doesn't. Each with how far hpr's roll and pitch inertias are from
+    /// OpenRocket's (relative): the departure ADR-061 wrote for an override that covers the parts.
+    const STAGE_WHOLE: [(&str, [f64; 2]); 5] = [
+        ("a center of gravity override on the stage", [0.0, -0.1104]),
         (
-            "a mass override on the stage, not its parts",
-            "`overridesubcomponentsmass` is false",
+            "a mass override on the stage, not its parts, and a center that covers them",
+            [0.0, -0.1104],
         ),
         (
-            "a centre of gravity override on the stage, not its parts",
-            "`overridesubcomponentscg` is false",
+            "a lower stage's mass override, not its parts, and a center that covers them",
+            [0.0, 0.015],
         ),
         (
-            "both overrides on the stage, not its parts",
-            "`overridesubcomponentsmass` is false",
+            "a mass override that covers the stage's parts and a center that doesn't",
+            [4.005, 3.4526],
         ),
         (
-            "a mass override on the stage with no flag",
-            "`overridesubcomponentsmass` isn't written",
+            "a lower stage's mass override that covers its parts and a center that doesn't",
+            [2.5576, 0.1849],
         ),
     ];
 
-    /// OpenRocket 24.12 adds a stage's mass override that doesn't cover the stage's parts to what
-    /// the parts weigh, whether its flag is `false` or not written, and leaves a center of gravity
-    /// override alone without effect. HPR Sim reads a stage's override as the whole stage's, which
-    /// would make these stages 2 kg, or move the parts' center to 0.4 m. So each is held back by a
-    /// warning naming the flag, and the override is left out of the held design: the parts alone.
-    /// (`hpr_io`'s own test pins the warning's kind and the export of the kept tags.)
+    /// Where one of a stage's overrides covers its parts, the stage's mass and center are still
+    /// OpenRocket 24.12's, and nothing is warned of:
+    ///
+    /// - A mass override that doesn't cover the parts, beside a center of gravity override that
+    ///   does: the mass is added to the parts, and the center of the two together is the
+    ///   override's.
+    /// - A mass override that covers the parts, beside a center of gravity override that doesn't:
+    ///   OpenRocket weighs it exactly as it does both covering them (the first assertion below),
+    ///   and so does HPR Sim.
+    ///
+    /// The inertia is hpr's own rule wherever an override covers the parts (ADR-061, unchanged
+    /// by ADR-335): hpr moves the assembly whole to a center that covers it, and scales its
+    /// inertia with a mass that covers it; OpenRocket leaves the parts where they were. The
+    /// differences are pinned, as [`INERTIA`]'s are.
     #[test]
-    fn a_stage_override_not_covering_its_parts_is_held_back() {
+    fn a_stage_override_covering_its_parts_beside_one_that_does_not() {
         let record = record();
-        let parts_kg = both(probe(
-            &record,
-            "a mass override on the stage, not its parts",
-        ))
-        .1[0]
-            - 2.0;
-        for (question, said) in STAGE_NOT_COVERING {
+        let structure = |question: &str| both(probe(&record, question)).1;
+        assert_eq!(
+            structure("a mass override that covers the stage's parts and a center that doesn't"),
+            structure("both overrides on the stage")
+        );
+        for (question, pinned) in STAGE_WHOLE {
             let (ours, theirs, warnings) = both(probe(&record, question));
-            let added = if question.contains("gravity") {
-                0.0
-            } else {
-                2.0
-            };
+            assert!(warnings.is_empty(), "{question}: {warnings:?}");
             assert!(
-                relative(theirs[0], parts_kg + added).abs() < 1e-9,
-                "{question}: OpenRocket weighs {} kg",
-                theirs[0]
+                relative(ours[0], theirs[0]).abs() < 5e-7,
+                "{question}: mass {ours:?} {theirs:?}"
             );
-            // The held design leaves the override out: the parts alone.
             assert!(
-                relative(ours[0], parts_kg).abs() < 1e-6,
-                "{question}: {ours:?} {theirs:?}"
+                (ours[1] - theirs[1]).abs() < 2e-7,
+                "{question}: center {ours:?} {theirs:?}"
             );
-            let held: Vec<&String> = warnings
-                .iter()
-                .filter(|w| w.contains("doesn't cover its parts"))
-                .collect();
-            assert_eq!(held.len(), 1, "{question}: {warnings:?}");
-            assert!(held[0].contains(said), "{question}: {held:?}");
+            let found = [2, 3].map(|k| (relative(ours[k], theirs[k]) * 1e4).round() / 1e4);
+            assert_eq!(found, pinned, "{question}");
         }
+    }
+
+    /// OpenRocket 24.12 adds a stage's mass override that doesn't cover the stage's parts to what
+    /// the parts weigh, whether its flag is `false` or not written: as a point at the center of
+    /// that stage's own parts, or, beside a center of gravity override that doesn't cover the
+    /// parts either, at that override's station from the stage's forward end. A center of gravity
+    /// override alone that doesn't cover the parts changes nothing. HPR Sim reads each the same
+    /// way ([`hpr_design::AddedMass`], ADR-335), so the mass, the center and both inertias are
+    /// OpenRocket's, and nothing is warned of: the design flies.
+    #[test]
+    fn a_stage_override_not_covering_its_parts_adds_to_them() {
+        let record = record();
+        for question in STAGE_ADDS {
+            let (ours, theirs, warnings) = both(probe(&record, question));
+            assert!(warnings.is_empty(), "{question}: {warnings:?}");
+            assert!(
+                relative(ours[0], theirs[0]).abs() < 5e-7,
+                "{question}: mass {ours:?} {theirs:?}"
+            );
+            assert!(
+                (ours[1] - theirs[1]).abs() < 2e-7,
+                "{question}: center {ours:?} {theirs:?}"
+            );
+            for k in [2, 3] {
+                assert!(
+                    relative(ours[k], theirs[k]).abs() < 3e-6,
+                    "{question}: inertia {ours:?} {theirs:?}"
+                );
+            }
+        }
+        // What OpenRocket adds is the override's 2 kg, and the 1 kg of the lower stage's beside it.
+        let structure = |question: &str| both(probe(&record, question)).1;
+        let parts = structure("a center of gravity override on the stage with no flag");
+        let added = structure("a mass override on the stage, not its parts");
+        assert!((added[0] - parts[0] - 2.0).abs() < 1e-12, "{added:?}");
+        // With no center stated the mass sits at the parts' center, and moves nothing.
+        assert_eq!(added[1..], parts[1..]);
+        let two = structure("two stages with no override");
+        let both_add = structure("two stages' overrides, not their parts");
+        assert!((both_add[0] - two[0] - 3.0).abs() < 1e-12, "{both_add:?}");
+    }
+
+    /// A stage of a nose and a tube with no wall, which weigh nothing, under a 2 kg mass override
+    /// that doesn't cover them.
+    const STAGE_ADDS_TO_NOTHING: &str =
+        "a mass override on a stage of parts that weigh nothing, not its parts";
+
+    /// Parts that weigh nothing have no center of mass for an added mass to sit at. OpenRocket
+    /// 24.12 weighs the stage at the override's 2 kg and reports its center at a station of zero,
+    /// the tip. One probe doesn't say whether that is the stage's forward end or a number left
+    /// unset, so HPR Sim doesn't take it as a rule: the layout refuses the design, naming why.
+    #[test]
+    fn a_stages_added_mass_on_parts_that_weigh_nothing_is_refused() {
+        let record = record();
+        let probe = probe(&record, STAGE_ADDS_TO_NOTHING);
+        let theirs = &probe["structure"];
+        assert_eq!(theirs["mass_kg"], 2.0);
+        assert_eq!(theirs["cm_x_m"], 0.0);
+        let document = probe["document"].as_str().expect("the probe's document");
+        let read = ork::read(document.as_bytes()).expect("a probe reads");
+        let spine = ork::rocket(&read.value.document);
+        assert!(spine.warnings.is_empty(), "{:?}", spine.warnings);
+        let refused = spine.value.layout().expect_err("no center to sit at");
+        let hpr_design::DesignError::InComponent { id, source } = &refused else {
+            panic!("{refused:?}");
+        };
+        assert_eq!(id, &spine.value.stages[0].id);
+        assert!(
+            matches!(
+                **source,
+                hpr_design::DesignError::Domain { what, value }
+                    if what == "added mass with no station, on parts that weigh nothing (kg)"
+                        && value == 2.0
+            ),
+            "{refused:?}"
+        );
+    }
+
+    /// `openrocket-stage-added-mass.json`, held to the scripts that wrote it.
+    fn added_mass_record() -> Value {
+        let text =
+            include_str!("../../../validation/fixtures/ork/openrocket-stage-added-mass.json");
+        let record: Value = serde_json::from_str(text).expect("the committed record is JSON");
+        assert_eq!(record["openrocket"], "24.12");
+        for (name, bytes) in [
+            (
+                "stage_added_mass.py",
+                include_bytes!("../../../validation/oracles/openrocket/stage_added_mass.py")
+                    .as_slice(),
+            ),
+            (
+                "pod_probes.py",
+                include_bytes!("../../../validation/oracles/openrocket/pod_probes.py").as_slice(),
+            ),
+            (
+                "conventions.py",
+                include_bytes!("../../../validation/oracles/openrocket/conventions.py").as_slice(),
+            ),
+            (
+                "events.py",
+                include_bytes!("../../../validation/oracles/openrocket/events.py").as_slice(),
+            ),
+            (
+                "automatic_radius.py",
+                include_bytes!("../../../validation/oracles/openrocket/automatic_radius.py")
+                    .as_slice(),
+            ),
+        ] {
+            assert_eq!(
+                record["inputs_sha256"][name],
+                crate::real_flight::sha256_hex(bytes).as_str(),
+                "{name} changed since the record was written: rerun it"
+            );
+        }
+        record
+    }
+
+    /// The overrides `stage_added_mass.py` gives its airframe's stage, beside `no override`.
+    const ADDED_WITH_A_MOTOR: [&str; 3] = [
+        "a mass override on the stage, not its parts",
+        "both overrides on the stage, not its parts",
+        "a mass override on the stage, not its parts, and a center that covers them",
+    ];
+
+    /// A motor aboard doesn't move the mass OpenRocket 24.12 adds for a stage's override. With no
+    /// center stated that mass sits at the center of the stage's parts, and the probes above
+    /// carry no motor, so they can't tell the parts' center from the parts' and the motor's
+    /// together. This record can: the motor is what launch, or burnout, adds to the structure
+    /// with no override, and under each override OpenRocket's launch and burnout are that same
+    /// motor added to the overridden structure. HPR Sim adds its motors to the structure the same
+    /// way ([`hpr_design::AddedMass`], ADR-335), and its structure of each probe is OpenRocket's.
+    #[test]
+    fn a_motor_aboard_does_not_move_a_stages_added_mass() {
+        let record = added_mass_record();
+        let weighed = |question: &str, when: &str| {
+            let body = &probe(&record, question)[when];
+            ["mass_kg", "cm_x_m"].map(|key| body[key].as_f64().expect("a number"))
+        };
+        let [bare_kg, bare_m] = weighed("no override", "structure");
+        for when in ["launch", "burnout"] {
+            let [with_kg, with_m] = weighed("no override", when);
+            let motor_kg = with_kg - bare_kg;
+            let motor_m = (with_kg * with_m - bare_kg * bare_m) / motor_kg;
+            assert!(motor_kg > 0.05 && motor_m > bare_m, "{motor_kg} {motor_m}");
+            for question in ADDED_WITH_A_MOTOR {
+                let [structure_kg, structure_m] = weighed(question, "structure");
+                let [got_kg, got_m] = weighed(question, when);
+                assert!(
+                    (got_kg - (structure_kg + motor_kg)).abs() < 1e-12,
+                    "{question} at {when}: {got_kg}"
+                );
+                let want_m =
+                    (structure_kg * structure_m + motor_kg * motor_m) / (structure_kg + motor_kg);
+                assert!(
+                    (got_m - want_m).abs() < 1e-12,
+                    "{question} at {when}: {got_m} against {want_m}"
+                );
+            }
+            // The test can tell: had the 2 kg sat at the center of the parts and the motor
+            // together, the center would be the unoverridden rocket's, centimeters aft of this.
+            let [_, got_m] = weighed(ADDED_WITH_A_MOTOR[0], when);
+            assert!(with_m - got_m > 0.05, "{when}: {with_m} {got_m}");
+        }
+        // hpr's structure of each probe is OpenRocket's: the 2 kg added, where OpenRocket has it.
+        for question in std::iter::once("no override").chain(ADDED_WITH_A_MOTOR) {
+            let (ours, theirs, warnings) = both(probe(&record, question));
+            assert!(warnings.is_empty(), "{question}: {warnings:?}");
+            assert!(
+                relative(ours[0], theirs[0]).abs() < 5e-7,
+                "{question}: mass {ours:?} {theirs:?}"
+            );
+            assert!(
+                (ours[1] - theirs[1]).abs() < 2e-7,
+                "{question}: center {ours:?} {theirs:?}"
+            );
+        }
+        let [added_kg, _] = weighed(ADDED_WITH_A_MOTOR[0], "structure");
+        assert!((added_kg - bare_kg - 2.0).abs() < 1e-12, "{added_kg}");
     }
 
     /// The single subcomponent-override flag written before schema 1.9, and how far hpr's center
@@ -2070,7 +2272,9 @@ mod tests {
         read.extend(INERTIA.iter().map(|(question, _)| *question));
         read.extend(ALONE.iter().map(|(question, _)| *question));
         read.extend(OLD_FLAG.iter().map(|(question, _)| *question));
-        read.extend(STAGE_NOT_COVERING.iter().map(|(question, _)| *question));
+        read.extend(STAGE_ADDS);
+        read.push(STAGE_ADDS_TO_NOTHING);
+        read.extend(STAGE_WHOLE.iter().map(|(question, _)| *question));
         read.extend(BORES);
         read.push(BORE_REFUSED);
         read.extend(TUBE_FINS);

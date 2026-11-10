@@ -125,6 +125,7 @@ pub(crate) fn stage(id: &str, components: Vec<Component>) -> Stage {
         name: String::new(),
         components,
         overrides: Overrides::default(),
+        added_mass: None,
         drag_override: None,
         parallel: None,
     }

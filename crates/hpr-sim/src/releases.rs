@@ -33,7 +33,8 @@ use crate::shifts::{NotAPart, NotCarried, check_carried, inside, locate_part};
 /// It can't be a body component or an external one, one copy of a cluster's, or hold a motor.
 /// Its mass can't be under an override: not its stage's, and not one on a component around it
 /// that covers what that component holds, since the override doesn't say how much of the mass is
-/// the part's. It must have mass, and leave the airframe some, motors aside. A part can be released
+/// the part's. Its stage can't carry an added mass ([`hpr_design::AddedMass`]) either: that isn't
+/// flown yet. It must have mass, and leave the airframe some, motors aside. A part can be released
 /// once, and not from inside another part that is released.
 ///
 /// The drag area `C_D S` is the part's own once it is out, m²: a tumbling weight's, or its
@@ -185,6 +186,11 @@ impl Releases {
                         NotCarried::StageOverride => {
                             "a mass release in a stage whose mass is overridden (the override \
                              doesn't say how much of it is the part's)"
+                        }
+                        NotCarried::StageAddedMass => {
+                            "a mass release in a stage that carries an added mass, which isn't \
+                             flown yet (with no station that mass sits at the center of the \
+                             stage's parts, which the release would move)"
                         }
                         NotCarried::CoveredOverride => {
                             "a mass release inside a component whose overridden mass covers what \
@@ -862,6 +868,20 @@ mod tests {
             "a mass release in a stage whose mass is overridden",
             "ballast",
         );
+        // A stage that carries an added mass, with a station or without.
+        for cg_aft_m in [None, Some(0.3)] {
+            let mut added = with_ballast(0.0);
+            added.stages[0].added_mass = Some(hpr_design::AddedMass {
+                mass_kg: 1.0,
+                cg_aft_m,
+            });
+            refused(
+                vec![of("ballast")],
+                &added,
+                "a mass release in a stage that carries an added mass",
+                "ballast",
+            );
+        }
         // A holder whose overridden mass covers what it holds; one covering itself alone is fine.
         for covers_children in [false, true] {
             let mut overridden = with_ballast(0.0);

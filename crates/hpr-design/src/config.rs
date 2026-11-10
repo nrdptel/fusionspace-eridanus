@@ -621,12 +621,16 @@ impl LaidOut {
                     name,
                     components,
                     overrides: _,
+                    added_mass,
                     drag_override: _,
                     parallel,
                 } = stage;
                 *id == ours.id
                     && *name == ours.name
                     && *components == ours.components
+                    // Compared, not skipped as the overrides are: `layout` refuses an added mass
+                    // beside a parallel stage, which doing only the stages again would not see.
+                    && *added_mass == ours.added_mass
                     && *parallel == ours.parallel
             })
     }
@@ -731,6 +735,15 @@ mod tests {
         assert_ne!(twice.layout().stages[1], relaid.layout().stages[1]);
         assert_eq!(twice.layout().stages[0], relaid.layout().stages[0]);
         assert_ne!(relaid.layout().length_m, laid_out.layout().length_m);
+        // An added mass is not an override: the design is laid out from the start, which checks
+        // what only a whole layout checks (an added mass beside a parallel stage).
+        let mut added = staged.clone();
+        added.stages[1].added_mass = Some(crate::AddedMass {
+            mass_kg: 0.2,
+            cg_aft_m: None,
+        });
+        assert!(!relaid.same_but_overrides_and_motors(&added));
+        same(&relaid.relay(added.clone()).unwrap(), &added);
         // A bad override is refused as laying it out alone refuses it.
         let mut bad = nominal;
         bad.stages[0].overrides.mass_kg = Some(-1.0);

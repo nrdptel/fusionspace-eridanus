@@ -503,8 +503,9 @@ up to, usually after weighing the real thing. The file can say that an override 
 inside*: that the number is for the part together with everything attached to it. The probes find
 HPR Sim and OpenRocket agree on which override wins, and on where a center is measured from:
 
-- An override on a part that covers the parts inside it wins over any of theirs, and a stage's wins
-  over everything in the stage.
+- An override on a part that covers the parts inside it wins over any of theirs, and a stage's
+  that covers its parts wins over everything in the stage. A stage's mass override that doesn't
+  cover them is added to them ([A stage's added mass](design.md#a-stages-added-mass)).
 - A center-of-gravity override is measured from the part's front, not from its shoulder's, and the
   shoulder moves with the part.
 - A center-of-gravity override alone, written to cover the parts inside, sets the whole assembly's

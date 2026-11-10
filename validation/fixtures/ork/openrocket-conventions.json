@@ -1,9 +1,9 @@
 {
  "command": "refs/venv/bin/python validation/oracles/openrocket/conventions.py validation/fixtures/ork/openrocket-conventions.json",
- "generated": "2026-11-05",
+ "generated": "2026-11-10",
  "inputs_sha256": {
   "automatic_radius.py": "71c7eaafeebb0d076714f773ad72aa2ca8484dbd5b0a596c4e270aca82836da3",
-  "conventions.py": "02dbf2a51bfc8d89149c9a87c14cc40cfa0710d3e8c9fcfbd40728c5edfb08dc",
+  "conventions.py": "3e8aa827c891b1fcd76ce44002a96946c5f4702d4be09671f4c1f590acb53bbe",
   "mass.py": "ce8b915d342ff631d3ad3ec74244d2c2faf55321f710a4b036eda5d7671cabe5"
  },
  "jar_sha256": "4959b72f52f5f607941e9722abbb7b7f0c4a38ebbbf84204a329db9f31c4f897",
@@ -344,6 +344,168 @@
      "rotational_unit_inertia_m2": 0.10799289936478984,
      "thickness_m": 0.001
     }
+   }
+  },
+  "a center of gravity override on the stage": {
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim conventions probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><overridecg>0.4</overridecg><overridesubcomponentscg>true</overridesubcomponentscg><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.3</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.05</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "materials": {
+    "00000000-0000-4000-8000-000000000001": {
+     "class": "NoseCone",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000002": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    }
+   },
+   "parts": [
+    {
+     "class": "NoseCone",
+     "cm_x_m": 0.20199971059840252,
+     "component_mass_kg": 0.09172550704261852,
+     "each_mass_kg": 0.09172550704261852,
+     "id": "00000000-0000-4000-8000-000000000001",
+     "mass_kg": 0.09172550704261852,
+     "mass_overridden": false,
+     "name": "Nose",
+     "overridden_by": null,
+     "override_mass_kg": 0.09172550704261852
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 0.55,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000002",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "Rocket",
+     "cm_x_m": 0.4,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.3996015870944187,
+     "id": "00000000-0000-4000-8000-000000000098",
+     "mass_kg": 0.3996015870944187,
+     "mass_overridden": false,
+     "name": "Probe",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 0.4,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.3996015870944187,
+     "id": "00000000-0000-4000-8000-000000000099",
+     "mass_kg": 0.0,
+     "mass_overridden": false,
+     "name": "Stage",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    }
+   ],
+   "parts_skipped": 0,
+   "structure": {
+    "cm_x_m": 0.4,
+    "ixx": 0.0008496514376672654,
+    "iyy": 0.01780279629640181,
+    "izz": 0.01780279629640181,
+    "longitudinal_inertia": 0.01780279629640181,
+    "mass_kg": 0.3996015870944187,
+    "rotational_inertia": 0.0008496514376672654
+   }
+  },
+  "a center of gravity override on the stage with no flag": {
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim conventions probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><overridecg>0.4</overridecg><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.3</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.05</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "materials": {
+    "00000000-0000-4000-8000-000000000001": {
+     "class": "NoseCone",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000002": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    }
+   },
+   "parts": [
+    {
+     "class": "NoseCone",
+     "cm_x_m": 0.20199971059840252,
+     "component_mass_kg": 0.09172550704261852,
+     "each_mass_kg": 0.09172550704261852,
+     "id": "00000000-0000-4000-8000-000000000001",
+     "mass_kg": 0.09172550704261852,
+     "mass_overridden": false,
+     "name": "Nose",
+     "overridden_by": null,
+     "override_mass_kg": 0.09172550704261852
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 0.55,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000002",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "Rocket",
+     "cm_x_m": 0.4701191786337995,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.3996015870944187,
+     "id": "00000000-0000-4000-8000-000000000098",
+     "mass_kg": 0.3996015870944187,
+     "mass_overridden": false,
+     "name": "Probe",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 0.4,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.3996015870944187,
+     "id": "00000000-0000-4000-8000-000000000099",
+     "mass_kg": 0.0,
+     "mass_overridden": false,
+     "name": "Stage",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    }
+   ],
+   "parts_skipped": 0,
+   "structure": {
+    "cm_x_m": 0.4701191786337995,
+    "ixx": 0.0008496514376672654,
+    "iyy": 0.015838075487909373,
+    "izz": 0.015838075487909373,
+    "longitudinal_inertia": 0.015838075487909373,
+    "mass_kg": 0.3996015870944187,
+    "rotational_inertia": 0.0008496514376672654
    }
   },
   "a centre of gravity override on a nose with a shoulder": {
@@ -853,6 +1015,539 @@
     "rotational_inertia": 0.0007195755141194353
    }
   },
+  "a lower stage's mass override that covers its parts and a center that doesn't": {
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim conventions probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><subcomponents><stage><name>Upper stage</name><id>00000000-0000-4000-8000-000000000099</id><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.3</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.05</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage><stage><name>Lower stage</name><id>00000000-0000-4000-8000-000000000096</id><overridemass>2.0</overridemass><overridecg>0.4</overridecg><overridesubcomponentsmass>true</overridesubcomponentsmass><overridesubcomponentscg>false</overridesubcomponentscg><subcomponents><bodytube><name>Lower tube</name><id>00000000-0000-4000-8000-000000000095</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "materials": {
+    "00000000-0000-4000-8000-000000000001": {
+     "class": "NoseCone",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000002": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000095": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    }
+   },
+   "parts": [
+    {
+     "class": "NoseCone",
+     "cm_x_m": 0.20199971059840252,
+     "component_mass_kg": 0.09172550704261852,
+     "each_mass_kg": 0.09172550704261852,
+     "id": "00000000-0000-4000-8000-000000000001",
+     "mass_kg": 0.09172550704261852,
+     "mass_overridden": false,
+     "name": "Nose",
+     "overridden_by": null,
+     "override_mass_kg": 0.09172550704261852
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 0.55,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000002",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 1.05,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000095",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Lower tube",
+     "overridden_by": "00000000-0000-4000-8000-000000000096",
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 1.2000000000000002,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.0,
+     "id": "00000000-0000-4000-8000-000000000096",
+     "mass_kg": 2.0,
+     "mass_overridden": true,
+     "name": "Lower stage",
+     "overridden_by": null,
+     "override_mass_kg": 2.0
+    },
+    {
+     "class": "Rocket",
+     "cm_x_m": 1.0784541833209602,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 2.3996015870944185,
+     "id": "00000000-0000-4000-8000-000000000098",
+     "mass_kg": 2.3996015870944185,
+     "mass_overridden": false,
+     "name": "Probe",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 0.0,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.3996015870944187,
+     "id": "00000000-0000-4000-8000-000000000099",
+     "mass_kg": 0.0,
+     "mass_overridden": false,
+     "name": "Upper stage",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    }
+   ],
+   "parts_skipped": 0,
+   "structure": {
+    "cm_x_m": 1.0784541833209602,
+    "ixx": 0.0015891697819516897,
+    "iyy": 0.20029910964208927,
+    "izz": 0.20029910964208927,
+    "longitudinal_inertia": 0.20029910964208927,
+    "mass_kg": 2.3996015870944185,
+    "rotational_inertia": 0.0015891697819516897
+   }
+  },
+  "a lower stage's mass override, not its parts": {
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim conventions probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><subcomponents><stage><name>Upper stage</name><id>00000000-0000-4000-8000-000000000099</id><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.3</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.05</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage><stage><name>Lower stage</name><id>00000000-0000-4000-8000-000000000096</id><overridemass>2.0</overridemass><overridesubcomponentsmass>false</overridesubcomponentsmass><subcomponents><bodytube><name>Lower tube</name><id>00000000-0000-4000-8000-000000000095</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "materials": {
+    "00000000-0000-4000-8000-000000000001": {
+     "class": "NoseCone",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000002": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000095": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    }
+   },
+   "parts": [
+    {
+     "class": "NoseCone",
+     "cm_x_m": 0.20199971059840252,
+     "component_mass_kg": 0.09172550704261852,
+     "each_mass_kg": 0.09172550704261852,
+     "id": "00000000-0000-4000-8000-000000000001",
+     "mass_kg": 0.09172550704261852,
+     "mass_overridden": false,
+     "name": "Nose",
+     "overridden_by": null,
+     "override_mass_kg": 0.09172550704261852
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 0.55,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000002",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 1.05,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000095",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Lower tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 1.05,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000096",
+     "mass_kg": 2.0,
+     "mass_overridden": true,
+     "name": "Lower stage",
+     "overridden_by": null,
+     "override_mass_kg": 2.0
+    },
+    {
+     "class": "Rocket",
+     "cm_x_m": 0.9644143276395732,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 2.7074776671462186,
+     "id": "00000000-0000-4000-8000-000000000098",
+     "mass_kg": 2.7074776671462186,
+     "mass_overridden": false,
+     "name": "Probe",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 0.0,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.3996015870944187,
+     "id": "00000000-0000-4000-8000-000000000099",
+     "mass_kg": 0.0,
+     "mass_overridden": false,
+     "name": "Upper stage",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    }
+   ],
+   "parts_skipped": 0,
+   "structure": {
+    "cm_x_m": 0.9644143276395732,
+    "ixx": 0.0015891697819516897,
+    "iyy": 0.13716063246393537,
+    "izz": 0.13716063246393537,
+    "longitudinal_inertia": 0.13716063246393537,
+    "mass_kg": 2.7074776671462186,
+    "rotational_inertia": 0.0015891697819516897
+   }
+  },
+  "a lower stage's mass override, not its parts, and a center that covers them": {
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim conventions probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><subcomponents><stage><name>Upper stage</name><id>00000000-0000-4000-8000-000000000099</id><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.3</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.05</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage><stage><name>Lower stage</name><id>00000000-0000-4000-8000-000000000096</id><overridemass>2.0</overridemass><overridecg>0.4</overridecg><overridesubcomponentsmass>false</overridesubcomponentsmass><overridesubcomponentscg>true</overridesubcomponentscg><subcomponents><bodytube><name>Lower tube</name><id>00000000-0000-4000-8000-000000000095</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "materials": {
+    "00000000-0000-4000-8000-000000000001": {
+     "class": "NoseCone",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000002": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000095": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    }
+   },
+   "parts": [
+    {
+     "class": "NoseCone",
+     "cm_x_m": 0.20199971059840252,
+     "component_mass_kg": 0.09172550704261852,
+     "each_mass_kg": 0.09172550704261852,
+     "id": "00000000-0000-4000-8000-000000000001",
+     "mass_kg": 0.09172550704261852,
+     "mass_overridden": false,
+     "name": "Nose",
+     "overridden_by": null,
+     "override_mass_kg": 0.09172550704261852
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 0.55,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000002",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 1.05,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000095",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Lower tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 1.2000000000000002,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000096",
+     "mass_kg": 2.0,
+     "mass_overridden": true,
+     "name": "Lower stage",
+     "overridden_by": null,
+     "override_mass_kg": 2.0
+    },
+    {
+     "class": "Rocket",
+     "cm_x_m": 1.0922755529447699,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 2.7074776671462186,
+     "id": "00000000-0000-4000-8000-000000000098",
+     "mass_kg": 2.7074776671462186,
+     "mass_overridden": false,
+     "name": "Probe",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 0.0,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.3996015870944187,
+     "id": "00000000-0000-4000-8000-000000000099",
+     "mass_kg": 0.0,
+     "mass_overridden": false,
+     "name": "Upper stage",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    }
+   ],
+   "parts_skipped": 0,
+   "structure": {
+    "cm_x_m": 1.0922755529447699,
+    "ixx": 0.0015891697819516897,
+    "iyy": 0.2010584802142702,
+    "izz": 0.2010584802142702,
+    "longitudinal_inertia": 0.2010584802142702,
+    "mass_kg": 2.7074776671462186,
+    "rotational_inertia": 0.0015891697819516897
+   }
+  },
+  "a lower stage's overrides, not its parts": {
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim conventions probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><subcomponents><stage><name>Upper stage</name><id>00000000-0000-4000-8000-000000000099</id><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.3</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.05</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage><stage><name>Lower stage</name><id>00000000-0000-4000-8000-000000000096</id><overridemass>2.0</overridemass><overridecg>0.4</overridecg><overridesubcomponentsmass>false</overridesubcomponentsmass><overridesubcomponentscg>false</overridesubcomponentscg><subcomponents><bodytube><name>Lower tube</name><id>00000000-0000-4000-8000-000000000095</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "materials": {
+    "00000000-0000-4000-8000-000000000001": {
+     "class": "NoseCone",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000002": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000095": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    }
+   },
+   "parts": [
+    {
+     "class": "NoseCone",
+     "cm_x_m": 0.20199971059840252,
+     "component_mass_kg": 0.09172550704261852,
+     "each_mass_kg": 0.09172550704261852,
+     "id": "00000000-0000-4000-8000-000000000001",
+     "mass_kg": 0.09172550704261852,
+     "mass_overridden": false,
+     "name": "Nose",
+     "overridden_by": null,
+     "override_mass_kg": 0.09172550704261852
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 0.55,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000002",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 1.05,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000095",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Lower tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 1.2000000000000002,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000096",
+     "mass_kg": 2.0,
+     "mass_overridden": true,
+     "name": "Lower stage",
+     "overridden_by": null,
+     "override_mass_kg": 2.0
+    },
+    {
+     "class": "Rocket",
+     "cm_x_m": 1.0752185657096924,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 2.7074776671462186,
+     "id": "00000000-0000-4000-8000-000000000098",
+     "mass_kg": 2.7074776671462186,
+     "mass_overridden": false,
+     "name": "Probe",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 0.0,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.3996015870944187,
+     "id": "00000000-0000-4000-8000-000000000099",
+     "mass_kg": 0.0,
+     "mass_overridden": false,
+     "name": "Upper stage",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    }
+   ],
+   "parts_skipped": 0,
+   "structure": {
+    "cm_x_m": 1.0752185657096924,
+    "ixx": 0.0015891697819516897,
+    "iyy": 0.2002707644591558,
+    "izz": 0.2002707644591558,
+    "longitudinal_inertia": 0.2002707644591558,
+    "mass_kg": 2.7074776671462186,
+    "rotational_inertia": 0.0015891697819516897
+   }
+  },
+  "a mass override of nothing on the stage, not its parts": {
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim conventions probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><overridemass>0.0</overridemass><overridesubcomponentsmass>false</overridesubcomponentsmass><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.3</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.05</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "materials": {
+    "00000000-0000-4000-8000-000000000001": {
+     "class": "NoseCone",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000002": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    }
+   },
+   "parts": [
+    {
+     "class": "NoseCone",
+     "cm_x_m": 0.20199971059840252,
+     "component_mass_kg": 0.09172550704261852,
+     "each_mass_kg": 0.09172550704261852,
+     "id": "00000000-0000-4000-8000-000000000001",
+     "mass_kg": 0.09172550704261852,
+     "mass_overridden": false,
+     "name": "Nose",
+     "overridden_by": null,
+     "override_mass_kg": 0.09172550704261852
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 0.55,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000002",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "Rocket",
+     "cm_x_m": 0.4701191786337995,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.3996015870944187,
+     "id": "00000000-0000-4000-8000-000000000098",
+     "mass_kg": 0.3996015870944187,
+     "mass_overridden": false,
+     "name": "Probe",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 0.4701191786337995,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.3996015870944187,
+     "id": "00000000-0000-4000-8000-000000000099",
+     "mass_kg": 0.0,
+     "mass_overridden": true,
+     "name": "Stage",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    }
+   ],
+   "parts_skipped": 0,
+   "structure": {
+    "cm_x_m": 0.4701191786337995,
+    "ixx": 0.0008496514376672654,
+    "iyy": 0.015838075487909373,
+    "izz": 0.015838075487909373,
+    "longitudinal_inertia": 0.015838075487909373,
+    "mass_kg": 0.3996015870944187,
+    "rotational_inertia": 0.0008496514376672654
+   }
+  },
   "a mass override on a nose of no wall": {
    "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim conventions probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.3</length><thickness>0.0</thickness><shape>conical</shape><aftradius>0.05</aftradius><overridemass>0.1</overridemass><material type=\"bulk\" density=\"1000.0\">Probe</material></nosecone></subcomponents></stage></subcomponents></rocket></openrocket>\n",
    "materials": {
@@ -973,6 +1668,87 @@
     "longitudinal_inertia": 0.004632925520646697,
     "mass_kg": 0.5,
     "rotational_inertia": 0.0007980106655486336
+   }
+  },
+  "a mass override on a stage of parts that weigh nothing, not its parts": {
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim conventions probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><overridemass>2.0</overridemass><overridesubcomponentsmass>false</overridesubcomponentsmass><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.3</length><thickness>0.0</thickness><shape>conical</shape><aftradius>0.05</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.5</length><thickness>0.0</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "materials": {
+    "00000000-0000-4000-8000-000000000001": {
+     "class": "NoseCone",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000002": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    }
+   },
+   "parts": [
+    {
+     "class": "NoseCone",
+     "cm_x_m": 0.15,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.0,
+     "id": "00000000-0000-4000-8000-000000000001",
+     "mass_kg": 0.0,
+     "mass_overridden": false,
+     "name": "Nose",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 0.55,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.0,
+     "id": "00000000-0000-4000-8000-000000000002",
+     "mass_kg": 0.0,
+     "mass_overridden": false,
+     "name": "Tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    },
+    {
+     "class": "Rocket",
+     "cm_x_m": 0.0,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 2.0,
+     "id": "00000000-0000-4000-8000-000000000098",
+     "mass_kg": 2.0,
+     "mass_overridden": false,
+     "name": "Probe",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 0.0,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.0,
+     "id": "00000000-0000-4000-8000-000000000099",
+     "mass_kg": 2.0,
+     "mass_overridden": true,
+     "name": "Stage",
+     "overridden_by": null,
+     "override_mass_kg": 2.0
+    }
+   ],
+   "parts_skipped": 0,
+   "structure": {
+    "cm_x_m": 0.0,
+    "ixx": 0.0,
+    "iyy": 0.0,
+    "izz": 0.0,
+    "longitudinal_inertia": 0.0,
+    "mass_kg": 2.0,
+    "rotational_inertia": 0.0
    }
   },
   "a mass override on a tube and the part inside": {
@@ -1539,6 +2315,249 @@
     "izz": 0.015838075487909373,
     "longitudinal_inertia": 0.015838075487909373,
     "mass_kg": 2.3996015870944185,
+    "rotational_inertia": 0.0008496514376672654
+   }
+  },
+  "a mass override on the stage, not its parts, and a center that covers them": {
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim conventions probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><overridemass>2.0</overridemass><overridecg>0.4</overridecg><overridesubcomponentsmass>false</overridesubcomponentsmass><overridesubcomponentscg>true</overridesubcomponentscg><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.3</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.05</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "materials": {
+    "00000000-0000-4000-8000-000000000001": {
+     "class": "NoseCone",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000002": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    }
+   },
+   "parts": [
+    {
+     "class": "NoseCone",
+     "cm_x_m": 0.20199971059840252,
+     "component_mass_kg": 0.09172550704261852,
+     "each_mass_kg": 0.09172550704261852,
+     "id": "00000000-0000-4000-8000-000000000001",
+     "mass_kg": 0.09172550704261852,
+     "mass_overridden": false,
+     "name": "Nose",
+     "overridden_by": null,
+     "override_mass_kg": 0.09172550704261852
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 0.55,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000002",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "Rocket",
+     "cm_x_m": 0.4,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 2.3996015870944185,
+     "id": "00000000-0000-4000-8000-000000000098",
+     "mass_kg": 2.3996015870944185,
+     "mass_overridden": false,
+     "name": "Probe",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 0.4,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.3996015870944187,
+     "id": "00000000-0000-4000-8000-000000000099",
+     "mass_kg": 2.0,
+     "mass_overridden": true,
+     "name": "Stage",
+     "overridden_by": null,
+     "override_mass_kg": 2.0
+    }
+   ],
+   "parts_skipped": 0,
+   "structure": {
+    "cm_x_m": 0.4,
+    "ixx": 0.0008496514376672654,
+    "iyy": 0.01780279629640181,
+    "izz": 0.01780279629640181,
+    "longitudinal_inertia": 0.01780279629640181,
+    "mass_kg": 2.3996015870944185,
+    "rotational_inertia": 0.0008496514376672654
+   }
+  },
+  "a mass override on the stage, not its parts, over a part's own": {
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim conventions probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><overridemass>2.0</overridemass><overridesubcomponentsmass>false</overridesubcomponentsmass><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.3</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.05</aftradius><overridemass>0.5</overridemass><material type=\"bulk\" density=\"1000.0\">Probe</material></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "materials": {
+    "00000000-0000-4000-8000-000000000001": {
+     "class": "NoseCone",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000002": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    }
+   },
+   "parts": [
+    {
+     "class": "NoseCone",
+     "cm_x_m": 0.20199971059840252,
+     "component_mass_kg": 0.09172550704261852,
+     "each_mass_kg": 0.5,
+     "id": "00000000-0000-4000-8000-000000000001",
+     "mass_kg": 0.5,
+     "mass_overridden": true,
+     "name": "Nose",
+     "overridden_by": null,
+     "override_mass_kg": 0.5
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 0.55,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000002",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "Rocket",
+     "cm_x_m": 0.3346202542726082,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 2.8078760800518,
+     "id": "00000000-0000-4000-8000-000000000098",
+     "mass_kg": 2.8078760800518,
+     "mass_overridden": false,
+     "name": "Probe",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 0.3346202542726082,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.8078760800518001,
+     "id": "00000000-0000-4000-8000-000000000099",
+     "mass_kg": 2.0,
+     "mass_overridden": true,
+     "name": "Stage",
+     "overridden_by": null,
+     "override_mass_kg": 2.0
+    }
+   ],
+   "parts_skipped": 0,
+   "structure": {
+    "cm_x_m": 0.3346202542726082,
+    "ixx": 0.0013398589525498543,
+    "iyy": 0.03256204723847425,
+    "izz": 0.03256204723847425,
+    "longitudinal_inertia": 0.03256204723847425,
+    "mass_kg": 2.8078760800518,
+    "rotational_inertia": 0.0013398589525498543
+   }
+  },
+  "a mass override that covers the stage's parts and a center that doesn't": {
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim conventions probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><overridemass>2.0</overridemass><overridecg>0.4</overridecg><overridesubcomponentsmass>true</overridesubcomponentsmass><overridesubcomponentscg>false</overridesubcomponentscg><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.3</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.05</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "materials": {
+    "00000000-0000-4000-8000-000000000001": {
+     "class": "NoseCone",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000002": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    }
+   },
+   "parts": [
+    {
+     "class": "NoseCone",
+     "cm_x_m": 0.20199971059840252,
+     "component_mass_kg": 0.09172550704261852,
+     "each_mass_kg": 0.09172550704261852,
+     "id": "00000000-0000-4000-8000-000000000001",
+     "mass_kg": 0.09172550704261852,
+     "mass_overridden": false,
+     "name": "Nose",
+     "overridden_by": "00000000-0000-4000-8000-000000000099",
+     "override_mass_kg": 0.09172550704261852
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 0.55,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000002",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Tube",
+     "overridden_by": "00000000-0000-4000-8000-000000000099",
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "Rocket",
+     "cm_x_m": 0.4,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 2.0,
+     "id": "00000000-0000-4000-8000-000000000098",
+     "mass_kg": 2.0,
+     "mass_overridden": false,
+     "name": "Probe",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 0.4,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.0,
+     "id": "00000000-0000-4000-8000-000000000099",
+     "mass_kg": 2.0,
+     "mass_overridden": true,
+     "name": "Stage",
+     "overridden_by": null,
+     "override_mass_kg": 2.0
+    }
+   ],
+   "parts_skipped": 0,
+   "structure": {
+    "cm_x_m": 0.4,
+    "ixx": 0.0008496514376672654,
+    "iyy": 0.01780279629640181,
+    "izz": 0.01780279629640181,
+    "longitudinal_inertia": 0.01780279629640181,
+    "mass_kg": 2.0,
     "rotational_inertia": 0.0008496514376672654
    }
   },
@@ -10495,6 +11514,119 @@
     "rotational_inertia": 0.0009901316717452788
    }
   },
+  "an upper stage's mass override, not its parts, above another stage": {
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim conventions probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><subcomponents><stage><name>Upper stage</name><id>00000000-0000-4000-8000-000000000099</id><overridemass>2.0</overridemass><overridesubcomponentsmass>false</overridesubcomponentsmass><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.3</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.05</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage><stage><name>Lower stage</name><id>00000000-0000-4000-8000-000000000096</id><subcomponents><bodytube><name>Lower tube</name><id>00000000-0000-4000-8000-000000000095</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "materials": {
+    "00000000-0000-4000-8000-000000000001": {
+     "class": "NoseCone",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000002": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000095": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    }
+   },
+   "parts": [
+    {
+     "class": "NoseCone",
+     "cm_x_m": 0.20199971059840252,
+     "component_mass_kg": 0.09172550704261852,
+     "each_mass_kg": 0.09172550704261852,
+     "id": "00000000-0000-4000-8000-000000000001",
+     "mass_kg": 0.09172550704261852,
+     "mass_overridden": false,
+     "name": "Nose",
+     "overridden_by": null,
+     "override_mass_kg": 0.09172550704261852
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 0.55,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000002",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 1.05,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000095",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Lower tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 0.8,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000096",
+     "mass_kg": 0.0,
+     "mass_overridden": false,
+     "name": "Lower stage",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    },
+    {
+     "class": "Rocket",
+     "cm_x_m": 0.5360593104198624,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 2.7074776671462186,
+     "id": "00000000-0000-4000-8000-000000000098",
+     "mass_kg": 2.7074776671462186,
+     "mass_overridden": false,
+     "name": "Probe",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 0.4701191786337995,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.3996015870944187,
+     "id": "00000000-0000-4000-8000-000000000099",
+     "mass_kg": 2.0,
+     "mass_overridden": true,
+     "name": "Upper stage",
+     "overridden_by": null,
+     "override_mass_kg": 2.0
+    }
+   ],
+   "parts_skipped": 0,
+   "structure": {
+    "cm_x_m": 0.5360593104198624,
+    "ixx": 0.0015891697819516897,
+    "iyy": 0.11437648805504515,
+    "izz": 0.11437648805504515,
+    "longitudinal_inertia": 0.11437648805504515,
+    "mass_kg": 2.7074776671462186,
+    "rotational_inertia": 0.0015891697819516897
+   }
+  },
   "both overrides on a tube, the centre covering the part inside and the mass not": {
    "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim conventions probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><subcomponents><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><overridemass>0.5</overridemass><overridecg>0.1</overridecg><overridesubcomponentsmass>false</overridesubcomponentsmass><overridesubcomponentscg>true</overridesubcomponentscg><material type=\"bulk\" density=\"1000.0\">Probe</material><subcomponents><innertube><name>Inner</name><id>00000000-0000-4000-8000-000000000004</id><position type=\"top\">0.1</position><length>0.2</length><outerradius>0.02</outerradius><thickness>0.001</thickness><material type=\"bulk\" density=\"1000.0\">Probe</material></innertube></subcomponents></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
    "materials": {
@@ -10738,6 +11870,87 @@
     "rotational_inertia": 0.0008496514376672654
    }
   },
+  "both overrides on the stage with no flag": {
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim conventions probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><overridemass>2.0</overridemass><overridecg>0.4</overridecg><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.3</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.05</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "materials": {
+    "00000000-0000-4000-8000-000000000001": {
+     "class": "NoseCone",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000002": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    }
+   },
+   "parts": [
+    {
+     "class": "NoseCone",
+     "cm_x_m": 0.20199971059840252,
+     "component_mass_kg": 0.09172550704261852,
+     "each_mass_kg": 0.09172550704261852,
+     "id": "00000000-0000-4000-8000-000000000001",
+     "mass_kg": 0.09172550704261852,
+     "mass_overridden": false,
+     "name": "Nose",
+     "overridden_by": null,
+     "override_mass_kg": 0.09172550704261852
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 0.55,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000002",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "Rocket",
+     "cm_x_m": 0.4116768280278358,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 2.3996015870944185,
+     "id": "00000000-0000-4000-8000-000000000098",
+     "mass_kg": 2.3996015870944185,
+     "mass_overridden": false,
+     "name": "Probe",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 0.4,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.3996015870944187,
+     "id": "00000000-0000-4000-8000-000000000099",
+     "mass_kg": 2.0,
+     "mass_overridden": true,
+     "name": "Stage",
+     "overridden_by": null,
+     "override_mass_kg": 2.0
+    }
+   ],
+   "parts_skipped": 0,
+   "structure": {
+    "cm_x_m": 0.4116768280278358,
+    "ixx": 0.0008496514376672654,
+    "iyy": 0.017475614668629316,
+    "izz": 0.017475614668629316,
+    "longitudinal_inertia": 0.017475614668629316,
+    "mass_kg": 2.3996015870944185,
+    "rotational_inertia": 0.0008496514376672654
+   }
+  },
   "both overrides on the stage, not its parts": {
    "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim conventions probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><overridemass>2.0</overridemass><overridecg>0.4</overridecg><overridesubcomponentsmass>false</overridesubcomponentsmass><overridesubcomponentscg>false</overridesubcomponentscg><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.3</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.05</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
    "materials": {
@@ -10815,6 +12028,168 @@
     "iyy": 0.017475614668629316,
     "izz": 0.017475614668629316,
     "longitudinal_inertia": 0.017475614668629316,
+    "mass_kg": 2.3996015870944185,
+    "rotational_inertia": 0.0008496514376672654
+   }
+  },
+  "both overrides on the stage, not its parts, over a part's own": {
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim conventions probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><overridemass>2.0</overridemass><overridecg>0.4</overridecg><overridesubcomponentsmass>false</overridesubcomponentsmass><overridesubcomponentscg>false</overridesubcomponentscg><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.3</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.05</aftradius><overridemass>0.5</overridemass><material type=\"bulk\" density=\"1000.0\">Probe</material></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "materials": {
+    "00000000-0000-4000-8000-000000000001": {
+     "class": "NoseCone",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000002": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    }
+   },
+   "parts": [
+    {
+     "class": "NoseCone",
+     "cm_x_m": 0.20199971059840252,
+     "component_mass_kg": 0.09172550704261852,
+     "each_mass_kg": 0.5,
+     "id": "00000000-0000-4000-8000-000000000001",
+     "mass_kg": 0.5,
+     "mass_overridden": true,
+     "name": "Nose",
+     "overridden_by": null,
+     "override_mass_kg": 0.5
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 0.55,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000002",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "Rocket",
+     "cm_x_m": 0.38118907986421746,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 2.8078760800518,
+     "id": "00000000-0000-4000-8000-000000000098",
+     "mass_kg": 2.8078760800518,
+     "mass_overridden": false,
+     "name": "Probe",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 0.4,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.8078760800518001,
+     "id": "00000000-0000-4000-8000-000000000099",
+     "mass_kg": 2.0,
+     "mass_overridden": true,
+     "name": "Stage",
+     "overridden_by": null,
+     "override_mass_kg": 2.0
+    }
+   ],
+   "parts_skipped": 0,
+   "structure": {
+    "cm_x_m": 0.38118907986421746,
+    "ixx": 0.0013398589525498543,
+    "iyy": 0.03502175358922573,
+    "izz": 0.03502175358922573,
+    "longitudinal_inertia": 0.03502175358922573,
+    "mass_kg": 2.8078760800518,
+    "rotational_inertia": 0.0013398589525498543
+   }
+  },
+  "both overrides on the stage, not its parts, the center ahead of the tip": {
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim conventions probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><overridemass>2.0</overridemass><overridecg>-0.1</overridecg><overridesubcomponentsmass>false</overridesubcomponentsmass><overridesubcomponentscg>false</overridesubcomponentscg><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.3</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.05</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "materials": {
+    "00000000-0000-4000-8000-000000000001": {
+     "class": "NoseCone",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000002": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    }
+   },
+   "parts": [
+    {
+     "class": "NoseCone",
+     "cm_x_m": 0.20199971059840252,
+     "component_mass_kg": 0.09172550704261852,
+     "each_mass_kg": 0.09172550704261852,
+     "id": "00000000-0000-4000-8000-000000000001",
+     "mass_kg": 0.09172550704261852,
+     "mass_overridden": false,
+     "name": "Nose",
+     "overridden_by": null,
+     "override_mass_kg": 0.09172550704261852
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 0.55,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000002",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "Rocket",
+     "cm_x_m": -0.005059019030366873,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 2.3996015870944185,
+     "id": "00000000-0000-4000-8000-000000000098",
+     "mass_kg": 2.3996015870944185,
+     "mass_overridden": false,
+     "name": "Probe",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": -0.1,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.3996015870944187,
+     "id": "00000000-0000-4000-8000-000000000099",
+     "mass_kg": 2.0,
+     "mass_overridden": true,
+     "name": "Stage",
+     "overridden_by": null,
+     "override_mass_kg": 2.0
+    }
+   ],
+   "parts_skipped": 0,
+   "structure": {
+    "cm_x_m": -0.005059019030366873,
+    "ixx": 0.0008496514376672654,
+    "iyy": 0.12409342366609823,
+    "izz": 0.12409342366609823,
+    "longitudinal_inertia": 0.12409342366609823,
     "mass_kg": 2.3996015870944185,
     "rotational_inertia": 0.0008496514376672654
    }
@@ -11799,6 +13174,104 @@
     "rotational_inertia": 0.0007488422771210133
    }
   },
+  "the old flag, false, on a stage's mass override, schema 1.4": {
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.4\" creator=\"hpr-sim conventions probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><overridemass>2.0</overridemass><overridesubcomponents>false</overridesubcomponents><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.3</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.05</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "materials": {
+    "00000000-0000-4000-8000-000000000001": {
+     "class": "NoseCone",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000002": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    }
+   },
+   "override_flags": {
+    "00000000-0000-4000-8000-000000000001": {
+     "cd": false,
+     "cg": false,
+     "mass": false
+    },
+    "00000000-0000-4000-8000-000000000002": {
+     "cd": false,
+     "cg": false,
+     "mass": false
+    },
+    "00000000-0000-4000-8000-000000000099": {
+     "cd": false,
+     "cg": false,
+     "mass": false
+    }
+   },
+   "parts": [
+    {
+     "class": "NoseCone",
+     "cm_x_m": 0.20199971059840252,
+     "component_mass_kg": 0.09172550704261852,
+     "each_mass_kg": 0.09172550704261852,
+     "id": "00000000-0000-4000-8000-000000000001",
+     "mass_kg": 0.09172550704261852,
+     "mass_overridden": false,
+     "name": "Nose",
+     "overridden_by": null,
+     "override_mass_kg": 0.09172550704261852
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 0.55,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000002",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "Rocket",
+     "cm_x_m": 0.4701191786337995,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 2.3996015870944185,
+     "id": "00000000-0000-4000-8000-000000000098",
+     "mass_kg": 2.3996015870944185,
+     "mass_overridden": false,
+     "name": "Probe",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 0.4701191786337995,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.3996015870944187,
+     "id": "00000000-0000-4000-8000-000000000099",
+     "mass_kg": 2.0,
+     "mass_overridden": true,
+     "name": "Stage",
+     "overridden_by": null,
+     "override_mass_kg": 2.0
+    }
+   ],
+   "parts_skipped": 0,
+   "structure": {
+    "cm_x_m": 0.4701191786337995,
+    "ixx": 0.0008496514376672654,
+    "iyy": 0.015838075487909373,
+    "izz": 0.015838075487909373,
+    "longitudinal_inertia": 0.015838075487909373,
+    "mass_kg": 2.3996015870944185,
+    "rotational_inertia": 0.0008496514376672654
+   }
+  },
   "the old flag, false, on a tube's mass override, schema 1.8": {
    "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.8\" creator=\"hpr-sim conventions probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><subcomponents><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><overridemass>0.5</overridemass><overridesubcomponents>false</overridesubcomponents><material type=\"bulk\" density=\"1000.0\">Probe</material><subcomponents><innertube><name>Inner</name><id>00000000-0000-4000-8000-000000000004</id><position type=\"top\">0.1</position><length>0.2</length><outerradius>0.02</outerradius><thickness>0.001</thickness><material type=\"bulk\" density=\"1000.0\">Probe</material></innertube></subcomponents></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
    "materials": {
@@ -11895,6 +13368,330 @@
     "longitudinal_inertia": 0.01116190903176639,
     "mass_kg": 0.5245044226980005,
     "rotational_inertia": 0.0012103239328365894
+   }
+  },
+  "the old flag, false, on both of a stage's overrides, schema 1.4": {
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.4\" creator=\"hpr-sim conventions probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><overridemass>2.0</overridemass><overridecg>0.4</overridecg><overridesubcomponents>false</overridesubcomponents><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.3</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.05</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "materials": {
+    "00000000-0000-4000-8000-000000000001": {
+     "class": "NoseCone",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000002": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    }
+   },
+   "override_flags": {
+    "00000000-0000-4000-8000-000000000001": {
+     "cd": false,
+     "cg": false,
+     "mass": false
+    },
+    "00000000-0000-4000-8000-000000000002": {
+     "cd": false,
+     "cg": false,
+     "mass": false
+    },
+    "00000000-0000-4000-8000-000000000099": {
+     "cd": false,
+     "cg": false,
+     "mass": false
+    }
+   },
+   "parts": [
+    {
+     "class": "NoseCone",
+     "cm_x_m": 0.20199971059840252,
+     "component_mass_kg": 0.09172550704261852,
+     "each_mass_kg": 0.09172550704261852,
+     "id": "00000000-0000-4000-8000-000000000001",
+     "mass_kg": 0.09172550704261852,
+     "mass_overridden": false,
+     "name": "Nose",
+     "overridden_by": null,
+     "override_mass_kg": 0.09172550704261852
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 0.55,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000002",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "Rocket",
+     "cm_x_m": 0.4116768280278358,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 2.3996015870944185,
+     "id": "00000000-0000-4000-8000-000000000098",
+     "mass_kg": 2.3996015870944185,
+     "mass_overridden": false,
+     "name": "Probe",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 0.4,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.3996015870944187,
+     "id": "00000000-0000-4000-8000-000000000099",
+     "mass_kg": 2.0,
+     "mass_overridden": true,
+     "name": "Stage",
+     "overridden_by": null,
+     "override_mass_kg": 2.0
+    }
+   ],
+   "parts_skipped": 0,
+   "structure": {
+    "cm_x_m": 0.4116768280278358,
+    "ixx": 0.0008496514376672654,
+    "iyy": 0.017475614668629316,
+    "izz": 0.017475614668629316,
+    "longitudinal_inertia": 0.017475614668629316,
+    "mass_kg": 2.3996015870944185,
+    "rotational_inertia": 0.0008496514376672654
+   }
+  },
+  "two stages with no override": {
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim conventions probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><subcomponents><stage><name>Upper stage</name><id>00000000-0000-4000-8000-000000000099</id><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.3</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.05</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage><stage><name>Lower stage</name><id>00000000-0000-4000-8000-000000000096</id><subcomponents><bodytube><name>Lower tube</name><id>00000000-0000-4000-8000-000000000095</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "materials": {
+    "00000000-0000-4000-8000-000000000001": {
+     "class": "NoseCone",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000002": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000095": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    }
+   },
+   "parts": [
+    {
+     "class": "NoseCone",
+     "cm_x_m": 0.20199971059840252,
+     "component_mass_kg": 0.09172550704261852,
+     "each_mass_kg": 0.09172550704261852,
+     "id": "00000000-0000-4000-8000-000000000001",
+     "mass_kg": 0.09172550704261852,
+     "mass_overridden": false,
+     "name": "Nose",
+     "overridden_by": null,
+     "override_mass_kg": 0.09172550704261852
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 0.55,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000002",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 1.05,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000095",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Lower tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 0.8,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000096",
+     "mass_kg": 0.0,
+     "mass_overridden": false,
+     "name": "Lower stage",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    },
+    {
+     "class": "Rocket",
+     "cm_x_m": 0.722468393980191,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.7074776671462188,
+     "id": "00000000-0000-4000-8000-000000000098",
+     "mass_kg": 0.7074776671462188,
+     "mass_overridden": false,
+     "name": "Probe",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 0.0,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.3996015870944187,
+     "id": "00000000-0000-4000-8000-000000000099",
+     "mass_kg": 0.0,
+     "mass_overridden": false,
+     "name": "Upper stage",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    }
+   ],
+   "parts_skipped": 0,
+   "structure": {
+    "cm_x_m": 0.722468393980191,
+    "ixx": 0.0015891697819516897,
+    "iyy": 0.08109660702294386,
+    "izz": 0.08109660702294386,
+    "longitudinal_inertia": 0.08109660702294386,
+    "mass_kg": 0.7074776671462188,
+    "rotational_inertia": 0.0015891697819516897
+   }
+  },
+  "two stages' overrides, not their parts": {
+   "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim conventions probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><subcomponents><stage><name>Upper stage</name><id>00000000-0000-4000-8000-000000000099</id><overridemass>2.0</overridemass><overridecg>0.4</overridecg><overridesubcomponentsmass>false</overridesubcomponentsmass><overridesubcomponentscg>false</overridesubcomponentscg><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><length>0.3</length><thickness>0.002</thickness><shape>conical</shape><aftradius>0.05</aftradius><material type=\"bulk\" density=\"1000.0\">Probe</material></nosecone><bodytube><name>Tube</name><id>00000000-0000-4000-8000-000000000002</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage><stage><name>Lower stage</name><id>00000000-0000-4000-8000-000000000096</id><overridemass>1.0</overridemass><overridecg>0.3</overridecg><overridesubcomponentsmass>false</overridesubcomponentsmass><overridesubcomponentscg>false</overridesubcomponentscg><subcomponents><bodytube><name>Lower tube</name><id>00000000-0000-4000-8000-000000000095</id><length>0.5</length><thickness>0.002</thickness><radius>0.05</radius><material type=\"bulk\" density=\"1000.0\">Probe</material></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+   "materials": {
+    "00000000-0000-4000-8000-000000000001": {
+     "class": "NoseCone",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000002": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    },
+    "00000000-0000-4000-8000-000000000095": {
+     "class": "BodyTube",
+     "material": {
+      "density": 1000.0,
+      "kind": "bulk",
+      "name": "Probe"
+     }
+    }
+   },
+   "parts": [
+    {
+     "class": "NoseCone",
+     "cm_x_m": 0.20199971059840252,
+     "component_mass_kg": 0.09172550704261852,
+     "each_mass_kg": 0.09172550704261852,
+     "id": "00000000-0000-4000-8000-000000000001",
+     "mass_kg": 0.09172550704261852,
+     "mass_overridden": false,
+     "name": "Nose",
+     "overridden_by": null,
+     "override_mass_kg": 0.09172550704261852
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 0.55,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000002",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "BodyTube",
+     "cm_x_m": 1.05,
+     "component_mass_kg": 0.30787608005180017,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000095",
+     "mass_kg": 0.30787608005180017,
+     "mass_overridden": false,
+     "name": "Lower tube",
+     "overridden_by": null,
+     "override_mass_kg": 0.30787608005180017
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 1.1,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.30787608005180017,
+     "id": "00000000-0000-4000-8000-000000000096",
+     "mass_kg": 1.0,
+     "mass_overridden": true,
+     "name": "Lower stage",
+     "overridden_by": null,
+     "override_mass_kg": 1.0
+    },
+    {
+     "class": "Rocket",
+     "cm_x_m": 0.6503424889989738,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 3.7074776671462186,
+     "id": "00000000-0000-4000-8000-000000000098",
+     "mass_kg": 3.7074776671462186,
+     "mass_overridden": false,
+     "name": "Probe",
+     "overridden_by": null,
+     "override_mass_kg": 0.0
+    },
+    {
+     "class": "AxialStage",
+     "cm_x_m": 0.4,
+     "component_mass_kg": 0.0,
+     "each_mass_kg": 0.3996015870944187,
+     "id": "00000000-0000-4000-8000-000000000099",
+     "mass_kg": 2.0,
+     "mass_overridden": true,
+     "name": "Upper stage",
+     "overridden_by": null,
+     "override_mass_kg": 2.0
+    }
+   ],
+   "parts_skipped": 0,
+   "structure": {
+    "cm_x_m": 0.6503424889989738,
+    "ixx": 0.0015891697819516897,
+    "iyy": 0.41231161005503675,
+    "izz": 0.41231161005503675,
+    "longitudinal_inertia": 0.41231161005503675,
+    "mass_kg": 3.7074776671462186,
+    "rotational_inertia": 0.0015891697819516897
    }
   }
  },
