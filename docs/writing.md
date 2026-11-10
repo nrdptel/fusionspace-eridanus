@@ -1056,25 +1056,32 @@ What it took to pass is recorded in
 
 ### The search index
 
-The search box reads one file, `searchindex.js`, which a page loads when a reader first opens the
-search. A page loads it as a script, not by a request of its own, so search also works in a copy
-of the site opened from disk. Every page of the
-guide is in it, and a search lands on the page's `##` section.
+The search box reads one file, `searchindex.js`, which a page loads with a `<script>` tag when a
+reader first opens the search. Since no `fetch` is involved, search also works in a copy of the site
+opened from disk. Every page of the guide is in it, and a search lands on the page's `##` section.
+A test fails if `book.toml` leaves a page out again.
 
-mdBook 0.5.4 builds that file with an old release of its search library, which files each
-section's heading words under its body too, and its heading and body words under its breadcrumbs
-(the page and section names above it). That nearly doubled the index's entries and made the file
-56% larger. So `cargo xtask site` builds the three fields again from the text mdBook stores, each
-with its own words, as the library's 3.1.0 release does. It fails if any section's text, or the
-number of words it finds in a field, differs from mdBook's.
+mdBook 0.5.4 builds that file with elasticlunr-rs 3.0.2, its search library. That release files
+each section's heading words under its body too, and its heading and body words under its
+breadcrumbs (the names of the page, the pages above it and the section). That made the file 56% larger before
+compression, and nearly doubled its postings, a posting being one word filed under one section.
+Release 3.1.0 fixed it, but no mdBook release uses 3.1.0 yet. So `cargo xtask site` builds the three
+fields again from the text mdBook stores, each with its own words. It fails if the number of
+sections, or the words it counts in any field of any section, differs from mdBook's. Once an mdBook
+release ships elasticlunr-rs 3.1.0, the rebuild changes nothing, and `xtask/src/site/search.rs`
+can go.
 
-The build then holds the file to what readers downloaded before the rebuild: 1,675,059 bytes
-compressed with gzip, when fifteen pages were left out to stay under mdBook's 10 MB warning. With
-every page in, the file came to about 1.60 MB. GitHub Pages compresses a little less well (it
-sent 1,754,850 bytes for the old file), but the limit and the file are measured the same way. The
-line that starts `site search:` prints the figures. A page that grows the file past the limit fails the
-build: shorten it, or measure a new limit and say why
-([#414](https://github.com/nrdptel/fusionspace-eridanus/issues/414), the search index's issue).
+The build then holds the file to a limit, `LIMIT_GZIP_BYTES` in that file:
+
+- **The limit** is what the last file before the rebuild weighed: 1,675,059 bytes compressed with
+  gzip at its default level. That build left fifteen pages out to stay under mdBook's 10 MB warning.
+- **The rebuilt file,** every page in, came to about 1.60 MB, measured the same way, so about
+  75 KB of room is left. GitHub Pages compresses a little less well (it sent 1,754,850 bytes for
+  the old file), but the limit and the file are measured alike.
+- **The line** that starts `site search:` prints both figures on every build.
+- **When a page's words push the file past the limit,** the build fails. Shorten the words the
+  page added. Raise the limit only with a decision record that measures the new one. The limit's
+  measurements are in [the search index's issue](https://github.com/nrdptel/fusionspace-eridanus/issues/414).
 
 ## Where this comes from
 

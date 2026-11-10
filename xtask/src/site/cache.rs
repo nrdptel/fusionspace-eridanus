@@ -49,7 +49,7 @@ pub(super) const DIR: &str = "target/site-check-cache";
 /// The cache files' format. A file of another is not read, and every page is checked.
 const FORMAT: u32 = 1;
 /// The site's search index, which a page loads only when the search is opened.
-const SEARCH_INDEX: &str = "searchindex.js";
+const SEARCH_INDEX: &str = super::search::FILE;
 
 /// The checker's sources, each by its name: what both checks run, here and in the browser. They
 /// are built into xtask, so a change to any of them changes every key.

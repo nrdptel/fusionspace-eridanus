@@ -257,7 +257,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let output = root.join(OUTPUT);
     let index = search::rebuild(&output)?;
     println!(
-        "site search: {} sections indexed, each field with its own words only (#414): {} \
+        "site search: {} sections indexed, each field with its own words only (issue #414): {} \
          postings, not mdBook's {}; {} bytes, not {}; {} compressed with gzip (at most {})",
         index.sections,
         index.postings,
@@ -702,15 +702,18 @@ fn mdbook_build(root: &Path) -> Result<(), String> {
     );
     // mdBook's warning that its search index passed 10 MB is about the index `search::rebuild`
     // replaces (#414); the rebuilt file's own limit is checked there. Any other warning fails.
-    let complaints: Vec<&str> = log
-        .lines()
-        .filter(|line| line.contains("WARN") || line.contains("ERROR"))
-        .filter(|line| !(line.contains("WARN") && line.contains(search::MDBOOK_SIZE_WARNING)))
-        .collect();
+    let complaints: Vec<&str> = log.lines().filter(|line| complaint(line)).collect();
     if !output.status.success() || !complaints.is_empty() {
         return Err(format!("`mdbook build` failed or warned:\n{log}"));
     }
     Ok(())
+}
+
+/// Whether a line of mdBook's log fails the build: any warning or error, but the warning about
+/// the size of the search index `search::rebuild` replaces.
+fn complaint(line: &str) -> bool {
+    let warning = line.contains("WARN");
+    (warning || line.contains("ERROR")) && !(warning && line.contains(search::MDBOOK_SIZE_WARNING))
 }
 
 /// The command mdBook runs for the site's equations: this `xtask` itself, so the build doesn't
@@ -3774,6 +3777,20 @@ fn percent_decode(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn only_mdbooks_search_size_warning_passes() {
+        // mdBook 0.5.4's lines, as it logs them.
+        assert!(!complaint(
+            " WARN search index is very large (12003726 bytes)"
+        ));
+        assert!(complaint(" WARN Couldn't find a chapter for `x.md`"));
+        assert!(complaint(
+            "ERROR search index is very large (12003726 bytes)"
+        ));
+        assert!(complaint("ERROR Rendering failed"));
+        assert!(!complaint(" INFO HTML book written to `target/site`"));
+    }
 
     /// A workspace in a temporary directory holding `files`, as (path, contents).
     fn workspace(files: &[(&str, &str)]) -> tempfile::TempDir {

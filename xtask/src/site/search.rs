@@ -11,14 +11,14 @@
 //!
 //! - **What it reads.** mdBook keeps each section's heading, body and breadcrumbs as text in the
 //!   index's document store, already cut into sections and with its white space collapsed. The
-//!   rebuild indexes that text again, field by field, splitting words as mdBook does (on white
+//!   rebuild indexes that text again, field by field, splitting words as mdBook does (at white
 //!   space and hyphens, lowercased, words over 80 bytes left out: [`tokenize`]) and running
 //!   elasticlunr's English pipeline (trimmer, stop words, stemmer).
 //! - **What it keeps.** Everything but the three fields' postings: the options, the sections'
 //!   addresses, the document store, the field list and pipeline. The rebuilt document store is
-//!   compared with mdBook's and must be the same, each section's text and its word count in each
-//!   field included, so a section missed or a field's words counted differently fails the build
-//!   rather than shipping a thinner index. (A word stemmed differently, with the same count,
+//!   compared with mdBook's and must be the same, each section's word count in each field
+//!   included, so a section missed or a field's words counted differently fails the build rather
+//!   than shipping a thinner index. (A word stemmed differently, with the same count,
 //!   would pass: the stemmer is elasticlunr's own, 3.1.0's rather than 3.0.2's.)
 //! - **What changes for a reader.** A section is found by the same words. Its body and
 //!   breadcrumbs no longer count its heading's and body's words twice or three times, so ranking
@@ -26,7 +26,7 @@
 //! - **Its size,** checked against [`LIMIT_GZIP_BYTES`], stands for what a reader downloads
 //!   when they open the search: the file compressed with gzip at the default level ([`gzip_len`]).
 //!   GitHub Pages compresses a little less well: for the same file it sent 1,754,850 bytes on
-//!   November 10, 2026, against 1,675,059 here. The limit and the file are measured the same
+//!   November 10, 2026 (UTC), against 1,675,059 here. The limit and the file are measured the same
 //!   way, so the comparison holds.
 
 use std::io::Write as _;
@@ -86,9 +86,10 @@ fn rebuild_within(output: &Path, limit: usize) -> Result<Rebuilt, String> {
         .map_err(|err| format!("could not write the search index {}: {err}", path.display()))?;
     if report.gzip_bytes > limit {
         return Err(format!(
-            "the search index weighs {} bytes compressed with gzip, more than the {limit} \
-             readers downloaded before it was rebuilt, measured the same way (xtask/src/site/search.rs); a page's words \
-             grew it: shorten them, or measure a new limit there",
+            "the search index weighs {} bytes compressed with gzip, more than the {limit} its \
+             last build before the rebuild weighed, measured the same way \
+             (xtask/src/site/search.rs): shorten the words a page added; raise the limit only \
+             with a decision record that measures the new one",
             report.gzip_bytes
         ));
     }
@@ -193,15 +194,14 @@ fn reindex(old: &Value, sections: usize) -> Result<Value, String> {
     Ok(fresh)
 }
 
-/// Splits a field's text into words as mdBook 0.5 does before elasticlunr's pipeline: at white
-/// space and hyphens, each word trimmed and lowercased, words over [`MAX_WORD_BYTES`] left out.
-/// The document store's word counts, which [`reindex`] compares, hold the rebuild to it.
+/// Splits a field's text into words as mdBook 0.5 does before elasticlunr's pipeline:
+/// elasticlunr's own English split (at white space and hyphens, each word lowercased), with words
+/// over [`MAX_WORD_BYTES`] left out. The document store's word counts, which [`reindex`]
+/// compares, hold the rebuild to mdBook's split.
 fn tokenize(text: &str) -> Vec<String> {
-    text.split(|c: char| c.is_whitespace() || c == '-')
-        .filter(|word| !word.is_empty())
-        .map(|word| word.trim().to_lowercase())
-        .filter(|word| word.len() <= MAX_WORD_BYTES)
-        .collect()
+    let mut words = elasticlunr::lang::tokenize_whitespace(text);
+    words.retain(|word| word.len() <= MAX_WORD_BYTES);
+    words
 }
 
 /// The number of (word, section) postings over an index's three fields.
@@ -274,8 +274,10 @@ mod tests {
     use super::*;
 
     /// A two-section book's index as mdBook 0.5.4 writes it: a page "Alpha" whose heading is
-    /// "Alpha page" and body `zebra quokka don’t a\b words here.`, then a section "Second part"
-    /// with body "mongoose giraffe text.".
+    /// "Alpha page" and whose body is `zebra quokka don't a\b rail-exit`, a word of 81 `y`s, one
+    /// of 80 `k`s and `words here.`, then a section "Second part" with body "mongoose giraffe
+    /// text.". mdBook curls the apostrophe, splits `rail-exit` and leaves out the 81-byte word:
+    /// 9 words in the first body.
     const FIXTURE: &str = include_str!("searchindex-fixture.txt");
 
     /// Each section's words in `field`, as the index's postings hold them.
@@ -327,9 +329,20 @@ mod tests {
         assert!(section_words(FIXTURE, "body", "0").contains(&"alpha".to_owned()));
         assert!(section_words(FIXTURE, "breadcrumbs", "1").contains(&"mongoos".to_owned()));
         let (rebuilt, report) = rebuild_text(FIXTURE).unwrap();
+        let k80 = "k".repeat(80);
         assert_eq!(
             section_words(&rebuilt, "body", "0"),
-            ["a\\b", "don’t", "here", "quokka", "word", "zebra"]
+            [
+                "a\\b",
+                "don’t",
+                "exit",
+                "here",
+                k80.as_str(),
+                "quokka",
+                "rail",
+                "word",
+                "zebra"
+            ]
         );
         assert_eq!(
             section_words(&rebuilt, "breadcrumbs", "1"),
@@ -337,9 +350,9 @@ mod tests {
         );
         assert_eq!(section_words(&rebuilt, "title", "1"), ["part", "second"]);
         assert_eq!(report.sections, 2);
-        // Title 2 + 2, body 6 + 3, breadcrumbs 2 + 3 (the page name "alpha" repeats in
-        // section 0's): mdBook's 31 counted the body twice and the heading three times.
-        assert_eq!((report.mdbook_postings, report.postings), (31, 18));
+        // Title 2 + 2, body 9 + 3, breadcrumbs 2 + 3 (the page name "alpha" repeats in
+        // section 0's): mdBook's 37 counted the body twice and the heading three times.
+        assert_eq!((report.mdbook_postings, report.postings), (37, 21));
         assert!(report.bytes < report.mdbook_bytes);
     }
 
@@ -369,7 +382,10 @@ mod tests {
     #[test]
     fn a_changed_document_store_fails_the_rebuild() {
         // A word count that the rebuild's split doesn't give: mdBook read the text differently.
-        let altered = FIXTURE.replace(r#""docInfo":{"0":{"body":6"#, r#""docInfo":{"0":{"body":7"#);
+        let altered = FIXTURE.replace(
+            r#""docInfo":{"0":{"body":9"#,
+            r#""docInfo":{"0":{"body":10"#,
+        );
         assert_ne!(altered, FIXTURE);
         let err = rebuild_text(&altered).unwrap_err();
         assert!(err.contains("`documentStore` differs"), "{err}");
@@ -411,9 +427,11 @@ mod tests {
             tokenize("Rail-exit  speed\tIS"),
             ["rail", "exit", "speed", "is"]
         );
-        let long = "x".repeat(MAX_WORD_BYTES + 1);
-        let kept = "y".repeat(MAX_WORD_BYTES);
+        // mdBook's bound is 80 bytes, written out so a moved constant fails here.
+        let long = "x".repeat(81);
+        let kept = "y".repeat(80);
         assert_eq!(tokenize(&format!("{long} {kept}")), [kept]);
+        assert_eq!(tokenize("Don't  é-É"), ["don't", "é", "é"]);
     }
 
     #[test]
@@ -433,5 +451,20 @@ mod tests {
         let err = rebuild_within(&dir, report.gzip_bytes - 1).unwrap_err();
         assert!(err.contains("compressed with gzip"), "{err}");
         std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn no_page_is_left_out_of_search() {
+        // book.toml's `[output.html.search.chapter]` table is how mdBook leaves a page out; the
+        // rebuild made room for every page (#414), so the table must stay empty.
+        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../book.toml");
+        let book: toml::Table = std::fs::read_to_string(path).unwrap().parse().unwrap();
+        let search = &book["output"]["html"]["search"];
+        assert!(
+            search.get("chapter").is_none(),
+            "book.toml leaves pages out of search"
+        );
+        // The table read where mdBook reads it.
+        assert!(search.get("heading-split-level").is_some());
     }
 }

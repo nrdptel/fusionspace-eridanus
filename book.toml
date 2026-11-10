@@ -39,13 +39,17 @@ runnable = false
 # Search lands on a page's `##` section, which holds its `###` and `####` ones, and every page is
 # in the index. mdBook 0.5.4 writes the index with each field holding the words of the fields
 # before it, so `cargo xtask site` rebuilds it with each field's words alone (#414,
-# `xtask/src/site/search.rs`) and holds the rebuilt file to what readers downloaded before:
-# 1,675,059 bytes compressed with gzip, at b7313b32, with fifteen pages left out of search to stay
-# under mdBook's 10 MB warning. Rebuilt, with all of them in, it is 7.72 MB, about 1.60 MB
-# compressed. Landing on the `###` section (about 1.73 MB) or the `####` one (1.77 MB) would cost a
-# reader more than before, so the split stays at `##`.
+# `xtask/src/site/search.rs`) and holds the rebuilt file to what the last file before it weighed,
+# measured the same way: 1,675,059 bytes compressed with gzip (GitHub Pages sent 1,754,850), at
+# b7313b32, with fifteen pages left out of search to stay under mdBook's 10 MB warning. Rebuilt,
+# with all of them in, it is 7.72 MB, about 1.60 MB compressed. Landing on the `###` section (about 1.73 MB) or the `####` one (1.77 MB) would cost a
+# reader more than before, so the split stays at `##`. No page is left out of search (a test in
+# `search.rs` fails on an `[output.html.search.chapter]` table).
 [output.html.search]
 heading-split-level = 2
 
+# The equations (`xtask/src/site/math.rs`): each `$…$` and `$$…$$` becomes MathML before mdBook
+# renders the page, so the browser draws it in the math face with no script. `cargo xtask site`
+# runs the build's own xtask in place of this command; `mdbook serve` runs this one.
 [preprocessor.math]
 command = "cargo xtask site-math"
