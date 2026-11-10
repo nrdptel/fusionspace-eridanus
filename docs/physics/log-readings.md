@@ -1201,7 +1201,7 @@ unit withheld by name, the same flight in its right unit read.
 
 A withheld reading has a code and a sentence with the log's own numbers. Only the readings that
 need what is missing go. A log that starts in the air on the logger's own altitude loses its
-liftoff, and with it the flight time. It keeps its apogee, top speed and landing. There are 27
+liftoff, and with it the flight time. It keeps its apogee, top speed and landing. There are 28
 reasons:
 
 | code | when | readings withheld |
