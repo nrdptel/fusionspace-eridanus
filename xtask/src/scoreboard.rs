@@ -2448,33 +2448,44 @@ mod tests {
                 );
             }
         }
-        // The held-out half worse, and smaller: shown, nothing fails.
-        let mut reports = Reports::read(&root).expect("the committed reports");
-        for field in ["mean_absolute_percent", "mean_percent"] {
-            let at = format!("{pointer}/hpr/{field}");
-            let value = number(&reports.fixture_flights, FIXTURE_FLIGHTS, &at).expect("it");
-            *reports.fixture_flights.pointer_mut(&at).expect("it") =
-                (value + 5.0 * value.signum()).into();
-        }
-        for key in ["/flights", "/hpr/n", "/openrocket/n"] {
-            let at = format!("{pointer}{key}");
-            let n = whole(&reports.fixture_flights, FIXTURE_FLIGHTS, &at).expect("a count");
-            *reports.fixture_flights.pointer_mut(&at).expect("a count") = (n - 1).into();
-        }
-        let moved = scoreboard(&reports).expect("the scoreboard");
-        assert_ne!(moved, committed);
-        assert!(gate(&committed, &moved, &release, &none).is_ok());
-        // The same rows held: the worse numbers fail.
-        let mut holding = committed.clone();
-        let mut moved_held = moved;
-        for board in [&mut holding, &mut moved_held] {
-            for row in &mut board.rows {
-                row.shown_only = false;
+        // The held-out half worse, or smaller, each alone: shown, nothing fails; the same rows
+        // held, each fails.
+        let worse = |reports: &mut Reports| {
+            for field in ["mean_absolute_percent", "mean_percent"] {
+                let at = format!("{pointer}/hpr/{field}");
+                let value = number(&reports.fixture_flights, FIXTURE_FLIGHTS, &at).expect("it");
+                *reports.fixture_flights.pointer_mut(&at).expect("it") =
+                    (value + 5.0 * value.signum()).into();
             }
+        };
+        let smaller = |reports: &mut Reports| {
+            for key in ["/flights", "/hpr/n", "/openrocket/n"] {
+                let at = format!("{pointer}{key}");
+                let n = whole(&reports.fixture_flights, FIXTURE_FLIGHTS, &at).expect("a count");
+                *reports.fixture_flights.pointer_mut(&at).expect("a count") = (n - 1).into();
+            }
+        };
+        for what in ["worse", "smaller"] {
+            let mut reports = Reports::read(&root).expect("the committed reports");
+            if what == "worse" {
+                worse(&mut reports);
+            } else {
+                smaller(&mut reports);
+            }
+            let moved = scoreboard(&reports).expect("the scoreboard");
+            assert_ne!(moved, committed, "{what}");
+            assert!(gate(&committed, &moved, &release, &none).is_ok(), "{what}");
+            let mut holding = committed.clone();
+            let mut moved_held = moved;
+            for board in [&mut holding, &mut moved_held] {
+                for row in &mut board.rows {
+                    row.shown_only = false;
+                }
+            }
+            let error = gate(&holding, &moved_held, &release, &none).expect_err(what);
+            assert!(error.contains("accuracy.held-out.hpr"), "{what}: {error}");
+            assert!(error.contains("bias.held-out.hpr"), "{what}: {error}");
         }
-        let error = gate(&holding, &moved_held, &release, &none).expect_err("held, worse");
-        assert!(error.contains("accuracy.held-out.hpr"), "{error}");
-        assert!(error.contains("bias.held-out.hpr"), "{error}");
     }
 
     /// A worse HPR Sim number in a report fails the gate, for each kind of rule that holds a
