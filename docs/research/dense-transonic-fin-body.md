@@ -23,9 +23,11 @@ project holds.**
   Mach 0.80 to a plateau of 11.0–11.2 from 0.98 to 1.20 (+13% to +15%), then falls to 10.0 at 1.30. With a square
   fin it rises +21% to a peak at Mach 1.05. The CP moves 0.2–0.3 caliber aft up to Mach 1, then 0.40–0.45 caliber
   forward by 1.30. No dip like the Arcas's at Mach 0.8–0.9 appears, except in one unconfirmed run.
-- **NASA's own sets are structurally coarse above Mach 1.03.** In Langley's slotted 8-ft tunnel, wall-reflected
-  shocks spoil rocket-length models from just above Mach 1.025 to about 1.1, so every NASA 8-ft report read stops at
-  1.03 (TN D-1958) or jumps from 1.03 to 1.1–1.2 (TN D-794, TM X-3070). The named candidates are plotted only
+- **NASA's own sets are structurally coarse above Mach 1.03.** Every NASA 8-ft report read stops at 1.03 (TN D-1958)
+  or jumps from 1.03 to 1.1–1.2 (TN D-794, TM X-3070). Wall reflections are the likely reason (Inference). They were
+  measured in Langley's older 8-ft Transonic Tunnel, where they spoil rocket-length models from just above Mach 1.025
+  to about 1.1. TN D-794 and TM X-3070 ran in its successor, the 8-ft Transonic Pressure Tunnel, whose own reflection
+  band is unmeasured (§2, "Why NASA's grids jump"). The named candidates are plotted only
   (TN D-794, TM X-3070), not reached (TN D-1228), or never found as a NASA report (the Triservice database).
 
 Confidence: high that the compilation is tabulated, public and on the grid stated (read from its run indexes and
@@ -116,10 +118,16 @@ the moment-to-force slope over 2° to 6°.
 - **RM SL55F15**, free flight at Wallops: model B's C_Nα rises from 0.10 at Mach 0.90 to 0.125 at 1.05 (+25%; units
   not printed, per degree by **Inference**); model A's changes "very little" (PDF p. 12). Model A's CP goes from 6.63
   calibers at Mach 0.75 to 6.72 at 1.02, then forward to 6.38 at 1.50 (PDF p. 13). Same sign as the Basic Finner.
-- **Why NASA's grids jump.** In the slotted 8-ft tunnel, reflected compressions reach the model just above Mach 1.025
-  and the reflection-free length grows from about 4 in at 1.025 to about 36 in at 1.14 [N6, PDF p. 19]. A rocket-length
-  model gets clean data only to about 1.03. A dense grid through 1.0–1.2 needs free flight, a ballistic range, or a
-  small model in a large tunnel; the compilation's 4-ft tunnel with a 36 in model reports no correction.
+- **Why NASA's grids jump.** In Langley's older 8-ft Transonic Tunnel, a twelve-sided slotted section about 8 ft across,
+  reflected compressions reach the model just above Mach 1.025. The reflection-free length grows from about 4 in at
+  1.025 to about 36 in at 1.14 ([N6] PDF p. 19; the same figures in [N7] PDF p. 15, which supersedes it). A
+  rocket-length model there gets clean data only to about 1.03. TN D-794 and TM X-3070 ran in its successor, the 8-ft
+  Transonic Pressure Tunnel (each report names it), a square section slotted in the floor and ceiling only. No
+  reflection survey of that tunnel was found, so its band is unmeasured. A Mach-line estimate scaled from the older
+  tunnel puts its clean edge near Mach 1.17 for the Arcas Robin's short model in TN D-4013 and 1.24 for its long one
+  (Inference, rough; [arcas-short-model-mach-0-9 §3](arcas-short-model-mach-0-9.md#3-the-tunnel-walls)). A dense grid
+  through 1.0–1.2 needs free flight, a ballistic range, or a small model in a large tunnel; the compilation's 4-ft
+  tunnel with a 36 in model reports no correction.
 - **Also read and set aside:** TM-74058 (0.7, 0.9, 1.1, 1.2), TM X-594 (0.8, 1.0, 1.2, dynamic), TN D-945 (no fins).
   NTRS searches for "transonic missile", "fin-stabilized", "8-foot transonic", "body-tail" and a dozen rocket names
   found nothing tabulated and dense.
@@ -158,7 +166,7 @@ the moment-to-force slope over 2° to 6°.
   2026-10-20; every DTIC report here is the Internet Archive's copy of DTIC's scan.
 - **Reynolds number:** 5 to 7 × 10⁶ on length, about the size of a mid-size hobby rocket at Mach 1, but no fillets.
 
-## Sources (all read 2026-10-20)
+## Sources (read 2026-10-20 unless marked)
 
 - **[G1]** G. R. Gomillion, AEDC-TR-75-125 Vol. I, 1976. <https://archive.org/details/DTIC_ADB010053>
 - **[G2]** Same, Vol. II (Tests 1–5). <https://archive.org/details/DTIC_ADB010054>
@@ -171,6 +179,9 @@ the moment-to-force slope over 2° to 6°.
 - **[N4]** E. B. Graves, R. H. Fournier, NASA TM X-3070, 1974. <https://ntrs.nasa.gov/citations/19740025319>
 - **[N5]** H. H. Jackson, NACA RM SL55F15, 1955. <https://ntrs.nasa.gov/citations/20010057623>
 - **[N6]** V. S. Ritchie, A. O. Pearson, NACA RM L51K14, 1952. <https://ntrs.nasa.gov/citations/19930087191>
+- **[N7]** R. H. Wright, V. S. Ritchie, A. O. Pearson, *Characteristics of the Langley 8-Foot Transonic Tunnel With
+  Slotted Test Section*, NACA Report 1389, 1958 (supersedes [N6], PDF p. 5; read 2026-11-10).
+  <https://ntrs.nasa.gov/citations/19930092368>
 - **[C1]** R. E. de Kuyper, Calspan AA-4017-W-11, 1974. <https://archive.org/details/DTIC_AD0782208>
 - **[C2]** J. A. Humphrey, MICOM TR T-79-26, 1979. <https://archive.org/details/DTIC_ADA066733>
 - **[C3]** W. B. Baker Jr., AEDC-TR-77-97, 1978. <https://archive.org/details/DTIC_ADA051797>
