@@ -2817,8 +2817,8 @@ pub(super) mod tests {
     /// doesn't cover them either; a center of gravity override that covers them is the whole
     /// stage's; one alone that doesn't changes nothing, and is kept as the file wrote it. Written,
     /// an added mass says the same again with the per-quantity flags, and each case reads back as
-    /// the same design. A stage override that covers its parts, or a drag override alone, is read
-    /// and written as before.
+    /// the same design. A stage's mass override alone that covers its parts, or a drag override
+    /// alone, is read and written as before.
     #[test]
     fn a_stage_override_not_covering_its_parts_is_read_and_written_back() {
         let stage = |tags: &str| {

@@ -290,7 +290,7 @@ Both are OpenRocket 24.12's numbers for the same stage (2.3996 kg at 0.4117 m (1
 doesn't cover the stage's parts. Its user guide says such a value "is added to the calculated
 value" ([Overrides and Surface Finish][or-overrides]). Where the mass goes is measured on
 [probe designs](../glossary.md#probe-design), and the `.ork` reader turns each pairing of the
-stage's flags into an added mass, a whole-stage override, or nothing
+stage's flags into an added mass, a whole-stage override, both, or nothing
 ([A stage's override](../format/ork.md#the-values-inside-the-tags),
 [the decision record][adr-335]).
 

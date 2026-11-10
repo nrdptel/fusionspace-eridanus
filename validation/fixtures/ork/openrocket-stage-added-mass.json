@@ -3,7 +3,7 @@
  "generated": "2026-11-10",
  "inputs_sha256": {
   "automatic_radius.py": "71c7eaafeebb0d076714f773ad72aa2ca8484dbd5b0a596c4e270aca82836da3",
-  "conventions.py": "54fbaa25007ca77f7e1a8e3f20e9cda1ab640d4fe12a7561969ffd0475ed25b2",
+  "conventions.py": "ace6e84dc5298fc10130f5a071d18a6b13000d3618e57b943f273803882caddb",
   "events.py": "313b72db4daae061e476be01cd429db7c2f34432ae45d314f1bbb1586e1f585d",
   "pod_probes.py": "e9b8f81ec68abd2e9d49accca25a842642848890caf2d86f1d06307afc26978c",
   "stage_added_mass.py": "f935f9ee9f43367d0f74c80fd4609490f19771590591b7172f9b27fb6fd0b04d"

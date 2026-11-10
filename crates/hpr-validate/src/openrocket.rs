@@ -553,8 +553,8 @@ mod tests {
     /// doesn't, with no override that covers them: by a flag of `false`, by none written, and by
     /// the single older flag; on one stage and on a rocket of two; over a part with an override of
     /// its own; a mass of nothing; a center ahead of the tip; and both overrides with only one
-    /// flag written, `false`. One is the rocket of two stages with no override at all, which the
-    /// others of its kind are read against.
+    /// flag written, `false`. One is the rocket of two stages with no override at all: what the
+    /// two tools weigh before any of this applies.
     const STAGE_ADDS: [&str; 19] = [
         "a mass override on the stage, not its parts",
         "a centre of gravity override on the stage, not its parts",

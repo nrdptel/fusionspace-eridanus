@@ -404,7 +404,9 @@ The tests `a_stage_override_not_covering_its_parts_adds_to_them` (19 probes),
 `a_stage_override_covering_its_parts_beside_one_that_does_not` (7 probes) and
 `a_motor_aboard_does_not_move_a_stages_added_mass` in `hpr_validate::openrocket` hold HPR Sim to
 OpenRocket's answers, and `a_stage_override_not_covering_its_parts_is_read_and_written_back` in
-the `.ork` writer holds the export. Until this was read, such a stage was held back
+the `.ork` writer holds the export. The command line's test
+`sim_flies_a_ork_stage_whose_override_adds_to_its_parts` flies one of the probes through
+`hpr sim`, with no warning. Until this was read, such a stage was held back
 ([#1225](https://github.com/nrdptel/fusionspace-eridanus/issues/1225)): taking the override as
 the whole stage's would be the flattering side. A stage whose override adds 300 g of paint would
 weigh 300 g in all: far too light, so its descent rate would read low.

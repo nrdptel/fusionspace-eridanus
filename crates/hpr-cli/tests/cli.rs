@@ -923,8 +923,13 @@ fn library_flight_recovered(
 
 /// The probe read as the library reads it, with its default configuration's id and mount.
 fn probe_design() -> (hpr::hpr_design::Rocket, String, String) {
-    let bytes = std::fs::read(repo_file(PROBE)).unwrap();
-    let file = hpr::hpr_io::ork::read(&bytes).unwrap().value;
+    ork_design(&std::fs::read(repo_file(PROBE)).unwrap())
+}
+
+/// A `.ork` file's bytes read as the library reads them, with the default configuration's id and
+/// mount.
+fn ork_design(bytes: &[u8]) -> (hpr::hpr_design::Rocket, String, String) {
+    let file = hpr::hpr_io::ork::read(bytes).unwrap().value;
     let design = hpr::hpr_io::ork::design(&file).value;
     let configuration = design.motors.default_configuration().unwrap();
     let id = configuration.id.clone();
@@ -1032,6 +1037,65 @@ fn sim_flies_a_public_ork_as_the_library_does() {
         )),
         "{text}"
     );
+}
+
+/// A stage whose overrides don't cover its parts flies (ADR-335, M2.3d4). The design is the
+/// OpenRocket probe with a 2 kg mass override and a center of gravity override at 0.4 m, each
+/// with its flag `false`, as `stage_added_mass.py` wrote it. `hpr sim` reads it with no warning,
+/// lists its configuration as one that flies, and gives the library's flight bit for bit. The
+/// library's design holds the 2 kg as the stage's added mass, at the override's station. Beside
+/// the same airframe with no override, on the same motor, it leaves the rail slower and peaks
+/// lower.
+#[test]
+fn sim_flies_a_ork_stage_whose_override_adds_to_its_parts() {
+    let record: Value = serde_json::from_str(
+        &std::fs::read_to_string(repo_file(
+            "validation/fixtures/ork/openrocket-stage-added-mass.json",
+        ))
+        .unwrap(),
+    )
+    .unwrap();
+    let folder = tempfile::tempdir().unwrap();
+    let written = |name: &str, question: &str| {
+        let path = folder.path().join(name);
+        let document = record["probes"][question]["document"].as_str().unwrap();
+        std::fs::write(&path, document).unwrap();
+        path.to_string_lossy().into_owned()
+    };
+    let added = written("added.ork", "both overrides on the stage, not its parts");
+    let bare = written("bare.ork", "no override");
+
+    let document = json(&["sim", &added, "--motor", "H54"], 0, "sim.schema.json");
+    assert_eq!(document["warnings"], serde_json::json!([]), "{document:#}");
+    let configurations = document["design"]["configurations"].as_array().unwrap();
+    assert_eq!(configurations.len(), 1);
+    assert_eq!(configurations[0]["flies"], true);
+    assert_eq!(configurations[0]["not_flown"], Value::Null);
+
+    let (rocket, id, mount) = ork_design(&std::fs::read(&added).unwrap());
+    assert_eq!(
+        rocket.stages[0].added_mass,
+        Some(hpr::hpr_design::AddedMass {
+            mass_kg: 2.0,
+            cg_aft_m: Some(0.4),
+        })
+    );
+    assert_eq!(rocket.stages[0].overrides, Default::default());
+    let motor = hpr::Motor::from_catalog("H54").unwrap();
+    let environment = hpr::Environment::new(0.0, 0.0, 0.0).unwrap();
+    let (flight, _) = library_flight(rocket, &id, &mount, Some(&motor), &environment, |b| b);
+    same_flight(&document, &flight);
+
+    let lighter = json(&["sim", &bare, "--motor", "H54"], 0, "sim.schema.json");
+    let figure =
+        |document: &Value, path: [&str; 2]| document["summary"][path[0]][path[1]].as_f64().unwrap();
+    for path in [["rail_exit_speed_m_s", "value"], ["apogee", "gain_m"]] {
+        let (heavy, light) = (figure(&document, path), figure(&lighter, path));
+        assert!(
+            heavy > 0.0 && heavy < 0.5 * light,
+            "{path:?}: {heavy} {light}"
+        );
+    }
 }
 
 /// The `.ork` text of the library's staging example, `ork_two_stage`: two stages, an Estes F15 in
