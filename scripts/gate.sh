@@ -143,7 +143,7 @@ touches_physics() {
   # What `ghost --check` reads the real logs with: CI holds only the invented flights.
   grep -qE "^(validation/oracles/ghost/|validation/fixtures/logs/rocketpy-mappings/|xtask/src/ghost.rs)" <<<"$changed" && return 0
   # What `fixture-flights --check` holds the held-out half and its guard with (M2.7a, ADR-332),
-  # and new flights' predictions (M2.7b, ADR-333), and what it writes and seals: CI has no
+  # and new flights' predictions (M2.7b, ADR-333), and what it reads, writes and seals: CI has no
   # private collection to run it on.
   grep -qE "^xtask/src/(fixture_flights|collection_boost|collection_errors|predict_first).rs$" <<<"$changed" && return 0
   grep -qE "^validation/reports/(fixture-flights\.(md|json)|collection-boost\.(md|json)|predictions\.sha256|m2\.7a-flights\.sha256|held-out(-fits)?\.sha256)$" <<<"$changed" && return 0
