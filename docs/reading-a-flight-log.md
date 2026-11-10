@@ -79,6 +79,11 @@ two readings of one pressure trace, not a measurement of the height
 
 Most of an apogee's bound is the day's air. A barometric altimeter turns pressure into height by
 the standard atmosphere. So on a day 15 K from standard, its heights are off by up to 6.92%.
+Standard air is 15 °C less 6.5 °C a kilometer of height. So 15 K over is 30 °C (86 °F) at a
+sea-level field, and about 22 °C (72 °F) at a 1,190 m (3,904 ft) one. Past that, the bound may not
+hold. The log may record the pad's temperature and its height above sea level: from its pressure,
+an altitude above sea level, or a stated ground elevation. Then `hpr analyze` says so beside each
+reading the day moves ([A hot or cold day](#a-hot-or-cold-day)).
 
 The top speed is worked out from the heights. It's withheld from 227.7 m/s (747 ft/s), Mach 0.8
 in the coldest air the bounds allow ([the top speed](physics/log-readings.md#each-reading)). At
@@ -339,9 +344,10 @@ below reads 7.2 ft/s here and 8 ft/s there.
 - **The mean descent rate**, 10.9 m/s (36 ft/s), within 2.1 m/s (6.9 ft/s). It's the height lost
   from apogee to landing over the time taken, drogue and main together.
 - **The drogue's descent**, 21.7 m/s (71 ft/s), within 2.2 m/s (7.2 ft/s), from apogee at 10.28 s
-  to the main's opening at 21.40 s. The rocket fell under its drogue at 25 m/s (82 ft/s), but the
-  leg starts at apogee, where it falls from rest. Over the same span, the leg's true rate is
-  21.74 m/s (71.3 ft/s).
+  to the main's opening at 21.40 s. It is the mean rate from apogee, as `hpr analyze` says on its
+  line: the height lost over the time taken, so the fall from rest there is included. The rocket
+  fell under its drogue at 25 m/s (82 ft/s), but started that leg from rest. Over the same span,
+  the leg's true rate is 21.74 m/s (71.3 ft/s).
 - **The main's descent**, 6.0 m/s (20 ft/s), within 0.8 m/s (2.6 ft/s), from its opening to
   landing, as the flight's main truly fell. The opening is at 21.40 s within 1.06 s, 148.4 m
   (487 ft) up. It's found by walking back from landing until the descent's rate climbs well past
@@ -368,6 +374,59 @@ Among them are those that came with the accelerometer and the canopies:
 - `direction_unstated` (which way up it reads)
 - `one_canopy` (no drogue's leg in the descent)
 - `short_leg` (a leg too short to read)
+
+### A hot or cold day
+
+Each bound allows for air up to 15 K from the standard atmosphere. That is 30 °C (86 °F) at a
+sea-level field, and about 22 °C (72 °F) at a 1,190 m (3,904 ft) one. Past that, the bound may not
+hold. On a hot day
+a barometric altimeter reads its heights low, and with them the top speed and the descent rates.
+On a cold day it reads them high.
+
+`hpr analyze` checks the day where it can. It compares the log's temperature on the pad with the
+standard atmosphere's at the pad's height above sea level
+([A day past 15 K](physics/log-readings.md#a-day-past-15-k)). That height comes from a pressure
+column, an altitude above sea level, or the ground elevation the logger states. Past 15 K, a line
+above the readings gives the log's temperature and the offset. Below the apogee, the top speed,
+the mean descent rate and each canopy's rate, a note gives how far the day's air alone may put the
+true value from the reading:
+
+```text
+the day's air may put the true height up to 289.2 m (949 ft) above the reading, 10.6%, where the bound allows 6.9% for the day's air
+```
+
+That figure is from the worked example on the physics page, not a real log. Its "up to" assumes the
+pad's offset from the standard holds up the climb; under an inversion the day's air can move the
+reading more. On a low flight, a
+day just past 15 K can move a reading by less than the bound's 6.92%. The note then says the day
+is past 15 K, but within the bound's share at this flight's height. What to do then:
+
+1. **Check the temperature.** A logger's temperature is often the electronics bay's, warmed by the
+   sun and the electronics. Take the field's own weather reading at launch time. Subtract the
+   standard's at the field's height, 15 °C less 6.5 °C a kilometer: 7.3 °C (45.1 °F) at 1,190 m
+   (3,904 ft). If that is within 15 K, the pad's reading suggests the day's-air part of the bounds
+   holds; the air aloft isn't measured.
+2. **If the air was past 15 K,** the bound may not cover the day. Call the note's share less
+   6.92% (if positive) its extra share. If the pad's offset holds up the climb, the extra share is
+   the most the day's air may add beyond the bound, on the side the note names. In the example
+   that is 10.561% less 6.924%, 3.637% of 2,738 m (8,983 ft): 99.6 m (327 ft). It is not a
+   validated bound, and it can understate. A morning inversion leaves the air near the ground
+   cooler than the air above it. A hot pad's offset then grows up the climb, and the day's air can
+   move the reading more. The 90% interval isn't validated past 15 K. A waiver, a record or a
+   safety figure may rest on the reading. Then move the reading by its bound and by the extra
+   share, the way the note gives. That is above the reading on a hot day, below it on a cold one.
+   Show the note with that figure, and leave the call to the RSO and the safety code.
+3. **For the descent rates,** the same holds. A hot day's true rate is faster than the reading, a
+   cold day's slower. Move the rate by its bound and by the note's extra share, the way the note
+   gives: above the reading on a hot day, below it on a cold one. Show the note with that rate,
+   and leave the call on the recovery to the RSO and the safety code.
+
+A log with no temperature, or with no pressure, no altitude above sea level and no stated ground
+elevation, gets no check. Nor does a temperature outside −100 to 100 °C. Nor does a temperature
+column of one value throughout at a unit's zero (0 K, 0 °C or 0 °F), as a logger with no sensor
+writes. Nothing then tells you the day was within 15 K, so check the day's temperature at
+the field yourself. The text output is silent both when the day is within 15 K and when there was
+no check. `--json`'s `day_air` tells them apart: `null` means no check.
 
 ## The 90% intervals and the health card
 
@@ -479,4 +538,7 @@ only on simulated two-stage flights ([evidence row G36](evidence.md#g36)).
 - Correct a barometric altitude for the day's air. The altitude is the altimeter's own
   conversion, which assumes a standard atmosphere
   ([Barometric altimeter](glossary.md#barometric-altimeter)). The bound allows for air up to 15 K
-  from standard instead.
+  from standard instead. Past that, it notes the day but doesn't widen the bound
+  ([A hot or cold day](#a-hot-or-cold-day)). It can only where the log records the pad's
+  temperature and its height above sea level: from its pressure, an altitude above sea level, or a
+  stated ground elevation.

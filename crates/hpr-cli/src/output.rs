@@ -1652,8 +1652,59 @@ pub struct Analyze {
     pub drogue_descent: LogReading<DescentReading>,
     /// The descent under the main, the canopy the rocket landed under.
     pub main_descent: LogReading<DescentReading>,
+    /// The day's air at the pad, from the log's own temperature against the 1976 standard
+    /// atmosphere's, and whether the bounds' 15 K allowance for it covers it; `null` where the log
+    /// has no temperature, no height above sea level for the pad, a temperature outside −100 to
+    /// 100 °C, a column of one value at a unit's zero (0 K, 0 °C or 0 °F: no sensor), or the pad
+    /// isn't found (issue #1259).
+    pub day_air: Option<DayAirReading>,
     /// The smoother's run over every sensor, with its health card (decision record ADR-300).
     pub smoother: SmootherOutcome,
+}
+
+/// The day's air at the pad. By the hypsometric equation a barometric height, speed or rate of
+/// descent read by the standard atmosphere is off by about `ΔT/T` of itself; each bound allows
+/// 15 K of it. The log's temperature channel may be the electronics bay's rather than the air's, so the
+/// bounds stay as they are and the text prints a note beside each such reading when `covered` is
+/// false.
+#[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
+pub struct DayAirReading {
+    /// The log's temperature at the pad, K: the median of its samples over the span the pad was
+    /// read from.
+    pub pad_temperature_k: f64,
+    /// The temperature channel it came from, as the file names it.
+    pub temperature_column: String,
+    /// The pad's height above sea level, m.
+    pub pad_height_msl_m: f64,
+    /// Where that height came from.
+    pub pad_height_from: PadHeightSource,
+    /// The standard atmosphere's temperature at the pad's height, K.
+    pub pad_standard_temperature_k: f64,
+    /// The log's temperature less the standard's, K: positive on a hot day, which reads
+    /// barometric heights, speeds and rates low.
+    pub offset_k: f64,
+    /// Whether the bounds' allowance for the day's air, 15 K, covers the offset.
+    pub covered: bool,
+    /// The standard temperature the share is taken at, K: at the apogee's height above sea level,
+    /// or the standard's coldest, 216.65 K, with no apogee read or an apogee that is only a floor.
+    pub top_standard_temperature_k: f64,
+    /// The share the day's air may move a barometric height, speed or rate by, `|ΔT| / T`: up
+    /// from the reading on a hot day, down on a cold one. The bounds allow 15/216.65 = 6.92%.
+    pub share: f64,
+}
+
+/// Where the pad's height above sea level came from.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum PadHeightSource {
+    /// A pressure channel over the pad's span, turned into a height by the standard atmosphere.
+    Pressure,
+    /// A barometric altitude channel above sea level.
+    AltitudeMsl,
+    /// The ground elevation the logger states.
+    StatedGroundElevation,
+    /// A source this build of `hpr` doesn't name.
+    Other,
 }
 
 /// What the smoother made of the log.

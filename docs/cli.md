@@ -1903,7 +1903,7 @@ apogee            390.1 m (1280 ft) above the pad, within 31.9 m (105 ft), 90% i
 top speed         78.3 m/s (257 ft/s), within 20.6 m/s (68 ft/s), 90% interval 72.8 to 82.8 m/s (239 to 272 ft/s), at 2.20 s, 71.9 m (236 ft) up: derived from the heights
 landing           45.80 s, within 2.11 s, 90% interval 45.47 to 46.50 s; 35.52 s from apogee, at 10.9 m/s (36 ft/s) on average, within 2.1 m/s (7 ft/s), 90% interval 9.8 to 12.0 m/s (32 to 40 ft/s)
 flight time       45.00 s, within 2.91 s, 90% interval 45.38 to 46.11 s
-drogue descent    21.7 m/s (71 ft/s), within 2.2 m/s (8 ft/s), 90% interval 20.3 to 23.1 m/s (66 to 76 ft/s), from apogee at 10.28 s to the main's opening at 21.40 s, 390.1 m (1280 ft) to 148.4 m (487 ft) up
+drogue descent    21.7 m/s (71 ft/s), within 2.2 m/s (8 ft/s), 90% interval 20.3 to 23.1 m/s (66 to 76 ft/s), from apogee at 10.28 s to the main's opening at 21.40 s, 390.1 m (1280 ft) to 148.4 m (487 ft) up; the mean rate from apogee: height lost over time taken, so the fall from rest there is included
 main descent      6.0 m/s (20 ft/s), within 0.8 m/s (3 ft/s), 90% interval 5.5 to 6.5 m/s (18 to 22 ft/s), from the main's opening at 21.40 s, within 1.06 s, 90% interval 20.80 to 21.26 s, to landing at 45.80 s, 148.4 m (487 ft) to 2.1 m (7 ft) up
 top acceleration  withheld: the log has no accelerometer; HPR Sim doesn't difference a height twice to make one, as its steps would read as spikes of many g
 burnout           no sooner than 0.88 s: the top speed's time, 2.20 s (1.40 s after liftoff), less its bound, 1.32 s. Derived from the heights, burnout may have come later by any amount; 95% lower end 2.24 s
@@ -1953,7 +1953,7 @@ apogee            272.3 m (893 ft) above the pad, within 22.8 m (75 ft), 90% int
 top speed         68.9 m/s (226 ft/s), within 20.7 m/s (68 ft/s), 90% interval 63.4 to 73.4 m/s (208 to 241 ft/s), at 3.48 s, 55.9 m (183 ft) up: derived from the heights
 landing           40.77 s, within 1.82 s, 90% interval 40.48 to 41.38 s; 30.87 s from apogee, at 8.8 m/s (29 ft/s) on average, within 1.8 m/s (6 ft/s), 90% interval 7.8 to 9.6 m/s (25 to 32 ft/s)
 flight time       38.47 s, within 2.48 s, 90% interval 38.79 to 39.42 s
-drogue descent    19.4 m/s (64 ft/s), within 2.4 m/s (8 ft/s), 90% interval 17.9 to 20.9 m/s (58 to 69 ft/s), from apogee at 9.91 s to the main's opening at 16.26 s, 272.3 m (893 ft) to 149.0 m (489 ft) up
+drogue descent    19.4 m/s (64 ft/s), within 2.4 m/s (8 ft/s), 90% interval 17.9 to 20.9 m/s (58 to 69 ft/s), from apogee at 9.91 s to the main's opening at 16.26 s, 272.3 m (893 ft) to 149.0 m (489 ft) up; the mean rate from apogee: height lost over time taken, so the fall from rest there is included
 main descent      6.0 m/s (20 ft/s), within 0.7 m/s (3 ft/s), 90% interval 5.5 to 6.4 m/s (18 to 21 ft/s), from the main's opening at 16.26 s, within 0.98 s, 90% interval 15.70 to 16.13 s, to landing at 40.77 s, 149.0 m (489 ft) to 2.0 m (6 ft) up
 top acceleration  65.4 m/s² (6.7 g), within 7.1 m/s², 90% interval 61.3 to 68.9 m/s², at 2.59 s
 burnout           3.45 s, within 0.07 s, 90% interval 3.44 to 3.46 s, 1.15 s after liftoff: from the accelerometer
