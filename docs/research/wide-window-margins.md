@@ -141,7 +141,7 @@ put away, 2,048 px open, 1,440 px put away, 1,440 px open.
 4. **The rest.** Full-bleed sheet rules hit the containment clip and add little. A trust card alone repeats the
    opening note; it is better as rank 1's top line. Right-band sidenotes need 1,728 px or more and a placement script.
    Wider figures break the column rule for a gain only at 2,048 px. A glossary panel needs a term matcher and grows
-   a search index at 9.06 MB of mdBook's 10 MB warning (`book.toml`). A faint plot is decoration unless it is a
+   the search index, held to a download limit (`xtask/src/site/search.rs`). A faint plot is decoration unless it is a
    real, labeled figure, and then it is rank 6's placement problem plus data per page.
 
 **Mock-ups.** Ranks 1–3, built over a saved copy of the live Atmosphere page (sidebar open and put away, 2,048 and

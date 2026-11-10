@@ -111,6 +111,7 @@ mod numbers;
 mod pages;
 mod print;
 mod quotes;
+mod search;
 mod sheets;
 mod switch;
 pub(crate) mod theme;
@@ -254,6 +255,18 @@ pub fn run(args: &[String]) -> Result<(), String> {
     }
     mdbook_build(&root)?;
     let output = root.join(OUTPUT);
+    let index = search::rebuild(&output)?;
+    println!(
+        "site search: {} sections indexed, each field with its own words only (issue #414): {} \
+         postings, not mdBook's {}; {} bytes, not {}; {} compressed with gzip (at most {})",
+        index.sections,
+        index.postings,
+        index.mdbook_postings,
+        index.bytes,
+        index.mdbook_bytes,
+        index.gzip_bytes,
+        search::LIMIT_GZIP_BYTES
+    );
     let issued = theme::commit_date(&root)?;
     let dated = theme::fill_issue_date(&output, &issued)?;
     let status = frame::site_status(&output)?;
@@ -655,7 +668,8 @@ fn failure(what: &str, problems: &[String]) -> String {
 }
 
 /// Builds the site with mdBook into [`OUTPUT`], from scratch so no page of an earlier build
-/// survives to hide a broken link. A warning fails the build like an error does.
+/// survives to hide a broken link. A warning fails the build like an error does, but mdBook's
+/// warning about the size of the search index, which `search::rebuild` replaces ([`complaint`]).
 fn mdbook_build(root: &Path) -> Result<(), String> {
     let version = Command::new("mdbook")
         .arg("--version")
@@ -687,14 +701,20 @@ fn mdbook_build(root: &Path) -> Result<(), String> {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    let complaints: Vec<&str> = log
-        .lines()
-        .filter(|line| line.contains("WARN") || line.contains("ERROR"))
-        .collect();
+    // mdBook's warning that its search index passed 10 MB is about the index `search::rebuild`
+    // replaces (#414); the rebuilt file's own limit is checked there. Any other warning fails.
+    let complaints: Vec<&str> = log.lines().filter(|line| complaint(line)).collect();
     if !output.status.success() || !complaints.is_empty() {
         return Err(format!("`mdbook build` failed or warned:\n{log}"));
     }
     Ok(())
+}
+
+/// Whether a line of mdBook's log fails the build: any warning or error, but the warning about
+/// the size of the search index `search::rebuild` replaces.
+fn complaint(line: &str) -> bool {
+    let warning = line.contains("WARN");
+    (warning || line.contains("ERROR")) && !(warning && line.contains(search::MDBOOK_SIZE_WARNING))
 }
 
 /// The command mdBook runs for the site's equations: this `xtask` itself, so the build doesn't
@@ -3758,6 +3778,20 @@ fn percent_decode(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn only_mdbooks_search_size_warning_passes() {
+        // Lines in mdBook's log format; the size warning's words are mdBook 0.5.4's.
+        assert!(!complaint(
+            " WARN search index is very large (12003726 bytes)"
+        ));
+        assert!(complaint(" WARN Couldn't find a chapter for `x.md`"));
+        assert!(complaint(
+            "ERROR search index is very large (12003726 bytes)"
+        ));
+        assert!(complaint("ERROR Rendering failed"));
+        assert!(!complaint(" INFO HTML book written to `target/site`"));
+    }
 
     /// A workspace in a temporary directory holding `files`, as (path, contents).
     fn workspace(files: &[(&str, &str)]) -> tempfile::TempDir {
