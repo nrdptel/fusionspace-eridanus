@@ -2,8 +2,8 @@
 
 What does a motor's grain temperature do to its thrust curve and to apogee? It serves the "propellant temperature
 correction" idea ([ideas](ideas-design-and-physics.md)), M2.8's dispersion runs ([roadmap](../ROADMAP.md))
-and the cold-day flights in [UND flight configs](und-flight-configs.md); it qualifies [apogee bias](apogee-bias.md)
-§1's "shape, not impulse" bullet. Read 2026-10-18: NASA monographs, three test-motor papers (39 firings counted
+and the cold-day flights in [UND flight configs](und-flight-configs.md); it qualified [apogee bias](apogee-bias.md)
+§1's grain-temperature bullet. Read 2026-10-18: NASA monographs, three test-motor papers (39 firings counted
 in two), a patent, a thesis, makers' sheets, certifiers' rules; no source code. **Inference** marks this note's
 arithmetic. Trust the coefficients for military and sounding-rocket AP/HTPB/Al. **No COTS hobby propellant has a
 published temperature sensitivity**: every hobby number is borrowed, every apogee size from a generic model.

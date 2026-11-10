@@ -4,17 +4,16 @@ Re-checked 2026-10-16: 37 claims corrected.
 
 On the 53 flights the private collection's [report](../../validation/reports/fixture-flights.md) scores (rechecked in
 [ADR-238](../decisions/0238-the-corpus-rechecked-against-the-catalog.md)), HPR Sim's apogee is +8.73% above the logs on
-average (mean absolute 12.95%), OpenRocket's +7.79% (first written at 55 flights, +9.83% and +9.00%:
-[ADR-184](../decisions/0184-logged-apogees-of-the-private-collection.md)). This note sizes the published causes that
-make a simulated apogee run high, each with its sign. **In short: no single published cause explains it.** Of the motor,
-curve files add about +0.3%; production lots are likely short, 0–5% of apogee, unmeasured for today's motors; thrust
-gained at altitude, which HPR Sim leaves out, pushes the other way, 0.4–3.8% at a 1,300 m field against a sea-level
-curve. Two altimeters on one rocket agree to a median 0.37%; ERA5's temperature is worth perhaps under 1%; both either
-way. The rail is already flown at its angle. That leaves as-built mass (a public median of +7.4% of dry mass, 2.4–6.7%
-of apogee for a file with no weighed override) and drag the codes miss: rail buttons 0.6–4%; fin–body interference, once
-put at 3–7%, measures small or favorable on thin fins. The 19 early-deployment flights read high for which rockets they
-are, not their charges ([early-deployment-bias](early-deployment-bias.md)). Sizes come mostly from single rockets or
-small samples: orders of magnitude, not a budget. "Sim high": a cause makes the simulation read high.
+average (mean absolute 12.95%), OpenRocket's +7.79%. This note sizes the published causes that make a simulated apogee
+run high, each with its sign. **In short: no single published cause explains it.** Of the motor, curve files add about
++0.3%; production lots are likely short, 0–5% of apogee, unmeasured for today's motors; thrust gained at altitude, which
+HPR Sim leaves out, pushes the other way, 0.4–3.8% at a 1,300 m field against a sea-level curve. Two altimeters on one
+rocket agree to a median 0.37%; ERA5's temperature, about 0.1%; both either way. The rail is already flown at its angle.
+That leaves as-built mass (a public median of +7.4% of dry mass, 2.4–6.7% of apogee for a file with no weighed override)
+and drag the codes miss: rail buttons 0.6–4%; fin–body interference, once put at 3–7%, measures small or favorable on
+thin fins. The 19 early-deployment flights read high for which rockets they are, not their charges
+([early-deployment-bias](early-deployment-bias.md)). Sizes come mostly from single rockets or small samples: orders of
+magnitude, not a budget. "Sim high": a cause makes the simulation read high.
 
 ## What the collection itself says (aggregates only)
 
@@ -61,16 +60,17 @@ impulse 4–15% short, 10–27% more mass, or 15–28% more drag; the 34 flights
   a median 9.4% below their certification ([motor data](motor-data.md) §5). For high power, TMT's 2001–04 repeat tests
   of 22 AeroTech H–M motors moved a median −2.7% (−8.5% to +9.5%), eleven independent firings −6.8%. 0 to −4% fits all
   of it, −9% is not ruled out; at the toy's 0.6–1.3%, 0–5% of apogee ([HPR lot impulse](hpr-lot-impulse.md) §2, §4–5).
-- **Grain temperature changes the curve's shape, not its impulse.** On an AP/HTPB propellant [A9] (Table 2, p. 600),
-  burn time fell 1.687 → 1.556 → 1.422 s from 233 to 288 to 323 K; the integrated chamber pressure stayed within 3.1%,
-  no consistent sign. **Inference:** a ±15 °C day moves apogee about ±0.4%, either way. Hobby propellants: unmeasured.
+- **Grain temperature changes the shape and, slightly, the impulse, warm higher.** **Inference**, test motors only
+  ([propellant temperature](propellant-temperature.md) §3, §6): impulse 0.1–0.8% per 10 K, c* about 0.1%, 27 firings
+  0.31–0.80%. At fixed impulse warmth lifts a subsonic apogee, lowers a faster one; the impulse adds 0.06–1.3% per 10 K.
 - **Thrust at altitude runs the other way (sim low).** In flight a motor gains (p_test − p)·A_e over its test stand,
   which HPR Sim leaves out without an exit size ([motor model](../physics/motor.md)). TMT fired in North Carolina
   (99.6 kPa) in 2017–24 and near Denver (85.0 kPa) from 2025; earlier sites weren't found, and no public TMT text says
   it corrects to sea level ([TMT test sites](tmt-test-sites.md)). Today's L1500T nozzle has a 1.75 in (44.5 mm) exit
-  ([nozzle exits](nozzle-exits.md) §2; the 1998 letter's 1.4 in [A7] is likely the older nozzle). **Inference:** against
-  sea level, 22.8 N at a 1,300 m site, +1.55% of its 1,473 N average [A7], 0.9–2.0% of apogee. Over 16 AeroTech reloads
-  the drawn exits add 0.63–2.92% of thrust there, +0.4% to +3.8% of apogee (nozzle exits §3), less near Denver.
+  ([nozzle exits](nozzle-exits.md) §2). **Inference:** against sea level, 22.8 N at a 1,300 m site, +1.55% of its
+  1,473 N average [A7], 0.9–2.0% of apogee. Over 16 AeroTech reloads the drawn exits add 0.63–2.92% of thrust there,
+  +0.4% to +3.8% of apogee (nozzle exits §3), less near Denver. Public maker-against-certification data can't measure
+  the term (slope −1.3 ± 7.7 kPa, offset +2.3%: [TMT vs maker curves](tmt-vs-maker-curves.md) §5).
 
 ## 2. The vehicle: drag the codes miss, and as-built mass
 
@@ -84,10 +84,12 @@ impulse 4–15% short, 10–27% more mass, or 15–28% more drag; the 34 flights
 | RockSim, Estes D12 student model | 27 launches | +29% (126 m, 98 m mean) | [B8] p. 30, ours |
 | RASAero II, the maker's selection | 36 | mean +3.47%, mean absolute 6.24% (ours) | [B4] |
 | OpenRocket, one supersonic rocket (Bluewren) | 2 | +7.49% (+8.22% on a second recorder), +4.49% | [B11] |
+| Student Launch teams, no drag refit | 55 | median +3.4% (+1.1% to +7.2%) | [SL](student-launch-apogees.md) §2 |
 
 "Ours" is this note's arithmetic. [B3]'s stated mean error (19.9 m) doesn't match its columns (43.6 m). [B3], [B8] blame
 the motor in part; [B4]'s 36 (25 high) include post-flight runs. [B11]: Table 3, p. 9, the 8.22% in its text, p. 8; one
-supersonic rocket, inputs unstated, no cause named ([Ironbark](ironbark.md) §1).
+supersonic rocket, inputs unstated, no cause named ([Ironbark](ironbark.md) §1). [SL]: 95% interval on the median,
++5.05% by team-season; one team flew 22, most predictions came after the flight, readings are raw (§3–4 there).
 
 **Fin–body interference drag (left out by both codes; small on thin fins, sign unsettled).** Barrowman, HPR Sim
 ([aero](../physics/aero.md)) and Niskanen [B1] p. 41 leave it out. Gregorek puts it at "as much as 10% above the sum of
@@ -122,21 +124,22 @@ override ([as-built mass growth](as-built-mass-growth.md)). The OpenRocket wiki 
 But Niskanen weighed every part and the whole rocket and still ran 7% and 16% high [B1] pp. 83, 85, and five of six
 Student Launch runs with weighed mass read 3.6–18.4% high (as-built mass growth §4): one cause among several.
 
-## 3. The measurement and the air: tenths of a percent, but ERA5's temperature
+## 3. The measurement and the air: tenths of a percent or less, but the wind
 
 - **Sensor offsets (either sign).** After zeroing at the pad, an MS5607 is good to ±0.5 mbar at 25 °C and ±1.0 mbar over
   0–50 °C [C1] p. 4, ±4–8 m (**Inference**); a BMP390 ±3 Pa relative, under ±1 m [C2] p. 7. On 59 published flights two
-  altimeters differed by a median 0.37% (4.0 m), 11 by over 2% ([dual-altimeter spread](dual-altimeter-spread.md)).
+  altimeters differed by a median 0.37% (4.0 m), 11 by over 2% ([dual-altimeter spread](dual-altimeter-spread.md)). The
+  sensor's own temperature stays within ±0.6 K of the pad's at apogee in 76 of 86 logs; at 8 Pa/K it is under 0.15% of
+  apogee in all 86, +6.7 K included, inside that sample only ([bay temperature](altimeter-bay-temperature.md) §2).
 - **Altitude formula (covered).** StratoLogger, Raven: ISA altitude less the pad's [C5] PDF p. 4, [C3] PDF p. 12.
 - **Port lag, filtering, sampling (sim high).** A lag τ lowers a parabola's peak by g·τ²/2. **Inference:** a port sized
   by PerfectFlite's rule [C5] PDF p. 11 lags milliseconds; a 1 s centered average costs 0.41 m. Featherweight warns that
   small vents on a large bay lag [C6] PDF p. 7; in one model-rocket test a sealed bay lagged about 2.5 s and read about
   19% low, a leak-vented one didn't (dual-altimeter spread §4). No HPR bay was measured.
-- **ERA5's temperature (either sign; about 0.35% per kelvin).** Height scales with the layer's mean temperature, 1/288
-  per kelvin (**Inference**, hypsometric equation). ERA5's summer daily range is too small at 80% of stations,
-  particularly in western North America and southern Europe; its spring-mean 2 m temperature runs warm over most of the
-  central and eastern US, cool along the Rockies and Sierra Nevada [C8] p. 15, Figs. 9b, 10c. No 0–3 km figure; 2 K is
-  0.7%.
+- **ERA5's temperature (either sign; about 0.1%).** Flown and converted in one ERA5 air, it mostly cancels:
+  −(1 − |e_D|)/T̄ per kelvin; 0.13–0.31% per flight (**Inference**, [ERA5 at launch sites](era5-surface-temperature.md)
+  §3). At [Santa Teresa](era5-santa-teresa-midday.md), NM, 0–1 km: +0.15 ± 0.40 K at 11:00 MDT, −0.03% (sim low),
+  ±0.04–0.07% per flight; +0.01% at 17:00 MDT. ERA5 likely assimilated its sondes: far off, up to about 0.15%.
 - **ERA5's wind (sign by region).** ERA5 underestimates winds above 4 m/s in the western US (too little weathercocking,
   sim high) and overestimates wind over much of the eastern US, often by over 2 m/s in the northeast (sim low) [C8]
   p. 15. Around cyclones its 10 m wind is right on average (−0.7%), 10–17% low in the strongest [C13] pp. 737–738, 740.
@@ -157,8 +160,7 @@ Student Launch runs with weighed mass read 3.6–18.4% high (as-built mass growt
 - Today's high-power lots against the certification mean; hobby propellants' temperature sensitivity; aging (a lower
   burn rate, impulse unknown [A10]); whether OpenRocket corrects for ambient pressure (unchecked: its source is GPL).
 - Fin–body interference on filleted, painted HPR fins at flight Reynolds numbers; a flight-measured HPR coast C_D
-  against OpenRocket's; the button drag of either code against a measurement.
-- ERA5's 0–3 km layer-mean temperature error on summer afternoons, and its wind 2–5 m above a pad.
+  against OpenRocket's; the button drag of either code against a measurement; ERA5's wind 2–5 m above a pad.
 - The collection's own impulse elasticity: the toy's 0.6–1.3%, which later notes reuse, is low at 3 km (1.46%).
 
 ## Sources
@@ -172,8 +174,6 @@ Read 2026-10-11, re-read 2026-10-16; copies in the gitignored `refs/research/` (
 - **A6.** NAR S&T motor data sheets: all 159 of ThrustCurve's links via the Internet Archive, 140 parsed.
 - **A7.** TRA letters (K480W, L1500T, M1315W, N3300R) on ThrustCurve, e.g.
   <https://www.thrustcurve.org/motors/cert/6178f239caf91100040db736/l1500t-p_tra_cert.pdf>
-- **A9.** Florczak et al., Cent. Eur. J. Energ. Mater. 11(4), 589–601 (2014).
-  <https://wydawnictwa.ipo.lukasiewicz.gov.pl/wp-content/uploads/2021/04/Florczaki-inni.pdf>
 - **A10.** IIT Madras seminar abstract on propellant aging, 2022-01-21. <https://www.iitm.ac.in/hi/node/10746>
 - **A11.** The project's [sensitivity](../sensitivity.md) and [Monte Carlo](../monte-carlo.md) pages.
 - **B1.** Niskanen, OpenRocket MSc thesis, TKK, 2009, printed pages. <https://openrocket.sourceforge.net/thesis.pdf>
