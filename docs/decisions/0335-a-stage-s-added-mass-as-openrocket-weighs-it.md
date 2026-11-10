@@ -1,7 +1,7 @@
 # ADR-335: A stage's added mass, as OpenRocket weighs it (2026-11-10)
 
 - **Status:** accepted; carries out [M2.3d4][m2-3d4] under [ADR-334][adr-334]. [ADR-061][adr-061]'s rule for the inertia under an override that covers the parts is unchanged.
-- **Summary:** The `.ork` reader no longer holds back a stage whose mass override doesn't cover its parts. OpenRocket 24.12 adds such a mass to what the parts weigh, as a point: at the center of that stage's own parts, or at the stage's center of gravity override when that doesn't cover the parts either. Where one of the stage's overrides covers the parts, the inertia stays HPR Sim's own rule, from 11.04% under OpenRocket's to 400.5% over. The design holds it as the stage's added mass, and on 19 probe designs HPR Sim's structure matches OpenRocket's: the center within 0.2 µm, the mass and the inertias within 3 parts in a million. A motor aboard doesn't move the added mass.
+- **Summary:** The `.ork` reader no longer holds back a stage whose mass override doesn't cover its parts. OpenRocket 24.12 adds such a mass to what the parts weigh, as a point: at the center of that stage's own parts, or at the stage's center of gravity override when that doesn't cover the parts either. Where one of the stage's overrides covers the parts, the inertia stays HPR Sim's own rule, which on the probes runs from 11.04% under OpenRocket's to 400.5% over. The design holds it as the stage's added mass, and on 19 probe designs HPR Sim's structure matches OpenRocket's: the center within 0.2 µm, the mass and the inertias within 3 parts in a million. A motor aboard doesn't move the added mass.
 
 [m2-3d4]: ../decisions-and-roadmap.md#m2-3d4
 [m2-3d5]: ../decisions-and-roadmap.md#m2-3d5
@@ -74,7 +74,7 @@ stage that starts at the tip, no motor, and no pairing where one flag is `true` 
    center on each of the 36 probes hpr lays out (the one whose parts weigh nothing is refused).
    Its inertia clause is not met on a stage where one override covers the parts and the other
    doesn't. That is eight of the probes: four on the one-stage rocket, two on a lower stage,
-   and two on the motor's airframe. The reason is ADR-061's. Under a center that covers the parts, hpr
+   and two on the motor's airframe (one with no pods, one with one pod). The reason is ADR-061's. Under a center that covers the parts, hpr
    moves the assembly whole, so its inertia about the new center is the assembly's own, where
    OpenRocket takes the parts' inertia about the overridden center. Under a mass
    that covers the parts, OpenRocket leaves the stage the inertia of its parts: a 2 kg stage with
