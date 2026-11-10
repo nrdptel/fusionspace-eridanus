@@ -15,8 +15,10 @@
 //! its burn time, from the example's rail and site, in the ERA5 air of the launch hour, on HPR
 //! Sim's own aerodynamics. The three EuRoC 2022 flights' weather file is netCDF-4, which
 //! [`hpr_io::netcdf`] refuses; `validation/oracles/netcdf/euroc_2022.py` converts it as the guide
-//! says and checks the result, and [`CONVERSION_RECORD`] holds both files' SHA-256. The converted
-//! file is flown only if its SHA-256 is the committed one.
+//! says and checks the result, and [`CONVERSION_RECORD`] holds both files' SHA-256 and the levels
+//! RocketPy read at each flight's site and hour. The converted file is flown only if its SHA-256
+//! is the committed one and HPR Sim reads those levels from it. Each prediction is held to the
+//! apogee first merged ([`MERGED`]).
 //!
 //! The predicted apogee is read as the log's altimeter would read it ([`Barometer`]: the standard
 //! atmosphere's altitude of the day's pressure at the apogee, less the pad's), because that is
@@ -50,7 +52,8 @@ pub const PREDICTIONS_JSON: &str = "validation/reports/public-predictions.json";
 pub const PREDICTIONS_MD: &str = "validation/reports/public-predictions.md";
 
 /// The record of the EuRoC 2022 weather file's conversion: the source's and the converted file's
-/// path and SHA-256, written by `validation/oracles/netcdf/euroc_2022.py`.
+/// path and SHA-256, and the levels RocketPy read at each flight's site and hour, written by
+/// `validation/oracles/netcdf/euroc_2022.py`.
 pub const CONVERSION_RECORD: &str = "validation/fixtures/weather/euroc-2022-conversion.json";
 
 /// How long a prediction flies at most, s. Every flight here reaches its apogee in under a
@@ -60,11 +63,11 @@ const MAX_TIME_S: f64 = 600.0;
 /// What "traced" means in [`PredictedFlight::untraced`], as the page says it.
 pub const TRACED_RULE: &str = "An input is traced when the flight's own record states it: here \
     RocketPy's example notebook, which holds the team's inputs. What no RocketPy example records \
-    is a placeholder in every design built from one, the seven compared flights' too, and doesn't \
-    count against the tag: the surface finish, the fins' thickness and edge shape, and the rail \
-    buttons' size. They move the drag, so a traced flight's inputs are stated, not exact. A flight \
-    is tagged not traced when its record leaves out, or contradicts, something else that moves \
-    the apogee.";
+    is a placeholder in the designs built from them, the seven compared flights' too, and doesn't \
+    count against the tag: the surface finish, the rail buttons' size, and the fins' thickness \
+    and edge shape where no airfoil file or published section gives them. They move the drag, so \
+    a traced flight's inputs are stated, not exact. A flight is tagged not traced when its record \
+    leaves out, or contradicts, something else that moves the apogee.";
 
 /// A prediction as it was first merged, in the digits its page prints.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -541,8 +544,9 @@ fn levels_are_rocketpys(
 ///
 /// # Errors
 ///
-/// [`RealFlightError`] if a file is missing or doesn't read, the converted weather file is not
-/// the committed conversion, or HPR Sim can't fly it.
+/// [`RealFlightError`] if a file is missing or doesn't read, the thrust file holds negative
+/// thrust, the converted weather file is not the committed conversion or doesn't read as the
+/// levels RocketPy read, or HPR Sim can't fly it.
 pub fn predict(
     root: &Path,
     flight: &PredictedFlight,
@@ -765,8 +769,8 @@ pub fn run(root: &Path) -> Result<PredictionsReport, RealFlightError> {
         return Err(RealFlightError::Input {
             flight: "the EuRoC 2022 weather".to_owned(),
             what: format!(
-                "{} is not the file {CONVERSION_RECORD} was made from: run \
-                 validation/oracles/netcdf/euroc_2022.py",
+                "{} is not the file {CONVERSION_RECORD} was made from: fetch it again with \
+                 `cargo xtask refs fetch rocketpy`",
                 weather_conversion.source
             ),
         });
@@ -785,8 +789,9 @@ pub fn run(root: &Path) -> Result<PredictionsReport, RealFlightError> {
 
 impl PredictionsReport {
     /// Whether the report holds together without the files it was flown from, as CI checks it:
-    /// every prediction is a positive, finite height, each tag is its list's, and the page is this
-    /// report's rendering.
+    /// every prediction is a positive, finite height, each tag is its list's, each apogee is the
+    /// one first merged ([`MERGED`]) to the digit the page prints, and the page is this report's
+    /// rendering.
     ///
     /// # Errors
     ///

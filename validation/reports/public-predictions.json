@@ -1,6 +1,6 @@
 {
   "generator": "cargo xtask public-predictions",
-  "traced_rule": "An input is traced when the flight's own record states it: here RocketPy's example notebook, which holds the team's inputs. What no RocketPy example records is a placeholder in every design built from one, the seven compared flights' too, and doesn't count against the tag: the surface finish, the fins' thickness and edge shape, and the rail buttons' size. They move the drag, so a traced flight's inputs are stated, not exact. A flight is tagged not traced when its record leaves out, or contradicts, something else that moves the apogee.",
+  "traced_rule": "An input is traced when the flight's own record states it: here RocketPy's example notebook, which holds the team's inputs. What no RocketPy example records is a placeholder in the designs built from them, the seven compared flights' too, and doesn't count against the tag: the surface finish, the rail buttons' size, and the fins' thickness and edge shape where no airfoil file or published section gives them. They move the drag, so a traced flight's inputs are stated, not exact. A flight is tagged not traced when its record leaves out, or contradicts, something else that moves the apogee.",
   "weather_conversion": {
     "record": "validation/fixtures/weather/euroc-2022-conversion.json",
     "conversion": "xarray.open_dataset(source).drop_vars([\"number\", \"expver\"], errors=\"ignore\").to_netcdf(out, format=\"NETCDF3_64BIT\")",

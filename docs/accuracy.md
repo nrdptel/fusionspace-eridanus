@@ -961,10 +961,11 @@ than that
 seven.
 
 **Traced** means the flight's own record, here RocketPy's example notebook, states every input
-that moves the apogee, bar what no RocketPy example records: the surface finish, the fins'
-thickness and edge shape, and the rail buttons' size. Those are placeholders in every design built
-from an example, the seven's too, and they move the drag (the fin edges are
-[evidence row G21](evidence.md#g21)'s guesses). So a traced flight's inputs are stated, not exact.
+that moves the apogee, bar what no RocketPy example records: the surface finish, the rail
+buttons' size, and the fins' thickness and edge shape where no airfoil file or published section
+gives them. Those are placeholders in the designs built from the examples, the seven's too, and
+they move the drag (the fin edges are [evidence row G21](evidence.md#g21)'s guesses). So a traced
+flight's inputs are stated, not exact.
 
 **How they are flown.** By the seven's method: the design built from the example's masses and shapes,
 on the example's own thrust file, from its rail and site, in the launch hour's ERA5 air. The three
@@ -992,14 +993,15 @@ public flights are compared together.
 > targets were known when the inputs were written down. Each log was also looked at, for its
 > columns and for a spike near its peak, before its rule was fixed. Merging first does one thing:
 > an input changed after seeing HPR Sim's own miss now shows as a change to a merged number. The
-> code keeps the three apogees as first merged, and a test that CI runs fails a committed
-> prediction that has moved from them.
+> code keeps the three apogees as first merged, to the digit the page prints, and a test that CI
+> runs fails a committed prediction that has moved from them.
 
 **Flying them again** needs RocketPy's files, which CI doesn't have. After
 `cargo xtask refs fetch rocketpy` and the weather file's
 [conversion](format/era5.md#converting-a-current-file),
 `cargo xtask public-predictions --check` fails when a prediction flown now differs from the
-committed one.
+committed one. The list of merged apogees is in the code, so a change to it shows in the code's
+history.
 
 ### Real flights of the private collection
 

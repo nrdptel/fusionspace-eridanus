@@ -68,10 +68,10 @@ the seven flown ones do, and their weather needs only the conversion the guide a
    That the rules came before the flights is the maintainer's statement: both reached the
    repository in one change, so no check can show it.
 4. **Traced means the record states it.** A flight's record here is its example notebook. What
-   no RocketPy example records is a placeholder in every design built from one, the seven's too,
-   and doesn't count against the tag: the surface finish, the fins' thickness and edge shape, and
-   the rail buttons' size. They move the drag, so traced means stated, not exact. Astra and
-   Erebus 11 are tagged traced.
+   no RocketPy example records is a placeholder in the designs built from them, the seven's too,
+   and doesn't count against the tag: the surface finish, the rail buttons' size, and the fins'
+   thickness and edge shape where no airfoil file or published section gives them. They move the
+   drag, so traced means stated, not exact. Astra and Erebus 11 are tagged traced.
    Andromeda is not: it flew air brakes whose opening no record gives, and its thrust file holds
    more impulse than the reload it is named for ([the research note][andromeda]).
 5. **Andromeda's two curves.** The counted prediction flies the team's thrust file, as ADR-328
@@ -90,7 +90,8 @@ the seven flown ones do, and their weather needs only the conversion the guide a
    builds the same 37 levels from both files at each flight's site and hour. Its
    [record][record] holds both files' SHA-256 and the levels RocketPy read. `public-predictions`
    flies the converted file only if its SHA-256 is the recorded one and HPR Sim reads those
-   levels from it, within 1e-12.
+   levels from it: the same pressures, and the temperature, wind and geopotential height within
+   1e-12 of each value.
 7. **What a prediction may read.** The module that flies a prediction hashes its flight's log,
    which pins the file the rule will be applied to, and never parses it. Its report has no field
    for a measured apogee or an error. A test fails if the committed file is not, byte for byte,
@@ -120,7 +121,8 @@ because the fixture gained three cases.
 **Consequences.** The public predictions are on `main` for three of the five. The Macie XL
 flights wait on M2.3d4, which also lets other `.ork` designs with such a stage fly. Until
 M2.3d2, the real-flights report still rests on 7 flights. Anyone can check that these three
-predictions were not changed afterward: the merged apogees are in the code, CI fails a committed
-prediction that has moved from them, and where RocketPy's files are,
+predictions were not changed afterward: the merged apogees are in the code, to the digit the page
+prints, where a change to them shows in its history. CI fails a committed prediction that has
+moved from them, and where RocketPy's files are,
 `cargo xtask public-predictions --check` fails when a flown prediction differs from the
 committed one.

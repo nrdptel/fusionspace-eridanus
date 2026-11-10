@@ -221,8 +221,12 @@ adds a source.
   `refs/`. The example `crates/hpr/examples/era5_weather.rs` reads the Bella Lui extract.
   RocketPy's EuRoC 2022 file, which three predicted flights fly in (M2.3d3, the EuRoC 2022
   predictions), is converted from
-  netCDF-4 by `validation/oracles/netcdf/euroc_2022.py` into `refs/` and is **not** committed: only
-  both files' SHA-256 are, in `validation/fixtures/weather/euroc-2022-conversion.json`.
+  netCDF-4 by `validation/oracles/netcdf/euroc_2022.py` into `refs/` and is **not** committed.
+  `validation/fixtures/weather/euroc-2022-conversion.json` holds both files' SHA-256 and RocketPy's
+  reading of the file at each flight's site and hour: 37 levels of pressure, height, temperature
+  and wind, values of the same dataset under the same license, interpolated to the site
+  (modified). The record says so in its `notice`: "Contains modified Copernicus Climate Change
+  Service information 2022".
 - **Open-Meteo weather answers** (<https://open-meteo.com>):
   `crates/hpr-net/tests/fixtures/replay/open-meteo-historical.json` and `open-meteo-forecast.json`
   are two answers recorded unchanged on 2026-09-30 from Open-Meteo's historical-forecast and

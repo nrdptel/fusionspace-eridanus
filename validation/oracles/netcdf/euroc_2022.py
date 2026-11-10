@@ -10,8 +10,9 @@ that conversion, word for word as the guide gives it (`docs/format/era5.md`):
 
 and writes `refs/converted/rocketpy/euroc_2022_all_windows.nc`. The converted file stays under
 the gitignored `refs/`, as the source and RocketPy's other whole ERA5 files do
-(THIRD-PARTY-NOTICES.md); only the two files' SHA-256 are committed, in the JSON this script
-prints.
+(THIRD-PARTY-NOTICES.md). What is committed is the JSON this script prints: the two files'
+SHA-256, what was compared, and RocketPy's levels at each flight's site and hour (below), which
+are ERA5 values interpolated to the site and carry the dataset's notice.
 
 It then tests the converted file, and fails unless every check holds:
 
@@ -25,8 +26,9 @@ It then tests the converted file, and fails unless every check holds:
 
 The record keeps those levels for each flight, with the Earth radius RocketPy turned the
 geopotential into a height with. `cargo xtask public-predictions` holds HPR Sim's own reading of
-the converted file to them before it flies a prediction in it, so the air a prediction is flown in
-is the air RocketPy reads from the file RocketPy ships.
+the converted file to them before it flies a prediction in it: the same pressures, temperatures,
+winds and geopotential heights RocketPy reads from the file RocketPy ships. The two programs then
+turn a geopotential height into a height above sea level each in its own way (`docs/format/era5.md`).
 
 The launch hours are the notebooks' local times (`timezone="Portugal"`, Western European Summer
 Time in October 2022, UTC+1) in UTC: `docs/examples/astra_flight_sim.ipynb:123-131`,
@@ -268,6 +270,13 @@ def main():
             'xarray.open_dataset(source).drop_vars(["number", "expver"], errors="ignore")'
             '.to_netcdf(out, format="NETCDF3_64BIT")'
         ),
+        "notice": (
+            "Contains modified Copernicus Climate Change Service information 2022: ERA5 hourly "
+            "data on pressure levels (Hersbach et al., 2023, doi:10.24381/cds.bd0915c6), CC BY "
+            "4.0, as redistributed by RocketPy v1.13.0. The levels below are RocketPy's reading "
+            "of it, interpolated to each flight's site. Neither the European Commission nor "
+            "ECMWF is responsible for any use made of it."
+        ),
         "packages": {
             name: importlib.metadata.version(name)
             for name in ("xarray", "netCDF4", "numpy", "rocketpy")
@@ -280,10 +289,11 @@ def main():
     }
     if check:
         committed = json.loads(RECORD.read_text())
-        for key in ("conversion", "source", "converted", "dropped", "checks", "rocketpy_readings"):
-            if committed[key] != record[key]:
+        keys = ("conversion", "notice", "source", "converted", "dropped", "checks", "rocketpy_readings")
+        for key in keys:
+            if committed.get(key) != record[key]:
                 fail(
-                    f"{RECORD}'s {key} is {committed[key]}, and this run's is {record[key]} "
+                    f"{RECORD}'s {key} is {committed.get(key)}, and this run's is {record[key]} "
                     f"(this run's packages: {record['packages']}; the record's: "
                     f"{committed['packages']})"
                 )

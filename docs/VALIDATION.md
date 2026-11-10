@@ -697,12 +697,13 @@ The three fly in one ERA5 file that is netCDF-4.
 unless the four fields keep their values bit for bit and RocketPy reads the same levels from both
 files at each flight's site and hour. `validation/fixtures/weather/euroc-2022-conversion.json`
 holds both files' SHA-256 and the levels RocketPy read. A prediction flies the converted file only
-if it has the recorded SHA-256 and HPR Sim reads those levels from it, within 1e-12.
+if it has the recorded SHA-256 and HPR Sim reads those levels from it, each value within 1e-12
+of itself.
 
 `--check` flies the predictions again and fails when one differs from the committed one: if a merged
 prediction has to change, the comparison's pull request must show the new number beside the old
-one. Until then the code keeps the three apogees as first merged (`MERGED`), and the writer and CI
-both refuse a prediction that has moved from them. CI, without the checkout, also holds the
+one. Until then the code's list of merged apogees (`MERGED`) keeps the three as first merged, to
+the digit the page prints, and the writer and CI both refuse a prediction that has moved from it. CI, without the checkout, also holds the
 committed predictions to the code's list of flights, to the committed designs' digests, to their
 page, and to the file's own text: a key for an error or a measured value fails.
 

@@ -4,7 +4,7 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target. The 135 held pages are every page the site's table of contents lists, with the README and the 404 page, less the records page ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)), each snapshot of an `hpr` command's `--help`, the census of what the commands say, a page for each crate's `src/` directory, the Python package's README and its docstrings as `help()` shows them, and each crate's front page, the `//!` docs of its `src/lib.rs` ([ADR-292](../../docs/decisions/0292-the-programs-words-in-four.md)).
 
-143 pages, 550035 words, 0 stock phrases. 139 pages are within every limit.
+143 pages, 550124 words, 0 stock phrases. 139 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
@@ -52,9 +52,9 @@ The register has no limit of its own (first person on a reference page, above, i
 | `crates/hpr-py/tests/docstrings.md` (`ref`, `held`) | 4185 | 13.6 | 2% | 0.00 | 0.00 | 0.15 | 0.08 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.08 | 0.72 |
 | `docs/404.md` (`held`) | 51 | 12.0 | 0% | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 1.97 | 0.00 |
 | `docs/ARCHITECTURE.md` | 1860 | 11.7 | 7% | **1.13** | **2.42** | 0.38 | 0.06 | 0.00 | **0.11** | 0.00 | | 0.00 | 0.11 | 0.00 | 0.11 |
-| `docs/VALIDATION.md` (`held`) | 12713 | 16.4 | 10% | 0.21 | 0.08 | 0.42 | 0.10 | 0.02 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.05 | 0.54 |
+| `docs/VALIDATION.md` (`held`) | 12726 | 16.5 | 10% | 0.21 | 0.08 | 0.43 | 0.10 | 0.02 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.05 | 0.54 |
 | `docs/VISION.md` | 3927 | 15.5 | 15% | **1.13** | **3.62** | **0.59** | 0.18 | 0.00 | 0.08 | 0.00 | | 0.00 | 0.00 | 0.03 | 0.00 |
-| `docs/accuracy.md` (`held`) | 17078 | 13.9 | 3% | 0.21 | 0.00 | 0.10 | 0.08 | 0.01 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.02 | 0.45 |
+| `docs/accuracy.md` (`held`) | 17112 | 13.9 | 3% | 0.21 | 0.00 | 0.11 | 0.08 | 0.01 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.02 | 0.45 |
 | `docs/api.md` (`held`) | 2515 | 13.2 | 0% | 0.16 | 0.00 | 0.00 | 0.20 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.40 | 0.36 |
 | `docs/checking-a-claim.md` (`held`) | 1575 | 14.8 | 0% | 0.26 | 0.07 | 0.00 | 0.26 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.13 | 1.21 |
 | `docs/cli.md` (`ref`, `held`) | 18844 | 14.0 | 3% | 0.21 | 0.02 | 0.14 | 0.08 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.23 | 0.62 |
@@ -67,7 +67,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/fly-your-ork.md` (`held`) | 1467 | 12.8 | 0% | 0.00 | 0.00 | 0.00 | 0.21 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.82 | 0.55 |
 | `docs/format/damaged-files.md` (`ref`, `held`) | 844 | 15.6 | 6% | 0.00 | 0.00 | 0.36 | 0.12 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.36 | 1.31 |
 | `docs/format/eng.md` (`ref`, `held`) | 2466 | 13.9 | 3% | 0.37 | 0.21 | 0.17 | 0.13 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.05 | 0.21 |
-| `docs/format/era5.md` (`ref`, `held`) | 2618 | 13.6 | 1% | 0.39 | 0.12 | 0.04 | 0.04 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.39 | 0.23 |
+| `docs/format/era5.md` (`ref`, `held`) | 2660 | 13.7 | 2% | 0.38 | 0.12 | 0.12 | 0.04 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.38 | 0.23 |
 | `docs/format/flight-logs.md` (`ref`, `held`) | 44259 | 13.1 | 1% | 0.23 | 0.21 | 0.02 | 0.09 | 0.00 | 0.01 | 0.01 | 0.00 | 0.00 | 0.00 | 0.04 | 0.45 |
 | `docs/format/ghost-files.md` (`ref`, `held`) | 1804 | 14.7 | 6% | 0.00 | 0.00 | 0.34 | 0.06 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.17 | 0.67 |
 | `docs/format/hpr.md` (`ref`, `held`) | 5402 | 14.0 | 1% | 0.39 | 0.02 | 0.06 | 0.10 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.13 | 0.82 |
