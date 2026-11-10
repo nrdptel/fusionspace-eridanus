@@ -193,7 +193,8 @@ pub const TRANSONIC_SPEED_M_S: f64 = 227.736_107_633_374_67;
 /// error lifts a speed derived while the rocket accelerates.
 pub const PORT_PRESSURE_COEFFICIENT: f64 = 0.02;
 /// How far the day's air may be from the 1976 standard atmosphere for the bounds to hold, K: the
-/// synthetic flights' range ([ADR-280] §2).
+/// synthetic flights' range ([ADR-280] §2). Where the log's temperature at the pad lies further
+/// off, [`Readings::day_air`] says so, with the share the day may move a reading by (#1259).
 ///
 /// [ADR-280]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0280-m7-2-in-seven-the-synthetic-flights-first.md
 pub const AIR_TEMPERATURE_SPREAD_K: f64 = 15.0;
@@ -406,6 +407,11 @@ macro_rules! with_all {
         }
     };
 }
+
+mod day_air;
+
+pub(crate) use day_air::standard_temperature_k;
+pub use day_air::{COLDEST_STANDARD_K, DayAir, LOGGED_AIR_RANGE_K, PadHeightFrom};
 
 with_all! {
 /// The reason a reading was withheld.
@@ -968,6 +974,12 @@ pub struct Readings {
     /// The axial accelerometer the top acceleration and burnout came from; `None` when the log
     /// has none, or none settled.
     pub accelerometer: Option<Accelerometer>,
+    /// The day's air at the pad, from the log's own temperature against the standard
+    /// atmosphere's, and whether the bounds' allowance for it, [`AIR_TEMPERATURE_SPREAD_K`],
+    /// covers it; `None` where the log has no temperature or no height above sea level for the
+    /// pad, or the pad isn't found. Left out of a record written before the field was.
+    #[serde(default)]
+    pub day_air: Option<DayAir>,
 }
 
 /// The height track the readings take.
@@ -1015,6 +1027,9 @@ pub fn read(log: &FlightLog) -> Readings {
         readings.main_descent = Reading::Withheld(withheld.clone());
     }
     readings.flight_time = flight_time(&readings);
+    if let (Some(air), Reading::Read(apogee)) = (&mut readings.day_air, &readings.apogee) {
+        air.set_top(apogee.height_m);
+    }
     let (accelerometer, max_acceleration, burnout) = accelerometer::read(log, &readings);
     readings.accelerometer = accelerometer;
     readings.max_acceleration = max_acceleration;
@@ -1077,6 +1092,7 @@ fn heights(log: &FlightLog) -> Readings {
         drogue_descent: Reading::withheld(reason, detail),
         main_descent: Reading::withheld(reason, detail),
         accelerometer: None,
+        day_air: None,
     };
     if let Err(detail) = check_record(log) {
         return every(None, Reason::BadRecord, &detail);
@@ -1367,6 +1383,13 @@ fn heights(log: &FlightLog) -> Readings {
     };
     let pad_error_m = pad_error_m + level_gap_m;
     readings.pad_altitude_m = Some(pad);
+    // The day's air over the span the pad was taken from; a short pad's, at the log's start.
+    let pad_span_s = if short_pad {
+        (time[head], time[head])
+    } else {
+        (time[pad_from], time[on_pad - 1])
+    };
+    readings.day_air = day_air::day_air(log, pad_span_s);
     // How far the filtered pad reaches from its median, at least the allowance, which is all a
     // short pad, with no samples of it, has; liftoff is the last sample before apogee within that
     // and a step of the pad.

@@ -64,6 +64,7 @@ use crate::log::{Channel, FlightLog, Quantity};
 use crate::readings::{
     self, ACCEL_BIAS_M_S2, ACCEL_SCALE_SHARE, AIR_TEMPERATURE_SPREAD_K, BAROMETER_GAIN, Clip,
     DRIFT_M_PER_S, GRAVITY_TOLERANCE_G, Gravity, RAIL_TILT_DEG, Reading, Readings, Source,
+    standard_temperature_k,
 };
 use kalman::{Matrix, N, PACKED, Vector};
 
@@ -1519,12 +1520,6 @@ fn accel_liftoff(
         bound_s: 2.0 * interval,
         from: LiftoffFrom::Accelerometer,
     })
-}
-
-/// The standard atmosphere's temperature at a height above sea level, K: its lapse to 11 km, then
-/// the isothermal layer (taken to hold above it).
-fn standard_temperature_k(height_msl_m: f64) -> f64 {
-    (288.15 - 0.0065 * height_msl_m.min(11_000.0)).max(216.65)
 }
 
 /// `T_pad ∫ dz/T(z)` from the pad to `height_m` above it, on the standard atmosphere, m: the height
