@@ -132,9 +132,6 @@ adds a source.
     ([ADR-298](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0298-every-solid-motor-in-four-increments.md)).
     The index holds nothing by hand: each file's URLs and download date come from the file list
     and the snapshot, and its SHA-256 is computed.
-  - `catalog-m57a.json`: the earlier index of 32 public-domain files, from the 2026-09-17 capture
-    `validation/refs.lock.toml` pins (`thrustcurve-motors`), which the lookups use until the whole
-    catalog replaces it.
 
   Data courtesy of ThrustCurve.org, https://www.thrustcurve.org/.
 
@@ -640,7 +637,7 @@ same license and mode.
 | `hairer-dopri5` | E. Hairer and G. Wanner, DOPRI5: explicit Runge-Kutta method of order (4)5 due to Dormand and Prince, with step size control and dense output (Fortran, version of 2004) | BSD-2-Clause | fetched | ported to `hpr_sim::integrator` (M1.6a); see Ported |
 | `hairer-licence` | Licence of E. Hairer's ODE codes, Copyright (c) 2004, UNIGE | BSD-2-Clause | fetched | the terms of `hairer-dopri5` (M1.6a) |
 | `thrustcurve-metadata` | ThrustCurve.org API v1 `metadata.json` | no license granted; copyright reserved | fetched | attribution to ThrustCurve.org wherever the data is used; each curve file has its own data license |
-| `thrustcurve-motors` | ThrustCurve.org API v1 `search.json` (all motors) | no license granted; copyright reserved | fetched | kept under `refs/` only: used to choose the 32 bundled curve files (M1.3), and by `cargo xtask motor-catalog` to measure how far their figures are from ThrustCurve.org's; none of its statistics is bundled (issue #295), and `docs/physics/motor.md` and ADR-186 quote a few of them, or how far a header is from them, only where they explain why HPR Sim flies the header's value; attribution to ThrustCurve.org wherever the data is used |
+| `thrustcurve-motors` | ThrustCurve.org API v1 `search.json` (all motors) | no license granted; copyright reserved | fetched | kept under `refs/` only: used to choose the 32 curve files M1.3 bundled, and by `cargo xtask motor-catalog` to measure how far their figures are from ThrustCurve.org's; none of its statistics is bundled (issue #295), and `docs/physics/motor.md` and ADR-186 quote a few of them, or how far a header is from them, only where they explain why HPR Sim flies the header's value; attribution to ThrustCurve.org wherever the data is used |
 | `thrustcurve-rasp-format` | ThrustCurve.org "RASP File Format" page | no license granted; copyright reserved | fetched | cited for the `.eng` format (M1.3, `docs/format/eng.md`) |
 | `thrustcurve-glossary` | ThrustCurve.org glossary page | no license granted; copyright reserved | fetched | cited for burn time, average thrust, loaded weight and delays (M1.3) |
 | `thrustcurve-motorstats` | ThrustCurve.org "Motor Statistics" page | no license granted; copyright reserved | fetched | cited for the NFPA 1125 burn-time normalization (M1.3) |
@@ -736,4 +733,3 @@ cell positions and the version it reads each file as, never a value of the priva
 | source | license | mode | notes |
 |---|---|---|---|
 | `openrocket/motor-database` | GPL-3.0 | run-only reference | not bundled |
-| ThrustCurve.org thrust-curve files | per file: public domain, free, other, or none | fetched and cached (M5) | 32 public-domain curves are bundled (M1.3, above); the rest are fetched and cached, never bundled |
