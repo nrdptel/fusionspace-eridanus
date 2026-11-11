@@ -1113,6 +1113,7 @@ mod tests {
             let (bare_ours, bare_theirs) = placements(&record, &none);
             assert!((bare_theirs.alone[1][2] - off_axis_m).abs() < 1e-12);
             same_mass_and_center(&bare_ours.rocket, &bare_theirs.rocket, &none);
+            same_mass_and_center(&bare_ours.alone[0], &bare_theirs.alone[0], &none);
             same_mass_and_center(&bare_ours.alone[1], &bare_theirs.alone[1], &none);
             same_inertias(&bare_ours.alone[1], &bare_theirs.alone[1], &none);
 
@@ -1195,7 +1196,7 @@ mod tests {
     /// OpenRocket's mass and center.
     ///
     /// The rocket's inertia across the axis is not OpenRocket's on these probes, and each
-    /// shortfall is pinned: from 0.07% to 4.68% of OpenRocket's. OpenRocket sums each booster
+    /// shortfall is pinned: from 0.070% to 4.673% of OpenRocket's. OpenRocket sums each booster
     /// about the rocket's center from where the design puts it, with its own mass, and adds a
     /// point at the stage's stated center: the whole stated mass under a mass that covers the
     /// boosters, and what the stage weighs more than they do otherwise. It takes the rocket's
@@ -1204,7 +1205,7 @@ mod tests {
     /// (`openrockets_sum_with_a_parallel_stages_covering_center_is_no_bodys`). About the axis
     /// the rocket gains what OpenRocket's does, but for one booster under a mass that covers
     /// it: OpenRocket's sum there counts the booster's own mass beside the stated one, and HPR
-    /// Sim's is 0.11% short, pinned.
+    /// Sim's is 0.103% short, pinned.
     #[test]
     fn a_parallel_stages_override_covering_its_parts_leaves_them_in_place() {
         let record = placement_record();

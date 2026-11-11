@@ -188,7 +188,7 @@ the axis. The mass override is 2 kg. The center override is 0.1 m on the paralle
 
 - On the 25 with boosters that it lays out, the parallel stage alone has OpenRocket's mass,
   center and both inertias within decision 3's bounds. That covers every row of measurement 1's
-  table with three boosters and with one, the two rows with no flag written, the two with a
+  table with three boosters and with one, the two probes with no flag written (the mass alone, and both overrides), the two with a
   mass at a station on the stage the boosters hang on, and three with a motor aboard.
 - On those 25 the whole rocket has OpenRocket's mass and center. Where no override covers the
   parallel stage's parts, the override adds what it adds in OpenRocket to both of the rocket's
@@ -197,8 +197,8 @@ the axis. The mass override is 2 kg. The center override is 0.1 m on the paralle
   inertia across the axis gains 0.63% of OpenRocket's inertia less with three boosters and 0.22%
   less with one (decision 2's M2.3d14).
 - Under the parallel stage's overrides that cover its parts with no added mass, the same
-  shortfall is 0.07% to 4.68%. About the axis the rocket gains what OpenRocket's does, but for
-  one booster under a mass that covers it: 0.11% short. These overrides cover the parts, so they
+  shortfall is 0.070% to 4.673%. About the axis the rocket gains what OpenRocket's does, but for
+  one booster under a mass that covers it: 0.103% short. These overrides cover the parts, so they
   are outside M2.3d4's *done when*; [#1432][i1432] holds them. Under HPR Sim's default rule,
   which the reader gave a parallel stage until now, the parallel stage's own inertia across the
   axis is more than 37% off OpenRocket's on each of those rows.

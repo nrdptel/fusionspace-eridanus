@@ -350,7 +350,8 @@ fn stage(
 /// This is OpenRocket 24.12's reading, measured on `conventions.py`'s stage probes
 /// ([ADR-335][adr-335]), where a flag not written reads as `false`, and so does the single older
 /// flag saying `false`. A parallel stage's overrides are read by the same table. Its rows with
-/// each flag written, and the mass's with none, are measured on `added_mass_placement.py`'s
+/// each flag written, and the mass alone and both overrides with none, are measured on
+/// `added_mass_placement.py`'s
 /// probes ([ADR-341][adr-341]):
 ///
 /// | The mass override | The center of gravity override | What the stage weighs |

@@ -400,9 +400,9 @@ example, and the decision records give the measurements: [a stage on the axis][a
   it, as one pod alone puts it.
 - **On a parallel stage** the table holds on each pairing probed there: eight pairings with
   each flag written (four of both overrides, four of one), with three boosters and with one,
-  and the mass's two rows with no flag written, with three. A flag left out beside one that is written, and the older single
+  and the mass alone and both overrides with no flag written, with three. A flag left out beside one that is written, and the older single
   flag, weren't probed on a parallel stage. One piece of code reads both kinds of stage, so they
-  are read as on a stage on the axis. There are 49 more probes in all: 40 with three boosters
+  are read as on a stage on the axis. The record holds 49 probes in all, four of them with no override as baselines: 40 with three boosters
   beside the core or with one, and 9 of two stages on the axis, one or both weighing nothing.
   The mass is added once to the set of boosters, not to each. With no center
   stated it sits at the boosters' center. A center that doesn't cover the
@@ -419,7 +419,7 @@ example, and the decision records give the measurements: [a stage on the axis][a
   boosters, that stage and the whole rocket match OpenRocket's mass and center within the same
   bounds. Their inertias are held by what the override adds to them: within 3 parts in a million
   of what it adds in OpenRocket, or within 1e-9 kg·m² where it adds little. Across the axis the
-  least it adds is 0.000061 kg·m², to the rocket, where that floor is 17 parts in a million.
+  least it adds is 0.000061 kg·m², to the rocket, where that floor is 16.4 parts in a million.
   About the axis it adds nothing in either tool. The cases still refused there are in the last
   bullet.
 - **A motor doesn't move it.** OpenRocket's rocket at launch and at burnout is the motor added to
@@ -456,8 +456,8 @@ example, and the decision records give the measurements: [a stage on the axis][a
   the override adds 0.63% of OpenRocket's inertia less with three boosters and 0.22% less with
   one. Closing that is open work:
   [M2.3d14, the rocket's inertia beside a parallel stage's covering center](../decisions-and-roadmap.md#m2-3d14).
-  Under a covering mass, a covering center, or both with no added mass, the shortfall is 0.07% to
-  4.68%, and about the axis, with one booster under a covering mass, 0.11%
+  Under a covering mass, a covering center, or both with no added mass, the shortfall is 0.070% to
+  4.673%, and about the axis, with one booster under a covering mass, 0.103%
   ([#1432](https://github.com/nrdptel/fusionspace-eridanus/issues/1432)).
 - **A center alone that doesn't cover the parts** changes nothing in OpenRocket. It is left out
   of the design and kept as the file wrote it, so an export writes it back.

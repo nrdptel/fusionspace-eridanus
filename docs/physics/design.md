@@ -305,7 +305,7 @@ covers the parts beside an added mass, and on the lower of two stages, the inert
 axis doesn't ([below](#a-stages-added-mass-leaves-out)). On a
 [parallel stage](#parallel-stages), 25 more probes match for the stage alone. Where its
 override covers the boosters, the override adds less to the whole rocket's inertia across the
-axis than it does in OpenRocket, by up to 4.68% of OpenRocket's figure.
+axis than it does in OpenRocket, by up to 4.673% of OpenRocket's inertia for that rocket.
 
 A finished rocket weighs more than its parts: glue, paint, wiring. A stage can carry that as an
 [`AddedMass`](../api/hpr_design/tree/struct.AddedMass.html): a point mass $m_a$ added to the
@@ -404,8 +404,8 @@ with OpenRocket 24.12, and by hand.
   (the mass alone, the mass at a station, and the mass beside a center that covers the parts):
   a station moves the added mass along the axis only. HPR Sim's mass and center match on all
   six within the bounds above, the distance off the axis and the inertia the override adds too.
-- On 49 more probes the override sits on a parallel stage, on the stage one hangs on, or on
-  parts that weigh nothing: 40 with three boosters beside the core or with one, and 9 of two
+- 49 more probes put the override on a parallel stage, on the stage one hangs on, or on
+  parts that weigh nothing, four of them with no override as baselines: 40 with three boosters beside the core or with one, and 9 of two
   stages on the axis, one or both weighing nothing ([the decision record][adr-341]). HPR Sim
   lays out 27 and refuses 22 by name. On the 25 laid out that carry boosters, the parallel
   stage alone matches OpenRocket's within the bounds above, and the whole rocket matches in
@@ -456,9 +456,9 @@ with OpenRocket 24.12, and by hand.
     boosters, the override adds 0.63% of OpenRocket's inertia across the axis less with three
     boosters, and 0.22% less with one. Closing that is open work:
     [M2.3d14, the rocket's inertia beside a parallel stage's covering center](../decisions-and-roadmap.md#m2-3d14).
-    Under a covering mass, a covering center, or both with no added mass, it adds 0.07% to
-    4.68% less. About the axis the two agree, but for one booster under a covering mass, where
-    HPR Sim's is 0.11% under ([#1432](https://github.com/nrdptel/fusionspace-eridanus/issues/1432)).
+    Under a covering mass, a covering center, or both with no added mass, it adds 0.070% to
+    4.673% less. About the axis the two agree, but for one booster under a covering mass, where
+    HPR Sim's is 0.103% under ([#1432](https://github.com/nrdptel/fusionspace-eridanus/issues/1432)).
     The parallel stage alone matches on each.
 - The stage a parallel stage hangs on can't carry an added mass with no station, nor one at a
   station beside a single booster off the axis. The layout refuses both. OpenRocket weighs that

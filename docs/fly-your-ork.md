@@ -284,8 +284,8 @@ by hand from OpenRocket's own output), and another rocket's can differ more
 ([what a stage's added mass leaves out](physics/design.md#a-stages-added-mass-leaves-out)).
 The same holds where the ticked override is on boosters strapped beside the core. Their own
 mass, center and inertia match OpenRocket's on the probes. The override adds less to the whole
-rocket's inertia across the axis than it does in OpenRocket: 0.07% to 4.68% of OpenRocket's
-figure less.
+rocket's inertia across the axis than it does in OpenRocket: 0.070% to 4.673% of
+OpenRocket's inertia for that rocket less.
 
 Matching OpenRocket isn't matching your rocket. Where a ticked override sets the stage's mass,
 both put the mass the parts miss at the stage's center, where it adds no inertia. If that mass
