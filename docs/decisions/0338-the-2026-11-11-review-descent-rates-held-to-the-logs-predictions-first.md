@@ -42,8 +42,8 @@ That is the flattering side, the worst class of error for a safety number
 
 [The recovery page][recovery] says what that line rests on: RocketPy's descents for five
 rockets, OpenRocket's landing speeds on its example flights, and drop tests of tumbling and
-streamers. The page names no comparison with a real flight, and no report gives the rate's
-error over flights as one number.
+streamers. Before this record the page named no comparison with a real flight, and no report
+gives the rate's error over flights as one number.
 
 The logs hold the other side. The analyzer reads each canopy's descent rate from a log, with a
 90% interval ([M7.2][m7-2], [reading a flight log][readings]). [The residuals
@@ -102,7 +102,7 @@ rule comes first, and each side of the comparison is fixed before the errors are
      - Every flight in the collection's manifest that isn't compared is counted by cause, so
        the compared and the not compared add up to the manifest.
      - The public flights' rows of the residuals report get the same aggregates, marked as not
-       blind.
+       predicted first.
      - The scoreboard gains `accuracy.descent`, lower better, and `bias.descent`, nearer zero
        better, with too gentle named as the flattering side. Both read the rate under the
        main over every compared flight, the recovery faults included. HPR Sim's cells are held
