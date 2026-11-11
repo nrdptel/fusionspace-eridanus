@@ -207,7 +207,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
         *done when*, whole: what is left of it here is each `.ork` stage ADR-335 decision 5
         still refuses or holds back, flown as OpenRocket 24.12 weighs it, its mass, center and
         inertia held to OpenRocket's on probe designs.
-      - [ ] **M2.3d9 The inertia on the lower of two stages** (ADR-336, amended;
+      - [ ] **M2.3d9 The inertia on a lower stage and with a motor aboard** (ADR-336, amended;
         [#1424](https://github.com/nrdptel/fusionspace-eridanus/issues/1424)). *Done when:*
         M2.3d4's *done when*, whole: what is left of it here is ADR-336 decision 1's for M2.3d9:
         on the two probe designs with the override on the lower of two stages, both inertias held
