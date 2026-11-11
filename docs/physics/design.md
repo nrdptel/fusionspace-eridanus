@@ -279,11 +279,11 @@ the axis. An [added mass](#a-stages-added-mass) with no station sits at $c$ too.
 **A worked example.** A stage's parts weigh 0.3996 kg, centered 0.4701 m (1.542 ft) aft of the
 tip, with 0.015838 kg·m² across the axis. Its center override is 0.4 m (1.3 ft).
 
-- `parts_in_place`: $0.015838 + 0.3996 \times 0.0701^2 = 0.017802\,\mathrm{kg\cdot m^2}$, OpenRocket 24.12's
+- `parts_in_place`: 0.015838 kg·m² plus 0.3996 kg × (0.0701 m)² is 0.017802 kg·m², OpenRocket 24.12's
   0.017803 kg·m² (the hand sum rounds the distance). A 2 kg mass override beside it leaves the
   inertia there.
 - `rescaled`: the parts move whole, so the inertia stays 0.015838 kg·m², 11.04% under. With the
-  2 kg mass override it scales to $0.015838 \times 2/0.3996 = 0.0793\,\mathrm{kg\cdot m^2}$, 345% over.
+  2 kg mass override it scales by 2/0.3996 to 0.0793 kg·m², 345% over.
 
 Neither rule is measured on a flying rocket. If the mass the parts miss is spread along the stage
 as the parts are, `rescaled` is right and `parts_in_place` reads low, by the mass ratio under a
