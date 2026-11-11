@@ -213,6 +213,13 @@ boosters while they hang there, and [#1429][i1429] holds that. No tolerance move
 - The roadmap shows M2.3d8 open with M2.3d11 to M2.3d14 below it, and the archive shows M2.3d10
   done. The pages [A stage's override][ork-stage] and [A stage's added mass][design-added] say
   what is read and [what is still left out][left-out].
+- The roadmap is at its byte budget, so six open entries there now name their *done when* by
+  its record and no longer repeat it: M2.3d8 and M2.3d9 name [ADR-336][adr-336]'s decision 1,
+  and M2.3d11 to M2.3d14 name this record's decision 2. No *done when* changes. The words the
+  roadmap drops (among them "each", "held to OpenRocket's" and "as OpenRocket 24.12 weighs it")
+  stand in those two records, which are the text each increment is held to. The same edit
+  drops the lists of finished increments from M2.3d1's and M2.3d4's headings; the archive has
+  them.
 
 **How it was checked.** All in `hpr_validate::openrocket` unless named otherwise.
 
