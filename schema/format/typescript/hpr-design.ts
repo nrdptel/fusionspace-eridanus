@@ -1810,7 +1810,7 @@ export interface Stage {
   /**
    * How `overrides` set the stage's inertia (`StageOverrideRule`): by rescaling and moving
    * the stage as one body, as `hpr-design` does by default, or with its parts left in place,
-   * as OpenRocket 24.12 weighs a stage.
+   * as OpenRocket 24.12 weighs a single stage.
    */
   override_rule?: StageOverrideRule;
   /**

@@ -3678,7 +3678,7 @@
         },
         "override_rule": {
           "$ref": "#/$defs/StageOverrideRule",
-          "description": "How `overrides` set the stage's inertia ([`StageOverrideRule`]): by rescaling and moving\nthe stage as one body, as `hpr-design` does by default, or with its parts left in place,\nas OpenRocket 24.12 weighs a stage."
+          "description": "How `overrides` set the stage's inertia ([`StageOverrideRule`]): by rescaling and moving\nthe stage as one body, as `hpr-design` does by default, or with its parts left in place,\nas OpenRocket 24.12 weighs a single stage."
         },
         "overrides": {
           "$ref": "#/$defs/Overrides",
@@ -3712,7 +3712,7 @@
         },
         {
           "const": "parts_in_place",
-          "description": "The parts stay where the design puts them ([`Overrides::apply_with_parts_in_place`]): the\nstage's inertia is its parts' about the stage's center, and the mass a mass override adds\nor takes away sits at that center. This is how OpenRocket 24.12 weighs a stage's overrides\nthat cover its parts, measured on probe designs (`validation/oracles/openrocket/`), and the\n`.ork` reader gives it to every stage on the axis with such an override ([ADR-340][adr-340]).\n\n[adr-340]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0340-a-stage-s-overrides-leave-its-parts-in-place-as-openrocket-weighs-them.md",
+          "description": "The parts stay where the design puts them ([`Overrides::apply_with_parts_in_place`]): the\nstage's inertia is its parts' about the stage's center, and the mass a mass override adds\nor takes away sits at that center. This is how OpenRocket 24.12 weighs a single stage's\noverrides that cover its parts, measured on probe designs (`validation/oracles/openrocket/`);\non the lower of two stages OpenRocket's sum is no rigid stage's. The `.ork` reader gives it\nto every stage on the axis with such an override ([ADR-340][adr-340]).\n\n[adr-340]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0340-a-stage-s-overrides-leave-its-parts-in-place-as-openrocket-weighs-them.md",
           "type": "string"
         }
       ]

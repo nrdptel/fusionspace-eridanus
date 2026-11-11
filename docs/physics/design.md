@@ -387,7 +387,7 @@ with OpenRocket 24.12, and by hand.
 
 - Where one of the stage's two overrides covers the parts, OpenRocket's inertia is not always a
   rigid stage's, and HPR Sim keeps a rigid one ([the decision record][adr-340]).
-  - *On the lower of two stages.* OpenRocket sums every part about the rocket's center at its
+  - *On the lower of two stages* (two probes, each with a 2 kg override). OpenRocket sums every part about the rocket's center at its
     own place, and the override's 2 kg as a point at the stage's center. Under a mass that covers
     the parts, that counts the lower tube twice. Under a center beside an added mass, the stage's
     own inertia would have to be less than its tube's. The rocket's inertia across the axis is
