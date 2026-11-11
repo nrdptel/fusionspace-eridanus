@@ -1195,9 +1195,11 @@ mod tests {
     /// OpenRocket's mass and center.
     ///
     /// The rocket's inertia across the axis is not OpenRocket's on these probes, and each
-    /// shortfall is pinned: from 0.07% to 4.67% of OpenRocket's. OpenRocket sums each booster
-    /// about the rocket's center from where the design puts it, while taking the rocket's
-    /// center from the stage's stated one; a stage weighed as one body can't give both
+    /// shortfall is pinned: from 0.07% to 4.68% of OpenRocket's. OpenRocket sums each booster
+    /// about the rocket's center from where the design puts it, with its own mass, and adds a
+    /// point at the stage's stated center: the whole stated mass under a mass that covers the
+    /// boosters, and what the stage weighs more than they do otherwise. It takes the rocket's
+    /// center from the stage as overridden. A stage weighed as one body can't give both
     /// (`openrockets_sum_with_a_parallel_stages_covering_center_is_no_bodys`). About the axis
     /// the rocket gains what OpenRocket's does, but for one booster under a mass that covers
     /// it: OpenRocket's sum there counts the booster's own mass beside the stated one, and HPR
@@ -1284,6 +1286,11 @@ mod tests {
     /// center `x`, the stated center `c` and the rocket's center `X`: the shortfall the test
     /// above pins. Closing it means composing the inertia at the rocket's level, as M2.3d14
     /// plans (ADR-341).
+    ///
+    /// The second half holds the same sum on all ten probes whose override covers the boosters.
+    /// Under a mass that covers them, OpenRocket's point is the whole stated mass, beside the
+    /// boosters' own: their mass is counted twice, which is why those rows fall short even
+    /// where the center doesn't move.
     #[test]
     fn openrockets_sum_with_a_parallel_stages_covering_center_is_no_bodys() {
         let record = placement_record();
@@ -1309,6 +1316,40 @@ mod tests {
             "{more} of {:?}",
             theirs.rocket
         );
+
+        // The same sum on each probe whose override covers the boosters, with three and with
+        // one: the stage they hang on and each booster where the design puts it, with its own
+        // mass, and a point at the parallel stage's center. Where the mass override doesn't
+        // cover the boosters, the point is what the stage weighs more than they do. Where it
+        // does, the point is the whole stated mass, so the boosters' own is counted beside it.
+        let covering = std::iter::once(ADDS_BESIDE_A_COVERING_CENTER).chain(COVERS_THE_BOOSTERS);
+        for (k, (question, _, _)) in covering.enumerate() {
+            let covers_the_mass = matches!(k, 1..=3);
+            assert_eq!(
+                covers_the_mass,
+                !question.contains("not its parts") && question.contains("mass")
+                    || question.starts_with("both"),
+                "{question}"
+            );
+            for (boosters, _) in BOOSTERS {
+                let bare = their_placement(&record, &format!("{boosters} and no override"));
+                let theirs = their_placement(&record, &format!("{boosters} and {question}"));
+                let ([core, pods], stage, at) = (bare.alone, theirs.alone[1], theirs.rocket[1]);
+                let about = |body: &Body| body[4] + body[0] * (body[1] - at).powi(2);
+                let point_kg = if covers_the_mass {
+                    assert_eq!(stage[0], 2.0, "{boosters} and {question}");
+                    stage[0]
+                } else {
+                    stage[0] - pods[0]
+                };
+                let sum = about(&core) + about(&pods) + point_kg * (stage[1] - at).powi(2);
+                assert!(
+                    relative(sum, theirs.rocket[4]).abs() < 1e-11,
+                    "{boosters} and {question}: {sum} against {:?}",
+                    theirs.rocket
+                );
+            }
+        }
     }
 
     /// An added mass at a station, on the stage a parallel stage hangs on (ADR-341, M2.3d10).
@@ -1321,7 +1362,8 @@ mod tests {
     /// With one booster, off the axis, HPR Sim refuses the layout. OpenRocket's rocket is then
     /// as far off the axis as it was with no override, 2.7 mm, where a 2 kg point on the axis
     /// would pull it in to 0.4 mm: with the booster hanging there, OpenRocket's point sits off
-    /// the axis with the rocket's center, and on the axis once the booster is gone.
+    /// the axis with the rocket's center, and on the axis once the booster is gone. With 2 kg
+    /// on the booster as well, the rocket stays 44 mm off the axis, not 24 mm.
     #[test]
     fn an_added_mass_at_a_station_on_the_stage_boosters_hang_on() {
         let record = placement_record();
@@ -1392,6 +1434,25 @@ mod tests {
         let on_the_axis = bare.rocket[0] * bare.rocket[2] / theirs.rocket[0];
         assert!((on_the_axis - 0.000_441).abs() < 1e-6, "{on_the_axis}");
         assert_eq!(theirs.alone[0][2], 0.0);
+        // With 2 kg at a station on the booster too, the rocket is as far off the axis as
+        // with that override alone, 44 mm, where a point on the axis would pull it in to 24 mm.
+        let each = their_placement(
+            &record,
+            "one booster and both overrides on each stage, not its parts",
+        );
+        let beside = their_placement(
+            &record,
+            &format!("one booster and {}", ADDS_TO_THE_BOOSTERS[1]),
+        );
+        assert!((each.rocket[2] - beside.rocket[2]).abs() < 1e-12);
+        assert!(
+            (beside.rocket[2] - 0.044_105).abs() < 1e-6,
+            "{:?}",
+            beside.rocket
+        );
+        let on_the_axis = beside.rocket[0] * beside.rocket[2] / each.rocket[0];
+        assert!((on_the_axis - 0.023_974).abs() < 1e-6, "{on_the_axis}");
+        assert_eq!(each.alone[0][2], 0.0);
     }
 
     /// The overrides `added_mass_placement.py` puts on the stage the boosters hang on that HPR
@@ -1538,10 +1599,11 @@ mod tests {
     ];
 
     /// Where OpenRocket 24.12 puts an added mass with no station on parts that weigh nothing
-    /// (ADR-341): at the rocket's tip, on the axis, whichever stage carries it. A lower stage
-    /// that starts 0.8 m aft of the tip and boosters that start 0.45 m aft, 52 mm off the
-    /// axis, each weigh their 2 kg at the tip, alone as with the other stage. Beside a center
-    /// that covers the parts, the 2 kg is at that center: 0.4 m aft of the stage's forward end.
+    /// (ADR-341), on six of the eight probes: at the rocket's tip, on the axis, whichever
+    /// stage carries it. A lower stage that starts 0.8 m aft of the tip and boosters that start
+    /// 0.45 m aft, 52 mm off the axis, each weigh their 2 kg at the tip, alone as with the other
+    /// stage. On the other two a center that covers the parts is beside the mass, and the 2 kg
+    /// is at that center: 0.4 m aft of the stage's forward end.
     ///
     /// HPR Sim refuses each: a mass at the tip of the rocket is the placement that reads the
     /// stability margin highest. M2.3d12 is the work. With a station of its own the mass has a
@@ -1617,7 +1679,8 @@ mod tests {
     /// override its launch and burnout are that same motor added to the overridden structure.
     /// HPR Sim's structure of each probe has OpenRocket's mass and center, the parallel stage
     /// alone both of OpenRocket's inertias, and the override adds what it adds in OpenRocket
-    /// to the rocket's inertias. These are the designs the command line's test flies.
+    /// to the rocket's inertias. OpenRocket's launch and burnout are held by mass and center
+    /// only. These are the designs the command line's test flies.
     #[test]
     fn a_motor_aboard_does_not_move_a_parallel_stages_added_mass() {
         let record = placement_record();

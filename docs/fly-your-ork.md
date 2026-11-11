@@ -266,11 +266,14 @@ flight alone and leaves them on the terminal.
 **A stage that weighs more than its parts.** If your stage has a mass override with OpenRocket's
 *override for all subcomponents* box unticked, OpenRocket adds that mass to what the parts weigh,
 and so does the simulator. It used to refuse such a stage. Boosters strapped beside the core
-(a [parallel stage](glossary.md#parallel-stage)) are read the same way: their stage's added
-mass is one mass for the set, and it drops with them. On the stage the boosters hang on, an
-added mass flies when the override states its center too. With no center stated the simulator
-refuses it by name, since OpenRocket then moves that mass when the boosters drop
-([what a stage's added mass leaves out](physics/design.md#a-stages-added-mass-leaves-out)). Where a stage's override has that box
+(a [parallel stage](glossary.md#parallel-stage)) are read the same way. Their stage's added
+mass is one mass for the set, and it drops with them. The stage the boosters hang on can carry
+an added mass too. It flies when a center override with the box unticked is beside it and the
+boosters are spaced evenly round the core. Otherwise the simulator refuses it by name.
+OpenRocket then moves that mass when the boosters drop
+([what a stage's added mass leaves out](physics/design.md#a-stages-added-mass-leaves-out)).
+
+Where a stage's override has that box
 ticked, the simulator leaves the stage's parts where they are, as OpenRocket does, and its mass,
 center and inertia match OpenRocket's on the [probe designs](glossary.md#probe-design) of one
 stage with no motor aboard. With the override on the lower of two stages, or with a motor aboard
@@ -279,6 +282,10 @@ center rather than the stage's, and the simulator doesn't. On the probes that sh
 rocket's inertia across the axis is from 1.6% under to 4.95% over OpenRocket's (the 1.6% worked
 by hand from OpenRocket's own output), and another rocket's can differ more
 ([what a stage's added mass leaves out](physics/design.md#a-stages-added-mass-leaves-out)).
+The same holds where the ticked override is on boosters strapped beside the core. Their own
+mass, center and inertia match OpenRocket's on the probes. The override adds less to the whole
+rocket's inertia across the axis than it does in OpenRocket: 0.07% to 4.68% of OpenRocket's
+figure less.
 
 Matching OpenRocket isn't matching your rocket. Where a ticked override sets the stage's mass,
 both put the mass the parts miss at the stage's center, where it adds no inertia. If that mass
@@ -286,7 +293,7 @@ is really spread along the stage, as its parts are, the true inertia is higher b
 ratio of the override's mass to the parts' (5 times for a 2 kg override on 0.40 kg of parts),
 and more if it sits farther out
 ([A stage's rule](physics/design.md#overrides)).
-A few cases are still refused, such as one that carries strap-on boosters (a parallel stage)
+A few cases are still refused, such as a ticked override on a stage that carries boosters
 ([a stage's mass and center of gravity overrides](format/ork.md#a-stages-mass-and-center-of-gravity-overrides)).
 
 ## What it leaves out
