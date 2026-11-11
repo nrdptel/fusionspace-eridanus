@@ -1,7 +1,7 @@
 # ADR-340: A stage's overrides leave its parts in place, as OpenRocket weighs them (2026-11-11)
 
 - **Status:** accepted; carries out [M2.3d7][m2-3d7] under [ADR-336][adr-336], on six of its eight probe designs, and says why the other two can't be met by any rigid stage. It amends [ADR-061][adr-061]'s rule for the inertia under a stage's override that covers its parts; a part's overrides keep ADR-061's rule. It answers [ADR-335][adr-335] decision 4.
-- **Summary:** A `.ork` stage whose mass or center of gravity override covers its parts now keeps the parts where the design puts them, as OpenRocket 24.12 does. Its inertia is the parts' about the stage's center. Before, HPR Sim moved and rescaled the stage as one body. On six of M2.3d7's eight probes the inertia now matches OpenRocket's within ADR-336's bounds; it ran from 11.04% under to 400.5% over. On the two with the override on the lower of two stages, OpenRocket's figure is no rigid stage's, and the rocket's inertia across the axis stays 4.95% and 3.33% over, pinned. The collection's mean absolute apogee error goes from 12.07% to 12.04%.
+- **Summary:** A `.ork` stage whose mass or center of gravity override covers its parts now keeps the parts where the design puts them, as OpenRocket 24.12 does. Its inertia is the parts' about the stage's center. Before, HPR Sim moved and rescaled the stage as one body. On six of M2.3d7's eight probes the inertia now matches OpenRocket's within ADR-336's bounds; it ran from 11.04% under to 400.5% over. On the two with the override on the lower of two stages, OpenRocket's figure is no rigid stage's: the rocket's inertia across the axis is now 4.95% and 3.33% over (it was 1.5% and 18.5%), pinned. The collection's mean absolute apogee error goes from 12.07% to 12.04%.
 
 [m2-3d7]: ../decisions-and-roadmap.md#m2-3d7
 [m2-3d4]: ../decisions-and-roadmap.md#m2-3d4
@@ -102,7 +102,8 @@ OpenRocket leaves each part where the design puts it.
    reduces to when the stage's center is the point the inertia is taken about. The rocket's
    inertia across the axis is 4.95% over OpenRocket's under the center beside an added mass,
    and 3.33% over under the mass beside a center that doesn't cover the parts. About the axis
-   the two agree. Before, those were 1.5% over, and 18.5% and 255.8% over.
+   the two agree. Before, across the axis, they were 1.5% and 18.5% over; about the axis the
+   second was 255.8% over.
    `openrockets_lower_stage_sum_is_no_rigid_stage` reproduces OpenRocket's sum and checks both
    reasons; `openrockets_inertia_with_a_motor_aboard_is_the_same_sum` does so with a motor
    aboard and pins the 1.6% and 1.1%.
@@ -129,7 +130,8 @@ OpenRocket leaves each part where the design puts it.
   apogee error goes from 12.07% to 12.04% and its mean error from +7.76% to +7.72%; against
   OpenRocket its median apogee difference goes from +0.62% to +0.53%. Six of the 54 public
   `.ork` flights compared with OpenRocket move, and six of the 35 private library flights. Each
-  apogee moves by less than 0.001 percentage points; the drift at apogee, by less than 0.13 m. The
+  apogee moves by less than 0.001 percentage points, and the drift at apogee on the public
+  flights by less than 0.13 m. The
   held-out half's sealed digest changes with its aggregates, as [ADR-329][adr-329] decision 7
   expects.
 

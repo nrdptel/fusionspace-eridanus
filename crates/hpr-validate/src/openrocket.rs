@@ -578,9 +578,10 @@ mod tests {
     ];
 
     /// Stages with an override that covers their parts, held to OpenRocket 24.12's mass, center
-    /// and both inertias: a center of gravity override alone, a mass override alone, both, both
-    /// over a part's own override, one beside a mass override that doesn't cover the parts, and
-    /// a mass override beside a center of gravity override that doesn't.
+    /// and both inertias: a center of gravity override alone, a mass override alone, both, a mass
+    /// override alone over a part's own, a center beside a mass override that doesn't cover the
+    /// parts, a mass override beside a center of gravity override that doesn't, and the two
+    /// pairings with only one flag written, `true`.
     const STAGE_WHOLE: [&str; 8] = [
         "a center of gravity override on the stage",
         "a mass override on the stage",

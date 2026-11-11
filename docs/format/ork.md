@@ -403,14 +403,15 @@ example, and [the decision record][adr-335] gives the measurements.
   the design puts them, and the stage's inertia is theirs about the stage's center. The mass an
   override adds, and an added mass with no station, sit at that center and add no inertia. The
   reader gives such a stage `"override_rule": "parts_in_place"`
-  ([Overrides](../physics/design.md#overrides)). On the one-stage probes and on the motor's
-  airframe, HPR Sim's inertias match OpenRocket's within 3 parts in a million, or 1e-9 kg·m² on
-  what the override adds. On a rocket of two stages with the override on the lower,
-  OpenRocket's figure is no rigid stage's, and the rocket's inertia across the axis stays 4.95%
-  over OpenRocket's (a center beside an added mass) and 3.33% over (a mass beside a center that
-  doesn't cover the parts); about the axis the two agree. With a motor aboard OpenRocket sums the
-  same way: on the motor's airframe a rigid stage's inertia across the axis is 1.6% under
-  OpenRocket's at launch and 1.1% under at burnout. [The decision record][adr-340] gives the
+  ([Overrides](../physics/design.md#overrides)). On the one-stage probes HPR Sim's inertias match
+  OpenRocket's within 3 parts in a million, and on the motor's airframe the inertia the override
+  adds to the structure is within 1e-9 kg·m² of OpenRocket's. On a rocket of two stages with the
+  override on the lower, OpenRocket's figure is no rigid stage's: the rocket's inertia across the
+  axis is now 4.95% over OpenRocket's (a center beside an added mass) and 3.33% over (a mass
+  beside a center that doesn't cover the parts), where it was 1.5% and 18.5%; about the axis the
+  two agree. With a motor aboard OpenRocket sums the same way: on the motor's airframe, under an
+  added mass beside a center that covers the parts, a rigid stage's inertia across the axis is
+  1.6% under OpenRocket's at launch and 1.1% under at burnout. [The decision record][adr-340] gives the
   measurements.
 - **A center alone that doesn't cover the parts** changes nothing in OpenRocket. It is left out
   of the design and kept as the file wrote it, so an export writes it back.

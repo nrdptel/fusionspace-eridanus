@@ -198,8 +198,9 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
   - [ ] **M2.3d1 The predictions** (ADR-334: in three, M2.3d3 and M2.3d5 done; met when M2.3d4 is). *Done when:*
     ADR-328 §1a's: its own pull request merges the five new flights' inputs, sources and
     predicted apogees, computing no error.
-    - [ ] **M2.3d4 A stage's override that adds to its parts** (ADR-335; ADR-336: in three, M2.3d6
-      done, M2.3d7 closed by ADR-340 on six of its eight probes, M2.3d8 below; met when it is). *Done when:* an `.ork` stage
+    - [ ] **M2.3d4 A stage's override that adds to its parts** (ADR-335; ADR-336: in three,
+      M2.3d6 done, M2.3d7 closed by ADR-340 on six of its eight probes, M2.3d8 below; met when
+      it is). *Done when:* an `.ork` stage
       whose mass or center override doesn't cover its parts is flown as OpenRocket 24.12 weighs
       it, its mass, center and inertia held to OpenRocket's on probe designs, and is no longer
       held back.
