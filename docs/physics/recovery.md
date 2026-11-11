@@ -13,8 +13,13 @@ part drifts and lands.
 - **Sources:** Knacke's *Parachute Recovery Systems Design Manual* (1991) for parachutes;
   Carruthers and Filippone's streamer tests (2005) and the OpenRocket technical documentation for
   streamers and tumbling.
-- **How well it is validated:** against another simulator and against drop tests; no descent has
-  been compared with a real flight yet.
+- **How well it is validated:** against another simulator and against drop tests. Five public
+  flights' descent rates under the main parachute are listed beside their logs'
+  ([residuals report][residuals]). The simulated rate runs from 7.59 m/s (24.9 ft/s) slower
+  than the log's to 1.07 m/s (3.5 ft/s) faster, and slower is the side that flatters a landing.
+  Each difference is the simulation's and the log reading's together, and the largest is on a
+  log that reads as one canopy all the way down. No error over the five is worked out as one
+  number yet: that is for [M2.12, descent rates against the logs][m2-12].
   - The descent under a parachute matches [RocketPy](../glossary.md#rocketpy)'s for five example
     rockets, started from the same state near apogee. All 30 metrics are within 3%, the largest
     +2.865% ([validation report][report]). [Drift](../glossary.md#drift) is measured from that
@@ -1101,6 +1106,8 @@ above.
 [adr-085]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0085-ejected-pieces-an-airframe-that-parts-at-any.md
 [adr-086]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0086-ejection-impulse-and-tumbling-pieces.md
 [report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md
+[residuals]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/flight-residuals.md
+[m2-12]: ../decisions-and-roadmap.md#m2-12
 [adr-153]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0153-a-orks-recovery-flown-as-openrocket-flies-it.md
 [adr-159]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0159-a-powered-separation-in-hpr-sim.md
 [adr-168]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0168-pods-powered-flies.md
