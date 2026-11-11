@@ -253,8 +253,8 @@
           "sha256": "98499304445b8d97e3de8049c82ad500c324546b267b3042ed31f7935c560d86"
         }
       ],
-      "inputs_sha256": "1e76f4de410661892498c4d3128696b52da73d92d7fd6fb4c772eeac53b271b2",
-      "note": "the stored simulation's wind carries a turbulence of a tenth of its speed, which is not flown: the wind here is steady. The parachutes are not flown either; the file opens the first at apogee, so neither moves it"
+      "inputs_sha256": "a0f81b794d0df7ed8b043de9f69e4b22d30fbe9a51ee63adcec7081d56ab2a12",
+      "note": "the stored simulation's wind carries a turbulence of a tenth of its speed, which is not flown: the wind here is steady. The parachutes are not flown either; the file opens one at apogee and the other lower, on the way down, so neither moves it"
     },
     {
       "id": "macie-xl-2",
@@ -316,8 +316,8 @@
           "sha256": "2a59964bbe5015d0227049f8f113f1304831e99722dc6228c3fb08d9735f3062"
         }
       ],
-      "inputs_sha256": "743b285e644f29a45d28270c6f09aa09d6bcc9655e2d30ea724a3880c0e60421",
-      "note": "the stored simulation's wind carries a turbulence of a tenth of its speed, which is not flown: the wind here is steady. The parachutes are not flown either; the file opens the first at apogee, so neither moves it"
+      "inputs_sha256": "ecdf16140713f25c3d969e896effb0f72fbf997215d41ca5a7c977539bee7535",
+      "note": "the stored simulation's wind carries a turbulence of a tenth of its speed, which is not flown: the wind here is steady. The parachutes are not flown either; the file opens one at apogee and the other lower, on the way down, so neither moves it"
     }
   ]
 }

@@ -40,12 +40,12 @@ launch site it gives one thing: each log's header holds its pad's height above s
 
 **Decision.**
 
-1. **The repository is pinned, and nothing of it is committed.** [The lock][lock] pins
+1. **The repository is pinned, and no file of it is committed.** [The lock][lock] pins
    `rlhatcher/rocketry-files` (MIT) at commit `2ddcaf88`, of 27 June 2026, as a checkout under
    `refs/public-flights/`. The design file and the two logs are read from there, and the
    predictions keep each one's SHA-256. The checkout stays out of the default corpus of `cargo
-   xtask ork`: the repository holds 17 designs, and taking them in would move every count [the
-   `.ork` page][ork-page] quotes. That is a change of its own ([#1413][i1413]).
+   xtask ork`: the repository holds 17 designs, and taking them in would move the survey's counts on [the
+   `.ork` page][ork-page]. That is a change of its own ([#1413][i1413]).
 2. **Each flight is flown as its stored simulation.** The design file is read whole, with no
    edit. The flight's stored simulation gives the motor configuration and the launch conditions:
    a site at 28.61° N, 80.6° W at sea level, a vertical 1 m rod, a 2 m/s wind from the east and
@@ -53,18 +53,19 @@ launch site it gives one thing: each log's header holds its pad's height above s
    simulation is refused if it lacks one of these, or was run in another atmosphere or wind
    model; tests on an invented design try each refusal here and in §3. The wind is flown
    steady: the file's turbulence, a tenth of the wind's speed, is left out. The parachutes are
-   not flown; the file opens the first at apogee, so neither moves it.
+   not flown; the file opens one at apogee and the other lower, on the way down, so neither
+   moves it.
 3. **Each motor flies the curve the design's digest names.** A `.ork` motor records OpenRocket's
    digest of its curve. [The table][table] that maps a digest to the bundled file holding that
    curve ([ADR-161][adr-161], [ADR-288][adr-288] §3) covered only the motors of OpenRocket's own
    examples, so both Macie XL motors took the catalog's first file. For the 601I350-16A that is
    the digest's file. For the I284W it is not: the first file's thrust is as far as 0.372989 of
    OpenRocket's peak thrust from the digest's curve, and another bundled file matches its thrust
-   with no difference. The masses are another matter. HPR Sim flies a bundled motor on the
+   with no difference (a RockSim copy of it ties, and the table takes the RASP file). The masses are another matter. HPR Sim flies a bundled motor on the
    bundle's masses for the motor, whichever file gives the thrust: for the I284W, 313.6 g of
    propellant and 555.52 g loaded, where the digest's file and OpenRocket's own record of the
    digest give 310.016 g and 555.072 g. The table's row keeps that gap as its `mass_difference`,
-   0.006457 of the loaded mass. The prediction flies what `hpr sim` flies, so the bundle's masses
+   0.006457, the propellant's gap over the loaded mass. The prediction flies what `hpr sim` flies, so the bundle's masses
    stay, and flight 1 carries a fourth tag for them. For the 601I350-16A the two agree.
    `cargo xtask ork-curves` now also matches the motor each predicted flight flies,
    and the table holds both digests. Its candidates for these two are the bundled catalog's

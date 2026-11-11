@@ -49,7 +49,7 @@ const DEFAULT_DIRS: [&str; 1] = ["refs"];
 /// files and the sources cached for research notes (`refs/research/`), neither of them pinned;
 /// the repositories pinned for the public flights predicted from a design file
 /// (`refs/public-flights/`, ADR-337), whose designs `cargo xtask public-predictions` flies and
-/// which would move every count `docs/format/ork.md` quotes if the survey took them in;
+/// which would move the survey's counts in `docs/format/ork.md` if the survey took them in;
 /// the private flight collection (ADR-151), whose 396 designs would move every count
 /// `docs/format/ork.md` quotes; and the checkouts of the two fixture repositories it replaced
 /// (M2.3c4), which an older clone may still hold. Their files are read from [`IMPORTED`] instead,

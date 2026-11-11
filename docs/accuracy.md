@@ -998,8 +998,9 @@ named for each flight: an OpenRocket run saved inside the design file, with its 
 launch conditions. That is what is flown: its motor, from its vertical 1 m (3.3 ft) rod, in its
 steady 2 m/s (6.6 ft/s) wind and the standard atmosphere, at sea level
 ([the Macie XL predictions](decisions-and-roadmap.md#m2-3d5)). Four things are left out: the
-stored wind's turbulence, the parachutes (the file opens the first at apogee, so neither moves
-the apogee), the day's weather and each pad's few meters above sea level.
+stored wind's turbulence, the parachutes (the file opens one at apogee and the other lower, on
+the way down, so neither moves the apogee), the day's weather and each pad's height above sea
+level.
 
 ThrustCurve.org can hold several data files for one motor, and HPR Sim bundles them. Each motor's
 thrust comes from the bundled file that the design names by its [digest](glossary.md#digest), the
@@ -1019,7 +1020,7 @@ them; all nine simulations in the file carry the same ones. Nothing says the roc
 flown. And HPR Sim's `.ork` reader warns on both curve files. The I284W file's impulse is 1.28%
 from ThrustCurve.org's figure for the motor. The 601I350-16A file's loaded mass is 616.3 g,
 against ThrustCurve.org's record of 782.0 g. The file the design names is flown all the same, and
-each warning is kept with its prediction, with the way it would move the apogee.
+each warning is kept with its prediction.
 
 The design file also keeps the apogees OpenRocket's own runs of the two simulations reached,
 704.6 m (2,312 ft) and 691.6 m (2,269 ft) ([the decision][adr-337]). They are another simulator's
@@ -1028,7 +1029,8 @@ two programs agree, that is one program agreeing with another on the same file. 
 about how close either is to what flew.
 
 The choice to fly each stored simulation's own conditions, and the tags, were written after HPR
-Sim had first flown the file at `hpr sim`'s defaults ([the decision][adr-337]). That order is the
+Sim had first flown the file at `hpr sim`'s defaults, and that run's apogee had been seen
+([the decision][adr-337]). That order is the
 maintainer's statement; no check can show it.
 
 **What is still to come.** All twelve public flights are compared together in a later change

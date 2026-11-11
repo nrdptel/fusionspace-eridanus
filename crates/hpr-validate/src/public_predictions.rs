@@ -2,7 +2,8 @@
 //! [`crate::real_flight`], each flown from its record alone ([M2.3d3][m2-3d3], decisions
 //! [ADR-328][adr-328] §1a and [ADR-334][adr-334]).
 //!
-//! A flight here has a design, a motor, a mass, a site, a rail and its day's weather, each from a
+//! A flight here has a design, a motor, a mass, a site, a rail and its air (the day's weather, or
+//! a stored simulation's standard atmosphere and wind), each from a
 //! named record, and a *rule* for the apogee its log will be read at. It has no measured apogee:
 //! nothing in this module parses a flight log, and neither [`PredictionRow`] nor
 //! [`PredictionsReport`] has a field for a measured height or an error. The log's bytes are
@@ -327,8 +328,8 @@ pub struct PinnedRepository {
 }
 
 /// The repository both Macie XL flights are read from: its design file and the two logs, as
-/// they stand at its pinned commit of 27 June 2026. Nothing of it is committed here but SHA-256
-/// hashes and the numbers flown from it.
+/// they stand at its pinned commit of 27 June 2026. No file of it is committed here: only SHA-256
+/// hashes and numbers read from it.
 pub const ROCKETRY_FILES: PinnedRepository = PinnedRepository {
     name: "rocketry-files",
     url: "https://github.com/rlhatcher/rocketry-files.git",
@@ -400,7 +401,8 @@ const MACIE_XL_1_MOTOR_MASS_UNTRACED: &str = "the motor flies the bundled catalo
 /// What the page says of how both are flown.
 const MACIE_XL_NOTE: &str = "the stored simulation's wind carries a turbulence of a tenth of \
     its speed, which is not flown: the wind here is steady. The parachutes are not flown \
-    either; the file opens the first at apogee, so neither moves it";
+    either; the file opens one at apogee and the other lower, on the way down, so neither \
+    moves it";
 
 /// The flights read from a design file, in the order the page lists them: Macie XL's two.
 ///
