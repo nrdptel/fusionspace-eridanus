@@ -54,28 +54,28 @@ Each simulator's apogee less the logged one, over the logged one, per cent. hpr 
 
 | | mean | median | mean absolute | RMS | within 5% | within 10% | histogram |
 |---|---:|---:|---:|---:|---:|---:|---|
-| hpr | +7.76% | +6.69% | 12.07% | 15.43% | 14 | 32 | 0 0 0 1 4 6 4 10 12 10 2 5 4 2 |
+| hpr | +7.72% | +6.69% | 12.04% | 15.40% | 14 | 32 | 0 0 0 1 4 6 4 10 12 10 2 5 4 2 |
 | OpenRocket | +6.72% | +6.08% | 11.26% | 14.25% | 13 | 31 | 0 0 0 1 6 6 3 10 12 8 5 6 1 2 |
-| hpr in OpenRocket's air | +7.90% | +6.50% | 12.17% | 15.53% | 14 | 31 | 0 0 0 1 4 6 4 10 11 9 4 6 3 2 |
-| hpr against OpenRocket | +0.93% | +0.62% | 1.64% | 2.34% | 59 | 60 | 0 0 0 0 0 0 16 43 1 0 0 0 0 0 |
+| hpr in OpenRocket's air | +7.87% | +6.50% | 12.14% | 15.50% | 14 | 31 | 0 0 0 1 4 6 4 10 11 9 4 6 3 2 |
+| hpr against OpenRocket | +0.90% | +0.53% | 1.63% | 2.34% | 59 | 60 | 0 0 0 0 0 0 17 42 1 0 0 0 0 0 |
 
 ### without the early deployments (41 flights)
 
 | | mean | median | mean absolute | RMS | within 5% | within 10% | histogram |
 |---|---:|---:|---:|---:|---:|---:|---|
-| hpr | +3.34% | +4.72% | 9.43% | 11.11% | 10 | 26 | 0 0 0 1 4 6 3 7 10 7 0 1 2 0 |
+| hpr | +3.33% | +4.72% | 9.42% | 11.11% | 10 | 26 | 0 0 0 1 4 6 3 7 10 7 0 1 2 0 |
 | OpenRocket | +2.41% | +4.26% | 8.81% | 10.22% | 9 | 25 | 0 0 0 1 6 5 3 6 11 6 1 2 0 0 |
-| hpr in OpenRocket's air | +3.49% | +4.86% | 9.51% | 11.18% | 10 | 25 | 0 0 0 1 4 6 3 7 9 8 0 2 1 0 |
-| hpr against OpenRocket | +0.88% | +0.64% | 1.66% | 2.41% | 40 | 41 | 0 0 0 0 0 0 12 28 1 0 0 0 0 0 |
+| hpr in OpenRocket's air | +3.48% | +4.86% | 9.51% | 11.18% | 10 | 25 | 0 0 0 1 4 6 3 7 9 8 0 2 1 0 |
+| hpr against OpenRocket | +0.87% | +0.60% | 1.66% | 2.41% | 40 | 41 | 0 0 0 0 0 0 12 28 1 0 0 0 0 0 |
 
 ### without the flights the catalog proposes below tier A (49 flights)
 
 | | mean | median | mean absolute | RMS | within 5% | within 10% | histogram |
 |---|---:|---:|---:|---:|---:|---:|---|
-| hpr | +7.01% | +6.28% | 11.58% | 14.15% | 11 | 27 | 0 0 0 0 4 6 4 7 10 7 2 4 4 1 |
+| hpr | +6.96% | +6.27% | 11.54% | 14.11% | 11 | 27 | 0 0 0 0 4 6 4 7 10 7 2 4 4 1 |
 | OpenRocket | +6.09% | +5.84% | 10.84% | 13.08% | 10 | 26 | 0 0 0 0 6 6 2 8 10 5 5 5 1 1 |
-| hpr in OpenRocket's air | +7.14% | +6.49% | 11.68% | 14.24% | 11 | 27 | 0 0 0 0 4 6 4 7 10 5 4 5 3 1 |
-| hpr against OpenRocket | +0.83% | +0.55% | 1.64% | 2.40% | 48 | 49 | 0 0 0 0 0 0 15 33 1 0 0 0 0 0 |
+| hpr in OpenRocket's air | +7.09% | +6.48% | 11.64% | 14.20% | 11 | 27 | 0 0 0 0 4 6 4 7 10 5 4 5 3 1 |
+| hpr against OpenRocket | +0.79% | +0.41% | 1.63% | 2.40% | 48 | 49 | 0 0 0 0 0 0 16 32 1 0 0 0 0 0 |
 
 ## The halves
 
@@ -85,19 +85,19 @@ The two halves of the flights compared (M2.7a, ADR-322, ADR-332). A flight is he
 
 | | mean | median | mean absolute | RMS | within 5% | within 10% | histogram |
 |---|---:|---:|---:|---:|---:|---:|---|
-| hpr | +4.24% | +4.21% | 9.43% | 11.57% | 11 | 23 | 0 0 0 1 2 6 2 9 6 7 1 1 2 0 |
+| hpr | +4.22% | +4.21% | 9.42% | 11.56% | 11 | 23 | 0 0 0 1 2 6 2 9 6 7 1 1 2 0 |
 | OpenRocket | +3.64% | +3.41% | 8.95% | 11.02% | 11 | 23 | 0 0 0 1 4 4 3 8 8 4 2 2 1 0 |
-| hpr in OpenRocket's air | +4.38% | +3.80% | 9.54% | 11.72% | 11 | 23 | 0 0 0 1 2 6 2 9 6 6 2 1 2 0 |
-| hpr against OpenRocket | +0.57% | +0.54% | 1.64% | 2.24% | 37 | 37 | 0 0 0 0 0 0 11 26 0 0 0 0 0 0 |
+| hpr in OpenRocket's air | +4.36% | +3.80% | 9.53% | 11.70% | 11 | 23 | 0 0 0 1 2 6 2 9 6 6 2 1 2 0 |
+| hpr against OpenRocket | +0.55% | +0.52% | 1.64% | 2.25% | 37 | 37 | 0 0 0 0 0 0 12 25 0 0 0 0 0 0 |
 
 ### the held-out half (23 flights)
 
 | | mean | median | mean absolute | RMS | within 5% | within 10% | histogram |
 |---|---:|---:|---:|---:|---:|---:|---|
-| hpr | +13.42% | +12.69% | 16.32% | 20.15% | 3 | 9 | 0 0 0 0 2 0 2 1 6 3 1 4 2 2 |
+| hpr | +13.36% | +12.69% | 16.26% | 20.10% | 3 | 9 | 0 0 0 0 2 0 2 1 6 3 1 4 2 2 |
 | OpenRocket | +11.68% | +11.69% | 14.98% | 18.28% | 2 | 8 | 0 0 0 0 2 2 0 2 4 4 3 4 0 2 |
-| hpr in OpenRocket's air | +13.58% | +13.03% | 16.40% | 20.21% | 3 | 8 | 0 0 0 0 2 0 2 1 5 3 2 5 1 2 |
-| hpr against OpenRocket | +1.50% | +0.87% | 1.65% | 2.50% | 22 | 23 | 0 0 0 0 0 0 5 17 1 0 0 0 0 0 |
+| hpr in OpenRocket's air | +13.52% | +13.03% | 16.34% | 20.16% | 3 | 8 | 0 0 0 0 2 0 2 1 5 3 2 5 1 2 |
+| hpr against OpenRocket | +1.45% | +0.77% | 1.60% | 2.48% | 22 | 23 | 0 0 0 0 0 0 5 17 1 0 0 0 0 0 |
 
 ## Sources
 

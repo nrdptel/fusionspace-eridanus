@@ -834,6 +834,7 @@ fn parallel_stage(
         name: pods.name,
         components: pods.children,
         overrides: pods.overrides,
+        override_rule: Default::default(),
         added_mass: None,
         drag_override: pods.drag_override,
         parallel: Some(ParallelStage {

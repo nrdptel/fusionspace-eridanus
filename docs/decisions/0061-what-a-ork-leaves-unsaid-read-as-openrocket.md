@@ -1,7 +1,9 @@
 # ADR-061: What a `.ork` leaves unsaid, read as OpenRocket reads it; overrides measured, two departures kept (2026-09-21)
 
-- **Status:** accepted
+- **Status:** accepted; its rule for the inertia under a stage's override that covers the stage's parts is amended by [ADR-340][adr-340], which a `.ork` stage now follows; a part's overrides keep this record's rule.
 - **Summary:** What a `.ork` leaves unsaid, read as OpenRocket reads it; overrides measured, two departures kept
+
+[adr-340]: 0340-a-stage-s-overrides-leave-its-parts-in-place-as-openrocket-weighs-them.md
 
 **Context.** M2.2a (ADR-060) traced the designs outside a threshold to five causes. Two were
 readings, not physics. hpr read a shoulder written with no wall as solid, where OpenRocket gives it

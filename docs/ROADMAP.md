@@ -198,17 +198,12 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
   - [ ] **M2.3d1 The predictions** (ADR-334: in three, M2.3d3 and M2.3d5 done; met when M2.3d4 is). *Done when:*
     ADR-328 §1a's: its own pull request merges the five new flights' inputs, sources and
     predicted apogees, computing no error.
-    - [ ] **M2.3d4 A stage's override that adds to its parts** (ADR-335; ADR-336: in three, M2.3d6
-      done, M2.3d7 and M2.3d8 below; met when both are). *Done when:* an `.ork` stage
+    - [ ] **M2.3d4 A stage's override that adds to its parts** (ADR-335; ADR-336: in three,
+      M2.3d6 done, M2.3d7 closed by ADR-340 on six of its eight probes, M2.3d8 below; met when
+      M2.3d8 is, the gaps ADR-340 pins aside). *Done when:* an `.ork` stage
       whose mass or center override doesn't cover its parts is flown as OpenRocket 24.12 weighs
       it, its mass, center and inertia held to OpenRocket's on probe designs, and is no longer
       held back.
-      - [ ] **M2.3d7 The inertia beside an override that covers the parts.** *Done when:* M2.3d4's
-        *done when*, whole: what is left of it here is the inertia of a stage with one override
-        that covers its parts beside one that doesn't, held to OpenRocket 24.12's, within the
-        bounds ADR-336 decision 2 gives, on the eight probe designs where it runs from 11.04%
-        under to 400.5% over today
-        ([#1407](https://github.com/nrdptel/fusionspace-eridanus/issues/1407)).
       - [ ] **M2.3d8 The stages an added mass is still refused on.** *Done when:* M2.3d4's
         *done when*, whole: what is left of it here is each `.ork` stage ADR-335 decision 5
         still refuses or holds back, flown as OpenRocket 24.12 weighs it, its mass, center and

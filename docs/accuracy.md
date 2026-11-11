@@ -22,8 +22,8 @@ differs most from the example's.
 consistent with HPR Sim's drag, and one with the motor's impulse. Four of those seven altimeters'
 kinds are assumed, and none is calibrated ([evidence row G21](evidence.md#g21)).
 
-**Against 60 more flights from a private collection, HPR Sim's apogees are +7.76% above the logs on
-average. They miss by 12.07% (mean absolute), also outside the target. OpenRocket's are +6.72%
+**Against 60 more flights from a private collection, HPR Sim's apogees are +7.72% above the logs on
+average. They miss by 12.04% (mean absolute), also outside the target. OpenRocket's are +6.72%
 above** ([private collection](#real-flights-of-the-private-collection), [report][fixture-report]).
 
 No flight here is blind yet: all were seen during development. [Blind
@@ -312,9 +312,9 @@ its reference and still pass.
 | [Mass properties](physics/mass.md) | a cone, a tube, four fins and an off-axis payload, added up by hand | within 1e-11 relative |
 | [Mass properties](physics/mass.md) | fin cross-sections, against exact numerical integration | within 1e-13 relative |
 | [Mass properties](physics/mass.md) | material densities, converted from the units their sources print | the sources' values, such as white ash at 678 kg/m³ |
-| [Mass properties](physics/mass.md#checked-against-openrocket) | [OpenRocket](glossary.md#openrocket) 24.12's structure (every stage, no motor), on 71 compared designs in the current scratch-excluding survey | mass within 1% on 70 and center of mass within 1% of length on 70, the one file outside with a named cause: airfoil fins OpenRocket weighs by a factor, a cause named only when weighing them its way brings the design within both thresholds; pitch inertia within 1% on 58, the 13 outside with no named cause yet but the two copies of OpenRocket's tube fin example (below); roll inertia a median 1.619% apart, which OpenRocket's shortcut for fins accounts for, and on the cluster designs its stacking of their tubes on the axis ([clusters](physics/mass.md#clusters-and-fillets)): with the shortcut in HPR Sim's place the median is 0.001%, and 12 files (8 distinct designs) remain outside 1% with a named cause. |
+| [Mass properties](physics/mass.md#checked-against-openrocket) | [OpenRocket](glossary.md#openrocket) 24.12's structure (every stage, no motor), on 71 compared designs in the current scratch-excluding survey | mass within 1% on 70 and center of mass within 1% of length on 70, the one file outside with a named cause: airfoil fins OpenRocket weighs by a factor, a cause named only when weighing them its way brings the design within both thresholds; pitch inertia within 1% on 63, the 8 outside with no named cause yet but the two copies of OpenRocket's tube fin example (below); roll inertia a median 1.619% apart, which OpenRocket's shortcut for fins accounts for, and on the cluster designs its stacking of their tubes on the axis ([clusters](physics/mass.md#clusters-and-fillets)): with the shortcut in HPR Sim's place the median is 0.000%, and 7 files (4 distinct designs) remain outside 1% with a named cause. |
 | [Mass properties](physics/mass.md) | the same survey, tube fins and airfoil fins | A ring of tube fins departs in both inertias, kept on purpose: OpenRocket's roll inertia for it is more than any mass inside the ring could have, and its pitch inertia leaves out how far the tubes sit from the axis, which accounts for the tube fin example's pitch inertia being 1.98% below OpenRocket's ([tube fins](physics/mass.md#tube-fins)). HPR Sim's airfoil fins are 19.4% lighter than OpenRocket's, a departure kept on purpose ([fins](physics/mass.md#fins-rail-buttons-and-roll-inertia)). |
-| [Mass properties](physics/mass.md) | what a file leaves unsaid (a wall of no thickness, no material) and which override wins, held to OpenRocket's on 32 probe designs, and each fin section and each kind of part alone on 50 more, packed parts among them ([packed parts](physics/mass.md#packed-parts)) | On those that ask what a file leaves unsaid: mass within 0.001%, center of mass within 0.001 mm (0.000039 in), bar an elliptical fin's 0.18%, and an attached tube that writes no thickness (−2.4% on the committed probe; measured in [the `.ork` conventions decision][adr-061]). On the override probes: two rules kept as measured departures, and flags that disagree (4.7 mm (0.19 in)) ([probes](physics/mass.md#what-a-ork-leaves-unsaid-and-overrides)) |
+| [Mass properties](physics/mass.md) | what a file leaves unsaid (a wall of no thickness, no material) and which override wins, held to OpenRocket's on 32 probe designs, and each fin section and each kind of part alone on 50 more, packed parts among them ([packed parts](physics/mass.md#packed-parts)) | On those that ask what a file leaves unsaid: mass within 0.001%, center of mass within 0.001 mm (0.000039 in), bar an elliptical fin's 0.18%, and an attached tube that writes no thickness (−2.4% on the committed probe; measured in [the `.ork` conventions decision][adr-061]). On the override probes: two rules kept as measured departures, and flags that disagree (4.7 mm (0.19 in)) ([probes](physics/mass.md#what-a-ork-leaves-unsaid-and-overrides)); a stage's override on the lower of two stages, the rocket's inertia across the axis 4.95% and 3.33% over, and 1.6% and 1.1% under with a motor aboard (worked by hand) ([decision][adr-340]) |
 | [Mass properties](physics/mass.md) | fin fillets, on 9 of those probes ([fillets](physics/mass.md#fin-fillets), [decision][adr-101]) | agree to 1e-15 in the fillets' mass and center of mass (the test holds 1e-12), the whole probe's pitch inertia up to 0.64% apart |
 | [Mass properties](physics/mass.md) | an automatic radius inside a nose cone, on 14 more probes (13 of which HPR Sim flies) | puts every part inside but one packed mass component ([#186](https://github.com/nrdptel/fusionspace-eridanus/issues/186)) at OpenRocket's mass to 1e-14 and station to 1e-15, as the test holds them; the nose cones' and the transition's own walls keep their earlier gaps, up to 3.93e-5 of mass and 2.5e-6 m ([the format guide](format/ork.md#inside-a-nose-cone-or-a-transition)) |
 | [Mass properties](physics/mass.md) | a tube fin set whose radius OpenRocket works out from the body, on 19 more probes | has OpenRocket's radius and wall within 1e-15 and every part's mass within 1e-14 but the one nose cone among those probes, within 5e-5 ([the format guide](format/ork.md#tube-fins-sized-from-the-body)) |
@@ -1058,7 +1058,7 @@ These are a private collection's [logged apogees](decisions-and-roadmap.md#m2-3c
 ([the decision][adr-184]), [rechecked](decisions-and-roadmap.md#m2-3c5) against the collection's
 catalog ([the recheck][adr-238]). **In short: HPR Sim and [OpenRocket](glossary.md#openrocket) flew
 60 real flights in the weather of their day. Both over-predict: HPR Sim's
-[apogees](glossary.md#apogee) are +7.76% above the logs on average (mean absolute 12.07%),
+[apogees](glossary.md#apogee) are +7.72% above the logs on average (mean absolute 12.04%),
 OpenRocket's +6.72% (11.26%). The two codes agree within 5% on 59 of the 60
 ([report][fixture-report]). Neither meets the 5% target.**
 
@@ -1070,7 +1070,7 @@ shown here. The flights' owners allow only aggregate statistics, so no flight is
 
 **Held out.** A hash of each flight's id holds out a third in expectation, here 23 of the 60
 ([decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md)).
-On them HPR Sim misses by 16.32% (mean absolute) and OpenRocket by 14.98%; on the other 37, 9.43%
+On them HPR Sim misses by 16.26% (mean absolute) and OpenRocket by 14.98%; on the other 37, 9.42%
 and 8.95% ([report][fixture-report]). Fits across flights, the scoreboard's check included, leave
 the 23 out. All 60 were seen before the split, so neither half is blind. A flight added later is
 compared only once its prediction, made with no logged apogee, has its hash merged first.
@@ -1119,10 +1119,10 @@ figure by more than 0.5%, each with its reason recorded ([decision][adr-184]).
 
 | [over 60 flights][fixture-report] | mean | median | mean absolute | flights within 5% | flights within 10% |
 |---|---:|---:|---:|---:|---:|
-| [HPR Sim][fixture-report] | +7.76% | +6.69% | 12.07% | 14 | 32 |
+| [HPR Sim][fixture-report] | +7.72% | +6.69% | 12.04% | 14 | 32 |
 | [OpenRocket 24.12][fixture-report] | +6.72% | +6.08% | 11.26% | 13 | 31 |
-| [HPR Sim in OpenRocket's air][fixture-report] | +7.90% | +6.50% | 12.17% | 14 | 31 |
-| [HPR Sim against OpenRocket][fixture-report] | +0.93% | +0.62% | 1.64% | 59 | 60 |
+| [HPR Sim in OpenRocket's air][fixture-report] | +7.87% | +6.50% | 12.14% | 14 | 31 |
+| [HPR Sim against OpenRocket][fixture-report] | +0.90% | +0.53% | 1.63% | 59 | 60 |
 
 Each error is the simulated apogee less the logged one, over the logged one, in percent. So a
 positive error is a prediction above the log. The mean absolute error averages the errors without
@@ -1135,7 +1135,7 @@ strictly smaller than that, either way ([report][fixture-report]).
 **Early deployments.** On 19 of the 60, a parachute charge fired or the rocket separated before
 the highest reading, while it was still climbing ([report][fixture-report]). The readers' notes
 put each at under 1.5 s before the peak and a few meters of climb. So the apogee barely moves
-([decision][adr-184]). Without them, over 41 flights, HPR Sim is +3.34% (mean absolute 9.43%) and
+([decision][adr-184]). Without them, over 41 flights, HPR Sim is +3.33% (mean absolute 9.42%) and
 OpenRocket +2.41% (8.81%). The two sets differ in which rockets they hold more than in what the
 early charges cost.
 
@@ -1163,7 +1163,7 @@ keeps in tier A ([report][fixture-report]):
 
 | [over 49 flights][fixture-report] | mean | median | mean absolute | flights within 5% | flights within 10% |
 |---|---:|---:|---:|---:|---:|
-| [HPR Sim][fixture-report] | +7.01% | +6.28% | 11.58% | 11 | 27 |
+| [HPR Sim][fixture-report] | +6.96% | +6.27% | 11.54% | 11 | 27 |
 | [OpenRocket 24.12][fixture-report] | +6.09% | +5.84% | 10.84% | 10 | 26 |
 
 **What is not flown, and why.** Of the 83, HPR Sim flies 68, and each cause of the rest has an open
@@ -1357,6 +1357,7 @@ rest.
 [adr-026]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0026-the-path-in-wind-rocketpys-corrected-equations.md
 [adr-061]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0061-what-a-ork-leaves-unsaid-read-as-openrocket.md
 [adr-101]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0101-openrockets-mass-conventions-rolled-up-m2-2-left.md
+[adr-340]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0340-a-stage-s-overrides-leave-its-parts-in-place-as-openrocket-weighs-them.md
 [ndrt-flight-case]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/cases/flight-ndrt-2020-nose-to-tail.toml
 [prometheus-case]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/cases/flight-prometheus-2022-generic-motor.toml
 [nf-fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/normal-force-vs-mach.json

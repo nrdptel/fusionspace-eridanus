@@ -37,34 +37,34 @@
         "other_logs_apart": 0,
         "every": {
           "flights": 12,
-          "prediction_mean_absolute_percent": 3.2187205831233743,
-          "prediction_mean_percent": -0.04713376957600047,
-          "forward_mean_absolute_percent": 9.345594591873684,
-          "forward_mean_percent": 8.868383440239027,
-          "difference_points": -6.126874008750309,
+          "prediction_mean_absolute_percent": 3.190446550954023,
+          "prediction_mean_percent": -0.07740594044455783,
+          "forward_mean_absolute_percent": 9.324258693560383,
+          "forward_mean_percent": 8.840851964141399,
+          "difference_points": -6.1338121426063585,
           "bootstrap_interval": [
-            -10.0692156657003,
-            -2.7093883039174713
+            -10.076842091392782,
+            -2.717620311616363
           ],
           "sign_flip_interval": [
-            -10.622823383535573,
-            -2.0740876176955636
+            -10.636691988238434,
+            -2.0818311577058424
           ]
         },
         "without_early": {
           "flights": 8,
-          "prediction_mean_absolute_percent": 3.0380583384871986,
-          "prediction_mean_percent": -1.1083368526664803,
-          "forward_mean_absolute_percent": 10.059100005416061,
-          "forward_mean_percent": 9.343283277964074,
-          "difference_points": -7.021041666928861,
+          "prediction_mean_absolute_percent": 3.033093576828792,
+          "prediction_mean_percent": -1.1162988223736963,
+          "forward_mean_absolute_percent": 10.05280662723802,
+          "forward_mean_percent": 9.327696533109547,
+          "difference_points": -7.019713050409228,
           "bootstrap_interval": [
-            -12.659838383701107,
-            -2.2851792191922016
+            -12.649268463136034,
+            -2.2977715364475584
           ],
           "sign_flip_interval": [
-            -13.75573890220891,
-            -0.792920991121556
+            -13.754587846840138,
+            -0.8013158692917938
           ]
         }
       },
@@ -83,18 +83,18 @@
         "other_logs_apart": 0,
         "every": {
           "flights": 9,
-          "prediction_mean_absolute_percent": 3.564541705974107,
-          "prediction_mean_percent": 1.5002783096647292,
-          "forward_mean_absolute_percent": 16.859400857231194,
-          "forward_mean_percent": 15.832193749583663,
-          "difference_points": -13.29485915125709,
+          "prediction_mean_absolute_percent": 3.5956800057092826,
+          "prediction_mean_percent": 1.3404323630592405,
+          "forward_mean_absolute_percent": 16.75357213001733,
+          "forward_mean_percent": 15.726365022369798,
+          "difference_points": -13.157892124308045,
           "bootstrap_interval": [
-            -19.004788085442172,
-            -7.972501287311719
+            -18.762176836216472,
+            -7.934840790891119
           ],
           "sign_flip_interval": [
-            -20.41057516302789,
-            -6.45050979614035
+            -20.284557841896113,
+            -6.491671327017768
           ]
         },
         "without_early": {
@@ -119,21 +119,21 @@
       "parameters": [
         {
           "name": "drag scale",
-          "mean": 1.0183714370187087,
-          "sd": 0.04838386796047001
+          "mean": 1.01790762946386,
+          "sd": 0.04864401503527595
         },
         {
           "name": "impulse scale",
-          "mean": 0.9573819936340621,
-          "sd": 0.03320131667130466
+          "mean": 0.9578659482938477,
+          "sd": 0.03340441887254718
         },
         {
           "name": "structure mass scale",
-          "mean": 1.0035204189619868,
-          "sd": 0.002192738077255608
+          "mean": 1.0034801495627657,
+          "sd": 0.002206857589515874
         }
       ],
-      "rms_mean_m": 2.721751249514309
+      "rms_mean_m": 2.72274828458101
     }
   }
 }

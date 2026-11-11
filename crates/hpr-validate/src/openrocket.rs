@@ -577,52 +577,51 @@ mod tests {
         "two stages' overrides, not their parts",
     ];
 
-    /// Stages with an override that covers their parts: a center of gravity override alone, one
-    /// beside a mass override that doesn't cover them, and a mass override beside a center of
-    /// gravity override that doesn't. Each with how far hpr's roll and pitch inertias are from
-    /// OpenRocket's (relative): the departure ADR-061 wrote for an override that covers the parts.
-    const STAGE_WHOLE: [(&str, [f64; 2]); 7] = [
-        ("a center of gravity override on the stage", [0.0, -0.1104]),
-        (
-            "a mass override on the stage, not its parts, and a center that covers them",
-            [0.0, -0.1104],
-        ),
-        (
-            "both overrides on the stage, only the center flag written, true",
-            [0.0, -0.1104],
-        ),
-        (
-            "both overrides on the stage, only the mass flag written, true",
-            [4.005, 3.4526],
-        ),
+    /// Stages with an override that covers their parts, held to OpenRocket 24.12's mass, center
+    /// and both inertias: a center of gravity override alone, a mass override alone, both, a mass
+    /// override alone over a part's own, a center beside a mass override that doesn't cover the
+    /// parts, a mass override beside a center of gravity override that doesn't, and the two
+    /// pairings with only one flag written, `true`.
+    const STAGE_WHOLE: [&str; 8] = [
+        "a center of gravity override on the stage",
+        "a mass override on the stage",
+        "both overrides on the stage",
+        "a stage override over a part's own",
+        "a mass override on the stage, not its parts, and a center that covers them",
+        "both overrides on the stage, only the center flag written, true",
+        "both overrides on the stage, only the mass flag written, true",
+        "a mass override that covers the stage's parts and a center that doesn't",
+    ];
+
+    /// The same overrides on the lower of two stages, with how far hpr's roll and pitch inertias
+    /// are from OpenRocket's (relative): the rocket's inertias, which OpenRocket sums in a way no
+    /// stage that keeps its parts in place gives (ADR-340, and
+    /// `openrockets_lower_stage_sum_is_below_its_parts_in_place`).
+    const STAGE_WHOLE_BELOW: [(&str, [f64; 2]); 2] = [
         (
             "a lower stage's mass override, not its parts, and a center that covers them",
-            [0.0, 0.015],
-        ),
-        (
-            "a mass override that covers the stage's parts and a center that doesn't",
-            [4.005, 3.4526],
+            [0.0, 0.0495],
         ),
         (
             "a lower stage's mass override that covers its parts and a center that doesn't",
-            [2.5576, 0.1849],
+            [0.0, 0.0333],
         ),
     ];
 
-    /// Where one of a stage's overrides covers its parts, the stage's mass and center are still
-    /// OpenRocket 24.12's, and nothing is warned of:
+    /// Where a stage's override covers its parts, HPR Sim leaves the parts where the design puts
+    /// them ([`hpr_design::StageOverrideRule::PartsInPlace`], ADR-340), as OpenRocket 24.12
+    /// does: the stage's inertia is its parts' about the stage's center, and the mass an override
+    /// adds sits at that center. Its mass, center and inertias are OpenRocket's, and nothing is
+    /// warned of:
     ///
     /// - A mass override that doesn't cover the parts, beside a center of gravity override that
-    ///   does: the mass is added to the parts, and the center of the two together is the
-    ///   override's.
+    ///   does: the mass is added to the parts, at the override's center.
     /// - A mass override that covers the parts, beside a center of gravity override that doesn't:
     ///   OpenRocket weighs it exactly as it does both covering them (the first assertion below),
     ///   and so does HPR Sim.
     ///
-    /// The inertia is hpr's own rule wherever an override covers the parts (ADR-061, unchanged
-    /// by ADR-335): hpr moves the assembly whole to a center that covers it, and scales its
-    /// inertia with a mass that covers it; OpenRocket leaves the parts where they were. The
-    /// differences are pinned, as [`INERTIA`]'s are.
+    /// On the lower of two stages the mass and the center are OpenRocket's, and the inertias are
+    /// pinned ([`STAGE_WHOLE_BELOW`]).
     #[test]
     fn a_stage_override_covering_its_parts_beside_one_that_does_not() {
         let record = record();
@@ -655,21 +654,35 @@ mod tests {
         ] {
             assert_eq!(structure(one_flag), structure(both_flags), "{one_flag}");
         }
-        // The added mass brings no departure of its own: beside a center that covers the parts,
-        // each tool's inertias are what that tool gives under the center alone.
-        let alone = both(probe(&record, "a center of gravity override on the stage"));
-        let beside = both(probe(
-            &record,
-            "a mass override on the stage, not its parts, and a center that covers them",
-        ));
-        for k in [2, 3] {
-            assert!(relative(beside.0[k], alone.0[k]).abs() < 1e-12, "hpr {k}");
+        // The probes can tell the two rules apart: on each, the stage's parts moved whole, or
+        // their inertia scaled with a mass that covers them, is more than 10% from OpenRocket's
+        // inertia across the axis.
+        for question in STAGE_WHOLE {
+            let (layout, warnings) = hpr(probe(&record, question));
+            assert!(warnings.is_empty(), "{question}: {warnings:?}");
+            let (ours, theirs, _) = both(probe(&record, question));
             assert!(
-                relative(beside.1[k], alone.1[k]).abs() < 1e-12,
-                "OpenRocket {k}"
+                relative(ours[0], theirs[0]).abs() < 5e-7,
+                "{question}: mass {ours:?} {theirs:?}"
+            );
+            assert!(
+                (ours[1] - theirs[1]).abs() < 2e-7,
+                "{question}: center {ours:?} {theirs:?}"
+            );
+            for k in [2, 3] {
+                assert!(
+                    relative(ours[k], theirs[k]).abs() < 3e-6,
+                    "{question}: inertia {k} {ours:?} {theirs:?}"
+                );
+            }
+            let rescaled = rescaled_pitch(&record, question, &layout);
+            assert!(
+                relative(rescaled, theirs[3]).abs() > 0.10,
+                "{question}: {rescaled} against {}",
+                theirs[3]
             );
         }
-        for (question, pinned) in STAGE_WHOLE {
+        for (question, pinned) in STAGE_WHOLE_BELOW {
             let (ours, theirs, warnings) = both(probe(&record, question));
             assert!(warnings.is_empty(), "{question}: {warnings:?}");
             assert!(
@@ -682,12 +695,110 @@ mod tests {
             );
             let found = [2, 3].map(|k| (relative(ours[k], theirs[k]) * 1e4).round() / 1e4);
             assert_eq!(found, pinned, "{question}");
-            // A pin of nothing is held as tightly as the probes with no departure are.
-            for (k, pin) in [2, 3].into_iter().zip(pinned) {
+            assert!(
+                relative(ours[2], theirs[2]).abs() < 3e-6,
+                "{question}: roll {ours:?} {theirs:?}"
+            );
+        }
+    }
+
+    /// The pitch inertia `layout` would have under the rule `hpr-design` gives a stage by default
+    /// ([`hpr_design::StageOverrideRule::Rescaled`]): the same design read from `question`'s
+    /// document, its one stage's rule switched.
+    fn rescaled_pitch(record: &Value, question: &str, layout: &Layout) -> f64 {
+        let document = probe(record, question)["document"]
+            .as_str()
+            .expect("the probe's document");
+        let read = ork::read(document.as_bytes()).expect("a probe reads");
+        let mut design = ork::rocket(&read.value.document).value;
+        let mut switched = 0;
+        for stage in &mut design.stages {
+            if !stage.override_rule.is_rescaled() {
+                stage.override_rule = hpr_design::StageOverrideRule::Rescaled;
+                switched += 1;
+            }
+        }
+        assert_eq!(switched, 1, "{question}");
+        let rescaled = design.layout().expect("a probe lays out").structure;
+        assert_eq!(rescaled.mass_kg, layout.structure.mass_kg, "{question}");
+        let i = rescaled.inertia_kg_m2;
+        (i.x_axis.x + i.y_axis.y) / 2.0
+    }
+
+    /// Why the lower-stage probes keep a difference. OpenRocket 24.12's inertia across the axis
+    /// on each is, to 1e-12, the sum about the rocket's center `X` of every part at its own place
+    /// and the stage's override mass `m_o` (2 kg) as a point at the stage's stated center `c`:
+    /// `I = Σ (I_i + m_i (x_i − X)²) + m_o (c − X)²`. No stage that keeps its parts where the
+    /// design puts them gives that:
+    ///
+    /// - Read as the lower stage's own inertia about its stated center `c`, the sum is less than
+    ///   the stage's tube alone has about `c`. A stage that keeps the tube in place has at least
+    ///   that, whatever the rest of its mass does; HPR Sim's rule gives exactly that.
+    /// - Under a center that covers the parts beside an added mass, it is less even than the
+    ///   tube has about the tube's own center: no body that holds the tube has it.
+    /// - Under a mass that covers the parts, `m_o` is the whole stage's mass, so the lower tube is
+    ///   counted twice: the sum carries more mass than the rocket weighs.
+    ///
+    /// On one stage `X = c` and the sum is the parts' inertia about `c`, which is HPR Sim's rule.
+    #[test]
+    fn openrockets_lower_stage_sum_is_below_its_parts_in_place() {
+        let record = record();
+        let structure = |question: &str| {
+            let or = &probe(&record, question)["structure"];
+            ["mass_kg", "cm_x_m", "iyy"].map(|key| or[key].as_f64().expect("a number"))
+        };
+        // The upper stage alone, from the one-stage probe whose 2 kg sits at its parts' center,
+        // and the lower stage's tube, from the two stages with no override.
+        let [added_kg, upper_m, upper_i] = structure("a mass override on the stage, not its parts");
+        let upper_kg = added_kg - 2.0;
+        let [both_kg, both_m, both_i] = structure("two stages with no override");
+        let tube_kg = both_kg - upper_kg;
+        let tube_m = (both_kg * both_m - upper_kg * upper_m) / tube_kg;
+        let tube_i = both_i
+            - upper_i
+            - upper_kg * (upper_m - both_m).powi(2)
+            - tube_kg * (tube_m - both_m).powi(2);
+        assert!((tube_m - 1.05).abs() < 1e-9, "{tube_m}");
+        // The lower stage starts 0.8 m aft of the tip, and its center override is 0.4 m.
+        let center_m = 1.2;
+        for (question, _) in STAGE_WHOLE_BELOW {
+            let [kg, at_m, inertia] = structure(question);
+            let sum = upper_i
+                + upper_kg * (upper_m - at_m).powi(2)
+                + tube_i
+                + tube_kg * (tube_m - at_m).powi(2)
+                + 2.0 * (center_m - at_m).powi(2);
+            assert!(
+                relative(sum, inertia).abs() < 1e-12,
+                "{question}: {sum} {inertia}"
+            );
+            // The rocket's center is the stated one's: the stage weighs `kg − upper_kg` at 1.2 m.
+            let stage_kg = kg - upper_kg;
+            assert!(
+                ((kg * at_m - upper_kg * upper_m) / stage_kg - center_m).abs() < 1e-9,
+                "{question}"
+            );
+            // The lower stage's own inertia about its stated center, read from OpenRocket's.
+            let rigid = inertia
+                - upper_i
+                - upper_kg * (upper_m - at_m).powi(2)
+                - stage_kg * (center_m - at_m).powi(2);
+            // What its tube alone has about that center, in place: the least a stage that keeps
+            // it there can have, and HPR Sim's figure (0.0137 kg·m², against 0.0038 and 0.0070).
+            let in_place = tube_i + tube_kg * (tube_m - center_m).powi(2);
+            assert!(
+                rigid < 0.6 * in_place,
+                "{question}: {rigid} against {in_place}"
+            );
+            if (stage_kg - 2.0).abs() < 1e-12 {
+                // The mass covers the parts: the sum holds the tube and 2 kg in a 2 kg stage.
+                assert!(tube_kg + 2.0 > stage_kg + 0.3, "{question}: {tube_kg}");
+            } else {
                 assert!(
-                    pin != 0.0 || relative(ours[k], theirs[k]).abs() < 3e-6,
-                    "{question}: inertia {k} {ours:?} {theirs:?}"
+                    (stage_kg - tube_kg - 2.0).abs() < 1e-12,
+                    "{question}: {stage_kg}"
                 );
+                assert!(rigid < 0.6 * tube_i, "{question}: {rigid} against {tube_i}");
             }
         }
     }
@@ -830,9 +941,9 @@ mod tests {
     /// center with the pods counted. One pod pulls the parts' center off the axis, and under every
     /// override OpenRocket's center stays that far off it: an added mass at a station sits as far
     /// off the axis as the parts' center, not on it, as a center override moves a stage along
-    /// the axis only. HPR Sim's structure of each probe has OpenRocket's mass, its center along the axis
-    /// and its distance off it, and, where no override covers the parts, the inertia the override
-    /// adds. Under the center that covers them the inertia is hpr's own rule, pinned (ADR-061).
+    /// the axis only. HPR Sim's structure of each probe has OpenRocket's mass, its center along
+    /// the axis and its distance off it, and the inertia the override adds, under a center that
+    /// covers the parts too (ADR-340).
     #[test]
     fn a_stages_added_mass_sits_among_its_pods_and_level_with_their_center() {
         let record = added_mass_record();
@@ -908,17 +1019,12 @@ mod tests {
                     off_axis_m(question)
                 );
                 // What the override adds to the inertia, against the same airframe with none.
-                // Under a center that covers the parts the inertia is hpr's own rule (ADR-061).
+                // Under a center that covers the parts, OpenRocket adds the parts' inertia about
+                // the overridden center, 1.2% of its inertia across the axis there, which the
+                // bound below can tell from none (ADR-340).
                 if question.ends_with("a center that covers them") {
-                    // hpr moves the stage whole and adds nothing; OpenRocket adds the parts'
-                    // inertia about the overridden center: 1.2% of OpenRocket's inertia
-                    // across the axis there.
-                    assert!((ours[2] - bare_ours[2]).abs() < 1e-12, "{question}");
-                    assert!((ours[3] - bare_ours[3]).abs() < 1e-12, "{question}");
-                    assert!((theirs_[2] - bare_theirs[2]).abs() < 1e-12, "{question}");
                     let adds = theirs_[3] - bare_theirs[3];
                     assert!((adds - 3.490e-4).abs() < 1e-7, "{question}: {adds:e}");
-                    continue;
                 }
                 for k in [2, 3] {
                     let (ours_adds, theirs_adds) =
@@ -946,7 +1052,7 @@ mod tests {
     /// with no override, and under each override OpenRocket's launch and burnout are that same
     /// motor added to the overridden structure. HPR Sim's layout holds no motor, so its added mass
     /// sits among the structure's parts ([`hpr_design::AddedMass`], ADR-335), and its structure's
-    /// mass and center on each probe are OpenRocket's.
+    /// mass, center and the inertia the override adds on each probe are OpenRocket's.
     #[test]
     fn a_motor_aboard_does_not_move_a_stages_added_mass() {
         let record = added_mass_record();
@@ -992,18 +1098,13 @@ mod tests {
                 (ours[1] - theirs[1]).abs() < 2e-7,
                 "{question}: center {ours:?} {theirs:?}"
             );
-            // And so is the inertia the override adds to this airframe's, where no override
-            // covers the parts (under a center that does, the inertia is hpr's own rule, ADR-061).
+            // And so is the inertia the override adds to this airframe's. Under a center that
+            // covers the parts, OpenRocket adds the parts' inertia about the overridden center,
+            // 2.4% of its inertia across the axis there, which the bound below can tell from none
+            // (ADR-340).
             if question == ADDED_WITH_A_MOTOR[2] {
-                // hpr moves the stage whole and adds nothing; OpenRocket adds the parts' inertia
-                // about the overridden center: 2.4% of OpenRocket's inertia across the axis
-                // there.
-                assert!((ours[2] - bare_ours[2]).abs() < 1e-12, "{question}");
-                assert!((ours[3] - bare_ours[3]).abs() < 1e-12, "{question}");
-                assert!((theirs[2] - bare_theirs[2]).abs() < 1e-12, "{question}");
                 let adds = theirs[3] - bare_theirs[3];
                 assert!((adds - 7.006e-4).abs() < 1e-7, "{question}: {adds:e}");
-                continue;
             }
             for k in [2, 3] {
                 let (ours_adds, theirs_adds) = (ours[k] - bare_ours[k], theirs[k] - bare_theirs[k]);
@@ -1017,6 +1118,62 @@ mod tests {
         assert!(gained > 5.9e-4, "{gained:e}");
         let [added_kg, _] = weighed(ADDED_WITH_A_MOTOR[0], "structure");
         assert!((added_kg - bare_kg - 2.0).abs() < 1e-12, "{added_kg}");
+    }
+
+    /// With a motor aboard, OpenRocket 24.12's inertia across the axis at launch and at burnout is
+    /// the same sum as on the lower of two stages
+    /// (`openrockets_lower_stage_sum_is_below_its_parts_in_place`):
+    /// each part at its own place, the stage's 2 kg as a point at the stage's center, and the
+    /// motor, about the rocket's center, to 1e-12 on each of the three probes. Under a center that
+    /// covers the parts beside an added mass, HPR Sim's rule (ADR-340), the parts' inertia about
+    /// the stage's stated center with the rest of its mass there, gives 1.6% less at launch and
+    /// 1.1% less at burnout. Both readings take the motor's term from OpenRocket's own records.
+    #[test]
+    fn openrockets_inertia_with_a_motor_aboard_is_the_same_sum() {
+        let record = added_mass_record();
+        let body = |question: &str, when: &str| {
+            let body = &probe(&record, question)[when];
+            ["mass_kg", "cm_x_m", "iyy"].map(|key| body[key].as_f64().expect("a number"))
+        };
+        let [parts_kg, parts_m, parts_i] = body("no override", "structure");
+        // The 2 kg sits at the parts' center, at the center override's 0.4 m station from the
+        // tip where the stage starts, and at the same station beside a center that covers them.
+        let at_m = [parts_m, 0.4, 0.4];
+        for when in ["launch", "burnout"] {
+            let [with_kg, with_m, with_i] = body("no override", when);
+            let motor_kg = with_kg - parts_kg;
+            let motor_m = (with_kg * with_m - parts_kg * parts_m) / motor_kg;
+            let motor_i = with_i
+                - parts_i
+                - parts_kg * (parts_m - with_m).powi(2)
+                - motor_kg * (motor_m - with_m).powi(2);
+            for (question, point_m) in ADDED_WITH_A_MOTOR.into_iter().zip(at_m) {
+                let [_, x_m, inertia] = body(question, when);
+                let sum = parts_i
+                    + parts_kg * (parts_m - x_m).powi(2)
+                    + 2.0 * (point_m - x_m).powi(2)
+                    + motor_i
+                    + motor_kg * (motor_m - x_m).powi(2);
+                assert!(
+                    relative(sum, inertia).abs() < 1e-12,
+                    "{question} at {when}: {sum} {inertia}"
+                );
+            }
+            // A rigid stage at its stated center, the motor added to it.
+            let question = ADDED_WITH_A_MOTOR[2];
+            let [stage_kg, stage_m, stage_i] = body(question, "structure");
+            let [_, x_m, inertia] = body(question, when);
+            let rigid = stage_i
+                + stage_kg * (stage_m - x_m).powi(2)
+                + motor_i
+                + motor_kg * (motor_m - x_m).powi(2);
+            let apart = (relative(rigid, inertia) * 1e3).round() / 1e3;
+            assert_eq!(
+                apart,
+                if when == "launch" { -0.016 } else { -0.011 },
+                "{when}"
+            );
+        }
     }
 
     /// The single subcomponent-override flag written before schema 1.9, and how far hpr's center
@@ -1113,7 +1270,7 @@ mod tests {
     }
 
     /// The probes whose inertias are compared, with hpr's roll and pitch relative to OpenRocket's.
-    const INERTIA: [(&str, [f64; 2]); 11] = [
+    const INERTIA: [(&str, [f64; 2]); 8] = [
         ("a mass override on a nose with a shoulder", [0.0, 0.0]),
         ("a mass override on a tube, not the part inside", [0.0, 0.0]),
         ("a mass override on the part inside only", [0.0, 0.0]),
@@ -1137,16 +1294,13 @@ mod tests {
             "both overrides on a tube, the mass covering the part inside and the centre not",
             [-0.0693, -0.0818],
         ),
-        ("a mass override on the stage", [4.0050, 4.0050]),
-        ("both overrides on the stage", [4.0050, 3.4526]),
-        ("a stage override over a part's own", [1.4756, 1.4756]),
     ];
 
-    /// Inertia under an override is hpr's own rule, a departure written in ADR-061. hpr scales a
-    /// mass override's inertia with its mass, over everything the override covers, so the extra
-    /// mass sits where the parts' does; OpenRocket scales only the overriding part's own inertia,
-    /// keeps the inertias of the parts inside (a stage has none of its own, so nothing is scaled),
-    /// and leaves the covered parts' masses out. For a center of gravity override that covers the
+    /// Inertia under a part's override is hpr's own rule, a departure written in ADR-061 (a
+    /// stage's follows OpenRocket since ADR-340: [`STAGE_WHOLE`]). hpr scales a mass override's
+    /// inertia with its mass, over everything the override covers, so the extra mass sits where
+    /// the parts' does; OpenRocket scales only the overriding part's own inertia, keeps the
+    /// inertias of the parts inside, and leaves the covered parts' masses out. For a center of gravity override that covers the
     /// parts inside, hpr moves the assembly whole; OpenRocket moves the part alone and adds the
     /// parts inside where they were. On a lone part both scale, and agree. The relative
     /// differences, hpr's to OpenRocket's, are pinned here as roll and pitch.
@@ -2480,7 +2634,8 @@ mod tests {
         read.extend(OLD_FLAG.iter().map(|(question, _)| *question));
         read.extend(STAGE_ADDS);
         read.push(STAGE_ADDS_TO_NOTHING);
-        read.extend(STAGE_WHOLE.iter().map(|(question, _)| *question));
+        read.extend(STAGE_WHOLE);
+        read.extend(STAGE_WHOLE_BELOW.iter().map(|(question, _)| *question));
         read.extend(BORES);
         read.push(BORE_REFUSED);
         read.extend(TUBE_FINS);

@@ -373,20 +373,20 @@ Of the 26, 21 are predicted. HPR Sim's forward simulation refuses the design of 
 One more has too little up to its cut to fit. The flights are split into two halves by a hash of each flight's id
 ([ADR-322, held-out flights](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0322-the-2026-11-05-progress-review-accuracy-before-reader-facing-work.md)).
 A third is held out in expectation and the rest are the calibration half; neither is blind, as the fixture report's forward errors on its 60 flights were published before the split.
-On the 12 in the calibration half the prediction's mean absolute apogee error is 3.22%, against the forward simulation's
-9.35% on the same flights. On the 9 held out it is 3.56%, against 16.86%. The difference is each flight's absolute
+On the 12 in the calibration half the prediction's mean absolute apogee error is 3.19%, against the forward simulation's
+9.32% on the same flights. On the 9 held out it is 3.60%, against 16.75%. The difference is each flight's absolute
 error from the prediction less the forward simulation's, averaged, in percentage points. Each half's paired bootstrap
-95% interval on it lies below zero: −10.07 to −2.70 and −19.01 to −7.97 points. The numbers are in
+95% interval on it lies below zero: −10.08 to −2.71 and −18.77 to −7.93 points. The numbers are in
 [the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md), and the
 choices behind them in [ADR-329](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0329-m7-3d6-the-collections-errors-by-halves.md).
 Both methods fly nothing deployed, and 10 of the 21 flights deployed something before apogee. Without them (8 and 3
 flights) the difference is −7.0 and −7.3 points. Three flights are too few to resample, and their sign-flip interval
-is unbounded. The fitted impulse scale averages 0.957 in the calibration half: the thrust curve's impulse times 0.957. That
+is unbounded. The fitted impulse scale averages 0.958 in the calibration half: the thrust curve's impulse times 0.958. That
 is a fit's factor, not a measured impulse. It may take up some of what the model gets wrong in the boost, as the other
 scales may.
 
 The [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md) lists the
-calibration half's 3.22% as `accuracy.from-boost`, with which flights it counts
+calibration half's 3.19% as `accuracy.from-boost`, with which flights it counts
 ([ADR-330](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0330-m7-3d7-the-from-boost-scoreboard-row.md), the row).
 
 **The cut.** The library follows the climb speed: a straight line fitted to each half second of

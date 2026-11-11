@@ -116,7 +116,7 @@ checked"
 A forecast's winds are one such figure: nothing has compared them with measured ones.
 
 The numbers cover the apogee only, on 60 logged flights of fliers' own designs. Each logged apogee
-is the height climbed in the day's air. The simulated apogee averaged 7.8% above the logged one. It
+is the height climbed in the day's air. The simulated apogee averaged 7.7% above the logged one. It
 was within 10% on 32 and read low on 15, by at most 20%
 ([Accuracy: real flights of the private collection](accuracy.md#real-flights-of-the-private-collection)).
 Speed, drift and the margin have no measured spread yet.
@@ -398,7 +398,7 @@ top Mach number       0.525
 landing               17.4 m (57 ft) from the pad at 29.71 s, at 65.9 m/s (216 ft/s): with no recovery device opened soon after apogee, not a prediction
 
 How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of
-fliers' own designs, the simulated apogee averaged 7.8% above the logged one. Each logged apogee is
+fliers' own designs, the simulated apogee averaged 7.7% above the logged one. Each logged apogee is
 the height climbed in the day's air. The simulated apogee was within 10% on 32 and read low on 15,
 by at most 20%. Plan a waiver or a field's ceiling with room above this apogee; the altimeter's
 reading is the one to log, and the RSO decides.
@@ -542,7 +542,7 @@ top Mach number       0.194
 landing               0.4 m (1 ft) from the pad at 53.94 s, at 4.7 m/s (15 ft/s)
 
 How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of
-fliers' own designs, the simulated apogee averaged 7.8% above the logged one. Each logged apogee is
+fliers' own designs, the simulated apogee averaged 7.7% above the logged one. Each logged apogee is
 the height climbed in the day's air. The simulated apogee was within 10% on 32 and read low on 15,
 by at most 20%. Plan a waiver or a field's ceiling with room above this apogee; the altimeter's
 reading is the one to log, and the RSO decides.
@@ -766,7 +766,7 @@ top Mach number       0.556
 landing               310.4 m (1018 ft) from the pad at 28.71 s, at 70.3 m/s (230 ft/s): with no recovery device opened soon after apogee, not a prediction
 
 How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of
-fliers' own designs, the simulated apogee averaged 7.8% above the logged one. Each logged apogee is
+fliers' own designs, the simulated apogee averaged 7.7% above the logged one. Each logged apogee is
 the height climbed in the day's air. The simulated apogee was within 10% on 32 and read low on 15,
 by at most 20%. Plan a waiver or a field's ceiling with room above this apogee; the altimeter's
 reading is the one to log, and the RSO decides.
@@ -1092,7 +1092,7 @@ help: issues: https://github.com/nrdptel/fusionspace-eridanus/issues/<number>
 
 How far to trust it. Simulated from the design file, not measured; the spread above comes from the
 inputs' scatter alone, not from the model's error. Against 60 logged flights of fliers' own designs,
-the simulated apogee averaged 7.8% above the logged one. Each logged apogee is the height climbed in
+the simulated apogee averaged 7.7% above the logged one. Each logged apogee is the height climbed in
 the day's air. The simulated apogee was within 10% on 32 and read low on 15, by at most 20%. Plan a
 waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to log,
 and the RSO decides.

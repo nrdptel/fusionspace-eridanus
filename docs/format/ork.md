@@ -358,9 +358,9 @@ copy, with a warning too.
 #### A stage's mass and center of gravity overrides
 
 **A stage's override** is read as OpenRocket 24.12 weighs it, and that depends on the override's
-flag. A mass override that doesn't cover the stage's parts is added to them and flies. Where
-one of the stage's overrides covers the parts, the inertia across the axis is not OpenRocket's
-(**The inertia where one override covers the parts**, below). What is still refused is in the
+flag. A mass override that doesn't cover the stage's parts is added to them and flies. An
+override that covers the parts leaves them where the design puts them, as OpenRocket does
+(**The inertia where an override covers the parts**, below). What is still refused is in the
 last bullet below. A flag of `true` says the override covers the stage's parts: in OpenRocket, the override's
 box for all subcomponents is ticked ("override for all subcomponents", in its user guide's words).
 The override is then the whole stage's. With the box unticked the flag is `false`, and the guide
@@ -380,9 +380,9 @@ with a 2 kg mass override, a center of gravity override at 0.4 m (1.3 ft), or bo
 | mass, flag `false` or not written | 2.40 kg at 0.470 m (1.54 ft): the 2 kg sits at the parts' center | an `added_mass` of 2 kg |
 | center alone, flag `false` or not written | 0.40 kg at 0.470 m (1.54 ft): no effect | nothing |
 | both, flags `false` or not written | 2.40 kg at 0.412 m (1.35 ft): the 2 kg sits at 0.4 m (1.3 ft) | an `added_mass` of 2 kg at 0.4 m (1.3 ft) |
-| mass flag `false` or not written, center flag `true` | 2.40 kg at 0.4 m (1.3 ft): the parts and the 2 kg together are moved | an `added_mass` of 2 kg, under the stage's center override |
-| both, mass flag `true`, center flag `false` or not written | 2.00 kg at 0.4 m (1.3 ft), exactly as with both `true` | the stage's mass and center overrides |
-| center alone, flag `true` | 0.40 kg at 0.4 m (1.3 ft): the parts are moved | the stage's center override |
+| mass flag `false` or not written, center flag `true` | 2.40 kg at 0.4 m (1.3 ft): the parts stay, the 2 kg sits at 0.4 m (1.3 ft) | an `added_mass` of 2 kg, under the stage's center override, its parts in place |
+| both, mass flag `true`, center flag `false` or not written | 2.00 kg at 0.4 m (1.3 ft), exactly as with both `true` | the stage's mass and center overrides, its parts in place |
+| center alone, flag `true` | 0.40 kg at 0.4 m (1.3 ft): the parts stay | the stage's center override, its parts in place |
 
 **Policy:** the reader follows the table, and raises no warning for any row on a stage that
 isn't a [parallel stage](../glossary.md#parallel-stage), so it no longer holds such a design back.
@@ -399,16 +399,22 @@ example, and [the decision record][adr-335] gives the measurements.
 - **A motor doesn't move it.** OpenRocket's rocket at launch and at burnout is the motor added to
   the structure above, with the added mass where the structure put it (four more probes, on an
   airframe with an AeroTech H128W aboard).
-- **The inertia where one override covers the parts** is HPR Sim's own rule, as for any override
-  that covers them ([Mass properties](../physics/mass.md#what-a-ork-leaves-unsaid-and-overrides)), and across the axis it is not
-  OpenRocket's. The mass and the center still match. With a center that covers the parts beside
-  an added mass, the inertia across the axis is 11.04% under OpenRocket's on the one-stage probe.
-  On a rocket of two stages with the override on the lower, the rocket's is 1.5% over. About
-  the axis the two agree. With a mass that covers the parts beside a center that doesn't, HPR Sim
-  scales the parts' inertia with the mass and OpenRocket leaves it: on the one-stage probe HPR
-  Sim's is 400.5% over about the axis and 345.3% over across it. On a rocket of two stages with
-  the override on the lower, the rocket's inertias are 255.8% and 18.5% over. Such a stage was held back before, and now flies.
-  [Issue #1407](https://github.com/nrdptel/fusionspace-eridanus/issues/1407) is open on both cases.
+- **The inertia where an override covers the parts** is OpenRocket's rule: the parts stay where
+  the design puts them, and the stage's inertia is theirs about the stage's center. The mass an
+  override adds, and an added mass with no station, sit at that center and add no inertia. The
+  reader gives such a stage `"override_rule": "parts_in_place"`
+  ([Overrides](../physics/design.md#overrides)). On the one-stage probes HPR Sim's inertias match
+  OpenRocket's within 3 parts in a million, and on the motor's airframe the inertia the override
+  adds to the structure is within 1e-9 kg·m² of OpenRocket's. On the two probes of a rocket of two
+  stages with the override on the lower, OpenRocket's figure is below what the stage's tube alone
+  has about the stage's center, so no stage that keeps its parts in place gives it: the rocket's
+  inertia across the axis is now 4.95% over OpenRocket's (a center beside an added mass) and 3.33%
+  over (a mass that covers the parts, beside a center that doesn't), where it was 1.5% and 18.5%
+  (worse on the first, better on the second); about the axis the two agree. With a motor aboard OpenRocket sums the same way: on the motor's
+  airframe, under an added mass beside a center that covers the parts, HPR Sim's rule gives an
+  inertia across the axis 1.6% under OpenRocket's at launch and 1.1% under at burnout, worked by
+  hand from OpenRocket's records, its motor's term in both. [The decision record][adr-340] gives
+  the measurements.
 - **A center alone that doesn't cover the parts** changes nothing in OpenRocket. It is left out
   of the design and kept as the file wrote it, so an export writes it back.
 - **A flag that says neither `true` nor `false`** is warned of where it is read, which holds the
@@ -418,7 +424,9 @@ example, and [the decision record][adr-335] gives the measurements.
   from a file that wrote no flag, or the older single flag, comes back with the per-quantity
   flags, which read the same. A design built in the library can hold what a `.ork` can't say: an
   added mass beside a whole-stage mass, or a station beside a whole-stage center. The added mass
-  is then left out, with a warning.
+  is then left out, with a warning. A stage under HPR Sim's default rule with a mass or center
+  override and no stated inertia is written with a warning too: OpenRocket, and the reader, weigh it with its parts in
+  place.
 - **Not flown yet:** a parallel stage's override that doesn't cover its pods is still warned of,
   as a pod set's is. The layout refuses an added mass on the stage a parallel stage hangs on,
   and an added mass above zero with no center stated, on parts that weigh nothing. And a flight refuses a mass that
@@ -426,12 +434,17 @@ example, and [the decision record][adr-335] gives the measurements.
   added mass.
 
 The tests `a_stage_override_not_covering_its_parts_adds_to_them` (19 probes),
-`a_stage_override_covering_its_parts_beside_one_that_does_not` (7 probes),
+`a_stage_override_covering_its_parts_beside_one_that_does_not` (10 probes),
 `a_motor_aboard_does_not_move_a_stages_added_mass` and
 `a_stages_added_mass_sits_among_its_pods_and_level_with_their_center` (6 probes with pods) in
 `hpr_validate::openrocket` hold HPR Sim to
-OpenRocket's answers, and `a_stage_override_not_covering_its_parts_is_read_and_written_back` in
-the `.ork` writer holds the export. The command line's test
+OpenRocket's mass, center and both inertias, but for two cases: on the probes with pods or a motor
+aboard they hold the inertia the override adds, and the two lower-stage probes hold mass, center
+and roll and pin the inertia across the axis at 4.95% and 3.33% over. And `a_stage_override_not_covering_its_parts_is_read_and_written_back` in
+the `.ork` writer holds the export. `openrockets_lower_stage_sum_is_below_its_parts_in_place` and
+`openrockets_inertia_with_a_motor_aboard_is_the_same_sum` reproduce OpenRocket's own sums from
+its records: the first checks why no stage that keeps its parts in place gives its figures, and
+the second pins the 1.6% and 1.1%. The command line's test
 `sim_flies_a_ork_stage_whose_override_adds_to_its_parts` flies one of the probes through
 `hpr sim`, with no warning. Until this was read, such a stage was held back
 ([#1225](https://github.com/nrdptel/fusionspace-eridanus/issues/1225)): taking the override as
@@ -439,6 +452,7 @@ the whole stage's would be the flattering side. A stage whose override adds 300 
 weigh 300 g in all: far too light, so its descent rate would read low.
 
 [adr-335]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0335-a-stage-s-added-mass-as-openrocket-weighs-it.md
+[adr-340]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0340-a-stage-s-overrides-leave-its-parts-in-place-as-openrocket-weighs-them.md
 
 ### Warnings, not failures
 

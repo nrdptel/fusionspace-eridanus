@@ -55,7 +55,7 @@ pub use solids::{RevolvedGeometry, Wall, revolve};
 pub use tree::{
     AddedMass, AutoDimension, Component, DragOverride, InertiaOverride, Layout, Overrides,
     ParallelStage, Part, PlacedComponent, PlacedStage, Position, ReferenceDiameter, Rocket, Stage,
-    UnresolvableRadius,
+    StageOverrideRule, UnresolvableRadius,
 };
 
 #[cfg(test)]

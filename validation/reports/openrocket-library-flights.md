@@ -50,7 +50,7 @@ This report compares hpr's flights of 11 of the library's 12 private designs wit
 | C05/2 | subsonic | sea level | +0.24% | +0.61% | +0.0113 | +0.0113 | -0.0111 | +0.0003 | +0.000% | +0.005% |  |
 | C05/3 | subsonic | sea level | -0.03% | +0.16% | +0.0003 | +0.0003 | +0.0000 | +0.0003 | +0.000% | +0.000% |  |
 | C05/4 | transonic | sea level | +0.11% | +0.56% | +0.0007 | +0.0007 | -0.0004 | +0.0003 | +0.000% | -0.008% |  |
-| C05/5 | subsonic | sea level | +0.25% | +0.24% | +0.0002 | +0.0002 | +0.0001 | +0.0003 | +0.000% | +0.001% |  |
+| C05/5 | subsonic | sea level | +0.24% | +0.24% | +0.0002 | +0.0002 | +0.0001 | +0.0003 | +0.000% | +0.001% |  |
 | C06/1 | supersonic | above sea level | +13.60% | +7.98% | +0.0604 | +0.0540 | -0.0447 | +0.0156 | -0.770% | -0.781% | hpr's own drag coefficient (on OR's drag +1.11% and +1.04%; with OR's base drag alone -10.71% and -3.43%) |
 | C07/1 | subsonic | sea level | +0.68% | +1.06% | +0.0032 | +0.0032 | -0.0005 | +0.0027 | +0.000% | -0.007% | chute 0.55 s early |
 | C08/1 | subsonic | sea level | +0.78% | +0.54% | +0.1108 | +0.1108 | -0.1102 | +0.0006 | +0.004% | +0.001% |  |

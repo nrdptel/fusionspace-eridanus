@@ -3676,6 +3676,10 @@
           "description": "Name.",
           "type": "string"
         },
+        "override_rule": {
+          "$ref": "#/$defs/StageOverrideRule",
+          "description": "How `overrides` set the stage's inertia ([`StageOverrideRule`]): by rescaling and moving\nthe stage as one body, as `hpr-design` does by default, or with its parts left in place,\nas OpenRocket 24.12 weighs a single stage."
+        },
         "overrides": {
           "$ref": "#/$defs/Overrides",
           "description": "Overrides for the whole stage without its motors, applied after every override inside it. A\ncenter-of-mass override is measured aft of the stage's forward end."
@@ -3697,6 +3701,21 @@
         "components"
       ],
       "type": "object"
+    },
+    "StageOverrideRule": {
+      "description": "How a stage's [`Overrides`] set its inertia. Both rules give the stage the overrides' mass and\ncenter; they differ in where the stage's parts are taken to be, and so in the inertia.\n\nWith the parts' mass `m_p`, center `x_p` and inertia `I_p` about it, a mass override `m′` and\na center override `c`, an [`AddedMass`] at a station counted among the parts (one with no\nstation is too under `Rescaled`, and sits at `c` under `PartsInPlace`):\n\n| | Rescaled | Parts in place |\n|---|---|---|\n| mass override alone | `I_p m′/m_p` | `I_p` |\n| center override alone | `I_p` | `I_p + m_p ((d·d) 1 − d dᵀ)`, `d = x_p − c` |\n| both | `I_p m′/m_p` | `I_p + m_p ((d·d) 1 − d dᵀ)` |\n\nAn inertia override replaces the tensor under either rule. The two agree on a stage with no\noverride and on an override that changes neither the mass nor the center.\n\nNeither rule is measured on a flying rocket: a stage's overrides say what it weighs and where\nit balances, not where the mass the parts don't account for sits. `Rescaled` puts it where the\nparts' mass is; `PartsInPlace` puts it at the stage's center and leaves each part where the\ndesign puts it. The decision record that added the second rule weighs the two\n([ADR-340][adr-340]).\n\n[adr-340]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0340-a-stage-s-overrides-leave-its-parts-in-place-as-openrocket-weighs-them.md",
+      "oneOf": [
+        {
+          "const": "rescaled",
+          "description": "The stage's parts, with its added mass, are one body the overrides rescale and move\n([`Overrides::apply`]): a mass override scales the inertia with the mass, and a center\noverride moves the body whole, its inertia about its center unchanged. The default, and\n`hpr-design`'s rule for a part's overrides too ([ADR-061][adr-061]).\n\n[adr-061]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0061-what-a-ork-leaves-unsaid-read-as-openrocket.md",
+          "type": "string"
+        },
+        {
+          "const": "parts_in_place",
+          "description": "The parts stay where the design puts them (`Overrides::apply_with_parts_in_place`): the\nstage's inertia is its parts' about the stage's center, and the mass a mass override adds\nor takes away sits at that center. This is how OpenRocket 24.12 weighs a single stage's\noverrides that cover its parts, measured on probe designs (`validation/oracles/openrocket/`);\non the lower of two stages OpenRocket's sum is below the parts' inertia about the stage's\ncenter. The `.ork` reader gives it to every stage on the axis with such an override\n([ADR-340][adr-340]).\n\n[adr-340]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0340-a-stage-s-overrides-leave-its-parts-in-place-as-openrocket-weighs-them.md",
+          "type": "string"
+        }
+      ]
     },
     "StageSeparation": {
       "additionalProperties": false,

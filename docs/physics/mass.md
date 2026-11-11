@@ -28,7 +28,7 @@ sums them for the rocket.
   ([below](#clusters-and-fillets)). A ring of tube fins departs twice. For it, OpenRocket's roll
   inertia is more than any mass inside the ring could have. OpenRocket's pitch inertia leaves out
   how far the tubes sit from the axis. HPR Sim keeps its own for both ([below](#tube-fins)). The
-  pitch inertia is within 1% on 58. Of the 13 outside, the two copies of OpenRocket's tube fin
+  pitch inertia is within 1% on 63. Of the 8 outside, the two copies of OpenRocket's tube fin
   example are the tube fin departure, and the rest have no named cause yet. Not compared with
   weighed parts or a real flight ([checked against OpenRocket](#checked-against-openrocket)).
 - **What it leaves out:** the sliver between a flat fin root and the round tube, and the step ring
@@ -319,16 +319,16 @@ OpenRocket's numbers match to 15 digits, and so does HPR Sim's layout of the sam
 The thresholds, 1% of the mass and 1% of the length, were set before any design was measured. A
 design outside either needs a written reason, not a pass.
 
-**The results**, as `cargo xtask ork` printed them on October 5, 2026, after HPR Sim
-[read parallel stages](../decisions-and-roadmap.md#m4-5m).
+**The results**, as `cargo xtask ork` printed them on November 11, 2026, after a `.ork` stage's
+overrides [left its parts in place](design.md#overrides).
 
 | | within 0.1% | within 1% | median |
 |---|---|---|--:|
 | mass | 64 of 71 | 70 of 71 | 0.001% |
 | center of mass (share of length) | 67 of 71 | 70 of 71 | 0.000% |
-| pitch inertia | 41 of 71 | 58 of 71 | 0.065% |
+| pitch inertia | 45 of 71 | 63 of 71 | 0.025% |
 | roll inertia | 10 of 71 | 31 of 71 | 1.619% |
-| roll inertia, OpenRocket's fin shortcut in HPR Sim's place | 59 of 71 | 59 of 71 | 0.001% |
+| roll inertia, OpenRocket's fin shortcut in HPR Sim's place | 64 of 71 | 64 of 71 | 0.000% |
 
 Counting each file's content once, 50 of 51 are within 1% in mass and 50 of 51 in center of mass.
 On September 28, 2026, after HPR Sim [read tube fins sized from the body](../decisions-and-roadmap.md#m2-2e8),
@@ -386,11 +386,14 @@ this shoulder of no wall (6 files by content), the other a part written with no 
 
 **Two more conventions.**
 
-- Under a mass override, the inertia is a departure kept on purpose
-  ([below](#what-a-ork-leaves-unsaid-and-overrides)). Loft's public `stage-weighed.ork` overrides
-  its stage to 1.234 kg on 0.614 kg of parts, a ratio of 2.009. HPR Sim scales the stage's inertia
-  by it and OpenRocket does not. So HPR Sim's pitch inertia is +100.9% apart and its roll +108.6%,
-  the largest inertia differences measured.
+- Under a stage's mass override HPR Sim scaled the stage's inertia, and OpenRocket doesn't. On
+  Loft's public `stage-weighed.ork`, whose stage override is about twice its parts' mass, that
+  was the first comparison's largest inertia difference, and until November 11, 2026 its roll
+  inertia, with OpenRocket's fin shortcut, was still 104.78% over OpenRocket's. The reader now
+  gives such a stage the rule that keeps its parts in place, as OpenRocket does, and the survey
+  no longer lists it among the files outside 1% in roll with that shortcut
+  ([A stage's rule](design.md#overrides)); a part's mass
+  override is still a departure kept on purpose ([below](#what-a-ork-leaves-unsaid-and-overrides)).
 - HPR Sim's airfoil fin section weighs less than OpenRocket's. The CONTROL fins of the jar's
   *Simulation scripting* example are 0.0378 kg in HPR Sim and 0.0469 kg in OpenRocket, 19.4%
   lighter, with no warning. It is a departure kept on purpose
@@ -401,16 +404,16 @@ to 3.8% apart. Yet their mass, center of mass and pitch inertia agree within 0.1
 of each is within 0.3 g of OpenRocket's. Across all 71 compared designs the median is 1.619%. It
 is the fins. OpenRocket takes a shortcut for a fin set's roll inertia, and HPR Sim integrates the
 fin exactly ([below](#fins-rail-buttons-and-roll-inertia)). With OpenRocket's shortcut in HPR Sim's
-place, the median is 0.001% and 59 files are within 1%. The shortcut takes OpenRocket's own mass
+place, the median is 0.000% and 64 files are within 1%. The shortcut takes OpenRocket's own mass
 for each fin set, paired by id, or in an older file by name. So the way OpenRocket weighs a section
 (below) is set aside too. Five of the six Loft demos come within 0.0005%. The sixth, whose fins are
 elliptical, is 0.093% apart in that row. It's within 0.0002% once OpenRocket's ellipse is drawn as
-OpenRocket draws it, a 30-sided polygon (a test). For each of the 12 files still outside 1% (8 by
+OpenRocket draws it, a 30-sided polygon (a test). For each of the 7 files still outside 1% (4 by
 content), `cargo xtask ork` names a cause, and it fails if it can't. Each has exactly one:
 
 | cause | files by content |
 |---|--:|
-| a mass override covering the parts inside (a departure, [below](#what-a-ork-leaves-unsaid-and-overrides)) | 5 |
+| a mass override covering the parts inside (a departure, [below](#what-a-ork-leaves-unsaid-and-overrides)) | 1 |
 | tube fins, whose roll inertia is a departure ([below](#tube-fins)) | 1 |
 | a cluster's tubes, which OpenRocket weighs stacked on the cluster's axis ([below](#clusters-and-fillets)) | 2 |
 
@@ -418,9 +421,9 @@ The cluster cause is sized, not only present. The survey names it only when HPR 
 less the spread of the clusters' own tubes, is within 1% of OpenRocket's. The two are +1.01% and
 +2.08% apart, and +0.04% and +0.00% without the spread.
 
-The pitch inertia is within 1% on 58 of 71. Two of the 13 outside are the two copies of OpenRocket's
+The pitch inertia is within 1% on 63 of 71. Two of the 8 outside are the two copies of OpenRocket's
 *Tube fin rocket*, 1.98% below. OpenRocket's pitch rule for tube fins accounts for that gap
-([below](#tube-fins)). The other 11 have no named cause yet, and no bound is known. On the fin
+([below](#tube-fins)). The other 6 have no named cause yet, and no bound is known. On the fin
 probes below, pitch differs by up to 0.41% where the fins weigh the same.
 
 **What it leaves out.** Motors: this is the structure alone, and a motor's mass is left to
@@ -521,8 +524,16 @@ differs from OpenRocket, and a test pins by how much.
 | when | HPR Sim | OpenRocket | apart on the probe |
 |---|---|---|---|
 | a mass override covers the parts inside and states no center | keeps the center the parts lay out | puts it at the overriding part's own, ignoring where the parts inside sit | HPR Sim's center 3.7 mm (0.15 in) forward of OpenRocket's, or 19.7 mm (0.78 in) if the part inside has an override of its own |
-| a mass override covers more than one part | scales the inertia of everything it covers by the override's ratio | scales only the overriding part's own inertia, and keeps the parts inside at theirs; a stage, having none of its own, scales nothing | roll inertia 6.9% to 37% lower in HPR Sim under a tube's; 2.5 to 5.0 times OpenRocket's under a stage's |
+| a mass override covers more than one part | scales the inertia of everything it covers by the override's ratio | scales only the overriding part's own inertia, and keeps the parts inside at theirs | roll inertia 6.9% to 37% lower in HPR Sim under a tube's |
 | a center override covers the parts inside | moves the whole assembly, so the inertia about the new center is the assembly's own | moves the overriding part alone, and adds the parts inside where they were | the center agrees; pitch inertia 2.65% lower in HPR Sim |
+
+A `.ork` stage's overrides follow OpenRocket now. OpenRocket leaves a stage's parts where they
+are, scaling nothing, since a stage has no inertia of its own. The reader gives such a stage that
+rule, and its inertia matches OpenRocket's on one stage with no motor aboard. On the lower of two
+stages a difference remains: 4.95% and 3.33% over across the axis on the two probes, where it was
+1.5% and 18.5%, worse on the first and better on the second ([A stage's rule](design.md#overrides)).
+Before, HPR Sim's roll inertia was about 2.5 to 5 times OpenRocket's
+under a stage's mass override on the one-stage probes.
 
 Under a tube's covering override HPR Sim's roll inertia is the *lower* one, though it scales more of
 the parts. OpenRocket keeps the inertia of the parts inside while leaving their mass out of the
@@ -928,7 +939,7 @@ part that weighs nothing still becomes a point mass under an override. Both prog
 structure is OpenRocket's to 1e-12 on every one, in mass, center of mass, roll and pitch. The
 earlier 74-file before-and-after measurement took the roll inertia from 49 to 53 files within
 0.1%, and from 55 to 57 within 1%. That's with OpenRocket's fin shortcut in HPR Sim's place. The current
-survey, on 71 designs, has 59 within 0.1% and within 1% with that shortcut
+survey, on 71 designs, has 64 within 0.1% and within 1% with that shortcut
 ([above](#checked-against-openrocket)):
 
 | (earlier 74-file measurement) | before | after |

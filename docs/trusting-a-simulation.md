@@ -50,10 +50,10 @@ have read 2,946 m (9,665 ft). The miss is (2,946 − 2,785) / 2,785 = +5.78%
 ([report][real-report]). EuRoC is the European Rocketry Challenge. On the public flights, both
 sides of a miss are altimeter readings.
 
-Across 60 logged flights of fliers' own designs, HPR Sim's apogee averaged +7.76% above the logged
+Across 60 logged flights of fliers' own designs, HPR Sim's apogee averaged +7.72% above the logged
 one ([report][fixture-report]). Each flight was flown as drawn in its day's air. Each logged
 apogee there is the altimeter's reading turned into the height climbed in that day's air, so the
-comparison leans on that conversion too. Without their signs, the misses averaged 12.07%, and 32
+comparison leans on that conversion too. Without their signs, the misses averaged 12.04%, and 32
 were within 10% either way. The figure counts them by size.
 
 ![A bar chart of HPR Sim's apogee misses on the logged flights: most bars stand right of zero, the shaded band holds the small misses either way, and the low side is marked as the side that flatters a ceiling.](images/trust-apogee-misses.svg)
@@ -141,7 +141,7 @@ help: issues: https://github.com/nrdptel/fusionspace-eridanus/issues/<number>
 
 How far to trust it. Simulated from the design file, not measured; the spread above comes from the
 inputs' scatter alone, not from the model's error. Against 60 logged flights of fliers' own designs,
-the simulated apogee averaged 7.8% above the logged one. Each logged apogee is the height climbed in
+the simulated apogee averaged 7.7% above the logged one. Each logged apogee is the height climbed in
 the day's air. The simulated apogee was within 10% on 32 and read low on 15, by at most 20%. Plan a
 waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to log,
 and the RSO decides.

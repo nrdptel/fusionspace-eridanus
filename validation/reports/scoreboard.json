@@ -54,13 +54,13 @@
       "cells": [
         {
           "tool": "hpr",
-          "value": 12.07,
+          "value": 12.04,
           "count": 60,
           "source": "validation/reports/fixture-flights.json /sets/0/hpr/mean_absolute_percent",
           "milestone": null,
           "cannot": null,
           "held_by": {
-            "value": 9.43,
+            "value": 9.42,
             "count": 37,
             "what": "the calibration half",
             "source": "validation/reports/fixture-flights.json /sets/3/hpr/mean_absolute_percent"
@@ -83,7 +83,7 @@
           "cannot": null
         }
       ],
-      "note": "**`accuracy.collection`**: the scoreboard's check (see *How far to trust it*) holds HPR Sim's cell by the calibration half's 9.43% over 37 flights, not by the cell's own, so a worse error on the held-out half alone can't block a change of model, though a drop in the cell's flight count still does; the cell still shows every flight compared ([ADR-332](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md))."
+      "note": "**`accuracy.collection`**: the scoreboard's check (see *How far to trust it*) holds HPR Sim's cell by the calibration half's 9.42% over 37 flights, not by the cell's own, so a worse error on the held-out half alone can't block a change of model, though a drop in the cell's flight count still does; the cell still shows every flight compared ([ADR-332](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md))."
     },
     {
       "id": "accuracy.held-out",
@@ -97,7 +97,7 @@
       "cells": [
         {
           "tool": "hpr",
-          "value": 16.32,
+          "value": 16.26,
           "count": 23,
           "source": "validation/reports/fixture-flights.json /sets/4/hpr/mean_absolute_percent",
           "milestone": null,
@@ -171,7 +171,7 @@
       "cells": [
         {
           "tool": "hpr",
-          "value": 3.22,
+          "value": 3.19,
           "count": 12,
           "source": "validation/reports/collection-boost.json /predictions/halves/0/every/prediction_mean_absolute_percent",
           "milestone": null,
@@ -194,7 +194,7 @@
           "cannot": "can't: its documentation describes a Flight Comparator, a log set beside a simulated flight with their difference, but no fit to the log ([RocketPy's guide: Flight Comparator](https://docs.rocketpy.org/en/latest/user/flight_comparator.html))"
         }
       ],
-      "note": "**`accuracy.from-boost`** counts only the flights the method can predict: the 12 of the calibration half whose barometer's log was cut before its climb reached 227.7 m/s (747 ft/s), with enough of the log up to the cut to fit, among those the forward report compares and flies in the day's ERA5 air; a faster climb gets no prediction. Of the 12 predicted flights, 0 were cut less than the motor's burn after liftoff, and for 2 the motor's burn or the log's liftoff isn't known. On those 12 the forward simulation's mean absolute error is 9.35%. On the 9 flights of the held-out half that were predicted (held out from choices made after the seal, not blind) the prediction's is 3.56% and the forward simulation's 16.86%, shown on [the collection's page](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md) and not held."
+      "note": "**`accuracy.from-boost`** counts only the flights the method can predict: the 12 of the calibration half whose barometer's log was cut before its climb reached 227.7 m/s (747 ft/s), with enough of the log up to the cut to fit, among those the forward report compares and flies in the day's ERA5 air; a faster climb gets no prediction. Of the 12 predicted flights, 0 were cut less than the motor's burn after liftoff, and for 2 the motor's burn or the log's liftoff isn't known. On those 12 the forward simulation's mean absolute error is 9.32%. On the 9 flights of the held-out half that were predicted (held out from choices made after the seal, not blind) the prediction's is 3.60% and the forward simulation's 16.75%, shown on [the collection's page](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md) and not held."
     },
     {
       "id": "bias.public",
@@ -244,13 +244,13 @@
       "cells": [
         {
           "tool": "hpr",
-          "value": 7.76,
+          "value": 7.72,
           "count": 60,
           "source": "validation/reports/fixture-flights.json /sets/0/hpr/mean_percent",
           "milestone": null,
           "cannot": null,
           "held_by": {
-            "value": 4.24,
+            "value": 4.22,
             "count": 37,
             "what": "the calibration half",
             "source": "validation/reports/fixture-flights.json /sets/3/hpr/mean_percent"
@@ -273,7 +273,7 @@
           "cannot": null
         }
       ],
-      "note": "**`bias.collection`**: the scoreboard's check (see *How far to trust it*) holds HPR Sim's cell by the calibration half's +4.24% over 37 flights, not by the cell's own, so a worse error on the held-out half alone can't block a change of model, though a drop in the cell's flight count still does; the cell still shows every flight compared ([ADR-332](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md))."
+      "note": "**`bias.collection`**: the scoreboard's check (see *How far to trust it*) holds HPR Sim's cell by the calibration half's +4.22% over 37 flights, not by the cell's own, so a worse error on the held-out half alone can't block a change of model, though a drop in the cell's flight count still does; the cell still shows every flight compared ([ADR-332](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md))."
     },
     {
       "id": "bias.held-out",
@@ -287,7 +287,7 @@
       "cells": [
         {
           "tool": "hpr",
-          "value": 13.42,
+          "value": 13.36,
           "count": 23,
           "source": "validation/reports/fixture-flights.json /sets/4/hpr/mean_percent",
           "milestone": null,

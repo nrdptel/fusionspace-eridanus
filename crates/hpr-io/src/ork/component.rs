@@ -20,7 +20,7 @@ use hpr_design::shapes::NoseShape;
 use hpr_design::solids::Wall;
 use hpr_design::tree::{
     AddedMass, AutoDimension, Component, DragOverride, Overrides, Part, ReferenceDiameter, Rocket,
-    Stage,
+    Stage, StageOverrideRule,
 };
 use hpr_design::{Material, MotorMount};
 
@@ -329,6 +329,13 @@ fn stage(
         id,
         name,
         components,
+        // OpenRocket 24.12 leaves a stage's parts where they are under an override that covers
+        // them (ADR-340): the rule changes nothing on a stage with no such override.
+        override_rule: if overrides.is_empty() {
+            StageOverrideRule::Rescaled
+        } else {
+            StageOverrideRule::PartsInPlace
+        },
         overrides,
         added_mass,
         drag_override,

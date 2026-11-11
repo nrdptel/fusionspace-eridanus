@@ -90,9 +90,9 @@ use std::sync::Arc;
 use hpr_aero::table::DragTable;
 use hpr_aero::{AeroModel, DragModel};
 use hpr_atmos::{AtmosError, DirectionTurn, Wind, WindLevel, WindSample};
-use hpr_core::DVec3;
 use hpr_core::random::SeededRng;
-use hpr_design::{LaidOut, Rocket};
+use hpr_core::{DMat3, DVec3};
+use hpr_design::{InertiaOverride, LaidOut, Rocket};
 use hpr_motor::motor::{Propellant, PropellantColumn};
 use hpr_motor::{BatesGrains, Delay, SolidMotor, ThrustCurve};
 use hpr_sim::{
@@ -488,12 +488,14 @@ impl Run {
     }
 }
 
-/// A stage's nominal mass without motors and its center, as the layout places them.
+/// A stage's nominal mass without motors, its center and its inertia, as the layout places them.
 #[derive(Debug, Clone, Copy)]
 struct StageMass {
     mass_kg: f64,
     /// Aft of the stage's forward end, m: what [`hpr_design::Overrides::cg_aft_m`] sets.
     cg_aft_m: f64,
+    /// About the center, kg·m².
+    inertia_kg_m2: DMat3,
 }
 
 /// A rocket's nominal flight and the dispersion of its inputs, ready to fly samples.
@@ -534,6 +536,7 @@ impl MonteCarlo {
                 mass_kg: stage.mass.mass_kg,
                 // Stations run aft from the nose; body z runs forward ([`hpr_design::Overrides`]).
                 cg_aft_m: -stage.mass.cg_m.z - stage.fore_station_m,
+                inertia_kg_m2: stage.mass.inertia_kg_m2,
             })
             .collect();
         if dispersion.impulse_sd_fraction > 0.0 || dispersion.burn_time_sd_fraction > 0.0 {
@@ -653,6 +656,24 @@ impl MonteCarlo {
             }
             if shift != 0.0 {
                 stage.overrides.cg_aft_m = Some(nominal.cg_aft_m + shift);
+            }
+            // A stage whose overrides leave its parts in place (ADR-340) would keep its parts'
+            // inertia under a new mass and add to it with a new center. The dispersion scales the
+            // nominal inertia and keeps it about the center whatever the stage's rule, so it is
+            // stated.
+            if (scale != 1.0 || shift != 0.0)
+                && !stage.override_rule.is_rescaled()
+                && stage.overrides.inertia.is_none()
+            {
+                let i = nominal.inertia_kg_m2 * scale;
+                stage.overrides.inertia = Some(InertiaOverride {
+                    xx_kg_m2: i.x_axis.x,
+                    yy_kg_m2: i.y_axis.y,
+                    zz_kg_m2: i.z_axis.z,
+                    xy_kg_m2: i.x_axis.y,
+                    xz_kg_m2: i.x_axis.z,
+                    yz_kg_m2: i.y_axis.z,
+                });
             }
         }
         let motors = &mut inputs.rocket.configurations[self.configuration].motors;
@@ -1349,6 +1370,42 @@ pub(crate) mod tests {
                     "{threads}"
                 );
             }
+        }
+    }
+
+    /// A stage whose overrides leave its parts in place (ADR-340) disperses as any other: its
+    /// mass and inertia scale together and a moved center keeps the inertia about it. Without the
+    /// stated inertia, the parts' inertia would stay as it was under the new mass, and gain the
+    /// parallel-axis term of the move.
+    #[test]
+    fn a_stage_with_its_parts_in_place_disperses_as_any_other() {
+        let mut base = nominal();
+        let stage = &mut base.rocket.stages[0];
+        stage.override_rule = hpr_design::StageOverrideRule::PartsInPlace;
+        // Valetudo's design states its stage's inertia, which the dispersion scales under
+        // either rule: without it, the stage's parts carry the inertia.
+        stage.overrides.inertia = None;
+        stage.overrides.cg_aft_m = Some(0.9);
+        let run = MonteCarlo::new(base, every_dispersion()).unwrap();
+        let draw = run.draw(SEED, 1);
+        assert!((draw.dry_mass_scale[0] - 1.0).abs() > 1e-3, "{draw:?}");
+        assert!(draw.cg_shift_m[0].abs() > 1e-4, "{draw:?}");
+        let before = run.nominal().rocket.layout().unwrap().stages[0].mass;
+        let after = run.inputs(&draw).unwrap().rocket.layout().unwrap().stages[0].mass;
+        let mass = after.mass_kg / before.mass_kg;
+        assert!((mass - draw.dry_mass_scale[0]).abs() < 1e-14, "{mass}");
+        let shift = before.cg_m.z - after.cg_m.z;
+        assert!((shift - draw.cg_shift_m[0]).abs() < 1e-14, "{shift}");
+        for (a, b) in after
+            .inertia_kg_m2
+            .to_cols_array()
+            .iter()
+            .zip(before.inertia_kg_m2.to_cols_array())
+        {
+            assert!(
+                (a - b * draw.dry_mass_scale[0]).abs() <= 1e-14 * b.abs(),
+                "{a} {b}"
+            );
         }
     }
 

@@ -439,11 +439,11 @@
     {
       "aborted": false,
       "apogee_outcome": "scored",
-      "apogee_percent": 0.255813,
+      "apogee_percent": 0.255506,
       "chute_early_s": null,
       "descent": {
         "deployments_within": true,
-        "flight_time_percent": 0.366997,
+        "flight_time_percent": 0.366844,
         "in_scope": true,
         "landing_speed_percent": 0.003361,
         "meets_targets": true,
@@ -459,7 +459,7 @@
       "margin_cal": 0.000254,
       "margin_outcome": "scored",
       "max_speed_outcome": "scored",
-      "max_speed_percent": 0.38655,
+      "max_speed_percent": 0.386694,
       "on_openrocket_s_drag": null,
       "reference_same": true,
       "rod_clearance_cg_cal": 5e-6,
@@ -472,11 +472,11 @@
     {
       "aborted": false,
       "apogee_outcome": "scored",
-      "apogee_percent": 0.237154,
+      "apogee_percent": 0.237017,
       "chute_early_s": null,
       "descent": {
         "deployments_within": true,
-        "flight_time_percent": 0.71207,
+        "flight_time_percent": 0.712021,
         "in_scope": true,
         "landing_speed_percent": 0.003275,
         "meets_targets": true,
@@ -492,7 +492,7 @@
       "margin_cal": 0.011339,
       "margin_outcome": "scored",
       "max_speed_outcome": "scored",
-      "max_speed_percent": 0.605837,
+      "max_speed_percent": 0.605918,
       "on_openrocket_s_drag": null,
       "reference_same": true,
       "rod_clearance_cg_cal": -0.011079,
@@ -505,11 +505,11 @@
     {
       "aborted": false,
       "apogee_outcome": "scored",
-      "apogee_percent": -0.028629,
+      "apogee_percent": -0.028602,
       "chute_early_s": null,
       "descent": {
         "deployments_within": true,
-        "flight_time_percent": 0.516935,
+        "flight_time_percent": 0.517001,
         "in_scope": true,
         "landing_speed_percent": 0.003493,
         "meets_targets": true,
@@ -525,7 +525,7 @@
       "margin_cal": 0.00026,
       "margin_outcome": "scored",
       "max_speed_outcome": "scored",
-      "max_speed_percent": 0.159293,
+      "max_speed_percent": 0.159313,
       "on_openrocket_s_drag": null,
       "reference_same": true,
       "rod_clearance_cg_cal": 0.0,
@@ -538,11 +538,11 @@
     {
       "aborted": false,
       "apogee_outcome": "scored",
-      "apogee_percent": 0.1092,
+      "apogee_percent": 0.109063,
       "chute_early_s": null,
       "descent": {
         "deployments_within": true,
-        "flight_time_percent": 0.21031,
+        "flight_time_percent": 0.210235,
         "in_scope": true,
         "landing_speed_percent": 0.003176,
         "meets_targets": true,
@@ -558,7 +558,7 @@
       "margin_cal": 0.000687,
       "margin_outcome": "scored",
       "max_speed_outcome": "scored",
-      "max_speed_percent": 0.559569,
+      "max_speed_percent": 0.559506,
       "on_openrocket_s_drag": null,
       "reference_same": true,
       "rod_clearance_cg_cal": -0.000429,
@@ -571,11 +571,11 @@
     {
       "aborted": false,
       "apogee_outcome": "scored",
-      "apogee_percent": 0.245113,
+      "apogee_percent": 0.244697,
       "chute_early_s": null,
       "descent": {
         "deployments_within": true,
-        "flight_time_percent": 0.432537,
+        "flight_time_percent": 0.432381,
         "in_scope": true,
         "landing_speed_percent": 0.003489,
         "meets_targets": true,
@@ -591,7 +591,7 @@
       "margin_cal": 0.000166,
       "margin_outcome": "scored",
       "max_speed_outcome": "scored",
-      "max_speed_percent": 0.237425,
+      "max_speed_percent": 0.237369,
       "on_openrocket_s_drag": null,
       "reference_same": true,
       "rod_clearance_cg_cal": 0.000095,
@@ -674,11 +674,11 @@
     {
       "aborted": false,
       "apogee_outcome": "scored",
-      "apogee_percent": 0.779838,
+      "apogee_percent": 0.779832,
       "chute_early_s": null,
       "descent": {
         "deployments_within": true,
-        "flight_time_percent": 0.72842,
+        "flight_time_percent": 0.728417,
         "in_scope": true,
         "landing_speed_percent": 0.00428,
         "meets_targets": true,
@@ -696,7 +696,7 @@
       "margin_cal": 0.110841,
       "margin_outcome": "scored",
       "max_speed_outcome": "scored",
-      "max_speed_percent": 0.539628,
+      "max_speed_percent": 0.540052,
       "on_openrocket_s_drag": null,
       "reference_same": true,
       "rod_clearance_cg_cal": -0.110245,
@@ -1222,8 +1222,8 @@
         "flight_time_percent": {
           "count": 34,
           "max": 3.716487,
-          "mean_absolute": 1.520038058823529,
-          "median": 0.14393899999999998,
+          "mean_absolute": 1.520027176470588,
+          "median": 0.14390150000000002,
           "min": -4.975282
         },
         "flights": 34,
@@ -1292,7 +1292,7 @@
           "no named cause": {
             "count": 28,
             "max": 1.167291,
-            "mean_absolute": 1.316513035714286,
+            "mean_absolute": 1.3164762500000002,
             "median": -0.308323,
             "min": -4.844469
           },
@@ -1325,7 +1325,7 @@
           "no named cause": {
             "count": 34,
             "max": 2.281658,
-            "mean_absolute": 0.48415523529411764,
+            "mean_absolute": 0.4841714117647059,
             "median": 0.266802,
             "min": -0.65326
           }

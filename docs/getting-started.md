@@ -12,7 +12,7 @@ variations. It needs some Rust, but no knowledge of this project.
 > ([the evidence register's row on real flights](evidence.md#g24)): this rocket left no flight
 > log to check it against. On seven other rockets' logged flights, HPR Sim's apogees missed by
 > 6.06% on average, outside the 5% target ([real flights](accuracy.md#real-flights)). On 60 more
-> from a private collection, they were +7.76% above the logs, and OpenRocket's were +6.72%
+> from a private collection, they were +7.72% above the logs, and OpenRocket's were +6.72%
 > ([private collection](accuracy.md#real-flights-of-the-private-collection)).
 >
 > Given the same drag, its heights, speeds and times match RocketPy's. On its own drag it flies this
