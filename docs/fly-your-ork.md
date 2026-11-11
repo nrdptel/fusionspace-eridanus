@@ -265,7 +265,12 @@ flight alone and leaves them on the terminal.
 
 **A stage that weighs more than its parts.** If your stage has a mass override with OpenRocket's
 *override for all subcomponents* box unticked, OpenRocket adds that mass to what the parts weigh,
-and so does the simulator. It used to refuse such a stage. Where a stage's override has that box
+and so does the simulator. It used to refuse such a stage. Boosters strapped beside the core
+(a [parallel stage](glossary.md#parallel-stage)) are read the same way: their stage's added
+mass is one mass for the set, and it drops with them. On the stage the boosters hang on, an
+added mass flies when the override states its center too. With no center stated the simulator
+refuses it by name, since OpenRocket then moves that mass when the boosters drop
+([what a stage's added mass leaves out](physics/design.md#a-stages-added-mass-leaves-out)). Where a stage's override has that box
 ticked, the simulator leaves the stage's parts where they are, as OpenRocket does, and its mass,
 center and inertia match OpenRocket's on the [probe designs](glossary.md#probe-design) of one
 stage with no motor aboard. With the override on the lower of two stages, or with a motor aboard
