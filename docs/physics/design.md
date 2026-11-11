@@ -288,7 +288,8 @@ tip, with 0.015838 kg·m² across the axis. Its center override is 0.4 m (1.3 ft
 
 Neither rule is measured on a flying rocket. If the mass the parts miss is spread along the stage
 as the parts are, `rescaled` is right and `parts_in_place` reads low, by the mass ratio under a
-mass override (5.0 times on the probe above); if that mass sits farther out, by more. Under a center override, `parts_in_place` gives the
+mass override (5.0 times about the axis on the probe above, 4.5 times across it, where the
+center override also moves the parts' center); if that mass sits farther out, by more. Under a center override, `parts_in_place` gives the
 least inertia about the stage's stated center that any stage keeping its parts in place can
 have: the parts' own about that center. [The decision record][adr-340]
 weighs the two, and the probes where OpenRocket's own figure is below even that.

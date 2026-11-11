@@ -108,8 +108,8 @@ OpenRocket leaves each part where the design puts it.
    the two agree. Before, across the axis, they were 1.5% and 18.5% over; about the axis the
    second was 255.8% over.
    `openrockets_lower_stage_sum_is_below_its_parts_in_place` reproduces OpenRocket's sum and
-   checks each reason; `openrockets_inertia_with_a_motor_aboard_is_the_same_sum` does so with a motor
-   aboard and pins the 1.6% and 1.1%.
+   checks each reason; `openrockets_inertia_with_a_motor_aboard_is_the_same_sum` reproduces the
+   sum with a motor aboard and pins the 1.6% and 1.1%.
 5. **A Monte Carlo run disperses such a stage as any other.** Its dry-mass scale and center
    shift work by writing the stage's overrides. On a `parts_in_place` stage that would keep the
    parts' inertia under a new mass. So the run states the stage's nominal inertia, scaled,
