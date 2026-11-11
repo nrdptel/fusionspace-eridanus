@@ -1426,13 +1426,13 @@ One line per milestone or increment, in the order it was archived within its pha
         to M2.3d7
         ([#1408](https://github.com/nrdptel/fusionspace-eridanus/pull/1408),
         [#1407](https://github.com/nrdptel/fusionspace-eridanus/issues/1407)).
-      - [x] **M2.3d7 The inertia beside an override that covers the parts** (ADR-340). *Done
-        when:* M2.3d4's *done when*, whole: what is left of it here is the inertia of a stage with
-        one override that covers its parts beside one that doesn't, held to OpenRocket 24.12's,
-        within the bounds ADR-336 decision 2 gives, on the eight probe designs where it runs from
-        11.04% under to 400.5% over today
+      - [x] **M2.3d7 The inertia beside an override that covers the parts** (ADR-340).
+        *Done when:* M2.3d4's *done when*, whole: what is left of it here is the inertia of a stage
+        with one override that covers its parts beside one that doesn't, held to OpenRocket
+        24.12's, within the bounds ADR-336 decision 2 gives, on the eight probe designs where it
+        runs from 11.04% under to 400.5% over today
         ([#1407](https://github.com/nrdptel/fusionspace-eridanus/issues/1407)).
-        *Result (ADR-340):* met on six of the eight: a `.ork` stage whose override covers its
+        Result (ADR-340): met on six of the eight: a `.ork` stage whose override covers its
         parts keeps them in place, as OpenRocket does, and both inertias are within 3 parts in a
         million on the four one-stage probes, the inertia added within 1e-9 kg·m² on the two
         airframe probes. Not met on the two with the override on the lower of two stages:
