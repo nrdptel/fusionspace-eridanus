@@ -1450,8 +1450,10 @@ One line per milestone or increment, in the order it was archived within its pha
           OpenRocket 24.12's on the probe designs.
           Result (ADR-341): met: on 49 new probes, HPR Sim lays out 27; on the 25 with boosters
           the parallel stage alone and the rocket's mass and center are within the bounds, and
-          the override adds OpenRocket's inertia where none covers the parts. Beside a covering
-          center the rocket's inertia across the axis gains 0.63% and 0.22% less: M2.3d14's.
+          the override adds OpenRocket's inertia where none covers the parts. `hpr sim` flies
+          three: a mass on the parallel stage, alone and at a station, and one at a station on
+          the stage it hangs on. Beside a covering center the rocket's inertia across the axis
+          gains 0.63% and 0.22% less: M2.3d14's.
     - [x] **M2.3d5 The Macie XL predictions** (ADR-337). *Done when:* M2.3d1's *done when*, whole: its
       own pull request merges both Macie XL flights' inputs, sources, apogee rules and predicted
       apogees, the design flown as saved from its pinned repository, no error computed, and with

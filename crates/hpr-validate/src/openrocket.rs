@@ -1203,7 +1203,7 @@ mod tests {
     /// (`openrockets_sum_with_a_parallel_stages_covering_center_is_no_bodys`). About the axis
     /// the rocket gains what OpenRocket's does, but for one booster under a mass that covers
     /// it: OpenRocket's sum there counts the booster's own mass beside the stated one, and HPR
-    /// Sim's is 0.10% short, pinned.
+    /// Sim's is 0.11% short, pinned.
     #[test]
     fn a_parallel_stages_override_covering_its_parts_leaves_them_in_place() {
         let record = placement_record();

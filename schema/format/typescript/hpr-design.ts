@@ -72,8 +72,9 @@ export interface DesignFile {
  * **The stage a parallel stage hangs on** can carry an added mass at a station: a point among
  * that stage's own parts. `Rocket::layout` refuses one there with no station, and one at a
  * station beside a parallel stage of one pod off the axis. OpenRocket weighs such a stage with
- * what hangs on it, so its point sits at the center of the stage and its pods together, and
- * moves when the pods drop; a stage here is one body that keeps its center.
+ * what hangs on it. With no station its point sits at the center of the stage and its pods
+ * together. At a station it sits as far off the axis as that center. Either way it moves when
+ * the pods drop; a stage here is one body that keeps its center.
  *
  * An added mass of zero changes nothing. One above zero with no station, on a stage whose parts
  * weigh nothing, has no place to sit, and `Rocket::layout` refuses it.

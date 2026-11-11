@@ -158,6 +158,9 @@ the axis. The mass override is 2 kg. The center override is 0.1 m on the paralle
      bounds. The airframe has fins, whose inertia the two tools weigh differently, so its
      inertias are held by what the override adds to them: within 3 parts in a million of what it
      adds in OpenRocket, or within 1e-9 kg·m² where it adds less than 0.00033 kg·m².
+   - With one booster, an inertia across the axis is compared about the body axis the booster
+     lies along. OpenRocket's figure leaves out how far a part is off the axis, and about that
+     axis HPR Sim's has no such term either.
    - Not held: the rocket's inertia across the axis beside a parallel stage's center that covers
      its parts (measurement 4). It is pinned, and M2.3d14 holds it.
 4. **What stays refused, and why.**
@@ -193,7 +196,7 @@ the axis. The mass override is 2 kg. The center override is 0.1 m on the paralle
   less with one (decision 2's M2.3d14).
 - Under the parallel stage's overrides that cover its parts with no added mass, the same
   shortfall is 0.07% to 4.68%. About the axis the rocket gains what OpenRocket's does, but for
-  one booster under a mass that covers it: 0.10% short. These overrides cover the parts, so they
+  one booster under a mass that covers it: 0.11% short. These overrides cover the parts, so they
   are outside M2.3d4's *done when*; [#1432][i1432] holds them. Under HPR Sim's default rule,
   which the reader gave a parallel stage until now, the parallel stage's own inertia across the
   axis is more than 37% off OpenRocket's on each of those rows.
@@ -248,4 +251,6 @@ boosters while they hang there, and [#1429][i1429] holds that. No tolerance move
   holds the reader's table and the round trip.
 - `hpr-sim`'s `strap_on_boosters_take_their_added_mass_with_them` drops boosters with an added
   mass, and the command line's `sim_flies_a_ork_parallel_stage_whose_override_adds_to_its_parts`
-  flies two of the probes through `hpr sim`.
+  flies two of the probes through `hpr sim`: a mass on the parallel stage, alone and at a
+  station. It also flies the same airframe with the recorded override at a station on the stage
+  the boosters hang on. The other probes are laid out and weighed, not flown.

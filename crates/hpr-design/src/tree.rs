@@ -861,9 +861,10 @@ pub enum StageOverrideRule {
     /// on the lower of two stages OpenRocket's sum is below the parts' inertia about the stage's
     /// center. The `.ork` reader gives it to every stage with such an override, on the axis
     /// ([ADR-340][adr-340]) or parallel, whose pods OpenRocket leaves in place the same way
-    /// (ADR-341).
+    /// ([the record that measured a parallel stage][adr-341]).
     ///
     /// [adr-340]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0340-a-stage-s-overrides-leave-its-parts-in-place-as-openrocket-weighs-them.md
+    /// [adr-341]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0341-m2-3d8-in-five-a-parallel-stage-s-added-mass-first.md
     PartsInPlace,
 }
 
@@ -941,8 +942,9 @@ impl StageOverrideRule {
 /// **The stage a parallel stage hangs on** can carry an added mass at a station: a point among
 /// that stage's own parts. [`Rocket::layout`] refuses one there with no station, and one at a
 /// station beside a parallel stage of one pod off the axis. OpenRocket weighs such a stage with
-/// what hangs on it, so its point sits at the center of the stage and its pods together, and
-/// moves when the pods drop; a stage here is one body that keeps its center.
+/// what hangs on it. With no station its point sits at the center of the stage and its pods
+/// together. At a station it sits as far off the axis as that center. Either way it moves when
+/// the pods drop; a stage here is one body that keeps its center.
 ///
 /// An added mass of zero changes nothing. One above zero with no station, on a stage whose parts
 /// weigh nothing, has no place to sit, and [`Rocket::layout`] refuses it.
@@ -1334,7 +1336,8 @@ impl Rocket {
             // say whether it covers the parallel stage too: OpenRocket's tree holds the stage
             // under the tube (ADR-171). OpenRocket 24.12 takes a stage's covering override as
             // the rocket's while the parallel stage hangs there and as the stage's once it is
-            // gone (ADR-341), which one body for each stage can't give.
+            // gone (ADR-341), which one body for each stage can't give. No probe has measured a
+            // tube's covering override there.
             if !self.stages[carrier.stage].overrides.is_empty()
                 || (on.overrides_include_children && !on.overrides.is_empty())
             {

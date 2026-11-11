@@ -398,9 +398,9 @@ example, and the decision records give the measurements: [a stage on the axis][a
   [station](../glossary.md#station) measured from the stage's forward end, and the mass sits
   there, as far off the axis as the parts' center is: on it, unless the parts' center is off
   it, as one pod alone puts it.
-- **On a parallel stage** the table holds on each pairing probed there: the eight pairings
-  with both flags written, with three boosters and with one, and the mass's two rows with no
-  flag written, with three. A flag left out beside one that is written, and the older single
+- **On a parallel stage** the table holds on each pairing probed there: eight pairings with
+  each flag written (four of both overrides, four of one), with three boosters and with one,
+  and the mass's two rows with no flag written, with three. A flag left out beside one that is written, and the older single
   flag, weren't probed on a parallel stage. One piece of code reads both kinds of stage, so they
   are read as on a stage on the axis. There are 49 more probes in all: 40 with three boosters
   beside the core or with one, and 9 of two stages on the axis, one or both weighing nothing.
@@ -410,7 +410,9 @@ example, and the decision records give the measurements: [a stage on the axis][a
   the axis as the boosters' center: 52 mm (2.0 in) off with one booster. The boosters carry the
   mass away when they drop. On the 25 of those probes with boosters that HPR Sim lays out, the
   parallel stage alone matches OpenRocket's mass within 5 parts in 10 million, its center within
-  0.2 µm and both inertias within 3 parts in a million.
+  0.2 µm and both inertias within 3 parts in a million. OpenRocket's inertia across the axis
+  leaves out how far a part is off the axis. So with one booster the rocket's is compared about
+  the body axis the booster lies along, where HPR Sim's has no such term either.
 - **On the stage a parallel stage hangs on,** an added mass at a station flies. With three
   boosters, that stage and the whole rocket match OpenRocket's mass and center within the same
   bounds. Their inertias are held by what the override adds to them: within 3 parts in a million
@@ -453,7 +455,7 @@ example, and the decision records give the measurements: [a stage on the axis][a
   one. Closing that is open work:
   [M2.3d14, the rocket's inertia beside a parallel stage's covering center](../decisions-and-roadmap.md#m2-3d14).
   Under a covering mass, a covering center, or both with no added mass, the shortfall is 0.07% to
-  4.68%, and about the axis, with one booster under a covering mass, 0.10%
+  4.68%, and about the axis, with one booster under a covering mass, 0.11%
   ([#1432](https://github.com/nrdptel/fusionspace-eridanus/issues/1432)).
 - **A center alone that doesn't cover the parts** changes nothing in OpenRocket. It is left out
   of the design and kept as the file wrote it, so an export writes it back.
@@ -470,16 +472,17 @@ example, and the decision records give the measurements: [a stage on the axis][a
 - **Not flown yet,** each refused by name, never guessed:
   - *On the stage a parallel stage hangs on,* an added mass with no station, and one at a
     station beside a single booster off the axis. OpenRocket weighs that stage with its
-    boosters while they hang there. On the probes its point sits 39 mm (1.5 in) aft of where it
-    sits once three boosters are gone, so it moves when they drop. HPR Sim's stage is one body
-    that keeps its center
+    boosters while they hang there. With no station its point sits 39 mm (1.5 in) aft of where
+    it sits once three boosters are gone, and 14 mm (0.57 in) aft with one. At a station beside
+    one booster it sits 2.7 mm (0.11 in) off the axis, and on the axis once the booster is gone.
+    Either way it moves when they drop. HPR Sim's stage is one body that keeps its center
     ([M2.3d11, the stage a parallel stage hangs on](../decisions-and-roadmap.md#m2-3d11)).
     An override that covers that stage's parts is refused there as before
     ([Parallel stages](#parallel-stages)).
   - *An added mass above zero with no station, on parts that weigh nothing.* On the six probes
     with no center stated, OpenRocket puts it at the rocket's tip, even for a lower stage that
-    starts 0.8 m (2.6 ft) aft of it. No placement reads the stability margin higher, so HPR Sim
-    doesn't take it without saying so. On the two with a center that covers the parts beside
+    starts 0.8 m (2.6 ft) aft of it. The tip is as far forward as a mass can sit, so no
+    placement reads the stability margin higher, and HPR Sim doesn't take it without saying so. On the two with a center that covers the parts beside
     it, OpenRocket puts it at that center
     ([M2.3d12, an added mass on parts that weigh nothing](../decisions-and-roadmap.md#m2-3d12)).
   - *A flight with a mass that moves, a mass that is released, or a parting through a stage,*
@@ -507,7 +510,8 @@ alone and the rocket and pin the rocket's shortfalls,
 and `every_placement_probe_is_checked` counts the 49 probes: 27 laid out and 22 refused, each
 refusal pinned beside what OpenRocket does there.
 `sim_flies_a_ork_parallel_stage_whose_override_adds_to_its_parts` flies two of them through
-`hpr sim`, their boosters dropping with the added mass. Until this was read, such a stage was held back
+`hpr sim`, their boosters dropping with the added mass. It flies the same airframe with the
+mass at a station on the stage the boosters hang on too, and they drop as light as they were. Until this was read, such a stage was held back
 ([#1225](https://github.com/nrdptel/fusionspace-eridanus/issues/1225)): taking the override as
 the whole stage's would be the flattering side. A stage whose override adds 300 g of paint would
 weigh 300 g in all: far too light, so its descent rate would read low.

@@ -1107,6 +1107,11 @@ fn sim_flies_a_ork_stage_whose_override_adds_to_its_parts() {
 /// the 2 kg as the parallel stage's added mass. Beside the same rocket with no override, each
 /// leaves the rail slower and peaks lower, and its boosters, which take the 2 kg with them, land
 /// faster.
+///
+/// The stage the boosters hang on flies with such a mass at a station too. The same airframe
+/// with the recorded probe's override tags on that stage (2 kg, 0.4 m, both flags `false`) is
+/// read with no other warning, holds the 2 kg as that stage's added mass, leaves the rail slower
+/// and peaks lower, and its boosters land as fast as with no override.
 #[test]
 fn sim_flies_a_ork_parallel_stage_whose_override_adds_to_its_parts() {
     let record: Value = serde_json::from_str(
@@ -1186,6 +1191,63 @@ fn sim_flies_a_ork_parallel_stage_whose_override_adds_to_its_parts() {
         );
         assert!(landing > 2.0 * light_landing, "{landing} {light_landing}");
     }
+
+    // The stage the boosters hang on, with 2 kg at a station. The recorded probe of it has no
+    // motor, so its override tags go on the motor's airframe, where the oracle script writes
+    // them: after the stage's id.
+    let stage_id = "<id>00000000-0000-4000-8000-000000000099</id>";
+    let on_the_core = "three boosters and both overrides on the stage they hang on, not its parts";
+    let recorded = record["probes"][on_the_core]["document"].as_str().unwrap();
+    let from = recorded.find(stage_id).unwrap() + stage_id.len();
+    let tags = &recorded[from..from + recorded[from..].find("<subcomponents>").unwrap()];
+    for tag in [
+        "<overridemass>2.0</overridemass>",
+        "<overridecg>0.4</overridecg>",
+        "<overridesubcomponentsmass>false</overridesubcomponentsmass>",
+        "<overridesubcomponentscg>false</overridesubcomponentscg>",
+    ] {
+        assert!(tags.contains(tag), "{tags}");
+    }
+    let airframe = std::fs::read_to_string(&bare).unwrap();
+    assert_eq!(airframe.matches(stage_id).count(), 1);
+    let core = folder.path().join("core.ork");
+    std::fs::write(
+        &core,
+        airframe.replace(stage_id, &format!("{stage_id}{tags}")),
+    )
+    .unwrap();
+    let core = core.to_string_lossy().into_owned();
+    let document = json(&["sim", &core], 0, "sim.schema.json");
+    let warnings = document["warnings"].as_array().unwrap();
+    assert!(
+        warnings.iter().all(|warning| warning["message"]
+            .as_str()
+            .unwrap()
+            .starts_with("H128W's curve file")),
+        "{warnings:#?}"
+    );
+    assert_eq!(document["design"]["configurations"][0]["flies"], true);
+    let (rocket, ..) = ork_design(&std::fs::read(&core).unwrap());
+    assert_eq!(
+        rocket.stages[0].added_mass,
+        Some(hpr::hpr_design::AddedMass {
+            mass_kg: 2.0,
+            cg_aft_m: Some(0.4),
+        })
+    );
+    assert_eq!(rocket.stages[0].overrides, Default::default());
+    assert_eq!(rocket.stages[1].added_mass, None);
+    let [rail, apogee, landing] = figures(&document);
+    assert!(rail > 0.0 && rail < 0.5 * light_rail, "{rail} {light_rail}");
+    assert!(
+        apogee > 0.0 && apogee < 0.8 * light_apogee,
+        "{apogee} {light_apogee}"
+    );
+    // The boosters drop as light as they were: the mass stays with the stage that carries it.
+    assert!(
+        landing > 0.9 * light_landing && landing < 1.1 * light_landing,
+        "{landing} {light_landing}"
+    );
 }
 
 /// The `.ork` text of the library's staging example, `ork_two_stage`: two stages, an Estes F15 in
