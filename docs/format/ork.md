@@ -414,7 +414,7 @@ example, and [the decision record][adr-335] gives the measurements.
   open work: [M2.3d9, the inertia on the lower of two stages](../decisions-and-roadmap.md#m2-3d9). With a motor aboard OpenRocket sums the same way: on the motor's
   airframe, under an added mass beside a center that covers the parts, HPR Sim's rule gives an
   inertia across the axis 1.6% under OpenRocket's at launch and 1.1% under at burnout, worked by
-  hand from OpenRocket's records, its motor's term in both; M2.3d9 holds that open too.
+  hand from OpenRocket's records, its motor's term in both; the same milestone holds that open too.
   [The decision record][adr-340] gives the measurements.
 - **A center alone that doesn't cover the parts** changes nothing in OpenRocket. It is left out
   of the design and kept as the file wrote it, so an export writes it back.
