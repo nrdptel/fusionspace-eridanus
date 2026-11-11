@@ -119,7 +119,7 @@ what any stage that keeps its parts in place can have: OpenRocket sums each part
 rocket's center, and it counts the override's mass as a point at the stage's center. Those two
 are a different piece of work, so they become M2.3d9, with M2.3d7's *done when* on them
 unchanged, and M2.3d7 is met on the other six. HPR Sim's rule, worked by hand from OpenRocket's records, leaves the
-motor's airframe 1.6% and 1.1% under OpenRocket's inertia across the axis with the motor aboard, a figure no increment
+motor's airframe, under an added mass beside a center that covers the parts, 1.6% and 1.1% under OpenRocket's inertia across the axis with the motor aboard, a figure no increment
 held, so M2.3d9 holds it too. Meeting M2.3d9 means composing such a stage's inertia at
 the rocket level, as OpenRocket does (each part about the rocket's center, not the stage as one
 body), in a record that answers ADR-340 decision 4. This
@@ -146,7 +146,7 @@ center of the other 17. `sim_flies_a_ork_stage_whose_override_adds_to_its_parts`
 through `hpr sim` with no warning, and `a_stages_added_mass_on_parts_that_weigh_nothing_is_refused`
 holds one of ADR-335 decision 5's refusals. The same tests pin the eight departures above (six
 of the seven the second test names, and the two added inertias), so M2.3d7's *done when* failed
-on 2026-11-10, when this record was written. Decision 5's refusals stand in the code, so M2.3d8's does too. Since the amendment,
+on 2026-11-10, when this record was written. Decision 5's refusals stand in the code, so M2.3d8's does too. As of 2026-11-11,
 `STAGE_WHOLE_BELOW` pins the lower-stage probes at 4.95% and 3.33% over, and
 `openrockets_inertia_with_a_motor_aboard_is_the_same_sum` pins the motor-aboard sum at -0.016
 and -0.011, so M2.3d9's fails too.
