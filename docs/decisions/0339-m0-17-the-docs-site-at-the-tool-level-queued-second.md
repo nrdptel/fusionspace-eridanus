@@ -1,7 +1,7 @@
 # ADR-339: M0.17, the docs site at the tool level, queued second (2026-11-11)
 
-- **Status:** accepted; adds [M0.17][m0-17] to the roadmap from issue [#1364][i1364], in two increments, [M0.17a][m0-17a] and [M0.17b][m0-17b], and puts it second in the [queue][queue], after [M2.3d][m2-3d] and before [M7.5][m7-5], which amends [ADR-322][adr-322]'s order for this one milestone.
-- **Summary:** The product system the docs site is pinned to now has three levels: front pages, tools and records. A docs site is a tool: it keeps what the drawing means (line types, trust notes, signal colors, units) and leaves off the drawing's frame. The site still wears the whole record: a designation tag over each title, sheet numbers and a title block at the foot of every page. Issue #1364 asks for the move, and it is a milestone's work, not an issue's. This record adds it as M0.17 in two increments, the frame off and then the Field theme, and queues it second, where the maintainer asked for it.
+- **Status:** accepted; adds [M0.17][m0-17] to the roadmap from issue [#1364][i1364], in two increments, [M0.17a][m0-17a] and [M0.17b][m0-17b], and puts it second in the [queue][queue], after [M2.3d][m2-3d], twelve public flights, and before [M7.5][m7-5], the bias every simulator shares, which amends [ADR-322][adr-322]'s order for this one milestone.
+- **Summary:** The product system the docs site is pinned to now has three levels: front pages, tools and records. A docs site is a tool: it keeps what the drawing means (line types, trust notes, signal colors, units) and leaves off the drawing's frame. The site still wears the whole record: a designation tag over each title, sheet numbers and a title block at the foot of every page. Issue #1364 asks for the move, and it is a milestone's work, not an issue's. This record adds it as M0.17 in two increments, the frame off and then a fourth color theme, Field, and queues it second, where the maintainer asked for it.
 
 [m0-17]: ../decisions-and-roadmap.md#m0-17
 [m0-17a]: ../decisions-and-roadmap.md#m0-17a
@@ -23,13 +23,14 @@
 
 **Context.** The docs site follows the FusionSpace product system ([ADR-164][adr-164]) at a
 pinned revision. [A change to that system][design12], merged on 2026-11-10, gives it three
-levels. A front page and a record keep the engineering drawing's frame. A tool keeps the
-drawing's meaning and drops the frame. The docs site is a tool, and today it is drawn as a
+levels. A record is a drawing and keeps the whole sheet. A front page and a tool keep the
+drawing's meaning and leave off its frame. The docs site is a tool, and today it is drawn as a
 record ([ADR-223][adr-223], [ADR-231][adr-231], [ADR-235][adr-235]).
 
-[#1364][i1364] lists what moving it takes: the pin, the fonts and a new wide cut, the frame taken
-out of what `cargo xtask site` draws, a one-line footer, labels in sentence case, a fourth theme,
-and a decision record for the parts of four earlier records it changes. That is more than an
+[#1364][i1364] lists what moving it takes: the pin (the revision of the system that `theme/`
+copies), the fonts and a new wide cut of the typeface, the frame taken out of what `cargo xtask
+site` draws, a one-line footer, labels in sentence case, a fourth color theme, and a decision
+record for the parts of four earlier records it changes. That is more than an
 issue's fix: it restyles a whole surface and needs its own acceptance pass
 ([ADR-282][adr-282]).
 
@@ -54,14 +55,17 @@ maintainer asked for this milestone second all the same.
      [ADR-235][adr-235] it changes. `cargo xtask site` passes its page check at every width in
      light and dark, and `cargo xtask voice` and `cargo xtask figures` pass.
    - **M0.17b, Field.** *Done when:* the theme switch offers Auto, Light, Dark and Field, where
-     Field is mdBook's `rust` theme as the re-pinned stylesheet defines it. The page check runs
-     at every width in light, dark and field. The acceptance pass ([ADR-282][adr-282]) is in
-     the pull request.
-2. **Out of scope,** as #1364 has it: the figures `hpr sim --plot` draws and anything exported
-   as a report stay records and keep the title block, and the command line doesn't change.
+     Field is mdBook's `rust` theme as the re-pinned stylesheet defines it. `cargo xtask site`
+     passes its page check at every width in light, dark and field. The acceptance pass
+     ([ADR-282][adr-282]) is in the pull request and covers the whole restyle, M0.17a's with
+     it.
+2. **Out of scope,** as [#1364][i1364] has it: the figures `hpr sim --plot` draws and anything
+   exported as a report stay records and keep the title block, and the command line doesn't
+   change.
 3. **Second in the queue,** after [M2.3d][m2-3d] and before [M7.5][m7-5]. The rest of
-   [ADR-322][adr-322]'s order stands, and so does its hold on M0.13 and M0.9g.
-4. **#1364 closes with M0.17b.**
+   [ADR-322][adr-322]'s order stands, and so does its hold on M0.13, awareness and care on
+   the sites, and M0.9g, the figures' digits and the command line's words.
+4. **[#1364][i1364] closes with M0.17b.**
 
 **Consequences.**
 

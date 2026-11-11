@@ -132,7 +132,8 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
     organizer), and an issue template for a barrier to access are in the repository and linked from
     the site's landing page.
 - [ ] **M0.17 The docs site at the tool level** (ADR-339, #1364; in two, met when they are).
-  - [ ] **M0.17a The frame off.** *Done when:* ADR-339 decision 1's for M0.17a.
+  - [ ] **M0.17a The frame off.** *Done when:* ADR-339 decision 1's for M0.17a: no designation
+    tag or sheet numbers, a one-line footer, `theme/` re-pinned.
   - [ ] **M0.17b Field.** *Done when:* ADR-339 decision 1's for M0.17b; #1364 closes with it.
 
 ## Phase 1: Physics core (the heart), with validation interleaved
@@ -234,7 +235,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
 - [ ] **M2.12 Descent rates against the logs** (ADR-338, in two; met when they are). Moves:
   accuracy, on a second output.
   - [ ] **M2.12a The rule and the predictions.** *Done when:* ADR-338 decision 1's for M2.12a:
-    the rule and each flight's predicted rates' hash merged alone, no error computed.
+    the rule and the hash of each flight's predicted rates and readings merged, no error computed.
   - [ ] **M2.12b The errors.** *Done when:* ADR-338 decision 1's for M2.12b.
 - [ ] **M2.11 Fin flutter held to measurement** (ADR-279). *Done when:* HPR Sim's flutter readings
   are scored against at least three distinct fins measured fluttering (wind tunnel or flight, none

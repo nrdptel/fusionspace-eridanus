@@ -7,6 +7,9 @@ its tier, its user, its workflow, the row it moves and a *done when*.
 
 ## From the 2026-11-08 planning review ([ADR-328][adr-328])
 
+The review promoted a fourth idea to [M2.3d, twelve public flights][m2-3d]. The three below are
+SOON.
+
 - SOON: the flyer's own run as a baseline. User: a flyer who already simulates in OpenRocket, asking
   whether HPR Sim tells them more than the run they made with their own settings. 237 of the private
   collection's 240 distinct design files (by SHA-256) store at least one OpenRocket run with an

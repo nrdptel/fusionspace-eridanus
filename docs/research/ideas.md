@@ -105,9 +105,9 @@ Placed with [ADR-338][adr-338], which promotes the first; the other four are SOO
   error per shared flight and its mean, with the table's commit, and a test fails when the pinned
   table's hash changes.
 - SOON: a third tool on the supersonic list, and the finish it assumes. User: a flyer past Mach 1
-  asking which simulator to trust. One open tool scores itself on 23 measured apogees from RASAero
-  II's example files: 9.9% mean absolute error, +9.2% with its sign, beside RASAero II's 5.4%; 13.0%
-  on the 9 flights above Mach 1.2. It names finish as the largest unknown: at regular paint, 60 µm,
+  asking which simulator to trust. Pocket Rocket Flight Lab scores itself on 23 measured apogees
+  from RASAero II's example files: its mean absolute error is 9.9%, +9.2% with its sign, and 13.0%
+  on the 9 flights above Mach 1.2; it gives RASAero II's own as 5.4%. It names finish as the largest unknown: at regular paint, 60 µm,
   its signed error falls to +0.5% ([its validation page][prfl], read 2026-11-11). Workflow: where
   [M2.3c7][m2-3c7] scores those flights, the report cites that tool's errors beside RASAero II's and
   flies each flight at the file's finish and at two named finishes. Moves: `accuracy.supersonic`,
@@ -122,13 +122,13 @@ Placed with [ADR-338][adr-338], which promotes the first; the other four are SOO
   report gives the error both ways.
 - SOON: the collection's other predictions, sealed before anyone looks. User: a reader asking
   whether a new accuracy row was tuned. No committed report compares the collection's simulated
-  times to apogee or top speeds with their logs, so a first number can still be blind. The fit from
-  the boost has read the calibration half's climbs, so burnout speed is left out. Workflow: one
+  times to apogee or top speeds with their logs, so each can still be fixed before its error is
+  seen. The fit from the boost has read the calibration half's climbs, so burnout speed is left out. Workflow: one
   pull request merges the hash of each flight's predicted time to apogee and top speed, as
   [ADR-333][adr-333] holds the apogees', and the fixture report refuses to compare an output whose
-  hash didn't merge first. Moves: the proposed `accuracy.time-to-apogee` row, from unknown to
-  blind. *Done when:* the hashes are merged, and a test compares an invented flight only after
-  its hash.
+  hash didn't merge first. Moves: the proposed `accuracy.time-to-apogee` row, whose first figure
+  would then be one fixed before its error was seen. *Done when:* the hashes are merged, and a
+  test shows the report refuses a flight whose predicted time to apogee wasn't merged first.
 
 ## MAINTAINER'S CALL (money, outreach)
 
