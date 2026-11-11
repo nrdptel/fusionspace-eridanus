@@ -385,6 +385,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             name: String::new(),
             components: vec![nose, airframe],
             overrides: Overrides::default(),
+            added_mass: None,
             drag_override: None,
             parallel: None,
         }],

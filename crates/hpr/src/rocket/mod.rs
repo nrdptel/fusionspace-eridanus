@@ -498,6 +498,7 @@ impl Rocket {
                     name: String::new(),
                     components: Vec::new(),
                     overrides: Overrides::default(),
+                    added_mass: None,
                     drag_override: None,
                     parallel: None,
                 }],

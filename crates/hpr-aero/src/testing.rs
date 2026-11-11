@@ -82,6 +82,7 @@ pub(crate) fn one_stage(components: Vec<Component>, reference: ReferenceDiameter
             name: String::new(),
             components,
             overrides: Overrides::default(),
+            added_mass: None,
             drag_override: None,
             parallel: None,
         }],

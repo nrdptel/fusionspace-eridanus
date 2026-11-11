@@ -16,7 +16,9 @@ end), so that a part's roll inertia is the probe's less the tube's (ADR-062). M2
 probes of the single subcomponent-override flag written before schema 1.9, with the flags
 OpenRocket reads each part with. M2.2e7 added probes of fillets and of an automatic outer radius
 inside a nose cone or transition (ADR-096). M2.2e8 added probes of tube fin sets, among them
-sets whose radius OpenRocket works out from the body (#133).
+sets whose radius OpenRocket works out from the body (#133). M2.3d4 added probes of a stage's
+mass and center of gravity overrides: under every pairing of their flags on one stage, and on a
+rocket of two a mass alone that doesn't cover the parts and three pairings of both (ADR-335).
 
 OpenRocket is run, never read: its source is GPL, and nothing here comes from it. The class and
 method names used are the public API `javap` prints for the jar. Each probe is saved once, to a
@@ -44,7 +46,7 @@ import mass  # noqa: E402 - the structure and the per-part breakdown, asked the 
 
 
 # Provenance written into the fixture (docs/VALIDATION.md). Update when regenerating.
-GENERATED = "2026-11-05"
+GENERATED = "2026-11-10"
 
 
 def uid(n):
@@ -305,6 +307,98 @@ STAGE_PROBES = {
         overrides(mass_kg=2.0),
         [nose(), tube()],
     ),
+    # M2.3d4: the rest of what a stage's two overrides and their flags can say, so that a stage
+    # whose override doesn't cover its parts can be flown as OpenRocket weighs it.
+    "both overrides on the stage with no flag": (
+        overrides(2.0, 0.4),
+        [nose(), tube()],
+    ),
+    "a center of gravity override on the stage with no flag": (
+        overrides(cg_m=0.4),
+        [nose(), tube()],
+    ),
+    "a center of gravity override on the stage": (
+        overrides(cg_m=0.4, children_cg="true"),
+        [nose(), tube()],
+    ),
+    "a mass override on the stage, not its parts, and a center that covers them": (
+        overrides(2.0, 0.4, "false", "true"),
+        [nose(), tube()],
+    ),
+    "a mass override that covers the stage's parts and a center that doesn't": (
+        overrides(2.0, 0.4, "true", "false"),
+        [nose(), tube()],
+    ),
+    "a mass override on the stage, not its parts, over a part's own": (
+        overrides(mass_kg=2.0, children_mass="false"),
+        [nose(overrides(mass_kg=0.5)), tube()],
+    ),
+    "both overrides on the stage, not its parts, over a part's own": (
+        overrides(2.0, 0.4, "false", "false"),
+        [nose(overrides(mass_kg=0.5)), tube()],
+    ),
+    "a mass override of nothing on the stage, not its parts": (
+        overrides(mass_kg=0.0, children_mass="false"),
+        [nose(), tube()],
+    ),
+    "both overrides on the stage, not its parts, the center ahead of the tip": (
+        overrides(2.0, -0.1, "false", "false"),
+        [nose(), tube()],
+    ),
+    # Both overrides with one flag written and the other not: does the missing one read as
+    # `false` there too?
+    "both overrides on the stage, only the mass flag written, false": (
+        overrides(2.0, 0.4, children_mass="false"),
+        [nose(), tube()],
+    ),
+    "both overrides on the stage, only the center flag written, false": (
+        overrides(2.0, 0.4, children_cg="false"),
+        [nose(), tube()],
+    ),
+    "both overrides on the stage, only the mass flag written, true": (
+        overrides(2.0, 0.4, children_mass="true"),
+        [nose(), tube()],
+    ),
+    "both overrides on the stage, only the center flag written, true": (
+        overrides(2.0, 0.4, children_cg="true"),
+        [nose(), tube()],
+    ),
+    # Parts that weigh nothing have no center for the mass to sit at: where does OpenRocket put it?
+    "a mass override on a stage of parts that weigh nothing, not its parts": (
+        overrides(mass_kg=2.0, children_mass="false"),
+        [nose(thickness="0.0"), tube(thickness="0.0")],
+    ),
+}
+
+# M2.3d4: a rocket of two stages, the nose and tube above the tube again, so that the place a
+# stage's override is measured from, and whose parts its mass sits among, are not the rocket's.
+# Each probe: the upper stage's tags, then the lower stage's.
+TWO_STAGE_PROBES = {
+    "two stages with no override": ("", ""),
+    "a lower stage's mass override, not its parts": (
+        "",
+        overrides(mass_kg=2.0, children_mass="false"),
+    ),
+    "a lower stage's overrides, not its parts": (
+        "",
+        overrides(2.0, 0.4, "false", "false"),
+    ),
+    "a lower stage's mass override, not its parts, and a center that covers them": (
+        "",
+        overrides(2.0, 0.4, "false", "true"),
+    ),
+    "a lower stage's mass override that covers its parts and a center that doesn't": (
+        "",
+        overrides(2.0, 0.4, "true", "false"),
+    ),
+    "an upper stage's mass override, not its parts, above another stage": (
+        overrides(mass_kg=2.0, children_mass="false"),
+        "",
+    ),
+    "two stages' overrides, not their parts": (
+        overrides(2.0, 0.4, "false", "false"),
+        overrides(1.0, 0.3, "false", "false"),
+    ),
 }
 
 
@@ -458,6 +552,17 @@ OLD_FLAG_PROBES = {
         "1.10",
         "",
         [tube(overrides(cg_m=0.1) + old_flag("false") + "<overridesubcomponentscg>true</overridesubcomponentscg>", inner())],
+    ),
+    # M2.3d4: the old flag saying false on a stage.
+    "the old flag, false, on both of a stage's overrides, schema 1.4": (
+        "1.4",
+        overrides(2.0, 0.4) + old_flag("false"),
+        [nose(), tube()],
+    ),
+    "the old flag, false, on a stage's mass override, schema 1.4": (
+        "1.4",
+        overrides(mass_kg=2.0) + old_flag("false"),
+        [nose(), tube()],
     ),
 }
 
@@ -736,6 +841,20 @@ def document(parts, stage_tags="", version="1.10"):
     )
 
 
+def two_stage_document(upper_tags, lower_tags):
+    """The probe nose and tube as one stage above the probe tube again as another."""
+    lower = tube().replace(uid(2), uid(95)).replace("<name>Tube</name>", "<name>Lower tube</name>")
+    return (
+        "<?xml version='1.0' encoding='utf-8'?>\n"
+        '<openrocket version="1.10" creator="hpr-sim conventions probe">'
+        f"<rocket><name>Probe</name><id>{uid(98)}</id><subcomponents>"
+        f"<stage><name>Upper stage</name><id>{uid(99)}</id>{upper_tags}<subcomponents>"
+        f"{nose()}{tube()}</subcomponents></stage>"
+        f"<stage><name>Lower stage</name><id>{uid(96)}</id>{lower_tags}<subcomponents>"
+        f"{lower}</subcomponents></stage></subcomponents></rocket></openrocket>\n"
+    )
+
+
 def materials(component, found):
     """The material each part is read with, by id, through its public getters."""
     entry = {}
@@ -827,6 +946,7 @@ def main():
         everything += [(q, document(parts)) for q, parts in BORE_PROBES.items()]
         everything += [(q, document(parts)) for q, parts in TUBE_FIN_PROBES.items()]
         everything += [(q, document(parts, tags)) for q, (tags, parts) in STAGE_PROBES.items()]
+        everything += [(q, two_stage_document(*tags)) for q, tags in TWO_STAGE_PROBES.items()]
         everything += [(q, document([tube(children=part)])) for q, part in PART_PROBES.items()]
         # The body's radius, for the fins' roll inertia: rectangular fins on a tube twice as wide.
         wide = tube(children=fins(outline=("0.1", "0.1", "0.0", "0.05")))

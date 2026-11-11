@@ -1,5 +1,28 @@
 {
   "$defs": {
+    "AddedMass": {
+      "additionalProperties": false,
+      "description": "Mass a stage carries beyond what its parts weigh, such as glue and paint weighed on the\nfinished rocket: a point mass added to the stage's parts, motors not counted.\n\nWith parts of mass `m_p` whose center of mass is at station `x_p`, and an added mass `m_a`:\n\n- **No station** (`cg_aft_m` is `None`): the point sits at the parts' center of mass. The stage\n  weighs `m_p + m_a`; its center and its inertia about that center are the parts'.\n- **A station** `s` aft of the stage's forward end `x_0`: the point sits at `x_a = x_0 + s`\n  along the axis, as far off the axis as the parts' center of mass is: on it when that center\n  is, as on any rocket that is the same all the way round, and when the parts weigh nothing.\n  The stage weighs `m_p + m_a`, its center is at\n  `(m_p x_p + m_a x_a) / (m_p + m_a)`, and its inertia about that center is the parts' and the\n  point's by the parallel-axis theorem ([`MassProperties::combine`]).\n\nThe stage's [`Overrides`] apply afterward, to the parts and the added mass together.\n\nThis is how OpenRocket 24.12 weighs a stage's mass override that doesn't cover the stage's\nparts (`<overridesubcomponentsmass>false</overridesubcomponentsmass>`, or no flag written). Its\nuser guide says such a value \"is added to the calculated value\" ([Overrides and Surface\nFinish][guide]); where the mass goes is measured on probe designs, which hold this rule's mass,\ncenter and inertia to OpenRocket's structure ([the decision record][adr-335]): at the center of the stage's\nown parts, or at the stage's center of gravity override when that doesn't cover the parts\neither. A motor aboard doesn't move it in OpenRocket, and a [`Layout`] holds no motor.\n\nAn added mass of zero changes nothing. One above zero with no station, on a stage whose parts\nweigh nothing, has no place to sit, and [`Rocket::layout`] refuses it.\n\n[guide]: https://openrocket.readthedocs.io/en/latest/user_guide/overrides_and_surface_finish.html\n[adr-335]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0335-a-stage-s-added-mass-as-openrocket-weighs-it.md",
+      "properties": {
+        "cg_aft_m": {
+          "description": "How far aft of the stage's forward end it sits, m, as far off the axis as the center of\nmass of the stage's parts is: on the axis when that center is. `None` puts it at that\ncenter.",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "mass_kg": {
+          "description": "The mass added, kg.",
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "mass_kg"
+      ],
+      "type": "object"
+    },
     "Atmosphere": {
       "description": "The atmosphere a stored simulation was flown in.",
       "oneOf": [
@@ -3615,6 +3638,17 @@
       "additionalProperties": false,
       "description": "A stage: body components stacked from its forward end aft, on the airframe's axis or, for a\nparallel stage, along each of its pods.",
       "properties": {
+        "added_mass": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AddedMass"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Mass the stage carries beyond what its parts weigh ([`AddedMass`]): a point mass, added to\nthe parts before `overrides` apply. A parallel stage can't carry one, and neither can a\nstage a parallel stage hangs on ([`Rocket::layout`])."
+        },
         "components": {
           "description": "Body components (nose cones, body tubes, transitions), forward to aft.",
           "items": {

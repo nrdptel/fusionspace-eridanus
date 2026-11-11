@@ -2007,6 +2007,24 @@ mod tests {
                 if stage == "sustainer" && *station_m == 350.0),
             "{findings:?}"
         );
+        // An added mass at such a station drags the stage's center out with it.
+        let mut design = three_fin_rocket();
+        design.stages[0].added_mass = Some(crate::AddedMass {
+            mass_kg: 1.0,
+            cg_aft_m: Some(350.0),
+        });
+        let findings = check(&design).unwrap();
+        assert!(
+            matches!(&findings[..], [Finding::CenterOutsideRocket { stage, station_m }]
+                if stage == "sustainer" && *station_m > 100.0),
+            "{findings:?}"
+        );
+        // One with no station sits among the parts, and is not a center anyone set.
+        design.stages[0].added_mass = Some(crate::AddedMass {
+            mass_kg: 1.0,
+            cg_aft_m: None,
+        });
+        assert_eq!(check(&design).unwrap(), Vec::new());
         // A retainer on a motor mount sticking out past the airframe is on the rocket.
         let mut design = three_fin_rocket();
         let mount = &mut design.stages[0].components[1].children[0];

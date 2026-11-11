@@ -19,7 +19,8 @@ use hpr_design::parts::{BodyTube, NoseCone, Shoulder, Transition};
 use hpr_design::shapes::NoseShape;
 use hpr_design::solids::Wall;
 use hpr_design::tree::{
-    AutoDimension, Component, DragOverride, Overrides, Part, ReferenceDiameter, Rocket, Stage,
+    AddedMass, AutoDimension, Component, DragOverride, Overrides, Part, ReferenceDiameter, Rocket,
+    Stage,
 };
 use hpr_design::{Material, MotorMount};
 
@@ -299,49 +300,7 @@ fn stage(
     let at = format!("openrocket/rocket/stage[{index}]");
     let mut values = Values::new(element, &at, warnings);
     let name = values.word(&["name"]).unwrap_or_default();
-    let (mut overrides, covers_parts, drag_override) = overrides(&mut values);
-    // A stage's override is the whole stage's ([`hpr_design::Rocket::layout`]). OpenRocket 24.12
-    // adds a mass override whose flag is false, or not written, to what the stage's parts weigh,
-    // and a center of gravity override alone so flagged changes nothing (measured:
-    // `conventions.py`'s stage probes, #1225). HPR Sim can't say that yet, so such a stage is
-    // held back: the override is left out of the design and its tags kept as the file wrote them,
-    // so that an export writes back what the file said, not a flag of its own.
-    if !covers_parts && (overrides.mass_kg.is_some() || overrides.cg_aft_m.is_some()) {
-        let own = if overrides.mass_kg.is_some() {
-            "overridesubcomponentsmass"
-        } else {
-            "overridesubcomponentscg"
-        };
-        // The tag that says false: the per-quantity flag, or the single older one.
-        let said = [own, "overridesubcomponents"]
-            .into_iter()
-            .find(|name| {
-                element
-                    .child(name)
-                    .is_some_and(|flag| flag.text().trim() == "false")
-            })
-            .map_or_else(
-                || {
-                    if element.child(own).is_some() {
-                        format!("`{own}` isn't readable")
-                    } else {
-                        format!("`{own}` isn't written")
-                    }
-                },
-                |name| format!("`{name}` is false"),
-            );
-        values.warn_at(
-            WarningKind::Dropped,
-            format!(
-                "the stage's override doesn't cover its parts ({said}). OpenRocket adds such a \
-                 mass override to what the parts weigh; HPR Sim reads a stage's override as the \
-                 whole stage's, so the override was left out and the design isn't flown"
-            ),
-        );
-        values.forget(&["overridemass", "overridecg"]);
-        values.forget(&OVERRIDE_FLAGS);
-        overrides = Overrides::default();
-    }
+    let (overrides, added_mass, drag_override) = stage_overrides(&mut values);
     let covered = Covered::default().within("stage", &overrides, true, drag_override);
     let id = ids.take(&mut Values::new(element, &at, warnings), "stage");
     if let Some(separation) = recovery::separation(element, &at, warnings) {
@@ -371,9 +330,72 @@ fn stage(
         name,
         components,
         overrides,
+        added_mass,
         drag_override,
         parallel: None,
     }
+}
+
+/// A stage's overrides, as `hpr-design` states them: an override that covers the stage's parts is
+/// the whole stage's ([`Stage::overrides`]), and a mass that doesn't cover them is added to them
+/// ([`AddedMass`]).
+///
+/// This is OpenRocket 24.12's reading, measured on `conventions.py`'s stage probes
+/// ([ADR-335][adr-335]), where a flag not written reads as `false`, and so does the single older
+/// flag saying `false`:
+///
+/// | The mass override | The center of gravity override | What the stage weighs |
+/// |---|---|---|
+/// | covers the parts | any, or none | the override's mass, at the override's center if one is given: the whole stage's |
+/// | doesn't cover them | none | the parts and the mass, the mass at the parts' center |
+/// | doesn't cover them | doesn't cover them | the parts and the mass, the mass at the override's station |
+/// | doesn't cover them | covers the parts | the parts and the mass, their center moved to the override's |
+/// | none | covers the parts | the parts, their center moved to the override's |
+/// | none | doesn't cover them | the parts: the override changes nothing |
+///
+/// The last row's override is left out of the design and kept as the file wrote it, so that an
+/// export writes it back. A flag that says neither `true` nor `false` is warned of where it is
+/// read and taken as not written.
+///
+/// [adr-335]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0335-a-stage-s-added-mass-as-openrocket-weighs-it.md
+fn stage_overrides(
+    values: &mut Values<'_>,
+) -> (Overrides, Option<AddedMass>, Option<DragOverride>) {
+    let read = values.overrides();
+    let drag_override = read.cd.map(|coefficient| DragOverride {
+        coefficient,
+        include_children: read.subcomponents_cd.unwrap_or_default(),
+    });
+    let mass_covers = read.subcomponents_mass.unwrap_or_default();
+    let center_covers = read.subcomponents_cg.unwrap_or_default();
+    let mut overrides = Overrides::default();
+    let mut added_mass = None;
+    match (read.mass_kg, read.cg_m) {
+        (Some(mass_kg), center) if mass_covers => {
+            overrides.mass_kg = Some(mass_kg);
+            overrides.cg_aft_m = center;
+        }
+        (Some(mass_kg), Some(center)) if center_covers => {
+            added_mass = Some(AddedMass {
+                mass_kg,
+                cg_aft_m: None,
+            });
+            overrides.cg_aft_m = Some(center);
+        }
+        (Some(mass_kg), center) => {
+            added_mass = Some(AddedMass {
+                mass_kg,
+                cg_aft_m: center,
+            });
+        }
+        (None, Some(center)) if center_covers => overrides.cg_aft_m = Some(center),
+        (None, Some(_)) => {
+            values.forget(&["overridecg"]);
+            values.forget(&OVERRIDE_FLAGS);
+        }
+        (None, None) => {}
+    }
+    (overrides, added_mass, drag_override)
 }
 
 /// Reads one body component, and everything on and inside it; for a body tube, also the wall as

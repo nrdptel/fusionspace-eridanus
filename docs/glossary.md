@@ -45,7 +45,15 @@ mass with no weight. In steady descent it changes nothing.
 RocketPy includes it in its parachute descent and HPR Sim doesn't. For NDRT 2020's main, one of the
 [example rockets](#example-rockets), RocketPy's added mass is 15.9 kg against the rocket's 20.8 kg.
 That makes it the likely cause of the largest difference between the two codes' descents. See
-[Recovery](physics/recovery.md#against-rocketpy).
+[Recovery](physics/recovery.md#against-rocketpy). A stage's added mass, next, is something else.
+
+### Added mass (a stage's)
+
+Mass a stage carries beyond what its parts weigh, such as glue and paint weighed on the finished
+rocket. HPR Sim adds it to the stage's parts as a point: at the parts' center, or at a
+[station](#station) the design gives. It is how an OpenRocket stage's mass override is read when
+its *override for all subcomponents* box is unticked. Not the air a canopy pushes along, above.
+See [A stage's added mass](physics/design.md#a-stages-added-mass).
 
 ### AGL (above ground level)
 

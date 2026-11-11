@@ -300,6 +300,7 @@ mod tests {
                 None,
             )],
             overrides: Overrides::default(),
+            added_mass: None,
             drag_override: None,
             parallel: None,
         }];
@@ -342,6 +343,7 @@ mod tests {
                         name: String::new(),
                         components: vec![part],
                         overrides: Overrides::default(),
+                        added_mass: None,
                         drag_override: None,
                         parallel: None,
                     });
