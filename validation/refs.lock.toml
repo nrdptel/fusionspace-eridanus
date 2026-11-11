@@ -59,6 +59,17 @@ dest = "refs/fusionspace-design"
 license = "Apache-2.0 (code-like files); brand files all rights reserved"
 mode = "fetched"
 
+# Public, MIT: the Macie XL design file and its two flights' logs, which `cargo xtask
+# public-predictions` reads (M2.3d5, ADR-337). Nothing of it is committed. Its checkout is outside
+# the default corpus of `cargo xtask ork`.
+[[git]]
+name = "rocketry-files"
+url = "https://github.com/rlhatcher/rocketry-files.git"
+commit = "2ddcaf8858a71f9b4d910877c603ed95fe0a9769"
+dest = "refs/public-flights/rocketry-files"
+license = "MIT"
+mode = "fetched"
+
 # Private: designs paired with the logs of the same flight, with each day's weather (ADR-151). Its
 # files carry no licence to redistribute, so only aggregate statistics are published. Skipped with
 # a note where GitHub access is missing (CI). On Neer's Mac `refs/hpr-sim-fixtures` is a symlink to
@@ -70,14 +81,6 @@ mode = "fetched"
 # copy's git tree the same as its original commit's. The design library keeps its own manifest,
 # whose pin is the one Loft used; its paths run from `imported/loft-fixtures/`. The default
 # `cargo xtask ork` corpus reads the two `imported/` copies and leaves the rest out.
-[[git]]
-name = "rocketry-files"
-url = "https://github.com/rlhatcher/rocketry-files.git"
-commit = "2ddcaf8858a71f9b4d910877c603ed95fe0a9769"
-dest = "refs/public-flights/rocketry-files"
-license = "MIT"
-mode = "fetched"
-
 [[git]]
 name = "hpr-sim-fixtures"
 url = "https://github.com/nrdptel/hpr-sim-fixtures.git"

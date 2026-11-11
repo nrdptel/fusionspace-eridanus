@@ -60,7 +60,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
         println!(
             "public-predictions: {:<10} predicted {:>7.1} m ({:>7.1} m as a height) in {:>5.2} s, \
              Mach {:.3}, {:.1} N s, {:.3} kg at liftoff, every input traced: {}  OpenRocket's \
-             stored run (never counted) {:.1} m, {} reader warnings",
+             stored run (never counted) {:.1} m, reader warnings: {}",
             row.id,
             row.predicted_apogee_m,
             row.predicted_height_apogee_m,

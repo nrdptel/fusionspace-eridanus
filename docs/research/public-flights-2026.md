@@ -78,10 +78,9 @@ flight data were committed 2026-06-15. Both flights belong to its "MRC Summer 26
   builder meant the override as the whole rocket's mass, the stored runs fly a heavier rocket than the one
   that flew, which would read low, the side the gap is on. The repository doesn't say which was meant.
 - **Predicted (November 10, 2026).** HPR Sim now reads such a stage as OpenRocket weighs it, and both flights'
-  predictions are merged, each flown as its stored simulation from the file as saved
+  predictions are merged, each flown as its stored simulation from the file as saved, with no error computed yet
   ([ADR-337](../decisions/0337-the-macie-xl-predictions-each-flight-s-stored-simulation-flown-as-saved.md),
   [the predictions](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/public-predictions.md)).
-  No error is computed yet.
 - **Reads today.** `.pf2` has a reader ([flight logs](../format/flight-logs.md)); the page lists EasyTimer V2 logs
   among formats with no tested sample. The Grissom CSV states units in its header, so the unit-header table reader
   likely takes it. None of these was run for this note (**Inference**).

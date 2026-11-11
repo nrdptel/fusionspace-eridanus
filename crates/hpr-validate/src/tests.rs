@@ -3215,7 +3215,7 @@ fn a_stored_simulation_is_read_whole_or_refused() {
         );
     }
 
-    // Conditions stated, but not the ones a prediction here flies; no result; no conditions.
+    // Conditions stated, but not the ones a prediction here flies; no result.
     let swapped = |from: &str, to: &str| {
         assert!(whole.contains(from), "{from}");
         whole.replace(from, to)
@@ -3253,6 +3253,16 @@ fn a_stored_simulation_is_read_whole_or_refused() {
             invented_launch(&invented_design(&motor, &conditions, results, "")).expect_err(refusal);
         assert!(refused.contains(refusal), "{refusal}: {refused}");
     }
+
+    // No conditions at all.
+    let stated = format!("<conditions>{whole}</conditions>");
+    let document = invented_design(&motor, &whole, INVENTED_RESULTS, "");
+    assert_eq!(document.matches(&stated).count(), 1);
+    let bare = invented_launch(&document.replace(&stated, ""));
+    assert_eq!(
+        bare.as_ref().map_err(String::as_str).map(String::as_str),
+        Err("the stored simulation `Invented flight` states no launch conditions")
+    );
 
     // The simulation's name: none of it, or two.
     let missing = invented_launch(

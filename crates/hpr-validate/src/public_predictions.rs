@@ -21,8 +21,8 @@
 //! apogee first merged ([`MERGED`]).
 //!
 //! The predicted apogee is read as the log's altimeter would read it ([`Barometer`]: the standard
-//! atmosphere's altitude of the day's pressure at the apogee, less the pad's), because that is
-//! what it will be compared with; the height climbed is kept beside it.
+//! atmosphere's altitude of the flown air's pressure at the apogee, less the pad's), because that
+//! is what it will be compared with; the height climbed is kept beside it.
 //!
 //! Two more flights have no example notebook ([the Macie XL predictions][m2-3d5], decision
 //! [ADR-337][adr-337]): [`DESIGN_FILE_FLIGHTS`], both of one OpenRocket design saved in a pinned
@@ -327,8 +327,8 @@ pub struct PinnedRepository {
 }
 
 /// The repository both Macie XL flights are read from: its design file and the two logs, as
-/// committed there on 27 June 2026. Nothing of it is committed here but SHA-256 hashes and the
-/// numbers flown from it.
+/// they stand at its pinned commit of 27 June 2026. Nothing of it is committed here but SHA-256
+/// hashes and the numbers flown from it.
 pub const ROCKETRY_FILES: PinnedRepository = PinnedRepository {
     name: "rocketry-files",
     url: "https://github.com/rlhatcher/rocketry-files.git",
@@ -1870,7 +1870,8 @@ impl PredictionsReport {
              its motor, from its rod, in its steady wind and standard atmosphere, on HPR Sim's \
              own aerodynamics.\n\
              - **The predicted apogee** is read as the log's altimeter would read it: the standard \
-             atmosphere's altitude of the day's pressure at the apogee, less the pad's. The height \
+             atmosphere's altitude of the flown air's pressure at the apogee, less the pad's. The \
+             height \
              climbed is beside it.\n\
              - **Traced:** {} {}\n\
              - **Files:** the examples' thrust files and the logs are read from the pinned \
@@ -2029,8 +2030,8 @@ impl PredictionsReport {
                  - OpenRocket's own run of this simulation, stored in the design file, reached \
                  {} m. That is another simulator's number, not a measurement; it is shown and \
                  never counted.\n  \
-                 - The reader's warnings on this file and motor, {} of them, are in the JSON \
-                 under this flight's `reader_warnings`.",
+                 - The reader's warnings on this file and motor are in the JSON under this \
+                 flight's `reader_warnings`: {} in all.",
                 row.title,
                 row.id,
                 row.design_file,

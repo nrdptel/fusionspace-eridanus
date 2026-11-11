@@ -804,7 +804,7 @@ example's ERA5 file, a [reanalysis](glossary.md#reanalysis) of the atmosphere
 
 | rockets | why not yet |
 |---|---|
-| Astra, Andromeda, Erebus 11 | flown and [predicted](#predicted-before-compared), not compared yet: all five new public flights' predictions are merged now, and their logs are compared in a later change ([decision][adr-334]). Erebus 11 flies a [COTS motor](glossary.md#cots-motor), a Cesaroni Pro54 K, most likely the 2437K660: its thrust file gives 2,418 N·s over 3.657 s against that motor's 2,437 N·s and 3.69 s ([decision][adr-082]) |
+| Astra, Andromeda, Erebus 11, Macie XL (two flights) | flown and [predicted](#predicted-before-compared), not compared yet: all five new public flights' predictions are merged now, and their logs are compared in a later change ([decision][adr-334]). Erebus 11 flies a [COTS motor](glossary.md#cots-motor), a Cesaroni Pro54 K, most likely the 2437K660: its thrust file gives 2,418 N·s over 3.657 s against that motor's 2,437 N·s and 3.69 s ([decision][adr-082]) |
 | Camões, Halcyon, Hedy | they fly their teams' own motors, outside HPR Sim's scope of commercial motors ([decision][adr-082]) |
 | Valetudo, Defiance | their logs give an apogee, not a climb ([decision][adr-082]) |
 | Valkyrie | its inputs are only in a data file ([decision][adr-082]) |
@@ -953,8 +953,9 @@ prediction below beside its error
 | [Macie XL, flight 2][predictions] (Cesaroni 601I350-16A) | 600.8 | 692.6 | 692.7 | no |
 
 The predicted apogee is what a [barometric altimeter](glossary.md#barometric-altimeter) would
-read on the day, because each log is taken to be a barometric altimeter's. For the three EuRoC
-2022 flights that is assumed: no
+read in the air the flight is flown in: the day's for the three EuRoC 2022 flights, the stored
+simulation's standard atmosphere for the two Macie XL flights. Each log is taken to be a
+barometric altimeter's. For the three EuRoC 2022 flights that is assumed: no
 notebook says how its altimeter makes a height ([evidence row G39](evidence.md#g39)). Astra's
 reading is 3,037.1 m (9,964 ft), against a predicted climb of 3,155.4 m (10,352 ft)
 ([the predictions][predictions]). The reading is the lower of the two because an altimeter turns
@@ -992,25 +993,29 @@ one prediction of the five that passes Mach 1, at Mach 1.019
 (MIT): one OpenRocket design file, a page about the rocket and each flight's logs. HPR Sim reads
 the file whole, as OpenRocket 24.12 saved it. Its stage's mass override adds to its parts
 ([a stage's added mass](physics/design.md#a-stages-added-mass)). The file holds a stored simulation
-named for each flight, and that is what is flown: its motor, from its vertical 1 m rod, in its
-steady 2 m/s wind and the standard atmosphere, at sea level. The stored wind's turbulence is left
-out ([the Macie XL predictions](decisions-and-roadmap.md#m2-3d5)).
+named for each flight, and that is what is flown: its motor, from its vertical 1 m (3.3 ft) rod,
+in its steady 2 m/s (6.6 ft/s) wind and the standard atmosphere, at sea level. The stored wind's
+turbulence is left out ([the Macie XL predictions](decisions-and-roadmap.md#m2-3d5)).
 
 Each motor flies the bundled curve file that the design names by its
 [digest](glossary.md#digest), the file holding the curve OpenRocket flies. For the I284W that is
-not the catalog's first file, whose thrust is as far as 37% of the peak from OpenRocket's curve
-([the decision][adr-337]). Both logs are a PerfectFlite altimeter's, which is barometric
-([`.pf2` files](format/pf2.md)). In the standard atmosphere the reading and the climb agree within
-0.1 m.
+not the catalog's first file, whose thrust is as far as 0.372989 of the peak thrust from
+OpenRocket's curve ([the decision][adr-337]). Both logs are a PerfectFlite altimeter's, which is
+barometric ([`.pf2` files](format/pf2.md)). In the standard atmosphere the reading and the climb
+agree within 0.1 m (0.33 ft).
 
-**Both are tagged not traced.** Nothing public gives the launch site, the day's air and wind or the
-rail, so the stored simulation's are flown; all nine simulations in the file carry the same ones.
-Nothing says the rocket was weighed as flown. And HPR Sim's own check warns on both curve files.
-The I284W file's impulse is 1.28% from ThrustCurve.org's figure for the motor. The 601I350-16A
-file's loaded mass is 616.3 g, against ThrustCurve.org's record of 782.0 g. The file the design
-names is flown all the same. The design file also keeps the apogees OpenRocket's own runs of the
-two simulations reached, 704.6 m and 691.6 m. They are another simulator's numbers, not
-measurements, and are shown beside the predictions without being counted.
+**Both are tagged not traced** ([the decision][adr-337]). Nothing in the repository gives the
+launch site, the day's air and wind or the rail, so the stored simulation's are flown; all nine
+simulations in the file carry the same ones. Nothing says the rocket was weighed as flown. And HPR
+Sim's own check warns on both curve files. The I284W file's impulse is 1.28% from ThrustCurve.org's
+figure for the motor. The 601I350-16A file's loaded mass is 616.3 g, against ThrustCurve.org's
+record of 782.0 g. The file the design names is flown all the same.
+
+The design file also keeps the apogees OpenRocket's own runs of the two simulations reached,
+704.6 m (2,312 ft) and 691.6 m (2,269 ft) ([the decision][adr-337]). They are another simulator's
+numbers, not measurements, and are shown beside the predictions without being counted. The
+repository's page says both flights flew higher than its own simulations. HPR Sim flies the same
+file, so nothing promises that it reads closer.
 
 **What is still to come.** All twelve public flights are compared together in a later change
 ([the errors](decisions-and-roadmap.md#m2-3d2)).
@@ -1018,9 +1023,8 @@ measurements, and are shown beside the predictions without being counted.
 > **How far to trust it.** These are predictions, not results. No log has been compared, so they
 > say nothing yet about accuracy. RocketPy and the Macie XL repository had already published the
 > measured apogees, so the targets were known when the inputs were written down. Each log was also
-> looked at, for its columns and for a spike near its peak, before its rule was fixed. The Macie XL
-> repository's page says both flights flew higher than its own simulations, and HPR Sim flies the
-> same file, so nothing promises that it reads closer. Merging first does one thing:
+> looked at, for its columns and for a spike near its peak, before its rule was fixed. Merging
+> first does one thing:
 > an input changed after seeing HPR Sim's own miss now shows as a change to a merged number. The
 > code keeps the merged apogees as first merged, to the digit the page prints, and a test that CI
 > runs fails a committed prediction that has moved from them.
