@@ -1111,7 +1111,7 @@ fn sim_flies_a_ork_stage_whose_override_adds_to_its_parts() {
 /// The stage the boosters hang on flies with such a mass at a station too. The same airframe
 /// with the recorded probe's override tags on that stage (2 kg, 0.4 m, both flags `false`) is
 /// read with no other warning, holds the 2 kg as that stage's added mass, leaves the rail slower
-/// and peaks lower, and its boosters land as fast as with no override.
+/// and peaks lower, and its boosters land within 10% of their speed with no override.
 #[test]
 fn sim_flies_a_ork_parallel_stage_whose_override_adds_to_its_parts() {
     let record: Value = serde_json::from_str(

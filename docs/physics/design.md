@@ -304,8 +304,8 @@ inertia the override adds to the structure match; with the motor counted, under 
 covers the parts beside an added mass, and on the lower of two stages, the inertia across the
 axis doesn't ([below](#a-stages-added-mass-leaves-out)). On a
 [parallel stage](#parallel-stages), 25 more probes match for the stage alone. Where its
-override covers the boosters, the whole rocket's inertia across the axis falls short by up to
-4.68% of OpenRocket's.
+override covers the boosters, the override adds less to the whole rocket's inertia across the
+axis than it does in OpenRocket, by up to 4.68% of OpenRocket's figure.
 
 A finished rocket weighs more than its parts: glue, paint, wiring. A stage can carry that as an
 [`AddedMass`](../api/hpr_design/tree/struct.AddedMass.html): a point mass $m_a$ added to the
@@ -413,9 +413,10 @@ with OpenRocket 24.12, and by hand.
   parts in a million of what it adds in OpenRocket, or within 1e-9 kg·m² where it adds less
   than 0.00033 kg·m². That holds where no override covers the boosters. Where one does, the
   rocket's inertia falls short (below). A 2 kg mass at a station beside one booster sits 52 mm
-  (2.0 in) off the axis in both. OpenRocket's inertia across the axis leaves out how far a part
-  is off the axis, so with one booster HPR Sim's is compared about the body axis the booster
-  lies along, which has no such term either. With a motor in the airframe, OpenRocket's rocket at launch
+  (2.0 in) off the axis in both. OpenRocket gives one inertia across the axis, the one about
+  its y axis, and one booster hangs off the axis along that axis, so how far off it is adds
+  nothing to OpenRocket's figure. With one booster HPR Sim's is compared about the body axis
+  the booster lies along, which has no such term either. With a motor in the airframe, OpenRocket's rocket at launch
   and at burnout has the mass and center of that motor added to the same structure, as on a
   stage on the axis.
 - `tree::tests::a_parallel_stages_added_mass_sits_among_its_pods` works a parallel stage's
@@ -448,9 +449,10 @@ with OpenRocket 24.12, and by hand.
     booster from where the design puts it, with its own mass, and adds a point at the stage's
     stated center. That point is the whole stated mass under a mass that covers the boosters,
     so their own mass is counted beside it. Otherwise it is what the stage weighs more than
-    they do. The rocket's center is taken from the stage as overridden. No single body gives
-    that sum (`openrockets_sum_with_a_parallel_stages_covering_center_is_no_bodys` works it
-    from OpenRocket's records on all ten). With an added mass beside a center that covers the
+    they do. The rocket's center is taken from the stage as overridden. A stage weighed as
+    one body can't give that sum and OpenRocket's inertia for the stage alone
+    (`openrockets_sum_with_a_parallel_stages_covering_center_is_no_bodys` works the sum from
+    OpenRocket's records on all ten). With an added mass beside a center that covers the
     boosters, the override adds 0.63% of OpenRocket's inertia across the axis less with three
     boosters, and 0.22% less with one. Closing that is open work:
     [M2.3d14, the rocket's inertia beside a parallel stage's covering center](../decisions-and-roadmap.md#m2-3d14).
@@ -462,7 +464,7 @@ with OpenRocket 24.12, and by hand.
   station beside a single booster off the axis. The layout refuses both. OpenRocket weighs that
   stage with its boosters while they hang there. With no station its point sits at the center
   of the stage and boosters together, 39 mm (1.5 in) aft of the stage's own with three boosters
-  and 14 mm (0.57 in) aft with one. At a station beside one booster it sits as far off the axis
+  and 14.4 mm (0.57 in) aft with one. At a station beside one booster it sits as far off the axis
   as that center, 2.7 mm (0.11 in), and on the axis once the booster is gone. Either way it
   moves when they drop. HPR Sim's stage is one body that keeps its center. That is open work:
   [M2.3d11, the stage a parallel stage hangs on](../decisions-and-roadmap.md#m2-3d11).

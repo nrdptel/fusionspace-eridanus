@@ -934,11 +934,11 @@ mod tests {
         ]
     }
 
-    /// One of hpr's bodies. OpenRocket's inertia across the axis counts how far each part is
-    /// along the axis from the center and leaves out how far it is off the axis; hpr's tensor
-    /// leaves nothing out. A probe's one booster hangs off the axis along one body axis, so
-    /// hpr's inertia about that body axis has no off-axis term either: it is the smaller of
-    /// the two across the axis, and the two are equal on a body centered on the axis.
+    /// One of hpr's bodies. OpenRocket gives one inertia across the axis, the one about its y
+    /// axis, as both `iyy` and `izz`. A probe's one booster hangs off the axis along that
+    /// axis, so how far off it is adds nothing to OpenRocket's figure. hpr's inertia about the
+    /// body axis the booster lies along has no such term either: it is the smaller of the two
+    /// across the axis, and the two are equal on a body centered on the axis.
     fn our_body(mass: &hpr_design::MassProperties) -> Body {
         let i = mass.inertia_kg_m2;
         [
@@ -1199,7 +1199,8 @@ mod tests {
     /// about the rocket's center from where the design puts it, with its own mass, and adds a
     /// point at the stage's stated center: the whole stated mass under a mass that covers the
     /// boosters, and what the stage weighs more than they do otherwise. It takes the rocket's
-    /// center from the stage as overridden. A stage weighed as one body can't give both
+    /// center from the stage as overridden. A stage weighed as one body can't give that sum
+    /// and OpenRocket's inertia for the stage alone
     /// (`openrockets_sum_with_a_parallel_stages_covering_center_is_no_bodys`). About the axis
     /// the rocket gains what OpenRocket's does, but for one booster under a mass that covers
     /// it: OpenRocket's sum there counts the booster's own mass beside the stated one, and HPR
@@ -1281,8 +1282,9 @@ mod tests {
     /// the rocket's center, the boosters about that center from where the design puts them,
     /// 0.62 m aft of the tip, and the 2 kg added mass as a point at the stated center, 0.55 m
     /// aft. The rocket's center, though, is taken with the boosters' mass at 0.55 m. A body's
-    /// inertia about a point goes with where its mass is, so one body can't give both. The sum
-    /// is more than the body's by `2 m (x − c)(c − X)`, with the boosters' mass `m`, their
+    /// inertia about a point goes with where its mass is, so the stage as OpenRocket weighs it
+    /// alone, taken as one body, can't give that sum. The sum
+    /// is more than that body's by `2 m (x − c)(c − X)`, with the boosters' mass `m`, their
     /// center `x`, the stated center `c` and the rocket's center `X`: the shortfall the test
     /// above pins. Closing it means composing the inertia at the rocket's level, as M2.3d14
     /// plans (ADR-341).
@@ -1602,8 +1604,9 @@ mod tests {
     /// (ADR-341), on six of the eight probes: at the rocket's tip, on the axis, whichever
     /// stage carries it. A lower stage that starts 0.8 m aft of the tip and boosters that start
     /// 0.45 m aft, 52 mm off the axis, each weigh their 2 kg at the tip, alone as with the other
-    /// stage. On the other two a center that covers the parts is beside the mass, and the 2 kg
-    /// is at that center: 0.4 m aft of the stage's forward end.
+    /// stage: the rocket's center is its stages' alone, summed. On the other two a center that
+    /// covers the parts is beside the mass, and the 2 kg is at that center: 0.4 m aft of the
+    /// stage's forward end.
     ///
     /// HPR Sim refuses each: a mass at the tip of the rocket is the placement that reads the
     /// stability margin highest. M2.3d12 is the work. With a station of its own the mass has a
@@ -1638,6 +1641,17 @@ mod tests {
                 (theirs[1] - station).abs() < 1e-12,
                 "{question}: {theirs:?}"
             );
+            // With the other stage, the mass sits where it sits alone.
+            let whole = their_placement(&record, question);
+            let moment = |body: &Body| body[0] * body[1];
+            let summed: f64 = whole.alone.iter().map(moment).sum();
+            assert!(
+                (moment(&whole.rocket) - summed).abs() < 1e-12,
+                "{question}: {whole_rocket:?}",
+                whole_rocket = whole.rocket
+            );
+            let weighed: f64 = whole.alone.iter().map(|body| body[0]).sum();
+            assert!((whole.rocket[0] - weighed).abs() < 1e-12, "{question}");
             assert_eq!(
                 [theirs[0], theirs[2], theirs[3], theirs[4]],
                 [2.0, 0.0, 0.0, 0.0],

@@ -410,9 +410,11 @@ example, and the decision records give the measurements: [a stage on the axis][a
   the axis as the boosters' center: 52 mm (2.0 in) off with one booster. The boosters carry the
   mass away when they drop. On the 25 of those probes with boosters that HPR Sim lays out, the
   parallel stage alone matches OpenRocket's mass within 5 parts in 10 million, its center within
-  0.2 µm and both inertias within 3 parts in a million. OpenRocket's inertia across the axis
-  leaves out how far a part is off the axis. So with one booster the rocket's is compared about
-  the body axis the booster lies along, where HPR Sim's has no such term either.
+  0.2 µm and both inertias within 3 parts in a million. OpenRocket gives one inertia across the
+  axis, the one about its y axis. One booster hangs off the axis along that axis, so how far
+  off it is adds nothing to OpenRocket's figure. With one booster, then, the parallel stage's
+  and the rocket's inertias across the axis are compared about the body axis the booster lies
+  along, where HPR Sim's has no such term either.
 - **On the stage a parallel stage hangs on,** an added mass at a station flies. With three
   boosters, that stage and the whole rocket match OpenRocket's mass and center within the same
   bounds. Their inertias are held by what the override adds to them: within 3 parts in a million
@@ -448,9 +450,9 @@ example, and the decision records give the measurements: [a stage on the axis][a
   booster from where the design puts it, with its own mass, and adds a point at the stage's
   stated center. Under a mass that covers the boosters that point is the whole stated mass, so
   the boosters' own is counted beside it. It takes the rocket's center from the stage as
-  overridden. No single body gives that sum, which
-  `openrockets_sum_with_a_parallel_stages_covering_center_is_no_bodys` works from OpenRocket's
-  records on all ten such probes. With an added mass beside a center that covers the boosters,
+  overridden. A stage weighed as one body can't give that sum and OpenRocket's inertia for the
+  stage alone. `openrockets_sum_with_a_parallel_stages_covering_center_is_no_bodys` works the
+  sum from OpenRocket's records on all ten such probes. With an added mass beside a center that covers the boosters,
   the override adds 0.63% of OpenRocket's inertia less with three boosters and 0.22% less with
   one. Closing that is open work:
   [M2.3d14, the rocket's inertia beside a parallel stage's covering center](../decisions-and-roadmap.md#m2-3d14).
@@ -473,7 +475,7 @@ example, and the decision records give the measurements: [a stage on the axis][a
   - *On the stage a parallel stage hangs on,* an added mass with no station, and one at a
     station beside a single booster off the axis. OpenRocket weighs that stage with its
     boosters while they hang there. With no station its point sits 39 mm (1.5 in) aft of where
-    it sits once three boosters are gone, and 14 mm (0.57 in) aft with one. At a station beside
+    it sits once three boosters are gone, and 14.4 mm (0.57 in) aft with one. At a station beside
     one booster it sits 2.7 mm (0.11 in) off the axis, and on the axis once the booster is gone.
     Either way it moves when they drop. HPR Sim's stage is one body that keeps its center
     ([M2.3d11, the stage a parallel stage hangs on](../decisions-and-roadmap.md#m2-3d11)).

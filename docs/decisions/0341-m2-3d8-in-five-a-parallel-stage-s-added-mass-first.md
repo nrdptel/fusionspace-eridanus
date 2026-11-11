@@ -98,12 +98,12 @@ the axis. The mass override is 2 kg. The center override is 0.1 m on the paralle
    start 0.45 m aft each weigh their 2 kg at the tip, on the axis, alone as with the other
    stage. On the other two a center that covers the parts is beside the mass, and the 2 kg is
    at that center.
-4. **Beside a parallel stage's covering center, OpenRocket's rocket is no body's.** OpenRocket
-   sums each booster about the rocket's center from where the design puts it. It takes the
-   rocket's center with the boosters' mass at the stated center. A body's inertia goes with
-   where its mass is, so a stage weighed as one body can't give both. With the boosters' mass
-   $m$, center $x$, the stated center $c$ and the rocket's center $X$, OpenRocket's sum is more
-   than the body's by $2m(x - c)(c - X)$. Under a mass that covers the boosters, OpenRocket's
+4. **Beside a parallel stage's covering center, OpenRocket's rocket is not its stage's body.**
+   OpenRocket sums each booster about the rocket's center from where the design puts it. It
+   takes the rocket's center with the boosters' mass at the stated center. A body's inertia
+   goes with where its mass is, so the stage as OpenRocket weighs it alone, taken as one body,
+   can't give that sum. With the boosters' mass $m$, center $x$, the stated center $c$ and the
+   rocket's center $X$, OpenRocket's sum is more than that body's by $2m(x - c)(c - X)$. Under a mass that covers the boosters, OpenRocket's
    point at the stated center is the whole stated mass, beside the boosters' own, so their mass
    is counted twice and the rocket's inertia is more than a body's even where the center
    doesn't move. The same sum reproduces OpenRocket's figure on all ten probes whose override
@@ -147,9 +147,10 @@ the axis. The mass override is 2 kg. The center override is 0.1 m on the paralle
      states and its tests work by hand ([#1431][i1431]).
    - **M2.3d14, the rocket's inertia beside a parallel stage's covering center.** *Done when:*
      M2.3d8's *done when*, whole: what is left of it here is the rocket's inertia across the
-     axis with an added mass on a parallel stage beside a center that covers its parts, within
-     3 parts in a million of OpenRocket 24.12's on the two probe designs where the override
-     adds 0.63% and 0.22% less today ([#1432][i1432]).
+     axis with an added mass on a parallel stage beside a center that covers its parts. What
+     the override adds to it is within 3 parts in a million of what it adds in OpenRocket
+     24.12, decision 3's bound, on the two probe designs where it adds 0.63% and 0.22% of
+     OpenRocket's inertia less today ([#1432][i1432]).
 3. **M2.3d10's bounds** are the ones [ADR-335][adr-335]'s probes hold.
    - The parallel stage alone: its mass within 5 parts in 10 million of OpenRocket's, its
      center within 0.2 µm along the axis and off it, and each inertia within 3 parts in a
@@ -159,8 +160,9 @@ the axis. The mass override is 2 kg. The center override is 0.1 m on the paralle
      inertias are held by what the override adds to them: within 3 parts in a million of what it
      adds in OpenRocket, or within 1e-9 kg·m² where it adds less than 0.00033 kg·m².
    - With one booster, an inertia across the axis is compared about the body axis the booster
-     lies along. OpenRocket's figure leaves out how far a part is off the axis, and about that
-     axis HPR Sim's has no such term either.
+     lies along. OpenRocket gives one inertia across the axis, the one about its y axis, and
+     the booster hangs off the axis along that axis, so how far off it is adds nothing to
+     OpenRocket's figure. About that body axis HPR Sim's has no such term either.
    - Not held: the rocket's inertia across the axis beside a parallel stage's center that covers
      its parts (measurement 4). It is pinned, and M2.3d14 holds it.
 4. **What stays refused, and why.**
@@ -176,7 +178,7 @@ the axis. The mass override is 2 kg. The center override is 0.1 m on the paralle
    - *M2.3d13.* OpenRocket flies no moving mass, no released mass and no parting through a
      stage, so there is nothing to measure. The record has to choose where an added mass with no
      station goes when its stage's parts move, leave or part.
-   - *M2.3d14.* OpenRocket's sum is no body's (measurement 4). It is the composition
+   - *M2.3d14.* OpenRocket's sum is not its stage's body's (measurement 4). It is the composition
      [M2.3d9][m2-3d9] builds for a lower stage ([#1424][i1424]), so M2.3d14 follows M2.3d9.
 5. **The order.** M2.3d10, M2.3d11, M2.3d12 and M2.3d13, then M2.3d9, then M2.3d14.
    [M2.3d2][m2-3d2], the errors, stays last, as ADR-336 put it. [M2.3d4][m2-3d4] is met when
