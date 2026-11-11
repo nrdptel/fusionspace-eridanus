@@ -1,7 +1,7 @@
 # ADR-336: M2.3d4 in three, the inertia and the refusals last (2026-11-10)
 
 - **Status:** accepted; splits [M2.3d4][m2-3d4] into [M2.3d6][m2-3d6], which [ADR-335][adr-335] carried out, [M2.3d7][m2-3d7] and [M2.3d8][m2-3d8], each with its own *done when*, M2.3d4's *done when* whole across the three, and so plans every remaining increment of M2.3d4. This record puts [M2.3d5][m2-3d5] before M2.3d7 and M2.3d8, where [ADR-334][adr-334] had put all of M2.3d4 before it, and [M2.3d2][m2-3d2] stays last, as ADR-334 put it.
-- **Summary:** A stage in an OpenRocket file can carry a mass override and a center of gravity override, and each either covers the stage's parts or doesn't. M2.3d4's *done when* holds such a stage's inertia to OpenRocket's and has it held back no longer. The merged work falls short twice. Where one override covers the parts and the other doesn't, HPR Sim keeps its own inertia rule: on eight probe designs, from 11.04% under OpenRocket's to 400.5% over. And a few such stages are still refused. This record reopens the milestone in three. M2.3d6 is what merged, M2.3d7 is the inertia, and M2.3d8 is the refusals. M2.3d4 is met when both of those are.
+- **Summary:** A stage in an OpenRocket file can carry a mass override and a center of gravity override, and each covers the stage's parts or doesn't. M2.3d4's *done when* holds the inertia of a stage whose mass or center override doesn't cover its parts to OpenRocket's, and has such a stage held back no longer. The merged work falls short twice. Where one override covers the parts and the other doesn't, HPR Sim keeps its own inertia rule: on eight probe designs, from 11.04% under OpenRocket's to 400.5% over. A few such stages are still refused. This record reopens the milestone in three: M2.3d6 is what merged, M2.3d7 the inertia, M2.3d8 the refusals. M2.3d4 is met when the last two are.
 
 [m2-3d2]: ../decisions-and-roadmap.md#m2-3d2
 [m2-3d4]: ../decisions-and-roadmap.md#m2-3d4
@@ -71,15 +71,15 @@ own entry in the roadmap, with a *done when* that fails today.
    | a mass that covers the parts beside a center that doesn't, one stage | 400.5% over | 345.3% over |
    | the same on the lower of two stages (measured on the whole rocket) | 255.8% over | 18.5% over |
 
-   On the airframe with a motor aboard, under a mass beside a center that covers the parts,
-   OpenRocket adds 0.00070 kg·m² across the axis where HPR Sim adds none, and 0.00035 kg·m² on
-   the one with one pod. That is 2.4% and 1.2% of OpenRocket's structure inertia across the axis
-   there: the airframe's own, without the motor.
+   On the airframe with a motor aboard, under an added mass beside a center that covers the
+   parts, OpenRocket adds 0.00070 kg·m² across the axis where HPR Sim adds none, and
+   0.00035 kg·m² on the one with one pod. That is 2.4% and 1.2% of OpenRocket's inertia across
+   the axis on each of those probes (its structure with the override, without the motor).
 
-   M2.3d7's bounds are the ones the probes beside these hold today. On the six probes of the
-   table, each inertia is within 3 parts in a million of OpenRocket's, as on the 19. On the two
-   airframe probes, the inertia the override adds is within 1e-9 kg·m² of what it adds in
-   OpenRocket, as on that airframe's other probes.
+   M2.3d7's bounds are the ones the probes beside these hold today. M2.3d7 holds each inertia
+   on the six probes of the table within 3 parts in a million of OpenRocket's, as the 19 do
+   today. On the two airframe probes it holds the inertia the override adds within 1e-9 kg·m²
+   of what it adds in OpenRocket, as that airframe's other probes do today.
 3. **M2.3d7 has to change a standing rule, and that is its work.** The departures are
    [ADR-061][adr-061]'s rule, not the added mass, where the probes show it: on the one-stage
    probe, each tool's inertia under a center that covers the parts beside an added mass is the
@@ -91,7 +91,7 @@ own entry in the roadmap, with a *done when* that fails today.
    parts ignores the mass. M2.3d7 has to answer that argument, since the *done when* stands as
    ADR-334 wrote it. This record doesn't choose the new rule.
 4. **The order.** M2.3d5, the Macie XL predictions, goes next. The Macie XL stage's two
-   overrides each have their flag false ([ADR-334][adr-334]), so it needs M2.3d6 alone. M2.3d7
+   overrides each have their flag false ([ADR-334][adr-334]'s Context), so it needs M2.3d6 alone. M2.3d7
    and M2.3d8 follow, and M2.3d2, the errors, stays last, as ADR-334 put it. M2.3d1 is met when
    M2.3d5 and M2.3d4 both are.
 
@@ -103,7 +103,8 @@ own entry in the roadmap, with a *done when* that fails today.
   the inertia is not OpenRocket's and what is refused.
 - [#1407][i1407] is M2.3d7's issue, and closes with it.
 
-**How it was checked.** The tests behind M2.3d6 are named on [the `.ork` page][ork-stage].
+**How it was checked.** Five of the tests behind M2.3d6 are named on
+[the `.ork` page][ork-stage]; the sixth, the refusal's, is in `hpr_validate::openrocket`.
 `a_stage_override_not_covering_its_parts_adds_to_them` holds the 19 probes.
 `a_stage_override_covering_its_parts_beside_one_that_does_not`,
 `a_motor_aboard_does_not_move_a_stages_added_mass` and
