@@ -1431,16 +1431,15 @@ One line per milestone or increment, in the order it was archived within its pha
         with one override that covers its parts beside one that doesn't, held to OpenRocket
         24.12's, within the bounds ADR-336 decision 2 gives, on the eight probe designs where it
         runs from 11.04% under to 400.5% over today
-        ([#1407](https://github.com/nrdptel/fusionspace-eridanus/issues/1407)).
-        Result (ADR-340): met on six of the eight: a `.ork` stage whose override covers its
-        parts keeps them in place, as OpenRocket does, and both inertias are within 3 parts in a
-        million on the four one-stage probes, the inertia added within 1e-9 kg·m² on the two
-        airframe probes. Not met on the two with the override on the lower of two stages:
-        OpenRocket's figure there is below what the stage's tube alone has about the stage's center
-        (on one probe it counts the lower tube twice; on the other it needs a stage inertia below
-        its tube's own), so the rocket's inertia across the axis is 4.95% and 3.33% over (it was
-        1.5% and 18.5%), pinned. The collection's mean absolute apogee error goes from 12.07% to
-        12.04%.
+        ([#1407](https://github.com/nrdptel/fusionspace-eridanus/issues/1407)). Amended by
+        ADR-336 on 2026-11-11: on the six of them that aren't on the lower of two stages; those
+        two are M2.3d9's.
+        Result (ADR-340): met: a `.ork` stage whose override covers its parts keeps them in
+        place, as OpenRocket does, and both inertias are within 3 parts in a million on the four
+        one-stage probes, the inertia added within 1e-9 kg·m² on the two airframe probes. The two
+        lower-stage probes, 4.95% and 3.33% over across the axis (it was 1.5% and 18.5%), are
+        M2.3d9's: OpenRocket's figure there is below what the stage's tube alone has about the
+        stage's center. The collection's mean absolute apogee error goes from 12.07% to 12.04%.
     - [x] **M2.3d5 The Macie XL predictions** (ADR-337). *Done when:* M2.3d1's *done when*, whole: its
       own pull request merges both Macie XL flights' inputs, sources, apogee rules and predicted
       apogees, the design flown as saved from its pinned repository, no error computed, and with

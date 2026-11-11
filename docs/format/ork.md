@@ -410,7 +410,8 @@ example, and [the decision record][adr-335] gives the measurements.
   has about the stage's center, so no stage that keeps its parts in place gives it: the rocket's
   inertia across the axis is now 4.95% over OpenRocket's (a center beside an added mass) and 3.33%
   over (a mass that covers the parts, beside a center that doesn't), where it was 1.5% and 18.5%
-  (worse on the first, better on the second); about the axis the two agree. With a motor aboard OpenRocket sums the same way: on the motor's
+  (worse on the first, better on the second); about the axis the two agree. Closing this gap is
+  open work, [M2.3d9](../decisions-and-roadmap.md#m2-3d9). With a motor aboard OpenRocket sums the same way: on the motor's
   airframe, under an added mass beside a center that covers the parts, HPR Sim's rule gives an
   inertia across the axis 1.6% under OpenRocket's at launch and 1.1% under at burnout, worked by
   hand from OpenRocket's records, its motor's term in both. [The decision record][adr-340] gives

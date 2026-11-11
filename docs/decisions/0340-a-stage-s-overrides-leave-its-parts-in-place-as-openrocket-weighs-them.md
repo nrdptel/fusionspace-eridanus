@@ -1,15 +1,17 @@
 # ADR-340: A stage's overrides leave its parts in place, as OpenRocket weighs them (2026-11-11)
 
-- **Status:** accepted; carries out [M2.3d7][m2-3d7] under [ADR-336][adr-336], on six of its eight probe designs, and says why the other two can't be met by any stage that keeps its parts in place. It amends [ADR-061][adr-061]'s rule for the inertia under a stage's override that covers its parts; a part's overrides keep ADR-061's rule. It answers [ADR-335][adr-335] decision 4, and sets [ADR-336][adr-336]'s condition for M2.3d4: met when M2.3d8 is, the gaps it pins aside (the two lower-stage inertias and the sum with a motor aboard).
+- **Status:** accepted; carries out [M2.3d7][m2-3d7] under [ADR-336][adr-336], on six of its eight probe designs, and says why the other two can't be met by any stage that keeps its parts in place; ADR-336, amended, gives those two to [M2.3d9][m2-3d9]. It amends [ADR-061][adr-061]'s rule for the inertia under a stage's override that covers its parts; a part's overrides keep ADR-061's rule. It answers [ADR-335][adr-335] decision 4.
 - **Summary:** A `.ork` stage whose mass or center of gravity override covers its parts now keeps the parts where the design puts them, as OpenRocket 24.12 does. Its inertia is the parts' about the stage's center. Before, HPR Sim moved and rescaled the stage as one body. On six of M2.3d7's eight probes the inertia now matches OpenRocket's within ADR-336's bounds; it ran from 11.04% under to 400.5% over. On the two with the override on a lower stage, OpenRocket's figure is below what the stage's parts alone have about its center: the rocket's inertia across the axis is now 4.95% and 3.33% over (it was 1.5% and 18.5%), pinned. The collection's mean absolute apogee error goes from 12.07% to 12.04%.
 
 [m2-3d7]: ../decisions-and-roadmap.md#m2-3d7
 [m2-3d4]: ../decisions-and-roadmap.md#m2-3d4
+[m2-3d9]: ../decisions-and-roadmap.md#m2-3d9
 [adr-061]: 0061-what-a-ork-leaves-unsaid-read-as-openrocket.md
 [adr-329]: 0329-m7-3d6-the-collections-errors-by-halves.md
 [adr-335]: 0335-a-stage-s-added-mass-as-openrocket-weighs-it.md
 [adr-336]: 0336-m2-3d4-in-three-the-inertia-and-the-refusals-last.md
 [i1407]: https://github.com/nrdptel/fusionspace-eridanus/issues/1407
+[i1424]: https://github.com/nrdptel/fusionspace-eridanus/issues/1424
 [conventions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/openrocket/conventions.py
 [with-motor]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/openrocket/stage_added_mass.py
 [design-overrides]: ../physics/design.md#overrides
@@ -146,7 +148,11 @@ departures. So does a design in HPR Sim's own format, whose stages default to `r
 stage with no override that covers its parts weighs as before, on all 19 of ADR-335's probes.
 No tolerance moved.
 
-**Consequences.** M2.3d7 is closed: met on six of its eight probes; on the other two, this record
-shows the target is below what any stage that keeps its parts in place has, and the difference stays pinned and on the pages.
-[#1407][i1407] closes with it. [M2.3d4][m2-3d4] is met when M2.3d8, the refusals, is. The pages
+**Consequences.** M2.3d7 is met on six of its eight probes. On the other two, this record shows
+the target is below what any stage that keeps its parts in place has, and the difference stays
+pinned and on the pages. [ADR-336][adr-336], amended in place, gives those two to
+[M2.3d9][m2-3d9] ([#1424][i1424]), with M2.3d7's *done when* on them unchanged: meeting it means
+composing such a stage's inertia at the rocket level, as OpenRocket does, in a record that
+answers decision 4. [#1407][i1407] closes with M2.3d7. [M2.3d4][m2-3d4] is met when M2.3d8, the
+refusals, and M2.3d9 are. The pages
 [Overrides][design-overrides] and [A stage's override][ork-stage] say what the rule is.

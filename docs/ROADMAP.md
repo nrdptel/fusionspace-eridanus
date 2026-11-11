@@ -198,9 +198,8 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
   - [ ] **M2.3d1 The predictions** (ADR-334: in three, M2.3d3 and M2.3d5 done; met when M2.3d4 is). *Done when:*
     ADR-328 §1a's: its own pull request merges the five new flights' inputs, sources and
     predicted apogees, computing no error.
-    - [ ] **M2.3d4 A stage's override that adds to its parts** (ADR-335; ADR-336: in three,
-      M2.3d6 done, M2.3d7 closed by ADR-340 on six of its eight probes, M2.3d8 below; met when
-      M2.3d8 is, the gaps ADR-340 pins aside). *Done when:* an `.ork` stage
+    - [ ] **M2.3d4 A stage's override that adds to its parts** (ADR-335; ADR-336: in four,
+      M2.3d6 and M2.3d7 done, M2.3d8 and M2.3d9 below; met when they are). *Done when:* an `.ork` stage
       whose mass or center override doesn't cover its parts is flown as OpenRocket 24.12 weighs
       it, its mass, center and inertia held to OpenRocket's on probe designs, and is no longer
       held back.
@@ -208,6 +207,11 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
         *done when*, whole: what is left of it here is each `.ork` stage ADR-335 decision 5
         still refuses or holds back, flown as OpenRocket 24.12 weighs it, its mass, center and
         inertia held to OpenRocket's on probe designs.
+      - [ ] **M2.3d9 The inertia on the lower of two stages** (ADR-336, amended; #1424). *Done when:*
+        M2.3d4's *done when*, whole: what is left of it here is M2.3d7's *done when* on its two
+        probe designs with the override on the lower of two stages: both inertias held to
+        OpenRocket 24.12's within 3 parts in a million, where the inertia across the axis is
+        4.95% and 3.33% over today.
   - [ ] **M2.3d2 The errors.** *Done when:* ADR-328 §1b's: `real-flights` flies all 12, each new
     prediction beside its error; `accuracy.public` and `bias.public` over all 12.
 - [ ] **M2.8 Honest uncertainty** (ADR-209 §5). *Done when:* each logged flight is also flown as a

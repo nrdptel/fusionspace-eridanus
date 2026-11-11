@@ -398,7 +398,8 @@ with OpenRocket 24.12, and by hand.
     own inertia would have to be less than its tube's. On both, it is less than the tube alone
     has about the stage's center, so no stage that keeps its parts in place gives it. The rocket's inertia across the axis is
     4.95% over OpenRocket's (the center beside an added mass) and 3.33% over (a mass that covers
-    the parts, beside a center that doesn't). About the axis the two agree.
+    the parts, beside a center that doesn't). About the axis the two agree. Closing this gap is
+    open work, [M2.3d9](../decisions-and-roadmap.md#m2-3d9).
   - *With a motor aboard.* OpenRocket sums the same way about the rocket's center with the motor.
     On the motor's airframe, under an added mass beside a center that covers the parts, taking
     the parts' inertia about the stage's center, as HPR Sim does, gives an inertia across the axis 1.6% under OpenRocket's
