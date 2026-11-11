@@ -13,8 +13,10 @@
 //!   it is the mark; `--first` writes one where none was ever committed.
 //! - `--check` writes nothing, and fails on the same worsening or when the committed files are not
 //!   what the reports write. `--against <revision>` also holds the reports to the scoreboard
-//!   committed there: CI and the gate give `origin/main`, so a pull request that regenerates the
-//!   scoreboard with a worse number still fails against main's.
+//!   committed there: CI gives `HEAD^1`, its checkout's first parent (main as a pull request was
+//!   merged into it, or main before the commit a run on main checked out), and the gate gives
+//!   `origin/main`, so a pull request that regenerates the scoreboard with a worse number still
+//!   fails against main's.
 //!
 //! A cell is worse when its row's [`Worse`] rule says so at the printed precision, when it counts
 //! fewer flights or designs, or when a measured cell is no longer measured; a worsening passes only when an accepted ADR names the
@@ -370,7 +372,7 @@ fn mark(committed: Option<Scoreboard>, first: bool) -> Result<Option<Scoreboard>
 }
 
 /// Fails unless the committed reports are no worse than the committed scoreboard, nor than the one
-/// at `against` when given (CI gives `origin/main`), or an accepted ADR names each worsening and
+/// at `against` when given (CI gives `HEAD^1`, the gate `origin/main`), or an accepted ADR names each worsening and
 /// the next release; the committed files are what they write; and each unmeasured cell names an
 /// open milestone. Returns the accepted worsenings' lines.
 pub(crate) fn check_committed(root: &Path, against: Option<&str>) -> Result<Vec<String>, String> {
