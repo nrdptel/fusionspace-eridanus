@@ -819,8 +819,9 @@ impl Overrides {
 /// How a stage's [`Overrides`] set its inertia. Both rules give the stage the overrides' mass and
 /// center; they differ in where the stage's parts are taken to be, and so in the inertia.
 ///
-/// With the parts' mass `m_p`, center `x_p` and inertia `I_p` about it (an [`AddedMass`] counted
-/// among them), a mass override `m′` and a center override `c`:
+/// With the parts' mass `m_p`, center `x_p` and inertia `I_p` about it, a mass override `m′` and
+/// a center override `c`, an [`AddedMass`] at a station counted among the parts (one with no
+/// station is too under `Rescaled`, and sits at `c` under `PartsInPlace`):
 ///
 /// | | Rescaled | Parts in place |
 /// |---|---|---|
@@ -855,7 +856,7 @@ pub enum StageOverrideRule {
     /// stage's inertia is its parts' about the stage's center, and the mass a mass override adds
     /// or takes away sits at that center. This is how OpenRocket 24.12 weighs a stage's overrides
     /// that cover its parts, measured on probe designs (`validation/oracles/openrocket/`), and the
-    /// `.ork` reader gives it to every stage with such an override ([ADR-340][adr-340]).
+    /// `.ork` reader gives it to every stage on the axis with such an override ([ADR-340][adr-340]).
     ///
     /// [adr-340]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0340-a-stage-s-overrides-leave-its-parts-in-place-as-openrocket-weighs-them.md
     PartsInPlace,
@@ -4247,10 +4248,6 @@ mod tests {
         }
     }
 
-    /// A stage's added mass is a point mass among its parts ([`AddedMass`]), worked by hand: with
-    /// no station it sits at the parts' center and moves nothing; with one it sits that far aft
-    /// of its own stage's forward end, as far off the axis as the parts' center is, and the
-    /// stage's center and inertia follow the parallel-axis theorem. A whole-stage center override then moves the two together.
     /// [`StageOverrideRule::PartsInPlace`] leaves a stage's parts where the design puts them:
     /// its inertia is theirs about the stage's center, the mass an override adds and an added
     /// mass with no station sit at that center, and the mass and the center are what the default
@@ -4423,6 +4420,10 @@ mod tests {
         );
     }
 
+    /// A stage's added mass is a point mass among its parts ([`AddedMass`]), worked by hand: with
+    /// no station it sits at the parts' center and moves nothing; with one it sits that far aft
+    /// of its own stage's forward end, as far off the axis as the parts' center is, and the
+    /// stage's center and inertia follow the parallel-axis theorem. A whole-stage center override then moves the two together.
     #[test]
     fn a_stages_added_mass_is_a_point_among_its_parts() {
         // Two stages, so that the lower one's forward end isn't the tip.

@@ -1,7 +1,7 @@
 # ADR-340: A stage's overrides leave its parts in place, as OpenRocket weighs them (2026-11-11)
 
 - **Status:** accepted; carries out [M2.3d7][m2-3d7] under [ADR-336][adr-336], on six of its eight probe designs, and says why the other two can't be met by any rigid stage. It amends [ADR-061][adr-061]'s rule for the inertia under a stage's override that covers its parts; a part's overrides keep ADR-061's rule. It answers [ADR-335][adr-335] decision 4.
-- **Summary:** A `.ork` stage whose mass or center of gravity override covers its parts now keeps its parts where the design puts them, as OpenRocket 24.12 does. Its inertia is its parts' about the stage's center, and the mass an override adds sits at that center. Before, HPR Sim moved and rescaled the stage as one body. On the six one-stage and airframe probes of M2.3d7 the inertia now matches OpenRocket's within the bounds ADR-336 set; before, it ran from 11.04% under to 400.5% over. On the two probes with the override on the lower of two stages, OpenRocket's figure is no rigid stage's. The rocket's inertia across the axis stays 4.95% and 3.33% over OpenRocket's there, pinned. On the private collection's 60 logged flights the mean absolute apogee error goes from 12.07% to 12.04%.
+- **Summary:** A `.ork` stage whose mass or center of gravity override covers its parts now keeps the parts where the design puts them, as OpenRocket 24.12 does. Its inertia is the parts' about the stage's center. Before, HPR Sim moved and rescaled the stage as one body. On six of M2.3d7's eight probes the inertia now matches OpenRocket's within ADR-336's bounds; it ran from 11.04% under to 400.5% over. On the two with the override on the lower of two stages, OpenRocket's figure is no rigid stage's, and the rocket's inertia across the axis stays 4.95% and 3.33% over, pinned. The collection's mean absolute apogee error goes from 12.07% to 12.04%.
 
 [m2-3d7]: ../decisions-and-roadmap.md#m2-3d7
 [m2-3d4]: ../decisions-and-roadmap.md#m2-3d4
@@ -33,7 +33,8 @@ OpenRocket leaves each part where the design puts it.
 - **On one stage**, every pairing of overrides where one covers the parts gives the parts' inertia
   about the stage's center, and nothing more. The one-stage probe's parts weigh 0.3996 kg,
   centered 0.4701 m aft of the tip, with 0.015838 kg·m² across the axis. A center override of
-  0.4 m gives 0.015838 + 0.3996 × 0.0701² = 0.017803 kg·m², OpenRocket's figure. The same figure
+  0.4 m gives 0.015838 + 0.3996 × 0.0701² = 0.017802 kg·m² by hand, OpenRocket's 0.017803 kg·m²
+  (the hand sum rounds the distance). The same figure
   comes back with a 2 kg mass override that covers the parts beside it, so that mass adds no
   inertia. It comes back with a 2 kg added mass beside it too: the added mass sits at the
   center, not at the parts' center. About the axis, the parts' inertia is kept, never scaled.
@@ -49,9 +50,11 @@ OpenRocket leaves each part where the design puts it.
     the axis would be 0.003761 kg·m². Its tube alone has 0.006784 kg·m² about the tube's own
     center, and no body that holds the tube has less.
 - **With a motor aboard**, OpenRocket's inertia at launch and at burnout is the same sum, the
-  motor's own term added, to 3e-16. On the motor probes' airframe, under an added mass beside a
-  center that covers the parts, a rigid stage is 1.6% under OpenRocket's inertia across the
-  axis at launch and 1.1% under at burnout. ADR-061's rule was 3.1% and 2.9% under.
+  motor's own term added, to 1e-12 on the three motor probes. On their airframe, under an added
+  mass beside a center that covers the parts, a rigid stage at the stated center is 1.6% under
+  OpenRocket's inertia across the axis at launch and 1.1% under at burnout, worked from
+  OpenRocket's own records with its motor's term in both. ADR-061's rule, worked the same way,
+  was 3.1% and 2.9% under.
 
 **Decision.**
 
@@ -69,14 +72,15 @@ OpenRocket leaves each part where the design puts it.
    The key is optional and written only when it isn't the default, so a design written
    without it reads as before. It joins format 0.2 in place, as `added_mass` did
    ([ADR-335][adr-335]).
-2. **The `.ork` reader gives `parts_in_place` to every stage whose override covers its parts.**
-   That is a center alone, a mass alone, both, and each pairing where one covers the parts and
-   the other doesn't. Taking the two mixed pairings alone, as M2.3d7 names them, would split
-   stages OpenRocket weighs the same. A mass that covers the parts beside a center whose flag is
-   `false` weighs exactly as both covering. A design could then fly two inertias, 5.0 times
-   apart on the one-stage probe, on a flag OpenRocket ignores. And an added mass of 1 g beside
-   a center would change the stage's inertia by 11%. A stage with no override, or only an
-   added mass, keeps the default: the rule changes nothing there.
+2. **The `.ork` reader gives `parts_in_place` to every stage on the axis whose override covers
+   its parts.** That is a center alone, a mass alone, both, and each pairing where one covers the
+   parts and the other doesn't. Taking the two mixed pairings alone, as M2.3d7 names them, would
+   split stages OpenRocket weighs the same. A mass that covers the parts beside a center whose
+   flag is `false` weighs exactly as both covering. A design could then fly two inertias on a
+   flag OpenRocket ignores: on the one-stage probe, 5.0 times apart about the axis and 4.5 times
+   across it. And an added mass of 1 g beside a center would raise the stage's inertia across
+   the axis by 12%. A stage with no override, or only an added mass, keeps the default: the rule
+   changes nothing there. A parallel stage's override is read as a pod set's, as before.
 3. **ADR-335 decision 4's argument, answered.** It argued that holding HPR Sim to OpenRocket under
    a mass that covers the parts "would trade a rule that follows the mass for one that ignores
    it". Three things outweigh that for a `.ork`.
@@ -89,9 +93,9 @@ OpenRocket leaves each part where the design puts it.
      inside hasn't moved them. Moving the stage whole moves parts the designer placed.
 
    The cost is real and stays on the pages. Under `parts_in_place` the mass the parts miss adds
-   no inertia. If it is spread along the stage as the parts are, the true inertia is higher, by
-   up to the mass ratio under a mass override: 5.0 times on the one-stage probe, where 2 kg
-   covers 0.40 kg of parts. A design in HPR Sim's own format keeps `rescaled` unless it asks
+   no inertia. If it is spread along the stage as the parts are, the true inertia is higher by
+   the mass ratio under a mass override: 5.0 times on the one-stage probe, where 2 kg covers
+   0.40 kg of parts. If it sits farther out, higher still. A design in HPR Sim's own format keeps `rescaled` unless it asks
    for the other.
 4. **The two lower-stage probes keep a difference, pinned.** No rigid stage gives OpenRocket's
    figure there (above), so HPR Sim doesn't reproduce it. Its rule is the one OpenRocket's sum
@@ -100,7 +104,8 @@ OpenRocket leaves each part where the design puts it.
    and 3.33% over under the mass beside a center that doesn't cover the parts. About the axis
    the two agree. Before, those were 1.5% over, and 18.5% and 255.8% over.
    `openrockets_lower_stage_sum_is_no_rigid_stage` reproduces OpenRocket's sum and checks both
-   reasons.
+   reasons; `openrockets_inertia_with_a_motor_aboard_is_the_same_sum` does so with a motor
+   aboard and pins the 1.6% and 1.1%.
 5. **A Monte Carlo run disperses such a stage as any other.** Its dry-mass scale and center
    shift work by writing the stage's overrides. On a `parts_in_place` stage that would keep the
    parts' inertia under a new mass. So the run states the stage's nominal inertia, scaled,
@@ -111,19 +116,20 @@ OpenRocket leaves each part where the design puts it.
 
 **How well HPR Sim agrees.**
 
-- **The six probes of M2.3d7's eight on one stage and the airframe**, and the three probes of
-  a stage's overrides covering the parts that ADR-061 pinned: mass within 5 parts in 10 million,
-  center within 0.2 µm, both inertias within 3 parts in a million of OpenRocket's. On each, the
-  old rule is more than 10% from OpenRocket's inertia across the axis, so the test can tell the
-  two apart. On the two airframe probes, the inertia the override adds is within 1e-9 kg·m² of
-  OpenRocket's 0.00070 and 0.00035 kg·m².
+- **The eight one-stage probes** (M2.3d7's four, a center alone, and the three of a stage's
+  overrides covering the parts that ADR-061 pinned): mass within 5 parts in 10 million, center
+  within 0.2 µm, both inertias within 3 parts in a million of OpenRocket's. On each, the old
+  rule is more than 10% from OpenRocket's inertia across the axis, so the test can tell the two
+  apart.
+- **M2.3d7's two airframe probes:** the inertia the override adds is within 1e-9 kg·m² of
+  OpenRocket's 0.00070 and 0.00035 kg·m², where the old rule added none.
 - **The two lower-stage probes:** mass and center within the same bounds, roll within 3 parts in
   a million, pitch 4.95% and 3.33% over, as above.
 - **The reports.** On the private collection's 60 logged flights, HPR Sim's mean absolute
   apogee error goes from 12.07% to 12.04% and its mean error from +7.76% to +7.72%; against
   OpenRocket its median apogee difference goes from +0.62% to +0.53%. Six of the 54 public
   `.ork` flights compared with OpenRocket move, and six of the 35 private library flights. Each
-  apogee moves by less than 0.001 percentage points; the drift at apogee, by up to 0.12 m. The
+  apogee moves by less than 0.001 percentage points; the drift at apogee, by less than 0.13 m. The
   held-out half's sealed digest changes with its aggregates, as [ADR-329][adr-329] decision 7
   expects.
 

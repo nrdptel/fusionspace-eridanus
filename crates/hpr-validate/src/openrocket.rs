@@ -1109,6 +1109,61 @@ mod tests {
         assert!((added_kg - bare_kg - 2.0).abs() < 1e-12, "{added_kg}");
     }
 
+    /// With a motor aboard, OpenRocket 24.12's inertia across the axis at launch and at burnout is
+    /// the same sum as on the lower of two stages (`openrockets_lower_stage_sum_is_no_rigid_stage`):
+    /// each part at its own place, the stage's 2 kg as a point at the stage's center, and the
+    /// motor, about the rocket's center, to 1e-12 on each of the three probes. Under a center that
+    /// covers the parts the stage's center isn't where its masses balance, so a rigid stage, HPR
+    /// Sim's rule (ADR-340), gives 1.6% less at launch and 1.1% less at burnout. Both readings
+    /// take the motor's term from OpenRocket's own records.
+    #[test]
+    fn openrockets_inertia_with_a_motor_aboard_is_the_same_sum() {
+        let record = added_mass_record();
+        let body = |question: &str, when: &str| {
+            let body = &probe(&record, question)[when];
+            ["mass_kg", "cm_x_m", "iyy"].map(|key| body[key].as_f64().expect("a number"))
+        };
+        let [parts_kg, parts_m, parts_i] = body("no override", "structure");
+        // The 2 kg sits at the parts' center, at the center override's 0.4 m station from the
+        // tip where the stage starts, and at the same station beside a center that covers them.
+        let at_m = [parts_m, 0.4, 0.4];
+        for when in ["launch", "burnout"] {
+            let [with_kg, with_m, with_i] = body("no override", when);
+            let motor_kg = with_kg - parts_kg;
+            let motor_m = (with_kg * with_m - parts_kg * parts_m) / motor_kg;
+            let motor_i = with_i
+                - parts_i
+                - parts_kg * (parts_m - with_m).powi(2)
+                - motor_kg * (motor_m - with_m).powi(2);
+            for (question, point_m) in ADDED_WITH_A_MOTOR.into_iter().zip(at_m) {
+                let [_, x_m, inertia] = body(question, when);
+                let sum = parts_i
+                    + parts_kg * (parts_m - x_m).powi(2)
+                    + 2.0 * (point_m - x_m).powi(2)
+                    + motor_i
+                    + motor_kg * (motor_m - x_m).powi(2);
+                assert!(
+                    relative(sum, inertia).abs() < 1e-12,
+                    "{question} at {when}: {sum} {inertia}"
+                );
+            }
+            // A rigid stage at its stated center, the motor added to it.
+            let question = ADDED_WITH_A_MOTOR[2];
+            let [stage_kg, stage_m, stage_i] = body(question, "structure");
+            let [_, x_m, inertia] = body(question, when);
+            let rigid = stage_i
+                + stage_kg * (stage_m - x_m).powi(2)
+                + motor_i
+                + motor_kg * (motor_m - x_m).powi(2);
+            let apart = (relative(rigid, inertia) * 1e3).round() / 1e3;
+            assert_eq!(
+                apart,
+                if when == "launch" { -0.016 } else { -0.011 },
+                "{when}"
+            );
+        }
+    }
+
     /// The single subcomponent-override flag written before schema 1.9, and how far hpr's center
     /// of mass is from OpenRocket's, in meters, on each probe of it.
     const OLD_FLAG: [(&str, f64); 11] = [

@@ -1829,8 +1829,9 @@ export interface Stage {
  * How a stage's `Overrides` set its inertia. Both rules give the stage the overrides' mass and
  * center; they differ in where the stage's parts are taken to be, and so in the inertia.
  *
- * With the parts' mass `m_p`, center `x_p` and inertia `I_p` about it (an `AddedMass` counted
- * among them), a mass override `m′` and a center override `c`:
+ * With the parts' mass `m_p`, center `x_p` and inertia `I_p` about it, a mass override `m′` and
+ * a center override `c`, an `AddedMass` at a station counted among the parts (one with no
+ * station is too under `Rescaled`, and sits at `c` under `PartsInPlace`):
  *
  * | | Rescaled | Parts in place |
  * |---|---|---|

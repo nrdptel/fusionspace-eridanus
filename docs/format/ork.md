@@ -409,7 +409,7 @@ example, and [the decision record][adr-335] gives the measurements.
   OpenRocket's figure is no rigid stage's, and the rocket's inertia across the axis stays 4.95%
   over OpenRocket's (a center beside an added mass) and 3.33% over (a mass beside a center that
   doesn't cover the parts); about the axis the two agree. With a motor aboard OpenRocket sums the
-  same way, so on the motor's airframe HPR Sim's inertia across the axis is 1.6% under
+  same way: on the motor's airframe a rigid stage's inertia across the axis is 1.6% under
   OpenRocket's at launch and 1.1% under at burnout. [The decision record][adr-340] gives the
   measurements.
 - **A center alone that doesn't cover the parts** changes nothing in OpenRocket. It is left out
@@ -432,12 +432,13 @@ example, and [the decision record][adr-335] gives the measurements.
 
 The tests `a_stage_override_not_covering_its_parts_adds_to_them` (19 probes),
 `a_stage_override_covering_its_parts_beside_one_that_does_not` (10 probes),
-`openrockets_lower_stage_sum_is_no_rigid_stage`,
 `a_motor_aboard_does_not_move_a_stages_added_mass` and
 `a_stages_added_mass_sits_among_its_pods_and_level_with_their_center` (6 probes with pods) in
 `hpr_validate::openrocket` hold HPR Sim to
 OpenRocket's answers, and `a_stage_override_not_covering_its_parts_is_read_and_written_back` in
-the `.ork` writer holds the export. The command line's test
+the `.ork` writer holds the export. `openrockets_lower_stage_sum_is_no_rigid_stage` and
+`openrockets_inertia_with_a_motor_aboard_is_the_same_sum` reproduce OpenRocket's own sums from
+its records, and check why no rigid stage gives them. The command line's test
 `sim_flies_a_ork_stage_whose_override_adds_to_its_parts` flies one of the probes through
 `hpr sim`, with no warning. Until this was read, such a stage was held back
 ([#1225](https://github.com/nrdptel/fusionspace-eridanus/issues/1225)): taking the override as
