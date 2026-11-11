@@ -412,8 +412,9 @@ example, and [the decision record][adr-335] gives the measurements.
   over (a mass that covers the parts, beside a center that doesn't), where it was 1.5% and 18.5%;
   about the axis the two agree. With a motor aboard OpenRocket sums the same way: on the motor's
   airframe, under an added mass beside a center that covers the parts, HPR Sim's rule gives an
-  inertia across the axis 1.6% under OpenRocket's at launch and 1.1% under at burnout.
-  [The decision record][adr-340] gives the measurements.
+  inertia across the axis 1.6% under OpenRocket's at launch and 1.1% under at burnout, worked by
+  hand from OpenRocket's records, its motor's term in both. [The decision record][adr-340] gives
+  the measurements.
 - **A center alone that doesn't cover the parts** changes nothing in OpenRocket. It is left out
   of the design and kept as the file wrote it, so an export writes it back.
 - **A flag that says neither `true` nor `false`** is warned of where it is read, which holds the
@@ -437,7 +438,8 @@ The tests `a_stage_override_not_covering_its_parts_adds_to_them` (19 probes),
 `a_motor_aboard_does_not_move_a_stages_added_mass` and
 `a_stages_added_mass_sits_among_its_pods_and_level_with_their_center` (6 probes with pods) in
 `hpr_validate::openrocket` hold HPR Sim to
-OpenRocket's answers, and `a_stage_override_not_covering_its_parts_is_read_and_written_back` in
+OpenRocket's mass and center, and its inertia on all but the two lower-stage probes (pinned at
+4.95% and 3.33% over); with a motor aboard they hold the inertia the override adds. And `a_stage_override_not_covering_its_parts_is_read_and_written_back` in
 the `.ork` writer holds the export. `openrockets_lower_stage_sum_is_below_its_parts_in_place` and
 `openrockets_inertia_with_a_motor_aboard_is_the_same_sum` reproduce OpenRocket's own sums from
 its records, and check why no stage that keeps its parts in place gives them. The command line's test

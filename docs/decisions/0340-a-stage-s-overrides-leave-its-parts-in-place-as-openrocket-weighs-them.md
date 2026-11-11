@@ -1,6 +1,6 @@
 # ADR-340: A stage's overrides leave its parts in place, as OpenRocket weighs them (2026-11-11)
 
-- **Status:** accepted; carries out [M2.3d7][m2-3d7] under [ADR-336][adr-336], on six of its eight probe designs, and says why the other two can't be met by any stage that keeps its parts in place. It amends [ADR-061][adr-061]'s rule for the inertia under a stage's override that covers its parts; a part's overrides keep ADR-061's rule. It answers [ADR-335][adr-335] decision 4, and sets [ADR-336][adr-336]'s condition for M2.3d4: met when M2.3d8 is, the two pinned gaps aside.
+- **Status:** accepted; carries out [M2.3d7][m2-3d7] under [ADR-336][adr-336], on six of its eight probe designs, and says why the other two can't be met by any stage that keeps its parts in place. It amends [ADR-061][adr-061]'s rule for the inertia under a stage's override that covers its parts; a part's overrides keep ADR-061's rule. It answers [ADR-335][adr-335] decision 4, and sets [ADR-336][adr-336]'s condition for M2.3d4: met when M2.3d8 is, the gaps it pins aside (the two lower-stage inertias and the sum with a motor aboard).
 - **Summary:** A `.ork` stage whose mass or center of gravity override covers its parts now keeps the parts where the design puts them, as OpenRocket 24.12 does. Its inertia is the parts' about the stage's center. Before, HPR Sim moved and rescaled the stage as one body. On six of M2.3d7's eight probes the inertia now matches OpenRocket's within ADR-336's bounds; it ran from 11.04% under to 400.5% over. On the two with the override on a lower stage, OpenRocket's figure is below what the stage's parts alone have about its center: the rocket's inertia across the axis is now 4.95% and 3.33% over (it was 1.5% and 18.5%), pinned. The collection's mean absolute apogee error goes from 12.07% to 12.04%.
 
 [m2-3d7]: ../decisions-and-roadmap.md#m2-3d7
@@ -57,7 +57,7 @@ OpenRocket leaves each part where the design puts it.
   stated center, is 1.6% under
   OpenRocket's inertia across the axis at launch and 1.1% under at burnout, worked from
   OpenRocket's own records with its motor's term in both. ADR-061's rule, worked by hand from the same
-  records, was 3.1% and 2.9% under.
+  records and not pinned, was 3.1% and 2.9% under.
 
 **Decision.**
 

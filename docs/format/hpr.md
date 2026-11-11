@@ -130,7 +130,7 @@ one body, and `"parts_in_place"` leaves its parts where they are, as OpenRocket 
 stage. The `.ork` reader gives `"parts_in_place"` to a stage whose override covers its parts; a
 design written by hand keeps `"rescaled"` unless it asks. Under `"parts_in_place"` the mass an
 override adds sits at the stage's center and adds no inertia, so if that mass is really spread
-along the stage, the inertia reads low, by about the mass ratio (5 times on the probe there). A
+along the stage, the inertia reads low, by about the mass ratio (5 times for a 2 kg mass override over 0.40 kg of parts). A
 0.2 document written before the key reads the same ([A stage's rule](../physics/design.md#overrides)).
 
 A motor that flies is written out in full, its thrust curve included, so a document flies with no

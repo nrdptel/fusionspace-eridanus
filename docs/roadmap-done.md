@@ -1437,8 +1437,9 @@ One line per milestone or increment, in the order it was archived within its pha
         million on the four one-stage probes, the inertia added within 1e-9 kg·m² on the two
         airframe probes. Not met on the two with the override on the lower of two stages:
         OpenRocket's figure there is below what the stage's tube alone has about the stage's center
-        (it also counts the lower tube twice, or needs a stage inertia below its tube's own), so the rocket's inertia across the axis is 4.95% and
-        3.33% over (it was 1.5% and 18.5%), pinned. The collection's mean absolute apogee error goes from 12.07% to
+        (on one probe it counts the lower tube twice; on the other it needs a stage inertia below
+        its tube's own), so the rocket's inertia across the axis is 4.95% and 3.33% over (it was
+        1.5% and 18.5%), pinned. The collection's mean absolute apogee error goes from 12.07% to
         12.04%.
     - [x] **M2.3d5 The Macie XL predictions** (ADR-337). *Done when:* M2.3d1's *done when*, whole: its
       own pull request merges both Macie XL flights' inputs, sources, apogee rules and predicted

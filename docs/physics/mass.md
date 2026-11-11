@@ -526,7 +526,7 @@ differs from OpenRocket, and a test pins by how much.
 
 A `.ork` stage's overrides follow OpenRocket now. OpenRocket leaves a stage's parts where they
 are, scaling nothing, since a stage has no inertia of its own. The reader gives such a stage that
-rule, and its inertia matches OpenRocket's on one stage. On the lower of two stages a difference
+rule, and its inertia matches OpenRocket's on one stage with no motor aboard. On the lower of two stages a difference
 remains: 4.95% and 3.33% over across the axis on the two probes, where it was 1.5% and 18.5%
 ([A stage's rule](design.md#overrides)). Before, HPR Sim's was about 2.5 to 5 times OpenRocket's
 under a stage's mass override on the one-stage probes.

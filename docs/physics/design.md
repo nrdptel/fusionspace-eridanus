@@ -299,8 +299,9 @@ This is how HPR Sim reads an OpenRocket stage whose mass override doesn't cover 
 19 probe designs the mass, center and inertia match OpenRocket 24.12's (the whole rocket's, on
 the five probes of a rocket of two). Where one of the stage's two overrides covers the parts,
 they match too on one stage. On an airframe with a motor aboard the mass, the center and the
-inertia the override adds to the structure match; with the motor counted, and on the lower of
-two stages, the inertia across the axis doesn't ([below](#a-stages-added-mass-leaves-out)).
+inertia the override adds to the structure match; with the motor counted, under a center that
+covers the parts beside an added mass, and on the lower of two stages, the inertia across the
+axis doesn't ([below](#a-stages-added-mass-leaves-out)).
 
 A finished rocket weighs more than its parts: glue, paint, wiring. A stage can carry that as an
 [`AddedMass`](../api/hpr_design/tree/struct.AddedMass.html): a point mass $m_a$ added to the
