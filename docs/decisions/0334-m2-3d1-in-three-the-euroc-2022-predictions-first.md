@@ -1,6 +1,6 @@
 # ADR-334: M2.3d1 in three, the EuRoC 2022 predictions first (2026-11-10)
 
-- **Status:** accepted; splits [M2.3d1][m2-3d1] into [M2.3d3][m2-3d3], [M2.3d4][m2-3d4] and [M2.3d5][m2-3d5], each with its own *done when*, M2.3d1's *done when* whole across the three, and so plans every remaining increment of M2.3d1; carries out M2.3d3 under [ADR-328][adr-328] §1a. [M2.3d2][m2-3d2], the errors, stays last, after all three.
+- **Status:** accepted; splits [M2.3d1][m2-3d1] into [M2.3d3][m2-3d3], [M2.3d4][m2-3d4] and [M2.3d5][m2-3d5], each with its own *done when*, M2.3d1's *done when* whole across the three, and so plans every remaining increment of M2.3d1; carries out M2.3d3 under [ADR-328][adr-328] §1a. [M2.3d2][m2-3d2], the errors, stays last, after all three. [ADR-336][adr-336] reopens M2.3d4 in three and puts M2.3d5 before what is left of it.
 - **Summary:** HPR Sim can't fly the Macie XL design yet: its stage's mass override adds to its parts, and HPR Sim holds such a stage back. So the five predictions merge in two pull requests, and no error is computed until both have merged. This record merges the first three, flown from their example notebooks in their launch hours' ERA5 air: Astra 3,037.1 m (9,964 ft), Andromeda 3,581.0 m (11,749 ft) and Erebus 11 2,714.1 m (8,904 ft), as their altimeters would read them. Andromeda is counted on its team's thrust file and tagged *not traced*; the catalog motor's 3,050.3 m (10,008 ft) is shown beside it and never counted.
 
 [m2-3d1]: ../decisions-and-roadmap.md#m2-3d1
@@ -10,6 +10,7 @@
 [m2-3d5]: ../decisions-and-roadmap.md#m2-3d5
 [adr-082]: 0082-real-flights-read-from-refs-compared-over-the.md
 [adr-328]: 0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md
+[adr-336]: 0336-m2-3d4-in-three-the-inertia-and-the-refusals-last.md
 [i1225]: https://github.com/nrdptel/fusionspace-eridanus/issues/1225
 [ork-stage]: ../format/ork.md#the-values-inside-the-tags
 [era5-convert]: ../format/era5.md#converting-a-current-file

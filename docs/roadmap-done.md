@@ -251,7 +251,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M2.7a The halves and the fits' guard ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.7b New flights predicted first ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3d3 The EuRoC 2022 predictions ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
-- M2.3d4 A stage's override that adds to its parts ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M2.3d6 A stage's added mass ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M4.1 Facade API ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.1a The builder ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.1b Custom models and the rustdoc guide ([Phase 2](#phase-2-library-surfaces-and-interop))
@@ -1412,15 +1412,18 @@ One line per milestone or increment, in the order it was archived within its pha
       flown in their ERA5 air from the netCDF-4 file converted by a committed, tested script
       with both files' SHA-256 committed, Andromeda counted on its team's curve with the catalog
       curve's prediction beside it, and no error computed.
-    - [x] **M2.3d4 A stage's override that adds to its parts** (ADR-335). *Done when:* an `.ork` stage
-      whose mass or center override doesn't cover its parts is flown as OpenRocket 24.12 weighs
-      it, its mass, center and inertia held to OpenRocket's on probe designs, and is no longer
-      held back. *Result (ADR-335):* met on the 19 probes where no override covers the parts. On
-      the eight with a stage where one override covers the parts and the other doesn't, the mass
-      and the center are held and the
-      inertia is not met: HPR Sim keeps its own rule there, from 11.04% under OpenRocket's to
-      400.5% over
-      ([#1407](https://github.com/nrdptel/fusionspace-eridanus/issues/1407)).
+    - **M2.3d4** is open; its entry: [roadmap](ROADMAP.md#phase-1-physics-core-the-heart-with-validation-interleaved).
+      - [x] **M2.3d6 A stage's added mass** (ADR-335). *Done when:* an `.ork` stage whose mass
+        override doesn't cover its parts is read as an added mass and flies: the reader no longer
+        holds it back, and only what ADR-335 decision 5 refuses is still held; on probe designs
+        its mass and center are held to OpenRocket 24.12's, and its inertia too where neither of
+        the stage's overrides covers the parts.
+        *Result (ADR-335):* 19 nose-and-tube and two-stage probes with no override that covers the
+        parts hold mass, center and inertia; the 17 others HPR Sim lays out (7 on those rockets,
+        10 on a motor's airframe) hold mass and center, and the inertia on eight of them is left
+        to M2.3d7
+        ([#1408](https://github.com/nrdptel/fusionspace-eridanus/pull/1408),
+        [#1407](https://github.com/nrdptel/fusionspace-eridanus/issues/1407)).
 ## Phase 2: Library surfaces and interop
 
 - [x] **M4.1 Facade API.** The `hpr` crate offers a RocketPy-like builder (`Environment`, `Motor`,

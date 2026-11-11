@@ -364,6 +364,7 @@ until someone rewrites it in plainer words.
 | [ADR-333: M2.7b, new flights predicted first][adr-333] | A flight the private collection's manifest gains after [M2.7a](#m2-7a) is compared with its log only when the collection holds its prediction, written from the flight's plan alone, and that file's SHA-256 sits in `validation/reports/predictions.sha256` where the branch last took main, so it merged in an earlier pull request; otherwise `fixture-flights` refuses it by id. A committed digest of [M2.7a](#m2-7a)'s 83 manifest ids tells a new flight from an old one. Shown on an invented flight; no flight is new yet, so the list is empty. The scoreboard's held-out rows read the fixture report's held-out half, HPR Sim 16.32% and OpenRocket 24.12 14.98% over 23 flights (bias +13.42% and +11.68%), shown, not held. |  |
 | [ADR-334: M2.3d1 in three, the EuRoC 2022 predictions first][adr-334] | HPR Sim can't fly the Macie XL design yet: its stage's mass override adds to its parts, and HPR Sim holds such a stage back. So the five predictions merge in two pull requests, and no error is computed until both have merged. This record merges the first three, flown from their example notebooks in their launch hours' ERA5 air: Astra 3,037.1 m (9,964 ft), Andromeda 3,581.0 m (11,749 ft) and Erebus 11 2,714.1 m (8,904 ft), as their altimeters would read them. Andromeda is counted on its team's thrust file and tagged *not traced*; the catalog motor's 3,050.3 m (10,008 ft) is shown beside it and never counted. |  |
 | [ADR-335: A stage's added mass, as OpenRocket weighs it][adr-335] | The `.ork` reader no longer holds back a stage whose mass override doesn't cover its parts. OpenRocket 24.12 adds such a mass to what the parts weigh, as a point: at the center of that stage's parts, or at the stage's center of gravity override when that doesn't cover the parts either. The design holds that mass as the stage's added mass, and on 19 probes HPR Sim's structure matches OpenRocket's: the center within 0.2 µm, the mass and the inertias within 3 parts in a million. A motor aboard doesn't move the added mass. Where an override covers the parts, the inertia stays HPR Sim's own rule: on such stages' probes, from 11.04% under OpenRocket's to 400.5% over. |
+| [ADR-336: M2.3d4 in three, the inertia and the refusals last][adr-336] | A stage in an OpenRocket file can carry a mass override and a center of gravity override, and each covers the stage's parts or doesn't. [M2.3d4](#m2-3d4)'s *done when* holds the inertia of a stage whose mass or center override doesn't cover its parts to OpenRocket's, and has such a stage held back no longer. The merged work falls short twice. Where one override covers the parts and the other doesn't, HPR Sim keeps its own inertia rule: on eight probe designs, from 11.04% under OpenRocket's to 400.5% over. A few such stages are still refused. This record reopens the milestone in three: [M2.3d6](#m2-3d6) is what merged, [M2.3d7](#m2-3d7) the inertia, [M2.3d8](#m2-3d8) the refusals. [M2.3d4](#m2-3d4) is met when the last two are. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -683,8 +684,11 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-3d1"></a>[M2.3d1][phase-1] | The predictions | not yet done |
 | <a id="m2-3d2"></a>[M2.3d2][phase-1] | The errors | not yet done |
 | <a id="m2-3d3"></a>[M2.3d3][done-1] | The EuRoC 2022 predictions | done |
-| <a id="m2-3d4"></a>[M2.3d4][done-1] | A stage's override that adds to its parts | done |
+| <a id="m2-3d4"></a>[M2.3d4][phase-1] | A stage's override that adds to its parts | not yet done |
 | <a id="m2-3d5"></a>[M2.3d5][phase-1] | The Macie XL predictions | not yet done |
+| <a id="m2-3d6"></a>[M2.3d6][done-1] | A stage's added mass | done |
+| <a id="m2-3d7"></a>[M2.3d7][phase-1] | The inertia beside an override that covers the parts | not yet done |
+| <a id="m2-3d8"></a>[M2.3d8][phase-1] | The stages an added mass is still refused on | not yet done |
 | <a id="m2-4"></a>[M2.4][done-1] | A summary of accuracy for the README, and CI that fails on any regression ([ADR-084][adr-084], [Accuracy: the census](accuracy.md#the-census)) | done |
 | <a id="m2-6"></a>[M2.6][phase-1] | An open benchmark | not yet done |
 | <a id="m2-7"></a>[M2.7][done-1] | Held-out flights, predictions first | done |
@@ -1360,6 +1364,7 @@ is the milestone that added or will add that test.
 [adr-333]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0333-m2-7b-new-flights-predicted-first.md
 [adr-334]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0334-m2-3d1-in-three-the-euroc-2022-predictions-first.md
 [adr-335]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0335-a-stage-s-added-mass-as-openrocket-weighs-it.md
+[adr-336]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0336-m2-3d4-in-three-the-inertia-and-the-refusals-last.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
