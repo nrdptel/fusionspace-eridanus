@@ -2647,6 +2647,21 @@ mod tests {
         assert_eq!(mark(Some(committed.clone()), false), Ok(Some(committed)));
     }
 
+    /// CI holds the scoreboard to the checked-out commit's first parent, which the checkout
+    /// fixes, and never to main fetched as the step runs: a merge landing mid-run made the older
+    /// commit read as worse than main (issue #1426).
+    #[test]
+    fn ci_holds_the_scoreboard_to_the_checkout_s_own_parent() {
+        let root = crate::designs::root().unwrap();
+        let ci = fs::read_to_string(root.join(".github/workflows/ci.yml")).unwrap();
+        let ci = ci.replace("\r\n", "\n");
+        let checks: Vec<&str> = ci.lines().filter(|l| l.contains("scoreboard --check")).collect();
+        assert_eq!(checks.len(), 1, "{checks:?}");
+        assert!(checks[0].ends_with("scoreboard --check --against HEAD^1"), "{}", checks[0]);
+        assert!(ci.contains("        run: git fetch --no-tags --depth=2 origin \"$GITHUB_SHA\"\n"));
+        assert!(!ci.contains("refs/remotes/origin/main"), "main fetched afresh");
+    }
+
     /// A revision git doesn't know fails rather than comparing with nothing; one it knows gives
     /// the scoreboard committed there, or none before the first. Run in a repository of its own,
     /// since CI's checkouts hold one commit, the scoreboard already in it.

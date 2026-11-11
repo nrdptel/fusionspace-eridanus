@@ -319,11 +319,14 @@ jobs:
       - if: env.RUN == 'true'
         run: cargo run --locked --quiet --package xtask --profile report-check -- two-logs --slice --other-platform
       # The scoreboard held to main's (M0.10, ADR-240): none of HPR Sim's numbers worse than the
-      # one main committed, unless an accepted ADR names it. The checkout holds no main of its own.
+      # one main committed, unless an accepted ADR names it. Main is the checked-out commit's first
+      # parent: on a pull request's run, main as GitHub merged the branch into it; on main's own
+      # runs, main before the squash merge checked out. Never main fetched as the step runs: a
+      # merge landing mid-run made the older commit read as worse than it (issue #1426).
       - if: env.RUN == 'true' && matrix.os == 'ubuntu-latest'
-        run: git fetch --no-tags --depth=1 origin +refs/heads/main:refs/remotes/origin/main
+        run: git fetch --no-tags --depth=2 origin "$GITHUB_SHA"
       - if: env.RUN == 'true' && matrix.os == 'ubuntu-latest'
-        run: cargo run --locked --quiet --package xtask -- scoreboard --check --against origin/main
+        run: cargo run --locked --quiet --package xtask -- scoreboard --check --against HEAD^1
       # The iPhone build (ADR-227) runs here, not in a job of its own, so a run's macOS jobs fit
       # the five GitHub runs at once.
       - if: env.RUN == 'true' && matrix.os == 'macos-latest'
