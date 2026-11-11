@@ -696,7 +696,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-3d6"></a>[M2.3d6][done-1] | A stage's added mass | done |
 | <a id="m2-3d7"></a>[M2.3d7][done-1] | The inertia beside an override that covers the parts | done |
 | <a id="m2-3d8"></a>[M2.3d8][phase-1] | The stages an added mass is still refused on | not yet done |
-| <a id="m2-3d9"></a>[M2.3d9][phase-1] | The inertia on the lower of two stages | not yet done |
+| <a id="m2-3d9"></a>[M2.3d9][phase-1] | The inertia on a lower stage and with a motor aboard | not yet done |
 | <a id="m2-4"></a>[M2.4][done-1] | A summary of accuracy for the README, and CI that fails on any regression ([ADR-084][adr-084], [Accuracy: the census](accuracy.md#the-census)) | done |
 | <a id="m2-6"></a>[M2.6][phase-1] | An open benchmark | not yet done |
 | <a id="m2-7"></a>[M2.7][done-1] | Held-out flights, predictions first | done |
