@@ -253,6 +253,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M2.3d3 The EuRoC 2022 predictions ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3d6 A stage's added mass ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3d7 The inertia beside an override that covers the parts ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M2.3d10 A parallel stage's added mass ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3d5 The Macie XL predictions ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M4.1 Facade API ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.1a The builder ([Phase 2](#phase-2-library-surfaces-and-interop))
@@ -1440,6 +1441,17 @@ One line per milestone or increment, in the order it was archived within its pha
         lower-stage probes, 4.95% and 3.33% over across the axis (it was 1.5% and 18.5%), are
         M2.3d9's: OpenRocket's figure there is below what the stage's tube alone has about the
         stage's center. The collection's mean absolute apogee error goes from 12.07% to 12.04%.
+      - **M2.3d8** is open; its entry: [roadmap](ROADMAP.md#phase-1-physics-core-the-heart-with-validation-interleaved).
+        - [x] **M2.3d10 A parallel stage's added mass** (ADR-341). *Done when:* M2.3d8's
+          *done when*, whole: what is left of it here is a `.ork` parallel stage whose mass
+          override doesn't cover its parts, and the stage one hangs on with such a mass at a
+          station where the parallel stage's center is on the axis. Each is read with no warning
+          and flown, its mass, center and inertia within ADR-341 decision 3's bounds of
+          OpenRocket 24.12's on the probe designs.
+          Result (ADR-341): met: on 49 new probes, HPR Sim lays out 27; on the 25 with boosters
+          the parallel stage alone and the rocket's mass and center are within the bounds, and
+          the override adds OpenRocket's inertia where none covers the parts. Beside a covering
+          center the rocket's inertia across the axis gains 0.63% and 0.22% less: M2.3d14's.
     - [x] **M2.3d5 The Macie XL predictions** (ADR-337). *Done when:* M2.3d1's *done when*, whole: its
       own pull request merges both Macie XL flights' inputs, sources, apogee rules and predicted
       apogees, the design flown as saved from its pinned repository, no error computed, and with
