@@ -104,8 +104,8 @@ own entry in the roadmap, with a *done when* that fails today.
    and M2.3d8 follow, then M2.3d9 (amended 2026-11-11), and M2.3d2, the errors, stays last, as ADR-334 put it. M2.3d1 is met when
    M2.3d5 and M2.3d4 both are.
 
-**Amended 2026-11-11.** [ADR-340][adr-340] chose it: a `.ork` stage's covering override
-leaves its parts in place. That meets M2.3d7 on six of its eight probes. On the two with the
+**Amended 2026-11-11.** [ADR-340][adr-340] chose the rule decision 3 left open: a `.ork`
+stage's covering override leaves its parts in place. That meets M2.3d7 on six of its eight probes. On the two with the
 override on the lower of two stages, ADR-340 decision 4 shows OpenRocket's figure is below
 what any stage that keeps its parts in place can have: OpenRocket sums each part about the
 rocket's center, and the override's mass as a point at the stage's center. Those two are a
