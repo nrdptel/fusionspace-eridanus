@@ -399,12 +399,13 @@ with OpenRocket 24.12, and by hand.
     has about the stage's center, so no stage that keeps its parts in place gives it. The rocket's inertia across the axis is
     4.95% over OpenRocket's (the center beside an added mass) and 3.33% over (a mass that covers
     the parts, beside a center that doesn't). About the axis the two agree. Closing this gap is
-    open work, [M2.3d9](../decisions-and-roadmap.md#m2-3d9).
+    open work: [M2.3d9, the inertia on the lower of two stages](../decisions-and-roadmap.md#m2-3d9).
   - *With a motor aboard.* OpenRocket sums the same way about the rocket's center with the motor.
     On the motor's airframe, under an added mass beside a center that covers the parts, taking
     the parts' inertia about the stage's center, as HPR Sim does, gives an inertia across the axis 1.6% under OpenRocket's
     at launch and 1.1% under at burnout. That is worked from OpenRocket's own records, the
     motor's term the same in both (`openrockets_inertia_with_a_motor_aboard_is_the_same_sum`).
+    Closing it is open work in the same milestone.
 - A parallel stage can't carry an added mass, and neither can the stage one hangs on: where the
   mass sits beside the pods is not measured, and the layout refuses it.
 - An added mass above zero with no station, on parts that weigh nothing, has no center to sit

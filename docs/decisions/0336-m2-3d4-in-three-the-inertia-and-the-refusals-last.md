@@ -1,6 +1,6 @@
 # ADR-336: M2.3d4 in three, the inertia and the refusals last (2026-11-10)
 
-- **Status:** accepted; splits [M2.3d4][m2-3d4] into [M2.3d6][m2-3d6], which [ADR-335][adr-335] carried out, [M2.3d7][m2-3d7], which [ADR-340][adr-340] carried out, [M2.3d8][m2-3d8] and [M2.3d9][m2-3d9], each with its own *done when*, M2.3d4's *done when* whole across the four, and so plans every remaining increment of M2.3d4. Amended in place on 2026-11-11, after ADR-340, to give M2.3d7's two lower-stage probes to M2.3d9. This record puts [M2.3d5][m2-3d5] before M2.3d7 and M2.3d8, where [ADR-334][adr-334] had put all of M2.3d4 before it, and [M2.3d2][m2-3d2] stays last, as ADR-334 put it.
+- **Status:** accepted; splits [M2.3d4][m2-3d4] into four increments, each with its own *done when*, M2.3d4's *done when* whole across the four, and so plans every remaining increment of M2.3d4: [M2.3d6][m2-3d6] (done, [ADR-335][adr-335]), [M2.3d7][m2-3d7] (done, [ADR-340][adr-340]), [M2.3d8][m2-3d8] and [M2.3d9][m2-3d9]. Amended in place on 2026-11-11: M2.3d7's two lower-stage probes, and the motor-aboard sum, moved to M2.3d9; the title and file name keep "in three" so that links to it hold. This record puts [M2.3d5][m2-3d5] before M2.3d7 and M2.3d8, where [ADR-334][adr-334] had put all of M2.3d4 before it, and [M2.3d2][m2-3d2] stays last, as ADR-334 put it.
 - **Summary:** A stage in an OpenRocket file can carry a mass override and a center of gravity override, each covering the stage's parts or not. M2.3d4's *done when* holds such a stage's inertia to OpenRocket's and has it held back no longer. The merged work fell short twice. Where one override covers the parts and the other doesn't, HPR Sim kept its own inertia rule: from 11.04% under OpenRocket's to 400.5% over on eight probe designs. A few such stages are still refused. This record reopens the milestone: M2.3d6 is what merged, M2.3d7 the inertia, M2.3d8 the refusals, and, after ADR-340, M2.3d9 the inertia on a lower stage. M2.3d4 is met when the last three are.
 
 [m2-3d2]: ../decisions-and-roadmap.md#m2-3d2
@@ -64,10 +64,14 @@ own entry in the roadmap, with a *done when* that fails today.
      refuses or holds back, flown as OpenRocket 24.12 weighs it, its mass, center and inertia
      held to OpenRocket's on probe designs.
    - **M2.3d9, the inertia on the lower of two stages** (added 2026-11-11). *Done when:* M2.3d4's
-     *done when*, whole: what is left of it here is M2.3d7's original *done when* (before the
-     amendment) on its two probe designs with the override on the lower of two stages: both inertias held to OpenRocket
-     24.12's within 3 parts in a million, where the inertia across the axis is 4.95% and 3.33%
-     over today ([#1424][i1424]).
+     *done when*, whole. What is left of it here is twofold. On the two probe designs with the
+     override on the lower of two stages, both inertias are held to OpenRocket 24.12's within
+     3 parts in a million, as M2.3d7's *done when* held them before the amendment; on
+     2026-11-11 the inertia across the axis is 4.95% and 3.33% over. And on the motor's
+     airframe, under an added mass beside a center that covers the parts, the inertia across
+     the axis with the motor aboard, at launch and at burnout, is held to OpenRocket's within
+     3 parts in a million, the motor's own term taken from OpenRocket's record; on 2026-11-11
+     it is 1.6% and 1.1% under ([#1424][i1424]).
 2. **The eight probes, what they measured on 2026-11-10, and M2.3d7's bounds.** Four are on the one-stage
    rocket, two have the override on the lower of two stages, and two are on the airframe with a
    motor aboard, one of them with one pod. The table gives HPR Sim's inertia against
@@ -88,9 +92,10 @@ own entry in the roadmap, with a *done when* that fails today.
 
    M2.3d7's bounds are the ones the probes beside these hold today. M2.3d7 holds each inertia
    on the six probes of the table within 3 parts in a million of OpenRocket's, as the 19 do
-   today; since the amendment, on its four one-stage probes, and M2.3d9 holds the two
-   lower-stage probes to the same bound. On the two airframe probes it holds the inertia the override adds within 1e-9 kg·m²
-   of what it adds in OpenRocket, as that airframe's other probes do today.
+   today. On the two airframe probes it holds the inertia the override adds within 1e-9 kg·m²
+   of what it adds in OpenRocket, as that airframe's other probes do today. Since the
+   amendment, M2.3d7 holds the four one-stage probes of the table, and M2.3d9 the two
+   lower-stage ones, each to the same 3 parts in a million.
 3. **M2.3d7 has to change a standing rule, and that is its work.** The departures are
    [ADR-061][adr-061]'s rule, not the added mass, where the probes show it: on the one-stage
    probe, each tool's inertia under a center that covers the parts beside an added mass is the
@@ -111,10 +116,13 @@ stage's covering override leaves its parts in place. That meets M2.3d7 on six of
 override on the lower of two stages, ADR-340's measurement (decision 4 draws the conclusion)
 shows OpenRocket's figure is below
 what any stage that keeps its parts in place can have: OpenRocket sums each part about the
-rocket's center, and the override's mass as a point at the stage's center. Those two are a
-different piece of work, so they become M2.3d9, with M2.3d7's *done when* on them unchanged,
-and M2.3d7 is met on the other six. Meeting M2.3d9 means composing such a stage's inertia at
-the rocket level, as OpenRocket does, in a record that answers ADR-340 decision 4. This
+rocket's center, and it counts the override's mass as a point at the stage's center. Those two
+are a different piece of work, so they become M2.3d9, with M2.3d7's *done when* on them
+unchanged, and M2.3d7 is met on the other six. The same sum leaves the motor's airframe 1.6% and
+1.1% under OpenRocket's inertia across the axis with the motor aboard, a figure no increment
+held, so M2.3d9 holds it too. Meeting M2.3d9 means composing such a stage's inertia at
+the rocket level, as OpenRocket does (each part about the rocket's center, not the stage as one
+body), in a record that answers ADR-340 decision 4. This
 record is amended in place, not narrowed by a new one, since it plans every increment of
 M2.3d4; its title and file name keep "in three" so that links to it hold.
 

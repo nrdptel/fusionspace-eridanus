@@ -207,11 +207,15 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
         *done when*, whole: what is left of it here is each `.ork` stage ADR-335 decision 5
         still refuses or holds back, flown as OpenRocket 24.12 weighs it, its mass, center and
         inertia held to OpenRocket's on probe designs.
-      - [ ] **M2.3d9 The inertia on the lower of two stages** (ADR-336, amended; #1424). *Done when:*
-        M2.3d4's *done when*, whole: what is left of it here is M2.3d7's original *done when* on its
-        two probe designs with the override on the lower of two stages: both inertias held to
-        OpenRocket 24.12's within 3 parts in a million, where the inertia across the axis is
-        4.95% and 3.33% over today.
+      - [ ] **M2.3d9 The inertia on the lower of two stages** (ADR-336, amended;
+        [#1424](https://github.com/nrdptel/fusionspace-eridanus/issues/1424)). *Done when:*
+        M2.3d4's *done when*, whole: what is left of it here is ADR-336 decision 1's for M2.3d9:
+        on the two probe designs with the override on the lower of two stages, both inertias held
+        to OpenRocket 24.12's within 3 parts in a million (4.95% and 3.33% over across the axis on
+        2026-11-11); and on the motor's airframe, under an added mass beside a center that covers
+        the parts, the inertia across the axis with the motor aboard, at launch and at burnout,
+        within 3 parts in a million of OpenRocket's, the motor's own term taken from OpenRocket's
+        record (1.6% and 1.1% under on 2026-11-11).
   - [ ] **M2.3d2 The errors.** *Done when:* ADR-328 §1b's: `real-flights` flies all 12, each new
     prediction beside its error; `accuracy.public` and `bias.public` over all 12.
 - [ ] **M2.8 Honest uncertainty** (ADR-209 §5). *Done when:* each logged flight is also flown as a

@@ -158,6 +158,5 @@ refusals, and M2.3d9 are. On the motor's airframe, under an added mass beside a 
 covers the parts, HPR Sim's rule, worked by hand from OpenRocket's own records with its motor's
 term in both, gives an inertia across the axis 1.6% under OpenRocket's at launch and 1.1% under
 at burnout, pinned. That is outside M2.3d7's *done when*, which holds the inertia the override
-adds on that airframe. Composing the stage's inertia at the rocket level, as OpenRocket does, is
-what would close it, up to the motor's own term, so [#1424][i1424] tracks it too. The pages
+adds on that airframe; ADR-336, amended, gives it to M2.3d9 too ([#1424][i1424]). The pages
 [Overrides][design-overrides] and [A stage's override][ork-stage] say what the rule is.
