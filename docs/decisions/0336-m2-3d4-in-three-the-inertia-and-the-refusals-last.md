@@ -68,10 +68,10 @@ own entry in the roadmap, with a *done when* that fails today.
      amendment) on its two probe designs with the override on the lower of two stages: both inertias held to OpenRocket
      24.12's within 3 parts in a million, where the inertia across the axis is 4.95% and 3.33%
      over today ([#1424][i1424]).
-2. **The eight probes, what they measure today, and M2.3d7's bounds.** Four are on the one-stage
+2. **The eight probes, what they measured on 2026-11-10, and M2.3d7's bounds.** Four are on the one-stage
    rocket, two have the override on the lower of two stages, and two are on the airframe with a
    motor aboard, one of them with one pod. The table gives HPR Sim's inertia against
-   OpenRocket's, as a test pins it. Its first and third rows are two probes each, and its second
+   OpenRocket's, as a test pinned it. Its first and third rows are two probes each, and its second
    and fourth are one each.
 
    | The stage | Inertia about the axis | Inertia across the axis |
@@ -122,7 +122,7 @@ M2.3d4; its title and file name keep "in three" so that links to it hold.
 
 - The roadmap shows M2.3d4 open again, under M2.3d1, with M2.3d7 and M2.3d8 below it. The
   archive shows M2.3d6 done, with a result line for the part of M2.3d4's result that was met.
-  From 2026-11-11, M2.3d9 is below them too.
+  From 2026-11-11 the roadmap shows M2.3d8 and M2.3d9 below it; M2.3d7 merged in #1422.
 - Nothing in the code or the guide's pages changes with this record. The pages already say where
   the inertia is not OpenRocket's and what is refused.
 - [#1407][i1407] is M2.3d7's issue, and closes with it.

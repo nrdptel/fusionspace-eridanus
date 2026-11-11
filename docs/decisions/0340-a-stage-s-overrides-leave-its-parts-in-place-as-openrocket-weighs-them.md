@@ -154,5 +154,8 @@ pinned and on the pages. [ADR-336][adr-336], amended in place, gives those two t
 [M2.3d9][m2-3d9] ([#1424][i1424]), with M2.3d7's *done when* on them unchanged: meeting it means
 composing such a stage's inertia at the rocket level, as OpenRocket does, in a record that
 answers decision 4. [#1407][i1407] closes with M2.3d7. [M2.3d4][m2-3d4] is met when M2.3d8, the
-refusals, and M2.3d9 are. The pages
+refusals, and M2.3d9 are. With a motor aboard, the same sum leaves HPR Sim's inertia across
+the axis 1.6% under OpenRocket's at launch and 1.1% under at burnout, pinned; that is outside
+M2.3d7's *done when*, which holds the inertia the override adds on the motor's airframe, and the
+same composition at the rocket level would close it, so [#1424][i1424] tracks it too. The pages
 [Overrides][design-overrides] and [A stage's override][ork-stage] say what the rule is.
