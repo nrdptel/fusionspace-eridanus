@@ -1110,6 +1110,183 @@ fn flown_to_apogee(rocket: &Rocket, launch: &Launch<'_>) -> Result<Flown, RealFl
 /// The air a design-file flight is flown in, as the report names it.
 const STANDARD_AIR: &str = "the 1976 US Standard Atmosphere, for the stored simulation's `isa`";
 
+/// What a design file's stored simulation states for a flight: its motor configuration, its
+/// launch conditions and its one motor's curve.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(crate) struct StoredLaunch<'a> {
+    /// The motor configuration's id.
+    pub(crate) configuration_id: &'a str,
+    /// The launch rod's length, m.
+    pub(crate) rod_length_m: f64,
+    /// The rod's angle from the vertical, rad.
+    pub(crate) rod_angle_rad: f64,
+    /// The compass direction the rod leans toward, rad.
+    pub(crate) rod_direction_rad: f64,
+    /// The steady wind's speed, m/s.
+    pub(crate) wind_speed_m_s: f64,
+    /// The compass direction the wind blows from, rad.
+    pub(crate) wind_from_rad: f64,
+    /// The launch site's height above sea level, m.
+    pub(crate) elevation_m: f64,
+    /// The launch site's latitude, degrees north.
+    pub(crate) latitude_deg: f64,
+    /// The launch site's longitude, degrees east.
+    pub(crate) longitude_deg: f64,
+    /// The apogee OpenRocket stored for its own run, m above the site.
+    pub(crate) openrocket_stored_apogee_m: f64,
+    /// The configuration's one motor.
+    pub(crate) motor: &'a ork::OrkMotor,
+    /// The digest the file gives the motor.
+    pub(crate) motor_digest: &'a str,
+    /// The bundled curve file that digest names.
+    pub(crate) simfile_id: &'a str,
+}
+
+/// Read the stored simulation named `simulation` out of `design`, refusing whatever the
+/// prediction would otherwise have to choose ([ADR-337][adr-337] §2 and §3).
+///
+/// It refuses unless the design holds one simulation of that name, the simulation states its
+/// configuration, rod, wind, site and its own apogee, it ran in the standard atmosphere and in
+/// OpenRocket's average wind, the configuration is one the reader flies, with one motor and no
+/// staging, and that motor's digest names, in the committed table
+/// ([`hpr_motor::openrocket_curves`]), the bundled curve file the reader chose.
+///
+/// # Errors
+///
+/// A sentence naming what the stored simulation lacks; `design_path` names the file in it.
+///
+/// [adr-337]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0337-the-macie-xl-predictions-each-flight-s-stored-simulation-flown-as-saved.md
+pub(crate) fn stored_launch<'a>(
+    design: &'a ork::Design,
+    simulation: &str,
+    design_path: &str,
+) -> Result<StoredLaunch<'a>, String> {
+    let named: Vec<_> = design
+        .simulations
+        .iter()
+        .filter(|stored| stored.name == simulation)
+        .collect();
+    let [stored] = named.as_slice() else {
+        return Err(format!(
+            "{design_path} holds {} simulations named `{}`",
+            named.len(),
+            simulation
+        ));
+    };
+    let unstated = |what: &str| format!("the stored simulation `{}` states no {what}", simulation);
+    let conditions = stored
+        .conditions
+        .as_ref()
+        .ok_or_else(|| unstated("launch conditions"))?;
+    let configuration_id = conditions
+        .configuration
+        .as_deref()
+        .ok_or_else(|| unstated("motor configuration"))?;
+    let rod_length_m = conditions
+        .rod_length_m
+        .ok_or_else(|| unstated("rod length"))?;
+    let rod_angle_rad = conditions
+        .rod_angle_rad
+        .ok_or_else(|| unstated("rod angle"))?;
+    let rod_direction_rad = conditions
+        .rod_direction_rad
+        .ok_or_else(|| unstated("rod direction"))?;
+    let wind_speed_m_s = conditions
+        .wind_speed_m_s
+        .ok_or_else(|| unstated("wind speed"))?;
+    let wind_from_rad = conditions
+        .wind_from_rad
+        .ok_or_else(|| unstated("wind direction"))?;
+    let elevation_m = conditions
+        .launch_altitude_m
+        .ok_or_else(|| unstated("launch altitude"))?;
+    let latitude_deg = conditions
+        .latitude_deg
+        .ok_or_else(|| unstated("latitude"))?;
+    let longitude_deg = conditions
+        .longitude_deg
+        .ok_or_else(|| unstated("longitude"))?;
+    if !matches!(conditions.atmosphere, Some(ork::Atmosphere::Isa {})) {
+        return Err(format!(
+            "the stored simulation `{}` was not run in the standard atmosphere",
+            simulation
+        ));
+    }
+    if !conditions
+        .wind_model
+        .as_deref()
+        .is_some_and(|model| model.eq_ignore_ascii_case("average"))
+    {
+        return Err(format!(
+            "the stored simulation `{}` was not run in an average wind",
+            simulation
+        ));
+    }
+    let openrocket_stored_apogee_m = stored
+        .results
+        .as_ref()
+        .and_then(|results| results.max_altitude_m)
+        .ok_or_else(|| unstated("apogee of OpenRocket's own run"))?;
+
+    // Its configuration: one motor, lit at launch, on the bundled curve the file's digest names.
+    let configuration = design
+        .motors
+        .configurations
+        .iter()
+        .find(|configuration| configuration.id == configuration_id)
+        .ok_or_else(|| format!("{design_path} has no motor configuration `{configuration_id}`"))?;
+    if let Some(left_out) = &configuration.left_out {
+        return Err(format!(
+            "the configuration of `{}` is not flown: {}",
+            simulation, left_out.message
+        ));
+    }
+    if configuration.stagings().next().is_some() {
+        return Err(format!(
+            "the configuration of `{}` stages, which no prediction here expects",
+            simulation
+        ));
+    }
+    let [motor] = configuration.motors.as_slice() else {
+        return Err(format!(
+            "the configuration of `{}` flies {} motors, not one",
+            simulation,
+            configuration.motors.len()
+        ));
+    };
+    let (Some(motor_digest), ork::Curve::Catalog { simfile_id, .. }) =
+        (&motor.digest, &motor.curve)
+    else {
+        return Err(format!(
+            "{} is not flown on a bundled curve named by a digest",
+            motor.designation
+        ));
+    };
+    if hpr_motor::openrocket_curves::file_for(motor_digest).as_deref() != Some(simfile_id.as_str())
+    {
+        return Err(format!(
+            "{}: the bundled curve file {simfile_id} is not the one the design's digest \
+             {motor_digest} names",
+            motor.designation
+        ));
+    }
+    Ok(StoredLaunch {
+        configuration_id,
+        rod_length_m,
+        rod_angle_rad,
+        rod_direction_rad,
+        wind_speed_m_s,
+        wind_from_rad,
+        elevation_m,
+        latitude_deg,
+        longitude_deg,
+        openrocket_stored_apogee_m,
+        motor,
+        motor_digest,
+        simfile_id,
+    })
+}
+
 /// Predicts one design-file flight: flies the stored simulation the repository names for it,
 /// from the design file as saved, and reads its apogee as its log's altimeter would. The log is
 /// hashed, never parsed.
@@ -1159,127 +1336,22 @@ pub fn predict_design_file(
     }
 
     // The stored simulation the repository names for the flight: its configuration and its
-    // launch conditions, each one stated.
-    let named: Vec<_> = design
-        .value
-        .simulations
-        .iter()
-        .filter(|stored| stored.name == flight.simulation)
-        .collect();
-    let [stored] = named.as_slice() else {
-        return Err(input(format!(
-            "{design_path} holds {} simulations named `{}`",
-            named.len(),
-            flight.simulation
-        )));
-    };
-    let unstated = |what: &str| {
-        input(format!(
-            "the stored simulation `{}` states no {what}",
-            flight.simulation
-        ))
-    };
-    let conditions = stored
-        .conditions
-        .as_ref()
-        .ok_or_else(|| unstated("launch conditions"))?;
-    let configuration_id = conditions
-        .configuration
-        .clone()
-        .ok_or_else(|| unstated("motor configuration"))?;
-    let rod_length_m = conditions
-        .rod_length_m
-        .ok_or_else(|| unstated("rod length"))?;
-    let rod_angle_rad = conditions
-        .rod_angle_rad
-        .ok_or_else(|| unstated("rod angle"))?;
-    let rod_direction_rad = conditions
-        .rod_direction_rad
-        .ok_or_else(|| unstated("rod direction"))?;
-    let wind_speed_m_s = conditions
-        .wind_speed_m_s
-        .ok_or_else(|| unstated("wind speed"))?;
-    let wind_from_rad = conditions
-        .wind_from_rad
-        .ok_or_else(|| unstated("wind direction"))?;
-    let elevation_m = conditions
-        .launch_altitude_m
-        .ok_or_else(|| unstated("launch altitude"))?;
-    let latitude_deg = conditions
-        .latitude_deg
-        .ok_or_else(|| unstated("latitude"))?;
-    let longitude_deg = conditions
-        .longitude_deg
-        .ok_or_else(|| unstated("longitude"))?;
-    if !matches!(conditions.atmosphere, Some(ork::Atmosphere::Isa {})) {
-        return Err(input(format!(
-            "the stored simulation `{}` was not run in the standard atmosphere",
-            flight.simulation
-        )));
-    }
-    if !conditions
-        .wind_model
-        .as_deref()
-        .is_some_and(|model| model.eq_ignore_ascii_case("average"))
-    {
-        return Err(input(format!(
-            "the stored simulation `{}` was not run in an average wind",
-            flight.simulation
-        )));
-    }
-    let openrocket_stored_apogee_m = stored
-        .results
-        .as_ref()
-        .and_then(|results| results.max_altitude_m)
-        .ok_or_else(|| unstated("apogee of OpenRocket's own run"))?;
-
-    // Its configuration: one motor, lit at launch, on the bundled curve the file's digest names.
-    let configuration = design
-        .value
-        .motors
-        .configurations
-        .iter()
-        .find(|configuration| configuration.id == configuration_id)
-        .ok_or_else(|| {
-            input(format!(
-                "{design_path} has no motor configuration `{configuration_id}`"
-            ))
-        })?;
-    if let Some(left_out) = &configuration.left_out {
-        return Err(input(format!(
-            "the configuration of `{}` is not flown: {}",
-            flight.simulation, left_out.message
-        )));
-    }
-    if configuration.stagings().next().is_some() {
-        return Err(input(format!(
-            "the configuration of `{}` stages, which no prediction here expects",
-            flight.simulation
-        )));
-    }
-    let [motor] = configuration.motors.as_slice() else {
-        return Err(input(format!(
-            "the configuration of `{}` flies {} motors, not one",
-            flight.simulation,
-            configuration.motors.len()
-        )));
-    };
-    let (Some(motor_digest), ork::Curve::Catalog { simfile_id, .. }) =
-        (&motor.digest, &motor.curve)
-    else {
-        return Err(input(format!(
-            "{} is not flown on a bundled curve named by a digest",
-            motor.designation
-        )));
-    };
-    if hpr_motor::openrocket_curves::file_for(motor_digest).as_deref() != Some(simfile_id.as_str())
-    {
-        return Err(input(format!(
-            "{}: the bundled curve file {simfile_id} is not the one the design's digest \
-             {motor_digest} names",
-            motor.designation
-        )));
-    }
+    // launch conditions, each one stated, and its one motor on the curve its digest names.
+    let StoredLaunch {
+        configuration_id,
+        rod_length_m,
+        rod_angle_rad,
+        rod_direction_rad,
+        wind_speed_m_s,
+        wind_from_rad,
+        elevation_m,
+        latitude_deg,
+        longitude_deg,
+        openrocket_stored_apogee_m,
+        motor,
+        motor_digest,
+        simfile_id,
+    } = stored_launch(&design.value, flight.simulation, &design_path).map_err(input)?;
     // The reader's warnings, less those about another configuration's motor.
     let others: Vec<&str> = design
         .value
@@ -1321,7 +1393,7 @@ pub fn predict_design_file(
         &design.value.rocket,
         &Launch {
             id: flight.id,
-            configuration: &configuration_id,
+            configuration: configuration_id,
             environment: &environment,
             air: &*environment.atmosphere,
             air_name: "the standard atmosphere",
@@ -1340,12 +1412,12 @@ pub fn predict_design_file(
         design_file_sha256: sha256_hex(&design_bytes),
         design_file: design_path,
         simulation: flight.simulation.to_owned(),
-        configuration: configuration_id,
+        configuration: configuration_id.to_owned(),
         source: flight.source.to_owned(),
         motor: flight.motor.to_owned(),
         motor_source: flight.motor_source.to_owned(),
-        motor_digest: motor_digest.clone(),
-        curve_file: simfile_id.clone(),
+        motor_digest: motor_digest.to_owned(),
+        curve_file: simfile_id.to_owned(),
         total_impulse_ns: flown.total_impulse_ns,
         mass_source: flight.mass_source.to_owned(),
         mass_without_motor_kg: flown.liftoff_mass_kg - flown.motor_mass_kg,

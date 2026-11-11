@@ -50,8 +50,9 @@ flown at.
    a site at 28.61° N, 80.6° W at sea level, a vertical 1 m rod, a 2 m/s wind from the east and
    the standard atmosphere. All nine simulations in the file carry the same conditions. A stored
    simulation is refused if it lacks one of these, or was run in another atmosphere or wind
-   model. The wind is flown steady: the file's turbulence, a tenth of the wind's speed, is left
-   out. The parachutes are not flown; the file opens the first at apogee, so neither moves it.
+   model; tests on an invented design try each refusal here and in §3. The wind is flown
+   steady: the file's turbulence, a tenth of the wind's speed, is left out. The parachutes are
+   not flown; the file opens the first at apogee, so neither moves it.
 3. **Each motor flies the curve the design's digest names.** A `.ork` motor records OpenRocket's
    digest of its curve. [The table][table] that maps a digest to the bundled file holding that
    curve ([ADR-161][adr-161], [ADR-288][adr-288] §3) covered only the motors of OpenRocket's own
