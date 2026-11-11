@@ -357,22 +357,7 @@ impl<'a> Writer<'a> {
             axial_offset(&mut element, parallel.position);
             self.pod_set(&mut element, at, &parallel.pods);
         }
-        if stage.added_mass.is_some() {
-            self.warn(
-                at,
-                "an added mass on a parallel stage, which HPR Sim doesn't lay out \
-                 (`Rocket::layout` refuses it); it was left out",
-            );
-        }
-        // A stage's override is the whole stage's, so it covers everything inside it.
-        let covers = !stage.overrides.is_empty();
-        self.overrides(
-            &mut element,
-            at,
-            &stage.overrides,
-            covers,
-            stage.drag_override,
-        );
+        self.stage_overrides(&mut element, at, stage);
         self.copies(&mut element, at);
         for tag in recovery::stage(design, index, stage) {
             element.push(tag);
@@ -1138,8 +1123,8 @@ impl<'a> Writer<'a> {
         }
     }
 
-    /// An axial stage's override tags, as the reader reads them back (`stage_overrides` in
-    /// `super::super::component`).
+    /// A stage's override tags, an axial stage's or a parallel stage's, as the reader reads them
+    /// back (`stage_overrides` in `super::super::component`).
     ///
     /// An override is the whole stage's, so its flags say it covers the stage's parts. An added
     /// mass ([`hpr_design::AddedMass`]) is a mass override that doesn't cover them: with a
@@ -3028,6 +3013,170 @@ pub(super) mod tests {
                 "<overridesubcomponentscd>false</overridesubcomponentscd>",
                 1,
             )],
+        );
+    }
+
+    /// A parallel stage's overrides are read as an axial stage's are, row by row, as OpenRocket
+    /// 24.12 weighs them (ADR-341), with no warning: a mass that doesn't cover its parts is the
+    /// parallel stage's added mass ([`AddedMass`]), at the station of a center that doesn't cover
+    /// them either; a center that covers them is the whole stage's; a center alone that doesn't
+    /// changes nothing and is kept as the file wrote it. A stage with an override that covers
+    /// its parts is weighed with its parts in place. Written, each says the same again with the
+    /// per-quantity flags and reads back as the same design.
+    #[test]
+    fn a_parallel_stages_override_not_covering_its_parts_is_read_and_written_back() {
+        let boosters = |tags: &str| {
+            tube_of(&format!(
+                r#"
+          <parallelstage><name>Boosters</name><id>boosters</id>{tags}
+            <instancecount>2</instancecount><radiusoffset method="free">0.07</radiusoffset>
+            <axialoffset method="bottom">0.0</axialoffset>
+            <subcomponents>
+              <bodytube><name>Booster</name><id>booster</id>
+                <material type="bulk" density="700.0">Invented paper</material>
+                <length>0.3</length><thickness>0.001</thickness><radius>0.02</radius></bodytube>
+            </subcomponents></parallelstage>"#
+            ))
+        };
+        let added = |mass_kg, cg_aft_m| Some(AddedMass { mass_kg, cg_aft_m });
+        let whole = |mass_kg, cg_aft_m| Overrides {
+            mass_kg,
+            cg_aft_m,
+            ..Overrides::default()
+        };
+        const MASS: &str = "<overridemass>2.5</overridemass>";
+        const CENTER: &str = "<overridecg>0.1</overridecg>";
+        const MASS_FALSE: &str = "<overridesubcomponentsmass>false</overridesubcomponentsmass>";
+        const MASS_TRUE: &str = "<overridesubcomponentsmass>true</overridesubcomponentsmass>";
+        const CENTER_FALSE: &str = "<overridesubcomponentscg>false</overridesubcomponentscg>";
+        const CENTER_TRUE: &str = "<overridesubcomponentscg>true</overridesubcomponentscg>";
+        type Case<'a> = (String, Option<AddedMass>, Overrides, &'a Holds<'a>);
+        let cases: [Case<'_>; 10] = [
+            // The mass alone: its flag false, not written, or the single older flag saying false.
+            (
+                boosters(&format!("{MASS}{MASS_FALSE}")),
+                added(2.5, None),
+                whole(None, None),
+                &[(MASS, 1), (MASS_FALSE, 1), ("<overridesubcomponentscg>", 0)],
+            ),
+            (
+                boosters(MASS),
+                added(2.5, None),
+                whole(None, None),
+                &[(MASS, 1), (MASS_FALSE, 1)],
+            ),
+            (
+                boosters(&format!(
+                    "<overridesubcomponents>false</overridesubcomponents>{MASS}"
+                )),
+                added(2.5, None),
+                whole(None, None),
+                &[(MASS, 1), (MASS_FALSE, 1), ("<overridesubcomponents>", 0)],
+            ),
+            // The center alone changes nothing: left out, and kept as written.
+            (
+                boosters(&format!("{CENTER}{CENTER_FALSE}")),
+                None,
+                whole(None, None),
+                &[
+                    (CENTER, 1),
+                    (CENTER_FALSE, 1),
+                    ("<overridesubcomponentsmass>", 0),
+                ],
+            ),
+            // Both, neither covering the parts: the mass sits at the center's station.
+            (
+                boosters(&format!("{MASS}{CENTER}{MASS_FALSE}{CENTER_FALSE}")),
+                added(2.5, Some(0.1)),
+                whole(None, None),
+                &[(MASS, 1), (CENTER, 1), (MASS_FALSE, 1), (CENTER_FALSE, 1)],
+            ),
+            (
+                boosters(&format!("{MASS}{CENTER}")),
+                added(2.5, Some(0.1)),
+                whole(None, None),
+                &[(MASS, 1), (CENTER, 1), (MASS_FALSE, 1), (CENTER_FALSE, 1)],
+            ),
+            // The mass added, under a center that covers the parts and the mass together.
+            (
+                boosters(&format!("{MASS}{CENTER}{MASS_FALSE}{CENTER_TRUE}")),
+                added(2.5, None),
+                whole(None, Some(0.1)),
+                &[(MASS, 1), (CENTER, 1), (MASS_FALSE, 1), (CENTER_TRUE, 1)],
+            ),
+            // A mass that covers the parts beside a center that doesn't weighs as both covering
+            // them do, and is written so.
+            (
+                boosters(&format!("{MASS}{CENTER}{MASS_TRUE}{CENTER_FALSE}")),
+                None,
+                whole(Some(2.5), Some(0.1)),
+                &[(MASS, 1), (CENTER, 1), (MASS_TRUE, 1), (CENTER_TRUE, 1)],
+            ),
+            // Covering its parts: the whole stage's, as before.
+            (
+                boosters(&format!("{MASS}{MASS_TRUE}")),
+                None,
+                whole(Some(2.5), None),
+                &[(MASS, 1), (MASS_TRUE, 1)],
+            ),
+            (
+                boosters(&format!("{CENTER}{CENTER_TRUE}")),
+                None,
+                whole(None, Some(0.1)),
+                &[(CENTER, 1), (CENTER_TRUE, 1)],
+            ),
+        ];
+        for (xml, added, whole, tags) in &cases {
+            let (read, text) = kept_as_written(xml, None, tags);
+            assert_eq!(read.rocket.stages.len(), 2, "{text}");
+            let stage = &read.rocket.stages[1];
+            assert!(stage.parallel.is_some(), "{text}");
+            assert_eq!(stage.added_mass, *added, "{text}");
+            assert_eq!(stage.overrides, *whole, "{text}");
+            // Its parts stay in place under an override that covers them, as OpenRocket weighs
+            // a parallel stage; with none, the rule changes nothing and is the default.
+            let rule = if whole.is_empty() {
+                StageOverrideRule::Rescaled
+            } else {
+                StageOverrideRule::PartsInPlace
+            };
+            assert_eq!(stage.override_rule, rule, "{text}");
+            assert_eq!(read.rocket.stages[0].added_mass, None, "{text}");
+            read.rocket.layout().expect("the design lays out");
+        }
+        // The tags are written inside the parallel stage, not on the stage it hangs on.
+        let (_, text) = kept_as_written(&cases[4].0, None, &[]);
+        let inside = text.find("<parallelstage>").expect("the parallel stage");
+        assert!(text.find(MASS).expect("the mass") > inside, "{text}");
+        // What a `.ork` can't say is left out with a warning, as on an axial stage.
+        let (mut design, _) = kept_as_written(&cases[4].0, None, &[]);
+        design.rocket.stages[1].override_rule = StageOverrideRule::PartsInPlace;
+        design.rocket.stages[1].overrides = whole(Some(3.0), None);
+        let written = document(&design);
+        assert_eq!(written.warnings.len(), 1, "{:?}", written.warnings);
+        assert!(
+            written.warnings[0]
+                .message
+                .contains("which a `.ork` can't say together"),
+            "{:?}",
+            written.warnings
+        );
+        assert_eq!(written.value.to_xml().matches(MASS).count(), 0);
+        // A parallel stage read with an override that covers its parts keeps its rule through
+        // the file (above: each case reads back as the same design). One under the default
+        // rule would come back with its parts in place, and so another inertia: warned of, as
+        // on an axial stage (#1423).
+        let (mut rescaled, _) = kept_as_written(&cases[8].0, None, &[]);
+        assert_eq!(
+            rescaled.rocket.stages[1].override_rule,
+            StageOverrideRule::PartsInPlace
+        );
+        rescaled.rocket.stages[1].override_rule = StageOverrideRule::Rescaled;
+        let warnings = document(&rescaled).warnings;
+        assert_eq!(warnings.len(), 1, "{warnings:?}");
+        assert!(
+            warnings[0].message.contains("HPR Sim's default rule"),
+            "{warnings:?}"
         );
     }
 

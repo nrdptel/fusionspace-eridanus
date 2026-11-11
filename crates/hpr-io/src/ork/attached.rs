@@ -33,12 +33,15 @@ use hpr_design::parts::{
     CenteringRing, InnerTube, LaunchLug, MassComponent, Packing, Parachute, PodSet, RailButton,
     ShockCord, Streamer,
 };
-use hpr_design::tree::{AutoDimension, Component, Overrides, ParallelStage, Part, Position, Stage};
+use hpr_design::tree::{
+    AddedMass, AutoDimension, Component, Overrides, ParallelStage, Part, Position, Stage,
+    StageOverrideRule,
+};
 use hpr_design::{Finish, MotorMount, Wall};
 
 use super::component::{
-    BODY_TAGS, Ids, UNNAMED_RAIL_BUTTON, body, material, material_or, overrides, stated_radius,
-    subcomponents,
+    BODY_TAGS, Ids, UNNAMED_RAIL_BUTTON, body, material, material_or, overrides, stage_overrides,
+    stated_radius, subcomponents,
 };
 use super::document::Element;
 use super::left_out::{Around, Counted, Covered, Lean, NOTHING_DEPENDS, spoken};
@@ -203,7 +206,7 @@ pub(super) fn children(
             places: placed_after(&siblings, index),
         };
         let read = if child.name == "podset" {
-            pod_set(child, parent, &around, &at, ids, skipped, warnings)
+            pod_set(child, parent, &around, &at, ids, skipped, warnings).map(|(pods, _)| pods)
         } else if child.name == "parallelstage" {
             // A stage of its own, beside this tube: the stage reader takes it from `ids`.
             if let Some(stage) = parallel_stage(child, parent, &at, ids, skipped, warnings) {
@@ -461,6 +464,11 @@ fn one(
 /// radius stated in the pod, so `ρ` is the widest stated one, and a pod with none is left out.
 /// `hpr-design` holds a pod set at a fixed distance, so when the tube's radius is automatic, the
 /// number OpenRocket cached for it is taken, and said; with none cached, the pod set is left out.
+///
+/// **A parallel stage** is read here too, as the pod set it is laid out as. Its overrides are a
+/// stage's, read by a stage's rule ([`stage_overrides`]): one that covers its parts is the whole
+/// stage's, and a mass that doesn't is the stage's added mass, returned beside the pod set. A
+/// pod set carries no added mass, so for one the second value is `None`.
 fn pod_set(
     element: &Element,
     above: Parent<'_>,
@@ -469,7 +477,7 @@ fn pod_set(
     ids: &mut Ids,
     skipped: &mut Vec<Unread>,
     warnings: &mut Vec<Warning>,
-) -> Option<Component> {
+) -> Option<(Component, Option<AddedMass>)> {
     let (parent, parent_auto) = (above.part, above.auto);
     let left_out = and_what_was_inside(element, around);
     let mut values = Values::new(element, at, warnings);
@@ -500,7 +508,17 @@ fn pod_set(
     let count = instances(&mut values, "pod set", &left_out)?;
     let name = values.word(&["name"]).unwrap_or_default();
     let position = position(&mut values);
-    let (mut overrides, include_children, mut drag_override) = overrides(&mut values);
+    // A parallel stage's two overrides each say whether they cover its parts, as an axial
+    // stage's do, and OpenRocket 24.12 weighs them the same way (ADR-341). A pod set weighs
+    // nothing of its own, so its override can only cover its pods (below).
+    let (mut overrides, include_children, added_mass, mut drag_override) =
+        if element.name == "parallelstage" {
+            let (overrides, added_mass, drag_override) = stage_overrides(&mut values);
+            (overrides, true, added_mass, drag_override)
+        } else {
+            let (overrides, include_children, drag_override) = overrides(&mut values);
+            (overrides, include_children, None, drag_override)
+        };
     let angle_rad = roll_angle(&mut values);
     let method = values
         .element(&["radiusoffset"])
@@ -734,23 +752,26 @@ fn pod_set(
     }
 
     ids.read.insert(at.to_owned());
-    Some(Component {
-        id,
-        name,
-        part: Part::PodSet(PodSet {
-            count,
-            radial_offset_m,
-            angle_rad,
-        }),
-        position: Some(position),
-        auto: Vec::new(),
-        motor_mount: None,
-        finish: None,
-        overrides,
-        overrides_include_children: true,
-        drag_override,
-        children: pods,
-    })
+    Some((
+        Component {
+            id,
+            name,
+            part: Part::PodSet(PodSet {
+                count,
+                radial_offset_m,
+                angle_rad,
+            }),
+            position: Some(position),
+            auto: Vec::new(),
+            motor_mount: None,
+            finish: None,
+            overrides,
+            overrides_include_children: true,
+            drag_override,
+            children: pods,
+        },
+        added_mass,
+    ))
 }
 
 /// Reads one parallel stage (ADR-171), or leaves it out with a warning: a stage of its own,
@@ -759,7 +780,9 @@ fn pod_set(
 /// OpenRocket's parallel stage places its copies as a pod set places its pods, by the same
 /// `instancecount`, `angleoffset`, `radiusoffset` and axial offset, so it is read by [`pod_set`]'s
 /// rules, its warnings saying "parallel stage". It becomes a [`Stage`] with
-/// [`ParallelStage`] set, its body components the pod's stack, its overrides the stage's, and its
+/// [`ParallelStage`] set, its body components the pod's stack, its overrides and added mass the
+/// stage's, read as an axial stage's are and weighed with its parts left in place as OpenRocket
+/// 24.12 weighs them (`added_mass_placement.py`'s probes, ADR-341), and its
 /// separation read as a stage's is; the tube's id, taken after its children are read, is filled
 /// in by [`body`]. The stage reader puts it right after the stage it hangs on, which is where
 /// OpenRocket numbers it on a rocket of one axial stage. On a rocket of several, inside a pod or
@@ -820,7 +843,7 @@ fn parallel_stage(
             warning.message = warning.message.replace("pod set", "parallel stage");
         }
     }
-    let pods = pods?;
+    let (pods, added_mass) = pods?;
     let Part::PodSet(set) = pods.part else {
         unreachable!("`pod_set` reads a pod set")
     };
@@ -833,9 +856,15 @@ fn parallel_stage(
         id: pods.id,
         name: pods.name,
         components: pods.children,
+        // As an axial stage's (`stage` in `component`): OpenRocket 24.12 leaves a parallel
+        // stage's parts where they are under an override that covers them too.
+        override_rule: if pods.overrides.is_empty() {
+            StageOverrideRule::Rescaled
+        } else {
+            StageOverrideRule::PartsInPlace
+        },
         overrides: pods.overrides,
-        override_rule: Default::default(),
-        added_mass: None,
+        added_mass,
         drag_override: pods.drag_override,
         parallel: Some(ParallelStage {
             on: String::new(),

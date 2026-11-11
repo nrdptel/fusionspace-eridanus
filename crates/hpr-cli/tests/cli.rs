@@ -1098,6 +1098,96 @@ fn sim_flies_a_ork_stage_whose_override_adds_to_its_parts() {
     }
 }
 
+/// A parallel stage whose overrides don't cover its parts flies (ADR-341, M2.3d10). The designs
+/// are OpenRocket probes of three boosters beside an airframe with an AeroTech H128W, dropped
+/// half a second after launch, as `added_mass_placement.py` wrote them: one with a 2 kg mass
+/// override on the parallel stage whose flag is `false`, one with a center of gravity override
+/// at 0.1 m beside it whose flag is `false` too. `hpr sim` reads each with no warning but the
+/// motor curve's, and lists its configuration as one that flies. The library's design holds
+/// the 2 kg as the parallel stage's added mass. Beside the same rocket with no override, each
+/// leaves the rail slower and peaks lower, and its boosters, which take the 2 kg with them, land
+/// faster.
+#[test]
+fn sim_flies_a_ork_parallel_stage_whose_override_adds_to_its_parts() {
+    let record: Value = serde_json::from_str(
+        &std::fs::read_to_string(repo_file(
+            "validation/fixtures/ork/openrocket-added-mass-placement.json",
+        ))
+        .unwrap(),
+    )
+    .unwrap();
+    let folder = tempfile::tempdir().unwrap();
+    let written = |name: &str, question: &str| {
+        let path = folder.path().join(name);
+        let question = format!("three boosters, a motor in the airframe and {question}");
+        let document = record["probes"][&question]["document"].as_str().unwrap();
+        std::fs::write(&path, document).unwrap();
+        path.to_string_lossy().into_owned()
+    };
+    let figures = |document: &Value| {
+        let summary = &document["summary"];
+        let landings = summary["body_landings"].as_array().unwrap();
+        assert_eq!(landings.len(), 1, "{document:#}");
+        [
+            summary["rail_exit_speed_m_s"]["value"].as_f64().unwrap(),
+            summary["apogee"]["gain_m"].as_f64().unwrap(),
+            landings[0]["ground_hit_speed_m_s"].as_f64().unwrap(),
+        ]
+    };
+    let bare = written("bare.ork", "no override");
+    let [light_rail, light_apogee, light_landing] =
+        figures(&json(&["sim", &bare], 0, "sim.schema.json"));
+
+    for (name, question, station) in [
+        (
+            "mass.ork",
+            "a mass override on the parallel stage, not its parts",
+            None,
+        ),
+        (
+            "both.ork",
+            "both overrides on the parallel stage, not its parts",
+            Some(0.1),
+        ),
+    ] {
+        let added = written(name, question);
+        let document = json(&["sim", &added], 0, "sim.schema.json");
+        let warnings = document["warnings"].as_array().unwrap();
+        assert!(
+            warnings.iter().all(|warning| warning["message"]
+                .as_str()
+                .unwrap()
+                .starts_with("H128W's curve file")),
+            "{warnings:#?}"
+        );
+        let configurations = document["design"]["configurations"].as_array().unwrap();
+        assert_eq!(configurations.len(), 1);
+        assert_eq!(configurations[0]["flies"], true);
+        assert_eq!(configurations[0]["not_flown"], Value::Null);
+
+        let (rocket, ..) = ork_design(&std::fs::read(&added).unwrap());
+        assert_eq!(rocket.stages.len(), 2);
+        assert!(rocket.stages[1].parallel.is_some());
+        assert_eq!(
+            rocket.stages[1].added_mass,
+            Some(hpr::hpr_design::AddedMass {
+                mass_kg: 2.0,
+                cg_aft_m: station,
+            })
+        );
+        assert_eq!(rocket.stages[1].overrides, Default::default());
+        assert_eq!(rocket.stages[0].added_mass, None);
+
+        let [rail, apogee, landing] = figures(&document);
+        assert!(rail > 0.0 && rail < 0.5 * light_rail, "{rail} {light_rail}");
+        assert!(
+            apogee > 0.0 && apogee < 0.8 * light_apogee,
+            "{apogee} {light_apogee}"
+        );
+        assert!(landing > 2.0 * light_landing, "{landing} {light_landing}");
+    }
+}
+
 /// The `.ork` text of the library's staging example, `ork_two_stage`: two stages, an Estes F15 in
 /// each, the booster dropping away at its burnout.
 fn two_stage_ork() -> String {

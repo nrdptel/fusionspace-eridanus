@@ -1911,6 +1911,54 @@ mod tests {
         rocket
     }
 
+    /// Strap-on boosters take their added mass with them (ADR-341): with 0.3 kg added to the
+    /// parallel stage, at a station or with none, the stack's structure is that much heavier,
+    /// the pods descend that much heavier, and the sustainer lands with what it lands with when
+    /// the pods carry none. The same holds for the mass at a station on the sustainer, turned
+    /// about: it stays with the sustainer.
+    #[test]
+    fn strap_on_boosters_take_their_added_mass_with_them() {
+        let flown = |rocket: &Rocket| {
+            let sim = staged(rocket, |sim| {
+                Separation::new(
+                    Trigger::Burnout {
+                        motor: motor_index(sim, BOOSTER_MOUNT),
+                        delay_s: 0.0,
+                    },
+                    0,
+                )
+            });
+            let result = sim.run(&mut ()).unwrap();
+            assert_eq!(result.bodies.len(), 1);
+            [
+                sim.assembly().layout.structure.mass_kg,
+                result.bodies[0].mass_kg,
+                result.final_sample.mass_kg,
+            ]
+        };
+        let plain = flown(&strapped(2));
+        for cg_aft_m in [None, Some(0.2)] {
+            let mut rocket = strapped(2);
+            rocket.stages[1].added_mass = Some(hpr_design::AddedMass {
+                mass_kg: 0.3,
+                cg_aft_m,
+            });
+            let added = flown(&rocket);
+            assert!((added[0] - plain[0] - 0.3).abs() < 1e-12, "{added:?}");
+            assert!((added[1] - plain[1] - 0.3).abs() < 1e-12, "{added:?}");
+            assert!((added[2] - plain[2]).abs() < 1e-12, "{added:?}");
+        }
+        let mut rocket = strapped(2);
+        rocket.stages[0].added_mass = Some(hpr_design::AddedMass {
+            mass_kg: 0.3,
+            cg_aft_m: Some(0.2),
+        });
+        let added = flown(&rocket);
+        assert!((added[0] - plain[0] - 0.3).abs() < 1e-12, "{added:?}");
+        assert!((added[1] - plain[1]).abs() < 1e-12, "{added:?}");
+        assert!((added[2] - plain[2] - 0.3).abs() < 1e-12, "{added:?}");
+    }
+
     /// Strap-on boosters burn beside the sustainer and drop at their separation, a boundary after
     /// the stage they hang on: the mass steps down by exactly the pods' structure and their spent
     /// motors, the sustainer burns on, and it climbs higher than with the pods carried to apogee.
