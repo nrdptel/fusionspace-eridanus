@@ -621,6 +621,7 @@ impl LaidOut {
                     name,
                     components,
                     overrides: _,
+                    override_rule: _,
                     added_mass,
                     drag_override: _,
                     parallel,

@@ -1149,9 +1149,26 @@ impl<'a> Writer<'a> {
     /// A `.ork` has one mass tag and one center tag, so it can't say an added mass beside a
     /// whole-stage mass override, or an added mass's station beside a whole-stage center. The
     /// added mass is then left out, with a warning.
+    ///
+    /// The reader gives a stage whose override covers its parts the rule OpenRocket weighs it by,
+    /// its parts left in place ([`hpr_design::StageOverrideRule::PartsInPlace`], ADR-340). A
+    /// stage under the default rule with a mass or center override and no stated inertia is
+    /// written all the same, with a warning that its inertia is then OpenRocket's.
     fn stage_overrides(&mut self, element: &mut Element, at: &str, stage: &Stage) {
         let whole = &stage.overrides;
         let drag = stage.drag_override;
+        if stage.override_rule.is_rescaled()
+            && (whole.mass_kg.is_some() || whole.cg_aft_m.is_some())
+            && whole.inertia.is_none()
+        {
+            self.warn(
+                at,
+                "a stage's overrides under HPR Sim's default rule, which rescales and moves the \
+                 stage as one body. OpenRocket, and HPR Sim reading the file back, leave its parts \
+                 in place: its mass and center are the same, and its inertia is its parts' about \
+                 that center",
+            );
+        }
         let added = match stage.added_mass {
             Some(added)
                 if whole.mass_kg.is_some()
@@ -1568,7 +1585,7 @@ pub(super) fn is_uuid(text: &str) -> bool {
 
 #[cfg(test)]
 pub(super) mod tests {
-    use hpr_design::{AddedMass, Finish};
+    use hpr_design::{AddedMass, Finish, StageOverrideRule};
 
     use super::super::super::{Design, design, read};
     use super::super::document;
@@ -2950,6 +2967,7 @@ pub(super) mod tests {
         // What a `.ork` can't say: an added mass beside a whole-stage mass, or a station beside a
         // whole-stage center. The added mass is left out, with a warning.
         let (mut design, _) = kept_as_written(&cases[5].0, None, &[]);
+        design.rocket.stages[0].override_rule = StageOverrideRule::PartsInPlace;
         for overrides in [whole(Some(3.0), None), whole(None, Some(0.2))] {
             design.rocket.stages[0].overrides = overrides;
             let written = document(&design);
@@ -2979,6 +2997,27 @@ pub(super) mod tests {
             )],
         );
         assert_eq!(covering.rocket.stages[0].overrides.mass_kg, Some(2.0));
+        // Read with its parts in place, as OpenRocket weighs it (ADR-340), and written with no
+        // warning. Under the default rule its inertia would change on the way: warned of.
+        assert_eq!(
+            covering.rocket.stages[0].override_rule,
+            StageOverrideRule::PartsInPlace
+        );
+        assert!(document(&covering).warnings.is_empty());
+        let mut rescaled = covering.clone();
+        rescaled.rocket.stages[0].override_rule = StageOverrideRule::Rescaled;
+        let warnings = document(&rescaled).warnings;
+        assert_eq!(warnings.len(), 1, "{warnings:?}");
+        assert!(
+            warnings[0].message.contains("HPR Sim's default rule"),
+            "{warnings:?}"
+        );
+        // A stated inertia is left out with its own warning, under either rule.
+        rescaled.rocket.stages[0].overrides.inertia =
+            Some(hpr_design::InertiaOverride::axisymmetric(0.01, 0.2));
+        let warnings = document(&rescaled).warnings;
+        assert_eq!(warnings.len(), 1, "{warnings:?}");
+        assert!(warnings[0].message.contains("the inertia"), "{warnings:?}");
         kept_as_written(
             &stage(
                 "<overridecd>0.5</overridecd>\

@@ -97,6 +97,11 @@ pub struct Stage {
         deserialize_with = "object_only"
     )]
     pub overrides: Overrides,
+    /// How `overrides` set the stage's inertia ([`StageOverrideRule`]): by rescaling and moving
+    /// the stage as one body, as `hpr-design` does by default, or with its parts left in place,
+    /// as OpenRocket 24.12 weighs a stage.
+    #[serde(default, skip_serializing_if = "StageOverrideRule::is_rescaled")]
+    pub override_rule: StageOverrideRule,
     /// Mass the stage carries beyond what its parts weigh ([`AddedMass`]): a point mass, added to
     /// the parts before `overrides` apply. A parallel stage can't carry one, and neither can a
     /// stage a parallel stage hangs on ([`Rocket::layout`]).
@@ -776,6 +781,126 @@ impl Overrides {
         out.validate()?;
         Ok(out)
     }
+
+    /// Applies the overrides to a stage with its parts left where they are
+    /// ([`StageOverrideRule::PartsInPlace`]), measuring a center-of-mass override from station
+    /// `fore_station_m`. `whole` is the stage before its overrides; `placed` is the part of it
+    /// that has a place of its own, `whole` but for a mass that sits wherever the stage's center
+    /// is (an [`AddedMass`] with no station).
+    ///
+    /// The mass and the center are what [`apply`](Self::apply) gives `whole`. The tensor about
+    /// that center `c` is `placed`'s about it, by the parallel-axis theorem, with `placed`'s mass
+    /// `m_p` and center `x_p`: `I = I_p + m_p ((d·d) 1 − d dᵀ)`, `d = x_p − c`. The rest of the
+    /// mass, and whatever mass a mass override adds or takes away, sits at `c` and adds nothing
+    /// to it. A stated inertia replaces the tensor, and a mass of zero leaves none.
+    ///
+    /// # Errors
+    ///
+    /// As [`apply`](Self::apply).
+    pub fn apply_with_parts_in_place(
+        &self,
+        whole: MassProperties,
+        placed: MassProperties,
+        fore_station_m: f64,
+    ) -> Result<MassProperties, DesignError> {
+        let mut out = self.apply(whole, fore_station_m)?;
+        if self.inertia.is_none() {
+            out.inertia_kg_m2 = if out.mass_kg > 0.0 {
+                placed.inertia_about(out.cg_m)
+            } else {
+                DMat3::ZERO
+            };
+            out.validate()?;
+        }
+        Ok(out)
+    }
+}
+
+/// How a stage's [`Overrides`] set its inertia. Both rules give the stage the overrides' mass and
+/// center; they differ in where the stage's parts are taken to be, and so in the inertia.
+///
+/// With the parts' mass `m_p`, center `x_p` and inertia `I_p` about it (an [`AddedMass`] counted
+/// among them), a mass override `m′` and a center override `c`:
+///
+/// | | Rescaled | Parts in place |
+/// |---|---|---|
+/// | mass override alone | `I_p m′/m_p` | `I_p` |
+/// | center override alone | `I_p` | `I_p + m_p ((d·d) 1 − d dᵀ)`, `d = x_p − c` |
+/// | both | `I_p m′/m_p` | `I_p + m_p ((d·d) 1 − d dᵀ)` |
+///
+/// An inertia override replaces the tensor under either rule. The two agree on a stage with no
+/// override and on an override that changes neither the mass nor the center.
+///
+/// Neither rule is measured on a flying rocket: a stage's overrides say what it weighs and where
+/// it balances, not where the mass the parts don't account for sits. `Rescaled` puts it where the
+/// parts' mass is; `PartsInPlace` puts it at the stage's center and leaves each part where the
+/// design puts it. The decision record that added the second rule weighs the two
+/// ([ADR-340][adr-340]).
+///
+/// [adr-340]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0340-a-stage-s-overrides-leave-its-parts-in-place-as-openrocket-weighs-them.md
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, schemars::JsonSchema,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum StageOverrideRule {
+    /// The stage's parts, with its added mass, are one body the overrides rescale and move
+    /// ([`Overrides::apply`]): a mass override scales the inertia with the mass, and a center
+    /// override moves the body whole, its inertia about its center unchanged. The default, and
+    /// `hpr-design`'s rule for a part's overrides too ([ADR-061][adr-061]).
+    ///
+    /// [adr-061]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0061-what-a-ork-leaves-unsaid-read-as-openrocket.md
+    #[default]
+    Rescaled,
+    /// The parts stay where the design puts them ([`Overrides::apply_with_parts_in_place`]): the
+    /// stage's inertia is its parts' about the stage's center, and the mass a mass override adds
+    /// or takes away sits at that center. This is how OpenRocket 24.12 weighs a stage's overrides
+    /// that cover its parts, measured on probe designs (`validation/oracles/openrocket/`), and the
+    /// `.ork` reader gives it to every stage with such an override ([ADR-340][adr-340]).
+    ///
+    /// [adr-340]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0340-a-stage-s-overrides-leave-its-parts-in-place-as-openrocket-weighs-them.md
+    PartsInPlace,
+}
+
+impl StageOverrideRule {
+    /// Whether this is the default rule, [`Rescaled`](Self::Rescaled).
+    pub fn is_rescaled(&self) -> bool {
+        *self == Self::Rescaled
+    }
+
+    /// A stage whose parts weigh `parts`, with `added_mass` added to them and then `overrides`
+    /// applied by this rule, stations measured from the stage's forward end `fore_station_m`.
+    ///
+    /// # Errors
+    ///
+    /// As [`AddedMass::add_to`] and [`Overrides::apply`].
+    pub fn weigh(
+        self,
+        parts: MassProperties,
+        added_mass: Option<AddedMass>,
+        overrides: &Overrides,
+        fore_station_m: f64,
+    ) -> Result<MassProperties, DesignError> {
+        let whole = match added_mass {
+            Some(added) => added.add_to(parts, fore_station_m)?,
+            None => parts,
+        };
+        if overrides.is_empty() {
+            return Ok(whole);
+        }
+        match self {
+            Self::Rescaled => overrides.apply(whole, fore_station_m),
+            Self::PartsInPlace => {
+                // An added mass at a station has a place of its own; one with none sits at the
+                // stage's center, wherever the overrides put it, as OpenRocket 24.12 has it
+                // beside a center override that covers the parts (ADR-340).
+                let placed = match added_mass {
+                    Some(added) if added.cg_aft_m.is_some() => whole,
+                    _ => parts,
+                };
+                overrides.apply_with_parts_in_place(whole, placed, fore_station_m)
+            }
+        }
+    }
 }
 
 /// Mass a stage carries beyond what its parts weigh, such as glue and paint weighed on the
@@ -1265,12 +1390,10 @@ impl Rocket {
         for ((stage, masses), ends) in self.stages.iter().zip(&masses.masses).zip(&masses.ends) {
             let (fore, aft) = ends.unwrap_or((0.0, 0.0));
             let parts = MassProperties::combine(masses);
-            let mass = match stage.added_mass {
-                Some(added) => added.add_to(parts, fore),
-                None => Ok(parts),
-            }
-            .and_then(|mass| stage.overrides.apply(mass, fore))
-            .map_err(|e| within(&stage.id, e))?;
+            let mass = stage
+                .override_rule
+                .weigh(parts, stage.added_mass, &stage.overrides, fore)
+                .map_err(|e| within(&stage.id, e))?;
             let hung_on = carriers[stages.len()].map(|carrier| carrier.stage);
             stages.push(PlacedStage {
                 id: stage.id.clone(),
@@ -4128,6 +4251,178 @@ mod tests {
     /// no station it sits at the parts' center and moves nothing; with one it sits that far aft
     /// of its own stage's forward end, as far off the axis as the parts' center is, and the
     /// stage's center and inertia follow the parallel-axis theorem. A whole-stage center override then moves the two together.
+    /// [`StageOverrideRule::PartsInPlace`] leaves a stage's parts where the design puts them:
+    /// its inertia is theirs about the stage's center, the mass an override adds and an added
+    /// mass with no station sit at that center, and the mass and the center are what the default
+    /// rule gives. Held to the parallel-axis theorem by hand, on the lower of two stages.
+    #[test]
+    fn a_stages_overrides_leave_its_parts_in_place_by_its_rule() {
+        let mut design = three_fin_rocket();
+        let mut booster = design.stages[0].clone();
+        booster.id = "booster".to_owned();
+        booster
+            .components
+            .retain(|c| matches!(c.part, Part::BodyTube(_)));
+        for (index, component) in booster.components.iter_mut().enumerate() {
+            component.id = format!("booster-{index}");
+            component.children.clear();
+        }
+        design.stages.push(booster);
+        let plain = design.layout().unwrap();
+        let parts = plain.stages[1].mass;
+        let fore = plain.stages[1].fore_station_m;
+        let with = |rule: StageOverrideRule, added: Option<AddedMass>, overrides: Overrides| {
+            let mut design = design.clone();
+            design.stages[1].override_rule = rule;
+            design.stages[1].added_mass = added;
+            design.stages[1].overrides = overrides;
+            design.layout().map(|layout| layout.stages[1].mass)
+        };
+        let in_place =
+            |added, overrides| with(StageOverrideRule::PartsInPlace, added, overrides).unwrap();
+        let rescaled =
+            |added, overrides| with(StageOverrideRule::Rescaled, added, overrides).unwrap();
+        let pitch = |mass: &MassProperties| mass.inertia_kg_m2.x_axis.x;
+        let roll = |mass: &MassProperties| mass.inertia_kg_m2.z_axis.z;
+        let (m_p, x_p) = (parts.mass_kg, -parts.cg_m.z);
+        let c = fore + 0.3;
+        assert!((x_p - c).abs() > 0.05, "{x_p} {c}");
+        let heavy = Overrides {
+            mass_kg: Some(4.0),
+            ..Overrides::default()
+        };
+        let center = Overrides {
+            cg_aft_m: Some(0.3),
+            ..Overrides::default()
+        };
+        let both = Overrides {
+            mass_kg: Some(4.0),
+            cg_aft_m: Some(0.3),
+            ..Overrides::default()
+        };
+
+        // No override: the two rules are the same stage, bit for bit.
+        assert_eq!(in_place(None, Overrides::default()), parts);
+
+        // A mass alone: the parts' inertia, not scaled.
+        let stage = in_place(None, heavy);
+        close(stage.mass_kg, 4.0, 0.0, "mass under a mass");
+        close(stage.cg_m.z, parts.cg_m.z, 1e-15, "center under a mass");
+        close(pitch(&stage), pitch(&parts), 1e-15, "pitch under a mass");
+        close(roll(&stage), roll(&parts), 1e-15, "roll under a mass");
+        close(
+            pitch(&rescaled(None, heavy)),
+            pitch(&parts) * 4.0 / m_p,
+            1e-12,
+            "the default rule scales it",
+        );
+
+        // A center alone, and both: the parts' inertia about the new center.
+        let about_c = pitch(&parts) + m_p * (x_p - c).powi(2);
+        for (overrides, mass_kg) in [(center, m_p), (both, 4.0)] {
+            let stage = in_place(None, overrides);
+            close(stage.mass_kg, mass_kg, 1e-15, "mass");
+            close(-stage.cg_m.z, c, 1e-15, "center");
+            close(pitch(&stage), about_c, 1e-12, "pitch about the center");
+            close(roll(&stage), roll(&parts), 1e-15, "roll");
+            let default = rescaled(None, overrides);
+            assert_eq!(
+                (default.mass_kg, default.cg_m),
+                (stage.mass_kg, stage.cg_m),
+                "{overrides:?}"
+            );
+        }
+
+        // An added mass with no station sits at the stage's center: beside a center override,
+        // at the override's.
+        let added = AddedMass {
+            mass_kg: 0.5,
+            cg_aft_m: None,
+        };
+        let stage = in_place(Some(added), center);
+        close(stage.mass_kg, m_p + 0.5, 1e-15, "mass with an added mass");
+        close(-stage.cg_m.z, c, 1e-15, "center with an added mass");
+        close(pitch(&stage), about_c, 1e-12, "the added mass adds nothing");
+        // With no center override it sits at the parts' center, as under the default rule.
+        assert_eq!(
+            in_place(Some(added), heavy),
+            MassProperties {
+                mass_kg: 4.0,
+                ..parts
+            }
+        );
+
+        // An added mass at a station has a place of its own, among the parts.
+        let stationed = AddedMass {
+            mass_kg: 0.5,
+            cg_aft_m: Some(0.1),
+        };
+        let whole = stationed.add_to(parts, fore).unwrap();
+        let stage = in_place(Some(stationed), heavy);
+        close(pitch(&stage), pitch(&whole), 1e-15, "a stationed mass");
+        let stage = in_place(Some(stationed), center);
+        close(
+            pitch(&stage),
+            pitch(&whole) + whole.mass_kg * (-whole.cg_m.z - c).powi(2),
+            1e-12,
+            "a stationed mass under a center",
+        );
+
+        // A stated inertia replaces the tensor; a mass of nothing leaves none.
+        let stated = Overrides {
+            inertia: Some(InertiaOverride::axisymmetric(0.01, 0.2)),
+            ..both
+        };
+        let stage = in_place(None, stated);
+        assert_eq!(
+            stage.inertia_kg_m2,
+            InertiaOverride::axisymmetric(0.01, 0.2).tensor()
+        );
+        let nothing = Overrides {
+            mass_kg: Some(0.0),
+            ..center
+        };
+        let stage = in_place(None, nothing);
+        assert_eq!((stage.mass_kg, stage.inertia_kg_m2), (0.0, DMat3::ZERO));
+        assert!(
+            with(
+                StageOverrideRule::PartsInPlace,
+                None,
+                Overrides {
+                    mass_kg: Some(-1.0),
+                    ..Overrides::default()
+                }
+            )
+            .is_err()
+        );
+    }
+
+    /// The rule is written only when it isn't the default, by its snake-case name, and reads
+    /// back; a name it doesn't have is refused.
+    #[test]
+    fn a_stages_override_rule_reads_and_writes_by_name() {
+        let mut stage = crate::testing::stage("s", Vec::new());
+        let json = serde_json::to_string(&stage).unwrap();
+        assert!(!json.contains("override_rule"), "{json}");
+        stage.override_rule = StageOverrideRule::PartsInPlace;
+        let json = serde_json::to_string(&stage).unwrap();
+        assert!(
+            json.contains(r#""override_rule":"parts_in_place""#),
+            "{json}"
+        );
+        assert_eq!(serde_json::from_str::<Stage>(&json).unwrap(), stage);
+        let rescaled = json.replace("parts_in_place", "rescaled");
+        assert_eq!(
+            serde_json::from_str::<Stage>(&rescaled)
+                .unwrap()
+                .override_rule,
+            StageOverrideRule::Rescaled
+        );
+        assert!(
+            serde_json::from_str::<Stage>(&json.replace("parts_in_place", "in_place")).is_err()
+        );
+    }
+
     #[test]
     fn a_stages_added_mass_is_a_point_among_its_parts() {
         // Two stages, so that the lower one's forward end isn't the tip.

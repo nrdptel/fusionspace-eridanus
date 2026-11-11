@@ -7,7 +7,7 @@
 //! `validation/reports/fixture-flights.json`, HPR Sim's apogee against 60 logged flights of
 //! fliers' own designs, flown as drawn (M2.3c1, ADR-184; rechecked in M2.3c5, ADR-238). That is
 //! the largest comparison with real flights the project has, and the least flattering: on it the
-//! simulated apogee averages 7.8% above the logged apogee, each the height climbed in the day's
+//! simulated apogee averages 7.7% above the logged apogee, each the height climbed in the day's
 //! air. A test holds each figure here to the report, so a regenerated report that moves one fails
 //! until the note is updated.
 
@@ -29,7 +29,7 @@ pub(crate) const LABEL: &str = "How far to trust it.";
 pub(crate) const FLIGHTS: usize = 60;
 /// The mean of the apogee errors, percent, to a tenth: simulated less logged, over logged, so
 /// positive is a simulated apogee above the logged one.
-pub(crate) const MEAN_PERCENT: f64 = 7.8;
+pub(crate) const MEAN_PERCENT: f64 = 7.7;
 /// The flights whose error is strictly smaller than 10% either way.
 pub(crate) const WITHIN_10: usize = 32;
 /// The flights whose error is below zero: a simulated apogee under the logged one.
