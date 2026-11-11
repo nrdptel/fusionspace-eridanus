@@ -13,8 +13,10 @@
 //!   it is the mark; `--first` writes one where none was ever committed.
 //! - `--check` writes nothing, and fails on the same worsening or when the committed files are not
 //!   what the reports write. `--against <revision>` also holds the reports to the scoreboard
-//!   committed there: CI and the gate give `origin/main`, so a pull request that regenerates the
-//!   scoreboard with a worse number still fails against main's.
+//!   committed there: CI gives `HEAD^1`, its checkout's first parent (main as a pull request was
+//!   merged into it, or main before the commit a run on main checked out), and the gate gives
+//!   `origin/main`, so a pull request that regenerates the scoreboard with a worse number still
+//!   fails against main's.
 //!
 //! A cell is worse when its row's [`Worse`] rule says so at the printed precision, when it counts
 //! fewer flights or designs, or when a measured cell is no longer measured; a worsening passes only when an accepted ADR names the
@@ -370,7 +372,7 @@ fn mark(committed: Option<Scoreboard>, first: bool) -> Result<Option<Scoreboard>
 }
 
 /// Fails unless the committed reports are no worse than the committed scoreboard, nor than the one
-/// at `against` when given (CI gives `origin/main`), or an accepted ADR names each worsening and
+/// at `against` when given (CI gives `HEAD^1`, the gate `origin/main`), or an accepted ADR names each worsening and
 /// the next release; the committed files are what they write; and each unmeasured cell names an
 /// open milestone. Returns the accepted worsenings' lines.
 pub(crate) fn check_committed(root: &Path, against: Option<&str>) -> Result<Vec<String>, String> {
@@ -2645,6 +2647,31 @@ mod tests {
         assert_eq!(mark(None, true), Ok(None));
         assert!(mark(Some(committed.clone()), true).is_err());
         assert_eq!(mark(Some(committed.clone()), false), Ok(Some(committed)));
+    }
+
+    /// CI holds the scoreboard to the checked-out commit's first parent, which the checkout
+    /// fixes, and never to main fetched as the step runs: a merge landing mid-run made the older
+    /// commit read as worse than main (issue #1426).
+    #[test]
+    fn ci_holds_the_scoreboard_to_the_checkout_s_own_parent() {
+        let root = crate::designs::root().unwrap();
+        let ci = fs::read_to_string(root.join(".github/workflows/ci.yml")).unwrap();
+        let ci = ci.replace("\r\n", "\n");
+        let checks: Vec<&str> = ci
+            .lines()
+            .filter(|l| l.contains("scoreboard --check"))
+            .collect();
+        assert_eq!(checks.len(), 1, "{checks:?}");
+        assert!(
+            checks[0].ends_with("scoreboard --check --against HEAD^1"),
+            "{}",
+            checks[0]
+        );
+        assert!(ci.contains("        run: git fetch --no-tags --depth=2 origin \"$GITHUB_SHA\"\n"));
+        assert!(
+            !ci.contains("refs/remotes/origin/main"),
+            "main fetched afresh"
+        );
     }
 
     /// A revision git doesn't know fails rather than comparing with nothing; one it knows gives
