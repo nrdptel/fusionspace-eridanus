@@ -124,7 +124,8 @@ M2.3d4; its title and file name keep "in three" so that links to it hold.
   archive shows M2.3d6 done, with a result line for the part of M2.3d4's result that was met.
   From 2026-11-11 the roadmap shows M2.3d8 and M2.3d9 below it; M2.3d7 merged in #1422.
 - Nothing in the code or the guide's pages changes with this record. The pages already say where
-  the inertia is not OpenRocket's and what is refused.
+  the inertia is not OpenRocket's and what is refused. The amendment of 2026-11-11 adds one
+  sentence to each of two pages: closing the lower-stage gap is open work, M2.3d9.
 - [#1407][i1407] is M2.3d7's issue, and closes with it.
 
 **How it was checked.** Five of the tests behind M2.3d6 are named on
