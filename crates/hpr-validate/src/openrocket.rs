@@ -595,8 +595,8 @@ mod tests {
 
     /// The same overrides on the lower of two stages, with how far hpr's roll and pitch inertias
     /// are from OpenRocket's (relative): the rocket's inertias, which OpenRocket sums in a way no
-    /// rigid stage gives (ADR-340, and
-    /// `openrockets_lower_stage_sum_is_no_rigid_stage`).
+    /// stage that keeps its parts in place gives (ADR-340, and
+    /// `openrockets_lower_stage_sum_is_below_its_parts_in_place`).
     const STAGE_WHOLE_BELOW: [(&str, [f64; 2]); 2] = [
         (
             "a lower stage's mass override, not its parts, and a center that covers them",
@@ -728,17 +728,20 @@ mod tests {
     /// Why the lower-stage probes keep a difference. OpenRocket 24.12's inertia across the axis
     /// on each is, to 1e-12, the sum about the rocket's center `X` of every part at its own place
     /// and the stage's override mass `m_o` (2 kg) as a point at the stage's stated center `c`:
-    /// `I = Σ (I_i + m_i (x_i − X)²) + m_o (c − X)²`. No rigid stage gives that:
+    /// `I = Σ (I_i + m_i (x_i − X)²) + m_o (c − X)²`. No stage that keeps its parts where the
+    /// design puts them gives that:
     ///
+    /// - Read as the lower stage's own inertia about its stated center `c`, the sum is less than
+    ///   the stage's tube alone has about `c`. A stage that keeps the tube in place has at least
+    ///   that, whatever the rest of its mass does; HPR Sim's rule gives exactly that.
+    /// - Under a center that covers the parts beside an added mass, it is less even than the
+    ///   tube has about the tube's own center: no body that holds the tube has it.
     /// - Under a mass that covers the parts, `m_o` is the whole stage's mass, so the lower tube is
     ///   counted twice: the sum carries more mass than the rocket weighs.
-    /// - Under a center that covers the parts beside an added mass, the lower stage's inertia
-    ///   about its own center that the sum implies is less than its tube alone has about the
-    ///   tube's center: no body that holds the tube has it.
     ///
     /// On one stage `X = c` and the sum is the parts' inertia about `c`, which is HPR Sim's rule.
     #[test]
-    fn openrockets_lower_stage_sum_is_no_rigid_stage() {
+    fn openrockets_lower_stage_sum_is_below_its_parts_in_place() {
         let record = record();
         let structure = |question: &str| {
             let or = &probe(&record, question)["structure"];
@@ -775,11 +778,18 @@ mod tests {
                 ((kg * at_m - upper_kg * upper_m) / stage_kg - center_m).abs() < 1e-9,
                 "{question}"
             );
-            // The lower stage's own inertia, were it rigid at its stated center.
+            // The lower stage's own inertia about its stated center, read from OpenRocket's.
             let rigid = inertia
                 - upper_i
                 - upper_kg * (upper_m - at_m).powi(2)
                 - stage_kg * (center_m - at_m).powi(2);
+            // What its tube alone has about that center, in place: the least a stage that keeps
+            // it there can have, and HPR Sim's figure (0.0137 kg·m², against 0.0038 and 0.0070).
+            let in_place = tube_i + tube_kg * (tube_m - center_m).powi(2);
+            assert!(
+                rigid < 0.6 * in_place,
+                "{question}: {rigid} against {in_place}"
+            );
             if (stage_kg - 2.0).abs() < 1e-12 {
                 // The mass covers the parts: the sum holds the tube and 2 kg in a 2 kg stage.
                 assert!(tube_kg + 2.0 > stage_kg + 0.3, "{question}: {tube_kg}");
@@ -1111,11 +1121,12 @@ mod tests {
     }
 
     /// With a motor aboard, OpenRocket 24.12's inertia across the axis at launch and at burnout is
-    /// the same sum as on the lower of two stages (`openrockets_lower_stage_sum_is_no_rigid_stage`):
+    /// the same sum as on the lower of two stages
+    /// (`openrockets_lower_stage_sum_is_below_its_parts_in_place`):
     /// each part at its own place, the stage's 2 kg as a point at the stage's center, and the
     /// motor, about the rocket's center, to 1e-12 on each of the three probes. Under a center that
-    /// covers the parts the stage's center isn't where its masses balance, so a rigid stage, HPR
-    /// Sim's rule (ADR-340), gives 1.6% less at launch and 1.1% less at burnout. Both readings
+    /// covers the parts beside an added mass, HPR Sim's rule (ADR-340), the parts' inertia about
+    /// the stage's stated center with the rest of its mass there, gives 1.6% less at launch and 1.1% less at burnout. Both readings
     /// take the motor's term from OpenRocket's own records.
     #[test]
     fn openrockets_inertia_with_a_motor_aboard_is_the_same_sum() {

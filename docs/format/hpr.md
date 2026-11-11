@@ -126,8 +126,12 @@ reads the same ([A stage's added mass](../physics/design.md#a-stages-added-mass)
 
 A stage's overrides say what it weighs and where it balances, and its optional `override_rule` key
 says how they set its inertia: `"rescaled"` (the default, left out) scales and moves the stage as
-one body, and `"parts_in_place"` leaves its parts where they are, as OpenRocket weighs a single stage. A
-0.2 document written before the key reads the same ([A stage's rule](../physics/design.md#overrides)).
+one body, and `"parts_in_place"` leaves its parts where they are, as OpenRocket weighs a single
+stage. The `.ork` reader gives `"parts_in_place"` to a stage whose override covers its parts; a
+design written by hand keeps `"rescaled"` unless it asks. Under `"parts_in_place"` the mass an
+override adds sits at the stage's center and adds no inertia, so if that mass is really spread
+along the stage, the inertia reads low. A 0.2 document written before the key reads the same
+([A stage's rule](../physics/design.md#overrides)).
 
 A motor that flies is written out in full, its thrust curve included, so a document flies with no
 motor database. That has a consequence for sharing. When a program supplies curves from a motor

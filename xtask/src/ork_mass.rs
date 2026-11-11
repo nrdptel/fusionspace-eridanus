@@ -226,7 +226,9 @@ pub(crate) fn cluster_spread_kg_m2(layout: &Layout) -> Option<f64> {
 
 /// Whether a stage, or a part with parts inside it, overrides the mass of what it covers: there hpr
 /// scales the inertia of everything covered and OpenRocket that of the overriding part alone, a
-/// departure ADR-061 keeps. On a lone part the two agree, so its own override is not counted.
+/// departure ADR-061 keeps. On a lone part the two agree, so its own override is not counted. A
+/// stage whose parts stay in place (ADR-340, as the `.ork` reader gives every such stage on the
+/// axis) is weighed as OpenRocket weighs it, so it isn't counted either.
 fn covering_mass_override(rocket: &Rocket) -> bool {
     fn any(components: &[Component]) -> bool {
         components.iter().any(|component| {
@@ -236,10 +238,10 @@ fn covering_mass_override(rocket: &Rocket) -> bool {
                 || any(&component.children)
         })
     }
-    rocket
-        .stages
-        .iter()
-        .any(|stage| stage.overrides.mass_kg.is_some() || any(&stage.components))
+    rocket.stages.iter().any(|stage| {
+        (stage.overrides.mass_kg.is_some() && stage.override_rule.is_rescaled())
+            || any(&stage.components)
+    })
 }
 
 /// The median of sorted values: the middle one, or the mean of the two middle ones.
@@ -1260,11 +1262,16 @@ mod tests {
             ("a mass override on a tube and the part inside", true),
             ("a mass override on a tube, not the part inside", false),
             ("a mass override on the part inside only", false),
-            ("a mass override on the stage", true),
+            ("a mass override on the stage", false),
         ] {
             let (rocket, _, _) = conventions_probe(question);
             assert_eq!(covering_mass_override(&rocket), covering, "{question}");
         }
+        // The stage's override is a cause only under the rule that rescales the stage (ADR-340).
+        let (mut rocket, _, _) = conventions_probe("a mass override on the stage");
+        assert!(!rocket.stages[0].override_rule.is_rescaled());
+        rocket.stages[0].override_rule = hpr_design::StageOverrideRule::Rescaled;
+        assert!(covering_mass_override(&rocket));
 
         let (rocket, layout, probe) = conventions_probe("a tube and a fin set of airfoil section");
         let paired =

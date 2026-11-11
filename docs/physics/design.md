@@ -216,6 +216,7 @@ mark the new values. They apply in this order:
    body with $m = 0$ becomes a point mass $m'$ at $\mathbf{c}$. A packed part (a mass component,
    parachute, streamer or shock cord) with $m = 0$ instead becomes a solid cylinder of $m'$ filling
    its packing. OpenRocket's does the same ([Packed parts](mass.md#packed-parts)).
+   This is a stage's `rescaled` rule; *A stage's rule*, below, gives the other.
 2. A center $a$ (`cg_aft_m`) sets $c'_z = -(s_{\mathrm{fore}} + a)$, where $s_{\mathrm{fore}}$ is the station of
    the component's own forward end, whether or not the children are covered. For a stage it is the
    stage's forward end, and it is never a shoulder's.
@@ -287,8 +288,9 @@ tip, with 0.015838 kg·m² across the axis. Its center override is 0.4 m (1.3 ft
 
 Neither rule is measured on a flying rocket. If the mass the parts miss is spread along the stage
 as the parts are, `rescaled` is right and `parts_in_place` reads low, by the mass ratio under a
-mass override (5.0 times on the probe above); if that mass sits farther out, by more. [The decision record][adr-340] weighs the two, and the probes where OpenRocket's
-own figure is no rigid stage's.
+mass override (5.0 times on the probe above); if that mass sits farther out, by more. Under a center override, `parts_in_place` gives the
+least inertia any stage that keeps its parts in place can have. [The decision record][adr-340]
+weighs the two, and the probes where OpenRocket's own figure is below even that.
 
 ### A stage's added mass
 
@@ -385,17 +387,18 @@ with OpenRocket 24.12, and by hand.
 
 <a id="a-stages-added-mass-leaves-out"></a>**What it leaves out.**
 
-- Where one of the stage's two overrides covers the parts, OpenRocket's inertia is not always a
-  rigid stage's, and HPR Sim keeps a rigid one ([the decision record][adr-340]).
-  - *On the lower of two stages* (two probes, each with a 2 kg override). OpenRocket sums every part about the rocket's center at its
-    own place, and the override's 2 kg as a point at the stage's center. Under a mass that covers
+- Where one of the stage's two overrides covers the parts, OpenRocket's inertia is not always
+  the parts' about the stage's center, which HPR Sim's rule gives ([the decision record][adr-340]).
+  - *On the lower of two stages* (two probes, each with a 2 kg override). OpenRocket sums every
+    part about the rocket's center at its own place, and the override's 2 kg as a point at the stage's center. Under a mass that covers
     the parts, that counts the lower tube twice. Under a center beside an added mass, the stage's
-    own inertia would have to be less than its tube's. The rocket's inertia across the axis is
+    own inertia would have to be less than its tube's. On both, it is less than the tube alone
+    has about the stage's center, so no stage that keeps its parts in place gives it. The rocket's inertia across the axis is
     4.95% over OpenRocket's (the center beside an added mass) and 3.33% over (a mass that covers
     the parts, beside a center that doesn't). About the axis the two agree.
   - *With a motor aboard.* OpenRocket sums the same way about the rocket's center with the motor.
     On the motor's airframe, under an added mass beside a center that covers the parts, taking
-    the stage as rigid, as HPR Sim does, gives an inertia across the axis 1.6% under OpenRocket's
+    the parts' inertia about the stage's center, as HPR Sim does, gives an inertia across the axis 1.6% under OpenRocket's
     at launch and 1.1% under at burnout. That is worked from OpenRocket's own records, the
     motor's term the same in both (`openrockets_inertia_with_a_motor_aboard_is_the_same_sum`).
 - A parallel stage can't carry an added mass, and neither can the stage one hangs on: where the

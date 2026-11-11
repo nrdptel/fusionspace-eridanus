@@ -797,7 +797,7 @@ impl Overrides {
     /// # Errors
     ///
     /// As [`apply`](Self::apply).
-    pub fn apply_with_parts_in_place(
+    pub(crate) fn apply_with_parts_in_place(
         &self,
         whole: MassProperties,
         placed: MassProperties,
@@ -843,6 +843,7 @@ impl Overrides {
     Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, schemars::JsonSchema,
 )]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum StageOverrideRule {
     /// The stage's parts, with its added mass, are one body the overrides rescale and move
     /// ([`Overrides::apply`]): a mass override scales the inertia with the mass, and a center
@@ -852,12 +853,13 @@ pub enum StageOverrideRule {
     /// [adr-061]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0061-what-a-ork-leaves-unsaid-read-as-openrocket.md
     #[default]
     Rescaled,
-    /// The parts stay where the design puts them ([`Overrides::apply_with_parts_in_place`]): the
+    /// The parts stay where the design puts them (`Overrides::apply_with_parts_in_place`): the
     /// stage's inertia is its parts' about the stage's center, and the mass a mass override adds
     /// or takes away sits at that center. This is how OpenRocket 24.12 weighs a single stage's
     /// overrides that cover its parts, measured on probe designs (`validation/oracles/openrocket/`);
-    /// on the lower of two stages OpenRocket's sum is no rigid stage's. The `.ork` reader gives it
-    /// to every stage on the axis with such an override ([ADR-340][adr-340]).
+    /// on the lower of two stages OpenRocket's sum is below the parts' inertia about the stage's
+    /// center. The `.ork` reader gives it to every stage on the axis with such an override
+    /// ([ADR-340][adr-340]).
     ///
     /// [adr-340]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0340-a-stage-s-overrides-leave-its-parts-in-place-as-openrocket-weighs-them.md
     PartsInPlace,
