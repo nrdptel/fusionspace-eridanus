@@ -14,10 +14,12 @@ part drifts and lands.
   Carruthers and Filippone's streamer tests (2005) and the OpenRocket technical documentation for
   streamers and tumbling.
 - **How well it is validated:** against another simulator and against drop tests. Five public
-  flights' rates under the main are listed beside their logs' ([residuals report][residuals]).
-  The simulated rate runs from 7.59 m/s (24.9 ft/s) slower than the log's to 1.07 m/s
-  (3.5 ft/s) faster, and slower is the side that flatters a landing. No error over the five is
-  worked out as one number yet: that is for [M2.12, descent rates against the logs][m2-12].
+  flights' descent rates under the main parachute are listed beside their logs'
+  ([residuals report][residuals]). The simulated rate runs from 7.59 m/s (24.9 ft/s) slower
+  than the log's to 1.07 m/s (3.5 ft/s) faster, and slower is the side that flatters a landing.
+  Each difference is the simulation's and the log reading's together, and the largest is on a
+  log that reads as one canopy all the way down. No error over the five is worked out as one
+  number yet: that is for [M2.12, descent rates against the logs][m2-12].
   - The descent under a parachute matches [RocketPy](../glossary.md#rocketpy)'s for five example
     rockets, started from the same state near apogee. All 30 metrics are within 3%, the largest
     +2.865% ([validation report][report]). [Drift](../glossary.md#drift) is measured from that

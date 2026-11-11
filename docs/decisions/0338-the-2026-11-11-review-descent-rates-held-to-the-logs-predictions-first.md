@@ -43,7 +43,7 @@ That is the flattering side, the worst class of error for a safety number
 [The recovery page][recovery] says what that line rests on: RocketPy's descents for five
 rockets, OpenRocket's landing speeds on its example flights, and drop tests of tumbling and
 streamers. Before this record the page named no comparison with a real flight, and no report
-gives the rate's error over flights as one number.
+gives the rate's error over real flights as one number.
 
 The logs hold the other side. The analyzer reads each canopy's descent rate from a log, with a
 90% interval ([M7.2][m7-2], [reading a flight log][readings]). [The residuals
@@ -132,7 +132,7 @@ rule comes first, and each side of the comparison is fixed before the errors are
   reading is fixed in the repository before anyone compares the two. Nothing in a committed
   report compares them today.
 - The public flights' descent residuals are already published, so their aggregates are marked
-  as not blind. A reader can re-run those.
+  as not predicted first. A reader can re-run those.
 - The recovery page's line that no descent has been compared with a real flight predates the
   residuals report. This record's pull request corrects it to name the five flights, and
   M2.12b replaces it with the measured error.
