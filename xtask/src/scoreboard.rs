@@ -2655,11 +2655,21 @@ mod tests {
         let root = crate::designs::root().unwrap();
         let ci = fs::read_to_string(root.join(".github/workflows/ci.yml")).unwrap();
         let ci = ci.replace("\r\n", "\n");
-        let checks: Vec<&str> = ci.lines().filter(|l| l.contains("scoreboard --check")).collect();
+        let checks: Vec<&str> = ci
+            .lines()
+            .filter(|l| l.contains("scoreboard --check"))
+            .collect();
         assert_eq!(checks.len(), 1, "{checks:?}");
-        assert!(checks[0].ends_with("scoreboard --check --against HEAD^1"), "{}", checks[0]);
+        assert!(
+            checks[0].ends_with("scoreboard --check --against HEAD^1"),
+            "{}",
+            checks[0]
+        );
         assert!(ci.contains("        run: git fetch --no-tags --depth=2 origin \"$GITHUB_SHA\"\n"));
-        assert!(!ci.contains("refs/remotes/origin/main"), "main fetched afresh");
+        assert!(
+            !ci.contains("refs/remotes/origin/main"),
+            "main fetched afresh"
+        );
     }
 
     /// A revision git doesn't know fails rather than comparing with nothing; one it knows gives
