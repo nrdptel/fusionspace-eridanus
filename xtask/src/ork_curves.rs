@@ -181,11 +181,16 @@ fn match_all(root: &Path, offline: bool) -> Result<Value, String> {
             })?;
         for motor in &flown.motors {
             if let Some(digest) = &motor.digest {
-                placed.entry(digest.clone()).or_insert_with(|| Placed {
-                    manufacturer: motor.manufacturer.clone(),
-                    designation: motor.designation.clone(),
-                    bundled: true,
-                });
+                // A digest an example already placed is matched against the bundled files
+                // too: a prediction flies only those.
+                placed
+                    .entry(digest.clone())
+                    .and_modify(|placed| placed.bundled = true)
+                    .or_insert_with(|| Placed {
+                        manufacturer: motor.manufacturer.clone(),
+                        designation: motor.designation.clone(),
+                        bundled: true,
+                    });
             }
         }
     }

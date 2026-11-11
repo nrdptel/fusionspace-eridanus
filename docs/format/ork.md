@@ -170,8 +170,9 @@ real files.
   `openrocket-database` parts library supplies 9, and 1 was cached elsewhere. Generated files under
   `refs/scratch/` and sources cached for research notes under `refs/research/` are excluded from the
   default survey. So is the repository pinned under `refs/public-flights/` for
-  [two predicted flights](../accuracy.md#predicted-before-compared), whose 17 designs
-  [aren't surveyed yet](https://github.com/nrdptel/fusionspace-eridanus/issues/1413). By the files' own `creator` attribute, 55 of the 73 readable files were written by
+  [two predicted flights](../accuracy.md#predicted-before-compared)
+  ([issue #1413](https://github.com/nrdptel/fusionspace-eridanus/issues/1413) asks for its designs
+  to be surveyed). By the files' own `creator` attribute, 55 of the 73 readable files were written by
   OpenRocket and 18 were hand-authored. So where a count says what a real OpenRocket writes, it is
   given over those 55. Every count below is printed by `cargo xtask ork` unless it names another
   source.

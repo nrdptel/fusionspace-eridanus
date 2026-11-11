@@ -35,8 +35,8 @@ flights and names each flight's files `maciexl-<flight>-<source>`, with `or` for
 simulation. The design file holds nine stored simulations, and two of them carry those names:
 `maciexl-1-or` on an AeroTech I284W and `maciexl-2-or` on a Cesaroni 601I350-16A. Nothing in the
 repository gives the date, the weather, the rail or the mass the rocket was flown at. Of the
-launch site it gives one thing: each log's header holds its pad's height above sea level, 11.3 m
-(37 ft) for flight 1 and 3.7 m (12 ft) for flight 2.
+launch site it gives one thing: each log's header holds its pad's height above sea level, 3.7 m
+(12 ft) for flight 1 and 11.3 m (37 ft) for flight 2.
 
 **Decision.**
 
@@ -59,8 +59,14 @@ launch site it gives one thing: each log's header holds its pad's height above s
    curve ([ADR-161][adr-161], [ADR-288][adr-288] §3) covered only the motors of OpenRocket's own
    examples, so both Macie XL motors took the catalog's first file. For the 601I350-16A that is
    the digest's file. For the I284W it is not: the first file's thrust is as far as 0.372989 of
-   OpenRocket's peak thrust from the digest's curve, and another bundled file matches it with no
-   difference. `cargo xtask ork-curves` now also matches the motor each predicted flight flies,
+   OpenRocket's peak thrust from the digest's curve, and another bundled file matches its thrust
+   with no difference. The masses are another matter. HPR Sim flies a bundled motor on the
+   bundle's masses for the motor, whichever file gives the thrust: for the I284W, 313.6 g of
+   propellant and 555.52 g loaded, where the digest's file and OpenRocket's own record of the
+   digest give 310.016 g and 555.072 g. The table's row keeps that gap as its `mass_difference`,
+   0.006457 of the loaded mass. The prediction flies what `hpr sim` flies, so the bundle's masses
+   stay, and flight 1 carries a fourth tag for them. For the 601I350-16A the two agree.
+   `cargo xtask ork-curves` now also matches the motor each predicted flight flies,
    and the table holds both digests. Its candidates for these two are the bundled catalog's
    files, the ones `hpr sim` chooses from, so nothing is fetched for them. A prediction is
    refused unless the file flown is the one the table gives for the design's digest. Any other
@@ -70,7 +76,8 @@ launch site it gives one thing: each log's header holds its pad's height above s
    apogee the altimeter worked out ([the `.pf2` page][pf2]). That reading is the rule for both
    flights, never the highest sample: flight 1's samples hold an ejection spike. A PerfectFlite
    has a barometer and no accelerometer, so the prediction is read as a barometric altimeter
-   would read it. In the standard atmosphere that is within 0.1 m of the height climbed.
+   would read it. At these apogees, in the standard atmosphere, that is within 0.1 m of the height
+   climbed.
 5. **Both flights are tagged not traced.** A stored simulation's launch conditions are what a
    simulation was run with, not a record of the day, so the site, the air, the wind and the rod
    are not traced. The logs' pad heights are not flown: a prediction reads no log, and the

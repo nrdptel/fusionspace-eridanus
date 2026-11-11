@@ -382,8 +382,8 @@ pub struct DesignFileFlight {
 
 /// What both Macie XL flights leave untraced.
 const MACIE_XL_SITE_UNTRACED: &str = "no record gives the day, its air and wind, or the rail, \
-    and of the site only each log's header gives the pad's height above sea level (37 ft for \
-    flight 1, 12 ft for flight 2): the stored simulation's are flown, its sea level among them, \
+    and of the site only each log's header gives the pad's height above sea level (12 ft for \
+    flight 1, 37 ft for flight 2): the stored simulation's are flown, its sea level among them, \
     and all nine simulations in the file carry the same ones";
 /// The same, for the mass.
 const MACIE_XL_MASS_UNTRACED: &str = "no record says the rocket was weighed as flown: the \
@@ -392,6 +392,11 @@ const MACIE_XL_MASS_UNTRACED: &str = "no record says the rocket was weighed as f
 const MACIE_XL_CURVE_UNTRACED: &str = "the reader warns that the motor's curve file disagrees \
     with ThrustCurve.org's record of the motor (the figures are in the flight's \
     `reader_warnings` in the JSON); the file the design's digest names is flown";
+/// Flight 1's own: the masses its motor flies are not the ones OpenRocket flew.
+const MACIE_XL_1_MOTOR_MASS_UNTRACED: &str = "the motor flies the bundled catalog's masses for \
+    it, 313.6 g of propellant and 555.52 g loaded, as every catalog motor does, where the curve \
+    file the design's digest names, and OpenRocket's own record of that digest, give 310.016 g \
+    and 555.072 g (the table's `mass_difference`)";
 /// What the page says of how both are flown.
 const MACIE_XL_NOTE: &str = "the stored simulation's wind carries a turbulence of a tenth of \
     its speed, which is not flown: the wind here is steady. The parachutes are not flown \
@@ -426,8 +431,9 @@ pub const DESIGN_FILE_FLIGHTS: [DesignFileFlight; 2] = [
                        names the motor and the digest of its curve; the bundled ThrustCurve.org \
                        file that digest names is flown",
         mass_source: "macie/macie-xl.ork: its parts and the stage's mass and center overrides, \
-                      which add to the parts as OpenRocket 24.12 weighs them; the motor's mass \
-                      is its curve file's",
+                      which add to the parts as OpenRocket 24.12 weighs them; the motor's masses \
+                      are the bundled catalog's for the motor, 313.6 g of propellant and 555.52 g \
+                      loaded",
         conditions_source: "the stored simulation's launch conditions in macie/macie-xl.ork",
         reference: Reference {
             log: "macie/flights/MRC Summer 26/maciexl-1-sl.pf2",
@@ -443,6 +449,7 @@ pub const DESIGN_FILE_FLIGHTS: [DesignFileFlight; 2] = [
             MACIE_XL_SITE_UNTRACED,
             MACIE_XL_MASS_UNTRACED,
             MACIE_XL_CURVE_UNTRACED,
+            MACIE_XL_1_MOTOR_MASS_UNTRACED,
         ],
         note: MACIE_XL_NOTE,
     },
@@ -459,8 +466,9 @@ pub const DESIGN_FILE_FLIGHTS: [DesignFileFlight; 2] = [
                        names the motor and the digest of its curve; the bundled ThrustCurve.org \
                        file that digest names is flown",
         mass_source: "macie/macie-xl.ork: its parts and the stage's mass and center overrides, \
-                      which add to the parts as OpenRocket 24.12 weighs them; the motor's mass \
-                      is its curve file's",
+                      which add to the parts as OpenRocket 24.12 weighs them; the motor's masses \
+                      are the bundled catalog's for the motor, which are OpenRocket's for the \
+                      design's digest",
         conditions_source: "the stored simulation's launch conditions in macie/macie-xl.ork",
         reference: Reference {
             log: "macie/flights/MRC Summer 26/maciexl-2-sl.pf2",
@@ -1361,7 +1369,7 @@ pub fn predict_design_file(
         .iter()
         .flat_map(|other| &other.motors)
         .map(|other| other.designation.as_str())
-        .filter(|designation| *designation != motor.designation)
+        .filter(|designation| !designation.is_empty() && *designation != motor.designation)
         .collect();
     let reader_warnings: Vec<String> = file
         .warnings

@@ -2539,6 +2539,8 @@ fn public_predictions_are_the_listed_flights_and_hold_no_error() {
         " fly(",
         " fly,",
         "{fly",
+        "hpr_flightdata",
+        ".lines()",
     ] {
         assert!(!source.contains(reader), "the predictions call `{reader}`");
     }
@@ -2920,7 +2922,8 @@ fn design_file_predictions_fly_the_pinned_file_as_saved() {
         // Neither flight's inputs are all traced, and the tag on the curve is the reader's own
         // warning, which the row carries.
         assert!(!row.all_inputs_traced, "{}", row.id);
-        assert_eq!(row.untraced.len(), 3, "{}", row.id);
+        let tags = if row.id == "macie-xl-1" { 4 } else { 3 };
+        assert_eq!(row.untraced.len(), tags, "{}", row.id);
         assert!(
             row.reader_warnings
                 .iter()
@@ -2997,6 +3000,8 @@ fn a_design_file_prediction_that_changes_or_stops_holding_fails() {
     assert!(fails(&light).contains("no heavier"));
     let unhashed = altered(&|report| report.design_file_flights[0].design_file_sha256.clear());
     assert!(fails(&unhashed).contains("design file has no SHA-256"));
+    let unlogged = altered(&|report| report.design_file_flights[1].reference_log_sha256.clear());
+    assert!(fails(&unlogged).contains("log has no SHA-256"));
     let renamed = altered(&|report| report.design_file_flights[0].id = "macie-xl-3".to_owned());
     assert!(fails(&renamed).contains("no merged prediction"));
     // Four of the five, or the five out of the order they merged in.
@@ -3106,7 +3111,7 @@ fn invented_motor(digest: &str) -> String {
 const I284W_DIGEST: &str = "<digest>d9da87018adebbef9d8f3d8bfbc9c1e6</digest>";
 
 /// The invented stored simulation's conditions, one element a line: a 1.5 m rod leaning 5° to
-/// the east, a 3 m/s wind from the south, a site at 41.5° N 88.25° W and 210 m, standard air.
+/// the east, a 3 m/s wind from the east, a site at 41.5° N 88.25° W and 210 m, standard air.
 const INVENTED_CONDITIONS: [&str; 13] = [
     "<configid>00000000-0000-4000-8000-0000000000af</configid>",
     "<launchrodlength>1.5</launchrodlength>",
@@ -3115,7 +3120,7 @@ const INVENTED_CONDITIONS: [&str; 13] = [
     "<launchroddirection>90.0</launchroddirection>",
     "<windaverage>3.0</windaverage>",
     "<windturbulence>0.1</windturbulence>",
-    "<winddirection>3.141592653589793</winddirection>",
+    "<winddirection>1.5707963267948966</winddirection>",
     "<windmodeltype>Average</windmodeltype>",
     "<launchaltitude>210.0</launchaltitude>",
     "<launchlatitude>41.5</launchlatitude>",
@@ -3176,7 +3181,7 @@ fn a_stored_simulation_is_read_whole_or_refused() {
         read.as_deref(),
         Ok(
             "00000000-0000-4000-8000-0000000000af rod 1.5 m 0.0873 rad toward 1.5708 rad; wind 3 \
-             m/s from 3.1416 rad; site 41.5 N -88.25 E 210 m; OpenRocket 512.5 m; I284W digest \
+             m/s from 1.5708 rad; site 41.5 N -88.25 E 210 m; OpenRocket 512.5 m; I284W digest \
              d9da87018adebbef9d8f3d8bfbc9c1e6 file 5f4294d20002e9000000003b"
         )
     );
@@ -3358,23 +3363,30 @@ fn a_design_file_flight_flies_what_its_stored_simulation_states() {
     assert!((row.rail_inclination_deg - 85.0).abs() < 1e-9, "{row:?}");
     assert!((row.rail_heading_deg - 90.0).abs() < 1e-9, "{row:?}");
     assert_eq!(row.wind_speed_m_s, 3.0);
-    assert!((row.wind_from_deg - 180.0).abs() < 1e-9, "{row:?}");
+    assert!((row.wind_from_deg - 90.0).abs() < 1e-9, "{row:?}");
     assert_eq!(row.openrocket_stored_apogee_m, 512.5);
     assert_eq!(row.altimeter, "barometric");
     assert!(!row.all_inputs_traced);
+    // The reader's one warning on this motor's curve file is kept with the row.
+    assert_eq!(row.reader_warnings.len(), 1, "{:?}", row.reader_warnings);
     assert!(
+        row.reader_warnings[0].contains("I284W's curve file 5f4294d20002e9000000003b"),
+        "{:?}",
         row.reader_warnings
-            .iter()
-            .all(|warning| !warning.is_empty())
     );
     // The I284W's impulse, on the file its digest names; a rocket heavier with its motor in.
     assert!((row.total_impulse_ns - 599.5).abs() < 0.05, "{row:?}");
     assert!(row.liftoff_mass_kg > row.mass_without_motor_kg && row.mass_without_motor_kg > 0.0);
-    // In the standard atmosphere the altimeter's reading and the climb agree to a meter.
+    // In the standard atmosphere a barometric altimeter reads the climb in geopotential
+    // meters, from the stored site's 210 m: r z / (r + z), with r = 6,356,766 m (U.S. Standard
+    // Atmosphere 1976). Read from sea level instead, it would sit 0.08 m higher.
     assert!(row.predicted_height_apogee_m > 100.0, "{row:?}");
+    let geopotential = |z_m: f64| 6_356_766.0 * z_m / (6_356_766.0 + z_m);
+    let reading_m = geopotential(210.0 + row.predicted_height_apogee_m) - geopotential(210.0);
     assert!(
-        (row.predicted_apogee_m - row.predicted_height_apogee_m).abs() < 1.0,
-        "{row:?}"
+        (row.predicted_apogee_m - reading_m).abs() < 0.01,
+        "{} m read, {reading_m} m expected",
+        row.predicted_apogee_m
     );
 
     // The same design from a vertical rod in still air climbs higher: the stored rod and wind
@@ -3393,18 +3405,62 @@ fn a_design_file_flight_flies_what_its_stored_simulation_states() {
         row.predicted_height_apogee_m
     );
 
-    // And the stored wind alone moves it: the same leaning rod in still air reaches another
-    // height.
-    let calm = whole.replace("<windaverage>3.0<", "<windaverage>0.0<");
-    assert_ne!(calm, whole);
-    let root = invented_checkout(&invented_design(&motor, &calm, INVENTED_RESULTS, ""), log);
-    let windless = predict_design_file(root.path(), &INVENTED_FLIGHT).expect("the calm flight");
+    // The stored wind is from the east, the way the rod leans, so the rocket leaves the rod
+    // leaning into the wind and weathercocks further over. The same rod with the wind from the
+    // west leans downwind and weathercocks back toward the vertical, so it climbs higher. A wind
+    // or a rod flown the other way round swaps the two.
+    let from_west = whole.replace(
+        "<winddirection>1.5707963267948966<",
+        "<winddirection>4.71238898038469<",
+    );
+    assert_ne!(from_west, whole);
+    let root = invented_checkout(
+        &invented_design(&motor, &from_west, INVENTED_RESULTS, ""),
+        log,
+    );
+    let downwind = predict_design_file(root.path(), &INVENTED_FLIGHT).expect("the downwind lean");
+    assert!((downwind.wind_from_deg - 270.0).abs() < 1e-9);
     assert!(
-        (windless.predicted_height_apogee_m - row.predicted_height_apogee_m).abs() > 0.01,
-        "{} m in still air, {} m in the stored wind",
-        windless.predicted_height_apogee_m,
+        downwind.predicted_height_apogee_m > row.predicted_height_apogee_m + 0.5,
+        "{} m leaning downwind, {} m leaning into the wind",
+        downwind.predicted_height_apogee_m,
         row.predicted_height_apogee_m
     );
+
+    // Another configuration's motor draws its own warning from the reader, which a flight of
+    // this configuration leaves out.
+    let other = "00000000-0000-4000-8000-0000000000ad";
+    let two_motors = format!(
+        "{motor}<motor configid=\"{other}\"><type>reloadable</type>\
+         <manufacturer>Cesaroni Technology</manufacturer><designation>601I350-16A</designation>\
+         <digest>84414906dddfb169c96ef1f7cf8d0ff7</digest><diameter>0.038</diameter>\
+         <length>0.36</length><delay>0.0</delay></motor>"
+    );
+    let two_configurations = invented_design(&two_motors, &whole, INVENTED_RESULTS, "").replace(
+        "</motorconfiguration>",
+        &format!(
+            "</motorconfiguration><motorconfiguration configid=\"{other}\">\
+             <stage number=\"0\" active=\"true\"/></motorconfiguration>"
+        ),
+    );
+    assert_eq!(
+        two_configurations.matches("<motorconfiguration ").count(),
+        2
+    );
+    let file = hpr_io::ork::read(two_configurations.as_bytes()).expect("the two configurations");
+    let design = hpr_io::ork::design(&file.value);
+    assert!(
+        design
+            .warnings
+            .iter()
+            .any(|warning| warning.message.contains("601I350-16A")),
+        "the reader warns on the other motor: {:?}",
+        design.warnings
+    );
+    let root = invented_checkout(&two_configurations, log);
+    let one_of_two = predict_design_file(root.path(), &INVENTED_FLIGHT).expect("one of two");
+    assert_eq!(one_of_two.reader_warnings, row.reader_warnings);
+    assert_eq!(one_of_two.predicted_apogee_m, row.predicted_apogee_m);
 
     // A missing log, a stored simulation that is refused, and a part HPR Sim doesn't read each
     // stop the flight.

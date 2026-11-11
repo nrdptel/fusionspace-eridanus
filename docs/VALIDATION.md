@@ -709,11 +709,12 @@ has moved from it. CI, without the checkout, also holds the
 committed predictions to the code's list of flights, to the committed designs' and the design fixture's digests, to their
 page, and to the file's own text: a key for an error or a measured value fails.
 
-The two Macie XL flights are read from a design file, not built from an example. The lock pins
-their repository under `refs/public-flights/` (`cargo xtask refs fetch rocketry-files`). Each is
-flown as the stored simulation the repository names for it, from the file as OpenRocket 24.12 saved
-it, and refused if that simulation lacks a launch condition, was run in another atmosphere or wind
-model, or would fly a curve file other than the one the table gives for the design's digest
+The two Macie XL flights are read from a design file, not built from an example. The lock file
+(`validation/refs.lock.toml`) pins their repository under `refs/public-flights/` (`cargo xtask
+refs fetch rocketry-files`). Each is flown as the stored simulation the repository names for it,
+from the file as OpenRocket 24.12 saved it. A flight is refused if that simulation lacks its rod,
+wind or site, or was run in another atmosphere or wind model. It is also refused if it would fly a
+curve file other than the one the table gives for the design's digest
 (`crates/hpr-motor/data/openrocket-curves.json`, written by `cargo xtask ork-curves`). CI holds
 their committed rows to the lock's pin, to that table and to the code's list.
 

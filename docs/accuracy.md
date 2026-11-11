@@ -935,7 +935,8 @@ investigated ([report][real-report]).
 EuRoC 2022: Astra, Andromeda and Erebus 11. Two are flights of Macie XL, an OpenRocket design in a
 public repository. Their predicted [apogees](glossary.md#apogee) were merged before any of them was
 compared with its log ([the predictions][predictions]; decisions: [the three][adr-334],
-[the two][adr-337]). Nothing here is an error yet.**
+[the two][adr-337]). Nothing here is an error yet: none has been checked against its log, so
+the table is not evidence of accuracy.**
 
 The seven flights above were compared as soon as they were flown. A number published only after
 its comparison could have been tuned to its own miss, even without meaning to. These five go the
@@ -993,31 +994,42 @@ one prediction of the five that passes Mach 1, at Mach 1.019
 (MIT): one OpenRocket design file, a page about the rocket and each flight's logs. HPR Sim reads
 the file whole, as OpenRocket 24.12 saved it. Its stage's mass override adds to its parts
 ([a stage's added mass](physics/design.md#a-stages-added-mass)). The file holds a stored simulation
-named for each flight, and that is what is flown: its motor, from its vertical 1 m (3.3 ft) rod,
-in its steady 2 m/s (6.6 ft/s) wind and the standard atmosphere, at sea level. The stored wind's
-turbulence is left out ([the Macie XL predictions](decisions-and-roadmap.md#m2-3d5)).
+named for each flight: an OpenRocket run saved inside the design file, with its motor and its
+launch conditions. That is what is flown: its motor, from its vertical 1 m (3.3 ft) rod, in its
+steady 2 m/s (6.6 ft/s) wind and the standard atmosphere, at sea level
+([the Macie XL predictions](decisions-and-roadmap.md#m2-3d5)). Four things are left out: the
+stored wind's turbulence, the parachutes (the file opens the first at apogee, so neither moves
+the apogee), the day's weather and each pad's few meters above sea level.
 
-Each motor flies the bundled curve file that the design names by its
-[digest](glossary.md#digest), the file holding the curve OpenRocket flies. For the I284W that is
-not the catalog's first file, whose thrust is as far from OpenRocket's curve as 0.372989 of that
-curve's peak thrust ([the decision][adr-337]). Both logs are a PerfectFlite altimeter's, which is
-barometric ([`.pf2` files](format/pf2.md)). In the standard atmosphere the reading and the climb
-agree within 0.1 m (0.33 ft).
+ThrustCurve.org can hold several data files for one motor, and HPR Sim bundles them. Each motor's
+thrust comes from the bundled file that the design names by its [digest](glossary.md#digest), the
+file holding the curve OpenRocket flies. For the I284W that is not the first file of the bundle,
+whose thrust is as far from OpenRocket's curve as 0.372989 of that curve's peak thrust
+([the decision][adr-337]). The I284W's masses stay the bundle's for the motor, as every bundled
+motor's do: 313.6 g of propellant and 555.52 g loaded, where the digest's file and OpenRocket give
+310.016 g and 555.072 g. Both logs are a PerfectFlite altimeter's, which is barometric
+([`.pf2` files](format/pf2.md)). At these apogees, in the standard atmosphere, the reading and
+the climb agree within 0.1 m (0.33 ft).
 
-**Both are tagged not traced** ([the decision][adr-337]). The repository gives no date, weather
-or rail. Of the launch site it gives only each log's pad height above sea level, 11.3 m (37 ft)
-for flight 1 and 3.7 m (12 ft) for flight 2. The stored simulation's conditions are flown, its sea
-level among them; all nine simulations in the file carry the same ones. Nothing says the rocket
-was weighed as flown. And HPR
-Sim's own check warns on both curve files. The I284W file's impulse is 1.28% from ThrustCurve.org's
-figure for the motor. The 601I350-16A file's loaded mass is 616.3 g, against ThrustCurve.org's
-record of 782.0 g. The file the design names is flown all the same.
+**Both are tagged not traced** ([the decision][adr-337]). For these two the record is the
+repository: its design file, its page and its logs. It gives no date, weather or rail. Of the
+launch site it gives only each log's pad height above sea level, 3.7 m (12 ft) for flight 1 and
+11.3 m (37 ft) for flight 2. The stored simulation's conditions are flown, its sea level among
+them; all nine simulations in the file carry the same ones. Nothing says the rocket was weighed as
+flown. And HPR Sim's `.ork` reader warns on both curve files. The I284W file's impulse is 1.28%
+from ThrustCurve.org's figure for the motor. The 601I350-16A file's loaded mass is 616.3 g,
+against ThrustCurve.org's record of 782.0 g. The file the design names is flown all the same, and
+each warning is kept with its prediction, with the way it would move the apogee.
 
 The design file also keeps the apogees OpenRocket's own runs of the two simulations reached,
 704.6 m (2,312 ft) and 691.6 m (2,269 ft) ([the decision][adr-337]). They are another simulator's
-numbers, not measurements, and are shown beside the predictions without being counted. The
-repository's page says both flights flew higher than its own simulations. HPR Sim flies the same
-file, so nothing promises that it reads closer.
+numbers, not measurements, and are shown beside the predictions without being counted. Where the
+two programs agree, that is one program agreeing with another on the same file. It says nothing
+about how close either is to what flew.
+
+The choice to fly each stored simulation's own conditions, and the tags, were written after HPR
+Sim had first flown the file at `hpr sim`'s defaults ([the decision][adr-337]). That order is the
+maintainer's statement; no check can show it.
 
 **What is still to come.** All twelve public flights are compared together in a later change
 ([the errors](decisions-and-roadmap.md#m2-3d2)).
