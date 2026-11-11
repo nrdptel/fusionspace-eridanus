@@ -366,6 +366,8 @@ until someone rewrites it in plainer words.
 | [ADR-335: A stage's added mass, as OpenRocket weighs it][adr-335] | The `.ork` reader no longer holds back a stage whose mass override doesn't cover its parts. OpenRocket 24.12 adds such a mass to what the parts weigh, as a point: at the center of that stage's parts, or at the stage's center of gravity override when that doesn't cover the parts either. The design holds that mass as the stage's added mass, and on 19 probes HPR Sim's structure matches OpenRocket's: the center within 0.2 µm, the mass and the inertias within 3 parts in a million. A motor aboard doesn't move the added mass. Where an override covers the parts, the inertia stays HPR Sim's own rule: on such stages' probes, from 11.04% under OpenRocket's to 400.5% over. |
 | [ADR-336: M2.3d4 in three, the inertia and the refusals last][adr-336] | A stage in an OpenRocket file can carry a mass override and a center of gravity override, and each covers the stage's parts or doesn't. [M2.3d4](#m2-3d4)'s *done when* holds the inertia of a stage whose mass or center override doesn't cover its parts to OpenRocket's, and has such a stage held back no longer. The merged work falls short twice. Where one override covers the parts and the other doesn't, HPR Sim keeps its own inertia rule: on eight probe designs, from 11.04% under OpenRocket's to 400.5% over. A few such stages are still refused. This record reopens the milestone in three: [M2.3d6](#m2-3d6) is what merged, [M2.3d7](#m2-3d7) the inertia, [M2.3d8](#m2-3d8) the refusals. [M2.3d4](#m2-3d4) is met when the last two are. |  |
 | [ADR-337: The Macie XL predictions, each flight's stored simulation flown as saved][adr-337] | The last two of the five new public flights are predicted: both flights of Macie XL, one OpenRocket design in a public repository. The repository gives no weather or rail, and of the launch site only each log's pad height, so each flight is flown as the stored simulation its repository names for it, from the design file as OpenRocket 24.12 saved it. HPR Sim predicts 706.2 m (2,317 ft) for flight 1 and 692.6 m (2,272 ft) for flight 2, as their altimeters would read them. Both are tagged *not traced*. No error is computed. Flight 1's motor now flies the bundled curve file the design's digest names, which is not the catalog's first file. |  |
+| [ADR-338: The 2026-11-11 review: descent rates held to the logs, predictions first][adr-338] | Every scoreboard row that reads a logged flight reads its apogee. The rate a rocket comes down at under its parachutes sets its landing speed and its drift, and HPR Sim's is held to other simulators and to drop tests, not to flights. The logs hold it: the analyzer reads each canopy's descent rate with a 90% interval. On the five public flights that have both, the simulated rate under the main runs from 7.59 m/s slower than the log's to 1.07 m/s faster. The new milestone scores the private collection's flights the same way, as aggregates, after the rule of the comparison and each flight's predicted rates are merged, so the first error published is a blind one. The scoreboard gains a row for the rate's error and one for its sign, where too gentle is the flattering side. |  |
+| [ADR-339: M0.17, the docs site at the tool level, queued second][adr-339] | The product system the docs site is pinned to now has three levels: front pages, tools and records. A docs site is a tool: it keeps what the drawing means (line types, trust notes, signal colors, units) and leaves off the drawing's frame. The site still wears the whole record: a designation tag over each title, sheet numbers and a title block at the foot of every page. Issue #1364 asks for the move, and it is a milestone's work, not an issue's. This record adds it as [M0.17](#m0-17) in two increments, the frame off and then the Field theme, and queues it second, where the maintainer asked for it. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -551,6 +553,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-16a1"></a>[M0.16a1][done-0] | Two slices | done |
 | <a id="m0-16a2"></a>[M0.16a2][done-0] | The fit's slice | done |
 | <a id="m0-16a3"></a>[M0.16a3][done-0] | The budget checked | done |
+| <a id="m0-17"></a>[M0.17][phase-0] | The docs site at the tool level | not yet done |
+| <a id="m0-17a"></a>[M0.17a][phase-0] | The frame off | not yet done |
+| <a id="m0-17b"></a>[M0.17b][phase-0] | Field | not yet done |
 | <a id="m1-1"></a>[M1.1][done-1] | Vectors and rotations, frames, the Earth's shape and gravity | done |
 | <a id="m1-2"></a>[M1.2][done-1] | The atmosphere and wind | done |
 | <a id="m1-3"></a>[M1.3][done-1] | Solid motors: thrust curves, motor files, and mass through the burn | done |
@@ -699,6 +704,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-9"></a>[M2.9][phase-1] | The other tools' cells | not yet done |
 | <a id="m2-10"></a>[M2.10][done-1] | Evidence register | done |
 | <a id="m2-11"></a>[M2.11][phase-1] | Fin flutter held to measurement | not yet done |
+| <a id="m2-12"></a>[M2.12][phase-1] | Descent rates against the logs | not yet done |
+| <a id="m2-12a"></a>[M2.12a][phase-1] | The rule and the predictions | not yet done |
+| <a id="m2-12b"></a>[M2.12b][phase-1] | The errors | not yet done |
 | <a id="m3-1"></a>[M3.1][done-1] | Reading OpenRocket `.ork` design files | done |
 | <a id="m3-1a"></a>[M3.1a][done-1] | The container a `.ork` arrives in, and its design document read whole | done |
 | <a id="m3-1b"></a>[M3.1b][done-1] | The component tree: parts, shapes, materials, finishes and overrides into a design | done |
@@ -1367,6 +1375,8 @@ is the milestone that added or will add that test.
 [adr-335]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0335-a-stage-s-added-mass-as-openrocket-weighs-it.md
 [adr-336]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0336-m2-3d4-in-three-the-inertia-and-the-refusals-last.md
 [adr-337]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0337-the-macie-xl-predictions-each-flight-s-stored-simulation-flown-as-saved.md
+[adr-338]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0338-the-2026-11-11-review-descent-rates-held-to-the-logs-predictions-first.md
+[adr-339]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0339-m0-17-the-docs-site-at-the-tool-level-queued-second.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

@@ -154,7 +154,7 @@ From the 2026-10-24 planning review ([ADR-289][adr-289]):
   lower better, and `readings.inside-90`, nearer 90% better. *Done when:* the report prints each reading's mean width on sets
   A and B, `synthetic --check` fails when one grows more than 10% over its committed figure, and a
   probe adding noise to one reading shows that the width check fails while coverage passes.
-- SOON: descent rates against the log. User: a flyer sizing a main or a drift budget. Workflow: the
+- PROMOTED ([M2.12][m2-12]): descent rates against the log. User: a flyer sizing a main or a drift budget. Workflow: the
   fixture report compares each tool's descent rate under the main with the log's. Moves: new row
   `accuracy.descent`, lower better; too gentle is the flattering side. *Done when:* signed and absolute errors with their counts for both simulators, aggregates only,
   and a test pinning which way too gentle reads.
@@ -195,3 +195,4 @@ From the 2026-10-24 planning review ([ADR-289][adr-289]):
 [adr-257]: ../decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 [adr-318]: ../decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md
 [hfs]: https://github.com/aneeshkaravadi/hpr-flight-sim
+[m2-12]: ../decisions-and-roadmap.md#m2-12

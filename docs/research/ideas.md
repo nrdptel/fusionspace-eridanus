@@ -31,7 +31,8 @@ safety number has a test pinning which way it errs.
 [Pad, range and recovery hardware](ideas-pad-and-recovery.md); [avionics](ideas-avionics.md);
 [design, build, physics and trust](ideas-design-and-physics.md); [flight data](ideas-flight-data.md);
 [competitions, certification and club operations](ideas-competitions-and-clubs.md); [developer
-ecosystem, UI and moonshots](ideas-ecosystem-and-ui.md).
+ecosystem, UI and moonshots](ideas-ecosystem-and-ui.md); [accuracy against real
+flights](ideas-accuracy.md).
 
 ## The suite's new lines and the second pass (2026-10-04)
 
@@ -65,7 +66,7 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
 - LATER: live prices through `hpr-net`, cached and dated.
 - LATER: regional vendors (Klima, Wizard Rockets); parts that fit `.orc` offered upstream.
 
-## Earlier planning reviews (2026-10-08 to 2026-11-04)
+## Earlier planning reviews (2026-10-08 to 2026-11-08)
 
 PROMOTED: OpenRocket's newest release as the bar ([M2.3c3][m2-3c3], ADR-212), the gap to it by
 cause (M2.3c6, [ADR-226][adr-226]) with OpenRocket's supersonic ogive drag as its own cause
@@ -79,56 +80,55 @@ data, clubs and the ecosystem. The 2026-10-28 review's four ([ADR-303][adr-303])
 the 2026-10-31 review's five ([ADR-310][adr-310], [ADR-311][adr-311]) went there too; the milestone it
 promoted, every flight OpenRocket flies, is [M2.3c9][m2-3c9]. The 2026-11-02 review's four
 ([ADR-318][adr-318]) went to flight data, avionics, clubs, and pad and recovery. The 2026-11-04
-review's four ([ADR-319][adr-319]) went to avionics and clubs.
+review's four ([ADR-319][adr-319]) went to avionics and clubs. The 2026-11-08 review's three
+([ADR-328][adr-328]) went to [accuracy against real flights](ideas-accuracy.md); the milestone it
+promoted, twelve public flights with predictions first, is [M2.3d][m2-3d].
 
-## The 2026-11-08 planning review
+## The 2026-11-11 planning review
 
-Placed with [ADR-328][adr-328], which promotes the first; the other three are SOON:
+Placed with [ADR-338][adr-338], which promotes the first; the other four are SOON:
 
-- PROMOTED ([M2.3d][m2-3d]): twelve public flights, predictions first. User: a flyer reading the
-  accuracy page to judge how far to trust an apogee, and anyone running [M2.6][m2-6]'s open
-  benchmark. `accuracy.public`, 6.06%, rests on 7 flights, all from RocketPy's examples. Five more
-  public flights with a COTS motor and a log can join them ([public flights](public-flights.md),
-  [since October](public-flights-2026.md)): RocketPy's Astra, Andromeda and Erebus 11, which wait on
-  their netCDF-4 weather ([#478][i478]) and designs built from their examples, and two MIT-licensed
-  flights of one OpenRocket design ([#1266][i1266]). Workflow: each new flight's inputs and
-  predicted apogee are merged before its error is computed. Moves: `accuracy.public` and
-  `bias.public`, from 7 flights to 12. *Done when:* M2.3d's.
-- SOON: the flyer's own run as a baseline. User: a flyer who already simulates in OpenRocket, asking
-  whether HPR Sim tells them more than the run they made with their own settings. 237 of the private
-  collection's 240 distinct design files (by SHA-256) store at least one OpenRocket run with an
-  apogee (counted 2026-11-08); the scoreboard compares HPR Sim with OpenRocket 24.12 re-run in a
-  standard atmosphere through the pad's temperature and pressure, not with what the flyer saw.
-  Workflow: the fixture report reads the stored run of each flown configuration, with the version
-  and settings it records, and gives its apogee error beside HPR Sim's and the re-run's. A stored
-  run may postdate the flight and be tuned to it, which the file can't show, so the column is shown,
-  never held. Moves: `accuracy.collection`, a shown column. *Done when:* the report gives the stored
-  runs' mean absolute and signed errors on the flights that have one, how many have none, and a
-  paired bootstrap 95% interval on HPR Sim's error less theirs, as aggregates.
-- SOON: a public case another open simulator scored. User: anyone comparing simulators on the same
-  public flights rather than on each tool's own claims. A new Apache-2.0 simulator scored itself
-  blind on three flights of one kit from a college course's flight archive (DOFPro), a Madcow Mini
-  DX3 on a G77R, a G79W and an H128W: +7.0%, +6.1% and +10.2%, each a fail by its own test
-  ([Astraea's accuracy page][astraea], read 2026-11-08). HPR Sim reads DOFPro logs but has no public
-  apogee case for that kit. Workflow: the kit built from its maker's published dimensions and
-  masses, flown on the three motors in the archive's stated conditions, each prediction merged
-  before its error, as [M2.3d][m2-3d] orders. Moves: a cited comparison beside `accuracy.public`,
-  per flight only if the archive's license allows (it names "Creative Commons", no variant). *Done
-  when:* the three flights are flown with each input's source and the archive's license recorded
-  (aggregates only if it is unclear), and the report gives HPR Sim's errors beside the other tool's,
-  dated.
-- SOON: a part's mass held to its material. User: a flyer whose design holds a mass typed ten times
-  off, as one recovery tool's catalog did until a 2026-11-07 test release, listing a 462 g parachute
-  at 46 g ([its release notes][recsys]). A bundled motor's mass is checked against its record
-  ([#1233][i1233]); a part's typed or library mass isn't checked against its size. Workflow: at
-  import, each part's mass is set against its volume times the density range of its stated material,
-  or of any hobby material when none is stated, and a mass outside it is named with the part, the
-  mass and the range. Moves: `accuracy.collection`, as a shown diagnosis: the mean absolute apogee
-  error of the flights with a flagged part beside the rest. *Done when:* the density ranges are
-  committed with their sources; the count of the collection's designs with a flagged part is
-  reported, as an aggregate; a test fails when a tenfold slip either way in a body tube's or a
-  parachute's mass goes unflagged; and the share of ordinary parts flagged is counted, as a
-  false-alarm rate.
+- PROMOTED ([M2.12][m2-12]): descent rates against the logs, predictions first. User: a flyer
+  sizing a main, a drift budget or a landing's energy. Every scoreboard row against a log reads its
+  apogee; the [flight data](ideas-flight-data.md) note's descent idea is the first on another
+  output. Workflow: the comparison's rule and each collection flight's predicted rates are merged
+  before any error. Moves: new rows `accuracy.descent` and `bias.descent`, too gentle the
+  flattering side. *Done when:* M2.12's.
+- SOON: RocketPy's own apogee table beside HPR Sim's. User: anyone comparing simulators on the same
+  public flights. An open RocketPy pull request commits a table of apogee errors on 11 of its
+  example rockets, each flown on the drag its example supplies: median absolute error 6.36%, 90th
+  percentile 8.42% ([its table][rp1208], committed 2026-10-24, read 2026-11-11; unmerged). Six of the
+  11 are among HPR Sim's 7 public flights and three more join with [M2.3d][m2-3d]. Workflow: the
+  real-flights report shows that table's error for each flight both fly, beside HPR Sim's on its own
+  aerodynamics and on the example's drag, cited and dated. Moves: `accuracy.public`, a cited figure
+  beside its RocketPy cell until [M2.9][m2-9] measures it. *Done when:* the report gives the cited
+  error per shared flight and its mean, with the table's commit, and a test fails when the pinned
+  table's hash changes.
+- SOON: a third tool on the supersonic list, and the finish it assumes. User: a flyer past Mach 1
+  asking which simulator to trust. One open tool scores itself on 23 measured apogees from RASAero
+  II's example files: 9.9% mean absolute error, +9.2% with its sign, beside RASAero II's 5.4%; 13.0%
+  on the 9 flights above Mach 1.2. It names finish as the largest unknown: at regular paint, 60 µm,
+  its signed error falls to +0.5% ([its validation page][prfl], read 2026-11-11). Workflow: where
+  [M2.3c7][m2-3c7] scores those flights, the report cites that tool's errors beside RASAero II's and
+  flies each flight at the file's finish and at two named finishes. Moves: `accuracy.supersonic`,
+  with its spread across finishes. *Done when:* the report gives the three tools' errors on the
+  flights all score, and HPR Sim's at each finish, each finish's roughness sourced.
+- SOON: the published apogee beside the log's. User: a reader checking an error against the figure
+  a team published. Sources quote one flight's measured apogee differently: NDRT 2020's is 1,320.4 m
+  as HPR Sim reads its log and 1,316.7 m in RocketPy's table. Workflow: the real-flights report
+  lists, per flight, the apogee its team or its example states beside the log's as read, and the
+  mean absolute error against each. Moves: `accuracy.public`, shown against a second reference.
+  *Done when:* each flight has both apogees with their sources, or says none is published, and the
+  report gives the error both ways.
+- SOON: the collection's other predictions, sealed before anyone looks. User: a reader asking
+  whether a new accuracy row was tuned. No committed report compares the collection's simulated
+  times to apogee or top speeds with their logs, so a first number can still be blind. The fit from
+  the boost has read the calibration half's climbs, so burnout speed is left out. Workflow: one
+  pull request merges the hash of each flight's predicted time to apogee and top speed, as
+  [ADR-333][adr-333] holds the apogees', and the fixture report refuses to compare an output whose
+  hash didn't merge first. Moves: the proposed `accuracy.time-to-apogee` row, from unknown to
+  blind. *Done when:* the hashes are merged, and a test compares an invented flight only after
+  its hash.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -191,9 +191,9 @@ Placed with [ADR-328][adr-328], which promotes the first; the other three are SO
 [adr-319]: ../decisions/0319-the-2026-11-04-review-the-rocketpy-descents-tightened.md
 [adr-328]: ../decisions/0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md
 [m2-3d]: ../decisions-and-roadmap.md#m2-3d
-[m2-6]: ../decisions-and-roadmap.md#m2-6
-[astraea]: https://github.com/akhan157/astraea/blob/main/docs/accuracy.md
-[recsys]: https://github.com/akhan157/RecoverySys/releases
-[i478]: https://github.com/nrdptel/fusionspace-eridanus/issues/478
-[i1266]: https://github.com/nrdptel/fusionspace-eridanus/issues/1266
-[i1233]: https://github.com/nrdptel/fusionspace-eridanus/issues/1233
+[adr-338]: ../decisions/0338-the-2026-11-11-review-descent-rates-held-to-the-logs-predictions-first.md
+[adr-333]: ../decisions/0333-m2-7b-new-flights-predicted-first.md
+[m2-12]: ../decisions-and-roadmap.md#m2-12
+[m2-9]: ../decisions-and-roadmap.md#m2-9
+[rp1208]: https://github.com/RocketPy-Team/RocketPy/pull/1208
+[prfl]: https://github.com/dustintlee-blahblah/PocketRocketFlightLab/blob/main/VALIDATION.md
