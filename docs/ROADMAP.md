@@ -200,7 +200,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
     predicted apogees, computing no error.
     - [ ] **M2.3d4 A stage's override that adds to its parts** (ADR-335; ADR-336: in three,
       M2.3d6 done, M2.3d7 closed by ADR-340 on six of its eight probes, M2.3d8 below; met when
-      M2.3d8 is, the two lower-stage probes' pinned gap aside). *Done when:* an `.ork` stage
+      M2.3d8 is, the gaps ADR-340 pins aside). *Done when:* an `.ork` stage
       whose mass or center override doesn't cover its parts is flown as OpenRocket 24.12 weighs
       it, its mass, center and inertia held to OpenRocket's on probe designs, and is no longer
       held back.

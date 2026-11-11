@@ -268,10 +268,11 @@ flight alone and leaves them on the terminal.
 and so does the simulator. It used to refuse such a stage. Where a stage's override has that box
 ticked, the simulator leaves the stage's parts where they are, as OpenRocket does, and its mass,
 center and inertia match OpenRocket's on the [probe designs](glossary.md#probe-design) of one
-stage with no motor aboard. With the override on the lower of two stages, or with a motor aboard,
-OpenRocket weighs the stage in a way no rigid body does: on the probes that show it, the rocket's
-inertia across the axis is from 1.6% under to 4.95% over OpenRocket's, and another rocket's can
-differ more ([what a stage's added mass leaves out](physics/design.md#a-stages-added-mass-leaves-out)).
+stage with no motor aboard. With the override on the lower of two stages, OpenRocket's inertia is
+no rigid stage's; with a motor aboard and a center override beside an added mass, it is a sum a
+rigid stage doesn't reproduce. On the probes that show it, the rocket's inertia across the axis is
+from 1.6% under to 4.95% over OpenRocket's (the 1.6% worked by hand from OpenRocket's records),
+and another rocket's can differ more ([what a stage's added mass leaves out](physics/design.md#a-stages-added-mass-leaves-out)).
 A few cases are still refused, such as one that carries strap-on boosters (a parallel stage)
 ([a stage's mass and center of gravity overrides](format/ork.md#a-stages-mass-and-center-of-gravity-overrides)).
 
