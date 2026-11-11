@@ -111,8 +111,9 @@ rule comes first, and each side of the comparison is fixed before the errors are
      - The recovery page states the measured error, how many flights it rests on and what it
        leaves out.
 2. **Seventh in the queue,** after [M2.3c2][m2-3c2], the logged traces, and before
-   [M2.3c9][m2-3c9], every flight OpenRocket flies. M2.3c2 brings each flight's logged trace
-   into the fixture report up to apogee, and M2.12 reads on from there. The items ahead of it
+   [M2.3c9][m2-3c9], every flight OpenRocket flies. M2.3c2 puts the error of each readable
+   flight's altitude trace, from liftoff to apogee, into the fixture report, and M2.12 reads on
+   from there. The items ahead of it
    keep [ADR-322][adr-322]'s order, with [ADR-328][adr-328]'s twelve public flights and
    [ADR-339][adr-339]'s docs site inserted.
 3. **What the row can't say.** A reading is an estimate too. Its 90% intervals are checked

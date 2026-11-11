@@ -15,7 +15,7 @@ part drifts and lands.
   streamers and tumbling.
 - **How well it is validated:** against another simulator and against drop tests. Five public
   flights' rates under the main are listed beside their logs' ([residuals report][residuals]),
-  with no error over them worked out yet: that is for
+  each with its difference. No error over the five is worked out as one number yet: that is for
   [M2.12, descent rates against the logs][m2-12].
   - The descent under a parachute matches [RocketPy](../glossary.md#rocketpy)'s for five example
     rockets, started from the same state near apogee. All 30 metrics are within 3%, the largest
