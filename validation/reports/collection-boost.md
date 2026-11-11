@@ -47,21 +47,21 @@ Of the flights not left out, 241 files were tried, 199 read on their own and 117
 | … with another log of the flight on a barometer's track | 6 | 7 |
 | … … the logs' apogees more than 2% apart | 0 | 0 |
 | **every flight predicted** | **12** | **9** |
-| prediction from the boost: mean absolute error | 3.22% | 3.56% |
-| … mean error with its sign | -0.05% | +1.50% |
-| forward simulation, same flights: mean absolute error | 9.35% | 16.86% |
-| … mean error with its sign | +8.87% | +15.83% |
-| absolute errors' difference, prediction less forward (points) | -6.13 | -13.29 |
-| … paired bootstrap 95% interval | -10.07 to -2.70 | -19.01 to -7.97 |
-| … exact sign-flip 95% interval | -10.63 to -2.07 | -20.42 to -6.45 |
+| prediction from the boost: mean absolute error | 3.19% | 3.60% |
+| … mean error with its sign | -0.08% | +1.34% |
+| forward simulation, same flights: mean absolute error | 9.32% | 16.75% |
+| … mean error with its sign | +8.84% | +15.73% |
+| absolute errors' difference, prediction less forward (points) | -6.13 | -13.16 |
+| … paired bootstrap 95% interval | -10.08 to -2.71 | -18.77 to -7.93 |
+| … exact sign-flip 95% interval | -10.64 to -2.08 | -20.29 to -6.49 |
 | **without a deployment before apogee** | **8** | **3** |
-| prediction from the boost: mean absolute error | 3.04% | 3.08% |
-| … mean error with its sign | -1.11% | -1.54% |
-| forward simulation, same flights: mean absolute error | 10.06% | 10.40% |
-| … mean error with its sign | +9.34% | +10.40% |
+| prediction from the boost: mean absolute error | 3.03% | 3.08% |
+| … mean error with its sign | -1.12% | -1.54% |
+| forward simulation, same flights: mean absolute error | 10.05% | 10.40% |
+| … mean error with its sign | +9.33% | +10.40% |
 | absolute errors' difference, prediction less forward (points) | -7.02 | -7.32 |
-| … paired bootstrap 95% interval | -12.66 to -2.28 | too few flights to resample |
-| … exact sign-flip 95% interval | -13.76 to -0.79 | unbounded |
+| … paired bootstrap 95% interval | -12.65 to -2.29 | too few flights to resample |
+| … exact sign-flip 95% interval | -13.76 to -0.80 | unbounded |
 
 Both methods fly nothing deployed, and the fit reads the log only up to its cut, so a deployment before apogee lowers the logged apogee beneath both; the rows without those flights leave them out, as the forward report's own set does. Where a flight has other logs on a barometer's track, the rule above takes the one nearest the logged apogee; two rows count how often there was such a choice, and how often the candidates' apogees lay more than 2% apart, where the choice could move an error. Interval ends are rounded outward. The bootstrap resamples each half's flights 10,000 times (seed 329), each flight's two errors kept together, and takes the 2.5% and 97.5% points of the resampled means. On a few flights it can cover less than 95%, so the exact sign-flip interval, which the public flights' report uses, stands beside it: it assumes only that each flight's difference is drawn independently and symmetrically about the center. On 3 flights or fewer the bootstrap's 95% points are only the smallest and largest difference, so the page gives none. On 5 flights or fewer no pattern of signs is rare enough at 95%, so the sign-flip interval is the whole line: "unbounded".
 
@@ -69,9 +69,9 @@ Both methods fly nothing deployed, and the fit reads the log only up to its cut,
 
 | | mean | standard deviation |
 |---|---:|---:|
-| drag scale | 1.018 | 0.048 |
-| impulse scale | 0.957 | 0.033 |
-| structure mass scale | 1.004 | 0.002 |
+| drag scale | 1.018 | 0.049 |
+| impulse scale | 0.958 | 0.033 |
+| structure mass scale | 1.003 | 0.002 |
 
 The held-out half's fit aggregates, the drag and impulse scales a later correction of the shared bias would aim at, stay private until that correction is chosen on the calibration half alone; the SHA-256 of their file is committed in [`held-out-fits.sha256`](held-out-fits.sha256), so a change to them shows.
 
