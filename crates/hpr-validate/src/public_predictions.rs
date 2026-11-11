@@ -24,18 +24,30 @@
 //! atmosphere's altitude of the day's pressure at the apogee, less the pad's), because that is
 //! what it will be compared with; the height climbed is kept beside it.
 //!
+//! Two more flights have no example notebook ([the Macie XL predictions][m2-3d5], decision
+//! [ADR-337][adr-337]): [`DESIGN_FILE_FLIGHTS`], both of one OpenRocket design saved in a pinned
+//! public repository ([`ROCKETRY_FILES`]). Each is flown from that file alone, read as OpenRocket
+//! 24.12 saved it: the motor configuration, rod, wind and air of the stored simulation the
+//! repository names for the flight, on the bundled curve the file's digest names. With them all
+//! five predictions are here ([`MERGED`]).
+//!
 //! [m2-3d3]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3d3
 //! [m2-3d2]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3d2
 //! [adr-328]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md
 //! [adr-334]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0334-m2-3d1-in-three-the-euroc-2022-predictions-first.md
+//! [m2-3d5]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3d5
+//! [adr-337]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0337-the-macie-xl-predictions-each-flight-s-stored-simulation-flown-as-saved.md
 
 use std::fmt::Write as _;
 use std::path::Path;
 
+use hpr_atmos::ConstantWind;
+use hpr_core::geodesy::Geodetic;
 use hpr_design::Rocket;
 use hpr_io::era5::{Era5Profile, Era5Request, UtcTime};
 use hpr_io::netcdf::NetCdf;
-use hpr_sim::{EventKind, FlightMetrics, FlightSettings, Simulation};
+use hpr_io::ork;
+use hpr_sim::{Environment, EventKind, FlightMetrics, FlightSettings, Rail, Simulation};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -83,10 +95,11 @@ pub struct MergedPrediction {
     pub catalog_apogee_m: Option<f64>,
 }
 
-/// The predictions as first merged ([the EuRoC 2022 predictions][m2-3d3]), which
-/// [`PredictionsReport::check_consistent`] holds every report to, the committed one in CI and a
-/// flown one before it is written: each flight's apogee as a reading and as a height, and
-/// Andromeda's on the catalog curve.
+/// The predictions as first merged ([the EuRoC 2022 predictions][m2-3d3], then [the Macie XL
+/// predictions][m2-3d5]), which [`PredictionsReport::check_consistent`] holds every report to,
+/// the committed one in CI and a flown one before it is written: each flight's apogee as a
+/// reading and as a height, and Andromeda's on the catalog curve. The order is
+/// [`NEW_FLIGHTS`]', then [`DESIGN_FILE_FLIGHTS`]'.
 ///
 /// These lines are not edited. A prediction that has to change is revised beside its merged
 /// number, with the reason, by the change that compares it ([twelve public flights, predictions
@@ -94,8 +107,9 @@ pub struct MergedPrediction {
 /// refuses it.
 ///
 /// [m2-3d3]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3d3
+/// [m2-3d5]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3d5
 /// [adr-328]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md
-pub const MERGED: [MergedPrediction; 3] = [
+pub const MERGED: [MergedPrediction; 5] = [
     MergedPrediction {
         id: "astra",
         apogee_m: 3037.1,
@@ -114,6 +128,18 @@ pub const MERGED: [MergedPrediction; 3] = [
         height_apogee_m: 2808.7,
         catalog_apogee_m: None,
     },
+    MergedPrediction {
+        id: "macie-xl-1",
+        apogee_m: 706.2,
+        height_apogee_m: 706.3,
+        catalog_apogee_m: None,
+    },
+    MergedPrediction {
+        id: "macie-xl-2",
+        apogee_m: 692.6,
+        height_apogee_m: 692.7,
+        catalog_apogee_m: None,
+    },
 ];
 
 /// How far a prediction may sit from its merged number and still print as it: half of the last
@@ -123,7 +149,9 @@ const MERGED_WITHIN_M: f64 = 0.05;
 /// The apogee a flight's log will be read at: the rule, never the value.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Reference {
-    /// The log, under `refs/rocketpy/data/rockets/`. Its bytes are hashed and never parsed here.
+    /// The log: under `refs/rocketpy/data/rockets/` for a flight in [`NEW_FLIGHTS`], under the
+    /// pinned repository's checkout for one in [`DESIGN_FILE_FLIGHTS`]. Its bytes are hashed and
+    /// never parsed here.
     pub log: &'static str,
     /// The rule, in words: which column, read how far.
     pub rule: &'static str,
@@ -282,6 +310,175 @@ pub const NEW_FLIGHTS: [PredictedFlight; 3] = [
     },
 ];
 
+/// A public repository pinned in `validation/refs.lock.toml`, which a design-file flight's
+/// design and log are read from.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PinnedRepository {
+    /// Its name in the lock, which `cargo xtask refs fetch <name>` takes.
+    pub name: &'static str,
+    /// Where it is cloned from.
+    pub url: &'static str,
+    /// The commit it is pinned at.
+    pub commit: &'static str,
+    /// Its checkout, from the repository root.
+    pub dest: &'static str,
+    /// Its license, as GitHub's license API reads its `LICENSE`.
+    pub license: &'static str,
+}
+
+/// The repository both Macie XL flights are read from: its design file and the two logs, as
+/// committed there on 27 June 2026. Nothing of it is committed here but SHA-256 hashes and the
+/// numbers flown from it.
+pub const ROCKETRY_FILES: PinnedRepository = PinnedRepository {
+    name: "rocketry-files",
+    url: "https://github.com/rlhatcher/rocketry-files.git",
+    commit: "2ddcaf8858a71f9b4d910877c603ed95fe0a9769",
+    dest: "refs/public-flights/rocketry-files",
+    license: "MIT",
+};
+
+/// What "traced" means for a flight in [`DESIGN_FILE_FLIGHTS`], as the page says it.
+pub const DESIGN_FILE_TRACED_RULE: &str = "For a flight read from a design file, the record is \
+    that file and its repository's page about the flight. The file states the rocket and names \
+    the motor. A stored simulation's launch conditions are what a simulation was run with, not a \
+    record of the day, so the site, the air, the wind and the rod count as not traced unless \
+    the page states them. So does the mass, unless the page says the rocket was weighed as \
+    flown, and the motor's curve where the reader warns that its file and its certifier's \
+    record disagree.";
+
+/// One flight predicted from a design file in a pinned public repository, before its log is
+/// compared.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct DesignFileFlight {
+    /// The flight's public id, the one the real-flights report will list it under.
+    pub id: &'static str,
+    /// The rocket and the flight, in words.
+    pub title: &'static str,
+    /// The repository.
+    pub repository: PinnedRepository,
+    /// The design file, in the repository.
+    pub design: &'static str,
+    /// The stored simulation flown, by its name in the design file: its motor configuration and
+    /// its launch conditions.
+    pub simulation: &'static str,
+    /// Where the pairing of flight and simulation, and the design, come from.
+    pub source: &'static str,
+    /// The motor, as the stored simulation's configuration names it.
+    pub motor: &'static str,
+    /// Where the motor and its curve come from.
+    pub motor_source: &'static str,
+    /// Where the mass comes from.
+    pub mass_source: &'static str,
+    /// Where the site, rod, wind and air come from.
+    pub conditions_source: &'static str,
+    /// The apogee rule; its log is in the repository.
+    pub reference: Reference,
+    /// What moves the apogee and no record states, or a record contradicts
+    /// ([`DESIGN_FILE_TRACED_RULE`]).
+    pub untraced: &'static [&'static str],
+    /// What else a reader should know before the comparison; empty when nothing.
+    pub note: &'static str,
+}
+
+/// What both Macie XL flights leave untraced.
+const MACIE_XL_SITE_UNTRACED: &str = "no record gives the site, the day, its air and wind, or \
+    the rail: the stored simulation's are flown, and all nine simulations in the file carry the \
+    same ones";
+/// The same, for the mass.
+const MACIE_XL_MASS_UNTRACED: &str = "no record says the rocket was weighed as flown: the \
+    file's parts and overrides are flown";
+/// The same, for the motor's curve.
+const MACIE_XL_CURVE_UNTRACED: &str = "the reader warns that the motor's curve file disagrees \
+    with ThrustCurve.org's record of the motor (the figures are in the flight's \
+    `reader_warnings` in the JSON); the file the design's digest names is flown";
+/// What the page says of how both are flown.
+const MACIE_XL_NOTE: &str = "the stored simulation's wind carries a turbulence of a tenth of \
+    its speed, which is not flown: the wind here is steady. The parachutes are not flown \
+    either; the file opens the first at apogee, so neither moves it";
+
+/// The flights read from a design file, in the order the page lists them: Macie XL's two.
+///
+/// Both fly `macie/macie-xl.ork`, an OpenRocket 24.12 design. The repository's page about the
+/// rocket (`macie/index.md`) lists the two flights and names each flight's files
+/// `maciexl-<flight>-<source>`, `or` for the OpenRocket simulation; the design file holds a
+/// stored simulation under each of those names, and that one is flown.
+///
+/// The apogee rule is the one [twelve public flights, predictions first][adr-328] fixed for a
+/// log with an ejection spike, merged before HPR Sim could fly this file at all. The tags, and
+/// the choice to fly each stored simulation's own conditions, were written after `hpr sim` had
+/// flown the file at that command's defaults, and with both measured apogees already in the
+/// research notes. Neither choice was made on a number: the file is flown as it is saved, and
+/// nothing in it was changed.
+///
+/// [adr-328]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md
+pub const DESIGN_FILE_FLIGHTS: [DesignFileFlight; 2] = [
+    DesignFileFlight {
+        id: "macie-xl-1",
+        title: "Macie XL, flight 1 (AeroTech I284W)",
+        repository: ROCKETRY_FILES,
+        design: "macie/macie-xl.ork",
+        simulation: "maciexl-1-or",
+        source: "macie/index.md (the two flights; the file names that pair `maciexl-1-or` with \
+                 flight 1) and macie/macie-xl.ork, read whole as OpenRocket 24.12 saved it",
+        motor: "AeroTech I284W",
+        motor_source: "the stored simulation's motor configuration in macie/macie-xl.ork, which \
+                       names the motor and the digest of its curve; the bundled ThrustCurve.org \
+                       file that digest names is flown",
+        mass_source: "macie/macie-xl.ork: its parts and the stage's mass and center overrides, \
+                      which add to the parts as OpenRocket 24.12 weighs them; the motor's mass \
+                      is its curve file's",
+        conditions_source: "the stored simulation's launch conditions in macie/macie-xl.ork",
+        reference: Reference {
+            log: "macie/flights/MRC Summer 26/maciexl-1-sl.pf2",
+            rule: "the apogee the altimeter worked out, in the log's header (its `Apogee:` \
+                   line, in feet above the pad, 0.3048 m to the foot), which leaves out the \
+                   ejection spike among the samples; never the highest sample",
+            altimeter: Altimeter::Barometric(
+                "the log's first line names a PerfectFlite altimeter, `PerfectFlite SLCF`, and \
+                 a PerfectFlite has a barometer and no accelerometer (docs/format/pf2.md)",
+            ),
+        },
+        untraced: &[
+            MACIE_XL_SITE_UNTRACED,
+            MACIE_XL_MASS_UNTRACED,
+            MACIE_XL_CURVE_UNTRACED,
+        ],
+        note: MACIE_XL_NOTE,
+    },
+    DesignFileFlight {
+        id: "macie-xl-2",
+        title: "Macie XL, flight 2 (Cesaroni 601I350-16A)",
+        repository: ROCKETRY_FILES,
+        design: "macie/macie-xl.ork",
+        simulation: "maciexl-2-or",
+        source: "macie/index.md (the two flights; the file names that pair `maciexl-2-or` with \
+                 flight 2) and macie/macie-xl.ork, read whole as OpenRocket 24.12 saved it",
+        motor: "Cesaroni 601I350-16A",
+        motor_source: "the stored simulation's motor configuration in macie/macie-xl.ork, which \
+                       names the motor and the digest of its curve; the bundled ThrustCurve.org \
+                       file that digest names is flown",
+        mass_source: "macie/macie-xl.ork: its parts and the stage's mass and center overrides, \
+                      which add to the parts as OpenRocket 24.12 weighs them; the motor's mass \
+                      is its curve file's",
+        conditions_source: "the stored simulation's launch conditions in macie/macie-xl.ork",
+        reference: Reference {
+            log: "macie/flights/MRC Summer 26/maciexl-2-sl.pf2",
+            rule: "the apogee the altimeter worked out, in the log's header (its `Apogee:` \
+                   line, in feet above the pad, 0.3048 m to the foot); never the highest sample",
+            altimeter: Altimeter::Barometric(
+                "the log's first line names a PerfectFlite altimeter, `PerfectFlite SLCF`, and \
+                 a PerfectFlite has a barometer and no accelerometer (docs/format/pf2.md)",
+            ),
+        },
+        untraced: &[
+            MACIE_XL_SITE_UNTRACED,
+            MACIE_XL_MASS_UNTRACED,
+            MACIE_XL_CURVE_UNTRACED,
+        ],
+        note: MACIE_XL_NOTE,
+    },
+];
+
 /// The catalog curve's prediction, as the report keeps it.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CatalogCurveRow {
@@ -374,6 +571,101 @@ pub struct PredictionRow {
     pub note: String,
 }
 
+/// One design-file flight's prediction, as the report keeps it. Like [`PredictionRow`], it has
+/// no field for a measured apogee or an error, on purpose.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct DesignFilePredictionRow {
+    /// The flight's public id.
+    pub id: String,
+    /// The rocket and the flight.
+    pub title: String,
+    /// The repository the design and the log are read from.
+    pub repository: String,
+    /// The commit it is pinned at.
+    pub repository_commit: String,
+    /// Its license.
+    pub repository_license: String,
+    /// The design file flown, from the repository root.
+    pub design_file: String,
+    /// Its SHA-256.
+    pub design_file_sha256: String,
+    /// The stored simulation flown, by name.
+    pub simulation: String,
+    /// The motor configuration that simulation flies, by the file's id for it.
+    pub configuration: String,
+    /// Where the pairing and the design come from.
+    pub source: String,
+    /// The motor.
+    pub motor: String,
+    /// Where the motor and its curve come from.
+    pub motor_source: String,
+    /// The digest the design file records for the motor's curve.
+    pub motor_digest: String,
+    /// ThrustCurve.org's id of the bundled curve file flown, the one that digest names.
+    pub curve_file: String,
+    /// The impulse flown, N s.
+    pub total_impulse_ns: f64,
+    /// Where the mass comes from.
+    pub mass_source: String,
+    /// The mass flown without the motor, kg.
+    pub mass_without_motor_kg: f64,
+    /// The mass flown at liftoff, kg.
+    pub liftoff_mass_kg: f64,
+    /// Where the site, rod, wind and air come from.
+    pub conditions_source: String,
+    /// The site's latitude, degrees north.
+    pub latitude_deg: f64,
+    /// The site's longitude, degrees east.
+    pub longitude_deg: f64,
+    /// The site's elevation above sea level, m.
+    pub elevation_m: f64,
+    /// The rod's length, m.
+    pub rail_length_m: f64,
+    /// The rod's inclination from the horizontal, degrees.
+    pub rail_inclination_deg: f64,
+    /// The rod's heading from north, degrees.
+    pub rail_heading_deg: f64,
+    /// The steady wind's speed, m/s.
+    pub wind_speed_m_s: f64,
+    /// The bearing it blows from, degrees from north.
+    pub wind_from_deg: f64,
+    /// The air.
+    pub atmosphere: String,
+    /// The log the rule will be applied to, from the repository root.
+    pub reference_log: String,
+    /// That log's SHA-256: its bytes hashed, never parsed.
+    pub reference_log_sha256: String,
+    /// The apogee rule.
+    pub reference_rule: String,
+    /// What the log's height is taken to be.
+    pub altimeter: String,
+    /// Where that comes from.
+    pub altimeter_evidence: String,
+    /// Whether every input is traced to the record.
+    pub all_inputs_traced: bool,
+    /// What isn't, in words.
+    pub untraced: Vec<String>,
+    /// What the reader warned of in the design file and the flown motor, each with its place.
+    pub reader_warnings: Vec<String>,
+    /// The predicted apogee as the log's altimeter would read it, m: the counted prediction.
+    pub predicted_apogee_m: f64,
+    /// The predicted apogee as a height above the pad, m.
+    pub predicted_height_apogee_m: f64,
+    /// The predicted time from ignition to apogee, s.
+    pub predicted_time_to_apogee_s: f64,
+    /// The flight's largest Mach number.
+    pub hpr_max_mach: f64,
+    /// The apogee OpenRocket's own run of this simulation reached, as the design file stores
+    /// it, m: another simulator's number, not a measurement. Shown, and never counted.
+    pub openrocket_stored_apogee_m: f64,
+    /// Every file read, with its SHA-256; the log's is its bytes' alone.
+    pub files: Vec<FileRead>,
+    /// The SHA-256 of the flight's entry in [`DESIGN_FILE_FLIGHTS`].
+    pub inputs_sha256: String,
+    /// What else a reader should know.
+    pub note: String,
+}
+
 /// The weather file's conversion, as [`CONVERSION_RECORD`] holds it.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct WeatherConversion {
@@ -402,6 +694,10 @@ pub struct PredictionsReport {
     pub weather_conversion: WeatherConversion,
     /// The flights, in [`NEW_FLIGHTS`]' order.
     pub flights: Vec<PredictionRow>,
+    /// What "traced" means for a flight read from a design file.
+    pub design_file_traced_rule: String,
+    /// The flights read from a design file, in [`DESIGN_FILE_FLIGHTS`]' order.
+    pub design_file_flights: Vec<DesignFilePredictionRow>,
 }
 
 /// What one flight of a rocket gave.
@@ -412,6 +708,8 @@ struct Flown {
     max_mach: f64,
     total_impulse_ns: f64,
     liftoff_mass_kg: f64,
+    /// The motors' mass at liftoff, kg: each one's case and propellant.
+    motor_mass_kg: f64,
 }
 
 /// Reads [`CONVERSION_RECORD`].
@@ -563,10 +861,6 @@ pub fn predict(
         flight: flight.id.to_owned(),
         what,
     };
-    let sim = |source: hpr_sim::SimError| RealFlightError::Sim {
-        flight: flight.id.to_owned(),
-        source,
-    };
     let mut files = Vec::new();
     let mut read = |relative: String, what: &'static str| -> Result<Vec<u8>, RealFlightError> {
         let bytes = read_bytes(root, &relative, what)?;
@@ -634,68 +928,22 @@ pub fn predict(
     )?;
     let (latitude_deg, longitude_deg, elevation_m) = flight.site;
     let rail = rail_from(flight.rail);
-    let settings = FlightSettings {
-        max_time_s: MAX_TIME_S,
-        ..FlightSettings::default()
-    };
 
     // The log: its bytes' SHA-256, and nothing else of it.
     let log_path = format!("{ROCKETPY}/data/rockets/{}", flight.reference.log);
     let log_sha256 = sha256_hex(&read(log_path.clone(), "hashing a flight log")?);
 
-    let fly_once = |rocket: &Rocket| -> Result<Flown, RealFlightError> {
-        let simulation =
-            Simulation::new(rocket, "example", environment.clone(), rail, settings).map_err(sim)?;
-        let total_impulse_ns = simulation
-            .assembly()
-            .motors
-            .iter()
-            .map(|motor| motor.mounted.motor.curve().total_impulse_ns())
-            .sum();
-        let liftoff_mass_kg = simulation.assembly().mass_properties(0.0).mass_kg;
-        let mut heights = Heights {
-            next: 0,
-            rows: Vec::new(),
-        };
-        let mut metrics = FlightMetrics::new();
-        let result = simulation
-            .run(&mut (&mut heights, &mut metrics))
-            .map_err(sim)?;
-        let max_mach = metrics
-            .summary(&result, &environment)
-            .map_err(sim)?
-            .max_mach
-            .ok_or_else(|| input("the flight has no Mach number".to_owned()))?
-            .value;
-        let apogee = result
-            .event(EventKind::Apogee)
-            .ok_or_else(|| input("the flight has no apogee".to_owned()))?
-            .sample;
-        let start_m = heights
-            .rows
-            .first()
-            .map(|row| row.1)
-            .ok_or_else(|| input("the flight has no steps".to_owned()))?;
-        // What the log's altimeter would read at the apogee, above its start.
-        let atmos = |error: hpr_atmos::AtmosError| input(format!("{}: {error}", weather.converted));
-        let apogee_m = match flight.reference.altimeter {
-            Altimeter::Height(_) => apogee.height_above_ground_m - start_m,
-            Altimeter::Barometric(_) | Altimeter::AssumedBarometric(_) => {
-                Barometer::on_pad(&air, elevation_m, start_m)
-                    .map_err(atmos)?
-                    .reading_m(apogee.height_above_ground_m)
-                    .map_err(atmos)?
-            }
-        };
-        Ok(Flown {
-            apogee_m,
-            height_apogee_m: apogee.height_above_ground_m - start_m,
-            time_to_apogee_s: apogee.time_s,
-            max_mach,
-            total_impulse_ns,
-            liftoff_mass_kg,
-        })
+    let launch = Launch {
+        id: flight.id,
+        configuration: "example",
+        environment: &environment,
+        air: &air,
+        air_name: &weather.converted,
+        elevation_m,
+        rail,
+        altimeter: flight.reference.altimeter,
     };
+    let fly_once = |rocket: &Rocket| flown_to_apogee(rocket, &launch);
     let counted = fly_once(&rocket)?;
     // The design as committed, on its own bundled catalog curve: shown, never counted.
     let catalog_curve = match flight.catalog_curve {
@@ -759,7 +1007,383 @@ pub fn predict(
     })
 }
 
-/// Predicts every flight in [`NEW_FLIGHTS`].
+/// What flying a rocket to its apogee needs beside the rocket.
+struct Launch<'a> {
+    /// The flight's id, for an error.
+    id: &'a str,
+    /// The motor configuration, by id.
+    configuration: &'a str,
+    /// The site, its air and its wind.
+    environment: &'a Environment,
+    /// The air a barometer reads, the environment's own.
+    air: &'a dyn hpr_atmos::Atmosphere,
+    /// What the air is called in an error.
+    air_name: &'a str,
+    /// The site's elevation above sea level, m.
+    elevation_m: f64,
+    /// The rail.
+    rail: Rail,
+    /// What the log's height is taken to be.
+    altimeter: Altimeter,
+}
+
+/// Flies `rocket` to its apogee and reads it as the log's altimeter would.
+fn flown_to_apogee(rocket: &Rocket, launch: &Launch<'_>) -> Result<Flown, RealFlightError> {
+    let input = |what: String| RealFlightError::Input {
+        flight: launch.id.to_owned(),
+        what,
+    };
+    let sim = |source: hpr_sim::SimError| RealFlightError::Sim {
+        flight: launch.id.to_owned(),
+        source,
+    };
+    let settings = FlightSettings {
+        max_time_s: MAX_TIME_S,
+        ..FlightSettings::default()
+    };
+    let simulation = Simulation::new(
+        rocket,
+        launch.configuration,
+        launch.environment.clone(),
+        launch.rail,
+        settings,
+    )
+    .map_err(sim)?;
+    let motors = &simulation.assembly().motors;
+    let total_impulse_ns = motors
+        .iter()
+        .map(|motor| motor.mounted.motor.curve().total_impulse_ns())
+        .sum();
+    let motor_mass_kg = motors
+        .iter()
+        .map(|motor| {
+            let motor = &motor.mounted.motor;
+            motor.dry().mass_kg + motor.propellant_initial_mass_kg()
+        })
+        .sum();
+    let liftoff_mass_kg = simulation.assembly().mass_properties(0.0).mass_kg;
+    let mut heights = Heights {
+        next: 0,
+        rows: Vec::new(),
+    };
+    let mut metrics = FlightMetrics::new();
+    let result = simulation
+        .run(&mut (&mut heights, &mut metrics))
+        .map_err(sim)?;
+    let max_mach = metrics
+        .summary(&result, launch.environment)
+        .map_err(sim)?
+        .max_mach
+        .ok_or_else(|| input("the flight has no Mach number".to_owned()))?
+        .value;
+    let apogee = result
+        .event(EventKind::Apogee)
+        .ok_or_else(|| input("the flight has no apogee".to_owned()))?
+        .sample;
+    let start_m = heights
+        .rows
+        .first()
+        .map(|row| row.1)
+        .ok_or_else(|| input("the flight has no steps".to_owned()))?;
+    // What the log's altimeter would read at the apogee, above its start.
+    let atmos = |error: hpr_atmos::AtmosError| input(format!("{}: {error}", launch.air_name));
+    let apogee_m = match launch.altimeter {
+        Altimeter::Height(_) => apogee.height_above_ground_m - start_m,
+        Altimeter::Barometric(_) | Altimeter::AssumedBarometric(_) => {
+            Barometer::on_pad(launch.air, launch.elevation_m, start_m)
+                .map_err(atmos)?
+                .reading_m(apogee.height_above_ground_m)
+                .map_err(atmos)?
+        }
+    };
+    Ok(Flown {
+        apogee_m,
+        height_apogee_m: apogee.height_above_ground_m - start_m,
+        time_to_apogee_s: apogee.time_s,
+        max_mach,
+        total_impulse_ns,
+        liftoff_mass_kg,
+        motor_mass_kg,
+    })
+}
+
+/// The air a design-file flight is flown in, as the report names it.
+const STANDARD_AIR: &str = "the 1976 US Standard Atmosphere, for the stored simulation's `isa`";
+
+/// Predicts one design-file flight: flies the stored simulation the repository names for it,
+/// from the design file as saved, and reads its apogee as its log's altimeter would. The log is
+/// hashed, never parsed.
+///
+/// # Errors
+///
+/// [`RealFlightError`] if a file is missing or doesn't read; the design holds a part HPR Sim
+/// doesn't read; the stored simulation is missing, named twice, or lacks a condition; it was
+/// run in other than the standard atmosphere and an average wind; its configuration is left
+/// out, stages, or flies other than one motor on the bundled curve its digest names; or HPR Sim
+/// can't fly it.
+pub fn predict_design_file(
+    root: &Path,
+    flight: &DesignFileFlight,
+) -> Result<DesignFilePredictionRow, RealFlightError> {
+    let input = |what: String| RealFlightError::Input {
+        flight: flight.id.to_owned(),
+        what,
+    };
+    let sim = |source: hpr_sim::SimError| RealFlightError::Sim {
+        flight: flight.id.to_owned(),
+        source,
+    };
+    let mut files = Vec::new();
+    let mut read = |relative: String, what: &'static str| -> Result<Vec<u8>, RealFlightError> {
+        let bytes = read_bytes(root, &relative, what)?;
+        files.push(FileRead {
+            sha256: sha256_hex(&bytes),
+            path: relative,
+        });
+        Ok(bytes)
+    };
+
+    // The design, whole, as OpenRocket saved it.
+    let design_path = format!("{}/{}", flight.repository.dest, flight.design);
+    let design_bytes = read(
+        design_path.clone(),
+        "reading a design file, which `cargo xtask refs fetch rocketry-files` fetches,",
+    )?;
+    let file =
+        ork::read(&design_bytes).map_err(|error| input(format!("{design_path}: {error}")))?;
+    let design = ork::design(&file.value);
+    if design.value.is_reduced() {
+        return Err(input(format!(
+            "{design_path} holds a part HPR Sim doesn't read, so it is not flown as saved"
+        )));
+    }
+
+    // The stored simulation the repository names for the flight: its configuration and its
+    // launch conditions, each one stated.
+    let named: Vec<_> = design
+        .value
+        .simulations
+        .iter()
+        .filter(|stored| stored.name == flight.simulation)
+        .collect();
+    let [stored] = named.as_slice() else {
+        return Err(input(format!(
+            "{design_path} holds {} simulations named `{}`",
+            named.len(),
+            flight.simulation
+        )));
+    };
+    let unstated = |what: &str| {
+        input(format!(
+            "the stored simulation `{}` states no {what}",
+            flight.simulation
+        ))
+    };
+    let conditions = stored
+        .conditions
+        .as_ref()
+        .ok_or_else(|| unstated("launch conditions"))?;
+    let configuration_id = conditions
+        .configuration
+        .clone()
+        .ok_or_else(|| unstated("motor configuration"))?;
+    let rod_length_m = conditions
+        .rod_length_m
+        .ok_or_else(|| unstated("rod length"))?;
+    let rod_angle_rad = conditions
+        .rod_angle_rad
+        .ok_or_else(|| unstated("rod angle"))?;
+    let rod_direction_rad = conditions
+        .rod_direction_rad
+        .ok_or_else(|| unstated("rod direction"))?;
+    let wind_speed_m_s = conditions
+        .wind_speed_m_s
+        .ok_or_else(|| unstated("wind speed"))?;
+    let wind_from_rad = conditions
+        .wind_from_rad
+        .ok_or_else(|| unstated("wind direction"))?;
+    let elevation_m = conditions
+        .launch_altitude_m
+        .ok_or_else(|| unstated("launch altitude"))?;
+    let latitude_deg = conditions
+        .latitude_deg
+        .ok_or_else(|| unstated("latitude"))?;
+    let longitude_deg = conditions
+        .longitude_deg
+        .ok_or_else(|| unstated("longitude"))?;
+    if !matches!(conditions.atmosphere, Some(ork::Atmosphere::Isa {})) {
+        return Err(input(format!(
+            "the stored simulation `{}` was not run in the standard atmosphere",
+            flight.simulation
+        )));
+    }
+    if !conditions
+        .wind_model
+        .as_deref()
+        .is_some_and(|model| model.eq_ignore_ascii_case("average"))
+    {
+        return Err(input(format!(
+            "the stored simulation `{}` was not run in an average wind",
+            flight.simulation
+        )));
+    }
+    let openrocket_stored_apogee_m = stored
+        .results
+        .as_ref()
+        .and_then(|results| results.max_altitude_m)
+        .ok_or_else(|| unstated("apogee of OpenRocket's own run"))?;
+
+    // Its configuration: one motor, lit at launch, on the bundled curve the file's digest names.
+    let configuration = design
+        .value
+        .motors
+        .configurations
+        .iter()
+        .find(|configuration| configuration.id == configuration_id)
+        .ok_or_else(|| {
+            input(format!(
+                "{design_path} has no motor configuration `{configuration_id}`"
+            ))
+        })?;
+    if let Some(left_out) = &configuration.left_out {
+        return Err(input(format!(
+            "the configuration of `{}` is not flown: {}",
+            flight.simulation, left_out.message
+        )));
+    }
+    if configuration.stagings().next().is_some() {
+        return Err(input(format!(
+            "the configuration of `{}` stages, which no prediction here expects",
+            flight.simulation
+        )));
+    }
+    let [motor] = configuration.motors.as_slice() else {
+        return Err(input(format!(
+            "the configuration of `{}` flies {} motors, not one",
+            flight.simulation,
+            configuration.motors.len()
+        )));
+    };
+    let (Some(motor_digest), ork::Curve::Catalog { simfile_id, .. }) =
+        (&motor.digest, &motor.curve)
+    else {
+        return Err(input(format!(
+            "{} is not flown on a bundled curve named by a digest",
+            motor.designation
+        )));
+    };
+    if hpr_motor::openrocket_curves::file_for(motor_digest).as_deref() != Some(simfile_id.as_str())
+    {
+        return Err(input(format!(
+            "{}: the bundled curve file {simfile_id} is not the one the design's digest \
+             {motor_digest} names",
+            motor.designation
+        )));
+    }
+    // The reader's warnings, less those about another configuration's motor.
+    let others: Vec<&str> = design
+        .value
+        .motors
+        .configurations
+        .iter()
+        .flat_map(|other| &other.motors)
+        .map(|other| other.designation.as_str())
+        .filter(|designation| *designation != motor.designation)
+        .collect();
+    let reader_warnings: Vec<String> = file
+        .warnings
+        .iter()
+        .chain(&design.warnings)
+        .filter(|warning| {
+            warning.message.contains(motor.designation.as_str())
+                || !others.iter().any(|other| warning.message.contains(other))
+        })
+        .map(|warning| format!("{}: {}", warning.at, warning.message))
+        .collect();
+
+    // The site, the steady wind and the standard air of the stored simulation.
+    let site = Geodetic::from_degrees(latitude_deg, longitude_deg, elevation_m)
+        .map_err(|error| sim(error.into()))?;
+    let wind = ConstantWind::new(wind_speed_m_s, wind_from_rad)
+        .map_err(|error| input(format!("the stored wind: {error}")))?;
+    let environment = Environment::standard(site).map_err(sim)?.with_wind(wind);
+    let rail = Rail {
+        azimuth_rad: rod_direction_rad,
+        elevation_rad: std::f64::consts::FRAC_PI_2 - rod_angle_rad,
+        ..Rail::vertical(rod_length_m)
+    };
+
+    // The log: its bytes' SHA-256, and nothing else of it.
+    let log_path = format!("{}/{}", flight.repository.dest, flight.reference.log);
+    let log_sha256 = sha256_hex(&read(log_path.clone(), "hashing a flight log")?);
+
+    let flown = flown_to_apogee(
+        &design.value.rocket,
+        &Launch {
+            id: flight.id,
+            configuration: &configuration_id,
+            environment: &environment,
+            air: &*environment.atmosphere,
+            air_name: "the standard atmosphere",
+            elevation_m,
+            rail,
+            altimeter: flight.reference.altimeter,
+        },
+    )?;
+
+    Ok(DesignFilePredictionRow {
+        id: flight.id.to_owned(),
+        title: flight.title.to_owned(),
+        repository: flight.repository.url.to_owned(),
+        repository_commit: flight.repository.commit.to_owned(),
+        repository_license: flight.repository.license.to_owned(),
+        design_file_sha256: sha256_hex(&design_bytes),
+        design_file: design_path,
+        simulation: flight.simulation.to_owned(),
+        configuration: configuration_id,
+        source: flight.source.to_owned(),
+        motor: flight.motor.to_owned(),
+        motor_source: flight.motor_source.to_owned(),
+        motor_digest: motor_digest.clone(),
+        curve_file: simfile_id.clone(),
+        total_impulse_ns: flown.total_impulse_ns,
+        mass_source: flight.mass_source.to_owned(),
+        mass_without_motor_kg: flown.liftoff_mass_kg - flown.motor_mass_kg,
+        liftoff_mass_kg: flown.liftoff_mass_kg,
+        conditions_source: flight.conditions_source.to_owned(),
+        latitude_deg,
+        longitude_deg,
+        elevation_m,
+        rail_length_m: rail.length_m,
+        rail_inclination_deg: rail.elevation_rad.to_degrees(),
+        rail_heading_deg: rail.azimuth_rad.to_degrees(),
+        wind_speed_m_s,
+        wind_from_deg: wind_from_rad.to_degrees(),
+        atmosphere: STANDARD_AIR.to_owned(),
+        reference_log: log_path,
+        reference_log_sha256: log_sha256,
+        reference_rule: flight.reference.rule.to_owned(),
+        altimeter: flight.reference.altimeter.kind().to_owned(),
+        altimeter_evidence: flight.reference.altimeter.evidence().to_owned(),
+        all_inputs_traced: flight.untraced.is_empty(),
+        untraced: flight
+            .untraced
+            .iter()
+            .map(|&what| what.to_owned())
+            .collect(),
+        reader_warnings,
+        predicted_apogee_m: flown.apogee_m,
+        predicted_height_apogee_m: flown.height_apogee_m,
+        predicted_time_to_apogee_s: flown.time_to_apogee_s,
+        hpr_max_mach: flown.max_mach,
+        openrocket_stored_apogee_m,
+        files,
+        inputs_sha256: sha256_hex(format!("{flight:?}").as_bytes()),
+        note: flight.note.to_owned(),
+    })
+}
+
+/// Predicts every flight in [`NEW_FLIGHTS`], then every one in [`DESIGN_FILE_FLIGHTS`].
 ///
 /// # Errors
 ///
@@ -786,12 +1410,62 @@ pub fn run(root: &Path) -> Result<PredictionsReport, RealFlightError> {
         .iter()
         .map(|flight| predict(root, flight, &weather_conversion))
         .collect::<Result<Vec<_>, _>>()?;
+    let design_file_flights = DESIGN_FILE_FLIGHTS
+        .iter()
+        .map(|flight| predict_design_file(root, flight))
+        .collect::<Result<Vec<_>, _>>()?;
     Ok(PredictionsReport {
         generator: "cargo xtask public-predictions".to_owned(),
         traced_rule: TRACED_RULE.to_owned(),
         weather_conversion,
         flights,
+        design_file_traced_rule: DESIGN_FILE_TRACED_RULE.to_owned(),
+        design_file_flights,
     })
+}
+
+/// Whether the prediction of the flight `id` is the one first merged ([`MERGED`]), to the digit
+/// the page prints: its apogee as a reading and as a height, and its catalog curve's where it
+/// has one.
+fn held_to_merged(
+    id: &str,
+    apogee_m: f64,
+    height_apogee_m: f64,
+    catalog_apogee_m: Option<f64>,
+) -> Result<(), String> {
+    let merged = MERGED
+        .iter()
+        .find(|merged| merged.id == id)
+        .ok_or_else(|| format!("{id}: it has no merged prediction to be held to"))?;
+    if merged.catalog_apogee_m.is_some() != catalog_apogee_m.is_some() {
+        return Err(format!(
+            "{id}: its catalog curve is not its merged prediction's"
+        ));
+    }
+    let held = [
+        ("predicted apogee", Some(apogee_m), Some(merged.apogee_m)),
+        (
+            "predicted apogee as a height",
+            Some(height_apogee_m),
+            Some(merged.height_apogee_m),
+        ),
+        (
+            "catalog curve's apogee",
+            catalog_apogee_m,
+            merged.catalog_apogee_m,
+        ),
+    ];
+    for (what, now, first) in held {
+        if let (Some(now), Some(first)) = (now, first)
+            && (now - first).abs() > MERGED_WITHIN_M
+        {
+            return Err(format!(
+                "{id}: its {what} is {now} m, and its merged prediction is {first} m: a merged \
+                 prediction is not changed, it is revised beside the old one (ADR-328 §1b)"
+            ));
+        }
+    }
+    Ok(())
 }
 
 impl PredictionsReport {
@@ -843,55 +1517,70 @@ impl PredictionsReport {
             if row.reference_log_sha256.len() != 64 {
                 return Err(format!("{}: its log has no SHA-256", row.id));
             }
-            // The numbers first merged ([`MERGED`]), to the digit the page prints.
-            let merged = MERGED
+            held_to_merged(
+                &row.id,
+                row.predicted_apogee_m,
+                row.predicted_height_apogee_m,
+                row.catalog_curve
+                    .as_ref()
+                    .map(|catalog| catalog.predicted_apogee_m),
+            )?;
+        }
+        for row in &self.design_file_flights {
+            let heights = [
+                ("predicted apogee", row.predicted_apogee_m),
+                (
+                    "predicted apogee as a height",
+                    row.predicted_height_apogee_m,
+                ),
+                ("time to apogee", row.predicted_time_to_apogee_s),
+                ("largest Mach number", row.hpr_max_mach),
+                ("impulse", row.total_impulse_ns),
+                ("liftoff mass", row.liftoff_mass_kg),
+                ("mass without the motor", row.mass_without_motor_kg),
+                (
+                    "apogee of OpenRocket's own stored run",
+                    row.openrocket_stored_apogee_m,
+                ),
+            ];
+            if let Some((what, value)) = heights
                 .iter()
-                .find(|merged| merged.id == row.id)
-                .ok_or_else(|| format!("{}: it has no merged prediction to be held to", row.id))?;
-            let catalog_apogee_m = row
-                .catalog_curve
-                .as_ref()
-                .map(|catalog| catalog.predicted_apogee_m);
-            if merged.catalog_apogee_m.is_some() != catalog_apogee_m.is_some() {
+                .find(|(_, value)| !(value.is_finite() && *value > 0.0))
+            {
+                return Err(format!("{}: its {what} is {value}", row.id));
+            }
+            if row.all_inputs_traced != row.untraced.is_empty() {
+                return Err(format!("{}: its traced tag is not its list's", row.id));
+            }
+            if row.liftoff_mass_kg <= row.mass_without_motor_kg {
                 return Err(format!(
-                    "{}: its catalog curve is not its merged prediction's",
+                    "{}: it lifts off no heavier than without its motor",
                     row.id
                 ));
             }
-            let held = [
-                (
-                    "predicted apogee",
-                    Some(row.predicted_apogee_m),
-                    Some(merged.apogee_m),
-                ),
-                (
-                    "predicted apogee as a height",
-                    Some(row.predicted_height_apogee_m),
-                    Some(merged.height_apogee_m),
-                ),
-                (
-                    "catalog curve's apogee",
-                    catalog_apogee_m,
-                    merged.catalog_apogee_m,
-                ),
-            ];
-            for (what, now, first) in held {
-                if let (Some(now), Some(first)) = (now, first)
-                    && (now - first).abs() > MERGED_WITHIN_M
-                {
-                    return Err(format!(
-                        "{}: its {what} is {now} m, and its merged prediction is {first} m: a \
-                         merged prediction is not changed, it is revised beside the old one \
-                         (ADR-328 §1b)",
-                        row.id
-                    ));
-                }
+            if row.reference_log_sha256.len() != 64 {
+                return Err(format!("{}: its log has no SHA-256", row.id));
             }
+            if row.design_file_sha256.len() != 64 {
+                return Err(format!("{}: its design file has no SHA-256", row.id));
+            }
+            held_to_merged(
+                &row.id,
+                row.predicted_apogee_m,
+                row.predicted_height_apogee_m,
+                None,
+            )?;
         }
-        if self.flights.len() != MERGED.len() {
+        // Every merged prediction is here, in the order it was merged.
+        let ids = self
+            .flights
+            .iter()
+            .map(|row| row.id.as_str())
+            .chain(self.design_file_flights.iter().map(|row| row.id.as_str()));
+        if !ids.eq(MERGED.iter().map(|merged| merged.id)) {
             return Err(format!(
-                "{} flights, and {} merged predictions",
-                self.flights.len(),
+                "the {} flights here are not the {} merged predictions, in their order",
+                self.flights.len() + self.design_file_flights.len(),
                 MERGED.len()
             ));
         }
@@ -911,20 +1600,26 @@ impl PredictionsReport {
     ///
     /// The first difference, in words.
     pub fn reproduces(&self, other: &PredictionsReport) -> Result<(), String> {
-        if (&self.generator, &self.traced_rule, &self.weather_conversion)
-            != (
-                &other.generator,
-                &other.traced_rule,
-                &other.weather_conversion,
-            )
-        {
+        if (
+            &self.generator,
+            &self.traced_rule,
+            &self.weather_conversion,
+            &self.design_file_traced_rule,
+        ) != (
+            &other.generator,
+            &other.traced_rule,
+            &other.weather_conversion,
+            &other.design_file_traced_rule,
+        ) {
             return Err("the report's header differs".to_owned());
         }
-        if self.flights.len() != other.flights.len() {
+        if (self.flights.len(), self.design_file_flights.len())
+            != (other.flights.len(), other.design_file_flights.len())
+        {
             return Err(format!(
                 "{} flights committed, {} flown",
-                self.flights.len(),
-                other.flights.len()
+                self.flights.len() + self.design_file_flights.len(),
+                other.flights.len() + other.design_file_flights.len()
             ));
         }
         let same = crate::report::same_but_for_platform_rounding;
@@ -1006,6 +1701,67 @@ impl PredictionsReport {
                 ));
             }
         }
+        for (a, b) in self
+            .design_file_flights
+            .iter()
+            .zip(&other.design_file_flights)
+        {
+            // Every field that is not a flown number, compared whole: the words, the files and
+            // their digests, the stored simulation's conditions and OpenRocket's stored apogee.
+            let words = |row: &DesignFilePredictionRow| {
+                let mut row = row.clone();
+                for value in [
+                    &mut row.total_impulse_ns,
+                    &mut row.mass_without_motor_kg,
+                    &mut row.liftoff_mass_kg,
+                    &mut row.predicted_apogee_m,
+                    &mut row.predicted_height_apogee_m,
+                    &mut row.predicted_time_to_apogee_s,
+                    &mut row.hpr_max_mach,
+                ] {
+                    *value = 0.0;
+                }
+                row
+            };
+            if words(a) != words(b) {
+                return Err(format!(
+                    "{}: its inputs, sources or files differ from the committed prediction's",
+                    a.id
+                ));
+            }
+            let numbers = [
+                ("impulse", a.total_impulse_ns, b.total_impulse_ns),
+                (
+                    "mass without the motor",
+                    a.mass_without_motor_kg,
+                    b.mass_without_motor_kg,
+                ),
+                ("liftoff mass", a.liftoff_mass_kg, b.liftoff_mass_kg),
+                (
+                    "predicted apogee",
+                    a.predicted_apogee_m,
+                    b.predicted_apogee_m,
+                ),
+                (
+                    "predicted apogee as a height",
+                    a.predicted_height_apogee_m,
+                    b.predicted_height_apogee_m,
+                ),
+                (
+                    "time to apogee",
+                    a.predicted_time_to_apogee_s,
+                    b.predicted_time_to_apogee_s,
+                ),
+                ("largest Mach number", a.hpr_max_mach, b.hpr_max_mach),
+            ];
+            if let Some((what, x, y)) = numbers.iter().find(|(_, x, y)| !same(*x, *y)) {
+                return Err(format!(
+                    "{}: the {what} is {x} committed and {y} flown: a merged prediction is not \
+                     changed, it is revised beside the old one (ADR-328 §1b)",
+                    a.id
+                ));
+            }
+        }
         Ok(())
     }
 
@@ -1018,12 +1774,14 @@ impl PredictionsReport {
             out,
             "# Public flights predicted before they are compared\n\n\
              Written by `cargo xtask public-predictions` ([the EuRoC 2022 predictions, \
-             M2.3d3][m2-3d3]; decisions: [twelve public flights, predictions first, \
-             ADR-328][adr-328] and [the predictions in two parts, ADR-334][adr-334]). What it is \
-             for is on the [documentation site][site].\n\n\
+             M2.3d3][m2-3d3], and [the Macie XL predictions, M2.3d5][m2-3d5]; decisions: [twelve \
+             public flights, predictions first, ADR-328][adr-328], [the predictions in two \
+             parts, ADR-334][adr-334] and [the Macie XL predictions, ADR-337][adr-337]). What it \
+             is for is on the [documentation site][site].\n\n\
              - **What this is:** {} public real flights that join the seven of the \
-             [real-flights report][real], each flown by HPR Sim from its record alone. This page \
-             was merged before any of their logs was compared. Their measured apogees were \
+             [real-flights report][real], each flown by HPR Sim from its record alone. Each \
+             flight's prediction was merged before its log was compared: the three EuRoC 2022 \
+             flights' first, then the two Macie XL flights'. Their measured apogees were \
              already public, so the targets were known; what merging first does is make an input \
              changed after seeing HPR Sim's own miss show as a change to a merged number. The \
              code holds each prediction to the number first merged.\n\
@@ -1031,26 +1789,39 @@ impl PredictionsReport {
              apogee will be read by, and HPR Sim's predicted apogee. It holds no measured apogee \
              and no error: those come in a later pull request, which must print each prediction \
              below beside its error.\n\
-             - **How it is flown:** by the seven's method. The design is built from the example's \
-             inputs and flown on the example's own thrust file, from its rail and site, in the \
-             ERA5 air of its launch hour, on HPR Sim's own aerodynamics.\n\
+             - **How it is flown:** the three EuRoC 2022 flights by the seven's method. The \
+             design is built from the example's inputs and flown on the example's own thrust \
+             file, from its rail and site, in the ERA5 air of its launch hour, on HPR Sim's own \
+             aerodynamics. The two Macie XL flights have no example: their design is an \
+             OpenRocket file in a pinned public repository, read whole as OpenRocket 24.12 \
+             saved it. Each is flown as the stored simulation the repository names for it: on \
+             its motor, from its rod, in its steady wind and standard atmosphere, on HPR Sim's \
+             own aerodynamics.\n\
              - **The predicted apogee** is read as the log's altimeter would read it: the standard \
              atmosphere's altitude of the day's pressure at the apogee, less the pad's. The height \
              climbed is beside it.\n\
-             - **Traced:** {}\n\
+             - **Traced:** {} {}\n\
              - **Files:** the examples' thrust files and the logs are read from the pinned \
              RocketPy checkout (`refs/rocketpy`, which `cargo xtask refs fetch rocketpy` \
-             fetches), and the weather file is converted from the checkout's; none is \
+             fetches), and the weather file is converted from the checkout's. The Macie XL \
+             design file and logs are read from the pinned `{}` checkout (`{}`, which `cargo \
+             xtask refs fetch {}` fetches). None is \
              committed, and each one's SHA-256 is in the JSON. A log's \
              bytes are hashed to pin the file its rule will be applied to; they are never read as \
              numbers here.\n\n\
              [m2-3d3]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3d3\n\
              [adr-328]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md\n\
              [adr-334]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0334-m2-3d1-in-three-the-euroc-2022-predictions-first.md\n\
+             [m2-3d5]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3d5\n\
+             [adr-337]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0337-the-macie-xl-predictions-each-flight-s-stored-simulation-flown-as-saved.md\n\
              [site]: https://hpr.fusionspace.co/accuracy.html#predicted-before-compared\n\
              [real]: real-flights.md\n\n",
-            self.flights.len(),
+            self.flights.len() + self.design_file_flights.len(),
             self.traced_rule,
+            self.design_file_traced_rule,
+            ROCKETRY_FILES.name,
+            ROCKETRY_FILES.dest,
+            ROCKETRY_FILES.name,
         );
         out.push_str(
             "## Predictions\n\n\
@@ -1059,6 +1830,20 @@ impl PredictionsReport {
              |---|---:|---:|---:|---:|---:|---:|---|\n",
         );
         for row in &self.flights {
+            let _ = writeln!(
+                out,
+                "| {} | {} | {} | {} | {} | {} | {} | {} |",
+                row.title,
+                fmt_number(row.total_impulse_ns, 1),
+                fmt_number(row.liftoff_mass_kg, 3),
+                fmt_number(row.predicted_apogee_m, 1),
+                fmt_number(row.predicted_height_apogee_m, 1),
+                fmt_number(row.predicted_time_to_apogee_s, 2),
+                fmt_number(row.hpr_max_mach, 3),
+                if row.all_inputs_traced { "yes" } else { "no" },
+            );
+        }
+        for row in &self.design_file_flights {
             let _ = writeln!(
                 out,
                 "| {} | {} | {} | {} | {} | {} | {} | {} |",
@@ -1157,10 +1942,72 @@ impl PredictionsReport {
                 },
             );
         }
+        for row in &self.design_file_flights {
+            let _ = writeln!(
+                out,
+                "- **{}** (`{}`):\n  \
+                 - Design: `{}`, SHA-256 `{}`, at commit `{}` of `{}` ({}). From {}.\n  \
+                 - Flown as: the stored simulation `{}`, motor configuration `{}` ({}). The site \
+                 is {}°, {}° at {} m; the rod is {} m long, {}° from the horizontal, heading \
+                 {}°; the wind is a steady {} m/s from {}°; the air is {}.\n  \
+                 - Motor: {} ({}). Curve file `{}`, for the digest `{}`.\n  \
+                 - Mass: {} kg without the motor, {} kg at liftoff ({}).\n  \
+                 - Apogee rule: {}, in `{}`. Altimeter: {} ({}).\n  \
+                 - Every input traced: {}{}\n  \
+                 - OpenRocket's own run of this simulation, stored in the design file, reached \
+                 {} m. That is another simulator's number, not a measurement; it is shown and \
+                 never counted.\n  \
+                 - The reader's warnings on this file and motor, {} of them, are in the JSON \
+                 under this flight's `reader_warnings`.",
+                row.title,
+                row.id,
+                row.design_file,
+                row.design_file_sha256,
+                row.repository_commit,
+                row.repository,
+                row.repository_license,
+                row.source,
+                row.simulation,
+                row.configuration,
+                row.conditions_source,
+                row.latitude_deg,
+                row.longitude_deg,
+                row.elevation_m,
+                row.rail_length_m,
+                fmt_number(row.rail_inclination_deg, 1),
+                fmt_number(row.rail_heading_deg, 1),
+                row.wind_speed_m_s,
+                fmt_number(row.wind_from_deg, 1),
+                row.atmosphere,
+                row.motor,
+                row.motor_source,
+                row.curve_file,
+                row.motor_digest,
+                fmt_number(row.mass_without_motor_kg, 3),
+                fmt_number(row.liftoff_mass_kg, 3),
+                row.mass_source,
+                row.reference_rule,
+                row.reference_log,
+                row.altimeter,
+                row.altimeter_evidence,
+                if row.all_inputs_traced {
+                    "yes.".to_owned()
+                } else {
+                    format!("no. Not traced: {}.", row.untraced.join("; "))
+                },
+                if row.note.is_empty() {
+                    String::new()
+                } else {
+                    format!(" Note: {}.", row.note)
+                },
+                fmt_number(row.openrocket_stored_apogee_m, 1),
+                row.reader_warnings.len(),
+            );
+        }
         let _ = write!(
             out,
             "\n## The weather file\n\n\
-             The three flights' ERA5 file is netCDF-4, which HPR Sim does not read. \
+             The three EuRoC 2022 flights' ERA5 file is netCDF-4, which HPR Sim does not read. \
              `validation/oracles/netcdf/euroc_2022.py` converts it as the [guide][era5] says, \
              `{}`, and checks the result: the four fields hold the source's values bit for bit, \
              and RocketPy reads the same levels from both files at each flight's site and hour. \

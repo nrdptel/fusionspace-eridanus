@@ -1,5 +1,5 @@
 {
-  "about": "For each motor of OpenRocket 24.12's examples, by the digest a .ork records, the ThrustCurve.org data file holding the curve OpenRocket flies: written by `cargo xtask ork-curves` (ADR-161). largest_difference is the largest difference in thrust from OpenRocket's curve, over its peak thrust; mass_difference the larger difference of the propellant's and the dry motor's mass from OpenRocket's, over its loaded mass; others_differences the thrust difference for the motor's other files.",
+  "about": "For each motor of OpenRocket 24.12's examples, and each motor a public flight predicted from a design file flies (ADR-337), by the digest a .ork records, the ThrustCurve.org data file holding the curve OpenRocket flies: written by `cargo xtask ork-curves` (ADR-161). largest_difference is the largest difference in thrust from OpenRocket's curve, over its peak thrust; mass_difference the larger difference of the propellant's and the dry motor's mass from OpenRocket's, over its loaded mass; others_differences the thrust difference for the motor's other files.",
   "files": [
     {
       "designation": "F50T",
@@ -172,6 +172,18 @@
       "simfile_id": "5f4294d20002e90000000071"
     },
     {
+      "designation": "601I350-16A",
+      "digest": "84414906dddfb169c96ef1f7cf8d0ff7",
+      "format": "RockSim",
+      "largest_difference": 0.0,
+      "manufacturer": "Cesaroni Technology",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.335757
+      ],
+      "simfile_id": "5f4294d20002e90000000575"
+    },
+    {
       "designation": "G40W",
       "digest": "96f84e3d549cb6ae6e52df6732fe1bfc",
       "format": "RASP",
@@ -270,6 +282,19 @@
       "mass_difference": 0.0,
       "others_differences": [],
       "simfile_id": "5f4294d20002e9000000081a"
+    },
+    {
+      "designation": "I284W",
+      "digest": "d9da87018adebbef9d8f3d8bfbc9c1e6",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "AeroTech",
+      "mass_difference": 0.006457,
+      "others_differences": [
+        0.0,
+        0.372989
+      ],
+      "simfile_id": "5f4294d20002e9000000003b"
     },
     {
       "designation": "H669N",

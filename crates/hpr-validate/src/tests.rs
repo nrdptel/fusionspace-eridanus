@@ -2322,7 +2322,8 @@ fn key_for_an_error(text: &str) -> Option<String> {
 #[test]
 fn public_predictions_are_the_listed_flights_and_hold_no_error() {
     // M2.3d3 (ADR-328 §1a, ADR-334): each new public flight's inputs, sources, apogee rule and
-    // predicted apogee are committed before its log is compared. The thrust files, logs and
+    // predicted apogee are committed before its log is compared (the Macie XL two, read from a
+    // design file, are held by `design_file_predictions_fly_the_pinned_file_as_saved`). The thrust files, logs and
     // weather are not in CI (they live under `refs/`), so this holds the committed predictions to
     // the code's list and to themselves; `cargo xtask public-predictions --check` flies them
     // again where the files are.
@@ -2695,7 +2696,355 @@ fn a_prediction_that_changes_or_stops_holding_fails() {
     let fewer = altered(&|report| {
         report.flights.pop();
     });
-    assert!(report.reproduces(&fewer).unwrap_err().contains("2 flown"));
+    // The count is of all five predictions: the EuRoC 2022 three and the Macie XL two.
+    assert!(
+        report
+            .reproduces(&fewer)
+            .unwrap_err()
+            .contains("5 flights committed, 4 flown")
+    );
+}
+
+#[test]
+fn design_file_predictions_fly_the_pinned_file_as_saved() {
+    // M2.3d5 (ADR-328 §1a, ADR-337): the two Macie XL flights' inputs, sources, apogee rules and
+    // predicted apogees, each flown from the design file in its pinned repository as OpenRocket
+    // saved it, and with them all five predictions. The design file and the logs are not in CI
+    // (they live under `refs/`), so this holds the committed rows to the code's list, to the
+    // lock's pin and to the digest table; `cargo xtask public-predictions --check` flies them
+    // again where the files are.
+    use crate::public_predictions::{
+        DESIGN_FILE_FLIGHTS, DESIGN_FILE_TRACED_RULE, MERGED, NEW_FLIGHTS, ROCKETRY_FILES,
+    };
+    use crate::real_flight::FLIGHTS;
+    let (report, page) = committed_predictions();
+    report
+        .check_consistent(&page)
+        .expect("the predictions hold together");
+    assert_eq!(report.design_file_traced_rule, DESIGN_FILE_TRACED_RULE);
+    let ids: Vec<&str> = report
+        .design_file_flights
+        .iter()
+        .map(|row| row.id.as_str())
+        .collect();
+    let listed: Vec<&str> = DESIGN_FILE_FLIGHTS.iter().map(|flight| flight.id).collect();
+    assert_eq!(ids, listed, "every listed flight is predicted, in order");
+    assert_eq!(ids, ["macie-xl-1", "macie-xl-2"]);
+
+    // All five predictions are here, each held to a merged number, in the order they merged.
+    let all: Vec<&str> = NEW_FLIGHTS
+        .iter()
+        .map(|flight| flight.id)
+        .chain(listed.iter().copied())
+        .collect();
+    let merged: Vec<&str> = MERGED.iter().map(|merged| merged.id).collect();
+    assert_eq!(all, merged);
+    assert_eq!(merged.len(), 5);
+    assert_eq!(
+        report.flights.len() + report.design_file_flights.len(),
+        5,
+        "five predictions are committed"
+    );
+    for merged in &MERGED {
+        assert!(
+            merged.apogee_m > 0.0 && merged.height_apogee_m > 0.0,
+            "{}",
+            merged.id
+        );
+    }
+
+    // The repository is the one the lock pins, at the lock's commit, outside `refs/research`
+    // (unpinned) and the `.ork` survey's corpus.
+    let lock: toml::Value = toml::from_str(
+        &std::fs::read_to_string(root().join("validation/refs.lock.toml"))
+            .expect("the lock is committed"),
+    )
+    .expect("the lock reads");
+    let pinned: Vec<&toml::Value> = lock["git"]
+        .as_array()
+        .expect("the lock's repositories")
+        .iter()
+        .filter(|entry| entry["name"].as_str() == Some(ROCKETRY_FILES.name))
+        .collect();
+    assert_eq!(pinned.len(), 1, "{} is pinned once", ROCKETRY_FILES.name);
+    assert_eq!(
+        (
+            pinned[0]["url"].as_str(),
+            pinned[0]["commit"].as_str(),
+            pinned[0]["dest"].as_str(),
+            pinned[0]["license"].as_str(),
+        ),
+        (
+            Some(ROCKETRY_FILES.url),
+            Some(ROCKETRY_FILES.commit),
+            Some(ROCKETRY_FILES.dest),
+            Some(ROCKETRY_FILES.license),
+        )
+    );
+    assert_eq!(ROCKETRY_FILES.commit.len(), 40);
+    assert!(ROCKETRY_FILES.dest.starts_with("refs/public-flights/"));
+
+    // The table that says which bundled file holds OpenRocket's curve for a digest.
+    let table: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(root().join("crates/hpr-motor/data/openrocket-curves.json"))
+            .expect("the table is committed"),
+    )
+    .expect("the table reads");
+    let bound = table["match_bound"].as_f64().expect("the table's bound");
+
+    for (row, flight) in report.design_file_flights.iter().zip(&DESIGN_FILE_FLIGHTS) {
+        // The words the prediction carries are the ones the code flies with now.
+        assert_eq!(
+            (
+                row.title.as_str(),
+                row.simulation.as_str(),
+                row.source.as_str(),
+                row.motor.as_str(),
+                row.motor_source.as_str(),
+                row.mass_source.as_str(),
+                row.conditions_source.as_str(),
+                row.reference_rule.as_str(),
+                row.altimeter.as_str(),
+                row.altimeter_evidence.as_str(),
+                row.note.as_str(),
+            ),
+            (
+                flight.title,
+                flight.simulation,
+                flight.source,
+                flight.motor,
+                flight.motor_source,
+                flight.mass_source,
+                flight.conditions_source,
+                flight.reference.rule,
+                flight.reference.altimeter.kind(),
+                flight.reference.altimeter.evidence(),
+                flight.note,
+            ),
+            "{}: rerun `cargo xtask public-predictions`",
+            row.id
+        );
+        assert_eq!(row.untraced, flight.untraced, "{}", row.id);
+        assert_eq!(
+            row.inputs_sha256,
+            sha256_hex(format!("{flight:?}").as_bytes()),
+            "{}: its inputs changed; rerun `cargo xtask public-predictions`",
+            row.id
+        );
+        // It was read from the pinned repository, the design and the log each once, by hash.
+        assert_eq!(flight.repository, ROCKETRY_FILES);
+        assert_eq!(
+            (
+                row.repository.as_str(),
+                row.repository_commit.as_str(),
+                row.repository_license.as_str(),
+            ),
+            (
+                ROCKETRY_FILES.url,
+                ROCKETRY_FILES.commit,
+                ROCKETRY_FILES.license
+            ),
+            "{}",
+            row.id
+        );
+        let design = format!("{}/{}", ROCKETRY_FILES.dest, flight.design);
+        let log = format!("{}/{}", ROCKETRY_FILES.dest, flight.reference.log);
+        assert_eq!(
+            (row.design_file.as_str(), row.reference_log.as_str()),
+            (design.as_str(), log.as_str()),
+            "{}",
+            row.id
+        );
+        for (path, sha256) in [
+            (&design, &row.design_file_sha256),
+            (&log, &row.reference_log_sha256),
+        ] {
+            let read: Vec<_> = row.files.iter().filter(|file| &file.path == path).collect();
+            assert_eq!(read.len(), 1, "{}: {path}", row.id);
+            assert_eq!(&read[0].sha256, sha256, "{}: {path}", row.id);
+        }
+        assert_eq!(row.files.len(), 2, "{}: it read another file", row.id);
+        assert_ne!(row.design_file_sha256, row.reference_log_sha256);
+
+        // The stored simulation's conditions, as the file saves them: the site, a vertical 1 m
+        // rod, a steady 2 m/s wind from the east, the standard atmosphere.
+        assert_eq!(
+            (row.latitude_deg, row.longitude_deg, row.elevation_m),
+            (28.61, -80.6, 0.0),
+            "{}",
+            row.id
+        );
+        assert_eq!(
+            (
+                row.rail_length_m,
+                row.rail_inclination_deg,
+                row.wind_speed_m_s
+            ),
+            (1.0, 90.0, 2.0),
+            "{}",
+            row.id
+        );
+        assert!((row.wind_from_deg - 90.0).abs() < 1e-9, "{}", row.id);
+        assert!(row.atmosphere.contains("1976 US Standard Atmosphere"));
+
+        // The curve flown is the bundled file the table gives for the design's digest, a file
+        // whose thrust is OpenRocket's for that digest to within the table's bound.
+        assert_eq!(
+            hpr_motor::openrocket_curves::file_for(&row.motor_digest).as_deref(),
+            Some(row.curve_file.as_str()),
+            "{}: rerun `cargo xtask ork-curves`",
+            row.id
+        );
+        let entry = table["files"]
+            .as_array()
+            .expect("the table's files")
+            .iter()
+            .find(|entry| entry["digest"].as_str() == Some(row.motor_digest.as_str()))
+            .unwrap_or_else(|| panic!("{}: its digest is not in the table", row.id));
+        assert_eq!(entry["simfile_id"].as_str(), Some(row.curve_file.as_str()));
+        assert!(
+            entry["largest_difference"]
+                .as_f64()
+                .is_some_and(|difference| difference < bound),
+            "{}: {entry}",
+            row.id
+        );
+        assert!(
+            flight
+                .motor
+                .ends_with(entry["designation"].as_str().unwrap()),
+            "{}: {entry}",
+            row.id
+        );
+
+        // Neither flight's inputs are all traced, and the tag on the curve is the reader's own
+        // warning, which the row carries.
+        assert!(!row.all_inputs_traced, "{}", row.id);
+        assert_eq!(row.untraced.len(), 3, "{}", row.id);
+        assert!(
+            row.reader_warnings
+                .iter()
+                .any(|warning| warning.contains("ThrustCurve.org")),
+            "{}: no warning on its curve: {:?}",
+            row.id,
+            row.reader_warnings
+        );
+        // OpenRocket's stored run is kept as a number of its own; nothing is taken from it.
+        assert!(row.openrocket_stored_apogee_m > 0.0);
+
+        // No error has been computed: the flight is in no compared list yet.
+        assert!(
+            FLIGHTS.iter().all(|compared| compared.id != flight.id),
+            "{}: compared with its log; its merged prediction must be printed beside its error \
+             (ADR-328 §1b)",
+            row.id
+        );
+    }
+    // The two flights fly one design file on two motors, each paired with its own log.
+    let [first, second] = report.design_file_flights.as_slice() else {
+        panic!("two design-file flights");
+    };
+    assert_eq!(first.design_file_sha256, second.design_file_sha256);
+    assert_ne!(first.reference_log_sha256, second.reference_log_sha256);
+    assert_ne!(first.configuration, second.configuration);
+    assert_ne!(first.curve_file, second.curve_file);
+    assert_ne!(first.simulation, second.simulation);
+
+    // And no compared report holds one of these flights.
+    for name in [
+        "real-flights.json",
+        "flight-residuals.json",
+        "from-boost.json",
+    ] {
+        let compared =
+            std::fs::read_to_string(root().join("validation/reports").join(name)).unwrap();
+        for flight in &DESIGN_FILE_FLIGHTS {
+            assert!(
+                !compared.contains(&format!("\"{}\"", flight.id)),
+                "{name} holds {}",
+                flight.id
+            );
+        }
+    }
+}
+
+#[test]
+fn a_design_file_prediction_that_changes_or_stops_holding_fails() {
+    // The checks on the design-file rows can fail too: a flipped tag, a moved apogee, a row
+    // dropped or out of order, and, where the files are, a changed file, condition or number.
+    type Report = crate::public_predictions::PredictionsReport;
+    let (report, _) = committed_predictions();
+    let altered = |change: &dyn Fn(&mut Report)| {
+        let mut altered = report.clone();
+        change(&mut altered);
+        altered
+    };
+    let fails = |report: &Report| report.check_consistent(&report.to_markdown()).unwrap_err();
+
+    let flipped = altered(&|report| report.design_file_flights[0].all_inputs_traced = true);
+    assert!(fails(&flipped).contains("traced tag"));
+    let moved = altered(&|report| report.design_file_flights[0].predicted_apogee_m += 0.5);
+    let error = fails(&moved);
+    assert!(
+        error.contains("macie-xl-1") && error.contains("merged prediction is 706.2 m"),
+        "{error}"
+    );
+    let lower = altered(&|report| report.design_file_flights[1].predicted_height_apogee_m -= 0.2);
+    assert!(fails(&lower).contains("merged prediction is 692.7 m"));
+    let nan = altered(&|report| report.design_file_flights[1].predicted_apogee_m = f64::NAN);
+    assert!(fails(&nan).contains("predicted apogee"));
+    let light = altered(&|report| report.design_file_flights[0].liftoff_mass_kg = 3.0);
+    assert!(fails(&light).contains("no heavier"));
+    let unhashed = altered(&|report| report.design_file_flights[0].design_file_sha256.clear());
+    assert!(fails(&unhashed).contains("design file has no SHA-256"));
+    let renamed = altered(&|report| report.design_file_flights[0].id = "macie-xl-3".to_owned());
+    assert!(fails(&renamed).contains("no merged prediction"));
+    // Four of the five, or the five out of the order they merged in.
+    let dropped = altered(&|report| {
+        report.design_file_flights.pop();
+    });
+    assert!(fails(&dropped).contains("not the 5 merged predictions"));
+    let swapped = altered(&|report| report.design_file_flights.swap(0, 1));
+    assert!(fails(&swapped).contains("in their order"));
+    // A page that is not the data's.
+    let retitled = altered(&|report| report.design_file_flights[1].title.push('!'));
+    assert!(
+        retitled
+            .check_consistent(&report.to_markdown())
+            .unwrap_err()
+            .contains("rendering")
+    );
+
+    // Against a flight flown now.
+    assert_eq!(report.reproduces(&report), Ok(()));
+    let error = report.reproduces(&moved).unwrap_err();
+    assert!(
+        error.contains("macie-xl-1") && error.contains("revised"),
+        "{error}"
+    );
+    let heavier = altered(&|report| report.design_file_flights[1].liftoff_mass_kg *= 1.0001);
+    assert!(
+        report
+            .reproduces(&heavier)
+            .unwrap_err()
+            .contains("liftoff mass")
+    );
+    for change in [
+        (&|report: &mut Report| report.design_file_flights[0].design_file_sha256 = "0".repeat(64))
+            as &dyn Fn(&mut Report),
+        &|report| report.design_file_flights[0].reference_log_sha256 = "0".repeat(64),
+        &|report| report.design_file_flights[0].wind_speed_m_s = 0.0,
+        &|report| report.design_file_flights[0].curve_file.push('0'),
+        &|report| report.design_file_flights[1].openrocket_stored_apogee_m += 1.0,
+        &|report| report.design_file_flights[1].reader_warnings.clear(),
+        &|report| report.design_file_flights[1].reference_rule.push('!'),
+        &|report| report.design_file_traced_rule.push('!'),
+        &|report| {
+            report.design_file_flights.pop();
+        },
+    ] {
+        assert!(report.reproduces(&altered(change)).is_err());
+    }
 }
 
 #[test]

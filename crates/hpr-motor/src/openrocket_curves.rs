@@ -5,8 +5,10 @@
 //! ([ADR-288](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0288-every-solid-motor-ships-in-the-package.md) §3).
 //!
 //! The table, `data/openrocket-curves.json`, is written by `cargo xtask ork-curves`. It covers
-//! the motors of OpenRocket 24.12's examples, each matched by comparing OpenRocket's curve with
-//! every file's; it holds ids alone, no curve. A motor whose digest it lacks takes the bundled
+//! the motors of OpenRocket 24.12's examples, and the motor each public flight predicted from a
+//! design file flies
+//! ([ADR-337](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0337-the-macie-xl-predictions-each-flight-s-stored-simulation-flown-as-saved.md)),
+//! each matched by comparing OpenRocket's curve with every file's; it holds ids alone, no curve. A motor whose digest it lacks takes the bundled
 //! catalog's default file, or is fetched by name
 //! ([ADR-154](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0154-motors-fetched-from-thrustcurve-by-name.md),
 //! fetching a motor from ThrustCurve.org by its name).

@@ -19,6 +19,7 @@ hpr-design.workspace = true
 hpr-atmos.workspace = true
 hpr-core.workspace = true
 hpr-io.workspace = true
+hpr-motor.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true

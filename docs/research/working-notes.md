@@ -142,6 +142,8 @@ learn something the next person needs. Each bullet is one topic; keep the file u
   --reason "<why>"` in the same PR, or `validate --check` fails. #200: Linux's reproduction bound.
   M2.3c (ADR-083): fly a pair with `hpr_validate::real_flight`, commit only statistics (needs
   `refs/rocketpy`). M2.3d3: `public_predictions::NEW_FLIGHTS`, after `euroc_2022.py`; no log parsed; `MERGED` pins them.
+  M2.3d5 (ADR-337): `DESIGN_FILE_FLIGHTS` fly a stored simulation of a `.ork` pinned under
+  `refs/public-flights/` (outside `xtask ork`'s corpus); `ork-curves` matches their digests offline.
 - Flutter (ADR-078): moduli in `materials::SHEAR_MODULI`; metrics (ADR-077): margin `None` past `κ =
   √10`. `.ork` since M1.9c (ADR-076): ignitions, clusters, powered splits fly (several since ADR-160),
   and a lone unpowered one (ADR-165); open: #185. Leads, not causes: #177, private flights above sea level reading low, `C03`, `C09` margins

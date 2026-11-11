@@ -3,8 +3,9 @@
 //! (M2.3d3, ADR-328 §1a, ADR-334).
 //!
 //! It reads the thrust files and the converted ERA5 file from the gitignored `refs/` (`cargo
-//! xtask refs fetch rocketpy python`, then `validation/oracles/netcdf/euroc_2022.py`), so it
-//! runs where they are, not in CI. It hashes each flight's log and never parses one. It writes
+//! xtask refs fetch rocketpy python`, then `validation/oracles/netcdf/euroc_2022.py`), and the
+//! Macie XL design file from its pinned repository (`cargo xtask refs fetch rocketry-files`;
+//! M2.3d5, ADR-337), so it runs where they are, not in CI. It hashes each flight's log and never parses one. It writes
 //! `validation/reports/public-predictions.{json,md}`; `--check` writes nothing and fails unless
 //! the committed predictions reproduce. CI, without `refs/`, holds the committed predictions to
 //! the code's list of flights and the page to its data (`hpr_validate::tests`).
@@ -18,7 +19,8 @@ use hpr_validate::public_predictions::{
 pub const USAGE: &str = "  public-predictions [--check]
                            Fly the public real flights not yet compared with their logs, each
                            from its record alone, and write their predicted apogees; needs
-                           refs/rocketpy and the converted EuRoC 2022 weather file. Hashes
+                           refs/rocketpy, the converted EuRoC 2022 weather file and
+                           refs/public-flights/rocketry-files. Hashes
                            each log and never parses one. Writes
                            validation/reports/public-predictions.{md,json}; --check writes
                            nothing and fails unless the committed predictions reproduce.";
@@ -53,6 +55,26 @@ pub fn run(args: &[String]) -> Result<(), String> {
                     catalog.motor, catalog.predicted_apogee_m
                 ))
         );
+    }
+    for row in &report.design_file_flights {
+        println!(
+            "public-predictions: {:<10} predicted {:>7.1} m ({:>7.1} m as a height) in {:>5.2} s, \
+             Mach {:.3}, {:.1} N s, {:.3} kg at liftoff, every input traced: {}  OpenRocket's \
+             stored run (never counted) {:.1} m, {} reader warnings",
+            row.id,
+            row.predicted_apogee_m,
+            row.predicted_height_apogee_m,
+            row.predicted_time_to_apogee_s,
+            row.hpr_max_mach,
+            row.total_impulse_ns,
+            row.liftoff_mass_kg,
+            if row.all_inputs_traced { "yes" } else { "no" },
+            row.openrocket_stored_apogee_m,
+            row.reader_warnings.len(),
+        );
+        for warning in &row.reader_warnings {
+            println!("public-predictions:   {} warns: {warning}", row.id);
+        }
     }
     let markdown = report.to_markdown();
     report.check_consistent(&markdown)?;

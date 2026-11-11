@@ -71,6 +71,14 @@ mode = "fetched"
 # whose pin is the one Loft used; its paths run from `imported/loft-fixtures/`. The default
 # `cargo xtask ork` corpus reads the two `imported/` copies and leaves the rest out.
 [[git]]
+name = "rocketry-files"
+url = "https://github.com/rlhatcher/rocketry-files.git"
+commit = "2ddcaf8858a71f9b4d910877c603ed95fe0a9769"
+dest = "refs/public-flights/rocketry-files"
+license = "MIT"
+mode = "fetched"
+
+[[git]]
 name = "hpr-sim-fixtures"
 url = "https://github.com/nrdptel/hpr-sim-fixtures.git"
 commit = "7268bcd036a0e79f75ecb6ee2896327722fb8ab3"

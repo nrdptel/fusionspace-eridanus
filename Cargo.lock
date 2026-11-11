@@ -1006,6 +1006,7 @@ dependencies = [
  "fusionspace-hpr-core",
  "fusionspace-hpr-design",
  "fusionspace-hpr-io",
+ "fusionspace-hpr-motor",
  "fusionspace-hpr-sim",
  "serde",
  "serde_json",

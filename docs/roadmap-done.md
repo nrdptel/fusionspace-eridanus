@@ -252,6 +252,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M2.7b New flights predicted first ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3d3 The EuRoC 2022 predictions ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3d6 A stage's added mass ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M2.3d5 The Macie XL predictions ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M4.1 Facade API ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.1a The builder ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.1b Custom models and the rustdoc guide ([Phase 2](#phase-2-library-surfaces-and-interop))
@@ -1424,6 +1425,10 @@ One line per milestone or increment, in the order it was archived within its pha
         to M2.3d7
         ([#1408](https://github.com/nrdptel/fusionspace-eridanus/pull/1408),
         [#1407](https://github.com/nrdptel/fusionspace-eridanus/issues/1407)).
+    - [x] **M2.3d5 The Macie XL predictions** (ADR-337). *Done when:* M2.3d1's *done when*, whole: its
+      own pull request merges both Macie XL flights' inputs, sources, apogee rules and predicted
+      apogees, the design flown as saved from its pinned repository, no error computed, and with
+      it all five predictions are on `main`.
 ## Phase 2: Library surfaces and interop
 
 - [x] **M4.1 Facade API.** The `hpr` crate offers a RocketPy-like builder (`Environment`, `Motor`,

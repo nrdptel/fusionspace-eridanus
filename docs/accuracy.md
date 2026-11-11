@@ -27,7 +27,7 @@ average. They miss by 12.07% (mean absolute), also outside the target. OpenRocke
 above** ([private collection](#real-flights-of-the-private-collection), [report][fixture-report]).
 
 No flight here is blind yet: all were seen during development. [Blind
-flights](decisions-and-roadmap.md#m2-7) will be predicted before their logs are read. Three more
+flights](decisions-and-roadmap.md#m2-7) will be predicted before their logs are read. Five more
 public flights are predicted and not compared yet
 ([predicted before compared](#predicted-before-compared)). They aren't blind either: their measured
 apogees were already public.
@@ -804,7 +804,7 @@ example's ERA5 file, a [reanalysis](glossary.md#reanalysis) of the atmosphere
 
 | rockets | why not yet |
 |---|---|
-| Astra, Andromeda, Erebus 11 | flown and [predicted](#predicted-before-compared), not compared yet: their logs are compared once all five new public flights' predictions are merged ([decision][adr-334]). Erebus 11 flies a [COTS motor](glossary.md#cots-motor), a Cesaroni Pro54 K, most likely the 2437K660: its thrust file gives 2,418 N·s over 3.657 s against that motor's 2,437 N·s and 3.69 s ([decision][adr-082]) |
+| Astra, Andromeda, Erebus 11 | flown and [predicted](#predicted-before-compared), not compared yet: all five new public flights' predictions are merged now, and their logs are compared in a later change ([decision][adr-334]). Erebus 11 flies a [COTS motor](glossary.md#cots-motor), a Cesaroni Pro54 K, most likely the 2437K660: its thrust file gives 2,418 N·s over 3.657 s against that motor's 2,437 N·s and 3.69 s ([decision][adr-082]) |
 | Camões, Halcyon, Hedy | they fly their teams' own motors, outside HPR Sim's scope of commercial motors ([decision][adr-082]) |
 | Valetudo, Defiance | their logs give an apogee, not a climb ([decision][adr-082]) |
 | Valkyrie | its inputs are only in a data file ([decision][adr-082]) |
@@ -931,13 +931,14 @@ investigated ([report][real-report]).
 
 ### Predicted before compared
 
-**In short: three more of RocketPy's logged flights are now flown, Astra, Andromeda and Erebus 11
-from EuRoC 2022. Their predicted [apogees](glossary.md#apogee) were merged before any of them was
-compared with its log ([the predictions][predictions], [the decision][adr-334]). Nothing here is
-an error yet.**
+**In short: five more public flights are now flown. Three are RocketPy's logged flights from
+EuRoC 2022: Astra, Andromeda and Erebus 11. Two are flights of Macie XL, an OpenRocket design in a
+public repository. Their predicted [apogees](glossary.md#apogee) were merged before any of them was
+compared with its log ([the predictions][predictions]; decisions: [the three][adr-334],
+[the two][adr-337]). Nothing here is an error yet.**
 
 The seven flights above were compared as soon as they were flown. A number published only after
-its comparison could have been tuned to its own miss, even without meaning to. These three go the
+its comparison could have been tuned to its own miss, even without meaning to. These five go the
 other way round. Their inputs, the rule each log's apogee will be read by, and HPR Sim's
 predictions went onto `main` first. The comparison comes in a later change, which must print each
 prediction below beside its error
@@ -948,11 +949,14 @@ prediction below beside its error
 | [Astra][predictions] (Cesaroni 4263L1350-P) | 4,280.2 | 3,037.1 | 3,155.4 | yes |
 | [Andromeda][predictions] (its team's thrust file) | 9,866.7 | 3,581.0 | 3,729.5 | no |
 | [Erebus 11][predictions] (a Cesaroni Pro54 K, the example's thrust file) | 2,418.2 | 2,714.1 | 2,808.7 | yes |
+| [Macie XL, flight 1][predictions] (AeroTech I284W) | 599.5 | 706.2 | 706.3 | no |
+| [Macie XL, flight 2][predictions] (Cesaroni 601I350-16A) | 600.8 | 692.6 | 692.7 | no |
 
 The predicted apogee is what a [barometric altimeter](glossary.md#barometric-altimeter) would
-read on the day, because each log is taken to be a barometric altimeter's. That is assumed: no
-notebook says how its altimeter makes a height ([evidence row G39](evidence.md#g39)). For Astra
-that is 3,037.1 m (9,964 ft), against a predicted climb of 3,155.4 m (10,352 ft)
+read on the day, because each log is taken to be a barometric altimeter's. For the three EuRoC
+2022 flights that is assumed: no
+notebook says how its altimeter makes a height ([evidence row G39](evidence.md#g39)). Astra's
+reading is 3,037.1 m (9,964 ft), against a predicted climb of 3,155.4 m (10,352 ft)
 ([the predictions][predictions]). The reading is the lower of the two because an altimeter turns
 pressure into height with the standard atmosphere, and the air over the site that day was warmer
 than that
@@ -967,7 +971,7 @@ airfoil file or published section does. Those are placeholders in the designs bu
 they move the drag (the fin edges are [evidence row G21](evidence.md#g21)'s guesses). So a traced
 flight's inputs are stated, not exact.
 
-**How they are flown.** By the seven's method: the design built from the example's masses and shapes,
+**How the three EuRoC 2022 flights are flown.** By the seven's method: the design built from the example's masses and shapes,
 on the example's own thrust file, from its rail and site, in the launch hour's ERA5 air. The three
 share one weather file in a newer format. A committed script converts it and checks that the four
 fields' values survived bit for bit ([ERA5 weather files](format/era5.md#converting-a-current-file)).
@@ -979,26 +983,50 @@ flight with none, like this one, reads high by an unknown amount. Its thrust fil
 named for. On that curve the same design, at the same mass, is predicted at 3,050.3 m (10,008 ft).
 That figure is shown for scale and will enter no average of errors. The counted prediction is the
 team's file's, as every RocketPy flight here flies its example's own thrust file. It is also the
-one prediction of the three that passes Mach 1, at Mach 1.019
+one prediction of the five that passes Mach 1, at Mach 1.019
 ([the predictions][predictions],
 [Andromeda's thrust curve](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/andromeda-impulse.md)).
 
-**What is still to come.** Two flights of an OpenRocket design, Macie XL, join these three next
-([the Macie XL predictions](decisions-and-roadmap.md#m2-3d5)). Its stage's mass override adds to
-its parts, which HPR Sim now reads as OpenRocket weighs it
-([a stage's added mass](physics/design.md#a-stages-added-mass)). Then all twelve
-public flights are compared together.
+**The two Macie XL flights** have no example notebook. Their record is
+[a public repository](https://github.com/rlhatcher/rocketry-files/tree/2ddcaf8858a71f9b4d910877c603ed95fe0a9769/macie)
+(MIT): one OpenRocket design file, a page about the rocket and each flight's logs. HPR Sim reads
+the file whole, as OpenRocket 24.12 saved it. Its stage's mass override adds to its parts
+([a stage's added mass](physics/design.md#a-stages-added-mass)). The file holds a stored simulation
+named for each flight, and that is what is flown: its motor, from its vertical 1 m rod, in its
+steady 2 m/s wind and the standard atmosphere, at sea level. The stored wind's turbulence is left
+out ([the Macie XL predictions](decisions-and-roadmap.md#m2-3d5)).
+
+Each motor flies the bundled curve file that the design names by its
+[digest](glossary.md#digest), the file holding the curve OpenRocket flies. For the I284W that is
+not the catalog's first file, whose thrust is as far as 37% of the peak from OpenRocket's curve
+([the decision][adr-337]). Both logs are a PerfectFlite altimeter's, which is barometric
+([`.pf2` files](format/pf2.md)). In the standard atmosphere the reading and the climb agree within
+0.1 m.
+
+**Both are tagged not traced.** Nothing public gives the launch site, the day's air and wind or the
+rail, so the stored simulation's are flown; all nine simulations in the file carry the same ones.
+Nothing says the rocket was weighed as flown. And HPR Sim's own check warns on both curve files.
+The I284W file's impulse is 1.28% from ThrustCurve.org's figure for the motor. The 601I350-16A
+file's loaded mass is 616.3 g, against ThrustCurve.org's record of 782.0 g. The file the design
+names is flown all the same. The design file also keeps the apogees OpenRocket's own runs of the
+two simulations reached, 704.6 m and 691.6 m. They are another simulator's numbers, not
+measurements, and are shown beside the predictions without being counted.
+
+**What is still to come.** All twelve public flights are compared together in a later change
+([the errors](decisions-and-roadmap.md#m2-3d2)).
 
 > **How far to trust it.** These are predictions, not results. No log has been compared, so they
-> say nothing yet about accuracy. RocketPy had already published the measured apogees, so the
-> targets were known when the inputs were written down. Each log was also looked at, for its
-> columns and for a spike near its peak, before its rule was fixed. Merging first does one thing:
+> say nothing yet about accuracy. RocketPy and the Macie XL repository had already published the
+> measured apogees, so the targets were known when the inputs were written down. Each log was also
+> looked at, for its columns and for a spike near its peak, before its rule was fixed. The Macie XL
+> repository's page says both flights flew higher than its own simulations, and HPR Sim flies the
+> same file, so nothing promises that it reads closer. Merging first does one thing:
 > an input changed after seeing HPR Sim's own miss now shows as a change to a merged number. The
 > code keeps the merged apogees as first merged, to the digit the page prints, and a test that CI
 > runs fails a committed prediction that has moved from them.
 
-**Flying them again** needs RocketPy's files, which CI doesn't have. After
-`cargo xtask refs fetch rocketpy` and the weather file's
+**Flying them again** needs RocketPy's files and the Macie XL repository's, which CI doesn't
+have. After `cargo xtask refs fetch rocketpy rocketry-files` and the weather file's
 [conversion](format/era5.md#converting-a-current-file),
 `cargo xtask public-predictions --check` fails when a prediction flown now differs from the
 committed one. The list of merged apogees is in the code, so a change to it shows in the code's
@@ -1289,6 +1317,7 @@ rest.
 [adr-102]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0102-tube-fins-centre-of-pressure-measured-against.md
 [adr-082]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0082-real-flights-read-from-refs-compared-over-the.md
 [adr-334]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0334-m2-3d1-in-three-the-euroc-2022-predictions-first.md
+[adr-337]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0337-the-macie-xl-predictions-each-flight-s-stored-simulation-flown-as-saved.md
 [predictions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/public-predictions.md
 [euroc-weather]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/weather/euroc-2022-conversion.json
 [adr-083]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0083-m2-3c-blocked-no-private-design-is-the-rocket-of.md

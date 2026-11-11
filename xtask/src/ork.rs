@@ -45,13 +45,17 @@ const DEFAULT_DIRS: [&str; 1] = ["refs"];
 
 /// Directories under each of [`DEFAULT_DIRS`] the default corpus leaves out: generated scratch
 /// files and the sources cached for research notes (`refs/research/`), neither of them pinned;
+/// the repositories pinned for the public flights predicted from a design file
+/// (`refs/public-flights/`, ADR-337), whose designs `cargo xtask public-predictions` flies and
+/// which would move every count `docs/format/ork.md` quotes if the survey took them in;
 /// the private flight collection (ADR-151), whose 396 designs would move every count
 /// `docs/format/ork.md` quotes; and the checkouts of the two fixture repositories it replaced
 /// (M2.3c4), which an older clone may still hold. Their files are read from [`IMPORTED`] instead,
 /// so a stale checkout cannot count them twice.
-const EXCLUDED: [&str; 5] = [
+const EXCLUDED: [&str; 6] = [
     "scratch",
     "research",
+    "public-flights",
     "hpr-sim-fixtures",
     "loft-fixtures",
     "debrief-fixtures",
@@ -1484,8 +1488,10 @@ mod tests {
         for dir in [
             "scratch",
             "research/public-flights",
+            "public-flights/rocketry-files/macie",
             "hpr-sim-fixtures/flights/f/design",
             "vendor/scratch",
+            "vendor/public-flights",
         ] {
             fs::create_dir_all(refs.join(dir)).unwrap();
         }
@@ -1497,8 +1503,14 @@ mod tests {
             b"flown",
         )
         .unwrap();
+        fs::write(
+            refs.join("public-flights/rocketry-files/macie/pinned.ork"),
+            b"pinned",
+        )
+        .unwrap();
         fs::write(refs.join("vendor/scratch/design.ork"), b"design").unwrap();
         fs::write(refs.join("vendor/hpr-sim-fixtures/kept.ork"), b"kept").unwrap();
+        fs::write(refs.join("vendor/public-flights/deeper.ork"), b"deeper").unwrap();
 
         let excluded: Vec<PathBuf> = EXCLUDED.iter().map(|name| refs.join(name)).collect();
         let mut found = Vec::new();
@@ -1509,12 +1521,17 @@ mod tests {
             paths,
             [
                 refs.join("vendor/hpr-sim-fixtures/kept.ork"),
+                refs.join("vendor/public-flights/deeper.ork"),
                 refs.join("vendor/scratch/design.ork"),
             ]
         );
 
         for (dir, file) in [
             ("scratch", "scratch/generated.ork"),
+            (
+                "public-flights",
+                "public-flights/rocketry-files/macie/pinned.ork",
+            ),
             (
                 "hpr-sim-fixtures",
                 "hpr-sim-fixtures/flights/f/design/flown.ork",
