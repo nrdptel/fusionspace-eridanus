@@ -99,21 +99,21 @@ own entry in the roadmap, with a *done when* that fails today.
    [ADR-335][adr-335] decision 4 argues that OpenRocket's rule under a mass that covers the
    parts ignores the mass. M2.3d7 has to answer that argument, since the *done when* stands as
    ADR-334 wrote it. This record doesn't choose the new rule.
-
-   **Amended 2026-11-11.** [ADR-340][adr-340] chose it: a `.ork` stage's covering override
-   leaves its parts in place. That meets M2.3d7 on six of its eight probes. On the two with the
-   override on the lower of two stages, ADR-340 decision 4 shows OpenRocket's figure is below
-   what any stage that keeps its parts in place can have: OpenRocket sums each part about the
-   rocket's center, and the override's mass as a point at the stage's center. Those two are a
-   different piece of work, so they become M2.3d9, with M2.3d7's *done when* on them unchanged,
-   and M2.3d7 is met on the other six. Meeting M2.3d9 means composing such a stage's inertia at
-   the rocket level, as OpenRocket does, in a record that answers ADR-340 decision 4. This
-   record is amended in place, not narrowed by a new one, since it plans every increment of
-   M2.3d4.
 4. **The order.** M2.3d5, the Macie XL predictions, goes next. The Macie XL stage's two
    overrides each have their flag false ([ADR-334][adr-334]'s Context), so it needs M2.3d6 alone. M2.3d7
    and M2.3d8 follow, then M2.3d9 (amended 2026-11-11), and M2.3d2, the errors, stays last, as ADR-334 put it. M2.3d1 is met when
    M2.3d5 and M2.3d4 both are.
+
+**Amended 2026-11-11.** [ADR-340][adr-340] chose it: a `.ork` stage's covering override
+leaves its parts in place. That meets M2.3d7 on six of its eight probes. On the two with the
+override on the lower of two stages, ADR-340 decision 4 shows OpenRocket's figure is below
+what any stage that keeps its parts in place can have: OpenRocket sums each part about the
+rocket's center, and the override's mass as a point at the stage's center. Those two are a
+different piece of work, so they become M2.3d9, with M2.3d7's *done when* on them unchanged,
+and M2.3d7 is met on the other six. Meeting M2.3d9 means composing such a stage's inertia at
+the rocket level, as OpenRocket does, in a record that answers ADR-340 decision 4. This
+record is amended in place, not narrowed by a new one, since it plans every increment of
+M2.3d4.
 
 **Consequences.**
 
