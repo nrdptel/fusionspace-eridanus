@@ -381,9 +381,10 @@ pub struct DesignFileFlight {
 }
 
 /// What both Macie XL flights leave untraced.
-const MACIE_XL_SITE_UNTRACED: &str = "no record gives the site, the day, its air and wind, or \
-    the rail: the stored simulation's are flown, and all nine simulations in the file carry the \
-    same ones";
+const MACIE_XL_SITE_UNTRACED: &str = "no record gives the day, its air and wind, or the rail, \
+    and of the site only each log's header gives the pad's height above sea level (37 ft for \
+    flight 1, 12 ft for flight 2): the stored simulation's are flown, its sea level among them, \
+    and all nine simulations in the file carry the same ones";
 /// The same, for the mass.
 const MACIE_XL_MASS_UNTRACED: &str = "no record says the rocket was weighed as flown: the \
     file's parts and overrides are flown";

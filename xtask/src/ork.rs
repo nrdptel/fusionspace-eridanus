@@ -10,9 +10,9 @@
 //! With no `--dir`, it reads every `.ork` under `refs/` except the generated, unpinned
 //! `refs/scratch/` tree, the unpinned sources cached for research notes (`refs/research/`), the
 //! pinned repositories of the public flights predicted from a design file
-//! (`refs/public-flights/`, ADR-337) and the private flight collection `refs/hpr-sim-fixtures/`
+//! (`refs/public-flights/`, ADR-337), the private flight collection `refs/hpr-sim-fixtures/`
 //! (designs paired with their flights' logs, ADR-151, which joins a survey only through an
-//! increment of its own),
+//! increment of its own) and any stale checkout of the two fixture repositories it replaced,
 //! then the two older fixture repositories copied inside that collection ([`IMPORTED`]), and the
 //! example designs inside the pinned OpenRocket jar (`datafiles/examples/`), which is a zip like
 //! any other. Pass `--dir refs/scratch`, `--dir refs/public-flights` or

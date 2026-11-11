@@ -3286,6 +3286,157 @@ fn a_stored_simulation_is_read_whole_or_refused() {
     );
 }
 
+/// An invented design-file flight, read from `invented/` under a temporary root.
+const INVENTED_FLIGHT: crate::public_predictions::DesignFileFlight =
+    crate::public_predictions::DesignFileFlight {
+        id: "invented",
+        title: "Invented",
+        repository: crate::public_predictions::PinnedRepository {
+            name: "invented",
+            url: "https://example.invalid/invented.git",
+            commit: "0000000000000000000000000000000000000000",
+            dest: "invented",
+            license: "MIT",
+        },
+        design: "invented.ork",
+        simulation: "Invented flight",
+        source: "an invented design",
+        motor: "AeroTech I284W",
+        motor_source: "the invented design's stored simulation",
+        mass_source: "the invented design's parts",
+        conditions_source: "the invented design's stored simulation",
+        reference: crate::public_predictions::Reference {
+            log: "invented.log",
+            rule: "none: no flight was flown",
+            altimeter: crate::real_flight::Altimeter::Barometric("invented"),
+        },
+        untraced: &["everything: the design is invented"],
+        note: "",
+    };
+
+/// A temporary root holding `document` as [`INVENTED_FLIGHT`]'s design and `log` as its log.
+fn invented_checkout(document: &str, log: &[u8]) -> tempfile::TempDir {
+    let root = tempfile::tempdir().expect("a temporary directory");
+    let dest = root.path().join(INVENTED_FLIGHT.repository.dest);
+    std::fs::create_dir_all(&dest).expect("the checkout's directory");
+    std::fs::write(dest.join(INVENTED_FLIGHT.design), document).expect("the design");
+    std::fs::write(dest.join(INVENTED_FLIGHT.reference.log), log).expect("the log");
+    root
+}
+
+#[test]
+fn a_design_file_flight_flies_what_its_stored_simulation_states() {
+    // ADR-337 §2: CI holds neither the pinned design nor its logs, so this flies an invented
+    // design from a temporary checkout, whole: the row carries the stored simulation's site,
+    // rod and wind, the file the digest names, both files' SHA-256, and a flight that the rod's
+    // lean lowers.
+    use crate::public_predictions::predict_design_file;
+    use crate::real_flight::sha256_hex;
+    let whole = INVENTED_CONDITIONS.concat();
+    let motor = invented_motor(I284W_DIGEST);
+    let document = invented_design(&motor, &whole, INVENTED_RESULTS, "");
+    let log = b"not a log: a prediction hashes these bytes and reads nothing in them\n";
+    let root = invented_checkout(&document, log);
+    let row = predict_design_file(root.path(), &INVENTED_FLIGHT).expect("the invented flight");
+
+    assert_eq!(row.design_file, "invented/invented.ork");
+    assert_eq!(row.design_file_sha256, sha256_hex(document.as_bytes()));
+    assert_eq!(row.reference_log, "invented/invented.log");
+    assert_eq!(row.reference_log_sha256, sha256_hex(log));
+    let read: Vec<&str> = row.files.iter().map(|file| file.path.as_str()).collect();
+    assert_eq!(read, ["invented/invented.ork", "invented/invented.log"]);
+    assert_eq!(row.simulation, "Invented flight");
+    assert_eq!(row.configuration, INVENTED_CONFIGURATION);
+    assert_eq!(row.motor_digest, "d9da87018adebbef9d8f3d8bfbc9c1e6");
+    assert_eq!(row.curve_file, "5f4294d20002e9000000003b");
+    assert_eq!(
+        (row.latitude_deg, row.longitude_deg, row.elevation_m),
+        (41.5, -88.25, 210.0)
+    );
+    assert_eq!(row.rail_length_m, 1.5);
+    // The rod leans 5° from the vertical toward the east: 85° above the horizon, heading 90°.
+    assert!((row.rail_inclination_deg - 85.0).abs() < 1e-9, "{row:?}");
+    assert!((row.rail_heading_deg - 90.0).abs() < 1e-9, "{row:?}");
+    assert_eq!(row.wind_speed_m_s, 3.0);
+    assert!((row.wind_from_deg - 180.0).abs() < 1e-9, "{row:?}");
+    assert_eq!(row.openrocket_stored_apogee_m, 512.5);
+    assert_eq!(row.altimeter, "barometric");
+    assert!(!row.all_inputs_traced);
+    assert!(
+        row.reader_warnings
+            .iter()
+            .all(|warning| !warning.is_empty())
+    );
+    // The I284W's impulse, on the file its digest names; a rocket heavier with its motor in.
+    assert!((row.total_impulse_ns - 599.5).abs() < 0.05, "{row:?}");
+    assert!(row.liftoff_mass_kg > row.mass_without_motor_kg && row.mass_without_motor_kg > 0.0);
+    // In the standard atmosphere the altimeter's reading and the climb agree to a meter.
+    assert!(row.predicted_height_apogee_m > 100.0, "{row:?}");
+    assert!(
+        (row.predicted_apogee_m - row.predicted_height_apogee_m).abs() < 1.0,
+        "{row:?}"
+    );
+
+    // The same design from a vertical rod in still air climbs higher: the stored rod and wind
+    // are what is flown.
+    let still = whole
+        .replace("<launchrodangle>5.0<", "<launchrodangle>0.0<")
+        .replace("<windaverage>3.0<", "<windaverage>0.0<");
+    assert_ne!(still, whole);
+    let root = invented_checkout(&invented_design(&motor, &still, INVENTED_RESULTS, ""), log);
+    let upright = predict_design_file(root.path(), &INVENTED_FLIGHT).expect("the upright flight");
+    assert!((upright.rail_inclination_deg - 90.0).abs() < 1e-9);
+    assert!(
+        upright.predicted_height_apogee_m > row.predicted_height_apogee_m,
+        "{} m upright, {} m leaning",
+        upright.predicted_height_apogee_m,
+        row.predicted_height_apogee_m
+    );
+
+    // And the stored wind alone moves it: the same leaning rod in still air reaches another
+    // height.
+    let calm = whole.replace("<windaverage>3.0<", "<windaverage>0.0<");
+    assert_ne!(calm, whole);
+    let root = invented_checkout(&invented_design(&motor, &calm, INVENTED_RESULTS, ""), log);
+    let windless = predict_design_file(root.path(), &INVENTED_FLIGHT).expect("the calm flight");
+    assert!(
+        (windless.predicted_height_apogee_m - row.predicted_height_apogee_m).abs() > 0.01,
+        "{} m in still air, {} m in the stored wind",
+        windless.predicted_height_apogee_m,
+        row.predicted_height_apogee_m
+    );
+
+    // A missing log, a stored simulation that is refused, and a part HPR Sim doesn't read each
+    // stop the flight.
+    let root = invented_checkout(&document, log);
+    std::fs::remove_file(root.path().join("invented/invented.log")).expect("removing the log");
+    assert!(predict_design_file(root.path(), &INVENTED_FLIGHT).is_err());
+    let root = invented_checkout(
+        &invented_design(&invented_motor(""), &whole, INVENTED_RESULTS, ""),
+        log,
+    );
+    let refused = predict_design_file(root.path(), &INVENTED_FLIGHT).expect_err("no digest");
+    assert!(
+        refused
+            .to_string()
+            .contains("I284W is not flown on a bundled curve named by a digest"),
+        "{refused}"
+    );
+    assert_eq!(document.matches("<trapezoidfinset>").count(), 1);
+    let unread = document.replace(
+        "<trapezoidfinset>",
+        "<gizmo><name>Gizmo</name><mass>0.1</mass></gizmo><trapezoidfinset>",
+    );
+    let root = invented_checkout(&unread, log);
+    let reduced = predict_design_file(root.path(), &INVENTED_FLIGHT).expect_err("an unread part");
+    assert!(
+        reduced
+            .to_string()
+            .contains("holds a part HPR Sim doesn't read, so it is not flown as saved"),
+        "{reduced}"
+    );
+}
+
 #[test]
 fn a_stored_simulation_flies_one_motor_on_the_curve_its_digest_names() {
     // ADR-337 §3: the curve is the bundled file the motor's digest names in the committed

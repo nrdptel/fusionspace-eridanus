@@ -60,8 +60,8 @@ license = "Apache-2.0 (code-like files); brand files all rights reserved"
 mode = "fetched"
 
 # Public, MIT: the Macie XL design file and its two flights' logs, which `cargo xtask
-# public-predictions` reads (M2.3d5, ADR-337). Nothing of it is committed. Its checkout is outside
-# the default corpus of `cargo xtask ork`.
+# public-predictions` and `cargo xtask ork-curves` read (M2.3d5, ADR-337). No file of it is
+# committed. Its checkout is outside the default corpus of `cargo xtask ork`.
 [[git]]
 name = "rocketry-files"
 url = "https://github.com/rlhatcher/rocketry-files.git"

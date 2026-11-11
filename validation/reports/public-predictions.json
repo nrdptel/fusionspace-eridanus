@@ -230,7 +230,7 @@
       "altimeter_evidence": "the log's first line names a PerfectFlite altimeter, `PerfectFlite SLCF`, and a PerfectFlite has a barometer and no accelerometer (docs/format/pf2.md)",
       "all_inputs_traced": false,
       "untraced": [
-        "no record gives the site, the day, its air and wind, or the rail: the stored simulation's are flown, and all nine simulations in the file carry the same ones",
+        "no record gives the day, its air and wind, or the rail, and of the site only each log's header gives the pad's height above sea level (37 ft for flight 1, 12 ft for flight 2): the stored simulation's are flown, its sea level among them, and all nine simulations in the file carry the same ones",
         "no record says the rocket was weighed as flown: the file's parts and overrides are flown",
         "the reader warns that the motor's curve file disagrees with ThrustCurve.org's record of the motor (the figures are in the flight's `reader_warnings` in the JSON); the file the design's digest names is flown"
       ],
@@ -252,7 +252,7 @@
           "sha256": "98499304445b8d97e3de8049c82ad500c324546b267b3042ed31f7935c560d86"
         }
       ],
-      "inputs_sha256": "be5a409bc2712db83674871468394287823b92ab6b3b4cfd74cc991e2aa06822",
+      "inputs_sha256": "d0fa15d2bfd5102ff8ca2664634d1f77946cd1d8c360b7e28ee6c64d5a9cf43f",
       "note": "the stored simulation's wind carries a turbulence of a tenth of its speed, which is not flown: the wind here is steady. The parachutes are not flown either; the file opens the first at apogee, so neither moves it"
     },
     {
@@ -291,7 +291,7 @@
       "altimeter_evidence": "the log's first line names a PerfectFlite altimeter, `PerfectFlite SLCF`, and a PerfectFlite has a barometer and no accelerometer (docs/format/pf2.md)",
       "all_inputs_traced": false,
       "untraced": [
-        "no record gives the site, the day, its air and wind, or the rail: the stored simulation's are flown, and all nine simulations in the file carry the same ones",
+        "no record gives the day, its air and wind, or the rail, and of the site only each log's header gives the pad's height above sea level (37 ft for flight 1, 12 ft for flight 2): the stored simulation's are flown, its sea level among them, and all nine simulations in the file carry the same ones",
         "no record says the rocket was weighed as flown: the file's parts and overrides are flown",
         "the reader warns that the motor's curve file disagrees with ThrustCurve.org's record of the motor (the figures are in the flight's `reader_warnings` in the JSON); the file the design's digest names is flown"
       ],
@@ -315,7 +315,7 @@
           "sha256": "2a59964bbe5015d0227049f8f113f1304831e99722dc6228c3fb08d9735f3062"
         }
       ],
-      "inputs_sha256": "d674b4276eb53280b357114a797babae7a96ad3e757a82f4c30ed0112593dc13",
+      "inputs_sha256": "0ef6e57051f439fa015f2fd2e8f875d48cc36beb33659e015a8dd4780d30b104",
       "note": "the stored simulation's wind carries a turbulence of a tenth of its speed, which is not flown: the wind here is steady. The parachutes are not flown either; the file opens the first at apogee, so neither moves it"
     }
   ]

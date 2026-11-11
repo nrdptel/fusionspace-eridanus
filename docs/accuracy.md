@@ -804,7 +804,7 @@ example's ERA5 file, a [reanalysis](glossary.md#reanalysis) of the atmosphere
 
 | rockets | why not yet |
 |---|---|
-| Astra, Andromeda, Erebus 11, Macie XL (two flights) | flown and [predicted](#predicted-before-compared), not compared yet: all five new public flights' predictions are merged now, and their logs are compared in a later change ([decision][adr-334]). Erebus 11 flies a [COTS motor](glossary.md#cots-motor), a Cesaroni Pro54 K, most likely the 2437K660: its thrust file gives 2,418 N·s over 3.657 s against that motor's 2,437 N·s and 3.69 s ([decision][adr-082]) |
+| Astra, Andromeda, Erebus 11, Macie XL (two flights) | flown and [predicted](#predicted-before-compared), not compared yet: all five new public flights' predictions are merged now, and their logs are compared in a later change (decisions: [the EuRoC 2022 flights][adr-334], [Macie XL][adr-337]). Erebus 11 flies a [COTS motor](glossary.md#cots-motor), a Cesaroni Pro54 K, most likely the 2437K660: its thrust file gives 2,418 N·s over 3.657 s against that motor's 2,437 N·s and 3.69 s ([decision][adr-082]) |
 | Camões, Halcyon, Hedy | they fly their teams' own motors, outside HPR Sim's scope of commercial motors ([decision][adr-082]) |
 | Valetudo, Defiance | their logs give an apogee, not a climb ([decision][adr-082]) |
 | Valkyrie | its inputs are only in a data file ([decision][adr-082]) |
@@ -999,14 +999,16 @@ turbulence is left out ([the Macie XL predictions](decisions-and-roadmap.md#m2-3
 
 Each motor flies the bundled curve file that the design names by its
 [digest](glossary.md#digest), the file holding the curve OpenRocket flies. For the I284W that is
-not the catalog's first file, whose thrust is as far as 0.372989 of the peak thrust from
-OpenRocket's curve ([the decision][adr-337]). Both logs are a PerfectFlite altimeter's, which is
+not the catalog's first file, whose thrust is as far from OpenRocket's curve as 0.372989 of that
+curve's peak thrust ([the decision][adr-337]). Both logs are a PerfectFlite altimeter's, which is
 barometric ([`.pf2` files](format/pf2.md)). In the standard atmosphere the reading and the climb
 agree within 0.1 m (0.33 ft).
 
-**Both are tagged not traced** ([the decision][adr-337]). Nothing in the repository gives the
-launch site, the day's air and wind or the rail, so the stored simulation's are flown; all nine
-simulations in the file carry the same ones. Nothing says the rocket was weighed as flown. And HPR
+**Both are tagged not traced** ([the decision][adr-337]). The repository gives no date, weather
+or rail. Of the launch site it gives only each log's pad height above sea level, 11.3 m (37 ft)
+for flight 1 and 3.7 m (12 ft) for flight 2. The stored simulation's conditions are flown, its sea
+level among them; all nine simulations in the file carry the same ones. Nothing says the rocket
+was weighed as flown. And HPR
 Sim's own check warns on both curve files. The I284W file's impulse is 1.28% from ThrustCurve.org's
 figure for the motor. The 601I350-16A file's loaded mass is 616.3 g, against ThrustCurve.org's
 record of 782.0 g. The file the design names is flown all the same.

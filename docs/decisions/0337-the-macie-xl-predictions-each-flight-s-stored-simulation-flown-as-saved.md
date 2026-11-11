@@ -1,7 +1,7 @@
 # ADR-337: The Macie XL predictions, each flight's stored simulation flown as saved (2026-11-10)
 
 - **Status:** accepted; carries out [M2.3d5][m2-3d5] under [ADR-328][adr-328] §1a and [ADR-334][adr-334]; widens [ADR-161][adr-161]'s table of curve files by digest to the motors of public flights predicted from a design file. [M2.3d1][m2-3d1] is met once [M2.3d4][m2-3d4] is too, and [M2.3d2][m2-3d2], the errors, stays last.
-- **Summary:** The last two of the five new public flights are predicted: both flights of Macie XL, one OpenRocket design in a public repository. Nothing in the repository gives the launch site or the day's weather, so each flight is flown as the stored simulation its repository names for it, from the design file as OpenRocket 24.12 saved it. HPR Sim predicts 706.2 m (2,317 ft) for flight 1 and 692.6 m (2,272 ft) for flight 2, as their altimeters would read them. Both are tagged *not traced*. No error is computed. Flight 1's motor now flies the bundled curve file the design's digest names, which is not the catalog's first file.
+- **Summary:** The last two of the five new public flights are predicted: both flights of Macie XL, one OpenRocket design in a public repository. The repository gives no weather or rail, and of the launch site only each log's pad height, so each flight is flown as the stored simulation its repository names for it, from the design file as OpenRocket 24.12 saved it. HPR Sim predicts 706.2 m (2,317 ft) for flight 1 and 692.6 m (2,272 ft) for flight 2, as their altimeters would read them. Both are tagged *not traced*. No error is computed. Flight 1's motor now flies the bundled curve file the design's digest names, which is not the catalog's first file.
 
 [m2-3d1]: ../decisions-and-roadmap.md#m2-3d1
 [m2-3d2]: ../decisions-and-roadmap.md#m2-3d2
@@ -34,8 +34,9 @@ example notebook. The record is [the repository][repo]: one OpenRocket 24.12 des
 flights and names each flight's files `maciexl-<flight>-<source>`, with `or` for the OpenRocket
 simulation. The design file holds nine stored simulations, and two of them carry those names:
 `maciexl-1-or` on an AeroTech I284W and `maciexl-2-or` on a Cesaroni 601I350-16A. Nothing in the
-repository gives the launch site, the date, the weather, the rail or the mass the rocket was
-flown at.
+repository gives the date, the weather, the rail or the mass the rocket was flown at. Of the
+launch site it gives one thing: each log's header holds its pad's height above sea level, 11.3 m
+(37 ft) for flight 1 and 3.7 m (12 ft) for flight 2.
 
 **Decision.**
 
@@ -72,7 +73,9 @@ flown at.
    would read it. In the standard atmosphere that is within 0.1 m of the height climbed.
 5. **Both flights are tagged not traced.** A stored simulation's launch conditions are what a
    simulation was run with, not a record of the day, so the site, the air, the wind and the rod
-   are not traced. No record says the rocket was weighed as flown. And HPR Sim's reader warns on
+   are not traced. The logs' pad heights are not flown: a prediction reads no log, and the
+   stored simulation's sea level is flown as saved. No record says the rocket was weighed as
+   flown. And HPR Sim's reader warns on
    both curve files: the I284W file's impulse is 1.28% from ThrustCurve.org's figure for the
    motor, and the 601I350-16A file's loaded mass is 616.3 g against ThrustCurve.org's record of
    782.0 g. The file the design names is flown all the same; the warnings are kept with each
