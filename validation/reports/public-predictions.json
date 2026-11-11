@@ -191,5 +191,133 @@
       "inputs_sha256": "ef00d42e4d631f50168d1714e1f4993ac9fd158dcd47efa37a304a05bd5140f0",
       "note": ""
     }
+  ],
+  "design_file_traced_rule": "For a flight read from a design file, the record is that file and its repository's page about the flight. The file states the rocket and names the motor. A stored simulation's launch conditions are what a simulation was run with, not a record of the day, so the site, the air, the wind and the rod count as not traced unless the page states them. So does the mass, unless the page says the rocket was weighed as flown, and the motor's curve where the reader warns that its file and its certifier's record disagree.",
+  "design_file_flights": [
+    {
+      "id": "macie-xl-1",
+      "title": "Macie XL, flight 1 (AeroTech I284W)",
+      "repository": "https://github.com/rlhatcher/rocketry-files.git",
+      "repository_commit": "2ddcaf8858a71f9b4d910877c603ed95fe0a9769",
+      "repository_license": "MIT",
+      "design_file": "refs/public-flights/rocketry-files/macie/macie-xl.ork",
+      "design_file_sha256": "824e4a7b10f64de65aa65bdeaa65262e79879518a7f14eb5f70a6a1bdbf05bdb",
+      "simulation": "maciexl-1-or",
+      "configuration": "259029e7-db7c-4917-a55b-4a43cdebef6f",
+      "source": "macie/index.md (the two flights; the file names that pair `maciexl-1-or` with flight 1) and macie/macie-xl.ork, read whole as OpenRocket 24.12 saved it",
+      "motor": "AeroTech I284W",
+      "motor_source": "the stored simulation's motor configuration in macie/macie-xl.ork, which names the motor and the digest of its curve; the bundled ThrustCurve.org file that digest names is flown",
+      "motor_digest": "d9da87018adebbef9d8f3d8bfbc9c1e6",
+      "curve_file": "5f4294d20002e9000000003b",
+      "total_impulse_ns": 599.5443235,
+      "mass_source": "macie/macie-xl.ork: its parts and the stage's mass and center overrides, which add to the parts as OpenRocket 24.12 weighs them; the motor's masses are the bundled catalog's for the motor, 313.6 g of propellant and 555.52 g loaded",
+      "mass_without_motor_kg": 3.722129050756854,
+      "liftoff_mass_kg": 4.277649050756854,
+      "conditions_source": "the stored simulation's launch conditions in macie/macie-xl.ork",
+      "latitude_deg": 28.61,
+      "longitude_deg": -80.6,
+      "elevation_m": 0.0,
+      "rail_length_m": 1.0,
+      "rail_inclination_deg": 90.0,
+      "rail_heading_deg": 90.0,
+      "wind_speed_m_s": 2.0,
+      "wind_from_deg": 90.0,
+      "atmosphere": "the 1976 US Standard Atmosphere, for the stored simulation's `isa`",
+      "reference_log": "refs/public-flights/rocketry-files/macie/flights/MRC Summer 26/maciexl-1-sl.pf2",
+      "reference_log_sha256": "98499304445b8d97e3de8049c82ad500c324546b267b3042ed31f7935c560d86",
+      "reference_rule": "the apogee the altimeter worked out, in the log's header (its `Apogee:` line, in feet above the pad, 0.3048 m to the foot), which leaves out the ejection spike among the samples; never the highest sample",
+      "altimeter": "barometric",
+      "altimeter_evidence": "the log's first line names a PerfectFlite altimeter, `PerfectFlite SLCF`, and a PerfectFlite has a barometer and no accelerometer (docs/format/pf2.md)",
+      "all_inputs_traced": false,
+      "untraced": [
+        "no record gives the day, its air and wind, or the rail, and of the site only each log's header gives the pad's height above sea level (12 ft for flight 1, 37 ft for flight 2): the stored simulation's are flown, its sea level among them, and all nine simulations in the file carry the same ones",
+        "no record says the rocket was weighed as flown: the file's parts and overrides are flown",
+        "the reader warns that the motor's curve file disagrees with ThrustCurve.org's record of the motor (the figures are in the flight's `reader_warnings` in the JSON); the file the design's digest names is flown",
+        "the motor flies the bundled catalog's masses for it, 313.6 g of propellant and 555.52 g loaded, as every catalog motor does, where the curve file the design's digest names, and OpenRocket's own record of that digest, give 310.016 g and 555.072 g (the table's `mass_difference`)"
+      ],
+      "reader_warnings": [
+        "openrocket/rocket/stage[0]/bodytube[5]/innertube[3]: I284W's curve file 5f4294d20002e9000000003b is more than 1% from ThrustCurve.org's figures for it: total impulse -1.28%, average thrust +7.89%"
+      ],
+      "predicted_apogee_m": 706.2447625513657,
+      "predicted_height_apogee_m": 706.3233819694076,
+      "predicted_time_to_apogee_s": 12.197832032154652,
+      "hpr_max_mach": 0.3542977405582578,
+      "openrocket_stored_apogee_m": 704.59,
+      "files": [
+        {
+          "path": "refs/public-flights/rocketry-files/macie/macie-xl.ork",
+          "sha256": "824e4a7b10f64de65aa65bdeaa65262e79879518a7f14eb5f70a6a1bdbf05bdb"
+        },
+        {
+          "path": "refs/public-flights/rocketry-files/macie/flights/MRC Summer 26/maciexl-1-sl.pf2",
+          "sha256": "98499304445b8d97e3de8049c82ad500c324546b267b3042ed31f7935c560d86"
+        }
+      ],
+      "inputs_sha256": "a0f81b794d0df7ed8b043de9f69e4b22d30fbe9a51ee63adcec7081d56ab2a12",
+      "note": "the stored simulation's wind carries a turbulence of a tenth of its speed, which is not flown: the wind here is steady. The parachutes are not flown either; the file opens one at apogee and the other lower, on the way down, so neither moves it"
+    },
+    {
+      "id": "macie-xl-2",
+      "title": "Macie XL, flight 2 (Cesaroni 601I350-16A)",
+      "repository": "https://github.com/rlhatcher/rocketry-files.git",
+      "repository_commit": "2ddcaf8858a71f9b4d910877c603ed95fe0a9769",
+      "repository_license": "MIT",
+      "design_file": "refs/public-flights/rocketry-files/macie/macie-xl.ork",
+      "design_file_sha256": "824e4a7b10f64de65aa65bdeaa65262e79879518a7f14eb5f70a6a1bdbf05bdb",
+      "simulation": "maciexl-2-or",
+      "configuration": "c16d442d-6695-4f95-b4f3-79dfcdc75450",
+      "source": "macie/index.md (the two flights; the file names that pair `maciexl-2-or` with flight 2) and macie/macie-xl.ork, read whole as OpenRocket 24.12 saved it",
+      "motor": "Cesaroni 601I350-16A",
+      "motor_source": "the stored simulation's motor configuration in macie/macie-xl.ork, which names the motor and the digest of its curve; the bundled ThrustCurve.org file that digest names is flown",
+      "motor_digest": "84414906dddfb169c96ef1f7cf8d0ff7",
+      "curve_file": "5f4294d20002e90000000575",
+      "total_impulse_ns": 600.8300225,
+      "mass_source": "macie/macie-xl.ork: its parts and the stage's mass and center overrides, which add to the parts as OpenRocket 24.12 weighs them; the motor's masses are the bundled catalog's for the motor, which are OpenRocket's for the design's digest",
+      "mass_without_motor_kg": 3.7221290507568545,
+      "liftoff_mass_kg": 4.338429050756854,
+      "conditions_source": "the stored simulation's launch conditions in macie/macie-xl.ork",
+      "latitude_deg": 28.61,
+      "longitude_deg": -80.6,
+      "elevation_m": 0.0,
+      "rail_length_m": 1.0,
+      "rail_inclination_deg": 90.0,
+      "rail_heading_deg": 90.0,
+      "wind_speed_m_s": 2.0,
+      "wind_from_deg": 90.0,
+      "atmosphere": "the 1976 US Standard Atmosphere, for the stored simulation's `isa`",
+      "reference_log": "refs/public-flights/rocketry-files/macie/flights/MRC Summer 26/maciexl-2-sl.pf2",
+      "reference_log_sha256": "2a59964bbe5015d0227049f8f113f1304831e99722dc6228c3fb08d9735f3062",
+      "reference_rule": "the apogee the altimeter worked out, in the log's header (its `Apogee:` line, in feet above the pad, 0.3048 m to the foot); never the highest sample",
+      "altimeter": "barometric",
+      "altimeter_evidence": "the log's first line names a PerfectFlite altimeter, `PerfectFlite SLCF`, and a PerfectFlite has a barometer and no accelerometer (docs/format/pf2.md)",
+      "all_inputs_traced": false,
+      "untraced": [
+        "no record gives the day, its air and wind, or the rail, and of the site only each log's header gives the pad's height above sea level (12 ft for flight 1, 37 ft for flight 2): the stored simulation's are flown, its sea level among them, and all nine simulations in the file carry the same ones",
+        "no record says the rocket was weighed as flown: the file's parts and overrides are flown",
+        "the reader warns that the motor's curve file disagrees with ThrustCurve.org's record of the motor (the figures are in the flight's `reader_warnings` in the JSON); the file the design's digest names is flown"
+      ],
+      "reader_warnings": [
+        "openrocket/rocket/stage[0]/bodytube[5]/innertube[3]: 601I350-16A is 38 by 360 mm in the design and 38 by 362 mm in the bundled catalog. The design's size places it, and the curve's gives its mass",
+        "openrocket/rocket/stage[0]/bodytube[5]/innertube[3]: Cesaroni 601I350-16A's curve file 5f4294d20002e90000000575 gives 328.5 g of propellant, -20.56% from ThrustCurve.org's record of 413.5 g. If the file's loaded mass is right, it flies too heavy a burnout mass and too low an apogee",
+        "openrocket/rocket/stage[0]/bodytube[5]/innertube[3]: Cesaroni 601I350-16A flies a loaded mass of 616.3 g, -21.2% from ThrustCurve.org's record of 782.0 g; the two disagree, so check which describes the motor you fly. Too heavy a motor gives too low an apogee; too light, too high a margin after burnout"
+      ],
+      "predicted_apogee_m": 692.637902059154,
+      "predicted_height_apogee_m": 692.7135232559336,
+      "predicted_time_to_apogee_s": 12.122347102713453,
+      "hpr_max_mach": 0.36163660960980065,
+      "openrocket_stored_apogee_m": 691.648,
+      "files": [
+        {
+          "path": "refs/public-flights/rocketry-files/macie/macie-xl.ork",
+          "sha256": "824e4a7b10f64de65aa65bdeaa65262e79879518a7f14eb5f70a6a1bdbf05bdb"
+        },
+        {
+          "path": "refs/public-flights/rocketry-files/macie/flights/MRC Summer 26/maciexl-2-sl.pf2",
+          "sha256": "2a59964bbe5015d0227049f8f113f1304831e99722dc6228c3fb08d9735f3062"
+        }
+      ],
+      "inputs_sha256": "ecdf16140713f25c3d969e896effb0f72fbf997215d41ca5a7c977539bee7535",
+      "note": "the stored simulation's wind carries a turbulence of a tenth of its speed, which is not flown: the wind here is steady. The parachutes are not flown either; the file opens one at apogee and the other lower, on the way down, so neither moves it"
+    }
   ]
 }

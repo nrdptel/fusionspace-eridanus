@@ -686,7 +686,8 @@ impulse. Four of the seven altimeters' kinds are assumed barometric
 compared with their logs yet, each from its record alone
 ([the EuRoC 2022 predictions](decisions-and-roadmap.md#m2-3d3),
 [why they merge first](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md)).
-Today they're Astra, Andromeda and Erebus 11. It writes each one's inputs with their sources, the
+Today they're Astra, Andromeda and Erebus 11, and both flights of Macie XL
+([the Macie XL predictions](decisions-and-roadmap.md#m2-3d5)). It writes each one's inputs with their sources, the
 rule its log's apogee will be read by, and the predicted apogee to
 `validation/reports/public-predictions.{json,md}`. It hashes each log, to pin the file, and never
 parses one. The report has no field for a measured apogee or an error.
@@ -707,6 +708,15 @@ and as a height, to the digit the page prints, and the writer and CI both refuse
 has moved from it. CI, without the checkout, also holds the
 committed predictions to the code's list of flights, to the committed designs' and the design fixture's digests, to their
 page, and to the file's own text: a key for an error or a measured value fails.
+
+The two Macie XL flights are read from a design file, not built from an example. The lock file
+(`validation/refs.lock.toml`) pins their repository under `refs/public-flights/` (`cargo xtask
+refs fetch rocketry-files`). Each is flown as the stored simulation the repository names for it,
+from the file as OpenRocket 24.12 saved it. A flight is refused if that simulation lacks its rod,
+wind or site, or was run in another atmosphere or wind model. It is also refused if it would fly a
+curve file other than the one the table gives for the design's digest
+(`crates/hpr-motor/data/openrocket-curves.json`, written by `cargo xtask ork-curves`). CI holds
+their committed rows to the lock's pin, to that table and to the code's list.
 
 ## Simulators and papers
 

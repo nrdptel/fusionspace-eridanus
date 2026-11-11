@@ -12,6 +12,12 @@
 //! propellant's and the dry motor's, as hpr builds the motor from the file) are nearest
 //! OpenRocket's. A motor with no match is listed with why.
 //!
+//! The motor each public flight predicted from a design file flies is matched too (the Macie XL
+//! predictions, ADR-337): the configuration of the stored simulation its flight names, read from
+//! the pinned repository's checkout. `hpr sim` reads such a motor from the bundled catalog
+//! (ADR-288), so its candidates are the bundled catalog's files of the motor, in the order `hpr
+//! sim` takes them, and nothing is fetched for it. Their designs are public, MIT-licensed files.
+//!
 //! [`TABLE`] holds ids, names and that difference only, no curve, as ADR-161 §3 set; `hpr sim`
 //! fetches the file itself by its id (§4). OpenRocket's database states no terms (ADR-067), so
 //! none of its curves is copied. ThrustCurve grants no license for its records and reserves copyright;
@@ -27,7 +33,9 @@ use hpr::hpr_net::on_demand::{self, FindError, Wanted};
 use hpr::hpr_net::thrustcurve::Format;
 use hpr::hpr_net::{Cache, Client, Http, Mode};
 use hpr_io::ork;
+use hpr_motor::catalog::{Catalog, CurveFormat, bundled_curve_text};
 use hpr_motor::{SolidMotor, ThrustCurve};
+use hpr_validate::public_predictions::DESIGN_FILE_FLIGHTS;
 use serde_json::{Value, json};
 
 /// The table, as `hpr sim` reads it.
@@ -43,12 +51,13 @@ const JAR: &str = "refs/openrocket/OpenRocket-24.12.jar";
 const MATCH: f64 = 0.01;
 
 pub const USAGE: &str = "\
-  ork-curves [--offline]   Match each motor of OpenRocket's examples to the ThrustCurve.org
+  ork-curves [--offline]   Match each motor of OpenRocket's examples, and of each public
+                           flight predicted from a design file, to the ThrustCurve.org
                            file holding OpenRocket's curve, and write
                            crates/hpr-motor/data/openrocket-curves.json, the table hpr sim
                            fetches OpenRocket's curve by. Needs the pinned jar,
-                           corpus-out/openrocket-motors.json and the network, or with
-                           --offline the hpr cache alone.";
+                           corpus-out/openrocket-motors.json, refs/public-flights and
+                           the network, or with --offline the hpr cache alone.";
 
 /// Runs `cargo xtask ork-curves`.
 pub fn run(args: &[String]) -> Result<(), String> {
@@ -100,10 +109,14 @@ pub fn run(args: &[String]) -> Result<(), String> {
     Ok(())
 }
 
-/// A motor the examples place: its maker and designation as the `.ork` records them.
+/// A motor the examples or a predicted flight's design file place: its maker and designation as
+/// the `.ork` records them.
 struct Placed {
     manufacturer: String,
     designation: String,
+    /// Whether its files are the bundled catalog's, not ThrustCurve.org's as fetched: so for a
+    /// predicted flight's motor, which `hpr sim` reads from the bundled catalog (ADR-288).
+    bundled: bool,
 }
 
 fn match_all(root: &Path, offline: bool) -> Result<Value, String> {
@@ -130,8 +143,54 @@ fn match_all(root: &Path, offline: bool) -> Result<Value, String> {
                     placed.entry(digest.clone()).or_insert_with(|| Placed {
                         manufacturer: motor.manufacturer.clone(),
                         designation: motor.designation.clone(),
+                        bundled: false,
                     });
                 }
+            }
+        }
+    }
+    // And the motor each public flight predicted from a design file flies: its stored
+    // simulation's configuration (the Macie XL predictions, ADR-337).
+    for flight in &DESIGN_FILE_FLIGHTS {
+        let path = format!("{}/{}", flight.repository.dest, flight.design);
+        let bytes = fs::read(root.join(&path)).map_err(|error| {
+            format!(
+                "{path}: {error}: fetch it with `cargo xtask refs fetch {}`",
+                flight.repository.name
+            )
+        })?;
+        let read = ork::read(&bytes).map_err(|error| format!("{path}: {error}"))?;
+        let design = ork::design_with(&read.value, supply.curves()).value;
+        let flown = design
+            .simulations
+            .iter()
+            .find(|stored| stored.name == flight.simulation)
+            .and_then(|stored| stored.conditions.as_ref()?.configuration.as_ref())
+            .and_then(|id| {
+                design
+                    .motors
+                    .configurations
+                    .iter()
+                    .find(|configuration| &configuration.id == id)
+            })
+            .ok_or_else(|| {
+                format!(
+                    "{path}: no stored simulation `{}` with a motor configuration",
+                    flight.simulation
+                )
+            })?;
+        for motor in &flown.motors {
+            if let Some(digest) = &motor.digest {
+                // A digest an example already placed is matched against the bundled files
+                // too: a prediction flies only those.
+                placed
+                    .entry(digest.clone())
+                    .and_modify(|placed| placed.bundled = true)
+                    .or_insert_with(|| Placed {
+                        manufacturer: motor.manufacturer.clone(),
+                        designation: motor.designation.clone(),
+                        bundled: true,
+                    });
             }
         }
     }
@@ -161,30 +220,41 @@ fn match_all(root: &Path, offline: bool) -> Result<Value, String> {
             continue;
         };
         let candidates = RefCell::new(Vec::new());
-        let wanted = Wanted::by(&motor.manufacturer, &motor.designation);
-        let found = on_demand::find_with(&client, &wanted, now_s, |file| {
-            on_demand::reads_as_one_motor(file)?;
-            let text = file.text().map_err(|error| error.to_string())?;
-            let built = match file.format {
-                Format::Rasp => hpr::Motor::from_eng(&text),
-                _ => hpr::Motor::from_rse(&text),
+        if motor.bundled {
+            // Nothing is fetched for it: its files are the bundled ones.
+            match bundled_files(&motor.manufacturer, &motor.designation) {
+                Ok(files) => candidates.borrow_mut().extend(files),
+                Err(why) => {
+                    unmatched.push(unmatched_why(why));
+                    continue;
+                }
             }
-            .map_err(|error| error.to_string())?;
-            candidates.borrow_mut().push((
-                file.simfile_id.clone(),
-                file.format,
-                built.solid_motor().clone(),
-            ));
-            // Refused, so that every file is read.
-            Err::<(), _>("compared".to_owned())
-        });
-        match found {
-            Err(FindError::NoFile { .. }) => {}
-            Err(error) => {
-                unmatched.push(unmatched_why(error.to_string()));
-                continue;
+        } else {
+            let wanted = Wanted::by(&motor.manufacturer, &motor.designation);
+            let found = on_demand::find_with(&client, &wanted, now_s, |file| {
+                on_demand::reads_as_one_motor(file)?;
+                let text = file.text().map_err(|error| error.to_string())?;
+                let built = match file.format {
+                    Format::Rasp => hpr::Motor::from_eng(&text),
+                    _ => hpr::Motor::from_rse(&text),
+                }
+                .map_err(|error| error.to_string())?;
+                candidates.borrow_mut().push((
+                    file.simfile_id.clone(),
+                    file.format,
+                    built.solid_motor().clone(),
+                ));
+                // Refused, so that every file is read.
+                Err::<(), _>("compared".to_owned())
+            });
+            match found {
+                Err(FindError::NoFile { .. }) => {}
+                Err(error) => {
+                    unmatched.push(unmatched_why(error.to_string()));
+                    continue;
+                }
+                Ok(_) => return Err("every file is refused, so none can be found".to_owned()),
             }
-            Ok(_) => return Err("every file is refused, so none can be found".to_owned()),
         }
         let mut compared: Vec<(String, Format, f64, f64)> = candidates
             .into_inner()
@@ -228,7 +298,8 @@ fn match_all(root: &Path, offline: bool) -> Result<Value, String> {
         }
     }
     Ok(json!({
-        "about": "For each motor of OpenRocket 24.12's examples, by the digest a .ork records, the \
+        "about": "For each motor of OpenRocket 24.12's examples, and each motor a public flight \
+                  predicted from a design file flies (ADR-337), by the digest a .ork records, the \
                   ThrustCurve.org data file holding the curve OpenRocket flies: written by \
                   `cargo xtask ork-curves` (ADR-161). largest_difference is the largest \
                   difference in thrust from OpenRocket's curve, over its peak thrust; \
@@ -240,6 +311,37 @@ fn match_all(root: &Path, offline: bool) -> Result<Value, String> {
         "files": files,
         "unmatched": unmatched,
     }))
+}
+
+/// Every file the bundled catalog holds of the one motor `manufacturer` and `designation` name,
+/// in the order `hpr sim` takes them, each built as `hpr sim` builds it.
+fn bundled_files(
+    manufacturer: &str,
+    designation: &str,
+) -> Result<Vec<(String, Format, SolidMotor)>, String> {
+    let catalog = Catalog::bundled().map_err(|error| error.to_string())?;
+    let found = catalog.find_for_design(manufacturer, designation, None, None);
+    let [found] = found.as_slice() else {
+        return Err(format!(
+            "the bundled catalog holds {} motors of that maker and designation",
+            found.len()
+        ));
+    };
+    let mut files = Vec::new();
+    for curve in found.ranked_curves() {
+        let text = bundled_curve_text(&curve.file)
+            .ok_or_else(|| format!("the bundled catalog lists {} without its file", curve.file))?;
+        let built = found
+            .motor(curve, text)
+            .map_err(|error| format!("{}: {error}", curve.file))?;
+        let format = match curve.format {
+            CurveFormat::Rasp => Format::Rasp,
+            CurveFormat::RockSim => Format::RockSim,
+            other => return Err(format!("{}: a format of its own, {other:?}", curve.file)),
+        };
+        files.push((curve.simfile_id.clone(), format, built));
+    }
+    Ok(files)
 }
 
 /// The largest difference in thrust between two curves at any sample time of either, over the

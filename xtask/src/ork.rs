@@ -8,13 +8,15 @@
 //! kind they raised. Those counts are the part that may be published.
 //!
 //! With no `--dir`, it reads every `.ork` under `refs/` except the generated, unpinned
-//! `refs/scratch/` tree, the unpinned sources cached for research notes (`refs/research/`) and
-//! the private flight collection `refs/hpr-sim-fixtures/` (designs paired
-//! with their flights' logs, ADR-151, which joins a survey only through an increment of its own),
+//! `refs/scratch/` tree, the unpinned sources cached for research notes (`refs/research/`), the
+//! pinned repositories of the public flights predicted from a design file
+//! (`refs/public-flights/`, ADR-337), the private flight collection `refs/hpr-sim-fixtures/`
+//! (designs paired with their flights' logs, ADR-151, which joins a survey only through an
+//! increment of its own) and any stale checkout of the two fixture repositories it replaced,
 //! then the two older fixture repositories copied inside that collection ([`IMPORTED`]), and the
 //! example designs inside the pinned OpenRocket jar (`datafiles/examples/`), which is a zip like
-//! any other. Pass `--dir refs/scratch` or `--dir refs/hpr-sim-fixtures` explicitly to
-//! read either. It fails when any file
+//! any other. Pass `--dir refs/scratch`, `--dir refs/public-flights` or
+//! `--dir refs/hpr-sim-fixtures` explicitly to read one. It fails when any file
 //! cannot be read, which is how milestone M3.1a's "every `.ork` opens" is checked.
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -45,13 +47,17 @@ const DEFAULT_DIRS: [&str; 1] = ["refs"];
 
 /// Directories under each of [`DEFAULT_DIRS`] the default corpus leaves out: generated scratch
 /// files and the sources cached for research notes (`refs/research/`), neither of them pinned;
+/// the repositories pinned for the public flights predicted from a design file
+/// (`refs/public-flights/`, ADR-337), whose designs `cargo xtask public-predictions` flies and
+/// which would move the survey's counts in `docs/format/ork.md` if the survey took them in;
 /// the private flight collection (ADR-151), whose 396 designs would move every count
 /// `docs/format/ork.md` quotes; and the checkouts of the two fixture repositories it replaced
 /// (M2.3c4), which an older clone may still hold. Their files are read from [`IMPORTED`] instead,
 /// so a stale checkout cannot count them twice.
-const EXCLUDED: [&str; 5] = [
+const EXCLUDED: [&str; 6] = [
     "scratch",
     "research",
+    "public-flights",
     "hpr-sim-fixtures",
     "loft-fixtures",
     "debrief-fixtures",
@@ -1484,8 +1490,10 @@ mod tests {
         for dir in [
             "scratch",
             "research/public-flights",
+            "public-flights/rocketry-files/macie",
             "hpr-sim-fixtures/flights/f/design",
             "vendor/scratch",
+            "vendor/public-flights",
         ] {
             fs::create_dir_all(refs.join(dir)).unwrap();
         }
@@ -1497,8 +1505,14 @@ mod tests {
             b"flown",
         )
         .unwrap();
+        fs::write(
+            refs.join("public-flights/rocketry-files/macie/pinned.ork"),
+            b"pinned",
+        )
+        .unwrap();
         fs::write(refs.join("vendor/scratch/design.ork"), b"design").unwrap();
         fs::write(refs.join("vendor/hpr-sim-fixtures/kept.ork"), b"kept").unwrap();
+        fs::write(refs.join("vendor/public-flights/deeper.ork"), b"deeper").unwrap();
 
         let excluded: Vec<PathBuf> = EXCLUDED.iter().map(|name| refs.join(name)).collect();
         let mut found = Vec::new();
@@ -1509,12 +1523,17 @@ mod tests {
             paths,
             [
                 refs.join("vendor/hpr-sim-fixtures/kept.ork"),
+                refs.join("vendor/public-flights/deeper.ork"),
                 refs.join("vendor/scratch/design.ork"),
             ]
         );
 
         for (dir, file) in [
             ("scratch", "scratch/generated.ork"),
+            (
+                "public-flights",
+                "public-flights/rocketry-files/macie/pinned.ork",
+            ),
             (
                 "hpr-sim-fixtures",
                 "hpr-sim-fixtures/flights/f/design/flown.ork",

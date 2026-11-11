@@ -1511,6 +1511,10 @@ motor it can fly, not that its curve is right.
   of the curve. For the motors of OpenRocket's example designs, `hpr sim` keeps a table from
   digest to the ThrustCurve file with that curve, matched by comparing curves (`cargo xtask
   ork-curves`, as of October 4, 2026, rerun when ThrustCurve's files change). It takes that file first, and the motor's note says so.
+  The table also holds the two motors of the
+  [public flights predicted from a design file](accuracy.md#predicted-before-compared), matched
+  against the bundled files on November 10, 2026. Other digests aren't in it yet
+  ([issue #1412](https://github.com/nrdptel/fusionspace-eridanus/issues/1412)).
 
   Another motor flies the file by the order above, and its note says it may not be OpenRocket's
   curve. An offline refusal's command then carries `--file`. Offline, a file the cache lacks is

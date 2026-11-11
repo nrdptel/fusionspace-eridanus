@@ -2322,7 +2322,8 @@ fn key_for_an_error(text: &str) -> Option<String> {
 #[test]
 fn public_predictions_are_the_listed_flights_and_hold_no_error() {
     // M2.3d3 (ADR-328 §1a, ADR-334): each new public flight's inputs, sources, apogee rule and
-    // predicted apogee are committed before its log is compared. The thrust files, logs and
+    // predicted apogee are committed before its log is compared (the Macie XL two, read from a
+    // design file, are held by `design_file_predictions_fly_the_pinned_file_as_saved`). The thrust files, logs and
     // weather are not in CI (they live under `refs/`), so this holds the committed predictions to
     // the code's list and to themselves; `cargo xtask public-predictions --check` flies them
     // again where the files are.
@@ -2538,6 +2539,8 @@ fn public_predictions_are_the_listed_flights_and_hold_no_error() {
         " fly(",
         " fly,",
         "{fly",
+        "hpr_flightdata",
+        ".lines()",
     ] {
         assert!(!source.contains(reader), "the predictions call `{reader}`");
     }
@@ -2695,7 +2698,900 @@ fn a_prediction_that_changes_or_stops_holding_fails() {
     let fewer = altered(&|report| {
         report.flights.pop();
     });
-    assert!(report.reproduces(&fewer).unwrap_err().contains("2 flown"));
+    // The count is of all five predictions: the EuRoC 2022 three and the Macie XL two.
+    assert!(
+        report
+            .reproduces(&fewer)
+            .unwrap_err()
+            .contains("5 flights committed, 4 flown")
+    );
+}
+
+#[test]
+fn design_file_predictions_fly_the_pinned_file_as_saved() {
+    // M2.3d5 (ADR-328 §1a, ADR-337): the two Macie XL flights' inputs, sources, apogee rules and
+    // predicted apogees, each flown from the design file in its pinned repository as OpenRocket
+    // saved it, and with them all five predictions. The design file and the logs are not in CI
+    // (they live under `refs/`), so this holds the committed rows to the code's list, to the
+    // lock's pin and to the digest table; `cargo xtask public-predictions --check` flies them
+    // again where the files are.
+    use crate::public_predictions::{
+        DESIGN_FILE_FLIGHTS, DESIGN_FILE_TRACED_RULE, MERGED, NEW_FLIGHTS, ROCKETRY_FILES,
+    };
+    use crate::real_flight::FLIGHTS;
+    let (report, page) = committed_predictions();
+    report
+        .check_consistent(&page)
+        .expect("the predictions hold together");
+    assert_eq!(report.design_file_traced_rule, DESIGN_FILE_TRACED_RULE);
+    let ids: Vec<&str> = report
+        .design_file_flights
+        .iter()
+        .map(|row| row.id.as_str())
+        .collect();
+    let listed: Vec<&str> = DESIGN_FILE_FLIGHTS.iter().map(|flight| flight.id).collect();
+    assert_eq!(ids, listed, "every listed flight is predicted, in order");
+    assert_eq!(ids, ["macie-xl-1", "macie-xl-2"]);
+
+    // All five predictions are here, each held to a merged number, in the order they merged.
+    let all: Vec<&str> = NEW_FLIGHTS
+        .iter()
+        .map(|flight| flight.id)
+        .chain(listed.iter().copied())
+        .collect();
+    let merged: Vec<&str> = MERGED.iter().map(|merged| merged.id).collect();
+    assert_eq!(all, merged);
+    assert_eq!(merged.len(), 5);
+    assert_eq!(
+        report.flights.len() + report.design_file_flights.len(),
+        5,
+        "five predictions are committed"
+    );
+    for merged in &MERGED {
+        assert!(
+            merged.apogee_m > 0.0 && merged.height_apogee_m > 0.0,
+            "{}",
+            merged.id
+        );
+    }
+
+    // The repository is the one the lock pins, at the lock's commit, outside `refs/research`
+    // (unpinned) and the `.ork` survey's corpus.
+    let lock: toml::Value = toml::from_str(
+        &std::fs::read_to_string(root().join("validation/refs.lock.toml"))
+            .expect("the lock is committed"),
+    )
+    .expect("the lock reads");
+    let pinned: Vec<&toml::Value> = lock["git"]
+        .as_array()
+        .expect("the lock's repositories")
+        .iter()
+        .filter(|entry| entry["name"].as_str() == Some(ROCKETRY_FILES.name))
+        .collect();
+    assert_eq!(pinned.len(), 1, "{} is pinned once", ROCKETRY_FILES.name);
+    assert_eq!(
+        (
+            pinned[0]["url"].as_str(),
+            pinned[0]["commit"].as_str(),
+            pinned[0]["dest"].as_str(),
+            pinned[0]["license"].as_str(),
+        ),
+        (
+            Some(ROCKETRY_FILES.url),
+            Some(ROCKETRY_FILES.commit),
+            Some(ROCKETRY_FILES.dest),
+            Some(ROCKETRY_FILES.license),
+        )
+    );
+    assert_eq!(ROCKETRY_FILES.commit.len(), 40);
+    assert!(ROCKETRY_FILES.dest.starts_with("refs/public-flights/"));
+
+    // The table that says which bundled file holds OpenRocket's curve for a digest.
+    let table: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(root().join("crates/hpr-motor/data/openrocket-curves.json"))
+            .expect("the table is committed"),
+    )
+    .expect("the table reads");
+    let bound = table["match_bound"].as_f64().expect("the table's bound");
+
+    for (row, flight) in report.design_file_flights.iter().zip(&DESIGN_FILE_FLIGHTS) {
+        // The words the prediction carries are the ones the code flies with now.
+        assert_eq!(
+            (
+                row.title.as_str(),
+                row.simulation.as_str(),
+                row.source.as_str(),
+                row.motor.as_str(),
+                row.motor_source.as_str(),
+                row.mass_source.as_str(),
+                row.conditions_source.as_str(),
+                row.reference_rule.as_str(),
+                row.altimeter.as_str(),
+                row.altimeter_evidence.as_str(),
+                row.note.as_str(),
+            ),
+            (
+                flight.title,
+                flight.simulation,
+                flight.source,
+                flight.motor,
+                flight.motor_source,
+                flight.mass_source,
+                flight.conditions_source,
+                flight.reference.rule,
+                flight.reference.altimeter.kind(),
+                flight.reference.altimeter.evidence(),
+                flight.note,
+            ),
+            "{}: rerun `cargo xtask public-predictions`",
+            row.id
+        );
+        assert_eq!(row.untraced, flight.untraced, "{}", row.id);
+        assert_eq!(
+            row.inputs_sha256,
+            sha256_hex(format!("{flight:?}").as_bytes()),
+            "{}: its inputs changed; rerun `cargo xtask public-predictions`",
+            row.id
+        );
+        // It was read from the pinned repository, the design and the log each once, by hash.
+        assert_eq!(flight.repository, ROCKETRY_FILES);
+        assert_eq!(
+            (
+                row.repository.as_str(),
+                row.repository_commit.as_str(),
+                row.repository_license.as_str(),
+            ),
+            (
+                ROCKETRY_FILES.url,
+                ROCKETRY_FILES.commit,
+                ROCKETRY_FILES.license
+            ),
+            "{}",
+            row.id
+        );
+        let design = format!("{}/{}", ROCKETRY_FILES.dest, flight.design);
+        let log = format!("{}/{}", ROCKETRY_FILES.dest, flight.reference.log);
+        assert_eq!(
+            (row.design_file.as_str(), row.reference_log.as_str()),
+            (design.as_str(), log.as_str()),
+            "{}",
+            row.id
+        );
+        for (path, sha256) in [
+            (&design, &row.design_file_sha256),
+            (&log, &row.reference_log_sha256),
+        ] {
+            let read: Vec<_> = row.files.iter().filter(|file| &file.path == path).collect();
+            assert_eq!(read.len(), 1, "{}: {path}", row.id);
+            assert_eq!(&read[0].sha256, sha256, "{}: {path}", row.id);
+        }
+        assert_eq!(row.files.len(), 2, "{}: it read another file", row.id);
+        assert_ne!(row.design_file_sha256, row.reference_log_sha256);
+
+        // The stored simulation's conditions, as the file saves them: the site, a vertical 1 m
+        // rod, a steady 2 m/s wind from the east, the standard atmosphere.
+        assert_eq!(
+            (row.latitude_deg, row.longitude_deg, row.elevation_m),
+            (28.61, -80.6, 0.0),
+            "{}",
+            row.id
+        );
+        assert_eq!(
+            (
+                row.rail_length_m,
+                row.rail_inclination_deg,
+                row.wind_speed_m_s
+            ),
+            (1.0, 90.0, 2.0),
+            "{}",
+            row.id
+        );
+        assert!((row.wind_from_deg - 90.0).abs() < 1e-9, "{}", row.id);
+        assert!(row.atmosphere.contains("1976 US Standard Atmosphere"));
+
+        // The curve flown is the bundled file the table gives for the design's digest, a file
+        // whose thrust is OpenRocket's for that digest to within the table's bound.
+        assert_eq!(
+            hpr_motor::openrocket_curves::file_for(&row.motor_digest).as_deref(),
+            Some(row.curve_file.as_str()),
+            "{}: rerun `cargo xtask ork-curves`",
+            row.id
+        );
+        let entry = table["files"]
+            .as_array()
+            .expect("the table's files")
+            .iter()
+            .find(|entry| entry["digest"].as_str() == Some(row.motor_digest.as_str()))
+            .unwrap_or_else(|| panic!("{}: its digest is not in the table", row.id));
+        assert_eq!(entry["simfile_id"].as_str(), Some(row.curve_file.as_str()));
+        assert!(
+            entry["largest_difference"]
+                .as_f64()
+                .is_some_and(|difference| difference < bound),
+            "{}: {entry}",
+            row.id
+        );
+        assert!(
+            flight
+                .motor
+                .ends_with(entry["designation"].as_str().unwrap()),
+            "{}: {entry}",
+            row.id
+        );
+
+        // Neither flight's inputs are all traced, and the tag on the curve is the reader's own
+        // warning, which the row carries.
+        assert!(!row.all_inputs_traced, "{}", row.id);
+        let tags = if row.id == "macie-xl-1" { 4 } else { 3 };
+        assert_eq!(row.untraced.len(), tags, "{}", row.id);
+        assert!(
+            row.reader_warnings
+                .iter()
+                .any(|warning| warning.contains("ThrustCurve.org")),
+            "{}: no warning on its curve: {:?}",
+            row.id,
+            row.reader_warnings
+        );
+        // OpenRocket's stored run is kept as a number of its own; nothing is taken from it.
+        assert!(row.openrocket_stored_apogee_m > 0.0);
+
+        // No error has been computed: the flight is in no compared list yet.
+        assert!(
+            FLIGHTS.iter().all(|compared| compared.id != flight.id),
+            "{}: compared with its log; its merged prediction must be printed beside its error \
+             (ADR-328 §1b)",
+            row.id
+        );
+    }
+    // The two flights fly one design file on two motors, each paired with its own log.
+    let [first, second] = report.design_file_flights.as_slice() else {
+        panic!("two design-file flights");
+    };
+    assert_eq!(first.design_file_sha256, second.design_file_sha256);
+    assert_ne!(first.reference_log_sha256, second.reference_log_sha256);
+    assert_ne!(first.configuration, second.configuration);
+    assert_ne!(first.curve_file, second.curve_file);
+    assert_ne!(first.simulation, second.simulation);
+
+    // And no compared report holds one of these flights.
+    for name in [
+        "real-flights.json",
+        "flight-residuals.json",
+        "from-boost.json",
+    ] {
+        let compared =
+            std::fs::read_to_string(root().join("validation/reports").join(name)).unwrap();
+        for flight in &DESIGN_FILE_FLIGHTS {
+            assert!(
+                !compared.contains(&format!("\"{}\"", flight.id)),
+                "{name} holds {}",
+                flight.id
+            );
+        }
+    }
+}
+
+#[test]
+fn a_design_file_prediction_that_changes_or_stops_holding_fails() {
+    // The checks on the design-file rows can fail too: a flipped tag, a moved apogee, a row
+    // dropped or out of order, and, where the files are, a changed file, condition or number.
+    type Report = crate::public_predictions::PredictionsReport;
+    let (report, _) = committed_predictions();
+    let altered = |change: &dyn Fn(&mut Report)| {
+        let mut altered = report.clone();
+        change(&mut altered);
+        altered
+    };
+    let fails = |report: &Report| report.check_consistent(&report.to_markdown()).unwrap_err();
+
+    let flipped = altered(&|report| report.design_file_flights[0].all_inputs_traced = true);
+    assert!(fails(&flipped).contains("traced tag"));
+    let moved = altered(&|report| report.design_file_flights[0].predicted_apogee_m += 0.5);
+    let error = fails(&moved);
+    assert!(
+        error.contains("macie-xl-1") && error.contains("merged prediction is 706.2 m"),
+        "{error}"
+    );
+    let lower = altered(&|report| report.design_file_flights[1].predicted_height_apogee_m -= 0.2);
+    assert!(fails(&lower).contains("merged prediction is 692.7 m"));
+    let nan = altered(&|report| report.design_file_flights[1].predicted_apogee_m = f64::NAN);
+    assert!(fails(&nan).contains("predicted apogee"));
+    let light = altered(&|report| report.design_file_flights[0].liftoff_mass_kg = 3.0);
+    assert!(fails(&light).contains("no heavier"));
+    let unhashed = altered(&|report| report.design_file_flights[0].design_file_sha256.clear());
+    assert!(fails(&unhashed).contains("design file has no SHA-256"));
+    let unlogged = altered(&|report| report.design_file_flights[1].reference_log_sha256.clear());
+    assert!(fails(&unlogged).contains("log has no SHA-256"));
+    let renamed = altered(&|report| report.design_file_flights[0].id = "macie-xl-3".to_owned());
+    assert!(fails(&renamed).contains("no merged prediction"));
+    // Four of the five, or the five out of the order they merged in.
+    let dropped = altered(&|report| {
+        report.design_file_flights.pop();
+    });
+    assert!(fails(&dropped).contains("not the 5 merged predictions"));
+    let swapped = altered(&|report| report.design_file_flights.swap(0, 1));
+    assert!(fails(&swapped).contains("in their order"));
+    // A page that is not the data's.
+    let retitled = altered(&|report| report.design_file_flights[1].title.push('!'));
+    assert!(
+        retitled
+            .check_consistent(&report.to_markdown())
+            .unwrap_err()
+            .contains("rendering")
+    );
+
+    // Against a flight flown now.
+    assert_eq!(report.reproduces(&report), Ok(()));
+    let error = report.reproduces(&moved).unwrap_err();
+    assert!(
+        error.contains("macie-xl-1") && error.contains("revised"),
+        "{error}"
+    );
+    let heavier = altered(&|report| report.design_file_flights[1].liftoff_mass_kg *= 1.0001);
+    assert!(
+        report
+            .reproduces(&heavier)
+            .unwrap_err()
+            .contains("liftoff mass")
+    );
+    for change in [
+        (&|report: &mut Report| report.design_file_flights[0].design_file_sha256 = "0".repeat(64))
+            as &dyn Fn(&mut Report),
+        &|report| report.design_file_flights[0].reference_log_sha256 = "0".repeat(64),
+        &|report| report.design_file_flights[0].wind_speed_m_s = 0.0,
+        &|report| report.design_file_flights[0].curve_file.push('0'),
+        &|report| report.design_file_flights[1].openrocket_stored_apogee_m += 1.0,
+        &|report| report.design_file_flights[1].reader_warnings.clear(),
+        &|report| report.design_file_flights[1].reference_rule.push('!'),
+        &|report| report.design_file_traced_rule.push('!'),
+        &|report| {
+            report.design_file_flights.pop();
+        },
+    ] {
+        assert!(report.reproduces(&altered(change)).is_err());
+    }
+}
+
+/// An invented design with one stored simulation, for [`stored_launch`]'s refusals: a cone, a
+/// tube, three fins and a 38 mm mount. `motor` is the mount's `<motor>` elements, `conditions`
+/// the stored simulation's, and `rest` what follows it inside `<simulations>`.
+///
+/// [`stored_launch`]: crate::public_predictions::stored_launch
+fn invented_design(motor: &str, conditions: &str, results: &str, rest: &str) -> String {
+    format!(
+        r#"<?xml version='1.0' encoding='utf-8'?>
+<openrocket version="1.10" creator="hpr-sim test"><rocket><name>Invented</name>
+<id>00000000-0000-4000-8000-0000000000a0</id>
+<motorconfiguration configid="{INVENTED_CONFIGURATION}" default="true">
+<stage number="0" active="true"/></motorconfiguration>
+<referencetype>maximum</referencetype><subcomponents><stage><name>Stage</name>
+<id>00000000-0000-4000-8000-0000000000a1</id><subcomponents>
+<nosecone><name>Nose</name><id>00000000-0000-4000-8000-0000000000a2</id><length>0.25</length>
+<thickness>0.002</thickness><shape>conical</shape><aftradius>0.04</aftradius>
+<material type="bulk" density="1000.0">Invented</material><finish>normal</finish></nosecone>
+<bodytube><name>Tube</name><id>00000000-0000-4000-8000-0000000000a3</id><length>0.8</length>
+<thickness>0.002</thickness><radius>0.04</radius>
+<material type="bulk" density="1000.0">Invented</material><finish>normal</finish><subcomponents>
+<innertube><name>Mount</name><id>00000000-0000-4000-8000-0000000000a4</id>
+<axialoffset method="bottom">0.0</axialoffset><position type="bottom">0.0</position>
+<length>0.3</length><outerradius>0.0205</outerradius><thickness>0.001</thickness>
+<material type="bulk" density="1000.0">Invented</material>
+<motormount><ignitionevent>automatic</ignitionevent><ignitiondelay>0.0</ignitiondelay>
+<overhang>0.0</overhang>{motor}</motormount></innertube>
+<trapezoidfinset><name>Fins</name><id>00000000-0000-4000-8000-0000000000a5</id>
+<instancecount>3</instancecount><fincount>3</fincount>
+<radiusoffset method="surface">0.0</radiusoffset><angleoffset method="relative">0.0</angleoffset>
+<rotation>0.0</rotation><axialoffset method="bottom">0.0</axialoffset>
+<position type="bottom">0.0</position><rootchord>0.15</rootchord><tipchord>0.07</tipchord>
+<sweeplength>0.07</sweeplength><height>0.09</height><thickness>0.003</thickness>
+<crosssection>square</crosssection><material type="bulk" density="1000.0">Invented</material>
+<finish>normal</finish></trapezoidfinset></subcomponents></bodytube>
+</subcomponents></stage></subcomponents></rocket>
+<simulations><simulation status="uptodate"><name>Invented flight</name>
+<simulator>RK4Simulator</simulator><calculator>BarrowmanCalculator</calculator>
+<conditions>{conditions}</conditions>{results}</simulation>{rest}</simulations></openrocket>
+"#
+    )
+}
+
+/// The invented design's one motor configuration.
+const INVENTED_CONFIGURATION: &str = "00000000-0000-4000-8000-0000000000af";
+
+/// An AeroTech I284W as OpenRocket writes it in a mount, with `digest` as its `<digest>` element
+/// (or nothing).
+fn invented_motor(digest: &str) -> String {
+    format!(
+        "<motor configid=\"{INVENTED_CONFIGURATION}\"><type>reloadable</type>\
+         <manufacturer>AeroTech</manufacturer><designation>I284W</designation>{digest}\
+         <diameter>0.038</diameter><length>0.297</length><delay>0.0</delay></motor>"
+    )
+}
+
+/// The `<digest>` OpenRocket's database gives its I284W, which the committed table knows.
+const I284W_DIGEST: &str = "<digest>d9da87018adebbef9d8f3d8bfbc9c1e6</digest>";
+
+/// The invented stored simulation's conditions, one element a line: a 1.5 m rod leaning 5° to
+/// the east, a 3 m/s wind from the east, a site at 41.5° N 88.25° W and 210 m, standard air.
+const INVENTED_CONDITIONS: [&str; 13] = [
+    "<configid>00000000-0000-4000-8000-0000000000af</configid>",
+    "<launchrodlength>1.5</launchrodlength>",
+    "<launchintowind>false</launchintowind>",
+    "<launchrodangle>5.0</launchrodangle>",
+    "<launchroddirection>90.0</launchroddirection>",
+    "<windaverage>3.0</windaverage>",
+    "<windturbulence>0.1</windturbulence>",
+    "<winddirection>1.5707963267948966</winddirection>",
+    "<windmodeltype>Average</windmodeltype>",
+    "<launchaltitude>210.0</launchaltitude>",
+    "<launchlatitude>41.5</launchlatitude>",
+    "<launchlongitude>-88.25</launchlongitude>",
+    "<atmosphere model=\"isa\"/><timestep>0.05</timestep><maxtime>1200.0</maxtime>",
+];
+
+/// The invented stored simulation's results: OpenRocket's own apogee, 512.5 m.
+const INVENTED_RESULTS: &str = "<flightdata maxaltitude=\"512.5\" maxvelocity=\"101.0\" \
+     maxacceleration=\"90.0\" maxmach=\"0.3\" timetoapogee=\"10.5\" flighttime=\"80.0\" \
+     groundhitvelocity=\"6.0\" launchrodvelocity=\"18.0\"/>";
+
+/// What [`stored_launch`] says of an invented design: the launch it read, as text, or its
+/// refusal.
+///
+/// [`stored_launch`]: crate::public_predictions::stored_launch
+fn invented_launch(document: &str) -> Result<String, String> {
+    let file = hpr_io::ork::read(document.as_bytes()).map_err(|error| error.to_string())?;
+    let design = hpr_io::ork::design(&file.value);
+    if design.value.is_reduced() {
+        return Err(format!(
+            "the invented design reads reduced: {:?}",
+            design.warnings
+        ));
+    }
+    crate::public_predictions::stored_launch(&design.value, "Invented flight", "invented.ork").map(
+        |launch| {
+            format!(
+                "{} rod {} m {:.4} rad toward {:.4} rad; wind {} m/s from {:.4} rad; site {} N {} E \
+                 {} m; OpenRocket {} m; {} digest {} file {}",
+                launch.configuration_id,
+                launch.rod_length_m,
+                launch.rod_angle_rad,
+                launch.rod_direction_rad,
+                launch.wind_speed_m_s,
+                launch.wind_from_rad,
+                launch.latitude_deg,
+                launch.longitude_deg,
+                launch.elevation_m,
+                launch.openrocket_stored_apogee_m,
+                launch.motor.designation,
+                launch.motor_digest,
+                launch.simfile_id
+            )
+        },
+    )
+}
+
+#[test]
+fn a_stored_simulation_is_read_whole_or_refused() {
+    // M2.3d5 (ADR-337 §2, §3): a design-file prediction flies what its stored simulation
+    // states, and chooses nothing for it. On an invented design, the launch is read as stated;
+    // then each thing the simulation could leave out, or state differently, is refused by name.
+    let whole = INVENTED_CONDITIONS.concat();
+    let motor = invented_motor(I284W_DIGEST);
+    let read = invented_launch(&invented_design(&motor, &whole, INVENTED_RESULTS, ""));
+    assert_eq!(
+        read.as_deref(),
+        Ok(
+            "00000000-0000-4000-8000-0000000000af rod 1.5 m 0.0873 rad toward 1.5708 rad; wind 3 \
+             m/s from 1.5708 rad; site 41.5 N -88.25 E 210 m; OpenRocket 512.5 m; I284W digest \
+             d9da87018adebbef9d8f3d8bfbc9c1e6 file 5f4294d20002e9000000003b"
+        )
+    );
+
+    // Each condition left out, one at a time.
+    for (element, refusal) in [
+        ("<configid>", "states no motor configuration"),
+        ("<launchrodlength>", "states no rod length"),
+        ("<launchrodangle>", "states no rod angle"),
+        ("<launchroddirection>", "states no rod direction"),
+        ("<windaverage>", "states no wind speed"),
+        ("<winddirection>", "states no wind direction"),
+        ("<launchaltitude>", "states no launch altitude"),
+        ("<launchlatitude>", "states no latitude"),
+        ("<launchlongitude>", "states no longitude"),
+        ("<atmosphere", "was not run in the standard atmosphere"),
+        ("<windmodeltype>", "was not run in an average wind"),
+    ] {
+        let kept: Vec<&str> = INVENTED_CONDITIONS
+            .iter()
+            .copied()
+            .filter(|line| !line.starts_with(element))
+            .collect();
+        assert_eq!(kept.len(), INVENTED_CONDITIONS.len() - 1, "{element}");
+        let refused = invented_launch(&invented_design(
+            &motor,
+            &kept.concat(),
+            INVENTED_RESULTS,
+            "",
+        ))
+        .expect_err(element);
+        assert!(refused.contains(refusal), "{element}: {refused}");
+        assert!(
+            refused.contains("`Invented flight`"),
+            "{element}: {refused}"
+        );
+    }
+
+    // Conditions stated, but not the ones a prediction here flies; no result.
+    let swapped = |from: &str, to: &str| {
+        assert!(whole.contains(from), "{from}");
+        whole.replace(from, to)
+    };
+    for (conditions, results, refusal) in [
+        (
+            swapped(
+                "<atmosphere model=\"isa\"/>",
+                "<atmosphere model=\"extendedisa\"><basetemperature>300.0</basetemperature>\
+                 <basepressure>100000.0</basepressure></atmosphere>",
+            ),
+            INVENTED_RESULTS,
+            "was not run in the standard atmosphere",
+        ),
+        (
+            swapped("Average", "MultiLevel"),
+            INVENTED_RESULTS,
+            "was not run in an average wind",
+        ),
+        (
+            swapped(
+                INVENTED_CONFIGURATION,
+                "00000000-0000-4000-8000-0000000000ae",
+            ),
+            INVENTED_RESULTS,
+            "invented.ork has no motor configuration `00000000-0000-4000-8000-0000000000ae`",
+        ),
+        (
+            whole.clone(),
+            "",
+            "states no apogee of OpenRocket's own run",
+        ),
+    ] {
+        let refused =
+            invented_launch(&invented_design(&motor, &conditions, results, "")).expect_err(refusal);
+        assert!(refused.contains(refusal), "{refusal}: {refused}");
+    }
+
+    // No conditions at all.
+    let stated = format!("<conditions>{whole}</conditions>");
+    let document = invented_design(&motor, &whole, INVENTED_RESULTS, "");
+    assert_eq!(document.matches(&stated).count(), 1);
+    let bare = invented_launch(&document.replace(&stated, ""));
+    assert_eq!(
+        bare.as_ref().map_err(String::as_str).map(String::as_str),
+        Err("the stored simulation `Invented flight` states no launch conditions")
+    );
+
+    // The simulation's name: none of it, or two.
+    let missing = invented_launch(
+        &invented_design(&motor, &whole, INVENTED_RESULTS, "").replace(
+            "<name>Invented flight</name>",
+            "<name>Another flight</name>",
+        ),
+    );
+    assert_eq!(
+        missing.as_ref().map_err(String::as_str).map(String::as_str),
+        Err("invented.ork holds 0 simulations named `Invented flight`")
+    );
+    let twin = format!(
+        "<simulation status=\"uptodate\"><name>Invented flight</name>\
+         <conditions>{whole}</conditions>{INVENTED_RESULTS}</simulation>"
+    );
+    let twice = invented_launch(&invented_design(&motor, &whole, INVENTED_RESULTS, &twin));
+    assert_eq!(
+        twice.as_ref().map_err(String::as_str).map(String::as_str),
+        Err("invented.ork holds 2 simulations named `Invented flight`")
+    );
+}
+
+/// An invented design-file flight, read from `invented/` under a temporary root.
+const INVENTED_FLIGHT: crate::public_predictions::DesignFileFlight =
+    crate::public_predictions::DesignFileFlight {
+        id: "invented",
+        title: "Invented",
+        repository: crate::public_predictions::PinnedRepository {
+            name: "invented",
+            url: "https://example.invalid/invented.git",
+            commit: "0000000000000000000000000000000000000000",
+            dest: "invented",
+            license: "MIT",
+        },
+        design: "invented.ork",
+        simulation: "Invented flight",
+        source: "an invented design",
+        motor: "AeroTech I284W",
+        motor_source: "the invented design's stored simulation",
+        mass_source: "the invented design's parts",
+        conditions_source: "the invented design's stored simulation",
+        reference: crate::public_predictions::Reference {
+            log: "invented.log",
+            rule: "none: no flight was flown",
+            altimeter: crate::real_flight::Altimeter::Barometric("invented"),
+        },
+        untraced: &["everything: the design is invented"],
+        note: "",
+    };
+
+/// A temporary root holding `document` as [`INVENTED_FLIGHT`]'s design and `log` as its log.
+fn invented_checkout(document: &str, log: &[u8]) -> tempfile::TempDir {
+    let root = tempfile::tempdir().expect("a temporary directory");
+    let dest = root.path().join(INVENTED_FLIGHT.repository.dest);
+    std::fs::create_dir_all(&dest).expect("the checkout's directory");
+    std::fs::write(dest.join(INVENTED_FLIGHT.design), document).expect("the design");
+    std::fs::write(dest.join(INVENTED_FLIGHT.reference.log), log).expect("the log");
+    root
+}
+
+#[test]
+fn a_design_file_flight_flies_what_its_stored_simulation_states() {
+    // ADR-337 §2: CI holds neither the pinned design nor its logs, so this flies an invented
+    // design from a temporary checkout, whole: the row carries the stored simulation's site,
+    // rod and wind, the file the digest names, both files' SHA-256, and a flight that the rod's
+    // lean lowers.
+    use crate::public_predictions::predict_design_file;
+    use crate::real_flight::sha256_hex;
+    let whole = INVENTED_CONDITIONS.concat();
+    let motor = invented_motor(I284W_DIGEST);
+    let document = invented_design(&motor, &whole, INVENTED_RESULTS, "");
+    let log = b"not a log: a prediction hashes these bytes and reads nothing in them\n";
+    let root = invented_checkout(&document, log);
+    let row = predict_design_file(root.path(), &INVENTED_FLIGHT).expect("the invented flight");
+
+    assert_eq!(row.design_file, "invented/invented.ork");
+    assert_eq!(row.design_file_sha256, sha256_hex(document.as_bytes()));
+    assert_eq!(row.reference_log, "invented/invented.log");
+    assert_eq!(row.reference_log_sha256, sha256_hex(log));
+    let read: Vec<&str> = row.files.iter().map(|file| file.path.as_str()).collect();
+    assert_eq!(read, ["invented/invented.ork", "invented/invented.log"]);
+    assert_eq!(row.simulation, "Invented flight");
+    assert_eq!(row.configuration, INVENTED_CONFIGURATION);
+    assert_eq!(row.motor_digest, "d9da87018adebbef9d8f3d8bfbc9c1e6");
+    assert_eq!(row.curve_file, "5f4294d20002e9000000003b");
+    assert_eq!(
+        (row.latitude_deg, row.longitude_deg, row.elevation_m),
+        (41.5, -88.25, 210.0)
+    );
+    assert_eq!(row.rail_length_m, 1.5);
+    // The rod leans 5° from the vertical toward the east: 85° above the horizon, heading 90°.
+    assert!((row.rail_inclination_deg - 85.0).abs() < 1e-9, "{row:?}");
+    assert!((row.rail_heading_deg - 90.0).abs() < 1e-9, "{row:?}");
+    assert_eq!(row.wind_speed_m_s, 3.0);
+    assert!((row.wind_from_deg - 90.0).abs() < 1e-9, "{row:?}");
+    assert_eq!(row.openrocket_stored_apogee_m, 512.5);
+    assert_eq!(row.altimeter, "barometric");
+    assert!(!row.all_inputs_traced);
+    // The reader's one warning on this motor's curve file is kept with the row.
+    assert_eq!(row.reader_warnings.len(), 1, "{:?}", row.reader_warnings);
+    assert!(
+        row.reader_warnings[0].contains("I284W's curve file 5f4294d20002e9000000003b"),
+        "{:?}",
+        row.reader_warnings
+    );
+    // The I284W's impulse, on the file its digest names; a rocket heavier with its motor in.
+    assert!((row.total_impulse_ns - 599.5).abs() < 0.05, "{row:?}");
+    assert!(row.liftoff_mass_kg > row.mass_without_motor_kg && row.mass_without_motor_kg > 0.0);
+    // In the standard atmosphere a barometric altimeter reads the climb in geopotential
+    // meters, from the stored site's 210 m: r z / (r + z), with r = 6,356,766 m (U.S. Standard
+    // Atmosphere 1976). Read from sea level instead, it would sit 0.08 m higher.
+    assert!(row.predicted_height_apogee_m > 100.0, "{row:?}");
+    let geopotential = |z_m: f64| 6_356_766.0 * z_m / (6_356_766.0 + z_m);
+    let reading_m = geopotential(210.0 + row.predicted_height_apogee_m) - geopotential(210.0);
+    assert!(
+        (row.predicted_apogee_m - reading_m).abs() < 0.01,
+        "{} m read, {reading_m} m expected",
+        row.predicted_apogee_m
+    );
+
+    // The same design from a vertical rod in still air climbs higher: the stored rod and wind
+    // are what is flown.
+    let still = whole
+        .replace("<launchrodangle>5.0<", "<launchrodangle>0.0<")
+        .replace("<windaverage>3.0<", "<windaverage>0.0<");
+    assert_ne!(still, whole);
+    let root = invented_checkout(&invented_design(&motor, &still, INVENTED_RESULTS, ""), log);
+    let upright = predict_design_file(root.path(), &INVENTED_FLIGHT).expect("the upright flight");
+    assert!((upright.rail_inclination_deg - 90.0).abs() < 1e-9);
+    assert!(
+        upright.predicted_height_apogee_m > row.predicted_height_apogee_m,
+        "{} m upright, {} m leaning",
+        upright.predicted_height_apogee_m,
+        row.predicted_height_apogee_m
+    );
+
+    // The stored wind is from the east, the way the rod leans, so the rocket leaves the rod
+    // leaning into the wind and weathercocks further over. The same rod with the wind from the
+    // west leans downwind and weathercocks back toward the vertical, so it climbs higher. A wind
+    // or a rod flown the other way round swaps the two.
+    let from_west = whole.replace(
+        "<winddirection>1.5707963267948966<",
+        "<winddirection>4.71238898038469<",
+    );
+    assert_ne!(from_west, whole);
+    let root = invented_checkout(
+        &invented_design(&motor, &from_west, INVENTED_RESULTS, ""),
+        log,
+    );
+    let downwind = predict_design_file(root.path(), &INVENTED_FLIGHT).expect("the downwind lean");
+    assert!((downwind.wind_from_deg - 270.0).abs() < 1e-9);
+    assert!(
+        downwind.predicted_height_apogee_m > row.predicted_height_apogee_m + 0.5,
+        "{} m leaning downwind, {} m leaning into the wind",
+        downwind.predicted_height_apogee_m,
+        row.predicted_height_apogee_m
+    );
+
+    // Another configuration's motor draws its own warning from the reader, which a flight of
+    // this configuration leaves out.
+    let other = "00000000-0000-4000-8000-0000000000ad";
+    let two_motors = format!(
+        "{motor}<motor configid=\"{other}\"><type>reloadable</type>\
+         <manufacturer>Cesaroni Technology</manufacturer><designation>601I350-16A</designation>\
+         <digest>84414906dddfb169c96ef1f7cf8d0ff7</digest><diameter>0.038</diameter>\
+         <length>0.36</length><delay>0.0</delay></motor>"
+    );
+    let two_configurations = invented_design(&two_motors, &whole, INVENTED_RESULTS, "").replace(
+        "</motorconfiguration>",
+        &format!(
+            "</motorconfiguration><motorconfiguration configid=\"{other}\">\
+             <stage number=\"0\" active=\"true\"/></motorconfiguration>"
+        ),
+    );
+    assert_eq!(
+        two_configurations.matches("<motorconfiguration ").count(),
+        2
+    );
+    let file = hpr_io::ork::read(two_configurations.as_bytes()).expect("the two configurations");
+    let design = hpr_io::ork::design(&file.value);
+    assert!(
+        design
+            .warnings
+            .iter()
+            .any(|warning| warning.message.contains("601I350-16A")),
+        "the reader warns on the other motor: {:?}",
+        design.warnings
+    );
+    let root = invented_checkout(&two_configurations, log);
+    let one_of_two = predict_design_file(root.path(), &INVENTED_FLIGHT).expect("one of two");
+    assert_eq!(one_of_two.reader_warnings, row.reader_warnings);
+    assert_eq!(one_of_two.predicted_apogee_m, row.predicted_apogee_m);
+
+    // A missing log, a stored simulation that is refused, and a part HPR Sim doesn't read each
+    // stop the flight.
+    let root = invented_checkout(&document, log);
+    std::fs::remove_file(root.path().join("invented/invented.log")).expect("removing the log");
+    assert!(predict_design_file(root.path(), &INVENTED_FLIGHT).is_err());
+    let root = invented_checkout(
+        &invented_design(&invented_motor(""), &whole, INVENTED_RESULTS, ""),
+        log,
+    );
+    let refused = predict_design_file(root.path(), &INVENTED_FLIGHT).expect_err("no digest");
+    assert!(
+        refused
+            .to_string()
+            .contains("I284W is not flown on a bundled curve named by a digest"),
+        "{refused}"
+    );
+    assert_eq!(document.matches("<trapezoidfinset>").count(), 1);
+    let unread = document.replace(
+        "<trapezoidfinset>",
+        "<gizmo><name>Gizmo</name><mass>0.1</mass></gizmo><trapezoidfinset>",
+    );
+    let root = invented_checkout(&unread, log);
+    let reduced = predict_design_file(root.path(), &INVENTED_FLIGHT).expect_err("an unread part");
+    assert!(
+        reduced
+            .to_string()
+            .contains("holds a part HPR Sim doesn't read, so it is not flown as saved"),
+        "{reduced}"
+    );
+}
+
+#[test]
+fn a_stored_simulation_flies_one_motor_on_the_curve_its_digest_names() {
+    // ADR-337 §3: the curve is the bundled file the motor's digest names in the committed
+    // table, the one OpenRocket flew. A motor with no digest, a digest the table doesn't know,
+    // a second motor, a booster, or no motor at all is refused: a prediction here flies one
+    // motor from the pad on the curve OpenRocket flew, or nothing.
+    let whole = INVENTED_CONDITIONS.concat();
+    let launch =
+        |motor: &str| invented_launch(&invented_design(motor, &whole, INVENTED_RESULTS, ""));
+    assert_eq!(
+        launch(&invented_motor(""))
+            .as_ref()
+            .map_err(String::as_str)
+            .map(String::as_str),
+        Err("I284W is not flown on a bundled curve named by a digest")
+    );
+    // A well-formed digest of no curve: the reader falls back to the catalog's default file,
+    // which the table does not name for it.
+    let unknown = launch(&invented_motor(
+        "<digest>00000000000000000000000000000000</digest>",
+    ))
+    .expect_err("a digest the table doesn't know");
+    assert!(
+        unknown.starts_with("I284W: the bundled curve file ")
+            && unknown.ends_with(
+                " is not the one the design's digest 00000000000000000000000000000000 names"
+            ),
+        "{unknown}"
+    );
+    // The table knows this digest, but as another motor's: an I284W's bundled file is not it.
+    let anothers = launch(&invented_motor(
+        "<digest>84414906dddfb169c96ef1f7cf8d0ff7</digest>",
+    ))
+    .expect_err("another motor's digest");
+    assert!(
+        anothers.ends_with(
+            " is not the one the design's digest 84414906dddfb169c96ef1f7cf8d0ff7 names"
+        ),
+        "{anothers}"
+    );
+    let none = launch("").expect_err("no motor");
+    assert_eq!(
+        none,
+        "the configuration of `Invented flight` is not flown: it holds no motor"
+    );
+    // A second mount with its own motor, lit with the first.
+    let second = format!(
+        "<innertube><name>Second mount</name><id>00000000-0000-4000-8000-0000000000a6</id>\
+         <axialoffset method=\"bottom\">0.0</axialoffset><position type=\"bottom\">0.0</position>\
+         <length>0.3</length><outerradius>0.0205</outerradius><thickness>0.001</thickness>\
+         <material type=\"bulk\" density=\"1000.0\">Invented</material>\
+         <motormount><ignitionevent>automatic</ignitionevent><ignitiondelay>0.0</ignitiondelay>\
+         <overhang>0.0</overhang>{}</motormount></innertube><trapezoidfinset>",
+        invented_motor(I284W_DIGEST)
+    );
+    let document = invented_design(&invented_motor(I284W_DIGEST), &whole, INVENTED_RESULTS, "");
+    assert_eq!(document.matches("<trapezoidfinset>").count(), 1);
+    let two = invented_launch(&document.replace("<trapezoidfinset>", &second));
+    assert_eq!(
+        two.as_ref().map_err(String::as_str).map(String::as_str),
+        Err("the configuration of `Invented flight` flies 2 motors, not one")
+    );
+    // A booster under it, its motor the only one: a flight that stages.
+    let booster = format!(
+        "</stage><stage><name>Booster</name><id>00000000-0000-4000-8000-0000000000a7</id>\
+         <separationevent>burnout</separationevent><separationdelay>0.0</separationdelay>\
+         <subcomponents><bodytube><name>Booster tube</name>\
+         <id>00000000-0000-4000-8000-0000000000a8</id><length>0.4</length>\
+         <thickness>0.002</thickness><radius>0.04</radius>\
+         <material type=\"bulk\" density=\"1000.0\">Invented</material><finish>normal</finish>\
+         <motormount><ignitionevent>automatic</ignitionevent><ignitiondelay>0.0</ignitiondelay>\
+         <overhang>0.0</overhang>{}</motormount></bodytube></subcomponents></stage>\
+         </subcomponents></rocket>",
+        invented_motor(I284W_DIGEST)
+    );
+    let one_stage = invented_design("", &whole, INVENTED_RESULTS, "");
+    assert_eq!(
+        one_stage
+            .matches("</stage></subcomponents></rocket>")
+            .count(),
+        1
+    );
+    assert_eq!(
+        one_stage
+            .matches("<stage number=\"0\" active=\"true\"/>")
+            .count(),
+        1
+    );
+    let two_stages = one_stage
+        .replace("</stage></subcomponents></rocket>", &booster)
+        .replace(
+            "<stage number=\"0\" active=\"true\"/>",
+            "<stage number=\"0\" active=\"true\"/><stage number=\"1\" active=\"true\"/>",
+        );
+    let staged = invented_launch(&two_stages);
+    assert_eq!(
+        staged.as_ref().map_err(String::as_str).map(String::as_str),
+        Err("the configuration of `Invented flight` stages, which no prediction here expects")
+    );
 }
 
 #[test]

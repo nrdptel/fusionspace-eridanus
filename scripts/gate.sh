@@ -29,7 +29,8 @@
 # Step refs (M0.5g, ADR-144 §1g): the checks that need the private reference data under refs/, which
 # CI can't run: `ork-flights --check`, `ork-flights --library --check`, `real-flights --check`,
 # `public-predictions --check` (M2.3d3, ADR-334: the predicted flights reproduce, on the converted
-# EuRoC 2022 weather file `validation/oracles/netcdf/euroc_2022.py` writes under refs/),
+# EuRoC 2022 weather file `validation/oracles/netcdf/euroc_2022.py` writes under refs/; M2.3d5,
+# ADR-337: the two Macie XL flights too, from the pinned checkout under refs/public-flights/),
 # `roll-drev --check` (#763: the Basic Finner's roll damping against DREV-TM-9703's cached range fits),
 # `ork-cli --check` (M4.5j; it reads the motor cache `ork-cli --fetch` fills),
 # `fixture-flights --check` (M2.3c1, ADR-184; it reads the private collection's manifest and records)

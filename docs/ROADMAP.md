@@ -189,13 +189,9 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
       Moves: accuracy above Mach 1.
 - [ ] **M2.3d Twelve public flights, predictions first** (ADR-328, in two; met when they are).
   *Done when:* ADR-328 §1's, whole. Moves: accuracy.
-  - [ ] **M2.3d1 The predictions** (ADR-334: in three, M2.3d3 done; met when the two below are). *Done when:*
+  - [ ] **M2.3d1 The predictions** (ADR-334: in three, M2.3d3 and M2.3d5 done; met when M2.3d4 is). *Done when:*
     ADR-328 §1a's: its own pull request merges the five new flights' inputs, sources and
     predicted apogees, computing no error.
-    - [ ] **M2.3d5 The Macie XL predictions.** *Done when:* M2.3d1's *done when*, whole: its
-      own pull request merges both Macie XL flights' inputs, sources, apogee rules and predicted
-      apogees, the design flown as saved from its pinned repository, no error computed, and with
-      it all five predictions are on `main`.
     - [ ] **M2.3d4 A stage's override that adds to its parts** (ADR-335; ADR-336: in three, M2.3d6
       done, M2.3d7 and M2.3d8 below; met when both are). *Done when:* an `.ork` stage
       whose mass or center override doesn't cover its parts is flown as OpenRocket 24.12 weighs
