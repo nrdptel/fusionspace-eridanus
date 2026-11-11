@@ -279,8 +279,7 @@ Matching OpenRocket isn't matching your rocket. Both put the mass an override ad
 center, where it adds no inertia. If that mass is really spread along the stage, as its parts
 are, the true inertia is higher by about the ratio of the override's mass to the parts' (5 times
 for 2 kg over 0.40 kg of parts), and more if it sits farther out
-([A stage's rule](physics/design.md#overrides)). A stated inertia in the file takes the place of
-both.
+([A stage's rule](physics/design.md#overrides)).
 A few cases are still refused, such as one that carries strap-on boosters (a parallel stage)
 ([a stage's mass and center of gravity overrides](format/ork.md#a-stages-mass-and-center-of-gravity-overrides)).
 

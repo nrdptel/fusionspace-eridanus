@@ -1126,8 +1126,8 @@ mod tests {
     /// each part at its own place, the stage's 2 kg as a point at the stage's center, and the
     /// motor, about the rocket's center, to 1e-12 on each of the three probes. Under a center that
     /// covers the parts beside an added mass, HPR Sim's rule (ADR-340), the parts' inertia about
-    /// the stage's stated center with the rest of its mass there, gives 1.6% less at launch and 1.1% less at burnout. Both readings
-    /// take the motor's term from OpenRocket's own records.
+    /// the stage's stated center with the rest of its mass there, gives 1.6% less at launch and
+    /// 1.1% less at burnout. Both readings take the motor's term from OpenRocket's own records.
     #[test]
     fn openrockets_inertia_with_a_motor_aboard_is_the_same_sum() {
         let record = added_mass_record();
