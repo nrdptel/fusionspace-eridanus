@@ -1415,10 +1415,12 @@ One line per milestone or increment, in the order it was archived within its pha
     - **M2.3d4** is open; its entry: [roadmap](ROADMAP.md#phase-1-physics-core-the-heart-with-validation-interleaved).
       - [x] **M2.3d6 A stage's added mass** (ADR-335). *Done when:* an `.ork` stage whose mass
         override doesn't cover its parts is read as an added mass and flies, held back no longer
-        by the reader; on probe designs its mass and center are held to OpenRocket 24.12's, and
-        its inertia too where neither of the stage's overrides covers the parts.
-        *Result (ADR-335):* 19 probes with no override that covers the parts hold mass, center
-        and inertia; the 17 others HPR Sim lays out hold mass and center
+        by the reader, but for what ADR-335 decision 5 refuses; on probe designs its mass and
+        center are held to OpenRocket 24.12's, and its inertia too where neither of the stage's
+        overrides covers the parts.
+        *Result (ADR-335):* 19 nose-and-tube and two-stage probes with no override that covers the
+        parts hold mass, center and inertia; the 17 others HPR Sim lays out (7 on those rockets,
+        10 on a motor's airframe) hold mass and center
         ([#1408](https://github.com/nrdptel/fusionspace-eridanus/pull/1408)).
 ## Phase 2: Library surfaces and interop
 
