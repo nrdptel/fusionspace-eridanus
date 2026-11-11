@@ -126,7 +126,7 @@ reads the same ([A stage's added mass](../physics/design.md#a-stages-added-mass)
 
 A stage's overrides say what it weighs and where it balances, and its optional `override_rule` key
 says how they set its inertia: `"rescaled"` (the default, left out) scales and moves the stage as
-one body, and `"parts_in_place"` leaves its parts where they are, as OpenRocket weighs a stage. A
+one body, and `"parts_in_place"` leaves its parts where they are, as OpenRocket weighs a single stage. A
 0.2 document written before the key reads the same ([A stage's rule](../physics/design.md#overrides)).
 
 A motor that flies is written out in full, its thrust curve included, so a document flies with no

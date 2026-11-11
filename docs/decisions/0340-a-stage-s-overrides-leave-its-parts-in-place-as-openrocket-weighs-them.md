@@ -53,8 +53,8 @@ OpenRocket leaves each part where the design puts it.
   motor's own term added, to 1e-12 on the three motor probes. On their airframe, under an added
   mass beside a center that covers the parts, a rigid stage at the stated center is 1.6% under
   OpenRocket's inertia across the axis at launch and 1.1% under at burnout, worked from
-  OpenRocket's own records with its motor's term in both. ADR-061's rule, worked the same way,
-  was 3.1% and 2.9% under.
+  OpenRocket's own records with its motor's term in both. ADR-061's rule, worked by hand from the same
+  records, was 3.1% and 2.9% under.
 
 **Decision.**
 
@@ -101,7 +101,7 @@ OpenRocket leaves each part where the design puts it.
    figure there (above), so HPR Sim doesn't reproduce it. Its rule is the one OpenRocket's sum
    reduces to when the stage's center is the point the inertia is taken about. The rocket's
    inertia across the axis is 4.95% over OpenRocket's under the center beside an added mass,
-   and 3.33% over under the mass beside a center that doesn't cover the parts. About the axis
+   and 3.33% over under a mass that covers the parts, beside a center that doesn't. About the axis
    the two agree. Before, across the axis, they were 1.5% and 18.5% over; about the axis the
    second was 255.8% over.
    `openrockets_lower_stage_sum_is_no_rigid_stage` reproduces OpenRocket's sum and checks both
@@ -110,7 +110,8 @@ OpenRocket leaves each part where the design puts it.
 5. **A Monte Carlo run disperses such a stage as any other.** Its dry-mass scale and center
    shift work by writing the stage's overrides. On a `parts_in_place` stage that would keep the
    parts' inertia under a new mass. So the run states the stage's nominal inertia, scaled,
-   wherever it disperses one, and the dispersion's model is the same for every stage.
+   on each dispersed `parts_in_place` stage that states none (a `rescaled` stage scales its
+   own), and the dispersion's model is the same for every stage.
 6. **An export says so.** A `rescaled` stage with a mass or center override and no stated
    inertia is written as before, with a warning: OpenRocket, and HPR Sim reading the file
    back, weigh it with its parts in place.

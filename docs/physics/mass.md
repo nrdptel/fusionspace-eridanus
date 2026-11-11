@@ -529,7 +529,7 @@ are, scaling nothing, since a stage has no inertia of its own. The reader gives 
 rule, and its inertia matches OpenRocket's on one stage. On the lower of two stages a difference
 remains: 4.95% and 3.33% over across the axis on the two probes, where it was 1.5% and 18.5%
 ([A stage's rule](design.md#overrides)). Before, HPR Sim's was about 2.5 to 5 times OpenRocket's
-under a stage's mass override.
+under a stage's mass override on the one-stage probes.
 
 Under a tube's covering override HPR Sim's roll inertia is the *lower* one, though it scales more of
 the parts. OpenRocket keeps the inertia of the parts inside while leaving their mass out of the

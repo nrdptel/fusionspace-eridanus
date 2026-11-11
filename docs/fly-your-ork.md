@@ -268,8 +268,8 @@ flight alone and leaves them on the terminal.
 and so does the simulator. It used to refuse such a stage. Where a stage's override has that box
 ticked, the simulator leaves the stage's parts where they are, as OpenRocket does, and its mass,
 center and inertia match OpenRocket's on the [probe designs](glossary.md#probe-design) of one
-stage. On the lower of two stages the rocket's inertia across the axis is up to 4.95% over
-OpenRocket's ([what a stage's added mass leaves out](physics/design.md#a-stages-added-mass-leaves-out)).
+stage. On the two probes with the override on the lower of two stages the rocket's inertia across the
+axis is 4.95% and 3.33% over OpenRocket's, and another rocket's can differ more ([what a stage's added mass leaves out](physics/design.md#a-stages-added-mass-leaves-out)).
 A few cases are still refused, such as one that carries strap-on boosters (a parallel stage)
 ([a stage's mass and center of gravity overrides](format/ork.md#a-stages-mass-and-center-of-gravity-overrides)).
 

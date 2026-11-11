@@ -408,7 +408,7 @@ example, and [the decision record][adr-335] gives the measurements.
   adds to the structure is within 1e-9 kg·m² of OpenRocket's. On a rocket of two stages with the
   override on the lower, OpenRocket's figure is no rigid stage's: the rocket's inertia across the
   axis is now 4.95% over OpenRocket's (a center beside an added mass) and 3.33% over (a mass
-  beside a center that doesn't cover the parts), where it was 1.5% and 18.5%; about the axis the
+  that covers the parts, beside a center that doesn't), where it was 1.5% and 18.5%; about the axis the
   two agree. With a motor aboard OpenRocket sums the same way: on the motor's airframe, under an
   added mass beside a center that covers the parts, a rigid stage's inertia across the axis is
   1.6% under OpenRocket's at launch and 1.1% under at burnout. [The decision record][adr-340] gives the
@@ -423,7 +423,7 @@ example, and [the decision record][adr-335] gives the measurements.
   flags, which read the same. A design built in the library can hold what a `.ork` can't say: an
   added mass beside a whole-stage mass, or a station beside a whole-stage center. The added mass
   is then left out, with a warning. A stage under HPR Sim's default rule with a mass or center
-  override is written with a warning too: OpenRocket, and the reader, weigh it with its parts in
+  override and no stated inertia is written with a warning too: OpenRocket, and the reader, weigh it with its parts in
   place.
 - **Not flown yet:** a parallel stage's override that doesn't cover its pods is still warned of,
   as a pod set's is. The layout refuses an added mass on the stage a parallel stage hangs on,

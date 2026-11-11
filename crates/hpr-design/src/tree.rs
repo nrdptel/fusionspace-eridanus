@@ -99,7 +99,7 @@ pub struct Stage {
     pub overrides: Overrides,
     /// How `overrides` set the stage's inertia ([`StageOverrideRule`]): by rescaling and moving
     /// the stage as one body, as `hpr-design` does by default, or with its parts left in place,
-    /// as OpenRocket 24.12 weighs a stage.
+    /// as OpenRocket 24.12 weighs a single stage.
     #[serde(default, skip_serializing_if = "StageOverrideRule::is_rescaled")]
     pub override_rule: StageOverrideRule,
     /// Mass the stage carries beyond what its parts weigh ([`AddedMass`]): a point mass, added to
@@ -854,9 +854,10 @@ pub enum StageOverrideRule {
     Rescaled,
     /// The parts stay where the design puts them ([`Overrides::apply_with_parts_in_place`]): the
     /// stage's inertia is its parts' about the stage's center, and the mass a mass override adds
-    /// or takes away sits at that center. This is how OpenRocket 24.12 weighs a stage's overrides
-    /// that cover its parts, measured on probe designs (`validation/oracles/openrocket/`), and the
-    /// `.ork` reader gives it to every stage on the axis with such an override ([ADR-340][adr-340]).
+    /// or takes away sits at that center. This is how OpenRocket 24.12 weighs a single stage's
+    /// overrides that cover its parts, measured on probe designs (`validation/oracles/openrocket/`);
+    /// on the lower of two stages OpenRocket's sum is no rigid stage's. The `.ork` reader gives it
+    /// to every stage on the axis with such an override ([ADR-340][adr-340]).
     ///
     /// [adr-340]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0340-a-stage-s-overrides-leave-its-parts-in-place-as-openrocket-weighs-them.md
     PartsInPlace,

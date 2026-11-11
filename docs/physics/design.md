@@ -259,7 +259,7 @@ key):
 - `rescaled`, the default, is the rule above: the stage is one body, scaled by a mass override and
   moved whole by a center override.
 - `parts_in_place` leaves every part where the design puts it, as OpenRocket 24.12 weighs a
-  stage. The mass and the center are the overrides', as before. The inertia is the parts' about
+  single stage. The mass and the center are the overrides', as before. The inertia is the parts' about
   the stage's center, and the mass an override adds or takes away sits at that center, adding
   none. The `.ork` reader gives this rule to every stage on the axis whose override covers its
   parts; a parallel stage's override is read as a pod set's
@@ -279,11 +279,11 @@ the axis. An [added mass](#a-stages-added-mass) with no station sits at $c$ too.
 **A worked example.** A stage's parts weigh 0.3996 kg, centered 0.4701 m (1.542 ft) aft of the
 tip, with 0.015838 kg·m² across the axis. Its center override is 0.4 m (1.3 ft).
 
-- `parts_in_place`: $0.015838 + 0.3996 \times 0.0701^2 = 0.017802$ kg·m², OpenRocket 24.12's
+- `parts_in_place`: $0.015838 + 0.3996 \times 0.0701^2 = 0.017802\,\mathrm{kg\cdot m^2}$, OpenRocket 24.12's
   0.017803 kg·m² (the hand sum rounds the distance). A 2 kg mass override beside it leaves the
   inertia there.
 - `rescaled`: the parts move whole, so the inertia stays 0.015838 kg·m², 11.04% under. With the
-  2 kg mass override it scales to $0.015838 \times 2/0.3996 = 0.0793$ kg·m², 345% over.
+  2 kg mass override it scales to $0.015838 \times 2/0.3996 = 0.0793\,\mathrm{kg\cdot m^2}$, 345% over.
 
 Neither rule is measured on a flying rocket. If the mass the parts miss is spread along the stage
 as the parts are, `rescaled` is right and `parts_in_place` reads low, by the mass ratio under a
@@ -391,8 +391,8 @@ with OpenRocket 24.12, and by hand.
     own place, and the override's 2 kg as a point at the stage's center. Under a mass that covers
     the parts, that counts the lower tube twice. Under a center beside an added mass, the stage's
     own inertia would have to be less than its tube's. The rocket's inertia across the axis is
-    4.95% over OpenRocket's (the center beside an added mass) and 3.33% over (the mass beside a
-    center that doesn't cover the parts). About the axis the two agree.
+    4.95% over OpenRocket's (the center beside an added mass) and 3.33% over (a mass that covers
+    the parts, beside a center that doesn't). About the axis the two agree.
   - *With a motor aboard.* OpenRocket sums the same way about the rocket's center with the motor.
     On the motor's airframe, under an added mass beside a center that covers the parts, taking
     the stage as rigid, as HPR Sim does, gives an inertia across the axis 1.6% under OpenRocket's
