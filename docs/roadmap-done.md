@@ -252,6 +252,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M2.7b New flights predicted first ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3d3 The EuRoC 2022 predictions ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3d6 A stage's added mass ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M2.3d7 The inertia beside an override that covers the parts ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3d5 The Macie XL predictions ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M4.1 Facade API ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.1a The builder ([Phase 2](#phase-2-library-surfaces-and-interop))
@@ -1425,6 +1426,20 @@ One line per milestone or increment, in the order it was archived within its pha
         to M2.3d7
         ([#1408](https://github.com/nrdptel/fusionspace-eridanus/pull/1408),
         [#1407](https://github.com/nrdptel/fusionspace-eridanus/issues/1407)).
+      - [x] **M2.3d7 The inertia beside an override that covers the parts** (ADR-340). *Done
+        when:* M2.3d4's *done when*, whole: what is left of it here is the inertia of a stage with
+        one override that covers its parts beside one that doesn't, held to OpenRocket 24.12's,
+        within the bounds ADR-336 decision 2 gives, on the eight probe designs where it runs from
+        11.04% under to 400.5% over today
+        ([#1407](https://github.com/nrdptel/fusionspace-eridanus/issues/1407)).
+        *Result (ADR-340):* met on six of the eight: a `.ork` stage whose override covers its
+        parts keeps them in place, as OpenRocket does, and both inertias are within 3 parts in a
+        million on the four one-stage probes, the inertia added within 1e-9 kg·m² on the two
+        airframe probes. Not met on the two with the override on the lower of two stages:
+        OpenRocket's figure there is no rigid stage's (it counts the lower tube twice, or needs a
+        stage inertia below its tube's), so the rocket's inertia across the axis stays 4.95% and
+        3.33% over, pinned. The collection's mean absolute apogee error goes from 12.07% to
+        12.04%.
     - [x] **M2.3d5 The Macie XL predictions** (ADR-337). *Done when:* M2.3d1's *done when*, whole: its
       own pull request merges both Macie XL flights' inputs, sources, apogee rules and predicted
       apogees, the design flown as saved from its pinned repository, no error computed, and with

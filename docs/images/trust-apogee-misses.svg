@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="720" height="532" viewBox="0 0 720 532" font-family="'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12" role="img" aria-labelledby="title" aria-describedby="desc">
 <title id="title">HPR Sim&apos;s apogee against 60 logged flights</title>
-<desc id="desc">Each bar counts the flights whose simulated apogee missed the logged one by that much: simulated less logged, over logged, in bins of 5%. The misses averaged +7.76%; 32 of 60 were within 10% either way (shaded). The two outer bars hold every miss past 30% either way.</desc>
+<desc id="desc">Each bar counts the flights whose simulated apogee missed the logged one by that much: simulated less logged, over logged, in bins of 5%. The misses averaged +7.72%; 32 of 60 were within 10% either way (shaded). The two outer bars hold every miss past 30% either way.</desc>
 <rect width="720" height="532" fill="#F3F4F7"/>
 <text x="40" y="36" font-size="18" font-weight="600" fill="#0B0F1C">HPR Sim&apos;s apogee against 60 logged flights</text>
 <text x="40" y="62" fill="#566079">Each bar counts the flights whose simulated apogee missed the logged one</text>
 <text x="40" y="78" fill="#566079">by that much: simulated less logged, over logged, in bins of 5%.</text>
-<text x="40" y="94" fill="#566079">The misses averaged +7.76%; 32 of 60 were within 10% either way (shaded).</text>
+<text x="40" y="94" fill="#566079">The misses averaged +7.72%; 32 of 60 were within 10% either way (shaded).</text>
 <text x="40" y="110" fill="#566079">The two outer bars hold every miss past 30% either way.</text>
 <rect x="284.0" y="152" width="176.0" height="240.0" fill="#D6DAE4"/>
 <text x="372.0" y="142" text-anchor="middle" fill="#566079">within 10%</text>

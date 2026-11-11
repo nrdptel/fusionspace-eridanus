@@ -8,7 +8,7 @@ from the command line, and says how to read what it prints.** It's for a flier w
 file and wants a second simulator's view of it.
 
 > **How far to trust it.** Every flight here is a model's estimate, not a measurement. Against 60
-> logged flights of fliers' own designs, HPR Sim's apogee averaged 7.8% above the logged one. It
+> logged flights of fliers' own designs, HPR Sim's apogee averaged 7.7% above the logged one. It
 > was within 10% on 32 and read low on 15, by at most 20%. `hpr sim` says so under each result
 > below.
 >
@@ -84,7 +84,7 @@ top Mach number       0.842
 landing               0.7 m (2 ft) from the pad at 245.78 s, at 4.4 m/s (15 ft/s)
 
 How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of
-fliers' own designs, the simulated apogee averaged 7.8% above the logged one. Each logged apogee is
+fliers' own designs, the simulated apogee averaged 7.7% above the logged one. Each logged apogee is
 the height climbed in the day's air. The simulated apogee was within 10% on 32 and read low on 15,
 by at most 20%. Plan a waiver or a field's ceiling with room above this apogee; the altimeter's
 reading is the one to log, and the RSO decides.
@@ -177,7 +177,7 @@ top Mach number       0.874
 landing               755.8 m (2480 ft) from the pad at 246.17 s, at 6.3 m/s (21 ft/s)
 
 How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of
-fliers' own designs, the simulated apogee averaged 7.8% above the logged one. Each logged apogee is
+fliers' own designs, the simulated apogee averaged 7.7% above the logged one. Each logged apogee is
 the height climbed in the day's air. The simulated apogee was within 10% on 32 and read low on 15,
 by at most 20%. Plan a waiver or a field's ceiling with room above this apogee; the altimeter's
 reading is the one to log, and the RSO decides.
@@ -265,11 +265,11 @@ flight alone and leaves them on the terminal.
 
 **A stage that weighs more than its parts.** If your stage has a mass override with OpenRocket's
 *override for all subcomponents* box unticked, OpenRocket adds that mass to what the parts weigh,
-and so does the simulator. It used to refuse such a stage. Where one of the stage's two
-overrides has that box ticked, the mass and the center still match OpenRocket's on the
-[probe designs](glossary.md#probe-design), but the inertia is the simulator's own rule: on those probes it is from 11.04% under
-OpenRocket's to 400.5% over
-([what a stage's added mass leaves out](physics/design.md#a-stages-added-mass-leaves-out)).
+and so does the simulator. It used to refuse such a stage. Where a stage's override has that box
+ticked, the simulator leaves the stage's parts where they are, as OpenRocket does, and its mass,
+center and inertia match OpenRocket's on the [probe designs](glossary.md#probe-design) of one
+stage. On the lower of two stages the rocket's inertia across the axis is up to 4.95% over
+OpenRocket's ([what a stage's added mass leaves out](physics/design.md#a-stages-added-mass-leaves-out)).
 A few cases are still refused, such as one that carries strap-on boosters (a parallel stage)
 ([a stage's mass and center of gravity overrides](format/ork.md#a-stages-mass-and-center-of-gravity-overrides)).
 

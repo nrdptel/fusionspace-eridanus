@@ -12,9 +12,9 @@ rocketeer who knows some physics and some code, but not this project.
 
 > **How far to trust it.** Every number HPR Sim produces is an estimate from a model, not a
 > measurement, and never a go/no-go verdict. Against 60 logged flights of fliers' own designs, its
-> apogee missed the logged one by 12.07% on average, either way. That's the mean absolute miss,
+> apogee missed the logged one by 12.04% on average, either way. That's the mean absolute miss,
 > outside the 5% target ([the register's row on these misses](evidence.md#g24)). With signs kept, it
-> averaged 7.76% above the logged one. It was within 10% on 32 and read low on 15, by at
+> averaged 7.72% above the logged one. It was within 10% on 32 and read low on 15, by at
 > most 20%
 > ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md)),
 > and [Accuracy so far](#accuracy-so-far) gives the rest. Your motor's printed data, your
@@ -245,7 +245,7 @@ In the library, a [least-squares fit](physics/flight-fit.md) goes further: it fi
 a constant wind and the mass to a log, each with a 90% interval that passes its test on the synthetic
 flights (the wind's on logs with a track), on sets seen while its model was chosen. No `hpr` command runs it yet, and no real flight has checked its intervals.
 A [Bayesian option](physics/flight-fit.md#the-bayesian-option) gives a second kind of interval from the same fit; it doesn't pass its test yet, so use the least-squares ones.
-The library also [predicts apogee from a log cut after burnout](physics/flight-fit.md#apogee-from-the-boost), on a barometer's log whose climb stays under 227.7 m/s (747 ft/s). It predicts 2 of the 7 public flights, too few to say whether it beats the forward simulation: Bella Lui at +1.0% (forward +0.9%) and NDRT 2020 at −3.6% (forward +10.4%), both cut after the burn. The other 5 reach that speed before a cut ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)). In the private collection it predicts the 21 flights it can cut and fit, the slower ones: 36 others reach that speed before a cut. It reads each log up to the cut, which the forward simulation doesn't. Its mean absolute apogee error is 3.22% against the forward simulation's 9.35% on the 12 flights of the calibration half. On the 9 held out from later model choices (but not blind), it is 3.56% against 16.86%. Without the flights that deployed something before apogee, it is 3.04% against 10.06% on the calibration half's 8 and 3.08% against 10.40% on the held-out half's 3, too few for an interval ([the errors](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md)). The [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md) lists it as `accuracy.from-boost`.
+The library also [predicts apogee from a log cut after burnout](physics/flight-fit.md#apogee-from-the-boost), on a barometer's log whose climb stays under 227.7 m/s (747 ft/s). It predicts 2 of the 7 public flights, too few to say whether it beats the forward simulation: Bella Lui at +1.0% (forward +0.9%) and NDRT 2020 at −3.6% (forward +10.4%), both cut after the burn. The other 5 reach that speed before a cut ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)). In the private collection it predicts the 21 flights it can cut and fit, the slower ones: 36 others reach that speed before a cut. It reads each log up to the cut, which the forward simulation doesn't. Its mean absolute apogee error is 3.19% against the forward simulation's 9.32% on the 12 flights of the calibration half. On the 9 held out from later model choices (but not blind), it is 3.60% against 16.75%. Without the flights that deployed something before apogee, it is 3.03% against 10.05% on the calibration half's 8 and 3.08% against 10.40% on the held-out half's 3, too few for an interval ([the errors](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md)). The [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md) lists it as `accuracy.from-boost`.
 
 The library reads each format into one record, every column kept on its own clock. The formats
 come from PerfectFlite ([`.pf2` files](format/pf2.md)), AltOS, Featherweight's Raven and Blue Raven, Missile Works' RRC3 and RTx,
@@ -611,7 +611,7 @@ zero while a motor burns says its apogee isn't a prediction. The results so far:
   ([real flights](accuracy.md#real-flights),
   [report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md)).
 - **Against 60 more real flights, from a private collection, HPR Sim and OpenRocket both
-  over-predict the logged apogee.** HPR Sim does by 7.76% on average and OpenRocket by 6.72%, and
+  over-predict the logged apogee.** HPR Sim does by 7.72% on average and OpenRocket by 6.72%, and
   they agree with each other within 5% on 59 of them. Neither meets the 5% target. Each flight was
   rechecked against the collection's own catalog of its sources
   ([the collection rechecked](decisions-and-roadmap.md#m2-3c5)). The flights' owners allow only

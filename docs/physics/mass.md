@@ -521,8 +521,14 @@ differs from OpenRocket, and a test pins by how much.
 | when | HPR Sim | OpenRocket | apart on the probe |
 |---|---|---|---|
 | a mass override covers the parts inside and states no center | keeps the center the parts lay out | puts it at the overriding part's own, ignoring where the parts inside sit | HPR Sim's center 3.7 mm (0.15 in) forward of OpenRocket's, or 19.7 mm (0.78 in) if the part inside has an override of its own |
-| a mass override covers more than one part | scales the inertia of everything it covers by the override's ratio | scales only the overriding part's own inertia, and keeps the parts inside at theirs; a stage, having none of its own, scales nothing | roll inertia 6.9% to 37% lower in HPR Sim under a tube's; 2.5 to 5.0 times OpenRocket's under a stage's |
+| a mass override covers more than one part | scales the inertia of everything it covers by the override's ratio | scales only the overriding part's own inertia, and keeps the parts inside at theirs | roll inertia 6.9% to 37% lower in HPR Sim under a tube's |
 | a center override covers the parts inside | moves the whole assembly, so the inertia about the new center is the assembly's own | moves the overriding part alone, and adds the parts inside where they were | the center agrees; pitch inertia 2.65% lower in HPR Sim |
+
+A `.ork` stage's overrides are not departures any more. OpenRocket leaves a stage's parts where
+they are, scaling nothing, since a stage has no inertia of its own. The reader gives such a stage
+that rule, and its inertia matches OpenRocket's on one stage
+([A stage's rule](design.md#overrides)). Before, HPR Sim's was 2.5 to 5.0 times OpenRocket's
+under a stage's mass override.
 
 Under a tube's covering override HPR Sim's roll inertia is the *lower* one, though it scales more of
 the parts. OpenRocket keeps the inertia of the parts inside while leaving their mass out of the

@@ -22,8 +22,8 @@ differs most from the example's.
 consistent with HPR Sim's drag, and one with the motor's impulse. Four of those seven altimeters'
 kinds are assumed, and none is calibrated ([evidence row G21](evidence.md#g21)).
 
-**Against 60 more flights from a private collection, HPR Sim's apogees are +7.76% above the logs on
-average. They miss by 12.07% (mean absolute), also outside the target. OpenRocket's are +6.72%
+**Against 60 more flights from a private collection, HPR Sim's apogees are +7.72% above the logs on
+average. They miss by 12.04% (mean absolute), also outside the target. OpenRocket's are +6.72%
 above** ([private collection](#real-flights-of-the-private-collection), [report][fixture-report]).
 
 No flight here is blind yet: all were seen during development. [Blind
@@ -1058,7 +1058,7 @@ These are a private collection's [logged apogees](decisions-and-roadmap.md#m2-3c
 ([the decision][adr-184]), [rechecked](decisions-and-roadmap.md#m2-3c5) against the collection's
 catalog ([the recheck][adr-238]). **In short: HPR Sim and [OpenRocket](glossary.md#openrocket) flew
 60 real flights in the weather of their day. Both over-predict: HPR Sim's
-[apogees](glossary.md#apogee) are +7.76% above the logs on average (mean absolute 12.07%),
+[apogees](glossary.md#apogee) are +7.72% above the logs on average (mean absolute 12.04%),
 OpenRocket's +6.72% (11.26%). The two codes agree within 5% on 59 of the 60
 ([report][fixture-report]). Neither meets the 5% target.**
 
@@ -1070,7 +1070,7 @@ shown here. The flights' owners allow only aggregate statistics, so no flight is
 
 **Held out.** A hash of each flight's id holds out a third in expectation, here 23 of the 60
 ([decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0332-m2-7-in-two-the-halves-and-the-fits-guard-then-predictions-first.md)).
-On them HPR Sim misses by 16.32% (mean absolute) and OpenRocket by 14.98%; on the other 37, 9.43%
+On them HPR Sim misses by 16.26% (mean absolute) and OpenRocket by 14.98%; on the other 37, 9.42%
 and 8.95% ([report][fixture-report]). Fits across flights, the scoreboard's check included, leave
 the 23 out. All 60 were seen before the split, so neither half is blind. A flight added later is
 compared only once its prediction, made with no logged apogee, has its hash merged first.
@@ -1119,10 +1119,10 @@ figure by more than 0.5%, each with its reason recorded ([decision][adr-184]).
 
 | [over 60 flights][fixture-report] | mean | median | mean absolute | flights within 5% | flights within 10% |
 |---|---:|---:|---:|---:|---:|
-| [HPR Sim][fixture-report] | +7.76% | +6.69% | 12.07% | 14 | 32 |
+| [HPR Sim][fixture-report] | +7.72% | +6.69% | 12.04% | 14 | 32 |
 | [OpenRocket 24.12][fixture-report] | +6.72% | +6.08% | 11.26% | 13 | 31 |
-| [HPR Sim in OpenRocket's air][fixture-report] | +7.90% | +6.50% | 12.17% | 14 | 31 |
-| [HPR Sim against OpenRocket][fixture-report] | +0.93% | +0.62% | 1.64% | 59 | 60 |
+| [HPR Sim in OpenRocket's air][fixture-report] | +7.87% | +6.50% | 12.14% | 14 | 31 |
+| [HPR Sim against OpenRocket][fixture-report] | +0.90% | +0.53% | 1.63% | 59 | 60 |
 
 Each error is the simulated apogee less the logged one, over the logged one, in percent. So a
 positive error is a prediction above the log. The mean absolute error averages the errors without
@@ -1135,7 +1135,7 @@ strictly smaller than that, either way ([report][fixture-report]).
 **Early deployments.** On 19 of the 60, a parachute charge fired or the rocket separated before
 the highest reading, while it was still climbing ([report][fixture-report]). The readers' notes
 put each at under 1.5 s before the peak and a few meters of climb. So the apogee barely moves
-([decision][adr-184]). Without them, over 41 flights, HPR Sim is +3.34% (mean absolute 9.43%) and
+([decision][adr-184]). Without them, over 41 flights, HPR Sim is +3.33% (mean absolute 9.42%) and
 OpenRocket +2.41% (8.81%). The two sets differ in which rockets they hold more than in what the
 early charges cost.
 
@@ -1163,7 +1163,7 @@ keeps in tier A ([report][fixture-report]):
 
 | [over 49 flights][fixture-report] | mean | median | mean absolute | flights within 5% | flights within 10% |
 |---|---:|---:|---:|---:|---:|
-| [HPR Sim][fixture-report] | +7.01% | +6.28% | 11.58% | 11 | 27 |
+| [HPR Sim][fixture-report] | +6.96% | +6.27% | 11.54% | 11 | 27 |
 | [OpenRocket 24.12][fixture-report] | +6.09% | +5.84% | 10.84% | 10 | 26 |
 
 **What is not flown, and why.** Of the 83, HPR Sim flies 68, and each cause of the rest has an open

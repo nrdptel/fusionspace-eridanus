@@ -174,8 +174,8 @@ and RocketPy 8. I chose the rows, so the count leans toward what HPR Sim was bui
 rows, not the count.
 
 On 60 logged flights of fliers' own designs, flown from the same files, HPR Sim's apogee missed by
-12.07% on average without signs. OpenRocket's missed by 11.26% on average without signs. With
-their signs, HPR Sim's averaged +7.76% above the logged apogees and OpenRocket's +6.72% above.
+12.04% on average without signs. OpenRocket's missed by 11.26% on average without signs. With
+their signs, HPR Sim's averaged +7.72% above the logged apogees and OpenRocket's +6.72% above.
 OpenRocket is ahead on both: this is HPR Sim's largest measured gap ([report][fixture-report]).
 
 The flights are a private collection whose license allows only aggregates, so they can't be rerun
