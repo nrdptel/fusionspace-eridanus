@@ -189,13 +189,23 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
       Moves: accuracy above Mach 1.
 - [ ] **M2.3d Twelve public flights, predictions first** (ADR-328, in two; met when they are).
   *Done when:* ADR-328 §1's, whole. Moves: accuracy.
-  - [ ] **M2.3d1 The predictions** (ADR-334: in three, two done and M2.3d5 below; met when it is). *Done when:*
+  - [ ] **M2.3d1 The predictions** (ADR-334: in three, M2.3d3 done; met when the two below are). *Done when:*
     ADR-328 §1a's: its own pull request merges the five new flights' inputs, sources and
     predicted apogees, computing no error.
     - [ ] **M2.3d5 The Macie XL predictions.** *Done when:* M2.3d1's *done when*, whole: its
       own pull request merges both Macie XL flights' inputs, sources, apogee rules and predicted
       apogees, the design flown as saved from its pinned repository, no error computed, and with
       it all five predictions are on `main`.
+    - [ ] **M2.3d4 A stage's override that adds to its parts** (ADR-335; ADR-336: in two, M2.3d6
+      done and M2.3d7 below; met when it is). *Done when:* an `.ork` stage
+      whose mass or center override doesn't cover its parts is flown as OpenRocket 24.12 weighs
+      it, its mass, center and inertia held to OpenRocket's on probe designs, and is no longer
+      held back.
+      - [ ] **M2.3d7 The inertia beside an override that covers the parts.** *Done when:* M2.3d4's
+        *done when*, whole: what is left of it is the inertia of a stage with one override that
+        covers its parts beside one that doesn't, held to OpenRocket 24.12's on the eight probe
+        designs where it runs from 11.04% under to 400.5% over today
+        ([#1407](https://github.com/nrdptel/fusionspace-eridanus/issues/1407)).
   - [ ] **M2.3d2 The errors.** *Done when:* ADR-328 §1b's: `real-flights` flies all 12, each new
     prediction beside its error; `accuracy.public` and `bias.public` over all 12.
 - [ ] **M2.8 Honest uncertainty** (ADR-209 §5). *Done when:* each logged flight is also flown as a
