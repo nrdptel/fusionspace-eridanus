@@ -208,8 +208,8 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
         still refuses or holds back, flown as OpenRocket 24.12 weighs it, its mass, center and
         inertia held to OpenRocket's on probe designs.
       - [ ] **M2.3d9 The inertia on the lower of two stages** (ADR-336, amended; #1424). *Done when:*
-        M2.3d4's *done when*, whole: what is left of it here is M2.3d7's *done when* on its two
-        probe designs with the override on the lower of two stages: both inertias held to
+        M2.3d4's *done when*, whole: what is left of it here is M2.3d7's original *done when* on its
+        two probe designs with the override on the lower of two stages: both inertias held to
         OpenRocket 24.12's within 3 parts in a million, where the inertia across the axis is
         4.95% and 3.33% over today.
   - [ ] **M2.3d2 The errors.** *Done when:* ADR-328 §1b's: `real-flights` flies all 12, each new

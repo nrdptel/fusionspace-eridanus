@@ -46,7 +46,8 @@ own entry in the roadmap, with a *done when* that fails today.
 
 **Decision.**
 
-1. **Three increments.** M2.3d4 keeps its *done when* as written, and is met when all three are.
+1. **Four increments** (three until the amendment of 2026-11-11, below). M2.3d4 keeps its
+   *done when* as written, and is met when all four are.
    - **M2.3d6, a stage's added mass.** *Done when:* an `.ork` stage whose mass override doesn't
      cover its parts is read as an added mass and flies: the reader no longer holds it back, and
      only what ADR-335 decision 5 refuses is still held; on probe designs its mass and center
@@ -63,8 +64,8 @@ own entry in the roadmap, with a *done when* that fails today.
      refuses or holds back, flown as OpenRocket 24.12 weighs it, its mass, center and inertia
      held to OpenRocket's on probe designs.
    - **M2.3d9, the inertia on the lower of two stages** (added 2026-11-11). *Done when:* M2.3d4's
-     *done when*, whole: what is left of it here is M2.3d7's *done when* on its two probe
-     designs with the override on the lower of two stages: both inertias held to OpenRocket
+     *done when*, whole: what is left of it here is M2.3d7's original *done when* (before the
+     amendment) on its two probe designs with the override on the lower of two stages: both inertias held to OpenRocket
      24.12's within 3 parts in a million, where the inertia across the axis is 4.95% and 3.33%
      over today ([#1424][i1424]).
 2. **The eight probes, what they measure today, and M2.3d7's bounds.** Four are on the one-stage
@@ -87,7 +88,8 @@ own entry in the roadmap, with a *done when* that fails today.
 
    M2.3d7's bounds are the ones the probes beside these hold today. M2.3d7 holds each inertia
    on the six probes of the table within 3 parts in a million of OpenRocket's, as the 19 do
-   today. On the two airframe probes it holds the inertia the override adds within 1e-9 kg·m²
+   today; since the amendment, on its four one-stage probes, and M2.3d9 holds the two
+   lower-stage probes to the same bound. On the two airframe probes it holds the inertia the override adds within 1e-9 kg·m²
    of what it adds in OpenRocket, as that airframe's other probes do today.
 3. **M2.3d7 has to change a standing rule, and that is its work.** The departures are
    [ADR-061][adr-061]'s rule, not the added mass, where the probes show it: on the one-stage
@@ -106,14 +108,15 @@ own entry in the roadmap, with a *done when* that fails today.
 
 **Amended 2026-11-11.** [ADR-340][adr-340] chose the rule decision 3 left open: a `.ork`
 stage's covering override leaves its parts in place. That meets M2.3d7 on six of its eight probes. On the two with the
-override on the lower of two stages, ADR-340 decision 4 shows OpenRocket's figure is below
+override on the lower of two stages, ADR-340's measurement (decision 4 draws the conclusion)
+shows OpenRocket's figure is below
 what any stage that keeps its parts in place can have: OpenRocket sums each part about the
 rocket's center, and the override's mass as a point at the stage's center. Those two are a
 different piece of work, so they become M2.3d9, with M2.3d7's *done when* on them unchanged,
 and M2.3d7 is met on the other six. Meeting M2.3d9 means composing such a stage's inertia at
 the rocket level, as OpenRocket does, in a record that answers ADR-340 decision 4. This
 record is amended in place, not narrowed by a new one, since it plans every increment of
-M2.3d4.
+M2.3d4; its title and file name keep "in three" so that links to it hold.
 
 **Consequences.**
 
@@ -133,5 +136,5 @@ M2.3d4.
 center of the other 17. `sim_flies_a_ork_stage_whose_override_adds_to_its_parts` flies one
 through `hpr sim` with no warning, and `a_stages_added_mass_on_parts_that_weigh_nothing_is_refused`
 holds one of ADR-335 decision 5's refusals. The same tests pin the eight departures above (six
-of the seven the second test names, and the two added inertias), so M2.3d7's *done when* fails
-today. Decision 5's refusals stand in the code, so M2.3d8's does too.
+of the seven the second test names, and the two added inertias), so M2.3d7's *done when* failed
+on 2026-11-10, when this record was written. Decision 5's refusals stand in the code, so M2.3d8's does too.
