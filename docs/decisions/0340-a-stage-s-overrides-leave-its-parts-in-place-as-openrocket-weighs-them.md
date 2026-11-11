@@ -97,9 +97,10 @@ OpenRocket leaves each part where the design puts it.
 
    The cost is real and stays on the pages. Under `parts_in_place` the mass the parts miss adds
    no inertia. If it is spread along the stage as the parts are, the true inertia is higher by
-   the mass ratio under a mass override: 5.0 times on the one-stage probe, where 2 kg covers
-   0.40 kg of parts. If it sits farther out, higher still. A design in HPR Sim's own format keeps `rescaled` unless it asks
-   for the other.
+   the mass ratio under a mass override: 5.0 times about the axis on the one-stage probe, where
+   2 kg covers 0.40 kg of parts (4.5 times across it, where the center override also moves the
+   parts' center). If it sits farther out, higher still. A design in HPR Sim's own format keeps
+   `rescaled` unless it asks for the other.
 4. **The two lower-stage probes keep a difference, pinned.** No stage that keeps its parts in place
    gives OpenRocket's figure there (above), so HPR Sim doesn't reproduce it. Its rule is the one OpenRocket's sum
    reduces to when the stage's center is the point the inertia is taken about. The rocket's
@@ -133,7 +134,8 @@ OpenRocket leaves each part where the design puts it.
 - **The reports.** On the private collection's 60 logged flights, HPR Sim's mean absolute
   apogee error goes from 12.07% to 12.04% and its mean error from +7.76% to +7.72%; against
   OpenRocket its median apogee difference goes from +0.62% to +0.53%. Six of the 54 public
-  `.ork` flights compared with OpenRocket move, and six of the 35 private library flights. Each
+  `.ork` flights compared with OpenRocket move, and six of the 35 private library flights
+  (`openrocket-flights.json` and `openrocket-library-flights.json` in `validation/reports/`). Each
   apogee moves by less than 0.001 percentage points, and the drift at apogee on the public
   flights by less than 0.13 m. The
   held-out half's sealed digest changes with its aggregates, as [ADR-329][adr-329] decision 7
