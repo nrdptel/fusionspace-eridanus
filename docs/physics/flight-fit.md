@@ -396,15 +396,15 @@ the speed to stay 10% below its peak, and at least 10 m/s (32.8 ft/s) below it, 
 comes at the first sample where that holds and the speed is the lowest of those 0.75 s. It also never comes unless the fitted height stands more than 10 m (32.8 ft) above the pad.
 The pad is the fitted height where the line last stood still, its speed under 5 m/s (16.4 ft/s) either way.
 Before that, it is the first window that gives a line, five samples or more.
-Three bad readings in a row on the pad can lift the fit past 10 m for one sample. The fitted speed
+Three bad readings in a row on the pad can lift the fit past 10 m (32.8 ft) for one sample. The fitted speed
 then falls back and stays down, as it does after burnout, so this height rule stops a cut there.
 They can also read a speed faster than the flight's own top. Once they leave the window the line
 stands still again. The pad is read afresh there, and the top speed and climb read before it are dropped
 ([#1362](https://github.com/nrdptel/fusionspace-eridanus/issues/1362)). A step up on the pad that
 stays settles the same way, at its new height. A real climb doesn't stand still before its cut.
 On sets A and B's first 200 synthetic flights, no speed from liftoff to the cut read under 17.7 m/s
-(58.1 ft/s). Of the pad's windows, 98.8% and 98.4% read still (measured once). A climb reaches 5 m/s
-before its cut only if its top speed is under about 22 m/s (72 ft/s). That is 5 m/s, plus the 10 m/s
+(58.1 ft/s). Of the pad's windows, 98.8% and 98.4% read still (measured once). A climb reaches 5 m/s (16.4 ft/s)
+before its cut only if its top speed is under about 22 m/s (72 ft/s). That is 5 m/s (16.4 ft/s), plus the 10 m/s (32.8 ft/s)
 fall, plus 0.75 s of gravity. After burnout gravity alone
 takes 9.8 m/s (32.2 ft/s) off the speed every second, drag more, so the speed keeps falling. A
 barometer's reading can dip during the boost and catch up
@@ -438,10 +438,10 @@ The same five were then tried as two and as three bad readings in a row. Of the 
 moved 9 cuts, by up to 0.70 s. Three in a row moved 23, by up to 1.35 s. Three in a row also left 40 of
 those 255 logs uncut: the speed then read past 227.7 m/s (747 ft/s), so they were refused. Every cut in these
 runs still came after the peak and after burnout. Four or more in a row weren't tried. Steps up on
-the pad that stay were tried too, from halfway through it. Steps of 8, 12, 30 and 60 m (26 to 197 ft)
+the pad that stay were tried too, from halfway through it. Steps of 8, 12, 30 and 60 m (26, 39, 98 and 197 ft)
 each cut the same 51 flights after the peak and burnout. They were refused for their speed on the other 106.
 A step of 100 m (328 ft) was refused on all 157. Before the pad was read where the line stood still,
-steps of 12 to 60 m cut 142 of those logs before the peak (measured once, not committed).
+steps of 12 to 60 m (39 to 197 ft) cut 142 of those logs before the peak (measured once, not committed).
 A test flies three hand-built logs, each with a blip on the pad faster than the flight's top speed.
 A fourth has a 15 m (49 ft) step. Each is now cut where its clean log is. Before, all four were cut
 early, one before its burnout, one 0.05 s after ignition. Without the height rule, three readings 12 m (39 ft) too high
