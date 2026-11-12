@@ -35,8 +35,10 @@
 //! [adr-034]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-034-the-bodys-supersonic-normal-force-in-flight-tabulated-shock-expansion-shares-joined-linearly-from-mach-12-2026-09-19
 //! [adr-037]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-037-body-lift-by-jorgensens-crossflow-at-every-speed-and-a-boattails-measured-share-faster-than-sound-2026-09-19
 
+use std::collections::VecDeque;
 use std::f64::consts::PI;
-use std::sync::{Arc, OnceLock};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex, OnceLock};
 
 use hpr_design::{Layout, NoseShape, Part, PlacedComponent};
 use serde::{Deserialize, Serialize};
@@ -515,6 +517,102 @@ impl SupersonicRun {
 /// two models compare equal whether or not either has built it.
 #[derive(Debug, Clone, Default)]
 struct SupersonicTable(Arc<OnceLock<Option<SupersonicBody>>>);
+
+/// The most tables a process that keeps them ([`keep_supersonic_tables`]) holds, the first kept
+/// dropped first: the motor catalog's check flies 24 probe shapes in one process (issue #1427),
+/// and each table holds about 80 rows of a share per covered segment, some kilobytes.
+const KEPT_TABLES: usize = 64;
+
+/// Whether this process keeps the supersonic tables it builds: off until
+/// [`keep_supersonic_tables`] turns it on.
+static KEEPING_TABLES: AtomicBool = AtomicBool::new(false);
+
+/// The tables this process has kept, while [`KEEPING_TABLES`] is on.
+static KEPT: Mutex<KeptTables> = Mutex::new(KeptTables::new(KEPT_TABLES));
+
+/// Has every model this process builds from now on take its supersonic table
+/// ([`AeroModel::supersonic_body`]) as a copy of one the process already built from an equal run
+/// on the same reference area, where there is one, keeping up to 64 tables, the first kept dropped
+/// first. The run and the reference area are the only inputs the table is built from: the run is
+/// compared as [`AeroModel::share_supersonic_table`] compares it, and the area by its bits, so a
+/// flight flies the same either way. Building a table takes up to about 125 runs of the shock-expansion method,
+/// a fifth of a second or more.
+///
+/// For a process that flies a few shapes many times through a path that builds a model each time,
+/// such as the command line run in-process: the motor catalog's check flies 924 motors in 24
+/// probe shapes (issue #1427; its timings are in `docs/perf.md`). Off by default, so that every model builds its own table unless it shares
+/// one by [`AeroModel::share_supersonic_table`]: a check that a shared table's flight matches one
+/// flown alone needs the one alone built afresh. It stays on for the rest of the process.
+pub fn keep_supersonic_tables() {
+    KEEPING_TABLES.store(true, Ordering::Relaxed);
+}
+
+/// Supersonic tables, each with the run and the reference area it was built from, at most `most`
+/// of them, the first kept dropped first.
+#[derive(Debug)]
+struct KeptTables {
+    tables: VecDeque<(SupersonicRun, f64, Option<SupersonicBody>)>,
+    most: usize,
+}
+
+impl KeptTables {
+    /// None kept yet.
+    const fn new(most: usize) -> Self {
+        Self {
+            tables: VecDeque::new(),
+            most,
+        }
+    }
+
+    /// The table kept for an equal `run` on the same `reference_area_m2` (its bits), if one is.
+    fn find(&self, run: &SupersonicRun, reference_area_m2: f64) -> Option<&Option<SupersonicBody>> {
+        self.tables
+            .iter()
+            .find(|(kept_run, kept_area, _)| {
+                kept_area.to_bits() == reference_area_m2.to_bits() && kept_run == run
+            })
+            .map(|(.., table)| table)
+    }
+
+    /// Keeps `table` for `run` on `reference_area_m2`, unless one is kept for them already,
+    /// dropping the first kept when `most` are.
+    fn keep(
+        &mut self,
+        run: &SupersonicRun,
+        reference_area_m2: f64,
+        table: &Option<SupersonicBody>,
+    ) {
+        if self.most == 0 || self.find(run, reference_area_m2).is_some() {
+            return;
+        }
+        if self.tables.len() >= self.most {
+            self.tables.pop_front();
+        }
+        self.tables
+            .push_back((run.clone(), reference_area_m2, table.clone()));
+    }
+}
+
+/// [`SupersonicBody::new`]'s table for `run` on `reference_area_m2`; while this process keeps its
+/// tables ([`keep_supersonic_tables`]), a copy of one it kept for an equal run on the same
+/// reference area, where there is one. A lock another thread poisoned is passed over: the table
+/// is then built here, and not kept.
+fn built_table(run: &SupersonicRun, reference_area_m2: f64) -> Option<SupersonicBody> {
+    if !KEEPING_TABLES.load(Ordering::Relaxed) {
+        return SupersonicBody::new(run, reference_area_m2);
+    }
+    if let Ok(kept) = KEPT.lock()
+        && let Some(table) = kept.find(run, reference_area_m2)
+    {
+        return table.clone();
+    }
+    // Built outside the lock: two threads may both build one table, and each gets the same.
+    let table = SupersonicBody::new(run, reference_area_m2);
+    if let Ok(mut kept) = KEPT.lock() {
+        kept.keep(run, reference_area_m2, &table);
+    }
+    table
+}
 
 impl PartialEq for SupersonicTable {
     fn eq(&self, _: &Self) -> bool {
@@ -2131,13 +2229,15 @@ impl AeroModel {
     /// Fig. 2, a later body with a slope of its own such as a flare) or doesn't hold across a
     /// whole join below Mach 5.
     ///
-    /// The first call builds the table, which takes up to about 125 runs of the method; a flow no
-    /// faster than [`SUPERSONIC_JOIN_START_MACH`] never needs it.
+    /// The first call builds the table, which takes up to about 125 runs of the method, or, in a
+    /// process that keeps its tables ([`keep_supersonic_tables`]), copies one it built from an
+    /// equal run on the same reference area; a flow no faster than [`SUPERSONIC_JOIN_START_MACH`]
+    /// never needs it.
     pub fn supersonic_body(&self) -> Option<&SupersonicBody> {
         let run = self.supersonic_run.as_ref()?;
         self.supersonic
             .0
-            .get_or_init(|| SupersonicBody::new(run, self.reference_area_m2))
+            .get_or_init(|| built_table(run, self.reference_area_m2))
             .as_ref()
     }
 
@@ -7083,6 +7183,84 @@ mod tests {
         let built = model.supersonic_body().unwrap() as *const SupersonicBody;
         assert_eq!(model, clone);
         assert!(std::ptr::eq(built, clone.supersonic_body().unwrap()));
+    }
+
+    /// A kept table is found only for an equal run on the same reference area, and is the one
+    /// building it gives (issue #1427): the test rocket, the same shape on a wider reference area
+    /// (the same run) and one with a longer nose (another run) are each kept, and each finds its
+    /// own, compared with [`SupersonicBody::new`]'s in `Debug`'s digits. With `most` kept, keeping
+    /// one more drops the first kept; keeping one already kept changes nothing; keeping none
+    /// keeps nothing.
+    #[test]
+    fn kept_tables_are_found_by_run_and_area_and_the_first_kept_drops_first() {
+        let rocket = straight_rocket();
+        let mut wider = rocket.clone();
+        wider.reference_diameter = ReferenceDiameter::Custom { diameter_m: 0.07 };
+        let mut longer = rocket.clone();
+        longer.stages[0].components[0].part =
+            nose(NoseShape::Ogive { radius_ratio: 1.0 }, 0.4, 0.027);
+        let keys: Vec<(&str, SupersonicRun, f64)> = [
+            ("the rocket", &rocket),
+            ("wider", &wider),
+            ("longer", &longer),
+        ]
+        .into_iter()
+        .map(|(what, design)| {
+            let aero = model(design);
+            let run = aero
+                .supersonic_run
+                .clone()
+                .expect("a run the method covers");
+            (what, run, aero.reference_area_m2)
+        })
+        .collect();
+        assert_eq!(
+            keys[0].1, keys[1].1,
+            "the wider rocket's run is the rocket's"
+        );
+        assert_ne!(keys[0].2.to_bits(), keys[1].2.to_bits());
+        assert_ne!(keys[0].1, keys[2].1);
+        let built: Vec<Option<SupersonicBody>> = keys
+            .iter()
+            .map(|(_, run, area)| SupersonicBody::new(run, *area))
+            .collect();
+        assert!(built.iter().all(Option::is_some));
+        let mut kept = KeptTables::new(3);
+        for ((_, run, area), table) in keys.iter().zip(&built) {
+            assert!(kept.find(run, *area).is_none());
+            kept.keep(run, *area, table);
+        }
+        for ((what, run, area), table) in keys.iter().zip(&built) {
+            let found = kept.find(run, *area).expect("kept");
+            assert_eq!(format!("{found:?}"), format!("{table:?}"), "{what}");
+            assert_eq!(
+                format!("{found:?}"),
+                format!("{:?}", SupersonicBody::new(run, *area)),
+                "{what}: not what building it again gives"
+            );
+        }
+        // Kept again, even with another table: nothing changes.
+        kept.keep(&keys[0].1, keys[0].2, &built[2]);
+        assert_eq!(kept.tables.len(), 3);
+        assert_eq!(
+            format!("{:?}", kept.find(&keys[0].1, keys[0].2)),
+            format!("{:?}", Some(&built[0]))
+        );
+        let (_, run, area) = &keys[2];
+        let mut fewer = KeptTables::new(2);
+        fewer.keep(&keys[0].1, keys[0].2, &built[0]);
+        fewer.keep(&keys[1].1, keys[1].2, &built[1]);
+        fewer.keep(run, *area, &built[2]);
+        assert_eq!(fewer.tables.len(), 2);
+        assert!(
+            fewer.find(&keys[0].1, keys[0].2).is_none(),
+            "the first kept is dropped"
+        );
+        assert!(fewer.find(&keys[1].1, keys[1].2).is_some());
+        assert!(fewer.find(run, *area).is_some());
+        let mut none = KeptTables::new(0);
+        none.keep(run, *area, &built[2]);
+        assert!(none.tables.is_empty());
     }
 
     /// Two models built apart share a table only where the table follows from the same segments
