@@ -70,7 +70,12 @@ note head 13/16, and a signal word 13/16 in the wide cut (weight 640, width 118%
    are the trust note, note, caution and warning, and any other alert fails the build. The page
    check adds the level table's sizes to the system's scale for Archivo, holds capitals to the
    signal word's size, and its canaries cover a signal word in sentence case, one in the narrow
-   cut and a trust note in capitals.
+   cut and a trust note in capitals. Code in a heading or a column head takes the heading's
+   size, as the system's theme sets it (`font-size: inherit`), so the check accepts Cascadia
+   Mono there at the heading's own level and nowhere else, with a canary each way.
+9. **The page arrows' icons stay 16 px.** The system's theme sizes them 1 em of the page's
+   text, which grows to 18 px on a wide window, off the icon sizes (16, 20 and 24 px);
+   `hpr.css` holds them at 16 px.
 
 **Superseded.**
 

@@ -26,8 +26,11 @@ pre > .buttons button.clip-button:hover::before {
    copy icon. mdBook fills its glyphs; the system's are stroked in the text's color. The previous
    page's arrow is the next one's, mirrored. The page check fails an icon at another size. */
 .fa-svg svg { width: 20px; height: 20px; fill: none; margin-bottom: 0; vertical-align: middle; }
-.nav-chapters .fa-svg svg, .mobile-nav-chapters .fa-svg svg,
+.nav-chapters .fa-svg svg,
 pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
+/* The page arrows' icons at 16 px: the system's theme sizes them 1 em of the page's text, which
+   grows past the icon sizes (16, 20, 24) on a wide window. */
+.page-wrapper .nav-wrapper .mobile-nav-chapters .fa-svg { width: 16px; height: 16px; }
 .previous .fa-svg svg { transform: scaleX(-1); }
 /* The page arrows' names (`web.md`, *Page anatomy*; `frame.rs` writes them, and the system's
    mdBook theme draws the arrows as buttons under the text, inside the column): the direction in

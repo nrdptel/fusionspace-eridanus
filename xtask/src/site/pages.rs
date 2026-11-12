@@ -1327,7 +1327,7 @@ macro_rules! mono_faces {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 201] = [
+const CANARIES: [Canary; 203] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -1551,6 +1551,28 @@ const CANARIES: [Canary; 201] = [
         inside: "<style>.snaps { transition: color 160ms cubic-bezier(0.2, 0, 0, 1); } \
                  @media (prefers-reduced-motion: reduce) { .snaps { transition-duration: 0s; } }\
                  </style><p class=\"snaps\">A label that snaps</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-type-code-heading.html",
+        what: "code in a heading and in a column head at their size, as the system's theme \
+               sets it, which must pass",
+        expect: &[],
+        inside: "<h3 style=\"font: 600 16px/24px 'Archivo', 'Archivo Fallback', sans-serif; \
+                 font-variant-numeric: tabular-nums\">A heading with <code style=\"font-size: \
+                 inherit; line-height: inherit\">code</code></h3><table><thead><tr><th \
+                 style=\"font: 600 13px/18px 'Archivo', 'Archivo Fallback', sans-serif; \
+                 font-variant-numeric: tabular-nums\">A head with <code style=\"font-size: \
+                 inherit; line-height: inherit\">code</code></th></tr></thead><tbody><tr><td>A \
+                 cell</td></tr></tbody></table>",
+        after: "",
+    },
+    Canary {
+        file: "canary-type-code-body.html",
+        what: "code in a paragraph at a heading's 16 px on 24 px lines",
+        expect: &[Kind::Type],
+        inside: "<p>Text with <code style=\"font-size: 16px; line-height: 24px\">code</code>\
+                 </p>",
         after: "",
     },
     Canary {

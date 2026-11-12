@@ -30,7 +30,8 @@ and print in the light theme with link addresses. What `hpr.css` adds is what on
 build writes:
 
 - the copy button's icon, the system's `copy.svg` as a mask in the button's color;
-- the system's icons at its sizes, 20 px in the menu bar and 24 px for the page arrows and code
+- the system's icons at its sizes, 20 px in the menu bar, 16 px for the page arrows (the
+  system's theme sizes them 1 em of the growing text) and 24 px for code
   buttons, stroked in the text's color, the previous page's arrow mirrored;
 - the notes, each kind's strip and border;
 - the menu bar as the system's header, the lockup in the text's color with its clear space, the

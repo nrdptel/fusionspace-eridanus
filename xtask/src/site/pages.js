@@ -1389,6 +1389,23 @@
   const WEB_CAPITALS = [[13, 16, 'Archivo']];
   const SCALE = RULES.type.scale.filter(function (t) { return t[0] !== 'hero'; })
     .map(function (t) { return [t[1], t[2], t[3]]; }).concat(WEB_LEVELS);
+  // Code in a heading or a column head takes its heading's size (`fusionspace-mdbook.css`: `h1
+  // code, h2 code, h3 code, thead th code { font-size: inherit; line-height: inherit; }`), and
+  // so does code in a column head a stacked table repeats in each row (`hpr.css`, `.fs-head`).
+  // Cascadia Mono there may stand at any of the web's levels, and only as its heading does.
+  function codeAtItsHeading(el, family, size, line, reading) {
+    if (family !== 'Cascadia Mono' || !el.closest('code')) return false;
+    const head = el.closest('h1, h2, h3, thead th, .fs-stacked .fs-head');
+    if (!head) return false;
+    const hs = head.ownerDocument.defaultView.getComputedStyle(head);
+    if (!samePx(parseFloat(hs.fontSize), size) || !samePx(parseFloat(hs.lineHeight), line)) {
+      return false;
+    }
+    const k = factorOf(el, reading);
+    return WEB_LEVELS.concat(SCALE).some(function (t) {
+      return samePx(t[0] * k, size) && samePx(t[1] * k, line) && t[2] === 'Archivo';
+    });
+  }
   // The tokens set in capitals: `label` and `heading` (a record's title block keeps them) and a
   // signal word.
   const CAPITALS = RULES.type.capitals.map(function (t) { return [t[1], t[2], t[3]]; })
@@ -1500,7 +1517,7 @@
         } else if (!SCALE.some(function (t) {
           const k = factorOf(el, reading);
           return samePx(t[0] * k, size) && samePx(t[1] * k, line) && t[2] === family;
-        })) {
+        }) && !codeAtItsHeading(el, family, size, line, reading)) {
           note('type', sel, 'font', shown);
         }
         const weight = Number(s.fontWeight);
