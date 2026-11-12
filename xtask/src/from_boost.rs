@@ -649,7 +649,10 @@ fn why_text(why: &Unpredicted) -> String {
             NoCut::TooSparse => {
                 "no cut: logged too slowly for the cut's half-second windows".to_owned()
             }
-            NoCut::NeverLifted => "no cut: it never lifts off".to_owned(),
+            NoCut::NeverLifted => {
+                "no cut: it never climbs 10 m from where it stood still, or climbs too slowly"
+                    .to_owned()
+            }
             NoCut::Transonic { time_s, speed_m_s } => {
                 format!("no cut: climbing at {speed_m_s:.1} m/s at {time_s:.2} s, too fast")
             }

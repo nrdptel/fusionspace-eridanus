@@ -210,7 +210,7 @@ fn refusal_name(why: &NoCut) -> &'static str {
         NoCut::Gnss => "a GNSS track",
         NoCut::TooFast => "a log faster than the analyzer reads",
         NoCut::TooSparse => "a log slower than 8 Hz",
-        NoCut::NeverLifted => "no liftoff",
+        NoCut::NeverLifted => "no liftoff, or a climb too slow",
         NoCut::Transonic { .. } => "the transonic limit before a cut",
         NoCut::NeverSlowed => "no fall in the climb speed",
     }
