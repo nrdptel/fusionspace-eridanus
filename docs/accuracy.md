@@ -100,7 +100,7 @@ to the code that would move them is caught only when someone runs them again and
 | [RocketPy 1.13.0, patched](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): whole flights, each code on its own drag | code-to-code, each code's own drag | target: each metric's tolerance, 0.1% to 3%, reported, not enforced | 6 flights (5 subsonic, 1 transonic) | 75 of 102 metrics within target; apogee −7.28% to +10.30% |
 | [OpenRocket 24.12](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): calm flights of OpenRocket's examples | code-to-code, each code's own model | no target; an apogee more than 5% off needs a written cause | 54 flights (53 subsonic, 1 transonic); 3 more not flown | apogee −37.93% to +13.80%; apogee within 5% on 45 of 53, largest speed within 5% on 50 of 53, margin within 0.2&nbsp;calibers on 52 of 53, launch mass within 1% on 54 of 54, mass at rod clearance within 1% on 50 of 54, center of mass at rod clearance within 0.2&nbsp;calibers on 54 of 54; 3 values withheld by the report |
 | [OpenRocket 24.12](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): calm flights of the private designs | code-to-code, each code's own model | no target; an apogee more than 5% off needs a written cause | 35 flights (28 subsonic, 6 transonic, 1 supersonic); 2 more not flown | apogee −4.84% to +13.60%; apogee within 5% on 34 of 35, largest speed within 5% on 34 of 35, margin within 0.2&nbsp;calibers on 35 of 35, launch mass within 1% on 35 of 35, mass at rod clearance within 1% on 35 of 35, center of mass at rod clearance within 0.2&nbsp;calibers on 35 of 35 |
-| [the teams' altimeter logs](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): real flights | measured | target: mean absolute apogee error 5% | 12 flights (5 subsonic, 7 transonic) | mean absolute apogee error 9.00% (target 5%, missed); apogee −29.16% to +10.40%; apogee within 5% on 3 of 12, climb's RMS height error within 3% of apogee on 2 of 7 |
+| [the public flights' altimeter logs](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): real flights | measured | target: mean absolute apogee error 5% | 12 flights (5 subsonic, 7 transonic) | mean absolute apogee error 9.00% (target 5%, missed); apogee −29.16% to +10.40%; apogee within 5% on 3 of 12, climb's RMS height error within 3% of apogee on 2 of 7 |
 
 <!-- census: end -->
 
@@ -263,7 +263,7 @@ parachute descents sample. That was part of the descent comparison, and nowhere 
 | [Mass properties](physics/mass.md) | ✓ | no | ✓ OpenRocket, the structure without motors, and the parts of its parts catalog | no |
 | [Solid motors](physics/motor.md) | ✓ | no | ✓ RocketPy, ThrustCurve.org; OpenRocket for a curve file's own numbers | no |
 | [Aerodynamics](physics/aero.md) | ✓ | ✓ Barrowman's examples; MIL-HDBK-762's drag example, fins left out: 6 of 12 within 10%, the body reading 6% to 10% low faster than sound | partial: drag and the normal force against RASAero II to Mach 2, the drag with the fins and finish guessed and 5% to 15% low faster than sound; and in whole flights, against a target | partial: in seven flights, four of the five apogees past 5% are consistent with its drag ([real flights](#real-flights), [report][real-report]); wind tunnel ✓: normal force, drag and boattails; the Arcas Robin's drag reads high at every speed |
-| [Rigid-body flight](physics/flight.md) | ✓ | no | ✓ RocketPy, with the drag given; and on each code's own drag, against a target; OpenRocket on 53 configurations of its examples ([results](format/ork.md#the-simulators-flights-against-openrockets)) | partial: seven logged flights, as a whole: apogees 6.06% off on average, outside the 5% target ([evidence row G24](evidence.md#g24)) ([real flights](#real-flights), [report][real-report]) |
+| [Rigid-body flight](physics/flight.md) | ✓ | no | ✓ RocketPy, with the drag given; and on each code's own drag, against a target; OpenRocket on 53 configurations of its examples ([results](format/ork.md#the-simulators-flights-against-openrockets)) | partial: 12 public logged flights, as a whole: apogees 9.00% off on average, outside the 5% target ([evidence row G24](evidence.md#g24)) ([real flights](#real-flights), [report][real-report]) |
 | [Time integration](physics/integration.md) | ✓ | no | no | no |
 | [Recovery](physics/recovery.md) | ✓ | ✓ | ✓ RocketPy | no (drop tests ✓) |
 | [Staging](physics/staging.md) | ✓ ignition times, the mass step and momentum, against hand sums | no | ✓ OpenRocket: its two-stage, three-stage, cluster and air-start examples, every flight within 5% (three cluster apogees against OpenRocket's flight with no parachute, because its parachute opened before apogee) ([results](format/ork.md#staged-clustered-and-air-start-flights)) | no |
@@ -274,7 +274,7 @@ parachute descents sample. That was part of the descent comparison, and nowhere 
 | [Flight-log readings](physics/log-readings.md) | ✓ each reading of an invented flight within the bound its rounding and filter allow | no | partial: one public altimeter log's apogee, read at 1,010 ft against the 1,009 ft the altimeter's software states from the same trace; checked only where the log is fetched, not in CI | no |
 | [Synthetic flights](physics/synthetic-flights.md) | ✓ each noise term on a truth built for it, failing when changed | no: the terms are taken from datasheets and public logs, not yet compared with real logs' statistics | no | no |
 | [Two logs on one timeline](physics/log-readings.md#two-logs-on-one-timeline) | ✓ the offset within its bound on all 1,383 two-logger and 135 staged synthetic flights that gave one, largest error 0.21 s; its 90% interval passes the coverage test on both two-logger sets, narrowed, widened and shifted each failing | no | partial: [one real pair, a weak check](evidence.md#g35): RocketPy's Prometheus, about 0.08 s from the offset its two boards' GPS time gives, where a zero offset would miss by 0.13 s; [no real staged flight](evidence.md#g36) | no |
-| [A log against its simulation](comparing-a-flight.md) | ✓ the sign, a barometer's reading on a warm day and the clock on constructed flights; a log of the simulation's own flight leaves an RMS under 1 m (3.3 ft) | no | partial: [each of the 7 public flights](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/flight-residuals.md) is reported, and its simulated apogee, read by the log's reader, stays within 0.5 m (1.6 ft) of the flight's own event; this reports residuals, and checks no claim about them | no |
+| [A log against its simulation](comparing-a-flight.md) | ✓ the sign, a barometer's reading on a warm day and the clock on constructed flights; a log of the simulation's own flight leaves an RMS under 1 m (3.3 ft) | no | partial: [each of the 7 public flights compared along the climb](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/flight-residuals.md) is reported, and its simulated apogee, read by the log's reader, stays within 0.5 m (1.6 ft) of the flight's own event; this reports residuals, and checks no claim about them | no |
 | [Ghost files](format/ghost-files.md) | ✓ each format read back by outside readers and held to the others within 1 cm (0.39 in) | no | ✓ [all 22 real flight logs in RocketPy's repository](evidence.md#g37) with an altitude or a GNSS track: of the 16 logs with a barometer's or a filtered height, 13 peak within 2% of a recorded apogee in RocketPy's notebooks and 3 about 0.3% from its simulated one; the two with only a receiver's altitude 4.9% and 5.9% over | no |
 | [The least-squares fit](physics/flight-fit.md) | ✓ each parameter's 90% interval passes on sets A and B of the synthetic flights, the wind's on logs with a track, sets seen while its model was chosen | no | no | no: no real flight with its inputs measured apart from its log yet ([evidence row G38](evidence.md#g38)) |
 | [The smoother](physics/smoother.md) | ✓ at burnout, the top speed, apogee and a drawn moment, the three sets' cells hold between 94.3% and 99.4% of the synthetic flights' truths inside its 90% intervals; two logger cells fall under 90%, 89.2% on set B and 89.7% on set A, which the check's rule allows; the test sets were seen while its rules were set ([how well](physics/smoother.md#how-well-it-holds)) | no | no | no: no real log with a truth taken apart from it yet ([evidence row G33](evidence.md#g33)) |
@@ -800,7 +800,8 @@ those 12 flights' ([report][real-report]), not as a bound on every rocket. The r
 compared first. The five predicted first have [their own part](#predicted-before-compared).
 
 **What is flown.** [RocketPy](glossary.md#rocketpy)'s documentation flies more than a dozen
-rockets against their teams' logs. HPR Sim flies seven of them the way a user would. The design is
+rockets against their teams' logs. HPR Sim flies ten of them the way a user would: the seven here, and three of the flights
+[predicted first](#predicted-before-compared). The design is
 built from the example's masses and shapes, with HPR Sim's own aerodynamics. The thrust is the
 example's own file, read as RocketPy reads it, to the same total impulse.
 
@@ -859,7 +860,7 @@ of its height ([report][real-report]). That's the same direction and nearly the 
 2 points lower on both, on the side of both flights' misses. Juno III's log is cut up to 20 m (66 ft)
 below its apogee, which would put its own ratio as high as 0.941 ([decision][adr-082]).
 
-Four logs are cut by hand just before a transient at their apogee, where the reading jumps. Juno
+Four of the seven logs are cut by hand just before a transient at their apogee, where the reading jumps. Juno
 III's rises 62 m (203 ft) in 0.3 s as it levels off. The team's reported apogee is that
 spike. At the cut its own velocity column still reads 17.5 m/s (57 ft/s) up. So its apogee may be 10 m (33 ft) to
 20 m (66 ft) low ([report][real-report]). Cavour's is read to its apogee event, just after its
@@ -1256,7 +1257,7 @@ These are the largest known differences and missing pieces. Each model page's *I
 rest.
 
 - **HPR Sim's own drag in a whole flight.** Its heights differ from RocketPy's by −7.280% to
-  +10.302%, where its drag differs from the examples' ([report][report]). Against real flights, four of the five
+  +10.302%, where its drag differs from the examples' ([report][report]). Against the seven real flights compared first, four of the five
   apogees more than 5% from their logs are consistent with HPR Sim's drag
   ([real flights](#real-flights), [real-flight report][real-report]).
 - **Drag faster than sound reads high** against NASA's wind tunnel, above all with fins. With the

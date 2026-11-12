@@ -91,7 +91,7 @@ the logged one makes a negative miss in the report's rows. Of the 60 flights, 15
 lowest of them between 15% and 20% low ([report][fixture-report]). A sample isn't a bound: a
 rocket unlike these may miss by more.
 
-One of the public flights shows the low side. An altimeter riding HPR Sim's flight of Juno III,
+Juno III, one of the public flights, shows what the low side looks like. An altimeter riding HPR Sim's flight of Juno III,
 Projeto Jupiter, Spaceport America Cup 2023 would have read 2,923.4 m (9,591 ft) at the top. The
 team's altimeter read 3,151.5 m (10,340 ft), a miss of −7.24% ([report][real-report]). The real
 altimeter read 228.1 m (748 ft) higher than the simulated one, and its log ends just short of the

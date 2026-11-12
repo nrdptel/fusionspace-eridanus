@@ -73,7 +73,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
             },
             row.revised_because
                 .as_ref()
-                .map_or(String::new(), |because| format!("  revised, because {because}"))
+                .map_or(String::new(), |because| format!(
+                    "  revised, because {because}"
+                ))
         );
     }
     let summary = &report.summary;

@@ -663,15 +663,16 @@ The command then flies the five public flights whose predictions were merged fir
 The report holds all 12, and its means are over all 12.
 
 HPR Sim's height is read as the log's barometric altimeter reads the air: the standard
-atmosphere's altitude of the ERA5 pressure, less the start's. Each log is read up to its apogee,
-stopping before the recovery's pressure transients. The logs, thrust files and weather files are
-read from the pinned `refs/rocketpy` checkout and never committed. The report,
+atmosphere's altitude of the ERA5 pressure, less the start's. Each log of the seven compared first is read up to its apogee,
+stopping before the recovery's pressure transients; each predicted flight's is read by the rule
+merged with its prediction. The logs, thrust files and weather files are
+read from the pinned checkouts under `refs/` and never committed. The report,
 `validation/reports/real-flights.{json,md}`, commits only the numbers and each file's SHA-256. Each
-flight is flown again on its example's own drag as a diagnostic.
+of the seven is flown again on its example's own drag as a diagnostic.
 
 The mean absolute apogee error is reported against the 5% target of the principles above, not
-gated. A flight outside 5% must carry an explanation that's a checked claim, and one inside must
-not. `drag` says the flight on the example's drag is within the target, and any on the recorded
+gated. Among the seven compared first, a flight outside 5% must carry an explanation that's a
+checked claim, and one inside must not. `drag` says the flight on the example's drag is within the target, and any on the recorded
 thrust file isn't. `thrust` is for an example that reshapes its thrust file. The flight on the
 file as recorded is within the target, and the one on the example's drag isn't.
 

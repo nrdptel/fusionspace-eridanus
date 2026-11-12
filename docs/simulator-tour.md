@@ -255,8 +255,8 @@ columns.
 ## A real flight
 
 The guide rocket has no log, so its numbers can't be checked against the sky. The public flights
-in the [real-flights report][real-report] can. Each is a university team's rocket. HPR Sim flies
-each one in a [reanalysis](glossary.md#reanalysis) of the weather, its own day's for all but one,
+in the [real-flights report][real-report] can. Most are university teams' rockets. HPR Sim flies
+each of those in a [reanalysis](glossary.md#reanalysis) of the weather, its own day's for all but one,
 and sets it against the team's altimeter.
 
 The tour takes the middle one by a rule, not by choice. Of the 7 flights compared along their
@@ -286,7 +286,8 @@ assumed.
 miss to plan for.
 
 **Sources.** The public flights are among those RocketPy's documentation flies against their teams'
-logs. The weather is ERA5, generated using Copernicus Climate Change Service information 2026, and
+logs, but for one rocket's two flights, which come from a public repository of designs and logs.
+The weather is ERA5, generated using Copernicus Climate Change Service information 2026, and
 contains modified Copernicus Climate Change Service information 2026. Neither the European
 Commission nor ECMWF is responsible for any use made of it. The
 [logged flights' report][fixture-report] gives the full attribution and the ERA5 citations.

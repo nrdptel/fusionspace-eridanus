@@ -224,8 +224,9 @@ and the largest change was 0.000050%; 2 of 75 designs didn't make the trip
 **Sources.** The logged flights are a private collection of designs and their logs, shared as
 aggregates only. They come from university rocketry teams, rocketry courses and hobbyists.
 
-The public flights are among those RocketPy's documentation flies against their teams' logs. Both
-fly in ERA5 weather: generated using Copernicus Climate Change Service information 2026, and
+The public flights are among those RocketPy's documentation flies against their teams' logs, but
+for one rocket's two flights, which come from a public repository of designs and logs. The logged
+flights and RocketPy's fly in ERA5 weather: generated using Copernicus Climate Change Service information 2026, and
 contains modified Copernicus Climate Change Service information 2026. Neither the European
 Commission nor ECMWF is responsible for any use made of it. The [logged flights'
 report][fixture-report] gives the full attribution and the ERA5 citations.

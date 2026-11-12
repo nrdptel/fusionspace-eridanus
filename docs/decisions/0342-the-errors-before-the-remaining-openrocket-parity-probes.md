@@ -45,8 +45,8 @@ mass][m2-3d6] ([ADR-335][adr-335]), is what the Macie XL predictions needed
 M2.3d4 then grew. Probe designs showed more stage overrides that HPR Sim reads differently from
 OpenRocket or refuses, and [ADR-336][adr-336] and [ADR-341][adr-341] split the work into more
 increments: a parallel stage, parts that weigh nothing, flights that part a stage, and the
-inertia on a lower stage and with a motor aboard. None of the 12 flights' designs has any of
-these. Each increment measures HPR Sim against OpenRocket 24.12 on a design made for the
+inertia on a lower stage and with a motor aboard. Ten of the 12 flights' designs are built from
+RocketPy's examples, not read from an OpenRocket file. Each increment measures HPR Sim against OpenRocket 24.12 on a design made for the
 purpose.
 
 The maintainer asked whether that work is done because OpenRocket does it or because it is
@@ -71,14 +71,14 @@ OpenRocket parity that no logged flight needs.
    the lower of two stages, HPR Sim's inertia across the axis is 4.95% and 3.33% over
    OpenRocket's. [ADR-340][adr-340] decision 4 measured why: read as the lower stage's own
    inertia about its center, OpenRocket's figure is below what the stage's tube alone has there,
-   so no stage that keeps its parts in place gives it. HPR Sim does not reproduce a figure no
-   body has. M2.3d9's *done when* loses that clause and keeps the other. M2.3d9 is now: *on the
+   so no stage that keeps its parts in place gives it. HPR Sim does not reproduce a figure that no
+   stage keeping its parts in place has. M2.3d9's *done when* loses that clause and keeps the other. M2.3d9 is now: *on the
    motor's airframe, under an added mass beside a center that covers the parts, the inertia
    across the axis with the motor aboard, at launch and at burnout, is held to OpenRocket's
    within 3 parts in a million, the motor's own term taken from OpenRocket's record.* M2.3d4's
    *done when* holds a stage's inertia to OpenRocket's on probe designs but for the inertia
    across the axis on those two. The two stay pinned at 4.95% and 3.33% over by the test that
-   holds them now (`STAGE_WHOLE_BELOW`), so a change in either direction fails, and the pages on
+   holds them now (`STAGE_WHOLE_BELOW`), so a change of 0.01 points or more in either direction fails, and the pages on
    the `.ork` format and on design overrides say the difference stands.
 4. **How the errors are computed.**
    - `cargo xtask real-flights` flies the seven flights compared before, then the five

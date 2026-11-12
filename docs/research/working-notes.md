@@ -142,7 +142,7 @@ learn something the next person needs. Each bullet is one topic; keep the file u
   statistics (needs `refs/rocketpy`). M2.3d3: `public_predictions::NEW_FLIGHTS`, after `euroc_2022.py`; no log parsed; `MERGED` pins them.
   M2.3d5 (ADR-337): `DESIGN_FILE_FLIGHTS` fly a `.ork`'s stored simulation from `refs/public-flights/` (not in `xtask ork`); digests: `ork-curves`.
   M2.3d2 (ADR-342): `hpr_validate::predicted_first` compares them (`RULES`: the rules as code; `real-flights`: merged prediction, log apogee, error);
-  only `public_predictions::REVISIONS` (empty) lets one differ from `MERGED`. `real_flight.rs`'s `Summary`: all 12, with means over
+  only `public_predictions::REVISIONS` (empty) lets one differ from `MERGED` past 0.05 m. `real_flight.rs`'s `Summary`: all 12, with means over
   `compared_first`, `predicted_first`, `traced`, `era5_weather`.
 - Flutter (ADR-078): moduli in `materials::SHEAR_MODULI`; metrics (ADR-077): margin `None` past `κ =
   √10`. `.ork` since M1.9c (ADR-076): ignitions, clusters, powered splits fly (several since ADR-160),

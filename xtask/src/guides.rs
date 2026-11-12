@@ -406,7 +406,11 @@ fn trust_quotes() -> Vec<Quote> {
         },
         Quote {
             template: "{} of them flown in a",
-            holes: |r| Ok(vec![r.count(REAL, "/summary/era5_weather/flights")?.to_string()]),
+            holes: |r| {
+                Ok(vec![
+                    r.count(REAL, "/summary/era5_weather/flights")?.to_string(),
+                ])
+            },
         },
         Quote {
             template: "missed them by {} on average without signs, from {} to {} one by one. With \

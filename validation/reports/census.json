@@ -1,7 +1,8 @@
 {
   "generated_by": "cargo xtask census --accept",
-  "reason": "M2.3d2 (ADR-342): the five public flights predicted first join the real flights, each compared at its apogee",
+  "reason": "M2.3d2 (ADR-342): the five public flights predicted first join the real flights, each compared at its apogee, and the reference is named for all 12",
   "changes": [
+    "reference: real flights compared with `the teams' altimeter logs` before and `the public flights' altimeter logs` now",
     "added: real flights: andromeda apogee (within the bar)",
     "added: real flights: astra apogee (over the bar)",
     "added: real flights: erebus-11 apogee (over the bar)",
@@ -208,7 +209,7 @@
     },
     {
       "group": "flight_logs",
-      "reference": "the teams' altimeter logs",
+      "reference": "the public flights' altimeter logs",
       "cases": 12,
       "not_flown": 0,
       "regimes": {
@@ -253,7 +254,7 @@
       "predicted": "rocketpy 1.13.0 with upstream PRs #1188 and #1196 applied (corrections.py)",
       "open_rocket_examples": "OpenRocket 24.12",
       "open_rocket_library": "OpenRocket 24.12",
-      "flight_logs": "the teams' altimeter logs"
+      "flight_logs": "the public flights' altimeter logs"
     },
     "rows": [
       {
