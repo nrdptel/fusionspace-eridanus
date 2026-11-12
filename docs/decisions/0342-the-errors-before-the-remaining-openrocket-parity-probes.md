@@ -102,7 +102,7 @@ OpenRocket parity that no logged flight needs.
      All seven count in the traced means. Tagging them now, with their errors known, would let
      the tags choose the mean. So the traced means are over 9 flights: the seven, Astra and
      Erebus 11.
-   - Two numbers are shown beside a flight and never counted: Andromeda on its catalog curve,
+   - Two kinds of number are shown beside a flight and never counted: Andromeda on its catalog curve,
      as ADR-328 asked, and for each Macie XL flight the apogee of the OpenRocket simulation
      stored in its design file.
    - No explanation is claimed for a predicted flight outside the 5% target. The report's

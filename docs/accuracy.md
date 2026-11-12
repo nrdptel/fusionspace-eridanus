@@ -795,8 +795,9 @@ impulse. The other five flights were [predicted first](#predicted-before-compare
 13.12% on average, and no explanation is claimed for them ([report][real-report]).**
 
 Seven of the 12 altimeters' kinds are assumed and none is calibrated (evidence rows
-[G21](evidence.md#g21) and [G39](evidence.md#g39)). The fin edges of the ten designs built from
-RocketPy's examples are placeholders ([the predictions' note on what is traced][predictions]). So read the numbers as
+[G21](evidence.md#g21) and [G39](evidence.md#g39)). In the ten designs built from
+RocketPy's examples, a fin's edge shape is a placeholder where no airfoil file or published section gives it
+([the predictions' note on what is traced][predictions]). So read the numbers as
 those 12 flights' ([report][real-report]), not as a bound on every rocket. The rest of this part is about the seven
 compared first. The five predicted first have [their own part](#predicted-before-compared).
 
