@@ -65,6 +65,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
+use crate::predicted_first::ComparedPrediction;
+
 /// The report, as data.
 pub const REPORT_JSON: &str = "validation/reports/real-flights.json";
 
@@ -704,7 +706,38 @@ pub struct RecordedThrust {
     pub apogee_error_percent: f64,
 }
 
-/// What the report sums up.
+/// The mean apogee errors over some of the report's flights.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Means {
+    /// The flights the means are over.
+    pub flights: usize,
+    /// The mean of their absolute apogee errors, per cent.
+    pub mean_absolute_apogee_error_percent: f64,
+    /// The mean of their apogee errors with their signs, per cent.
+    pub mean_apogee_error_percent: f64,
+}
+
+impl Means {
+    /// The means of `errors`, summed in their order; zeros over no flights.
+    fn of(errors: impl Iterator<Item = f64>) -> Self {
+        let (mut flights, mut absolute, mut signed) = (0_usize, 0.0, 0.0);
+        for error in errors {
+            flights += 1;
+            absolute += error.abs();
+            signed += error;
+        }
+        let n = flights.max(1) as f64;
+        Self {
+            flights,
+            mean_absolute_apogee_error_percent: absolute / n,
+            mean_apogee_error_percent: signed / n,
+        }
+    }
+}
+
+/// What the report sums up: over every flight, the seven compared as soon as they were flown
+/// ([`RealFlightReport::flights`]) and the five predicted first
+/// ([`RealFlightReport::predicted_first`]), unless a field says otherwise.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Summary {
     /// Flights compared.
@@ -725,10 +758,29 @@ pub struct Summary {
     pub mean_absolute_known_barometric_apogee_error_percent: f64,
     /// The flights whose apogee misses by more than the target.
     pub outliers: Vec<String>,
-    /// The largest trace RMS as a percentage of its log's apogee.
+    /// The largest trace RMS as a percentage of its log's apogee, over the flights compared
+    /// with a trace: [`RealFlightReport::flights`].
     pub max_trace_rms_percent: f64,
-    /// The mean absolute apogee error on each example's own drag, per cent.
+    /// The mean absolute apogee error on each example's own drag, per cent, over the flights
+    /// that diagnostic is flown for: [`RealFlightReport::flights`].
     pub example_drag_mean_absolute_apogee_error_percent: f64,
+    /// Over the flights compared as soon as they were flown ([`RealFlightReport::flights`]).
+    pub compared_first: Means,
+    /// Over the flights whose predictions were merged before their logs were compared
+    /// ([`RealFlightReport::predicted_first`]).
+    pub predicted_first: Means,
+    /// Over the flights not tagged *not traced*: the predicted flights whose inputs are all
+    /// traced to their records, and every flight compared first, which was compared before
+    /// tags existed and carries none ([ADR-342][adr-342]).
+    ///
+    /// [adr-342]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0342-the-errors-before-the-remaining-openrocket-parity-probes.md
+    pub traced: Means,
+    /// Over the flights flown in ERA5 weather: all but those flown as a stored simulation.
+    pub era5_weather: Means,
+    /// Over every flight with each revised prediction replaced by the one first merged; `None`
+    /// when no prediction has been revised, and the means above are then the merged
+    /// predictions' to the digit their page printed.
+    pub on_merged_predictions: Option<Means>,
 }
 
 /// The real-flight report.
@@ -740,8 +792,11 @@ pub struct RealFlightReport {
     pub align_height_m: f64,
     /// The grid hpr's heights are kept on, s.
     pub grid_s: f64,
-    /// Each flight.
+    /// Each flight compared as soon as it was flown, with its trace and its diagnostics.
     pub flights: Vec<FlightRow>,
+    /// Each flight whose prediction was merged before its log was compared
+    /// ([`crate::predicted_first`]).
+    pub predicted_first: Vec<ComparedPrediction>,
     /// The summary, computed from the rows.
     pub summary: Summary,
 }
@@ -1739,42 +1794,91 @@ fn percent_of(value: f64, reference: f64) -> f64 {
     100.0 * (value - reference) / reference
 }
 
-/// The summary of `rows`.
+/// One flight's numbers as the summary takes them, whichever list it is in.
+struct Scored<'a> {
+    id: &'a str,
+    altimeter: &'a str,
+    log_apogee_m: f64,
+    hpr_apogee_m: f64,
+    hpr_height_apogee_m: f64,
+    error_percent: f64,
+    /// The merged prediction's error where the flight has one, else its own.
+    merged_error_percent: f64,
+    predicted_first: bool,
+    traced: bool,
+    era5_weather: bool,
+}
+
+/// The summary of `rows`, the flights compared first, and `predicted`, the flights predicted
+/// first: the means over all of them in that order, and over each part.
 #[must_use]
-pub fn summarize(rows: &[FlightRow]) -> Summary {
-    let n = rows.len().max(1) as f64;
-    let mean_absolute = rows
+pub fn summarize(rows: &[FlightRow], predicted: &[ComparedPrediction]) -> Summary {
+    let scored: Vec<Scored<'_>> = rows
         .iter()
-        .map(|row| row.apogee_error_percent.abs())
-        .sum::<f64>()
-        / n;
+        .map(|row| Scored {
+            id: &row.id,
+            altimeter: &row.altimeter,
+            log_apogee_m: row.log_apogee_m,
+            hpr_apogee_m: row.hpr_apogee_m,
+            hpr_height_apogee_m: row.hpr_height_apogee_m,
+            error_percent: row.apogee_error_percent,
+            merged_error_percent: row.apogee_error_percent,
+            predicted_first: false,
+            // Compared before tags existed: no tag, so never left out (ADR-342).
+            traced: true,
+            era5_weather: true,
+        })
+        .chain(predicted.iter().map(|row| Scored {
+            id: &row.id,
+            altimeter: &row.altimeter,
+            log_apogee_m: row.log_apogee_m,
+            hpr_apogee_m: row.hpr_apogee_m,
+            hpr_height_apogee_m: row.hpr_height_apogee_m,
+            error_percent: row.apogee_error_percent,
+            merged_error_percent: row.merged_apogee_error_percent,
+            predicted_first: true,
+            traced: row.all_inputs_traced,
+            era5_weather: row.era5_weather,
+        }))
+        .collect();
+    let n = scored.len().max(1) as f64;
+    let seven = rows.len().max(1) as f64;
+    let every = Means::of(scored.iter().map(|flight| flight.error_percent));
+    let over = |keep: fn(&Scored<'_>) -> bool| {
+        Means::of(
+            scored
+                .iter()
+                .filter(|flight| keep(flight))
+                .map(|flight| flight.error_percent),
+        )
+    };
     Summary {
-        flights: rows.len(),
-        mean_absolute_apogee_error_percent: mean_absolute,
+        flights: scored.len(),
+        mean_absolute_apogee_error_percent: every.mean_absolute_apogee_error_percent,
         target_percent: APOGEE_TARGET_PERCENT,
-        within_target: mean_absolute <= APOGEE_TARGET_PERCENT,
-        mean_apogee_error_percent: rows.iter().map(|row| row.apogee_error_percent).sum::<f64>() / n,
-        mean_absolute_height_apogee_error_percent: rows
+        within_target: every.mean_absolute_apogee_error_percent <= APOGEE_TARGET_PERCENT,
+        mean_apogee_error_percent: every.mean_apogee_error_percent,
+        mean_absolute_height_apogee_error_percent: scored
             .iter()
-            .map(|row| percent_of(row.hpr_height_apogee_m, row.log_apogee_m).abs())
+            .map(|flight| percent_of(flight.hpr_height_apogee_m, flight.log_apogee_m).abs())
             .sum::<f64>()
             / n,
-        mean_absolute_known_barometric_apogee_error_percent: rows
+        mean_absolute_known_barometric_apogee_error_percent: scored
             .iter()
-            .map(|row| {
-                let apogee_m = if row.altimeter == Altimeter::AssumedBarometric("").kind() {
-                    row.hpr_height_apogee_m
+            .map(|flight| {
+                let apogee_m = if flight.altimeter == Altimeter::AssumedBarometric("").kind() {
+                    flight.hpr_height_apogee_m
                 } else {
-                    row.hpr_apogee_m
+                    flight.hpr_apogee_m
                 };
-                percent_of(apogee_m, row.log_apogee_m).abs()
+                percent_of(apogee_m, flight.log_apogee_m).abs()
             })
             .sum::<f64>()
             / n,
-        outliers: rows
+        outliers: scored
             .iter()
-            .filter(|row| row.apogee_error_percent.abs() > APOGEE_TARGET_PERCENT)
-            .map(|row| row.id.clone())
+            .filter(|flight| flight.error_percent.abs() > APOGEE_TARGET_PERCENT)
+            .map(|flight| flight.id.to_owned())
             .collect(),
         max_trace_rms_percent: rows
             .iter()
@@ -1784,11 +1888,24 @@ pub fn summarize(rows: &[FlightRow]) -> Summary {
             .iter()
             .map(|row| row.example_drag_apogee_error_percent.abs())
             .sum::<f64>()
-            / n,
+            / seven,
+        compared_first: over(|flight| !flight.predicted_first),
+        predicted_first: over(|flight| flight.predicted_first),
+        traced: over(|flight| flight.traced),
+        era5_weather: over(|flight| flight.era5_weather),
+        on_merged_predictions: predicted
+            .iter()
+            .any(|row| row.revised_because.is_some())
+            .then(|| Means::of(scored.iter().map(|flight| flight.merged_error_percent))),
     }
 }
 
-/// Flies every flight in [`FLIGHTS`] and builds the report.
+/// Flies every flight in [`FLIGHTS`], then the five predicted first
+/// ([`crate::public_predictions::run`]), compares each of those with its log
+/// ([`crate::predicted_first::compare`]) and builds the report.
+///
+/// A predicted flight that no longer flies as it was merged fails here unless
+/// [`crate::public_predictions::REVISIONS`] keeps both numbers and says why.
 ///
 /// # Errors
 ///
@@ -1798,28 +1915,59 @@ pub fn run(root: &Path) -> Result<RealFlightReport, RealFlightError> {
         .iter()
         .map(|flight| fly(root, flight))
         .collect::<Result<Vec<_>, _>>()?;
-    let summary = summarize(&flights);
+    let predictions = crate::public_predictions::run(root)?;
+    let input = |what: String| RealFlightError::Input {
+        flight: "the predicted flights".to_owned(),
+        what,
+    };
+    predictions
+        .check_consistent(&predictions.to_markdown())
+        .map_err(input)?;
+    let committed = read_bytes(
+        root,
+        crate::public_predictions::PREDICTIONS_JSON,
+        "reading the committed predictions",
+    )?;
+    let committed: crate::public_predictions::PredictionsReport =
+        serde_json::from_slice(&committed).map_err(|error| {
+            input(format!(
+                "{}: {error}",
+                crate::public_predictions::PREDICTIONS_JSON
+            ))
+        })?;
+    let predicted_first = crate::predicted_first::compare(root, &predictions, &committed)?;
+    let summary = summarize(&flights, &predicted_first);
     Ok(RealFlightReport {
         generated_by: "cargo xtask real-flights".to_owned(),
         align_height_m: ALIGN_HEIGHT_M,
         grid_s: GRID_S,
         flights,
+        predicted_first,
         summary,
     })
 }
 
 impl RealFlightReport {
     /// Whether the report holds together without the files it was flown from, as CI checks it:
-    /// each row's percentages are its meters', the summary is the rows', every outlier has an
-    /// explanation that holds and no other flight has one, and the page is this report's
-    /// rendering.
+    /// each row's percentages are its meters', the summary is the rows', every outlier among
+    /// the flights compared first has an explanation that holds and no other of them has one,
+    /// each predicted flight is the one merged or carries its revision
+    /// ([`ComparedPrediction::check`]), and the page is this report's rendering.
     ///
     /// # Errors
     ///
     /// The first thing that doesn't hold, in words.
     pub fn check_consistent(&self, markdown: &str) -> Result<(), String> {
-        if self.summary != summarize(&self.flights) {
+        if self.summary != summarize(&self.flights, &self.predicted_first) {
             return Err("the summary is not the rows'".to_owned());
+        }
+        crate::predicted_first::check_listed(&self.predicted_first)?;
+        for row in &self.predicted_first {
+            row.check(
+                &crate::public_predictions::MERGED,
+                &crate::public_predictions::REVISIONS,
+            )
+            .map_err(|what| format!("{}: {what}", row.id))?;
         }
         let same = crate::report::same_but_for_platform_rounding;
         for row in &self.flights {
@@ -1903,7 +2051,8 @@ impl RealFlightReport {
     }
 
     /// Whether `other`, a run of today, reproduces this committed report: the same flights, files,
-    /// words and counts, and numbers the same but for the platform's last digits.
+    /// words and counts, and numbers the same but for the platform's last digits, for the
+    /// flights compared first and the flights predicted first alike.
     ///
     /// # Errors
     ///
@@ -2041,6 +2190,108 @@ impl RealFlightReport {
                 }
             }
         }
+        if self.predicted_first.len() != other.predicted_first.len() {
+            return Err(format!(
+                "{} predicted flights committed, {} flown",
+                self.predicted_first.len(),
+                other.predicted_first.len()
+            ));
+        }
+        for (a, b) in self.predicted_first.iter().zip(&other.predicted_first) {
+            let shown = |row: &ComparedPrediction| {
+                [&row.catalog_curve, &row.openrocket_stored].map(|shown| {
+                    shown
+                        .as_ref()
+                        .map(|shown| (shown.what.clone(), shown.apogee_m))
+                })
+            };
+            let (shown_a, shown_b) = (shown(a), shown(b));
+            let differs = [
+                ("id", a.id != b.id),
+                ("title", a.title != b.title),
+                ("altimeter", a.altimeter != b.altimeter),
+                (
+                    "altimeter's evidence",
+                    a.altimeter_evidence != b.altimeter_evidence,
+                ),
+                ("air", a.era5_weather != b.era5_weather),
+                ("log", a.reference_log != b.reference_log),
+                (
+                    "log's digest",
+                    a.reference_log_sha256 != b.reference_log_sha256,
+                ),
+                ("rule", a.reference_rule != b.reference_rule),
+                ("log rows", a.log_rows != b.log_rows),
+                ("merged prediction", a.merged_apogee_m != b.merged_apogee_m),
+                (
+                    "merged prediction as a height",
+                    a.merged_height_apogee_m != b.merged_height_apogee_m,
+                ),
+                ("revision", a.revised_because != b.revised_because),
+                ("traced tag", a.all_inputs_traced != b.all_inputs_traced),
+                ("untraced list", a.untraced != b.untraced),
+                (
+                    "highest sample",
+                    a.log_highest_sample_m.is_some() != b.log_highest_sample_m.is_some(),
+                ),
+                (
+                    "numbers shown beside it",
+                    shown_a
+                        .iter()
+                        .zip(&shown_b)
+                        .any(|(x, y)| match (x, y) {
+                            (Some((what_x, _)), Some((what_y, _))) => what_x != what_y,
+                            (None, None) => false,
+                            _ => true,
+                        }),
+                ),
+            ];
+            if let Some((what, _)) = differs.iter().find(|(_, differ)| *differ) {
+                return Err(format!("{}: the {what} differs", a.id));
+            }
+            let shown_apogee = |shown: &[Option<(String, f64)>; 2], index: usize| {
+                shown[index].as_ref().map_or(0.0, |(_, apogee_m)| *apogee_m)
+            };
+            for (what, x, y) in [
+                ("log apogee", a.log_apogee_m, b.log_apogee_m),
+                (
+                    "log's highest sample",
+                    a.log_highest_sample_m.unwrap_or(0.0),
+                    b.log_highest_sample_m.unwrap_or(0.0),
+                ),
+                ("hpr apogee", a.hpr_apogee_m, b.hpr_apogee_m),
+                (
+                    "hpr apogee as a height",
+                    a.hpr_height_apogee_m,
+                    b.hpr_height_apogee_m,
+                ),
+                (
+                    "apogee error",
+                    a.apogee_error_percent,
+                    b.apogee_error_percent,
+                ),
+                (
+                    "merged prediction's error",
+                    a.merged_apogee_error_percent,
+                    b.merged_apogee_error_percent,
+                ),
+                ("hpr's largest Mach number", a.hpr_max_mach, b.hpr_max_mach),
+                (
+                    "catalog curve's apogee",
+                    shown_apogee(&shown_a, 0),
+                    shown_apogee(&shown_b, 0),
+                ),
+                (
+                    "stored simulation's apogee",
+                    shown_apogee(&shown_a, 1),
+                    shown_apogee(&shown_b, 1),
+                ),
+            ] {
+                if !same(x, y) {
+                    return Err(format!("{}: the {what} is {x} committed, {y} flown", a.id));
+                }
+            }
+        }
         if (self.align_height_m, self.grid_s) != (other.align_height_m, other.grid_s)
             || self.generated_by != other.generated_by
         {
@@ -2057,40 +2308,75 @@ impl RealFlightReport {
         let _ = writeln!(out, "# hpr against the logs of real flights\n");
         let _ = writeln!(
             out,
-            "Written by `{}` ([M2.3b][m2-3b], decision [ADR-082][adr-082]). How it is done, \
-             and what it means, is on the [documentation site][site].\n\n\
+            "Written by `{}` ([M2.3b][m2-3b], decision [ADR-082][adr-082]; the flights \
+             predicted first: [M2.3d2][m2-3d2], decisions [ADR-328][adr-328] and \
+             [ADR-342][adr-342]). How it is done, and what it means, is on the [documentation \
+             site][site].\n\n\
              - **What is flown:** {} of the rockets RocketPy's documentation flies against their \
              teams' altitude logs. hpr flies each with its own aerodynamics, on the example's \
              own thrust file, from the example's rail and site, in the ERA5 weather the example \
-             reads. The log is the reference.\n\
+             reads. The log is the reference. They were compared as soon as they were flown.\n\
+             - **Predicted first:** {} more public flights, each predicted in a pull request \
+             merged before its log was compared ([the predictions][predictions], which give \
+             their inputs). Their rows are in [their own section](#predicted-before-they-were-compared); \
+             the summary counts all {}.\n\
              - **Heights:** a barometric altimeter reads the standard atmosphere's altitude of \
              the pressure it measures, less the pad's. hpr's height is read the same way, from \
-             the ERA5 pressure at its center of mass, less the start's. Each log is read up to \
-             its apogee, stopping before the recovery's pressure transients.\n\
+             the pressure of the air it flew in at its center of mass, less the start's. Each \
+             log of the flights compared first is read up to its apogee, stopping before the \
+             recovery's pressure transients; each predicted flight's is read by the rule merged \
+             with its prediction.\n\
              - **Trace RMS:** over the ascent, both clocks aligned where the trace first \
-             reaches {} m, until the first of the two apogees.\n\
+             reaches {} m, until the first of the two apogees. Only the flights compared first \
+             have one.\n\
              - **Files:** the logs, thrust files and weather files are read from the pinned \
-             RocketPy checkout and never committed; each one's SHA-256 is in the JSON.\n",
+             checkouts and never committed; each one's SHA-256 is in the JSON, the predicted \
+             flights' inputs' in the predictions' JSON.\n",
             self.generated_by,
             self.flights.len(),
+            self.predicted_first.len(),
+            s.flights,
             fmt_number(self.align_height_m, 0)
         );
         let _ = writeln!(
             out,
             "[m2-3b]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3b\n\
              [adr-082]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-082-real-flights-read-from-refs-compared-over-the-ascent-with-checked-explanations-2026-09-26\n\
+             [m2-3d2]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3d2\n\
+             [adr-328]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md\n\
+             [adr-342]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0342-the-errors-before-the-remaining-openrocket-parity-probes.md\n\
+             [predictions]: public-predictions.md\n\
              [site]: https://hpr.fusionspace.co/accuracy.html#real-flights\n"
         );
         let _ = writeln!(out, "## Summary\n");
+        let means = |means: &Means| {
+            format!(
+                "mean absolute apogee error {}%, with its sign {}%",
+                fmt_number(means.mean_absolute_apogee_error_percent, 2),
+                fmt_signed(means.mean_apogee_error_percent, 2)
+            )
+        };
         let _ = writeln!(
             out,
-            "- Flights: {}.\n- Mean absolute apogee error: {}% against a target of {}%: {}.\n\
-             - Mean apogee error with its sign: {}%.\n- Mean absolute apogee error were every \
+            "- Flights: {}: {} compared as soon as they were flown, {} predicted first.\n\
+             - Mean absolute apogee error: {}% against a target of {}%: {}.\n\
+             - Mean apogee error with its sign: {}%.\n\
+             - Over the {} compared first: {}.\n\
+             - Over the {} predicted first: {}.\n\
+             - Over the {} with no input tagged not traced: {}. The flights compared first \
+             carry no tag, having been compared before tags existed, and all count here.\n\
+             - Over the {} flown in ERA5 weather: {}.\n\
+             - {}\n\
+             - Mean absolute apogee error were every \
              log a height, not a barometric reading: {}%.\n- Mean absolute apogee error with \
              only the logs known to be barometric read so, the assumed ones as heights: {}%.\n\
-             - Largest trace RMS: {}% of its log's apogee.\n- Outside the target: {}.\n- On \
-             each example's own drag, the diagnostic flight: mean absolute apogee error {}%.\n",
+             - Largest trace RMS, over the {} compared first: {}% of its log's apogee.\n\
+             - Outside the target: {}.\n- On \
+             each example's own drag, the diagnostic flight, over the {} compared first: mean \
+             absolute apogee error {}%.\n",
             s.flights,
+            s.compared_first.flights,
+            s.predicted_first.flights,
             fmt_number(s.mean_absolute_apogee_error_percent, 2),
             fmt_number(s.target_percent, 0),
             if s.within_target {
@@ -2099,17 +2385,40 @@ impl RealFlightReport {
                 "outside target"
             },
             fmt_signed(s.mean_apogee_error_percent, 2),
+            s.compared_first.flights,
+            means(&s.compared_first),
+            s.predicted_first.flights,
+            means(&s.predicted_first),
+            s.traced.flights,
+            means(&s.traced),
+            s.era5_weather.flights,
+            means(&s.era5_weather),
+            s.on_merged_predictions.as_ref().map_or_else(
+                || {
+                    "No merged prediction has been revised: each predicted flight's error is \
+                     its merged prediction's, to the digit its page printed."
+                        .to_owned()
+                },
+                |merged| {
+                    format!(
+                        "On the predictions as first merged, each revised one put back: {}.",
+                        means(merged)
+                    )
+                }
+            ),
             fmt_number(s.mean_absolute_height_apogee_error_percent, 2),
             fmt_number(s.mean_absolute_known_barometric_apogee_error_percent, 2),
+            s.compared_first.flights,
             fmt_number(s.max_trace_rms_percent, 2),
             if s.outliers.is_empty() {
                 "none".to_owned()
             } else {
                 s.outliers.join(", ")
             },
+            s.compared_first.flights,
             fmt_number(s.example_drag_mean_absolute_apogee_error_percent, 2)
         );
-        let _ = writeln!(out, "## Flights\n");
+        let _ = writeln!(out, "## Flights compared first\n");
         let _ = writeln!(
             out,
             "| flight | altimeter | log apogee (m) | hpr apogee (m) | apogee error | hpr apogee \
@@ -2139,10 +2448,12 @@ impl RealFlightReport {
             );
         }
         let _ = writeln!(out);
+        self.predicted_first_section(&mut out);
         let _ = writeln!(out, "## On each example's own drag\n");
         let _ = writeln!(
             out,
-            "A diagnostic, not a prediction: the same flight with hpr's zero-lift drag replaced \
+            "A diagnostic, not a prediction, flown for the flights compared first: the same \
+             flight with hpr's zero-lift drag replaced \
              by the drag the example's notebook specifies (a team's estimate: a table, a curve \
              from RASAero II or CFD, or a constant), on the example's radius. hpr's normal force \
              is its own in both. Where the error falls within the target, the miss is consistent \
@@ -2242,7 +2553,11 @@ impl RealFlightReport {
             }
             let _ = writeln!(out);
         }
-        let _ = writeln!(out, "## Each flight's inputs\n");
+        let _ = writeln!(
+            out,
+            "## Each flight's inputs\n\nThe flights compared first; a predicted flight's inputs \
+             are in [the predictions][predictions].\n"
+        );
         for row in &self.flights {
             let _ = writeln!(
                 out,
@@ -2278,6 +2593,114 @@ impl RealFlightReport {
             );
         }
         out
+    }
+
+    /// The page's section on the flights predicted first: each merged prediction beside its
+    /// log's apogee and its error, the numbers shown beside them and never counted, and each
+    /// flight's log, rule and tags.
+    fn predicted_first_section(&self, out: &mut String) {
+        if self.predicted_first.is_empty() {
+            return;
+        }
+        let _ = writeln!(out, "## Predicted before they were compared\n");
+        let _ = writeln!(
+            out,
+            "Each of these flights' predictions was merged before its log was read as numbers \
+             ([the predictions][predictions]). The merged prediction is the number that pull \
+             request printed; hpr's apogee today is what `{}` flies now, and the error counted \
+             is today's. A merged prediction is never edited: one that changed is revised \
+             beside it, with the reason, and both errors are given. The log's apogee is read by \
+             the rule merged with the prediction. No explanation is claimed for a miss here: the \
+             two diagnostics below are not flown for these flights, and what each record leaves \
+             untraced was written down with the prediction.\n",
+            self.generated_by
+        );
+        let _ = writeln!(
+            out,
+            "| flight | altimeter | log apogee (m) | merged prediction (m) | hpr apogee today (m) \
+             | apogee error | merged prediction's error | every input traced | hpr apogee as a \
+             height (m) | log rows | hpr's largest Mach |"
+        );
+        let _ = writeln!(out, "|---|---|---:|---:|---:|---:|---:|---|---:|---:|---:|");
+        for row in &self.predicted_first {
+            let _ = writeln!(
+                out,
+                "| {} | {} | {} | {} | {} | {}% | {}% | {} | {} | {} | {} |",
+                row.title,
+                row.altimeter,
+                fmt_number(row.log_apogee_m, 1),
+                fmt_number(row.merged_apogee_m, 1),
+                fmt_number(row.hpr_apogee_m, 1),
+                fmt_signed(row.apogee_error_percent, 2),
+                fmt_signed(row.merged_apogee_error_percent, 2),
+                if row.all_inputs_traced {
+                    "yes"
+                } else {
+                    "no: not traced"
+                },
+                fmt_number(row.hpr_height_apogee_m, 1),
+                row.log_rows,
+                fmt_number(row.hpr_max_mach, 3)
+            );
+        }
+        let _ = writeln!(out);
+        let shown: Vec<(&ComparedPrediction, &crate::predicted_first::ShownOnly)> = self
+            .predicted_first
+            .iter()
+            .flat_map(|row| {
+                [&row.catalog_curve, &row.openrocket_stored]
+                    .into_iter()
+                    .flatten()
+                    .map(move |shown| (row, shown))
+            })
+            .collect();
+        if !shown.is_empty() {
+            let _ = writeln!(
+                out,
+                "Shown beside them and never counted in a mean:\n\n\
+                 | flight | what | apogee (m) | error against the log |\n|---|---|---:|---:|"
+            );
+            for (row, shown) in shown {
+                let _ = writeln!(
+                    out,
+                    "| {} | {} | {} | {}% |",
+                    row.title,
+                    shown.what,
+                    fmt_number(shown.apogee_m, 1),
+                    fmt_signed(shown.apogee_error_percent, 2)
+                );
+            }
+            let _ = writeln!(out);
+        }
+        for row in &self.predicted_first {
+            let _ = writeln!(
+                out,
+                "- **{}** (`{}`): the log is `{}`, {} rows. Its apogee is read as {}.{}{} {}",
+                row.title,
+                row.id,
+                row.reference_log,
+                row.log_rows,
+                row.reference_rule,
+                row.log_highest_sample_m.map_or(String::new(), |highest| {
+                    format!(
+                        " Its highest sample is {} m, {} m from that apogee: shown, not compared.",
+                        fmt_number(highest, 1),
+                        fmt_signed(highest - row.log_apogee_m, 1)
+                    )
+                }),
+                row.revised_because
+                    .as_ref()
+                    .map_or(String::new(), |because| format!(
+                        " Revised, because {because}"
+                    )),
+                if row.untraced.is_empty() {
+                    "Every input is traced to its record.".to_owned()
+                } else {
+                    format!("Not traced: {}.", row.untraced.join("; "))
+                }
+            );
+        }
+        let _ = writeln!(out);
     }
 }
 

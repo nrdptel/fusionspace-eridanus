@@ -52,6 +52,7 @@ pub use report::{Comparison, Gap, NotReproduced, Report, Source, Verdict};
 pub use run::{CaseRun, ValidateError, run_case, run_lock};
 
 pub mod openrocket;
+pub mod predicted_first;
 pub mod public_predictions;
 pub mod real_flight;
 #[cfg(test)]

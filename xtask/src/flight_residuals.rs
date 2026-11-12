@@ -370,7 +370,8 @@ impl Report {
             "# hpr's residuals against the logs of real flights\n\n\
              Written by `cargo xtask real-flights` ([M7.3a][m7-3a], decision [ADR-314][adr-314]). \
              [How to read them][site].\n\n\
-             - **What is flown:** the 7 flights of the [real-flights report][real], each flown \
+             - **What is flown:** the 7 flights the [real-flights report][real] compared \
+             first, each flown \
              to the ground in its ERA5 air and wind, on hpr's own drag, under the parachutes \
              its example's notebook gives it.\n\
              - **A residual** is the logged value less the simulated one. Positive: the log read \

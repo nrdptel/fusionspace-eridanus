@@ -432,22 +432,198 @@
       "explanation": ""
     }
   ],
+  "predicted_first": [
+    {
+      "id": "astra",
+      "title": "Astra, Faraday Rocketry UPV, EuRoC 2022 (L1350)",
+      "altimeter": "barometric, assumed",
+      "altimeter_evidence": "the notebook calls it a COTS altimeter's flight (astra_flight_sim.ipynb:383-385), one row a second beside a latitude and a longitude, and records no more: barometric assumed, as hobby altimeters are",
+      "era5_weather": true,
+      "reference_log": "refs/rocketpy/data/rockets/astra/flight_data.csv",
+      "reference_log_sha256": "dd5287b375e84be8961a7c867dc9af764a42752af3109c25086d228978e4acae",
+      "reference_rule": "the highest reading of the log's `alt` column, in meters, the log read whole",
+      "log_rows": 64,
+      "log_apogee_m": 3249.46,
+      "log_highest_sample_m": null,
+      "merged_apogee_m": 3037.1,
+      "merged_height_apogee_m": 3155.4,
+      "merged_apogee_error_percent": -6.53523970136577,
+      "hpr_apogee_m": 3037.1127560279933,
+      "hpr_height_apogee_m": 3155.3563752661757,
+      "apogee_error_percent": -6.534847142971653,
+      "revised_because": null,
+      "all_inputs_traced": true,
+      "untraced": [],
+      "hpr_max_mach": 0.9107866567317453,
+      "catalog_curve": null,
+      "openrocket_stored": null
+    },
+    {
+      "id": "andromeda",
+      "title": "Andromeda, Aristotle Space and Aeronautics Team, EuRoC 2022 (the team's curve)",
+      "altimeter": "barometric, assumed",
+      "altimeter_evidence": "the notebook calls it a COTS altimeter (andromeda_flight_sim.ipynb:459-461), logged in feet and in meters with a vertical speed, and records no more: barometric assumed, as hobby altimeters are",
+      "era5_weather": true,
+      "reference_log": "refs/rocketpy/data/rockets/andromeda/flight_data.csv",
+      "reference_log_sha256": "ebd3b757555b564c63937b69d2c222d6596355fc6e938d49537af293a9d48d14",
+      "reference_rule": "the highest reading of the log's `alt(m)` column, the log read whole",
+      "log_rows": 1139,
+      "log_apogee_m": 3438.549384,
+      "log_highest_sample_m": null,
+      "merged_apogee_m": 3581.0,
+      "merged_height_apogee_m": 3729.5,
+      "merged_apogee_error_percent": 4.142753239573659,
+      "hpr_apogee_m": 3580.9591363955515,
+      "hpr_height_apogee_m": 3729.530744661521,
+      "apogee_error_percent": 4.141564842959706,
+      "revised_because": null,
+      "all_inputs_traced": false,
+      "untraced": [
+        "the flight carried the team's air brakes, and no record says when or how far they opened: none is flown here, so any opening leaves this prediction high",
+        "the thrust file holds more impulse than the Cesaroni M2020 reload it is named for is certified at, so the notebook does not settle which motor the logged flight burned"
+      ],
+      "hpr_max_mach": 1.0186103005458185,
+      "catalog_curve": {
+        "what": "on the catalog's curve, Cesaroni 8429M2020-P",
+        "apogee_m": 3050.317905285291,
+        "apogee_error_percent": -11.290559923937646
+      },
+      "openrocket_stored": null
+    },
+    {
+      "id": "erebus-11",
+      "title": "Erebus 11, BME Suborbitals, EuRoC 2022 (a Cesaroni Pro54 K)",
+      "altimeter": "barometric, assumed",
+      "altimeter_evidence": "the notebook calls it a COTS altimeter (erebus_flight_sim.ipynb:390-392), a file named filtered, and records no more: barometric assumed, as hobby altimeters are",
+      "era5_weather": true,
+      "reference_log": "refs/rocketpy/data/rockets/erebus11/flight_data_filtered.csv",
+      "reference_log_sha256": "045f5b9ed473b80095805d3ca7b831ca4b67c5afbe9156d58d1e91df9fc0b4a9",
+      "reference_rule": "the highest reading of the log's `alt` column, in meters, the log read whole",
+      "log_rows": 746,
+      "log_apogee_m": 3001.75136,
+      "log_highest_sample_m": null,
+      "merged_apogee_m": 2714.1,
+      "merged_height_apogee_m": 2808.7,
+      "merged_apogee_error_percent": -9.58278436492489,
+      "hpr_apogee_m": 2714.062086372772,
+      "hpr_height_apogee_m": 2808.7090595388167,
+      "apogee_error_percent": -9.584047415147284,
+      "revised_because": null,
+      "all_inputs_traced": true,
+      "untraced": [],
+      "hpr_max_mach": 0.8755469772496574,
+      "catalog_curve": null,
+      "openrocket_stored": null
+    },
+    {
+      "id": "macie-xl-1",
+      "title": "Macie XL, flight 1 (AeroTech I284W)",
+      "altimeter": "barometric",
+      "altimeter_evidence": "the log's first line names a PerfectFlite altimeter, `PerfectFlite SLCF`, and a PerfectFlite has a barometer and no accelerometer (docs/format/pf2.md)",
+      "era5_weather": false,
+      "reference_log": "refs/public-flights/rocketry-files/macie/flights/MRC Summer 26/maciexl-1-sl.pf2",
+      "reference_log_sha256": "98499304445b8d97e3de8049c82ad500c324546b267b3042ed31f7935c560d86",
+      "reference_rule": "the apogee the altimeter worked out, in the log's header (its `Apogee:` line, in feet above the pad, 0.3048 m to the foot), which leaves out the ejection spike among the samples; never the highest sample",
+      "log_rows": 2952,
+      "log_apogee_m": 842.772,
+      "log_highest_sample_m": 1052.7792,
+      "merged_apogee_m": 706.2,
+      "merged_height_apogee_m": 706.3,
+      "merged_apogee_error_percent": -16.205094616337515,
+      "hpr_apogee_m": 706.2447625513657,
+      "hpr_height_apogee_m": 706.3233819694076,
+      "apogee_error_percent": -16.199783268622394,
+      "revised_because": null,
+      "all_inputs_traced": false,
+      "untraced": [
+        "no record gives the day, its air and wind, or the rail, and of the site only each log's header gives the pad's height above sea level (12 ft for flight 1, 37 ft for flight 2): the stored simulation's are flown, its sea level among them, and all nine simulations in the file carry the same ones",
+        "no record says the rocket was weighed as flown: the file's parts and overrides are flown",
+        "the reader warns that the motor's curve file disagrees with ThrustCurve.org's record of the motor (the figures are in the flight's `reader_warnings` in the JSON); the file the design's digest names is flown",
+        "the motor flies the bundled catalog's masses for it, 313.6 g of propellant and 555.52 g loaded, as every catalog motor does, where the curve file the design's digest names, and OpenRocket's own record of that digest, give 310.016 g and 555.072 g (the table's `mass_difference`)"
+      ],
+      "hpr_max_mach": 0.3542977405582578,
+      "catalog_curve": null,
+      "openrocket_stored": {
+        "what": "OpenRocket 24.12's simulation stored in the design file",
+        "apogee_m": 704.59,
+        "apogee_error_percent": -16.396130863388912
+      }
+    },
+    {
+      "id": "macie-xl-2",
+      "title": "Macie XL, flight 2 (Cesaroni 601I350-16A)",
+      "altimeter": "barometric",
+      "altimeter_evidence": "the log's first line names a PerfectFlite altimeter, `PerfectFlite SLCF`, and a PerfectFlite has a barometer and no accelerometer (docs/format/pf2.md)",
+      "era5_weather": false,
+      "reference_log": "refs/public-flights/rocketry-files/macie/flights/MRC Summer 26/maciexl-2-sl.pf2",
+      "reference_log_sha256": "2a59964bbe5015d0227049f8f113f1304831e99722dc6228c3fb08d9735f3062",
+      "reference_rule": "the apogee the altimeter worked out, in the log's header (its `Apogee:` line, in feet above the pad, 0.3048 m to the foot); never the highest sample",
+      "log_rows": 2312,
+      "log_apogee_m": 977.7984,
+      "log_highest_sample_m": 978.7128,
+      "merged_apogee_m": 692.6,
+      "merged_height_apogee_m": 692.7,
+      "merged_apogee_error_percent": -29.16740301477278,
+      "hpr_apogee_m": 692.637902059154,
+      "hpr_height_apogee_m": 692.7135232559336,
+      "apogee_error_percent": -29.1635267495678,
+      "revised_because": null,
+      "all_inputs_traced": false,
+      "untraced": [
+        "no record gives the day, its air and wind, or the rail, and of the site only each log's header gives the pad's height above sea level (12 ft for flight 1, 37 ft for flight 2): the stored simulation's are flown, its sea level among them, and all nine simulations in the file carry the same ones",
+        "no record says the rocket was weighed as flown: the file's parts and overrides are flown",
+        "the reader warns that the motor's curve file disagrees with ThrustCurve.org's record of the motor (the figures are in the flight's `reader_warnings` in the JSON); the file the design's digest names is flown"
+      ],
+      "hpr_max_mach": 0.36163660960980065,
+      "catalog_curve": null,
+      "openrocket_stored": {
+        "what": "OpenRocket 24.12's simulation stored in the design file",
+        "apogee_m": 691.648,
+        "apogee_error_percent": -29.26476459769212
+      }
+    }
+  ],
   "summary": {
-    "flights": 7,
-    "mean_absolute_apogee_error_percent": 6.058557095957765,
+    "flights": 12,
+    "mean_absolute_apogee_error_percent": 9.0028057575811,
     "target_percent": 5.0,
     "within_target": false,
-    "mean_apogee_error_percent": -0.2238069136331656,
-    "mean_absolute_height_apogee_error_percent": 4.494307567553869,
-    "mean_absolute_known_barometric_apogee_error_percent": 6.648551643636359,
+    "mean_apogee_error_percent": -4.908940677398466,
+    "mean_absolute_height_apogee_error_percent": 7.882974651205818,
+    "mean_absolute_known_barometric_apogee_error_percent": 9.141038903323853,
     "outliers": [
       "ndrt-2020",
       "prometheus-2022",
       "juno-iii",
       "cavour",
-      "genesis"
+      "genesis",
+      "astra",
+      "erebus-11",
+      "macie-xl-1",
+      "macie-xl-2"
     ],
     "max_trace_rms_percent": 7.259076606486406,
-    "example_drag_mean_absolute_apogee_error_percent": 3.4787286232184647
+    "example_drag_mean_absolute_apogee_error_percent": 3.4787286232184647,
+    "compared_first": {
+      "flights": 7,
+      "mean_absolute_apogee_error_percent": 6.058557095957765,
+      "mean_apogee_error_percent": -0.2238069136331656
+    },
+    "predicted_first": {
+      "flights": 5,
+      "mean_absolute_apogee_error_percent": 13.124753883853765,
+      "mean_apogee_error_percent": -11.468127946669885
+    },
+    "traced": {
+      "flights": 9,
+      "mean_absolute_apogee_error_percent": 6.503199358869255,
+      "mean_apogee_error_percent": -1.965060328172344
+    },
+    "era5_weather": {
+      "flights": 10,
+      "mean_absolute_apogee_error_percent": 6.2670359072783,
+      "mean_apogee_error_percent": -1.354397811059139
+    },
+    "on_merged_predictions": null
   }
 }

@@ -1,9 +1,11 @@
 //! `cargo xtask real-flights [--check]`: flies RocketPy's example rockets that have a flight log
-//! and compares each with its log (M2.3b, ADR-082).
+//! and compares each with its log (M2.3b, ADR-082), then flies the five public flights whose
+//! predictions were merged first and puts each merged prediction beside its log's apogee and
+//! its error (M2.3d2, ADR-328 §1b).
 //!
-//! The logs, thrust files and ERA5 files are read from the pinned RocketPy checkout under the
-//! gitignored `refs/` (`cargo xtask refs fetch rocketpy`), so this runs where that checkout is,
-//! not in CI. It writes `validation/reports/real-flights.{json,md}`; `--check` writes nothing and
+//! The logs, thrust files and ERA5 files are read from the pinned checkouts under the
+//! gitignored `refs/` (`cargo xtask refs fetch rocketpy` and `rocketry-files`), so this runs
+//! where those checkouts are, not in CI. It writes `validation/reports/real-flights.{json,md}`; `--check` writes nothing and
 //! fails unless the committed report reproduces. CI, without `refs/`, holds the committed report's
 //! summary to its rows and its page to its data (`hpr_validate::tests`).
 
@@ -13,7 +15,9 @@ use hpr_validate::real_flight::{REPORT_JSON, REPORT_MD, RealFlightReport, run as
 
 pub const USAGE: &str = "  real-flights [--check]
                            Fly RocketPy's example rockets that have a flight log, in their
-                           ERA5 weather, and compare each with its log; needs refs/rocketpy.
+                           ERA5 weather, and compare each with its log; then the five public
+                           flights predicted first, each merged prediction beside its error;
+                           needs refs/rocketpy and refs/public-flights/rocketry-files.
                            Writes validation/reports/real-flights.{md,json} and each flight's
                            residuals, flight-residuals.{md,json}, and apogee predicted from
                            each one's boost, from-boost.{md,json}; --check writes nothing and
@@ -50,6 +54,26 @@ pub fn run(args: &[String]) -> Result<(), String> {
                     "  on the recorded thrust {:+.2}%",
                     flown.apogee_error_percent
                 ))
+        );
+    }
+    for row in &report.predicted_first {
+        println!(
+            "real-flights: {:<16} log {:>7.1} m  merged {:>7.1} m  hpr {:>7.1} m  {:>+6.2}%  \
+             as heights {:>+6.2}%  {}{}",
+            row.id,
+            row.log_apogee_m,
+            row.merged_apogee_m,
+            row.hpr_apogee_m,
+            row.apogee_error_percent,
+            100.0 * (row.hpr_height_apogee_m - row.log_apogee_m) / row.log_apogee_m,
+            if row.all_inputs_traced {
+                "traced"
+            } else {
+                "not traced"
+            },
+            row.revised_because
+                .as_ref()
+                .map_or(String::new(), |because| format!("  revised, because {because}"))
         );
     }
     let summary = &report.summary;

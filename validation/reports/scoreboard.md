@@ -24,7 +24,7 @@ How far each simulator's apogee lands from the logged one, its sign dropped, ave
 
 | measure | better | HPR Sim | OpenRocket 24.12 | RocketPy 1.13.0 |
 |---|---|---:|---:|---:|
-| Mean absolute apogee error, public logged flights (`accuracy.public`) | lower | 6.06% over 7 flights | not measured: [M2.6, an open benchmark](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-6) | not measured: [M2.9, the other tools' cells](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-9) |
+| Mean absolute apogee error, public logged flights (`accuracy.public`) | lower | 9.00% over 12 flights | not measured: [M2.6, an open benchmark](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-6) | not measured: [M2.9, the other tools' cells](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-9) |
 | Mean absolute apogee error, the private collection's logged flights (`accuracy.collection`) | lower | 12.04% over 60 flights | 11.26% over 60 flights | not measured: [M2.9, the other tools' cells](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-9) |
 | Mean absolute apogee error, held-out flights (`accuracy.held-out`) | lower, not held | 16.26% over 23 flights | 14.98% over 23 flights | not measured: [M2.9, the other tools' cells](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-9) |
 | Mean absolute apogee error, published flights past Mach 1 (`accuracy.supersonic`) | lower | not measured: [M2.3c7, published flights past Mach 1](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3c7) | not measured: [M2.9, the other tools' cells](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-9) | not measured: [M2.9, the other tools' cells](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-9) |
@@ -42,7 +42,7 @@ The same errors with their signs, averaged: above zero, the simulator's apogee c
 
 | measure | better | HPR Sim | OpenRocket 24.12 | RocketPy 1.13.0 |
 |---|---|---:|---:|---:|
-| Mean apogee error, public logged flights (`bias.public`) | nearer zero | −0.22% over 7 flights | not measured: [M2.6, an open benchmark](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-6) | not measured: [M2.9, the other tools' cells](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-9) |
+| Mean apogee error, public logged flights (`bias.public`) | nearer zero | −4.91% over 12 flights | not measured: [M2.6, an open benchmark](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-6) | not measured: [M2.9, the other tools' cells](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-9) |
 | Mean apogee error, the private collection's logged flights (`bias.collection`) | nearer zero | +7.72% over 60 flights | +6.72% over 60 flights | not measured: [M2.9, the other tools' cells](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-9) |
 | Mean apogee error, held-out flights (`bias.held-out`) | nearer zero, not held | +13.36% over 23 flights | +11.68% over 23 flights | not measured: [M2.9, the other tools' cells](https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-9) |
 

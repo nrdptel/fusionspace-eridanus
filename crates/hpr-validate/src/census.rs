@@ -655,6 +655,17 @@ fn real_flight_rows(
             regime,
         ));
     }
+    // The flights predicted first are compared at their apogee only: no climb row.
+    for flight in &report.predicted_first {
+        rows.push(barred(
+            Group::FlightLogs,
+            &flight.id,
+            "apogee",
+            Some(flight.apogee_error_percent),
+            (Unit::Percent, APOGEE_TARGET_PERCENT),
+            Regime::of_mach(flight.hpr_max_mach),
+        ));
+    }
 }
 
 fn openrocket_reference(report: &Value, name: &'static str) -> Result<String, CensusError> {

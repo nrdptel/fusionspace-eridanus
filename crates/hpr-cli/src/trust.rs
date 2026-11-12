@@ -128,10 +128,11 @@ pub(crate) fn sounding() -> String {
 }
 
 /// The public flights flown in ERA5 weather and compared with their logs: the committed report
-/// `validation/reports/real-flights.json` (M2.3b).
-pub(crate) const ERA5_FLIGHTS: usize = 7;
+/// `validation/reports/real-flights.json`'s `era5_weather` means (M2.3b; M2.3d2 added three).
+/// The report's other two flights are flown as stored simulations, in no weather of their day.
+pub(crate) const ERA5_FLIGHTS: usize = 10;
 /// Their mean absolute apogee error, percent, to a hundredth, as the report's summary gives it.
-pub(crate) const ERA5_MEAN_ABSOLUTE_PERCENT: f64 = 6.06;
+pub(crate) const ERA5_MEAN_ABSOLUTE_PERCENT: f64 = 6.27;
 
 /// `hpr weather`'s note on an ERA5 file (`docs/format/era5.md`). The flights it quotes test the
 /// simulation and the weather together, so they bound neither alone.
@@ -363,17 +364,25 @@ mod tests {
         let text = std::fs::read_to_string(path).unwrap_or_else(|e| panic!("{path}: {e}"));
         let report: serde_json::Value =
             serde_json::from_str(&text).unwrap_or_else(|e| panic!("{path}: {e}"));
-        let summary = &report["summary"];
+        let summary = &report["summary"]["era5_weather"];
         assert_eq!(summary["flights"].as_u64(), Some(ERA5_FLIGHTS as u64));
         let mean = summary["mean_absolute_apogee_error_percent"]
             .as_f64()
             .unwrap_or(f64::NAN);
+        // The flights it counts are the ones the report says flew in ERA5 weather.
+        let era5 = report["flights"].as_array().map_or(0, Vec::len)
+            + report["predicted_first"].as_array().map_or(0, |rows| {
+                rows.iter()
+                    .filter(|row| row["era5_weather"].as_bool() == Some(true))
+                    .count()
+            });
+        assert_eq!(era5, ERA5_FLIGHTS);
         assert_eq!(
             format!("{mean:.2}"),
             format!("{ERA5_MEAN_ABSOLUTE_PERCENT:.2}")
         );
-        assert!(reanalysis().contains("7 public flights flown in ERA5 weather missed"));
-        assert!(reanalysis().contains("by 6.06% on average"));
+        assert!(reanalysis().contains("10 public flights flown in ERA5 weather missed"));
+        assert!(reanalysis().contains("by 6.27% on average"));
     }
 
     #[test]

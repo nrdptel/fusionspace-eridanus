@@ -19,6 +19,8 @@ hpr-design.workspace = true
 hpr-atmos.workspace = true
 hpr-core.workspace = true
 hpr-io.workspace = true
+# The PerfectFlite reader, for the header apogee two public flights' logs are compared by.
+hpr-flightdata.workspace = true
 hpr-motor.workspace = true
 serde.workspace = true
 serde_json.workspace = true
