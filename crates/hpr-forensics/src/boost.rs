@@ -75,7 +75,7 @@ pub const LIFTOFF_RISE_M: f64 = 10.0;
 /// burnout. On sets A and B's first 200 synthetic
 /// flights' barometer logs with a cut (measured once, not committed), 98.8% and 98.4% of the pad's
 /// windows read under it, no stretch of the pad between windows that did lasted over 0.25 s, and
-/// no speed from liftoff to the cut read under 17.6 m/s, the fitted speed where the line first stood 10 m up. A climb whose fitted top speed is under about 22 m/s
+/// no speed from liftoff to the cut read under 17.6 m/s. A climb whose fitted top speed is under about 22 m/s
 /// (this speed, the [`DROP_FLOOR_M_S`] fall and [`HOLD_S`] of gravity's 7.4 m/s), or a little more
 /// where drag slows it too, reaches this speed before its cut and is refused as never lifting off
 /// ([`NoCut::NeverLifted`]); the walk before this rule cut such slow climbs. HPR Sim's choice.
@@ -1135,6 +1135,11 @@ mod tests {
                 match try_cut(&stepped) {
                     Ok(stepped_cut) => {
                         check(&stepped_cut, &what);
+                        assert_eq!(
+                            cut.map(|c| c.index),
+                            Some(stepped_cut.index),
+                            "flight {k}{what}: not cut where its log is without the step"
+                        );
                         steps[j].0 += 1;
                     }
                     Err(NoCut::Transonic { .. }) => steps[j].1 += 1,
@@ -1290,6 +1295,18 @@ mod tests {
                 );
             }
         }
+        // A slow climb stands still again before its cut: at 12 m/s² for 1.5 s, its top 18 m/s,
+        // it is refused as never lifting off; at 15 m/s² for 2.0 s, its top 30 m/s, it is cut
+        // after its burnout.
+        assert_eq!(
+            try_cut(&pad_spiked_log(&|_| 12.0, 1.5, 0.0, false)),
+            Err(NoCut::NeverLifted)
+        );
+        let cut = try_cut(&pad_spiked_log(&|_| 15.0, 2.0, 0.0, false));
+        assert!(
+            cut.is_ok_and(|cut| cut.time_s > 5.0),
+            "a 30 m/s climb: {cut:?}"
+        );
     }
 
     /// [`median_of`] gives exactly what sorting by `f64::total_cmp` and taking the middle gives,
