@@ -3,6 +3,23 @@
 Measured numbers only, newest first within each section. Record the machine, the toolchain, and
 the command, so a later run can be compared like for like.
 
+## A supersonic table built once a process (2026-11-12, #1427)
+
+- **What this is.** A rocket's supersonic table, the shock-expansion method's shares from Mach 1.2
+  to 5, follows from its shape and reference area alone. Each `hpr sim` builds a model of its own,
+  so a process that flies one shape many times through the command line built the table every
+  time. The motor catalog's check (`cargo xtask motor-catalog --check`) flies all 924 motors with a
+  curve in 24 probe rockets, in one process. In a `sample` profile of one probe's flight (not
+  committed) nearly every sample was in the Taylor–Maccoll cone solution that builds the table:
+  989 cone solutions, 0.65 s, where a subsonic guide rocket's flight takes 12 ms.
+  The model now copies a table this process already built from an equal run on the same
+  reference area (`built_table` in `crates/hpr-aero/src/model.rs`), keeping at most 64.
+- **Measured** on an Apple M5 (10 cores), rustc 1.98.1, `report-check` build, one run each:
+  `motor-catalog --check` took 68 s and 448 s of CPU before, 4.1 s and 19.6 s after. On CI's
+  macOS runner its flights took 390 s of the job's 1,229 s (run 43195398964).
+- **What moves.** No number: a copied table is the one building it gives, compared in `Debug`'s
+  digits, by `a_kept_table_is_the_one_building_it_gives`; the gate's reports are unchanged.
+
 ## The smoother's second run carries its means alone (2026-11-04)
 
 - **What this is.** `hpr analyze` smooths a log twice: once at the barometer port's expected

@@ -35,8 +35,9 @@
 //! [adr-034]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-034-the-bodys-supersonic-normal-force-in-flight-tabulated-shock-expansion-shares-joined-linearly-from-mach-12-2026-09-19
 //! [adr-037]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-037-body-lift-by-jorgensens-crossflow-at-every-speed-and-a-boattails-measured-share-faster-than-sound-2026-09-19
 
+use std::collections::VecDeque;
 use std::f64::consts::PI;
-use std::sync::{Arc, OnceLock};
+use std::sync::{Arc, Mutex, OnceLock};
 
 use hpr_design::{Layout, NoseShape, Part, PlacedComponent};
 use serde::{Deserialize, Serialize};
@@ -515,6 +516,46 @@ impl SupersonicRun {
 /// two models compare equal whether or not either has built it.
 #[derive(Debug, Clone, Default)]
 struct SupersonicTable(Arc<OnceLock<Option<SupersonicBody>>>);
+
+/// The most tables [`built_table`] keeps for the process, the oldest dropped first: a check that
+/// flies every catalog motor flies 24 probe shapes in one process (issue #1427), and each table
+/// holds about 80 rows of a share per covered segment, some kilobytes.
+const KEPT_TABLES: usize = 64;
+
+/// The tables built so far in this process, with the run and the reference area each was built
+/// from: the two inputs [`SupersonicBody::new`] reads, and the ones
+/// [`AeroModel::share_supersonic_table`] compares.
+static BUILT_TABLES: Mutex<VecDeque<(SupersonicRun, f64, Option<SupersonicBody>)>> =
+    Mutex::new(VecDeque::new());
+
+/// [`SupersonicBody::new`]'s table for `run` on `reference_area_m2`, a copy of one this process
+/// has already built from an equal run on the same reference area (its bits) where there is one:
+/// the table follows from those two alone, so the copy is what building it again gives, bit for
+/// bit. Each `hpr sim` builds a model of its own, so without this a process that flies one shape
+/// many times through the command line, as the motor catalog's check does, builds its table each
+/// time: up to about 125 runs of the shock-expansion method, a fifth of a second or more. A lock
+/// another thread poisoned is passed over: the table is then built here, and not kept.
+fn built_table(run: &SupersonicRun, reference_area_m2: f64) -> Option<SupersonicBody> {
+    let same = |(kept_run, kept_area, _): &&(SupersonicRun, f64, Option<SupersonicBody>)| {
+        kept_area.to_bits() == reference_area_m2.to_bits() && kept_run == run
+    };
+    if let Ok(kept) = BUILT_TABLES.lock()
+        && let Some((.., table)) = kept.iter().find(same)
+    {
+        return table.clone();
+    }
+    // Built outside the lock: two threads may both build one table, and each gets the same.
+    let table = SupersonicBody::new(run, reference_area_m2);
+    if let Ok(mut kept) = BUILT_TABLES.lock()
+        && !kept.iter().any(|entry| same(&entry))
+    {
+        if kept.len() >= KEPT_TABLES {
+            kept.pop_front();
+        }
+        kept.push_back((run.clone(), reference_area_m2, table.clone()));
+    }
+    table
+}
 
 impl PartialEq for SupersonicTable {
     fn eq(&self, _: &Self) -> bool {
@@ -2131,13 +2172,14 @@ impl AeroModel {
     /// Fig. 2, a later body with a slope of its own such as a flare) or doesn't hold across a
     /// whole join below Mach 5.
     ///
-    /// The first call builds the table, which takes up to about 125 runs of the method; a flow no
-    /// faster than [`SUPERSONIC_JOIN_START_MACH`] never needs it.
+    /// The first call builds the table, which takes up to about 125 runs of the method, or copies
+    /// one this process built from the same run and reference area (`built_table`, issue #1427);
+    /// a flow no faster than [`SUPERSONIC_JOIN_START_MACH`] never needs it.
     pub fn supersonic_body(&self) -> Option<&SupersonicBody> {
         let run = self.supersonic_run.as_ref()?;
         self.supersonic
             .0
-            .get_or_init(|| SupersonicBody::new(run, self.reference_area_m2))
+            .get_or_init(|| built_table(run, self.reference_area_m2))
             .as_ref()
     }
 
@@ -7083,6 +7125,45 @@ mod tests {
         let built = model.supersonic_body().unwrap() as *const SupersonicBody;
         assert_eq!(model, clone);
         assert!(std::ptr::eq(built, clone.supersonic_body().unwrap()));
+    }
+
+    /// A table copied from those the process keeps is the one building it gives, bit for bit, and
+    /// only for an equal run on the same reference area (issue #1427): a model built after another
+    /// of the same rocket, one of the same shape on a wider reference area, and one with a longer
+    /// nose each get the table [`SupersonicBody::new`] builds from their own run, compared in
+    /// `Debug`'s digits, which tell every bit of an `f64` apart. A copy, not the same table: a
+    /// model shares one only by [`AeroModel::share_supersonic_table`]. The process keeps at most
+    /// `KEPT_TABLES`.
+    #[test]
+    fn a_kept_table_is_the_one_building_it_gives() {
+        let rocket = straight_rocket();
+        let mut wider = rocket.clone();
+        wider.reference_diameter = ReferenceDiameter::Custom { diameter_m: 0.07 };
+        let mut longer = rocket.clone();
+        longer.stages[0].components[0].part =
+            nose(NoseShape::Ogive { radius_ratio: 1.0 }, 0.4, 0.027);
+        for (what, design) in [
+            ("the rocket", &rocket),
+            ("wider", &wider),
+            ("longer", &longer),
+        ] {
+            let first = model(design);
+            let second = model(design);
+            let run = first
+                .supersonic_run
+                .as_ref()
+                .expect("a run the method covers");
+            let built = SupersonicBody::new(run, first.reference_area_m2);
+            assert!(built.is_some(), "{what}: no table");
+            let built = format!("{:?}", built.as_ref());
+            assert_eq!(format!("{:?}", first.supersonic_body()), built, "{what}");
+            assert_eq!(format!("{:?}", second.supersonic_body()), built, "{what}");
+            assert!(!std::ptr::eq(
+                first.supersonic_body().unwrap(),
+                second.supersonic_body().unwrap()
+            ));
+        }
+        assert!(BUILT_TABLES.lock().map_or(0, |kept| kept.len()) <= KEPT_TABLES);
     }
 
     /// Two models built apart share a table only where the table follows from the same segments
