@@ -74,9 +74,8 @@ pub const LIFTOFF_RISE_M: f64 = 10.0;
 /// too, and the pad is then read again in the burn: the dip test still finds every cut after
 /// burnout. On sets A and B's first 200 synthetic
 /// flights' barometer logs with a cut (measured once, not committed), 98.8% and 98.4% of the pad's
-/// windows read under it, the longest stretch of the pad that never did lasted 0.25 s (leaving
-/// out a 500 Hz logger's first windows at its start), and no speed from liftoff to the cut read
-/// under 17.7 m/s, the fitted speed where the line first stood 10 m up. A climb whose fitted top speed is under about 22 m/s
+/// windows read under it, no stretch of the pad between windows that did lasted over 0.25 s, and
+/// no speed from liftoff to the cut read under 17.6 m/s, the fitted speed where the line first stood 10 m up. A climb whose fitted top speed is under about 22 m/s
 /// (this speed, the [`DROP_FLOOR_M_S`] fall and [`HOLD_S`] of gravity's 7.4 m/s), or a little more
 /// where drag slows it too, reaches this speed before its cut and is refused as never lifting off
 /// ([`NoCut::NeverLifted`]); the walk before this rule cut such slow climbs. HPR Sim's choice.
@@ -301,8 +300,8 @@ pub enum NoCut {
     /// numbers, in order: a log slower than 8 Hz, or a track whose samples can't be read.
     TooSparse,
     /// Its fitted line never stands [`LIFTOFF_RISE_M`] above the pad's, where it last stood still
-    /// ([`STILL_M_S`]), and then keeps from standing still until a cut: a climb whose top speed is
-    /// under about 22 m/s stands still again before its cut, and is refused here.
+    /// ([`STILL_M_S`]), or stands still again before any cut, which drops the liftoff: a climb
+    /// whose top speed is under about 22 m/s does, and is refused here.
     NeverLifted,
     /// Its fitted speed reached [`readings::TRANSONIC_SPEED_M_S`] before any cut.
     Transonic {
@@ -1233,8 +1232,8 @@ mod tests {
     /// [#1362][i1362]'s logs: three bad samples side by side on the pad, faster than the flight's
     /// own top speed, don't stay its top, and a 15 m step on the pad that stays doesn't cut the
     /// flight early. Ignition is at 3.0 s. A 2.0 s burn at 40 m/s² to 80 m/s with 45 m on the
-    /// pad, a 1.25 s burn to 50 m/s with 30 m, and a long tail-off, its net push falling to the
-    /// weight 4.95 s into a 6.0 s burn, with 100 m; then the first flight with 15 m from 1.5 s on.
+    /// pad, a 1.25 s burn to 50 m/s with 30 m, and a long tail-off, its thrust falling through the
+    /// weight 4.95 s into a 6.0 s burn and to nothing at its end, with 100 m; then the first flight with 15 m from 1.5 s on.
     /// Each is cut where its clean log is: the cut after its true peak and its burnout, its top speed
     /// read after ignition. Before [`STILL_M_S`] the spiked three were cut at 5.90, 5.05 and 8.75 s
     /// (their clean logs at 7.25, 6.50 and 10.60 s), each top read at 1.6 s on the pad, the
@@ -1244,7 +1243,8 @@ mod tests {
     #[test]
     fn a_bad_sample_on_the_pad_is_not_the_top_speed() {
         let g = hpr_core::gravity::STANDARD_GRAVITY_MPS2;
-        // The tail-off's net push falls in a line to the weight's pull at its burnout, 6.0 s in.
+        // The tail-off's net push falls in a line, through nothing at 4.95 s to the weight's pull
+        // alone at its burnout, 6.0 s in.
         let tail_off = move |tau: f64| g / 1.05 * (4.95 - tau);
         let constant = |_tau: f64| 40.0;
         /// The net push, as a function of the time since ignition.

@@ -403,8 +403,8 @@ stands still again. The pad is read afresh there, and the top speed and climb re
 ([#1362](https://github.com/nrdptel/fusionspace-eridanus/issues/1362)). A step up on the pad that
 stays settles the same way, at its new height. A fast climb doesn't stand still before its cut, unless the reading dips in the boost.
 Then the pad is read again there, and the dip test below still finds every cut after burnout.
-On sets A and B's first 200 synthetic flights, no speed from liftoff to the cut read under 17.7 m/s
-(58.1 ft/s). There, 98.8% and 98.4% of the pad's windows read still. Both were measured once, not committed.
+On sets A and B's first 200 synthetic flights, no speed from liftoff to the cut read under 17.6 m/s
+(57.7 ft/s). There, 98.8% and 98.4% of the pad's windows read still. Both were measured once, not committed.
 A climb whose top speed is under about 22 m/s (72 ft/s) reaches 5 m/s (16.4 ft/s) before its cut.
 That is 5 m/s (16.4 ft/s), plus the 10 m/s (32.8 ft/s) fall, plus 0.75 s of gravity; drag raises it a little.
 Such a slow climb is now refused as never lifting off, where the walk before this rule cut some. After burnout gravity alone
@@ -445,7 +445,7 @@ the pad that stay were tried too, from halfway through it. Steps of 8 m (26 ft),
 each cut the same 51 flights after the peak and burnout. They were refused for their speed on the other 106.
 A step of 100 m (328 ft) was refused on all 157. Before the pad was read where the line stood still,
 steps of 12 to 60 m (39 to 197 ft) cut 142 of those logs before the peak. That was measured once, not committed.
-A test flies three hand-built logs, each with a blip on the pad faster than the flight's top speed.
+A test flies three logs it builds, each with a blip on the pad faster than the flight's top speed.
 A fourth has a 15 m (49 ft) step. Each is now cut where its clean log is. Before, all four were cut
 early, two of them before burnout, one 0.05 s after ignition. Without the height rule, three readings 12 m (39 ft) too high
 in a row on the pad gave 33 cuts before the speed's peak, of the 157 logs spiked
