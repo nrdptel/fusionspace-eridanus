@@ -770,9 +770,11 @@ pub struct Summary {
     /// ([`RealFlightReport::predicted_first`]).
     pub predicted_first: Means,
     /// Over the flights tagged, when their predictions were merged, as having every input
-    /// traced to its record (ADR-328 §1b). A flight compared first was compared before tags
-    /// existed and carries none, so it is not counted here ([ADR-342][adr-342]).
+    /// traced to its record, as [the decision to predict first][adr-328] asks (its §1b). A
+    /// flight compared first was compared before tags existed and carries none, so it is not
+    /// counted here ([ADR-342][adr-342]).
     ///
+    /// [adr-328]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md
     /// [adr-342]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0342-the-errors-before-the-remaining-openrocket-parity-probes.md
     pub traced: Means,
     /// Over the flights flown in ERA5 weather: all but those flown as a stored simulation.
