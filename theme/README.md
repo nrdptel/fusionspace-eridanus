@@ -52,7 +52,7 @@ click, an icon off 16, 20 or 24 px, a selection off the action color, a lockup o
 ink or its clear space, no menu button, a sidebar the button or a drag doesn't put away, a
 sidebar out of reach while shown, page arrows off the column's edges or naming no page, or a
 footer or title block off the system's or not last; its file checks fail a page without the
-header, the lockup or its footer, a designation tag or sheet number drawn, and
+header, the lockup or its footer, a designation tag or sheet number left in the page, and
 a page's head without the scheme and the bar's colors or the link preview's tags (`og:title`
 the page's own title, `og:image` the card by its whole address), a `fonts.css` that isn't the
 system's, a

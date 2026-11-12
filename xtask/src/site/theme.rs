@@ -60,8 +60,8 @@ pub(crate) const CHECK_JS: (&str, &str) = (
 /// The files copied unchanged from the product system: where each sits under [`THEME`], and where
 /// it sits in the system's repository. The icons are the ones `chrome.rs` draws in each page's
 /// chrome, and `ok` and `info`, which `parts.rs` draws in each page's status chip, in its footer; the favicon is the system's web kit's, its PNG the 32 px one; the lockup and the mark
-/// are the brand kit's one-color files, which `frame.rs` draws in each page's header and title
-/// block.
+/// are the brand kit's one-color files, which `frame.rs` draws in each page's header, its footer
+/// line and the print page's title block.
 pub(crate) const COPIED: [(&str, &str); 30] = [
     (
         "fusionspace-mdbook.css",

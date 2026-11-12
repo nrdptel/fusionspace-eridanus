@@ -1,13 +1,16 @@
 # ADR-343: The docs site drawn as a tool: the frame off (2026-11-12)
 
-- **Status:** accepted; closes [M0.17a][m0-17a] ([ADR-339][adr-339]'s first increment); supersedes the parts of [ADR-164][adr-164], [ADR-223][adr-223], [ADR-231][adr-231] and [ADR-235][adr-235] listed under *Superseded* below
+- **Status:** accepted; closes [M0.17a][m0-17a] ([ADR-339][adr-339]'s first increment); supersedes the parts of [ADR-164][adr-164], [ADR-223][adr-223], [ADR-225][adr-225], [ADR-229][adr-229], [ADR-231][adr-231], [ADR-233][adr-233] and [ADR-235][adr-235] listed under *Superseded* below
 - **Summary:** The docs site follows the product system at `dd7552f`, the commit that gave it three levels, and is drawn as a tool. Pages lose the designation tag and the sheet numbers; each `##` section is a part under a 2 px rule. Every page but the print page ends with a one-line footer: the mark and "FusionSpace HPR", the version, the date of issue, the site's status chip and a link to Start here. Start here keeps the title block as the site's about box, and the print page still ends with it. Labels, navigation, note heads, chips and the switch are in Archivo, in sentence case, at the system's web sizes; CAUTION and WARNING keep capitals, in the wide cut.
 
 [m0-17a]: ../decisions-and-roadmap.md#m0-17a
 [m0-17b]: ../decisions-and-roadmap.md#m0-17b
 [adr-164]: 0164-the-fusionspace-product-system.md
 [adr-223]: 0223-the-pages-frame-first.md
+[adr-225]: 0225-the-page-anatomy-the-notes-first.md
+[adr-229]: 0229-the-page-anatomy-the-frame-first.md
 [adr-231]: 0231-the-page-anatomy-the-drawing-first.md
+[adr-233]: 0233-the-intro-chip-and-lead-first.md
 [adr-234]: 0234-two-to-six-sheets-the-check-first.md
 [adr-235]: 0235-every-page-opens-with-trust.md
 [adr-284]: 0284-the-maintainers-own-voice.md
@@ -57,14 +60,20 @@ reading scale.
    names the chips and a page's status is a claim about how far to trust it: *In preparation*
    (outlined in the link color, a square icon) while the title block's status is IN
    PREPARATION, as it is while the pages describe the next release, and *Released* (filled in
-   green, a circle) once it says RELEASED. The chip is in sentence case, Archivo 13/16 at weight 600.
+   green, a circle) once it says RELEASED. The chip is in sentence case, Archivo 13/16 at
+   weight 600, as ADR-339's done-when asks and the level table sets a chip, in its words as
+   written. The system's `writing.md` still lists status words in capitals on chips; the two
+   disagree at the pin, and the site follows the level table.
 5. **Start here keeps the title block as the about box.** Its table (owner, title,
    designation, version, date of issue, status, units, data and fonts) stays where it is, and
    with the print page's block is the one place the site's frame shows the designation. It is a title block, so its status keeps the drawing word in capitals,
    IN PREPARATION; the chip reads it and shows it in sentence case. The footer leaves out the data's date and the units: they're facts about
    the site, not the page, and the footer links to them.
 6. **The print page stays a record.** The printed guide is a document a reader keeps, so it
-   ends with the whole title block, the page's own title after the site's, as before. Its
+   ends with the whole title block, the page's own title after the site's, as before, which
+   ADR-339's done-when keeps. The system ends a record with a one-line footer too and keeps the
+   full block for drawings, boards and an about box; the printed guide, a document a reader
+   keeps whole, is the site's nearest to a drawing, so it keeps the block. Its
    cover keeps its title, lead and button and, like every intro, loses the tag and the chip.
 7. **Two to six parts a page, as before.** The system's page anatomy asked for two to six
    sheets, and the site's check ([ADR-234][adr-234], [ADR-235][adr-235]) counted them. The
@@ -75,7 +84,7 @@ reading scale.
    CAUTION and WARNING in capitals, in the wide cut. The site writes no DANGER note: its kinds
    are the trust note, note, caution and warning, and any other alert fails the build. The page
    check adds the level table's sizes to the system's scale for Archivo, holds capitals to the
-   signal word's size, and its canaries cover a signal word in sentence case, one in the narrow
+   signal word's size and the print title block's, and its canaries cover a signal word in sentence case, one in the narrow
    cut and a trust note in capitals. Code in a heading or a column head takes the heading's
    size, as the system's theme sets it (`font-size: inherit`), so the check accepts Cascadia
    Mono there at the heading's own level and nowhere else, with a canary each way.
@@ -85,18 +94,28 @@ reading scale.
 10. **The wide cut is asked for early.** Titles and section names now draw in Archivo's wide
     cut, so `theme/head.hbs` preloads it with the four faces it already asked for; without it,
     a title drawn first in a stand-in and redrawn in the wide cut moved the page's text (a
-    layout shift of 0.169 on one page, over the 0.1 limit).
+    layout shift of 0.169 on `format/hpr.html` in the site check's vitals, over its 0.1 limit,
+    with the CPU slowed 16.8 times; with the preload, the run's largest was 0.046).
 
 **Superseded.**
 
 - [ADR-164][adr-164]: the docs site's row, "a title block", now reads: a footer line on every
-  page, the title block on Start here and at the end of the print page.
-- [ADR-223][adr-223]: §2's mapping. `h3` is a heading inside a part in sentence case, not in
-  capitals; column heads and field names are Archivo 13/18, not `label` capitals; §4's "title
+  page of the guide but the print page, the title block on Start here and at the end of the
+  print page.
+- [ADR-223][adr-223]: §2's mapping. `h1` and `h2` move from the Cascadia Mono `title` and
+  `subtitle` tokens to Archivo's wide cut at the theme's 32/36 and 24/28; `h3` is a heading
+  inside a part in sentence case, not in capitals; column heads and Start here's field names
+  are Archivo 13/18, not `label` capitals (the print page's block keeps them). §4's "title
   blocks on every page, sheets with their rail, the intro (designation tag, status chip,
   `lead`)" is now the footer, the parts and the intro of a title and its lead.
+- [ADR-225][adr-225]: a note's head is Archivo 13/16 in sentence case, not Cascadia Mono 12/16
+  in capitals; a caution's and a warning's keep their signal word in capitals, in the wide cut.
+- [ADR-229][adr-229]: the title block ends Start here and the print page, not every page.
 - [ADR-231][adr-231]: the intro's tag and the sheet numbers are gone, and with them the file
-  check's and page check's rules for them; the status chip moves to the footer.
+  check's and page check's rules for them; the status chip moves to the footer; the theme
+  switch's buttons are Archivo 15/20, not Cascadia Mono 14.
+- [ADR-233][adr-233]: the chip is in the footer, in Archivo 13/16 in sentence case, not over
+  the title in Cascadia Mono capitals.
 - [ADR-235][adr-235]: "two to six sheets" reads "two to six parts", and the trust note sits
   between the lead and the first part. The rest stands.
 

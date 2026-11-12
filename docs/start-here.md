@@ -781,7 +781,7 @@ its links' addresses. Printed to a PDF file, the guide reads offline.
 The table below is the site's title block. It's the box in an engineering drawing's corner that
 says what a document is, who issued it, when, and which sources it rests on. Its fields follow ISO
 7200, the standard for drawings' title blocks. Its entries describe the whole site and this
-version of HPR Sim. The line at the foot of every page takes the version, the date and the status
+version of HPR Sim. The line at the foot of every page but the print page takes the version, the date and the status
 from it. The printed guide ends with the whole block, its own title added as "Page" after the
 site's. `FS-ACHERNAR · SW · TOOL 001` is HPR Sim's number in the register of FusionSpace, the
 family of tools it belongs to: Achernar, the simulator's internal name, then software tool 1.

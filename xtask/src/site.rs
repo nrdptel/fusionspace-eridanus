@@ -56,7 +56,7 @@
 //!   which a reviewer reads ([`trust_notes`]).
 //! - **Parts** (#384, ADR-343). Every page has two to six `##` sections, each a part, with no
 //!   exceptions ([`parts::part_counts`]).
-//! - **Openings** (#384). Every page but a model page holds a trust note before its first sheet,
+//! - **Openings** (#384). Every page but a model page holds a trust note before its first part,
 //!   as `web.md` asks every docs page to start with what works and how far to trust it; a model
 //!   page opens with *In short* ([`trust_opening`]).
 //!

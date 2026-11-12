@@ -798,7 +798,7 @@ and so do:
 - a smooth scroll a script asks for when the menu bar's title is clicked;
 - an icon that isn't square at one of the system's icon sizes, 16, 20 or 24 px. That covers the
   icons in the menu bar, the page arrows, the search field and a code block's buttons. The site
-  draws them at 20 and 24 px. A note's icon, 14 px as the system's note draws it, isn't read;
+  draws them at 16, 20 and 24 px. A note's icon, 14 px as the system's note draws it, isn't read;
 - selected text not drawn on the action color at 22 % opacity.
 
 A file check fails a page whose head doesn't declare light and dark color schemes. It fails one
@@ -828,7 +828,7 @@ redraws that frame:
   table stays open from 720 px and the button goes;
 - the arrows under the page name the pages they lead to: "Previous" or "Next", then the page's
   title. They stand under the text, inside the column;
-- every page ends with one line: the FusionSpace mark, 24 px tall, and "FusionSpace HPR", the
+- every page but the print page ends with one line: the FusionSpace mark, 24 px tall, and "FusionSpace HPR", the
   version, the date of issue, the site's status chip and a link to Start here, the page about the
   project. A docs site is a tool, in the product system's three levels, and a tool ends this way
   ([M0.17a, the frame off](decisions-and-roadmap.md#m0-17a)). The line's entries come from the
@@ -1065,7 +1065,7 @@ What it took to pass is recorded in
 - one stylesheet instead of ten, asked for first with mdBook's sidebar script;
 - five fonts asked for early so that text doesn't move when they arrive. That's three more
   than the product system allows: with its two, CLS reached 0.17 on two pages, and without the
-  wide cut titles are drawn in, 0.169 on one
+  wide cut titles are drawn in, one page went over the limit
   ([M0.17a, the frame off](decisions-and-roadmap.md#m0-17a));
 - the theme switch placed before the page is first drawn;
 - the print page's cover.
