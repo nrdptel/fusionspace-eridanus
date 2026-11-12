@@ -1329,7 +1329,7 @@ macro_rules! mono_faces {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 208] = [
+static CANARIES: [Canary; 208] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
