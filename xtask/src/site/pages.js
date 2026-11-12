@@ -2455,8 +2455,14 @@
   function probeParts(win, doc, note) {
     const ink = win.getComputedStyle(doc.body).color;
     probeIntro(win, doc, note);
+    // Any box of a record's frame that shows, however thin: a sheet's rail is a 2 px line, which
+    // `drawn` would take for text kept for screen readers.
     for (const el of Array.from(doc.querySelectorAll('.fs-tag, .fs-sheet-no, .fs-sheet-rail'))) {
-      if (drawn(win, el)) note('part', selector(el), 'display', 'a record\'s frame drawn');
+      const r = el.getBoundingClientRect();
+      if (el.getClientRects().length > 0 && r.width > 0 && r.height > 0
+          && win.getComputedStyle(el).visibility !== 'hidden') {
+        note('part', selector(el), 'display', 'a record\'s frame drawn');
+      }
     }
     const main = doc.querySelector('main');
     if (!main) return;
