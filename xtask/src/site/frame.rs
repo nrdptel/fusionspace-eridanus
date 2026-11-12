@@ -18,8 +18,8 @@
 //! - mdBook's script that shows the sidebar from 1,080 px, after what an earlier visit left,
 //!   shows it from 720 px whatever was left (`theme/hpr.css` hides the menu button there, and
 //!   `theme/hpr.js` opens the sidebar when a window widens past 720 px);
-//! - every page ends with a `footer` after the page's arrows, or after its text where it has
-//!   none: on the print page the system's
+//! - every page ends with a `footer` after the page's arrows (the print page, which has none,
+//!   after its text): on the print page the system's
 //!   title block, and on every other page the one-line footer, the mark and "FusionSpace HPR",
 //!   the version, the date of issue, the site's status chip ([`super::parts::chip`]) and a link
 //!   to the page about the project, Start here. Their entries are written once, in the title

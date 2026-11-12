@@ -2009,7 +2009,7 @@
   // The search field, opened as its button opens it (`web.md`, *Page anatomy*): drawn in the
   // column, its edges on `main`'s, and ending `SEARCH_GAP_PX` or more above the first thing drawn
   // in `main`, at every width. mdBook's own draws it across the page's padding with nothing under
-  // it, its focus ring over the designation tag. Returns what is wrong, as the header's examples.
+  // it, its focus ring over the page's intro. Returns what is wrong, as the header's examples.
   async function probeSearch(win, doc) {
     const found = [];
     const wrap = doc.getElementById('mdbook-search-wrapper');

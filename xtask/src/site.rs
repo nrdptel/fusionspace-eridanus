@@ -3101,7 +3101,7 @@ fn trust_opening(text: &str) -> Option<(usize, String)> {
     // A page-level quote block's first paragraph has just opened, or its bold text is being read.
     let mut slot = false;
     let mut label: Option<String> = None;
-    let mut first_sheet = text.len();
+    let mut first_part = text.len();
     for (event, range) in Parser::new_ext(text, options()).into_offset_iter() {
         let opens = std::mem::take(&mut slot);
         let nesting = match &event {
@@ -3114,7 +3114,7 @@ fn trust_opening(text: &str) -> Option<(usize, String)> {
                 level: HeadingLevel::H2,
                 ..
             }) => {
-                first_sheet = range.start;
+                first_part = range.start;
                 break;
             }
             // The quote block's first event decides; anything but a paragraph isn't a note.
@@ -3146,7 +3146,7 @@ fn trust_opening(text: &str) -> Option<(usize, String)> {
         }
     }
     Some((
-        line(first_sheet.min(text.len().saturating_sub(1))),
+        line(first_part.min(text.len().saturating_sub(1))),
         format!("no trust note before the first part: {TRUST_OPENING}"),
     ))
 }
@@ -3934,7 +3934,7 @@ mod tests {
         }
         // No note; a note only after the first part; a note in a list, another quote block or a
         // footnote; an alert, even with the label; a label that isn't the note's, or not where the
-        // note's is; no sheet at all.
+        // note's is; no part at all.
         for text in [
             page(""),
             format!("{}\n{note}", page("")),

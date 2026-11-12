@@ -29,8 +29,8 @@ pre > .buttons button.clip-button:hover::before {
 .nav-chapters .fa-svg svg,
 pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
 /* The page arrows' icons at 16 px: the system's theme sizes them 1 em of the page's text (the
-   system's 1x the text), which grows to 18 px on a wide window, and the page check holds icons to
-   the fixed 16, 20 and 24 px. */
+   system's 1x the text), which grows to 18 px on a wide window, and the page check holds the
+   chrome's icons (`.fa-svg`) to the fixed 16, 20 and 24 px. */
 .page-wrapper .nav-wrapper .mobile-nav-chapters .fa-svg { width: 16px; height: 16px; }
 .previous .fa-svg svg { transform: scaleX(-1); }
 /* The page arrows' names (`web.md`, *Page anatomy*; `frame.rs` writes them, and the system's

@@ -42,8 +42,8 @@ reading scale.
 **Decision.**
 
 1. **The pin moves to `dd7552f`.** `theme/` copies the system's mdBook theme, fonts (with the
-   new `Archivo-WideSemiBold.woff2` and its `@font-face` rule), icons and card at that commit,
-   with the check script in `xtask/src/site/`, and `cargo xtask site` compares each with it when `refs/fusionspace-design` is
+   new `Archivo-WideSemiBold.woff2` and its `@font-face` rule) and icons at that commit, with
+   the card in `docs/images/` and the check script in `xtask/src/site/`, and `cargo xtask site` compares each with it when `refs/fusionspace-design` is
    checked out: byte for byte, and `fonts.css` rule by rule with its `fonts/` folder dropped. `validation/refs.lock.toml`, `theme/README.md`,
    `THIRD-PARTY-NOTICES.md` and the README name it.
 2. **No record's frame on a page.** The build draws an intro (the title, then its one-sentence
@@ -94,12 +94,14 @@ reading scale.
    Mono there at the heading's own level and nowhere else, with a canary each way.
 9. **The page arrows' icons stay 16 px.** The system's theme sizes them 1 em of the page's
    text, the system's 1× the text, which grows to 18 px on a wide window. The page check holds
-   icons to the system's fixed sizes, 16, 20 and 24 px, so `hpr.css` holds them at 16 px.
+   each icon in mdBook's chrome (its `.fa-svg` spans) to the system's fixed sizes, 16, 20 and
+   24 px, so `hpr.css` holds them at 16 px.
 10. **The wide cut is asked for early.** Titles and section names now draw in Archivo's wide
     cut, so `theme/head.hbs` preloads it with the four faces it already asked for, and a title
-    isn't drawn first in a stand-in and redrawn. [ADR-232][adr-232] found a fifth face pushed
-    the largest contentful paint to 2.50 s in a probe; `cargo xtask site`'s vitals check holds
-    every page to its limits, 2.5 s for that paint and 0.1 for layout shift, with the five.
+    is less likely to be drawn first in a stand-in and redrawn. [ADR-232][adr-232] found a
+    fifth face pushed the largest contentful paint to 2.50 s in a probe; `cargo xtask site`'s
+    vitals check holds every page of the guide to its limits with the five: 2.5 s for that
+    paint, 0.1 for layout shift and 200 ms for a tap's answer.
 
 **Superseded.**
 
@@ -119,7 +121,8 @@ reading scale.
 - [ADR-229][adr-229]: the title block is the last part of Start here and ends the print page;
   other pages end with the footer line.
 - [ADR-232][adr-232]: §3's four preloaded faces are five, the wide cut added for the titles,
-  which are no longer Cascadia Mono SemiBold (§10 above).
+  which are no longer Cascadia Mono SemiBold (§10 above). §6's cover and §7's printed
+  chapters no longer open with the designation tag.
 - [ADR-231][adr-231]: the intro's tag and the sheet numbers are gone, and with them the file
   check's and page check's rules for them; the status chip moves to the footer; the theme
   switch's buttons are Archivo 15/20, not Cascadia Mono 14.
