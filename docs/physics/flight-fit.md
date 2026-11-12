@@ -454,8 +454,8 @@ steps of 12 to 60 m (39 to 197 ft) cut 142 of those logs before the peak. That w
 A test flies three logs it builds, each with a blip on the pad faster than the flight's top speed.
 A fourth has a 15 m (49 ft) step. Each is now cut where its clean log is. Before, all four were cut
 early, two of them before burnout, one 0.05 s after ignition. The test also moves the bad readings
-across the pad, starting them anywhere from 1.50 s to 2.75 s, with ignition at 3.0 s. Each log is cut after its peak and burnout,
-or refused for its speed. From 2.80 s they can still be the top
+across the pad, starting them anywhere from 1.50 s to 2.75 s, with ignition at 3.0 s. Each log is cut where its clean log is, after its peak and burnout,
+or refused for its speed. From 2.80 s on these flights they can still be the top
 ([#1441](https://github.com/nrdptel/fusionspace-eridanus/issues/1441), the gap above). Without the height rule, three readings 12 m (39 ft) too high
 in a row on the pad gave 33 cuts before the speed's peak, of the 157 logs spiked
 there (all but the 43 GNSS logs; measured once, not pinned by a test). 32 came

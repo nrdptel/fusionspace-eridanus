@@ -1316,12 +1316,14 @@ mod tests {
             }
         }
         // The bad samples anywhere on the pad from 1.50 s to 2.75 s, ignition at 3.0 s: each log is
-        // cut after its true peak and burnout, its top read after ignition, or refused as
-        // transonic. From 2.80 s they can still be the top (#1441; the test below).
+        // cut where its clean log is, after its true peak and burnout, its top read after ignition,
+        // or refused as transonic. From 2.80 s they can still be the top (#1441; the test below).
         let mut refused = 0_usize;
         let mut flown = 0_usize;
         const STARTS: u32 = 26;
         for (what, climb, burn_s, peak_s, _, _) in cases {
+            let clean = try_cut(&pad_spiked_log(climb, burn_s, 0.0, false))
+                .unwrap_or_else(|why| panic!("{what}, clean: refused, {why:?}"));
             // Six spikes, then two steps that stay.
             for (j, bad_m) in [-100.0, -60.0, -30.0, 30.0, 60.0, 100.0, 15.0, 60.0]
                 .into_iter()
@@ -1342,6 +1344,7 @@ mod tests {
                                 "{which}: cut at {} s",
                                 cut.time_s
                             );
+                            assert_eq!(cut.index, clean.index, "{which}: moved from the clean cut");
                         }
                         Err(NoCut::Transonic { .. }) => refused += 1,
                         Err(why) => panic!("{which}: refused, {why:?}"),
@@ -1366,21 +1369,30 @@ mod tests {
 
     /// A known gap ([#1441][i1441]): bad samples close to ignition leave no still window between
     /// them and the climb, so their leaving the window reads a climb faster than the flight's,
-    /// which stays its top. On this test's flights that starts 0.2 s before ignition. Pinned as it is, so that a fix shows
-    /// here: three readings 60 m low from 2.80 s cut the tail-off of
-    /// [`a_bad_sample_on_the_pad_is_not_the_top_speed`] at 8.75 s, before its 9.0 s burnout, its
-    /// top 133.9 m/s read at 3.30 s; a 60 m step from 2.95 s that stays cuts it there too.
+    /// which stays its top. On the flights of [`a_bad_sample_on_the_pad_is_not_the_top_speed`]
+    /// that starts 0.2 s before ignition. Pinned as it is, so that a fix shows here: three
+    /// readings 60 m low from 2.80 s cut its tail-off at 8.75 s, before its 9.0 s burnout, its top
+    /// 133.9 m/s read at 3.30 s; a 60 m step from 2.95 s that stays cuts it at 8.75 s too, its top
+    /// 164.0 m/s read at 3.20 s. Its clean log is cut at 10.60 s.
     ///
     /// [i1441]: https://github.com/nrdptel/fusionspace-eridanus/issues/1441
     #[test]
     fn a_low_reading_just_before_ignition_is_still_the_top() {
         let g = hpr_core::gravity::STANDARD_GRAVITY_MPS2;
         let tail_off = move |tau: f64| g / 1.05 * (4.95 - tau);
-        for (bad_m, stays, at_s) in [(-60.0, false, 2.80), (60.0, true, 2.95)] {
+        // (bad meters, a step that stays, from, the top's time and speed)
+        let cases = [
+            (-60.0, false, 2.80, 3.30, 133.94),
+            (60.0, true, 2.95, 3.20, 163.95),
+        ];
+        for (bad_m, stays, at_s, top_s, top_m_s) in cases {
             let cut = try_cut(&pad_spiked_log_at(&tail_off, 6.0, bad_m, stays, at_s));
             assert!(
-                cut.is_ok_and(|cut| cut.time_s < 9.0 && cut.top_speed_m_s > 130.0),
-                "{bad_m} m from {at_s} s: {cut:?}; if this is now right, #1441 is fixed"
+                cut.is_ok_and(|cut| (cut.time_s - 8.75).abs() < 1e-9
+                    && (cut.top_speed_s - top_s).abs() < 1e-9
+                    && (cut.top_speed_m_s - top_m_s).abs() < 0.01),
+                "{bad_m} m from {at_s} s: {cut:?}; if it's now cut where the clean log is (10.60 s), \
+                 #1441 is fixed"
             );
         }
     }
