@@ -407,7 +407,7 @@ On sets A and B's first 200 synthetic flights, no speed from liftoff to the cut 
 (58.1 ft/s). There, 98.8% and 98.4% of the pad's windows read still. Both were measured once, not committed.
 A climb whose top speed is under about 22 m/s (72 ft/s) reaches 5 m/s (16.4 ft/s) before its cut.
 That is 5 m/s (16.4 ft/s), plus the 10 m/s (32.8 ft/s) fall, plus 0.75 s of gravity; drag raises it a little.
-Such a slow climb is now refused as never lifting off, where the walk before this rule cut it. After burnout gravity alone
+Such a slow climb is now refused as never lifting off, where the walk before this rule cut some. After burnout gravity alone
 takes 9.8 m/s (32.2 ft/s) off the speed every second, drag more, so the speed keeps falling. A
 barometer's reading can dip during the boost and catch up
 ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)). In the burns of the seven public flights'
@@ -447,7 +447,7 @@ A step of 100 m (328 ft) was refused on all 157. Before the pad was read where t
 steps of 12 to 60 m (39 to 197 ft) cut 142 of those logs before the peak. That was measured once, not committed.
 A test flies three hand-built logs, each with a blip on the pad faster than the flight's top speed.
 A fourth has a 15 m (49 ft) step. Each is now cut where its clean log is. Before, all four were cut
-early, one before its burnout, one 0.05 s after ignition. Without the height rule, three readings 12 m (39 ft) too high
+early, two of them before burnout, one 0.05 s after ignition. Without the height rule, three readings 12 m (39 ft) too high
 in a row on the pad gave 33 cuts before the speed's peak, of the 157 logs spiked
 there (all but the 43 GNSS logs; measured once, not pinned by a test). 32 came
 before ignition, the other 0.04 s after it, and all 2.4 to 7.9 s before burnout. A test pins the order, the

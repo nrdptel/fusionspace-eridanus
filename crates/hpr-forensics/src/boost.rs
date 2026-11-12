@@ -76,7 +76,7 @@ pub const LIFTOFF_RISE_M: f64 = 10.0;
 /// flights' barometer logs with a cut (measured once, not committed), 98.8% and 98.4% of the pad's
 /// windows read under it, the longest stretch of the pad that never did lasted 0.25 s (leaving
 /// out a 500 Hz logger's first windows at its start), and no speed from liftoff to the cut read
-/// under 17.7 m/s, the climb's speed 10 m up. A climb whose fitted top speed is under about 22 m/s
+/// under 17.7 m/s, the fitted speed where the line first stood 10 m up. A climb whose fitted top speed is under about 22 m/s
 /// (this speed, the [`DROP_FLOOR_M_S`] fall and [`HOLD_S`] of gravity's 7.4 m/s), or a little more
 /// where drag slows it too, reaches this speed before its cut and is refused as never lifting off
 /// ([`NoCut::NeverLifted`]); the walk before this rule cut such slow climbs. HPR Sim's choice.
@@ -261,7 +261,7 @@ fn in_order_count(times: &[f64], cut_s: f64) -> usize {
 /// Where the boost's log is cut, decided at each sample of the height track from it and the ones
 /// before it (the module's rules); `None` where the log holds no height track, its track is a GNSS
 /// receiver's, any [`SPEED_WINDOW_S`] of it holds more samples than the analyzer's fastest rate
-/// allows ([`readings::MIN_INTERVAL_S`]), it never lifts off, it never holds
+/// allows ([`readings::MIN_INTERVAL_S`]), it never lifts off or climbs too slowly ([`STILL_M_S`]), it never holds
 /// [`readings::SPEED_MIN_SAMPLES`] in a [`SPEED_WINDOW_S`] window (a log slower than 8 Hz, or one
 /// whose samples can't be read), its
 /// fitted speed reaches
@@ -1357,7 +1357,7 @@ mod tests {
     /// logs give no such fall. A dip can bring the fitted speed under [`STILL_M_S`] in the burn, so
     /// that the pad is read again there; before that rule the counts were 1,787, 1,635, 152, 791 and
     /// 508. With the hold alone, not the lowest
-    /// speed, 416 of those 778 were cut in the burn (run once).
+    /// speed, 416 of those 778 were cut in the burn (run once, before the [`STILL_M_S`] rule).
     #[test]
     fn a_dip_in_the_boost_is_not_burnout() {
         let latest_s = (DROP_SHARE * readings::TRANSONIC_SPEED_M_S).max(DROP_FLOOR_M_S)
