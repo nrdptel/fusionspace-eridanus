@@ -8,7 +8,8 @@
 //!   the ones before it. A vertical speed is fitted by least squares over the last
 //!   [`SPEED_WINDOW_S`] of samples, leaving out a sample the analyzer's Hampel rule calls bad: one
 //!   bad reading of 12 to 100 m put in set A's flights moved a cut by 0.70 s at most (measured).
-//!   Liftoff is where that line stands [`LIFTOFF_RISE_M`] above the first window's. The cut is at
+//!   Liftoff is where that line stands [`LIFTOFF_RISE_M`] above the pad, the line where it last
+//!   stood still ([`STILL_M_S`]), or before that the first window's. The cut is at
 //!   the first sample where the speed has stood below its top by [`DROP_SHARE`] of it, and by at
 //!   least [`DROP_FLOOR_M_S`], for [`HOLD_S`], and is the lowest it has been over the last
 //!   [`HOLD_S`]. After burnout gravity takes about 9.8 m/s off the vertical speed every second,
@@ -59,11 +60,26 @@ use serde::{Deserialize, Serialize};
 use crate::fit::{self, Fit, Forward, Noise, Observations, Stated};
 use crate::residuals::HeightKind;
 
-/// How far the window's fitted line must stand above the first window's for liftoff, m: past the
+/// How far the window's fitted line must stand above the pad's for liftoff, m: past the
 /// largest excursion of a raw height from the track's first on the pad, 6.8 m over sets A and B's
 /// first 200 synthetic flights each (their barometers' logs, measured once), while a hobby rocket
 /// climbs it in about a second or less. HPR Sim's choice.
 pub const LIFTOFF_RISE_M: f64 = 10.0;
+
+/// The fitted speed under which the line stands still, m/s, either way: where it does, the pad is
+/// re-read there, and a liftoff, a top speed and a fall read before it are forgotten. A run of bad
+/// samples on the pad or a step there that stays can lift the line past [`LIFTOFF_RISE_M`] and
+/// read a speed faster than the flight's own top; the line stands still again once they leave the
+/// window, or at the step's new level ([#1362][i1362]). On sets A and B's first 200 synthetic
+/// flights' barometer logs with a cut (measured once, not committed), 98.8% and 98.4% of the pad's
+/// windows read under it, the longest stretch of the pad that never did lasted 0.25 s (leaving
+/// out a 500 Hz logger's first windows at its start), and no speed from liftoff to the cut read
+/// under 17.7 m/s, the climb's speed 10 m up. A flight cut by the [`DROP_FLOOR_M_S`] fall held for
+/// [`HOLD_S`] reaches it first only if its top speed is under about 22 m/s: it, the fall and 0.75 s
+/// of gravity, 7.4 m/s. HPR Sim's choice.
+///
+/// [i1362]: https://github.com/nrdptel/fusionspace-eridanus/issues/1362
+pub const STILL_M_S: f64 = 5.0;
 
 /// The span of the trailing window the vertical speed is fitted over, s: a straight line by
 /// least squares through the samples in it. HPR Sim's choice: long enough to average a
@@ -248,12 +264,12 @@ fn in_order_count(times: &[f64], cut_s: f64) -> usize {
 /// fitted speed reaches
 /// [`readings::TRANSONIC_SPEED_M_S`] before the cut, or it never slows by [`DROP_SHARE`] of its
 /// top speed and [`DROP_FLOOR_M_S`] for [`HOLD_S`], at a speed the lowest of the last [`HOLD_S`].
-/// The cut stands where the window's line is more than [`LIFTOFF_RISE_M`] above the first
-/// window's: three bad samples side by side on the pad can lift the line past that for a sample,
-/// and the speed then falls back as it does at burnout. A pad spike faster than the flight's own
-/// top speed, or a step up on the pad that stays, can still move the cut ([#1362][i1362]: measured
-/// once, not committed, on 157 logs, steps of 8, 10.5, 11 and 12 to 60 m cut 1, 106, 128 and 142
-/// before the peak; steps of 100 and 200 m were refused).
+/// The cut stands where the window's line is more than [`LIFTOFF_RISE_M`] above the pad's:
+/// three bad samples side by side on the pad can lift the line past that for a sample, and the
+/// speed then falls back as it does at burnout. The pad is read again wherever the line stands
+/// still ([`STILL_M_S`]), dropping the top speed and fall read before, so a pad spike faster than
+/// the flight's own top, or a step up on the pad that stays, doesn't stay the top
+/// ([#1362][i1362]).
 ///
 /// A GNSS receiver's altitude in the boost can drop out at ignition and burnout and lag the
 /// climb, by up to 440 m in one flight a flyer reports, while its fix reads valid
@@ -281,7 +297,8 @@ pub enum NoCut {
     /// No [`SPEED_WINDOW_S`] of it holds [`readings::SPEED_MIN_SAMPLES`] whose time and height are
     /// numbers, in order: a log slower than 8 Hz, or a track whose samples can't be read.
     TooSparse,
-    /// Its fitted line never stands [`LIFTOFF_RISE_M`] above the first.
+    /// Its fitted line never stands [`LIFTOFF_RISE_M`] above the pad's, where it last stood still
+    /// ([`STILL_M_S`]), and stays off still until a cut.
     NeverLifted,
     /// Its fitted speed reached [`readings::TRANSONIC_SPEED_M_S`] before any cut.
     Transonic {
@@ -352,8 +369,21 @@ fn walk(log: &FlightLog, hold_s: f64, fell: &mut dyn FnMut(f64, f64, f64)) -> Re
         let Some((speed, level)) = robust_line(&window, &mut scratch) else {
             continue;
         };
+        // The pad is where the line last stood still: bad samples on it or a step that stays lift
+        // the line and read a speed, but it stands still again after them, before any flight's cut.
+        if speed.abs() < STILL_M_S {
+            pad_m = Some(level);
+            if lifted {
+                if let Some((since, deepest)) = falling.take() {
+                    fell(since, t, deepest);
+                }
+                lifted = false;
+                top = None;
+                recent.clear();
+            }
+        }
         // Liftoff where the window's line, refitted without its outliers, stands high enough
-        // above the first: one bad sample on the pad doesn't lift it.
+        // above the pad: one bad sample on the pad doesn't lift it.
         let pad = *pad_m.get_or_insert(level);
         let aloft = level - pad > LIFTOFF_RISE_M;
         lifted = lifted || aloft;
@@ -961,7 +991,10 @@ mod tests {
     /// speed read past the transonic one (100 m up halfway through the burn, or 30 m down at four
     /// fifths). Measured once on the earlier rule, before a cut had to stand above the pad by
     /// [`LIFTOFF_RISE_M`]: three 12 m up on the pad gave 33 cuts before the speed's peak, 32 of them
-    /// before ignition, 2.37 s to 7.85 s before burnout. Set B's first 200, run once before the
+    /// before ignition, 2.37 s to 7.85 s before burnout. A step halfway through the pad that stays,
+    /// of 8, 12, 30, 60 or 100 m, is cut as the flight is or refused for its speed. Measured, not
+    /// asserted: 51 cut and 106 refused for each step to 60 m, all 157 refused at 100 m; steps of 12
+    /// to 60 m cut 142 before the peak before [`STILL_M_S`] (#1362, measured once). Set B's first 200, run once before the
     /// [`HOLD_S`] rule, not in the test: 57 cut, 0.35 s to 1.55 s after burnout, 34 GNSS and 109
     /// fast refused.
     #[test]
@@ -981,6 +1014,9 @@ mod tests {
             moved_most_s: f64,
         }
         let mut runs: [Spiked; 3] = Default::default();
+        const STEPS_M: [f64; 5] = [8.0, 12.0, 30.0, 60.0, 100.0];
+        // Of each step's logs, those cut and those refused as transonic.
+        let mut steps = [(0_usize, 0_usize); STEPS_M.len()];
         for k in 0..200 {
             let flight = flyer.flight(Set::A, k).expect("set A's flights fly");
             let cut = find_cut(&flight.log);
@@ -1081,6 +1117,24 @@ mod tests {
                     }
                 }
             }
+            // A step halfway through the pad that stays, every later sample raised.
+            for (j, by_m) in STEPS_M.into_iter().enumerate() {
+                let mut stepped = flight.log.clone();
+                for (t, h) in stepped.time_s.iter().zip(&mut stepped.altitude_m) {
+                    if *t >= 0.5 * pad_s {
+                        *h += by_m;
+                    }
+                }
+                let what = format!(" with a {by_m} m step from {} s", 0.5 * pad_s);
+                match try_cut(&stepped) {
+                    Ok(stepped_cut) => {
+                        check(&stepped_cut, &what);
+                        steps[j].0 += 1;
+                    }
+                    Err(NoCut::Transonic { .. }) => steps[j].1 += 1,
+                    Err(why) => panic!("flight {k}{what}: refused, {why:?}"),
+                }
+            }
         }
         println!("set A: {cut_count} cut, {early:.2} s to {late:.2} s after burnout");
         for (run, tally) in runs.iter().enumerate() {
@@ -1094,7 +1148,139 @@ mod tests {
                 tally.lost
             );
         }
+        for (by_m, (cut, refused)) in STEPS_M.iter().zip(steps) {
+            println!(
+                "a {by_m} m step on the pad that stays: {cut} cut, {refused} refused as transonic"
+            );
+        }
         assert!(cut_count >= 51, "{cut_count} cut");
+    }
+
+    /// A barometer's log every 0.05 s, on the pad until 3.0 s with 0.3 m of noise on every
+    /// sample (uniform, its standard deviation 0.3 m), then a climb at net acceleration `climb`
+    /// of the time since ignition until `burn_s` after it, then a coast in gravity alone; with
+    /// `bad_m` added to the three samples from 1.5 s on, or to every sample from 1.5 s on when
+    /// `stays`. The height track of [#1362][i1362]'s hand-built logs.
+    ///
+    /// [i1362]: https://github.com/nrdptel/fusionspace-eridanus/issues/1362
+    fn pad_spiked_log(
+        climb: &dyn Fn(f64) -> f64,
+        burn_s: f64,
+        bad_m: f64,
+        stays: bool,
+    ) -> FlightLog {
+        const STEP_S: f64 = 0.05;
+        const SUBSTEPS: u32 = 50;
+        let g = hpr_core::gravity::STANDARD_GRAVITY_MPS2;
+        let mut draw = draws();
+        let (mut v, mut h) = (0.0_f64, 0.0_f64);
+        let mut time_s = Vec::new();
+        let mut altitude_m = Vec::new();
+        for i in 0..500_u32 {
+            let t = f64::from(i) * STEP_S;
+            if i > 0 {
+                // The climb by the midpoint rule in small steps: a millimetre's error at most.
+                let dt = STEP_S / f64::from(SUBSTEPS);
+                for j in 0..SUBSTEPS {
+                    let tau = t - STEP_S + (f64::from(j) + 0.5) * dt - 3.0;
+                    let a = if tau <= 0.0 {
+                        0.0
+                    } else if tau < burn_s {
+                        climb(tau)
+                    } else {
+                        -g
+                    };
+                    h += v * dt + 0.5 * a * dt * dt;
+                    v += a * dt;
+                }
+                h = h.max(0.0);
+            }
+            // A draw is uniform over ±2,500: scaled to ±0.3·√3 m, its deviation is 0.3 m.
+            let noise = draw() / 2_500.0 * 0.3 * 3.0_f64.sqrt();
+            let bad = if (1.5..1.5 + 3.0 * STEP_S - 1e-9).contains(&t) || (stays && t >= 1.5) {
+                bad_m
+            } else {
+                0.0
+            };
+            time_s.push(t);
+            altitude_m.push(h + noise + bad);
+        }
+        FlightLog {
+            format: hpr_flightdata::log::LogFormat::GenericTable,
+            logger: "a test's".to_owned(),
+            serial_number: None,
+            firmware: None,
+            flight_number: None,
+            stated: hpr_flightdata::log::Stated::default(),
+            time_s,
+            altitude_m,
+            vertical_speed_m_s: None,
+            temperature_k: None,
+            battery_v: None,
+            channels: Vec::new(),
+            events: Vec::new(),
+            notes: Vec::new(),
+        }
+    }
+
+    /// [#1362][i1362]'s logs: three bad samples side by side on the pad, faster than the flight's
+    /// own top speed, don't stay its top, and a 15 m step on the pad that stays doesn't cut the
+    /// flight early. Ignition is at 3.0 s. A 2.0 s burn at 40 m/s² to 80 m/s with 45 m on the
+    /// pad, a 1.25 s burn to 50 m/s with 30 m, and a long tail-off, its net push falling to the
+    /// weight 4.95 s into a 6.0 s burn, with 100 m; then the first flight with 15 m from 1.5 s on.
+    /// Each is cut where its clean log is, its top speed read after ignition, after its true peak
+    /// and its burnout. Before [`STILL_M_S`] the spiked three were cut at 5.90, 5.05 and 8.75 s
+    /// (their clean logs at 7.25, 6.50 and 10.60 s), each top read at 1.6 s on the pad, the
+    /// tail-off's cut before its burnout; the step was cut at 3.05 s, 0.05 s after ignition.
+    ///
+    /// [i1362]: https://github.com/nrdptel/fusionspace-eridanus/issues/1362
+    #[test]
+    fn a_bad_sample_on_the_pad_is_not_the_top_speed() {
+        let g = hpr_core::gravity::STANDARD_GRAVITY_MPS2;
+        // The tail-off's net push falls in a line to the weight's pull at its burnout, 6.0 s in.
+        let tail_off = move |tau: f64| g / 1.05 * (4.95 - tau);
+        let constant = |_tau: f64| 40.0;
+        // (what, net push, burn, true peak's time, bad metres, a step that stays)
+        let cases: [(&str, &dyn Fn(f64) -> f64, f64, f64, f64, bool); 4] = [
+            ("80 m/s", &constant, 2.0, 5.0, 45.0, false),
+            ("50 m/s", &constant, 1.25, 4.25, 30.0, false),
+            ("the tail-off", &tail_off, 6.0, 7.95, 100.0, false),
+            ("80 m/s, a step", &constant, 2.0, 5.0, 15.0, true),
+        ];
+        let found: Vec<_> = cases
+            .iter()
+            .map(|&(what, climb, burn_s, _, bad_m, stays)| {
+                let clean = try_cut(&pad_spiked_log(climb, burn_s, 0.0, false));
+                let spiked = try_cut(&pad_spiked_log(climb, burn_s, bad_m, stays));
+                println!("{what}: clean {clean:?}, {bad_m} m on the pad: {spiked:?}");
+                (clean, spiked)
+            })
+            .collect();
+        for ((what, _, burn_s, peak_s, _, _), (clean, spiked)) in cases.into_iter().zip(found) {
+            let clean = clean.unwrap_or_else(|why| panic!("{what}, clean: refused, {why:?}"));
+            for (cut, which) in [(Ok(clean), "clean"), (spiked, "with the bad samples")] {
+                let cut = cut.unwrap_or_else(|why| panic!("{what}, {which}: refused, {why:?}"));
+                assert!(
+                    cut.top_speed_s > 3.0,
+                    "{what}, {which}: top read at {} s",
+                    cut.top_speed_s
+                );
+                assert!(
+                    cut.time_s > peak_s,
+                    "{what}, {which}: cut at {} s",
+                    cut.time_s
+                );
+                assert!(
+                    cut.time_s > 3.0 + burn_s,
+                    "{what}, {which}: cut at {} s",
+                    cut.time_s
+                );
+                assert_eq!(
+                    cut.index, clean.index,
+                    "{what}, {which}: moved from the clean cut"
+                );
+            }
+        }
     }
 
     /// [`median_of`] gives exactly what sorting by `f64::total_cmp` and taking the middle gives,
