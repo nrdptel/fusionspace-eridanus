@@ -98,7 +98,7 @@ the axis. The mass override is 2 kg. The center override is 0.1 m on the paralle
    start 0.45 m aft each weigh their 2 kg at the tip, on the axis, alone as with the other
    stage. On the other two a center that covers the parts is beside the mass, and the 2 kg is
    at that center.
-4. **Beside a parallel stage's covering center, OpenRocket's rocket is not its stage's body.**
+4. **Beside a parallel stage's covering override, OpenRocket's rocket is not its stage's body.**
    OpenRocket sums each booster about the rocket's center from where the design puts it. It
    takes the rocket's center with the boosters' mass at the stated center. A body's inertia
    goes with where its mass is, so the stage as OpenRocket weighs it alone, taken as one body,
@@ -165,10 +165,10 @@ the axis. The mass override is 2 kg. The center override is 0.1 m on the paralle
      bounds. The airframe has fins, whose inertia the two tools weigh differently, so its
      inertias are held by what the override adds to them: within 5 parts in 10 million of what
      it adds in OpenRocket, or within 1e-9 kg·m² where it adds less than 0.002 kg·m². ADR-335's
-     probes hold a flat 1e-9 kg·m², on additions of 0.0007 kg·m² and less. A booster's override
-     adds up to 0.021 kg·m², and the flat bound fails there: with the mass alone on three
-     boosters the override adds more than 0.018 kg·m² across the axis, and the two tools differ
-     by between 1.3e-9 and 1.6e-9 kg·m², under 8 parts in 100 million of it
+     probes hold a flat 1e-9 kg·m², on additions of 0.00071 kg·m² and less. A parallel stage's
+     override adds more, and the flat bound fails there: with the mass alone, on three boosters
+     and on one, the override adds more than 0.018 kg·m² across the axis, and the two tools
+     differ by between 1.3e-9 and 1.6e-9 kg·m², under 8 parts in 100 million of it
      (`a_parallel_stages_override_not_covering_its_parts_adds_to_them` pins both). So the bound
      goes with the addition, at the share the masses are held to, and keeps ADR-335's 1e-9
      kg·m² below it. No probe ADR-335 holds is held to less than before.

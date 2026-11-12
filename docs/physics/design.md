@@ -409,7 +409,8 @@ with OpenRocket 24.12, and by hand.
 - 49 more probes put the override on a parallel stage, on the stage one hangs on, or on
   parts that weigh nothing, four of them with no override as baselines: 40 with three boosters beside the core or with one, and 9 of two
   stages on the axis, one or both weighing nothing ([the decision record][adr-341]). HPR Sim
-  lays out 27 (places every part and weighs each stage) and refuses 22 by name. On the 25 laid out that carry boosters, the parallel
+  lays out 27 and refuses 22 by name. To lay a design out is to place every part and weigh
+  each stage. On the 25 laid out that carry boosters, the parallel
   stage alone matches OpenRocket's within the bounds above, and the whole rocket matches in
   mass and center. The rocket's inertias are held by what the override adds to them: within 5
   parts in 10 million of what it adds in OpenRocket, or within 1e-9 kg·m² where it adds less
@@ -476,7 +477,8 @@ with OpenRocket 24.12, and by hand.
   With two or more boosters, a mass at a station sits as far off the axis as that stage's own
   parts' center. No probe has a part off the axis on that stage (a launch lug, say), so
   whether OpenRocket's point follows the boosters there too is unmeasured
-  ([#1429](https://github.com/nrdptel/fusionspace-eridanus/issues/1429)).
+  ([#1429](https://github.com/nrdptel/fusionspace-eridanus/issues/1429), the issue for
+  M2.3d11, records it).
 - An added mass above zero with no station, on parts that weigh nothing, has no center to sit
   at, and the layout refuses it. On the six probes of it with no center stated, OpenRocket
   puts it at the rocket's tip, even for a lower stage that starts 0.8 m (2.6 ft) aft of the tip

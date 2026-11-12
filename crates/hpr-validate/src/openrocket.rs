@@ -1034,10 +1034,11 @@ mod tests {
     /// don't weigh alike (`hpr_s_own_fin_roll_departs_as_pinned`), so the airframe's inertias
     /// are held by what is added to them.
     ///
-    /// The probes with pods and with a motor aboard hold 1e-9 kg·m² flat, on overrides that add
-    /// 0.0007 kg·m² and less (`a_stages_added_mass_sits_among_its_pods_and_level_with_their_center`,
-    /// `a_motor_aboard_does_not_move_a_stages_added_mass`). A 2 kg mass on boosters adds up to
-    /// 0.021 kg·m², and the flat bound doesn't hold there
+    /// The probes with pods and with a motor aboard hold 1e-9 kg·m² flat, each in its own
+    /// test, on overrides that add 0.00071 kg·m² and less
+    /// (`a_stages_added_mass_sits_among_its_pods_and_level_with_their_center`,
+    /// `a_motor_aboard_does_not_move_a_stages_added_mass`). A 2 kg mass on boosters adds more
+    /// than 0.018 kg·m², and the flat bound doesn't hold there
     /// (`a_parallel_stages_override_not_covering_its_parts_adds_to_them` pins by how much). What
     /// a point adds is its mass times a distance squared, and the two tools' masses agree
     /// within 5 parts in 10 million (`same_mass_and_center`), so that share of what is added is
@@ -1846,6 +1847,14 @@ mod tests {
             .filter(|question| placement_design(&record, question).layout().is_ok())
             .count();
         assert_eq!((recorded.len(), laid_out), (49, 27));
+        // 25 of the 27 carry boosters; the other two are a lower stage that weighs nothing.
+        let with_boosters = recorded
+            .iter()
+            .map(|question| placement_design(&record, question))
+            .filter(|design| design.stages.iter().any(|stage| stage.parallel.is_some()))
+            .filter(|design| design.layout().is_ok())
+            .count();
+        assert_eq!(with_boosters, 25);
         assert_eq!(
             2 * STILL_REFUSED_ON_THE_CORE.len() + 2 + NO_PLACE_TO_SIT.len(),
             22

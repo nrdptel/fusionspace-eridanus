@@ -257,7 +257,7 @@ common reasons, and what to do:
 | a part the simulator couldn't read exactly as written | The simulator flies only what it reads exactly. The message names the part; the [`.ork` page](format/ork.md) lists what it reads |
 | a stage that separates, a second motor lit in flight | powered separations fly without `--motor`, one or several in turn, as on a three-stage rocket ([Separation](cli.md#separation)); with `--motor`, drop the option to fly the file's own motors. A payload dropped with nothing left to burn flies when its own parachute opens at the split; one that would coast with no drag first is refused: set one of the payload's devices to open at "Lower stage separation" with no delay ([a payload's split](decisions-and-roadmap.md#m4-5g3)) |
 | it can't tell which configuration to fly | the file has several and no default: name one with `--config` |
-| a parallel stage hangs on a tube "whose stage carries an added mass with no station" | the core has a mass override with the *override for all subcomponents* box unticked, and boosters beside it. Say where that mass is: add a center of gravity override on the core with the box unticked too ([why](#boosters-added-mass)) |
+| a parallel stage hangs on the core's tube, "whose stage carries an added mass with no station" | the core has a mass override with the *override for all subcomponents* box unticked, and boosters beside it. Say where that mass is: add a center of gravity override on the core with the box unticked too, or untick the one it has ([why](#boosters-added-mass)) |
 
 Warnings aren't refusals. A `warning:` line flags something the design's checks found unusual
 but buildable, such as a motor longer than its mount tube. The flight goes on. Warnings,
@@ -296,8 +296,8 @@ OpenRocket puts that mass at the center of the core and its boosters together, s
 when the boosters drop. The simulator's stage keeps one center. Add a center of gravity override on the core with the box unticked,
 and the mass has a fixed place. It is a [station](glossary.md#station) measured from the
 core's forward end. The design then flies with a ring of two or more boosters. Three were
-measured against OpenRocket. One booster alone, off the axis, is still refused. Flying the mass with
-no center override, and beside one booster, is open work:
+measured against OpenRocket. One booster alone, off the axis, is still refused. Flying it
+with no center override, or beside a single booster off the axis, is open work:
 [M2.3d11, the stage a parallel stage hangs on](decisions-and-roadmap.md#m2-3d11).
 
 Matching OpenRocket isn't matching your rocket. Where a ticked override sets the stage's mass,
@@ -308,7 +308,8 @@ and more if it sits farther out
 ([A stage's rule](physics/design.md#overrides)).
 
 A few more cases are still refused. One is a ticked override on a stage that carries boosters.
-Another is an unticked mass override on a stage whose parts weigh nothing. The third is a
+Another is an unticked mass override on a stage whose parts weigh nothing, with no unticked
+center override beside it. The third is a
 flight that moves a mass, releases one, or parts through a stage with an added mass.
 [A stage's mass and center of gravity overrides](format/ork.md#a-stages-mass-and-center-of-gravity-overrides)
 lists each.

@@ -1453,9 +1453,10 @@ One line per milestone or increment, in the order it was archived within its pha
           the override adds OpenRocket's inertia where none covers the parts. `hpr sim` flies
           three: a mass on the parallel stage, alone and at a station, and one at a station on
           the stage it hangs on. Beside a covering center the rocket's inertia across the axis
-          gains 0.63% and 0.22% less, and with a center that doesn't cover the parts beside a
-          mass that does, 0.79% and 0.27% less: M2.3d14's. Where every override covers the
-          parts, 0.070% to 4.673% less, with no increment planned (#1432).
+          gains 0.63% and 0.22% of OpenRocket's inertia less, and with a center that doesn't
+          cover the parts beside a mass that does, 0.79% and 0.27% of it less: M2.3d14's. Where
+          every override covers the parts, 0.070% to 4.673% of it less, with no increment
+          planned (#1432).
     - [x] **M2.3d5 The Macie XL predictions** (ADR-337). *Done when:* M2.3d1's *done when*, whole: its
       own pull request merges both Macie XL flights' inputs, sources, apogee rules and predicted
       apogees, the design flown as saved from its pinned repository, no error computed, and with
