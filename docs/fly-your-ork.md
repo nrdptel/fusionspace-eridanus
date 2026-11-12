@@ -296,8 +296,9 @@ OpenRocket puts that mass at the center of the core and its boosters together, s
 when the boosters drop. The simulator's stage keeps one center. Add a center of gravity override on the core with the box unticked,
 and the mass has a fixed place. It is a [station](glossary.md#station) measured from the
 core's forward end. The design then flies with a ring of two or more boosters. Three were
-measured against OpenRocket. One booster alone, off the axis, is still refused. Flying it
-with no center override, or beside a single booster off the axis, is open work:
+measured against OpenRocket. One booster alone, off the axis, is still refused. Flying the
+mass with no center override that has the box unticked, or beside a single booster off the
+axis, is open work:
 [M2.3d11, the stage a parallel stage hangs on](decisions-and-roadmap.md#m2-3d11).
 
 Matching OpenRocket isn't matching your rocket. Where a ticked override sets the stage's mass,
