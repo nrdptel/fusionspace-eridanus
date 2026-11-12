@@ -16,11 +16,14 @@ With each code's own drag ([predicted](glossary.md#same-drag-and-predicted-mode)
 differ from RocketPy's by −7.280% to +10.302% ([report][report]). The larger gaps are where its drag
 differs most from the example's.
 
-**Against the logs of seven real flights, HPR Sim's apogees miss by 6.06% on average, outside the
-5% target ([evidence row G24](evidence.md#g24)). One by one they miss by −8.90% to +10.40%**
-([real flights](#real-flights), [report][real-report]). Four of the five misses past 5% are
-consistent with HPR Sim's drag, and one with the motor's impulse. Four of those seven altimeters'
-kinds are assumed, and none is calibrated ([evidence row G21](evidence.md#g21)).
+**Against the logs of 12 public real flights, HPR Sim's apogees miss by 9.00% on average, outside
+the 5% target ([evidence row G24](evidence.md#g24)). One by one they miss by −29.16% to +10.40%,
+and 7 of the 12 read low** ([real flights](#real-flights), [report][real-report]). Seven were
+compared as soon as they were flown. Of their five misses past 5%, four are consistent with HPR
+Sim's drag, and one with the motor's impulse. Five were
+[predicted first](#predicted-before-compared). Four of those miss past 5%, and no explanation is
+claimed for them. Seven of the 12 altimeters' kinds are assumed, and none is calibrated
+(evidence rows [G21](evidence.md#g21) and [G39](evidence.md#g39)).
 
 **Against 60 more flights from a private collection, HPR Sim's apogees are +7.72% above the logs on
 average. They miss by 12.04% (mean absolute), also outside the target. OpenRocket's are +6.72%
@@ -50,8 +53,8 @@ What has been checked so far:
   declared drag coefficient. One flies past Mach 1.
 - The same flights with each code's own drag, reported against a target rather than gated, the one
   past Mach 1 included.
-- Seven real flights, flown in the weather of their day. Their apogee and the climb to it are
-  compared with their altitude logs ([real flights](#real-flights)).
+- Twelve public real flights, ten of them flown in the weather of their day. Their apogees are
+  compared with their altitude logs, and for seven the climb too ([real flights](#real-flights)).
 - 60 more real flights of a private collection, flown by HPR Sim and OpenRocket in the weather of
   their day. They're compared with their logged apogees as aggregates
   ([private collection](#real-flights-of-the-private-collection), [report][fixture-report]).
@@ -97,7 +100,7 @@ to the code that would move them is caught only when someone runs them again and
 | [RocketPy 1.13.0, patched](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): whole flights, each code on its own drag | code-to-code, each code's own drag | target: each metric's tolerance, 0.1% to 3%, reported, not enforced | 6 flights (5 subsonic, 1 transonic) | 75 of 102 metrics within target; apogee −7.28% to +10.30% |
 | [OpenRocket 24.12](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): calm flights of OpenRocket's examples | code-to-code, each code's own model | no target; an apogee more than 5% off needs a written cause | 54 flights (53 subsonic, 1 transonic); 3 more not flown | apogee −37.93% to +13.80%; apogee within 5% on 45 of 53, largest speed within 5% on 50 of 53, margin within 0.2&nbsp;calibers on 52 of 53, launch mass within 1% on 54 of 54, mass at rod clearance within 1% on 50 of 54, center of mass at rod clearance within 0.2&nbsp;calibers on 54 of 54; 3 values withheld by the report |
 | [OpenRocket 24.12](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): calm flights of the private designs | code-to-code, each code's own model | no target; an apogee more than 5% off needs a written cause | 35 flights (28 subsonic, 6 transonic, 1 supersonic); 2 more not flown | apogee −4.84% to +13.60%; apogee within 5% on 34 of 35, largest speed within 5% on 34 of 35, margin within 0.2&nbsp;calibers on 35 of 35, launch mass within 1% on 35 of 35, mass at rod clearance within 1% on 35 of 35, center of mass at rod clearance within 0.2&nbsp;calibers on 35 of 35 |
-| [the teams' altimeter logs](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): real flights | measured | target: mean absolute apogee error 5% | 7 flights (3 subsonic, 4 transonic) | mean absolute apogee error 6.06% (target 5%, missed); apogee −8.90% to +10.40%; apogee within 5% on 2 of 7, climb's RMS height error within 3% of apogee on 2 of 7 |
+| [the teams' altimeter logs](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md): real flights | measured | target: mean absolute apogee error 5% | 12 flights (5 subsonic, 7 transonic) | mean absolute apogee error 9.00% (target 5%, missed); apogee −29.16% to +10.40%; apogee within 5% on 3 of 12, climb's RMS height error within 3% of apogee on 2 of 7 |
 
 <!-- census: end -->
 
@@ -229,8 +232,8 @@ reality. They're set out in the project's [validation plan][plan].
 
 The first three check the code. Only the fourth checks the physics against the world.
 
-Seven flights have been compared so far, each as a whole. That's the apogee and the climb to it,
-not each model on its own ([real flights](#real-flights)). Two recovery models are also checked
+Twelve public flights have been compared so far, each as a whole. That's the apogee, and for
+seven the climb to it, not each model on its own ([real flights](#real-flights)). Two recovery models are also checked
 against published drop tests ([Recovery](physics/recovery.md)), and the normal force against
 NASA's wind-tunnel tests of the Arcas Robin ([Aerodynamics](physics/aero.md#normal-force-through-mach-1)): measurements,
 but not flights.
@@ -779,17 +782,22 @@ which drag is right. The [real flights](#real-flights) below start to, one rocke
 
 ## Real flights
 
-**In short: HPR Sim flew seven of RocketPy's [logged flights](decisions-and-roadmap.md#m2-3b) in
-the weather of the day ([the decision][adr-082]). Read the way each log's altimeter reads the air,
-HPR Sim's [apogees](glossary.md#apogee) miss the logs' by 6.06% on average. That's outside the 5%
-target ([evidence row G24](evidence.md#g24)). With its sign the mean is −0.22%, so these seven show
-no bias high or low. Five miss by more than 5%. Each has an explanation checked against the report's
-numbers: four are consistent with HPR Sim's drag, and one with the motor's impulse
-([report][real-report]).**
+**In short: HPR Sim has flown 12 public real flights and compared each with its altitude log.
+Read the way each log's altimeter reads the air, HPR Sim's [apogees](glossary.md#apogee) miss the
+logs' by 9.00% on average. That's outside the 5% target ([evidence row G24](evidence.md#g24)).
+With its sign the mean is −4.91%, and 7 of the 12 read low ([report][real-report]).**
 
-Four of the seven altimeters' kinds are assumed, none is calibrated, and the designs' fin edges are
-guesses ([evidence row G21](evidence.md#g21)). So read the numbers as those seven flights', not as a
-bound on every rocket.
+**Seven are RocketPy's [logged flights](decisions-and-roadmap.md#m2-3b), flown in the weather of
+the day and compared as soon as they were flown ([the decision][adr-082]). Their mean is 6.06%,
+and −0.22% with its sign. Five of them miss by more than 5%. Each has an explanation checked
+against the report's numbers: four are consistent with HPR Sim's drag, and one with the motor's
+impulse. The other five flights were [predicted first](#predicted-before-compared). They miss by
+13.12% on average, and no explanation is claimed for them ([report][real-report]).**
+
+Seven of the 12 altimeters' kinds are assumed, none is calibrated, and the designs' fin edges are
+guesses (evidence rows [G21](evidence.md#g21) and [G39](evidence.md#g39)). So read the numbers as
+those 12 flights' ([report][real-report]), not as a bound on every rocket. The rest of this part is about the seven
+compared first. The five predicted first have [their own part](#predicted-before-compared).
 
 **What is flown.** [RocketPy](glossary.md#rocketpy)'s documentation flies more than a dozen
 rockets against their teams' logs. HPR Sim flies seven of them the way a user would. The design is
@@ -804,10 +812,15 @@ example's ERA5 file, a [reanalysis](glossary.md#reanalysis) of the atmosphere
 
 | rockets | why not yet |
 |---|---|
-| Astra, Andromeda, Erebus 11, Macie XL (two flights) | flown and [predicted](#predicted-before-compared), not compared yet: all five new public flights' predictions are merged now, and their logs are compared in a later change (decisions: [the EuRoC 2022 flights][adr-334], [Macie XL][adr-337]). Erebus 11 flies a [COTS motor](glossary.md#cots-motor), a Cesaroni Pro54 K, most likely the 2437K660: its thrust file gives 2,418 N·s over 3.657 s against that motor's 2,437 N·s and 3.69 s ([decision][adr-082]) |
 | Camões, Halcyon, Hedy | they fly their teams' own motors, outside HPR Sim's scope of commercial motors ([decision][adr-082]) |
 | Valetudo, Defiance | their logs give an apogee, not a climb ([decision][adr-082]) |
 | Valkyrie | its inputs are only in a data file ([decision][adr-082]) |
+
+Astra, Andromeda and Erebus 11 are no longer left out: they are three of the five
+[predicted first](#predicted-before-compared). Erebus 11 flies a
+[COTS motor](glossary.md#cots-motor), a Cesaroni Pro54 K, most likely the 2437K660. Its thrust
+file gives 2,418 N·s over 3.657 s against that motor's 2,437 N·s and 3.69 s
+([decision][adr-082]).
 
 Juno III flies its team's own motor too, but its design was already public. HPR Sim flies the
 thrust file as it would any other: nothing of the motor is modeled ([decision][adr-082]).
@@ -831,11 +844,12 @@ center of mass. The table gives HPR Sim's apogee both ways. The reading moves it
 III, in June at Spaceport America) to +1.7% (NDRT 2020, in February) ([report][real-report],
 [decision][adr-082]).
 
-The kind of four altimeters is assumed rather than known
-([evidence row G21](evidence.md#g21)). Each row of the
-[report][real-report] gives its evidence. Reading all seven as heights would give a mean of
-4.49%, but three logs are known to be barometric. Reading only the four assumed ones as heights
-gives 6.65%: the target is missed either way. Read that way, Lince (+7.99%) would miss by more
+The kind of four of these seven altimeters is assumed rather than known
+([evidence row G21](evidence.md#g21)), and so is the kind of the three EuRoC 2022 ones among the
+flights predicted first ([evidence row G39](evidence.md#g39)). Each row of the
+[report][real-report] gives its evidence. Reading all 12 logs as heights would give a mean of
+7.88%, but five logs are known to be barometric. Reading only the seven assumed ones as heights
+gives 9.14%: the target is missed either way. Read that way, Lince (+7.99%) would miss by more
 than 5% with no checked explanation, and Genesis wouldn't ([report][real-report],
 [decision][adr-082]).
 
@@ -881,8 +895,8 @@ repository. `cargo xtask real-flights` reads them from a pinned copy of RocketPy
 ¹ Flown in the weather of the same day a year later, 2023, as RocketPy's example flies it. No
 file of the flight's day is available ([report][real-report]).
 
-The mean absolute apogee error is 6.06%, against the 5% target of the
-[validation plan][plan] ([gate and target](glossary.md#gate-and-target)). The largest climb RMS is
+Over these seven the mean absolute apogee error is 6.06%, and over all 12 it is 9.00%, against
+the 5% target of the [validation plan][plan] ([gate and target](glossary.md#gate-and-target)). The largest climb RMS is
 Juno III's, 7.26% of its apogee ([report][real-report]). No target is set on the climb. The
 [census](#the-census) counts each climb against a bar of 3% of its apogee, the bound three RocketPy
 comparisons hold a height RMS to. Bella Lui and Lince are within it ([census][census]).
@@ -891,8 +905,8 @@ comparisons hold a height RMS to. Bella Lui and Lince are within it ([census][ce
 example's RocketPy notebook specifies, in place of HPR Sim's. That drag is the team's estimate, a
 table, a curve from RASAero II or a CFD analysis, or a constant given with no source. When the error
 falls inside 5%, the miss is consistent with HPR Sim's drag. Neither drag is the truth. A team may
-have tuned its drag to this very flight. On the teams' drag the mean absolute error is 3.48%
-([report][real-report]).
+have tuned its drag to this very flight. On the teams' drag the seven's mean absolute error is
+3.48% ([report][real-report]).
 
 A notebook can reshape its thrust file to a stated burn time and total impulse, as Juno III's does.
 Where one does, a second diagnostic flies the file as recorded.
@@ -931,27 +945,54 @@ investigated ([report][real-report]).
 
 ### Predicted before compared
 
-**In short: five more public flights are now flown. Three are RocketPy's logged flights from
-EuRoC 2022: Astra, Andromeda and Erebus 11. Two are flights of Macie XL, an OpenRocket design in a
-public repository. Their predicted [apogees](glossary.md#apogee) were merged before any of them was
-compared with its log ([the predictions][predictions]; decisions: [the three][adr-334],
-[the two][adr-337]). Nothing here is an error yet: none has been checked against its log, so
-the table is not evidence of accuracy.**
+**In short: five more public flights were predicted before they were compared, and are now
+compared. Three are RocketPy's logged flights from EuRoC 2022: Astra, Andromeda and Erebus 11. Two
+are flights of Macie XL, an OpenRocket design in a public repository. Their predicted
+[apogees](glossary.md#apogee) were merged before any of them was compared with its log
+([the predictions][predictions]; decisions: [the three][adr-334], [the two][adr-337]). Against
+their logs they miss by −6.53%, +4.14%, −9.58%, −16.20% and −29.16%. That is 13.12% on average,
+and −11.47% with its sign ([report][real-report], [the decision][adr-342]). No prediction was
+changed after it merged.**
 
 The seven flights above were compared as soon as they were flown. A number published only after
-its comparison could have been tuned to its own miss, even without meaning to. These five go the
-other way round. Their inputs, the rule each log's apogee will be read by, and HPR Sim's
-predictions went onto `main` first. The comparison comes in a later change, which must print each
+its comparison could have been tuned to its own miss, even without meaning to. These five went the
+other way round. Their inputs, the rule each log's apogee is read by, and HPR Sim's
+predictions went onto `main` first. The comparison came in a later change, which prints each
 prediction below beside its error
 ([twelve public flights, predictions first](decisions-and-roadmap.md#m2-3d)).
 
-| flight | impulse flown (N·s) | predicted apogee (m) | as a height climbed (m) | every input traced |
-|---|---:|---:|---:|---|
-| [Astra][predictions] (Cesaroni 4263L1350-P) | 4,280.2 | 3,037.1 | 3,155.4 | yes |
-| [Andromeda][predictions] (its team's thrust file) | 9,866.7 | 3,581.0 | 3,729.5 | no |
-| [Erebus 11][predictions] (a Cesaroni Pro54 K, the example's thrust file) | 2,418.2 | 2,714.1 | 2,808.7 | yes |
-| [Macie XL, flight 1][predictions] (AeroTech I284W) | 599.5 | 706.2 | 706.3 | no |
-| [Macie XL, flight 2][predictions] (Cesaroni 601I350-16A) | 600.8 | 692.6 | 692.7 | no |
+| flight | impulse flown (N·s) | merged prediction (m) | log apogee (m) | apogee error | as a height climbed (m) | every input traced |
+|---|---:|---:|---:|---:|---:|---|
+| [Astra][real-report] ([Cesaroni 4263L1350-P][predictions]) | 4,280.2 | 3,037.1 | 3,249.5 | **−6.53%** | 3,155.4 | yes |
+| [Andromeda][real-report] ([its team's thrust file][predictions]) | 9,866.7 | 3,581.0 | 3,438.5 | +4.14% | 3,729.5 | no |
+| [Erebus 11][real-report] ([a Cesaroni Pro54 K, the example's thrust file][predictions]) | 2,418.2 | 2,714.1 | 3,001.8 | **−9.58%** | 2,808.7 | yes |
+| [Macie XL, flight 1][real-report] ([AeroTech I284W][predictions]) | 599.5 | 706.2 | 842.8 | **−16.20%** | 706.3 | no |
+| [Macie XL, flight 2][real-report] ([Cesaroni 601I350-16A][predictions]) | 600.8 | 692.6 | 977.8 | **−29.16%** | 692.7 | no |
+
+**What the comparison shows.** Four of the five read low, and four miss by more than 5%. The
+[report][real-report] claims no explanation for them. The two diagnostics it flies for the seven, the team's drag
+and the thrust file as recorded, aren't flown for these five, and their climbs aren't compared
+([the open issue](https://github.com/nrdptel/fusionspace-eridanus/issues/1436)). What the report
+does give is each flight's tags, written before the comparison.
+
+Astra and Erebus 11 are the two whose inputs are all traced. With the seven compared first, they
+make 9 flights with no input tagged not traced, whose mean is 6.50%, and −1.97% with its sign.
+The seven carry no tag, because they were compared before tags existed, so all seven count. Over
+the 10 flights flown in ERA5 weather the mean is 6.27%, and −1.35% with its sign
+([report][real-report], [the decision][adr-342]).
+
+**How each log is read.** By the rule merged with its prediction, which a test holds the reader
+to. The three EuRoC 2022 logs give the highest reading of their height column, with the log read
+whole. The two Macie XL logs give the apogee in the altimeter's own header, never the highest
+sample. On flight 1 an ejection spike lifts the highest sample to 1,052.8 m (3,454 ft), which is
+210.0 m (689 ft) above the header's apogee ([report][real-report]). Each log must be the file
+whose [digest](glossary.md#digest) was committed with its prediction.
+
+**A prediction that changes.** A merged prediction is never edited. If a later change to HPR Sim
+or to an input moves one, `cargo xtask real-flights` fails until the code lists a revision for
+it: the number flown now, and the reason. The report then prints both numbers and both errors,
+and gives the means over the merged predictions too. No prediction has been revised
+([the decision][adr-342]).
 
 The predicted apogee is what a [barometric altimeter](glossary.md#barometric-altimeter) would
 read in the air the flight is flown in: the day's for the three EuRoC 2022 flights, the stored
@@ -963,7 +1004,7 @@ reading is 3,037.1 m (9,964 ft), against a predicted climb of 3,155.4 m (10,352 
 pressure into height with the standard atmosphere, and the air over the site that day was warmer
 than that
 ([pressure altitude](physics/atmosphere.md#pressure-altitude-what-a-barometric-altimeter-reads),
-[the weather's record][euroc-weather]). The comparison will use the reading, as it does for the
+[the weather's record][euroc-weather]). The comparison uses the reading, as it does for the
 seven.
 
 **Traced** means the flight's own record, here RocketPy's example notebook, states every input
@@ -983,7 +1024,8 @@ It flew air brakes, and nothing public says whether, when or how far they opened
 flight with none, like this one, reads high by an unknown amount. Its thrust file also holds
 9,866.7 N·s, more than the 8,428.7 N·s on the bundled certified curve of the Cesaroni M2020 it is
 named for. On that curve the same design, at the same mass, is predicted at 3,050.3 m (10,008 ft).
-That figure is shown for scale and will enter no average of errors. The counted prediction is the
+That figure is shown for scale and enters no average of errors. Against the log it reads
+−11.29% ([report][real-report]). The counted prediction is the
 team's file's, as every RocketPy flight here flies its example's own thrust file. It is also the
 one prediction of the five that passes Mach 1, at Mach 1.019
 ([the predictions][predictions],
@@ -1028,28 +1070,35 @@ numbers, not measurements, and are shown beside the predictions without being co
 two programs agree, that is one program agreeing with another on the same file. It says nothing
 about how close either is to what flew.
 
+Against the logs those two runs read −16.40% and −29.26%, beside HPR Sim's −16.20% and −29.16%
+([report][real-report]). So both programs miss these two flights by about as much, on a file
+whose record leaves the day's air, the rail and the flown mass untraced. The report doesn't say
+which input, if any, is behind the miss.
+
 The choice to fly each stored simulation's own conditions, and the tags, were written after HPR
 Sim had first flown the file at `hpr sim`'s defaults, and that run's apogee had been seen
 ([the decision][adr-337]). That order is the
 maintainer's statement; no check can show it.
 
-**What is still to come.** All twelve public flights are compared together in a later change
-([the errors](decisions-and-roadmap.md#m2-3d2)).
+> **How far to trust it.** Measurements, but from altimeters not calibrated here, and three of the
+> five altimeters' kinds are assumed ([evidence row G39](evidence.md#g39)). Three of the
+> five flights are tagged not traced, so their misses hold an unknown share from inputs no record
+> gives. The measured apogees were already published, so the targets were known when the inputs
+> were written down. Merging first does one thing:
+> an input changed after seeing HPR Sim's own miss now shows as a change to a merged number.
 
-> **How far to trust it.** These are predictions, not results. No log has been compared, so they
-> say nothing yet about accuracy. RocketPy and the Macie XL repository had already published the
-> measured apogees, so the targets were known when the inputs were written down. Each log was also
-> looked at, for its columns and for a spike near its peak, before its rule was fixed. Merging
-> first does one thing:
-> an input changed after seeing HPR Sim's own miss now shows as a change to a merged number. The
-> code keeps the merged apogees as first merged, to the digit the page prints, and a test that CI
-> runs fails a committed prediction that has moved from them.
+RocketPy and the Macie XL repository had published the measured apogees before the predictions
+were made. Each log was also looked at, for its columns and for a spike near its peak, before its
+rule was fixed. The code keeps the merged apogees as first merged, to the digit the page prints. A
+test that CI runs fails a committed report whose prediction has moved from them with no revision
+listed.
 
 **Flying them again** needs RocketPy's files and the Macie XL repository's, which CI doesn't
 have. After `cargo xtask refs fetch rocketpy rocketry-files` and the weather file's
 [conversion](format/era5.md#converting-a-current-file),
 `cargo xtask public-predictions --check` fails when a prediction flown now differs from the
-committed one. The list of merged apogees is in the code, so a change to it shows in the code's
+committed one. `cargo xtask real-flights --check` flies all 12, reads the five logs again and
+fails when the committed report doesn't reproduce. The list of merged apogees is in the code, so a change to it shows in the code's
 history.
 
 ### Real flights of the private collection
@@ -1338,6 +1387,7 @@ rest.
 [adr-082]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0082-real-flights-read-from-refs-compared-over-the.md
 [adr-334]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0334-m2-3d1-in-three-the-euroc-2022-predictions-first.md
 [adr-337]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0337-the-macie-xl-predictions-each-flight-s-stored-simulation-flown-as-saved.md
+[adr-342]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0342-the-errors-before-the-remaining-openrocket-parity-probes.md
 [predictions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/public-predictions.md
 [euroc-weather]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/weather/euroc-2022-conversion.json
 [adr-083]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0083-m2-3c-blocked-no-private-design-is-the-rocket-of.md

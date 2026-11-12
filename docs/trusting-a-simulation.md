@@ -10,7 +10,7 @@ flight, how big its misses have been, and which miss to plan for. It's the first
 
 > **How far to trust it.** A test reads every number in this guide's text from a committed report,
 > and CI reruns the worked example's command. The reports set HPR Sim's apogees against 60 logged
-> flights of fliers' own designs ([report][fixture-report]), and against 7 public flights
+> flights of fliers' own designs ([report][fixture-report]), and against 12 public flights
 > ([report][real-report]). They measure apogee alone: no comparison here checks a top speed, a
 > descent or a landing place against a real flight.
 >
@@ -68,11 +68,12 @@ from isn't pinned down. It could be in what both are given (the design file, the
 the logged apogee they're scored against), or in models they have in common. A second simulator
 checks how the first is coded, not what the two share.
 
-The 7 public flights are university teams' rockets, flown in a
-[reanalysis](glossary.md#reanalysis) of their days' weather, one of them in another year's
-([report][real-report]). HPR Sim's apogee missed them by 6.06% on average without signs, from
-−8.90% to +10.40% one by one. With signs the misses averaged −0.22%, so on these the highs and
-lows nearly cancel. The average without signs is still outside the project's own 5% target
+The 12 public flights are university teams' rockets and one hobby rocket that flew twice
+([report][real-report]), 10 of them flown in a [reanalysis](glossary.md#reanalysis) of their
+days' weather, one of those in another year's. The hobby rocket's two are flown as the
+simulations stored in its design file, in standard air. HPR Sim's apogee missed them by 9.00% on
+average without signs, from −29.16% to +10.40% one by one. With signs the misses averaged −4.91%,
+low on 7 of the 12. The average without signs is still outside the project's own 5% target
 ([Accuracy](accuracy.md#real-flights)). The note HPR Sim prints with every apogee quotes the 60,
 the larger set and the less flattering one ([the trust note's decision record][adr-211]).
 
@@ -185,8 +186,9 @@ from the sky.
 **Sources.** The logged flights are published by university rocketry teams, rocketry courses and
 hobbyists.
 
-The 7 public flights are those RocketPy's documentation flies against their teams'
-logs. The weather is ERA5, generated using Copernicus Climate Change Service information 2026, and
+The 12 public flights are those RocketPy's documentation flies against their teams'
+logs, and the two flights of the Macie XL design in the MIT-licensed `rlhatcher/rocketry-files`
+repository. The weather is ERA5, generated using Copernicus Climate Change Service information 2026, and
 contains modified Copernicus Climate Change Service information 2026. Neither the European
 Commission nor ECMWF is responsible for any use made of it. The [report][fixture-report] gives the
 full attribution and the ERA5 citations.

@@ -28,8 +28,8 @@ as its motor burns.
   HPR Sim's is well below the example's for two rockets. For Prometheus 2022 it is above the
   example's at high speed. That rocket has flown through Mach 1 on HPR Sim's drag since
   [the drag through Mach 1](../decisions-and-roadmap.md#m1-8b1) was built
-  ([Accuracy](../accuracy.md#whole-flights-with-each-codes-own-drag)). Seven flights have been
-  compared with their teams' altitude logs, apogee and climb only. [60 more][fixture-report] have
+  ([Accuracy](../accuracy.md#whole-flights-with-each-codes-own-drag)). Twelve public flights have been
+  compared with their altitude logs at the apogee, seven of them along the climb too. [60 more][fixture-report] have
   been compared with their logs, on apogee alone
   ([Accuracy: real flights](../accuracy.md#real-flights)).
 - **What it leaves out:** staging and delayed ignition (both on [Staging](staging.md)), tip-off (the

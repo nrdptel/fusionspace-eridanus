@@ -184,9 +184,10 @@ comparison holds the flights both tools flew, less those the report leaves out w
 So a design HPR Sim can't fly yet is in neither number. RocketPy hasn't flown them, since it can't
 open their `.ork` files.
 
-On the 7 public flights HPR Sim's apogee missed by 6.06% on average without signs, outside the
-project's own 5% target ([report][real-report]). They're among the university rockets RocketPy's
-documentation flies against their teams' logs. OpenRocket and RocketPy haven't flown them here yet
+On the 12 public flights HPR Sim's apogee missed by 9.00% on average without signs, outside the
+project's own 5% target ([report][real-report]). They're university rockets that RocketPy's
+documentation flies against their teams' logs, and one hobby rocket's flights, from its public
+design file and logs. OpenRocket and RocketPy haven't flown them here yet
 (see the planned milestones [an open benchmark](decisions-and-roadmap.md#m2-6) and
 [the other tools' cells](decisions-and-roadmap.md#m2-9)).
 

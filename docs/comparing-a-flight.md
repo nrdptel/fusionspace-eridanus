@@ -10,8 +10,8 @@ after its full-scale flight. Reading a log with no simulation is [Reading a flig
 > the sum of what the logger, the simulation and the lining up of their clocks each got wrong. It can't
 > tell them apart. It says neither is right. The simulated numbers state no error here, and the fit that would explain a residual is
 > [not built yet](decisions-and-roadmap.md#m7-3). The method is tested on flights with a known answer. It has
-> been run on the 7 public logged flights ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/flight-residuals.md)),
-> and those show what it gives, not that it is right about them.
+> been run on 7 of the 12 public logged flights ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/flight-residuals.md)).
+> Those show what it gives, not that it is right about them.
 
 ## Run it
 

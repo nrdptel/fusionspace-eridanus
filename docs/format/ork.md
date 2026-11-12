@@ -438,11 +438,13 @@ example, and the decision records give the measurements: [a stage on the axis][a
   has about the stage's center, so no stage that keeps its parts in place gives it: the rocket's
   inertia across the axis is now 4.95% over OpenRocket's (a center beside an added mass) and 3.33%
   over (a mass that covers the parts, beside a center that doesn't), where it was 1.5% and 18.5%
-  (worse on the first, better on the second); about the axis the two agree. Closing this gap is
-  open work: [M2.3d9, the inertia on a lower stage and with a motor aboard](../decisions-and-roadmap.md#m2-3d9). With a motor aboard OpenRocket sums the same way: on the motor's
+  (worse on the first, better on the second); about the axis the two agree. That difference
+  stands: HPR Sim won't close it, and a test pins both figures
+  ([the decision that it stands][adr-342]). With a motor aboard OpenRocket sums the same way: on the motor's
   airframe, under an added mass beside a center that covers the parts, HPR Sim's rule gives an
   inertia across the axis 1.6% under OpenRocket's at launch and 1.1% under at burnout, worked by
-  hand from OpenRocket's records, its motor's term in both; that gap is open in the same milestone.
+  hand from OpenRocket's records, its motor's term in both. Closing that gap is open work:
+  [M2.3d9, the inertia with a motor aboard](../decisions-and-roadmap.md#m2-3d9).
   [The decision record][adr-340] gives the measurements.
 - **A parallel stage's override that covers its parts** leaves the boosters in place too, and
   the reader gives it the same rule. Until this was measured it was read as a pod set's override:
@@ -525,6 +527,7 @@ weigh 300 g in all: far too light, so its descent rate would read low.
 [adr-335]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0335-a-stage-s-added-mass-as-openrocket-weighs-it.md
 [adr-340]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0340-a-stage-s-overrides-leave-its-parts-in-place-as-openrocket-weighs-them.md
 [adr-341]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0341-m2-3d8-in-five-a-parallel-stage-s-added-mass-first.md
+[adr-342]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0342-the-errors-before-the-remaining-openrocket-parity-probes.md
 
 ### Warnings, not failures
 

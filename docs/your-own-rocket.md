@@ -21,7 +21,7 @@ catalog. Then it finds the rocket's
 > are missing until you weigh the parts and enter the weights
 > ([What else a design can hold](#what-else-a-design-can-hold)). This rocket's flight isn't
 > validated ([evidence row G24](evidence.md#g24)). Whole flights of other rockets have been
-> compared with RocketPy's, OpenRocket's and seven real flights'
+> compared with RocketPy's, OpenRocket's and 12 real flights'
 > ([Accuracy](accuracy.md#real-flights)), but not this one's ([Getting
 > started](getting-started.md#accuracy-of-these-numbers)).
 
