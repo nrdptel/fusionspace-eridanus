@@ -74,9 +74,10 @@ pub const LIFTOFF_RISE_M: f64 = 10.0;
 /// flights' barometer logs with a cut (measured once, not committed), 98.8% and 98.4% of the pad's
 /// windows read under it, the longest stretch of the pad that never did lasted 0.25 s (leaving
 /// out a 500 Hz logger's first windows at its start), and no speed from liftoff to the cut read
-/// under 17.7 m/s, the climb's speed 10 m up. A flight cut by the [`DROP_FLOOR_M_S`] fall held for
-/// [`HOLD_S`] reaches it first only if its top speed is under about 22 m/s: it, the fall and 0.75 s
-/// of gravity, 7.4 m/s. HPR Sim's choice.
+/// under 17.7 m/s, the climb's speed 10 m up. A climb whose fitted top speed is under about 22 m/s
+/// (this speed, the [`DROP_FLOOR_M_S`] fall and [`HOLD_S`] of gravity's 7.4 m/s), or a little more
+/// where drag slows it too, reaches this speed before its cut and is refused as never lifting off
+/// ([`NoCut::NeverLifted`]); the walk before this rule cut such slow climbs. HPR Sim's choice.
 ///
 /// [i1362]: https://github.com/nrdptel/fusionspace-eridanus/issues/1362
 pub const STILL_M_S: f64 = 5.0;
@@ -298,7 +299,8 @@ pub enum NoCut {
     /// numbers, in order: a log slower than 8 Hz, or a track whose samples can't be read.
     TooSparse,
     /// Its fitted line never stands [`LIFTOFF_RISE_M`] above the pad's, where it last stood still
-    /// ([`STILL_M_S`]), and stays off still until a cut.
+    /// ([`STILL_M_S`]), and then keeps from standing still until a cut: a climb whose top speed is
+    /// under about 22 m/s stands still again before its cut, and is refused here.
     NeverLifted,
     /// Its fitted speed reached [`readings::TRANSONIC_SPEED_M_S`] before any cut.
     Transonic {
@@ -994,7 +996,9 @@ mod tests {
     /// before ignition, 2.37 s to 7.85 s before burnout. A step halfway through the pad that stays,
     /// of 8, 12, 30, 60 or 100 m, is cut as the flight is or refused for its speed. Measured, not
     /// asserted: 51 cut and 106 refused for each step to 60 m, all 157 refused at 100 m; steps of 12
-    /// to 60 m cut 142 before the peak before [`STILL_M_S`] (#1362, measured once). Set B's first 200, run once before the
+    /// to 60 m cut 142 before the peak before [`STILL_M_S`] ([#1362][i1362], measured once).
+    ///
+    /// [i1362]: https://github.com/nrdptel/fusionspace-eridanus/issues/1362 Set B's first 200, run once before the
     /// [`HOLD_S`] rule, not in the test: 57 cut, 0.35 s to 1.55 s after burnout, 34 GNSS and 109
     /// fast refused.
     #[test]
@@ -1228,8 +1232,8 @@ mod tests {
     /// flight early. Ignition is at 3.0 s. A 2.0 s burn at 40 m/s² to 80 m/s with 45 m on the
     /// pad, a 1.25 s burn to 50 m/s with 30 m, and a long tail-off, its net push falling to the
     /// weight 4.95 s into a 6.0 s burn, with 100 m; then the first flight with 15 m from 1.5 s on.
-    /// Each is cut where its clean log is, its top speed read after ignition, after its true peak
-    /// and its burnout. Before [`STILL_M_S`] the spiked three were cut at 5.90, 5.05 and 8.75 s
+    /// Each is cut where its clean log is: the cut after its true peak and its burnout, its top speed
+    /// read after ignition. Before [`STILL_M_S`] the spiked three were cut at 5.90, 5.05 and 8.75 s
     /// (their clean logs at 7.25, 6.50 and 10.60 s), each top read at 1.6 s on the pad, the
     /// tail-off's cut before its burnout; the step was cut at 3.05 s, 0.05 s after ignition.
     ///

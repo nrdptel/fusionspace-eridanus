@@ -401,11 +401,12 @@ then falls back and stays down, as it does after burnout, so this height rule st
 They can also read a speed faster than the flight's own top. Once they leave the window the line
 stands still again. The pad is read afresh there, and the top speed and climb read before it are dropped
 ([#1362](https://github.com/nrdptel/fusionspace-eridanus/issues/1362)). A step up on the pad that
-stays settles the same way, at its new height. A real climb doesn't stand still before its cut.
+stays settles the same way, at its new height. A fast climb doesn't stand still before its cut.
 On sets A and B's first 200 synthetic flights, no speed from liftoff to the cut read under 17.7 m/s
-(58.1 ft/s). Of the pad's windows, 98.8% and 98.4% read still (measured once). A climb reaches 5 m/s (16.4 ft/s)
-before its cut only if its top speed is under about 22 m/s (72 ft/s). That is 5 m/s (16.4 ft/s), plus the 10 m/s (32.8 ft/s)
-fall, plus 0.75 s of gravity. After burnout gravity alone
+(58.1 ft/s). There, 98.8% and 98.4% of the pad's windows read still. Both were measured once, not committed.
+A climb whose top speed is under about 22 m/s (72 ft/s) reaches 5 m/s (16.4 ft/s) before its cut.
+That is 5 m/s (16.4 ft/s), plus the 10 m/s (32.8 ft/s) fall, plus 0.75 s of gravity; drag raises it a little.
+Such a slow climb is now refused as never lifting off, where the walk before this rule cut it. After burnout gravity alone
 takes 9.8 m/s (32.2 ft/s) off the speed every second, drag more, so the speed keeps falling. A
 barometer's reading can dip during the boost and catch up
 ([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)). In the burns of the seven public flights'
@@ -426,8 +427,9 @@ flown on to apogee.
   flow), the pressure at the port may stop following the height. The analyzer withholds its top
   speed there too.
 - A log sampled slower than 8 or faster than 500 times a second.
-- A log that never climbs 10 m (32.8 ft) above where it last stood still, or one whose speed never
-  drops as far as the cut needs for 0.75 s.
+- A log that never climbs 10 m (32.8 ft) above where it last stood still.
+- A climb whose top speed is under about 22 m/s (72 ft/s): it stands still again before its cut.
+- A log whose speed never drops as far as the cut needs for 0.75 s.
 
 [Set A](synthetic-flights.md#the-sets)'s first 200 synthetic flights are mostly fast. Of them, 51
 were cut, each after the true peak of its vertical speed. Each cut came 1.08 s to 2.30 s after
@@ -441,7 +443,7 @@ runs still came after the peak and after burnout. Four or more in a row weren't 
 the pad that stay were tried too, from halfway through it. Steps of 8 m (26 ft), 12 m (39 ft), 30 m (98 ft) and 60 m (197 ft)
 each cut the same 51 flights after the peak and burnout. They were refused for their speed on the other 106.
 A step of 100 m (328 ft) was refused on all 157. Before the pad was read where the line stood still,
-steps of 12 to 60 m (39 to 197 ft) cut 142 of those logs before the peak (measured once, not committed).
+steps of 12 to 60 m (39 to 197 ft) cut 142 of those logs before the peak. That was measured once, not committed.
 A test flies three hand-built logs, each with a blip on the pad faster than the flight's top speed.
 A fourth has a 15 m (49 ft) step. Each is now cut where its clean log is. Before, all four were cut
 early, one before its burnout, one 0.05 s after ignition. Without the height rule, three readings 12 m (39 ft) too high
