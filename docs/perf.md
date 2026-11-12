@@ -11,9 +11,9 @@ the command, so a later run can be compared like for like.
   alone: the body segments the method covers, and the reference area.
 - **Why it was slow.** The motor catalog's check (`cargo xtask motor-catalog --check`) flies each
   of the 924 catalog motors with a thrust curve in a probe rocket sized to it, 24 probes in all. It
-  runs `hpr sim` once a motor, all in one process. Each run makes a fresh model, so each built its
-  table. A macOS `sample` profile of one such flight (the H128W in the 29 mm probe, not committed)
-  put nearly every sample in the Taylor–Maccoll cone solution the table is built from. That flight
+  runs `hpr sim` once a motor, all in one process. Each run makes a fresh model, so each run whose
+  flight passed Mach 1.2 built its table. A macOS `sample` profile of one such flight (the H128W in the 29 mm probe, not committed)
+  put nearly every sample in the Taylor–Maccoll cone solution the table is built from. In one local run each, that flight
   took 0.65 s, where the Level 1 guide rocket's flight on the same motor, which tops out at Mach 0.64, took 12 ms.
 - **The change.** A process can now ask to keep its tables (`hpr_aero::keep_supersonic_tables`).
   Each later model then copies the table already built for an equal set of segments and the same
@@ -33,8 +33,10 @@ the command, so a later run can be compared like for like.
 
   The CI figures are GitHub's job and step times. Before is main's push run 43195398964 and a run
   started by hand on the same commit, 43219825561. After is this change's first pull-request run,
-  43231264953, where the catalog step is now mostly compiling.
-- **What moves.** No number: the validation reports are unchanged. A unit test
+  43231264953, where the catalog step is now mostly compiling. That run is of its first commit,
+  which kept every process's tables; the catalog check runs the same way in both.
+- **What moves.** No flight's number: the validation reports are unchanged, but for the writing report's
+  word counts (`voice.md`). A unit test
   (`kept_tables_are_found_by_run_and_area_and_the_first_kept_drops_first`) shows that a kept table
   is found only for equal segments on the same reference area, and that it matches a fresh build in
   every digit of its `Debug` text.

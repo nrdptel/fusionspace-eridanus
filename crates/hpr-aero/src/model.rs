@@ -533,9 +533,9 @@ static KEPT: Mutex<KeptTables> = Mutex::new(KeptTables::new(KEPT_TABLES));
 /// Has every model this process builds from now on take its supersonic table
 /// ([`AeroModel::supersonic_body`]) as a copy of one the process already built from an equal run
 /// on the same reference area, where there is one, keeping up to 64 tables, the first kept dropped
-/// first. The run and the reference area are the only inputs the table is built from, compared as
-/// [`AeroModel::share_supersonic_table`] compares them (the area by its bits), so a flight flies
-/// the same either way. Building a table takes up to about 125 runs of the shock-expansion method,
+/// first. The run and the reference area are the only inputs the table is built from: the run is
+/// compared as [`AeroModel::share_supersonic_table`] compares it, and the area by its bits, so a
+/// flight flies the same either way. Building a table takes up to about 125 runs of the shock-expansion method,
 /// a fifth of a second or more.
 ///
 /// For a process that flies a few shapes many times through a path that builds a model each time,
@@ -7239,9 +7239,13 @@ mod tests {
                 "{what}: not what building it again gives"
             );
         }
-        // Kept again: nothing changes, and the first kept is still the first to drop.
-        kept.keep(&keys[0].1, keys[0].2, &built[0]);
+        // Kept again, even with another table: nothing changes.
+        kept.keep(&keys[0].1, keys[0].2, &built[2]);
         assert_eq!(kept.tables.len(), 3);
+        assert_eq!(
+            format!("{:?}", kept.find(&keys[0].1, keys[0].2)),
+            format!("{:?}", Some(&built[0]))
+        );
         let (_, run, area) = &keys[2];
         let mut fewer = KeptTables::new(2);
         fewer.keep(&keys[0].1, keys[0].2, &built[0]);
