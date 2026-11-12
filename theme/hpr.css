@@ -197,7 +197,7 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
    work, so without them it isn't drawn. */
 #mdbook-theme-list.fs-seg { position: static; display: inline-flex !important; flex: none; align-self: center; box-sizing: border-box; margin: 0; padding: 0; max-height: none; overflow: visible; list-style: none; border: 1px solid var(--fs-rule-strong); background: transparent; color: var(--fs-ink-muted); }
 #mdbook-theme-list.fs-seg > li { display: flex; }
-#mdbook-theme-list.fs-seg .theme { box-sizing: border-box; min-height: 44px; width: auto; margin: 0; padding: 0 12px; font: 400 15px/20px 'Archivo', 'Archivo Fallback', 'Archivo Clone Fallback', system-ui, -apple-system, 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums; text-align: center; white-space: nowrap; color: var(--fs-ink-muted); background: transparent; border: 0; border-left: 1px solid var(--fs-rule); cursor: pointer; }
+#mdbook-theme-list.fs-seg .theme { box-sizing: border-box; min-height: 44px; width: auto; margin: 0; padding: 0 12px; font: 400 1.5rem/2rem 'Archivo', 'Archivo Fallback', 'Archivo Clone Fallback', system-ui, -apple-system, 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums; text-align: center; white-space: nowrap; color: var(--fs-ink-muted); background: transparent; border: 0; border-left: 1px solid var(--fs-rule); cursor: pointer; }
 #mdbook-theme-list.fs-seg > li:first-child .theme { border-left: 0; }
 #mdbook-theme-list.fs-seg .theme:hover { color: var(--fs-ink); background: transparent; }
 #mdbook-theme-list.fs-seg .theme[aria-pressed="true"] { color: var(--fs-canvas); background: var(--fs-ink); }

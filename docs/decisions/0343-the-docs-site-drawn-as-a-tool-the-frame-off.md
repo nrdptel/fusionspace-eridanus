@@ -14,6 +14,10 @@
 [adr-339]: 0339-m0-17-the-docs-site-at-the-tool-level-queued-second.md
 [design12]: https://github.com/nrdptel/fusionspace-design/pull/12
 [audit]: ../research/design-conformance.md
+[i1442]: https://github.com/nrdptel/fusionspace-eridanus/issues/1442
+[i1443]: https://github.com/nrdptel/fusionspace-eridanus/issues/1443
+[i1444]: https://github.com/nrdptel/fusionspace-eridanus/issues/1444
+[i1445]: https://github.com/nrdptel/fusionspace-eridanus/issues/1445
 
 **Context.** [ADR-339][adr-339] queued [M0.17a][m0-17a]: move the site to the product system's
 [three-levels change][design12] and take off the frame a record wears. The change, merged as
@@ -94,7 +98,16 @@ note head 13/16, and a signal word 13/16 in the wide cut (weight 640, width 118%
 - [M0.17b][m0-17b] adds the Field theme and the acceptance pass for the whole restyle.
 
 **The design audit.** Moving the pin reopens the [audit][audit] ([ADR-284][adr-284]).
-AUDIT-PLACEHOLDER
+The audit
+read again the new section, *Three levels*, and the 28 sections the change rewrote, at
+`dd7552f`; every other row carries over, restated at the new commit. 65 sections apply to
+hpr-sim: 32 met, 26 not met, 3 later and 4 that don't apply, where the earlier pin had 64: 37
+met and 20 not met. The new level asks more than the frame this record takes off, and the gaps
+are filed: the footer line's data date and units, the header's rule before a tool's name and
+`data-level` ([#1442][i1442]); the figures' and the plot's words in Archivo with sentence-case
+axis titles ([#1443][i1443]); the README's top as a front page ([#1444][i1444]); and the system
+theme's table of contents in px, not rem ([#1445][i1445]). The theme switch, set in px here at
+first, is in rem.
 
 **How it was checked.** `cargo test -p xtask` (the frame's, the parts' and the page check's
 tests, the canary counts, and the audit's pin), `cargo xtask site` at every width in light and
