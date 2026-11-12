@@ -23,7 +23,7 @@ Written by `cargo xtask real-flights` ([M2.3b][m2-3b], decision [ADR-082][adr-08
 - Mean apogee error with its sign: -4.91%.
 - Over the 7 compared first: mean absolute apogee error 6.06%, with its sign -0.22%.
 - Over the 5 predicted first: mean absolute apogee error 13.12%, with its sign -11.47%.
-- Over the 9 with no input tagged not traced: mean absolute apogee error 6.50%, with its sign -1.97%. The flights compared first carry no tag, having been compared before tags existed, and all count here.
+- Over the 2 tagged, with their predictions, as having every input traced: mean absolute apogee error 8.06%, with its sign -8.06%. The flights compared first were compared before tags existed and carry none, so they are not counted here.
 - Over the 10 flown in ERA5 weather: mean absolute apogee error 6.27%, with its sign -1.35%.
 - No merged prediction has been revised: each predicted flight's error is its merged prediction's, to the digit its page printed.
 - Mean absolute apogee error were every log a height, not a barometric reading: 7.88%.

@@ -635,9 +635,9 @@
       "mean_apogee_error_percent": -11.468127946669885
     },
     "traced": {
-      "flights": 9,
-      "mean_absolute_apogee_error_percent": 6.503199358869255,
-      "mean_apogee_error_percent": -1.965060328172344
+      "flights": 2,
+      "mean_absolute_apogee_error_percent": 8.05944727905947,
+      "mean_apogee_error_percent": -8.05944727905947
     },
     "era5_weather": {
       "flights": 10,

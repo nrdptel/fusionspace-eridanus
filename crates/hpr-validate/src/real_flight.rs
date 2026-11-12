@@ -769,9 +769,9 @@ pub struct Summary {
     /// Over the flights whose predictions were merged before their logs were compared
     /// ([`RealFlightReport::predicted_first`]).
     pub predicted_first: Means,
-    /// Over the flights not tagged *not traced*: the predicted flights whose inputs are all
-    /// traced to their records, and every flight compared first, which was compared before
-    /// tags existed and carries none ([ADR-342][adr-342]).
+    /// Over the flights tagged, when their predictions were merged, as having every input
+    /// traced to its record (ADR-328 §1b). A flight compared first was compared before tags
+    /// existed and carries none, so it is not counted here ([ADR-342][adr-342]).
     ///
     /// [adr-342]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0342-the-errors-before-the-remaining-openrocket-parity-probes.md
     pub traced: Means,
@@ -1824,8 +1824,9 @@ pub fn summarize(rows: &[FlightRow], predicted: &[ComparedPrediction]) -> Summar
             error_percent: row.apogee_error_percent,
             merged_error_percent: row.apogee_error_percent,
             predicted_first: false,
-            // Compared before tags existed: no tag, so never left out (ADR-342).
-            traced: true,
+            // Compared before tags existed: it carries no tag, so it is in neither tagged
+            // group (ADR-328 §1b: "as tagged"; ADR-342 decision 4).
+            traced: false,
             era5_weather: true,
         })
         .chain(predicted.iter().map(|row| Scored {
@@ -2372,8 +2373,9 @@ impl RealFlightReport {
              - Mean apogee error with its sign: {}%.\n\
              - Over the {} compared first: {}.\n\
              - Over the {} predicted first: {}.\n\
-             - Over the {} with no input tagged not traced: {}. The flights compared first \
-             carry no tag, having been compared before tags existed, and all count here.\n\
+             - Over the {} tagged, with their predictions, as having every input traced: {}. \
+             The flights compared first were compared before tags existed and carry none, so \
+             they are not counted here.\n\
              - Over the {} flown in ERA5 weather: {}.\n\
              - {}\n\
              - Mean absolute apogee error were every \

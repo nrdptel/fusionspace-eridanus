@@ -125,7 +125,7 @@ For example, a 3% tolerance on a 1000 m apogee allows 30 m, and the census lets 
 
 ## Last accepted
 
-Reason: M2.3d2 (ADR-342): the five public flights predicted first join the real flights, each compared at its apogee, and the reference is named for all 12
+Reason: M2.3d2 (ADR-342): the five public flights predicted first join the real flights, each compared at its apogee, and the reference is named for all 12. Also 24 rows of the OpenRocket comparisons take their committed reports' current values, each within 0.0005 points of the accepted one, none changing standing
 
 - reference: real flights compared with `the teams' altimeter logs` before and `the public flights' altimeter logs` now
 - added: real flights: andromeda apogee (within the bar)

@@ -1569,6 +1569,17 @@ pub(crate) fn held_to<'a>(
     height_apogee_m: f64,
     catalog_apogee_m: Option<f64>,
 ) -> Result<Option<&'a Revision>, String> {
+    // A revision is of a merged prediction: an entry under any other id would revise nothing
+    // and still be printed.
+    if let Some(stray) = revisions
+        .iter()
+        .find(|revision| !merged.iter().any(|merged| merged.id == revision.id))
+    {
+        return Err(format!(
+            "a revision names `{}`, which has no merged prediction",
+            stray.id
+        ));
+    }
     let merged = merged
         .iter()
         .find(|merged| merged.id == id)
@@ -1686,10 +1697,10 @@ pub(crate) fn revisions_section(merged: &[MergedPrediction], revisions: &[Revisi
             );
         let _ = writeln!(
             out,
-            "- **`{}`:** merged {first}, now {} m. Revised, because {}",
+            "- **`{}`:** merged {first}, now {} m. Revised, because {}.",
             revision.id,
             fmt_number(revision.apogee_m, 1),
-            revision.because
+            revision.because.trim_end_matches('.')
         );
     }
     out.push('\n');

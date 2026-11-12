@@ -831,7 +831,7 @@ thrust file as it would any other: nothing of the motor is modeled ([decision][a
 The [private designs](format/ork.md#the-simulators-flights-of-the-private-designs) add none. None is
 the rocket of a flight in the [private collection of logs](VALIDATION.md#real-flight-data), so none
 has a log to compare with ([the decision][adr-083]). A private flight collection added on
-October 4, 2026 pairs designs with their flights' logs. Its 53 compared flights are
+October 4, 2026 pairs designs with their flights' logs. Its 60 compared flights are
 [below](#real-flights-of-the-private-collection).
 
 **Reading the logs.** Every log here comes from a [barometric
@@ -950,8 +950,10 @@ investigated ([report][real-report]).
 
 **In short: five more public flights were predicted before they were compared, and are now
 compared. Three are RocketPy's logged flights from EuRoC 2022: Astra, Andromeda and Erebus 11. Two
-are flights of Macie XL, an OpenRocket design in a public repository. Their predicted
-[apogees](glossary.md#apogee) were merged before any of them was compared with its log
+are flights of Macie XL, an OpenRocket design in a public repository. Those two are flown as the
+simulations saved in that design file, in standard air: no record gives the day's weather. The five
+predicted [apogees](glossary.md#apogee) were merged, that is, committed to the project's public
+history, before any of them was compared with its log
 ([the predictions][predictions]; decisions: [the three][adr-334], [the two][adr-337]). Against
 their logs they miss by −6.53%, +4.14%, −9.58%, −16.20% and −29.16%. That is 13.12% on average,
 and −11.47% with its sign ([report][real-report], [the decision][adr-342]). No prediction was
@@ -972,22 +974,26 @@ prediction below beside its error
 | [Macie XL, flight 1][real-report] ([AeroTech I284W][predictions]) | 599.5 | 706.2 | 842.8 | **−16.20%** | 706.3 | no |
 | [Macie XL, flight 2][real-report] ([Cesaroni 601I350-16A][predictions]) | 600.8 | 692.6 | 977.8 | **−29.16%** | 692.7 | no |
 
+The error is of the apogee flown today, which is the merged prediction to the digit printed.
+Worked from the printed numbers, the errors are −6.54%, −16.21% and −29.17% for Astra and the
+two Macie XL flights, and the same for the other two ([report][real-report]).
+
 **What the comparison shows.** Four of the five read low, and four miss by more than 5%. The
 [report][real-report] claims no explanation for them. The two diagnostics it flies among the seven, each team's drag
 and Juno III's thrust file as recorded, aren't flown for these five, and their climbs aren't compared
 ([the open issue](https://github.com/nrdptel/fusionspace-eridanus/issues/1436)). What the report
 does give is each flight's tags, written before the comparison.
 
-Astra and Erebus 11 are the two whose inputs are all traced. With the seven compared first, they
-make 9 flights with no input tagged not traced, whose mean is 6.50%, and −1.97% with its sign.
-The seven carry no tag, because they were compared before tags existed, so all seven count. Over
+Astra and Erebus 11 are the two tagged as having every input traced. Over those two the mean is
+8.06%, and −8.06% with its sign. The seven compared first carry no tag, because they were compared
+before tags existed, so they are counted in neither tagged group. Over
 the 10 flights flown in ERA5 weather the mean is 6.27%, and −1.35% with its sign
 ([report][real-report], [the decision][adr-342]).
 
 **How each log is read.** By the rule merged with its prediction, which a test holds the reader
 to. The three EuRoC 2022 logs give the highest reading of their height column, with the log read
 whole. The two Macie XL logs give the apogee in the altimeter's own header, never the highest
-sample. On flight 1 an ejection spike lifts the highest sample to 1,052.8 m (3,454 ft), which is
+sample. On flight 1 a spike of one sample lifts the highest sample to 1,052.8 m (3,454 ft), which is
 210.0 m (689 ft) above the header's apogee ([report][real-report]). Each log must be the file
 whose [digest](glossary.md#digest) was committed with its prediction.
 
@@ -1262,6 +1268,9 @@ rest.
   +10.302%, where its drag differs from the examples' ([report][report]). Against the seven real flights compared first, four of the five
   apogees more than 5% from their logs are consistent with HPR Sim's drag
   ([real flights](#real-flights), [real-flight report][real-report]).
+- **Four of the five public flights predicted first miss by more than 5%,** and no explanation
+  is claimed for them. The five miss by −29.16% to +4.14%, four of them low
+  ([predicted before compared](#predicted-before-compared), [real-flight report][real-report]).
 - **Drag faster than sound reads high** against NASA's wind tunnel, above all with fins. With the
   fins on, it's +39.4% at Mach 1.5 to +154.0% at 4.63. The fins take a blunt leading edge's formula.
   Nothing models a thin, sharp fin's own wave drag. Niskanen's cone, which ogives share,

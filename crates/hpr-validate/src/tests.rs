@@ -2285,7 +2285,7 @@ fn real_flights_print_each_merged_prediction_beside_its_error() {
     // M2.3d2 (ADR-328 §1b, ADR-342): the committed real-flights report holds all 12 public
     // flights, the seven compared first and the five predicted first, each of the five with its
     // merged prediction beside its log's apogee and its error; its means are over all 12, with
-    // the means over the flights not tagged *not traced* beside them. The logs are not in CI, so
+    // the means over the flights tagged with every input traced beside them. The logs are not in CI, so
     // this holds the committed report to the code's lists, to the committed predictions and to
     // itself; `cargo xtask real-flights --check` flies and reads them again where they are.
     use crate::predicted_first::{RULES, check_listed};
@@ -2449,15 +2449,29 @@ fn real_flights_print_each_merged_prediction_beside_its_error() {
     }
     // No prediction has been revised, so none carries a reason and the summary has no second
     // set of means.
-    assert!(REVISIONS.is_empty());
-    assert!(
-        report
-            .predicted_first
-            .iter()
-            .all(|row| row.revised_because.is_none())
+    // Each row's reason is its revision's in the code's list, and the means on the merged
+    // predictions are given exactly when that list holds one. Today it holds none.
+    for row in &report.predicted_first {
+        let listed = REVISIONS.iter().find(|revision| revision.id == row.id);
+        assert_eq!(
+            row.revised_because.as_deref(),
+            listed.map(|revision| revision.because),
+            "{}",
+            row.id
+        );
+    }
+    assert_eq!(
+        report.summary.on_merged_predictions.is_some(),
+        !REVISIONS.is_empty()
     );
-    assert!(report.summary.on_merged_predictions.is_none());
-    assert!(page.contains("No merged prediction has been revised"));
+    assert_eq!(
+        page.contains("No merged prediction has been revised"),
+        REVISIONS.is_empty()
+    );
+    assert!(
+        REVISIONS.is_empty(),
+        "this record: none revised when written"
+    );
 
     // The means, worked here from the rows: over all 12, and over each part.
     let seven: Vec<f64> = report
@@ -2506,7 +2520,13 @@ fn real_flights_print_each_merged_prediction_beside_its_error() {
             5,
             Some(&summary.predicted_first),
         ),
-        ("traced", means(with(|row| row.1)), 9, Some(&summary.traced)),
+        // Traced, as tagged with the predictions: the seven carry no tag and are not counted.
+        (
+            "traced",
+            means(five.iter().filter(|row| row.1).map(|row| row.0).collect()),
+            2,
+            Some(&summary.traced),
+        ),
         (
             "ERA5",
             means(with(|row| row.2)),
@@ -2534,6 +2554,26 @@ fn real_flights_print_each_merged_prediction_beside_its_error() {
         assert!(
             (kept_absolute - absolute).abs() < 1e-9 && (kept_signed - signed).abs() < 1e-9,
             "{what}: {kept_absolute} and {kept_signed}, the rows give {absolute} and {signed}"
+        );
+    }
+    // The logs' apogees, by their rules, as read where the logs are: public numbers, pinned
+    // here because CI holds no log, so an edited apogee fails without one. The two in feet are
+    // the PerfectFlite headers' 2765 ft and 3208 ft.
+    let logs: Vec<f64> = report
+        .predicted_first
+        .iter()
+        .map(|row| row.log_apogee_m)
+        .collect();
+    for (log, pinned) in logs.iter().zip([
+        3249.46,
+        3438.549384,
+        3001.75136,
+        2765.0 * 0.3048,
+        3208.0 * 0.3048,
+    ]) {
+        assert!(
+            (log - pinned).abs() < 1e-9,
+            "a log apogee of {log} m, read as {pinned} m"
         );
     }
     // Which predicted flights the traced means leave out: the three tagged with the
@@ -2596,6 +2636,23 @@ fn real_flights_print_each_merged_prediction_beside_its_error() {
             "{error}"
         );
     }
+
+    // Two edits to a committed row that CI, with no log, could otherwise not see. An assumed
+    // altimeter called a known one would move the known-barometric mean; a flight read from a
+    // design file would lose the stored simulation shown beside it.
+    let mut known = report.clone();
+    known.predicted_first[0].altimeter = "barometric".to_owned();
+    let error = check_listed(&known.predicted_first).expect_err("another altimeter");
+    assert!(error.contains("altimeter"), "{error}");
+    let mut unshown = report.clone();
+    unshown.predicted_first[3].openrocket_stored = None;
+    let error = check_listed(&unshown.predicted_first).expect_err("no stored simulation");
+    assert!(error.contains("stored simulation"), "{error}");
+    let mut shown = report.clone();
+    shown.predicted_first[0].openrocket_stored =
+        report.predicted_first[3].openrocket_stored.clone();
+    let error = check_listed(&shown.predicted_first).expect_err("a stored simulation too many");
+    assert!(error.contains("stored simulation"), "{error}");
 }
 
 #[test]

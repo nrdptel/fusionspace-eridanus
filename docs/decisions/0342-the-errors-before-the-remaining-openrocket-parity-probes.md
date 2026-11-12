@@ -97,11 +97,13 @@ OpenRocket parity that no logged flight needs.
      is read as the log's altimeter would read it, as it was merged.
    - `accuracy.public` and `bias.public` are the means over all 12. Beside them the report
      gives the means over the seven compared before, over the five predicted first, over the
-     flights with no input tagged *not traced*, and over the flights flown in ERA5 weather.
+     flights tagged as having every input traced, and over the flights flown in ERA5 weather.
    - The seven flights compared before carry no tag: they were compared before tags existed.
-     All seven count in the traced means. Tagging them now, with their errors known, would let
-     the tags choose the mean. So the traced means are over 9 flights: the seven, Astra and
-     Erebus 11.
+     Tagging them now, with their errors known, would let the tags choose the mean. Counting
+     them untagged would count flights the five's own standard might tag *not traced*:
+     Prometheus flies in another year's weather, and Juno III's thrust file is reshaped. So
+     they are in neither tagged group, and the traced means are over the two flights tagged
+     traced with their predictions, Astra and Erebus 11, as [ADR-328][adr-328] §1b asks.
    - Two kinds of number are shown beside a flight and never counted: Andromeda on its catalog curve,
      as ADR-328 asked, and for each Macie XL flight the apogee of the OpenRocket simulation
      stored in its design file.
@@ -129,7 +131,7 @@ OpenRocket parity that no logged flight needs.
 | all | 12 | 9.00% | −4.91% |
 | the seven compared before | 7 | 6.06% | −0.22% |
 | the five predicted first | 5 | 13.12% | −11.47% |
-| no input tagged not traced | 9 | 6.50% | −1.97% |
+| tagged as having every input traced | 2 | 8.06% | −8.06% |
 | flown in ERA5 weather | 10 | 6.27% | −1.35% |
 
 Shown and never counted: Andromeda on the catalog Cesaroni M2020 curve reads 3,050.3 m

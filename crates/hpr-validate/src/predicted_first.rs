@@ -167,6 +167,11 @@ fn highest_of_column(column: &str, text: &str) -> Result<LogApogee, String> {
     if rows == 0 {
         return Err("the log has no rows".to_owned());
     }
+    if highest <= 0.0 {
+        return Err(format!(
+            "its highest `{column}` is {highest}: a flight's apogee is above its pad"
+        ));
+    }
     Ok(LogApogee {
         apogee_m: highest,
         rows,
@@ -179,7 +184,8 @@ fn highest_of_column(column: &str, text: &str) -> Result<LogApogee, String> {
 pub struct ShownOnly {
     /// What it is, in words.
     pub what: String,
-    /// Its apogee, m, as the log's altimeter would read it.
+    /// Its apogee, m: for a catalog curve, HPR Sim's flight as the log's altimeter would read
+    /// it; for a design file's stored simulation, the height above the site OpenRocket recorded.
     pub apogee_m: f64,
     /// Its error against the log's apogee, per cent.
     pub apogee_error_percent: f64,
@@ -583,23 +589,44 @@ pub fn check_listed(rows: &[ComparedPrediction]) -> Result<(), String> {
     }
     let listed = NEW_FLIGHTS
         .iter()
-        .map(|flight| (flight.id, flight.title, flight.reference.rule, true))
-        .chain(
-            DESIGN_FILE_FLIGHTS
-                .iter()
-                .map(|flight| (flight.id, flight.title, flight.reference.rule, false)),
-        );
-    for (row, (id, title, rule, era5_weather)) in rows.iter().zip(listed) {
+        .map(|flight| {
+            (
+                flight.id,
+                flight.title,
+                flight.reference.rule,
+                flight.reference.altimeter.kind(),
+                true,
+            )
+        })
+        .chain(DESIGN_FILE_FLIGHTS.iter().map(|flight| {
+            (
+                flight.id,
+                flight.title,
+                flight.reference.rule,
+                flight.reference.altimeter.kind(),
+                false,
+            )
+        }));
+    for (row, (id, title, rule, altimeter, era5_weather)) in rows.iter().zip(listed) {
         if (
             row.id.as_str(),
             row.title.as_str(),
             row.reference_rule.as_str(),
-        ) != (id, title, rule)
+            row.altimeter.as_str(),
+        ) != (id, title, rule, altimeter)
             || row.era5_weather != era5_weather
         {
             return Err(format!(
-                "{}: its title, rule or air is not the code's for {id}",
+                "{}: its title, rule, altimeter or air is not the code's for {id}",
                 row.id
+            ));
+        }
+        // A flight read from a design file shows that file's stored simulation beside it, and
+        // no other flight has one: a row can't lose the number, or gain one, unseen.
+        if row.openrocket_stored.is_some() == era5_weather {
+            return Err(format!(
+                "{id}: a design file's stored simulation is shown beside a flight read from \
+                 one, and beside no other"
             ));
         }
         let read_by = RULES.iter().find(|(rule_id, _)| *rule_id == id);
@@ -640,6 +667,12 @@ mod tests {
     /// column, a column named twice and an empty log each fail, with the place.
     #[test]
     fn a_log_that_does_not_read_whole_is_refused() {
+        // A log that never leaves its pad has no apogee to compare.
+        let grounded = ApogeeRule::HighestOfColumn("alt")
+            .read("t,alt\n0,0.0\n1,-0.4\n")
+            .expect_err("never above the pad");
+        assert!(grounded.contains("above its pad"), "{grounded}");
+
         let read = |text: &str| {
             ApogeeRule::HighestOfColumn("alt")
                 .read(text)
@@ -821,6 +854,36 @@ mod tests {
             )
             .expect_err("revised twice");
         assert!(twice.contains("revised twice"), "{twice}");
+        // A revision of a flight that was never merged: it would revise nothing, so it is
+        // refused whichever flight is being held.
+        let stray = Revision {
+            id: "invente",
+            ..revision(1050.0, "a reason")
+        };
+        let error = row(1000.0, None)
+            .check(&INVENTED, &[stray])
+            .expect_err("a revision of no flight");
+        assert!(error.contains("`invente`, which has no merged"), "{error}");
+    }
+
+    /// The predictions' page prints a revision beside the number first merged, and prints
+    /// nothing while there is none.
+    #[test]
+    fn a_revision_is_printed_beside_the_merged_number() {
+        use crate::public_predictions::revisions_section;
+        assert_eq!(revisions_section(&INVENTED, &[]), "");
+        let section = revisions_section(&INVENTED, &[revision(1050.0, "the fins were measured.")]);
+        assert!(
+            section.starts_with("## Revised since merging\n"),
+            "{section}"
+        );
+        assert!(
+            section.contains(
+                "- **`invented`:** merged 1000.0 m, now 1050.0 m. Revised, because the fins \
+                 were measured.\n"
+            ),
+            "{section}"
+        );
     }
 
     /// The merged number a row keeps is the code's, and its percentages are its meters'.
