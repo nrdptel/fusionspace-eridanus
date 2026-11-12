@@ -69,15 +69,17 @@
 //!   - **type off the system's scale** (`foundations.md`, *Type*): every element that shows text,
 //!     drawn or hidden until asked for, its `::before` and `::after` and every text field
 //!     included, must have the size and line height of one of the scale's tokens in that token's
-//!     family (Cascadia Mono 12/16, 14/20, 20/24, 28/32, 40/44; Archivo 14/20, 16/24, 20/28),
+//!     family (Cascadia Mono 12/16, 14/20, 20/24, 28/32, 40/44; Archivo 14/20, 16/24, 20/28;
+//!     and the web's level table, ADR-343: Archivo 32/36, 24/28, 20/24, 15/20, 13/18, 13/16),
 //!     times the reading scale's factor inside `.content` on a page that declares the scale
 //!     (`--fs-text`; ×1 up to 1,024 px wide, ×1.125 from 1,600 px, linear between, read from the
-//!     window's width, not the page), capitals only at Cascadia Mono 12/16 and 14/20 (scaled
-//!     the same), no weight under 400, tabular figures in Archivo, and each family's
+//!     window's width, not the page), capitals only at Cascadia Mono 12/16 and 14/20 and Archivo
+//!     13/16, a signal word's (scaled the same), no weight under 400, tabular figures in Archivo, and each family's
 //!     metric-matched fallback (the system's `fonts.css`) second in its stack; Cascadia Mono's
 //!     fallback must draw at the face's widths, at 400 and 600, in the browser that runs the
 //!     check (#468). A superscript or subscript may be off the scale, never under 12 px. The
-//!     sidebar's text must be Cascadia Mono 14 px, and its current page underlined 2 px
+//!     sidebar's text must be Archivo 15/20, code in it Cascadia Mono 14/20 (ADR-343), and its
+//!     current page underlined 2 px
 //!     (`web.md`, *Page anatomy*). Boxes of 2 px or less, for screen readers, are skipped. An
 //!     opening quote (`‘`) drawn straight after inline code, emphasis, a link, a footnote's mark
 //!     or a formula in `main`, outside a code block, and before a letter or digit fails too:
@@ -137,11 +139,14 @@
 //!     under the page, drawn under the text and inside the column, the previous at `main`'s left
 //!     edge and the next at its right, at least 44 px tall, naming its page in text, not an
 //!     arrow alone;
-//!   - **a title block off the system's or not last**: each must sit inside a 2 px solid border
-//!     in the ink role on every side, its fields' names and entries in Cascadia Mono, its left
-//!     and right edges on `main`'s, so it is centered as the column is, with no text, picture or
-//!     field drawn below its top outside it, other than in a box fixed to the window. That every
-//!     page ends with one is the file check's (`frame.rs`).
+//!   - **a footer or a title block off the system's or not last** (ADR-343): a footer must sit
+//!     under a 1 px solid rule, the mark 24 px tall beside "FusionSpace HPR" in the ink role,
+//!     with one status chip, Archivo 13/16 semibold in sentence case, at least 24 px tall, its
+//!     icon 14 px, in its state's colors; the print page's title block must sit inside a 2 px
+//!     solid border in the ink role on every side, its fields' names and entries in Cascadia
+//!     Mono; either one's left and right edges on `main`'s, so it is centered as the column is,
+//!     with no text, picture or field drawn below its top outside it, other than in a box fixed
+//!     to the window. That every page ends with one is the file check's (`frame.rs`).
 //! - **A page that prints off the system's** (#383; `web.md`, *Print*), read once a run, at its
 //!   checked width nearest [`PRINT_PX`], with each media list that names `print` or `screen` set
 //!   to how it applies on paper (a headless browser can't print from a page, so the print rules
@@ -536,8 +541,8 @@ enum Kind {
     Motion,
     /// Text off the system's type scale, Archivo without tabular figures, a family without its
     /// metric-matched fallback second, Cascadia Mono's fallback at other widths than the face's
-    /// (#468), navigation not in Cascadia Mono 14 px with the current page underlined 2 px
-    /// (#384), or an apostrophe drawn as an opening quote after inline code, emphasis or a link
+    /// (#468), navigation not in Archivo 15/20 (its code in Cascadia Mono 14/20) with the
+    /// current page underlined 2 px (#384, ADR-343), or an apostrophe drawn as an opening quote after inline code, emphasis or a link
     /// (#932).
     Type,
     /// Prose held narrower than the box that holds it, by a max-width, a width or margins set to
@@ -587,8 +592,12 @@ enum Kind {
     /// scrolled as it loads; the current page's entry in a drawn sidebar not whole as the page
     /// loads (#894).
     Header,
-    /// A title block off the system's: not inside a 2 px ink border, its entries not in Cascadia
-    /// Mono, its edges off the column's, or something drawn below it (#384).
+    /// A footer or a title block off the system's (#384, ADR-343): a footer not under a 1 px
+    /// rule, without the mark at 24 px beside its name in ink, or its status chip off the
+    /// system's (not Archivo 13/16 semibold in sentence case, under 24 px tall, its icon not
+    /// 14 px or its colors not its state's); a title block not inside a 2 px ink border or its
+    /// entries not in Cascadia Mono; either one's edges off the column's, or something drawn
+    /// below it.
     TitleBlock,
     /// Page arrows off the system's: under the text and inside the column, the previous at its
     /// left edge and the next at its right, at least 44 px tall, each naming its page
@@ -601,14 +610,14 @@ enum Kind {
     /// a control drawn, a link without its address, a row, note or title block that can split,
     /// or a title block without its version and date (#383).
     Print,
-    /// An intro or a sheet off the system's: a designation tag not in Cascadia Mono 12, not
-    /// chamfered, not inside a 1 px border or not above its title; a section's name outside a
-    /// sheet's rail, or reaching past the rail's edges; a sheet without its 2 px ink rule on top,
-    /// or with its number not drawn, not `SHEET n / N` in order, not in Cascadia Mono 12 or not
-    /// above its name (#384).
-    Sheet,
+    /// An intro or a part off the system's (#384, ADR-343): anything over a title; a lead not
+    /// in `lead` type, not in the muted ink or not right under its title; a section's name not
+    /// opening a part or not in Archivo; a part without its 2 px ink rule on top, its name not
+    /// under it; or a record's frame drawn (a designation tag, a sheet's rail or number).
+    Part,
     /// A theme switch off the system's: not in the header from 960 px or in the sidebar under
-    /// it; its buttons not Auto, Light and Dark, under 44 px tall or not in Cascadia Mono 14;
+    /// it; its buttons not Auto, Light and Dark, under 44 px tall or not in Archivo 15/20 in
+    /// sentence case;
     /// a first-time reader's pressed button not Auto alone, or a fill not the ink exactly where
     /// pressed; mdBook's theme button drawn; drawn with scripts off; the page in a theme the
     /// switch doesn't offer; pressing Dark, then Auto, not setting the theme; or a theme saved
@@ -648,7 +657,7 @@ impl Kind {
         Kind::Arrows,
         Kind::Mark,
         Kind::Print,
-        Kind::Sheet,
+        Kind::Part,
         Kind::Switch,
         Kind::Landing,
     ];
@@ -677,11 +686,11 @@ impl Kind {
             Kind::Icon => "an icon off the system's sizes",
             Kind::Selection => "a selection off the action role",
             Kind::Header => "a header off the system's",
-            Kind::TitleBlock => "a title block off the system's or not last",
+            Kind::TitleBlock => "a footer or a title block off the system's or not last",
             Kind::Arrows => "page arrows off the system's",
             Kind::Mark => "a text mark drawn as an icon",
             Kind::Print => "a page that prints off the system's",
-            Kind::Sheet => "an intro or a sheet off the system's",
+            Kind::Part => "an intro or a part off the system's",
             Kind::Switch => "a theme switch off the system's",
             Kind::Landing => "a link to a heading that lands away from it",
         }
@@ -720,14 +729,16 @@ struct Canary {
     after: &'static str,
 }
 
-/// The system's note styles (`fusionspace.css`, `.fs-note`), for the note canaries, which load
-/// the ordinary canary page's styles, not the site's.
+/// The system's note styles (`fusionspace.css`, `.fs-note`) at the tool level (ADR-343), for the
+/// note canaries, which load the ordinary canary page's styles, not the site's.
 macro_rules! note_style {
     () => {
         "<style>.fs-note { border: 1px solid #566079; background: #FFFFFF; margin: 16px 0; } \
-.fs-note-head { display: flex; gap: 8px; padding: 4px 12px; font: 600 12px/16px \
-'Cascadia Mono', 'Cascadia Mono Fallback', monospace; text-transform: uppercase; \
-border-bottom: 1px solid #566079; color: #0B0F1C; } .fs-note-head svg { width: 14px; \
+.fs-note-head { display: flex; gap: 8px; padding: 4px 12px; font: 600 13px/16px \
+'Archivo', 'Archivo Fallback', sans-serif; font-variant-numeric: tabular-nums; \
+border-bottom: 1px solid #566079; color: #0B0F1C; } .fs-note:is([data-kind=\"caution\"], \
+[data-kind=\"warning\"]) > .fs-note-head { font-weight: 640; font-stretch: 118%; \
+text-transform: uppercase; letter-spacing: 0.04em; } .fs-note-head svg { width: 14px; \
 height: 14px; } .fs-note-body { padding: 12px; } .fs-note-body > * { margin: 0; } \
 .fs-note[data-kind=\"caution\"] { border-color: #F5AF20; } .fs-note[data-kind=\"caution\"] > \
 .fs-note-head { background: #F5AF20; border-color: #F5AF20; } .fs-note[data-kind=\"warning\"] \
@@ -780,6 +791,21 @@ const NOTES_TYPE: &str = concat!(
     note_style!(),
     "<style>.fs-note-head { font: 16px/24px 'Archivo', 'Archivo Fallback', sans-serif !important; \
      font-variant-numeric: tabular-nums !important; text-transform: none !important; }</style>",
+    note!("trust", "How far to trust it")
+);
+const NOTES_SIGNAL_CASE: &str = concat!(
+    note_style!(),
+    "<style>.fs-note-head { text-transform: none !important; }</style>",
+    note!("caution", "Caution")
+);
+const NOTES_SIGNAL_NARROW: &str = concat!(
+    note_style!(),
+    "<style>.fs-note-head { font-weight: 600 !important; font-stretch: 100% !important; }</style>",
+    note!("warning", "Warning")
+);
+const NOTES_TRUST_CAPS: &str = concat!(
+    note_style!(),
+    "<style>.fs-note-head { text-transform: uppercase !important; }</style>",
     note!("trust", "How far to trust it")
 );
 const NOTES_NO_RULE: &str = concat!(
@@ -1037,94 +1063,103 @@ macro_rules! switches {
     };
 }
 
-/// The system's intro and sheets (`fusionspace.css`, `.fs-tag`, `.fs-status`, `.fs-lead` and
-/// `.fs-sheet`) as `theme/hpr.css` draws them, for the sheet canaries: a chapter's intro, the
-/// designation tag and a status chip of state `$state` (IN PREPARATION's `info` unless given)
-/// over its title and its lead under it, then two sheets, numbered `$first` and `$second`,
-/// after `$style`.
-macro_rules! sheets {
-    ($style:expr, $first:expr, $second:expr) => {
-        sheets!(
+/// The system's intro and parts at the tool level (ADR-343; `fusionspace.css`, `.fs-intro`,
+/// `.fs-lead` and `.fs-part`) as `theme/hpr.css` draws them, for the part canaries: a chapter's
+/// intro, its title with its lead under it, then two parts, each opening with its name, after
+/// `$style`, with `$over` over the title.
+macro_rules! parts {
+    ($style:expr) => {
+        parts!($style, "")
+    };
+    ($style:expr, $over:expr) => {
+        concat!(
+            "<style>.fs-intro > h1 { margin: 0; } .fs-lead { font: 400 20px/28px 'Archivo', \
+             'Archivo Fallback', sans-serif; font-variant-numeric: tabular-nums; color: #566079; } \
+             .fs-part { border-top: 2px solid #0B0F1C; margin-top: 32px; padding-top: 16px; } \
+             .fs-part > h2 { margin: 0 0 16px; font: 600 24px/28px 'Archivo', 'Archivo Fallback', \
+             sans-serif; font-stretch: 118%; font-variant-numeric: tabular-nums; }</style>",
             $style,
-            $first,
-            $second,
+            "<div class=\"fs-intro\">",
+            $over,
+            "<h1>A chapter</h1><p class=\"fs-lead\">What the chapter covers, in one \
+             sentence.</p><p>Its opening.</p></div><section class=\"fs-part\"><h2>The first \
+             part</h2><div class=\"fs-part-body\"><p>Its text.</p></div></section><section \
+             class=\"fs-part\"><h2>The second part</h2><div class=\"fs-part-body\"><p>Its \
+             text.</p></div></section>"
+        )
+    };
+}
+
+/// Five parts, each taller than the 1,200 px `theme/hpr.css` lets one stand in at while it is
+/// off screen and skips its layout, the last named under an id a link can reach, for the landing
+/// canaries. The browser draws a part or two below the window as the page loads, so the last's
+/// link crosses parts still standing in. A heading jumped to stands 96 px down the window, as
+/// the site's do under 520 px (`fusionspace-mdbook.css`, `:target`), so the window's top falls in
+/// the part before it: the browser keeps that part's top where it is as it is drawn, and the
+/// heading moves down.
+macro_rules! skipping_parts {
+    () => {
+        concat!(
+            parts!(
+                "<style>.fs-part { content-visibility: auto; contain-intrinsic-size: auto \
+                 1200px; } .fs-part-body { min-height: 6000px; } :target { scroll-margin-top: \
+                 96px; }</style>"
+            ),
+            "<section class=\"fs-part\"><h2>The third part</h2><div class=\"fs-part-body\"><p>Its \
+             text.</p></div></section><section class=\"fs-part\"><h2>The fourth part</h2><div \
+             class=\"fs-part-body\"><p>Its text.</p></div></section><section \
+             class=\"fs-part\"><h2 id=\"the-last-part\">The last part</h2><div \
+             class=\"fs-part-body\"><p>Its text.</p></div></section>"
+        )
+    };
+}
+
+/// The one-line footer at the tool level (ADR-343; `fusionspace.css`, `.fs-foot` and `.fs-status`)
+/// as `theme/hpr.css` draws it, for the footer canaries: under a 1 px rule, the mark at 24 px
+/// beside "FusionSpace HPR" in ink, the version, the date of issue, a status chip of state
+/// `$state` (In preparation's `info` unless given) and the link to Start here, its edges the
+/// column's, after `$style`.
+macro_rules! foot {
+    ($style:expr) => {
+        foot!(
+            $style,
             "info",
             "<path d=\"M3 3 L21 3 L21 21 L3 21 Z\"/><path d=\"M12 10.5 L12 17\"/><circle \
              cx=\"12\" cy=\"7\" r=\"1.25\" fill=\"currentColor\" stroke=\"none\"/>",
             "In preparation"
         )
     };
-    ($style:expr, $first:expr, $second:expr, $state:expr, $icon:expr, $word:expr) => {
+    ($style:expr, $state:expr, $icon:expr, $word:expr) => {
         concat!(
-            "<style>.fs-intro-row { display: flex; flex-wrap: wrap; align-items: center; gap: \
-             8px; margin: 0 0 16px; } .fs-tag { --c: 4px; display: flex; width: fit-content; \
-             margin: 0; padding: 2px 10px 2px 8px; min-height: 24px; font: 400 12px/16px \
-             'Cascadia Mono', 'Cascadia Mono Fallback', monospace; color: #0B0F1C; border: 1px \
-             solid #566079; clip-path: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), \
-             100% 100%, 0 100%); } .fs-status { box-sizing: border-box; display: inline-flex; \
-             align-items: center; gap: 6px; min-height: 24px; margin: 0; padding: 2px 8px; \
-             font: 600 12px/16px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; \
-             text-transform: uppercase; letter-spacing: 0.06em; border: 1px solid transparent; \
-             white-space: nowrap; } .fs-status svg { width: 14px; height: 14px; flex: none; } \
-             .fs-status[data-state=\"ok\"] { background: #0A6355; color: #FFFFFF; } \
-             .fs-status[data-state=\"info\"] { color: #3350D6; border-color: currentColor; } \
-             .fs-intro > h1 { margin: 0; } .fs-lead { font: 400 20px/28px 'Archivo', 'Archivo \
-             Fallback', sans-serif; font-variant-numeric: tabular-nums; color: #566079; } \
-             .fs-sheet { border-top: 2px solid #0B0F1C; \
-             margin-top: 32px; padding-top: 16px; } .fs-sheet-rail { display: grid; gap: 8px; \
-             margin-bottom: 16px; } .fs-sheet-rail > h2 { margin: 0; font: 600 20px/24px \
-             'Cascadia Mono', 'Cascadia Mono Fallback', monospace; } .fs-sheet-no { font: 400 \
-             12px/16px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; letter-spacing: \
-             0.06em; color: #566079; }</style>",
+            "<style>.fs-foot { box-sizing: border-box; max-width: 1120px; width: calc(100% - \
+             32px); margin: 48px auto 0; padding: 18px 0 8px; display: flex; flex-wrap: wrap; \
+             gap: 8px 28px; align-items: center; border-top: 1px solid #D6DAE4; font: 400 \
+             14px/20px 'Archivo', 'Archivo Fallback', sans-serif; color: #566079; \
+             font-variant-numeric: tabular-nums; } @media \
+             (min-width: 720px) { .fs-foot { width: calc(100% - 64px); } } .fs-foot-name { \
+             display: flex; gap: 8px; align-items: center; color: #0B0F1C; font-weight: 600; } \
+             .fs-foot .fs-mark { height: 24px; width: auto; flex: none; } .fs-push { \
+             margin-inline-start: auto; } .fs-foot .fs-status { box-sizing: border-box; display: \
+             inline-flex; align-items: center; gap: 6px; min-height: 24px; margin: 0; padding: \
+             3px 8px; font: 600 13px/16px 'Archivo', 'Archivo Fallback', sans-serif; \
+             font-variant-numeric: tabular-nums; border: \
+             1px solid transparent; white-space: nowrap; } .fs-foot .fs-status svg { width: \
+             14px; height: 14px; flex: none; } .fs-foot .fs-status[data-state=\"ok\"] { \
+             background: #0A6355; color: #FFFFFF; } .fs-foot .fs-status[data-state=\"info\"] { \
+             color: #3350D6; border-color: currentColor; } @media print { .fs-foot { \
+             break-inside: avoid; } .fs-foot .fs-status { print-color-adjust: exact; } }</style>",
             $style,
-            "<div class=\"fs-intro\"><div class=\"fs-intro-row\"><p class=\"fs-tag\">FS-ACHERNAR \
-             · SW · TOOL 001</p><p class=\"fs-status\" data-state=\"",
+            "<footer class=\"fs-foot\"><span class=\"fs-foot-name\"><svg class=\"fs-mark\" \
+             viewBox=\"0 0 200 200\" fill=\"currentColor\" aria-hidden=\"true\"><path \
+             fill=\"currentColor\" d=\"M0 0H200V200H0Z\"/></svg>FusionSpace HPR</span><span>Version \
+             0.1.0</span><span>Issued 2026-10-10</span><span class=\"fs-status\" data-state=\"",
             $state,
             "\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" \
              stroke=\"currentColor\" stroke-width=\"1.5\" aria-hidden=\"true\">",
             $icon,
             "</svg>",
             $word,
-            "</p></div><h1>A chapter</h1><p class=\"fs-lead\">What the chapter covers, in one \
-             sentence.</p><p>Its opening.</p></div><section class=\"fs-sheet\"><div \
-             class=\"fs-sheet-rail\"><span class=\"fs-sheet-no\">",
-            $first,
-            "</span><h2>The first sheet</h2></div><div class=\"fs-sheet-body\"><p>Its \
-             text.</p></div></section><section class=\"fs-sheet\"><div \
-             class=\"fs-sheet-rail\"><span class=\"fs-sheet-no\">",
-            $second,
-            "</span><h2>The second sheet</h2></div><div class=\"fs-sheet-body\"><p>Its \
-             text.</p></div></section>"
-        )
-    };
-}
-
-/// Five sheets, each taller than the 1,200 px `theme/hpr.css` lets one stand in at while it is
-/// off screen and skips its layout, the last named under an id a link can reach, for the landing
-/// canaries. The browser draws a sheet or two below the window as the page loads, so the last's
-/// link crosses sheets still standing in. A heading jumped to stands 96 px down the window, as
-/// the site's do under 520 px (`fusionspace-mdbook.css`, `:target`), so the window's top falls in
-/// the sheet before it: the browser keeps that sheet's top where it is as it is drawn, and the
-/// heading moves down.
-macro_rules! skipping_sheets {
-    () => {
-        concat!(
-            sheets!(
-                "<style>.fs-sheet { content-visibility: auto; contain-intrinsic-size: auto \
-                 1200px; } .fs-sheet-body { min-height: 6000px; } :target { scroll-margin-top: \
-                 96px; }</style>",
-                "SHEET 1 / 5",
-                "SHEET 2 / 5"
-            ),
-            "<section class=\"fs-sheet\"><div class=\"fs-sheet-rail\"><span \
-             class=\"fs-sheet-no\">SHEET 3 / 5</span><h2>The third sheet</h2></div><div \
-             class=\"fs-sheet-body\"><p>Its text.</p></div></section><section \
-             class=\"fs-sheet\"><div class=\"fs-sheet-rail\"><span class=\"fs-sheet-no\">SHEET \
-             4 / 5</span><h2>The fourth sheet</h2></div><div class=\"fs-sheet-body\"><p>Its \
-             text.</p></div></section><section class=\"fs-sheet\"><div \
-             class=\"fs-sheet-rail\"><span class=\"fs-sheet-no\">SHEET 5 / 5</span><h2 \
-             id=\"the-last-sheet\">The last sheet</h2></div><div class=\"fs-sheet-body\"><p>Its \
-             text.</p></div></section>"
+            "</span><span class=\"fs-push\"><a href=\"#\">About HPR Sim</a></span></footer>"
         )
     };
 }
@@ -1246,8 +1281,8 @@ macro_rules! switch_frame {
                  #mdbook-sidebar { display: block; } #mdbook-theme-list { display: \
                  inline-flex; margin: 0; padding: 0; list-style: none; border: 1px solid \
                  #566079; } #mdbook-theme-list li { display: flex; } #mdbook-theme-list button { \
-                 min-height: 44px; padding: 0 12px; font: 400 14px/20px 'Cascadia Mono', \
-                 'Cascadia Mono Fallback', monospace; color: #566079; background: transparent; \
+                 min-height: 44px; padding: 0 12px; font: 400 15px/20px 'Archivo', \
+                 'Archivo Fallback', sans-serif; font-variant-numeric: tabular-nums; color: #566079; background: transparent; \
                  border: 0; border-left: 1px solid #566079; } #mdbook-theme-list \
                  li:first-child button { border-left: 0; } #mdbook-theme-list \
                  [aria-pressed=\"true\"] { color: #F3F4F7; background: #0B0F1C; } \
@@ -1292,7 +1327,7 @@ macro_rules! mono_faces {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 195] = [
+const CANARIES: [Canary; 201] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -1653,26 +1688,29 @@ const CANARIES: [Canary; 195] = [
     },
     Canary {
         file: "canary-nav-font.html",
-        what: "a chapter link in Archivo, not the navigation's Cascadia Mono",
+        what: "a chapter link in Cascadia Mono 14, not the navigation's Archivo 15",
         expect: &[Kind::Type],
-        inside: "<ol class=\"chapter\"><li><a href=\"#\" style=\"font: 14px/20px Archivo, \
-                 sans-serif\">A chapter in Archivo</a></li></ol>",
+        inside: "<ol class=\"chapter\"><li><a href=\"#\" style=\"font: 14px/20px 'Cascadia \
+                 Mono', 'Cascadia Mono Fallback', monospace\">A chapter in Cascadia \
+                 Mono</a></li></ol>",
         after: "",
     },
     Canary {
         file: "canary-nav-current.html",
         what: "the current page's link with no underline",
         expect: &[Kind::Type],
-        inside: "<ol class=\"chapter\"><li><a class=\"active\" href=\"#\" style=\"font: 14px/20px \
-                 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; text-decoration: none\">The current page</a></li></ol>",
+        inside: "<ol class=\"chapter\"><li><a class=\"active\" href=\"#\" style=\"font: 15px/20px \
+                 'Archivo', 'Archivo Fallback', sans-serif; font-variant-numeric: tabular-nums; \
+                 text-decoration: none\">The current page</a></li></ol>",
         after: "",
     },
     Canary {
         file: "canary-nav-thin.html",
         what: "the current page's link underlined 1 px, not 2",
         expect: &[Kind::Type],
-        inside: "<ol class=\"chapter\"><li><a class=\"active\" href=\"#\" style=\"font: 14px/20px \
-                 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; text-decoration: underline 1px\">The current \
+        inside: "<ol class=\"chapter\"><li><a class=\"active\" href=\"#\" style=\"font: 15px/20px \
+                 'Archivo', 'Archivo Fallback', sans-serif; font-variant-numeric: tabular-nums; \
+                 text-decoration: underline 1px\">The current \
                  page</a></li></ol>",
         after: "",
     },
@@ -1855,9 +1893,30 @@ const CANARIES: [Canary; 195] = [
     },
     Canary {
         file: "canary-note-type.html",
-        what: "a note whose signal word is set in body type, not the label token",
+        what: "a note whose signal word is set in body type, not a note's heading",
         expect: &[Kind::Note],
         inside: NOTES_TYPE,
+        after: "",
+    },
+    Canary {
+        file: "canary-note-signal-case.html",
+        what: "a caution whose signal word is set in sentence case, not the safety label's capitals",
+        expect: &[Kind::Note],
+        inside: NOTES_SIGNAL_CASE,
+        after: "",
+    },
+    Canary {
+        file: "canary-note-signal-narrow.html",
+        what: "a warning whose signal word is set at 600 and 100% wide, not in the wide cut",
+        expect: &[Kind::Note],
+        inside: NOTES_SIGNAL_NARROW,
+        after: "",
+    },
+    Canary {
+        file: "canary-note-trust-caps.html",
+        what: "a trust note whose heading is set in capitals, not sentence case",
+        expect: &[Kind::Note],
+        inside: NOTES_TRUST_CAPS,
         after: "",
     },
     Canary {
@@ -2476,18 +2535,18 @@ const CANARIES: [Canary; 195] = [
         ),
     },
     Canary {
-        file: "canary-sheets.html",
-        what: "an intro and sheets drawn as the system's, which must pass",
+        file: "canary-parts.html",
+        what: "an intro and parts drawn as the system's, which must pass",
         expect: &[],
-        inside: concat!(sheets!("", "SHEET 1 / 2", "SHEET 2 / 2"), ""),
+        inside: parts!(""),
         after: "",
     },
     Canary {
         file: "canary-landing-short.html",
-        what: "sheets that skip their layout off screen, which a link to the last one's name \
+        what: "parts that skip their layout off screen, which a link to the last one's name \
                stops short of",
         expect: &[Kind::Landing],
-        inside: skipping_sheets!(),
+        inside: skipping_parts!(),
         after: "",
     },
     Canary {
@@ -2540,378 +2599,244 @@ const CANARIES: [Canary; 195] = [
         after: frame!("", lockup!(), sidebar_list!("72"), ""),
     },
     Canary {
-        file: "canary-chip-released.html",
-        what: "a RELEASED chip drawn as the system's, which must pass",
+        file: "canary-foot.html",
+        what: "a one-line footer drawn as the system's, its chip In preparation, which must pass",
         expect: &[],
-        inside: concat!(
-            sheets!(
-                "",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2",
-                "ok",
-                "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M7.5 12 L10.5 15 L16.5 9\"/>",
-                "Released"
-            ),
-            ""
+        inside: "",
+        after: foot!(""),
+    },
+    Canary {
+        file: "canary-chip-released.html",
+        what: "a Released chip in the footer drawn as the system's, which must pass",
+        expect: &[],
+        inside: "",
+        after: foot!(
+            "",
+            "ok",
+            "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M7.5 12 L10.5 15 L16.5 9\"/>",
+            "Released"
         ),
-        after: "",
     },
     Canary {
         file: "canary-chip-released-action.html",
-        what: "a RELEASED chip filled in the action color, not the ok fill",
-        expect: &[Kind::Sheet],
-        inside: concat!(
-            sheets!(
-                "<style>.fs-status[data-state=\"ok\"] { background: #3350D6 !important; }</style>",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2",
-                "ok",
-                "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M7.5 12 L10.5 15 L16.5 9\"/>",
-                "Released"
-            ),
-            ""
+        what: "a Released chip filled in the action color, not the ok fill",
+        expect: &[Kind::TitleBlock],
+        inside: "",
+        after: foot!(
+            "<style>.fs-foot .fs-status[data-state=\"ok\"] { background: #3350D6 !important; }</style>",
+            "ok",
+            "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M7.5 12 L10.5 15 L16.5 9\"/>",
+            "Released"
         ),
-        after: "",
     },
     Canary {
         file: "canary-chip-filled.html",
-        what: "an IN PREPARATION chip filled in the action color, not outlined",
-        expect: &[Kind::Sheet],
-        inside: concat!(
-            sheets!(
-                "<style>.fs-status { background: #3350D6 !important; color: #FFFFFF !important; border-color: #3350D6 !important; }</style>",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2"
-            ),
-            ""
-        ),
-        after: "",
+        what: "an In preparation chip filled in the action color, not outlined",
+        expect: &[Kind::TitleBlock],
+        inside: "",
+        after: foot!("<style>.fs-foot .fs-status { background: #3350D6 !important; color: #FFFFFF !important; border-color: #3350D6 !important; }</style>"),
     },
     Canary {
         file: "canary-chip-large.html",
-        what: "a status chip in Cascadia Mono 14 px",
-        expect: &[Kind::Sheet],
-        inside: concat!(
-            sheets!(
-                "<style>.fs-status { font-size: 14px !important; line-height: 20px !important; }</style>",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2"
-            ),
-            ""
-        ),
-        after: "",
+        what: "a status chip in Archivo 15/20, not 13/16",
+        expect: &[Kind::TitleBlock],
+        inside: "",
+        after: foot!("<style>.fs-foot .fs-status { font-size: 15px !important; line-height: 20px !important; }</style>"),
+    },
+    Canary {
+        file: "canary-chip-mono.html",
+        what: "a status chip in Cascadia Mono 12 px capitals, a record's",
+        expect: &[Kind::TitleBlock],
+        inside: "",
+        after: foot!("<style>.fs-foot .fs-status { font: 600 12px/16px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace !important; text-transform: uppercase !important; }</style>"),
     },
     Canary {
         file: "canary-chip-light.html",
         what: "a status chip at weight 400, not 600",
-        expect: &[Kind::Sheet],
-        inside: concat!(
-            sheets!(
-                "<style>.fs-status { font-weight: 400 !important; }</style>",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2"
-            ),
-            ""
-        ),
-        after: "",
+        expect: &[Kind::TitleBlock],
+        inside: "",
+        after: foot!("<style>.fs-foot .fs-status { font-weight: 400 !important; }</style>"),
     },
     Canary {
-        file: "canary-chip-lowercase.html",
-        what: "a status chip not in capitals",
-        expect: &[Kind::Sheet],
-        inside: concat!(
-            sheets!(
-                "<style>.fs-status { text-transform: none !important; }</style>",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2"
-            ),
-            ""
-        ),
-        after: "",
+        file: "canary-chip-capitals.html",
+        what: "a status chip in capitals, not sentence case",
+        expect: &[Kind::TitleBlock],
+        inside: "",
+        after: foot!("<style>.fs-foot .fs-status { text-transform: uppercase !important; }</style>"),
     },
     Canary {
         file: "canary-chip-short.html",
         what: "a status chip 18 px tall, under the system's 24",
-        expect: &[Kind::Sheet],
-        inside: concat!(
-            sheets!(
-                "<style>.fs-status { min-height: 0 !important; padding: 0 8px !important; }</style>",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2"
-            ),
-            ""
-        ),
-        after: "",
+        expect: &[Kind::TitleBlock],
+        inside: "",
+        after: foot!("<style>.fs-foot .fs-status { min-height: 0 !important; padding: 0 8px !important; }</style>"),
     },
     Canary {
         file: "canary-chip-icon.html",
         what: "a status chip's icon at 20 px, not 14",
-        expect: &[Kind::Sheet],
-        inside: concat!(
-            sheets!(
-                "<style>.fs-status svg { width: 20px !important; height: 20px !important; }</style>",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2"
-            ),
-            ""
-        ),
-        after: "",
-    },
-    Canary {
-        file: "canary-chip-before.html",
-        what: "a status chip before its tag",
-        expect: &[Kind::Sheet],
-        inside: concat!(
-            sheets!(
-                "<style>.fs-status { order: -1; }</style>",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2"
-            ),
-            ""
-        ),
-        after: "",
-    },
-    Canary {
-        file: "canary-chip-below.html",
-        what: "a status chip below its title",
-        expect: &[Kind::Sheet],
-        inside: concat!(
-            sheets!(
-                "<style>.fs-intro { display: flex; flex-direction: column; } .fs-intro-row { order: 1; }</style>",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2"
-            ),
-            ""
-        ),
-        after: "",
+        expect: &[Kind::TitleBlock],
+        inside: "",
+        after: foot!("<style>.fs-foot .fs-status svg { width: 20px !important; height: 20px !important; }</style>"),
     },
     Canary {
         file: "canary-chip-unoutlined.html",
-        what: "an IN PREPARATION chip without its outline",
-        expect: &[Kind::Sheet],
-        inside: concat!(
-            sheets!(
-                "<style>.fs-status { border-color: transparent !important; }</style>",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2"
-            ),
-            ""
-        ),
-        after: "",
+        what: "an In preparation chip without its outline",
+        expect: &[Kind::TitleBlock],
+        inside: "",
+        after: foot!("<style>.fs-foot .fs-status { border-color: transparent !important; }</style>"),
     },
     Canary {
         file: "canary-chip-state.html",
         what: "a status chip of a state the site doesn't draw",
-        expect: &[Kind::Sheet],
-        inside: concat!(
-            sheets!(
-                "",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2",
-                "caution",
-                "<path d=\"M3 3 L21 3 L21 21 L3 21 Z\"/>",
-                "In preparation"
-            ),
-            ""
+        expect: &[Kind::TitleBlock],
+        inside: "",
+        after: foot!(
+            "",
+            "caution",
+            "<path d=\"M3 3 L21 3 L21 21 L3 21 Z\"/>",
+            "In preparation"
         ),
-        after: "",
+    },
+    Canary {
+        file: "canary-foot-unruled.html",
+        what: "a footer with no rule along its top",
+        expect: &[Kind::TitleBlock],
+        inside: "",
+        after: foot!("<style>.fs-foot { border-top: 0 !important; }</style>"),
+    },
+    Canary {
+        file: "canary-foot-mark-small.html",
+        what: "a footer whose mark is 20 px tall, under the brand's least 24",
+        expect: &[Kind::TitleBlock],
+        inside: "",
+        after: foot!("<style>.fs-foot .fs-mark { height: 20px !important; }</style>"),
+    },
+    Canary {
+        file: "canary-foot-name-muted.html",
+        what: "a footer whose name is drawn in the muted ink, not the ink",
+        expect: &[Kind::TitleBlock],
+        inside: "",
+        after: foot!("<style>.fs-foot-name { color: #566079 !important; }</style>"),
+    },
+    Canary {
+        file: "canary-foot-narrow.html",
+        what: "a footer held narrower than the column",
+        expect: &[Kind::TitleBlock],
+        inside: "",
+        after: foot!("<style>.fs-foot { max-width: 240px !important; }</style>"),
+    },
+    Canary {
+        file: "canary-foot-below.html",
+        what: "text drawn below the footer's top, outside it",
+        expect: &[Kind::TitleBlock],
+        inside: "",
+        after: concat!(foot!(""), "<p>A line after the footer.</p>"),
     },
     Canary {
         file: "canary-lead-small.html",
         what: "a lead in body type, 16/24",
-        expect: &[Kind::Sheet],
-        inside: concat!(
-            sheets!(
-                "<style>.fs-lead { font-size: 16px !important; line-height: 24px !important; }</style>",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2"
-            ),
-            ""
-        ),
+        expect: &[Kind::Part],
+        inside: parts!("<style>.fs-lead { font-size: 16px !important; line-height: 24px !important; }</style>"),
         after: "",
     },
     Canary {
         file: "canary-lead-ink.html",
         what: "a lead in the ink, not the muted ink",
-        expect: &[Kind::Sheet],
-        inside: concat!(
-            sheets!(
-                "<style>.fs-lead { color: #0B0F1C !important; }</style>",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2"
-            ),
-            ""
-        ),
+        expect: &[Kind::Part],
+        inside: parts!("<style>.fs-lead { color: #0B0F1C !important; }</style>"),
         after: "",
     },
     Canary {
         file: "canary-lead-mono.html",
         what: "a lead in Cascadia Mono 20/24",
-        expect: &[Kind::Sheet],
-        inside: concat!(
-            sheets!(
-                "<style>.fs-lead { font: 400 20px/24px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace !important; }</style>",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2"
-            ),
-            ""
-        ),
+        expect: &[Kind::Part],
+        inside: parts!("<style>.fs-lead { font: 400 20px/24px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace !important; }</style>"),
         after: "",
     },
     Canary {
         file: "canary-lead-above.html",
         what: "a lead above its title",
-        expect: &[Kind::Sheet],
+        expect: &[Kind::Part],
+        inside: parts!("<style>.fs-intro { display: flex; flex-direction: column; } .fs-lead { order: -1; }</style>"),
+        after: "",
+    },
+    Canary {
+        file: "canary-part-thin.html",
+        what: "a part under a 1 px rule",
+        expect: &[Kind::Part],
+        inside: parts!("<style>.fs-part { border-top-width: 1px !important; }</style>"),
+        after: "",
+    },
+    Canary {
+        file: "canary-part-rule.html",
+        what: "a part under a rule in a rule's color, not the ink",
+        expect: &[Kind::Part],
+        inside: parts!("<style>.fs-part { border-top-color: #D6DAE4 !important; }</style>"),
+        after: "",
+    },
+    Canary {
+        file: "canary-part-name-mono.html",
+        what: "a part's name in Cascadia Mono 20/24, a record's sheet name",
+        expect: &[Kind::Part],
+        inside: parts!("<style>.fs-part > h2 { font: 600 20px/24px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace !important; font-stretch: 100% !important; }</style>"),
+        after: "",
+    },
+    Canary {
+        file: "canary-part-name-above.html",
+        what: "a part's name drawn above its rule",
+        expect: &[Kind::Part],
+        inside: parts!("<style>.fs-part > h2 { margin-top: -48px !important; }</style>"),
+        after: "",
+    },
+    Canary {
+        file: "canary-part-tag.html",
+        what: "a designation tag drawn over the title, a record's",
+        expect: &[Kind::Part],
+        inside: parts!("<style>.fs-tag { font: 400 12px/16px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; margin: 0 0 16px; }</style>", "<p class=\"fs-tag\">FS-ACHERNAR · SW · TOOL 001</p>"),
+        after: "",
+    },
+    Canary {
+        file: "canary-intro-over.html",
+        what: "a paragraph over the title",
+        expect: &[Kind::Part],
+        inside: parts!("", "<p>Over the title.</p>"),
+        after: "",
+    },
+    Canary {
+        file: "canary-part-outside.html",
+        what: "a section's name outside a part",
+        expect: &[Kind::Part],
         inside: concat!(
-            sheets!(
-                "<style>.fs-intro { display: flex; flex-direction: column; } .fs-lead { order: -1; }</style>",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2"
-            ),
-            ""
+            parts!(""),
+            "<h2 style=\"font: 600 24px/28px 'Archivo', 'Archivo Fallback', sans-serif; \
+             font-stretch: 118%; font-variant-numeric: tabular-nums\">A loose section</h2><p>Its \
+             text.</p>"
         ),
         after: "",
     },
     Canary {
-        file: "canary-sheet-thin.html",
-        what: "a sheet under a 1 px rule",
-        expect: &[Kind::Sheet],
+        file: "canary-part-second.html",
+        what: "a section's name that doesn't open its part",
+        expect: &[Kind::Part],
         inside: concat!(
-            sheets!(
-                "<style>.fs-sheet { border-top-width: 1px !important; }</style>",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2"
-            ),
-            ""
+            parts!(""),
+            "<section class=\"fs-part\" style=\"border-top: 2px solid #0B0F1C\"><p>Its \
+             text.</p><h2 style=\"font: 600 24px/28px 'Archivo', 'Archivo Fallback', \
+             sans-serif; font-variant-numeric: tabular-nums\">A late name</h2></section>"
         ),
         after: "",
     },
     Canary {
-        file: "canary-sheet-rule.html",
-        what: "a sheet under a rule in a rule's color, not the ink",
-        expect: &[Kind::Sheet],
+        file: "canary-part-sheet-number.html",
+        what: "a sheet's number drawn in a part, a record's",
+        expect: &[Kind::Part],
         inside: concat!(
-            sheets!(
-                "<style>.fs-sheet { border-top-color: #566079 !important; }</style>",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2"
-            ),
-            ""
-        ),
-        after: "",
-    },
-    Canary {
-        file: "canary-sheet-order.html",
-        what: "sheets numbered out of order",
-        expect: &[Kind::Sheet],
-        inside: concat!(sheets!("", "SHEET 2 / 2", "SHEET 1 / 2"), ""),
-        after: "",
-    },
-    Canary {
-        file: "canary-sheet-outside.html",
-        what: "a section's name outside a sheet",
-        expect: &[Kind::Sheet],
-        inside: concat!(
-            sheets!("", "SHEET 1 / 2", "SHEET 2 / 2"),
-            "<h2 style=\"font: 600 20px/24px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace\">A loose section</h2>"
-        ),
-        after: "",
-    },
-    Canary {
-        file: "canary-sheet-number-archivo.html",
-        what: "a sheet's number in Archivo 16 px",
-        expect: &[Kind::Sheet],
-        inside: concat!(
-            sheets!(
-                "<style>.fs-sheet-no { font: 400 16px/24px 'Archivo', 'Archivo Fallback', sans-serif !important; font-variant-numeric: tabular-nums !important; }</style>",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2"
-            ),
-            ""
-        ),
-        after: "",
-    },
-    Canary {
-        file: "canary-sheet-number-below.html",
-        what: "a sheet's number below its name",
-        expect: &[Kind::Sheet],
-        inside: concat!(
-            sheets!(
-                "<style>.fs-sheet-rail { display: flex !important; flex-direction: column-reverse; }</style>",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2"
-            ),
-            ""
-        ),
-        after: "",
-    },
-    Canary {
-        file: "canary-sheet-name-wide.html",
-        what: "a sheet's name wider than its rail",
-        expect: &[Kind::Sheet],
-        inside: concat!(
-            sheets!(
-                "<style>.fs-sheet-rail { width: 120px; } .fs-sheet-rail > h2 { white-space: nowrap; }</style>",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2"
-            ),
-            ""
-        ),
-        after: "",
-    },
-    Canary {
-        file: "canary-tag-square.html",
-        what: "a designation tag with no chamfered corner",
-        expect: &[Kind::Sheet],
-        inside: concat!(
-            sheets!(
-                "<style>.fs-tag { clip-path: none !important; }</style>",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2"
-            ),
-            ""
-        ),
-        after: "",
-    },
-    Canary {
-        file: "canary-tag-below.html",
-        what: "a designation tag below its title",
-        expect: &[Kind::Sheet],
-        inside: concat!(
-            sheets!(
-                "<style>.fs-intro { display: flex; flex-direction: column-reverse; }</style>",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2"
-            ),
-            ""
-        ),
-        after: "",
-    },
-    Canary {
-        file: "canary-tag-large.html",
-        what: "a designation tag in Cascadia Mono 14 px",
-        expect: &[Kind::Sheet],
-        inside: concat!(
-            sheets!(
-                "<style>.fs-tag { font-size: 14px !important; line-height: 20px !important; }</style>",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2"
-            ),
-            ""
-        ),
-        after: "",
-    },
-    Canary {
-        file: "canary-tag-dashed.html",
-        what: "a designation tag in a dashed border",
-        expect: &[Kind::Sheet],
-        inside: concat!(
-            sheets!(
-                "<style>.fs-tag { border-style: dashed !important; }</style>",
-                "SHEET 1 / 2",
-                "SHEET 2 / 2"
-            ),
-            ""
+            parts!(""),
+            "<section class=\"fs-part\" style=\"border-top: 2px solid #0B0F1C\"><h2 \
+             style=\"font: 600 24px/28px 'Archivo', 'Archivo Fallback', sans-serif; \
+             font-variant-numeric: tabular-nums\">A third \
+             part</h2><span class=\"fs-sheet-no\" style=\"font: 400 12px/16px 'Cascadia Mono', \
+             'Cascadia Mono Fallback', monospace\">SHEET 3 / 3</span></section>"
         ),
         after: "",
     },
@@ -3004,12 +2929,12 @@ const CANARIES: [Canary; 195] = [
         ),
     },
     Canary {
-        file: "canary-switch-archivo.html",
-        what: "a theme switch in the header at every width, its buttons in Archivo",
+        file: "canary-switch-mono.html",
+        what: "a theme switch in the header at every width, its buttons in Cascadia Mono 14 px",
         expect: &[Kind::Switch],
         inside: "",
         after: switch_frame!(
-            "<style>#mdbook-theme-list button { font-family: 'Archivo', 'Archivo Fallback', sans-serif !important; font-variant-numeric: tabular-nums; }</style>",
+            "<style>#mdbook-theme-list button { font: 400 14px/20px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace !important; }</style>",
             switch_buttons!(),
             switch_in_header!(),
             switch_works!()
@@ -3289,7 +3214,7 @@ main {{ overflow-x: clip; max-width: 1120px; margin-inline: auto; }}
 .content {{ padding: 0 16px; }}
 @media (min-width: 720px) {{ .content {{ padding: 0 32px; }} }}
 code, pre {{ font: 14px/20px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; }}
-.sidebar {{ font: 14px/20px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; }}
+.sidebar {{ font: 15px/20px 'Archivo', 'Archivo Fallback', sans-serif; font-variant-numeric: tabular-nums; }}
 .sidebar a.active {{ text-decoration: underline 2px; }}
 img {{ max-width: 100%; }}
 .checkbox-img {{ position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }}
@@ -3573,11 +3498,11 @@ struct Measured {
     print: Vec<Style>,
     #[serde(default)]
     print_count: usize,
-    /// The intro and sheets, and the theme switch, off the system's (#384).
+    /// The intro and parts, and the theme switch, off the system's (#384, ADR-343).
     #[serde(default)]
-    sheet: Vec<Style>,
+    part: Vec<Style>,
     #[serde(default)]
-    sheet_count: usize,
+    part_count: usize,
     #[serde(default)]
     theme_switch: Vec<Style>,
     #[serde(default)]
@@ -3625,7 +3550,7 @@ impl Measured {
             Kind::Arrows => self.arrows_count > 0,
             Kind::Mark => self.mark_count > 0,
             Kind::Print => self.print_count > 0,
-            Kind::Sheet => self.sheet_count > 0,
+            Kind::Part => self.part_count > 0,
             Kind::Switch => self.theme_switch_count > 0,
             Kind::Landing => self.landing_count > 0,
         }
@@ -3709,7 +3634,7 @@ impl Measured {
             Kind::Arrows => Style::list(&self.arrows),
             Kind::Mark => Style::list(&self.mark),
             Kind::Print => Style::list(&self.print),
-            Kind::Sheet => Style::list(&self.sheet),
+            Kind::Part => Style::list(&self.part),
             Kind::Switch => Style::list(&self.theme_switch),
             Kind::Landing => Style::list(&self.landing),
         }
@@ -4834,7 +4759,7 @@ mod tests {
     fn the_header_and_the_title_block_have_canaries_both_ways() {
         // Each kind has canaries that must show it alone, and the frame drawn as the system's
         // must pass.
-        for (kind, least) in [(Kind::Header, 15), (Kind::TitleBlock, 4)] {
+        for (kind, least) in [(Kind::Header, 15), (Kind::TitleBlock, 19)] {
             let failing = CANARIES
                 .iter()
                 .filter(|canary| canary.expect == [kind])
@@ -4848,6 +4773,11 @@ mod tests {
                 && canary.after.contains("<footer class=\"fs-titleblock\"")
         }));
         assert!(CANARIES.iter().any(|canary| {
+            canary.file == "canary-foot.html"
+                && canary.expect.is_empty()
+                && canary.after.contains("<footer class=\"fs-foot\"")
+        }));
+        assert!(CANARIES.iter().any(|canary| {
             canary.file == "canary-search.html"
                 && canary.expect.is_empty()
                 && canary.after.contains("id=\"mdbook-searchbar\"")
@@ -4855,17 +4785,17 @@ mod tests {
         assert_eq!(Kind::Header.describe(), "a header off the system's");
         assert_eq!(
             Kind::TitleBlock.describe(),
-            "a title block off the system's or not last"
+            "a footer or a title block off the system's or not last"
         );
     }
 
     #[test]
-    fn the_sheets_and_the_switch_have_canaries_both_ways() {
+    fn the_parts_and_the_switch_have_canaries_both_ways() {
         // Each kind has canaries that must show it alone, and one drawn as the system's that
         // must pass.
         for (kind, least, passing) in [
-            (Kind::Sheet, 26, "canary-sheets.html"),
-            (Kind::Sheet, 26, "canary-chip-released.html"),
+            (Kind::Part, 13, "canary-parts.html"),
+            (Kind::TitleBlock, 19, "canary-chip-released.html"),
             (Kind::Switch, 11, "canary-switch.html"),
         ] {
             let failing = CANARIES
@@ -4881,8 +4811,8 @@ mod tests {
             );
         }
         assert_eq!(
-            Kind::Sheet.describe(),
-            "an intro or a sheet off the system's"
+            Kind::Part.describe(),
+            "an intro or a part off the system's"
         );
         assert_eq!(Kind::Switch.describe(), "a theme switch off the system's");
     }

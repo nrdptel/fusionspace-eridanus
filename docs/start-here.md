@@ -754,12 +754,14 @@ Every page's source is a Markdown file in the repository's
 [`docs/` folder](https://github.com/nrdptel/fusionspace-eridanus/tree/main/docs). The pencil icon
 at the top of a page opens its source in GitHub's editor, where you can propose a fix.
 
-Each page opens with HPR Sim's number, `FS-ACHERNAR · SW · TOOL 001`, in a small tag over its
-title. The [title block](#title-block) says what it means. Beside the tag, a chip gives the site's
-status from the title block. It reads IN PREPARATION while the pages describe work after the last
-release, and RELEASED when they describe a release as it shipped. Under the title, one sentence in
-larger gray type says what the page covers. The sections are numbered as the sheets of a drawing
-set: `SHEET 2 / 5` over a section's name makes it the second of five.
+Under each page's title, one sentence in larger gray type says what the page covers. Each of its
+two to six sections starts under a thick rule in the text's color.
+
+Each page ends with one line: the FusionSpace mark and HPR Sim's name, the version, the date the
+site was built, a chip with the site's status, and a link back to this page. The chip reads *In
+preparation* while the pages describe work after the last release, and *Released* when they
+describe a release as it shipped. The [title block](#title-block) below says what each entry
+means.
 
 The theme switch, Auto, Light and Dark, sits in the header before the print and edit buttons on a
 window 960 px wide or wider. On a narrower one it's at the top of the table of contents, and on a
@@ -769,21 +771,20 @@ make is kept in your browser, for this site only.
 A page prints in the light theme's colors, whichever theme you read it in, without the table of
 contents or the buttons. Each link's address follows it in parentheses. For another site that's
 the whole address, and for a page of this one it's the path from the page, such as
-`cli.html#units`. The [title block](glossary.md#title-block), with the version and date, closes the
-page. The printer icon at the top opens a cover with a *Print the guide* button, which prints every
-chapter one after another. That runs long, since it holds every chapter and its links' addresses.
-Printed to a PDF file, the guide reads offline.
+`cli.html#units`. The line with the version and date closes the page. The printer icon at the top
+opens a cover with a *Print the guide* button, which prints every chapter one after another, then
+the whole [title block](glossary.md#title-block). That runs long, since it holds every chapter and
+its links' addresses. Printed to a PDF file, the guide reads offline.
 
 ## Title block
 
-Every page of this site ends with a title block. It's the box in an engineering drawing's corner
-that says what a document is, who issued it, when, and which sources it rests on. Its fields follow
-ISO 7200, the standard for drawings' title blocks. This page's is at its foot, below the page
-arrows. Its entries are written once, at the end of this section in the page's source. They
-describe the whole site and this version of HPR Sim, and each page adds its own title, as "Page",
-after the site's. FusionSpace, the family of tools HPR Sim belongs to, closes its pages this way.
-`FS-ACHERNAR · SW · TOOL 001` is HPR Sim's number in that family's register: Achernar, the
-simulator's internal name, then software tool 1.
+The table below is the site's title block. It's the box in an engineering drawing's corner that
+says what a document is, who issued it, when, and which sources it rests on. Its fields follow ISO
+7200, the standard for drawings' title blocks. Its entries describe the whole site and this
+version of HPR Sim. The line at the foot of every page takes the version, the date and the status
+from it. The printed guide ends with the whole block, its own title added as "Page" after the
+site's. `FS-ACHERNAR · SW · TOOL 001` is HPR Sim's number in the register of FusionSpace, the
+family of tools it belongs to: Achernar, the simulator's internal name, then software tool 1.
 
 <div class="title-block">
 

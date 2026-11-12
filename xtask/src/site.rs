@@ -54,8 +54,8 @@
 //!   note's older shape. Code is exempt. Text is read as it renders, wrapped lines joined. The
 //!   check holds the label, its place, headings and that opener, not the note's three parts,
 //!   which a reviewer reads ([`trust_notes`]).
-//! - **Sheets** (#384). Every page has two to six `##` sections, each a sheet, as `web.md` asks,
-//!   with no exceptions ([`sheets::sheet_counts`]).
+//! - **Parts** (#384, ADR-343). Every page has two to six `##` sections, each a part, with no
+//!   exceptions ([`parts::part_counts`]).
 //! - **Openings** (#384). Every page but a model page holds a trust note before its first sheet,
 //!   as `web.md` asks every docs page to start with what works and how far to trust it; a model
 //!   page opens with *In short* ([`trust_opening`]).
@@ -112,7 +112,7 @@ mod pages;
 mod print;
 mod quotes;
 mod search;
-mod sheets;
+mod parts;
 mod switch;
 pub(crate) mod theme;
 pub(crate) mod units;
@@ -223,14 +223,14 @@ pub fn run(args: &[String]) -> Result<(), String> {
         "site pages: {} pages, {} links ({} to the web, not fetched), no problems",
         report.pages, report.links, report.web
     );
-    let sheets = sheets::sheet_counts(&report.sheets);
-    if !sheets.is_empty() {
-        return Err(failure("the site's sheets", &sheets));
+    let parts = parts::part_counts(&report.sheets);
+    if !parts.is_empty() {
+        return Err(failure("the site's parts", &parts));
     }
     println!(
-        "site sheets: every page {} to {} sheets",
-        sheets::SHEETS.start(),
-        sheets::SHEETS.end()
+        "site parts: every page {} to {} parts",
+        parts::PARTS.start(),
+        parts::PARTS.end()
     );
     if !report.openings.is_empty() {
         return Err(failure("the site's openings", &report.openings));
@@ -242,7 +242,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     }
     println!(
         "site theme: the product system's mdBook theme and fonts, each copied file {}; the \
-         title block ends the landing page",
+         title block is on the landing page",
         if looks.compared {
             "the same as refs/fusionspace-design's"
         } else {
@@ -273,9 +273,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let notes = notes::draw(&output)?;
     let glyphs = chrome::draw(&output)?;
     chrome::draw_toc(&output)?;
-    let framed = frame::draw(&output)?;
+    let framed = frame::draw(&output, &status)?;
     let switches = switch::draw(&output)?;
-    let (intros, sheets) = sheets::draw(&output, &status)?;
+    let (intros, sections) = parts::draw(&output)?;
     let chapters = print::draw(&output)?;
     let bundled = bundle::draw(&output)?;
     // Last of the drawing, after mdBook's search index: each figure joined to its unit (#476).
@@ -285,9 +285,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let mut built = check_html(&root, &output, &crates)?;
     built.problems.extend(theme::check_built(&root, &output)?);
     built.problems.extend(chrome::check(&output)?);
-    built.problems.extend(frame::check(&output)?);
+    built.problems.extend(frame::check(&output, &status)?);
     built.problems.extend(switch::check(&output)?);
-    built.problems.extend(sheets::check(&output, &status)?);
+    built.problems.extend(parts::check(&output)?);
     built.problems.extend(print::check(&output)?);
     built.problems.extend(bundle::check(&output)?);
     built.problems.extend(joins::check(&output)?);
@@ -301,14 +301,14 @@ pub fn run(args: &[String]) -> Result<(), String> {
     );
     println!(
         "built frame: {framed} pages open with a `header` drawing the lockup, show the sidebar \
-         from 720 px and end with the title block in a `footer`, issued {issued} (written on \
-         {dated} pages)"
+         from 720 px and end with the one-line footer, the print page with the title block, \
+         issued {issued} (written on {dated} pages), status {status}"
     );
     println!(
-        "built anatomy: {intros} pages open with the designation tag and the status chip \
-         ({status}) over their titles and a lead of one sentence under them, their {sheets} \
-         sections drawn as numbered sheets and their headings in order; {switches} pages switch \
-         themes with Auto, Light and Dark"
+        "built anatomy: {intros} pages open with their titles and a lead of one sentence under \
+         them, their {sections} sections drawn as parts and their headings in order, with no \
+         designation tag or sheet number; {switches} pages switch themes with Auto, Light and \
+         Dark"
     );
     println!(
         "built stylesheet: {bundled} pages link one stylesheet, {}, the {} files they linked \
@@ -389,9 +389,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
          1,120 px, gutter off the system's or column off center, or code block held narrower \
          than the column, no table scrolling sideways in its box, no quote block or note off the system's, no text under the contrast floor, \
          focus ring off the system's, box or icon forced colors would erase, sticky bar taller \
-         than the scroll padding or fixed in a box the page carries, icon off the system's sizes or selection off the action role, no header or title block off \
+         than the scroll padding or fixed in a box the page carries, icon off the system's sizes or selection off the action role, no header, footer or title block off \
          the system's, no sidebar the menu button or a drag to the side leaves drawn, no page \
-         arrows off the column or naming no page, no intro, sheet or theme switch off the system's and every switch \
+         arrows off the column or naming no page, no intro, part or theme switch off the system's and every switch \
          setting the theme it is pressed for, no text mark drawn as an icon, no text or top \
          rule hidden by the strip along the window's top or text cut by a box left scrolled, \
          every link to a heading landing on it at the narrowest width, every page \
@@ -902,8 +902,8 @@ struct Report {
     web: usize,
     /// One line each, `docs/<page>:<line>: <what is wrong>`.
     problems: Vec<String>,
-    /// Each page of the summary with its number of `##` sections, its sheets, for
-    /// [`sheets::sheet_counts`].
+    /// Each page of the summary with its number of `##` sections, its parts, for
+    /// [`parts::part_counts`].
     sheets: Vec<(String, usize)>,
     /// Each page of the summary that doesn't open with how far to trust it, one line each as
     /// `problems`, from [`trust_opening`].
@@ -2895,7 +2895,7 @@ pub(crate) fn in_short_span(text: &str) -> Option<std::ops::Range<usize>> {
 
 /// How a model page opens, for the messages of [`in_short`].
 const IN_SHORT_FORM: &str = "a model page opens with *In short*: right under its `# title` and \
-                             its lead (one paragraph, `sheets.rs`), a `## In short` section holding only a bulleted list of four items, \
+                             its lead (one paragraph, `parts.rs`), a `## In short` section holding only a bulleted list of four items, \
                              which open with `**What it models:**`, `**Sources:**`, `**How well it \
                              is validated:**` and `**What it leaves out:**`, in that order, each \
                              followed by its answer";
@@ -2934,7 +2934,7 @@ pub(crate) fn in_short(text: &str) -> Option<(usize, String)> {
     };
 
     // `## In short`, right under it and the lead, the paragraph every title has under it, which
-    // `sheets.rs` checks.
+    // `parts.rs` checks.
     let mut at = title_end + 1;
     if matches!(events.get(at), Some((Event::Start(Tag::Paragraph), _))) {
         at += events[at..]
@@ -3894,15 +3894,15 @@ mod tests {
     }
 
     #[test]
-    fn every_page_has_two_to_six_sheets() {
-        // `web.md`'s two to six sheets a page (#384), on every real page.
+    fn every_page_has_two_to_six_parts() {
+        // Two to six parts a page (#384, ADR-234, ADR-343), on every real page.
         let report = check_sources(&crate::designs::root().unwrap()).unwrap();
         assert_eq!(report.sheets.len(), report.pages);
-        let problems = sheets::sheet_counts(&report.sheets);
+        let problems = parts::part_counts(&report.sheets);
         assert!(
             problems.is_empty(),
             "{}",
-            failure("the site's sheets", &problems)
+            failure("the site's parts", &problems)
         );
     }
 

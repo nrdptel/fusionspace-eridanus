@@ -132,8 +132,6 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
     organizer), and an issue template for a barrier to access are in the repository and linked from
     the site's landing page.
 - [ ] **M0.17 The docs site at the tool level** (ADR-339, #1364; in two, met when they are).
-  - [ ] **M0.17a The frame off.** *Done when:* ADR-339 decision 1's for M0.17a: no designation
-    tag or sheet numbers, a one-line footer, `theme/` re-pinned.
   - [ ] **M0.17b Field.** *Done when:* ADR-339 decision 1's for M0.17b; #1364 closes with it.
 
 ## Phase 1: Physics core (the heart), with validation interleaved

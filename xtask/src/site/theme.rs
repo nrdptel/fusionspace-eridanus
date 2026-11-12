@@ -1,6 +1,6 @@
 //! The documentation site's look (M0.6a, ADR-164): the FusionSpace product system's mdBook theme
-//! and fonts in `theme/`, every font served from the site, and the title block that ends the
-//! landing page.
+//! and fonts in `theme/`, every font served from the site, and the title block on the landing
+//! page, the site's about box (ADR-343).
 //!
 //! - **Copied files stay as the system wrote them.** Each text file copied from the system opens
 //!   with its SPDX line, and hpr-sim's own files with theirs. When `refs/fusionspace-design` is
@@ -18,8 +18,9 @@
 //!   the card as committed, and the card is compared with the pinned revision like the theme.
 //! - **The strip and the fonts on every page.** Every page of the guide links the theme, whose
 //!   `body::before` draws the gradient strip, and `fonts/fonts.css`.
-//! - **A title block ends the landing page**, with its fields from ISO 7200 as the system's
-//!   `web.md` lists them. Its designation is hpr-sim's, its version the workspace's, its data row
+//! - **A title block on the landing page**, with its fields from ISO 7200 as the system's
+//!   `web.md` lists them; `frame.rs` reads it for every page's footer line and ends the print page
+//!   with it. Its designation is hpr-sim's, its version the workspace's, its data row
 //!   names the date of the bundled motor catalog, and its date of issue is filled in at build time
 //!   with the date of the commit the site is built from.
 
@@ -33,10 +34,10 @@ use super::{attributes, html_files, is_web, unescape};
 const THEME: &str = "theme";
 /// The product system's repository, checked out under `refs/` by `cargo xtask refs`.
 pub(crate) const DESIGN_REFS: &str = "refs/fusionspace-design";
-/// The revision of the product system the copied files come from (Rev E with its fix of
-/// 2026-10-14), as ADR-164 pins it (moved by ADR-198, ADR-250 and each revision since).
+/// The revision of the product system the copied files come from (the three levels, merged
+/// 2026-11-10), as ADR-164 pins it (moved by ADR-198, ADR-250, ADR-343 and each revision since).
 /// `refs.lock.toml`'s pin must start with it.
-pub(crate) const DESIGN_REV: &str = "1b88597";
+pub(crate) const DESIGN_REV: &str = "dd7552f";
 /// The lock file that pins the `refs/` checkouts, relative to the workspace root.
 pub(crate) const REFS_LOCK: &str = "validation/refs.lock.toml";
 /// The product system's name in [`REFS_LOCK`].
@@ -58,10 +59,10 @@ pub(crate) const CHECK_JS: (&str, &str) = (
 );
 /// The files copied unchanged from the product system: where each sits under [`THEME`], and where
 /// it sits in the system's repository. The icons are the ones `chrome.rs` draws in each page's
-/// chrome, and `ok` and `info`, which `sheets.rs` draws in each page's status chip; the favicon is the system's web kit's, its PNG the 32 px one; the lockup and the mark
+/// chrome, and `ok` and `info`, which `parts.rs` draws in each page's status chip, in its footer; the favicon is the system's web kit's, its PNG the 32 px one; the lockup and the mark
 /// are the brand kit's one-color files, which `frame.rs` draws in each page's header and title
 /// block.
-pub(crate) const COPIED: [(&str, &str); 29] = [
+pub(crate) const COPIED: [(&str, &str); 30] = [
     (
         "fusionspace-mdbook.css",
         "product/web/mdbook/fusionspace-mdbook.css",
@@ -77,6 +78,10 @@ pub(crate) const COPIED: [(&str, &str); 29] = [
     (
         "fonts/Archivo-SemiBold.woff2",
         "product/web/fonts/Archivo-SemiBold.woff2",
+    ),
+    (
+        "fonts/Archivo-WideSemiBold.woff2",
+        "product/web/fonts/Archivo-WideSemiBold.woff2",
     ),
     (
         "fonts/CascadiaMono-Regular.woff2",

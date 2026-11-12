@@ -1274,8 +1274,9 @@ either yet. See [Rigid-body flight](physics/flight.md#phases) and
 
 The box in an engineering drawing's corner that says what the drawing is, who issued it,
 when, in which units and from which sources. ISO 7200 is the standard that lists its fields.
-Every page of this site ends with one, its entries written once at the end of
-[Start here](start-here.md#title-block). The page's own title is added after the site's.
+This site's is on [Start here](start-here.md#title-block), and the printed guide ends with it,
+its own title added after the site's. Every other page ends with one line taken from it: the
+version, the date and the status. A `hpr sim --plot` figure ends with a title block too.
 
 ### Tolerance
 
