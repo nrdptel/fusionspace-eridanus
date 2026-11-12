@@ -250,11 +250,14 @@ One line per milestone or increment, in the order it was archived within its pha
 - M2.7 Held-out flights, predictions first ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.7a The halves and the fits' guard ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.7b New flights predicted first ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M2.3d Twelve public flights, predictions first ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M2.3d1 The predictions ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3d3 The EuRoC 2022 predictions ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3d6 A stage's added mass ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3d7 The inertia beside an override that covers the parts ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3d10 A parallel stage's added mass ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3d5 The Macie XL predictions ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M2.3d2 The errors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M4.1 Facade API ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.1a The builder ([Phase 2](#phase-2-library-surfaces-and-interop))
 - M4.1b Custom models and the rustdoc guide ([Phase 2](#phase-2-library-surfaces-and-interop))
@@ -1408,8 +1411,12 @@ One line per milestone or increment, in the order it was archived within its pha
   - [x] **M2.7b New flights predicted first.** *Done when:* M2.7's last clause, whole; a flight
     added after M2.7a is compared only once its prediction's hash merged earlier (ADR-332 §1);
     the scoreboard's held-out rows measured, shown not held (ADR-332 §4).
-- **M2.3d** is open; its entry: [roadmap](ROADMAP.md#phase-1-physics-core-the-heart-with-validation-interleaved).
-  - **M2.3d1** is open; its entry: [roadmap](ROADMAP.md#phase-1-physics-core-the-heart-with-validation-interleaved).
+- [x] **M2.3d Twelve public flights, predictions first** (ADR-328, in two; met when they are).
+  *Done when:* ADR-328 §1's, whole. Moves: accuracy.
+  - [x] **M2.3d1 The predictions** (ADR-334: in three; ADR-342: met by #1405 and #1414). *Done
+    when:*
+    ADR-328 §1a's: its own pull request merges the five new flights' inputs, sources and
+    predicted apogees, computing no error.
     - [x] **M2.3d3 The EuRoC 2022 predictions.** *Done when:* its own pull request merges
       Astra's, Andromeda's and Erebus 11's inputs, sources, apogee rules and predicted apogees,
       flown in their ERA5 air from the netCDF-4 file converted by a committed, tested script
@@ -1461,6 +1468,8 @@ One line per milestone or increment, in the order it was archived within its pha
       own pull request merges both Macie XL flights' inputs, sources, apogee rules and predicted
       apogees, the design flown as saved from its pinned repository, no error computed, and with
       it all five predictions are on `main`.
+  - [x] **M2.3d2 The errors.** *Done when:* ADR-328 §1b's: `real-flights` flies all 12, each new
+    prediction beside its error; `accuracy.public` and `bias.public` over all 12.
 ## Phase 2: Library surfaces and interop
 
 - [x] **M4.1 Facade API.** The `hpr` crate offers a RocketPy-like builder (`Environment`, `Motor`,
