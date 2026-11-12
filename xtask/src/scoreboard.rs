@@ -1646,8 +1646,8 @@ fn axis_words(axis: Axis, hpr: &str) -> String {
     match axis {
         Axis::Accuracy => "How far each simulator's apogee lands from the logged one, its sign \
             dropped, averaged over the flights: the mean absolute error, per cent of the logged \
-            apogee. The public flights are RocketPy's example rockets whose altimeter logs are \
-            published; the private collection's are logged flights whose owners allow only \
+            apogee. The public flights are those with a published altimeter log: RocketPy's example \
+            rockets and one rocket flown from its published OpenRocket design file; the private collection's are logged flights whose owners allow only \
             aggregates. Held-out flights are the part of the collection, a third in expectation, \
             that no model or setting may be tuned on (below the table). Predicted from the boost, the simulation is fitted to \
             a flight's own log, cut after motor burnout, then flown on to apogee ([apogee from \

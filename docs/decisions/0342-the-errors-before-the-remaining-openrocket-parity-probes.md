@@ -160,9 +160,8 @@ Shown and never counted: Andromeda on the catalog Cesaroni M2020 curve reads 3,0
 
 **How it was checked.** `cargo xtask real-flights` flew the 12 and wrote [the report][real];
 `cargo xtask real-flights --check` and `cargo xtask public-predictions --check` reproduce the
-committed files, and [the predictions' JSON][predictions] is byte for byte what it was. The
-errors above were worked a second way, outside the tool, from the committed predictions and the
-five logs. Tests in `hpr-validate` hold the committed report to the code's merged numbers, to
+committed files, and [the predictions' JSON][predictions] is byte for byte what it was.
+Tests in `hpr-validate` hold the committed report to the code's merged numbers, to
 the committed predictions' log digests and tags, and to its own rows; they fail a report that
 drops its worst flight or moves a prediction by 1 m either way with no revision, and they pin
 the revision rule on invented flights: a changed number with no entry, an entry with no reason,

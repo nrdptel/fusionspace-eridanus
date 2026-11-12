@@ -2408,9 +2408,11 @@ impl RealFlightReport {
             means(&s.era5_weather),
             s.on_merged_predictions.as_ref().map_or_else(
                 || {
-                    "No merged prediction has been revised: each predicted flight's error is \
-                     its merged prediction's, to the digit its page printed."
-                        .to_owned()
+                    format!(
+                        "No merged prediction has been revised: each predicted flight's apogee \
+                         today is within {} m of its merged prediction.",
+                        crate::public_predictions::MERGED_WITHIN_M
+                    )
                 },
                 |merged| {
                     format!(
