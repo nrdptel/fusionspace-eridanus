@@ -438,7 +438,7 @@ The same five were then tried as two and as three bad readings in a row. Of the 
 moved 9 cuts, by up to 0.70 s. Three in a row moved 23, by up to 1.35 s. Three in a row also left 40 of
 those 255 logs uncut: the speed then read past 227.7 m/s (747 ft/s), so they were refused. Every cut in these
 runs still came after the peak and after burnout. Four or more in a row weren't tried. Steps up on
-the pad that stay were tried too, from halfway through it. Steps of 8, 12, 30 and 60 m (26, 39, 98 and 197 ft)
+the pad that stay were tried too, from halfway through it. Steps of 8 m (26 ft), 12 m (39 ft), 30 m (98 ft) and 60 m (197 ft)
 each cut the same 51 flights after the peak and burnout. They were refused for their speed on the other 106.
 A step of 100 m (328 ft) was refused on all 157. Before the pad was read where the line stood still,
 steps of 12 to 60 m (39 to 197 ft) cut 142 of those logs before the peak (measured once, not committed).
