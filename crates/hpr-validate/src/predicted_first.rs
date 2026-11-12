@@ -199,6 +199,17 @@ pub struct ComparedPrediction {
     /// Whether the flight was flown in the ERA5 air of its launch hour; otherwise in the
     /// standard atmosphere and steady wind of a stored simulation.
     pub era5_weather: bool,
+    /// What was flown, in words: the design built from RocketPy's example, or the design file as
+    /// saved in the stored simulation that names the flight.
+    pub design: String,
+    /// The air it was flown in, in words: the ERA5 hour of its launch, or the atmosphere its
+    /// stored simulation states.
+    pub weather: String,
+    /// The impulse of the thrust flown, N s.
+    pub total_impulse_ns: f64,
+    /// The impulse of the catalog's curve, N s, where [`Self::catalog_curve`] shows that flight:
+    /// the gap from the impulse flown is stated beside the flight's error.
+    pub catalog_total_impulse_ns: Option<f64>,
     /// The log, from the repository root.
     pub reference_log: String,
     /// Its SHA-256, in hex: the file the rule was merged for.
@@ -251,6 +262,10 @@ struct Predicted<'a> {
     altimeter: &'a str,
     altimeter_evidence: &'a str,
     era5_weather: bool,
+    design: String,
+    weather: String,
+    total_impulse_ns: f64,
+    catalog_total_impulse_ns: Option<f64>,
     reference_log: &'a str,
     reference_log_sha256: &'a str,
     reference_rule: &'a str,
@@ -270,6 +285,13 @@ fn predicted(report: &PredictionsReport) -> Vec<Predicted<'_>> {
         altimeter: &row.altimeter,
         altimeter_evidence: &row.altimeter_evidence,
         era5_weather: true,
+        design: format!("the design built from RocketPy's example, `{}`", row.design),
+        weather: format!("the ERA5 weather of {}", row.weather_time_utc),
+        total_impulse_ns: row.total_impulse_ns,
+        catalog_total_impulse_ns: row
+            .catalog_curve
+            .as_ref()
+            .map(|catalog| catalog.total_impulse_ns),
         reference_log: &row.reference_log,
         reference_log_sha256: &row.reference_log_sha256,
         reference_rule: &row.reference_rule,
@@ -292,6 +314,13 @@ fn predicted(report: &PredictionsReport) -> Vec<Predicted<'_>> {
         altimeter: &row.altimeter,
         altimeter_evidence: &row.altimeter_evidence,
         era5_weather: false,
+        design: format!(
+            "the design file `{}` as saved, as its stored simulation `{}` flies it",
+            row.design_file, row.simulation
+        ),
+        weather: row.atmosphere.clone(),
+        total_impulse_ns: row.total_impulse_ns,
+        catalog_total_impulse_ns: None,
         reference_log: &row.reference_log,
         reference_log_sha256: &row.reference_log_sha256,
         reference_rule: &row.reference_rule,
@@ -407,6 +436,10 @@ fn compared(
         altimeter: flight.altimeter.to_owned(),
         altimeter_evidence: flight.altimeter_evidence.to_owned(),
         era5_weather: flight.era5_weather,
+        design: flight.design.clone(),
+        weather: flight.weather.clone(),
+        total_impulse_ns: flight.total_impulse_ns,
+        catalog_total_impulse_ns: flight.catalog_total_impulse_ns,
         reference_log: flight.reference_log.to_owned(),
         reference_log_sha256: flight.reference_log_sha256.to_owned(),
         reference_rule: flight.reference_rule.to_owned(),
@@ -484,6 +517,21 @@ impl ComparedPrediction {
         }
         if !(self.hpr_max_mach.is_finite() && self.hpr_max_mach > 0.0) {
             return Err(format!("its largest Mach number is {}", self.hpr_max_mach));
+        }
+        if self.design.trim().is_empty() || self.weather.trim().is_empty() {
+            return Err("its design or its weather is not named".to_owned());
+        }
+        if !(self.total_impulse_ns.is_finite() && self.total_impulse_ns > 0.0) {
+            return Err(format!("its impulse flown is {}", self.total_impulse_ns));
+        }
+        // A flight shown on its catalog's curve states that curve's impulse, so the gap from the
+        // impulse flown is beside its error; no other flight has one to state.
+        if self.catalog_total_impulse_ns.is_some() != self.catalog_curve.is_some()
+            || self
+                .catalog_total_impulse_ns
+                .is_some_and(|impulse| !(impulse.is_finite() && impulse > 0.0))
+        {
+            return Err("its catalog curve's impulse is not its catalog curve's".to_owned());
         }
         let same = crate::report::same_but_for_platform_rounding;
         let shown = [&self.catalog_curve, &self.openrocket_stored];
@@ -668,6 +716,10 @@ mod tests {
             altimeter: "barometric".to_owned(),
             altimeter_evidence: "invented".to_owned(),
             era5_weather: true,
+            design: "an invented design".to_owned(),
+            weather: "invented air".to_owned(),
+            total_impulse_ns: 500.0,
+            catalog_total_impulse_ns: None,
             reference_log: "refs/invented.csv".to_owned(),
             reference_log_sha256: "0".repeat(64),
             reference_rule: "invented".to_owned(),
@@ -800,6 +852,27 @@ mod tests {
         tagged.untraced = vec!["the mass".to_owned()];
         let error = tagged.check(&INVENTED, &[]).expect_err("a wrong tag");
         assert!(error.contains("traced tag"), "{error}");
+
+        // The weather is named, the impulse flown is a real one, and a catalog curve's impulse
+        // goes with a catalog curve shown, never without one.
+        let mut unnamed = row(1000.0, None);
+        unnamed.weather = " ".to_owned();
+        let error = unnamed.check(&INVENTED, &[]).expect_err("no weather");
+        assert!(error.contains("weather is not named"), "{error}");
+        let mut undesigned = row(1000.0, None);
+        undesigned.design = String::new();
+        let error = undesigned.check(&INVENTED, &[]).expect_err("no design");
+        assert!(error.contains("its design or"), "{error}");
+        let mut spent = row(1000.0, None);
+        spent.total_impulse_ns = 0.0;
+        let error = spent.check(&INVENTED, &[]).expect_err("no impulse");
+        assert!(error.contains("impulse flown"), "{error}");
+        let mut lone = row(1000.0, None);
+        lone.catalog_total_impulse_ns = Some(450.0);
+        let error = lone
+            .check(&INVENTED, &[])
+            .expect_err("an impulse without its curve");
+        assert!(error.contains("catalog curve's impulse"), "{error}");
     }
 
     /// The error's sign: a prediction below its log is negative.

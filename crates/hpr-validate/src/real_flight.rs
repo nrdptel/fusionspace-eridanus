@@ -2215,6 +2215,12 @@ impl RealFlightReport {
                     a.altimeter_evidence != b.altimeter_evidence,
                 ),
                 ("air", a.era5_weather != b.era5_weather),
+                ("design", a.design != b.design),
+                ("weather", a.weather != b.weather),
+                (
+                    "catalog curve's impulse",
+                    a.catalog_total_impulse_ns.is_some() != b.catalog_total_impulse_ns.is_some(),
+                ),
                 ("log", a.reference_log != b.reference_log),
                 (
                     "log's digest",
@@ -2273,6 +2279,12 @@ impl RealFlightReport {
                     b.merged_apogee_error_percent,
                 ),
                 ("hpr's largest Mach number", a.hpr_max_mach, b.hpr_max_mach),
+                ("impulse flown", a.total_impulse_ns, b.total_impulse_ns),
+                (
+                    "catalog curve's impulse",
+                    a.catalog_total_impulse_ns.unwrap_or(0.0),
+                    b.catalog_total_impulse_ns.unwrap_or(0.0),
+                ),
                 (
                     "catalog curve's apogee",
                     shown_apogee(&shown_a, 0),
@@ -2616,13 +2628,16 @@ impl RealFlightReport {
             out,
             "| flight | altimeter | log apogee (m) | merged prediction (m) | hpr apogee today (m) \
              | apogee error | merged prediction's error | every input traced | hpr apogee as a \
-             height (m) | log rows | hpr's largest Mach |"
+             height (m) | log rows | hpr's largest Mach | impulse flown (N s) |"
         );
-        let _ = writeln!(out, "|---|---|---:|---:|---:|---:|---:|---|---:|---:|---:|");
+        let _ = writeln!(
+            out,
+            "|---|---|---:|---:|---:|---:|---:|---|---:|---:|---:|---:|"
+        );
         for row in &self.predicted_first {
             let _ = writeln!(
                 out,
-                "| {} | {} | {} | {} | {} | {}% | {}% | {} | {} | {} | {} |",
+                "| {} | {} | {} | {} | {} | {}% | {}% | {} | {} | {} | {} | {} |",
                 row.title,
                 row.altimeter,
                 fmt_number(row.log_apogee_m, 1),
@@ -2637,7 +2652,8 @@ impl RealFlightReport {
                 },
                 fmt_number(row.hpr_height_apogee_m, 1),
                 row.log_rows,
-                fmt_number(row.hpr_max_mach, 3)
+                fmt_number(row.hpr_max_mach, 3),
+                fmt_number(row.total_impulse_ns, 1)
             );
         }
         let _ = writeln!(out);
@@ -2672,9 +2688,21 @@ impl RealFlightReport {
         for row in &self.predicted_first {
             let _ = writeln!(
                 out,
-                "- **{}** (`{}`): the log is `{}`, {} rows. Its apogee is read as {}.{}{} {}",
+                "- **{}** (`{}`): {}, flown in {}, on {} N s of impulse{}. The log is `{}`, {} rows. \
+                 Its apogee is read as {}.{}{} {}",
                 row.title,
                 row.id,
+                row.design,
+                row.weather,
+                fmt_number(row.total_impulse_ns, 1),
+                row.catalog_total_impulse_ns
+                    .map_or(String::new(), |catalog| {
+                        format!(
+                            ", {}% against the {} N s of the catalog's curve shown above",
+                            fmt_signed(percent_of(row.total_impulse_ns, catalog), 1),
+                            fmt_number(catalog, 1)
+                        )
+                    }),
                 row.reference_log,
                 row.log_rows,
                 row.reference_rule,

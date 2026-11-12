@@ -2328,6 +2328,10 @@ fn real_flights_print_each_merged_prediction_beside_its_error() {
         height_m: f64,
         traced: bool,
         untraced: &'a [String],
+        design: String,
+        weather: String,
+        impulse_ns: f64,
+        catalog_impulse_ns: Option<f64>,
     }
     let predicted: Vec<Committed<'_>> = predictions
         .flights
@@ -2339,6 +2343,13 @@ fn real_flights_print_each_merged_prediction_beside_its_error() {
             height_m: row.predicted_height_apogee_m,
             traced: row.all_inputs_traced,
             untraced: row.untraced.as_slice(),
+            design: format!("the design built from RocketPy's example, `{}`", row.design),
+            weather: format!("the ERA5 weather of {}", row.weather_time_utc),
+            impulse_ns: row.total_impulse_ns,
+            catalog_impulse_ns: row
+                .catalog_curve
+                .as_ref()
+                .map(|catalog| catalog.total_impulse_ns),
         })
         .chain(predictions.design_file_flights.iter().map(|row| Committed {
             id: row.id.as_str(),
@@ -2347,6 +2358,13 @@ fn real_flights_print_each_merged_prediction_beside_its_error() {
             height_m: row.predicted_height_apogee_m,
             traced: row.all_inputs_traced,
             untraced: row.untraced.as_slice(),
+            design: format!(
+                "the design file `{}` as saved, as its stored simulation `{}` flies it",
+                row.design_file, row.simulation
+            ),
+            weather: row.atmosphere.clone(),
+            impulse_ns: row.total_impulse_ns,
+            catalog_impulse_ns: None,
         }))
         .collect();
     assert_eq!(predicted.len(), 5);
@@ -2358,8 +2376,38 @@ fn real_flights_print_each_merged_prediction_beside_its_error() {
             height_m,
             traced,
             untraced,
+            design,
+            weather,
+            impulse_ns,
+            catalog_impulse_ns,
         } = committed;
         assert_eq!((row.id.as_str(), merged.id), (id, id));
+        // Its weather and the impulse flown are its prediction's, and the page names both: the
+        // ERA5 hour for a flight in its day's air, the stored atmosphere for the others; and,
+        // where the flight is shown on its catalog's curve too, that curve's impulse and the gap.
+        assert_eq!((&row.design, &row.weather), (&design, &weather), "{id}");
+        assert_eq!(
+            row.era5_weather,
+            weather.starts_with("the ERA5 weather of 2022-10-1")
+        );
+        assert!(same(row.total_impulse_ns, impulse_ns), "{id}");
+        assert_eq!(
+            row.catalog_total_impulse_ns.is_some(),
+            catalog_impulse_ns.is_some(),
+            "{id}"
+        );
+        let gap = catalog_impulse_ns.map_or(String::new(), |catalog| {
+            assert!(same(row.catalog_total_impulse_ns.unwrap_or(0.0), catalog));
+            format!(
+                ", {:+.1}% against the {catalog:.1} N s of the catalog's curve shown above",
+                100.0 * (impulse_ns - catalog) / catalog
+            )
+        });
+        let named = format!(
+            "- **{}** (`{id}`): {design}, flown in {weather}, on {impulse_ns:.1} N s of impulse{gap}. The log is",
+            row.title
+        );
+        assert!(page.contains(&named), "{id}: the page has no line {named}");
         assert_eq!(row.reference_log_sha256, sha256, "{id}: another log");
         assert_eq!(
             (row.all_inputs_traced, row.untraced.as_slice()),
