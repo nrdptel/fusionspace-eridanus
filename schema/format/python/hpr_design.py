@@ -80,11 +80,25 @@ class AddedMass(TypedDict):
     own parts, or at the stage's center of gravity override when that doesn't cover the parts
     either. A motor aboard doesn't move it in OpenRocket, and a `Layout` holds no motor.
 
+    **A parallel stage's** added mass is one point for the whole set of pods, not one for each:
+    with no station at the pods' center, and with one that far aft of the parallel stage's
+    forward end, as far off the axis as the pods' center is. That is OpenRocket 24.12's too,
+    measured with three boosters and with one ([the decision record][adr-341]).
+
+    **The stage a parallel stage hangs on** can carry an added mass at a station: a point among
+    that stage's own parts. `Rocket::layout` refuses one there with no station, and one at a
+    station beside a parallel stage of one pod off the axis. OpenRocket weighs such a stage with
+    what hangs on it. With no station its point sits at the center of the stage and its pods
+    together, and moves when the pods drop. At a station beside one pod off the axis it sits as
+    far off the axis as that center, and on the axis once the pod is gone. A stage here is one
+    body that keeps its center.
+
     An added mass of zero changes nothing. One above zero with no station, on a stage whose parts
     weigh nothing, has no place to sit, and `Rocket::layout` refuses it.
 
     [guide]: https://openrocket.readthedocs.io/en/latest/user_guide/overrides_and_surface_finish.html
     [adr-335]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0335-a-stage-s-added-mass-as-openrocket-weighs-it.md
+    [adr-341]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0341-m2-3d8-in-five-a-parallel-stage-s-added-mass-first.md
     """
 
     cg_aft_m: NotRequired[Union[float, None]]
@@ -2132,8 +2146,9 @@ class Stage(TypedDict):
 
     added_mass: NotRequired[Union["AddedMass", None]]
     """Mass the stage carries beyond what its parts weigh (`AddedMass`): a point mass, added to
-    the parts before `overrides` apply. A parallel stage can't carry one, and neither can a
-    stage a parallel stage hangs on (`Rocket::layout`).
+    the parts before `overrides` apply. A parallel stage's sits among its pods. A stage a
+    parallel stage hangs on can carry one at a station, unless that parallel stage is one pod
+    off the axis, and can't carry one with no station (`Rocket::layout`).
     """
 
     components: list["Component"]

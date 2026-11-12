@@ -195,24 +195,25 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
       Moves: accuracy above Mach 1.
 - [ ] **M2.3d Twelve public flights, predictions first** (ADR-328, in two; met when they are).
   *Done when:* ADR-328 §1's, whole. Moves: accuracy.
-  - [ ] **M2.3d1 The predictions** (ADR-334: in three, M2.3d3 and M2.3d5 done; met when M2.3d4 is). *Done when:*
+  - [ ] **M2.3d1 The predictions** (ADR-334: in three; met when M2.3d4 is). *Done when:*
     ADR-328 §1a's: its own pull request merges the five new flights' inputs, sources and
     predicted apogees, computing no error.
-    - [ ] **M2.3d4 A stage's override that adds to its parts** (ADR-335; ADR-336: in four,
-      M2.3d6 and M2.3d7 done; met when M2.3d8 and M2.3d9 are). *Done when:* an `.ork` stage
-      whose mass or center override doesn't cover its parts is flown as OpenRocket 24.12 weighs
-      it, its mass, center and inertia held to OpenRocket's on probe designs, and is no longer
-      held back.
-      - [ ] **M2.3d8 The stages an added mass is still refused on.** *Done when:* M2.3d4's
-        *done when*, whole: what is left of it here is each `.ork` stage ADR-335 decision 5
-        still refuses or holds back, flown as OpenRocket 24.12 weighs it, its mass, center and
-        inertia held to OpenRocket's on probe designs.
+    - [ ] **M2.3d4 A stage's override that adds to its parts** (ADR-335; ADR-336: in four; met when
+      M2.3d8 and M2.3d9 are). *Done when:* an `.ork` stage whose mass or center override doesn't
+      cover its parts is flown as OpenRocket 24.12 weighs it, its mass, center and inertia held to
+      OpenRocket's on probe designs, and is no longer held back.
+      - [ ] **M2.3d8 The stages an added mass is still refused on** (ADR-341: in five; met when
+        M2.3d11 to M2.3d14 are). *Done when:* ADR-336 decision 1's for M2.3d8.
+        - [ ] **M2.3d11 The stage a parallel stage hangs on, weighed with it** (#1429). *Done when:*
+          ADR-341 decision 2's for M2.3d11.
+        - [ ] **M2.3d12 An added mass on parts that weigh nothing** (#1430). *Done when:* ADR-341
+          decision 2's for M2.3d12.
+        - [ ] **M2.3d13 Flights that move, release or part** (#1431). *Done when:* ADR-341 decision
+          2's for M2.3d13.
+        - [ ] **M2.3d14 The rocket's inertia beside a parallel stage's covering override** (#1432;
+          after M2.3d9). *Done when:* ADR-341 decision 2's for M2.3d14.
       - [ ] **M2.3d9 The inertia on a lower stage and with a motor aboard** (ADR-336; #1424).
-        *Done when:* M2.3d4's *done when*, whole: what is left of it here is ADR-336 decision 1's for
-        M2.3d9: both inertias on the two probes overriding the lower of two stages, and the inertia
-        across the axis with the motor aboard, at launch and burnout, on the motor's airframe under an
-        added mass beside a center that covers the parts, each within 3 parts in a million of OpenRocket
-        24.12's, the motor's own term from OpenRocket's record.
+        *Done when:* ADR-336 decision 1's for M2.3d9, as amended.
   - [ ] **M2.3d2 The errors.** *Done when:* ADR-328 §1b's: `real-flights` flies all 12, each new
     prediction beside its error; `accuracy.public` and `bias.public` over all 12.
 - [ ] **M2.8 Honest uncertainty** (ADR-209 §5). *Done when:* each logged flight is also flown as a

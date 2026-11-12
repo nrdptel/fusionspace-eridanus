@@ -103,8 +103,9 @@ pub struct Stage {
     #[serde(default, skip_serializing_if = "StageOverrideRule::is_rescaled")]
     pub override_rule: StageOverrideRule,
     /// Mass the stage carries beyond what its parts weigh ([`AddedMass`]): a point mass, added to
-    /// the parts before `overrides` apply. A parallel stage can't carry one, and neither can a
-    /// stage a parallel stage hangs on ([`Rocket::layout`]).
+    /// the parts before `overrides` apply. A parallel stage's sits among its pods. A stage a
+    /// parallel stage hangs on can carry one at a station, unless that parallel stage is one pod
+    /// off the axis, and can't carry one with no station ([`Rocket::layout`]).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub added_mass: Option<AddedMass>,
     /// A drag coefficient stated for the stage ([`DragOverride`]): added to the rocket's drag, or,
@@ -858,10 +859,12 @@ pub enum StageOverrideRule {
     /// or takes away sits at that center. This is how OpenRocket 24.12 weighs a single stage's
     /// overrides that cover its parts, measured on probe designs (`validation/oracles/openrocket/`);
     /// on the lower of two stages OpenRocket's sum is below the parts' inertia about the stage's
-    /// center. The `.ork` reader gives it to every stage on the axis with such an override
-    /// ([ADR-340][adr-340]).
+    /// center. The `.ork` reader gives it to every stage with such an override, on the axis
+    /// ([ADR-340][adr-340]) or parallel, whose pods OpenRocket leaves in place the same way
+    /// ([the record that measured a parallel stage][adr-341]).
     ///
     /// [adr-340]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0340-a-stage-s-overrides-leave-its-parts-in-place-as-openrocket-weighs-them.md
+    /// [adr-341]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0341-m2-3d8-in-five-a-parallel-stage-s-added-mass-first.md
     PartsInPlace,
 }
 
@@ -931,11 +934,25 @@ impl StageOverrideRule {
 /// own parts, or at the stage's center of gravity override when that doesn't cover the parts
 /// either. A motor aboard doesn't move it in OpenRocket, and a [`Layout`] holds no motor.
 ///
+/// **A parallel stage's** added mass is one point for the whole set of pods, not one for each:
+/// with no station at the pods' center, and with one that far aft of the parallel stage's
+/// forward end, as far off the axis as the pods' center is. That is OpenRocket 24.12's too,
+/// measured with three boosters and with one ([the decision record][adr-341]).
+///
+/// **The stage a parallel stage hangs on** can carry an added mass at a station: a point among
+/// that stage's own parts. [`Rocket::layout`] refuses one there with no station, and one at a
+/// station beside a parallel stage of one pod off the axis. OpenRocket weighs such a stage with
+/// what hangs on it. With no station its point sits at the center of the stage and its pods
+/// together, and moves when the pods drop. At a station beside one pod off the axis it sits as
+/// far off the axis as that center, and on the axis once the pod is gone. A stage here is one
+/// body that keeps its center.
+///
 /// An added mass of zero changes nothing. One above zero with no station, on a stage whose parts
 /// weigh nothing, has no place to sit, and [`Rocket::layout`] refuses it.
 ///
 /// [guide]: https://openrocket.readthedocs.io/en/latest/user_guide/overrides_and_surface_finish.html
 /// [adr-335]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0335-a-stage-s-added-mass-as-openrocket-weighs-it.md
+/// [adr-341]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0341-m2-3d8-in-five-a-parallel-stage-s-added-mass-first.md
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct AddedMass {
@@ -1234,8 +1251,8 @@ impl Rocket {
     ///   place (an attached part in a stage's list, a body component attached anywhere but in a pod
     ///   set, anything else in a pod set, fins or pods on anything but a body tube, a pod set in a
     ///   pod, children under anything but a body component, inner tube or pod set), a pod set with
-    ///   an override that doesn't cover its pods, an added mass on a parallel stage or on the
-    ///   stage one hangs on, a missing or
+    ///   an override that doesn't cover its pods, an added mass on the stage a parallel stage
+    ///   hangs on that has no station or sits beside one pod off the axis, a missing or
     ///   unexpected position, an automatic dimension that doesn't apply or can't be resolved, or a
     ///   motor mount on anything but a body tube or inner tube.
     /// - [`DesignError::Domain`] for a pod set of no pods or more than [`PodSet::MAX_COUNT`], a
@@ -1284,23 +1301,48 @@ impl Rocket {
                     "a parallel stage is placed along the tube it hangs on, not after a sibling",
                 ));
             }
-            // An added mass sits at the center of its stage's parts or at a station from the
-            // stage's forward end. Whether a parallel stage's parts count among the stage it hangs
-            // on, and where a parallel stage's own added mass sits among its pods, is not measured.
-            if stage.added_mass.is_some() || self.stages[carrier.stage].added_mass.is_some() {
-                return Err(tree(
-                    &stage.id,
-                    format!(
-                        "a parallel stage hangs on `{}`, and it or the stage it hangs on carries \
-                         an added mass. Where that mass sits beside a parallel stage isn't \
-                         measured",
-                        on.id
-                    ),
-                ));
+            // A parallel stage's own added mass sits among its pods, and an added mass at a
+            // station on the stage it hangs on sits at that station, whatever hangs there
+            // ([`AddedMass`]). One with no station on the stage it hangs on has no fixed place:
+            // OpenRocket 24.12 puts it at the center of that stage with what hangs on it, which
+            // moves when the parallel stage drops (ADR-341).
+            // An added mass of zero changes nothing, wherever it would sit.
+            if let Some(added) = self.stages[carrier.stage]
+                .added_mass
+                .filter(|added| added.mass_kg != 0.0)
+            {
+                if added.cg_aft_m.is_none() {
+                    return Err(tree(
+                        &stage.id,
+                        format!(
+                            "a parallel stage hangs on `{}`, whose stage carries an added mass \
+                             with no station. Where that mass sits once the parallel stage \
+                             drops isn't modeled",
+                            on.id
+                        ),
+                    ));
+                }
+                // One pod alone pulls the center off the axis, and OpenRocket 24.12 then puts
+                // the added mass as far off the axis as the stage's center is with the pod
+                // hanging on it, not with the stage's own parts alone (ADR-341).
+                if parallel.pods.count == 1 && parallel.pods.radial_offset_m != 0.0 {
+                    return Err(tree(
+                        &stage.id,
+                        format!(
+                            "a parallel stage of one pod off the axis hangs on `{}`, whose stage \
+                             carries an added mass. How far off the axis that mass sits once \
+                             the parallel stage drops isn't modeled",
+                            on.id
+                        ),
+                    ));
+                }
             }
             // A mass override that covers what the tube holds, or the whole stage it is in, doesn't
             // say whether it covers the parallel stage too: OpenRocket's tree holds the stage
-            // under the tube, and no probe has measured its reading (ADR-171).
+            // under the tube (ADR-171). OpenRocket 24.12 takes a stage's covering override as
+            // the rocket's while the parallel stage hangs there and as the stage's once it is
+            // gone (ADR-341), which one body for each stage can't give. No probe has measured a
+            // tube's covering override there.
             if !self.stages[carrier.stage].overrides.is_empty()
                 || (on.overrides_include_children && !on.overrides.is_empty())
             {
@@ -3098,18 +3140,42 @@ mod tests {
         tube.layout().unwrap();
         tube.stages[0].components[1].overrides_include_children = true;
         refused(&tube, covered);
-        // An added mass, on the parallel stage or on the stage it hangs on: where it sits beside
-        // the pods isn't measured.
-        for stage in [0, 1] {
-            for cg_aft_m in [None, Some(0.1)] {
-                let mut added = boosted(2, 0.0);
-                added.stages[stage].added_mass = Some(AddedMass {
-                    mass_kg: 0.1,
-                    cg_aft_m,
-                });
-                refused(&added, "carries an added mass");
-            }
-        }
+        // An added mass with no station on the stage it hangs on: it has no fixed place once the
+        // parallel stage drops. One at a station there, and the parallel stage's own, lay out
+        // (`a_parallel_stages_added_mass_sits_among_its_pods`).
+        let mut added = boosted(2, 0.0);
+        added.stages[0].added_mass = Some(AddedMass {
+            mass_kg: 0.1,
+            cg_aft_m: None,
+        });
+        refused(&added, "carries an added mass with no station");
+        // An added mass of zero changes nothing, so it is no matter where it would sit.
+        let mut nothing = boosted(2, 0.0);
+        nothing.stages[0].added_mass = Some(AddedMass {
+            mass_kg: 0.0,
+            cg_aft_m: None,
+        });
+        assert_eq!(
+            nothing.layout().unwrap().structure,
+            boosted(2, 0.0).layout().unwrap().structure
+        );
+        // One at a station there, beside one pod off the axis: OpenRocket's sits as far off the
+        // axis as the stage's center with the pod hanging on it. On the axis, the pod is no
+        // matter.
+        let stationed = Some(AddedMass {
+            mass_kg: 0.1,
+            cg_aft_m: Some(0.1),
+        });
+        let mut lone = boosted(1, 0.0);
+        lone.stages[0].added_mass = stationed;
+        refused(&lone, "one pod off the axis");
+        lone.stages[1]
+            .parallel
+            .as_mut()
+            .unwrap()
+            .pods
+            .radial_offset_m = 0.0;
+        lone.layout().unwrap();
         // Its pods are checked as a pod set's: a part that isn't a body component in the stack.
         let mut loose = boosted(2, 0.0);
         loose.stages[1].components[0] = attached("pod-tube", fins(0.1, 0.06), top(0.0));
@@ -3118,6 +3184,100 @@ mod tests {
         let mut twice = boosted(2, 0.0);
         twice.stages[1].id = "airframe".to_owned();
         assert!(matches!(twice.layout(), Err(DesignError::DuplicateId(_))));
+    }
+
+    /// A parallel stage's added mass is a point among its pods, and one at a station on the
+    /// stage it hangs on is a point among that stage's parts, the pods not counted, each worked
+    /// by hand ([`AddedMass`]). With no station the parallel stage keeps its pods' center and
+    /// inertia. At a station the point sits that far aft of the parallel stage's forward end, as
+    /// far off the axis as the pods' center is: one pod's is off it, by the pod's distance.
+    #[test]
+    fn a_parallel_stages_added_mass_sits_among_its_pods() {
+        let pitch = |m: &MassProperties| m.inertia_kg_m2.x_axis.x;
+        for (count, angle_rad) in [(2, 0.0), (1, 0.3), (3, 1.0)] {
+            let plain = boosted(count, angle_rad).layout().unwrap();
+            let (core, pods) = (plain.stages[0].mass, plain.stages[1].mass);
+            let fore = plain.stages[1].fore_station_m;
+            let off_axis = pods.cg_m.x.hypot(pods.cg_m.y);
+            assert_eq!(count == 1, off_axis > 0.04, "{count} pods: {off_axis}");
+
+            // No station: at the pods' center.
+            let mut design = boosted(count, angle_rad);
+            design.stages[1].added_mass = Some(AddedMass {
+                mass_kg: 0.25,
+                cg_aft_m: None,
+            });
+            let layout = design.layout().unwrap();
+            let stage = layout.stages[1].mass;
+            close(stage.mass_kg, pods.mass_kg + 0.25, 1e-15, "mass");
+            close((stage.cg_m - pods.cg_m).length(), 0.0, 1e-15, "center");
+            close(pitch(&stage), pitch(&pods), 1e-15, "inertia");
+            assert_eq!(layout.stages[0].mass, core, "the stage it hangs on");
+
+            // A station: 0.1 m aft of the parallel stage's forward end, level with the pods'
+            // center.
+            design.stages[1].added_mass = Some(AddedMass {
+                mass_kg: 0.25,
+                cg_aft_m: Some(0.1),
+            });
+            let layout = design.layout().unwrap();
+            let stage = layout.stages[1].mass;
+            let (m_p, x_p, x_a) = (pods.mass_kg, -pods.cg_m.z, fore + 0.1);
+            let center = (m_p * x_p + 0.25 * x_a) / (m_p + 0.25);
+            close(stage.mass_kg, m_p + 0.25, 1e-15, "mass at a station");
+            close(-stage.cg_m.z, center, 1e-15, "center at a station");
+            close(
+                stage.cg_m.x.hypot(stage.cg_m.y),
+                off_axis,
+                1e-15,
+                "off the axis",
+            );
+            // Across the axis, about an axis through the new center: the pods' own inertia there
+            // and the point's, each moved along the axis only (they are level with each other).
+            let along = m_p * (x_p - center).powi(2) + 0.25 * (x_a - center).powi(2);
+            let trace = |m: &MassProperties| m.inertia_kg_m2.x_axis.x + m.inertia_kg_m2.y_axis.y;
+            close(
+                trace(&stage),
+                trace(&pods) + 2.0 * along,
+                1e-12,
+                "inertia at a station",
+            );
+            close(
+                stage.inertia_kg_m2.z_axis.z,
+                pods.inertia_kg_m2.z_axis.z,
+                1e-15,
+                "roll at a station",
+            );
+
+            // On the stage the pods hang on: a point among that stage's parts, the pods not
+            // counted, and the parallel stage as it was. One pod off the axis is refused there
+            // (`a_parallel_stage_hangs_on_a_body_tube_of_an_earlier_axial_stage`).
+            if count == 1 {
+                continue;
+            }
+            let mut design = boosted(count, angle_rad);
+            design.stages[0].added_mass = Some(AddedMass {
+                mass_kg: 0.25,
+                cg_aft_m: Some(0.1),
+            });
+            let layout = design.layout().unwrap();
+            let stage = layout.stages[0].mass;
+            let (m_c, x_c) = (core.mass_kg, -core.cg_m.z);
+            close(stage.mass_kg, m_c + 0.25, 1e-15, "the core's mass");
+            close(
+                -stage.cg_m.z,
+                (m_c * x_c + 0.25 * 0.1) / (m_c + 0.25),
+                1e-15,
+                "the core's center",
+            );
+            assert_eq!(layout.stages[1].mass, pods, "the parallel stage");
+            close(
+                layout.structure.mass_kg,
+                plain.structure.mass_kg + 0.25,
+                1e-15,
+                "structure",
+            );
+        }
     }
 
     /// A pod's mass properties are the parallel-axis sum worked by hand: the tube and the mass as

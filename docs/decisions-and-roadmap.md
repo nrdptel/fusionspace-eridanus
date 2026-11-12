@@ -369,6 +369,7 @@ until someone rewrites it in plainer words.
 | [ADR-338: The 2026-11-11 review: descent rates held to the logs, predictions first][adr-338] | Every scoreboard row that reads a logged flight reads its apogee. A rocket's descent rate under its parachutes sets its landing speed and its drift, and HPR Sim's is held to other simulators and to drop tests, not to flights. The analyzer reads each canopy's rate from a log. On the five public flights that have both, the simulated rate under the main runs from 7.59 m/s (24.9 ft/s) slower than the log's to 1.07 m/s (3.5 ft/s) faster. The milestone scores the private collection's flights likewise, after the comparison's rule and each flight's predicted rates are merged, so each prediction is fixed before anyone sees its error. The scoreboard gains rows for the rate's error and its sign. |  |
 | [ADR-339: M0.17, the docs site at the tool level, queued second][adr-339] | The product system the docs site is pinned to now has three levels: front pages, tools and records. A docs site is a tool: it keeps what the drawing means (line types, trust notes, signal colors, units) and leaves off the drawing's frame. The site still wears the whole record: a designation tag over each title, sheet numbers and a title block at the foot of every page. Issue #1364 asks for the move, and it is a milestone's work, not an issue's. This record adds it as [M0.17](#m0-17) in two increments, the frame off and then a fourth color theme, Field, and queues it second, where the maintainer asked for it. |  |
 | [ADR-340: A stage's overrides leave its parts in place, as OpenRocket weighs them][adr-340] | A `.ork` stage whose mass or center of gravity override covers its parts now keeps the parts where the design puts them, as OpenRocket 24.12 does. Its inertia is the parts' about the stage's center. Before, HPR Sim moved and rescaled the stage as one body. On six of [M2.3d7](#m2-3d7)'s eight probes the inertia now matches OpenRocket's within [ADR-336][adr-336]'s bounds; it ran from 11.04% under to 400.5% over. On the two with the override on a lower stage, OpenRocket's figure is below what the stage's parts alone have about its center: the rocket's inertia across the axis is now 4.95% and 3.33% over (it was 1.5% and 18.5%), pinned. The collection's mean absolute apogee error goes from 12.07% to 12.04%. |  |
+| [ADR-341: M2.3d8 in five, a parallel stage's added mass first][adr-341] | A parallel stage in an OpenRocket file, boosters strapped beside the core, can carry a mass override that doesn't cover its parts. HPR Sim warned of one and held the design back. It now reads it as OpenRocket 24.12 weighs it: one mass added to the set of boosters, at their center or at a stated station. Of 49 new probe designs HPR Sim lays out 27, and on the 25 of those with boosters the parallel stage alone matches OpenRocket's mass, center and both inertias. The probes also show cases this change doesn't fly, so [M2.3d8](#m2-3d8) is split in five, and four increments stay open. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -697,6 +698,11 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-3d7"></a>[M2.3d7][done-1] | The inertia beside an override that covers the parts | done |
 | <a id="m2-3d8"></a>[M2.3d8][phase-1] | The stages an added mass is still refused on | not yet done |
 | <a id="m2-3d9"></a>[M2.3d9][phase-1] | The inertia on a lower stage and with a motor aboard | not yet done |
+| <a id="m2-3d10"></a>[M2.3d10][done-1] | A parallel stage's added mass | done |
+| <a id="m2-3d11"></a>[M2.3d11][phase-1] | The stage a parallel stage hangs on, weighed with it | not yet done |
+| <a id="m2-3d12"></a>[M2.3d12][phase-1] | An added mass on parts that weigh nothing | not yet done |
+| <a id="m2-3d13"></a>[M2.3d13][phase-1] | Flights that move, release or part | not yet done |
+| <a id="m2-3d14"></a>[M2.3d14][phase-1] | The rocket's inertia beside a parallel stage's covering override | not yet done |
 | <a id="m2-4"></a>[M2.4][done-1] | A summary of accuracy for the README, and CI that fails on any regression ([ADR-084][adr-084], [Accuracy: the census](accuracy.md#the-census)) | done |
 | <a id="m2-6"></a>[M2.6][phase-1] | An open benchmark | not yet done |
 | <a id="m2-7"></a>[M2.7][done-1] | Held-out flights, predictions first | done |
@@ -1380,6 +1386,7 @@ is the milestone that added or will add that test.
 [adr-338]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0338-the-2026-11-11-review-descent-rates-held-to-the-logs-predictions-first.md
 [adr-339]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0339-m0-17-the-docs-site-at-the-tool-level-queued-second.md
 [adr-340]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0340-a-stage-s-overrides-leave-its-parts-in-place-as-openrocket-weighs-them.md
+[adr-341]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0341-m2-3d8-in-five-a-parallel-stage-s-added-mass-first.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

@@ -262,8 +262,8 @@ key):
 - `parts_in_place` leaves every part where the design puts it, as OpenRocket 24.12 weighs a
   single stage. The mass and the center are the overrides', as before. The inertia is the parts' about
   the stage's center, and the mass an override adds or takes away sits at that center, adding
-  none. The `.ork` reader gives this rule to every stage on the axis whose override covers its
-  parts; a parallel stage's override is read as a pod set's
+  none. The `.ork` reader gives this rule to every stage whose override covers its parts, on
+  the axis or a [parallel stage](#parallel-stages)
   ([A stage's override](../format/ork.md#a-stages-mass-and-center-of-gravity-overrides)).
 
 Under `parts_in_place`, with the parts' mass $m_p$, center $x_p$ and inertia across the axis $I_p$
@@ -302,7 +302,10 @@ the five probes of a rocket of two). Where one of the stage's two overrides cove
 they match too on one stage. On an airframe with a motor aboard the mass, the center and the
 inertia the override adds to the structure match; with the motor counted, under a center that
 covers the parts beside an added mass, and on the lower of two stages, the inertia across the
-axis doesn't ([below](#a-stages-added-mass-leaves-out)).
+axis doesn't ([below](#a-stages-added-mass-leaves-out)). On a
+[parallel stage](#parallel-stages), 25 more probes match for the stage alone. Where its
+override covers the boosters, the override adds less to the whole rocket's inertia across the
+axis than it does in OpenRocket, by up to 4.673% of OpenRocket's inertia for that rocket.
 
 A finished rocket weighs more than its parts: glue, paint, wiring. A stage can carry that as an
 [`AddedMass`](../api/hpr_design/tree/struct.AddedMass.html): a point mass $m_a$ added to the
@@ -352,6 +355,26 @@ tip, with an inertia across the axis of 0.015838 kg·m². The stage starts at th
 Both are OpenRocket 24.12's numbers for the same stage (2.3996 kg at 0.4117 m (1.351 ft),
 0.017476 kg·m²; the hand sum above rounds its distances).
 
+**On a parallel stage** the added mass is one point for the whole set of boosters, not one for
+each. With no station it sits at the boosters' center. A station is measured from the parallel
+stage's forward end, and the mass sits there as far off the axis as the boosters' center is. On
+the axis that is the same rule as above, with the boosters as the parts. The boosters carry the
+mass away when they drop.
+
+For example, three boosters weigh 0.0605 kg together, centered 0.6199 m (2.034 ft) aft of the
+tip and on the axis, with an inertia across the axis of 0.000487 kg·m². Their forward end is
+0.45 m (1.48 ft) aft of the tip. Add 2 kg at a station of 0.1 m (0.33 ft), so at 0.55 m (1.80 ft). The
+parallel stage weighs 2.0605 kg. Its center is at $(0.0605 \times 0.6199 + 2 \times 0.55)$
+$/\, 2.0605$ $= 0.5521\,\mathrm{m}$ (1.811 ft). The boosters' center is
+$0.6199 - 0.5521$ $= 0.0678\,\mathrm{m}$ (2.67 in) from it, and the added mass
+$0.5521 - 0.55$ $= 0.0021\,\mathrm{m}$ (0.083 in). Its inertia across the axis is $0.000487$
+$+\, 0.0605 \times 0.0678^2$ $+\, 2 \times 0.0021^2$ $= 0.000774\,\mathrm{kg\cdot m^2}.$
+OpenRocket 24.12 gives 2.0605 kg at 0.5521 m (1.811 ft) and 0.000774 kg·m² for those boosters alone.
+
+**On the stage a parallel stage hangs on,** an added mass at a station is a point among that
+stage's own parts, the boosters not counted. Two cases there are refused, in
+[What it leaves out](#a-stages-added-mass-leaves-out).
+
 **Where the rule comes from.** It is how OpenRocket 24.12 weighs a stage's mass override that
 doesn't cover the stage's parts. Its user guide says such a value "is added to the calculated
 value" ([Overrides and Surface Finish][or-overrides]). Where the mass goes is measured on
@@ -383,6 +406,25 @@ with OpenRocket 24.12, and by hand.
   (the mass alone, the mass at a station, and the mass beside a center that covers the parts):
   a station moves the added mass along the axis only. HPR Sim's mass and center match on all
   six within the bounds above, the distance off the axis and the inertia the override adds too.
+- 49 more probes put the override on a parallel stage, on the stage one hangs on, or on
+  parts that weigh nothing, four of them with no override as baselines: 40 with three boosters beside the core or with one, and 9 of two
+  stages on the axis, one or both weighing nothing ([the decision record][adr-341]). HPR Sim
+  lays out 27 and refuses 22 by name. To lay a design out is to place every part and weigh
+  each stage. On the 25 laid out that carry boosters, the parallel
+  stage alone matches OpenRocket's within the bounds above, and the whole rocket matches in
+  mass and center. The rocket's inertias are held by what the override adds to them: within 5
+  parts in 10 million of what it adds in OpenRocket, or within 1e-9 kg·m² where it adds less
+  than 0.002 kg·m². That holds where no override covers the boosters. Where one does, the
+  rocket's inertia falls short (below). A 2 kg mass at a station beside one booster sits 52 mm
+  (2.0 in) off the axis in both. OpenRocket gives one inertia across the axis, the one about
+  its y axis, and one booster hangs off the axis along that axis, so how far off it is adds
+  nothing to OpenRocket's figure. With one booster HPR Sim's is compared about the body axis
+  the booster lies along, which has no such term either. With a motor in the airframe, OpenRocket's rocket at launch
+  and at burnout has the mass and center of that motor added to the same structure, as on a
+  stage on the axis.
+- `tree::tests::a_parallel_stages_added_mass_sits_among_its_pods` works a parallel stage's
+  added mass by hand with one, two and three boosters: the mass and the center to 1e-15 (kg, m),
+  the inertia to 1e-12 kg·m².
 - `tree::tests::a_stages_added_mass_is_a_point_among_its_parts` works both forms by hand on a
   lower stage: the mass and the center to 1e-15 (kg, m), the inertia across the axis to
   1e-12 kg·m². `a_stages_overrides_leave_its_parts_in_place_by_its_rule` does the same for each
@@ -406,18 +448,56 @@ with OpenRocket 24.12, and by hand.
     at launch and 1.1% under at burnout. That is worked from OpenRocket's own records, the
     motor's term the same in both (`openrockets_inertia_with_a_motor_aboard_is_the_same_sum`).
     Closing it is open work in the same milestone.
-- A parallel stage can't carry an added mass, and neither can the stage one hangs on: where the
-  mass sits beside the pods is not measured, and the layout refuses it.
+  - *Where a parallel stage's override covers the boosters* (ten probes). OpenRocket sums each
+    booster from where the design puts it, with its own mass, and adds a point at the parallel
+    stage's center, the stated one where the override states one. That point is the whole stated mass under a mass that covers the boosters,
+    so their own mass is counted beside it. Otherwise it is what the stage weighs more than
+    they do. The rocket's center is taken from the stage as overridden. A stage weighed as
+    one body can't give that sum and OpenRocket's inertia for the stage alone
+    (`openrockets_sum_with_a_parallel_stages_covering_center_is_no_bodys` works the sum from
+    OpenRocket's records on all ten). With an added mass beside a center that covers the
+    boosters, the override adds 0.63% of OpenRocket's inertia across the axis less with three
+    boosters, and 0.22% less with one. With a center that doesn't cover the boosters beside a
+    mass that does, it adds 0.79% and 0.27% less. Closing those is open work:
+    [M2.3d14, the rocket's inertia beside a parallel stage's covering override](../decisions-and-roadmap.md#m2-3d14).
+    Where every override covers the boosters (a mass, a center, or both), it adds 0.070% to
+    4.673% less. No increment is planned for this yet;
+    [#1432](https://github.com/nrdptel/fusionspace-eridanus/issues/1432) records it.
+    About the axis the two agree, but for one booster under a covering mass, where HPR Sim's
+    is 0.103% under. The parallel stage alone matches on each.
+- The stage a parallel stage hangs on can't carry an added mass with no station. Where the
+  parallel stage is one booster off the axis, it can't carry one at a station either. The
+  layout refuses both. OpenRocket weighs that
+  stage with its boosters while they hang there. With a mass and no center stated, and nothing
+  added to the boosters, its point sits at the center of the stage and boosters together, 39 mm (1.5 in) aft of the stage's own with three boosters
+  and 14.4 mm (0.57 in) aft with one. At a station beside one booster it sits as far off the axis
+  as that center, 2.7 mm (0.11 in), and on the axis once the booster is gone. Either way it
+  moves when they drop. HPR Sim's stage is one body that keeps its center. That is open work:
+  [M2.3d11, the stage a parallel stage hangs on](../decisions-and-roadmap.md#m2-3d11).
+  With two or more boosters, a mass at a station sits as far off the axis as that stage's own
+  parts' center. No probe has a part off the axis on that stage (a launch lug, say), so
+  whether OpenRocket's point follows the boosters there too is unmeasured
+  ([#1429](https://github.com/nrdptel/fusionspace-eridanus/issues/1429) records it).
 - An added mass above zero with no station, on parts that weigh nothing, has no center to sit
-  at, and the layout refuses it. OpenRocket reports the stage's center at the tip on the one probe of it, which doesn't
-  say whether that is the stage's forward end, so it wasn't taken as a rule.
-- Off the axis, one design is all there is: one pod, 2.7 mm (0.11 in) off.
+  at, and the layout refuses it. On the six probes of it with no center stated, OpenRocket
+  puts it at the rocket's tip, even for a lower stage that starts 0.8 m (2.6 ft) aft of the tip
+  and for boosters 0.45 m (1.48 ft) aft. The tip is as far forward as a mass can sit, so no
+  placement reads the [stability margin](../glossary.md#stability-margin) higher, and it isn't
+  taken silently. On
+  the two with a center that covers the parts beside the mass, OpenRocket puts it at that
+  center.
+  [M2.3d12, an added mass on parts that weigh nothing](../decisions-and-roadmap.md#m2-3d12)
+  settles both.
+- Off the axis, two designs are all there is: one pod, where the stage's parts' center is
+  2.7 mm (0.11 in) off, and one booster, whose own center is 52 mm (2.0 in) off.
 - A flight refuses a mass that moves, a mass that is released, or a parting through a stage,
-  where that stage carries an added mass.
+  where that stage carries an added mass
+  ([M2.3d13, flights that move, release or part](../decisions-and-roadmap.md#m2-3d13)).
 
 [or-overrides]: https://openrocket.readthedocs.io/en/latest/user_guide/overrides_and_surface_finish.html
 [adr-335]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0335-a-stage-s-added-mass-as-openrocket-weighs-it.md
 [adr-340]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0340-a-stage-s-overrides-leave-its-parts-in-place-as-openrocket-weighs-them.md
+[adr-341]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0341-m2-3d8-in-five-a-parallel-stage-s-added-mass-first.md
 
 ### Reference diameter
 
@@ -714,9 +794,16 @@ inside them, as a pod's do. The decision record is [ADR-171][adr-171], and
   hangs on no body tube of an earlier axial stage, and, as for any pod set, one inside a pod. So is
   a mass override that covers what its tube holds, or the whole stage the tube is in. So is a drag
   override on a parallel stage or covering the stage it hangs on. None of these overrides says
-  whether it covers the parallel stage, and no probe has measured how OpenRocket reads one. An
-  override on the parallel stage itself is its total, every copy's, as a pod set's is. That
-  reading is HPR Sim's, not measured against OpenRocket.
+  whether it covers the parallel stage. OpenRocket 24.12 takes a stage's covering mass or
+  center as the rocket's while the boosters hang there and as the stage's once they are gone,
+  which one body for each stage can't give. Its six probes are recorded in
+  [#1429](https://github.com/nrdptel/fusionspace-eridanus/issues/1429), beside the work of
+  [M2.3d11, the stage a parallel stage hangs on](../decisions-and-roadmap.md#m2-3d11), which
+  doesn't include them. No probe has measured how it reads a tube's covering override there,
+  or a drag override.
+- A mass override on the parallel stage itself is its total, every copy's, and its added mass
+  is one point for the set ([A stage's added mass](#a-stages-added-mass)). Both are measured
+  against OpenRocket 24.12, with three boosters and with one.
 
 **Worked example.** Make the two pods of [Pods](#pods)' worked example a parallel stage instead
 (134.25 g, at 0° and 180°, 50 mm (2.0 in) from the axis). The stage weighs 134.25 g. The airframe

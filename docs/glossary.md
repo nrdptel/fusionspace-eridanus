@@ -52,7 +52,9 @@ That makes it the likely cause of the largest difference between the two codes' 
 Mass a stage carries beyond what its parts weigh, such as glue and paint weighed on the finished
 rocket. HPR Sim adds it to the stage's parts as a point: at the parts' center, or at a
 [station](#station) the design gives. It is how an OpenRocket stage's mass override is read when
-its *override for all subcomponents* box is unticked. Not the air a canopy pushes along, above.
+its *override for all subcomponents* box is unticked. Boosters strapped beside the core
+(a [parallel stage](#parallel-stage)) carry one for the set, not one each. Not the air a canopy
+pushes along, above.
 See [A stage's added mass](physics/design.md#a-stages-added-mass).
 
 ### AGL (above ground level)

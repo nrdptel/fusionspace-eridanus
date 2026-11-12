@@ -349,7 +349,10 @@ fn stage(
 ///
 /// This is OpenRocket 24.12's reading, measured on `conventions.py`'s stage probes
 /// ([ADR-335][adr-335]), where a flag not written reads as `false`, and so does the single older
-/// flag saying `false`:
+/// flag saying `false`. A parallel stage's overrides are read by the same table. Its rows with
+/// each flag written, and the mass alone and both overrides with none, are measured on
+/// `added_mass_placement.py`'s
+/// probes ([ADR-341][adr-341]):
 ///
 /// | The mass override | The center of gravity override | What the stage weighs |
 /// |---|---|---|
@@ -365,7 +368,8 @@ fn stage(
 /// read and taken as not written.
 ///
 /// [adr-335]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0335-a-stage-s-added-mass-as-openrocket-weighs-it.md
-fn stage_overrides(
+/// [adr-341]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0341-m2-3d8-in-five-a-parallel-stage-s-added-mass-first.md
+pub(super) fn stage_overrides(
     values: &mut Values<'_>,
 ) -> (Overrides, Option<AddedMass>, Option<DragOverride>) {
     let read = values.overrides();
