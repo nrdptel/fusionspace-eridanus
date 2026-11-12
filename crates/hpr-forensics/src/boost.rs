@@ -70,9 +70,10 @@ pub const LIFTOFF_RISE_M: f64 = 10.0;
 /// re-read there, and a liftoff, a top speed and a fall read before it are forgotten. A run of bad
 /// samples on the pad or a step there that stays can lift the line past [`LIFTOFF_RISE_M`] and
 /// read a speed faster than the flight's own top; the line stands still again once they leave the
-/// window, or at the step's new level ([#1362][i1362]). Bad samples in the last 0.2 s before
-/// ignition can leave no still window before the climb, and can then still be the top and cut
-/// before burnout: a known gap ([#1441][i1441]). A dip in the boost can stand the line still
+/// window, or at the step's new level ([#1362][i1362]). Bad samples close enough to ignition
+/// leave no still window between them and the climb, and can then still be the top and cut early:
+/// a known gap ([#1441][i1441]), from 0.2 s before ignition on the test's flights, not bounded on
+/// others. A dip in the boost can stand the line still
 /// too, and the pad is then read again in the burn: the dip test still finds every cut after
 /// burnout. On sets A and B's first 200 synthetic
 /// flights' barometer logs with a cut (measured once, not committed), 98.8% and 98.4% of the pad's
@@ -274,7 +275,8 @@ fn in_order_count(times: &[f64], cut_s: f64) -> usize {
 /// speed then falls back as it does at burnout. The pad is read again wherever the line stands
 /// still ([`STILL_M_S`]), dropping the top speed and fall read before, so a pad spike faster than
 /// the flight's own top, or a step up on the pad that stays, doesn't stay the top
-/// ([#1362][i1362]), unless it comes in the last 0.2 s before ignition ([#1441][i1441]).
+/// ([#1362][i1362]), unless it comes too close to ignition for the line to stand still between
+/// it and the climb ([#1441][i1441]).
 ///
 /// A GNSS receiver's altitude in the boost can drop out at ignition and burnout and lag the
 /// climb, by up to 440 m in one flight a flyer reports, while its fix reads valid
@@ -377,8 +379,8 @@ fn walk(log: &FlightLog, hold_s: f64, fell: &mut dyn FnMut(f64, f64, f64)) -> Re
             continue;
         };
         // The pad is where the line last stood still: bad samples on it or a step that stays lift
-        // the line and read a speed, but it stands still again after them, unless they come in the
-        // last 0.2 s before ignition (#1441).
+        // the line and read a speed, but it stands still again after them, unless they come too
+        // close to ignition for that (#1441).
         if speed.abs() < STILL_M_S {
             pad_m = Some(level);
             if lifted {
@@ -1362,9 +1364,9 @@ mod tests {
         );
     }
 
-    /// A known gap ([#1441][i1441]): bad samples in the last 0.2 s before ignition can be read as
-    /// the line standing still, reading the pad low, and their leaving the window then reads a
-    /// climb faster than the flight's, which stays its top. Pinned as it is, so that a fix shows
+    /// A known gap ([#1441][i1441]): bad samples close to ignition leave no still window between
+    /// them and the climb, so their leaving the window reads a climb faster than the flight's,
+    /// which stays its top. On this test's flights that starts 0.2 s before ignition. Pinned as it is, so that a fix shows
     /// here: three readings 60 m low from 2.80 s cut the tail-off of
     /// [`a_bad_sample_on_the_pad_is_not_the_top_speed`] at 8.75 s, before its 9.0 s burnout, its
     /// top 133.9 m/s read at 3.30 s; a 60 m step from 2.95 s that stays cuts it there too.

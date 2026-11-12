@@ -401,9 +401,11 @@ then falls back and stays down, as it does after burnout, so this height rule st
 They can also read a speed faster than the flight's own top. Once they leave the window the line
 stands still again. The pad is read afresh there, and the top speed and climb read before it are dropped
 ([#1362](https://github.com/nrdptel/fusionspace-eridanus/issues/1362)). A step up on the pad that
-stays settles the same way, at its new height. Bad readings in the last 0.2 s before ignition can leave
-no still window before the climb. They can then still be the top speed and cut the log before burnout
+stays settles the same way, at its new height. Bad readings close enough to ignition leave
+no still window between them and the climb. They can then still be the top speed and cut the log early
 ([#1441](https://github.com/nrdptel/fusionspace-eridanus/issues/1441)); a test pins that gap as it stands.
+On the test's flights that starts 0.2 s before ignition, and on one of them the cut then comes before burnout.
+How far out it starts on other flights isn't bounded.
 A fast climb doesn't stand still before its cut. A reading that dips in the boost can bring the speed
 under 5 m/s (16.4 ft/s), and the pad is then read again there; the dip test below still finds every cut after burnout.
 Two figures back the 5 m/s (16.4 ft/s), each measured once on sets A and B's first 200 synthetic flights and not committed.
@@ -453,7 +455,8 @@ A test flies three logs it builds, each with a blip on the pad faster than the f
 A fourth has a 15 m (49 ft) step. Each is now cut where its clean log is. Before, all four were cut
 early, two of them before burnout, one 0.05 s after ignition. The test also moves the bad readings
 across the pad, starting them anywhere from 1.50 s to 2.75 s, with ignition at 3.0 s. Each log is cut after its peak and burnout,
-or refused for its speed. From 2.80 s they can still be the top (#1441 above). Without the height rule, three readings 12 m (39 ft) too high
+or refused for its speed. From 2.80 s they can still be the top
+([#1441](https://github.com/nrdptel/fusionspace-eridanus/issues/1441), the gap above). Without the height rule, three readings 12 m (39 ft) too high
 in a row on the pad gave 33 cuts before the speed's peak, of the 157 logs spiked
 there (all but the 43 GNSS logs; measured once, not pinned by a test). 32 came
 before ignition, the other 0.04 s after it, and all 2.4 to 7.9 s before burnout. A test pins the order, the
