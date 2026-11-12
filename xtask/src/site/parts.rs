@@ -554,7 +554,9 @@ mod tests {
             h(2, "two")
         )));
         // A tool's page: no tag over the title, no sheet numbers.
-        assert!(!drawn.contains("fs-tag") && !drawn.contains("SHEET") && !drawn.contains("fs-status"));
+        assert!(
+            !drawn.contains("fs-tag") && !drawn.contains("SHEET") && !drawn.contains("fs-status")
+        );
         assert!(drawn.ends_with("</main><footer>y</footer></body></html>"));
         assert_eq!(page_problems(&drawn), Vec::<String>::new());
         // Drawn once only: a page drawn already has text before its title.

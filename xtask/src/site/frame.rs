@@ -944,8 +944,16 @@ mod tests {
     #[test]
     fn a_page_gets_the_header_the_sidebar_and_the_footer() {
         let name = "guide/a.html";
-        let html = drawn(name, &page("A <code>page</code>", "<p>Text.</p>\n"), "2026-10-10");
-        assert!(problems(name, &html).is_empty(), "{:?}", problems(name, &html));
+        let html = drawn(
+            name,
+            &page("A <code>page</code>", "<p>Text.</p>\n"),
+            "2026-10-10",
+        );
+        assert!(
+            problems(name, &html).is_empty(),
+            "{:?}",
+            problems(name, &html)
+        );
         assert!(html.contains(&format!("{HEADER}\n")), "{html}");
         assert!(html.contains("</div>\n</header>\n"), "{html}");
         assert!(
@@ -963,8 +971,10 @@ mod tests {
         let footer = html.split_once(FOOT).unwrap().1;
         assert!(html.find("</nav>").unwrap() < html.find(FOOT).unwrap());
         assert!(
-            footer.contains("FusionSpace HPR</span><span>Version 1.2.3</span><span>Issued \
-                             2026-10-10</span><span class=\"fs-status\" data-state=\"info\">"),
+            footer.contains(
+                "FusionSpace HPR</span><span>Version 1.2.3</span><span>Issued \
+                             2026-10-10</span><span class=\"fs-status\" data-state=\"info\">"
+            ),
             "{footer}"
         );
         assert!(
@@ -983,10 +993,17 @@ mod tests {
             &page("Start here", &source("2026-10-10")),
             "2026-10-10",
         );
-        assert!(problems("index.html", &html).is_empty(), "{:?}", problems("index.html", &html));
+        assert!(
+            problems("index.html", &html).is_empty(),
+            "{:?}",
+            problems("index.html", &html)
+        );
         assert_eq!(html.matches(SOURCE_BLOCK).count(), 1, "{html}");
         let footer = html.split_once(FOOT).unwrap().1;
-        assert!(footer.contains("<a href=\"start-here.html\">About HPR Sim</a>"), "{footer}");
+        assert!(
+            footer.contains("<a href=\"start-here.html\">About HPR Sim</a>"),
+            "{footer}"
+        );
     }
 
     #[test]
@@ -998,7 +1015,11 @@ mod tests {
                 "",
             );
         let html = drawn(PRINT_PAGE, &print, "2026-10-10");
-        assert!(problems(PRINT_PAGE, &html).is_empty(), "{:?}", problems(PRINT_PAGE, &html));
+        assert!(
+            problems(PRINT_PAGE, &html).is_empty(),
+            "{:?}",
+            problems(PRINT_PAGE, &html)
+        );
         assert!(!html.contains(FOOT), "{html}");
         assert!(html.contains("<span class=\"v\">The book</span>"), "{html}");
         assert!(html.find("</main>").unwrap() < html.find(FOOTER).unwrap());
@@ -1013,9 +1034,17 @@ mod tests {
         // The one-line footer on the print page, or the title block on another, fails.
         let swapped = drawn("a.html", &page("A", ""), "2026-10-10");
         let on_print = problems(PRINT_PAGE, &swapped);
-        assert!(on_print.iter().any(|f| f.contains("isn't the title block")), "{on_print:?}");
+        assert!(
+            on_print.iter().any(|f| f.contains("isn't the title block")),
+            "{on_print:?}"
+        );
         let on_page = problems("a.html", &html);
-        assert!(on_page.iter().any(|f| f.contains("isn't the one-line footer")), "{on_page:?}");
+        assert!(
+            on_page
+                .iter()
+                .any(|f| f.contains("isn't the one-line footer")),
+            "{on_page:?}"
+        );
     }
 
     #[test]
@@ -1122,7 +1151,10 @@ mod tests {
             ),
             (
                 "the link elsewhere",
-                good.replace("href=\"start-here.html\">About", "href=\"index.html\">About"),
+                good.replace(
+                    "href=\"start-here.html\">About",
+                    "href=\"index.html\">About",
+                ),
                 "page about the project",
             ),
             (
@@ -1170,7 +1202,11 @@ mod tests {
                 ),
                 "not the page's",
             ),
-            ("no date", book.replace("2026-10-10", "the date"), "YYYY-MM-DD"),
+            (
+                "no date",
+                book.replace("2026-10-10", "the date"),
+                "YYYY-MM-DD",
+            ),
             (
                 "fields swapped",
                 book.replacen(

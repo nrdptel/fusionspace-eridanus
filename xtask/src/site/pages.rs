@@ -2634,21 +2634,27 @@ const CANARIES: [Canary; 201] = [
         what: "an In preparation chip filled in the action color, not outlined",
         expect: &[Kind::TitleBlock],
         inside: "",
-        after: foot!("<style>.fs-foot .fs-status { background: #3350D6 !important; color: #FFFFFF !important; border-color: #3350D6 !important; }</style>"),
+        after: foot!(
+            "<style>.fs-foot .fs-status { background: #3350D6 !important; color: #FFFFFF !important; border-color: #3350D6 !important; }</style>"
+        ),
     },
     Canary {
         file: "canary-chip-large.html",
         what: "a status chip in Archivo 15/20, not 13/16",
         expect: &[Kind::TitleBlock],
         inside: "",
-        after: foot!("<style>.fs-foot .fs-status { font-size: 15px !important; line-height: 20px !important; }</style>"),
+        after: foot!(
+            "<style>.fs-foot .fs-status { font-size: 15px !important; line-height: 20px !important; }</style>"
+        ),
     },
     Canary {
         file: "canary-chip-mono.html",
         what: "a status chip in Cascadia Mono 12 px capitals, a record's",
         expect: &[Kind::TitleBlock],
         inside: "",
-        after: foot!("<style>.fs-foot .fs-status { font: 600 12px/16px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace !important; text-transform: uppercase !important; }</style>"),
+        after: foot!(
+            "<style>.fs-foot .fs-status { font: 600 12px/16px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace !important; text-transform: uppercase !important; }</style>"
+        ),
     },
     Canary {
         file: "canary-chip-light.html",
@@ -2662,28 +2668,36 @@ const CANARIES: [Canary; 201] = [
         what: "a status chip in capitals, not sentence case",
         expect: &[Kind::TitleBlock],
         inside: "",
-        after: foot!("<style>.fs-foot .fs-status { text-transform: uppercase !important; }</style>"),
+        after: foot!(
+            "<style>.fs-foot .fs-status { text-transform: uppercase !important; }</style>"
+        ),
     },
     Canary {
         file: "canary-chip-short.html",
         what: "a status chip 18 px tall, under the system's 24",
         expect: &[Kind::TitleBlock],
         inside: "",
-        after: foot!("<style>.fs-foot .fs-status { min-height: 0 !important; padding: 0 8px !important; }</style>"),
+        after: foot!(
+            "<style>.fs-foot .fs-status { min-height: 0 !important; padding: 0 8px !important; }</style>"
+        ),
     },
     Canary {
         file: "canary-chip-icon.html",
         what: "a status chip's icon at 20 px, not 14",
         expect: &[Kind::TitleBlock],
         inside: "",
-        after: foot!("<style>.fs-foot .fs-status svg { width: 20px !important; height: 20px !important; }</style>"),
+        after: foot!(
+            "<style>.fs-foot .fs-status svg { width: 20px !important; height: 20px !important; }</style>"
+        ),
     },
     Canary {
         file: "canary-chip-unoutlined.html",
         what: "an In preparation chip without its outline",
         expect: &[Kind::TitleBlock],
         inside: "",
-        after: foot!("<style>.fs-foot .fs-status { border-color: transparent !important; }</style>"),
+        after: foot!(
+            "<style>.fs-foot .fs-status { border-color: transparent !important; }</style>"
+        ),
     },
     Canary {
         file: "canary-chip-state.html",
@@ -2736,7 +2750,9 @@ const CANARIES: [Canary; 201] = [
         file: "canary-lead-small.html",
         what: "a lead in body type, 16/24",
         expect: &[Kind::Part],
-        inside: parts!("<style>.fs-lead { font-size: 16px !important; line-height: 24px !important; }</style>"),
+        inside: parts!(
+            "<style>.fs-lead { font-size: 16px !important; line-height: 24px !important; }</style>"
+        ),
         after: "",
     },
     Canary {
@@ -2750,14 +2766,18 @@ const CANARIES: [Canary; 201] = [
         file: "canary-lead-mono.html",
         what: "a lead in Cascadia Mono 20/24",
         expect: &[Kind::Part],
-        inside: parts!("<style>.fs-lead { font: 400 20px/24px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace !important; }</style>"),
+        inside: parts!(
+            "<style>.fs-lead { font: 400 20px/24px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace !important; }</style>"
+        ),
         after: "",
     },
     Canary {
         file: "canary-lead-above.html",
         what: "a lead above its title",
         expect: &[Kind::Part],
-        inside: parts!("<style>.fs-intro { display: flex; flex-direction: column; } .fs-lead { order: -1; }</style>"),
+        inside: parts!(
+            "<style>.fs-intro { display: flex; flex-direction: column; } .fs-lead { order: -1; }</style>"
+        ),
         after: "",
     },
     Canary {
@@ -2778,7 +2798,9 @@ const CANARIES: [Canary; 201] = [
         file: "canary-part-name-mono.html",
         what: "a part's name in Cascadia Mono 20/24, a record's sheet name",
         expect: &[Kind::Part],
-        inside: parts!("<style>.fs-part > h2 { font: 600 20px/24px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace !important; font-stretch: 100% !important; }</style>"),
+        inside: parts!(
+            "<style>.fs-part > h2 { font: 600 20px/24px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace !important; font-stretch: 100% !important; }</style>"
+        ),
         after: "",
     },
     Canary {
@@ -2792,7 +2814,10 @@ const CANARIES: [Canary; 201] = [
         file: "canary-part-tag.html",
         what: "a designation tag drawn over the title, a record's",
         expect: &[Kind::Part],
-        inside: parts!("<style>.fs-tag { font: 400 12px/16px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; margin: 0 0 16px; }</style>", "<p class=\"fs-tag\">FS-ACHERNAR · SW · TOOL 001</p>"),
+        inside: parts!(
+            "<style>.fs-tag { font: 400 12px/16px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; margin: 0 0 16px; }</style>",
+            "<p class=\"fs-tag\">FS-ACHERNAR · SW · TOOL 001</p>"
+        ),
         after: "",
     },
     Canary {
@@ -4810,10 +4835,7 @@ mod tests {
                 "{passing}"
             );
         }
-        assert_eq!(
-            Kind::Part.describe(),
-            "an intro or a part off the system's"
-        );
+        assert_eq!(Kind::Part.describe(), "an intro or a part off the system's");
         assert_eq!(Kind::Switch.describe(), "a theme switch off the system's");
     }
 
