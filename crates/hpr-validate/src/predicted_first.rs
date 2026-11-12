@@ -81,8 +81,9 @@ impl ApogeeRule {
     pub fn is_the_rule_in(self, words: &str) -> bool {
         match self {
             Self::HighestOfColumn(column) => {
-                words.contains(&format!("the highest reading of the log's `{column}` column"))
-                    && words.contains("the log read whole")
+                words.contains(&format!(
+                    "the highest reading of the log's `{column}` column"
+                )) && words.contains("the log read whole")
             }
             Self::PerfectFliteHeader => {
                 words.contains("its `Apogee:` line")
@@ -541,7 +542,11 @@ pub fn check_listed(rows: &[ComparedPrediction]) -> Result<(), String> {
                 .map(|flight| (flight.id, flight.title, flight.reference.rule, false)),
         );
     for (row, (id, title, rule, era5_weather)) in rows.iter().zip(listed) {
-        if (row.id.as_str(), row.title.as_str(), row.reference_rule.as_str()) != (id, title, rule)
+        if (
+            row.id.as_str(),
+            row.title.as_str(),
+            row.reference_rule.as_str(),
+        ) != (id, title, rule)
             || row.era5_weather != era5_weather
         {
             return Err(format!(
@@ -786,7 +791,9 @@ mod tests {
             apogee_m: 990.0,
             apogee_error_percent: 0.0,
         });
-        let error = shown.check(&INVENTED, &[]).expect_err("a wrong shown error");
+        let error = shown
+            .check(&INVENTED, &[])
+            .expect_err("a wrong shown error");
         assert!(error.contains("shown beside it"), "{error}");
 
         let mut tagged = row(1000.0, None);

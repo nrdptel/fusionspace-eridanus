@@ -2236,14 +2236,11 @@ impl RealFlightReport {
                 ),
                 (
                     "numbers shown beside it",
-                    shown_a
-                        .iter()
-                        .zip(&shown_b)
-                        .any(|(x, y)| match (x, y) {
-                            (Some((what_x, _)), Some((what_y, _))) => what_x != what_y,
-                            (None, None) => false,
-                            _ => true,
-                        }),
+                    shown_a.iter().zip(&shown_b).any(|(x, y)| match (x, y) {
+                        (Some((what_x, _)), Some((what_y, _))) => what_x != what_y,
+                        (None, None) => false,
+                        _ => true,
+                    }),
                 ),
             ];
             if let Some((what, _)) = differs.iter().find(|(_, differ)| *differ) {
@@ -2691,7 +2688,8 @@ impl RealFlightReport {
                 row.revised_because
                     .as_ref()
                     .map_or(String::new(), |because| format!(
-                        " Revised, because {because}"
+                        " Revised, because {}.",
+                        because.trim_end_matches('.')
                     )),
                 if row.untraced.is_empty() {
                     "Every input is traced to its record.".to_owned()

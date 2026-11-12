@@ -2448,12 +2448,7 @@ fn real_flights_print_each_merged_prediction_beside_its_error() {
             5,
             Some(&summary.predicted_first),
         ),
-        (
-            "traced",
-            means(with(|row| row.1)),
-            9,
-            Some(&summary.traced),
-        ),
+        ("traced", means(with(|row| row.1)), 9, Some(&summary.traced)),
         (
             "ERA5",
             means(with(|row| row.2)),
@@ -2543,6 +2538,92 @@ fn real_flights_print_each_merged_prediction_beside_its_error() {
             "{error}"
         );
     }
+}
+
+#[test]
+fn a_revised_prediction_gives_the_means_on_the_merged_ones_beside_todays() {
+    // ADR-328 §1b's last clause: where any prediction was revised, the means are also given over
+    // the predictions as first merged. None has been, so this revises one in a copy of the
+    // committed report: Astra's flown apogee moved 100 m up, with a reason. (Whether a revision
+    // may stand at all is `held_to`'s, tested in the predictions' module.)
+    use crate::real_flight::{REPORT_JSON, RealFlightReport, summarize};
+    let text = std::fs::read_to_string(root().join(REPORT_JSON)).expect("the report is committed");
+    let mut report: RealFlightReport = serde_json::from_str(&text).expect("the report reads");
+    let same = crate::report::same_but_for_platform_rounding;
+    let before = report.summary.mean_apogee_error_percent;
+
+    let astra = &mut report.predicted_first[0];
+    assert_eq!(astra.id, "astra");
+    astra.hpr_apogee_m += 100.0;
+    astra.apogee_error_percent =
+        100.0 * (astra.hpr_apogee_m - astra.log_apogee_m) / astra.log_apogee_m;
+    astra.revised_because = Some("an invented reason".to_owned());
+    let (merged_m, todays_m) = (astra.merged_apogee_m, astra.hpr_apogee_m);
+    let (merged_error, todays_error) = (
+        astra.merged_apogee_error_percent,
+        astra.apogee_error_percent,
+    );
+    assert!((todays_m - merged_m - 100.0).abs() < 0.1);
+
+    let summary = summarize(&report.flights, &report.predicted_first);
+    let seven = report.flights.iter().map(|row| row.apogee_error_percent);
+    let todays: Vec<f64> = seven
+        .clone()
+        .chain(
+            report
+                .predicted_first
+                .iter()
+                .map(|row| row.apogee_error_percent),
+        )
+        .collect();
+    let merged: Vec<f64> = seven
+        .chain(
+            report
+                .predicted_first
+                .iter()
+                .map(|row| row.merged_apogee_error_percent),
+        )
+        .collect();
+    let mean = |errors: &[f64]| errors.iter().sum::<f64>() / errors.len() as f64;
+    let mean_absolute =
+        |errors: &[f64]| errors.iter().map(|error| error.abs()).sum::<f64>() / errors.len() as f64;
+
+    // The headline means are today's: they move with the revised number.
+    assert_eq!(summary.flights, 12);
+    assert!(same(summary.mean_apogee_error_percent, mean(&todays)));
+    assert!(same(
+        summary.mean_absolute_apogee_error_percent,
+        mean_absolute(&todays)
+    ));
+    assert!(summary.mean_apogee_error_percent > before + 0.2);
+    // Beside them, the means on the predictions as first merged: the revised flight counts there
+    // with its merged prediction's error, the others unchanged.
+    let on_merged = summary
+        .on_merged_predictions
+        .as_ref()
+        .expect("a revision gives the means on the merged predictions");
+    assert_eq!(on_merged.flights, 12);
+    assert!(same(on_merged.mean_apogee_error_percent, mean(&merged)));
+    assert!(same(
+        on_merged.mean_absolute_apogee_error_percent,
+        mean_absolute(&merged)
+    ));
+    assert!((on_merged.mean_apogee_error_percent - before).abs() < 0.01);
+
+    // The page says so, and keeps both numbers and both errors on the flight's row.
+    report.summary = summary;
+    let page = report.to_markdown();
+    assert!(!page.contains("No merged prediction has been revised"));
+    assert!(page.contains(&format!(
+        "On the predictions as first merged, each revised one put back: mean absolute apogee \
+         error {:.2}%, with its sign {:.2}%.",
+        mean_absolute(&merged),
+        mean(&merged)
+    )));
+    assert!(page.contains(&format!(
+        "| {merged_m:.1} | {todays_m:.1} | {todays_error:+.2}% | {merged_error:+.2}% |"
+    )));
+    assert!(page.contains("Revised, because an invented reason."));
 }
 
 /// Holds the flight `id`, one whose prediction was merged first, to its one place in the compared
