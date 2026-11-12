@@ -702,7 +702,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-3d11"></a>[M2.3d11][phase-1] | The stage a parallel stage hangs on, weighed with it | not yet done |
 | <a id="m2-3d12"></a>[M2.3d12][phase-1] | An added mass on parts that weigh nothing | not yet done |
 | <a id="m2-3d13"></a>[M2.3d13][phase-1] | Flights that move, release or part | not yet done |
-| <a id="m2-3d14"></a>[M2.3d14][phase-1] | The rocket's inertia beside a parallel stage's covering center | not yet done |
+| <a id="m2-3d14"></a>[M2.3d14][phase-1] | The rocket's inertia beside a parallel stage's covering override | not yet done |
 | <a id="m2-4"></a>[M2.4][done-1] | A summary of accuracy for the README, and CI that fails on any regression ([ADR-084][adr-084], [Accuracy: the census](accuracy.md#the-census)) | done |
 | <a id="m2-6"></a>[M2.6][phase-1] | An open benchmark | not yet done |
 | <a id="m2-7"></a>[M2.7][done-1] | Held-out flights, predictions first | done |

@@ -122,7 +122,8 @@ the axis. The mass override is 2 kg. The center override is 0.1 m on the paralle
 
    In `hpr-design`, a parallel stage can carry an added mass: one point for the set, at the
    pods' center or at a station from the parallel stage's forward end, as far off the axis as
-   the pods' center. The stage it hangs on can carry one at a station.
+   the pods' center. The stage it hangs on can carry one at a station, unless the parallel
+   stage is one pod off the axis (decision 4).
 2. **Five increments.** M2.3d8 keeps its *done when* as written and is met when all five are.
    - **M2.3d10, a parallel stage's added mass.** *Done when:* M2.3d8's *done when*, whole: what
      is left of it here is a `.ork` parallel stage whose mass override doesn't cover its parts,
@@ -145,26 +146,41 @@ the axis. The mass override is 2 kg. The center override is 0.1 m on the paralle
      parting through a stage, where that stage carries an added mass. It is flown, the stage
      weighed as OpenRocket 24.12 weighs it until the event, and afterward by a rule its record
      states and its tests work by hand ([#1431][i1431]).
-   - **M2.3d14, the rocket's inertia beside a parallel stage's covering center.** *Done when:*
-     M2.3d8's *done when*, whole: what is left of it here is the rocket's inertia across the
-     axis with an added mass on a parallel stage beside a center that covers its parts. What
-     the override adds to it is within 3 parts in a million of what it adds in OpenRocket
-     24.12, decision 3's bound, on the two probe designs where it adds 0.63% and 0.22% of
-     OpenRocket's inertia less today ([#1432][i1432]).
-3. **M2.3d10's bounds** are the ones [ADR-335][adr-335]'s probes hold.
+   - **M2.3d14, the rocket's inertia beside a parallel stage's covering override.** *Done
+     when:* M2.3d8's *done when*, whole: what is left of it here is the rocket's inertia where
+     a parallel stage has an override that doesn't cover its parts beside one that does. That
+     is an added mass beside a center that covers them, or a center that doesn't cover them
+     beside a mass that does. What the overrides add to each of the rocket's inertias is within
+     decision 3's bound of what they add in OpenRocket 24.12, on the four probe designs of
+     those two pairings. Today they add less across the axis: 0.63% and 0.22% of OpenRocket's
+     inertia less on the first pairing (three boosters, one), and 0.79% and 0.27% less on the
+     second. About the axis they add 0.103% less with one booster on the second
+     ([#1432][i1432]).
+3. **M2.3d10's bounds** are the ones [ADR-335][adr-335]'s probes hold, but for the one on
+   what an override adds to an inertia, which here goes with how much it adds.
    - The parallel stage alone: its mass within 5 parts in 10 million of OpenRocket's, its
      center within 0.2 µm along the axis and off it, and each inertia within 3 parts in a
      million.
    - The stage it hangs on, and the whole rocket: the mass and the center within the same
      bounds. The airframe has fins, whose inertia the two tools weigh differently, so its
-     inertias are held by what the override adds to them: within 3 parts in a million of what it
-     adds in OpenRocket, or within 1e-9 kg·m² where it adds less than 0.00033 kg·m².
+     inertias are held by what the override adds to them: within 5 parts in 10 million of what
+     it adds in OpenRocket, or within 1e-9 kg·m² where it adds less than 0.002 kg·m². ADR-335's
+     probes hold a flat 1e-9 kg·m², on additions of 0.0007 kg·m² and less. A booster's override
+     adds up to 0.021 kg·m², and the flat bound fails there: with the mass alone on three
+     boosters the override adds more than 0.018 kg·m² across the axis, and the two tools differ
+     by between 1.3e-9 and 1.6e-9 kg·m², under 8 parts in 100 million of it
+     (`a_parallel_stages_override_not_covering_its_parts_adds_to_them` pins both). So the bound
+     goes with the addition, at the share the masses are held to, and keeps ADR-335's 1e-9
+     kg·m² below it. No probe ADR-335 holds is held to less than before.
    - With one booster, an inertia across the axis is compared about the body axis the booster
      lies along. OpenRocket gives one inertia across the axis, the one about its y axis, and
      the booster hangs off the axis along that axis, so how far off it is adds nothing to
      OpenRocket's figure. About that body axis HPR Sim's has no such term either.
-   - Not held: the rocket's inertia across the axis beside a parallel stage's center that covers
-     its parts (measurement 4). It is pinned, and M2.3d14 holds it.
+   - Not held: the rocket's inertia where a parallel stage's override covers its parts
+     (measurement 4). Each shortfall is pinned. M2.3d14 holds the four probes where an override
+     that doesn't cover the parts is beside one that does. On the other six every override
+     covers the parts, which puts them outside M2.3d8's *done when*. No increment is planned for
+     them, and [#1432][i1432] records them.
 4. **What stays refused, and why.**
    - *M2.3d11.* HPR Sim weighs each stage as one body that keeps its mass and center when
      another stage drops. OpenRocket's stage changes when its boosters drop (measurement 2).
@@ -173,13 +189,16 @@ the axis. The mass override is 2 kg. The center override is 0.1 m on the paralle
      station on that stage, and one at a station beside one booster off the axis.
    - *M2.3d12.* A mass at the rocket's tip reads the stability margin as high as any placement
      can: the flattering side. M2.3d12's record has to say how a flight tells the flier where
-     the mass was put, with a test pinning which way the margin errs, or show why such a stage
-     stays refused.
+     the mass was put, with a test pinning which way the margin errs. Leaving such a stage
+     refused instead would take a record that changes this *done when*.
    - *M2.3d13.* OpenRocket flies no moving mass, no released mass and no parting through a
      stage, so there is nothing to measure. The record has to choose where an added mass with no
      station goes when its stage's parts move, leave or part.
    - *M2.3d14.* OpenRocket's sum is not its stage's body's (measurement 4). It is the composition
      [M2.3d9][m2-3d9] builds for a lower stage ([#1424][i1424]), so M2.3d14 follows M2.3d9.
+     Under a mass that covers the boosters the sum counts their mass twice. The *done when*
+     holds HPR Sim to OpenRocket's figure there, and holding it to anything else would take a
+     record that changes it.
 5. **The order.** M2.3d10, M2.3d11, M2.3d12 and M2.3d13, then M2.3d9, then M2.3d14.
    [M2.3d2][m2-3d2], the errors, stays last, as ADR-336 put it. [M2.3d4][m2-3d4] is met when
    M2.3d8 and M2.3d9 are.
@@ -188,20 +207,25 @@ the axis. The mass override is 2 kg. The center override is 0.1 m on the paralle
 
 - On the 25 with boosters that it lays out, the parallel stage alone has OpenRocket's mass,
   center and both inertias within decision 3's bounds. That covers every row of measurement 1's
-  table with three boosters and with one, the two probes with no flag written (the mass alone, and both overrides), the two with a
-  mass at a station on the stage the boosters hang on, and three with a motor aboard.
+  table with three boosters and with one, the two with no override, the two with no flag
+  written (the mass alone, and both overrides), the two with a mass at a station on the stage
+  the boosters hang on, and three with a motor aboard.
 - On those 25 the whole rocket has OpenRocket's mass and center. Where no override covers the
   parallel stage's parts, the override adds what it adds in OpenRocket to both of the rocket's
   inertias.
 - Beside a center that covers the parallel stage's parts, with an added mass, the rocket's
   inertia across the axis gains 0.63% of OpenRocket's inertia less with three boosters and 0.22%
-  less with one (decision 2's M2.3d14).
-- Under the parallel stage's overrides that cover its parts with no added mass, the same
-  shortfall is 0.070% to 4.673%. About the axis the rocket gains what OpenRocket's does, but for
-  one booster under a mass that covers it: 0.103% short. These overrides cover the parts, so they
-  are outside M2.3d4's *done when*; [#1432][i1432] holds them. Under HPR Sim's default rule,
-  which the reader gave a parallel stage until now, the parallel stage's own inertia across the
-  axis is more than 37% off OpenRocket's on each of those rows.
+  less with one. With a center that doesn't cover the parts beside a mass that does, it gains
+  0.79% and 0.27% less, and about the axis 0.103% less with one booster. Those four probes are
+  decision 2's M2.3d14.
+- On the six probes where every override on the parallel stage covers its parts (a mass, a
+  center, or both), the same shortfall is 0.070% to 4.673%. About the axis the rocket gains
+  what OpenRocket's does, but for one booster under a mass that covers it: 0.103% short. With
+  every override covering the parts, these six are outside M2.3d8's *done when*. No increment
+  is planned for them, and [#1432][i1432] records them.
+- Under HPR Sim's default rule, which the reader gave a parallel stage until now, the parallel
+  stage's own inertia across the axis is more than 37% off OpenRocket's on each of the ten
+  probes whose override covers the parts.
 - The 22 refused are 12 with an override on the stage the boosters hang on, 2 with a mass at a
   station there beside one booster, and 8 with no place for the mass to sit. A test pins what
   OpenRocket does on each.
@@ -233,10 +257,12 @@ boosters while they hang there, and [#1429][i1429] holds that. No tolerance move
 
 **How it was checked.** All in `hpr_validate::openrocket` unless named otherwise.
 
-- `a_parallel_stages_override_not_covering_its_parts_adds_to_them` holds the rows with no
-  override that covers the parts, with three boosters and with one, and the rows with no flag.
+- `a_parallel_stages_override_not_covering_its_parts_adds_to_them` holds the mass alone and
+  both overrides, neither covering the parts, with three boosters and with one, and the two
+  rows with no flag.
 - `a_parallel_stages_override_covering_its_parts_leaves_them_in_place` holds the parallel stage
-  alone under each covering row and pins the rocket's shortfalls.
+  alone under each covering row, pins the rocket's shortfalls, and holds that a center alone
+  that doesn't cover the parts changes nothing.
   `openrockets_sum_with_a_parallel_stages_covering_center_is_no_bodys` reproduces OpenRocket's
   figure from its own records.
 - `an_added_mass_at_a_station_on_the_stage_boosters_hang_on` holds the stationed mass with three
@@ -244,8 +270,8 @@ boosters while they hang there, and [#1429][i1429] holds that. No tolerance move
 - `the_stage_boosters_hang_on_is_weighed_with_them_in_openrocket` and
   `an_added_mass_on_parts_that_weigh_nothing_sits_at_the_tip_in_openrocket` pin measurements 2
   and 3 beside HPR Sim's refusals, so M2.3d11's and M2.3d12's *done when* fail today.
-  M2.3d13's refusals stand in `hpr-sim`, pinned by its tests, and M2.3d14's shortfall is pinned
-  above.
+  M2.3d13's refusals stand in `hpr-sim`, pinned by its tests, and M2.3d14's four shortfalls are
+  pinned above.
 - `a_motor_aboard_does_not_move_a_parallel_stages_added_mass` holds the three probes with a
   motor, and `every_placement_probe_is_checked` counts all 49.
 - In `hpr-design`, `a_parallel_stages_added_mass_sits_among_its_pods` works the layout by hand.

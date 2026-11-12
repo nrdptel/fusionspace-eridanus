@@ -938,9 +938,17 @@ mod tests {
     /// axis, as both `iyy` and `izz`. A probe's one booster hangs off the axis along that
     /// axis, so how far off it is adds nothing to OpenRocket's figure. hpr's inertia about the
     /// body axis the booster lies along has no such term either: it is the smaller of the two
-    /// across the axis, and the two are equal on a body centered on the axis.
+    /// across the axis. A probe's body centered on the axis is the same all the way round it
+    /// (three boosters, three fins), so its two are equal, which this holds: taking the
+    /// smaller hides nothing there.
     fn our_body(mass: &hpr_design::MassProperties) -> Body {
         let i = mass.inertia_kg_m2;
+        if mass.cg_m.x.hypot(mass.cg_m.y) < 1e-12 {
+            assert!(
+                (i.x_axis.x - i.y_axis.y).abs() <= 1e-10 * i.x_axis.x.abs(),
+                "a body on the axis, unequal across it: {i:?}"
+            );
+        }
         [
             mass.mass_kg,
             -mass.cg_m.z,
@@ -1020,17 +1028,25 @@ mod tests {
         }
     }
 
-    /// What an override adds to both inertias, against the same probe with none, within 3
-    /// parts in a million of what it adds in OpenRocket, or within 1e-9 kg·m² where it adds
-    /// less than 3.3e-4 kg·m², the bound the probes with pods hold. The probes' airframe has
-    /// fins, whose inertia hpr and OpenRocket don't weigh alike
-    /// (`hpr_s_own_fin_roll_departs_as_pinned`), so the airframe's inertias are held by what
-    /// is added to them.
+    /// What an override adds to both inertias, against the same probe with none, within 5
+    /// parts in 10 million of what it adds in OpenRocket, or within 1e-9 kg·m² where it adds
+    /// less than 0.002 kg·m². The probes' airframe has fins, whose inertia hpr and OpenRocket
+    /// don't weigh alike (`hpr_s_own_fin_roll_departs_as_pinned`), so the airframe's inertias
+    /// are held by what is added to them.
+    ///
+    /// The probes with pods and with a motor aboard hold 1e-9 kg·m² flat, on overrides that add
+    /// 0.0007 kg·m² and less (`a_stages_added_mass_sits_among_its_pods_and_level_with_their_center`,
+    /// `a_motor_aboard_does_not_move_a_stages_added_mass`). A 2 kg mass on boosters adds up to
+    /// 0.021 kg·m², and the flat bound doesn't hold there
+    /// (`a_parallel_stages_override_not_covering_its_parts_adds_to_them` pins by how much). What
+    /// a point adds is its mass times a distance squared, and the two tools' masses agree
+    /// within 5 parts in 10 million (`same_mass_and_center`), so that share of what is added is
+    /// the bound, with the flat one as its floor (ADR-341 decision 3).
     fn adds_the_same_inertias(ours: [&Body; 2], theirs: [&Body; 2], what: &str) {
         for k in [3, 4] {
             let (ours_adds, theirs_adds) = (ours[0][k] - ours[1][k], theirs[0][k] - theirs[1][k]);
             assert!(
-                (ours_adds - theirs_adds).abs() < (3e-6 * theirs_adds.abs()).max(1e-9),
+                (ours_adds - theirs_adds).abs() < (5e-7 * theirs_adds.abs()).max(1e-9),
                 "{what}: inertia {k} gains {ours_adds:e}, OpenRocket's {theirs_adds:e}"
             );
         }
@@ -1154,6 +1170,18 @@ mod tests {
                     [&theirs.rocket, &bare_theirs.rocket],
                     &question,
                 );
+                // The flat 1e-9 kg·m² of the probes with pods doesn't hold on the mass alone,
+                // which adds 0.018 kg·m² and more: the two differ by 1.4e-9 and 1.5e-9 there,
+                // under 8 parts in 100 million of what is added.
+                if k == 0 {
+                    let adds = |body: &Placement, bare: &Placement| body.rocket[4] - bare.rocket[4];
+                    let (ours_adds, theirs_adds) =
+                        (adds(&ours, &bare_ours), adds(&theirs, &bare_theirs));
+                    let apart = (ours_adds - theirs_adds).abs();
+                    assert!(theirs_adds > 0.018, "{question}: {theirs_adds}");
+                    assert!(apart > 1.3e-9 && apart < 1.6e-9, "{question}: {apart:e}");
+                    assert!(apart < 8e-8 * theirs_adds, "{question}: {apart:e}");
+                }
             }
         }
         for (unflagged, flagged) in ADDS_WITH_NO_FLAG {
@@ -1319,6 +1347,31 @@ mod tests {
             "{more} of {:?}",
             theirs.rocket
         );
+
+        // About the axis, with one booster under a mass that covers it, the same sum holds: the
+        // stage the booster hangs on, the booster where the design puts it with its own mass,
+        // and the stated mass as a point at the stage's center, each as far from the rocket's
+        // center as it is off the axis. One body leaves the booster's own mass out.
+        for (question, _, about_with_one) in COVERS_THE_BOOSTERS {
+            if about_with_one == 0.0 {
+                continue;
+            }
+            let bare = their_placement(&record, "one booster and no override");
+            let theirs = their_placement(&record, &format!("one booster and {question}"));
+            let ([core, pod], stage, off) = (bare.alone, theirs.alone[1], theirs.rocket[2]);
+            let about = |body: &Body| body[3] + body[0] * (body[2] - off).powi(2);
+            let sum = about(&core) + about(&pod) + stage[0] * (stage[2] - off).powi(2);
+            assert!(
+                relative(sum, theirs.rocket[3]).abs() < 1e-11,
+                "{question}: {sum} against {:?}",
+                theirs.rocket
+            );
+            let body = about(&core) + about(&stage);
+            assert!(
+                ((body - sum) / theirs.rocket[3] - about_with_one).abs() < 5e-6,
+                "{question}: {body} {sum}"
+            );
+        }
 
         // The same sum on each probe whose override covers the boosters, with three and with
         // one: the stage they hang on and each booster where the design puts it, with its own
@@ -1611,7 +1664,8 @@ mod tests {
     ///
     /// HPR Sim refuses each: a mass at the tip of the rocket is the placement that reads the
     /// stability margin highest. M2.3d12 is the work. With a station of its own the mass has a
-    /// place, and HPR Sim's stage is OpenRocket's.
+    /// place, and on the one probe of it, a lower stage that weighs nothing, HPR Sim's stage is
+    /// OpenRocket's.
     #[test]
     fn an_added_mass_on_parts_that_weigh_nothing_sits_at_the_tip_in_openrocket() {
         let record = placement_record();

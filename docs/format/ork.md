@@ -408,7 +408,8 @@ example, and the decision records give the measurements: [a stage on the axis][a
   stated it sits at the boosters' center. A center that doesn't cover the
   parts is a station from the parallel stage's forward end, and the mass sits there as far off
   the axis as the boosters' center: 52 mm (2.0 in) off with one booster. The boosters carry the
-  mass away when they drop. On the 25 of those probes with boosters that HPR Sim lays out, the
+  mass away when they drop. On the 25 of those probes with boosters that HPR Sim lays out
+  (places every part and weighs each stage), the
   parallel stage alone matches OpenRocket's mass within 5 parts in 10 million, its center within
   0.2 µm and both inertias within 3 parts in a million. OpenRocket gives one inertia across the
   axis, the one about its y axis. One booster hangs off the axis along that axis, so how far
@@ -417,9 +418,10 @@ example, and the decision records give the measurements: [a stage on the axis][a
   along, where HPR Sim's has no such term either.
 - **On the stage a parallel stage hangs on,** an added mass at a station flies. With three
   boosters, that stage and the whole rocket match OpenRocket's mass and center within the same
-  bounds. Their inertias are held by what the override adds to them: within 3 parts in a million
-  of what it adds in OpenRocket, or within 1e-9 kg·m² where it adds little. Across the axis the
-  least it adds is 0.000061 kg·m², to the rocket, where that floor is 16.4 parts in a million.
+  bounds. Their inertias are held by what the override adds to them: within 5 parts in 10
+  million of what it adds in OpenRocket, or within 1e-9 kg·m² where it adds less than
+  0.002 kg·m². The smallest addition across the axis, 0.000061 kg·m² to the rocket, is held to
+  1e-9 kg·m², which is 16.4 parts in a million of it.
   About the axis it adds nothing in either tool. The cases still refused there are in the last
   bullet.
 - **A motor doesn't move it.** OpenRocket's rocket at launch and at burnout is the motor added to
@@ -454,11 +456,13 @@ example, and the decision records give the measurements: [a stage on the axis][a
   stage alone. `openrockets_sum_with_a_parallel_stages_covering_center_is_no_bodys` works the
   sum from OpenRocket's records on all ten such probes. With an added mass beside a center that covers the boosters,
   the override adds 0.63% of OpenRocket's inertia less with three boosters and 0.22% less with
-  one. Closing that is open work:
-  [M2.3d14, the rocket's inertia beside a parallel stage's covering center](../decisions-and-roadmap.md#m2-3d14).
-  Under a covering mass, a covering center, or both with no added mass, the shortfall is 0.070% to
-  4.673%, and about the axis, with one booster under a covering mass, 0.103%
-  ([#1432](https://github.com/nrdptel/fusionspace-eridanus/issues/1432)).
+  one. With a center that doesn't cover the boosters beside a mass that does, it adds 0.79% and
+  0.27% less, and about the axis 0.103% less with one booster. Closing those is open work:
+  [M2.3d14, the rocket's inertia beside a parallel stage's covering override](../decisions-and-roadmap.md#m2-3d14).
+  Where every override covers the boosters (a mass, a center, or both), the shortfall is
+  0.070% to 4.673%, and about the axis, with one booster under a covering mass, 0.103%.
+  No increment is planned for this yet;
+  [#1432](https://github.com/nrdptel/fusionspace-eridanus/issues/1432) records it.
 - **A center alone that doesn't cover the parts** changes nothing in OpenRocket. It is left out
   of the design and kept as the file wrote it, so an export writes it back.
 - **A flag that says neither `true` nor `false`** is warned of where it is read, which holds the
@@ -473,7 +477,7 @@ example, and the decision records give the measurements: [a stage on the axis][a
   place.
 - **Not flown yet,** each refused by name, never guessed:
   - *On the stage a parallel stage hangs on,* an added mass with no station, and one at a
-    station beside a single booster off the axis. OpenRocket weighs that stage with its
+    station where the parallel stage is one booster off the axis. OpenRocket weighs that stage with its
     boosters while they hang there. With no station its point sits 39 mm (1.5 in) aft of where
     it sits once three boosters are gone, and 14.4 mm (0.57 in) aft with one. At a station beside
     one booster it sits 2.7 mm (0.11 in) off the axis, and on the axis once the booster is gone.

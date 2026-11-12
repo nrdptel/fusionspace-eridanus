@@ -210,7 +210,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
           decision 2's for M2.3d12.
         - [ ] **M2.3d13 Flights that move, release or part** (#1431). *Done when:* ADR-341 decision
           2's for M2.3d13.
-        - [ ] **M2.3d14 The rocket's inertia beside a parallel stage's covering center** (#1432;
+        - [ ] **M2.3d14 The rocket's inertia beside a parallel stage's covering override** (#1432;
           after M2.3d9). *Done when:* ADR-341 decision 2's for M2.3d14.
       - [ ] **M2.3d9 The inertia on a lower stage and with a motor aboard** (ADR-336; #1424).
         *Done when:* ADR-336 decision 1's for M2.3d9, as amended.

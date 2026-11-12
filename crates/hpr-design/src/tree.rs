@@ -1306,7 +1306,11 @@ impl Rocket {
             // ([`AddedMass`]). One with no station on the stage it hangs on has no fixed place:
             // OpenRocket 24.12 puts it at the center of that stage with what hangs on it, which
             // moves when the parallel stage drops (ADR-341).
-            if let Some(added) = self.stages[carrier.stage].added_mass {
+            // An added mass of zero changes nothing, wherever it would sit.
+            if let Some(added) = self.stages[carrier.stage]
+                .added_mass
+                .filter(|added| added.mass_kg != 0.0)
+            {
                 if added.cg_aft_m.is_none() {
                     return Err(tree(
                         &stage.id,
@@ -3145,6 +3149,16 @@ mod tests {
             cg_aft_m: None,
         });
         refused(&added, "carries an added mass with no station");
+        // An added mass of zero changes nothing, so it is no matter where it would sit.
+        let mut nothing = boosted(2, 0.0);
+        nothing.stages[0].added_mass = Some(AddedMass {
+            mass_kg: 0.0,
+            cg_aft_m: None,
+        });
+        assert_eq!(
+            nothing.layout().unwrap().structure,
+            boosted(2, 0.0).layout().unwrap().structure
+        );
         // One at a station there, beside one pod off the axis: OpenRocket's sits as far off the
         // axis as the stage's center with the pod hanging on it. On the axis, the pod is no
         // matter.
