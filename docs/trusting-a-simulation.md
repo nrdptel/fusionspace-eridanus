@@ -188,7 +188,7 @@ hobbyists.
 
 The 12 public flights are those RocketPy's documentation flies against their teams'
 logs, and the two flights of the Macie XL design in the MIT-licensed `rlhatcher/rocketry-files`
-repository. The weather is ERA5, generated using Copernicus Climate Change Service information 2026, and
+repository. The reanalysis is ERA5, generated using Copernicus Climate Change Service information 2026, and
 contains modified Copernicus Climate Change Service information 2026. Neither the European
 Commission nor ECMWF is responsible for any use made of it. The [report][fixture-report] gives the
 full attribution and the ERA5 citations.

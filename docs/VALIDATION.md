@@ -663,7 +663,7 @@ The command then flies the five public flights whose predictions were merged fir
 The report holds all 12, and its means are over all 12.
 
 HPR Sim's height is read as the log's barometric altimeter reads the air: the standard
-atmosphere's altitude of the ERA5 pressure, less the start's. Each log of the seven compared first is read up to its apogee,
+atmosphere's altitude of the pressure of the air it flew in, less the start's. Each log of the seven compared first is read up to its apogee,
 stopping before the recovery's pressure transients; each predicted flight's is read by the rule
 merged with its prediction. The logs, thrust files and weather files are
 read from the pinned checkouts under `refs/` and never committed. The report,

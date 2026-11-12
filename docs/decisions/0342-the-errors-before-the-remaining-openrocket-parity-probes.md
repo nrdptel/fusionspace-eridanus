@@ -139,17 +139,17 @@ Shown and never counted: Andromeda on the catalog Cesaroni M2020 curve reads 3,0
 **Consequences.**
 
 - The public numbers rest on 12 flights and are worse. HPR Sim reads low on 7 of the 12 and on
-  4 of the 5 it predicted first. [The scoreboard][score] and every page that quotes the public
-  flights now give the 12.
+  4 of the 5 it predicted first. [The scoreboard][score] and the site's pages that quote the
+  public mean now give the 12; dated research notes keep their own counts.
 - The Macie XL flights miss by the most, and the OpenRocket simulations stored in their design
   file miss by about as much. This record does not say why. Both flights are tagged *not
   traced*: no record gives the day's air, the rail or a weighed mass, and the reader warns that
-  each motor's curve file disagrees with its certifier's record. The traced means leave the two
+  each motor's curve file disagrees with ThrustCurve.org's record of the motor. The traced means leave the two
   out, and the means over all 12 keep them ([ADR-328][adr-328] §3).
 - Issues [#478][i478] and [#1266][i1266], which asked for these five flights to be scored,
   close when this merges.
 - A predicted flight has no trace comparison and no diagnostic flight. An issue asks for both
-  on the three EuRoC 2022 logs, which have time series.
+  on the three EuRoC 2022 flights.
 - Designs with the stage overrides M2.3d4 still has open are refused or held back as before,
   each with its reason, until the milestone's turn. [M2.3d9][m2-3d9] is smaller by one clause;
   [#1424][i1424] says so.

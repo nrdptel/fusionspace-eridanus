@@ -168,8 +168,8 @@ pub struct Revision {
 
 /// The revisions: none. Every prediction flies today as it was merged.
 ///
-/// An entry here is the only way a prediction may differ from [`MERGED`] by more than
-/// [`MERGED_WITHIN_M`]: the real-flights
+/// An entry here is the only way a prediction may differ from [`MERGED`] by more than 0.05 m
+/// (`MERGED_WITHIN_M`): the real-flights
 /// report then prints both numbers and both errors, and its summary gives the means over the
 /// merged predictions beside the means over the revised ones. A revision is added in the pull
 /// request that changes the number, by hand, with its reason; nothing writes one.

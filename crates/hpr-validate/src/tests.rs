@@ -2321,34 +2321,44 @@ fn real_flights_print_each_merged_prediction_beside_its_error() {
 
     // Each row is its committed prediction: the same log by its digest, the same tags, the
     // same flown apogee; its merged number is the code's, to the digit.
-    let predicted: Vec<(&str, &str, f64, f64, bool, &[String])> = predictions
+    struct Committed<'a> {
+        id: &'a str,
+        sha256: &'a str,
+        apogee_m: f64,
+        height_m: f64,
+        traced: bool,
+        untraced: &'a [String],
+    }
+    let predicted: Vec<Committed<'_>> = predictions
         .flights
         .iter()
-        .map(|row| {
-            (
-                row.id.as_str(),
-                row.reference_log_sha256.as_str(),
-                row.predicted_apogee_m,
-                row.predicted_height_apogee_m,
-                row.all_inputs_traced,
-                row.untraced.as_slice(),
-            )
+        .map(|row| Committed {
+            id: row.id.as_str(),
+            sha256: row.reference_log_sha256.as_str(),
+            apogee_m: row.predicted_apogee_m,
+            height_m: row.predicted_height_apogee_m,
+            traced: row.all_inputs_traced,
+            untraced: row.untraced.as_slice(),
         })
-        .chain(predictions.design_file_flights.iter().map(|row| {
-            (
-                row.id.as_str(),
-                row.reference_log_sha256.as_str(),
-                row.predicted_apogee_m,
-                row.predicted_height_apogee_m,
-                row.all_inputs_traced,
-                row.untraced.as_slice(),
-            )
+        .chain(predictions.design_file_flights.iter().map(|row| Committed {
+            id: row.id.as_str(),
+            sha256: row.reference_log_sha256.as_str(),
+            apogee_m: row.predicted_apogee_m,
+            height_m: row.predicted_height_apogee_m,
+            traced: row.all_inputs_traced,
+            untraced: row.untraced.as_slice(),
         }))
         .collect();
     assert_eq!(predicted.len(), 5);
-    for ((row, merged), (id, sha256, apogee_m, height_m, traced, untraced)) in
-        report.predicted_first.iter().zip(&MERGED).zip(predicted)
-    {
+    for ((row, merged), committed) in report.predicted_first.iter().zip(&MERGED).zip(predicted) {
+        let Committed {
+            id,
+            sha256,
+            apogee_m,
+            height_m,
+            traced,
+            untraced,
+        } = committed;
         assert_eq!((row.id.as_str(), merged.id), (id, id));
         assert_eq!(row.reference_log_sha256, sha256, "{id}: another log");
         assert_eq!(
