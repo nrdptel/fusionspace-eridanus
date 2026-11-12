@@ -282,7 +282,7 @@ done.
 HPR Sim is part of FusionSpace, my family of rocketry tools. It follows FusionSpace's
 [product system](https://github.com/nrdptel/fusionspace-design/blob/main/product/README.md): the
 rules for how its tools look, word things and show how far to trust a result. The system is pinned
-at revision E, its November 9, 2026 commit `dd7552f`. It changes how HPR Sim presents numbers, not
+at revision E, its November 10, 2026 commit `dd7552f`. It changes how HPR Sim presents numbers, not
 how it computes them. [The decision record](docs/decisions/0164-the-fusionspace-product-system.md)
 says what's adopted. The product system milestone ([M0.6](docs/decisions-and-roadmap.md#m0-6))
 brought the site, the command line, the plot and the exports in line with it.

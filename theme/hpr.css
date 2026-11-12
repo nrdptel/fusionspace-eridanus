@@ -22,7 +22,7 @@ pre > .buttons button.clip-button:hover::before {
 }
 /* Icons: the system's set (`foundations.md`, *Icons*), which `xtask site` draws in place of
    mdBook's Font Awesome glyphs (`xtask/src/site/chrome.rs`), at the system's sizes: 20 px in the
-   menu bar and the search field, 24 px for the page arrows and a code block's buttons, beside the
+   menu bar and the search field, 16 px for the page arrows (below) and 24 px for a code block's buttons, beside the
    copy icon. mdBook fills its glyphs; the system's are stroked in the text's color. The previous
    page's arrow is the next one's, mirrored. The page check fails an icon at another size. */
 .fa-svg svg { width: 20px; height: 20px; fill: none; margin-bottom: 0; vertical-align: middle; }

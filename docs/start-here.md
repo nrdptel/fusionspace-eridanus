@@ -757,8 +757,8 @@ at the top of a page opens its source in GitHub's editor, where you can propose 
 Under each page's title, one sentence in larger gray type says what the page covers. Each of its
 two to six sections starts under a thick rule in the text's color.
 
-Each page ends with one line: the FusionSpace mark and HPR Sim's name, the version, the date the
-site was built, a chip with the site's status, and a link back to this page. The chip reads *In
+Each page ends with one line: the FusionSpace mark and the name FusionSpace HPR, the version, the
+date of the commit the site is built from, a chip with the site's status, and a link back to this page. The chip reads *In
 preparation* while the pages describe work after the last release, and *Released* when they
 describe a release as it shipped. The [title block](#title-block) below says what each entry
 means.

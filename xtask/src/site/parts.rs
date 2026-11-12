@@ -719,7 +719,7 @@ mod tests {
             drawn.replacen(PART, "<section class=\"other\">", 1),
             "not opening a part",
         );
-        // A record's frame left in the page: the tag and its row, or a sheet with its number.
+        // A record's frame left in the page: the tag and its row, or a sheet's number or rail.
         fails(
             drawn.replace(
                 INTRO,
@@ -731,6 +731,14 @@ mod tests {
             drawn.replacen(
                 PART,
                 "<section class=\"fs-part\"><span class=\"fs-sheet-no\">SHEET 1 / 2</span>",
+                1,
+            ),
+            "a record's frame (`class=\"fs-sheet`)",
+        );
+        fails(
+            drawn.replacen(
+                PART,
+                "<section class=\"fs-part\"><span class=\"fs-sheet-rail\"></span>",
                 1,
             ),
             "a record's frame (`class=\"fs-sheet`)",

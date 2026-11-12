@@ -1327,7 +1327,7 @@ macro_rules! mono_faces {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 203] = [
+const CANARIES: [Canary; 204] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -2884,6 +2884,19 @@ const CANARIES: [Canary; 203] = [
              font-variant-numeric: tabular-nums\">A third \
              part</h2><span class=\"fs-sheet-no\" style=\"font: 400 12px/16px 'Cascadia Mono', \
              'Cascadia Mono Fallback', monospace\">SHEET 3 / 3</span></section>"
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-part-sheet-rail.html",
+        what: "a sheet's rail drawn beside a part, a record's",
+        expect: &[Kind::Part],
+        inside: concat!(
+            parts!(""),
+            "<section class=\"fs-part\" style=\"border-top: 2px solid #0B0F1C\"><h2 \
+             style=\"font: 600 24px/28px 'Archivo', 'Archivo Fallback', sans-serif; \
+             font-variant-numeric: tabular-nums\">A third part</h2><div class=\"fs-sheet-rail\" \
+             style=\"width: 2px; height: 40px; background: #0B0F1C\"></div></section>"
         ),
         after: "",
     },

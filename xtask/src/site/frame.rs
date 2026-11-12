@@ -31,7 +31,7 @@
 //! Anything the rewrite expects and doesn't find fails the build, so a newer mdBook that changes
 //! its menu bar, its sidebar script or its arrows can't slip by. [`check`] then fails a built
 //! page without the header, its lockup, the 720 px sidebar script or its footer: a footer off the
-//! one line's parts and order, a version or date not the title block's, a chip not the site's
+//! one line's parts and order, an empty version or an undated issue, a chip not the site's
 //! status, a link not to Start here; on the print page, a title block's fields out of order, a
 //! page field not the page's title or an undated issue. `xtask site`'s page check reads how each
 //! is drawn (`pages.rs`, `Kind::Header`, `Kind::Footer` and `Kind::TitleBlock`).

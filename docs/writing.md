@@ -1063,8 +1063,10 @@ What it took to pass is recorded in
 [ADR-232, the pages' vitals measured](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0232-the-pages-vitals-measured.md):
 
 - one stylesheet instead of ten, asked for first with mdBook's sidebar script;
-- four fonts asked for early so that text doesn't move when they arrive. That's two more than
-  the product system allows: with its two, CLS reached 0.17 on two pages;
+- five fonts asked for early so that text doesn't move when they arrive. That's three more
+  than the product system allows: with its two, CLS reached 0.17 on two pages, and without the
+  wide cut titles are drawn in, 0.169 on one
+  ([M0.17a, the frame off](decisions-and-roadmap.md#m0-17a));
 - the theme switch placed before the page is first drawn;
 - the print page's cover.
 
