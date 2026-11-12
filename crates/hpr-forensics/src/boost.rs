@@ -70,7 +70,9 @@ pub const LIFTOFF_RISE_M: f64 = 10.0;
 /// re-read there, and a liftoff, a top speed and a fall read before it are forgotten. A run of bad
 /// samples on the pad or a step there that stays can lift the line past [`LIFTOFF_RISE_M`] and
 /// read a speed faster than the flight's own top; the line stands still again once they leave the
-/// window, or at the step's new level ([#1362][i1362]). On sets A and B's first 200 synthetic
+/// window, or at the step's new level ([#1362][i1362]). A dip in the boost can stand the line still
+/// too, and the pad is then read again in the burn: the dip test still finds every cut after
+/// burnout. On sets A and B's first 200 synthetic
 /// flights' barometer logs with a cut (measured once, not committed), 98.8% and 98.4% of the pad's
 /// windows read under it, the longest stretch of the pad that never did lasted 0.25 s (leaving
 /// out a 500 Hz logger's first windows at its start), and no speed from liftoff to the cut read
@@ -998,9 +1000,10 @@ mod tests {
     /// asserted: 51 cut and 106 refused for each step to 60 m, all 157 refused at 100 m; steps of 12
     /// to 60 m cut 142 before the peak before [`STILL_M_S`] ([#1362][i1362], measured once).
     ///
-    /// [i1362]: https://github.com/nrdptel/fusionspace-eridanus/issues/1362 Set B's first 200, run once before the
-    /// [`HOLD_S`] rule, not in the test: 57 cut, 0.35 s to 1.55 s after burnout, 34 GNSS and 109
-    /// fast refused.
+    /// Set B's first 200, run once before the [`HOLD_S`] rule, not in the test: 57 cut, 0.35 s to
+    /// 1.55 s after burnout, 34 GNSS and 109 fast refused.
+    ///
+    /// [i1362]: https://github.com/nrdptel/fusionspace-eridanus/issues/1362
     #[test]
     fn the_cut_falls_just_after_the_true_burnout() {
         let latest_s = (DROP_SHARE * readings::TRANSONIC_SPEED_M_S).max(DROP_FLOOR_M_S)
@@ -1164,7 +1167,7 @@ mod tests {
     /// sample (uniform, its standard deviation 0.3 m), then a climb at net acceleration `climb`
     /// of the time since ignition until `burn_s` after it, then a coast in gravity alone; with
     /// `bad_m` added to the three samples from 1.5 s on, or to every sample from 1.5 s on when
-    /// `stays`. The height track of [#1362][i1362]'s hand-built logs.
+    /// `stays`. Built to [#1362][i1362]'s account of its hand-built logs.
     ///
     /// [i1362]: https://github.com/nrdptel/fusionspace-eridanus/issues/1362
     fn pad_spiked_log(
@@ -1346,12 +1349,14 @@ mod tests {
     /// [`the_cut_falls_just_after_the_true_burnout`], before apogee, or refused for the transonic
     /// speed its catch-up can read. Among the logs whose falls each last 0.5 s at most and recover
     /// before burnout, as the public logs' did, the falls reach the public logs' deepest, 63.2 m/s, and
-    /// last at least the public logs' longest, 0.48 s. Measured, not asserted: of 51 flights, 1,787 dipped logs give
-    /// such a fall; 1,635 are cut, 0.14 s to 2.30 s after burnout, and 152 refused as transonic.
-    /// 791 hold every fall to 0.5 s and recover in the burn, up to 98.9 m/s deep; 218 have a fall
+    /// last at least the public logs' longest, 0.48 s. Measured, not asserted: of 51 flights, 1,793 dipped logs give
+    /// such a fall; 1,642 are cut, 0.14 s to 2.30 s after burnout, and 151 refused as transonic.
+    /// 797 hold every fall to 0.5 s and recover in the burn, up to 98.9 m/s deep; 218 have a fall
     /// still running at burnout, whose depth takes in the coast's, so it isn't counted; the other
-    /// 778 have a fall that lasts longer (likely the fall back from a catch-up's overshoot, not traced). The other 508 dipped
-    /// logs give no such fall. With the hold alone, not the lowest
+    /// 778 have a fall that lasts longer (likely the fall back from a catch-up's overshoot, not traced). The other 502 dipped
+    /// logs give no such fall. A dip can bring the fitted speed under [`STILL_M_S`] in the burn, so
+    /// that the pad is read again there; before that rule the counts were 1,787, 1,635, 152, 791 and
+    /// 508. With the hold alone, not the lowest
     /// speed, 416 of those 778 were cut in the burn (run once).
     #[test]
     fn a_dip_in_the_boost_is_not_burnout() {
