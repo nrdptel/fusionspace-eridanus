@@ -477,8 +477,7 @@ with OpenRocket 24.12, and by hand.
   With two or more boosters, a mass at a station sits as far off the axis as that stage's own
   parts' center. No probe has a part off the axis on that stage (a launch lug, say), so
   whether OpenRocket's point follows the boosters there too is unmeasured
-  ([#1429](https://github.com/nrdptel/fusionspace-eridanus/issues/1429), the issue for
-  M2.3d11, records it).
+  ([#1429](https://github.com/nrdptel/fusionspace-eridanus/issues/1429) records it).
 - An added mass above zero with no station, on parts that weigh nothing, has no center to sit
   at, and the layout refuses it. On the six probes of it with no center stated, OpenRocket
   puts it at the rocket's tip, even for a lower stage that starts 0.8 m (2.6 ft) aft of the tip
