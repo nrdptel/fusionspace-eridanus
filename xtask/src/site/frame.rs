@@ -34,7 +34,8 @@
 //! one line's parts and order, an empty version or an undated issue, a chip not the site's
 //! status, a link not to Start here; on the print page, a title block's fields out of order, a
 //! page field not the page's title or an undated issue. `xtask site`'s page check reads how each
-//! is drawn (`pages.rs`, `Kind::Header`, `Kind::Footer` and `Kind::TitleBlock`).
+//! is drawn (`pages.rs`, `Kind::Header`, and `Kind::TitleBlock`, which reads the footer line
+//! and the print page's title block).
 
 use std::collections::HashMap;
 use std::fs;
@@ -796,8 +797,8 @@ fn foot_problems(name: &str, foot: &str, mark: &str, chip: &str) -> Vec<String> 
     problems
 }
 
-/// The fields every page's title block draws, in order: the landing page's, with the page's own
-/// title after the site's.
+/// The fields the print page's title block draws, in order: the landing page's, with the page's
+/// own title after the site's.
 fn built_fields() -> Vec<&'static str> {
     let mut fields = Vec::with_capacity(FIELDS.len() + 1);
     for field in FIELDS {

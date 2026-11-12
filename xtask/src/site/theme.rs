@@ -762,8 +762,8 @@ pub(super) fn fill_issue_date(output: &Path, date: &str) -> Result<usize, String
 }
 
 /// Checks the built site: every page of the guide links the theme and the fonts, no page or
-/// stylesheet makes a request that leaves the site. `frame.rs` checks the title block every page
-/// ends with.
+/// stylesheet makes a request that leaves the site. `frame.rs` checks what every page ends with:
+/// the one-line footer, and on the print page the title block.
 pub(super) fn check_built(root: &Path, output: &Path) -> Result<Vec<String>, String> {
     let mut problems = served_unchanged(&root.join(THEME), output)?;
     let card = fs::read(root.join(super::SOURCE).join(CARD.0))

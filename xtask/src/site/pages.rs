@@ -185,7 +185,7 @@
 //!     mdBook's does.
 //! - **A link to a heading that lands away from it**, read once a run, at its narrowest width,
 //!   on a page where something skips its layout off screen (`content-visibility: auto`, as each
-//!   sheet does in `theme/hpr.css`). Such a box stands in at its `contain-intrinsic-size` until
+//!   part does in `theme/hpr.css`). Such a box stands in at its `contain-intrinsic-size` until
 //!   it is first drawn, so a jump worked out over stand-ins shorter than what they hold stops
 //!   short. In a frame of its own, from the top of the page and with each such box standing in
 //!   as on a fresh load, a link to each `h2` with an id is clicked, and two frames later the
@@ -263,17 +263,18 @@
 //! split, a rule fixed to the window's top on paper, a print page whose chapters aren't placed as
 //! it prints and one whose chapters stay after, with one that places and removes them, which must
 //! pass, and a title block hidden on paper, printed without its date and able to split; an
-//! intro and sheets drawn as the system's, which must pass, sheets under a 1 px rule and under
-//! a rule's color, numbered out of order, a section's name outside a sheet, a sheet's number in
-//! Archivo and one below its name, a sheet's name that can't wrap in a rail narrower than it, and
-//! a designation tag with no chamfer, below its title, at
-//! 14 px and in a dashed border; a theme switch drawn and working as the system's, which must
+//! intro and parts drawn as the system's, which must pass, a part under a 1 px rule or a rule in
+//! a rule's color, a part's name in Cascadia Mono or above its rule, a lead in body type, in the
+//! ink, in Cascadia Mono or above its title, a section's name outside a part or not opening one,
+//! and a designation tag, a sheet's number or a sheet's rail drawn; a footer line drawn as the
+//! system's, which must pass, and one unruled, with a small mark, a muted name, held narrow or
+//! with text below it, and a status chip off the system's; a theme switch drawn and working as the system's, which must
 //! pass, one offering Navy for Dark, one with Light pressed for a first-time reader, one beside
 //! mdBook's theme button drawn, one that sets no theme when pressed, one that keeps a saved Coal,
 //! one placed the other way round, one in its places with buttons 32 px tall, also read in the
 //! sidebar opened under 720 px, and, in the header at every width, one with buttons 32 px tall,
-//! one in Archivo, one
-//! with its pressed button unfilled and one drawn with scripts off; sheets that skip their layout
+//! one in Cascadia Mono 14 px, one
+//! with its pressed button unfilled and one drawn with scripts off; parts that skip their layout
 //! off screen, which a link to the last one's name stops short of; a box's top rule under a
 //! strip fixed along the window's top and one below it, which must pass, and a list the page
 //! leaves scrolled with its top line cut by its edge and one scrolled to a line's edge, which

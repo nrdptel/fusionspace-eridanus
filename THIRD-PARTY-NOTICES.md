@@ -58,7 +58,7 @@ adds a source.
 
 - **The FusionSpace lockup and mark** (`theme/logo/fusion-space-horizontal-void.svg` and
   `theme/logo/fusion-space-mark-void.svg`, whose paths the documentation site draws inline, in the
-  text's color, in every page's header and footer line and in the print page's title block): `kit/logo/svg/` of
+  text's color, in every page's header, in the footer line of every page but the print page, and in the print page's title block): `kit/logo/svg/` of
   [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `dd7552f`, unchanged,
   compared with that revision by `cargo xtask site` when `refs/fusionspace-design` is checked out
   (ADR-229). They are the FusionSpace trademarks, the project owner's, Neer Patel's, under
