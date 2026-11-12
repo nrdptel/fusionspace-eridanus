@@ -168,6 +168,7 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
    first paragraph is its lead, one sentence in `lead` type (20/28 Archivo) in the muted ink.
    `cargo xtask site` makes each `h2` section a part: a 2 px ink rule on top, then its name, the
    `h2`, over its text. The page check fails a lead or a part drawn otherwise. */
+.content main .fs-intro { margin-top: 32px; }
 .content main .fs-intro > h1 { margin-top: 0; }
 .content main .fs-intro > .fs-lead { font-size: var(--fs-20); line-height: var(--fs-28); font-weight: 400; color: var(--fs-ink-muted); }
 .content main .fs-part { border-top: 2px solid var(--fs-ink); margin-top: 32px; padding-top: 16px; }

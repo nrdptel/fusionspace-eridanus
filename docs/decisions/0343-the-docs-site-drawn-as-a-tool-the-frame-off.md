@@ -102,6 +102,12 @@ reading scale.
     fifth face pushed the largest contentful paint to 2.50 s in a probe; `cargo xtask site`'s
     vitals check holds every page of the guide to its limits with the five: 2.5 s for that
     paint, 0.1 for layout shift and 200 ms for a tap's answer.
+11. **The footer line holds on paper.** The system's print rules keep the footer line, with its
+    version and date, on the page. The page check fails a footer line not drawn on paper, one
+    printed without its version or its date of issue, and one that can split across sheets,
+    each with a canary.
+12. **Room above the title.** With nothing over it, the intro stands 32 px under the header,
+    one of the system's spacing steps, the room the tag row over it used to leave.
 
 **Superseded.**
 
@@ -142,7 +148,7 @@ reading scale.
   ([ADR-339][adr-339] §2).
 - The page check's canaries change with the frame: those for the tag and the sheet numbers now
   fail as a record's frame drawn; the chip's canaries check it in the footer. The least count
-  of each kind the canaries must show moves with them: 13 for parts, 19 for footers and title
+  of each kind the canaries must show moves with them: 14 for parts, 20 for footers and title
   blocks.
 - [M0.17b][m0-17b] adds the Field theme and the acceptance pass for the whole restyle.
 

@@ -431,6 +431,9 @@
     + '#mdbook-menu-bar';
   const PRINT_WHOLE = 'tr, .fs-note, .fs-titleblock, .fs-foot';
   const TITLE_BLOCK_PRINTED = ['Version', 'Date of issue'];
+  // The footer line's entries that must be drawn on paper, each a word and its value: print
+  // keeps the footer line with its version and date on the page (`web.md`, *Print*).
+  const FOOT_PRINTED = ['Version', 'Issued'];
   // The fixed sizes the system draws its icons at (`foundations.md`, *Icons*), square. The system
   // also allows 1, 1.25 or 1.5 times the text; the check holds to the fixed sizes.
   const ICON_SIZES = [16, 20, 24];
@@ -1014,6 +1017,21 @@
           }
         }
       }
+      for (const foot of doc.querySelectorAll('footer.fs-foot')) {
+        if (!drawn(win, foot)) {
+          note(foot, null, 'display', 'not drawn on paper', as);
+          continue;
+        }
+        for (const word of FOOT_PRINTED) {
+          const entry = Array.from(foot.querySelectorAll('span')).find(function (span) {
+            return span.textContent.trim().startsWith(word + ' ');
+          });
+          if (!entry || !drawn(win, entry)
+            || entry.textContent.trim().slice(word.length).trim() === '') {
+            note(foot, null, word, 'not drawn on paper', as);
+          }
+        }
+      }
       return colorsOf(win, els);
     };
     const undo = applyPrint(win, doc);
@@ -1403,7 +1421,7 @@
       return false;
     }
     const k = factorOf(el, reading);
-    return WEB_LEVELS.concat(SCALE).some(function (t) {
+    return SCALE.some(function (t) {
       return samePx(t[0] * k, size) && samePx(t[1] * k, line) && t[2] === 'Archivo';
     });
   }

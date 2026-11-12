@@ -757,11 +757,13 @@ at the top of a page opens its source in GitHub's editor, where you can propose 
 Under each page's title, one sentence in larger gray type says what the page covers. Each of its
 two to six sections starts under a thick rule in the text's color.
 
-Each page but the print page ends with one line: the FusionSpace mark and the name FusionSpace HPR, the version, the
-date of the commit the site is built from, a chip with the site's status, and a link back to this page. The chip reads *In
-preparation* while the pages describe work after the last release, and *Released* when they
-describe a release as it shipped. The [title block](#title-block) below says what each entry
-means.
+Each page but the print page (the whole guide on one page, below) ends with one line: the
+FusionSpace mark and the name FusionSpace HPR, the version, the date of the commit the site is
+built from, a chip with the site's status, and *About HPR Sim*, a link back to this page. The chip
+reads *In preparation* while the pages describe work after the last release, and *Released* when
+they describe a release as it shipped. The [title block](#title-block) at the end of this page is
+the site's about box: it says what each entry means, and writes the status in capitals, as a
+drawing's title block does.
 
 The theme switch, Auto, Light and Dark, sits in the header before the print and edit buttons on a
 window 960 px wide or wider. On a narrower one it's at the top of the table of contents, and on a

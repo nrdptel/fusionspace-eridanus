@@ -160,7 +160,7 @@
 //!     block's are, with no `::before` or `::after` holding its address;
 //!   - a table row, a note, a footer line or a title block that can split across sheets
 //!     (`break-inside`);
-//!   - a title block not drawn, or without its version and date of issue drawn;
+//!   - a footer line or a title block not drawn, or without its version and date of issue drawn;
 //!   - anything fixed to the window, element or `::before` or `::after`, which a browser draws
 //!     on every sheet over what stands there;
 //!   - on the print page, whose chapters wait in a template (`print.rs`), the chapters not all
@@ -610,7 +610,7 @@ enum Kind {
     Mark,
     /// A page that prints off the system's: a color other than the light theme's, navigation or
     /// a control drawn, a link without its address, a row, note or title block that can split,
-    /// or a title block without its version and date (#383).
+    /// or a footer line or a title block without its version and date (#383, ADR-343).
     Print,
     /// An intro or a part off the system's (#384, ADR-343): anything over a title; a lead not
     /// in `lead` type, not in the muted ink or not right under its title; a section's name not
@@ -1329,7 +1329,7 @@ macro_rules! mono_faces {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 204] = [
+const CANARIES: [Canary; 208] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -1570,6 +1570,15 @@ const CANARIES: [Canary; 204] = [
         after: "",
     },
     Canary {
+        file: "canary-type-code-heading-size.html",
+        what: "code in a heading at a level of its own, 15 px on 20 px lines in a 16 px heading",
+        expect: &[Kind::Type],
+        inside: "<h3 style=\"font: 600 16px/24px 'Archivo', 'Archivo Fallback', sans-serif; \
+                 font-variant-numeric: tabular-nums\">A heading with <code style=\"font-size: \
+                 15px; line-height: 20px\">code</code></h3>",
+        after: "",
+    },
+    Canary {
         file: "canary-type-code-body.html",
         what: "code in a paragraph at a heading's 16 px on 24 px lines",
         expect: &[Kind::Type],
@@ -1579,9 +1588,9 @@ const CANARIES: [Canary; 204] = [
     },
     Canary {
         file: "canary-type-size.html",
-        what: "a label at 15 px, between the system's sizes",
+        what: "a label at 17 px, between the system's sizes",
         expect: &[Kind::Type],
-        inside: "<p style=\"font-size: 15px\">A label at 15 px</p>",
+        inside: "<p style=\"font-size: 17px\">A label at 17 px</p>",
         after: "",
     },
     Canary {
@@ -2628,6 +2637,30 @@ const CANARIES: [Canary; 204] = [
         expect: &[],
         inside: "",
         after: foot!(""),
+    },
+    Canary {
+        file: "canary-print-foot-hidden.html",
+        what: "a footer line not drawn on paper",
+        expect: &[Kind::Print],
+        inside: "",
+        after: foot!("<style>@media print { .fs-foot { display: none !important; } }</style>"),
+    },
+    Canary {
+        file: "canary-print-foot-undated.html",
+        what: "a footer line printed without its date of issue",
+        expect: &[Kind::Print],
+        inside: "",
+        after: foot!(
+            "<style>@media print { .fs-foot > span:nth-child(3) { display: none !important; } \
+             }</style>"
+        ),
+    },
+    Canary {
+        file: "canary-print-foot-split.html",
+        what: "a footer line that can split across sheets",
+        expect: &[Kind::Print],
+        inside: "",
+        after: foot!("<style>@media print { .fs-foot { break-inside: auto !important; } }</style>"),
     },
     Canary {
         file: "canary-chip-released.html",
@@ -4821,7 +4854,7 @@ mod tests {
     fn the_header_and_the_title_block_have_canaries_both_ways() {
         // Each kind has canaries that must show it alone, and the frame drawn as the system's
         // must pass.
-        for (kind, least) in [(Kind::Header, 15), (Kind::TitleBlock, 19)] {
+        for (kind, least) in [(Kind::Header, 15), (Kind::TitleBlock, 20)] {
             let failing = CANARIES
                 .iter()
                 .filter(|canary| canary.expect == [kind])
@@ -4856,8 +4889,8 @@ mod tests {
         // Each kind has canaries that must show it alone, and one drawn as the system's that
         // must pass.
         for (kind, least, passing) in [
-            (Kind::Part, 13, "canary-parts.html"),
-            (Kind::TitleBlock, 19, "canary-chip-released.html"),
+            (Kind::Part, 14, "canary-parts.html"),
+            (Kind::TitleBlock, 20, "canary-chip-released.html"),
             (Kind::Switch, 11, "canary-switch.html"),
         ] {
             let failing = CANARIES

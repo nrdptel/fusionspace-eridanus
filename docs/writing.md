@@ -982,7 +982,7 @@ fails:
 - a link to another page, in the text or the footer, without its address after it, in
   parentheses. A page of this site shows its path from the page, such as `cli.html#units`;
 - a table row, a note, the footer or the title block that can split across two sheets;
-- a title block not drawn, or drawn without its version and date of issue;
+- a footer line or a title block not drawn, or drawn without its version and date of issue;
 - anything fixed to the window, which a browser draws on every sheet over what stands there.
 
 The print page, every chapter on one page, shows on screen only a cover. The cover says what it
