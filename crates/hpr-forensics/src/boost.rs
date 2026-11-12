@@ -70,7 +70,9 @@ pub const LIFTOFF_RISE_M: f64 = 10.0;
 /// re-read there, and a liftoff, a top speed and a fall read before it are forgotten. A run of bad
 /// samples on the pad or a step there that stays can lift the line past [`LIFTOFF_RISE_M`] and
 /// read a speed faster than the flight's own top; the line stands still again once they leave the
-/// window, or at the step's new level ([#1362][i1362]). A dip in the boost can stand the line still
+/// window, or at the step's new level ([#1362][i1362]). Bad samples in the last 0.2 s before
+/// ignition can leave no still window before the climb, and can then still be the top and cut
+/// before burnout: a known gap ([#1441][i1441]). A dip in the boost can stand the line still
 /// too, and the pad is then read again in the burn: the dip test still finds every cut after
 /// burnout. On sets A and B's first 200 synthetic
 /// flights' barometer logs with a cut (measured once, not committed), 98.8% and 98.4% of the pad's
@@ -81,6 +83,7 @@ pub const LIFTOFF_RISE_M: f64 = 10.0;
 /// ([`NoCut::NeverLifted`]); the walk before this rule cut such slow climbs. HPR Sim's choice.
 ///
 /// [i1362]: https://github.com/nrdptel/fusionspace-eridanus/issues/1362
+/// [i1441]: https://github.com/nrdptel/fusionspace-eridanus/issues/1441
 pub const STILL_M_S: f64 = 5.0;
 
 /// The span of the trailing window the vertical speed is fitted over, s: a straight line by
@@ -271,7 +274,7 @@ fn in_order_count(times: &[f64], cut_s: f64) -> usize {
 /// speed then falls back as it does at burnout. The pad is read again wherever the line stands
 /// still ([`STILL_M_S`]), dropping the top speed and fall read before, so a pad spike faster than
 /// the flight's own top, or a step up on the pad that stays, doesn't stay the top
-/// ([#1362][i1362]).
+/// ([#1362][i1362]), unless it comes in the last 0.2 s before ignition ([#1441][i1441]).
 ///
 /// A GNSS receiver's altitude in the boost can drop out at ignition and burnout and lag the
 /// climb, by up to 440 m in one flight a flyer reports, while its fix reads valid
@@ -282,6 +285,7 @@ fn in_order_count(times: &[f64], cut_s: f64) -> usize {
 ///
 /// [gnss]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/gnss-in-boost.md
 /// [i1362]: https://github.com/nrdptel/fusionspace-eridanus/issues/1362
+/// [i1441]: https://github.com/nrdptel/fusionspace-eridanus/issues/1441
 #[must_use]
 pub fn find_cut(log: &FlightLog) -> Option<Cut> {
     try_cut(log).ok()
@@ -373,7 +377,8 @@ fn walk(log: &FlightLog, hold_s: f64, fell: &mut dyn FnMut(f64, f64, f64)) -> Re
             continue;
         };
         // The pad is where the line last stood still: bad samples on it or a step that stays lift
-        // the line and read a speed, but it stands still again after them, before any flight's cut.
+        // the line and read a speed, but it stands still again after them, unless they come in the
+        // last 0.2 s before ignition (#1441).
         if speed.abs() < STILL_M_S {
             pad_m = Some(level);
             if lifted {
@@ -1180,6 +1185,17 @@ mod tests {
         bad_m: f64,
         stays: bool,
     ) -> FlightLog {
+        pad_spiked_log_at(climb, burn_s, bad_m, stays, 1.5)
+    }
+
+    /// [`pad_spiked_log`] with its bad samples from `at_s` on.
+    fn pad_spiked_log_at(
+        climb: &dyn Fn(f64) -> f64,
+        burn_s: f64,
+        bad_m: f64,
+        stays: bool,
+        at_s: f64,
+    ) -> FlightLog {
         const STEP_S: f64 = 0.05;
         const SUBSTEPS: u32 = 50;
         let g = hpr_core::gravity::STANDARD_GRAVITY_MPS2;
@@ -1208,7 +1224,9 @@ mod tests {
             }
             // A draw is uniform over ±2,500: scaled to ±0.3·√3 m, its deviation is 0.3 m.
             let noise = draw() / 2_500.0 * 0.3 * 3.0_f64.sqrt();
-            let bad = if (1.5..1.5 + 3.0 * STEP_S - 1e-9).contains(&t) || (stays && t >= 1.5) {
+            let bad = if (at_s - 1e-9..at_s + 3.0 * STEP_S - 1e-9).contains(&t)
+                || (stays && t >= at_s - 1e-9)
+            {
                 bad_m
             } else {
                 0.0
@@ -1295,6 +1313,41 @@ mod tests {
                 );
             }
         }
+        // The bad samples anywhere on the pad from 1.50 s to 2.75 s, ignition at 3.0 s: each log is
+        // cut after its true peak and burnout, its top read after ignition, or refused as
+        // transonic. From 2.80 s they can still be the top (#1441; the test below).
+        let mut refused = 0_usize;
+        let mut flown = 0_usize;
+        const STARTS: u32 = 26;
+        for (what, climb, burn_s, peak_s, _, _) in cases {
+            // Six spikes, then two steps that stay.
+            for (j, bad_m) in [-100.0, -60.0, -30.0, 30.0, 60.0, 100.0, 15.0, 60.0]
+                .into_iter()
+                .enumerate()
+            {
+                for start in 0..STARTS {
+                    let at_s = 1.5 + 0.05 * f64::from(start);
+                    let stays = j >= 6;
+                    let log = pad_spiked_log_at(climb, burn_s, bad_m, stays, at_s);
+                    flown += 1;
+                    let which = format!("{what}, {bad_m} m from {at_s:.2} s (stays: {stays})");
+                    match try_cut(&log) {
+                        Ok(cut) => {
+                            assert!(cut.top_speed_s > 3.0, "{which}: top at {}", cut.top_speed_s);
+                            assert!(cut.time_s > peak_s, "{which}: cut at {} s", cut.time_s);
+                            assert!(
+                                cut.time_s > 3.0 + burn_s,
+                                "{which}: cut at {} s",
+                                cut.time_s
+                            );
+                        }
+                        Err(NoCut::Transonic { .. }) => refused += 1,
+                        Err(why) => panic!("{which}: refused, {why:?}"),
+                    }
+                }
+            }
+        }
+        println!("{flown} logs with bad samples on the pad, {refused} refused as transonic");
         // A slow climb stands still again before its cut: at 12 m/s² for 1.5 s, its top 18 m/s,
         // it is refused as never lifting off; at 15 m/s² for 2.0 s, its top 30 m/s, it is cut
         // after its burnout.
@@ -1307,6 +1360,27 @@ mod tests {
             cut.is_ok_and(|cut| cut.time_s > 5.0),
             "a 30 m/s climb: {cut:?}"
         );
+    }
+
+    /// A known gap ([#1441][i1441]): bad samples in the last 0.2 s before ignition can be read as
+    /// the line standing still, reading the pad low, and their leaving the window then reads a
+    /// climb faster than the flight's, which stays its top. Pinned as it is, so that a fix shows
+    /// here: three readings 60 m low from 2.80 s cut the tail-off of
+    /// [`a_bad_sample_on_the_pad_is_not_the_top_speed`] at 8.75 s, before its 9.0 s burnout, its
+    /// top 133.9 m/s read at 3.30 s; a 60 m step from 2.95 s that stays cuts it there too.
+    ///
+    /// [i1441]: https://github.com/nrdptel/fusionspace-eridanus/issues/1441
+    #[test]
+    fn a_low_reading_just_before_ignition_is_still_the_top() {
+        let g = hpr_core::gravity::STANDARD_GRAVITY_MPS2;
+        let tail_off = move |tau: f64| g / 1.05 * (4.95 - tau);
+        for (bad_m, stays, at_s) in [(-60.0, false, 2.80), (60.0, true, 2.95)] {
+            let cut = try_cut(&pad_spiked_log_at(&tail_off, 6.0, bad_m, stays, at_s));
+            assert!(
+                cut.is_ok_and(|cut| cut.time_s < 9.0 && cut.top_speed_m_s > 130.0),
+                "{bad_m} m from {at_s} s: {cut:?}; if this is now right, #1441 is fixed"
+            );
+        }
     }
 
     /// [`median_of`] gives exactly what sorting by `f64::total_cmp` and taking the middle gives,

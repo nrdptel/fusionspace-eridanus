@@ -394,17 +394,20 @@ calibration half's 3.19% as `accuracy.from-boost`, with which flights it counts
 heights. One reading far from the rest is left out, as the analyzer's spike rule does. The cut needs
 the speed to stay 10% below its peak, and at least 10 m/s (32.8 ft/s) below it, for 0.75 s. It
 comes at the first sample where that holds and the speed is the lowest of those 0.75 s. It also never comes unless the fitted height stands more than 10 m (32.8 ft) above the pad.
-The pad is the fitted height where the line last stood still, its speed under 5 m/s (16.4 ft/s) either way.
-Before that, it is the first window that gives a line, five samples or more.
+The pad is the fitted height where the line last stood still: where that half second's fitted speed was
+under 5 m/s (16.4 ft/s), up or down. Before that, it is the first window that gives a line, five samples or more.
 Three bad readings in a row on the pad can lift the fit past 10 m (32.8 ft) for one sample. The fitted speed
 then falls back and stays down, as it does after burnout, so this height rule stops a cut there.
 They can also read a speed faster than the flight's own top. Once they leave the window the line
 stands still again. The pad is read afresh there, and the top speed and climb read before it are dropped
 ([#1362](https://github.com/nrdptel/fusionspace-eridanus/issues/1362)). A step up on the pad that
-stays settles the same way, at its new height. A fast climb doesn't stand still before its cut, unless the reading dips in the boost.
-Then the pad is read again there, and the dip test below still finds every cut after burnout.
-On sets A and B's first 200 synthetic flights, no speed from liftoff to the cut read under 17.6 m/s
-(57.7 ft/s). There, 98.8% and 98.4% of the pad's windows read still. Both were measured once, not committed.
+stays settles the same way, at its new height. Bad readings in the last 0.2 s before ignition can leave
+no still window before the climb. They can then still be the top speed and cut the log before burnout
+([#1441](https://github.com/nrdptel/fusionspace-eridanus/issues/1441)); a test pins that gap as it stands.
+A fast climb doesn't stand still before its cut. A reading that dips in the boost can bring the speed
+under 5 m/s (16.4 ft/s), and the pad is then read again there; the dip test below still finds every cut after burnout.
+Two figures back the 5 m/s (16.4 ft/s), each measured once on sets A and B's first 200 synthetic flights and not committed.
+No speed from liftoff to the cut read under 17.6 m/s (57.7 ft/s), and 98.8% and 98.4% of the pad's windows read still.
 A climb whose top speed is under about 22 m/s (72 ft/s) reaches 5 m/s (16.4 ft/s) before its cut.
 That is 5 m/s (16.4 ft/s), plus the 10 m/s (32.8 ft/s) fall, plus 0.75 s of gravity; drag raises it a little.
 Such a slow climb is now refused as never lifting off; the walk before this rule cut some (measured once, not committed). A test refuses a climb whose top is 18 m/s (59 ft/s) and cuts one at 30 m/s (98 ft/s). After burnout gravity alone
@@ -441,13 +444,16 @@ The same five were then tried as two and as three bad readings in a row. Of the 
 moved 9 cuts, by up to 0.70 s. Three in a row moved 23, by up to 1.35 s. Three in a row also left 40 of
 those 255 logs uncut: the speed then read past 227.7 m/s (747 ft/s), so they were refused. Every cut in these
 runs still came after the peak and after burnout. Four or more in a row weren't tried. Steps up on
-the pad that stay were tried too, from halfway through it. Steps of 8 m (26 ft), 12 m (39 ft), 30 m (98 ft) and 60 m (197 ft)
-each cut the same 51 flights, at the same sample as without the step. They were refused for their speed on the other 106.
+the pad that stay were tried too, from halfway through it, on the 157 barometer logs of those 200 flights. Steps of 8 m (26 ft), 12 m (39 ft), 30 m (98 ft) and 60 m (197 ft)
+each cut the same 51 flights, at the same sample as without the step. They were refused for their speed on the other 106. A test pins
+that each cut lands at the clean log's sample; the counts are measured.
 A step of 100 m (328 ft) was refused on all 157. Before the pad was read where the line stood still,
 steps of 12 to 60 m (39 to 197 ft) cut 142 of those logs before the peak. That was measured once, not committed.
 A test flies three logs it builds, each with a blip on the pad faster than the flight's top speed.
 A fourth has a 15 m (49 ft) step. Each is now cut where its clean log is. Before, all four were cut
-early, two of them before burnout, one 0.05 s after ignition. Without the height rule, three readings 12 m (39 ft) too high
+early, two of them before burnout, one 0.05 s after ignition. The test also moves the bad readings
+across the pad, starting them anywhere from 1.50 s to 2.75 s, with ignition at 3.0 s. Each log is cut after its peak and burnout,
+or refused for its speed. From 2.80 s they can still be the top (#1441 above). Without the height rule, three readings 12 m (39 ft) too high
 in a row on the pad gave 33 cuts before the speed's peak, of the 157 logs spiked
 there (all but the 43 GNSS logs; measured once, not pinned by a test). 32 came
 before ignition, the other 0.04 s after it, and all 2.4 to 7.9 s before burnout. A test pins the order, the
