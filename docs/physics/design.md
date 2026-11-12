@@ -449,8 +449,8 @@ with OpenRocket 24.12, and by hand.
     motor's term the same in both (`openrockets_inertia_with_a_motor_aboard_is_the_same_sum`).
     Closing it is open work in the same milestone.
   - *Where a parallel stage's override covers the boosters* (ten probes). OpenRocket sums each
-    booster from where the design puts it, with its own mass, and adds a point at the stage's
-    stated center. That point is the whole stated mass under a mass that covers the boosters,
+    booster from where the design puts it, with its own mass, and adds a point at the parallel
+    stage's center, the stated one where the override states one. That point is the whole stated mass under a mass that covers the boosters,
     so their own mass is counted beside it. Otherwise it is what the stage weighs more than
     they do. The rocket's center is taken from the stage as overridden. A stage weighed as
     one body can't give that sum and OpenRocket's inertia for the stage alone
@@ -468,8 +468,8 @@ with OpenRocket 24.12, and by hand.
 - The stage a parallel stage hangs on can't carry an added mass with no station. Where the
   parallel stage is one booster off the axis, it can't carry one at a station either. The
   layout refuses both. OpenRocket weighs that
-  stage with its boosters while they hang there. With no station its point sits at the center
-  of the stage and boosters together, 39 mm (1.5 in) aft of the stage's own with three boosters
+  stage with its boosters while they hang there. With a mass and no center stated, and nothing
+  added to the boosters, its point sits at the center of the stage and boosters together, 39 mm (1.5 in) aft of the stage's own with three boosters
   and 14.4 mm (0.57 in) aft with one. At a station beside one booster it sits as far off the axis
   as that center, 2.7 mm (0.11 in), and on the axis once the booster is gone. Either way it
   moves when they drop. HPR Sim's stage is one body that keeps its center. That is open work:

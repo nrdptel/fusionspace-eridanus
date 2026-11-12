@@ -106,7 +106,7 @@ the axis. The mass override is 2 kg. The center override is 0.1 m on the paralle
    can't give that sum. On the probe of an added mass beside a covering center, with three
    boosters, OpenRocket's sum is more than that body's by $2m(x - c)(c - X)$: the boosters'
    mass $m$, their center $x$, the stated center $c$ and the rocket's center $X$. Under a
-   mass that covers the boosters, OpenRocket's point at the stated center is the whole stated
+   mass that covers the boosters, OpenRocket's point at the stage's center is the whole stated
    mass, beside the boosters' own. Their mass is counted twice, so the sum is more than a
    body's by more than that term, even where the center doesn't move. The same sum reproduces OpenRocket's figure on all ten probes whose override
    covers the boosters.

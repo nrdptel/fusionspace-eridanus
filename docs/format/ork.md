@@ -449,8 +449,8 @@ example, and the decision records give the measurements: [a stage on the axis][a
   one body, scaled and moved whole, whose inertia across the axis is more than 37% off
   OpenRocket's on each such probe. The parallel stage alone now matches OpenRocket's within the
   bounds above. The whole rocket's inertia across the axis doesn't. OpenRocket sums each
-  booster from where the design puts it, with its own mass, and adds a point at the stage's
-  stated center. Under a mass that covers the boosters that point is the whole stated mass, so
+  booster from where the design puts it, with its own mass, and adds a point at the parallel
+  stage's center, the stated one where the override states one. Under a mass that covers the boosters that point is the whole stated mass, so
   the boosters' own is counted beside it. It takes the rocket's center from the stage as
   overridden. A stage weighed as one body can't give that sum and OpenRocket's inertia for the
   stage alone. `openrockets_sum_with_a_parallel_stages_covering_center_is_no_bodys` works the
@@ -478,8 +478,8 @@ example, and the decision records give the measurements: [a stage on the axis][a
 - **Not flown yet,** each refused by name, never guessed:
   - *On the stage a parallel stage hangs on,* an added mass with no station, and one at a
     station where the parallel stage is one booster off the axis. OpenRocket weighs that stage with its
-    boosters while they hang there. With no station its point sits 39 mm (1.5 in) aft of where
-    it sits once three boosters are gone, and 14.4 mm (0.57 in) aft with one. At a station beside
+    boosters while they hang there. With a mass and no center stated, and nothing added to the
+    boosters, its point sits 39 mm (1.5 in) aft of where it sits once three boosters are gone, and 14.4 mm (0.57 in) aft with one. At a station beside
     one booster it sits 2.7 mm (0.11 in) off the axis, and on the axis once the booster is gone.
     Either way it moves when they drop. HPR Sim's stage is one body that keeps its center
     ([M2.3d11, the stage a parallel stage hangs on](../decisions-and-roadmap.md#m2-3d11)).

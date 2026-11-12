@@ -292,8 +292,8 @@ is ticked, no work is planned yet
 <a id="boosters-added-mass"></a>**A core with boosters and an unticked mass override.** It is
 refused unless a center override with the box unticked is beside the mass. The message says a
 parallel stage hangs on a tube "whose stage carries an added mass with no station".
-OpenRocket puts that mass at the center of the core and its boosters together, so it moves
-when the boosters drop. The simulator's stage keeps one center. Add a center of gravity override on the core with the box unticked,
+With no center override, OpenRocket puts that mass at the center of the core and its
+boosters together, so it moves when the boosters drop. The simulator's stage keeps one center. Add a center of gravity override on the core with the box unticked,
 and the mass has a fixed place. It is a [station](glossary.md#station) measured from the
 core's forward end. The design then flies with a ring of two or more boosters. Three were
 measured against OpenRocket. One booster alone, off the axis, is still refused. Flying the
