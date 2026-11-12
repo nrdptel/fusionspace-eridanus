@@ -405,26 +405,40 @@ fn trust_quotes() -> Vec<Quote> {
             holes: |r| Ok(vec![r.count(REAL, "/summary/flights")?.to_string()]),
         },
         Quote {
-            template: "missed them by {} on average without signs, from {} to {} one by one. With \
-                       signs the misses averaged {}, so on these the highs and lows nearly cancel",
+            template: "{} of them flown in a",
             holes: |r| {
-                let flights = r.get(REAL, "/flights")?.as_array().map_or(0, Vec::len);
-                if flights == 0 || flights != r.count(REAL, "/summary/flights")? {
-                    return Err(format!("{REAL}'s flights and its summary's count differ"));
-                }
+                Ok(vec![
+                    r.count(REAL, "/summary/era5_weather/flights")?.to_string(),
+                ])
+            },
+        },
+        Quote {
+            template: "missed them by {} on average without signs, from {} to {} one by one. With \
+                       signs the misses averaged {}, low on {} of the {}",
+            holes: |r| {
+                // Both lists: the flights compared first, then the flights predicted first.
                 let mut misses = Vec::new();
-                for at in 0..flights {
-                    misses.push(r.number(REAL, &format!("/flights/{at}/apogee_error_percent"))?);
+                for list in ["/flights", "/predicted_first"] {
+                    let flights = r.get(REAL, list)?.as_array().map_or(0, Vec::len);
+                    for at in 0..flights {
+                        misses.push(r.number(REAL, &format!("{list}/{at}/apogee_error_percent"))?);
+                    }
+                }
+                // The count is the lists' own; the tour's test holds the summary's to it.
+                if misses.is_empty() {
+                    return Err(format!("{REAL} holds no flights"));
                 }
                 let least = misses.iter().copied().fold(f64::INFINITY, f64::min);
                 let most = misses.iter().copied().fold(f64::NEG_INFINITY, f64::max);
                 let unsigned = r.number(REAL, "/summary/mean_absolute_apogee_error_percent")?;
                 let signed = r.number(REAL, "/summary/mean_apogee_error_percent")?;
-                // "Nearly cancel" holds while the signed mean is under a quarter of the unsigned.
-                if signed.abs() >= unsigned / 4.0 {
+                let low = misses.iter().filter(|miss| **miss < 0.0).count();
+                // "Low on" reads as a lean only while the mean is below zero and most are low.
+                if signed >= 0.0 || 2 * low <= misses.len() {
                     return Err(format!(
-                        "the public flights' signed mean, {signed:.2}%, no longer nearly cancels: \
-                         reword the page and this quote"
+                        "the public flights' signed mean, {signed:.2}%, with {low} of {} low, no \
+                         longer leans low: reword the page and this quote",
+                        misses.len()
                     ));
                 }
                 Ok(vec![
@@ -432,6 +446,8 @@ fn trust_quotes() -> Vec<Quote> {
                     signed_percent(least, 2),
                     signed_percent(most, 2),
                     signed_percent(signed, 2),
+                    low.to_string(),
+                    misses.len().to_string(),
                 ])
             },
         },

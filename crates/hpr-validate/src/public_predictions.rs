@@ -4,12 +4,13 @@
 //!
 //! A flight here has a design, a motor, a mass, a site, a rail and its air (the day's weather, or
 //! a stored simulation's standard atmosphere and wind), each from a
-//! named record, and a *rule* for the apogee its log will be read at. It has no measured apogee:
+//! named record, and a *rule* for the apogee its log is read at. It has no measured apogee:
 //! nothing in this module parses a flight log, and neither [`PredictionRow`] nor
 //! [`PredictionsReport`] has a field for a measured height or an error. The log's bytes are
-//! hashed, so the report pins the file the rule will later be applied to, and never read as
-//! numbers. The comparison is a later pull request's ([M2.3d2][m2-3d2]), which must print each
-//! prediction here beside its error and may not change one without saying so.
+//! hashed, so the report pins the file the rule is applied to, and never read as numbers. The
+//! comparison is [`crate::predicted_first`]'s, in the real-flights report ([the
+//! errors][m2-3d2]): it prints each prediction here beside its log's apogee and its error, and a
+//! prediction that changes is revised beside its merged number, never edited ([`REVISIONS`]).
 //!
 //! What is flown is what [`crate::real_flight`] flies for the seven: the design under
 //! `validation/designs/` built from the example's inputs, on the example's own thrust file with
@@ -19,11 +20,11 @@
 //! says and checks the result, and [`CONVERSION_RECORD`] holds both files' SHA-256 and the levels
 //! RocketPy read at each flight's site and hour. The converted file is flown only if its SHA-256
 //! is the committed one and HPR Sim reads those levels from it. Each prediction is held to the
-//! apogee first merged ([`MERGED`]).
+//! apogee first merged ([`MERGED`]), or to its revision's ([`REVISIONS`]).
 //!
 //! The predicted apogee is read as the log's altimeter would read it ([`Barometer`]: the standard
 //! atmosphere's altitude of the flown air's pressure at the apogee, less the pad's), because that
-//! is what it will be compared with; the height climbed is kept beside it.
+//! is what it is compared with; the height climbed is kept beside it.
 //!
 //! Two more flights have no example notebook ([the Macie XL predictions][m2-3d5], decision
 //! [ADR-337][adr-337]): [`DESIGN_FILE_FLIGHTS`], both of one OpenRocket design saved in a pinned
@@ -103,9 +104,8 @@ pub struct MergedPrediction {
 /// [`NEW_FLIGHTS`]', then [`DESIGN_FILE_FLIGHTS`]'.
 ///
 /// These lines are not edited. A prediction that has to change is revised beside its merged
-/// number, with the reason, by the change that compares it ([twelve public flights, predictions
-/// first][adr-328], §1b); until that exists, a changed prediction fails here and the writer
-/// refuses it.
+/// number, with the reason, in [`REVISIONS`] ([twelve public flights, predictions first][adr-328],
+/// §1b); without an entry there, a changed prediction fails here and the writers refuse it.
 ///
 /// [m2-3d3]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3d3
 /// [m2-3d5]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3d5
@@ -145,9 +145,37 @@ pub const MERGED: [MergedPrediction; 5] = [
 
 /// How far a prediction may sit from its merged number and still print as it: half of the last
 /// digit the page prints, m.
-const MERGED_WITHIN_M: f64 = 0.05;
+pub(crate) const MERGED_WITHIN_M: f64 = 0.05;
 
-/// The apogee a flight's log will be read at: the rule, never the value.
+/// A merged prediction that had to change: the number HPR Sim flies now, kept beside the merged
+/// one, with the reason ([twelve public flights, predictions first][adr-328], §1b).
+///
+/// [adr-328]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Revision {
+    /// The flight's public id, one of [`MERGED`]'s.
+    pub id: &'static str,
+    /// Its predicted apogee now, as the log's altimeter would read it, m.
+    pub apogee_m: f64,
+    /// Its predicted apogee now, as a height above the pad, m.
+    pub height_apogee_m: f64,
+    /// Its catalog curve's predicted apogee now, m, where the flight has one.
+    pub catalog_apogee_m: Option<f64>,
+    /// What changed and why, in words a reader of the report can check: the change to HPR Sim or
+    /// to an input, and the record it rests on. Never empty.
+    pub because: &'static str,
+}
+
+/// The revisions: none. Every prediction flies today as it was merged.
+///
+/// An entry here is the only way a prediction may differ from [`MERGED`] by more than 0.05 m
+/// (`MERGED_WITHIN_M`): the real-flights
+/// report then prints both numbers and both errors, and its summary gives the means over the
+/// merged predictions beside the means over the revised ones. A revision is added in the pull
+/// request that changes the number, by hand, with its reason; nothing writes one.
+pub const REVISIONS: [Revision; 0] = [];
+
+/// The apogee a flight's log is read at: the rule, never the value.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Reference {
     /// The log: under `refs/rocketpy/data/rockets/` for a flight in [`NEW_FLIGHTS`], under the
@@ -550,7 +578,7 @@ pub struct PredictionRow {
     pub rail_heading_deg: f64,
     /// The hour the weather is read at.
     pub weather_time_utc: String,
-    /// The log the rule will be applied to, from the repository root.
+    /// The log the rule is applied to, from the repository root.
     pub reference_log: String,
     /// That log's SHA-256: its bytes hashed, never parsed.
     pub reference_log_sha256: String,
@@ -642,7 +670,7 @@ pub struct DesignFilePredictionRow {
     pub wind_from_deg: f64,
     /// The air.
     pub atmosphere: String,
-    /// The log the rule will be applied to, from the repository root.
+    /// The log the rule is applied to, from the repository root.
     pub reference_log: String,
     /// That log's SHA-256: its bytes hashed, never parsed.
     pub reference_log_sha256: String,
@@ -1508,15 +1536,51 @@ pub fn run(root: &Path) -> Result<PredictionsReport, RealFlightError> {
 }
 
 /// Whether the prediction of the flight `id` is the one first merged ([`MERGED`]), to the digit
-/// the page prints: its apogee as a reading and as a height, and its catalog curve's where it
-/// has one.
-fn held_to_merged(
+/// the page prints, or the one its revision gives ([`REVISIONS`]): its apogee as a reading and
+/// as a height, and its catalog curve's where it has one. Returns the revision it was held to,
+/// if any.
+pub(crate) fn held_to_merged(
     id: &str,
     apogee_m: f64,
     height_apogee_m: f64,
     catalog_apogee_m: Option<f64>,
-) -> Result<(), String> {
-    let merged = MERGED
+) -> Result<Option<&'static Revision>, String> {
+    held_to(
+        &MERGED,
+        &REVISIONS,
+        id,
+        apogee_m,
+        height_apogee_m,
+        catalog_apogee_m,
+    )
+}
+
+/// [`held_to_merged`] against the lists given: a flown prediction passes when it is `merged`'s
+/// number for `id`, or when `revisions` holds exactly one entry for `id`, with a reason, that
+/// differs from the merged number and gives the flown one.
+///
+/// A revision that the flight no longer needs fails too, so that a stale entry can't keep a
+/// reason on the page for a number that is the merged one again.
+pub(crate) fn held_to<'a>(
+    merged: &[MergedPrediction],
+    revisions: &'a [Revision],
+    id: &str,
+    apogee_m: f64,
+    height_apogee_m: f64,
+    catalog_apogee_m: Option<f64>,
+) -> Result<Option<&'a Revision>, String> {
+    // A revision is of a merged prediction: an entry under any other id would revise nothing
+    // and still be printed.
+    if let Some(stray) = revisions
+        .iter()
+        .find(|revision| !merged.iter().any(|merged| merged.id == revision.id))
+    {
+        return Err(format!(
+            "a revision names `{}`, which has no merged prediction",
+            stray.id
+        ));
+    }
+    let merged = merged
         .iter()
         .find(|merged| merged.id == id)
         .ok_or_else(|| format!("{id}: it has no merged prediction to be held to"))?;
@@ -1525,7 +1589,23 @@ fn held_to_merged(
             "{id}: its catalog curve is not its merged prediction's"
         ));
     }
-    let held = [
+    let mut entries = revisions.iter().filter(|revision| revision.id == id);
+    let revision = entries.next();
+    if entries.next().is_some() {
+        return Err(format!(
+            "{id}: it is revised twice: one entry keeps the merged number and the one flown now"
+        ));
+    }
+    // What the flown numbers are held to, and what each differs from the merged one by.
+    // A gap that isn't a number differs too.
+    let differs = |now: Option<f64>, first: Option<f64>| match (now, first) {
+        (Some(now), Some(first)) => {
+            let gap_m = (now - first).abs();
+            gap_m.is_nan() || gap_m > MERGED_WITHIN_M
+        }
+        _ => false,
+    };
+    let flown = [
         ("predicted apogee", Some(apogee_m), Some(merged.apogee_m)),
         (
             "predicted apogee as a height",
@@ -1538,17 +1618,93 @@ fn held_to_merged(
             merged.catalog_apogee_m,
         ),
     ];
-    for (what, now, first) in held {
-        if let (Some(now), Some(first)) = (now, first)
-            && (now - first).abs() > MERGED_WITHIN_M
+    let Some(revision) = revision else {
+        for (what, now, first) in flown {
+            if let (Some(now), Some(first)) = (now, first)
+                && differs(Some(now), Some(first))
+            {
+                return Err(format!(
+                    "{id}: its {what} is {now} m, and its merged prediction is {first} m: a \
+                     merged prediction is not changed, it is revised beside the old one, with \
+                     the reason, in `REVISIONS` (ADR-328 §1b)"
+                ));
+            }
+        }
+        return Ok(None);
+    };
+    if revision.because.trim().is_empty() {
+        return Err(format!("{id}: its revision gives no reason"));
+    }
+    if revision.catalog_apogee_m.is_some() != merged.catalog_apogee_m.is_some() {
+        return Err(format!(
+            "{id}: its revision's catalog curve is not its merged prediction's"
+        ));
+    }
+    let revised = [
+        (Some(revision.apogee_m), Some(merged.apogee_m)),
+        (Some(revision.height_apogee_m), Some(merged.height_apogee_m)),
+        (revision.catalog_apogee_m, merged.catalog_apogee_m),
+    ];
+    if !revised.iter().any(|(now, first)| differs(*now, *first)) {
+        return Err(format!(
+            "{id}: its revision changes nothing: it gives the merged numbers"
+        ));
+    }
+    let held = [
+        ("predicted apogee", Some(apogee_m), Some(revision.apogee_m)),
+        (
+            "predicted apogee as a height",
+            Some(height_apogee_m),
+            Some(revision.height_apogee_m),
+        ),
+        (
+            "catalog curve's apogee",
+            catalog_apogee_m,
+            revision.catalog_apogee_m,
+        ),
+    ];
+    for (what, now, stated) in held {
+        if let (Some(now), Some(stated)) = (now, stated)
+            && differs(Some(now), Some(stated))
         {
             return Err(format!(
-                "{id}: its {what} is {now} m, and its merged prediction is {first} m: a merged \
-                 prediction is not changed, it is revised beside the old one (ADR-328 §1b)"
+                "{id}: its {what} is {now} m, and its revision says {stated} m: a revision \
+                 states the number flown now"
             ));
         }
     }
-    Ok(())
+    Ok(Some(revision))
+}
+
+/// The page's section on the predictions revised since they were merged: each one's merged
+/// number beside the one flown now, with the reason. Empty when `revisions` is.
+pub(crate) fn revisions_section(merged: &[MergedPrediction], revisions: &[Revision]) -> String {
+    if revisions.is_empty() {
+        return String::new();
+    }
+    let mut out = String::from(
+        "## Revised since merging\n\n\
+         A merged prediction is never edited. Each of these changed, and is kept beside the \
+         number first merged; the real-flights report gives both errors.\n\n",
+    );
+    for revision in revisions {
+        let first = merged
+            .iter()
+            .find(|merged| merged.id == revision.id)
+            .map_or_else(
+                || "no merged prediction".to_owned(),
+                |merged| format!("{} m", fmt_number(merged.apogee_m, 1)),
+            );
+        let _ = writeln!(
+            out,
+            "- **`{}`:** merged {first}, now {} m. Revised, because {}.",
+            revision.id,
+            fmt_number(revision.apogee_m, 1),
+            revision.because.trim_end_matches('.')
+        );
+    }
+    out.push('\n');
+    out
 }
 
 impl PredictionsReport {
@@ -1869,9 +2025,9 @@ impl PredictionsReport {
              changed after seeing HPR Sim's own miss show as a change to a merged number. The \
              code holds each prediction to the number first merged.\n\
              - **What it holds:** each flight's inputs with their sources, the rule its log's \
-             apogee will be read by, and HPR Sim's predicted apogee. It holds no measured apogee \
-             and no error: those come in a later pull request, which must print each prediction \
-             below beside its error.\n\
+             apogee is read by, and HPR Sim's predicted apogee. It holds no measured apogee \
+             and no error: those are in the [real-flights report][real], which prints each \
+             prediction below beside its log's apogee and its error.\n\
              - **How it is flown:** the three EuRoC 2022 flights by the seven's method. The \
              design is built from the example's inputs and flown on the example's own thrust \
              file, from its rail and site, in the ERA5 air of its launch hour, on HPR Sim's own \
@@ -1891,7 +2047,7 @@ impl PredictionsReport {
              design file and logs are read from the pinned `{}` checkout (`{}`, which `cargo \
              xtask refs fetch {}` fetches). None is \
              committed, and each one's SHA-256 is in the JSON. A log's \
-             bytes are hashed to pin the file its rule will be applied to; they are never read as \
+             bytes are hashed to pin the file its rule is applied to; they are never read as \
              numbers here.\n\n\
              [m2-3d3]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-3d3\n\
              [adr-328]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md\n\
@@ -1907,6 +2063,7 @@ impl PredictionsReport {
             ROCKETRY_FILES.dest,
             ROCKETRY_FILES.name,
         );
+        out.push_str(&revisions_section(&MERGED, &REVISIONS));
         out.push_str(
             "## Predictions\n\n\
              | flight | impulse flown (N s) | liftoff mass (kg) | predicted apogee (m) | as a \

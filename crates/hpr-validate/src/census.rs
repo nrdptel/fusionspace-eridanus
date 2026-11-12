@@ -116,7 +116,7 @@ pub enum Group {
     OpenRocketExamples,
     /// OpenRocket's calm flights of the private designs, under anonymized ids.
     OpenRocketLibrary,
-    /// Real flights: the teams' altimeter logs.
+    /// Real flights: the public flights' altimeter logs.
     FlightLogs,
 }
 
@@ -634,7 +634,10 @@ fn real_flight_rows(
     rows: &mut Vec<Row>,
     references: &mut BTreeMap<Group, String>,
 ) {
-    references.insert(Group::FlightLogs, "the teams' altimeter logs".to_owned());
+    references.insert(
+        Group::FlightLogs,
+        "the public flights' altimeter logs".to_owned(),
+    );
     for flight in &report.flights {
         let regime = Regime::of_mach(flight.hpr_max_mach);
         // The 5% target is on the mean; one flight's apogee is judged by it as a bar.
@@ -653,6 +656,17 @@ fn real_flight_rows(
             Some(flight.trace_rms_percent),
             (Unit::Percent, TRACE_BAR_PERCENT),
             regime,
+        ));
+    }
+    // The flights predicted first are compared at their apogee only: no climb row.
+    for flight in &report.predicted_first {
+        rows.push(barred(
+            Group::FlightLogs,
+            &flight.id,
+            "apogee",
+            Some(flight.apogee_error_percent),
+            (Unit::Percent, APOGEE_TARGET_PERCENT),
+            Regime::of_mach(flight.hpr_max_mach),
         ));
     }
 }

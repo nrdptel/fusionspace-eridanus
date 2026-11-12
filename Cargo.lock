@@ -1005,6 +1005,7 @@ dependencies = [
  "fusionspace-hpr-atmos",
  "fusionspace-hpr-core",
  "fusionspace-hpr-design",
+ "fusionspace-hpr-flightdata",
  "fusionspace-hpr-io",
  "fusionspace-hpr-motor",
  "fusionspace-hpr-sim",

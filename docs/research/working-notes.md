@@ -53,8 +53,7 @@ learn something the next person needs. Each bullet is one topic; keep the file u
   shifted by their mean, delta-method errors), `benchmark::{Ishigami, SobolG}`;
 - `tests/sensitivity.rs` holds both to the closed forms and calibrates the errors over seeds;
   example `crates/hpr/examples/sensitivity.rs` (Morris on the MC rocket via
-  `MonteCarlo::fly(&Draw)`), page `docs/sensitivity.md`; flights by hand go through
-  `MonteCarlo::fly`.
+  `MonteCarlo::fly(&Draw)`), page `docs/sensitivity.md`; flights by hand go through `MonteCarlo::fly`.
 - Ellipses (ADR-135) are `hpr_analysis::ellipse`: `Run::landing` → `Scatter` (failures counted),
   `ellipse` (`k² = −2 ln(1−p)`), `prediction_ellipse` (Hotelling), `share_inside`. Monte Carlo
   (ADR-134) is `hpr_analysis::montecarlo`: `FlightInputs` (`hpr::FlightBuilder::inputs`;
@@ -142,10 +141,12 @@ learn something the next person needs. Each bullet is one topic; keep the file u
   `validate --check` fails. #200: Linux's reproduction bound. M2.3c (ADR-083): fly a pair with `hpr_validate::real_flight`, commit only
   statistics (needs `refs/rocketpy`). M2.3d3: `public_predictions::NEW_FLIGHTS`, after `euroc_2022.py`; no log parsed; `MERGED` pins them.
   M2.3d5 (ADR-337): `DESIGN_FILE_FLIGHTS` fly a `.ork`'s stored simulation from `refs/public-flights/` (not in `xtask ork`); digests: `ork-curves`.
+  M2.3d2 (ADR-342): `hpr_validate::predicted_first` compares them (`RULES`: the rules as code; `real-flights`: merged prediction, log apogee, error);
+  only `public_predictions::REVISIONS` (empty) lets one differ from `MERGED` past 0.05 m. `real_flight.rs`'s `Summary`: all 12, with means over
+  `compared_first`, `predicted_first`, `traced`, `era5_weather`.
 - Flutter (ADR-078): moduli in `materials::SHEAR_MODULI`; metrics (ADR-077): margin `None` past `κ =
   √10`. `.ork` since M1.9c (ADR-076): ignitions, clusters, powered splits fly (several since ADR-160),
-  and a lone unpowered one (ADR-165); open: #185. Leads, not causes: #177, private flights above sea level reading low, `C03`, `C09` margins
-  (#172).
+  and a lone unpowered one (ADR-165); open: #185. Leads, not causes: #177, private flights above sea level reading low, `C03`, `C09` margins (#172).
 - After any physics change run `cargo xtask ork-flights --check`, `--library --check` and
   `real-flights --check`: CI can't fly them; corpus reruns jitter (≤5e-7).
 - **Page rules** (ADR-016 to ADR-020): relative links between pages, GitHub URLs for the rest
@@ -180,8 +181,7 @@ learn something the next person needs. Each bullet is one topic; keep the file u
 - **`.ork` readings (ADR-052 to ADR-054):** angles are **degrees**, but *which way they turn* is
   assumed (OR's `+x` aft, hpr's `+z` at the nose): on the guide's not-settled list for M2.2. A
   cached `auto` number is what OpenRocket last resolved, never an input (24.12 ignores it on
-  reading) and `cargo xtask ork` holds 67 of 71 to it; nothing caches an `outerradius` or
-  `innerradius`.
+  reading) and `cargo xtask ork` holds 67 of 71 to it; nothing caches an `outerradius` or `innerradius`.
 - Finish heights: the author's forum post, in `refs/sources/openrocket-finish/`.
 - **Private flight collection `refs/hpr-sim-fixtures`** (ADR-151,
   [rule 4](../../CONTRIBUTING.md#4-private-data-stays-private)): a link to the sibling checkout

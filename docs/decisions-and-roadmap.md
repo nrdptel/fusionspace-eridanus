@@ -370,6 +370,7 @@ until someone rewrites it in plainer words.
 | [ADR-339: M0.17, the docs site at the tool level, queued second][adr-339] | The product system the docs site is pinned to now has three levels: front pages, tools and records. A docs site is a tool: it keeps what the drawing means (line types, trust notes, signal colors, units) and leaves off the drawing's frame. The site still wears the whole record: a designation tag over each title, sheet numbers and a title block at the foot of every page. Issue #1364 asks for the move, and it is a milestone's work, not an issue's. This record adds it as [M0.17](#m0-17) in two increments, the frame off and then a fourth color theme, Field, and queues it second, where the maintainer asked for it. |  |
 | [ADR-340: A stage's overrides leave its parts in place, as OpenRocket weighs them][adr-340] | A `.ork` stage whose mass or center of gravity override covers its parts now keeps the parts where the design puts them, as OpenRocket 24.12 does. Its inertia is the parts' about the stage's center. Before, HPR Sim moved and rescaled the stage as one body. On six of [M2.3d7](#m2-3d7)'s eight probes the inertia now matches OpenRocket's within [ADR-336][adr-336]'s bounds; it ran from 11.04% under to 400.5% over. On the two with the override on a lower stage, OpenRocket's figure is below what the stage's parts alone have about its center: the rocket's inertia across the axis is now 4.95% and 3.33% over (it was 1.5% and 18.5%), pinned. The collection's mean absolute apogee error goes from 12.07% to 12.04%. |  |
 | [ADR-341: M2.3d8 in five, a parallel stage's added mass first][adr-341] | A parallel stage in an OpenRocket file, boosters strapped beside the core, can carry a mass override that doesn't cover its parts. HPR Sim warned of one and held the design back. It now reads it as OpenRocket 24.12 weighs it: one mass added to the set of boosters, at their center or at a stated station. Of 49 new probe designs HPR Sim lays out 27, and on the 25 of those with boosters the parallel stage alone matches OpenRocket's mass, center and both inertias. The probes also show cases this change doesn't fly, so [M2.3d8](#m2-3d8) is split in five, and four increments stay open. |  |
+| [ADR-342: The errors before the remaining OpenRocket-parity probes][adr-342] | The five public flights whose predictions were merged first are now compared with their logs. `cargo xtask real-flights` flies all 12 public flights and prints each of the five merged predictions beside its log's apogee and its error: Astra −6.53%, Andromeda +4.14%, Erebus 11 −9.58%, and the two Macie XL flights −16.20% and −29.16%. Over the 12 the mean absolute apogee error is 9.00% and the mean with its sign is −4.91%; over the seven compared before, they were 6.06% and −0.22%. No prediction was revised. The work left on how an OpenRocket file's stage overrides are read moves behind the accuracy work: it checks HPR Sim against OpenRocket on probe designs, and the logs are what decide accuracy. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -688,16 +689,16 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-3c6"></a>[M2.3c6][phase-1] | The gap to OpenRocket, by cause | not yet done |
 | <a id="m2-3c7"></a>[M2.3c7][phase-1] | Faster than sound: published flights | not yet done |
 | <a id="m2-3c9"></a>[M2.3c9][phase-1] | Every flight OpenRocket flies | not yet done |
-| <a id="m2-3d"></a>[M2.3d][phase-1] | Twelve public flights, predictions first | not yet done |
-| <a id="m2-3d1"></a>[M2.3d1][phase-1] | The predictions | not yet done |
-| <a id="m2-3d2"></a>[M2.3d2][phase-1] | The errors | not yet done |
+| <a id="m2-3d"></a>[M2.3d][done-1] | Twelve public flights, predictions first | done |
+| <a id="m2-3d1"></a>[M2.3d1][done-1] | The predictions | done |
+| <a id="m2-3d2"></a>[M2.3d2][done-1] | The errors | done |
 | <a id="m2-3d3"></a>[M2.3d3][done-1] | The EuRoC 2022 predictions | done |
 | <a id="m2-3d4"></a>[M2.3d4][phase-1] | A stage's override that adds to its parts | not yet done |
 | <a id="m2-3d5"></a>[M2.3d5][done-1] | The Macie XL predictions | done |
 | <a id="m2-3d6"></a>[M2.3d6][done-1] | A stage's added mass | done |
 | <a id="m2-3d7"></a>[M2.3d7][done-1] | The inertia beside an override that covers the parts | done |
 | <a id="m2-3d8"></a>[M2.3d8][phase-1] | The stages an added mass is still refused on | not yet done |
-| <a id="m2-3d9"></a>[M2.3d9][phase-1] | The inertia on a lower stage and with a motor aboard | not yet done |
+| <a id="m2-3d9"></a>[M2.3d9][phase-1] | The inertia with a motor aboard | not yet done |
 | <a id="m2-3d10"></a>[M2.3d10][done-1] | A parallel stage's added mass | done |
 | <a id="m2-3d11"></a>[M2.3d11][phase-1] | The stage a parallel stage hangs on, weighed with it | not yet done |
 | <a id="m2-3d12"></a>[M2.3d12][phase-1] | An added mass on parts that weigh nothing | not yet done |
@@ -1387,6 +1388,7 @@ is the milestone that added or will add that test.
 [adr-339]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0339-m0-17-the-docs-site-at-the-tool-level-queued-second.md
 [adr-340]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0340-a-stage-s-overrides-leave-its-parts-in-place-as-openrocket-weighs-them.md
 [adr-341]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0341-m2-3d8-in-five-a-parallel-stage-s-added-mass-first.md
+[adr-342]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0342-the-errors-before-the-remaining-openrocket-parity-probes.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

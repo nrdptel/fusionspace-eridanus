@@ -15,8 +15,8 @@ the page that covers it in full.
 > CI reruns its commands and its Python examples, and redraws its pictures from what they print.
 > The guide rocket's flights are simulations, not measurements: it has no flight log.
 >
-> The tour ends on a public flight. It's one of 7 university rockets' logged flights, where HPR
-> Sim's apogee missed by 6.06% on average without signs ([report][real-report]). Those flights check
+> The tour ends on a public flight. It's one of 12 public logged flights, where HPR
+> Sim's apogee missed by 9.00% on average without signs ([report][real-report]). Those flights check
 > apogee alone. The tour gives ranges, not verdicts. The safety code and the range safety officer
 > (the RSO) decide whether a rocket flies.
 
@@ -255,12 +255,12 @@ columns.
 ## A real flight
 
 The guide rocket has no log, so its numbers can't be checked against the sky. The public flights
-in the [real-flights report][real-report] can. Each is a university team's rocket. HPR Sim flies
-each one in a [reanalysis](glossary.md#reanalysis) of the weather, its own day's for all but one,
+in the [real-flights report][real-report] can. Most are university teams' rockets. HPR Sim flies
+each of those in a [reanalysis](glossary.md#reanalysis) of the weather, its own day's for all but one,
 and sets it against the team's altimeter.
 
-The tour takes the middle one by a rule, not by choice. Of the 7 flights, the one whose miss,
-without its sign, is the median is Genesis, EuRoC 2023, the report's case *genesis*. EuRoC is the
+The tour takes the middle one by a rule, not by choice. Of the 7 flights compared along their
+whole climb, the one whose miss, without its sign, is the median is Genesis, EuRoC 2023, the report's case *genesis*. EuRoC is the
 European Rocketry Challenge. If a rerun of the report moves the middle, the tour moves to the new
 one.
 
@@ -274,18 +274,20 @@ The report puts the miss down to HPR Sim's drag: flown on the drag the team's ex
 apogee missed by −0.08% ([report][real-report]). The example records no fin edges or finish, so
 the design's are placeholders.
 
-One flight says little alone, so here it is beside the rest. On the 7 flights HPR Sim's apogee
-missed by −8.90% to +10.40% one by one. It missed by 6.06% on average without signs, and by
-−0.22% with them. The average without signs is outside the project's own 5% target
+One flight says little alone, so here it is beside the rest. On the 12 public flights HPR Sim's
+apogee missed by −29.16% to +10.40% one by one. It missed by 9.00% on average without signs, and
+by −4.91% with them. The average without signs is outside the project's own 5% target
 ([Accuracy](accuracy.md#real-flights)).
 
-So on these flights the misses go both ways. On 60 logged flights of fliers' own designs, though,
-they lean high, averaging +7.72% above the logged ones: no side can be assumed.
+On these flights the misses go both ways and lean low, 7 of the 12 that way. On 60 logged flights
+of fliers' own designs they lean high, averaging +7.72% above the logged ones: no side can be
+assumed.
 [Trusting a simulation](trusting-a-simulation.md) sets the two beside each other and says which
 miss to plan for.
 
 **Sources.** The public flights are among those RocketPy's documentation flies against their teams'
-logs. The weather is ERA5, generated using Copernicus Climate Change Service information 2026, and
+logs, but for one rocket's two flights, which come from a public repository of designs and logs.
+The reanalysis is ERA5, generated using Copernicus Climate Change Service information 2026, and
 contains modified Copernicus Climate Change Service information 2026. Neither the European
 Commission nor ECMWF is responsible for any use made of it. The
 [logged flights' report][fixture-report] gives the full attribution and the ERA5 citations.

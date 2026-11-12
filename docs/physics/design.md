@@ -440,14 +440,17 @@ with OpenRocket 24.12, and by hand.
     own inertia would have to be less than its tube's. On both, it is less than the tube alone
     has about the stage's center, so no stage that keeps its parts in place gives it. The rocket's inertia across the axis is
     4.95% over OpenRocket's (the center beside an added mass) and 3.33% over (a mass that covers
-    the parts, beside a center that doesn't). About the axis the two agree. Closing this gap is
-    open work: [M2.3d9, the inertia on a lower stage and with a motor aboard](../decisions-and-roadmap.md#m2-3d9).
+    the parts, beside a center that doesn't). About the axis the two agree. This difference
+    stands: HPR Sim won't close it, and a test pins both figures
+    (`a_stage_override_covering_its_parts_beside_one_that_does_not`;
+    [the decision that it stands][adr-342]).
   - *With a motor aboard.* OpenRocket sums the same way about the rocket's center with the motor.
     On the motor's airframe, under an added mass beside a center that covers the parts, taking
     the parts' inertia about the stage's center, as HPR Sim does, gives an inertia across the axis 1.6% under OpenRocket's
     at launch and 1.1% under at burnout. That is worked from OpenRocket's own records, the
     motor's term the same in both (`openrockets_inertia_with_a_motor_aboard_is_the_same_sum`).
-    Closing it is open work in the same milestone.
+    Closing it is open work:
+    [M2.3d9, the inertia with a motor aboard](../decisions-and-roadmap.md#m2-3d9).
   - *Where a parallel stage's override covers the boosters* (ten probes). OpenRocket sums each
     booster from where the design puts it, with its own mass, and adds a point at the parallel
     stage's center, the stated one where the override states one. That point is the whole stated mass under a mass that covers the boosters,
@@ -498,6 +501,7 @@ with OpenRocket 24.12, and by hand.
 [adr-335]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0335-a-stage-s-added-mass-as-openrocket-weighs-it.md
 [adr-340]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0340-a-stage-s-overrides-leave-its-parts-in-place-as-openrocket-weighs-them.md
 [adr-341]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0341-m2-3d8-in-five-a-parallel-stage-s-added-mass-first.md
+[adr-342]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0342-the-errors-before-the-remaining-openrocket-parity-probes.md
 
 ### Reference diameter
 

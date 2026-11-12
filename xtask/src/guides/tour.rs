@@ -12,11 +12,13 @@ pub(super) const LANDING: &str = "docs/the-simulator.md";
 /// The tour.
 pub(super) const TOUR: &str = "docs/simulator-tour.md";
 
-/// The pointer of the public flight whose unsigned apogee miss is the median of the report's: the
-/// middle one of an odd count, the lower of the two middle ones of an even count. Reads every
-/// flight's miss, so a rerun that moves the middle names another flight.
+/// The pointer of the public flight whose unsigned apogee miss is the median of those the report
+/// compares along their climb, its `flights`: the middle one of an odd count, the lower of the two
+/// middle ones of an even count. Reads each of those flights' miss, so a rerun that moves the
+/// middle names another flight. The flights predicted first are compared at their apogee only, so
+/// the tour's worked example, which gives a time to apogee, is never one of them.
 pub(super) fn median_flight(r: &Reports) -> Result<String, String> {
-    let flights = public_flights(r)?;
+    let flights = climb_flights(r)?;
     let mut misses = Vec::with_capacity(flights);
     for at in 0..flights {
         let miss = r.number(REAL, &format!("/flights/{at}/apogee_error_percent"))?;
@@ -27,13 +29,37 @@ pub(super) fn median_flight(r: &Reports) -> Result<String, String> {
     Ok(format!("/flights/{at}"))
 }
 
-/// How many public flights the report holds, counted from its flights, so a flight dropped from
-/// them changes the count a page shows (a test holds the summary's count to it).
-fn public_flights(r: &Reports) -> Result<usize, String> {
+/// The report's two lists of flights: those compared along their climb, then those predicted
+/// before they were compared.
+const LISTS: [&str; 2] = ["/flights", "/predicted_first"];
+
+/// How many public flights the report compares along their climb, counted from its `flights`.
+fn climb_flights(r: &Reports) -> Result<usize, String> {
     match r.get(REAL, "/flights")?.as_array().map_or(0, Vec::len) {
         0 => Err(format!("{REAL} holds no flights")),
         flights => Ok(flights),
     }
+}
+
+/// Every public flight's apogee miss, counted from the report's two lists, so a flight dropped
+/// from either changes the count a page shows (a test holds the summary's count to it).
+fn public_misses(r: &Reports) -> Result<Vec<f64>, String> {
+    let mut misses = Vec::new();
+    for list in LISTS {
+        let flights = r.get(REAL, list)?.as_array().map_or(0, Vec::len);
+        for at in 0..flights {
+            misses.push(r.number(REAL, &format!("{list}/{at}/apogee_error_percent"))?);
+        }
+    }
+    if misses.is_empty() {
+        return Err(format!("{REAL} holds no flights"));
+    }
+    Ok(misses)
+}
+
+/// How many public flights the report holds.
+fn public_flights(r: &Reports) -> Result<usize, String> {
+    Ok(public_misses(r)?.len())
 }
 
 /// A flight's miss, its logged and simulated apogees and times to apogee, as the report gives them.
@@ -67,7 +93,8 @@ fn read(miss: f64) -> &'static str {
 pub(super) fn landing_quotes() -> Vec<Quote> {
     vec![
         Quote {
-            template: "{} public flights of university rockets, where they missed by {} on average \
+            template: "{} public flights, university rockets and one other rocket, where they \
+                       missed by {} on average \
                        without signs and by {} with them, outside the project's own {} target",
             holes: |r| {
                 if r.flag(REAL, "/summary/within_target")? {
@@ -126,7 +153,7 @@ pub(super) fn copernicus() -> Quote {
 pub(super) fn tour_quotes() -> Vec<Quote> {
     vec![
         Quote {
-            template: "one of {} university rockets' logged flights, where HPR Sim's apogee missed \
+            template: "one of {} public logged flights, where HPR Sim's apogee missed \
                        by {} on average without signs",
             holes: |r| {
                 Ok(vec![
@@ -139,12 +166,13 @@ pub(super) fn tour_quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "Of the {} flights, the one whose miss, without its sign, is the median is {}, \
+            template: "Of the {} flights compared along their whole climb, the one whose miss, \
+                       without its sign, is the median is {}, \
                        the report's case {}",
             holes: |r| {
                 let flight = median_flight(r)?;
                 Ok(vec![
-                    public_flights(r)?.to_string(),
+                    climb_flights(r)?.to_string(),
                     r.title(&flight)?.to_owned(),
                     r.text(REAL, &format!("{flight}/id"))?.to_owned(),
                 ])
@@ -219,18 +247,15 @@ pub(super) fn tour_quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "On the {} flights HPR Sim's apogee missed by {} to {} one by one. It missed \
+            template: "On the {} public flights HPR Sim's apogee missed by {} to {} one by one. \
+                       It missed \
                        by {} on average without signs, and by {} with them",
             holes: |r| {
-                let flights = public_flights(r)?;
-                let mut misses = Vec::new();
-                for at in 0..flights {
-                    misses.push(r.number(REAL, &format!("/flights/{at}/apogee_error_percent"))?);
-                }
+                let misses = public_misses(r)?;
                 let least = misses.iter().copied().fold(f64::INFINITY, f64::min);
                 let most = misses.iter().copied().fold(f64::NEG_INFINITY, f64::max);
                 Ok(vec![
-                    flights.to_string(),
+                    misses.len().to_string(),
                     signed_percent(least, 2),
                     signed_percent(most, 2),
                     percent(
@@ -251,21 +276,32 @@ pub(super) fn tour_quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "So on these flights the misses go both ways. On {} logged flights of \
-                       fliers' own designs, though, they lean {}, averaging {} the logged ones",
+            template: "On these flights the misses go both ways and lean low, {} of the {} that \
+                       way. On {} logged flights of \
+                       fliers' own designs they lean {}, averaging {} the logged ones",
             holes: |r| {
-                // "Both ways" holds while the public flights hold a miss on each side.
-                let flights = public_flights(r)?;
-                let mut sides = (false, false);
-                for at in 0..flights {
-                    let miss = r.number(REAL, &format!("/flights/{at}/apogee_error_percent"))?;
-                    sides = (sides.0 || miss < 0.0, sides.1 || miss > 0.0);
-                }
-                if sides != (true, true) {
+                // "Both ways" holds while the public flights hold a miss on each side, and
+                // "lean low" while their mean is below zero and most of them read low. The
+                // sentence's point, that no side can be assumed, needs the collection to lean the
+                // other way: its lean is a hole, so the page fails if it turns.
+                let misses = public_misses(r)?;
+                let low = misses.iter().filter(|miss| **miss < 0.0).count();
+                let high = misses.iter().filter(|miss| **miss > 0.0).count();
+                if low == 0 || high == 0 {
                     return Err("the public flights' misses no longer go both ways".to_owned());
+                }
+                let public = r.number(REAL, "/summary/mean_apogee_error_percent")?;
+                if public >= 0.0 || 2 * low <= misses.len() {
+                    return Err(format!(
+                        "the public flights' mean is {public:.2}% and {low} of {} read low: they \
+                         no longer lean low; reword the page and this quote",
+                        misses.len()
+                    ));
                 }
                 let mean = set_number(r, "hpr", "mean_percent")?;
                 Ok(vec![
+                    low.to_string(),
+                    misses.len().to_string(),
                     super::flights(r)?.to_string(),
                     super::lean(mean).to_owned(),
                     above(mean),
@@ -295,7 +331,11 @@ mod tests {
         let mut files = std::collections::BTreeMap::new();
         files.insert(
             REAL,
-            json!({ "flights": flights, "summary": { "flights": misses.len() } }),
+            json!({
+                "flights": flights,
+                "predicted_first": [],
+                "summary": { "flights": misses.len() }
+            }),
         );
         Reports {
             files,

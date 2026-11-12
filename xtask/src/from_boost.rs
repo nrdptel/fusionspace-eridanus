@@ -745,7 +745,7 @@ impl Report {
         );
         let _ = writeln!(
             page,
-            "- **What is flown:** the 7 flights of the [real-flights report][real], each in its ERA5 air, \
+            "- **What is flown:** the 7 flights the [real-flights report][real] compared first, each in its ERA5 air, \
              from its example's thrust file, rail and site.\n\
              - **The prediction:** the library finds the cut from the samples up to it (the first \
              sample where the climb speed's fall has held 0.75 s and the speed is the lowest of those \

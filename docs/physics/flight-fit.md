@@ -361,7 +361,8 @@ closed forms. A result under 100 effective draws is flagged as too few to read. 
 The library predicts a flight's apogee from its climb and the start of its coast: a log cut after
 burnout, once the climb speed has kept falling for 0.75 s (`hpr_forensics::boost`). That is 1.08 s to 2.30 s after burnout on the synthetic
 flights below, and 1.3 s (Bella Lui) and 3.5 s (NDRT 2020) after the burn on the two public ones.
-It predicts 2 of the 7 public flights, Bella Lui and NDRT 2020, both cut after the motor's burn.
+It is run on 7 of the 12 public flights, those compared along their climb.
+It predicts 2 of the 7, Bella Lui and NDRT 2020, both cut after the motor's burn.
 That is too few to say at 95% whether it beats the forward simulation
 ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/from-boost.md)).
 The other 5 reach the speed limit described below before a cut.
@@ -398,8 +399,8 @@ Three bad readings in a row on the pad can lift the fit past that for one sample
 then falls back and stays down, as it does after burnout, so only this height rule stops a cut there. After burnout gravity alone
 takes 9.8 m/s (32.2 ft/s) off the speed every second, drag more, so the speed keeps falling. A
 barometer's reading can dip during the boost and catch up
-([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)). In the burns of the public flights'
-logs the speed fell that far for up to 0.48 s, then recovered (measured once). The deepest such
+([#1307](https://github.com/nrdptel/fusionspace-eridanus/issues/1307)). In the burns of the seven public flights'
+logs compared first, the speed fell that far for up to 0.48 s, then recovered (measured once). The deepest such
 fall was 63.2 m/s (207 ft/s), a one-off measurement not committed. The 0.75 s passes such a
 dip. The catch-up can read above the true speed. On 778 of the 1,787 dipped logs below a fall lasted over 0.5 s, likely the fall back from that overshoot (not traced). But on the synthetic dips the speed
 had begun to rise again while the motor burned, so it wasn't the lowest of the last 0.75 s. So on the

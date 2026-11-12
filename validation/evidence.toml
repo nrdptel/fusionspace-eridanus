@@ -449,7 +449,7 @@ found = "nothing usable: the reports describe outcomes, not which end each part 
 [[row]]
 id = "G21"
 surface = "Accuracy against real flights"
-claim = "Four of the seven public altimeters are taken as barometric, and the designs' fin edges are guesses"
+claim = "Four of the seven altimeters of the public flights compared first are taken as barometric, and the designs' fin edges are guesses"
 pages = [
   "start-here.md#accuracy-so-far",
   "accuracy.md#accuracy",
@@ -533,7 +533,7 @@ found = "the three answers, of 307, 296 and 60 records, now committed unchanged 
 [[row]]
 id = "G24"
 surface = "Accuracy against real flights"
-claim = "The simulation's apogees miss seven public real flights by 6.06% on average and 60 private ones by 12.04%, both outside the 5% target"
+claim = "The simulation's apogees miss 12 public real flights by 9.00% on average and 60 private ones by 12.04%, both outside the 5% target"
 pages = [
   "start-here.md#accuracy-so-far",
   "getting-started.md#getting-started",
@@ -1027,7 +1027,11 @@ found = "a lead with no log. The Florida State report states the launch-ready ve
 id = "G39"
 surface = "Public flights predicted first"
 claim = "Astra's, Andromeda's and Erebus 11's logs are each taken as a barometric altimeter's, and each prediction is read the same way"
-pages = ["accuracy.md#predicted-before-compared"]
+pages = [
+  "accuracy.md#predicted-before-compared",
+  "start-here.md#accuracy-so-far",
+  "VALIDATION.md#real-flights",
+]
 kind = "reasoning"
 wanted = "real"
 not_checked = "each of the three altimeters' make and sensor"

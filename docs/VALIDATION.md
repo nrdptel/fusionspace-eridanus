@@ -656,16 +656,23 @@ file, from its rail and site, in the ERA5 file and hour its notebook reads. It's
 team's altitude log: the apogee, and the RMS of the height over the ascent. Both clocks are aligned
 where each trace first reaches 30 m (98 ft).
 
+The command then flies the five public flights whose predictions were merged first
+([below](#public-flights-predicted-first)) and compares each with its log at the apogee
+([the errors](decisions-and-roadmap.md#m2-3d2),
+[the decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0342-the-errors-before-the-remaining-openrocket-parity-probes.md)).
+The report holds all 12, and its means are over all 12.
+
 HPR Sim's height is read as the log's barometric altimeter reads the air: the standard
-atmosphere's altitude of the ERA5 pressure, less the start's. Each log is read up to its apogee,
-stopping before the recovery's pressure transients. The logs, thrust files and weather files are
-read from the pinned `refs/rocketpy` checkout and never committed. The report,
+atmosphere's altitude of the pressure of the air it flew in, less the start's. Each log of the seven compared first is read up to its apogee,
+stopping before the recovery's pressure transients; each predicted flight's is read by the rule
+merged with its prediction. The logs, thrust files and weather files are
+read from the pinned checkouts under `refs/` and never committed. The report,
 `validation/reports/real-flights.{json,md}`, commits only the numbers and each file's SHA-256. Each
-flight is flown again on its example's own drag as a diagnostic.
+of the seven is flown again on its example's own drag as a diagnostic.
 
 The mean absolute apogee error is reported against the 5% target of the principles above, not
-gated. A flight outside 5% must carry an explanation that's a checked claim, and one inside must
-not. `drag` says the flight on the example's drag is within the target, and any on the recorded
+gated. Among the seven compared first, a flight outside 5% must carry an explanation that's a
+checked claim, and one inside must not. `drag` says the flight on the example's drag is within the target, and any on the recorded
 thrust file isn't. `thrust` is for an example that reshapes its thrust file. The flight on the
 file as recorded is within the target, and the one on the example's drag isn't.
 
@@ -675,20 +682,22 @@ the rows, each percentage to its meters, and the words and each flight's inputs 
 holds the committed files read to their digests, the page to the data, and each explanation to its
 numbers. Where the checkout is, `--check` flies it again.
 
-Today the mean absolute error is 6.06% over seven flights, outside the target. Five are outside 5%: NDRT 2020,
+Today the mean absolute error is 9.00% over 12 flights, outside the target, and 6.06% over the
+seven compared first. Five of the seven are outside 5%: NDRT 2020,
 Prometheus, Cavour and Genesis consistent with HPR Sim's drag, and Juno III with its motor's
-impulse. Four of the seven altimeters' kinds are assumed barometric
-([evidence row G21](evidence.md#g21)). With those four read as heights instead, the mean is 6.65%.
+impulse. Four of the five predicted first are outside 5% too, with no explanation claimed. Seven
+of the 12 altimeters' kinds are assumed barometric (evidence rows [G21](evidence.md#g21) and
+[G39](evidence.md#g39)). With those seven read as heights instead, the mean is 9.14%.
 
 ### Public flights predicted first
 
-`cargo xtask public-predictions [--check]` flies the listed public real flights that haven't been
-compared with their logs yet, each from its record alone
+`cargo xtask public-predictions [--check]` flies the listed public real flights whose predictions
+merged before their logs were compared, each from its record alone
 ([the EuRoC 2022 predictions](decisions-and-roadmap.md#m2-3d3),
 [why they merge first](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md)).
 Today they're Astra, Andromeda and Erebus 11, and both flights of Macie XL
 ([the Macie XL predictions](decisions-and-roadmap.md#m2-3d5)). It writes each one's inputs with their sources, the
-rule its log's apogee will be read by, and the predicted apogee to
+rule its log's apogee is read by, and the predicted apogee to
 `validation/reports/public-predictions.{json,md}`. It hashes each log, to pin the file, and never
 parses one. The report has no field for a measured apogee or an error.
 
@@ -701,13 +710,22 @@ holds both files' SHA-256 and the levels RocketPy read. A prediction flies the c
 if it has the recorded SHA-256 and HPR Sim reads those levels from it: the same pressures, and
 every other value within 1e-12 of its size (1e-12 outright for a value under 1).
 
-`--check` flies the predictions again and fails when one differs from the committed one: if a merged
-prediction has to change, the comparison's pull request must show the new number beside the old
-one. Until then the code's list of merged apogees (`MERGED`) keeps each flight's, as a reading
-and as a height, to the digit the page prints, and the writer and CI both refuse a prediction that
-has moved from it. CI, without the checkout, also holds the
+`--check` flies the predictions again and fails when one differs from the committed one. The
+code's list of merged apogees (`MERGED`) keeps each flight's, as a reading and as a height, to
+the digit the page prints. The writers and CI refuse a prediction that has moved from it, unless
+the code's list of revisions (`REVISIONS`) gives the number flown now and the reason. The
+real-flights report then shows the new number beside the merged one, with both errors. That list
+is empty today. CI, without the checkout, also holds the
 committed predictions to the code's list of flights, to the committed designs' and the design fixture's digests, to their
 page, and to the file's own text: a key for an error or a measured value fails.
+
+The comparison is the real-flights report's
+(`hpr_validate::tests::real_flights_print_each_merged_prediction_beside_its_error`). Each log's
+apogee is read by the rule merged with its prediction, written as code in
+`hpr_validate::predicted_first` and held to the merged words by a test. The log must be the file
+whose SHA-256 the predictions hold. CI holds the committed report's five rows to `MERGED`, to the
+committed predictions' digests and tags, and to their own meters. It fails a report that drops
+one of the five, or that moves a prediction with no revision.
 
 The two Macie XL flights are read from a design file, not built from an example. The lock file
 (`validation/refs.lock.toml`) pins their repository under `refs/public-flights/` (`cargo xtask

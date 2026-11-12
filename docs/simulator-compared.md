@@ -184,9 +184,10 @@ comparison holds the flights both tools flew, less those the report leaves out w
 So a design HPR Sim can't fly yet is in neither number. RocketPy hasn't flown them, since it can't
 open their `.ork` files.
 
-On the 7 public flights HPR Sim's apogee missed by 6.06% on average without signs, outside the
-project's own 5% target ([report][real-report]). They're among the university rockets RocketPy's
-documentation flies against their teams' logs. OpenRocket and RocketPy haven't flown them here yet
+On the 12 public flights HPR Sim's apogee missed by 9.00% on average without signs, outside the
+project's own 5% target ([report][real-report]). They're university rockets that RocketPy's
+documentation flies against their teams' logs, and one other rocket's two flights, from its public
+design file and logs. OpenRocket and RocketPy haven't flown them here yet
 (see the planned milestones [an open benchmark](decisions-and-roadmap.md#m2-6) and
 [the other tools' cells](decisions-and-roadmap.md#m2-9)).
 
@@ -223,8 +224,9 @@ and the largest change was 0.000050%; 2 of 75 designs didn't make the trip
 **Sources.** The logged flights are a private collection of designs and their logs, shared as
 aggregates only. They come from university rocketry teams, rocketry courses and hobbyists.
 
-The public flights are among those RocketPy's documentation flies against their teams' logs. Both
-fly in ERA5 weather: generated using Copernicus Climate Change Service information 2026, and
+The public flights are among those RocketPy's documentation flies against their teams' logs, but
+for one rocket's two flights, which come from a public repository of designs and logs. The logged
+flights and RocketPy's fly in ERA5 weather (the other rocket's two fly in standard air): generated using Copernicus Climate Change Service information 2026, and
 contains modified Copernicus Climate Change Service information 2026. Neither the European
 Commission nor ECMWF is responsible for any use made of it. The [logged flights'
 report][fixture-report] gives the full attribution and the ERA5 citations.

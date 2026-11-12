@@ -27,9 +27,9 @@ magnitude, not a budget. "Sim high": a cause makes the simulation read high.
   median of 1.4°, none over 7°. A vacuum shot loses 1 − cos²θ, 1.5% at 7° (**Inference**): not several percent.
 - **The weather is already corrected.** Every scored log is barometric, and each reading is turned into a height through
   the day's ERA5 air (factor 1.0360 on average, 0.9601 to 1.0777).
-- **The public flights show no bias.** On RocketPy's seven team flights HPR Sim's mean signed error is −0.22%
-  ([accuracy](../accuracy.md#real-flights)). **Inference:** the bias lies more in how the collection's rockets differ
-  from their files than in physics HPR Sim leaves out everywhere.
+- **The seven public flights compared first show no bias.** On RocketPy's seven team flights HPR Sim's mean signed error is −0.22%
+  ([accuracy](../accuracy.md#real-flights)). **Inference:** the bias lies more in how the collection's rockets differ from their files than in
+  physics HPR Sim leaves out everywhere. Since 2026-11-11 the report counts 12 public flights, signed mean −4.91%: the inference rests on the first seven.
 
 ## How much apogee a cause buys
 

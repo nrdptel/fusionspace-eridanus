@@ -10,8 +10,8 @@ after its full-scale flight. Reading a log with no simulation is [Reading a flig
 > the sum of what the logger, the simulation and the lining up of their clocks each got wrong. It can't
 > tell them apart. It says neither is right. The simulated numbers state no error here, and the fit that would explain a residual is
 > [not built yet](decisions-and-roadmap.md#m7-3). The method is tested on flights with a known answer. It has
-> been run on the 7 public logged flights ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/flight-residuals.md)),
-> and those show what it gives, not that it is right about them.
+> been run on 7 of the 12 public logged flights ([the report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/flight-residuals.md)).
+> Those show what it gives, not that it is right about them.
 
 ## Run it
 
@@ -135,7 +135,7 @@ the same reader. Three things follow.
   [`hpr analyze`](reading-a-flight-log.md) gives it. The simulated cell has no interval or provenance, as it wasn't
   measured. In `--json` it keeps a bound, which is only the reader's.
 - **The clocks.** A log's clock has no ignition on it, so the two line up by what the reader calls liftoff on
-  each. The output gives the bound on that, from 1.32 to 3.21 s on [the public flights](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/flight-residuals.md). That is what the reader
+  each. The output gives the bound on that, from 1.32 to 3.21 s on [the 7 public flights compared along the climb](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/flight-residuals.md). That is what the reader
   can promise of a liftoff, not a measured misalignment. On a log with coarse steps, the log's liftoff reads
   late, so an ascent's height residual leans positive.
 

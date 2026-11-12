@@ -378,7 +378,7 @@ fn headline_names_oracle_kind_population_and_regime() {
         .unwrap();
     assert!(
         logs.headline()
-            .contains("against the teams' altimeter logs (measured;")
+            .contains("against the public flights' altimeter logs (measured;")
     );
     assert!(logs.headline().contains("mean absolute apogee error"));
 }

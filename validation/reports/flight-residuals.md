@@ -2,7 +2,7 @@
 
 Written by `cargo xtask real-flights` ([M7.3a][m7-3a], decision [ADR-314][adr-314]). [How to read them][site].
 
-- **What is flown:** the 7 flights of the [real-flights report][real], each flown to the ground in its ERA5 air and wind, on hpr's own drag, under the parachutes its example's notebook gives it.
+- **What is flown:** the 7 flights the [real-flights report][real] compared first, each flown to the ground in its ERA5 air and wind, on hpr's own drag, under the parachutes its example's notebook gives it.
 - **A residual** is the logged value less the simulated one. Positive: the log read higher, or faster upward, than the simulation. A descent's rate is a size, so there a positive residual in the readings means the log fell faster.
 - **Heights** are the log's own samples, above its pad, unsmoothed. The simulation's are read as the log's altimeter would read them. **Speeds** are the smoother's, taken from the log with any GNSS set aside, against the rate at which the same altimeter's reading would change.
 - **The clocks** are lined up by what one reader calls liftoff on each. Their bound is rounded up.

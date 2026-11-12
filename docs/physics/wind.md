@@ -19,8 +19,8 @@ read from a forecast's table of levels.
   billionth of a meter per second). That includes the wind of NDRT 2020, one of the
   [example rockets](../glossary.md#example-rockets), which changes with height. In the four
   descents with wind, the total [drift](../glossary.md#drift) agrees within 0.28%, and each east or
-  north part within 2.9% ([Recovery](recovery.md#against-rocketpy)). Seven real flights have been
-  flown in the ERA5 winds of their day. Only their heights are compared, not their drift
+  north part within 2.9% ([Recovery](recovery.md#against-rocketpy)). Ten real flights have been
+  flown in ERA5 winds, nine of them in their own day's. Only their heights are compared, not their drift
   ([Accuracy: real flights](../accuracy.md#real-flights)).
 - **What it leaves out:** wind varying in time or across the field, vertical wind, terrain, and
   gusts (no flight uses [Turbulence](turbulence.md)). A flight takes one wind model, so a power or

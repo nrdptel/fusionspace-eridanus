@@ -2236,22 +2236,39 @@ fn real_flight_cases_report_apogee_and_trace_rms() {
         );
     }
     assert_eq!(report.summary.target_percent, APOGEE_TARGET_PERCENT);
-    // The mean with the assumed altimeters read as heights, worked here from the rows.
+    // The mean with the assumed altimeters read as heights, worked here from the rows: the
+    // flights compared first, then the flights predicted first.
     let assumed = |row: &&crate::real_flight::FlightRow| row.altimeter.ends_with("assumed");
     assert_eq!(report.flights.iter().filter(assumed).count(), 4);
-    let known_barometric = report
+    let every: Vec<(bool, f64, f64, f64)> = report
         .flights
         .iter()
         .map(|row| {
-            let apogee_m = if assumed(&row) {
-                row.hpr_height_apogee_m
-            } else {
-                row.hpr_apogee_m
-            };
-            (100.0 * (apogee_m - row.log_apogee_m) / row.log_apogee_m).abs()
+            (
+                assumed(&row),
+                row.hpr_apogee_m,
+                row.hpr_height_apogee_m,
+                row.log_apogee_m,
+            )
+        })
+        .chain(report.predicted_first.iter().map(|row| {
+            (
+                row.altimeter.ends_with("assumed"),
+                row.hpr_apogee_m,
+                row.hpr_height_apogee_m,
+                row.log_apogee_m,
+            )
+        }))
+        .collect();
+    assert_eq!(every.len(), report.summary.flights);
+    let known_barometric = every
+        .iter()
+        .map(|(assumed, reading_m, height_m, log_m)| {
+            let apogee_m = if *assumed { height_m } else { reading_m };
+            (100.0 * (apogee_m - log_m) / log_m).abs()
         })
         .sum::<f64>()
-        / report.flights.len() as f64;
+        / every.len() as f64;
     assert!(
         (known_barometric
             - report
@@ -2261,6 +2278,506 @@ fn real_flight_cases_report_apogee_and_trace_rms() {
             < 1e-9
     );
     assert!(page.contains("Mean absolute apogee error"));
+}
+
+#[test]
+fn real_flights_print_each_merged_prediction_beside_its_error() {
+    // M2.3d2 (ADR-328 §1b, ADR-342): the committed real-flights report holds all 12 public
+    // flights, the seven compared first and the five predicted first, each of the five with its
+    // merged prediction beside its log's apogee and its error; its means are over all 12, with
+    // the means over the flights tagged with every input traced beside them. The logs are not in CI, so
+    // this holds the committed report to the code's lists, to the committed predictions and to
+    // itself; `cargo xtask real-flights --check` flies and reads them again where they are.
+    use crate::predicted_first::{RULES, check_listed};
+    use crate::public_predictions::{MERGED, REVISIONS};
+    use crate::real_flight::{REPORT_JSON, REPORT_MD, RealFlightReport};
+    let text = std::fs::read_to_string(root().join(REPORT_JSON)).expect("the report is committed");
+    let report: RealFlightReport = serde_json::from_str(&text).expect("the report reads");
+    let page = std::fs::read_to_string(root().join(REPORT_MD))
+        .expect("the page is committed")
+        .replace("\r\n", "\n");
+    let (predictions, _) = committed_predictions();
+    let same = crate::report::same_but_for_platform_rounding;
+
+    // All 12: the seven, then the five in the order their predictions merged.
+    assert_eq!(report.flights.len(), 7);
+    let ids: Vec<&str> = report
+        .predicted_first
+        .iter()
+        .map(|row| row.id.as_str())
+        .collect();
+    assert_eq!(
+        ids,
+        [
+            "astra",
+            "andromeda",
+            "erebus-11",
+            "macie-xl-1",
+            "macie-xl-2"
+        ]
+    );
+    check_listed(&report.predicted_first).expect("the five are the code's");
+    assert_eq!(report.summary.flights, 12);
+
+    // Each row is its committed prediction: the same log by its digest, the same tags, the
+    // same flown apogee; its merged number is the code's, to the digit.
+    struct Committed<'a> {
+        id: &'a str,
+        sha256: &'a str,
+        apogee_m: f64,
+        height_m: f64,
+        traced: bool,
+        untraced: &'a [String],
+        design: String,
+        weather: String,
+        impulse_ns: f64,
+        catalog_impulse_ns: Option<f64>,
+    }
+    let predicted: Vec<Committed<'_>> = predictions
+        .flights
+        .iter()
+        .map(|row| Committed {
+            id: row.id.as_str(),
+            sha256: row.reference_log_sha256.as_str(),
+            apogee_m: row.predicted_apogee_m,
+            height_m: row.predicted_height_apogee_m,
+            traced: row.all_inputs_traced,
+            untraced: row.untraced.as_slice(),
+            design: format!("the design built from RocketPy's example, `{}`", row.design),
+            weather: format!("the ERA5 weather of {}", row.weather_time_utc),
+            impulse_ns: row.total_impulse_ns,
+            catalog_impulse_ns: row
+                .catalog_curve
+                .as_ref()
+                .map(|catalog| catalog.total_impulse_ns),
+        })
+        .chain(predictions.design_file_flights.iter().map(|row| Committed {
+            id: row.id.as_str(),
+            sha256: row.reference_log_sha256.as_str(),
+            apogee_m: row.predicted_apogee_m,
+            height_m: row.predicted_height_apogee_m,
+            traced: row.all_inputs_traced,
+            untraced: row.untraced.as_slice(),
+            design: format!(
+                "the design file `{}` as saved, as its stored simulation `{}` flies it",
+                row.design_file, row.simulation
+            ),
+            weather: row.atmosphere.clone(),
+            impulse_ns: row.total_impulse_ns,
+            catalog_impulse_ns: None,
+        }))
+        .collect();
+    assert_eq!(predicted.len(), 5);
+    for ((row, merged), committed) in report.predicted_first.iter().zip(&MERGED).zip(predicted) {
+        let Committed {
+            id,
+            sha256,
+            apogee_m,
+            height_m,
+            traced,
+            untraced,
+            design,
+            weather,
+            impulse_ns,
+            catalog_impulse_ns,
+        } = committed;
+        assert_eq!((row.id.as_str(), merged.id), (id, id));
+        // Its weather and the impulse flown are its prediction's, and the page names both: the
+        // ERA5 hour for a flight in its day's air, the stored atmosphere for the others; and,
+        // where the flight is shown on its catalog's curve too, that curve's impulse and the gap.
+        assert_eq!((&row.design, &row.weather), (&design, &weather), "{id}");
+        assert_eq!(
+            row.era5_weather,
+            weather.starts_with("the ERA5 weather of 2022-10-1")
+        );
+        assert!(same(row.total_impulse_ns, impulse_ns), "{id}");
+        assert_eq!(
+            row.catalog_total_impulse_ns.is_some(),
+            catalog_impulse_ns.is_some(),
+            "{id}"
+        );
+        let gap = catalog_impulse_ns.map_or(String::new(), |catalog| {
+            assert!(same(row.catalog_total_impulse_ns.unwrap_or(0.0), catalog));
+            format!(
+                ", {:+.1}% against the {catalog:.1} N s of the catalog's curve shown above",
+                100.0 * (impulse_ns - catalog) / catalog
+            )
+        });
+        let named = format!(
+            "- **{}** (`{id}`): {design}, flown in {weather}, on {impulse_ns:.1} N s of impulse{gap}. The log is",
+            row.title
+        );
+        assert!(page.contains(&named), "{id}: the page has no line {named}");
+        assert_eq!(row.reference_log_sha256, sha256, "{id}: another log");
+        assert_eq!(
+            (row.all_inputs_traced, row.untraced.as_slice()),
+            (traced, untraced),
+            "{id}: its tags are the ones merged with its prediction"
+        );
+        assert!(
+            same(row.hpr_apogee_m, apogee_m) && same(row.hpr_height_apogee_m, height_m),
+            "{id}: {} m is not the committed prediction's {apogee_m} m",
+            row.hpr_apogee_m
+        );
+        assert_eq!(
+            (row.merged_apogee_m, row.merged_height_apogee_m),
+            (merged.apogee_m, merged.height_apogee_m),
+            "{id}"
+        );
+        // The error is the prediction less the log's apogee, over the log's.
+        let error = 100.0 * (row.hpr_apogee_m - row.log_apogee_m) / row.log_apogee_m;
+        assert!(same(row.apogee_error_percent, error), "{id}");
+        // The page prints the merged prediction beside the log's apogee and the error.
+        let line = format!(
+            "| {} | {} | {:.1} | {:.1} | {:.1} | {:+.2}% | {:+.2}% |",
+            row.title,
+            row.altimeter,
+            row.log_apogee_m,
+            merged.apogee_m,
+            row.hpr_apogee_m,
+            row.apogee_error_percent,
+            row.merged_apogee_error_percent
+        );
+        assert!(page.contains(&line), "{id}: the page has no row {line}");
+        // A header rule shows the highest sample beside it; a column rule has none to show.
+        let (_, rule) = RULES.iter().find(|(rule, _)| *rule == id).expect("a rule");
+        assert_eq!(
+            row.log_highest_sample_m.is_some(),
+            *rule == crate::predicted_first::ApogeeRule::PerfectFliteHeader,
+            "{id}"
+        );
+    }
+    // No prediction has been revised, so none carries a reason and the summary has no second
+    // set of means.
+    // Each row's reason is its revision's in the code's list, and the means on the merged
+    // predictions are given exactly when that list holds one. Today it holds none.
+    for row in &report.predicted_first {
+        let listed = REVISIONS.iter().find(|revision| revision.id == row.id);
+        assert_eq!(
+            row.revised_because.as_deref(),
+            listed.map(|revision| revision.because),
+            "{}",
+            row.id
+        );
+    }
+    assert_eq!(
+        report.summary.on_merged_predictions.is_some(),
+        !REVISIONS.is_empty()
+    );
+    assert_eq!(
+        page.contains("No merged prediction has been revised"),
+        REVISIONS.is_empty()
+    );
+    assert!(
+        REVISIONS.is_empty(),
+        "this record: none revised when written"
+    );
+
+    // The means, worked here from the rows: over all 12, and over each part.
+    let seven: Vec<f64> = report
+        .flights
+        .iter()
+        .map(|row| row.apogee_error_percent)
+        .collect();
+    let five: Vec<(f64, bool, bool)> = report
+        .predicted_first
+        .iter()
+        .map(|row| {
+            (
+                row.apogee_error_percent,
+                row.all_inputs_traced,
+                row.era5_weather,
+            )
+        })
+        .collect();
+    let means = |errors: Vec<f64>| {
+        let n = errors.len() as f64;
+        (
+            errors.len(),
+            errors.iter().map(|error| error.abs()).sum::<f64>() / n,
+            errors.iter().sum::<f64>() / n,
+        )
+    };
+    let with = |keep: fn(&(f64, bool, bool)) -> bool| {
+        seven
+            .iter()
+            .copied()
+            .chain(five.iter().filter(|row| keep(row)).map(|row| row.0))
+            .collect::<Vec<f64>>()
+    };
+    let summary = &report.summary;
+    let held = [
+        ("all", means(with(|_| true)), 12, None),
+        (
+            "compared first",
+            means(seven.clone()),
+            7,
+            Some(&summary.compared_first),
+        ),
+        (
+            "predicted first",
+            means(five.iter().map(|row| row.0).collect()),
+            5,
+            Some(&summary.predicted_first),
+        ),
+        // Traced, as tagged with the predictions: the seven carry no tag and are not counted.
+        (
+            "traced",
+            means(five.iter().filter(|row| row.1).map(|row| row.0).collect()),
+            2,
+            Some(&summary.traced),
+        ),
+        (
+            "ERA5",
+            means(with(|row| row.2)),
+            10,
+            Some(&summary.era5_weather),
+        ),
+    ];
+    for (what, (flights, absolute, signed), expected, kept) in held {
+        assert_eq!(flights, expected, "{what}");
+        let (kept_flights, kept_absolute, kept_signed) = kept.map_or(
+            (
+                summary.flights,
+                summary.mean_absolute_apogee_error_percent,
+                summary.mean_apogee_error_percent,
+            ),
+            |means| {
+                (
+                    means.flights,
+                    means.mean_absolute_apogee_error_percent,
+                    means.mean_apogee_error_percent,
+                )
+            },
+        );
+        assert_eq!(kept_flights, flights, "{what}");
+        assert!(
+            (kept_absolute - absolute).abs() < 1e-9 && (kept_signed - signed).abs() < 1e-9,
+            "{what}: {kept_absolute} and {kept_signed}, the rows give {absolute} and {signed}"
+        );
+    }
+    // The logs' apogees, by their rules, as read where the logs are: public numbers, pinned
+    // here because CI holds no log, so an edited apogee fails without one. The two in feet are
+    // the PerfectFlite headers' 2765 ft and 3208 ft.
+    let logs: Vec<f64> = report
+        .predicted_first
+        .iter()
+        .map(|row| row.log_apogee_m)
+        .collect();
+    for (log, pinned) in logs.iter().zip([
+        3249.46,
+        3438.549384,
+        3001.75136,
+        2765.0 * 0.3048,
+        3208.0 * 0.3048,
+    ]) {
+        assert!(
+            (log - pinned).abs() < 1e-9,
+            "a log apogee of {log} m, read as {pinned} m"
+        );
+    }
+    // Which predicted flights the traced means leave out: the three tagged with the
+    // predictions, and no other.
+    let untraced: Vec<&str> = report
+        .predicted_first
+        .iter()
+        .filter(|row| !row.all_inputs_traced)
+        .map(|row| row.id.as_str())
+        .collect();
+    assert_eq!(untraced, ["andromeda", "macie-xl-1", "macie-xl-2"]);
+
+    // A flight outside the target is listed whichever part it is in, and none is dropped: a
+    // report without one of the five does not hold together (ADR-328 §3).
+    for row in &report.predicted_first {
+        assert_eq!(
+            summary.outliers.contains(&row.id),
+            row.apogee_error_percent.abs() > summary.target_percent,
+            "{}",
+            row.id
+        );
+    }
+    let mut dropped = report.clone();
+    let worst = dropped
+        .predicted_first
+        .iter()
+        .enumerate()
+        .max_by(|a, b| {
+            a.1.apogee_error_percent
+                .abs()
+                .total_cmp(&b.1.apogee_error_percent.abs())
+        })
+        .map(|(index, _)| index)
+        .expect("five rows");
+    dropped.predicted_first.remove(worst);
+    dropped.summary = crate::real_flight::summarize(&dropped.flights, &dropped.predicted_first);
+    let error = dropped
+        .check_consistent(&dropped.to_markdown())
+        .expect_err("a report that drops its worst flight");
+    assert!(error.contains("not the 5 merged"), "{error}");
+    assert!(
+        dropped.summary.mean_absolute_apogee_error_percent
+            < summary.mean_absolute_apogee_error_percent,
+        "dropping the worst flight would flatter the mean, which is why it fails"
+    );
+
+    // A prediction moved off its merged number, with no revision, does not hold together
+    // either, whichever way it moves: the mechanism the comparison must have (ADR-328 §1b).
+    for moved_m in [-1.0, 1.0] {
+        let mut moved = report.clone();
+        let row = &mut moved.predicted_first[0];
+        row.hpr_apogee_m += moved_m;
+        row.apogee_error_percent = 100.0 * (row.hpr_apogee_m - row.log_apogee_m) / row.log_apogee_m;
+        moved.summary = crate::real_flight::summarize(&moved.flights, &moved.predicted_first);
+        let error = moved
+            .check_consistent(&moved.to_markdown())
+            .expect_err("a moved prediction");
+        assert!(
+            error.contains("astra") && error.contains("REVISIONS"),
+            "{error}"
+        );
+    }
+
+    // Two edits to a committed row that CI, with no log, could otherwise not see. An assumed
+    // altimeter called a known one would move the known-barometric mean; a flight read from a
+    // design file would lose the stored simulation shown beside it.
+    let mut known = report.clone();
+    known.predicted_first[0].altimeter = "barometric".to_owned();
+    let error = check_listed(&known.predicted_first).expect_err("another altimeter");
+    assert!(error.contains("altimeter"), "{error}");
+    let mut unshown = report.clone();
+    unshown.predicted_first[3].openrocket_stored = None;
+    let error = check_listed(&unshown.predicted_first).expect_err("no stored simulation");
+    assert!(error.contains("stored simulation"), "{error}");
+    let mut shown = report.clone();
+    shown.predicted_first[0].openrocket_stored =
+        report.predicted_first[3].openrocket_stored.clone();
+    let error = check_listed(&shown.predicted_first).expect_err("a stored simulation too many");
+    assert!(error.contains("stored simulation"), "{error}");
+}
+
+#[test]
+fn a_revised_prediction_gives_the_means_on_the_merged_ones_beside_todays() {
+    // ADR-328 §1b's last clause: where any prediction was revised, the means are also given over
+    // the predictions as first merged. None has been, so this revises one in a copy of the
+    // committed report: Astra's flown apogee moved 100 m up, with a reason. (Whether a revision
+    // may stand at all is `held_to`'s, tested in the predictions' module.)
+    use crate::real_flight::{REPORT_JSON, RealFlightReport, summarize};
+    let text = std::fs::read_to_string(root().join(REPORT_JSON)).expect("the report is committed");
+    let mut report: RealFlightReport = serde_json::from_str(&text).expect("the report reads");
+    let same = crate::report::same_but_for_platform_rounding;
+    let before = report.summary.mean_apogee_error_percent;
+
+    let astra = &mut report.predicted_first[0];
+    assert_eq!(astra.id, "astra");
+    astra.hpr_apogee_m += 100.0;
+    astra.apogee_error_percent =
+        100.0 * (astra.hpr_apogee_m - astra.log_apogee_m) / astra.log_apogee_m;
+    astra.revised_because = Some("an invented reason".to_owned());
+    let (merged_m, todays_m) = (astra.merged_apogee_m, astra.hpr_apogee_m);
+    let (merged_error, todays_error) = (
+        astra.merged_apogee_error_percent,
+        astra.apogee_error_percent,
+    );
+    assert!((todays_m - merged_m - 100.0).abs() < 0.1);
+
+    let summary = summarize(&report.flights, &report.predicted_first);
+    let seven = report.flights.iter().map(|row| row.apogee_error_percent);
+    let todays: Vec<f64> = seven
+        .clone()
+        .chain(
+            report
+                .predicted_first
+                .iter()
+                .map(|row| row.apogee_error_percent),
+        )
+        .collect();
+    let merged: Vec<f64> = seven
+        .chain(
+            report
+                .predicted_first
+                .iter()
+                .map(|row| row.merged_apogee_error_percent),
+        )
+        .collect();
+    let mean = |errors: &[f64]| errors.iter().sum::<f64>() / errors.len() as f64;
+    let mean_absolute =
+        |errors: &[f64]| errors.iter().map(|error| error.abs()).sum::<f64>() / errors.len() as f64;
+
+    // The headline means are today's: they move with the revised number.
+    assert_eq!(summary.flights, 12);
+    assert!(same(summary.mean_apogee_error_percent, mean(&todays)));
+    assert!(same(
+        summary.mean_absolute_apogee_error_percent,
+        mean_absolute(&todays)
+    ));
+    assert!(summary.mean_apogee_error_percent > before + 0.2);
+    // Beside them, the means on the predictions as first merged: the revised flight counts there
+    // with its merged prediction's error, the others unchanged.
+    let on_merged = summary
+        .on_merged_predictions
+        .as_ref()
+        .expect("a revision gives the means on the merged predictions");
+    assert_eq!(on_merged.flights, 12);
+    assert!(same(on_merged.mean_apogee_error_percent, mean(&merged)));
+    assert!(same(
+        on_merged.mean_absolute_apogee_error_percent,
+        mean_absolute(&merged)
+    ));
+    assert!((on_merged.mean_apogee_error_percent - before).abs() < 0.01);
+
+    // The page says so, and keeps both numbers and both errors on the flight's row.
+    report.summary = summary;
+    let page = report.to_markdown();
+    assert!(!page.contains("No merged prediction has been revised"));
+    assert!(page.contains(&format!(
+        "On the predictions as first merged, each revised one put back: mean absolute apogee \
+         error {:.2}%, with its sign {:.2}%.",
+        mean_absolute(&merged),
+        mean(&merged)
+    )));
+    assert!(page.contains(&format!(
+        "| {merged_m:.1} | {todays_m:.1} | {todays_error:+.2}% | {merged_error:+.2}% |"
+    )));
+    assert!(page.contains("Revised, because an invented reason."));
+}
+
+/// Holds the flight `id`, one whose prediction was merged first, to its one place in the compared
+/// reports: since the errors (M2.3d2) the real-flights report has it once among its flights
+/// predicted first, where its merged prediction is held, and never among the flights compared as
+/// soon as they were flown; the two reports of the climb hold none of them.
+fn compared_only_as_predicted_first(id: &str) {
+    let read = |name: &str| {
+        std::fs::read_to_string(root().join("validation/reports").join(name))
+            .unwrap_or_else(|error| panic!("{name}: {error}"))
+    };
+    let real: serde_json::Value =
+        serde_json::from_str(&read("real-flights.json")).expect("the report reads");
+    let ids = |list: &str| -> Vec<&str> {
+        real[list]
+            .as_array()
+            .unwrap_or_else(|| panic!("real-flights.json has no `{list}`"))
+            .iter()
+            .filter_map(|row| row["id"].as_str())
+            .collect()
+    };
+    assert!(
+        !ids("flights").contains(&id),
+        "real-flights.json holds {id} among the flights compared first"
+    );
+    assert_eq!(
+        ids("predicted_first")
+            .iter()
+            .filter(|listed| **listed == id)
+            .count(),
+        1,
+        "real-flights.json holds {id} once among the flights predicted first"
+    );
+    for name in ["flight-residuals.json", "from-boost.json"] {
+        assert!(
+            !read(name).contains(&format!("\"{id}\"")),
+            "{name} holds {id}"
+        );
+    }
 }
 
 /// The committed predictions' file, as text.
@@ -2544,21 +3061,9 @@ fn public_predictions_are_the_listed_flights_and_hold_no_error() {
     ] {
         assert!(!source.contains(reader), "the predictions call `{reader}`");
     }
-    // And no compared report holds one of these flights.
-    for name in [
-        "real-flights.json",
-        "flight-residuals.json",
-        "from-boost.json",
-    ] {
-        let compared =
-            std::fs::read_to_string(root().join("validation/reports").join(name)).unwrap();
-        for flight in &NEW_FLIGHTS {
-            assert!(
-                !compared.contains(&format!("\"{}\"", flight.id)),
-                "{name} holds {}",
-                flight.id
-            );
-        }
+    // And each is compared only as a flight predicted first.
+    for flight in &NEW_FLIGHTS {
+        compared_only_as_predicted_first(flight.id);
     }
 }
 
@@ -2953,21 +3458,9 @@ fn design_file_predictions_fly_the_pinned_file_as_saved() {
     assert_ne!(first.curve_file, second.curve_file);
     assert_ne!(first.simulation, second.simulation);
 
-    // And no compared report holds one of these flights.
-    for name in [
-        "real-flights.json",
-        "flight-residuals.json",
-        "from-boost.json",
-    ] {
-        let compared =
-            std::fs::read_to_string(root().join("validation/reports").join(name)).unwrap();
-        for flight in &DESIGN_FILE_FLIGHTS {
-            assert!(
-                !compared.contains(&format!("\"{}\"", flight.id)),
-                "{name} holds {}",
-                flight.id
-            );
-        }
+    // And each is compared only as a flight predicted first.
+    for flight in &DESIGN_FILE_FLIGHTS {
+        compared_only_as_predicted_first(flight.id);
     }
 }
 
@@ -3608,7 +4101,7 @@ fn a_real_flight_explanation_that_stops_holding_fails() {
             .find(|row| row.explanation_kind == kind)
             .unwrap_or_else(|| panic!("a flight explained by {kind:?}"));
         change(row);
-        report.summary = summarize(&report.flights);
+        report.summary = summarize(&report.flights, &report.predicted_first);
         let page = report.to_markdown();
         let error = report.check_consistent(&page).unwrap_err();
         assert!(error.contains(expected), "{kind}: {error}");

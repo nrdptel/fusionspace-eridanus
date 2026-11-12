@@ -9,8 +9,9 @@ been from real flights, and how to install it. [A tour of HPR Sim](simulator-tou
 and shows it working.
 
 > **How far to trust it.** A test reads every number on this page from a committed report.
-> HPR Sim's apogees have been set against 7 public flights of university rockets, where they missed
-> by 6.06% on average without signs and by −0.22% with them, outside the project's own 5% target
+> HPR Sim's apogees have been set against 12 public flights, university rockets and one other
+> rocket, where they missed by 9.00% on average without signs and by −4.91% with them, outside the
+> project's own 5% target
 > ([report][real-report]). Against 60 logged flights of fliers' own designs they missed by 12.04%
 > without signs and averaged +7.72% above the logged ones. OpenRocket, flying the same files,
 > missed by 11.26% without signs and averaged +6.72% above ([report][fixture-report]). Those
@@ -80,8 +81,10 @@ what to do on macOS when it can't check the program.
 - Before you rely on a number, read [Trusting a simulation](trusting-a-simulation.md).
 
 The trust note's flights come from two places. The public flights are among those RocketPy's
-documentation flies against their teams' logs. University rocketry teams, rocketry courses and
-hobbyists published the logged flights. Both sets fly in ERA5 weather: generated using Copernicus Climate Change Service information 2026, and
+documentation flies against their teams' logs, but for one rocket's two flights, which come from
+a public repository of designs and logs. University rocketry teams, rocketry courses and
+hobbyists published the logged flights. Those and RocketPy's fly in ERA5 weather (the other
+rocket's two fly in standard air): generated using Copernicus Climate Change Service information 2026, and
 contains modified Copernicus Climate Change Service information 2026. Neither the European
 Commission nor ECMWF is responsible for any use made of it. The
 [logged flights' report][fixture-report] gives the full attribution and the ERA5 citations.
