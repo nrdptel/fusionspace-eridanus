@@ -3,6 +3,44 @@
 Measured numbers only, newest first within each section. Record the machine, the toolchain, and
 the command, so a later run can be compared like for like.
 
+## A supersonic table built once a process (2026-11-12, #1427)
+
+- **What the table is.** Faster than Mach 1.2, the body's normal force comes from the
+  shock-expansion method, read from a table from Mach 1.2 to 5. A model builds the table the first
+  time its flow passes Mach 1.2 (`AeroModel::supersonic_body`). The table follows from two inputs
+  alone: the body segments the method covers, and the reference area.
+- **Why it was slow.** The motor catalog's check (`cargo xtask motor-catalog --check`) flies each
+  of the 924 catalog motors with a thrust curve in a probe rocket sized to it, 24 probes in all. It
+  runs `hpr sim` once a motor, all in one process. Each run makes a fresh model, so each run whose
+  flight passed Mach 1.2 built its table. A macOS `sample` profile of one such flight (the H128W in the 29 mm probe, not committed)
+  put nearly every sample in the Taylor–Maccoll cone solution the table is built from. In one local run each, that flight
+  took 0.65 s, where the Level 1 guide rocket's flight on the same motor, which tops out at Mach 0.64, took 12 ms.
+- **The change.** A process can now ask to keep its tables (`hpr_aero::keep_supersonic_tables`).
+  Each later model then copies the table already built for an equal set of segments and the same
+  reference area. Up to 64 are kept; past that the first kept is dropped. Only the catalog check
+  asks. By default every model still builds its own, so a check that compares a shared table's
+  flight with one flown alone still builds that one afresh.
+- **Measured** with the `report-check` cargo profile (optimized, with the debug assertions kept),
+  on an Apple M5 (10 cores), rustc 1.98.1, one run each. Before is main at 9d19a377, after this
+  change:
+
+  | measurement | before | after |
+  |---|---|---|
+  | `motor-catalog --check`, wall time | 68 s | 4.2 s |
+  | `motor-catalog --check`, CPU time | 448 s | 20.0 s |
+  | CI's `validate (macos-latest)` job | 1,229 s and 982 s | 807 s |
+  | its `motor-catalog --check` step | 717 s and 617 s | 329 s |
+
+  The CI figures are GitHub's job and step times. Before is main's push run 43195398964 and a run
+  started by hand on the same commit, 43219825561. After is this change's first pull-request run,
+  43231264953, where the catalog step is now mostly compiling. That run is of its first commit,
+  which kept every process's tables; the catalog check runs the same way in both.
+- **What moves.** No flight's number: the validation reports are unchanged, but for the writing report's
+  word counts (`voice.md`). A unit test
+  (`kept_tables_are_found_by_run_and_area_and_the_first_kept_drops_first`) shows that a kept table
+  is found only for equal segments on the same reference area, and that it matches a fresh build in
+  every digit of its `Debug` text.
+
 ## The smoother's second run carries its means alone (2026-11-04)
 
 - **What this is.** `hpr analyze` smooths a log twice: once at the barometer port's expected

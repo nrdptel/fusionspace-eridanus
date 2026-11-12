@@ -42,6 +42,9 @@ pub struct Expected {
 
 /// Lists and flies every motor, failing on the first count or flight that is wrong.
 pub fn check(catalog: &Catalog, expected: &Expected) -> Result<(), String> {
+    // Each `hpr sim` builds a model of its own: kept, a probe shape's supersonic table is built
+    // about once, not once a motor (issue #1427). The flights are the same either way.
+    hpr_aero::keep_supersonic_tables();
     let scratch = std::env::temp_dir().join(format!("hpr-motor-flights-{}", std::process::id()));
     let cache = scratch.join("cache");
     fs::create_dir_all(&cache).map_err(|error| format!("{}: {error}", cache.display()))?;
