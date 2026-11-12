@@ -1,6 +1,6 @@
 # ADR-233: The pages' own words split again: the intro's chip and lead first (2026-10-11)
 
-- **Status:** accepted; splits M0.9d11 ([ADR-231][adr-231]'s rest of #384) in two; adds M0.9d12
+- **Status:** accepted; splits M0.9d11 ([ADR-231][adr-231]'s rest of #384) in two; adds M0.9d12; the parts [ADR-343](0343-the-docs-site-drawn-as-a-tool-the-frame-off.md) lists are superseded by it, as the docs site is drawn as a tool
 - **Summary:** M0.9d11 took the rest of #384: the intro's status chip and one-sentence lead, two to six sheets a page, and every page opening with how far to trust it. M0.9d11 now covers the intro: after mdBook builds the site, `cargo xtask site` sets the title block's status (IN PREPARATION or RELEASED, the product system's drawing words) in the system's chip beside the designation tag, and makes the paragraph under every page's title its lead, which a file check holds to one sentence of at most 25 words; the page check fails a chip or a lead drawn off the system's, with canaries. The title block's version and status, which still read "not yet released" after 0.1.0 shipped on 2026-10-08, now say what the site describes. The new M0.9d12 keeps the old done-when whole (#384 closed, every rule held) and takes the sheets and the trust openings.
 
 [adr-231]: 0231-the-page-anatomy-the-drawing-first.md

@@ -158,7 +158,8 @@
 //!     a menu or a search;
 //!   - a link drawn out of the page (not to a place on it), in `main` or outside it as the title
 //!     block's are, with no `::before` or `::after` holding its address;
-//!   - a table row, a note or a title block that can split across sheets (`break-inside`);
+//!   - a table row, a note, a footer line or a title block that can split across sheets
+//!     (`break-inside`);
 //!   - a title block not drawn, or without its version and date of issue drawn;
 //!   - anything fixed to the window, element or `::before` or `::after`, which a browser draws
 //!     on every sheet over what stands there;
@@ -563,9 +564,9 @@ enum Kind {
     Squeezed,
     /// A table that scrolls sideways inside its box, hiding its last columns (#498, ADR-297).
     Scrolls,
-    /// A quote block in a page's `main`, or a note not drawn as the system's: its kind's signal
-    /// word in a `label` strip across its top, set apart by a rule or a fill, inside its border
-    /// (#384).
+    /// A quote block in a page's `main`, or a note not drawn as the system's: its kind's name
+    /// in Archivo 13/16 across its top (a caution's or a warning's signal word in capitals, in
+    /// the wide cut), set apart by a rule or a fill, inside its border (#384, ADR-343).
     Note,
     /// Text under WCAG 2.2 AA's contrast against what it is drawn on (#383).
     Contrast,
@@ -1003,7 +1004,7 @@ macro_rules! arrows {
 
 /// A closed search field as mdBook's, with `$style` added, moved by its script to stand before
 /// `$before`, for the search canaries: the page check opens it as its button does. The page's
-/// first line starts at `main`'s top, as the site's designation tag does, after a first child
+/// first line starts at `main`'s top, as a page's intro does, after a first child
 /// that isn't drawn, which the check must pass over.
 macro_rules! search {
     ($style:expr, $before:expr) => {

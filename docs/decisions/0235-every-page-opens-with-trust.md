@@ -1,6 +1,6 @@
 # ADR-235: Every page in two to six sheets and opening with how far to trust it (2026-10-11)
 
-- **Status:** accepted; closes M0.9d13 ([ADR-234][adr-234]'s rest of #384) and with it M0.9d
+- **Status:** accepted; closes M0.9d13 ([ADR-234][adr-234]'s rest of #384) and with it M0.9d; the parts [ADR-343](0343-the-docs-site-drawn-as-a-tool-the-frame-off.md) lists are superseded by it, as the docs site is drawn as a tool
 - **Summary:** The 38 pages that had more than six `##` sections are grouped into two to six sheets, so the check fails any page outside that range and the list of exceptions is gone. Every page but a model page now holds a trust note, a quote block opening with `**How far to trust it.**`, between its title's lead and its first sheet; a model page opens with *In short* instead. `cargo xtask site` and a site test fail a page that doesn't.
 
 [adr-234]: 0234-two-to-six-sheets-the-check-first.md

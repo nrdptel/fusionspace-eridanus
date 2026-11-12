@@ -4,7 +4,7 @@
 
 Rates are per 100 words, rounded up to two decimals, so a page over a limit never shows a rate at or under it; a rate over its limit is in bold. Words a sentence and the share of sentences over 25 words are rounded up too, to 0.1 and to 1%, so neither shows a page inside a target it misses. A stock phrase fails the build, and so does a page marked `held` that's over a limit or misses a sentence target. The 135 held pages are every page the site's table of contents lists, with the README and the 404 page, less the records page ([ADR-285](../../docs/decisions/0285-the-rest-of-the-site-in-nine.md)), each snapshot of an `hpr` command's `--help`, the census of what the commands say, a page for each crate's `src/` directory, the Python package's README and its docstrings as `help()` shows them, and each crate's front page, the `//!` docs of its `src/lib.rs` ([ADR-292](../../docs/decisions/0292-the-programs-words-in-four.md)).
 
-143 pages, 559588 words, 0 stock phrases. 139 pages are within every limit.
+143 pages, 559579 words, 0 stock phrases. 139 pages are within every limit.
 
 | Pattern | Limit per 100 words | Pages over it | Highest rate |
 |---|---:|---:|---|
@@ -76,7 +76,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/format/pf2.md` (`ref`, `held`) | 815 | 13.9 | 0% | 0.00 | 0.13 | 0.00 | 0.25 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 1.23 |
 | `docs/format/rse.md` (`ref`, `held`) | 2256 | 14.0 | 0% | 0.27 | 0.09 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.05 |
 | `docs/getting-started.md` (`held`) | 4152 | 13.6 | 2% | 0.27 | 0.00 | 0.10 | 0.10 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.87 | 0.73 |
-| `docs/glossary.md` (`ref`, `held`) | 13290 | 13.3 | 1% | 0.00 | 0.10 | 0.03 | 0.07 | 0.00 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.06 | 0.13 |
+| `docs/glossary.md` (`ref`, `held`) | 13286 | 13.3 | 1% | 0.00 | 0.10 | 0.03 | 0.07 | 0.00 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.06 | 0.13 |
 | `docs/how-a-flight-is-simulated.md` (`held`) | 2127 | 14.2 | 0% | 0.33 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.15 | 0.33 |
 | `docs/monte-carlo.md` (`held`) | 3574 | 13.8 | 0% | 0.23 | 0.00 | 0.00 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.45 | 0.73 |
 | `docs/motor-stock.md` (`held`) | 3606 | 14.2 | 3% | 0.00 | 0.00 | 0.17 | 0.12 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.37 | 1.06 |
@@ -128,7 +128,7 @@ The register has no limit of its own (first person on a reference page, above, i
 | `docs/trusting-a-simulation.md` (`held`) | 1597 | 15.4 | 4% | 0.00 | 0.00 | 0.26 | 0.19 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.07 | 1.01 |
 | `docs/weather.md` (`held`) | 2016 | 13.1 | 1% | 0.00 | 0.00 | 0.05 | 0.00 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.30 | 0.85 |
 | `docs/when-fins-flutter.md` (`held`) | 1763 | 14.8 | 1% | 0.23 | 0.00 | 0.06 | 0.12 | 0.00 | 0.00 | 0.00 | | 0.06 | 0.00 | 0.18 | 0.63 |
-| `docs/writing.md` (`held`) | 12008 | 15.2 | 6% | 0.48 | 0.21 | 0.33 | 0.15 | 0.00 | 0.02 | 0.00 | | 0.02 | 0.01 | 0.09 | 0.92 |
+| `docs/writing.md` (`held`) | 12003 | 15.2 | 5% | 0.48 | 0.21 | 0.32 | 0.15 | 0.00 | 0.02 | 0.00 | | 0.02 | 0.01 | 0.09 | 0.92 |
 | `docs/your-own-logger.md` (`held`) | 2410 | 14.6 | 1% | 0.00 | 0.00 | 0.05 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.42 | 0.67 |
 | `docs/your-own-rocket.md` (`held`) | 4518 | 14.7 | 1% | 0.36 | 0.00 | 0.05 | 0.09 | 0.00 | 0.00 | 0.00 | | 0.00 | 0.00 | 0.38 | 0.69 |
 | `crates/hpr-cli/src/` (`ref`, `held`) | 9631 | 9.8 | 1% | 0.00 | 0.00 | 0.07 | 0.21 | 0.02 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.20 | 0.51 |

@@ -4,8 +4,8 @@ Look up any term these pages use, with a short definition and a link to the page
 it most.
 
 Terms are listed alphabetically in six groups by first letter. Each term has its own heading, so
-any page can link straight to one; a site search jumps to it. Headings show in capitals,
-so the entry's text gives a name's own spelling. Where HPR Sim uses a term in a particular way (a
+any page can link straight to one; a site search jumps to it. Headings show as written,
+in each name's own spelling. Where HPR Sim uses a term in a particular way (a
 sign, a frame, a reference point), the entry says so.
 
 > **How far to trust it.** These are definitions, not results: each of the 190 terms follows the

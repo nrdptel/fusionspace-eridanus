@@ -28,8 +28,9 @@ pre > .buttons button.clip-button:hover::before {
 .fa-svg svg { width: 20px; height: 20px; fill: none; margin-bottom: 0; vertical-align: middle; }
 .nav-chapters .fa-svg svg,
 pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
-/* The page arrows' icons at 16 px: the system's theme sizes them 1 em of the page's text, which
-   grows past the icon sizes (16, 20, 24) on a wide window. */
+/* The page arrows' icons at 16 px: the system's theme sizes them 1 em of the page's text (the
+   system's 1x the text), which grows to 18 px on a wide window, and the page check holds icons to
+   the fixed 16, 20 and 24 px. */
 .page-wrapper .nav-wrapper .mobile-nav-chapters .fa-svg { width: 16px; height: 16px; }
 .previous .fa-svg svg { transform: scaleX(-1); }
 /* The page arrows' names (`web.md`, *Page anatomy*; `frame.rs` writes them, and the system's
@@ -238,7 +239,7 @@ html:not(.js) #mdbook-theme-list.fs-seg { display: none !important; }
    the print page's title block, which carry the version and date of issue, each kept on one sheet
    of paper; and the chip's fill, the same on paper as on screen (`foundations.md`, *Color*). The page check reads every page with the stylesheets' print rules applied, in each
    theme, and fails a color that differs from the light theme's, a control or navigation drawn,
-   a link without its address, a row, note or title block that can split, a title block not
+   a link without its address, a row, note, footer line or title block that can split, a title block not
    drawn whole, or anything fixed to the window. */
 @media print {
     .fs-titleblock, .fs-foot { break-inside: avoid; }

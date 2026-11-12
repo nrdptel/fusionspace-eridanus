@@ -1,6 +1,6 @@
 # ADR-164: hpr-sim follows the FusionSpace product system, as `FS · SW · TOOL 005` (2026-10-04)
 
-- **Status:** accepted; §1's pin and §2's designation (`FS-ACHERNAR · SW · TOOL 001`) amended by [ADR-198, project Eridanus](0198-the-2026-10-07-project-eridanus.md)
+- **Status:** accepted; §1's pin and §2's designation (`FS-ACHERNAR · SW · TOOL 001`) amended by [ADR-198, project Eridanus](0198-the-2026-10-07-project-eridanus.md); the parts [ADR-343](0343-the-docs-site-drawn-as-a-tool-the-frame-off.md) lists are superseded by it, as the docs site is drawn as a tool
 - **Summary:** hpr-sim adopts the FusionSpace product system (`nrdptel/fusionspace-design`, `product/`, Rev A, pinned at `32770a4`) for its command line, documentation site, plots, exports, writing and every later app and device. It takes the designation `FS · SW · TOOL 005`. Apache-2.0 files from the system are copied in with their license lines; brand files only as README banners, outside the repository's license. Milestone M0.6 makes the existing surfaces comply, after M4.5 and before release 0.1; later milestones and every release checklist take the system's rules and checklists. The CLI keeps SI first with US units in brackets, and carries no brand banner
 
 **Context.** On 2026-10-04 Neer decided hpr-sim would take in and follow his FusionSpace design

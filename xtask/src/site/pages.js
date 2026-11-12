@@ -431,7 +431,8 @@
     + '#mdbook-menu-bar';
   const PRINT_WHOLE = 'tr, .fs-note, .fs-titleblock, .fs-foot';
   const TITLE_BLOCK_PRINTED = ['Version', 'Date of issue'];
-  // The sizes the system draws its icons at (`foundations.md`, *Icons*), square.
+  // The fixed sizes the system draws its icons at (`foundations.md`, *Icons*), square. The system
+  // also allows 1, 1.25 or 1.5 times the text; the check holds to the fixed sizes.
   const ICON_SIZES = [16, 20, 24];
   // The page's frame (#384; `web.md`, *Page anatomy*): the lockup's height, the brand's clear
   // space around it as a share of that height, the inks it may be drawn in (Void on light, Paper

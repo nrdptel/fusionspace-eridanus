@@ -3081,14 +3081,14 @@ pub(crate) fn in_short(text: &str) -> Option<(usize, String)> {
 
 /// How a page other than a model page opens, for the messages of [`trust_opening`].
 const TRUST_OPENING: &str = "every page opens with how far to trust it (`web.md`, *Documentation \
-                             sites*): between its title and its first `##` sheet, a trust note, a \
+                             sites*): between its title and its first `##` part, a trust note, a \
                              quote block whose first paragraph opens with `**How far to trust \
                              it.**`; a model page says it in `## In short` instead";
 
 /// Where a page that isn't a model page fails to open with how far to trust it, as (line,
 /// message): the product system's `web.md` asks every docs page to start "with what works and how
 /// far to trust it". The lead under the title says what the page covers; the page's opening, the
-/// text before its first `##` sheet, must hold a trust note: a quote block standing on the page
+/// text before its first `##` part, must hold a trust note: a quote block standing on the page
 /// itself, inside no other block, whose first paragraph opens with the bold [`TRUST_LABEL`]. One
 /// rule decides what is the page's: a quote block in a list, another quote block or a footnote
 /// isn't, and an alert (`> [!NOTE]`) is another kind of note. Model pages open with *In short*
@@ -3147,7 +3147,7 @@ fn trust_opening(text: &str) -> Option<(usize, String)> {
     }
     Some((
         line(first_sheet.min(text.len().saturating_sub(1))),
-        format!("no trust note before the first sheet: {TRUST_OPENING}"),
+        format!("no trust note before the first part: {TRUST_OPENING}"),
     ))
 }
 
@@ -3909,7 +3909,7 @@ mod tests {
     #[test]
     fn every_page_opens_with_how_far_to_trust_it() {
         // `web.md`'s "every docs page starts with what works and how far to trust it" (#384), on
-        // the real pages: a trust note before the first sheet, or *In short* on a model page.
+        // the real pages: a trust note before the first part, or *In short* on a model page.
         let report = check_sources(&crate::designs::root().unwrap()).unwrap();
         assert!(
             report.openings.is_empty(),
@@ -3932,7 +3932,7 @@ mod tests {
         ] {
             assert_eq!(trust_opening(&page(&opening)), None, "{opening}");
         }
-        // No note; a note only after the first sheet; a note in a list, another quote block or a
+        // No note; a note only after the first part; a note in a list, another quote block or a
         // footnote; an alert, even with the label; a label that isn't the note's, or not where the
         // note's is; no sheet at all.
         for text in [
@@ -3948,7 +3948,7 @@ mod tests {
             page("> Para.\n>\n> **How far to trust it.** Text.\n"),
             "# Title\n\nThe lead.\n".to_owned(),
         ] {
-            // Reported at the first sheet's heading, or the page's last line without one.
+            // Reported at the first part's heading, or the page's last line without one.
             let line = 1 + text[..text.find("## One").unwrap_or(text.len() - 1)]
                 .matches('\n')
                 .count();

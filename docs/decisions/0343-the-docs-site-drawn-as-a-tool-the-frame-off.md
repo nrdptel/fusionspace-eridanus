@@ -42,8 +42,8 @@ reading scale.
 **Decision.**
 
 1. **The pin moves to `dd7552f`.** `theme/` copies the system's mdBook theme, fonts (with the
-   new `Archivo-WideSemiBold.woff2` and its `@font-face` rule), icons, card and check script at
-   that commit, and `cargo xtask site` compares each with it when `refs/fusionspace-design` is
+   new `Archivo-WideSemiBold.woff2` and its `@font-face` rule), icons and card at that commit,
+   with the check script in `xtask/src/site/`, and `cargo xtask site` compares each with it when `refs/fusionspace-design` is
    checked out: byte for byte, and `fonts.css` rule by rule with its `fonts/` folder dropped. `validation/refs.lock.toml`, `theme/README.md`,
    `THIRD-PARTY-NOTICES.md` and the README name it.
 2. **No record's frame on a page.** The build draws an intro (the title, then its one-sentence
@@ -93,20 +93,22 @@ reading scale.
    size, as the system's theme sets it (`font-size: inherit`), so the check accepts Cascadia
    Mono there at the heading's own level and nowhere else, with a canary each way.
 9. **The page arrows' icons stay 16 px.** The system's theme sizes them 1 em of the page's
-   text, which grows to 18 px on a wide window, off the icon sizes (16, 20 and 24 px);
-   `hpr.css` holds them at 16 px.
+   text, the system's 1× the text, which grows to 18 px on a wide window. The page check holds
+   icons to the system's fixed sizes, 16, 20 and 24 px, so `hpr.css` holds them at 16 px.
 10. **The wide cut is asked for early.** Titles and section names now draw in Archivo's wide
-    cut, so `theme/head.hbs` preloads it with the four faces it already asked for. Without it,
-    a title drawn first in a stand-in and redrawn in the wide cut moved one page's text past the
-    site check's 0.1 limit for layout shift, in this branch's first full run; with it, every
-    page passes.
+    cut, so `theme/head.hbs` preloads it with the four faces it already asked for, and a title
+    isn't drawn first in a stand-in and redrawn. [ADR-232][adr-232] found a fifth face pushed
+    the largest contentful paint to 2.50 s in a probe; `cargo xtask site`'s vitals check holds
+    every page to its limits, 2.5 s for that paint and 0.1 for layout shift, with the five.
 
 **Superseded.**
 
 - [ADR-164][adr-164]: the docs site's row, "a title block", now reads: a footer line on every
   page of the guide but the print page, the title block on Start here and at the end of the
   print page.
-- [ADR-223][adr-223]: §2's mapping. `h1` and `h2` move from the Cascadia Mono `title` and
+- [ADR-223][adr-223]: §1's capitals only at Cascadia Mono 12/16 and 14/20, and the sidebar in
+  Cascadia Mono 14 px: a signal word is in capitals at Archivo 13/16 too, and the sidebar is
+  Archivo 15/20. §2's mapping. `h1` and `h2` move from the Cascadia Mono `title` and
   `subtitle` tokens to Archivo's wide cut at the theme's 32/36 and 24/28; `h3` is a heading
   inside a part in sentence case, not in capitals; column heads and Start here's field names
   are Archivo 13/18, not `label` capitals (the print page's block keeps them). §4's "title

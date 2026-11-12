@@ -1064,8 +1064,8 @@ What it took to pass is recorded in
 
 - one stylesheet instead of ten, asked for first with mdBook's sidebar script;
 - five fonts asked for early so that text doesn't move when they arrive. That's three more
-  than the product system allows: with its two, CLS reached 0.17 on two pages, and without the
-  wide cut titles are drawn in, one page went over the limit
+  than the product system allows: with its two, CLS reached 0.17 on two pages. The fifth is the
+  wide cut titles are drawn in
   ([M0.17a, the frame off](decisions-and-roadmap.md#m0-17a));
 - the theme switch placed before the page is first drawn;
 - the print page's cover.

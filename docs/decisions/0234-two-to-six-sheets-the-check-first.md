@@ -1,6 +1,6 @@
 # ADR-234: The pages' sheets and trust split again: the sheet count's check first (2026-10-11)
 
-- **Status:** accepted; splits M0.9d12 ([ADR-233][adr-233]'s rest of #384) in two; adds M0.9d13
+- **Status:** accepted; splits M0.9d12 ([ADR-233][adr-233]'s rest of #384) in two; adds M0.9d13; the parts [ADR-343](0343-the-docs-site-drawn-as-a-tool-the-frame-off.md) lists are superseded by it, as the docs site is drawn as a tool
 - **Summary:** M0.9d12 took the rest of #384: two to six sheets a page and every page opening with how far to trust it. M0.9d12 now covers the sheet count's check: `cargo xtask site` and a site test count each page's `##` sections, its sheets, and fail a page with fewer than two or more than six, except the 38 pages over six on a list in `xtask/src/site/sheets.rs`, held exact: a listed page at six or fewer fails until it comes off, and so does a listed page the summary doesn't hold. The glossary, 187 sections, one a term, now groups its terms in six by first letter, each term a `###` heading with the same anchor. The new M0.9d13 keeps the old done-when whole (#384 closed, every rule held) and takes the 38 pages' grouping and the trust openings.
 
 [adr-233]: 0233-the-intro-chip-and-lead-first.md

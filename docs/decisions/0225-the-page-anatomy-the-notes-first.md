@@ -1,6 +1,6 @@
 # ADR-225: The page anatomy split again: the notes first (2026-10-10)
 
-- **Status:** accepted; splits M0.9d5 ([ADR-223][adr-223]'s rest of #384) in two; adds M0.9d7
+- **Status:** accepted; splits M0.9d5 ([ADR-223][adr-223]'s rest of #384) in two; adds M0.9d7; the parts [ADR-343](0343-the-docs-site-drawn-as-a-tool-the-frame-off.md) lists are superseded by it, as the docs site is drawn as a tool
 - **Summary:** M0.9d5 took the six parts of #384 that change what each page is made of. It now covers one: every quote block a page writes is drawn as the product system's note (`.fs-note`), its signal word in a strip above the message. Pages keep writing Markdown that GitHub renders: a trust note opening with `**How far to trust it.**`, or a GitHub alert, `[!NOTE]`, `[!CAUTION]` or `[!WARNING]`. After mdBook builds the site, `cargo xtask site` rewrites each as the system's specimen writes a note and fails any other quote block; its page check fails a quote block, or a note whose signal word, strip, fill or border is off the system's, each with a canary. The new M0.9d7 keeps the old done-when whole (#384 closed, every rule held) and takes the rest: title blocks, sheets, the intro, the lockup header with no menu button from 720 px, and every page opening with how far to trust it.
 
 [adr-223]: 0223-the-pages-frame-first.md

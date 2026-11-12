@@ -1,6 +1,6 @@
 # ADR-229: The page anatomy split again: the frame first (2026-10-10)
 
-- **Status:** accepted; splits M0.9d7 ([ADR-225][adr-225]'s rest of #384) in two; adds M0.9d9
+- **Status:** accepted; splits M0.9d7 ([ADR-225][adr-225]'s rest of #384) in two; adds M0.9d9; the parts [ADR-343](0343-the-docs-site-drawn-as-a-tool-the-frame-off.md) lists are superseded by it, as the docs site is drawn as a tool
 - **Summary:** M0.9d7 took the rest of #384: title blocks, sheets, the intro, the lockup header with no menu button from 720 px, the `header` and `footer` landmarks, and every page opening with how far to trust it. M0.9d7 now covers the page's frame, what stands above and below every page's text: after mdBook builds the site, `cargo xtask site` makes the menu bar a `header` that draws the system's one-color horizontal lockup, keeps the sidebar open with no menu button from 720 px, and ends every page with the system's title block in a `footer`, its entries written once at the end of the landing page's source. A file check fails a page without them, and the page check fails a lockup off 24 px or the ink role or without its clear space, a menu button from 720 px, a sidebar a keyboard or screen reader reaches while it is put away (or can't while it is shown), and a title block off the system's shape or not last, each with canaries. The new M0.9d9 keeps the old done-when whole (#384 closed, every rule held) and takes the intro, the sheets and the trust openings.
 
 [adr-225]: 0225-the-page-anatomy-the-notes-first.md
