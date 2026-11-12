@@ -1179,7 +1179,7 @@ mod tests {
         for i in 0..500_u32 {
             let t = f64::from(i) * STEP_S;
             if i > 0 {
-                // The climb by the midpoint rule in small steps: a millimetre's error at most.
+                // The climb by the midpoint rule in small steps: a millimeter's error at most.
                 let dt = STEP_S / f64::from(SUBSTEPS);
                 for j in 0..SUBSTEPS {
                     let tau = t - STEP_S + (f64::from(j) + 0.5) * dt - 3.0;
@@ -1240,7 +1240,7 @@ mod tests {
         // The tail-off's net push falls in a line to the weight's pull at its burnout, 6.0 s in.
         let tail_off = move |tau: f64| g / 1.05 * (4.95 - tau);
         let constant = |_tau: f64| 40.0;
-        // (what, net push, burn, true peak's time, bad metres, a step that stays)
+        // (what, net push, burn, true peak's time, bad meters, a step that stays)
         let cases: [(&str, &dyn Fn(f64) -> f64, f64, f64, f64, bool); 4] = [
             ("80 m/s", &constant, 2.0, 5.0, 45.0, false),
             ("50 m/s", &constant, 1.25, 4.25, 30.0, false),
