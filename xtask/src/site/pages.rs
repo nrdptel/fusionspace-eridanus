@@ -1329,7 +1329,7 @@ macro_rules! mono_faces {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-static CANARIES: [Canary; 208] = [
+static CANARIES: [Canary; 209] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -2652,6 +2652,16 @@ static CANARIES: [Canary; 208] = [
         inside: "",
         after: foot!(
             "<style>@media print { .fs-foot > span:nth-child(3) { display: none !important; } \
+             }</style>"
+        ),
+    },
+    Canary {
+        file: "canary-print-foot-unversioned.html",
+        what: "a footer line printed without its version",
+        expect: &[Kind::Print],
+        inside: "",
+        after: foot!(
+            "<style>@media print { .fs-foot > span:nth-child(2) { display: none !important; } \
              }</style>"
         ),
     },
@@ -4854,7 +4864,11 @@ mod tests {
     fn the_header_and_the_title_block_have_canaries_both_ways() {
         // Each kind has canaries that must show it alone, and the frame drawn as the system's
         // must pass.
-        for (kind, least) in [(Kind::Header, 15), (Kind::TitleBlock, 20)] {
+        for (kind, least) in [
+            (Kind::Header, 15),
+            (Kind::TitleBlock, 20),
+            (Kind::Print, 19),
+        ] {
             let failing = CANARIES
                 .iter()
                 .filter(|canary| canary.expect == [kind])

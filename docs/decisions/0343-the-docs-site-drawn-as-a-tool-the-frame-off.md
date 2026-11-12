@@ -107,7 +107,7 @@ reading scale.
     printed without its version or its date of issue, and one that can split across sheets,
     each with a canary.
 12. **Room above the title.** With nothing over it, the intro stands 32 px under the header,
-    one of the system's spacing steps, the room the tag row over it used to leave.
+    one of the system's spacing steps. The tag row over it used to leave 40 px.
 
 **Superseded.**
 
@@ -148,7 +148,7 @@ reading scale.
   ([ADR-339][adr-339] §2).
 - The page check's canaries change with the frame: those for the tag and the sheet numbers now
   fail as a record's frame drawn; the chip's canaries check it in the footer. The least count
-  of each kind the canaries must show moves with them: 14 for parts, 20 for footers and title
+  of each kind the canaries must show is set to the count there is: 14 for parts, 20 for footers and title
   blocks.
 - [M0.17b][m0-17b] adds the Field theme and the acceptance pass for the whole restyle.
 
