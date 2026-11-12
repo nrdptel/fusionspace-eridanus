@@ -1240,8 +1240,10 @@ mod tests {
         // The tail-off's net push falls in a line to the weight's pull at its burnout, 6.0 s in.
         let tail_off = move |tau: f64| g / 1.05 * (4.95 - tau);
         let constant = |_tau: f64| 40.0;
+        /// The net push, as a function of the time since ignition.
+        type Climb<'a> = &'a dyn Fn(f64) -> f64;
         // (what, net push, burn, true peak's time, bad meters, a step that stays)
-        let cases: [(&str, &dyn Fn(f64) -> f64, f64, f64, f64, bool); 4] = [
+        let cases: [(&str, Climb, f64, f64, f64, bool); 4] = [
             ("80 m/s", &constant, 2.0, 5.0, 45.0, false),
             ("50 m/s", &constant, 1.25, 4.25, 30.0, false),
             ("the tail-off", &tail_off, 6.0, 7.95, 100.0, false),
