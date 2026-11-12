@@ -186,7 +186,7 @@ open their `.ork` files.
 
 On the 12 public flights HPR Sim's apogee missed by 9.00% on average without signs, outside the
 project's own 5% target ([report][real-report]). They're university rockets that RocketPy's
-documentation flies against their teams' logs, and one hobby rocket's flights, from its public
+documentation flies against their teams' logs, and one other rocket's two flights, from its public
 design file and logs. OpenRocket and RocketPy haven't flown them here yet
 (see the planned milestones [an open benchmark](decisions-and-roadmap.md#m2-6) and
 [the other tools' cells](decisions-and-roadmap.md#m2-9)).

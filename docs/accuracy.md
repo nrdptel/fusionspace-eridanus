@@ -30,8 +30,8 @@ average. They miss by 12.04% (mean absolute), also outside the target. OpenRocke
 above** ([private collection](#real-flights-of-the-private-collection), [report][fixture-report]).
 
 No flight here is blind yet: all were seen during development. [Blind
-flights](decisions-and-roadmap.md#m2-7) will be predicted before their logs are read. Five more
-public flights are predicted and not compared yet
+flights](decisions-and-roadmap.md#m2-7) will be predicted before their logs are read. Five of the
+public flights had their predictions merged before they were compared
 ([predicted before compared](#predicted-before-compared)). They aren't blind either: their measured
 apogees were already public.
 
@@ -53,7 +53,7 @@ What has been checked so far:
   declared drag coefficient. One flies past Mach 1.
 - The same flights with each code's own drag, reported against a target rather than gated, the one
   past Mach 1 included.
-- Twelve public real flights, ten of them flown in the weather of their day. Their apogees are
+- Twelve public real flights, ten of them flown in ERA5 weather, nine in their own day's. Their apogees are
   compared with their altitude logs, and for seven the climb too ([real flights](#real-flights)).
 - 60 more real flights of a private collection, flown by HPR Sim and OpenRocket in the weather of
   their day. They're compared with their logged apogees as aggregates
@@ -787,15 +787,15 @@ Read the way each log's altimeter reads the air, HPR Sim's [apogees](glossary.md
 logs' by 9.00% on average. That's outside the 5% target ([evidence row G24](evidence.md#g24)).
 With its sign the mean is −4.91%, and 7 of the 12 read low ([report][real-report]).**
 
-**Seven are RocketPy's [logged flights](decisions-and-roadmap.md#m2-3b), flown in the weather of
-the day and compared as soon as they were flown ([the decision][adr-082]). Their mean is 6.06%,
+**Seven are RocketPy's [logged flights](decisions-and-roadmap.md#m2-3b), flown in ERA5 weather
+and compared as soon as they were flown ([the decision][adr-082]). Their mean is 6.06%,
 and −0.22% with its sign. Five of them miss by more than 5%. Each has an explanation checked
 against the report's numbers: four are consistent with HPR Sim's drag, and one with the motor's
 impulse. The other five flights were [predicted first](#predicted-before-compared). They miss by
 13.12% on average, and no explanation is claimed for them ([report][real-report]).**
 
-Seven of the 12 altimeters' kinds are assumed, none is calibrated, and the designs' fin edges are
-guesses (evidence rows [G21](evidence.md#g21) and [G39](evidence.md#g39)). So read the numbers as
+Seven of the 12 altimeters' kinds are assumed, none is calibrated, and the fin edges of the ten
+designs built from RocketPy's examples are guesses (evidence rows [G21](evidence.md#g21) and [G39](evidence.md#g39)). So read the numbers as
 those 12 flights' ([report][real-report]), not as a bound on every rocket. The rest of this part is about the seven
 compared first. The five predicted first have [their own part](#predicted-before-compared).
 
@@ -849,8 +849,8 @@ The kind of four of these seven altimeters is assumed rather than known
 flights predicted first ([evidence row G39](evidence.md#g39)). Each row of the
 [report][real-report] gives its evidence. Reading all 12 logs as heights would give a mean of
 7.88%, but five logs are known to be barometric. Reading only the seven assumed ones as heights
-gives 9.14%: the target is missed either way. Read that way, Lince (+7.99%) would miss by more
-than 5% with no checked explanation, and Genesis wouldn't ([report][real-report],
+gives 9.14%: the target is missed either way. Read that way, among the seven compared first,
+Lince (+7.99%) would miss by more than 5% with no checked explanation, and Genesis wouldn't ([report][real-report],
 [decision][adr-082]).
 
 Two logs also carry satellite (GNSS) heights, a geometric reference. Their barometric apogees are
@@ -970,8 +970,8 @@ prediction below beside its error
 | [Macie XL, flight 2][real-report] ([Cesaroni 601I350-16A][predictions]) | 600.8 | 692.6 | 977.8 | **−29.16%** | 692.7 | no |
 
 **What the comparison shows.** Four of the five read low, and four miss by more than 5%. The
-[report][real-report] claims no explanation for them. The two diagnostics it flies for the seven, the team's drag
-and the thrust file as recorded, aren't flown for these five, and their climbs aren't compared
+[report][real-report] claims no explanation for them. The two diagnostics it flies among the seven, each team's drag
+and Juno III's thrust file as recorded, aren't flown for these five, and their climbs aren't compared
 ([the open issue](https://github.com/nrdptel/fusionspace-eridanus/issues/1436)). What the report
 does give is each flight's tags, written before the comparison.
 

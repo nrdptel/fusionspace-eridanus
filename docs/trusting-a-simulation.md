@@ -68,9 +68,9 @@ from isn't pinned down. It could be in what both are given (the design file, the
 the logged apogee they're scored against), or in models they have in common. A second simulator
 checks how the first is coded, not what the two share.
 
-The 12 public flights are university teams' rockets and one hobby rocket that flew twice
+The 12 public flights are university teams' rockets and one other rocket that flew twice
 ([report][real-report]), 10 of them flown in a [reanalysis](glossary.md#reanalysis) of their
-days' weather, one of those in another year's. The hobby rocket's two are flown as the
+days' weather, one of those in another year's. That rocket's two are flown as the
 simulations stored in its design file, in standard air. HPR Sim's apogee missed them by 9.00% on
 average without signs, from −29.16% to +10.40% one by one. With signs the misses averaged −4.91%,
 low on 7 of the 12. The average without signs is still outside the project's own 5% target

@@ -106,8 +106,8 @@ OpenRocket parity that no logged flight needs.
      as ADR-328 asked, and for each Macie XL flight the apogee of the OpenRocket simulation
      stored in its design file.
    - No explanation is claimed for a predicted flight outside the 5% target. The report's
-     two diagnostics, the example's own drag and the thrust file as recorded, are flown for the
-     seven only, and the five have no trace comparison. What each of the five's records leaves
+     two diagnostics, each example's own drag and Juno III's thrust file as recorded, are flown
+     among the seven only, and the five have no trace comparison. What each of the five's records leaves
      untraced was written down with its prediction.
 5. **The scoreboard's two public cells are accepted worse** ([ADR-240][adr-240]):
    `accuracy.public.hpr` goes from 6.06% over 7 flights to 9.00% over 12, and `bias.public.hpr`

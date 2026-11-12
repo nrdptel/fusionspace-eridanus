@@ -9,7 +9,7 @@ been from real flights, and how to install it. [A tour of HPR Sim](simulator-tou
 and shows it working.
 
 > **How far to trust it.** A test reads every number on this page from a committed report.
-> HPR Sim's apogees have been set against 12 public flights, university rockets and one hobby
+> HPR Sim's apogees have been set against 12 public flights, university rockets and one other
 > rocket, where they missed by 9.00% on average without signs and by −4.91% with them, outside the
 > project's own 5% target
 > ([report][real-report]). Against 60 logged flights of fliers' own designs they missed by 12.04%

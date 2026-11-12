@@ -93,7 +93,7 @@ fn read(miss: f64) -> &'static str {
 pub(super) fn landing_quotes() -> Vec<Quote> {
     vec![
         Quote {
-            template: "{} public flights, university rockets and one hobby rocket, where they \
+            template: "{} public flights, university rockets and one other rocket, where they \
                        missed by {} on average \
                        without signs and by {} with them, outside the project's own {} target",
             holes: |r| {
