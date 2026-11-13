@@ -120,9 +120,10 @@ reading scale.
     window's bottom edge sliced its last row in half, as a look at the finished pages showed.
     The box now fades over its last 24 px and its first 10 px, mdBook's padding there, and
     leaves 32 px after its last entry, so the list ends whole above the fade. The current
-    page's entry must load clear of the fade. Forced colors drop the fade, as they drop every
-    mask. The page check fails a list that scrolls without the fade, or with less room after
-    it, with a canary each way.
+    page's entry must load clear of the fade. Under forced colors the site's stylesheet drops
+    the fade. The page check fails a list that scrolls without the fade, with less than 24 px
+    after its last entry, or with the current entry under the fade, a canary for each. An entry
+    scrolled to the box's edge mid-list is faded there rather than cut.
 
 **Superseded.**
 

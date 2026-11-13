@@ -1868,7 +1868,7 @@
     }
     // The current page's entry in the sidebar (#894): wherever the sidebar is drawn, the entry
     // mdBook's `toc.js` marks (`a.active`) shows whole as the page loads, inside every box that
-    // clips it and below the strip, from its top to its bottom; and inside the window, where the
+    // clips it, clear of its list's faded edges and below the strip, from its top to its bottom; and inside the window, where the
     // sidebar is fixed to it, as mdBook's is.
     const nav = doc.getElementById('mdbook-sidebar');
     const active = nav && drawn(win, nav) && nav.getBoundingClientRect().right > 0

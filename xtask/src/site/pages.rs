@@ -118,8 +118,9 @@
 //!     the current chapter in its middle; and wherever the sidebar is drawn, the current page's
 //!     entry in it shows whole as the page loads, inside every box that clips it and clear of
 //!     its list's faded edges, and inside the window where the sidebar is fixed to it (#894).
-//!     A sidebar list that scrolls fades its edges, with 24 px of room after its last entry,
-//!     so the window never slices an entry (ADR-343 decision 14). The menu button is drawn at
+//!     A sidebar list that scrolls fades its edges, with at least 24 px of room after its last
+//!     entry, so the list ends whole above the fade (ADR-343 decision 14). The menu button is
+//!     drawn at
 //!     every width, and the sidebar from 720 px on a first visit. Wherever the sidebar is drawn,
 //!     a screen reader and the keyboard reach it (not `aria-hidden`, every link in the tab
 //!     order), and wherever it is put away neither does. Read again with scripts off (the root
@@ -284,7 +285,8 @@
 //! leaves scrolled with its top line cut by its edge and one scrolled to a line's edge, which
 //! must pass; a sidebar whose current entry loads below its list's view, one whose entry its
 //! list's bottom edge cuts, one whose entry loads under its list's fade, one whose list scrolls
-//! with no fade, and one whose entry shows whole, which must pass; and an ordinary page
+//! with no fade, one whose fade has no room after the last entry, and one whose entry shows
+//! whole, which must pass; and an ordinary page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
 //! that wraps anywhere, a figure wider than any window with mdBook's zoom, a sidebar drawer put
 //! away off the left edge) that must pass. If one isn't
@@ -918,9 +920,9 @@ macro_rules! sidebar {
 
 /// mdBook's sidebar with its list in a box 100 px tall that scrolls, eight entries 24 px tall,
 /// the seventh the current page's (`a.active`, from 144 to 168 px down the list), scrolled
-/// `$scroll` px as the page loads, for the current-entry canaries (#894). `$fade` styles the box's
-/// edges: `fade!()` gives it `hpr.css`'s fade, over its first 10 px and its last 24, with 32 px
-/// of room after the last entry, so its view is clear from 10 to 76 px down the box. It is drawn, read and
+/// `$scroll` px as the page loads, for the current-entry canaries (#894). `$fade` styles the
+/// box's edges: `fade!()` gives it `hpr.css`'s fade, over its first 10 px and its last 24, with
+/// 32 px of room after the last entry, so its view is clear from 10 to 76 px down the box. It is drawn, read and
 /// reached at every width, so each canary shows its problem at every width, as
 /// `canary-sidebar-unread.html`'s is drawn. The frame draws it in the page's flow, not fixed to
 /// the window as mdBook's, so it keeps 96 px below it, where the list's entries scrolled out of
@@ -1347,7 +1349,7 @@ macro_rules! mono_faces {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-static CANARIES: [Canary; 211] = [
+static CANARIES: [Canary; 212] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -2663,6 +2665,24 @@ static CANARIES: [Canary; 211] = [
         expect: &[Kind::Header],
         inside: "",
         after: frame!("", lockup!(), sidebar_list!("96", ""), ""),
+    },
+    Canary {
+        file: "canary-sidebar-fade-cramped.html",
+        what: "a sidebar whose list fades its edges with no room after its last entry",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!(
+            "",
+            lockup!(),
+            sidebar_list!(
+                "96",
+                concat!(
+                    fade!(),
+                    "#mdbook-sidebar .sidebar-scrollbox { padding-bottom: 0; } "
+                )
+            ),
+            ""
+        ),
     },
     Canary {
         file: "canary-foot.html",

@@ -234,8 +234,8 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
 .sidebar:has(> #mdbook-theme-list) > .sidebar-scrollbox { top: 66px; }
 /* The sidebar's list scrolls in its own box, so the window's bottom edge would slice an entry in
    half. The box fades over its last 24 px and its first 10 px (mdBook's top padding) instead,
-   and 32 px of room after the last entry lets the list end whole above the fade. Forced colors
-   drop the fade, as they drop every mask. The page check fails a list that scrolls without it. */
+   and 32 px of room after the last entry lets the list end whole above the fade. Under forced
+   colors this stylesheet drops the fade. The page check fails a list that scrolls without it. */
 #mdbook-sidebar .sidebar-scrollbox {
     padding-block-end: 32px;
     -webkit-mask-image: linear-gradient(to bottom, transparent, #000 10px, #000 calc(100% - 24px), transparent);
