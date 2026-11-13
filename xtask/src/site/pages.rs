@@ -1403,7 +1403,7 @@ macro_rules! mono_faces {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-static CANARIES: [Canary; 227] = [
+static CANARIES: [Canary; 228] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -2682,6 +2682,25 @@ static CANARIES: [Canary; 227] = [
             lockup!(),
             "<nav id=\"mdbook-sidebar\" aria-hidden=\"true\"><a href=\"#\" tabindex=\"-1\">A \
              chapter</a></nav>",
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-sidebar-scroller.html",
+        what: "a sidebar put away off the window's side, its links out of the tab order and \
+               its list's box scrolling, which the keyboard then focuses",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!(
+            "<style>#mdbook-sidebar { display: block !important; position: fixed; left: 0; \
+             top: 0; bottom: 0; width: 300px; transform: translateX(-100%); } #mdbook-sidebar \
+             .sidebar-scrollbox { overflow-y: auto; height: 40px; }</style>",
+            lockup!(),
+            "<nav id=\"mdbook-sidebar\" aria-hidden=\"true\"><div \
+             class=\"sidebar-scrollbox\"><a href=\"#\" tabindex=\"-1\">A chapter</a><br><a \
+             href=\"#\" tabindex=\"-1\">A second chapter</a><br><a href=\"#\" \
+             tabindex=\"-1\">A third chapter</a><br><a href=\"#\" tabindex=\"-1\">A fourth \
+             chapter</a></div></nav>",
             ""
         ),
     },
@@ -5270,6 +5289,7 @@ mod tests {
             ("canary-menu-key-dead.html", &[Kind::Header][..]),
             ("canary-menu-lifted.html", &[Kind::Sticky][..]),
             ("canary-menu-held.html", &[][..]),
+            ("canary-sidebar-scroller.html", &[Kind::Header][..]),
         ] {
             let found: Vec<_> = CANARIES.iter().filter(|c| c.file == file).collect();
             assert_eq!(found.len(), 1, "{file}");
@@ -5289,6 +5309,7 @@ mod tests {
             "the strip along the window\\'s top",
             "scrollPaddingBottom",
             "px when not stuck, a band over the page",
+            "a box the keyboard focuses in a sidebar ",
         ] {
             assert!(HARNESS_JS.contains(needed), "{needed}");
         }

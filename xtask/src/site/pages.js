@@ -2195,6 +2195,29 @@
         note('header', sel, 'aria-hidden', (hidden ? 'hidden from screen readers' : 'read')
           + ' and ' + reached + ' of ' + links.length + ' links in the tab order, put away');
       }
+      // A sidebar put away with a box the keyboard still focuses (ADR-345): Chrome makes a box
+      // that scrolls and holds nothing focusable a tab stop of its own, so with the links out
+      // of the tab order Tab stopped on the list's box, out of sight. A box with a `tabindex`
+      // of 0 or more is one too.
+      if (!shown) {
+        const all = [sidebar].concat(Array.from(sidebar.querySelectorAll('*')));
+        for (const el of all) {
+          const s = win.getComputedStyle(el);
+          const scrolls = (/^(auto|scroll)$/.test(s.overflowY)
+              && el.scrollHeight > el.clientHeight + SLACK_PX)
+            || (/^(auto|scroll)$/.test(s.overflowX) && el.scrollWidth > el.clientWidth + SLACK_PX);
+          const set = el.hasAttribute('tabindex');
+          const inside = Array.from(el.querySelectorAll(
+            'a[href], button, input, select, textarea, [tabindex]')).some(function (c) {
+            return c.tabIndex >= 0;
+          });
+          if ((set && el.tabIndex >= 0) || (scrolls && !set && !inside)) {
+            note('header', selector(el), 'tabindex', 'a box the keyboard focuses in a sidebar '
+              + 'put away');
+            break;
+          }
+        }
+      }
       // A list that scrolls in its own box is cut by the box's edge: the box must fade its
       // edges (`fadeOf`), and wherever it fades it must leave room after its last entry, at
       // least the bottom fade, for that entry to end whole above it, and scroll padding, at

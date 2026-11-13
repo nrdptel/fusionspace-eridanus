@@ -120,6 +120,16 @@ document.addEventListener('click', function (event) {
             toggle.setAttribute('aria-expanded', String(box.checked));
         }
         const focus = box.checked ? 0 : -1;
+        // Chrome lets the keyboard focus a box that scrolls and holds nothing it can reach, so
+        // with its links out of the tab order the list's box put away was a tab stop of its own,
+        // on a phone the first one, out of sight (ADR-345). Put away, it leaves the tab order too.
+        sidebar.querySelectorAll('.sidebar-scrollbox').forEach(function (list) {
+            if (box.checked) {
+                if (list.hasAttribute('tabindex')) list.removeAttribute('tabindex');
+            } else if (list.getAttribute('tabindex') !== '-1') {
+                list.tabIndex = -1;
+            }
+        });
         sidebar.querySelectorAll('a, button').forEach(function (link) {
             if (link.tabIndex !== focus) link.tabIndex = focus;
             const current = link.matches('a.active');
