@@ -765,10 +765,12 @@ they describe a release as it shipped. The [title block](#title-block) at the en
 the site's about box: it says what each entry means, and writes the status in capitals, as a
 drawing's title block does.
 
-The theme switch, Auto, Light and Dark, sits in the header before the print and edit buttons on a
-window 960 px wide or wider. On a narrower one it's at the top of the table of contents, and on a
-phone it's behind the menu button. Auto follows your system's light or dark setting. A choice you
-make is kept in your browser, for this site only.
+The theme switch, Auto, Light, Dark and Field, sits in the header before the print and edit
+buttons on a window 960 px wide or wider. On a narrower one it's at the top of the table of
+contents, and on a phone it's behind the menu button. Auto follows your system's light or dark
+setting. Field is for reading outdoors, at the pad: a white page, darker secondary text and
+stronger rules, so the page stays legible in sunlight. A choice you make is kept in your browser,
+for this site only.
 
 A page prints in the light theme's colors, whichever theme you read it in, without the table of
 contents or the buttons. Each link's address follows it in parentheses. For another site that's

@@ -61,7 +61,8 @@
 //!   dark), then as a reader with scripts off gets it (the root's `js` class taken off, which
 //!   applies mdBook's `html:not(.js)` rules), with a light system and with a dark one (the
 //!   stylesheets' dark-scheme rules applied in place), then switched as mdBook's theme menu
-//!   switches it and read in the other once the switch's transitions have run. Hover isn't
+//!   switches it and read in each of the others, Field (mdBook's rust, ADR-344) and then the
+//!   other of light and navy, once the switch's transitions have run. Hover isn't
 //!   read, nor what a script sets as it runs; focus and the script's smooth scroll are read
 //!   below.
 //! - **The page's frame** (#384, ADR-223), read once at each width in the theme the page loads
@@ -627,12 +628,12 @@ enum Kind {
     /// under it; or a record's frame drawn (a designation tag, a sheet's rail or number).
     Part,
     /// A theme switch off the system's: not in the header from 960 px or in the sidebar under
-    /// it; its buttons not Auto, Light and Dark, under 44 px tall or not in Archivo 15/20 in
-    /// sentence case;
-    /// a first-time reader's pressed button not Auto alone, or a fill not the ink exactly where
-    /// pressed; mdBook's theme button drawn; drawn with scripts off; the page in a theme the
-    /// switch doesn't offer; pressing Dark, then Auto, not setting the theme; or a theme saved
-    /// that it doesn't offer, Coal, not forgotten for Auto (#384, #429).
+    /// it; its buttons not Auto, Light, Dark and Field, under 44 px tall or not in Archivo 15/20
+    /// in sentence case; a first-time reader's pressed button not Auto alone, or a fill not the
+    /// ink exactly where pressed; mdBook's theme button drawn; drawn with scripts off; the page
+    /// in a theme the switch doesn't offer; pressing Dark, then Field, then Auto, not setting the
+    /// theme; a theme saved that it doesn't offer, Coal, not forgotten for Auto; or Field saved
+    /// not kept, with Field pressed (#384, #429, ADR-344).
     Switch,
     /// A link to a heading that leaves it away from where the same link puts it with nothing
     /// skipping its layout: a jump worked out over boxes standing in, off screen, at a height
@@ -1076,16 +1077,17 @@ macro_rules! frame {
     };
 }
 
-/// What a canary needs to be read in mdBook's navy theme too: the root marked `js` and in the light
-/// theme, mdBook's code stylesheet for navy (empty), and, on screen only, the navy theme's dark
-/// color scheme, its links, its search hit and its selection.
+/// What a canary needs to be read in mdBook's navy and rust (Field) themes too: the root marked
+/// `js` and in the light theme, mdBook's code stylesheet for navy (empty), and, on screen only,
+/// the navy theme's dark color scheme, its links, its search hit and its selection, and the
+/// field theme's white canvas.
 macro_rules! switches {
     () => {
         "<link rel=\"stylesheet\" id=\"mdbook-tomorrow-night-css\" href=\"data:text/css,\">\
          <style>@media screen { .navy { color-scheme: dark; } .navy a { color: #768DF5; } \
          .navy mark { color: #0B0F1C; background: #768DF5; } .navy ::selection { \
-         background-color: rgb(118 141 245 / 0.22); } }</style>\
-         <script>document.documentElement.classList.add('js', 'light');</script>"
+         background-color: rgb(118 141 245 / 0.22); } .rust, .rust body { background: #FFFFFF; } \
+         }</style><script>document.documentElement.classList.add('js', 'light');</script>"
     };
 }
 
@@ -1219,7 +1221,9 @@ macro_rules! switch_buttons {
         "<li role=\"none\"><button type=\"button\" class=\"theme\" \
          aria-pressed=\"true\">Auto</button></li><li role=\"none\"><button type=\"button\" \
          class=\"theme\" aria-pressed=\"false\">Light</button></li><li role=\"none\"><button \
-         type=\"button\" class=\"theme\" aria-pressed=\"false\">Dark</button></li>"
+         type=\"button\" class=\"theme\" aria-pressed=\"false\">Dark</button></li><li \
+         role=\"none\"><button type=\"button\" class=\"theme\" \
+         aria-pressed=\"false\">Field</button></li>"
     };
 }
 
@@ -1251,16 +1255,36 @@ macro_rules! switch_placed_inverted {
     };
 }
 
-/// A switch canary's script that works it as mdBook's does with `theme/hpr.js`: a theme saved
-/// that the switch doesn't offer is forgotten, the root in the one the system asks for; then
-/// `switch_clicks!`.
+/// A switch canary's script that works it as mdBook's does with `theme/hpr.js`: Field saved
+/// (mdBook's rust) puts the root in it with Field pressed; another theme saved that the switch
+/// doesn't offer is forgotten, the root in the one the system asks for; then `switch_clicks!`.
 macro_rules! switch_works {
+    () => {
+        concat!(
+            "<script>(function () { let s = null; try { s = \
+             localStorage.getItem('mdbook-theme'); } catch (e) { } const r = \
+             document.documentElement; if (s === 'rust') { r.classList.remove('light', 'navy'); \
+             r.classList.add('rust'); document.querySelectorAll('#mdbook-theme-list \
+             button').forEach(function (x) { x.setAttribute('aria-pressed', \
+             String(x.textContent.trim() === 'Field')); }); return; } if (s === null || s === \
+             'light' || s === 'navy') return; localStorage.removeItem('mdbook-theme'); \
+             r.classList.remove('light', 'navy'); \
+             r.classList.add(matchMedia('(prefers-color-scheme: dark)').matches ? 'navy' : \
+             'light'); })();</script>",
+            switch_clicks!()
+        )
+    };
+}
+
+/// A switch canary's script that works it as `theme/hpr.js` did before Field: every saved theme
+/// but light and navy forgotten, Field's too; then `switch_clicks!`.
+macro_rules! switch_forgets_field {
     () => {
         concat!(
             "<script>(function () { let s = null; try { s = \
              localStorage.getItem('mdbook-theme'); } catch (e) { } if (s === null || s === \
              'light' || s === 'navy') return; localStorage.removeItem('mdbook-theme'); const r \
-             = document.documentElement; r.classList.remove('light', 'navy'); \
+             = document.documentElement; r.classList.remove('light', 'navy', 'rust'); \
              r.classList.add(matchMedia('(prefers-color-scheme: dark)').matches ? 'navy' : \
              'light'); })();</script>",
             switch_clicks!()
@@ -1281,16 +1305,27 @@ macro_rules! switch_keeps {
 }
 
 /// A switch canary's script that presses as mdBook's does: a button pressed puts the root in its
-/// theme (Auto in the one the system asks for) and is the one pressed.
+/// theme (Field in rust, Auto in the one the system asks for) and is the one pressed.
 macro_rules! switch_clicks {
     () => {
-        "<script>document.getElementById('mdbook-theme-list').addEventListener('click', function \
-         (e) { const b = e.target.closest('button'); if (!b) return; const r = \
-         document.documentElement; const n = b.textContent.trim(); const t = n === 'Dark' ? \
-         'navy' : n === 'Light' ? 'light' : matchMedia('(prefers-color-scheme: dark)').matches \
-         ? 'navy' : 'light'; r.classList.remove('light', 'navy'); r.classList.add(t); \
-         this.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', \
-         String(x === b)); }); });</script>"
+        switch_clicks_as!("'rust'")
+    };
+}
+
+/// [`switch_clicks!`] with Field putting the root in `$field`, a theme name as a script's string.
+macro_rules! switch_clicks_as {
+    ($field:expr) => {
+        concat!(
+            "<script>document.getElementById('mdbook-theme-list').addEventListener('click', \
+             function (e) { const b = e.target.closest('button'); if (!b) return; const r = \
+             document.documentElement; const n = b.textContent.trim(); const t = n === 'Dark' ? \
+             'navy' : n === 'Light' ? 'light' : n === 'Field' ? ",
+            $field,
+            " : matchMedia('(prefers-color-scheme: dark)').matches ? 'navy' : 'light'; \
+             r.classList.remove('light', 'navy', 'rust'); r.classList.add(t); \
+             this.querySelectorAll('button').forEach(function (x) { \
+             x.setAttribute('aria-pressed', String(x === b)); }); });</script>"
+        )
     };
 }
 
@@ -1353,7 +1388,7 @@ macro_rules! mono_faces {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-static CANARIES: [Canary; 215] = [
+static CANARIES: [Canary; 218] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -1567,6 +1602,19 @@ static CANARIES: [Canary; 215] = [
                  .navy ::selection { background-color: rgb(118 141 245 / 0.22); } \
                  .navy .green { color: #008200; }</style>\
                  <p class=\"green\">Green only in navy</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-field.html",
+        what: "a panel in the light theme's rule color in the field theme only, read after the \
+               switch mdBook's theme menu makes",
+        expect: &[Kind::Color],
+        inside: "<script>document.documentElement.classList.add('js', 'light');</script>\
+                 <link rel=\"stylesheet\" id=\"mdbook-tomorrow-night-css\" href=\"data:text/css,\">\
+                 <style>@media screen { .navy { color-scheme: dark; } .navy mark { color: #0B0F1C; \
+                 background: #768DF5; } .navy ::selection { background-color: rgb(118 141 245 / \
+                 0.22); } .rust .panel { background: #D6DAE4; } }</style>\
+                 <p class=\"panel\">Light's rule color only in field</p>",
         after: "",
     },
     Canary {
@@ -3080,7 +3128,7 @@ static CANARIES: [Canary; 215] = [
         inside: "",
         after: switch_frame!(
             "",
-            "<li role=\"none\"><button type=\"button\" class=\"theme\" aria-pressed=\"true\">Auto</button></li><li role=\"none\"><button type=\"button\" class=\"theme\" aria-pressed=\"false\">Light</button></li><li role=\"none\"><button type=\"button\" class=\"theme\" aria-pressed=\"false\">Navy</button></li>",
+            "<li role=\"none\"><button type=\"button\" class=\"theme\" aria-pressed=\"true\">Auto</button></li><li role=\"none\"><button type=\"button\" class=\"theme\" aria-pressed=\"false\">Light</button></li><li role=\"none\"><button type=\"button\" class=\"theme\" aria-pressed=\"false\">Navy</button></li><li role=\"none\"><button type=\"button\" class=\"theme\" aria-pressed=\"false\">Field</button></li>",
             switch_placed!(),
             switch_works!()
         ),
@@ -3092,7 +3140,7 @@ static CANARIES: [Canary; 215] = [
         inside: "",
         after: switch_frame!(
             "",
-            "<li role=\"none\"><button type=\"button\" class=\"theme\" aria-pressed=\"false\">Auto</button></li><li role=\"none\"><button type=\"button\" class=\"theme\" aria-pressed=\"true\">Light</button></li><li role=\"none\"><button type=\"button\" class=\"theme\" aria-pressed=\"false\">Dark</button></li>",
+            "<li role=\"none\"><button type=\"button\" class=\"theme\" aria-pressed=\"false\">Auto</button></li><li role=\"none\"><button type=\"button\" class=\"theme\" aria-pressed=\"true\">Light</button></li><li role=\"none\"><button type=\"button\" class=\"theme\" aria-pressed=\"false\">Dark</button></li><li role=\"none\"><button type=\"button\" class=\"theme\" aria-pressed=\"false\">Field</button></li>",
             switch_placed!(),
             switch_works!()
         ),
@@ -3117,6 +3165,32 @@ static CANARIES: [Canary; 215] = [
         expect: &[Kind::Switch],
         inside: "",
         after: switch_frame!("", switch_buttons!(), switch_placed!(), switch_keeps!()),
+    },
+    Canary {
+        file: "canary-switch-field-dead.html",
+        what: "a theme switch whose Field button puts the page in Light, read once a run, at the \
+               width that reads print",
+        expect: &[Kind::Switch],
+        inside: "",
+        after: switch_frame!(
+            "",
+            switch_buttons!(),
+            switch_placed!(),
+            switch_clicks_as!("'light'")
+        ),
+    },
+    Canary {
+        file: "canary-switch-field-forgotten.html",
+        what: "a theme switch that forgets a saved Field, read once a run, at the width that \
+               reads print",
+        expect: &[Kind::Switch],
+        inside: "",
+        after: switch_frame!(
+            "",
+            switch_buttons!(),
+            switch_placed!(),
+            switch_forgets_field!()
+        ),
     },
     Canary {
         file: "canary-switch-narrow.html",
@@ -3479,9 +3553,11 @@ m<sup>2</sup>, a drag coefficient C<sub>D</sub>, a formula <math><msub><mi>F</mi
 /// a theme saved, or the sidebar put away, which the harness does once a run, at the width that
 /// reads print
 /// ([`print_width`]).
-const PRESSED: [&str; 4] = [
+const PRESSED: [&str; 6] = [
     "canary-switch-dead.html",
     "canary-switch-retired.html",
+    "canary-switch-field-dead.html",
+    "canary-switch-field-forgotten.html",
     "canary-sidebar-stuck.html",
     "canary-sidebar-undragged.html",
 ];
@@ -5020,13 +5096,45 @@ mod tests {
     }
 
     #[test]
+    fn field_is_offered_and_read_with_its_canaries() {
+        // ADR-344: the switch offers Field, mdBook's rust theme, and the page check reads every
+        // page that switches in it, with the field theme's roles, failing a color off them, a
+        // Field button that doesn't put the page in rust and a saved Field forgotten.
+        assert!(super::super::switch::CHOICES.contains(&("rust", "Field")));
+        for needed in [
+            "rust: ['#FFFFFF', '#98A1B8', '#0B0F1C', '#2A3248', '#566079', '#3350D6', '#AC001E', \
+             '#B34F0C',\n      '#0A6355', '#A22488', '#F5AF20'],",
+            "rust: '#3350D6'",
+            "return ['rust', first === 'navy' ? 'light' : 'navy'];",
+            "const SWITCH_CHOICES = ['Auto', 'Light', 'Dark', 'Field'];",
+        ] {
+            assert!(HARNESS_JS.contains(needed), "{needed}");
+        }
+        for (file, kind) in [
+            ("canary-field.html", Kind::Color),
+            ("canary-switch-field-dead.html", Kind::Switch),
+            ("canary-switch-field-forgotten.html", Kind::Switch),
+        ] {
+            let found: Vec<_> = CANARIES.iter().filter(|c| c.file == file).collect();
+            assert_eq!(found.len(), 1, "{file}");
+            assert_eq!(found[0].expect, [kind], "{file}");
+        }
+        for file in [
+            "canary-switch-field-dead.html",
+            "canary-switch-field-forgotten.html",
+        ] {
+            assert!(PRESSED.contains(&file), "{file}");
+        }
+    }
+
+    #[test]
     fn the_parts_and_the_switch_have_canaries_both_ways() {
         // Each kind has canaries that must show it alone, and one drawn as the system's that
         // must pass.
         for (kind, least, passing) in [
             (Kind::Part, 14, "canary-parts.html"),
             (Kind::TitleBlock, 20, "canary-chip-released.html"),
-            (Kind::Switch, 11, "canary-switch.html"),
+            (Kind::Switch, 13, "canary-switch.html"),
         ] {
             let failing = CANARIES
                 .iter()

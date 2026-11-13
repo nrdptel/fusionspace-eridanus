@@ -144,17 +144,17 @@ document.addEventListener('click', function (event) {
         attributes: true, attributeFilter: ['class'], subtree: true,
     });
     pressed();
-    // A theme saved from mdBook's six-theme menu before the switch, Coal, Ayu or Rust, leaves its
-    // class on the page, drawn in neither of the site's looks, and no button for it to press: it
-    // is forgotten and Auto pressed, as a first-time reader has it.
+    // A theme saved from mdBook's six-theme menu before the switch, Coal or Ayu, leaves its
+    // class on the page, drawn in none of the site's looks, and no button for it to press: it is
+    // forgotten and Auto pressed, as a first-time reader has it. Rust is Field, and kept.
     let saved = null;
     try {
         saved = localStorage.getItem('mdbook-theme');
     } catch (e) {
         // Storage blocked: mdBook saved nothing either.
     }
-    if (saved !== null && saved !== 'light' && saved !== 'navy') {
-        document.documentElement.classList.remove('coal', 'ayu', 'rust');
+    if (saved !== null && saved !== 'light' && saved !== 'navy' && saved !== 'rust') {
+        document.documentElement.classList.remove('coal', 'ayu');
         const auto = document.getElementById('mdbook-theme-default_theme');
         if (auto) auto.click();
     }

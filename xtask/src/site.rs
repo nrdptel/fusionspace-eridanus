@@ -307,8 +307,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
     println!(
         "built anatomy: {intros} pages open with their titles and a lead of one sentence under \
          them, their {sections} sections drawn as parts and their headings in order, with no \
-         designation tag or sheet number; {switches} pages switch themes with Auto, Light and \
-         Dark"
+         designation tag or sheet number; {switches} pages switch themes with Auto, Light, Dark \
+         and Field"
     );
     println!(
         "built stylesheet: {bundled} pages link one stylesheet, {}, the {} files they linked \
@@ -384,7 +384,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
         "page layout: {} pages{} at {}, in {:.0} s: none wider than \
          the window, no text cut off or over other text, no figure shrunk with room \
          for it or without a zoom, no color off the system's roles, rounded corner, shadow or \
-         motion off its durations in either theme or with reduced motion, no text off the type \
+         motion off its durations in any theme or with reduced motion, no text off the type \
          scale at the window's reading scale, prose held narrower than its column, column off \
          1,120 px, gutter off the system's or column off center, or code block held narrower \
          than the column, no table scrolling sideways in its box, no quote block or note off the system's, no text under the contrast floor, \

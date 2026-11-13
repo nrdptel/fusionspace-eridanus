@@ -747,7 +747,8 @@ chain lines, with a sample of each in its key. The plot from `hpr sim --plot` dr
 `cargo xtask site`'s page check, the one that opens every page at every width, also reads each
 page's computed style. That's the colors, sizes and outlines the browser ends up drawing. So the
 site keeps the product system's look where mdBook, the program that builds the site, would draw
-its own. It reads the light and navy themes, and the light one with scripts off.
+its own. It reads the light, navy and field themes (the switch's Light, Dark and Field), and
+the light one with scripts off.
 
 Colors off the system's palette, rounded corners, shadows, motion off its timings and type off its
 sizes all fail it. Body text is 16 px up to a 1,024 px window, grows with the window, and is
@@ -938,16 +939,17 @@ The page check fails, at every width:
 - a designation tag or a sheet number drawn;
 - a switch not in the header from 960 px, or not in the table of contents below it. Below 720 px,
   the check opens the table of contents to read it;
-- a switch with buttons other than Auto, Light and Dark, under 44 px tall or not in Archivo
-  15 px on 20 px lines;
+- a switch with buttons other than Auto, Light, Dark and Field, under 44 px tall or not in
+  Archivo 15 px on 20 px lines;
 - a switch with a button other than Auto chosen for a first-time reader, or the chosen one not
   filled in the text's color;
 - mdBook's theme button drawn, the switch drawn with scripts off, or the page in one of mdBook's
   themes the switch doesn't offer.
 
-Once a run, at the width it reads print at, the check presses Dark and then Auto. It fails a page
-whose theme doesn't follow. It also loads the page with mdBook's Coal saved, and fails one that
-doesn't forget it and press Auto.
+Once a run, at the width it reads print at, the check presses Dark, Field and then Auto. It fails
+a page whose theme doesn't follow. It also loads the page with mdBook's Coal saved, and fails one
+that doesn't forget it and press Auto; and with Field saved, and fails one that doesn't keep it
+and press Field.
 
 A page has two to six parts (its `##` sections, above). The product system's page anatomy asked
 that of its sheets, and the site keeps it for its parts
@@ -982,11 +984,11 @@ Chrome's default margins. CI splits the widths over three machines, and each rea
 own nearest. The stylesheets' print rules are applied, and their screen-only rules set aside.
 
 A headless browser can't print from a page, so this reads the print rules, not a printed page.
-Where the browser would break the pages isn't seen. In the light theme and in the navy one, it
+Where the browser would break the pages isn't seen. In the light, navy and field themes, it
 fails:
 
-- a color that isn't the light theme's, and on a page with both themes, anything drawn in
-  different colors from the two;
+- a color that isn't the light theme's, and on a page with all three themes, anything drawn in
+  different colors from one theme to another;
 - navigation or a control drawn: the table of contents, the menu bar, a button or a text field;
 - a link to another page, in the text or the footer, without its address after it, in
   parentheses. A page of this site shows its path from the page, such as `cli.html#units`;

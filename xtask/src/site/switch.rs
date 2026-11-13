@@ -1,7 +1,8 @@
 //! The theme switch (#384, #429; the product system's `web.md`, *Page anatomy*, *Components* and
-//! *Theme*): the header ends with a segmented control, Auto, Light and Dark (Field joins with
-//! #452), not mdBook's menu of six themes for two looks (Rust drew as Light, Coal and Ayu as
-//! Navy).
+//! *Theme*): the header ends with a segmented control, Auto, Light, Dark and Field (#452,
+//! ADR-344), not mdBook's menu of six themes for three looks (Coal and Ayu drew as Navy). Field
+//! is mdBook's `rust` theme as the pinned stylesheet colors it: the product system's field
+//! theme, a white canvas with darker secondary text and stronger rules, for reading in sun.
 //!
 //! After mdBook builds the site, [`draw`] rewrites every page's theme menu as the system's
 //! segmented control, `role="group"`, its buttons pressed or not (`aria-pressed`), and moves it
@@ -38,11 +39,13 @@ const SWITCH: &str = "<ul id=\"mdbook-theme-list\" class=\"theme-popup fs-seg\" 
 /// mdBook 0.5's themes, by the id it gives each button, in its order.
 const MDBOOK_THEMES: [&str; 6] = ["default_theme", "light", "rust", "coal", "navy", "ayu"];
 /// The switch's choices: mdBook's theme each sets, and its name. `book.toml` makes Light the
-/// default and Navy the theme a dark system asks for, so Auto follows the system.
-pub(super) const CHOICES: [(&str, &str); 3] = [
+/// default and Navy the theme a dark system asks for, so Auto follows the system; Field is
+/// mdBook's `rust`, which `theme/fusionspace-mdbook.css` gives the system's field colors.
+pub(super) const CHOICES: [(&str, &str); 4] = [
     ("default_theme", "Auto"),
     ("light", "Light"),
     ("navy", "Dark"),
+    ("rust", "Field"),
 ];
 /// The site's script, which moves the switch, as the built site holds it.
 const SCRIPT: &str = "theme/hpr.js";
@@ -215,8 +218,8 @@ fn page_problems(html: &str) -> Vec<String> {
     match html.matches(&drawn).count() {
         1 => {}
         found => problems.push(format!(
-            "the theme switch (Auto, Light, Dark) opens the header's right-hand buttons {found} \
-             times, not once"
+            "the theme switch (Auto, Light, Dark, Field) opens the header's right-hand buttons \
+             {found} times, not once"
         )),
     }
     if html.matches(TOGGLE_HIDDEN).count() != 1 || html.matches(TOGGLE).count() != 1 {

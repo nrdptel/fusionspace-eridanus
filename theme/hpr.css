@@ -204,7 +204,7 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
 @media print { .content main .fs-part > h2 { break-after: avoid; } }
 
 /* The theme switch (#384, #429; `web.md`, *Page anatomy*, *Components* and *Theme*;
-   `fusionspace.css`, `.fs-seg`): Auto, Light and Dark, each a button 44 px tall in Archivo 15/20,
+   `fusionspace.css`, `.fs-seg`): Auto, Light, Dark and Field, each a button 44 px tall in Archivo 15/20,
    a segmented control at the tool level (`foundations.md`, *Type*, the web's level table), inside a
    1 px rule, the chosen one filled in ink. `cargo xtask site` makes mdBook's theme
    menu this group, and `theme/hpr.js` sets each button's `aria-pressed` from mdBook's mark. From
