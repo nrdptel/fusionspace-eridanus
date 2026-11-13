@@ -10,6 +10,7 @@
 [i1451]: https://github.com/nrdptel/fusionspace-eridanus/issues/1451
 [i1452]: https://github.com/nrdptel/fusionspace-eridanus/issues/1452
 [i1453]: https://github.com/nrdptel/fusionspace-eridanus/issues/1453
+[i1454]: https://github.com/nrdptel/fusionspace-eridanus/issues/1454
 
 **Context.** [ADR-344][adr-344] wrote six tasks for the restyle's acceptance pass. A reviewer
 ran them on the built site at commit 9a56668e, in headless Chrome over its DevTools protocol,
@@ -88,6 +89,15 @@ of Start here.
      here, where its link leads, explains them.
    - Under 1,080 px mdBook's header scrolls away with the page and comes back when the reader
      scrolls up. Where it stood in between is not kept: decision 6.
+
+   The pass's other findings off every task's path become issues: no link to skip the
+   table of contents (from the top of a page at 1,280 px, Tab passes every chapter before it
+   reaches the switch; [#1451][i1451]), and the footer's link, shorter than the system's 24 px
+   target at 320 px ([#1452][i1452]), as the header's print, repository and edit links are. A
+   second run adds two: Escape doesn't close the table of contents on a phone, and the print
+   page's title doesn't name it ([#1453][i1453]). The look at the captures adds one: in Field
+   nothing marks the table of contents' edge, both white, with no rule between them
+   ([#1454][i1454]).
 6. **The header leaves at once.** Under 1,080 px, when a reader scrolling up turned to scroll
    down, mdBook's script left the header where the page then was, and it stayed there, a band
    over the page's text, until scrolled out. Near a page's end it can't be: the look at the
@@ -96,13 +106,6 @@ of Start here.
    leaves the window as the reader scrolls down and comes back, stuck, when the reader scrolls
    up. The page check sets the `top` mdBook's script would and fails a header that takes it;
    `canary-menu-lifted.html` must fail and `canary-menu-held.html` pass.
-
-   The pass's other two findings off every task's path become issues: no link to skip the
-   table of contents (from the top of a page at 1,280 px, Tab passes every chapter before it
-   reaches the switch; [#1451][i1451]), and the footer's link, shorter than the system's 24 px
-   target at 320 px ([#1452][i1452]), as the header's print, repository and edit links are. A second run
-   adds two: Escape doesn't close the table of contents on a phone, and the print page's title
-   doesn't name it ([#1453][i1453]).
 
 **Consequences.**
 
@@ -120,4 +123,7 @@ commits, each task's result and each finding's fix or issue. The fixes were chec
 measurements that found them: after them, a scan pressing Tab through the page about Monte Carlo
 dispersion found no ring cut by a box or by the window's sides, top or bottom, at 320, 640, 960
 and 1,280 px. `cargo xtask site` passed at all 41 widths, with the eight new canaries that must
-fail failing and `canary-menu-held.html` passing.
+fail failing and `canary-menu-held.html` passing. Every page the six tasks reach was captured at
+the page check's 41 widths in Light, Dark and Field and looked at for clipping: that look found
+the code block cut at 1,000 and 1,040 px and the header over the Monte Carlo page's end at
+360 to 480 px (decisions 1 and 6), and every capture the fixes changed was looked at again.
