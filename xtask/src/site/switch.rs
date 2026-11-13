@@ -331,7 +331,7 @@ mod tests {
                     "</header>",
                     "<button class=\"theme\">Coal</button></header>",
                 ),
-                "4 theme buttons",
+                "5 theme buttons",
             ),
             (
                 drawn.replace("</header>", "<ul role=\"menu\"></ul></header>"),
