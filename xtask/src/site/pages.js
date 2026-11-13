@@ -416,7 +416,7 @@
   // The themes a page that switches is read in after the one it loads in, `first`, in order:
   // Field (mdBook's rust), then the other of light and navy.
   function afterFirst(first) {
-    return ['rust', first === 'navy' ? 'light' : 'navy'];
+    return ['rust', first === 'navy' ? 'light' : 'navy'].filter(function (t) { return t !== first; });
   }
   // How opaque the action role is in a selection of text (`fusionspace.css`, `::selection`).
   const SELECTION_ALPHA = 0.22;
@@ -482,7 +482,7 @@
   const CHIP_FILLS = { ok: ['#0A6355', '#FFFFFF'] };
   const LEAD_PX = 20;
   const LEAD_LINE_PX = 28;
-  const INK_MUTED = { light: '#566079', navy: '#98A1B8' };
+  const INK_MUTED = { light: '#566079', navy: '#98A1B8', rust: '#2A3248' };
   const SWITCH_CHOICES = ['Auto', 'Light', 'Dark', 'Field'];
   // mdBook's themes the switch doesn't offer, which a reader may have saved before it.
   const SWITCH_RETIRED = ['coal', 'ayu'];

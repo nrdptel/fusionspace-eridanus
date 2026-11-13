@@ -13,7 +13,7 @@
 //! - **The code colors are the theme's in every look.** mdBook links three highlighting
 //!   stylesheets and its script turns two of them off for the reader's theme; the theme's own
 //!   rules (`theme/hpr.css`) give code its colors over all three. The bundle takes the first,
-//!   `highlight.css`, for both looks, and the other two leave only their ids, on empty `<style>`
+//!   `highlight.css`, for every look, and the other two leave only their ids, on empty `<style>`
 //!   elements, which mdBook's script still turns on and off.
 //! - **Print's rules keep their place.** mdBook links `css/print.css` for print only, between
 //!   its own stylesheets and the theme's, whose print rules override it; the bundle carries it

@@ -917,7 +917,7 @@ code stay in Cascadia Mono.
   has no room for it, and it stands at the top of the table of contents. The menu button opens
   that below 720 px. The switch needs scripts, so without them it isn't drawn;
 - mdBook's own theme menu, with six themes for three looks, is gone. A reader who had saved Coal
-  or Ayu is put back on Auto; mdBook's Rust is Field, and kept.
+  or Ayu is put back on Auto; mdBook's Rust theme, which the site now draws as Field, is kept.
 
 A file check fails a page:
 

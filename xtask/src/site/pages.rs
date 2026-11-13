@@ -218,7 +218,8 @@
 //! its size with room for all of it, one wider than any window with no zoom, a figure reaching
 //! past a narrow `main` as the theme lays it out, which must pass, a label moved past the
 //! window's edge from such a `main`, a label off the system's colors, the same only in navy (read
-//! after the switch), a panel in light's rule color only in field, the same only with scripts off, and only once a delayed change to it has run,
+//! after the switch), the same only with scripts off, and only once a delayed change to it has run,
+//! a panel in light's rule color only in field,
 //! the root element off them, a label tinted by a filter, one over a backdrop filter, one with an
 //! image as its `::before`, a search hit in ink, a rounded box, a box with a shadow, a 0.3 s
 //! transition, one at the system's base duration that doesn't snap with reduced motion set and one
@@ -1256,24 +1257,29 @@ macro_rules! switch_placed_inverted {
     };
 }
 
-/// A switch canary's script that works it as mdBook's does with `theme/hpr.js`: Field saved
+/// A switch canary's script that loads it as mdBook's does with `theme/hpr.js`: Field saved
 /// (mdBook's rust) puts the root in it with Field pressed; another theme saved that the switch
-/// doesn't offer is forgotten, the root in the one the system asks for; then `switch_clicks!`.
+/// doesn't offer is forgotten, the root in the one the system asks for. Nothing presses.
+macro_rules! switch_load {
+    () => {
+        "<script>(function () { let s = null; try { s = \
+         localStorage.getItem('mdbook-theme'); } catch (e) { } const r = \
+         document.documentElement; if (s === 'rust') { r.classList.remove('light', 'navy'); \
+         r.classList.add('rust'); document.querySelectorAll('#mdbook-theme-list \
+         button').forEach(function (x) { x.setAttribute('aria-pressed', \
+         String(x.textContent.trim() === 'Field')); }); return; } if (s === null || s === \
+         'light' || s === 'navy') return; localStorage.removeItem('mdbook-theme'); \
+         r.classList.remove('light', 'navy'); \
+         r.classList.add(matchMedia('(prefers-color-scheme: dark)').matches ? 'navy' : \
+         'light'); })();</script>"
+    };
+}
+
+/// A switch canary's script that works it as mdBook's does with `theme/hpr.js`: `switch_load!`,
+/// then `switch_clicks!`.
 macro_rules! switch_works {
     () => {
-        concat!(
-            "<script>(function () { let s = null; try { s = \
-             localStorage.getItem('mdbook-theme'); } catch (e) { } const r = \
-             document.documentElement; if (s === 'rust') { r.classList.remove('light', 'navy'); \
-             r.classList.add('rust'); document.querySelectorAll('#mdbook-theme-list \
-             button').forEach(function (x) { x.setAttribute('aria-pressed', \
-             String(x.textContent.trim() === 'Field')); }); return; } if (s === null || s === \
-             'light' || s === 'navy') return; localStorage.removeItem('mdbook-theme'); \
-             r.classList.remove('light', 'navy'); \
-             r.classList.add(matchMedia('(prefers-color-scheme: dark)').matches ? 'navy' : \
-             'light'); })();</script>",
-            switch_clicks!()
-        )
+        concat!(switch_load!(), switch_clicks!())
     };
 }
 
@@ -1294,12 +1300,16 @@ macro_rules! switch_forgets_field {
 }
 
 /// A switch canary's script that puts the root in a saved theme, as mdBook's does before its
-/// own script runs, and doesn't forget one the switch doesn't offer; then `switch_clicks!`.
+/// own script runs, and doesn't forget one the switch doesn't offer (Field saved is kept and
+/// pressed, as `switch_load!` keeps it); then `switch_clicks!`.
 macro_rules! switch_keeps {
     () => {
         concat!(
-            "<script>try { const s = localStorage.getItem('mdbook-theme'); if (s) \
-             document.documentElement.classList.add(s); } catch (e) { }</script>",
+            "<script>try { const s = localStorage.getItem('mdbook-theme'); const r = \
+             document.documentElement; if (s === 'rust') { r.classList.remove('light', 'navy'); \
+             document.querySelectorAll('#mdbook-theme-list button').forEach(function (x) { \
+             x.setAttribute('aria-pressed', String(x.textContent.trim() === 'Field')); }); } if \
+             (s) r.classList.add(s); } catch (e) { }</script>",
             switch_clicks!()
         )
     };
@@ -1601,7 +1611,8 @@ static CANARIES: [Canary; 218] = [
                  <link rel=\"stylesheet\" id=\"mdbook-tomorrow-night-css\" href=\"data:text/css,\">\
                  <style>.navy { color-scheme: dark; } .navy mark { color: #0B0F1C; background: #768DF5; } \
                  .navy ::selection { background-color: rgb(118 141 245 / 0.22); } \
-                 .navy .green { color: #008200; }</style>\
+                 .navy .green { color: #008200; } @media screen { .rust, .rust body { background: \
+                 #FFFFFF; } }</style>\
                  <p class=\"green\">Green only in navy</p>",
         after: "",
     },
@@ -1614,7 +1625,8 @@ static CANARIES: [Canary; 218] = [
                  <link rel=\"stylesheet\" id=\"mdbook-tomorrow-night-css\" href=\"data:text/css,\">\
                  <style>@media screen { .navy { color-scheme: dark; } .navy mark { color: #0B0F1C; \
                  background: #768DF5; } .navy ::selection { background-color: rgb(118 141 245 / \
-                 0.22); } .rust .panel { background: #D6DAE4; } }</style>\
+                 0.22); } .rust, .rust body { background: #FFFFFF; } .rust .panel { background: \
+                 #D6DAE4; } }</style>\
                  <p class=\"panel\">Light's rule color only in field</p>",
         after: "",
     },
@@ -3158,7 +3170,7 @@ static CANARIES: [Canary; 218] = [
         what: "a theme switch that sets no theme when pressed, once a run, at the width that reads print",
         expect: &[Kind::Switch],
         inside: "",
-        after: switch_frame!("", switch_buttons!(), switch_placed!(), ""),
+        after: switch_frame!("", switch_buttons!(), switch_placed!(), switch_load!()),
     },
     Canary {
         file: "canary-switch-retired.html",
@@ -3177,7 +3189,7 @@ static CANARIES: [Canary; 218] = [
             "",
             switch_buttons!(),
             switch_placed!(),
-            switch_clicks_as!("'light'")
+            concat!(switch_load!(), switch_clicks_as!("'light'"))
         ),
     },
     Canary {
@@ -5106,7 +5118,7 @@ mod tests {
             "rust: ['#FFFFFF', '#98A1B8', '#0B0F1C', '#2A3248', '#566079', '#3350D6', '#AC001E', \
              '#B34F0C',\n      '#0A6355', '#A22488', '#F5AF20'],",
             "rust: '#3350D6'",
-            "return ['rust', first === 'navy' ? 'light' : 'navy'];",
+            "return ['rust', first === 'navy' ? 'light' : 'navy'].filter(",
             "const SWITCH_CHOICES = ['Auto', 'Light', 'Dark', 'Field'];",
         ] {
             assert!(HARNESS_JS.contains(needed), "{needed}");

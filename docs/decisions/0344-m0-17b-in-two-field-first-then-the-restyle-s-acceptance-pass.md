@@ -59,13 +59,16 @@ Both in one session leaves no room for the reviews and fixes either may need.
    2. On the page about Monte Carlo dispersion, switch to Field, read its first table,
       equation, code block and note, follow a link to another page, and find Field still chosen there; then
       switch back to Auto.
-   3. With the keyboard alone, from the top of a page: reach the theme switch, choose Dark,
-      reach the sidebar's entry for the current page and the next page's arrow, and follow it.
-   4. Print a page from Dark and from Field, in the browser's print preview: it prints in the
-      light theme's colors, with no navigation or switch drawn, and the print page ends with
-      its title block.
-   5. From a page's footer, read its version and date, and follow its link to the page about
-      the project.
+   3. With the keyboard alone, from the top of the page about Monte Carlo dispersion: reach
+      the theme switch, choose Dark, reach the sidebar's entry for the current page and the
+      next page's arrow, and follow it.
+   4. Print the page about Monte Carlo dispersion from Dark and from Field, in the browser's
+      print preview: it prints in the light theme's colors, with no table of contents or
+      buttons drawn, and the page's version-and-date line closes it.
+   5. Press the print button and then *Print the guide*: the whole guide's print page ends
+      with its title block.
+   6. From the landing page's footer, read its version and date, and follow its link to the
+      page about the project.
 
    No task reads a file, so none needs an input file. The screens are every page the tasks
    reach, at the page check's widths, in light, dark and field.

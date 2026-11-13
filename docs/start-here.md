@@ -768,9 +768,9 @@ drawing's title block does.
 The theme switch, Auto, Light, Dark and Field, sits in the header before the print and edit
 buttons on a window 960 px wide or wider. On a narrower one it's at the top of the table of
 contents, and on a phone it's behind the menu button. Auto follows your system's light or dark
-setting. Field is for reading outdoors, at the pad: a white page, darker secondary text and
-stronger rules, so the page stays legible in sunlight
-([Field in the switch](decisions-and-roadmap.md#m0-17b1)). A choice you make is kept in your
+setting. Field is the design system's theme for reading outdoors, at the pad. It differs from
+Light in three ways: a white page instead of a gray one, darker secondary text, and stronger
+rules ([Field in the switch](decisions-and-roadmap.md#m0-17b1)). It prints the same as Light. A choice you make is kept in your
 browser, for this site only.
 
 A page prints in the light theme's colors, whichever theme you read it in, without the table of
