@@ -1226,8 +1226,10 @@
       for (const pseudo of [null, '::before', '::after']) {
         const p = pseudo ? win.getComputedStyle(el, pseudo) : s;
         if (pseudo && (p.content === 'none' || p.content === 'normal')) continue;
+        // An icon is a mask drawn from an image; a mask of gradients alone (the sidebar list's
+        // fade, `hpr.css`) shapes no icon for forced colors to erase.
         const mask = p.getPropertyValue('mask-image') || p.getPropertyValue('-webkit-mask-image');
-        if (mask && mask !== 'none') masked.push([el, pseudo]);
+        if (mask && /url\(/.test(mask)) masked.push([el, pseudo]);
       }
       // Fixed to the window, not to a box: a transform or `will-change` on a box around it (the
       // page's own layer on a phone) would carry it away with the page. CSSOM View gives such an

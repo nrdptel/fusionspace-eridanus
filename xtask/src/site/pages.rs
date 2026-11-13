@@ -116,8 +116,10 @@
 //!     gradient), no text and no top rule is drawn under it, and no text is cut by the top edge
 //!     of a box the page leaves scrolled as it loads, as mdBook leaves the sidebar's list with
 //!     the current chapter in its middle; and wherever the sidebar is drawn, the current page's
-//!     entry in it shows whole as the page loads, inside every box that clips it, and inside the
-//!     window where the sidebar is fixed to it (#894). The menu button is drawn at
+//!     entry in it shows whole as the page loads, inside every box that clips it and clear of
+//!     its list's faded edges, and inside the window where the sidebar is fixed to it (#894).
+//!     A sidebar list that scrolls fades its edges, with 24 px of room after its last entry,
+//!     so the window never slices an entry (ADR-343 decision 14). The menu button is drawn at
 //!     every width, and the sidebar from 720 px on a first visit. Wherever the sidebar is drawn,
 //!     a screen reader and the keyboard reach it (not `aria-hidden`, every link in the tab
 //!     order), and wherever it is put away neither does. Read again with scripts off (the root
@@ -178,7 +180,8 @@
 //!   - **something forced colors would erase**: with the stylesheets' `forced-colors: active`
 //!     rules applied, a block set apart from what is behind it only by its fill (table parts
 //!     aside: their cells have rules) must have a border or an outline, an inline icon must be
-//!     drawn in its text color, and one painted through a mask must keep its own colors;
+//!     drawn in its text color, and one painted through a mask drawn from an image must keep
+//!     its own colors (a mask of gradients alone, a fade, shapes no icon);
 //!   - **a sticky bar that can hide what is focused**: a bar fixed or stuck to the window's top,
 //!     at least half its width and under half its height, reaching further down than the root's
 //!     `scroll-padding-top` (2.4.11);
@@ -280,7 +283,8 @@
 //! strip fixed along the window's top and one below it, which must pass, and a list the page
 //! leaves scrolled with its top line cut by its edge and one scrolled to a line's edge, which
 //! must pass; a sidebar whose current entry loads below its list's view, one whose entry its
-//! list's bottom edge cuts, and one whose entry shows whole, which must pass; and an ordinary page
+//! list's bottom edge cuts, one whose entry loads under its list's fade, one whose list scrolls
+//! with no fade, and one whose entry shows whole, which must pass; and an ordinary page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
 //! that wraps anywhere, a figure wider than any window with mdBook's zoom, a sidebar drawer put
 //! away off the left edge) that must pass. If one isn't
