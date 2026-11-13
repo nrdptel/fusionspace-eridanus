@@ -25,8 +25,9 @@
 // scrolling list, which a menu button opens under 720 px. A script the build writes just after
 // the header puts it there before the page is first drawn, so a phone's first screen doesn't
 // jump (#443); this file moves it when the window's width crosses 960 px. The page check reads
-// where it stands and which button is pressed at every width, presses Dark and then Auto to see
-// the theme follow, and loads the page with Coal saved to see it forgotten.
+// where it stands and which button is pressed at every width, presses Dark, Field and then Auto
+// to see the theme follow, and loads the page with Coal saved to see it forgotten and with Field
+// saved to see it kept.
 //
 // The print page (#443): `cargo xtask site` puts its chapters, every chapter of the guide, in a
 // template behind a cover, as a phone drawing them all on one screen page was slow to load and
@@ -144,17 +145,17 @@ document.addEventListener('click', function (event) {
         attributes: true, attributeFilter: ['class'], subtree: true,
     });
     pressed();
-    // A theme saved from mdBook's six-theme menu before the switch, Coal, Ayu or Rust, leaves its
-    // class on the page, drawn in neither of the site's looks, and no button for it to press: it
-    // is forgotten and Auto pressed, as a first-time reader has it.
+    // A theme saved from mdBook's six-theme menu before the switch, Coal or Ayu, leaves its
+    // class on the page, drawn in none of the site's looks, and no button for it to press: it is
+    // forgotten and Auto pressed, as a first-time reader has it. Rust is Field, and kept.
     let saved = null;
     try {
         saved = localStorage.getItem('mdbook-theme');
     } catch (e) {
         // Storage blocked: mdBook saved nothing either.
     }
-    if (saved !== null && saved !== 'light' && saved !== 'navy') {
-        document.documentElement.classList.remove('coal', 'ayu', 'rust');
+    if (saved !== null && saved !== 'light' && saved !== 'navy' && saved !== 'rust') {
+        document.documentElement.classList.remove('coal', 'ayu');
         const auto = document.getElementById('mdbook-theme-default_theme');
         if (auto) auto.click();
     }

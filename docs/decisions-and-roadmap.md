@@ -372,6 +372,7 @@ until someone rewrites it in plainer words.
 | [ADR-341: M2.3d8 in five, a parallel stage's added mass first][adr-341] | A parallel stage in an OpenRocket file, boosters strapped beside the core, can carry a mass override that doesn't cover its parts. HPR Sim warned of one and held the design back. It now reads it as OpenRocket 24.12 weighs it: one mass added to the set of boosters, at their center or at a stated station. Of 49 new probe designs HPR Sim lays out 27, and on the 25 of those with boosters the parallel stage alone matches OpenRocket's mass, center and both inertias. The probes also show cases this change doesn't fly, so [M2.3d8](#m2-3d8) is split in five, and four increments stay open. |  |
 | [ADR-342: The errors before the remaining OpenRocket-parity probes][adr-342] | The five public flights whose predictions were merged first are now compared with their logs. `cargo xtask real-flights` flies all 12 public flights and prints each of the five merged predictions beside its log's apogee and its error: Astra −6.53%, Andromeda +4.14%, Erebus 11 −9.58%, and the two Macie XL flights −16.20% and −29.16%. Over the 12 the mean absolute apogee error is 9.00% and the mean with its sign is −4.91%; over the seven compared before, they were 6.06% and −0.22%. No prediction was revised. The work left on how an OpenRocket file's stage overrides are read moves behind the accuracy work: it checks HPR Sim against OpenRocket on probe designs, and the logs are what decide accuracy. |  |
 | [ADR-343: The docs site drawn as a tool: the frame off][adr-343] | The docs site follows the product system at `dd7552f`, the commit that gave it three levels, and is drawn as a tool. Pages lose the designation tag and the sheet numbers; each `##` section is a part under a 2 px rule. Every page but the print page ends with a one-line footer: the mark and "FusionSpace HPR", the version, the date of issue, the site's status chip and a link to Start here. Start here keeps the title block as the site's about box, and the print page still ends with it. Labels, navigation, note heads, chips and the switch are in Archivo, in sentence case, at the system's web sizes; CAUTION and WARNING keep capitals, in the wide cut. |  |
+| [ADR-344: M0.17b in two: Field first, then the restyle's acceptance pass][adr-344] | [M0.17b](#m0-17b) asks for two things that each take a session: a fourth color theme, Field, read by the page check at every width as light and dark are, and the acceptance pass for the whole restyle of the docs site. This record ships them one after the other. [M0.17b1](#m0-17b1) adds Field to the theme switch and to the page check. [M0.17b2](#m0-17b2) runs the acceptance pass over [M0.17a](#m0-17a)'s and [M0.17b1](#m0-17b1)'s work and closes issue #1364. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -560,6 +561,8 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-17"></a>[M0.17][phase-0] | The docs site at the tool level | not yet done |
 | <a id="m0-17a"></a>[M0.17a][done-0] | The frame off | done |
 | <a id="m0-17b"></a>[M0.17b][phase-0] | Field | not yet done |
+| <a id="m0-17b1"></a>[M0.17b1][done-0] | Field in the theme switch | done |
+| <a id="m0-17b2"></a>[M0.17b2][phase-0] | The restyle's acceptance pass | not yet done |
 | <a id="m1-1"></a>[M1.1][done-1] | Vectors and rotations, frames, the Earth's shape and gravity | done |
 | <a id="m1-2"></a>[M1.2][done-1] | The atmosphere and wind | done |
 | <a id="m1-3"></a>[M1.3][done-1] | Solid motors: thrust curves, motor files, and mass through the burn | done |
@@ -1391,6 +1394,7 @@ is the milestone that added or will add that test.
 [adr-341]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0341-m2-3d8-in-five-a-parallel-stage-s-added-mass-first.md
 [adr-342]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0342-the-errors-before-the-remaining-openrocket-parity-probes.md
 [adr-343]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0343-the-docs-site-drawn-as-a-tool-the-frame-off.md
+[adr-344]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0344-m0-17b-in-two-field-first-then-the-restyle-s-acceptance-pass.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

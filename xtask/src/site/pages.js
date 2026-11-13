@@ -399,17 +399,25 @@
   }
 
   // The product system's color roles, in each theme (`foundations.md`, *Semantic roles*, the
-  // light and dark columns, and the signal fills under the table). A color the page computes
-  // must be one of its theme's, or transparent.
+  // light, dark and field columns, and the signal fills under the table), by mdBook's theme that
+  // draws it: light, navy and rust, which the site offers as Field (ADR-344). A color the page
+  // computes must be one of its theme's, or transparent.
   const ROLES = {
     light: ['#F3F4F7', '#FFFFFF', '#D6DAE4', '#566079', '#0B0F1C', '#98A1B8', '#3350D6',
       '#AC001E', '#B34F0C', '#0A6355', '#A22488', '#F5AF20'],
     navy: ['#0B0F1C', '#141A2B', '#2A3248', '#6D7790', '#F3F4F7', '#98A1B8', '#566079',
       '#768DF5', '#FB8083', '#F5AF20', '#6AD5B6', '#ED89D2', '#AC001E', '#FFFFFF', '#0A6355',
       '#3350D6'],
+    rust: ['#FFFFFF', '#98A1B8', '#0B0F1C', '#2A3248', '#566079', '#3350D6', '#AC001E', '#B34F0C',
+      '#0A6355', '#A22488', '#F5AF20'],
   };
   // The action role in each theme, a selection's fill.
-  const ACTION = { light: '#3350D6', navy: '#768DF5' };
+  const ACTION = { light: '#3350D6', navy: '#768DF5', rust: '#3350D6' };
+  // The themes a page that switches is read in after the one it loads in, `first`, in order:
+  // Field (mdBook's rust), then the other of light and navy.
+  function afterFirst(first) {
+    return ['rust', first === 'navy' ? 'light' : 'navy'].filter(function (t) { return t !== first; });
+  }
   // How opaque the action role is in a selection of text (`fusionspace.css`, `::selection`).
   const SELECTION_ALPHA = 0.22;
   // A text of marks alone, spaces aside (#383): arrows, technical symbols, shapes, symbols and
@@ -474,10 +482,10 @@
   const CHIP_FILLS = { ok: ['#0A6355', '#FFFFFF'] };
   const LEAD_PX = 20;
   const LEAD_LINE_PX = 28;
-  const INK_MUTED = { light: '#566079', navy: '#98A1B8' };
-  const SWITCH_CHOICES = ['Auto', 'Light', 'Dark'];
+  const INK_MUTED = { light: '#566079', navy: '#98A1B8', rust: '#2A3248' };
+  const SWITCH_CHOICES = ['Auto', 'Light', 'Dark', 'Field'];
   // mdBook's themes the switch doesn't offer, which a reader may have saved before it.
-  const SWITCH_RETIRED = ['coal', 'ayu', 'rust'];
+  const SWITCH_RETIRED = ['coal', 'ayu'];
   const SWITCH_HEADER_PX = 960;
   const SWITCH_BUTTON_PX = 44;
   const SWITCH_TYPE_PX = 15;
@@ -935,7 +943,7 @@
   // ([`applyPrint`]) in the theme it is in, and on mdBook's pages that switch, in the other too:
   // - the light theme's values whatever the theme: every color one of the light theme's roles,
   //   with the reading's other checks of color, shape and contrast ([`styleDefaults`]), and on a
-  //   page that switches, every element drawn in the same colors in both themes;
+  //   page that switches, every element drawn in the same colors in every theme;
   // - navigation and the theme's controls hidden: no `nav`, button, text field, menu or search
   //   drawn, nor anything inside one;
   // - each link drawn out of the page (not to a place on it), in `main` or around it, as the
@@ -985,7 +993,10 @@
   // The page on paper, as [`probePrint`] reads it, its findings in `found` and taken by `note`.
   async function probePrinted(win, doc, found, note) {
     const root = doc.documentElement;
-    const themeClass = function () { return root.classList.contains('navy') ? 'navy' : 'light'; };
+    const themeClass = function () {
+      return root.classList.contains('navy') ? 'navy'
+        : root.classList.contains('rust') ? 'rust' : 'light';
+    };
     const els = [root].concat(doc.body
       ? [doc.body].concat(Array.from(doc.body.querySelectorAll('*'))) : [])
       .filter(function (el) {
@@ -1079,27 +1090,28 @@
       const first = themeClass();
       const colors = read('print, from ' + first);
       if (doc.getElementById('mdbook-tomorrow-night-css') && root.classList.contains('js')) {
-        const other = first === 'light' ? 'navy' : 'light';
-        switchTheme(doc, other);
-        await settle(win, doc);
-        const others = read('print, from ' + other);
-        let i = 0;
-        for (const el of els) {
-          for (const pseudo of [null, '::before', '::after']) {
-            const a = colors[i];
-            const b = others[i];
-            i++;
-            if (a === null && b === null) continue;
-            if (a === null || b === null) {
-              note(el, pseudo, 'content', 'drawn from one theme only', 'print');
-              continue;
-            }
-            COLOR_PROPERTIES.forEach(function (p, k) {
-              if (a[k] !== b[k]) {
-                note(el, pseudo, p, a[k] + ' from ' + first + ', ' + b[k] + ' from ' + other,
-                  'print');
+        for (const other of afterFirst(first)) {
+          switchTheme(doc, other);
+          await settle(win, doc);
+          const others = read('print, from ' + other);
+          let i = 0;
+          for (const el of els) {
+            for (const pseudo of [null, '::before', '::after']) {
+              const a = colors[i];
+              const b = others[i];
+              i++;
+              if (a === null && b === null) continue;
+              if (a === null || b === null) {
+                note(el, pseudo, 'content', 'drawn from one theme only', 'print');
+                continue;
               }
-            });
+              COLOR_PROPERTIES.forEach(function (p, k) {
+                if (a[k] !== b[k]) {
+                  note(el, pseudo, p, a[k] + ' from ' + first + ', ' + b[k] + ' from ' + other,
+                    'print');
+                }
+              });
+            }
           }
         }
         switchTheme(doc, first);
@@ -1112,19 +1124,24 @@
   }
 
   // The theme a page is shown in: mdBook gives the dark ones a dark `color-scheme`. It picks
-  // navy for a reader whose system is dark, and a headless browser may say it is.
+  // navy for a reader whose system is dark, and a headless browser may say it is. Field is
+  // light in scheme and drawn only with scripts on (mdBook's `html:not(.js)` rules give a page
+  // without them the light colors whatever its class), so it is told by its class.
   function themeOf(win, doc) {
-    return /dark/.test(win.getComputedStyle(doc.documentElement).colorScheme) ? 'navy' : 'light';
+    const root = doc.documentElement;
+    if (/dark/.test(win.getComputedStyle(root).colorScheme)) return 'navy';
+    return root.classList.contains('rust') && root.classList.contains('js') ? 'rust' : 'light';
   }
 
-  // mdBook's switch between its light and navy themes, as its `set_theme` makes it, without
-  // remembering it: the page's class, and the code colors for that theme.
+  // mdBook's switch between its light, navy and rust themes, as its `set_theme` makes it,
+  // without remembering it: the page's class, and the code colors for that theme (mdBook's
+  // `highlight.css` for light and rust, Tomorrow Night for navy).
   function switchTheme(doc, theme) {
     const sheet = function (id, disabled) {
       const link = doc.getElementById(id);
       if (link) link.disabled = disabled;
     };
-    sheet('mdbook-highlight-css', theme !== 'light');
+    sheet('mdbook-highlight-css', theme === 'navy');
     sheet('mdbook-tomorrow-night-css', theme !== 'navy');
     sheet('mdbook-ayu-highlight-css', true);
     doc.documentElement.classList.remove('light', 'navy', 'coal', 'ayu', 'rust');
@@ -1422,15 +1439,17 @@
       doc.documentElement.classList.add('js');
       await settle(win, doc);
     }
-    // The other theme, on mdBook's pages that switch: a page without mdBook's code stylesheets,
-    // or its sidebar for readers without scripts, is read in the theme it loads in.
+    // The other themes, on mdBook's pages that switch: Field, then the other of light and navy. A
+    // page without mdBook's code stylesheets, or its sidebar for readers without scripts, is read
+    // in the theme it loads in.
     if (doc.getElementById('mdbook-tomorrow-night-css') && doc.documentElement.classList.contains('js')) {
-      const other = first === 'light' ? 'navy' : 'light';
-      switchTheme(doc, other);
-      // The colors change over the theme's transitions: read them once those have run.
-      await settle(win, doc);
-      if (themeOf(win, doc) !== other) throw new Error('the page did not switch to ' + other);
-      styleDefaults(win, doc, other, false, found);
+      for (const other of afterFirst(first)) {
+        switchTheme(doc, other);
+        // The colors change over the theme's transitions: read them once those have run.
+        await settle(win, doc);
+        if (themeOf(win, doc) !== other) throw new Error('the page did not switch to ' + other);
+        styleDefaults(win, doc, other, false, found);
+      }
     }
   }
 
@@ -2699,7 +2718,8 @@
   }
 
   // The theme switch pressed: Dark must put the page in mdBook's dark theme (Navy) and press
-  // Dark, and Auto must put it back in the theme the reader's system asks for and press Auto.
+  // Dark, Field in mdBook's rust theme (ADR-344) and press Field, and Auto must put it back in
+  // the theme the reader's system asks for and press Auto.
   // Pressing works the same at any width, and restyling a long page twice is slow, so it is
   // read once a run, at the width that reads print, with transitions held. mdBook remembers a
   // choice in `localStorage`, which the other frames loading in parallel share, and reads it back
@@ -2722,8 +2742,9 @@
       });
     };
     const dark = button('Dark');
+    const field = button('Field');
     const auto = button('Auto');
-    if (!dark || !auto) return;
+    if (!dark || !field || !auto) return;
     const root = doc.documentElement;
     const held = doc.createElement('style');
     held.textContent = '*, *::before, *::after { transition: none !important; }';
@@ -2744,11 +2765,19 @@
         note('Dark pressed leaves the page in `' + root.className + '`, Dark pressed: '
           + dark.getAttribute('aria-pressed'));
       }
+      field.click();
+      await nextFrames(win);
+      if (!root.classList.contains('rust') || root.classList.contains('light')
+        || root.classList.contains('navy') || field.getAttribute('aria-pressed') !== 'true') {
+        note('Field pressed leaves the page in `' + root.className + '`, Field pressed: '
+          + field.getAttribute('aria-pressed'));
+      }
       auto.click();
       await nextFrames(win);
       const asked = win.matchMedia('(prefers-color-scheme: dark)').matches ? 'navy' : 'light';
       const other = asked === 'navy' ? 'light' : 'navy';
       if (!root.classList.contains(asked) || root.classList.contains(other)
+        || root.classList.contains('rust')
         || auto.getAttribute('aria-pressed') !== 'true') {
         note('Auto pressed leaves the page in `' + root.className + '`, not `' + asked
           + '`, Auto pressed: ' + auto.getAttribute('aria-pressed'));
@@ -2761,11 +2790,13 @@
     }
   }
 
-  // A theme saved from mdBook's six-theme menu before the switch: loaded with Coal saved, the
-  // page must forget it, stand in the theme the reader's system asks for with no Coal class,
-  // and press Auto. The page is loaded again in a frame of its own at this width, from its text
-  // with a `base` keeping its addresses and, before any of its scripts, a store in memory holding
-  // Coal, so the frames loading in parallel see nothing. Read with the press, once a run.
+  // A theme saved before the page loads, as the next page a reader opens finds it. Loaded with
+  // Coal saved, from mdBook's six-theme menu before the switch, the page must forget it, stand in
+  // the theme the reader's system asks for with no Coal class, and press Auto. Loaded with Field
+  // saved (mdBook's rust, ADR-344), it must keep it: stand in rust, press Field, and leave it
+  // saved. The page is loaded again in a frame of its own at this width, from its text with a
+  // `base` keeping its addresses and, before any of its scripts, a store in memory holding the
+  // theme, so the frames loading in parallel see nothing. Read with the press, once a run.
   async function probeSwitchRetired(win, doc, result) {
     const group = doc.getElementById('mdbook-theme-list');
     if (!group || !group.classList.contains('fs-seg')
@@ -2779,37 +2810,51 @@
     };
     const address = win.location.href.split('#')[0];
     const text = await (await fetch(address)).text();
-    const store = '<base href="' + address + '"><script>(function () { const m = new Map(['
-      + '["mdbook-theme", "coal"]]); const s = Storage.prototype; s.getItem = function (k) { '
-      + 'k = String(k); return m.has(k) ? m.get(k) : null; }; s.setItem = function (k, v) { '
-      + 'm.set(String(k), String(v)); }; s.removeItem = function (k) { m.delete(String(k)); }; '
-      + 'window.hprCheckStore = m; })();</script>';
-    const frame = document.createElement('iframe');
-    frame.style.cssText = 'position:absolute;left:0;top:0;border:0;margin:0;padding:0;'
-      + 'width:' + win.innerWidth + 'px;height:' + win.innerHeight + 'px';
-    let timer = null;
-    const loaded = new Promise(function (resolve) {
-      frame.addEventListener('load', function () { resolve(true); }, { once: true });
-      timer = setTimeout(function () { resolve(false); }, LOAD_TIMEOUT_MS);
-    });
-    frame.srcdoc = text.replace(/^(\s*<!doctype[^>]*>)?/i, function (doctype) {
-      return doctype + store;
-    });
-    document.body.appendChild(frame);
-    try {
-      if (!(await loaded)) {
+    // The page loaded with `theme` saved; `read` is given its window, or null if it didn't load.
+    const loadSaved = async function (theme, read) {
+      const store = '<base href="' + address + '"><script>(function () { const m = new Map(['
+        + '["mdbook-theme", "' + theme + '"]]); const s = Storage.prototype; s.getItem = '
+        + 'function (k) { k = String(k); return m.has(k) ? m.get(k) : null; }; s.setItem = '
+        + 'function (k, v) { m.set(String(k), String(v)); }; s.removeItem = function (k) { '
+        + 'm.delete(String(k)); }; window.hprCheckStore = m; })();</script>';
+      const frame = document.createElement('iframe');
+      frame.style.cssText = 'position:absolute;left:0;top:0;border:0;margin:0;padding:0;'
+        + 'width:' + win.innerWidth + 'px;height:' + win.innerHeight + 'px';
+      let timer = null;
+      const loaded = new Promise(function (resolve) {
+        frame.addEventListener('load', function () { resolve(true); }, { once: true });
+        timer = setTimeout(function () { resolve(false); }, LOAD_TIMEOUT_MS);
+      });
+      frame.srcdoc = text.replace(/^(\s*<!doctype[^>]*>)?/i, function (doctype) {
+        return doctype + store;
+      });
+      document.body.appendChild(frame);
+      try {
+        if (!(await loaded)) {
+          read(null);
+          return;
+        }
+        await nextFrames(frame.contentWindow);
+        read(frame.contentWindow);
+      } finally {
+        clearTimeout(timer);
+        frame.remove();
+      }
+    };
+    const choice = function (d, name) {
+      const list = d.getElementById('mdbook-theme-list');
+      return list && Array.from(list.querySelectorAll('button')).find(function (b) {
+        return b.textContent.trim() === name;
+      });
+    };
+    await loadSaved('coal', function (w) {
+      if (!w) {
         note('did not load with Coal saved in ' + LOAD_TIMEOUT_MS / 1000 + ' s');
         return;
       }
-      const w = frame.contentWindow;
-      const d = frame.contentDocument;
-      await nextFrames(w);
-      const root = d.documentElement;
+      const root = w.document.documentElement;
       const asked = w.matchMedia('(prefers-color-scheme: dark)').matches ? 'navy' : 'light';
-      const list = d.getElementById('mdbook-theme-list');
-      const auto = list && Array.from(list.querySelectorAll('button')).find(function (b) {
-        return b.textContent.trim() === SWITCH_CHOICES[0];
-      });
+      const auto = choice(w.document, SWITCH_CHOICES[0]);
       const kept = w.hprCheckStore ? w.hprCheckStore.get('mdbook-theme') : 'unread';
       if (root.classList.contains('coal') || !root.classList.contains(asked) || !auto
         || auto.getAttribute('aria-pressed') !== 'true' || kept !== undefined) {
@@ -2817,10 +2862,23 @@
           + asked + '`, Auto pressed: ' + (auto ? auto.getAttribute('aria-pressed') : 'no Auto')
           + ', still saved: ' + (kept === undefined ? 'nothing' : kept));
       }
-    } finally {
-      clearTimeout(timer);
-      frame.remove();
-    }
+    });
+    await loadSaved('rust', function (w) {
+      if (!w) {
+        note('did not load with Field saved in ' + LOAD_TIMEOUT_MS / 1000 + ' s');
+        return;
+      }
+      const root = w.document.documentElement;
+      const field = choice(w.document, 'Field');
+      const kept = w.hprCheckStore ? w.hprCheckStore.get('mdbook-theme') : 'unread';
+      if (!root.classList.contains('rust') || root.classList.contains('light')
+        || root.classList.contains('navy') || !field
+        || field.getAttribute('aria-pressed') !== 'true' || kept !== 'rust') {
+        note('with Field saved, the page in `' + root.className + '`, Field pressed: '
+          + (field ? field.getAttribute('aria-pressed') : 'no Field') + ', still saved: '
+          + (kept === undefined ? 'nothing' : kept));
+      }
+    });
   }
 
   // The mark on a box the check draws though `content-visibility: auto` would skip it.
