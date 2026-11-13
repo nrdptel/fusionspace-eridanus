@@ -47,6 +47,17 @@ pub(super) const CHOICES: [(&str, &str); 4] = [
     ("navy", "Dark"),
     ("rust", "Field"),
 ];
+/// What each choice is for, as its button's tooltip and its description to a screen reader
+/// (ADR-345): a reader new to the site saw four names and no word of what Field is.
+fn hint(id: &str) -> &'static str {
+    match id {
+        "default_theme" => "Follows your system's light or dark setting",
+        "light" => "Dark text on a light gray page",
+        "navy" => "Light text on a dark page",
+        "rust" => "For reading outdoors: a white page, darker gray text and stronger rules",
+        _ => "",
+    }
+}
 /// The site's script, which moves the switch, as the built site holds it.
 const SCRIPT: &str = "theme/hpr.js";
 /// Where the switch goes: the header's right-hand buttons, at their start.
@@ -75,7 +86,8 @@ fn switch() -> String {
         .map(|(id, name)| {
             format!(
                 "<li role=\"none\"><button type=\"button\" class=\"theme\" \
-                 id=\"mdbook-theme-{id}\" aria-pressed=\"false\">{name}</button></li>"
+                 id=\"mdbook-theme-{id}\" title=\"{}\" aria-pressed=\"false\">{name}</button></li>",
+                hint(id)
             )
         })
         .collect();
@@ -275,8 +287,13 @@ mod tests {
         assert!(!drawn.contains("mdbook-theme-coal"));
         assert!(switch().contains(
             "<button type=\"button\" class=\"theme\" id=\"mdbook-theme-navy\" \
-             aria-pressed=\"false\">Dark</button>"
+             title=\"Light text on a dark page\" aria-pressed=\"false\">Dark</button>"
         ));
+        // Each choice says what it is for, Field above all.
+        for (id, _) in CHOICES {
+            assert!(!hint(id).is_empty(), "{id} has no hint");
+        }
+        assert!(switch().contains("title=\"For reading outdoors"));
         assert!(drawn.contains(&format!("</header>{}<main>", place())));
         assert!(place().contains(&format!("(min-width: {HEADER_FROM_PX}px)")));
         assert_eq!(page_problems(&drawn), Vec::<String>::new());

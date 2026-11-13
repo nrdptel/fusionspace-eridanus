@@ -69,11 +69,12 @@ const ICONS: [(&str, &str); 12] = [
 /// link takes `external`, as it leaves the site: the system draws no maker's logos. The code
 /// blocks' templates take `plus` and `minus` to show and hide a block's hidden lines, `simulate`
 /// to run it and `refresh` to undo an edit; the site runs no code, so those three aren't drawn.
-const PLACES: [(&str, &str); 14] = [
+const PLACES: [(&str, &str); 15] = [
     ("id=\"mdbook-sidebar-toggle\"", "menu"),
     ("id=\"mdbook-theme-toggle\"", "sun"),
     ("id=\"mdbook-search-toggle\"", "search"),
     ("title=\"Print this book\"", "print"),
+    (PRINT_LABEL.1, "print"),
     ("title=\"Git repository\"", "external"),
     ("rel=\"edit\"", "edit"),
     ("id=\"fa-spin\"", "refresh"),
@@ -85,6 +86,13 @@ const PLACES: [(&str, &str); 14] = [
     ("<template id=fa-play>", "simulate"),
     ("<template id=fa-clock-rotate-left>", "refresh"),
 ];
+
+/// mdBook's label for the print button, and the site's (ADR-345): the button opens the print
+/// page, which prints the whole guide, and the site calls the book the guide.
+const PRINT_LABEL: (&str, &str) = (
+    "title=\"Print this book\" aria-label=\"Print this book\"",
+    "title=\"Print the guide\" aria-label=\"Print the guide\"",
+);
 
 /// The system's icon `name`, as it is inlined: the file without its closing line break.
 fn icon(name: &str) -> Option<&'static str> {
@@ -201,7 +209,7 @@ fn rewrite(html: &str) -> Result<(String, usize), Vec<String>> {
         },
         None => out,
     };
-    Ok((out, count))
+    Ok((out.replace(PRINT_LABEL.0, PRINT_LABEL.1), count))
 }
 
 /// The script mdBook 0.5 writes the sidebar with, which adds the current page's headings to it,
@@ -392,6 +400,13 @@ mod tests {
             );
         }
         assert!(page_problems("a.html", &drawn).is_empty(), "{drawn}");
+    }
+
+    #[test]
+    fn the_print_button_is_labeled_for_the_guide() {
+        let (drawn, _) = rewrite(&page(GLYPH, TITLE)).unwrap();
+        assert!(drawn.contains(PRINT_LABEL.1), "{drawn}");
+        assert!(!drawn.contains("Print this book"), "{drawn}");
     }
 
     #[test]

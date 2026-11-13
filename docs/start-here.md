@@ -757,13 +757,7 @@ at the top of a page opens its source in GitHub's editor, where you can propose 
 Under each page's title, one sentence in larger gray type says what the page covers. Each of its
 two to six sections starts under a thick rule in the text's color.
 
-Each page but the print page (the whole guide on one page, below) ends with one line: the
-FusionSpace mark and the name FusionSpace HPR, the version, the date of the commit the site is
-built from, a chip with the site's status, and *About HPR Sim*, a link back to this page. The chip
-reads *In preparation* while the pages describe work after the last release, and *Released* when
-they describe a release as it shipped. The [title block](#title-block) at the end of this page is
-the site's about box: it says what each entry means, and writes the status in capitals, as a
-drawing's title block does.
+### The header and the theme switch
 
 The theme switch, Auto, Light, Dark and Field, sits in the header before the print and edit
 buttons on a window 960 px wide or wider. On a narrower one it's at the top of the table of
@@ -771,15 +765,33 @@ contents, and on a phone it's behind the menu button. Auto follows your system's
 setting. Field is the design system's theme for reading outdoors, at the pad. It differs from
 Light in three ways: a white page instead of a gray one, darker secondary text, and stronger
 rules ([Field in the switch](decisions-and-roadmap.md#m0-17b1)). It prints the same as Light. A choice you make is kept in your
-browser, for this site only.
+browser, for this site only. Each button's tooltip says what its theme looks like, or what it's for.
+
+With the keyboard, Tab reaches every button in the header. On a phone, Enter or Space on the menu
+button, the three-line icon named *Toggle Table of Contents*, opens the table of contents and moves
+to its first control, the theme switch.
+
+### The footer
+
+Each page but the print page (the whole guide on one page, below) ends with one line: the
+FusionSpace mark and the name FusionSpace HPR, *Version* and the last release's number, *Issued*
+and the date of the commit the site is built from, a chip with the site's status, and *About HPR
+Sim*, a link back to this page. The version and the date can be weeks apart. The chip reads *In
+preparation* while the pages describe work after the last release, and *Released* when they
+describe a release as it shipped. The [title block](#title-block) at the end of this page is the
+site's about box: it says what each entry means, and writes the status in capitals, as a
+drawing's title block does.
+
+### Printing
 
 A page prints in the light theme's colors, whichever theme you read it in, without the table of
 contents or the buttons. Each link's address follows it in parentheses. For another site that's
 the whole address, and for a page of this one it's the path from the page, such as
-`cli.html#units`. The line with the version and date closes the page. The printer icon at the top
-opens a cover with a *Print the guide* button, which prints every chapter one after another, then
-the whole [title block](glossary.md#title-block). That runs long, since it holds every chapter and
-its links' addresses. Printed to a PDF file, the guide reads offline.
+`cli.html#units`. The line with the version and date closes the page, without the footer's link
+to this page. The printer icon at the top,
+*Print the guide*, opens a cover with a *Print the guide* button, which prints every chapter one
+after another, then the whole [title block](glossary.md#title-block). That runs long, since it
+holds every chapter and its links' addresses. Printed to a PDF file, the guide reads offline.
 
 ## Title block
 

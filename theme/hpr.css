@@ -158,6 +158,10 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
 .fs-foot .fs-status svg { width: 14px; height: 14px; flex: none; }
 .fs-foot .fs-status[data-state="ok"] { background: #0A6355; color: #FFFFFF; }
 .fs-foot .fs-status[data-state="info"] { background: transparent; color: var(--fs-action); border-color: currentColor; }
+/* On paper the footer's link to the page about the project is left off (ADR-345): with its
+   address after it, as every printed link has, it took a second line under the version and the
+   date, which close a printed page. */
+@media print { .content .fs-foot .fs-push { display: none; } }
 /* The print page's title block (`fusionspace.css`, `.fs-titleblock`): the guide on paper is a record
    (ADR-343). ISO 7200's fields in ruled cells,
    inside a 2 px ink border on the surface, each field's name in `label` capitals over its entry
@@ -230,6 +234,32 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
     #mdbook-menu-bar { border-top: 4px solid transparent; }
     html { scroll-padding-top: calc(var(--menu-bar-height) + 5px); }
 }
+/* Focus rings whole at the window's top and bottom (ADR-345). The menu and search buttons, as
+   tall as the bar's row, stood at the window's top edge under 960 px, which cut their rings' top
+   4 px, and from 960 px their rings' top ran under the strip, as the print, repository and edit
+   links' did. The strip runs along the window's top at every width, 4 px deep, so the menu and
+   search buttons stand 8 px inside the row, 34 px tall, and from 960 px, under the bar's 4 px
+   top border, the links stand 5 px inside it, 40 px tall: each icon where it was, and the row
+   keeps its height. From 960 px the theme switch stands 2 px lower, its ring clear of the
+   strip. A link the keyboard focuses stops 8 px above the window's bottom edge, not on it, where
+   its ring's bottom was cut. The page check fails a ring cut by the window's top or the strip,
+   and a page whose scroll padding at the bottom is under a ring's reach. */
+#mdbook-menu-bar .left-buttons > .icon-button,
+#mdbook-menu-bar .left-buttons > .icon-button .fa-svg { line-height: calc(var(--menu-bar-height) - 16px); }
+#mdbook-menu-bar .left-buttons > .icon-button { margin-block: 8px; }
+@media only screen and (min-width: 960px) {
+    #mdbook-menu-bar .right-buttons > a,
+    #mdbook-menu-bar .right-buttons > a .fa-svg { line-height: calc(var(--menu-bar-height) - 10px); }
+    #mdbook-menu-bar .right-buttons > a { margin-block: 5px; }
+    #mdbook-menu-bar .right-buttons > #mdbook-theme-list.fs-seg { margin-top: 2px; }
+}
+html { scroll-padding-bottom: 8px; }
+/* The header off its place (ADR-345). Where the table of contents is shut (under 720 px, or put
+   away at any width), mdBook's script lets the header scroll away and sticks it to the window's top when the reader scrolls up. Turning down again, it sets the
+   header's `top` to where the page then was, and the header stayed there, a band over the page's
+   text and its arrows, until scrolled out; at a page's end it couldn't be. A header that isn't
+   stuck stays at the page's top, so it leaves the window at once and comes back stuck. */
+#mdbook-menu-bar:not(.sticky) { top: 0 !important; }
 .sidebar > #mdbook-theme-list.fs-seg { position: absolute; top: 10px; left: 10px; }
 .sidebar:has(> #mdbook-theme-list) > .sidebar-scrollbox { top: 66px; }
 /* The sidebar's list scrolls in its own box, so the window's bottom edge would slice an entry in
@@ -321,6 +351,34 @@ html:not(.js) #hpr-print { display: none; }
   table tr > :last-child { padding-inline-end: 0; }
 }
 pre > code.wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
+/* A code block (ADR-345): its long lines wrap, at any character, at every width, rather than run
+   off the box's edge, where the line's end was out of sight until the reader scrolled the box
+   sideways: at 320 px, and at 1,000 px beside the open table of contents too. The product system
+   lets only data tables and charts scroll sideways at 320 px (`web.md`, *Accessibility*, 1.4.10),
+   and nothing may be cut by a box's side. Copying takes the code as written, its lines unbroken.
+   The page check fails a code block that scrolls sideways. */
+pre > code, pre > code.hljs { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* Focus rings whole on a phone (ADR-345). The system's stylesheet pads the content's box
+   `16px - --page-padding`, 1 px under 720 px, with mdBook's page padding outside it; the box
+   scrolls, so it cut 3 of the 4 px of a focused link's ring (2 px wide, 2 px out) at the column's
+   left edge, and the page doesn't scroll sideways to show it. Here the box takes the page
+   padding inside it, so the text stands where it stood, 16 px from the window's side, and the
+   ring has room. A table's box, which scrolls too, gets 4 px a side outside the table's own
+   edges at every width, for its first and last cells' links. The header's title, where it takes
+   a row of its own under the buttons, keeps 6 px from each side of the bar, where its ring
+   reached past the window's. The page check fails a ring cut by the window or by a box that
+   clips it. */
+.content .table-wrapper { margin-inline: -4px; padding-inline: 4px; }
+@media only screen and (max-width: 719px) {
+  .content { margin-inline: calc(0px - var(--page-padding)); padding-inline: 16px; }
+}
+@media only screen and (max-width: 519px) {
+  #mdbook-menu-bar .menu-title.fs-logo { flex: 0 0 calc(100% - 12px); margin-inline: 6px; }
+}
+@media only screen and (min-width: 720px) and (max-width: 779px) {
+  html.sidebar-visible #mdbook-menu-bar .menu-title.fs-logo { flex: 0 0 calc(100% - 12px); margin-inline: 6px; }
+}
 
 /* A table too wide for its column, its rows stacked by `hpr.js` (ADR-297): each row a group under
    the table's 1 px rules, the first under the head's 2 px ink rule, each cell its column's head in

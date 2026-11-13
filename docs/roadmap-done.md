@@ -116,8 +116,11 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.16a1 Two slices ([Phase 0](#phase-0-foundations))
 - M0.16a2 The fit's slice ([Phase 0](#phase-0-foundations))
 - M0.16a3 The budget checked ([Phase 0](#phase-0-foundations))
+- M0.17 The docs site at the tool level ([Phase 0](#phase-0-foundations))
 - M0.17a The frame off ([Phase 0](#phase-0-foundations))
+- M0.17b Field ([Phase 0](#phase-0-foundations))
 - M0.17b1 Field in the theme switch ([Phase 0](#phase-0-foundations))
+- M0.17b2 The restyle's acceptance pass ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -787,12 +790,16 @@ One line per milestone or increment, in the order it was archived within its pha
       minutes, a job over 20 in main's last passing CI, or no passing nightly in 26 hours; M7.3c3's
       fit follows before it merges.
 
-- **M0.17** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
+- [x] **M0.17 The docs site at the tool level** (ADR-339, #1364; in two, met when they are).
   - [x] **M0.17a The frame off** (ADR-343). *Done when:* ADR-339 decision 1's for M0.17a: no designation
     tag or sheet numbers, a one-line footer, `theme/` re-pinned.
-  - **M0.17b** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
+  - [x] **M0.17b Field** (ADR-344: in two; met when M0.17b1 and M0.17b2 are). *Done when:*
+    ADR-339 decision 1's for M0.17b; #1364 closes with it.
     - [x] **M0.17b1 Field in the theme switch** (#452). *Done when:* ADR-344 decision 1's for
       M0.17b1.
+    - [x] **M0.17b2 The restyle's acceptance pass** (#1364; ADR-345). *Done when:* ADR-344
+      decision 1's for M0.17b2.
+
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and
