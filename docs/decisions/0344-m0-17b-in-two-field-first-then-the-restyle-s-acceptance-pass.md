@@ -1,6 +1,6 @@
 # ADR-344: M0.17b in two: Field first, then the restyle's acceptance pass (2026-11-13)
 
-- **Status:** accepted; splits [M0.17b][m0-17b] ([ADR-339][adr-339]'s second increment) into [M0.17b1][m0-17b1] and [M0.17b2][m0-17b2], and writes M0.17b2's user tasks before it is built ([ADR-282][adr-282]).
+- **Status:** accepted; splits [M0.17b][m0-17b] ([ADR-339][adr-339]'s second increment) into [M0.17b1][m0-17b1] and [M0.17b2][m0-17b2], writes M0.17b2's user tasks before it is built ([ADR-282][adr-282]), and closes M0.17b1.
 - **Summary:** M0.17b asks for two things that each take a session: a fourth color theme, Field, read by the page check at every width as light and dark are, and the acceptance pass for the whole restyle of the docs site. This record ships them one after the other. M0.17b1 adds Field to the theme switch and to the page check. M0.17b2 runs the acceptance pass over M0.17a's and M0.17b1's work and closes issue #1364.
 
 [m0-17b]: ../decisions-and-roadmap.md#m0-17b

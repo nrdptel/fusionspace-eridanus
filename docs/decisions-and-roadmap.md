@@ -561,7 +561,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-17"></a>[M0.17][phase-0] | The docs site at the tool level | not yet done |
 | <a id="m0-17a"></a>[M0.17a][done-0] | The frame off | done |
 | <a id="m0-17b"></a>[M0.17b][phase-0] | Field | not yet done |
-| <a id="m0-17b1"></a>[M0.17b1][phase-0] | Field in the theme switch | not yet done |
+| <a id="m0-17b1"></a>[M0.17b1][done-0] | Field in the theme switch | done |
 | <a id="m0-17b2"></a>[M0.17b2][phase-0] | The restyle's acceptance pass | not yet done |
 | <a id="m1-1"></a>[M1.1][done-1] | Vectors and rotations, frames, the Earth's shape and gravity | done |
 | <a id="m1-2"></a>[M1.2][done-1] | The atmosphere and wind | done |
