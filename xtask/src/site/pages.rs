@@ -101,10 +101,11 @@
 //!     from the left as from the right, and at least that;
 //!   - **a code block or table held narrower than the column**: one in `main` that scrolls
 //!     sideways inside a box with a `max-width`;
-//!   - **a table wider than its box, scrolling sideways** (#498, ADR-297): the nearest box around
+//!   - **a table or code block wider than its box, scrolling sideways** (#498, ADR-297): the nearest box around
 //!     a table that scrolls sideways, wider inside than out, which on a phone hides its last columns.
 //!     `theme/hpr.js` stacks the rows of a table too wide for its column, each cell labeled by a
-//!     copy of its column's head, so only a cell wider than the column (a formula or a box) fails;
+//!     copy of its column's head, so only a cell wider than the column (a formula or a box) fails.
+//!     A code block that scrolls sideways fails too, at every width (ADR-345);
 //!   - **an icon off the system's sizes** (`foundations.md`, *Icons*): each icon drawn in the
 //!     spans mdBook keeps its chrome's icons in (`.fa-svg`, the menu bar's buttons, the page
 //!     arrows, the search spinner, a code block's buttons), drawn now at this width, must be
@@ -574,7 +575,8 @@ enum Kind {
     Gutter,
     /// A code block or table that scrolls sideways inside a box held narrower than the column.
     Squeezed,
-    /// A table that scrolls sideways inside its box, hiding its last columns (#498, ADR-297).
+    /// A table that scrolls sideways inside its box, hiding its last columns (#498, ADR-297), or
+    /// a code block that does, hiding its lines' ends (ADR-345).
     Scrolls,
     /// A quote block in a page's `main`, or a note not drawn as the system's: its kind's name
     /// in Archivo 13/16 across its top (a caution's or a warning's signal word in capitals, in
@@ -691,7 +693,7 @@ impl Kind {
             Kind::Column => "a column off the system's width",
             Kind::Gutter => "gutters off the system's",
             Kind::Squeezed => "a code block or table held narrower than the column",
-            Kind::Scrolls => "a table wider than its box, scrolling sideways",
+            Kind::Scrolls => "a table or code block wider than its box, scrolling sideways",
             Kind::Note => "a quote block, or a note not the system's",
             Kind::Contrast => "text under the contrast floor",
             Kind::Focus => "a focus ring off the system's",

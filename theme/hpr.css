@@ -254,8 +254,8 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
     #mdbook-menu-bar .right-buttons > #mdbook-theme-list.fs-seg { margin-top: 2px; }
 }
 html { scroll-padding-bottom: 8px; }
-/* The header off its place (ADR-345). Under 1,080 px mdBook's script lets the header scroll away
-   and sticks it to the window's top when the reader scrolls up. Turning down again, it sets the
+/* The header off its place (ADR-345). Where the table of contents is shut (under 720 px, or put
+   away at any width), mdBook's script lets the header scroll away and sticks it to the window's top when the reader scrolls up. Turning down again, it sets the
    header's `top` to where the page then was, and the header stayed there, a band over the page's
    text and its arrows, until scrolled out; at a page's end it couldn't be. A header that isn't
    stuck stays at the page's top, so it leaves the window at once and comes back stuck. */
@@ -361,7 +361,7 @@ pre > code, pre > code.hljs { white-space: pre-wrap; overflow-wrap: anywhere; }
 
 /* Focus rings whole on a phone (ADR-345). The system's stylesheet pads the content's box
    `16px - --page-padding`, 1 px under 720 px, with mdBook's page padding outside it; the box
-   scrolls, so it cut the 4 px of a focused link's ring (2 px wide, 2 px out) at the column's
+   scrolls, so it cut 3 of the 4 px of a focused link's ring (2 px wide, 2 px out) at the column's
    left edge, and the page doesn't scroll sideways to show it. Here the box takes the page
    padding inside it, so the text stands where it stood, 16 px from the window's side, and the
    ring has room. A table's box, which scrolls too, gets 4 px a side outside the table's own

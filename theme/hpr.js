@@ -93,7 +93,7 @@ document.addEventListener('click', function (event) {
     // Here it is a button in the tab order that Enter or Space presses. The sidebar comes before
     // the header in the page, so once a key opens it the focus moves to its first control, the
     // theme switch under 960 px, rather than staying behind it. The page check fails a menu
-    // button the keyboard can't reach, or whose press leaves the sidebar shut.
+    // button the keyboard can't reach, or one that Enter or Space doesn't press.
     const toggle = document.getElementById('mdbook-sidebar-toggle');
     if (toggle) {
         toggle.tabIndex = 0;

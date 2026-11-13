@@ -1,7 +1,7 @@
 # ADR-345: The restyle's acceptance pass and its fixes (2026-11-13)
 
 - **Status:** accepted; records [M0.17b2][m0-17b2]'s acceptance pass ([ADR-282][adr-282]) of the docs site's restyle ([ADR-343][adr-343], [ADR-344][adr-344]) and the fixes it led to; changes `docs/writing.md`'s rule that a code block may scroll sideways.
-- **Summary:** A reviewer that didn't build the restyle ran [ADR-344][adr-344]'s six tasks on the built site, and a cold reader did them from the guide alone. At 320 px the keyboard couldn't reach the menu button, focus rings were cut at the column's edge, and code blocks hid their lines' ends. This record fixes the three, adds a page-check rule and canaries for each, and answers the cold read's findings in the site's words.
+- **Summary:** A reviewer that didn't build the restyle ran [ADR-344][adr-344]'s six tasks on the built site, and a cold reader did them from the guide alone. At 320 px the keyboard couldn't reach the menu button, focus rings were cut at the column's edge, and code blocks hid their lines' ends. The captures of every page the tasks reach found a code block cut beside the open table of contents and the header left over a page's end on a phone; checking the cold read found the table of contents, put away, still a keyboard stop. This record fixes them, adds a page-check rule and canaries for each, and answers the cold read's findings in the site's words.
 
 [m0-17b2]: ../decisions-and-roadmap.md#m0-17b2
 [adr-282]: 0282-the-project-tests-each-ui-milestone-itself.md
@@ -24,7 +24,7 @@ measurements):
   no menu, switch or sidebar among its stops.
 - **Focus rings.** Every link at the column's left edge on the page about Monte Carlo dispersion
   had its ring cut there, in every theme. The pinned system stylesheet pads the
-  content's box `16px - --page-padding`, 1 px under 720 px, and the box scrolls, so it cut the
+  content's box `16px - --page-padding`, 1 px under 720 px, and the box scrolls, so it cut 3 of the
   4 px a ring reaches out. The header's title link, on a row of its own under 520 px, spans the
   bar, so its ring passed both of the window's sides. The page check missed both: it read one
   control of each kind, and it stopped at the first box that scrolls, as a reader can scroll it.
@@ -33,7 +33,7 @@ measurements):
   each long line was out of sight until the box was scrolled. `docs/writing.md` allowed
   it. The product system doesn't: `web.md`, *Accessibility*, lets only data tables and charts
   scroll sideways at 320 px (WCAG 2.2's reflow rule, 1.4.10), and its mdBook theme promises
-  nothing cut off on a phone. The look at the captures found the same block cut at its box's
+  nothing cut off on a phone. The look at the captures found the page's second code block cut at its box's
   right side at 1,000 and 1,040 px, where the open table of contents narrows the column, its
   comments ending mid-word.
 
@@ -75,7 +75,12 @@ of Start here.
    further: mdBook's search follows a result marked as focused on an Enter that reaches the
    document. The page check presses Enter and Space on the menu button once a run, at the
    narrowest width it reads, and fails a button out of the tab order or one a key doesn't
-   press. `canary-menu-unreached.html` and `canary-menu-key-dead.html` must fail.
+   press. `canary-menu-unreached.html` and `canary-menu-key-dead.html` must fail. Put away,
+   the table of contents leaves the tab order whole: `theme/hpr.js` takes its list's box out
+   with its links. Chrome makes a box that scrolls and holds nothing the keyboard reaches a tab
+   stop of its own, so with the links out the box was the first stop on a phone, out of sight.
+   The page check fails a table of contents put away that holds a box the keyboard focuses;
+   `canary-sidebar-scroller.html` must fail.
 4. **The cold read's words.** Each theme button's tooltip says what it is for, Field's "For
    reading outdoors: a white page, darker gray text and stronger rules". The print button is
    *Print the guide*, and on paper the footer leaves off its link to the page about the project,
@@ -87,8 +92,8 @@ of Start here.
 5. **Kept as they are.**
    - The footer's words, which [ADR-343][adr-343] fixed and its check reads exactly. Start
      here, where its link leads, explains them.
-   - Under 1,080 px mdBook's header scrolls away with the page and comes back when the reader
-     scrolls up. Where it stood in between is not kept: decision 6.
+   - Where the table of contents is shut (under 720 px, or put away at any width),
+     mdBook's header scrolls away with the page and comes back when the reader scrolls up. Where it stood in between is not kept: decision 6.
 
    The pass's other findings off every task's path become issues: no link to skip the
    table of contents (from the top of a page at 1,280 px, Tab passes every chapter before it
@@ -98,8 +103,8 @@ of Start here.
    page's title doesn't name it ([#1453][i1453]). The look at the captures adds one: in Field
    nothing marks the table of contents' edge, both white, with no rule between them
    ([#1454][i1454]).
-6. **The header leaves at once.** Under 1,080 px, when a reader scrolling up turned to scroll
-   down, mdBook's script left the header where the page then was, and it stayed there, a band
+6. **The header leaves at once.** Where the table of contents is shut (under 720 px, or put away at any width),
+   when a reader scrolling up turned to scroll down, mdBook's script left the header where the page then was, and it stayed there, a band
    over the page's text, until scrolled out. Near a page's end it can't be: the look at the
    captures found it over the Monte Carlo page's last paragraph and its page arrows at 360 to
    480 px. `theme/hpr.css` holds a header not stuck to the window at the page's top, so it
@@ -113,16 +118,17 @@ of Start here.
   Code laid out in columns loses its columns where a line wraps.
 - The page check reads every control's ring at every width, so a new box that cuts a ring, in a
   table, a note or the header, fails the build where it used to pass unseen. The page check's
-  canaries number 227.
+  canaries number 228.
 - A keyboard on a phone reaches the table of contents and the theme switch.
-- Under 1,080 px the header goes as the reader scrolls down, rather than scrolling out with the
+- Where the table of contents is shut (under 720 px, or put away at any width), the header goes as the reader
+  scrolls down, rather than scrolling out with the
   page, and comes back, stuck to the window's top, when the reader scrolls up.
 
 **How it was checked.** The pass's record is in M0.17b2's pull request: who ran it, on which
 commits, each task's result and each finding's fix or issue. The fixes were checked by the same
 measurements that found them: after them, a scan pressing Tab through the page about Monte Carlo
-dispersion found no ring cut by a box or by the window's sides, top or bottom, at 320, 640, 960
-and 1,280 px. `cargo xtask site` passed at all 41 widths, with the eight new canaries that must
+dispersion found no ring cut by a box or by the window's sides, top or bottom, at 320 and 1,280 px in
+all four themes. `cargo xtask site` passed at all 41 widths, with the nine new canaries that must
 fail failing and `canary-menu-held.html` passing. Every page the six tasks reach was captured at
 the page check's 41 widths in Light, Dark and Field and looked at for clipping: that look found
 the code block cut at 1,000 and 1,040 px and the header over the Monte Carlo page's end at

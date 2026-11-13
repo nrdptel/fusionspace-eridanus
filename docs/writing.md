@@ -869,15 +869,16 @@ The page check fails, at every width:
   below 720 px;
 - once a run, at the narrowest width, a menu button out of the tab order, or one that Enter or
   Space doesn't press. mdBook's is a label that no key reaches; `theme/hpr.js` makes it a button;
-- a header not stuck to the window's top that takes the `top` mdBook's script gives it. Under
-  1,080 px the script lets the header scroll away and sticks it to the window when the reader
+- a header not stuck to the window's top that takes the `top` mdBook's script gives it. Where the
+  table of contents is shut (under 720 px, or put away at any width) the script lets the header scroll away and sticks it to the window when the reader
   scrolls up; turning down again, it left the header where the page was, over the text.
   `theme/hpr.css` holds it at the page's top, so it goes at once and comes back when the reader
   scrolls up;
 - a table of contents hidden at 720 px or wider on a first visit. That's read with scripts on
   and off, and after a narrower window is widened past 720 px;
 - a table of contents hidden but still reached by the keyboard or a screen reader, or one shown
-  but not reached;
+  but not reached. Hidden, none of its links or buttons may be in the tab order, nor a box of it
+  that scrolls: Chrome lets the keyboard focus a box that scrolls and holds nothing it can reach;
 - once a run, a menu button that doesn't put the table of contents away or bring it back;
 - once a run, a drag of the table's edge to the window's side that doesn't put it away;
 - wherever the table of contents shows, the current page's entry in it not wholly in view and
