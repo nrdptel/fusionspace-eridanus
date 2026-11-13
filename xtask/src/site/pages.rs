@@ -286,9 +286,10 @@
 //! strip fixed along the window's top and one below it, which must pass, and a list the page
 //! leaves scrolled with its top line cut by its edge and one scrolled to a line's edge, which
 //! must pass; a sidebar whose current entry loads below its list's view, one whose entry its
-//! list's bottom edge cuts, one whose entry loads under its list's fade, one whose list scrolls
-//! with no fade, one whose fade has no room after the last entry, and one whose entry shows
-//! whole, which must pass; and an ordinary page
+//! list's bottom edge cuts, one whose entry loads under its list's bottom fade, one under its
+//! top fade, one whose list scrolls with no fade, one under a gradient that fades nothing, one
+//! whose fade has less room after the last entry than it is deep, one whose fade has no scroll
+//! padding, and one whose entry shows whole, which must pass; and an ordinary page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
 //! that wraps anywhere, a figure wider than any window with mdBook's zoom, a sidebar drawer put
 //! away off the left edge) that must pass. If one isn't

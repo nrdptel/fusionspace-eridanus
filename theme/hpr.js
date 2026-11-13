@@ -274,10 +274,11 @@ document.addEventListener('click', function (event) {
 // entry or leaves its centering clamped short: at 768 px it loaded cut by the window's bottom
 // edge, or below it. So while the page loads, once the headings are in and again whenever the
 // list or its entries change size, the entry goes back to the list's middle; after a click on an
-// entry in the sidebar it stays where it is if it shows whole, and goes back to the middle only
-// if it doesn't. Loading ends when the page and its fonts have loaded, or as soon as the reader
-// does anything in the list: after that nothing here moves it but the rule that no entry is left
-// cut by the list's top edge, as the switch moves at 960 px. It settles in the observer's
+// entry in the sidebar it stays where it is if it shows whole and clear of the list's faded
+// edges (`hpr.css`), and goes back to the middle only if it doesn't. Loading ends when the page
+// and its fonts have loaded, or as soon as the reader does anything in the list: after that
+// nothing here moves it but the rule that no entry is left cut by the list's top edge or under
+// its faded top, as the switch moves at 960 px. It settles in the observer's
 // callback, before the frame is drawn, not a frame later.
 (function () {
     const list = document.querySelector('#mdbook-sidebar .sidebar-scrollbox');
