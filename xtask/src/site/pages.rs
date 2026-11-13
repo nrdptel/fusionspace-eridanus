@@ -4219,10 +4219,10 @@ fn canary_verdict(canary: &Canary, measured: &[Measured]) -> Result<(), String> 
                 m.width < CODE_WRAPS_UNDER_PX
             } else {
                 canary.expect.contains(&kind)
-                && (kind != Kind::Print || m.printed)
-                && (kind != Kind::Landing || m.landed)
-                && (!PRESSED.contains(&canary.file) || m.printed)
-                && (!KEYED.contains(&canary.file) || m.landed)
+                    && (kind != Kind::Print || m.printed)
+                    && (kind != Kind::Landing || m.landed)
+                    && (!PRESSED.contains(&canary.file) || m.printed)
+                    && (!KEYED.contains(&canary.file) || m.landed)
             };
             if m.has(kind) != expected {
                 let verb = if expected {
