@@ -453,6 +453,11 @@
   const CLEAR_SPACE = 0.25;
   const INKS = ['rgb(11, 15, 28)', 'rgb(243, 244, 247)'];
   const SIDEBAR_OPEN_FROM_PX = 720;
+  // The width under which a code block wraps its lines rather than scroll (ADR-345, `hpr.css`).
+  const CODE_WRAPS_UNDER_PX = 720;
+  // How far a focus ring reaches past its element's box: 2 px wide, 2 px out, which the focus
+  // probe holds every ring to.
+  const RING_OUT_PX = 4;
   // What an open search field leaves between it and the page (`web.md`, *Page anatomy*), so its
   // focus ring, 2 px wide and 2 px out, never touches the page's first line.
   const SEARCH_GAP_PX = 16;
@@ -1253,6 +1258,54 @@
     }
     if (doc.activeElement && doc.activeElement !== before) doc.activeElement.blur();
 
+    // Every ring whole, where its element is (ADR-345): the ring of each element a keyboard
+    // reaches, drawn whole inside the window and inside each box around it that cuts what
+    // passes its sides, when the element itself shows whole there. A box that scrolls sideways
+    // cuts it too, unless it can still scroll that way: a ring adds nothing to what a box
+    // scrolls, so at the end of its scroll a ring past its edge is never seen. At 320 px the
+    // content's box, with 1 px of padding, cut every ring at the column's left edge, and the
+    // header's title, on a row the bar's width, had its ring past both of the window's sides.
+    // Up and down, a page scrolls, and the sticky bar has its own rule (below). Sideways only.
+    const clips = new Map();
+    const clipOf = function (a) {
+      if (!clips.has(a)) {
+        const as = win.getComputedStyle(a);
+        const x = as.overflowX;
+        let box = null;
+        // A box that clips with `clip` is left to the window's rule: on the site only mdBook's
+        // page body clips so, and its sides are the window's.
+        if (x !== 'visible' && x !== 'clip') {
+          const b = a.getBoundingClientRect();
+          const left = b.left + a.clientLeft;
+          box = { left: left, right: left + a.clientWidth, scrolls: x === 'auto' || x === 'scroll' };
+        }
+        clips.set(a, box);
+      }
+      return clips.get(a);
+    };
+    for (const el of doc.querySelectorAll(
+      'a[href], button, input, select, textarea, summary, [tabindex]')) {
+      if (el.tabIndex < 0 || el.disabled || !boxOf(el)) continue;
+      if (win.getComputedStyle(el).visibility === 'hidden') continue;
+      const r = el.getBoundingClientRect();
+      if (r.left < -SLACK_PX || r.right > view + SLACK_PX) continue;
+      let cut = null;
+      if (r.left - RING_OUT_PX < -SLACK_PX || r.right + RING_OUT_PX > view + SLACK_PX) {
+        cut = 'the window';
+      }
+      for (let a = el.parentElement; !cut && a && a !== doc.documentElement; a = a.parentElement) {
+        const c = clipOf(a);
+        if (!c) continue;
+        if (r.left < c.left - SLACK_PX || r.right > c.right + SLACK_PX) break;
+        const leftCut = r.left - RING_OUT_PX < c.left - SLACK_PX
+          && !(c.scrolls && a.scrollLeft > SLACK_PX);
+        const rightCut = r.right + RING_OUT_PX > c.right + SLACK_PX
+          && !(c.scrolls && a.scrollLeft + a.clientWidth < a.scrollWidth - SLACK_PX);
+        if (leftCut || rightCut) cut = selector(a);
+      }
+      if (cut) note('focus', el, null, 'outline', 'its ring cut by the side of ' + cut);
+    }
+
     // One sweep in the page's own colors finds what forced colors and a sticky bar could
     // affect: boxes set apart from what is behind them only by a fill, inline icons, icons
     // painted through a mask, and bars fixed or stuck to the window's top. mdBook's script takes
@@ -1692,6 +1745,24 @@
         note('scrolls', selector(box), (box.scrollWidth - box.clientWidth) + ' px wider inside',
           'than its ' + box.clientWidth + ' px');
       }
+      // A code block that scrolls sideways under 720 px (ADR-345): there `hpr.css` wraps its
+      // lines, as the product system lets only data tables and charts scroll sideways at 320 px
+      // (`web.md`, *Accessibility*), and a line's end out of the box's sight is cut off. The
+      // block or the `code` in it, whichever scrolls.
+      if (win.innerWidth < CODE_WRAPS_UNDER_PX) {
+        for (const pre of main.querySelectorAll('pre')) {
+          const boxes = [pre].concat(Array.from(pre.children).filter(function (c) {
+            return c.tagName === 'CODE';
+          }));
+          for (const box of boxes) {
+            if (box.scrollWidth <= box.clientWidth + SLACK_PX) continue;
+            note('scrolls', selector(box), (box.scrollWidth - box.clientWidth)
+              + ' px wider inside', 'than its ' + box.clientWidth + ' px, a code block under '
+              + CODE_WRAPS_UNDER_PX + ' px');
+            break;
+          }
+        }
+      }
 
       // Notes (#384; `web.md`, *Components*): no quote block in `main`, and each note the
       // system's: a head, then a body, nothing else; its kind's signal word in the head, a note's
@@ -1823,6 +1894,52 @@
     probeArrows(win, doc, note);
     probeParts(win, doc, note);
     probeSwitch(win, doc, note);
+    return found;
+  }
+
+  // The menu button by keyboard (ADR-345): mdBook's is a label for its sidebar box, which no
+  // key reaches, so on a phone the sidebar, its chapters and the theme switch were out of a
+  // keyboard's reach. The button must be in the tab order, and Enter and Space on it must press
+  // it once each, as a click does; what a press does to the sidebar the put-away probe reads.
+  // The press is taken before it acts, so nothing changes. Read once a run, at the width that
+  // follows links to headings. Returns what is wrong, as the header's examples.
+  function probeMenuKey(win, doc) {
+    const found = [];
+    const toggle = doc.getElementById('mdbook-sidebar-toggle');
+    if (!toggle || !drawn(win, toggle) || !doc.documentElement.classList.contains('js')) {
+      return found;
+    }
+    const add = function (value) {
+      found.push({ selector: selector(toggle), property: 'keyboard',
+        theme: win.innerWidth + ' px', value: value });
+    };
+    if (toggle.tabIndex < 0) add('the menu button is not in the tab order');
+    const before = doc.activeElement;
+    for (const key of ['Enter', ' ']) {
+      let pressed = 0;
+      const take = function (event) {
+        pressed++;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      };
+      toggle.addEventListener('click', take, true);
+      try {
+        // Not bubbling: mdBook's handlers on the document act on Enter too (a search result
+        // marked as focused is followed), and the press is read where it lands.
+        toggle.dispatchEvent(new win.KeyboardEvent('keydown',
+          { key: key, bubbles: false, cancelable: true }));
+      } finally {
+        toggle.removeEventListener('click', take, true);
+      }
+      if (pressed !== 1) {
+        add((key === ' ' ? 'Space' : key) + ' on the menu button pressed it ' + pressed
+          + ' times, not once');
+      }
+    }
+    if (doc.activeElement !== before) {
+      if (before && before.focus) before.focus({ preventScroll: true });
+      else if (doc.activeElement) doc.activeElement.blur();
+    }
     return found;
   }
 
@@ -3049,6 +3166,12 @@
           for (const off of await probeSearch(win, doc)) {
             result.header_count++;
             if (result.header.length < EXAMPLES) result.header.push(off);
+          }
+          if (landed) {
+            for (const off of probeMenuKey(win, doc)) {
+              result.header_count++;
+              if (result.header.length < EXAMPLES) result.header.push(off);
+            }
           }
           // Last, as it changes the frame's width.
           for (const widened of await probeWidened(frame, win, doc)) {

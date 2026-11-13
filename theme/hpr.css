@@ -321,6 +321,36 @@ html:not(.js) #hpr-print { display: none; }
   table tr > :last-child { padding-inline-end: 0; }
 }
 pre > code.wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
+/* A code block on a phone (ADR-345): its long lines wrap, at any character, rather than run off the
+   box's edge, where the line's end was out of sight until the reader scrolled the box sideways. The
+   product system lets only data tables and charts scroll sideways at 320 px (`web.md`,
+   *Accessibility*, 1.4.10). Copying takes the code as written, its lines unbroken. From 720 px a
+   code block keeps its lines and scrolls inside its box. The page check fails a code block that
+   scrolls sideways under 720 px. */
+@media only screen and (max-width: 719px) {
+  pre > code, pre > code.hljs { white-space: pre-wrap; overflow-wrap: anywhere; }
+}
+
+/* Focus rings whole on a phone (ADR-345). The system's stylesheet pads the content's box
+   `16px - --page-padding`, 1 px under 720 px, with mdBook's page padding outside it; the box
+   scrolls, so it cut the 4 px of a focused link's ring (2 px wide, 2 px out) at the column's
+   left edge, and the page doesn't scroll sideways to show it. Here the box takes the page
+   padding inside it, so the text stands where it stood, 16 px from the window's side, and the
+   ring has room. A table's box, which scrolls too, gets 4 px a side outside the table's own
+   edges at every width, for its first and last cells' links. The header's title, where it takes
+   a row of its own under the buttons, keeps 6 px from each side of the bar, where its ring
+   reached past the window's. The page check fails a ring cut by the window or by a box that
+   clips it. */
+.content .table-wrapper { margin-inline: -4px; padding-inline: 4px; }
+@media only screen and (max-width: 719px) {
+  .content { margin-inline: calc(0px - var(--page-padding)); padding-inline: 16px; }
+}
+@media only screen and (max-width: 519px) {
+  #mdbook-menu-bar .menu-title.fs-logo { flex: 0 0 calc(100% - 12px); margin-inline: 6px; }
+}
+@media only screen and (min-width: 720px) and (max-width: 779px) {
+  html.sidebar-visible #mdbook-menu-bar .menu-title.fs-logo { flex: 0 0 calc(100% - 12px); margin-inline: 6px; }
+}
 
 /* A table too wide for its column, its rows stacked by `hpr.js` (ADR-297): each row a group under
    the table's 1 px rules, the first under the head's 2 px ink rule, each cell its column's head in

@@ -88,13 +88,46 @@ document.addEventListener('click', function (event) {
             box.dispatchEvent(new Event('change'));
         }
     });
-    // Sets only what differs, so the observer, which sees every write, stops.
+    // The menu button is mdBook's label for its box, which the keyboard never reaches: on a phone
+    // the sidebar, its chapters and the theme switch were out of a keyboard's reach (ADR-345).
+    // Here it is a button in the tab order that Enter or Space presses. The sidebar comes before
+    // the header in the page, so once a key opens it the focus moves to its first control, the
+    // theme switch under 960 px, rather than staying behind it. The page check fails a menu
+    // button the keyboard can't reach, or whose press leaves the sidebar shut.
+    const toggle = document.getElementById('mdbook-sidebar-toggle');
+    if (toggle) {
+        toggle.tabIndex = 0;
+        toggle.setAttribute('role', 'button');
+        toggle.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            // The key is the button's: mdBook's handlers on the document would act on it too,
+            // following a search result marked as focused on Enter.
+            event.preventDefault();
+            event.stopPropagation();
+            toggle.click();
+            if (!box.checked) return;
+            follow();
+            const first = sidebar.querySelector('button:not([hidden]), a[href]');
+            if (first) first.focus({ preventScroll: true });
+        });
+    }
+    // Sets only what differs, so the observer, which sees every write, stops. The current page's
+    // entry, which mdBook marks only with a class, is named the current page for screen readers.
     const follow = function () {
         const hidden = String(!box.checked);
         if (sidebar.getAttribute('aria-hidden') !== hidden) sidebar.setAttribute('aria-hidden', hidden);
+        if (toggle && toggle.getAttribute('aria-expanded') !== String(box.checked)) {
+            toggle.setAttribute('aria-expanded', String(box.checked));
+        }
         const focus = box.checked ? 0 : -1;
         sidebar.querySelectorAll('a, button').forEach(function (link) {
             if (link.tabIndex !== focus) link.tabIndex = focus;
+            const current = link.matches('a.active');
+            if (current && link.getAttribute('aria-current') !== 'page') {
+                link.setAttribute('aria-current', 'page');
+            } else if (!current && link.hasAttribute('aria-current')) {
+                link.removeAttribute('aria-current');
+            }
         });
     };
     new MutationObserver(follow).observe(sidebar, {

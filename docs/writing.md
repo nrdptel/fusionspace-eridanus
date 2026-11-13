@@ -673,9 +673,12 @@ has the rules in full):
 - **No page wider than the window.** `cargo xtask site` opens every page in headless Chrome at
   each width from 320 to 1,920 px, 40 px apart. A page fails if it scrolls sideways, or if text
   or a box passes the window's left or right edge. It also fails if a box cuts its own text
-  short. A code block may scroll sideways inside its own box, but on a phone that hides its
-  end, so make it fit where it can. A long line of data goes in a `text,wrap` fence, which wraps
-  it at any character, so keep it for lines whose spacing doesn't matter. `cargo xtask cli` fences a
+  short. Under 720 px a code block wraps its long lines at any character, and the check fails
+  one that scrolls sideways there
+  ([the decision on the restyle's acceptance pass](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0345-the-restyle-s-acceptance-pass-and-its-fixes.md)).
+  From 720 px it may scroll sideways inside its own box, which hides its end, so make it fit
+  where it can. A long line of data goes in a `text,wrap` fence, which wraps it at any width and
+  any character, so keep it for lines whose spacing doesn't matter. `cargo xtask cli` fences a
   command's example `text,wrap` when a line passes 80 characters.
 - **No table scrolling sideways** ([ADR-297](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0297-a-table-too-wide-stacks-its-rows.md)).
   Under 720 px the theme gives a table's cells 8 px a side and none at its edges. A table still
@@ -769,6 +772,10 @@ and so do:
 - one control of each kind the keyboard reaches without the system's focus ring. That's the
   outline drawn round a link or button when Tab reaches it. It's 2 px wide in the action color
   (`#3350D6` on the light theme) and 2 px clear of its edge;
+- any control the keyboard reaches whose ring is cut by the window's side, or by the side of a
+  box around it that clips what passes it, where the control itself shows whole. A box that
+  scrolls sideways cuts it too once it can scroll no further that way, as a ring adds nothing to
+  what a box scrolls;
 - what Windows' high-contrast mode would erase. That mode, forced colors, repaints the page in a
   few colors of the reader's own. It would erase a box set apart from what is behind it only by
   its fill, with no border there. It would also erase an icon not drawn in its text's color. The
@@ -859,6 +866,8 @@ The page check fails, at every width:
   of its height. That's the logo's clear space, the brand's rule;
 - no menu button, with scripts on; with scripts off, a menu button at 720 px or wider, or none
   below 720 px;
+- once a run, at the narrowest width, a menu button out of the tab order, or one that Enter or
+  Space doesn't press. mdBook's is a label that no key reaches; `theme/hpr.js` makes it a button;
 - a table of contents hidden at 720 px or wider on a first visit. That's read with scripts on
   and off, and after a narrower window is widened past 720 px;
 - a table of contents hidden but still reached by the keyboard or a screen reader, or one shown

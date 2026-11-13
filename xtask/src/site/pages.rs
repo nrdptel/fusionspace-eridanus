@@ -938,7 +938,7 @@ macro_rules! sidebar_list {
         concat!(
             "<nav id=\"mdbook-sidebar\" aria-hidden=\"false\" style=\"display: block !important; \
              margin-bottom: 96px\"><div class=\"sidebar-scrollbox\" style=\"height: 100px; \
-             overflow-y: auto; box-sizing: border-box\"><style>",
+             overflow-y: auto; box-sizing: border-box; padding-inline: 4px\"><style>",
             $fade,
             "#mdbook-sidebar a { display: block; height: 24px; \
              }</style><a href=\"#\">Launch-day weather</a><a href=\"#\">Soundings</a><a \
@@ -1062,12 +1062,16 @@ macro_rules! frame {
             "<input type=\"checkbox\" id=\"mdbook-sidebar-toggle-anchor\" checked \
              style=\"display: none\"><script>document.documentElement.classList.add('js');\
              </script><header class=\"frame-header\"><label id=\"mdbook-sidebar-toggle\" \
-             aria-label=\"Menu\"><svg viewBox=\"0 0 24 24\" fill=\"none\" \
-             stroke=\"currentColor\" stroke-width=\"1.5\" aria-hidden=\"true\"><path d=\"M4 7H20M4 \
+             aria-label=\"Menu\" tabindex=\"0\" role=\"button\"><svg viewBox=\"0 0 24 24\" \
+             fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" \
+             aria-hidden=\"true\"><path d=\"M4 7H20M4 \
              12H20M4 17H20\"/></svg></label><a class=\"fs-logo\" href=\"#\" \
              aria-label=\"FusionSpace HPR\">",
             $lockup,
-            "<span class=\"fs-product\">HPR</span></a></header>",
+            "<span class=\"fs-product\">HPR</span></a></header><script>(function () { const t \
+             = document.getElementById('mdbook-sidebar-toggle'); t.addEventListener('keydown', \
+             function (e) { if (e.key !== 'Enter' && e.key !== ' ') return; e.preventDefault(); \
+             e.stopPropagation(); t.click(); }); })();</script>",
             $sidebar,
             "<footer class=\"fs-titleblock\" aria-label=\"Title block\"><div><span \
              class=\"k\">Owner</span><span class=\"v\">FusionSpace</span></div><div><span \
@@ -1399,7 +1403,7 @@ macro_rules! mono_faces {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-static CANARIES: [Canary; 218] = [
+static CANARIES: [Canary; 223] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -2109,10 +2113,38 @@ static CANARIES: [Canary; 218] = [
     },
     Canary {
         file: "canary-squeezed.html",
-        what: "a code block in a box held to 10 em, scrolling sideways",
+        what: "a code block in a box held to 10 em, scrolling sideways, its line kept whole \
+               under 720 px too",
         expect: &[Kind::Squeezed],
-        inside: "<div style=\"max-width: 10em\"><pre><code>let speed_m_per_s = \
-                 drag_coefficient * reference_area_m2;</code></pre></div>",
+        inside: "<div style=\"max-width: 10em\"><pre><code style=\"white-space: pre\">let \
+                 speed_m_per_s = drag_coefficient * reference_area_m2;</code></pre></div>",
+        after: "",
+    },
+    Canary {
+        file: "canary-code-scrolls.html",
+        what: "a code block that keeps its long line whole under 720 px, where code wraps, and \
+               scrolls sideways there",
+        expect: &[Kind::Scrolls],
+        inside: "<pre><code style=\"white-space: pre\">let thrust_to_weight_at_rail_exit = \
+                 average_thrust_n / (liftoff_mass_kg * standard_gravity_m_per_s2);</code></pre>",
+        after: "",
+    },
+    Canary {
+        file: "canary-focus-cut.html",
+        what: "a link at the side of a box that hides what passes it, its ring cut there",
+        expect: &[Kind::Focus],
+        inside: "<div style=\"overflow: hidden\"><a href=\"#\" style=\"display: \
+                 inline-block\">A link at a box's side</a></div>",
+        after: "",
+    },
+    Canary {
+        file: "canary-focus-scrollbox.html",
+        what: "a link at the side of a box that scrolls sideways with 1 px of padding, at the \
+               end of its scroll, its ring cut there, as the content's box cut every ring at \
+               320 px",
+        expect: &[Kind::Focus],
+        inside: "<div style=\"overflow-x: auto; padding-left: 1px\"><a href=\"#\" \
+                 style=\"display: inline-block\">A link at a scrolling box's side</a></div>",
         after: "",
     },
     Canary {
@@ -2435,6 +2467,33 @@ static CANARIES: [Canary; 218] = [
         after: frame!("", lockup!(), put_away!("false", "true"), ""),
     },
     Canary {
+        file: "canary-menu-unreached.html",
+        what: "a menu button out of the tab order, as mdBook's label is, read once a run at the \
+               width that follows links to headings",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!(
+            "",
+            lockup!(),
+            put_away!("true", "true"),
+            "<script>document.getElementById('mdbook-sidebar-toggle').tabIndex = -1;</script>"
+        ),
+    },
+    Canary {
+        file: "canary-menu-key-dead.html",
+        what: "a menu button in the tab order that Enter and Space don't press, read once a run \
+               at the width that follows links to headings",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!(
+            "",
+            lockup!(),
+            put_away!("true", "true"),
+            "<script>document.getElementById('mdbook-sidebar-toggle').addEventListener(\
+             'keydown', function (e) { e.stopImmediatePropagation(); }, true);</script>"
+        ),
+    },
+    Canary {
         file: "canary-sidebar-undragged.html",
         what: "a drag to the window's side that leaves the sidebar drawn, at the width that reads \
                print",
@@ -2520,7 +2579,8 @@ static CANARIES: [Canary; 218] = [
             concat!(
                 sidebar!(),
                 arrows!(
-                    "<style>.nav-wrapper { width: 100% !important; max-width: none; }</style>",
+                    "<style>.nav-wrapper { width: 100% !important; max-width: none; \
+                     padding-inline: 6px; }</style>",
                     "<span><span class=\"fs-nav-dir\">Previous</span> A page</span>",
                     "<span><span class=\"fs-nav-dir\">Next</span> Another page</span>"
                 )
@@ -3282,7 +3342,7 @@ static CANARIES: [Canary; 218] = [
         what: "a mark drawn as text outside the page's main",
         expect: &[Kind::Mark],
         inside: "",
-        after: "<p><a href=\"#\">❱</a></p>",
+        after: "<p style=\"padding-inline: 16px\"><a href=\"#\">❱</a></p>",
     },
     Canary {
         file: "canary-mark-before.html",
@@ -3357,7 +3417,7 @@ static CANARIES: [Canary; 218] = [
         expect: &[Kind::Print],
         inside: "",
         after: "<nav><a href=\"#\" aria-label=\"The next chapter\" style=\"position: fixed; \
-                top: 0; bottom: 0; right: 0; width: 24px\"></a></nav>",
+                top: 0; bottom: 0; right: 8px; width: 24px\"></a></nav>",
     },
     Canary {
         file: "canary-print-control.html",
@@ -3534,6 +3594,7 @@ img {{ max-width: 100%; }}
 .checkbox-img:not(:checked) ~ .img-wrapper {{ display: none; }}
 h1 {{ font: 600 28px/32px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; }}
 .scroll, pre {{ overflow-x: auto; }}
+@media (max-width: 719px) {{ pre > code {{ white-space: pre-wrap; overflow-wrap: anywhere; }} }}
 td {{ white-space: nowrap; padding: 0 12px; }}
 .word {{ overflow-wrap: anywhere; }}
 math {{ font-family: 'NewCM Math Subset', math; font-size: 1.1em; }}
@@ -3561,6 +3622,22 @@ m<sup>2</sup>, a drag coefficient C<sub>D</sub>, a formula <math><msub><mi>F</mi
         after = canary.after,
     )
 }
+
+/// The canaries whose problem shows only where the menu button's keys are pressed, which the
+/// harness does once a run, at the width that follows links to headings ([`landing_width`]).
+const KEYED: [&str; 2] = ["canary-menu-unreached.html", "canary-menu-key-dead.html"];
+
+/// The width under which a code block wraps its lines rather than scroll (ADR-345, `hpr.css`),
+/// as `pages.js` holds it.
+const CODE_WRAPS_UNDER_PX: u32 = 720;
+
+/// The canaries' problems that show under [`CODE_WRAPS_UNDER_PX`] and nowhere else, where a code
+/// block may not scroll sideways, whatever the canary's `expect` holds: a code block squeezed by
+/// a cap scrolls there too.
+const NARROW: [(&str, Kind); 2] = [
+    ("canary-squeezed.html", Kind::Scrolls),
+    ("canary-code-scrolls.html", Kind::Scrolls),
+];
 
 /// The canaries whose problem shows only where the theme switch is pressed, the page loaded with
 /// a theme saved, or the sidebar put away, which the harness does once a run, at the width that
@@ -4138,10 +4215,15 @@ fn canary_verdict(canary: &Canary, measured: &[Measured]) -> Result<(), String> 
             )));
         }
         for kind in Kind::ALL {
-            let expected = canary.expect.contains(&kind)
+            let expected = if NARROW.contains(&(canary.file, kind)) {
+                m.width < CODE_WRAPS_UNDER_PX
+            } else {
+                canary.expect.contains(&kind)
                 && (kind != Kind::Print || m.printed)
                 && (kind != Kind::Landing || m.landed)
-                && (!PRESSED.contains(&canary.file) || m.printed);
+                && (!PRESSED.contains(&canary.file) || m.printed)
+                && (!KEYED.contains(&canary.file) || m.landed)
+            };
             if m.has(kind) != expected {
                 let verb = if expected {
                     "was not found"
@@ -5137,6 +5219,38 @@ mod tests {
             "canary-switch-field-forgotten.html",
         ] {
             assert!(PRESSED.contains(&file), "{file}");
+        }
+    }
+
+    #[test]
+    fn rings_code_and_the_menu_key_have_their_canaries() {
+        // ADR-345: a ring cut by a box, a code block scrolling under 720 px, and a menu button
+        // the keyboard can't reach or press, each with a canary that shows it alone.
+        for (file, kinds) in [
+            ("canary-focus-cut.html", &[Kind::Focus][..]),
+            ("canary-focus-scrollbox.html", &[Kind::Focus][..]),
+            ("canary-code-scrolls.html", &[Kind::Scrolls][..]),
+            ("canary-squeezed.html", &[Kind::Squeezed][..]),
+            ("canary-menu-unreached.html", &[Kind::Header][..]),
+            ("canary-menu-key-dead.html", &[Kind::Header][..]),
+        ] {
+            let found: Vec<_> = CANARIES.iter().filter(|c| c.file == file).collect();
+            assert_eq!(found.len(), 1, "{file}");
+            assert_eq!(found[0].expect, kinds, "{file}");
+        }
+        for file in KEYED {
+            assert!(CANARIES.iter().any(|c| c.file == file), "{file}");
+        }
+        for (file, _) in NARROW {
+            assert!(CANARIES.iter().any(|c| c.file == file), "{file}");
+        }
+        for needed in [
+            "const CODE_WRAPS_UNDER_PX = 720;",
+            "const RING_OUT_PX = 4;",
+            "function probeMenuKey(win, doc)",
+            "its ring cut by the side of ",
+        ] {
+            assert!(HARNESS_JS.contains(needed), "{needed}");
         }
     }
 
