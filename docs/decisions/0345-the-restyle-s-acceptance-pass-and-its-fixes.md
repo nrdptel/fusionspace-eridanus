@@ -12,23 +12,24 @@
 [i1453]: https://github.com/nrdptel/fusionspace-eridanus/issues/1453
 
 **Context.** [ADR-344][adr-344] wrote six tasks for the restyle's acceptance pass. A reviewer
-ran them on the built site at commit 9a56668e, in headless Chrome 157 over its DevTools
-protocol, at 320 and 1,280 px, in Auto (a light system), Light, Dark and Field. At 1,280 px
-every task passed. At 320 px three things failed:
+ran them on the built site at commit 9a56668e, in headless Chrome over its DevTools protocol,
+at 320 and 1,280 px, in Auto (a light system), Light, Dark and Field. At 1,280 px every task
+passed. At 320 px three things failed (the pull request holds the pass's record and its
+measurements):
 
 - **The menu button.** mdBook draws it as a label for a hidden box, and no key reaches a label.
   On a phone the table of contents and the theme switch are behind it, so task 3 (choose Dark
-  and reach the sidebar with the keyboard alone) couldn't be done: Tab went round 95 stops with
-  no menu, switch or sidebar among them.
-- **Focus rings.** 86 of the 190 stops on the page about Monte Carlo dispersion had their ring
-  cut 3 px at the column's left edge, in every theme. The pinned system stylesheet pads the
+  and reach the sidebar with the keyboard alone) couldn't be done: Tab went round the page with
+  no menu, switch or sidebar among its stops.
+- **Focus rings.** Every link at the column's left edge on the page about Monte Carlo dispersion
+  had its ring cut there, in every theme. The pinned system stylesheet pads the
   content's box `16px - --page-padding`, 1 px under 720 px, and the box scrolls, so it cut the
   4 px a ring reaches out. The header's title link, on a row of its own under 520 px, spans the
   bar, so its ring passed both of the window's sides. The page check missed both: it read one
   control of each kind, and it stopped at the first box that scrolls, as a reader can scroll it.
   This box doesn't scroll sideways, so its cut was never seen.
-- **Code blocks.** The page's first code block holds 430 px of text in a 286 px box, and the
-  end of each long line was out of sight until the box was scrolled. `docs/writing.md` allowed
+- **Code blocks.** The page's first code block is wider than its box at 320 px, and the end of
+  each long line was out of sight until the box was scrolled. `docs/writing.md` allowed
   it. The product system doesn't: `web.md`, *Accessibility*, lets only data tables and charts
   scroll sideways at 320 px (WCAG 2.2's reflow rule, 1.4.10), and its mdBook theme promises
   nothing cut off on a phone.
@@ -87,9 +88,9 @@ of Start here.
      scrolls up.
 
    The pass's other two findings off every task's path become issues: no link to skip the
-   table of contents (from the top of a page at 1,280 px, Tab takes 96 presses to reach Dark;
-   [#1451][i1451]), and the footer's link, 15 px tall at 320 px, under the system's 24 px
-   target ([#1452][i1452]), as the header's print, repository and edit links are. A second run
+   table of contents (from the top of a page at 1,280 px, Tab passes every chapter before it
+   reaches the switch; [#1451][i1451]), and the footer's link, shorter than the system's 24 px
+   target at 320 px ([#1452][i1452]), as the header's print, repository and edit links are. A second run
    adds two: Escape doesn't close the table of contents on a phone, and the print page's title
    doesn't name it ([#1453][i1453]).
 
@@ -105,6 +106,6 @@ of Start here.
 **How it was checked.** The pass's record is in M0.17b2's pull request: who ran it, on which
 commits, each task's result and each finding's fix or issue. The fixes were checked by the same
 measurements that found them: after them, a scan pressing Tab through the page about Monte Carlo
-dispersion finds no ring cut by a box or by the window's sides, top or bottom in its 180 stops at
-320 and 640 px, 190 at 960 px and 186 at 1,280 px. `cargo xtask site` passed at all 41 widths,
-with the seven new canaries failing as they must.
+dispersion found no ring cut by a box or by the window's sides, top or bottom, at 320, 640, 960
+and 1,280 px. `cargo xtask site` passed at all 41 widths, with the seven new canaries failing as
+they must.
