@@ -1403,7 +1403,7 @@ macro_rules! mono_faces {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-static CANARIES: [Canary; 223] = [
+static CANARIES: [Canary; 225] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -2135,6 +2135,23 @@ static CANARIES: [Canary; 223] = [
         expect: &[Kind::Focus],
         inside: "<div style=\"overflow: hidden\"><a href=\"#\" style=\"display: \
                  inline-block\">A link at a box's side</a></div>",
+        after: "",
+    },
+    Canary {
+        file: "canary-focus-top.html",
+        what: "a link at the window's top, its ring cut there, as the header's buttons were",
+        expect: &[Kind::Focus],
+        inside: "<a href=\"#\" aria-label=\"A link at the window's top\" style=\"position: \
+                 absolute; top: 0; left: 40px; display: block; width: 24px; height: \
+                 4px\"></a>",
+        after: "",
+    },
+    Canary {
+        file: "canary-focus-bottom.html",
+        what: "a page with no scroll padding at its bottom, so a link the keyboard scrolls in \
+               there has its ring cut",
+        expect: &[Kind::Focus],
+        inside: "<style>html { scroll-padding-bottom: 0 !important; }</style>",
         after: "",
     },
     Canary {
@@ -3417,7 +3434,7 @@ static CANARIES: [Canary; 223] = [
         expect: &[Kind::Print],
         inside: "",
         after: "<nav><a href=\"#\" aria-label=\"The next chapter\" style=\"position: fixed; \
-                top: 0; bottom: 0; right: 8px; width: 24px\"></a></nav>",
+                top: 8px; bottom: 8px; right: 8px; width: 24px\"></a></nav>",
     },
     Canary {
         file: "canary-print-control.html",
@@ -3584,6 +3601,7 @@ mark {{ color: #FFFFFF; background: #3350D6; }}
 input {{ color: inherit; }}
 .content {{ overflow-y: auto; }}
 main {{ overflow-x: clip; max-width: 1120px; margin-inline: auto; }}
+html {{ scroll-padding-bottom: 8px; }}
 .content {{ padding: 0 16px; }}
 @media (min-width: 720px) {{ .content {{ padding: 0 32px; }} }}
 code, pre {{ font: 14px/20px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; }}
@@ -5229,6 +5247,8 @@ mod tests {
         for (file, kinds) in [
             ("canary-focus-cut.html", &[Kind::Focus][..]),
             ("canary-focus-scrollbox.html", &[Kind::Focus][..]),
+            ("canary-focus-top.html", &[Kind::Focus][..]),
+            ("canary-focus-bottom.html", &[Kind::Focus][..]),
             ("canary-code-scrolls.html", &[Kind::Scrolls][..]),
             ("canary-squeezed.html", &[Kind::Squeezed][..]),
             ("canary-menu-unreached.html", &[Kind::Header][..]),
@@ -5249,6 +5269,8 @@ mod tests {
             "const RING_OUT_PX = 4;",
             "function probeMenuKey(win, doc)",
             "its ring cut by the side of ",
+            "the strip along the window\\'s top",
+            "scrollPaddingBottom",
         ] {
             assert!(HARNESS_JS.contains(needed), "{needed}");
         }

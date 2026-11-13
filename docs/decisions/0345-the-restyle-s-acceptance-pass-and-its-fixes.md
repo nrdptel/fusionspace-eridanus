@@ -9,6 +9,7 @@
 [adr-344]: 0344-m0-17b-in-two-field-first-then-the-restyle-s-acceptance-pass.md
 [i1451]: https://github.com/nrdptel/fusionspace-eridanus/issues/1451
 [i1452]: https://github.com/nrdptel/fusionspace-eridanus/issues/1452
+[i1453]: https://github.com/nrdptel/fusionspace-eridanus/issues/1453
 
 **Context.** [ADR-344][adr-344] wrote six tasks for the restyle's acceptance pass. A reviewer
 ran them on the built site at commit 9a56668e, in headless Chrome 157 over its DevTools
@@ -50,14 +51,20 @@ of Start here.
 2. **Rings whole.** Under 720 px the content's box takes mdBook's page padding inside it, so
    the text stays 16 px from the window's side and a ring has room. A table's box gets 4 px a
    side beyond the table's edges at every width. Under 520 px the header's title keeps 6 px
-   from each side of the bar. The page check now reads every control the keyboard reaches, not
+   from each side of the bar. The header's menu and search buttons stand 8 px inside the bar's
+   row, 34 px tall, below the 4 px strip fixed along the window's top, and from 960 px its
+   print, repository and edit links 5 px inside it and the theme switch 2 px lower. A link the
+   keyboard focuses stops 8 px above the window's bottom (`scroll-padding-bottom`). The page check now reads every control the keyboard reaches, not
    one of each kind, and fails a ring cut by the window's side, or by the side of a box that
    clips what passes it, where the control itself shows whole. A box that scrolls sideways cuts
    it too at the end of its scroll, as a ring adds nothing to what a box scrolls. A box that
    clips with `overflow: clip` is left to the window's rule: on the site only mdBook's page body
-   clips so, at the window's sides. Sideways only, as a page scrolls up and down and the sticky
-   bar has its own rule. `canary-focus-cut.html` (a box that hides what passes it) and
-   `canary-focus-scrollbox.html` (a scrolling box with 1 px of padding) must fail.
+   clips so, at the window's sides. Up and down a page scrolls, so the check reads the window's
+   top, or the strip's bottom where a strip is fixed there, while the page is at its top, and
+   fails a page whose scroll padding at the bottom is under a ring's 4 px.
+   `canary-focus-cut.html` (a box that hides what passes it), `canary-focus-scrollbox.html` (a
+   scrolling box with 1 px of padding), `canary-focus-top.html` (a link at the window's top) and
+   `canary-focus-bottom.html` (no scroll padding at the bottom) must fail.
 3. **The menu button by keyboard.** `theme/hpr.js` puts the menu button in the tab order as a
    button that Enter and Space press. A press that opens the table of contents moves the focus
    to its first control, the theme switch under 960 px. The key is the button's, so it goes no
@@ -67,22 +74,24 @@ of Start here.
    press. `canary-menu-unreached.html` and `canary-menu-key-dead.html` must fail.
 4. **The cold read's words.** Each theme button's tooltip says what it is for, Field's "For
    reading outdoors: a white page, darker gray text and stronger rules". The print button is
-   *Print the guide*. `theme/hpr.js` marks the sidebar's current entry `aria-current="page"`.
+   *Print the guide*, and on paper the footer leaves off its link to the page about the project,
+   whose address took a second line under the version and the date, which close the page.
+   `theme/hpr.js` marks the sidebar's current entry `aria-current="page"`.
    Start here's *Reading these pages* ends in three short parts, the header and the theme
    switch, the footer, and printing, and the footer's says the version and the date can be
    weeks apart, and why.
 5. **Kept as they are.**
    - The footer's words, which [ADR-343][adr-343] fixed and its check reads exactly. Start
      here, where its link leads, explains them.
-   - A printed page's footer link keeps its address after it, as every printed link does, so on
-     paper the footer's last link wraps to a second line under the version and the date.
    - Under 1,080 px mdBook's header scrolls away with the page and comes back when the reader
      scrolls up.
 
    The pass's other two findings off every task's path become issues: no link to skip the
    table of contents (from the top of a page at 1,280 px, Tab takes 96 presses to reach Dark;
    [#1451][i1451]), and the footer's link, 15 px tall at 320 px, under the system's 24 px
-   target ([#1452][i1452]).
+   target ([#1452][i1452]), as the header's print, repository and edit links are. A second run
+   adds two: Escape doesn't close the table of contents on a phone, and the print page's title
+   doesn't name it ([#1453][i1453]).
 
 **Consequences.**
 
@@ -90,11 +99,12 @@ of Start here.
   box's side. From 720 px nothing changes.
 - The page check reads every control's ring at every width, so a new box that cuts a ring, in a
   table, a note or the header, fails the build where it used to pass unseen. The page check's
-  canaries number 223.
+  canaries number 225.
 - A keyboard on a phone reaches the table of contents and the theme switch.
 
 **How it was checked.** The pass's record is in M0.17b2's pull request: who ran it, on which
 commits, each task's result and each finding's fix or issue. The fixes were checked by the same
-measurements that found them: after them, the ring scan finds no ring cut in 180 stops at 320 px
-or in 186 at 1,280 px, in Light, Dark and Field. `cargo xtask site` passed at all 41 widths,
-with the six new canaries failing as they must.
+measurements that found them: after them, a scan pressing Tab through the page about Monte Carlo
+dispersion finds no ring cut by a box or by the window's sides, top or bottom in its 180 stops at
+320 and 640 px, 190 at 960 px and 186 at 1,280 px. `cargo xtask site` passed at all 41 widths,
+with the seven new canaries failing as they must.

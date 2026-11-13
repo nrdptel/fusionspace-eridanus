@@ -1265,7 +1265,11 @@
     // scrolls, so at the end of its scroll a ring past its edge is never seen. At 320 px the
     // content's box, with 1 px of padding, cut every ring at the column's left edge, and the
     // header's title, on a row the bar's width, had its ring past both of the window's sides.
-    // Up and down, a page scrolls, and the sticky bar has its own rule (below). Sideways only.
+    // Up and down, a page scrolls: there the window's top, or the strip fixed along it, while
+    // the page is at its top, and the scroll padding at the page's bottom, are read (below).
+    const lead = win.getComputedStyle(doc.body, '::before');
+    const strip = lead.content !== 'none' && lead.position === 'fixed'
+      && parseFloat(lead.top) === 0 ? parseFloat(lead.height) || 0 : 0;
     const clips = new Map();
     const clipOf = function (a) {
       if (!clips.has(a)) {
@@ -1303,7 +1307,22 @@
           && !(c.scrolls && a.scrollLeft + a.clientWidth < a.scrollWidth - SLACK_PX);
         if (leftCut || rightCut) cut = selector(a);
       }
+      // At the window's top, below the strip a page fixes there: the header's controls, which
+      // stand at the top while the page is at its top.
+      if (!cut && r.top >= -SLACK_PX && r.bottom <= tall + SLACK_PX
+        && r.top - RING_OUT_PX < strip - SLACK_PX) {
+        cut = strip ? 'the strip along the window\'s top' : 'the window\'s top';
+      }
       if (cut) note('focus', el, null, 'outline', 'its ring cut by the side of ' + cut);
+    }
+    // A control the keyboard focuses below the window is scrolled in only as far as the page's
+    // scroll padding at the bottom leaves, so under a ring's reach its ring is cut there.
+    const padBottom = parseFloat(win.getComputedStyle(doc.documentElement).scrollPaddingBottom)
+      || 0;
+    if (padBottom < RING_OUT_PX - SLACK_PX) {
+      note('focus', doc.documentElement, null, 'scroll-padding-bottom', padBottom + ' px, under '
+        + 'a ring\'s ' + RING_OUT_PX + ' px: a control the keyboard scrolls in at the window\'s '
+        + 'bottom has its ring cut');
     }
 
     // One sweep in the page's own colors finds what forced colors and a sticky bar could

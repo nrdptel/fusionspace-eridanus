@@ -775,7 +775,9 @@ and so do:
 - any control the keyboard reaches whose ring is cut by the window's side, or by the side of a
   box around it that clips what passes it, where the control itself shows whole. A box that
   scrolls sideways cuts it too once it can scroll no further that way, as a ring adds nothing to
-  what a box scrolls;
+  what a box scrolls. While the page is at its top, a ring cut by the window's top, or by the
+  strip fixed along it, fails too, and so does a page whose scroll padding at the bottom is
+  under a ring's 4 px, as a control the keyboard scrolls in there would have its ring cut;
 - what Windows' high-contrast mode would erase. That mode, forced colors, repaints the page in a
   few colors of the reader's own. It would erase a box set apart from what is behind it only by
   its fill, with no border there. It would also erase an icon not drawn in its text's color. The

@@ -765,10 +765,11 @@ contents, and on a phone it's behind the menu button. Auto follows your system's
 setting. Field is the design system's theme for reading outdoors, at the pad. It differs from
 Light in three ways: a white page instead of a gray one, darker secondary text, and stronger
 rules ([Field in the switch](decisions-and-roadmap.md#m0-17b1)). It prints the same as Light. A choice you make is kept in your
-browser, for this site only. Each button's tooltip says what its theme is for.
+browser, for this site only. Each button's tooltip says what its theme looks like, or what it's for.
 
 With the keyboard, Tab reaches every button in the header. On a phone, Enter or Space on the menu
-button opens the table of contents and moves to its first control, the theme switch.
+button, the three-line icon named *Toggle Table of Contents*, opens the table of contents and moves
+to its first control, the theme switch.
 
 ### The footer
 
@@ -786,7 +787,8 @@ drawing's title block does.
 A page prints in the light theme's colors, whichever theme you read it in, without the table of
 contents or the buttons. Each link's address follows it in parentheses. For another site that's
 the whole address, and for a page of this one it's the path from the page, such as
-`cli.html#units`. The line with the version and date closes the page. The printer icon at the top,
+`cli.html#units`. The line with the version and date closes the page, without the footer's link
+to this page. The printer icon at the top,
 *Print the guide*, opens a cover with a *Print the guide* button, which prints every chapter one
 after another, then the whole [title block](glossary.md#title-block). That runs long, since it
 holds every chapter and its links' addresses. Printed to a PDF file, the guide reads offline.
