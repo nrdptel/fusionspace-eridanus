@@ -109,6 +109,11 @@ reading scale.
 12. **Room above the title.** With nothing over it, the intro stands 32 px under the header,
     one of the system's spacing steps. The tag row over it used to leave 40 px, or 72 px where
     the chip wrapped under the tag on a phone.
+13. **The menu bar's title on a row of its own from 720 to 779 px.** In the wide cut, the
+    lockup and the product's name need 217 px, which a window that narrow leaves beside the
+    300 px sidebar only without a scroll bar; with Linux's 15 px one the row wrapped under too
+    little scroll padding. While the sidebar is shown there, the title takes its own row under
+    the buttons, as on a phone, and a heading jumped to clears the taller bar.
 
 **Superseded.**
 
