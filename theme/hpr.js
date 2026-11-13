@@ -57,8 +57,9 @@
 // keep a link just clicked where it was, and under 960 px the switch then takes the top of the
 // sidebar, which shortens the list. Wherever that leaves the list, an entry can sit cut by its
 // top edge, or from 960 px under the 4 px strip along the window's top. So as the page loads,
-// once its fonts are in and when the switch moves, an entry cut there is brought down to stand
-// whole, 4 px below the edge. The reader's own scrolling is left alone. The page check fails text
+// once its fonts are in and when the switch moves, an entry cut there, or under the list's
+// faded top, is brought down to stand whole below the fade (10 px, its scroll padding). The
+// reader's own scrolling is left alone. The page check fails text
 // cut by the strip, or by the top of a box the page leaves scrolled as it loads.
 'use strict';
 
@@ -339,7 +340,8 @@ document.addEventListener('click', function (event) {
     };
     // No entry left cut by the list's top edge or under its faded top (`hpr.css`). Once a
     // position: moving an entry down clear of the fade can leave the one above it ending just
-    // under the edge, and moving that one too would creep the list down an entry each call.
+    // under the edge, and moving that one too would creep the list down an entry each call. A
+    // layout change that leaves the list where it was is skipped too, on purpose.
     let trimmed = -1;
     const trim = function () {
         if (list.scrollTop <= 0 || list.scrollTop === trimmed) return;
