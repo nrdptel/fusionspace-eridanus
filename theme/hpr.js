@@ -317,24 +317,36 @@ document.addEventListener('click', function (event) {
             bottom: Math.min(top + list.clientHeight, window.innerHeight),
         };
     };
-    // The current page's entry to the list's middle, or only when it isn't whole after a click.
+    // How deep the list's box fades at its top and bottom edges (`hpr.css`): its scroll padding.
+    const fade = function () {
+        const s = window.getComputedStyle(list);
+        return {
+            top: parseFloat(s.scrollPaddingTop) || 0,
+            bottom: parseFloat(s.scrollPaddingBottom) || 0,
+        };
+    };
+    // The current page's entry to the list's middle, or after a click only when it isn't whole
+    // and clear of the faded edges.
     const center = function () {
         const active = list.querySelector('a.active');
         if (!active || list.clientHeight === 0) return;
         const shown = view();
         const box = active.getBoundingClientRect();
-        if (clicked && box.top >= shown.top && box.bottom <= shown.bottom) return;
+        const f = fade();
+        const clear = box.top >= shown.top + f.top && box.bottom <= shown.bottom - f.bottom;
+        if (clicked && clear) return;
         list.scrollTop += (box.top + box.bottom) / 2 - (shown.top + shown.bottom) / 2;
     };
-    // No entry left cut by the list's top edge.
+    // No entry left cut by the list's top edge or under its faded top (`hpr.css`).
     const trim = function () {
         if (list.scrollTop <= 0) return;
         const edge = view().top;
+        const clear = Math.max(4, fade().top);
         const cut = Array.from(list.querySelectorAll('a, .part-title')).find(function (entry) {
             const box = entry.getBoundingClientRect();
-            return box.top < edge && box.bottom > edge;
+            return box.top < edge + clear && box.bottom > edge;
         });
-        if (cut) list.scrollTop -= edge + 4 - cut.getBoundingClientRect().top;
+        if (cut) list.scrollTop -= edge + clear - cut.getBoundingClientRect().top;
     };
     let loading = true;
     const watch = window.ResizeObserver ? new ResizeObserver(function () { again(); }) : null;
