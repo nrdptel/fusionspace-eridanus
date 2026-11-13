@@ -126,6 +126,17 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
     #mdbook-menu-bar .fa-svg, #mdbook-menu-bar .icon-button { padding: 0 4px; }
     #mdbook-menu-bar .right-buttons { margin: 0 8px; }
 }
+/* With the product's name in Archivo's wide cut (ADR-343), the lockup and the name need 217 px, which
+   a window from 720 to 779 px leaves beside the 300 px sidebar only without a scroll bar: a 15 px
+   one, as on Linux and Windows, wrapped the row there. While the sidebar is shown on such a
+   window, the title takes a row of its own under the buttons, as on a phone, and a heading jumped
+   to clears the taller bar. */
+@media only screen and (min-width: 720px) and (max-width: 779px) {
+    html:is(.sidebar-visible, :not(.js)) #mdbook-menu-bar .menu-title { order: 1; flex: 1 0 100%; white-space: normal; overflow: visible; line-height: var(--fs-24); padding-block-end: 0.3em; }
+    html:is(.sidebar-visible, :not(.js)) #mdbook-menu-bar .right-buttons { margin-inline-start: auto; }
+    html:is(.sidebar-visible, :not(.js)) { scroll-padding-top: calc(var(--menu-bar-height) + 45px); }
+    html:is(.sidebar-visible, :not(.js)) :target { scroll-margin-top: calc(var(--menu-bar-height) + 45px); }
+}
 /* The one-line footer (`web.md`, *Page anatomy*, a tool's; `fusionspace.css`, `.fs-foot`): under a 1 px
    rule, the mark at 24 px (the brand's least cluster height) and "FusionSpace HPR" in ink and
    semibold, then the version, the date of issue and the site's status chip in `small`, Archivo
