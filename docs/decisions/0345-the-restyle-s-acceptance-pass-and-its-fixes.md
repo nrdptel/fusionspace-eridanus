@@ -1,7 +1,7 @@
 # ADR-345: The restyle's acceptance pass and its fixes (2026-11-13)
 
 - **Status:** accepted; records [M0.17b2][m0-17b2]'s acceptance pass ([ADR-282][adr-282]) of the docs site's restyle ([ADR-343][adr-343], [ADR-344][adr-344]) and the fixes it led to; changes `docs/writing.md`'s rule that a code block may scroll sideways.
-- **Summary:** A reviewer that didn't build the restyle ran [ADR-344][adr-344]'s six tasks on the built site, and a cold reader did them from the guide alone. At 320 px the keyboard couldn't reach the menu button, focus rings were cut at the column's edge, and code blocks hid their lines' ends. The captures of every page the tasks reach found a code block cut beside the open table of contents and the header left over a page's end on a phone; checking the cold read found the table of contents, put away, still a keyboard stop. This record fixes them, adds a page-check rule and canaries for each, and answers the cold read's findings in the site's words.
+- **Summary:** A reviewer that didn't build the restyle ran [ADR-344][adr-344]'s six tasks on the built site, and a cold reader did them from the guide alone. At 320 px the keyboard couldn't reach the menu button, focus rings were cut at the column's edge, and code blocks hid their lines' ends. The captures of every page the tasks reach found a code block cut beside the open table of contents and the header left over a page's end on a phone; checking the cold read found a table of contents shut with reduced motion still a keyboard stop. This record fixes them, adds a page-check rule and canaries for each, and answers the cold read's findings in the site's words.
 
 [m0-17b2]: ../decisions-and-roadmap.md#m0-17b2
 [adr-282]: 0282-the-project-tests-each-ui-milestone-itself.md
@@ -78,7 +78,9 @@ of Start here.
    press. `canary-menu-unreached.html` and `canary-menu-key-dead.html` must fail. Put away,
    the table of contents leaves the tab order whole: `theme/hpr.js` takes its list's box out
    with its links. Chrome makes a box that scrolls and holds nothing the keyboard reaches a tab
-   stop of its own, so with the links out the box was the first stop on a phone, out of sight.
+   stop of its own. mdBook hides a shut table of contents once its slide ends, but with reduced
+   motion set no slide runs, so one opened and shut again stayed drawn off the window's side, and
+   on a phone Tab stopped on its list's box, out of sight.
    The page check fails a table of contents put away that holds a box the keyboard focuses;
    `canary-sidebar-scroller.html` must fail.
 4. **The cold read's words.** Each theme button's tooltip says what it is for, Field's "For
@@ -128,7 +130,7 @@ of Start here.
 commits, each task's result and each finding's fix or issue. The fixes were checked by the same
 measurements that found them: after them, a scan pressing Tab through the page about Monte Carlo
 dispersion found no ring cut by a box or by the window's sides, top or bottom, at 320 and 1,280 px in
-all four themes. `cargo xtask site` passed at all 41 widths, with the nine new canaries that must
+Auto, Light, Dark and Field. `cargo xtask site` passed at all 41 widths, with the nine new canaries that must
 fail failing and `canary-menu-held.html` passing. Every page the six tasks reach was captured at
 the page check's 41 widths in Light, Dark and Field and looked at for clipping: that look found
 the code block cut at 1,000 and 1,040 px and the header over the Monte Carlo page's end at

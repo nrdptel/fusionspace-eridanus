@@ -2197,8 +2197,9 @@
       }
       // A sidebar put away with a box the keyboard still focuses (ADR-345): Chrome makes a box
       // that scrolls and holds nothing focusable a tab stop of its own, so with the links out
-      // of the tab order Tab stopped on the list's box, out of sight. A box with a `tabindex`
-      // of 0 or more is one too.
+      // of the tab order Tab stopped on the list's box, out of sight, where the sidebar stayed
+      // drawn (with reduced motion set, once opened and shut). A box with a `tabindex` of 0 or
+      // more is one too.
       if (!shown) {
         const all = [sidebar].concat(Array.from(sidebar.querySelectorAll('*')));
         for (const el of all) {

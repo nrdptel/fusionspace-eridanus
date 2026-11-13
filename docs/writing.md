@@ -877,8 +877,8 @@ The page check fails, at every width:
 - a table of contents hidden at 720 px or wider on a first visit. That's read with scripts on
   and off, and after a narrower window is widened past 720 px;
 - a table of contents hidden but still reached by the keyboard or a screen reader, or one shown
-  but not reached. Hidden, none of its links or buttons may be in the tab order, nor a box of it
-  that scrolls: Chrome lets the keyboard focus a box that scrolls and holds nothing it can reach;
+  but not reached. Hidden, none of its links may be in the tab order, nor a box of it that
+  scrolls: Chrome lets the keyboard focus a box that scrolls and holds nothing it can reach;
 - once a run, a menu button that doesn't put the table of contents away or bring it back;
 - once a run, a drag of the table's edge to the window's side that doesn't put it away;
 - wherever the table of contents shows, the current page's entry in it not wholly in view and
