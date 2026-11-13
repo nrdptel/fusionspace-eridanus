@@ -127,11 +127,12 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
     #mdbook-menu-bar .right-buttons { margin: 0 8px; }
 }
 /* With the product's name in Archivo's wide cut (ADR-343), the lockup, the name and the space
-   around them need 217 px. At 720 px the sidebar and the buttons leave 223 px, which a 15 px scroll
+   between and around them need 217 px. At 720 px the sidebar and the buttons leave 223 px, which a 15 px scroll
    bar, as on Linux, cut to 208 px: the right-hand buttons dropped to a second row under 51 px of
    scroll padding. The room grows a pixel per pixel of window, so such a bar fits from 729 px; the
    rule runs to 779 px as a margin. While the sidebar is shown there, the title takes a row of its
-   own under the buttons, as on a phone, and a heading jumped to clears the taller bar. */
+   own under the buttons, as on a phone, and a heading jumped to clears the taller bar. mdBook
+   writes the class into the page, so with scripts off the rule holds too. */
 @media only screen and (min-width: 720px) and (max-width: 779px) {
     html.sidebar-visible #mdbook-menu-bar .menu-title { order: 1; flex: 1 0 100%; white-space: normal; overflow: visible; line-height: var(--fs-24); padding-block-end: 0.3em; }
     html.sidebar-visible #mdbook-menu-bar .right-buttons { margin-inline-start: auto; }
