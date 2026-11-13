@@ -453,8 +453,6 @@
   const CLEAR_SPACE = 0.25;
   const INKS = ['rgb(11, 15, 28)', 'rgb(243, 244, 247)'];
   const SIDEBAR_OPEN_FROM_PX = 720;
-  // The width under which a code block wraps its lines rather than scroll (ADR-345, `hpr.css`).
-  const CODE_WRAPS_UNDER_PX = 720;
   // How far a focus ring reaches past its element's box: 2 px wide, 2 px out, which the focus
   // probe holds every ring to.
   const RING_OUT_PX = 4;
@@ -1385,6 +1383,23 @@
     }
     if (unstuck) menuBar.classList.remove('sticky');
 
+    // The menu bar off its place (ADR-345): mdBook's script sets the `top` of a bar not stuck
+    // to where the page was when the reader turned from scrolling up to down, and the bar stayed
+    // there, over the page's text, until scrolled out. `hpr.css` holds a bar not stuck at the
+    // page's top. Read with mdBook's `top` set, and put back.
+    if (menuBar !== null) {
+      const stuck = menuBar.classList.contains('sticky');
+      const was = menuBar.style.top;
+      if (stuck) menuBar.classList.remove('sticky');
+      menuBar.style.top = '400px';
+      const lifted = parseFloat(win.getComputedStyle(menuBar).top) || 0;
+      menuBar.style.top = was;
+      if (stuck) menuBar.classList.add('sticky');
+      if (Math.abs(lifted) > SLACK_PX) {
+        note('sticky', menuBar, null, 'top', lifted + 'px when not stuck, a band over the page');
+      }
+    }
+
     // The bars, against the padding that keeps what is scrolled to out from under them.
     const scroller = doc.scrollingElement || doc.documentElement;
     const padding = parseFloat(win.getComputedStyle(scroller).scrollPaddingTop) || 0;
@@ -1764,22 +1779,19 @@
         note('scrolls', selector(box), (box.scrollWidth - box.clientWidth) + ' px wider inside',
           'than its ' + box.clientWidth + ' px');
       }
-      // A code block that scrolls sideways under 720 px (ADR-345): there `hpr.css` wraps its
-      // lines, as the product system lets only data tables and charts scroll sideways at 320 px
+      // A code block that scrolls sideways (ADR-345): `hpr.css` wraps its lines at every width,
+      // as the product system lets only data tables and charts scroll sideways at 320 px
       // (`web.md`, *Accessibility*), and a line's end out of the box's sight is cut off. The
       // block or the `code` in it, whichever scrolls.
-      if (win.innerWidth < CODE_WRAPS_UNDER_PX) {
-        for (const pre of main.querySelectorAll('pre')) {
-          const boxes = [pre].concat(Array.from(pre.children).filter(function (c) {
-            return c.tagName === 'CODE';
-          }));
-          for (const box of boxes) {
-            if (box.scrollWidth <= box.clientWidth + SLACK_PX) continue;
-            note('scrolls', selector(box), (box.scrollWidth - box.clientWidth)
-              + ' px wider inside', 'than its ' + box.clientWidth + ' px, a code block under '
-              + CODE_WRAPS_UNDER_PX + ' px');
-            break;
-          }
+      for (const pre of main.querySelectorAll('pre')) {
+        const boxes = [pre].concat(Array.from(pre.children).filter(function (c) {
+          return c.tagName === 'CODE';
+        }));
+        for (const box of boxes) {
+          if (box.scrollWidth <= box.clientWidth + SLACK_PX) continue;
+          note('scrolls', selector(box), (box.scrollWidth - box.clientWidth)
+            + ' px wider inside', 'than its ' + box.clientWidth + ' px, a code block');
+          break;
         }
       }
 

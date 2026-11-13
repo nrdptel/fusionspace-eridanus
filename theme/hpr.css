@@ -254,6 +254,12 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
     #mdbook-menu-bar .right-buttons > #mdbook-theme-list.fs-seg { margin-top: 2px; }
 }
 html { scroll-padding-bottom: 8px; }
+/* The header off its place (ADR-345). Under 1,080 px mdBook's script lets the header scroll away
+   and sticks it to the window's top when the reader scrolls up. Turning down again, it sets the
+   header's `top` to where the page then was, and the header stayed there, a band over the page's
+   text and its arrows, until scrolled out; at a page's end it couldn't be. A header that isn't
+   stuck stays at the page's top, so it leaves the window at once and comes back stuck. */
+#mdbook-menu-bar:not(.sticky) { top: 0 !important; }
 .sidebar > #mdbook-theme-list.fs-seg { position: absolute; top: 10px; left: 10px; }
 .sidebar:has(> #mdbook-theme-list) > .sidebar-scrollbox { top: 66px; }
 /* The sidebar's list scrolls in its own box, so the window's bottom edge would slice an entry in
@@ -345,15 +351,13 @@ html:not(.js) #hpr-print { display: none; }
   table tr > :last-child { padding-inline-end: 0; }
 }
 pre > code.wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
-/* A code block on a phone (ADR-345): its long lines wrap, at any character, rather than run off the
-   box's edge, where the line's end was out of sight until the reader scrolled the box sideways. The
-   product system lets only data tables and charts scroll sideways at 320 px (`web.md`,
-   *Accessibility*, 1.4.10). Copying takes the code as written, its lines unbroken. From 720 px a
-   code block keeps its lines and scrolls inside its box. The page check fails a code block that
-   scrolls sideways under 720 px. */
-@media only screen and (max-width: 719px) {
-  pre > code, pre > code.hljs { white-space: pre-wrap; overflow-wrap: anywhere; }
-}
+/* A code block (ADR-345): its long lines wrap, at any character, at every width, rather than run
+   off the box's edge, where the line's end was out of sight until the reader scrolled the box
+   sideways: at 320 px, and at 1,000 px beside the open table of contents too. The product system
+   lets only data tables and charts scroll sideways at 320 px (`web.md`, *Accessibility*, 1.4.10),
+   and nothing may be cut by a box's side. Copying takes the code as written, its lines unbroken.
+   The page check fails a code block that scrolls sideways. */
+pre > code, pre > code.hljs { white-space: pre-wrap; overflow-wrap: anywhere; }
 
 /* Focus rings whole on a phone (ADR-345). The system's stylesheet pads the content's box
    `16px - --page-padding`, 1 px under 720 px, with mdBook's page padding outside it; the box

@@ -673,13 +673,12 @@ has the rules in full):
 - **No page wider than the window.** `cargo xtask site` opens every page in headless Chrome at
   each width from 320 to 1,920 px, 40 px apart. A page fails if it scrolls sideways, or if text
   or a box passes the window's left or right edge. It also fails if a box cuts its own text
-  short. Under 720 px a code block wraps its long lines at any character, and the check fails
-  one that scrolls sideways there
+  short. A code block wraps its long lines at any character, at every width, and the check fails
+  one that scrolls sideways
   ([the decision on the restyle's acceptance pass](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0345-the-restyle-s-acceptance-pass-and-its-fixes.md)).
-  From 720 px it may scroll sideways inside its own box, which hides its end, so make it fit
-  where it can. A long line of data goes in a `text,wrap` fence, which wraps it at any width and
-  any character, so keep it for lines whose spacing doesn't matter. `cargo xtask cli` fences a
-  command's example `text,wrap` when a line passes 80 characters.
+  A wrapped line breaks where it reaches the box's side, which spoils code laid out in columns,
+  so keep lines short where you can. A `text,wrap` fence wraps the same way; `cargo xtask cli`
+  fences a command's example `text,wrap` when a line passes 80 characters.
 - **No table scrolling sideways** ([ADR-297](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0297-a-table-too-wide-stacks-its-rows.md)).
   Under 720 px the theme gives a table's cells 8 px a side and none at its edges. A table still
   too wide for its column stacks its rows (`theme/hpr.js`): each cell is labeled by a copy of its
@@ -870,6 +869,11 @@ The page check fails, at every width:
   below 720 px;
 - once a run, at the narrowest width, a menu button out of the tab order, or one that Enter or
   Space doesn't press. mdBook's is a label that no key reaches; `theme/hpr.js` makes it a button;
+- a header not stuck to the window's top that takes the `top` mdBook's script gives it. Under
+  1,080 px the script lets the header scroll away and sticks it to the window when the reader
+  scrolls up; turning down again, it left the header where the page was, over the text.
+  `theme/hpr.css` holds it at the page's top, so it goes at once and comes back when the reader
+  scrolls up;
 - a table of contents hidden at 720 px or wider on a first visit. That's read with scripts on
   and off, and after a narrower window is widened past 720 px;
 - a table of contents hidden but still reached by the keyboard or a screen reader, or one shown

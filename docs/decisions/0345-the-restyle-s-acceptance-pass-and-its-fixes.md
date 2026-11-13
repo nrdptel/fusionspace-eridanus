@@ -1,6 +1,6 @@
 # ADR-345: The restyle's acceptance pass and its fixes (2026-11-13)
 
-- **Status:** accepted; records [M0.17b2][m0-17b2]'s acceptance pass ([ADR-282][adr-282]) of the docs site's restyle ([ADR-343][adr-343], [ADR-344][adr-344]) and the fixes it led to; changes `docs/writing.md`'s rule that a code block may scroll sideways on a phone.
+- **Status:** accepted; records [M0.17b2][m0-17b2]'s acceptance pass ([ADR-282][adr-282]) of the docs site's restyle ([ADR-343][adr-343], [ADR-344][adr-344]) and the fixes it led to; changes `docs/writing.md`'s rule that a code block may scroll sideways.
 - **Summary:** A reviewer that didn't build the restyle ran [ADR-344][adr-344]'s six tasks on the built site, and a cold reader did them from the guide alone. At 320 px the keyboard couldn't reach the menu button, focus rings were cut at the column's edge, and code blocks hid their lines' ends. This record fixes the three, adds a page-check rule and canaries for each, and answers the cold read's findings in the site's words.
 
 [m0-17b2]: ../decisions-and-roadmap.md#m0-17b2
@@ -32,7 +32,9 @@ measurements):
   each long line was out of sight until the box was scrolled. `docs/writing.md` allowed
   it. The product system doesn't: `web.md`, *Accessibility*, lets only data tables and charts
   scroll sideways at 320 px (WCAG 2.2's reflow rule, 1.4.10), and its mdBook theme promises
-  nothing cut off on a phone.
+  nothing cut off on a phone. The look at the captures found the same block cut at its box's
+  right side at 1,000 and 1,040 px, where the open table of contents narrows the column, its
+  comments ending mid-word.
 
 The cold reader did all six tasks and named five places where a reader is left unsure.
 The switch's four buttons say nothing of what Field is for. The print button is labeled *Print
@@ -44,11 +46,11 @@ of Start here.
 
 **Decision.**
 
-1. **Code wraps on a phone.** Under 720 px a code block wraps its long lines at any character
-   (`theme/hpr.css`); copying takes the code as written. From 720 px a code block keeps its
-   lines and may scroll inside its box. The page check fails a code block, or the `code` in
-   it, that scrolls sideways under 720 px; `canary-code-scrolls.html` must fail there and pass
-   from 720 px.
+1. **Code wraps.** A code block wraps its long lines at any character, at every width
+   (`theme/hpr.css`); copying takes the code as written. A box that scrolls still cuts a
+   line's end at its side until the reader scrolls it, which no width can promise to avoid.
+   The page check fails a code block, or the `code` in it, that scrolls sideways;
+   `canary-code-scrolls.html` must fail at every width.
 2. **Rings whole.** Under 720 px the content's box takes mdBook's page padding inside it, so
    the text stays 16 px from the window's side and a ring has room. A table's box gets 4 px a
    side beyond the table's edges at every width. Under 520 px the header's title keeps 6 px
@@ -85,7 +87,15 @@ of Start here.
    - The footer's words, which [ADR-343][adr-343] fixed and its check reads exactly. Start
      here, where its link leads, explains them.
    - Under 1,080 px mdBook's header scrolls away with the page and comes back when the reader
-     scrolls up.
+     scrolls up. Where it stood in between is not kept: decision 6.
+6. **The header leaves at once.** Under 1,080 px, when a reader scrolling up turned to scroll
+   down, mdBook's script left the header where the page then was, and it stayed there, a band
+   over the page's text, until scrolled out. Near a page's end it can't be: the look at the
+   captures found it over the Monte Carlo page's last paragraph and its page arrows at 360 to
+   480 px. `theme/hpr.css` holds a header not stuck to the window at the page's top, so it
+   leaves the window as the reader scrolls down and comes back, stuck, when the reader scrolls
+   up. The page check sets the `top` mdBook's script would and fails a header that takes it;
+   `canary-menu-lifted.html` must fail and `canary-menu-held.html` pass.
 
    The pass's other two findings off every task's path become issues: no link to skip the
    table of contents (from the top of a page at 1,280 px, Tab passes every chapter before it
@@ -96,16 +106,18 @@ of Start here.
 
 **Consequences.**
 
-- On a phone a long line of code reads in full without scrolling, broken where it reaches the
-  box's side. From 720 px nothing changes.
+- A long line of code reads in full without scrolling, broken where it reaches the box's side.
+  Code laid out in columns loses its columns where a line wraps.
 - The page check reads every control's ring at every width, so a new box that cuts a ring, in a
   table, a note or the header, fails the build where it used to pass unseen. The page check's
-  canaries number 225.
+  canaries number 227.
 - A keyboard on a phone reaches the table of contents and the theme switch.
+- Under 1,080 px the header goes as the reader scrolls down, rather than scrolling out with the
+  page, and comes back, stuck to the window's top, when the reader scrolls up.
 
 **How it was checked.** The pass's record is in M0.17b2's pull request: who ran it, on which
 commits, each task's result and each finding's fix or issue. The fixes were checked by the same
 measurements that found them: after them, a scan pressing Tab through the page about Monte Carlo
 dispersion found no ring cut by a box or by the window's sides, top or bottom, at 320, 640, 960
-and 1,280 px. `cargo xtask site` passed at all 41 widths, with the seven new canaries failing as
-they must.
+and 1,280 px. `cargo xtask site` passed at all 41 widths, with the eight new canaries that must
+fail failing and `canary-menu-held.html` passing.

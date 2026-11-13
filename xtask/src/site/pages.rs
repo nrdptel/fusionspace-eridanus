@@ -15,8 +15,8 @@
 //!   scrolls or clips and is wider inside than out fails, since the page then scrolls sideways
 //!   inside it, or is cut. One whose overflow is visible hands what reaches past it, such as a
 //!   figure wider than the column, to the box around it, which is measured in turn. Only
-//!   boxes within `main`, a code block or a table's wrapper, may scroll sideways; a table that
-//!   does fails the frame check below.
+//!   boxes within `main`, a code block or a table's wrapper, may scroll sideways here; a table
+//!   that does fails the frame check below, and a code block the code rule (ADR-345).
 //! - **Text cut off.** Text that a box which doesn't scroll (`overflow: hidden` or `clip`,
 //!   `text-overflow: ellipsis`) cuts by more than 1 px, so part of it can never be seen. Boxes of
 //!   2 px or less hide their text on purpose, for screen readers only, and are skipped.
@@ -293,7 +293,7 @@
 //! top fade, one whose list scrolls with no fade, one under a gradient that fades nothing, one
 //! whose fade has less room after the last entry than it is deep, one whose fade has no scroll
 //! padding, and one whose entry shows whole, which must pass; and an ordinary page
-//! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
+//! (wrapping text, a wide table in a box that scrolls, a long line of code that wraps, an unbreakable word
 //! that wraps anywhere, a figure wider than any window with mdBook's zoom, a sidebar drawer put
 //! away off the left edge) that must pass. If one isn't
 //! found as expected at every width, the check itself is broken, and it fails.
@@ -1403,7 +1403,7 @@ macro_rules! mono_faces {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-static CANARIES: [Canary; 225] = [
+static CANARIES: [Canary; 227] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -2113,8 +2113,7 @@ static CANARIES: [Canary; 225] = [
     },
     Canary {
         file: "canary-squeezed.html",
-        what: "a code block in a box held to 10 em, scrolling sideways, its line kept whole \
-               under 720 px too",
+        what: "a code block in a box held to 10 em, scrolling sideways, its line kept whole",
         expect: &[Kind::Squeezed],
         inside: "<div style=\"max-width: 10em\"><pre><code style=\"white-space: pre\">let \
                  speed_m_per_s = drag_coefficient * reference_area_m2;</code></pre></div>",
@@ -2122,11 +2121,13 @@ static CANARIES: [Canary; 225] = [
     },
     Canary {
         file: "canary-code-scrolls.html",
-        what: "a code block that keeps its long line whole under 720 px, where code wraps, and \
-               scrolls sideways there",
+        what: "a code block that keeps its long line whole, where code wraps, and scrolls \
+               sideways",
         expect: &[Kind::Scrolls],
         inside: "<pre><code style=\"white-space: pre\">let thrust_to_weight_at_rail_exit = \
-                 average_thrust_n / (liftoff_mass_kg * standard_gravity_m_per_s2);</code></pre>",
+                 average_thrust_n / (liftoff_mass_kg * standard_gravity_m_per_s2); // a line \
+                 longer than the column at every width, from 320 to 1,920 px, kept whole by its \
+                 style</code></pre>",
         after: "",
     },
     Canary {
@@ -2509,6 +2510,27 @@ static CANARIES: [Canary; 225] = [
             "<script>document.getElementById('mdbook-sidebar-toggle').addEventListener(\
              'keydown', function (e) { e.stopImmediatePropagation(); }, true);</script>"
         ),
+    },
+    Canary {
+        file: "canary-menu-lifted.html",
+        what: "a menu bar that takes the `top` mdBook's script gives it when not stuck, so it \
+               stays over the page where the reader turned to scroll down",
+        expect: &[Kind::Sticky],
+        inside: "<style>@media print { #mdbook-menu-bar { display: none; } }</style><div \
+                 id=\"mdbook-menu-bar\" style=\"position: relative; height: 40px; background: \
+                 #F3F4F7\"></div>",
+        after: "",
+    },
+    Canary {
+        file: "canary-menu-held.html",
+        what: "a menu bar held at the page's top when not stuck, as `hpr.css` holds the site's, \
+               which must pass",
+        expect: &[],
+        inside: "<style>@media print { #mdbook-menu-bar { display: none; } } \
+                 #mdbook-menu-bar:not(.sticky) { top: 0 !important; }</style><div \
+                 id=\"mdbook-menu-bar\" style=\"position: relative; height: 40px; background: \
+                 #F3F4F7\"></div>",
+        after: "",
     },
     Canary {
         file: "canary-sidebar-undragged.html",
@@ -3612,7 +3634,7 @@ img {{ max-width: 100%; }}
 .checkbox-img:not(:checked) ~ .img-wrapper {{ display: none; }}
 h1 {{ font: 600 28px/32px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; }}
 .scroll, pre {{ overflow-x: auto; }}
-@media (max-width: 719px) {{ pre > code {{ white-space: pre-wrap; overflow-wrap: anywhere; }} }}
+pre > code {{ white-space: pre-wrap; overflow-wrap: anywhere; }}
 td {{ white-space: nowrap; padding: 0 12px; }}
 .word {{ overflow-wrap: anywhere; }}
 math {{ font-family: 'NewCM Math Subset', math; font-size: 1.1em; }}
@@ -3645,17 +3667,10 @@ m<sup>2</sup>, a drag coefficient C<sub>D</sub>, a formula <math><msub><mi>F</mi
 /// harness does once a run, at the width that follows links to headings ([`landing_width`]).
 const KEYED: [&str; 2] = ["canary-menu-unreached.html", "canary-menu-key-dead.html"];
 
-/// The width under which a code block wraps its lines rather than scroll (ADR-345, `hpr.css`),
-/// as `pages.js` holds it.
-const CODE_WRAPS_UNDER_PX: u32 = 720;
-
-/// The canaries' problems that show under [`CODE_WRAPS_UNDER_PX`] and nowhere else, where a code
-/// block may not scroll sideways, whatever the canary's `expect` holds: a code block squeezed by
-/// a cap scrolls there too.
-const NARROW: [(&str, Kind); 2] = [
-    ("canary-squeezed.html", Kind::Scrolls),
-    ("canary-code-scrolls.html", Kind::Scrolls),
-];
+/// The problems a canary shows at every width besides the one it stands for, which its `expect`
+/// names alone: a code block squeezed by a cap scrolls sideways too, and a code block may not
+/// scroll (ADR-345).
+const ALSO: [(&str, Kind); 1] = [("canary-squeezed.html", Kind::Scrolls)];
 
 /// The canaries whose problem shows only where the theme switch is pressed, the page loaded with
 /// a theme saved, or the sidebar put away, which the harness does once a run, at the width that
@@ -4233,8 +4248,8 @@ fn canary_verdict(canary: &Canary, measured: &[Measured]) -> Result<(), String> 
             )));
         }
         for kind in Kind::ALL {
-            let expected = if NARROW.contains(&(canary.file, kind)) {
-                m.width < CODE_WRAPS_UNDER_PX
+            let expected = if ALSO.contains(&(canary.file, kind)) {
+                true
             } else {
                 canary.expect.contains(&kind)
                     && (kind != Kind::Print || m.printed)
@@ -5242,7 +5257,7 @@ mod tests {
 
     #[test]
     fn rings_code_and_the_menu_key_have_their_canaries() {
-        // ADR-345: a ring cut by a box, a code block scrolling under 720 px, and a menu button
+        // ADR-345: a ring cut by a box, a code block scrolling sideways, and a menu button
         // the keyboard can't reach or press, each with a canary that shows it alone.
         for (file, kinds) in [
             ("canary-focus-cut.html", &[Kind::Focus][..]),
@@ -5253,6 +5268,8 @@ mod tests {
             ("canary-squeezed.html", &[Kind::Squeezed][..]),
             ("canary-menu-unreached.html", &[Kind::Header][..]),
             ("canary-menu-key-dead.html", &[Kind::Header][..]),
+            ("canary-menu-lifted.html", &[Kind::Sticky][..]),
+            ("canary-menu-held.html", &[][..]),
         ] {
             let found: Vec<_> = CANARIES.iter().filter(|c| c.file == file).collect();
             assert_eq!(found.len(), 1, "{file}");
@@ -5261,16 +5278,17 @@ mod tests {
         for file in KEYED {
             assert!(CANARIES.iter().any(|c| c.file == file), "{file}");
         }
-        for (file, _) in NARROW {
+        for (file, _) in ALSO {
             assert!(CANARIES.iter().any(|c| c.file == file), "{file}");
         }
         for needed in [
-            "const CODE_WRAPS_UNDER_PX = 720;",
+            "' px, a code block'",
             "const RING_OUT_PX = 4;",
             "function probeMenuKey(win, doc)",
             "its ring cut by the side of ",
             "the strip along the window\\'s top",
             "scrollPaddingBottom",
+            "px when not stuck, a band over the page",
         ] {
             assert!(HARNESS_JS.contains(needed), "{needed}");
         }
