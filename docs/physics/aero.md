@@ -3850,6 +3850,15 @@ other programs.
     27.1% high (Mach 1.2), and its CP 0.67 to 1.35 calibers aft at Mach 0.9: the flight margin reads high
     ([#1198](https://github.com/nrdptel/fusionspace-eridanus/issues/1198) warns). Past Mach 3 the
     normal force's body terms read low ([Normal force through Mach 1](#normal-force-through-mach-1)).
+  - Below the join, from Mach 0.6 (the tunnel's slowest point) to 0.8, the fins are still on
+    Prandtl-Glauert, yet the short Arcas Robin model's CP reads 0.117 calibers aft of the tunnel's at
+    Mach 0.6 and 0.912 at 0.8, each beyond the reading's ±0.055. The long model reads 0.360 calibers
+    forward at Mach 0.6 and inside its ±0.071 at 0.8, so one model of two supports it. The Mach 0.8
+    miss depends on the angles it is fitted over: +0.87 calibers over −2° to 2°, +0.08 over −3° to
+    4° ([the fit](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/arcas-fin-share-cp-station.md)).
+    A flight from Mach 0.6 may have its margin read high
+    ([#1290](https://github.com/nrdptel/fusionspace-eridanus/issues/1290) warns, quoting 0.11 to
+    0.92 calibers, the larger side).
   - [N09] eq. 3.35–3.36 would start moving a fin set's CP aft at Mach 0.5. By Mach 0.8 the CP would reach about 0.30 of the
     way along its mean aerodynamic chord (MAC, defined under *Fins*) for
     aspect ratio 1.6. Aspect ratio measures how long the span is against the chord. HPR Sim keeps 0.25 to

@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="760" height="907" viewBox="0 0 760 907" font-family="'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace" font-size="11" role="img" aria-labelledby="title" aria-describedby="desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="971" viewBox="0 0 760 971" font-family="'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace" font-size="11" role="img" aria-labelledby="title" aria-describedby="desc">
 <title id="title">What `hpr mc validation/fixtures/ork/guides/level-1.ork --runs 200 --seed 2026 --mass-sd 0.02 --drag-sd 0.05 --impulse-sd 0.03` prints, as a terminal shows it</title>
 <desc id="desc">The command line, then each line it printed, long lines wrapped; balloons A, B, C mark the lines the page explains. Drawn by cargo xtask cli from the same run as the page&apos;s text.</desc>
-<rect width="760" height="907" fill="#F3F4F7"/>
-<rect x="40" y="16" width="712" height="875" fill="#FFFFFF" stroke="#D6DAE4" stroke-width="1"/>
+<rect width="760" height="971" fill="#F3F4F7"/>
+<rect x="40" y="16" width="712" height="939" fill="#FFFFFF" stroke="#D6DAE4" stroke-width="1"/>
 <text x="52" y="39" xml:space="preserve" font-weight="600" fill="#0B0F1C">$ hpr mc validation/fixtures/ork/guides/level-1.ork --runs 200 --seed 2026 --mass-sd 0.02</text>
 <text x="52" y="55" xml:space="preserve" font-weight="600" fill="#0B0F1C">    --drag-sd 0.05 --impulse-sd 0.03</text>
 <text x="52" y="71" xml:space="preserve" fill="#0B0F1C">Level 1 guide rocket (level-1.ork)</text>
@@ -41,18 +41,22 @@
 <text x="52" y="647" xml:space="preserve" fill="#0B0F1C">warning: stability, the nominal flight: issue #172: the static margin read up to 0.1108 calibers</text>
 <text x="52" y="663" xml:space="preserve" fill="#0B0F1C">    above OpenRocket&apos;s on four private designs, cause unknown; this flight&apos;s may read high by as</text>
 <text x="52" y="679" xml:space="preserve" fill="#0B0F1C">    much</text>
-<text x="52" y="695" xml:space="preserve" fill="#0B0F1C">warning: stability, the nominal flight: issue #1198: the center of pressure sat 0.67 to 1.35</text>
-<text x="52" y="711" xml:space="preserve" fill="#0B0F1C">    calibers aft of a wind tunnel&apos;s on two models at Mach 0.9, so past Mach 0.8 the flight margin</text>
-<text x="52" y="727" xml:space="preserve" fill="#0B0F1C">    may read high. This flight reaches Mach 0.84 at 1.7 s</text>
-<text x="52" y="743" xml:space="preserve" fill="#0B0F1C">help: issues: https://github.com/nrdptel/fusionspace-eridanus/issues/&lt;number&gt;</text>
-<text x="52" y="775" xml:space="preserve" fill="#0B0F1C">How far to trust it. Simulated from the design file, not measured; the spread above comes from the</text>
-<text x="52" y="791" xml:space="preserve" fill="#0B0F1C">inputs&apos; scatter alone, not from the model&apos;s error. Against 60 logged flights of fliers&apos; own designs,</text>
-<text x="52" y="807" xml:space="preserve" fill="#0B0F1C">the simulated apogee averaged 7.7% above the logged one. Each logged apogee is the height climbed in</text>
-<text x="52" y="823" xml:space="preserve" fill="#0B0F1C">the day&apos;s air. The simulated apogee was within 10% on 32 and read low on 15, by at most 20%. Plan a</text>
-<text x="52" y="839" xml:space="preserve" fill="#0B0F1C">waiver or a field&apos;s ceiling with room above this apogee; the altimeter&apos;s reading is the one to log,</text>
-<text x="52" y="855" xml:space="preserve" fill="#0B0F1C">and the RSO decides.</text>
-<text x="52" y="871" xml:space="preserve" fill="#0B0F1C">More: https://hpr.fusionspace.co/accuracy.html</text>
+<text x="52" y="695" xml:space="preserve" fill="#0B0F1C">warning: stability, the nominal flight: issue #1290: on one of two wind-tunnel models, the center</text>
+<text x="52" y="711" xml:space="preserve" fill="#0B0F1C">    of pressure sat 0.11 to 0.92 calibers aft of the measured at Mach 0.6 and 0.8, the most over</text>
+<text x="52" y="727" xml:space="preserve" fill="#0B0F1C">    angles within 2°. So from Mach 0.6 the flight margin may read high. This flight reaches Mach</text>
+<text x="52" y="743" xml:space="preserve" fill="#0B0F1C">    0.84 at 1.7 s</text>
+<text x="52" y="759" xml:space="preserve" fill="#0B0F1C">warning: stability, the nominal flight: issue #1198: the center of pressure sat 0.67 to 1.35</text>
+<text x="52" y="775" xml:space="preserve" fill="#0B0F1C">    calibers aft of a wind tunnel&apos;s on two models at Mach 0.9, so past Mach 0.8 the flight margin</text>
+<text x="52" y="791" xml:space="preserve" fill="#0B0F1C">    may read high. This flight reaches Mach 0.84 at 1.7 s</text>
+<text x="52" y="807" xml:space="preserve" fill="#0B0F1C">help: issues: https://github.com/nrdptel/fusionspace-eridanus/issues/&lt;number&gt;</text>
+<text x="52" y="839" xml:space="preserve" fill="#0B0F1C">How far to trust it. Simulated from the design file, not measured; the spread above comes from the</text>
+<text x="52" y="855" xml:space="preserve" fill="#0B0F1C">inputs&apos; scatter alone, not from the model&apos;s error. Against 60 logged flights of fliers&apos; own designs,</text>
+<text x="52" y="871" xml:space="preserve" fill="#0B0F1C">the simulated apogee averaged 7.7% above the logged one. Each logged apogee is the height climbed in</text>
+<text x="52" y="887" xml:space="preserve" fill="#0B0F1C">the day&apos;s air. The simulated apogee was within 10% on 32 and read low on 15, by at most 20%. Plan a</text>
+<text x="52" y="903" xml:space="preserve" fill="#0B0F1C">waiver or a field&apos;s ceiling with room above this apogee; the altimeter&apos;s reading is the one to log,</text>
+<text x="52" y="919" xml:space="preserve" fill="#0B0F1C">and the RSO decides.</text>
+<text x="52" y="935" xml:space="preserve" fill="#0B0F1C">More: https://hpr.fusionspace.co/accuracy.html</text>
 <line x1="27" y1="163.3" x2="40" y2="163.3" stroke="#566079" stroke-width="1"/><circle cx="18" cy="163.3" r="9" fill="#0B0F1C"/><text x="18" y="167.0" text-anchor="middle" font-weight="600" fill="#FFFFFF">A</text>
 <line x1="27" y1="259.3" x2="40" y2="259.3" stroke="#566079" stroke-width="1"/><circle cx="18" cy="259.3" r="9" fill="#0B0F1C"/><text x="18" y="263.0" text-anchor="middle" font-weight="600" fill="#FFFFFF">B</text>
-<line x1="27" y1="771.3" x2="40" y2="771.3" stroke="#566079" stroke-width="1"/><circle cx="18" cy="771.3" r="9" fill="#0B0F1C"/><text x="18" y="775.0" text-anchor="middle" font-weight="600" fill="#FFFFFF">C</text>
+<line x1="27" y1="835.3" x2="40" y2="835.3" stroke="#566079" stroke-width="1"/><circle cx="18" cy="835.3" r="9" fill="#0B0F1C"/><text x="18" y="839.0" text-anchor="middle" font-weight="600" fill="#FFFFFF">C</text>
 </svg>
