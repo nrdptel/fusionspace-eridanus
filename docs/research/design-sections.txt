@@ -1,4 +1,4 @@
-# The ## sections of the FusionSpace product system's 14 files under product/, at 1b88597363b78ea085158565a99bf5756c6e3bb3,
+# The ## sections of the FusionSpace product system's 14 files under product/, at dd7552f07480b57844435212c60ae8e1d550b1c2,
 # in reading order: the rows docs/research/design-conformance.md must have (ADR-205 §2).
 # xtask/src/conformance.rs compares this list with the pinned files where refs/ is present.
 README.md: Read in this order
@@ -7,6 +7,7 @@ README.md: Files
 README.md: Pointing a project here
 README.md: Status
 README.md: License
+principles.md: Three levels
 principles.md: 1. Drawn, not decorated
 principles.md: 2. Show the working
 principles.md: 3. Say how far to trust it

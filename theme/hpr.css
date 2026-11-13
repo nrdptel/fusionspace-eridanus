@@ -1,9 +1,10 @@
 /* SPDX-License-Identifier: MIT OR Apache-2.0 */
 /* hpr-sim's additions to the product system's mdBook theme (ADR-164). */
-/* What the product system's mdBook theme (`fusionspace-mdbook.css`, Rev D) doesn't set, because only
-   this site's markup has it: the copy icon's file, the system's icons in place of Font Awesome's
-   (`xtask/src/site/chrome.rs`), the notes, the menu bar's lockup, the title block, the intro and
-   sheets, the theme switch, the text marks and the print page's cover (`xtask site` draws each),
+/* What the product system's mdBook theme (`fusionspace-mdbook.css`, at the tool level since ADR-343)
+   doesn't set, because only this site's markup has it: the copy icon's file, the system's icons in
+   place of Font Awesome's (`xtask/src/site/chrome.rs`), the notes, the menu bar's lockup, the
+   one-line footer and the print page's title block, the intro and parts, the theme switch, the
+   text marks and the print page's cover (`xtask site` draws each),
    and, as the system's fallback for Cascadia Mono misses it, fallback faces scaled to it, and tables
    and data lines that fit a phone. The theme
    sets the colors and roles (`--fs-ink` and the rest) in every theme, mdBook's own defaults, the
@@ -21,18 +22,23 @@ pre > .buttons button.clip-button:hover::before {
 }
 /* Icons: the system's set (`foundations.md`, *Icons*), which `xtask site` draws in place of
    mdBook's Font Awesome glyphs (`xtask/src/site/chrome.rs`), at the system's sizes: 20 px in the
-   menu bar and the search field, 24 px for the page arrows and a code block's buttons, beside the
+   menu bar and the search field, 16 px for the page arrows (below) and 24 px for a code block's buttons, beside the
    copy icon. mdBook fills its glyphs; the system's are stroked in the text's color. The previous
    page's arrow is the next one's, mirrored. The page check fails an icon at another size. */
 .fa-svg svg { width: 20px; height: 20px; fill: none; margin-bottom: 0; vertical-align: middle; }
-.nav-chapters .fa-svg svg, .mobile-nav-chapters .fa-svg svg,
+.nav-chapters .fa-svg svg,
 pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
+/* The page arrows' icons at 16 px: the system's theme sizes them 1 em of the page's text (the
+   system's 1x the text), which grows to 18 px on a wide window, and the page check holds the
+   chrome's icons (`.fa-svg`) to the fixed 16, 20 and 24 px. */
+.page-wrapper .nav-wrapper .mobile-nav-chapters .fa-svg { width: 16px; height: 16px; }
 .previous .fa-svg svg { transform: scaleX(-1); }
 /* The page arrows' names (`web.md`, *Page anatomy*; `frame.rs` writes them, and the system's
    mdBook theme draws the arrows as buttons under the text, inside the column): the direction in
-   `label` capitals over the page's title, which wraps rather than run out of its button. */
+   `label`, Archivo 13/18 semibold in sentence case (`foundations.md`, *Type*, the web's level
+   table), over the page's title, which wraps rather than run out of its button. */
 .nav-wrapper .fs-nav-name { display: grid; gap: 2px; min-width: 0; }
-.nav-wrapper .fs-nav-dir { font: 400 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fs-ink-muted); }
+.nav-wrapper .fs-nav-dir { font: 600 calc(var(--fs-text) * 0.8125)/calc(var(--fs-text) * 1.125) 'Archivo', 'Archivo Fallback', 'Archivo Clone Fallback', system-ui, -apple-system, 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums; color: var(--fs-ink-muted); }
 .nav-wrapper .fs-nav-title { overflow-wrap: anywhere; }
 /* mdBook makes the arrows' wrapper a block while the sidebar shows (its rule, matched here so
    this later one wins), which stacked the buttons in a stair; on screen it stays the flex box the
@@ -52,15 +58,20 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
    page check reads every text's size, line height, family and capitals against the scale at the
    window's width, fails prose held narrower than its column, and measures the column and its
    gutters, at every width, with the system's own check (`fusionspace-check.js`). Here, what only
-   this site's markup needs: the source title block's field names in `label`. */
-.title-block td:first-child { font-size: var(--fs-12); line-height: var(--fs-16); }
+   this site's markup needs: the field names of the landing page's title block, its about box
+   (ADR-343), in `label`, Archivo 13/18 semibold. */
+.title-block td:first-child { font: 600 calc(var(--fs-text) * 0.8125)/calc(var(--fs-text) * 1.125) 'Archivo', 'Archivo Fallback', 'Archivo Clone Fallback', system-ui, -apple-system, 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums; }
 /* Notes (#384; `web.md`, *Components*): the signal word in a strip above the message, as an
    ANSI Z535.4 safety label sets it, the system's `.fs-note`. `cargo xtask site` draws every quote
    block a page writes as one (a trust note, or a `[!NOTE]`, `[!CAUTION]` or `[!WARNING]` alert),
-   and the page check fails a note not drawn this way. The box takes the column, as the prose does. */
+   and the page check fails a note not drawn this way. The box takes the column, as the prose does.
+   The head is a note heading at the tool level (`foundations.md`, *Type*, the web's level table):
+   Archivo 13/16 semibold in sentence case ("How far to trust it", "Note"), and a signal word,
+   CAUTION or WARNING, keeps the safety label's capitals in the wide cut, 640 at 118% wide. */
 .content main .fs-note { box-sizing: border-box; margin: 16px 0; border: 1px solid var(--fs-rule-strong); background: var(--fs-surface); }
-.fs-note > .fs-note-head { display: flex; align-items: center; gap: 8px; padding: 4px 12px; font: 600 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace;
-  text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--fs-rule-strong); color: var(--fs-ink-muted); }
+.fs-note > .fs-note-head { display: flex; align-items: center; gap: 8px; padding: 4px 12px; font: 600 calc(var(--fs-text) * 0.8125)/var(--fs-text) 'Archivo', 'Archivo Fallback', 'Archivo Clone Fallback', system-ui, -apple-system, 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums;
+  border-bottom: 1px solid var(--fs-rule-strong); color: var(--fs-ink-muted); }
+.fs-note:is([data-kind="caution"], [data-kind="warning"]) > .fs-note-head { font-weight: 640; font-stretch: 118%; text-transform: uppercase; letter-spacing: 0.04em; }
 .fs-note > .fs-note-head svg { width: 14px; height: 14px; flex: none; }
 .fs-note > .fs-note-body { padding: 12px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .fs-note > .fs-note-body > * { margin-block: 0; }
@@ -72,18 +83,18 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
 @media print { .fs-note { break-inside: avoid; } }
 
 /* Forced colors (Windows' high-contrast mode; #383): the system's mdBook theme borders the boxes
-   mdBook sets apart by their fill alone. Here, this site's own: the status chip gets a border,
+   mdBook sets apart by their fill alone. Here, this site's own: the footer's status chip gets a border,
    the theme switch's pressed button an outline inside its edge, and the copy icon, painted
    through a mask, keeps the button's text color. `cargo xtask site`'s page check reads every
    page as forced colors would leave it. */
 @media (forced-colors: active) {
-    .content main .fs-intro-row > .fs-status { border: 1px solid CanvasText; }
+    .fs-foot .fs-status { border: 1px solid CanvasText; }
     #mdbook-theme-list.fs-seg .theme[aria-pressed="true"] { outline: 2px solid CanvasText; outline-offset: -4px; }
     pre > .buttons button.clip-button::before { forced-color-adjust: none; background-color: ButtonText; }
 }
-/* The page's frame (#384; `web.md`, *Page anatomy*). `cargo xtask site` makes the menu bar the
-   system's header and ends every page with its title block, in a `footer`; its page check fails
-   either drawn off the system's. The header: the horizontal lockup, 24 px tall in the text's
+/* The page's frame (#384, ADR-343; `web.md`, *Page anatomy*). `cargo xtask site` makes the menu bar
+   the system's header and ends every page with a `footer`, the one-line footer (the print page's,
+   the title block); its page check fails either drawn off the system's. The header: the horizontal lockup, 24 px tall in the text's
    color (Void on light, Paper on dark, as the brand's one-color files are), with the brand's clear
    space around it, a quarter of its height, then the product's name; both one link to the landing
    page. The menu button stands at every width: from 720 px it puts the sidebar away and brings it
@@ -115,7 +126,40 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
     #mdbook-menu-bar .fa-svg, #mdbook-menu-bar .icon-button { padding: 0 4px; }
     #mdbook-menu-bar .right-buttons { margin: 0 8px; }
 }
-/* The title block (`fusionspace.css`, `.fs-titleblock`): ISO 7200's fields in ruled cells,
+/* With the product's name in Archivo's wide cut (ADR-343), the lockup, the name and the space
+   between and around them need 217 px. At 720 px the sidebar and the buttons leave 223 px, which a 15 px scroll
+   bar, as on Linux, cut to 208 px: the right-hand buttons dropped to a second row under 51 px of
+   scroll padding. The room grows a pixel per pixel of window, so such a bar fits from 729 px; the
+   rule runs to 779 px as a margin. While the sidebar is shown there, the title takes a row of its
+   own under the buttons, as on a phone, and a heading jumped to clears the taller bar. mdBook
+   writes the class into the page, so with scripts off the rule holds too. */
+@media only screen and (min-width: 720px) and (max-width: 779px) {
+    html.sidebar-visible #mdbook-menu-bar .menu-title { order: 1; flex: 1 0 100%; white-space: normal; overflow: visible; line-height: var(--fs-24); padding-block-end: 0.3em; }
+    html.sidebar-visible #mdbook-menu-bar .right-buttons { margin-inline-start: auto; }
+    html.sidebar-visible { scroll-padding-top: calc(var(--menu-bar-height) + 45px); }
+    html.sidebar-visible :target { scroll-margin-top: calc(var(--menu-bar-height) + 45px); }
+}
+/* The one-line footer (`web.md`, *Page anatomy*, a tool's; `fusionspace.css`, `.fs-foot`): under a 1 px
+   rule, the mark at 24 px (the brand's least cluster height) and "FusionSpace HPR" in ink and
+   semibold, then the version, the date of issue and the site's status chip in `small`, Archivo
+   14/20 in the muted ink, and the link to Start here last, pushed to the line's end; under 600 px
+   it wraps with the rest. Its edges are the column's. The chip (`fusionspace.css`, `.fs-status`)
+   is the site's status, Archivo 13/16 semibold in sentence case beside its 14 px icon: Released in
+   the ok fill, the same in every theme and on paper (`foundations.md`, *Color*), In preparation
+   outlined in the action color. The page check fails a footer or a chip drawn otherwise. */
+.content .fs-foot { box-sizing: border-box; max-width: var(--content-max-width); margin: 48px auto 0; padding: 18px 0 8px; display: flex; flex-wrap: wrap; gap: 8px 28px; align-items: center;
+  border-top: 1px solid var(--fs-rule); font: 400 var(--fs-14)/var(--fs-20) 'Archivo', 'Archivo Fallback', 'Archivo Clone Fallback', system-ui, -apple-system, 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums; color: var(--fs-ink-muted); }
+.fs-foot .fs-foot-name { display: flex; gap: 8px; align-items: center; color: var(--fs-ink); font-weight: 600; }
+.fs-foot .fs-mark { height: 24px; width: auto; flex: none; }
+.fs-foot .fs-push { margin-inline-start: auto; }
+@media (max-width: 599px) { .fs-foot .fs-push { margin-inline-start: 0; } }
+.fs-foot .fs-status { box-sizing: border-box; display: inline-flex; align-items: center; gap: 6px; min-height: 24px; margin: 0; padding: 3px 8px;
+  font: 600 calc(var(--fs-text) * 0.8125)/var(--fs-text) 'Archivo', 'Archivo Fallback', 'Archivo Clone Fallback', system-ui, -apple-system, 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums; border: 1px solid transparent; white-space: nowrap; }
+.fs-foot .fs-status svg { width: 14px; height: 14px; flex: none; }
+.fs-foot .fs-status[data-state="ok"] { background: #0A6355; color: #FFFFFF; }
+.fs-foot .fs-status[data-state="info"] { background: transparent; color: var(--fs-action); border-color: currentColor; }
+/* The print page's title block (`fusionspace.css`, `.fs-titleblock`): the guide on paper is a record
+   (ADR-343). ISO 7200's fields in ruled cells,
    inside a 2 px ink border on the surface, each field's name in `label` capitals over its entry
    in Cascadia Mono. The cells wrap as the system's grid does, at least 132 px wide (the owner's
    264 px), but each row's cells grow to its end, so a row cut short by a long entry, which takes
@@ -131,71 +175,38 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
 .fs-titleblock .mark .v { display: flex; gap: 8px; align-items: center; }
 .fs-titleblock .fs-mark { height: 24px; width: auto; flex: none; }
 
-/* The intro and the sheets (#384; `web.md`, *Page anatomy*; `fusionspace.css`, `.fs-tag` and
-   `.fs-sheet`). `cargo xtask site` opens every page's intro with the site's designation in the
-   system's tag, one corner chamfered 4 px where the mark points (up and right), in Cascadia Mono
-   12/16; and makes each `h2` section a sheet: a 2 px ink rule on top, then the rail, the sheet's
-   number (`SHEET 2 / 5`) in `label` capitals over its name. Where the column is 880 px wide or
-   more, the rail stands beside the sheet's text, 184 px wide with a 32 px gap, as the system's
-   `.fs-sheet` sets it; in a narrower column it stands over the text, as the system's sheet draws
-   it on a phone. The column, not the window, decides, since the sidebar takes part of the window.
-   A figure starts at the text's left edge, as the text does; one drawn wider than the text beside
-   the rail moves left, under the rail, only as far as it must to be shown at its size (shown
-   smaller, its 12 px labels would read under 12 px). Its paragraph takes the whole column, and an
-   empty first item, 216 px wide, gives way before the figure does. The rail is a float that the
-   figure clears, so the figure starts below the rail and never over it. The page check fails a
-   tag or a sheet drawn otherwise.
-   The tag shares the intro's first row with the status chip (`fusionspace.css`, `.fs-status`):
-   the site's status from the title block, a drawing word in `label` capitals, 600, beside its
-   14 px icon; RELEASED in the ok fill, the same in every theme and on paper (`foundations.md`,
-   *Color*), and IN PREPARATION outlined in the action color. The row wraps on a phone, the chip
-   under the tag. Under the title, the page's first paragraph is its lead, one sentence in
-   `lead` type (20/28 Archivo) in the muted ink. The page check fails a chip or a lead drawn
-   otherwise. */
-.content main .fs-intro-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 16px; }
-.content main .fs-intro-row > .fs-tag { --c: 4px; box-sizing: border-box; display: flex; width: fit-content; max-width: 100%; align-items: center; margin: 0; padding: 2px 10px 2px 8px; min-height: 24px;
-  font: 400 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0.04em; color: var(--fs-ink); border: 1px solid var(--fs-rule-strong);
-  clip-path: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, 0 100%);
-  background: linear-gradient(225deg, transparent calc(var(--c) * 0.7071 - 1px), var(--fs-rule-strong) 0 calc(var(--c) * 0.7071), transparent 0); }
-.content main .fs-intro-row > .fs-status { box-sizing: border-box; display: inline-flex; align-items: center; gap: 6px; min-height: 24px; margin: 0; padding: 2px 8px;
-  font: 600 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.06em; border: 1px solid transparent; white-space: nowrap; }
-.content main .fs-intro-row > .fs-status svg { width: 14px; height: 14px; flex: none; }
-.content main .fs-intro-row > .fs-status[data-state="ok"] { background: #0A6355; color: #FFFFFF; }
-.content main .fs-intro-row > .fs-status[data-state="info"] { background: transparent; color: var(--fs-action); border-color: currentColor; }
+/* The intro and the parts (#384, ADR-343; `web.md`, *Page anatomy*, a tool's; `fusionspace.css`,
+   `.fs-intro` and `.fs-part`). A docs site is a tool (`principles.md`, *Three levels*): nothing
+   stands over the title, and the sections carry no sheet numbers. Under the title, the page's
+   first paragraph is its lead, one sentence in `lead` type (20/28 Archivo) in the muted ink.
+   `cargo xtask site` makes each `h2` section a part: a 2 px ink rule on top, then its name, the
+   `h2`, over its text. The page check fails a lead or a part drawn otherwise. */
+.content main .fs-intro { margin-top: 32px; }
 .content main .fs-intro > h1 { margin-top: 0; }
 .content main .fs-intro > .fs-lead { font-size: var(--fs-20); line-height: var(--fs-28); font-weight: 400; color: var(--fs-ink-muted); }
-.content main .fs-sheet { border-top: 2px solid var(--fs-ink); margin-top: 32px; padding-top: 16px; }
-/* On screen, a sheet off screen skips style, layout and paint until it nears the window, so a tap that
+.content main .fs-part { border-top: 2px solid var(--fs-ink); margin-top: 32px; padding-top: 16px; }
+/* On screen, a part off screen skips style, layout and paint until it nears the window, so a tap that
    moves the page, such as the menu's, redraws only what is on screen: on the page with the most
-   equations it halved that tap's work. A sheet keeps its last drawn height; 1,200 px stands in until it
-   is first drawn. Skipping contains a sheet's paint; 8 px of clip margin keeps a focus ring at its edge
-   whole, so a browser without that margin draws every sheet, as paper does. A sheet whose figure is
+   equations it halved that tap's work. A part keeps its last drawn height; 1,200 px stands in until it
+   is first drawn. Skipping contains a part's paint; 8 px of clip margin keeps a focus ring at its edge
+   whole, so a browser without that margin draws every part, as paper does. A part whose figure is
    zoomed is drawn as any box, so the zoom isn't held inside it. */
 @media screen {
     @supports (overflow-clip-margin: 8px) {
-        .content main .fs-sheet {
+        .content main .fs-part {
             content-visibility: auto; contain-intrinsic-size: auto 1200px; overflow-clip-margin: 8px;
         }
-        .content main .fs-sheet:has(.checkbox-img:checked) { content-visibility: visible; }
+        .content main .fs-part:has(.checkbox-img:checked) { content-visibility: visible; }
     }
 }
-.content main .fs-sheet-rail { display: grid; gap: 8px; align-content: start; margin-bottom: 0; }
-/* The system's mdBook theme draws the sheet's edge on the `h2` itself; here the sheet draws it. */
-.content main .fs-sheet-rail > h2 { margin: 0; padding-top: 0; border-top: 0; }
-.fs-sheet-no { font: 400 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fs-ink-muted); }
-.content { container-type: inline-size; }
-@container (min-width: 880px) {
-    .content main .fs-sheet { display: flow-root; }
-    .content main .fs-sheet-rail { float: left; width: 184px; margin: 0 32px 0 0; }
-    .content main .fs-sheet-body { margin-inline-start: 216px; }
-    .content main .fs-sheet-body > p:has(> .checkbox-label) { clear: left; margin-inline-start: -216px; }
-    .content main .fs-sheet-body > p > .checkbox-label::before { content: ""; flex: 0 100000 216px; min-width: 0; }
-}
-@media print { .fs-sheet-rail { break-after: avoid; } }
+/* The system's mdBook theme draws the rule on the `h2` itself; here the part draws it. */
+.content main .fs-part > h2 { margin: 0 0 16px; padding-top: 0; border-top: 0; }
+@media print { .content main .fs-part > h2 { break-after: avoid; } }
 
 /* The theme switch (#384, #429; `web.md`, *Page anatomy*, *Components* and *Theme*;
-   `fusionspace.css`, `.fs-seg`): Auto, Light and Dark, each a button 44 px tall in Cascadia Mono
-   14 inside a 1 px rule, the chosen one filled in ink. `cargo xtask site` makes mdBook's theme
+   `fusionspace.css`, `.fs-seg`): Auto, Light and Dark, each a button 44 px tall in Archivo 15/20,
+   a segmented control at the tool level (`foundations.md`, *Type*, the web's level table), inside a
+   1 px rule, the chosen one filled in ink. `cargo xtask site` makes mdBook's theme
    menu this group, and `theme/hpr.js` sets each button's `aria-pressed` from mdBook's mark. From
    960 px it stands in the header's row, before its buttons; narrower, the header has no room
    for it and `theme/hpr.js` moves it to the top of the sidebar, above the chapters' scrolling
@@ -204,7 +215,7 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
    work, so without them it isn't drawn. */
 #mdbook-theme-list.fs-seg { position: static; display: inline-flex !important; flex: none; align-self: center; box-sizing: border-box; margin: 0; padding: 0; max-height: none; overflow: visible; list-style: none; border: 1px solid var(--fs-rule-strong); background: transparent; color: var(--fs-ink-muted); }
 #mdbook-theme-list.fs-seg > li { display: flex; }
-#mdbook-theme-list.fs-seg .theme { box-sizing: border-box; min-height: 44px; width: auto; margin: 0; padding: 0 12px; font: 400 var(--fs-14)/var(--fs-20) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-align: center; white-space: nowrap; color: var(--fs-ink-muted); background: transparent; border: 0; border-left: 1px solid var(--fs-rule); cursor: pointer; }
+#mdbook-theme-list.fs-seg .theme { box-sizing: border-box; min-height: 44px; width: auto; margin: 0; padding: 0 12px; font: 400 1.5rem/2rem 'Archivo', 'Archivo Fallback', 'Archivo Clone Fallback', system-ui, -apple-system, 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums; text-align: center; white-space: nowrap; color: var(--fs-ink-muted); background: transparent; border: 0; border-left: 1px solid var(--fs-rule); cursor: pointer; }
 #mdbook-theme-list.fs-seg > li:first-child .theme { border-left: 0; }
 #mdbook-theme-list.fs-seg .theme:hover { color: var(--fs-ink); background: transparent; }
 #mdbook-theme-list.fs-seg .theme[aria-pressed="true"] { color: var(--fs-canvas); background: var(--fs-ink); }
@@ -238,37 +249,34 @@ html:not(.js) #mdbook-theme-list.fs-seg { display: none !important; }
 /* Print (#383; `web.md`, *Print*): the system's mdBook theme prints in the light theme's values
    whatever theme the page is read in, its links in the action role with their addresses after
    them, a table row on one sheet, and the strip once at the top of the first sheet (mdBook's
-   `print.css` hides its sidebar, menu bar and page arrows). Here, this site's own: the title
-   block, which carries the version and date of issue, kept on one sheet of paper; the tag's
-   chamfer, a diagonal drawn as a background, which a browser leaves off paper unless asked to
-   print backgrounds; and the chip's fill, the same on paper as on screen (`foundations.md`,
-   *Color*). The page check reads every page with the stylesheets' print rules applied, in each
+   `print.css` hides its sidebar, menu bar and page arrows). Here, this site's own: the footer and
+   the print page's title block, which carry the version and date of issue, each kept on one sheet
+   of paper; and the chip's fill, the same on paper as on screen (`foundations.md`, *Color*). The page check reads every page with the stylesheets' print rules applied, in each
    theme, and fails a color that differs from the light theme's, a control or navigation drawn,
-   a link without its address, a row, note or title block that can split, a title block not
+   a link without its address, a row, note, footer line or title block that can split, a title block not
    drawn whole, or anything fixed to the window. */
 @media print {
-    .fs-titleblock { break-inside: avoid; }
-    .content main .fs-intro-row > .fs-tag { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-    .content main .fs-intro-row > .fs-status { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .fs-titleblock, .fs-foot { break-inside: avoid; }
+    .fs-foot .fs-status { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 }
 /* The print page's cover, shown on screen; on paper the page is the chapters the site's script
    places after it as the browser prints (`xtask/src/site/print.rs`). Its button is the system's
    primary button (`web.md`, *Components*; `fusionspace.css`, `.fs-btn`): square, 44 px tall,
-   Cascadia Mono 14 semibold, filled with ink, the action role on hover. Without the script it
+   Archivo 15/20 semibold in sentence case, filled with ink, the action role on hover. Without the script it
    can't print, and the cover says so instead. */
 @media print { #hpr-print-cover { display: none; } }
 html:not(.js) #hpr-print { display: none; }
-#hpr-print-cover .fs-btn { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 44px; margin: 0; padding: 0 16px; font: 600 var(--fs-14)/var(--fs-20) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0; white-space: nowrap; cursor: pointer; color: var(--fs-canvas); background: var(--fs-ink); border: 2px solid var(--fs-ink); border-radius: 0; transition: background-color 100ms cubic-bezier(0.2, 0, 0, 1), border-color 100ms cubic-bezier(0.2, 0, 0, 1); }
+#hpr-print-cover .fs-btn { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 44px; margin: 0; padding: 0 16px; font: 600 calc(var(--fs-text) * 0.9375)/var(--fs-20) 'Archivo', 'Archivo Fallback', 'Archivo Clone Fallback', system-ui, -apple-system, 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums; letter-spacing: 0; white-space: nowrap; cursor: pointer; color: var(--fs-canvas); background: var(--fs-ink); border: 2px solid var(--fs-ink); border-radius: 0; transition: background-color 100ms cubic-bezier(0.2, 0, 0, 1), border-color 100ms cubic-bezier(0.2, 0, 0, 1); }
 #hpr-print-cover .fs-btn:hover { color: var(--fs-on-action); background: var(--fs-action); border-color: var(--fs-action); }
 /* Cascadia Mono's fallback at its widths, from a monospace font one of these systems commonly
    carries: Menlo (Apple systems), Courier New (Windows and Apple systems), DejaVu Sans Mono,
    Liberation Mono or Noto Sans Mono (Linux), Cousine (ChromeOS) and Droid Sans Mono (Android).
    fonts.css names `local('Menlo')`, which Chrome doesn't find (`local()` takes a font's full or
    PostScript name, `Menlo Regular` or `Menlo-Regular`), and Consolas unscaled, at no weight. So a
-   page drawn before Cascadia Mono arrived set its titles, its status chip and its inline code in
-   other widths; on a slow load the status chip, which shares the row above the title with the
-   designation tag, rewrapped when the face came and moved the page's top by 32 px (#468, CLS 0.22
-   on the aerodynamics page). These rules add faces to that family. Where rules share a weight, the
+   page drawn before Cascadia Mono arrived set its code in other widths; on a slow load the status
+   chip, which then shared a row above the title with the designation tag in Cascadia Mono,
+   rewrapped when the face came and moved the page's top by 32 px (#468, CLS 0.22 on the
+   aerodynamics page). These rules add faces to that family. Where rules share a weight, the
    browser takes the last whose font the system has, then earlier ones, down to fonts.css's own
    face at 400. Each scales one font by its advance (the width every letter of a monospace font
    shares) to Cascadia Mono's 1200/2048 em, read from the fonts' files: Menlo (macOS 27) and DejaVu
@@ -301,7 +309,7 @@ pre > code.wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
 
 /* A table too wide for its column, its rows stacked by `hpr.js` (ADR-297): each row a group under
    the table's 1 px rules, the first under the head's 2 px ink rule, each cell its column's head in
-   the head's type (12 px Cascadia Mono, capitals) beside its value, or above it when the value
+   the head's type (`label`, Archivo 13/18 semibold in sentence case) beside its value, or above it when the value
    holds a formula, which can't break, or the window is under 520 px, where beside it a long code
    name would break mid-word. The copies of the head stay hidden while a table fits. */
 .fs-head { display: none; }
@@ -315,7 +323,7 @@ pre > code.wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
   .fs-stacked tbody td:not(:has(> .fs-head)), .fs-stacked tbody th:not(:has(> .fs-head)),
   .fs-stacked tbody td:has(> .fs-cell math), .fs-stacked tbody th:has(> .fs-cell math) { display: block; }
   @media (max-width: 519px) { .fs-stacked tbody td, .fs-stacked tbody th { display: block; } }
-  .fs-stacked .fs-head { display: block; padding-top: 4px; text-align: left; font: 400 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.06em; }
-  .fs-stacked .fs-head code { font-size: inherit; line-height: inherit; text-transform: none; letter-spacing: 0; }
-  .fs-stacked .fs-head math { font-size: calc(var(--fs-text) * 1.1); text-transform: none; letter-spacing: normal; }
+  .fs-stacked .fs-head { display: block; padding-top: 4px; text-align: left; font: 600 calc(var(--fs-text) * 0.8125)/calc(var(--fs-text) * 1.125) 'Archivo', 'Archivo Fallback', 'Archivo Clone Fallback', system-ui, -apple-system, 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums; }
+  .fs-stacked .fs-head code { font-size: inherit; line-height: inherit; }
+  .fs-stacked .fs-head math { font-size: calc(var(--fs-text) * 1.1); }
 }

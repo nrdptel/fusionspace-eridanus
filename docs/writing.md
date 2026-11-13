@@ -17,7 +17,7 @@ reads a page once and knows what it says. They also know how far to trust it.
 `cargo xtask spelling` reads each page's words and names, and counts its exceptions on every
 run. `cargo xtask voice` fails a stock phrase and counts the voice section's patterns against
 its limits. `cargo xtask guides` reads every number in a guide's text from a committed report.
-`cargo xtask site` counts each page's sheets and fails one outside two to six. It also fails a
+`cargo xtask site` counts each page's parts and fails one outside two to six. It also fails a
 trust note or an alert off its shape, a hyphen for a minus sign, a column of numbers not
 right-aligned or without a label and a unit, a note or table cell over 120 words, a figure of
 four or more digits without its commas, and an ISO date in prose.
@@ -780,7 +780,9 @@ and so do:
   with the page instead. The page's own layer on a phone would too;
 - a `>` quote block left on a page;
 - a note not drawn as the system's. The system's note has a head, then the message. The head
-  says its kind's signal word in Cascadia Mono 12 px semibold capitals, across the note's top. A
+  says its kind's name in Archivo 13 px on 16 px lines at weight 600, in sentence case, across the
+  note's top. A caution's and a warning's say their signal word in capitals instead, in Archivo's
+  wide cut at weight 640: CAUTION, WARNING. A
   rule or a fill sets it apart (a caution's in the caution fill, a warning's in the danger fill).
   The note sits inside a border on every side, 2 px on a warning;
 - a font list without its metric-matched fallback second. That's a stand-in, Arial or Menlo,
@@ -796,7 +798,7 @@ and so do:
 - a smooth scroll a script asks for when the menu bar's title is clicked;
 - an icon that isn't square at one of the system's icon sizes, 16, 20 or 24 px. That covers the
   icons in the menu bar, the page arrows, the search field and a code block's buttons. The site
-  draws them at 20 and 24 px. A note's icon, 14 px as the system's note draws it, isn't read;
+  draws them at 16, 20 and 24 px. A note's icon, 14 px as the system's note draws it, isn't read;
 - selected text not drawn on the action color at 22 % opacity.
 
 A file check fails a page whose head doesn't declare light and dark color schemes. It fails one
@@ -826,9 +828,15 @@ redraws that frame:
   table stays open from 720 px and the button goes;
 - the arrows under the page name the pages they lead to: "Previous" or "Next", then the page's
   title. They stand under the text, inside the column;
-- every page ends with the title block, the box of facts about a document an engineering drawing
-  ends with ([title block](glossary.md#title-block)). Its entries are written once at the end of
-  [Start here](start-here.md#title-block), and each page adds its own title after the site's.
+- every page but the print page ends with one line: the FusionSpace mark, 24 px tall, and "FusionSpace HPR", the
+  version, the date of issue, the site's status chip and a link to Start here, the page about the
+  project. A docs site is a tool, in the product system's three levels, and a tool ends this way
+  ([M0.17a, the frame off](decisions-and-roadmap.md#m0-17a)). The line's entries come from the
+  site's title block, the box of facts about a document an engineering drawing ends with
+  ([title block](glossary.md#title-block)), written once at the end of
+  [Start here](start-here.md#title-block). That table stays on Start here as the site's about box.
+  The print page, the whole guide on paper, is a record: it ends with the whole title block
+  instead, its own title added after the site's.
 
 A file check fails a page:
 
@@ -837,8 +845,11 @@ A file check fails a page:
 - with mdBook's script that opens the table of contents only from 1,080 px, or with one that
   forgets that the reader put it away;
 - with an arrow under the page that doesn't name the page it leads to;
-- without one `footer`, after the page's text, holding the title block with its fields in order
-  and the page's own title.
+- without one `footer` after the page's text. On the print page that's the title block, with its
+  fields in order and the page's own title. On every other page it's the line: the mark and the
+  name, then `Version` and the version, `Issued` and a date, the site's status chip, and the link
+  to Start here, in that order;
+- other than Start here, with the title block in its text (the print page holds that chapter).
 
 The page check fails, at every width:
 
@@ -862,19 +873,25 @@ The page check fails, at every width:
   table's top edge;
 - arrows under the page outside the column or off its edges, under 44 px tall, or naming no
   page;
-- a title block without its 2 px border in the text's color, or with entries not in Cascadia
-  Mono;
-- a title block off the column's edges (it is centered as the column is), or with anything
-  below it.
+- a footer line without its 1 px rule on top, its mark other than 24 px tall, or its name not
+  in the text's color;
+- a status chip not in Archivo 13 px on 16 px lines at weight 600 in sentence case, under 24 px
+  tall, with its icon other than 14 px, or in other colors than its status's. It's *In
+  preparation*, outlined in the link color with a square icon, or *Released*, filled in green
+  with a circle;
+- the print page's title block without its 2 px border in the text's color, or with entries not
+  in Cascadia Mono;
+- a footer or a title block off the column's edges (it is centered as the column is), or with
+  anything below it.
 
-Inside that frame the build lays each page out as an engineering drawing set is laid out:
+Inside that frame the build lays each page out as the product system lays out a tool. It keeps
+what a drawing means (rules, trust notes, signal colors and units) and leaves off the drawing's
+frame: no tag over a title and no sheet numbers
+([M0.17a, the frame off](decisions-and-roadmap.md#m0-17a)). Headings, labels and the navigation
+are in Archivo, in sentence case; titles and section names in its wide cut. Code and numbers in
+code stay in Cascadia Mono.
 
-- every page opens with an intro over its title: a small tag with one corner cut off, holding the
-  site's designation, beside a status chip. The designation is `FS-ACHERNAR · SW · TOOL 001`, the
-  product's number in the FusionSpace register, as the title block gives it. The chip shows the
-  title block's *Status*, one of the product system's drawing words. It's IN PREPARATION, outlined
-  in the link color with a square icon, or RELEASED, filled in green with a circle. The site has one
-  status, so every page shows the same chip;
+- nothing stands over a page's title;
 - the paragraph right under the title is the page's lead, set larger and in gray. It's one
   sentence, of at most 25 words, ending in a period, that says what the page covers and what a
   reader gets from it. Write it as the first paragraph of every page, under the `#` title and
@@ -882,10 +899,9 @@ Inside that frame the build lays each page out as an engineering drawing set is 
   question mark or exclamation mark followed by a space. So a lead can't name an abbreviation
   with a period in it: write "the 1976 US Standard Atmosphere", not "the U.S. Standard
   Atmosphere";
-- each `##` section is a sheet. It has a 2 px rule in the text's color across its top, then its
-  number, `SHEET 2 / 5`, in 12 px capitals over its name. On the print page, which holds every
-  chapter, each chapter counts its own sheets. Write each `##` heading in the page's text, not
-  inside another element, or the build fails;
+- each `##` section is a part. It has a 2 px rule in the text's color across its top, then its
+  name. Write each `##` heading in the page's text, not inside another element, or the build
+  fails;
 - the header holds a theme switch, three buttons: Auto (the theme your system asks for), Light
   and Dark, the chosen one filled in. From 960 px it stands in the header. Narrower, the header
   has no room for it, and it stands at the top of the table of contents. The menu button opens
@@ -895,29 +911,26 @@ Inside that frame the build lays each page out as an engineering drawing set is 
 
 A file check fails a page:
 
-- without the tag and the chip over its title;
+- whose title doesn't open its intro;
 - without a lead of one sentence and at most 25 words under it;
-- with a `##` heading outside a sheet, or sheets numbered out of order;
+- with a `##` heading that doesn't open a part;
+- with a designation tag or a sheet number in it, a record's frame;
 - without the switch in place of mdBook's theme menu;
 - with a heading that skips a level going down (a `####` right after a `##`; headings go in
   order).
 
 The page check fails, at every width:
 
-- a tag not in Cascadia Mono 12 px, without its cut corner or 1 px border, or not above the title;
-- a chip not in Cascadia Mono 12 px at weight 600 in capitals, or under 24 px tall;
-- a chip with its icon other than 14 px, in other colors than its status's, before its tag or
-  not above the title;
+- anything over a title;
 - a lead not in Archivo 20 px on 28 px lines at weight 400, not in the muted ink, or not right
   under the title;
-- a sheet without its 2 px rule in the text's color;
-- a sheet with its number missing, out of order, not in Cascadia Mono 12 px or not above its
-  name;
-- a `##` heading outside a sheet;
+- a part without its 2 px rule in the text's color, or its name not under it or not in Archivo;
+- a `##` heading that doesn't open a part;
+- a designation tag or a sheet number drawn;
 - a switch not in the header from 960 px, or not in the table of contents below it. Below 720 px,
   the check opens the table of contents to read it;
-- a switch with buttons other than Auto, Light and Dark, under 44 px tall or not in Cascadia
-  Mono 14 px;
+- a switch with buttons other than Auto, Light and Dark, under 44 px tall or not in Archivo
+  15 px on 20 px lines;
 - a switch with a button other than Auto chosen for a first-time reader, or the chosen one not
   filled in the text's color;
 - mdBook's theme button drawn, the switch drawn with scripts off, or the page in one of mdBook's
@@ -927,15 +940,16 @@ Once a run, at the width it reads print at, the check presses Dark and then Auto
 whose theme doesn't follow. It also loads the page with mdBook's Coal saved, and fails one that
 doesn't forget it and press Auto.
 
-A page has two to six sheets (its `##` sections, above), as the product system's page anatomy
-asks. `cargo xtask site` and a site test fail a page outside that range, with no exceptions. A
-page with more to say groups its sections. A `##` heading names the group, and the sections
+A page has two to six parts (its `##` sections, above). The product system's page anatomy asked
+that of its sheets, and the site keeps it for its parts
+([M0.17a, the frame off](decisions-and-roadmap.md#m0-17a)). `cargo xtask site` and a site test
+fail a page outside that range, with no exceptions. A page with more to say groups its sections. A `##` heading names the group, and the sections
 under it move down one level. They keep their words, so every link to them still lands
 ([M0.9d13, the pages' sheets and trust](decisions-and-roadmap.md#m0-9d13)).
 
 Every page opens with how far to trust it, as the product system asks of a docs site. That's a
-trust note in the shape above, between the title's lead and the first sheet. A model page says
-it in its first sheet, the *In short* box, whose *How well it is validated* item gives the
+trust note in the shape above, between the title's lead and the first part. A model page says
+it in its first part, the *In short* box, whose *How well it is validated* item gives the
 evidence. `cargo xtask site` and a site test fail a page that doesn't. A page that states rules
 or records rather than results, such as this one, says so in its note and names what checks it.
 
@@ -965,10 +979,10 @@ fails:
 - a color that isn't the light theme's, and on a page with both themes, anything drawn in
   different colors from the two;
 - navigation or a control drawn: the table of contents, the menu bar, a button or a text field;
-- a link to another page, in the text or the title block, without its address after it, in
+- a link to another page, in the text or the footer, without its address after it, in
   parentheses. A page of this site shows its path from the page, such as `cli.html#units`;
-- a table row, a note or the title block that can split across two sheets;
-- a title block not drawn, or drawn without its version and date of issue;
+- a table row, a note, the footer or the title block that can split across two sheets;
+- a footer line or a title block not drawn, or drawn without its version and date of issue;
 - anything fixed to the window, which a browser draws on every sheet over what stands there.
 
 The print page, every chapter on one page, shows on screen only a cover. The cover says what it
@@ -980,8 +994,8 @@ Drawn on screen, all of them were too slow for a phone (below). The check places
 does before it reads the page on paper. It fails a page where they don't all arrive, or don't all
 leave again.
 
-`mdbook serve` still shows mdBook's icons, menu bar, theme menu and two `h1`, with no sheets. It
-shows the landing page's title block as a table. Only `cargo xtask site` builds the pages as
+`mdbook serve` still shows mdBook's icons, menu bar, theme menu and two `h1`, with no parts and
+no footer line. Only `cargo xtask site` builds the pages as
 published. Not read: text inside SVG images or over a picture, and hover
 ([#432](https://github.com/nrdptel/fusionspace-eridanus/issues/432)).
 
@@ -1049,8 +1063,10 @@ What it took to pass is recorded in
 [ADR-232, the pages' vitals measured](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0232-the-pages-vitals-measured.md):
 
 - one stylesheet instead of ten, asked for first with mdBook's sidebar script;
-- four fonts asked for early so that text doesn't move when they arrive. That's two more than
-  the product system allows: with its two, CLS reached 0.17 on two pages;
+- five fonts asked for early so that text doesn't move when they arrive. That's three more
+  than the product system allows: with its two, CLS reached 0.174 and 0.177 on two pages. The
+  fifth is the wide cut that titles are drawn in
+  ([M0.17a, the frame off](decisions-and-roadmap.md#m0-17a));
 - the theme switch placed before the page is first drawn;
 - the print page's cover.
 

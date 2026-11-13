@@ -1,53 +1,50 @@
 //! The page's anatomy inside its frame (#384; the product system's `web.md`, *Page anatomy* and
-//! *Accessibility*): every page opens with an intro, the designation tag and the status chip over
-//! its title and one sentence in `lead` under it, and each of its sections is a sheet, a 2 px ink
-//! rule on top and a rail with the sheet's number and name.
+//! *Accessibility*, at the tool level since ADR-343): every page opens with an intro, its title
+//! and one sentence in `lead` under it, and each of its sections is a part, a 2 px ink rule on top
+//! and the part's name under it. A docs site is a tool (`principles.md`, *Three levels*), so a
+//! part carries no sheet number and nothing stands over the title: the designation tag and
+//! `SHEET n / N` belong to a record, and the site's status is in each page's footer
+//! ([`super::frame`]).
 //!
 //! After mdBook builds the site, [`draw`] rewrites each page's `main` (on the print page, each
 //! chapter in it, from its title to the next):
 //!
-//! - the title, and what stands between it and the first `h2`, go in `<div class="fs-intro">`,
-//!   which opens with a row, `<div class="fs-intro-row">`, of the site's designation in the
-//!   system's tag, `<p class="fs-tag">`, and the site's status in the system's chip, `<p
-//!   class="fs-status">` with its state, icon and word (the title block's *Status* entry, one of
-//!   the system's drawing words, `principles.md`: RELEASED or IN PREPARATION);
+//! - the title, and what stands between it and the first `h2`, go in `<div class="fs-intro">`;
 //! - the paragraph right under the title becomes the lead, `<p class="fs-lead">`;
 //! - each `h2`, and what follows it up to the next `h2` or the chapter's end, goes in the
-//!   system's sheet: `<section class="fs-sheet">`, then `<div class="fs-sheet-rail">` holding
-//!   `<span class="fs-sheet-no">SHEET n / N</span>` and the `h2`, then `<div
-//!   class="fs-sheet-body">` holding the rest.
+//!   system's part: `<section class="fs-part">`, the `h2` first, then `<div
+//!   class="fs-part-body">` holding the rest.
 //!
 //! A title or an `h2` inside another element (a `div` a page writes in HTML, say) can't be wrapped
 //! that way and fails the build, as does a page whose `main` doesn't open with its title or whose
-//! title isn't followed by a paragraph. [`check`] then fails a built page without the tag and the
-//! chip over every title, without a lead under it, with a lead of more than one sentence or more
-//! than [`LEAD_WORDS`] words, with an `h2` outside a sheet or a sheet numbered out of order, or
-//! with a heading that skips a level going down (an `h2` followed by an `h4`; `web.md` asks for
-//! headings in order). `theme/hpr.css` draws the
-//! intro and the sheets, and the page check fails either drawn off the system's (`pages.rs`,
-//! `Kind::Sheet`).
+//! title isn't followed by a paragraph. [`check`] then fails a built page whose title doesn't open
+//! its intro, without a lead under it, with a lead of more than one sentence or more than
+//! [`LEAD_WORDS`] words, with an `h2` that doesn't open a part, with a designation tag or a sheet
+//! number left in it, or with a heading that skips a level going down (an `h2` followed by an
+//! `h4`; `web.md` asks for headings in order). `theme/hpr.css` draws the intro and the parts, and
+//! the page check fails either drawn off the system's (`pages.rs`, `Kind::Part`).
 
 use std::fs;
 use std::path::Path;
 
 use super::html_files;
-use super::theme::DESIGNATION;
 
 /// How mdBook 0.5 opens and closes a page's text.
 const MAIN: (&str, &str) = ("<main>", "</main>");
 /// What mdBook 0.5's print page puts between two chapters, just before the second's title.
 const CHAPTER_BREAK: &str = "<div style=\"break-before: page; page-break-before: always;\"></div>";
-/// The intro, its first row, the tag, the chip, the lead and the sheet's parts, as [`draw`]
-/// writes them.
-const INTRO: &str = "<div class=\"fs-intro\">";
-const ROW: &str = "<div class=\"fs-intro-row\">";
-const TAG: &str = "<p class=\"fs-tag\">";
-const CHIP: &str = "<p class=\"fs-status\" data-state=\"";
+/// The intro, the lead and a part with its body, as [`draw`] writes them.
+pub(super) const INTRO: &str = "<div class=\"fs-intro\">";
 const LEAD: &str = "<p class=\"fs-lead\">";
-const SHEET: &str = "<section class=\"fs-sheet\">";
-const RAIL: &str = "<div class=\"fs-sheet-rail\">";
-const NUMBER: &str = "<span class=\"fs-sheet-no\">";
-const BODY: &str = "<div class=\"fs-sheet-body\">";
+const PART: &str = "<section class=\"fs-part\">";
+const BODY: &str = "<div class=\"fs-part-body\">";
+/// What a record draws and a tool doesn't (ADR-343): the designation tag over the title and the
+/// sheet with its number beside its name. [`check`] fails a page that still holds either.
+const RECORD_ONLY: [&str; 3] = [
+    "class=\"fs-tag\"",
+    "class=\"fs-intro-row\"",
+    "class=\"fs-sheet",
+];
 /// How mdBook 0.5 opens a paragraph, which [`draw`] makes the lead when it follows a title.
 const PARAGRAPH: &str = "<p>";
 /// The sidebar alone, which mdBook loads in a frame for a reader without scripts: no page.
@@ -57,10 +54,11 @@ const SIDEBAR_FRAME: &str = "toc.html";
 /// held to it.
 pub(super) const LEAD_WORDS: usize = 25;
 /// The site's statuses, the title block's *Status* entry before its colon (`theme.rs`,
-/// `STATUSES`), each with its chip's state, icon and word as [`draw`] writes them. A release is
-/// `ok`, whose icon is the system's circle for normal (`foundations.md`, *Icons*: status icons
-/// differ in shape); work in preparation is `info`, the square for information. The chip sets
-/// its word in capitals.
+/// `STATUSES`), each with its chip's state, icon and word as [`chip`] writes them for the
+/// footer ([`super::frame`]). A release is `ok`, whose icon is the system's circle for normal
+/// (`foundations.md`, *Icons*: status icons differ in shape); work in preparation is `info`, the
+/// square for information. The chip says its word in sentence case, as the system's web level
+/// table sets a status chip (`foundations.md`, *Type*, at the pinned revision).
 const CHIPS: [(&str, &str, &str, &str); 2] = [
     (
         "RELEASED",
@@ -76,10 +74,11 @@ const CHIPS: [(&str, &str, &str, &str); 2] = [
     ),
 ];
 
-/// The fewest and the most sheets a page may have: `web.md`, *Page anatomy*, asks for "two to six
-/// sheets per page", so a reader sees a page's whole plan in its rails. A sheet is a `##`
-/// section, counted in the page's source ([`sheet_counts`]).
-pub(super) const SHEETS: std::ops::RangeInclusive<usize> = 2..=6;
+/// The fewest and the most parts a page may have. `web.md`, *Page anatomy*, asks a record for
+/// "two to six sheets per page" and a tool for "a few parts"; the site keeps the record's bounds
+/// for its parts (ADR-234, ADR-343), so a reader sees a page's whole plan in its part names. A
+/// part is a `##` section, counted in the page's source ([`part_counts`]).
+pub(super) const PARTS: std::ops::RangeInclusive<usize> = 2..=6;
 
 /// The elements HTML closes without an end tag, which [`balanced`] doesn't count.
 const VOID: [&str; 14] = [
@@ -87,14 +86,9 @@ const VOID: [&str; 14] = [
     "wbr", "param",
 ];
 
-/// The site's designation, as the tag shows it: the title block's entry, out of its code span.
-fn designation() -> &'static str {
-    DESIGNATION.trim_matches('`')
-}
-
-/// The intro's opening as [`draw`] writes it before every title: the intro, and its row of the
-/// designation tag and the chip of the site's `status`, or why `status` has no chip.
-pub(super) fn intro_open(status: &str) -> Result<String, String> {
+/// The system's status chip (`fusionspace.css`, `.fs-status`) for the site's `status`, with its
+/// state, icon and word, as the footer shows it; or why `status` has no chip.
+pub(super) fn chip(status: &str) -> Result<String, String> {
     let (_, state, icon, word) =
         CHIPS
             .iter()
@@ -106,8 +100,7 @@ pub(super) fn intro_open(status: &str) -> Result<String, String> {
                 )
             })?;
     Ok(format!(
-        "{INTRO}{ROW}{TAG}{}</p>{CHIP}{state}\">{}{word}</p></div>",
-        designation(),
+        "<span class=\"fs-status\" data-state=\"{state}\">{}{word}</span>",
         icon.trim_end()
     ))
 }
@@ -121,10 +114,9 @@ fn guide_pages(output: &Path) -> Result<Vec<String>, String> {
     Ok(names)
 }
 
-/// Draws the intro, its chip of the site's `status`, and the sheets on every page of the guide
-/// built under `output`. Returns how many pages and sheets it drew, or every page's problems.
-pub(super) fn draw(output: &Path, status: &str) -> Result<(usize, usize), String> {
-    let open = intro_open(status)?;
+/// Draws the intro and the parts on every page of the guide built under `output`. Returns how
+/// many pages and parts it drew, or every page's problems.
+pub(super) fn draw(output: &Path) -> Result<(usize, usize), String> {
     let mut pages = 0;
     let mut count = 0;
     let mut problems = Vec::new();
@@ -132,12 +124,12 @@ pub(super) fn draw(output: &Path, status: &str) -> Result<(usize, usize), String
         let path = output.join(&name);
         let html = fs::read_to_string(&path)
             .map_err(|err| format!("could not read {}: {err}", path.display()))?;
-        match rewrite(&html, &open) {
-            Ok((drawn, sheets)) => {
+        match rewrite(&html) {
+            Ok((drawn, parts)) => {
                 fs::write(&path, drawn)
                     .map_err(|err| format!("could not write {}: {err}", path.display()))?;
                 pages += 1;
-                count += sheets;
+                count += parts;
             }
             Err(why) => problems.extend(why.into_iter().map(|why| format!("{name}: {why}"))),
         }
@@ -146,8 +138,8 @@ pub(super) fn draw(output: &Path, status: &str) -> Result<(usize, usize), String
         Ok((pages, count))
     } else {
         Err(format!(
-            "{} part(s) of a page that can't be drawn as the system's intro and sheets \
-             (xtask/src/site/sheets.rs; a title and each `h2` stand in the page's text, not \
+            "{} part(s) of a page that can't be drawn as the system's intro and parts \
+             (xtask/src/site/parts.rs; a title and each `h2` stand in the page's text, not \
              inside another element, and a paragraph, the lead, follows each title):\n  {}",
             problems.len(),
             problems.join("\n  ")
@@ -223,8 +215,8 @@ fn balanced(html: &str) -> bool {
     depth == 0
 }
 
-/// One page's HTML with its intro and sheets drawn, and how many sheets; or why it can't be.
-fn rewrite(html: &str, open: &str) -> Result<(String, usize), Vec<String>> {
+/// One page's HTML with its intro and parts drawn, and how many parts; or why it can't be.
+fn rewrite(html: &str) -> Result<(String, usize), Vec<String>> {
     let start = html
         .find(MAIN.0)
         .map(|at| at + MAIN.0.len())
@@ -233,12 +225,12 @@ fn rewrite(html: &str, open: &str) -> Result<(String, usize), Vec<String>> {
         .find(MAIN.1)
         .map(|at| start + at)
         .ok_or_else(|| vec![format!("no `{}`", MAIN.1)])?;
-    let (text, count) = drawn_main(&html[start..close], open)?;
+    let (text, count) = drawn_main(&html[start..close])?;
     Ok((format!("{}{text}{}", &html[..start], &html[close..]), count))
 }
 
-/// A page's text (inside its `main`) with each chapter's intro and sheets drawn.
-fn drawn_main(text: &str, open: &str) -> Result<(String, usize), Vec<String>> {
+/// A page's text (inside its `main`) with each chapter's intro and parts drawn.
+fn drawn_main(text: &str) -> Result<(String, usize), Vec<String>> {
     let titles = starts(text, "h1");
     let Some(&first) = titles.first() else {
         return Err(vec!["no title (`h1`) in the page's `main`".to_string()]);
@@ -263,10 +255,10 @@ fn drawn_main(text: &str, open: &str) -> Result<(String, usize), Vec<String>> {
                 next
             }
         });
-        match drawn_chapter(&text[start..end], open) {
-            Ok((drawn, sheets)) => {
+        match drawn_chapter(&text[start..end]) {
+            Ok((drawn, parts)) => {
                 out.push_str(&drawn);
-                count += sheets;
+                count += parts;
             }
             Err(why) => problems.push(why),
         }
@@ -280,9 +272,8 @@ fn drawn_main(text: &str, open: &str) -> Result<(String, usize), Vec<String>> {
     }
 }
 
-/// One chapter, from its title on, with its intro, opening with `open` ([`intro_open`]), its
-/// lead and its sheets drawn.
-fn drawn_chapter(chapter: &str, open: &str) -> Result<(String, usize), String> {
+/// One chapter, from its title on, with its intro, its lead and its parts drawn.
+fn drawn_chapter(chapter: &str) -> Result<(String, usize), String> {
     let title_end = element_end(chapter, "h1").ok_or("a title (`h1`) never closed")?;
     let heads = starts(chapter, "h2");
     let mut cuts = vec![0];
@@ -293,7 +284,7 @@ fn drawn_chapter(chapter: &str, open: &str) -> Result<(String, usize), String> {
         if !balanced(part) {
             return Err(format!(
                 "a section that opens or closes an element around a heading, so it can't be a \
-                 sheet: `{}`",
+                 part: `{}`",
                 snippet(part)
             ));
         }
@@ -301,7 +292,7 @@ fn drawn_chapter(chapter: &str, open: &str) -> Result<(String, usize), String> {
     let total = heads.len();
     let mut out = String::with_capacity(chapter.len() + 256 * (total + 1));
     let intro_end = heads.first().copied().unwrap_or(chapter.len());
-    out.push_str(open);
+    out.push_str(INTRO);
     out.push_str(&chapter[..title_end]);
     let after = &chapter[title_end..intro_end];
     let gap = after.len() - after.trim_start().len();
@@ -321,8 +312,7 @@ fn drawn_chapter(chapter: &str, open: &str) -> Result<(String, usize), String> {
             + element_end(&chapter[start..], "h2")
                 .ok_or_else(|| "a section's name (`h2`) never closed".to_string())?;
         out.push_str(&format!(
-            "{SHEET}{RAIL}{NUMBER}SHEET {} / {total}</span>{}</div>{BODY}{}</div></section>\n",
-            n + 1,
+            "{PART}{}{BODY}{}</div></section>\n",
             &chapter[start..head_end],
             &chapter[head_end..end]
         ));
@@ -337,17 +327,16 @@ fn snippet(text: &str) -> &str {
         .map_or(text, |(at, _)| &text[..at])
 }
 
-/// Checks the guide's built pages under `output`: each has the intro, with the chip of the site's
-/// `status`, the lead and the sheets [`draw`] gives it, and its headings go in order.
-pub(super) fn check(output: &Path, status: &str) -> Result<Vec<String>, String> {
-    let open = intro_open(status)?;
+/// Checks the guide's built pages under `output`: each has the intro, the lead and the parts
+/// [`draw`] gives it, nothing of a record's frame, and its headings go in order.
+pub(super) fn check(output: &Path) -> Result<Vec<String>, String> {
     let mut problems = Vec::new();
     for name in guide_pages(output)? {
         let path = output.join(&name);
         let html = fs::read_to_string(&path)
             .map_err(|err| format!("could not read {}: {err}", path.display()))?;
         problems.extend(
-            page_problems(&html, &open)
+            page_problems(&html)
                 .into_iter()
                 .map(|why| format!("{name}: {why}")),
         );
@@ -355,9 +344,9 @@ pub(super) fn check(output: &Path, status: &str) -> Result<Vec<String>, String> 
     Ok(problems)
 }
 
-/// What one built page lacks of its intro, opening with `open` ([`intro_open`]), its lead and its
-/// sheets, or the headings out of order in its `main`.
-fn page_problems(html: &str, open: &str) -> Vec<String> {
+/// What one built page lacks of its intro, its lead and its parts, what it keeps of a record's
+/// frame ([`RECORD_ONLY`]), or the headings out of order in its `main`.
+fn page_problems(html: &str) -> Vec<String> {
     let Some(start) = html.find(MAIN.0) else {
         return vec![format!("no `{}`", MAIN.0)];
     };
@@ -371,12 +360,8 @@ fn page_problems(html: &str, open: &str) -> Vec<String> {
         problems.push("no title (`h1`)".to_string());
     }
     for &title in &titles {
-        if !text[..title].ends_with(open) {
-            problems.push(format!(
-                "a title without the designation tag and the site's status chip right above it, \
-                 in the intro's row (`{}`)",
-                snippet(open)
-            ));
+        if !text[..title].ends_with(INTRO) {
+            problems.push(format!("a title that doesn't open its intro (`{INTRO}`)"));
         }
         let after = element_end(&text[title..], "h1").map_or("", |end| &text[title + end..]);
         match after
@@ -391,28 +376,30 @@ fn page_problems(html: &str, open: &str) -> Vec<String> {
             )),
         }
     }
-    // The sheets, numbered within each chapter.
-    let mut chapters = titles.clone();
-    chapters.push(text.len());
-    for pair in chapters.windows(2) {
-        let chapter = &text[pair[0]..pair[1]];
-        let heads = starts(chapter, "h2");
-        let total = heads.len();
-        if chapter.matches(SHEET).count() != total {
+    // The parts: each `h2` opens one, and nothing else does.
+    let heads = starts(text, "h2");
+    if text.matches(PART).count() != heads.len() {
+        problems.push(format!(
+            "{} parts for {} sections (`h2`)",
+            text.matches(PART).count(),
+            heads.len()
+        ));
+    }
+    for &head in &heads {
+        if !text[..head].ends_with(PART) {
             problems.push(format!(
-                "{} sheets for {total} sections (`h2`)",
-                chapter.matches(SHEET).count()
+                "a section (`h2`) not opening a part (`{PART}`): `{}`",
+                snippet(&text[head..])
             ));
         }
-        for (n, &head) in heads.iter().enumerate() {
-            let rail = format!("{SHEET}{RAIL}{NUMBER}SHEET {} / {total}</span>", n + 1);
-            if !chapter[..head].ends_with(&rail) {
-                problems.push(format!(
-                    "a section (`h2`) not opening sheet {} of {total}: `{}`",
-                    n + 1,
-                    snippet(&chapter[head..])
-                ));
-            }
+    }
+    // A record's frame, which a tool doesn't draw (ADR-343).
+    for mark in RECORD_ONLY {
+        if text.contains(mark) {
+            problems.push(format!(
+                "a record's frame (`{mark}`): a docs site is a tool, with no designation tag \
+                 over its title and no sheet numbers (ADR-343)"
+            ));
         }
     }
     problems.extend(headings_out_of_order(text));
@@ -503,26 +490,26 @@ fn headings_out_of_order(text: &str) -> Vec<String> {
     problems
 }
 
-/// Where the pages' numbers of sheets leave [`SHEETS`], one line each: `sheets` holds each page
-/// of the summary with its number of `##` sections. No page is excused.
-pub(super) fn sheet_counts(sheets: &[(String, usize)]) -> Vec<String> {
+/// Where the pages' numbers of parts leave [`PARTS`], one line each: `parts` holds each page of
+/// the summary with its number of `##` sections. No page is excused.
+pub(super) fn part_counts(parts: &[(String, usize)]) -> Vec<String> {
     let mut problems = Vec::new();
-    for (name, count) in sheets {
-        if *count < *SHEETS.start() {
+    for (name, count) in parts {
+        if *count < *PARTS.start() {
             problems.push(format!(
-                "docs/{name}: {count} sheet(s), and a page has {} to {} (`web.md`, *Page \
-                 anatomy*): each `##` section is a sheet; give the page at least {} sections",
-                SHEETS.start(),
-                SHEETS.end(),
-                SHEETS.start()
+                "docs/{name}: {count} part(s), and a page has {} to {} (ADR-234, ADR-343): each \
+                 `##` section is a part; give the page at least {} sections",
+                PARTS.start(),
+                PARTS.end(),
+                PARTS.start()
             ));
-        } else if *count > *SHEETS.end() {
+        } else if *count > *PARTS.end() {
             problems.push(format!(
-                "docs/{name}: {count} sheets, and a page has {} to {} (`web.md`, *Page anatomy*): \
-                 group its `##` sections under at most {} and make the rest `###`",
-                SHEETS.start(),
-                SHEETS.end(),
-                SHEETS.end()
+                "docs/{name}: {count} parts, and a page has {} to {} (ADR-234, ADR-343): group \
+                 its `##` sections under at most {} and make the rest `###`",
+                PARTS.start(),
+                PARTS.end(),
+                PARTS.end()
             ));
         }
     }
@@ -542,13 +529,8 @@ mod tests {
         format!("<h{level} id=\"{id}\"><a class=\"header\" href=\"#{id}\">{id}</a></h{level}>")
     }
 
-    /// The intro's opening for a site in preparation.
-    fn open() -> String {
-        intro_open("IN PREPARATION").unwrap()
-    }
-
     #[test]
-    fn a_page_gets_its_intro_and_numbered_sheets() {
+    fn a_page_gets_its_intro_and_its_parts() {
         let text = format!(
             "{}\n<p>Opening.</p>\n{}\n<p>One.</p>\n{}\n<p>A.</p>\n{}\n<p>Two.</p>",
             h(1, "t"),
@@ -556,41 +538,41 @@ mod tests {
             h(3, "a"),
             h(2, "two")
         );
-        let (drawn, count) = rewrite(&page(&text), &open()).unwrap();
+        let (drawn, count) = rewrite(&page(&text)).unwrap();
         assert_eq!(count, 2);
         assert!(drawn.contains(&format!(
-            "{INTRO}{ROW}{TAG}FS-ACHERNAR · SW · TOOL 001</p>{CHIP}info\"><svg "
-        )));
-        assert!(drawn.contains(&format!(
-            "</svg>In preparation</p></div>{}\n{LEAD}Opening.</p>\n</div>",
+            "<main>\n{INTRO}{}\n{LEAD}Opening.</p>\n</div>",
             h(1, "t")
         )));
         assert!(drawn.contains(&format!(
-            "{SHEET}{RAIL}{NUMBER}SHEET 1 / 2</span>{}</div>{BODY}\n<p>One.</p>\n{}\n<p>A.</p>\n</div></section>",
+            "{PART}{}{BODY}\n<p>One.</p>\n{}\n<p>A.</p>\n</div></section>",
             h(2, "one"),
             h(3, "a")
         )));
         assert!(drawn.contains(&format!(
-            "{SHEET}{RAIL}{NUMBER}SHEET 2 / 2</span>{}</div>{BODY}\n<p>Two.</p>\n</div></section>",
+            "{PART}{}{BODY}\n<p>Two.</p>\n</div></section>",
             h(2, "two")
         )));
+        // A tool's page: no tag over the title, no sheet numbers.
+        assert!(
+            !drawn.contains("fs-tag") && !drawn.contains("SHEET") && !drawn.contains("fs-status")
+        );
         assert!(drawn.ends_with("</main><footer>y</footer></body></html>"));
-        assert_eq!(page_problems(&drawn, &open()), Vec::<String>::new());
+        assert_eq!(page_problems(&drawn), Vec::<String>::new());
         // Drawn once only: a page drawn already has text before its title.
-        assert!(rewrite(&drawn, &open()).unwrap_err()[0].contains("text before"));
+        assert!(rewrite(&drawn).unwrap_err()[0].contains("text before"));
     }
 
     #[test]
     fn a_page_without_sections_gets_its_intro_alone() {
-        let (drawn, count) =
-            rewrite(&page(&format!("{}\n<p>Text.</p>", h(1, "t"))), &open()).unwrap();
+        let (drawn, count) = rewrite(&page(&format!("{}\n<p>Text.</p>", h(1, "t")))).unwrap();
         assert_eq!(count, 0);
-        assert!(!drawn.contains(SHEET));
-        assert_eq!(page_problems(&drawn, &open()), Vec::<String>::new());
+        assert!(!drawn.contains(PART));
+        assert_eq!(page_problems(&drawn), Vec::<String>::new());
     }
 
     #[test]
-    fn the_print_page_numbers_each_chapter_and_keeps_its_breaks_between() {
+    fn the_print_page_draws_each_chapter_and_keeps_its_breaks_between() {
         let text = format!(
             "{}\n<p>First.</p>\n{}\n<p>A.</p>\n{CHAPTER_BREAK}\n{}\n<p>Second.</p>\n{}\n<p>B.</p>\n{}\n<p>C.</p>",
             h(1, "first"),
@@ -599,17 +581,18 @@ mod tests {
             h(2, "b"),
             h(2, "c")
         );
-        let (drawn, count) = rewrite(&page(&text), &open()).unwrap();
+        let (drawn, count) = rewrite(&page(&text)).unwrap();
         assert_eq!(count, 3);
-        assert!(drawn.contains(&format!("SHEET 1 / 1</span>{}", h(2, "a"))));
-        assert!(drawn.contains(&format!("SHEET 1 / 2</span>{}", h(2, "b"))));
-        assert!(drawn.contains(&format!("SHEET 2 / 2</span>{}", h(2, "c"))));
-        // The break stands between the chapters, outside the first one's last sheet.
+        for id in ["a", "b", "c"] {
+            assert!(drawn.contains(&format!("{PART}{}{BODY}", h(2, id))), "{id}");
+        }
+        // The break stands between the chapters, outside the first one's last part.
         assert!(drawn.contains(&format!(
-            "</div></section>\n{CHAPTER_BREAK}\n{INTRO}{ROW}{TAG}"
+            "</div></section>\n{CHAPTER_BREAK}\n{INTRO}{}",
+            h(1, "second")
         )));
         assert!(drawn.contains(&format!("{}\n{LEAD}Second.</p>", h(1, "second"))));
-        assert_eq!(page_problems(&drawn, &open()), Vec::<String>::new());
+        assert_eq!(page_problems(&drawn), Vec::<String>::new());
     }
 
     #[test]
@@ -619,11 +602,11 @@ mod tests {
             h(1, "t"),
             h(2, "a")
         );
-        let why = rewrite(&page(&text), &open()).unwrap_err();
-        assert!(why[0].contains("can't be a sheet"), "{why:?}");
+        let why = rewrite(&page(&text)).unwrap_err();
+        assert!(why[0].contains("can't be a part"), "{why:?}");
         let text = format!("<div>{}</div>", h(1, "t"));
-        assert!(rewrite(&page(&text), &open()).unwrap_err()[0].contains("text before"));
-        assert!(rewrite(&page("<p>No title.</p>"), &open()).unwrap_err()[0].contains("no title"));
+        assert!(rewrite(&page(&text)).unwrap_err()[0].contains("text before"));
+        assert!(rewrite(&page("<p>No title.</p>")).unwrap_err()[0].contains("no title"));
     }
 
     #[test]
@@ -633,33 +616,30 @@ mod tests {
             format!("{}\n<ul><li>A.</li></ul>", h(1, "t")),
             h(1, "t"),
         ] {
-            let why = rewrite(&page(&text), &open()).unwrap_err();
+            let why = rewrite(&page(&text)).unwrap_err();
             assert!(why[0].contains("not followed by a paragraph"), "{why:?}");
         }
     }
 
     #[test]
     fn the_chip_names_each_status_and_no_other() {
-        let released = intro_open("RELEASED").unwrap();
-        assert!(released.contains(&format!("{CHIP}ok\"><svg ")));
+        let released = chip("RELEASED").unwrap();
+        assert!(released.starts_with("<span class=\"fs-status\" data-state=\"ok\"><svg "));
         assert!(released.contains("<circle cx=\"12\" cy=\"12\" r=\"9\"/>"));
-        assert!(released.ends_with("</svg>Released</p></div>"));
-        let preparing = open();
-        assert!(preparing.contains(&format!("{CHIP}info\"><svg ")));
+        assert!(released.ends_with("</svg>Released</span>"));
+        let preparing = chip("IN PREPARATION").unwrap();
+        assert!(preparing.starts_with("<span class=\"fs-status\" data-state=\"info\"><svg "));
         assert!(preparing.contains("<path d=\"M3 3 L21 3 L21 21 L3 21 Z\"/>"));
-        assert!(preparing.ends_with("</svg>In preparation</p></div>"));
+        assert!(preparing.ends_with("</svg>In preparation</span>"));
         // Every status the title block may give has a chip, and nothing else does.
         for status in super::super::theme::STATUSES {
-            assert!(intro_open(status).is_ok(), "{status}");
+            assert!(chip(status).is_ok(), "{status}");
         }
         assert_eq!(CHIPS.len(), super::super::theme::STATUSES.len());
         for other in ["WITHDRAWN", "Released", "", "IN PREPARATION: soon"] {
-            let why = intro_open(other).unwrap_err();
+            let why = chip(other).unwrap_err();
             assert!(why.contains("has no chip"), "{other}: {why}");
         }
-        // A missing site status fails the build before any page is drawn.
-        let why = draw(Path::new("/nonexistent"), "WITHDRAWN").unwrap_err();
-        assert!(why.contains("has no chip"), "{why}");
     }
 
     #[test]
@@ -721,44 +701,47 @@ mod tests {
             h(2, "a"),
             h(2, "b")
         );
-        let (drawn, _) = rewrite(&page(&text), &open()).unwrap();
-        assert_eq!(page_problems(&drawn, &open()), Vec::<String>::new());
+        let (drawn, _) = rewrite(&page(&text)).unwrap();
+        assert_eq!(page_problems(&drawn), Vec::<String>::new());
         let fails = |broken: String, words: &str| {
-            let problems = page_problems(&broken, &open());
+            let problems = page_problems(&broken);
             assert!(
                 problems.iter().any(|why| why.contains(words)),
                 "{words}: {problems:?}"
             );
         };
-        fails(drawn.replace(TAG, "<p class=\"other\">"), "designation tag");
+        fails(page(&text), "doesn't open its intro");
         fails(
-            drawn.replace("FS-ACHERNAR · SW · TOOL 001", "FS · SW · TOOL 002"),
-            "designation tag",
+            drawn.replacen(PART, "<section class=\"other\">", 1),
+            "1 parts for 2 sections",
         );
         fails(
-            drawn.replace("SHEET 2 / 2", "SHEET 3 / 2"),
-            "not opening sheet 2 of 2",
+            drawn.replacen(PART, "<section class=\"other\">", 1),
+            "not opening a part",
+        );
+        // A record's frame left in the page: the tag and its row, or a sheet's number or rail.
+        fails(
+            drawn.replace(
+                INTRO,
+                "<div class=\"fs-intro\"><div class=\"fs-intro-row\"><p class=\"fs-tag\">FS</p></div>",
+            ),
+            "a record's frame (`class=\"fs-tag\"`)",
         );
         fails(
-            drawn.replace("SHEET 1 / 2", "SHEET 1 / 3"),
-            "not opening sheet 1 of 2",
+            drawn.replacen(
+                PART,
+                "<section class=\"fs-part\"><span class=\"fs-sheet-no\">SHEET 1 / 2</span>",
+                1,
+            ),
+            "a record's frame (`class=\"fs-sheet`)",
         );
         fails(
-            drawn.replacen(SHEET, "<section class=\"other\">", 1),
-            "1 sheets for 2 sections",
-        );
-        fails(page(&text), "designation tag");
-        // The chip: gone, of another state, or not the site's status.
-        fails(
-            drawn.replace(CHIP, "<p class=\"other\" data-state=\""),
-            "status chip",
-        );
-        fails(drawn.replace("info\"><svg", "ok\"><svg"), "status chip");
-        fails(drawn.replace("In preparation", "Released"), "status chip");
-        let problems = page_problems(&drawn, &intro_open("RELEASED").unwrap());
-        assert!(
-            problems.iter().any(|why| why.contains("status chip")),
-            "{problems:?}"
+            drawn.replacen(
+                PART,
+                "<section class=\"fs-part\"><span class=\"fs-sheet-rail\"></span>",
+                1,
+            ),
+            "a record's frame (`class=\"fs-sheet`)",
         );
         // The lead: gone, or more than one sentence.
         fails(drawn.replace(LEAD, "<p>"), "without its lead");
@@ -789,20 +772,20 @@ mod tests {
     }
 
     #[test]
-    fn a_page_has_two_to_six_sheets() {
+    fn a_page_has_two_to_six_parts() {
         let pages = |counts: &[(&str, usize)]| -> Vec<(String, usize)> {
             counts.iter().map(|(n, c)| ((*n).to_owned(), *c)).collect()
         };
         // Two and six pass, at the edges; one and seven fail, on either side of them.
         let ok = pages(&[("a.md", 2), ("b.md", 6)]);
-        assert!(sheet_counts(&ok).is_empty());
-        let few = sheet_counts(&pages(&[("a.md", 1), ("b.md", 0)]));
+        assert!(part_counts(&ok).is_empty());
+        let few = part_counts(&pages(&[("a.md", 1), ("b.md", 0)]));
         assert_eq!(few.len(), 2, "{few:?}");
-        assert!(few[0].starts_with("docs/a.md: 1 sheet(s)"), "{few:?}");
-        assert!(few[1].starts_with("docs/b.md: 0 sheet(s)"), "{few:?}");
-        let many = sheet_counts(&pages(&[("a.md", 7)]));
+        assert!(few[0].starts_with("docs/a.md: 1 part(s)"), "{few:?}");
+        assert!(few[1].starts_with("docs/b.md: 0 part(s)"), "{few:?}");
+        let many = part_counts(&pages(&[("a.md", 7)]));
         assert_eq!(many.len(), 1, "{many:?}");
-        assert!(many[0].starts_with("docs/a.md: 7 sheets"), "{many:?}");
+        assert!(many[0].starts_with("docs/a.md: 7 parts"), "{many:?}");
         assert!(many[0].contains("at most 6"), "{many:?}");
     }
 }

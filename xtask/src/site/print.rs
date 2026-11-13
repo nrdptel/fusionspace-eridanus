@@ -5,11 +5,12 @@
 //! Tab took 0.4 s and a tap on the menu button 0.45 s, past INP's 200 ms, and its largest paint
 //! came at 2.9 s, past LCP's 2.5 s.
 //!
-//! So after the anatomy is drawn ([`super::sheets`]), [`draw`] puts the chapters in a template,
+//! So after the anatomy is drawn ([`super::parts`]), [`draw`] puts the chapters in a template,
 //! `<template id="hpr-book">`. The browser reads a template's contents but neither shows them
-//! nor counts them as part of the page. Before it, [`draw`] writes a cover: the first chapter's
-//! row of the designation tag and the status chip, the title "Print the guide", what the page
-//! prints as its lead, and a button that prints it. When the
+//! nor counts them as part of the page. Before it, [`draw`] writes a cover: an intro as the
+//! chapters' open, the title "Print the guide", what the page prints as its lead, and a button
+//! that prints it. The page ends with the title block (`frame.rs`), on screen and on paper, as
+//! the guide printed is a record (ADR-343). When the
 //! browser is about to print (`beforeprint`), `theme/hpr.js` places a copy of the chapters in
 //! the page, highlighting their code as mdBook's script highlights a page's as it loads, and
 //! takes the copy away once printing ends (`afterprint`). `theme/hpr.css` hides the cover on
@@ -38,7 +39,7 @@ const MAIN: (&str, &str) = ("<main>", "</main>");
 /// The template the chapters wait in, and its end; `theme/hpr.js` finds it by its id.
 const BOOK: &str = "<template id=\"hpr-book\">";
 const BOOK_END: &str = "</template>";
-/// How `sheets.rs` opens each chapter's intro, which the cover's opens as.
+/// How `parts.rs` opens each chapter's intro, which the cover's opens as.
 const INTRO: &str = "<div class=\"fs-intro\">";
 /// The cover's box, which `theme/hpr.css` hides on paper.
 const COVER: &str = "<div id=\"hpr-print-cover\">";
@@ -51,8 +52,8 @@ const AUTO_PRINT: &str = "<script>
 /// What [`check`] looks for of [`AUTO_PRINT`], whatever its spacing.
 const AUTO_PRINT_CALL: &str = "window.print, ";
 
-/// What opens the first chapter's intro in `text`, before its title: the intro's row of the tag
-/// and the status chip, as `sheets.rs` draws it on every page, which the cover opens with too.
+/// What opens the first chapter's intro in `text`, before its title, as `parts.rs` draws it on
+/// every page, which the cover opens with too.
 fn intro_opening(text: &str) -> &str {
     let text = text.trim_start();
     text.find("<h1").map_or("", |at| &text[..at])
@@ -219,9 +220,9 @@ mod tests {
 
     /// A print page as the anatomy leaves it: two chapters, the break between them.
     const PRINTED: &str = "<html><body><div id=\"mdbook-content\"><main>\n\
-        <div class=\"fs-intro\"><p class=\"fs-tag\">t</p><h1 id=\"a\">A</h1><p>a</p></div>\n\
+        <div class=\"fs-intro\"><h1 id=\"a\">A</h1><p>a</p></div>\n\
         <div style=\"break-before: page; page-break-before: always;\"></div>\
-        <div class=\"fs-intro\"><p class=\"fs-tag\">t</p><h1 id=\"b\">B</h1><p>b</p></div>\n\
+        <div class=\"fs-intro\"><h1 id=\"b\">B</h1><p>b</p></div>\n\
         </main><nav></nav></div><script src=\"book.js\"></script>\n\n        <script>
         window.addEventListener('load', function() {
             window.setTimeout(window.print, 100);
@@ -245,7 +246,7 @@ mod tests {
         assert!(text[..book].contains("its 2 chapters"));
         // Its intro opens as the first chapter's does, and its first paragraph is its lead.
         assert!(text[..book].contains(&format!(
-            "{COVER}<div class=\"fs-intro\"><p class=\"fs-tag\">t</p><h1 id=\"print-the-guide\">"
+            "{COVER}<div class=\"fs-intro\"><h1 id=\"print-the-guide\">"
         )));
         assert!(text[..book].contains("</h1>\n<p class=\"fs-lead\">This page prints"));
         assert_eq!(titles(&text[book..]), 2);

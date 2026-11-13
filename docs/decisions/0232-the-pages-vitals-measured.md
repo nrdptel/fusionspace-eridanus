@@ -1,6 +1,6 @@
 # ADR-232: The pages' vitals, measured as a phone on slow 4G (2026-10-10)
 
-- **Status:** accepted; ships M0.9d10 (#443)
+- **Status:** accepted; ships M0.9d10 (#443); the parts [ADR-343](0343-the-docs-site-drawn-as-a-tool-the-frame-off.md) lists are superseded by it, as the docs site is drawn as a tool
 - **Summary:** `cargo xtask site` now loads every page of the guide (not rustdoc's API reference) cold in headless Chrome as Lighthouse's mobile preset (a 412 px phone, 562.5 ms on every request, 1.5 Mbit/s down) with the CPU slowed to a phone's by Lighthouse's BenchmarkIndex and the slowdown confirmed, measures LCP, CLS and INP, and fails a page over 2.5 s, 0.1 or 200 ms (the median of three loads for a page over), with a canary for each vital. To pass, every page links one stylesheet, asked for first with mdBook's sidebar script, and preloads four fonts, two more than the product system's limit; the theme switch is placed before the first paint; a phone's menu tap no longer slides the page; and the print page shows a cover on screen, its chapters placed in the page only when it prints. The page check now also fails anything fixed to the window on paper, which had covered the top of each printed chapter's tag.
 
 **Context.** `web.md`, *Performance*, holds the site to the Core Web Vitals' "good" bounds at the

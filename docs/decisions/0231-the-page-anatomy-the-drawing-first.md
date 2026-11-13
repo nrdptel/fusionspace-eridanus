@@ -1,6 +1,6 @@
 # ADR-231: The page anatomy split again: the drawing first (2026-10-10)
 
-- **Status:** accepted; splits M0.9d9 ([ADR-229][adr-229]'s rest of #384) in two; adds M0.9d11
+- **Status:** accepted; splits M0.9d9 ([ADR-229][adr-229]'s rest of #384) in two; adds M0.9d11; the parts [ADR-343](0343-the-docs-site-drawn-as-a-tool-the-frame-off.md) lists are superseded by it, as the docs site is drawn as a tool
 - **Summary:** M0.9d9 took the rest of #384: the intro (designation tag, status chip, lead), sheets with their rail and two to six a page, every page opening with how far to trust it, the header's theme switch and headings in order. M0.9d9 now covers what the build can draw on every page as it stands: after mdBook builds the site, `cargo xtask site` opens each page's intro with the designation tag, makes each `h2` section a sheet with `SHEET n / N` in its rail under a 2 px ink rule, and turns mdBook's six-theme menu into the system's segmented switch (Auto, Light, Dark), in the header from 960 px and at the top of the sidebar below. A file check fails a page without them or with a heading that skips a level, and the page check fails each drawn off the system's, with canaries. The new M0.9d11 keeps the old done-when whole (#384 closed, every rule held) and takes what rewrites the pages' own words: the status chip and the one-sentence lead, two to six sheets a page, and every page opening with how far to trust it.
 
 [adr-229]: 0229-the-page-anatomy-the-frame-first.md

@@ -4,8 +4,8 @@ Look up any term these pages use, with a short definition and a link to the page
 it most.
 
 Terms are listed alphabetically in six groups by first letter. Each term has its own heading, so
-any page can link straight to one; a site search jumps to it. Headings show in capitals,
-so the entry's text gives a name's own spelling. Where HPR Sim uses a term in a particular way (a
+any page can link straight to one; a site search jumps to it. Headings show as written,
+in each name's own spelling. Where HPR Sim uses a term in a particular way (a
 sign, a frame, a reference point), the entry says so.
 
 > **How far to trust it.** These are definitions, not results: each of the 190 terms follows the
@@ -1274,8 +1274,9 @@ either yet. See [Rigid-body flight](physics/flight.md#phases) and
 
 The box in an engineering drawing's corner that says what the drawing is, who issued it,
 when, in which units and from which sources. ISO 7200 is the standard that lists its fields.
-Every page of this site ends with one, its entries written once at the end of
-[Start here](start-here.md#title-block). The page's own title is added after the site's.
+This site's is on [Start here](start-here.md#title-block), and the printed guide ends with it,
+with the guide's own title added after the site's. Every other page ends with one line taken from it: the
+version, the date and the status. A `hpr sim --plot` figure ends with a title block too.
 
 ### Tolerance
 

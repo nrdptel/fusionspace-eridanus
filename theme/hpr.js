@@ -37,19 +37,19 @@
 // then marked `hljs` for its colors. The copy goes when printing ends. The page check places
 // them so before it reads the page on paper.
 //
-// A jump to a heading: each sheet off screen skips its layout until it nears the window, and one
-// never drawn stands in at 1,200 px (`hpr.css`), far short of a sheet on a phone, which at
+// A jump to a heading: each part off screen skips its layout until it nears the window, and one
+// never drawn stands in at 1,200 px (`hpr.css`), far short of a part on a phone, which at
 // 320 px is often tens of thousands of pixels tall. Under 520 px a heading jumped to stands
-// 190 px down the window, below the bar's two rows, so the window's top falls in the sheet
-// before it: the browser draws that sheet as it nears, keeps its top where it is, and the
-// heading moves down by all the sheet grew. At 320 px a link to *Accuracy so far* on the landing
-// page stopped about 11,000 px short of it. So before a jump, every sheet from the page's top
+// 190 px down the window, below the bar's two rows, so the window's top falls in the part
+// before it: the browser draws that part as it nears, keeps its top where it is, and the
+// heading moves down by all the part grew. At 320 px a link to *Accuracy so far* on the landing
+// page stopped about 11,000 px short of it. So before a jump, every part from the page's top
 // through the target's is drawn, and the jump lands where it would with nothing skipped. That's
 // on a click on a link into this page, before the browser follows it; on a page loaded with an
 // address that names a heading; and on a change of the address's heading without a click, such
-// as one typed in, when the heading is then out of the window. Two frames later the sheets skip
+// as one typed in, when the heading is then out of the window. Two frames later the parts skip
 // again, each at the height it was drawn at, so the page doesn't move and a tap still redraws
-// only what is on screen. The page check follows a link to each sheet's heading from the top of
+// only what is on screen. The page check follows a link to each part's heading from the top of
 // each page at its narrowest width and fails a heading that doesn't land where it would with
 // nothing skipped.
 //
@@ -203,8 +203,8 @@ document.addEventListener('click', function (event) {
 
 (function () {
     const main = document.querySelector('.content main');
-    const sheets = main ? Array.from(main.querySelectorAll('.fs-sheet')) : [];
-    if (!sheets.length) return;
+    const parts = main ? Array.from(main.querySelectorAll('.fs-part')) : [];
+    if (!parts.length) return;
     const targetOf = function (hash) {
         if (!hash || hash === '#') return null;
         let id = hash.slice(1);
@@ -215,23 +215,23 @@ document.addEventListener('click', function (event) {
         }
         return document.getElementById(id) || document.getElementsByName(id)[0] || null;
     };
-    // Draws each sheet that holds `target` or comes before it, until two frames have recorded
+    // Draws each part that holds `target` or comes before it, until two frames have recorded
     // each one's drawn height as the height it skips at.
     const draw = function (target) {
-        const reach = sheets.filter(function (sheet) {
-            return sheet.contains(target)
-                || (sheet.compareDocumentPosition(target) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+        const reach = parts.filter(function (part) {
+            return part.contains(target)
+                || (part.compareDocumentPosition(target) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
         });
         // Drawn with the containment `auto` keeps, so each is as tall as when it draws itself.
-        reach.forEach(function (sheet) {
-            sheet.style.contentVisibility = 'visible';
-            sheet.style.contain = 'layout style paint';
+        reach.forEach(function (part) {
+            part.style.contentVisibility = 'visible';
+            part.style.contain = 'layout style paint';
         });
         requestAnimationFrame(function () {
             requestAnimationFrame(function () {
-                reach.forEach(function (sheet) {
-                    sheet.style.removeProperty('content-visibility');
-                    sheet.style.removeProperty('contain');
+                reach.forEach(function (part) {
+                    part.style.removeProperty('content-visibility');
+                    part.style.removeProperty('contain');
                 });
             });
         });
@@ -406,8 +406,8 @@ document.addEventListener('click', function (event) {
 
 // A table too wide for its column (#498, ADR-297): rather than scroll sideways and hide its last
 // columns, its rows stack, each cell labeled by a copy of its column's head (`hpr.css`). The copies
-// stay hidden while the table fits. A table is measured only when its sheet is laid out, since
-// measuring one in a sheet that skips its layout off screen would lay that sheet out: those in
+// stay hidden while the table fits. A table is measured only when its part is laid out, since
+// measuring one in a part that skips its layout off screen would lay that part out: those in
 // view as the script runs, before the page is first drawn, so nothing on the first screen moves,
 // and the rest as a resize observer sees them laid out. It watches an empty ruler at the top of
 // each table's box, as wide as the box and never taller, so stacking, which only makes the box

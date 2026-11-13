@@ -1,9 +1,12 @@
-//! The page's frame (#384): what stands above every page's text and below it. The product system
-//! opens a page with its header (the horizontal lockup at 24 px in one color, Void on light and
-//! Paper on dark, then the navigation, with no menu button above 720 px) and ends it with a title
-//! block, its fields from ISO 7200 (`web.md`, *Page anatomy*), as the `header` and `footer`
-//! landmarks (`web.md`, *Accessibility*). mdBook 0.5 draws a menu bar with the book's name, shows
-//! its sidebar only from 1,080 px with a menu button below, and ends a page with its arrows.
+//! The page's frame (#384, ADR-343): what stands above every page's text and below it. The
+//! product system opens a page with its header (the horizontal lockup at 24 px in one color, Void
+//! on light and Paper on dark, then the navigation, with no menu button above 720 px) and ends a
+//! tool's page with a one-line footer (`web.md`, *Page anatomy*, at the pinned revision), as the
+//! `header` and `footer` landmarks (`web.md`, *Accessibility*). A docs site is a tool
+//! (`principles.md`, *Three levels*); its print page, the whole guide on paper, is a record and
+//! keeps the title block, its fields from ISO 7200. mdBook 0.5 draws a menu bar with the book's
+//! name, shows its sidebar only from 1,080 px with a menu button below, and ends a page with its
+//! arrows.
 //!
 //! After mdBook builds the site, and after [`super::chrome`] has made the menu bar's title a
 //! paragraph, [`draw`] rewrites every page of the guide:
@@ -15,17 +18,25 @@
 //! - mdBook's script that shows the sidebar from 1,080 px, after what an earlier visit left,
 //!   shows it from 720 px whatever was left (`theme/hpr.css` hides the menu button there, and
 //!   `theme/hpr.js` opens the sidebar when a window widens past 720 px);
-//! - every page ends with the system's title block in a `footer`, after the page's arrows. Its
-//!   entries are written once, at the end of the landing page's source (`theme.rs` checks them
-//!   there); after the site's title each page adds its own, its `h1`, as ISO 7200's
-//!   supplementary title (the page field), and the owner's entry carries the mark.
+//! - every page ends with a `footer` after the page's arrows (the print page, which has none,
+//!   after its text): on the print page the system's
+//!   title block, and on every other page the one-line footer, the mark and "FusionSpace HPR",
+//!   the version, the date of issue, the site's status chip ([`super::parts::chip`]) and a link
+//!   to the page about the project, Start here. Their entries are written once, in the title
+//!   block at the end of the landing page's source (`theme.rs` checks them there), which stays
+//!   on that page as its about box (`principles.md`, *Three levels*: a tool's designation and
+//!   status are in its about box); the print
+//!   page's block adds its own title, as ISO 7200's supplementary title (the page field), after
+//!   the site's, and the owner's entry carries the mark.
 //!
 //! Anything the rewrite expects and doesn't find fails the build, so a newer mdBook that changes
 //! its menu bar, its sidebar script or its arrows can't slip by. [`check`] then fails a built
-//! page without the header, its lockup, the 720 px sidebar script or the title block, or with a
-//! title block's fields out of order, a page field not the page's title or an undated issue.
-//! `xtask site`'s page check reads how each is drawn (`pages.rs`, `Kind::Header` and
-//! `Kind::TitleBlock`).
+//! page without the header, its lockup, the 720 px sidebar script or its footer: a footer off the
+//! one line's parts and order, an empty version or an undated issue, a chip not the site's
+//! status, a link not to Start here; on the print page, a title block's fields out of order, a
+//! page field not the page's title or an undated issue. `xtask site`'s page check reads how each
+//! is drawn (`pages.rs`, `Kind::Header`, and `Kind::TitleBlock`, which reads the footer line
+//! and the print page's title block).
 
 use std::collections::HashMap;
 use std::fs;
@@ -90,8 +101,15 @@ const ARROW_LINKS: [(&str, &str, &str); 2] = [
 ];
 /// How [`name_arrows`] opens the name it writes in an arrow.
 const ARROW_NAME: &str = "<span class=\"fs-nav-name\">";
-/// How the title block opens, as [`draw`] writes it.
+/// How the title block opens, as [`draw`] writes it on the print page.
 const FOOTER: &str = "<footer class=\"fs-titleblock\" aria-label=\"Title block\">";
+/// How the one-line footer opens, and its name, as [`draw`] writes them on every other page.
+const FOOT: &str = "<footer class=\"fs-foot\">";
+const FOOT_NAME: &str = "FusionSpace HPR";
+/// The page about the project, which the footer's last entry links to, and the link's words.
+const ABOUT: (&str, &str) = ("start-here.html", "About HPR Sim");
+/// The title block's field that gives the version, whose first word the footer shows.
+const VERSION: &str = "Version";
 /// How the landing page's source opens its title block, where the entries are written.
 const SOURCE_BLOCK: &str = "<div class=\"title-block\">";
 /// The landing page, built twice, and the page holding every chapter, which has no arrows and
@@ -181,8 +199,9 @@ type Entries = Vec<(String, String)>;
 
 /// Draws the frame of every page of the guide under `output` (the API reference, under `api/`,
 /// is rustdoc's). Returns how many pages it drew, or every page's problems.
-pub(super) fn draw(output: &Path) -> Result<usize, String> {
+pub(super) fn draw(output: &Path, status: &str) -> Result<usize, String> {
     let (lockup, mark) = drawn_logos()?;
+    let chip = super::parts::chip(status)?;
     let landing = output.join(LANDINGS[0]);
     let html = fs::read_to_string(&landing)
         .map_err(|err| format!("could not read {}: {err}", landing.display()))?;
@@ -209,7 +228,7 @@ pub(super) fn draw(output: &Path) -> Result<usize, String> {
         let path = output.join(name);
         let html = fs::read_to_string(&path)
             .map_err(|err| format!("could not read {}: {err}", path.display()))?;
-        let drawn = rewrite(name, &html, &entries, &lockup, &mark)
+        let drawn = rewrite(name, &html, &entries, (&lockup, &mark), &chip)
             .and_then(|html| name_arrows(name, &html, &titles).map_err(|why| vec![why]));
         match drawn {
             Ok(drawn) => {
@@ -419,6 +438,35 @@ fn title_block(name: &str, title: &str, entries: &Entries, mark: &str) -> String
     block
 }
 
+/// The first word of the title block's entry for `field` in `entries`, as text: the version
+/// `0.1.0` of `0.1.0, released 2026-10-08 (...)`.
+fn first_word(entries: &Entries, field: &str) -> String {
+    entries
+        .iter()
+        .find(|(name, _)| name == field)
+        .map_or(String::new(), |(_, entry)| visible(entry))
+        .split([',', ' ', ';'])
+        .next()
+        .unwrap_or("")
+        .to_string()
+}
+
+/// The one-line footer for page `name` (`web.md`, *Page anatomy*, a tool's): the mark and the
+/// product's name, the version and the date of issue from the landing page's `entries`, the
+/// site's status `chip`, and the link to the page about the project, last.
+fn foot_line(name: &str, entries: &Entries, mark: &str, chip: &str) -> String {
+    format!(
+        "{FOOT}<span class=\"fs-foot-name\">{mark}{FOOT_NAME}</span><span>Version {}</span>\
+         <span>Issued {}</span>{chip}<span class=\"fs-push\"><a href=\"{}{}\">{}</a></span>\
+         </footer>",
+        first_word(entries, VERSION),
+        first_word(entries, ISSUED),
+        to_root(name),
+        ABOUT.0,
+        ABOUT.1
+    )
+}
+
 /// Page `name`'s HTML with each of its arrows under the page naming the page it leads to: the
 /// direction (`Previous`, `Next`) and the page's title from `titles`, by path under the site; or
 /// why an arrow can't be named. A page with no arrows (the print page) is left as it is.
@@ -487,24 +535,21 @@ fn linked(name: &str, href: &str) -> String {
     parts.join("/")
 }
 
-/// Page `name`'s HTML with its frame drawn, from the landing page's title block `entries` and
-/// the drawn `lockup` and `mark`; or what the rewrite expected and didn't find.
+/// Page `name`'s HTML with its frame drawn, from the landing page's title block `entries`, the
+/// drawn `lockup` and `mark` and the site's status `chip`; or what the rewrite expected and
+/// didn't find.
 fn rewrite(
     name: &str,
     html: &str,
     entries: &Entries,
-    lockup: &str,
-    mark: &str,
+    (lockup, mark): (&str, &str),
+    chip: &str,
 ) -> Result<String, Vec<String>> {
     let mut problems = Vec::new();
     let mut out = html.to_string();
 
-    // The title block the landing page writes in its text, which every page now ends with.
-    match block_span(&out, SOURCE_BLOCK) {
-        Ok(Some((start, end))) => out.replace_range(start..end, ""),
-        Ok(None) => {}
-        Err(why) => problems.push(why),
-    }
+    // The title block the landing page writes in its text stays there, the site's about box
+    // (`principles.md`, *Three levels*: a tool's designation and status are in its about box).
 
     // The menu bar, a `header` holding the lockup.
     match block_span(&out, MENU_BAR) {
@@ -538,9 +583,14 @@ fn rewrite(
         )),
     }
 
-    // The title block, after the page's arrows, or after its text where it has none.
-    let title = page_title(&out).map_err(|why| vec![why])?;
-    let block = title_block(name, &title, entries, mark);
+    // The footer, after the page's arrows, or after its text where it has none: the title block
+    // on the print page, a record, and the one line on every other.
+    let block = if name == PRINT_PAGE {
+        let title = page_title(&out).map_err(|why| vec![why])?;
+        title_block(name, &title, entries, mark)
+    } else {
+        foot_line(name, entries, mark, chip)
+    };
     let after = match out.find(ARROWS) {
         Some(start) => out[start..]
             .find("</nav>")
@@ -562,9 +612,11 @@ fn rewrite(
     }
 }
 
-/// Checks the guide's built pages under `output`: each has the frame [`draw`] gives it.
-pub(super) fn check(output: &Path) -> Result<Vec<String>, String> {
+/// Checks the guide's built pages under `output`: each has the frame [`draw`] gives it, its
+/// footer's chip the site's `status`.
+pub(super) fn check(output: &Path, status: &str) -> Result<Vec<String>, String> {
     let (lockup, mark) = drawn_logos()?;
+    let chip = super::parts::chip(status)?;
     let mut names = Vec::new();
     html_files(output, "", &mut names)?;
     let mut problems = Vec::new();
@@ -576,7 +628,7 @@ pub(super) fn check(output: &Path) -> Result<Vec<String>, String> {
         let html = fs::read_to_string(&path)
             .map_err(|err| format!("could not read {}: {err}", path.display()))?;
         problems.extend(
-            page_problems(&html, &lockup, &mark)
+            page_problems(name, &html, (&lockup, &mark), &chip)
                 .into_iter()
                 .map(|why| format!("{name}: {why}")),
         );
@@ -595,12 +647,14 @@ fn elements<'a>(html: &'a str, tag: &'a str) -> impl Iterator<Item = (usize, &'a
     found.into_iter()
 }
 
-/// What one built page lacks of its frame: one `header`, the menu bar, holding the lockup as
+/// What built page `name` lacks of its frame: one `header`, the menu bar, holding the lockup as
 /// drawn; the sidebar, its box and its menu button, once each; mdBook's sidebar script shown
-/// from 720 px, not 1,080; one `footer`, the title block,
-/// after the page's `main`, with ISO 7200's fields in order, the page's own title, the mark and a
-/// date of issue; and no title block left in the page's text.
-fn page_problems(html: &str, lockup: &str, mark: &str) -> Vec<String> {
+/// from 720 px, not 1,080; one `footer` after the page's `main`: on the print page the title
+/// block, with ISO 7200's fields in order, the page's own title, the mark and a date of issue,
+/// and on every other page the one-line footer ([`foot_problems`]) with the site's status
+/// `chip`; and the landing page's title block in its text (its about box) once, on no other page
+/// but the print page, which holds that chapter.
+fn page_problems(name: &str, html: &str, (lockup, mark): (&str, &str), chip: &str) -> Vec<String> {
     let mut problems = Vec::new();
     let headers: Vec<(usize, &str)> = elements(html, "header").collect();
     match headers.as_slice() {
@@ -656,34 +710,96 @@ fn page_problems(html: &str, lockup: &str, mark: &str) -> Vec<String> {
             ));
         }
     }
-    if html.contains(SOURCE_BLOCK) {
-        problems.push("the landing page's title block is left in the page's text".to_string());
+    // The landing page's title block, its about box, stays in its text; the print page holds it
+    // in that chapter. No other page has one.
+    let about = html.matches(SOURCE_BLOCK).count();
+    if LANDINGS.contains(&name) && about != 1 {
+        problems.push(format!(
+            "the landing page's title block, its about box, is in its text {about} times, not once"
+        ));
+    } else if !LANDINGS.contains(&name) && name != PRINT_PAGE && about > 0 {
+        problems.push("a title block in the text of a page other than Start here".to_string());
     }
     let footers: Vec<(usize, &str)> = elements(html, "footer").collect();
     let main_end = html.rfind("</main>");
+    let (open, what) = if name == PRINT_PAGE {
+        (FOOTER, "the title block")
+    } else {
+        (FOOT, "the one-line footer")
+    };
     match footers.as_slice() {
-        [(at, footer)] if footer.starts_with(FOOTER) => {
+        [(at, footer)] if footer.starts_with(open) => {
             if main_end.is_none_or(|end| end > *at) {
-                problems.push("the title block isn't after the page's `main`".to_string());
+                problems.push(format!("{what} isn't after the page's `main`"));
             }
             let block = footer
                 .split_once("</footer>")
                 .map_or("", |(block, _)| block);
-            problems.extend(block_problems(html, block, mark));
+            if name == PRINT_PAGE {
+                problems.extend(block_problems(html, block, mark));
+            } else {
+                problems.extend(foot_problems(name, block, mark, chip));
+            }
         }
-        [_] => problems.push(format!(
-            "the one `footer` isn't the title block (`{FOOTER}`)"
-        )),
+        [_] => problems.push(format!("the one `footer` isn't {what} (`{open}`)")),
         _ => problems.push(format!(
-            "{} `footer` (a page has one, the title block)",
+            "{} `footer` (a page has one, {what})",
             footers.len()
         )),
     }
     problems
 }
 
-/// The fields every page's title block draws, in order: the landing page's, with the page's own
-/// title after the site's.
+/// What is wrong with one-line footer `foot` (from its opening to its end, less `</footer>`) on
+/// page `name`: its parts not the mark and the product's name, `Version` and a version, `Issued`
+/// and a date `YYYY-MM-DD`, the site's status `chip`, and the link to Start here from the page,
+/// in that order; or a title block's field in it.
+fn foot_problems(name: &str, foot: &str, mark: &str, chip: &str) -> Vec<String> {
+    let mut problems = Vec::new();
+    let mut rest = foot.strip_prefix(FOOT).unwrap_or(foot);
+    let mut take = |part: &str| -> Option<String> {
+        let after = rest.strip_prefix(part)?;
+        let (inner, tail) = after.split_once("</span>")?;
+        rest = tail;
+        Some(inner.to_string())
+    };
+    match take("<span class=\"fs-foot-name\">") {
+        Some(inner) if inner == format!("{mark}{FOOT_NAME}") => {}
+        _ => problems.push(format!(
+            "the footer doesn't open with the mark and {FOOT_NAME}"
+        )),
+    }
+    match take("<span>Version ") {
+        Some(version) if !version.is_empty() && !version.contains('<') => {}
+        _ => problems.push("the footer's second entry isn't `Version` and a version".to_string()),
+    }
+    match take("<span>Issued ") {
+        Some(date) if super::theme::is_date(&date) => {}
+        other => problems.push(format!(
+            "the footer's third entry isn't `Issued` and a date YYYY-MM-DD (`{}`)",
+            other.unwrap_or_default()
+        )),
+    }
+    match rest.strip_prefix(chip) {
+        Some(tail) => rest = tail,
+        None => problems.push("the footer's fourth entry isn't the site's status chip".to_string()),
+    }
+    let link = format!(
+        "<span class=\"fs-push\"><a href=\"{}{}\">{}</a></span>",
+        to_root(name),
+        ABOUT.0,
+        ABOUT.1
+    );
+    if rest != link {
+        problems.push(format!(
+            "the footer doesn't end with its link to the page about the project (`{link}`)"
+        ));
+    }
+    problems
+}
+
+/// The fields the print page's title block draws, in order: the landing page's, with the page's
+/// own title after the site's.
 fn built_fields() -> Vec<&'static str> {
     let mut fields = Vec::with_capacity(FIELDS.len() + 1);
     for field in FIELDS {
@@ -754,6 +870,8 @@ mod tests {
             .map(|field| {
                 let entry = match *field {
                     ISSUED => format!("<span id=\"issue-date\">{date}</span>"),
+                    VERSION => "1.2.3, released 2026-10-08 (<a href=\"https://x.test/\">notes</a>)"
+                        .to_string(),
                     "Status" => "IN PREPARATION: how far to trust it is \
                                  <a href=\"#accuracy-so-far\">above</a>"
                         .to_string(),
@@ -786,16 +904,21 @@ mod tests {
         )
     }
 
+    /// The chip of a site in preparation.
+    fn chip() -> String {
+        super::super::parts::chip("IN PREPARATION").unwrap()
+    }
+
     fn drawn(name: &str, html: &str, date: &str) -> String {
         let (lockup, mark) = drawn_logos().unwrap();
         let landing = page("Start here", &source(date));
         let entries = source_entries(&landing).unwrap();
-        rewrite(name, html, &entries, &lockup, &mark).unwrap()
+        rewrite(name, html, &entries, (&lockup, &mark), &chip()).unwrap()
     }
 
-    fn problems(html: &str) -> Vec<String> {
+    fn problems(name: &str, html: &str) -> Vec<String> {
         let (lockup, mark) = drawn_logos().unwrap();
-        page_problems(html, &lockup, &mark)
+        page_problems(name, html, (&lockup, &mark), &chip())
     }
 
     #[test]
@@ -821,13 +944,18 @@ mod tests {
     }
 
     #[test]
-    fn a_page_gets_the_header_the_sidebar_and_the_title_block() {
+    fn a_page_gets_the_header_the_sidebar_and_the_footer() {
+        let name = "guide/a.html";
         let html = drawn(
-            "guide/a.html",
+            name,
             &page("A <code>page</code>", "<p>Text.</p>\n"),
             "2026-10-10",
         );
-        assert!(problems(&html).is_empty(), "{:?}", problems(&html));
+        assert!(
+            problems(name, &html).is_empty(),
+            "{:?}",
+            problems(name, &html)
+        );
         assert!(html.contains(&format!("{HEADER}\n")), "{html}");
         assert!(html.contains("</div>\n</header>\n"), "{html}");
         assert!(
@@ -838,33 +966,44 @@ mod tests {
             html.contains(SIDEBAR_DRAWN) && !html.contains("1080"),
             "{html}"
         );
-        // The title block follows the arrows, its title the page's, its links pointed from the
-        // page's folder.
-        let footer = html.split_once(FOOTER).unwrap().1;
-        assert!(html.find("</nav>").unwrap() < html.find(FOOTER).unwrap());
-        assert!(footer.contains("<span class=\"k\">Page</span><span class=\"v\">A page</span>"));
+        // The one-line footer follows the arrows: the mark and the name, the version's first
+        // word, the date of issue, the status chip, and the link to Start here from the page's
+        // folder. No title block.
+        assert!(!html.contains(FOOTER), "{html}");
+        let footer = html.split_once(FOOT).unwrap().1;
+        assert!(html.find("</nav>").unwrap() < html.find(FOOT).unwrap());
         assert!(
-            footer.contains("href=\"../start-here.html#accuracy-so-far\""),
+            footer.contains(
+                "FusionSpace HPR</span><span>Version 1.2.3</span><span>Issued \
+                             2026-10-10</span><span class=\"fs-status\" data-state=\"info\">"
+            ),
             "{footer}"
         );
-        assert!(footer.contains("href=\"../weather.html\""), "{footer}");
-        assert!(footer.contains(">2026-10-10</span>"), "{footer}");
+        assert!(
+            footer.ends_with(
+                "In preparation</span><span class=\"fs-push\"><a href=\"../start-here.html\">About \
+                 HPR Sim</a></span></footer>\n</div>\n</div>\n</body>"
+            ),
+            "{footer}"
+        );
     }
 
     #[test]
-    fn the_landing_page_moves_its_title_block_to_its_end() {
+    fn the_landing_page_keeps_its_title_block_as_its_about_box() {
         let html = drawn(
             "index.html",
             &page("Start here", &source("2026-10-10")),
             "2026-10-10",
         );
-        assert!(problems(&html).is_empty(), "{:?}", problems(&html));
-        assert!(!html.contains(SOURCE_BLOCK), "{html}");
-        let footer = html.split_once(FOOTER).unwrap().1;
-        assert!(footer.contains("href=\"#accuracy-so-far\""), "{footer}");
-        assert!(footer.contains("href=\"weather.html\""), "{footer}");
         assert!(
-            footer.contains("<span class=\"v\">Start here</span>"),
+            problems("index.html", &html).is_empty(),
+            "{:?}",
+            problems("index.html", &html)
+        );
+        assert_eq!(html.matches(SOURCE_BLOCK).count(), 1, "{html}");
+        let footer = html.split_once(FOOT).unwrap().1;
+        assert!(
+            footer.contains("<a href=\"start-here.html\">About HPR Sim</a>"),
             "{footer}"
         );
     }
@@ -878,9 +1017,36 @@ mod tests {
                 "",
             );
         let html = drawn(PRINT_PAGE, &print, "2026-10-10");
-        assert!(problems(&html).is_empty(), "{:?}", problems(&html));
+        assert!(
+            problems(PRINT_PAGE, &html).is_empty(),
+            "{:?}",
+            problems(PRINT_PAGE, &html)
+        );
+        assert!(!html.contains(FOOT), "{html}");
         assert!(html.contains("<span class=\"v\">The book</span>"), "{html}");
         assert!(html.find("</main>").unwrap() < html.find(FOOTER).unwrap());
+        // Its entries, links pointed from the site's root.
+        let footer = html.split_once(FOOTER).unwrap().1;
+        assert!(
+            footer.contains("href=\"start-here.html#accuracy-so-far\""),
+            "{footer}"
+        );
+        assert!(footer.contains("href=\"weather.html\""), "{footer}");
+        assert!(footer.contains(">2026-10-10</span>"), "{footer}");
+        // The one-line footer on the print page, or the title block on another, fails.
+        let swapped = drawn("a.html", &page("A", ""), "2026-10-10");
+        let on_print = problems(PRINT_PAGE, &swapped);
+        assert!(
+            on_print.iter().any(|f| f.contains("isn't the title block")),
+            "{on_print:?}"
+        );
+        let on_page = problems("a.html", &html);
+        assert!(
+            on_page
+                .iter()
+                .any(|f| f.contains("isn't the one-line footer")),
+            "{on_page:?}"
+        );
     }
 
     #[test]
@@ -907,7 +1073,7 @@ mod tests {
             ),
             ("no arrows", ordinary.replace(ARROWS, "<nav>"), "arrows"),
         ] {
-            let found = rewrite("a.html", &html, &entries, &lockup, &mark).unwrap_err();
+            let found = rewrite("a.html", &html, &entries, (&lockup, &mark), &chip()).unwrap_err();
             assert!(found.iter().any(|f| f.contains(why)), "{what}: {found:?}");
         }
         let unclosed = format!("{SOURCE_BLOCK}<table><tbody><tr><td>Owner</td><td>x</td></tr>");
@@ -923,10 +1089,11 @@ mod tests {
     #[test]
     fn a_page_without_its_frame_fails() {
         let good = drawn("a.html", &page("A", ""), "2026-10-10");
-        assert!(problems(&good).is_empty());
-        let footer_at = good.find(FOOTER).unwrap();
+        assert!(problems("a.html", &good).is_empty());
+        let footer_at = good.find(FOOT).unwrap();
         let footer_end = good[footer_at..].find("</footer>").unwrap() + footer_at + 9;
-        let cases: [(&str, String, &str); 10] = [
+        let released = super::super::parts::chip("RELEASED").unwrap();
+        let cases: [(&str, String, &str); 13] = [
             (
                 "mdBook's bar",
                 good.replace(HEADER, MENU_BAR)
@@ -949,25 +1116,30 @@ mod tests {
                 "720 px",
             ),
             (
-                "no title block",
+                "no footer",
                 format!("{}{}", &good[..footer_at], &good[footer_end..]),
                 "0 `footer`",
             ),
             (
                 "a block in the text",
                 good.replace("<main>", &format!("<main>{SOURCE_BLOCK}</div>")),
-                "left in",
+                "other than Start here",
             ),
             (
-                "a block inside main",
+                "a footer inside main",
                 good.replace("</main>", "")
                     .replace("</footer>", "</footer></main>"),
                 "after the page's `main`",
             ),
             (
-                "another title",
-                good.replace("<span class=\"v\">A</span>", "<span class=\"v\">B</span>"),
-                "not the page's",
+                "no mark",
+                good.replacen("class=\"fs-mark\"", "class=\"x\"", 1),
+                "the mark and FusionSpace HPR",
+            ),
+            (
+                "no version",
+                good.replace("<span>Version 1.2.3</span>", "<span>1.2.3</span>"),
+                "`Version` and a version",
             ),
             (
                 "no date",
@@ -975,17 +1147,29 @@ mod tests {
                 "YYYY-MM-DD",
             ),
             (
-                "fields swapped",
-                good.replacen(
-                    "<span class=\"k\">Units</span>",
-                    "<span class=\"k\">Data</span>",
-                    1,
+                "another status",
+                good.replace(&chip(), &released),
+                "status chip",
+            ),
+            (
+                "the link elsewhere",
+                good.replace(
+                    "href=\"start-here.html\">About",
+                    "href=\"index.html\">About",
                 ),
-                "fields",
+                "page about the project",
+            ),
+            (
+                "the parts swapped",
+                good.replace(&chip(), "").replace(
+                    "<span>Version 1.2.3</span>",
+                    &format!("{}<span>Version 1.2.3</span>", chip()),
+                ),
+                "`Version` and a version",
             ),
         ];
         for (what, html, why) in cases {
-            let found = problems(&html);
+            let found = problems("a.html", &html);
             assert!(found.iter().any(|f| f.contains(why)), "{what}: {found:?}");
         }
         for mark in [
@@ -995,19 +1179,54 @@ mod tests {
         ] {
             let without = good.replacen(mark, "<nav", 1);
             assert!(
-                problems(&without)
+                problems("a.html", &without)
                     .iter()
                     .any(|f| f.contains("0 times, not once")),
                 "{mark}: {:?}",
-                problems(&without)
+                problems("a.html", &without)
             );
         }
-        let unmarked = good.replacen("class=\"fs-mark\"", "class=\"x\"", 1);
-        assert!(
-            problems(&unmarked).iter().any(|f| f.contains("mark")),
-            "{:?}",
-            problems(&unmarked)
-        );
+        // The print page's title block: its title, its date, its fields and its mark.
+        let print = page("One", "<h1 id=\"two\">Two</h1>\n")
+            .replace("<body>", "<title>The book</title>\n<body>")
+            .replace(
+                &format!("{ARROWS}\n<a rel=\"next\" href=\"b.html\"></a>\n</nav>\n"),
+                "",
+            );
+        let book = drawn(PRINT_PAGE, &print, "2026-10-10");
+        assert!(problems(PRINT_PAGE, &book).is_empty());
+        for (what, html, why) in [
+            (
+                "another title",
+                book.replace(
+                    "<span class=\"v\">The book</span>",
+                    "<span class=\"v\">B</span>",
+                ),
+                "not the page's",
+            ),
+            (
+                "no date",
+                book.replace("2026-10-10", "the date"),
+                "YYYY-MM-DD",
+            ),
+            (
+                "fields swapped",
+                book.replacen(
+                    "<span class=\"k\">Units</span>",
+                    "<span class=\"k\">Data</span>",
+                    1,
+                ),
+                "fields",
+            ),
+            (
+                "no mark",
+                book.replacen("class=\"fs-mark\"", "class=\"x\"", 1),
+                "mark",
+            ),
+        ] {
+            let found = problems(PRINT_PAGE, &html);
+            assert!(found.iter().any(|f| f.contains(why)), "{what}: {found:?}");
+        }
     }
 
     #[test]
@@ -1079,7 +1298,7 @@ mod tests {
         assert!(!named.contains("aria-label=\"Next chapter\""));
         // The file check passes the named arrows and fails mdBook's own.
         let problem = |html: &str| {
-            page_problems(html, "", "")
+            page_problems("a.html", html, ("", ""), "")
                 .into_iter()
                 .any(|p| p.contains("arrows under the page name the page"))
         };

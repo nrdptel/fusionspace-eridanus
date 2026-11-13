@@ -28,7 +28,7 @@ adds a source.
 
 - **The FusionSpace copy icon** (`docs/images/copy.svg`, the documentation site's copy button):
   `product/icons/copy.svg` of [fusionspace-design](https://github.com/nrdptel/fusionspace-design)
-  at `1b88597` (product system Rev E), its `currentColor` stroke set to `#0B0F1C` (Void, the system's darkest ink). Like the
+  at `dd7552f` (product system Rev E), its `currentColor` stroke set to `#0B0F1C` (Void, the system's darkest ink). Like the
   brand files above, it is the project owner's, Neer Patel's, under fusionspace-design's `LICENSE`:
   all rights reserved, and **not** covered by this repository's MIT or Apache-2.0 license. A fork
   that isn't a FusionSpace project removes it or draws its own (ADR-164).
@@ -36,7 +36,7 @@ adds a source.
 - **The FusionSpace HPR link preview card** (`docs/images/og-image-dark.png`, the image every page
   of the documentation site names in its Open Graph tags, served at
   `https://hpr.fusionspace.co/images/og-image-dark.png`): `kit/projects/achernar/og-image-dark.png`
-  of [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `1b88597` (product
+  of [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `dd7552f` (product
   system Rev E; the same file at `075d567`), made by its `tools/build/project.py` for
   `FS-ACHERNAR · SW · TOOL 001` like the brand files above, unchanged, compared with that revision
   by `cargo xtask site` when `refs/fusionspace-design` is checked out. Like the brand files above,
@@ -49,7 +49,7 @@ adds a source.
   site's menu bar, page arrows, search field, code buttons and status chips; `theme/favicon.svg` and
   `theme/favicon.png`, its favicon): `product/icons/` and `kit/web/favicon.svg` and
   `kit/web/favicon-32.png` of [fusionspace-design](https://github.com/nrdptel/fusionspace-design)
-  at `1b88597` (product system Rev E), unchanged, compared with that revision by `cargo xtask site`
+  at `dd7552f` (product system Rev E), unchanged, compared with that revision by `cargo xtask site`
   when `refs/fusionspace-design` is checked out (ADR-228). Like the brand files above, they are the
   project owner's, Neer Patel's, under fusionspace-design's `LICENSE`: all rights reserved, and
   **not** covered by this repository's MIT or Apache-2.0 license. A fork that isn't a FusionSpace
@@ -58,8 +58,8 @@ adds a source.
 
 - **The FusionSpace lockup and mark** (`theme/logo/fusion-space-horizontal-void.svg` and
   `theme/logo/fusion-space-mark-void.svg`, whose paths the documentation site draws inline, in the
-  text's color, in every page's header and title block): `kit/logo/svg/` of
-  [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `1b88597`, unchanged,
+  text's color, in every page's header, in the footer line of every page but the print page, and in the print page's title block): `kit/logo/svg/` of
+  [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `dd7552f`, unchanged,
   compared with that revision by `cargo xtask site` when `refs/fusionspace-design` is checked out
   (ADR-229). They are the FusionSpace trademarks, the project owner's, Neer Patel's, under
   fusionspace-design's `LICENSE` and `TRADEMARKS.md`: all rights reserved, and **not** covered by
@@ -69,7 +69,7 @@ adds a source.
 
 - **The FusionSpace mdBook theme** (`theme/fusionspace-mdbook.css`, served by the documentation
   site): `product/web/mdbook/fusionspace-mdbook.css` of
-  [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `1b88597` (product system
+  [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `dd7552f` (product system
   Rev E), unchanged, with its `SPDX-License-Identifier: Apache-2.0` line. Copyright 2026 Neer
   Patel, Apache-2.0 alone inside this MIT-or-Apache-2.0 project; the license grants no rights to
   the FusionSpace name or logo. `cargo xtask site` compares it with the pinned revision when
@@ -77,7 +77,7 @@ adds a source.
 
 - **The FusionSpace page check** (`xtask/src/site/fusionspace-check.js`, which the documentation
   site's page check runs, not shipped): `product/web/check/fusionspace-check.js` of
-  [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `1b88597` (product system
+  [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `dd7552f` (product system
   Rev E), unchanged, with its `SPDX-License-Identifier: Apache-2.0` line: the numbers the system's
   web rules set (the type scale, the reading scale, the widths) and the code that measures
   them. Copyright 2026 Neer Patel, Apache-2.0 alone inside this MIT-or-Apache-2.0
@@ -86,22 +86,22 @@ adds a source.
 
 - **The FusionSpace terminal styles** (`crates/hpr-cli/src/fs_style.rs`, compiled into `hpr`):
   `product/cli/fs_style.rs` of [fusionspace-design](https://github.com/nrdptel/fusionspace-design)
-  at `1b88597` (product system Rev E), unchanged, with its `SPDX-License-Identifier: Apache-2.0`
+  at `dd7552f` (product system Rev E), unchanged, with its `SPDX-License-Identifier: Apache-2.0`
   line. Copyright 2026 Neer Patel, Apache-2.0 alone inside this MIT-or-Apache-2.0 project; the
   license grants no rights to the FusionSpace name or logo. A test in `crates/hpr-cli/tests/style.rs`
   compares it with the pinned revision when `refs/fusionspace-design` is checked out (ADR-174).
 
 - **Archivo and Cascadia Mono** (`theme/fonts/*.woff2`, served by the documentation site): the
-  product system's WOFF2 subsets from `product/web/fonts/` at `1b88597`, unchanged, under the SIL
+  product system's WOFF2 subsets, Archivo's wide semibold cut among them, from `product/web/fonts/` at `dd7552f`, unchanged, under the SIL
   Open Font License 1.1, whose texts sit beside them (`OFL-Archivo.txt`: The Archivo Project
   Authors; `OFL-CascadiaMono.txt`: Microsoft Corporation, Reserved Font Name Cascadia Code). The
   `@font-face` rules in `theme/fonts/fonts.css` are the product system's `product/web/fonts.css`
-  at `1b88597` (Apache-2.0), each address without its `fonts/` folder, as mdBook serves the file
+  at `dd7552f` (Apache-2.0), each address without its `fonts/` folder, as mdBook serves the file
   beside the fonts.
 
 - **New Computer Modern Math, subset** (`theme/fonts/NewCMMathSubset-Book.woff2`, served by the
   documentation site to draw its equations): the product system's WOFF2 subset from
-  `product/web/fonts/` at `1b88597`, unchanged, of New Computer Modern Math Book 8.1.1 by Antonis
+  `product/web/fonts/` at `dd7552f`, unchanged, of New Computer Modern Math Book 8.1.1 by Antonis
   Tsolomitis (CTAN `fonts/newcomputermodern`). It is under the GUST Font License, which is the
   LaTeX Project Public License 1.3c; both texts sit beside it (`GUST-FONT-LICENSE-NewCMMath.txt`,
   `LPPL-1.3c.txt`). The subset keeps fewer characters and maps each prime to its script-size

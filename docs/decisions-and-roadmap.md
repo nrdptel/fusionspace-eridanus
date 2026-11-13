@@ -371,6 +371,7 @@ until someone rewrites it in plainer words.
 | [ADR-340: A stage's overrides leave its parts in place, as OpenRocket weighs them][adr-340] | A `.ork` stage whose mass or center of gravity override covers its parts now keeps the parts where the design puts them, as OpenRocket 24.12 does. Its inertia is the parts' about the stage's center. Before, HPR Sim moved and rescaled the stage as one body. On six of [M2.3d7](#m2-3d7)'s eight probes the inertia now matches OpenRocket's within [ADR-336][adr-336]'s bounds; it ran from 11.04% under to 400.5% over. On the two with the override on a lower stage, OpenRocket's figure is below what the stage's parts alone have about its center: the rocket's inertia across the axis is now 4.95% and 3.33% over (it was 1.5% and 18.5%), pinned. The collection's mean absolute apogee error goes from 12.07% to 12.04%. |  |
 | [ADR-341: M2.3d8 in five, a parallel stage's added mass first][adr-341] | A parallel stage in an OpenRocket file, boosters strapped beside the core, can carry a mass override that doesn't cover its parts. HPR Sim warned of one and held the design back. It now reads it as OpenRocket 24.12 weighs it: one mass added to the set of boosters, at their center or at a stated station. Of 49 new probe designs HPR Sim lays out 27, and on the 25 of those with boosters the parallel stage alone matches OpenRocket's mass, center and both inertias. The probes also show cases this change doesn't fly, so [M2.3d8](#m2-3d8) is split in five, and four increments stay open. |  |
 | [ADR-342: The errors before the remaining OpenRocket-parity probes][adr-342] | The five public flights whose predictions were merged first are now compared with their logs. `cargo xtask real-flights` flies all 12 public flights and prints each of the five merged predictions beside its log's apogee and its error: Astra −6.53%, Andromeda +4.14%, Erebus 11 −9.58%, and the two Macie XL flights −16.20% and −29.16%. Over the 12 the mean absolute apogee error is 9.00% and the mean with its sign is −4.91%; over the seven compared before, they were 6.06% and −0.22%. No prediction was revised. The work left on how an OpenRocket file's stage overrides are read moves behind the accuracy work: it checks HPR Sim against OpenRocket on probe designs, and the logs are what decide accuracy. |  |
+| [ADR-343: The docs site drawn as a tool: the frame off][adr-343] | The docs site follows the product system at `dd7552f`, the commit that gave it three levels, and is drawn as a tool. Pages lose the designation tag and the sheet numbers; each `##` section is a part under a 2 px rule. Every page but the print page ends with a one-line footer: the mark and "FusionSpace HPR", the version, the date of issue, the site's status chip and a link to Start here. Start here keeps the title block as the site's about box, and the print page still ends with it. Labels, navigation, note heads, chips and the switch are in Archivo, in sentence case, at the system's web sizes; CAUTION and WARNING keep capitals, in the wide cut. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -557,7 +558,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-16a2"></a>[M0.16a2][done-0] | The fit's slice | done |
 | <a id="m0-16a3"></a>[M0.16a3][done-0] | The budget checked | done |
 | <a id="m0-17"></a>[M0.17][phase-0] | The docs site at the tool level | not yet done |
-| <a id="m0-17a"></a>[M0.17a][phase-0] | The frame off | not yet done |
+| <a id="m0-17a"></a>[M0.17a][done-0] | The frame off | done |
 | <a id="m0-17b"></a>[M0.17b][phase-0] | Field | not yet done |
 | <a id="m1-1"></a>[M1.1][done-1] | Vectors and rotations, frames, the Earth's shape and gravity | done |
 | <a id="m1-2"></a>[M1.2][done-1] | The atmosphere and wind | done |
@@ -1389,6 +1390,7 @@ is the milestone that added or will add that test.
 [adr-340]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0340-a-stage-s-overrides-leave-its-parts-in-place-as-openrocket-weighs-them.md
 [adr-341]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0341-m2-3d8-in-five-a-parallel-stage-s-added-mass-first.md
 [adr-342]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0342-the-errors-before-the-remaining-openrocket-parity-probes.md
+[adr-343]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0343-the-docs-site-drawn-as-a-tool-the-frame-off.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

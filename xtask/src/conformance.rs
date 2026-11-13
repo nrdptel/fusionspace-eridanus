@@ -49,7 +49,7 @@ const PRODUCT: &str = "product";
 /// audit.
 const FILES: [(&str, usize); 14] = [
     ("README.md", 6),
-    ("principles.md", 9),
+    ("principles.md", 10),
     ("foundations.md", 7),
     ("writing.md", 9),
     ("review.md", 4),
@@ -504,7 +504,7 @@ fn read(root: &Path, path: &str) -> String {
 mod tests {
     use super::*;
 
-    const COMMIT: &str = "1b88597363b78ea085158565a99bf5756c6e3bb3";
+    const COMMIT: &str = "dd7552f07480b57844435212c60ae8e1d550b1c2";
 
     fn table(rows: &str) -> String {
         format!("# Audit\n\n{PINNED}{COMMIT}`.\n\n{HEADER}\n|---|---|---|---|---|\n{rows}")
@@ -573,7 +573,7 @@ mod tests {
         let problems = run(&both, SECTIONS_OK, moved);
         assert_eq!(problems.len(), 1, "{problems:?}");
         assert!(problems[0].contains("the theme was copied from"));
-        let short = table(&rows_ok()).replace(COMMIT, "1b88597");
+        let short = table(&rows_ok()).replace(COMMIT, "dd7552f");
         assert!(run(&short, SECTIONS_OK, COMMIT)[0].contains("not a full commit"));
     }
 
@@ -616,7 +616,7 @@ mod tests {
                 "a review names the pinned commit",
             ),
             (
-                "| `cli.md` | Output | none | met | reviewed at `1b88597`: fine |",
+                "| `cli.md` | Output | none | met | reviewed at `dd7552f`: fine |",
                 "met, on no surface",
             ),
             (
@@ -653,7 +653,7 @@ mod tests {
             ),
             ("| `cli.md` | Output | CLI | done | M9.4 |", "status `done`"),
             (
-                "| `cli.md` | Output | CLI | met | reviewed at `1b88597` |",
+                "| `cli.md` | Output | CLI | met | reviewed at `dd7552f` |",
                 "a review says what was read",
             ),
             (
@@ -673,7 +673,7 @@ mod tests {
         }
         let reviewed = rows_ok().replace(
             &first,
-            "| `cli.md` | Output | CLI | met | reviewed at `1b8859736`: the help |",
+            "| `cli.md` | Output | CLI | met | reviewed at `dd7552f07`: the help |",
         );
         assert_eq!(
             run(&table(&reviewed), SECTIONS_OK, COMMIT),
@@ -734,7 +734,7 @@ mod tests {
         );
         let other = format!("{SECTIONS_OK}print.md: Margins\n");
         assert!(count_problems(&other, &counts)[0].contains("print.md, which is not audited"));
-        assert_eq!(FILES.iter().map(|(_, n)| n).sum::<usize>(), 112);
+        assert_eq!(FILES.iter().map(|(_, n)| n).sum::<usize>(), 113);
     }
 
     #[test]
