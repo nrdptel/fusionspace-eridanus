@@ -100,6 +100,7 @@ document.addEventListener('click', function (event) {
         toggle.setAttribute('role', 'button');
         toggle.addEventListener('keydown', function (event) {
             if (event.key !== 'Enter' && event.key !== ' ') return;
+            if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) return;
             // The key is the button's: mdBook's handlers on the document would act on it too,
             // following a search result marked as focused on Enter.
             event.preventDefault();

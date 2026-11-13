@@ -3719,7 +3719,8 @@ const ALSO: [(&str, Kind); 1] = [("canary-squeezed.html", Kind::Scrolls)];
 const SIDEBAR_OPEN_FROM_PX: u32 = 720;
 
 /// The canaries whose problem shows only under [`SIDEBAR_OPEN_FROM_PX`], where the table of
-/// contents is put away at load: one put away keeps a box the keyboard focuses (ADR-345).
+/// contents is put away at load, and at the width that reads print, where the harness puts it
+/// away ([`print_width`]): one put away keeps a box the keyboard focuses (ADR-345).
 const NARROW: [&str; 1] = ["canary-sidebar-scroller.html"];
 
 /// The canaries whose problem shows only where the theme switch is pressed, the page loaded with
@@ -4306,7 +4307,9 @@ fn canary_verdict(canary: &Canary, measured: &[Measured]) -> Result<(), String> 
                     && (kind != Kind::Landing || m.landed)
                     && (!PRESSED.contains(&canary.file) || m.printed)
                     && (!KEYED.contains(&canary.file) || m.landed)
-                    && (!NARROW.contains(&canary.file) || m.width < SIDEBAR_OPEN_FROM_PX)
+                    && (!NARROW.contains(&canary.file)
+                        || m.width < SIDEBAR_OPEN_FROM_PX
+                        || m.printed)
             };
             if m.has(kind) != expected {
                 let verb = if expected {
@@ -5345,6 +5348,7 @@ mod tests {
             "scrollPaddingBottom",
             "px when not stuck, a band over the page",
             "a box the keyboard focuses in a sidebar ",
+            "KEYED_BOX + ', by the menu button with no slide'",
         ] {
             assert!(HARNESS_JS.contains(needed), "{needed}");
         }

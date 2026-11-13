@@ -2195,29 +2195,10 @@
         note('header', sel, 'aria-hidden', (hidden ? 'hidden from screen readers' : 'read')
           + ' and ' + reached + ' of ' + links.length + ' links in the tab order, put away');
       }
-      // A sidebar put away with a box the keyboard still focuses (ADR-345): Chrome makes a box
-      // that scrolls and holds nothing focusable a tab stop of its own, so with the links out
-      // of the tab order Tab stopped on the list's box, out of sight, where the sidebar stayed
-      // drawn (with reduced motion set, once opened and shut). A box with a `tabindex` of 0 or
-      // more is one too.
+      // A sidebar put away with a box the keyboard still focuses (`keyedBox`), as it loads.
       if (!shown) {
-        const all = [sidebar].concat(Array.from(sidebar.querySelectorAll('*')));
-        for (const el of all) {
-          const s = win.getComputedStyle(el);
-          const scrolls = (/^(auto|scroll)$/.test(s.overflowY)
-              && el.scrollHeight > el.clientHeight + SLACK_PX)
-            || (/^(auto|scroll)$/.test(s.overflowX) && el.scrollWidth > el.clientWidth + SLACK_PX);
-          const set = el.hasAttribute('tabindex');
-          const inside = Array.from(el.querySelectorAll(
-            'a[href], button, input, select, textarea, [tabindex]')).some(function (c) {
-            return c.tabIndex >= 0;
-          });
-          if ((set && el.tabIndex >= 0) || (scrolls && !set && !inside)) {
-            note('header', selector(el), 'tabindex', 'a box the keyboard focuses in a sidebar '
-              + 'put away');
-            break;
-          }
-        }
+        const box = keyedBox(win, sidebar);
+        if (box) note('header', selector(box), 'tabindex', KEYED_BOX);
       }
       // A list that scrolls in its own box is cut by the box's edge: the box must fade its
       // edges (`fadeOf`), and wherever it fades it must leave room after its last entry, at
@@ -2339,6 +2320,30 @@
     return found;
   }
 
+  // A sidebar put away with a box the keyboard still focuses (ADR-345): Chrome makes a box that
+  // scrolls and holds nothing focusable a tab stop of its own, so with the links out of the tab
+  // order Tab stopped on the list's box, out of sight. mdBook hides a sidebar put away once its
+  // slide ends; with no slide (reduced motion set) it stays drawn off the window's side, as
+  // `probePutAway` leaves it. A box with a `tabindex` of 0 or more is one too. Returns the first
+  // such box, or null.
+  const KEYED_BOX = 'a box the keyboard focuses in a sidebar put away';
+  function keyedBox(win, sidebar) {
+    const all = [sidebar].concat(Array.from(sidebar.querySelectorAll('*')));
+    for (const el of all) {
+      const s = win.getComputedStyle(el);
+      const scrolls = (/^(auto|scroll)$/.test(s.overflowY)
+          && el.scrollHeight > el.clientHeight + SLACK_PX)
+        || (/^(auto|scroll)$/.test(s.overflowX) && el.scrollWidth > el.clientWidth + SLACK_PX);
+      const set = el.hasAttribute('tabindex');
+      const inside = Array.from(el.querySelectorAll(
+        'a[href], button, input, select, textarea, [tabindex]')).some(function (c) {
+        return c.tabIndex >= 0;
+      });
+      if ((set && el.tabIndex >= 0) || (scrolls && !set && !inside)) return el;
+    }
+    return null;
+  }
+
   // The sidebar after a window under 720 px widens past it (#384): the frame is widened to
   // `SIDEBAR_WIDENED_PX` and, once the sidebar's slide has run, the sidebar must be drawn and
   // reached, and no menu button drawn. Returns what is wrong, as the header's examples.
@@ -2417,6 +2422,8 @@
       await settle();
       let now = state();
       if (!now.away) add(selector(sidebar), 'the menu button left it ' + now.said);
+      const box = keyedBox(win, sidebar);
+      if (box) add(selector(box), KEYED_BOX + ', by the menu button with no slide');
       if (!drawn(win, toggle)) add(selector(toggle), 'no menu button to bring the sidebar back');
       const paneEl = doc.querySelector('.page-wrapper');
       const left = paneEl ? paneEl.getBoundingClientRect().left : 0;
