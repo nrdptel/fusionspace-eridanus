@@ -92,7 +92,7 @@ reading scale.
    cut and a trust note in capitals. Code in a heading or a column head takes the heading's
    size, as the system's theme sets it (`font-size: inherit`), so the check accepts Cascadia
    Mono there at the heading's own level and nowhere else, with a canary each way.
-9. **The page arrows' icons stay 16 px.** The system's theme sizes them 1 em of the page's
+9. **The page arrows' icons drop from 24 to 16 px.** The system's theme sizes them 1 em of the page's
    text, the system's 1× the text, which grows to 18 px on a wide window. The page check holds
    each icon in mdBook's chrome (its `.fa-svg` spans) to the system's fixed sizes, 16, 20 and
    24 px, so `hpr.css` holds them at 16 px.
@@ -155,9 +155,9 @@ reading scale.
 - The figures `hpr sim --plot` draws and anything exported as a report stay records with the title block
   ([ADR-339][adr-339] §2).
 - The page check's canaries change with the frame: those for the tag and the sheet numbers now
-  fail as a record's frame drawn; the chip's canaries check it in the footer. The tests hold
-  the canaries of the header, the parts, the footers and title blocks, and the page on paper to
-  the counts there are: 21, 14, 20 and 19.
+  fail as a record's frame drawn; the chip's canaries check it in the footer. The tests set
+  the least number of canaries of the header, the parts, the footers and title blocks, and the
+  page on paper at the counts there are: 21, 14, 20 and 19.
 - [M0.17b][m0-17b] adds the Field theme and the acceptance pass for the whole restyle.
 
 **The design audit.** Moving the pin reopens the [audit][audit] ([ADR-284][adr-284]).
