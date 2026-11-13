@@ -26,8 +26,8 @@ What is left, surveyed on `main` at 7669cadc:
   (`xtask/src/site/pages.js`) knows two themes, light and navy: their color roles, their
   action color, which code stylesheet each loads, the theme each page is read in after the one
   it loads in, the print reading's comparison, and the switch's own check. Each needs Field
-  added, with canaries that fail without it. Reading every page in a third theme lengthens the
-  site step, on this machine and on CI's runners.
+  added, with canaries that fail without it. Reading every page in a third theme may lengthen
+  the site step, on this machine and on CI's runners.
 - **The acceptance pass.** It covers every page the tasks reach, at the page check's 41
   widths, in every theme the site has, three once Field is in. A reviewer who did not build
   the work runs the tasks and judges the captures, and another who knows none of the code
@@ -56,14 +56,14 @@ Both in one session leaves no room for the reviews and fixes either may need.
    each of Auto (light system), Light, Dark and Field unless the task names one:
    1. Open the landing page and reach the page about launch-day weather from the sidebar, or
       from the menu button on a phone, in two clicks or fewer.
-   2. On the page about aerodynamics, switch to Field, read its first table, equation, code
-      block and note, follow a link to another page, and find Field still chosen there; then
+   2. On the page about Monte Carlo dispersion, switch to Field, read its first table,
+      equation, code block and note, follow a link to another page, and find Field still chosen there; then
       switch back to Auto.
    3. With the keyboard alone, from the top of a page: reach the theme switch, choose Dark,
       reach the sidebar's entry for the current page and the next page's arrow, and follow it.
    4. Print a page from Dark and from Field, in the browser's print preview: it prints in the
-      light theme's colors, with no navigation or switch drawn, and the print page keeps its
-      title block on the cover.
+      light theme's colors, with no navigation or switch drawn, and the print page ends with
+      its title block.
    5. From a page's footer, read its version and date, and follow its link to the page about
       the project.
 

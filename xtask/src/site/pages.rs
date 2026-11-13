@@ -157,9 +157,9 @@
 //!   checked width nearest [`PRINT_PX`], with each media list that names `print` or `screen` set
 //!   to how it applies on paper (a headless browser can't print from a page, so the print rules
 //!   are read, not a printed page), in the theme the page is in and, on mdBook's pages that
-//!   switch, the other:
+//!   switch, the other two:
 //!   - a color off the light theme's roles, or a shape or contrast off the system's, as on
-//!     screen; and on a page that switches, an element drawn in other colors from the other theme;
+//!     screen; and on a page that switches, an element drawn in other colors from another theme;
 //!   - navigation or a control drawn, or anything inside one: a `nav`, a button, a text field,
 //!     a menu or a search;
 //!   - a link drawn out of the page (not to a place on it), in `main` or outside it as the title
@@ -218,7 +218,7 @@
 //! its size with room for all of it, one wider than any window with no zoom, a figure reaching
 //! past a narrow `main` as the theme lays it out, which must pass, a label moved past the
 //! window's edge from such a `main`, a label off the system's colors, the same only in navy (read
-//! after the switch), the same only with scripts off, and only once a delayed change to it has run,
+//! after the switch), a panel in light's rule color only in field, the same only with scripts off, and only once a delayed change to it has run,
 //! the root element off them, a label tinted by a filter, one over a backdrop filter, one with an
 //! image as its `::before`, a search hit in ink, a rounded box, a box with a shadow, a 0.3 s
 //! transition, one at the system's base duration that doesn't snap with reduced motion set and one
@@ -279,6 +279,7 @@
 //! with text below it, and a status chip off the system's; a theme switch drawn and working as the system's, which must
 //! pass, one offering Navy for Dark, one with Light pressed for a first-time reader, one beside
 //! mdBook's theme button drawn, one that sets no theme when pressed, one that keeps a saved Coal,
+//! one whose Field button puts the page in Light, one that forgets a saved Field,
 //! one placed the other way round, one in its places with buttons 32 px tall, also read in the
 //! sidebar opened under 720 px, and, in the header at every width, one with buttons 32 px tall,
 //! one in Cascadia Mono 14 px, one

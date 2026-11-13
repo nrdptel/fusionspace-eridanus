@@ -25,8 +25,9 @@
 // scrolling list, which a menu button opens under 720 px. A script the build writes just after
 // the header puts it there before the page is first drawn, so a phone's first screen doesn't
 // jump (#443); this file moves it when the window's width crosses 960 px. The page check reads
-// where it stands and which button is pressed at every width, presses Dark and then Auto to see
-// the theme follow, and loads the page with Coal saved to see it forgotten.
+// where it stands and which button is pressed at every width, presses Dark, Field and then Auto
+// to see the theme follow, and loads the page with Coal saved to see it forgotten and with Field
+// saved to see it kept.
 //
 // The print page (#443): `cargo xtask site` puts its chapters, every chapter of the guide, in a
 // template behind a cover, as a phone drawing them all on one screen page was slow to load and

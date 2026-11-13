@@ -10,7 +10,7 @@
 //!
 //! - **Nothing is changed but where the rules come from.** Each file is copied whole, with its
 //!   relative `url()`s rewritten to resolve from `theme/`. The files stay where mdBook put them.
-//! - **The code colors are the theme's in both looks.** mdBook links three highlighting
+//! - **The code colors are the theme's in every look.** mdBook links three highlighting
 //!   stylesheets and its script turns two of them off for the reader's theme; the theme's own
 //!   rules (`theme/hpr.css`) give code its colors over all three. The bundle takes the first,
 //!   `highlight.css`, for both looks, and the other two leave only their ids, on empty `<style>`

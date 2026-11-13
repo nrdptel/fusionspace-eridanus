@@ -581,7 +581,7 @@ SVG figure, which the rule covers, joins each number to its unit with one, and a
 Many of the product system's rules are not met yet. The
 [design audit](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/design-conformance.md)
 checks each of its sections against the site, the command line, the exports and the plot. Of
-the 64 sections that apply to them today, 37 are met and 20 are not.
+the 65 sections that apply to them today, 33 are met and 25 are not.
 
 Each gap has an issue and the milestone that closes it. The command line, exports and plot came
 first, then the site's look. Then came the spelling, minus signs, number columns and READMEs.
@@ -912,12 +912,12 @@ code stay in Cascadia Mono.
 - each `##` section is a part. It has a 2 px rule in the text's color across its top, then its
   name. Write each `##` heading in the page's text, not inside another element, or the build
   fails;
-- the header holds a theme switch, three buttons: Auto (the theme your system asks for), Light
-  and Dark, the chosen one filled in. From 960 px it stands in the header. Narrower, the header
+- the header holds a theme switch, four buttons: Auto (the theme your system asks for), Light,
+  Dark and Field, the chosen one filled in. From 960 px it stands in the header. Narrower, the header
   has no room for it, and it stands at the top of the table of contents. The menu button opens
   that below 720 px. The switch needs scripts, so without them it isn't drawn;
-- mdBook's own theme menu, with six themes for two looks, is gone. A reader who had saved one of
-  the other four is put back on Auto.
+- mdBook's own theme menu, with six themes for three looks, is gone. A reader who had saved Coal
+  or Ayu is put back on Auto; mdBook's Rust is Field, and kept.
 
 A file check fails a page:
 
