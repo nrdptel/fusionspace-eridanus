@@ -445,6 +445,11 @@
   const CLEAR_SPACE = 0.25;
   const INKS = ['rgb(11, 15, 28)', 'rgb(243, 244, 247)'];
   const SIDEBAR_OPEN_FROM_PX = 720;
+  // How far the sidebar's list fades at its bottom edge (`hpr.css`): the least room after its
+  // last entry, so the list ends whole above the fade.
+  const SIDEBAR_FADE_PX = 24;
+  // How far it fades at its top edge, over mdBook's 10 px of padding there.
+  const SIDEBAR_FADE_TOP_PX = 10;
   // What an open search field leaves between it and the page (`web.md`, *Page anatomy*), so its
   // focus ring, 2 px wide and 2 px out, never touches the page's first line.
   const SEARCH_GAP_PX = 16;
@@ -1874,6 +1879,15 @@
       const r = active.getBoundingClientRect();
       const shown = seen(active.parentElement, r, !fixed);
       shown.y0 = Math.max(shown.y0, strip);
+      // Under a faded edge of the list's box (`hpr.css`) the entry is only half drawn.
+      const list = active.closest('.sidebar-scrollbox');
+      const fadeMask = list ? (win.getComputedStyle(list).getPropertyValue('mask-image')
+        || win.getComputedStyle(list).getPropertyValue('-webkit-mask-image')) : '';
+      if (list && /gradient/.test(fadeMask || '')) {
+        const b = list.getBoundingClientRect();
+        shown.y0 = Math.max(shown.y0, b.top + SIDEBAR_FADE_TOP_PX);
+        shown.y1 = Math.min(shown.y1, b.bottom - SIDEBAR_FADE_PX);
+      }
       if (shown.y1 - shown.y0 <= SLACK_PX || shown.y0 > r.top + SLACK_PX
         || shown.y1 < r.bottom - SLACK_PX) {
         note('header', selector(active), 'current entry', '"' + snippet(active.textContent)
@@ -1978,6 +1992,20 @@
       } else if (!shown && (!hidden || reached > 0)) {
         note('header', sel, 'aria-hidden', (hidden ? 'hidden from screen readers' : 'read')
           + ' and ' + reached + ' of ' + links.length + ' links in the tab order, put away');
+      }
+      // A list that scrolls in its own box is cut by the box's edge: the box must fade its
+      // bottom edge (a gradient mask) and leave room after its last entry for that entry to
+      // end whole above the fade (`hpr.css`, the sidebar's list).
+      const box = sidebar.querySelector('.sidebar-scrollbox');
+      if (shown && box && box.scrollHeight > box.clientHeight + SLACK_PX) {
+        const s = win.getComputedStyle(box);
+        const mask = s.getPropertyValue('mask-image') || s.getPropertyValue('-webkit-mask-image');
+        const room = parseFloat(s.paddingBottom) || 0;
+        if (!/gradient/.test(mask || '') || room < SIDEBAR_FADE_PX) {
+          note('header', selector(box), 'mask-image', (/gradient/.test(mask || '')
+            ? 'a fade' : 'no fade') + ' and ' + round(room) + ' px after its last entry, '
+            + 'a list that scrolls');
+        }
       }
     }
   }

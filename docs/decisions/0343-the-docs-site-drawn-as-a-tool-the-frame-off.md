@@ -116,6 +116,13 @@ reading scale.
     the title keeps its own row to 779 px as a margin. While the sidebar is shown there, the
     title takes its own row under the buttons, as on a phone, and a heading jumped to clears the
     taller bar.
+14. **The sidebar's list fades at its edges.** The list scrolls in its own box, so the
+    window's bottom edge sliced its last row in half, as a look at the finished pages showed.
+    The box now fades over its last 24 px and its first 10 px, mdBook's padding there, and
+    leaves 32 px after its last entry, so the list ends whole above the fade. The current
+    page's entry must load clear of the fade. Forced colors drop the fade, as they drop every
+    mask. The page check fails a list that scrolls without the fade, or with less room after
+    it, with a canary each way.
 
 **Superseded.**
 
