@@ -107,7 +107,8 @@ reading scale.
     printed without its version or its date of issue, and one that can split across sheets,
     each with a canary.
 12. **Room above the title.** With nothing over it, the intro stands 32 px under the header,
-    one of the system's spacing steps. The tag row over it used to leave 40 px.
+    one of the system's spacing steps. The tag row over it used to leave 40 px, or 72 px where
+    the chip wrapped under the tag on a phone.
 
 **Superseded.**
 
@@ -147,9 +148,9 @@ reading scale.
 - The figures `hpr sim --plot` draws and anything exported as a report stay records with the title block
   ([ADR-339][adr-339] §2).
 - The page check's canaries change with the frame: those for the tag and the sheet numbers now
-  fail as a record's frame drawn; the chip's canaries check it in the footer. The least count
-  of each kind the canaries must show is set to the count there is: 14 for parts, 20 for footers and title
-  blocks.
+  fail as a record's frame drawn; the chip's canaries check it in the footer. The tests hold
+  the canaries of the header, the parts, the footers and title blocks, and the page on paper to
+  the counts there are: 21, 14, 20 and 19.
 - [M0.17b][m0-17b] adds the Field theme and the acceptance pass for the whole restyle.
 
 **The design audit.** Moving the pin reopens the [audit][audit] ([ADR-284][adr-284]).
