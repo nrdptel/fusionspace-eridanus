@@ -57,8 +57,9 @@
 // keep a link just clicked where it was, and under 960 px the switch then takes the top of the
 // sidebar, which shortens the list. Wherever that leaves the list, an entry can sit cut by its
 // top edge, or from 960 px under the 4 px strip along the window's top. So as the page loads,
-// once its fonts are in and when the switch moves, an entry cut there is brought down to stand
-// whole, 4 px below the edge. The reader's own scrolling is left alone. The page check fails text
+// once its fonts are in and when the switch moves, an entry cut there, or under the list's
+// faded top, is brought down to stand whole below the fade (10 px, its scroll padding). The
+// reader's own scrolling is left alone. The page check fails text
 // cut by the strip, or by the top of a box the page leaves scrolled as it loads.
 'use strict';
 
@@ -273,10 +274,11 @@ document.addEventListener('click', function (event) {
 // entry or leaves its centering clamped short: at 768 px it loaded cut by the window's bottom
 // edge, or below it. So while the page loads, once the headings are in and again whenever the
 // list or its entries change size, the entry goes back to the list's middle; after a click on an
-// entry in the sidebar it stays where it is if it shows whole, and goes back to the middle only
-// if it doesn't. Loading ends when the page and its fonts have loaded, or as soon as the reader
-// does anything in the list: after that nothing here moves it but the rule that no entry is left
-// cut by the list's top edge, as the switch moves at 960 px. It settles in the observer's
+// entry in the sidebar it stays where it is if it shows whole and clear of the list's faded
+// edges (`hpr.css`), and goes back to the middle only if it doesn't. Loading ends when the page
+// and its fonts have loaded, or as soon as the reader does anything in the list: after that
+// nothing here moves it but the rule that no entry is left cut by the list's top edge or under
+// its faded top, as the switch moves at 960 px. It settles in the observer's
 // callback, before the frame is drawn, not a frame later.
 (function () {
     const list = document.querySelector('#mdbook-sidebar .sidebar-scrollbox');
@@ -317,24 +319,41 @@ document.addEventListener('click', function (event) {
             bottom: Math.min(top + list.clientHeight, window.innerHeight),
         };
     };
-    // The current page's entry to the list's middle, or only when it isn't whole after a click.
+    // How deep the list's box fades at its top and bottom edges (`hpr.css`): its scroll padding.
+    const fade = function () {
+        const s = window.getComputedStyle(list);
+        return {
+            top: parseFloat(s.scrollPaddingTop) || 0,
+            bottom: parseFloat(s.scrollPaddingBottom) || 0,
+        };
+    };
+    // The current page's entry to the list's middle, or after a click only when it isn't whole
+    // and clear of the faded edges.
     const center = function () {
         const active = list.querySelector('a.active');
         if (!active || list.clientHeight === 0) return;
         const shown = view();
         const box = active.getBoundingClientRect();
-        if (clicked && box.top >= shown.top && box.bottom <= shown.bottom) return;
+        const f = fade();
+        const clear = box.top >= shown.top + f.top && box.bottom <= shown.bottom - f.bottom;
+        if (clicked && clear) return;
         list.scrollTop += (box.top + box.bottom) / 2 - (shown.top + shown.bottom) / 2;
     };
-    // No entry left cut by the list's top edge.
+    // No entry left cut by the list's top edge or under its faded top (`hpr.css`). Once a
+    // position: moving an entry down clear of the fade can leave the one above it ending just
+    // under the edge, and moving that one too would creep the list down an entry each call. A
+    // layout change that leaves the list where it was is skipped too, on purpose.
+    let trimmed = -1;
     const trim = function () {
-        if (list.scrollTop <= 0) return;
+        if (list.scrollTop <= 0 || list.scrollTop === trimmed) return;
         const edge = view().top;
+        const clear = Math.max(4, fade().top);
         const cut = Array.from(list.querySelectorAll('a, .part-title')).find(function (entry) {
             const box = entry.getBoundingClientRect();
-            return box.top < edge && box.bottom > edge;
+            return box.top < edge + clear && box.bottom > edge;
         });
-        if (cut) list.scrollTop -= edge + 4 - cut.getBoundingClientRect().top;
+        if (cut) list.scrollTop -= edge + clear - cut.getBoundingClientRect().top;
+        trimmed = list.scrollTop;
     };
     let loading = true;
     const watch = window.ResizeObserver ? new ResizeObserver(function () { again(); }) : null;
@@ -370,6 +389,8 @@ document.addEventListener('click', function (event) {
         done();
     });
     window.matchMedia('(min-width: 960px)').addEventListener('change', function () {
+        // The switch moves the list's box but not its scroll: trim this position afresh.
+        trimmed = -1;
         if (loading) again();
         else trim();
     });

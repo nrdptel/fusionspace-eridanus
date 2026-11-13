@@ -504,6 +504,45 @@
     };
   }
 
+  // The faded edges of a box's mask (`hpr.css`, the sidebar's list), as Chrome computes it: a
+  // `linear-gradient` running down the box (no direction, `to bottom` or `180deg`) from
+  // transparent to opaque at `top` px, opaque again at `calc(100% - bottom px)` and transparent
+  // at the box's bottom edge, with `top` and `bottom` both above 0. Any other mask, or none, is
+  // no fade: null.
+  function fadeOf(win, box) {
+    const s = win.getComputedStyle(box);
+    const mask = s.getPropertyValue('mask-image') || s.getPropertyValue('-webkit-mask-image') || '';
+    const m = /^linear-gradient\((.*)\)$/.exec(mask.trim());
+    if (!m) return null;
+    const args = [];
+    let depth = 0, from = 0;
+    for (let i = 0; i < m[1].length; i++) {
+      const c = m[1][i];
+      if (c === '(') depth++;
+      else if (c === ')') depth--;
+      else if (c === ',' && depth === 0) { args.push(m[1].slice(from, i).trim()); from = i + 1; }
+    }
+    args.push(m[1].slice(from).trim());
+    if (/^(to\s|-?[\d.]+(deg|turn|rad|grad)$)/.test(args[0])) {
+      if (args[0] !== 'to bottom' && args[0] !== '180deg') return null;
+      args.shift();
+    }
+    if (args.length !== 4) return null;
+    const stop = function (arg) {
+      const k = /^(rgba?\([^)]*\))\s*(.*)$/.exec(arg);
+      const c = k ? channels(k[1]) : null;
+      return c ? { a: c.a, at: k[2] } : null;
+    };
+    const st = args.map(stop);
+    if (st.some(function (x) { return x === null; })) return null;
+    const top = /^([\d.]+)px$/.exec(st[1].at);
+    const bottom = /^calc\(100% - ([\d.]+)px\)$/.exec(st[2].at);
+    if (st[0].a !== 0 || !/^(0(px|%)?)?$/.test(st[0].at) || st[1].a !== 1 || !top
+      || st[2].a !== 1 || !bottom || st[3].a !== 0 || !/^(100%)?$/.test(st[3].at)) return null;
+    const f = { top: Number(top[1]), bottom: Number(bottom[1]) };
+    return f.top > 0 && f.bottom > 0 ? f : null;
+  }
+
   // A computed `rgb()` or `rgba()` color as its channels, 0 to 255, and its opacity, 0 to 1, or
   // null for a color that isn't written that way.
   function channels(value) {
@@ -1221,8 +1260,10 @@
       for (const pseudo of [null, '::before', '::after']) {
         const p = pseudo ? win.getComputedStyle(el, pseudo) : s;
         if (pseudo && (p.content === 'none' || p.content === 'normal')) continue;
+        // An icon is a mask drawn from an image; a mask of gradients alone (the sidebar list's
+        // fade, `hpr.css`) shapes no icon for forced colors to erase.
         const mask = p.getPropertyValue('mask-image') || p.getPropertyValue('-webkit-mask-image');
-        if (mask && mask !== 'none') masked.push([el, pseudo]);
+        if (mask && /url\(/.test(mask)) masked.push([el, pseudo]);
       }
       // Fixed to the window, not to a box: a transform or `will-change` on a box around it (the
       // page's own layer on a phone) would carry it away with the page. CSSOM View gives such an
@@ -1861,8 +1902,8 @@
     }
     // The current page's entry in the sidebar (#894): wherever the sidebar is drawn, the entry
     // mdBook's `toc.js` marks (`a.active`) shows whole as the page loads, inside every box that
-    // clips it and below the strip, from its top to its bottom; and inside the window, where the
-    // sidebar is fixed to it, as mdBook's is.
+    // clips it, clear of its list's faded edges (`fadeOf`) and below the strip, from its top to
+    // its bottom; and inside the window, where the sidebar is fixed to it, as mdBook's is.
     const nav = doc.getElementById('mdbook-sidebar');
     const active = nav && drawn(win, nav) && nav.getBoundingClientRect().right > 0
       ? nav.querySelector('a.active') : null;
@@ -1874,6 +1915,14 @@
       const r = active.getBoundingClientRect();
       const shown = seen(active.parentElement, r, !fixed);
       shown.y0 = Math.max(shown.y0, strip);
+      // Under a faded edge of the list's box (`hpr.css`) the entry is drawn only partly.
+      const list = active.closest('.sidebar-scrollbox');
+      const fade = list ? fadeOf(win, list) : null;
+      if (fade) {
+        const b = list.getBoundingClientRect();
+        shown.y0 = Math.max(shown.y0, b.top + fade.top);
+        shown.y1 = Math.min(shown.y1, b.bottom - fade.bottom);
+      }
       if (shown.y1 - shown.y0 <= SLACK_PX || shown.y0 > r.top + SLACK_PX
         || shown.y1 < r.bottom - SLACK_PX) {
         note('header', selector(active), 'current entry', '"' + snippet(active.textContent)
@@ -1978,6 +2027,33 @@
       } else if (!shown && (!hidden || reached > 0)) {
         note('header', sel, 'aria-hidden', (hidden ? 'hidden from screen readers' : 'read')
           + ' and ' + reached + ' of ' + links.length + ' links in the tab order, put away');
+      }
+      // A list that scrolls in its own box is cut by the box's edge: the box must fade its
+      // edges (`fadeOf`), and wherever it fades it must leave room after its last entry, at
+      // least the bottom fade, for that entry to end whole above it, and scroll padding, at
+      // least each fade, so an entry the keyboard focuses scrolls clear of it (`hpr.css`, the
+      // sidebar's list).
+      const box = sidebar.querySelector('.sidebar-scrollbox');
+      if (shown && box) {
+        const s = win.getComputedStyle(box);
+        const fade = fadeOf(win, box);
+        const scrolls = box.scrollHeight > box.clientHeight + SLACK_PX;
+        if (scrolls && !fade) {
+          note('header', selector(box), 'mask-image', 'no fade at its edges ('
+            + snippet(s.getPropertyValue('mask-image') || 'none') + '), a list that scrolls');
+        }
+        const room = parseFloat(s.paddingBottom) || 0;
+        if (fade && room < fade.bottom) {
+          note('header', selector(box), 'padding-bottom', round(room)
+            + ' px after its last entry, under a ' + fade.bottom + ' px fade');
+        }
+        const padTop = parseFloat(s.scrollPaddingTop) || 0;
+        const padBottom = parseFloat(s.scrollPaddingBottom) || 0;
+        if (fade && (padTop < fade.top || padBottom < fade.bottom)) {
+          note('header', selector(box), 'scroll-padding', s.scrollPaddingTop + ' and '
+            + s.scrollPaddingBottom + ', under fades of ' + fade.top + ' and ' + fade.bottom
+            + ' px: an entry the keyboard focuses can stay under the fade');
+        }
       }
     }
   }

@@ -116,8 +116,13 @@
 //!     gradient), no text and no top rule is drawn under it, and no text is cut by the top edge
 //!     of a box the page leaves scrolled as it loads, as mdBook leaves the sidebar's list with
 //!     the current chapter in its middle; and wherever the sidebar is drawn, the current page's
-//!     entry in it shows whole as the page loads, inside every box that clips it, and inside the
-//!     window where the sidebar is fixed to it (#894). The menu button is drawn at
+//!     entry in it shows whole as the page loads, inside every box that clips it and clear of
+//!     its list's faded edges, and inside the window where the sidebar is fixed to it (#894).
+//!     A sidebar list that scrolls fades its edges: a mask that runs down its box from
+//!     transparent to opaque and back to transparent at its bottom edge. Wherever it fades, it
+//!     leaves room after its last entry at least as deep as the bottom fade, so the list ends
+//!     whole above the fade, and scroll padding at least as deep as each fade, so an entry the
+//!     keyboard focuses scrolls clear of it (ADR-343 decision 14). The menu button is drawn at
 //!     every width, and the sidebar from 720 px on a first visit. Wherever the sidebar is drawn,
 //!     a screen reader and the keyboard reach it (not `aria-hidden`, every link in the tab
 //!     order), and wherever it is put away neither does. Read again with scripts off (the root
@@ -178,7 +183,8 @@
 //!   - **something forced colors would erase**: with the stylesheets' `forced-colors: active`
 //!     rules applied, a block set apart from what is behind it only by its fill (table parts
 //!     aside: their cells have rules) must have a border or an outline, an inline icon must be
-//!     drawn in its text color, and one painted through a mask must keep its own colors;
+//!     drawn in its text color, and one painted through a mask drawn from an image must keep
+//!     its own colors (a mask of gradients alone, a fade, shapes no icon);
 //!   - **a sticky bar that can hide what is focused**: a bar fixed or stuck to the window's top,
 //!     at least half its width and under half its height, reaching further down than the root's
 //!     `scroll-padding-top` (2.4.11);
@@ -280,7 +286,10 @@
 //! strip fixed along the window's top and one below it, which must pass, and a list the page
 //! leaves scrolled with its top line cut by its edge and one scrolled to a line's edge, which
 //! must pass; a sidebar whose current entry loads below its list's view, one whose entry its
-//! list's bottom edge cuts, and one whose entry shows whole, which must pass; and an ordinary page
+//! list's bottom edge cuts, one whose entry loads under its list's bottom fade, one under its
+//! top fade, one whose list scrolls with no fade, one under a gradient that fades nothing, one
+//! whose fade has less room after the last entry than it is deep, one whose fade has no scroll
+//! padding, and one whose entry shows whole, which must pass; and an ordinary page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
 //! that wraps anywhere, a figure wider than any window with mdBook's zoom, a sidebar drawer put
 //! away off the left edge) that must pass. If one isn't
@@ -914,17 +923,21 @@ macro_rules! sidebar {
 
 /// mdBook's sidebar with its list in a box 100 px tall that scrolls, eight entries 24 px tall,
 /// the seventh the current page's (`a.active`, from 144 to 168 px down the list), scrolled
-/// `$scroll` px as the page loads, for the current-entry canaries (#894). It is drawn, read and
-/// reached at every width, so each canary shows its problem at every width, as
-/// `canary-sidebar-unread.html`'s is drawn. The frame draws it in the page's flow, not fixed to
+/// `$scroll` px as the page loads, for the current-entry canaries (#894). `$fade` styles the
+/// box's edges: `fade!()` gives it `hpr.css`'s fade, over its first 10 px and its last 24, with
+/// 32 px of room after the last entry and scroll padding as deep as each fade, so its view is
+/// clear from 10 to 76 px down the box. It is drawn, read and reached at every width, so each
+/// canary shows its problem at every width, as `canary-sidebar-unread.html`'s is drawn. The frame draws it in the page's flow, not fixed to
 /// the window as mdBook's, so it keeps 96 px below it, where the list's entries scrolled out of
 /// its view are laid out, clear of the title block.
 macro_rules! sidebar_list {
-    ($scroll:expr) => {
+    ($scroll:expr, $fade:expr) => {
         concat!(
             "<nav id=\"mdbook-sidebar\" aria-hidden=\"false\" style=\"display: block !important; \
              margin-bottom: 96px\"><div class=\"sidebar-scrollbox\" style=\"height: 100px; \
-             overflow-y: auto\"><style>#mdbook-sidebar a { display: block; height: 24px; \
+             overflow-y: auto; box-sizing: border-box\"><style>",
+            $fade,
+            "#mdbook-sidebar a { display: block; height: 24px; \
              }</style><a href=\"#\">Launch-day weather</a><a href=\"#\">Soundings</a><a \
              href=\"#\">Forecasts</a><a href=\"#\">Motors</a><a href=\"#\">Recovery</a><a \
              href=\"#\">Staging</a><a href=\"#\" class=\"active\">Moving mass</a><a \
@@ -933,6 +946,17 @@ macro_rules! sidebar_list {
             $scroll,
             ";</script>"
         )
+    };
+}
+
+/// `hpr.css`'s fade on the sidebar's list, dropped under forced colors, for `sidebar_list!`.
+macro_rules! fade {
+    () => {
+        "#mdbook-sidebar .sidebar-scrollbox { padding-bottom: 32px; scroll-padding-block: 10px \
+         24px; mask-image: \
+         linear-gradient(to bottom, transparent, #000 10px, #000 calc(100% - 24px), transparent); } \
+         @media (forced-colors: active) { #mdbook-sidebar .sidebar-scrollbox { mask-image: none; } \
+         } "
     };
 }
 
@@ -1329,7 +1353,7 @@ macro_rules! mono_faces {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-static CANARIES: [Canary; 209] = [
+static CANARIES: [Canary; 215] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -2615,21 +2639,118 @@ static CANARIES: [Canary; 209] = [
         what: "a sidebar whose current entry loads below its list's view",
         expect: &[Kind::Header],
         inside: "",
-        after: frame!("", lockup!(), sidebar_list!("0"), ""),
+        after: frame!("", lockup!(), sidebar_list!("0", fade!()), ""),
     },
     Canary {
         file: "canary-sidebar-entry-cut.html",
         what: "a sidebar whose current entry loads cut by its list's bottom edge",
         expect: &[Kind::Header],
         inside: "",
-        after: frame!("", lockup!(), sidebar_list!("48"), ""),
+        after: frame!("", lockup!(), sidebar_list!("48", fade!()), ""),
     },
     Canary {
         file: "canary-sidebar-entry-whole.html",
-        what: "a sidebar whose current entry loads whole in its list's view, which must pass",
+        what: "a sidebar whose current entry loads whole in its list's view, clear of its fade, \
+               which must pass",
         expect: &[],
         inside: "",
-        after: frame!("", lockup!(), sidebar_list!("72"), ""),
+        after: frame!("", lockup!(), sidebar_list!("96", fade!()), ""),
+    },
+    Canary {
+        file: "canary-sidebar-entry-faded.html",
+        what: "a sidebar whose current entry loads whole in its list's box but under its fade",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!("", lockup!(), sidebar_list!("72", fade!()), ""),
+    },
+    Canary {
+        file: "canary-sidebar-entry-top-faded.html",
+        what: "a sidebar whose current entry loads whole in its list's box but under its top fade",
+        expect: &[Kind::Header],
+        inside: "",
+        // 64 px of room lets the list scroll 144 px (to 156), so the entry sits at the box's
+        // top, 0 to 24 px, under the 10 px fade there, and the entry above ends at the edge.
+        after: frame!(
+            "",
+            lockup!(),
+            sidebar_list!(
+                "144",
+                concat!(
+                    fade!(),
+                    "#mdbook-sidebar .sidebar-scrollbox { padding-bottom: 64px; } "
+                )
+            ),
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-sidebar-fade-flat.html",
+        what: "a sidebar whose list scrolls under a gradient mask that fades nothing",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!(
+            "",
+            lockup!(),
+            sidebar_list!(
+                "96",
+                "#mdbook-sidebar .sidebar-scrollbox { padding-bottom: 32px; scroll-padding-block: \
+                 10px 24px; mask-image: linear-gradient(#000, #000); } "
+            ),
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-sidebar-fade-unpadded.html",
+        what: "a sidebar whose list fades its edges with no scroll padding, so a focused entry \
+               can stay under the fade",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!(
+            "",
+            lockup!(),
+            sidebar_list!(
+                "96",
+                concat!(
+                    fade!(),
+                    "#mdbook-sidebar .sidebar-scrollbox { scroll-padding-block: 0; } "
+                )
+            ),
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-sidebar-unfaded.html",
+        what: "a sidebar whose list scrolls in a box with no fade at its edge",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!(
+            "",
+            lockup!(),
+            sidebar_list!(
+                "96",
+                "#mdbook-sidebar .sidebar-scrollbox { padding-bottom: 32px; } "
+            ),
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-sidebar-fade-cramped.html",
+        what: "a sidebar whose list fades its edges with less room after its last entry than \
+               its bottom fade",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!(
+            "",
+            lockup!(),
+            sidebar_list!(
+                "96",
+                concat!(
+                    fade!(),
+                    "#mdbook-sidebar .sidebar-scrollbox { padding-bottom: 20px; } "
+                )
+            ),
+            ""
+        ),
     },
     Canary {
         file: "canary-foot.html",
