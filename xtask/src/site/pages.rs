@@ -4865,7 +4865,7 @@ mod tests {
         // Each kind has canaries that must show it alone, and the frame drawn as the system's
         // must pass.
         for (kind, least) in [
-            (Kind::Header, 15),
+            (Kind::Header, 21),
             (Kind::TitleBlock, 20),
             (Kind::Print, 19),
         ] {
