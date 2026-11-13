@@ -872,13 +872,14 @@ The page check fails, at every width:
   fades. Once the page has loaded, or the reader first uses the table (a wheel, touch, press, key
   or focus), it stops, but for the rule that no entry is cut by the table's top edge or left
   under its top fade;
-- a table of contents that scrolls without a fade at its edges, with less room after its last
-  entry than its bottom fade, or with less scroll padding than each fade. The site's stylesheet
-  fades the table over its first 10 px and its last 24, leaves 32 px after its last entry so the
-  list ends whole above the fade, and pads its scrolling as deep as each fade so an entry the
-  keyboard focuses scrolls clear of it. Under forced colors the fade is dropped (the
-  [restyle's decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0343-the-docs-site-drawn-as-a-tool-the-frame-off.md),
-  decision 14);
+- a table of contents that scrolls without a fade at its edges; or, wherever it fades, less room
+  after its last entry than its bottom fade, or less scroll padding than each fade. The site's
+  stylesheet fades the table over its first 10 px and its last 24, and pads its scrolling as
+  deep as each fade so an entry the keyboard focuses scrolls clear of it. It leaves 32 px after
+  the last entry: the 24 px the check asks for, so the list ends whole above the fade, and 8 px
+  to spare. Under forced colors the fade is dropped
+  ([ADR-343](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0343-the-docs-site-drawn-as-a-tool-the-frame-off.md),
+  the restyle's decisions, decision 14);
 - arrows under the page outside the column or off its edges, under 44 px tall, or naming no
   page;
 - a footer line without its 1 px rule on top, its mark other than 24 px tall, or its name not

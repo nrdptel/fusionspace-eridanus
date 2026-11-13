@@ -389,6 +389,8 @@ document.addEventListener('click', function (event) {
         done();
     });
     window.matchMedia('(min-width: 960px)').addEventListener('change', function () {
+        // The switch moves the list's box but not its scroll: trim this position afresh.
+        trimmed = -1;
         if (loading) again();
         else trim();
     });

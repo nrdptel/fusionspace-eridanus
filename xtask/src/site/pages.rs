@@ -926,8 +926,8 @@ macro_rules! sidebar {
 /// `$scroll` px as the page loads, for the current-entry canaries (#894). `$fade` styles the
 /// box's edges: `fade!()` gives it `hpr.css`'s fade, over its first 10 px and its last 24, with
 /// 32 px of room after the last entry and scroll padding as deep as each fade, so its view is
-/// clear from 10 to 76 px down the box. It is drawn, read and reached at every width, so each canary shows its problem at every width, as
-/// `canary-sidebar-unread.html`'s is drawn. The frame draws it in the page's flow, not fixed to
+/// clear from 10 to 76 px down the box. It is drawn, read and reached at every width, so each
+/// canary shows its problem at every width, as `canary-sidebar-unread.html`'s is drawn. The frame draws it in the page's flow, not fixed to
 /// the window as mdBook's, so it keeps 96 px below it, where the list's entries scrolled out of
 /// its view are laid out, clear of the title block.
 macro_rules! sidebar_list {
