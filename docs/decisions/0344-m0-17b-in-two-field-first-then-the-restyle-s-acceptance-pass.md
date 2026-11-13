@@ -68,7 +68,7 @@ Both in one session leaves no room for the reviews and fixes either may need.
    5. Press the print button and then *Print the guide*: the whole guide's print page ends
       with its title block.
    6. From the footer of the page about Monte Carlo dispersion, read its version and date, and
-      follow its link to the page about the project, Start here.
+      follow its *About HPR Sim* link to the page about the project, Start here.
 
    No task reads a file, so none needs an input file. The screens are every page the tasks
    reach, at the page check's widths, in light, dark and field.
