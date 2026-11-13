@@ -337,9 +337,12 @@ document.addEventListener('click', function (event) {
         if (clicked && clear) return;
         list.scrollTop += (box.top + box.bottom) / 2 - (shown.top + shown.bottom) / 2;
     };
-    // No entry left cut by the list's top edge or under its faded top (`hpr.css`).
+    // No entry left cut by the list's top edge or under its faded top (`hpr.css`). Once a
+    // position: moving an entry down clear of the fade can leave the one above it ending just
+    // under the edge, and moving that one too would creep the list down an entry each call.
+    let trimmed = -1;
     const trim = function () {
-        if (list.scrollTop <= 0) return;
+        if (list.scrollTop <= 0 || list.scrollTop === trimmed) return;
         const edge = view().top;
         const clear = Math.max(4, fade().top);
         const cut = Array.from(list.querySelectorAll('a, .part-title')).find(function (entry) {
@@ -347,6 +350,7 @@ document.addEventListener('click', function (event) {
             return box.top < edge + clear && box.bottom > edge;
         });
         if (cut) list.scrollTop -= edge + clear - cut.getBoundingClientRect().top;
+        trimmed = list.scrollTop;
     };
     let loading = true;
     const watch = window.ResizeObserver ? new ResizeObserver(function () { again(); }) : null;
