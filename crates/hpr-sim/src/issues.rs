@@ -1927,7 +1927,10 @@ mod tests {
         let machs: Vec<f64> = short.iter().map(|&(mach, _, _)| mach).collect();
         assert_eq!(machs, [0.6, 0.8]);
         for &(mach, error, uncertainty) in &short {
-            assert!(error > uncertainty, "short model at Mach {mach}: {error} calibers");
+            assert!(
+                error > uncertainty,
+                "short model at Mach {mach}: {error} calibers"
+            );
         }
         let least = short.iter().map(|r| r.1).fold(f64::INFINITY, f64::min);
         let most = short.iter().map(|r| r.1).fold(f64::NEG_INFINITY, f64::max);
@@ -1937,7 +1940,10 @@ mod tests {
         let long = rows("arcas-robin-long");
         assert_eq!(long.len(), 2);
         for &(mach, error, uncertainty) in &long {
-            assert!(error <= uncertainty, "long model at Mach {mach}: {error} calibers");
+            assert!(
+                error <= uncertainty,
+                "long model at Mach {mach}: {error} calibers"
+            );
         }
     }
 
