@@ -82,7 +82,8 @@ of Start here.
    motion set no slide runs, so one opened and shut again stayed drawn off the window's side, and
    on a phone Tab stopped on its list's box, out of sight.
    The page check fails a table of contents put away that holds a box the keyboard focuses;
-   `canary-sidebar-scroller.html` must fail.
+   `canary-sidebar-scroller.html`, a table of contents drawn off the window's side under
+   720 px and shown from there, must fail under 720 px and pass from it.
 4. **The cold read's words.** Each theme button's tooltip says what it is for, Field's "For
    reading outdoors: a white page, darker gray text and stronger rules". The print button is
    *Print the guide*, and on paper the footer leaves off its link to the page about the project,

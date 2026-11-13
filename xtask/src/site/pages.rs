@@ -2689,20 +2689,41 @@ static CANARIES: [Canary; 228] = [
     },
     Canary {
         file: "canary-sidebar-scroller.html",
-        what: "a sidebar put away off the window's side, its links out of the tab order and \
-               its list's box scrolling, which the keyboard then focuses",
+        what: "a sidebar drawn off the window's side under 720 px, its links out of the tab \
+               order and its list's box scrolling, which the keyboard then focuses",
         expect: &[Kind::Header],
         inside: "",
         after: frame!(
-            "<style>#mdbook-sidebar { display: block !important; position: fixed; left: 0; \
-             top: 0; bottom: 0; width: 300px; transform: translateX(-100%); } #mdbook-sidebar \
-             .sidebar-scrollbox { overflow-y: auto; height: 40px; }</style>",
+            "",
             lockup!(),
             "<nav id=\"mdbook-sidebar\" aria-hidden=\"true\"><div \
              class=\"sidebar-scrollbox\"><a href=\"#\" tabindex=\"-1\">A chapter</a><br><a \
              href=\"#\" tabindex=\"-1\">A second chapter</a><br><a href=\"#\" \
              tabindex=\"-1\">A third chapter</a><br><a href=\"#\" tabindex=\"-1\">A fourth \
-             chapter</a></div></nav>",
+             chapter</a></div></nav><div id=\"mdbook-sidebar-resize-handle\"></div><style>\
+             #mdbook-sidebar { display: block !important; } html.js \
+             #mdbook-sidebar-toggle-anchor:not(:checked) ~ #mdbook-sidebar { position: fixed; \
+             left: 0; top: 0; bottom: 0; width: 300px; transform: translateX(-100%); } html.js \
+             #mdbook-sidebar-toggle-anchor:not(:checked) ~ #mdbook-sidebar .sidebar-scrollbox { \
+             overflow-y: auto; height: 40px; } @media (max-width: 719px) { #mdbook-sidebar { \
+             position: fixed; left: 0; top: 0; bottom: 0; width: 300px; transform: \
+             translateX(-100%); } #mdbook-sidebar .sidebar-scrollbox { overflow-y: auto; height: \
+             40px; } }</style><script>(function () { const box = \
+             document.getElementById('mdbook-sidebar-toggle-anchor'); const s = \
+             document.getElementById('mdbook-sidebar'); const m = matchMedia('(min-width: \
+             720px)'); const set = function () { const on = m.matches && box.checked; \
+             s.setAttribute('aria-hidden', String(!on)); s.querySelectorAll('a').forEach(\
+             function (a) { a.tabIndex = on ? 0 : -1; }); }; const flip = function (on) { \
+             box.checked = on; box.dispatchEvent(new Event('change')); }; \
+             box.addEventListener('change', set); m.addEventListener('change', set); set(); \
+             document.getElementById('mdbook-sidebar-toggle').addEventListener('click', \
+             function () { flip(!box.checked); }); \
+             document.getElementById('mdbook-sidebar-resize-handle').addEventListener(\
+             'mousedown', function () { const move = function (e) { if (e.clientX < 20) \
+             flip(false); }; window.addEventListener('mousemove', move); \
+             window.addEventListener('mouseup', function () { \
+             window.removeEventListener('mousemove', move); }, { once: true }); }); \
+             })();</script>",
             ""
         ),
     },
@@ -3693,6 +3714,14 @@ const KEYED: [&str; 2] = ["canary-menu-unreached.html", "canary-menu-key-dead.ht
 /// scroll (ADR-345).
 const ALSO: [(&str, Kind); 1] = [("canary-squeezed.html", Kind::Scrolls)];
 
+/// The width from which the site shows the table of contents at load (`theme/hpr.js`), as the
+/// page check's `SIDEBAR_OPEN_FROM_PX`.
+const SIDEBAR_OPEN_FROM_PX: u32 = 720;
+
+/// The canaries whose problem shows only under [`SIDEBAR_OPEN_FROM_PX`], where the table of
+/// contents is put away at load: one put away keeps a box the keyboard focuses (ADR-345).
+const NARROW: [&str; 1] = ["canary-sidebar-scroller.html"];
+
 /// The canaries whose problem shows only where the theme switch is pressed, the page loaded with
 /// a theme saved, or the sidebar put away, which the harness does once a run, at the width that
 /// reads print
@@ -4277,6 +4306,7 @@ fn canary_verdict(canary: &Canary, measured: &[Measured]) -> Result<(), String> 
                     && (kind != Kind::Landing || m.landed)
                     && (!PRESSED.contains(&canary.file) || m.printed)
                     && (!KEYED.contains(&canary.file) || m.landed)
+                    && (!NARROW.contains(&canary.file) || m.width < SIDEBAR_OPEN_FROM_PX)
             };
             if m.has(kind) != expected {
                 let verb = if expected {
@@ -5298,6 +5328,9 @@ mod tests {
             assert_eq!(found[0].expect, kinds, "{file}");
         }
         for file in KEYED {
+            assert!(CANARIES.iter().any(|c| c.file == file), "{file}");
+        }
+        for file in NARROW {
             assert!(CANARIES.iter().any(|c| c.file == file), "{file}");
         }
         for (file, _) in ALSO {
