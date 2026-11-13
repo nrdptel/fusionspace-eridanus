@@ -2664,7 +2664,15 @@ static CANARIES: [Canary; 212] = [
         what: "a sidebar whose list scrolls in a box with no fade at its edge",
         expect: &[Kind::Header],
         inside: "",
-        after: frame!("", lockup!(), sidebar_list!("96", ""), ""),
+        after: frame!(
+            "",
+            lockup!(),
+            sidebar_list!(
+                "96",
+                "#mdbook-sidebar .sidebar-scrollbox { padding-bottom: 32px; } "
+            ),
+            ""
+        ),
     },
     Canary {
         file: "canary-sidebar-fade-cramped.html",

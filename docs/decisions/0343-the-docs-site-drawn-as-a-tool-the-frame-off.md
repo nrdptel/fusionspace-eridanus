@@ -119,8 +119,10 @@ reading scale.
 14. **The sidebar's list fades at its edges.** The list scrolls in its own box, so the
     window's bottom edge sliced its last row in half, as a look at the finished pages showed.
     The box now fades over its last 24 px and its first 10 px, mdBook's padding there, and
-    leaves 32 px after its last entry, so the list ends whole above the fade. The current
-    page's entry must load clear of the fade. Under forced colors the site's stylesheet drops
+    leaves 32 px after its last entry, so the list ends whole above the fade. On a page opened
+    afresh the current page's entry must load clear of the fade; after a click in the list,
+    `theme/hpr.js` leaves the clicked entry where it stood if it shows whole in the box, fade
+    included, rather than move the list under the reader's pointer. Under forced colors the site's stylesheet drops
     the fade. The page check fails a list that scrolls without the fade, with less than 24 px
     after its last entry, or with the current entry under the fade, a canary for each. An entry
     scrolled to the box's edge mid-list is faded there rather than cut.
