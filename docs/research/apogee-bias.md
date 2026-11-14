@@ -82,7 +82,7 @@ impulse 4–15% short, 10–27% more mass, or 15–28% more drag; the 34 flights
 | OpenRocket and RockSim, a hybrid, mass overridden | 1 | −16%, −12% | [B1] p. 87 |
 | OpenRocket, 66 mm model | 8 | mean +20.5%, +12.2% to +30.7% | [B3] Table 1, ours |
 | RockSim, Estes D12 student model | 27 launches | +29% (126 m, 98 m mean) | [B8] p. 30, ours |
-| RASAero II, the maker's selection | 36 | mean +3.47%, mean absolute 6.24% (ours) | [B4] |
+| The maker's comparison page, 33 rows run in RASAero (I) 1.0.2.0 ([which version](rasaero-prediction-column.md#1-the-pages-column-is-rasaero-is-relabeled)) | 36 | mean +3.47%, mean absolute 6.24% (ours) | [B4] |
 | OpenRocket, one supersonic rocket (Bluewren) | 2 | +7.49% (+8.22% on a second recorder), +4.49% | [B11] |
 | Student Launch teams, no drag refit | 55 | median +3.4% (+1.1% to +7.2%) | [SL](student-launch-apogees.md) §2 |
 

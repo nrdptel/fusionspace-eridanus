@@ -96,7 +96,7 @@ with RASAero II. Data: B baro, O optical, G GPS, A integrated accelerometer, R r
 
 ## 4. What the rule does to the error statistics
 
-- **RASAero II: the 11 left out were harder, but for want of a file.** From the page's numbers [S3; **Inference**]:
+- **The comparison page: the 11 left out were harder, but for want of a file.** From its numbers [S3; **Inference**]:
 
   | Page flights | Count | Mean signed | Mean absolute | Largest absolute | Within ±10% |
   |---|--:|--:|--:|--:|--:|
@@ -104,9 +104,9 @@ with RASAero II. Data: B baro, O optical, G GPS, A integrated accelerometer, R r
   | Left out | 11 | +5.76% | 8.28% | 14.51% | 7 |
   | All | 36 | +3.47% | 6.24% | 14.51% | 29 |
 
-  The 5.34% matches the README [S1]. The gap tracks the files, not the rule. The 6 `.ALX1` rows' predictions match
-  those older files' comments ([the earlier note][rcf]; whether rerun is open), mean absolute 9.05%; the 5
-  with no file average 7.36%.
+  The 5.34% matches the README [S1]. The gap tracks the files, not the rule. The page ran 33 rows in RASAero (I)
+  1.0.2.0 and its 3 multi-stage rows in RASAero II ([which version](rasaero-prediction-column.md#1-the-pages-column-is-rasaero-is-relabeled)). The 6 `.ALX1` rows, among the 33, match
+  the comments in the 2011 `.ALX1` files ([the earlier note][rcf]); their mean absolute error is 9.05%, and the 5 with no file average 7.36%.
 - **The fork's column is truncated and worked on.** Its largest absolute error over the 28 is 8.70%. Its 28 of 28
   within ±10% is the rule itself; misses go back to the model, and MESOS was re-pinned once [S1, S2]. So its errors
   are in-sample, not a held-out score (**Inference**).
@@ -118,7 +118,7 @@ with RASAero II. Data: B baro, O optical, G GPS, A integrated accelerometer, R r
 - **The README's headline mixes sets.** It gives the fork 4.55% over 28 and RASAero II 5.34% over 25 [S1]. On the
   same 25 page flights the fork scores 4.75% (**Inference**). It says the fork ran unmodified pre-flight files, yet
   AeroPac 104K's shipped file holds the tuned launch angle ([the earlier note][rcf]).
-- **Correlated tools.** On the 25 page flights, the fork's and RASAero II's errors correlate weakly (Pearson 0.16,
+- **Correlated tools.** On the 25 page flights, the fork's and the page's errors correlate weakly (Pearson 0.16,
   **Inference**). HPR Sim's aerodynamics are Barrowman-family, like OpenRocket's. A set screened by an OpenRocket
   fork could flatter HPR Sim by an amount no source bounds until HPR Sim flies these designs (**Inference**). On
   the page flights the screen removed none, so the bias there is zero by count. On the historical ones it removed

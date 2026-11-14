@@ -30,9 +30,10 @@ What the field publishes, read on 2026-10-08:
 - **In a search on 2026-10-08, no tool's accuracy was measured on held-out flights.** RocketPy's "about 1%" comes from three university flights
   flown on the teams' own drag curves, which tests the trajectory more than the drag; its later examples are 7 to 9%
   off ([Ceotto et al., 2021](https://ascelibrary.com/doi/10.1061/%28ASCE%29AS.1943-5525.0001331);
-  [RocketPy's flight examples](https://docs.rocketpy.org/en/latest/examples/index.html)). RASAero II's 36 flights
-  average 3.47%, with several fitted after the flight and no account of how they were chosen
-  ([RASAero's comparisons](https://www.rasaero.com/comparisons-alt.htm)). OpenRocket's published validation is three
+  [RocketPy's flight examples](https://docs.rocketpy.org/en/latest/examples/index.html)). The 36 flights on
+  RASAero's comparison page average 3.47%, with several fitted after the flight and no account of how they were
+  chosen ([RASAero's comparisons](https://www.rasaero.com/comparisons-alt.htm)). The page ran 33 of them in
+  RASAero (I) 1.0.2.0, not RASAero II (amended below). OpenRocket's published validation is three
   flights from 2009, one after its thrust curve was replaced
   ([Niskanen, 2009](https://github.com/openrocket/openrocket/releases/download/Development_of_an_Open_Source_model_rocket_simulation-thesis-v20090520/Development_of_an_Open_Source_model_rocket_simulation-thesis-v20090520.pdf)).
   None reports whether its uncertainty ranges hold real flights.
@@ -105,3 +106,10 @@ What the field publishes, read on 2026-10-08:
     each review measures at least one optimization and either makes it or queues it.
 16. **Releases still ship.** The standard governs what each release must show; 0.1 shipped on 2026-10-08 as planned.
 17. **The roadmap's budget rises** from 43,500 to 46,500 bytes, for the milestones above.
+
+**Amendment, which program made the 3.47% (2026-11-13).** The context above first credited the 36-flight average to
+RASAero II. It is the comparison page's, 33 rows run in RASAero (I) 1.0.2.0. The page's 2016 copy says every
+prediction was run on that version, released in March 2011; RASAero II first came out in September 2015. Only its
+three multi-stage rows, added by 2023, are RASAero II's (ThreeCarbYen's by inference)
+([which version](../research/rasaero-prediction-column.md#1-the-pages-column-is-rasaero-is-relabeled)). The figure
+and the standard are unchanged.
