@@ -1539,6 +1539,9 @@ pub fn run(root: &Path) -> Result<PredictionsReport, RealFlightError> {
     run_with(root, None)
 }
 
+/// One predicted flight's id and its corrected apogee, m, or why it didn't fly.
+pub type CorrectedApogee = (String, Result<f64, RealFlightError>);
+
 /// Each predicted flight's apogee with `correction` flown, by its id: every motor's impulse and the
 /// drag scaled ([`Correction`]), the rest as [`run`] flies it, each flight's result on its own (a
 /// flight that fails to fly fails alone). Each is the predicted apogee as the log's altimeter
@@ -1550,7 +1553,7 @@ pub fn run(root: &Path) -> Result<PredictionsReport, RealFlightError> {
 pub fn corrected_apogees(
     root: &Path,
     correction: Correction,
-) -> Result<Vec<(String, Result<f64, RealFlightError>)>, RealFlightError> {
+) -> Result<Vec<CorrectedApogee>, RealFlightError> {
     let weather_conversion = checked_conversion(root)?;
     let correction = Some(correction);
     Ok(NEW_FLIGHTS

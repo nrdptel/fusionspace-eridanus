@@ -903,7 +903,7 @@ pub fn public_flights(root: &Path, corrections: &[Correction]) -> Result<PublicF
         });
     }
     // The flights predicted first, flown as their predictions are, each one's own result kept.
-    let by_id = |apogees: &[(String, Result<f64, real_flight::RealFlightError>)], id: &str| {
+    let by_id = |apogees: &[hpr_validate::public_predictions::CorrectedApogee], id: &str| {
         apogees
             .iter()
             .find(|(each, _)| each == id)
