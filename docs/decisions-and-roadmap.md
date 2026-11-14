@@ -375,6 +375,7 @@ until someone rewrites it in plainer words.
 | [ADR-344: M0.17b in two: Field first, then the restyle's acceptance pass][adr-344] | [M0.17b](#m0-17b) asks for two things that each take a session: a fourth color theme, Field, read by the page check at every width as light and dark are, and the acceptance pass for the whole restyle of the docs site. This record ships them one after the other. [M0.17b1](#m0-17b1) adds Field to the theme switch and to the page check. [M0.17b2](#m0-17b2) runs the acceptance pass over [M0.17a](#m0-17a)'s and [M0.17b1](#m0-17b1)'s work and closes issue #1364. |  |
 | [ADR-345: The restyle's acceptance pass and its fixes][adr-345] | A reviewer that didn't build the restyle ran [ADR-344][adr-344]'s six tasks on the built site, and a cold reader did them from the guide alone. At 320 px the keyboard couldn't reach the menu button, focus rings were cut at the column's edge, and code blocks hid their lines' ends. The captures of every page the tasks reach found a code block cut beside the open table of contents and the header left over a page's end on a phone; checking the cold read found a table of contents shut with reduced motion still a keyboard stop. This record fixes them, adds a page-check rule and canaries for each, and answers the cold read's findings in the site's words. |  |
 | [ADR-346: M7.5 in three: the rule before the fit][adr-346] | The correction of the bias the simulators share is two scales: one on the motors' impulse, pooled from what the calibration half's logs alone say of the boost, and one on the drag, from those flights' coasts. Each enters only if its 95% interval excludes 1. It ships only if it lowers the mean absolute error and the absolute bias on the held-out half and makes neither worse on the public flights, with and without the flights whose logs and files disagree by more than NAR's retest rule allows. This record is merged before that fit is run. Its own increment splits each half's forward error at the boost's cut and reads the calibration half's logs alone. |  |
+| [ADR-347: The 2026-11-14 review: landing points held to tracked landings, predictions first][adr-347] | `hpr sim` prints how far from the pad a rocket lands, and no report sets that against a real flight. 41 of the private collection's 83 flights have a log with a position track, and each has the day's winds by height. The milestone reads each track's pad and landing points, merges them and each flight's predicted landing point before any error is computed, then scores the miss. The scoreboard gains a row for the miss and a row for its sign along the drift. A landing predicted nearer the pad than the real one is the flattering side. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -722,6 +723,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-12"></a>[M2.12][phase-1] | Descent rates against the logs | not yet done |
 | <a id="m2-12a"></a>[M2.12a][phase-1] | The rule and the predictions | not yet done |
 | <a id="m2-12b"></a>[M2.12b][phase-1] | The errors | not yet done |
+| <a id="m2-13"></a>[M2.13][phase-1] | Landing points against the tracked landings | not yet done |
+| <a id="m2-13a"></a>[M2.13a][phase-1] | The rule, the readings and the predictions | not yet done |
+| <a id="m2-13b"></a>[M2.13b][phase-1] | The errors | not yet done |
 | <a id="m3-1"></a>[M3.1][done-1] | Reading OpenRocket `.ork` design files | done |
 | <a id="m3-1a"></a>[M3.1a][done-1] | The container a `.ork` arrives in, and its design document read whole | done |
 | <a id="m3-1b"></a>[M3.1b][done-1] | The component tree: parts, shapes, materials, finishes and overrides into a design | done |
@@ -1402,6 +1406,7 @@ is the milestone that added or will add that test.
 [adr-344]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0344-m0-17b-in-two-field-first-then-the-restyle-s-acceptance-pass.md
 [adr-345]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0345-the-restyle-s-acceptance-pass-and-its-fixes.md
 [adr-346]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0346-m7-5-in-three-the-rule-before-the-fit.md
+[adr-347]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0347-the-2026-11-14-review-landing-points-held-to-tracked-landings-predictions-first.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
