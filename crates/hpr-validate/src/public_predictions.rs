@@ -1096,7 +1096,9 @@ fn flown_to_apogee(rocket: &Rocket, launch: &Launch<'_>) -> Result<Flown, RealFl
     let corrected;
     let rocket = match launch.correction {
         Some(correction) => {
-            corrected = correction.rocket(rocket).map_err(input)?;
+            corrected = correction
+                .rocket(rocket)
+                .map_err(|error| input(error.to_string()))?;
             &corrected
         }
         None => rocket,
@@ -1537,24 +1539,37 @@ pub fn run(root: &Path) -> Result<PredictionsReport, RealFlightError> {
     run_with(root, None)
 }
 
-/// [`run`], with `correction` flown on every flight: every motor's impulse and the drag scaled
-/// ([`Correction`]), the rest as [`run`] flies it. Read each row's predicted
-/// apogee: the shown-only flight on a bundled catalog curve is flown corrected too.
+/// Each predicted flight's apogee with `correction` flown, by its id: every motor's impulse and the
+/// drag scaled ([`Correction`]), the rest as [`run`] flies it, each flight's result on its own (a
+/// flight that fails to fly fails alone). Each is the predicted apogee as the log's altimeter
+/// would read it, m.
 ///
 /// # Errors
 ///
-/// As [`run`], and a scale the motors or the drag refuse.
-pub fn run_corrected(
+/// The committed weather conversion that doesn't hold: no flight is flown then.
+pub fn corrected_apogees(
     root: &Path,
     correction: Correction,
-) -> Result<PredictionsReport, RealFlightError> {
-    run_with(root, Some(correction))
+) -> Result<Vec<(String, Result<f64, RealFlightError>)>, RealFlightError> {
+    let weather_conversion = checked_conversion(root)?;
+    let correction = Some(correction);
+    Ok(NEW_FLIGHTS
+        .iter()
+        .map(|flight| {
+            let apogee = predict_with(root, flight, &weather_conversion, correction)
+                .map(|row| row.predicted_apogee_m);
+            (flight.id.to_owned(), apogee)
+        })
+        .chain(DESIGN_FILE_FLIGHTS.iter().map(|flight| {
+            let apogee = predict_design_file_with(root, flight, correction)
+                .map(|row| row.predicted_apogee_m);
+            (flight.id.to_owned(), apogee)
+        }))
+        .collect())
 }
 
-fn run_with(
-    root: &Path,
-    correction: Option<Correction>,
-) -> Result<PredictionsReport, RealFlightError> {
+/// The committed weather conversion, once the file it was made from is the one in the checkout.
+fn checked_conversion(root: &Path) -> Result<WeatherConversion, RealFlightError> {
     let weather_conversion = conversion(root)?;
     // The file the conversion was made from is the one in the checkout.
     let source = read_bytes(
@@ -1572,6 +1587,14 @@ fn run_with(
             ),
         });
     }
+    Ok(weather_conversion)
+}
+
+fn run_with(
+    root: &Path,
+    correction: Option<Correction>,
+) -> Result<PredictionsReport, RealFlightError> {
+    let weather_conversion = checked_conversion(root)?;
     let flights = NEW_FLIGHTS
         .iter()
         .map(|flight| predict_with(root, flight, &weather_conversion, correction))

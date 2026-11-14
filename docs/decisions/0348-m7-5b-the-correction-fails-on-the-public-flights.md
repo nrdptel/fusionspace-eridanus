@@ -37,7 +37,7 @@ for that and for nothing else. A public flight's comes likewise where the [publi
 report][from-boost] cuts and fits its log, 2 of the 12; the other 10 can't be flagged and stay in
 every set.
 
-**The runs.** Three, all on this branch, each flying the correction on the held-out half and the
+**The runs.** Four, all on this branch, each flying the correction on the held-out half and the
 public flights.
 
 1. The first. Its page named a failed clause by its set alone, so a set and the same set less its
@@ -48,6 +48,11 @@ public flights.
 3. The third, after the page set each set beside itself less its flagged flights: in the second
    run's page those rows came after the public flights' and read as theirs. Its private record is
    the second's byte for byte.
+4. The fourth, after a review of the third. Its page holds back the other fit's counts of flights
+   too, as §7 asks (it gives that fit by its pass or fail alone), and marks each number it holds
+   back apart from one that doesn't exist. Its verdict is a list. A public flight predicted first
+   that fails to fly corrected now fails alone, not with the others. Its private record gains
+   those two marks and nothing else: every number is the third run's.
 
 No scale, set, weight or limit changed between them, and nothing in the fits or the corrected
 flights did.
@@ -55,15 +60,16 @@ flights did.
 **The fits.** ADR-346 §4's estimator for the impulse is the weighted mean with its spread scaled
 by the Birge ratio, as Merkatas, Toman, Possolo and Schlamminger give it (*Metrologia* 56, 054001,
 2019, §3.1). Its Student's $t$ at $n - 1$ is the posterior of the mean under a reference prior
-(Bodnar and Eriksson, arXiv:2104.01977, 2021, the proof of Theorem 1). A simulation of the
-interval's coverage was also made, outside the committed code; nothing here rests on it. The $t$
-points come from the
-closed forms in Abramowitz and Stegun (1964, 26.7.3 and 26.7.4), held to the NIST/SEMATECH
+(Bodnar and Eriksson, arXiv:2104.01977, 2021, the proof of Theorem 1). The $t$ points come from
+the closed forms in Abramowitz and Stegun (1964, 26.7.3 and 26.7.4), held to the NIST/SEMATECH
 e-Handbook's table to three decimals.
 
 One calibration flight is flagged, fewer than 3. So, by ADR-346 §7, the fit without it is given
 as flown and the fit over every calibration flight by its pass or fail. What the page holds back
 is in a private file whose SHA-256 is committed in `validation/reports/correction-held-back.sha256`.
+The public rows give the other fit's errors in full, as §7 says they are given either way; a
+reader who flies the public flights again could work out its scales to about two decimals from
+them. Those are over all 12 flights, and §7 holds back what would give a flagged flight's own.
 
 | fit without the flagged flight | drag scale | impulse scale |
 |---|---:|---:|
@@ -103,9 +109,13 @@ apogee, to the report's two decimals. The rule allows 0.5 m.
 **What it says.** One scale didn't serve both sources. The collection reads high and the public
 flights read low, as ADR-346's consequences foresaw. A lower impulse cuts the held-out half's
 bias by more than half, and on the flights without a deployment before apogee to nearly nothing.
-On the public flights it more than doubles the mean error's size, from −4.91% to −12.01%. That
-is evidence against one bias shared by the collection's flights and the public ones. It doesn't
-say where the collection's high reading comes from: the test separates no cause from another.
+On the public flights it more than doubles the mean error's size, from −4.91% to −12.01%. The
+rule fails, but 12 flights say less than that: each flight's absolute error grows by 3.16 points
+on average, and the paired bootstrap interval of that growth, −0.31 to 6.30, holds 0. So the
+public flights don't show with confidence that the correction harms them. They fit two sources
+with different biases, and they give no support to one shared bias that a scale could take out.
+It doesn't say where the collection's high reading comes from: the test separates no cause from
+another.
 The boost report keeps the measurement, less what ADR-346 §7 holds back, for the work on causes:
 [M2.3c6][m2-3c6], the gap to OpenRocket by cause, and [M1.14][m1-14], accuracy inside the
 envelope. It gives how much of each half's error is made up to the cut, and what a correction of
@@ -118,10 +128,11 @@ the boost does to each set.
   checkouts under `refs/` as `real-flights` does. It runs longer: a fit for each step of each
   coast's bisection, and every compared flight flown again with each correction.
 - The public flights' fly paths (`hpr_validate::real_flight::fly_corrected`,
-  `public_predictions::run_corrected`) take a correction for this test. With none they are the
-  paths they were.
+  `public_predictions::corrected_apogees`) take a correction for this test, each flight's result
+  its own. With none they are the paths they were.
 
 **How it was checked.** `cargo xtask fixture-flights --check` reproduces the report and both
 digests. Unit tests pin the $t$ points against the printed table, the bisection, each scale's entry
-rule, the pass rule's strict and non-strict sides, a failed flight failing its set, and
-what the page holds back.
+rule, the pass rule's strict and non-strict sides, a failed flight failing its set, what the
+page holds back (the other fit's counts included), and a held-back set's failure named by its
+fail alone.

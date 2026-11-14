@@ -10,6 +10,7 @@
 //! stage's or a cluster's, is scaled too, since a correction in a flight's output wouldn't know
 //! which motors a log measured.
 
+use hpr_analysis::AnalysisError;
 use hpr_analysis::montecarlo::dispersed_motor;
 use hpr_design::Rocket;
 use hpr_sim::{SimError, Simulation};
@@ -36,12 +37,11 @@ impl Correction {
     /// # Errors
     ///
     /// A scale that isn't a positive number, or a motor whose propellant can't be scaled.
-    pub fn rocket(&self, rocket: &Rocket) -> Result<Rocket, String> {
+    pub fn rocket(&self, rocket: &Rocket) -> Result<Rocket, AnalysisError> {
         let mut rocket = rocket.clone();
         for configuration in &mut rocket.configurations {
             for mounted in &mut configuration.motors {
-                mounted.motor = dispersed_motor(&mounted.motor, self.impulse_scale, 1.0)
-                    .map_err(|error| error.to_string())?;
+                mounted.motor = dispersed_motor(&mounted.motor, self.impulse_scale, 1.0)?;
             }
         }
         Ok(rocket)

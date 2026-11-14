@@ -209,7 +209,9 @@
             "high": null,
             "excludes_one": false,
             "flown": 1.0,
-            "why_not": "its interval holds 1"
+            "why_not": "its interval holds 1",
+            "held_back": false,
+            "unrounded_held_back": true
           },
           "impulse": {
             "flights": 11,
@@ -219,7 +221,9 @@
             "high": null,
             "excludes_one": true,
             "flown": 0.94,
-            "why_not": null
+            "why_not": null,
+            "held_back": false,
+            "unrounded_held_back": true
           },
           "sets": [
             {
@@ -240,7 +244,8 @@
                 -2.955822556562109
               ],
               "sign_flip_interval": null,
-              "grew": 4
+              "grew": 4,
+              "held_back": false
             },
             {
               "set": "… without a deployment before apogee",
@@ -263,7 +268,8 @@
                 -7.743694456159989,
                 -1.0943315483540257
               ],
-              "grew": 3
+              "grew": 3,
+              "held_back": false
             },
             {
               "set": "public flights the public report compares",
@@ -286,7 +292,8 @@
                 -0.8600327600790525,
                 7.179486066960109
               ],
-              "grew": 8
+              "grew": 8,
+              "held_back": false
             },
             {
               "set": "held-out flights the forward report compares",
@@ -303,7 +310,8 @@
               "difference_points": null,
               "bootstrap_interval": null,
               "sign_flip_interval": null,
-              "grew": null
+              "grew": null,
+              "held_back": true
             },
             {
               "set": "… without a deployment before apogee",
@@ -320,7 +328,8 @@
               "difference_points": null,
               "bootstrap_interval": null,
               "sign_flip_interval": null,
-              "grew": null
+              "grew": null,
+              "held_back": true
             },
             {
               "set": "public flights the public report compares",
@@ -343,7 +352,8 @@
                 -0.8600327600790525,
                 7.179486066960109
               ],
-              "grew": 8
+              "grew": 8,
+              "held_back": false
             }
           ],
           "calibration": {
@@ -364,7 +374,8 @@
               0.5393293427045397
             ],
             "sign_flip_interval": null,
-            "grew": 16
+            "grew": 16,
+            "held_back": false
           },
           "passes": false
         },
@@ -372,24 +383,28 @@
           "name": "every calibration flight",
           "calibration_flights": 12,
           "drag": {
-            "flights": 8,
-            "with_value": 8,
+            "flights": null,
+            "with_value": null,
             "mean": null,
             "low": null,
             "high": null,
             "excludes_one": null,
             "flown": null,
-            "why_not": null
+            "why_not": null,
+            "held_back": true,
+            "unrounded_held_back": true
           },
           "impulse": {
-            "flights": 12,
-            "with_value": 12,
+            "flights": null,
+            "with_value": null,
             "mean": null,
             "low": null,
             "high": null,
             "excludes_one": null,
             "flown": null,
-            "why_not": null
+            "why_not": null,
+            "held_back": true,
+            "unrounded_held_back": true
           },
           "sets": [
             {
@@ -407,7 +422,8 @@
               "difference_points": null,
               "bootstrap_interval": null,
               "sign_flip_interval": null,
-              "grew": null
+              "grew": null,
+              "held_back": true
             },
             {
               "set": "… without a deployment before apogee",
@@ -424,7 +440,8 @@
               "difference_points": null,
               "bootstrap_interval": null,
               "sign_flip_interval": null,
-              "grew": null
+              "grew": null,
+              "held_back": true
             },
             {
               "set": "public flights the public report compares",
@@ -447,7 +464,8 @@
                 -0.02607536563726285,
                 8.432071084981839
               ],
-              "grew": 9
+              "grew": 9,
+              "held_back": false
             },
             {
               "set": "held-out flights the forward report compares",
@@ -464,7 +482,8 @@
               "difference_points": null,
               "bootstrap_interval": null,
               "sign_flip_interval": null,
-              "grew": null
+              "grew": null,
+              "held_back": true
             },
             {
               "set": "… without a deployment before apogee",
@@ -481,7 +500,8 @@
               "difference_points": null,
               "bootstrap_interval": null,
               "sign_flip_interval": null,
-              "grew": null
+              "grew": null,
+              "held_back": true
             },
             {
               "set": "public flights the public report compares",
@@ -504,7 +524,8 @@
                 -0.02607536563726285,
                 8.432071084981839
               ],
-              "grew": 9
+              "grew": 9,
+              "held_back": false
             }
           ],
           "calibration": {
@@ -522,7 +543,8 @@
             "difference_points": null,
             "bootstrap_interval": null,
             "sign_flip_interval": null,
-            "grew": null
+            "grew": null,
+            "held_back": true
           },
           "passes": false
         }

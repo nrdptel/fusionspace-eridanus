@@ -109,7 +109,8 @@ pub fn t_975(nu: u32) -> Option<f64> {
 }
 
 /// `value` to two decimals, a tie going up (ADR-346 §4): the scales are positive, so half away
-/// from zero is up.
+/// from zero is up. A tie is one as the product `value × 100` is stored: a decimal tie such as
+/// 0.935 may sit a hair either side of it in binary.
 pub fn two_decimals(value: f64) -> f64 {
     (value * 100.0).round() / 100.0
 }
@@ -188,10 +189,11 @@ pub fn solve_drag(
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ScaleFit {
     /// The flights it is taken over: the fit's flights without a deployment before apogee for the
-    /// drag, every one for the impulse.
-    pub flights: usize,
-    /// Those with a value: a drag solved, or an impulse fit that converged.
-    pub with_value: usize,
+    /// drag, every one for the impulse; `None` where held back.
+    pub flights: Option<usize>,
+    /// Those with a value: a drag solved, or an impulse fit that converged; `None` where held
+    /// back.
+    pub with_value: Option<usize>,
     /// The scale before rounding; `None` with no value, or where the page holds it back.
     pub mean: Option<f64>,
     /// Its 95% interval's lower end.
@@ -204,6 +206,10 @@ pub struct ScaleFit {
     pub flown: Option<f64>,
     /// Why it didn't enter, if it didn't; `None` where held back.
     pub why_not: Option<String>,
+    /// Whether the page holds the scale back (ADR-346 §7), every field but this one `None`.
+    pub held_back: bool,
+    /// Whether the page holds back only the scale before rounding and its interval (ADR-346 §7).
+    pub unrounded_held_back: bool,
 }
 
 impl ScaleFit {
@@ -239,14 +245,16 @@ impl ScaleFit {
             _ => 1.0,
         };
         Self {
-            flights,
-            with_value,
+            flights: Some(flights),
+            with_value: Some(with_value),
             mean,
             low,
             high,
             excludes_one,
             flown: Some(flown),
             why_not,
+            held_back: false,
+            unrounded_held_back: false,
         }
     }
 
@@ -264,7 +272,7 @@ impl ScaleFit {
     }
 
     /// The impulse scale from each boost's `(scale, standard error)`, the converged fits only
-    /// (`None`: not converged), with the between-flight standard deviation `tau`: the weighted
+    /// (`None`: not converged; a pair that isn't finite counts as none), with the between-flight standard deviation `tau`: the weighted
     /// mean with $w_i = 1/(s_i^2 + \tau^2)$, give or take $t$ times
     /// $\sqrt{\sum w_i (k_i - k_I)^2 / ((n - 1) \sum w_i)}$, $t$ at $n - 1$.
     ///
@@ -277,7 +285,12 @@ impl ScaleFit {
     /// (Bodnar and Eriksson, arXiv:2104.01977, 2021, the proof of Theorem 1, as the posterior of
     /// the mean under a reference prior).
     pub fn impulse(fits: &[Option<(f64, f64)>], tau: f64) -> Self {
-        let values: Vec<(f64, f64)> = fits.iter().flatten().copied().collect();
+        let values: Vec<(f64, f64)> = fits
+            .iter()
+            .flatten()
+            .copied()
+            .filter(|(k, s)| k.is_finite() && s.is_finite())
+            .collect();
         let n = values.len();
         let weights: Vec<f64> = values
             .iter()
@@ -317,21 +330,25 @@ impl ScaleFit {
             mean: None,
             low: None,
             high: None,
+            unrounded_held_back: true,
             ..self.clone()
         }
     }
 
-    /// Everything held back but the counts of flights.
-    fn held_back(&self) -> Self {
+    /// Everything held back, the counts of flights too: of the other fit, ADR-346 §7 gives only
+    /// the pass or fail on each set.
+    fn held_back() -> Self {
         Self {
-            flights: self.flights,
-            with_value: self.with_value,
+            flights: None,
+            with_value: None,
             mean: None,
             low: None,
             high: None,
             excludes_one: None,
             flown: None,
             why_not: None,
+            held_back: true,
+            unrounded_held_back: true,
         }
     }
 }
@@ -392,6 +409,9 @@ pub struct SetJudged {
     pub sign_flip_interval: Option<(Option<f64>, Option<f64>)>,
     /// The flights whose absolute error grew.
     pub grew: Option<usize>,
+    /// Whether the page holds the set's numbers back (ADR-346 §7), its count and pass or fail
+    /// aside.
+    pub held_back: bool,
 }
 
 impl SetJudged {
@@ -452,6 +472,7 @@ impl SetJudged {
             )
             .map(|(low, high)| (finite(low), finite(high))),
             grew: Some(differences.iter().filter(|d| **d > 0.0).count()),
+            held_back: false,
         }
     }
 
@@ -473,6 +494,7 @@ impl SetJudged {
             bootstrap_interval: None,
             sign_flip_interval: None,
             grew: None,
+            held_back: true,
         }
     }
 
@@ -485,10 +507,16 @@ impl SetJudged {
         }
     }
 
-    /// The clauses it failed, named for the verdict's record.
+    /// The clauses it failed, named for the verdict's record; a set held back, by its fail alone.
     fn failed_clauses(&self, fit: &str) -> Vec<String> {
         let mut failed = Vec::new();
         let set = self.named();
+        if self.held_back {
+            if !self.passes {
+                failed.push(format!("{fit}, {set}: fails"));
+            }
+            return failed;
+        }
         if self.failed_to_fly.is_some_and(|n| n > 0) {
             failed.push(format!("{fit}, {set}: a corrected flight failed to fly"));
         }
@@ -648,8 +676,8 @@ impl Judged {
                         fit.calibration.clone(),
                     ),
                     (true, false) => (
-                        fit.drag.held_back(),
-                        fit.impulse.held_back(),
+                        ScaleFit::held_back(),
+                        ScaleFit::held_back(),
                         fit.calibration.count_and_verdict(),
                     ),
                 };
@@ -663,9 +691,26 @@ impl Judged {
                     passes: fit.passes,
                 }
             })
-            .collect();
+            .collect::<Vec<_>>();
+        // The clauses as the page may give them: a fit or set held back fails by name alone.
+        let mut failed = Vec::new();
+        for (computed, given) in self.fits.iter().zip(&fits) {
+            let neither = !computed.drag.entered() && !computed.impulse.entered();
+            if neither && given.drag.held_back {
+                failed.push(format!("{}: fails", given.name));
+            } else if neither {
+                failed.push(format!(
+                    "{}: neither scale entered, so no correction",
+                    given.name
+                ));
+            }
+            for set in &given.sets {
+                failed.extend(set.failed_clauses(&given.name));
+            }
+        }
         Self {
             fits,
+            failed,
             held_back: true,
             ..self.clone()
         }
@@ -678,9 +723,20 @@ impl Judged {
             && self.fits.iter().all(|fit| {
                 fit.sets.len() == 6
                     && fit.passes == fit.sets.iter().all(|s| s.passes)
-                    && fit.drag.with_value <= fit.drag.flights
-                    && fit.impulse.with_value <= fit.impulse.flights
-                    && fit.impulse.flights == fit.calibration_flights
+                    && fit
+                        .drag
+                        .with_value
+                        .zip(fit.drag.flights)
+                        .is_none_or(|(with, of)| with <= of)
+                    && fit
+                        .impulse
+                        .with_value
+                        .zip(fit.impulse.flights)
+                        .is_none_or(|(with, of)| with <= of)
+                    && fit
+                        .impulse
+                        .flights
+                        .is_none_or(|of| of == fit.calibration_flights)
                     && fit.sets.iter().chain([&fit.calibration]).all(|s| {
                         s.failed_to_fly.is_none_or(|n| n <= s.flights)
                             && s.grew.is_none_or(|n| n <= s.flights)
@@ -827,16 +883,12 @@ pub fn public_flights(root: &Path, corrections: &[Correction]) -> Result<PublicF
             .map(|c| {
                 real_flight::fly_corrected(root, flight, *c)
                     .ok()
-                    .map(|flown| percent(flown.hpr_apogee_m, row.log_apogee_m))
+                    .map(|apogee_m| percent(apogee_m, row.log_apogee_m))
             })
             .collect();
         let flag = crate::from_boost::log_alone(root, flight, row)?
             .map(|fit| crate::collection_errors::Implied::of(&fit).disagrees());
-        Ok((
-            (none.hpr_apogee_m - row.hpr_apogee_m).abs(),
-            corrected,
-            flag,
-        ))
+        Ok(((none - row.hpr_apogee_m).abs(), corrected, flag))
     });
     let mut flights = Vec::new();
     for ((_, row), flown) in rows.iter().zip(flown) {
@@ -850,30 +902,23 @@ pub fn public_flights(root: &Path, corrections: &[Correction]) -> Result<PublicF
             flagged: flag == Some(true),
         });
     }
-    // The flights predicted first, flown as their predictions are.
-    let none = hpr_validate::public_predictions::run_corrected(root, Correction::NONE)
+    // The flights predicted first, flown as their predictions are, each one's own result kept.
+    let by_id = |apogees: &[(String, Result<f64, real_flight::RealFlightError>)], id: &str| {
+        apogees
+            .iter()
+            .find(|(each, _)| each == id)
+            .map(|(_, apogee)| apogee.as_ref().ok().copied())
+    };
+    let none = hpr_validate::public_predictions::corrected_apogees(root, Correction::NONE)
         .map_err(|error| error.to_string())?;
     let corrected: Vec<_> = corrections
         .iter()
-        .map(|c| hpr_validate::public_predictions::run_corrected(root, *c).ok())
+        .map(|c| hpr_validate::public_predictions::corrected_apogees(root, *c).ok())
         .collect();
-    let apogee_of = |report: &hpr_validate::public_predictions::PredictionsReport, id: &str| {
-        report
-            .flights
-            .iter()
-            .find(|row| row.id == id)
-            .map(|row| row.predicted_apogee_m)
-            .or_else(|| {
-                report
-                    .design_file_flights
-                    .iter()
-                    .find(|row| row.id == id)
-                    .map(|row| row.predicted_apogee_m)
-            })
-    };
     for compared in &report.predicted_first {
         let id = compared.id.as_str();
-        let uncorrected = apogee_of(&none, id)
+        let uncorrected = by_id(&none, id)
+            .flatten()
             .ok_or_else(|| format!("{id}: not flown by the public predictions"))?;
         note((uncorrected - compared.hpr_apogee_m).abs(), id)?;
         flights.push(PublicFlight {
@@ -881,10 +926,10 @@ pub fn public_flights(root: &Path, corrections: &[Correction]) -> Result<PublicF
             forward_percent: compared.apogee_error_percent,
             corrected_percent: corrected
                 .iter()
-                .map(|report| {
-                    report
-                        .as_ref()
-                        .and_then(|r| apogee_of(r, id))
+                .map(|apogees| {
+                    apogees
+                        .as_deref()
+                        .and_then(|a| by_id(a, id).flatten())
                         .map(|a| percent(a, compared.log_apogee_m))
                 })
                 .collect(),
@@ -897,6 +942,9 @@ pub fn public_flights(root: &Path, corrections: &[Correction]) -> Result<PublicF
         largest_uncorrected_m: largest,
     })
 }
+
+/// A table cell the page holds back (ADR-346 §7).
+const HELD_BACK_CELL: &str = "held back";
 
 /// A number with its sign, or a dash.
 fn signed(value: Option<f64>, unit: &str) -> String {
@@ -951,7 +999,10 @@ impl Judged {
              own spread ({tau:.4}, what the fit is told of one motor's impulse), its interval from \
              the scales' weighted spread. A scale enters only if at least {MIN_FITS} values give an \
              interval that excludes 1, rounded to two decimals. Two fits are made: over every \
-             calibration flight predicted, and without the ones flagged above.",
+             calibration flight predicted, and without the ones flagged above. Some numbers are \
+             held back: the collection's terms allow only figures over several flights, and two \
+             published figures over sets that differ by one or two flights would give those \
+             flights' own values by subtraction.",
             tau = self.tau,
         );
         let _ = writeln!(
@@ -970,6 +1021,7 @@ impl Judged {
             unsigned(self.largest_uncorrected_collection_m, ""),
             unsigned(self.largest_uncorrected_public_m, ""),
         );
+        let public = self.failed.iter().filter(|c| c.contains(PUBLIC)).count();
         let _ = writeln!(
             page,
             "\n**The verdict: {}.** {}",
@@ -978,13 +1030,20 @@ impl Judged {
                 "Both fits pass on all six sets.".to_owned()
             } else {
                 format!(
-                    "{} clause{} failed: {}.",
+                    "{} clause{} failed{}, so no correction ships. Each, by fit and set:\n",
                     self.failed.len(),
                     if self.failed.len() == 1 { "" } else { "s" },
-                    self.failed.join("; ")
+                    if public == self.failed.len() {
+                        ", all on the public flights"
+                    } else {
+                        ""
+                    },
                 )
             }
         );
+        for clause in &self.failed {
+            let _ = writeln!(page, "- {clause}.");
+        }
         let small = self.flagged_calibration < SMALL_SET;
         let _ = writeln!(
             page,
@@ -1021,13 +1080,6 @@ impl Judged {
                 value(every)
             );
         };
-        let held = |v: String| {
-            if v == "–" {
-                "held back".to_owned()
-            } else {
-                v
-            }
-        };
         both(page, "calibration flights predicted", &|f| {
             f.calibration_flights.to_string()
         });
@@ -1038,46 +1090,59 @@ impl Judged {
             ),
             ("impulse scale", |f: &FitJudged| &f.impulse),
         ] {
+            // A scale the page holds back reads "held back" in every row; a dash is a number
+            // that doesn't exist.
+            let scale_row =
+                |page: &mut String, label: &str, value: &dyn Fn(&ScaleFit) -> String| {
+                    both(page, label, &|f| {
+                        if scale(f).held_back {
+                            HELD_BACK_CELL.to_owned()
+                        } else {
+                            value(scale(f))
+                        }
+                    });
+                };
             both(page, &format!("**{label}**"), &|_| String::new());
-            both(
+            scale_row(
                 page,
                 if label == "drag scale" {
                     "… coasts solved, of those without a deployment before apogee"
                 } else {
                     "… fits converged, of the flights predicted"
                 },
-                &|f| format!("{} of {}", scale(f).with_value, scale(f).flights),
-            );
-            both(page, "… the values' mean", &|f| {
-                held(
-                    scale(f)
-                        .mean
-                        .map_or_else(|| "–".to_owned(), |v| format!("{v:.4}")),
-                )
-            });
-            both(page, "… 95% interval", &|f| {
-                held(match (scale(f).low, scale(f).high) {
-                    (Some(low), Some(high)) => format!("{low:.4} to {high:.4}"),
+                &|s| match (s.with_value, s.flights) {
+                    (Some(with), Some(of)) => format!("{with} of {of}"),
                     _ => "–".to_owned(),
-                })
+                },
+            );
+            scale_row(page, "… the values' mean", &|s| {
+                if s.unrounded_held_back {
+                    HELD_BACK_CELL.to_owned()
+                } else {
+                    s.mean.map_or_else(|| "–".to_owned(), |v| format!("{v:.4}"))
+                }
             });
-            both(page, "… the interval excludes 1", &|f| {
-                held(yes_no(scale(f).excludes_one).to_owned())
+            scale_row(page, "… 95% interval", &|s| match (s.low, s.high) {
+                _ if s.unrounded_held_back => HELD_BACK_CELL.to_owned(),
+                (Some(low), Some(high)) => format!("{low:.4} to {high:.4}"),
+                _ => "–".to_owned(),
             });
-            both(page, "… as flown", &|f| {
-                held(
-                    scale(f)
-                        .flown
-                        .map_or_else(|| "–".to_owned(), |v| format!("{v:.2}")),
-                )
+            scale_row(page, "… the interval excludes 1", &|s| {
+                yes_no(s.excludes_one).to_owned()
             });
-            both(page, "… entered, or why not", &|f| {
-                held(match (&scale(f).why_not, scale(f).flown) {
+            scale_row(page, "… as flown", &|s| {
+                s.flown
+                    .map_or_else(|| "–".to_owned(), |v| format!("{v:.2}"))
+            });
+            scale_row(
+                page,
+                "… entered, or why not",
+                &|s| match (&s.why_not, s.flown) {
                     (Some(why), _) => why.clone(),
                     (None, Some(_)) => "it entered".to_owned(),
                     (None, None) => "–".to_owned(),
-                })
-            });
+                },
+            );
         }
         let _ = writeln!(
             page,
@@ -1107,12 +1172,14 @@ impl Judged {
                 a.flights, b.flights
             );
             let row = |page: &mut String, label: &str, value: &dyn Fn(&SetJudged) -> String| {
-                let _ = writeln!(
-                    page,
-                    "| {label} | {} | {} |",
-                    held(value(a)),
-                    held(value(b))
-                );
+                let cell = |s: &SetJudged| {
+                    if s.held_back {
+                        HELD_BACK_CELL.to_owned()
+                    } else {
+                        value(s)
+                    }
+                };
+                let _ = writeln!(page, "| {label} | {} | {} |", cell(a), cell(b));
             };
             row(page, "forward simulation: mean absolute error", &|s| {
                 unsigned(s.forward_mean_absolute_percent, "%")
@@ -1144,28 +1211,20 @@ impl Judged {
                 &|s| signed(s.difference_points, ""),
             );
             row(page, "… paired bootstrap 95% interval", &|s| {
-                if s.failed_to_fly.is_none() {
-                    "–".to_owned()
-                } else {
-                    interval(
-                        s.bootstrap_interval.map(|(l, h)| (Some(l), Some(h))),
-                        "too few flights to resample",
-                    )
-                }
+                interval(
+                    s.bootstrap_interval.map(|(l, h)| (Some(l), Some(h))),
+                    "too few flights to resample",
+                )
             });
             row(page, "… exact sign-flip 95% interval", &|s| {
-                if s.failed_to_fly.is_none() {
-                    "–".to_owned()
-                } else {
-                    interval(
-                        s.sign_flip_interval,
-                        if s.flights > 20 {
-                            "not counted past 20 flights"
-                        } else {
-                            "none"
-                        },
-                    )
-                }
+                interval(
+                    s.sign_flip_interval,
+                    if s.flights > 20 {
+                        "not counted past 20 flights"
+                    } else {
+                        "none"
+                    },
+                )
             });
             row(page, "flights whose error grew", &|s| {
                 s.grew.map_or_else(|| "–".to_owned(), |n| n.to_string())
@@ -1247,16 +1306,20 @@ mod tests {
         let d = solve_drag(apogee, 1000.0).unwrap();
         assert!((d - 1.2).abs() <= DRAG_WITHIN, "{d}");
         assert!(solve_drag(apogee, 10.0).unwrap_err().contains("one side"));
+        // Ends on opposite sides, then a fit inside the bisection that comes to nothing.
         let mut calls = 0;
         let failing = |_| {
             calls += 1;
-            if calls > 3 {
-                Err("the fit didn't converge".to_owned())
-            } else {
-                Ok(500.0)
+            match calls {
+                1 => Ok(2000.0),
+                2 => Ok(500.0),
+                _ => Err("the fit didn't converge".to_owned()),
             }
         };
-        assert!(solve_drag(failing, 1000.0).is_err());
+        assert_eq!(
+            solve_drag(failing, 1000.0).unwrap_err(),
+            "the fit didn't converge"
+        );
     }
 
     /// A held trial drag is the mean at a thousandth of the stated spread, the impulse widened;
@@ -1302,8 +1365,8 @@ mod tests {
         let s3 = tau * (3.0_f64).sqrt();
         let fits = [Some((0.90, 0.0)), Some((0.94, 0.0)), Some((0.86, s3)), None];
         let fit = ScaleFit::impulse(&fits, tau);
-        assert_eq!(fit.flights, 4);
-        assert_eq!(fit.with_value, 3);
+        assert_eq!(fit.flights, Some(4));
+        assert_eq!(fit.with_value, Some(3));
         // Weights 1, 1 and 1/4 of 1/τ²: (0.90 + 0.94 + 0.86/4)/2.25.
         let center = (0.90 + 0.94 + 0.86 / 4.0) / 2.25;
         assert!((fit.mean.unwrap() - center).abs() < 1e-12);
@@ -1429,6 +1492,11 @@ mod tests {
         assert_eq!(unflagged.drag.excludes_one, Some(true));
         assert_eq!(every.drag.flown, None);
         assert_eq!(every.impulse.mean, None);
+        // Of the other fit, not even its counts (ADR-346 §7: its pass or fail on each set only).
+        assert_eq!(every.drag.flights, None);
+        assert_eq!(every.impulse.with_value, None);
+        assert!(every.drag.held_back && every.impulse.held_back);
+        assert!(unflagged.drag.unrounded_held_back && !unflagged.drag.held_back);
         assert_eq!(every.sets[0].corrected_mean_absolute_percent, None);
         assert!(every.sets[0].passes);
         // The public set is given in full by either fit.
@@ -1443,6 +1511,11 @@ mod tests {
         }
         .published();
         assert!(open.fits[1].drag.mean.is_some());
+        // The page marks what it holds back apart from a number that doesn't exist.
+        let mut markdown = String::new();
+        page.write_markdown(&mut markdown, "adr.md");
+        assert!(markdown.contains(HELD_BACK_CELL), "{markdown}");
+        assert!(page.adds_up());
         // The private file is sealed by its text.
         let text = held_back_text(&judged).unwrap();
         let hex: String = Sha256::digest(text.as_bytes())
@@ -1461,6 +1534,86 @@ mod tests {
         assert_eq!(whole.len(), 2);
         assert!(less[0].contains("less their flagged flights"), "{less:?}");
         assert!(whole.iter().all(|clause| !less.contains(clause)));
+    }
+
+    /// A held-back set's failed clause gives its fail and not which half of the rule failed, and
+    /// the verdict on the page is a list of them.
+    #[test]
+    fn a_held_back_failure_is_named_by_its_fail_alone() {
+        let worse = pairs(&[(4.0, 9.0), (-2.0, 2.0)]);
+        let held = SetJudged::of(HELD_OUT_SET, true, &worse, true).count_and_verdict();
+        let clauses = held.failed_clauses(EVERY);
+        assert_eq!(clauses.len(), 1);
+        assert!(clauses[0].ends_with(": fails"), "{clauses:?}");
+        let mut every = fit(EVERY);
+        every.sets[3] = SetJudged::of(HELD_OUT_SET, true, &worse, true);
+        every.passes = false;
+        let fits = vec![fit(UNFLAGGED), every];
+        let (passes, failed) = Judged::verdict(&fits);
+        assert!(!passes);
+        assert!(
+            failed.iter().any(|c| c.contains("mean absolute")),
+            "{failed:?}"
+        );
+        let judged = Judged {
+            resamples: 10_000,
+            seed: SEED,
+            tau: 0.0328,
+            flagged_calibration: 1,
+            flagged_held_out: 0,
+            flagged_held_out_ballistic: 0,
+            flagged_public: 0,
+            held_out_log_fits: 9,
+            public_log_fits: 4,
+            largest_uncorrected_collection_m: Some(0.0),
+            largest_uncorrected_public_m: Some(0.0),
+            fits,
+            passes,
+            failed,
+            held_back: false,
+        };
+        let page = judged.published();
+        assert!(!page.passes);
+        assert!(page.adds_up());
+        assert!(
+            page.failed.iter().all(|c| !c.contains("mean absolute")),
+            "{:?}",
+            page.failed
+        );
+        assert!(page.failed.iter().any(|c| c.ends_with(": fails")));
+        let mut markdown = String::new();
+        page.write_markdown(&mut markdown, "adr.md");
+        assert!(
+            markdown.contains("**The verdict: fail.** 1 clause failed"),
+            "{markdown}"
+        );
+        assert!(markdown.contains("\n- every"), "{markdown}");
+    }
+
+    /// A fit that isn't finite counts as no value for the impulse.
+    #[test]
+    fn an_impulse_fit_that_is_no_number_has_no_value() {
+        let fits = [
+            Some((0.9, 0.03)),
+            Some((f64::NAN, 0.03)),
+            Some((0.91, f64::INFINITY)),
+            Some((0.92, 0.03)),
+            Some((0.9, 0.03)),
+        ];
+        let fit = ScaleFit::impulse(&fits, 0.0328);
+        assert_eq!(fit.with_value, Some(3));
+        assert!(fit.mean.is_some_and(f64::is_finite));
+    }
+
+    /// The parallel map keeps the items' order across its chunks.
+    #[test]
+    fn the_parallel_map_keeps_the_order() {
+        let items: Vec<usize> = (0..1000).collect();
+        assert_eq!(
+            parallel(&items, |i| i * 2),
+            items.iter().map(|i| i * 2).collect::<Vec<_>>()
+        );
+        assert!(parallel(&[] as &[usize], |i| *i).is_empty());
     }
 
     /// Neither scale entering is a fail, named.

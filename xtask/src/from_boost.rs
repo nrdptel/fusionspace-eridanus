@@ -476,7 +476,6 @@ fn top_reading(forward: &mut Flown<'_>, p: &Parameters, kind: HeightKind) -> Res
         .ok_or_else(|| "the flight reaches no apogee".to_owned())
 }
 
-/// Fits and predicts one flight.
 /// What a public flight's boost is fitted on, as `real-flights` flies it.
 struct Setup {
     /// The files read, with their SHA-256.
@@ -594,6 +593,7 @@ pub(crate) fn log_alone(
     .map(|prediction| prediction.fit))
 }
 
+/// Fits and predicts one flight.
 fn fly(root: &Path, flight: &RealFlight, row: &FlightRow) -> Result<FlightBoost, String> {
     let failed = |error: &dyn std::fmt::Display| format!("{}: {error}", flight.id);
     let Setup {

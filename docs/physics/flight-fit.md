@@ -430,10 +430,13 @@ On the 12 public flights it takes the mean absolute error from 9.00% to 12.16%, 
 to −12.01%. The rule said the public flights must get no worse, so the verdict is a fail and nothing ships. The fit
 over every calibration flight fails the same way.
 [ADR-348](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0348-m7-5b-the-correction-fails-on-the-public-flights.md)
-records it. The collection reads high and the public flights read low, and one scale didn't serve both. That is
-evidence against one bias shared by both sets of flights. It doesn't say where the collection's high reading comes
-from. The report keeps the measurement for the work on causes, less what the rule holds back to protect the
-collection's flights.
+records it. Your flight results are unchanged. The collection reads high and the public flights read low, and one
+scale didn't serve both. The 12 public flights alone can't show the correction harms them with confidence: the
+bootstrap interval of their error's growth, −0.31 to 6.30 points, holds 0. Still, they give no support to one bias
+shared by both sets of flights. It doesn't say where the collection's high reading comes from. The report keeps the
+measurement for the work on causes. Some of its numbers are held back: the collection's terms allow only figures
+over several flights, and two figures over sets that differ by one or two flights would give those flights' own
+values by subtraction.
 
 The [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md) lists the
 calibration half's 3.19% as `accuracy.from-boost`, with which flights it counts
