@@ -229,6 +229,7 @@ warning: issue #67, drag
 warning: issue #68, drag
 warning: issue #18, drag
 warning: issue #172, stability
+warning: issue #1290, stability
 warning: issue #1198, stability
 above Mach 0.8 from 1.45 s to 1.89 s, in the recording
 ```
