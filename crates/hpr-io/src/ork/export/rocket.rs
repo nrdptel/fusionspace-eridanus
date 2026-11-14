@@ -1115,11 +1115,12 @@ impl<'a> Writer<'a> {
         if !kept_flags && overrides.cg_aft_m.is_some() {
             element.flag("overridesubcomponentscg", covers);
         }
-        // A center kept as written (a stage's that doesn't cover its parts, `stage_overrides` in
-        // `super::super::component`) has every flag beside it kept as written on the way back
-        // in, so a drag flag the file didn't have would come back kept (#1434). Left out, the
-        // drag override reads as not covering the parts, as it was read. One that covers them is
-        // written all the same, since the drag needs it.
+        // A center kept as written (a stage's that doesn't cover its parts, with no mass
+        // override: `stage_overrides` in `super::super::component`) has every flag beside it kept
+        // as written on the way back in, so a drag flag the file didn't have would come back kept
+        // (#1434). Left out, the drag override reads as not covering the parts, as it was read.
+        // One that covers them, as an edited design's can, is written all the same, since the
+        // drag needs it.
         let center_kept = self.keeps_tag(at, "overridecg");
         if let (false, Some(drag)) = (kept_flags, drag)
             && (drag.include_children || !center_kept)
@@ -1883,7 +1884,7 @@ pub(super) mod tests {
     /// A stage's center override that doesn't cover its parts, beside a drag override, neither
     /// with a flag, on a stage on the axis and on a parallel one, reads back as the same design:
     /// the reader keeps the center as written, and the export adds no drag flag that the read-back
-    /// would keep beside it (#1434).
+    /// would keep beside it (#1434). Edited to cover the parts, the drag override keeps its flag.
     #[test]
     fn a_stage_center_beside_a_drag_override_with_no_flags_reads_back_the_same() {
         let overrides = "<overridecg>0.2</overridecg><overridecd>0.5</overridecd>";
@@ -1930,6 +1931,33 @@ pub(super) mod tests {
             );
             assert_eq!(back, original, "{what}: {text}");
             assert_eq!(document(&back).value.to_xml(), text, "{what}");
+            // Edited to cover the parts, the drag override is written with its flag, and reads
+            // back covering them.
+            let mut edited = original.clone();
+            for stage in &mut edited.rocket.stages {
+                if let Some(drag) = stage.drag_override.as_mut() {
+                    drag.include_children = true;
+                }
+            }
+            let text = document(&edited).value.to_xml();
+            assert_eq!(
+                text.matches("<overridesubcomponentscd>true</overridesubcomponentscd>")
+                    .count(),
+                1,
+                "{what}: {text}"
+            );
+            let file = read(text.as_bytes())
+                .expect("the edited design reads")
+                .value;
+            let back = design(&file).value;
+            assert!(
+                back.rocket
+                    .stages
+                    .iter()
+                    .filter_map(|stage| stage.drag_override)
+                    .all(|drag| drag.include_children),
+                "{what}: {text}"
+            );
         }
     }
 
