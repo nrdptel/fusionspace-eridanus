@@ -497,7 +497,11 @@ log corpus came from Debrief.
   the calibration flights' logs, for airframe drag and delivered impulse, lowers the held-out mean
   absolute error and bias, and ships named in each flight's output; or an ADR records that it
   doesn't, and nothing ships. Either way, chosen first, M7.3d's sealed held-out fit aggregates are
-  then published, their file matching its committed hash (ADR-322).
+  then published, their file matching its committed hash (ADR-322). In three (ADR-346), below;
+  met when they are, or when M7.5b fails and drops M7.5c.
+  - [ ] **M7.5b The correction, fitted and judged.** *Done when:* ADR-346 decision 9's for M7.5b.
+  - [ ] **M7.5c The correction in each flight's output.** Only after a pass. *Done when:* ADR-346
+    decision 9's for M7.5c.
 - [ ] **M8.1 Design assistant.**
   - Templates: minimum diameter, 3FNC, dual deploy L1/L2/L3.
   - Automatic checks (stability window, motor fit, rail buttons, flutter margin, recovery sizing).

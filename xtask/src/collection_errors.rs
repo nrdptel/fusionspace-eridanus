@@ -22,6 +22,15 @@
 //! through [`Calibration`], which refuses a held-out flight (M2.7a, ADR-332); the
 //! held-out half's are written to the gitignored [`HELD_OUT_FITS`], and only that file's SHA-256 is
 //! committed, in [`HELD_OUT_FITS_SHA`], until M7.5 publishes them (ADR-322 §2).
+//!
+//! **Before the shared bias's correction (M7.5a, ADR-346).** Each set's forward error is split at
+//! the cut: the prediction's error is the share made after it, the forward error less the
+//! prediction's the share made up to it. And each calibration flight predicted is fitted once
+//! more with the impulse's stated range widened [`WIDENED`]-fold, for what its log alone says of
+//! the boost ([`Implied`]); a flight whose log and files disagree by more than NAR's retest
+//! rule allows one firing is flagged ([`Implied::disagrees`]). No correction is fitted
+//! across flights here, and the held-out half's logs are not fitted this way until that
+//! correction is judged (M7.5b).
 
 use std::collections::BTreeMap;
 use std::fmt::Write as _;
@@ -61,6 +70,21 @@ pub const HELD_OUT_FITS_SHA: &str = "validation/reports/held-out-fits.sha256";
 pub const CALIBRATION: &str = "calibration";
 /// The held-out half's name.
 pub const HELD_OUT: &str = "held out";
+/// How many times wider the impulse scale's stated range is made for the fit of the log alone
+/// (ADR-346 §2): wide enough that the range no longer pulls the fit toward the rated impulse. The
+/// widened range's standard deviation is 3.28, a weight of 1/3.28² ≈ 0.09. A fit with the
+/// calibration half's average standard error, 0.035, weighs 1/0.035² ≈ 800: the range's pull is
+/// about a ten-thousandth of the log's.
+pub const WIDENED: f64 = 100.0;
+/// How far one recertification firing's total impulse may lie from the certified mean before NAR
+/// retests the motor as a new type, a share of that mean: NAR Motor Testing Manual v1.5 (2011),
+/// §6.2.3, p. 11. The manual says it of a test firing; taking it as the most a flown motor's
+/// lot strays is ADR-346's inference. A boost farther than this from the rated impulse, at the
+/// file's mass, is then unlikely to be the lot: the files, or the model of the boost, are.
+pub const RECERTIFICATION_LIMIT: f64 = 0.131;
+/// How many of its own standard errors a log-implied impulse scale must clear
+/// [`RECERTIFICATION_LIMIT`] by for its flight to be flagged (ADR-346 §3).
+pub const FLAG_STANDARD_ERRORS: f64 = 2.0;
 
 /// The fit's flights of one collection flight.
 struct Flown<'a> {
@@ -160,6 +184,64 @@ pub(crate) struct CutFlight {
     pub other_logs_apart: bool,
 }
 
+/// Whether this increment fits a flight's log alone: a calibration flight's that was predicted.
+/// The held-out half's logs are fitted this way only when the correction is judged (M7.5b,
+/// ADR-346 §6).
+fn reads_log_alone(held_out: bool, predicted: bool) -> bool {
+    !held_out && predicted
+}
+
+/// What the fit of the log alone is told: what the prediction's fit was, with only the impulse
+/// scale's standard deviation made [`WIDENED`] times wider (ADR-346 §2).
+fn stated_alone(mut stated: Stated) -> Stated {
+    stated[Asked::ImpulseScale.index()].sd *= WIDENED;
+    stated
+}
+
+/// What a flight's log alone says of its boost: the impulse scale of the fit made with that
+/// scale's stated range widened [`WIDENED`]-fold, everything else as the prediction's fit. It is
+/// the impulse the climb to the cut shows over the motor's rated impulse, at the file's mass and
+/// the model's drag: a barometer's boost can't tell less impulse from more mass, and in a boost
+/// the drag and the impulse trade against each other
+/// (`docs/research/drag-impulse-identifiability.md`).
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct Implied {
+    /// The impulse scale.
+    scale: f64,
+    /// Its standard error.
+    standard_error: f64,
+    /// The drag scale's standard error in that fit: near what the fit was told of the drag where
+    /// the climb to the cut says nothing of it.
+    drag_standard_error: f64,
+    /// Whether that fit converged.
+    converged: bool,
+}
+
+impl Implied {
+    fn of(fit: &Fit) -> Self {
+        Self {
+            scale: fit.parameters.impulse_scale,
+            standard_error: fit.standard_errors[Asked::ImpulseScale.index()],
+            drag_standard_error: fit.standard_errors[Asked::DragScale.index()],
+            converged: fit.converged,
+        }
+    }
+
+    /// Whether the log and the files disagree by more than NAR's retest rule allows one firing
+    /// (ADR-346 §3):
+    /// the scale lies farther from 1 than [`RECERTIFICATION_LIMIT`], by more than
+    /// [`FLAG_STANDARD_ERRORS`] of its standard errors, either way; a scale exactly that far
+    /// isn't flagged. A fit that didn't converge, or came to no number, shows no disagreement.
+    fn disagrees(&self) -> bool {
+        // A standard error that is no number fails `>= 0.0`; an unbounded one clears nothing.
+        self.converged
+            && self.scale.is_finite()
+            && self.standard_error >= 0.0
+            && (self.scale - 1.0).abs() - FLAG_STANDARD_ERRORS * self.standard_error
+                > RECERTIFICATION_LIMIT
+    }
+}
+
 /// One flight's outcome, kept on this machine.
 struct Outcome {
     flight_id: String,
@@ -172,6 +254,9 @@ struct Outcome {
     other_logs: bool,
     other_logs_apart: bool,
     same_flight_m: Option<f64>,
+    /// What the log alone says of the boost, or why the widened fit came to nothing; `None`
+    /// where the log wasn't read alone ([`reads_log_alone`]).
+    implied: Option<Result<Implied, String>>,
 }
 
 /// What the report names a prediction's absence by.
@@ -207,6 +292,7 @@ fn predict(
                 other_logs: cut.other_logs,
                 other_logs_apart: cut.other_logs_apart,
                 same_flight_m: None,
+                implied: None,
             });
         }
     };
@@ -246,6 +332,19 @@ fn predict(
         )),
         Err(why) => Err(unpredicted_name(&why)),
     };
+    // What the log alone says of the boost: the same fit, the impulse's stated range widened
+    // until it no longer binds (ADR-346 §2). A calibration flight's only: the held-out half's
+    // logs are fitted this way when the correction is judged (M7.5b), not before.
+    let implied = reads_log_alone(held_out, result.is_ok()).then(|| {
+        boost::predict(
+            &cut.log,
+            |_| stated_alone(stated),
+            Noise::FromResiduals,
+            &mut flown,
+        )
+        .map(|prediction| Implied::of(&prediction.fit))
+        .map_err(|why| unpredicted_name(&why))
+    });
     Ok(Outcome {
         flight_id: cut.flight_id.clone(),
         held_out,
@@ -255,6 +354,7 @@ fn predict(
         other_logs: cut.other_logs,
         other_logs_apart: cut.other_logs_apart,
         same_flight_m: Some(same_flight_m),
+        implied,
     })
 }
 
@@ -285,6 +385,97 @@ pub struct FitAggregates {
     pub parameters: Vec<Spread>,
     /// The heights' residuals' RMS, m, averaged over the fits.
     pub rms_mean_m: Option<f64>,
+}
+
+/// What a half's logs alone say of the boost, as aggregates (ADR-346 §2, §3).
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct LogImplied {
+    /// The half.
+    pub half: String,
+    /// How many times wider the impulse's stated range was made: [`WIDENED`].
+    pub widened: f64,
+    /// The flag's limit: [`RECERTIFICATION_LIMIT`].
+    pub limit: f64,
+    /// The standard errors the limit must be cleared by: [`FLAG_STANDARD_ERRORS`].
+    pub standard_errors: f64,
+    /// The widened fits that came to a prediction.
+    pub fits: usize,
+    /// The predicted flights whose widened fit came to none, by why.
+    pub unfitted: BTreeMap<String, usize>,
+    /// The fits that converged. Every aggregate below is over these alone, as ADR-346 §4 pools
+    /// them.
+    pub converged: usize,
+    /// The converged fits' impulse scale.
+    pub impulse_scale: Spread,
+    /// That mean's standard error: the standard deviation over the root of the count.
+    pub impulse_scale_mean_standard_error: Option<f64>,
+    /// The mean of the impulse scale's standard errors in the converged fits.
+    pub standard_error_mean: Option<f64>,
+    /// The mean of the drag scale's standard errors in them.
+    pub drag_standard_error_mean: Option<f64>,
+    /// The converged fits whose impulse scale is below 1, the rated impulse.
+    pub below_rated: usize,
+    /// The flights flagged: the log and the files disagree by more than NAR's retest rule allows.
+    pub flagged: usize,
+}
+
+impl LogImplied {
+    /// The calibration half's. Its aggregates feed the choice of M7.5's correction, so they take
+    /// a [`Calibration`], which no held-out flight passes (ADR-209 §4, ADR-332 §2).
+    fn calibration(read: &Calibration<&Result<Implied, String>>) -> Self {
+        let mut unfitted = BTreeMap::new();
+        let mut fits = 0;
+        let mut converged = Vec::new();
+        for flight in read.flights() {
+            match flight {
+                Ok(fit) => {
+                    fits += 1;
+                    if fit.converged {
+                        converged.push(fit);
+                    }
+                }
+                Err(why) => *unfitted.entry(why.clone()).or_default() += 1,
+            }
+        }
+        let scales: Vec<f64> = converged.iter().map(|f| f.scale).collect();
+        let spread = sd(&scales);
+        Self {
+            half: CALIBRATION.to_owned(),
+            widened: WIDENED,
+            limit: RECERTIFICATION_LIMIT,
+            standard_errors: FLAG_STANDARD_ERRORS,
+            fits,
+            unfitted,
+            converged: converged.len(),
+            impulse_scale: Spread {
+                name: "impulse scale, the log alone".to_owned(),
+                mean: mean(scales.iter().copied()),
+                sd: spread,
+            },
+            impulse_scale_mean_standard_error: spread
+                .zip(u32::try_from(scales.len()).ok())
+                .map(|(sd, count)| sd / f64::from(count).sqrt()),
+            standard_error_mean: mean(converged.iter().map(|f| f.standard_error)),
+            drag_standard_error_mean: mean(converged.iter().map(|f| f.drag_standard_error)),
+            below_rated: scales.iter().filter(|s| **s < 1.0).count(),
+            flagged: converged.iter().filter(|f| f.disagrees()).count(),
+        }
+    }
+
+    /// Its counts add up, against the half's predicted flights, and its numbers are numbers: one
+    /// that isn't would be written as `null` and fail `--check` with no reason given.
+    fn adds_up(&self, predicted: usize) -> bool {
+        let finite = |value: Option<f64>| value.is_none_or(f64::is_finite);
+        self.fits + self.unfitted.values().sum::<usize>() == predicted
+            && self.converged <= self.fits
+            && self.below_rated <= self.converged
+            && self.flagged <= self.converged
+            && finite(self.impulse_scale.mean)
+            && finite(self.impulse_scale.sd)
+            && finite(self.impulse_scale_mean_standard_error)
+            && finite(self.standard_error_mean)
+            && finite(self.drag_standard_error_mean)
+    }
 }
 
 /// A half's predictions and errors.
@@ -329,6 +520,12 @@ pub struct Errors {
     pub forward_mean_absolute_percent: Option<f64>,
     /// Its mean error with its sign on them, %.
     pub forward_mean_percent: Option<f64>,
+    /// The share of the forward error made up to the cut: the mean of each flight's forward
+    /// error less its prediction's, with its sign, percentage points of the logged apogee
+    /// (ADR-346 §1). The prediction's error is the share made after the cut.
+    pub up_to_cut_mean_points: Option<f64>,
+    /// The flights whose share up to the cut is the larger of the two in size.
+    pub mostly_up_to_cut: usize,
     /// The mean of each flight's absolute error from the prediction less the forward
     /// simulation's, percentage points: below zero, the prediction came closer.
     pub difference_points: Option<f64>,
@@ -353,6 +550,8 @@ pub struct Predictions {
     pub halves: Vec<Half>,
     /// The calibration half's fit aggregates.
     pub calibration_fits: FitAggregates,
+    /// What the calibration half's logs alone say of the boost (M7.5a, ADR-346).
+    pub calibration_log_implied: LogImplied,
 }
 
 /// Whether a percentile bootstrap on `n` flights at `level` gives more than the flights' own
@@ -459,6 +658,8 @@ impl Half {
             && self.early_deployments <= self.predicted
             && self.cut_in_burn + self.cut_burn_unknown <= self.predicted
             && self.every.flights == self.predicted
+            && self.every.mostly_up_to_cut <= self.every.flights
+            && self.without_early.mostly_up_to_cut <= self.without_early.flights
             && self.without_early.flights + self.early_deployments == self.predicted
             && self.other_logs_apart <= self.with_other_logs
             && self.with_other_logs <= self.predicted
@@ -477,6 +678,11 @@ impl Errors {
             prediction_mean_percent: mean(pairs.iter().map(|(p, _)| *p)),
             forward_mean_absolute_percent: mean(pairs.iter().map(|(_, f)| f.abs())),
             forward_mean_percent: mean(pairs.iter().map(|(_, f)| *f)),
+            up_to_cut_mean_points: mean(pairs.iter().map(|(p, f)| f - p)),
+            mostly_up_to_cut: pairs
+                .iter()
+                .filter(|(p, f)| (f - p).abs() > p.abs())
+                .count(),
             difference_points: mean(differences.iter().copied()),
             bootstrap_interval: resolves(differences.len(), LEVEL)
                 .then(|| boost::paired_bootstrap_interval(&differences, LEVEL, RESAMPLES, SEED))
@@ -484,6 +690,24 @@ impl Errors {
             sign_flip_interval: boost::sign_flip_interval(&differences, LEVEL)
                 .map(|(low, high)| (finite(low), finite(high))),
         }
+    }
+}
+
+/// Fails when a held-out flight's log was fitted alone: this increment reads the calibration
+/// half's only, and the audit file must not hold a held-out flight's widened fit before the
+/// correction is judged (ADR-346 §6). It counts them and names none (ADR-151).
+fn none_held_out_read_alone(outcomes: &[Outcome]) -> Result<(), String> {
+    let read = outcomes
+        .iter()
+        .filter(|o| o.held_out && o.implied.is_some())
+        .count();
+    if read == 0 {
+        Ok(())
+    } else {
+        Err(format!(
+            "{read} held-out flight(s) had the log fitted alone, before the correction is judged \
+             (ADR-346)"
+        ))
     }
 }
 
@@ -525,6 +749,13 @@ pub(crate) fn predict_all(
     // The calibration half's fits feed a fit across flights, so they pass the guard, which reads
     // each flight's half from its id again.
     let calibration = Calibration::of(fits(false))?;
+    none_held_out_read_alone(&outcomes)?;
+    let implied = Calibration::of(
+        outcomes
+            .iter()
+            .filter(|o| !o.held_out)
+            .filter_map(|o| Some((o.flight_id.as_str(), o.implied.as_ref()?))),
+    )?;
     let predictions = Predictions {
         resamples: RESAMPLES,
         seed: SEED,
@@ -537,7 +768,9 @@ pub(crate) fn predict_all(
             Half::of(HELD_OUT, &half(true)),
         ],
         calibration_fits: FitAggregates::calibration(&calibration),
+        calibration_log_implied: LogImplied::calibration(&implied),
     };
+    let alone = |o: &Outcome| o.implied.as_ref().and_then(|i| i.as_ref().ok()).copied();
     let audit: Vec<serde_json::Value> = outcomes
         .iter()
         .map(|o| {
@@ -556,6 +789,11 @@ pub(crate) fn predict_all(
                 "other_logs": o.other_logs,
                 "other_logs_apart": o.other_logs_apart,
                 "same_flight_m": o.same_flight_m,
+                "log_implied_impulse_scale": alone(o).map(|i| i.scale),
+                "log_implied_standard_error": alone(o).map(|i| i.standard_error),
+                "log_implied_converged": alone(o).map(|i| i.converged),
+                "log_implied_unfitted": o.implied.as_ref().and_then(|i| i.as_ref().err()),
+                "flagged": alone(o).map(|i| i.disagrees()),
             })
         })
         .collect();
@@ -679,6 +917,113 @@ fn interval(value: Option<(Option<f64>, Option<f64>)>) -> String {
     )
 }
 
+/// A difference in percentage points, with its sign.
+fn points(value: Option<f64>) -> String {
+    value.map_or_else(|| "none".to_owned(), |d| format!("{d:+.2}"))
+}
+
+/// The row of the forward error's share made up to the cut.
+const UP_TO_CUT: &str = "forward error made up to the cut, forward less prediction (points)";
+
+impl LogImplied {
+    /// The page's part: what the half's logs alone say of the boost, and the flag.
+    fn write_markdown(&self, page: &mut String) {
+        let number = |v: Option<f64>| v.map_or_else(|| "none".to_owned(), |v| format!("{v:.3}"));
+        let stated = synthetic_fits::stated();
+        let read = self.fits + self.unfitted.values().sum::<usize>();
+        let _ = writeln!(
+            page,
+            "\n**The calibration half's logs alone.** Each fit above was told that the motor \
+             delivers its rated impulse to a standard deviation of {:.3} (a 90% range of 1 give \
+             or take {:.3}), and that pulls its impulse scale toward 1. For what a log alone \
+             says, each of the calibration half's {read} predicted flights is fitted once more \
+             with that range made {:.0} times wider and nothing else changed: {} fits, {} of \
+             them converged. Such a fit's impulse scale is the impulse the climb to the cut \
+             shows over the motor's rated impulse, at the mass in the files and the model's \
+             drag. A barometer's boost can't tell less impulse from more mass \
+             ([why](../../docs/research/drag-impulse-identifiability.md)), so a scale below 1 \
+             can be a motor that delivered less, a rocket built heavier than its files, or \
+             something the model gets wrong in the boost. The fit can't say which. The table \
+             is over the converged fits: a few flights of one half of one collection, so the \
+             mean says what these logs show, not what motors deliver.\n",
+            stated[Asked::ImpulseScale.index()].sd,
+            Asked::ImpulseScale.stated_width() / 2.0,
+            self.widened,
+            self.fits,
+            self.converged
+        );
+        let _ = writeln!(page, "| | calibration half |\n|---|---:|");
+        for (why, count) in &self.unfitted {
+            let _ = writeln!(page, "| no fit of the log alone: {why} | {count} |");
+        }
+        let _ = writeln!(
+            page,
+            "| {}: mean | {} |",
+            self.impulse_scale.name,
+            number(self.impulse_scale.mean)
+        );
+        let _ = writeln!(
+            page,
+            "| … the mean's standard error | {} |",
+            number(self.impulse_scale_mean_standard_error)
+        );
+        let _ = writeln!(
+            page,
+            "| … standard deviation | {} |",
+            number(self.impulse_scale.sd)
+        );
+        let _ = writeln!(
+            page,
+            "| … its standard error in a fit, averaged | {} |",
+            number(self.standard_error_mean)
+        );
+        let _ = writeln!(
+            page,
+            "| the drag scale's standard error in those fits, averaged | {} |",
+            number(self.drag_standard_error_mean)
+        );
+        let _ = writeln!(
+            page,
+            "| fits with the scale below 1 | {} |",
+            self.below_rated
+        );
+        let _ = writeln!(page, "| {FLAGGED} | {} |", self.flagged);
+        let _ = writeln!(
+            page,
+            "\nThe fits were told the drag scale to a standard deviation of {:.3}, and they \
+             come back knowing it little better. In a boost the drag and the impulse trade \
+             against each other, so the climb to the cut says almost nothing of the drag by \
+             itself: a drag scale has to come from the coast.",
+            stated[Asked::DragScale.index()].sd
+        );
+        let _ = writeln!(
+            page,
+            "\nA flight is flagged when its log and its files disagree by more than NAR's \
+             retest rule allows one firing: its impulse scale's distance from 1, less {:.0} of \
+             its own standard errors, is more than {:.1}%, in a fit that converged. NAR, one \
+             of the bodies that certify motors, tests a motor again as a new type when one \
+             recertification firing's total impulse is more than {:.1}% from the certified \
+             mean (NAR Motor Testing Manual v1.5, 2011, §6.2.3). The manual says that of a \
+             test firing; this page takes it as the most a flown motor's lot strays, an \
+             inference. Past it the lot is an unlikely cause, and the files' mass or motor, or \
+             the model of the boost, a likelier one. The flag removes no flight from this \
+             page's errors. [ADR-346, the rule before the fit]({ADR_346}), fixes how the \
+             correction of the shared bias is to be fitted on these scales and judged with \
+             and without the flagged flights, before any correction is fitted or flown. The \
+             held-out half's logs are fitted this way only when that correction is judged.",
+            self.standard_errors,
+            self.limit * 100.0,
+            self.limit * 100.0
+        );
+    }
+}
+
+/// The row of flagged flights.
+const FLAGGED: &str = "flights flagged: the log and the files disagree";
+
+/// This increment's decision record, from the report's folder.
+const ADR_346: &str = "../../docs/decisions/0346-m7-5-in-three-the-rule-before-the-fit.md";
+
 /// The row of flights whose candidate logs disagree, by [`crate::collection_boost::GAP_SHARE`].
 const OTHER_LOGS_APART: &str = "… … the logs' apogees more than 2% apart";
 
@@ -701,6 +1046,9 @@ impl Predictions {
             && self.halves.iter().map(|h| h.cut).sum::<usize>() == cut
             && self.calibration_fits.fits == self.halves[0].predicted
             && self.calibration_fits.converged <= self.calibration_fits.fits
+            && self
+                .calibration_log_implied
+                .adds_up(self.halves[0].predicted)
             && self
                 .largest_same_flight_m
                 .is_none_or(|m| m <= SAME_FLIGHT_WITHIN_M)
@@ -778,7 +1126,7 @@ impl Predictions {
                 value(held)
             );
         }
-        let errors: [ErrorRow; 7] = [
+        let errors: [ErrorRow; 9] = [
             ("prediction from the boost: mean absolute error", |e| {
                 unsigned(e.prediction_mean_absolute_percent)
             }),
@@ -792,12 +1140,13 @@ impl Predictions {
             ("… mean error with its sign", |e| {
                 signed(e.forward_mean_percent)
             }),
+            (UP_TO_CUT, |e| points(e.up_to_cut_mean_points)),
+            ("… flights where it is the larger share", |e| {
+                e.mostly_up_to_cut.to_string()
+            }),
             (
                 "absolute errors' difference, prediction less forward (points)",
-                |e| {
-                    e.difference_points
-                        .map_or_else(|| "none".to_owned(), |d| format!("{d:+.2}"))
-                },
+                |e| points(e.difference_points),
             ),
             ("… paired bootstrap 95% interval", |e| {
                 match e.bootstrap_interval {
@@ -852,6 +1201,22 @@ impl Predictions {
             grouped(self.resamples),
             self.seed
         );
+        let _ = writeln!(
+            page,
+            "**Up to the cut and after it.** The cut is where the fitted part of a log ends, \
+             after burnout. One row of each set gives the share of the forward error made up to \
+             the cut, in percentage points of the logged apogee; above zero, the forward \
+             simulation had climbed too high by then. The row under it counts the flights \
+             whose share up to the cut is the larger of the two in size. The prediction \
+             follows the log up to the cut and the model from there, so its error, in the \
+             rows above, is the share made after the cut, in the coast. The forward error less \
+             the prediction's is the share made up to the cut, where the motor's thrust, the \
+             rocket's mass and the boost's own drag set the climb: taking the boost from the \
+             log removes it. A flight's two shares add up to its forward error. The fit also \
+             moves the drag, the mass and the wind within what it was told of them, and those \
+             carry into the coast, so the split is of these two simulations' errors, not a \
+             measurement of the motor or the drag alone.\n"
+        );
         let fits = &self.calibration_fits;
         let _ = writeln!(
             page,
@@ -881,6 +1246,7 @@ impl Predictions {
              the calibration half alone; the SHA-256 of their file is committed in \
              [`held-out-fits.sha256`](held-out-fits.sha256), so a change to them shows."
         );
+        self.calibration_log_implied.write_markdown(page);
     }
 }
 
@@ -915,6 +1281,16 @@ mod tests {
             other_logs: early,
             other_logs_apart: false,
             same_flight_m: Some(0.1),
+            implied: None,
+        }
+    }
+
+    fn implied(scale: f64, standard_error: f64) -> Implied {
+        Implied {
+            scale,
+            standard_error,
+            drag_standard_error: 0.1,
+            converged: true,
         }
     }
 
@@ -950,7 +1326,177 @@ mod tests {
         assert_eq!(without.prediction_mean_percent, Some(-2.0));
         assert_eq!(without.forward_mean_percent, Some(6.0));
         assert_eq!(without.difference_points, Some(-4.0));
+        // Up to the cut: 6 − (−2) = 8 and −2 − 4 = −6, each larger in size than what is left.
+        assert_eq!(every.up_to_cut_mean_points, Some(1.0));
+        assert_eq!(every.mostly_up_to_cut, 2);
+        assert_eq!(without.up_to_cut_mean_points, Some(8.0));
+        assert_eq!(without.mostly_up_to_cut, 1);
         assert!(half.adds_up());
+    }
+
+    /// A flight's forward error is its share up to the cut plus its share after it, the
+    /// prediction's error; the larger share is the larger in size, and a tie is not the cut's.
+    #[test]
+    fn the_forward_error_splits_at_the_cut() {
+        // (prediction, forward): up to the cut 9, 1, 0 and −4.
+        let pairs = [(1.0, 10.0), (-5.0, -4.0), (3.0, 3.0), (2.0, -2.0)];
+        let errors = Errors::of(pairs.into_iter());
+        assert_eq!(errors.up_to_cut_mean_points, Some(1.5));
+        // 9 against 1 and −4 against 2; not 1 against −5, nor 0 against 3.
+        assert_eq!(errors.mostly_up_to_cut, 2);
+        let sum = errors.up_to_cut_mean_points.unwrap() + errors.prediction_mean_percent.unwrap();
+        assert!((sum - errors.forward_mean_percent.unwrap()).abs() < 1e-12);
+        // Equal shares: 2 up to the cut, 2 after it.
+        assert_eq!(Errors::of([(2.0, 4.0)].into_iter()).mostly_up_to_cut, 0);
+        let none = Errors::of(std::iter::empty());
+        assert_eq!(
+            (none.up_to_cut_mean_points, none.mostly_up_to_cut),
+            (None, 0)
+        );
+    }
+
+    /// A flight is flagged only when its scale clears NAR's 13.1% by two of its standard
+    /// errors, on either side of the rated impulse, in a fit that converged and came to numbers.
+    #[test]
+    fn a_flag_needs_the_limit_cleared_by_two_standard_errors() {
+        // 0.185 from 1, less 0.04: past 0.131.
+        assert!(implied(0.815, 0.02).disagrees());
+        // Exactly known: just past the limit, and just inside it.
+        assert!(implied(0.868, 0.0).disagrees());
+        assert!(!implied(0.870, 0.0).disagrees());
+        // 0.15 from 1: two standard errors of 0.009 leave 0.132, of 0.010 leave 0.130.
+        assert!(implied(0.85, 0.009).disagrees());
+        assert!(!implied(0.85, 0.010).disagrees());
+        // One standard error would have flagged this: 0.15 − 0.015 is past the limit.
+        assert!(!implied(0.85, 0.015).disagrees());
+        // Above the rating too.
+        assert!(implied(1.2, 0.02).disagrees());
+        assert!(!implied(1.14, 0.01).disagrees());
+        // The calibration half's mean, far inside.
+        assert!(!implied(0.94, 0.03).disagrees());
+        let unconverged = Implied {
+            converged: false,
+            ..implied(0.5, 0.0)
+        };
+        assert!(!unconverged.disagrees());
+        for (scale, standard_error) in [
+            (f64::NAN, 0.0),
+            (0.5, f64::NAN),
+            (0.5, f64::INFINITY),
+            (f64::INFINITY, 0.0),
+            (0.5, -0.01),
+        ] {
+            assert!(!implied(scale, standard_error).disagrees());
+        }
+    }
+
+    /// The limit is NAR's and the widening is what the page says: the words carry the numbers.
+    /// The aggregates are over the converged fits alone, a scale of exactly 1 isn't below the
+    /// rating, and a widened fit that came to nothing is counted under its reason.
+    #[test]
+    fn the_page_names_the_flags_numbers() {
+        assert!((RECERTIFICATION_LIMIT - 0.131).abs() < 1e-15);
+        let unconverged = Implied {
+            converged: false,
+            ..implied(0.5, 0.0)
+        };
+        let flights = [
+            Ok(implied(0.8, 0.01)),
+            Ok(implied(0.95, 0.03)),
+            Ok(implied(1.0, 0.05)),
+            Ok(unconverged),
+            Err("too little up to the cut to fit".to_owned()),
+        ];
+        // Invented ids of the calibration half (`collection_boost`'s tests: 6 to 10 are held out).
+        let ids = (1..=5).map(|k| format!("example-flight-{k}"));
+        let ids: Vec<String> = ids.collect();
+        let guarded = Calibration::of(ids.iter().map(String::as_str).zip(flights.iter())).unwrap();
+        let alone = LogImplied::calibration(&guarded);
+        assert_eq!((alone.fits, alone.converged), (4, 3));
+        assert_eq!(
+            alone.unfitted.get("too little up to the cut to fit"),
+            Some(&1)
+        );
+        // Over 0.8, 0.95 and 1.0: the unconverged 0.5 is in none of these.
+        assert_eq!((alone.below_rated, alone.flagged), (2, 1));
+        assert!((alone.impulse_scale.mean.unwrap() - 2.75 / 3.0).abs() < 1e-12);
+        // The deviations are −7/60, 2/60 and 5/60: their squares sum to 78/3600, over 2.
+        let sd = (78.0_f64 / 7200.0).sqrt();
+        assert!((alone.impulse_scale.sd.unwrap() - sd).abs() < 1e-12);
+        let of_mean = alone.impulse_scale_mean_standard_error.unwrap();
+        assert!((of_mean - sd / 3.0_f64.sqrt()).abs() < 1e-12);
+        assert!((alone.standard_error_mean.unwrap() - 0.03).abs() < 1e-12);
+        assert!((alone.drag_standard_error_mean.unwrap() - 0.1).abs() < 1e-12);
+        assert!(alone.adds_up(5) && !alone.adds_up(4));
+        let not_a_number = LogImplied {
+            standard_error_mean: Some(f64::NAN),
+            ..alone.clone()
+        };
+        assert!(!not_a_number.adds_up(5));
+        let mut page = String::new();
+        alone.write_markdown(&mut page);
+        for words in [
+            "made 100 times wider",
+            "distance from 1, less 2 of its own standard errors, is more than 13.1%",
+            "something the model gets wrong in the boost",
+            "only when that correction is judged",
+            "§6.2.3",
+            "to a standard deviation of 0.033 (a 90% range of 1 give or take 0.054)",
+            "each of the calibration half's 5 predicted flights",
+            "4 fits, 3 of them converged",
+            "| no fit of the log alone: too little up to the cut to fit | 1 |",
+            "drag scale to a standard deviation of 0.109",
+            "| the drag scale's standard error in those fits, averaged | 0.100 |",
+            "| flights flagged: the log and the files disagree | 1 |",
+            "| fits with the scale below 1 | 2 |",
+        ] {
+            assert!(page.contains(words), "{words}: {page}");
+        }
+    }
+
+    /// The fit of the log alone is told what the prediction's fit was, but for the impulse
+    /// scale's range, 100 times wider: nothing else is widened or moved.
+    #[test]
+    fn only_the_impulse_range_is_widened() {
+        let stated = synthetic_fits::stated();
+        let alone = stated_alone(stated);
+        let impulse = Asked::ImpulseScale.index();
+        for (k, (told, was)) in alone.iter().zip(stated.iter()).enumerate() {
+            assert_eq!(told.mean.to_bits(), was.mean.to_bits(), "mean {k}");
+            if k == impulse {
+                assert!((told.sd - 100.0 * was.sd).abs() < 1e-12, "{}", told.sd);
+            } else {
+                assert_eq!(told.sd.to_bits(), was.sd.to_bits(), "sd {k}");
+            }
+        }
+    }
+
+    /// A held-out flight's log is never read alone here: the run stops on a held-out outcome
+    /// that carries a widened fit, naming no flight, and the guard refuses the set.
+    #[test]
+    fn a_held_out_log_never_reaches_the_logs_alone() {
+        let flight = implied(0.9, 0.02);
+        assert!(crate::collection_boost::held_out("example-flight-6"));
+        let refused =
+            Calibration::of([("example-flight-1", &flight), ("example-flight-6", &flight)]);
+        assert!(refused.is_err());
+        // Only a predicted calibration flight's log is fitted alone.
+        assert!(reads_log_alone(false, true));
+        assert!(!reads_log_alone(true, true));
+        assert!(!reads_log_alone(false, false));
+        assert!(!reads_log_alone(true, false));
+        let read_alone = |held_out: bool| Outcome {
+            implied: Some(Ok(flight)),
+            ..outcome(held_out, Ok((1.0, 2.0)), false)
+        };
+        let calibration = [read_alone(false), outcome(true, Ok((1.0, 2.0)), false)];
+        assert_eq!(none_held_out_read_alone(&calibration), Ok(()));
+        let why = none_held_out_read_alone(&[read_alone(false), read_alone(true)]).unwrap_err();
+        assert!(
+            why.starts_with("1 held-out flight(s) had the log fitted alone"),
+            "{why}"
+        );
+        assert!(!why.contains("example-flight"), "{why}");
     }
 
     /// A percentile bootstrap gives more than the flights' range from 4 flights on at 95%: on 3,

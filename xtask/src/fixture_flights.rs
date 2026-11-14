@@ -1640,7 +1640,8 @@ impl Report {
                      across flights. Such a fit must take its flights through a guard that stops \
                      `cargo xtask fixture-flights` when one is held out; the guard checks only the \
                      fits that take it, and review holds a new fit to it. Today the calibration \
-                     half's fit aggregates in `collection-boost.json` take it. So does the \
+                     half's fit aggregates in `collection-boost.json` take it, and so do its \
+                     logs' widened fits there. So does the \
                      calibration half's table below, which the scoreboard holds its collection \
                      rows by. The held-out half is held \
                      out, not blind: the first set above, over every flight compared, was \

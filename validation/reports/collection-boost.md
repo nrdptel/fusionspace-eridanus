@@ -51,6 +51,8 @@ Of the flights not left out, 241 files were tried, 199 read on their own and 117
 | … mean error with its sign | -0.08% | +1.34% |
 | forward simulation, same flights: mean absolute error | 9.32% | 16.75% |
 | … mean error with its sign | +8.84% | +15.73% |
+| forward error made up to the cut, forward less prediction (points) | +8.92 | +14.39 |
+| … flights where it is the larger share | 11 | 9 |
 | absolute errors' difference, prediction less forward (points) | -6.13 | -13.16 |
 | … paired bootstrap 95% interval | -10.08 to -2.71 | -18.77 to -7.93 |
 | … exact sign-flip 95% interval | -10.64 to -2.08 | -20.29 to -6.49 |
@@ -59,11 +61,15 @@ Of the flights not left out, 241 files were tried, 199 read on their own and 117
 | … mean error with its sign | -1.12% | -1.54% |
 | forward simulation, same flights: mean absolute error | 10.05% | 10.40% |
 | … mean error with its sign | +9.33% | +10.40% |
+| forward error made up to the cut, forward less prediction (points) | +10.44 | +11.93 |
+| … flights where it is the larger share | 7 | 3 |
 | absolute errors' difference, prediction less forward (points) | -7.02 | -7.32 |
 | … paired bootstrap 95% interval | -12.65 to -2.29 | too few flights to resample |
 | … exact sign-flip 95% interval | -13.76 to -0.80 | unbounded |
 
 Both methods fly nothing deployed, and the fit reads the log only up to its cut, so a deployment before apogee lowers the logged apogee beneath both; the rows without those flights leave them out, as the forward report's own set does. Where a flight has other logs on a barometer's track, the rule above takes the one nearest the logged apogee; two rows count how often there was such a choice, and how often the candidates' apogees lay more than 2% apart, where the choice could move an error. Interval ends are rounded outward. The bootstrap resamples each half's flights 10,000 times (seed 329), each flight's two errors kept together, and takes the 2.5% and 97.5% points of the resampled means. On a few flights it can cover less than 95%, so the exact sign-flip interval, which the public flights' report uses, stands beside it: it assumes only that each flight's difference is drawn independently and symmetrically about the center. On 3 flights or fewer the bootstrap's 95% points are only the smallest and largest difference, so the page gives none. On 5 flights or fewer no pattern of signs is rare enough at 95%, so the sign-flip interval is the whole line: "unbounded".
+
+**Up to the cut and after it.** The cut is where the fitted part of a log ends, after burnout. One row of each set gives the share of the forward error made up to the cut, in percentage points of the logged apogee; above zero, the forward simulation had climbed too high by then. The row under it counts the flights whose share up to the cut is the larger of the two in size. The prediction follows the log up to the cut and the model from there, so its error, in the rows above, is the share made after the cut, in the coast. The forward error less the prediction's is the share made up to the cut, where the motor's thrust, the rocket's mass and the boost's own drag set the climb: taking the boost from the log removes it. A flight's two shares add up to its forward error. The fit also moves the drag, the mass and the wind within what it was told of them, and those carry into the coast, so the split is of these two simulations' errors, not a measurement of the motor or the drag alone.
 
 **The calibration half's fits.** 12 fits of the logs up to the cut, 12 of them converged; their residuals' RMS averages 2.72 m. Over those fits:
 
@@ -74,6 +80,22 @@ Both methods fly nothing deployed, and the fit reads the log only up to its cut,
 | structure mass scale | 1.003 | 0.002 |
 
 The held-out half's fit aggregates, the drag and impulse scales a later correction of the shared bias would aim at, stay private until that correction is chosen on the calibration half alone; the SHA-256 of their file is committed in [`held-out-fits.sha256`](held-out-fits.sha256), so a change to them shows.
+
+**The calibration half's logs alone.** Each fit above was told that the motor delivers its rated impulse to a standard deviation of 0.033 (a 90% range of 1 give or take 0.054), and that pulls its impulse scale toward 1. For what a log alone says, each of the calibration half's 12 predicted flights is fitted once more with that range made 100 times wider and nothing else changed: 12 fits, 12 of them converged. Such a fit's impulse scale is the impulse the climb to the cut shows over the motor's rated impulse, at the mass in the files and the model's drag. A barometer's boost can't tell less impulse from more mass ([why](../../docs/research/drag-impulse-identifiability.md)), so a scale below 1 can be a motor that delivered less, a rocket built heavier than its files, or something the model gets wrong in the boost. The fit can't say which. The table is over the converged fits: a few flights of one half of one collection, so the mean says what these logs show, not what motors deliver.
+
+| | calibration half |
+|---|---:|
+| impulse scale, the log alone: mean | 0.936 |
+| … the mean's standard error | 0.014 |
+| … standard deviation | 0.048 |
+| … its standard error in a fit, averaged | 0.035 |
+| the drag scale's standard error in those fits, averaged | 0.108 |
+| fits with the scale below 1 | 12 |
+| flights flagged: the log and the files disagree | 1 |
+
+The fits were told the drag scale to a standard deviation of 0.109, and they come back knowing it little better. In a boost the drag and the impulse trade against each other, so the climb to the cut says almost nothing of the drag by itself: a drag scale has to come from the coast.
+
+A flight is flagged when its log and its files disagree by more than NAR's retest rule allows one firing: its impulse scale's distance from 1, less 2 of its own standard errors, is more than 13.1%, in a fit that converged. NAR, one of the bodies that certify motors, tests a motor again as a new type when one recertification firing's total impulse is more than 13.1% from the certified mean (NAR Motor Testing Manual v1.5, 2011, §6.2.3). The manual says that of a test firing; this page takes it as the most a flown motor's lot strays, an inference. Past it the lot is an unlikely cause, and the files' mass or motor, or the model of the boost, a likelier one. The flag removes no flight from this page's errors. [ADR-346, the rule before the fit](../../docs/decisions/0346-m7-5-in-three-the-rule-before-the-fit.md), fixes how the correction of the shared bias is to be fitted on these scales and judged with and without the flagged flights, before any correction is fitted or flown. The held-out half's logs are fitted this way only when that correction is judged.
 
 **Sources.** Flight data published by university rocketry teams, rocketry courses and hobbyists on GitHub, team websites and The Rocketry Forum.
 

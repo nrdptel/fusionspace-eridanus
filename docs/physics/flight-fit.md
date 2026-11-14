@@ -386,6 +386,35 @@ is unbounded. The fitted impulse scale averages 0.958 in the calibration half: t
 is a fit's factor, not a measured impulse. It may take up some of what the model gets wrong in the boost, as the other
 scales may.
 
+[The same report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/collection-boost.md)
+splits each flight's forward error at the cut. The numbers below are from it. The prediction's error is the share made
+after the cut. The forward error less the prediction's is the share made up to it. There the motor's thrust, the
+rocket's mass and the boost's own drag set the climb. On the calibration half that share averages +8.92 percentage
+points of the logged apogee: the forward simulation's climb up to the cut put its apogee that much too high. It is
+the larger share on 11 of the 12 flights. On the held-out half it averages +14.39 points and is the larger share on all 9. Without the flights
+that deployed something before apogee it is +10.44 and +11.93 points. The prediction's own mean error is near zero,
+−0.08% and +1.34%, so the share up to the cut is nearly the whole forward error. This is a split of two simulations'
+errors, not a measurement of the motor. The fit also moves the drag, the mass and the wind within what it was told,
+and those carry into the coast.
+
+Each fit is told the motor delivers its rated impulse to a standard deviation of 0.033, and that pulls its impulse
+scale toward 1. So each calibration log is fitted again with that range made 100 times wider, and the log alone
+speaks. The 12 impulse scales then average 0.936, with a standard error of 0.014 on that mean, and all 12 are below 1.
+That is 12 flights of one half of one collection: it says what these logs show, not what motors deliver. A
+barometer's boost can't tell a motor that delivered less from a rocket built heavier than its files. That scale
+carries both, and whatever the model gets wrong in the boost.
+
+One of the 12 flights is flagged: its log and its files disagree by more than the limit below.
+The cause could be the files, the motor or the model of the boost. The limit is 13.1%. Past that, NAR, one of the
+bodies that certify motors, tests a motor again as a new type. NAR's rule is for a test firing against the certified
+mean. Using it for a flown motor against its rated impulse is this project's inference, and the report gives the
+source. The scale's distance from 1, less two of its own standard errors, must be more than the limit. A flagged
+flight stays in every number on this page. No correction is made from these numbers yet.
+[ADR-346, the rule before the fit](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0346-m7-5-in-three-the-rule-before-the-fit.md),
+fixes how one is to be fitted on the calibration half. It also fixes how it is judged, on the held-out half and the
+public flights. It was written after a look at the calibration half's fits and before any correction was fitted or
+flown.
+
 The [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md) lists the
 calibration half's 3.19% as `accuracy.from-boost`, with which flights it counts
 ([ADR-330](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0330-m7-3d7-the-from-boost-scoreboard-row.md), the row).
