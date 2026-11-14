@@ -19,11 +19,10 @@ RocketPy's own test rockets, unless it is marked **Inference** or credited to th
   ([ADR-026][adr-026]); the oracle already flies both.
 - **No fix since 1.13.0 is released.** The open release PR for 1.14.0 carries `develop` as it stands,
   so #1188 should ship in it; its text adds #1190 and says every other PR waits for 1.15 or later.
-- **Two open defects are unsized:** a rotation in the generic aerodynamic surface (#932), and a
+- **Two open defects are unsized:** a rotation in the generic aerodynamic surface (#932) and a
   dropped center-of-mass acceleration term (#1185, sized only on a hybrid). Neither has a fix in a
-  release. A third report, of a wrong-way wind and heading convention (#717), was examined on
-  November 3, 2026: 1.13.0's trajectory code inverts neither the wind nor the heading
-  ([the note on #717](rocketpy-wind-heading-717.md)).
+  release. A third report, of a wrong-way wind and heading (#717), was examined on November 3, 2026:
+  no inversion in 1.13.0's trajectory code ([the note on #717](rocketpy-wind-heading-717.md)).
 
 ## How the list was built
 
@@ -83,14 +82,12 @@ maintainer on 2026-09-19, not merged; head `f3c0c86`, against `develop`.
 - **#717, launch heading against the wind's components** [10]. Open since 2024-10-24. A user's
   crosswind flight with heading 11.6° flew west instead of north. A maintainer replied the same day
   that something is wrong with the `wind_u` definition, present since v1.0 or earlier, and later
-  pointed at the `Flight.u_dot` methods. No fix. Examined on November 3, 2026: no inversion. In
-  1.13.0's trajectory code, `wind_u` and `wind_v` are the air's velocity toward east and north and
-  the heading is clockwise from north. The flight turned west because a stable rocket turns into the
-  wind (**Inference**, from a reproduction on Calisto). The released equations overstate that turn
-  (#1186's sign with #1188's nozzle term; the oracle flies both corrected). A real inversion would
-  have moved the apogees of the seven public flights' RocketPy notebooks by up to 11.75%. That is
-  Juno III with its heading mirrored; with its wind reversed it moves 10.15%
-  ([the note on #717](rocketpy-wind-heading-717.md)).
+  pointed at the `Flight.u_dot` methods. Examined on November 3, 2026: no inversion. 1.13.0 takes
+  `wind_u` and `wind_v` as air velocity toward east and north, and the heading clockwise from north.
+  The flight turned west because a stable rocket turns into the wind (**Inference**, from a Calisto
+  reproduction); the released equations overstate the turn (#1186's sign, #1188's nozzle term). A
+  real inversion would have moved the seven public flights' RocketPy notebooks' apogees by up to
+  11.75% (Juno III, heading mirrored) ([the note on #717](rocketpy-wind-heading-717.md)).
 - **#932, the wrong rotation in `GenericSurface.compute_forces_and_moments`** [11]. Open since
   2026-03-05. A comment's check at α = 0.2 rad and β = 0.1 rad, against the direction-cosine mapping:
   drag keeps its axial part but its lateral parts flip sign, and lift and side force flip their axial
