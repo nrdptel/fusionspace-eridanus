@@ -307,6 +307,34 @@ fn east_north(frame: &LaunchFrame, latitude_deg: f64, longitude_deg: f64) -> Opt
     Some((enu.x, enu.y))
 }
 
+/// A longitude moved by whole turns into [-180°, 180°); one already there is returned as it is,
+/// with no rounding.
+fn wrapped_deg(longitude_deg: f64) -> f64 {
+    if (-180.0..180.0).contains(&longitude_deg) {
+        longitude_deg
+    } else {
+        (longitude_deg + 180.0).rem_euclid(360.0) - 180.0
+    }
+}
+
+/// The median of `longitudes_deg` taken around `around_deg`: each is first moved by whole turns to
+/// within 180° of it, so the middle of fixes either side of the ±180° meridian is on the meridian,
+/// not near 0° (#1093). The median is moved back into [-180°, 180°).
+fn median_longitude(longitudes_deg: &[f64], around_deg: f64) -> Option<f64> {
+    let mut near: Vec<f64> = longitudes_deg
+        .iter()
+        .map(|&lon| {
+            let off = lon - around_deg;
+            if (-180.0..180.0).contains(&off) {
+                lon
+            } else {
+                around_deg + wrapped_deg(off)
+            }
+        })
+        .collect();
+    median(&mut near).map(wrapped_deg)
+}
+
 /// Whether a latitude and longitude are a place: in range, and not a receiver's zero.
 fn a_place(latitude_deg: f64, longitude_deg: f64) -> bool {
     latitude_deg.abs() <= 90.0
@@ -369,11 +397,16 @@ fn screened_fixes(log: &FlightLog) -> Fixes {
             out.counts.not_a_place += 1;
         }
     }
-    let middle = |of: fn(&(usize, f64, f64, f64)) -> f64| {
-        let mut values: Vec<f64> = places.iter().map(of).collect();
-        median(&mut values)
-    };
-    let (Some(mid_lat), Some(mid_lon)) = (middle(|p| p.2), middle(|p| p.3)) else {
+    let latitudes: Vec<f64> = places.iter().map(|p| p.2).collect();
+    let longitudes: Vec<f64> = places.iter().map(|p| p.3).collect();
+    // The longitudes' middle is taken around the first fix's, for a track across the ±180°
+    // meridian.
+    let (Some(mid_lat), Some(mid_lon)) = (
+        median(&mut latitudes.clone()),
+        longitudes
+            .first()
+            .and_then(|&first| median_longitude(&longitudes, first)),
+    ) else {
         return out;
     };
     let Some(frame) = frame_at(mid_lat, mid_lon, 0.0) else {
@@ -444,13 +477,17 @@ fn pad_of(
     });
     let from_fixes = before.as_ref().map(|(fixes, range)| {
         let mut lat = fixes.latitude_deg[range.clone()].to_vec();
-        let mut lon = fixes.longitude_deg[range.clone()].to_vec();
+        let lon = &fixes.longitude_deg[range.clone()];
         let mut height: Vec<f64> = fixes.height_m[range.clone()]
             .iter()
             .flatten()
             .copied()
             .collect();
-        (median(&mut lat), median(&mut lon), median(&mut height))
+        (
+            median(&mut lat),
+            lon.first().and_then(|&first| median_longitude(lon, first)),
+            median(&mut height),
+        )
     });
     let first = logs
         .iter()
@@ -1461,6 +1498,30 @@ mod tests {
         assert_eq!(ghost.pad.from, PadFrom::FixesBeforeLiftoff);
         assert_eq!(ghost.pad.latitude_deg, Some(lat));
         assert_eq!(ghost.pad.longitude_deg, Some(lon));
+    }
+
+    /// A pad on the 180° meridian, its fixes either side of it: the track's middle and the pad are
+    /// taken around the first fix, so no fix is counted out of reach and the pad sits on the
+    /// meridian, not near 0° (#1093). An invented place.
+    #[test]
+    fn a_track_across_the_180th_meridian_keeps_its_fixes_and_its_pad() {
+        let lat = -16.5;
+        let mut fixes: Vec<(f64, f64, f64)> = (0..30)
+            .map(|k| {
+                let lon = if k % 2 == 0 { 179.999_99 } else { -179.999_99 };
+                (0.1 * f64::from(k), lat, lon)
+            })
+            .collect();
+        // Two in flight, one either side: an even count, whose plain median is 0°.
+        fixes.push((20.0, lat + 0.000_1, -179.999_9));
+        fixes.push((21.0, lat + 0.000_2, 179.999_9));
+        let ghost = built(&with_fixes(climb(), &fixes, None), None).unwrap();
+        let counts = ghost.tracks[0].fixes;
+        assert_eq!((counts.kept, counts.out_of_reach), (32, 0), "{counts:?}");
+        assert_eq!(ghost.pad.from, PadFrom::FixesBeforeLiftoff);
+        let pad = ghost.pad.longitude_deg.unwrap();
+        assert!(180.0 - pad.abs() < 1e-4, "{pad}");
+        assert!((-180.0..=180.0).contains(&pad), "{pad}");
     }
 
     #[test]
