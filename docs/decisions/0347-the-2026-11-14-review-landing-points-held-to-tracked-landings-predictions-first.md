@@ -92,16 +92,21 @@ comparison come first, as they do for the descent rates.
        the pad or one that ends in the air. The reading never uses a simulation: it lives in
        `hpr-flightdata`, the crate [the architecture][arch] bars from depending on the
        simulator's.
-     - That reading is run on synthetic tracks whose pad and landing are known: at least
-       200 that should be read, across the fix noise and the dropouts the logger notes
-       give, and tracks that must be refused, with no fix on the pad or ending in the air.
-       A reading is wrong when the true point lies outside its interval, or when a track
-       that should be read is refused.
-     - The synthetic set must meet three lines, each given with its counts. The intervals
-       hold the true point on at least 90% of the tracks that should be read. On those with
-       no dropout, the median half-width is at most three times the fix noise put in, so an
-       interval can't pass by being wide. Every track that must be refused is refused. No
-       real track is read until the set meets all three.
+     - That reading is checked on synthetic tracks whose pad and landing are known, before
+       it reads any real track. The rule states, with a source for each, the levels of fix
+       noise and of dropout (the share of fixes lost and the longest gap) the set covers,
+       the worst its sources give among them. Each level has at least 20 tracks that should
+       be read and the set at least 200. Each kind of track that must be refused, one with
+       no fix on the pad and one ending in the air, has at least 20.
+     - A reading is wrong when the true point lies outside its interval, or when a track
+       that should be read is refused. The set must meet three lines, at every level and
+       over the whole, each given with its counts. The intervals hold the true point on at
+       least 90% of the tracks that should be read. The 90th percentile of their
+       half-widths is under a bound the rule fixes beforehand from that level's noise and
+       longest gap. Every track that must be refused is refused.
+     - Each line is shown able to fail. A reader that widens every interval tenfold, one
+       that refuses nothing, and one that moves every landing point by its level's noise
+       each fail the set.
      - The rule names which simulated landing point is set against which reading, and the
        parachutes: the design file's, as [M2.12a][m2-12a] flies them.
      - A prediction reads only its flight's plan, the fields [ADR-333][adr-333] lets a
@@ -199,8 +204,9 @@ comparison come first, as they do for the descent rates.
 **Consequences.**
 
 - A real-flight row on a third output, after apogee and the descent rate, is on the roadmap,
-  and it is a safety number with a named flattering side. The collection's landing misses will be blind:
-  each prediction and each reading is fixed in the repository before anyone compares the two.
+  and it is a safety number with a named flattering side. The collection's landing misses will be predicted first:
+  each prediction and each reading is fixed in the repository before anyone compares the two,
+  with where its plan's launch hour and rail came from beside it.
 - The analyzer gains its first readings from a position track, the pad's point and the
   landing point with their intervals, checked against synthetic tracks before they are used
   on a real one.
