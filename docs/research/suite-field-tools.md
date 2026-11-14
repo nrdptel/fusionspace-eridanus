@@ -76,6 +76,7 @@ reports where the setting sits against each edge, never a verdict.
 
 | setting | fails when it is too… | compared with |
 |---|---|---|
+| arming height | high: it never arms, so no charge fires | the lowest apogee (low-side bound); Chute Release: time above 100 ft (low-side bound), vs 3 s |
 | main altitude | high: it fires at or near apogee | the lowest apogee (low-side bound) |
 | main altitude | low: not open by landing | height lost inflating at top drogue speed (high), plus baro error |
 | apogee delay (after detection) | long: drogue opens fast | speed after the delay (high-side), vs the drogue's rating |
@@ -85,8 +86,8 @@ reports where the setting sits against each edge, never a verdict.
 | motor delay | long: it fires well after apogee | the earliest apogee, plus the delay's tolerance |
 | backup offset | none: a rule, not a bound | backup fires after primary; its main stays above the low edge |
 
-Vendors define a lockout differently (a time, or a speed from integrated acceleration), so each lockout check
-reads the vendor's own definition.
+Each check reads the maker's own definition ([altimeter deploy logic](altimeter-deploy-logic.md)): a lockout's kind
+varies by device; arming heights, where stated, run 50 to 500 ft, defaults 160 to 300 ft (§5); the AIM arms on speed.
 
 **Frequencies.** Featherweight offers 28 frequencies with two channels each, 56 in all (GPS manual); other
 trackers have their own plans. Big launches assign them on a whiteboard and a shared sheet; Spaceport America
