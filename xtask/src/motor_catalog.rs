@@ -49,7 +49,7 @@ use base64::Engine as _;
 use crate::motor_flights;
 use hpr_motor::catalog::{
     Catalog, CatalogCurve, CatalogMotor, CurveCheck, CurveFormat, CurveLicense, CurveSource,
-    LeftOut, MotorType, Snapshot, StatedFigures,
+    LeftOut, MotorType, MotorWarningKind, Snapshot, StatedFigures,
 };
 use hpr_motor::{ImpulseClass, ThrustCurve, eng, rse};
 use serde_json::Value;
@@ -194,41 +194,84 @@ pub fn run(args: &[String]) -> Result<(), String> {
          their bytes, and the rest are not"
     );
     compare_with_thrustcurve(&root, &catalog)?;
-    // Issue #1233: the warnings a default file's masses draw, counted as `hpr sim` gives them.
-    let (mut heavy, mut light, mut burnout, mut share, mut both) = (0, 0, 0, 0, 0);
-    for motor in held.motors.iter() {
-        let Some(curve) = motor.default_curve() else {
-            continue;
-        };
-        let (Some(flown_g), Some(record_g)) = (motor.total_mass_g, motor.stated.total_mass_g)
-        else {
-            continue;
-        };
-        both += 1;
-        for warning in motor.mass_warnings(curve) {
-            if warning.contains("propellant share") {
-                share += 1;
-            } else if warning.contains("burnout mass") {
-                burnout += 1;
-            } else if flown_g > record_g {
-                heavy += 1;
-            } else {
-                light += 1;
-            }
-        }
-    }
+    let counts = mass_counts(held);
     println!(
-        "loaded mass: of {both} motors whose default file and record both give one, {} are more \
-         than {:.0}% from the record ({heavy} heavier, {light} lighter); {burnout} more with a \
-         burnout mass that far from the record's; {share} with a propellant share outside the \
-         records' span",
-        heavy + light,
-        100.0 * hpr_motor::catalog::LOADED_MASS_BOUND
+        "propellant mass: {} motors' default files are more than {:.0}% below their record's (they \
+         warn), {} more than that above it (alone, no warning)",
+        counts.light_propellant,
+        100.0 * hpr_motor::catalog::PROPELLANT_SHORT_BOUND,
+        counts.heavy_propellant
+    );
+    println!(
+        "loaded mass: of {} motors whose default file and record both give one, {} are more \
+         than {:.0}% from the record ({} heavier, {} lighter); {} more with a burnout mass that \
+         far from the record's; {} with a propellant share outside the records' span",
+        counts.both,
+        counts.heavy + counts.light,
+        100.0 * hpr_motor::catalog::LOADED_MASS_BOUND,
+        counts.heavy,
+        counts.light,
+        counts.burnout,
+        counts.share
     );
     if check {
         motor_flights::check(held, &expected)?;
     }
     Ok(())
+}
+
+/// The warnings the bundled motors' default files draw for their masses, counted as `hpr sim`
+/// gives them, by kind (issues #1003, #1233, #1287, #1294); `docs/physics/motor.md` quotes them.
+#[derive(Debug, Default, PartialEq)]
+struct MassCounts {
+    /// Default files whose propellant mass flown is more than the bound below the record's.
+    light_propellant: usize,
+    /// Default files whose propellant mass flown is more than the bound above the record's, which
+    /// alone draws no warning.
+    heavy_propellant: usize,
+    /// Motors whose default file and record both give a loaded mass.
+    both: usize,
+    /// Of those, loaded masses more than the bound above the record's.
+    heavy: usize,
+    /// Of those, loaded masses more than the bound below the record's.
+    light: usize,
+    /// Of those, burnout masses more than their bound from the record's, the loaded mass within.
+    burnout: usize,
+    /// Of those, propellant shares outside the records' span.
+    share: usize,
+}
+
+/// [`MassCounts`] over `catalog`'s motors' default files.
+fn mass_counts(catalog: &Catalog) -> MassCounts {
+    let mut counts = MassCounts::default();
+    for motor in &catalog.motors {
+        let Some(curve) = motor.default_curve() else {
+            continue;
+        };
+        let warnings = motor.flight_warning_kinds(curve);
+        let has = |kind: MotorWarningKind| warnings.iter().filter(|w| w.kind == kind).count();
+        counts.light_propellant += has(MotorWarningKind::LightPropellant);
+        if let (Some(flown_g), Some(record_g)) = (
+            motor.propellant_mass_g,
+            motor
+                .stated
+                .propellant_mass_g
+                .filter(|g| g.is_finite() && *g > 0.0),
+        ) && flown_g > record_g * (1.0 + hpr_motor::catalog::PROPELLANT_SHORT_BOUND)
+        {
+            counts.heavy_propellant += 1;
+        }
+        if motor.total_mass_g.is_none() || motor.stated.total_mass_g.is_none() {
+            continue;
+        }
+        counts.both += 1;
+        // By kind, not by the words (issue #1287), so a rewording can't move a count.
+        counts.heavy += has(MotorWarningKind::HeavyLoadedMass);
+        counts.light += has(MotorWarningKind::LightLoadedMass);
+        counts.burnout += has(MotorWarningKind::BurnoutMass);
+        counts.share += has(MotorWarningKind::PropellantShare);
+    }
+    counts
 }
 
 /// The 1% failure: works out each indexed file's total impulse, average thrust and burn time
@@ -939,6 +982,37 @@ fn compare_with_thrustcurve(root: &Path, catalog: &Catalog) -> Result<(), String
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Issue #1287: the mass counts `docs/physics/motor.md` quotes are the ones the bundled
+    /// catalog gives, counted by kind, so the page can't go stale against the command's printout.
+    #[test]
+    fn the_motor_page_quotes_the_mass_counts() {
+        let root = crate::designs::root().unwrap();
+        let counts = mass_counts(Catalog::bundled().unwrap());
+        let page = fs::read_to_string(root.join("docs/physics/motor.md")).unwrap();
+        let page = page.split_whitespace().collect::<Vec<_>>().join(" ");
+        for quote in [
+            format!(
+                "{} motors' default files give a propellant mass more than 5% below their \
+                 record's, and warn; {} more than 5% above it",
+                counts.light_propellant, counts.heavy_propellant
+            ),
+            format!(
+                "{} of the {} motors whose file and record both give a loaded mass are more than \
+                 5% apart, {} heavier and {} lighter",
+                counts.heavy + counts.light,
+                counts.both,
+                counts.heavy,
+                counts.light
+            ),
+            format!("either way, warns: {} more.", counts.burnout),
+        ] {
+            assert!(
+                page.contains(&quote),
+                "docs/physics/motor.md doesn't say \"{quote}\" ({counts:?})"
+            );
+        }
+    }
 
     /// The committed index and `bundled.rs` are what the command writes from the snapshot (#295).
     #[test]

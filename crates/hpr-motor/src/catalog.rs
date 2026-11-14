@@ -190,6 +190,50 @@ pub struct StatedFigures {
     pub total_mass_g: Option<f64>,
 }
 
+/// What a warning for flying a catalog motor's file is about
+/// ([`CatalogMotor::flight_warning_kinds`]).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum MotorWarningKind {
+    /// The file's total impulse, average thrust or burn time is more than 1% from the record's
+    /// ([`CatalogMotor::check_warning`]).
+    FailedCheck,
+    /// The propellant mass flown is more than [`PROPELLANT_SHORT_BOUND`] below the record's
+    /// ([`CatalogMotor::propellant_warning`]).
+    LightPropellant,
+    /// The loaded mass flown is more than [`LOADED_MASS_BOUND`] above the record's.
+    HeavyLoadedMass,
+    /// The loaded mass flown is more than [`LOADED_MASS_BOUND`] below the record's.
+    LightLoadedMass,
+    /// With the loaded mass within its bound, the burnout mass is more than
+    /// [`BURNOUT_MASS_BOUND`] from the record's, either way.
+    BurnoutMass,
+    /// The propellant's share of the loaded mass is outside [`PROPELLANT_SHARE_SPAN`].
+    PropellantShare,
+}
+
+/// A warning for flying a catalog motor's file, with what it is about.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct MotorWarning {
+    /// What the warning is about.
+    pub kind: MotorWarningKind,
+    /// The warning, in words.
+    pub message: String,
+}
+
+impl MotorWarning {
+    fn new(kind: MotorWarningKind, message: String) -> Self {
+        Self { kind, message }
+    }
+}
+
+/// The masses flying a catalog file takes, g ([`CatalogMotor::flown_masses`]).
+#[derive(Debug, Clone, Copy)]
+struct FlownMasses {
+    propellant_g: f64,
+    total_g: f64,
+}
+
 /// How far a flown loaded mass may be from its motor's record, either way, as a share of the
 /// record's, before flying it warns: 5%, the bound a file's propellant mass has had since issue
 /// #578 ([`PROPELLANT_SHORT_BOUND`]). A heavy loaded mass gives too low an apogee, the side that
@@ -1127,16 +1171,29 @@ impl CatalogMotor {
     /// it isn't (a file exactly at the bound draws none), when the record states no propellant
     /// mass, or when the file isn't bundled or doesn't read.
     pub fn propellant_warning(&self, curve: &CatalogCurve) -> Option<String> {
+        self.propellant_warning_for(curve, &self.flown_masses(curve)?)
+    }
+
+    /// The masses flying `curve` takes ([`CatalogMotor::motor`]), read from its file once: the
+    /// entry's, which are its default file's, where it gives them, else the file header's, so a
+    /// file other than the default is held to the masses it flies with. `None` when the file
+    /// isn't bundled or doesn't read.
+    fn flown_masses(&self, curve: &CatalogCurve) -> Option<FlownMasses> {
+        let text = bundled_curve_text(&curve.file)?;
+        let (_, propellant_kg, total_kg) = read_curve_file(curve, text).ok()?;
+        Some(FlownMasses {
+            propellant_g: self.propellant_mass_g.unwrap_or(propellant_kg * 1000.0),
+            total_g: self.total_mass_g.unwrap_or(total_kg * 1000.0),
+        })
+    }
+
+    /// [`CatalogMotor::propellant_warning`] on masses already read.
+    fn propellant_warning_for(&self, curve: &CatalogCurve, masses: &FlownMasses) -> Option<String> {
         let record_g = self
             .stated
             .propellant_mass_g
             .filter(|g| g.is_finite() && *g > 0.0)?;
-        let text = bundled_curve_text(&curve.file)?;
-        let (_, propellant_kg, _) = read_curve_file(curve, text).ok()?;
-        let file_g = propellant_kg * 1000.0;
-        // The mass flown ([`CatalogMotor::motor`]): the entry's, the default file's, where it
-        // gives one, so a file other than the default is held to the mass it flies with.
-        let flown_g = self.propellant_mass_g.unwrap_or(file_g);
+        let flown_g = masses.propellant_g;
         // Compared as masses, so a mass exactly at the bound doesn't warn; a NaN warns.
         if flown_g >= record_g * (1.0 - PROPELLANT_SHORT_BOUND) {
             return None;
@@ -1157,7 +1214,7 @@ impl CatalogMotor {
             )
         } else {
             format!(
-                "{} {} flies with curve file {} the default file's {flown_g:.1} g of propellant, \
+                "{} {} flies curve file {} with the default file's {flown_g:.1} g of propellant, \
                  {gap:+.2}% from ThrustCurve.org's record of {record_g:.1} g. If the loaded mass \
                  is right, it flies too heavy a burnout mass and too low an apogee",
                 self.manufacturer_abbrev, self.designation, curve.simfile_id,
@@ -1171,18 +1228,23 @@ impl CatalogMotor {
     /// burnout mass from it, either way, naming both; and a
     /// propellant share outside [`PROPELLANT_SHARE_SPAN`], the span the records state. Empty when
     /// neither holds, or when the file isn't bundled or doesn't read. Compared as masses, so a
-    /// loaded mass exactly at the bound draws none; a NaN warns.
+    /// loaded mass exactly at the bound draws none. A NaN flown mass warns; a NaN or non-positive
+    /// record counts as no record.
     pub fn mass_warnings(&self, curve: &CatalogCurve) -> Vec<String> {
-        let Some(text) = bundled_curve_text(&curve.file) else {
-            return Vec::new();
-        };
-        let Ok((_, header_propellant_kg, header_total_kg)) = read_curve_file(curve, text) else {
-            return Vec::new();
-        };
-        let propellant_g = self
-            .propellant_mass_g
-            .unwrap_or(header_propellant_kg * 1000.0);
-        let total_g = self.total_mass_g.unwrap_or(header_total_kg * 1000.0);
+        self.flown_masses(curve)
+            .map(|masses| self.mass_warnings_for(&masses))
+            .unwrap_or_default()
+            .into_iter()
+            .map(|warning| warning.message)
+            .collect()
+    }
+
+    /// [`CatalogMotor::mass_warnings`] on masses already read, each with its kind.
+    fn mass_warnings_for(&self, masses: &FlownMasses) -> Vec<MotorWarning> {
+        let FlownMasses {
+            propellant_g,
+            total_g,
+        } = *masses;
         let mut warnings = Vec::new();
         let record_g = self
             .stated
@@ -1207,22 +1269,30 @@ impl CatalogMotor {
             )
         {
             let record_burnout_g = record_g - record_propellant_g;
-            warnings.push(format!(
-                "{} {} flies a burnout mass, loaded less propellant, of {:.1} g where \
+            warnings.push(MotorWarning::new(
+                MotorWarningKind::BurnoutMass,
+                format!(
+                    "{} {} flies a burnout mass, loaded less propellant, of {:.1} g where \
                  ThrustCurve.org's record gives {record_burnout_g:.1} g, {:+.1}%, more than \
                  {:.0}% apart. Too heavy gives too low an apogee; too light, too high a margin \
                  after burnout",
-                self.manufacturer_abbrev,
-                self.designation,
-                total_g - propellant_g,
-                ((total_g - propellant_g) / record_burnout_g - 1.0) * 100.0,
-                BURNOUT_MASS_BOUND * 100.0
+                    self.manufacturer_abbrev,
+                    self.designation,
+                    total_g - propellant_g,
+                    ((total_g - propellant_g) / record_burnout_g - 1.0) * 100.0,
+                    BURNOUT_MASS_BOUND * 100.0
+                ),
             ));
         }
         if let Some(record_g) = record_g
             && loaded_off
         {
-            warnings.push(format!(
+            let kind = if total_g > record_g {
+                MotorWarningKind::HeavyLoadedMass
+            } else {
+                MotorWarningKind::LightLoadedMass
+            };
+            warnings.push(MotorWarning::new(kind, format!(
                 "{} {} flies a loaded mass of {total_g:.1} g, {:+.1}% from ThrustCurve.org's \
                  record of {record_g:.1} g; the two disagree, so check which describes the motor you fly. \
                  Too heavy a motor gives too low an apogee; too light, too high a margin after \
@@ -1230,12 +1300,12 @@ impl CatalogMotor {
                 self.manufacturer_abbrev,
                 self.designation,
                 (total_g / record_g - 1.0) * 100.0
-            ));
+            )));
         }
         let share = propellant_g / total_g;
         let (low, high) = PROPELLANT_SHARE_SPAN;
         if !(low..=high).contains(&share) {
-            warnings.push(format!(
+            warnings.push(MotorWarning::new(MotorWarningKind::PropellantShare, format!(
                 "{} {} flies {propellant_g:.1} g of propellant in a loaded mass of {total_g:.1} g, a \
                  propellant share of {:.1}%, outside the {:.1}% to {:.0}% ThrustCurve.org's records \
                  span; check the motor's masses",
@@ -1244,7 +1314,7 @@ impl CatalogMotor {
                 share * 100.0,
                 low * 100.0,
                 high * 100.0
-            ));
+            )));
         }
         warnings
     }
@@ -1253,11 +1323,28 @@ impl CatalogMotor {
     /// a light propellant mass ([`CatalogMotor::propellant_warning`]) and its masses against the
     /// record ([`CatalogMotor::mass_warnings`]), in that order.
     pub fn flight_warnings(&self, curve: &CatalogCurve) -> Vec<String> {
-        self.check_warning(curve)
+        self.flight_warning_kinds(curve)
             .into_iter()
-            .chain(self.propellant_warning(curve))
-            .chain(self.mass_warnings(curve))
+            .map(|warning| warning.message)
             .collect()
+    }
+
+    /// [`CatalogMotor::flight_warnings`], each with its kind, so a count by kind doesn't hang on
+    /// the words (issue #1287). The file is read once.
+    pub fn flight_warning_kinds(&self, curve: &CatalogCurve) -> Vec<MotorWarning> {
+        let mut warnings: Vec<MotorWarning> = self
+            .check_warning(curve)
+            .map(|message| MotorWarning::new(MotorWarningKind::FailedCheck, message))
+            .into_iter()
+            .collect();
+        if let Some(masses) = self.flown_masses(curve) {
+            warnings.extend(
+                self.propellant_warning_for(curve, &masses)
+                    .map(|message| MotorWarning::new(MotorWarningKind::LightPropellant, message)),
+            );
+            warnings.extend(self.mass_warnings_for(&masses));
+        }
+        warnings
     }
 
     /// The warning for flying `curve` when its check fails, naming the motor, the file and each
@@ -2644,6 +2731,91 @@ mod tests {
         assert_eq!(warnings.len(), 2, "{warnings:?}");
         assert!(warnings[0].contains("is more than 1% from"), "{warnings:?}");
         assert!(warnings[1].contains("of propellant"), "{warnings:?}");
+    }
+
+    /// Issue #1287: each flight warning carries its kind, in the order and with the words
+    /// `flight_warnings` gives, so `cargo xtask motor-catalog` counts by kind, not by the words.
+    #[test]
+    fn flight_warnings_carry_their_kinds() {
+        let catalog = bundled();
+        let d8 = catalog
+            .motors
+            .iter()
+            .find(|motor| motor.manufacturer_abbrev == "Quest" && motor.designation == "D8")
+            .expect("the Quest D8");
+        let curve = d8.default_curve().expect("a bundled file");
+        let typed = d8.flight_warning_kinds(curve);
+        let words: Vec<String> = typed.iter().map(|w| w.message.clone()).collect();
+        assert_eq!(words, d8.flight_warnings(curve));
+        let kinds: Vec<MotorWarningKind> = typed.iter().map(|w| w.kind).collect();
+        assert!(
+            kinds.ends_with(&[
+                MotorWarningKind::HeavyLoadedMass,
+                MotorWarningKind::PropellantShare
+            ]),
+            "{kinds:?}"
+        );
+        // Every motor: the typed list and the words agree.
+        for motor in &catalog.motors {
+            let Some(curve) = motor.default_curve() else {
+                continue;
+            };
+            let typed: Vec<String> = motor
+                .flight_warning_kinds(curve)
+                .into_iter()
+                .map(|w| w.message)
+                .collect();
+            assert_eq!(typed, motor.flight_warnings(curve), "{}", motor.designation);
+        }
+    }
+
+    /// Issue #1287: a record whose propellant mass is not below its loaded mass gives no burnout
+    /// mass to hold a file to, so the burnout check doesn't run and draws no warning, whatever
+    /// the file's burnout mass, rather than one against a burnout mass of zero or less. The
+    /// control, a record whose burnout mass is half the file's, does draw it.
+    #[test]
+    fn a_record_with_no_burnout_mass_draws_no_burnout_warning() {
+        let catalog = bundled();
+        let (base, curve) = catalog
+            .motors
+            .iter()
+            .find_map(|motor| {
+                let curve = motor.default_curve()?;
+                (motor.mass_warnings(curve).is_empty()
+                    && motor.total_mass_g.is_some()
+                    && motor.propellant_mass_g.is_some())
+                .then_some((motor, curve))
+            })
+            .expect("a motor drawing no mass warning");
+        let flown_g = base.total_mass_g.expect("a loaded mass");
+        let burnout_g = flown_g - base.propellant_mass_g.expect("a propellant mass");
+        let kinds = |record_propellant_g: f64| -> Vec<MotorWarning> {
+            let mut motor = base.clone();
+            motor.stated.total_mass_g = Some(flown_g);
+            motor.stated.propellant_mass_g = Some(record_propellant_g);
+            motor.flight_warning_kinds(curve)
+        };
+        let burnout = |warnings: &[MotorWarning]| {
+            warnings
+                .iter()
+                .filter(|w| w.kind == MotorWarningKind::BurnoutMass)
+                .count()
+        };
+        // The control: the record's burnout mass is half the file's, its propellant between the
+        // file's and the loaded mass.
+        let control = kinds(flown_g - 0.5 * burnout_g);
+        assert_eq!(burnout(&control), 1, "{control:?}");
+        // No burnout mass in the record: its propellant equals, then exceeds, its loaded mass.
+        for record_propellant_g in [flown_g, flown_g * 1.2] {
+            let warnings = kinds(record_propellant_g);
+            assert_eq!(burnout(&warnings), 0, "{record_propellant_g}: {warnings:?}");
+            for warning in &warnings {
+                assert!(
+                    !warning.message.contains("inf") && !warning.message.contains("NaN"),
+                    "{warning:?}"
+                );
+            }
+        }
     }
 
     /// Issue #1233: the Quest D8's default file gives 454 g loaded where ThrustCurve.org's record
