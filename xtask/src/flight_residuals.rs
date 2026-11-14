@@ -17,8 +17,8 @@ use hpr_flightdata::{custom, import, readings};
 use hpr_forensics::residuals::{self, Comparison, HeightKind, Phase, Row, Speed, Summary, Track};
 use hpr_sim::{Device, DeviceDrag, FlightSettings, Simulation, Trigger};
 use hpr_validate::real_flight::{
-    Altimeter, FLIGHTS, FileRead, ROCKETPY, RealFlight, example_thrust, launch_day, parse_thrust,
-    rail_of, read_bytes, rocket_on_curve, sha256_hex,
+    Altimeter, ERA5_CREDIT, FLIGHTS, FileRead, ROCKETPY, RealFlight, example_thrust, launch_day,
+    parse_thrust, rail_of, read_bytes, rocket_on_curve, sha256_hex,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -450,6 +450,7 @@ impl Report {
                 );
             }
         }
+        let _ = write!(page, "\n## Sources\n\n{ERA5_CREDIT}\n");
         page
     }
 }
@@ -542,6 +543,19 @@ mod tests {
     fn the_committed_page_is_its_data() {
         let (report, page) = committed();
         assert_eq!(report.to_markdown(), page);
+    }
+
+    /// The page publishes results computed in ERA5 weather, so it ends with the Copernicus
+    /// attribution and the ERA5 citation (#1095).
+    #[test]
+    fn the_page_credits_the_era5_weather() {
+        let (_, page) = committed();
+        let page = page.replace("\r\n", "\n");
+        assert!(
+            page.ends_with(&format!("\n## Sources\n\n{ERA5_CREDIT}\n")),
+            "{}",
+            &page[page.len().saturating_sub(400)..]
+        );
     }
 
     /// Every flight in the report, each with residuals, its logged readings keeping a provenance.

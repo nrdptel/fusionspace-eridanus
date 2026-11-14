@@ -74,6 +74,20 @@ pub const REPORT_JSON: &str = "validation/reports/real-flights.json";
 /// The report, as a page.
 pub const REPORT_MD: &str = "validation/reports/real-flights.md";
 
+/// The Copernicus attribution and the ERA5 citation that a page publishing results computed in
+/// RocketPy's ERA5 files carries (#1095): the Copernicus licence's credit lines, in the words the
+/// guide's pages use for the same flights, and the dataset with its licence, as
+/// `THIRD-PARTY-NOTICES.md` names it. The real-flight and flight-residual reports print it under
+/// *Sources*.
+pub const ERA5_CREDIT: &str = "The weather of the flights flown in ERA5 is ERA5, from the files \
+     RocketPy's examples read: generated using Copernicus Climate Change Service information 2026, \
+     and contains modified Copernicus Climate Change Service information 2026. Neither the \
+     European Commission nor ECMWF is responsible for any use that may be made of the Copernicus \
+     information or data it contains. ERA5: Hersbach, H. et al. (2023), *ERA5 hourly data on \
+     pressure levels from 1940 to present*, Copernicus Climate Change Service (C3S) Climate Data \
+     Store (CDS), <https://doi.org/10.24381/cds.bd0915c6>, licensed CC BY 4.0 \
+     (<https://creativecommons.org/licenses/by/4.0/>).";
+
 /// The pinned RocketPy checkout the logs, thrust files and weather files are read from.
 pub const ROCKETPY: &str = "refs/rocketpy";
 
@@ -2669,6 +2683,7 @@ impl RealFlightReport {
                 }
             );
         }
+        let _ = write!(out, "\n## Sources\n\n{ERA5_CREDIT}\n");
         out
     }
 

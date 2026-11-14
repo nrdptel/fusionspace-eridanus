@@ -228,6 +228,14 @@ adds a source.
   (bilinear in latitude and longitude, the geopotential turned into a height: modified). The
   record says so in its `notice`: "Contains modified Copernicus Climate Change
   Service information 2022".
+  The real-flight and flight-residual reports (`validation/reports/real-flights.md` and
+  `validation/reports/flight-residuals.md`) publish results computed in RocketPy's full ERA5
+  files and the EuRoC 2022 file: flights through the weather, a product derived from the dataset.
+  Each report ends with the attribution under *Sources*: "generated using Copernicus Climate
+  Change Service information 2026, and contains modified Copernicus Climate Change Service
+  information 2026", the statement that neither the European Commission nor ECMWF is responsible,
+  and the dataset's citation and licence as above (`ERA5_CREDIT` in
+  `crates/hpr-validate/src/real_flight.rs`).
 - **Open-Meteo weather answers** (<https://open-meteo.com>):
   `crates/hpr-net/tests/fixtures/replay/open-meteo-historical.json` and `open-meteo-forecast.json`
   are two answers recorded unchanged on 2026-09-30 from Open-Meteo's historical-forecast and

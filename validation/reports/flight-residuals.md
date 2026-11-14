@@ -231,3 +231,7 @@ Readings, the simulation read as the log is:
 | descent under the drogue (m/s) | withheld |  |  | withheld |  |
 | main's opening (m) | 3403.33 | none stated | derived | withheld |  |
 | descent under the main (m/s) | 8.59 | 8.21 to 8.96 | derived | 7.10 | +1.49 |
+
+## Sources
+
+The weather of the flights flown in ERA5 is ERA5, from the files RocketPy's examples read: generated using Copernicus Climate Change Service information 2026, and contains modified Copernicus Climate Change Service information 2026. Neither the European Commission nor ECMWF is responsible for any use that may be made of the Copernicus information or data it contains. ERA5: Hersbach, H. et al. (2023), *ERA5 hourly data on pressure levels from 1940 to present*, Copernicus Climate Change Service (C3S) Climate Data Store (CDS), <https://doi.org/10.24381/cds.bd0915c6>, licensed CC BY 4.0 (<https://creativecommons.org/licenses/by/4.0/>).

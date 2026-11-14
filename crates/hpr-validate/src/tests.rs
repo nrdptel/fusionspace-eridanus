@@ -4737,3 +4737,40 @@ fn the_validated_range_is_the_fastest_public_reference() {
         "the fastest public reference is {flight}"
     );
 }
+
+/// The real-flights page publishes results computed in RocketPy's ERA5 files, so it ends with the
+/// Copernicus attribution and the ERA5 citation; the credit holds what the Copernicus licence asks
+/// for and names the dataset and its licence, as `THIRD-PARTY-NOTICES.md` does (#1095).
+#[test]
+fn the_real_flights_page_credits_the_era5_weather() {
+    use crate::real_flight::{ERA5_CREDIT, REPORT_MD};
+    let page = std::fs::read_to_string(root().join(REPORT_MD))
+        .expect("the page is committed")
+        .replace("\r\n", "\n");
+    assert!(
+        page.ends_with(&format!("\n## Sources\n\n{ERA5_CREDIT}\n")),
+        "{}",
+        &page[page.len().saturating_sub(400)..]
+    );
+    for words in [
+        "generated using Copernicus Climate Change Service information 2026",
+        "contains modified Copernicus Climate Change Service information 2026",
+        "Neither the European Commission nor ECMWF is responsible for any use that may be made of \
+         the Copernicus information or data it contains",
+        "Hersbach, H. et al. (2023)",
+        "https://doi.org/10.24381/cds.bd0915c6",
+        "CC BY 4.0",
+    ] {
+        assert!(ERA5_CREDIT.contains(words), "{words}");
+    }
+    let notices = std::fs::read_to_string(root().join("THIRD-PARTY-NOTICES.md"))
+        .expect("the notices are committed");
+    for words in [
+        "validation/reports/real-flights.md",
+        "flight-residuals.md",
+        "DOI 10.24381/cds.bd0915c6",
+        "licensed CC BY 4.0",
+    ] {
+        assert!(notices.contains(words), "the notices lack {words}");
+    }
+}
