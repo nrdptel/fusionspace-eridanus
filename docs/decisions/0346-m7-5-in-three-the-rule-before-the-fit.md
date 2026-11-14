@@ -125,17 +125,19 @@ rule has to reach `main` before the fit it governs.
    flights the test is also run without.
 4. **The correction: two scales, each fitted where the log can tell it, the drag first.**
    - **The drag scale $k_D$,** from the coasts. In a boost the drag and the impulse trade
-     against each other (they correlate at +0.976 in [the identifiability
-     note][identifiability]'s example), so the drag can't be changed under a fitted boost
-     with the impulse held: the boost would leave the log. So, for each calibration flight in
+     against each other. Even over a whole log, liftoff to apogee, they correlate at +0.976
+     in [the identifiability note][identifiability]'s example, and a boost alone says almost
+     nothing of the drag, as above. So the drag can't be changed under a fitted boost with
+     the impulse held: the boost would leave the log. So, for each calibration flight in
      the fit's set without a deployment before apogee and for a trial drag scale $d$, the
      boost is fitted again as in decision 2 but told the drag is $d$, to a thousandth of its
      stated standard deviation, and that fit is flown on to apogee. The impulse takes up the
      boost; the coast flies the drag $d$. The flight's $d_i$ is the $d$ at which that apogee
      is the logged apogee the errors are taken against, found by bisection from 0.25 and 4
-     until the two ends are within 0.001. The apogee falls as $d$ rises, so there is one
-     such $d$ or none. A flight has none if its apogees at 0.25 and at 4 lie on the same
-     side of the logged one, or if a fit along the way doesn't converge. $k_D$ is the mean
+     until the two ends are within 0.001. The apogee falls as $d$ rises, so the bisection
+     finds a $d$ wherever the two ends bracket the logged apogee. A flight has none if its
+     apogees at 0.25 and at 4 lie on the same side of the logged one, or if a fit along the
+     way doesn't converge. $k_D$ is the mean
      of the $d_i$, and its 95% interval is that mean give or take $t$ times their standard
      deviation over the square root of their number $n$, with $t$ the 97.5% point of
      Student's $t$ at $n - 1$.
@@ -158,8 +160,13 @@ rule has to reach `main` before the fit it governs.
    - **The impulse scale enters** only if there are at least 3 fits and the interval
      excludes 1. Otherwise it stays 1. If neither scale enters there is no correction, and
      the verdict is a fail.
-   - **How it is applied.** A corrected flight is the forward report's flight changed the
-     way the fit's model changes it, and no other way: every motor through
+   - **Two decimals.** A scale that enters is rounded to two decimals, the drag scale before
+     the impulse fits are told it and both before any corrected flight is flown. A scale
+     that rounds to 1.00 has not entered. The rounded scales are the correction, in the test
+     and in what ships. The logs-alone mean's standard error is 0.014 today, so a third
+     decimal would say nothing, and decision 7 needs the rounding.
+   - **How it is applied.** A corrected flight is the forward report's flight changed
+     through the same functions the fit's model uses: every motor through
      `dispersed_motor(motor, k_I, 1.0)`, which multiplies the thrust and the propellant's
      mass by $k_I$ at the rated burn time, and the drag multiplied by $k_D$
      (`with_drag_scale`). The `.ork`, configuration, rail and ERA5 air are the forward
@@ -182,7 +189,9 @@ rule has to reach `main` before the fit it governs.
    compares, those of them without a deployment before apogee, the public flights the
    [public report][public] compares, and each of the three again less its flagged flights.
    A held-out flight's flag comes from decision 2's fit of its own boost, and a public
-   flight's likewise where the [public boost report][from-boost] cuts its log. On each set,
+   flight's likewise where the [public boost report][from-boost] cuts its log. Those fits
+   are made in M7.5b's run of the test, for the flag alone. None enters decision 4's fits,
+   which the guard refuses, and until then the report makes none. On each set,
    the corrected flights' mean absolute apogee error and the absolute value of their mean
    error are set against the forward simulation's on the same flights.
    - **Pass:** on the four held-out sets, the mean absolute error and the absolute bias are
@@ -190,7 +199,7 @@ rule has to reach `main` before the fit it governs.
      and equal passes. Both fits must pass on all six sets. Anything else is a fail, and the
      verdict's record names each clause that failed.
    - **The sets are fixed by the reports,** not by M7.5b. They are the flights the two
-     reports compare on `main` at the commit M7.5b starts from: 23 held-out flights and 12
+     reports compare at the head of `main` when M7.5b's branch is cut: 23 held-out flights and 12
      public ones today. M7.5b's record names that commit and each set's count. Its pull
      request changes neither the forward simulation nor which flights a report compares.
    - **A public flight is flown as its own report flies it:** its design, its air and its
@@ -218,18 +227,30 @@ rule has to reach `main` before the fit it governs.
    published numbers over sets that differ by fewer than 3 flights can give those flights'
    own values by subtraction. That holds for a set's errors and for the fits themselves: two
    weighted means with their intervals give the weight and the scale of a flight only one
-   of them holds. So:
-   - where fewer than 3 calibration flights are flagged, the report gives the scales and
-     intervals of the fit without the flagged flights alone, and of the other fit only its
-     pass or fail on each set;
+   of them holds. This increment's table of the logs alone is over every calibration fit,
+   and it counts as published. So:
+   - where fewer than 3 calibration flights are flagged, the report gives, of the fit
+     without the flagged flights, its scales as flown (decision 4's two decimals), its
+     counts of flights and whether each interval excludes 1. Of the other fit it gives only
+     the pass or fail on each set. Neither fit's unrounded scale nor its interval is given:
+     beside this increment's table they would give a flagged flight's scale. Where 3 or
+     more are flagged, both fits' scales and intervals are given;
    - where fewer than 3 of a collection set's flights are flagged, the report gives that
      set's numbers with every flight, and of the set less its flagged flights only the count
      and the pass or fail.
 
    What is held back stays in a private file whose SHA-256 is committed and held by
    `fixture-flights --check`, as the held-out aggregates' is. The public flights' numbers
-   are given either way. A count of flagged flights beside a mean and a spread still bounds
-   a flagged flight's scale; that gives no name, size or mass.
+   are given either way.
+
+   **What this increment's table already gives.** A mean and a spread over 12 fits bound
+   each of them, and the count of flagged flights with the flag's rule bounds a flagged
+   one from the other side. With 1 of 12 flagged, that places its scale to within about
+   0.04 either way. It is a fitted scale of a flight the page doesn't name. It gives no
+   name, size or mass and rebuilds no design, which is what the terms guard against, so
+   the table stays. M7.5b adds little or nothing to that: a scale rounded to two decimals
+   over 11 flights, set against the table's mean over 12, places the flagged scale only to
+   about 0.06 either way.
 8. **What ships on a pass (M7.5c).** The fit without the flagged flights, which by
    decision 5 has passed on every set, the full ones included: a flagged flight's scale
    measures its files, not the bias the simulators share. The corrected apogee stands
@@ -237,7 +258,10 @@ rule has to reach `main` before the fit it governs.
    two scales and the number of flights behind them. It is built in, so it works offline.
    Only the apogee is given corrected. No other output reads the corrected flight: the
    drift and landing area, a delay's choice, the flutter margin and the descent stay the
-   uncorrected flight's, since a lower or slower flight flatters each. A correction that
+   uncorrected flight's. Where the correction lowers and slows a flight, a corrected flight
+   would flatter each of those. Where it raises or speeds one (a drag scale below 1, or an
+   impulse scale above 1), the uncorrected flight is the flattering one for some, and
+   M7.5c then gives each such output from the less favourable of the two flights. A correction that
    lowers an apogee errs toward the flattering side for a waiver or a field's ceiling, so
    every check against a ceiling takes the higher of the two apogees: a test pins that, with
    a mutation probe. The output calls each scale what it is: the impulse scale is the

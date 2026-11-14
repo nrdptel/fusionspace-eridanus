@@ -390,8 +390,8 @@ scales may.
 splits each flight's forward error at the cut. The numbers below are from it. The prediction's error is the share made
 after the cut. The forward error less the prediction's is the share made up to it. There the motor's thrust, the
 rocket's mass and the boost's own drag set the climb. On the calibration half that share averages +8.92 percentage
-points of the logged apogee: the forward simulation had climbed too high by the cut. It is the larger share on 11 of
-the 12 flights. On the held-out half it averages +14.39 points and is the larger share on all 9. Without the flights
+points of the logged apogee: the forward simulation's climb up to the cut put its apogee that much too high. It is
+the larger share on 11 of the 12 flights. On the held-out half it averages +14.39 points and is the larger share on all 9. Without the flights
 that deployed something before apogee it is +10.44 and +11.93 points. The prediction's own mean error is near zero,
 −0.08% and +1.34%, so the share up to the cut is nearly the whole forward error. This is a split of two simulations'
 errors, not a measurement of the motor. The fit also moves the drag, the mass and the wind within what it was told,
@@ -404,7 +404,7 @@ That is 12 flights of one half of one collection: it says what these logs show, 
 barometer's boost can't tell a motor that delivered less from a rocket built heavier than its files. That scale
 carries both, and whatever the model gets wrong in the boost.
 
-One of the 12 flights is flagged: its log and its files disagree by more than a motor's lot is likely to explain.
+One of the 12 flights is flagged: its log and its files disagree by more than the limit below.
 The cause could be the files, the motor or the model of the boost. The limit is 13.1%. Past that, NAR, one of the
 bodies that certify motors, tests a motor again as a new type. NAR's rule is for a test firing against the certified
 mean. Using it for a flown motor against its rated impulse is this project's inference, and the report gives the
