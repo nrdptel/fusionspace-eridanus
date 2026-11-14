@@ -149,12 +149,14 @@
       "limit": 0.131,
       "standard_errors": 2.0,
       "fits": 12,
+      "unfitted": {},
       "converged": 12,
       "impulse_scale": {
         "name": "impulse scale, the log alone",
         "mean": 0.9362246280580199,
         "sd": 0.048071943036614946
       },
+      "impulse_scale_mean_standard_error": 0.013877174626328998,
       "standard_error_mean": 0.03522716212182398,
       "drag_standard_error_mean": 0.10840255800525635,
       "below_rated": 12,
