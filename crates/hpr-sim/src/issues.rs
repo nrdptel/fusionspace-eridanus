@@ -23,7 +23,8 @@
 //! a forward-swept fin past Mach 1 ([#64][i64]), fin sets sharing a station ([#325][i325]), a
 //! freeform fin set at any speed ([#326][i326], [ADR-190][adr-190]), the
 //! supersonic switches (#87, #120, #121), #172 on every flight ([ADR-189][adr-189]), and the
-//! transonic center of pressure on every flight with a margin past Mach 0.8 ([#1198][i1198]).
+//! center of pressure on every flight with a margin from Mach 0.6 ([#1290][i1290]) and past
+//! Mach 0.8 ([#1198][i1198]).
 //!
 //! Two more warn where a part flies on its own after a separation, with only its devices' drag
 //! ([`separated_part_issue_warnings`]): a booster ([#179][i179]), and a part that starts with
@@ -65,6 +66,7 @@
 //! [i106]: https://github.com/nrdptel/fusionspace-eridanus/issues/106
 //! [i8]: https://github.com/nrdptel/fusionspace-eridanus/issues/8
 //! [i1198]: https://github.com/nrdptel/fusionspace-eridanus/issues/1198
+//! [i1290]: https://github.com/nrdptel/fusionspace-eridanus/issues/1290
 //! [adr-188]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0188-release-notes-and-the-flattering-side-survey.md
 //! [adr-201]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0201-the-unknown-signs.md
 //! [adr-190]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0190-the-friction-and-freeform-fin-warnings.md
@@ -149,9 +151,13 @@ pub const TRANSONIC_CP_AFT_CAL: (f64, f64) = (0.67, 1.35);
 
 /// Where the subsonic center-of-pressure warning starts: Mach 0.6, NASA TN D-4013's slowest
 /// tunnel point on the two Arcas Robin models, where the short model's center of pressure already
-/// reads aft of the measured by more than the reading's uncertainty. The tunnel has no point
-/// slower than this, so where the error starts below Mach 0.6 is unmeasured
-/// ([issue #1290](https://github.com/nrdptel/fusionspace-eridanus/issues/1290)).
+/// reads aft of the report's faired curve (its Fig. 11) by more than the reading's uncertainty.
+/// That holds on the committed basis only: fitted on the tunnel's plotted points over the same
+/// angles as HPR Sim, the Mach 0.6 miss is −0.03 calibers over −2° to 2° and −0.49 over −3° to 4°
+/// (`docs/research/arcas-fin-share-cp-station.md` §4), so starting here is the cautious side. The
+/// tunnel has no slower point, so where the error starts below Mach 0.6 is unmeasured; against
+/// RASAero II, a code and no measurement, HPR Sim's center of pressure reads 0.16 calibers aft on
+/// Calisto at Mach 0.5 ([issue #1290](https://github.com/nrdptel/fusionspace-eridanus/issues/1290)).
 pub const SUBSONIC_CP_MACH: f64 = 0.6;
 
 /// How far aft of the measured center of pressure HPR Sim's sat on NASA TN D-4013's short Arcas
@@ -161,11 +167,19 @@ pub const SUBSONIC_CP_MACH: f64 = 0.6;
 /// committed designs and the tunnel's points. The fins are still on Prandtl-Glauert at both
 /// speeds, so the join is not the cause. The long model reads the other way (0.360 calibers
 /// forward at Mach 0.6, and +0.067 at 0.8, inside its ±0.071), so one measured model of two
-/// supports the warning. The Mach 0.8 figure rests on the narrow window of angles: fitted over
-/// −2° to 2° the miss is +0.87 calibers, over −3° to 4° +0.08
-/// (`docs/research/arcas-fin-share-cp-station.md`); the warning quotes the larger, the side that
-/// doesn't flatter the margin.
+/// supports the warning. Both figures are the committed basis, the report's faired curve against
+/// HPR Sim fitted over −2° to 2°; fitted on the tunnel's points over the same angles, they are
+/// −0.03 and +0.87 calibers over −2° to 2°, and −0.49 and +0.08 over −3° to 4°
+/// (`docs/research/arcas-fin-share-cp-station.md` §4). The warning quotes the committed basis,
+/// the largest, the side that doesn't flatter the margin, and says a wider fit gives at most 0.08.
 pub const SUBSONIC_CP_AFT_CAL: (f64, f64) = (0.11, 0.92);
+
+/// The most the short Arcas Robin model's center of pressure reads aft of the tunnel's at Mach
+/// 0.6 and 0.8 when both are fitted on the tunnel's points over −3° to 4°, calibers: +0.08 at
+/// Mach 0.8 (and −0.49, forward, at 0.6), from `docs/research/arcas-fin-share-cp-station.md` §4.
+/// The #1290 warning quotes it beside [`SUBSONIC_CP_AFT_CAL`], so a reader sees how far the
+/// quoted miss rests on the narrow window.
+pub const SUBSONIC_CP_WIDE_CAL: f64 = 0.08;
 
 /// Where a forward-swept fin's warning starts: Mach 1 ([ADR-188][adr-188]). Its measured error is
 /// a normal-force slope that rises by up to 7.7% past linear theory's start, Mach 1.2
@@ -431,7 +445,7 @@ impl KnownIssue {
     }
 
     /// Whether the issue is about the margin and center of pressure (#64, #87, #120, #121, #172,
-    /// #325, #326, #1198) rather than drag or the flight's path ([`Self::kind`]).
+    /// #325, #326, #1198, #1290) rather than drag or the flight's path ([`Self::kind`]).
     #[must_use]
     pub fn is_stability(self) -> bool {
         self.kind() == IssueKind::Stability
@@ -479,7 +493,8 @@ pub struct IssueWarning {
     pub max_mach: Peak,
     /// The ids of the parts whose shape meets the issue's condition, in the layout's order;
     /// empty for base drag ([`KnownIssue::BaseDrag`]) and friction ([`KnownIssue::TurbulentFriction`]),
-    /// which every rocket has, for the issues that name no part (#121, #172, #179, #354, #1198),
+    /// which every rocket has, for the issues that name no part (#121, #172, #179, #354, #1198,
+    /// #1290),
     /// and for the wind's (#8, [`KnownIssue::NearCalmWindDirection`]) and the center of gravity's (#219,
     /// [`KnownIssue::OffAxisCenterOfGravity`]), which are no part's.
     pub parts: Vec<String>,
@@ -644,8 +659,9 @@ impl IssueWarning {
             ),
             KnownIssue::SubsonicCenterOfPressure => format!(
                 "on one of two wind-tunnel models, the center of pressure sat {} to {} calibers \
-                 aft of the measured at Mach {SUBSONIC_CP_MACH} and 0.8, the most over angles \
-                 within 2°. So from Mach {SUBSONIC_CP_MACH} the flight margin may read high",
+                 aft of the tunnel's at Mach {SUBSONIC_CP_MACH} and {TRANSONIC_CP_MACH}, as the \
+                 report's curve reads; fitted over wider angles, at most {SUBSONIC_CP_WIDE_CAL}. \
+                 So from Mach {SUBSONIC_CP_MACH} the flight margin may read high",
                 SUBSONIC_CP_AFT_CAL.0, SUBSONIC_CP_AFT_CAL.1
             ),
             KnownIssue::ForwardSweptFinSlope => format!(
@@ -1434,7 +1450,8 @@ pub fn stability_issue_warnings(
             parts: Vec::new(),
             detail: None,
         });
-        // From the tunnel's own Mach 0.6 point, not past it: that row already reads aft.
+        // From the tunnel's own Mach 0.6 point, not past it: that row already reads aft on the
+        // committed basis (`SUBSONIC_CP_MACH`).
         if max_mach.value.is_nan() || max_mach.value >= SUBSONIC_CP_MACH {
             warnings.push(IssueWarning {
                 issue: KnownIssue::SubsonicCenterOfPressure,
@@ -1866,9 +1883,9 @@ mod tests {
         assert!(
             message.starts_with(
                 "issue #1290: on one of two wind-tunnel models, the center of pressure sat 0.11 \
-                 to 0.92 calibers aft of the measured at Mach 0.6 and 0.8, the most over angles \
-                 within 2°. So from Mach 0.6 the flight margin may read high. This flight reaches \
-                 Mach 0.75"
+                 to 0.92 calibers aft of the tunnel's at Mach 0.6 and 0.8, as the report's curve \
+                 reads; fitted over wider angles, at most 0.08. So from Mach 0.6 the flight margin \
+                 may read high. This flight reaches Mach 0.75"
             ),
             "{message}"
         );
@@ -1886,7 +1903,8 @@ mod tests {
     /// fall inside [`SUBSONIC_CP_AFT_CAL`], whose ends are each within 0.01 caliber of the least
     /// and the most. The long model at those speeds reads forward or inside its uncertainty, which
     /// is why the warning says one model of two; a long-model row that turned aft would fail here
-    /// and call for the message's words to change.
+    /// and call for the message's words to change. And no row slower than [`SUBSONIC_CP_MACH`],
+    /// on either model, reads aft beyond its uncertainty, so the warning starts low enough.
     #[test]
     fn the_subsonic_center_of_pressure_sits_aft_of_the_short_tunnel_model() {
         let fixture: serde_json::Value = serde_json::from_str(include_str!(
@@ -1907,23 +1925,32 @@ mod tests {
                 .iter()
                 .filter_map(|row| {
                     let mach = row["mach"].as_f64().unwrap();
-                    (SUBSONIC_CP_MACH..=TRANSONIC_CP_MACH)
-                        .contains(&mach)
-                        .then(|| {
-                            let hpr_m = row["hpr_cp_m"].as_f64().unwrap();
-                            let measured_m = row["reference_cp_m"].as_f64().unwrap();
-                            // Positive aft: HPR Sim's station, from the nose tip, less the tunnel's.
-                            let error = (hpr_m - measured_m) / diameter_m;
-                            assert!(
-                                (error - row["cp_error_calibers"].as_f64().unwrap()).abs() < 1e-12
-                            );
-                            let uncertainty = row["cp_uncertainty_calibers"].as_f64().unwrap();
-                            (mach, error, uncertainty)
-                        })
+                    (mach <= TRANSONIC_CP_MACH).then(|| {
+                        let hpr_m = row["hpr_cp_m"].as_f64().unwrap();
+                        let measured_m = row["reference_cp_m"].as_f64().unwrap();
+                        // Positive aft: HPR Sim's station, from the nose tip, less the tunnel's.
+                        let error = (hpr_m - measured_m) / diameter_m;
+                        assert!((error - row["cp_error_calibers"].as_f64().unwrap()).abs() < 1e-12);
+                        let uncertainty = row["cp_uncertainty_calibers"].as_f64().unwrap();
+                        (mach, error, uncertainty)
+                    })
                 })
                 .collect()
         };
-        let short = rows("arcas-robin-short");
+        // Every row at or below the join that reads aft beyond its uncertainty, on either model,
+        // sits at or above the warning's start: a slower one would need the warning to start lower.
+        for id in ["arcas-robin-short", "arcas-robin-long"] {
+            for (mach, error, uncertainty) in rows(id) {
+                assert!(
+                    error <= uncertainty || mach >= SUBSONIC_CP_MACH,
+                    "{id} at Mach {mach}: {error} calibers, before the warning starts"
+                );
+            }
+        }
+        let short: Vec<(f64, f64, f64)> = rows("arcas-robin-short")
+            .into_iter()
+            .filter(|&(mach, _, _)| mach >= SUBSONIC_CP_MACH)
+            .collect();
         let machs: Vec<f64> = short.iter().map(|&(mach, _, _)| mach).collect();
         assert_eq!(machs, [0.6, 0.8]);
         for &(mach, error, uncertainty) in &short {
@@ -1937,7 +1964,10 @@ mod tests {
         let (low, high) = SUBSONIC_CP_AFT_CAL;
         assert!(low <= least && least - low < 0.01, "{least}");
         assert!(high >= most && high - most < 0.01, "{most}");
-        let long = rows("arcas-robin-long");
+        let long: Vec<(f64, f64, f64)> = rows("arcas-robin-long")
+            .into_iter()
+            .filter(|&(mach, _, _)| mach >= SUBSONIC_CP_MACH)
+            .collect();
         assert_eq!(long.len(), 2);
         for &(mach, error, uncertainty) in &long {
             assert!(

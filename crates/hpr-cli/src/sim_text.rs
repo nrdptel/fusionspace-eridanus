@@ -867,6 +867,7 @@ mod tests {
         use hpr::hpr_sim::issues::KnownIssue;
         for known in [
             KnownIssue::MarginReadsHigh,
+            KnownIssue::SubsonicCenterOfPressure,
             KnownIssue::TransonicCenterOfPressure,
         ] {
             assert_eq!(known.url(), format!("{ISSUES_URL}{}", known.number()));

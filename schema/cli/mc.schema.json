@@ -1080,7 +1080,7 @@
       "type": "object",
       "properties": {
         "issue": {
-          "description": "The issue's number on GitHub: 18, 67, 68, 70, 72, 73 or 222 for drag; 179 or 354 for a\nseparated part's drag, also of kind drag; 64, 87, 120, 121, 172, 325, 326 or 1198 for\nstability; 8, 106, 213 or 219 for the flight's path, whose signs depend on the case.",
+          "description": "The issue's number on GitHub: 18, 67, 68, 70, 72, 73 or 222 for drag; 179 or 354 for a\nseparated part's drag, also of kind drag; 64, 87, 120, 121, 172, 325, 326, 1198 or 1290\nfor stability; 8, 106, 213 or 219 for the flight's path, whose signs depend on the case.",
           "type": "integer",
           "format": "uint32",
           "minimum": 0
@@ -1098,7 +1098,7 @@
           "type": "string"
         },
         "parts": {
-          "description": "The ids of the parts whose shape meets the issue's condition; empty for base drag (68)\nand friction (18), which every rocket has, for 121 and 172, for a separated part's\n(179, 354), and for the wind's (8) and the center of gravity's (219). For 213 the single\npod sets, for 106 the body parts the supersonic join covers.",
+          "description": "The ids of the parts whose shape meets the issue's condition; empty for base drag (68)\nand friction (18), which every rocket has, for 121, 172, 1198 and 1290, for a separated\npart's (179, 354), and for the wind's (8) and the center of gravity's (219). For 213 the\nsingle pod sets, for 106 the body parts the supersonic join covers.",
           "type": "array",
           "items": {
             "type": "string"
