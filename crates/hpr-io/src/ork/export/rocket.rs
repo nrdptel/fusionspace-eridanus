@@ -1087,7 +1087,9 @@ impl<'a> Writer<'a> {
     /// Where the reader kept the file's flags as written, all together (flags that disagree, a
     /// flag written twice or unreadable, the single older flag beside a drag override), no flag is
     /// written: the kept ones go back as the file had them, and a flag written beside them that
-    /// the file did not have would change what they say.
+    /// the file did not have would change what they say. Beside a stage's center kept as written,
+    /// a drag flag saying the override doesn't cover the parts is left out: it reads back the same
+    /// without the tag, and a written one would come back kept (#1434).
     fn overrides(
         &mut self,
         element: &mut Element,
@@ -1115,7 +1117,16 @@ impl<'a> Writer<'a> {
         if !kept_flags && overrides.cg_aft_m.is_some() {
             element.flag("overridesubcomponentscg", covers);
         }
-        if let (false, Some(drag)) = (kept_flags, drag) {
+        // A center kept as written (a stage's that doesn't cover its parts, with no mass
+        // override: `stage_overrides` in `super::super::component`) has every flag beside it kept
+        // as written on the way back in, so a drag flag the file didn't have would come back kept
+        // (#1434). Left out, the drag override reads as not covering the parts, as it was read.
+        // One that covers them, as an edited design's can, is written all the same, since the
+        // drag needs it.
+        let center_kept = self.keeps_tag(at, "overridecg");
+        if let (false, Some(drag)) = (kept_flags, drag)
+            && (drag.include_children || !center_kept)
+        {
             element.flag("overridesubcomponentscd", drag.include_children);
         }
         if let Some(message) = left_out_overrides(overrides) {
@@ -1870,6 +1881,86 @@ pub(super) mod tests {
     </subcomponents></rocket>
 </openrocket>"#,
         );
+    }
+
+    /// A stage's center override that doesn't cover its parts, beside a drag override, neither
+    /// with a flag, on a stage on the axis and on a parallel one, reads back as the same design:
+    /// the reader keeps the center as written, and the export adds no drag flag that the read-back
+    /// would keep beside it (#1434). Edited to cover the parts, the drag override keeps its flag.
+    #[test]
+    fn a_stage_center_beside_a_drag_override_with_no_flags_reads_back_the_same() {
+        let overrides = "<overridecg>0.2</overridecg><overridecd>0.5</overridecd>";
+        let axial = format!(
+            r#"<?xml version="1.0" encoding="UTF-8"?>
+<openrocket version="1.10" creator="OpenRocket 24.12">
+  <rocket><name>Probe</name><referencetype>maximum</referencetype>
+    <subcomponents><stage><name>Sustainer</name><id>sustainer</id>{overrides}<subcomponents>
+      <bodytube><name>Tube</name><id>tube</id>
+        <material type="bulk" density="700.0">Invented paper</material>
+        <length>0.8</length><thickness>0.0015</thickness><radius>0.05</radius></bodytube>
+    </subcomponents></stage></subcomponents></rocket>
+</openrocket>"#
+        );
+        let parallel = tube_of(&format!(
+            r#"
+          <parallelstage><name>Boosters</name><id>boosters</id>{overrides}
+            <instancecount>2</instancecount><radiusoffset method="free">0.07</radiusoffset>
+            <axialoffset method="bottom">0.0</axialoffset>
+            <subcomponents>
+              <bodytube><name>Booster</name><id>booster</id>
+                <material type="bulk" density="700.0">Invented paper</material>
+                <length>0.3</length><thickness>0.001</thickness><radius>0.02</radius></bodytube>
+            </subcomponents></parallelstage>"#
+        ));
+        for (what, xml) in [("on the axis", axial), ("parallel", parallel)] {
+            let (original, back, text, _) = round_trip(&xml);
+            let stage = original
+                .rocket
+                .stages
+                .iter()
+                .find(|stage| stage.drag_override.is_some())
+                .unwrap_or_else(|| panic!("{what}: a stage with a drag override"));
+            assert_eq!(
+                stage
+                    .drag_override
+                    .map(|d| (d.coefficient, d.include_children)),
+                Some((0.5, false)),
+                "{what}"
+            );
+            assert!(
+                !text.contains("<overridesubcomponentscd>"),
+                "{what}: {text}"
+            );
+            assert_eq!(back, original, "{what}: {text}");
+            assert_eq!(document(&back).value.to_xml(), text, "{what}");
+            // Edited to cover the parts, the drag override is written with its flag, and reads
+            // back covering them.
+            let mut edited = original.clone();
+            for stage in &mut edited.rocket.stages {
+                if let Some(drag) = stage.drag_override.as_mut() {
+                    drag.include_children = true;
+                }
+            }
+            let text = document(&edited).value.to_xml();
+            assert_eq!(
+                text.matches("<overridesubcomponentscd>true</overridesubcomponentscd>")
+                    .count(),
+                1,
+                "{what}: {text}"
+            );
+            let file = read(text.as_bytes())
+                .expect("the edited design reads")
+                .value;
+            let back = design(&file).value;
+            assert!(
+                back.rocket
+                    .stages
+                    .iter()
+                    .filter_map(|stage| stage.drag_override)
+                    .all(|drag| drag.include_children),
+                "{what}: {text}"
+            );
+        }
     }
 
     /// Every part inside a body tube: a coupler whose radius is the tube's bore with a bulkhead in
