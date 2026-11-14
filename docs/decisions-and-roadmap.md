@@ -374,6 +374,7 @@ until someone rewrites it in plainer words.
 | [ADR-343: The docs site drawn as a tool: the frame off][adr-343] | The docs site follows the product system at `dd7552f`, the commit that gave it three levels, and is drawn as a tool. Pages lose the designation tag and the sheet numbers; each `##` section is a part under a 2 px rule. Every page but the print page ends with a one-line footer: the mark and "FusionSpace HPR", the version, the date of issue, the site's status chip and a link to Start here. Start here keeps the title block as the site's about box, and the print page still ends with it. Labels, navigation, note heads, chips and the switch are in Archivo, in sentence case, at the system's web sizes; CAUTION and WARNING keep capitals, in the wide cut. |  |
 | [ADR-344: M0.17b in two: Field first, then the restyle's acceptance pass][adr-344] | [M0.17b](#m0-17b) asks for two things that each take a session: a fourth color theme, Field, read by the page check at every width as light and dark are, and the acceptance pass for the whole restyle of the docs site. This record ships them one after the other. [M0.17b1](#m0-17b1) adds Field to the theme switch and to the page check. [M0.17b2](#m0-17b2) runs the acceptance pass over [M0.17a](#m0-17a)'s and [M0.17b1](#m0-17b1)'s work and closes issue #1364. |  |
 | [ADR-345: The restyle's acceptance pass and its fixes][adr-345] | A reviewer that didn't build the restyle ran [ADR-344][adr-344]'s six tasks on the built site, and a cold reader did them from the guide alone. At 320 px the keyboard couldn't reach the menu button, focus rings were cut at the column's edge, and code blocks hid their lines' ends. The captures of every page the tasks reach found a code block cut beside the open table of contents and the header left over a page's end on a phone; checking the cold read found a table of contents shut with reduced motion still a keyboard stop. This record fixes them, adds a page-check rule and canaries for each, and answers the cold read's findings in the site's words. |  |
+| [ADR-346: M7.5 in three: the rule before the fit][adr-346] | The correction of the bias the simulators share is to be two scales: one on the motors' impulse, pooled from what the calibration half's logs alone say of the boost, and one on the drag, from those flights' coasts. Each enters only if its 95% interval excludes 1. It ships only if it lowers the mean absolute error and the absolute bias on the held-out half and makes neither worse on the public flights, with and without the flights whose logs and files disagree by more than a certified motor may. This record is merged before that fit is run. Its own increment splits each half's forward error at the boost's cut and reads the calibration half's logs alone. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -902,6 +903,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-3e"></a>[M7.3e][phase-5] | The post-flight comparison | not yet done |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |
 | <a id="m7-5"></a>[M7.5][phase-6] | The bias every simulator shares | not yet done |
+| <a id="m7-5a"></a>[M7.5a][done-6] | The rule before the fit | done |
+| <a id="m7-5b"></a>[M7.5b][phase-6] | The correction, fitted and judged | not yet done |
+| <a id="m7-5c"></a>[M7.5c][phase-6] | The correction in each flight's output | not yet done |
 | <a id="m8-1"></a>[M8.1][phase-6] | A design assistant | not yet done |
 | <a id="m8-2"></a>[M8.2][phase-6] | An editing model for apps: commands, undo and stable ids | not yet done |
 | <a id="m8-3"></a>[M8.3][phase-6] | CAD interop: parts and designs out to meshes, drawings, FreeCAD and STEP, and meshes or STEP solids in as custom parts, through files only ([ADR-144][adr-144]) | not yet done |
@@ -1397,6 +1401,7 @@ is the milestone that added or will add that test.
 [adr-343]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0343-the-docs-site-drawn-as-a-tool-the-frame-off.md
 [adr-344]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0344-m0-17b-in-two-field-first-then-the-restyle-s-acceptance-pass.md
 [adr-345]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0345-the-restyle-s-acceptance-pass-and-its-fixes.md
+[adr-346]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0346-m7-5-in-three-the-rule-before-the-fit.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

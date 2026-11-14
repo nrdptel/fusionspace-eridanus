@@ -386,6 +386,21 @@ is unbounded. The fitted impulse scale averages 0.958 in the calibration half: t
 is a fit's factor, not a measured impulse. It may take up some of what the model gets wrong in the boost, as the other
 scales may.
 
+The same report splits each flight's forward error at the cut. The prediction's error is the share made after the
+cut. The forward error less the prediction's is the share made up to it, where the motor's thrust and the rocket's
+mass set the climb. On the calibration half that share averages +8.92 percentage points of the logged apogee. It
+is the larger of the two on 11 of the 12 flights. On the held-out half it averages +14.39 points and is the larger on
+all 9. Each fit is told the motor delivers its rated impulse, give or take 0.054, and that pulls its impulse scale
+toward 1. So each calibration log is fitted again with that range made 100 times wider, and the log alone speaks.
+The 12 impulse scales then average 0.936, all 12 below 1. A barometer's boost can't tell a motor that delivered less from a
+rocket built heavier than its files, so that scale carries both. One of the 12 flights is flagged: its log and its
+files disagree by more than a certified motor may. The limit is 13.1% of the rated impulse, past which NAR tests a
+motor again as a new type. The scale must clear it by two of its own standard errors. No correction is made from
+these numbers yet.
+[ADR-346, the rule before the fit](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0346-m7-5-in-three-the-rule-before-the-fit.md),
+fixes how one is to be fitted on the calibration half. It also fixes how it is judged, on the held-out half and the
+public flights, and it was written before that fit was run.
+
 The [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md) lists the
 calibration half's 3.19% as `accuracy.from-boost`, with which flights it counts
 ([ADR-330](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0330-m7-3d7-the-from-boost-scoreboard-row.md), the row).
