@@ -229,8 +229,10 @@ adds a source.
   record says so in its `notice`: "Contains modified Copernicus Climate Change
   Service information 2022".
   The real-flight and flight-residual reports (`validation/reports/real-flights.md` and
-  `validation/reports/flight-residuals.md`) publish results computed in RocketPy's full ERA5
-  files and the EuRoC 2022 file: flights through the weather, a product derived from the dataset.
+  `validation/reports/flight-residuals.md`) publish results computed in that weather, a product
+  derived from the dataset: the real-flights report in RocketPy's full ERA5 files (its seven
+  flights compared first) and the EuRoC 2022 file (three predicted flights), the flight-residuals
+  report in the full files (the same seven).
   Each report ends with the attribution under *Sources*: "generated using Copernicus Climate
   Change Service information 2026, and contains modified Copernicus Climate Change Service
   information 2026", the statement that neither the European Commission nor ECMWF is responsible,

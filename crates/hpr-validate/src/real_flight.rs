@@ -79,8 +79,8 @@ pub const REPORT_MD: &str = "validation/reports/real-flights.md";
 /// guide's pages use for the same flights, and the dataset with its license, as
 /// `THIRD-PARTY-NOTICES.md` names it. The real-flight and flight-residual reports print it under
 /// *Sources*.
-pub const ERA5_CREDIT: &str = "The weather of the flights flown in ERA5 is ERA5, from the files \
-     RocketPy's examples read: generated using Copernicus Climate Change Service information 2026, \
+pub const ERA5_CREDIT: &str = "The ERA5 weather here is read from the files RocketPy's examples \
+     read: generated using Copernicus Climate Change Service information 2026, \
      and contains modified Copernicus Climate Change Service information 2026. Neither the \
      European Commission nor ECMWF is responsible for any use that may be made of the Copernicus \
      information or data it contains. ERA5: Hersbach, H. et al. (2023), *ERA5 hourly data on \
