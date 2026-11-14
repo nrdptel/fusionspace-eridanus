@@ -100,6 +100,22 @@ about Mach 1.0 and 3.9 km. Where flights on commercial (COTS) motors go:
      flight; tip-off against RocketPy PR #920 (MIT); wind reconstructed from the GPS descent;
      MAPLEAF (MIT) as another oracle; a Mach 2.45 tunnel drag point (doi 10.2478/tar-2024-0018,
      licence to check).
+     - *Corrected 2026-11-13:* one of these entries misdescribes its source, the other leaves out
+       its authors' doubt, and M1.14b refuses both
+       ([the Mach 1.5–2.5 reference note](../research/finner-reference-data.md), §3 and §4).
+       - **ARL-TN-1128: refused, it holds no coefficients.** The report (Vasile et al., August
+         2022) is titled *High-Speed Army Reference Vehicle*; the vehicle is the HARV, not
+         "HSARV". It defines a shape and nothing more: 10 calibers long, a 5-caliber cone or von
+         Kármán nose with a spherical tip on a cylinder, and three or four clipped-delta fins. It
+         gives no Mach range, no test, no prediction, no coefficient and no mass properties. Its
+         purpose is foundational research on hypersonic flow, such as boundary-layer transition
+         (p. 1).
+       - **The Mach 2.45 drag point: refused, its authors doubt it.** In Wasilczuk, Kurowski and
+         Flaszyński (*Transactions on Aerospace Research* 276(3), 2024), the measured C_D of the
+         one nose they also simulated, 0.138, is about a quarter of their own simulation's (RANS
+         CFD), 0.568. They conclude that the force setup "should be reconsidered" (p. 98). The
+         paper is CC BY-NC-ND 4.0, so a value can be cited but never committed as a fixture, and
+         the three noses' shapes are confidential (p. 89), so the model can't be rebuilt.
    - c. Transonic normal force and drag, Mach 0.8 to 1.2.
    - d. Supersonic, Mach 1.2 to 2.5: the four switches first, then drag (Calisto −14.9% to −5.1%
      against RASAero II; #222) and M1.8e's body-alone misses in the core band (Mach 1.5 to 2.3).
