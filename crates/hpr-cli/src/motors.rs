@@ -514,6 +514,19 @@ fn from_catalog(name: &str) -> Result<(MotorShow, Vec<Option<String>>), Failure>
         let delays = motor.delays();
         show.warnings
             .extend(delay_warnings(&motor.designation, &delays)?);
+        // The warnings flying this file draws, as `hpr sim --motor` gives them (issue #1287):
+        // `show` is where a reader looks at a motor's masses.
+        show.warnings.extend(
+            motor
+                .flight_warnings(curve)
+                .into_iter()
+                .map(|message| Warning {
+                    motor: Some(catalog.selector(motor)),
+                    line: None,
+                    kind: WarningKind::Unusual,
+                    message: crate::printable(&message),
+                }),
+        );
         show.motors.push(figures(
             &motor.designation,
             &motor.manufacturer,
