@@ -74,10 +74,10 @@ pub const REPORT_JSON: &str = "validation/reports/real-flights.json";
 /// The report, as a page.
 pub const REPORT_MD: &str = "validation/reports/real-flights.md";
 
-/// What the real-flights page adds to [`ERA5_CREDIT`]: its three EuRoC 2022 flights read that
-/// day's file as converted to the classic netCDF format (netCDF-3), since hpr's reader refuses
-/// RocketPy's netCDF-4; `validation/oracles/netcdf/euroc_2022.py` checks that the conversion holds
-/// the file's geopotential, temperature and wind bit for bit.
+/// What the real-flights page adds to [`ERA5_CREDIT`]: its three EuRoC 2022 flights read RocketPy's
+/// EuRoC 2022 file as converted to the classic netCDF format (netCDF-3), since hpr's reader
+/// refuses the netCDF-4 original; `validation/oracles/netcdf/euroc_2022.py` checks that the
+/// conversion holds the file's geopotential, temperature and wind bit for bit.
 pub const EUROC_2022_CONVERTED: &str = "EuRoC 2022's file is read as its classic-format (netCDF-3) \
      conversion, which holds the geopotential, temperature and wind of RocketPy's file bit for bit \
      (`validation/oracles/netcdf/euroc_2022.py`).";
