@@ -9,9 +9,9 @@ one nominal size from fiberglass, phenolic and Blue Tube makers share an outer d
 step of 0.05–0.08 mm; LOC's kraft tubes run 0.14–0.33 mm smaller in radius. A switch band cut from the airframe's own
 material stands about 0.1 mm proud, not §4's 0.5 mm. Heads stand 0–2.4 mm proud, not 1–3 mm: no #2–#8 or M3–M4 head
 reaches 3 mm, trimmed shear pins and fully sunk flat heads stand at 0, and several makers' rail buttons hide their
-screw. Redone with these sizes (Inference), the clean airframe adds about 0.8–1.2% of C_D at 98 mm (0.3–3.9%) and
-1.3–2.6% at 54 mm (0.5–7.5%), against §4's 2.0% (0.6–6.0%) and 4.4% (1.4–11.2%): about −0.25% to −0.7% of apogee at 98
-mm, 3–8% of the +8.73% apogee bias. How far to trust it: nominal sizes and fastener tables are firm; no hobby maker
+screw. Redone with these sizes by Hoerner's law (Inference), the clean airframe adds about 0.8–1.2% of C_D at 98 mm
+(0.3–3.9%) and 1.3–2.6% at 54 mm (0.5–7.5%), against §4's 2.1% and 4.4% by that law: about −0.25% to −0.7% of apogee at
+98 mm, 3–8% of the +8.73% apogee bias. How far to trust it: nominal sizes and fastener tables are firm; no hobby maker
 publishes an outer-diameter tolerance, so the tolerance is an industrial tube maker's; no builder's measured joint step
 was read; humidity can swell paper-based tubes by tenths of a millimeter. "Inference" marks this note's own arithmetic.
 
@@ -109,11 +109,11 @@ was read; humidity can swell paper-based tubes by tenths of a millimeter. "Infer
 
 ## 6. Excrescence drag §4 redone with these sizes (Inference)
 
-Same rockets, coefficients and method as §4, at 300 m/s. A step's drag scales as h × (h/δ)^(1/3), so each row moves as
-(h_new/h_§4)^(4/3). Mismatches take 0.1 mm typical with half facing back (0.05 mm, all back, to 0.4 mm, all forward);
-the band 0.1 mm (0.05–0.4); the head row keeps its typical with its top scaled by (2.44/3)^(9/7) = 0.77 from Hood's rule
-at fixed width, and its low end stays §4's (with every pin trimmed and every head flush it falls toward 0); gaps and
-ports as §4; rail-button heads 0 for countersunk buttons, §4's values for three-piece ones.
+Same rockets and coefficients as §4, at 300 m/s, by Hoerner's step law alone. A step's drag scales as h × (h/δ)^(1/3),
+so each row moves as (h_new/h_§4)^(4/3). Mismatches take 0.1 mm typical with half facing back (0.05 mm, all back, to 0.4
+mm, all forward); the band 0.1 mm (0.05–0.4); the head row keeps its typical with its top scaled by (2.44/3)^(9/7) =
+0.77 from Hood's rule at fixed width, and its low end stays §4's (with every pin trimmed and every head flush it falls
+toward 0); gaps and ports as §4; rail-button heads 0 for countersunk buttons, §4's values for three-piece ones.
 
 | feature | 98 mm: % of C_D, typical (range) | 54 mm: % of C_D, typical (range) |
 |---|---|---|
@@ -124,9 +124,9 @@ ports as §4; rail-button heads 0 for countersunk buttons, §4's values for thre
 | 3 joint gaps and 4 ports, as §4 | 0.06 (0.01–0.17) | 0.13 (0.03–0.40) |
 | **clean airframe, total** | **0.77–1.17 (0.28–3.91)** | **1.34–2.64 (0.52–7.47)** |
 
-- **Against §4,** the typical total falls from 2.0% to 0.8–1.2% (98 mm) and from 4.4% to 1.3–2.6% (54 mm). In apogee, at
-  −0.31% to −0.57% per 1% of drag ([apogee bias](apogee-bias.md)), that is −0.24% to −0.67% and −0.42% to −1.5%: 3–8%
-  and 5–17% of the +8.73% bias.
+- **Against §4 by the same law,** the typical total falls from 2.1% to 0.8–1.2% (98 mm) and from 4.4% to 1.3–2.6% (54
+  mm); by both laws §4 gives 2.1–2.6% and 4.4–5.4%. In apogee, at −0.31% to −0.57% per 1% of drag ([apogee
+  bias](apogee-bias.md)), that is −0.24% to −0.67% and −0.42% to −1.5%: 3–8% and 5–17% of the +8.73% bias.
 - **Outside the sourced range:** unsanded tubes at their 1.27 mm worst would give 4.6% (98 mm) and 9.2% (54 mm) if all
   three joints faced forward; one paper-to-fiberglass joint at 80% humidity adds about 0.9% at either size (0.87 mm at
   98 mm, 0.49 mm at 54 mm). Band paint and a camera shroud or antenna (§4's 1–47%) are as §4.
@@ -135,13 +135,13 @@ ports as §4; rail-button heads 0 for countersunk buttons, §4's values for thre
 
 - **Defaults for an optional joints term.** If [excrescence drag](excrescence-drag.md)'s suggested per-joint term is
   built, 0.1 mm per joint and per band is a sourced default; 0.3 mm for a joint across LOC and another maker. Expected
-  effect, with §4's gaps: +0.25% of C_D on 98 mm and +0.5% on 54 mm, against §4's 1.15% and 2.3% for those rows.
+  effect by Hoerner's law, with §4's gaps: +0.25% of C_D on 98 mm and +0.5% on 54 mm, against §4's 1.15% and 2.3%.
 - **Head heights by type:** trimmed pin 0, pan-head pin 1.1–1.7 mm, rivet 1.8–2.0 mm, pan or button screw 1.3–2.4 mm,
   flat head 0 in a full countersink; rail-button screws 0 unless the button is a three-piece kit.
 
 ## What this suggests
 
-- **Lower the excrescence share of the bias** to about 3–8% at 98 mm (from 7–13%), leaving more to other causes.
+- **Lower the excrescence share of the bias** to about 3–8% at 98 mm, from 7–14% by the same law (7–17% by both).
 - **A hobby measurement:** calipers on the outer diameter of a few tubes per maker, and at each joint of a built rocket,
   would replace §1's industrial tolerance with a hobby one.
 

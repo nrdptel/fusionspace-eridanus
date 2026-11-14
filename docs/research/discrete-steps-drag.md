@@ -12,7 +12,7 @@ transverse seam across each meter of tube, whatever the diameter. Its depth and 
 Paint (25–150 µm) and vinyl (93 µm) edges cost 0.01–0.37% of C_D per full circumferential edge pair; waterslide
 decals (13–14 µm) sit in the viscous sublayer. A second law also changes the existing note: tunnel data scaled in
 wall units put forward steps of 0.2–1 mm at 1.4–1.8 times Hoerner's law at 300 m/s, lifting excrescence-drag's clean
-total from about 2.0% to about 2.5% of C_D (98 mm). How far to trust it: the step and groove laws are measured on flat
+total from 2.1% to 2.4–2.6% of C_D (98 mm). How far to trust it: the step and groove laws are measured on flat
 tunnel walls; every hobby size is invented; the seam's size is a guess. "Inference" marks this note's own arithmetic.
 
 ## 1. Two laws for a step much smaller than the layer
@@ -38,9 +38,11 @@ tunnel walls; every hobby size is invented; the seam's size is a guess. "Inferen
   1.11–1.43, 1.42–1.66 and 1.49–1.69. Backward steps agree within 0–22%. The inner law grows with speed, since h+ ∝ V;
   Hoerner's barely moves (δ ∝ V^(−1/7)). Faster than sound, F is 1.85–2.07 times the Mach 0.8 line at 0.2 mm, before
   c_f's fall with Mach: in line with Hopko's 1.5–2.7 times in excrescence-drag §2.
-- **What it changes there (Inference, 300 m/s).** On the 98 mm rocket, the three forward mismatches (0.39% of C_D)
-  become 0.57–0.67% and the proud band (0.71%) 0.91–0.99%; the clean total 2.0% becomes about 2.4–2.6%. On 54 mm, 4.4%
-  becomes about 5.1–5.5%. At 150 m/s the rise is about half that.
+- **What it changes there (Inference, 300 m/s).** Each joint taken at its own station (the nose joint at 0.45 m and
+  0.27 m, the band's edges at 1.0 m and 0.75 m), the 98 mm rocket's three forward mismatches (0.39% of C_D) become
+  0.55–0.65% and the proud band (0.71%) 0.91–0.99%; the clean total 2.1% becomes about 2.4–2.6%. On 54 mm, 4.4% becomes
+  about 5.0–5.4%. Excrescence-drag §4 now gives each row and total across both laws: 2.1–2.6% and 4.4–5.4% at 300 m/s,
+  2.0–2.4% and 4.3–5.0% at 150 m/s.
 
 ## 2. Spiral seams: a helix of grooves or steps
 
@@ -130,7 +132,7 @@ Tube from the nose shoulder (0.45 m, 0.27 m) to the tail; edges at mid-body (1.0
   to −0.17% (98 mm) and −0.25% to −0.46% (54 mm), 1.1–2.0% and 2.8–5.2% of the +8.73% bias. The groove bound gives
   −0.9% to −1.6% and −2.2% to −4.1%; a proud seam on 54 mm, up to −4.9% to −8.9%, the whole bias.
 - **With excrescence-drag's revised clean airframe** (§1), a kraft-tube rocket's small features total about 2.7–2.9%
-  of C_D (98 mm) and 5.9–6.3% (54 mm): −0.8% to −1.7% and −1.8% to −3.6% of apogee, one-signed.
+  of C_D (98 mm) and 5.8–6.2% (54 mm): −0.8% to −1.7% and −1.8% to −3.5% of apogee, one-signed.
 - **Neither HPR Sim nor OpenRocket has a term for any of these** ([excrescence drag](excrescence-drag.md) §5); a finish
   setting is sand-grain k_s, which §5 above keeps separate.
 
