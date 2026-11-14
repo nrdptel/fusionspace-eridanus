@@ -36,7 +36,8 @@ set -m
 pids=()
 stop() {
   trap - INT TERM
-  for pid in "${pids[@]}"; do kill -TERM -- "-$pid" 2>/dev/null; done
+  # `${pids[@]+...}`: an empty array is "unbound" to bash 3.2 under `set -u`.
+  for pid in ${pids[@]+"${pids[@]}"}; do kill -TERM -- "-$pid" 2>/dev/null; done
   echo "error: lanes stopped by a signal; no lane's result counts" >&2
   exit 130
 }

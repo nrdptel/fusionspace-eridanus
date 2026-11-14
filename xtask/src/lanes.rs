@@ -202,35 +202,67 @@ mod run {
         fs::remove_dir_all(dir).unwrap();
     }
 
+    /// Whether a shell started from here can be stopped by `signal`. One the test's own process
+    /// was started ignoring (a test run put in the background has INT ignored) stays ignored in
+    /// every shell under it, and no trap can change that: such a run isn't stopped at all.
+    fn stops_a_shell(signal: &str) -> bool {
+        let out = Command::new("bash")
+            .args(["-c", &format!("kill {signal} $$; echo ignored")])
+            .output()
+            .unwrap();
+        out.stdout.is_empty()
+    }
+
+    /// Waits up to ten seconds for `ready` to hold; says whether it did.
+    fn wait_for(ready: impl Fn() -> bool) -> bool {
+        for _ in 0..200 {
+            if ready() {
+                return true;
+            }
+            sleep(Duration::from_millis(50));
+        }
+        ready()
+    }
+
     #[test]
     fn a_stopped_run_stops_its_lanes_and_leaves_the_next_run_nothing_to_read() {
         for signal in ["-INT", "-TERM"] {
+            if !stops_a_shell(signal) {
+                continue;
+            }
             let dir = scratch(&format!("stop{signal}"));
-            let marker = dir.join("marker");
-            // The stopped run's lane would pass, and write its marker, a second later.
-            let late = format!("sleep 1; touch {}", marker.display());
+            let (marker, lane_pid) = (dir.join("marker"), dir.join("pid"));
+            // The lane names its own process, then would pass and write its marker much later.
+            let late = format!(
+                "echo $$ > {}; sleep 30; touch {}",
+                lane_pid.display(),
+                marker.display()
+            );
             let mut first = runner(&dir, &[&late])
                 .stdout(Stdio::null())
                 .stderr(Stdio::null())
                 .spawn()
                 .unwrap();
-            sleep(Duration::from_millis(300));
-            let killed = Command::new("kill")
-                .args([signal, &first.id().to_string()])
-                .status()
-                .unwrap();
-            assert!(killed.success());
+            // The lane is running, so the run is past the line that sets up its stop.
+            let pid = || fs::read_to_string(&lane_pid).unwrap_or_default();
+            assert!(wait_for(|| pid().ends_with('\n')), "{signal}: no lane");
+            let pid = pid().trim().to_string();
+            let kill = |args: &[&str]| Command::new("kill").args(args).output().unwrap();
+            assert!(kill(&[signal, &first.id().to_string()]).status.success());
             assert_eq!(first.wait().unwrap().code(), Some(130), "{signal}");
-            // The next run, in the same folder, fails on its own failing lane, whatever the first
-            // run's lane would have written by now.
-            let (out, text) = lanes(&dir, &["false", "sleep 1.2"]);
+            // The run's lane was stopped with it, and what it started: no marker, then or later.
+            assert!(
+                wait_for(|| !kill(&["-0", &pid]).status.success()),
+                "{signal}: the stopped run's lane ran on"
+            );
+            assert!(!marker.exists(), "{signal}");
+            // The next run, in the same folder, fails on its own failing lane.
+            let (out, text) = lanes(&dir, &["false", "true"]);
             assert_eq!(out.status.code(), Some(1), "{signal}: {text}");
             assert!(
                 text.contains("== lane 1 (FAIL exit 1, "),
                 "{signal}: {text}"
             );
-            // And the first run's lane was stopped with it: its marker never appears.
-            assert!(!marker.exists(), "{signal}: the stopped run's lane ran on");
             fs::remove_dir_all(dir).unwrap();
         }
     }
