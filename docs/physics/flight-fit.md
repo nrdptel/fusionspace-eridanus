@@ -430,9 +430,10 @@ On the 12 public flights it takes the mean absolute error from 9.00% to 12.16%, 
 to −12.01%. The rule said the public flights must get no worse, so the verdict is a fail and nothing ships. The fit
 over every calibration flight fails the same way.
 [ADR-348](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0348-m7-5b-the-correction-fails-on-the-public-flights.md)
-records it. The collection reads high and the public flights read low, so one scale can't serve both. The
-collection's high reading is in its own flights, their files, their rockets as built or their motors, or in HPR Sim's boost
-on those designs. It isn't a bias every simulator shares. The report keeps every number for the work on causes.
+records it. The collection reads high and the public flights read low, and one scale didn't serve both. That is
+evidence against one bias shared by both sets of flights. It doesn't say where the collection's high reading comes
+from. The report keeps the measurement for the work on causes, less what the rule holds back to protect the
+collection's flights.
 
 The [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md) lists the
 calibration half's 3.19% as `accuracy.from-boost`, with which flights it counts

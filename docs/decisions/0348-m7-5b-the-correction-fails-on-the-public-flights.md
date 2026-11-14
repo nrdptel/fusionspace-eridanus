@@ -1,7 +1,7 @@
 # ADR-348: M7.5b's verdict: the shared-bias correction fails on the public flights, and nothing ships (2026-11-14)
 
 - **Status:** accepted; carries out [M7.5b][m7-5b] by [ADR-346][adr-346] decisions 2 to 7, unchanged; records its verdict, a fail, so nothing ships, [M7.5c][m7-5c] is dropped and [M7.5][m7-5] closes (ADR-346 decision 9).
-- **Summary:** Fitted on the calibration half as ADR-346 fixed it, the correction is an impulse scale of 0.94 with the drag left at 1, in the fit without the flagged flight. It lowers the held-out half's mean absolute apogee error from 16.26% to 10.91% and its mean error from +13.36% to +5.84%, and passes all four held-out sets in both fits. On the 12 public flights it raises the mean absolute error from 9.00% to 12.16% and takes the mean error from −4.91% to −12.01%, in both fits. The rule asks that the public flights get no worse, so the verdict is a fail. The held-out half's sealed fit aggregates are published, their file matching its committed hash.
+- **Summary:** Fitted on the calibration half as ADR-346 fixed it, the correction is an impulse scale of 0.94 with the drag left at 1, in the fit without the flagged flight. It lowers the held-out half's mean absolute apogee error from 16.26% to 10.91% and its mean error from +13.36% to +5.84%, and passes all four held-out sets in both fits. On the 12 public flights it raises the mean absolute error from 9.00% to 12.16% and takes the mean error from −4.91% to −12.01%; the fit over every calibration flight does worse there, 13.21% and −13.21%. The rule asks that the public flights get no worse, so the verdict is a fail. The held-out half's sealed fit aggregates are published, their file matching its committed hash.
 
 [m7-5]: ../decisions-and-roadmap.md#m7-5
 [m7-5b]: ../decisions-and-roadmap.md#m7-5b
@@ -37,14 +37,17 @@ for that and for nothing else. A public flight's comes likewise where the [publi
 report][from-boost] cuts and fits its log, 2 of the 12; the other 10 can't be flagged and stay in
 every set.
 
-**The runs.** Two, both on this branch, both flying the correction on the held-out half and the
+**The runs.** Three, all on this branch, each flying the correction on the held-out half and the
 public flights.
 
 1. The first. Its page named a failed clause by its set alone, so a set and the same set less its
-   flagged flights read as one clause twice, and it wrote "none" for a sign-flip interval it
-   doesn't count past 20 flights.
-2. The second, after those two fixes to the page's words. Every number of the first run's private
-   record is the same in the second, the list of failed clauses aside.
+   flagged flights read as one clause twice. It wrote "none" for a sign-flip interval it doesn't
+   count past 20 flights, and labeled a scale's last row "why it stays 1" where the scale entered.
+2. The second, after those three fixes to the page's words. Every number of the first run's
+   private record is the same in the second, the list of failed clauses aside.
+3. The third, after the page set each set beside itself less its flagged flights: in the second
+   run's page those rows came after the public flights' and read as theirs. Its private record is
+   the second's byte for byte.
 
 No scale, set, weight or limit changed between them, and nothing in the fits or the corrected
 flights did.
@@ -53,8 +56,8 @@ flights did.
 by the Birge ratio, as Merkatas, Toman, Possolo and Schlamminger give it (*Metrologia* 56, 054001,
 2019, §3.1). Its Student's $t$ at $n - 1$ is the posterior of the mean under a reference prior
 (Bodnar and Eriksson, arXiv:2104.01977, 2021, the proof of Theorem 1). A simulation of the
-interval's coverage with right relative weights gave 95% at 3, 4 and 6 fits. That simulation was
-made outside the committed code, and no number of it is used here. The $t$ points come from the
+interval's coverage was also made, outside the committed code; nothing here rests on it. The $t$
+points come from the
 closed forms in Abramowitz and Stegun (1964, 26.7.3 and 26.7.4), held to the NIST/SEMATECH
 e-Handbook's table to three decimals.
 
@@ -80,8 +83,8 @@ and mean error against the forward simulation's, %):
 | public, 12 | 9.00 → 12.16; −4.91 → −12.01; fails | 9.00 → 13.21; −4.91 → −13.21; fails |
 | public less flagged, 12 | fails, as above | fails, as above |
 
-Flown with both scales at 1, every collection flight and every public flight lands 0.00 m from
-its forward apogee, to the report's two decimals. The rule allows 0.5 m.
+Flown with both scales at 1, every flight either report compares lands 0.00 m from its forward
+apogee, to the report's two decimals. The rule allows 0.5 m.
 
 **Decision.**
 
@@ -97,27 +100,28 @@ its forward apogee, to the report's two decimals. The rule allows 0.5 m.
    of another form is a new decision, judged on flights predicted first ([M2.7][m2-7]'s second
    increment), not on this half again.
 
-**What it says.** One scale can't serve both sources. The collection reads high and the public
+**What it says.** One scale didn't serve both sources. The collection reads high and the public
 flights read low, as ADR-346's consequences foresaw. A lower impulse cuts the held-out half's
 bias by more than half, and on the flights without a deployment before apogee to nearly nothing.
-On the public flights it more than doubles the mean error's size, from −4.91% to −12.01%. So the collection's high reading is not, on
-this evidence, a bias every simulator shares. It sits in the collection's flights: their files,
-their rockets as built, their motors, or hpr's boost on those designs. The boost report keeps
-the measurement for the work on causes: [M2.3c6][m2-3c6], the gap to OpenRocket by cause, and
-[M1.14][m1-14], accuracy inside the envelope. It gives how much of each half's error is made up
-to the cut, and what a correction of the boost does to each set.
+On the public flights it more than doubles the mean error's size, from −4.91% to −12.01%. That
+is evidence against one bias shared by the collection's flights and the public ones. It doesn't
+say where the collection's high reading comes from: the test separates no cause from another.
+The boost report keeps the measurement, less what ADR-346 §7 holds back, for the work on causes:
+[M2.3c6][m2-3c6], the gap to OpenRocket by cause, and [M1.14][m1-14], accuracy inside the
+envelope. It gives how much of each half's error is made up to the cut, and what a correction of
+the boost does to each set.
 
 **Consequences.**
 
 - The scoreboard, the forward reports and every flight's output are unchanged.
 - `fixture-flights` now also flies the public flights corrected, so it needs the public flights'
-  checkouts under `refs/` as `real-flights` does. It takes about 3 minutes on the maintainer's
-  machine, from about 2 before.
+  checkouts under `refs/` as `real-flights` does. It runs longer: a fit for each step of each
+  coast's bisection, and every compared flight flown again with each correction.
 - The public flights' fly paths (`hpr_validate::real_flight::fly_corrected`,
   `public_predictions::run_corrected`) take a correction for this test. With none they are the
   paths they were.
 
 **How it was checked.** `cargo xtask fixture-flights --check` reproduces the report and both
-digests. Unit tests pin the $t$ points against the printed table, the bisection, the two scales'
-entry rules, the pass rule's strict and non-strict sides, a failed flight failing its set, and
+digests. Unit tests pin the $t$ points against the printed table, the bisection, each scale's entry
+rule, the pass rule's strict and non-strict sides, a failed flight failing its set, and
 what the page holds back.

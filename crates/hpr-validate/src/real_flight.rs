@@ -1477,7 +1477,7 @@ pub fn fly(root: &Path, flight: &RealFlight) -> Result<FlightRow, RealFlightErro
 }
 
 /// [`fly`], with `correction` flown: every motor's impulse and the drag scaled
-/// ([`Correction`], M7.5b, ADR-346 §4), the log, design, thrust file, rail and air as [`fly`]
+/// ([`Correction`]), the log, design, thrust file, rail and air as [`fly`]
 /// reads them. Read the row's own-drag numbers alone (its apogee): the flight on the example's
 /// drag table is flown with the scaled motors, but the table may stand in for the scaled drag.
 ///

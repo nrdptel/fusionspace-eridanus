@@ -1089,18 +1089,17 @@ impl Judged {
             self.seed,
         );
         let _ = writeln!(page, "\n| | {UNFLAGGED} | {EVERY} |\n|---|---:|---:|");
-        let sets = unflagged
-            .sets
-            .iter()
-            .zip(&every.sets)
+        // Each set beside itself less its flagged flights: ADR-346 §5's order is all three, then
+        // all three again less theirs.
+        let sets = [0, 3, 1, 4, 2, 5]
+            .into_iter()
+            .filter_map(|k| Some((unflagged.sets.get(k)?, every.sets.get(k)?)))
             .chain([(&unflagged.calibration, &every.calibration)]);
         for (a, b) in sets {
             let title = if a.set == CALIBRATION_SET {
                 format!("{} (fitted on these: not a test)", a.set)
-            } else if a.less_flagged {
-                "… less their flagged flights".to_owned()
             } else {
-                a.set.clone()
+                a.named()
             };
             let _ = writeln!(
                 page,
@@ -1313,6 +1312,28 @@ mod tests {
         let half = t_975(2).unwrap() * (scatter / (2.0 * 2.25)).sqrt();
         assert!((fit.high.unwrap() - center - half).abs() < 1e-12);
         assert_eq!(fit.excludes_one, Some(center + half < 1.0));
+    }
+
+    /// The impulse enters on three converged fits whose interval excludes 1, rounded; not on
+    /// two, nor where its interval holds 1.
+    #[test]
+    fn the_impulse_enters_by_its_rule() {
+        let tau = 0.0328;
+        let low = ScaleFit::impulse(
+            &[Some((0.93, 0.03)), Some((0.94, 0.03)), Some((0.95, 0.03))],
+            tau,
+        );
+        assert!(low.entered(), "{low:?}");
+        assert_eq!(low.flown, Some(0.94));
+        let two = ScaleFit::impulse(&[Some((0.93, 0.03)), Some((0.94, 0.03)), None], tau);
+        assert!(!two.entered());
+        assert_eq!(two.flown, Some(1.0));
+        let wide = ScaleFit::impulse(
+            &[Some((0.8, 0.03)), Some((1.2, 0.03)), Some((1.0, 0.03))],
+            tau,
+        );
+        assert_eq!(wide.excludes_one, Some(false));
+        assert!(!wide.entered());
     }
 
     fn pairs(values: &[(f64, f64)]) -> Vec<Pair> {

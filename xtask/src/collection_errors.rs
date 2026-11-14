@@ -20,17 +20,21 @@
 //! ([`boost::paired_bootstrap_interval`], [`RESAMPLES`] resamples, seed [`SEED`]) and the exact
 //! sign-flip interval beside it are published. The calibration half's fit aggregates are, taken
 //! through [`Calibration`], which refuses a held-out flight (M2.7a, ADR-332); the
-//! held-out half's are written to the gitignored [`HELD_OUT_FITS`], and only that file's SHA-256 is
-//! committed, in [`HELD_OUT_FITS_SHA`], until M7.5 publishes them (ADR-322 §2).
+//! held-out half's are written to the gitignored [`HELD_OUT_FITS`], that file's SHA-256 committed in
+//! [`HELD_OUT_FITS_SHA`] before the correction was fitted, and published with the correction once
+//! it was chosen on the calibration half alone (M7.5b, ADR-322 §2).
 //!
 //! **Before the shared bias's correction (M7.5a, ADR-346).** Each set's forward error is split at
 //! the cut: the prediction's error is the share made after it, the forward error less the
 //! prediction's the share made up to it. And each calibration flight predicted is fitted once
 //! more with the impulse's stated range widened [`WIDENED`]-fold, for what its log alone says of
 //! the boost ([`Implied`]); a flight whose log and files disagree by more than NAR's retest
-//! rule allows one firing is flagged ([`Implied::disagrees`]). No correction is fitted
-//! across flights here, and the held-out half's logs are not fitted this way until that
-//! correction is judged (M7.5b).
+//! rule allows one firing is flagged ([`Implied::disagrees`]).
+//!
+//! **The correction (M7.5b, ADR-346).** Every predicted flight's log is fitted alone for its flag,
+//! a held-out flight's for that alone; the correction is fitted on the calibration half through
+//! [`Calibration`] and judged on the held-out half and the public flights
+//! (`collection_correction`).
 
 use std::collections::BTreeMap;
 use std::fmt::Write as _;
@@ -340,8 +344,8 @@ fn predict(
         Err(why) => Err(unpredicted_name(&why)),
     };
     // What the log alone says of the boost: the same fit, the impulse's stated range widened
-    // until it no longer binds (ADR-346 §2). A calibration flight's only: the held-out half's
-    // logs are fitted this way when the correction is judged (M7.5b), not before.
+    // until it no longer binds (ADR-346 §2). A calibration flight's feeds the fits across
+    // flights through the guard; a held-out flight's gives its flag alone (M7.5b).
     let implied = reads_log_alone(result.is_ok()).then(|| {
         boost::predict(
             &cut.log,
@@ -637,8 +641,8 @@ impl FitAggregates {
         Self::of(CALIBRATION, fits.flights())
     }
 
-    /// The held-out half's, sealed in [`HELD_OUT_FITS`] and published by no report until M7.5
-    /// has chosen its correction on the calibration half alone (ADR-322 §2).
+    /// The held-out half's, sealed in [`HELD_OUT_FITS`] and published only once M7.5 had chosen
+    /// its correction on the calibration half alone (ADR-322 §2).
     fn held_out(fits: &[&Fit]) -> Self {
         Self::of(HELD_OUT, fits)
     }

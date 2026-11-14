@@ -1,4 +1,4 @@
-//! A correction of the bias the simulators share, flown on a public flight (M7.5b, ADR-346 §4):
+//! A correction of the bias the simulators share, flown on a public flight:
 //! every motor's impulse scaled by one number and the drag by another, the rest of the flight as
 //! its report flies it.
 //!

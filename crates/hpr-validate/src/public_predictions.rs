@@ -1075,7 +1075,7 @@ struct Launch<'a> {
     rail: Rail,
     /// What the log's height is taken to be.
     altimeter: Altimeter,
-    /// A correction flown on the flight (M7.5b), or none: the flight as predicted.
+    /// A correction flown on the flight, or none: the flight as predicted.
     correction: Option<Correction>,
 }
 
@@ -1538,7 +1538,7 @@ pub fn run(root: &Path) -> Result<PredictionsReport, RealFlightError> {
 }
 
 /// [`run`], with `correction` flown on every flight: every motor's impulse and the drag scaled
-/// ([`Correction`], M7.5b, ADR-346 §4), the rest as [`run`] flies it. Read each row's predicted
+/// ([`Correction`]), the rest as [`run`] flies it. Read each row's predicted
 /// apogee: the shown-only flight on a bundled catalog curve is flown corrected too.
 ///
 /// # Errors
