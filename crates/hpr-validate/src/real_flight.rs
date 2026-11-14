@@ -65,6 +65,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
+use crate::correction::Correction;
 use crate::predicted_first::ComparedPrediction;
 
 /// The report, as data.
@@ -1472,6 +1473,50 @@ pub(crate) fn rail_from(rail: (f64, f64, f64)) -> Rail {
 ///
 /// [`RealFlightError`] if a file is missing or doesn't read, or hpr can't fly it.
 pub fn fly(root: &Path, flight: &RealFlight) -> Result<FlightRow, RealFlightError> {
+    match fly_with(root, flight, None)? {
+        Flew::Row(row) => Ok(*row),
+        Flew::Corrected(_) => Err(RealFlightError::Input {
+            flight: flight.id.to_owned(),
+            what: "a flight with no correction came back as a corrected one".to_owned(),
+        }),
+    }
+}
+
+/// What [`fly_with`] flew: the report's row, or a corrected flight's apogee alone.
+enum Flew {
+    /// The row, with no correction.
+    Row(Box<FlightRow>),
+    /// A corrected flight's apogee as the log's altimeter would read it, m.
+    Corrected(f64),
+}
+
+/// The apogee of [`fly`]'s flight with `correction` flown, m above the start, as the log's
+/// altimeter would read it: every motor's impulse and the drag scaled ([`Correction`]), the log,
+/// design, thrust file, rail and air as [`fly`] reads them. Only that flight is flown: not the one
+/// on the example's drag table, nor the one on the recorded thrust.
+///
+/// # Errors
+///
+/// As [`fly`], and a scale the motors or the drag refuse.
+pub fn fly_corrected(
+    root: &Path,
+    flight: &RealFlight,
+    correction: Correction,
+) -> Result<f64, RealFlightError> {
+    match fly_with(root, flight, Some(correction))? {
+        Flew::Corrected(apogee_m) => Ok(apogee_m),
+        Flew::Row(_) => Err(RealFlightError::Input {
+            flight: flight.id.to_owned(),
+            what: "a corrected flight came back as the report's row".to_owned(),
+        }),
+    }
+}
+
+fn fly_with(
+    root: &Path,
+    flight: &RealFlight,
+    correction: Option<Correction>,
+) -> Result<Flew, RealFlightError> {
     let input = |what: String| RealFlightError::Input {
         flight: flight.id.to_owned(),
         what,
@@ -1572,8 +1617,22 @@ pub fn fly(root: &Path, flight: &RealFlight) -> Result<FlightRow, RealFlightErro
     }
 
     let fly_once = |rocket: &Rocket, table: Option<DragTable>| -> Result<Flown, RealFlightError> {
+        let corrected;
+        let rocket = match correction {
+            Some(correction) => {
+                corrected = correction
+                    .rocket(rocket)
+                    .map_err(|error| input(error.to_string()))?;
+                &corrected
+            }
+            None => rocket,
+        };
         let simulation =
             Simulation::new(rocket, "example", environment.clone(), rail, settings).map_err(sim)?;
+        let simulation = match correction {
+            Some(correction) => correction.simulation(simulation).map_err(sim)?,
+            None => simulation,
+        };
         let simulation = match table {
             Some(table) => simulation.with_drag_table(table),
             None => simulation,
@@ -1633,6 +1692,9 @@ pub fn fly(root: &Path, flight: &RealFlight) -> Result<FlightRow, RealFlightErro
         })
     };
     let own = fly_once(&rocket, None)?;
+    if correction.is_some() {
+        return Ok(Flew::Corrected(own.apogee_m));
+    }
     let on_example_drag = fly_once(&rocket, Some(table))?;
     let on_recorded_thrust = recorded
         .as_ref()
@@ -1642,7 +1704,7 @@ pub fn fly(root: &Path, flight: &RealFlight) -> Result<FlightRow, RealFlightErro
     let (drag_apogee_m, drag_trace) = (on_example_drag.apogee_m, on_example_drag.trace);
     let error = |apogee_m: f64| percent_of(apogee_m, log_apogee_m);
 
-    Ok(FlightRow {
+    Ok(Flew::Row(Box::new(FlightRow {
         id: flight.id.to_owned(),
         title: flight.title.to_owned(),
         design: flight.design.to_owned(),
@@ -1680,7 +1742,7 @@ pub fn fly(root: &Path, flight: &RealFlight) -> Result<FlightRow, RealFlightErro
         note: flight.note.to_owned(),
         explanation_kind: flight.explanation.kind().to_owned(),
         explanation: flight.explanation.text().to_owned(),
-    })
+    })))
 }
 
 /// The first row of each run of rows with the same Mach number, as `cargo xtask aero` reads

@@ -53,6 +53,7 @@ use hpr_sim::{Environment, EventKind, FlightMetrics, FlightSettings, Rail, Simul
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::correction::Correction;
 use crate::real_flight::{
     Altimeter, Barometer, FileRead, Heights, MASS_FIXTURE, ROCKETPY, RealFlightError,
     example_thrust_of, fixture_case_of, fmt_number, launch_day_at, parse_thrust, rail_from,
@@ -896,6 +897,15 @@ pub fn predict(
     flight: &PredictedFlight,
     weather: &WeatherConversion,
 ) -> Result<PredictionRow, RealFlightError> {
+    predict_with(root, flight, weather, None)
+}
+
+fn predict_with(
+    root: &Path,
+    flight: &PredictedFlight,
+    weather: &WeatherConversion,
+    correction: Option<Correction>,
+) -> Result<PredictionRow, RealFlightError> {
     let input = |what: String| RealFlightError::Input {
         flight: flight.id.to_owned(),
         what,
@@ -981,6 +991,7 @@ pub fn predict(
         elevation_m,
         rail,
         altimeter: flight.reference.altimeter,
+        correction,
     };
     let fly_once = |rocket: &Rocket| flown_to_apogee(rocket, &launch);
     let counted = fly_once(&rocket)?;
@@ -1064,6 +1075,8 @@ struct Launch<'a> {
     rail: Rail,
     /// What the log's height is taken to be.
     altimeter: Altimeter,
+    /// A correction flown on the flight, or none: the flight as predicted.
+    correction: Option<Correction>,
 }
 
 /// Flies `rocket` to its apogee and reads it as the log's altimeter would.
@@ -1080,6 +1093,16 @@ fn flown_to_apogee(rocket: &Rocket, launch: &Launch<'_>) -> Result<Flown, RealFl
         max_time_s: MAX_TIME_S,
         ..FlightSettings::default()
     };
+    let corrected;
+    let rocket = match launch.correction {
+        Some(correction) => {
+            corrected = correction
+                .rocket(rocket)
+                .map_err(|error| input(error.to_string()))?;
+            &corrected
+        }
+        None => rocket,
+    };
     let simulation = Simulation::new(
         rocket,
         launch.configuration,
@@ -1088,6 +1111,10 @@ fn flown_to_apogee(rocket: &Rocket, launch: &Launch<'_>) -> Result<Flown, RealFl
         settings,
     )
     .map_err(sim)?;
+    let simulation = match launch.correction {
+        Some(correction) => correction.simulation(simulation).map_err(sim)?,
+        None => simulation,
+    };
     let motors = &simulation.assembly().motors;
     let total_impulse_ns = motors
         .iter()
@@ -1341,6 +1368,14 @@ pub fn predict_design_file(
     root: &Path,
     flight: &DesignFileFlight,
 ) -> Result<DesignFilePredictionRow, RealFlightError> {
+    predict_design_file_with(root, flight, None)
+}
+
+fn predict_design_file_with(
+    root: &Path,
+    flight: &DesignFileFlight,
+    correction: Option<Correction>,
+) -> Result<DesignFilePredictionRow, RealFlightError> {
     let input = |what: String| RealFlightError::Input {
         flight: flight.id.to_owned(),
         what,
@@ -1439,6 +1474,7 @@ pub fn predict_design_file(
             elevation_m,
             rail,
             altimeter: flight.reference.altimeter,
+            correction,
         },
     )?;
 
@@ -1500,6 +1536,43 @@ pub fn predict_design_file(
 ///
 /// The first flight's [`RealFlightError`].
 pub fn run(root: &Path) -> Result<PredictionsReport, RealFlightError> {
+    run_with(root, None)
+}
+
+/// One predicted flight's id and its corrected apogee, m, or why it didn't fly.
+pub type CorrectedApogee = (String, Result<f64, RealFlightError>);
+
+/// Each predicted flight's apogee with `correction` flown, by its id: every motor's impulse and the
+/// drag scaled ([`Correction`]), the rest as [`run`] flies it, each flight's result on its own (a
+/// flight that fails to fly fails alone). Each is the predicted apogee as the log's altimeter
+/// would read it, m.
+///
+/// # Errors
+///
+/// The committed weather conversion that doesn't hold: no flight is flown then.
+pub fn corrected_apogees(
+    root: &Path,
+    correction: Correction,
+) -> Result<Vec<CorrectedApogee>, RealFlightError> {
+    let weather_conversion = checked_conversion(root)?;
+    let correction = Some(correction);
+    Ok(NEW_FLIGHTS
+        .iter()
+        .map(|flight| {
+            let apogee = predict_with(root, flight, &weather_conversion, correction)
+                .map(|row| row.predicted_apogee_m);
+            (flight.id.to_owned(), apogee)
+        })
+        .chain(DESIGN_FILE_FLIGHTS.iter().map(|flight| {
+            let apogee = predict_design_file_with(root, flight, correction)
+                .map(|row| row.predicted_apogee_m);
+            (flight.id.to_owned(), apogee)
+        }))
+        .collect())
+}
+
+/// The committed weather conversion, once the file it was made from is the one in the checkout.
+fn checked_conversion(root: &Path) -> Result<WeatherConversion, RealFlightError> {
     let weather_conversion = conversion(root)?;
     // The file the conversion was made from is the one in the checkout.
     let source = read_bytes(
@@ -1517,13 +1590,21 @@ pub fn run(root: &Path) -> Result<PredictionsReport, RealFlightError> {
             ),
         });
     }
+    Ok(weather_conversion)
+}
+
+fn run_with(
+    root: &Path,
+    correction: Option<Correction>,
+) -> Result<PredictionsReport, RealFlightError> {
+    let weather_conversion = checked_conversion(root)?;
     let flights = NEW_FLIGHTS
         .iter()
-        .map(|flight| predict(root, flight, &weather_conversion))
+        .map(|flight| predict_with(root, flight, &weather_conversion, correction))
         .collect::<Result<Vec<_>, _>>()?;
     let design_file_flights = DESIGN_FILE_FLIGHTS
         .iter()
-        .map(|flight| predict_design_file(root, flight))
+        .map(|flight| predict_design_file_with(root, flight, correction))
         .collect::<Result<Vec<_>, _>>()?;
     Ok(PredictionsReport {
         generator: "cargo xtask public-predictions".to_owned(),

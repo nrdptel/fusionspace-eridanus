@@ -13,6 +13,8 @@ workspace = true
 
 [dependencies]
 hpr-sim.workspace = true
+# The motors scaled as a boost's fit scales them, for M7.5b's correction on the public flights.
+hpr-analysis.workspace = true
 hpr-aero.workspace = true
 sha2.workspace = true
 hpr-design.workspace = true

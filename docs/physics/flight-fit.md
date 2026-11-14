@@ -409,11 +409,36 @@ The cause could be the files, the motor or the model of the boost. The limit is 
 bodies that certify motors, tests a motor again as a new type. NAR's rule is for a test firing against the certified
 mean. Using it for a flown motor against its rated impulse is this project's inference, and the report gives the
 source. The scale's distance from 1, less two of its own standard errors, must be more than the limit. A flagged
-flight stays in every number on this page. No correction is made from these numbers yet.
+flight stays in every number on this page.
 [ADR-346, the rule before the fit](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0346-m7-5-in-three-the-rule-before-the-fit.md),
-fixes how one is to be fitted on the calibration half. It also fixes how it is judged, on the held-out half and the
-public flights. It was written after a look at the calibration half's fits and before any correction was fitted or
-flown.
+fixes how a correction is fitted on the calibration half. It also fixes how the correction is judged, on the held-out
+half and the public flights. It was written after a look at the calibration half's fits and before any correction was
+fitted or flown.
+
+**The correction was fitted and judged, and it failed.** It is two scales, fitted on the calibration half: one on
+every motor's impulse, one on the drag. The drag scale comes from the coasts. For each flight with nothing deployed
+before apogee, a bisection finds the drag at which the boost, refitted with the drag held there, flies on to the
+logged apogee. The scale is those values' mean, and its 95% interval comes from Student's t. The impulse scale comes
+from the boosts, refitted at that drag. It is their weighted mean, and its interval comes from their weighted spread
+([Merkatas and others, *Metrologia*, 2019](https://arxiv.org/abs/1905.09551), §3.1). A scale counts only if its interval excludes 1, and it is
+rounded to two decimals.
+
+Without the flagged flight, the drag's interval holds 1, so the drag stays as the model has it. The impulse scale
+is 0.94: the boosts, on the files' masses, climb as if every motor gave 94% of its rated impulse. That correction
+takes the held-out half's mean absolute error from 16.26% to 10.91%, and its mean error from +13.36% to +5.84%.
+On the 12 public flights it takes the mean absolute error from 9.00% to 12.16%, and the mean error from −4.91%
+to −12.01%. The rule said the public flights must get no worse, so the verdict is a fail and nothing ships. The fit
+over every calibration flight fails the same way.
+[ADR-348](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0348-m7-5b-the-correction-fails-on-the-public-flights.md)
+records it. No correction ships, so the simulator's flight results are unchanged. The collection reads high and the
+public flights read low, and one scale didn't serve both. The 12 public flights are few. For the fit without the
+flagged flight, the bootstrap interval of their error's growth, −0.31 to 6.30 points, holds 0, so the harm is not
+shown with confidence; for the fit over every calibration flight it is 0.51 to 7.52 points and excludes 0, though the
+exact sign-flip interval, −0.03 to 8.44 points, just holds it. Either way they give no support to one bias shared by
+both sets of flights. It doesn't say where the collection's high reading comes from. The report keeps the measurement
+for the work on causes. Some of its numbers are held back: the terms the owners shared these flights under allow only
+aggregates, figures over several flights, and two figures over sets that differ by one or two flights would give
+those flights' own values by subtraction.
 
 The [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md) lists the
 calibration half's 3.19% as `accuracy.from-boost`, with which flights it counts

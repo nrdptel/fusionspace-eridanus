@@ -79,7 +79,13 @@ Both methods fly nothing deployed, and the fit reads the log only up to its cut,
 | impulse scale | 0.958 | 0.033 |
 | structure mass scale | 1.003 | 0.002 |
 
-The held-out half's fit aggregates, the drag and impulse scales a later correction of the shared bias would aim at, stay private until that correction is chosen on the calibration half alone; the SHA-256 of their file is committed in [`held-out-fits.sha256`](held-out-fits.sha256), so a change to them shows.
+**The held-out half's fits,** kept private until the correction below was chosen on the calibration half alone, are published with it: 9 fits, 9 of them converged; their residuals' RMS averages 2.90 m. Their file still matches the SHA-256 committed in [`held-out-fits.sha256`](held-out-fits.sha256) before the correction was fitted.
+
+| | mean | standard deviation |
+|---|---:|---:|
+| drag scale | 1.044 | 0.047 |
+| impulse scale | 0.936 | 0.045 |
+| structure mass scale | 1.005 | 0.003 |
 
 **The calibration half's logs alone.** Each fit above was told that the motor delivers its rated impulse to a standard deviation of 0.033 (a 90% range of 1 give or take 0.054), and that pulls its impulse scale toward 1. For what a log alone says, each of the calibration half's 12 predicted flights is fitted once more with that range made 100 times wider and nothing else changed: 12 fits, 12 of them converged. Such a fit's impulse scale is the impulse the climb to the cut shows over the motor's rated impulse, at the mass in the files and the model's drag. A barometer's boost can't tell less impulse from more mass ([why](../../docs/research/drag-impulse-identifiability.md)), so a scale below 1 can be a motor that delivered less, a rocket built heavier than its files, or something the model gets wrong in the boost. The fit can't say which. The table is over the converged fits: a few flights of one half of one collection, so the mean says what these logs show, not what motors deliver.
 
@@ -95,7 +101,125 @@ The held-out half's fit aggregates, the drag and impulse scales a later correcti
 
 The fits were told the drag scale to a standard deviation of 0.109, and they come back knowing it little better. In a boost the drag and the impulse trade against each other, so the climb to the cut says almost nothing of the drag by itself: a drag scale has to come from the coast.
 
-A flight is flagged when its log and its files disagree by more than NAR's retest rule allows one firing: its impulse scale's distance from 1, less 2 of its own standard errors, is more than 13.1%, in a fit that converged. NAR, one of the bodies that certify motors, tests a motor again as a new type when one recertification firing's total impulse is more than 13.1% from the certified mean (NAR Motor Testing Manual v1.5, 2011, §6.2.3). The manual says that of a test firing; this page takes it as the most a flown motor's lot strays, an inference. Past it the lot is an unlikely cause, and the files' mass or motor, or the model of the boost, a likelier one. The flag removes no flight from this page's errors. [ADR-346, the rule before the fit](../../docs/decisions/0346-m7-5-in-three-the-rule-before-the-fit.md), fixes how the correction of the shared bias is to be fitted on these scales and judged with and without the flagged flights, before any correction is fitted or flown. The held-out half's logs are fitted this way only when that correction is judged.
+A flight is flagged when its log and its files disagree by more than NAR's retest rule allows one firing: its impulse scale's distance from 1, less 2 of its own standard errors, is more than 13.1%, in a fit that converged. NAR, one of the bodies that certify motors, tests a motor again as a new type when one recertification firing's total impulse is more than 13.1% from the certified mean (NAR Motor Testing Manual v1.5, 2011, §6.2.3). The manual says that of a test firing; this page takes it as the most a flown motor's lot strays, an inference. Past it the lot is an unlikely cause, and the files' mass or motor, or the model of the boost, a likelier one. The flag removes no flight from this page's errors. [ADR-346, the rule before the fit](../../docs/decisions/0346-m7-5-in-three-the-rule-before-the-fit.md), fixes how the correction of the shared bias is to be fitted on these scales and judged with and without the flagged flights, before any correction was fitted or flown. The held-out half's logs are fitted this way too, below, for their flags alone.
+
+**The correction of the shared bias, fitted and judged (M7.5b).** [ADR-346](../../docs/decisions/0346-m7-5-in-three-the-rule-before-the-fit.md) fixed, before any of this was computed, how a correction of the bias the simulators share is fitted on the calibration half and judged on the held-out half and the public flights. It is two scales: one on every motor's impulse, one on the drag. The drag scale comes from the calibration flights' coasts: for each flight without a deployment before apogee, the drag at which its boost, refitted with the drag held there, flies on to the logged apogee (a bisection from 0.25 to 4, to 0.001); the scale is their mean, its 95% interval from Student's t. The impulse scale comes from the same flights' boosts, every one this time, refitted at that drag: their scales' mean weighted by one over each fit's variance plus a motor's own spread (0.0328, what the fit is told of one motor's impulse), its interval from the scales' weighted spread. A scale enters only if at least 3 values give an interval that excludes 1, rounded to two decimals. Two fits are made: over every calibration flight predicted, and without the ones flagged above. Some numbers are held back: the terms its owners shared these flights under allow only aggregates, figures over several flights, and two published figures over sets that differ by one or two flights would give those flights' own values by subtraction.
+
+Each fit's correction is flown on every flight the forward report compares, and on the public flights as [their report](real-flights.md) flies them: every motor's thrust and propellant scaled by the impulse scale at its rated burn time, the drag by the drag scale, nothing else changed. Flown with both scales at 1, a collection flight lands at most 0.00 m from its forward apogee and a public flight at most 0.00 m (the rule allows 0.5 m). It passes only if, on the held-out flights and on those without a deployment before apogee, each with and without their flagged flights, its mean absolute error and the size of its mean error are both lower than the forward simulation's, and on the public flights, with and without theirs, neither is higher; both fits must pass. The fits rest on boosts below Mach 0.8, the cut's limit, and are flown on faster flights too.
+
+**The verdict: fail.** 8 clauses failed, all on the public flights, so no correction ships. Each, by fit and set:
+
+- without the flagged flights, public flights the public report compares: the mean absolute error is not at most the forward simulation's.
+- without the flagged flights, public flights the public report compares: the absolute bias is not at most the forward simulation's.
+- without the flagged flights, public flights the public report compares, less their flagged flights: the mean absolute error is not at most the forward simulation's.
+- without the flagged flights, public flights the public report compares, less their flagged flights: the absolute bias is not at most the forward simulation's.
+- every calibration flight, public flights the public report compares: the mean absolute error is not at most the forward simulation's.
+- every calibration flight, public flights the public report compares: the absolute bias is not at most the forward simulation's.
+- every calibration flight, public flights the public report compares, less their flagged flights: the mean absolute error is not at most the forward simulation's.
+- every calibration flight, public flights the public report compares, less their flagged flights: the absolute bias is not at most the forward simulation's.
+
+Flagged flights: 1 of the calibration half's predicted flights, 1 of the held-out set's (0 of those without a deployment before apogee), from 9 held-out logs fitted alone for the flag and for nothing else, and 0 of the public flights, from the 2 whose boost the [public boost report](from-boost.md) fits. Fewer than 3 calibration flights are flagged, so, as ADR-346 §7 says, the fit without them is given by its scales as flown, its counts and whether each interval excludes 1, and the fit over every calibration flight by its pass or fail on each set, with the public flights' numbers in full. A collection set less fewer than 3 flagged flights is given by its count and its pass or fail. What is held back is in a private file whose SHA-256 is committed in [`correction-held-back.sha256`](correction-held-back.sha256).
+
+| | without the flagged flights | every calibration flight |
+|---|---:|---:|
+| calibration flights predicted | 11 | 12 |
+| **drag scale** |  |  |
+| … coasts solved, of those without a deployment before apogee | 7 of 7 | held back |
+| … the values' mean | held back | held back |
+| … 95% interval | held back | held back |
+| … the interval excludes 1 | no | held back |
+| … as flown | 1.00 | held back |
+| … entered, or why not | its interval holds 1 | held back |
+| **impulse scale** |  |  |
+| … fits converged, of the flights predicted | 11 of 11 | held back |
+| … the values' mean | held back | held back |
+| … 95% interval | held back | held back |
+| … the interval excludes 1 | yes | held back |
+| … as flown | 0.94 | held back |
+| … entered, or why not | it entered | held back |
+
+The test. Each set's last rows give each flight's absolute error corrected less forward, averaged, in percentage points (below zero, the correction came closer), with its paired bootstrap interval (10,000 resamples, seed 346) and exact sign-flip interval, and how many flights' errors grew: beside the rule, not in it.
+
+| | without the flagged flights | every calibration flight |
+|---|---:|---:|
+| **held-out flights the forward report compares** | **23** | **23** |
+| forward simulation: mean absolute error | 16.26% | held back |
+| corrected: mean absolute error | 10.91% | held back |
+| forward simulation: mean error with its sign | +13.36% | held back |
+| corrected: mean error with its sign | +5.84% | held back |
+| corrected flights that failed to fly | 0 | held back |
+| passes | yes | yes |
+| absolute errors' difference, corrected less forward (points) | -5.35 | held back |
+| … paired bootstrap 95% interval | -7.40 to -2.95 | held back |
+| … exact sign-flip 95% interval | not counted past 20 flights | held back |
+| flights whose error grew | 4 | held back |
+| **held-out flights the forward report compares, less their flagged flights** | **22** | **22** |
+| forward simulation: mean absolute error | held back | held back |
+| corrected: mean absolute error | held back | held back |
+| forward simulation: mean error with its sign | held back | held back |
+| corrected: mean error with its sign | held back | held back |
+| corrected flights that failed to fly | held back | held back |
+| passes | yes | yes |
+| absolute errors' difference, corrected less forward (points) | held back | held back |
+| … paired bootstrap 95% interval | held back | held back |
+| … exact sign-flip 95% interval | held back | held back |
+| flights whose error grew | held back | held back |
+| **… without a deployment before apogee** | **13** | **13** |
+| forward simulation: mean absolute error | 11.30% | held back |
+| corrected: mean absolute error | 6.84% | held back |
+| forward simulation: mean error with its sign | +6.88% | held back |
+| corrected: mean error with its sign | -0.05% | held back |
+| corrected flights that failed to fly | 0 | held back |
+| passes | yes | yes |
+| absolute errors' difference, corrected less forward (points) | -4.46 | held back |
+| … paired bootstrap 95% interval | -7.06 to -1.52 | held back |
+| … exact sign-flip 95% interval | -7.75 to -1.09 | held back |
+| flights whose error grew | 3 | held back |
+| **… without a deployment before apogee, less their flagged flights** | **13** | **13** |
+| forward simulation: mean absolute error | held back | held back |
+| corrected: mean absolute error | held back | held back |
+| forward simulation: mean error with its sign | held back | held back |
+| corrected: mean error with its sign | held back | held back |
+| corrected flights that failed to fly | held back | held back |
+| passes | yes | yes |
+| absolute errors' difference, corrected less forward (points) | held back | held back |
+| … paired bootstrap 95% interval | held back | held back |
+| … exact sign-flip 95% interval | held back | held back |
+| flights whose error grew | held back | held back |
+| **public flights the public report compares** | **12** | **12** |
+| forward simulation: mean absolute error | 9.00% | 9.00% |
+| corrected: mean absolute error | 12.16% | 13.21% |
+| forward simulation: mean error with its sign | -4.91% | -4.91% |
+| corrected: mean error with its sign | -12.01% | -13.21% |
+| corrected flights that failed to fly | 0 | 0 |
+| passes | no | no |
+| absolute errors' difference, corrected less forward (points) | +3.16 | +4.21 |
+| … paired bootstrap 95% interval | -0.31 to 6.30 | 0.51 to 7.52 |
+| … exact sign-flip 95% interval | -0.87 to 7.18 | -0.03 to 8.44 |
+| flights whose error grew | 8 | 9 |
+| **public flights the public report compares, less their flagged flights** | **12** | **12** |
+| forward simulation: mean absolute error | 9.00% | 9.00% |
+| corrected: mean absolute error | 12.16% | 13.21% |
+| forward simulation: mean error with its sign | -4.91% | -4.91% |
+| corrected: mean error with its sign | -12.01% | -13.21% |
+| corrected flights that failed to fly | 0 | 0 |
+| passes | no | no |
+| absolute errors' difference, corrected less forward (points) | +3.16 | +4.21 |
+| … paired bootstrap 95% interval | -0.31 to 6.30 | 0.51 to 7.52 |
+| … exact sign-flip 95% interval | -0.87 to 7.18 | -0.03 to 8.44 |
+| flights whose error grew | 8 | 9 |
+| **calibration flights the forward report compares (fitted on these: not a test)** | **37** | **37** |
+| forward simulation: mean absolute error | 9.42% | held back |
+| corrected: mean absolute error | 8.13% | held back |
+| forward simulation: mean error with its sign | +4.22% | held back |
+| corrected: mean error with its sign | -2.22% | held back |
+| corrected flights that failed to fly | 0 | held back |
+| absolute errors' difference, corrected less forward (points) | -1.28 | held back |
+| … paired bootstrap 95% interval | -3.12 to 0.54 | held back |
+| … exact sign-flip 95% interval | not counted past 20 flights | held back |
+| flights whose error grew | 16 | held back |
+
+"Held back" marks a number ADR-346 §7 keeps off this page, where a set or a fit differs from a published one by fewer than 3 flights. The calibration flights are the ones the correction was fitted on, so their errors say how well it fits, not how well it predicts. The impulse scale stands for the boost's whole shortfall: a motor that delivered less, a rocket built heavier than its files, or the model of the boost; the drag scale carries what the as-built mass does to the coast too.
 
 **Sources.** Flight data published by university rocketry teams, rocketry courses and hobbyists on GitHub, team websites and The Rocketry Forum.
 

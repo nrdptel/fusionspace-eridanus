@@ -376,6 +376,7 @@ until someone rewrites it in plainer words.
 | [ADR-345: The restyle's acceptance pass and its fixes][adr-345] | A reviewer that didn't build the restyle ran [ADR-344][adr-344]'s six tasks on the built site, and a cold reader did them from the guide alone. At 320 px the keyboard couldn't reach the menu button, focus rings were cut at the column's edge, and code blocks hid their lines' ends. The captures of every page the tasks reach found a code block cut beside the open table of contents and the header left over a page's end on a phone; checking the cold read found a table of contents shut with reduced motion still a keyboard stop. This record fixes them, adds a page-check rule and canaries for each, and answers the cold read's findings in the site's words. |  |
 | [ADR-346: M7.5 in three: the rule before the fit][adr-346] | The correction of the bias the simulators share is two scales: one on the motors' impulse, pooled from what the calibration half's logs alone say of the boost, and one on the drag, from those flights' coasts. Each enters only if its 95% interval excludes 1. It ships only if it lowers the mean absolute error and the absolute bias on the held-out half and makes neither worse on the public flights, with and without the flights whose logs and files disagree by more than NAR's retest rule allows. This record is merged before that fit is run. Its own increment splits each half's forward error at the boost's cut and reads the calibration half's logs alone. |  |
 | [ADR-347: The 2026-11-14 review: landing points held to tracked landings, predictions first][adr-347] | `hpr sim` prints how far from the pad a rocket lands, and no report sets that against a real flight. 41 of the private collection's 83 flights are cataloged with a latitude and a longitude column or as a tracker's file (no track has been read yet), and each has the day's winds by height. The milestone reads each track's pad and landing points, merges them and each flight's predicted landing point before any error is computed, then scores the miss. The scoreboard gains a row for the miss and a row for whether the predictions land short. A landing predicted nearer the pad than the real one is the flattering side. |  |
+| [ADR-348: M7.5b's verdict: the shared-bias correction fails on the public flights, and nothing ships][adr-348] | Fitted on the calibration half as [ADR-346][adr-346] fixed it, the correction is an impulse scale of 0.94 with the drag left at 1, in the fit without the flagged flight. It lowers the held-out half's mean absolute apogee error from 16.26% to 10.91% and its mean error from +13.36% to +5.84%. Both fits pass all four held-out sets. On the 12 public flights it raises the mean absolute error from 9.00% to 12.16% and takes the mean error from −4.91% to −12.01%; the other fit does worse. The rule asks that the public flights get no worse, so the verdict is a fail. The held-out half's sealed fit aggregates are published, their file matching its committed hash. |  |
 
 These rows keep part of their detail here, so the table stays readable.
 
@@ -906,10 +907,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-3d7"></a>[M7.3d7][done-5] | The scoreboard row | done |
 | <a id="m7-3e"></a>[M7.3e][phase-5] | The post-flight comparison | not yet done |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |
-| <a id="m7-5"></a>[M7.5][phase-6] | The bias every simulator shares | not yet done |
+| <a id="m7-5"></a>[M7.5][done-6] | The bias every simulator shares | done |
 | <a id="m7-5a"></a>[M7.5a][done-6] | The rule before the fit | done |
-| <a id="m7-5b"></a>[M7.5b][phase-6] | The correction, fitted and judged | not yet done |
-| <a id="m7-5c"></a>[M7.5c][phase-6] | The correction in each flight's output | not yet done |
+| <a id="m7-5b"></a>[M7.5b][done-6] | The correction, fitted and judged | done |
 | <a id="m8-1"></a>[M8.1][phase-6] | A design assistant | not yet done |
 | <a id="m8-2"></a>[M8.2][phase-6] | An editing model for apps: commands, undo and stable ids | not yet done |
 | <a id="m8-3"></a>[M8.3][phase-6] | CAD interop: parts and designs out to meshes, drawings, FreeCAD and STEP, and meshes or STEP solids in as custom parts, through files only ([ADR-144][adr-144]) | not yet done |
@@ -1407,6 +1407,7 @@ is the milestone that added or will add that test.
 [adr-345]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0345-the-restyle-s-acceptance-pass-and-its-fixes.md
 [adr-346]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0346-m7-5-in-three-the-rule-before-the-fit.md
 [adr-347]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0347-the-2026-11-14-review-landing-points-held-to-tracked-landings-predictions-first.md
+[adr-348]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0348-m7-5b-the-correction-fails-on-the-public-flights.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
