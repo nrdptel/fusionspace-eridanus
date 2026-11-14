@@ -49,12 +49,14 @@ some design files don't match the rocket that flew.
 
 **What was looked at before this record.** The calibration half's own boost fits, one flight
 at a time: their impulse and drag scales, standard errors and errors, and the same fits made
-again with the impulse's stated range widened 10-fold and 100-fold; 100 was kept, for
-decision 2's arithmetic. ADR-322 §2 lets the correction be chosen on that half. Not looked at: any flight flown with a correction, on either half or on the public
-flights; the held-out half's fits, one by one or as the sealed aggregates; a widened fit of
-any held-out or public flight. One thing was computed early: a check of this record's wording
-took a weighted mean of the calibration scales once, to test a sentence below, and kept no
-number from it.
+again with the impulse's stated range widened 100-fold, as the report now gives them.
+ADR-322 §2 lets the correction be chosen on that half. Not looked at: any flight flown with
+a correction, on either half or on the public flights; the held-out half's fits, one by one
+or as the sealed aggregates; a widened fit of any held-out or public flight. Two things were
+computed outside the committed code, and no number was kept from either. The widened fits
+were first made 10-fold as well as 100-fold, to see that the scales had stopped moving with
+the range; 100 was kept, for decision 2's arithmetic. And a check of this record's wording
+took a weighted mean of the calibration scales once, to test a sentence below.
 
 What that look showed, as the [boost report][boost] now gives it in aggregate:
 
@@ -153,16 +155,16 @@ rule has to reach `main` before the fit it governs.
      so its variance about the shared scale is the sum, and the weights are that variance's
      inverse. The calibration scales' own spread is near that $\tau$ on a rough check:
      $\sqrt{0.048^2 - 0.035^2} \approx 0.033$, with the fits' averaged standard error
-     standing in for each fit's own. The interval does not lean on $\tau$ being right: it is
+     standing in for each fit's own. The interval takes its width from the scales' own spread, not from $\tau$: it is
      $k_I \pm t \sqrt{\sum w_i (k_i - k_I)^2 / ((n - 1) \sum w_i)}$, the weighted spread of
      the scales about their mean, with $t$ at $n - 1$ for $n$ fits. M7.5b reads and cites
      that estimator's source when it builds it.
    - **The impulse scale enters** only if there are at least 3 fits and the interval
      excludes 1. Otherwise it stays 1. If neither scale enters there is no correction, and
      the verdict is a fail.
-   - **Two decimals.** A scale that enters is rounded to two decimals, the drag scale before
-     the impulse fits are told it and both before any corrected flight is flown. A scale
-     that rounds to 1.00 has not entered. The rounded scales are the correction, in the test
+   - **Two decimals.** A scale that enters is rounded to two decimals, a tie going up, the
+     drag scale before the impulse fits are told it and both before any corrected flight is
+     flown. A scale that rounds to 1.00 has not entered. The rounded scales are the correction, in the test
      and in what ships. The logs-alone mean's standard error is 0.014 today, so a third
      decimal would say nothing, and decision 7 needs the rounding.
    - **How it is applied.** A corrected flight is the forward report's flight changed
@@ -200,7 +202,7 @@ rule has to reach `main` before the fit it governs.
      verdict's record names each clause that failed.
    - **The sets are fixed by the reports,** not by M7.5b. They are the flights the two
      reports compare at the head of `main` when M7.5b's branch is cut: 23 held-out flights and 12
-     public ones today. M7.5b's record names that commit and each set's count. Its pull
+     public ones today. M7.5b's record names that head's commit and each set's count. Its pull
      request changes neither the forward simulation nor which flights a report compares.
    - **A public flight is flown as its own report flies it:** its design, its air and its
      motor as they are there, with only the motors and the drag changed as decision 4 says.
@@ -250,7 +252,7 @@ rule has to reach `main` before the fit it governs.
    name, size or mass and rebuilds no design, which is what the terms guard against, so
    the table stays. M7.5b adds little or nothing to that: a scale rounded to two decimals
    over 11 flights, set against the table's mean over 12, places the flagged scale only to
-   about 0.06 either way.
+   about 0.06 either way, and more loosely where that fit's weights are uneven.
 8. **What ships on a pass (M7.5c).** The fit without the flagged flights, which by
    decision 5 has passed on every set, the full ones included: a flagged flight's scale
    measures its files, not the bias the simulators share. The corrected apogee stands
@@ -259,9 +261,9 @@ rule has to reach `main` before the fit it governs.
    Only the apogee is given corrected. No other output reads the corrected flight: the
    drift and landing area, a delay's choice, the flutter margin and the descent stay the
    uncorrected flight's. Where the correction lowers and slows a flight, a corrected flight
-   would flatter each of those. Where it raises or speeds one (a drag scale below 1, or an
-   impulse scale above 1), the uncorrected flight is the flattering one for some, and
-   M7.5c then gives each such output from the less favourable of the two flights. A correction that
+   would flatter each of those. Where either scale is on the raising side (a drag scale
+   below 1, or an impulse scale above 1), the uncorrected flight can be the flattering one,
+   and M7.5c then gives each of those outputs from the less favourable of the two flights. A correction that
    lowers an apogee errs toward the flattering side for a waiver or a field's ceiling, so
    every check against a ceiling takes the higher of the two apogees: a test pins that, with
    a mutation probe. The output calls each scale what it is: the impulse scale is the
