@@ -8,8 +8,8 @@ transonic data put these features at about 1.2–1.3 times their 300 m/s drag at
 (range 1.2–2.2), which confirms the earlier estimate of 3–4% of C_D (98 mm) and 6–9% (54 mm) at Mach 1.1.** Forward
 steps rise 1.4–1.6 times by Mach 1.1, rearward steps 1.7–3.4 times; grooves hold and ports fall a little; heads are
 unmeasured between Mach 0.8 and 1.4. The rocket's own drag rises 1.36–1.51 times (flat base) or 1.7–1.9 (boattail), so
-at Mach 1.1 the features are 2.2–2.8% of C_D on the invented 98 mm L2 rocket and 4.7–6.3% on the 54 mm one with a flat
-base, against 2.0% and 4.4% subsonic: apogee a further 0–0.5% and 0.1–1.1% lower, up to 5% and 12% of the +8.73% bias.
+at Mach 1.1 the features are 2.3–2.9% of C_D on the invented 98 mm L2 rocket and 4.8–6.3% on the 54 mm one with a flat
+base, against 2.1% and 4.4% subsonic: apogee a further 0.1–0.5% and 0.1–1.1% lower, up to 6% and 12% of the +8.73% bias.
 RAE's forward data reach HPR heights (h+ 57–320). How far to trust it: the transonic Mach shape was measured at one
 height per step, near h+ 1,200 for forward steps, and the rearward factor's sources disagree by 2 times.
 "Inference" marks this note's own readings and arithmetic.
@@ -132,25 +132,25 @@ p. 24) and 2% and 3.5% more as Reynolds number grows with speed (Re^−1/6): tot
   each head 0.62 forward face, 0.38 rearward (Hoerner's 0.30 and 0.18, excrescence-drag §2), after [T1] p. 13, the low
   end on the 1.27 mm shape, the high end on PC2, on the 0.2–0.5 mm rows (1–3 mm steps give 1.5–2.1 at Mach 1.1); Hopko's
   1.3–2.9 times Hood's rule at Mach 1.2–2.0 (excrescence-drag §3) is the outer range. The band is split the same way.
-- **Clean airframe, as % of the subsonic C_D.** 98 mm: 2.0% becomes 2.4–2.6% (2.1–3.9) at Mach 1.0 and 3.3–3.9%
-  (2.4–4.4) at Mach 1.1. 54 mm: 4.4% becomes 5.4–5.8% (4.7–8.7) and 7.2–8.5% (5.3–9.8). Rows, % of C_D on 98 | 54 mm
-  (factor at Mach 1.0, 1.1): gaps 0.05 | 0.09 (1.0, 1.0); mismatches 0.39 | 0.78 (1.22, 1.58); band 0.71 | 1.4 (1.39,
-  2.15: 0.62 of the 0.5 mm forward row, 0.38 of PC2's); ports 0.01 | 0.04 (0.95, 0.85); heads 0.9 | 2.1 (head row); all
-  × c_f; the 98 mm rows sum to 2.06, scaled to 2.0. The typical span is the head factor's; the low end takes the 1.27 mm
-  shape on the band and heads at 1.0, the high end heads at 2.9. With discrete-steps-drag's inner-law totals (2.4–2.6%
-  and 5.1–5.5%), Mach 1.1 gives about 3.9–4.2% and 8.5–9.1% with heads at 1.6.
+- **Clean airframe, as % of the subsonic C_D.** 98 mm: 2.1% becomes 2.5–2.7% (2.2–4.0) at Mach 1.0 and 3.4–4.0%
+  (2.5–4.5) at 1.1. 54 mm: 4.4% becomes 5.3–5.7% (4.7–8.8) and 7.2–8.6% (5.3–9.8). Rows, % of C_D on 98 | 54 mm (factor
+  at Mach 1.0, 1.1): gaps 0.05 | 0.09 (1.0, 1.0); mismatches 0.39 | 0.78 (1.22, 1.58); band 0.71 | 1.4 (1.39, 2.15: 0.62
+  of the 0.5 mm forward row, 0.38 of PC2's); ports 0.01 | 0.04 (0.95, 0.85); heads 0.9 | 2.1 (head row); sums 2.06 |
+  4.41; all × c_f (98 mm, Mach 1.1, heads 1.6: 0.935 × 3.64 = 3.40). The typical span is the head factor's; the low end
+  takes the 1.27 mm shape on the band, heads at 1.0; the high end, heads at 2.9. With discrete-steps-drag §1's wall-unit
+  rows (2.4–2.6%, 5.0–5.4%; 54 mm's low end split as its high end), Mach 1.1 gives 4.0–4.4% and 8.2–9.0%, heads at 1.6.
 - **As a share of the rocket's own C_D,** which is 1.36–1.51 times its subsonic value near Mach 1.04–1.12 with a flat
-  base and 1.7–1.9 times with a boattail ([transonic drag rise](transonic-drag-rise.md)): at Mach 1.1, 2.2–2.8%
-  (1.6–3.2) on 98 mm and 4.7–6.3% (3.5–7.2) on 54 mm with a flat base; 1.7–2.3% and 3.8–5.0% with a boattail, within
-  about 15% of the subsonic share either way. The features rise about as fast as the rocket. Excrescence-drag §4's
-  "faster than sound" totals (3–4% and 6–9%) hold at Mach 1.1; its heads, held near their share there, rise 1.6–2.3
-  times here on this note's two-face assumption.
-- **In apogee,** at −0.31% to −0.57% of apogee per 1% of drag ([apogee bias](apogee-bias.md) sensitivity table). If the
-  Mach 1.1 share held over the whole flight, an upper bound with a flat base: 98 mm, −0.7% to −1.6% of apogee against
-  −0.6% to −1.1% subsonic; 54 mm, −1.5% to −3.6% against −1.4% to −2.5%. The transonic increment is at most 0 to −0.5%
-  (98 mm) and −0.1% to −1.1% (54 mm): 0–5% and 1–12% of the +8.73% bias. At the high ends of the ranges, −0.4% to −0.7%
-  and −0.9% to −1.6%, up to 8% and 18% of the bias. With a boattail it is within about ±0.4% of apogee, typical span.
-  The sign of the features' own drag stays one-way: the codes fly high.
+  base and 1.7–1.9 times with a boattail ([transonic drag rise](transonic-drag-rise.md)): at Mach 1.1, 2.3–2.9%
+  (1.7–3.3) on 98 mm and 4.8–6.3% (3.5–7.2) on 54 mm with a flat base (3.40/1.51 to 3.99/1.36); 1.8–2.3% and 3.8–5.1%
+  with a boattail, within about 15% of the subsonic share either way. The features rise about as fast as the rocket.
+  Excrescence-drag §4's "faster than sound" totals (3–4% and 6–9%) hold at Mach 1.1; its heads, held near their share
+  there, rise 1.6–2.3 times here on this note's two-face assumption.
+- **In apogee,** at −0.31% to −0.57% of apogee per 1% of drag ([apogee bias](apogee-bias.md) sensitivity table). Holding
+  the Mach 1.1 share all flight, an upper bound with a flat base: 98 mm, −0.7% to −1.7% of apogee against −0.6% to −1.2%
+  subsonic; 54 mm, −1.5% to −3.6% against −1.4% to −2.5%. The transonic increment is at most −0.1% to −0.5% (98 mm: 0.31
+  × (2.25 − 2.06) to 0.57 × (2.94 − 2.06)) and −0.1% to −1.1% (54 mm): 1–6% and 1–12% of the +8.73% bias. At the ranges'
+  high ends, −0.4% to −0.7% and −0.9% to −1.6%, up to 8% and 18% of the bias. With a boattail it is within about ±0.4%
+  of apogee, typical span. The sign of the features' own drag stays one-way: the codes fly high.
 
 ## What this suggests
 
@@ -159,7 +159,7 @@ p. 24) and 2% and 3.5% more as Reynolds number grows with speed (Re^−1/6): tot
   0.8 value. Expected effect: the term's ΔC_D rises 1.2–1.3 times at Mach 1.0 and 1.6–1.9 times at 1.1, its share of the
   rocket's C_D 1.1–1.4 times the subsonic one with a flat base; apogee up to 0.5% lower on 98 mm than a subsonic-only
   term.
-- **Keep the bias budget's transonic share** near the subsonic 2.0–4.4%, now on measured factors: 1.1–1.4 times it
+- **Keep the bias budget's transonic share** near the subsonic 2.1–4.4%, now on measured factors: 1.1–1.4 times it
   with a flat base, about 1 with a boattail, bounded at 1.6 times.
 - **A validation case:** fly TN D-5004's smooth and stepped ogive cylinders through such a term, Mach 0.7 to 1.2, and
   compare ΔC_D; it would test the factor that drives the range, once the steps' facing is settled.
