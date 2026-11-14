@@ -66,7 +66,7 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
 - LATER: live prices through `hpr-net`, cached and dated.
 - LATER: regional vendors (Klima, Wizard Rockets); parts that fit `.orc` offered upstream.
 
-## Earlier planning reviews (2026-10-08 to 2026-11-08)
+## Earlier planning reviews (2026-10-08 to 2026-11-11)
 
 PROMOTED: OpenRocket's newest release as the bar ([M2.3c3][m2-3c3], ADR-212), the gap to it by
 cause (M2.3c6, [ADR-226][adr-226]) with OpenRocket's supersonic ogive drag as its own cause
@@ -95,24 +95,24 @@ in [accuracy against real flights](ideas-accuracy.md):
   User: a flyer judging whether the rocket comes down inside the field. `hpr sim` prints the
   landing's distance from the pad, held today to another simulator's and to no flight. 41 of the
   private collection's 83 flights have a log with a position track (counted 2026-11-14 from the
-  column names in the collection's catalog). Workflow: each track's pad and landing points and
+  collection's catalog). Workflow: each track's pad and landing points and
   each flight's predicted landing point are merged before any miss. Moves: new
   rows `accuracy.landing` and `bias.landing`, short of the tracked landing the flattering side.
-  *Done when:* M2.13's.
+  *Done when:* [M2.13][m2-13]'s.
 - SOON: the landing on the forecast a flyer had. User: a flyer at the pad, who flies a forecast,
   not the reanalysis [M2.13][m2-13] scores. The command line's page says of a forecast's winds
   that "nothing has compared them with measured ones". Workflow: for each tracked flight whose
-  launch hour is known, the forecast issued the day before is read from a public archive of past
-  forecasts, cached and flown; the fixture report gives the landing miss on it beside the miss on
-  the reanalysis. Moves: `accuracy.landing`, a second figure on the day-before forecast. *Done
-  when:* the report gives both misses over the flights an archived forecast covers, with the
-  archive, the lead time and the count it doesn't cover, and a test pins one cached profile by
+  launch hour is known, a forecast issued before the launch is read from a public archive that
+  keeps past runs, cached and flown; the fixture report gives the landing miss on it beside the
+  miss on the reanalysis. Moves: `accuracy.landing`, a second figure on a forecast. *Done when:*
+  the archive and its lead time are named from its own documents; the report gives both misses
+  over the flights it covers and counts those it doesn't; and a test pins one cached profile by
   its hash.
 - SOON: speed at the rail's end, against accelerometer logs. User: a flyer or a range safety
   officer checking that the rocket leaves the rail fast enough to fly straight. `hpr sim` prints
   that speed, and no report sets it against a flight; a speed read too high is the flattering side.
   48 of the collection's 83 flights have a log with an acceleration channel, 43 of them sampled at
-  100 Hz or faster (counted 2026-11-14 from the column names in the collection's catalog).
+  100 Hz or faster (counted 2026-11-14 from the collection's catalog).
   Workflow: the analyzer integrates the logged acceleration from first motion over the rail length
   the flight's record states, with an interval from the sensor's offset and the first-motion time;
   each flight's predicted speed at that length is merged first, as [ADR-333][adr-333] holds the
@@ -123,7 +123,7 @@ in [accuracy against real flights](ideas-accuracy.md):
 - SOON: the delay's spread held to logged delays. User: a flyer choosing an ejection delay from a
   scattered run. The spread fitted to bench firings is too narrow for flights: its 90% interval
   held 21 or 22 of 30 logged delays, 70% to 73% ([the delay-spread note][delay-spread], section 7;
-  [#1474][i1474] carries the page's wording). Workflow: `hpr mc` gets a named delay spread fitted
+  [#1474][i1474] asks the Monte Carlo page to say so). Workflow: `hpr mc` gets a named delay spread fitted
   to logged delays, and the report scores its intervals on logged flights the fit didn't read.
   Moves: a new row `uncertainty.delay-90`, nearer 90% better, beside the apogee ranges of
   [M2.8][m2-8]. *Done when:* the report gives the share of logged delays inside the 50% and the

@@ -92,10 +92,11 @@ below are SOON.
 - SOON: a published apogee scored as a true height and as its altimeter read it. User: a flyer
   past Mach 1 comparing simulators on published apogees. Another simulator's write-up says 17 of
   the 23 apogees that RASAero II's example files publish were read by barometric altimeters, which
-  read about 9% low on a 38 °C (100 °F) day; scored as the altimeter reads, its own mean absolute
-  error falls from 9.9% to 8.3% and RASAero II's from 5.4% to 5.2% ([its aerodynamics
-  page][prfl-aero], read 2026-11-14). HPR Sim reads a log's height as the altimeter does, but a
-  published apogee has no log. Workflow: where [M2.3c7][m2-3c7] scores a published apogee, the
+  read about 9% low on a 38 °C (100 °F) day; scored as the altimeter reads, its released model's
+  mean absolute error falls from 9.9% to 8.3%, its test model's from 8.3% to 5.8%, and RASAero
+  II's from 5.4% to 5.2% ([its aerodynamics page][prfl-aero], read 2026-11-14). Against a log,
+  HPR Sim reads its own height as a barometric altimeter would, but a published apogee has no
+  log. Workflow: where [M2.3c7][m2-3c7] scores a published apogee, the
   report gives the error both ways, with the day's temperature and its source, and says which
   reading the publisher states, or that it states none. Moves: `accuracy.supersonic`, as a range
   across the two readings. *Done when:* each published apogee has its reading's kind and its
@@ -106,9 +107,10 @@ below are SOON.
   infers that a grain 20 K colder than its test curve costs 0.1% to 2.6% of apogee through its
   impulse ([propellant temperature][prop-temp]). One public sensitivity study, simulations of one
   public flight, gives grain temperature sampled from −45 to +60 °C (−49 to +140 °F) a
-  total-order share of 0.53 of the apogee's variance ([its page][srm], read 2026-11-14). Every
-  collection flight already has its day's air on file. Workflow: the fixture report regresses each flight's signed apogee error on the air temperature
-  at the pad, on the calibration half, and re-scores the held-out half with that slope. Moves:
+  total-order index of 0.53 for the apogee ([its page][srm], read 2026-11-14). All but one of
+  the collection's 83 flights have their day's air on file. Workflow: the fixture report
+  regresses each flight's signed apogee error on the air temperature at the pad, on the
+  calibration half, and re-scores the held-out half with that slope. Moves:
   `bias.collection`, as a shown diagnosis. *Done when:* the report gives the slope with its 95%
   interval and the held-out half's error with and without it, as aggregates, and says so when the
   interval holds zero.
