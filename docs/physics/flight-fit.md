@@ -420,7 +420,7 @@ every motor's impulse, one on the drag. The drag scale comes from the coasts. Fo
 before apogee, a bisection finds the drag at which the boost, refitted with the drag held there, flies on to the
 logged apogee. The scale is those values' mean, and its 95% interval comes from Student's t. The impulse scale comes
 from the boosts, refitted at that drag. It is their weighted mean, and its interval comes from their weighted spread
-(Merkatas and others, *Metrologia* 56, 054001, 2019, §3.1). A scale counts only if its interval excludes 1, and it is
+([Merkatas and others, *Metrologia*, 2019](https://arxiv.org/abs/1905.09551), §3.1). A scale counts only if its interval excludes 1, and it is
 rounded to two decimals.
 
 Without the flagged flight, the drag's interval holds 1, so the drag stays as the model has it. The impulse scale
