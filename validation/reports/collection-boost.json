@@ -42,7 +42,6 @@
           "forward_mean_absolute_percent": 9.324258693560383,
           "forward_mean_percent": 8.840851964141399,
           "up_to_cut_mean_points": 8.918257904585955,
-          "up_to_cut_mean_absolute_points": 8.918257904585955,
           "mostly_up_to_cut": 11,
           "difference_points": -6.1338121426063585,
           "bootstrap_interval": [
@@ -61,7 +60,6 @@
           "forward_mean_absolute_percent": 10.05280662723802,
           "forward_mean_percent": 9.327696533109547,
           "up_to_cut_mean_points": 10.443995355483242,
-          "up_to_cut_mean_absolute_points": 10.443995355483242,
           "mostly_up_to_cut": 7,
           "difference_points": -7.019713050409228,
           "bootstrap_interval": [
@@ -94,7 +92,6 @@
           "forward_mean_absolute_percent": 16.75357213001733,
           "forward_mean_percent": 15.726365022369798,
           "up_to_cut_mean_points": 14.385932659310559,
-          "up_to_cut_mean_absolute_points": 15.181781313089143,
           "mostly_up_to_cut": 9,
           "difference_points": -13.157892124308045,
           "bootstrap_interval": [
@@ -113,7 +110,6 @@
           "forward_mean_absolute_percent": 10.396684699805915,
           "forward_mean_percent": 10.396684699805915,
           "up_to_cut_mean_points": 11.933457321421491,
-          "up_to_cut_mean_absolute_points": 11.933457321421491,
           "mostly_up_to_cut": 3,
           "difference_points": -7.320853510478426,
           "bootstrap_interval": null,

@@ -40,26 +40,29 @@ What the reports say on `main` at dd2cb148:
 
 The maintainer asked three things of this milestone on 2026-11-12, and that a decision record
 fix them before any fit. (a) The correction must be no worse on the 12 public flights. (b)
-Each flight's error is to be split into boost and coast, since the boost report's numbers say
-the bias is made in the boost, by the mass or the motor, not by the coast's drag. (c) Flights
+Each flight's error is to be split into boost and coast: a prediction from the boost lands
+near 3% where the forward simulation misses by 9% to 17% on the same flights, which points at
+the boost, at the mass or the motor, before the coast's drag. (c) Flights
 whose log disagrees with their files on mass or impulse are to be flagged, and the results
 given with and without them; a correction must hold on both. The worry behind (c) is that
 some design files don't match the rocket that flew.
 
 **What was looked at before this record.** The calibration half's own boost fits, one flight
 at a time: their impulse and drag scales, standard errors and errors, and the same fits made
-again with the impulse's stated range widened 10-fold and 100-fold. ADR-322 §2 lets the
-correction be chosen on that half. Not looked at: any flight flown with a correction, on
-either half or on the public flights; the held-out half's fits, one by one or as the sealed
-aggregates; a widened fit of any held-out or public flight.
+again with the impulse's stated range widened. ADR-322 §2 lets the correction be chosen on
+that half. Not looked at: any flight flown with a correction, on either half or on the public
+flights; the held-out half's fits, one by one or as the sealed aggregates; a widened fit of
+any held-out or public flight. One thing was computed early: a check of this record's wording
+took a weighted mean of the calibration scales once, to test a sentence below, and kept no
+number from it.
 
 What that look showed, as the [boost report][boost] now gives it in aggregate:
 
 - **The fits' impulse scales are pulled toward 1.** Each fit is told the motor delivers its
   rated impulse to a standard deviation of 0.0328 (a 90% range of 1 give or take 0.054). The
-  calibration fits' impulse scales average 0.958 with a standard deviation of 0.033, as wide
-  as what they were told, so the stated range weighs about as much as the log in each.
-  Averaging them counts that pull 12 times.
+  calibration fits' impulse scales average 0.958, where the same logs alone give 0.936
+  (next): the stated range holds back about a third of what the logs say. Averaging those
+  fits would count that pull 12 times.
 - **The logs alone say more.** Fitted again with the impulse's range 100 times wider, the 12
   calibration logs give impulse scales averaging 0.936 (standard deviation 0.048), all 12
   below 1.
@@ -69,7 +72,8 @@ What that look showed, as the [boost report][boost] now gives it in aggregate:
 - **A boost can't tell impulse from mass.** A barometer's climb gives acceleration, which is
   thrust less drag over mass, so less impulse and more mass read the same
   ([the identifiability note][identifiability]). The fit is told the structure's mass to
-  within 2% of the file's, so its impulse scale carries both.
+  within 2% of the file's, so its impulse scale carries both, and whatever the model gets
+  wrong in the boost.
 
 What is left of M7.5, surveyed: the rule (this record); two measurements that need no fit
 across flights (the error split at the cut, and the logs alone with the flag); the fit across
@@ -88,7 +92,9 @@ rule has to reach `main` before the fit it governs.
    up to the cut, where thrust and mass set the climb. Both are in percentage points of the
    logged apogee, and they add up to the forward error. The boost report gives, for each half
    and for the flights without a deployment before apogee, the mean share up to the cut with
-   its sign, its mean size, and how many flights have it as the larger share. The fit also
+   its sign, and how many flights have it as the larger share. It gives no mean of the
+   share's size: beside the signed mean, that would give the sum of a set's negative shares,
+   one flight's own value where a single flight has one (decision 7). The fit also
    moves the drag, the mass and the wind within what it was told, and those carry into the
    coast, so this is a split of two simulations' errors, not a measurement of the motor.
 2. **The log alone.** For what a flight's log says of its boost without the stated range's
@@ -96,14 +102,18 @@ rule has to reach `main` before the fit it governs.
    multiplied by 100 and nothing else changed. Its impulse scale $k_i$ and standard error
    $s_i$ are the flight's *boost scale*: the impulse the climb to the cut shows over the rated
    impulse, at the file's mass. The widened range's standard deviation is 3.28, a weight of
-   $1/3.28^2 \approx 0.09$ beside a log that knows the scale to 0.1 (a weight of 100), so its
-   pull is under a thousandth.
-3. **The flag.** A flight is flagged when its log and its files disagree by more than a
-   certified motor may: $|k_i - 1| - 2 s_i > 0.131$, in a widened fit that converged. NAR
-   tests a motor again as a new type when one recertification firing's total impulse is more
-   than 13.1% from the certified mean (NAR Motor Testing Manual v1.5, 2011, §6.2.3, p. 11;
-   [the lots note][lots] §1), so a boost farther than that from the rating, by more than its
-   own uncertainty, points at the file's mass or motor and not at the lot. The two standard
+   $1/3.28^2 \approx 0.09$. A fit with the calibration half's average standard error, 0.035,
+   weighs $1/0.035^2 \approx 800$, so the range's pull is about a ten-thousandth of the
+   log's.
+3. **The flag.** A flight is flagged when its log and its files disagree by more than NAR's
+   retest rule allows one firing: $|k_i - 1| - 2 s_i > 0.131$, in a widened fit that
+   converged. NAR tests a motor again as a new type when one recertification firing's total
+   impulse is more than 13.1% from the certified mean (NAR Motor Testing Manual v1.5, 2011,
+   §6.2.3, p. 11; [the lots note][lots] §1). The manual says that of a test firing. Taking it
+   as the most a flown motor's lot strays is this record's inference; the repeat tests that
+   note found ran from −8.5% to +9.5%. A boost farther than 13.1% from the rating, by more
+   than its own uncertainty, is then unlikely to be the lot: the file's mass or motor, or the
+   model of the boost, is the likelier miss. The two standard
    errors keep a log that says little from being flagged. A flight with no boost prediction
    can't be flagged, and stays in every set. The flag is not a verdict on a flight: it marks
    which flights the test is run without.
@@ -113,9 +123,9 @@ rule has to reach `main` before the fit it governs.
      and $\tau = 0.0328$, the standard deviation the fit states of one motor's impulse. A
      flight's scale differs from the shared one by its own motor and build ($\tau$) and by
      its fit's error ($s_i$), so its variance about the shared scale is the sum, and the
-     weights are that variance's inverse. The calibration scales' own spread agrees with that
-     $\tau$: $\sqrt{0.048^2 - 0.035^2} \approx 0.033$, taking the fits' averaged standard
-     error for each. Its 95% interval is $k_I \pm t/\sqrt{\sum w_i}$, with $t$ the 97.5%
+     weights are that variance's inverse. The calibration scales' own spread is near that
+     $\tau$ on a rough check: $\sqrt{0.048^2 - 0.035^2} \approx 0.033$, with the fits'
+     averaged standard error standing in for each fit's own. Its 95% interval is $k_I \pm t/\sqrt{\sum w_i}$, with $t$ the 97.5%
      point of Student's $t$ at one less than the number of flights.
    - **The drag scale $k_D$,** from the coasts. For each calibration flight in the set
      without a deployment before apogee, $d_i$ is the drag scale at which the widened fit's
@@ -164,9 +174,9 @@ rule has to reach `main` before the fit it governs.
 7. **Small sets.** The collection's terms allow aggregates only ([ADR-151][adr-151]). A set
    that differs from a published one by fewer than 3 flights would give those flights' own
    errors by subtraction. So where fewer than 3 of a set's flights are flagged, the report
-   gives the count and the pass or fail of the test without them, and keeps that set's
-   numbers in the private audit file that `fixture-flights --check` reproduces. The public
-   flights' numbers are given either way.
+   gives the count and the pass or fail of the test without them. That set's numbers stay in
+   a private file whose SHA-256 is committed and held by `fixture-flights --check`, as the
+   held-out aggregates' is. The public flights' numbers are given either way.
 8. **What ships on a pass (M7.5c).** The fit without the flagged flights: a flagged flight's
    scale measures its files, not the bias the simulators share. The corrected apogee stands
    beside the uncorrected one in each flight's output, never in its place, named with its
@@ -174,7 +184,7 @@ rule has to reach `main` before the fit it governs.
    correction that lowers an apogee errs toward the flattering side for a waiver or a
    field's ceiling, so every check against a ceiling takes the higher of the two apogees: a
    test pins that, with a mutation probe. The output calls the impulse scale what it is: the
-   boost's shortfall, from the motor, the as-built mass, or both.
+   boost's shortfall, from the motor, the as-built mass or the model of the boost.
 9. **The increments.**
    - **M7.5a The rule before the fit.** *Done when:* this record, merged before any
      correction is fitted across flights or flown, fixes the correction's form, its fit on

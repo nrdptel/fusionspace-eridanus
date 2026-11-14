@@ -390,16 +390,18 @@ The same report splits each flight's forward error at the cut. The prediction's 
 cut. The forward error less the prediction's is the share made up to it, where the motor's thrust and the rocket's
 mass set the climb. On the calibration half that share averages +8.92 percentage points of the logged apogee. It
 is the larger of the two on 11 of the 12 flights. On the held-out half it averages +14.39 points and is the larger on
-all 9. Each fit is told the motor delivers its rated impulse, give or take 0.054, and that pulls its impulse scale
-toward 1. So each calibration log is fitted again with that range made 100 times wider, and the log alone speaks.
+all 9. Each fit is told the motor delivers its rated impulse, give or take 0.054 (a 90% range). That pulls its
+impulse scale toward 1. So each calibration log is fitted again with that range made 100 times wider, and the log alone speaks.
 The 12 impulse scales then average 0.936, all 12 below 1. A barometer's boost can't tell a motor that delivered less from a
-rocket built heavier than its files, so that scale carries both. One of the 12 flights is flagged: its log and its
-files disagree by more than a certified motor may. The limit is 13.1% of the rated impulse, past which NAR tests a
-motor again as a new type. The scale must clear it by two of its own standard errors. No correction is made from
+rocket built heavier than its files. That scale carries both, and whatever the model gets wrong in the boost. One of
+the 12 flights is flagged: its log and its files disagree by more than NAR's retest rule allows one firing. The limit
+is 13.1% of the rated impulse, past which NAR tests a motor again as a new type. The scale must clear it by two of
+its own standard errors. No correction is made from
 these numbers yet.
 [ADR-346, the rule before the fit](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0346-m7-5-in-three-the-rule-before-the-fit.md),
 fixes how one is to be fitted on the calibration half. It also fixes how it is judged, on the held-out half and the
-public flights, and it was written before that fit was run.
+public flights. It was written after a look at the calibration half's fits and before any correction was fitted or
+flown.
 
 The [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md) lists the
 calibration half's 3.19% as `accuracy.from-boost`, with which flights it counts

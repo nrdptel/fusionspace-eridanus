@@ -498,7 +498,7 @@ log corpus came from Debrief.
   absolute error and bias, and ships named in each flight's output; or an ADR records that it
   doesn't, and nothing ships. Either way, chosen first, M7.3d's sealed held-out fit aggregates are
   then published, their file matching its committed hash (ADR-322). In three (ADR-346), below;
-  met when they are.
+  met when they are, or when M7.5b fails and drops M7.5c.
   - [ ] **M7.5b The correction, fitted and judged.** *Done when:* ADR-346 decision 9's for M7.5b.
   - [ ] **M7.5c The correction in each flight's output.** Only after a pass. *Done when:* ADR-346
     decision 9's for M7.5c.
