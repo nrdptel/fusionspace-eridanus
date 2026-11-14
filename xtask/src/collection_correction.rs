@@ -7,7 +7,7 @@
 //! and flown on, reaches the logged apogee ([`solve_drag`]); $k_D$ is their mean, with a Student's
 //! $t$ interval. The impulse scale $k_I$ comes from the boosts, refitted at that drag: a weighted
 //! mean with weights $1/(s_i^2 + \tau^2)$, its interval from the scales' own weighted spread
-//! ([`ImpulseFit`]). Each enters only if its interval excludes 1 over at least [`MIN_FITS`]
+//! ([`ScaleFit::impulse`]). Each enters only if its interval excludes 1 over at least [`MIN_FITS`]
 //! values, rounded to two decimals ([`two_decimals`]). Two fits are made: over every calibration
 //! flight predicted, and without the flagged ones (ADR-346 §3).
 //!

@@ -431,7 +431,7 @@ to −12.01%. The rule said the public flights must get no worse, so the verdict
 over every calibration flight fails the same way.
 [ADR-348](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0348-m7-5b-the-correction-fails-on-the-public-flights.md)
 records it. The collection reads high and the public flights read low, so one scale can't serve both. The
-collection's high reading is in its own flights, their files, their rockets as built or their motors, or in hpr's boost
+collection's high reading is in its own flights, their files, their rockets as built or their motors, or in HPR Sim's boost
 on those designs. It isn't a bias every simulator shares. The report keeps every number for the work on causes.
 
 The [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md) lists the
