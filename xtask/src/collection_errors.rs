@@ -214,9 +214,9 @@ impl Implied {
     /// [`FLAG_STANDARD_ERRORS`] of its standard errors, either way. A fit that didn't converge,
     /// or came to no number, shows no disagreement.
     fn disagrees(&self) -> bool {
+        // A standard error that is no number fails `>= 0.0`; an unbounded one clears nothing.
         self.converged
             && self.scale.is_finite()
-            && self.standard_error.is_finite()
             && self.standard_error >= 0.0
             && (self.scale - 1.0).abs() - FLAG_STANDARD_ERRORS * self.standard_error
                 > RECERTIFICATION_LIMIT
