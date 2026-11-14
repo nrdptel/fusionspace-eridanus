@@ -194,6 +194,7 @@ pub struct StatedFigures {
 /// ([`CatalogMotor::flight_warning_kinds`]).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum MotorWarningKind {
     /// The file's total impulse, average thrust or burn time is more than 1% from the record's
     /// ([`CatalogMotor::check_warning`]).
@@ -214,6 +215,7 @@ pub enum MotorWarningKind {
 
 /// A warning for flying a catalog motor's file, with what it is about.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct MotorWarning {
     /// What the warning is about.
     pub kind: MotorWarningKind,
@@ -1228,8 +1230,9 @@ impl CatalogMotor {
     /// burnout mass from it, either way, naming both; and a
     /// propellant share outside [`PROPELLANT_SHARE_SPAN`], the span the records state. Empty when
     /// neither holds, or when the file isn't bundled or doesn't read. Compared as masses, so a
-    /// loaded mass exactly at the bound draws none. A NaN flown mass warns; a NaN or non-positive
-    /// record counts as no record.
+    /// loaded mass exactly at the bound draws none. A NaN flown mass warns. A record loaded mass that
+    /// is NaN, infinite or not above zero, or a record propellant mass that is NaN, infinite or
+    /// below zero, counts as no record.
     pub fn mass_warnings(&self, curve: &CatalogCurve) -> Vec<String> {
         self.flown_masses(curve)
             .map(|masses| self.mass_warnings_for(&masses))

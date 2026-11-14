@@ -2439,7 +2439,8 @@ impl Read {
 
     /// Drops the warnings a `.ork` motor's bundled catalog file draws when flown
     /// ([`hpr::hpr_motor::CatalogMotor::flight_warnings`]: a failing 1% check, a light propellant
-    /// mass, and a loaded mass, burnout mass or propellant share far from the record's) for each
+    /// mass, a loaded mass or burnout mass far from the record's, and a propellant share outside
+    /// the records' span) for each
     /// motor that doesn't fly: every motor of a configuration other than `flown`,
     /// and with `None`, as when `--motor` replaces the file's, every one. A warning a flown motor
     /// draws too is kept.

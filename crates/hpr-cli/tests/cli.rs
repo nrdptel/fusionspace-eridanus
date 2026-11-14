@@ -476,6 +476,46 @@ fn motors_show_reports_the_librarys_figures() {
     assert!(!lines.contains("ThrustCurve.org  "), "{lines}");
 }
 
+/// `hpr motors show` gives a catalog motor's mass warnings, the ones `hpr sim --motor` gives for
+/// flying its file (issue #1287): the Quest D8's file states a loaded mass about ten times its
+/// record's, and so a propellant share outside the records' span.
+#[test]
+fn motors_show_gives_a_catalog_motors_mass_warnings() {
+    let document = json(
+        &["motors", "show", "Quest D8"],
+        0,
+        "motors-show.schema.json",
+    );
+    let messages: Vec<&str> = document["warnings"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|w| w["kind"] == "unusual")
+        .map(|w| w["message"].as_str().unwrap())
+        .collect();
+    assert!(
+        messages
+            .iter()
+            .any(|m| m.contains("a loaded mass of 454.0 g")
+                && m.contains("+895.6% from ThrustCurve.org's record of 45.6 g")),
+        "{messages:?}"
+    );
+    assert!(
+        messages
+            .iter()
+            .any(|m| m.contains("a propellant share of 4.8%")),
+        "{messages:?}"
+    );
+    // Without `--json`, the warnings go to standard error, as `hpr sim`'s do.
+    let output = hpr(&["motors", "show", "Quest D8"]);
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    let err = text(&output.stderr);
+    assert!(
+        err.contains("warning: D8: Quest D8 flies a loaded mass of 454.0 g"),
+        "{err}"
+    );
+}
+
 /// The figures `hpr motors list` gives for every catalog motor with a curve file are the ones
 /// `hpr motors show` works out from its curve, bit for bit, each motor named by its selector: since issue #295 the bundled catalog works them out
 /// from its public-domain curve files, and none is ThrustCurve.org's published figure. Those

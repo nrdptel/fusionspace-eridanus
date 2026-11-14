@@ -993,12 +993,12 @@ mod tests {
         let page = page.split_whitespace().collect::<Vec<_>>().join(" ");
         for quote in [
             format!(
-                "{} motors' default files give a propellant mass more than 5% below their \
+                "- {} motors' default files give a propellant mass more than 5% below their \
                  record's, and warn; {} more than 5% above it",
                 counts.light_propellant, counts.heavy_propellant
             ),
             format!(
-                "{} of the {} motors whose file and record both give a loaded mass are more than \
+                "- {} of the {} motors whose file and record both give a loaded mass are more than \
                  5% apart, {} heavier and {} lighter",
                 counts.heavy + counts.light,
                 counts.both,
