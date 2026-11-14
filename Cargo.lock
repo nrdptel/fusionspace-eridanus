@@ -1002,6 +1002,7 @@ name = "hpr-validate"
 version = "0.1.0"
 dependencies = [
  "fusionspace-hpr-aero",
+ "fusionspace-hpr-analysis",
  "fusionspace-hpr-atmos",
  "fusionspace-hpr-core",
  "fusionspace-hpr-design",

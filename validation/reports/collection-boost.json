@@ -161,6 +161,384 @@
       "drag_standard_error_mean": 0.10840255800525635,
       "below_rated": 12,
       "flagged": 1
+    },
+    "held_out_fits": {
+      "half": "held out",
+      "fits": 9,
+      "converged": 9,
+      "parameters": [
+        {
+          "name": "drag scale",
+          "mean": 1.0442029079831041,
+          "sd": 0.04715309161402355
+        },
+        {
+          "name": "impulse scale",
+          "mean": 0.935737845814085,
+          "sd": 0.04461227930636794
+        },
+        {
+          "name": "structure mass scale",
+          "mean": 1.0050037384193915,
+          "sd": 0.003142461530734232
+        }
+      ],
+      "rms_mean_m": 2.897859290703139
+    },
+    "correction": {
+      "resamples": 10000,
+      "seed": 346,
+      "tau": 0.032829668923235536,
+      "flagged_calibration": 1,
+      "flagged_held_out": 1,
+      "flagged_held_out_ballistic": 0,
+      "flagged_public": 0,
+      "held_out_log_fits": 9,
+      "public_log_fits": 2,
+      "largest_uncorrected_collection_m": 1.7280399333685637e-11,
+      "largest_uncorrected_public_m": 0.0,
+      "fits": [
+        {
+          "name": "without the flagged flights",
+          "calibration_flights": 11,
+          "drag": {
+            "flights": 7,
+            "with_value": 7,
+            "mean": null,
+            "low": null,
+            "high": null,
+            "excludes_one": false,
+            "flown": 1.0,
+            "why_not": "its interval holds 1"
+          },
+          "impulse": {
+            "flights": 11,
+            "with_value": 11,
+            "mean": null,
+            "low": null,
+            "high": null,
+            "excludes_one": true,
+            "flown": 0.94,
+            "why_not": null
+          },
+          "sets": [
+            {
+              "set": "held-out flights the forward report compares",
+              "flights": 23,
+              "less_flagged": false,
+              "failed_to_fly": 0,
+              "forward_mean_absolute_percent": 16.260166004946367,
+              "forward_mean_percent": 13.359412631907137,
+              "corrected_mean_absolute_percent": 10.910674290373725,
+              "corrected_mean_percent": 5.841318036550512,
+              "mean_absolute_holds": true,
+              "bias_holds": true,
+              "passes": true,
+              "difference_points": -5.349491714572643,
+              "bootstrap_interval": [
+                -7.396633282107792,
+                -2.955822556562109
+              ],
+              "sign_flip_interval": null,
+              "grew": 4
+            },
+            {
+              "set": "… without a deployment before apogee",
+              "flights": 13,
+              "less_flagged": false,
+              "failed_to_fly": 0,
+              "forward_mean_absolute_percent": 11.298087457426977,
+              "forward_mean_percent": 6.877128718113554,
+              "corrected_mean_absolute_percent": 6.842257314204864,
+              "corrected_mean_percent": -0.04985953514614954,
+              "mean_absolute_holds": true,
+              "bias_holds": true,
+              "passes": true,
+              "difference_points": -4.455830143222112,
+              "bootstrap_interval": [
+                -7.055779354190452,
+                -1.520756640034956
+              ],
+              "sign_flip_interval": [
+                -7.743694456159989,
+                -1.0943315483540257
+              ],
+              "grew": 3
+            },
+            {
+              "set": "public flights the public report compares",
+              "flights": 12,
+              "less_flagged": false,
+              "failed_to_fly": 0,
+              "forward_mean_absolute_percent": 9.0028057575811,
+              "forward_mean_percent": -4.908940677398466,
+              "corrected_mean_absolute_percent": 12.159931105405862,
+              "corrected_mean_percent": -12.010482341443748,
+              "mean_absolute_holds": false,
+              "bias_holds": false,
+              "passes": false,
+              "difference_points": 3.1571253478247634,
+              "bootstrap_interval": [
+                -0.30281083009745585,
+                6.293854022057267
+              ],
+              "sign_flip_interval": [
+                -0.8600327600790525,
+                7.179486066960109
+              ],
+              "grew": 8
+            },
+            {
+              "set": "held-out flights the forward report compares",
+              "flights": 22,
+              "less_flagged": true,
+              "failed_to_fly": null,
+              "forward_mean_absolute_percent": null,
+              "forward_mean_percent": null,
+              "corrected_mean_absolute_percent": null,
+              "corrected_mean_percent": null,
+              "mean_absolute_holds": null,
+              "bias_holds": null,
+              "passes": true,
+              "difference_points": null,
+              "bootstrap_interval": null,
+              "sign_flip_interval": null,
+              "grew": null
+            },
+            {
+              "set": "… without a deployment before apogee",
+              "flights": 13,
+              "less_flagged": true,
+              "failed_to_fly": null,
+              "forward_mean_absolute_percent": null,
+              "forward_mean_percent": null,
+              "corrected_mean_absolute_percent": null,
+              "corrected_mean_percent": null,
+              "mean_absolute_holds": null,
+              "bias_holds": null,
+              "passes": true,
+              "difference_points": null,
+              "bootstrap_interval": null,
+              "sign_flip_interval": null,
+              "grew": null
+            },
+            {
+              "set": "public flights the public report compares",
+              "flights": 12,
+              "less_flagged": true,
+              "failed_to_fly": 0,
+              "forward_mean_absolute_percent": 9.0028057575811,
+              "forward_mean_percent": -4.908940677398466,
+              "corrected_mean_absolute_percent": 12.159931105405862,
+              "corrected_mean_percent": -12.010482341443748,
+              "mean_absolute_holds": false,
+              "bias_holds": false,
+              "passes": false,
+              "difference_points": 3.1571253478247634,
+              "bootstrap_interval": [
+                -0.30281083009745585,
+                6.293854022057267
+              ],
+              "sign_flip_interval": [
+                -0.8600327600790525,
+                7.179486066960109
+              ],
+              "grew": 8
+            }
+          ],
+          "calibration": {
+            "set": "calibration flights the forward report compares",
+            "flights": 37,
+            "less_flagged": false,
+            "failed_to_fly": 0,
+            "forward_mean_absolute_percent": 9.417212756885968,
+            "forward_mean_percent": 4.216989747306126,
+            "corrected_mean_absolute_percent": 8.133792986810963,
+            "corrected_mean_percent": -2.2164326740862137,
+            "mean_absolute_holds": true,
+            "bias_holds": true,
+            "passes": true,
+            "difference_points": -1.283419770075006,
+            "bootstrap_interval": [
+              -3.1150186013268804,
+              0.5393293427045397
+            ],
+            "sign_flip_interval": null,
+            "grew": 16
+          },
+          "passes": false
+        },
+        {
+          "name": "every calibration flight",
+          "calibration_flights": 12,
+          "drag": {
+            "flights": 8,
+            "with_value": 8,
+            "mean": null,
+            "low": null,
+            "high": null,
+            "excludes_one": null,
+            "flown": null,
+            "why_not": null
+          },
+          "impulse": {
+            "flights": 12,
+            "with_value": 12,
+            "mean": null,
+            "low": null,
+            "high": null,
+            "excludes_one": null,
+            "flown": null,
+            "why_not": null
+          },
+          "sets": [
+            {
+              "set": "held-out flights the forward report compares",
+              "flights": 23,
+              "less_flagged": false,
+              "failed_to_fly": null,
+              "forward_mean_absolute_percent": null,
+              "forward_mean_percent": null,
+              "corrected_mean_absolute_percent": null,
+              "corrected_mean_percent": null,
+              "mean_absolute_holds": null,
+              "bias_holds": null,
+              "passes": true,
+              "difference_points": null,
+              "bootstrap_interval": null,
+              "sign_flip_interval": null,
+              "grew": null
+            },
+            {
+              "set": "… without a deployment before apogee",
+              "flights": 13,
+              "less_flagged": false,
+              "failed_to_fly": null,
+              "forward_mean_absolute_percent": null,
+              "forward_mean_percent": null,
+              "corrected_mean_absolute_percent": null,
+              "corrected_mean_percent": null,
+              "mean_absolute_holds": null,
+              "bias_holds": null,
+              "passes": true,
+              "difference_points": null,
+              "bootstrap_interval": null,
+              "sign_flip_interval": null,
+              "grew": null
+            },
+            {
+              "set": "public flights the public report compares",
+              "flights": 12,
+              "less_flagged": false,
+              "failed_to_fly": 0,
+              "forward_mean_absolute_percent": 9.0028057575811,
+              "forward_mean_percent": -4.908940677398466,
+              "corrected_mean_absolute_percent": 13.210760480642655,
+              "corrected_mean_percent": -13.210760480642655,
+              "mean_absolute_holds": false,
+              "bias_holds": false,
+              "passes": false,
+              "difference_points": 4.2079547230615555,
+              "bootstrap_interval": [
+                0.5143274341651421,
+                7.518288249349346
+              ],
+              "sign_flip_interval": [
+                -0.02607536563726285,
+                8.432071084981839
+              ],
+              "grew": 9
+            },
+            {
+              "set": "held-out flights the forward report compares",
+              "flights": 22,
+              "less_flagged": true,
+              "failed_to_fly": null,
+              "forward_mean_absolute_percent": null,
+              "forward_mean_percent": null,
+              "corrected_mean_absolute_percent": null,
+              "corrected_mean_percent": null,
+              "mean_absolute_holds": null,
+              "bias_holds": null,
+              "passes": true,
+              "difference_points": null,
+              "bootstrap_interval": null,
+              "sign_flip_interval": null,
+              "grew": null
+            },
+            {
+              "set": "… without a deployment before apogee",
+              "flights": 13,
+              "less_flagged": true,
+              "failed_to_fly": null,
+              "forward_mean_absolute_percent": null,
+              "forward_mean_percent": null,
+              "corrected_mean_absolute_percent": null,
+              "corrected_mean_percent": null,
+              "mean_absolute_holds": null,
+              "bias_holds": null,
+              "passes": true,
+              "difference_points": null,
+              "bootstrap_interval": null,
+              "sign_flip_interval": null,
+              "grew": null
+            },
+            {
+              "set": "public flights the public report compares",
+              "flights": 12,
+              "less_flagged": true,
+              "failed_to_fly": 0,
+              "forward_mean_absolute_percent": 9.0028057575811,
+              "forward_mean_percent": -4.908940677398466,
+              "corrected_mean_absolute_percent": 13.210760480642655,
+              "corrected_mean_percent": -13.210760480642655,
+              "mean_absolute_holds": false,
+              "bias_holds": false,
+              "passes": false,
+              "difference_points": 4.2079547230615555,
+              "bootstrap_interval": [
+                0.5143274341651421,
+                7.518288249349346
+              ],
+              "sign_flip_interval": [
+                -0.02607536563726285,
+                8.432071084981839
+              ],
+              "grew": 9
+            }
+          ],
+          "calibration": {
+            "set": "calibration flights the forward report compares",
+            "flights": 37,
+            "less_flagged": false,
+            "failed_to_fly": null,
+            "forward_mean_absolute_percent": null,
+            "forward_mean_percent": null,
+            "corrected_mean_absolute_percent": null,
+            "corrected_mean_percent": null,
+            "mean_absolute_holds": null,
+            "bias_holds": null,
+            "passes": true,
+            "difference_points": null,
+            "bootstrap_interval": null,
+            "sign_flip_interval": null,
+            "grew": null
+          },
+          "passes": false
+        }
+      ],
+      "passes": false,
+      "failed": [
+        "without the flagged flights, public flights the public report compares: the mean absolute error is not at most the forward simulation's",
+        "without the flagged flights, public flights the public report compares: the absolute bias is not at most the forward simulation's",
+        "without the flagged flights, public flights the public report compares, less their flagged flights: the mean absolute error is not at most the forward simulation's",
+        "without the flagged flights, public flights the public report compares, less their flagged flights: the absolute bias is not at most the forward simulation's",
+        "every calibration flight, public flights the public report compares: the mean absolute error is not at most the forward simulation's",
+        "every calibration flight, public flights the public report compares: the absolute bias is not at most the forward simulation's",
+        "every calibration flight, public flights the public report compares, less their flagged flights: the mean absolute error is not at most the forward simulation's",
+        "every calibration flight, public flights the public report compares, less their flagged flights: the absolute bias is not at most the forward simulation's"
+      ],
+      "held_back": true
     }
   }
 }

@@ -477,62 +477,135 @@ fn top_reading(forward: &mut Flown<'_>, p: &Parameters, kind: HeightKind) -> Res
 }
 
 /// Fits and predicts one flight.
+/// What a public flight's boost is fitted on, as `real-flights` flies it.
+struct Setup {
+    /// The files read, with their SHA-256.
+    files: Vec<FileRead>,
+    /// The log.
+    log: hpr_flightdata::log::FlightLog,
+    /// The thrust curve's last time with thrust, s.
+    burn_time_s: f64,
+    /// The log's height as `real-flights` reads it.
+    kind: HeightKind,
+    /// The example's rocket on its thrust file.
+    rocket: Rocket,
+    /// The day's ERA5 air.
+    environment: Environment,
+    /// ERA5's wind averaged over the forward climb, east and north, m/s.
+    stated_wind_m_s: (f64, f64),
+    /// What the fit is told, the wind's centered on that average.
+    stated: Stated,
+}
+
+impl Setup {
+    fn of(root: &Path, flight: &RealFlight, row: &FlightRow) -> Result<Self, String> {
+        let failed = |error: &dyn std::fmt::Display| format!("{}: {error}", flight.id);
+        let mut files = Vec::new();
+        let mut read = |relative: String, what: &'static str| -> Result<Vec<u8>, String> {
+            let bytes = read_bytes(root, &relative, what).map_err(|error| failed(&error))?;
+            files.push(FileRead {
+                sha256: sha256_hex(&bytes),
+                path: relative,
+            });
+            Ok(bytes)
+        };
+        let log_bytes = read(
+            format!("{ROCKETPY}/data/rockets/{}", flight.log.file),
+            "reading a flight log",
+        )?;
+        let log = crate::flight_residuals::flight_log(root, flight, &log_bytes)
+            .map_err(|error| failed(&error))?;
+        let (thrust_path, burn, reshape) =
+            example_thrust(root, flight).map_err(|error| failed(&error))?;
+        let thrust_bytes = read(thrust_path.clone(), "reading a thrust file")?;
+        let (curve, _) = parse_thrust(
+            flight.id,
+            &thrust_path,
+            &String::from_utf8_lossy(&thrust_bytes),
+            burn,
+            reshape,
+        )
+        .map_err(|error| failed(&error))?;
+        let burn_time_s = curve
+            .iter()
+            .filter(|&&(_, thrust)| thrust > 0.0)
+            .map(|&(t, _)| t)
+            .fold(f64::NAN, f64::max);
+        if !burn_time_s.is_finite() {
+            return Err(failed(&format!("{thrust_path} holds no thrust")));
+        }
+        // The log's height as `real-flights` reads it.
+        let kind = match flight.log.altimeter {
+            Altimeter::Height(_) => HeightKind::Geometric,
+            Altimeter::Barometric(_) | Altimeter::AssumedBarometric(_) => HeightKind::Barometric,
+        };
+        let design_path = format!("validation/designs/{}.json", flight.design);
+        let design_bytes = read(design_path.clone(), "reading a design")?;
+        let design: Value =
+            serde_json::from_slice(&design_bytes).map_err(|error| failed(&error))?;
+        let rocket = rocket_on_curve(flight, &design, &design_path, &thrust_path, &curve)
+            .map_err(|error| failed(&error))?;
+        let weather_path = format!("{ROCKETPY}/data/weather/{}", flight.weather);
+        let weather_bytes = read(weather_path.clone(), "reading an ERA5 file")?;
+        let (environment, _) =
+            launch_day(flight, &weather_path, &weather_bytes).map_err(|error| failed(&error))?;
+
+        let stated_wind_m_s = mean_wind(&environment, flight.site.2, row.hpr_height_apogee_m)
+            .map_err(|error| failed(&error))?;
+        let mut stated: Stated = synthetic_fits::stated();
+        stated[Asked::WindEast.index()].mean = stated_wind_m_s.0;
+        stated[Asked::WindNorth.index()].mean = stated_wind_m_s.1;
+        Ok(Self {
+            files,
+            log,
+            burn_time_s,
+            kind,
+            rocket,
+            environment,
+            stated_wind_m_s,
+            stated,
+        })
+    }
+}
+
+/// The fit of a public flight's log alone, for ADR-346 §3's flag (M7.5b): its boost cut where
+/// this report cuts it and fitted with the impulse's stated range widened, as the private
+/// collection's flights are (`collection_errors`). `None` where the log gives no prediction: a
+/// flight with no cut, or none fitted, can't be flagged.
+pub(crate) fn log_alone(
+    root: &Path,
+    flight: &RealFlight,
+    row: &FlightRow,
+) -> Result<Option<Fit>, String> {
+    let setup = Setup::of(root, flight, row)?;
+    let mut forward = Flown {
+        rocket: &setup.rocket,
+        environment: &setup.environment,
+        flight,
+        era5_wind: false,
+    };
+    Ok(boost::predict(
+        &setup.log,
+        |_| crate::collection_errors::stated_alone(setup.stated),
+        Noise::FromResiduals,
+        &mut forward,
+    )
+    .ok()
+    .map(|prediction| prediction.fit))
+}
+
 fn fly(root: &Path, flight: &RealFlight, row: &FlightRow) -> Result<FlightBoost, String> {
     let failed = |error: &dyn std::fmt::Display| format!("{}: {error}", flight.id);
-    let mut files = Vec::new();
-    let mut read = |relative: String, what: &'static str| -> Result<Vec<u8>, String> {
-        let bytes = read_bytes(root, &relative, what).map_err(|error| failed(&error))?;
-        files.push(FileRead {
-            sha256: sha256_hex(&bytes),
-            path: relative,
-        });
-        Ok(bytes)
-    };
-    let log_bytes = read(
-        format!("{ROCKETPY}/data/rockets/{}", flight.log.file),
-        "reading a flight log",
-    )?;
-    let log = crate::flight_residuals::flight_log(root, flight, &log_bytes)
-        .map_err(|error| failed(&error))?;
-    let (thrust_path, burn, reshape) =
-        example_thrust(root, flight).map_err(|error| failed(&error))?;
-    let thrust_bytes = read(thrust_path.clone(), "reading a thrust file")?;
-    let (curve, _) = parse_thrust(
-        flight.id,
-        &thrust_path,
-        &String::from_utf8_lossy(&thrust_bytes),
-        burn,
-        reshape,
-    )
-    .map_err(|error| failed(&error))?;
-    let burn_time_s = curve
-        .iter()
-        .filter(|&&(_, thrust)| thrust > 0.0)
-        .map(|&(t, _)| t)
-        .fold(f64::NAN, f64::max);
-    if !burn_time_s.is_finite() {
-        return Err(failed(&format!("{thrust_path} holds no thrust")));
-    }
-    // The log's height as `real-flights` reads it.
-    let kind = match flight.log.altimeter {
-        Altimeter::Height(_) => HeightKind::Geometric,
-        Altimeter::Barometric(_) | Altimeter::AssumedBarometric(_) => HeightKind::Barometric,
-    };
-    let design_path = format!("validation/designs/{}.json", flight.design);
-    let design_bytes = read(design_path.clone(), "reading a design")?;
-    let design: Value = serde_json::from_slice(&design_bytes).map_err(|error| failed(&error))?;
-    let rocket = rocket_on_curve(flight, &design, &design_path, &thrust_path, &curve)
-        .map_err(|error| failed(&error))?;
-    let weather_path = format!("{ROCKETPY}/data/weather/{}", flight.weather);
-    let weather_bytes = read(weather_path.clone(), "reading an ERA5 file")?;
-    let (environment, _) =
-        launch_day(flight, &weather_path, &weather_bytes).map_err(|error| failed(&error))?;
-
-    let stated_wind_m_s = mean_wind(&environment, flight.site.2, row.hpr_height_apogee_m)
-        .map_err(|error| failed(&error))?;
-    let mut stated: Stated = synthetic_fits::stated();
-    stated[Asked::WindEast.index()].mean = stated_wind_m_s.0;
-    stated[Asked::WindNorth.index()].mean = stated_wind_m_s.1;
+    let Setup {
+        files,
+        log,
+        burn_time_s,
+        kind,
+        rocket,
+        environment,
+        stated_wind_m_s,
+        stated,
+    } = Setup::of(root, flight, row)?;
     let nominal = Parameters::from_array(stated.map(|p| p.mean));
     let mut forward = Flown {
         rocket: &rocket,

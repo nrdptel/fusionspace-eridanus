@@ -46,10 +46,12 @@ use hpr_forensics::residuals::{HeightKind, Simulated, Track};
 use hpr_forensics::synthetic::fits::{self as synthetic_fits, Asked};
 use hpr_forensics::synthetic::truth::SHEAR_REFERENCE_HEIGHT_M;
 use hpr_sim::{Environment, FlightSettings, Simulation};
+use hpr_validate::correction::Correction;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 use crate::collection_boost::Calibration;
+use crate::collection_correction::{self, FitJudged, Judged, Pair, ScaleFit, SetJudged};
 use crate::fixture_flights::{ForwardFlight, as_flown};
 
 /// The interval's coverage, as ADR-257 §3 asks.
@@ -87,16 +89,21 @@ pub const RECERTIFICATION_LIMIT: f64 = 0.131;
 pub const FLAG_STANDARD_ERRORS: f64 = 2.0;
 
 /// The fit's flights of one collection flight.
-struct Flown<'a> {
-    forward: &'a ForwardFlight,
+pub(crate) struct Flown<'a> {
+    pub forward: &'a ForwardFlight,
     /// The pad's height above sea level, m: where a sheared wind's ground is.
-    pad_msl_m: f64,
+    pub pad_msl_m: f64,
     /// Flies ERA5's own wind, whatever the parameters say of it.
-    era5_wind: bool,
+    pub era5_wind: bool,
 }
 
 impl Flown<'_> {
-    fn flown(&self, p: &Parameters, until_s: f64, shear: Option<f64>) -> Result<Simulated, String> {
+    pub(crate) fn flown(
+        &self,
+        p: &Parameters,
+        until_s: f64,
+        shear: Option<f64>,
+    ) -> Result<Simulated, String> {
         if p.drag_scale <= 0.0 || p.impulse_scale <= 0.0 || p.burn_time_scale <= 0.0 {
             return Err("a scale that isn't positive".to_owned());
         }
@@ -184,16 +191,17 @@ pub(crate) struct CutFlight {
     pub other_logs_apart: bool,
 }
 
-/// Whether this increment fits a flight's log alone: a calibration flight's that was predicted.
-/// The held-out half's logs are fitted this way only when the correction is judged (M7.5b,
-/// ADR-346 §6).
-fn reads_log_alone(held_out: bool, predicted: bool) -> bool {
-    !held_out && predicted
+/// Whether a flight's log is fitted alone: every predicted flight's. A calibration flight's feeds
+/// the logs-alone table and the correction's fits, through [`Calibration`]; a held-out flight's
+/// gives its flag alone, made in the run that judges the correction (M7.5b, ADR-346 §5) and
+/// never fed to a fit across flights.
+fn reads_log_alone(predicted: bool) -> bool {
+    predicted
 }
 
 /// What the fit of the log alone is told: what the prediction's fit was, with only the impulse
 /// scale's standard deviation made [`WIDENED`] times wider (ADR-346 §2).
-fn stated_alone(mut stated: Stated) -> Stated {
+pub(crate) fn stated_alone(mut stated: Stated) -> Stated {
     stated[Asked::ImpulseScale.index()].sd *= WIDENED;
     stated
 }
@@ -205,20 +213,20 @@ fn stated_alone(mut stated: Stated) -> Stated {
 /// the drag and the impulse trade against each other
 /// (`docs/research/drag-impulse-identifiability.md`).
 #[derive(Debug, Clone, Copy, PartialEq)]
-struct Implied {
+pub(crate) struct Implied {
     /// The impulse scale.
-    scale: f64,
+    pub scale: f64,
     /// Its standard error.
-    standard_error: f64,
+    pub standard_error: f64,
     /// The drag scale's standard error in that fit: near what the fit was told of the drag where
     /// the climb to the cut says nothing of it.
-    drag_standard_error: f64,
+    pub drag_standard_error: f64,
     /// Whether that fit converged.
-    converged: bool,
+    pub converged: bool,
 }
 
 impl Implied {
-    fn of(fit: &Fit) -> Self {
+    pub(crate) fn of(fit: &Fit) -> Self {
         Self {
             scale: fit.parameters.impulse_scale,
             standard_error: fit.standard_errors[Asked::ImpulseScale.index()],
@@ -232,7 +240,7 @@ impl Implied {
     /// the scale lies farther from 1 than [`RECERTIFICATION_LIMIT`], by more than
     /// [`FLAG_STANDARD_ERRORS`] of its standard errors, either way; a scale exactly that far
     /// isn't flagged. A fit that didn't converge, or came to no number, shows no disagreement.
-    fn disagrees(&self) -> bool {
+    pub(crate) fn disagrees(&self) -> bool {
         // A standard error that is no number fails `>= 0.0`; an unbounded one clears nothing.
         self.converged
             && self.scale.is_finite()
@@ -257,6 +265,10 @@ struct Outcome {
     /// What the log alone says of the boost, or why the widened fit came to nothing; `None`
     /// where the log wasn't read alone ([`reads_log_alone`]).
     implied: Option<Result<Implied, String>>,
+    /// A calibration flight's drag at which its boost, refitted with the drag held there, flies
+    /// on to the logged apogee, or why there is none (ADR-346 §4); `None` for a held-out flight,
+    /// one with a deployment before apogee, or one not predicted.
+    drag_solved: Option<Result<f64, String>>,
 }
 
 /// What the report names a prediction's absence by.
@@ -293,17 +305,12 @@ fn predict(
                 other_logs_apart: cut.other_logs_apart,
                 same_flight_m: None,
                 implied: None,
+                drag_solved: None,
             });
         }
     };
     let at = &cut.flight_id;
-    let day = &forward.day;
-    let pad_msl_m = day.site().height_m - day.geoid_undulation_m;
-    let wind = crate::from_boost::mean_wind(day, pad_msl_m, forward.hpr_m)
-        .map_err(|error| format!("{at}: {error}"))?;
-    let mut stated: Stated = synthetic_fits::stated();
-    stated[Asked::WindEast.index()].mean = wind.0;
-    stated[Asked::WindNorth.index()].mean = wind.1;
+    let (stated, pad_msl_m) = stated_for(at, forward)?;
     let nominal = Parameters::from_array(stated.map(|p| p.mean));
     let mut flown = Flown {
         forward,
@@ -335,7 +342,7 @@ fn predict(
     // What the log alone says of the boost: the same fit, the impulse's stated range widened
     // until it no longer binds (ADR-346 §2). A calibration flight's only: the held-out half's
     // logs are fitted this way when the correction is judged (M7.5b), not before.
-    let implied = reads_log_alone(held_out, result.is_ok()).then(|| {
+    let implied = reads_log_alone(result.is_ok()).then(|| {
         boost::predict(
             &cut.log,
             |_| stated_alone(stated),
@@ -344,6 +351,27 @@ fn predict(
         )
         .map(|prediction| Implied::of(&prediction.fit))
         .map_err(|why| unpredicted_name(&why))
+    });
+    // The drag the coast says, by bisection on refitted boosts (ADR-346 §4): a calibration
+    // flight's, without a deployment before apogee, that was predicted.
+    let drag_solved = (!held_out && !forward.early && result.is_ok()).then(|| {
+        collection_correction::solve_drag(
+            |d| {
+                let prediction = boost::predict(
+                    &cut.log,
+                    |_| collection_correction::stated_at_drag(stated, d),
+                    Noise::FromResiduals,
+                    &mut flown,
+                )
+                .map_err(|why| unpredicted_name(&why))?;
+                if prediction.fit.converged {
+                    Ok(prediction.apogee_above_pad_m)
+                } else {
+                    Err("a fit along the way didn't converge".to_owned())
+                }
+            },
+            forward.logged_m,
+        )
     });
     Ok(Outcome {
         flight_id: cut.flight_id.clone(),
@@ -355,7 +383,21 @@ fn predict(
         other_logs_apart: cut.other_logs_apart,
         same_flight_m: Some(same_flight_m),
         implied,
+        drag_solved,
     })
+}
+
+/// What a collection flight's fit is told (`hpr_forensics::synthetic::fits::stated`), its wind
+/// centered on ERA5's averaged over the forward climb, and the pad's height above sea level.
+fn stated_for(at: &str, forward: &ForwardFlight) -> Result<(Stated, f64), String> {
+    let day = &forward.day;
+    let pad_msl_m = day.site().height_m - day.geoid_undulation_m;
+    let wind = crate::from_boost::mean_wind(day, pad_msl_m, forward.hpr_m)
+        .map_err(|error| format!("{at}: {error}"))?;
+    let mut stated: Stated = synthetic_fits::stated();
+    stated[Asked::WindEast.index()].mean = wind.0;
+    stated[Asked::WindNorth.index()].mean = wind.1;
+    Ok((stated, pad_msl_m))
 }
 
 /// A cut flight the forward report never reached.
@@ -552,6 +594,13 @@ pub struct Predictions {
     pub calibration_fits: FitAggregates,
     /// What the calibration half's logs alone say of the boost (M7.5a, ADR-346).
     pub calibration_log_implied: LogImplied,
+    /// The held-out half's fit aggregates, published once the correction was chosen on the
+    /// calibration half alone (M7.5b, ADR-322 §2); their private file still matches its
+    /// committed hash.
+    pub held_out_fits: Option<FitAggregates>,
+    /// The correction of the shared bias, fitted and judged, as the page gives it (M7.5b,
+    /// ADR-346).
+    pub correction: Option<Judged>,
 }
 
 /// Whether a percentile bootstrap on `n` flights at `level` gives more than the flights' own
@@ -559,7 +608,7 @@ pub struct Predictions {
 /// that is at least `(1 − level)/2` both ends are the smallest and largest difference, an interval
 /// that holds a symmetric center only `1 − 2·2⁻ⁿ` of the time (75% on 3) and is two flights' own
 /// values. At 95% that is 3 flights or fewer.
-fn resolves(n: usize, level: f64) -> bool {
+pub(crate) fn resolves(n: usize, level: f64) -> bool {
     let Ok(count) = i32::try_from(n) else {
         return true;
     };
@@ -693,30 +742,14 @@ impl Errors {
     }
 }
 
-/// Fails when a held-out flight's log was fitted alone: this increment reads the calibration
-/// half's only, and the audit file must not hold a held-out flight's widened fit before the
-/// correction is judged (ADR-346 §6). It counts them and names none (ADR-151).
-fn none_held_out_read_alone(outcomes: &[Outcome]) -> Result<(), String> {
-    let read = outcomes
-        .iter()
-        .filter(|o| o.held_out && o.implied.is_some())
-        .count();
-    if read == 0 {
-        Ok(())
-    } else {
-        Err(format!(
-            "{read} held-out flight(s) had the log fitted alone, before the correction is judged \
-             (ADR-346)"
-        ))
-    }
-}
-
-/// Predicts every cut flight, in parallel, and gathers the published part and the held-out
-/// half's fit aggregates.
+/// Predicts every cut flight, in parallel, fits the correction of the shared bias and judges it
+/// (M7.5b), and gathers the published part, the held-out half's fit aggregates and the
+/// correction's test as computed.
 pub(crate) fn predict_all(
+    root: &Path,
     cuts: &[CutFlight],
     forward: &BTreeMap<String, Result<ForwardFlight, &'static str>>,
-) -> Result<(Predictions, FitAggregates, String), String> {
+) -> Result<(Predictions, FitAggregates, Judged, String), String> {
     let threads = std::thread::available_parallelism().map_or(4, usize::from);
     let chunk = cuts.len().div_ceil(threads).max(1);
     let outcomes: Vec<Outcome> = std::thread::scope(|scope| {
@@ -749,7 +782,6 @@ pub(crate) fn predict_all(
     // The calibration half's fits feed a fit across flights, so they pass the guard, which reads
     // each flight's half from its id again.
     let calibration = Calibration::of(fits(false))?;
-    none_held_out_read_alone(&outcomes)?;
     let implied = Calibration::of(
         outcomes
             .iter()
@@ -769,6 +801,8 @@ pub(crate) fn predict_all(
         ],
         calibration_fits: FitAggregates::calibration(&calibration),
         calibration_log_implied: LogImplied::calibration(&implied),
+        held_out_fits: None,
+        correction: None,
     };
     let alone = |o: &Outcome| o.implied.as_ref().and_then(|i| i.as_ref().ok()).copied();
     let audit: Vec<serde_json::Value> = outcomes
@@ -799,7 +833,289 @@ pub(crate) fn predict_all(
         .collect();
     let audit = serde_json::to_string_pretty(&audit).map_err(|error| error.to_string())? + "\n";
     let held_out: Vec<&Fit> = fits(true).map(|(_, fit)| fit).collect();
-    Ok((predictions, FitAggregates::held_out(&held_out), audit))
+    let held_out_fits = FitAggregates::held_out(&held_out);
+    let judged = judge(root, cuts, forward, &outcomes)?;
+    // The correction is chosen; the held-out half's sealed fit aggregates are published
+    // (ADR-322 §2), the file still matching its committed hash.
+    let predictions = Predictions {
+        held_out_fits: Some(held_out_fits.clone()),
+        correction: Some(judged.published()),
+        ..predictions
+    };
+    Ok((predictions, held_out_fits, judged, audit))
+}
+
+/// Whether a flight's log alone disagrees with its files (ADR-346 §3).
+fn flagged(outcome: &Outcome) -> bool {
+    outcome
+        .implied
+        .as_ref()
+        .and_then(|implied| implied.as_ref().ok())
+        .is_some_and(Implied::disagrees)
+}
+
+/// A forward flight flown with `correction`, its apogee in the day's air, m, as the forward
+/// report reads it: the center of mass's height above where it started.
+fn corrected_apogee_m(flight: &ForwardFlight, correction: Correction) -> Result<f64, String> {
+    let day = &flight.day;
+    let flown = Flown {
+        forward: flight,
+        pad_msl_m: day.site().height_m - day.geoid_undulation_m,
+        era5_wind: true,
+    };
+    let mut p = Parameters::from_array(synthetic_fits::stated().map(|p| p.mean));
+    p.impulse_scale = correction.impulse_scale;
+    p.drag_scale = correction.drag_scale;
+    flown
+        .flown(&p, boost::APOGEE_HORIZON_S, None)?
+        .top_reading_m(HeightKind::Geometric)
+        .ok_or_else(|| "the corrected flight reaches no apogee".to_owned())
+}
+
+/// A calibration flight's boost fitted as its log alone is, its drag centered on `k_d`
+/// (ADR-346 §4).
+fn refit_at_drag(cut: &CutFlight, flight: &ForwardFlight, k_d: f64) -> Result<Implied, String> {
+    let (stated, pad_msl_m) = stated_for(&cut.flight_id, flight)?;
+    let mut flown = Flown {
+        forward: flight,
+        pad_msl_m,
+        era5_wind: false,
+    };
+    boost::predict(
+        &cut.log,
+        |_| collection_correction::stated_told_drag(stated, k_d),
+        Noise::FromResiduals,
+        &mut flown,
+    )
+    .map(|prediction| Implied::of(&prediction.fit))
+    .map_err(|why| unpredicted_name(&why))
+}
+
+/// Fits the correction twice on the calibration half, through the guard, and judges each on the
+/// six sets (ADR-346 §4, §5).
+fn judge(
+    root: &Path,
+    cuts: &[CutFlight],
+    forward: &BTreeMap<String, Result<ForwardFlight, &'static str>>,
+    outcomes: &[Outcome],
+) -> Result<Judged, String> {
+    let tau = synthetic_fits::stated()[Asked::ImpulseScale.index()].sd;
+    // The fits across flights take the calibration flights predicted through the guard, which
+    // reads each one's half from its id again (ADR-332 §2).
+    let predicted = Calibration::of(
+        outcomes
+            .iter()
+            .filter(|o| !o.held_out && o.result.is_ok())
+            .map(|o| (o.flight_id.as_str(), o)),
+    )?;
+    let flown_forward = |id: &str| match forward.get(id) {
+        Some(Ok(flight)) => Ok(flight),
+        _ => Err(format!("{id}: predicted, but not flown forward")),
+    };
+    let mut fits = Vec::new();
+    for name in [
+        collection_correction::UNFLAGGED,
+        collection_correction::EVERY,
+    ] {
+        let members: Vec<&Outcome> = predicted
+            .flights()
+            .iter()
+            .copied()
+            .filter(|o| name == collection_correction::EVERY || !flagged(o))
+            .collect();
+        let solved: Vec<Option<f64>> = members
+            .iter()
+            .filter(|o| !o.early)
+            .map(|o| {
+                o.drag_solved
+                    .as_ref()
+                    .and_then(|d| d.as_ref().ok())
+                    .copied()
+            })
+            .collect();
+        let drag = ScaleFit::drag(&solved);
+        let implied: Vec<Result<Implied, String>> = if drag.entered() {
+            let k_d = drag.flown.unwrap_or(1.0);
+            let jobs: Vec<(&CutFlight, &ForwardFlight)> = members
+                .iter()
+                .map(|o| {
+                    let cut = cuts
+                        .iter()
+                        .find(|c| c.flight_id == o.flight_id)
+                        .ok_or_else(|| format!("{}: no cut", o.flight_id))?;
+                    Ok((cut, flown_forward(&o.flight_id)?))
+                })
+                .collect::<Result<_, String>>()?;
+            collection_correction::parallel(&jobs, |(cut, flight)| refit_at_drag(cut, flight, k_d))
+        } else {
+            members
+                .iter()
+                .map(|o| match &o.implied {
+                    Some(implied) => implied.clone(),
+                    None => Err("not fitted alone".to_owned()),
+                })
+                .collect()
+        };
+        let impulse = ScaleFit::impulse(
+            &implied
+                .iter()
+                .map(|i| {
+                    i.as_ref()
+                        .ok()
+                        .filter(|i| i.converged)
+                        .map(|i| (i.scale, i.standard_error))
+                })
+                .collect::<Vec<_>>(),
+            tau,
+        );
+        println!(
+            "fixture-flights: the correction's fit {name}: {} flights",
+            members.len()
+        );
+        fits.push((name, members.len(), drag, impulse));
+    }
+    let corrections: Vec<Correction> = fits
+        .iter()
+        .map(|(_, _, drag, impulse)| Correction {
+            impulse_scale: impulse.flown.unwrap_or(1.0),
+            drag_scale: drag.flown.unwrap_or(1.0),
+        })
+        .collect();
+
+    // Every flight the forward report compares, flown with no correction (the check that it is
+    // the forward report's flight) and with each fit's.
+    let compared: Vec<(&String, &ForwardFlight)> = forward
+        .iter()
+        .filter_map(|(id, flight)| Some((id, flight.as_ref().ok()?)))
+        .collect();
+    // Each flight's distance with no correction from its forward apogee, m, and each fit's error, %.
+    type FlownErrors = Result<(f64, Vec<Option<f64>>), String>;
+    let flown: Vec<FlownErrors> = collection_correction::parallel(&compared, |(id, flight)| {
+        let none = corrected_apogee_m(flight, Correction::NONE)
+            .map_err(|error| format!("{id}: {error}"))?
+            - flight.hpr_m;
+        if !none.is_finite() || none.abs() > SAME_FLIGHT_WITHIN_M {
+            return Err(format!(
+                "{id}: flown with both scales at 1, it lands {none:+.3} m from the forward \
+                     apogee"
+            ));
+        }
+        let errors = corrections
+            .iter()
+            .map(|c| {
+                corrected_apogee_m(flight, *c)
+                    .ok()
+                    .map(|a| 100.0 * (a - flight.logged_m) / flight.logged_m)
+            })
+            .collect();
+        Ok((none.abs(), errors))
+    });
+    let flown = flown.into_iter().collect::<Result<Vec<_>, String>>()?;
+    let largest_collection = flown.iter().map(|(none, _)| *none).reduce(f64::max);
+    let flagged_ids: std::collections::BTreeSet<&str> = outcomes
+        .iter()
+        .filter(|o| flagged(o))
+        .map(|o| o.flight_id.as_str())
+        .collect();
+    let public = collection_correction::public_flights(root, &corrections)?;
+
+    let mut judged_fits = Vec::new();
+    for (k, (name, members, drag, impulse)) in fits.into_iter().enumerate() {
+        let collection = |held_out: bool, ballistic: bool, less_flagged: bool| -> Vec<Pair> {
+            compared
+                .iter()
+                .zip(&flown)
+                .filter(|((id, flight), _)| {
+                    crate::collection_boost::held_out(id) == held_out
+                        && (!ballistic || !flight.early)
+                        && (!less_flagged || !flagged_ids.contains(id.as_str()))
+                })
+                .map(|((_, flight), (_, errors))| Pair {
+                    forward: 100.0 * (flight.hpr_m - flight.logged_m) / flight.logged_m,
+                    corrected: errors[k],
+                })
+                .collect()
+        };
+        let public_set = |less_flagged: bool| -> Vec<Pair> {
+            public
+                .flights
+                .iter()
+                .filter(|p| !less_flagged || !p.flagged)
+                .map(|p| Pair {
+                    forward: p.forward_percent,
+                    corrected: p.corrected_percent[k],
+                })
+                .collect()
+        };
+        use collection_correction::{CALIBRATION_SET, HELD_OUT_BALLISTIC, HELD_OUT_SET, PUBLIC};
+        let sets = vec![
+            SetJudged::of(HELD_OUT_SET, false, &collection(true, false, false), true),
+            SetJudged::of(
+                HELD_OUT_BALLISTIC,
+                false,
+                &collection(true, true, false),
+                true,
+            ),
+            SetJudged::of(PUBLIC, false, &public_set(false), false),
+            SetJudged::of(HELD_OUT_SET, true, &collection(true, false, true), true),
+            SetJudged::of(
+                HELD_OUT_BALLISTIC,
+                true,
+                &collection(true, true, true),
+                true,
+            ),
+            SetJudged::of(PUBLIC, true, &public_set(true), false),
+        ];
+        judged_fits.push(FitJudged {
+            name: name.to_owned(),
+            calibration_flights: members,
+            drag,
+            impulse,
+            passes: sets.iter().all(|s| s.passes),
+            sets,
+            calibration: SetJudged::of(
+                CALIBRATION_SET,
+                false,
+                &collection(false, false, false),
+                true,
+            ),
+        });
+    }
+    let (passes, failed) = Judged::verdict(&judged_fits);
+    let count = |held_out: bool, ballistic: bool| {
+        compared
+            .iter()
+            .filter(|(id, flight)| {
+                crate::collection_boost::held_out(id) == held_out
+                    && (!ballistic || !flight.early)
+                    && flagged_ids.contains(id.as_str())
+            })
+            .count()
+    };
+    let judged = Judged {
+        resamples: RESAMPLES,
+        seed: collection_correction::SEED,
+        tau,
+        flagged_calibration: predicted.flights().iter().filter(|o| flagged(o)).count(),
+        flagged_held_out: count(true, false),
+        flagged_held_out_ballistic: count(true, true),
+        flagged_public: public.flights.iter().filter(|p| p.flagged).count(),
+        held_out_log_fits: outcomes
+            .iter()
+            .filter(|o| o.held_out && matches!(o.implied, Some(Ok(_))))
+            .count(),
+        public_log_fits: public.flights.iter().filter(|p| p.fitted).count(),
+        largest_uncorrected_collection_m: largest_collection,
+        largest_uncorrected_public_m: public.largest_uncorrected_m,
+        fits: judged_fits,
+        passes,
+        failed,
+        held_back: false,
+    };
+    if !judged.adds_up() {
+        return Err("the correction's test doesn't add up".to_owned());
+    }
+    Ok(judged)
 }
 
 /// Each cut flight's outcome, by id, for checking the page's aggregates on this machine (private,
@@ -874,7 +1190,7 @@ pub(crate) fn seal_held_out_fits(
 }
 
 /// A count with a comma between each group of three digits.
-fn grouped(count: u32) -> String {
+pub(crate) fn grouped(count: u32) -> String {
     let digits = count.to_string();
     let mut out = String::new();
     for (k, digit) in digits.chars().enumerate() {
@@ -1009,8 +1325,8 @@ impl LogImplied {
              the model of the boost, a likelier one. The flag removes no flight from this \
              page's errors. [ADR-346, the rule before the fit]({ADR_346}), fixes how the \
              correction of the shared bias is to be fitted on these scales and judged with \
-             and without the flagged flights, before any correction is fitted or flown. The \
-             held-out half's logs are fitted this way only when that correction is judged.",
+             and without the flagged flights, before any correction was fitted or flown. The \
+             held-out half's logs are fitted this way too, below, for their flags alone.",
             self.standard_errors,
             self.limit * 100.0,
             self.limit * 100.0
@@ -1239,14 +1555,48 @@ impl Predictions {
                 number(spread.sd)
             );
         }
-        let _ = writeln!(
-            page,
-            "\nThe held-out half's fit aggregates, the drag and impulse scales a later correction \
-             of the shared bias would aim at, stay private until that correction is chosen on \
-             the calibration half alone; the SHA-256 of their file is committed in \
-             [`held-out-fits.sha256`](held-out-fits.sha256), so a change to them shows."
-        );
+        match &self.held_out_fits {
+            Some(held_out) => {
+                let _ = writeln!(
+                    page,
+                    "\n**The held-out half's fits,** kept private until the correction below was \
+                     chosen on the calibration half alone, are published with it: {} fits, {} of \
+                     them converged; their residuals' RMS averages {}. Their file still matches \
+                     the SHA-256 committed in [`held-out-fits.sha256`](held-out-fits.sha256) \
+                     before the correction was fitted.\n",
+                    held_out.fits,
+                    held_out.converged,
+                    held_out
+                        .rms_mean_m
+                        .map_or_else(|| "none".to_owned(), |m| format!("{m:.2} m"))
+                );
+                let _ = writeln!(page, "| | mean | standard deviation |\n|---|---:|---:|");
+                for spread in &held_out.parameters {
+                    let number =
+                        |v: Option<f64>| v.map_or_else(|| "none".to_owned(), |v| format!("{v:.3}"));
+                    let _ = writeln!(
+                        page,
+                        "| {} | {} | {} |",
+                        spread.name,
+                        number(spread.mean),
+                        number(spread.sd)
+                    );
+                }
+            }
+            None => {
+                let _ = writeln!(
+                    page,
+                    "\nThe held-out half's fit aggregates stay private until the correction of \
+                     the shared bias is chosen on the calibration half alone; the SHA-256 of \
+                     their file is committed in [`held-out-fits.sha256`](held-out-fits.sha256), \
+                     so a change to them shows."
+                );
+            }
+        }
         self.calibration_log_implied.write_markdown(page);
+        if let Some(correction) = &self.correction {
+            correction.write_markdown(page, ADR_346);
+        }
     }
 }
 
@@ -1282,6 +1632,7 @@ mod tests {
             other_logs_apart: false,
             same_flight_m: Some(0.1),
             implied: None,
+            drag_solved: None,
         }
     }
 
@@ -1439,7 +1790,7 @@ mod tests {
             "made 100 times wider",
             "distance from 1, less 2 of its own standard errors, is more than 13.1%",
             "something the model gets wrong in the boost",
-            "only when that correction is judged",
+            "fitted this way too, below, for their flags alone",
             "§6.2.3",
             "to a standard deviation of 0.033 (a 90% range of 1 give or take 0.054)",
             "each of the calibration half's 5 predicted flights",
@@ -1471,8 +1822,8 @@ mod tests {
         }
     }
 
-    /// A held-out flight's log is never read alone here: the run stops on a held-out outcome
-    /// that carries a widened fit, naming no flight, and the guard refuses the set.
+    /// A held-out flight's log is fitted alone for its flag (M7.5b), but its fit never passes
+    /// the guard into a fit across flights.
     #[test]
     fn a_held_out_log_never_reaches_the_logs_alone() {
         let flight = implied(0.9, 0.02);
@@ -1480,23 +1831,9 @@ mod tests {
         let refused =
             Calibration::of([("example-flight-1", &flight), ("example-flight-6", &flight)]);
         assert!(refused.is_err());
-        // Only a predicted calibration flight's log is fitted alone.
-        assert!(reads_log_alone(false, true));
-        assert!(!reads_log_alone(true, true));
-        assert!(!reads_log_alone(false, false));
-        assert!(!reads_log_alone(true, false));
-        let read_alone = |held_out: bool| Outcome {
-            implied: Some(Ok(flight)),
-            ..outcome(held_out, Ok((1.0, 2.0)), false)
-        };
-        let calibration = [read_alone(false), outcome(true, Ok((1.0, 2.0)), false)];
-        assert_eq!(none_held_out_read_alone(&calibration), Ok(()));
-        let why = none_held_out_read_alone(&[read_alone(false), read_alone(true)]).unwrap_err();
-        assert!(
-            why.starts_with("1 held-out flight(s) had the log fitted alone"),
-            "{why}"
-        );
-        assert!(!why.contains("example-flight"), "{why}");
+        // Every predicted flight's log is fitted alone; an unpredicted one's isn't.
+        assert!(reads_log_alone(true));
+        assert!(!reads_log_alone(false));
     }
 
     /// A percentile bootstrap gives more than the flights' range from 4 flights on at 95%: on 3,

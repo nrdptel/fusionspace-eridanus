@@ -403,7 +403,9 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.3d5 The cut on a real barometer ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3d6 The collection's errors by halves ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.3d7 The scoreboard row ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.5 The bias every simulator shares ([Phase 6](#phase-6-design-experience-library-level))
 - M7.5a The rule before the fit ([Phase 6](#phase-6-design-experience-library-level))
+- M7.5b The correction, fitted and judged ([Phase 6](#phase-6-design-experience-library-level))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -2140,8 +2142,15 @@ One line per milestone or increment, in the order it was archived within its pha
         `accuracy.from-boost` included.
 ## Phase 6: Design experience (library level)
 
-- **M7.5** is open; its entry: [roadmap](ROADMAP.md#phase-6-design-experience-library-level).
+- [x] **M7.5 The bias every simulator shares** (ADR-209 §6). *Done when:* a correction fitted on
+  the calibration flights' logs, for airframe drag and delivered impulse, lowers the held-out mean
+  absolute error and bias, and ships named in each flight's output; or an ADR records that it
+  doesn't, and nothing ships. Either way, chosen first, M7.3d's sealed held-out fit aggregates are
+  then published, their file matching its committed hash (ADR-322). In three (ADR-346), below;
+  met when they are, or when M7.5b fails and drops M7.5c. M7.5b failed on the public flights, so
+  nothing ships and M7.5c is dropped (ADR-348).
   - [x] **M7.5a The rule before the fit.** *Done when:* ADR-346 decision 9's for M7.5a.
+  - [x] **M7.5b The correction, fitted and judged.** *Done when:* ADR-346 decision 9's for M7.5b.
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)
 
 - [x] **M9.8 fusionspace.co, rebuilt** (ADR-217; Neer, 2026-10-09). *Done when:* the page in its

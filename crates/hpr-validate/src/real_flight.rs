@@ -65,6 +65,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
+use crate::correction::Correction;
 use crate::predicted_first::ComparedPrediction;
 
 /// The report, as data.
@@ -1472,6 +1473,30 @@ pub(crate) fn rail_from(rail: (f64, f64, f64)) -> Rail {
 ///
 /// [`RealFlightError`] if a file is missing or doesn't read, or hpr can't fly it.
 pub fn fly(root: &Path, flight: &RealFlight) -> Result<FlightRow, RealFlightError> {
+    fly_with(root, flight, None)
+}
+
+/// [`fly`], with `correction` flown: every motor's impulse and the drag scaled
+/// ([`Correction`], M7.5b, ADR-346 §4), the log, design, thrust file, rail and air as [`fly`]
+/// reads them. Read the row's own-drag numbers alone (its apogee): the flight on the example's
+/// drag table is flown with the scaled motors, but the table may stand in for the scaled drag.
+///
+/// # Errors
+///
+/// As [`fly`], and a scale the motors or the drag refuse.
+pub fn fly_corrected(
+    root: &Path,
+    flight: &RealFlight,
+    correction: Correction,
+) -> Result<FlightRow, RealFlightError> {
+    fly_with(root, flight, Some(correction))
+}
+
+fn fly_with(
+    root: &Path,
+    flight: &RealFlight,
+    correction: Option<Correction>,
+) -> Result<FlightRow, RealFlightError> {
     let input = |what: String| RealFlightError::Input {
         flight: flight.id.to_owned(),
         what,
@@ -1572,8 +1597,20 @@ pub fn fly(root: &Path, flight: &RealFlight) -> Result<FlightRow, RealFlightErro
     }
 
     let fly_once = |rocket: &Rocket, table: Option<DragTable>| -> Result<Flown, RealFlightError> {
+        let corrected;
+        let rocket = match correction {
+            Some(correction) => {
+                corrected = correction.rocket(rocket).map_err(input)?;
+                &corrected
+            }
+            None => rocket,
+        };
         let simulation =
             Simulation::new(rocket, "example", environment.clone(), rail, settings).map_err(sim)?;
+        let simulation = match correction {
+            Some(correction) => correction.simulation(simulation).map_err(sim)?,
+            None => simulation,
+        };
         let simulation = match table {
             Some(table) => simulation.with_drag_table(table),
             None => simulation,

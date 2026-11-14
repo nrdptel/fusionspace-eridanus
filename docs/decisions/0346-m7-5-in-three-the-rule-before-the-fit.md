@@ -6,7 +6,7 @@
 [m7-5]: ../decisions-and-roadmap.md#m7-5
 [m7-5a]: ../decisions-and-roadmap.md#m7-5a
 [m7-5b]: ../decisions-and-roadmap.md#m7-5b
-[m7-5c]: ../decisions-and-roadmap.md#m7-5c
+[m7-5c]: ../decisions-and-roadmap.md#m7-5
 [m2-7]: ../decisions-and-roadmap.md#m2-7
 [adr-151]: 0151-hpr-sim-fixtures-joins-the-reference-library-as.md
 [adr-209]: 0209-the-2026-10-08-best-on-the-market-measured.md
