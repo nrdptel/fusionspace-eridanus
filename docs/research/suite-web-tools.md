@@ -71,12 +71,21 @@ Fetter's *Using Black Powder for Parachute Deployment*, Rev 1.2, tested against 
 Tables 16-1 and 17-2. Fetter's tables are a good candidate for the measured basis that
 [M6.7, ejection charges][m6-7] asks for. Four changes:
 
-- **The pins' strength is taken from the low end.** Charge follows Fetter's paper, which sizes
-  shear pins at nylon 6/6's *minimum* strength, 9,600 psi (its §6, Table 6-1), and then adds the
-  paper's 40% safety factor. A weaker pin needs less force, so the minimum gives less powder than
-  a stronger pin would need. The comment at `lib/fetter.ts:54` states the reverse. Whether the
-  40% margin covers the real spread of pin strength hasn't been measured. hpr doesn't port the
-  minimum: M6.7 already asks for the high end of the pins' strength.
+- **The pins' strength comes from the high end.** Fetter's paper sizes shear pins at nylon 6/6's
+  *minimum* strength, 9,600 psi on the thread's minor-diameter area (its §6, Table 6-1), then adds
+  its 40% safety factor. A stronger pin needs more force to break, so the minimum gives the least
+  powder of the range: the side that flatters a charge. Charge's Fetter mode sized pins that way
+  until October 21, 2026, and its force presets were 32 / 50 / 65 lbf a pin
+  ([the fix](https://github.com/nrdptel/fusionspace-charge/pull/89)). Both now take the high end.
+  That is Feretich's published maximum, 10,500 psi on the pitch-diameter area: 46 / 76 / 114 lbf
+  (205 / 338 / 507 N) a pin for 2-56 / 4-40 / 6-32 ([shear pin strength](shear-pin-strength.md)).
+
+  The maximum comes from slow data-sheet tests, and it isn't a ceiling. One builder's 6-32 pull read
+  116 lbf (516 N), above it. Nylon loaded as fast as a charge loads it yields at ×1.27 to about
+  ×1.95 its slow value where measured, though in tension and compression, not in a pin's shear
+  ([rate and cold](pa66-rate-cold-shear.md)). Whether the 40% margin covers the real spread of pin
+  strength hasn't been measured. The rebuilt Charge keeps the high end of a cited range, as
+  [M6.7, ejection charges][m6-7] asks, and its page says "ground test first".
 - The ideal-gas mode has no efficiency factor, which M6.7 requires.
 - The backup charge's default margin, 20% over the primary, cites no source.
 - Fetter's model is stated for sea level up to about 20,000 ft; the port refuses outside that.
