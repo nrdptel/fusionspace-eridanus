@@ -317,22 +317,29 @@ fn wrapped_deg(longitude_deg: f64) -> f64 {
     }
 }
 
-/// The median of `longitudes_deg` taken around `around_deg`: each is first moved by whole turns to
-/// within 180° of it, so the middle of fixes either side of the ±180° meridian is on the meridian,
-/// not near 0° (#1093). The median is moved back into [-180°, 180°).
-fn median_longitude(longitudes_deg: &[f64], around_deg: f64) -> Option<f64> {
-    let mut near: Vec<f64> = longitudes_deg
+/// The median of `longitudes_deg`, for fixes that may lie either side of the ±180° meridian
+/// (#1093). It is the plain median unless the longitudes' median absolute deviation from it is
+/// over 90°: a track within [`REACH_M`] of its middle spans a small part of a degree, so only one
+/// cut in two by the meridian is that spread, its halves near +180° and −180°. Then the median is
+/// taken with the cut moved to 0° (each western longitude a turn on) and brought back into
+/// [−180°, 180°). A rule on the whole set and not on any one fix, so a bad fix, such as one with
+/// its sign flipped, moves it no more than it moves a plain median; and every track that doesn't
+/// cross the meridian takes the plain median, bit for bit.
+fn median_longitude(longitudes_deg: &[f64]) -> Option<f64> {
+    let middle_and_spread = |mut values: Vec<f64>| -> Option<(f64, f64)> {
+        let middle = median(&mut values)?;
+        let mut off: Vec<f64> = values.iter().map(|v| (v - middle).abs()).collect();
+        Some((middle, median(&mut off)?))
+    };
+    let (plain, spread) = middle_and_spread(longitudes_deg.to_vec())?;
+    if spread <= 90.0 {
+        return Some(plain);
+    }
+    let turned: Vec<f64> = longitudes_deg
         .iter()
-        .map(|&lon| {
-            let off = lon - around_deg;
-            if (-180.0..180.0).contains(&off) {
-                lon
-            } else {
-                around_deg + wrapped_deg(off)
-            }
-        })
+        .map(|&lon| if lon < 0.0 { lon + 360.0 } else { lon })
         .collect();
-    median(&mut near).map(wrapped_deg)
+    middle_and_spread(turned).map(|(middle, _)| wrapped_deg(middle))
 }
 
 /// Whether a latitude and longitude are a place: in range, and not a receiver's zero.
@@ -399,13 +406,10 @@ fn screened_fixes(log: &FlightLog) -> Fixes {
     }
     let latitudes: Vec<f64> = places.iter().map(|p| p.2).collect();
     let longitudes: Vec<f64> = places.iter().map(|p| p.3).collect();
-    // The longitudes' middle is taken around the first fix's, for a track across the ±180°
-    // meridian.
+    // The longitudes' middle holds for a track across the ±180° meridian too.
     let (Some(mid_lat), Some(mid_lon)) = (
         median(&mut latitudes.clone()),
-        longitudes
-            .first()
-            .and_then(|&first| median_longitude(&longitudes, first)),
+        median_longitude(&longitudes),
     ) else {
         return out;
     };
@@ -483,11 +487,7 @@ fn pad_of(
             .flatten()
             .copied()
             .collect();
-        (
-            median(&mut lat),
-            lon.first().and_then(|&first| median_longitude(lon, first)),
-            median(&mut height),
-        )
+        (median(&mut lat), median_longitude(lon), median(&mut height))
     });
     let first = logs
         .iter()
@@ -1500,9 +1500,9 @@ mod tests {
         assert_eq!(ghost.pad.longitude_deg, Some(lon));
     }
 
-    /// A pad on the 180° meridian, its fixes either side of it: the track's middle and the pad are
-    /// taken around the first fix, so no fix is counted out of reach and the pad sits on the
-    /// meridian, not near 0° (#1093). An invented place.
+    /// A pad on the 180° meridian, its fixes either side of it: the track's middle and the pad's
+    /// median longitude sit on the meridian, not near 0°, so no fix is counted out of reach
+    /// (#1093). A first fix with its sign flipped doesn't move them. Invented places.
     #[test]
     fn a_track_across_the_180th_meridian_keeps_its_fixes_and_its_pad() {
         let lat = -16.5;
@@ -1522,6 +1522,21 @@ mod tests {
         let pad = ghost.pad.longitude_deg.unwrap();
         assert!(180.0 - pad.abs() < 1e-4, "{pad}");
         assert!((-180.0..=180.0).contains(&pad), "{pad}");
+        // A first fix with its sign flipped, on the far side of the world from a pad at 90°E, its
+        // fixes either side of 90°E: the track's middle stays, and that fix alone is out of reach.
+        // A median taken around the first fix would split the others a turn apart here.
+        let mut fixes: Vec<(f64, f64, f64)> = (0..30)
+            .map(|k| {
+                let lon = if k % 2 == 1 { 89.999_99 } else { 90.000_01 };
+                (0.1 * f64::from(k), lat, lon)
+            })
+            .collect();
+        fixes[0].2 = -90.0;
+        let ghost = built(&with_fixes(climb(), &fixes, None), None).unwrap();
+        let counts = ghost.tracks[0].fixes;
+        assert_eq!((counts.kept, counts.out_of_reach), (29, 1), "{counts:?}");
+        let pad = ghost.pad.longitude_deg.unwrap();
+        assert!((pad - 90.0).abs() < 1e-4, "{pad}");
     }
 
     #[test]

@@ -65,9 +65,9 @@ The pad is the frame's origin: a flat east, north and up grid there, on the
 [WGS 84](../glossary.md#wgs-84) ellipsoid ([the frame's equations](../physics/geodesy.md)). It comes from the first of these a flight has:
 
 - `--pad`;
-- the median of the last 20 fixes before liftoff, their longitudes taken around the first one's, so
-  that a pad on the 180° meridian, its fixes either side of it, sits on the meridian and not near
-  0°;
+- the median of the last 20 fixes before liftoff. A pad on the 180° meridian, its fixes either side
+  of it, sits on the meridian and not near 0°: where the longitudes are spread more than 90° from
+  their median, which only fixes split by the meridian are, the median is taken across it;
 - the first fix, and how long after liftoff that was, where the log can tell.
 
 A pad from the first fix may be off by what the rocket has already flown. With no fix at all, nothing
@@ -85,8 +85,8 @@ Each track counts what it leaves out, in `fixes`, `heights_too_fast`, `heights_b
 
 - it is empty, out of range, or within 0.01° of 0°N 0°E, which is a receiver's way of saying no fix;
 - its clock didn't go forward;
-- it lies more than 200 km (124 mi) from the track's median (its longitudes taken around the first
-  fix's, as the pad's are), as a longitude with its sign flipped does;
+- it lies more than 200 km (124 mi) from the track's median (taken across the 180° meridian as the
+  pad's is), as a longitude with its sign flipped does;
 - reaching it from the last fix kept would take over 1,500 m/s (4,921 ft/s), plus 200 m (656 ft) for a receiver's scatter.
 
 A height goes on the same speed, plus 50 m (164 ft). The first kept is the first that agrees with the
