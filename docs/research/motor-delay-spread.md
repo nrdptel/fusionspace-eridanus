@@ -5,8 +5,8 @@ serves the settings check (M6.8 in the [roadmap](../ROADMAP.md)), the "delay mis
 optimum-delay output. It builds on [early deployment bias](early-deployment-bias.md), whose NAR count it redoes, and
 [fault base rates](fault-base-rates.md) §3. Read 2026-10-17: NFPA revision reports, three certifiers' manuals, 167
 NAR sheets, 50 Tripoli (TRA) letters, makers' sheets, one bench study; no source code. **Inference** marks this
-note's arithmetic. Trust it for model motors at 20 °C (about 400 firings); thinly for high power (about 60 firings,
-mostly AeroTech-built, none above J); not for cold composite delays (one set, §6) or high sites (sign only).
+note's arithmetic. Trust it for model motors on the bench at 20 °C (about 400 firings); thinly for high power (about 60
+firings, mostly AeroTech-built, none above J); not for cold composite delays (one set, §6) or high sites (sign only).
 
 **In short.**
 - **The rule is wide.** NFPA 1125 lets each firing's delay differ from its label by 1.5 s or 20%, whichever is
@@ -22,12 +22,11 @@ mostly AeroTech-built, none above J); not for cold composite delays (one set, §
 
 ## 1. What the standards allow
 
-- **NFPA 1125.** §8.1.7(1)(b) (model motors, at least 10 samples) and §8.2.7(1)(b) (high power, "two or more"
-  samples) read the same in the A2021 revision: no delay may vary from its label by more than 1.5 s or 20%,
-  whichever is greater, but not over 3 s [1, FR-7 p. 5/9, FR-8 p. 7/9]. The 2018 text carried the same sentence
-  [2, PI-5 p. 3/11]. It binds each firing, not the mean. **Inference:** the band is ±1.5 s up to a 7.5 s label,
-  ±20% from 7.5 to 15 s, ±3 s above 15 s. The A2025 first revisions leave both clauses alone [3, pp. 1–4/4].
-  Firings are "at or corrected to sea level and 20°C ± 5°C" [1, FR-7 p. 5/9].
+- **NFPA 1125.** §8.1.7(1)(b) (model motors, at least 10 samples) and §8.2.7(1)(b) (high power, "two or more" samples)
+  read the same in the A2021 revision: no delay may vary from its label by more than 1.5 s or 20%, whichever is greater,
+  but not over 3 s [1, FR-7 p. 5/9, FR-8 p. 7/9]. So did the 2018 text [2, PI-5 p. 3/11]. It binds each firing, not the
+  mean. **Inference:** the band is ±1.5 s up to a 7.5 s label, ±20% from 7.5 to 15 s, ±3 s above 15 s. The A2025 first
+  revisions leave both alone [3, pp. 1–4/4]. Firings are "at or corrected to sea level and 20°C ± 5°C" [1, FR-7 p. 5/9].
 - **NFPA 1127** (the flyer's code) has no delay tolerance in the texts read. Its A2025 FR-3 adds §4.5.3: a
   single-use high-power motor may be altered only as the maker permits, written for adjustable delays such as
   AeroTech's DMS [4, FR-3 p. 4/9; 5, PI-7 p. 3/11]; issued editions, which need an account, were not read.
@@ -128,8 +127,9 @@ J520W-13A letter repeats from the J435WS-13A letter were dropped.
 
 ## 7. A delay distribution a Monte Carlo could fly (Inference)
 
-measured delay = L × (1 + b) + e, e ~ Normal(0, σ), σ = √(0.5² + (0.065 L)²) s, with L the label or drilled
-target in seconds, timed from 5%-of-peak burnout, at 20 °C and sea level.
+measured delay = L × (1 + b) + e, e ~ Normal(0, σ), σ = √(0.5² + (0.065 L)²) s, with L the label or drilled target in
+seconds, timed from 5%-of-peak burnout, at 20 °C and sea level. It fits bench firings, not use: on 30 [logged
+flights](delay-offset-in-flight-logs.md), its 90% interval held 21 or 22 (70% to 73%), its 95% interval 25 (83%).
 
 | Class | b | σ at L = 4, 7, 10, 14 s | Rests on | Inside the 90% / 95% intervals |
 |---|---:|---|---|---|
