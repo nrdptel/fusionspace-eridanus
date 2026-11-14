@@ -206,9 +206,11 @@ pub struct ScaleFit {
     pub flown: Option<f64>,
     /// Why it didn't enter, if it didn't; `None` where held back.
     pub why_not: Option<String>,
-    /// Whether the page holds the scale back (ADR-346 §7), every field but this one `None`.
+    /// Whether the page holds the whole scale back (ADR-346 §7): every `Option` field is then
+    /// `None`.
     pub held_back: bool,
-    /// Whether the page holds back only the scale before rounding and its interval (ADR-346 §7).
+    /// Whether the page holds back the scale before rounding and its interval (ADR-346 §7): set
+    /// with `held_back`, and alone for the fit given as flown.
     pub unrounded_held_back: bool,
 }
 
@@ -1000,7 +1002,8 @@ impl Judged {
              the scales' weighted spread. A scale enters only if at least {MIN_FITS} values give an \
              interval that excludes 1, rounded to two decimals. Two fits are made: over every \
              calibration flight predicted, and without the ones flagged above. Some numbers are \
-             held back: the collection's terms allow only figures over several flights, and two \
+             held back: the terms its owners shared these flights under allow only aggregates, \
+             figures over several flights, and two \
              published figures over sets that differ by one or two flights would give those \
              flights' own values by subtraction.",
             tau = self.tau,
