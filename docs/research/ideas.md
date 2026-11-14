@@ -94,10 +94,10 @@ in [accuracy against real flights](ideas-accuracy.md):
 - PROMOTED ([M2.13][m2-13]): landing points against the tracked landings, predictions first.
   User: a flyer judging whether the rocket comes down inside the field. `hpr sim` prints the
   landing's distance from the pad, held today to another simulator's and to no flight. 41 of the
-  private collection's 83 flights have a log with a position track (counted 2026-11-14 from the
-  collection's catalog). Workflow: each track's pad and landing points and
+  private collection's 83 flights are catalogued with a position log (counted 2026-11-14 from the
+  collection's catalog; no track read yet). Workflow: each track's pad and landing points and
   each flight's predicted landing point are merged before any miss. Moves: new
-  rows `accuracy.landing` and `bias.landing`, short of the tracked landing the flattering side.
+  rows `accuracy.landing` and `bias.landing`, nearer the pad than tracked the flattering side.
   *Done when:* [M2.13][m2-13]'s.
 - SOON: the landing on the forecast a flyer had. User: a flyer at the pad, who flies a forecast,
   not the reanalysis [M2.13][m2-13] scores. The command line's page says of a forecast's winds
