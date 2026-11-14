@@ -75,8 +75,8 @@ pub const REPORT_JSON: &str = "validation/reports/real-flights.json";
 pub const REPORT_MD: &str = "validation/reports/real-flights.md";
 
 /// The Copernicus attribution and the ERA5 citation that a page publishing results computed in
-/// RocketPy's ERA5 files carries (#1095): the Copernicus licence's credit lines, in the words the
-/// guide's pages use for the same flights, and the dataset with its licence, as
+/// RocketPy's ERA5 files carries (#1095): the Copernicus license's credit lines, in the words the
+/// guide's pages use for the same flights, and the dataset with its license, as
 /// `THIRD-PARTY-NOTICES.md` names it. The real-flight and flight-residual reports print it under
 /// *Sources*.
 pub const ERA5_CREDIT: &str = "The weather of the flights flown in ERA5 is ERA5, from the files \

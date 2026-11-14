@@ -4739,8 +4739,8 @@ fn the_validated_range_is_the_fastest_public_reference() {
 }
 
 /// The real-flights page publishes results computed in RocketPy's ERA5 files, so it ends with the
-/// Copernicus attribution and the ERA5 citation; the credit holds what the Copernicus licence asks
-/// for and names the dataset and its licence, as `THIRD-PARTY-NOTICES.md` does (#1095).
+/// Copernicus attribution and the ERA5 citation; the credit holds what the Copernicus license asks
+/// for and names the dataset and its license, as `THIRD-PARTY-NOTICES.md` does (#1095).
 #[test]
 fn the_real_flights_page_credits_the_era5_weather() {
     use crate::real_flight::{ERA5_CREDIT, REPORT_MD};
