@@ -94,16 +94,20 @@ comparison come first, as they do for the descent rates.
        simulator's.
      - That reading is checked on synthetic tracks whose pad and landing are known, before
        it reads any real track. The rule states, with a source for each, the levels of fix
-       noise and of dropout (the share of fixes lost and the longest gap) the set covers,
-       the worst its sources give among them. Each level has at least 20 tracks that should
-       be read and the set at least 200. Each kind of track that must be refused, one with
-       no fix on the pad and one ending in the air, has at least 20.
+       noise and of dropout (the share of fixes lost and the longest gap) the set covers.
+       The worst level any of those sources gives is one of them. Each level has at least
+       50 tracks that should be read and the set at least 200. Each kind of track that
+       must be refused, one with no fix on the pad and one ending in the air, has at least
+       20.
      - A reading is wrong when the true point lies outside its interval, or when a track
-       that should be read is refused. The set must meet three lines, at every level and
-       over the whole, each given with its counts. The intervals hold the true point on at
-       least 90% of the tracks that should be read. The 90th percentile of their
-       half-widths is under a bound the rule fixes beforehand from that level's noise and
-       longest gap. Every track that must be refused is refused.
+       that should be read is refused. The set must meet three lines, each given with its
+       counts.
+       - Coverage: over the whole set, the share of the tracks that should be read whose
+         intervals hold the true point isn't below 90% by a one-sided exact binomial test
+         at the 5% level, and at no level is it under 80%.
+       - Width: at every level, the 90th percentile of the half-widths is under a bound
+         the rule fixes beforehand from that level's noise and longest gap.
+       - Refusal: every track that must be refused is refused.
      - Each line is shown able to fail. A reader that widens every interval tenfold, one
        that refuses nothing, and one that moves every landing point by its level's noise
        each fail the set.
@@ -112,8 +116,9 @@ comparison come first, as they do for the descent rates.
      - A prediction reads only its flight's plan, the fields [ADR-333][adr-333] lets a
        prediction read, and the design file's parachutes. Its winds are the day's ERA5
        file's, and no wind or deployment comes from the flight's log or its track.
-     - A plan's own fields were read by hand, and that record says the curation took some
-       flights' rail angle or pad elevation from their logs. So each record states where
+     - A plan's own fields were read by hand, and [ADR-333][adr-333] says the curation took
+       some flights' rail angle or pad elevation from their logs. So each flight's record,
+       below, states where
        the plan's launch hour, rail angle, rail heading and pad elevation came from: the
        launch's records, the flight's own log, a value assumed where the plan states none,
        or unknown. The rule names what is assumed. No plan field is changed for this
@@ -129,7 +134,8 @@ comparison come first, as they do for the descent rates.
      - It names the cause each flight left out is counted under.
      - For each flight of the collection with a track, one record holds its id, its plan,
        the SHA-256 of its design file and of its ERA5 file, the commit that flew it, the
-       launch hour and the rail flown with the source of each, the parachutes flown, the
+       launch hour, the rail and the pad elevation flown with the source of each, the
+       parachutes flown, the
        predicted landing point as east and north offsets from the pad, the same flown in
        calm air, OpenRocket 24.12's landing point where it flies the flight, the track's
        two points with their intervals, whether it is a recovery fault, and its cause if it
@@ -206,7 +212,7 @@ comparison come first, as they do for the descent rates.
 - A real-flight row on a third output, after apogee and the descent rate, is on the roadmap,
   and it is a safety number with a named flattering side. The collection's landing misses will be predicted first:
   each prediction and each reading is fixed in the repository before anyone compares the two,
-  with where its plan's launch hour and rail came from beside it.
+  with where its plan's launch hour, rail and pad elevation came from beside it.
 - The analyzer gains its first readings from a position track, the pad's point and the
   landing point with their intervals, checked against synthetic tracks before they are used
   on a real one.
