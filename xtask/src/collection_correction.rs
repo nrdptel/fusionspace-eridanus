@@ -274,8 +274,9 @@ impl ScaleFit {
     }
 
     /// The impulse scale from each boost's `(scale, standard error)`, the converged fits only
-    /// (`None`: not converged; a pair that isn't finite counts as none), with the between-flight standard deviation `tau`: the weighted
-    /// mean with $w_i = 1/(s_i^2 + \tau^2)$, give or take $t$ times
+    /// (`None`: not converged; a pair that isn't finite counts as none), with the between-flight
+    /// standard deviation `tau`: the weighted mean with $w_i = 1/(s_i^2 + \tau^2)$, give or take
+    /// $t$ times
     /// $\sqrt{\sum w_i (k_i - k_I)^2 / ((n - 1) \sum w_i)}$, $t$ at $n - 1$.
     ///
     /// The weights need only be right relative to each other: the spread is the weighted mean's
@@ -1036,7 +1037,7 @@ impl Judged {
                     "{} clause{} failed{}, so no correction ships. Each, by fit and set:\n",
                     self.failed.len(),
                     if self.failed.len() == 1 { "" } else { "s" },
-                    if public == self.failed.len() {
+                    if public > 0 && public == self.failed.len() {
                         ", all on the public flights"
                     } else {
                         ""

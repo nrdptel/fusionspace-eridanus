@@ -113,13 +113,14 @@ flights read low, as ADR-346's consequences foresaw. A lower impulse cuts the he
 by more than half, and on the flights without a deployment before apogee to nearly nothing. On the
 public flights it more than doubles the mean error's size, from −4.91% to −12.01%. The 12 flights
 are few. For this fit, 8 of them grew in absolute error, and the mean of all 12 changes is +3.16
-points; the paired bootstrap interval of that mean, −0.31 to 6.30, holds 0: the harm is not shown
-with confidence. For the fit over every calibration flight the mean change is 4.21 points (9 of 12
-grew) and its interval, 0.51 to 7.52, excludes 0. Either way the public flights give no support to
-one bias, shared with the collection's flights, that a scale could take out. It doesn't say where
-the collection's high reading comes from: the test separates no cause from another. The boost
-report keeps the measurement, less what ADR-346 §7 holds back, for the work on causes:
-[M2.3c6][m2-3c6], the gap to OpenRocket by cause, and [M1.14][m1-14], accuracy inside the
+percentage points of absolute error; the paired bootstrap interval of that mean, −0.31 to 6.30,
+holds 0: the harm is not shown with confidence. For the fit over every calibration flight the mean
+change is 4.21 points (9 of 12 grew) and its paired bootstrap interval, 0.51 to 7.52, excludes 0,
+though its exact sign-flip interval, −0.03 to 8.44, just holds it. Either way the public flights
+give no support to one bias, shared with the collection's flights, that a scale could take out. It
+doesn't say where the collection's high reading comes from: the test separates no cause from
+another. The boost report keeps the measurement, less what ADR-346 §7 holds back, for the work on
+causes: [M2.3c6][m2-3c6], the gap to OpenRocket by cause, and [M1.14][m1-14], accuracy inside the
 envelope. It gives how much of each half's error is made up to the cut, and what a correction of
 the boost does to each set.
 

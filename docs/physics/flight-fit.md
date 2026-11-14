@@ -430,14 +430,15 @@ On the 12 public flights it takes the mean absolute error from 9.00% to 12.16%, 
 to −12.01%. The rule said the public flights must get no worse, so the verdict is a fail and nothing ships. The fit
 over every calibration flight fails the same way.
 [ADR-348](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0348-m7-5b-the-correction-fails-on-the-public-flights.md)
-records it. Your flight results are unchanged. The collection reads high and the public flights read low, and one
-scale didn't serve both. The 12 public flights are few. For the fit without the flagged flight, the bootstrap
-interval of their error's growth, −0.31 to 6.30 points, holds 0, so the harm is not shown with confidence; for the
-fit over every calibration flight it is 0.51 to 7.52 points and excludes 0. Either way they give no support to one
-bias shared by both sets of flights. It doesn't say where the collection's high reading comes from. The report keeps
-the measurement for the work on causes. Some of its numbers are held back: the terms the owners shared these flights
-under allow only aggregates, figures over several flights, and two figures over sets that differ by one or two
-flights would give those flights' own values by subtraction.
+records it. No correction ships, so the simulator's flight results are unchanged. The collection reads high and the
+public flights read low, and one scale didn't serve both. The 12 public flights are few. For the fit without the
+flagged flight, the bootstrap interval of their error's growth, −0.31 to 6.30 points, holds 0, so the harm is not
+shown with confidence; for the fit over every calibration flight it is 0.51 to 7.52 points and excludes 0, though the
+exact sign-flip interval, −0.03 to 8.44 points, just holds it. Either way they give no support to one bias shared by
+both sets of flights. It doesn't say where the collection's high reading comes from. The report keeps the measurement
+for the work on causes. Some of its numbers are held back: the terms the owners shared these flights under allow only
+aggregates, figures over several flights, and two figures over sets that differ by one or two flights would give
+those flights' own values by subtraction.
 
 The [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md) lists the
 calibration half's 3.19% as `accuracy.from-boost`, with which flights it counts
