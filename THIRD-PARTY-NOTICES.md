@@ -234,7 +234,7 @@ adds a source.
   Each report ends with the attribution under *Sources*: "generated using Copernicus Climate
   Change Service information 2026, and contains modified Copernicus Climate Change Service
   information 2026", the statement that neither the European Commission nor ECMWF is responsible,
-  and the dataset's citation and licence as above (`ERA5_CREDIT` in
+  and the dataset's citation and license as above (`ERA5_CREDIT` in
   `crates/hpr-validate/src/real_flight.rs`).
 - **Open-Meteo weather answers** (<https://open-meteo.com>):
   `crates/hpr-net/tests/fixtures/replay/open-meteo-historical.json` and `open-meteo-forecast.json`
