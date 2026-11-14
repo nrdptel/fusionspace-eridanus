@@ -216,8 +216,8 @@ impulse: a boost can't tell it from impulse, so the impulse scale carries it and
 - An impulse scale standing in for mass predicts a lower coast than a heavier rocket would
   fly, since a heavier rocket carries its speed farther. If the shortfall is mostly mass,
   the corrected apogees come out low, and the test's bias clause sees that.
-- `fixture-flights` fits each calibration flight predicted a second time. The pull request
-  gives the command's time before and after.
+- `fixture-flights` fits each calibration flight predicted a second time, 12 more fits
+  today.
 
 **How it was checked.** M7.5a's *done when* fails on `main` at dd2cb148: no record fixes the
 correction, and the boost report has neither the split nor the logs alone. M7.5b's and
