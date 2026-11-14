@@ -43,8 +43,8 @@
 <text x="52" y="679" xml:space="preserve" fill="#0B0F1C">    much</text>
 <text x="52" y="695" xml:space="preserve" fill="#0B0F1C">warning: stability, the nominal flight: issue #1290: on one of two wind-tunnel models, the center</text>
 <text x="52" y="711" xml:space="preserve" fill="#0B0F1C">    of pressure sat 0.11 to 0.92 calibers aft of the tunnel&apos;s at Mach 0.6 and 0.8, as the report&apos;s</text>
-<text x="52" y="727" xml:space="preserve" fill="#0B0F1C">    curve reads; fitted over wider angles, at most 0.08. So from Mach 0.6 the flight margin may</text>
-<text x="52" y="743" xml:space="preserve" fill="#0B0F1C">    read high. This flight reaches Mach 0.84 at 1.7 s</text>
+<text x="52" y="727" xml:space="preserve" fill="#0B0F1C">    curve reads; fitted over −3° to 4°, about 0.08. So from Mach 0.6 the flight margin may read</text>
+<text x="52" y="743" xml:space="preserve" fill="#0B0F1C">    high. This flight reaches Mach 0.84 at 1.7 s</text>
 <text x="52" y="759" xml:space="preserve" fill="#0B0F1C">warning: stability, the nominal flight: issue #1198: the center of pressure sat 0.67 to 1.35</text>
 <text x="52" y="775" xml:space="preserve" fill="#0B0F1C">    calibers aft of a wind tunnel&apos;s on two models at Mach 0.9, so past Mach 0.8 the flight margin</text>
 <text x="52" y="791" xml:space="preserve" fill="#0B0F1C">    may read high. This flight reaches Mach 0.84 at 1.7 s</text>

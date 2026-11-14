@@ -3860,7 +3860,7 @@ other programs.
     ([the fit](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/arcas-fin-share-cp-station.md)).
     Below Mach 0.6 the tunnel has no data. A flight from Mach 0.6 may have its margin read high
     ([#1290](https://github.com/nrdptel/fusionspace-eridanus/issues/1290) warns, quoting the
-    report's-curve figures, 0.11 to 0.92 calibers, the larger side, and the wider fit's 0.08). A
+    report's-curve figures, 0.11 to 0.92 calibers, the larger side, and the −3° to 4° fit's 0.08). A
     flight past Mach 0.8 prints both #1290 and #1198: they quote different tunnel points, and
     aren't added together.
   - [N09] eq. 3.35–3.36 would start moving a fin set's CP aft at Mach 0.5. By Mach 0.8 the CP would reach about 0.30 of the

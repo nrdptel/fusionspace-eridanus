@@ -171,12 +171,14 @@ pub const SUBSONIC_CP_MACH: f64 = 0.6;
 /// HPR Sim fitted over −2° to 2°; fitted on the tunnel's points over the same angles, they are
 /// −0.03 and +0.87 calibers over −2° to 2°, and −0.49 and +0.08 over −3° to 4°
 /// (`docs/research/arcas-fin-share-cp-station.md` §4). The warning quotes the committed basis,
-/// the largest, the side that doesn't flatter the margin, and says a wider fit gives at most 0.08.
+/// the largest, the side that doesn't flatter the margin, and gives the −3° to 4° fit's 0.08 beside
+/// it.
 pub const SUBSONIC_CP_AFT_CAL: (f64, f64) = (0.11, 0.92);
 
 /// The most the short Arcas Robin model's center of pressure reads aft of the tunnel's at Mach
 /// 0.6 and 0.8 when both are fitted on the tunnel's points over −3° to 4°, calibers: +0.08 at
-/// Mach 0.8 (and −0.49, forward, at 0.6), from `docs/research/arcas-fin-share-cp-station.md` §4.
+/// Mach 0.8 (and −0.49, forward, at 0.6), from `docs/research/arcas-fin-share-cp-station.md` §4,
+/// whose table gives two decimals, so the warning says "about".
 /// The #1290 warning quotes it beside [`SUBSONIC_CP_AFT_CAL`], so a reader sees how far the
 /// quoted miss rests on the narrow window.
 pub const SUBSONIC_CP_WIDE_CAL: f64 = 0.08;
@@ -660,7 +662,7 @@ impl IssueWarning {
             KnownIssue::SubsonicCenterOfPressure => format!(
                 "on one of two wind-tunnel models, the center of pressure sat {} to {} calibers \
                  aft of the tunnel's at Mach {SUBSONIC_CP_MACH} and {TRANSONIC_CP_MACH}, as the \
-                 report's curve reads; fitted over wider angles, at most {SUBSONIC_CP_WIDE_CAL}. \
+                 report's curve reads; fitted over −3° to 4°, about {SUBSONIC_CP_WIDE_CAL}. \
                  So from Mach {SUBSONIC_CP_MACH} the flight margin may read high",
                 SUBSONIC_CP_AFT_CAL.0, SUBSONIC_CP_AFT_CAL.1
             ),
@@ -1884,7 +1886,7 @@ mod tests {
             message.starts_with(
                 "issue #1290: on one of two wind-tunnel models, the center of pressure sat 0.11 \
                  to 0.92 calibers aft of the tunnel's at Mach 0.6 and 0.8, as the report's curve \
-                 reads; fitted over wider angles, at most 0.08. So from Mach 0.6 the flight margin \
+                 reads; fitted over −3° to 4°, about 0.08. So from Mach 0.6 the flight margin \
                  may read high. This flight reaches Mach 0.75"
             ),
             "{message}"
@@ -1903,8 +1905,9 @@ mod tests {
     /// fall inside [`SUBSONIC_CP_AFT_CAL`], whose ends are each within 0.01 caliber of the least
     /// and the most. The long model at those speeds reads forward or inside its uncertainty, which
     /// is why the warning says one model of two; a long-model row that turned aft would fail here
-    /// and call for the message's words to change. And no row slower than [`SUBSONIC_CP_MACH`],
-    /// on either model, reads aft beyond its uncertainty, so the warning starts low enough.
+    /// and call for the message's words to change. No fixture row is slower than
+    /// [`SUBSONIC_CP_MACH`] today; one that read aft beyond its uncertainty, on either model,
+    /// would fail here, since the warning would then start too late.
     #[test]
     fn the_subsonic_center_of_pressure_sits_aft_of_the_short_tunnel_model() {
         let fixture: serde_json::Value = serde_json::from_str(include_str!(
