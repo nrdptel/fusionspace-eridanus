@@ -1087,7 +1087,9 @@ impl<'a> Writer<'a> {
     /// Where the reader kept the file's flags as written, all together (flags that disagree, a
     /// flag written twice or unreadable, the single older flag beside a drag override), no flag is
     /// written: the kept ones go back as the file had them, and a flag written beside them that
-    /// the file did not have would change what they say.
+    /// the file did not have would change what they say. Beside a stage's center kept as written,
+    /// a drag flag saying the override doesn't cover the parts is left out: it reads back the same
+    /// without the tag, and a written one would come back kept (#1434).
     fn overrides(
         &mut self,
         element: &mut Element,
