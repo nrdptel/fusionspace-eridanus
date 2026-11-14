@@ -662,7 +662,8 @@ impl IssueWarning {
             KnownIssue::SubsonicCenterOfPressure => format!(
                 "on one of two wind-tunnel models, the center of pressure sat {} to {} calibers \
                  aft of the tunnel's at Mach {SUBSONIC_CP_MACH} and {TRANSONIC_CP_MACH}, as the \
-                 report's curve reads; fitted over −3° to 4°, about {SUBSONIC_CP_WIDE_CAL}. \
+                 report's curve reads; fitted over −3° to 4°, about {SUBSONIC_CP_WIDE_CAL} at \
+                 {TRANSONIC_CP_MACH}. \
                  So from Mach {SUBSONIC_CP_MACH} the flight margin may read high",
                 SUBSONIC_CP_AFT_CAL.0, SUBSONIC_CP_AFT_CAL.1
             ),
@@ -1886,8 +1887,8 @@ mod tests {
             message.starts_with(
                 "issue #1290: on one of two wind-tunnel models, the center of pressure sat 0.11 \
                  to 0.92 calibers aft of the tunnel's at Mach 0.6 and 0.8, as the report's curve \
-                 reads; fitted over −3° to 4°, about 0.08. So from Mach 0.6 the flight margin \
-                 may read high. This flight reaches Mach 0.75"
+                 reads; fitted over −3° to 4°, about 0.08 at 0.8. So from Mach 0.6 the flight \
+                 margin may read high. This flight reaches Mach 0.75"
             ),
             "{message}"
         );
@@ -1905,7 +1906,7 @@ mod tests {
     /// fall inside [`SUBSONIC_CP_AFT_CAL`], whose ends are each within 0.01 caliber of the least
     /// and the most. The long model at those speeds reads forward or inside its uncertainty, which
     /// is why the warning says one model of two; a long-model row that turned aft would fail here
-    /// and call for the message's words to change. No fixture row is slower than
+    /// and call for the message's words to change. No Arcas Robin row is slower than
     /// [`SUBSONIC_CP_MACH`] today; one that read aft beyond its uncertainty, on either model,
     /// would fail here, since the warning would then start too late.
     #[test]
