@@ -464,11 +464,11 @@ impl Flight {
     /// - `message`, saying which way its numbers lean.
     ///
     /// The drag issues are 18, 67, 68, 70, 72, 73 and 222, and 179 and 354, a separated part's.
-    /// The stability issues are 64, 87, 120, 121, 172, 325, 326 and 1198. The flight's path
+    /// The stability issues are 64, 87, 120, 121, 172, 325, 326, 1198 and 1290. The flight's path
     /// issues are 8, 106, 213 and 219, whose signs depend on the case.
     ///
     /// `parts` is empty for base drag (issue 68) and friction (issue 18), which every rocket has.
-    /// It's empty for 8, 121, 172, 179, 219, 354 and 1198 too.
+    /// It's empty for 8, 121, 172, 179, 219, 354, 1198 and 1290 too.
     #[getter]
     fn issue_warnings<'py>(&self, py: Python<'py>) -> PyResult<Vec<Bound<'py, PyDict>>> {
         self.flight

@@ -131,9 +131,10 @@ fn sim_writes_its_diagnostics_to_stderr() {
     let printed = split(&["sim", &design], cache.path(), &PREFIXES);
     assert!(printed.out.contains("\napogee "), "{}", printed.out);
     // The issue's count was seven lines, which once went to standard output; the help line
-    // pointing at the Accuracy page has since become the trust note that ends the result. Past
-    // Mach 0.8 the flight meets #1198 too, and one help line gives the issues' address.
-    assert_eq!(printed.err.lines().count(), 8, "{}", printed.err);
+    // pointing at the Accuracy page has since become the trust note that ends the result. From
+    // Mach 0.6 the flight meets #1290 too, past Mach 0.8 #1198, and one help line gives the
+    // issues' address.
+    assert_eq!(printed.err.lines().count(), 9, "{}", printed.err);
     assert!(
         printed.out.contains("\nHow far to trust it. Simulated"),
         "{}",

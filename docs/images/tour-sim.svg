@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="760" height="1035" viewBox="0 0 760 1035" font-family="'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace" font-size="11" role="img" aria-labelledby="title" aria-describedby="desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="1099" viewBox="0 0 760 1099" font-family="'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace" font-size="11" role="img" aria-labelledby="title" aria-describedby="desc">
 <title id="title">What `hpr sim validation/fixtures/ork/guides/level-1.ork` prints, as a terminal shows it</title>
 <desc id="desc">The command line, then each line it printed, long lines wrapped; balloons A, B, C, D mark the lines the page explains. Drawn by cargo xtask cli from the same run as the page&apos;s text.</desc>
-<rect width="760" height="1035" fill="#F3F4F7"/>
-<rect x="40" y="16" width="712" height="1003" fill="#FFFFFF" stroke="#D6DAE4" stroke-width="1"/>
+<rect width="760" height="1099" fill="#F3F4F7"/>
+<rect x="40" y="16" width="712" height="1067" fill="#FFFFFF" stroke="#D6DAE4" stroke-width="1"/>
 <text x="52" y="39" xml:space="preserve" font-weight="600" fill="#0B0F1C">$ hpr sim validation/fixtures/ork/guides/level-1.ork</text>
 <text x="52" y="55" xml:space="preserve" fill="#0B0F1C">Level 1 guide rocket (level-1.ork)</text>
 <text x="52" y="71" xml:space="preserve" fill="#0B0F1C">configuration 1 of 2: [H170M-10]</text>
@@ -37,30 +37,34 @@
 <text x="52" y="567" xml:space="preserve" fill="#0B0F1C">    pressure look better than they are</text>
 <text x="52" y="583" xml:space="preserve" fill="#0B0F1C">warning: stability: issue #172: the static margin read up to 0.1108 calibers above OpenRocket&apos;s on</text>
 <text x="52" y="599" xml:space="preserve" fill="#0B0F1C">    four private designs, cause unknown; this flight&apos;s may read high by as much</text>
-<text x="52" y="615" xml:space="preserve" fill="#0B0F1C">warning: stability: issue #1198: the center of pressure sat 0.67 to 1.35 calibers aft of a wind</text>
-<text x="52" y="631" xml:space="preserve" fill="#0B0F1C">    tunnel&apos;s on two models at Mach 0.9, so past Mach 0.8 the flight margin may read high. This</text>
-<text x="52" y="647" xml:space="preserve" fill="#0B0F1C">    flight reaches Mach 0.84 at 1.7 s</text>
-<text x="52" y="663" xml:space="preserve" fill="#0B0F1C">help: issues: https://github.com/nrdptel/fusionspace-eridanus/issues/&lt;number&gt;</text>
-<text x="52" y="695" xml:space="preserve" fill="#0B0F1C">event                   time                 height                    speed</text>
-<text x="52" y="711" xml:space="preserve" fill="#0B0F1C">liftoff               0.00 s      0.4 m      (1 ft)     0.0 m/s     (0 ft/s)</text>
-<text x="52" y="727" xml:space="preserve" fill="#0B0F1C">rail exit             0.12 s      1.9 m      (6 ft)    26.3 m/s    (86 ft/s)</text>
-<text x="52" y="743" xml:space="preserve" fill="#0B0F1C">burnout               2.14 s    406.4 m   (1333 ft)   240.4 m/s   (789 ft/s)</text>
-<text x="52" y="759" xml:space="preserve" fill="#0B0F1C">apogee               11.62 s   1065.1 m   (3494 ft)     0.1 m/s     (0 ft/s)</text>
-<text x="52" y="775" xml:space="preserve" fill="#0B0F1C">charge               12.14 s   1063.7 m   (3490 ft)     5.1 m/s    (17 ft/s)</text>
-<text x="52" y="791" xml:space="preserve" fill="#0B0F1C">deployment           12.14 s   1063.7 m   (3490 ft)     5.1 m/s    (17 ft/s)</text>
-<text x="52" y="807" xml:space="preserve" fill="#0B0F1C">ground hit          245.78 s      0.0 m      (0 ft)     4.4 m/s    (15 ft/s)</text>
-<text x="52" y="823" xml:space="preserve" fill="#0B0F1C">(heights are the center of gravity&apos;s above the site; speeds are over the ground)</text>
-<text x="52" y="855" xml:space="preserve" fill="#0B0F1C">top speed             285.6 m/s (937 ft/s) at 1.73 s</text>
-<text x="52" y="871" xml:space="preserve" fill="#0B0F1C">top Mach number       0.842</text>
-<text x="52" y="887" xml:space="preserve" fill="#0B0F1C">landing               0.7 m (2 ft) from the pad at 245.78 s, at 4.4 m/s (15 ft/s)</text>
-<text x="52" y="919" xml:space="preserve" fill="#0B0F1C">How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of</text>
-<text x="52" y="935" xml:space="preserve" fill="#0B0F1C">fliers&apos; own designs, the simulated apogee averaged 7.7% above the logged one. Each logged apogee is</text>
-<text x="52" y="951" xml:space="preserve" fill="#0B0F1C">the height climbed in the day&apos;s air. The simulated apogee was within 10% on 32 and read low on 15,</text>
-<text x="52" y="967" xml:space="preserve" fill="#0B0F1C">by at most 20%. Plan a waiver or a field&apos;s ceiling with room above this apogee; the altimeter&apos;s</text>
-<text x="52" y="983" xml:space="preserve" fill="#0B0F1C">reading is the one to log, and the RSO decides.</text>
-<text x="52" y="999" xml:space="preserve" fill="#0B0F1C">More: https://hpr.fusionspace.co/accuracy.html</text>
+<text x="52" y="615" xml:space="preserve" fill="#0B0F1C">warning: stability: issue #1290: on one of two wind-tunnel models, the center of pressure sat 0.11</text>
+<text x="52" y="631" xml:space="preserve" fill="#0B0F1C">    to 0.92 calibers aft of the tunnel&apos;s at Mach 0.6 and 0.8, as the report&apos;s curve reads; fitted</text>
+<text x="52" y="647" xml:space="preserve" fill="#0B0F1C">    over −3° to 4°, about 0.08 at 0.8. So from Mach 0.6 the flight margin may read high. This</text>
+<text x="52" y="663" xml:space="preserve" fill="#0B0F1C">    flight reaches Mach 0.84 at 1.7 s</text>
+<text x="52" y="679" xml:space="preserve" fill="#0B0F1C">warning: stability: issue #1198: the center of pressure sat 0.67 to 1.35 calibers aft of a wind</text>
+<text x="52" y="695" xml:space="preserve" fill="#0B0F1C">    tunnel&apos;s on two models at Mach 0.9, so past Mach 0.8 the flight margin may read high. This</text>
+<text x="52" y="711" xml:space="preserve" fill="#0B0F1C">    flight reaches Mach 0.84 at 1.7 s</text>
+<text x="52" y="727" xml:space="preserve" fill="#0B0F1C">help: issues: https://github.com/nrdptel/fusionspace-eridanus/issues/&lt;number&gt;</text>
+<text x="52" y="759" xml:space="preserve" fill="#0B0F1C">event                   time                 height                    speed</text>
+<text x="52" y="775" xml:space="preserve" fill="#0B0F1C">liftoff               0.00 s      0.4 m      (1 ft)     0.0 m/s     (0 ft/s)</text>
+<text x="52" y="791" xml:space="preserve" fill="#0B0F1C">rail exit             0.12 s      1.9 m      (6 ft)    26.3 m/s    (86 ft/s)</text>
+<text x="52" y="807" xml:space="preserve" fill="#0B0F1C">burnout               2.14 s    406.4 m   (1333 ft)   240.4 m/s   (789 ft/s)</text>
+<text x="52" y="823" xml:space="preserve" fill="#0B0F1C">apogee               11.62 s   1065.1 m   (3494 ft)     0.1 m/s     (0 ft/s)</text>
+<text x="52" y="839" xml:space="preserve" fill="#0B0F1C">charge               12.14 s   1063.7 m   (3490 ft)     5.1 m/s    (17 ft/s)</text>
+<text x="52" y="855" xml:space="preserve" fill="#0B0F1C">deployment           12.14 s   1063.7 m   (3490 ft)     5.1 m/s    (17 ft/s)</text>
+<text x="52" y="871" xml:space="preserve" fill="#0B0F1C">ground hit          245.78 s      0.0 m      (0 ft)     4.4 m/s    (15 ft/s)</text>
+<text x="52" y="887" xml:space="preserve" fill="#0B0F1C">(heights are the center of gravity&apos;s above the site; speeds are over the ground)</text>
+<text x="52" y="919" xml:space="preserve" fill="#0B0F1C">top speed             285.6 m/s (937 ft/s) at 1.73 s</text>
+<text x="52" y="935" xml:space="preserve" fill="#0B0F1C">top Mach number       0.842</text>
+<text x="52" y="951" xml:space="preserve" fill="#0B0F1C">landing               0.7 m (2 ft) from the pad at 245.78 s, at 4.4 m/s (15 ft/s)</text>
+<text x="52" y="983" xml:space="preserve" fill="#0B0F1C">How far to trust it. Simulated from the design file, not measured. Against 60 logged flights of</text>
+<text x="52" y="999" xml:space="preserve" fill="#0B0F1C">fliers&apos; own designs, the simulated apogee averaged 7.7% above the logged one. Each logged apogee is</text>
+<text x="52" y="1015" xml:space="preserve" fill="#0B0F1C">the height climbed in the day&apos;s air. The simulated apogee was within 10% on 32 and read low on 15,</text>
+<text x="52" y="1031" xml:space="preserve" fill="#0B0F1C">by at most 20%. Plan a waiver or a field&apos;s ceiling with room above this apogee; the altimeter&apos;s</text>
+<text x="52" y="1047" xml:space="preserve" fill="#0B0F1C">reading is the one to log, and the RSO decides.</text>
+<text x="52" y="1063" xml:space="preserve" fill="#0B0F1C">More: https://hpr.fusionspace.co/accuracy.html</text>
 <line x1="27" y1="67.3" x2="40" y2="67.3" stroke="#566079" stroke-width="1"/><circle cx="18" cy="67.3" r="9" fill="#0B0F1C"/><text x="18" y="71.0" text-anchor="middle" font-weight="600" fill="#FFFFFF">A</text>
 <line x1="27" y1="131.3" x2="40" y2="131.3" stroke="#566079" stroke-width="1"/><circle cx="18" cy="131.3" r="9" fill="#0B0F1C"/><text x="18" y="135.0" text-anchor="middle" font-weight="600" fill="#FFFFFF">B</text>
 <line x1="27" y1="403.3" x2="40" y2="403.3" stroke="#566079" stroke-width="1"/><circle cx="18" cy="403.3" r="9" fill="#0B0F1C"/><text x="18" y="407.0" text-anchor="middle" font-weight="600" fill="#FFFFFF">C</text>
-<line x1="27" y1="691.3" x2="40" y2="691.3" stroke="#566079" stroke-width="1"/><circle cx="18" cy="691.3" r="9" fill="#0B0F1C"/><text x="18" y="695.0" text-anchor="middle" font-weight="600" fill="#FFFFFF">D</text>
+<line x1="27" y1="755.3" x2="40" y2="755.3" stroke="#566079" stroke-width="1"/><circle cx="18" cy="755.3" r="9" fill="#0B0F1C"/><text x="18" y="759.0" text-anchor="middle" font-weight="600" fill="#FFFFFF">D</text>
 </svg>

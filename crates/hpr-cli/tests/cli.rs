@@ -6500,8 +6500,9 @@ fn sim_warns_of_the_drag_issues_a_flight_meets_by_number() {
     // The synthetic two-stage rocket, past Mach 1: #67 (its tangent-ogive nose and its conical
     // interstage, a shoulder, transonic), #68 (base drag, every rocket) and #222 (the nose's
     // supersonic pressure drag), #18 (fully turbulent friction, every flight on hpr's drag) and
-    // the stability issues #172, which every flight with a margin raises (ADR-181), and #1198,
-    // the fins' transonic join past Mach 0.8; then two of
+    // the stability issues #172, which every flight with a margin raises (ADR-181), #1290, the
+    // center of pressure from Mach 0.6, and #1198, the fins' transonic join past Mach 0.8; then
+    // two of
     // the flight's path, whose signs depend on the case (ADR-201): #219, its rail buttons putting
     // its center of gravity off the axis, and #106, past the body's supersonic join's start.
     let path = repo_file("validation/designs/synthetic-two-stage-75mm-54mm.json");
@@ -6511,7 +6512,7 @@ fn sim_warns_of_the_drag_issues_a_flight_meets_by_number() {
         .iter()
         .map(|i| i["issue"].as_u64().unwrap())
         .collect();
-    assert_eq!(numbers, [67, 68, 222, 18, 172, 1198, 219, 106]);
+    assert_eq!(numbers, [67, 68, 222, 18, 172, 1290, 1198, 219, 106]);
     let kinds: Vec<&str> = issues.iter().map(|i| i["kind"].as_str().unwrap()).collect();
     assert_eq!(
         kinds,
@@ -6522,14 +6523,16 @@ fn sim_warns_of_the_drag_issues_a_flight_meets_by_number() {
             "drag",
             "stability",
             "stability",
+            "stability",
             "flight",
             "flight"
         ]
     );
     assert_eq!(issues[5]["parts"], serde_json::json!([]));
     assert_eq!(issues[6]["parts"], serde_json::json!([]));
+    assert_eq!(issues[7]["parts"], serde_json::json!([]));
     assert_eq!(
-        issues[7]["parts"],
+        issues[8]["parts"],
         serde_json::json!(["nose", "sustainer-airframe", "interstage"])
     );
     assert_eq!(
@@ -6568,8 +6571,9 @@ fn sim_warns_of_the_drag_issues_a_flight_meets_by_number() {
         1,
         "{out}"
     );
-    // Calisto tops out at Mach 0.73, short of every Mach edge (Mach 0.8 the lowest): it raises
-    // #73 for its 18.4° boattail, which needs no speed (ADR-189), #18 and #172.
+    // Calisto tops out at Mach 0.73, short of every Mach edge but #1290's 0.6 (the next, 0.8):
+    // it raises #73 for its 18.4° boattail, which needs no speed (ADR-189), #18, #172 and
+    // #1290.
     let path = repo_file("validation/designs/rocketpy-calisto-tests-motor-at-minus-1.373.json");
     let document = json(&["sim", &path, "--offline"], 0, "sim.schema.json");
     let numbers: Vec<u64> = document["issues"]
@@ -6578,7 +6582,7 @@ fn sim_warns_of_the_drag_issues_a_flight_meets_by_number() {
         .iter()
         .map(|i| i["issue"].as_u64().unwrap())
         .collect();
-    assert_eq!(numbers, [73, 18, 172]);
+    assert_eq!(numbers, [73, 18, 172, 1290]);
     let out = streams(&["sim", &path, "--offline", "--color", "never"]).both();
     let drag: Vec<&str> = out.lines().filter(|line| line.contains("drag:")).collect();
     assert_eq!(drag.len(), 2, "{out}");

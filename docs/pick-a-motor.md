@@ -138,6 +138,7 @@ launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (
 note: the file's 1 recovery device flies as OpenRocket flies it. Each opens fully at its event, with the file's drag coefficient or OpenRocket's own. Once one opens, the rocket descends as a point under the open devices' drag alone
 warning: drag: issue #18: skin friction is taken as fully turbulent; on a smooth surface a laminar run near the nose lowers it, by 3.6% on RocketPy's Calisto at Mach 0.3. If this surface is that smooth, the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are
 warning: stability: issue #172: the static margin read up to 0.1108 calibers above OpenRocket's on four private designs, cause unknown; this flight's may read high by as much
+warning: stability: issue #1290: on one of two wind-tunnel models, the center of pressure sat 0.11 to 0.92 calibers aft of the tunnel's at Mach 0.6 and 0.8, as the report's curve reads; fitted over −3° to 4°, about 0.08 at 0.8. So from Mach 0.6 the flight margin may read high. This flight reaches Mach 0.64 at 1.6 s
 help: issues: https://github.com/nrdptel/fusionspace-eridanus/issues/<number>
 
 event                   time                 height                    speed
@@ -192,6 +193,7 @@ warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 again
 warning: drag: issue #222: supersonic pressure drag on an ogive nose or airfoil fins is about twice OpenRocket's, and which is right is unresolved. If HPR Sim's drag is high, the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are. This flight reaches Mach 1.10 at 1.1 s
 warning: drag: issue #18: skin friction is taken as fully turbulent; on a smooth surface a laminar run near the nose lowers it, by 3.6% on RocketPy's Calisto at Mach 0.3. If this surface is that smooth, the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are
 warning: stability: issue #172: the static margin read up to 0.1108 calibers above OpenRocket's on four private designs, cause unknown; this flight's may read high by as much
+warning: stability: issue #1290: on one of two wind-tunnel models, the center of pressure sat 0.11 to 0.92 calibers aft of the tunnel's at Mach 0.6 and 0.8, as the report's curve reads; fitted over −3° to 4°, about 0.08 at 0.8. So from Mach 0.6 the flight margin may read high. This flight reaches Mach 1.10 at 1.1 s
 warning: stability: issue #1198: the center of pressure sat 0.67 to 1.35 calibers aft of a wind tunnel's on two models at Mach 0.9, so past Mach 0.8 the flight margin may read high. This flight reaches Mach 1.10 at 1.1 s
 help: issues: https://github.com/nrdptel/fusionspace-eridanus/issues/<number>
 
@@ -313,6 +315,7 @@ warning: drag: issue #67: a cone-like nose's or shoulder's pressure drag reads h
 warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 against a measured 0.156 at Mach 0.9). So the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are. This flight reaches Mach 0.83 at 1.8 s
 warning: drag: issue #18: skin friction is taken as fully turbulent; on a smooth surface a laminar run near the nose lowers it, by 3.6% on RocketPy's Calisto at Mach 0.3. If this surface is that smooth, the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are
 warning: stability: issue #172: the static margin read up to 0.1108 calibers above OpenRocket's on four private designs, cause unknown; this flight's may read high by as much
+warning: stability: issue #1290: on one of two wind-tunnel models, the center of pressure sat 0.11 to 0.92 calibers aft of the tunnel's at Mach 0.6 and 0.8, as the report's curve reads; fitted over −3° to 4°, about 0.08 at 0.8. So from Mach 0.6 the flight margin may read high. This flight reaches Mach 0.83 at 1.8 s
 warning: stability: issue #1198: the center of pressure sat 0.67 to 1.35 calibers aft of a wind tunnel's on two models at Mach 0.9, so past Mach 0.8 the flight margin may read high. This flight reaches Mach 0.83 at 1.8 s
 help: issues: https://github.com/nrdptel/fusionspace-eridanus/issues/<number>
 
