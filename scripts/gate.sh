@@ -40,11 +40,14 @@
 # its SHA-256 matches and its test reads it without skipping), and the motor catalog's recount
 # (M5.7c, ADR-304: `analyze_stats.js --recount` works out which files pass from the raw
 # ThrustCurve.org snapshot with ThrustCurve.org's own code, and fails unless the index agrees).
-# The checks run side by side, each a lane of `scripts/lanes.sh` (#700): each reads its own files and
-# writes none, so the step takes as long as its longest check (`logs --check`), 207 s against 474 to
-# 489 s one after another (2026-11-14). xtask is built once first. A failed lane fails the step, and
-# the step's log holds each lane's output whole, in this order, with the failed lanes named last
-# (`cargo test -p xtask lanes`). Each lane's own log is under target/gate/lanes/.
+# The checks run side by side, each a lane of `scripts/lanes.sh` (#700). Each reads its own files,
+# and the three that write anything write what no other lane touches: `ghost --check` its
+# target/ghost-files/, `ork-cli --check` its target/ork-cli/, and `evidence --samples` the tests it
+# builds through cargo, whose lock only makes another cargo run wait. So the step takes as long as
+# its longest check (`logs --check`), 207 s against 474 to 489 s one after another (2026-11-14).
+# xtask is built once first. A failed lane fails the step, and the step's log holds each lane's
+# output whole, in this order, with the failed lanes named last (`cargo test -p xtask lanes`). Each
+# run's lane logs are in a folder of its own under target/gate/lanes/.
 # Step validate runs `motor-catalog --check` as CI does, and with the raw snapshot under refs/ it
 # also holds the committed records and files to it. It runs that in the dev profile, where CI runs it
 # optimized. Of the flight censuses (ADR-149, amended), which run whole each night, it runs the
