@@ -1,12 +1,12 @@
 # How accurate COTS ejection delays are
 
-How far does a commercial motor's ejection delay stray from its label, and what spread should a Monte Carlo fly?
-It serves the settings check (M6.8 in the [roadmap](../ROADMAP.md)), the "delay mismatch" fault (M7.4) and the
+How far does a commercial motor's ejection delay stray from its label, and what spread should a Monte Carlo fly? It
+serves the settings check (M6.8 in the [roadmap](../ROADMAP.md)), the "delay mismatch" fault (M7.4) and the
 optimum-delay output. It builds on [early deployment bias](early-deployment-bias.md), whose NAR count it redoes, and
 [fault base rates](fault-base-rates.md) §3. Read 2026-10-17: NFPA revision reports, three certifiers' manuals, 167
 NAR sheets, 50 Tripoli (TRA) letters, makers' sheets, one bench study; no source code. **Inference** marks this
 note's arithmetic. Trust it for model motors at 20 °C (about 400 firings); thinly for high power (about 60 firings,
-mostly AeroTech-built, none above J); not for cold composite delays or high sites, where only the sign is known.
+mostly AeroTech-built, none above J); not for cold composite delays (one set, §6) or high sites (sign only).
 
 **In short.**
 - **The rule is wide.** NFPA 1125 lets each firing's delay differ from its label by 1.5 s or 20%, whichever is
@@ -17,8 +17,8 @@ mostly AeroTech-built, none above J); not for cold composite delays or high site
 - **High-power delays run 10% short undrilled and 0.8 s long drilled.** 36 firings of 10 undrilled high-power motors
   (NAR and TRA) ran about 1.0 to 1.5 s (9% to 11%) early; 21 TRA firings drilled shorter ran +0.83 s late, because
   each labeled second drilled away removed a median 0.65 s of measured delay [8, 9].
-- **Temperature and altitude are unsized for composite delays.** A black-powder study gives −0.30% per K (a 0 °C
-  motor 6% long) [16]; NAR and Tripoli found composite delays can burn more slowly at high sites, size not given [14].
+- **Temperature: one unnamed composite set, altitude by sign only.** Per 10 K warmer, that set's delays ran −1.5% and
+  black powder's −3.0% (§6); NAR and Tripoli found composite delays can burn more slowly at high sites [14].
 
 ## 1. What the standards allow
 
@@ -114,11 +114,12 @@ J520W-13A letter repeats from the J435WS-13A letter were dropped.
 
 ## 6. Temperature, pressure and timing
 
-- **Temperature (black powder only).** Nakano et al. fired 58 Estes A8-3 engines held near 2, 24 and 36 °C [16,
-  p. 2]. Their fit: delay = −0.00833 T + 5.24 s, T in K, R² = 0.576 [16, p. 3, Fig. 8], about −0.30% per K on the
-  fit's 2.76 s at 25 °C. **Inference:** a 0 °C motor runs about 0.17 s (6%) long against 20 °C, and NFPA's ±5 °C
-  window is ±1.5% of the delay. The authors blame hot propellant eroding the delay layer, not a faster-burning delay
-  [16, pp. 3–4], so the slope may not carry to composite grains. No composite measurement was found.
+- **Temperature.** Nakano et al. fired 58 Estes A8-3 engines held near 2, 24 and 36 °C [16, p. 2]. Their fit: delay =
+  −0.00833 T + 5.24 s, T in K, R² = 0.576 [16, p. 3, Fig. 8], about −0.30% per K on the fit's 2.76 s at 25 °C.
+  **Inference:** a 0 °C motor runs about 0.17 s (6%) long against 20 °C, and NFPA's ±5 °C window is ±1.5% of the
+  delay. The authors blame hot propellant eroding the delay layer, not a faster-burning delay [16, pp. 3–4], so the
+  slope may not carry to composite grains. One unnamed F-class set (a 2008 science-fair test, read off a forum chart)
+  ran −1.5% per 10 K warmer, cold longer ([hobby firings](hobby-motor-temperature-firings.md) §2).
 - **Pressure (sign only).** NAR S&T's certified-motor list says NAR and Tripoli tests found composite delays can burn
   more slowly as the site rises by thousands of feet, so a delay in band at sea level may run long at 5,000 ft [14,
   p. 2]: **later ejection**, size not given. **Inference:** after burnout the case vents, so the grain burns near
@@ -140,8 +141,10 @@ target in seconds, timed from 5%-of-peak burnout, at 20 °C and sea level.
   a NAR sheet for the motor, center on its average; one firing then has σ near 0.5 s.
 - **Tails** are near normal: 11 of 301 firings sit beyond 2 SD of their band (3.7%, against 4.6%). The largest
   misses are −2.61 s (NAR, H268-14) and −2.95 s (TRA, J520W-13A); the latest +1.64 s.
-- **Black powder, cold or hot:** multiply by (1 − 0.0030 ΔT), ΔT in K from 20 °C, from one study [16]. **Left
-  out:** composite temperature, site altitude, age, Cesaroni's tools, motors above J.
+- **Black powder, 2 to 36 °C only:** multiply by (1 − 0.0030 ΔT), ΔT in K from 20 °C, from one study of a 3 s delay
+  [16]. Colder, a motor may fail instead (10 of 12 at about −40 °C [24], [NAR delay reports](nar-delay-reports.md)
+  §4); hotter is unmeasured. **Not modeled:** composite temperature (§6), site altitude, age (older black-powder
+  delays ran early, −0.47 s a year on one lot-confounded type, §3 there), Cesaroni's tools, motors above J.
 
 ## What this suggests
 
@@ -157,9 +160,6 @@ target in seconds, timed from 5%-of-peak burnout, at 20 °C and sea level.
 
 - **Altitude.** TMT's 2018 study (*Tripoli Report* 29(3): about 40 motors at 5,500 ft and 11 ft, about 30% out of
   band, per a forum summary [23]) has no open copy; no burn-rate exponent for delay grains near 1 atm was found.
-- **NAR R&D reports, not read:** "Delay Time Variability for APCP F Motors" (2013), "Igniter Placement vs Delay
-  Times in Composite Motors" (2004), "Age Related Changes in Motor Ejection Delay Time" (1989), "Effect of Extreme
-  Cold on BP Motors" (1984), all NARAM reports in NAR's index [24]. They need a member login; not read.
 
 ## Sources
 
