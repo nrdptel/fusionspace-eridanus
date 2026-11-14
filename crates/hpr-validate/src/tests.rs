@@ -4749,8 +4749,8 @@ fn the_real_flights_page_credits_the_era5_weather() {
         .replace("\r\n", "\n");
     assert!(
         page.ends_with(&format!("\n## Sources\n\n{ERA5_CREDIT}\n")),
-        "{}",
-        &page[page.len().saturating_sub(400)..]
+        "{:?}",
+        page.lines().rev().take(4).collect::<Vec<_>>()
     );
     for words in [
         "generated using Copernicus Climate Change Service information 2026",
@@ -4763,14 +4763,29 @@ fn the_real_flights_page_credits_the_era5_weather() {
     ] {
         assert!(ERA5_CREDIT.contains(words), "{words}");
     }
+    // The notices' paragraph on the two reports, its lines joined, names both and gives the
+    // credit lines; the dataset's citation and license are the entry's own, above it.
     let notices = std::fs::read_to_string(root().join("THIRD-PARTY-NOTICES.md"))
         .expect("the notices are committed");
+    let paragraph = notices
+        .split("\n\n")
+        .flat_map(|block| block.split("\n- "))
+        .find(|block| block.contains("validation/reports/real-flights.md"))
+        .expect("the notices name the real-flights report")
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ");
     for words in [
-        "validation/reports/real-flights.md",
-        "flight-residuals.md",
+        "`validation/reports/flight-residuals.md`",
+        "generated using Copernicus Climate Change Service information 2026, and contains \
+         modified Copernicus Climate Change Service information 2026",
+        "neither the European Commission nor ECMWF is responsible",
         "DOI 10.24381/cds.bd0915c6",
         "licensed CC BY 4.0",
     ] {
-        assert!(notices.contains(words), "the notices lack {words}");
+        assert!(
+            paragraph.contains(words),
+            "the notices' entry lacks {words}"
+        );
     }
 }

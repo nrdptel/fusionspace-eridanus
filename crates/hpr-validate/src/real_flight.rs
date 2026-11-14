@@ -78,9 +78,9 @@ pub const REPORT_MD: &str = "validation/reports/real-flights.md";
 /// RocketPy's ERA5 files carries (#1095): the Copernicus license's credit lines, in the words the
 /// guide's pages use for the same flights, and the dataset with its license, as
 /// `THIRD-PARTY-NOTICES.md` names it. The real-flight and flight-residual reports print it under
-/// *Sources*.
+/// *Sources*; the from-boost and public-predictions reports don't yet (#1481).
 pub const ERA5_CREDIT: &str = "The ERA5 weather here is read from the files RocketPy's examples \
-     read: generated using Copernicus Climate Change Service information 2026, \
+     read, EuRoC 2022's as a netCDF-3 conversion of it: generated using Copernicus Climate Change Service information 2026, \
      and contains modified Copernicus Climate Change Service information 2026. Neither the \
      European Commission nor ECMWF is responsible for any use that may be made of the Copernicus \
      information or data it contains. ERA5: Hersbach, H. et al. (2023), *ERA5 hourly data on \

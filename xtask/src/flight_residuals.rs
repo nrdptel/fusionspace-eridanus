@@ -553,8 +553,8 @@ mod tests {
         let page = page.replace("\r\n", "\n");
         assert!(
             page.ends_with(&format!("\n## Sources\n\n{ERA5_CREDIT}\n")),
-            "{}",
-            &page[page.len().saturating_sub(400)..]
+            "{:?}",
+            page.lines().rev().take(4).collect::<Vec<_>>()
         );
     }
 
