@@ -1,12 +1,12 @@
 # How grain temperature shifts a COTS motor's curve
 
 What does a motor's grain temperature do to its thrust curve and to apogee? It serves the "propellant temperature
-correction" idea ([ideas](ideas-design-and-physics.md)), M2.8's dispersion runs ([roadmap](../ROADMAP.md))
-and the cold-day flights in [UND flight configs](und-flight-configs.md); it qualified [apogee bias](apogee-bias.md)
-§1's grain-temperature bullet. Read 2026-10-18: NASA monographs, three test-motor papers (39 firings counted
-in two), a patent, a thesis, makers' sheets, certifiers' rules; no source code. **Inference** marks this note's
-arithmetic. Trust the coefficients for military and sounding-rocket AP/HTPB/Al. **No COTS hobby propellant has a
-published temperature sensitivity**: every hobby number is borrowed, every apogee size from a generic model.
+correction" idea ([ideas](ideas-design-and-physics.md)), M2.8's dispersion runs ([roadmap](../ROADMAP.md)) and the
+cold-day flights in [UND flight configs](und-flight-configs.md); it qualified [apogee bias](apogee-bias.md) §1's
+grain-temperature bullet. Read 2026-10-18: NASA monographs, three test-motor papers (39 firings counted in two), a
+patent, a thesis, makers' sheets, certifiers' rules; no source code. **Inference** marks this note's arithmetic.
+Trust the coefficients for military and sounding-rocket AP/HTPB/Al. **No hobby maker publishes a temperature
+sensitivity**: the hobby π_K rests on one F set and one hobby-size sheet (§2), apogee sizes on a generic model.
 
 **In short.**
 - **Warm grain burns shorter and harder.** Five measured AP/HTPB/Al propellants have a pressure sensitivity π_K of
@@ -49,8 +49,8 @@ burn-rate exponent [4, p. 590, eq. 3; 5, p. 84, eq. 9].
 
 SP-8039 puts temperature into the burn-rate law as a = a_ref·exp(σ_p ΔT) and the pressure as
 p = p_ref·exp(π_K ΔT) [3, p. 61, eqs. 53–54]. At fixed K burn rate follows pressure, so per 10 K warmer burn time
-scales by exp(−10 π_K) and pressure (so roughly thrust) by exp(+10 π_K) (**Inference**): at π_K = 0.15, 0.25 and
-0.32 %/K, burn time −1.5%, −2.5%, −3.1%, thrust +1.5%, +2.5%, +3.3%.
+scales by exp(−10 π_K) and pressure (so roughly thrust) by exp(+10 π_K) (**Inference**): at π_K = 0.15, 0.22, 0.25
+and 0.32 %/K, burn time −1.5%, −2.2%, −2.5%, −3.1%, thrust +1.5%, +2.2%, +2.5%, +3.3%.
 
 - **Florczak et al. 2014** [4]: one tubular AP/HTPB/Al charge, 4 throats × 3 temperatures (12 firings), soaked 6 h
   at 233, 288 or 323 K (p. 596; Table 2, p. 600). **Inference** from Table 2, 233 → 323 K, per 10 K: burn time
@@ -64,9 +64,9 @@ scales by exp(−10 π_K) and pressure (so roughly thrust) by exp(+10 π_K) (**I
   temperature" and fits hot and cold curves by stretching one baseline to the interpolated impulse and action time.
   Its two worked examples (0 and 120 °F) give action time −1.8% and −2.8% per 10 K (**Inference**); it doesn't say
   whether they are real motors. RocketPy's stochastic motor (MIT) uses the same stretch, with no temperature input
-  and no tie between impulse and burn time [25].
-- **Hobby APCP at two stated temperatures: none found** on RocketryForum, ThrustCurve, theses or NAR's R&D index;
-  two NAR reports on air temperature and on cold black-powder motors need a member login [24].
+  and no tie between impulse and burn time [24].
+- **Hobby composites at two stated temperatures:** 71 F-class motors (−18 °C, room, 49 °C) and an HTPB/AP
+  extraction motor's sheet both give π_K 0.22 %/K ([hobby firings](hobby-motor-temperature-firings.md) §2–3).
 
 ## 3. Impulse: a little, warm higher
 
@@ -140,15 +140,16 @@ the altimeter's read error and thrust at altitude are left out.
   −2.5% for six rockets, the grain's share −0.9 to +0.4 points, the impulse term a further −0.1 to −2.6. The T/W 2
   rocket loses 3.0–5.5%. **Hot desert** (grain 45 °C, air 35 °C): +1.8% to +3.1% at fixed impulse for six, the
   T/W 2 rocket +3.6% to +6.1%, plus 0.15–3.2% from impulse.
-- **UND's cold flight (Inference).** At −20 to −29 K the L1420R's 3.24 s burn [26] stretches to 3.34–3.53 s. The
+- **UND's cold flight (Inference).** At −20 to −29 K the L1420R's 3.24 s burn [25] stretches to 3.34–3.53 s. The
   profile fit wanted 4.6–5.1 s and 20–28% more impulse ([UND flight configs](und-flight-configs.md), 2023 season):
   grain temperature covers about a fifth of the lengthening at most and goes the wrong way on impulse.
 
 ## What this suggests
 
-- **A grain-temperature input as a curve stretch:** burn time × exp(−π_K ΔT), thrust × exp(+π_K ΔT), ΔT from
-  20 °C, π_K 0.25 %/K (0.15–0.32), with an impulse factor of 0.1–0.8% per 10 K stated as borrowed from test motors.
-  Tests could pin the sign: warm grain, shorter burn, higher impulse.
+- **A grain-temperature input as a curve stretch:** burn time × exp(−π_K ΔT), thrust × exp(+π_K ΔT), ΔT from 20 °C,
+  π_K 0.22 %/K (0.15–0.32), as the hobby F set and the extraction-motor sheet both give (§2). Impulse factor 0.1–0.8%
+  per 10 K, warm higher, borrowed from test motors (the F set +0.2%, the low end). Tests could pin the sign: warm
+  grain, shorter burn, higher impulse.
 - **M2.8's dispersion:** a grain spread of 5–10 K about 20 °C is a burn-time σ of 0.8–3% (**Inference**), small
   beside impulse. A soak model (§5) would say how far a motor fresh from a car sits from the air.
 - **A notice, not a verdict,** when a grain is outside NFPA's 15–25 °C basis or Cesaroni's −5 to 30 °C.
@@ -157,7 +158,7 @@ the altimeter's read error and thrust at altitude are left out.
 
 ## Open questions
 
-- σ_p, n and impulse against temperature for any COTS hobby propellant; a hobby motor fired hot and cold.
+- σ_p, n and impulse against temperature for COTS hobby propellants; a hobby reload fired hot and cold, with curves.
 - The c*/C_F split of [6]'s impulse rise; cold composite delays; how fast a motor on a pad follows the air or sun.
 - Unread: Sutton and Biblarz (no legal copy); DTIC (down); a DRDO 0.27 %/°C (unreachable); a 0.43 %/K (paywalled).
 
@@ -195,6 +196,5 @@ All read 2026-10-18. `ntrs:` is `https://ntrs.nasa.gov/citations/`, `ipo:` is
 21. NAR S&T Motor Testing Manual v1.5. <https://www.nar.org/wp-content/uploads/2014/08/ST-MotorTestingManual.pdf>
 22. CAR testing manual. <https://car-acf.org/resources/Documents/car_motor_testing_manual%20r20181121.pdf>
 23. NAR certification data sheets, via ThrustCurve's links and the Internet Archive ([apogee bias](apogee-bias.md)).
-24. NAR R&D report index (titles public). <https://www.nar.org/content.aspx?page_id=22&club_id=114127&module_id=674799>
-25. RocketPy at `9bd6ad3af8`, `rocketpy/motors/`, `rocketpy/stochastic/`. <https://github.com/RocketPy-Team/RocketPy>
-26. ThrustCurve, AeroTech L1420R (4,603 N·s, 3.24 s). <https://www.thrustcurve.org/>
+24. RocketPy at `9bd6ad3af8`, `rocketpy/motors/`, `rocketpy/stochastic/`. <https://github.com/RocketPy-Team/RocketPy>
+25. ThrustCurve, AeroTech L1420R (4,603 N·s, 3.24 s). <https://www.thrustcurve.org/>
