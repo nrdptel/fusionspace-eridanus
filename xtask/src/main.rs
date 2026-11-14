@@ -52,6 +52,8 @@ mod from_boost;
 mod ghost;
 mod grib2;
 mod guides;
+#[cfg(test)]
+mod lanes;
 mod layering;
 mod logs;
 mod messages;
