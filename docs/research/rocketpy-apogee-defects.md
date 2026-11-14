@@ -19,9 +19,10 @@ RocketPy's own test rockets, unless it is marked **Inference** or credited to th
   ([ADR-026][adr-026]); the oracle already flies both.
 - **No fix since 1.13.0 is released.** The open release PR for 1.14.0 carries `develop` as it stands,
   so #1188 should ship in it; its text adds #1190 and says every other PR waits for 1.15 or later.
-- **Three open defects are unsized:** a wind and heading convention (#717), a rotation in the generic
-  aerodynamic surface (#932), and a dropped center-of-mass acceleration term (#1185, sized only on a
-  hybrid). None has a fix in a release.
+- **Two open defects are unsized:** a rotation in the generic aerodynamic surface (#932) and a
+  dropped center-of-mass acceleration term (#1185, sized only on a hybrid). Neither has a fix in a
+  release. A third report, of a wrong-way wind and heading (#717), was examined on November 3, 2026:
+  no inversion in 1.13.0's trajectory code ([the note on #717](rocketpy-wind-heading-717.md)).
 
 ## How the list was built
 
@@ -81,9 +82,12 @@ maintainer on 2026-09-19, not merged; head `f3c0c86`, against `develop`.
 - **#717, launch heading against the wind's components** [10]. Open since 2024-10-24. A user's
   crosswind flight with heading 11.6° flew west instead of north. A maintainer replied the same day
   that something is wrong with the `wind_u` definition, present since v1.0 or earlier, and later
-  pointed at the `Flight.u_dot` methods. No size, no sign, no fix. A crosswind's apogee loss depends
-  on its direction relative to the heading, so a swapped convention could move a windy apogee either
-  way (**Inference**; unbounded).
+  pointed at the `Flight.u_dot` methods. Examined on November 3, 2026: no inversion. 1.13.0 takes
+  `wind_u` and `wind_v` as air velocity toward east and north, and the heading clockwise from north.
+  The flight turned west because a stable rocket turns into the wind (**Inference**, from a Calisto
+  reproduction); the released equations overstate the turn (#1186's sign, #1188's nozzle term). A
+  real inversion would have moved the seven public flights' RocketPy notebooks' apogees by up to
+  11.75% (Juno III, heading mirrored) ([the note on #717](rocketpy-wind-heading-717.md)).
 - **#932, the wrong rotation in `GenericSurface.compute_forces_and_moments`** [11]. Open since
   2026-03-05. A comment's check at α = 0.2 rad and β = 0.1 rad, against the direction-cosine mapping:
   drag keeps its axial part but its lateral parts flip sign, and lift and side force flip their axial
@@ -144,7 +148,9 @@ What these mean for M2.9:
 - **M2.9's RocketPy cells, read on 2026-10-18 from 1.13.0,** would name #1195 with its −1.8%, marked
   "only with the `solid_propulsion` equations; the cell's flights use the default". They would list
   #1186 at its own +0.13%, with this project's 1.6% for #1188 and #1196 together beside it, and
-  #717, #932 and #1185 as unsized. Expected effect: the cells stop implying that #1195's −1.8% sits in their numbers.
+  #932 and #1185 as unsized. They would list #717 as "examined: no inversion in 1.13.0's trajectory
+  code" ([the note on #717](rocketpy-wind-heading-717.md)). Expected effect: the cells stop implying
+  that #1195's −1.8% sits in their numbers, or that a windy reference might point the wrong way.
 - **ADR-246's example of #1195** reads as if it moved every RocketPy cell. A one-line note in the
   cell, not a new decision, would carry the path condition.
 - **Flown with the fixes:** the oracle already flies #1188 and #1196 ([ADR-026][adr-026]). When 1.14.0
@@ -158,7 +164,7 @@ What these mean for M2.9:
 
 - #1195's size on the seven public flights under `solid_propulsion` is unknown; nothing flies them
   that way, so it matters only if a cell ever does.
-- #717 and #932 have no size or sign. #1185's dropped term on solid flights has no size either.
+- #932 has no size or sign. #1185's dropped term on solid flights has no size either.
 - Whether 1.14.0 ships as PR #1194 describes, and when, is not stated anywhere read.
 - HPR Sim's comparisons find a rail-phase difference: RocketPy's rail equation leaves out the
   center-of-mass motion terms ([accuracy](../accuracy.md)). No RocketPy issue reports it, so
