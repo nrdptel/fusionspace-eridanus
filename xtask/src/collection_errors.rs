@@ -27,8 +27,8 @@
 //! the cut: the prediction's error is the share made after it, the forward error less the
 //! prediction's the share made up to it. And each calibration flight predicted is fitted once
 //! more with the impulse's stated range widened [`WIDENED`]-fold, for what its log alone says of
-//! the boost ([`Implied`]); a flight whose log and files disagree by more than a certified motor
-//! retest rule allows one firing is flagged ([`Implied::disagrees`]). No correction is fitted
+//! the boost ([`Implied`]); a flight whose log and files disagree by more than NAR's retest
+//! rule allows one firing is flagged ([`Implied::disagrees`]). No correction is fitted
 //! across flights here, and the held-out half's logs are not fitted this way until that
 //! correction is judged (M7.5b).
 

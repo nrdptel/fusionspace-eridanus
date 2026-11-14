@@ -1,7 +1,7 @@
 # ADR-346: M7.5 in three: the rule before the fit (2026-11-14)
 
 - **Status:** accepted; splits [M7.5][m7-5] into [M7.5a][m7-5a], [M7.5b][m7-5b] and [M7.5c][m7-5c], each with its own *done when*, M7.5's *done when* whole across the three, and so plans every remaining increment of M7.5; fixes, before any correction is fitted across flights or flown, the correction's form, its fit on the calibration half, the flag for a flight whose log and files disagree, and the test with its pass rule, under [ADR-209][adr-209] §6, [ADR-322][adr-322] §2 and [ADR-332][adr-332] §2; carries out M7.5a.
-- **Summary:** The correction of the bias the simulators share is to be two scales: one on the motors' impulse, pooled from what the calibration half's logs alone say of the boost, and one on the drag, from those flights' coasts. Each enters only if its 95% interval excludes 1. It ships only if it lowers the mean absolute error and the absolute bias on the held-out half and makes neither worse on the public flights, with and without the flights whose logs and files disagree by more than a certified motor may. This record is merged before that fit is run. Its own increment splits each half's forward error at the boost's cut and reads the calibration half's logs alone.
+- **Summary:** The correction of the bias the simulators share is two scales: one on the motors' impulse, pooled from what the calibration half's logs alone say of the boost, and one on the drag, from those flights' coasts. Each enters only if its 95% interval excludes 1. It ships only if it lowers the mean absolute error and the absolute bias on the held-out half and makes neither worse on the public flights, with and without the flights whose logs and files disagree by more than NAR's retest rule allows. This record is merged before that fit is run. Its own increment splits each half's forward error at the boost's cut and reads the calibration half's logs alone.
 
 [m7-5]: ../decisions-and-roadmap.md#m7-5
 [m7-5a]: ../decisions-and-roadmap.md#m7-5a
@@ -40,9 +40,9 @@ What the reports say on `main` at dd2cb148:
 
 The maintainer asked three things of this milestone on 2026-11-12, and that a decision record
 fix them before any fit. (a) The correction must be no worse on the 12 public flights. (b)
-Each flight's error is to be split into boost and coast: a prediction from the boost lands
-near 3% where the forward simulation misses by 9% to 17% on the same flights, which points at
-the boost, at the mass or the motor, before the coast's drag. (c) Flights
+Each flight's error is to be split into boost and coast: a prediction from the boost misses
+by 3% to 4% where the forward simulation misses by 9% to 17% on the same flights, which
+points at the boost, at the mass or the motor, before the coast's drag. (c) Flights
 whose log disagrees with their files on mass or impulse are to be flagged, and the results
 given with and without them; a correction must hold on both. The worry behind (c) is that
 some design files don't match the rocket that flew.
