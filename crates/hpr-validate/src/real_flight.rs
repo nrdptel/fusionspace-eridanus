@@ -74,13 +74,21 @@ pub const REPORT_JSON: &str = "validation/reports/real-flights.json";
 /// The report, as a page.
 pub const REPORT_MD: &str = "validation/reports/real-flights.md";
 
+/// What the real-flights page adds to [`ERA5_CREDIT`]: its three EuRoC 2022 flights read that
+/// day's file as converted to the classic netCDF format (netCDF-3), since hpr's reader refuses
+/// RocketPy's netCDF-4; `validation/oracles/netcdf/euroc_2022.py` checks that the conversion holds
+/// the file's geopotential, temperature and wind bit for bit.
+pub const EUROC_2022_CONVERTED: &str = "EuRoC 2022's file is read as its classic-format (netCDF-3) \
+     conversion, which holds the geopotential, temperature and wind of RocketPy's file bit for bit \
+     (`validation/oracles/netcdf/euroc_2022.py`).";
+
 /// The Copernicus attribution and the ERA5 citation that a page publishing results computed in
 /// RocketPy's ERA5 files carries (#1095): the Copernicus license's credit lines, in the words the
 /// guide's pages use for the same flights, and the dataset with its license, as
 /// `THIRD-PARTY-NOTICES.md` names it. The real-flight and flight-residual reports print it under
 /// *Sources*; the from-boost and public-predictions reports don't yet (#1481).
 pub const ERA5_CREDIT: &str = "The ERA5 weather here is read from the files RocketPy's examples \
-     read, EuRoC 2022's as a netCDF-3 conversion of it: generated using Copernicus Climate Change Service information 2026, \
+     read: generated using Copernicus Climate Change Service information 2026, \
      and contains modified Copernicus Climate Change Service information 2026. Neither the \
      European Commission nor ECMWF is responsible for any use that may be made of the Copernicus \
      information or data it contains. ERA5: Hersbach, H. et al. (2023), *ERA5 hourly data on \
@@ -2683,7 +2691,10 @@ impl RealFlightReport {
                 }
             );
         }
-        let _ = write!(out, "\n## Sources\n\n{ERA5_CREDIT}\n");
+        let _ = write!(
+            out,
+            "\n## Sources\n\n{ERA5_CREDIT} {EUROC_2022_CONVERTED}\n"
+        );
         out
     }
 

@@ -4739,16 +4739,19 @@ fn the_validated_range_is_the_fastest_public_reference() {
 }
 
 /// The real-flights page publishes results computed in RocketPy's ERA5 files, so it ends with the
-/// Copernicus attribution and the ERA5 citation; the credit holds what the Copernicus license asks
+/// Copernicus attribution and the ERA5 citation, and says its EuRoC 2022 file is a conversion; the
+/// credit holds what the Copernicus license asks
 /// for and names the dataset and its license, as `THIRD-PARTY-NOTICES.md` does (#1095).
 #[test]
 fn the_real_flights_page_credits_the_era5_weather() {
-    use crate::real_flight::{ERA5_CREDIT, REPORT_MD};
+    use crate::real_flight::{ERA5_CREDIT, EUROC_2022_CONVERTED, REPORT_MD};
     let page = std::fs::read_to_string(root().join(REPORT_MD))
         .expect("the page is committed")
         .replace("\r\n", "\n");
     assert!(
-        page.ends_with(&format!("\n## Sources\n\n{ERA5_CREDIT}\n")),
+        page.ends_with(&format!(
+            "\n## Sources\n\n{ERA5_CREDIT} {EUROC_2022_CONVERTED}\n"
+        )),
         "{:?}",
         page.lines().rev().take(4).collect::<Vec<_>>()
     );
