@@ -96,8 +96,8 @@ are in [the backlog](ideas.md).
   past Mach 1 comparing simulators on published apogees. Another simulator's write-up says 17 of
   the 23 apogees that RASAero II's example files publish were read by barometric altimeters, which
   read about 9% low on a 38 °C (100 °F) day; scored as the altimeter reads, that simulator's
-  mean absolute error falls from 9.9% to 8.3% on its released drag model and from 8.3% to 5.8%
-  on the one it is testing, and RASAero II's from 5.4% to 5.2% ([its aerodynamics page][prfl-aero], read 2026-11-14). Against a public
+  mean absolute error falls from 9.9% to 8.3% on its previous drag model and from 8.3% to 5.8%
+  on its current one, and RASAero II's from 5.4% to 5.2% ([its aerodynamics page][prfl-aero], read 2026-11-14). Against a public
   flight's log, HPR Sim reads its own height as a barometric altimeter would, but a published apogee has no
   log. Workflow: where [M2.3c7][m2-3c7] scores a published apogee, the
   report gives the error both ways, with the day's temperature and its source, and says which

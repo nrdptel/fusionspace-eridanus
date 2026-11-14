@@ -230,8 +230,8 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163, 
 - [ ] **M2.13 Landing points against the tracked landings** (ADR-347, in two; met when they
   are). Moves: accuracy, on a third output.
   - [ ] **M2.13a The rule, the readings and the predictions.** *Done when:* ADR-347 decision 1's
-    for M2.13a: the rule, each track's pad and landing points and the hash of each flight's
-    predicted landing point merged, no miss computed.
+    for M2.13a: the rule, the readings and the hash of each flight's record merged, no miss
+    computed.
   - [ ] **M2.13b The errors.** *Done when:* ADR-347 decision 1's for M2.13b.
 - [ ] **M2.11 Fin flutter held to measurement** (ADR-279). *Done when:* HPR Sim's flutter readings
   are scored against at least three distinct fins measured fluttering (wind tunnel or flight, none

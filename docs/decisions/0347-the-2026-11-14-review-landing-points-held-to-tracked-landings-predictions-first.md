@@ -1,7 +1,7 @@
 # ADR-347: The 2026-11-14 review: landing points held to tracked landings, predictions first (2026-11-14)
 
 - **Status:** accepted; promotes [M2.13][m2-13] to the [queue][queue], sixth, after [M2.12][m2-12], in two increments: [M2.13a][m2-13a], the rule, the readings and the predictions merged first, then [M2.13b][m2-13b], the errors.
-- **Summary:** `hpr sim` prints how far from the pad a rocket lands, and no report sets that against a real flight. 41 of the private collection's 83 flights are catalogued with a latitude and a longitude column or as a tracker's file (no track has been read yet), and each has the day's winds by height. The milestone reads each track's pad and landing points, merges them and each flight's predicted landing point before any error is computed, then scores the miss. The scoreboard gains a row for the miss and a row for whether the predictions land short. A landing predicted nearer the pad than the real one is the flattering side.
+- **Summary:** `hpr sim` prints how far from the pad a rocket lands, and no report sets that against a real flight. 41 of the private collection's 83 flights are cataloged with a latitude and a longitude column or as a tracker's file (no track has been read yet), and each has the day's winds by height. The milestone reads each track's pad and landing points, merges them and each flight's predicted landing point before any error is computed, then scores the miss. The scoreboard gains a row for the miss and a row for whether the predictions land short. A landing predicted nearer the pad than the real one is the flattering side.
 
 [m2-13]: ../decisions-and-roadmap.md#m2-13
 [m2-13a]: ../decisions-and-roadmap.md#m2-13a
@@ -92,22 +92,31 @@ comparison come first, as they do for the descent rates.
        the pad or one that ends in the air. The reading never uses a simulation: it lives in
        `hpr-flightdata`, the crate [the architecture][arch] bars from depending on the
        simulator's.
-     - That reading is run on synthetic tracks whose pad and landing are known, with the fix
-       noise and the dropouts the logger notes give. A reading is wrong when the true point
-       lies outside its interval, and a refused track isn't a pass. The share of intervals
-       that hold the true point is given with its count, and it must not be below 90% by a
-       one-sided test at the 5% level. No real track is read until it isn't.
+     - That reading is run on synthetic tracks whose pad and landing are known: at least
+       200 that should be read, across the fix noise and the dropouts the logger notes
+       give, and tracks that must be refused, with no fix on the pad or ending in the air.
+       A reading is wrong when the true point lies outside its interval, or when a track
+       that should be read is refused.
+     - The synthetic set must meet three lines, each given with its counts. The intervals
+       hold the true point on at least 90% of the tracks that should be read. On those with
+       no dropout, the median half-width is at most three times the fix noise put in, so an
+       interval can't pass by being wide. Every track that must be refused is refused. No
+       real track is read until the set meets all three.
      - The rule names which simulated landing point is set against which reading, and the
        parachutes: the design file's, as [M2.12a][m2-12a] flies them.
      - A prediction reads only its flight's plan, the fields [ADR-333][adr-333] lets a
        prediction read, and the design file's parachutes. Its winds are the day's ERA5
-       file's. No wind, launch hour, rail or deployment comes from the flight's log or its
-       track. The rule names what is flown where a plan states no rail heading or no launch
-       hour, and those flights are counted apart.
+       file's, and no wind or deployment comes from the flight's log or its track.
+     - A plan's own fields were read by hand, and that record says the curation took some
+       flights' rail angle or pad elevation from their logs. So each record states where
+       the plan's launch hour, rail angle, rail heading and pad elevation came from: the
+       launch's records, the flight's own log, a value assumed where the plan states none,
+       or unknown. The rule names what is assumed. No plan field is changed for this
+       comparison.
      - It defines the miss, the distance between the predicted and the tracked landing
        points, and which side is short: a prediction is short when its landing point is
        nearer the pad than the tracked one, by distance from the pad, whatever the
-       direction. The parts of a miss along and across the tracked drift are a diagnosis
+       direction, and beyond otherwise. The parts of a miss along and across the tracked drift are a diagnosis
        only, and the rule fixes the tracked drift below which a flight gets none.
      - It names which flights count as a recovery fault, a flight whose recovery failed,
        such as a parachute that never opened. The test reads the flight's record, such as
@@ -117,23 +126,27 @@ comparison come first, as they do for the descent rates.
        the SHA-256 of its design file and of its ERA5 file, the commit that flew it, the
        launch hour and the rail flown with the source of each, the parachutes flown, the
        predicted landing point as east and north offsets from the pad, the same flown in
-       calm air, the track's two points with their intervals, whether it is a recovery
-       fault, and its cause if it is left out. A record is never written over an older one.
+       calm air, OpenRocket 24.12's landing point where it flies the flight, the track's
+       two points with their intervals, whether it is a recovery fault, and its cause if it
+       is left out. A record is never written over an older one.
      - Each record's SHA-256, a fingerprint of the record, is merged in a list of its own,
-       read as `predictions.sha256` is read for the apogees ([ADR-333][adr-333]). A second
-       hash for one flight stops the run. A digest of the sealed flights' ids is merged
-       beside the list, as one of the manifest's ids is for the apogees.
-     - The OpenRocket 24.12 run to be compared flies the design file's parachutes in the
-       same winds. Today's run sets every parachute never to deploy, so its landing points
-       are ballistic and aren't used. That change merges here, and each of its landing
-       points is sealed in the same list.
+       read as `predictions.sha256` is read for the apogees ([ADR-333][adr-333]). A digest
+       of the sealed flights' ids is merged beside the list, as one of the manifest's ids
+       is for the apogees. The list holds one hash for each sealed id and no other: the
+       run stops on a sealed id whose record's hash isn't on it, and on a hash that no
+       record matches.
+     - The OpenRocket 24.12 run whose landing points go in the records flies the design
+       file's parachutes in the same winds. Today's run sets every parachute never to
+       deploy, so its landing points are ballistic and aren't used. That change merges
+       here.
      - Each public flight is listed with the landing point its example or its paper
        publishes and that source, or as having none. Those with one are sealed the same way.
    - **M2.13b, the errors.** *Done when:*
      - The fixture report computes each miss from the record [M2.13a][m2-13a] merged. The
        run stops, comparing nothing, when a sealed flight's record is missing, isn't on the
-       list read at the merge base as [ADR-333][adr-333]'s is, or doesn't match its hash. A
-       landing point from the model as it then stands may be shown beside, marked as not the
+       list read at the merge base as [ADR-333][adr-333]'s is, doesn't match its hash, or
+       is of another plan, design file or ERA5 file than the flight compared. A landing
+       point from the model as it then stands may be shown beside, marked as not the
        prediction.
      - The report gives, as aggregates: the flights compared; the median and the mean miss,
        in meters and in percent of the logged apogee; how many predictions are short and how
@@ -147,7 +160,8 @@ comparison come first, as they do for the descent rates.
        the flights both fly, with the rest counted.
      - It gives the same on each half of the collection, the calibration half and the
        held-out half ([ADR-332][adr-332]); without the recovery faults; and without the
-       flights flown on an assumed heading or hour; each beside the whole.
+       flights whose launch hour, rail or pad elevation came from their own log, was
+       assumed, or is of unknown source; each beside the whole.
      - Every flight in the collection's manifest that isn't compared is counted by cause, so
        the compared and the not compared add up to the manifest.
      - The public flights with a published landing point get the same aggregates, marked as
@@ -196,7 +210,7 @@ comparison come first, as they do for the descent rates.
 - The review's new ideas are in [the backlog][ideas], under its date.
 
 **How it was checked.** The guide's sentence and the analyzer's are quoted from their pages.
-The count of 41 is of manifest flights with a catalogued log that lists a latitude and a
+The count of 41 is of manifest flights with a cataloged log that lists a latitude and a
 longitude column or is a tracker's file; the 38, the 15 and the ERA5 files are the manifest's
 fields for those 41. The scoreboard's row ids were listed from [the committed
 scoreboard][score]: none reads a landing point. The fixture report has no landing column
