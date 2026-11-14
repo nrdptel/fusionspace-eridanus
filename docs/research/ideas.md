@@ -66,7 +66,7 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
 - LATER: live prices through `hpr-net`, cached and dated.
 - LATER: regional vendors (Klima, Wizard Rockets); parts that fit `.orc` offered upstream.
 
-## Earlier planning reviews (2026-10-08 to 2026-11-08)
+## Earlier planning reviews (2026-10-08 to 2026-11-11)
 
 PROMOTED: OpenRocket's newest release as the bar ([M2.3c3][m2-3c3], ADR-212), the gap to it by
 cause (M2.3c6, [ADR-226][adr-226]) with OpenRocket's supersonic ogive drag as its own cause
@@ -82,53 +82,53 @@ promoted, every flight OpenRocket flies, is [M2.3c9][m2-3c9]. The 2026-11-02 rev
 ([ADR-318][adr-318]) went to flight data, avionics, clubs, and pad and recovery. The 2026-11-04
 review's four ([ADR-319][adr-319]) went to avionics and clubs. The 2026-11-08 review's three
 ([ADR-328][adr-328]) went to [accuracy against real flights](ideas-accuracy.md); the milestone it
-promoted, twelve public flights with predictions first, is [M2.3d][m2-3d].
+promoted, twelve public flights with predictions first, is [M2.3d][m2-3d]. The 2026-11-11 review's
+four ([ADR-338][adr-338]) went there too; the milestone it promoted, descent rates against the
+logs, is [M2.12][m2-12].
 
-## The 2026-11-11 planning review
+## The 2026-11-14 planning review
 
-Placed with [ADR-338][adr-338], which promotes the first; the other four are SOON:
+Placed with [ADR-347][adr-347], which promotes the first; the other five are SOON, two of them
+in [accuracy against real flights](ideas-accuracy.md):
 
-- PROMOTED ([M2.12][m2-12]): descent rates against the logs, predictions first. User: a flyer
-  sizing a main, a drift budget or a landing's energy. Every scoreboard row against a log reads its
-  apogee; the [flight data](ideas-flight-data.md) note's descent idea is the first on another
-  output. Workflow: the comparison's rule and each collection flight's predicted rates are merged
-  before any error. Moves: new rows `accuracy.descent` and `bias.descent`, too gentle the
-  flattering side. *Done when:* M2.12's.
-- SOON: RocketPy's own apogee table beside HPR Sim's. User: anyone comparing simulators on the same
-  public flights. An open RocketPy pull request commits a table of apogee errors on 11 of its
-  example rockets, each flown on the drag its example supplies: median absolute error 6.36%, 90th
-  percentile 8.42% ([its table][rp1208], committed 2026-10-24, read 2026-11-11; unmerged). Six of the
-  11 are among HPR Sim's 7 public flights and three more join with [M2.3d][m2-3d]. Workflow: the
-  real-flights report shows that table's error for each flight both fly, beside HPR Sim's on its own
-  aerodynamics and on the example's drag, cited and dated. Moves: `accuracy.public`, a cited figure
-  beside its RocketPy cell until [M2.9][m2-9] measures it. *Done when:* the report gives the cited
-  error per shared flight and its mean, with the table's commit, and a test fails when the pinned
-  table's hash changes.
-- SOON: a third tool on the supersonic list, and the finish it assumes. User: a flyer past Mach 1
-  asking which simulator to trust. Pocket Rocket Flight Lab scores itself on 23 measured apogees
-  from RASAero II's example files: its mean absolute error is 9.9%, +9.2% with its sign, and 13.0%
-  on the 9 flights above Mach 1.2; it gives RASAero II's own as 5.4%. It names finish as the largest unknown: at regular paint, 60 µm,
-  its signed error falls to +0.5% ([its validation page][prfl], read 2026-11-11). Workflow: where
-  [M2.3c7][m2-3c7] scores those flights, the report cites that tool's errors beside RASAero II's and
-  flies each flight at the file's finish and at two named finishes. Moves: `accuracy.supersonic`,
-  with its spread across finishes. *Done when:* the report gives the three tools' errors on the
-  flights all score, and HPR Sim's at each finish, each finish's roughness sourced.
-- SOON: the published apogee beside the log's. User: a reader checking an error against the figure
-  a team published. Sources quote one flight's measured apogee differently: NDRT 2020's is 1,320.4 m
-  as HPR Sim reads its log and 1,316.7 m in RocketPy's table. Workflow: the real-flights report
-  lists, per flight, the apogee its team or its example states beside the log's as read, and the
-  mean absolute error against each. Moves: `accuracy.public`, shown against a second reference.
-  *Done when:* each flight has both apogees with their sources, or says none is published, and the
-  report gives the error both ways.
-- SOON: the collection's other predictions, sealed before anyone looks. User: a reader asking
-  whether a new accuracy row was tuned. No committed report compares the collection's simulated
-  times to apogee or top speeds with their logs, so each can still be fixed before its error is
-  seen. The fit from the boost has read the calibration half's climbs, so burnout speed is left out. Workflow: one
-  pull request merges the hash of each flight's predicted time to apogee and top speed, as
-  [ADR-333][adr-333] holds the apogees', and the fixture report refuses to compare an output whose
-  hash didn't merge first. Moves: the proposed `accuracy.time-to-apogee` row, whose first figure
-  would then be one fixed before its error was seen. *Done when:* the hashes are merged, and a
-  test shows the report refuses a flight whose predicted time to apogee wasn't merged first.
+- PROMOTED ([M2.13][m2-13]): landing points against the tracked landings, predictions first.
+  User: a flyer judging whether the rocket comes down inside the field. `hpr sim` prints the
+  landing's distance from the pad, held today to another simulator's and to no flight. 41 of the
+  private collection's 83 flights are cataloged with a position log (counted 2026-11-14 from the
+  collection's catalog; no track read yet). Workflow: each track's pad and landing points and
+  each flight's predicted landing point are merged before any miss. Moves: new
+  rows `accuracy.landing` and `bias.landing`, nearer the pad than tracked the flattering side.
+  *Done when:* [M2.13][m2-13]'s.
+- SOON: the landing on the forecast a flyer had. User: a flyer at the pad, who flies a forecast,
+  not the reanalysis [M2.13][m2-13] scores. The command line's page says of a forecast's winds
+  that "nothing has compared them with measured ones". Workflow: for each tracked flight whose
+  launch hour is known, a forecast issued before the launch is read from a public archive that
+  keeps past runs, cached and flown; the fixture report gives the landing miss on it beside the
+  miss on the reanalysis. Moves: `accuracy.landing`, a second figure on a forecast. *Done when:*
+  the archive and its lead time are named from its own documents; the report gives both misses
+  over the flights it covers and counts those it doesn't; and a test pins one cached profile by
+  its hash.
+- SOON: speed at the rail's end, against accelerometer logs. User: a flyer or a range safety
+  officer checking that the rocket leaves the rail fast enough to fly straight. `hpr sim` prints
+  that speed, and no report sets it against a flight; a speed read too high is the flattering side.
+  48 of the collection's 83 flights have a log with an acceleration channel, 43 of them sampled at
+  100 Hz or faster (counted 2026-11-14 from the collection's catalog).
+  Workflow: the analyzer integrates the logged acceleration from first motion over the rail length
+  the flight's record states, with an interval from the sensor's offset and the first-motion time;
+  each flight's predicted speed at that length is merged first, as [ADR-333][adr-333] holds the
+  apogees'. Moves:
+  new rows `accuracy.rail-exit` and `bias.rail-exit`. *Done when:* the reading is checked on
+  synthetic boosts with a known answer; the hashes are merged before any error; the report gives
+  the mean absolute and signed errors with their count; and a test pins which sign is too fast.
+- SOON: the delay's spread held to logged delays. User: a flyer choosing an ejection delay from a
+  scattered run. The spread fitted to bench firings is too narrow for flights: its 90% interval
+  held 21 or 22 of 30 logged delays, 70% to 73% ([the delay-spread note][delay-spread], section 7;
+  [#1474][i1474] asks the Monte Carlo page to say so). Workflow: `hpr mc` gets a named delay spread fitted
+  to logged delays, and the report scores its intervals on logged flights the fit didn't read.
+  Moves: a new row `uncertainty.delay-90`, nearer 90% better, beside the apogee ranges of
+  [M2.8][m2-8]. *Done when:* the report gives the share of logged delays inside the 50% and the
+  90% intervals with Clopper–Pearson bounds, on flights held out from the fit by their ids' hash,
+  and the Monte Carlo page states both.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -186,7 +186,6 @@ Placed with [ADR-338][adr-338], which promotes the first; the other four are SOO
 [adr-311]: ../decisions/0311-the-2026-10-31-review-every-flight-openrocket-flies.md
 [adr-305]: ../decisions/0305-the-2026-10-28-licensing-calls.md
 [adr-318]: ../decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md
-[adr-212]: ../decisions/0212-measure-against-openrockets-newest-release.md
 [m2-3c9]: ../decisions-and-roadmap.md#m2-3c9
 [adr-319]: ../decisions/0319-the-2026-11-04-review-the-rocketpy-descents-tightened.md
 [adr-328]: ../decisions/0328-the-2026-11-08-review-twelve-public-flights-predictions-first.md
@@ -194,6 +193,8 @@ Placed with [ADR-338][adr-338], which promotes the first; the other four are SOO
 [adr-338]: ../decisions/0338-the-2026-11-11-review-descent-rates-held-to-the-logs-predictions-first.md
 [adr-333]: ../decisions/0333-m2-7b-new-flights-predicted-first.md
 [m2-12]: ../decisions-and-roadmap.md#m2-12
-[m2-9]: ../decisions-and-roadmap.md#m2-9
-[rp1208]: https://github.com/RocketPy-Team/RocketPy/pull/1208
-[prfl]: https://github.com/dustintlee-blahblah/PocketRocketFlightLab/blob/main/VALIDATION.md
+[adr-347]: ../decisions/0347-the-2026-11-14-review-landing-points-held-to-tracked-landings-predictions-first.md
+[m2-13]: ../decisions-and-roadmap.md#m2-13
+[m2-8]: ../decisions-and-roadmap.md#m2-8
+[delay-spread]: motor-delay-spread.md
+[i1474]: https://github.com/nrdptel/fusionspace-eridanus/issues/1474
