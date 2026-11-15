@@ -385,8 +385,15 @@ it is not a prediction.
 
 - **Between samples.** A history is a list of samples. Between two of them, $(t_i, y_i)$ and
   $(t_{i+1}, y_{i+1})$, it is the straight line
-  $y(t) = y_i + (y_{i+1} - y_i)\,(t - t_i)/(t_{i+1} - t_i)$. Before the first sample and after
-  the last it holds that sample's value. So its rate is the slope of the piece it is on, finite
+
+  $$
+  \begin{aligned}
+  y(t) &= y_i + (y_{i+1} - y_i)\, s, \\
+  s &= \frac{t - t_i}{t_{i+1} - t_i}.
+  \end{aligned}
+  $$
+
+  Before the first sample and after the last it holds that sample's value. So its rate is the slope of the piece it is on, finite
   everywhere, and its second derivative is zero inside a piece. Every sample where the slope
   changes is a stop time, so no step straddles a corner.
 - **Thrust.** The history's value is the thrust as flown, along the axis $+z_B$. It takes the
@@ -478,8 +485,15 @@ default settings. The numbers were measured on September 17, 2026.
   thrust history. Its mass history falls from 10 kg at 1.5 kg/s, and its center of mass moves aft
   at 0.05 m/s (0.16 ft/s).
   The nose tip then rises at
-  $v(\tau) = v_0 + ((F + 2 q r')/q) \ln(m_0/(m_0 - q\tau)) - g\tau$, which reaches 101.686 m/s
-  (333.62 ft/s) after 2 s. The flight follows it to 1e-7 m/s. Without the term $2 q r'$ the speed would be
+
+  $$
+  \begin{aligned}
+  v(\tau) &= v_0 - g\tau \\
+  &\quad + \frac{F + 2 q r'}{q} \ln \frac{m_0}{m_0 - q\tau},
+  \end{aligned}
+  $$
+
+  which reaches 101.686 m/s (333.62 ft/s) after 2 s. The flight follows it to 1e-7 m/s. Without the term $2 q r'$ the speed would be
   0.036 m/s (0.12 ft/s) higher. Each history alone follows its own closed form to 1e-7 m/s too: the thrust
   on the design's burnt-out 8.26 kg gains $(F/m - g)\,\tau$, 53.04 m/s (174.0 ft/s) in 2 s, and the mass
   alone the closed form above with $F = 0$.
