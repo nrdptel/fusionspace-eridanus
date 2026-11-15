@@ -107,7 +107,9 @@ pub struct Guides {
     /// The rocket's aft end, which starts at the foot of the rail: the aft-most point of its body,
     /// of every part on its outside (a fin's tip trailing edge where a swept fin reaches past the
     /// tube, a tube fin's or a pod's aft end) and of its nozzle exits. The rocket stands on that
-    /// point (ADR-011; #1254).
+    /// point (the decision record on the rail, [ADR-011][adr-011]; #1254).
+    ///
+    /// [adr-011]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-011-rigid-body-flight-equations-of-motion-aerodynamic-coupling-rail-phases-and-termination-2026-09-17
     pub aft_station_m: f64,
     /// The aft edge of the forward-most guide (a rail button's aft edge, or a lug's aft end), or
     /// `None` without guides.
