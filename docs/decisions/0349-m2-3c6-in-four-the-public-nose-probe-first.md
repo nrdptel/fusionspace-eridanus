@@ -221,14 +221,16 @@ the errors among them, since the split needs no log; over the 60 compared with a
   flights: its median is 0.00% and it is over 1% on one flight. [#1486][i-1486] follows that
   flight: the lead is that the two programs weigh the rocket the same and put its center of
   mass apart. The swap moves HPR Sim's center of mass and not its center of pressure, so the
-  mass row can hold a change in stability that the rest gives back with the other sign.
+  mass row can hold a change in HPR Sim's stability that OpenRocket's own flight doesn't share.
 
 On the two public designs, held by a test: `pods-none` +0.81% with drag +0.79%, and `mach-probe`
 +3.06% with drag +3.03%; thrust and mass under 0.005%, and under 0.05% left after the swaps.
 
 **Consequences.**
-- [M1.14][m1-14] now has the split to start from: the gap between the two programs is drag, not
-  thrust, mass or the air. Which part of the drag is M2.3c13's and M1.14's to say.
+- The split says where [M1.14][m1-14] should look. The gap between the two programs is mostly
+  drag, the largest part on 59 of the 68 flights. Thrust is nil. Mass and the air are small on
+  average, and 0.18% is left that no swap explains. Which part of the drag is M2.3c13's and
+  M1.14's to say.
 - The probe is code against code. Whether the equivalent cone's value matches a measured
   tangent ogive stays open in [#222][i-222] and [#616][i-616].
 - When OpenRocket releases the fix, [M2.3c3][m2-3c3] flies both releases on the flights. The

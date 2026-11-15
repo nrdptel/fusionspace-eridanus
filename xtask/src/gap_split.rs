@@ -137,8 +137,8 @@ fn cell(row: &Value, column: usize) -> Result<Option<f64>, String> {
 }
 
 /// OpenRocket's drag coefficient along its flight as a table HPR Sim can fly, by ADR-097's two
-/// curves in Mach number, each linear between its points and held at its ends, on OpenRocket's
-/// reference area:
+/// curves in Mach number, each linear between its points and held at its ends, on the area of
+/// a circle OpenRocket's reference length across:
 ///
 /// - power on: the rows with thrust, each at a Mach number above every earlier one's;
 /// - power off: the rows after the last one with thrust, to apogee, each at a Mach number below
@@ -680,8 +680,7 @@ impl GapSplit {
              left out of the errors above, whose logs are no fair test: the split needs no \
              log. A part dominates a flight when its absolute value is the largest of thrust, \
              mass, drag and other, the earlier in that order if two tie. The last column counts \
-             the flights where a part's absolute value is over {LARGE_PERCENT}%: a mean far \
-             from its median is carried by those few.\n",
+             the flights where a part's absolute value is over {LARGE_PERCENT}%.\n",
             self.flown_by_both, self.split
         );
         let _ = writeln!(
@@ -736,8 +735,8 @@ impl GapSplit {
              flight's path. The mass swap leaves HPR Sim's inertia and its center of pressure in \
              place. So a difference in inertia is in the rest. And where the two simulators put \
              the center of mass apart, the swap changes HPR Sim's stability margin, which \
-             OpenRocket's own flight doesn't share: what that does to the apogee is in the mass \
-             row, and comes back with the other sign in the rest. Each flight split also passed M2.3c11's test: flown on its \
+             OpenRocket's own flight doesn't share: any apogee that costs is in the mass row. \
+             Each flight split also passed M2.3c11's test: flown on its \
              own thrust and mass sampled at OpenRocket's times, it came back to its own apogee \
              within 0.05%; the largest miss was {}%.\n",
             self.largest_own_history_percent
@@ -1056,7 +1055,7 @@ mod tests {
         assert_eq!(s.check_consistent(6), Ok(()));
         let page = s.to_markdown();
         assert!(page.contains("Of the 6 flights both simulators fly, 3 are split."));
-        // The medians: drag's of 1.5, −2.5 and 0.3; the whole's of all six, between 1.8 and 2.
+        // The medians: drag's of 1.5, −2.5 and 0.3; the whole's of all six, between −0.3 and 1.8.
         assert_eq!(s.parts[2].median_percent, 0.3);
         assert_eq!(s.whole_on_both.median_percent, 0.75);
         let large: Vec<usize> = s.parts.iter().map(|p| p.large).collect();

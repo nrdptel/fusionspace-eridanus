@@ -26,8 +26,8 @@
 //! - `validation/oracles/openrocket/histories.py` records OpenRocket's thrust, mass, center of
 //!   mass and drag coefficient along each of its flights ([`crate::histories`], M2.3c11), and
 //!   this flies HPR Sim on them, one swapped in after another, to split the gap between the two
-//!   simulators' apogees into thrust, mass, drag and other on every flight both fly
-//!   ([`crate::gap_split`], M2.3c12, ADR-349).
+//!   simulators' apogees into thrust, mass, drag and other on each flight both fly, or count
+//!   the flight under why it isn't split ([`crate::gap_split`], M2.3c12, ADR-349).
 //!
 //! A flight either simulator does not fly is counted under its cause, and every cause names the
 //! open issue that tracks it ([`ISSUES`]); a cause with none stops the run. `--check` writes
