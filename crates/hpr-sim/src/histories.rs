@@ -45,12 +45,14 @@
 //!
 //! **Time.** A history's time is the flight's clock: 0 at launch.
 //!
-//! **What refuses a history.** A sample list that is empty, with times that don't rise, a value
-//! that isn't finite, a negative thrust, a mass that isn't positive, a first sample after
+//! **What refuses a history.** A sample list that is empty, lists of different lengths, times
+//! that don't rise, a value that isn't finite, a negative thrust, a mass that isn't positive, a first sample after
 //! launch, or a thrust that doesn't end at zero (the history would stop while the motor still
 //! pushed); a thrust history on a flight with no motor lit by a known time; and either history
 //! on a flight that splits, by a separation or an ejection, or moves or releases a part, since a
-//! history is the whole stack's mass and thrust and gives no part's own.
+//! history is the whole stack's mass and thrust and gives no part's own. A history read from
+//! JSON (`{"times_s": [...], "thrust_n": [...]}`, or `mass_kg` and `cg_aft_of_nose_m` beside the
+//! times) passes the same checks as one built by its constructor.
 //!
 //! [adr-226]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0226-the-2026-10-10-review-the-gap-to-openrocket-by-cause.md
 //! [adr-349]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0349-m2-3c6-in-four-the-public-nose-probe-first.md
@@ -61,7 +63,7 @@ use serde::{Deserialize, Serialize};
 use crate::error::SimError;
 
 /// One quantity against time: samples at rising times, read by straight lines between them.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq)]
 struct Samples {
     times_s: Vec<f64>,
     values: Vec<f64>,
@@ -93,8 +95,11 @@ impl Samples {
     }
 
     /// The value at `t_s`: the line through the samples either side, or the first or last
-    /// sample's value outside them.
+    /// sample's value outside them; not a number at a time that isn't one.
     fn at(&self, t_s: f64) -> f64 {
+        if t_s.is_nan() {
+            return f64::NAN;
+        }
         let times = &self.times_s;
         let after = times.partition_point(|&t| t <= t_s);
         if after == 0 {
@@ -138,8 +143,10 @@ impl Samples {
 }
 
 /// A thrust against flight time, N, flown in place of the motors' (the [module][self] says what
-/// stays HPR Sim's).
+/// stays HPR Sim's). It serializes as its `times_s` and `thrust_n` and is checked again when
+/// read.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(try_from = "ThrustHistoryData", into = "ThrustHistoryData")]
 pub struct ThrustHistory {
     thrust: Samples,
 }
@@ -183,8 +190,10 @@ impl ThrustHistory {
 }
 
 /// A mass and center of mass against flight time, flown in place of the design's (the
-/// [module][self] says what stays HPR Sim's).
+/// [module][self] says what stays HPR Sim's). It serializes as its `times_s`, `mass_kg` and
+/// `cg_aft_of_nose_m` and is checked again when read.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(try_from = "MassHistoryData", into = "MassHistoryData")]
 pub struct MassHistory {
     mass: Samples,
     cg: Samples,
@@ -235,6 +244,58 @@ impl MassHistory {
     /// Whether the mass or the center of mass changes inside `window`.
     pub(crate) fn varies_within(&self, window: (f64, f64)) -> bool {
         self.mass.varies_within(window) || self.cg.varies_within(window)
+    }
+}
+
+/// The serialized form of a [`ThrustHistory`].
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ThrustHistoryData {
+    times_s: Vec<f64>,
+    thrust_n: Vec<f64>,
+}
+
+impl TryFrom<ThrustHistoryData> for ThrustHistory {
+    type Error = SimError;
+
+    fn try_from(data: ThrustHistoryData) -> Result<Self, SimError> {
+        Self::new(data.times_s, data.thrust_n)
+    }
+}
+
+impl From<ThrustHistory> for ThrustHistoryData {
+    fn from(history: ThrustHistory) -> Self {
+        Self {
+            times_s: history.thrust.times_s,
+            thrust_n: history.thrust.values,
+        }
+    }
+}
+
+/// The serialized form of a [`MassHistory`]: one list of times for both quantities.
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct MassHistoryData {
+    times_s: Vec<f64>,
+    mass_kg: Vec<f64>,
+    cg_aft_of_nose_m: Vec<f64>,
+}
+
+impl TryFrom<MassHistoryData> for MassHistory {
+    type Error = SimError;
+
+    fn try_from(data: MassHistoryData) -> Result<Self, SimError> {
+        Self::new(data.times_s, data.mass_kg, data.cg_aft_of_nose_m)
+    }
+}
+
+impl From<MassHistory> for MassHistoryData {
+    fn from(history: MassHistory) -> Self {
+        Self {
+            times_s: history.mass.times_s,
+            mass_kg: history.mass.values,
+            cg_aft_of_nose_m: history.cg.values,
+        }
     }
 }
 
@@ -289,6 +350,67 @@ mod tests {
         // 10 + 30 × 0.25 / 0.5, and 40 − 40 × 0.75 / 1.5.
         assert!((h.thrust_n(0.25) - 25.0).abs() < 1e-12);
         assert!((h.thrust_n(1.25) - 20.0).abs() < 1e-12);
+        assert!(h.thrust_n(f64::NAN).is_nan());
+    }
+
+    #[test]
+    fn a_history_read_from_json_round_trips_and_is_checked_as_built() {
+        let thrust = ThrustHistory::new(vec![0.0, 0.5, 2.0], vec![10.0, 40.0, 0.0]).unwrap();
+        let text = serde_json::to_string(&thrust).unwrap();
+        assert_eq!(
+            text,
+            r#"{"times_s":[0.0,0.5,2.0],"thrust_n":[10.0,40.0,0.0]}"#
+        );
+        assert_eq!(
+            serde_json::from_str::<ThrustHistory>(&text).unwrap(),
+            thrust
+        );
+        let mass = MassHistory::new(vec![0.0, 1.0], vec![2.0, 1.5], vec![0.5, 0.45]).unwrap();
+        let text = serde_json::to_string(&mass).unwrap();
+        assert_eq!(
+            text,
+            r#"{"times_s":[0.0,1.0],"mass_kg":[2.0,1.5],"cg_aft_of_nose_m":[0.5,0.45]}"#
+        );
+        assert_eq!(serde_json::from_str::<MassHistory>(&text).unwrap(), mass);
+
+        // Each refusal of the constructors holds for a history read from JSON.
+        let refused = |text: &str| {
+            serde_json::from_str::<ThrustHistory>(text)
+                .unwrap_err()
+                .to_string()
+        };
+        for (text, why) in [
+            (r#"{"times_s":[],"thrust_n":[]}"#, "it holds no sample"),
+            (
+                r#"{"times_s":[1.0,0.5],"thrust_n":[3.0,0.0]}"#,
+                "its times don't rise from each sample to the next",
+            ),
+            (
+                r#"{"times_s":[0.0,1.0],"thrust_n":[-5.0,0.0]}"#,
+                "a thrust is negative",
+            ),
+            (
+                r#"{"times_s":[0.0,1.0],"thrust_n":[5.0,3.0]}"#,
+                "its last thrust isn't zero",
+            ),
+        ] {
+            let message = refused(text);
+            assert!(message.contains(why), "{text}: {message}");
+        }
+        let mass_refused = serde_json::from_str::<MassHistory>(
+            r#"{"times_s":[0.0],"mass_kg":[1.0,1.0,1.0],"cg_aft_of_nose_m":[0.5]}"#,
+        )
+        .unwrap_err()
+        .to_string();
+        assert!(
+            mass_refused.contains("it holds another number of values than of times"),
+            "{mass_refused}"
+        );
+        // A field the history doesn't have is refused, not dropped.
+        assert!(
+            serde_json::from_str::<ThrustHistory>(r#"{"times_s":[0.0],"thrust_n":[0.0],"cg":[]}"#)
+                .is_err()
+        );
     }
 
     #[test]

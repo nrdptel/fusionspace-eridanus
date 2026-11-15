@@ -519,7 +519,8 @@ impl Simulation {
     /// that weighs other than its parts say, for a fit to a log (`hpr_forensics::fit`). It leaves
     /// the center of mass where it is. It is the whole stack's: a part that comes away in flight, a
     /// stage or a recovery section, keeps its own mass as laid out, so it holds until the flight
-    /// first splits.
+    /// first splits. Under a [`Simulation::with_mass_history`] it scales only the inertia, the
+    /// history giving the mass.
     ///
     /// # Errors
     ///
@@ -567,7 +568,8 @@ impl Simulation {
     /// Flies `history`'s mass and center of mass in place of the design's
     /// ([`crate::histories`]): the inertia about the center of mass stays the design's, moved to
     /// the nose tip with the history's mass and center. For sizing a difference from another
-    /// tool ([ADR-349][adr-349]), not a model.
+    /// tool ([ADR-349][adr-349]), not a model. Beside a
+    /// [`Simulation::with_structure_mass_scale`], the scale then changes only the inertia.
     ///
     /// # Errors
     ///

@@ -1123,6 +1123,55 @@ mod tests {
         assert_eq!(coasting.inertia_o_rate, DMat3::ZERO);
     }
 
+    /// Under a mass history the inertia about the nose tip is the assembly's own about its
+    /// center of mass, moved there by the parallel-axis theorem with the history's mass and
+    /// center, `I_O = I_c + m (|r|² E − r rᵀ)`, and its rate is that expression's derivative:
+    /// `ṁ (|r|² E − r rᵀ) + m (2 (r·r′) E − r′ rᵀ − r r′ᵀ)` with `I_c` fixed after burnout.
+    #[test]
+    fn a_mass_history_moves_the_assembly_s_inertia_by_the_parallel_axis_theorem() {
+        let mut vehicle = valetudo();
+        let own = vehicle
+            .assembly
+            .mass_properties_lit(10.0, &vehicle.ignition_s);
+        // 20 kg falling to 16 kg and a center moving 1.0 m to 1.2 m aft over 20 s: at 10 s,
+        // 18 kg at 1.1 m, ṁ = −0.2 kg/s and r′_z = −0.01 m/s (the center moves aft, −z_B).
+        let history =
+            crate::histories::MassHistory::new(vec![0.0, 20.0], vec![20.0, 16.0], vec![1.0, 1.2])
+                .unwrap();
+        vehicle.histories.mass = Some(history);
+        let state = vehicle.mass_state(10.0, (9.0, 11.0));
+
+        let (m, m_rate) = (18.0, -0.2);
+        let r = DVec3::new(own.cg_m.x, own.cg_m.y, -1.1);
+        let r_rate = DVec3::new(0.0, 0.0, -0.01);
+        let outer = |a: DVec3, b: DVec3| DMat3::from_cols(a * b.x, a * b.y, a * b.z);
+        let transfer = DMat3::IDENTITY * r.length_squared() - outer(r, r);
+        let expected = own.inertia_kg_m2 + transfer * m;
+        let expected_rate = transfer * m_rate
+            + (DMat3::IDENTITY * (2.0 * r.dot(r_rate)) - outer(r_rate, r) - outer(r, r_rate)) * m;
+
+        assert_eq!(state.inertia_cg, own.inertia_kg_m2);
+        let close = |a: DMat3, b: DMat3, tolerance: f64| {
+            (0..3).all(|i| (a.col(i) - b.col(i)).abs().max_element() <= tolerance)
+        };
+        assert!(
+            close(state.inertia_o, expected, 1e-12 * expected.col(0).x.abs()),
+            "{:?} vs {expected:?}",
+            state.inertia_o
+        );
+        assert!(
+            close(
+                state.inertia_o_rate,
+                expected_rate,
+                1e-6 * expected_rate.col(0).x.abs()
+            ),
+            "{:?} vs {expected_rate:?}",
+            state.inertia_o_rate
+        );
+        assert!((state.mass_rate_kg_s - m_rate).abs() < 1e-9);
+        assert!((state.cg_rate_m_s - r_rate).length() < 1e-9);
+    }
+
     #[test]
     fn rail_friction_is_coulomb_on_the_force_across_the_rail() {
         // In a vacuum on a rail at 60°, friction removes exactly μ g cos E from the acceleration

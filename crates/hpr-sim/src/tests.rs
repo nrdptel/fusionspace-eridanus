@@ -1570,6 +1570,67 @@ fn histories_fly_the_closed_form_of_a_varying_mass_under_constant_thrust() {
     assert!(worst < 1e-7, "{worst}");
 }
 
+/// As above, but the mass history turns a corner at 11 s, mid-flight: the mass falls at 1.5 kg/s
+/// and then 0.75 kg/s, and the center of mass moves aft at 0.05 m/s and then 0.02 m/s. The
+/// integration stops at the corner, so each piece follows its own closed form, the second
+/// starting from the first's end, with no step or difference stencil across it.
+#[test]
+fn a_mass_history_s_corner_mid_flight_keeps_each_piece_on_its_closed_form() {
+    use crate::histories::{MassHistory, ThrustHistory};
+
+    let (t0, tc, t1) = (10.0, 11.0, 12.0);
+    let (thrust_n, m0) = (300.0, 10.0);
+    let ((q1, x_rate_1), (q2, x_rate_2)) = ((1.5, 0.05), (0.75, 0.02));
+    let x0 = 1.2;
+    let (mc, xc) = (m0 - q1 * (tc - t0), x0 + x_rate_1 * (tc - t0));
+    let (m1, x1) = (mc - q2 * (t1 - tc), xc + x_rate_2 * (t1 - tc));
+    let thrust =
+        ThrustHistory::new(vec![0.0, t1, t1 + 0.5], vec![thrust_n, thrust_n, 0.0]).unwrap();
+    let mass = MassHistory::new(
+        vec![0.0, t0, tc, t1, 30.0],
+        vec![m0, m0, mc, m1, m1],
+        vec![x0, x0, xc, x1, x1],
+    )
+    .unwrap();
+    let sim = valetudo(analytic_environment(UniformAir::vacuum(), G), capped(t1))
+        .with_thrust_history(thrust)
+        .unwrap()
+        .with_mass_history(mass)
+        .unwrap();
+    let v0 = 50.0;
+    let state = State {
+        position_enu_m: DVec3::new(0.0, 0.0, 500.0),
+        velocity_enu_m_s: DVec3::new(0.0, 0.0, v0),
+        attitude: DQuat::IDENTITY,
+        body_rate_rad_s: DVec3::ZERO,
+    };
+    let mut recorder = Recorder::new(vec![Channel::Time, Channel::Velocity], None).unwrap();
+    sim.run_free(t0, state, &mut recorder).unwrap();
+    // On a piece starting at speed `v`, mass `m`, mass flow `q` and r′ = −x_rate (aft is −z_B).
+    let piece = |v: f64, m: f64, q: f64, x_rate: f64, tau: f64| {
+        v + ((thrust_n - 2.0 * q * x_rate) / q) * (m / (m - q * tau)).ln() - G * tau
+    };
+    let vc = piece(v0, m0, q1, x_rate_1, tc - t0);
+    let closed = |t: f64| {
+        if t <= tc {
+            piece(v0, m0, q1, x_rate_1, t - t0)
+        } else {
+            piece(vc, mc, q2, x_rate_2, t - tc)
+        }
+    };
+    let rows = recorder.rows();
+    assert!(
+        rows.iter().any(|row| row[0] == tc),
+        "no step ends at the corner"
+    );
+    let mut worst: f64 = 0.0;
+    for row in rows {
+        worst = worst.max((row[3] - closed(row[0])).abs());
+    }
+    assert_eq!(rows.last().unwrap()[0], t1);
+    assert!(worst < 1e-7, "{worst}");
+}
+
 /// Valetudo from t = 10 s as above, rising at 50 m/s in a vacuum, on the histories given: the
 /// time and the nose tip's velocity at each step's end, the last at 12 s.
 fn climb_on(

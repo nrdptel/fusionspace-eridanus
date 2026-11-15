@@ -60,8 +60,8 @@ pub(crate) struct Inputs {
     /// The rest, by the oracle's reason: every reason of [`REASONS`], in its order.
     pub lacking: Vec<Tally>,
     /// The largest move of a flight's apogee from the one OpenRocket's flight record holds,
-    /// relative, over the flights compared, to two significant digits: OpenRocket's own spread
-    /// from one run to the next.
+    /// relative, over the flights compared, to two significant digits: how far this run of
+    /// OpenRocket moved from the recorded one, which isn't bit-identical from run to run.
     pub largest_apogee_move: f64,
 }
 
