@@ -110,8 +110,11 @@
 # run it). It joins any run that includes `test` when the branch changes EGO or what it calls
 # (crates/hpr-analysis/src/optimize/{ego,cmaes,normal,benchmark}.rs, or the bench) against
 # origin/main. Name it to run it anyway (`scripts/gate.sh ego`), or set GATE_EGO=0 to leave it out.
-# Extra step, not in the default set: docs (only xtask's tests, which guard ROADMAP, the lessons
-# and the pages; about 40 s against 154 s for all tests), for a change to prose alone.
+# Extra step, not in the default set: docs (only xtask's and xtask-voice's tests, which guard
+# ROADMAP, the lessons, the pages and the voice report), for a change to prose alone.
+# Extra step, not in the default set: voice (the xtask-voice crate's tests, among them the one that
+# holds validation/reports/voice.md to the pages; they build no simulator crate), for a change to
+# prose alone: `cargo voice` rewrites the report, then this (#1459).
 # Extra step, not in the default set: types (CI's `types` job: the design format's generated
 # TypeScript and Python types checked with tsc and mypy, fetched by npx and uvx; about 2 s once
 # fetched), for a change to the schema or the generator in xtask/src/format_types.rs.
@@ -205,7 +208,7 @@ touches_pages() {
   # New pages count before they are added, unlike the physics check's files.
   changed=$( { git diff --name-only "$base"; git diff --name-only; git diff --name-only --cached
     git ls-files --others --exclude-standard; } 2>/dev/null)
-  grep -qE '^docs/|\.md$|^xtask/src/site' <<<"$changed" && return 0
+  grep -qE '^docs/|\.md$|^xtask/src/site|^xtask/voice/src/markdown\.rs' <<<"$changed" && return 0
   return 1
 }
 
@@ -361,7 +364,10 @@ cmd_for() {
     site) echo "$XTASK site --locked --cache" ;;
     pages) echo "$XTASK site --no-build" ;;
     examples) echo "$XTASK examples --check --locked" ;;
-    docs) echo "cargo test --locked -p xtask" ;;
+    docs) echo "cargo test --locked -p xtask -p xtask-voice" ;;
+    # The voice crate's tests, the report's among them, which build no simulator crate: a
+    # prose-only change runs `cargo voice` to rewrite the report, then this (#1459).
+    voice) echo "cargo test --locked -p xtask-voice" ;;
     evidence) echo "$XTASK evidence" ;;
     types) echo "$XTASK format --typecheck" ;;
     python) echo "scripts/python-tests.sh" ;;
@@ -372,7 +378,7 @@ cmd_for() {
 }
 
 for step in $STEPS; do
-  cmd_for "$step" >/dev/null || { echo "unknown step: $step (known: $ALL pages refs ego docs types python)" >&2; exit 64; }
+  cmd_for "$step" >/dev/null || { echo "unknown step: $step (known: $ALL pages refs ego docs voice types python)" >&2; exit 64; }
 done
 mkdir -p "$LOGDIR"
 

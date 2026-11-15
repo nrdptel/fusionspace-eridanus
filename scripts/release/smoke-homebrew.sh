@@ -18,7 +18,14 @@ export HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ANALYTICS=1 HOMEBREW_NO_ENV_HINTS=1
 tap="hprcheck/local"
 name="$tap/fusionspace-hpr"
 brew tap-new --no-git "$tap" >/dev/null
-trap 'brew uninstall --formula "$name" >/dev/null 2>&1 || true; brew untap "$tap" >/dev/null 2>&1 || true' EXIT
+trap 'brew uninstall --formula "$name" >/dev/null 2>&1 || true; brew untrust --tap "$tap" >/dev/null 2>&1 || true; brew untap "$tap" >/dev/null 2>&1 || true' EXIT
+# A recent Homebrew (7.0.13 does) refuses to load a formula from a tap nobody trusted, even for
+# `brew audit` ("Refusing to load formula ... from untrusted tap"). This throwaway tap holds only
+# the formula under test, so it's trusted here and untrusted on the way out. An older Homebrew has
+# no `brew trust`.
+if brew trust --help >/dev/null 2>&1; then
+  brew trust --tap "$tap" >/dev/null
+fi
 dir="$(brew --repository "$tap")/Formula"
 
 cp "$formula" "$dir/fusionspace-hpr.rb"
@@ -31,7 +38,7 @@ if grep -q "https://github.com/" "$dir/fusionspace-hpr.rb"; then
   echo "smoke-homebrew: a URL in the formula isn't a release download" >&2
   exit 1
 fi
-# Naming the formula in full is what tells Homebrew to trust it (Homebrew's tap trust).
+# The formula is named in full, so the tap trusted above is the one it loads from.
 brew install --formula "$name"
 brew test "$name"
 "$(brew --prefix)/bin/hpr" --version

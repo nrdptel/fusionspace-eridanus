@@ -32,7 +32,7 @@ use crate::voice::CODE;
 /// The crates read, each by its directory under `crates/`: `hpr-cli`, the nine ADR-292 §1 lists
 /// under the design commands (M0.14d2), the four under the data commands (M0.14d3), and the
 /// Python package's own, `hpr-py` (M0.14d4).
-pub(crate) const CRATES: [&str; 15] = [
+pub const CRATES: [&str; 15] = [
     "hpr-cli",
     "hpr",
     "hpr-sim",
@@ -52,7 +52,7 @@ pub(crate) const CRATES: [&str; 15] = [
 
 /// One literal read: where it is, and its text as the census reads it.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Message {
+pub struct Message {
     /// The file, relative to the workspace root.
     pub file: String,
     /// The line, from 1, the literal starts on.
@@ -66,7 +66,7 @@ pub(crate) struct Message {
 
 /// What the census read in one crate.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub(crate) struct Census {
+pub struct Census {
     /// The crate's source directory, `crates/hpr-io/src/`: the page it's held as.
     pub dir: String,
     /// The files read.
@@ -81,13 +81,13 @@ pub(crate) struct Census {
 
 impl Census {
     /// How many of [`Census::messages`] are `#[error]` texts.
-    pub(crate) fn errors(&self) -> usize {
+    pub fn errors(&self) -> usize {
         self.messages.iter().filter(|m| m.error).count()
     }
 }
 
 /// The census of every crate in [`CRATES`], from the tracked files under `root`.
-pub(crate) fn census(root: &Path) -> Result<Vec<Census>, String> {
+pub fn census(root: &Path) -> Result<Vec<Census>, String> {
     let dirs: Vec<String> = CRATES.iter().map(|c| format!("crates/{c}/src/")).collect();
     let refs: Vec<&str> = dirs.iter().map(String::as_str).collect();
     let tracked = crate::voice::tracked(root, &refs)?;

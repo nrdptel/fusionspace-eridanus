@@ -288,6 +288,15 @@ fusionspace.co's pages and the design
 system's get checked. In the report, a rate in bold is over its limit, and `ref` marks a
 reference page. With `--long` first, it lists each sentence over 25 words in the prose instead, with its file and line.
 
+A change to prose alone can run `cargo voice` in place of `cargo xtask voice`. It's the same check: it takes the same
+paths and `--long`, and with no path writes the same report, which the commit carries. It builds only the check
+and its Markdown reader. `cargo xtask` builds the simulator's crates first. Then
+`scripts/gate.sh voice` runs the check's tests, the report's among them, without the simulator
+either. The gate runs most of CI's commands locally, as
+[CONTRIBUTING.md](https://github.com/nrdptel/fusionspace-eridanus/blob/main/CONTRIBUTING.md#how-a-change-ships)
+describes. This covers the voice check only. `scripts/gate.sh docs pages` runs the site's other
+checks on a page, and those build the simulator.
+
 On any page, the stock-phrase list fails a build. It holds 41 entries in 9 groups. Each
 is named by a published list or by the design system's own writing rules. The lists are style
 guides, studies, and Wikipedia's pages on word choice and on signs of generated writing:
@@ -305,7 +314,7 @@ guides, studies, and Wikipedia's pages on word choice and on signs of generated 
 The list leaves out words that have a technical sense in this project. They are robust, deploy,
 streamline (a streamlined body), boost and powerful (a more powerful motor). Terms such as
 `magic bytes` and `seamless tube` pass. The list is in
-[`xtask/src/voice.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/src/voice.rs),
+[`xtask/voice/src/voice.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/voice/src/voice.rs),
 each entry with its sources and a test that fails without it.
 
 It reads the README, the changelog, the contributing guide, the pull request and issue templates

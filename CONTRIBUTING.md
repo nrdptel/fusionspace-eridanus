@@ -61,7 +61,8 @@ Changes reach `main` through pull requests that pass every CI check on every pla
 - Author and commit each change from the GitHub account that opens the pull request, with no co-author or other
   trailers; the `commit-metadata` check holds every pull request to this.
 - Run `scripts/gate.sh`: it runs most of CI's own commands locally, on one machine. CI runs them all; its tests,
-  examples and Python package run on Linux and Windows (x86-64 and ARM) and on macOS (Apple silicon).
+  examples and Python package run on Linux and Windows (x86-64 and ARM) and on macOS (Apple silicon). For a change
+  to prose alone, [the writing guide](https://hpr.fusionspace.co/writing.html#the-check) names quicker commands for its voice check.
 - Open a pull request that says what changed, how it was verified (with numbers) and what's left. Its template asks
   for each, in the voice the [writing guide](https://hpr.fusionspace.co/writing.html#voice) asks for.
 - Physics, numerics and validation changes are reviewed against their sources before they merge.

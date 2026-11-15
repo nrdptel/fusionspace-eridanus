@@ -1,0 +1,25 @@
+[package]
+name = "xtask-voice"
+description = "The voice check and its report, built apart from the simulator so a prose-only change can rewrite the report cheaply (`cargo voice`)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+# `forbids` (the layering rule `cargo xtask wasm-check` enforces): the check reads text, so it
+# never needs the simulator's crates; a dependency that reached them would make `cargo voice`
+# build the simulator again (#1459).
+[package.metadata.hpr]
+forbids = ["fusionspace-hpr-core", "fusionspace-hpr-sim"]
+
+[dependencies]
+pulldown-cmark.workspace = true
+
+# Dev tooling, not part of the API reference the site publishes (as hpr-cli's library).
+[lib]
+doc = false
