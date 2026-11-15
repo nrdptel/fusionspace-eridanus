@@ -319,12 +319,13 @@ fn wrapped_deg(longitude_deg: f64) -> f64 {
 
 /// The median of `longitudes_deg`, for fixes that may lie either side of the ±180° meridian
 /// (#1093). It is the plain median unless the longitudes' median absolute deviation from it is
-/// over 90°: a track within [`REACH_M`] of its middle spans a small part of a degree, so only one
-/// cut in two by the meridian is that spread, its halves near +180° and −180°. Then the median is
-/// taken with the cut moved to 0° (each western longitude a turn on) and brought back into
-/// [−180°, 180°). A rule on the whole set and not on any one fix, so a bad fix, such as one with
-/// its sign flipped, moves it no more than it moves a plain median; and every track that doesn't
-/// cross the meridian takes the plain median, bit for bit.
+/// over 90°. A track within [`REACH_M`] of its middle spans at most 400 km, 3.6° of longitude at
+/// the equator and 7.2° at 60°, so one with most of its fixes together is spread that far only
+/// when the meridian cuts it in two (or within about 150 km of a pole). Then the median is taken
+/// with the cut moved to 0° (each western longitude a turn on) and brought back into
+/// [−180°, 180°). The rule looks at the whole set and not at any one fix, so a bad fix, such as
+/// one with its sign flipped, moves it no more than it moves a plain median; and a track with more
+/// than half its fixes within 90° of their median takes the plain median, bit for bit.
 fn median_longitude(longitudes_deg: &[f64]) -> Option<f64> {
     let middle_and_spread = |mut values: Vec<f64>| -> Option<(f64, f64)> {
         let middle = median(&mut values)?;

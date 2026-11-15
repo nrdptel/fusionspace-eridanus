@@ -66,8 +66,9 @@ The pad is the frame's origin: a flat east, north and up grid there, on the
 
 - `--pad`;
 - the median of the last 20 fixes before liftoff. A pad on the 180° meridian, its fixes either side
-  of it, sits on the meridian and not near 0°: where the longitudes are spread more than 90° from
-  their median, which only fixes split by the meridian are, the median is taken across it;
+  of it, sits on the meridian and not near 0°: where the median distance of the longitudes from
+  their median is over 90°, which a track with most of its fixes close together has only when the
+  meridian splits it, the median is taken across it;
 - the first fix, and how long after liftoff that was, where the log can tell.
 
 A pad from the first fix may be off by what the rocket has already flown. With no fix at all, nothing
