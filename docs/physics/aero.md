@@ -3259,8 +3259,8 @@ $$
     none well above Mach 1, and the fins about a quarter of HPR Sim's. Which is right is open, since neither has been checked against a
     measurement on that shape
     ([#222](https://github.com/nrdptel/fusionspace-eridanus/issues/222)). A public probe has since recorded
-    the nose's part: OpenRocket 24.12's is a confirmed defect, and HPR Sim's is unchecked against a
-    measurement ([a tangent ogive past Mach 1](#a-tangent-ogive-past-mach-1-beside-openrocket-2412)).
+    the nose's part: OpenRocket 24.12's is a confirmed defect
+    ([a tangent ogive past Mach 1](#a-tangent-ogive-past-mach-1-beside-openrocket-2412)).
 - **Fins.** Each fin set is its own term with its own thickness, chord and cross-section, so their
   order doesn't matter ([Loft lesson L11](../decisions-and-roadmap.md#l11)). $\bar{c}$ is the mean aerodynamic chord and $\Gamma_L$
   the leading-edge sweep. The sweep is $\arctan(x_t/s)$ for a trapezoid and the span average for freeform outlines ([N09] p. 50). For an ellipse it is $\pi/2 - \arccos(k)/\sqrt{1 - k^2}$, $k = c_r/(2s)$ (the closed-form
