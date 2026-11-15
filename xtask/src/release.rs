@@ -3,7 +3,7 @@
 //! up on the pull request that makes it, not on the day of the release.
 //!
 //! - Release 0.1 publishes the library crates and `hpr-cli`; only `hpr-py`, `hpr-ffi`, `hpr-wasm`,
-//!   `hpr-validate` and `xtask` say `publish = false` (ADR-162 §2), and no published crate
+//!   `hpr-validate`, `xtask` and `xtask-voice` say `publish = false` (ADR-162 §2), and no published crate
 //!   depends on one of them, which crates.io would refuse.
 //! - Every published crate has the description, license and repository crates.io shows.
 //! - cargo-about accepts the licenses `cargo deny` allows, the same list, so the license texts a
@@ -33,7 +33,14 @@ mod tests {
     use toml::Value;
 
     /// The crates release 0.1 leaves unpublished (ADR-162 §2, M10.1c's *done when*).
-    const UNPUBLISHED: [&str; 5] = ["hpr-ffi", "hpr-py", "hpr-validate", "hpr-wasm", "xtask"];
+    const UNPUBLISHED: [&str; 6] = [
+        "hpr-ffi",
+        "hpr-py",
+        "hpr-validate",
+        "hpr-wasm",
+        "xtask",
+        "xtask-voice",
+    ];
 
     fn root() -> PathBuf {
         // xtask's manifest folder is the workspace root's child.
@@ -51,7 +58,10 @@ mod tests {
     /// Every workspace member's manifest, by package name.
     fn manifests() -> Vec<(String, Value)> {
         let root = root();
-        let mut paths = vec![root.join("xtask/Cargo.toml")];
+        let mut paths = vec![
+            root.join("xtask/Cargo.toml"),
+            root.join("xtask/voice/Cargo.toml"),
+        ];
         for entry in fs::read_dir(root.join("crates")).unwrap() {
             let manifest = entry.unwrap().path().join("Cargo.toml");
             if manifest.is_file() {

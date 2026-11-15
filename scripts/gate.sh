@@ -208,7 +208,7 @@ touches_pages() {
   # New pages count before they are added, unlike the physics check's files.
   changed=$( { git diff --name-only "$base"; git diff --name-only; git diff --name-only --cached
     git ls-files --others --exclude-standard; } 2>/dev/null)
-  grep -qE '^docs/|\.md$|^xtask/src/site' <<<"$changed" && return 0
+  grep -qE '^docs/|\.md$|^xtask/src/site|^xtask/voice/src/markdown\.rs' <<<"$changed" && return 0
   return 1
 }
 

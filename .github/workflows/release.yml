@@ -241,7 +241,8 @@ jobs:
           if-no-files-found: error
 
   # Every crate that release 0.1 publishes packages and builds from its packaged files alone, against
-  # the others as packaged; hpr-py, hpr-ffi, hpr-wasm, hpr-validate and xtask say `publish = false`.
+  # the others as packaged; hpr-py, hpr-ffi, hpr-wasm, hpr-validate, xtask and
+  # xtask-voice say `publish = false`.
   crates:
     name: crates
     runs-on: ubuntu-latest

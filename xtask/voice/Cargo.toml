@@ -11,6 +11,12 @@ publish = false
 [lints]
 workspace = true
 
+# `forbids` (the layering rule `cargo xtask wasm-check` enforces): the check reads text, so it
+# never needs the simulator's crates; a dependency that reached them would make `cargo voice`
+# build the simulator again (#1459).
+[package.metadata.hpr]
+forbids = ["fusionspace-hpr-core", "fusionspace-hpr-sim"]
+
 [dependencies]
 pulldown-cmark.workspace = true
 
