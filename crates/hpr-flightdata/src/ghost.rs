@@ -321,7 +321,7 @@ fn wrapped_deg(longitude_deg: f64) -> f64 {
 /// (#1093). It is the plain median unless the longitudes' median absolute deviation from it is
 /// over 90°. A track within [`REACH_M`] of its middle spans at most 400 km, 3.6° of longitude at
 /// the equator and 7.2° at 60°, so one with most of its fixes together is spread that far only
-/// when the meridian cuts it in two (or within about 150 km of a pole). Then the median is taken
+/// when the meridian cuts it in two (or near a pole). Then the median is taken
 /// with the cut moved to 0° (each western longitude a turn on) and brought back into
 /// [−180°, 180°). The rule looks at the whole set and not at any one fix, so a bad fix, such as
 /// one with its sign flipped, moves it no more than it moves a plain median; and a track with more
