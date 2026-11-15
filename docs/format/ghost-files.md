@@ -41,7 +41,10 @@ analyze`](../cli.md#hpr-analyze) that reads a log, such as `--mapping`, works wi
 
 ## What a track holds
 
-Each log gives one track, a list of moments, each with these numbers.
+Each log gives one track, named by its file's name. Where logs share a file name, each of them
+takes as many of the folders above it as tell it apart from the others, such as `d1/x.csv` and
+`d2/x.csv`. Paths whose folders match, such as one given twice, are numbered: `x.csv (1)` and
+`x.csv (2)`. A track is a list of moments, each with these numbers.
 
 | Number | Where it comes from |
 |---|---|
@@ -62,7 +65,14 @@ The pad is the frame's origin: a flat east, north and up grid there, on the
 [WGS 84](../glossary.md#wgs-84) ellipsoid ([the frame's equations](../physics/geodesy.md)). It comes from the first of these a flight has:
 
 - `--pad`;
-- the median of the last 20 fixes before liftoff;
+- the median of the last 20 fixes before liftoff. On the 180° meridian some fixes read near +180°
+  and some near −180°. With as many of one as of the other, the two middle values lie one each side,
+  and a plain median lands near 0°. So each longitude's distance from the plain median is found
+  first. If the median of those distances is over 90°, the negative (western) longitudes are moved
+  up by 360°, the median is taken, and the result is brought back into the range from −180° up to,
+  but not including, 180°. Otherwise the plain median stands. Fixes close together have a median distance
+  over 90° only when the meridian splits them, or near a pole. For fixes at 179.9°E, 179.9°W, 179.8°E
+  and 179.8°W, the plain median is 0°; this one is 180°, written −180°;
 - the first fix, and how long after liftoff that was, where the log can tell.
 
 A pad from the first fix may be off by what the rocket has already flown. With no fix at all, nothing
@@ -80,7 +90,8 @@ Each track counts what it leaves out, in `fixes`, `heights_too_fast`, `heights_b
 
 - it is empty, out of range, or within 0.01° of 0°N 0°E, which is a receiver's way of saying no fix;
 - its clock didn't go forward;
-- it lies more than 200 km (124 mi) from the track's median, as a longitude with its sign flipped does;
+- it lies more than 200 km (124 mi) from the track's median (taken across the 180° meridian as
+  [the pad's](#the-pad) is), as a longitude with its sign flipped does;
 - reaching it from the last fix kept would take over 1,500 m/s (4,921 ft/s), plus 200 m (656 ft) for a receiver's scatter.
 
 A height goes on the same speed, plus 50 m (164 ft). The first kept is the first that agrees with the
@@ -178,8 +189,6 @@ So the formats agree with each other. What ties them to the log is pinned apart 
 - A GNSS log and an altimeter log of one flight joined up
   ([#1086](https://github.com/nrdptel/fusionspace-eridanus/issues/1086)). Each of RocketPy's split
   files gives its own ghost, as a GPS track has no liftoff.
-- Two logs of the same file name, whose tracks carry that name,
-  and a pad by the 180° meridian ([#1093](https://github.com/nrdptel/fusionspace-eridanus/issues/1093)).
 - Attitude: nothing here turns the marker.
 - The Python package: `hpr analyze` only so far
   ([#1085](https://github.com/nrdptel/fusionspace-eridanus/issues/1085)).
