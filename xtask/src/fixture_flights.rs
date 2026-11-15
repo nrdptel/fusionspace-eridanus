@@ -958,7 +958,9 @@ fn fly_all(
     ),
     String,
 > {
-    let record = openrocket_record(root, &conditions(root, entries, index, supply)?)?;
+    let written = conditions(root, entries, index, supply)?;
+    let record = openrocket_record(root, &written)?;
+    let inputs = crate::histories::collection_inputs(root, &written)?;
     let added = entries
         .iter()
         .filter(|entry| entry.added_after_m2_7a)
@@ -1154,6 +1156,7 @@ fn fly_all(
                 .collect(),
             logged,
             sets,
+            inputs,
         },
         kept,
     ))
@@ -1218,6 +1221,8 @@ pub(crate) struct Report {
     pub excluded: Vec<Tally>,
     pub logged: Logged,
     pub sets: Vec<ErrorSet>,
+    /// OpenRocket's thrust, mass, center of mass and drag coefficient along its flights (M2.3c11).
+    pub inputs: crate::histories::Inputs,
 }
 
 /// How many flights went where.
@@ -1500,6 +1505,9 @@ impl Report {
                 stats.consistent(&format!("{}: {what}", set.name))?;
             }
         }
+        self.inputs
+            .check_consistent(c.flown_by_openrocket)
+            .or_else(fail)?;
         if page != self.to_markdown() {
             return Err(format!(
                 "{REPORT_MD} is not the page of {REPORT_JSON}; run `cargo xtask fixture-flights`"
@@ -1677,6 +1685,7 @@ impl Report {
                 );
             }
         }
+        page.push_str(&self.inputs.to_markdown());
         let _ = writeln!(page, "\n## Sources\n");
         let _ = writeln!(page, "{FLIGHT_DATA_CREDIT}\n");
         let _ = writeln!(page, "{ERA5_CREDIT}");

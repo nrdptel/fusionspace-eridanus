@@ -47,6 +47,7 @@ pub mod events;
 pub mod export;
 pub mod flight;
 pub mod flutter;
+pub mod histories;
 pub mod integrator;
 pub mod issues;
 pub mod metrics;
@@ -69,6 +70,7 @@ pub use flight::{
     EventKind, FlightEvent, FlightResult, FlightSettings, Simulation, Termination, UserEvent,
 };
 pub use flutter::{FlutterMargin, FlutterPanel};
+pub use histories::{MassHistory, ThrustHistory};
 pub use integrator::{
     Adaptive, Advance, DEFAULT_STEP_LIMIT, IntegrationError, Integrator, Method, OdeSystem,
     SettingsError, Stats, Step,

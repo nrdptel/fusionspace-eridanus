@@ -37,6 +37,7 @@ use hpr_design::Assembly;
 
 use crate::environment::Environment;
 use crate::error::SimError;
+use crate::histories::Histories;
 use crate::shifts::Shifts;
 use crate::state::{STATE_LEN, State};
 
@@ -161,6 +162,8 @@ pub(crate) struct Vehicle {
     reference_area_m2: f64,
     /// The parts that move along the airframe.
     pub(crate) shifts: Shifts,
+    /// The thrust and mass histories flown in place of its own, if any ([`crate::histories`]).
+    pub(crate) histories: Histories,
 }
 
 impl Vehicle {
@@ -228,6 +231,7 @@ impl Vehicle {
             ignition_s,
             reference_area_m2,
             shifts: Shifts::default(),
+            histories: Histories::default(),
         })
     }
 
@@ -245,8 +249,21 @@ impl Vehicle {
             .fold(0.0, f64::max)
     }
 
-    /// The times at which the thrust curves start, have knots or end on the flight's clock,
-    /// sorted, after `0`.
+    /// The mean of the nozzle exits of the motors lit by a known time, in body axes, m, or
+    /// `None` with no such motor: where a thrust history acts ([`crate::histories`]).
+    pub(crate) fn lit_nozzle_mean_m(&self) -> Option<DVec3> {
+        let lit: Vec<DVec3> = self
+            .motors
+            .iter()
+            .filter(|m| m.ignition_s.is_finite())
+            .map(|m| m.nozzle_m)
+            .collect();
+        (!lit.is_empty()).then(|| lit.iter().copied().sum::<DVec3>() / lit.len() as f64)
+    }
+
+    /// The times at which the thrust curves start, have knots or end on the flight's clock, and
+    /// the corners of the histories flown in their place ([`Histories::corners_s`]), sorted,
+    /// after `0`.
     pub(crate) fn thrust_knots_s(&self) -> Vec<f64> {
         let mut times: Vec<f64> = self
             .assembly
@@ -266,6 +283,7 @@ impl Vehicle {
                 )
             })
             .filter(|t| *t > 0.0)
+            .chain(self.histories.corners_s())
             .collect();
         times.sort_by(f64::total_cmp);
         times.dedup();
@@ -276,10 +294,17 @@ impl Vehicle {
     /// `Assembly::mass_properties` kept inside `window` (the current integration interval), so
     /// that no difference straddles a thrust-curve knot or a burnout. The parts that move along
     /// the airframe are then put where they are, with their own rates in closed form
-    /// ([`Shifts::shift_state`]).
+    /// ([`Shifts::shift_state`]). A mass history ([`crate::histories::MassHistory`]) gives the
+    /// mass and the center of mass's axial place, the inertia about the center of mass staying
+    /// the assembly's, and is differenced the same way whenever it changes inside `window`.
     pub(crate) fn mass_state(&self, t: f64, window: (f64, f64)) -> MassState {
+        let history = self.histories.mass.as_ref();
         let props = |t: f64| {
-            let mp = self.assembly.mass_properties_lit(t, &self.ignition_s);
+            let mut mp = self.assembly.mass_properties_lit(t, &self.ignition_s);
+            if let Some(history) = history {
+                mp.mass_kg = history.mass_kg(t);
+                mp.cg_m.z = -history.cg_aft_of_nose_m(t);
+            }
             (
                 mp.mass_kg,
                 mp.cg_m,
@@ -292,7 +317,8 @@ impl Vehicle {
         let burning = self
             .motors
             .iter()
-            .any(|m| a < m.burnout_s && b > m.ignition_s);
+            .any(|m| a < m.burnout_s && b > m.ignition_s)
+            || history.is_some_and(|history| history.varies_within(window));
         let mut state = MassState {
             mass_kg,
             mass_rate_kg_s: 0.0,
@@ -456,6 +482,13 @@ impl Vehicle {
                 + DMat3::from_diagonal(DVec3::splat(n.length_squared()))
                 - outer(n, n);
             jet_gyration += gyration * mdot;
+        }
+
+        // A thrust history takes the motors' place, at the mean of their nozzle exits; their mass
+        // flow and the base area they free stay theirs ([`crate::histories`]).
+        if let Some(history) = &self.histories.thrust {
+            thrust = DVec3::Z * history.thrust_n(t);
+            thrust_moment = self.histories.nozzle_m.cross(thrust);
         }
 
         // Aerodynamics: the airframe in flight, the open canopies during the descent.
@@ -1088,6 +1121,55 @@ mod tests {
         let coasting = vehicle.mass_state(10.0, (9.0, 11.0));
         assert_eq!(coasting.mass_rate_kg_s, 0.0);
         assert_eq!(coasting.inertia_o_rate, DMat3::ZERO);
+    }
+
+    /// Under a mass history the inertia about the nose tip is the assembly's own about its
+    /// center of mass, moved there by the parallel-axis theorem with the history's mass and
+    /// center, `I_O = I_c + m (|r|² E − r rᵀ)`, and its rate is that expression's derivative:
+    /// `ṁ (|r|² E − r rᵀ) + m (2 (r·r′) E − r′ rᵀ − r r′ᵀ)` with `I_c` fixed after burnout.
+    #[test]
+    fn a_mass_history_moves_the_assembly_s_inertia_by_the_parallel_axis_theorem() {
+        let mut vehicle = valetudo();
+        let own = vehicle
+            .assembly
+            .mass_properties_lit(10.0, &vehicle.ignition_s);
+        // 20 kg falling to 16 kg and a center moving 1.0 m to 1.2 m aft over 20 s: at 10 s,
+        // 18 kg at 1.1 m, ṁ = −0.2 kg/s and r′_z = −0.01 m/s (the center moves aft, −z_B).
+        let history =
+            crate::histories::MassHistory::new(vec![0.0, 20.0], vec![20.0, 16.0], vec![1.0, 1.2])
+                .unwrap();
+        vehicle.histories.mass = Some(history);
+        let state = vehicle.mass_state(10.0, (9.0, 11.0));
+
+        let (m, m_rate) = (18.0, -0.2);
+        let r = DVec3::new(own.cg_m.x, own.cg_m.y, -1.1);
+        let r_rate = DVec3::new(0.0, 0.0, -0.01);
+        let outer = |a: DVec3, b: DVec3| DMat3::from_cols(a * b.x, a * b.y, a * b.z);
+        let transfer = DMat3::IDENTITY * r.length_squared() - outer(r, r);
+        let expected = own.inertia_kg_m2 + transfer * m;
+        let expected_rate = transfer * m_rate
+            + (DMat3::IDENTITY * (2.0 * r.dot(r_rate)) - outer(r_rate, r) - outer(r, r_rate)) * m;
+
+        assert_eq!(state.inertia_cg, own.inertia_kg_m2);
+        let close = |a: DMat3, b: DMat3, tolerance: f64| {
+            (0..3).all(|i| (a.col(i) - b.col(i)).abs().max_element() <= tolerance)
+        };
+        assert!(
+            close(state.inertia_o, expected, 1e-12 * expected.col(0).x.abs()),
+            "{:?} vs {expected:?}",
+            state.inertia_o
+        );
+        assert!(
+            close(
+                state.inertia_o_rate,
+                expected_rate,
+                1e-6 * expected_rate.col(0).x.abs()
+            ),
+            "{:?} vs {expected_rate:?}",
+            state.inertia_o_rate
+        );
+        assert!((state.mass_rate_kg_s - m_rate).abs() < 1e-9);
+        assert!((state.cg_rate_m_s - r_rate).length() < 1e-9);
     }
 
     #[test]

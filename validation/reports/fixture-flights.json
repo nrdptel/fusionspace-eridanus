@@ -617,5 +617,36 @@
         ]
       }
     }
-  ]
+  ],
+  "inputs": {
+    "flights": 80,
+    "holding_all": 79,
+    "lacking": [
+      {
+        "reason": "not_flown",
+        "flights": 1
+      },
+      {
+        "reason": "another_flight",
+        "flights": 0
+      },
+      {
+        "reason": "thrust_not_finite",
+        "flights": 0
+      },
+      {
+        "reason": "mass_not_finite",
+        "flights": 0
+      },
+      {
+        "reason": "cg_not_finite",
+        "flights": 0
+      },
+      {
+        "reason": "drag_not_finite",
+        "flights": 0
+      }
+    ],
+    "largest_apogee_move": 2.3e-6
+  }
 }

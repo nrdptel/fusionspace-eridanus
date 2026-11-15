@@ -55,7 +55,7 @@ out under *Equations of motion*.
 
 ### Code and sources
 
-Code: `hpr_sim::{dynamics, flight, rail, recorder, state}`. Decisions: [ADR-011][adr-011]
+Code: `hpr_sim::{dynamics, flight, histories, rail, recorder, state}`. Decisions: [ADR-011][adr-011]
 (equations of motion, aerodynamic coupling, rail, phases and termination). The integrator and
 events are in [Time integration](integration.md), and the frames in [Frames](frames.md).
 
@@ -366,6 +366,72 @@ $$
   | 1e-8 | 1.1e-6 m | 1.13 ms |
   | 1e-10 | 1e-7 m | 2.72 ms |
 
+### Thrust and mass from another program
+
+A flight can take its thrust, and its mass with its center of mass, from another program, as
+numbers against time, in place of its own (`Simulation::with_thrust_history` and
+`Simulation::with_mass_history`, since [M2.3c11](../decisions-and-roadmap.md#m2-3c11)). It is
+for one job: splitting the gap between HPR Sim's apogee and OpenRocket's by cause, one input
+swapped at a time, as a drag table swaps the drag ([ADR-349][adr-349]). The split itself is
+[M2.3c12](../decisions-and-roadmap.md#m2-3c12), still to come. It is not a model, and a flight on
+it is not a prediction. It is in the Rust library only, for the validation harness: no `hpr`
+command, Python call or file option takes a history.
+
+> **How far to trust it.** These are checks of the swap itself, code against code and against
+> closed forms, not of either program's physics. A flight given its own thrust and mass, sampled
+> at OpenRocket's times, came back to its own apogee within 0.001% on the two public designs
+> tried, where the test holds it to 0.05%. In a vacuum it follows the closed forms to 1e-7 m/s
+> (both under *Verification*). Those closed forms are straight up, with no rotation. Of the
+> turning terms, only a mass history's inertia about the nose tip and its rate are checked, each
+> against its own formula (also under *Verification*). For how close either program comes to a real flight, rely on
+> [Accuracy](../accuracy.md#real-flights).
+
+- **Between samples.** A history is a list of samples. Between two of them, $(t_i, y_i)$ and
+  $(t_{i+1}, y_{i+1})$, it is the straight line
+
+  $$
+  \begin{aligned}
+  y(t) &= y_i + (y_{i+1} - y_i)\, s, \\
+  s &= \frac{t - t_i}{t_{i+1} - t_i}.
+  \end{aligned}
+  $$
+
+  Before the first sample and after the last it holds that sample's value. So its rate is the
+  slope of the piece it is on, finite, with a jump at each corner, and its second derivative is
+  zero inside a piece. Every sample where the slope changes is a stop time, where an integration
+  step must end ([time integration](integration.md)), so no step straddles a corner.
+- **Thrust.** The history's value is the thrust as flown, along the axis $+z_B$. It takes the
+  place of the motors' thrusts with their correction for the air's pressure, which isn't applied
+  to it again. It acts at the mean of the lit motors' nozzle exits, so a symmetric cluster's
+  thrust turns the rocket no more than HPR Sim's own does. An asymmetric cluster's turning
+  moment is left out.
+- **What stays HPR Sim's under a thrust history.** The motors still set the burnout event and the
+  base area a burning motor frees ([base drag](aero.md)). They also set the mass flow behind jet
+  damping and the nozzle terms $\dot m_k$ and $\ddot m_k$ of the equations above. So those
+  terms' push, 21 N at Valetudo's liftoff ([internal momentum](../glossary.md#internal-momentum)),
+  stays on top of the history's thrust.
+- **Mass.** The history gives the whole rocket's mass $m(t)$ and its center of mass $x(t)$, in
+  meters aft of the nose tip, the body origin $O$. In body axes the center of mass is
+  $\mathbf{r} = (r_x, r_y, -x)$, with HPR Sim's own small offsets off the axis. Then $\dot m$
+  and $\mathbf{r}'$ are the history's slopes and $\mathbf{r}'' = 0$.
+- **What stays HPR Sim's under a mass history.** The inertia about the center of mass $I_c$. The
+  inertia about $O$ comes from it by the parallel-axis theorem with the history's mass and
+  center, $I_O = I_c + m\,(|\mathbf{r}|^2 \mathbf{1} - \mathbf{r}\mathbf{r}^{\mathsf{T}})$, with
+  $\mathbf{1}$ the identity matrix, so the inertia's difference from OpenRocket's lands in the split's
+  remainder. The motors' mass flow stays theirs in the nozzle terms, as under a thrust history.
+  Where the history's mass still falls after the motors burn out, its $\dot m$ is in the turning
+  terms with no nozzle flow to match, so jet damping is not the classical form there. That too
+  lands in the remainder. A structure-mass scale changes only the inertia under a mass history,
+  since the history gives the mass.
+- **Time.** A history's clock is the flight's: 0 at launch.
+  OpenRocket's clock starts at the same instant: its launch and ignition events are both at 0 s.
+- **What is refused, with the reason.** An empty sample list, lists of different lengths, times
+  that don't rise, a number that isn't finite, a negative thrust, a mass that isn't positive, or a first sample after launch. A
+  thrust that doesn't end at zero, since it would stop while the motor still pushed. A thrust
+  history on a flight with no motor lit at a known time. Either history on a flight that splits,
+  by a separation or an ejection, or that moves or releases a part: a history is the whole
+  stack's, with no part's own.
+
 ## Verification
 
 Unit tests in `hpr_sim::tests`, `hpr_sim::dynamics::tests` and `hpr_sim::rail::tests`, at the
@@ -424,6 +490,48 @@ default settings. The numbers were measured on September 17, 2026.
 - The synthetic 54 mm (2.1 in) rocket on an I175 passes Mach 1 and lands. It does both on HPR
   Sim's own drag and on a constant drag table.
 - A Valetudo flight to the ground costs about 1.3 ms, measured on October 9, 2026 (`docs/perf.md`).
+- Thrust and mass histories (`histories_fly_the_closed_form_of_a_varying_mass_under_constant_thrust`).
+  In a vacuum, with gravity $g$ of 9.80665 m/s² (32.174 ft/s²), long after its own motor's
+  burnout, Valetudo rises straight up at a speed $v_0$ of 50 m/s (164 ft/s) on a thrust history
+  $F$ of 300 N. Its mass history, not Valetudo's own mass, starts at $m_0$, 10 kg, and falls at
+  $q$, 1.5 kg/s, so $\dot m = -q$. Its center of mass moves aft at 0.05 m/s (0.16 ft/s), so $r'$
+  is −0.05 m/s (−0.16 ft/s) along $+z_B$, which points to the nose. After a time $\tau$, the
+  nose tip rises at
+
+  $$
+  \begin{aligned}
+  v(\tau) &= v_0 - g\tau \\
+  &\quad + \frac{F + 2 q r'}{q} \ln \frac{m_0}{m_0 - q\tau},
+  \end{aligned}
+  $$
+
+  which reaches 101.686 m/s (333.62 ft/s) after 2 s. The flight follows it to 1e-7 m/s. The term
+  $2 q r'$ is the axial part of the equations' $-2\dot m\,\mathbf{r}'$. Without it the speed would
+  be 0.036 m/s (0.12 ft/s) higher. Each history alone follows its own closed form to 1e-7 m/s
+  too: the thrust on the design's burnt-out mass, 8.26 kg, gains $(F/m - g)\,\tau$, 53.0 m/s
+  (174 ft/s) in 2 s, and the mass alone the closed form above with $F = 0$. With a corner 1 s in,
+  where the mass flow halves and the center's rate drops to 0.02 m/s (0.066 ft/s), a step ends at the corner
+  and each piece follows its own closed form to 1e-7 m/s.
+- Under a mass history, the inertia about the nose tip and its rate are the parallel-axis
+  formula and its derivative, with the history's mass and center and the design's own inertia
+  about its center of mass, to 1e-12 and 1e-6 of their sizes
+  (`a_mass_history_moves_the_assembly_s_inertia_by_the_parallel_axis_theorem`).
+- A mass history read back at 1 s gives the history's mass and center along the axis, with the
+  design's offsets off the axis and inertia. A separation, before or after a history, refuses
+  it with the reason, and so do a mass shift and a mass release.
+- The own-history test (`cargo test -p xtask histories`). Two public designs are flown, sampled at
+  the times of OpenRocket 24.12's own flight of each (`validation/fixtures/ork/openrocket-histories.json`),
+  and flown again on those samples. Both are a 60 mm (2.4 in) airframe with a conical nose and
+  three fins: `pods-none` on an AeroTech H128W, the control of
+  [a tilted launch rod](../format/ork.md#a-tilted-launch-rod), and `mach-probe` on a J570W, made
+  for this test. On `pods-none`, a 251-sample flight to Mach 0.76, the apogee
+  goes from 782.7197 m (2,567.978 ft) to 782.7214 m (2,567.984 ft), +0.00022%. On `mach-probe`, a
+  567-sample flight to Mach 1.73, it goes from 2,030.4623 m (6,661.622 ft) to 2,030.4496 m
+  (6,661.580 ft), −0.00063%. The bound is 0.05%, about a
+  thirtieth of the 1.63% mean absolute gap between the two programs' apogees on 60 real flights
+  ([accuracy](../accuracy.md#real-flights-of-the-private-collection)) that the split divides. On the same
+  flights, 5% more thrust raises the apogee by 2.8% and 3.0%, and 20% more mass delays the rail
+  exit by 7.9% and 7.2%: both histories are flown.
 
 ### Whole flights against RocketPy
 
@@ -485,6 +593,7 @@ its tolerances. [Accuracy][accuracy] gives every result.
 
 [adr-007]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0007-design-tree-stations-placement-automatic-radii.md
 [adr-011]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0011-rigid-body-flight-equations-of-motion.md
+[adr-349]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0349-m2-3c6-in-four-the-public-nose-probe-first.md
 [adr-032]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0032-normal-force-overrides-from-rasaero-ii-the.md
 [report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md
 [fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md

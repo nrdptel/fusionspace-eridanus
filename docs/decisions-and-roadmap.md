@@ -699,7 +699,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-3c7"></a>[M2.3c7][phase-1] | Faster than sound: published flights | not yet done |
 | <a id="m2-3c9"></a>[M2.3c9][phase-1] | Every flight OpenRocket flies | not yet done |
 | <a id="m2-3c10"></a>[M2.3c10][done-1] | The fineness-3 nose probe | done |
-| <a id="m2-3c11"></a>[M2.3c11][phase-1] | OpenRocket's inputs along its flights, flown by HPR Sim | not yet done |
+| <a id="m2-3c11"></a>[M2.3c11][done-1] | OpenRocket's inputs along its flights, flown by HPR Sim | done |
 | <a id="m2-3c12"></a>[M2.3c12][phase-1] | The split in the fixture report | not yet done |
 | <a id="m2-3c13"></a>[M2.3c13][phase-1] | The tangent-ogive nose's line | not yet done |
 | <a id="m2-3d"></a>[M2.3d][done-1] | Twelve public flights, predictions first | done |

@@ -1508,3 +1508,328 @@ fn a_structure_mass_scale_scales_the_mass_it_says() {
         ));
     }
 }
+
+// Thrust and mass histories given from outside (M2.3c11, ADR-349).
+
+/// Valetudo from t = 10 s, long after its motor burned out, rising at 50 m/s with its axis
+/// vertical in a vacuum under uniform gravity, flown on a constant thrust history and a mass
+/// falling at a constant rate with its center of mass moving aft at a constant rate. With no
+/// rotation and no air, the nose tip's acceleration along the axis is `(F − 2ṁ r′)/m − g`
+/// (`docs/physics/flight.md`), so with `m = m0 − q τ`, `ṁ = −q` and `r′` the axial rate of the
+/// center of mass in body axes:
+///
+/// `v(τ) = v0 + ((F + 2 q r′)/q) ln(m0 / (m0 − q τ)) − g τ`.
+#[test]
+fn histories_fly_the_closed_form_of_a_varying_mass_under_constant_thrust() {
+    use crate::histories::{MassHistory, ThrustHistory};
+
+    let (t0, t1) = (10.0, 12.0);
+    let (thrust_n, m0, q) = (300.0, 10.0, 1.5);
+    let (x0, x_rate) = (1.2, 0.05);
+    let thrust =
+        ThrustHistory::new(vec![0.0, t1, t1 + 0.5], vec![thrust_n, thrust_n, 0.0]).unwrap();
+    let mass = MassHistory::new(
+        vec![0.0, t0, t1, 30.0],
+        vec![m0, m0, m0 - q * (t1 - t0), m0 - q * (t1 - t0)],
+        vec![x0, x0, x0 + x_rate * (t1 - t0), x0 + x_rate * (t1 - t0)],
+    )
+    .unwrap();
+    let sim = valetudo(analytic_environment(UniformAir::vacuum(), G), capped(t1))
+        .with_thrust_history(thrust)
+        .unwrap()
+        .with_mass_history(mass)
+        .unwrap();
+    let v0 = 50.0;
+    let state = State {
+        position_enu_m: DVec3::new(0.0, 0.0, 500.0),
+        velocity_enu_m_s: DVec3::new(0.0, 0.0, v0),
+        attitude: DQuat::IDENTITY,
+        body_rate_rad_s: DVec3::ZERO,
+    };
+    let mut recorder = Recorder::new(vec![Channel::Time, Channel::Velocity], None).unwrap();
+    sim.run_free(t0, state, &mut recorder).unwrap();
+    // The center of mass moves aft, along −z_B: r′ is negative.
+    let r_rate = -x_rate;
+    let closed =
+        |tau: f64| v0 + ((thrust_n + 2.0 * q * r_rate) / q) * (m0 / (m0 - q * tau)).ln() - G * tau;
+    let rows = recorder.rows();
+    let mut worst: f64 = 0.0;
+    for row in rows {
+        worst = worst.max((row[3] - closed(row[0] - t0)).abs());
+        assert!(row[1].abs() < 1e-9 && row[2].abs() < 1e-9, "{row:?}");
+    }
+    let last = rows.last().unwrap();
+    assert_eq!(last[0], t1);
+    // 50 m/s to 101.686 m/s; without the mass term 2q r′ it would be 101.722 m/s, so a center
+    // of mass whose rate was lost would miss by 3.6e5 times the bound below.
+    assert!(
+        (closed(t1 - t0) - 101.686_021).abs() < 1e-6,
+        "{}",
+        closed(t1 - t0)
+    );
+    assert!(worst < 1e-7, "{worst}");
+}
+
+/// As above, but the mass history turns a corner at 11 s, mid-flight: the mass falls at 1.5 kg/s
+/// and then 0.75 kg/s, and the center of mass moves aft at 0.05 m/s and then 0.02 m/s. The
+/// integration stops at the corner, so each piece follows its own closed form, the second
+/// starting from the first's end, with no step or difference stencil across it.
+#[test]
+fn a_mass_history_s_corner_mid_flight_keeps_each_piece_on_its_closed_form() {
+    use crate::histories::{MassHistory, ThrustHistory};
+
+    let (t0, tc, t1) = (10.0, 11.0, 12.0);
+    let (thrust_n, m0) = (300.0, 10.0);
+    let ((q1, x_rate_1), (q2, x_rate_2)) = ((1.5, 0.05), (0.75, 0.02));
+    let x0 = 1.2;
+    let (mc, xc) = (m0 - q1 * (tc - t0), x0 + x_rate_1 * (tc - t0));
+    let (m1, x1) = (mc - q2 * (t1 - tc), xc + x_rate_2 * (t1 - tc));
+    let thrust =
+        ThrustHistory::new(vec![0.0, t1, t1 + 0.5], vec![thrust_n, thrust_n, 0.0]).unwrap();
+    let mass = MassHistory::new(
+        vec![0.0, t0, tc, t1, 30.0],
+        vec![m0, m0, mc, m1, m1],
+        vec![x0, x0, xc, x1, x1],
+    )
+    .unwrap();
+    let sim = valetudo(analytic_environment(UniformAir::vacuum(), G), capped(t1))
+        .with_thrust_history(thrust)
+        .unwrap()
+        .with_mass_history(mass)
+        .unwrap();
+    let v0 = 50.0;
+    let state = State {
+        position_enu_m: DVec3::new(0.0, 0.0, 500.0),
+        velocity_enu_m_s: DVec3::new(0.0, 0.0, v0),
+        attitude: DQuat::IDENTITY,
+        body_rate_rad_s: DVec3::ZERO,
+    };
+    let mut recorder = Recorder::new(vec![Channel::Time, Channel::Velocity], None).unwrap();
+    sim.run_free(t0, state, &mut recorder).unwrap();
+    // On a piece starting at speed `v`, mass `m`, mass flow `q` and r′ = −x_rate (aft is −z_B).
+    let piece = |v: f64, m: f64, q: f64, x_rate: f64, tau: f64| {
+        v + ((thrust_n - 2.0 * q * x_rate) / q) * (m / (m - q * tau)).ln() - G * tau
+    };
+    let vc = piece(v0, m0, q1, x_rate_1, tc - t0);
+    let closed = |t: f64| {
+        if t <= tc {
+            piece(v0, m0, q1, x_rate_1, t - t0)
+        } else {
+            piece(vc, mc, q2, x_rate_2, t - tc)
+        }
+    };
+    let rows = recorder.rows();
+    assert!(
+        rows.iter().any(|row| row[0] == tc),
+        "no step ends at the corner"
+    );
+    let mut worst: f64 = 0.0;
+    for row in rows {
+        worst = worst.max((row[3] - closed(row[0])).abs());
+    }
+    assert_eq!(rows.last().unwrap()[0], t1);
+    assert!(worst < 1e-7, "{worst}");
+}
+
+/// Valetudo from t = 10 s as above, rising at 50 m/s in a vacuum, on the histories given: the
+/// time and the nose tip's velocity at each step's end, the last at 12 s.
+fn climb_on(
+    thrust: Option<crate::histories::ThrustHistory>,
+    mass: Option<crate::histories::MassHistory>,
+) -> (Simulation, Vec<Vec<f64>>) {
+    let mut sim = valetudo(analytic_environment(UniformAir::vacuum(), G), capped(12.0));
+    if let Some(thrust) = thrust {
+        sim = sim.with_thrust_history(thrust).unwrap();
+    }
+    if let Some(mass) = mass {
+        sim = sim.with_mass_history(mass).unwrap();
+    }
+    let state = State {
+        position_enu_m: DVec3::new(0.0, 0.0, 500.0),
+        velocity_enu_m_s: DVec3::new(0.0, 0.0, 50.0),
+        attitude: DQuat::IDENTITY,
+        body_rate_rad_s: DVec3::ZERO,
+    };
+    let mut recorder = Recorder::new(vec![Channel::Time, Channel::Velocity], None).unwrap();
+    sim.run_free(10.0, state, &mut recorder).unwrap();
+    let rows = recorder.rows().to_vec();
+    assert_eq!(rows.last().unwrap()[0], 12.0);
+    (sim, rows)
+}
+
+/// A thrust history alone, on the design's own mass long after burnout (fixed, as is its center
+/// of mass): the nose tip speeds up at `F/m − g`, so `v(τ) = v0 + (F/m − g) τ`.
+#[test]
+fn a_thrust_history_alone_gives_the_closed_form_of_a_constant_acceleration() {
+    use crate::histories::ThrustHistory;
+
+    let thrust = ThrustHistory::new(vec![0.0, 12.0, 12.5], vec![300.0, 300.0, 0.0]).unwrap();
+    let (sim, rows) = climb_on(Some(thrust), None);
+    let m = sim.assembly().mass_properties(10.0).mass_kg;
+    let closed = |tau: f64| 50.0 + (300.0 / m - G) * tau;
+    let worst = rows
+        .iter()
+        .map(|row| (row[3] - closed(row[0] - 10.0)).abs())
+        .fold(0.0, f64::max);
+    // 53.0 m/s gained in 2 s on Valetudo's burnt-out 8.26 kg, where it would lose 19.6 m/s with
+    // no thrust.
+    assert!((m - 8.26).abs() < 0.005, "{m}");
+    assert!(
+        (closed(2.0) - closed(0.0) - 53.04).abs() < 0.01,
+        "{}",
+        closed(2.0)
+    );
+    assert!(worst < 1e-7, "{worst}");
+}
+
+/// A mass history alone, with no thrust after burnout: only its rates push, through `−2ṁ r′`,
+/// so `v(τ) = v0 + 2 r′ ln(m0 / (m0 − q τ)) − g τ`, the closed form above with `F = 0`.
+#[test]
+fn a_mass_history_alone_gives_the_closed_form_of_its_rates() {
+    use crate::histories::MassHistory;
+
+    let (m0, q, x_rate) = (10.0, 1.5, 0.05);
+    let mass = MassHistory::new(
+        vec![0.0, 10.0, 12.0, 30.0],
+        vec![m0, m0, m0 - 2.0 * q, m0 - 2.0 * q],
+        vec![1.2, 1.2, 1.2 + 2.0 * x_rate, 1.2 + 2.0 * x_rate],
+    )
+    .unwrap();
+    let (_, rows) = climb_on(None, Some(mass));
+    let r_rate = -x_rate;
+    let closed = |tau: f64| 50.0 + 2.0 * r_rate * (m0 / (m0 - q * tau)).ln() - G * tau;
+    let worst = rows
+        .iter()
+        .map(|row| (row[3] - closed(row[0] - 10.0)).abs())
+        .fold(0.0, f64::max);
+    // The rates' push, 2 r′ ln(10/7) = −0.036 m/s over 2 s, is 3.6e5 times the bound.
+    assert!((2.0 * r_rate * (10.0_f64 / 7.0).ln() + 0.035_668).abs() < 1e-6);
+    assert!(worst < 1e-7, "{worst}");
+}
+
+/// The same flight's mass properties, read back at a time inside a piece: the history's mass
+/// and center, the design's inertia about the center of mass.
+#[test]
+fn a_mass_history_replaces_the_mass_and_the_axial_center_only() {
+    use crate::histories::MassHistory;
+
+    let sim = valetudo(
+        Environment::standard(site()).unwrap(),
+        FlightSettings::default(),
+    );
+    let own = sim.mass_properties(&sim.run(&mut ()).unwrap(), 1.0);
+    let history = MassHistory::new(vec![0.0, 2.0], vec![20.0, 18.0], vec![1.0, 1.1]).unwrap();
+    let sim = sim.with_mass_history(history).unwrap();
+    let flown = sim.mass_properties(&sim.run(&mut ()).unwrap(), 1.0);
+    assert!((flown.mass_kg - 19.0).abs() < 1e-12);
+    assert!((flown.cg_m.z + 1.05).abs() < 1e-12);
+    assert_eq!((flown.cg_m.x, flown.cg_m.y), (own.cg_m.x, own.cg_m.y));
+    assert_eq!(flown.inertia_kg_m2, own.inertia_kg_m2);
+}
+
+#[test]
+fn a_flight_that_splits_or_moves_a_part_refuses_a_history_in_either_order() {
+    use crate::histories::{MassHistory, ThrustHistory};
+    use crate::recovery::{Separation, Trigger};
+    use crate::shifts::MassShift;
+
+    let thrust = || ThrustHistory::new(vec![0.0, 1.0], vec![100.0, 0.0]).unwrap();
+    let mass = || MassHistory::new(vec![0.0], vec![10.0], vec![1.0]).unwrap();
+    let splits = "the flight splits, by a separation or an ejection, and a history is the whole \
+                  stack's, with no part's own";
+    let moves = "the flight moves or releases a part, and a history is the whole stack's mass, \
+                 with no part's own";
+    let why = |error: SimError| match error {
+        SimError::History { history, why } => (history, why),
+        other => panic!("not a history's refusal: {other:?}"),
+    };
+    // A two-stage design, separating at the booster's burnout.
+    let two_stage = || {
+        Simulation::new(
+            &design("synthetic-two-stage-75mm-54mm"),
+            "j760-i175",
+            Environment::standard(site()).unwrap(),
+            Rail::vertical(6.0),
+            FlightSettings::default(),
+        )
+        .unwrap()
+    };
+    let separation = |sim: &Simulation| {
+        let booster = sim
+            .assembly()
+            .motors
+            .iter()
+            .position(|m| m.mount == "booster-motor-mount")
+            .unwrap();
+        Separation::new(
+            Trigger::Burnout {
+                motor: booster,
+                delay_s: 0.5,
+            },
+            0,
+        )
+    };
+    let sim = two_stage();
+    let split = separation(&sim);
+    let separated = sim.with_separation(split).unwrap();
+    assert_eq!(
+        why(separated.with_thrust_history(thrust()).unwrap_err()),
+        ("thrust", splits)
+    );
+    let sim = two_stage();
+    let split = separation(&sim);
+    let error = sim
+        .with_mass_history(mass())
+        .unwrap()
+        .with_separation(split)
+        .unwrap_err();
+    assert_eq!(why(error), ("mass", splits));
+
+    let ballasted = || {
+        Simulation::new(
+            &crate::testing::with_ballast(0.0),
+            "i175",
+            Environment::standard(site()).unwrap(),
+            Rail::vertical(3.0),
+            FlightSettings::default(),
+        )
+        .unwrap()
+    };
+    let shift = || {
+        vec![MassShift::new(
+            Trigger::Time { time_s: 5.0 },
+            "ballast",
+            0.3,
+            1.0,
+        )]
+    };
+    let shifted = ballasted().with_shifts(shift()).unwrap();
+    assert_eq!(
+        why(shifted.with_mass_history(mass()).unwrap_err()),
+        ("mass", moves)
+    );
+    let error = ballasted()
+        .with_thrust_history(thrust())
+        .unwrap()
+        .with_shifts(shift())
+        .unwrap_err();
+    assert_eq!(why(error), ("thrust", moves));
+    let release = || {
+        vec![crate::releases::MassRelease::new(
+            Trigger::Apogee,
+            "ballast",
+            0.01,
+        )]
+    };
+    let released = ballasted().with_releases(release()).unwrap();
+    assert_eq!(
+        why(released.with_thrust_history(thrust()).unwrap_err()),
+        ("thrust", moves)
+    );
+    let error = ballasted()
+        .with_mass_history(mass())
+        .unwrap()
+        .with_releases(release())
+        .unwrap_err();
+    assert_eq!(why(error), ("mass", moves));
+}
