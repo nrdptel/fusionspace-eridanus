@@ -42,7 +42,7 @@ defect's size on HPR Sim's comparisons is known only by flying OpenRocket with a
 - **What it says.** Above Mach 1, 24.12 gives about 0.0007 (the development line exactly 0); the technical
   documentation's ogive method gives about 0.13 at Mach 1.5. The reporter traces it to the subsonic zero of #2999
   also feeding the supersonic curve, and reports a false hump of about 0.075 near Mach 1.1 [S2].
-- **State.** Open, unlabeled, no comment, no linked pull request. Versions named: 24.12 and the development line.
+- **State.** Closed 2026-11-02 by pull request #3431, on the development line only; 24.12's values: ADR-349's probe.
 - **Sign.** Drag low above Mach 1, so OpenRocket's apogee and top speed high. The hump, if 24.12 has it (the issue
   doesn't say), pulls the other way near Mach 1.1.
 - **Size.** The issue sizes a drag coefficient, not an apogee. Measured references put a fineness-3 tangent ogive at

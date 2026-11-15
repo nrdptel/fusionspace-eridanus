@@ -1,0 +1,150 @@
+# ADR-349: M2.3c6 in four: the public nose probe first (2026-11-14)
+
+- **Status:** accepted; splits [M2.3c6][m2-3c6] into [M2.3c10][m2-3c10], [M2.3c11][m2-3c11], [M2.3c12][m2-3c12] and [M2.3c13][m2-3c13], each with its own *done when*, M2.3c6's *done when* whole across the four, and so plans every remaining increment of M2.3c6; under [ADR-226][adr-226] and [ADR-273][adr-273], neither changed
+- **Summary:** The gap to OpenRocket by cause needs four things the tree lacks: a public probe of the tangent-ogive nose's pressure drag, OpenRocket's thrust, mass and drag along its own flights with a way for HPR Sim to fly them, the split in the fixture report, and the nose's own line. Each becomes an increment. The probe ships first: on an invented fineness-3 tangent ogive, OpenRocket 24.12 gives the nose a pressure drag coefficient of 0.00098, 0.00073 and 0.00047 at Mach 1.3, 1.5 and 2, where HPR Sim and the equivalent cone give 0.1557, 0.1303 and 0.1042.
+
+[m2-3c6]: ../decisions-and-roadmap.md#m2-3c6
+[m2-3c10]: ../decisions-and-roadmap.md#m2-3c10
+[m2-3c11]: ../decisions-and-roadmap.md#m2-3c11
+[m2-3c12]: ../decisions-and-roadmap.md#m2-3c12
+[m2-3c13]: ../decisions-and-roadmap.md#m2-3c13
+[m2-3c3]: ../decisions-and-roadmap.md#m2-3c3
+[m1-14]: ../decisions-and-roadmap.md#m1-14
+[adr-067]: 0067-curves-come-from-openrockets-own-database-by.md
+[adr-097]: 0097-a-cause-in-the-drag-sized-by-hpr-flying.md
+[adr-151]: 0151-hpr-sim-fixtures-joins-the-reference-library-as.md
+[adr-226]: 0226-the-2026-10-10-review-the-gap-to-openrocket-by-cause.md
+[adr-273]: 0273-the-2026-10-15-review-openrockets-supersonic-ogive-drag-as-a-cause.md
+[i-222]: https://github.com/nrdptel/fusionspace-eridanus/issues/222
+[i-616]: https://github.com/nrdptel/fusionspace-eridanus/issues/616
+[or-3391]: https://github.com/openrocket/openrocket/issues/3391
+[or-3431]: https://github.com/openrocket/openrocket/pull/3431
+[forward]: ../../validation/reports/fixture-flights.md
+[probe]: ../../validation/fixtures/ork/openrocket-nose-pressure-drag.json
+[aero]: ../physics/aero.md#a-tangent-ogive-past-mach-1-beside-openrocket-2412
+
+**Context.** M2.3c6's *done when* asks for three things. The fixture report splits the HPR Sim
+less OpenRocket apogee into thrust, mass and drag parts, each input swapped for OpenRocket's in
+that order, the parts tested to sum to the whole ([ADR-226][adr-226]). The drag part splits off
+the pressure drag of tangent-ogive noses above Mach 1, with #222's flight among those swapped.
+And a public fineness-3 probe sets the two codes' nose pressure drag beside the equivalent
+cone's, a test pinning HPR Sim's ([ADR-273][adr-273]).
+
+A survey of the tree on `main` at commit 62204939 found what each needs.
+
+- **The whole.** [The fixture report][forward] already gives HPR Sim's apogee less OpenRocket
+  24.12's on the 60 flights compared with a log: a mean of +0.90% and a mean absolute value of
+  1.63%. Both fly 68 flights.
+- **Drag.** HPR Sim can fly another tool's drag coefficient against Mach number, and
+  `drag_curves.py` records OpenRocket's along its own flights, power on and power off
+  ([ADR-097][adr-097]). It is run on the design library and the jar's examples, not on the
+  collection's flights in their day's weather.
+- **Thrust.** HPR Sim flies the curve OpenRocket places, found by its digest, with the total
+  impulse held to OpenRocket's within 0.1% ([ADR-067][adr-067]). So the thrust part is what the
+  two codes make of one curve. Nothing lets HPR Sim fly a thrust against time given from outside.
+- **Mass.** Nothing lets HPR Sim fly a mass and center of mass against time given from outside.
+  The simulator scales its structure's mass, and that is all.
+- **OpenRocket's side.** `fixture_flights.py` records each flight's largest altitude, the time
+  to it and the largest Mach number. It records no thrust, mass, center of mass or drag
+  coefficient at the flight's times.
+- **The nose's column.** `drag_override.py` reads each part's friction, pressure and base drag
+  through OpenRocket's public interface. No probe has shown what the pressure column holds for
+  a nose, or on which area.
+
+OpenRocket's [#3391][or-3391] has moved since [ADR-273][adr-273] read it as an unconfirmed
+report. A maintainer confirmed it on 2026-11-02 and merged a fix to the development branch the
+same day ([pull request #3431][or-3431]): above Mach 1 an ogive takes the cone of its length
+and base diameter, as OpenRocket's technical documentation describes. No release carries the
+fix yet, so 24.12, the release every report here flies, still has the defect.
+
+**Decision.**
+
+1. **Four increments, in this order.** The probe goes first. It is public and needs nothing
+   from the private collection. Its control shows which column of OpenRocket's interface holds
+   a nose's pressure drag, which the fourth increment's swap relies on. And it pins what 24.12
+   gives before [M2.3c3][m2-3c3] flies a newer release beside it. The inputs come second,
+   since the split and the nose's line both fly them.
+   They are M2.3c10 to M2.3c13: a roadmap id ends in one letter and a number, so M2.3c6's
+   increments take the next free numbers after M2.3c9.
+
+2. **The increments.**
+   - **M2.3c10 The fineness-3 nose probe.** *Done when:* a public probe, an invented rocket
+     with a fineness-3 tangent-ogive nose, records OpenRocket 24.12's pressure drag
+     coefficient of the nose at Mach 1.3, 1.5 and 2; a test sets it, on the nose's base area,
+     beside HPR Sim's and the equivalent cone's, and pins HPR Sim's at each Mach number; the
+     same rocket with a conical nose, the control, shows the column read is the nose's
+     pressure drag, by returning the cone's closed form; the record cites #3391; the
+     aerodynamics page gives the table, what OpenRocket did about #3391, and what stays open.
+   - **M2.3c11 OpenRocket's inputs along its flights, flown by HPR Sim.** *Done when:* an
+     oracle records, under the gitignored `corpus-out/`, OpenRocket 24.12's thrust, mass,
+     center of mass and drag coefficient at its flight's own times for every flight of the
+     collection it flies, flown as `fixture_flights.py` flies it; the fixture report counts
+     the flights holding all the inputs and each one lacking an input, by reason; HPR Sim
+     flies a thrust against time, and a mass and center of mass against time, given from
+     outside in place of its own, each documented with its equation and with what stays HPR
+     Sim's; each is pinned by a test against a closed form and by a test that a flight given
+     the histories of its own run comes back within 0.05% of its own apogee; a flight that
+     can't take a history is refused with an error that says why.
+   - **M2.3c12 The split in the fixture report.** *Done when:* the fixture report gives, as
+     aggregates over the flights both simulators fly that hold all the inputs, the HPR Sim
+     less OpenRocket apogee split into thrust, mass and drag parts, each input swapped for
+     OpenRocket's in that order, the rest named as other, with the air's share of other on its
+     own line; each part's mean, its mean absolute value and the count of flights it
+     dominates; the drag part in the drag-first order beside it; each flight not split
+     counted by reason; a test holds the parts to sum to the whole on every flight split;
+     `fixture-flights --check` holds the section; the page that explains the report says what
+     each part is and how far to trust it.
+   - **M2.3c13 The tangent-ogive nose's line.** *Done when:* the drag part splits off the
+     pressure drag of tangent-ogive noses above Mach 1, by swapping in OpenRocket's
+     per-component nose pressure drag as its public interface reports it, the column
+     M2.3c10's control identifies: its share of the gap, with its sign, over the flights
+     whose HPR Sim flight passes Mach 1 with a tangent-ogive nose, each such flight counted as
+     swapped or skipped with its reason, #222's flight among those swapped or a decision
+     record saying why not; a test holds the line's flights to that rule; [#222][i-222] says
+     what the line found.
+
+3. **What the later increments take as settled.**
+   - The order of the swaps is thrust, then mass and center of mass, then drag, each added to
+     the ones before, so the parts sum to the whole by construction ([ADR-226][adr-226]).
+   - A swapped mass history replaces the mass and the center of mass. The inertia stays HPR
+     Sim's, so its difference lands in other.
+   - The 0.05% of M2.3c11's own-history test is a thirtieth of the 1.63% mean absolute gap
+     the parts divide. A swap that can't return a flight to itself that closely would hide
+     parts of the size the split is after.
+   - The air is not swapped: OpenRocket flies the standard atmosphere through the pad's
+     temperature and pressure, HPR Sim the day's whole profile. The report already flies HPR
+     Sim in OpenRocket's air, so the split gives that difference as the air's share of other.
+   - Only aggregates leave this machine ([ADR-151][adr-151]). M2.3c13's set may be small: an
+     aggregate over one or two flights is a flight's own number, so that increment checks
+     its line against ADR-151 before it publishes one.
+
+**What doesn't change.** M2.3c6's *done when* is whole across the four. The split, its order,
+other and the sum test are M2.3c12's, on the inputs M2.3c11 records and flies. The nose's line,
+its counted flights and #222's flight are M2.3c13's. The probe, its citation and the pinned
+test are M2.3c10's. No clause is narrowed. Three are added: the conical control, the air's
+share of other, and the own-history test with its bound.
+
+**What M2.3c10 found.** [The probe][probe] is a 150 mm nose on a 50 mm tube, the shape of
+#3391's report, with a tube and three fins behind it. Pressure drag coefficients of the nose,
+on its base area, at zero angle of attack:
+
+| Mach | equivalent cone | HPR Sim, tangent ogive | OpenRocket 24.12, tangent ogive | OpenRocket 24.12, cone |
+|---:|---:|---:|---:|---:|
+| 1.3 | 0.15571 | 0.15571 | 0.00098 | 0.15571 |
+| 1.5 | 0.13028 | 0.13028 | 0.00073 | 0.13028 |
+| 2 | 0.10421 | 0.10421 | 0.00047 | 0.10421 |
+
+OpenRocket's cone returns the equivalent cone's closed form: to the last bits at Mach 1.5 and
+2, and 4.8e-6 below it at Mach 1.3. So the column is the nose's pressure drag, on the
+reference area, here the nose's base. Its tangent ogive is under 1% of that at each Mach
+number. HPR Sim's tangent ogive is the equivalent cone's, as the documented method gives it.
+[The aerodynamics page][aero] carries the table.
+
+**Consequences.**
+- [M1.14][m1-14] still waits on the split: nothing here says yet which input carries the gap.
+- The probe is code against code. Whether the equivalent cone's value matches a measured
+  tangent ogive stays open in [#222][i-222] and [#616][i-616].
+- When OpenRocket releases the fix, [M2.3c3][m2-3c3] flies both releases, and the probe's
+  24.12 column is the before.
+- M2.3c11 adds a way to fly outside histories to the simulator's library. It is for sizing a
+  difference between two codes, as the drag table is ([ADR-097][adr-097]), not a model.

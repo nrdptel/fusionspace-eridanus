@@ -27,7 +27,10 @@ and, less certainly, supersonic.
     compared. The comparison was read from OpenRocket's per-component output, not kept as a record. Which
     is right is open
     ([#222](https://github.com/nrdptel/fusionspace-eridanus/issues/222),
-    [a supersonic flight](../format/ork.md#a-supersonic-flight-and-a-cause-in-the-drag)).
+    [a supersonic flight](../format/ork.md#a-supersonic-flight-and-a-cause-in-the-drag)). For the nose
+    alone a public probe keeps a record: OpenRocket 24.12 gives a tangent ogive under 1% of the pressure
+    drag its own documented method gives, a defect its maintainers have confirmed
+    ([a tangent ogive past Mach 1](#a-tangent-ogive-past-mach-1-beside-openrocket-2412)).
   - *Base drag under power is unvalidated.* HPR Sim takes the burning motor's area off the base
     (Niskanen); OpenRocket keeps the whole base. Neither rule has been checked against a measured
     flight ([evidence row G14](../evidence.md#g14)). On one private supersonic flight the choice
@@ -3254,7 +3257,8 @@ $$
     HPR Sim's supersonic pressure drag is about twice OpenRocket's. OpenRocket gives the nose almost
     none well above Mach 1, and the fins about a quarter of HPR Sim's. Which is right is open, since neither has been checked against a
     measurement on that shape
-    ([#222](https://github.com/nrdptel/fusionspace-eridanus/issues/222)).
+    ([#222](https://github.com/nrdptel/fusionspace-eridanus/issues/222)). A public probe has since recorded
+    the nose's part ([a tangent ogive past Mach 1](#a-tangent-ogive-past-mach-1-beside-openrocket-2412)).
 - **Fins.** Each fin set is its own term with its own thickness, chord and cross-section, so their
   order doesn't matter ([Loft lesson L11](../decisions-and-roadmap.md#l11)). $\bar{c}$ is the mean aerodynamic chord and $\Gamma_L$
   the leading-edge sweep. The sweep is $\arctan(x_t/s)$ for a trapezoid and the span average for freeform outlines ([N09] p. 50). For an ellipse it is $\pi/2 - \arccos(k)/\sqrt{1 - k^2}$, $k = c_r/(2s)$ (the closed-form
@@ -4491,6 +4495,61 @@ Six of twelve rows are within 10%. HPR Sim reads +12.3% to +31.9% high from Mach
 So HPR Sim's body reads high through Mach 1, from the nose and the base. It reads 6% to 10% low faster than sound, from friction and the base. That is the same sign as Calisto's gap to RASAero II, a
 third of its size. This rocket has no boattail, so it says nothing about a boattail's own drag.
 
+#### A tangent ogive past Mach 1, beside OpenRocket 24.12
+
+What is checked: the pressure drag HPR Sim gives a [tangent ogive](../glossary.md#tangent-ogive) nose of
+[fineness ratio](../glossary.md#fineness-ratio) 3 at Mach 1.3, 1.5 and 2, against the closed form of the method it
+follows, with [OpenRocket](../glossary.md#openrocket) 24.12's beside it. This is one code against another, not a
+measurement. It shows where the two differ and why. It doesn't show which matches a real nose.
+
+The probe is an invented rocket: a nose 150 mm (5.9 in) long on a tube 50 mm (2.0 in) across, with a
+500 mm (19.7 in) tube and three fins behind it. [N09]'s appendix B gives an ogive the drag of the cone
+with its length and base diameter, times $0.72\,(\kappa - \tfrac12)^2 + 0.82$ (eq. B.8). For a tangent
+ogive $\kappa = 1$ and the factor is exactly 1, so the nose drags as that cone, its equivalent cone. The
+cone's half-angle $\varepsilon$ has $\sin\varepsilon = 1/\sqrt{1 + 4f^2}$ for fineness ratio $f$, and
+from Mach 1.3 up eq. B.4 gives it, on its base area,
+
+$$
+C_{D,p} = 2.1\sin^2\varepsilon + \frac{0.5\sin\varepsilon}{\sqrt{M^2 - 1}}
+$$
+
+At $f = 3$ and $M = 1.5$ that is $2.1/37 + 0.5/(\sqrt{37}\,\sqrt{1.25}) = 0.0568 + 0.0735 = 0.1303$.
+
+The nose's pressure drag coefficient on its base area, at zero angle of attack:
+
+| Mach | equivalent cone (coefficient) | HPR Sim, tangent ogive (coefficient) | OpenRocket 24.12, tangent ogive (coefficient) | OpenRocket 24.12, cone (coefficient) |
+|--:|--:|--:|--:|--:|
+| 1.3 | 0.15571 | 0.15571 | 0.00098 | 0.15571 |
+| 1.5 | 0.13028 | 0.13028 | 0.00073 | 0.13028 |
+| 2 | 0.10421 | 0.10421 | 0.00047 | 0.10421 |
+
+- **HPR Sim** gives the tangent ogive its equivalent cone's drag at each Mach number, as the method says.
+- **OpenRocket's numbers** are each part's pressure drag as its public interface reports it. The last
+  column is the control, the same rocket with a conical nose of the same length and base. OpenRocket
+  24.12 returns the closed form for it: to the last bits at Mach 1.5 and 2, and 4.8e-6 below it at Mach
+  1.3. So the column read is the nose's pressure drag, on the nose's base area.
+- **OpenRocket 24.12's tangent ogive** is under 1% of the equivalent cone's at each Mach number. That is
+  the defect [OpenRocket's issue #3391](https://github.com/openrocket/openrocket/issues/3391) reported
+  on this shape. OpenRocket's maintainers confirmed it on November 2, 2026 and merged a fix to their
+  development branch ([pull request #3431](https://github.com/openrocket/openrocket/pull/3431)). No
+  release carries the fix yet.
+
+What follows: on a flight past Mach 1 with a tangent-ogive nose, OpenRocket 24.12 flies less drag than
+its own documented method gives. How much of the apogee gap between the two codes that explains on
+real designs isn't measured yet
+([M2.3c13, the tangent-ogive nose's line](../decisions-and-roadmap.md#m2-3c13)).
+
+What stays open: whether the equivalent cone's value matches a measured tangent ogive
+([#222](https://github.com/nrdptel/fusionspace-eridanus/issues/222),
+[#616](https://github.com/nrdptel/fusionspace-eridanus/issues/616)). The handbook's sample calculation
+[above](#drag-against-mil-hdbk-762s-sample-calculation) works the same nose shape by other methods.
+
+The record is
+[`openrocket-nose-pressure-drag.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/ork/openrocket-nose-pressure-drag.json),
+written by `validation/oracles/openrocket/nose_pressure_drag.py`. The test
+`openrocket::tests::a_tangent_ogive_s_pressure_drag_past_mach_1_beside_openrocket_24_12_s` in
+`hpr-validate` pins every number in the table ([ADR-349][adr-349]).
+
 #### Roll against the Arcas Robin and the Basic Finner
 
 What is checked: HPR Sim's roll forcing against NASA's measured roll effectiveness of the two Arcas Robin models, Mach 1.5 to 4.63 ([D4014] Fig. 14). HPR Sim's roll damping is checked against the Basic Finner's measured in NOL's wind tunnel from Mach 1.53 to 2.76 ([N6652] Table 2; Mach 2.76 from Table 1, where Table 2 prints 2.70), and against DREV's free-flight range fits from Mach 1.83 to 3.15 ([DREV] Table IX). It is also checked against Barrowman's own computed value at Mach 0.07
@@ -4579,6 +4638,7 @@ ellipse's integrals ([N09] eq. 3.70–3.71). Supersonic forcing and damping with
 [adr-027]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0027-the-normal-force-through-mach-1-supersonic.md
 [adr-009]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0009-subsonic-drag-buildup-surface-finishes-and-drag.md
 [adr-028]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0028-drag-through-mach-1-niskanens-appendix-b-stoneys.md
+[adr-349]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0349-m2-3c6-in-four-the-public-nose-probe-first.md
 [wind-tunnel]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/arcas-robin-wind-tunnel.json
 [drag-fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/drag-vs-mach.json
 [curves-fixture]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/rocketpy-drag-curves.json
