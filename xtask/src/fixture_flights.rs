@@ -1085,12 +1085,12 @@ fn fly_all(
                 crate::histories::ORACLE
             )
         })?;
+        let openrocket_air = openrocket_air
+            .ok_or_else(|| format!("{at}: HPR Sim flew it with no OpenRocket air"))?;
         let build = |air: crate::gap_split::Air| {
             let environment = match air {
                 crate::gap_split::Air::Day => day.clone(),
-                crate::gap_split::Air::OpenRocket => openrocket_air
-                    .clone()
-                    .ok_or("a flight HPR Sim flew has no OpenRocket air")?,
+                crate::gap_split::Air::OpenRocket => openrocket_air.clone(),
             };
             simulation_of(&design, chosen, environment, rail)
         };

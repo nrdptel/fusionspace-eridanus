@@ -205,9 +205,9 @@ of half the flights is met with every flight. Over the 68, as shares of OpenRock
 | the whole | +0.71% | +0.50% | 1.61% | | |
 | drag, swapped first | +0.58% | +0.44% | 1.57% | | |
 
-Drag carries the gap. The whole is taken over the 68 flights both fly, the flights left out of
+Drag is most of the gap: the largest part on 59 of the 68 flights. The whole is taken over the 68 flights both fly, the flights left out of
 the errors among them, since the split needs no log; over the 60 compared with a log it was
-+0.90% and 1.63%. Four things were settled while building it, none of them narrowing the
++0.90% and 1.63%. Five things were settled while building it, none of them narrowing the
 *done when*:
 
 - **The unit** is a share of OpenRocket's apogee, per cent, as the report's row of HPR Sim
@@ -220,8 +220,13 @@ the errors among them, since the split needs no log; over the 60 compared with a
   absolute value is over 1%. They were added because the mass row's mean isn't typical of the
   flights: its median is 0.00% and it is over 1% on one flight. [#1486][i-1486] follows that
   flight: the lead is that the two programs weigh the rocket the same and put its center of
-  mass apart. The swap moves HPR Sim's center of mass and not its center of pressure, so the
-  mass row can hold a change in HPR Sim's stability that OpenRocket's own flight doesn't share.
+  mass apart.
+- **What no swap touches** stays HPR Sim's in every flight: the normal force, the center of
+  pressure, the pitch damping and the inertia. So after the mass swap HPR Sim flies OpenRocket's
+  center of mass against its own center of pressure, a stability margin neither program flies.
+  What that does to the apogee enters at the mass row and stays in every later flight, so the
+  rest takes it back. The report counts it: on the 1 flight where the mass part is over 1%, the
+  rest is over 1% with the other sign.
 
 On the two public designs, held by a test: `pods-none` +0.81% with drag +0.79%, and `mach-probe`
 +3.06% with drag +3.03%; thrust and mass under 0.005%, and under 0.05% left after the swaps.

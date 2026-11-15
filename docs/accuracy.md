@@ -1120,6 +1120,9 @@ catalog ([the recheck][adr-238]). **In short: HPR Sim and [OpenRocket](glossary.
 OpenRocket's +6.72% (11.26%). The two codes agree within 5% on 59 of the 60
 ([report][fixture-report]). Neither meets the 5% target.**
 
+Where the two codes differ from each other, it is mostly in drag
+([the gap between the two codes, by cause](#the-gap-between-the-two-codes-by-cause)).
+
 The [report][fixture-report]'s histogram gives the low side, the one a waiver depends on: its bins
 below zero hold the flights whose simulated apogee is below the logged one.
 
@@ -1190,11 +1193,14 @@ The last row is HPR Sim's apogee less OpenRocket's, over OpenRocket's. A positiv
 value means HPR Sim flies higher. "Within 5%" and "within 10%" count the flights whose error is
 strictly smaller than that, either way ([report][fixture-report]).
 
-**The gap between the two codes, by cause.** That last row is over the 60 flights compared with
-a log. Both codes fly 68 of the 83, and over those HPR Sim's apogee is +0.71% above OpenRocket's
-on average (mean absolute 1.61%, [report][fixture-report]). [The split](decisions-and-roadmap.md#m2-3c12)
-([decision][adr-349]) sizes how much of that gap each input carries. HPR Sim flies each flight again with
-OpenRocket's own inputs in place of its own, one after another, each added to the ones before:
+#### The gap between the two codes, by cause
+
+The last row above is over the 60 flights compared with a log. Both codes fly 68: those 60 and
+the 8 left out of the errors above, which the split can use because it needs no log. Over the
+68, HPR Sim's apogee is +0.71% above OpenRocket's on average (mean absolute 1.61%,
+[report][fixture-report]). [The split](decisions-and-roadmap.md#m2-3c12) ([decision][adr-349])
+sizes how much of that gap each input carries. HPR Sim flies each flight again with OpenRocket's
+own inputs in place of its own, one after another, each added to the ones before:
 
 1. **Thrust:** the thrust OpenRocket flew, against time.
 2. **Mass:** OpenRocket's mass and [center of mass](glossary.md#center-of-gravity-cg), against time.
@@ -1203,11 +1209,18 @@ OpenRocket's own inputs in place of its own, one after another, each added to th
 4. **Air:** OpenRocket's air, the standard atmosphere through the pad's temperature and pressure,
    in place of the day's profile.
 
-A part is the apogee before its swap less the apogee after it, over OpenRocket's apogee. *Other*
-is what thrust, mass and drag leave: the air's line, and the rest, which is the last flight's
-apogee less OpenRocket's own. So thrust, mass, drag and other sum to the whole on every flight.
-The run stops on a flight where they don't. A part dominates a flight when it is the largest of
-the four, whatever its sign.
+Each swap moves HPR Sim's apogee, and that move is the swap's *part*: the apogee before the swap
+less the apogee after it, over OpenRocket's apogee. A positive part means the input as HPR Sim
+has it flies higher than OpenRocket's does. So a positive drag part means HPR Sim's drag is the
+lower of the two on that flight. *Other* is everything after the third swap, in two pieces.
+*The air* is the fourth swap's part. *The rest* is what remains once all four inputs are
+OpenRocket's: HPR Sim's apogee on them less OpenRocket's own. Thrust, mass, drag and other sum
+to the whole on every flight, and the run that writes the report stops on a flight where they
+don't.
+
+In the table, a part *dominates* a flight when its absolute value is the largest of the four.
+The last column counts the flights where a part's absolute value is over 1%
+([report][fixture-report]).
 
 | [over 68 flights][fixture-report] | mean | median | mean absolute | flights it dominates | flights where it is over 1% |
 |---|---:|---:|---:|---:|---:|
@@ -1221,52 +1234,66 @@ the four, whatever its sign.
 | [drag, swapped first][fixture-report] | +0.58% | +0.44% | 1.57% | | |
 
 All 68 flights are split. None lacks an input in OpenRocket's record, none is refused by
-HPR Sim, and none fails the check on the swap itself
+HPR Sim, and none fails the check on the thrust and mass swaps
 ([report][fixture-report], [thrust and mass from another program](physics/flight.md#thrust-and-mass-from-another-program)).
 
 What the rows say:
 
-- **Drag carries the gap.** It is the largest part on 59 of the 68 flights, and its mean absolute
-  value, 1.57%, is nearly the whole's 1.61% ([report][fixture-report]). Swapped first instead of third, its mean,
-  median and mean absolute value are the drag row's to the report's two decimals.
+- **Drag is most of the gap.** It is the largest part on 59 of the 68 flights, and its mean
+  absolute value, 1.57%, is nearly the whole's 1.61% ([report][fixture-report]). Its sign varies from flight to flight:
+  its mean is +0.58%. Swapped first instead of third, its mean, median and mean absolute value
+  are the drag row's to the report's two decimals. No other order was tried.
 - **Thrust is nil.** Both codes fly the same thrust curve for each motor. Swapping in the
   thrust OpenRocket made of it moves the apogee by 0.00% on average, to the report's two
   decimals ([report][fixture-report]).
 - **Mass is small on most flights.** Its median is 0.00%, and it is over 1% on one flight, so
-  its mean, +0.10%, isn't typical of the flights ([report][fixture-report]). An open issue follows that flight
-  ([#1486](https://github.com/nrdptel/fusionspace-eridanus/issues/1486)): the lead is that the
-  two codes weigh the rocket the same but put its center of mass apart. The swap moves
-  HPR Sim's center of mass and not its [center of pressure](glossary.md#center-of-pressure-cp),
-  so it can change HPR Sim's stability, which OpenRocket's own flight doesn't share. Any
-  apogee that costs is in the mass row.
+  its mean, +0.10%, isn't typical of the flights ([report][fixture-report]).
 - **The air is small.** With thrust, mass and drag already OpenRocket's, HPR Sim flies 0.15%
   lower on average in the day's profile than in OpenRocket's air (mean absolute 0.25%,
   [report][fixture-report]).
-- **The rest is what no swap explains.** With all four inputs OpenRocket's, HPR Sim still flies
-  0.18% above OpenRocket on average ([report][fixture-report]). It isn't split further. What could be in it: the two
-  codes' steps in time, their gravity, their inertia, and what the drag table leaves out. None
-  of those is measured here.
+- **The rest holds what no swap touches.** With all four inputs OpenRocket's, HPR Sim still
+  flies 0.18% above OpenRocket on average ([report][fixture-report]). What stays HPR Sim's through every swap is in
+  it: the [normal force](glossary.md#normal-force), the
+  [center of pressure](glossary.md#center-of-pressure-cp), the damping of a turn, the inertia,
+  the steps in time, gravity, and what the drag table leaves out. None of those is measured
+  apart here.
 
-As a worked example on a design anyone can run, take `mach-probe`, a public test rocket both
-codes fly faster than sound in still standard air. HPR Sim's apogee is 3.06% above OpenRocket's,
-and the drag part is 3.03%. Thrust and mass are each under 0.005%, and the rest is under 0.05%.
-On the slower `pods-none` the whole is 0.81% and the drag part 0.79%. A test holds each of
-those ([the test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/src/gap_split.rs), `the_public_flights_split`).
+**The mass swap and stability.** After the mass swap HPR Sim flies OpenRocket's center of mass
+against its own center of pressure. Where the two codes put the center of mass apart, that is a
+stability margin neither code flies on its own. What it does to the apogee enters at the mass
+row and stays in every later flight, so the rest takes it back. On the one flight where the mass
+part is over 1%, the rest is over 1% with the other sign ([report][fixture-report]). An open issue follows that flight
+([#1486](https://github.com/nrdptel/fusionspace-eridanus/issues/1486)): the lead is that the two
+codes weigh the rocket the same but put its center of mass apart.
 
-The parts depend on the order of the swaps. The drag swap is a table in Mach number read from
-OpenRocket's own flight. So it leaves out how OpenRocket's drag changes with the
+As a worked example on a design anyone can run, take
+[`mach-probe`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/ork/history-flights/mach-probe.ork), an invented test
+rocket that both codes fly faster than sound in still standard air. HPR Sim's apogee is 3.06%
+above OpenRocket's, and the drag part is 3.03%: HPR Sim's drag is the lower there. Thrust and
+mass are each under 0.005%, the rest is under 0.05%, and the air's part is zero, since both fly
+the same air. On the slower
+[`pods-none`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/ork/pod-flights/pods-none.ork) the whole is 0.81% and the
+drag part 0.79%. A test holds each of those ([the test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/xtask/src/gap_split.rs),
+`the_public_flights_split`). From a clone, `cargo test -p xtask the_public_flights_split`
+runs it. It needs neither OpenRocket nor the private flights: OpenRocket's record of both
+designs is committed.
+
+The split has limits. The drag swap is a table in Mach number read from OpenRocket's own
+flight, so it leaves out how OpenRocket's drag changes with the
 [Reynolds number](glossary.md#reynolds-number) and the angle of attack away from that flight's
-path. The mass swap keeps HPR Sim's inertia. The split doesn't say which part of the drag
-differs: [the next step](decisions-and-roadmap.md#m2-3c13) splits off the pressure drag of
-tangent-ogive noses above Mach 1.
+path. The air's part is taken with that table in place, so it holds the air's density and speed
+of sound, not what the air does to friction. The mass swap keeps HPR Sim's inertia and can
+change its stability, as above. And the split doesn't say which part of the drag differs:
+[the next step](decisions-and-roadmap.md#m2-3c13) splits off the pressure drag of tangent-ogive
+noses above Mach 1.
 
 > **How far to trust it.** The split is code against code. It sizes where the two simulators
 > differ, and says nothing about which is nearer a real flight. Over the 60 compared, each
 > code's mean absolute miss from the logs (12.04% and 11.26%) is about seven times the mean
-> absolute gap between the two (1.63%, [report][fixture-report]). The swap itself is checked on
-> every flight: flown on its own thrust and mass, sampled at OpenRocket's times, each flight
-> must come back to its own apogee within 0.05%. The largest miss was 0.018%
-> ([report][fixture-report]).
+> absolute gap between the two (1.63%, [report][fixture-report]). The thrust and mass swaps are
+> checked on every flight: flown on its own thrust and mass, sampled at OpenRocket's times, each
+> flight must come back to its own apogee within 0.05%. The largest miss was 0.018%
+> ([report][fixture-report]). The paragraph above gives the split's limits.
 
 **Early deployments.** On 19 of the 60, a parachute charge fired or the rocket separated before
 the highest reading, while it was still climbing ([report][fixture-report]). The readers' notes

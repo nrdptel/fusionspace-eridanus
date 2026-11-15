@@ -725,6 +725,7 @@
       "median_percent": 0.44,
       "mean_absolute_percent": 1.57
     },
-    "largest_own_history_percent": 0.018
+    "largest_own_history_percent": 0.018,
+    "mass_returned": 1
   }
 }

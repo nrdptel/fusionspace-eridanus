@@ -262,10 +262,6 @@ pub(crate) mod own {
     /// The largest relative difference of the own-history flight's apogee from the flight's own.
     pub(crate) const OWN_HISTORY_BOUND: f64 = 5e-4;
 
-    /// The column of each quantity in a record's rows.
-    #[cfg(test)]
-    pub(crate) const TIME: usize = 0;
-
     /// A flight and its own-history flight.
     #[derive(Debug, Clone, PartialEq)]
     pub(crate) struct OwnHistory {
@@ -384,7 +380,7 @@ pub(crate) mod own {
             .ok_or("a flight without rows")?
             .iter()
             .map(|row| {
-                row[TIME]
+                row[crate::gap_split::TIME]
                     .as_f64()
                     .ok_or_else(|| "a row without a time".to_owned())
             })
