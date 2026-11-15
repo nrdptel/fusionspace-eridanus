@@ -19,8 +19,8 @@
 #   scripts/gate.sh clippy test     # just these steps
 #   GATE_TAIL=80 scripts/gate.sh    # show more of each failure (default 40 lines)
 #
-# Steps: fmt clippy test doc wasm deny evidence site validate examples, and pages, refs, ego,
-# voice and python when they apply.
+# Steps: fmt clippy test doc wasm deny evidence site validate examples, and pages, refs, ego and
+# python when they apply.
 # The test step runs the tests with cargo-nextest, each test its own process, in parallel, then the
 # doctests with `cargo test --doc` (nextest doesn't run doctests); together they run what
 # `cargo test` runs in about half the time (146 s against 296 to 309 s, single runs on 2026-10-04,
@@ -110,8 +110,11 @@
 # run it). It joins any run that includes `test` when the branch changes EGO or what it calls
 # (crates/hpr-analysis/src/optimize/{ego,cmaes,normal,benchmark}.rs, or the bench) against
 # origin/main. Name it to run it anyway (`scripts/gate.sh ego`), or set GATE_EGO=0 to leave it out.
-# Extra step, not in the default set: docs (only xtask's tests, which guard ROADMAP, the lessons
-# and the pages; about 40 s against 154 s for all tests), for a change to prose alone.
+# Extra step, not in the default set: docs (only xtask's and xtask-voice's tests, which guard
+# ROADMAP, the lessons, the pages and the voice report), for a change to prose alone.
+# Extra step, not in the default set: voice (the xtask-voice crate's tests, among them the one that
+# holds validation/reports/voice.md to the pages; they build no simulator crate), for a change to
+# prose alone: `cargo voice` rewrites the report, then this (#1459).
 # Extra step, not in the default set: types (CI's `types` job: the design format's generated
 # TypeScript and Python types checked with tsc and mypy, fetched by npx and uvx; about 2 s once
 # fetched), for a change to the schema or the generator in xtask/src/format_types.rs.
@@ -362,8 +365,8 @@ cmd_for() {
     pages) echo "$XTASK site --no-build" ;;
     examples) echo "$XTASK examples --check --locked" ;;
     docs) echo "cargo test --locked -p xtask -p xtask-voice" ;;
-    # The voice report's test alone, which builds no simulator crate: a prose-only change runs
-    # `cargo voice` to rewrite the report, then this (#1459).
+    # The voice crate's tests, the report's among them, which build no simulator crate: a
+    # prose-only change runs `cargo voice` to rewrite the report, then this (#1459).
     voice) echo "cargo test --locked -p xtask-voice" ;;
     evidence) echo "$XTASK evidence" ;;
     types) echo "$XTASK format --typecheck" ;;

@@ -282,9 +282,9 @@ misses a sentence target ([below](#measured-not-gated)). A test fails when the r
 pages disagree, so run it after editing a page. The site's build runs the check too.
 
 A change to prose alone can run `cargo voice` instead. It is the same check and writes the same
-report, but it builds only the check itself, not the simulator: about a second on a Mac from an
-empty build folder, where `cargo xtask` builds every crate first. `scripts/gate.sh voice` then
-runs the report's test (`cargo test -p xtask-voice`), which builds no simulator crate either.
+report, but it builds only the check and its Markdown reader, not the simulator's crates, which
+`cargo xtask` builds first. `scripts/gate.sh voice` then runs the check's tests, the report's
+among them (`cargo test -p xtask-voice`), which build no simulator crate either.
 
 Give it paths, such as `cargo xtask voice ../fusionspace-site/site`, and it reads those instead
 and prints the report. It reads Markdown, HTML and text, a command's help in a `.help` file, and

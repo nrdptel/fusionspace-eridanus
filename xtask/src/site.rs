@@ -23,7 +23,8 @@
 //!   `## In short` section right under its title: a bulleted list of four items, each opening with
 //!   its label in bold, saying what it models, its sources, how well it is validated and what it
 //!   leaves out ([`xtask_voice::markdown::IN_SHORT_ITEMS`]). A reader who stops there knows how
-//!   far to trust the page. Each number it quotes must be in the rest of the page, or in a file its item links to.
+//!   far to trust the page. Each number it quotes must be in the rest of the page, or in a file
+//!   its item links to.
 //! - **Accuracy** (`docs/accuracy.md`) gives every validation result. Each number it quotes must
 //!   appear, written the same way, in a file that the same paragraph, list item or table row links
 //!   to (a model page less its *In short*, the report, a case file; not a page of the site's top

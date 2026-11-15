@@ -15,7 +15,7 @@ pub const MODELS: &str = "physics";
 const IN_SHORT: &str = "In short";
 /// The bold labels that open the items of a model page's *In short* list, in this order: what it
 /// models, its source, how well it is validated, and what it leaves out (M0.4 in
-/// `docs/ROADMAP.md`).
+/// `docs/roadmap-done.md`).
 pub const IN_SHORT_ITEMS: [&str; 4] = [
     "What it models:",
     "Sources:",
