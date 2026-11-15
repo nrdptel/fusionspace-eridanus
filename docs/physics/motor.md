@@ -468,10 +468,12 @@ $$
   ThrustCurve's `.rse` files tabulate their mass column the same way
   ([`.rse` files](../format/rse.md)).
 - Holding $c$ constant is an approximation. [SP] gives $c$ in instantaneous form, $F/\dot m_p$
-  (p. 95). Measured [specific impulse](../glossary.md#specific-impulse) ($I_{\mathrm{sp}}$, the
-  same quantity divided by standard gravity) drifts during a burn as the nozzle erodes: one motor
-  lost 6 to 9 s of it by burnout ([SP] p. 14). It also differs with the pressure inside the motor,
-  in a comparison between motors rather than along one burn ([SP] Fig. 18, p. 40). So real
+  with $\dot m_p$ the propellant's mass flow (p. 95). Measured
+  [specific impulse](../glossary.md#specific-impulse) ($I_{\mathrm{sp}}$, the same quantity
+  divided by standard gravity) drifts during a burn as the nozzle erodes: one motor lost 6 to 9 s
+  of specific impulse by burnout ([SP] p. 14). Its efficiency also differs with the pressure
+  inside the motor, in a comparison between motors rather than along one burn ([SP] Fig. 18,
+  p. 40, which plots vacuum specific-impulse efficiency against chamber pressure). So real
   consumption is not exactly proportional. No data published for commercial motors resolves the
   difference.
 - All propellant is gone at the last sample. The whole burned mass leaves as exhaust. Inert

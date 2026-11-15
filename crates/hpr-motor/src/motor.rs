@@ -12,8 +12,8 @@
 //! This is RocketPy's `SolidMotor` consumption (`rocketpy/motors/solid_motor.py:401-418`,
 //! `motor.py:483-524`), and the mass column of ThrustCurve.org's `.rse` files follows it
 //! (`docs/format/rse.md`). It is an approximation: the real `c` drifts as the nozzle erodes
-//! (SP-8039 p. 14), and differs with chamber pressure between motors (SP-8039 Fig. 18,
-//! p. 40). All propellant is gone when the thrust curve ends.
+//! (SP-8039 p. 14), and its efficiency differs with chamber pressure between motors (SP-8039
+//! Fig. 18, p. 40). All propellant is gone when the thrust curve ends.
 //!
 //! **Where the propellant is.** A [`Propellant::Column`] keeps its shape and loses density as it
 //! burns, so its center stays put and its inertia scales with its mass (the model of RocketPy's
@@ -25,7 +25,7 @@
 //! **Ambient pressure.** A curve measured at reference pressure `p_ref` gives, at ambient `p_a`,
 //! `F = F_ref + (p_ref − p_a) A_e` (from SP-8039 eq. 2, `F = ṁ u_e + (p_e − p_a) A_e`, with the
 //! flow unchanged; RocketPy's `Motor.pressure_thrust`, `motor.py:1173-1191`). It holds while the
-//! nozzle flows full. See `docs/physics/motor.md`.
+//! nozzle flows full (this project's inference from SP-8039 pp. 32–34). See `docs/physics/motor.md`.
 
 use std::f64::consts::PI;
 
