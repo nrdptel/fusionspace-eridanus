@@ -3,8 +3,8 @@
 //! up on the pull request that makes it, not on the day of the release.
 //!
 //! - Release 0.1 publishes the library crates and `hpr-cli`; only `hpr-py`, `hpr-ffi`, `hpr-wasm`,
-//!   `hpr-validate`, `xtask` and `xtask-voice` say `publish = false` (ADR-162 §2), and no published crate
-//!   depends on one of them, which crates.io would refuse.
+//!   `hpr-validate`, `xtask` and `xtask-voice` say `publish = false` (ADR-162 §2), and no
+//!   published crate depends on one of them, which crates.io would refuse.
 //! - Every published crate has the description, license and repository crates.io shows.
 //! - cargo-about accepts the licenses `cargo deny` allows, the same list, so the license texts a
 //!   release carries are written for exactly the dependencies CI lets in.
