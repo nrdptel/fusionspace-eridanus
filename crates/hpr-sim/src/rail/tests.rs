@@ -76,12 +76,36 @@ fn the_aft_end_is_the_aft_most_point_of_the_outside() {
         (shorter - (tip_trailing_edge - before.aft_station_m)).abs() < 1e-12,
         "{shorter}"
     );
-    // A fin set with no copies isn't there.
+    // Tube fins 30 mm past the tube's end stand the rocket on their ends instead.
     let fins = assembly
         .layout
         .components
         .iter_mut()
         .find(|c| matches!(c.part, Part::FinSet(_)))
+        .unwrap();
+    let Part::FinSet(set) = &fins.part else {
+        unreachable!("matched above");
+    };
+    let tubes = hpr_design::TubeFinSet {
+        count: 6,
+        length_m: 0.2,
+        outer_radius_m: 0.012,
+        thickness_m: 0.001,
+        base_angle_rad: 0.0,
+        material: set.material.clone(),
+    };
+    fins.fore_station_m = body_aft - 0.17;
+    fins.length_m = tubes.length_m;
+    fins.part = Part::TubeFinSet(tubes);
+    let tube_ends = body_aft + 0.03;
+    assert!(tube_ends > nozzle.max(body_aft) + 0.02);
+    assert!((Guides::of(&assembly).aft_station_m - tube_ends).abs() < 1e-12);
+    // A part with no copies isn't there.
+    let fins = assembly
+        .layout
+        .components
+        .iter_mut()
+        .find(|c| matches!(c.part, Part::TubeFinSet(_)))
         .unwrap();
     fins.copies.clear();
     assert_eq!(Guides::of(&assembly).aft_station_m, before.aft_station_m);
