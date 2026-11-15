@@ -1190,6 +1190,79 @@ The last row is HPR Sim's apogee less OpenRocket's, over OpenRocket's. A positiv
 value means HPR Sim flies higher. "Within 5%" and "within 10%" count the flights whose error is
 strictly smaller than that, either way ([report][fixture-report]).
 
+**The gap between the two codes, by cause.** That last row is over the 60 flights compared with
+a log. Both codes fly 68 of the 83, and over those HPR Sim's apogee is +0.71% above OpenRocket's
+on average (mean absolute 1.61%, [report][fixture-report]). [The split](decisions-and-roadmap.md#m2-3c12)
+([decision][adr-349]) says which input that gap comes from. HPR Sim flies each flight again with
+OpenRocket's own inputs in place of its own, one after another, each added to the ones before:
+
+1. **Thrust:** the thrust OpenRocket flew, against time.
+2. **Mass:** OpenRocket's mass and [center of mass](glossary.md#center-of-gravity-cg), against time.
+3. **Drag:** OpenRocket's [drag coefficient](glossary.md#drag-coefficient) along its own flight,
+   against [Mach number](glossary.md#mach-number), one curve while the motor burns and one after.
+4. **Air:** OpenRocket's air, the standard atmosphere through the pad's temperature and pressure,
+   in place of the day's profile.
+
+A part is the apogee before its swap less the apogee after it, over OpenRocket's apogee. *Other*
+is what thrust, mass and drag leave: the air's line, and the rest, which is the last flight's
+apogee less OpenRocket's own. So thrust, mass, drag and other sum to the whole on every flight.
+The run stops on a flight where they don't. A part dominates a flight when it is the largest of
+the four, whatever its sign.
+
+| [over 68 flights][fixture-report] | mean | median | mean absolute | flights it dominates | flights where it is over 1% |
+|---|---:|---:|---:|---:|---:|
+| [thrust][fixture-report] | +0.00% | +0.00% | 0.00% | 0 | 0 |
+| [mass][fixture-report] | +0.10% | +0.00% | 0.10% | 0 | 1 |
+| [drag][fixture-report] | +0.58% | +0.44% | 1.57% | 59 | 31 |
+| [other][fixture-report] | +0.03% | +0.01% | 0.26% | 9 | 4 |
+| [other: the air][fixture-report] | -0.15% | -0.17% | 0.25% | | |
+| [other: the rest][fixture-report] | +0.18% | +0.19% | 0.33% | | |
+| [the whole][fixture-report] | +0.71% | +0.50% | 1.61% | | |
+| [drag, swapped first][fixture-report] | +0.58% | +0.44% | 1.57% | | |
+
+All 68 flights are split. None lacks an input in OpenRocket's record, none is refused by
+HPR Sim, and none fails the check on the swap itself
+([report][fixture-report], [thrust and mass from another program](physics/flight.md#thrust-and-mass-from-another-program)).
+
+What the rows say:
+
+- **Drag carries the gap.** It is the largest part on 59 of the 68 flights, and its mean absolute
+  value, 1.57%, is nearly the whole's 1.61%. Swapped first instead of third, its three figures
+  are the same to 0.01%, so on these flights the order matters little for drag.
+- **Thrust is nil.** Both codes fly the same thrust curve for each motor, and swapping in the
+  thrust OpenRocket made of it moves the apogee by under 0.005% on average.
+- **Mass is small on most flights.** Its median is 0.00%, and it is over 1% on one flight, so
+  its mean, +0.10%, isn't typical of the flights. An open issue follows that flight
+  ([#1486](https://github.com/nrdptel/fusionspace-eridanus/issues/1486)): the lead is that the
+  two codes weigh the rocket the same but put its center of mass apart. The swap moves
+  HPR Sim's center of mass and not its [center of pressure](glossary.md#center-of-pressure-cp),
+  so it changes HPR Sim's stability. What that does to the apogee is in the mass row, and comes
+  back with the other sign in the rest.
+- **The air is small.** In the day's profile HPR Sim flies 0.15% lower on average than in
+  OpenRocket's air (mean absolute 0.25%).
+- **The rest is what no swap explains.** With all four inputs OpenRocket's, HPR Sim still flies
+  0.18% above OpenRocket on average. It isn't split further. What could be in it: the two
+  codes' steps in time, their gravity, their inertia, and what the drag table leaves out. None
+  of those is measured here.
+
+As a worked example on a design anyone can run, take `mach-probe`, a public test rocket both
+codes fly past Mach 1.6 in still standard air. HPR Sim's apogee is 3.06% above OpenRocket's. The
+drag part is 3.03%. Thrust and mass are each under 0.005%, and the rest is under 0.05%. On the
+slower `pods-none` the whole is 0.81% and the drag part 0.79%. A test,
+`gap_split::tests::the_public_flights_split`, holds each of those.
+
+> **How far to trust the split.** It is code against code. It sizes where the two simulators
+> differ, and says nothing about which is nearer a real flight: over the 60 compared, each
+> code's mean absolute miss from the logs (12.04% and 11.26%) is about seven times the mean
+> absolute gap between the two (1.63%). The parts depend on the order of the swaps. The drag swap is a table in
+> Mach number read from OpenRocket's own flight, so it leaves out how OpenRocket's drag changes
+> with the [Reynolds number](glossary.md#reynolds-number) and the angle of attack away from that
+> flight's path. The mass swap keeps HPR Sim's inertia. Each flight is first flown on its own
+> thrust and mass, sampled at OpenRocket's times, and must come back to its own apogee within
+> 0.05%. The largest miss was 0.018% ([report][fixture-report]). The split doesn't say which part
+> of the drag differs. [The next step](decisions-and-roadmap.md#m2-3c13) splits off the nose's
+> pressure drag above Mach 1.
+
 **Early deployments.** On 19 of the 60, a parachute charge fired or the rocket separated before
 the highest reading, while it was still climbing ([report][fixture-report]). The readers' notes
 put each at under 1.5 s before the peak and a few meters of climb. So the apogee barely moves
@@ -1393,6 +1466,7 @@ rest.
 [adr-318]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0318-the-2026-11-02-review-the-cause-free-apogees-tightened.md
 [adr-293]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0293-cavours-log-read-to-its-apogee-event.md
 [adr-184]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0184-logged-apogees-of-the-private-collection.md
+[adr-349]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0349-m2-3c6-in-four-the-public-nose-probe-first.md
 [adr-238]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0238-the-corpus-rechecked-against-the-catalog.md
 [adr-309]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0309-a-fin-tab-weighed-as-stated.md
 [adr-102]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0102-tube-fins-centre-of-pressure-measured-against.md

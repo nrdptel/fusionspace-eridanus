@@ -905,14 +905,23 @@ mod tests {
         .unwrap()
     }
 
+    /// What the documentation quotes for the two public designs, per cent of OpenRocket's apogee:
+    /// the whole and the drag part, each held within [`PUBLIC_WITHIN`].
+    const PUBLIC_PARTS: [(&str, f64, f64); 2] = [
+        ("pods-none.ork", 0.81, 0.79),
+        ("mach-probe.ork", 3.06, 3.03),
+    ];
+    const PUBLIC_WITHIN: f64 = 0.01;
+
     /// The two public designs split: the parts sum to the whole, the air's line is zero in one
-    /// air, each flight passes the own-history test, and flown on all three of OpenRocket's
-    /// inputs HPR Sim comes within 1% of OpenRocket's apogee.
+    /// air, each flight passes the own-history test, drag carries the gap, and flown on all
+    /// three of OpenRocket's inputs HPR Sim comes within 0.05% of OpenRocket's apogee.
     #[test]
     fn the_public_flights_split() {
         let flights = public_flights();
-        assert!(flights.len() >= 2);
-        for public in &flights {
+        assert_eq!(flights.len(), PUBLIC_PARTS.len());
+        for (public, (file, whole, drag)) in flights.iter().zip(PUBLIC_PARTS) {
+            assert!(public.file.ends_with(file), "{}", public.file);
             let split = split_public(public, &public.flight, OWN_HISTORY_BOUND).unwrap();
             let parts = split.parts;
             eprintln!(
@@ -929,10 +938,18 @@ mod tests {
                 parts.drag_first,
                 100.0 * split.own_history
             );
-            assert_eq!(parts.check_sum(), Ok(()), "{}", public.file);
-            assert_eq!(parts.air, 0.0, "{}", public.file);
+            assert_eq!(parts.check_sum(), Ok(()), "{file}");
+            assert_eq!(parts.air, 0.0, "{file}");
             assert!(split.own_history.abs() <= OWN_HISTORY_BOUND);
-            assert!(parts.left.abs() < 1.0, "{}: {}", public.file, parts.left);
+            assert!((parts.whole - whole).abs() <= PUBLIC_WITHIN, "{file}");
+            assert!((parts.drag - drag).abs() <= PUBLIC_WITHIN, "{file}");
+            assert!((parts.drag_first - drag).abs() <= PUBLIC_WITHIN, "{file}");
+            assert_eq!(parts.dominant(), 2, "{file}");
+            assert!(
+                parts.thrust.abs() < 0.005 && parts.mass.abs() < 0.005,
+                "{file}"
+            );
+            assert!(parts.left.abs() < 0.05, "{file}: {}", parts.left);
         }
     }
 

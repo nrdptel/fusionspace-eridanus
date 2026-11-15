@@ -372,8 +372,10 @@ A flight can take its thrust, and its mass with its center of mass, from another
 numbers against time, in place of its own (`Simulation::with_thrust_history` and
 `Simulation::with_mass_history`, since [M2.3c11](../decisions-and-roadmap.md#m2-3c11)). It is
 for one job: splitting the gap between HPR Sim's apogee and OpenRocket's by cause, one input
-swapped at a time, as a drag table swaps the drag ([ADR-349][adr-349]). The split itself is
-[M2.3c12](../decisions-and-roadmap.md#m2-3c12), still to come. It is not a model, and a flight on
+swapped at a time, as a drag table swaps the drag ([ADR-349][adr-349]).
+[The split](../decisions-and-roadmap.md#m2-3c12) is in
+[Accuracy](../accuracy.md#real-flights-of-the-private-collection): drag carries the gap on 59 of
+the 68 flights both programs fly. It is not a model, and a flight on
 it is not a prediction. It is in the Rust library only, for the validation harness: no `hpr`
 command, Python call or file option takes a history.
 
