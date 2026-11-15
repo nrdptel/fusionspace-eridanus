@@ -25,8 +25,8 @@ Two sets are flown:
 - `--collection`: every flight of `corpus-out/hpr-sim-fixtures/conditions.json`, flown as
   `fixture_flights.py` flies it (its configuration choice, site, rail and day's weather, nothing
   deployed). Each flight's apogee must be the one `fixture_flights.py` recorded, within
-  `SAME_FLIGHT`, or the flight lacks its inputs as another flight. The record stays under the gitignored `corpus-out/`: the
-  flights are private.
+  `SAME_FLIGHT`, or the flight lacks its inputs as another flight. The record stays under the
+  gitignored `corpus-out/`: the flights are private.
 
 OpenRocket is run, never read: its source is GPL, and nothing here comes from it. The class and
 method names used are the public API that `javap` prints for the jar. OpenRocket 24.12 needs

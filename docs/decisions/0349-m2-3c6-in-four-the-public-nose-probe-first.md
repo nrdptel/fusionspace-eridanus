@@ -184,7 +184,7 @@ for `mach-probe`, each flight's own histories bring it back to its own apogee wi
 −0.00063%, against the 0.05% bound. The oracle recorded the collection's flights: of the 80
 OpenRocket was given, 79 hold every input, and the last is the flight OpenRocket loads no motor
 into. OpenRocket 24.12 is not bit-identical from one run to the next: flown again, the flights'
-apogees moved from those `fixture_flights.py` recorded by up to 1.7e-6 of themselves, as the
+apogees moved from those `fixture_flights.py` recorded by up to 2.3e-6 of themselves, as the
 fixture report gives it. So a flight is taken as the recorded one when its apogee is within 1e-5
 of that one's, a fiftieth of the own-history bound.
 
