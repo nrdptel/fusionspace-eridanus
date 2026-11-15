@@ -2,12 +2,12 @@
 //! lugs leave it.
 //!
 //! The rocket starts with its aft end (the aft-most point of its body, of any part on its outside,
-//! fin tips and pods included, or of its nozzle exits) at the foot of the rail, its axis along the rail. It is guided, with
-//! one degree of freedom along the rail, until the aft edge of its aft-most guide passes the top
-//! of the rail. A rocket with no rail buttons or lugs is guided until its aft end passes the top,
-//! as from a tower. Between the forward guide leaving and the aft guide leaving, a real rocket can
-//! pivot about the aft guide ("tip-off"); that rotation is not modeled, and the rocket leaves the
-//! rail with no angular velocity.
+//! fin tips and pods included, or of its nozzle exits) at the foot of the rail, its axis along
+//! the rail. It is guided, with one degree of freedom along the rail, until the aft edge of its
+//! aft-most guide passes the top of the rail. A rocket with no rail buttons or lugs is guided
+//! until its aft end passes the top, as from a tower. Between the forward guide leaving and the
+//! aft guide leaving, a real rocket can pivot about the aft guide ("tip-off"); that rotation is
+//! not modeled, and the rocket leaves the rail with no angular velocity.
 //!
 //! Friction is Coulomb friction, `μ |N|`, with `N` the rail's reaction perpendicular to the rail:
 //! the component of gravity, the aerodynamic force and the variable-mass terms across the rocket's
@@ -126,7 +126,8 @@ impl Guides {
         let body_aft = assembly.layout.length_m;
         // Every body component (a pod's too) and every part on the outside, as far aft as it
         // reaches: a fin set by its outline, not its root chord. A part with no copies isn't
-        // there. Internal parts stay inside the body; a motor reaches out by its nozzle.
+        // there. Internal parts aren't counted (a design check warns when one runs past its
+        // parent's end); a motor reaches out by its nozzle.
         let outside_aft = assembly
             .layout
             .components
