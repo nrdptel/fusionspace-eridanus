@@ -4126,4 +4126,236 @@ mod tests {
             "{largest_body_gap}"
         );
     }
+
+    /// `openrocket-nose-pressure-drag.json`, held to the scripts that wrote it.
+    fn nose_pressure_drag_record() -> Value {
+        let text =
+            include_str!("../../../validation/fixtures/ork/openrocket-nose-pressure-drag.json");
+        let record: Value = serde_json::from_str(text).expect("the committed record is JSON");
+        for (name, bytes) in [
+            (
+                "nose_pressure_drag.py",
+                include_bytes!("../../../validation/oracles/openrocket/nose_pressure_drag.py")
+                    .as_slice(),
+            ),
+            (
+                "automatic_radius.py",
+                include_bytes!("../../../validation/oracles/openrocket/automatic_radius.py")
+                    .as_slice(),
+            ),
+        ] {
+            assert_eq!(
+                record["inputs_sha256"][name],
+                crate::real_flight::sha256_hex(bytes).as_str(),
+                "{name} changed since the record was written: rerun it"
+            );
+        }
+        record
+    }
+
+    /// hpr's pressure drag of the part `id` of a probe document at `mach`, at sea level and zero
+    /// angle of attack, put on `area_m2` instead of the rocket's reference area.
+    fn probe_part_pressure_drag(document: &str, id: &str, mach: f64, area_m2: f64) -> f64 {
+        // `V/ν` at sea level in the US Standard Atmosphere (a = 340.294 m/s, ν = 1.4607e-5 m²/s).
+        let reynolds_per_m = mach * 340.294 / 1.4607e-5;
+        let read = ork::read(document.as_bytes()).expect("a probe reads");
+        let layout = ork::rocket(&read.value.document)
+            .value
+            .layout()
+            .expect("a probe lays out");
+        let model = hpr_aero::AeroModel::new(&layout).expect("hpr models the probe");
+        let parts = model
+            .buildup_components(
+                &hpr_aero::Flow::axial(mach),
+                &hpr_aero::DragConditions::coasting(reynolds_per_m),
+            )
+            .expect("hpr's drag by part");
+        let mut found = parts.iter().filter(|part| part.id == id);
+        let part = found.next().expect("the part is in the buildup");
+        assert!(found.next().is_none(), "one part of that id");
+        part.drag.pressure * model.reference_area_m2() / area_m2
+    }
+
+    /// The nose `id` of a probe document as hpr reads it, and the largest aft radius of the
+    /// document's transitions, m (0 with none).
+    fn probe_nose(document: &str, id: &str) -> (hpr_design::NoseCone, f64) {
+        let read = ork::read(document.as_bytes()).expect("a probe reads");
+        let layout = ork::rocket(&read.value.document)
+            .value
+            .layout()
+            .expect("a probe lays out");
+        let nose = layout
+            .components
+            .iter()
+            .find_map(|placed| match &placed.part {
+                Part::NoseCone(nose) if placed.id == id => Some(nose.clone()),
+                _ => None,
+            })
+            .expect("the nose");
+        let widest_m = layout
+            .components
+            .iter()
+            .filter_map(|placed| match &placed.part {
+                Part::Transition(transition) => Some(transition.aft_radius_m),
+                _ => None,
+            })
+            .fold(0.0, f64::max);
+        (nose, widest_m)
+    }
+
+    /// M2.3c10 (ADR-273, ADR-349): a fineness-3 tangent ogive's pressure drag at Mach 1.3, 1.5
+    /// and 2, on the nose's base area, in hpr and in OpenRocket 24.12, beside the equivalent
+    /// cone's.
+    ///
+    /// The equivalent cone has the nose's length and base diameter: its half-angle `ε` has
+    /// `sin ε = 1/√(1 + 4f²)` for fineness `f`, and Niskanen's eq. B.4 gives it
+    /// `2.1 sin² ε + 0.5 sin ε/√(M² − 1)` from Mach 1.3 up (2009, appendix B). Eq. B.8 multiplies
+    /// that by `0.72 (κ − ½)² + 0.82` for an ogive, which is exactly 1 for a tangent ogive
+    /// (`κ = 1`), so the documented method gives a tangent ogive its equivalent cone's drag.
+    ///
+    /// - hpr's tangent ogive is the equivalent cone's at each Mach number: 0.15571, 0.13028 and
+    ///   0.10421.
+    /// - OpenRocket 24.12's cone, the control, is the same closed form, within 1e-12 at Mach 1.5
+    ///   and 2 and 4.8e-6 below it at Mach 1.3: its per-component pressure column is the nose's
+    ///   pressure drag alone.
+    /// - The same cone on a body that widens behind it, where the reference area is 2.56 times
+    ///   the nose's base, gives 1/2.56 of that: the column is on the rocket's reference area.
+    /// - OpenRocket 24.12's tangent ogive is 0.00098, 0.00073 and 0.00047: under 1% of the
+    ///   equivalent cone's at each. That is the defect OpenRocket's issue #3391
+    ///   (<https://github.com/openrocket/openrocket/issues/3391>) reports; a fix was merged
+    ///   after 24.12 (pull request #3431).
+    ///
+    /// Neither number is a measurement: whether the equivalent cone's value matches a measured
+    /// tangent ogive is open (#222, #616).
+    #[test]
+    fn a_tangent_ogive_s_pressure_drag_past_mach_1_beside_openrocket_24_12_s() {
+        let record = nose_pressure_drag_record();
+        assert_eq!(record["openrocket"], "24.12");
+        assert_eq!(
+            record["cites"],
+            "https://github.com/openrocket/openrocket/issues/3391"
+        );
+        let number = |value: &Value| value.as_f64().expect("a number");
+        let nose = record["nose_id"].as_str().expect("the nose's id");
+        let base_area_m2 = number(&record["nose_base_area_m2"]);
+        let fineness =
+            number(&record["nose_length_m"]) / (2.0 * (base_area_m2 / std::f64::consts::PI).sqrt());
+        assert!((fineness - 3.0).abs() < 1e-12, "fineness {fineness}");
+        let sin_half_angle = 1.0 / (1.0 + 4.0 * fineness * fineness).sqrt();
+        let equivalent_cone = |mach: f64| {
+            2.1 * sin_half_angle * sin_half_angle
+                + 0.5 * sin_half_angle / (mach * mach - 1.0).sqrt()
+        };
+        let designs = record["designs"].as_object().expect("designs");
+        assert_eq!(
+            designs.keys().map(String::as_str).collect::<Vec<_>>(),
+            ["cone", "cone, wider body", "tangent ogive"]
+        );
+        // Each row: the Mach number, the equivalent cone's coefficient, hpr's tangent ogive and
+        // OpenRocket 24.12's, all on the nose's base area; then OpenRocket's cone less the
+        // closed form, and how closely that is held. At Mach 1.5 and 2 OpenRocket's cone is the
+        // closed form within 1e-12; at Mach 1.3 it is 4.8e-6 below it (0.003%).
+        let pinned = [
+            (1.3, 0.155_71, 0.155_71, 0.000_98, -4.8e-6, 1e-7),
+            (1.5, 0.130_28, 0.130_28, 0.000_73, 0.0, 1e-12),
+            (2.0, 0.104_21, 0.104_21, 0.000_47, 0.0, 1e-12),
+        ];
+        // Each design's document and rows, with its reference area over the nose's base area:
+        // 1 where the nose's tube is the widest, 2.56 where the body widens to 80 mm.
+        let rows = |design: &str, area_ratio: f64| {
+            let design = &designs[design];
+            let document = design["document"].as_str().expect("a document").to_owned();
+            let machs = design["machs"].as_array().expect("machs").clone();
+            assert_eq!(machs.len(), pinned.len(), "one row a Mach number");
+            for (row, pin) in machs.iter().zip(&pinned) {
+                assert!((number(&row["mach"]) - pin.0).abs() < 1e-12);
+                let ratio = number(&row["reference_area_m2"]) / base_area_m2;
+                assert!((ratio - area_ratio).abs() < 1e-12, "area ratio {ratio}");
+            }
+            (document, machs)
+        };
+        let (ogive, ogive_rows) = rows("tangent ogive", 1.0);
+        let (cone, cone_rows) = rows("cone", 1.0);
+        let (wide, wide_rows) = rows("cone, wider body", 2.56);
+        // Each document holds the nose its name says, as hpr reads it. hpr gives a tangent ogive
+        // and a cone the same pressure drag here, so without this the documents could be
+        // swapped and every number below would still hold.
+        for (document, shape, widest_m) in [
+            (
+                &ogive,
+                hpr_design::NoseShape::Ogive { radius_ratio: 1.0 },
+                0.0,
+            ),
+            (&cone, hpr_design::NoseShape::Conical {}, 0.0),
+            (&wide, hpr_design::NoseShape::Conical {}, 0.04),
+        ] {
+            let (read, read_widest_m) = probe_nose(document, nose);
+            assert_eq!(read.shape, shape);
+            assert!((read.length_m - number(&record["nose_length_m"])).abs() < 1e-12);
+            let read_base_m2 = std::f64::consts::PI * read.base_radius_m * read.base_radius_m;
+            assert!((read_base_m2 - base_area_m2).abs() < 1e-12);
+            assert!(
+                (read_widest_m - widest_m).abs() < 1e-12,
+                "the body widens to {read_widest_m} m"
+            );
+        }
+        // OpenRocket's coefficient of the nose as it returns it, and put on the nose's base area.
+        let column = |row: &Value| number(&row["components"][nose]["pressure"]);
+        let theirs = |row: &Value| column(row) * number(&row["reference_area_m2"]) / base_area_m2;
+        for (at, (mach, cone_pin, ours_pin, theirs_pin, cone_gap_pin, cone_gap_within)) in
+            pinned.into_iter().enumerate()
+        {
+            let closed_form = equivalent_cone(mach);
+            assert!(
+                (closed_form - cone_pin).abs() < 5e-6,
+                "{mach}: {closed_form}"
+            );
+
+            // hpr: the tangent ogive is its equivalent cone, and so is the cone, on either body.
+            let ours = probe_part_pressure_drag(&ogive, nose, mach, base_area_m2);
+            assert!((ours - ours_pin).abs() < 5e-6, "hpr at Mach {mach}: {ours}");
+            assert!(
+                (ours - closed_form).abs() < 1e-12,
+                "hpr at Mach {mach}: {ours}"
+            );
+            for document in [&cone, &wide] {
+                let ours_cone = probe_part_pressure_drag(document, nose, mach, base_area_m2);
+                assert!(
+                    (ours_cone - closed_form).abs() < 1e-12,
+                    "hpr's cone at Mach {mach}: {ours_cone}"
+                );
+            }
+
+            // OpenRocket 24.12: the cone is the closed form, so the column read is the nose's
+            // pressure drag.
+            let cone_gap = theirs(&cone_rows[at]) - closed_form;
+            assert!(
+                (cone_gap - cone_gap_pin).abs() < cone_gap_within,
+                "OpenRocket's cone at Mach {mach}: {cone_gap:e} from the closed form"
+            );
+            // On the wider body the column is 1/2.56 of the cone's on its own tube, and the
+            // closed form again once put on the nose's base: it is on the reference area.
+            let wide_column = column(&wide_rows[at]);
+            assert!(
+                (wide_column * 2.56 - column(&cone_rows[at])).abs() < 1e-12,
+                "OpenRocket's cone on the wider body at Mach {mach}: {wide_column}"
+            );
+            let wide_gap = theirs(&wide_rows[at]) - closed_form;
+            assert!(
+                (wide_gap - cone_gap_pin).abs() < cone_gap_within,
+                "OpenRocket's cone on the wider body at Mach {mach}: {wide_gap:e}"
+            );
+
+            // The tangent ogive is under 1% of the equivalent cone's.
+            let their_ogive = theirs(&ogive_rows[at]);
+            assert!(
+                (their_ogive - theirs_pin).abs() < 5e-6,
+                "OpenRocket's tangent ogive at Mach {mach}: {their_ogive}"
+            );
+            assert!(
+                their_ogive > 0.0 && their_ogive < 0.01 * closed_form,
+                "OpenRocket's tangent ogive at Mach {mach}: {their_ogive} of {closed_form}"
+            );
+        }
+    }
 }

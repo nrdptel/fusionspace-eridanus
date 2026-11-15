@@ -1,0 +1,526 @@
+{
+  "cites": "https://github.com/openrocket/openrocket/issues/3391",
+  "command": "refs/venv/bin/python validation/oracles/openrocket/nose_pressure_drag.py validation/fixtures/ork/openrocket-nose-pressure-drag.json",
+  "designs": {
+    "cone": {
+      "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim nose pressure drag probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><referencetype>maximum</referencetype><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><finish>normal</finish><material type=\"bulk\" density=\"1000.0\">Probe</material><length>0.15</length><thickness>0.001</thickness><shape>conical</shape><aftradius>0.025</aftradius><aftshoulderradius>0.0</aftshoulderradius><aftshoulderlength>0.0</aftshoulderlength><aftshoulderthickness>0.0</aftshoulderthickness><aftshouldercapped>false</aftshouldercapped></nosecone><bodytube><name>Body</name><id>00000000-0000-4000-8000-000000000002</id><finish>normal</finish><material type=\"bulk\" density=\"1000.0\">Probe</material><length>0.5</length><thickness>0.0005</thickness><radius>0.025</radius><subcomponents><trapezoidfinset><name>Fins</name><id>00000000-0000-4000-8000-000000000003</id><position type=\"bottom\">0.0</position><fincount>3</fincount><rootchord>0.08</rootchord><tipchord>0.04</tipchord><sweeplength>0.04</sweeplength><height>0.05</height><thickness>0.003</thickness><crosssection>square</crosssection><finish>normal</finish><material type=\"bulk\" density=\"1000.0\">Probe</material></trapezoidfinset></subcomponents></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+      "machs": [
+        {
+          "components": {
+            "00000000-0000-4000-8000-000000000001": {
+              "base": 0.0,
+              "cd": 0.17943455980771045,
+              "friction": 0.023726052591854667,
+              "name": "Nose",
+              "pressure": 0.15570850721585577
+            },
+            "00000000-0000-4000-8000-000000000002": {
+              "base": 0.1923076923076923,
+              "cd": 0.34832925306187446,
+              "friction": 0.15602156075418216,
+              "name": "Body",
+              "pressure": 0.0
+            },
+            "00000000-0000-4000-8000-000000000003": {
+              "base": 0.0,
+              "cd": 0.08514815975070687,
+              "friction": 0.012820267953130472,
+              "name": "Fins",
+              "pressure": 0.0723278917975764
+            },
+            "00000000-0000-4000-8000-000000000098": {
+              "base": 0.1923076923076923,
+              "cd": 0.7832082921217055,
+              "friction": 0.21820841720542825,
+              "name": "Probe",
+              "pressure": 0.37269218260858494
+            },
+            "00000000-0000-4000-8000-000000000099": {
+              "base": 0.0,
+              "cd": 0.0,
+              "friction": 0.0,
+              "name": "Stage",
+              "pressure": 0.0
+            }
+          },
+          "mach": 1.3,
+          "reference_area_m2": 0.001963495408493621,
+          "rocket": {
+            "base": 0.1923076923076923,
+            "cd": 0.7832082921217055,
+            "friction": 0.21820841720542825,
+            "pressure": 0.37269218260858494
+          },
+          "warnings": [
+            "Body calculations may not be entirely accurate at supersonic speeds."
+          ]
+        },
+        {
+          "components": {
+            "00000000-0000-4000-8000-000000000001": {
+              "base": 0.0,
+              "cd": 0.15230207504464074,
+              "friction": 0.0220238560785031,
+              "name": "Nose",
+              "pressure": 0.13027821896613764
+            },
+            "00000000-0000-4000-8000-000000000002": {
+              "base": 0.16666666666666666,
+              "cd": 0.31149465210126054,
+              "friction": 0.14482798543459388,
+              "name": "Body",
+              "pressure": 0.0
+            },
+            "00000000-0000-4000-8000-000000000003": {
+              "base": 0.0,
+              "cd": 0.0855328195169605,
+              "friction": 0.011900493569019758,
+              "name": "Fins",
+              "pressure": 0.07363232594794074
+            },
+            "00000000-0000-4000-8000-000000000098": {
+              "base": 0.16666666666666666,
+              "cd": 0.7203951856967827,
+              "friction": 0.20255332222015626,
+              "name": "Probe",
+              "pressure": 0.3511751968099599
+            },
+            "00000000-0000-4000-8000-000000000099": {
+              "base": 0.0,
+              "cd": 0.0,
+              "friction": 0.0,
+              "name": "Stage",
+              "pressure": 0.0
+            }
+          },
+          "mach": 1.5,
+          "reference_area_m2": 0.001963495408493621,
+          "rocket": {
+            "base": 0.16666666666666666,
+            "cd": 0.7203951856967828,
+            "friction": 0.20255332222015626,
+            "pressure": 0.3511751968099599
+          },
+          "warnings": [
+            "Body calculations may not be entirely accurate at supersonic speeds."
+          ]
+        },
+        {
+          "components": {
+            "00000000-0000-4000-8000-000000000001": {
+              "base": 0.0,
+              "cd": 0.12220507386432185,
+              "friction": 0.01799041731994003,
+              "name": "Nose",
+              "pressure": 0.10421465654438182
+            },
+            "00000000-0000-4000-8000-000000000002": {
+              "base": 0.125,
+              "cd": 0.24330425554395602,
+              "friction": 0.11830425554395603,
+              "name": "Body",
+              "pressure": 0.0
+            },
+            "00000000-0000-4000-8000-000000000003": {
+              "base": 0.0,
+              "cd": 0.08503395027927584,
+              "friction": 0.009721042711902769,
+              "name": "Fins",
+              "pressure": 0.07531290756737306
+            },
+            "00000000-0000-4000-8000-000000000098": {
+              "base": 0.125,
+              "cd": 0.6206111802461054,
+              "friction": 0.1654578009996044,
+              "name": "Probe",
+              "pressure": 0.330153379246501
+            },
+            "00000000-0000-4000-8000-000000000099": {
+              "base": 0.0,
+              "cd": 0.0,
+              "friction": 0.0,
+              "name": "Stage",
+              "pressure": 0.0
+            }
+          },
+          "mach": 2.0,
+          "reference_area_m2": 0.001963495408493621,
+          "rocket": {
+            "base": 0.125,
+            "cd": 0.6206111802461054,
+            "friction": 0.1654578009996044,
+            "pressure": 0.330153379246501
+          },
+          "warnings": [
+            "Body calculations may not be entirely accurate at supersonic speeds."
+          ]
+        }
+      ]
+    },
+    "cone, wider body": {
+      "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim nose pressure drag probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><referencetype>maximum</referencetype><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><finish>normal</finish><material type=\"bulk\" density=\"1000.0\">Probe</material><length>0.15</length><thickness>0.001</thickness><shape>conical</shape><aftradius>0.025</aftradius><aftshoulderradius>0.0</aftshoulderradius><aftshoulderlength>0.0</aftshoulderlength><aftshoulderthickness>0.0</aftshoulderthickness><aftshouldercapped>false</aftshouldercapped></nosecone><bodytube><name>Body</name><id>00000000-0000-4000-8000-000000000002</id><finish>normal</finish><material type=\"bulk\" density=\"1000.0\">Probe</material><length>0.1</length><thickness>0.0005</thickness><radius>0.025</radius></bodytube><transition><name>Shoulder</name><id>00000000-0000-4000-8000-000000000004</id><finish>normal</finish><material type=\"bulk\" density=\"1000.0\">Probe</material><length>0.05</length><thickness>0.001</thickness><shape>conical</shape><foreradius>0.025</foreradius><aftradius>0.04</aftradius><foreshoulderradius>0.0</foreshoulderradius><foreshoulderlength>0.0</foreshoulderlength><aftshoulderradius>0.0</aftshoulderradius><aftshoulderlength>0.0</aftshoulderlength></transition><bodytube><name>Aft body</name><id>00000000-0000-4000-8000-000000000005</id><finish>normal</finish><material type=\"bulk\" density=\"1000.0\">Probe</material><length>0.4</length><thickness>0.0005</thickness><radius>0.04</radius><subcomponents><trapezoidfinset><name>Fins</name><id>00000000-0000-4000-8000-000000000003</id><position type=\"bottom\">0.0</position><fincount>3</fincount><rootchord>0.08</rootchord><tipchord>0.04</tipchord><sweeplength>0.04</sweeplength><height>0.05</height><thickness>0.003</thickness><crosssection>square</crosssection><finish>normal</finish><material type=\"bulk\" density=\"1000.0\">Probe</material></trapezoidfinset></subcomponents></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+      "machs": [
+        {
+          "components": {
+            "00000000-0000-4000-8000-000000000001": {
+              "base": 0.0,
+              "cd": 0.07003894786319176,
+              "friction": 0.009215312231998096,
+              "name": "Nose",
+              "pressure": 0.06082363563119367
+            },
+            "00000000-0000-4000-8000-000000000002": {
+              "base": 0.0,
+              "cd": 0.01211990398914527,
+              "friction": 0.01211990398914527,
+              "name": "Body",
+              "pressure": 0.0
+            },
+            "00000000-0000-4000-8000-000000000003": {
+              "base": 0.0,
+              "cd": 0.03318732194657759,
+              "friction": 0.004934239213149309,
+              "name": "Fins",
+              "pressure": 0.028253082733428282
+            },
+            "00000000-0000-4000-8000-000000000004": {
+              "base": 0.0,
+              "cd": 0.21928134458899998,
+              "friction": 0.008224808312840882,
+              "name": "Shoulder",
+              "pressure": 0.21105653627615908
+            },
+            "00000000-0000-4000-8000-000000000005": {
+              "base": 0.1923076923076923,
+              "cd": 0.269875077838222,
+              "friction": 0.07756738553052973,
+              "name": "Aft body",
+              "pressure": 0.0
+            },
+            "00000000-0000-4000-8000-000000000098": {
+              "base": 0.1923076923076923,
+              "cd": 0.6708772401192918,
+              "friction": 0.12193012770396192,
+              "name": "Probe",
+              "pressure": 0.3566394201076376
+            },
+            "00000000-0000-4000-8000-000000000099": {
+              "base": 0.0,
+              "cd": 0.0,
+              "friction": 0.0,
+              "name": "Stage",
+              "pressure": 0.0
+            }
+          },
+          "mach": 1.3,
+          "reference_area_m2": 0.005026548245743669,
+          "rocket": {
+            "base": 0.1923076923076923,
+            "cd": 0.6708772401192918,
+            "friction": 0.12193012770396192,
+            "pressure": 0.3566394201076376
+          },
+          "warnings": [
+            "Body calculations may not be entirely accurate at supersonic speeds."
+          ]
+        },
+        {
+          "components": {
+            "00000000-0000-4000-8000-000000000001": {
+              "base": 0.0,
+              "cd": 0.0594441002537343,
+              "friction": 0.008554170970086773,
+              "name": "Nose",
+              "pressure": 0.05088992928364752
+            },
+            "00000000-0000-4000-8000-000000000002": {
+              "base": 0.0,
+              "cd": 0.01125037635775321,
+              "friction": 0.01125037635775321,
+              "name": "Body",
+              "pressure": 0.0
+            },
+            "00000000-0000-4000-8000-000000000003": {
+              "base": 0.0,
+              "cd": 0.033342865602267964,
+              "friction": 0.004580238278853615,
+              "name": "Fins",
+              "pressure": 0.02876262732341435
+            },
+            "00000000-0000-4000-8000-000000000004": {
+              "base": 0.0,
+              "cd": 0.19160527145375103,
+              "friction": 0.007634729538510375,
+              "name": "Shoulder",
+              "pressure": 0.18397054191524065
+            },
+            "00000000-0000-4000-8000-000000000005": {
+              "base": 0.16666666666666666,
+              "cd": 0.2386690753562872,
+              "friction": 0.07200240868962055,
+              "name": "Aft body",
+              "pressure": 0.0
+            },
+            "00000000-0000-4000-8000-000000000098": {
+              "base": 0.16666666666666666,
+              "cd": 0.6009974202283297,
+              "friction": 0.11318240039253176,
+              "name": "Probe",
+              "pressure": 0.3211483531691312
+            },
+            "00000000-0000-4000-8000-000000000099": {
+              "base": 0.0,
+              "cd": 0.0,
+              "friction": 0.0,
+              "name": "Stage",
+              "pressure": 0.0
+            }
+          },
+          "mach": 1.5,
+          "reference_area_m2": 0.005026548245743669,
+          "rocket": {
+            "base": 0.16666666666666666,
+            "cd": 0.6009974202283296,
+            "friction": 0.11318240039253176,
+            "pressure": 0.3211483531691312
+          },
+          "warnings": [
+            "Body calculations may not be entirely accurate at supersonic speeds."
+          ]
+        },
+        {
+          "components": {
+            "00000000-0000-4000-8000-000000000001": {
+              "base": 0.0,
+              "cd": 0.04769641428995841,
+              "friction": 0.006987564077309255,
+              "name": "Nose",
+              "pressure": 0.04070885021264915
+            },
+            "00000000-0000-4000-8000-000000000002": {
+              "base": 0.0,
+              "cd": 0.009189987664327479,
+              "friction": 0.009189987664327479,
+              "name": "Body",
+              "pressure": 0.0
+            },
+            "00000000-0000-4000-8000-000000000003": {
+              "base": 0.0,
+              "cd": 0.03316052008931285,
+              "friction": 0.0037414155708077497,
+              "name": "Fins",
+              "pressure": 0.0294191045185051
+            },
+            "00000000-0000-4000-8000-000000000004": {
+              "base": 0.0,
+              "cd": 0.1624465511158637,
+              "friction": 0.00623650872186458,
+              "name": "Shoulder",
+              "pressure": 0.15621004239399913
+            },
+            "00000000-0000-4000-8000-000000000005": {
+              "base": 0.125,
+              "cd": 0.18381592105169586,
+              "friction": 0.05881592105169587,
+              "name": "Aft body",
+              "pressure": 0.0
+            },
+            "00000000-0000-4000-8000-000000000098": {
+              "base": 0.125,
+              "cd": 0.5026304343897839,
+              "friction": 0.09245422822762044,
+              "name": "Probe",
+              "pressure": 0.28517620616216355
+            },
+            "00000000-0000-4000-8000-000000000099": {
+              "base": 0.0,
+              "cd": 0.0,
+              "friction": 0.0,
+              "name": "Stage",
+              "pressure": 0.0
+            }
+          },
+          "mach": 2.0,
+          "reference_area_m2": 0.005026548245743669,
+          "rocket": {
+            "base": 0.125,
+            "cd": 0.502630434389784,
+            "friction": 0.09245422822762044,
+            "pressure": 0.28517620616216355
+          },
+          "warnings": [
+            "Body calculations may not be entirely accurate at supersonic speeds."
+          ]
+        }
+      ]
+    },
+    "tangent ogive": {
+      "document": "<?xml version='1.0' encoding='utf-8'?>\n<openrocket version=\"1.10\" creator=\"hpr-sim nose pressure drag probe\"><rocket><name>Probe</name><id>00000000-0000-4000-8000-000000000098</id><referencetype>maximum</referencetype><subcomponents><stage><name>Stage</name><id>00000000-0000-4000-8000-000000000099</id><subcomponents><nosecone><name>Nose</name><id>00000000-0000-4000-8000-000000000001</id><finish>normal</finish><material type=\"bulk\" density=\"1000.0\">Probe</material><length>0.15</length><thickness>0.001</thickness><shape>ogive</shape><shapeparameter>1.0</shapeparameter><aftradius>0.025</aftradius><aftshoulderradius>0.0</aftshoulderradius><aftshoulderlength>0.0</aftshoulderlength><aftshoulderthickness>0.0</aftshoulderthickness><aftshouldercapped>false</aftshouldercapped></nosecone><bodytube><name>Body</name><id>00000000-0000-4000-8000-000000000002</id><finish>normal</finish><material type=\"bulk\" density=\"1000.0\">Probe</material><length>0.5</length><thickness>0.0005</thickness><radius>0.025</radius><subcomponents><trapezoidfinset><name>Fins</name><id>00000000-0000-4000-8000-000000000003</id><position type=\"bottom\">0.0</position><fincount>3</fincount><rootchord>0.08</rootchord><tipchord>0.04</tipchord><sweeplength>0.04</sweeplength><height>0.05</height><thickness>0.003</thickness><crosssection>square</crosssection><finish>normal</finish><material type=\"bulk\" density=\"1000.0\">Probe</material></trapezoidfinset></subcomponents></bodytube></subcomponents></stage></subcomponents></rocket></openrocket>\n",
+      "machs": [
+        {
+          "components": {
+            "00000000-0000-4000-8000-000000000001": {
+              "base": 0.0,
+              "cd": 0.032702076599365734,
+              "friction": 0.03172049896841341,
+              "name": "Nose",
+              "pressure": 0.000981577630952325
+            },
+            "00000000-0000-4000-8000-000000000002": {
+              "base": 0.1923076923076923,
+              "cd": 0.34832925306187446,
+              "friction": 0.15602156075418216,
+              "name": "Body",
+              "pressure": 0.0
+            },
+            "00000000-0000-4000-8000-000000000003": {
+              "base": 0.0,
+              "cd": 0.08514815975070687,
+              "friction": 0.012820267953130472,
+              "name": "Fins",
+              "pressure": 0.0723278917975764
+            },
+            "00000000-0000-4000-8000-000000000098": {
+              "base": 0.1923076923076923,
+              "cd": 0.6364758089133608,
+              "friction": 0.22620286358198696,
+              "name": "Probe",
+              "pressure": 0.21796525302368153
+            },
+            "00000000-0000-4000-8000-000000000099": {
+              "base": 0.0,
+              "cd": 0.0,
+              "friction": 0.0,
+              "name": "Stage",
+              "pressure": 0.0
+            }
+          },
+          "mach": 1.3,
+          "reference_area_m2": 0.001963495408493621,
+          "rocket": {
+            "base": 0.1923076923076923,
+            "cd": 0.6364758089133608,
+            "friction": 0.22620286358198696,
+            "pressure": 0.21796525302368153
+          },
+          "warnings": [
+            "Body calculations may not be entirely accurate at supersonic speeds."
+          ]
+        },
+        {
+          "components": {
+            "00000000-0000-4000-8000-000000000001": {
+              "base": 0.0,
+              "cd": 0.030175485198063578,
+              "friction": 0.029444750715021187,
+              "name": "Nose",
+              "pressure": 0.0007307344830423924
+            },
+            "00000000-0000-4000-8000-000000000002": {
+              "base": 0.16666666666666666,
+              "cd": 0.31149465210126054,
+              "friction": 0.14482798543459388,
+              "name": "Body",
+              "pressure": 0.0
+            },
+            "00000000-0000-4000-8000-000000000003": {
+              "base": 0.0,
+              "cd": 0.0855328195169605,
+              "friction": 0.011900493569019758,
+              "name": "Fins",
+              "pressure": 0.07363232594794074
+            },
+            "00000000-0000-4000-8000-000000000098": {
+              "base": 0.16666666666666666,
+              "cd": 0.5982685958502056,
+              "friction": 0.20997421685667436,
+              "name": "Probe",
+              "pressure": 0.22162771232686462
+            },
+            "00000000-0000-4000-8000-000000000099": {
+              "base": 0.0,
+              "cd": 0.0,
+              "friction": 0.0,
+              "name": "Stage",
+              "pressure": 0.0
+            }
+          },
+          "mach": 1.5,
+          "reference_area_m2": 0.001963495408493621,
+          "rocket": {
+            "base": 0.16666666666666666,
+            "cd": 0.5982685958502056,
+            "friction": 0.20997421685667436,
+            "pressure": 0.22162771232686462
+          },
+          "warnings": [
+            "Body calculations may not be entirely accurate at supersonic speeds."
+          ]
+        },
+        {
+          "components": {
+            "00000000-0000-4000-8000-000000000001": {
+              "base": 0.0,
+              "cd": 0.024525897513252924,
+              "friction": 0.024052252764305098,
+              "name": "Nose",
+              "pressure": 0.0004736447489478247
+            },
+            "00000000-0000-4000-8000-000000000002": {
+              "base": 0.125,
+              "cd": 0.24330425554395602,
+              "friction": 0.11830425554395603,
+              "name": "Body",
+              "pressure": 0.0
+            },
+            "00000000-0000-4000-8000-000000000003": {
+              "base": 0.0,
+              "cd": 0.08503395027927584,
+              "friction": 0.009721042711902769,
+              "name": "Fins",
+              "pressure": 0.07531290756737306
+            },
+            "00000000-0000-4000-8000-000000000098": {
+              "base": 0.125,
+              "cd": 0.5229320038950365,
+              "friction": 0.17151963644396945,
+              "name": "Probe",
+              "pressure": 0.226412367451067
+            },
+            "00000000-0000-4000-8000-000000000099": {
+              "base": 0.0,
+              "cd": 0.0,
+              "friction": 0.0,
+              "name": "Stage",
+              "pressure": 0.0
+            }
+          },
+          "mach": 2.0,
+          "reference_area_m2": 0.001963495408493621,
+          "rocket": {
+            "base": 0.125,
+            "cd": 0.5229320038950365,
+            "friction": 0.17151963644396945,
+            "pressure": 0.226412367451067
+          },
+          "warnings": [
+            "Body calculations may not be entirely accurate at supersonic speeds."
+          ]
+        }
+      ]
+    }
+  },
+  "generated": "2026-11-14",
+  "inputs_sha256": {
+    "automatic_radius.py": "71c7eaafeebb0d076714f773ad72aa2ca8484dbd5b0a596c4e270aca82836da3",
+    "nose_pressure_drag.py": "cf4692cdc9552c6ece8b4a78259a006e402f49648988b29ff5d0703e314f9107"
+  },
+  "jar_sha256": "4959b72f52f5f607941e9722abbb7b7f0c4a38ebbbf84204a329db9f31c4f897",
+  "java": "17.0.20.1",
+  "jpype": "1.7.1",
+  "nose_base_area_m2": 0.001963495408493621,
+  "nose_id": "00000000-0000-4000-8000-000000000001",
+  "nose_length_m": 0.15,
+  "openrocket": "24.12",
+  "source": "validation/oracles/openrocket/nose_pressure_drag.py"
+}
