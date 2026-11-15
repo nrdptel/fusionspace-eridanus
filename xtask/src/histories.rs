@@ -10,8 +10,8 @@
 //! thrust, mass and center of mass are sampled at the times OpenRocket's flight of the design
 //! holds, and the flight is flown again on those histories in place of its own
 //! ([`hpr_sim::ThrustHistory`], [`hpr_sim::MassHistory`]). Its apogee must come back within
-//! `own::OWN_HISTORY_BOUND`, 0.05%, of the first, about a thirtieth of the 1.63% mean absolute gap to
-//! OpenRocket the split divides (ADR-349 §3).
+//! `own::OWN_HISTORY_BOUND`, 0.05%, of the first, about a thirtieth of the 1.63% mean absolute
+//! gap between the two programs' apogees on 60 real flights that the split divides (ADR-349 §3).
 
 use std::fmt::Write as _;
 use std::path::Path;

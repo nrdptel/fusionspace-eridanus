@@ -381,9 +381,9 @@ command, Python call or file option takes a history.
 > closed forms, not of either program's physics. A flight given its own thrust and mass, sampled
 > at OpenRocket's times, came back to its own apogee within 0.001% on the two public designs
 > tried, where the test holds it to 0.05%. In a vacuum it follows the closed forms to 1e-7 m/s
-> (both under *Verification*). Those closed forms are straight up, with no rotation: the
-> turning terms a history feeds are checked against their own formulas, not against a flight's
-> closed form. For how close either program comes to a real flight, rely on
+> (both under *Verification*). Those closed forms are straight up, with no rotation. Of the
+> turning terms, only a mass history's inertia about the nose tip and its rate are checked, each
+> against its own formula (also under *Verification*). For how close either program comes to a real flight, rely on
 > [Accuracy](../accuracy.md#real-flights).
 
 - **Between samples.** A history is a list of samples. Between two of them, $(t_i, y_i)$ and
@@ -416,8 +416,8 @@ command, Python call or file option takes a history.
   and $\mathbf{r}'$ are the history's slopes and $\mathbf{r}'' = 0$.
 - **What stays HPR Sim's under a mass history.** The inertia about the center of mass $I_c$. The
   inertia about $O$ comes from it by the parallel-axis theorem with the history's mass and
-  center, $I_O = I_c + m\,(|\mathbf{r}|^2 E - \mathbf{r}\mathbf{r}^{\mathsf{T}})$, with $E$
-  the identity matrix, so the inertia's difference from OpenRocket's lands in the split's
+  center, $I_O = I_c + m\,(|\mathbf{r}|^2 \mathbf{1} - \mathbf{r}\mathbf{r}^{\mathsf{T}})$, with
+  $\mathbf{1}$ the identity matrix, so the inertia's difference from OpenRocket's lands in the split's
   remainder. The motors' mass flow stays theirs in the nozzle terms, as under a thrust history.
   Where the history's mass still falls after the motors burn out, its $\dot m$ is in the turning
   terms with no nozzle flow to match, so jet damping is not the classical form there. That too
@@ -491,11 +491,12 @@ default settings. The numbers were measured on September 17, 2026.
   Sim's own drag and on a constant drag table.
 - A Valetudo flight to the ground costs about 1.3 ms, measured on October 9, 2026 (`docs/perf.md`).
 - Thrust and mass histories (`histories_fly_the_closed_form_of_a_varying_mass_under_constant_thrust`).
-  In a vacuum with $g = 9.80665$ m/s², long after its own motor's burnout, Valetudo rises
-  straight up at $v_0 = 50$ m/s (164 ft/s) on a thrust history of $F = 300$ N. Its mass history,
-  not Valetudo's own mass, starts at $m_0 = 10$ kg and falls at $q = 1.5$ kg/s, so
-  $\dot m = -q$. Its center of mass moves aft at 0.05 m/s (0.16 ft/s), so $r' = -0.05$ m/s along
-  $+z_B$, which points to the nose. After a time $\tau$, the nose tip rises at
+  In a vacuum, with gravity $g$ of 9.80665 m/s² (32.174 ft/s²), long after its own motor's
+  burnout, Valetudo rises straight up at a speed $v_0$ of 50 m/s (164 ft/s) on a thrust history
+  $F$ of 300 N. Its mass history, not Valetudo's own mass, starts at $m_0$, 10 kg, and falls at
+  $q$, 1.5 kg/s, so $\dot m = -q$. Its center of mass moves aft at 0.05 m/s (0.16 ft/s), so $r'$
+  is −0.05 m/s (−0.16 ft/s) along $+z_B$, which points to the nose. After a time $\tau$, the
+  nose tip rises at
 
   $$
   \begin{aligned}
@@ -510,8 +511,7 @@ default settings. The numbers were measured on September 17, 2026.
   too: the thrust on the design's burnt-out mass, 8.26 kg, gains $(F/m - g)\,\tau$, 53.0 m/s
   (174 ft/s) in 2 s, and the mass alone the closed form above with $F = 0$. With a corner 1 s in,
   where the mass flow halves and the center's rate drops to 0.02 m/s (0.066 ft/s), a step ends at the corner
-  and each piece follows its own closed form to 1e-7 m/s. Without that stop the flight misses by
-  1.2e-4 m/s.
+  and each piece follows its own closed form to 1e-7 m/s.
 - Under a mass history, the inertia about the nose tip and its rate are the parallel-axis
   formula and its derivative, with the history's mass and center and the design's own inertia
   about its center of mass, to 1e-12 and 1e-6 of their sizes
