@@ -472,10 +472,12 @@ default settings. The numbers were measured on September 17, 2026.
   The nose tip then rises at
   $v(\tau) = v_0 + ((F + 2 q r')/q) \ln(m_0/(m_0 - q\tau)) - g\tau$, which reaches 101.686 m/s
   after 2 s. The flight follows it to 1e-7 m/s. Without the term $2 q r'$ the speed would be
-  0.036 m/s higher.
+  0.036 m/s higher. Each history alone follows its own closed form to 1e-7 m/s too: the thrust
+  on the design's burnt-out 8.26 kg gains $(F/m - g)\,\tau$, 53.04 m/s in 2 s, and the mass
+  alone the closed form above with $F = 0$.
 - A mass history read back at 1 s gives the history's mass and center along the axis, with the
   design's offsets off the axis and inertia. A separation, before or after a history, refuses
-  it with the reason, and so does a mass shift.
+  it with the reason, and so do a mass shift and a mass release.
 - The own-history test (`cargo test -p xtask histories`). Two public designs are flown, sampled at
   the times of OpenRocket 24.12's own flight of each (`validation/fixtures/ork/openrocket-histories.json`),
   and flown again on those samples. On `pods-none`, a 251-sample flight to Mach 0.76, the apogee

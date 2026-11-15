@@ -1570,6 +1570,82 @@ fn histories_fly_the_closed_form_of_a_varying_mass_under_constant_thrust() {
     assert!(worst < 1e-7, "{worst}");
 }
 
+/// Valetudo from t = 10 s as above, rising at 50 m/s in a vacuum, on the histories given: the
+/// time and the nose tip's velocity at each step's end, the last at 12 s.
+fn climb_on(
+    thrust: Option<crate::histories::ThrustHistory>,
+    mass: Option<crate::histories::MassHistory>,
+) -> (Simulation, Vec<Vec<f64>>) {
+    let mut sim = valetudo(analytic_environment(UniformAir::vacuum(), G), capped(12.0));
+    if let Some(thrust) = thrust {
+        sim = sim.with_thrust_history(thrust).unwrap();
+    }
+    if let Some(mass) = mass {
+        sim = sim.with_mass_history(mass).unwrap();
+    }
+    let state = State {
+        position_enu_m: DVec3::new(0.0, 0.0, 500.0),
+        velocity_enu_m_s: DVec3::new(0.0, 0.0, 50.0),
+        attitude: DQuat::IDENTITY,
+        body_rate_rad_s: DVec3::ZERO,
+    };
+    let mut recorder = Recorder::new(vec![Channel::Time, Channel::Velocity], None).unwrap();
+    sim.run_free(10.0, state, &mut recorder).unwrap();
+    let rows = recorder.rows().to_vec();
+    assert_eq!(rows.last().unwrap()[0], 12.0);
+    (sim, rows)
+}
+
+/// A thrust history alone, on the design's own mass long after burnout (fixed, as is its center
+/// of mass): the nose tip speeds up at `F/m − g`, so `v(τ) = v0 + (F/m − g) τ`.
+#[test]
+fn a_thrust_history_alone_gives_the_closed_form_of_a_constant_acceleration() {
+    use crate::histories::ThrustHistory;
+
+    let thrust = ThrustHistory::new(vec![0.0, 12.0, 12.5], vec![300.0, 300.0, 0.0]).unwrap();
+    let (sim, rows) = climb_on(Some(thrust), None);
+    let m = sim.assembly().mass_properties(10.0).mass_kg;
+    let closed = |tau: f64| 50.0 + (300.0 / m - G) * tau;
+    let worst = rows
+        .iter()
+        .map(|row| (row[3] - closed(row[0] - 10.0)).abs())
+        .fold(0.0, f64::max);
+    // 53.0 m/s gained in 2 s on Valetudo's burnt-out 8.26 kg, where it would lose 19.6 m/s with
+    // no thrust.
+    assert!((m - 8.26).abs() < 0.005, "{m}");
+    assert!(
+        (closed(2.0) - closed(0.0) - 53.04).abs() < 0.01,
+        "{}",
+        closed(2.0)
+    );
+    assert!(worst < 1e-7, "{worst}");
+}
+
+/// A mass history alone, with no thrust after burnout: only its rates push, through `−2ṁ r′`,
+/// so `v(τ) = v0 + 2 r′ ln(m0 / (m0 − q τ)) − g τ`, the closed form above with `F = 0`.
+#[test]
+fn a_mass_history_alone_gives_the_closed_form_of_its_rates() {
+    use crate::histories::MassHistory;
+
+    let (m0, q, x_rate) = (10.0, 1.5, 0.05);
+    let mass = MassHistory::new(
+        vec![0.0, 10.0, 12.0, 30.0],
+        vec![m0, m0, m0 - 2.0 * q, m0 - 2.0 * q],
+        vec![1.2, 1.2, 1.2 + 2.0 * x_rate, 1.2 + 2.0 * x_rate],
+    )
+    .unwrap();
+    let (_, rows) = climb_on(None, Some(mass));
+    let r_rate = -x_rate;
+    let closed = |tau: f64| 50.0 + 2.0 * r_rate * (m0 / (m0 - q * tau)).ln() - G * tau;
+    let worst = rows
+        .iter()
+        .map(|row| (row[3] - closed(row[0] - 10.0)).abs())
+        .fold(0.0, f64::max);
+    // The rates' push, 2 r′ ln(10/7) = −0.036 m/s over 2 s, is 3.6e5 times the bound.
+    assert!((2.0 * r_rate * (10.0_f64 / 7.0).ln() + 0.035_668).abs() < 1e-6);
+    assert!(worst < 1e-7, "{worst}");
+}
+
 /// The same flight's mass properties, read back at a time inside a piece: the history's mass
 /// and center, the design's inertia about the center of mass.
 #[test]
@@ -1677,4 +1753,22 @@ fn a_flight_that_splits_or_moves_a_part_refuses_a_history_in_either_order() {
         .with_shifts(shift())
         .unwrap_err();
     assert_eq!(why(error), ("thrust", moves));
+    let release = || {
+        vec![crate::releases::MassRelease::new(
+            Trigger::Apogee,
+            "ballast",
+            0.01,
+        )]
+    };
+    let released = ballasted().with_releases(release()).unwrap();
+    assert_eq!(
+        why(released.with_thrust_history(thrust()).unwrap_err()),
+        ("thrust", moves)
+    );
+    let error = ballasted()
+        .with_mass_history(mass())
+        .unwrap()
+        .with_releases(release())
+        .unwrap_err();
+    assert_eq!(why(error), ("mass", moves));
 }
