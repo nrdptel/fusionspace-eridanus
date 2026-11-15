@@ -60,7 +60,7 @@ descent               4.4 m/s (15 ft/s) at landing under `Parachute`
 
 motor: 1 × H170M (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 12.14 s
-launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
+launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from 1.5 m (4.9 ft) of vertical rail above its aft end, in calm air
 note: the file's 1 recovery device flies as OpenRocket flies it. Each opens fully at its event, with the file's drag coefficient or OpenRocket's own. Once one opens, the rocket descends as a point under the open devices' drag alone
 warning: drag: issue #67: a cone-like nose's or shoulder's pressure drag reads high from Mach 0.8 (about twice a measured cone's at Mach 0.85, still +15% at 1.5). So the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are. This flight reaches Mach 0.84 at 1.7 s
 warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 against a measured 0.156 at Mach 0.9). So the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are. This flight reaches Mach 0.84 at 1.7 s
@@ -132,9 +132,11 @@ by its motors and delays in brackets. So the guide rocket's second is `[I175WS-9
 **`hpr sim` doesn't read the launch conditions saved with the file's simulations: give them as
 options.** Without them, the rocket flies from a 1.5 m (4.9 ft) vertical rail at sea level, at
 0° N, 0° E, in calm air. Set the site's elevation for every real field: air thins with height, and
-a rocket climbs higher from a high one. This flies the second configuration from a field 1,400 m
-(4,593 ft) up. The rail is 2.4 m (7.9 ft) long and tilted 5° toward the west, and a 4 m/s
-(8.9 mph) wind blows from the west:
+a rocket climbs higher from a high one. `--rail-length` runs from the rocket's aft end to the
+rail's top: from its fin tips if they reach past the tube. So take a standoff or blast deflector
+the rocket sits on off the rail's length as sold. This flies the second configuration from a field
+1,400 m (4,593 ft) up. The rail's top is 2.4 m (7.9 ft) above the rocket's aft end, the rail is
+tilted 5° toward the west, and a 4 m/s (8.9 mph) wind blows from the west:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/guides/level-1.ork --config 2 --elevation 1400 --rail-length 2.4 --inclination 85 --heading 270 --wind 4 --wind-from 270`; written by `cargo xtask cli`; do not edit -->
 
@@ -154,7 +156,7 @@ descent               4.9 m/s (16 ft/s) at landing under `Parachute`
 
 motor: 1 × I175WS (from the bundled catalog, as of 2026-10-28) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 10.97 s
-launched at 0.00000° N, 0.00000° E, 1400 m (4593 ft) above sea level, from a 2.4 m (7.9 ft) rail 85° above the horizon, leaning toward 270° T, in a 4 m/s (9 mph) wind from 270° T
+launched at 0.00000° N, 0.00000° E, 1400 m (4593 ft) above sea level, from 2.4 m (7.9 ft) of rail above its aft end, 85° above the horizon, leaning toward 270° T, in a 4 m/s (9 mph) wind from 270° T
 note: the file's 1 recovery device flies as OpenRocket flies it. Each opens fully at its event, with the file's drag coefficient or OpenRocket's own. Once one opens, the rocket descends as a point under the open devices' drag alone
 warning: drag: issue #67: a cone-like nose's or shoulder's pressure drag reads high from Mach 0.8 (about twice a measured cone's at Mach 0.85, still +15% at 1.5). So the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are. This flight reaches Mach 0.87 at 1.8 s
 warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 against a measured 0.156 at Mach 0.9). So the apogee, top speed and drift read low, and the flutter margin and largest dynamic pressure look better than they are. This flight reaches Mach 0.87 at 1.8 s

@@ -290,8 +290,11 @@ $$
 ### Phases
 
 - **Pad.**
-  - The rocket starts at rest with the rail's attitude. Its aft end (its body's aft end or its
-    aft-most nozzle exit) is at the rail's foot.
+  - The rocket starts at rest with the rail's attitude. Its aft end is at the rail's foot: the
+    aft-most point it stands on, of its body, of any part on its outside or of its nozzle exits.
+    A swept fin whose tip's trailing edge reaches past the tube counts there, as do a tube fin's
+    and a pod's aft ends. So the rail's length runs from that point to the rail's top, and a
+    standoff under the rocket shortens it.
   - It stays until the force along the rail, $\mathbf{T}_{20} \cdot \mathbf{z}_B$ with $\boldsymbol{\omega} = 0$, exceeds friction
     $\mu \lvert \mathbf{T}_{20\perp} \rvert$ (the liftoff event). $\mathbf{T}_{20\perp}$ is the rail's reaction: the weight, the aerodynamic
     force and the mass terms across the axis.

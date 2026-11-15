@@ -141,6 +141,12 @@ stands on the rail: 0.94 m (3.1 ft) for Valetudo. So the summary gives both:
 A flight ends when its center of mass comes back down to the site's height, so a landing is at
 height 0 by this measure.
 
+The rail exit speed is the center of mass's speed over the ground when the aft edge of the
+aft-most rail button or lug passes the rail's top, or the rocket's aft end does with no guides
+([Flight](flight.md#phases)). On the rail the rocket doesn't turn, so every point of it moves
+alike, but the center of mass also slides forward as the propellant burns. So the printed speed
+reads a little higher than the guides'.
+
 ### Peaks
 
 Each peak comes with its time and its height. The watcher looks at every step the integrator takes

@@ -33,6 +33,61 @@ fn guides_are_the_buttons_aft_edges_and_the_aft_end() {
 }
 
 #[test]
+fn the_aft_end_is_the_aft_most_point_of_the_outside() {
+    // #1254: a swept fin whose tip's trailing edge runs past the tube's aft end is what the
+    // rocket stands on, so the aft end is there, not at the tube's end; the rail's travel and the
+    // start move with it. Before, a fin set counted only by its root chord.
+    let rocket = design("synthetic-54mm-three-fin");
+    let mut assembly = rocket.assemble("i175").unwrap();
+    let before = Guides::of(&assembly);
+    let body_aft = assembly.layout.length_m;
+    let fins = assembly
+        .layout
+        .components
+        .iter_mut()
+        .find(|c| matches!(c.part, Part::FinSet(_)))
+        .unwrap();
+    let Part::FinSet(set) = &mut fins.part else {
+        unreachable!("matched above");
+    };
+    // 200 mm root flush with the tube's end, 100 mm tip, swept 150 mm: the tip's trailing edge
+    // sits 50 mm past the tube.
+    let (root, tip, sweep) = (0.2, 0.1, 0.15);
+    set.planform = hpr_design::FinPlanform::Trapezoidal {
+        root_chord_m: root,
+        tip_chord_m: tip,
+        span_m: 0.08,
+        sweep_m: sweep,
+    };
+    fins.fore_station_m = body_aft - root;
+    fins.length_m = root;
+    let nozzle = assembly
+        .motors
+        .iter()
+        .map(|motor| motor.nozzle_station_m())
+        .fold(f64::NEG_INFINITY, f64::max);
+    let tip_trailing_edge = body_aft - root + sweep + tip;
+    assert!(tip_trailing_edge > nozzle.max(body_aft) + 0.04);
+    let guides = Guides::of(&assembly);
+    assert!((guides.aft_station_m - tip_trailing_edge).abs() < 1e-12);
+    // 50 mm less travel on the same rail than with the tube's end at its foot.
+    let shorter = before.exit_travel_m(2.44) - guides.exit_travel_m(2.44);
+    assert!(
+        (shorter - (tip_trailing_edge - before.aft_station_m)).abs() < 1e-12,
+        "{shorter}"
+    );
+    // A fin set with no copies isn't there.
+    let fins = assembly
+        .layout
+        .components
+        .iter_mut()
+        .find(|c| matches!(c.part, Part::FinSet(_)))
+        .unwrap();
+    fins.copies.clear();
+    assert_eq!(Guides::of(&assembly).aft_station_m, before.aft_station_m);
+}
+
+#[test]
 fn rail_exit_is_when_the_last_button_leaves() {
     // Loft lesson L26: the rail had no friction or button geometry, and "the last button clears"
     // was blamed for a gap the oracle couldn't show. Here the rocket is guided until the aft edge
