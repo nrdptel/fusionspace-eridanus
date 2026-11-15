@@ -3,11 +3,11 @@
 OpenRocket's issue #3391 (https://github.com/openrocket/openrocket/issues/3391, opened
 2026-10-14) reports that OpenRocket 24.12 gives a tangent-ogive nose almost no pressure drag
 above Mach 1, where the method in its own technical documentation gives the drag of a cone of the
-same length and base diameter. Its maintainers confirmed the report and merged a fix to the
+same length and base diameter. A maintainer confirmed the report and merged a fix to the
 development branch on 2026-11-02 (pull request #3431); by 2026-11-14 no release carried it. This
 script measures what the 24.12 release gives: it runs OpenRocket 24.12 as an external oracle on
-three small designs written here and records the nose's own drag columns at Mach 1.3, 1.5 and
-2.0, at zero angle of attack.
+three small designs written here and records the rocket's and each part's drag columns at
+Mach 1.3, 1.5 and 2.0, at zero angle of attack.
 
 The designs are invented:
 

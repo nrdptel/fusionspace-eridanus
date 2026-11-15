@@ -4176,6 +4176,33 @@ mod tests {
         part.drag.pressure * model.reference_area_m2() / area_m2
     }
 
+    /// The nose `id` of a probe document as hpr reads it, and the largest aft radius of the
+    /// document's transitions, m (0 with none).
+    fn probe_nose(document: &str, id: &str) -> (hpr_design::NoseCone, f64) {
+        let read = ork::read(document.as_bytes()).expect("a probe reads");
+        let layout = ork::rocket(&read.value.document)
+            .value
+            .layout()
+            .expect("a probe lays out");
+        let nose = layout
+            .components
+            .iter()
+            .find_map(|placed| match &placed.part {
+                Part::NoseCone(nose) if placed.id == id => Some(nose.clone()),
+                _ => None,
+            })
+            .expect("the nose");
+        let widest_m = layout
+            .components
+            .iter()
+            .filter_map(|placed| match &placed.part {
+                Part::Transition(transition) => Some(transition.aft_radius_m),
+                _ => None,
+            })
+            .fold(0.0, f64::max);
+        (nose, widest_m)
+    }
+
     /// M2.3c10 (ADR-273, ADR-349): a fineness-3 tangent ogive's pressure drag at Mach 1.3, 1.5
     /// and 2, on the nose's base area, in hpr and in OpenRocket 24.12, beside the equivalent
     /// cone's.
@@ -4250,6 +4277,28 @@ mod tests {
         let (ogive, ogive_rows) = rows("tangent ogive", 1.0);
         let (cone, cone_rows) = rows("cone", 1.0);
         let (wide, wide_rows) = rows("cone, wider body", 2.56);
+        // Each document holds the nose its name says, as hpr reads it. hpr gives a tangent ogive
+        // and a cone the same pressure drag here, so without this the documents could be
+        // swapped and every number below would still hold.
+        for (document, shape, widest_m) in [
+            (
+                &ogive,
+                hpr_design::NoseShape::Ogive { radius_ratio: 1.0 },
+                0.0,
+            ),
+            (&cone, hpr_design::NoseShape::Conical {}, 0.0),
+            (&wide, hpr_design::NoseShape::Conical {}, 0.04),
+        ] {
+            let (read, read_widest_m) = probe_nose(document, nose);
+            assert_eq!(read.shape, shape);
+            assert!((read.length_m - number(&record["nose_length_m"])).abs() < 1e-12);
+            let read_base_m2 = std::f64::consts::PI * read.base_radius_m * read.base_radius_m;
+            assert!((read_base_m2 - base_area_m2).abs() < 1e-12);
+            assert!(
+                (read_widest_m - widest_m).abs() < 1e-12,
+                "the body widens to {read_widest_m} m"
+            );
+        }
         // OpenRocket's coefficient of the nose as it returns it, and put on the nose's base area.
         let column = |row: &Value| number(&row["components"][nose]["pressure"]);
         let theirs = |row: &Value| column(row) * number(&row["reference_area_m2"]) / base_area_m2;
