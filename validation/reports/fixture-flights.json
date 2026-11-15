@@ -648,5 +648,83 @@
       }
     ],
     "largest_apogee_move": 2.3e-6
+  },
+  "split": {
+    "flown_by_both": 68,
+    "split": 68,
+    "not_split": [
+      {
+        "reason": "lacks_input",
+        "flights": 0
+      },
+      {
+        "reason": "refused",
+        "flights": 0
+      },
+      {
+        "reason": "own_history",
+        "flights": 0
+      }
+    ],
+    "whole_on_split": {
+      "mean_percent": 0.71,
+      "median_percent": 0.5,
+      "mean_absolute_percent": 1.61
+    },
+    "whole_on_both": {
+      "mean_percent": 0.71,
+      "median_percent": 0.5,
+      "mean_absolute_percent": 1.61
+    },
+    "parts": [
+      {
+        "name": "thrust",
+        "mean_percent": 0.0,
+        "median_percent": 0.0,
+        "mean_absolute_percent": 0.0,
+        "dominates": 0,
+        "large": 0
+      },
+      {
+        "name": "mass",
+        "mean_percent": 0.1,
+        "median_percent": 0.0,
+        "mean_absolute_percent": 0.1,
+        "dominates": 0,
+        "large": 1
+      },
+      {
+        "name": "drag",
+        "mean_percent": 0.58,
+        "median_percent": 0.44,
+        "mean_absolute_percent": 1.57,
+        "dominates": 59,
+        "large": 31
+      },
+      {
+        "name": "other",
+        "mean_percent": 0.03,
+        "median_percent": 0.01,
+        "mean_absolute_percent": 0.26,
+        "dominates": 9,
+        "large": 4
+      }
+    ],
+    "air": {
+      "mean_percent": -0.15,
+      "median_percent": -0.17,
+      "mean_absolute_percent": 0.25
+    },
+    "left": {
+      "mean_percent": 0.18,
+      "median_percent": 0.19,
+      "mean_absolute_percent": 0.33
+    },
+    "drag_first": {
+      "mean_percent": 0.58,
+      "median_percent": 0.44,
+      "mean_absolute_percent": 1.57
+    },
+    "largest_own_history_percent": 0.018
   }
 }
