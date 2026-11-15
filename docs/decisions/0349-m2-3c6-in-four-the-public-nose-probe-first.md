@@ -87,22 +87,23 @@ release every report here flies, still has the defect.
      time, and a mass and center of mass against time, given from outside in place of its
      own, each documented with its equation and with what stays HPR Sim's; each is pinned by
      a test against a closed form and by a test that a flight given the histories of its own
-     run, sampled at the times OpenRocket's own flight of that design holds, comes back
-     within 0.05% of its own apogee, on at least two public designs, one of them passing
-     Mach 1; a flight that can't take a history is refused with an error that says why.
+     run, sampled at the times a committed record of OpenRocket's own flight of that design
+     holds, comes back within 0.05% of its own apogee, on at least two public designs, one of
+     them passing Mach 1; a flight that can't take a history is refused with an error that
+     says why.
    - **M2.3c12 The split in the fixture report.** *Done when:* the fixture report gives, as
      aggregates over the flights both simulators fly, the HPR Sim less OpenRocket apogee
      split into thrust, mass and drag parts, each input swapped for OpenRocket's in that
      order, the rest named as other, with the air on its own line inside other, as a fourth
-     swap after drag; each part's mean, its mean absolute value and the count of flights it
-     dominates, a part dominating a flight when its absolute value is the largest among
-     thrust, mass, drag and other; the drag part in the drag-first order beside it; each
-     flight not split counted under one of three reasons: OpenRocket's record lacks an
-     input, HPR Sim refuses a history, or the flight fails M2.3c11's own-history test at
-     OpenRocket's sample times; the whole's mean and mean absolute value on the flights
-     split, beside the same on every flight both fly; at least half the flights both fly
-     split, or a decision record giving the count and why; a test holds the parts, the
-     air's among them, to sum to the whole on every flight split; `fixture-flights --check`
+     swap after drag; over the flights split, each part's mean, its mean absolute value and
+     the count of flights it dominates, a part dominating a flight when its absolute value
+     is the largest among thrust, mass, drag and other; the drag part in the drag-first
+     order beside it; each flight not split counted under one of three reasons: OpenRocket's
+     record lacks an input, HPR Sim refuses a history or fails the swapped flight, or the
+     flight fails M2.3c11's own-history test at OpenRocket's sample times; the whole's mean
+     and mean absolute value on the flights split, beside the same on every flight both
+     fly; at least half the flights both fly split; a test holds the parts, the air's
+     among them, to sum to the whole on every flight split; `fixture-flights --check`
      holds the section; the page that explains the report says what each part is and how
      far to trust it.
    - **M2.3c13 The tangent-ogive nose's line.** *Done when:* the drag part splits off the
@@ -122,35 +123,39 @@ release every report here flies, still has the defect.
    - **The air is a swap too.** OpenRocket flies the standard atmosphere through the pad's
      temperature and pressure, HPR Sim the day's whole profile. The report's existing flight
      of HPR Sim in OpenRocket's air uses HPR Sim's own inputs, so it is not a part of this
-     split. The air's line is the flight with thrust, mass and drag swapped, flown in
-     OpenRocket's air.
+     split. The air's line is the apogee of the flight with thrust, mass and drag swapped,
+     less the apogee of the same flight in OpenRocket's air.
    - **The mass history** replaces the mass and the center of mass. The inertia stays HPR
      Sim's, so its difference lands in other. M2.3c11's page also says which sets each of
      these, the history or HPR Sim: the time origin, the datum the center of mass is
      measured from, the thrust's correction for the air's pressure, and the mass flow behind
      jet damping. A history is interpolated so that those rates stay finite.
    - **The own-history test** samples a flight's histories at OpenRocket's times, since the
-     error it bounds is the resampling's: OpenRocket's steps are coarser than HPR Sim's, and
-     a short burn rebuilt from coarse samples can gain or lose impulse. The 0.05% is about a
-     thirtieth of the 1.63% mean absolute gap the parts divide. M2.3c12 holds every flight
-     it splits to the same test.
+     error it bounds is the resampling's: a history arrives at OpenRocket's own time steps,
+     and a short burn rebuilt from those samples can gain or lose impulse. The 0.05% is
+     about a thirtieth of the 1.63% mean absolute gap the parts divide. M2.3c12 holds every
+     flight it splits to the same test.
+   - **The floor.** If fewer than half the flights both fly are split, M2.3c12 stays open. A
+     decision record then gives, from the report, the flights lost under each of the three
+     reasons and the measured cause of the largest, before anything is narrowed.
    - **The nose's line** is taken first inside the drag step: on thrust and mass, the nose's
      pressure drag is swapped, then the rest of the drag, so the line and the rest sum to the
      drag part. OpenRocket's columns are per instance: on the probe, the rocket's pressure
-     drag is the nose's plus three times the fins' column. A nose that repeats, on pods, is
-     multiplied by its count. M2.3c13's oracle records the nose's column against Mach number
+     drag is the nose's plus three times the fins' column. A nose that repeats, on pods, would
+     need its count: M2.3c13 shows that on a probe before it swaps one. M2.3c13's oracle records the nose's column against Mach number
      for each design it swaps; M2.3c11's records the rocket's drag coefficient only.
    - **Only aggregates leave this machine** ([ADR-151][adr-151]), and ADR-151 governs.
      M2.3c13's set may be small, and an aggregate over one or two flights is a flight's own
-     number. If the line can't be published for that reason, M2.3c13 ends with a decision
-     record that gives the count and says so, and M2.3c6's clause stays shown as unmet.
+     number. If the line can't be published for that reason, M2.3c13 stays open, with a
+     decision record that gives the count and says so, and M2.3c6's clause stays shown as
+     unmet.
 
 **What doesn't change.** M2.3c6's *done when* is whole across the four. The split, its order,
 other and the sum test are M2.3c12's, on the inputs M2.3c11 records and flies. The nose's line,
 its counted flights and #222's flight are M2.3c13's. The probe, its citation and the pinned
 test are M2.3c10's. No clause is narrowed. The increments add to it: the conical controls,
 the air's line, the own-history test with its bound, the closed lists of reasons, the floor
-on the flights split, and each increment's own documentation and checks.
+on the flights split with no way round it, and each increment's own documentation and checks.
 
 **What M2.3c10 found.** [The probe][probe] is a 150 mm nose on a 50 mm tube, the shape of
 #3391's report, with three fins on the tube. Pressure drag coefficients of the nose,

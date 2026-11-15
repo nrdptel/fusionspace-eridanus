@@ -4540,8 +4540,8 @@ The nose's pressure drag coefficient on its base area, at zero angle of attack:
 
 - **HPR Sim's number** is its code's output for the nose, not the formula. It agrees with the equivalent
   cone's to $10^{-12}$.
-- **OpenRocket's numbers** are what OpenRocket's own drag calculation reports for the nose, read through
-  its Java interface.
+- **OpenRocket's numbers** are what OpenRocket's own drag calculation reports for the nose, read from
+  OpenRocket itself by a script.
 - **The control** is the number headed "OpenRocket 24.12, cone": the same rocket with a conical nose of the
   same length and base. OpenRocket 24.12 returns the closed form for it, within $10^{-12}$ at Mach 1.5 and
   2 and $4.8 \times 10^{-6}$ low at Mach 1.3. The cause of that small miss wasn't examined. So the number
@@ -4555,8 +4555,9 @@ The nose's pressure drag coefficient on its base area, at zero angle of attack:
   the defect [OpenRocket's issue #3391](https://github.com/openrocket/openrocket/issues/3391) reported
   on this shape. A maintainer confirmed it on November 2, 2026, and a fix was merged to OpenRocket's
   development branch that day ([pull request #3431](https://github.com/openrocket/openrocket/pull/3431)).
-  Above Mach 1 the nose's joint angle had fed the cone formula, where the method takes the equivalent
-  cone's angle. By November 14, 2026 no release carried the fix.
+  Above Mach 1, OpenRocket 24.12 fed the cone formula the angle at which the nose meets the body tube,
+  where the method takes the equivalent cone's half-angle. For a tangent ogive that angle is almost zero,
+  and so is the drag. By November 14, 2026 no release carried the fix.
 
 What follows: at Mach 1.3, 1.5 and 2, OpenRocket 24.12 gives this nose almost none of the pressure drag
 its own documented method gives. The probe says nothing between Mach 1 and 1.3. How much of the apogee
@@ -4568,10 +4569,11 @@ What stays open: whether the equivalent cone's value matches a measured tangent 
 [#616, the nose scored against measured tangent ogives](https://github.com/nrdptel/fusionspace-eridanus/issues/616)).
 Published NACA and Air Force reports, read in a
 [research note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/ogive-wave-drag.md)
-and not yet committed as data, lean one way near Mach 1.5. They put a nose of this shape at 0.110 to
-0.119, with single readings from 0.103 to 0.136, against HPR Sim's 0.130. If they hold, HPR Sim's nose
-drag is high there, which lowers its apogee. Near Mach 2 the reports disagree with each other by 10% to
-20%, so nothing is settled there. The MIL-HDBK-762 sample calculation
+and not yet committed as data, lean one way near Mach 1.5. Their means put a nose of this shape at 0.110
+to 0.119, against HPR Sim's 0.130. One report's four cases, as the note works them out, span 0.103 to
+0.136. If the means hold, HPR Sim's nose drag is high there, which lowers its apogee. From Mach 2 to 3
+the reports disagree with each other by 10% to 20%, so nothing is settled there. The MIL-HDBK-762
+sample calculation
 [above](#drag-against-mil-hdbk-762s-sample-calculation) works a 3-caliber tangent ogive by the
 handbook's methods.
 
