@@ -953,6 +953,73 @@ mod tests {
         }
     }
 
+    /// Each part is its own swap, added to the ones before, and only the air's line flies
+    /// OpenRocket's air. OpenRocket's inputs are scaled so each swap moves the apogee by far more
+    /// than a slip could hide in: 5% more thrust, 20% more mass, 30% more drag, and an
+    /// "OpenRocket's air" 1,500 m higher than the day's. Each step is flown here on its own and
+    /// the split's parts must be those flights', bit for bit.
+    #[test]
+    fn each_part_is_its_own_swap() {
+        let flights = public_flights();
+        let public = &flights[0];
+        let mut scaled = public.flight.clone();
+        for row in scaled["rows"].as_array_mut().unwrap() {
+            for (column, factor) in [(THRUST, 1.05), (MASS, 1.2), (DRAG, 1.3)] {
+                if let Some(value) = row[column].as_f64() {
+                    row[column] = json!(factor * value);
+                }
+            }
+        }
+        let high_m = 1500.0;
+        let build = |air: Air| match air {
+            Air::Day => public.build(),
+            Air::OpenRocket => public.build_at(high_m),
+        };
+        let own_m = fly(&public.build().unwrap()).unwrap();
+        let openrocket_m = scaled["apogee_m"].as_f64().unwrap();
+        let split = split(
+            &build,
+            &fly,
+            &scaled,
+            (own_m, openrocket_m),
+            OWN_HISTORY_BOUND,
+        )
+        .unwrap()
+        .unwrap();
+
+        let inputs = OpenRocketInputs::of(&scaled).unwrap().unwrap();
+        let thrust = |s: Simulation| s.with_thrust_history(inputs.thrust.clone()).unwrap();
+        let mass = |s: Simulation| s.with_mass_history(inputs.mass.clone()).unwrap();
+        let drag = |s: Simulation| s.with_drag_table(inputs.drag.clone());
+        let day = || public.build().unwrap();
+        let expected = Parts::of(Apogees {
+            own_m,
+            thrust_m: fly(&thrust(day())).unwrap(),
+            mass_m: fly(&mass(thrust(day()))).unwrap(),
+            drag_m: fly(&drag(mass(thrust(day())))).unwrap(),
+            air_m: fly(&drag(mass(thrust(public.build_at(high_m).unwrap())))).unwrap(),
+            drag_first_m: fly(&drag(day())).unwrap(),
+            openrocket_m,
+        });
+        let parts = split.parts;
+        eprintln!(
+            "scaled {}: thrust {:+.2}% mass {:+.2}% drag {:+.2}% air {:+.2}% drag first {:+.2}%",
+            public.file, parts.thrust, parts.mass, parts.drag, parts.air, parts.drag_first
+        );
+        assert_eq!(parts, expected);
+        assert_eq!(parts.check_sum(), Ok(()));
+        // More thrust raises the apogee, more drag lowers it, thinner air raises it; each by more
+        // than 1% of OpenRocket's apogee. The apogee is a weak probe of the mass, which can raise
+        // it or lower it: 20% more moves it by more than 0.2% here.
+        assert!(parts.thrust < -1.0, "{}", parts.thrust);
+        assert!(parts.mass.abs() > 0.2, "{}", parts.mass);
+        assert!(parts.drag > 1.0, "{}", parts.drag);
+        assert!(parts.air < -1.0, "{}", parts.air);
+        assert!(parts.drag_first > 1.0, "{}", parts.drag_first);
+        // The drag part depends on the order once thrust and mass differ.
+        assert!((parts.drag - parts.drag_first).abs() > 0.05);
+    }
+
     /// Each reason a flight is not split, on a public flight: the record lacks an input; HPR Sim
     /// refuses a history (times that don't rise, a negative thrust); the own-history test fails
     /// (here, against a bound of zero).

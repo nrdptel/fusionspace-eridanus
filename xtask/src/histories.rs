@@ -426,10 +426,20 @@ pub(crate) mod tests {
 
     impl Public {
         pub(crate) fn build(&self) -> Result<Simulation, String> {
+            self.build_at(self.site.height_m)
+        }
+
+        /// The flight from the same place `height_m` above the ellipsoid, in the standard air
+        /// there.
+        pub(crate) fn build_at(&self, height_m: f64) -> Result<Simulation, String> {
+            let site = Geodetic {
+                height_m,
+                ..self.site
+            };
             Simulation::new(
                 &self.rocket,
                 &self.configuration,
-                Environment::standard(self.site).map_err(|e| e.to_string())?,
+                Environment::standard(site).map_err(|e| e.to_string())?,
                 self.rail,
                 FlightSettings {
                     accept_design_errors: true,
