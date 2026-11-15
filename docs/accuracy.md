@@ -1212,7 +1212,7 @@ own inputs in place of its own, one after another, each added to the ones before
 Each swap moves HPR Sim's apogee, and that move is the swap's *part*: the apogee before the swap
 less the apogee after it, over OpenRocket's apogee. A positive part means the input as HPR Sim
 has it flies higher than OpenRocket's does. So a positive drag part means HPR Sim's drag is the
-lower of the two on that flight. *Other* is everything after the third swap, in two pieces.
+lower of the two over that flight. *Other* is everything after the third swap, in two pieces.
 *The air* is the fourth swap's part. *The rest* is what remains once all four inputs are
 OpenRocket's: HPR Sim's apogee on them less OpenRocket's own. Thrust, mass, drag and other sum
 to the whole on every flight, and the run that writes the report stops on a flight where they
@@ -1242,7 +1242,7 @@ What the rows say:
 - **Drag is most of the gap.** It is the largest part on 59 of the 68 flights, and its mean
   absolute value, 1.57%, is nearly the whole's 1.61% ([report][fixture-report]). Its sign varies from flight to flight:
   its mean is +0.58%. Swapped first instead of third, its mean, median and mean absolute value
-  are the drag row's to the report's two decimals. No other order was tried.
+  are the drag row's to the report's two decimals. The report takes no other order.
 - **Thrust is nil.** Both codes fly the same thrust curve for each motor. Swapping in the
   thrust OpenRocket made of it moves the apogee by 0.00% on average, to the report's two
   decimals ([report][fixture-report]).
@@ -1251,7 +1251,7 @@ What the rows say:
 - **The air is small.** With thrust, mass and drag already OpenRocket's, HPR Sim flies 0.15%
   lower on average in the day's profile than in OpenRocket's air (mean absolute 0.25%,
   [report][fixture-report]).
-- **The rest holds what no swap touches.** With all four inputs OpenRocket's, HPR Sim still
+- **The rest holds what no swap replaces.** With all four inputs OpenRocket's, HPR Sim still
   flies 0.18% above OpenRocket on average ([report][fixture-report]). What stays HPR Sim's through every swap is in
   it: the [normal force](glossary.md#normal-force), the
   [center of pressure](glossary.md#center-of-pressure-cp), the damping of a turn, the inertia,
@@ -1259,17 +1259,19 @@ What the rows say:
   apart here.
 
 **The mass swap and stability.** After the mass swap HPR Sim flies OpenRocket's center of mass
-against its own center of pressure. Where the two codes put the center of mass apart, that is a
-stability margin neither code flies on its own. What it does to the apogee enters at the mass
-row and stays in every later flight, so the rest takes it back. On the one flight where the mass
-part is over 1%, the rest is over 1% with the other sign ([report][fixture-report]). An open issue follows that flight
+against its own center of pressure. Where the two codes put the center of mass apart, that
+moves HPR Sim's stability margin. What it does to the apogee is in the mass row, and no later
+swap undoes it: the last flight keeps it, and the rest is measured from that flight to
+OpenRocket's own. So the rest can take back what the mass row holds. On the one flight where
+the mass part is over 1%, the rest is over 1% with the other sign, which fits that reading and
+doesn't prove it ([report][fixture-report]). An open issue follows that flight
 ([#1486](https://github.com/nrdptel/fusionspace-eridanus/issues/1486)): the lead is that the two
 codes weigh the rocket the same but put its center of mass apart.
 
 As a worked example on a design anyone can run, take
 [`mach-probe`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/ork/history-flights/mach-probe.ork), an invented test
 rocket that both codes fly faster than sound in still standard air. HPR Sim's apogee is 3.06%
-above OpenRocket's, and the drag part is 3.03%: HPR Sim's drag is the lower there. Thrust and
+above OpenRocket's, and the drag part is 3.03%: over that flight HPR Sim's drag is the lower. Thrust and
 mass are each under 0.005%, the rest is under 0.05%, and the air's part is zero, since both fly
 the same air. On the slower
 [`pods-none`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/ork/pod-flights/pods-none.ork) the whole is 0.81% and the

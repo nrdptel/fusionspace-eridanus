@@ -25,11 +25,13 @@
 //! split to it. The parts depend on the order: the drag part is also taken with the drag swapped
 //! first, on HPR Sim's own thrust and mass ([`Parts::drag_first`]).
 //!
-//! What is never swapped stays HPR Sim's in every flight: the normal force, the center of
-//! pressure, the pitch damping and the inertia. So after the mass swap HPR Sim flies OpenRocket's
-//! center of mass against its own center of pressure, a stability margin neither program flies.
-//! What that does to the apogee enters at the mass part and stays in every later flight, so the
-//! rest takes it back ([`GapSplit::mass_returned`] counts the flights where both are large).
+//! What no swap replaces stays HPR Sim's in every flight: its normal force, its center of
+//! pressure, its damping of a turn and its inertia. So after the mass swap HPR Sim flies
+//! OpenRocket's center of mass against its own center of pressure, which moves its stability
+//! margin. What that does to the apogee is in the mass part, and no later swap undoes it: the
+//! last flight keeps it, and the rest is measured from that flight to OpenRocket's own. So the
+//! rest can take back what the mass part holds ([`GapSplit::mass_opposed_by_rest`] counts the
+//! flights where both are large with opposite signs; it doesn't show they are one effect).
 //!
 //! A flight is not split, and is counted under the first of [`NOT_SPLIT`] that applies, when
 //! OpenRocket's record lacks an input for it, when HPR Sim refuses one of the histories or fails
@@ -152,7 +154,7 @@ fn cell(row: &Value, column: usize) -> Result<Option<f64>, String> {
 ///   every earlier one's.
 ///
 /// Which curve a swapped flight reads follows HPR Sim's own motors, which still set the burnout
-/// under a thrust history; both programs fly the same curve, so the two clocks agree.
+/// under a thrust history; both programs fly the same thrust curve for each motor.
 ///
 /// A row whose Mach number is zero or whose coefficient OpenRocket gives as not a number is
 /// passed over. `rows` are `(thrust, drag coefficient, Mach number)`.
@@ -541,8 +543,9 @@ pub(crate) struct GapSplit {
     /// to two significant digits; the test's bound is 0.05.
     pub largest_own_history_percent: f64,
     /// The flights where the mass part and the rest are each over [`LARGE_PERCENT`] with
-    /// opposite signs: a change in stability the mass swap made and the rest took back.
-    pub mass_returned: usize,
+    /// opposite signs. It fits a change in stability that the mass swap makes and the rest
+    /// takes back; it doesn't show the two are one effect.
+    pub mass_opposed_by_rest: usize,
 }
 
 impl GapSplit {
@@ -596,7 +599,7 @@ impl GapSplit {
             left: over(&|parts| parts.left),
             drag_first: over(&|parts| parts.drag_first),
             largest_own_history_percent: crate::histories::significant(100.0 * largest, 2),
-            mass_returned: split
+            mass_opposed_by_rest: split
                 .iter()
                 .filter(|s| {
                     let (mass, left) = (s.parts.mass, s.parts.left);
@@ -663,14 +666,14 @@ impl GapSplit {
         {
             size.consistent(what)?;
         }
-        // Each mean is rounded to 0.005: five of them, then three.
-        if self.mass_returned > self.parts[1].large {
+        if self.mass_opposed_by_rest > self.parts[1].large {
             return fail(format!(
-                "the rest takes the mass part back on {} flights, more than the {} where the \
+                "the rest opposes a large mass part on {} flights, more than the {} where the \
                  mass part is large",
-                self.mass_returned, self.parts[1].large
+                self.mass_opposed_by_rest, self.parts[1].large
             ));
         }
+        // Each mean is rounded to 0.005: five of them, then three.
         let sum: f64 = self.parts.iter().map(|p| p.mean_percent).sum();
         if (sum - self.whole_on_split.mean_percent).abs() > 0.025 + 1e-9 {
             return fail(format!(
@@ -773,18 +776,27 @@ impl GapSplit {
              power off, read from OpenRocket's own flight, so it leaves out how OpenRocket's \
              drag depends on the Reynolds number and the angle of attack away from that \
              flight's path. The mass swap leaves HPR Sim's inertia and its center of pressure in \
-             place, and no swap touches its normal force or its pitch damping: those are in the \
-             rest. So where the two simulators put the center of mass apart, HPR Sim flies \
-             OpenRocket's center of mass against its own center of pressure from the mass swap \
-             on, a stability margin neither simulator flies on its own. What that does to the \
-             apogee enters at the mass row and stays in every later flight, so the rest takes \
-             it back: on {} of the {} flights where the mass part is over {LARGE_PERCENT}%, the \
-             rest is over {LARGE_PERCENT}% with the other sign. The air's line is taken with \
-             the drag table already in place, so it holds the air's density and speed of sound \
-             and not what the air does to friction. Each flight split also passed M2.3c11's test: flown on its \
-             own thrust and mass sampled at OpenRocket's times, it came back to its own apogee \
-             within 0.05%; the largest miss was {}%.\n",
-            self.mass_returned, self.parts[1].large, self.largest_own_history_percent
+             place, and no swap replaces its normal force, its center of pressure or its damping \
+             of a turn: those are in the rest. So where the two simulators put the center of \
+             mass apart, HPR Sim flies OpenRocket's center of mass against its own center of \
+             pressure from the mass swap on, which moves its stability margin. What that does \
+             to the apogee is in the mass row, and no later swap undoes it: the last flight \
+             keeps it, and the rest is measured from that flight to OpenRocket's own. So the \
+             rest can take back what the mass row holds. Of the {} {} where the mass part \
+             is over {LARGE_PERCENT}%, the rest is over {LARGE_PERCENT}% with the other sign on \
+             {}, which fits that reading and doesn't prove it. The air's line is taken with the \
+             drag table already in place, so it holds the air's density and speed of sound and \
+             not what the air does to friction. Each flight split also passed M2.3c11's test: \
+             flown on its own thrust and mass sampled at OpenRocket's times, it came back to \
+             its own apogee within 0.05%; the largest miss was {}%.\n",
+            self.parts[1].large,
+            if self.parts[1].large == 1 {
+                "flight"
+            } else {
+                "flights"
+            },
+            self.mass_opposed_by_rest,
+            self.largest_own_history_percent
         );
         let _ = writeln!(
             page,
@@ -1159,10 +1171,10 @@ mod tests {
         (parts.whole, Ok(SplitFlight { parts, own_history }))
     }
 
-    /// The rest takes the mass part back where both are large with opposite signs: counted on
-    /// the first flight, not where they share a sign, nor where the rest is small.
+    /// A large mass part with a large rest of the other sign is counted: on the first flight,
+    /// not where they share a sign, nor where the rest or the mass part is small.
     #[test]
-    fn a_mass_part_the_rest_takes_back_is_counted() {
+    fn a_large_mass_part_the_rest_opposes_is_counted() {
         let of = |mass: f64, left: f64| {
             let parts = Parts {
                 whole: 0.3 + mass + left,
@@ -1183,19 +1195,22 @@ mod tests {
         };
         let s = GapSplit::of(&[of(4.0, -3.9), of(2.0, 1.5), of(-1.5, 0.5), of(0.2, -2.0)]);
         assert_eq!(s.parts[1].large, 3);
-        assert_eq!(s.mass_returned, 1);
+        assert_eq!(s.mass_opposed_by_rest, 1);
         assert_eq!(s.check_consistent(4), Ok(()));
         let page = s.to_markdown();
         assert!(
-            page.contains("on 1 of the 3 flights where the mass part is over 1%"),
+            page.contains(
+                "Of the 3 flights where the mass part is over 1%, the rest is over 1% with the \
+                 other sign on 1,"
+            ),
             "{page}"
         );
         let mut more = s.clone();
-        more.mass_returned = 4;
+        more.mass_opposed_by_rest = 4;
         assert!(
             more.check_consistent(4)
                 .unwrap_err()
-                .contains("takes the mass part back")
+                .contains("opposes a large mass part")
         );
     }
 

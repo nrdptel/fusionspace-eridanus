@@ -221,12 +221,14 @@ the errors among them, since the split needs no log; over the 60 compared with a
   flights: its median is 0.00% and it is over 1% on one flight. [#1486][i-1486] follows that
   flight: the lead is that the two programs weigh the rocket the same and put its center of
   mass apart.
-- **What no swap touches** stays HPR Sim's in every flight: the normal force, the center of
-  pressure, the pitch damping and the inertia. So after the mass swap HPR Sim flies OpenRocket's
-  center of mass against its own center of pressure, a stability margin neither program flies.
-  What that does to the apogee enters at the mass row and stays in every later flight, so the
-  rest takes it back. The report counts it: on the 1 flight where the mass part is over 1%, the
-  rest is over 1% with the other sign.
+- **What no swap replaces** stays HPR Sim's in every flight: its normal force, its center of
+  pressure, its damping of a turn and its inertia. So after the mass swap HPR Sim flies
+  OpenRocket's center of mass against its own center of pressure, which moves its stability
+  margin. What that does to the apogee is in the mass row, and no later swap undoes it: the
+  last flight keeps it, and the rest is measured from that flight to OpenRocket's own. So the
+  rest can take back what the mass row holds. The report counts the flights where both are over
+  1% with opposite signs: the 1 flight where the mass part is over 1%. That fits the reading
+  and doesn't prove it.
 
 On the two public designs, held by a test: `pods-none` +0.81% with drag +0.79%, and `mach-probe`
 +3.06% with drag +3.03%; thrust and mass under 0.005%, and under 0.05% left after the swaps.
