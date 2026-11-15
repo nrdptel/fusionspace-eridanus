@@ -73,9 +73,9 @@ REASONS = {
 }
 
 #: How far, relative, the largest altitude may move from `fixture_flights.py`'s and the flight
-#: still be the one it recorded. OpenRocket 24.12 is not bit-identical from one run to the next:
-#: two runs of this script on 2026-11-15 gave 52 of the 79 apogees apart, by up to 6.5e-7. The
-#: bound is 15 times that, and a fiftieth of the own-history test's 5e-4.
+#: still be the one it recorded. OpenRocket 24.12 is not bit-identical from one run to the next,
+#: so each flight records its move (`apogee_moved`), and the fixture report gives the largest.
+#: The bound is a fiftieth of the own-history test's 5e-4.
 SAME_FLIGHT = 1e-5
 
 #: The columns of each row, in order.
@@ -244,7 +244,11 @@ def collection(scratch):
         if entry.get("lacks") == "not_flown":
             continue
         held = recorded.get(flight["flight_id"], {}).get("apogee_m")
-        if held is None or abs(entry["apogee_m"] - held) > SAME_FLIGHT * abs(held):
+        if held is None:
+            entry["lacks"] = "another_flight"
+            continue
+        entry["apogee_moved"] = (entry["apogee_m"] - held) / held
+        if abs(entry["apogee_moved"]) > SAME_FLIGHT:
             entry["lacks"] = "another_flight"
     return {
         "conditions_sha256": sha256(fixture_flights.CONDITIONS),

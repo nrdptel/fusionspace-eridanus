@@ -101,7 +101,7 @@ The two halves of the flights compared (M2.7a, ADR-322, ADR-332). A flight is he
 
 ## OpenRocket's inputs along its flights
 
-For M2.3c11 (ADR-349), `validation/oracles/openrocket/histories.py` flies each flight again as OpenRocket's flights above are flown and records, at OpenRocket's own time steps from launch to apogee, its thrust, mass, center of mass and drag coefficient. The record stays on this machine. M2.3c12 flies HPR Sim on those inputs to split the gap between the two simulators by cause. Of the 80 flights OpenRocket was given, 79 hold every input. Each of the rest is counted under the first reason, from the oracle's own list, that applies to it.
+For M2.3c11 (ADR-349), `validation/oracles/openrocket/histories.py` flies each flight again as OpenRocket's flights above are flown and records, at OpenRocket's own time steps from launch to apogee, its thrust, mass, center of mass and drag coefficient. The record stays on this machine. M2.3c12 flies HPR Sim on those inputs to split the gap between the two simulators by cause. Of the 80 flights OpenRocket was given, 79 hold every input. Each of the rest is counted under the first reason, from the oracle's own list, that applies to it. OpenRocket isn't bit-identical from one run to the next: run again, the flights' apogees moved from those its record above holds by up to 1.7e-6 of themselves, so a flight is taken as the recorded one within 1e-5.
 
 | why a flight lacks an input | flights |
 |---|---:|

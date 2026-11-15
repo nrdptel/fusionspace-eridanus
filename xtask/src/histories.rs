@@ -51,7 +51,7 @@ pub(crate) const REASONS: [(&str, &str); 6] = [
 ];
 
 /// How many of the collection's flights hold OpenRocket's inputs, and why the rest don't.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub(crate) struct Inputs {
     /// The flights the record holds: every flight OpenRocket was given.
     pub flights: usize,
@@ -59,6 +59,10 @@ pub(crate) struct Inputs {
     pub holding_all: usize,
     /// The rest, by the oracle's reason: every reason of [`REASONS`], in its order.
     pub lacking: Vec<Tally>,
+    /// The largest move of a flight's apogee from the one OpenRocket's flight record holds,
+    /// relative, over the flights compared, to two significant digits: OpenRocket's own spread
+    /// from one run to the next.
+    pub largest_apogee_move: f64,
 }
 
 impl Inputs {
@@ -101,8 +105,10 @@ impl Inputs {
              machine. M2.3c12 flies HPR Sim on those inputs to split the gap between the two \
              simulators by cause. Of the {} flights OpenRocket was given, {} hold every input. \
              Each of the rest is counted under the first reason, from the oracle's own list, \
-             that applies to it.\n",
-            self.flights, self.holding_all
+             that applies to it. OpenRocket isn't bit-identical from one run to the next: run \
+             again, the flights' apogees moved from those its record above holds by up to {:.1e} \
+             of themselves, so a flight is taken as the recorded one within 1e-5.\n",
+            self.flights, self.holding_all, self.largest_apogee_move
         );
         let _ = writeln!(
             page,
@@ -113,6 +119,15 @@ impl Inputs {
         }
         page
     }
+}
+
+/// `value` rounded to `digits` significant digits.
+fn significant(value: f64, digits: i32) -> f64 {
+    if value == 0.0 {
+        return 0.0;
+    }
+    let scale = 10f64.powi(digits - 1 - value.abs().log10().floor() as i32);
+    (value * scale).round() / scale
 }
 
 /// The collection's record, checked against the scripts and conditions that wrote it, counted.
@@ -166,8 +181,18 @@ pub(crate) fn collection_inputs(root: &Path, conditions: &str) -> Result<Inputs,
     let flights = record["flights"]
         .as_array()
         .ok_or_else(|| format!("{COLLECTION_RECORD} has no flights"))?;
+    let mut largest: f64 = 0.0;
+    for flight in flights {
+        if let Some(moved) = flight.get("apogee_moved") {
+            let moved = moved.as_f64().filter(|m| m.is_finite()).ok_or_else(|| {
+                format!("{COLLECTION_RECORD}: an apogee move that isn't a number")
+            })?;
+            largest = largest.max(moved.abs());
+        }
+    }
     let mut counted = Inputs {
         flights: flights.len(),
+        largest_apogee_move: significant(largest, 2),
         holding_all: 0,
         lacking: REASONS
             .iter()
@@ -529,6 +554,7 @@ mod tests {
     fn inputs(holding_all: usize, lacking: [usize; 6]) -> Inputs {
         Inputs {
             flights: holding_all + lacking.iter().sum::<usize>(),
+            largest_apogee_move: 5.8e-7,
             holding_all,
             lacking: REASONS
                 .iter()
@@ -572,5 +598,8 @@ mod tests {
             assert!(page.contains(&format!("| {words} |")), "{words}");
         }
         assert!(page.contains("Of the 80 flights OpenRocket was given, 77 hold every input."));
+        assert!(page.contains("by up to 5.8e-7 of themselves"));
+        assert_eq!(significant(5.756_123e-7, 2), 5.8e-7);
+        assert_eq!(significant(-0.012_49, 2), -0.012);
     }
 }
